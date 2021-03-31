@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6892c983_1ed56790",
+        "filename": "docsyserver/README.md",
+        "patchSetId": 66
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "704056c3_209b3b4a",
+      "range": {
+        "startLine": 4,
+        "startChar": 8,
+        "endLine": 4,
+        "endChar": 14
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f923c503_0b2dc4a1",
@@ -64,6 +88,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "78a79538_ee78595e",
+        "filename": "docsyserver/README.md",
+        "patchSetId": 66
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f923c503_0b2dc4a1",
+      "range": {
+        "startLine": 7,
+        "startChar": 27,
+        "endLine": 7,
+        "endChar": 34
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2f2c6a5b_a7bda09f",
@@ -77,6 +125,30 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "FYI: there\u0027s a way to get notifications from Gerrit when CLs land https://g3doc.corp.google.com/company/teams/gerritcodereview/users/cloud-pubsub.md?cl\u003dhead if polling becomes an issue.",
+      "range": {
+        "startLine": 9,
+        "startChar": 14,
+        "endLine": 9,
+        "endChar": 33
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4d980b3e_40f5fc76",
+        "filename": "docsyserver/README.md",
+        "patchSetId": 66
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Neat, added some text to the design doc so this doesn\u0027t get forgotten.",
+      "parentUuid": "2f2c6a5b_a7bda09f",
       "range": {
         "startLine": 9,
         "startChar": 14,
@@ -133,6 +205,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1bfcda98_cf91aca6",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Yes, it shows up in the list of \"files\" in any CL. Added comments to the constant.",
+      "parentUuid": "53edeb6a_4f7cdace",
+      "range": {
+        "startLine": 62,
+        "startChar": 17,
+        "endLine": 62,
+        "endChar": 38
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "492184fa_e7d0c622",
@@ -146,6 +242,30 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "suggestion: Have a file for manual tests against a test Skia Infra CL, similar to https://skia-review.googlesource.com/c/buildbot/+/389931/5/golden/go/ingestion_processors/buildbucketlookup_manual_test.go where I polled BB directly just to make sure.",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 14
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "331204a1_92b6d495",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "That seems like I\u0027m just testing /go/gerrit, which already has its own tests.",
+      "parentUuid": "492184fa_e7d0c622",
       "range": {
         "startLine": 1,
         "startChar": 8,
@@ -179,6 +299,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4b437eda_f242b0f8",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f58c41ce_f45ff7a7",
+      "range": {
+        "startLine": 43,
+        "startChar": 18,
+        "endLine": 43,
+        "endChar": 21
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a92b09e4_c0b4c0c9",
@@ -192,6 +336,30 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "Maybe also a require.Error() before line 56 to avoid a less-obvious nil-dereference if no error is returned.\n\nSame suggestion for other error tests.",
+      "range": {
+        "startLine": 56,
+        "startChar": 9,
+        "endLine": 56,
+        "endChar": 17
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "994c41db_47449df6",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a92b09e4_c0b4c0c9",
       "range": {
         "startLine": 56,
         "startChar": 9,
@@ -225,6 +393,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cc1654df_6f41464b",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4a12686c_bf22d579",
+      "range": {
+        "startLine": 129,
+        "startChar": 11,
+        "endLine": 129,
+        "endChar": 14
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "139ac77e_9f2898d5",
@@ -238,6 +430,30 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "ElementsMatch is a good option if you don\u0027t care about the order of either list.",
+      "range": {
+        "startLine": 159,
+        "startChar": 9,
+        "endLine": 159,
+        "endChar": 14
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2b29807b_e05a04cc",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "139ac77e_9f2898d5",
       "range": {
         "startLine": 159,
         "startChar": 9,
@@ -271,6 +487,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7f26dc0_53ccdb53",
+        "filename": "docsyserver/go/docset/docset.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done. Created //go/now since this seems to be done in multiple places. I haven\u0027t updated all the call sites outside of docsyserver to switch to the new module.",
+      "parentUuid": "ebcffe81_32fd0489",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 8
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5dd55b8e_5b2b3e0e",
@@ -284,6 +524,30 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "It was a surprise to me that New called FileSystem. I expect New() functions to not do too much - would it be possible/feasible to have New *not* call FileSystem but rely on the client to call it? I think it would also make the tests easier to follow (e.g. Remove a lot of assertions from setupForTests*)",
+      "range": {
+        "startLine": 149,
+        "startChar": 18,
+        "endLine": 149,
+        "endChar": 28
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b3b6983d_fc283fbb",
+        "filename": "docsyserver/go/docset/docset.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5dd55b8e_5b2b3e0e",
       "range": {
         "startLine": 149,
         "startChar": 18,
@@ -317,6 +581,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "864a05b8_781a2a7e",
+        "filename": "docsyserver/go/docset/docset.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c1d587a2_15a190d5",
+      "range": {
+        "startLine": 369,
+        "startChar": 2,
+        "endLine": 369,
+        "endChar": 29
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1afd70f5_46c1af9c",
@@ -330,6 +618,30 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "After using the passed in context, this should check for a context err every tick or use a for and a select statement to stop as soon as the context expires.\n\nThis would allow adding a test for Start()",
+      "range": {
+        "startLine": 370,
+        "startChar": 43,
+        "endLine": 370,
+        "endChar": 44
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5bf3764b_114dce87",
+        "filename": "docsyserver/go/docset/docset.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1afd70f5_46c1af9c",
       "range": {
         "startLine": 370,
         "startChar": 43,
@@ -363,6 +675,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "dbb6c07f_6260a8bc",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa974400_27f5ef2b",
+      "range": {
+        "startLine": 48,
+        "startChar": 24,
+        "endLine": 48,
+        "endChar": 31
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "86fd1fba_d192b56d",
@@ -376,6 +712,30 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "See suggestion in docset for simplifying the assertions in setupForTest* (which are hard for me to follow as is).",
+      "range": {
+        "startLine": 66,
+        "startChar": 9,
+        "endLine": 66,
+        "endChar": 16
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5cb5fc64_2798a0bc",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "86fd1fba_d192b56d",
       "range": {
         "startLine": 66,
         "startChar": 9,
@@ -409,6 +769,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ac943f72_e9b09300",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9234a45d_a13229ff",
+      "range": {
+        "startLine": 68,
+        "startChar": 4,
+        "endLine": 68,
+        "endChar": 22
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "555fb42a_94e1de2f",
@@ -422,6 +806,30 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "I\u0027m confused here - isn\u0027t this assertion already in setupForTest? setupForTest* both seem to do a lot of assertions for \"setup\" work.",
+      "range": {
+        "startLine": 110,
+        "startChar": 9,
+        "endLine": 110,
+        "endChar": 19
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0c19e99e_b7c4b46b",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "555fb42a_94e1de2f",
       "range": {
         "startLine": 110,
         "startChar": 9,
@@ -455,6 +863,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f0f3c13d_91426e11",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "85845dbc_f482a4e3",
+      "range": {
+        "startLine": 125,
+        "startChar": 24,
+        "endLine": 125,
+        "endChar": 31
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5aef0e3e_536895b6",
@@ -468,6 +900,30 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "suggestion: require.Contains() about the error message",
+      "range": {
+        "startLine": 150,
+        "startChar": 9,
+        "endLine": 150,
+        "endChar": 14
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0f89ddb6_047185b7",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aef0e3e_536895b6",
       "range": {
         "startLine": 150,
         "startChar": 9,
@@ -501,6 +957,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "72af0361_a94d1f75",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c3ec713c_ce26cfa1",
+      "range": {
+        "startLine": 164,
+        "startChar": 1,
+        "endLine": 164,
+        "endChar": 6
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ac747647_7600e605",
@@ -514,6 +994,30 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "ubernit: Outside",
+      "range": {
+        "startLine": 222,
+        "startChar": 24,
+        "endLine": 222,
+        "endChar": 31
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1d6ae1ad_bcd48bb4",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ac747647_7600e605",
       "range": {
         "startLine": 222,
         "startChar": 24,
@@ -547,6 +1051,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1f81c90c_1a602f25",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e22de391_f62f147e",
+      "range": {
+        "startLine": 266,
+        "startChar": 32,
+        "endLine": 266,
+        "endChar": 39
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bb6199a6_07909c1f",
@@ -570,6 +1098,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "26ea541a_9bfc26b3",
+        "filename": "docsyserver/go/docsy/docsy.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bb6199a6_07909c1f",
+      "range": {
+        "startLine": 20,
+        "startChar": 1,
+        "endLine": 20,
+        "endChar": 7
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "acf6321b_78d5230b",
@@ -583,6 +1135,30 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "What about also (or instead of) using trace.StartSpan()? I have found that gives me more actionable data than just the SummaryMetric.",
+      "range": {
+        "startLine": 51,
+        "startChar": 13,
+        "endLine": 51,
+        "endChar": 27
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "09b633b6_02154ac0",
+        "filename": "docsyserver/go/docsy/docsy.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "This function doesn\u0027t call into a lot of other Go code, it just calls out to the hugo executable so Tracing won\u0027t really be of much use.",
+      "parentUuid": "acf6321b_78d5230b",
       "range": {
         "startLine": 51,
         "startChar": 13,
@@ -629,6 +1205,24 @@
       "writtenOn": "2021-03-30T16:02:18Z",
       "side": 1,
       "message": "What\u0027s this file for? Something to let us embed fiddles and skotties? Should it be mentioned in the Readme or somewhere?",
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c8c12f3e_7624be99",
+        "filename": "docsyserver/images/head-end.html",
+        "patchSetId": 66
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:25:24Z",
+      "side": 1,
+      "message": "Added note in README.md.",
+      "parentUuid": "0f51607f_527cc616",
       "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
