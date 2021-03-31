@@ -218,8 +218,8 @@ func main() {
 			"source": "primary_branch",
 		}),
 		SecondaryBranchStreamingLiveness: secondaryBranchLiveness,
-		AckCounter:                       metrics2.GetCounter("gold_ingestion_ack"),
-		NackCounter:                      metrics2.GetCounter("gold_ingestion_nack"),
+		SuccessCounter:                   metrics2.GetCounter("gold_ingestion_success"),
+		FailedCounter:                    metrics2.GetCounter("gold_ingestion_failure"),
 	}
 
 	go func() {
@@ -347,8 +347,8 @@ type pubSubSource struct {
 	// the secondary branch.
 	SecondaryBranchStreamingLiveness metrics2.Liveness
 
-	AckCounter  metrics2.Counter
-	NackCounter metrics2.Counter
+	SuccessCounter metrics2.Counter
+	FailedCounter  metrics2.Counter
 
 	// busy is either 0 or non-zero depending on if this ingestion is working or not. This
 	// allows us to gather data on wall-clock utilization.
@@ -366,10 +366,8 @@ func (p *pubSubSource) ingestFromPubSubMessage(ctx context.Context, msg *pubsub.
 	fileName := msg.Attributes["objectId"]
 	if shouldAck := p.ingestFile(ctx, fileName); shouldAck {
 		msg.Ack()
-		p.AckCounter.Inc(1)
 	} else {
 		msg.Nack()
-		p.NackCounter.Inc(1)
 	}
 	atomic.AddInt64(&p.busy, -1)
 }
@@ -378,12 +376,14 @@ func (p *pubSubSource) ingestFromPubSubMessage(ctx context.Context, msg *pubsub.
 // a non-retryable error. It returns false if it got a retryable error.
 func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 	if !strings.HasSuffix(name, ".json") {
+		p.FailedCounter.Inc(1)
 		return true
 	}
 	if p.PrimaryBranchProcessor.HandlesFile(name) {
 		err := p.PrimaryBranchProcessor.Process(ctx, name)
 		if skerr.Unwrap(err) == ingestion.ErrRetryable {
 			sklog.Warningf("Got retryable error for primary branch data for file %s", name)
+			p.FailedCounter.Inc(1)
 			return false
 		}
 		// TODO(kjlubick) Processors should mark the SourceFiles table as ingested, not here.
@@ -393,18 +393,22 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 		}
 		if err != nil {
 			sklog.Errorf("Got non-retryable error for primary branch data for file %s: %s", name, err)
+			p.FailedCounter.Inc(1)
 			return true
 		}
 		p.PrimaryBranchStreamingLiveness.Reset()
+		p.SuccessCounter.Inc(1)
 		return true
 	}
 	if p.TryjobProcessor == nil || !p.TryjobProcessor.HandlesFile(name) {
 		sklog.Warningf("Got a file that no processor is configured for: %s", name)
+		p.FailedCounter.Inc(1)
 		return true
 	}
 	err := p.TryjobProcessor.Process(ctx, name)
 	if skerr.Unwrap(err) == ingestion.ErrRetryable {
 		sklog.Warningf("Got retryable error for tryjob data for file %s", name)
+		p.FailedCounter.Inc(1)
 		return false
 	}
 	// TODO(kjlubick) Processors should mark the SourceFiles table as ingested, not here.
@@ -414,9 +418,11 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 	}
 	if err != nil {
 		sklog.Errorf("Got non-retryable error for tryjob data for file %s: %s", name, err)
+		p.FailedCounter.Inc(1)
 		return true
 	}
 	p.SecondaryBranchStreamingLiveness.Reset()
+	p.SuccessCounter.Inc(1)
 	return true
 }
 
