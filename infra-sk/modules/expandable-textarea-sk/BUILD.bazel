@@ -2,37 +2,39 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_demo_page_server(
     name = "demo_page_server",
-    sk_page = ":theme-chooser-sk-demo",
+    sk_page = ":expandable-textarea-sk-demo",
 )
 
 sk_element(
-    name = "theme-chooser-sk",
+    name = "expandable-textarea-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
-    sass_srcs = ["theme-chooser-sk.scss"],
+    sass_srcs = ["expandable-textarea-sk.scss"],
+    sk_element_deps = ["//infra-sk/modules/autogrow-textarea-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
     ],
     ts_srcs = [
+        "expandable-textarea-sk.ts",
         "index.ts",
-        "theme-chooser-sk.ts",
     ],
     visibility = ["//visibility:public"],
 )
 
 sk_page(
-    name = "theme-chooser-sk-demo",
-    html_file = "theme-chooser-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
-    scss_entry_point = "theme-chooser-sk-demo.scss",
-    sk_element_deps = [":theme-chooser-sk"],
-    ts_entry_point = "theme-chooser-sk-demo.ts",
+    name = "expandable-textarea-sk-demo",
+    html_file = "expandable-textarea-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":expandable-textarea-sk",
+    ],
+    ts_entry_point = "expandable-textarea-sk-demo.ts",
 )
 
 sk_element_puppeteer_test(
-    name = "theme-chooser-sk_puppeteer_test",
-    src = "theme-chooser-sk_puppeteer_test.ts",
+    name = "expandable-textarea-sk_puppeteer_test",
+    src = "expandable-textarea-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
@@ -42,12 +44,15 @@ sk_element_puppeteer_test(
 )
 
 karma_test(
-    name = "theme-chooser-sk_test",
-    src = "theme-chooser-sk_test.ts",
+    name = "expandable-textarea-sk_test",
+    src = "expandable-textarea-sk_test.ts",
     deps = [
-        ":theme-chooser-sk",
+        ":expandable-textarea-sk",
         "//infra-sk/modules:test_util_ts_lib",
         "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//@types/chai-dom",
         "@infra-sk_npm//chai",
+        "@infra-sk_npm//chai-dom",
+        "@infra-sk_npm//elements-sk",
     ],
 )
