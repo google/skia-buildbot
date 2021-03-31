@@ -33,6 +33,7 @@ func TestPubSubSource_IngestFile_PrimaryBranch_NoErrors_Ack(t *testing.T) {
 		IngestionStore:                 ms,
 		PrimaryBranchProcessor:         mp,
 		PrimaryBranchStreamingLiveness: nopLiveness{},
+		SuccessCounter:                 nopCounter{},
 	}
 	shouldAck := ps.ingestFile(context.Background(), realPrimaryBranchFile)
 	assert.True(t, shouldAck)
@@ -54,6 +55,7 @@ func TestPubSubSource_IngestFile_PrimaryBranch_NonRetryableError_Ack(t *testing.
 	ps := pubSubSource{
 		IngestionStore:         ms,
 		PrimaryBranchProcessor: mp,
+		FailedCounter:          nopCounter{},
 	}
 	shouldAck := ps.ingestFile(context.Background(), realPrimaryBranchFile)
 	assert.True(t, shouldAck)
@@ -71,6 +73,7 @@ func TestPubSubSource_IngestFile_PrimaryBranch_RetryableError_Nack(t *testing.T)
 
 	ps := pubSubSource{
 		PrimaryBranchProcessor: mp,
+		FailedCounter:          nopCounter{},
 	}
 	shouldAck := ps.ingestFile(context.Background(), realPrimaryBranchFile)
 	assert.False(t, shouldAck)
@@ -95,6 +98,7 @@ func TestPubSubSource_IngestFile_TryjobData_NoErrors_Ack(t *testing.T) {
 		PrimaryBranchProcessor:           mp,
 		TryjobProcessor:                  mtp,
 		SecondaryBranchStreamingLiveness: nopLiveness{},
+		SuccessCounter:                   nopCounter{},
 	}
 	shouldAck := ps.ingestFile(context.Background(), realTryjobFile)
 	assert.True(t, shouldAck)
@@ -119,6 +123,7 @@ func TestPubSubSource_IngestFile_TryjobData_NonRetryableError_Ack(t *testing.T) 
 		IngestionStore:         ms,
 		PrimaryBranchProcessor: mp,
 		TryjobProcessor:        mtp,
+		FailedCounter:          nopCounter{},
 	}
 	shouldAck := ps.ingestFile(context.Background(), realTryjobFile)
 	assert.True(t, shouldAck)
@@ -139,6 +144,7 @@ func TestPubSubSource_IngestFile_TryjobData_RetryableError_Nack(t *testing.T) {
 	ps := pubSubSource{
 		PrimaryBranchProcessor: mp,
 		TryjobProcessor:        mtp,
+		FailedCounter:          nopCounter{},
 	}
 	shouldAck := ps.ingestFile(context.Background(), realTryjobFile)
 	assert.False(t, shouldAck)
@@ -157,6 +163,7 @@ func TestPubSubSource_IngestFile_InvalidFile_Ack(t *testing.T) {
 	ps := pubSubSource{
 		PrimaryBranchProcessor: mp,
 		TryjobProcessor:        mtp,
+		FailedCounter:          nopCounter{},
 	}
 	shouldAck := ps.ingestFile(context.Background(), unknownFile)
 	assert.True(t, shouldAck)
@@ -167,7 +174,9 @@ func TestPubSubSource_IngestFile_InvalidFileType_Ack(t *testing.T) {
 
 	const logFile = "verbose.log"
 
-	ps := pubSubSource{}
+	ps := pubSubSource{
+		FailedCounter: nopCounter{},
+	}
 	shouldAck := ps.ingestFile(context.Background(), logFile)
 	assert.True(t, shouldAck)
 }
@@ -212,6 +221,7 @@ func TestStartBackupPolling_TwoSources_Success(t *testing.T) {
 		PrimaryBranchProcessor:         mp,
 		IngestionStore:                 mis,
 		PrimaryBranchStreamingLiveness: nopLiveness{},
+		SuccessCounter:                 nopCounter{},
 	}
 
 	startBackupPolling(ctx, isc, []ingestion.FileSearcher{mfs1, mfs2}, ps)
@@ -237,3 +247,18 @@ func (n nopLiveness) Close() {}
 
 // Ensure that nopLiveness implements the Liveness interface.
 var _ metrics2.Liveness = (*nopLiveness)(nil)
+
+type nopCounter struct{}
+
+func (n nopCounter) Dec(i int64) {}
+
+func (n nopCounter) Delete() error { return nil }
+
+func (n nopCounter) Get() int64 { return 0 }
+
+func (n nopCounter) Inc(i int64) {}
+
+func (n nopCounter) Reset() {}
+
+// Ensure that nopLiveness implements the Liveness interface.
+var _ metrics2.Counter = (*nopCounter)(nil)
