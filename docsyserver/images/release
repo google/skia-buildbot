@@ -12,6 +12,7 @@ ${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile      ${ROOT}/Dockerfile
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
 ${INSTALL} --mode=755 -T ${IMAGE}/serve.sh        ${ROOT}/serve.sh
 ${INSTALL} --mode=755 -T ${IMAGE}/build.sh        ${ROOT}/build.sh
-${INSTALL} --mode=644 -T ${IMAGE}/head-end.html   ${ROOT}/docsy/layouts/partials/hooks/head-end.html
+${INSTALL} --mode=644 -T ${IMAGE}/head-end.html   ${ROOT}/home/skia/docsy/layouts/partials/hooks/head-end.html
+${INSTALL} --mode=644 -T ${IMAGE}/favicon.ico     ${ROOT}/home/skia/docsy/static/favicons/favicon.ico
 }
 source ../bash/docker_build.sh
