@@ -15,6 +15,7 @@ import (
 
 	"go.skia.org/infra/docsyserver/go/codereview"
 	"go.skia.org/infra/docsyserver/go/docsy"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
@@ -294,8 +295,10 @@ func copyFilesAsLinks(src, dst string) error {
 		}
 		srcFile := filepath.Join(src, relativePath)
 		dstFile := filepath.Join(dst, relativePath)
-		if err := os.Remove(dstFile); err != nil {
-			sklog.Warningf("Failed to remove %q: %s", dstFile, err)
+		if fileutil.FileExists(dstFile) {
+			if err := os.Remove(dstFile); err != nil {
+				sklog.Warningf("Failed to remove %q: %s", dstFile, err)
+			}
 		}
 		if err := os.Symlink(srcFile, dstFile); err != nil {
 			return skerr.Wrapf(err, "Failed to create symlink for %q", relativePath)

@@ -34,6 +34,6 @@ RUN cd && \
     rm config.toml && \
     rm -rf content
 
-COPY . /
+COPY --chown=skia:skia . /
 
 ENTRYPOINT ["/usr/local/bin/docsyserver"]

@@ -16,13 +16,13 @@ push: release
 # The docker image has two scripts that allow seeing what docs would look like
 # when rendered with Hugo/Docsy.
 #
-# The first shows a live preview using 'hugo serve'.
-preview-using-docker-image:
-	docker run --entrypoint=/serve.sh  -ti -p 1313:1313 -v ~/projects/skia/site2:/input -v /tmp/output/:/output  docsyserver:latest
-
 # The second renders the docs to an output directory.
 render-using-docker-image:
-	docker run --entrypoint=/build.sh -ti -p 1313:1313 -v ~/projects/skia/site2:/input docsyserver:latest
+	docker run --entrypoint=/build.sh  -ti -p 1313:1313 -v ~/projects/skia/site2:/input -v /tmp/output/:/output  docsyserver:latest
+
+# The second shows a live preview using 'hugo serve'.
+preview-using-docker-image:
+	docker run --entrypoint=/serve.sh -ti -p 1313:1313 -v ~/projects/skia/site2:/input docsyserver:latest
 
 run-local-instance:
 	docker run -ti --entrypoint=/usr/local/bin/docsyserver -p 8000:8000 -p 20000:20000 --user root -eGOOGLE_APPLICATION_CREDENTIALS=/creds.json -v $(GOOGLE_APPLICATION_CREDENTIALS):/creds.json docsyserver:latest \
