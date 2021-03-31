@@ -3305,8 +3305,8 @@
                       ]
                     },
                     {
-                      "domains": "skia.org",
-                      "name": "skia.org",
+                      "domains": "legacy.skia.org",
+                      "name": "legacy.skia.org",
                       "routes": [
                         {
                           "match": {
@@ -3322,8 +3322,8 @@
                       ]
                     },
                     {
-                      "domains": "staging.skia.org",
-                      "name": "staging.skia.org",
+                      "domains": "skia.org",
+                      "name": "skia.org",
                       "routes": [
                         {
                           "match": {
