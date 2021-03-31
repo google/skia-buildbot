@@ -34,7 +34,9 @@ package-lock.json: package.json
 .PHONY: build-frontend-ci
 build-frontend-ci:
 	npm ci
-	npx webpack --mode=production
+	# Webpack fails with --mode=production because there are no production pages under //infra-sk,
+	# and therefore nothing to build.
+	npx webpack --mode=development
 
 .PHONY: test-frontend-ci
 test-frontend-ci:
