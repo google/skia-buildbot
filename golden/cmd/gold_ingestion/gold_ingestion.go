@@ -376,7 +376,6 @@ func (p *pubSubSource) ingestFromPubSubMessage(ctx context.Context, msg *pubsub.
 // a non-retryable error. It returns false if it got a retryable error.
 func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 	if !strings.HasSuffix(name, ".json") {
-		p.FailedCounter.Inc(1)
 		return true
 	}
 	if p.PrimaryBranchProcessor.HandlesFile(name) {
