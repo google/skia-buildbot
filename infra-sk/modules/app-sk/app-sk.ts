@@ -38,33 +38,33 @@
  */
 import { define } from 'elements-sk/define'
 import 'elements-sk/icon/menu-icon-sk'
-const button_template = document.createElement('template');
-button_template.innerHTML =`
-  <button class=toggle-button>
-   <menu-icon-sk>
-   </menu-icon-sk>
-  </button>
-`
 
-define('app-sk', class extends HTMLElement {
+const buttonTemplate = document.createElement('template');
+buttonTemplate.innerHTML = `
+  <button class=toggle-button>
+    <menu-icon-sk>
+    </menu-icon-sk>
+  </button>
+`;
+
+export class AppSk extends HTMLElement {
   connectedCallback() {
-    let header = this.querySelector('header');
-    let sidebar = this.querySelector('aside');
+    const header = this.querySelector('header');
+    const sidebar = this.querySelector('aside');
     if (!header || !sidebar) {
       return;
     }
     // Add the collapse button to the header as the first item.
-    let btn = button_template.content.cloneNode(true);
+    let btn = buttonTemplate.content.cloneNode(true) as HTMLButtonElement;
     // btn is a document-fragment, so we need to insert it into the
     // DOM to make it "expand" into a real button.
     header.insertBefore(btn, header.firstElementChild);
-    btn = header.firstElementChild
-    btn.addEventListener('click', (e) => this._toggleMenu(e));
+    btn = header.firstElementChild as HTMLButtonElement
+    btn.addEventListener('click', () => {
+      let sidebar = this.querySelector('aside')!;
+      sidebar.classList.toggle('shown');
+    });
   }
+}
 
-
-  _toggleMenu(e) {
-    let sidebar = this.querySelector('aside');
-    sidebar.classList.toggle('shown');
-  }
-});
+define('app-sk', AppSk);
