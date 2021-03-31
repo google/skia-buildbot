@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "Docsy.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/docsyserver/go/docsy/mocks",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_stretchr_testify//mock"],
+)

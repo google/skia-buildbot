@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "docsy",
+    srcs = ["docsy.go"],
+    importpath = "go.skia.org/infra/docsyserver/go/docsy",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/executil",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/timer",
+    ],
+)
+
+go_test(
+    name = "docsy_test",
+    srcs = ["docsy_test.go"],
+    embed = [":docsy"],
+    deps = [
+        "//go/executil",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
