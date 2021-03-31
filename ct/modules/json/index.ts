@@ -83,36 +83,10 @@ export interface CompletedTaskResponse {
 }
 
 export interface AdminDatastoreTask {
-	ts_added: number;
-	ts_started: number;
-	ts_completed: number;
-	username: string;
-	failure: boolean;
-	repeat_after_days: number;
-	swarming_logs: string;
-	task_done: boolean;
-	swarming_task_id: string;
-	id: number;
-	can_redo: boolean;
-	can_delete: boolean;
-	future_date: boolean;
-	task_type: string;
-	get_url: string;
-	delete_url: string;
 	page_sets: string;
 	is_test_page_set: boolean;
 	chromium_rev: string;
 	skia_rev: string;
-}
-
-export interface AdminAddTaskVars {
-	username: string;
-	ts_added: string;
-	repeat_after_days: string;
-	page_sets: string;
-}
-
-export interface ChromiumAnalysisDatastoreTask {
 	ts_added: number;
 	ts_started: number;
 	ts_completed: number;
@@ -129,6 +103,16 @@ export interface ChromiumAnalysisDatastoreTask {
 	task_type: string;
 	get_url: string;
 	delete_url: string;
+}
+
+export interface AdminAddTaskVars {
+	page_sets: string;
+	username: string;
+	ts_added: string;
+	repeat_after_days: string;
+}
+
+export interface ChromiumAnalysisDatastoreTask {
 	benchmark: string;
 	page_sets: string;
 	is_test_page_set: boolean;
@@ -154,12 +138,25 @@ export interface ChromiumAnalysisDatastoreTask {
 	cc_list: string[] | null;
 	task_priority: number;
 	group_name: string;
+	ts_added: number;
+	ts_started: number;
+	ts_completed: number;
+	username: string;
+	failure: boolean;
+	repeat_after_days: number;
+	swarming_logs: string;
+	task_done: boolean;
+	swarming_task_id: string;
+	id: number;
+	can_redo: boolean;
+	can_delete: boolean;
+	future_date: boolean;
+	task_type: string;
+	get_url: string;
+	delete_url: string;
 }
 
 export interface ChromiumAnalysisAddTaskVars {
-	username: string;
-	ts_added: string;
-	repeat_after_days: string;
 	benchmark: string;
 	page_sets: string;
 	custom_webpages: string;
@@ -183,25 +180,12 @@ export interface ChromiumAnalysisAddTaskVars {
 	cc_list: string[] | null;
 	task_priority: string;
 	group_name: string;
+	username: string;
+	ts_added: string;
+	repeat_after_days: string;
 }
 
 export interface ChromiumPerfDatastoreTask {
-	ts_added: number;
-	ts_started: number;
-	ts_completed: number;
-	username: string;
-	failure: boolean;
-	repeat_after_days: number;
-	swarming_logs: string;
-	task_done: boolean;
-	swarming_task_id: string;
-	id: number;
-	can_redo: boolean;
-	can_delete: boolean;
-	future_date: boolean;
-	task_type: string;
-	get_url: string;
-	delete_url: string;
 	benchmark: string;
 	platform: string;
 	run_on_gce: boolean;
@@ -229,12 +213,25 @@ export interface ChromiumPerfDatastoreTask {
 	task_priority: number;
 	group_name: string;
 	value_column_name: string;
+	ts_added: number;
+	ts_started: number;
+	ts_completed: number;
+	username: string;
+	failure: boolean;
+	repeat_after_days: number;
+	swarming_logs: string;
+	task_done: boolean;
+	swarming_task_id: string;
+	id: number;
+	can_redo: boolean;
+	can_delete: boolean;
+	future_date: boolean;
+	task_type: string;
+	get_url: string;
+	delete_url: string;
 }
 
 export interface ChromiumPerfAddTaskVars {
-	username: string;
-	ts_added: string;
-	repeat_after_days: string;
 	benchmark: string;
 	platform: string;
 	run_on_gce: string;
@@ -258,9 +255,24 @@ export interface ChromiumPerfAddTaskVars {
 	benchmark_patch: string;
 	v8_patch: string;
 	chromium_patch_base_build: string;
+	username: string;
+	ts_added: string;
+	repeat_after_days: string;
 }
 
 export interface MetricsAnalysisDatastoreTask {
+	metric_name: string;
+	analysis_task_id: string;
+	analysis_output_link: string;
+	benchmark_args: string;
+	description: string;
+	custom_traces_gspath: string;
+	chromium_patch_gspath: string;
+	catapult_patch_gspath: string;
+	raw_output: string;
+	value_column_name: string;
+	cc_list: string[] | null;
+	task_priority: number;
 	ts_added: number;
 	ts_started: number;
 	ts_completed: number;
@@ -277,24 +289,9 @@ export interface MetricsAnalysisDatastoreTask {
 	task_type: string;
 	get_url: string;
 	delete_url: string;
-	metric_name: string;
-	analysis_task_id: string;
-	analysis_output_link: string;
-	benchmark_args: string;
-	description: string;
-	custom_traces_gspath: string;
-	chromium_patch_gspath: string;
-	catapult_patch_gspath: string;
-	raw_output: string;
-	value_column_name: string;
-	cc_list: string[] | null;
-	task_priority: number;
 }
 
 export interface MetricsAnalysisAddTaskVars {
-	username: string;
-	ts_added: string;
-	repeat_after_days: string;
 	metric_name: string;
 	custom_traces: string;
 	analysis_task_id: string;
@@ -306,4 +303,7 @@ export interface MetricsAnalysisAddTaskVars {
 	value_column_name: string;
 	cc_list: string[] | null;
 	task_priority: string;
+	username: string;
+	ts_added: string;
+	repeat_after_days: string;
 }

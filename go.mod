@@ -132,7 +132,7 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
-	github.com/skia-dev/go2ts v1.4.0
+	github.com/skia-dev/go2ts v1.4.1
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/spf13/afero v1.4.1 // indirect
