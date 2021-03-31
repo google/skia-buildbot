@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4b9f5abe_6be0b70d",
+        "filename": "docsyserver/go/docset/docset.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T16:40:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0569fc2_6b87b4d6",
+      "range": {
+        "startLine": 214,
+        "startChar": 14,
+        "endLine": 214,
+        "endChar": 17
+      },
+      "revId": "82fcec5946069475657e852e3f61cd68e8cd1a8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "03fe1e25_6e0d0869",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-03-31T16:07:55Z",
       "side": 1,
       "message": "Isn\u0027t this a possible XSS reflection vector? Do we need to have the error returned in prodcution?",
+      "range": {
+        "startLine": 86,
+        "startChar": 54,
+        "endLine": 86,
+        "endChar": 59
+      },
+      "revId": "82fcec5946069475657e852e3f61cd68e8cd1a8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e745f858_afb01e7e",
+        "filename": "docsyserver/go/docsyserver/main.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T16:40:39Z",
+      "side": 1,
+      "message": "This is not a possible XSS reflection vector, httputils.ReportError calls\nhttp.Error which sets the following headers:\n\n\tw.Header().Set(\"Content-Type\", \"text/plain; charset\u003dutf-8\")\n\tw.Header().Set(\"X-Content-Type-Options\", \"nosniff\")\n\nWe do need the errors returned in production so users can debug\nwhy their docs are not rendering.",
+      "parentUuid": "03fe1e25_6e0d0869",
       "range": {
         "startLine": 86,
         "startChar": 54,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "faf18f91_d97f0bed",
+        "filename": "go/now/now.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T16:40:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b364be72_e23346f1",
+      "range": {
+        "startLine": 29,
+        "startChar": 6,
+        "endLine": 29,
+        "endChar": 16
+      },
+      "revId": "82fcec5946069475657e852e3f61cd68e8cd1a8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "67a2b667_de465686",
@@ -93,6 +165,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bfecd0bd_d3ba4d5a",
+        "filename": "go/now/now.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T16:40:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "67a2b667_de465686",
+      "range": {
+        "startLine": 33,
+        "startChar": 29,
+        "endLine": 33,
+        "endChar": 36
+      },
+      "revId": "82fcec5946069475657e852e3f61cd68e8cd1a8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b1dd5920_9d9f26ef",
@@ -106,6 +202,30 @@
       "writtenOn": "2021-03-31T16:07:55Z",
       "side": 1,
       "message": "was called?",
+      "range": {
+        "startLine": 41,
+        "startChar": 37,
+        "endLine": 41,
+        "endChar": 40
+      },
+      "revId": "82fcec5946069475657e852e3f61cd68e8cd1a8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "96ce4159_16cd5a37",
+        "filename": "go/now/now_test.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T16:40:39Z",
+      "side": 1,
+      "message": "This is \u0027not called\u0027 because we called Now() with backgroundCtx. I duplicated the assert to before the call to Now(backgroundCtx) to show that we don\u0027t expect monotonicTime to change.",
+      "parentUuid": "b1dd5920_9d9f26ef",
       "range": {
         "startLine": 41,
         "startChar": 37,
