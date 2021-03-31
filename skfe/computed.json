@@ -873,6 +873,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "docsyserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "docsyserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "docsyserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "dotserver",
           "endpoints": [
             {
@@ -3288,6 +3314,23 @@
                           },
                           "route": {
                             "cluster": "docserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "staging.skia.org",
+                      "name": "staging.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "docsyserver",
                             "timeout": {
                               "seconds": 600
                             }

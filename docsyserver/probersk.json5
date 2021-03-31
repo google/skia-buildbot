@@ -1,0 +1,11 @@
+{
+   "docsyserver": {
+     "urls": [
+       "https://skia.org/",
+       "http://docsyserver:8000",
+     ],
+     "method": "GET",
+     "expected": [200],
+     "mimetype": "text/html"
+   }
+}
