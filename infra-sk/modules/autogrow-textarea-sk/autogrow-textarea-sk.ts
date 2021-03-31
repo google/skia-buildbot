@@ -8,7 +8,6 @@
  * @attr {number} minRows - Minimum (and initial) rows in the textarea.
  */
 
-import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 
@@ -19,13 +18,16 @@ import 'elements-sk/icon/expand-more-icon-sk';
 import 'elements-sk/icon/expand-less-icon-sk';
 
 const defaultRows = 5;
-const template = (ele) => html`
-<textarea placeholder=${ele.placeholder} @input=${ele.computeResize}></textarea>
-`;
 
-define('autogrow-textarea-sk', class extends ElementSk {
+export class AutogrowTextareaSk extends ElementSk {
+  private static template = (ele: AutogrowTextareaSk) => html`
+    <textarea placeholder=${ele.placeholder} @input=${ele.computeResize}></textarea>
+  `;
+
+  private textarea: HTMLTextAreaElement | null = null;
+
   constructor() {
-    super(template);
+    super(AutogrowTextareaSk.template);
 
     this._upgradeProperty('placeholder');
     this._upgradeProperty('minRows');
@@ -39,51 +41,47 @@ define('autogrow-textarea-sk', class extends ElementSk {
 
   _render() {
     super._render();
-    this._textarea = $$('textarea', this);
+    this.textarea = this.querySelector('textarea');
   }
 
-  /**
-   * @prop {string} value - Content of the textarea element.
-   */
-  get value() {
+  /** Content of the textarea element. */
+  get value(): string {
     // We back our value with textarea.value directly to avoid issues with
     // the value changing without changing our value property, causing
     // element re-rendering to be skipped.
-    return this._textarea.value;
+    return this.textarea!.value;
   }
 
-  set value(v) {
-    this._textarea.value = v;
+  set value(v: string) {
+    this.textarea!.value = v;
     this.computeResize();
   }
 
   /**
-   * @prop {string} placeholder - Placeholder content of the textarea,
-   * mirrors the attribute. Returns empty string when not set, for convenience
-   * in passing to child elements in templates.
+   * Placeholder content of the textarea, mirrors the attribute. Returns empty string when not set,
+   * for convenience in passing to child elements in templates.
    */
-  get placeholder() {
+  get placeholder(): string {
     return this.getAttribute('placeholder') || '';
   }
 
-  set placeholder(v) {
+  set placeholder(v: string) {
     this.setAttribute('placeholder', v);
+    this._render();
   }
 
-  /**
-   * @prop {number} minRows - Minimum (and initial) number of rows in the
-   * textarea, mirrors the attribute.
-   */
-  get minRows() {
-    return (+this.getAttribute('minRows') || defaultRows);
+  /** Minimum (and initial) number of rows in the textarea, mirrors the attribute. */
+  get minRows(): number {
+    return (+this.getAttribute('minRows')! || defaultRows);
   }
 
-  set minRows(val) {
+  set minRows(val: number) {
     if (val) {
-      this.setAttribute('minRows', val);
+      this.setAttribute('minRows', val.toString());
     } else {
       this.removeAttribute('minRows');
     }
+    this.computeResize();
   }
 
   /**
@@ -92,17 +90,21 @@ define('autogrow-textarea-sk', class extends ElementSk {
    * this object is visible (e.g if it's collapsed).
    */
   computeResize() {
+    if (!this.textarea) return;
+
     // Rather than increment/decrement, we just set rows each time
     // to handle copy and paste of multiple lines cleanly.
-    this._textarea.rows = this.minRows;
-    const heightDiff = this._textarea.scrollHeight - this._textarea.clientHeight;
+    this.textarea.rows = this.minRows;
+    const heightDiff = this.textarea.scrollHeight - this.textarea.clientHeight;
     if (heightDiff > 0) {
       // We floor the rowHeight as a lazy way to counteract rounded results
       // returned from clientHeight and scrollHeight causing too few rows added.
       const rowHeight = Math.floor(
-        this._textarea.clientHeight / this._textarea.rows,
+        this.textarea.clientHeight / this.textarea.rows,
       );
-      this._textarea.rows += Math.ceil(heightDiff / rowHeight);
+      this.textarea.rows += Math.ceil(heightDiff / rowHeight);
     }
   }
-});
+}
+
+define('autogrow-textarea-sk', AutogrowTextareaSk);

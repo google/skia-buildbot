@@ -1,40 +1,41 @@
 import './index';
 
-import { $$ } from 'common-sk/modules/dom';
-
 import { setUpElementUnderTest } from '../test_util';
+import { AutogrowTextareaSk } from './autogrow-textarea-sk';
+import { expect } from 'chai';
 
 describe('autogrow-textarea-sk', () => {
   // Function to create a new autogrow-textarea-sk.
-  const newInstance = setUpElementUnderTest('autogrow-textarea-sk');
+  const newInstance = setUpElementUnderTest<AutogrowTextareaSk>('autogrow-textarea-sk');
 
-  let agTextAreaSk;
-  let textarea;
+  let autogrowTextareaSk: AutogrowTextareaSk;
+  let textarea: HTMLTextAreaElement;
+
   beforeEach(() => {
-    agTextAreaSk = newInstance((el) => {
+    autogrowTextareaSk = newInstance((el) => {
       el.minRows = 4;
       el.placeholder = 'example text';
     });
-    textarea = $$('textarea', agTextAreaSk);
+    textarea = autogrowTextareaSk.querySelector('textarea')!;
   });
 
   const checkNoScrollBar = () => {
     expect(textarea.clientHeight).to.equal(textarea.scrollHeight);
   };
-  const inputText = (text) => {
+  const inputText = (text: string) => {
     textarea.value = text;
     textarea.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
   };
 
   it('plumbs through attributes', () => {
-    expect(textarea).to.have.attribute('placeholder', 'example text');
+    expect(textarea.getAttribute('placeholder')).to.equal('example text');
     expect(textarea).to.have.property('rows', 4);
     checkNoScrollBar();
   });
 
   it('reflects value', () => {
     inputText('foo');
-    expect(agTextAreaSk).to.have.property('value', 'foo');
+    expect(autogrowTextareaSk).to.have.property('value', 'foo');
   });
 
   it('expands and shrinks to number of lines', () => {
