@@ -20,7 +20,7 @@ type StepProperties struct {
 
 	// All subprocesses spawned for this step will inherit these environment
 	// variables.
-	Environ []string `json:"environment,omitempty"`
+	Environ []string `json:"environment,omitempty" go2ts:"ignorenil"`
 
 	// Parent step ID. This is set by the framework and should not be set
 	// by callers.
