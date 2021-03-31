@@ -251,6 +251,7 @@ class SkottieGifExporterSk extends HTMLElement {
       repeat: this._state.repeat,
       dither: this._state.dither ? ditherOptions[this._state.ditherValue] : false,
       transparent: 0x00000000,
+      workerScript: '/static/gif.worker.js',
     });
     this._gif.on('finished', (blob) => {
       this._state.state = exportStates.COMPLETE;
