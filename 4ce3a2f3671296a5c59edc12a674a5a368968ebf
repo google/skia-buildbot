@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5efc0f22_6876f215",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T15:55:09Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this call this._render()?",
+      "range": {
+        "startLine": 70,
+        "startChar": 2,
+        "endLine": 70,
+        "endChar": 3
+      },
+      "revId": "4ce3a2f3671296a5c59edc12a674a5a368968ebf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
