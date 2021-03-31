@@ -615,9 +615,10 @@ func (b *TablesBuilder) addTrace(existing []schema.TraceRow, t schema.TraceRow, 
 }
 
 type tiledTraceDigest struct {
-	tileID  schema.TileID
-	traceID schema.MD5Hash
-	digest  schema.MD5Hash
+	tileID     schema.TileID
+	traceID    schema.MD5Hash
+	digest     schema.MD5Hash
+	groupingID schema.MD5Hash
 }
 
 func (b *TablesBuilder) computeTiledTraceDigests(commits []schema.CommitWithDataRow) []schema.TiledTraceDigestRow {
@@ -630,9 +631,10 @@ func (b *TablesBuilder) computeTiledTraceDigests(commits []schema.CommitWithData
 				}
 				tiledID := getTileID(tv.CommitID, commits)
 				seenRows[tiledTraceDigest{
-					tileID:  tiledID,
-					traceID: sql.AsMD5Hash(tv.TraceID),
-					digest:  sql.AsMD5Hash(tv.Digest),
+					tileID:     tiledID,
+					traceID:    sql.AsMD5Hash(tv.TraceID),
+					digest:     sql.AsMD5Hash(tv.Digest),
+					groupingID: sql.AsMD5Hash(tv.GroupingID),
 				}] = true
 			}
 		}
@@ -641,12 +643,15 @@ func (b *TablesBuilder) computeTiledTraceDigests(commits []schema.CommitWithData
 	for row := range seenRows {
 		tID := make(schema.TraceID, len(schema.MD5Hash{}))
 		db := make(schema.DigestBytes, len(schema.MD5Hash{}))
+		gID := make(schema.GroupingID, len(schema.MD5Hash{}))
 		copy(tID, row.traceID[:])
 		copy(db, row.digest[:])
+		copy(gID, row.groupingID[:])
 		rv = append(rv, schema.TiledTraceDigestRow{
-			TileID:  row.tileID,
-			TraceID: tID,
-			Digest:  db,
+			TileID:     row.tileID,
+			TraceID:    tID,
+			Digest:     db,
+			GroupingID: gID,
 		})
 	}
 	return rv

@@ -791,15 +791,18 @@ func (s *sqlPrimaryIngester) batchCreateTiledTraceDigests(ctx context.Context, v
 		if len(batch) == 0 {
 			return nil
 		}
-		statement := `INSERT INTO TiledTraceDigests (trace_id, tile_id, digest) VALUES `
-		const valuesPerRow = 3
+		statement := `INSERT INTO TiledTraceDigests (trace_id, tile_id, digest, grouping_id) VALUES `
+		const valuesPerRow = 4
 		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
-			arguments = append(arguments, row.TraceID, tileID, row.Digest)
+			arguments = append(arguments, row.TraceID, tileID, row.Digest, row.GroupingID)
 		}
-		// ON CONFLICT DO NOTHING because if the rows already exist, the data is immutable.
-		statement += ` ON CONFLICT DO NOTHING;`
+		// ON CONFLICT DO NOTHING only update things if the grouping_id is different.
+		// We don't expect the grouping_id to be different often, only when a grouping is changed.
+		statement += ` ON CONFLICT (trace_id, tile_id, digest)
+DO UPDATE SET grouping_id = excluded.grouping_id
+WHERE TiledTraceDigests.grouping_id != excluded.grouping_id;`
 
 		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)

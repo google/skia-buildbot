@@ -233,9 +233,9 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 
 	actualTiledTraceDigests := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
 	assert.Equal(t, []schema.TiledTraceDigestRow{
-		{TraceID: h(squareTraceKeys), Digest: d(dks.DigestA01Pos), TileID: 0},
-		{TraceID: h(triangleTraceKeys), Digest: d(dks.DigestB01Pos), TileID: 0},
-		{TraceID: h(circleTraceKeys), Digest: d(dks.DigestC01Pos), TileID: 0},
+		{TraceID: h(squareTraceKeys), Digest: d(dks.DigestA01Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(triangleTraceKeys), Digest: d(dks.DigestB01Pos), TileID: 0, GroupingID: h(triangleGrouping)},
+		{TraceID: h(circleTraceKeys), Digest: d(dks.DigestC01Pos), TileID: 0, GroupingID: h(circleGrouping)},
 	}, actualTiledTraceDigests)
 
 	assert.Equal(t, totalMetricBefore+1, s.filesProcessed.Get())
@@ -274,12 +274,12 @@ func TestPrimarySQL_Process_TileAlreadyComputed_Success(t *testing.T) {
 
 	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
 	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0},
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1, GroupingID: h(squareGrouping)},
 	}, actualTiledTraces)
 
 	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
@@ -380,13 +380,13 @@ func TestPrimarySQL_Process_PreviousTilesAreFull_NewTileCreated(t *testing.T) {
 
 	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
 	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0},
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 2},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 2},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 2, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 2, GroupingID: h(squareGrouping)},
 	}, actualTiledTraces)
 
 	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
@@ -490,12 +490,12 @@ func TestPrimarySQL_Process_BetweenTwoTiles_UseHigherTile(t *testing.T) {
 
 	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
 	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0},
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1, GroupingID: h(squareGrouping)},
 	}, actualTiledTraces)
 
 	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
@@ -543,12 +543,12 @@ func TestPrimarySQL_Process_SurroundingCommitsHaveSameTile_UseThatTile(t *testin
 
 	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
 	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0},
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1, GroupingID: h(squareGrouping)},
 	}, actualTiledTraces)
 
 	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
@@ -595,12 +595,12 @@ func TestPrimarySQL_Process_AtEndTileNotFull_UseThatTile(t *testing.T) {
 
 	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
 	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0},
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
-		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
-		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1, GroupingID: h(squareGrouping)},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1, GroupingID: h(squareGrouping)},
 	}, actualTiledTraces)
 
 	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
@@ -812,9 +812,9 @@ func TestPrimarySQL_Process_MoreRecentData_ValuesAtHeadUpdated(t *testing.T) {
 
 	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
 	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
-		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 2})
+		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 2, GroupingID: h(roundRectGrouping)})
 	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
-		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 2})
+		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 2, GroupingID: h(circleGrouping)})
 
 	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
 	assert.Contains(t, actualTraces, schema.TraceRow{
@@ -903,9 +903,9 @@ func TestPrimarySQL_Process_MoreRecentDataWithCaches_ValuesAtHeadUpdated(t *test
 
 	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
 	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
-		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 2})
+		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 2, GroupingID: h(roundRectGrouping)})
 	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
-		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 2})
+		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 2, GroupingID: h(circleGrouping)})
 
 	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
 	assert.Contains(t, actualTraces, schema.TraceRow{
@@ -986,9 +986,9 @@ func TestPrimarySQL_Process_OlderData_SomeValuesAtHeadUpdated(t *testing.T) {
 
 	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
 	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
-		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 1})
+		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 1, GroupingID: h(roundRectGrouping)})
 	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
-		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 1})
+		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 1, GroupingID: h(circleGrouping)})
 
 	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
 	assert.Contains(t, actualTraces, schema.TraceRow{
@@ -1071,9 +1071,9 @@ func TestPrimarySQL_Process_OlderDataWithCaches_SomeValuesAtHeadUpdated(t *testi
 
 	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
 	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
-		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 1})
+		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 1, GroupingID: h(roundRectGrouping)})
 	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
-		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 1})
+		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 1, GroupingID: h(circleGrouping)})
 
 	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
 	assert.Contains(t, actualTraces, schema.TraceRow{

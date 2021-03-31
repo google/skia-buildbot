@@ -131,7 +131,9 @@ CREATE TABLE IF NOT EXISTS TiledTraceDigests (
   trace_id BYTES,
   tile_id INT4,
   digest BYTES NOT NULL,
-  PRIMARY KEY (trace_id, tile_id, digest)
+  grouping_id BYTES NOT NULL,
+  PRIMARY KEY (trace_id, tile_id, digest),
+  INDEX grouping_digest_idx (grouping_id, digest)
 );
 CREATE TABLE IF NOT EXISTS TraceValues (
   shard INT2,
