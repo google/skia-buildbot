@@ -159,7 +159,7 @@ func abandonGerritChange(ctx context.Context, g *gerrit.Gerrit, issue *gerrit.Ch
 }
 
 func main() {
-	common.InitWithMust("trybot_updater", common.PrometheusOpt(promPort))
+	common.InitWithMust("trybot_updater", common.PrometheusOpt(promPort), common.MetricsLoggingOpt())
 	defer sklog.Flush()
 	ctx := context.Background()
 
