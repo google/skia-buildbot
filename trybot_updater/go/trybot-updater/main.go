@@ -105,7 +105,11 @@ func getCurrentBuildbucketCfg(ctx context.Context, repo *gitiles.Repo) (string, 
 // updateBuildbucketCfg creates a Gerrit CL to update buildbucket.config. If submit flag is true then that CL
 // is automatically self-approved and submitted.
 func updateBuildbucketCfg(ctx context.Context, g *gerrit.Gerrit, repo *gitiles.Repo, cfgContents string) error {
-	commitMsg := "Update buildbucket.config"
+	commitMsg := `Update buildbucket.config
+
+Update is done by the trybot-updater bot.
+Please contact the Skia Infra Gardener if this bot causes problems.
+	`
 	repoSplit := strings.Split(*repoUrl, "/")
 	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
 	baseCommitInfo, err := repo.Details(ctx, bbCfgBranch)
@@ -120,6 +124,12 @@ func updateBuildbucketCfg(ctx context.Context, g *gerrit.Gerrit, repo *gitiles.R
 		return nil
 	})
 	if err != nil {
+		// If a change was created but had errors then abandon it.
+		if ci != nil {
+			if abandonErr := g.Abandon(ctx, ci, "Trybot updater CL creation had an error"); abandonErr != nil {
+				sklog.Errorf("Error when abandoning change %s: %s", ci.Id, abandonErr)
+			}
+		}
 		return skerr.Fmt("Could not create Gerrit change: %s", err)
 	}
 	sklog.Infof("Uploaded change https://skia-review.googlesource.com/c/%s/+/%d", project, ci.Issue)
