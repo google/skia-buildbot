@@ -1,21 +1,17 @@
-load(
-    "//infra-sk:index.bzl",
-    "karma_test",
-    "sk_demo_page_server",
-    "sk_element",
-    "sk_element_puppeteer_test",
-    "sk_page",
-    "ts_library",
-)
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
-package(default_visibility = ["//visibility:public"])
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":query-sk-demo",
+)
 
 sk_element(
     name = "query-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["query-sk.scss"],
-    sk_element_deps = ["//infra-sk/modules/query-values-sk:query-values-sk"],
+    sk_element_deps = ["//infra-sk/modules/query-values-sk"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:element-sk",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "@infra-sk_npm//common-sk",
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
@@ -24,53 +20,48 @@ sk_element(
         "index.ts",
         "query-sk.ts",
     ],
-)
-
-ts_library(
-    name = "query-sk_po",
-    srcs = ["query-sk_po.ts"],
-    deps = [
-        "//infra-sk/modules/page_object",
-        "//infra-sk/modules/query-values-sk:query-values-sk_po",
-        "@infra-sk_npm//common-sk",
-    ],
-)
-
-karma_test(
-    name = "test",
-    src = "query-sk_test.ts",
-    deps = [
-        ":query-sk",
-        ":query-sk_po",
-        "//infra-sk/modules:test_util",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
-        "@infra-sk_npm//common-sk",
-    ],
+    visibility = ["//visibility:public"],
 )
 
 sk_page(
-    name = "demo_page",
+    name = "query-sk-demo",
     html_file = "query-sk-demo.html",
     scss_entry_point = "query-sk-demo.scss",
     sk_element_deps = [":query-sk"],
     ts_entry_point = "query-sk-demo.ts",
 )
 
-sk_demo_page_server(
-    name = "demo_page_server",
-    sk_page = "demo_page",
+ts_library(
+    name = "query-sk_po_ts_lib",
+    srcs = ["query-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+        "//infra-sk/modules/query-values-sk:query-values-sk_po_ts_lib",
+        "@infra-sk_npm//common-sk",
+    ],
 )
 
 sk_element_puppeteer_test(
-    name = "puppeteer_test",
+    name = "query-sk_puppeteer_test",
     src = "query-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//puppeteer-tests:util_lib",
+        "//puppeteer-tests:util_ts_lib",
         "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/puppeteer",
         "@infra-sk_npm//chai",
-        "@infra-sk_npm//puppeteer",
+    ],
+)
+
+karma_test(
+    name = "query-sk_test",
+    src = "query-sk_test.ts",
+    deps = [
+        ":query-sk",
+        ":query-sk_po_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+        "@infra-sk_npm//common-sk",
     ],
 )
