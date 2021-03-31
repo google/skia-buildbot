@@ -1,1 +1,1 @@
-import './fps.ts';
+import './fps';
