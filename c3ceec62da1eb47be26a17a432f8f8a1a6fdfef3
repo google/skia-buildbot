@@ -276,6 +276,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1c8bd3dd_e43a5d7b",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-31T16:07:55Z",
+      "side": 1,
+      "message": "ack",
+      "parentUuid": "331204a1_92b6d495",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 14
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f58c41ce_f45ff7a7",
@@ -501,6 +525,30 @@
       "side": 1,
       "message": "Done. Created //go/now since this seems to be done in multiple places. I haven\u0027t updated all the call sites outside of docsyserver to switch to the new module.",
       "parentUuid": "ebcffe81_32fd0489",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 8
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ae8518a8_1ecfb437",
+        "filename": "docsyserver/go/docset/docset.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-31T16:07:55Z",
+      "side": 1,
+      "message": "Excellent, thanks for doing that.",
+      "parentUuid": "a7f26dc0_53ccdb53",
       "range": {
         "startLine": 37,
         "startChar": 1,
@@ -1159,6 +1207,30 @@
       "side": 1,
       "message": "This function doesn\u0027t call into a lot of other Go code, it just calls out to the hugo executable so Tracing won\u0027t really be of much use.",
       "parentUuid": "acf6321b_78d5230b",
+      "range": {
+        "startLine": 51,
+        "startChar": 13,
+        "endLine": 51,
+        "endChar": 27
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e7c6776d_85466c24",
+        "filename": "docsyserver/go/docsy/docsy.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-31T16:07:55Z",
+      "side": 1,
+      "message": "I would think if it suddenly was taking a long time (and upstack callers have tracing) then it would be helpful isolating the cause of that latency by having the tracing information.\n\nYour call.",
+      "parentUuid": "09b633b6_02154ac0",
       "range": {
         "startLine": 51,
         "startChar": 13,

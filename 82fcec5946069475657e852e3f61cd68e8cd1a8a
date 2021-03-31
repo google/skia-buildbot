@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a0569fc2_6b87b4d6",
+        "filename": "docsyserver/go/docset/docset.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-31T16:07:55Z",
+      "side": 1,
+      "message": "nit: maybe add a comment why we don\u0027t wrap the error here. Of note, skerr.Unwrap may work instead.",
+      "range": {
+        "startLine": 214,
+        "startChar": 14,
+        "endLine": 214,
+        "endChar": 17
+      },
+      "revId": "82fcec5946069475657e852e3f61cd68e8cd1a8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "03fe1e25_6e0d0869",
+        "filename": "docsyserver/go/docsyserver/main.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-31T16:07:55Z",
+      "side": 1,
+      "message": "Isn\u0027t this a possible XSS reflection vector? Do we need to have the error returned in prodcution?",
+      "range": {
+        "startLine": 86,
+        "startChar": 54,
+        "endLine": 86,
+        "endChar": 59
+      },
+      "revId": "82fcec5946069475657e852e3f61cd68e8cd1a8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b364be72_e23346f1",
+        "filename": "go/now/now.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-31T16:07:55Z",
+      "side": 1,
+      "message": "Thanks for making this it\u0027s own package!\n\nThe context docs suggest having the ContextKey be its own private type (which can be a string) to avoid possible collisions.\n\nhttps://github.com/google/skia-buildbot/blob/917ffac1cc97785644bd4363088cc812a82246fe/golden/go/ingestion_processors/primarysql.go#L843",
+      "range": {
+        "startLine": 29,
+        "startChar": 6,
+        "endLine": 29,
+        "endChar": 16
+      },
+      "revId": "82fcec5946069475657e852e3f61cd68e8cd1a8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "67a2b667_de465686",
+        "filename": "go/now/now.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-31T16:07:55Z",
+      "side": 1,
+      "message": "suggestion: Add a reminder that the function should be threadsafe if a context\nis shared between threads.",
+      "range": {
+        "startLine": 33,
+        "startChar": 29,
+        "endLine": 33,
+        "endChar": 36
+      },
+      "revId": "82fcec5946069475657e852e3f61cd68e8cd1a8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b1dd5920_9d9f26ef",
+        "filename": "go/now/now_test.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-31T16:07:55Z",
+      "side": 1,
+      "message": "was called?",
+      "range": {
+        "startLine": 41,
+        "startChar": 37,
+        "endLine": 41,
+        "endChar": 40
+      },
+      "revId": "82fcec5946069475657e852e3f61cd68e8cd1a8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
