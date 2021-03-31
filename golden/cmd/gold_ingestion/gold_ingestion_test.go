@@ -174,9 +174,7 @@ func TestPubSubSource_IngestFile_InvalidFileType_Ack(t *testing.T) {
 
 	const logFile = "verbose.log"
 
-	ps := pubSubSource{
-		FailedCounter: nopCounter{},
-	}
+	ps := pubSubSource{}
 	shouldAck := ps.ingestFile(context.Background(), logFile)
 	assert.True(t, shouldAck)
 }
