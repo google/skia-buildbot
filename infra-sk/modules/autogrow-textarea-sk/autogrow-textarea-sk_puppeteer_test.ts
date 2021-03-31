@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { expect } from 'chai';
 import {
+  inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed
@@ -17,7 +18,7 @@ describe('autogrow-textarea-sk', () => {
   let textarea: ElementHandle;
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/autogrow-textarea-sk.html`);
+    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/autogrow-textarea-sk.html`);
     await testBed.page.setViewport({ width: 800, height: 600 });
     textarea = (await testBed.page.$('textarea'))!;
   });

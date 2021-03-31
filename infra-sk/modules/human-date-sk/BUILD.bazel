@@ -2,37 +2,34 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_demo_page_server(
     name = "demo_page_server",
-    sk_page = ":theme-chooser-sk-demo",
+    sk_page = ":human-date-sk-demo",
 )
 
 sk_element(
-    name = "theme-chooser-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
-    sass_srcs = ["theme-chooser-sk.scss"],
+    name = "human-date-sk",
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@infra-sk_npm//common-sk",
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
     ],
     ts_srcs = [
+        "human-date-sk.ts",
         "index.ts",
-        "theme-chooser-sk.ts",
     ],
     visibility = ["//visibility:public"],
 )
 
 sk_page(
-    name = "theme-chooser-sk-demo",
-    html_file = "theme-chooser-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
-    scss_entry_point = "theme-chooser-sk-demo.scss",
-    sk_element_deps = [":theme-chooser-sk"],
-    ts_entry_point = "theme-chooser-sk-demo.ts",
+    name = "human-date-sk-demo",
+    html_file = "human-date-sk-demo.html",
+    sk_element_deps = [":human-date-sk"],
+    ts_entry_point = "human-date-sk-demo.ts",
 )
 
 sk_element_puppeteer_test(
-    name = "theme-chooser-sk_puppeteer_test",
-    src = "theme-chooser-sk_puppeteer_test.ts",
+    name = "human-date-sk_puppeteer_test",
+    src = "human-date-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
@@ -42,12 +39,13 @@ sk_element_puppeteer_test(
 )
 
 karma_test(
-    name = "theme-chooser-sk_test",
-    src = "theme-chooser-sk_test.ts",
+    name = "human-date-sk_test",
+    src = "human-date-sk_test.ts",
     deps = [
-        ":theme-chooser-sk",
+        ":human-date-sk",
         "//infra-sk/modules:test_util_ts_lib",
         "@infra-sk_npm//@types/chai",
         "@infra-sk_npm//chai",
+        "@infra-sk_npm//common-sk",
     ],
 )

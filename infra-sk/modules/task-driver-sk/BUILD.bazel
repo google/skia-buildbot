@@ -1,0 +1,39 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page", "ts_library")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":task-driver-sk-demo",
+)
+
+sk_element(
+    name = "task-driver-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["task-driver-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules:linkify_ts_lib",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+        "//task_driver/modules/json:index_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "task-driver-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "task-driver-sk-demo",
+    html_file = "task-driver-sk-demo.html",
+    sk_element_deps = [":task-driver-sk"],
+    ts_deps = [":test_data_ts_lib"],
+    ts_entry_point = "task-driver-sk-demo.ts",
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//task_driver/modules/json:index_ts_lib"],
+)
