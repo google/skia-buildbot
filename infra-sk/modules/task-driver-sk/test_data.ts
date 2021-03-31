@@ -1,5 +1,7 @@
-export const taskDriverData = {
-  id: '20181022T152846.098672800Z_000000000095d900',
+import { TaskDriverRunDisplay } from '../../../task_driver/modules/json';
+
+export const taskDriverData: TaskDriverRunDisplay = {
+  id: 'T0VWG4A2FCCBSmih2eEP',
   name: 'Infra-Experimental-Small',
   isInfra: false,
   properties: {
@@ -64,12 +66,14 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 0,
             },
             {
               type: 'command',
               data: {
                 command: ['git', 'status'],
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -78,6 +82,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -95,6 +100,7 @@ export const taskDriverData = {
               data: {
                 command: ['git', 'remote', '-v'],
               },
+              msgIndex: 0,
             },
             {
               type: 'log',
@@ -103,6 +109,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -111,6 +118,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -130,12 +138,14 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 0,
             },
             {
               type: 'command',
               data: {
                 command: ['git', 'rev-parse', 'HEAD'],
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -144,6 +154,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -170,6 +181,7 @@ export const taskDriverData = {
               data: {
                 command: ['git', 'fetch', '--prune', 'origin'],
               },
+              msgIndex: 0,
             },
             {
               type: 'log',
@@ -178,6 +190,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -186,6 +199,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -203,6 +217,7 @@ export const taskDriverData = {
               data: {
                 command: ['git', 'reset', '--hard', 'HEAD'],
               },
+              msgIndex: 0,
             },
             {
               type: 'log',
@@ -211,6 +226,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -219,6 +235,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -238,12 +255,14 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 0,
             },
             {
               type: 'command',
               data: {
                 command: ['git', 'clean', '-d', '-f'],
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -252,6 +271,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -269,6 +289,7 @@ export const taskDriverData = {
               data: {
                 command: ['git', 'checkout', 'master', '-f'],
               },
+              msgIndex: 0,
             },
             {
               type: 'log',
@@ -277,6 +298,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -285,6 +307,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -302,6 +325,7 @@ export const taskDriverData = {
               data: {
                 command: ['git', 'reset', '--hard', 'origin/master'],
               },
+              msgIndex: 0,
             },
             {
               type: 'log',
@@ -310,6 +334,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -318,6 +343,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -337,6 +363,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 0,
             },
             {
               type: 'command',
@@ -348,6 +375,7 @@ export const taskDriverData = {
                   'refs/changes/07/161107/14',
                 ],
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -356,6 +384,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -375,12 +404,14 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 0,
             },
             {
               type: 'command',
               data: {
                 command: ['git', 'reset', '--hard', 'FETCH_HEAD'],
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -389,6 +420,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -406,6 +438,7 @@ export const taskDriverData = {
               data: {
                 command: ['git', 'rebase', 'b173bcd1ba3215f3d8aa7384c0b2100c565dd458'],
               },
+              msgIndex: 0,
             },
             {
               type: 'log',
@@ -414,6 +447,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -422,6 +456,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -470,6 +505,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 0,
             },
             {
               type: 'log',
@@ -478,6 +514,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 1,
             },
             {
               type: 'command',
@@ -493,6 +530,7 @@ export const taskDriverData = {
                   'TMPDIR=',
                 ],
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -521,6 +559,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 0,
             },
             {
               type: 'log',
@@ -529,6 +568,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 1,
             },
             {
               type: 'command',
@@ -544,6 +584,7 @@ export const taskDriverData = {
                   'TMPDIR=',
                 ],
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -579,6 +620,7 @@ export const taskDriverData = {
                   'TMPDIR=',
                 ],
               },
+              msgIndex: 0,
             },
             {
               type: 'log',
@@ -587,6 +629,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -595,6 +638,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 2,
             },
           ],
         },
@@ -630,6 +674,7 @@ export const taskDriverData = {
                   'TMPDIR=',
                 ],
               },
+              msgIndex: 0,
             },
             {
               type: 'log',
@@ -638,6 +683,7 @@ export const taskDriverData = {
                 name: 'stdout',
                 severity: 'INFO',
               },
+              msgIndex: 1,
             },
             {
               type: 'log',
@@ -646,6 +692,7 @@ export const taskDriverData = {
                 name: 'stderr',
                 severity: 'ERROR',
               },
+              msgIndex: 2,
             },
           ],
           errors: [
