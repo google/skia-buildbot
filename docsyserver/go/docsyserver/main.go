@@ -102,13 +102,13 @@ func main() {
 	}
 
 	router := mux.NewRouter()
-	router.PathPrefix("/").HandlerFunc(autogzip.HandleFunc(server.mainHandler))
 	if !*local && *dologin {
 		login.SimpleInitMust(*port, *local)
 		router.HandleFunc("/logout/", login.LogoutHandler)
 		router.HandleFunc("/loginstatus/", login.StatusHandler)
 		router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	}
+	router.PathPrefix("/").HandlerFunc(autogzip.HandleFunc(server.mainHandler))
 
 	var h http.Handler = router
 	if !*local {
