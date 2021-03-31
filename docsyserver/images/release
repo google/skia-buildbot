@@ -1,0 +1,17 @@
+#!/bin/bash
+APPNAME=docsyserver
+
+set -x -e
+
+IMAGE=$(dirname "$0")
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile      ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL} --mode=755 -T ${IMAGE}/serve.sh        ${ROOT}/serve.sh
+${INSTALL} --mode=755 -T ${IMAGE}/build.sh        ${ROOT}/build.sh
+${INSTALL} --mode=644 -T ${IMAGE}/head-end.html   ${ROOT}/docsy/layouts/partials/hooks/head-end.html
+}
+source ../bash/docker_build.sh

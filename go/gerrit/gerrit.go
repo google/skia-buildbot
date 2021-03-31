@@ -306,15 +306,38 @@ type LabelDetail struct {
 	Value int
 }
 
+// FileInfoStatus is the type of 'Status' in FileInfo.
+// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#file-info
+type FileInfoStatus string
+
+const (
+	FileAdded     FileInfoStatus = "A"
+	FileCopied    FileInfoStatus = "C"
+	FileDeleted   FileInfoStatus = "D"
+	FileModified  FileInfoStatus = ""
+	FileRenamed   FileInfoStatus = "R"
+	FileRewritten FileInfoStatus = "W"
+)
+
+// AllFileInfoStatus is all valid values of type FileInfoStatus.
+var AllFileInfoStatus = []FileInfoStatus{
+	FileAdded,
+	FileCopied,
+	FileDeleted,
+	FileModified,
+	FileRenamed,
+	FileRewritten,
+}
+
 // FileInfo provides information about changes to a File in Gerrit.
 type FileInfo struct {
-	Status        string `json:"status"`
-	Binary        bool   `json:"binary"`
-	OldPath       string `json:"old_path"`
-	LinesInserted int    `json:"lines_inserted"`
-	LinesDeleted  int    `json:"lines_deleted"`
-	SizeDelta     int    `json:"size_delta"`
-	Size          int    `json:"size"`
+	Status        FileInfoStatus `json:"status"`
+	Binary        bool           `json:"binary"`
+	OldPath       string         `json:"old_path"`
+	LinesInserted int            `json:"lines_inserted"`
+	LinesDeleted  int            `json:"lines_deleted"`
+	SizeDelta     int            `json:"size_delta"`
+	Size          int            `json:"size"`
 }
 
 // Revision is the information associated with a patchset in Gerrit.
@@ -324,6 +347,7 @@ type Revision struct {
 	CreatedString string    `json:"created"`
 	Created       time.Time `json:"-"`
 	Kind          string    `json:"kind"`
+	Ref           string    `json:"ref"`
 }
 
 // GerritInterface describes interactions with a Gerrit host.
