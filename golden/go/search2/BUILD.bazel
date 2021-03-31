@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "search2",
+    srcs = ["search2.go"],
+    importpath = "go.skia.org/infra/golden/go/search2",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//golden/go/sql",
+        "//golden/go/sql/schema",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@io_opencensus_go//trace",
+    ],
+)
+
+go_test(
+    name = "search2_test",
+    srcs = ["search2_test.go"],
+    embed = [":search2"],
+    deps = [
+        "//go/testutils/unittest",
+        "//golden/go/sql/datakitchensink",
+        "//golden/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
