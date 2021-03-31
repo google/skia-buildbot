@@ -4,15 +4,13 @@ package search2
 
 import (
 	"context"
-	"sort"
 
-	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
+	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/sql"
-	"go.skia.org/infra/golden/go/sql/schema"
 )
 
 type API interface {
@@ -22,14 +20,27 @@ type API interface {
 	NewAndUntriagedSummaryForCL(ctx context.Context, crs, clID string) (NewAndUntriagedSummary, error)
 }
 
+// NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
+// the untriaged and new images produced.
 type NewAndUntriagedSummary struct {
 	ChangelistID      string
 	PatchsetSummaries []PatchsetNewAndUntriagedSummary
 }
 
+// PatchsetNewAndUntriagedSummary is the summary for a specific PS. It focuses on the untriaged
+// and new images produced.
 type PatchsetNewAndUntriagedSummary struct {
-	PatchsetNewImages          int
-	PatchsetNewUntriagedImages int
+	// NewImages is the number of new images (digests) that were produced by this patchset by
+	// non-ignored traces and not seen on the primary branch.
+	NewImages int
+	// NewUntriagedImages is the number of NewImages which are still untriaged. It is less than or
+	// equal to NewImages.
+	NewUntriagedImages int
+	// TotalUntriagedImages is the number of images produced by this patchset by non-ignored traces
+	// that are untriaged. This includes images that are untriaged and observed on the primary
+	// branch (i.e. might not be the fault of this CL/PS). It is greater than or equal to
+	// NewUntriagedImages.
+	TotalUntriagedImages int
 
 	PatchsetID    string
 	PatchsetOrder int
@@ -39,23 +50,92 @@ type Impl struct {
 	db *pgxpool.Pool
 }
 
+// New returns an implementation of API.
 func New(sqlDB *pgxpool.Pool) *Impl {
 	return &Impl{db: sqlDB}
 }
 
+// NewAndUntriagedSummaryForCL queries all the patchsets in parallel (to keep the query less
+// complex). If there are no patchsets for the provided CL, it returns an error.
 func (s *Impl) NewAndUntriagedSummaryForCL(ctx context.Context, crs, clID string) (NewAndUntriagedSummary, error) {
 	ctx, span := trace.StartSpan(ctx, "search2_NewAndUntriagedSummaryForCL")
 	defer span.End()
 
+	qCLID := sql.Qualify(crs, clID)
+	patchsets, err := s.getPatchsets(ctx, qCLID)
+	if err != nil {
+		return NewAndUntriagedSummary{}, skerr.Wrap(err)
+	}
+	if len(patchsets) == 0 {
+		return NewAndUntriagedSummary{}, skerr.Fmt("CL %q not found", qCLID)
+	}
+
+	eg, ctx := errgroup.WithContext(ctx)
+	rv := make([]PatchsetNewAndUntriagedSummary, len(patchsets))
+	for i, p := range patchsets {
+		idx, ps := i, p
+		eg.Go(func() error {
+			sum, err := s.getSummaryForPS(ctx, qCLID, ps.id)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			sum.PatchsetID = sql.Unqualify(ps.id)
+			sum.PatchsetOrder = ps.order
+			rv[idx] = sum
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return NewAndUntriagedSummary{}, skerr.Wrapf(err, "Getting counts for CL %q and %d PS", qCLID, len(patchsets))
+	}
+	return NewAndUntriagedSummary{
+		ChangelistID:      clID,
+		PatchsetSummaries: rv,
+	}, nil
+}
+
+type psIDAndOrder struct {
+	id    string
+	order int
+}
+
+// getPatchsets returns the qualified ids and orders of the patchsets sorted by ps_order.
+func (s *Impl) getPatchsets(ctx context.Context, qualifiedID string) ([]psIDAndOrder, error) {
+	ctx, span := trace.StartSpan(ctx, "getPatchsets")
+	defer span.End()
+	rows, err := s.db.Query(ctx, `SELECT patchset_id, ps_order
+FROM Patchsets WHERE changelist_id = $1 ORDER BY ps_order ASC`, qualifiedID)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "getting summary for cl %q", qualifiedID)
+	}
+	defer rows.Close()
+	var rv []psIDAndOrder
+	for rows.Next() {
+		var row psIDAndOrder
+		if err := rows.Scan(&row.id, &row.order); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, row)
+	}
+	return rv, nil
+}
+
+// getSummaryForPS looks at all the data produced for a given PS and returns the a summary of the
+// newly produced digests and untriaged digests.
+func (s *Impl) getSummaryForPS(ctx context.Context, clid, psID string) (PatchsetNewAndUntriagedSummary, error) {
+	ctx, span := trace.StartSpan(ctx, "getSummaryForPS")
+	defer span.End()
 	const statement = `
 WITH
   CLDigests AS (
-    SELECT secondary_branch_trace_id, version_name, digest, grouping_id
+    SELECT secondary_branch_trace_id, digest, grouping_id
     FROM SecondaryBranchValues
-    WHERE branch_name = $1
+    WHERE branch_name = $1 and version_name = $2
   ),
   NonIgnoredCLDigests AS (
-    SELECT secondary_branch_trace_id, version_name, digest, CLDigests.grouping_id
+    -- We only want to count a digest once per grouping, no matter how many times it shows up
+    -- because group those together (by trace) in the frontend UI.
+    SELECT DISTINCT digest, CLDigests.grouping_id
     FROM CLDigests
     JOIN Traces
     ON secondary_branch_trace_id = trace_id
@@ -67,69 +147,62 @@ WITH
     WHERE branch_name = $1
   ),
   NewDigests AS (
-    -- We only want to count a digest once per grouping, no matter how many times it shows up
-    -- because group those together (by trace) in the frontend UI.
-    SELECT DISTINCT NonIgnoredCLDigests.version_name, NonIgnoredCLDigests.digest, NonIgnoredCLDigests.grouping_id
+    SELECT NonIgnoredCLDigests.digest, NonIgnoredCLDigests.grouping_id
     FROM NonIgnoredCLDigests
     LEFT JOIN TiledTraceDigests
     ON NonIgnoredCLDigests.grouping_id = TiledTraceDigests.grouping_id AND
       NonIgnoredCLDigests.digest = TiledTraceDigests.digest
     WHERE TiledTraceDigests.tile_id IS NULL
   ),
-  LabeledDigests AS (
-    SELECT NewDigests.version_name, COALESCE(CLExpectations.label, 'u') as label
+  LabeledNewDigests AS (
+    SELECT COALESCE(CLExpectations.label, 'u') as label
     FROM NewDigests
     LEFT JOIN CLExpectations
     ON NewDigests.grouping_id = CLExpectations.grouping_id AND
       NewDigests.digest = CLExpectations.digest
+  ),
+  LabeledDigests AS (
+    SELECT COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) as label
+    FROM NonIgnoredCLDigests
+    LEFT JOIN Expectations
+    ON NonIgnoredCLDigests.grouping_id = Expectations.grouping_id AND
+      NonIgnoredCLDigests.digest = Expectations.digest
+    LEFT JOIN CLExpectations
+    ON NonIgnoredCLDigests.grouping_id = CLExpectations.grouping_id AND
+      NonIgnoredCLDigests.digest = CLExpectations.digest
   )
-SELECT Patchsets.patchset_id, Patchsets.ps_order, LabeledDigests.label
-FROM Patchsets
-LEFT JOIN LabeledDigests -- Left Join here to make patchsets with no new data show up.
-ON LabeledDigests.version_name = Patchsets.patchset_id
-WHERE changelist_id = $1;`
+SELECT count(*) as "num_digests", '"new"' as "name"
+FROM NewDigests
+UNION
+SELECT count(*) as "num_digests", '"new_unt"' as "name"
+FROM LabeledNewDigests
+WHERE label = 'u'
+UNION
+SELECT count(*) as "num_digests", '"unt"' as "name"
+FROM LabeledDigests
+WHERE label = 'u'`
 
-	qCLID := sql.Qualify(crs, clID)
-	rows, err := s.db.Query(ctx, statement, qCLID)
+	rows, err := s.db.Query(ctx, statement, clid, psID)
 	if err != nil {
-		return NewAndUntriagedSummary{}, skerr.Wrapf(err, "getting summary for cl %q", qCLID)
+		return PatchsetNewAndUntriagedSummary{}, skerr.Wrapf(err, "getting summary for ps %q in cl %q", psID, clid)
 	}
 	defer rows.Close()
-	patchsets := map[string]PatchsetNewAndUntriagedSummary{}
-	for rows.Next() {
-		var psID string
-		var psOrder int
-		var label pgtype.Text
-		if err := rows.Scan(&psID, &psOrder, &label); err != nil {
-			return NewAndUntriagedSummary{}, skerr.Wrap(err)
-		}
-		summary := patchsets[psID]
-		// label.Status being not present means a PS has data, but everything is already
-		// on the primary branch
-		if label.Status == pgtype.Present {
-			summary.PatchsetNewImages++
-			if schema.ExpectationLabel(label.String) == schema.LabelUntriaged {
-				summary.PatchsetNewUntriagedImages++
-			}
-		}
-		summary.PatchsetID = sql.Unqualify(psID)
-		summary.PatchsetOrder = psOrder
-		patchsets[psID] = summary
+	rows.Next()
+	var ignore string // to get the union to work, I need to label the values (otherwise they get
+	// deduplicated), but I don't actually need to read this in, since it's always in the provided
+	// order.
+	rv := PatchsetNewAndUntriagedSummary{}
+	if err := rows.Scan(&rv.NewImages, &ignore); err != nil {
+		return PatchsetNewAndUntriagedSummary{}, skerr.Wrap(err)
 	}
-
-	if len(patchsets) == 0 {
-		return NewAndUntriagedSummary{}, skerr.Fmt("Changelist with id %q not found", qCLID)
+	rows.Next()
+	if err := rows.Scan(&rv.NewUntriagedImages, &ignore); err != nil {
+		return PatchsetNewAndUntriagedSummary{}, skerr.Wrap(err)
 	}
-	rv := NewAndUntriagedSummary{
-		ChangelistID:      clID,
-		PatchsetSummaries: make([]PatchsetNewAndUntriagedSummary, 0, len(patchsets)),
+	rows.Next()
+	if err := rows.Scan(&rv.TotalUntriagedImages, &ignore); err != nil {
+		return PatchsetNewAndUntriagedSummary{}, skerr.Wrap(err)
 	}
-	for _, s := range patchsets {
-		rv.PatchsetSummaries = append(rv.PatchsetSummaries, s)
-	}
-	sort.Slice(rv.PatchsetSummaries, func(i, j int) bool {
-		return rv.PatchsetSummaries[i].PatchsetOrder < rv.PatchsetSummaries[j].PatchsetOrder
-	})
 	return rv, nil
 }
 
