@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5944390a_bbdd7de6",
+        "filename": "infra-sk/modules/login-sk/login-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-31T16:39:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39485fb1_7618627e",
+      "range": {
+        "startLine": 50,
+        "startChar": 22,
+        "endLine": 50,
+        "endChar": 23
+      },
+      "revId": "6ad62a7ddc0f8d6cc113664452a36295c678cd5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0e533325_c1d5fd79",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-03-31T15:50:44Z",
       "side": 1,
       "message": ": string\n\nAlso getAttribute returns undefined if the attr doesn\u0027t exist, so code should probably be:\n\nreturn this.getAttribute(\u0027login_host\u0027) || \u0027\u0027.",
+      "range": {
+        "startLine": 61,
+        "startChar": 17,
+        "endLine": 61,
+        "endChar": 18
+      },
+      "revId": "6ad62a7ddc0f8d6cc113664452a36295c678cd5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "71e9b86a_cdf5aa84",
+        "filename": "infra-sk/modules/login-sk/login-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-31T16:39:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0e533325_c1d5fd79",
       "range": {
         "startLine": 61,
         "startChar": 17,
