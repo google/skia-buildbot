@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { expect } from 'chai';
 import {
+  inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed
@@ -16,7 +17,7 @@ describe('expandable-textarea-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/expandable-textarea-sk.html`);
+    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/expandable-textarea-sk.html`);
     await testBed.page.setViewport({ width: 400, height: 500 });
   });
 
