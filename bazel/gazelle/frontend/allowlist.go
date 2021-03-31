@@ -5,7 +5,9 @@ package frontend
 //
 // The value of this map indicates whether to recurse into the directory.
 //
-// TODO(lovisolo): Delete once we are targetting the entire repository.
+// TODO(lovisolo): Delete once we are targeting the entire repository.
 var targetDirectories = map[string]bool{
-	// TODO(lovisolo): Populate.
+	"infra-sk/modules":    true,
+	"puppeteer-tests":     true,
+	"task_driver/modules": true,
 }
