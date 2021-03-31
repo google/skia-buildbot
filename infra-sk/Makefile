@@ -2,9 +2,7 @@
 # which is in turn invoked by the Infra-PerCommit-Build task to build various Skia Infrastructure
 # apps. Since some of those apps depend on infra-sk, we first need to install the npm dependencies
 # and make sure infra-sk actually builds.
-all:
-	npm ci
-	npx webpack --mode=production
+all: build-frontend-ci
 
 default: package-lock.json
 	npx webpack --mode=development
