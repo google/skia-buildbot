@@ -27,13 +27,13 @@ const (
 type StepDisplay struct {
 	*td.StepProperties
 	Result   td.StepResult `json:"result,omitempty"`
-	Errors   []string      `json:"errors,omitempty"`
+	Errors   []string      `json:"errors,omitempty" go2ts:"ignorenil"`
 	Started  time.Time     `json:"started,omitempty"`
 	Finished time.Time     `json:"finished,omitempty"`
 
-	Data []*db.StepData `json:"data,omitempty"`
+	Data []*db.StepData `json:"data,omitempty" go2ts:"ignorenil"`
 
-	Steps []*StepDisplay `json:"steps,omitempty"`
+	Steps []*StepDisplay `json:"steps,omitempty" go2ts:"ignorenil"`
 }
 
 // StepSlice is a helper for sorting.
@@ -53,7 +53,7 @@ func (s StepSlice) Less(i, j int) bool {
 
 // TaskDriverRunDisplay represents a single run of a Task Driver.
 type TaskDriverRunDisplay struct {
-	Id         string            `json:"id"`
+	Id         string            `json:"id" go2ts:"ignore"`
 	Properties *td.RunProperties `json:"properties"`
 	*StepDisplay
 }
