@@ -91,7 +91,7 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	common.InitWithMust(
-		"docserver",
+		"docsyserver",
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
