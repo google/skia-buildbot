@@ -106,7 +106,20 @@ func testOnRBE(ctx context.Context) {
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
 	bazel(ctx, "test", "//...", "--test_output=errors", "--config=remote", "--google_credentials="+skiaInfraRbeKeyFile)
 
-	// TODO(lovisolo): Upload Puppeteer test screenshots to Gold.
+	puppeteerScreenshotsDir, err := os_steps.TempDir(ctx, "", "puppeteer-screenshots-*")
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	fileInfos, err := os_steps.ReadDir(ctx, puppeteerScreenshotsDir)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	sklog.Info("Found %s Puppeteer screenshots:", len(fileInfos))
+	for _, fileInfo := range fileInfos {
+		sklog.Info("Puppeteer screenshot: %s", fileInfo.Name())
+	}
 }
 
 func testLocally(ctx context.Context) {
