@@ -615,8 +615,7 @@ type TiledTraceDigestRow struct {
 	// TraceID is the MD5 hash of the keys and values describing how this data point (i.e. the
 	// Digest) was drawn. This is a foreign key into the Traces table.
 	TraceID TraceID `sql:"trace_id BYTES"`
-	// StartCommitID is the commit id that is the beginning of the tile for which this row
-	// corresponds.
+	// TileID represents the tile for this row.
 	TileID TileID `sql:"tile_id INT4"`
 	// Digest is the MD5 hash of the pixel data; this is "what was drawn" at least once in the tile
 	// specified by StartCommitID and by the machine (specified by TraceID).
@@ -628,7 +627,7 @@ type TiledTraceDigestRow struct {
 
 	// This index makes it easier to answer the question "What digests are being produced by
 	// a given grouping on the primary branch).
-	ignoredGroupingIndex struct{} `sql:"INDEX grouping_digest_idx (grouping_id, digest)"`
+	groupingDigestIndex struct{} `sql:"INDEX grouping_digest_idx (grouping_id, digest)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
