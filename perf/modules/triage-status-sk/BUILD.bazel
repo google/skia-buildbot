@@ -1,0 +1,42 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":triage-status-sk-demo",
+)
+
+sk_element(
+    name = "triage-status-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["triage-status-sk.scss"],
+    sk_element_deps = ["//perf/modules/tricon2-sk"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "triage-status-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "triage-status-sk-demo",
+    html_file = "triage-status-sk-demo.html",
+    sk_element_deps = [":triage-status-sk"],
+    ts_entry_point = "triage-status-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "triage-status-sk_puppeteer_test",
+    src = "triage-status-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)

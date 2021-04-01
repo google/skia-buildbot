@@ -1,0 +1,43 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":tricon2-sk-demo",
+)
+
+sk_element(
+    name = "tricon2-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//perf/modules/themes:themes_sass_lib",
+    ],
+    sass_srcs = ["tricon2-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "tricon2-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "tricon2-sk-demo",
+    html_file = "tricon2-sk-demo.html",
+    sk_element_deps = [":tricon2-sk"],
+    ts_entry_point = "tricon2-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "tricon2-sk_puppeteer_test",
+    src = "tricon2-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
