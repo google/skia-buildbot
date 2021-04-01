@@ -1,0 +1,88 @@
+load("//infra-sk:index.bzl", "sass_library", "sk_page")
+
+sk_page(
+    name = "alerts",
+    html_file = "alerts.html",
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "alerts.scss",
+    sk_element_deps = [
+        "//perf/modules/alerts-page-sk",
+        "//perf/modules/perf-scaffold-sk",
+    ],
+    ts_entry_point = "alerts.ts",
+)
+
+sass_library(
+    name = "body_sass_lib",
+    srcs = ["body.scss"],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "clusters2",
+    html_file = "clusters2.html",
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "clusters2.scss",
+    sk_element_deps = [
+        "//perf/modules/cluster-page-sk",
+        "//perf/modules/perf-scaffold-sk",
+    ],
+    ts_entry_point = "clusters2.ts",
+)
+
+sk_page(
+    name = "dryrunalert",
+    html_file = "dryRunAlert.html",
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "dryRunAlert.scss",
+    sk_element_deps = [
+        "//perf/modules/cluster-lastn-page-sk",
+        "//perf/modules/perf-scaffold-sk",
+    ],
+    ts_entry_point = "dryRunAlert.ts",
+)
+
+sk_page(
+    name = "help",
+    html_file = "help.html",
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "help.scss",
+    sk_element_deps = ["//perf/modules/perf-scaffold-sk"],
+    ts_entry_point = "help.ts",
+)
+
+sk_page(
+    name = "newindex",
+    html_file = "newindex.html",
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "newindex.scss",
+    sk_element_deps = [
+        "//perf/modules/explore-sk",
+        "//perf/modules/perf-scaffold-sk",
+    ],
+    ts_entry_point = "newindex.ts",
+)
+
+sk_page(
+    name = "triage",
+    html_file = "triage.html",
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "triage.scss",
+    sk_element_deps = [
+        "//perf/modules/perf-scaffold-sk",
+        "//perf/modules/triage-page-sk",
+    ],
+    ts_entry_point = "triage.ts",
+)
+
+sk_page(
+    name = "trybot",
+    html_file = "trybot.html",
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "trybot.scss",
+    sk_element_deps = [
+        "//perf/modules/perf-scaffold-sk",
+        "//perf/modules/trybot-page-sk",
+    ],
+    ts_entry_point = "trybot.ts",
+)

@@ -1,0 +1,47 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":perf-scaffold-sk-demo",
+)
+
+sk_element(
+    name = "perf-scaffold-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["perf-scaffold-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/login-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "perf-scaffold-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "perf-scaffold-sk-demo",
+    html_file = "perf-scaffold-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":perf-scaffold-sk",
+    ],
+    ts_entry_point = "perf-scaffold-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "perf-scaffold-sk_puppeteer_test",
+    src = "perf-scaffold-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)

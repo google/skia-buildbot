@@ -1,0 +1,40 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":triage-page-sk-demo",
+)
+
+sk_element(
+    name = "triage-page-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["triage-page-sk.scss"],
+    sk_element_deps = [
+        "//perf/modules/cluster-summary2-sk",
+        "//perf/modules/commit-detail-sk",
+        "//perf/modules/day-range-sk",
+        "//perf/modules/triage-status-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "@infra-sk_npm//@types/dialog-polyfill",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//dialog-polyfill",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "triage-page-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "triage-page-sk-demo",
+    html_file = "triage-page-sk-demo.html",
+    sk_element_deps = [":triage-page-sk"],
+    ts_entry_point = "triage-page-sk-demo.ts",
+)
