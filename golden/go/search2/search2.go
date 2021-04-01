@@ -23,7 +23,9 @@ type API interface {
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
 // the untriaged and new images produced.
 type NewAndUntriagedSummary struct {
-	ChangelistID      string
+	// ChangelistID is the nonqualified id of the CL.
+	ChangelistID string
+	// PatchsetSummaries is a summary for all Patchsets for which we have data.
 	PatchsetSummaries []PatchsetNewAndUntriagedSummary
 }
 
@@ -41,8 +43,9 @@ type PatchsetNewAndUntriagedSummary struct {
 	// branch (i.e. might not be the fault of this CL/PS). It is greater than or equal to
 	// NewUntriagedImages.
 	TotalUntriagedImages int
-
-	PatchsetID    string
+	// PatchsetID is the nonqualified id of the patchset. This is usually a git hash.
+	PatchsetID string
+	// PatchsetOrder is represents the chronological order the patchsets are in. It starts at 1.
 	PatchsetOrder int
 }
 

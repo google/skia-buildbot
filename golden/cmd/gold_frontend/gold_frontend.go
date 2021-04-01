@@ -61,6 +61,7 @@ import (
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/publicparams"
 	"go.skia.org/infra/golden/go/search"
+	"go.skia.org/infra/golden/go/search2"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/status"
@@ -240,7 +241,9 @@ func main() {
 
 	mustStartExpectationsCleanupProcess(ctx, fsc, cleaner, ixr)
 
-	handlers := mustMakeWebHandlers(sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, statusWatcher, tileSource, tjs)
+	s2a := search2.New(sqlDB)
+
+	handlers := mustMakeWebHandlers(sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, s2a, statusWatcher, tileSource, tjs)
 
 	rootRouter := mustMakeRootRouter(fsc, handlers)
 
@@ -665,7 +668,7 @@ func mustStartExpectationsCleanupProcess(ctx context.Context, fsc *frontendServe
 }
 
 // mustMakeWebHandlers returns a new web.Handlers.
-func mustMakeWebHandlers(db *pgxpool.Pool, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store) *web.Handlers {
+func mustMakeWebHandlers(db *pgxpool.Pool, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, s2a search2.API, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
 		Baseliner:         simple_baseliner.New(expStore),
 		DB:                db,
@@ -675,6 +678,7 @@ func mustMakeWebHandlers(db *pgxpool.Pool, expStore expectations.Store, gsClient
 		Indexer:           ixr,
 		ReviewSystems:     reviewSystems,
 		SearchAPI:         searchAPI,
+		Search2API:        s2a,
 		StatusWatcher:     statusWatcher,
 		TileSource:        tileSource,
 		TryJobStore:       tjs,
@@ -870,8 +874,9 @@ func addUnauthenticatedJSONRoutes(router *mux.Router, _ *frontendServerConfig, h
 	add("/json/v1/changelist/{system}/{id}/{patchset}/untriaged", handlers.ChangelistUntriagedHandler)
 	add("/json/trstatus", handlers.StatusHandler)
 	add("/json/v1/trstatus", handlers.StatusHandler)
-	add("/json/changelist/{system}/{id}", handlers.ChangelistSummaryHandler)
-	add("/json/v1/changelist/{system}/{id}", handlers.ChangelistSummaryHandler)
+	add("/json/changelist/{system}/{id}", handlers.PatchsetsAndTryjobsForCL)
+	add("/json/v1/changelist/{system}/{id}", handlers.PatchsetsAndTryjobsForCL)
+	add("/json/v1/changelist_summary/{system}/{id}", handlers.ChangelistSummaryHandler)
 }
 
 var (
