@@ -1,0 +1,55 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "alerts-page-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["alerts-page-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/paramset-sk",
+        "//perf/modules/alert-config-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules:login_ts_lib",
+        "//perf/modules/alert:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "@infra-sk_npm//@types/dialog-polyfill",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//dialog-polyfill",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "alerts-page-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "alerts-page-sk-demo",
+    html_file = "alerts-page-sk-demo.html",
+    sk_element_deps = [":alerts-page-sk"],
+    ts_deps = [
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//fetch-mock",
+    ],
+    ts_entry_point = "alerts-page-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "alerts-page-sk_puppeteer_test",
+    src = "alerts-page-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":alerts-page-sk-demo",
+)

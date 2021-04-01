@@ -1,0 +1,52 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "cluster-summary2-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["cluster-summary2-sk.scss"],
+    sk_element_deps = [
+        "//perf/modules/commit-detail-panel-sk",
+        "//perf/modules/plot-simple-sk",
+        "//perf/modules/triage2-sk",
+        "//perf/modules/word-cloud-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules:login_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/window:window_ts_lib",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "cluster-summary2-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "cluster-summary2-sk-demo",
+    html_file = "cluster-summary2-sk-demo.html",
+    sk_element_deps = [":cluster-summary2-sk"],
+    ts_deps = ["//perf/modules/json:index_ts_lib"],
+    ts_entry_point = "cluster-summary2-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "cluster-summary2-sk_puppeteer_test",
+    src = "cluster-summary2-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":cluster-summary2-sk-demo",
+)
