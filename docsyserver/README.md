@@ -22,7 +22,7 @@ The detailed design doc is at http://go/docsyserver.
   example repo, along with all the dependencies needed to build it, including
   Hugo and npm.
 
-- `go/docserver` - The application.
+- `go/docsyserver` - The application.
 
 - `go/codereview` - An abstraction of the functionality used from Gerrit. In
   theory a new implementation of CodeReview could be made that supports GitHub
@@ -44,13 +44,28 @@ To build a local docker image run:
 
         $ make
 
-This will build the executable and store it at `$GOPATH/bin/docserver`.
+This will build the executable and store it at `$GOPATH/bin/docsyserver`.
+
+## Running locally with docker
+
+First build the docker image, which only needs to be done once:
+
+      $ make build-local-image
+
+Then run a local instance, changing `$(SKIA)` to the local checkout of Skia:
+
+      docker run --entrypoint=/serve.sh -ti -p 1313:1313 -v $(SKIA)/site:/input docsyserver:latest
+
+The content will now be available at [localhost:1313](http://localhost:1313/).
+The server will automatically re-render the HTML and refresh the page as the
+source documents are edited, there's no need to restart the server after you
+make documentation changes.
 
 ## Running locally
 
 To run, execute the docker image and supply the following flags:
 
-        $ docserver --local [flags]
+        $ docsyserver --local [flags]
 
 ```
   -alsologtostderr
@@ -68,7 +83,7 @@ To run, execute the docker image and supply the following flags:
 ```
 
 You must have the `gcloud` command line tool installed and authorized, as that's
-how docserver with the `--local` flag will create an OAuth 2.0 bearer token to
+how docsyserver with the `--local` flag will create an OAuth 2.0 bearer token to
 access Gerrit. You will also need a local checkout of the Docsy example project
 and Hugo installed. See the
 [Docsy docs](https://www.docsy.dev/docs/getting-started/) for installation

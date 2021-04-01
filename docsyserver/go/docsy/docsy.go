@@ -44,7 +44,7 @@ func New(hugoExe string, docsyDir string, docPath string) *docsy {
 		hugoExe:      hugoExe,
 		docsyDir:     docsyDir,
 		docPath:      docPath,
-		renderMetric: metrics2.GetFloat64SummaryMetric("docserver_docsy_render"),
+		renderMetric: metrics2.GetFloat64SummaryMetric("docsyserver_docsy_render"),
 	}
 }
 
