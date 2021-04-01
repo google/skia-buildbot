@@ -1,6 +1,7 @@
 package progress
 
 import (
+	"context"
 	"net/http"
 	"path"
 	"strings"
@@ -9,11 +10,10 @@ import (
 	"github.com/google/uuid"
 	lru "github.com/hashicorp/golang-lru"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
-
-var timeNow = time.Now
 
 // Tracker keeps track of long running processes.
 //
@@ -24,6 +24,9 @@ type Tracker interface {
 
 	// Handler for HTTP requests for Progress updates.
 	Handler(w http.ResponseWriter, r *http.Request)
+
+	// Start the background cleanup task.
+	Start(ctx context.Context)
 }
 
 // cacheDuration is how long to cache a Progress after it completes, regardless of success.
@@ -89,14 +92,24 @@ func NewTracker(basePath string) (*tracker, error) {
 		numEntriesInCache: metrics2.GetInt64Metric("perf_progress_tracker_num_entries_in_cache"),
 	}
 
-	// Start the periodic cleanup task.
+	return ret, nil
+}
+
+// Start implements Tracker.
+func (t *tracker) Start(ctx context.Context) {
+	ticker := time.NewTicker(cacheUpdatePeriod)
+	done := ctx.Done()
 	go func() {
-		for range time.Tick(cacheUpdatePeriod) {
-			ret.singleStep()
+		for {
+			select {
+			case <-done:
+				sklog.Warning("Context cancelled")
+				return
+			case _ = <-ticker.C:
+				t.singleStep(ctx)
+			}
 		}
 	}()
-
-	return ret, nil
 }
 
 func (t *tracker) get(key string) (*cacheEntry, bool) {
@@ -109,8 +122,8 @@ func (t *tracker) get(key string) (*cacheEntry, bool) {
 }
 
 //  singleStep does a single step in the cache cleanup progress.
-func (t *tracker) singleStep() {
-	now := timeNow()
+func (t *tracker) singleStep(ctx context.Context) {
+	now := now.Now(ctx)
 	for _, key := range t.cache.Keys() {
 		entry, ok := t.get(key.(string))
 		if !ok {

@@ -1,6 +1,8 @@
 package regression
 
 import (
+	"context"
+
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -11,9 +13,9 @@ import (
 )
 
 // StepFit finds regressions by looking at each trace individually and seeing if that looks like a regression.
-func StepFit(df *dataframe.DataFrame, k int, stddevThreshold float32, progress clustering2.Progress, interesting float32, stepDetection types.StepDetection) (*clustering2.ClusterSummaries, error) {
-	low := clustering2.NewClusterSummary()
-	high := clustering2.NewClusterSummary()
+func StepFit(ctx context.Context, df *dataframe.DataFrame, k int, stddevThreshold float32, progress clustering2.Progress, interesting float32, stepDetection types.StepDetection) (*clustering2.ClusterSummaries, error) {
+	low := clustering2.NewClusterSummary(ctx)
+	high := clustering2.NewClusterSummary(ctx)
 	// Normalize each trace and then run through stepfit. If interesting then
 	// add to appropriate cluster.
 	count := 0

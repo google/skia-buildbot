@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -452,10 +453,8 @@ func TestGetParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
 		"config": []string{"565", "8888"},
 	}
 
-	// Swap out timeNow with a time past the TTL.
-	s.timeNow = func() time.Time {
-		return time.Now().Add(orderedParamSetCacheTTL * 2)
-	}
+	// Set the time with a time past the TTL.
+	ctx = context.WithValue(ctx, now.ContextKey, time.Now().Add(orderedParamSetCacheTTL*2))
 	ps, err = s.GetParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 	assert.Equal(t, updatedExpected, ps)

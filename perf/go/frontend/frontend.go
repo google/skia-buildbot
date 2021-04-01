@@ -283,6 +283,7 @@ func (f *Frontend) initialize() {
 	if err != nil {
 		sklog.Fatalf("Failed to initialize Tracker: %s", err)
 	}
+	f.progressTracker.Start(context.Background())
 
 	// Keep HTTP request metrics.
 	severities := sklog_impl.AllSeverities()
@@ -1372,7 +1373,7 @@ func (f *Frontend) alertNotifyTryHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	auditlog.Log(r, "alert-notify-try", req)
-	if err := f.notifier.ExampleSend(req); err != nil {
+	if err := f.notifier.ExampleSend(r.Context(), req); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to send email: %s", err), http.StatusInternalServerError)
 	}
 }

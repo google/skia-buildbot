@@ -2,6 +2,7 @@ package progress
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -38,7 +40,7 @@ func TestTracker_Add_ProgressAppearsInCacheAndMetrics(t *testing.T) {
 	assert.Equal(t, 1, tr.cache.Len())
 	assert.Equal(t, int64(0), tr.numEntriesInCache.Get())
 
-	tr.singleStep()
+	tr.singleStep(context.Background())
 	assert.Equal(t, int64(1), tr.numEntriesInCache.Get())
 }
 
@@ -48,7 +50,7 @@ func TestTracker_ProgressIsFinished_ProgressStillAppearsInCacheAndMetrics(t *tes
 	tr, p := setup(t)
 	p.Finished()
 
-	tr.singleStep()
+	tr.singleStep(context.Background())
 
 	// Still there because it hasn't passed the expiration date.
 	assert.Equal(t, 1, tr.cache.Len())
@@ -61,17 +63,13 @@ func TestTracker_TimeAdvancesPastExpirationOfFinishedProgress_ProgressNoLongerAp
 	tr, p := setup(t)
 	p.Finished()
 
-	// This pass will mark the time the Progress finished in the cache entry.
-	timeNow = func() time.Time {
-		return testDate
-	}
-	tr.singleStep()
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, now.ContextKey, testDate)
+	tr.singleStep(ctx)
 
 	// This pass will evict the Progress from the cache.
-	timeNow = func() time.Time {
-		return testDate.Add(2 * cacheDuration)
-	}
-	tr.singleStep()
+	ctx = context.WithValue(ctx, now.ContextKey, testDate.Add(2*cacheDuration))
+	tr.singleStep(ctx)
 
 	assert.Equal(t, 0, tr.cache.Len())
 	assert.Equal(t, int64(0), tr.numEntriesInCache.Get())
