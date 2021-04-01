@@ -283,6 +283,7 @@ func (f *Frontend) initialize() {
 	if err != nil {
 		sklog.Fatalf("Failed to initialize Tracker: %s", err)
 	}
+	f.progressTracker.Start(context.Background())
 
 	// Keep HTTP request metrics.
 	severities := sklog_impl.AllSeverities()
