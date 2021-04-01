@@ -8,26 +8,112 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/kube/go/auth-proxy/auth/mocks"
 )
 
-func TestProxyServeHTTP_AllowPostNotAuthenticated_WebAuthHeaderValueIsEmptyString(t *testing.T) {
-	unittest.SmallTest(t)
-	*allowPost = true
+const email = "nobody@example.org"
 
+func setupForTest(t *testing.T, cb http.HandlerFunc) (*url.URL, *bool, *httptest.ResponseRecorder, *http.Request) {
+	*allowPost = false
 	called := false
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Note that if the header webAuthHeaderName hadn't been set then the value would be nil.
-		require.Equal(t, []string{""}, r.Header.Values(webAuthHeaderName))
-		require.Equal(t, []string(nil), r.Header.Values("X-SOME-UNSET-HEADER"))
+		cb(w, r)
 		called = true
 	}))
-	defer ts.Close()
+	t.Cleanup(func() {
+		ts.Close()
+	})
 	u, err := url.Parse(ts.URL)
 	require.NoError(t, err)
-	proxy := newProxy(u)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("POST", ts.URL, nil)
+	return u, &called, w, r
+}
+
+func TestProxyServeHTTP_AllowPostAndNotAuthenticated_WebAuthHeaderValueIsEmptyString(t *testing.T) {
+	unittest.SmallTest(t)
+
+	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		// Note that if the header webAuthHeaderName hadn't been set then the value would be nil.
+		require.Equal(t, []string{""}, r.Header.Values(webAuthHeaderName))
+		require.Equal(t, []string(nil), r.Header.Values("X-SOME-UNSET-HEADER"))
+	})
+	*allowPost = true
+	authMock := &mocks.Auth{}
+	authMock.On("LoggedInAs", r).Return("")
+
+	proxy := newProxy(u, authMock)
+
 	proxy.ServeHTTP(w, r)
-	require.True(t, called)
+	require.True(t, *called)
+	authMock.AssertExpectations(t)
+}
+
+func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, []string{email}, r.Header.Values(webAuthHeaderName))
+	})
+
+	authMock := &mocks.Auth{}
+	authMock.On("LoggedInAs", r).Return(email)
+	authMock.On("IsViewer", r).Return(true)
+
+	proxy := newProxy(u, authMock)
+
+	proxy.ServeHTTP(w, r)
+	require.True(t, *called)
+	authMock.AssertExpectations(t)
+}
+
+func TestProxyServeHTTP_UserIsNotLoggedIn_HeaderWithUserEmailIsStrippedFromRequest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {})
+	r.Header.Add(webAuthHeaderName, email) // Try to spoof the header.
+	authMock := &mocks.Auth{}
+	authMock.On("LoggedInAs", r).Return("")
+	authMock.On("LoginURL", w, r).Return("http://example.org/login")
+
+	proxy := newProxy(u, authMock)
+
+	proxy.ServeHTTP(w, r)
+	require.False(t, *called)
+	authMock.AssertExpectations(t)
+}
+
+func TestProxyServeHTTP_UserIsLoggedInButNotAViewer_ReturnsStatusForbidden(t *testing.T) {
+	unittest.SmallTest(t)
+
+	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {})
+	authMock := &mocks.Auth{}
+	authMock.On("LoggedInAs", r).Return(email)
+	authMock.On("IsViewer", r).Return(false)
+
+	proxy := newProxy(u, authMock)
+
+	proxy.ServeHTTP(w, r)
+	require.False(t, *called)
+	require.Equal(t, http.StatusForbidden, w.Result().StatusCode)
+	authMock.AssertExpectations(t)
+}
+
+func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequestAndSpoofedEmailIsRemoved(t *testing.T) {
+	unittest.SmallTest(t)
+
+	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, []string{email}, r.Header.Values(webAuthHeaderName))
+	})
+	r.Header.Add(webAuthHeaderName, "haxor@example.org") // Try to spoof the header.
+	authMock := &mocks.Auth{}
+	authMock.On("LoggedInAs", r).Return(email)
+	authMock.On("IsViewer", r).Return(true)
+
+	proxy := newProxy(u, authMock)
+
+	proxy.ServeHTTP(w, r)
+	require.True(t, *called)
+	authMock.AssertExpectations(t)
 }
