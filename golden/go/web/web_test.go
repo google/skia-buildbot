@@ -43,6 +43,8 @@ import (
 	"go.skia.org/infra/golden/go/paramsets"
 	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	mock_search "go.skia.org/infra/golden/go/search/mocks"
+	"go.skia.org/infra/golden/go/search2"
+	mock_search2 "go.skia.org/infra/golden/go/search2/mocks"
 	"go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
@@ -2825,6 +2827,140 @@ func TestGetLinksBetween_NoDiffMetricsExist_EmptyMapReturned(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Empty(t, links)
+}
+
+func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ms := &mock_search2.API{}
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my_system", "my_cl").Return(search2.NewAndUntriagedSummary{
+		ChangelistID: "my_cl",
+		PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
+			NewImages:            1,
+			NewUntriagedImages:   2,
+			TotalUntriagedImages: 3,
+			PatchsetID:           "patchset1",
+			PatchsetOrder:        1,
+		}, {
+			NewImages:            5,
+			NewUntriagedImages:   6,
+			TotalUntriagedImages: 7,
+			PatchsetID:           "patchset8",
+			PatchsetOrder:        8,
+		},
+		},
+	}, nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Search2API: ms,
+			ReviewSystems: []clstore.ReviewSystem{{
+				ID: "my_system",
+			}},
+		},
+		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"id":     "my_cl",
+		"system": "my_system",
+	})
+	wh.ChangelistSummaryHandler(w, r)
+	// Note this JSON had the patchsets sorted so the latest one is first.
+	const expectedJSON = `{"changelist_id":"my_cl","patchsets":[{"new_images":5,"new_untriaged_images":6,"total_untriaged_images":7,"patchset_id":"patchset8","patchset_order":8},{"new_images":1,"new_untriaged_images":2,"total_untriaged_images":3,"patchset_id":"patchset1","patchset_order":1}]}`
+	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+}
+
+func TestChangelistSummaryHandler_MissingCL_BadRequest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ReviewSystems: []clstore.ReviewSystem{{
+				ID: "my_system",
+			}},
+		},
+		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"system": "my_system",
+	})
+	wh.ChangelistSummaryHandler(w, r)
+	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+}
+
+func TestChangelistSummaryHandler_MissingSystem_BadRequest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ReviewSystems: []clstore.ReviewSystem{{
+				ID: "my_system",
+			}},
+		},
+		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"id": "my_cl",
+	})
+	wh.ChangelistSummaryHandler(w, r)
+	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+}
+
+func TestChangelistSummaryHandler_IncorrectSystem_BadRequest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ReviewSystems: []clstore.ReviewSystem{{
+				ID: "my_system",
+			}},
+		},
+		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"id":     "my_cl",
+		"system": "bad_system",
+	})
+	wh.ChangelistSummaryHandler(w, r)
+	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+}
+
+func TestChangelistSummaryHandler_SearchReturnsError_InternalServerError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ms := &mock_search2.API{}
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my_system", "my_cl").Return(search2.NewAndUntriagedSummary{}, errors.New("boom"))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Search2API: ms,
+			ReviewSystems: []clstore.ReviewSystem{{
+				ID: "my_system",
+			}},
+		},
+		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"id":     "my_cl",
+		"system": "my_system",
+	})
+	wh.ChangelistSummaryHandler(w, r)
+	assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
