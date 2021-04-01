@@ -1,0 +1,39 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":uniform-mouse-sk-demo",
+)
+
+sk_element(
+    name = "uniform-mouse-sk",
+    sass_srcs = ["uniform-mouse-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/uniform:uniform_ts_lib",
+        "@infra-sk_npm//elements-sk",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "uniform-mouse-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "uniform-mouse-sk-demo",
+    html_file = "uniform-mouse-sk-demo.html",
+    sk_element_deps = [":uniform-mouse-sk"],
+    ts_deps = ["@infra-sk_npm//common-sk"],
+    ts_entry_point = "uniform-mouse-sk-demo.ts",
+)
+
+karma_test(
+    name = "uniform-mouse-sk_test",
+    src = "uniform-mouse-sk_test.ts",
+    deps = [
+        ":uniform-mouse-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)

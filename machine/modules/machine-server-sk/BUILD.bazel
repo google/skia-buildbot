@@ -1,18 +1,19 @@
 load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
-package(default_visibility = ["//machine:__subpackages__"])
-
 sk_element(
     name = "machine-server-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//machine/modules/theme:theme_sass_lib",
+    ],
     sass_srcs = ["machine-server-sk.scss"],
     sk_element_deps = [
-        "//infra-sk/modules/theme-chooser-sk:theme-chooser-sk",
-        "//machine/modules/note-editor-sk:note-editor-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+        "//machine/modules/note-editor-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:element-sk",
-        "//machine/modules/json",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//machine/modules/json:index_ts_lib",
         "@infra-sk_npm//common-sk",
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
@@ -21,15 +22,15 @@ sk_element(
         "index.ts",
         "machine-server-sk.ts",
     ],
+    visibility = ["//visibility:public"],
 )
 
 karma_test(
-    name = "test",
+    name = "machine-server-sk_test",
     src = "machine-server-sk_test.ts",
     deps = [
         ":machine-server-sk",
-        "//infra-sk/modules:test_util",
-        "//machine/modules/json",
+        "//machine/modules/json:index_ts_lib",
         "@infra-sk_npm//@types/chai",
         "@infra-sk_npm//chai",
         "@infra-sk_npm//common-sk",

@@ -1,0 +1,45 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":systemd-unit-status-sk-demo",
+)
+
+sk_element(
+    name = "systemd-unit-status-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["systemd-unit-status-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/systemd-unit-status-sk/json:index_ts_lib",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "systemd-unit-status-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "systemd-unit-status-sk-demo",
+    html_file = "systemd-unit-status-sk-demo.html",
+    sk_element_deps = [":systemd-unit-status-sk"],
+    ts_deps = [
+        "//infra-sk/modules/systemd-unit-status-sk/json:index_ts_lib",
+        "@infra-sk_npm//common-sk",
+    ],
+    ts_entry_point = "systemd-unit-status-sk-demo.ts",
+)
+
+karma_test(
+    name = "systemd-unit-status-sk_test",
+    src = "systemd-unit-status-sk_test.ts",
+    deps = [
+        ":systemd-unit-status-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)

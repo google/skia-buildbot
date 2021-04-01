@@ -1,11 +1,46 @@
 load("//infra-sk:index.bzl", "karma_test", "nodejs_test", "ts_library")
 
-ts_library(
-    name = "page_object",
-    srcs = [
-        "page_object.ts",
-        "page_object_element.ts",
+karma_test(
+    name = "page_object_element_karma_test",
+    src = "page_object_element_karma_test.ts",
+    deps = [
+        ":page_object_element_test_cases_ts_lib",
+        ":page_object_element_ts_lib",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//puppeteer",
     ],
+)
+
+nodejs_test(
+    name = "page_object_element_nodejs_test",
+    src = "page_object_element_nodejs_test.ts",
+    deps = [
+        ":page_object_element_test_cases_ts_lib",
+        ":page_object_element_ts_lib",
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/express",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//express",
+        "@infra-sk_npm//puppeteer",
+    ],
+)
+
+ts_library(
+    name = "page_object_element_test_cases_ts_lib",
+    srcs = ["page_object_element_test_cases.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":page_object_element_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//chai",
+        "@infra-sk_npm//puppeteer",
+    ],
+)
+
+ts_library(
+    name = "page_object_element_ts_lib",
+    srcs = ["page_object_element.ts"],
     visibility = ["//visibility:public"],
     deps = [
         "@infra-sk_npm//@types/puppeteer",
@@ -14,40 +49,12 @@ ts_library(
 )
 
 ts_library(
-    name = "page_object_element_test_cases",
-    srcs = ["page_object_element_test_cases.ts"],
+    name = "page_object_ts_lib",
+    srcs = ["page_object.ts"],
+    visibility = ["//visibility:public"],
     deps = [
-        ":page_object",
-        "@infra-sk_npm//@types/chai",
+        ":page_object_element_ts_lib",
         "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//chai",
-        "@infra-sk_npm//puppeteer",
-    ],
-)
-
-karma_test(
-    name = "karma_test",
-    src = "page_object_element_karma_test.ts",
-    deps = [
-        ":page_object",
-        ":page_object_element_test_cases",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//chai",
-        "@infra-sk_npm//puppeteer",
-    ],
-)
-
-nodejs_test(
-    name = "nodejs_test",
-    src = "page_object_element_nodejs_test.ts",
-    deps = [
-        ":page_object",
-        ":page_object_element_test_cases",
-        "//puppeteer-tests:util_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//chai",
         "@infra-sk_npm//puppeteer",
     ],
 )

@@ -1,27 +1,30 @@
 load("//infra-sk:index.bzl", "karma_test", "ts_library")
 
-package(default_visibility = ["//visibility:public"])
+karma_test(
+    name = "elementsk_test",
+    src = "ElementSk_test.ts",
+    deps = [
+        ":elementsk_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+)
 
 ts_library(
-    name = "element-sk",
-    srcs = [
-        "ElementSk.ts",
-        "index.ts",
-    ],
+    name = "elementsk_ts_lib",
+    srcs = ["ElementSk.ts"],
+    visibility = ["//visibility:public"],
     deps = [
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
     ],
 )
 
-karma_test(
-    name = "element-sk_test",
-    src = "ElementSk_test.ts",
-    deps = [
-        ":element-sk",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
-    ],
+ts_library(
+    name = "index_ts_lib",
+    srcs = ["index.ts"],
+    visibility = ["//visibility:public"],
+    deps = [":elementsk_ts_lib"],
 )

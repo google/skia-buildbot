@@ -1,0 +1,29 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":login-sk-demo",
+)
+
+sk_element(
+    name = "login-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["login-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules:login_ts_lib",
+        "@infra-sk_npm//elements-sk",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "login-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "login-sk-demo",
+    html_file = "login-sk-demo.html",
+    sk_element_deps = [":login-sk"],
+    ts_deps = ["@infra-sk_npm//elements-sk"],
+    ts_entry_point = "login-sk-demo.ts",
+)

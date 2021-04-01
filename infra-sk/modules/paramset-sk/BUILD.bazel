@@ -1,21 +1,16 @@
-load(
-    "//infra-sk:index.bzl",
-    "karma_test",
-    "sk_demo_page_server",
-    "sk_element",
-    "sk_element_puppeteer_test",
-    "sk_page",
-    "ts_library",
-)
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
-package(default_visibility = ["//visibility:public"])
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":paramset-sk-demo",
+)
 
 sk_element(
     name = "paramset-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["paramset-sk.scss"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:element-sk",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "@infra-sk_npm//common-sk",
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
@@ -24,55 +19,49 @@ sk_element(
         "index.ts",
         "paramset-sk.ts",
     ],
-)
-
-ts_library(
-    name = "paramset-sk_po",
-    srcs = ["paramset-sk_po.ts"],
-    deps = [
-        "//infra-sk/modules/page_object",
-        "@infra-sk_npm//common-sk",
-    ],
-)
-
-karma_test(
-    name = "test",
-    src = "paramset-sk_test.ts",
-    deps = [
-        ":paramset-sk",
-        ":paramset-sk_po",
-        "//infra-sk/modules:test_util",
-        "@infra-sk_npm//common-sk",
-    ],
+    visibility = ["//visibility:public"],
 )
 
 sk_page(
-    name = "demo_page",
+    name = "paramset-sk-demo",
     html_file = "paramset-sk-demo.html",
     scss_entry_point = "paramset-sk-demo.scss",
     sk_element_deps = [":paramset-sk"],
-    ts_deps = [
-        "@infra-sk_npm//common-sk",
-    ],
+    ts_deps = ["@infra-sk_npm//common-sk"],
     ts_entry_point = "paramset-sk-demo.ts",
 )
 
-sk_demo_page_server(
-    name = "demo_page_server",
-    sk_page = "demo_page",
+ts_library(
+    name = "paramset-sk_po_ts_lib",
+    srcs = ["paramset-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+        "@infra-sk_npm//common-sk",
+    ],
 )
 
 sk_element_puppeteer_test(
-    name = "puppeteer_test",
+    name = "paramset-sk_puppeteer_test",
     src = "paramset-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
         ":paramset-sk",
-        ":paramset-sk_po",
-        "//puppeteer-tests:util_lib",
+        ":paramset-sk_po_ts_lib",
+        "//puppeteer-tests:util_ts_lib",
         "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/puppeteer",
         "@infra-sk_npm//chai",
-        "@infra-sk_npm//puppeteer",
+    ],
+)
+
+karma_test(
+    name = "paramset-sk_test",
+    src = "paramset-sk_test.ts",
+    deps = [
+        ":paramset-sk",
+        ":paramset-sk_po_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@infra-sk_npm//common-sk",
     ],
 )
