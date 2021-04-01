@@ -2,35 +2,37 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_demo_page_server(
     name = "demo_page_server",
-    sk_page = ":{{.ElementName}}-demo",
+    sk_page = ":uniform-generic-sk-demo",
 )
 
 sk_element(
-    name = "{{.ElementName}}",
-    sass_srcs = ["{{.ElementName}}.scss"],
+    name = "uniform-generic-sk",
+    sass_srcs = ["uniform-generic-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules/uniform:uniform_ts_lib",
+        "@infra-sk_npm//common-sk",
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
     ],
     ts_srcs = [
-        "{{.ElementName}}.ts",
         "index.ts",
+        "uniform-generic-sk.ts",
     ],
     visibility = ["//visibility:public"],
 )
 
 sk_page(
-    name = "{{.ElementName}}-demo",
-    html_file = "{{.ElementName}}-demo.html",
-    scss_entry_point = "{{.ElementName}}-demo.scss",
-    sk_element_deps = [":{{.ElementName}}"],
-    ts_entry_point = "{{.ElementName}}-demo.ts",
+    name = "uniform-generic-sk-demo",
+    html_file = "uniform-generic-sk-demo.html",
+    sk_element_deps = [":uniform-generic-sk"],
+    ts_deps = ["@infra-sk_npm//common-sk"],
+    ts_entry_point = "uniform-generic-sk-demo.ts",
 )
 
 sk_element_puppeteer_test(
-    name = "{{.ElementName}}_puppeteer_test",
-    src = "{{.ElementName}}_puppeteer_test.ts",
+    name = "uniform-generic-sk_puppeteer_test",
+    src = "uniform-generic-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
@@ -40,12 +42,13 @@ sk_element_puppeteer_test(
 )
 
 karma_test(
-    name = "{{.ElementName}}_test",
-    src = "{{.ElementName}}_test.ts",
+    name = "uniform-generic-sk_test",
+    src = "uniform-generic-sk_test.ts",
     deps = [
-        ":{{.ElementName}}",
+        ":uniform-generic-sk",
         "//infra-sk/modules:test_util_ts_lib",
         "@infra-sk_npm//@types/chai",
         "@infra-sk_npm//chai",
+        "@infra-sk_npm//common-sk",
     ],
 )
