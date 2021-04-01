@@ -1,0 +1,59 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "cluster-page-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["cluster-page-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/paramset-sk",
+        "//infra-sk/modules/query-sk",
+        "//infra-sk/modules/sort-sk",
+        "//perf/modules/algo-select-sk",
+        "//perf/modules/cluster-summary2-sk",
+        "//perf/modules/commit-detail-panel-sk",
+        "//perf/modules/commit-detail-picker-sk",
+        "//perf/modules/day-range-sk",
+        "//perf/modules/query-count-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/progress:progress_ts_lib",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "cluster-page-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "cluster-page-sk-demo",
+    html_file = "cluster-page-sk-demo.html",
+    sk_element_deps = [":cluster-page-sk"],
+    ts_deps = [
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//fetch-mock",
+    ],
+    ts_entry_point = "cluster-page-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "cluster-page-sk_puppeteer_test",
+    src = "cluster-page-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":cluster-page-sk-demo",
+)

@@ -1,0 +1,51 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "calendar-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["calendar-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "calendar-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "calendar-sk-demo",
+    html_file = "calendar-sk-demo.html",
+    sk_element_deps = [":calendar-sk"],
+    ts_entry_point = "calendar-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "calendar-sk_puppeteer_test",
+    src = "calendar-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+karma_test(
+    name = "calendar-sk_test",
+    src = "calendar-sk_test.ts",
+    deps = [
+        ":calendar-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":calendar-sk-demo",
+)

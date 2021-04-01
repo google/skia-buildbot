@@ -1,0 +1,58 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "cluster-lastn-page-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["cluster-lastn-page-sk.scss"],
+    sk_element_deps = [
+        "//perf/modules/alert-config-sk",
+        "//perf/modules/cluster-summary2-sk",
+        "//perf/modules/commit-detail-sk",
+        "//perf/modules/domain-picker-sk",
+        "//perf/modules/triage-status-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/progress:progress_ts_lib",
+        "@infra-sk_npm//@types/dialog-polyfill",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//dialog-polyfill",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "cluster-lastn-page-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "cluster-lastn-page-sk-demo",
+    html_file = "cluster-lastn-page-sk-demo.html",
+    sk_element_deps = [":cluster-lastn-page-sk"],
+    ts_deps = [
+        "//perf/modules/json:index_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//fetch-mock",
+    ],
+    ts_entry_point = "cluster-lastn-page-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "cluster-lastn-page-sk_puppeteer_test",
+    src = "cluster-lastn-page-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":cluster-lastn-page-sk-demo",
+)

@@ -1,0 +1,53 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "alert-config-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["alert-config-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/query-sk",
+        "//perf/modules/algo-select-sk",
+        "//perf/modules/query-chooser-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/window:window_ts_lib",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "alert-config-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "alert-config-sk-demo",
+    html_file = "alert-config-sk-demo.html",
+    sk_element_deps = [":alert-config-sk"],
+    ts_deps = [
+        "//perf/modules/json:index_ts_lib",
+        "@infra-sk_npm//common-sk",
+    ],
+    ts_entry_point = "alert-config-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "alert-config-sk_puppeteer_test",
+    src = "alert-config-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":alert-config-sk-demo",
+)

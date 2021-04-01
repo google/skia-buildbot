@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { expect } from 'chai';
 import {
+  inBazel,
   loadCachedTestBed, takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
 
@@ -14,7 +15,7 @@ describe('cluster-lastn-page-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(
-      `${testBed.baseUrl}/dist/cluster-lastn-page-sk.html`,
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/cluster-lastn-page-sk.html`,
     );
     await testBed.page.setViewport({ width: 600, height: 600 });
   });

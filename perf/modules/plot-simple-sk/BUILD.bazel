@@ -1,0 +1,97 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":plot-simple-sk-demo",
+)
+
+karma_test(
+    name = "kd_test",
+    src = "kd_test.ts",
+    deps = [
+        ":kd_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+ts_library(
+    name = "kd_ts_lib",
+    srcs = ["kd.ts"],
+    visibility = ["//visibility:public"],
+)
+
+sk_element(
+    name = "plot-simple-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["plot-simple-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        ":kd_ts_lib",
+        ":ticks_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+        "@infra-sk_npm//@types/d3-array",
+        "@infra-sk_npm//@types/d3-scale",
+        "@infra-sk_npm//d3-array",
+        "@infra-sk_npm//d3-scale",
+        "@infra-sk_npm//resize-observer-polyfill",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "plot-simple-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "plot-simple-sk-demo",
+    html_file = "plot-simple-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":plot-simple-sk",
+    ],
+    ts_deps = [
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+    ],
+    ts_entry_point = "plot-simple-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "plot-simple-sk_puppeteer_test",
+    src = "plot-simple-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+karma_test(
+    name = "plot-simple-sk_test",
+    src = "plot-simple-sk_test.ts",
+    deps = [
+        ":plot-simple-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+karma_test(
+    name = "ticks_test",
+    src = "ticks_test.ts",
+    deps = [
+        ":ticks_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+ts_library(
+    name = "ticks_ts_lib",
+    srcs = ["ticks.ts"],
+    visibility = ["//visibility:public"],
+)

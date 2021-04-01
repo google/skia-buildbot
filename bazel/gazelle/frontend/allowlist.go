@@ -11,6 +11,8 @@ var targetDirectories = map[string]bool{
 	"machine/modules":     true,
 	"machine/pages":       true,
 	"new_element/modules": true,
+	"perf/modules":        true,
+	"perf/pages":          true,
 	"puppeteer-tests":     true,
 	"task_driver/modules": true,
 }

@@ -1,0 +1,65 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":trybot-page-sk-demo",
+)
+
+sk_element(
+    name = "trybot-page-sk",
+    sass_srcs = ["trybot-page-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/paramset-sk",
+        "//infra-sk/modules/query-sk",
+        "//perf/modules/commit-detail-panel-sk",
+        "//perf/modules/commit-detail-picker-sk",
+        "//perf/modules/day-range-sk",
+        "//perf/modules/plot-simple-sk",
+        "//perf/modules/query-count-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
+        "//perf/modules/progress:progress_ts_lib",
+        "//perf/modules/trybot:calcs_ts_lib",
+        "//perf/modules/window:window_ts_lib",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "trybot-page-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "trybot-page-sk-demo",
+    html_file = "trybot-page-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/query-sk",
+        "//perf/modules/commit-detail-picker-sk",
+        ":trybot-page-sk",
+    ],
+    ts_deps = [
+        "//perf/modules/json:index_ts_lib",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//fetch-mock",
+    ],
+    ts_entry_point = "trybot-page-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "trybot-page-sk_puppeteer_test",
+    src = "trybot-page-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)

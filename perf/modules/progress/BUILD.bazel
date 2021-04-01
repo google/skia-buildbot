@@ -1,0 +1,24 @@
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
+
+karma_test(
+    name = "progress_test",
+    src = "progress_test.ts",
+    deps = [
+        ":progress_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//fetch-mock",
+    ],
+)
+
+ts_library(
+    name = "progress_ts_lib",
+    srcs = ["progress.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/modules/json:index_ts_lib",
+        "@infra-sk_npm//elements-sk",
+    ],
+)

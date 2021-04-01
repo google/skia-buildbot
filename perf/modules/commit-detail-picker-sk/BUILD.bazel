@@ -1,0 +1,54 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "commit-detail-picker-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["commit-detail-picker-sk.scss"],
+    sk_element_deps = [
+        "//perf/modules/commit-detail-panel-sk",
+        "//perf/modules/day-range-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "@infra-sk_npm//@types/dialog-polyfill",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//dialog-polyfill",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "commit-detail-picker-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "commit-detail-picker-sk-demo",
+    html_file = "commit-detail-picker-sk-demo.html",
+    sk_element_deps = [":commit-detail-picker-sk"],
+    ts_deps = [
+        "//perf/modules/json:index_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//fetch-mock",
+    ],
+    ts_entry_point = "commit-detail-picker-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "commit-detail-picker-sk_puppeteer_test",
+    src = "commit-detail-picker-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":commit-detail-picker-sk-demo",
+)

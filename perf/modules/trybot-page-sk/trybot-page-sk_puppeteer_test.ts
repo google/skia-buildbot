@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { expect } from 'chai';
 import {
+  inBazel,
   loadCachedTestBed, takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
 
@@ -13,7 +14,8 @@ describe('trybot-page-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/trybot-page-sk.html`);
+    await testBed.page.goto(
+      inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/trybot-page-sk.html`);
     await testBed.page.setViewport({ width: 800, height: 1024 });
   });
 
