@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b7c8483e_1ff81ca2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-01T11:54:42Z",
+      "side": 1,
+      "message": "For reference, here\u0027s the SQL to copy the data from Traces to TiledTraceDigests:\n\nUPDATE TiledTraceDigests SET (grouping_id) \u003d (\n  SELECT grouping_id FROM Traces WHERE Traces.trace_id \u003d TiledTraceDigests.trace_id)\nWHERE grouping_id is NULL;",
+      "revId": "6916f3eab64d74b875d25281e733358b7a08644b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
