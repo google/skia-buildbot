@@ -10,6 +10,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/clustering2",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/now",
         "//go/query",
         "//go/sklog",
         "//perf/go/config",
@@ -29,6 +30,7 @@ go_test(
     ],
     embed = [":clustering2"],
     deps = [
+        "//go/now",
         "//go/paramtools",
         "//go/testutils/unittest",
         "//perf/go/ctrace2",

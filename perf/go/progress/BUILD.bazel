@@ -11,6 +11,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",
+        "//go/now",
         "//go/skerr",
         "//go/sklog",
         "@com_github_google_uuid//:uuid",
@@ -26,6 +27,7 @@ go_test(
     ],
     embed = [":progress"],
     deps = [
+        "//go/now",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
