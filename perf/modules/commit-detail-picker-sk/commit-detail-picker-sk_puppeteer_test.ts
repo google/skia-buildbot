@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { expect } from 'chai';
 import {
+  inBazel,
   loadCachedTestBed, takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
 
@@ -14,7 +15,7 @@ describe('commit-detail-picker-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(
-      `${testBed.baseUrl}/dist/commit-detail-picker-sk.html`,
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/commit-detail-picker-sk.html`,
     );
     await testBed.page.setViewport({ width: 800, height: 800 });
   });
