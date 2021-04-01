@@ -26,7 +26,7 @@ import (
 
 const (
 	// refreshDuration is how often an issue cache entry should be checked to see if it's stale.
-	refreshDuration = 10 * time.Minute
+	refreshDuration = time.Minute
 
 	// mainRefreshDuration is how often the main branch is updated.
 	mainRefreshDuration = 5 * time.Minute
