@@ -847,32 +847,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "docserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "docserver",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "docserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "docsyserver",
           "endpoints": [
             {
@@ -3297,23 +3271,6 @@
                           },
                           "route": {
                             "cluster": "demoserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "legacy.skia.org",
-                      "name": "legacy.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "docserver",
                             "timeout": {
                               "seconds": 600
                             }
