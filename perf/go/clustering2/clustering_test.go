@@ -1,12 +1,14 @@
 package clustering2
 
 import (
+	"context"
 	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/ctrace2"
@@ -18,16 +20,9 @@ import (
 func TestNewClusterSummary_RecordsTheTimeTheClusterSummaryWasCreated_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	// Put in a fake for timeNow, and restore after the test is done.
 	testTime := time.Date(2020, 05, 01, 12, 00, 00, 00, time.UTC)
-	timeNow = func() time.Time {
-		return testTime
-	}
-	defer func() {
-		timeNow = time.Now
-	}()
-
-	cs := NewClusterSummary()
+	ctx := context.WithValue(context.Background(), now.ContextKey, testTime)
+	cs := NewClusterSummary(ctx)
 	require.Equal(t, testTime, cs.Timestamp)
 }
 
@@ -53,6 +48,7 @@ func TestParamSummaries(t *testing.T) {
 func TestCalcCusterSummaries(t *testing.T) {
 	unittest.LargeTest(t)
 
+	ctx := context.Background()
 	rand.Seed(1)
 	now := time.Now()
 	df := &dataframe.DataFrame{
@@ -92,7 +88,7 @@ func TestCalcCusterSummaries(t *testing.T) {
 		ps.AddParamsFromKey(key)
 	}
 	df.ParamSet = ps.Freeze()
-	sum, err := CalculateClusterSummaries(df, 4, 0.01, nil, 50, types.OriginalStep)
+	sum, err := CalculateClusterSummaries(ctx, df, 4, 0.01, nil, 50, types.OriginalStep)
 	assert.NoError(t, err)
 	assert.NotNil(t, sum)
 	assert.Equal(t, 2, len(sum.Clusters))
@@ -103,6 +99,8 @@ func TestCalcCusterSummaries(t *testing.T) {
 
 func TestCalcCusterSummariesDegenerate(t *testing.T) {
 	unittest.SmallTest(t)
+
+	ctx := context.Background()
 	rand.Seed(1)
 	df := &dataframe.DataFrame{
 		TraceSet: types.TraceSet{},
@@ -110,6 +108,6 @@ func TestCalcCusterSummariesDegenerate(t *testing.T) {
 		ParamSet: paramtools.NewReadOnlyParamSet(),
 		Skip:     0,
 	}
-	_, err := CalculateClusterSummaries(df, 4, 0.01, nil, 50, types.OriginalStep)
+	_, err := CalculateClusterSummaries(ctx, df, 4, 0.01, nil, 50, types.OriginalStep)
 	assert.Error(t, err)
 }

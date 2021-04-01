@@ -1,10 +1,12 @@
 package notify
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/alerts"
 )
@@ -35,10 +37,8 @@ func TestExampleSend(t *testing.T) {
 		Alert:       "someone@example.org, someother@example.com ",
 		DisplayName: "MyAlert",
 	}
-	timeNow = func() time.Time {
-		return time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC)
-	}
-	err := n.ExampleSend(alert)
+	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
+	err := n.ExampleSend(ctx, alert)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"someone@example.org", "someother@example.com"}, e.to)
 	assert.Equal(t, fromAddress, e.from)

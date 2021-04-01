@@ -132,7 +132,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 						continue
 					}
 					if isNew {
-						if err := c.notifier.Send(details, cfg, cl); err != nil {
+						if err := c.notifier.Send(ctx, details, cfg, cl); err != nil {
 							sklog.Errorf("Failed to send notification: %s", err)
 						}
 					}
@@ -145,7 +145,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 						continue
 					}
 					if isNew {
-						if err := c.notifier.Send(details, cfg, cl); err != nil {
+						if err := c.notifier.Send(ctx, details, cfg, cl); err != nil {
 							sklog.Errorf("Failed to send notification: %s", err)
 						}
 					}

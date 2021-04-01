@@ -156,6 +156,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
@@ -546,9 +547,6 @@ type SQLTraceStore struct {
 	// db is the SQL database instance.
 	db *pgxpool.Pool
 
-	// timeNow allows controlling time during tests.
-	timeNow timeProvider
-
 	// unpreparedStatements are parsed templates that can be used to construct SQL statements.
 	unpreparedStatements map[statement]*template.Template
 
@@ -613,7 +611,6 @@ func New(db *pgxpool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceSto
 
 	ret := &SQLTraceStore{
 		db:                              db,
-		timeNow:                         time.Now,
 		unpreparedStatements:            unpreparedStatements,
 		tileSize:                        datastoreConfig.TileSize,
 		cache:                           cache,
@@ -731,7 +728,7 @@ func (s *SQLTraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNu
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetParamSet")
 	defer span.End()
 
-	now := s.timeNow()
+	now := now.Now(ctx)
 	iEntry, ok := s.orderedParamSetCache.Get(tileNumber)
 	if ok {
 		if entry, ok := iEntry.(orderedParamSetCacheEntry); ok && entry.expires.After(now) {

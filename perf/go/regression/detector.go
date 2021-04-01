@@ -302,9 +302,9 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 		switch p.request.Alert.Algo {
 		case types.KMeansGrouping:
 			p.request.Progress.Message("K", fmt.Sprintf("%d", k))
-			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
+			summary, err = clustering2.CalculateClusterSummaries(ctx, df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
 		case types.StepFitGrouping:
-			summary, err = StepFit(df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
+			summary, err = StepFit(ctx, df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
 		default:
 			err = skerr.Fmt("Invalid type of clustering: %s", p.request.Alert.Algo)
 		}
