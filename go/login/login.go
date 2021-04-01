@@ -341,16 +341,6 @@ func LoggedInAs(r *http.Request) string {
 	return ""
 }
 
-// ID returns the user's ID, i.e. their opaque identifier, if they are
-// logged in, and "" if they are not logged in.
-func ID(r *http.Request) string {
-	s, err := getSession(r)
-	if err != nil {
-		return ""
-	}
-	return s.ID
-}
-
 // UserIdentifiers returns both the email and opaque user id of the logged in
 // user, and will return two empty strings if they are not logged in.
 func UserIdentifiers(r *http.Request) (string, string) {
