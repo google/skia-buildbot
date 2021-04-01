@@ -93,7 +93,7 @@ func main() {
 	}
 }
 
-// By invoking Bazel via this function, we ensure that we will always use the temporary cache.
+// bazel invokes bazel with the given arguments, plus extra flags to use the temporary cache.
 func bazel(ctx context.Context, args ...string) {
 	command := []string{"bazel", "--output_user_root=" + bazelCacheDir}
 	command = append(command, args...)
@@ -102,11 +102,43 @@ func bazel(ctx context.Context, args ...string) {
 	}
 }
 
+// goldctl invokes goldctl with the given arguments.
+func goldctl(ctx context.Context, args ...string) {
+	bazelCommand := []string{"run", "//gold-client/cmd/goldctl", "--"}
+	bazelCommand = append(bazelCommand, args...)
+	bazel(ctx, bazelCommand...)
+}
+
 func testOnRBE(ctx context.Context) {
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
 	bazel(ctx, "test", "//...", "--test_output=errors", "--config=remote", "--google_credentials="+skiaInfraRbeKeyFile)
 
-	// TODO(lovisolo): Upload Puppeteer test screenshots to Gold.
+	// Upload to Gold all screenshots produced by Puppeteer tests in the previous step.
+	uploadPuppeteerScreenshotsToGold(ctx)
+}
+
+// uploadPuppeteerScreenshotsToGold gathers all screenshots produced by Puppeteer tests and uploads
+// them to Gold.
+func uploadPuppeteerScreenshotsToGold(ctx context.Context) {
+	puppeteerScreenshotsDir, err := os_steps.TempDir(ctx, "", "puppeteer-screenshots-*")
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	bazel(ctx, "run", "//:extract_puppeteer_screenshots", "--", "--output_dir", puppeteerScreenshotsDir)
+
+	fileInfos, err := os_steps.ReadDir(ctx, puppeteerScreenshotsDir)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	sklog.Info("Found %d Puppeteer screenshots:", len(fileInfos))
+	for _, fileInfo := range fileInfos {
+		sklog.Info("Puppeteer screenshot: %s", fileInfo.Name())
+	}
+
+	sklog.Info("Invoking goldctl:")
+	goldctl(ctx, "--help")
 }
 
 func testLocally(ctx context.Context) {
