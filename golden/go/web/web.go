@@ -20,7 +20,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
-	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
@@ -40,7 +39,9 @@ import (
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/search/export"
+	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
+	"go.skia.org/infra/golden/go/search2"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
@@ -95,6 +96,7 @@ type HandlersConfig struct {
 	Indexer           indexer.IndexSource
 	ReviewSystems     []clstore.ReviewSystem
 	SearchAPI         search.SearchAPI
+	Search2API        search2.API
 	StatusWatcher     *status.StatusWatcher
 	TileSource        tilesource.TileSource
 	TryJobStore       tjstore.Store
@@ -139,6 +141,12 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 		}
 		if conf.Indexer == nil {
 			return nil, skerr.Fmt("Indexer cannot be nil")
+		}
+		if conf.SearchAPI == nil {
+			return nil, skerr.Fmt("SearchAPI cannot be nil")
+		}
+		if conf.Search2API == nil {
+			return nil, skerr.Fmt("Search2API cannot be nil")
 		}
 		if conf.StatusWatcher == nil {
 			return nil, skerr.Fmt("StatusWatcher cannot be nil")
@@ -405,17 +413,15 @@ func (wh *Handlers) getIngestedChangelists(ctx context.Context, offset, size int
 	return retCls, pagination, nil
 }
 
-// ChangelistSummaryHandler returns a summary of the data we have collected
+// PatchsetsAndTryjobsForCL returns a summary of the data we have collected
 // for a given Changelist, specifically any TryJobs that have uploaded data
 // to Gold belonging to various patchsets in it.
-func (wh *Handlers) ChangelistSummaryHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) PatchsetsAndTryjobsForCL(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
-	// mux.Vars also has "system", which can be used if we ever need to implement
-	// the functionality to handle two code review systems at once.
 	clID, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, "Must specify 'id' of Changelist.", http.StatusBadRequest)
@@ -447,7 +453,7 @@ var cisTemplates = map[string]string{
 	"buildbucket": "https://cr-buildbucket.appspot.com/build/%s",
 }
 
-// getCLSummary does a bulk of the work for ChangelistSummaryHandler, specifically
+// getCLSummary does a bulk of the work for PatchsetsAndTryjobsForCL, specifically
 // fetching the Changelist and Patchsets from clstore and any associated TryJobs from
 // the tjstore.
 func (wh *Handlers) getCLSummary(ctx context.Context, system clstore.ReviewSystem, clID string) (frontend.ChangelistSummary, error) {
@@ -1871,4 +1877,38 @@ func decode(b []byte) (*image.NRGBA, error) {
 func noCacheNotFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	http.NotFound(w, r)
+}
+
+// ChangelistSummaryHandler returns a summary of the new and untriaged digests produced by this
+// CL across all Patchsets.
+func (wh *Handlers) ChangelistSummaryHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_ChangelistSummaryHandler")
+	defer span.End()
+	if err := wh.cheapLimitForGerritPlugin(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+	clID, ok := mux.Vars(r)["id"]
+	if !ok {
+		http.Error(w, "Must specify 'id' of Changelist.", http.StatusBadRequest)
+		return
+	}
+	crs, ok := mux.Vars(r)["system"]
+	if !ok {
+		http.Error(w, "Must specify 'system' of Changelist.", http.StatusBadRequest)
+		return
+	}
+	system, ok := wh.getCodeReviewSystem(crs)
+	if !ok {
+		http.Error(w, "Invalid Code Review System", http.StatusBadRequest)
+		return
+	}
+
+	sum, err := wh.Search2API.NewAndUntriagedSummaryForCL(ctx, system.ID, clID)
+	if err != nil {
+		httputils.ReportError(w, err, "Could not get summary ", http.StatusInternalServerError)
+		return
+	}
+	rv := frontend.ConvertChangelistSummaryResponseV1(sum)
+	sendJSONResponse(w, rv)
 }
