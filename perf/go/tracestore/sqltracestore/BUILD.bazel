@@ -11,6 +11,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",
+        "//go/now",
         "//go/paramtools",
         "//go/query",
         "//go/skerr",
@@ -50,6 +51,7 @@ go_test(
     # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
     flaky = True,
     deps = [
+        "//go/now",
         "//go/paramtools",
         "//go/query",
         "//go/testutils/unittest",

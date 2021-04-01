@@ -7,6 +7,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/notify",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/now",
         "//go/sklog",
         "//perf/go/alerts",
         "//perf/go/clustering2",
@@ -20,6 +21,7 @@ go_test(
     srcs = ["notify_test.go"],
     embed = [":notify"],
     deps = [
+        "//go/now",
         "//go/testutils/unittest",
         "//perf/go/alerts",
         "@com_github_stretchr_testify//assert",
