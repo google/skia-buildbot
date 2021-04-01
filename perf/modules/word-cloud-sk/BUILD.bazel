@@ -1,0 +1,44 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":word-cloud-sk-demo",
+)
+
+sk_element(
+    name = "word-cloud-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//perf/modules/themes:themes_sass_lib",
+    ],
+    sass_srcs = ["word-cloud-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "word-cloud-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "word-cloud-sk-demo",
+    html_file = "word-cloud-sk-demo.html",
+    sk_element_deps = [":word-cloud-sk"],
+    ts_entry_point = "word-cloud-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "word-cloud-sk_puppeteer_test",
+    src = "word-cloud-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
