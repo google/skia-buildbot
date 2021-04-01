@@ -13,6 +13,7 @@ go_library(
         "//golden/go/continuous_integration",
         "//golden/go/expectations",
         "//golden/go/ignore",
+        "//golden/go/search2",
         "//golden/go/shared",
         "//golden/go/tiling",
         "//golden/go/types",

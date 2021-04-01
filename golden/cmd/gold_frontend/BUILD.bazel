@@ -41,6 +41,7 @@ go_library(
         "//golden/go/indexer",
         "//golden/go/publicparams",
         "//golden/go/search",
+        "//golden/go/search2",
         "//golden/go/shared",
         "//golden/go/sql",
         "//golden/go/status",
