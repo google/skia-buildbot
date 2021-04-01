@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ead53ebf_ab9c8f1e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-01T13:58:11Z",
+      "side": 1,
+      "message": "See live at https://skia-infra-gold.skia.org/json/v1/changelist_summary/gerrit/369320",
+      "revId": "47abcc2928b2c8f15a81b1016e7ed11de60e5ffe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
