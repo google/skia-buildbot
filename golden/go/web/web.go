@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"golang.org/x/sync/errgroup"
@@ -72,6 +73,8 @@ const (
 	maxAnonQPSGerritPlugin   = rate.Limit(200.0)
 	maxAnonBurstGerritPlugin = 1000
 
+	changelistSummaryCacheSize = 10000
+
 	// RPCCallCounterMetric is the metric that should be used when counting how many times a given
 	// RPC route is called from clients.
 	RPCCallCounterMetric = "gold_rpc_call_counter"
@@ -110,6 +113,8 @@ type Handlers struct {
 	anonymousExpensiveQuota *rate.Limiter
 	anonymousCheapQuota     *rate.Limiter
 	anonymousGerritQuota    *rate.Limiter
+
+	clSummaryCache *lru.Cache
 
 	// These can be set for unit tests to simplify the testing.
 	testingAuthAs string
@@ -158,11 +163,18 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 			return nil, skerr.Fmt("TryJobStore cannot be nil")
 		}
 	}
+
+	clcache, err := lru.New(changelistSummaryCacheSize)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	return &Handlers{
 		HandlersConfig:          conf,
 		anonymousExpensiveQuota: rate.NewLimiter(maxAnonQPSExpensive, maxAnonBurstExpensive),
 		anonymousCheapQuota:     rate.NewLimiter(maxAnonQPSCheap, maxAnonBurstCheap),
 		anonymousGerritQuota:    rate.NewLimiter(maxAnonQPSGerritPlugin, maxAnonBurstGerritPlugin),
+		clSummaryCache:          clcache,
 		testingAuthAs:           "", // Just to be explicit that we do *not* bypass Auth.
 	}, nil
 }
@@ -1904,11 +1916,32 @@ func (wh *Handlers) ChangelistSummaryHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	sum, err := wh.Search2API.NewAndUntriagedSummaryForCL(ctx, system.ID, clID)
+	ts, err := wh.Search2API.ChangelistLastUpdated(ctx, system.ID, clID)
 	if err != nil {
-		httputils.ReportError(w, err, "Could not get summary ", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Could not get changelist", http.StatusInternalServerError)
 		return
 	}
+
+	qCLID := sql.Qualify(system.ID, clID)
+	cached, ok := wh.clSummaryCache.Get(qCLID)
+	if ok {
+		sum, ok := cached.(search2.NewAndUntriagedSummary)
+		if ok {
+			if ts.Before(sum.LastUpdated) || sum.LastUpdated.Equal(ts) {
+				rv := frontend.ConvertChangelistSummaryResponseV1(sum)
+				sendJSONResponse(w, rv)
+				return
+			}
+		}
+		// Invalid or old cache entry - must overwrite.
+	}
+
+	sum, err := wh.Search2API.NewAndUntriagedSummaryForCL(ctx, system.ID, clID)
+	if err != nil {
+		httputils.ReportError(w, err, "Could not get summary", http.StatusInternalServerError)
+		return
+	}
+	wh.clSummaryCache.Add(qCLID, sum)
 	rv := frontend.ConvertChangelistSummaryResponseV1(sum)
 	sendJSONResponse(w, rv)
 }

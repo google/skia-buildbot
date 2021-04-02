@@ -3,6 +3,7 @@ package search2
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,6 +16,9 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+var changelistTSForIOS = time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC)
+var changelistTSForNewTests = time.Date(2020, time.December, 12, 9, 20, 33, 0, time.UTC)
+
 func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -25,7 +29,6 @@ func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 	s := New(db)
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS)
 	require.NoError(t, err)
-
 	assert.Equal(t, NewAndUntriagedSummary{
 		ChangelistID: dks.ChangelistIDThatAttemptsToFixIOS,
 		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
@@ -39,6 +42,7 @@ func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 			PatchsetID:           dks.PatchSetIDFixesIPadButNotIPhone,
 			PatchsetOrder:        3,
 		}},
+		LastUpdated: changelistTSForIOS,
 	}, rv)
 }
 
@@ -76,6 +80,7 @@ func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
 			PatchsetID:           dks.PatchsetIDAddsNewCorpusAndTest,
 			PatchsetOrder:        4,
 		}},
+		LastUpdated: changelistTSForNewTests,
 	}, rv)
 }
 
@@ -136,6 +141,7 @@ func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
 			PatchsetID:           ps2ID,
 			PatchsetOrder:        12,
 		}},
+		LastUpdated: time.Date(2021, time.April, 1, 2, 3, 4, 0, time.UTC),
 	}, rv)
 }
 
@@ -240,6 +246,7 @@ func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCou
 			PatchsetID:           ps3ID,
 			PatchsetOrder:        7,
 		}},
+		LastUpdated: time.Date(2021, time.April, 1, 2, 3, 4, 0, time.UTC),
 	}, rv)
 }
 
@@ -319,6 +326,7 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 			PatchsetID:           ps2ID,
 			PatchsetOrder:        2,
 		}},
+		LastUpdated: time.Date(2021, time.March, 30, 0, 0, 0, 0, time.UTC),
 	}, rv)
 }
 
@@ -405,5 +413,26 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 			PatchsetID:           ps3ID,
 			PatchsetOrder:        7,
 		}},
+		LastUpdated: time.Date(2021, time.April, 1, 2, 3, 4, 0, time.UTC),
 	}, rv)
+}
+
+func TestChangelistLastUpdated_ReturnsLatestTS(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	s := New(db)
+	ts, err := s.ChangelistLastUpdated(ctx, dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests)
+	require.NoError(t, err)
+	assert.Equal(t, changelistTSForNewTests, ts)
+}
+
+// waitForSystemTime waits for a time greater than the duration mentioned in "AS OF SYSTEM TIME"
+// clauses in queries. This way, the queries will be accurate.
+func waitForSystemTime() {
+	time.Sleep(150 * time.Millisecond)
 }

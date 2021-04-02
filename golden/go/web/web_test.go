@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -2847,11 +2848,12 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 			TotalUntriagedImages: 7,
 			PatchsetID:           "patchset8",
 			PatchsetOrder:        8,
-		},
-		},
+		}},
+		LastUpdated: time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC),
 	}, nil)
+	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my_system", "my_cl").Return(time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC), nil)
 
-	wh := Handlers{
+	wh := initCaches(Handlers{
 		HandlersConfig: HandlersConfig{
 			Search2API: ms,
 			ReviewSystems: []clstore.ReviewSystem{{
@@ -2859,7 +2861,7 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
-	}
+	})
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
@@ -2871,6 +2873,70 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 	// Note this JSON had the patchsets sorted so the latest one is first.
 	const expectedJSON = `{"changelist_id":"my_cl","patchsets":[{"new_images":5,"new_untriaged_images":6,"total_untriaged_images":7,"patchset_id":"patchset8","patchset_order":8},{"new_images":1,"new_untriaged_images":2,"total_untriaged_images":3,"patchset_id":"patchset1","patchset_order":1}]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+}
+
+func TestChangelistSummaryHandler_ValidInput_CacheUsed(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ms := &mock_search2.API{}
+	// First call should have just one PS.
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my_system", "my_cl").Return(search2.NewAndUntriagedSummary{
+		ChangelistID: "my_cl",
+		PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
+			NewImages:            1,
+			NewUntriagedImages:   2,
+			TotalUntriagedImages: 3,
+			PatchsetID:           "patchset1",
+			PatchsetOrder:        1,
+		}},
+		LastUpdated: time.Date(2021, time.March, 1, 1, 1, 1, 0, time.UTC),
+	}, nil).Once()
+	// Second call should have two PS and the latest timestamp.
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my_system", "my_cl").Return(search2.NewAndUntriagedSummary{
+		ChangelistID: "my_cl",
+		PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
+			NewImages:            1,
+			NewUntriagedImages:   2,
+			TotalUntriagedImages: 3,
+			PatchsetID:           "patchset1",
+			PatchsetOrder:        1,
+		}, {
+			NewImages:            5,
+			NewUntriagedImages:   6,
+			TotalUntriagedImages: 7,
+			PatchsetID:           "patchset8",
+			PatchsetOrder:        8,
+		}},
+		LastUpdated: time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC),
+	}, nil).Once()
+	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my_system", "my_cl").Return(time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC), nil)
+
+	wh := initCaches(Handlers{
+		HandlersConfig: HandlersConfig{
+			Search2API: ms,
+			ReviewSystems: []clstore.ReviewSystem{{
+				ID: "my_system",
+			}},
+		},
+		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
+	})
+
+	for i := 0; i < 10; i++ {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+		r = mux.SetURLVars(r, map[string]string{
+			"id":     "my_cl",
+			"system": "my_system",
+		})
+		wh.ChangelistSummaryHandler(w, r)
+		if i == 0 {
+			continue
+		}
+		// Note this JSON had the patchsets sorted so the latest one is first.
+		const expectedJSON = `{"changelist_id":"my_cl","patchsets":[{"new_images":5,"new_untriaged_images":6,"total_untriaged_images":7,"patchset_id":"patchset8","patchset_order":8},{"new_images":1,"new_untriaged_images":2,"total_untriaged_images":3,"patchset_id":"patchset1","patchset_order":1}]}`
+		assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+	}
+	ms.AssertExpectations(t)
 }
 
 func TestChangelistSummaryHandler_MissingCL_BadRequest(t *testing.T) {
@@ -2941,7 +3007,7 @@ func TestChangelistSummaryHandler_SearchReturnsError_InternalServerError(t *test
 	unittest.SmallTest(t)
 
 	ms := &mock_search2.API{}
-	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my_system", "my_cl").Return(search2.NewAndUntriagedSummary{}, errors.New("boom"))
+	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my_system", "my_cl").Return(time.Time{}, errors.New("boom"))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -3057,4 +3123,13 @@ func setID(r *http.Request, id string) *http.Request {
 // clauses in queries. This way, the queries will be accurate.
 func waitForSystemTime() {
 	time.Sleep(150 * time.Millisecond)
+}
+
+func initCaches(handlers Handlers) Handlers {
+	clcache, err := lru.New(changelistSummaryCacheSize)
+	if err != nil {
+		panic(err)
+	}
+	handlers.clSummaryCache = clcache
+	return handlers
 }

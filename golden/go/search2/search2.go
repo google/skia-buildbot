@@ -4,6 +4,7 @@ package search2
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
@@ -18,6 +19,8 @@ type API interface {
 	// (that is, digests not currently on the primary branch for this grouping at all) as well as
 	// how many of the newly produced digests are currently untriaged.
 	NewAndUntriagedSummaryForCL(ctx context.Context, crs, clID string) (NewAndUntriagedSummary, error)
+
+	ChangelistLastUpdated(ctx context.Context, crs, clID string) (time.Time, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -27,6 +30,9 @@ type NewAndUntriagedSummary struct {
 	ChangelistID string
 	// PatchsetSummaries is a summary for all Patchsets for which we have data.
 	PatchsetSummaries []PatchsetNewAndUntriagedSummary
+	// LastUpdated returns the timestamp of the CL, which corresponds to the last datapoint for
+	// this CL.
+	LastUpdated time.Time
 }
 
 // PatchsetNewAndUntriagedSummary is the summary for a specific PS. It focuses on the untriaged
@@ -88,12 +94,19 @@ func (s *Impl) NewAndUntriagedSummaryForCL(ctx context.Context, crs, clID string
 			return nil
 		})
 	}
+	var updatedTS time.Time
+	eg.Go(func() error {
+		row := s.db.QueryRow(ctx, `SELECT last_ingested_data
+FROM Changelists WHERE changelist_id = $1`, qCLID)
+		return skerr.Wrap(row.Scan(&updatedTS))
+	})
 	if err := eg.Wait(); err != nil {
 		return NewAndUntriagedSummary{}, skerr.Wrapf(err, "Getting counts for CL %q and %d PS", qCLID, len(patchsets))
 	}
 	return NewAndUntriagedSummary{
 		ChangelistID:      clID,
 		PatchsetSummaries: rv,
+		LastUpdated:       updatedTS.UTC(),
 	}, nil
 }
 
@@ -209,5 +222,19 @@ WHERE label = 'u'`
 	return rv, nil
 }
 
-// Make sure Impl fulfills the API interface.
+// ChangelistLastUpdated implements the API interface.
+func (s *Impl) ChangelistLastUpdated(ctx context.Context, crs, clID string) (time.Time, error) {
+	ctx, span := trace.StartSpan(ctx, "search2_ChangelistLastUpdated")
+	defer span.End()
+	qCLID := sql.Qualify(crs, clID)
+	var updatedTS time.Time
+	row := s.db.QueryRow(ctx, `SELECT last_ingested_data
+FROM Changelists AS OF SYSTEM TIME '-0.1s' WHERE changelist_id = $1`, qCLID)
+	if err := row.Scan(&updatedTS); err != nil {
+		return time.Time{}, skerr.Wrapf(err, "Getting last updated ts for cl %q", qCLID)
+	}
+	return updatedTS.UTC(), nil
+}
+
+// Make sure Impl implements the API interface.
 var _ API = (*Impl)(nil)
