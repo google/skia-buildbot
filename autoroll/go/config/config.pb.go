@@ -44,6 +44,7 @@ const (
 	PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART        PreUploadStep = 9
 	PreUploadStep_VULKAN_DEPS_UPDATE_COMMIT_MESSAGE   PreUploadStep = 10
 	PreUploadStep_UPDATE_BORINGSSL                    PreUploadStep = 11
+	PreUploadStep_CHROMIUM_ROLL_WEBGPU_CTS            PreUploadStep = 12
 )
 
 // Enum value maps for PreUploadStep.
@@ -61,20 +62,22 @@ var (
 		9:  "UPDATE_FLUTTER_DEPS_FOR_DART",
 		10: "VULKAN_DEPS_UPDATE_COMMIT_MESSAGE",
 		11: "UPDATE_BORINGSSL",
+		12: "CHROMIUM_ROLL_WEBGPU_CTS",
 	}
 	PreUploadStep_value = map[string]int32{
-		"ANGLE_CODE_GENERATION":               0,
-		"ANGLE_GN_TO_BP":                      1,
-		"ANGLE_ROLL_CHROMIUM":                 2,
-		"GO_GENERATE_CIPD":                    3,
-		"FLUTTER_LICENSE_SCRIPTS":             4,
-		"FLUTTER_LICENSE_SCRIPTS_FOR_DART":    5,
-		"FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA": 6,
-		"SKIA_GN_TO_BP":                       7,
-		"TRAIN_INFRA":                         8,
-		"UPDATE_FLUTTER_DEPS_FOR_DART":        9,
-		"VULKAN_DEPS_UPDATE_COMMIT_MESSAGE":   10,
-		"UPDATE_BORINGSSL":                    11,
+		"ANGLE_CODE_GENERATION":                  0,
+		"ANGLE_GN_TO_BP":                         1,
+		"ANGLE_ROLL_CHROMIUM":                    2,
+		"GO_GENERATE_CIPD":                       3,
+		"FLUTTER_LICENSE_SCRIPTS":                4,
+		"FLUTTER_LICENSE_SCRIPTS_FOR_DART":       5,
+		"FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA":    6,
+		"SKIA_GN_TO_BP":                          7,
+		"TRAIN_INFRA":                            8,
+		"UPDATE_FLUTTER_DEPS_FOR_DART":           9,
+		"VULKAN_DEPS_UPDATE_COMMIT_MESSAGE":      10,
+		"UPDATE_BORINGSSL":                       11,
+		"CHROMIUM_ROLL_WEBGPU_CTS": 12,
 	}
 )
 
