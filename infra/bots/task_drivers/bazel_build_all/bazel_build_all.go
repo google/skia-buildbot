@@ -1,13 +1,12 @@
 package main
 
 import (
-	"context"
 	"flag"
+	"path"
 	"path/filepath"
 
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/golang"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
@@ -20,6 +19,8 @@ var (
 	taskName    = flag.String("task_name", "", "Name of the task.")
 	workDirFlag = flag.String("workdir", ".", "Working directory.")
 	rbe         = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
+
+	checkoutFlags = checkout.SetupFlags(nil)
 
 	// Optional flags.
 	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
@@ -38,36 +39,14 @@ func main() {
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	repoDir := filepath.Join(workDir, "buildbot") // Repository checkout.
 	skiaInfraRbeKeyFile := filepath.Join(workDir, "skia_infra_rbe_key", "rbe-ci.json")
 
-	// Initialize a fake Git repository. We will use it to detect diffs.
-	//
-	// We receive the code via Isolate, but it doesn't include the .git dir.
-	gitDir := git.GitDir(repoDir)
-	err = td.Do(ctx, td.Props("Initialize fake Git repository"), func(ctx context.Context) error {
-		if gitVer, err := gitDir.Git(ctx, "version"); err != nil {
-			td.Fatal(ctx, err)
-		} else {
-			sklog.Infof("Git version %s", gitVer)
-		}
-		if _, err := gitDir.Git(ctx, "init"); err != nil {
-			td.Fatal(ctx, err)
-		}
-		if _, err := gitDir.Git(ctx, "config", "--local", "user.name", "Skia bots"); err != nil {
-			td.Fatal(ctx, err)
-		}
-		if _, err := gitDir.Git(ctx, "config", "--local", "user.email", "fake@skia.bots"); err != nil {
-			td.Fatal(ctx, err)
-		}
-		if _, err := gitDir.Git(ctx, "add", "."); err != nil {
-			td.Fatal(ctx, err)
-		}
-		if _, err := gitDir.Git(ctx, "commit", "--no-verify", "-m", "Fake commit to detect diffs"); err != nil {
-			td.Fatal(ctx, err)
-		}
-		return nil
-	})
+	// Check out the code.
+	repoState, err := checkout.GetRepoState(checkoutFlags)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	gitDir, err := checkout.EnsureGitCheckout(ctx, path.Join(workDir, "repo"), repoState)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
@@ -81,18 +60,18 @@ func main() {
 
 	// Set up go.
 	ctx = golang.WithEnv(ctx, workDir)
-	if err := golang.InstallCommonDeps(ctx, repoDir); err != nil {
+	if err := golang.InstallCommonDeps(ctx, gitDir.Dir()); err != nil {
 		td.Fatal(ctx, err)
 	}
 
 	// Run "go generate" and fail it there are any diffs.
-	if _, err := golang.Go(ctx, repoDir, "generate", "./..."); err != nil {
+	if _, err := golang.Go(ctx, gitDir.Dir(), "generate", "./..."); err != nil {
 		td.Fatal(ctx, err)
 	}
 	failIfNonEmptyGitDiff()
 
 	// Run "go fmt" and fail it there are any diffs.
-	if _, err := golang.Go(ctx, repoDir, "fmt", "./..."); err != nil {
+	if _, err := golang.Go(ctx, gitDir.Dir(), "fmt", "./..."); err != nil {
 		td.Fatal(ctx, err)
 	}
 	failIfNonEmptyGitDiff()
@@ -121,7 +100,7 @@ func main() {
 	bazel := func(args ...string) {
 		command := []string{"bazel", "--output_user_root=" + bazelCacheDir}
 		command = append(command, args...)
-		if _, err := exec.RunCwd(ctx, repoDir, command...); err != nil {
+		if _, err := exec.RunCwd(ctx, gitDir.Dir(), command...); err != nil {
 			td.Fatal(ctx, err)
 		}
 	}

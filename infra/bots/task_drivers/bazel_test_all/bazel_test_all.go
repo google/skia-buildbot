@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"path"
 	"path/filepath"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/recipe_cfg"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/golang"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
@@ -26,15 +27,18 @@ var (
 	workDirFlag = flag.String("workdir", ".", "Working directory.")
 	rbe         = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
 
+	checkoutFlags = checkout.SetupFlags(nil)
+
 	// Optional flags.
 	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
 	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
 
 	// Various paths.
 	workDir             string
-	repoDir             string
 	skiaInfraRbeKeyFile string
 	bazelCacheDir       string
+
+	gitDir *git.Checkout
 )
 
 func main() {
@@ -48,7 +52,6 @@ func main() {
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	repoDir = filepath.Join(workDir, "buildbot") // Repository checkout.
 	skiaInfraRbeKeyFile = filepath.Join(workDir, "skia_infra_rbe_key", "rbe-ci.json")
 
 	// Temporary directory for the Bazel cache.
@@ -71,15 +74,14 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
-	// Clean up the temporary Bazel cache directory when running locally, because during development,
-	// we do not want to leave behind a ~10GB Bazel cache directory under /tmp after each run.
-	//
-	// This is not necessary under Swarming because the temporary directory will be cleaned up
-	// automatically.
-	if *local {
-		if err := os_steps.RemoveAll(ctx, bazelCacheDir); err != nil {
-			td.Fatal(ctx, err)
-		}
+	// Check out the code.
+	repoState, err := checkout.GetRepoState(checkoutFlags)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	gitDir, err = checkout.EnsureGitCheckout(ctx, path.Join(workDir, "repo"), repoState)
+	if err != nil {
+		td.Fatal(ctx, err)
 	}
 
 	// Print out the Bazel version for debugging purposes.
@@ -91,13 +93,24 @@ func main() {
 	} else {
 		testLocally(ctx)
 	}
+
+	// Clean up the temporary Bazel cache directory when running locally, because during development,
+	// we do not want to leave behind a ~10GB Bazel cache directory under /tmp after each run.
+	//
+	// This is not necessary under Swarming because the temporary directory will be cleaned up
+	// automatically.
+	if *local {
+		if err := os_steps.RemoveAll(ctx, bazelCacheDir); err != nil {
+			td.Fatal(ctx, err)
+		}
+	}
 }
 
 // By invoking Bazel via this function, we ensure that we will always use the temporary cache.
 func bazel(ctx context.Context, args ...string) {
 	command := []string{"bazel", "--output_user_root=" + bazelCacheDir}
 	command = append(command, args...)
-	if _, err := exec.RunCwd(ctx, repoDir, command...); err != nil {
+	if _, err := exec.RunCwd(ctx, gitDir.Dir(), command...); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
@@ -114,45 +127,15 @@ func testLocally(ctx context.Context) {
 	// the environment already has everything we need to run this task driver (the repository checkout
 	// has a .git directory, the Go environment variables are properly set, etc.).
 	if !*local {
-		// Initialize a fake Git repository. Some tests require this. We receive the code via Isolate,
-		// but it doesn't include the .git dir.
-		gitDir := git.GitDir(repoDir)
-		err := td.Do(ctx, td.Props("Initialize fake Git repository"), func(ctx context.Context) error {
-			if gitVer, err := gitDir.Git(ctx, "version"); err != nil {
-				td.Fatal(ctx, err)
-			} else {
-				sklog.Infof("Git version %s", gitVer)
-			}
-			if _, err := gitDir.Git(ctx, "init"); err != nil {
-				td.Fatal(ctx, err)
-			}
-			if _, err := gitDir.Git(ctx, "config", "--local", "user.name", "Skia bots"); err != nil {
-				td.Fatal(ctx, err)
-			}
-			if _, err := gitDir.Git(ctx, "config", "--local", "user.email", "fake@skia.bots"); err != nil {
-				td.Fatal(ctx, err)
-			}
-			if _, err := gitDir.Git(ctx, "add", "."); err != nil {
-				td.Fatal(ctx, err)
-			}
-			if _, err := gitDir.Git(ctx, "commit", "--no-verify", "-m", "Fake commit to detect diffs"); err != nil {
-				td.Fatal(ctx, err)
-			}
-			return nil
-		})
-		if err != nil {
-			td.Fatal(ctx, err)
-		}
-
 		// Set up go.
 		ctx = golang.WithEnv(ctx, workDir)
 
 		// Check out depot_tools at the exact revision expected by tests (defined in recipes.cfg), and
 		// make it available to tests by by adding it to the PATH.
 		var depotToolsDir string
-		err = td.Do(ctx, td.Props("Check out depot_tools"), func(ctx context.Context) error {
+		err := td.Do(ctx, td.Props("Check out depot_tools"), func(ctx context.Context) error {
 			var err error
-			depotToolsDir, err = depot_tools.Sync(ctx, workDir, filepath.Join(repoDir, recipe_cfg.RECIPE_CFG_PATH))
+			depotToolsDir, err = depot_tools.Sync(ctx, workDir, filepath.Join(gitDir.Dir(), recipe_cfg.RECIPE_CFG_PATH))
 			if err != nil {
 				td.Fatal(ctx, err)
 			}

@@ -11,7 +11,7 @@ go_library(
         "//go/exec",
         "//go/git",
         "//go/recipe_cfg",
-        "//go/sklog",
+        "//task_driver/go/lib/checkout",
         "//task_driver/go/lib/golang",
         "//task_driver/go/lib/os_steps",
         "//task_driver/go/td",
