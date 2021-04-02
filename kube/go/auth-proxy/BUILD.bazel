@@ -10,8 +10,8 @@ go_library(
         "//go/allowed",
         "//go/common",
         "//go/httputils",
-        "//go/login",
         "//go/sklog",
+        "//kube/go/auth-proxy/auth",
     ],
 )
 
@@ -27,6 +27,7 @@ go_test(
     embed = [":auth-proxy_lib"],
     deps = [
         "//go/testutils/unittest",
+        "//kube/go/auth-proxy/auth/mocks",
         "@com_github_stretchr_testify//require",
     ],
 )
