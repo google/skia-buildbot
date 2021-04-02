@@ -578,7 +578,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 
 	t := &specs.TaskSpec{
 		Caches:       CACHES_GO,
-		CasSpec:      CAS_WHOLE_REPO,
+		CasSpec:      CAS_EMPTY,
 		CipdPackages: cipd,
 		Command: []string{
 			"./bazel_build_all",
@@ -586,6 +586,11 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 			"--task_id", specs.PLACEHOLDER_TASK_ID,
 			"--task_name", name,
 			"--workdir", ".",
+			"--repo", specs.PLACEHOLDER_REPO,
+			"--revision", specs.PLACEHOLDER_REVISION,
+			"--patch_issue", specs.PLACEHOLDER_ISSUE,
+			"--patch_set", specs.PLACEHOLDER_PATCHSET,
+			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 			fmt.Sprintf("--rbe=%t", rbe),
 			"--alsologtostderr",
 		},
@@ -615,7 +620,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 
 	t := &specs.TaskSpec{
 		Caches:       CACHES_GO,
-		CasSpec:      CAS_WHOLE_REPO,
+		CasSpec:      CAS_EMPTY,
 		CipdPackages: cipd,
 		Command: []string{
 			"./bazel_test_all",
@@ -623,6 +628,11 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 			"--task_id", specs.PLACEHOLDER_TASK_ID,
 			"--task_name", name,
 			"--workdir", ".",
+			"--repo", specs.PLACEHOLDER_REPO,
+			"--revision", specs.PLACEHOLDER_REVISION,
+			"--patch_issue", specs.PLACEHOLDER_ISSUE,
+			"--patch_set", specs.PLACEHOLDER_PATCHSET,
+			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 			fmt.Sprintf("--rbe=%t", rbe),
 			"--alsologtostderr",
 		},
