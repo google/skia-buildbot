@@ -821,7 +821,7 @@
           "path": "cache/gopath"
         }
       ],
-      "casSpec": "whole-repo",
+      "casSpec": "empty",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -869,6 +869,16 @@
         "Infra-PerCommit-Build-Bazel-Local",
         "--workdir",
         ".",
+        "--repo",
+        "<(REPO)",
+        "--revision",
+        "<(REVISION)",
+        "--patch_issue",
+        "<(ISSUE)",
+        "--patch_set",
+        "<(PATCHSET)",
+        "--patch_server",
+        "<(CODEREVIEW_SERVER)",
         "--rbe=false",
         "--alsologtostderr"
       ],
@@ -905,7 +915,7 @@
           "path": "cache/gopath"
         }
       ],
-      "casSpec": "whole-repo",
+      "casSpec": "empty",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -958,6 +968,16 @@
         "Infra-PerCommit-Build-Bazel-RBE",
         "--workdir",
         ".",
+        "--repo",
+        "<(REPO)",
+        "--revision",
+        "<(REVISION)",
+        "--patch_issue",
+        "<(ISSUE)",
+        "--patch_set",
+        "<(PATCHSET)",
+        "--patch_server",
+        "<(CODEREVIEW_SERVER)",
         "--rbe=true",
         "--alsologtostderr"
       ],
@@ -1753,7 +1773,7 @@
           "path": "cache/gopath"
         }
       ],
-      "casSpec": "whole-repo",
+      "casSpec": "empty",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/linux-amd64",
@@ -1826,6 +1846,16 @@
         "Infra-PerCommit-Test-Bazel-Local",
         "--workdir",
         ".",
+        "--repo",
+        "<(REPO)",
+        "--revision",
+        "<(REVISION)",
+        "--patch_issue",
+        "<(ISSUE)",
+        "--patch_set",
+        "<(PATCHSET)",
+        "--patch_server",
+        "<(CODEREVIEW_SERVER)",
         "--rbe=false",
         "--alsologtostderr"
       ],
@@ -1863,7 +1893,7 @@
           "path": "cache/gopath"
         }
       ],
-      "casSpec": "whole-repo",
+      "casSpec": "empty",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/linux-amd64",
@@ -1941,6 +1971,16 @@
         "Infra-PerCommit-Test-Bazel-RBE",
         "--workdir",
         ".",
+        "--repo",
+        "<(REPO)",
+        "--revision",
+        "<(REVISION)",
+        "--patch_issue",
+        "<(ISSUE)",
+        "--patch_set",
+        "<(PATCHSET)",
+        "--patch_server",
+        "<(CODEREVIEW_SERVER)",
         "--rbe=true",
         "--alsologtostderr"
       ],
