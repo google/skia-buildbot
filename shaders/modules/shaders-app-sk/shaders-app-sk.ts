@@ -489,7 +489,28 @@ export class ShadersAppSk extends ElementSk {
       this.rafID = RAF_NOT_RUNNING;
     }
 
+    // TODO(jcgregorio) In the long run maybe store scrollInfo and cursorPos
+    // temporarily for each child shader so we restore the right view as the
+    // user moves between child shaders?
+
+    // Save the scroll info and the cursor position before updating the code.
+    const scrollInfo = this.codeMirror!.getScrollInfo();
+    const cursorPos = this.codeMirror!.getCursor();
+
+    // Set code.
     this.codeMirror!.setValue(this.currentNode?.shaderCode || defaultShader);
+
+    // Restore scroll info and cursor position.
+    this.codeMirror!.setCursor(cursorPos);
+
+    // Oddly CodeMirror TS doesn't have a Type defined for this shape.
+    const scrollPosition = {
+      left: scrollInfo.left,
+      top: scrollInfo.top,
+      right: scrollInfo.left + scrollInfo.width,
+      bottom: scrollInfo.top + scrollInfo.height,
+    };
+    this.codeMirror!.scrollIntoView(scrollPosition);
 
     // eslint-disable-next-line no-unused-expressions
     this.surface?.delete();
