@@ -489,7 +489,17 @@ export class ShadersAppSk extends ElementSk {
       this.rafID = RAF_NOT_RUNNING;
     }
 
+    const si = this.codeMirror!.getScrollInfo();
+    const cpos = this.codeMirror!.getCursor();
     this.codeMirror!.setValue(this.currentNode?.shaderCode || defaultShader);
+    this.codeMirror!.setCursor(cpos);
+    const pos = {
+      left: si.left,
+      top: si.top,
+      right: si.left + si.width,
+      bottom: si.top + si.height,
+    };
+    this.codeMirror!.scrollIntoView(pos);
 
     // eslint-disable-next-line no-unused-expressions
     this.surface?.delete();
