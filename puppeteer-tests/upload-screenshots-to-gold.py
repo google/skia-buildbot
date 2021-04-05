@@ -117,6 +117,7 @@ def main():
             '--work-dir', work_dir,
             '--png-file', os.path.join(args.images_dir, filename),
             '--test-name', filename[:-4], # Remove .png extension.
+            '--add-test-optional-key', 'build_system:webpack',
         ])
 
       # Finalize and clean up.
