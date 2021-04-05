@@ -29,7 +29,6 @@ import (
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -39,6 +38,8 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
+	pauth "go.skia.org/infra/perf/go/auth"
+	"go.skia.org/infra/perf/go/auth/sklogin"
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
@@ -124,6 +125,8 @@ type Frontend struct {
 
 	// progressTracker tracks long running web requests.
 	progressTracker progress.Tracker
+
+	auth pauth.Auth
 }
 
 // New returns a new Frontend instance.
@@ -265,19 +268,12 @@ func (f *Frontend) initialize() {
 	metrics2.InitPrometheus(f.flags.PromPort)
 	_ = metrics2.NewLiveness("uptime", nil)
 
-	// Init auth.
-	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", f.flags.Port)
-	if !f.flags.Local {
-		redirectURL = login.DEFAULT_REDIRECT_URL
-	}
-	if f.flags.AuthBypassList == "" {
-		f.flags.AuthBypassList = login.DEFAULT_ALLOWED_DOMAINS
-	}
-	if err := login.Init(redirectURL, f.flags.AuthBypassList, ""); err != nil {
+	var err error
+	f.auth, err = sklogin.New(f.flags.Port, f.flags.Local, f.flags.AuthBypassList)
+	if err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
-	var err error
 	// Add tracker for long running requests.
 	f.progressTracker, err = progress.NewTracker("/_/status/")
 	if err != nil {
@@ -825,7 +821,7 @@ type TriageResponse struct {
 func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	w.Header().Set("Content-Type", "application/json")
-	if login.LoggedInAs(r) == "" {
+	if f.auth.LoggedInAs(r) == "" {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to triage.", http.StatusInternalServerError)
 		return
 	}
@@ -1031,7 +1027,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 
 	// Filter down the alerts according to rr.AlertFilter.
 	if rr.AlertFilter == alertfilter.OWNER {
-		user := login.LoggedInAs(r)
+		user := f.auth.LoggedInAs(r)
 		filteredHeaders := []*alerts.Alert{}
 		for _, a := range headers {
 			if a.Owner == user {
@@ -1288,7 +1284,7 @@ type AlertUpdateResponse struct {
 
 func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if login.LoggedInAs(r) == "" {
+	if f.auth.LoggedInAs(r) == "" {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to edit alerts.", http.StatusInternalServerError)
 		return
 	}
@@ -1312,7 +1308,7 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 func (f *Frontend) alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if login.LoggedInAs(r) == "" {
+	if f.auth.LoggedInAs(r) == "" {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to delete alerts.", http.StatusInternalServerError)
 		return
 	}
@@ -1339,9 +1335,9 @@ type TryBugResponse struct {
 	URL string `json:"url"`
 }
 
-func alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
+func (f *Frontend) alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if login.LoggedInAs(r) == "" {
+	if f.auth.LoggedInAs(r) == "" {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to test alerts.", http.StatusInternalServerError)
 		return
 	}
@@ -1362,7 +1358,7 @@ func alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 
 func (f *Frontend) alertNotifyTryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if login.LoggedInAs(r) == "" {
+	if f.auth.LoggedInAs(r) == "" {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to try alerts.", http.StatusInternalServerError)
 		return
 	}
@@ -1406,12 +1402,12 @@ var internalOnlyExceptions = []string{
 // internalOnlyHandler wraps the handler with a handler that only allows
 // authenticated access, with the exception of the endpoints listed in
 // internalOnlyExceptions.
-func internalOnlyHandler(h http.Handler) http.Handler {
+func (f *Frontend) internalOnlyHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if util.In(r.URL.Path, internalOnlyExceptions) || login.LoggedInAs(r) != "" {
+		if util.In(r.URL.Path, internalOnlyExceptions) || f.auth.LoggedInAs(r) != "" {
 			h.ServeHTTP(w, r)
 		} else {
-			http.Redirect(w, r, login.LoginURL(w, r), http.StatusTemporaryRedirect)
+			f.auth.NeedsAuthentication(w, r)
 		}
 	})
 }
@@ -1458,9 +1454,7 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/r/", f.templateHandler("trybot.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
-	router.HandleFunc("/logout/", login.LogoutHandler)
-	router.HandleFunc("/loginstatus/", login.StatusHandler)
-	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	f.auth.RegisterHandlers(router)
 
 	// JSON handlers.
 
@@ -1489,12 +1483,12 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/_/alert/new", alertNewHandler).Methods("GET")
 	router.HandleFunc("/_/alert/update", f.alertUpdateHandler).Methods("POST")
 	router.HandleFunc("/_/alert/delete/{id:[0-9]+}", f.alertDeleteHandler).Methods("POST")
-	router.HandleFunc("/_/alert/bug/try", alertBugTryHandler).Methods("POST")
+	router.HandleFunc("/_/alert/bug/try", f.alertBugTryHandler).Methods("POST")
 	router.HandleFunc("/_/alert/notify/try", f.alertNotifyTryHandler).Methods("POST")
 
 	var h http.Handler = router
 	if f.flags.InternalOnly {
-		h = internalOnlyHandler(h)
+		h = f.internalOnlyHandler(h)
 	}
 	h = httputils.LoggingGzipRequestResponse(h)
 	if !f.flags.Local {

@@ -23,6 +23,31 @@ const (
 	GotoRange = 10
 )
 
+// AuthConfig provides deatils how authentication is done, which is by Auth
+// Proxy. See, for example,
+// https://grafana.com/docs/grafana/latest/auth/auth-proxy/
+type AuthConfig struct {
+	// HeaderName is the name of the header that contains the logged in users
+	// email. E.g. X-WEBAUTH-USER.
+	HeaderName string `json:"header_name"`
+
+	// A regex to extract the users email address from the header, in case
+	// EmailRegex is a regex to extract the email address from the header value.
+	// This value can be empty. This is useful for reverse proxies that include
+	// other information in the header in addition to the email address, such as
+	// https://cloud.google.com/iap/docs/identity-howto#getting_the_users_identity_with_signed_headers
+	//
+	// If supplied, the Regex must have a single subexpression that matches the
+	// email address.
+	EmailRegex string `json:"email_regex"`
+
+	// LoginURL is the URL to redirect users to when they need to log in.
+	LoginURL string `json:"login_url"`
+
+	// LogoutURL is the URL to redirect users to when they need to log out.
+	LogoutURL string `json:"logout_url"`
+}
+
 // DataStoreType determines what type of datastore to build. Applies to
 // tracestore.Store, alerts.Store, regression.Store, and shortcut.Store.
 type DataStoreType string
@@ -430,6 +455,7 @@ type InstanceConfig struct {
 	// URL is the root URL at which this instance is available, for example: "https://example.com".
 	URL string `json:"URL"`
 
+	AuthConfig      AuthConfig      `json:"auth_config"`
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`
 	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`

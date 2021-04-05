@@ -24,6 +24,7 @@ var (
 	targetPort  = flag.String("target_port", ":9000", "The port we are proxying to.")
 	allowPost   = flag.Bool("allow_post", false, "Allow POST requests to bypass auth.")
 	allowedFrom = flag.String("allowed_from", "google.com", "A comma separated list of of domains and email addresses that are allowed to access the site.")
+	passive     = flag.Bool("passive", false, "If true then allow unauthenticated requests to go through, while still adding logged in users emails in via the webAuthHeaderName.")
 )
 
 // Send the logged in user email in the following header. This allows decoupling
@@ -53,13 +54,15 @@ func (p proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		p.reverseProxy.ServeHTTP(w, r)
 		return
 	}
-	if email == "" {
-		http.Redirect(w, r, p.authProvider.LoginURL(w, r), http.StatusSeeOther)
-		return
-	}
-	if !p.authProvider.IsViewer(r) {
-		http.Error(w, "403 Forbidden", http.StatusForbidden)
-		return
+	if !*passive {
+		if email == "" {
+			http.Redirect(w, r, p.authProvider.LoginURL(w, r), http.StatusSeeOther)
+			return
+		}
+		if !p.authProvider.IsViewer(r) {
+			http.Error(w, "403 Forbidden", http.StatusForbidden)
+			return
+		}
 	}
 	p.reverseProxy.ServeHTTP(w, r)
 }
