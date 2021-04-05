@@ -43,6 +43,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "38d438eb_35ab3f93",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-05T12:20:51Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "8ace3c10_f9004aca",
+      "range": {
+        "startLine": 321,
+        "startChar": 9,
+        "endLine": 321,
+        "endChar": 15
+      },
+      "revId": "ec2b8e6de2b12147c3d8f68363e472c0db3ededc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "aa3b0538_1e6cd574",
         "filename": "skottie/modules/skottie-sk/skottie-sk.js",
         "patchSetId": 1
@@ -54,6 +78,30 @@
       "writtenOn": "2021-04-05T11:40:03Z",
       "side": 1,
       "message": "update comment.",
+      "range": {
+        "startLine": 357,
+        "startChar": 50,
+        "endLine": 357,
+        "endChar": 72
+      },
+      "revId": "ec2b8e6de2b12147c3d8f68363e472c0db3ededc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f33344c2_f9bf2d3f",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-05T12:20:51Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "aa3b0538_1e6cd574",
       "range": {
         "startLine": 357,
         "startChar": 50,
@@ -89,6 +137,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "7941ec38_79ed2426",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-05T12:20:51Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "35d05f5c_9d08f755",
+      "range": {
+        "startLine": 361,
+        "startChar": 9,
+        "endLine": 361,
+        "endChar": 24
+      },
+      "revId": "ec2b8e6de2b12147c3d8f68363e472c0db3ededc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "8c0a32b8_aaa1e73b",
         "filename": "skottie/modules/skottie-sk/skottie-sk.js",
         "patchSetId": 1
@@ -100,6 +172,30 @@
       "writtenOn": "2021-04-05T11:40:03Z",
       "side": 1,
       "message": "Does this need to be removed?",
+      "range": {
+        "startLine": 884,
+        "startChar": 9,
+        "endLine": 884,
+        "endChar": 24
+      },
+      "revId": "ec2b8e6de2b12147c3d8f68363e472c0db3ededc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7fe616a7_f4f90e45",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 884,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-05T12:20:51Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "8c0a32b8_aaa1e73b",
       "range": {
         "startLine": 884,
         "startChar": 9,
