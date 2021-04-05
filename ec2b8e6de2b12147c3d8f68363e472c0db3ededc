@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b2441f92_70171b1b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-05T02:34:18Z",
+      "side": 1,
+      "message": "I added a speed property and speed playback support that will be used on a separate PR to sync the animation with audio BPMs.\nIf it makes sense, in the future we could add a speed control as well on the UI itself.",
+      "revId": "ec2b8e6de2b12147c3d8f68363e472c0db3ededc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
