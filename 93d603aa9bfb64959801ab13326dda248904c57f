@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "53291ec0_4ca4074a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9562
+      },
+      "writtenOn": "2021-04-05T23:35:18Z",
+      "side": 1,
+      "message": "Chris, please review - not sure if I have everything I need to set up the autoroller.",
+      "revId": "93d603aa9bfb64959801ab13326dda248904c57f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
