@@ -23,6 +23,23 @@ const (
 	GotoRange = 10
 )
 
+type AuthConfigType string
+
+const (
+	SkiaAuth  AuthConfigType = "skia"
+	ProxyAuth AuthConfigType = "proxy"
+)
+
+type AuthConfig struct {
+	AuthType AuthConfigType `json:"type"`
+
+	AuthBypassList []string `json:"auth_bypass_list"`
+
+	HeaderName string `json:"header_name"`
+
+	EmailRegex string `json:"email_regex"`
+}
+
 // DataStoreType determines what type of datastore to build. Applies to
 // tracestore.Store, alerts.Store, regression.Store, and shortcut.Store.
 type DataStoreType string
@@ -430,6 +447,7 @@ type InstanceConfig struct {
 	// URL is the root URL at which this instance is available, for example: "https://example.com".
 	URL string `json:"URL"`
 
+	AuthConfig      AuthConfig      `json:"auth_config"`
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`
 	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`
