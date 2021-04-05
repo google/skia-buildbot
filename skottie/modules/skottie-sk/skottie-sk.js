@@ -318,6 +318,7 @@ define('skottie-sk', class extends HTMLElement {
     this._width = 0;
     this._height = 0;
     this._fps = 0;
+    this._speed = 1;
     this._backgroundColor = 'rgba(0,0,0,0)';
 
     this._stateChanged = stateReflector(
@@ -355,7 +356,7 @@ define('skottie-sk', class extends HTMLElement {
 
     // The wasm animation computes how long it has been since it started and
     // use arithmetic to figure out where to seek (i.e. which frame to draw).
-    this._firstFrameTime = null;
+    this._previousFrameTime = null;
      // used for remembering where we were in the animation when paused.
     this._wasmTimePassed = 0;
   }
@@ -371,16 +372,20 @@ define('skottie-sk', class extends HTMLElement {
     const drawFrame = () => {
       window.requestAnimationFrame(drawFrame);
 
-      // Elsewhere, the _firstFrameTime is set to null to restart
+      // Elsewhere, the _previousFrameTime is set to null to restart
       // the animation. If null, we assume the user hit re-wind
       // and restart both the Skottie animation and the lottie-web one.
       // This avoids the (small) boot-up lag while we wait for the
       // skottie animation to be parsed and loaded.
-      if (!this._firstFrameTime && this._playing) {
-        this._firstFrameTime = Date.now();
+      if (!this._previousFrameTime && this._playing) {
+        this._previousFrameTime = Date.now();
+        this._elapsedTime = 0;
       }
       if (this._playing && this._duration > 0) {
-        let progress = (Date.now() - this._firstFrameTime) % this._duration;
+        const _currentTime = Date.now();
+        this._elapsedTime += (_currentTime - this._previousFrameTime) * this._speed;
+        this._previousFrameTime = _currentTime;
+        let progress = this._elapsedTime % this._duration;
 
         // If we want to have synchronized playing, it's best to force
         // all players to draw the same frame rather than letting them play
@@ -657,7 +662,6 @@ define('skottie-sk', class extends HTMLElement {
 
   _playpause() {
     if (this._playing) {
-      this._wasmTimePassed = Date.now() - this._firstFrameTime;
       this._lottie && this._lottie.pause();
       this._live && this._live.pause();
       this._state.soundMap && this._state.soundMap.pause();
@@ -665,7 +669,7 @@ define('skottie-sk', class extends HTMLElement {
     } else {
       this._lottie && this._lottie.play();
       this._live && this._live.play();
-      this._firstFrameTime = Date.now() - (this._wasmTimePassed || 0);
+      this._previousFrameTime = Date.now();
       // There is no need call a soundMap.play() function here.
       // Skottie invokes the play by calling seek on the needed audio track.
       $$('#playpause').textContent = 'Pause';
@@ -856,6 +860,7 @@ define('skottie-sk', class extends HTMLElement {
     }
 
     let seek = (e.currentTarget.value / SCRUBBER_RANGE);
+    this._elapsedTime = seek * this._duration;
     this._live && this._live.goToAndStop(seek);
     this._lottie && this._lottie.goToAndStop(seek * this._duration);
     this._skottiePlayer && this._skottiePlayer.seek(seek);
@@ -880,7 +885,7 @@ define('skottie-sk', class extends HTMLElement {
     if (!this._playing) {
       this._skottiePlayer.seek(0);
       this._skottieLibrary && this._skottieLibrary.seek(0);
-      this._firstFrameTime = null;
+      this._previousFrameTime = null;
       this._live && this._live.goToAndStop(0);
       this._lottie && this._lottie.goToAndStop(0);
       const scrubber = $$('#scrub', this);
@@ -891,7 +896,7 @@ define('skottie-sk', class extends HTMLElement {
     } else {
       this._live && this._live.goToAndPlay(0);
       this._lottie && this._lottie.goToAndPlay(0);
-      this._firstFrameTime = null;
+      this._previousFrameTime = null;
     }
   }
 
