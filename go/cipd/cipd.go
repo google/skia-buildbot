@@ -42,6 +42,9 @@ const (
 )
 
 var (
+	// CIPD package for CIPD itself.
+	PkgCIPD = MustGetPackage("infra/tools/cipd/${os}-${arch}")
+
 	// CIPD package for the Go installation.
 	PkgGo = MustGetPackage("skia/bots/go")
 
