@@ -16,6 +16,23 @@
       "message": "Kai, still WIP but FYI",
       "revId": "461e3cad10cba359fa3fe0646b6da8e5559b9e78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2a11f1d5_904a3f5d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 12954
+      },
+      "writtenOn": "2021-04-05T18:24:44Z",
+      "side": 1,
+      "message": "Looks good so far",
+      "revId": "461e3cad10cba359fa3fe0646b6da8e5559b9e78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
