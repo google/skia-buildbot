@@ -461,6 +461,12 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, r.FormValue("redirect"), 302)
 }
 
+// LoginHandler kicks off the authentication flow.
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	sklog.Infof("LoginHandler")
+	http.Redirect(w, r, LoginURL(w, r), 302)
+}
+
 // OAuth2CallbackHandler must be attached at a handler that matches
 // the callback URL registered in the APIs Console. In this case
 // "/oauth2callback".
