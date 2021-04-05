@@ -104,6 +104,7 @@ func main() {
 	router := mux.NewRouter()
 	if !*local && *dologin {
 		login.SimpleInitMust(*port, *local)
+		router.HandleFunc("/login/", login.LoginHandler)
 		router.HandleFunc("/logout/", login.LogoutHandler)
 		router.HandleFunc("/loginstatus/", login.StatusHandler)
 		router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
