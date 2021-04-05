@@ -86,6 +86,13 @@ func ReadDir(ctx context.Context, path string) ([]os.FileInfo, error) {
 	return rv, err
 }
 
+// Rename is a wrapper for os.Rename.
+func Rename(ctx context.Context, oldpath, newpath string) error {
+	return td.Do(ctx, td.Props(fmt.Sprintf("Rename %s %s", oldpath, newpath)).Infra(), func(context.Context) error {
+		return os.Rename(oldpath, newpath)
+	})
+}
+
 // WriteFile is a wrapper for ioutil.WriteFile.
 func WriteFile(ctx context.Context, path string, data []byte, perm os.FileMode) error {
 	return td.Do(ctx, td.Props(fmt.Sprintf("Write %s", path)).Infra(), func(context.Context) error {
