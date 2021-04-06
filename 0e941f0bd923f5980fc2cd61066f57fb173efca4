@@ -95,6 +95,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4f2e2e92_eb203574",
+        "filename": "task_driver/go/lib/bazel/bazel.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-06T20:15:19Z",
+      "side": 1,
+      "message": "\u003e You\u0027re saying that won\u0027t always be the case, ie. we may build both locally and remotely within the same task?\n\nThis is very likely, but hopefully rare. Currently, Docker images cannot be built on RBE using the rules in the rules_docker repository. So I can see a world where we build our apps and assets on RBE to take advantage of the remote cache, and where we build our Docker images locally on the Swarming bot running the CI task.",
+      "parentUuid": "eb6aa28c_92f874e8",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 1
+      },
+      "revId": "0e941f0bd923f5980fc2cd61066f57fb173efca4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2e41a310_cb8b47f1",
