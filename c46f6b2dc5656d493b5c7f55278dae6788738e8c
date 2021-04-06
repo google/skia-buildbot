@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e0525e54_52ca3712",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9562
+      },
+      "writtenOn": "2021-04-06T21:15:41Z",
+      "side": 1,
+      "message": "Thanks - looks like I don\u0027t have permissions to CQ this. Could someone do that please?",
+      "revId": "c46f6b2dc5656d493b5c7f55278dae6788738e8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
