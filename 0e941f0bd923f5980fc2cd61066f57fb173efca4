@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0c8fc844_8a8312cd",
+        "filename": "infra/bots/task_drivers/bazel_test_all/bazel_test_all.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-06T18:40:49Z",
+      "side": 1,
+      "message": "Can this be deleted? I think the bzl.Cleanup() call on line 73 takes care of this.",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 2
+      },
+      "revId": "0e941f0bd923f5980fc2cd61066f57fb173efca4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "de8efda5_ec1fdc61",
+        "filename": "task_driver/go/lib/bazel/bazel.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-06T18:40:49Z",
+      "side": 1,
+      "message": "What do you think about renaming Bazel() to Do(), and replacing the Build/Clean/Test methods with a single DoOnRBE() method that appends the necessary command-line flags, or delegates to Do() if b.rbe \u003d\u003d false?\n\nThe rationale is that there are certain Bazel targets that can only be built outside of RBE, like Docker images (see e.g. //:rbe_container_skia_infra), which we might want to do in CI in the future. In this case we would call Do() as opposed to DoOnRBE().\n\nAlso, there are other Bazel commands like \"bazel query\" that we might want to use from CI in the future.",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 1
+      },
+      "revId": "0e941f0bd923f5980fc2cd61066f57fb173efca4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e41a310_cb8b47f1",
+        "filename": "task_driver/go/lib/bazel/bazel.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-06T18:40:49Z",
+      "side": 1,
+      "message": "Should make New() return a cleanup function that replaces this method?",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 0
+      },
+      "revId": "0e941f0bd923f5980fc2cd61066f57fb173efca4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
