@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6fa45a36_fa3b1afb",
+        "filename": "infra/bots/task_drivers/bazel_test_all/bazel_test_all.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-06T19:59:29Z",
+      "side": 1,
+      "message": "Thanks, I missed this.",
+      "parentUuid": "0c8fc844_8a8312cd",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 2
+      },
+      "revId": "0e941f0bd923f5980fc2cd61066f57fb173efca4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "de8efda5_ec1fdc61",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "eb6aa28c_92f874e8",
+        "filename": "task_driver/go/lib/bazel/bazel.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-06T19:59:29Z",
+      "side": 1,
+      "message": "Ok, done.  I\u0027d envisioned this being used either for remote or local builds, but not both.  You\u0027re saying that won\u0027t always be the case, ie. we may build both locally and remotely within the same task?  I wanted to avoid having Local and RBE flavors of all of the commands, eg. BuildLocal and BuildRBE.",
+      "parentUuid": "de8efda5_ec1fdc61",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 1
+      },
+      "revId": "0e941f0bd923f5980fc2cd61066f57fb173efca4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2e41a310_cb8b47f1",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-04-06T18:40:49Z",
       "side": 1,
       "message": "Should make New() return a cleanup function that replaces this method?",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 0
+      },
+      "revId": "0e941f0bd923f5980fc2cd61066f57fb173efca4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "befa4223_edc782b6",
+        "filename": "task_driver/go/lib/bazel/bazel.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-06T19:59:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e41a310_cb8b47f1",
       "range": {
         "startLine": 87,
         "startChar": 0,
