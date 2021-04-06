@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "bazel",
+    srcs = ["bazel.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/bazel",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/exec",
+        "//task_driver/go/lib/os_steps",
+    ],
+)
