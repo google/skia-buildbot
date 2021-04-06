@@ -53,6 +53,7 @@ var (
 		config.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART:        UpdateFlutterDepsForDart,
 		config.PreUploadStep_VULKAN_DEPS_UPDATE_COMMIT_MESSAGE:   VulkanDepsUpdateCommitMessage,
 		config.PreUploadStep_UPDATE_BORINGSSL:                    UpdateBoringSSL,
+		config.PreUploadStep_CHROMIUM_ROLL_WEBGPU_CTS:            ChromiumRollWebGPUCTS,
 	}
 )
 
@@ -396,4 +397,29 @@ func UpdateBoringSSL(ctx context.Context, env []string, client *http.Client, par
 	})
 	sklog.Infof("Output from update_boringssl.py:\n%s", out)
 	return skerr.Wrap(err)
+}
+
+// ChromiumRollWebGPUCTS updates the list of Typescript sources used to compile
+// the CTS, and it regenerates the list of WPT variants.
+func ChromiumRollWebGPUCTS(ctx context.Context, env []string, client *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
+	sklog.Info("Running gen_ts_dep_lists.py...")
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Name: "python3",
+		Args: []string{filepath.Join("third_party", "webgpu-cts", "scripts", "gen_ts_dep_lists.py")},
+		Dir:  parentRepoDir,
+		Env:  env,
+	}); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	sklog.Info("Running regenerate_internal_cts_html.sh...")
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Name: "bash",
+		Args: []string{filepath.Join("third_party", "blink", "web_tests", "webgpu", "regenerate_internal_cts_html.sh")},
+		Dir:  parentRepoDir,
+		Env:  env,
+	}); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
