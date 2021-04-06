@@ -572,28 +572,30 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("mockery"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+
+	cmd := []string{
+		"./bazel_build_all",
+		"--project_id", "skia-swarming-bots",
+		"--task_id", specs.PLACEHOLDER_TASK_ID,
+		"--task_name", name,
+		"--workdir", ".",
+		"--repo", specs.PLACEHOLDER_REPO,
+		"--revision", specs.PLACEHOLDER_REVISION,
+		"--patch_issue", specs.PLACEHOLDER_ISSUE,
+		"--patch_set", specs.PLACEHOLDER_PATCHSET,
+		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+		"--alsologtostderr",
+	}
 	if rbe {
 		cipd = append(cipd, specs.CIPD_PKGS_SKIA_INFRA_RBE_KEY...)
+		cmd = append(cmd, "--rbe", "--rbe_key", "./skia_infra_rbe_key/rbe-ci.json")
 	}
 
 	t := &specs.TaskSpec{
 		Caches:       CACHES_GO,
 		CasSpec:      CAS_EMPTY,
 		CipdPackages: cipd,
-		Command: []string{
-			"./bazel_build_all",
-			"--project_id", "skia-swarming-bots",
-			"--task_id", specs.PLACEHOLDER_TASK_ID,
-			"--task_name", name,
-			"--workdir", ".",
-			"--repo", specs.PLACEHOLDER_REPO,
-			"--revision", specs.PLACEHOLDER_REVISION,
-			"--patch_issue", specs.PLACEHOLDER_ISSUE,
-			"--patch_set", specs.PLACEHOLDER_PATCHSET,
-			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
-			fmt.Sprintf("--rbe=%t", rbe),
-			"--alsologtostderr",
-		},
+		Command:      cmd,
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
 		EnvPrefixes: map[string][]string{
@@ -614,28 +616,30 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("cockroachdb"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("gcloud_linux"))
+
+	cmd := []string{
+		"./bazel_test_all",
+		"--project_id", "skia-swarming-bots",
+		"--task_id", specs.PLACEHOLDER_TASK_ID,
+		"--task_name", name,
+		"--workdir", ".",
+		"--repo", specs.PLACEHOLDER_REPO,
+		"--revision", specs.PLACEHOLDER_REVISION,
+		"--patch_issue", specs.PLACEHOLDER_ISSUE,
+		"--patch_set", specs.PLACEHOLDER_PATCHSET,
+		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+		"--alsologtostderr",
+	}
 	if rbe {
 		cipd = append(cipd, specs.CIPD_PKGS_SKIA_INFRA_RBE_KEY...)
+		cmd = append(cmd, "--rbe", "--rbe_key", "./skia_infra_rbe_key/rbe-ci.json")
 	}
 
 	t := &specs.TaskSpec{
 		Caches:       CACHES_GO,
 		CasSpec:      CAS_EMPTY,
 		CipdPackages: cipd,
-		Command: []string{
-			"./bazel_test_all",
-			"--project_id", "skia-swarming-bots",
-			"--task_id", specs.PLACEHOLDER_TASK_ID,
-			"--task_name", name,
-			"--workdir", ".",
-			"--repo", specs.PLACEHOLDER_REPO,
-			"--revision", specs.PLACEHOLDER_REVISION,
-			"--patch_issue", specs.PLACEHOLDER_ISSUE,
-			"--patch_set", specs.PLACEHOLDER_PATCHSET,
-			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
-			fmt.Sprintf("--rbe=%t", rbe),
-			"--alsologtostderr",
-		},
+		Command:      cmd,
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
 		EnvPrefixes: map[string][]string{

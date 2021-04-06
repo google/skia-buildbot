@@ -3,9 +3,8 @@ package main
 import (
 	"flag"
 	"path"
-	"path/filepath"
 
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/task_driver/go/lib/bazel"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/golang"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
@@ -19,6 +18,7 @@ var (
 	taskName    = flag.String("task_name", "", "Name of the task.")
 	workDirFlag = flag.String("workdir", ".", "Working directory.")
 	rbe         = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
+	rbeKey      = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
 
 	checkoutFlags = checkout.SetupFlags(nil)
 
@@ -39,7 +39,6 @@ func main() {
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	skiaInfraRbeKeyFile := filepath.Join(workDir, "skia_infra_rbe_key", "rbe-ci.json")
 
 	// Check out the code.
 	repoState, err := checkout.GetRepoState(checkoutFlags)
@@ -76,55 +75,43 @@ func main() {
 	}
 	failIfNonEmptyGitDiff()
 
-	// Temporary directory for the Bazel cache.
-	//
-	// We cannot use the default Bazel cache location ($HOME/.cache/bazel) because:
-	//
-	//  - The cache can be large (>10G).
-	//  - Swarming bots have limited storage space on the root partition (15G).
-	//  - Because the above, the Bazel build fails with a "no space left on device" error.
-	//  - The Bazel cache under $HOME/.cache/bazel lingers after the tryjob completes, causing the
-	//    Swarming bot to be quarantined due to low disk space.
-	//  - Generally, it's considered poor hygiene to leave a bot in a different state.
-	//
-	// The temporary directory created by the below function call lives under /mnt/pd0, which has
-	// significantly more storage space, and will be wiped after the tryjob completes.
-	//
-	// Reference: https://docs.bazel.build/versions/master/output_directories.html#current-layout.
-	bazelCacheDir, err := os_steps.TempDir(ctx, "", "bazel-user-cache-*")
+	// Set up Bazel.
+	bzl, bzlCleanup, err := bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-
-	// By invoking Bazel via this function, we ensure that we will always use the temporary cache.
-	bazel := func(args ...string) {
-		command := []string{"bazel", "--output_user_root=" + bazelCacheDir}
-		command = append(command, args...)
-		if _, err := exec.RunCwd(ctx, gitDir.Dir(), command...); err != nil {
-			td.Fatal(ctx, err)
-		}
-	}
+	defer bzlCleanup()
 
 	// Print out the Bazel version for debugging purposes.
-	bazel("version")
+	if _, err := bzl.Do(ctx, "version"); err != nil {
+		td.Fatal(ctx, err)
+	}
 
 	// Buildifier formats all BUILD.bazel and .bzl files. We enforce formatting by making the tryjob
 	// fail if this step produces any diffs.
-	bazel("run", "//:buildifier")
+	if _, err := bzl.Do(ctx, "run", "//:buildifier"); err != nil {
+		td.Fatal(ctx, err)
+	}
 	failIfNonEmptyGitDiff()
 
 	// Regenerate //go_repositories.bzl from //go.mod with Gazelle, and fail if there are any diffs.
-	bazel("run", "//:gazelle", "--", "update-repos", "-from_file=go.mod", "-to_macro=go_repositories.bzl%go_repositories")
+	if _, err := bzl.Do(ctx, "run", "//:gazelle", "--", "update-repos", "-from_file=go.mod", "-to_macro=go_repositories.bzl%go_repositories"); err != nil {
+		td.Fatal(ctx, err)
+	}
 	failIfNonEmptyGitDiff()
 
 	// Update all Go BUILD targets with Gazelle, and fail if there are any diffs.
-	bazel("run", "//:gazelle", "--", "update", ".")
+	if _, err := bzl.Do(ctx, "run", "//:gazelle", "--", "update", "."); err != nil {
+		td.Fatal(ctx, err)
+	}
 	failIfNonEmptyGitDiff()
 
 	// Build all code in the repository. The tryjob will fail upon any build errors.
+	doFunc := bzl.Do
 	if *rbe {
-		bazel("build", "//...", "--config=remote", "--google_credentials="+skiaInfraRbeKeyFile)
-	} else {
-		bazel("build", "//...")
+		doFunc = bzl.DoOnRBE
+	}
+	if _, err := doFunc(ctx, "build", "//..."); err != nil {
+		td.Fatal(ctx, err)
 	}
 }
