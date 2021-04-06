@@ -21,19 +21,27 @@ import (
 
 // Command returns a cli.Command instance which represents the "try" command.
 func Command() *cli.Command {
+	yFlag := "y"
 	return &cli.Command{
 		Name:        "try",
-		Usage:       "try [job name or regex]...",
+		Usage:       "try [-y] [job name or regex]...",
 		Description: "Run try jobs against the active CL",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  yFlag,
+				Value: false,
+				Usage: "Trigger all matching try jobs without asking for confirmation.",
+			},
+		},
 		Action: func(ctx *cli.Context) error {
-			return try(ctx.Context, ctx.Args().Slice())
+			return try(ctx.Context, ctx.Args().Slice(), ctx.Bool(yFlag))
 		},
 	}
 }
 
 // try loads the available try jobs, filters by the given request strings, and
 // triggers the try jobs selected by the user.
-func try(ctx context.Context, jobRequests []string) error {
+func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool) error {
 	// Setup.
 	if err := fixupIssue(ctx); err != nil {
 		return err
@@ -86,27 +94,30 @@ func try(ctx context.Context, jobRequests []string) error {
 	if len(jobRequests) == 0 || count == 0 {
 		return nil
 	}
-	fmt.Printf("Do you want to trigger these jobs? (y/n or i for interactive): ")
-	read, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil {
-		return err
-	}
-	read = strings.TrimSpace(read)
-	if read != "y" && read != "i" {
-		return nil
-	}
+
 	jobsToTrigger := filteredJobs
-	if read == "i" {
-		jobsToTrigger = map[string][]string{}
-		for bucket, jobList := range filteredJobs {
-			for _, job := range jobList {
-				fmt.Printf("Trigger %s? (y/n): ", job)
-				trigger, err := bufio.NewReader(os.Stdin).ReadString('\n')
-				if err != nil {
-					return err
-				}
-				if strings.TrimSpace(trigger) == "y" {
-					jobsToTrigger[bucket] = append(jobsToTrigger[bucket], job)
+	if !triggerWithoutPrompt {
+		fmt.Printf("Do you want to trigger these jobs? (y/n or i for interactive): ")
+		read, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		if err != nil {
+			return err
+		}
+		read = strings.TrimSpace(read)
+		if read != "y" && read != "i" {
+			return nil
+		}
+		if read == "i" {
+			jobsToTrigger = map[string][]string{}
+			for bucket, jobList := range filteredJobs {
+				for _, job := range jobList {
+					fmt.Printf("Trigger %s? (y/n): ", job)
+					trigger, err := bufio.NewReader(os.Stdin).ReadString('\n')
+					if err != nil {
+						return err
+					}
+					if strings.TrimSpace(trigger) == "y" {
+						jobsToTrigger[bucket] = append(jobsToTrigger[bucket], job)
+					}
 				}
 			}
 		}
