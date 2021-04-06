@@ -10,9 +10,9 @@ import (
 
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/emulators"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/recipe_cfg"
+	"go.skia.org/infra/task_driver/go/lib/bazel"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/golang"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
@@ -26,6 +26,7 @@ var (
 	taskName    = flag.String("task_name", "", "Name of the task.")
 	workDirFlag = flag.String("workdir", ".", "Working directory.")
 	rbe         = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
+	rbeKey      = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
 
 	checkoutFlags = checkout.SetupFlags(nil)
 
@@ -52,27 +53,6 @@ func main() {
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	skiaInfraRbeKeyFile = filepath.Join(workDir, "skia_infra_rbe_key", "rbe-ci.json")
-
-	// Temporary directory for the Bazel cache.
-	//
-	// We cannot use the default Bazel cache location ($HOME/.cache/bazel) because:
-	//
-	//  - The cache can be large (>10G).
-	//  - Swarming bots have limited storage space on the root partition (15G).
-	//  - Because the above, the Bazel build fails with a "no space left on device" error.
-	//  - The Bazel cache under $HOME/.cache/bazel lingers after the tryjob completes, causing the
-	//    Swarming bot to be quarantined due to low disk space.
-	//  - Generally, it's considered poor hygiene to leave a bot in a different state.
-	//
-	// The temporary directory created by the below function call lives under /mnt/pd0, which has
-	// significantly more storage space, and will be wiped after the tryjob completes.
-	//
-	// Reference: https://docs.bazel.build/versions/master/output_directories.html#current-layout.
-	bazelCacheDir, err = os_steps.TempDir(ctx, "", "bazel-user-cache-*")
-	if err != nil {
-		td.Fatal(ctx, err)
-	}
 
 	// Check out the code.
 	repoState, err := checkout.GetRepoState(checkoutFlags)
@@ -84,45 +64,41 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
+	// Set up Bazel.
+	bzl, bzlCleanup, err := bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	defer bzlCleanup()
+
 	// Print out the Bazel version for debugging purposes.
-	bazel(ctx, "version")
+	if _, err := bzl.Do(ctx, "version"); err != nil {
+		td.Fatal(ctx, err)
+	}
 
 	// Run the tests.
 	if *rbe {
-		testOnRBE(ctx)
+		if err := testOnRBE(ctx, bzl); err != nil {
+			td.Fatal(ctx, err)
+		}
 	} else {
-		testLocally(ctx)
-	}
-
-	// Clean up the temporary Bazel cache directory when running locally, because during development,
-	// we do not want to leave behind a ~10GB Bazel cache directory under /tmp after each run.
-	//
-	// This is not necessary under Swarming because the temporary directory will be cleaned up
-	// automatically.
-	if *local {
-		if err := os_steps.RemoveAll(ctx, bazelCacheDir); err != nil {
+		if err := testLocally(ctx, bzl); err != nil {
 			td.Fatal(ctx, err)
 		}
 	}
 }
 
-// By invoking Bazel via this function, we ensure that we will always use the temporary cache.
-func bazel(ctx context.Context, args ...string) {
-	command := []string{"bazel", "--output_user_root=" + bazelCacheDir}
-	command = append(command, args...)
-	if _, err := exec.RunCwd(ctx, gitDir.Dir(), command...); err != nil {
-		td.Fatal(ctx, err)
-	}
-}
-
-func testOnRBE(ctx context.Context) {
+func testOnRBE(ctx context.Context, bzl *bazel.Bazel) error {
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
-	bazel(ctx, "test", "//...", "--test_output=errors", "--config=remote", "--google_credentials="+skiaInfraRbeKeyFile)
+	if _, err := bzl.DoOnRBE(ctx, "test", "//...", "--test_output=errors"); err != nil {
+		return err
+	}
 
 	// TODO(lovisolo): Upload Puppeteer test screenshots to Gold.
+	return nil
 }
 
-func testLocally(ctx context.Context) {
+func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 	// We skip the following steps when running on a developer's workstation because we assume that
 	// the environment already has everything we need to run this task driver (the repository checkout
 	// has a .git directory, the Go environment variables are properly set, etc.).
@@ -136,13 +112,10 @@ func testLocally(ctx context.Context) {
 		err := td.Do(ctx, td.Props("Check out depot_tools"), func(ctx context.Context) error {
 			var err error
 			depotToolsDir, err = depot_tools.Sync(ctx, workDir, filepath.Join(gitDir.Dir(), recipe_cfg.RECIPE_CFG_PATH))
-			if err != nil {
-				td.Fatal(ctx, err)
-			}
-			return nil
+			return err
 		})
 		if err != nil {
-			td.Fatal(ctx, err)
+			return err
 		}
 		ctx = td.WithEnv(ctx, []string{"PATH=%(PATH)s:" + depotToolsDir})
 	}
@@ -150,11 +123,11 @@ func testLocally(ctx context.Context) {
 	// Start the emulators. When running this task driver locally (e.g. with --local), this will kill
 	// any existing emulator instances prior to launching all emulators.
 	if err := emulators.StartAllEmulators(); err != nil {
-		td.Fatal(ctx, err)
+		return err
 	}
 	defer func() {
 		if err := emulators.StopAllEmulators(); err != nil {
-			td.Fatal(ctx, err)
+			rvErr = err
 		}
 	}()
 	time.Sleep(5 * time.Second) // Give emulators time to boot.
@@ -165,7 +138,7 @@ func testLocally(ctx context.Context) {
 		// We need to set the *_EMULATOR_HOST variable for the current emulator before we can retrieve
 		// its value via emulators.GetEmulatorHostEnvVar().
 		if err := emulators.SetEmulatorHostEnvVar(emulator); err != nil {
-			td.Fatal(ctx, err)
+			return err
 		}
 		name := emulators.GetEmulatorHostEnvVarName(emulator)
 		value := emulators.GetEmulatorHostEnvVar(emulator)
@@ -174,5 +147,6 @@ func testLocally(ctx context.Context) {
 	ctx = td.WithEnv(ctx, emulatorHostEnvVars)
 
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
-	bazel(ctx, "test", "//...", "--test_output=errors")
+	_, err := bzl.DoOnRBE(ctx, "test", "//...", "--test_output=errors")
+	return err
 }
