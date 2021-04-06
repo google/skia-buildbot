@@ -879,7 +879,6 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
-        "--rbe=false",
         "--alsologtostderr"
       ],
       "dependencies": [
@@ -978,8 +977,10 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
-        "--rbe=true",
-        "--alsologtostderr"
+        "--alsologtostderr",
+        "--rbe",
+        "--rbe_key",
+        "./skia_infra_rbe_key/rbe-ci.json"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -1856,7 +1857,6 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
-        "--rbe=false",
         "--alsologtostderr"
       ],
       "dependencies": [
@@ -1981,8 +1981,10 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
-        "--rbe=true",
-        "--alsologtostderr"
+        "--alsologtostderr",
+        "--rbe",
+        "--rbe_key",
+        "./skia_infra_rbe_key/rbe-ci.json"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
