@@ -7,6 +7,7 @@ package os_steps
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -86,6 +87,13 @@ func ReadDir(ctx context.Context, path string) ([]os.FileInfo, error) {
 	return rv, err
 }
 
+// Rename is a wrapper for os.Rename.
+func Rename(ctx context.Context, oldpath, newpath string) error {
+	return td.Do(ctx, td.Props(fmt.Sprintf("Rename %s %s", oldpath, newpath)).Infra(), func(context.Context) error {
+		return os.Rename(oldpath, newpath)
+	})
+}
+
 // WriteFile is a wrapper for ioutil.WriteFile.
 func WriteFile(ctx context.Context, path string, data []byte, perm os.FileMode) error {
 	return td.Do(ctx, td.Props(fmt.Sprintf("Write %s", path)).Infra(), func(context.Context) error {
@@ -102,4 +110,42 @@ func Which(ctx context.Context, exe string) (string, error) {
 		return err
 	})
 	return rv, err
+}
+
+// Copy the given file.
+func Copy(ctx context.Context, src, dst string) error {
+	return td.Do(ctx, td.Props(fmt.Sprintf("Copy %s %s", src, dst)).Infra(), func(context.Context) (rvErr error) {
+		fi, err := os.Stat(src)
+		if err != nil {
+			return err
+		}
+		if !fi.Mode().IsRegular() {
+			return fmt.Errorf("%s is not a regular file", src)
+		}
+		srcFile, err := os.Open(src)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			if err := srcFile.Close(); err != nil {
+				rvErr = err
+			}
+		}()
+		dstFile, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE, fi.Mode().Perm())
+		if err != nil {
+			return err
+		}
+		if _, err := io.Copy(dstFile, srcFile); err != nil {
+			// Ignore the error from Close() since we've already failed.
+			_ = dstFile.Close()
+			return err
+		}
+		if err := dstFile.Close(); err != nil {
+			return err
+		}
+		// We already specified permissions in the call to OpenFile, but we
+		// chmod again to work around the umask and ensure that we get the
+		// correct permissions.
+		return os.Chmod(dst, fi.Mode())
+	})
 }
