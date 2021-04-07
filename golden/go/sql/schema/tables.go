@@ -111,6 +111,7 @@ type Tables struct {
 	SecondaryBranchValues       []SecondaryBranchValueRow       `sql_backup:"monthly"`
 	SourceFiles                 []SourceFileRow                 `sql_backup:"monthly"`
 	TiledTraceDigests           []TiledTraceDigestRow           `sql_backup:"monthly"`
+	TrackingCommits             []TrackingCommitRow             `sql_backup:"daily"`
 	TraceValues                 []TraceValueRow                 `sql_backup:"monthly"`
 	Traces                      []TraceRow                      `sql_backup:"monthly"`
 	Tryjobs                     []TryjobRow                     `sql_backup:"weekly"`
@@ -399,10 +400,16 @@ func (r ExpectationRecordRow) ToSQLRow() (colNames []string, colData []interface
 func (r *ExpectationRecordRow) ScanFrom(scan func(...interface{}) error) error {
 	err := scan(&r.ExpectationRecordID, &r.BranchName, &r.UserName, &r.TriageTime, &r.NumChanges)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	r.TriageTime = r.TriageTime.UTC()
 	return nil
+}
+
+// RowsOrderBy implements the sqltest.RowsOrder interface, sorting rows to have the most recent
+// records first, with ties broken by num_changes and user_name
+func (r ExpectationRecordRow) RowsOrderBy() string {
+	return "ORDER BY triage_time DESC, num_changes DESC, user_name ASC"
 }
 
 type ExpectationDeltaRow struct {
@@ -951,4 +958,24 @@ func (r *DeprecatedExpectationUndoRow) ScanFrom(scan func(...interface{}) error)
 	}
 	r.TS = r.TS.UTC()
 	return nil
+}
+
+// TrackingCommitRow represents a repo for which we have checked to see if the commits landed
+// correspond to any Changelists.
+type TrackingCommitRow struct {
+	// Repo is the url of the repo we are tracking
+	Repo string `sql:"repo STRING PRIMARY KEY"`
+	// LastGitHash is the git hash of the commit that we know landed most recently.
+	LastGitHash string `sql:"last_git_hash STRING NOT NULL"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r TrackingCommitRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"repo", "last_git_hash"},
+		[]interface{}{r.Repo, r.LastGitHash}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *TrackingCommitRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.Repo, &r.LastGitHash)
 }
