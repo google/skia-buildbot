@@ -420,7 +420,7 @@ func RawBuilder() databuilder.TablesBuilder {
 		ExpectationsForGrouping(paramtools.Params{
 			types.CorpusField: RoundCorpus, types.PrimaryKeyField: RoundRectTest,
 		}).Positive(DigestE01Pos_CL).Positive(DigestE02Pos_CL)
-	cl.AddTriageEvent(UserTwo, "2020-12-12T09:30:12Z").
+	cl.AddTriageEvent(UserFour, "2020-12-12T09:30:12Z").
 		ExpectationsForGrouping(paramtools.Params{
 			types.CorpusField: TextCorpus, types.PrimaryKeyField: SevenTest,
 		}).Positive(DigestD01Pos_CL)
