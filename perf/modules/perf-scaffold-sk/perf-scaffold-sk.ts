@@ -19,7 +19,7 @@ import 'elements-sk/icon/home-icon-sk';
 import 'elements-sk/icon/menu-icon-sk';
 import 'elements-sk/icon/sort-icon-sk';
 import 'elements-sk/icon/trending-up-icon-sk';
-import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 // The class applied to perf-scaffold-sk that hides the sidebar. It is also used
@@ -55,7 +55,7 @@ export class PerfScaffoldSk extends ElementSk {
       <menu-icon-sk></menu-icon-sk>
     </button>
     <h1 class=name>Perf</h1>
-    <login-sk></login-sk>
+    <alogin-sk url=/_/login/status></alogin-sk>
     <theme-chooser-sk></theme-chooser-sk>
   </nav>
   <nav id=sidebar>
