@@ -12,9 +12,12 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
@@ -29,6 +32,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/sql"
+	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/tracing"
 )
 
@@ -57,9 +61,39 @@ type repoFollowerConfig struct {
 	// in time, we can sort our commit_ids without resorting to negative numbers.
 	InitialCommit string `json:"initial_commit"`
 
+	// ReposToMonitorCLs is a list of all repos that we need to monitor for commits that could
+	// correspond to CLs. When those CLs land, we need to merge in the expectations associated
+	// with that CL to the primary branch.
+	ReposToMonitorCLs []monitorConfig `json:"repos_to_monitor_cls"`
+
 	// PollPeriod is how often we should poll the source of truth.
 	PollPeriod config.Duration `json:"poll_period"`
 }
+
+// monitorConfig houses the data we need to track a repo and determine which CLs a landed commit
+// corresponds to.
+type monitorConfig struct {
+	// RepoURL is the url that will be polled via gitiles.
+	RepoURL string
+	// ExtractionTechnique codifies the methods for linking (via a commit message/body) to a CL.
+	ExtractionTechnique extractionTechnique
+	// InitialCommit that we will used if there is no monitoring progress stored in the DB.
+	// It should be before/at the point where we migrated expectations.
+	InitialCommit string
+	// SystemName is the abbreviation that is given to a given CodeReviewSystem.
+	SystemName string
+	// Branch is generally the primary branch of the repo that we will poll for the latest commit.
+	Branch string
+}
+
+type extractionTechnique string
+
+const (
+	// ReviewedLine corresponds to looking for a Reviewed-on line in the commit message.
+	ReviewedLine = extractionTechnique("ReviewedLine")
+	// FromTitle corresponds to looking at the title for a CL ID in square brackets.
+	FromTitle = extractionTechnique("FromTitle")
+)
 
 func main() {
 	// Command line flags.
@@ -106,6 +140,9 @@ func main() {
 	if err := pollRepo(ctx, db, gitilesClient, rfc); err != nil {
 		sklog.Fatalf("Could not do initial update: %s", err)
 	}
+	if err := checkForLanded(ctx, db, client, rfc); err != nil {
+		sklog.Fatalf("Could not do initial scan of landed CLs: %s", err)
+	}
 	sklog.Infof("Initial update complete")
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 	sklog.Fatal(http.ListenAndServe(rfc.ReadyPort, nil))
@@ -139,17 +176,18 @@ func pollRepo(ctx context.Context, db *pgxpool.Pool, client *gitiles.Repo, rfc r
 		return skerr.Wrap(err)
 	}
 	go func() {
-		ct := time.Tick(rfc.PollPeriod.Duration)
+		ct := time.NewTicker(rfc.PollPeriod.Duration)
+		defer ct.Stop()
 		sklog.Infof("Polling every %s", rfc.PollPeriod.Duration)
 		for {
 			select {
 			case <-ctx.Done():
 				sklog.Errorf("Stopping polling due to context error: %s", ctx.Err())
 				return
-			case <-ct:
+			case <-ct.C:
 				err := updateCycle(ctx, db, client, rfc)
 				if err != nil {
-					sklog.Errorf("Error on this cycle for talking to %s: %s", rfc.GitRepoURL, rfc)
+					sklog.Errorf("Error on this cycle for talking to %s: %s", rfc.GitRepoURL, err)
 				}
 			}
 		}
@@ -170,7 +208,7 @@ type GitilesLogger interface {
 func updateCycle(ctx context.Context, db *pgxpool.Pool, client GitilesLogger, rfc repoFollowerConfig) error {
 	ctx, span := trace.StartSpan(ctx, "gitilesfollower_updateCycle")
 	defer span.End()
-	latestHash, err := getLatestCommitFromRepo(ctx, client, rfc)
+	latestHash, err := getLatestCommitFromRepo(ctx, client, rfc.GitRepoBranch)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -213,13 +251,13 @@ func reverse(commits []*vcsinfo.LongCommit) {
 
 // getLatestCommitFromRepo returns the git hash of the latest git commit known on the configured
 // branch. If overrideLatestCommitKey has a value set, that will be used instead.
-func getLatestCommitFromRepo(ctx context.Context, client GitilesLogger, rfc repoFollowerConfig) (string, error) {
+func getLatestCommitFromRepo(ctx context.Context, client GitilesLogger, branch string) (string, error) {
 	if hash := ctx.Value(overrideLatestCommitKey); hash != nil {
 		return hash.(string), nil
 	}
 	ctx, span := trace.StartSpan(ctx, "gitilesfollower_getLatestCommitFromRepo")
 	defer span.End()
-	latestCommit, err := client.Log(ctx, rfc.GitRepoBranch, gitiles.LogLimit(1))
+	latestCommit, err := client.Log(ctx, branch, gitiles.LogLimit(1))
 	if err != nil {
 		return "", skerr.Wrapf(err, "getting last commit")
 	}
@@ -284,5 +322,324 @@ func storeCommits(ctx context.Context, db *pgxpool.Pool, lastCommitID int64, com
 		return nil
 	})
 	return skerr.Wrap(err)
+}
 
+// checkForLanded will check all recent commits in the ReposToMonitor for any references to CLs
+// that have landed. Then, it starts a go routine to continue this periodically.
+func checkForLanded(ctx context.Context, db *pgxpool.Pool, client *http.Client, rfc repoFollowerConfig) error {
+	if len(rfc.ReposToMonitorCLs) == 0 {
+		return skerr.Fmt("No repos to monitor landed CLs")
+	}
+	sklog.Infof("Doing initial check for landed CLs")
+	var gClients []*gitiles.Repo
+	for _, repo := range rfc.ReposToMonitorCLs {
+		gClients = append(gClients, gitiles.NewRepo(repo.RepoURL, client))
+	}
+	for i, client := range gClients {
+		err := checkForLandedCycle(ctx, db, client, rfc.ReposToMonitorCLs[i])
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	go func() {
+		ct := time.NewTicker(rfc.PollPeriod.Duration)
+		defer ct.Stop()
+		sklog.Infof("Checking for landed CLs every %s", rfc.PollPeriod.Duration)
+		for {
+			select {
+			case <-ctx.Done():
+				sklog.Errorf("Stopping landed check due to context error: %s", ctx.Err())
+				return
+			case <-ct.C:
+				for i, client := range gClients {
+					err := checkForLandedCycle(ctx, db, client, rfc.ReposToMonitorCLs[i])
+					if err != nil {
+						sklog.Errorf("Error checking for landed commits with configuration %s", rfc.ReposToMonitorCLs[i], err)
+					}
+				}
+				sklog.Infof("Checked %d repos for landed CLs", len(gClients))
+			}
+		}
+	}()
+	return nil
+}
+
+// checkForLandedCycle will see if there are any recent commits for the given repo. If there are,
+// it will find any corresponding CLs for them and migrate the expectations associated with them
+// to the primary branch and mark them as "landed" in the DB.
+func checkForLandedCycle(ctx context.Context, db *pgxpool.Pool, client GitilesLogger, m monitorConfig) error {
+	ctx, span := trace.StartSpan(ctx, "gitilesfollower_checkForLandedCycle")
+	span.AddAttributes(trace.StringAttribute("repo", m.RepoURL))
+	defer span.End()
+	latestHash, err := getLatestCommitFromRepo(ctx, client, m.Branch)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	previousHash, err := getPreviouslyLandedCommit(ctx, db, m.RepoURL)
+	if err != nil {
+		return skerr.Wrapf(err, "getting recently landed commit from DB for repo %s", m.RepoURL)
+	}
+	if previousHash == latestHash {
+		sklog.Infof("no updates - latest seen commit %s", previousHash)
+		return nil
+	}
+	if previousHash == "" {
+		previousHash = m.InitialCommit
+	}
+
+	sklog.Infof("Getting git history from %s to %s", previousHash, latestHash)
+	commits, err := client.LogFirstParent(ctx, previousHash, latestHash)
+	if err != nil {
+		return skerr.Wrapf(err, "getting backlog of commits from %s..%s", previousHash, latestHash)
+	}
+	if len(commits) == 0 {
+		sklog.Warningf("No commits between %s and %s", previousHash, latestHash)
+		return nil
+	}
+	// commits is backwards and LogFirstParent does not respect gitiles.LogReverse()
+	reverse(commits)
+	sklog.Infof("Found %d commits to check for a CL", commits)
+	for _, c := range commits {
+		var clID string
+		switch m.ExtractionTechnique {
+		case ReviewedLine:
+			clID = extractReviewedLine(c.Body)
+		}
+		if clID == "" {
+			sklog.Infof("No CL detected for %#v", c)
+			continue
+		}
+		if err := migrateExpectationsToPrimaryBranch(ctx, db, m.SystemName, clID, c.Timestamp); err != nil {
+			return skerr.Wrapf(err, "migrating cl %s-%s", m.SystemName, clID)
+		}
+	}
+	_, err = db.Exec(ctx, `UPSERT INTO TrackingCommits (repo, last_git_hash) VALUES ($1, $2)`, m.RepoURL, latestHash)
+	return skerr.Wrap(err)
+}
+
+// getPreviouslyLandedCommit returns the git hash of the last commit we checked for a CL in the
+// given repo.
+func getPreviouslyLandedCommit(ctx context.Context, db *pgxpool.Pool, repoURL string) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "getPreviouslyLandedCommit")
+	defer span.End()
+	row := db.QueryRow(ctx, `SELECT last_git_hash FROM TrackingCommits WHERE repo = $1`, repoURL)
+	var rv string
+	if err := row.Scan(&rv); err != nil {
+		if err == pgx.ErrNoRows {
+			return "", nil // No data in TrackingCommits
+		}
+		return "", skerr.Wrap(err)
+	}
+	return rv, nil
+}
+
+var reviewedLineRegex = regexp.MustCompile(`(^|\n)Reviewed-on: .+/(?P<clID>\S+?)($|\n)`)
+
+// extractReviewedLine looks for a line that starts with Reviewed-on and then parses out the
+// CL id from that line (which are the last characters after the last slash).
+func extractReviewedLine(clBody string) string {
+	match := reviewedLineRegex.FindStringSubmatch(clBody)
+	if len(match) > 0 {
+		return match[2] // the second group should be our CL ID
+	}
+	return ""
+}
+
+// migrateExpectationsToPrimaryBranch finds all the expectations that were added for a given CL
+// and condenses them into one record per user who triaged digests on that CL. These records are
+// all stored with the same timestamp as the commit that landed with them. The records and their
+// corresponding expectations are added to the primary branch. Then the given CL is marked as
+// "landed".
+func migrateExpectationsToPrimaryBranch(ctx context.Context, db *pgxpool.Pool, crs, clID string, landedTS time.Time) error {
+	ctx, span := trace.StartSpan(ctx, "migrateExpectationsToPrimaryBranch")
+	defer span.End()
+	qID := sql.Qualify(crs, clID)
+	changes, err := getExpectationChangesForCL(ctx, db, qID)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	err = storeChangesAsRecordDeltasExpectations(ctx, db, changes, landedTS)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	row := db.QueryRow(ctx, `UPDATE Changelists SET status = 'landed' WHERE changelist_id = $1 RETURNING changelist_id`, qID)
+	var s string
+	if err := row.Scan(&s); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil
+		}
+		return skerr.Wrapf(err, "Updating cl %s to be landed", qID)
+	}
+	return nil
+}
+
+type groupingDigest struct {
+	grouping schema.MD5Hash
+	digest   schema.MD5Hash
+}
+
+type finalState struct {
+	labelBefore        schema.ExpectationLabel
+	labelAfter         schema.ExpectationLabel
+	userWhoTriagedLast string
+}
+
+// getExpectationChangesForCL gets all the expectations for the given CL and arranges them in
+// temporal order. It de-duplicates any entries (e.g. triaging a digest to positive,then to
+// negative, then to positive would be condensed to a single "triage to positive" action). Entries
+// are "blamed" to the user who last touched the digest+grouping pair.
+func getExpectationChangesForCL(ctx context.Context, db *pgxpool.Pool, qualifiedCLID string) (map[groupingDigest]finalState, error) {
+	ctx, span := trace.StartSpan(ctx, "getExpectationChangesForCL")
+	defer span.End()
+	rows, err := db.Query(ctx, `
+SELECT user_name, grouping_id, digest, label_before, label_after
+FROM ExpectationRecords JOIN ExpectationDeltas
+  ON ExpectationRecords.expectation_record_id = ExpectationDeltas.expectation_record_id
+WHERE branch_name = $1
+ORDER BY triage_time ASC`, qualifiedCLID)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Getting deltas and records for CL %s", qualifiedCLID)
+	}
+	defer rows.Close()
+	// By using a map, we can deduplicate rows and return an object that represents the final
+	// state of all the triage logic.
+	rv := map[groupingDigest]finalState{}
+	for rows.Next() {
+		var user string
+		var grouping schema.GroupingID
+		var digest schema.DigestBytes
+		var before schema.ExpectationLabel
+		var after schema.ExpectationLabel
+		if err := rows.Scan(&user, &grouping, &digest, &before, &after); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		key := groupingDigest{
+			grouping: sql.AsMD5Hash(grouping),
+			digest:   sql.AsMD5Hash(digest),
+		}
+		fs, ok := rv[key]
+		if !ok {
+			// only update the label before on the first time we see a triage for a grouping.
+			fs.labelBefore = before
+		}
+		fs.labelAfter = after
+		fs.userWhoTriagedLast = user
+		rv[key] = fs
+	}
+	return rv, nil
+}
+
+// storeChangesAsRecordDeltasExpectations takes the given map and turns them into ExpectationDeltas.
+// From there, it is able to make a record per user and store the given deltas and expectations
+// according to that record.
+func storeChangesAsRecordDeltasExpectations(ctx context.Context, db *pgxpool.Pool, changes map[groupingDigest]finalState, ts time.Time) error {
+	ctx, span := trace.StartSpan(ctx, "storeChangesAsRecordDeltasExpectations")
+	defer span.End()
+	if len(changes) == 0 {
+		return nil
+	}
+	// We want to make one triage record for each user who triaged data on this CL. Those records
+	// will represent the final state.
+	byUser := map[string][]schema.ExpectationDeltaRow{}
+	for gd, fs := range changes {
+		if fs.labelBefore == fs.labelAfter {
+			continue // skip "no-op" triages, where something was triaged in one way, then undone.
+		}
+		byUser[fs.userWhoTriagedLast] = append(byUser[fs.userWhoTriagedLast], schema.ExpectationDeltaRow{
+			GroupingID:  sql.FromMD5Hash(gd.grouping),
+			Digest:      sql.FromMD5Hash(gd.digest),
+			LabelBefore: fs.labelBefore,
+			LabelAfter:  fs.labelAfter,
+		})
+	}
+	for user, deltas := range byUser {
+		if len(deltas) == 0 {
+			continue
+		}
+		recordID := uuid.New()
+		// Write the record for this user
+		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, `
+INSERT INTO ExpectationRecords (expectation_record_id, user_name, triage_time, num_changes)
+VALUES ($1, $2, $3, $4)`, recordID, user, ts, len(deltas))
+			return err // Don't wrap - crdbpgx might retry
+		})
+		if err != nil {
+			return skerr.Wrapf(err, "storing record")
+		}
+		if err := bulkWriteDeltas(ctx, db, recordID, deltas); err != nil {
+			return skerr.Wrapf(err, "storing deltas")
+		}
+		if err := bulkWriteExpectations(ctx, db, recordID, deltas); err != nil {
+			return skerr.Wrapf(err, "storing expectations")
+		}
+	}
+	return nil
+}
+
+// bulkWriteDeltas stores all the deltas using a batched approach. They are all attributed to the
+// provided record id.
+func bulkWriteDeltas(ctx context.Context, db *pgxpool.Pool, recordID uuid.UUID, deltas []schema.ExpectationDeltaRow) error {
+	ctx, span := trace.StartSpan(ctx, "bulkWriteDeltas")
+	defer span.End()
+	const chunkSize = 200 // Arbitrarily picked
+	err := util.ChunkIter(len(deltas), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		batch := deltas[startIdx:endIdx]
+		if len(batch) == 0 {
+			return nil
+		}
+		statement := `INSERT INTO ExpectationDeltas (expectation_record_id, grouping_id, digest,
+label_before, label_after) VALUES `
+		const valuesPerRow = 5
+		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
+		for _, row := range batch {
+			arguments = append(arguments, recordID, row.GroupingID, row.Digest, row.LabelBefore, row.LabelAfter)
+		}
+		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
+		return skerr.Wrap(err)
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "storing %d expectation delta rows", len(deltas))
+	}
+	return nil
+}
+
+// bulkWriteExpectations stores all the expectations using a batched approach. They are all
+// attributed to the provided record id.
+func bulkWriteExpectations(ctx context.Context, db *pgxpool.Pool, recordID uuid.UUID, deltas []schema.ExpectationDeltaRow) error {
+	ctx, span := trace.StartSpan(ctx, "bulkWriteExpectations")
+	defer span.End()
+	const chunkSize = 200 // Arbitrarily picked
+	err := util.ChunkIter(len(deltas), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		batch := deltas[startIdx:endIdx]
+		if len(batch) == 0 {
+			return nil
+		}
+		statement := `INSERT INTO Expectations (grouping_id, digest, label, expectation_record_id) VALUES `
+		const valuesPerRow = 4
+		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
+		for _, row := range batch {
+			arguments = append(arguments, row.GroupingID, row.Digest, row.LabelAfter, recordID)
+		}
+		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
+		return skerr.Wrap(err)
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "storing %d expectation rows", len(deltas))
+	}
+	return nil
 }

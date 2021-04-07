@@ -57,6 +57,14 @@ func AsMD5Hash(b []byte) schema.MD5Hash {
 	return m
 }
 
+// FromMD5Hash returns the given byte array a slice of bytes. The copy is required when dealing
+// with a loop variable, as a naive slice won't work.
+func FromMD5Hash(m schema.MD5Hash) []byte {
+	b := make([]byte, len(m))
+	copy(b, m[:])
+	return b
+}
+
 // ValuesPlaceholders returns a set of SQL placeholder numbers grouped for use in an INSERT
 // statement. For example, ValuesPlaceholders(2,3) returns ($1, $2), ($3, $4), ($5, $6)
 // It panics if either param is <= 0.
