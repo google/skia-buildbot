@@ -78,6 +78,10 @@ tags:
 buildall:
 	go build ./...
 
+# Docker image used to run Puppeteer tests (Webpack build).
+PUPPETEER_TESTS_DOCKER_IMG=gcr.io/skia-public/puppeteer-tests@sha256:5225ceb3e9a3a22c2e2bc9d23c333a2e2d815ee3ee00d32227013a6a697d55e9
+
+# This is invoked from Infra-PerCommit-Puppeteer.
 .PHONY: puppeteer-tests
 puppeteer-tests:
 	# Pull the WASM binaries needed by the debugger-app Webpack build.
@@ -86,7 +90,7 @@ puppeteer-tests:
 	docker run --interactive --rm \
 		--mount type=bind,source=`pwd`,target=/src \
 		--mount type=bind,source=`pwd`/puppeteer-tests/output,target=/out \
-		gcr.io/skia-public/puppeteer-tests:latest \
+		$(PUPPETEER_TESTS_DOCKER_IMG) \
 		/src/puppeteer-tests/docker/run-tests.sh
 
 # Front-end code will be built by the Infra-PerCommit-Build tryjob.
