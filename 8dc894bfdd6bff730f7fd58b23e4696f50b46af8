@@ -43,6 +43,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "8ef274fb_c54d3827",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-07T12:16:36Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "9db7ebe2_36e0d6ec",
+      "range": {
+        "startLine": 28,
+        "startChar": 6,
+        "endLine": 28,
+        "endChar": 16
+      },
+      "revId": "8dc894bfdd6bff730f7fd58b23e4696f50b46af8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "9c9c694e_dbfbead4",
         "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
         "patchSetId": 1
@@ -54,6 +78,30 @@
       "writtenOn": "2021-04-07T11:53:43Z",
       "side": 1,
       "message": "Would https://github.com/google/common-sk/blob/a1840d38c6c21aa220e81c0e422e13f8d2b18033/src/human.ts#L106 work?",
+      "range": {
+        "startLine": 285,
+        "startChar": 39,
+        "endLine": 285,
+        "endChar": 43
+      },
+      "revId": "8dc894bfdd6bff730f7fd58b23e4696f50b46af8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0c931935_7f0ad5a6",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-07T12:16:36Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "9c9c694e_dbfbead4",
       "range": {
         "startLine": 285,
         "startChar": 39,

@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8ab66871_5363b3ed",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-07T12:16:36Z",
+      "side": 1,
+      "message": "done both changes.\nThanks for pointing to those helpers!\nThey\u0027ll be helpful for future features.",
+      "revId": "e713b573cf641c57ac1f78d62f41d9dc6b922073",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
