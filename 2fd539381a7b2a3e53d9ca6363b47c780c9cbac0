@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9514b79e_141215c5",
+        "filename": "scripts/lsbots/lsbots.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-07T18:35:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8af6c2d9_0bb4fa4f",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 3
+      },
+      "revId": "2fd539381a7b2a3e53d9ca6363b47c780c9cbac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4f00c8bb_c0992f20",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "911c1cbf_32b57d59",
+        "filename": "scripts/lsbots/lsbots.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-07T18:35:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f00c8bb_c0992f20",
+      "range": {
+        "startLine": 76,
+        "startChar": 1,
+        "endLine": 76,
+        "endChar": 9
+      },
+      "revId": "2fd539381a7b2a3e53d9ca6363b47c780c9cbac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "13d20f57_7af66a7f",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-04-07T11:59:10Z",
       "side": 1,
       "message": "nit: avoid named return vals \"Don\u0027t name result parameters just to avoid declaring a var inside the function\"\n\nhttps://github.com/golang/go/wiki/CodeReviewComments#named-result-parameters",
+      "range": {
+        "startLine": 119,
+        "startChar": 33,
+        "endLine": 119,
+        "endChar": 39
+      },
+      "revId": "2fd539381a7b2a3e53d9ca6363b47c780c9cbac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b67a8f37_289d3e4b",
+        "filename": "scripts/lsbots/lsbots.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-07T18:35:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13d20f57_7af66a7f",
       "range": {
         "startLine": 119,
         "startChar": 33,
