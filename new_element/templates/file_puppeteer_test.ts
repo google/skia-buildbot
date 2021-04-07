@@ -11,7 +11,7 @@ describe('{{.ElementName}}', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/{{.ElementName}}.html`);
+    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/{{.ElementName}}.html`);
     await testBed.page.setViewport({ width: 400, height: 550 });
   });
 

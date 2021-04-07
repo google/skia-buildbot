@@ -135,16 +135,15 @@ perf-scaffold-sk {
       margin: 1em;
     }
 
-    login-sk {
+    alogin-sk {
       margin-left: auto;
       margin-right: 1em;
       display: block;
     }
 
-    login-sk .email,
-    login-sk .logInOut {
+    alogin-sk .email,
+    alogin-sk .logInOut {
       color: var(--primary);
-      --login-sk-color: var(--primary);
     }
   }
 

@@ -10,7 +10,7 @@ sk_element(
     sass_deps = ["//perf/modules/themes:themes_sass_lib"],
     sass_srcs = ["perf-scaffold-sk.scss"],
     sk_element_deps = [
-        "//infra-sk/modules/login-sk",
+        "//infra-sk/modules/alogin-sk",
         "//infra-sk/modules/theme-chooser-sk",
     ],
     ts_deps = [
