@@ -15,6 +15,7 @@ const email = "nobody@example.org"
 
 func setupForTest(t *testing.T, cb http.HandlerFunc) (*url.URL, *bool, *httptest.ResponseRecorder, *http.Request) {
 	*allowPost = false
+	*passive = false
 	called := false
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cb(w, r)
@@ -110,6 +111,44 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequestAnd
 	authMock := &mocks.Auth{}
 	authMock.On("LoggedInAs", r).Return(email)
 	authMock.On("IsViewer", r).Return(true)
+
+	proxy := newProxy(u, authMock)
+
+	proxy.ServeHTTP(w, r)
+	require.True(t, *called)
+	authMock.AssertExpectations(t)
+}
+
+func TestProxyServeHTTP_UserIsNotLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWithoutEmailHeader(t *testing.T) {
+	unittest.SmallTest(t)
+
+	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, []string{""}, r.Header.Values(webAuthHeaderName))
+	})
+
+	*passive = true
+	r.Header.Add(webAuthHeaderName, "haxor@example.org") // Try to spoof the header.
+	authMock := &mocks.Auth{}
+	authMock.On("LoggedInAs", r).Return("")
+
+	proxy := newProxy(u, authMock)
+
+	proxy.ServeHTTP(w, r)
+	require.True(t, *called)
+	authMock.AssertExpectations(t)
+}
+
+func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWithEmailHeader(t *testing.T) {
+	unittest.SmallTest(t)
+
+	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, []string{email}, r.Header.Values(webAuthHeaderName))
+	})
+
+	*passive = true
+	r.Header.Add(webAuthHeaderName, "haxor@example.org") // Try to spoof the header.
+	authMock := &mocks.Auth{}
+	authMock.On("LoggedInAs", r).Return(email)
 
 	proxy := newProxy(u, authMock)
 
