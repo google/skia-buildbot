@@ -1,0 +1,51 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":alogin-sk-demo",
+)
+
+sk_element(
+    name = "alogin-sk",
+    sass_srcs = ["alogin-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "alogin-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "alogin-sk-demo",
+    html_file = "alogin-sk-demo.html",
+    scss_entry_point = "alogin-sk-demo.scss",
+    sk_element_deps = [":alogin-sk"],
+    ts_entry_point = "alogin-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "alogin-sk_puppeteer_test",
+    src = "alogin-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+karma_test(
+    name = "alogin-sk_test",
+    src = "alogin-sk_test.ts",
+    deps = [
+        ":alogin-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
