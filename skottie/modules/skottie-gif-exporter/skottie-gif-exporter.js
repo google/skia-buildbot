@@ -25,6 +25,18 @@ const ditherOptions = [
   'Atkinson',
 ];
 
+const formatSize = (sizeInBytes) => {
+  let formattedSize;
+  if (sizeInBytes < 1000) {
+    formattedSize = `${sizeInBytes}  bytes`;
+  } else if (sizeInBytes < 1000000) {
+    formattedSize = `${(sizeInBytes / 1000).toFixed(1)}Kb`;
+  } else {
+    formattedSize = `${(sizeInBytes / 1000000).toFixed(2)}Mb`;
+  }
+  return formattedSize;
+};
+
 const exportStates = {
   IDLE: 'idle',
   GIF_PROCESSING: 'gif processing',
@@ -35,11 +47,16 @@ const exportStates = {
 const renderHeader = (ele) => {
   if (ele._state.state === exportStates.IDLE) {
     return html`
-      <button @click=${ele._save}>Save</button>
+      <button class="editor-header-save-button" @click=${ele._save}>Save</button>
+    `;
+  }
+  if (ele._state.state === exportStates.COMPLETE) {
+    return html`
+      <button class="editor-header-save-button" @click=${ele._cancel}>Back</button>
     `;
   }
   return html`
-    <button @click=${ele._cancel}>Cancel</button>
+    <button class="editor-header-save-button" @click=${ele._cancel}>Cancel</button>
   `;
 };
 
@@ -110,8 +127,16 @@ const renderIdle = (ele) => html`
 
 const renderComplete = (ele) => html`
   <section class=complete>
-    <div>
-      Render Complete
+    <div class=export-info>
+      <div class=export-info-row>
+        Render Complete
+      </div>
+      <div class=export-info-row>
+        Export Duration: ${ele._state.exportDuration}
+      </div>
+      <div class=export-info-row>
+        File size: ${formatSize(ele._state.blob.size)}
+      </div>
     </div>
     <a
       class=download
@@ -153,7 +178,7 @@ const template = (ele) => html`
     </header>
     <section class=main>
       ${renderMain(ele)}
-    <section>
+    </section>
   </div>
 `;
 
@@ -168,6 +193,7 @@ class SkottieGifExporterSk extends HTMLElement {
       state: exportStates.IDLE,
       progress: 0,
       blob: null,
+      exportDuration: 0,
     };
   }
 
@@ -256,6 +282,9 @@ class SkottieGifExporterSk extends HTMLElement {
     this._gif.on('finished', (blob) => {
       this._state.state = exportStates.COMPLETE;
       this._state.blob = blob;
+      this._state.exportDuration = new Date((Date.now() - this._startTime))
+        .toISOString()
+        .substr(11, 8);
       this._blobURL = URL.createObjectURL(blob);
       this._render();
     });
@@ -267,6 +296,7 @@ class SkottieGifExporterSk extends HTMLElement {
 
   _start() {
     this._state.progress = 0;
+    this._startTime = Date.now();
     this.dispatchEvent(new CustomEvent('start', {
       detail: '',
     }));
