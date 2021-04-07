@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5c6084a2_6a5b6722",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 21
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-07T16:28:30Z",
+      "side": 1,
+      "message": "PS21 moves the implementation into util.CopyFile, which I\u0027d forgotten about.",
+      "revId": "c1b156fc6a1b2ec48e650f45ffbd48ed03772296",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
