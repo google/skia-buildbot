@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "55896402_d6d1ab6d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-07T18:41:40Z",
+      "side": 1,
+      "message": "Ok, this is up and running (https://autoroll.skia.org/r/webgpu-cts-chromium-autoroll) but the pre-upload step is failing with:\n\nTraceback (most recent call last):\n  File \"third_party/webgpu-cts/scripts/gen_ts_dep_lists.py\", line 38, in \u003cmodule\u003e\n    out_file.writelines([x + \u0027\\n\u0027 for x in get_ts_sources()])\n  File \"third_party/webgpu-cts/scripts/gen_ts_dep_lists.py\", line 30, in get_ts_sources\n    line[len(src_prefix):].rstrip() for line in stdout.split(\u0027\\n\u0027)\nTypeError: a bytes-like object is required, not \u0027str\u0027",
+      "revId": "dd31cafb1cf6b243b8cd8ed4e435af102661794a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
