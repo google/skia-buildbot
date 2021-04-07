@@ -119,6 +119,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e6b9034a_d94680f0",
+        "filename": "task_driver/go/lib/bazel/bazel.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-07T12:01:24Z",
+      "side": 1,
+      "message": "Ok, makes sense.",
+      "parentUuid": "4f2e2e92_eb203574",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 1
+      },
+      "revId": "0e941f0bd923f5980fc2cd61066f57fb173efca4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2e41a310_cb8b47f1",
