@@ -119,8 +119,8 @@ func main() {
 	sklog.Info("done")
 }
 
-func fetchGroupings(ctx context.Context, db *pgxpool.Pool) (map[types.TestName]schema.GroupingID, error) {
-	rv := map[types.TestName]schema.GroupingID{}
+func fetchGroupings(ctx context.Context, db *pgxpool.Pool) (map[types.TestName][]schema.GroupingID, error) {
+	rv := map[types.TestName][]schema.GroupingID{}
 	rows, err := db.Query(ctx, `SELECT keys -> 'name', grouping_id FROM Groupings`)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -132,8 +132,15 @@ func fetchGroupings(ctx context.Context, db *pgxpool.Pool) (map[types.TestName]s
 		if err := rows.Scan(&name, &gID); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		rv[name] = gID
+		rv[name] = append(rv[name], gID)
 	}
+	count := 0
+	for _, groupings := range rv {
+		if len(groupings) > 1 {
+			count++
+		}
+	}
+	sklog.Infof("%d out of %d test names belonged to multiple corpora", count, len(rv))
 	return rv, nil
 }
 
@@ -181,7 +188,7 @@ func storeAndCombineTriageRecords(ctx context.Context, db *pgxpool.Pool, toStore
 	return nil
 }
 
-func storeExpectationDeltas(ctx context.Context, db *pgxpool.Pool, toStore map[string][]v3ExpectationChange, nameToGroupings map[types.TestName]schema.GroupingID) error {
+func storeExpectationDeltas(ctx context.Context, db *pgxpool.Pool, toStore map[string][]v3ExpectationChange, nameToGroupings map[types.TestName][]schema.GroupingID) error {
 	sklog.Infof("have %d partitions", len(toStore))
 	const batchSize = 1000
 	eg, ctx := errgroup.WithContext(ctx)
@@ -200,7 +207,7 @@ func storeExpectationDeltas(ctx context.Context, db *pgxpool.Pool, toStore map[s
 				arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 				for _, delta := range batch {
 					newID := uuid.Must(uuid.FromBytes(hash(delta.RecordID)))
-					gID, ok := nameToGroupings[delta.Grouping]
+					groupings, ok := nameToGroupings[delta.Grouping]
 					if !ok {
 						sklog.Warningf("Unknown grouping for name %s on branch %s", delta.Grouping, branchName)
 						continue
@@ -210,8 +217,12 @@ func storeExpectationDeltas(ctx context.Context, db *pgxpool.Pool, toStore map[s
 						sklog.Warningf("Corrupt digest %q on branch %s", delta.Digest, branchName)
 						continue
 					}
-					arguments = append(arguments,
-						newID, gID, dBytes, convertLabel(delta.LabelBefore), convertLabel(delta.AffectedRange.Label))
+					// Some groupings were on multiple corpora, so we need to store the record for
+					// all of them.
+					for _, gID := range groupings {
+						arguments = append(arguments,
+							newID, gID, dBytes, convertLabel(delta.LabelBefore), convertLabel(delta.AffectedRange.Label))
+					}
 				}
 				if len(arguments) == 0 {
 					return nil
@@ -237,7 +248,7 @@ var (
 	catchAllUUID = uuid.MustParse("00000000-0000-0000-0000-000000000000")
 )
 
-func storeExpectations(ctx context.Context, db *pgxpool.Pool, toStore map[string][]v3ExpectationEntry, nameToGroupings map[types.TestName]schema.GroupingID, deltas map[string][]v3ExpectationChange) (int, error) {
+func storeExpectations(ctx context.Context, db *pgxpool.Pool, toStore map[string][]v3ExpectationEntry, nameToGroupings map[types.TestName][]schema.GroupingID, deltas map[string][]v3ExpectationChange) (int, error) {
 	sklog.Infof("have %d partitions", len(toStore))
 	extraExpectations := int32(0)
 	eg, ctx := errgroup.WithContext(ctx)
@@ -265,7 +276,7 @@ func storeExpectations(ctx context.Context, db *pgxpool.Pool, toStore map[string
 	return int(extraExpectations), nil
 }
 
-func storePrimaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, exps []v3ExpectationEntry, nameToGroupings map[types.TestName]schema.GroupingID, deltas []v3ExpectationChange) (int, error) {
+func storePrimaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, exps []v3ExpectationEntry, nameToGroupings map[types.TestName][]schema.GroupingID, deltas []v3ExpectationChange) (int, error) {
 	const batchSize = 1000
 	extra := 0
 	return extra, util.ChunkIter(len(exps), batchSize, func(startIdx int, endIdx int) error {
@@ -278,7 +289,7 @@ func storePrimaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, exps 
 		const valuesPerRow = 4
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, exp := range batch {
-			gID, ok := nameToGroupings[exp.Grouping]
+			groupings, ok := nameToGroupings[exp.Grouping]
 			if !ok {
 				continue
 			}
@@ -289,10 +300,14 @@ func storePrimaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, exps 
 			}
 			label := exp.Ranges[0].Label
 			recordID, ok := find(exp.Grouping, exp.Digest, label, deltas)
-			if !ok {
-				extra++
+			// some test names correspond to more than one grouping. We need to write the
+			// expectations for both.
+			for _, gID := range groupings {
+				if !ok {
+					extra++
+				}
+				arguments = append(arguments, gID, dBytes, convertLabel(label), recordID)
 			}
-			arguments = append(arguments, gID, dBytes, convertLabel(label), recordID)
 		}
 		if len(arguments) == 0 {
 			return nil
@@ -307,7 +322,7 @@ func storePrimaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, exps 
 	})
 }
 
-func storeSecondaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, branchName string, exps []v3ExpectationEntry, nameToGroupings map[types.TestName]schema.GroupingID, deltas []v3ExpectationChange) (int, error) {
+func storeSecondaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, branchName string, exps []v3ExpectationEntry, nameToGroupings map[types.TestName][]schema.GroupingID, deltas []v3ExpectationChange) (int, error) {
 	const batchSize = 1000
 	extra := 0
 	return extra, util.ChunkIter(len(exps), batchSize, func(startIdx int, endIdx int) error {
@@ -320,7 +335,7 @@ func storeSecondaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, bra
 		const valuesPerRow = 5
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, exp := range batch {
-			gID, ok := nameToGroupings[exp.Grouping]
+			groupings, ok := nameToGroupings[exp.Grouping]
 			if !ok {
 				continue
 			}
@@ -331,10 +346,13 @@ func storeSecondaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, bra
 			}
 			label := exp.Ranges[0].Label
 			recordID, ok := find(exp.Grouping, exp.Digest, label, deltas)
-			if !ok {
-				extra++
+			// account for test names that belong to multiple corpora.
+			for _, gID := range groupings {
+				if !ok {
+					extra++
+				}
+				arguments = append(arguments, branchName, gID, dBytes, convertLabel(label), recordID)
 			}
-			arguments = append(arguments, branchName, gID, dBytes, convertLabel(label), recordID)
 		}
 		if len(arguments) == 0 {
 			return nil
