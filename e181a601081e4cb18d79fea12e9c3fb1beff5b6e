@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2fd79986_1ba522b6",
+        "filename": "infra/bots/task_drivers/build_and_deploy_cipd/build_and_deploy_cipd.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-07T14:51:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "18517d85_ff398629",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 119,
+        "endChar": 27
+      },
+      "revId": "e181a601081e4cb18d79fea12e9c3fb1beff5b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "aaf4e8e9_dc12cdf1",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-04-06T18:44:21Z",
       "side": 1,
       "message": "Any chance we could add test cases for Rename() and Copy()?",
+      "range": {
+        "startLine": 91,
+        "startChar": 5,
+        "endLine": 91,
+        "endChar": 11
+      },
+      "revId": "e181a601081e4cb18d79fea12e9c3fb1beff5b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "105de95f_048dcd90",
+        "filename": "task_driver/go/lib/os_steps/os_steps.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-07T14:51:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aaf4e8e9_dc12cdf1",
       "range": {
         "startLine": 91,
         "startChar": 5,
