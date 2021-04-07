@@ -44,7 +44,7 @@ exclude (
 replace go.larrymyers.com/protoc-gen-twirp_typescript => github.com/skia-dev/protoc-gen-twirp_typescript v0.0.0-20200902150932-4a52797b9171
 
 require (
-	cloud.google.com/go v0.70.0
+	cloud.google.com/go v0.79.0
 	cloud.google.com/go/bigtable v1.6.0
 	cloud.google.com/go/datastore v1.3.0
 	cloud.google.com/go/firestore v1.3.0
@@ -84,7 +84,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.13.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
-	github.com/golang/mock v1.4.4
+	github.com/golang/mock v1.5.0
 	github.com/golang/protobuf v1.4.3
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/go-github/v29 v29.0.3
@@ -151,19 +151,16 @@ require (
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20201029184154-594d11850ebf
 	go.larrymyers.com/protoc-gen-twirp_typescript v0.0.0-20201012232926-5c91a3223921
-	go.opencensus.io v0.22.5
+	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
-	golang.org/x/net v0.0.0-20201029221708-28c70e62bb1d // indirect
-	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
-	golang.org/x/sys v0.0.0-20201029080932-201ba4db2418 // indirect
-	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/oauth2 v0.0.0-20210313182246-cd4f82c27b84
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
-	golang.org/x/tools v0.0.0-20201030010431-2feb2bb1ff51
-	google.golang.org/api v0.34.0
+	golang.org/x/tools v0.1.0
+	google.golang.org/api v0.44.0-impersonate-preview
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20201029200359-8ce4113da6f7
-	google.golang.org/grpc v1.33.1
+	google.golang.org/genproto v0.0.0-20210319143718-93e7006c17a6
+	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/fsnotify.v1 v1.4.7

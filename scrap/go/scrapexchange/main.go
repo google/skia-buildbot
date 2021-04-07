@@ -23,15 +23,15 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/scrap/go/api"
 	"go.skia.org/infra/scrap/go/scrap"
+	"google.golang.org/api/impersonate"
 	"google.golang.org/api/option"
 )
 
 // flags
 var (
-	authGroup          = flag.String("auth_group", "google/skia-staff@google.com", "The chrome infra auth group to use for restricting access.")
-	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
-	internalPort       = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
-	bucket             = flag.String("bucket", "", "The Google Cloud Storage bucket that scraps are stored in.")
+	authGroup    = flag.String("auth_group", "google/skia-staff@google.com", "The chrome infra auth group to use for restricting access.")
+	internalPort = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
+	bucket       = flag.String("bucket", "", "The Google Cloud Storage bucket that scraps are stored in.")
 )
 
 // server is the state of the server.
@@ -47,10 +47,12 @@ func New() (baseapp.App, error) {
 	}
 	var admin allowed.Allow
 	if !*baseapp.Local {
-		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
+		// Impersonate the one service account that's allowed to access the Chrome Infra Auth API.
+		ts, err := impersonate.CredentialsTokenSource(context.Background(), impersonate.CredentialsConfig{
+			TargetPrincipal: "skia-public-auth@skia-public.iam.gserviceaccount.com",
+			Scopes:          []string{auth.SCOPE_USERINFO_EMAIL},
+		})
+
 		client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 		admin, err = allowed.NewAllowedFromChromeInfraAuth(client, *authGroup)
 		if err != nil {
