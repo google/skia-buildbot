@@ -733,13 +733,39 @@ func WriteGobFile(file string, data interface{}) error {
 }
 
 // CopyFile copies the given src file to dst.
-func CopyFile(src, dst string) error {
-	return WithReadFile(src, func(r io.Reader) error {
-		return WithWriteFile(dst, func(w io.Writer) error {
-			_, err := io.Copy(w, r)
-			return err
-		})
-	})
+func CopyFile(src, dst string) (rvErr error) {
+	fi, err := os.Stat(src)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if !fi.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", src)
+	}
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	defer func() {
+		if err := srcFile.Close(); err != nil && rvErr != nil {
+			rvErr = err
+		}
+	}()
+	dstFile, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE, fi.Mode().Perm())
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if _, err := io.Copy(dstFile, srcFile); err != nil {
+		// Ignore the error from Close() since we've already failed.
+		_ = dstFile.Close()
+		return skerr.Wrap(err)
+	}
+	if err := dstFile.Close(); err != nil {
+		return skerr.Wrap(err)
+	}
+	// We already specified permissions in the call to OpenFile, but we
+	// chmod again to work around the umask and ensure that we get the
+	// correct permissions.
+	return skerr.Wrap(os.Chmod(dst, fi.Mode()))
 }
 
 // IterTimeChunks calls the given function for each time chunk of the given

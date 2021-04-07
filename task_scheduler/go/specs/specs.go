@@ -62,6 +62,7 @@ const (
 
 var (
 	// CIPD packages which may be used in tasks.
+	CIPD_PKGS_CIPD              []*CipdPackage = []*CipdPackage{cipd.PkgCIPD}
 	CIPD_PKGS_GIT_LINUX_AMD64   []*CipdPackage = cipd.PkgsGit[cipd.PlatformLinuxAmd64]
 	CIPD_PKGS_GIT_LINUX_ARM64   []*CipdPackage = cipd.PkgsGit[cipd.PlatformLinuxArm64]
 	CIPD_PKGS_GIT_MAC_AMD64     []*CipdPackage = cipd.PkgsGit[cipd.PlatformMacAmd64]

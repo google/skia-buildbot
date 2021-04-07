@@ -51,6 +51,7 @@ const (
 	// Pool for Skia bots.
 	POOL_SKIA = "Skia"
 
+	SERVICE_ACCOUNT_CIPD_UPLOADER = "cipd-uploader@skia-swarming-bots.iam.gserviceaccount.com"
 	SERVICE_ACCOUNT_COMPILE       = "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
 	SERVICE_ACCOUNT_RECREATE_SKPS = "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
 )
@@ -63,6 +64,7 @@ var (
 		"Housekeeper-Nightly-UpdateGoDeps",
 		"Housekeeper-Weekly-UpdateCIPDPackages",
 		"Housekeeper-OnDemand-Presubmit",
+		"Housekeeper-PerCommit-CIPD-SK",
 		"Infra-PerCommit-Build",
 		"Infra-PerCommit-Small",
 		"Infra-PerCommit-Medium",
@@ -111,6 +113,12 @@ var (
 		"repository":           specs.PLACEHOLDER_REPO,
 		"revision":             specs.PLACEHOLDER_REVISION,
 		"task_id":              specs.PLACEHOLDER_TASK_ID,
+	}
+
+	CIPD_PLATFORMS = []string{
+		"--platform", "@io_bazel_rules_go//go/toolchain:darwin_amd64=darwin-amd64",
+		"--platform", "@io_bazel_rules_go//go/toolchain:linux_amd64=linux-amd64",
+		"--platform", "@io_bazel_rules_go//go/toolchain:windows_amd64=windows-amd64",
 	}
 )
 
@@ -658,6 +666,55 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	return name
 }
 
+func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targets, includePaths []string) string {
+	cipd := []*specs.CipdPackage{
+		b.MustGetCipdPackageFromAsset("bazel"),
+	}
+	cipd = append(cipd, specs.CIPD_PKGS_CIPD...)
+	cipd = append(cipd, specs.CIPD_PKGS_SKIA_INFRA_RBE_KEY...)
+	cmd := []string{
+		"./build_and_deploy_cipd",
+		"--project_id", "skia-swarming-bots",
+		"--task_id", specs.PLACEHOLDER_TASK_ID,
+		"--task_name", name,
+		"--alsologtostderr",
+		"--build_dir", "buildbot",
+		"--package_name", packageName,
+		"--tag", "git_repo:" + specs.PLACEHOLDER_REPO,
+		"--tag", "git_revision:" + specs.PLACEHOLDER_REVISION,
+		"--ref", "latest",
+		"--rbe", "--rbe_key", "./skia_infra_rbe_key/rbe-ci.json",
+	}
+	for _, target := range targets {
+		cmd = append(cmd, "--target", target)
+	}
+	for _, includePath := range includePaths {
+		cmd = append(cmd, "--include_path", includePath)
+	}
+	cmd = append(cmd, CIPD_PLATFORMS...)
+	t := &specs.TaskSpec{
+		CasSpec:      CAS_WHOLE_REPO,
+		CipdPackages: cipd,
+		Command:      cmd,
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
+		EnvPrefixes: map[string][]string{
+			"PATH": {
+				"cipd_bin_packages",
+				"cipd_bin_packages/bin",
+				"bazel/bin",
+			},
+		},
+		ServiceAccount: SERVICE_ACCOUNT_CIPD_UPLOADER,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
+func buildAndDeploySK(b *specs.TasksCfgBuilder, name string) string {
+	return buildAndDeployCIPD(b, name, "skia/tools/sk", []string{"//sk/go/sk:sk"}, []string{"bazel-bin/sk/go/sk/sk_/sk[.exe]"})
+}
+
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
@@ -687,6 +744,8 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		deps = append(deps, bazelTest(b, name, false /* =rbe */))
 	} else if strings.Contains(name, "Test-Bazel-RBE") {
 		deps = append(deps, bazelTest(b, name, true /* =rbe */))
+	} else if name == "Housekeeper-PerCommit-CIPD-SK" {
+		deps = append(deps, buildAndDeploySK(b, name))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {

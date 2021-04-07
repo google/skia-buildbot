@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -86,6 +87,13 @@ func ReadDir(ctx context.Context, path string) ([]os.FileInfo, error) {
 	return rv, err
 }
 
+// Rename is a wrapper for os.Rename.
+func Rename(ctx context.Context, oldpath, newpath string) error {
+	return td.Do(ctx, td.Props(fmt.Sprintf("Rename %s %s", oldpath, newpath)).Infra(), func(context.Context) error {
+		return os.Rename(oldpath, newpath)
+	})
+}
+
 // WriteFile is a wrapper for ioutil.WriteFile.
 func WriteFile(ctx context.Context, path string, data []byte, perm os.FileMode) error {
 	return td.Do(ctx, td.Props(fmt.Sprintf("Write %s", path)).Infra(), func(context.Context) error {
@@ -102,4 +110,11 @@ func Which(ctx context.Context, exe string) (string, error) {
 		return err
 	})
 	return rv, err
+}
+
+// CopyFile copies the given file.
+func CopyFile(ctx context.Context, src, dst string) error {
+	return td.Do(ctx, td.Props(fmt.Sprintf("Copy %s %s", src, dst)).Infra(), func(context.Context) (rvErr error) {
+		return util.CopyFile(src, dst)
+	})
 }
