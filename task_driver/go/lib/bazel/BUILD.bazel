@@ -8,5 +8,6 @@ go_library(
     deps = [
         "//go/exec",
         "//task_driver/go/lib/os_steps",
+        "//task_driver/go/td",
     ],
 )

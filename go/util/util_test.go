@@ -16,6 +16,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -756,4 +757,47 @@ func TestSSliceDedup(t *testing.T) {
 	require.Equal(t, []string{"foo", "baz", "bar"}, SSliceDedup([]string{"foo", "foo", "baz", "bar", "bar"}))
 	require.Equal(t, []string{"foo", "baz", "bar"}, SSliceDedup([]string{"foo", "foo", "baz", "bar", "bar", "baz"}))
 	require.Equal(t, []string{"foo", "bar", "baz"}, SSliceDedup([]string{"foo", "foo", "bar", "baz", "bar", "baz"}))
+}
+
+func TestCopyFile(t *testing.T) {
+	unittest.MediumTest(t)
+
+	tmp, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, os.RemoveAll(tmp))
+	}()
+
+	// Helper for writing a file, copying it, and checking the result.
+	fileNum := 0
+	testCopy := func(mode os.FileMode, contents []byte) {
+		// Write the source file.
+		src := filepath.Join(tmp, fmt.Sprintf("src-%d", fileNum))
+		dst := filepath.Join(tmp, fmt.Sprintf("dst-%d", fileNum))
+		fileNum++
+		require.NoError(t, ioutil.WriteFile(src, contents, mode))
+		// Set the mode again to work around umask.
+		require.NoError(t, os.Chmod(src, mode))
+		srcStat, err := os.Stat(src)
+		require.NoError(t, err)
+		// Self-check; ensure that we actually got the mode we wanted for the
+		// source file.
+		require.Equal(t, mode, srcStat.Mode())
+
+		// Copy the file.
+		require.NoError(t, CopyFile(src, dst))
+
+		// Check the mode and contents of the resulting file.
+		dstStat, err := os.Stat(dst)
+		require.NoError(t, err)
+		require.Equal(t, srcStat.Mode(), dstStat.Mode())
+		resultContents, err := ioutil.ReadFile(dst)
+		require.NoError(t, err)
+		require.Equal(t, contents, resultContents)
+	}
+
+	testCopy(0644, []byte("hello world"))
+	testCopy(0755, []byte("run this"))
+	testCopy(0600, []byte("private stuff here"))
+	testCopy(0777, []byte("this is for everyone!"))
 }

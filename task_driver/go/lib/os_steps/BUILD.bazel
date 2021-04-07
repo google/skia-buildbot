@@ -6,7 +6,10 @@ go_library(
     srcs = ["os_steps.go"],
     importpath = "go.skia.org/infra/task_driver/go/lib/os_steps",
     visibility = ["//visibility:public"],
-    deps = ["//task_driver/go/td"],
+    deps = [
+        "//go/util",
+        "//task_driver/go/td",
+    ],
 )
 
 go_test(

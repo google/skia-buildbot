@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -52,11 +53,46 @@ func TestOsSteps(t *testing.T) {
 	expect = append(expect, td.StepResultSuccess)
 	tempDir, err := TempDir(s, dir1, "test_prefix_")
 	require.NoError(t, err)
+
 	// Verify the tempDir exists.
 	expect = append(expect, td.StepResultSuccess)
 	fi, err = Stat(s, tempDir)
 	require.NoError(t, err)
 	require.True(t, fi.IsDir())
+
+	// Rename the tempDir.
+	expect = append(expect, td.StepResultSuccess)
+	newTempDir := filepath.Join(dir1, "newtmpdir")
+	err = Rename(s, tempDir, newTempDir)
+	require.NoError(t, err)
+
+	// Stat the renamed tempDir.
+	expect = append(expect, td.StepResultSuccess)
+	fi, err = Stat(s, newTempDir)
+	require.NoError(t, err)
+	require.True(t, fi.IsDir())
+
+	// Create a file.
+	myFile := filepath.Join(newTempDir, "my-file")
+	expect = append(expect, td.StepResultSuccess)
+	require.NoError(t, WriteFile(s, myFile, []byte("some contents"), 0640))
+
+	// Stat the file.
+	expect = append(expect, td.StepResultSuccess)
+	fiFile, err := Stat(s, myFile)
+	require.NoError(t, err)
+	require.True(t, fiFile.Mode().IsRegular())
+
+	// Copy the file.
+	cpFile := filepath.Join(dir1, "copied-file")
+	expect = append(expect, td.StepResultSuccess)
+	require.NoError(t, CopyFile(s, myFile, cpFile))
+
+	// Stat the file.
+	expect = append(expect, td.StepResultSuccess)
+	fiCpFile, err := Stat(s, cpFile)
+	require.NoError(t, err)
+	require.Equal(t, fiFile.Mode(), fiCpFile.Mode())
 
 	// Remove the dir.
 	expect = append(expect, td.StepResultSuccess)
