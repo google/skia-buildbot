@@ -202,7 +202,6 @@ define('skottie-player-sk', class extends HTMLElement {
   }
 
   canvas() {
-    // TODO(hernantorrisi) find a better way to get the canvas element
     return this.querySelector(".skottie-canvas");
   }
 
