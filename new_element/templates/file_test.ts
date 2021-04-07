@@ -17,7 +17,8 @@ describe('{{.ElementName}}', () => {
   });
 
   describe('some action', () => {
-    it('some result', () => {});
+    it('some result', () => {
       expect(element).to.not.be.null;
+    });
   });
 });
