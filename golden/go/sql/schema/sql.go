@@ -135,6 +135,10 @@ CREATE TABLE IF NOT EXISTS TiledTraceDigests (
   PRIMARY KEY (trace_id, tile_id, digest),
   INDEX grouping_digest_idx (grouping_id, digest)
 );
+CREATE TABLE IF NOT EXISTS TrackingCommits (
+  repo STRING PRIMARY KEY,
+  last_git_hash STRING NOT NULL
+);
 CREATE TABLE IF NOT EXISTS TraceValues (
   shard INT2,
   trace_id BYTES,
