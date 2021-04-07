@@ -13,14 +13,13 @@ import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 export class ExampleControlSk extends ElementSk {
-  private static template = (ele: ExampleControlSk) =>
-    html`<h3>Hello world</h3>`;
-
   constructor() {
     super(ExampleControlSk.template);
   }
 
-  connectedCallback() {
+  private static template = (ele: ExampleControlSk) => html`<h3>Hello world</h3>`;
+
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }

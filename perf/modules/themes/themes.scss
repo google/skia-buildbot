@@ -4,6 +4,11 @@
   elements.
 */
 
+body {
+  margin: 0;
+  padding: 0;
+}
+
 .body-sk.darkmode {
   --primary: var(--light-blue-500);
   --primary-variant: var(--light-blue-200);
