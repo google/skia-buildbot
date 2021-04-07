@@ -34,6 +34,24 @@
       "parentUuid": "55896402_d6d1ab6d",
       "revId": "dd31cafb1cf6b243b8cd8ed4e435af102661794a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7086e08_aa85f499",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9562
+      },
+      "writtenOn": "2021-04-07T22:00:05Z",
+      "side": 1,
+      "message": "nvm - I figured it out. The script doesn\u0027t work with python3. Rather than changing it here to be Python 2, I\u0027ll fix the script to support Python 3",
+      "parentUuid": "eca29fd0_b0119c15",
+      "revId": "dd31cafb1cf6b243b8cd8ed4e435af102661794a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
