@@ -11,6 +11,7 @@ describe('example-control-sk', () => {
   });
 
   beforeEach(async () => {
+    // Remove the /dist/ below for //infra-sk elements.
     await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/example-control-sk.html`);
     await testBed.page.setViewport({ width: 400, height: 550 });
   });
