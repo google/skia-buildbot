@@ -46,6 +46,30 @@
       },
       "revId": "436e0f765ef03f4fff8429cbe06cf9964c90fd93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ecc4e5a4_72eab210",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 701,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-08T17:38:50Z",
+      "side": 1,
+      "message": "There\u0027s no set deadline, but I\u0027ll probably push for Infra-PerCommit-{Build,Test}-Bazel-RBE to become the source of truth once we have a couple apps fully built, tested and deployed with Bazel.",
+      "parentUuid": "2db7d70d_a329e72d",
+      "range": {
+        "startLine": 701,
+        "startChar": 0,
+        "endLine": 701,
+        "endChar": 27
+      },
+      "revId": "436e0f765ef03f4fff8429cbe06cf9964c90fd93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
