@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "90543a3a_94cb8755",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 701,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-08T17:19:24Z",
+      "side": 1,
+      "message": "Maybe leave a TODO to replace these with Infra-PerCommit-Test-Bazel-RBE if/when it becomes the source of truth for test correctness?",
+      "range": {
+        "startLine": 701,
+        "startChar": 0,
+        "endLine": 701,
+        "endChar": 27
+      },
+      "revId": "436e0f765ef03f4fff8429cbe06cf9964c90fd93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
