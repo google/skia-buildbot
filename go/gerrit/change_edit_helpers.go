@@ -36,17 +36,20 @@ func EditChange(ctx context.Context, g GerritInterface, ci *ChangeInfo, fn func(
 // error is encountered after the Change is created, the ChangeInfo is returned
 // so that the caller can decide whether to abandon the change or try again.
 func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch, commitMsg, baseCommit string, fn func(context.Context, GerritInterface, *ChangeInfo) error) (*ChangeInfo, error) {
-	ci, err := g.CreateChange(ctx, project, branch, strings.Split(commitMsg, "\n")[0], baseCommit)
+	splitCommitMsg := strings.Split(commitMsg, "\n")
+	ci, err := g.CreateChange(ctx, project, branch, splitCommitMsg[0], baseCommit)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create change")
 	}
-	commitMsg, err = git.AddTrailer(commitMsg, "Change-Id: "+ci.ChangeId)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
 	if err := EditChange(ctx, g, ci, func(ctx context.Context, g GerritInterface, ci *ChangeInfo) error {
-		if err := g.SetCommitMessage(ctx, ci, commitMsg); err != nil {
-			return skerr.Wrapf(err, "failed to set commit message to:\n\n%s\n\n", commitMsg)
+		if len(splitCommitMsg) > 1 {
+			commitMsg, err = git.AddTrailer(commitMsg, "Change-Id: "+ci.ChangeId)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			if err := g.SetCommitMessage(ctx, ci, commitMsg); err != nil {
+				return skerr.Wrapf(err, "failed to set commit message to:\n\n%s\n\n", commitMsg)
+			}
 		}
 		return fn(ctx, g, ci)
 	}); err != nil {
