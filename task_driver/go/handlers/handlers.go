@@ -186,7 +186,7 @@ func fullErrorHandler(d db.DB) http.HandlerFunc {
 
 // AddTaskDriverHandlers adds handlers for Task Drivers to the given Router.
 func AddTaskDriverHandlers(r *mux.Router, d db.DB, lm *logs.LogsManager) {
-	r.HandleFunc("/json/td/{taskId}", jsonTaskDriverHandler(d))
+	r.HandleFunc("/json/td/{taskId}", httputils.CorsHandler(jsonTaskDriverHandler(d)))
 	r.HandleFunc("/errors/{taskId}/{errId}", fullErrorHandler(d))
 	r.HandleFunc("/errors/{taskId}/{stepId}/{errId}", fullErrorHandler(d))
 	r.HandleFunc("/logs/{taskId}", taskLogsHandler(lm))
