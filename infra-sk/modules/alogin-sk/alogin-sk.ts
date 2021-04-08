@@ -24,7 +24,7 @@ const defaultStatusURL = '/_/login/status';
 const loggedIn = async (url: string = defaultStatusURL): Promise<alogin.Status> => {
   const resp = await fetch(url);
   if (!resp.ok) {
-    errorMessage(`Failed to load login status: ${resp.statusText}`);
+    await errorMessage(`Failed to load login status: ${resp.statusText}`);
     return defaultStatus;
   }
   return resp.json();
