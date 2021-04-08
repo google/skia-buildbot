@@ -79,7 +79,7 @@ buildall:
 	go build ./...
 
 # Docker image used to run Puppeteer tests (Webpack build).
-PUPPETEER_TESTS_DOCKER_IMG=gcr.io/skia-public/puppeteer-tests@sha256:5225ceb3e9a3a22c2e2bc9d23c333a2e2d815ee3ee00d32227013a6a697d55e9
+PUPPETEER_TESTS_DOCKER_IMG=gcr.io/skia-public/puppeteer-tests:2021-04-08T03_04_24Z-lovisolo-5773877-dirty
 
 # This is invoked from Infra-PerCommit-Puppeteer.
 .PHONY: puppeteer-tests
