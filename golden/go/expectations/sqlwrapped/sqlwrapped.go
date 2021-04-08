@@ -19,42 +19,42 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// impl wraps a Firestore-backed Expectation Store with a layer to write changes to a SQL database
+// Impl wraps a Firestore-backed Expectation Store with a layer to write changes to a SQL database
 // but return everything from the Firestore DB. This will be in place until the existing search
 // implementation can be replaced, due to the interwoven nature of the querysnapshots of the
 // Firestore expectations and the current searching code.
-type impl struct {
-	store  expectations.Store
-	sqlDB  *pgxpool.Pool
-	branch string
+type Impl struct {
+	LegacyStore expectations.Store
+	sqlDB       *pgxpool.Pool
+	branch      string
 }
 
-func New(store expectations.Store, db *pgxpool.Pool) *impl {
-	return &impl{
-		store: store,
-		sqlDB: db,
+func New(store expectations.Store, db *pgxpool.Pool) *Impl {
+	return &Impl{
+		LegacyStore: store,
+		sqlDB:       db,
 	}
 }
 
 // Get returns the result from the wrapped Store.
-func (i *impl) Get(ctx context.Context) (expectations.ReadOnly, error) {
-	return i.store.Get(ctx)
+func (i *Impl) Get(ctx context.Context) (expectations.ReadOnly, error) {
+	return i.LegacyStore.Get(ctx)
 }
 
 // GetCopy returns the result from the wrapped Store.
-func (i *impl) GetCopy(ctx context.Context) (*expectations.Expectations, error) {
-	return i.store.GetCopy(ctx)
+func (i *Impl) GetCopy(ctx context.Context) (*expectations.Expectations, error) {
+	return i.LegacyStore.GetCopy(ctx)
 }
 
 // AddChange first adds the change to the Firestore database - if that succeeds, it writes the
 // corresponding values to the SQL DB. Because the incoming deltas only have the test name, it
 // needs to look up the associated corpora with those. It writes the expectations to the SQL db
 // in one transaction, so to avoid partial commit errors.
-func (i *impl) AddChange(ctx context.Context, changes []expectations.Delta, userID string) error {
+func (i *Impl) AddChange(ctx context.Context, changes []expectations.Delta, userID string) error {
 	ctx, span := trace.StartSpan(ctx, "sqlwrapped_AddChange", trace.WithSampler(trace.AlwaysSample()))
 	span.AddAttributes(trace.Int64Attribute("num_total_changes", int64(len(changes))))
 	defer span.End()
-	if err := i.store.AddChange(ctx, changes, userID); err != nil {
+	if err := i.LegacyStore.AddChange(ctx, changes, userID); err != nil {
 		return skerr.Wrap(err)
 	}
 
@@ -114,7 +114,7 @@ func writeRecord(ctx context.Context, tx pgx.Tx, userID string, numChanges int, 
 // resolveGroupings creates the initial ExpectationDeltaRows by looking up the groupings based on
 // the test names. If a test name could belong to more than one grouping, it is undetermined which
 // will be returned.
-func (i *impl) resolveGroupings(ctx context.Context, changes []expectations.Delta) ([]schema.ExpectationDeltaRow, error) {
+func (i *Impl) resolveGroupings(ctx context.Context, changes []expectations.Delta) ([]schema.ExpectationDeltaRow, error) {
 	ctx, span := trace.StartSpan(ctx, "resolveGroupings")
 	defer span.End()
 	uniquetests := map[types.TestName]schema.GroupingID{}
@@ -272,16 +272,16 @@ func writeSecondaryExpectations(ctx context.Context, tx pgx.Tx, deltas []schema.
 }
 
 // QueryLog returns the result from the underlying Firestore DB.
-func (i *impl) QueryLog(ctx context.Context, offset, n int, details bool) ([]expectations.TriageLogEntry, int, error) {
-	return i.store.QueryLog(ctx, offset, n, details)
+func (i *Impl) QueryLog(ctx context.Context, offset, n int, details bool) ([]expectations.TriageLogEntry, int, error) {
+	return i.LegacyStore.QueryLog(ctx, offset, n, details)
 }
 
 // UndoChange undoes the change in the Firestore DB, and writes a row to a table in the SQL DB so
 // it can be manually applied. This is necessary due to the incompatibility of the ID types between
 // Firestore and the Expectation table. It happens rarely (~1/week across all instances), so this
 // shouldn't be too large of a manual change when removing the Firestore DB.
-func (i *impl) UndoChange(ctx context.Context, changeID, userID string) error {
-	err := i.store.UndoChange(ctx, changeID, userID)
+func (i *Impl) UndoChange(ctx context.Context, changeID, userID string) error {
+	err := i.LegacyStore.UndoChange(ctx, changeID, userID)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -296,17 +296,17 @@ VALUES ($1, $2, $3)`
 
 // ForChangelist returns the result from the underlying Firestore DB wrapped so it too will
 // write to the SQL db.
-func (i *impl) ForChangelist(id, crs string) expectations.Store {
-	return &impl{
-		sqlDB:  i.sqlDB,
-		store:  i.store.ForChangelist(id, crs),
-		branch: fmt.Sprintf("%s_%s", crs, id),
+func (i *Impl) ForChangelist(id, crs string) expectations.Store {
+	return &Impl{
+		sqlDB:       i.sqlDB,
+		LegacyStore: i.LegacyStore.ForChangelist(id, crs),
+		branch:      fmt.Sprintf("%s_%s", crs, id),
 	}
 }
 
 // GetTriageHistory returns the result from the underlying Firestore DB.
-func (i *impl) GetTriageHistory(ctx context.Context, grouping types.TestName, digest types.Digest) ([]expectations.TriageHistory, error) {
-	return i.store.GetTriageHistory(ctx, grouping, digest)
+func (i *Impl) GetTriageHistory(ctx context.Context, grouping types.TestName, digest types.Digest) ([]expectations.TriageHistory, error) {
+	return i.LegacyStore.GetTriageHistory(ctx, grouping, digest)
 }
 
 func convertLabel(label expectations.Label) schema.ExpectationLabel {
@@ -322,8 +322,8 @@ func convertLabel(label expectations.Label) schema.ExpectationLabel {
 	return schema.LabelUntriaged
 }
 
-// Make sure impl fulfills the expectations.Store interface
-var _ expectations.Store = (*impl)(nil)
+// Make sure Impl fulfills the expectations.Store interface
+var _ expectations.Store = (*Impl)(nil)
 
 // overwriteNowKey is used by tests to make the time deterministic.
 const overwriteNowKey = contextKey("overwriteNow")

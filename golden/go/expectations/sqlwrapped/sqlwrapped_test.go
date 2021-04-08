@@ -67,9 +67,9 @@ func TestAddChange_NoExistingExpectations_WrittenToSQLAndFirestore(t *testing.T)
 	ms := &mocks.Store{}
 	ms.On("AddChange", testutils.AnyContext, toChange, userID).Return(nil)
 
-	sw := &impl{
-		store: ms,
-		sqlDB: db,
+	sw := &Impl{
+		LegacyStore: ms,
+		sqlDB:       db,
 	}
 
 	require.NoError(t, sw.AddChange(ctx, toChange, userID))
@@ -203,9 +203,9 @@ func TestAddChange_ExistingExpectations_WrittenToSQLAndFirestore(t *testing.T) {
 	ms := &mocks.Store{}
 	ms.On("AddChange", testutils.AnyContext, toChange, userID).Return(nil)
 
-	sw := &impl{
-		store: ms,
-		sqlDB: db,
+	sw := &Impl{
+		LegacyStore: ms,
+		sqlDB:       db,
 	}
 
 	require.NoError(t, sw.AddChange(ctx, toChange, userID))
@@ -316,9 +316,9 @@ func TestAddChange_OneGroupingMissing_PartiallyWrittenToSQL(t *testing.T) {
 	ms := &mocks.Store{}
 	ms.On("AddChange", testutils.AnyContext, toChange, userID).Return(nil)
 
-	sw := &impl{
-		store: ms,
-		sqlDB: db,
+	sw := &Impl{
+		LegacyStore: ms,
+		sqlDB:       db,
 	}
 
 	require.NoError(t, sw.AddChange(ctx, toChange, userID))
@@ -383,9 +383,9 @@ func TestAddChange_AllGroupingsMissing_NoDataWrittenToSQL(t *testing.T) {
 	ms := &mocks.Store{}
 	ms.On("AddChange", testutils.AnyContext, toChange, userID).Return(nil)
 
-	sw := &impl{
-		store: ms,
-		sqlDB: db,
+	sw := &Impl{
+		LegacyStore: ms,
+		sqlDB:       db,
 	}
 
 	require.NoError(t, sw.AddChange(ctx, toChange, userID))
@@ -446,9 +446,9 @@ func TestAddChange_FirestoreError_NothingWritten(t *testing.T) {
 	ms := &mocks.Store{}
 	ms.On("AddChange", testutils.AnyContext, toChange, userID).Return(errors.New("boom"))
 
-	sw := &impl{
-		store: ms,
-		sqlDB: db,
+	sw := &Impl{
+		LegacyStore: ms,
+		sqlDB:       db,
 	}
 
 	require.Error(t, sw.AddChange(ctx, toChange, userID))
@@ -510,10 +510,10 @@ func TestAddChange_SecondaryBranch_WrittenToSQLAndFirestore(t *testing.T) {
 	ms := &mocks.Store{}
 	ms.On("AddChange", testutils.AnyContext, toChange, userID).Return(nil)
 
-	sw := &impl{
-		store:  ms,
-		sqlDB:  db,
-		branch: "gerrit_1234567",
+	sw := &Impl{
+		LegacyStore: ms,
+		sqlDB:       db,
+		branch:      "gerrit_1234567",
 	}
 
 	require.NoError(t, sw.AddChange(ctx, toChange, userID))
@@ -652,10 +652,10 @@ func TestAddChange_SecondaryBranchWithExistingPrimaryBranch_WrittenToSQLAndFires
 	ms := &mocks.Store{}
 	ms.On("AddChange", testutils.AnyContext, toChange, userID).Return(nil)
 
-	sw := &impl{
-		store:  ms,
-		sqlDB:  db,
-		branch: "gerrit_1234567",
+	sw := &Impl{
+		LegacyStore: ms,
+		sqlDB:       db,
+		branch:      "gerrit_1234567",
 	}
 
 	require.NoError(t, sw.AddChange(ctx, toChange, userID))
@@ -760,9 +760,9 @@ func TestUndoChange_WritesRowForManualCleanup(t *testing.T) {
 	ms := &mocks.Store{}
 	ms.On("UndoChange", testutils.AnyContext, expIDToUndo, userID).Return(nil)
 
-	sw := &impl{
-		store: ms,
-		sqlDB: db,
+	sw := &Impl{
+		LegacyStore: ms,
+		sqlDB:       db,
 	}
 
 	require.NoError(t, sw.UndoChange(ctx, expIDToUndo, userID))
@@ -792,9 +792,9 @@ func TestUndoChange_FirestoreError_NoSQLWrites(t *testing.T) {
 	ms := &mocks.Store{}
 	ms.On("UndoChange", testutils.AnyContext, expIDToUndo, userID).Return(errors.New("boom"))
 
-	sw := &impl{
-		store: ms,
-		sqlDB: db,
+	sw := &Impl{
+		LegacyStore: ms,
+		sqlDB:       db,
 	}
 
 	require.Error(t, sw.UndoChange(ctx, expIDToUndo, userID))

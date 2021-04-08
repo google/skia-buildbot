@@ -84,6 +84,10 @@ type monitorConfig struct {
 	SystemName string `json:"system_name"`
 	// Branch is generally the primary branch of the repo that we will poll for the latest commit.
 	Branch string `json:"branch"`
+	// LegacyUpdaterInUse indicates the status of the CLs should not be changed because the source
+	// of truth for expectations is still Firestore, which is controlled by gold_frontend.
+	// This should be able to be removed after the SQL migration is complete.
+	LegacyUpdaterInUse bool `json:"legacy_updater_in_use"`
 }
 
 type extractionTechnique string
@@ -398,7 +402,7 @@ func checkForLandedCycle(ctx context.Context, db *pgxpool.Pool, client GitilesLo
 	}
 	// commits is backwards and LogFirstParent does not respect gitiles.LogReverse()
 	reverse(commits)
-	sklog.Infof("Found %d commits to check for a CL", commits)
+	sklog.Infof("Found %d commits to check for a CL", len(commits))
 	for _, c := range commits {
 		var clID string
 		switch m.ExtractionTechnique {
@@ -411,7 +415,7 @@ func checkForLandedCycle(ctx context.Context, db *pgxpool.Pool, client GitilesLo
 			sklog.Infof("No CL detected for %#v", c)
 			continue
 		}
-		if err := migrateExpectationsToPrimaryBranch(ctx, db, m.SystemName, clID, c.Timestamp); err != nil {
+		if err := migrateExpectationsToPrimaryBranch(ctx, db, m.SystemName, clID, c.Timestamp, !m.LegacyUpdaterInUse); err != nil {
 			return skerr.Wrapf(err, "migrating cl %s-%s", m.SystemName, clID)
 		}
 		sklog.Infof("Commit %s landed at %s", c.Hash[:12], c.Timestamp)
@@ -467,7 +471,7 @@ func extractFromSubject(subject string) string {
 // all stored with the same timestamp as the commit that landed with them. The records and their
 // corresponding expectations are added to the primary branch. Then the given CL is marked as
 // "landed".
-func migrateExpectationsToPrimaryBranch(ctx context.Context, db *pgxpool.Pool, crs, clID string, landedTS time.Time) error {
+func migrateExpectationsToPrimaryBranch(ctx context.Context, db *pgxpool.Pool, crs, clID string, landedTS time.Time, setLanded bool) error {
 	ctx, span := trace.StartSpan(ctx, "migrateExpectationsToPrimaryBranch")
 	defer span.End()
 	qID := sql.Qualify(crs, clID)
@@ -479,13 +483,15 @@ func migrateExpectationsToPrimaryBranch(ctx context.Context, db *pgxpool.Pool, c
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	row := db.QueryRow(ctx, `UPDATE Changelists SET status = 'landed' WHERE changelist_id = $1 RETURNING changelist_id`, qID)
-	var s string
-	if err := row.Scan(&s); err != nil {
-		if err == pgx.ErrNoRows {
-			return nil
+	if setLanded {
+		row := db.QueryRow(ctx, `UPDATE Changelists SET status = 'landed' WHERE changelist_id = $1 RETURNING changelist_id`, qID)
+		var s string
+		if err := row.Scan(&s); err != nil {
+			if err == pgx.ErrNoRows {
+				return nil
+			}
+			return skerr.Wrapf(err, "Updating cl %s to be landed", qID)
 		}
-		return skerr.Wrapf(err, "Updating cl %s to be landed", qID)
 	}
 	return nil
 }

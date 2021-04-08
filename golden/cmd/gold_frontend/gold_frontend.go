@@ -102,11 +102,9 @@ type frontendServerConfig struct {
 	// have a CQ.
 	DisableCLTracking bool `json:"disable_changelist_tracking"`
 
-	// If true, we won't use the legacy CL Updater code
-	DisableCLUpdater bool `json:"disable_cl_updater"`
-
-	// If true, write expectation changes to the SQL backend.
-	EnableSQLExpectations bool `json:"enable_sql_expectation"`
+	// DisableSQLExpectationsForCLUpdater will only write expectations from landed CLs to the
+	// Firestore expectations. This should be true if gitilesfollower is used to track landed CLs.
+	DisableSQLExpectationsForCLUpdater bool `json:"disable_sql_exp_cl"`
 
 	// If a trace has more unique digests than this, it will be considered flaky. If this number is
 	// greater than NumCommits, then no trace can ever be flaky.
@@ -418,18 +416,14 @@ func mustMakeFirestoreClient(ctx context.Context, fsc *frontendServerConfig) *fi
 
 // mustMakeExpectationsStore returns a Firestore-backed expectations.Store and a corresponding
 // change event dispatcher.
-func mustMakeExpectationsStore(ctx context.Context, fsc *frontendServerConfig, fsClient *firestore.Client, db *pgxpool.Pool) (expectations.Store, *fs_expectationstore.Store, *expectations.ChangeEventDispatcher) {
-	// Set up the cloud expectations store
+func mustMakeExpectationsStore(ctx context.Context, _ *frontendServerConfig, fsClient *firestore.Client, db *pgxpool.Pool) (expectations.Store, *fs_expectationstore.Store, *expectations.ChangeEventDispatcher) {
 	expChangeHandler := expectations.NewEventDispatcher()
 	expStore := fs_expectationstore.New(fsClient, expChangeHandler, fs_expectationstore.ReadWrite)
 	if err := expStore.Initialize(ctx); err != nil {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
-	if fsc.EnableSQLExpectations {
-		sklog.Infof("Writing expectations to SQL enabled")
-		return sqlwrapped.New(expStore, db), expStore, expChangeHandler
-	}
-	return expStore, expStore, expChangeHandler
+	sklog.Infof("Writing expectations to SQL as well as Firestore")
+	return sqlwrapped.New(expStore, db), expStore, expChangeHandler
 }
 
 // mustMakePubliclyViewableParams validates and computes a publicparams.Matcher from the publicly
@@ -518,8 +512,15 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client, sql
 // mustMakeTileSource returns a new tilesource.TileSource.
 func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, ignoreStore ignore.Store, traceStore *bt_tracestore.BTTraceStore, vcs vcsinfo.VCS, publiclyViewableParams publicparams.Matcher, reviewSystems []clstore.ReviewSystem) tilesource.TileSource {
 	var clUpdater code_review.ChangelistLandedUpdater
-	if fsc.IsAuthoritative() && !fsc.DisableCLTracking && !fsc.DisableCLUpdater {
-		clUpdater = updater.New(expStore, reviewSystems)
+	if fsc.IsAuthoritative() && !fsc.DisableCLTracking {
+		if fsc.DisableSQLExpectationsForCLUpdater {
+			sklog.Infof("CL updater writing expectations to Firestore only")
+			sqlw := expStore.(*sqlwrapped.Impl)
+			clUpdater = updater.New(sqlw.LegacyStore, reviewSystems)
+		} else {
+			sklog.Infof("CL updater writing expectations to Firestore and SQL")
+			clUpdater = updater.New(expStore, reviewSystems)
+		}
 	}
 
 	ctc := tilesource.CachedTileSourceConfig{
