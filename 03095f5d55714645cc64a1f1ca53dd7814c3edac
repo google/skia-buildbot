@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dcf2e62b_635ed6e7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2021-04-08T19:09:03Z",
+      "side": 1,
+      "message": "PTAL.\nDisclaimer: configuring a roller for the first time.\nThis is cargo-culted from goldctl rollers.",
+      "revId": "03095f5d55714645cc64a1f1ca53dd7814c3edac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
