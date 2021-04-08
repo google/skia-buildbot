@@ -66,7 +66,7 @@ go_rules_dependencies()
 # Gazelle fails for toolchain versions < 1.14 with an error like the following:
 #
 #     gazelle: [...]: go: updates to go.mod needed, disabled by -mod=readonly
-go_register_toolchains(version = "1.15.7")
+go_register_toolchains(version = "1.16.3")
 
 gazelle_dependencies()
 
