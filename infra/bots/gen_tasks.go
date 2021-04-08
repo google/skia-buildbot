@@ -696,8 +696,15 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 		CasSpec:      CAS_WHOLE_REPO,
 		CipdPackages: cipd,
 		Command:      cmd,
-		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
-		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
+		Dependencies: []string{
+			buildTaskDrivers(b, "Linux", "x86_64"),
+			// TODO(borenet): Replace these with Infra-PerCommit-Test-Bazel-RBE
+			// once that becomes the source of truth.
+			"Infra-PerCommit-Small",
+			"Infra-PerCommit-Medium",
+			"Infra-PerCommit-Large",
+		},
+		Dimensions: linuxGceDimensions(MACHINE_TYPE_LARGE),
 		EnvPrefixes: map[string][]string{
 			"PATH": {
 				"cipd_bin_packages",

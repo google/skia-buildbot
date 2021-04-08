@@ -498,7 +498,10 @@
         "@io_bazel_rules_go//go/toolchain:windows_amd64=windows-amd64"
       ],
       "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64",
+        "Infra-PerCommit-Large",
+        "Infra-PerCommit-Medium",
+        "Infra-PerCommit-Small"
       ],
       "dimensions": [
         "pool:Skia",

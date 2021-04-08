@@ -195,6 +195,7 @@ func main() {
 				"-in", pkg.tmpDir,
 				"-name", pkg.cipdPkgPath,
 				"-json-output", outputFile,
+				"-install-mode", "copy",
 			}
 			if _, err := exec.RunCwd(ctx, ".", cmd...); err != nil {
 				return err
