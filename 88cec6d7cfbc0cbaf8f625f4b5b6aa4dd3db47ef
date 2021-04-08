@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f484ddc6_654c7217",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-08T18:48:23Z",
+      "side": 1,
+      "message": "I would really prefer not to update go *and* fix a bug in TS in the same CL.",
+      "revId": "88cec6d7cfbc0cbaf8f625f4b5b6aa4dd3db47ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
