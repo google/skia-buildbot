@@ -7,7 +7,7 @@
  *   side panel. This element is largely CSS, with a smattering of
  *   JS to toggle the side panel on/off when in small screen mode.
  *   This CSS has some variables which can be customized (see
- *   app-sk.scss and app-sk_demo.css for an example of this).
+ *   app-sk.scss and app-sk-demo.css for an example of this).
  * </p>
  * <p>
  *   In general, create an app with a &lt;header&gt;, aside, main, and footer
