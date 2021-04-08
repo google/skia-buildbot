@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "proxylogin",
+    srcs = ["proxyauth.go"],
+    importpath = "go.skia.org/infra/go/alogin/proxylogin",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/alogin",
+        "//go/sklog",
+        "@com_github_gorilla_mux//:mux",
+    ],
+)
+
+go_test(
+    name = "proxylogin_test",
+    srcs = ["proxyauth_test.go"],
+    embed = [":proxylogin"],
+    deps = [
+        "//go/alogin",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
