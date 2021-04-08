@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/depot_tools"
@@ -21,12 +22,13 @@ import (
 
 var (
 	// Required properties for this task.
-	projectID   = flag.String("project_id", "", "ID of the Google Cloud project.")
-	taskID      = flag.String("task_id", "", "ID of this task.")
-	taskName    = flag.String("task_name", "", "Name of the task.")
-	workDirFlag = flag.String("workdir", ".", "Working directory.")
-	rbe         = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
-	rbeKey      = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
+	projectID          = flag.String("project_id", "", "ID of the Google Cloud project.")
+	taskID             = flag.String("task_id", "", "ID of this task.")
+	taskName           = flag.String("task_name", "", "Name of the task.")
+	workDirFlag        = flag.String("workdir", ".", "Working directory.")
+	buildbucketBuildID = flag.String("buildbucket_build_id", "", "ID of the Buildbucket build.")
+	rbe                = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
+	rbeKey             = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
 
 	checkoutFlags = checkout.SetupFlags(nil)
 
@@ -88,14 +90,97 @@ func main() {
 	}
 }
 
+// bazel invokes bazel with the given arguments, plus extra flags to use the temporary cache.
+func bazel(ctx context.Context, args ...string) {
+	command := []string{"bazel", "--output_user_root=" + bazelCacheDir}
+	command = append(command, args...)
+	if _, err := exec.RunCwd(ctx, gitDir.Dir(), command...); err != nil {
+		td.Fatal(ctx, err)
+	}
+}
+
+// goldctl invokes goldctl with the given arguments.
+func goldctl(ctx context.Context, args ...string) {
+	bazelCommand := []string{"run", "//gold-client/cmd/goldctl", "--"}
+	bazelCommand = append(bazelCommand, args...)
+	bazel(ctx, bazelCommand...)
+}
+
+// uploadPuppeteerScreenshotsToGold gathers all screenshots produced by Puppeteer tests and uploads
+// them to Gold.
+func uploadPuppeteerScreenshotsToGold(ctx context.Context) {
+	// Extract screenshots.
+	puppeteerScreenshotsDir, err := os_steps.TempDir(ctx, "", "puppeteer-screenshots-*")
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	bazel(ctx, "run", "//:extract_puppeteer_screenshots", "--", "--output_dir", puppeteerScreenshotsDir)
+
+	// Create working directory for goldctl.
+	goldctlWorkDir, err := os_steps.TempDir(ctx, "", "goldctl-workdir-*")
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	// Authorize goldctl.
+	if *local {
+		goldctl(ctx, "auth", "--work-dir", goldctlWorkDir)
+	} else {
+		goldctl(ctx, "auth", "--work-dir", goldctlWorkDir, "--luci")
+	}
+
+	// Initialize goldctl.
+	args := []string{
+		"imgtest", "init",
+		"--work-dir", goldctlWorkDir,
+		"--instance", "skia-infra",
+		"--commit", *checkoutFlags.Revision,
+		"--key", "source_type:infra",
+	}
+	if *checkoutFlags.PatchIssue != "" && *checkoutFlags.PatchSet != "" {
+		extraArgs := []string{
+			"--crs", "gerrit",
+			"--cis", "buildbucket",
+			"--changelist", *checkoutFlags.PatchIssue,
+			"--patchset", *checkoutFlags.PatchSet,
+			"--jobid", *buildbucketBuildID,
+		}
+		args = append(args, extraArgs...)
+	}
+	goldctl(ctx, args...)
+
+	// Add screenshots.
+	fileInfos, err := os_steps.ReadDir(ctx, puppeteerScreenshotsDir)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	td.Do(ctx, td.Props("Add images to goldctl"), func(ctx context.Context) error {
+		for _, fileInfo := range fileInfos {
+			testName := strings.TrimSuffix(filepath.Base(fileInfo.Name()), filepath.Ext(fileInfo.Name()))
+			args := []string{
+				"imgtest", "add",
+				"--work-dir", goldctlWorkDir,
+				"--png-file", filepath.Join(puppeteerScreenshotsDir, fileInfo.Name()),
+				"--test-name", testName,
+				"--add-test-optional-key", "build_system:bazel",
+			}
+			goldctl(ctx, args...)
+		}
+		return nil
+	})
+
+	// Finalize and upload screenshots to Gold.
+	goldctl(ctx, "imgtest", "finalize", "--work-dir", goldctlWorkDir)
+}
+
 func testOnRBE(ctx context.Context, bzl *bazel.Bazel) error {
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
 	if _, err := bzl.DoOnRBE(ctx, "test", "//...", "--test_output=errors"); err != nil {
 		return err
 	}
 
-	// TODO(lovisolo): Upload Puppeteer test screenshots to Gold.
-	return nil
+	// Upload to Gold all screenshots produced by Puppeteer tests in the previous step.
+	uploadPuppeteerScreenshotsToGold(ctx)
 }
 
 func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
