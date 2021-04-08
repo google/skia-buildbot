@@ -7,11 +7,13 @@ sk_demo_page_server(
 
 sk_element(
     name = "alogin-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["alogin-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
+        "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "alogin-sk.ts",
@@ -25,6 +27,10 @@ sk_page(
     html_file = "alogin-sk-demo.html",
     scss_entry_point = "alogin-sk-demo.scss",
     sk_element_deps = [":alogin-sk"],
+    ts_deps = [
+        "//infra-sk/modules/json:index_ts_lib",
+        "@infra-sk_npm//fetch-mock",
+    ],
     ts_entry_point = "alogin-sk-demo.ts",
 )
 
