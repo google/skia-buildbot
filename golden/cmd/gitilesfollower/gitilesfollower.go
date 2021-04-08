@@ -91,8 +91,8 @@ type extractionTechnique string
 const (
 	// ReviewedLine corresponds to looking for a Reviewed-on line in the commit message.
 	ReviewedLine = extractionTechnique("ReviewedLine")
-	// FromTitle corresponds to looking at the title for a CL ID in square brackets.
-	FromTitle = extractionTechnique("FromTitle")
+	// FromSubject corresponds to looking at the title for a CL ID in square brackets.
+	FromSubject = extractionTechnique("FromSubject")
 )
 
 func main() {
@@ -404,6 +404,8 @@ func checkForLandedCycle(ctx context.Context, db *pgxpool.Pool, client GitilesLo
 		switch m.ExtractionTechnique {
 		case ReviewedLine:
 			clID = extractReviewedLine(c.Body)
+		case FromSubject:
+			clID = extractFromSubject(c.Subject)
 		}
 		if clID == "" {
 			sklog.Infof("No CL detected for %#v", c)
@@ -441,6 +443,20 @@ func extractReviewedLine(clBody string) string {
 	match := reviewedLineRegex.FindStringSubmatch(clBody)
 	if len(match) > 0 {
 		return match[2] // the second group should be our CL ID
+	}
+	return ""
+}
+
+// We assume a PR has the pull request number in the Subject/Title, at the end.
+// e.g. "Turn off docs upload temporarily (#44365) (#44413)" refers to PR 44413
+var prSuffix = regexp.MustCompile(`.+\(#(?P<id>\d+)\)\s*$`)
+
+// extractFromSubject looks at the subject of a CL and expects to find the associated CL (aka Pull
+// Request) appended to the message.
+func extractFromSubject(subject string) string {
+	if match := prSuffix.FindStringSubmatch(subject); match != nil {
+		// match[0] is the whole string, match[1] is the first group
+		return match[1]
 	}
 	return ""
 }
