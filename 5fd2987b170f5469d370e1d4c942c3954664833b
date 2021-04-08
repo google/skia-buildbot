@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4ce1aee0_9ce7b5ef",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-08T12:10:42Z",
+      "side": 1,
+      "message": "This has been pushed to the roller, and the next CL has the footer as expected: https://chromium-review.googlesource.com/c/chromium/src/+/2813860",
+      "revId": "5fd2987b170f5469d370e1d4c942c3954664833b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
