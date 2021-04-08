@@ -10,7 +10,6 @@ import { html } from 'lit-html';
 import dialogPolyfill from 'dialog-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Annotation } from '../json';
-import 'elements-sk/styles/buttons';
 
 const defaultAnnotation: Annotation = {
   Message: '',

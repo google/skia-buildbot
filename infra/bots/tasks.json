@@ -1857,6 +1857,8 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
+        "--buildbucket_build_id",
+        "<(BUILDBUCKET_BUILD_ID)",
         "--alsologtostderr"
       ],
       "dependencies": [
@@ -1981,6 +1983,8 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
+        "--buildbucket_build_id",
+        "<(BUILDBUCKET_BUILD_ID)",
         "--alsologtostderr",
         "--rbe",
         "--rbe_key",
