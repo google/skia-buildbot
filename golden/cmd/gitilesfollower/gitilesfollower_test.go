@@ -765,6 +765,102 @@ func TestCheckForLandedCycle_ExtractsCLFromSubject_Success(t *testing.T) {
 	assert.Empty(t, commits)
 }
 
+func TestCheckForLandedCycle_LegacyMode_StatusNotChanged(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := schema.Tables{
+		TrackingCommits: []schema.TrackingCommitRow{{
+			Repo:        "https://example.com/my-repo.git",
+			LastGitHash: "2222222222222222222222222222222222222222",
+		}}, Changelists: []schema.ChangelistRow{{
+			ChangelistID:     "github_000004",
+			System:           "github",
+			Status:           schema.StatusOpen,
+			OwnerEmail:       "whomever@example.com",
+			Subject:          "subject 4",
+			LastIngestedData: time.Date(2021, time.March, 1, 1, 1, 1, 0, time.UTC),
+		}, {
+			ChangelistID:     "github_000003",
+			System:           "github",
+			Status:           schema.StatusOpen,
+			OwnerEmail:       "user1@example.com",
+			Subject:          `Revert "risky change (#000002)"`,
+			LastIngestedData: time.Date(2021, time.March, 1, 1, 1, 1, 0, time.UTC),
+		}},
+	}
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	mgl := mocks.GitilesLogger{}
+	mgl.On("Log", testutils.AnyContext, "main", mock.Anything).Return([]*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: "4444444444444444444444444444444444444444",
+				// The rest is ignored from Log
+			},
+		},
+	}, nil)
+
+	mgl.On("LogFirstParent", testutils.AnyContext, "2222222222222222222222222222222222222222", "4444444444444444444444444444444444444444").Return([]*vcsinfo.LongCommit{
+		{ // These are returned with the most recent commits first
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash:    "4444444444444444444444444444444444444444",
+				Author:  "author 4",
+				Subject: "subject 4 (#000004)",
+			},
+			Body:      "Does not matter",
+			Timestamp: time.Date(2021, time.February, 25, 10, 4, 0, 0, time.UTC),
+		},
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash:    "3333333333333333333333333333333333333333",
+				Author:  "author 3",
+				Subject: `Revert "risky change (#000002)" (#000003)`,
+			},
+			Body:      "Does not matter",
+			Timestamp: time.Date(2021, time.February, 25, 10, 3, 0, 0, time.UTC),
+		},
+		// LogFirstParent excludes the first one mentioned.
+	}, nil)
+
+	mc := monitorConfig{
+		RepoURL:             "https://example.com/my-repo.git",
+		SystemName:          "github",
+		Branch:              "main",
+		ExtractionTechnique: FromSubject,
+		InitialCommit:       "1111111111111111111111111111111111111111", // should be ignored
+		LegacyUpdaterInUse:  true,
+	}
+	require.NoError(t, checkForLandedCycle(ctx, db, &mgl, mc))
+
+	actualRows := sqltest.GetAllRows(ctx, t, db, "TrackingCommits", &schema.TrackingCommitRow{}).([]schema.TrackingCommitRow)
+	assert.Equal(t, []schema.TrackingCommitRow{{
+		Repo:        "https://example.com/my-repo.git",
+		LastGitHash: "4444444444444444444444444444444444444444",
+	}}, actualRows)
+
+	cls := sqltest.GetAllRows(ctx, t, db, "Changelists", &schema.ChangelistRow{}).([]schema.ChangelistRow)
+	assert.Equal(t, []schema.ChangelistRow{{
+		ChangelistID:     "github_000003",
+		System:           "github",
+		Status:           schema.StatusOpen, // not set
+		OwnerEmail:       "user1@example.com",
+		Subject:          `Revert "risky change (#000002)"`, // unchanged
+		LastIngestedData: time.Date(2021, time.March, 1, 1, 1, 1, 0, time.UTC),
+	}, {
+		ChangelistID:     "github_000004",
+		System:           "github",
+		Status:           schema.StatusOpen, // not set
+		OwnerEmail:       "whomever@example.com",
+		Subject:          "subject 4", // unchanged
+		LastIngestedData: time.Date(2021, time.March, 1, 1, 1, 1, 0, time.UTC),
+	}}, cls)
+
+	// This cycle shouldn't touch the GitCommits tables
+	commits := sqltest.GetAllRows(ctx, t, db, "GitCommits", &schema.GitCommitRow{}).([]schema.GitCommitRow)
+	assert.Empty(t, commits)
+}
+
 func TestCheckForLandedCycle_TriageExistingData_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx := context.Background()

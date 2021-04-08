@@ -1,8 +1,8 @@
 {
     "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2021-03-23T12_40_01Z-kjlubick-f70185f-clean",
     "DIFFCALCULATOR_IMAGE":  "gcr.io/skia-public/gold-diffcalculator:2021-03-16T12_35_09Z-kjlubick-5895191-clean",
-    "FRONTEND_IMAGE":        "gcr.io/skia-public/gold-frontend:2021-04-08T13_36_00Z-kjlubick-3cd7a74-clean",
-    "GITILESFOLLOWER_IMAGE": "gcr.io/skia-public/gold-gitilesfollower:2021-04-08T14_19_47Z-kjlubick-49b5125-dirty",
+    "FRONTEND_IMAGE":        "gcr.io/skia-public/gold-frontend:2021-04-08T15_52_37Z-kjlubick-5159435-dirty",
+    "GITILESFOLLOWER_IMAGE": "gcr.io/skia-public/gold-gitilesfollower:2021-04-08T18_38_04Z-kjlubick-5159435-dirty",
     "INGESTION_IMAGE":       "gcr.io/skia-public/gold-ingestion:2021-04-01T11_57_34Z-kjlubick-73431db-clean",
     "PERIODICTASKS_IMAGE":   "gcr.io/skia-public/gold-periodictasks:2021-03-22T11_22_59Z-kjlubick-969bde6-clean",
 
