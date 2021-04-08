@@ -28,10 +28,9 @@ import (
 
 // flags
 var (
-	authGroup          = flag.String("auth_group", "google/skia-staff@google.com", "The chrome infra auth group to use for restricting access.")
-	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
-	internalPort       = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
-	bucket             = flag.String("bucket", "", "The Google Cloud Storage bucket that scraps are stored in.")
+	authGroup    = flag.String("auth_group", "google/skia-staff@google.com", "The chrome infra auth group to use for restricting access.")
+	internalPort = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
+	bucket       = flag.String("bucket", "", "The Google Cloud Storage bucket that scraps are stored in.")
 )
 
 // server is the state of the server.
@@ -45,12 +44,14 @@ func New() (baseapp.App, error) {
 	if *bucket == "" {
 		return nil, skerr.Fmt("--bucket is a required flag.")
 	}
+	ctx := context.Background()
+	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, storage.ScopeFullControl, auth.SCOPE_USERINFO_EMAIL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	var admin allowed.Allow
 	if !*baseapp.Local {
-		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
 		client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 		admin, err = allowed.NewAllowedFromChromeInfraAuth(client, *authGroup)
 		if err != nil {
@@ -62,11 +63,6 @@ func New() (baseapp.App, error) {
 
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, admin, nil, nil)
 
-	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, storage.ScopeFullControl)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
@@ -120,7 +116,11 @@ func (srv *server) user(r *http.Request) string {
 
 // AddHandlers implements baseapp.App.
 func (srv *server) AddHandlers(r *mux.Router) {
-	r.HandleFunc("/", login.RestrictAdminFn(srv.mainHandler))
+	var h http.HandlerFunc = srv.mainHandler
+	if !*baseapp.Local {
+		h = login.RestrictAdminFn(h)
+	}
+	r.HandleFunc("/", h)
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 	srv.apiEndpoints.AddHandlers(r, api.DoNotAddProtectedEndpoints)
 }
