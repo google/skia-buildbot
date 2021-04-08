@@ -74,16 +74,16 @@ type repoFollowerConfig struct {
 // corresponds to.
 type monitorConfig struct {
 	// RepoURL is the url that will be polled via gitiles.
-	RepoURL string
+	RepoURL string `json:"repo_url"`
 	// ExtractionTechnique codifies the methods for linking (via a commit message/body) to a CL.
-	ExtractionTechnique extractionTechnique
+	ExtractionTechnique extractionTechnique `json:"extraction_technique"`
 	// InitialCommit that we will used if there is no monitoring progress stored in the DB.
 	// It should be before/at the point where we migrated expectations.
-	InitialCommit string
+	InitialCommit string `json:"initial_commit"`
 	// SystemName is the abbreviation that is given to a given CodeReviewSystem.
-	SystemName string
+	SystemName string `json:"system_name"`
 	// Branch is generally the primary branch of the repo that we will poll for the latest commit.
-	Branch string
+	Branch string `json:"branch"`
 }
 
 type extractionTechnique string
@@ -414,6 +414,7 @@ func checkForLandedCycle(ctx context.Context, db *pgxpool.Pool, client GitilesLo
 		if err := migrateExpectationsToPrimaryBranch(ctx, db, m.SystemName, clID, c.Timestamp); err != nil {
 			return skerr.Wrapf(err, "migrating cl %s-%s", m.SystemName, clID)
 		}
+		sklog.Infof("Commit %s landed at %s", c.Hash[:12], c.Timestamp)
 	}
 	_, err = db.Exec(ctx, `UPSERT INTO TrackingCommits (repo, last_git_hash) VALUES ($1, $2)`, m.RepoURL, latestHash)
 	return skerr.Wrap(err)
@@ -641,7 +642,7 @@ func bulkWriteExpectations(ctx context.Context, db *pgxpool.Pool, recordID uuid.
 		if len(batch) == 0 {
 			return nil
 		}
-		statement := `INSERT INTO Expectations (grouping_id, digest, label, expectation_record_id) VALUES `
+		statement := `UPSERT INTO Expectations (grouping_id, digest, label, expectation_record_id) VALUES `
 		const valuesPerRow = 4
 		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
