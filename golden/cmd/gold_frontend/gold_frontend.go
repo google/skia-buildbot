@@ -102,6 +102,9 @@ type frontendServerConfig struct {
 	// have a CQ.
 	DisableCLTracking bool `json:"disable_changelist_tracking"`
 
+	// If true, we won't use the legacy CL Updater code
+	DisableCLUpdater bool `json:"disable_cl_updater"`
+
 	// If true, write expectation changes to the SQL backend.
 	EnableSQLExpectations bool `json:"enable_sql_expectation"`
 
@@ -515,7 +518,7 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client, sql
 // mustMakeTileSource returns a new tilesource.TileSource.
 func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, ignoreStore ignore.Store, traceStore *bt_tracestore.BTTraceStore, vcs vcsinfo.VCS, publiclyViewableParams publicparams.Matcher, reviewSystems []clstore.ReviewSystem) tilesource.TileSource {
 	var clUpdater code_review.ChangelistLandedUpdater
-	if fsc.IsAuthoritative() && !fsc.DisableCLTracking {
+	if fsc.IsAuthoritative() && !fsc.DisableCLTracking && !fsc.DisableCLUpdater {
 		clUpdater = updater.New(expStore, reviewSystems)
 	}
 
