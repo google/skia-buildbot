@@ -765,6 +765,145 @@ func TestCheckForLandedCycle_ExtractsCLFromSubject_Success(t *testing.T) {
 	assert.Empty(t, commits)
 }
 
+func TestCheckForLandedCycle_TriageExistingData_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := dks.Build()
+	existingData.Expectations = append(existingData.Expectations, []schema.ExpectationRow{{
+		GroupingID: h(roundRectGrouping),
+		Digest:     d(dks.DigestE01Pos_CL),
+		Label:      schema.LabelUntriaged,
+	}, {
+		GroupingID: h(roundRectGrouping),
+		Digest:     d(dks.DigestE02Pos_CL),
+		Label:      schema.LabelUntriaged,
+	}, {
+		GroupingID: h(sevenGrouping),
+		Digest:     d(dks.DigestD01Pos_CL),
+		Label:      schema.LabelPositive,
+	}}...)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	clLandedTime := time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC)
+
+	mgl := mocks.GitilesLogger{}
+	mgl.On("Log", testutils.AnyContext, "main", mock.Anything).Return([]*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: "2222222222222222222222222222222222222222",
+				// The rest is ignored from Log
+			},
+		},
+	}, nil)
+
+	mgl.On("LogFirstParent", testutils.AnyContext, "1111111111111111111111111111111111111111", "2222222222222222222222222222222222222222").Return([]*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash:    "2222222222222222222222222222222222222222",
+				Author:  dks.UserTwo,
+				Subject: "Increase test coverage",
+			},
+			Body:      "Reviewed-on: https://example.com/c/my-repo/+/CL_new_tests",
+			Timestamp: clLandedTime,
+		},
+		// LogFirstParent excludes the first one mentioned.
+	}, nil)
+
+	mc := monitorConfig{
+		RepoURL:             "https://example.com/my-repo.git",
+		SystemName:          dks.GerritInternalCRS,
+		Branch:              "main",
+		ExtractionTechnique: ReviewedLine,
+		InitialCommit:       "1111111111111111111111111111111111111111",
+	}
+	require.NoError(t, checkForLandedCycle(ctx, db, &mgl, mc))
+
+	actualRows := sqltest.GetAllRows(ctx, t, db, "TrackingCommits", &schema.TrackingCommitRow{}).([]schema.TrackingCommitRow)
+	assert.Equal(t, []schema.TrackingCommitRow{{
+		Repo:        "https://example.com/my-repo.git",
+		LastGitHash: "2222222222222222222222222222222222222222",
+	}}, actualRows)
+
+	cls := sqltest.GetAllRows(ctx, t, db, "Changelists", &schema.ChangelistRow{}).([]schema.ChangelistRow)
+	assert.Equal(t, []schema.ChangelistRow{{
+		ChangelistID:     "gerrit-internal_CL_new_tests",
+		System:           dks.GerritInternalCRS,
+		Status:           schema.StatusLanded, // updated
+		OwnerEmail:       dks.UserTwo,
+		Subject:          "Increase test coverage",
+		LastIngestedData: time.Date(2020, time.December, 12, 9, 20, 33, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CL_fix_ios",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen, // not touched
+		OwnerEmail:       dks.UserOne,
+		Subject:          "Fix iOS",
+		LastIngestedData: time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC),
+	}}, cls)
+
+	records := sqltest.GetAllRows(ctx, t, db, "ExpectationRecords", &schema.ExpectationRecordRow{}).([]schema.ExpectationRecordRow)
+	require.Len(t, records, len(existingData.ExpectationRecords)+2) // 2 users triaged on this CL
+	user2RecordID := records[0].ExpectationRecordID
+	user4RecordID := records[1].ExpectationRecordID
+	assert.Equal(t, []schema.ExpectationRecordRow{{
+		ExpectationRecordID: user2RecordID,
+		BranchName:          nil,
+		UserName:            dks.UserTwo,
+		TriageTime:          clLandedTime,
+		NumChanges:          2, // 2 of the users triages undid each other
+	}, {
+		ExpectationRecordID: user4RecordID,
+		BranchName:          nil,
+		UserName:            dks.UserFour,
+		TriageTime:          clLandedTime,
+		NumChanges:          1,
+	}}, records[:2])
+
+	deltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{}).([]schema.ExpectationDeltaRow)
+	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
+		ExpectationRecordID: user2RecordID,
+		GroupingID:          h(roundRectGrouping),
+		Digest:              d(dks.DigestE01Pos_CL),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	})
+	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
+		ExpectationRecordID: user2RecordID,
+		GroupingID:          h(roundRectGrouping),
+		Digest:              d(dks.DigestE02Pos_CL),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	})
+	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
+		ExpectationRecordID: user4RecordID,
+		GroupingID:          h(sevenGrouping),
+		Digest:              d(dks.DigestD01Pos_CL),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}, deltas)
+
+	expectations := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{}).([]schema.ExpectationRow)
+	assert.Contains(t, expectations, schema.ExpectationRow{
+		GroupingID:          h(roundRectGrouping),
+		Digest:              d(dks.DigestE01Pos_CL),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &user2RecordID,
+	})
+	assert.Contains(t, expectations, schema.ExpectationRow{
+		GroupingID:          h(roundRectGrouping),
+		Digest:              d(dks.DigestE02Pos_CL),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &user2RecordID,
+	})
+	assert.Contains(t, expectations, schema.ExpectationRow{
+		GroupingID:          h(sevenGrouping),
+		Digest:              d(dks.DigestD01Pos_CL),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &user4RecordID,
+	})
+}
+
 // h returns the MD5 hash of the provided string.
 func h(s string) []byte {
 	hash := md5.Sum([]byte(s))
