@@ -458,13 +458,19 @@ func setSkIDCookieValue(w http.ResponseWriter, r *http.Request, value *Session) 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("LogoutHandler")
 	setSkIDCookieValue(w, r, &Session{})
-	http.Redirect(w, r, r.FormValue("redirect"), 302)
+	redirect := r.FormValue("redirect")
+	// The empty string for the redirect will just redirect back to the
+	// LogoutHandler in an infinite loop, so fallback to "/".
+	if redirect == "" {
+		redirect = "/"
+	}
+	http.Redirect(w, r, redirect, http.StatusFound)
 }
 
 // LoginHandler kicks off the authentication flow.
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("LoginHandler")
-	http.Redirect(w, r, LoginURL(w, r), 302)
+	http.Redirect(w, r, LoginURL(w, r), http.StatusFound)
 }
 
 // OAuth2CallbackHandler must be attached at a handler that matches
