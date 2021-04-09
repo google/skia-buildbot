@@ -6,7 +6,6 @@
     "@types/chai": "^4.2.11",
     "@types/express": "^4.17.6",
     "@types/mocha": "^7.0.2",
-    "@types/puppeteer": "^3.0.0",
     "@types/webpack": "^4.41.17",
     "@types/webpack-dev-middleware": "^3.7.1",
     "chai": "~4.2.0",
@@ -14,10 +13,11 @@
     "express": "^4.17.1",
     "mocha": "~6.2.0",
     "pulito": "~4.4.0",
-    "puppeteer": "2.0.0",
+    "puppeteer": "^8.0.0",
     "ts-loader": "^7.0.5",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.5",
     "webpack": "~4.40.2"
-  }
+  },
+  "dependencies": {}
 }
