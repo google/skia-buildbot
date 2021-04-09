@@ -2,7 +2,10 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_pu
 
 sk_element(
     name = "cluster-lastn-page-sk",
-    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+        "//infra-sk:elements-sk_scss",
+    ],
     sass_srcs = ["cluster-lastn-page-sk.scss"],
     sk_element_deps = [
         "//perf/modules/alert-config-sk",
@@ -32,6 +35,7 @@ sk_element(
 sk_page(
     name = "cluster-lastn-page-sk-demo",
     html_file = "cluster-lastn-page-sk-demo.html",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [":cluster-lastn-page-sk"],
     ts_deps = [
         "//perf/modules/json:index_ts_lib",
