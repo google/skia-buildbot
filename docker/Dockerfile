@@ -16,7 +16,7 @@ USER skia
 
 RUN mkdir -p /home/skia/golib/src \
     && cd /home/skia \
-    && wget https://dl.google.com/go/go1.15.6.linux-amd64.tar.gz \
+    && wget https://dl.google.com/go/go1.16.3.linux-amd64.tar.gz \
     && tar -xf go1.15.6.linux-amd64.tar.gz
 
 ENV GOPATH /home/skia/golib
