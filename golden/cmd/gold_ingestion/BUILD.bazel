@@ -12,6 +12,7 @@ go_library(
         "//go/gitstore/bt_gitstore",
         "//go/httputils",
         "//go/metrics2",
+        "//go/now",
         "//go/skerr",
         "//go/sklog",
         "//go/swarming",
@@ -42,6 +43,7 @@ go_test(
     embed = [":gold_ingestion_lib"],
     deps = [
         "//go/metrics2",
+        "//go/now",
         "//go/testutils",
         "//go/testutils/unittest",
         "//golden/go/config",

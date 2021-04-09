@@ -48,6 +48,7 @@ go_test(
     data = glob(["testdata/**"]),
     embed = [":goldctl_lib"],
     deps = [
+        "//go/now",
         "//go/paramtools",
         "//go/testutils",
         "//go/testutils/unittest",

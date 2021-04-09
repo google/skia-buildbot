@@ -13,6 +13,7 @@ go_library(
     deps = [
         "//go/exec",
         "//go/git",
+        "//go/now",
         "//go/skerr",
         "//go/sklog",
     ],
@@ -30,6 +31,7 @@ go_test(
         "//go/exec",
         "//go/git",
         "//go/git/testutils",
+        "//go/now",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

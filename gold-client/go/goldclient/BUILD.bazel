@@ -13,6 +13,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/fileutil",
+        "//go/now",
         "//go/paramtools",
         "//go/skerr",
         "//go/util",
@@ -44,6 +45,7 @@ go_test(
     deps = [
         "//go/deepequal/assertdeep",
         "//go/fileutil",
+        "//go/now",
         "//go/skerr",
         "//go/testutils",
         "//go/testutils/unittest",

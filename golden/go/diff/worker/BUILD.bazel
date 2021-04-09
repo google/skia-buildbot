@@ -8,6 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",
+        "//go/now",
         "//go/paramtools",
         "//go/skerr",
         "//go/sklog",
@@ -32,11 +33,11 @@ go_test(
     embed = [":worker"],
     deps = [
         "//go/metrics2",
+        "//go/now",
         "//go/paramtools",
         "//go/repo_root",
         "//go/testutils",
         "//go/testutils/unittest",
-        "//gold-client/go/mocks",
         "//golden/go/diff/mocks",
         "//golden/go/sql",
         "//golden/go/sql/databuilder",
