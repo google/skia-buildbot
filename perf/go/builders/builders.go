@@ -194,5 +194,7 @@ func NewSourceFromConfig(ctx context.Context, instanceConfig *config.InstanceCon
 //
 // If local is true then we aren't running in production.
 func NewIngestedFSFromConfig(ctx context.Context, _ *config.InstanceConfig, local bool) (fs.FS, error) {
+	// We currently default to Google Cloud Storage, but Config options could be
+	// added to use other systems, such as S3.
 	return gcs.New(ctx, local)
 }

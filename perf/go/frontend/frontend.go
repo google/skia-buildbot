@@ -22,17 +22,14 @@ import (
 	"sync"
 	"time"
 
-	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/alogin/sklogin"
 	"go.skia.org/infra/go/auditlog"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/email"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -314,20 +311,6 @@ func (f *Frontend) initialize() {
 	}
 
 	f.distFileSystem = http.Dir(f.flags.ResourcesDir)
-
-	scopes := []string{storage.ScopeReadOnly, auth.SCOPE_GERRIT}
-
-	sklog.Info("About to create token source.")
-	ts, err := auth.NewDefaultTokenSource(f.flags.Local, scopes...)
-	if err != nil {
-		sklog.Fatalf("Failed to get TokenSource: %s", err)
-	}
-
-	if !f.flags.Local {
-		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
-			sklog.Fatal(err)
-		}
-	}
 
 	sklog.Info("About to init GCS.")
 	f.ingestedFS, err = builders.NewIngestedFSFromConfig(ctx, config.Config, f.flags.Local)
