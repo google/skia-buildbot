@@ -4,13 +4,13 @@ package mocks
 
 import (
 	context "context"
+	fs "io/fs"
 
 	git "go.skia.org/infra/go/git"
+
 	gitiles "go.skia.org/infra/go/gitiles"
 
 	mock "github.com/stretchr/testify/mock"
-
-	os "os"
 
 	vcsinfo "go.skia.org/infra/go/vcsinfo"
 )
@@ -95,15 +95,15 @@ func (_m *GitilesRepo) DownloadFileAtRef(ctx context.Context, srcPath string, re
 }
 
 // ListDir provides a mock function with given fields: ctx, dir
-func (_m *GitilesRepo) ListDir(ctx context.Context, dir string) ([]os.FileInfo, error) {
+func (_m *GitilesRepo) ListDir(ctx context.Context, dir string) ([]fs.FileInfo, error) {
 	ret := _m.Called(ctx, dir)
 
-	var r0 []os.FileInfo
-	if rf, ok := ret.Get(0).(func(context.Context, string) []os.FileInfo); ok {
+	var r0 []fs.FileInfo
+	if rf, ok := ret.Get(0).(func(context.Context, string) []fs.FileInfo); ok {
 		r0 = rf(ctx, dir)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]os.FileInfo)
+			r0 = ret.Get(0).([]fs.FileInfo)
 		}
 	}
 
@@ -118,15 +118,15 @@ func (_m *GitilesRepo) ListDir(ctx context.Context, dir string) ([]os.FileInfo, 
 }
 
 // ListDirAtRef provides a mock function with given fields: ctx, dir, ref
-func (_m *GitilesRepo) ListDirAtRef(ctx context.Context, dir string, ref string) ([]os.FileInfo, error) {
+func (_m *GitilesRepo) ListDirAtRef(ctx context.Context, dir string, ref string) ([]fs.FileInfo, error) {
 	ret := _m.Called(ctx, dir, ref)
 
-	var r0 []os.FileInfo
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) []os.FileInfo); ok {
+	var r0 []fs.FileInfo
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) []fs.FileInfo); ok {
 		r0 = rf(ctx, dir, ref)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]os.FileInfo)
+			r0 = ret.Get(0).([]fs.FileInfo)
 		}
 	}
 
@@ -365,15 +365,15 @@ func (_m *GitilesRepo) ReadFileAtRef(ctx context.Context, srcPath string, ref st
 }
 
 // ReadObject provides a mock function with given fields: ctx, path, ref
-func (_m *GitilesRepo) ReadObject(ctx context.Context, path string, ref string) (os.FileInfo, []byte, error) {
+func (_m *GitilesRepo) ReadObject(ctx context.Context, path string, ref string) (fs.FileInfo, []byte, error) {
 	ret := _m.Called(ctx, path, ref)
 
-	var r0 os.FileInfo
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) os.FileInfo); ok {
+	var r0 fs.FileInfo
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) fs.FileInfo); ok {
 		r0 = rf(ctx, path, ref)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(os.FileInfo)
+			r0 = ret.Get(0).(fs.FileInfo)
 		}
 	}
 
