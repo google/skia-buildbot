@@ -93,6 +93,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "docsyserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "docsyserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "docsyserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "gold-skia-infra-frontend",
           "endpoints": [
             {
@@ -840,32 +866,6 @@
           ]
         },
         "name": "demoserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "docsyserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "docsyserver",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "docsyserver",
         "type": "STRICT_DNS"
       },
       {
@@ -1810,6 +1810,53 @@
                           },
                           "match": {
                             "prefix": "/"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "skia.org",
+                      "name": "skia.org-redirects",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/dev"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia.org",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/docs/dev"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/user"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia.org",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/docs/user"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/roles"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia.org",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/docs/roles"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "docsyserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         }
                       ]
@@ -3271,23 +3318,6 @@
                           },
                           "route": {
                             "cluster": "demoserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "skia.org",
-                      "name": "skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "docsyserver",
                             "timeout": {
                               "seconds": 600
                             }
