@@ -91,5 +91,5 @@ async function navigateTo(page: Page, base: string, queryParams = '') {
 
 async function getPropertyAsJSON(ele: ElementHandle, propName: string) {
   const prop = await ele.getProperty(propName);
-  return prop.jsonValue();
+  return prop!.jsonValue();
 }
