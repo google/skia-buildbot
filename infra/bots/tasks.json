@@ -491,7 +491,7 @@
         "--include_path",
         "bazel-bin/sk/go/sk/sk_/sk[.exe]",
         "--platform",
-        "@io_bazel_rules_go//go/toolchain:darwin_amd64=darwin-amd64",
+        "@io_bazel_rules_go//go/toolchain:darwin_amd64=mac-amd64",
         "--platform",
         "@io_bazel_rules_go//go/toolchain:linux_amd64=linux-amd64",
         "--platform",
