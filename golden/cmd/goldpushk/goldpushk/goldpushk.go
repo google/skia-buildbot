@@ -27,6 +27,7 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -89,9 +90,6 @@ type Goldpushk struct {
 	unitTest bool // Disables confirmation prompt from unit tests.
 
 	disableCopyingConfigsToCheckout bool
-
-	// If set, will return this time from .now() instead of the actual time. Used for tests.
-	fakeNow time.Time
 }
 
 // New is the Goldpushk constructor.
@@ -344,7 +342,7 @@ func (g *Goldpushk) expandTemplate(ctx context.Context, unit DeployableUnit, tem
 		"-c", instanceJSON5,
 		"-c", serviceJSON5,
 		"-extra", "INSTANCE_ID:" + instanceStr,
-		"-extra", "NOW:" + g.now().Format(rfc3999KubernetesSafe),
+		"-extra", "NOW:" + now.Now(ctx).Format(rfc3999KubernetesSafe),
 		"-t", templatePath,
 		"-parse_conf=false", "-strict",
 		"-o", outputPath,
@@ -569,7 +567,7 @@ func (g *Goldpushk) switchClusters(ctx context.Context, cluster cluster) error {
 // uptimesFn has the same signature as method Goldpushk.getUptimes(). To facilitate testing, method
 // Goldpushk.monitor() takes an uptimesFn instance as a parameter instead of calling
 // Goldpushk.getUptimes() directly.
-type uptimesFn func(context.Context, []DeployableUnit, time.Time) (map[DeployableUnitID]time.Duration, error)
+type uptimesFn func(context.Context, []DeployableUnit) (map[DeployableUnitID]time.Duration, error)
 
 // sleepFn has the same signature as time.Sleep(). Its purpose is to enable mocking that function
 // from tests.
@@ -619,7 +617,7 @@ func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit, getUpti
 	// Monitoring loop.
 	for {
 		// Get uptimes.
-		uptimes, err := getUptimes(ctx, units, time.Now())
+		uptimes, err := getUptimes(ctx, units)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
@@ -682,10 +680,10 @@ func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit, getUpti
 
 // getUptimes groups the given DeployableUnits by cluster, calls getUptimesSingleCluster once per
 // cluster, and returns the union of the uptimes returned by both calls to getUptimesSingleCluster.
-func (g *Goldpushk) getUptimes(ctx context.Context, units []DeployableUnit, now time.Time) (map[DeployableUnitID]time.Duration, error) {
+func (g *Goldpushk) getUptimes(ctx context.Context, units []DeployableUnit) (map[DeployableUnitID]time.Duration, error) {
 	// Group units by cluster.
-	publicUnits := []DeployableUnit{}
-	corpUnits := []DeployableUnit{}
+	var publicUnits []DeployableUnit
+	var corpUnits []DeployableUnit
 	for _, unit := range units {
 		if unit.internal {
 			corpUnits = append(corpUnits, unit)
@@ -718,7 +716,7 @@ func (g *Goldpushk) getUptimes(ctx context.Context, units []DeployableUnit, now 
 		}
 
 		// Get the uptimes for the current cluster.
-		uptimes, err := g.getUptimesSingleCluster(ctx, units, now)
+		uptimes, err := g.getUptimesSingleCluster(ctx, units)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -743,7 +741,7 @@ func (g *Goldpushk) getUptimes(ctx context.Context, units []DeployableUnit, now 
 //   - All the given DeployableUnits belong to the same Kubernetes cluster.
 //   - kubectl is already set up to operate on that cluster.
 //   - A DeployableUnit may correspond to more than one pod (e.g. ReplicaSets).
-func (g *Goldpushk) getUptimesSingleCluster(ctx context.Context, units []DeployableUnit, now time.Time) (map[DeployableUnitID]time.Duration, error) {
+func (g *Goldpushk) getUptimesSingleCluster(ctx context.Context, units []DeployableUnit) (map[DeployableUnitID]time.Duration, error) {
 	// JSONPath expression to be passed to kubectl. Below is a sample fragment of what the output
 	// looks like:
 	//
@@ -857,7 +855,7 @@ func (g *Goldpushk) getUptimesSingleCluster(ctx context.Context, units []Deploya
 		}
 
 		// Compute the time duration since the pod corresponding to the current line has been ready.
-		readyFor := now.Sub(t)
+		readyFor := now.Now(ctx).Sub(t)
 
 		// We'll report the uptime of the pod that became ready the most recently.
 		if currentMin, ok := uptime[unitID]; !ok || (readyFor < currentMin) {
@@ -882,14 +880,6 @@ func (g *Goldpushk) forAllDeployableUnits(f func(unit DeployableUnit) error) err
 		}
 	}
 	return nil
-}
-
-// now returns the current time in UTC or a mocked out time.
-func (g *Goldpushk) now() time.Time {
-	if g.fakeNow.IsZero() {
-		return time.Now().UTC()
-	}
-	return g.fakeNow
 }
 
 // execCmd executes a command with the given arguments.
