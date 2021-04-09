@@ -34,7 +34,6 @@ sk_element_puppeteer_test(
     deps = [
         "//puppeteer-tests:util_ts_lib",
         "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/puppeteer",
         "@infra-sk_npm//chai",
         "@infra-sk_npm//puppeteer",
     ],
