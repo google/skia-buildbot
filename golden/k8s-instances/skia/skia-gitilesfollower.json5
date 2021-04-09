@@ -2,6 +2,17 @@
   // Arbitrary commit from 14 Dec 2020
   initial_commit: "9b395f55ea0f8f92103d33f1ea8e8217bee8aaea",
   poll_period: "1m",
+
+  repos_to_monitor_cls: [{
+    repo_url: "https://skia.googlesource.com/skia",
+    extraction_technique: "ReviewedLine",
+    // Arbitrary commit from 1 Apr 2021
+    initial_commit: "988b7043e54cf725c864584bfda4d11bd103b473",
+    system_name: "gerrit",
+    branch: "master",
+    legacy_updater_in_use: true,
+  }],
+
   prom_port: ":20000",
   ready_port: ":8000"
 }
