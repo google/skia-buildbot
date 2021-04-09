@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "karma_test", "sass_library", "sk_demo_page_server", "sk_element", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "app-sk",
@@ -15,18 +15,13 @@ sk_element(
 sk_page(
     name = "app-sk-demo",
     html_file = "app-sk-demo.html",
+    scss_entry_point = "app-sk-demo.scss",
     sk_element_deps = [
         "//infra-sk/modules/login-sk",
         ":app-sk",
     ],
     ts_deps = ["@infra-sk_npm//elements-sk"],
     ts_entry_point = "app-sk-demo.ts",
-)
-
-sass_library(
-    name = "app-sk_demo_sass_lib",
-    srcs = ["app-sk_demo.scss"],
-    visibility = ["//visibility:public"],
 )
 
 karma_test(
@@ -43,4 +38,15 @@ karma_test(
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":app-sk-demo",
+)
+
+sk_element_puppeteer_test(
+    name = "app-sk_puppeteer_test",
+    src = "app-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
 )
