@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -60,7 +61,6 @@ import (
 	"go.skia.org/infra/perf/go/trybot/results"
 	"go.skia.org/infra/perf/go/trybot/results/dfloader"
 	"go.skia.org/infra/perf/go/types"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -98,7 +98,8 @@ type Frontend struct {
 
 	continuous []*continuous.Continuous
 
-	storageClient *storage.Client
+	// provides access to the ingested files.
+	ingestedFS fs.FS
 
 	alertStore alerts.Store
 
@@ -329,9 +330,9 @@ func (f *Frontend) initialize() {
 	}
 
 	sklog.Info("About to init GCS.")
-	f.storageClient, err = storage.NewClient(ctx, option.WithTokenSource(ts))
+	f.ingestedFS, err = builders.NewIngestedFSFromConfig(ctx, config.Config, f.flags.Local)
 	if err != nil {
-		sklog.Fatalf("Failed to authenicate to cloud storage: %s", err)
+		sklog.Fatalf("Failed to authenicate to storage provider: %s", err)
 	}
 
 	sklog.Info("About to parse templates.")
@@ -1157,17 +1158,7 @@ func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sklog.Infof("Full URL to source: %q", name)
-	u, err := url.Parse(name)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to parse source file location.", http.StatusInternalServerError)
-		return
-	}
-	if u.Host == "" || u.Path == "" {
-		httputils.ReportError(w, fmt.Errorf("Invalid source location: %q", name), "Invalid source location.", http.StatusInternalServerError)
-		return
-	}
-	sklog.Infof("Host: %q Path: %q", u.Host, u.Path)
-	reader, err := f.storageClient.Bucket(u.Host).Object(u.Path[1:]).NewReader(context.Background())
+	reader, err := f.ingestedFS.Open(name)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get reader for source file location", http.StatusInternalServerError)
 		return
