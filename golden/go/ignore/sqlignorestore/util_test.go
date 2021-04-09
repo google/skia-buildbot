@@ -4,6 +4,9 @@ import (
 	"context"
 	"crypto/md5"
 	"crypto/rand"
+	"fmt"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -48,6 +51,21 @@ func TestConvertIgnoreRules_Success(t *testing.T) {
 OR (COALESCE(keys ->> $6::STRING IN ($7, $8, $9), FALSE)))`
 	assert.Equal(t, expectedCondition, condition)
 	assert.Equal(t, []interface{}{"key1", "alpha", "beta", "key2", "gamma", "key3", "delta", "epsilon", "zeta"}, args)
+
+	c, a := ConvertIgnoreRules([]paramtools.ParamSet{{
+		"config":       []string{"pdf"},
+		"extra_config": []string{"PDF"},
+		"source_type":  []string{"skp"},
+	}})
+	fmt.Println(combine(c, a))
+}
+
+func combine(query string, arguments []interface{}) string {
+	for i, arg := range arguments {
+		query = strings.ReplaceAll(query, "$"+strconv.Itoa(i+1), `'`+arg.(string)+`'`)
+	}
+	query = strings.ReplaceAll(query, "::STRING", "")
+	return query
 }
 
 func TestUpdateIgnoredTraces_StartsNull_SetToCorrectValue(t *testing.T) {
