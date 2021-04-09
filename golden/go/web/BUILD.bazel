@@ -14,6 +14,7 @@ go_library(
         "//go/human",
         "//go/login",
         "//go/metrics2",
+        "//go/now",
         "//go/paramtools",
         "//go/skerr",
         "//go/sklog",
@@ -54,6 +55,7 @@ go_test(
     deps = [
         "//go/httputils",
         "//go/metrics2",
+        "//go/now",
         "//go/paramtools",
         "//go/testutils",
         "//go/testutils/unittest",

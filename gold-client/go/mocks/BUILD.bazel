@@ -7,7 +7,6 @@ go_library(
         "HTTPClient.go",
         "ImageDownloader.go",
         "Matcher.go",
-        "NowSource.go",
         "generate.go",
     ],
     importpath = "go.skia.org/infra/gold-client/go/mocks",

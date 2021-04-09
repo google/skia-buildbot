@@ -15,6 +15,7 @@ go_library(
         "//perf/go/file",
         "//perf/go/file/dirsource",
         "//perf/go/file/gcssource",
+        "//perf/go/filestore/gcs",
         "//perf/go/git",
         "//perf/go/regression",
         "//perf/go/regression/sqlregressionstore",
