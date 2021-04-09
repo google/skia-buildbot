@@ -4,6 +4,17 @@
   // Need to use a gitiles mirror
   git_repo_url: "https://chromium.googlesource.com/external/github.com/flutter/engine",
   poll_period: "1m",
+
+  repos_to_monitor_cls: [{
+    repo_url: "https://chromium.googlesource.com/external/github.com/flutter/engine",
+    extraction_technique: "FromSubject",
+    // Arbitrary commit from 1 Apr 2021
+    initial_commit: "bed3a4a7a016391fce276e71a748eea13b104ca3",
+    system_name: "github",
+    branch: "master",
+    legacy_updater_in_use: true,
+  }],
+
   prom_port: ":20000",
   ready_port: ":8000"
 }

@@ -1,8 +1,18 @@
 {
   // Arbitrary commit from 22 Dec 2020
   initial_commit: "413f1dc7cf1f2790fc5b3f63eb4eb28d6fc5e348",
-  git_repo_url: "https://chromium.googlesource.com/chromiumos/platform/tast-tests",
   poll_period: "1m",
+
+  repos_to_monitor_cls: [ {
+    repo_url: "https://chromium.googlesource.com/chromiumos/platform/tast-tests",
+    extraction_technique: "ReviewedLine",
+    // Arbitrary commit from 1 Apr 2021
+    initial_commit: "e4d608c80d8b5cbaadd58227ba2ef03c4f43d579",
+    system_name: "gerrit",
+    branch: "main",
+    legacy_updater_in_use: true,
+  }],
+
   prom_port: ":20000",
   ready_port: ":8000"
 }
