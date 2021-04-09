@@ -12,6 +12,8 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/jackc/pgx/v4/stdlib" // pgx Go sql
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
@@ -194,5 +196,26 @@ func NewSourceFromConfig(ctx context.Context, instanceConfig *config.InstanceCon
 //
 // If local is true then we aren't running in production.
 func NewIngestedFSFromConfig(ctx context.Context, _ *config.InstanceConfig, local bool) (fs.FS, error) {
+	// We currently default to Google Cloud Storage, but Config options could be
+	// added to use other systems, such as S3.
 	return gcs.New(ctx, local)
+}
+
+// NewGitAuthFromConfig initializes any authentication that git needs.
+//
+// If local is true then we aren't running in production.
+func NewGitAuthFromConfig(_ *config.InstanceConfig, local bool) error {
+	if !local {
+		// We currently default to Gerrit, but Config options could be added to
+		// use other systems such as GitHub.
+		sklog.Info("About to create token source.")
+		ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_GERRIT)
+		if err != nil {
+			sklog.Fatalf("Failed to get TokenSource: %s", err)
+		}
+
+		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
+			sklog.Fatal(err)
+		}
+	}
 }
