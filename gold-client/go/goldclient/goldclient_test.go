@@ -15,6 +15,8 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/now"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -2308,10 +2310,9 @@ func makeMocks() (context.Context, *mocks.HTTPClient, *mocks.GCSUploader, *mocks
 	mh := &mocks.HTTPClient{}
 	mg := &mocks.GCSUploader{}
 	md := &mocks.ImageDownloader{}
-	mn := &mocks.NowSource{}
-	mn.On("Now").Return(time.Date(2019, time.April, 2, 19, 54, 3, 0, time.UTC))
+	fakeNow := time.Date(2019, time.April, 2, 19, 54, 3, 0, time.UTC)
 	ctx := WithContext(context.Background(), mg, mh, md)
-	ctx = context.WithValue(ctx, NowSourceKey, mn)
+	ctx = context.WithValue(ctx, now.ContextKey, fakeNow)
 	return ctx, mh, mg, md
 }
 

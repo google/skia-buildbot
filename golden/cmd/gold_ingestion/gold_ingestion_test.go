@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/now"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -185,7 +187,7 @@ func TestStartBackupPolling_TwoSources_Success(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	fakeNow := time.Date(2021, time.March, 3, 4, 5, 6, 0, time.UTC)
-	ctx = context.WithValue(ctx, overwriteNowKey, fakeNow)
+	ctx = context.WithValue(ctx, now.ContextKey, fakeNow)
 
 	isc := ingestionServerConfig{
 		BackupPollInterval: config.Duration{Duration: time.Hour},
@@ -248,13 +250,13 @@ var _ metrics2.Liveness = (*nopLiveness)(nil)
 
 type nopCounter struct{}
 
-func (n nopCounter) Dec(i int64) {}
+func (n nopCounter) Dec(_ int64) {}
 
 func (n nopCounter) Delete() error { return nil }
 
 func (n nopCounter) Get() int64 { return 0 }
 
-func (n nopCounter) Inc(i int64) {}
+func (n nopCounter) Inc(_ int64) {}
 
 func (n nopCounter) Reset() {}
 

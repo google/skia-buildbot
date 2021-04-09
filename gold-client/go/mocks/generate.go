@@ -4,4 +4,3 @@ package mocks
 //go:generate mockery --name HTTPClient --dir ../httpclient --output .
 //go:generate mockery --name ImageDownloader --dir ../imagedownloader --output .
 //go:generate mockery --name Matcher --dir ../imgmatching --output .
-//go:generate mockery --name NowSource --dir ../goldclient --output .

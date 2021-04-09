@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/now"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -246,7 +248,7 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 
 	// Now call imgtest add with the following flags. This is simulating a test uploading a single
 	// result for a test called pixel-tests.
-	ctx, output, exit = testContext(mg, nil, nil, mockTime(timeOne))
+	ctx, output, exit = testContext(mg, nil, nil, &timeOne)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -324,7 +326,7 @@ func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
 
 	// Now call imgtest add with the following flags. This is simulating a test uploading a single
 	// result for a test called pixel-tests.
-	ctx, output, exit = testContext(mg, nil, nil, mockTime(timeOne))
+	ctx, output, exit = testContext(mg, nil, nil, &timeOne)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -394,7 +396,7 @@ func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *t
 
 	// Now call imgtest add with the following flags. This is simulating a test uploading a single
 	// result for a test called pixel-tests. The digest has already been triaged positive.
-	ctx, output, exit = testContext(mg, nil, nil, mockTime(timeOne))
+	ctx, output, exit = testContext(mg, nil, nil, &timeOne)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -457,7 +459,7 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 
 	// Now call imgtest add with the following flags. This is simulating a test uploading a single
 	// result for a test called pixel-tests. The digest has already been triaged positive.
-	ctx, output, exit = testContext(mg, nil, nil, mockTime(timeOne))
+	ctx, output, exit = testContext(mg, nil, nil, &timeOne)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -493,7 +495,7 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 		`skia-gold-my-instance/dm-json-v1/2021/01/23/22/1234567890123456789012345678901234567890/waterfall/dm-1611440520000000000.json`).Return(nil)
 
 	// Call imgtest add for a second device running the same test as above.
-	ctx, output, exit = testContext(mg, nil, nil, mockTime(timeTwo))
+	ctx, output, exit = testContext(mg, nil, nil, &timeTwo)
 	env = imgTest{
 		workDir:                 workDir,
 		testName:                "pixel-tests",
@@ -543,7 +545,7 @@ func TestImgTest_Add_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testi
 
 	// Now call imgtest add with the following flags. This is simulating a test uploading a single
 	// result for a test called pixel-tests. The digest has already been triaged positive.
-	ctx, output, exit := testContext(mg, mh, nil, mockTime(timeOne))
+	ctx, output, exit := testContext(mg, mh, nil, &timeOne)
 	env := imgTest{
 		gitHash:                 "1234567890123456789012345678901234567890",
 		corpus:                  "my_corpus",
@@ -647,7 +649,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(
 		`skia-gold-my-instance/dm-json-v1/2021/01/23/22/1234567890123456789012345678901234567890/waterfall/dm-1611440480000000019.json`).Return(nil)
 
 	// Call imgtest finalize, expecting to see all data before uploaded.
-	ctx, output, exit = testContext(mg, nil, nil, mockTime(timeOne))
+	ctx, output, exit = testContext(mg, nil, nil, &timeOne)
 	env = imgTest{
 		workDir: workDir,
 	}
@@ -749,7 +751,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndI
 		`skia-gold-my-instance/dm-json-v1/2021/01/23/22/1234567890123456789012345678901234567890/waterfall/dm-1611440480000000019.json`).Return(nil)
 
 	// Call imgtest finalize, expecting to see all data before uploaded.
-	ctx, output, exit = testContext(mg, nil, nil, mockTime(timeOne))
+	ctx, output, exit = testContext(mg, nil, nil, &timeOne)
 	env = imgTest{
 		workDir: workDir,
 	}
@@ -844,12 +846,14 @@ func TestImgTest_Check_TooDifferentOnChangelist_ExitCodeOne(t *testing.T) {
 	assert.Contains(t, logs, `Test: pixel-tests FAIL`)
 }
 
-func testContext(g gcsuploader.GCSUploader, h httpclient.HTTPClient, i imagedownloader.ImageDownloader, n goldclient.NowSource) (context.Context, *threadSafeBuffer, *exitCodeRecorder) {
+func testContext(g gcsuploader.GCSUploader, h httpclient.HTTPClient, i imagedownloader.ImageDownloader, ts *time.Time) (context.Context, *threadSafeBuffer, *exitCodeRecorder) {
 	output := &threadSafeBuffer{}
 	exit := &exitCodeRecorder{}
 
 	ctx := executionContext(context.Background(), output, output, exit.ExitWithCode)
-	ctx = context.WithValue(ctx, goldclient.NowSourceKey, n)
+	if ts != nil {
+		ctx = context.WithValue(ctx, now.ContextKey, *ts)
+	}
 	return goldclient.WithContext(ctx, g, h, i), output, exit
 }
 
@@ -868,12 +872,6 @@ func (t *threadSafeBuffer) String() string {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 	return t.buf.String()
-}
-
-func mockTime(ts time.Time) goldclient.NowSource {
-	mt := mocks.NowSource{}
-	mt.On("Now").Return(ts)
-	return &mt
 }
 
 type rpcResponsesBuilder struct {

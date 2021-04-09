@@ -13,6 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.skia.org/infra/go/now"
+
 	"github.com/dgraph-io/ristretto"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -33,10 +35,6 @@ import (
 )
 
 const (
-	// NowSourceKey is the context key used for the time source. If not provided, time.Now() will
-	// be used.
-	NowSourceKey = contextKey("nowSource")
-
 	// Images can vary wildely in size. Thus, we put a limit on the total amount of memory used
 	// for the decoded image cache and let the cache handle that
 	decodedImageCacheSizeGB = 16
@@ -54,13 +52,6 @@ var (
 	// a period of time. This time is controlled by badImageCooldown and a TTL cache.
 	badImageCooldown = time.Minute
 )
-
-type contextKey string // See advice in https://golang.org/pkg/context/#WithValue
-
-// NowSource is an abstraction around a clock.
-type NowSource interface {
-	Now() time.Time
-}
 
 // ImageSource is an abstraction around a way to load the images. If images are stored in GCS, or
 // on a file system or wherever, they should be provided by this mechanism.
@@ -487,7 +478,7 @@ func (w *WorkerImpl) diff(ctx context.Context, left, right types.Digest) (schema
 		MaxChannelDiff:    max(m.MaxRGBADiffs),
 		CombinedMetric:    m.CombinedMetric,
 		DimensionsDiffer:  m.DimDiffer,
-		Timestamp:         now(ctx),
+		Timestamp:         now.Now(ctx),
 	}, nil
 }
 
@@ -499,15 +490,6 @@ func max(diffs [4]int) int {
 		}
 	}
 	return m
-}
-
-// now returns the current time, using a provided NowSource on the context if available.
-func now(ctx context.Context) time.Time {
-	ns, ok := ctx.Value(NowSourceKey).(NowSource)
-	if ns == nil || !ok {
-		return time.Now()
-	}
-	return ns.Now()
 }
 
 // getImage retrieves and decodes the given image. If the image is cached, this function will
@@ -579,7 +561,7 @@ ON CONFLICT (digest)
 DO UPDATE SET (num_errors, latest_error, error_ts) =
 (ProblemImages.num_errors + 1, $3, $4)`
 
-	_, err := w.db.Exec(ctx, statement, imgErr.digest, 1, imgErr.err.Error(), now(ctx))
+	_, err := w.db.Exec(ctx, statement, imgErr.digest, 1, imgErr.err.Error(), now.Now(ctx))
 	if err != nil {
 		return skerr.Wrapf(err, "writing to ProblemImages")
 	}

@@ -14,6 +14,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -282,14 +283,14 @@ func (s *sqlPrimaryIngester) updateCommitCache(gr *jsonio.GoldResults, id schema
 }
 
 // upsertSourceFile creates a row in SourceFiles for the given file or updates the existing row's
-// last_ingested timestamp with now.
+// last_ingested timestamp. The time can be overridden via the context.
 func (s *sqlPrimaryIngester) upsertSourceFile(ctx context.Context, srcID schema.SourceFileID, fileName string) error {
 	ctx, span := trace.StartSpan(ctx, "upsertSourceFile")
 	defer span.End()
 	const statement = `UPSERT INTO SourceFiles (source_file_id, source_file, last_ingested)
 VALUES ($1, $2, $3)`
 	err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		_, err := tx.Exec(ctx, statement, srcID, fileName, now(ctx))
+		_, err := tx.Exec(ctx, statement, srcID, fileName, now.Now(ctx))
 		return err // Don't wrap - crdbpgx might retry
 	})
 	return skerr.Wrap(err)
@@ -838,19 +839,6 @@ func groupingFor(keys map[string]string) map[string]string {
 		types.CorpusField:     keys[types.CorpusField],
 		types.PrimaryKeyField: keys[types.PrimaryKeyField],
 	}
-}
-
-// overwriteNowKey is used by tests to make the time deterministic.
-const overwriteNowKey = contextKey("overwriteNow")
-
-type contextKey string
-
-// now returns the current time or the time from the context.
-func now(ctx context.Context) time.Time {
-	if ts := ctx.Value(overwriteNowKey); ts != nil {
-		return ts.(time.Time)
-	}
-	return time.Now()
 }
 
 // Make sure sqlPrimaryIngester implements the ingestion.Processor interface.

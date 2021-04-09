@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"regexp"
 
+	"go.skia.org/infra/go/now"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expectations"
@@ -153,9 +155,9 @@ func (r *resultState) loadExpectations(ctx context.Context) error {
 // The file name of the path also contains a timestamp to make it unique since all
 // calls within the same test run are written to the same output path.
 func (r *resultState) getResultFilePath(ctx context.Context) string {
-	now := extractNowSource(ctx).Now()
-	year, month, day := now.Date()
-	hour := now.Hour()
+	ts := now.Now(ctx)
+	year, month, day := ts.Date()
+	hour := ts.Hour()
 
 	// Assemble a path that looks like this:
 	// <path_prefix>/YYYY/MM/DD/HH/<git_hash_or_cl>/<job_id>/<per_run_file_name>.json
@@ -163,7 +165,7 @@ func (r *resultState) getResultFilePath(ctx context.Context) string {
 	// new files. The later segments are necessary to make the path unique within the runs of one
 	// hour and increase readability of the paths for troubleshooting.
 	// It is vital that the time segments of the path are based on UTC location.
-	fileName := fmt.Sprintf("dm-%d.json", now.UnixNano())
+	fileName := fmt.Sprintf("dm-%d.json", ts.UnixNano())
 	jobID := r.SharedConfig.TryJobID
 	if jobID == "" {
 		jobID = "waterfall"

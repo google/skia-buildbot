@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	goldctl_mocks "go.skia.org/infra/gold-client/go/mocks"
 	"go.skia.org/infra/golden/go/diff/mocks"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/databuilder"
@@ -34,7 +34,7 @@ func TestCalculateDiffs_NoExistingData_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
-	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	waitForSystemTime()
 	w := newWorkerUsingImagesFromKitchenSink(t, db)
@@ -75,7 +75,7 @@ func TestCalculateDiffs_MultipleBatches_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
-	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	waitForSystemTime()
 	// all images loaded will be the same, so diff values are all zeros.
@@ -105,7 +105,7 @@ func TestCalculateDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
-	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := schema.Tables{DiffMetrics: []schema.DiffMetricRow{
 		sentinelMetricRow(dks.DigestA01Pos, dks.DigestA02Pos), // should not be recomputed
@@ -156,7 +156,7 @@ func TestCalculateDiffs_NoNewMetrics_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
-	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := schema.Tables{DiffMetrics: []schema.DiffMetricRow{
 		sentinelMetricRow(dks.DigestA01Pos, dks.DigestA02Pos), // should not be recomputed
@@ -188,7 +188,7 @@ func TestCalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
-	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := dks.Build()
 	// Remove existing diffs, so the ones for triangle test can be recomputed.
@@ -237,7 +237,7 @@ func TestCalculateDiffs_PrimaryBranchOptOut_NothingComputed(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
-	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := dks.Build()
 	// Remove existing diffs
@@ -262,7 +262,7 @@ func TestCalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
-	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	// Only C03, C04, C05 will be in the last 3 commits for this data.
 	sparseData := makeSparseData()
@@ -301,7 +301,7 @@ func TestCalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
-	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	waitForSystemTime()
 	metricBefore := metrics2.GetCounter("diffcalculator_metricscalculated").Get()
@@ -349,7 +349,7 @@ func TestCalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 2, 2, 2, 2, 0, time.UTC)
-	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	// Write a sentinel error for A04. We expect this to be updated.
 	existingProblem := schema.Tables{ProblemImages: []schema.ProblemImageRow{{
@@ -401,7 +401,7 @@ func TestCalculateDiffs_LeftDigestsComparedOnlyToRightDigests_Success(t *testing
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
-	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := schema.Tables{DiffMetrics: []schema.DiffMetricRow{
 		sentinelMetricRow(dks.DigestA01Pos, dks.DigestA05Unt), // should not be recomputed
@@ -452,7 +452,7 @@ func TestCalculateDiffs_IgnoredTracesNotComparedToEachOther_Success(t *testing.T
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
-	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	// C04 and C05 appear only on ignored traces. C01, C02 appear only on non-ignored traces.
 	// C03 appears on both an ignored trace and an ignored trace.
@@ -652,12 +652,6 @@ func expectedFromKS(t *testing.T, left types.Digest, right types.Digest, ts time
 // clauses in queries. This way, the queries will be accurate.
 func waitForSystemTime() {
 	time.Sleep(150 * time.Millisecond)
-}
-
-func mockTime(ts time.Time) NowSource {
-	mt := goldctl_mocks.NowSource{}
-	mt.On("Now").Return(ts)
-	return &mt
 }
 
 // fsImageSource returns an image from the local file system, looking in a given root directory.

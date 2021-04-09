@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -259,7 +260,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, fileName string) erro
 	}
 
 	// Write the same timestamp to all 3 of these tables.
-	ingestedTime := now(ctx)
+	ingestedTime := now.Now(ctx)
 	if err := g.upsertSourceFile(ctx, sourceFileID[:], fileName, ingestedTime); err != nil {
 		sklog.Errorf("Error writing to SourceFiles for tryjob file %s: %s", fileName, err)
 		return ingestion.ErrRetryable

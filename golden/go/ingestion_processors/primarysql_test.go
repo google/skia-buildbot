@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql/databuilder"
@@ -1221,7 +1222,7 @@ func d(digest types.Digest) []byte {
 }
 
 func overwriteNow(ctx context.Context, ts time.Time) context.Context {
-	return context.WithValue(ctx, overwriteNowKey, ts)
+	return context.WithValue(ctx, now.ContextKey, ts)
 }
 
 // makeDataForTileTests returns a data set that has some gaps for new data to be inserted in
