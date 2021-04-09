@@ -6,6 +6,7 @@ package builders
 
 import (
 	"context"
+	"io/fs"
 	"sync"
 
 	"github.com/jackc/pgx/v4"
@@ -19,6 +20,7 @@ import (
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/file/dirsource"
 	"go.skia.org/infra/perf/go/file/gcssource"
+	"go.skia.org/infra/perf/go/filestore/gcs"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/sqlregressionstore"
@@ -185,4 +187,12 @@ func NewSourceFromConfig(ctx context.Context, instanceConfig *config.InstanceCon
 	default:
 		return nil, skerr.Fmt("Unknown source_type: %q", instanceConfig.IngestionConfig.SourceConfig.SourceType)
 	}
+}
+
+// NewIngestedFSFromConfig creates a new fs.FS from the InstanceConfig which
+// provides access to ingested files.
+//
+// If local is true then we aren't running in production.
+func NewIngestedFSFromConfig(ctx context.Context, _ *config.InstanceConfig, local bool) (fs.FS, error) {
+	return gcs.New(ctx, local)
 }
