@@ -116,7 +116,7 @@ var (
 	}
 
 	CIPD_PLATFORMS = []string{
-		"--platform", "@io_bazel_rules_go//go/toolchain:darwin_amd64=darwin-amd64",
+		"--platform", "@io_bazel_rules_go//go/toolchain:darwin_amd64=mac-amd64",
 		"--platform", "@io_bazel_rules_go//go/toolchain:linux_amd64=linux-amd64",
 		"--platform", "@io_bazel_rules_go//go/toolchain:windows_amd64=windows-amd64",
 	}
