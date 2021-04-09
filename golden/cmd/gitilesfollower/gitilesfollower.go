@@ -332,7 +332,8 @@ func storeCommits(ctx context.Context, db *pgxpool.Pool, lastCommitID int64, com
 // that have landed. Then, it starts a go routine to continue this periodically.
 func checkForLanded(ctx context.Context, db *pgxpool.Pool, client *http.Client, rfc repoFollowerConfig) error {
 	if len(rfc.ReposToMonitorCLs) == 0 {
-		return skerr.Fmt("No repos to monitor landed CLs")
+		sklog.Infof("No repos to monitor landed CLs")
+		return nil
 	}
 	sklog.Infof("Doing initial check for landed CLs")
 	var gClients []*gitiles.Repo
