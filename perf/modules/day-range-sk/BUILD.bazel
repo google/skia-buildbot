@@ -2,7 +2,10 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_pu
 
 sk_element(
     name = "day-range-sk",
-    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+        "//infra-sk:elements-sk_scss",
+    ],
     sass_srcs = ["day-range-sk.scss"],
     sk_element_deps = ["//perf/modules/calendar-input-sk"],
     ts_deps = [
