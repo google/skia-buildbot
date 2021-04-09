@@ -289,6 +289,17 @@ func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.Re
 					tsDeps = append(tsDeps, ruleKindAndLabel.label)
 				}
 			}
+			// Heuristic: If this is an elements-sk TypeScript import, then we probably need the
+			// elements-sk styles as well. This is necessary to support the "ghost" stylesheet mechanism
+			// in the sk_element and sk_page macros which includes automatically generated Sass imports
+			// for the stylesheets of any elements-sk modules imported from the TypeScript sources.
+			if importPath == "elements-sk" || strings.HasPrefix(importPath, "elements-sk/") {
+				elementsSkScssLabel, err := label.Parse("//infra-sk:elements-sk_scss")
+				if err != nil {
+					log.Fatal(err)
+				}
+				sassDeps = append(sassDeps, elementsSkScssLabel)
+			}
 		}
 		for _, importPath := range importsFromRuleSources.GetSassImports() {
 			ruleKindAndLabel := rslv.resolveDepForSassImport(r.Kind(), from, importPath)
