@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a966c9c4_eae420b6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-04-09T15:36:28Z",
+      "side": 1,
+      "message": "Upon further reflection I realized perfgit.New() already does git authentication, so\nthe auth code isn\u0027t needed here. Modified the CL to purely remove it.",
+      "revId": "60dcb4fa59b328e531f65df4ddc19fa53fd1de89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
