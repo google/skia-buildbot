@@ -22,6 +22,7 @@ import (
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -57,19 +58,6 @@ import (
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/web/frontend"
 )
-
-func TestStubbedNow_ReplacesActualNow(t *testing.T) {
-	unittest.SmallTest(t)
-	fakeNow := time.Date(2020, time.January, 2, 3, 4, 5, 0, time.UTC)
-	wh := Handlers{}
-	assert.NotEqual(t, fakeNow, wh.now())
-
-	wh.testingNow = fakeNow
-	// Now, it's always the same
-	assert.Equal(t, fakeNow, wh.now())
-	assert.Equal(t, fakeNow, wh.now())
-	assert.Equal(t, fakeNow, wh.now())
-}
 
 func TestStubbedAuthAs_OverridesLoginLogicWithHardCodedEmail(t *testing.T) {
 	unittest.SmallTest(t)
@@ -1209,11 +1197,11 @@ func TestAddIgnoreRule_SunnyDay_Success(t *testing.T) {
 			IgnoreStore: mis,
 		},
 		testingAuthAs: user,
-		testingNow:    fakeNow,
 	}
 	w := httptest.NewRecorder()
 	body := strings.NewReader(`{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`)
 	r := httptest.NewRequest(http.MethodPost, requestURL, body)
+	r = overwriteNow(r, fakeNow)
 	wh.AddIgnoreRule(w, r)
 
 	assertJSONResponseWas(t, http.StatusOK, `{"added":"true"}`, w)
@@ -1321,12 +1309,12 @@ func TestUpdateIgnoreRule_SunnyDay_Success(t *testing.T) {
 			IgnoreStore: mis,
 		},
 		testingAuthAs: user,
-		testingNow:    fakeNow,
 	}
 	w := httptest.NewRecorder()
 	body := strings.NewReader(`{"duration": "1w", "filter": "a=b&c=d", "note": "skbug:9744"}`)
 	r := httptest.NewRequest(http.MethodPost, requestURL, body)
 	r = setID(r, id)
+	r = overwriteNow(r, fakeNow)
 	wh.UpdateIgnoreRule(w, r)
 
 	assertJSONResponseWas(t, http.StatusOK, `{"updated":"true"}`, w)
@@ -3132,4 +3120,10 @@ func initCaches(handlers Handlers) Handlers {
 	}
 	handlers.clSummaryCache = clcache
 	return handlers
+}
+
+// overwriteNow adds the provided time to the request's context (which is returned as a shallow
+// copy of the original request).
+func overwriteNow(r *http.Request, fakeNow time.Time) *http.Request {
+	return r.WithContext(context.WithValue(r.Context(), now.ContextKey, fakeNow))
 }

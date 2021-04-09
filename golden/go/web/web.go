@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -118,7 +119,6 @@ type Handlers struct {
 
 	// These can be set for unit tests to simplify the testing.
 	testingAuthAs string
-	testingNow    time.Time
 }
 
 // NewHandlers returns a new instance of Handlers.
@@ -877,7 +877,8 @@ func (wh *Handlers) UpdateIgnoreRule(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "invalid ignore rule input", http.StatusBadRequest)
 		return
 	}
-	ignoreRule := ignore.NewRule(user, wh.now().Add(expiresInterval), irb.Filter, irb.Note)
+	ts := now.Now(r.Context())
+	ignoreRule := ignore.NewRule(user, ts.Add(expiresInterval), irb.Filter, irb.Note)
 	ignoreRule.ID = id
 	if err := wh.IgnoreStore.Update(r.Context(), ignoreRule); err != nil {
 		httputils.ReportError(w, err, "Unable to update ignore rule", http.StatusInternalServerError)
@@ -948,8 +949,8 @@ func (wh *Handlers) AddIgnoreRule(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "invalid ignore rule input", http.StatusBadRequest)
 		return
 	}
-
-	ignoreRule := ignore.NewRule(user, wh.now().Add(expiresInterval), irb.Filter, irb.Note)
+	ts := now.Now(r.Context())
+	ignoreRule := ignore.NewRule(user, ts.Add(expiresInterval), irb.Filter, irb.Note)
 	if err := wh.IgnoreStore.Create(r.Context(), ignoreRule); err != nil {
 		httputils.ReportError(w, err, "Failed to create ignore rule", http.StatusInternalServerError)
 		return
@@ -1741,13 +1742,6 @@ func (wh *Handlers) ChangelistSearchRedirect(w http.ResponseWriter, r *http.Requ
 	withCorpus := baseURL + "&corpus=" + digestList.Corpora[0]
 	sklog.Debugf("Redirecting to %s", withCorpus)
 	http.Redirect(w, r, withCorpus, http.StatusTemporaryRedirect)
-}
-
-func (wh *Handlers) now() time.Time {
-	if !wh.testingNow.IsZero() {
-		return wh.testingNow
-	}
-	return time.Now()
 }
 
 func (wh *Handlers) loggedInAs(r *http.Request) string {

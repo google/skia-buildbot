@@ -10,9 +10,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -22,10 +24,10 @@ func TestNew(t *testing.T) {
 
 	// Gather some DeployableUnits to pass to New() as parameters.
 	s := ProductionDeployableUnits()
-	deployableUnits := []DeployableUnit{}
+	var deployableUnits []DeployableUnit
 	deployableUnits = appendUnit(t, deployableUnits, s, Skia, DiffCalculator) // Regular deployment.
 	deployableUnits = appendUnit(t, deployableUnits, s, SkiaPublic, Frontend) // Public deployment with non-templated ConfigMap.
-	canariedDeployableUnits := []DeployableUnit{}
+	var canariedDeployableUnits []DeployableUnit
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Skia, IngestionBT)       // Regular deployment with templated ConfigMap.
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, DiffCalculator) // Internal deployment.
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, IngestionBT)    // Internal deployment with templated ConfigMap.
@@ -113,10 +115,10 @@ func TestGoldpushk_RegenerateConfigFiles_Success(t *testing.T) {
 
 	// Test on a good combination of different types of deployments.
 	s := ProductionDeployableUnits()
-	deployableUnits := []DeployableUnit{}
+	var deployableUnits []DeployableUnit
 	deployableUnits = appendUnit(t, deployableUnits, s, Skia, DiffCalculator) // Regular deployment.
 	deployableUnits = appendUnit(t, deployableUnits, s, SkiaPublic, Frontend) // Public deployment with non-templated ConfigMap.
-	canariedDeployableUnits := []DeployableUnit{}
+	var canariedDeployableUnits []DeployableUnit
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Skia, IngestionBT)       // Regular deployment with templated ConfigMap.
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, DiffCalculator) // Internal deployment.
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, IngestionBT)    // Internal deployment with templated ConfigMap.
@@ -129,14 +131,13 @@ func TestGoldpushk_RegenerateConfigFiles_Success(t *testing.T) {
 
 		// Fake out the copy
 		disableCopyingConfigsToCheckout: true,
-
-		fakeNow: time.Date(2020, time.July, 6, 5, 4, 3, 0, time.UTC),
 	}
 	addFakeK8sConfigRepoCheckout(&g)
-
 	// Set up mocks.
 	commandCollector := exec.CommandCollector{}
 	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
+	fakeNow := time.Date(2020, time.July, 6, 5, 4, 3, 0, time.UTC)
+	commandCollectorCtx = context.WithValue(commandCollectorCtx, now.ContextKey, fakeNow)
 
 	// Call code under test.
 	err := g.regenerateConfigFiles(commandCollectorCtx)
@@ -416,7 +417,7 @@ func TestGoldpushk_PushCanaries_Success(t *testing.T) {
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
-	units := []DeployableUnit{}
+	var units []DeployableUnit
 	units = appendUnit(t, units, s, Skia, DiffCalculator)    // Public.
 	units = appendUnit(t, units, s, Skia, IngestionBT)       // Public, with config map.
 	units = appendUnit(t, units, s, Fuchsia, DiffCalculator) // Internal.
@@ -466,7 +467,7 @@ func TestGoldpushk_PushCanaries_FlagDryRunSet_DoesNotPush(t *testing.T) {
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
-	units := []DeployableUnit{}
+	var units []DeployableUnit
 	units = appendUnit(t, units, s, Skia, DiffCalculator)    // Public.
 	units = appendUnit(t, units, s, Skia, IngestionBT)       // Public, with config map.
 	units = appendUnit(t, units, s, Fuchsia, DiffCalculator) // Internal.
@@ -508,7 +509,7 @@ func TestGoldpushk_PushServices_Success(t *testing.T) {
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
-	units := []DeployableUnit{}
+	var units []DeployableUnit
 	units = appendUnit(t, units, s, Skia, DiffCalculator)    // Public.
 	units = appendUnit(t, units, s, Skia, IngestionBT)       // Public, with config map.
 	units = appendUnit(t, units, s, Fuchsia, DiffCalculator) // Internal.
@@ -558,7 +559,7 @@ func TestGoldpushk_PushServices_FlagDryRunSet_DoesNotPush(t *testing.T) {
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
-	units := []DeployableUnit{}
+	var units []DeployableUnit
 	units = appendUnit(t, units, s, Skia, DiffCalculator)    // Public.
 	units = appendUnit(t, units, s, Skia, IngestionBT)       // Public, with config map.
 	units = appendUnit(t, units, s, Fuchsia, DiffCalculator) // Internal.
@@ -600,7 +601,7 @@ func TestGoldpushk_GetUptimesSingleCluster_Success(t *testing.T) {
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
-	units := []DeployableUnit{}
+	var units []DeployableUnit
 	units = appendUnit(t, units, s, Chrome, BaselineServer)
 	units = appendUnit(t, units, s, Chrome, DiffCalculator)
 	units = appendUnit(t, units, s, Flutter, BaselineServer)
@@ -618,12 +619,11 @@ func TestGoldpushk_GetUptimesSingleCluster_Success(t *testing.T) {
 		return nil
 	})
 	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
-
-	// Fake time.
-	now := time.Date(2019, 10, 01, 17, 30, 0, 0, time.UTC) // 2019-10-01T17:30:00Z
+	fakeNow := time.Date(2019, 10, 01, 17, 30, 0, 0, time.UTC) // 2019-10-01T17:30:00Z
+	commandCollectorCtx = context.WithValue(commandCollectorCtx, now.ContextKey, fakeNow)
 
 	// Call code under test.
-	uptime, err := g.getUptimesSingleCluster(commandCollectorCtx, units, now)
+	uptime, err := g.getUptimesSingleCluster(commandCollectorCtx, units)
 	require.NoError(t, err)
 
 	// Assert that we get the expected uptimes.
@@ -644,7 +644,7 @@ func TestGoldpushk_GetUptimes_Success(t *testing.T) {
 
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
-	units := []DeployableUnit{}
+	var units []DeployableUnit
 	units = appendUnit(t, units, s, Chrome, DiffCalculator)  // Public instance (skia-public).
 	units = appendUnit(t, units, s, Fuchsia, DiffCalculator) // Internal instance (skia-corp).
 
@@ -675,12 +675,11 @@ func TestGoldpushk_GetUptimes_Success(t *testing.T) {
 		return nil
 	})
 	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
-
-	// Fake time.
-	now := time.Date(2019, 9, 24, 17, 58, 2, 0, time.UTC) // 2019-09-24T17:58:02Z
+	fakeNow := time.Date(2019, 9, 24, 17, 58, 2, 0, time.UTC) // 2019-09-24T17:58:02Z
+	commandCollectorCtx = context.WithValue(commandCollectorCtx, now.ContextKey, fakeNow)
 
 	// Call code under test.
-	uptime, err := g.getUptimes(commandCollectorCtx, units, now)
+	uptime, err := g.getUptimes(commandCollectorCtx, units)
 	require.NoError(t, err)
 
 	// Assert that the correct kubectl and gcloud commands were executed.
@@ -707,7 +706,7 @@ func TestGoldpushk_Monitor_Success(t *testing.T) {
 
 	// Gather the DeployableUnits to monitor.
 	s := ProductionDeployableUnits()
-	units := []DeployableUnit{}
+	var units []DeployableUnit
 	units = appendUnit(t, units, s, Chrome, BaselineServer)
 	units = appendUnit(t, units, s, Chrome, DiffCalculator)
 	units = appendUnit(t, units, s, Chrome, IngestionBT)
@@ -784,7 +783,7 @@ func TestGoldpushk_Monitor_Success(t *testing.T) {
 	numTimesMockUptimesFnWasCalled := 0
 
 	// Mock uptimesFn.
-	mockUptimesFn := func(_ context.Context, uptimesFnUnits []DeployableUnit, _ time.Time) (map[DeployableUnitID]time.Duration, error) {
+	mockUptimesFn := func(_ context.Context, uptimesFnUnits []DeployableUnit) (map[DeployableUnitID]time.Duration, error) {
 		require.Equal(t, units, uptimesFnUnits)
 		uptimes := mockUptimes[numTimesMockUptimesFnWasCalled]
 		numTimesMockUptimesFnWasCalled += 1
@@ -828,7 +827,7 @@ func TestGoldpushk_Monitor_FlagDryRunSet_DoesNotMonitor(t *testing.T) {
 
 	// Gather the DeployableUnits to monitor.
 	s := ProductionDeployableUnits()
-	units := []DeployableUnit{}
+	var units []DeployableUnit
 	units = appendUnit(t, units, s, Chrome, BaselineServer)
 	units = appendUnit(t, units, s, Chrome, DiffCalculator)
 	units = appendUnit(t, units, s, Chrome, IngestionBT)
@@ -845,7 +844,7 @@ func TestGoldpushk_Monitor_FlagDryRunSet_DoesNotMonitor(t *testing.T) {
 	defer restoreStdout()
 
 	// Mock uptimesFn.
-	mockUptimesFn := func(_ context.Context, _ []DeployableUnit, _ time.Time) (map[DeployableUnitID]time.Duration, error) {
+	mockUptimesFn := func(_ context.Context, _ []DeployableUnit) (map[DeployableUnitID]time.Duration, error) {
 		require.Fail(t, "uptimesFn should never be called in dry mode")
 		return nil, nil
 	}
@@ -969,8 +968,8 @@ func fakeStdin(t *testing.T, userInput string) (cleanup func()) {
 // assertNumCommits asserts that the given Git repository has the given number of commits.
 func assertNumCommits(t *testing.T, ctx context.Context, repo *testutils.GitBuilder, n int64) {
 	clone, err := git.NewTempCheckout(ctx, repo.RepoUrl())
-	defer clone.Delete()
 	require.NoError(t, err)
+	defer clone.Delete()
 	actualN, err := clone.NumCommits(ctx)
 	require.NoError(t, err)
 	require.Equal(t, n, actualN)
