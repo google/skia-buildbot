@@ -15,6 +15,7 @@ sk_element(
 sk_page(
     name = "app-sk-demo",
     html_file = "app-sk-demo.html",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
     scss_entry_point = "app-sk-demo.scss",
     sk_element_deps = [
         "//infra-sk/modules/login-sk",
