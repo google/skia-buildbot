@@ -17,7 +17,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"time"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/gold-client/go/imgmatching"
@@ -127,10 +126,6 @@ type GoldClientDebug interface {
 	// DumpKnownHashes returns a human-readable representation of the known image digests
 	// which is a list of hashes.
 	DumpKnownHashes() (string, error)
-}
-
-type NowSource interface {
-	Now() time.Time
 }
 
 // CloudClient implements the GoldClient interface for the remote Gold service.

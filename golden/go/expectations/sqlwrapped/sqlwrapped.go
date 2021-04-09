@@ -3,7 +3,6 @@ package sqlwrapped
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/google/uuid"
@@ -11,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/expectations"
@@ -102,7 +102,7 @@ func writeRecord(ctx context.Context, tx pgx.Tx, userID string, numChanges int, 
 	}
 	const statement = `INSERT INTO ExpectationRecords
 (user_name, triage_time, num_changes, branch_name) VALUES ($1, $2, $3, $4) RETURNING expectation_record_id`
-	row := tx.QueryRow(ctx, statement, userID, now(ctx), numChanges, br)
+	row := tx.QueryRow(ctx, statement, userID, now.Now(ctx), numChanges, br)
 	var recordUUID uuid.UUID
 	err := row.Scan(&recordUUID)
 	if err != nil {
@@ -287,7 +287,7 @@ func (i *Impl) UndoChange(ctx context.Context, changeID, userID string) error {
 	}
 	const statement = `INSERT INTO DeprecatedExpectationUndos (expectation_id, user_id, ts)
 VALUES ($1, $2, $3)`
-	_, err = i.sqlDB.Exec(ctx, statement, changeID, userID, now(ctx))
+	_, err = i.sqlDB.Exec(ctx, statement, changeID, userID, now.Now(ctx))
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -324,16 +324,3 @@ func convertLabel(label expectations.Label) schema.ExpectationLabel {
 
 // Make sure Impl fulfills the expectations.Store interface
 var _ expectations.Store = (*Impl)(nil)
-
-// overwriteNowKey is used by tests to make the time deterministic.
-const overwriteNowKey = contextKey("overwriteNow")
-
-type contextKey string
-
-// now returns the current time or the time from the context.
-func now(ctx context.Context) time.Time {
-	if ts := ctx.Value(overwriteNowKey); ts != nil {
-		return ts.(time.Time)
-	}
-	return time.Now()
-}

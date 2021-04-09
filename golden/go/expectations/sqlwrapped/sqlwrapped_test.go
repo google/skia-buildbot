@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -816,5 +817,5 @@ func d(digest types.Digest) []byte {
 }
 
 func overwriteNow(ctx context.Context, ts time.Time) context.Context {
-	return context.WithValue(ctx, overwriteNowKey, ts)
+	return context.WithValue(ctx, now.ContextKey, ts)
 }

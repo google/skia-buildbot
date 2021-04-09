@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -386,7 +387,7 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 			return false
 		}
 		// TODO(kjlubick) Processors should mark the SourceFiles table as ingested, not here.
-		if err := p.IngestionStore.SetIngested(ctx, name, now(ctx)); err != nil {
+		if err := p.IngestionStore.SetIngested(ctx, name, now.Now(ctx)); err != nil {
 			sklog.Errorf("Could not write to ingestion store: %s", err)
 			// We'll continue anyway. The IngestionStore is not a big deal.
 		}
@@ -468,8 +469,8 @@ func startBackupPolling(ctx context.Context, isc ingestionServerConfig, sourcesT
 }
 
 func getTimesToPoll(ctx context.Context, duration time.Duration) (time.Time, time.Time) {
-	now := now(ctx)
-	return now.Add(-duration), now
+	endTS := now.Now(ctx)
+	return endTS.Add(-duration), endTS
 }
 
 func startMetrics(ctx context.Context, pss *pubSubSource) {
@@ -491,17 +492,4 @@ func startMetrics(ctx context.Context, pss *pubSubSource) {
 			}
 		}
 	}()
-}
-
-// overwriteNowKey is used by tests to make the time deterministic.
-const overwriteNowKey = contextKey("overwriteNow")
-
-type contextKey string
-
-// now returns the current time or the time from the context.
-func now(ctx context.Context) time.Time {
-	if ts := ctx.Value(overwriteNowKey); ts != nil {
-		return ts.(time.Time)
-	}
-	return time.Now()
 }
