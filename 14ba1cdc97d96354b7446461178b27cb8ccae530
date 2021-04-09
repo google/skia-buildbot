@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4aa99fe6_50bbc77f",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-09T13:22:34Z",
+      "side": 1,
+      "message": "Generally we like to name these like \"child-parent-autoroll\".  Let\u0027s call this \"rts-linux-amd64-chromium-autoroll\".",
+      "range": {
+        "startLine": 4,
+        "startChar": 15,
+        "endLine": 4,
+        "endChar": 48
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d9a52a82_eee67bdf",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-09T13:22:34Z",
+      "side": 1,
+      "message": "These are actually flipped; the child is rolled into the parent.",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 33
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b9be422f_027c07f5",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-09T13:22:34Z",
+      "side": 1,
+      "message": "Should probably be \"https://build.chromium.org\"",
+      "range": {
+        "startLine": 7,
+        "startChar": 20,
+        "endLine": 7,
+        "endChar": 85
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c2e42b07_dea21d29",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-09T13:22:34Z",
+      "side": 1,
+      "message": "These should be borenet@google.com and rmistry@google.com, respectively.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 28
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "35c353f7_14b4c6be",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-09T13:22:34Z",
+      "side": 1,
+      "message": "Is there a team email address we could use instead, in case you\u0027re OOO?",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 29
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d3971dfa_6ac50069",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-09T13:22:34Z",
+      "side": 1,
+      "message": "This should be \"chromium-autoroll@skia-public.iam.gserviceaccount.com\"",
+      "range": {
+        "startLine": 11,
+        "startChar": 19,
+        "endLine": 11,
+        "endChar": 23
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
