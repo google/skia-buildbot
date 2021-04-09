@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "755883fb_4703093e",
+        "filename": "perf/go/filestore/gcs/gcs.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-09T15:30:41Z",
+      "side": 1,
+      "message": "I think this could be a pure function, which would remove the slight awkwardness in the tests.",
+      "range": {
+        "startLine": 46,
+        "startChar": 6,
+        "endLine": 46,
+        "endChar": 19
+      },
+      "revId": "7022762863e96d7c287f9ed6d5aeaa565ac751ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
