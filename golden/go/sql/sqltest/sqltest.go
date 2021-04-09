@@ -12,18 +12,20 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
 )
 
 // NewCockroachDBForTests creates a randomly named database on a test CockroachDB instance (aka the
 // CockroachDB emulator). The returned pool will automatically be closed after the test finishes.
-func NewCockroachDBForTests(ctx context.Context, t *testing.T) *pgxpool.Pool {
+func NewCockroachDBForTests(ctx context.Context, t testing.TB) *pgxpool.Pool {
 	unittest.RequiresCockroachDB(t)
 	out, err := exec.Command("cockroach", "version").CombinedOutput()
 	require.NoError(t, err, "Do you have 'cockroach' on your path? %s", out)
@@ -56,7 +58,7 @@ this sets up a real version of cockroachdb.
 
 // NewCockroachDBForTestsWithProductionSchema returns a SQL database with the production
 // schema. It will be aimed at a randomly named database.
-func NewCockroachDBForTestsWithProductionSchema(ctx context.Context, t *testing.T) *pgxpool.Pool {
+func NewCockroachDBForTestsWithProductionSchema(ctx context.Context, t testing.TB) *pgxpool.Pool {
 	db := NewCockroachDBForTests(ctx, t)
 	_, err := db.Exec(ctx, schema.Schema)
 	require.NoError(t, err)
@@ -109,9 +111,10 @@ func BulkInsertDataTables(ctx context.Context, db *pgxpool.Pool, tables interfac
 func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table reflect.Value) error {
 	var arguments []interface{}
 	var colNames []string
+	numRows := table.Len()
 	// Go through each element of the table slice, cast it to ToSQLRow and then call that
 	// function on it to get the arguments needed for that row.
-	for j := 0; j < table.Len(); j++ {
+	for j := 0; j < numRows; j++ {
 		r := table.Index(j)
 		row, ok := r.Interface().(SQLExporter)
 		if !ok {
@@ -129,12 +132,18 @@ func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table refl
 	if len(arguments) == 0 {
 		return nil
 	}
+	numCols := len(colNames)
+	// a chunkSize of 3000 means we can stay under the 64k number limit as long as there are
+	// fewer than 22 columns, which should be realistic for all our tables.
+	err := util.ChunkIter(numRows, 3000, func(startIdx int, endIdx int) error {
+		argBatch := arguments[startIdx*numCols : endIdx*numCols]
+		vp := sql.ValuesPlaceholders(numCols, endIdx-startIdx)
+		insert := fmt.Sprintf(`INSERT INTO %s (%s) VALUES %s`, name, strings.Join(colNames, ","), vp)
 
-	vp := sql.ValuesPlaceholders(len(colNames), table.Len())
-	insert := fmt.Sprintf(`INSERT INTO %s (%s) VALUES %s`, name, strings.Join(colNames, ","), vp)
-
-	_, err := db.Exec(ctx, insert, arguments...)
-	return skerr.Wrapf(err, "Inserting %d rows into table %s", table.Len(), name)
+		_, err := db.Exec(ctx, insert, argBatch...)
+		return skerr.Wrapf(err, "batch: %d-%d (%d-%d)", startIdx, endIdx, startIdx*numCols, endIdx*numCols)
+	})
+	return skerr.Wrapf(err, "Inserting %d rows into table %s", numRows, name)
 }
 
 // GetAllRows returns all rows for a given table. The passed in row param must be a pointer type
@@ -173,4 +182,28 @@ func GetAllRows(ctx context.Context, t *testing.T, db *pgxpool.Pool, table strin
 	}
 	// Return the slice as type interface{}; It can be type asserted to []RowType by the caller.
 	return rv.Interface()
+}
+
+// AssertNoFullTableScans runs the given query with an explain and ensures the plan does not
+// include a full table scan.
+func AssertNoFullTableScans(t *testing.T, db *pgxpool.Pool, statement string, args ...interface{}) {
+	assert.NotContains(t, GetExplain(t, db, statement, args...), "FULL")
+}
+
+// GetExplain returns the query plan for a given statement and arguments.
+func GetExplain(t *testing.T, db *pgxpool.Pool, statement string, args ...interface{}) string {
+	rows, err := db.Query(context.Background(), "EXPLAIN "+statement, args...)
+	require.NoError(t, err)
+	defer rows.Close()
+
+	var explainRows []string
+	for rows.Next() {
+		var tree string
+		var field string
+		var desc string
+		err := rows.Scan(&tree, &field, &desc)
+		require.NoError(t, err)
+		explainRows = append(explainRows, fmt.Sprintf("%s | %s | %s", tree, field, desc))
+	}
+	return strings.Join(explainRows, "\n")
 }
