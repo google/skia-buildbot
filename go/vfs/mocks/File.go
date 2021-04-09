@@ -4,7 +4,7 @@ package mocks
 
 import (
 	context "context"
-	os "os"
+	fs "io/fs"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -50,15 +50,15 @@ func (_m *File) Read(ctx context.Context, buf []byte) (int, error) {
 }
 
 // ReadDir provides a mock function with given fields: ctx, n
-func (_m *File) ReadDir(ctx context.Context, n int) ([]os.FileInfo, error) {
+func (_m *File) ReadDir(ctx context.Context, n int) ([]fs.FileInfo, error) {
 	ret := _m.Called(ctx, n)
 
-	var r0 []os.FileInfo
-	if rf, ok := ret.Get(0).(func(context.Context, int) []os.FileInfo); ok {
+	var r0 []fs.FileInfo
+	if rf, ok := ret.Get(0).(func(context.Context, int) []fs.FileInfo); ok {
 		r0 = rf(ctx, n)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]os.FileInfo)
+			r0 = ret.Get(0).([]fs.FileInfo)
 		}
 	}
 
@@ -73,15 +73,15 @@ func (_m *File) ReadDir(ctx context.Context, n int) ([]os.FileInfo, error) {
 }
 
 // Stat provides a mock function with given fields: ctx
-func (_m *File) Stat(ctx context.Context) (os.FileInfo, error) {
+func (_m *File) Stat(ctx context.Context) (fs.FileInfo, error) {
 	ret := _m.Called(ctx)
 
-	var r0 os.FileInfo
-	if rf, ok := ret.Get(0).(func(context.Context) os.FileInfo); ok {
+	var r0 fs.FileInfo
+	if rf, ok := ret.Get(0).(func(context.Context) fs.FileInfo); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(os.FileInfo)
+			r0 = ret.Get(0).(fs.FileInfo)
 		}
 	}
 
