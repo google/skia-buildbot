@@ -428,7 +428,17 @@ def sk_page(
             "%s/%s.js" % (assets_serving_path, name),
             "%s/%s.css" % (assets_serving_path, name),
         ],
-        data = [html_file],
+        data = [
+            html_file,
+            # This rule does not use the bundles directly, but by declaring them as dependencies via
+            # the "data" argument, we guarantee that Bazel will rebuild <name>.with_assets.html any
+            # time the bundles change. This refreshes the asset URL query parameters added by this
+            # rule for cache busting purposes.
+            "%s_js_dev" % name,
+            "%s_js_prod" % name,
+            "%s_css_dev" % name,
+            "%s_css_prod" % name,
+        ],
     )
 
     if nonce:
