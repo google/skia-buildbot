@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9aa8fd0_ee9aae3c",
+        "filename": "go/supported_branches/cmd/new-branch/helper/helper.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-12T17:29:35Z",
+      "side": 1,
+      "message": "This is temporary; I plan to move it into release-branch after this lands and is rolled into Skia, to prevent the existing branch scripts (which call new-branch) from breaking.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 14
+      },
+      "revId": "35b00661d2c81ef3884ef165c2da44e4fe708517",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
