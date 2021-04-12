@@ -10,9 +10,11 @@ go_library(
         "//go/emulators",
         "//go/skerr",
         "//go/testutils/unittest",
+        "//go/util",
         "//golden/go/sql",
         "//golden/go/sql/schema",
         "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],
 )
