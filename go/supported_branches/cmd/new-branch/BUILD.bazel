@@ -6,17 +6,9 @@ go_library(
     importpath = "go.skia.org/infra/go/supported_branches/cmd/new-branch",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
-        "//go/cq",
-        "//go/gerrit",
-        "//go/git",
-        "//go/gitiles",
-        "//go/httputils",
         "//go/sklog",
-        "//go/supported_branches",
-        "//go/util",
-        "@org_chromium_go_luci//cv/api/config/v2:config",
+        "//go/supported_branches/cmd/new-branch/helper",
     ],
 )
 

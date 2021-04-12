@@ -269,3 +269,16 @@ func AddTrailer(commitMsg, trailer string) (string, error) {
 	trailers = append(trailers, trailer)
 	return JoinTrailers(body, trailers), nil
 }
+
+// FullyQualifiedBranchName ensures that the branch has the refs/heads/ prefix.
+func FullyQualifiedBranchName(branch string) string {
+	if strings.HasPrefix(branch, git_common.RefsHeadsPrefix) {
+		return branch
+	}
+	return git_common.RefsHeadsPrefix + branch
+}
+
+// BranchBaseName ensures that the branch does not have the refs/heads/ prefix.
+func BranchBaseName(branch string) string {
+	return strings.TrimPrefix(branch, git_common.RefsHeadsPrefix)
+}

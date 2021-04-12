@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "helper",
+    srcs = ["helper.go"],
+    importpath = "go.skia.org/infra/go/supported_branches/cmd/new-branch/helper",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/cq",
+        "//go/gerrit",
+        "//go/git",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/supported_branches",
+        "//go/util",
+        "@org_chromium_go_luci//cv/api/config/v2:config",
+    ],
+)

@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "release-branch",
+    srcs = ["release-branch.go"],
+    importpath = "go.skia.org/infra/sk/go/release-branch",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/gerrit",
+        "//go/git",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/supported_branches/cmd/new-branch/helper",
+        "@com_github_urfave_cli_v2//:cli",
+    ],
+)
