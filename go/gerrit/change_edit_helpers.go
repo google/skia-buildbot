@@ -83,3 +83,35 @@ func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch
 
 	return ci2, skerr.Wrap(backoff.Retry(loadChange, exp))
 }
+
+// CreateCLWithChanges is a helper which creates a new Change in the given
+// project based on the given branch with the given commit message and the given
+// map of filepath to new file contents. If submit is true, the change is marked
+// with the self-approval label(s) and submitted.
+func CreateCLWithChanges(ctx context.Context, g GerritInterface, project, branch, commitMsg, baseCommit string, changes map[string]string, submit bool) (*ChangeInfo, error) {
+	ci, err := CreateAndEditChange(ctx, g, project, branch, commitMsg, baseCommit, func(ctx context.Context, g GerritInterface, ci *ChangeInfo) error {
+		for filepath, contents := range changes {
+			if err := g.EditFile(ctx, ci, filepath, contents); err != nil {
+				return skerr.Wrap(err)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if submit {
+		if ci.WorkInProgress {
+			if err := g.SetReadyForReview(ctx, ci); err != nil {
+				return ci, skerr.Wrapf(err, "failed to set ready for review")
+			}
+		}
+		if err := g.SetReview(ctx, ci, "", g.Config().SelfApproveLabels, nil); err != nil {
+			return ci, skerr.Wrapf(err, "failed to set review")
+		}
+		if err := g.Submit(ctx, ci); err != nil {
+			return ci, skerr.Wrapf(err, "failed to submit CL")
+		}
+	}
+	return ci, nil
+}

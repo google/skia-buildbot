@@ -24,12 +24,14 @@ const (
 	DefaultBranch = "master"
 	// DefaultRef is the fully-qualified ref name of the default branch for most
 	// repositories.
-	DefaultRef = "refs/heads/" + DefaultBranch
+	DefaultRef = RefsHeadsPrefix + DefaultBranch
 	// DefaultRemote is the name of the default remote repository.
 	DefaultRemote = "origin"
 	// DefaultRemoteBranch is the name of the default branch in the default
 	// remote repository, for most repos.
 	DefaultRemoteBranch = DefaultRemote + "/" + DefaultBranch
+	// RefsHeadsPrefix is the "refs/heads/" prefix used for branches.
+	RefsHeadsPrefix = "refs/heads/"
 )
 
 var (
