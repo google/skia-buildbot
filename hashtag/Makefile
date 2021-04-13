@@ -1,10 +1,11 @@
-default: build package-lock.json
+default: build
 	npx webpack --mode=development
 
 build:
 	go install ./go/hashtag
 
-release: package-lock.json
+release:
+	cd .. && npm ci
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/hashtag
 	./build_release
@@ -12,7 +13,7 @@ release: package-lock.json
 push: release
 	pushk hashtag
 
-watch: package-lock.json
+watch:
 	npx webpack --mode=development --watch
 
 run: build
@@ -23,10 +24,6 @@ run: build
 test:
 	go test ./go/...
 
-package-lock.json: package.json
-	npm install
-
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	npx webpack --mode=production
