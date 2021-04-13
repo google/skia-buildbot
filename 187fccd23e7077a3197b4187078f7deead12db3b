@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "753d1c7b_5a903a40",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9562
+      },
+      "writtenOn": "2021-04-13T14:24:49Z",
+      "side": 1,
+      "message": "Thanks Eric!\n\nAre changes here immediately made available or is there some amount of time to wait?",
+      "revId": "187fccd23e7077a3197b4187078f7deead12db3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
