@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "23920dc0_8975b786",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-13T16:46:05Z",
+      "side": 1,
+      "message": "Everyone: please review changes to any apps you own.\n\nJoe, please take a look at changes in .bzl files.\n\nKevin, please review changes to the Gazelle extension.",
+      "revId": "1dfce313d9ca710d6e40dcb34d069d2508bdb76e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
