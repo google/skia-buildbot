@@ -98,20 +98,17 @@ puppeteer-tests:
 # All apps with a webpack.config.ts file should be included here.
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	# Generate the //puppeteer-tests/node_modules directory. Some targets will not compile without it.
-	cd puppeteer-tests && npm ci
-
-	# infra-sk needs to be built first because this pulls its NPM dependencies
-	# with "npm ci", which are needed by other apps.
-	cd infra-sk && $(MAKE) build-frontend-ci
-
-	# Other apps can be built in alphabetical order.
+	npm ci
 	cd am && $(MAKE) build-frontend-ci
+	cd autoroll && $(MAKE) build-frontend-ci
+	cd bugs-central && $(MAKE) build-frontend-ci
 	cd ct && $(MAKE) build-frontend-ci
 	cd debugger-app && $(MAKE) build-frontend-ci
 	cd demos && $(MAKE) build-frontend-ci
+	cd fiddlek && $(MAKE) build-frontend-ci
 	cd golden && $(MAKE) build-frontend-ci
 	cd hashtag && $(MAKE) build-frontend-ci
+	cd infra-sk && $(MAKE) build-frontend-ci
 	cd jsfiddle && $(MAKE) build-frontend-ci
 	cd leasing && $(MAKE) build-frontend-ci
 	cd machine && $(MAKE) build-frontend-ci
@@ -121,9 +118,11 @@ build-frontend-ci:
 	cd power && $(MAKE) build-frontend-ci
 	cd pulld && $(MAKE) build-frontend-ci
 	cd push && $(MAKE) build-frontend-ci
+	cd scrap && $(MAKE) build-frontend-ci
 	cd skottie && $(MAKE) build-frontend-ci
 	cd status && $(MAKE) build-frontend-ci
 	cd task_driver && $(MAKE) build-frontend-ci
+	cd task_scheduler && $(MAKE) build-frontend-ci
 	cd tree_status && $(MAKE) build-frontend-ci
 
 # Front-end tests will be included in the Infra-PerCommit-Medium tryjob.
@@ -131,25 +130,22 @@ build-frontend-ci:
 # All apps with a karma.conf.ts file should be included here.
 .PHONY: test-frontend-ci
 test-frontend-ci:
-	# Generate the //puppeteer-tests/node_modules directory. Some targets will not compile without it.
-	cd puppeteer-tests && npm ci
-
-	# infra-sk needs to be tested first because this pulls its NPM dependencies
-	# with "npm ci", which are needed by other apps.
-	cd infra-sk && $(MAKE) test-frontend-ci
-
-	# Other apps can be tested in alphabetical order.
+	npm ci
 	cd am && $(MAKE) test-frontend-ci
 	cd ct && $(MAKE) test-frontend-ci
 	cd debugger-app && $(MAKE) test-frontend-ci
 	cd demos && $(MAKE) test-frontend-ci
+	cd fiddlek && $(MAKE) test-frontend-ci
 	cd golden && $(MAKE) test-frontend-ci
+	cd infra-sk && $(MAKE) test-frontend-ci
 	cd machine && $(MAKE) test-frontend-ci
 	cd new_element && $(MAKE) test-frontend-ci
 	cd perf && $(MAKE) test-frontend-ci
 	cd push && $(MAKE) test-frontend-ci
-	cd fiddlek && $(MAKE) test-frontend-ci
+	cd scrap && $(MAKE) test-frontend-ci
+	cd shaders && $(MAKE) test-frontend-ci
 	cd status && $(MAKE) test-frontend-ci
+	cd task_scheduler && $(MAKE) test-frontend-ci
 
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
