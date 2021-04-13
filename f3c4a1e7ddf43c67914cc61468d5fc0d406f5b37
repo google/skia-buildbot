@@ -16,6 +16,92 @@
       "message": "Eric, please review!",
       "revId": "f3c4a1e7ddf43c67914cc61468d5fc0d406f5b37",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2c896137_f94a9a87",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-13T11:46:54Z",
+      "side": 1,
+      "message": "LGTM with nits",
+      "revId": "f3c4a1e7ddf43c67914cc61468d5fc0d406f5b37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e4c81ae9_1f2b33cf",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-13T11:46:54Z",
+      "side": 1,
+      "message": "Should we make this Errorf to make the error message easier to find later?",
+      "range": {
+        "startLine": 413,
+        "startChar": 8,
+        "endLine": 413,
+        "endChar": 13
+      },
+      "revId": "f3c4a1e7ddf43c67914cc61468d5fc0d406f5b37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "06043452_28c7eb09",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-13T11:46:54Z",
+      "side": 1,
+      "message": "\\n isn\u0027t necessary here",
+      "range": {
+        "startLine": 413,
+        "startChar": 18,
+        "endLine": 413,
+        "endChar": 19
+      },
+      "revId": "f3c4a1e7ddf43c67914cc61468d5fc0d406f5b37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3528ab6c_bd81ceda",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-13T11:46:54Z",
+      "side": 1,
+      "message": "Same comments here",
+      "range": {
+        "startLine": 424,
+        "startChar": 8,
+        "endLine": 424,
+        "endChar": 13
+      },
+      "revId": "f3c4a1e7ddf43c67914cc61468d5fc0d406f5b37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
