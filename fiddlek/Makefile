@@ -7,7 +7,7 @@ build: web
 	mkdir -p ./bin
 	clang++ -O2 ./cpp/fiddle_secwrap.cpp -o ./bin/fiddle_secwrap
 
-web: package-lock.json ./modules/json/index.ts
+web: ./modules/json/index.ts
 	npx webpack --mode=production
 
 testjs:
@@ -16,11 +16,15 @@ testjs:
 debugjs:
 	npx karma start --no-single-run
 
-watch: package-lock.json
+watch:
 	npx webpack --mode=development --watch
 
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	npx webpack --mode=production
+
+.PHONY: test-frontend-ci
 test-frontend-ci:
-	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 testpptr:

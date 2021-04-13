@@ -1,7 +1,7 @@
 
 default: build web
 
-web: ./modules/json/index.ts package-lock.json
+web: ./modules/json/index.ts
 	npx webpack --mode=development
 
 ./modules/json/index.ts: ./go/types/types.go
@@ -10,7 +10,7 @@ web: ./modules/json/index.ts package-lock.json
 build: web
 	go install -v ./go/bugs-central
 
-release: build package-lock.json
+release: build
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/bugs-central
 	./images/bugs-central-server/build_release
@@ -21,21 +21,17 @@ debug:
 push: release
 	pushk --use-temp-checkout bugs-central
 
-serve: package-lock.json
+serve:
 	npx webpack-dev-server --mode=development --watch-poll
 
 testgo:
 	go test ./go/...
 
-watch: package-lock.json
+watch:
 	npx webpack --mode=development --watch
-
-package-lock.json: package.json
-	npm install
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	npx webpack --mode=production
 
 .PHONY: test_js

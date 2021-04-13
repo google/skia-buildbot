@@ -7,9 +7,7 @@ release: wasm_libs_tot sources
 	./images/shaders/release
 
 release_ci: app
-	cd ../infra-sk && npm ci
-	cd ../puppeteer-tests && npm ci
-	npm ci
+	cd .. && npm ci
 	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
 	rm -rf build
 	mkdir -p build/canvaskit
@@ -89,7 +87,10 @@ push: release
 
 .PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs_tot
-	npm ci
+	npx webpack --mode=production
+
+.PHONY: test-frontend-ci
+test-frontend-ci: wasm_libs_tot
 	npx webpack --mode=production
 
 # You can either run a local copy of scrapexchange, or port-forward the production instance:

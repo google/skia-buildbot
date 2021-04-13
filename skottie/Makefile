@@ -21,7 +21,7 @@ release_ci_tot: app
 	cp -r /OUT/* build
 	echo "export const SKIA_VERSION = '`cat /OUT/VERSION`';" > ./build/version.js
 	# Now that we have the canvaskit.wasm etc, we can bundle it in with webpack.
-	cd ../infra-sk && npm ci
+	cd .. && npm ci
 	npm ci
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skottie
@@ -38,12 +38,8 @@ serve: app
 watch: app
 	npx webpack --mode=development --watch
 
-app: package-lock.json
+app:
 	go install ./go/skottie
-
-package-lock.json: package.json
-	npm install
-	touch package-lock.json
 
 push: release
 	pushk skottie
@@ -60,7 +56,7 @@ wasm_libs_tot: get_latest_skia
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
-wasm_libs_fixed: package-lock.json
+wasm_libs_fixed:
 	rm -rf build
 	mkdir -p build/canvaskit
 	cp node_modules/canvaskit-wasm/bin/* build/canvaskit
@@ -70,5 +66,4 @@ wasm_libs_fixed: package-lock.json
 
 .PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs_tot
-	npm ci
 	npx webpack --mode=production
