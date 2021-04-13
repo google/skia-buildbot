@@ -1,8 +1,5 @@
 KGO := CGO_ENABLED=0 GOOS=linux go build
 
-node_modules: package.json
-	npm ci
-
 .PHONY: test
 test: go-test js-test
 	true
@@ -48,12 +45,10 @@ wasm_libs:
 
 .PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs
-	npm ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
 test-frontend-ci: wasm_libs
-	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 release: wasm_libs
@@ -63,9 +58,7 @@ release: wasm_libs
 
 .PHONY: release_ci
 release_ci:
-	cd ../infra-sk && npm ci
-	cd ../puppeteer-tests && npm ci
-	npm ci
+	cd .. && npm ci
 	# Assumes the environment mounts the wasm outputs to /OUT
 	rm -rf build
 	mkdir -p build/

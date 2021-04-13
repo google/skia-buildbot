@@ -21,7 +21,7 @@ describe('PageObjectElement on Puppeter', () => {
 
     // Launch HTTP server on random port.
     await new Promise((resolve) => {
-      httpServer = app.listen(0, resolve);
+      httpServer = app.listen(0, () => resolve(undefined));
     });
     const port = (httpServer!.address() as net.AddressInfo).port;
 

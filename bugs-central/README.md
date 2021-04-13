@@ -15,7 +15,7 @@ Working on the lit-html frontend
 Bugs Central follows the [pulito](https://www.npmjs.com/package/pulito) model of organization
 and uses [webpack](https://webpack.js.org/) to bundle the pages together.
 
-To get started, run `npm ci` in the top `bugs-central` directory. You won't need to run
+To get started, run `npm ci` in the repository's root directory. You won't need to run
 this very often - only when deps are rolled forward.
 
 
