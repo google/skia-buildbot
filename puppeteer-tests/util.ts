@@ -152,7 +152,7 @@ export const startWebpackDemoPageServer = async (pathToWebpackConfigTs: string) 
   const app = express();
   app.use(configuration.output!.publicPath! || '', middleware); // Serve on e.g. /dist.
   let server: http.Server;
-  await new Promise((resolve) => { server = app.listen(0, resolve); });
+  await new Promise((resolve) => { server = app.listen(0, () => resolve(undefined)); });
 
   return {
     // Base URL for the demo page server.
@@ -161,7 +161,7 @@ export const startWebpackDemoPageServer = async (pathToWebpackConfigTs: string) 
     // Call this function to shut down the HTTP server after tests are finished.
     stopDemoPageServer: async () => {
       await Promise.all([
-        new Promise((resolve) => middleware.close(resolve)),
+        new Promise((resolve) => middleware.close(() => resolve(undefined))),
         new Promise((resolve) => server.close(resolve)),
       ]);
     },
