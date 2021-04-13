@@ -14,10 +14,6 @@ build: ./dist
 push: build
 	pushk perfserver
 
-package-lock.json: package.json
-	npm ci
-	touch package-lock.json
-
 build_backup:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/perf-tool
 	./images/backup/release
@@ -38,10 +34,11 @@ MODULES = $(shell find ./modules -type f)
 
 # We can depend on the timestamp of the dist directory since webpack will delete
 # the directory before repopulating it.
-./dist: package-lock.json $(MODULES) ./modules/json/index.ts
+./dist: $(MODULES) ./modules/json/index.ts
+	cd .. && npm ci
 	npx webpack-cli --mode=production
 
-watch: package-lock.json
+watch:
 	npx webpack --mode=development --watch
 
 .PHONY: testjs
@@ -70,7 +67,6 @@ debug:
 .PHONY: all # For ../Makefile 'all' target.
 all:
 	go install -v ./go/...
-	npm ci
 	npx webpack-cli --mode=production
 
 start_pubsub_emulator:
@@ -82,12 +78,10 @@ start_cockroachdb_emulator:
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
 test-frontend-ci:
-	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 # Presumes you've already run:
