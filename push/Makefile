@@ -4,7 +4,8 @@ build: core
 serve:
 	npx webpack-dev-server --watch --mode=development
 
-core: package-lock.json
+core:
+	cd .. && npm ci
 	go install -v ./go/push
 	go install -v ./go/pushcli
 	go install -v ./go/build_skiapush_json5
@@ -13,8 +14,7 @@ core: package-lock.json
 testci: npmdeps test
 
 npmdeps:
-	npm ci
-	cd ../infra-sk && npm ci
+	cd .. && npm ci
 
 test: core
 	# Run the generated tests just once under Xvfb.
@@ -36,15 +36,10 @@ docs:
 
 .PHONY: build serve core test release watch push docs
 
-package-lock.json: package.json
-	npm install
-
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
 test-frontend-ci:
-	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run

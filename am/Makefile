@@ -1,4 +1,5 @@
-default: build package-lock.json
+default: build
+	cd .. && npm ci
 	npx webpack --mode=development
 
 ./modules/json/index.ts:
@@ -7,7 +8,8 @@ default: build package-lock.json
 build: ./modules/json/index.ts
 	go install ./go/alert-manager ./go/alert-to-pubsub
 
-release: build package-lock.json
+release: build
+	cd .. & npm ci
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/alert-manager ./go/alert-to-pubsub
 	./build_alert_manager_release
@@ -16,7 +18,8 @@ release: build package-lock.json
 debug:
 	npx webpack --mode=development
 
-legacy_release: build package-lock.json
+legacy_release: build
+	cd .. && npm ci
 	./build_legacy_alert_to_pubsub_release "`git log -n1 --format=%s`"
 
 push: release
@@ -25,7 +28,8 @@ push: release
 push_am: release
 	pushk alert-manager
 
-serve: package-lock.json
+serve:
+	cd .. && npm ci
 	npx webpack-dev-server --mode=development --watch-poll
 
 testgo:
@@ -43,22 +47,17 @@ testpptr:
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 testci:
-	rm -rf node_modules
-	npm install
+	cd .. && npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
-watch: package-lock.json
+watch:
+	cd .. && npm ci
 	npx webpack --mode=development --watch
-
-package-lock.json: package.json
-	npm install
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
 test-frontend-ci:
-	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
