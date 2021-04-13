@@ -5,18 +5,16 @@ all: status
 
 .PHONY: serve
 serve:
-	npm ci
+	cd .. && npm ci
 	npx webpack-dev-server --mode=development --watch-poll
 
 testgo:
 	go test ./go/... -v
 
 testjs:
-	npm ci
+	cd .. && npm ci
 	npx webpack --mode=development
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
-
-test-frontend-ci: testjs
 
 # Increase Node's heap size to accommodate for ts-node's higher memory usage.
 NODE_MEMORY_LIMIT=4096
@@ -43,8 +41,9 @@ run_docker: release
 push: release pushk
 	pushk --message="$(MESSAGE)" --use-temp-checkout status
 
+.PHONY: test-frontend-ci
+test-frontend-ci: testjs
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	npx webpack --mode=production

@@ -3,8 +3,7 @@
 
 .PHONY: ctfe
 ctfe: ./modules/json/index.ts
-	cd ../infra-sk && npm ci
-	npm ci
+	cd .. && npm ci
 	npx webpack --mode=production
 	go install -v ./go/ctfe
 
@@ -26,7 +25,8 @@ puppeteer-tests:
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 .PHONY: watch
-watch: package-lock.json
+watch:
+	cd .. && npm ci
 	npx webpack --mode=development --watch
 
 .PHONY: serve
@@ -130,10 +130,8 @@ all: ctfe master_scripts worker_scripts testgo
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
 test-frontend-ci:
-	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run

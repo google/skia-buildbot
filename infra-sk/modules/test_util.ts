@@ -166,9 +166,9 @@ export function noEventPromise(event: string, timeoutMillis = 200) {
 function buildEventPromise<T extends Event | void>(
   event: string,
   timeoutMillis: number,
-  eventCaughtCallback: (resolve: (value?: T | PromiseLike<T> | undefined) => void,
+  eventCaughtCallback: (resolve: (value: T | PromiseLike<T>) => void,
                         reject: (reason?: any) => void, event: T) => void,
-  timeoutCallback: (resolve: (value?: T | PromiseLike<T> | undefined) => void,
+  timeoutCallback: (resolve: (value: T | PromiseLike<T>) => void,
                     reject: (reason?: any) => void) => void,
 ) {
   // The executor function passed as a constructor argument to the Promise

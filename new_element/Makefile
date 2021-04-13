@@ -18,7 +18,6 @@ test-frontend-ci: build-frontend-ci
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	npx webpack --mode=development
 
 .PHONY: testpptr

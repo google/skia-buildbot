@@ -1,13 +1,16 @@
 build: core
 	npx webpack --mode=development
 
-serve: package-lock.json
+serve:
+	cd .. && npm ci
 	npx webpack-dev-server --watch --mode=development
 
-core: package-lock.json
+core:
+	cd .. && npm ci
 	go install -v ./go/power-controller
 
-release_build: package-lock.json
+release_build:
+	cd .. && npm ci
 	npx webpack --mode=production
 
 release: release_build
@@ -20,12 +23,8 @@ push: release
 watch: core
 	npx webpack --watch --mode=development
 
-package-lock.json: package.json
-	npm install
-
 .PHONY: build serve core release_build release push watch
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	npx webpack --mode=production
