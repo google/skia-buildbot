@@ -734,7 +734,7 @@ export class PlotSimpleSk extends ElementSk {
 
     // We need to dynamically resize the canvas elements since they don't do
     // that themselves.
-    const resizeObserver = new LocalResizeObserver((entries) => {
+    const resizeObserver = new LocalResizeObserver((entries: ResizeObserverEntry[]) => {
       entries.forEach((entry) => {
         this.width = entry.contentRect.width;
       });
