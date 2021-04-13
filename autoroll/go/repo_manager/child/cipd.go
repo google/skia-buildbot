@@ -43,7 +43,7 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Re
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	cipdClient, err := cipd.NewClient(client, workdir)
+	cipdClient, err := cipd.NewClient(client, workdir, cipd.DefaultServiceURL)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -194,7 +194,7 @@ func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription)
 		Display:     util.Truncate(instance.Pin.InstanceID, 12),
 		Description: instance.Pin.String(),
 		Timestamp:   time.Time(instance.RegisteredTs),
-		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.ServiceUrl, name, instance.Pin.InstanceID),
+		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.DefaultServiceURL, name, instance.Pin.InstanceID),
 	}
 	detailsLines := []*cipdDetailsLine{}
 	for _, tag := range instance.Tags {
