@@ -19,3 +19,6 @@ update-expectations:
 push: release
 	go install ../kube/go/pushk
 	pushk proberk
+
+run-local-instance:
+	proberk --local --logtostderr --run_every=1s --config=./allprobersk.json
