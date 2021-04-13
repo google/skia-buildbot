@@ -12,6 +12,7 @@ import (
 
 	"github.com/Jeffail/gabs/v2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -22,6 +23,10 @@ const (
 
 var (
 	proberRedirectURLsPath = []string{"envoy-redirects", "urls"}
+
+	// Domains that won't return a 301 since all the redirects are just for
+	// paths below "/"".
+	domainsWithJustPrefixRewrites = []string{"skia.org"}
 )
 
 func main() {
@@ -59,6 +64,10 @@ func main() {
 				redirect = true
 				break
 			}
+		}
+		// Should we skip this domain?
+		if util.In(domain, domainsWithJustPrefixRewrites) {
+			redirect = false
 		}
 
 		if redirect && domain != "*" {
