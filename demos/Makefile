@@ -49,10 +49,8 @@ test: test_js test_puppeteer
 
 .PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs
-	npm ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
 test-frontend-ci:
-	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
