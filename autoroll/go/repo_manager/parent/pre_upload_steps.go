@@ -409,17 +409,19 @@ func ChromiumRollWebGPUCTS(ctx context.Context, env []string, client *http.Clien
 		Dir:  parentRepoDir,
 		Env:  env,
 	}); err != nil {
-		return skerr.Wrap(err)
+		// Log, but don't return the error. The Chromium presubmit will fail if this does not succeed.
+		sklog.Errorf("%s", err)
 	}
 
-	sklog.Info("Running regenerate_internal_cts_html.sh...")
+	sklog.Info("Running regenerate_internal_cts_html.py...")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Name: "bash",
-		Args: []string{filepath.Join("third_party", "blink", "web_tests", "webgpu", "regenerate_internal_cts_html.sh")},
+		Name: "vpython",
+		Args: []string{filepath.Join("third_party", "webgpu-cts", "scripts", "regenerate_internal_cts_html.py")},
 		Dir:  parentRepoDir,
 		Env:  env,
 	}); err != nil {
-		return skerr.Wrap(err)
+		// Log, but don't return the error. The Chromium presubmit will fail if this does not succeed.
+		sklog.Errorf("%s", err)
 	}
 	return nil
 }
