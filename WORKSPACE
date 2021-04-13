@@ -3,7 +3,7 @@ workspace(
 
     # Must be kept in sync with the npm_install rules defined below invoked below.
     managed_directories = {
-        "@infra-sk_npm": ["infra-sk/node_modules"],
+        "@npm": ["node_modules"],
     },
 )
 
@@ -133,11 +133,11 @@ http_archive(
 # this file.
 load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
 
-# Manages infra-sk's node_modules directory.
+# Manages the node_modules directory.
 npm_install(
-    name = "infra-sk_npm",
-    package_json = "//infra-sk:package.json",
-    package_lock_json = "//infra-sk:package-lock.json",
+    name = "npm",
+    package_json = "//:package.json",
+    package_lock_json = "//:package-lock.json",
 )
 
 ################################

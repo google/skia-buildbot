@@ -7,7 +7,7 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
   config.output!.publicPath = '/dist/';
   config.resolve = config.resolve || {};
   // https://github.com/webpack/node-libs-browser/issues/26#issuecomment-267954095
-  config.resolve.modules = [resolve(__dirname, 'node_modules'), 'node_modules'];
+  config.resolve.modules = [resolve(__dirname, '..', 'node_modules')];
 
   return config;
 };

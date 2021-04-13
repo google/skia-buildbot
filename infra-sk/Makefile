@@ -4,16 +4,20 @@
 # and make sure infra-sk actually builds.
 all: build-frontend-ci
 
-default: package-lock.json
+default:
+	cd .. && npm ci
 	npx webpack --mode=development
 
-watch: package-lock.json
+watch:
+	cd .. && npm ci
 	npx webpack --mode=development --watch
 
-release: package-lock.json
+release:
+	cd .. && npm ci
 	npx webpack --mode=production
 
-serve: package-lock.json
+serve:
+	cd .. && npm ci
 	npx webpack-dev-server --mode=development --content-base ./dist --watch-poll
 
 test-js:
@@ -23,22 +27,18 @@ test-js:
 debug-test-js:
 	npx karma start --no-single-run
 
-docs: package-lock.json
+docs:
+	cd .. && npm ci
 	npx jsdoc -c jsdoc.config.js
-
-package-lock.json: package.json
-	npm install
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	# Webpack fails with --mode=production because there are no production pages under //infra-sk,
 	# and therefore nothing to build.
 	npx webpack --mode=development
 
 .PHONY: test-frontend-ci
 test-frontend-ci:
-	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 .PHONY: puppeteer_tests

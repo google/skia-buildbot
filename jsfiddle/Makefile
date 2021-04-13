@@ -29,8 +29,7 @@ release: release_build
 	./build_release
 
 release_ci:
-	cd ../infra-sk && npm ci
-	npm ci
+	cd .. && npm ci
 	# Assumes the environment mounts the wasm outputs to /OUT
 	rm -rf build
 	mkdir -p build/canvaskit build/pathkit
@@ -48,5 +47,4 @@ push: get_latest_skia release
 
 .PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs
-	npm ci
 	npx webpack --mode=production
