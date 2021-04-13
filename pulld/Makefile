@@ -1,15 +1,17 @@
-default: package-lock.json
+include ../make/npm.mk
+
+default: npm-ci
 	go install -v ./go/pulld
 	npx webpack --mode=development
 
-prod: package-lock.json
+prod: npm-ci
 	go install -v ./go/pulld
 	npx webpack --mode=production
 
-serve: package-lock.json
+serve: npm-ci
 	npx webpack-dev-server --content-base ./dist --watch --mode=development
 
-watch: package-lock.json
+watch: npm-ci
 	npx webpack --watch --mode=development
 
 release: prod
@@ -27,10 +29,6 @@ push_everywhere:
 	cd ../push; make build
 	pushcli --alsologtostderr --config_filename=../push/allskiapush.json5 pulld "*"
 
-package-lock.json: package.json
-	npm install
-
 .PHONY: build-frontend-ci
-build-frontend-ci:
-	npm ci
+build-frontend-ci: npm-ci
 	npx webpack --mode=production

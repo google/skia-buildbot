@@ -14,11 +14,11 @@ sk_element(
         "//perf/modules/alert:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@infra-sk_npm//@types/dialog-polyfill",
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//dialog-polyfill",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
+        "@npm//@types/dialog-polyfill",
+        "@npm//common-sk",
+        "@npm//dialog-polyfill",
+        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "alerts-page-sk.ts",
@@ -32,8 +32,8 @@ sk_page(
     html_file = "alerts-page-sk-demo.html",
     sk_element_deps = [":alerts-page-sk"],
     ts_deps = [
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//fetch-mock",
+        "@npm//elements-sk",
+        "@npm//fetch-mock",
     ],
     ts_entry_point = "alerts-page-sk-demo.ts",
 )
@@ -44,8 +44,8 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 
