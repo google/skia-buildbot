@@ -63,6 +63,30 @@
       },
       "revId": "1dfce313d9ca710d6e40dcb34d069d2508bdb76e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ae2c1dfd_481d24b6",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 14
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-13T21:38:29Z",
+      "side": 1,
+      "message": "Scratch that, the build is slow without the ./node-modules/lastupdate trick. Done; see //make/npm.mk.",
+      "parentUuid": "c3187f9b_86e53467",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 16
+      },
+      "revId": "1dfce313d9ca710d6e40dcb34d069d2508bdb76e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
