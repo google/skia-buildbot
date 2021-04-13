@@ -39,6 +39,30 @@
       },
       "revId": "1dfce313d9ca710d6e40dcb34d069d2508bdb76e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c3187f9b_86e53467",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 14
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-13T17:49:59Z",
+      "side": 1,
+      "message": "Would it be OK to assume that files package.json and package-lock.json are in sync, and that \"npm ci\" has been executed prior to building any front-end targets? In other words, can I delete the \"cd .. \u0026\u0026 npm ci\" step from this and all other Makefiles?\n\nGiven that files package.json and package-lock.json don\u0027t change often, this assumption would slightly simplify our Makefiles. But if that\u0027s not correct and this is something you use often, I\u0027m happy to move the deleted targets to the top-level Makefile.",
+      "parentUuid": "cb9cebd5_504bdaaf",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 16
+      },
+      "revId": "1dfce313d9ca710d6e40dcb34d069d2508bdb76e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
