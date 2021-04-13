@@ -255,7 +255,7 @@ func probeOneRound(cfg types.Probes, anonymousClient, authClient *http.Client) {
 				// TODO(jcgregorio) Save the last N responses and present them in a web UI.
 
 				if !In(resp.StatusCode, probe.Expected) {
-					sklog.Errorf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
+					sklog.Errorf("Got wrong status code: Name: %s URL: %s Got: %d Want: %v", name, url, resp.StatusCode, probe.Expected)
 					probe.Failure[url].Update(1)
 					continue
 				}
