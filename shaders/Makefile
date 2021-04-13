@@ -7,9 +7,7 @@ release: wasm_libs_tot sources
 	./images/shaders/release
 
 release_ci: app
-	cd ../infra-sk && npm ci
-	cd ../puppeteer-tests && npm ci
-	npm ci
+	cd .. && npm ci
 	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
 	rm -rf build
 	mkdir -p build/canvaskit
@@ -73,7 +71,7 @@ wasm_libs_tot: get_latest_skia
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.ts
 
-wasm_libs_fixed: package-lock.json
+wasm_libs_fixed:
 	rm -rf build
 	mkdir -p build/canvaskit
 	curl https://particles.skia.org/dist/canvaskit.js --output build/canvaskit/canvaskit.js
@@ -89,7 +87,10 @@ push: release
 
 .PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs_tot
-	npm ci
+	npx webpack --mode=production
+
+.PHONY: test-frontend-ci
+test-frontend-ci: wasm_libs_tot
 	npx webpack --mode=production
 
 # You can either run a local copy of scrapexchange, or port-forward the production instance:
