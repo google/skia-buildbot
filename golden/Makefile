@@ -45,9 +45,6 @@ puppeteer-test-debug:
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
 	echo "results are found in ../puppeteer-tests/output"
 
-node_modules: package.json
-	npm ci
-
 .PHONY: frontend
 frontend:
 	npx webpack-cli --mode=production
@@ -153,10 +150,8 @@ mocks:
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
 test-frontend-ci:
-	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run

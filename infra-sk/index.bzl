@@ -1,9 +1,9 @@
 """This module defines rules for building Skia Infrastructure web applications."""
 
 load("@build_bazel_rules_nodejs//:index.bzl", _nodejs_test = "nodejs_test")
-load("@infra-sk_npm//@bazel/rollup:index.bzl", "rollup_bundle")
-load("@infra-sk_npm//@bazel/terser:index.bzl", "terser_minified")
-load("@infra-sk_npm//html-insert-assets:index.bzl", "html_insert_assets")
+load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
+load("@npm//@bazel/terser:index.bzl", "terser_minified")
+load("@npm//html-insert-assets:index.bzl", "html_insert_assets")
 load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary", _sass_library = "sass_library")
 load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
@@ -166,14 +166,14 @@ def nodejs_test(
         fail("Node.js tests must end with \"_nodejs_test.ts\".")
 
     mocha_deps = [
-        "@infra-sk_npm//mocha",
-        "@infra-sk_npm//ts-node",
+        "@npm//mocha",
+        "@npm//ts-node",
         "//:tsconfig.json",
     ]
 
     _nodejs_test(
         name = name,
-        entry_point = "@infra-sk_npm//:node_modules/mocha/bin/mocha",
+        entry_point = "@npm//:node_modules/mocha/bin/mocha",
         data = [src] + deps + [dep for dep in mocha_deps if dep not in deps],
         templated_args = [
             "--require ts-node/register/transpile-only",
@@ -312,9 +312,9 @@ def sk_page(
         name = "%s_js_bundle" % name,
         deps = [
             ":%s_ts_lib" % name,
-            "@infra-sk_npm//@rollup/plugin-node-resolve",
-            "@infra-sk_npm//@rollup/plugin-commonjs",
-            "@infra-sk_npm//rollup-plugin-sourcemaps",
+            "@npm//@rollup/plugin-node-resolve",
+            "@npm//@rollup/plugin-commonjs",
+            "@npm//rollup-plugin-sourcemaps",
         ],
         entry_point = ts_entry_point,
         format = "umd",
