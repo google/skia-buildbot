@@ -6,8 +6,8 @@ sk_element(
     sass_srcs = ["autogrow-textarea-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
+        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "autogrow-textarea-sk.ts",
@@ -23,7 +23,7 @@ sk_page(
         "//infra-sk/modules/theme-chooser-sk",
         ":autogrow-textarea-sk",
     ],
-    ts_deps = ["@infra-sk_npm//common-sk"],
+    ts_deps = ["@npm//common-sk"],
     ts_entry_point = "autogrow-textarea-sk-demo.ts",
 )
 
@@ -33,10 +33,9 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//chai",
-        "@infra-sk_npm//puppeteer",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//puppeteer",
     ],
 )
 
@@ -46,8 +45,8 @@ karma_test(
     deps = [
         ":autogrow-textarea-sk",
         "//infra-sk/modules:test_util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 

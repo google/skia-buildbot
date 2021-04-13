@@ -5,8 +5,8 @@ karma_test(
     src = "linkify_test.ts",
     deps = [
         ":linkify_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 
@@ -27,8 +27,8 @@ karma_test(
     src = "string_test.ts",
     deps = [
         ":string_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 
@@ -43,11 +43,11 @@ karma_test(
     src = "test_util_test.ts",
     deps = [
         ":test_util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/sinon",
-        "@infra-sk_npm//chai",
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//sinon",
+        "@npm//@types/chai",
+        "@npm//@types/sinon",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//sinon",
     ],
 )
 
@@ -56,8 +56,8 @@ ts_library(
     srcs = ["test_util.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
-        "@infra-sk_npm//common-sk",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
     ],
 )
