@@ -4,7 +4,7 @@ This module will be removed once the migration off Webpack is complete.
 """
 
 def generate_tilde_prefixed_elements_sk_scss_files(name):
-    """Copies @infra-sk_npm//:node_modules/elements-sk/**/*.scss files into //bazel-bin/~elemnts-sk.
+    """Copies @npm//:node_modules/elements-sk/**/*.scss files into //bazel-bin/~elemnts-sk.
 
     This macro adds support for tilde-prefixed Sass imports of elements-sk styles, e.g.:
 
@@ -29,30 +29,30 @@ def generate_tilde_prefixed_elements_sk_scss_files(name):
     scss_files = [
         # To regenerate this list, please run the following Bash command:
         #
-        #   $ find infra-sk/node_modules/elements-sk -name "*.scss" \
-        #       | sed -E "s/infra-sk\//@infra-sk_npm\/\/:/" \
+        #   $ find node_modules/elements-sk -name "*.scss" \
+        #       | sed -E "s/(.*)/@npm\/\/:\\1/" \
         #       | sort
-        "@infra-sk_npm//:node_modules/elements-sk/checkbox-sk/checkbox-sk.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/collapse-sk/collapse-sk.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/colors.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/icon/icon-sk.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/multi-select-sk/multi-select-sk.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/nav-links-sk/nav-links-sk.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/radio-sk/radio-sk.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/select-sk/select-sk.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/spinner-sk/spinner-sk.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/styles/buttons/buttons.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/styles/select/select.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/styles/table/table.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/tabs-panel-sk/tabs-panel-sk.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/tabs-sk/tabs-sk.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/themes/color-palette.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/themes/themes.scss",
-        "@infra-sk_npm//:node_modules/elements-sk/toast-sk/toast-sk.scss",
+        "@npm//:node_modules/elements-sk/checkbox-sk/checkbox-sk.scss",
+        "@npm//:node_modules/elements-sk/collapse-sk/collapse-sk.scss",
+        "@npm//:node_modules/elements-sk/colors.scss",
+        "@npm//:node_modules/elements-sk/icon/icon-sk.scss",
+        "@npm//:node_modules/elements-sk/multi-select-sk/multi-select-sk.scss",
+        "@npm//:node_modules/elements-sk/nav-links-sk/nav-links-sk.scss",
+        "@npm//:node_modules/elements-sk/radio-sk/radio-sk.scss",
+        "@npm//:node_modules/elements-sk/select-sk/select-sk.scss",
+        "@npm//:node_modules/elements-sk/spinner-sk/spinner-sk.scss",
+        "@npm//:node_modules/elements-sk/styles/buttons/buttons.scss",
+        "@npm//:node_modules/elements-sk/styles/select/select.scss",
+        "@npm//:node_modules/elements-sk/styles/table/table.scss",
+        "@npm//:node_modules/elements-sk/tabs-panel-sk/tabs-panel-sk.scss",
+        "@npm//:node_modules/elements-sk/tabs-sk/tabs-sk.scss",
+        "@npm//:node_modules/elements-sk/themes/color-palette.scss",
+        "@npm//:node_modules/elements-sk/themes/themes.scss",
+        "@npm//:node_modules/elements-sk/toast-sk/toast-sk.scss",
     ]
 
     tilde_prefixed_scss_files = [
-        f.replace("@infra-sk_npm//:node_modules/elements-sk", "~elements-sk")
+        f.replace("@npm//:node_modules/elements-sk", "~elements-sk")
         for f in scss_files
     ]
 

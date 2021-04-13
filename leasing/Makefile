@@ -6,8 +6,7 @@ default: build
 	go run ./go/types/ts -o modules/json/index.ts
 
 build: ./modules/json/index.ts
-	cd ../infra-sk && npm ci
-	npm ci
+	cd .. && npm ci
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/leasing
 
@@ -31,5 +30,4 @@ watch:
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	npm ci
 	npx webpack --mode=production

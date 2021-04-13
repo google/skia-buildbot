@@ -13,18 +13,16 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
   config.output!.publicPath = '/static/';
 
   config.plugins!.push(
-    new CopyPlugin({
-      patterns: [
-        {
-          from: resolve(__dirname, 'images/icon.png'),
-          to: 'icon.png',
-        },
-        {
-          from: resolve(__dirname, 'images/icon-active.png'),
-          to: 'icon-active.png',
-        },
-      ],
-    }),
+    new CopyPlugin([
+      {
+        from: resolve(__dirname, 'images/icon.png'),
+        to: 'icon.png',
+      },
+      {
+        from: resolve(__dirname, 'images/icon-active.png'),
+        to: 'icon-active.png',
+      },
+    ]),
   );
 
   config.plugins!.push(
@@ -36,7 +34,7 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
   config.resolve = config.resolve || {};
 
   // https://github.com/webpack/node-libs-browser/issues/26#issuecomment-267954095
-  config.resolve.modules = [resolve(__dirname, 'node_modules')];
+  config.resolve.modules = [resolve(__dirname, '..', 'node_modules')];
 
   return config;
 };
