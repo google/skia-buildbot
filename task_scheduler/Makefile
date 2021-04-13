@@ -11,21 +11,15 @@ rpcOutputFiles := ./go/rpc/rpc.pb.go ./go/rpc/rpc.twirp.go ./modules/rpc/rpc.ts 
 $(rpcOutputFiles): $(rpcDependentFiles)
 	go generate ./go/rpc
 
-./package-lock.json: package.json
-	npm install
-
-./node_modules/lastupdate-webpack: ./package-lock.json
-	npm ci
-	touch ./node_modules/lastupdate-webpack
-
 pages := $(shell find ./pages -type f)
 modules := $(shell find ./modules -type f)
-frontendInputFiles := $(pages) $(modules) $(rpcOutputFiles) ./node_modules/lastupdate-webpack ./res/img/favicon.ico
+frontendInputFiles := $(pages) $(modules) $(rpcOutputFiles) ./res/img/favicon.ico
 pageBaseNames := $(sort $(basename $(notdir $(pages))))
 distNames := $(addsuffix -bundle.js,$(pageBaseNames)) $(addsuffix -bundle.css,$(pageBaseNames)) $(addsuffix .html,$(pageBaseNames)) favicon.ico
 dist := $(addprefix ./dist/,$(distNames))
 
 $(dist): $(frontendInputFiles)
+	cd .. && npm ci
 	npx webpack --mode=production
 
 .PHONY: serve
@@ -33,18 +27,23 @@ serve: $(dist)
 	npx webpack-dev-server --mode=development --watch-poll
 
 .PHONY: test-frontend
-test-frontend: ./node_modules/lastupdate-webpack
+test-frontend:
+	cd .. && npm ci
 	npx karma start
 
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	npx webpack --mode=production
+
 .PHONY: test-frontend-ci
-test-frontend-ci: ./node_modules/lastupdate-webpack
+test-frontend-ci:
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 # Increase Node's heap size to accommodate for ts-node's higher memory usage.
 NODE_MEMORY_LIMIT=4096
 
 .PHONY: puppeteer-test
-puppeteer-test: ./node_modules/lastupdate-webpack
+puppeteer-test:
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -v -r ts-node/register ./modules/**/*_puppeteer_test.ts
 
 .PHONY: all
