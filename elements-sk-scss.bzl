@@ -35,6 +35,7 @@ def generate_tilde_prefixed_elements_sk_scss_files(name):
         "@npm//:node_modules/elements-sk/checkbox-sk/checkbox-sk.scss",
         "@npm//:node_modules/elements-sk/collapse-sk/collapse-sk.scss",
         "@npm//:node_modules/elements-sk/colors.scss",
+        "@npm//:node_modules/elements-sk/error-toast-sk/error-toast-sk.scss",
         "@npm//:node_modules/elements-sk/icon/icon-sk.scss",
         "@npm//:node_modules/elements-sk/multi-select-sk/multi-select-sk.scss",
         "@npm//:node_modules/elements-sk/nav-links-sk/nav-links-sk.scss",

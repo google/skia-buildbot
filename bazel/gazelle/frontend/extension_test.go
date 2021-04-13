@@ -213,8 +213,11 @@ import 'net'                    // Built-in Node.js module.
 		// This sk_element does not have an index.ts file.
 		{Path: "myapp/modules/golf-sk/golf-sk.scss"},
 		{
-			Path:    "myapp/modules/golf-sk/golf-sk.ts",
-			Content: `import '../hotel-sk'; // Resolves to myapp/modules/hotel-sk/index.ts.`,
+			Path: "myapp/modules/golf-sk/golf-sk.ts",
+			Content: `
+import '../hotel-sk'; // Resolves to myapp/modules/hotel-sk/index.ts.
+import 'elements-sk/checkbox-sk'; // This should add //infra-sk:elements-sk_scss as a sass_dep.
+`,
 		},
 		{Path: "myapp/modules/golf-sk/golf-sk-demo.html"},
 		{Path: "myapp/modules/golf-sk/golf-sk-demo.scss"},
@@ -563,8 +566,10 @@ sk_demo_page_server(
 
 sk_element(
     name = "golf-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["golf-sk.scss"],
     sk_element_deps = ["//myapp/modules/hotel-sk"],
+    ts_deps = ["@npm//elements-sk"],
     ts_srcs = ["golf-sk.ts"],
     visibility = ["//visibility:public"],
 )
@@ -752,24 +757,24 @@ sass_library(
 		{
 			Path: "a/alfa.ts",
 			Content: `
-import 'elements-sk';  // Existing import.
-import 'lit-html';     // New import. Gazelle should add this dep.
+import 'elements-sk/checkbox-sk';  // Existing import.
+import 'lit-html';                 // New import. Gazelle should add this dep.
 `,
 		},
 		{
 			Path: "a/alfa_nodejs_test.ts",
 			Content: `
-import './alfa';       // Existing import.
-import 'elements-sk';  // Existing import.
-import 'lit-html';     // New import. Gazelle should add this dep.
+import './alfa';                   // Existing import.
+import 'elements-sk/checkbox-sk';  // Existing import.
+import 'lit-html';                 // New import. Gazelle should add this dep.
 `,
 		},
 		{
 			Path: "a/alfa_test.ts",
 			Content: `
-import './alfa';       // Existing import.
-import 'elements-sk';  // Existing import.
-import 'lit-html';     // New import. Gazelle should add this dep.
+import './alfa';                   // Existing import.
+import 'elements-sk/checkbox-sk';  // Existing import.
+import 'lit-html';                 // New import. Gazelle should add this dep.
 `,
 		},
 		{Path: "a/bravo.scss"},
@@ -797,7 +802,7 @@ sk_element(
     ts_deps = [
         # Not imported from echo-sk.ts. Gazelle should remove this dep.
         "@npm//common-sk",
-        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = ["echo-sk.ts"],
     visibility = ["//visibility:public"],
@@ -809,6 +814,7 @@ sk_page(
     sass_deps = [
         "//a:alfa_sass_lib",  # Not imported from echo-sk-demo.scss. Gazelle should remove this dep.
         "//a:bravo_sass_lib",
+        "//infra-sk:elements_scss",  # No elements-sk imports. Gazelle should remove this dep.
     ],
     scss_entry_point = "echo-sk-demo.scss",
     sk_element_deps = [
@@ -818,8 +824,8 @@ sk_page(
         "//myapp/modules/golf-sk",
     ],
     ts_deps = [
-        # Not imported from echo-sk-demo.ts. Gazelle should remove this dep.
         "@npm//common-sk",
+        # Not imported from echo-sk-demo.ts. Gazelle should remove this dep.
         "@npm//elements-sk",
     ],
     ts_entry_point = "echo-sk-demo.ts",
@@ -870,10 +876,10 @@ sk_demo_page_server(
 		{
 			Path: "myapp/modules/echo-sk/echo-sk.ts",
 			Content: `
-import '../golf-sk/golf-sk';    // Existing import.
-import '../hotel-sk/hotel-sk';  // New import. Gazelle should add this dep.
-import 'elements-sk';           // Existing import.
-import 'lit-html';              // New import. Gazelle should add this dep.
+import '../golf-sk/golf-sk';       // Existing import.
+import '../hotel-sk/hotel-sk';     // New import. Gazelle should add this dep.
+import 'elements-sk/checkbox-sk';  // New import. Gazelle should add this dep.
+import 'lit-html';                 // Existing import.
 `,
 		},
 		{Path: "myapp/modules/echo-sk/index.ts"}, // This new file should be added to ts_srcs.
@@ -889,31 +895,31 @@ import 'lit-html';              // New import. Gazelle should add this dep.
 		{
 			Path: "myapp/modules/echo-sk/echo-sk-demo.ts",
 			Content: `
-import './echo-sk';             // Existing import.
-import '../golf-sk/golf-sk';    // Existing import.
-import '../hotel-sk/hotel-sk';  // New import. Gazelle should add this dep.
-import 'elements-sk';           // Existing import.
-import 'lit-html';              // New import. Gazelle should add this dep.
+import './echo-sk';                // Existing import.
+import '../golf-sk/golf-sk';       // Existing import.
+import '../hotel-sk/hotel-sk';     // New import. Gazelle should add this dep.
+import 'common-sk';                // Existing import.
+import 'lit-html';                 // New import. Gazelle should add this dep.
 `,
 		},
 		{
 			Path: "myapp/modules/echo-sk/echo-sk_puppeteer_test.ts",
 			Content: `
-import './echo-sk';             // Existing import.
-import '../golf-sk/golf-sk';    // Existing import.
-import '../hotel-sk/hotel-sk';  // New import. Gazelle should add this dep.
-import 'elements-sk';           // Existing import.
-import 'lit-html';              // New import. Gazelle should add this dep.
+import './echo-sk';                // Existing import.
+import '../golf-sk/golf-sk';       // Existing import.
+import '../hotel-sk/hotel-sk';     // New import. Gazelle should add this dep.
+import 'elements-sk/checkbox-sk';  // Existing import.
+import 'lit-html';                 // New import. Gazelle should add this dep.
 `,
 		},
 		{
 			Path: "myapp/modules/echo-sk/echo-sk_test.ts",
 			Content: `
-import './echo-sk';             // Existing import.
-import '../golf-sk/golf-sk';    // Existing import.
-import '../hotel-sk/hotel-sk';  // New import. Gazelle should add this dep.
-import 'elements-sk';           // Existing import.
-import 'lit-html';              // New import. Gazelle should add this dep.
+import './echo-sk';                // Existing import.
+import '../golf-sk/golf-sk';       // Existing import.
+import '../hotel-sk/hotel-sk';     // New import. Gazelle should add this dep.
+import 'elements-sk/checkbox-sk';  // Existing import.
+import 'lit-html';                 // New import. Gazelle should add this dep.
 `,
 		},
 
@@ -1045,6 +1051,7 @@ sk_element(
     sass_deps = [
         "//a:bravo_sass_lib",
         "//a:charlie_sass_lib",
+        "//infra-sk:elements-sk_scss",
     ],
     sass_srcs = ["echo-sk.scss"],
     sk_element_deps = [
@@ -1052,8 +1059,8 @@ sk_element(
         "//myapp/modules/hotel-sk",
     ],
     ts_deps = [
-        "@npm//elements-sk",
         "@npm//lit-html",
+        "@npm//elements-sk",
     ],
     ts_srcs = [
         "echo-sk.ts",
@@ -1076,7 +1083,7 @@ sk_page(
         "//myapp/modules/hotel-sk",
     ],
     ts_deps = [
-        "@npm//elements-sk",
+        "@npm//common-sk",
         "@npm//lit-html",
     ],
     ts_entry_point = "echo-sk-demo.ts",
