@@ -1,3 +1,5 @@
+include ../make/npm.mk
+
 .PHONY: default
 default: ./dist
 	go install -v ./go/...
@@ -13,10 +15,6 @@ build: ./dist
 
 push: build
 	pushk perfserver
-
-package-lock.json: package.json
-	npm ci
-	touch package-lock.json
 
 build_backup:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/perf-tool
@@ -38,14 +36,14 @@ MODULES = $(shell find ./modules -type f)
 
 # We can depend on the timestamp of the dist directory since webpack will delete
 # the directory before repopulating it.
-./dist: package-lock.json $(MODULES) ./modules/json/index.ts
+./dist: $(MODULES) ./modules/json/index.ts npm-ci
 	npx webpack-cli --mode=production
 
-watch: package-lock.json
+watch: npm-ci
 	npx webpack --mode=development --watch
 
 .PHONY: testjs
-testjs:
+testjs: npm-ci
 	# Run the generated tests just once under Xvfb.
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
@@ -53,7 +51,7 @@ testjs:
 NODE_MEMORY_LIMIT=4096
 
 .PHONY: testpptr
-testpptr:
+testpptr: npm-ci
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 .PHONY: test
@@ -64,13 +62,12 @@ testgo:
 	go test ./go/...
 
 .PHONY: debug
-debug:
+debug: npm-ci
 	npx webpack-cli --mode=development
 
 .PHONY: all # For ../Makefile 'all' target.
-all:
+all: npm-ci
 	go install -v ./go/...
-	npm ci
 	npx webpack-cli --mode=production
 
 start_pubsub_emulator:
@@ -81,13 +78,11 @@ start_cockroachdb_emulator:
 	cd /tmp; cockroach start-single-node --insecure  --listen-addr=127.0.0.1
 
 .PHONY: build-frontend-ci
-build-frontend-ci:
-	npm ci
+build-frontend-ci: npm-ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
-test-frontend-ci:
-	npm ci
+test-frontend-ci: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 # Presumes you've already run:

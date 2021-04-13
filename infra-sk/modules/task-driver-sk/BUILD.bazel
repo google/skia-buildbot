@@ -11,10 +11,10 @@ sk_element(
     sass_srcs = ["task-driver-sk.scss"],
     ts_deps = [
         "//infra-sk/modules:linkify_ts_lib",
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
         "//task_driver/modules/json:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "index.ts",
