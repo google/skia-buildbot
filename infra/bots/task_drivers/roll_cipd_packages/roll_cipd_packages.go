@@ -104,7 +104,7 @@ func main() {
 	}
 	var cc *cipd.Client
 	if err := td.Do(ctx, td.Props("Create CIPD client").Infra(), func(ctx context.Context) error {
-		cc, err = cipd.NewClient(c, *workdir)
+		cc, err = cipd.NewClient(c, *workdir, cipd.DefaultServiceURL)
 		if err != nil {
 			return err
 		}

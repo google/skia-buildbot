@@ -3,20 +3,22 @@
 package mocks
 
 import (
-	cipd "go.chromium.org/luci/cipd/client/cipd"
+	clientcipd "go.chromium.org/luci/cipd/client/cipd"
+	cipd "go.skia.org/infra/go/cipd"
+
 	common "go.chromium.org/luci/cipd/common"
 
 	context "context"
 
 	deployer "go.chromium.org/luci/cipd/client/cipd/deployer"
 
-	gocipd "go.skia.org/infra/go/cipd"
-
 	io "io"
 
 	mock "github.com/stretchr/testify/mock"
 
 	pkg "go.chromium.org/luci/cipd/client/cipd/pkg"
+
+	regexp "regexp"
 
 	time "time"
 )
@@ -26,12 +28,26 @@ type CIPDClient struct {
 	mock.Mock
 }
 
+// Attach provides a mock function with given fields: ctx, pin, refs, tags, metadata
+func (_m *CIPDClient) Attach(ctx context.Context, pin common.Pin, refs []string, tags []string, metadata map[string]string) error {
+	ret := _m.Called(ctx, pin, refs, tags, metadata)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, []string, []string, map[string]string) error); ok {
+		r0 = rf(ctx, pin, refs, tags, metadata)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // AttachMetadataWhenReady provides a mock function with given fields: ctx, pin, md
-func (_m *CIPDClient) AttachMetadataWhenReady(ctx context.Context, pin common.Pin, md []cipd.Metadata) error {
+func (_m *CIPDClient) AttachMetadataWhenReady(ctx context.Context, pin common.Pin, md []clientcipd.Metadata) error {
 	ret := _m.Called(ctx, pin, md)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, []cipd.Metadata) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, []clientcipd.Metadata) error); ok {
 		r0 = rf(ctx, pin, md)
 	} else {
 		r0 = ret.Error(0)
@@ -60,15 +76,15 @@ func (_m *CIPDClient) BeginBatch(ctx context.Context) {
 }
 
 // CheckDeployment provides a mock function with given fields: ctx, paranoia
-func (_m *CIPDClient) CheckDeployment(ctx context.Context, paranoia deployer.ParanoidMode) (cipd.ActionMap, error) {
+func (_m *CIPDClient) CheckDeployment(ctx context.Context, paranoia deployer.ParanoidMode) (clientcipd.ActionMap, error) {
 	ret := _m.Called(ctx, paranoia)
 
-	var r0 cipd.ActionMap
-	if rf, ok := ret.Get(0).(func(context.Context, deployer.ParanoidMode) cipd.ActionMap); ok {
+	var r0 clientcipd.ActionMap
+	if rf, ok := ret.Get(0).(func(context.Context, deployer.ParanoidMode) clientcipd.ActionMap); ok {
 		r0 = rf(ctx, paranoia)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(cipd.ActionMap)
+			r0 = ret.Get(0).(clientcipd.ActionMap)
 		}
 	}
 
@@ -82,16 +98,37 @@ func (_m *CIPDClient) CheckDeployment(ctx context.Context, paranoia deployer.Par
 	return r0, r1
 }
 
+// Create provides a mock function with given fields: ctx, name, dir, installMode, excludeMatchingFiles, refs, tags, metadata
+func (_m *CIPDClient) Create(ctx context.Context, name string, dir string, installMode pkg.InstallMode, excludeMatchingFiles []*regexp.Regexp, refs []string, tags []string, metadata map[string]string) (common.Pin, error) {
+	ret := _m.Called(ctx, name, dir, installMode, excludeMatchingFiles, refs, tags, metadata)
+
+	var r0 common.Pin
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, pkg.InstallMode, []*regexp.Regexp, []string, []string, map[string]string) common.Pin); ok {
+		r0 = rf(ctx, name, dir, installMode, excludeMatchingFiles, refs, tags, metadata)
+	} else {
+		r0 = ret.Get(0).(common.Pin)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, pkg.InstallMode, []*regexp.Regexp, []string, []string, map[string]string) error); ok {
+		r1 = rf(ctx, name, dir, installMode, excludeMatchingFiles, refs, tags, metadata)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Describe provides a mock function with given fields: ctx, _a1, instance
-func (_m *CIPDClient) Describe(ctx context.Context, _a1 string, instance string) (*cipd.InstanceDescription, error) {
+func (_m *CIPDClient) Describe(ctx context.Context, _a1 string, instance string) (*clientcipd.InstanceDescription, error) {
 	ret := _m.Called(ctx, _a1, instance)
 
-	var r0 *cipd.InstanceDescription
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *cipd.InstanceDescription); ok {
+	var r0 *clientcipd.InstanceDescription
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *clientcipd.InstanceDescription); ok {
 		r0 = rf(ctx, _a1, instance)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*cipd.InstanceDescription)
+			r0 = ret.Get(0).(*clientcipd.InstanceDescription)
 		}
 	}
 
@@ -106,15 +143,15 @@ func (_m *CIPDClient) Describe(ctx context.Context, _a1 string, instance string)
 }
 
 // DescribeClient provides a mock function with given fields: ctx, pin
-func (_m *CIPDClient) DescribeClient(ctx context.Context, pin common.Pin) (*cipd.ClientDescription, error) {
+func (_m *CIPDClient) DescribeClient(ctx context.Context, pin common.Pin) (*clientcipd.ClientDescription, error) {
 	ret := _m.Called(ctx, pin)
 
-	var r0 *cipd.ClientDescription
-	if rf, ok := ret.Get(0).(func(context.Context, common.Pin) *cipd.ClientDescription); ok {
+	var r0 *clientcipd.ClientDescription
+	if rf, ok := ret.Get(0).(func(context.Context, common.Pin) *clientcipd.ClientDescription); ok {
 		r0 = rf(ctx, pin)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*cipd.ClientDescription)
+			r0 = ret.Get(0).(*clientcipd.ClientDescription)
 		}
 	}
 
@@ -129,20 +166,20 @@ func (_m *CIPDClient) DescribeClient(ctx context.Context, pin common.Pin) (*cipd
 }
 
 // DescribeInstance provides a mock function with given fields: ctx, pin, opts
-func (_m *CIPDClient) DescribeInstance(ctx context.Context, pin common.Pin, opts *cipd.DescribeInstanceOpts) (*cipd.InstanceDescription, error) {
+func (_m *CIPDClient) DescribeInstance(ctx context.Context, pin common.Pin, opts *clientcipd.DescribeInstanceOpts) (*clientcipd.InstanceDescription, error) {
 	ret := _m.Called(ctx, pin, opts)
 
-	var r0 *cipd.InstanceDescription
-	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, *cipd.DescribeInstanceOpts) *cipd.InstanceDescription); ok {
+	var r0 *clientcipd.InstanceDescription
+	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, *clientcipd.DescribeInstanceOpts) *clientcipd.InstanceDescription); ok {
 		r0 = rf(ctx, pin, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*cipd.InstanceDescription)
+			r0 = ret.Get(0).(*clientcipd.InstanceDescription)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, common.Pin, *cipd.DescribeInstanceOpts) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, common.Pin, *clientcipd.DescribeInstanceOpts) error); ok {
 		r1 = rf(ctx, pin, opts)
 	} else {
 		r1 = ret.Error(1)
@@ -157,7 +194,7 @@ func (_m *CIPDClient) EndBatch(ctx context.Context) {
 }
 
 // Ensure provides a mock function with given fields: ctx, packages
-func (_m *CIPDClient) Ensure(ctx context.Context, packages ...*gocipd.Package) error {
+func (_m *CIPDClient) Ensure(ctx context.Context, packages ...*cipd.Package) error {
 	_va := make([]interface{}, len(packages))
 	for _i := range packages {
 		_va[_i] = packages[_i]
@@ -168,7 +205,7 @@ func (_m *CIPDClient) Ensure(ctx context.Context, packages ...*gocipd.Package) e
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, ...*gocipd.Package) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, ...*cipd.Package) error); ok {
 		r0 = rf(ctx, packages...)
 	} else {
 		r0 = ret.Error(0)
@@ -178,15 +215,15 @@ func (_m *CIPDClient) Ensure(ctx context.Context, packages ...*gocipd.Package) e
 }
 
 // EnsurePackages provides a mock function with given fields: ctx, pkgs, paranoia, maxThreads, dryRun
-func (_m *CIPDClient) EnsurePackages(ctx context.Context, pkgs common.PinSliceBySubdir, paranoia deployer.ParanoidMode, maxThreads int, dryRun bool) (cipd.ActionMap, error) {
+func (_m *CIPDClient) EnsurePackages(ctx context.Context, pkgs common.PinSliceBySubdir, paranoia deployer.ParanoidMode, maxThreads int, dryRun bool) (clientcipd.ActionMap, error) {
 	ret := _m.Called(ctx, pkgs, paranoia, maxThreads, dryRun)
 
-	var r0 cipd.ActionMap
-	if rf, ok := ret.Get(0).(func(context.Context, common.PinSliceBySubdir, deployer.ParanoidMode, int, bool) cipd.ActionMap); ok {
+	var r0 clientcipd.ActionMap
+	if rf, ok := ret.Get(0).(func(context.Context, common.PinSliceBySubdir, deployer.ParanoidMode, int, bool) clientcipd.ActionMap); ok {
 		r0 = rf(ctx, pkgs, paranoia, maxThreads, dryRun)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(cipd.ActionMap)
+			r0 = ret.Get(0).(clientcipd.ActionMap)
 		}
 	}
 
@@ -201,15 +238,15 @@ func (_m *CIPDClient) EnsurePackages(ctx context.Context, pkgs common.PinSliceBy
 }
 
 // FetchACL provides a mock function with given fields: ctx, prefix
-func (_m *CIPDClient) FetchACL(ctx context.Context, prefix string) ([]cipd.PackageACL, error) {
+func (_m *CIPDClient) FetchACL(ctx context.Context, prefix string) ([]clientcipd.PackageACL, error) {
 	ret := _m.Called(ctx, prefix)
 
-	var r0 []cipd.PackageACL
-	if rf, ok := ret.Get(0).(func(context.Context, string) []cipd.PackageACL); ok {
+	var r0 []clientcipd.PackageACL
+	if rf, ok := ret.Get(0).(func(context.Context, string) []clientcipd.PackageACL); ok {
 		r0 = rf(ctx, prefix)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]cipd.PackageACL)
+			r0 = ret.Get(0).([]clientcipd.PackageACL)
 		}
 	}
 
@@ -275,15 +312,15 @@ func (_m *CIPDClient) FetchInstanceTo(ctx context.Context, pin common.Pin, outpu
 }
 
 // FetchPackageRefs provides a mock function with given fields: ctx, packageName
-func (_m *CIPDClient) FetchPackageRefs(ctx context.Context, packageName string) ([]cipd.RefInfo, error) {
+func (_m *CIPDClient) FetchPackageRefs(ctx context.Context, packageName string) ([]clientcipd.RefInfo, error) {
 	ret := _m.Called(ctx, packageName)
 
-	var r0 []cipd.RefInfo
-	if rf, ok := ret.Get(0).(func(context.Context, string) []cipd.RefInfo); ok {
+	var r0 []clientcipd.RefInfo
+	if rf, ok := ret.Get(0).(func(context.Context, string) []clientcipd.RefInfo); ok {
 		r0 = rf(ctx, packageName)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]cipd.RefInfo)
+			r0 = ret.Get(0).([]clientcipd.RefInfo)
 		}
 	}
 
@@ -321,15 +358,15 @@ func (_m *CIPDClient) FetchRoles(ctx context.Context, prefix string) ([]string, 
 }
 
 // ListInstances provides a mock function with given fields: ctx, packageName
-func (_m *CIPDClient) ListInstances(ctx context.Context, packageName string) (cipd.InstanceEnumerator, error) {
+func (_m *CIPDClient) ListInstances(ctx context.Context, packageName string) (clientcipd.InstanceEnumerator, error) {
 	ret := _m.Called(ctx, packageName)
 
-	var r0 cipd.InstanceEnumerator
-	if rf, ok := ret.Get(0).(func(context.Context, string) cipd.InstanceEnumerator); ok {
+	var r0 clientcipd.InstanceEnumerator
+	if rf, ok := ret.Get(0).(func(context.Context, string) clientcipd.InstanceEnumerator); ok {
 		r0 = rf(ctx, packageName)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(cipd.InstanceEnumerator)
+			r0 = ret.Get(0).(clientcipd.InstanceEnumerator)
 		}
 	}
 
@@ -367,11 +404,11 @@ func (_m *CIPDClient) ListPackages(ctx context.Context, prefix string, recursive
 }
 
 // ModifyACL provides a mock function with given fields: ctx, prefix, changes
-func (_m *CIPDClient) ModifyACL(ctx context.Context, prefix string, changes []cipd.PackageACLChange) error {
+func (_m *CIPDClient) ModifyACL(ctx context.Context, prefix string, changes []clientcipd.PackageACLChange) error {
 	ret := _m.Called(ctx, prefix, changes)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []cipd.PackageACLChange) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, []clientcipd.PackageACLChange) error); ok {
 		r0 = rf(ctx, prefix, changes)
 	} else {
 		r0 = ret.Error(0)
@@ -395,15 +432,15 @@ func (_m *CIPDClient) RegisterInstance(ctx context.Context, pin common.Pin, body
 }
 
 // RepairDeployment provides a mock function with given fields: ctx, paranoia, maxThreads
-func (_m *CIPDClient) RepairDeployment(ctx context.Context, paranoia deployer.ParanoidMode, maxThreads int) (cipd.ActionMap, error) {
+func (_m *CIPDClient) RepairDeployment(ctx context.Context, paranoia deployer.ParanoidMode, maxThreads int) (clientcipd.ActionMap, error) {
 	ret := _m.Called(ctx, paranoia, maxThreads)
 
-	var r0 cipd.ActionMap
-	if rf, ok := ret.Get(0).(func(context.Context, deployer.ParanoidMode, int) cipd.ActionMap); ok {
+	var r0 clientcipd.ActionMap
+	if rf, ok := ret.Get(0).(func(context.Context, deployer.ParanoidMode, int) clientcipd.ActionMap); ok {
 		r0 = rf(ctx, paranoia, maxThreads)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(cipd.ActionMap)
+			r0 = ret.Get(0).(clientcipd.ActionMap)
 		}
 	}
 
