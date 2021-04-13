@@ -1,6 +1,6 @@
 """This module provides a wrapper around the ts_library rule from the rules_nodejs repository."""
 
-load("@infra-sk_npm//@bazel/typescript:index.bzl", _ts_library = "ts_library")
+load("@npm//@bazel/typescript:index.bzl", _ts_library = "ts_library")
 
 def ts_library(name, srcs, deps = [], **kwargs):
     """Wraps rules_nodejs's ts_library rule to include ambient types declared in //tsconfig.json.
@@ -52,8 +52,8 @@ def ts_library(name, srcs, deps = [], **kwargs):
 
     # Keep in sync with the "types" field in //tsconfig.json.
     ambient_types = [
-        "@infra-sk_npm//@types/mocha",
-        "@infra-sk_npm//@types/node",
+        "@npm//@types/mocha",
+        "@npm//@types/node",
     ]
 
     _ts_library(

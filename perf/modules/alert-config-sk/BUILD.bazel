@@ -14,9 +14,9 @@ sk_element(
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "alert-config-sk.ts",
@@ -31,7 +31,7 @@ sk_page(
     sk_element_deps = [":alert-config-sk"],
     ts_deps = [
         "//perf/modules/json:index_ts_lib",
-        "@infra-sk_npm//common-sk",
+        "@npm//common-sk",
     ],
     ts_entry_point = "alert-config-sk-demo.ts",
 )
@@ -42,8 +42,8 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 

@@ -11,9 +11,9 @@ sk_element(
     sass_srcs = ["paramset-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -27,7 +27,7 @@ sk_page(
     html_file = "paramset-sk-demo.html",
     scss_entry_point = "paramset-sk-demo.scss",
     sk_element_deps = [":paramset-sk"],
-    ts_deps = ["@infra-sk_npm//common-sk"],
+    ts_deps = ["@npm//common-sk"],
     ts_entry_point = "paramset-sk-demo.ts",
 )
 
@@ -38,7 +38,7 @@ ts_library(
     deps = [
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
-        "@infra-sk_npm//common-sk",
+        "@npm//common-sk",
     ],
 )
 
@@ -50,8 +50,8 @@ sk_element_puppeteer_test(
         ":paramset-sk",
         ":paramset-sk_po_ts_lib",
         "//puppeteer-tests:util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 
@@ -62,6 +62,6 @@ karma_test(
         ":paramset-sk",
         ":paramset-sk_po_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "@infra-sk_npm//common-sk",
+        "@npm//common-sk",
     ],
 )
