@@ -95,7 +95,7 @@ func TestUpdateIgnoredTraces_StartsNull_SetToCorrectValue(t *testing.T) {
 	assert.ElementsMatch(t, expectedData.ValuesAtHead, actualValuesAtHead)
 }
 
-func TestUpdateIgnoredTraces_StartsNotNull_NotChanged(t *testing.T) {
+func TestUpdateIgnoredTraces_StartsNotNull_UpdatedToCorrectValues(t *testing.T) {
 	unittest.LargeTest(t)
 	existingData := dks.Build()
 	// Force these all to be a sentinel value
@@ -103,7 +103,7 @@ func TestUpdateIgnoredTraces_StartsNotNull_NotChanged(t *testing.T) {
 		existingData.Traces[i].MatchesAnyIgnoreRule = schema.NBFalse
 	}
 	for i := range existingData.ValuesAtHead {
-		existingData.ValuesAtHead[i].MatchesAnyIgnoreRule = schema.NBTrue
+		existingData.ValuesAtHead[i].MatchesAnyIgnoreRule = schema.NBFalse
 	}
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
@@ -115,7 +115,7 @@ func TestUpdateIgnoredTraces_StartsNotNull_NotChanged(t *testing.T) {
 	require.NoError(t, row.Scan(&count))
 	assert.Equal(t, 41, count)
 	assert.Equal(t, 41, len(existingData.Traces))
-	row = db.QueryRow(ctx, `SELECT count(*) FROM ValuesAtHead WHERE matches_any_ignore_rule = TRUE`)
+	row = db.QueryRow(ctx, `SELECT count(*) FROM ValuesAtHead WHERE matches_any_ignore_rule = FALSE`)
 	count = 0
 	require.NoError(t, row.Scan(&count))
 	assert.Equal(t, 33, count)
@@ -123,15 +123,13 @@ func TestUpdateIgnoredTraces_StartsNotNull_NotChanged(t *testing.T) {
 
 	require.NoError(t, UpdateIgnoredTraces(ctx, db))
 
-	// Verify things were unchanged
-	row = db.QueryRow(ctx, `SELECT count(*) FROM Traces WHERE matches_any_ignore_rule = FALSE`)
-	count = 0
-	require.NoError(t, row.Scan(&count))
-	assert.Equal(t, 41, count)
-	row = db.QueryRow(ctx, `SELECT count(*) FROM ValuesAtHead WHERE matches_any_ignore_rule = TRUE`)
-	count = 0
-	require.NoError(t, row.Scan(&count))
-	assert.Equal(t, 33, count)
+	// Verify things were updated to the correct value
+	expectedData := dks.Build()
+	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
+	assert.ElementsMatch(t, expectedData.Traces, actualTraces)
+
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.ElementsMatch(t, expectedData.ValuesAtHead, actualValuesAtHead)
 }
 
 func TestUpdateIgnoredTraces_MultipleBatches_Success(t *testing.T) {
@@ -342,4 +340,71 @@ func makeRandomTraceIDs(n int) []schema.TraceID {
 		rv = append(rv, t)
 	}
 	return rv
+}
+
+func TestStatementForNotIgnoredTraceIDs_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	condition := statementForNotIgnoredTraceIDs(paramtools.ParamSet{
+		"key1": []string{"alpha", "beta"},
+	})
+	expectedCondition := `WITH
+U0 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
+	UNION
+	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"beta"'
+)
+SELECT trace_id FROM Traces WHERE trace_id IN (
+SELECT trace_id FROM U0
+) AND (matches_any_ignore_rule = FALSE OR matches_any_ignore_rule is NULL)`
+	assert.Equal(t, expectedCondition, condition)
+
+	condition = statementForNotIgnoredTraceIDs(paramtools.ParamSet{
+		"key1": []string{"alpha", "beta"},
+		"key2": []string{"gamma"},
+		"key3": []string{"delta", "epsilon", "zeta"},
+	})
+	expectedCondition = `WITH
+U0 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
+	UNION
+	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"beta"'
+),
+U1 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'key2' = '"gamma"'
+),
+U2 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'key3' = '"delta"'
+	UNION
+	SELECT trace_id FROM Traces WHERE keys -> 'key3' = '"epsilon"'
+	UNION
+	SELECT trace_id FROM Traces WHERE keys -> 'key3' = '"zeta"'
+)
+SELECT trace_id FROM Traces WHERE trace_id IN (
+SELECT trace_id FROM U0
+INTERSECT
+SELECT trace_id FROM U1
+INTERSECT
+SELECT trace_id FROM U2
+) AND (matches_any_ignore_rule = FALSE OR matches_any_ignore_rule is NULL)`
+	assert.Equal(t, expectedCondition, condition)
+}
+
+func TestStatementForNotIgnoredTraceIDs_RemovesBadSQLCharacters(t *testing.T) {
+	unittest.SmallTest(t)
+
+	condition := statementForNotIgnoredTraceIDs(paramtools.ParamSet{
+		"key1":              []string{"alpha", `beta"' OR 1=1`},
+		`key2'='""' OR 1=1`: []string{"1"}, // invalid keys are removed entirely.
+	})
+	expectedCondition := `WITH
+U0 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
+	UNION
+	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"beta OR 1=1"'
+)
+SELECT trace_id FROM Traces WHERE trace_id IN (
+SELECT trace_id FROM U0
+) AND (matches_any_ignore_rule = FALSE OR matches_any_ignore_rule is NULL)`
+	assert.Equal(t, expectedCondition, condition)
 }
