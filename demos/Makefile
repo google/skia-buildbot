@@ -1,7 +1,7 @@
 core:
 	go install -v ./go/demoserver
 
-serve:
+serve: npm-ci
 	npx webpack-dev-server --watch-poll --mode-development
 
 wasm_libs:
@@ -17,7 +17,7 @@ wasm_libs:
 		sh -c "cp -r /tmp/* /OUT/"
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
-build_resources: wasm_libs
+build_resources: wasm_libs npm-ci
 	npx webpack --mode=production
 
 run: build_resources core
@@ -38,21 +38,21 @@ local_image: build_resources
 # Increase Node's heap size to accommodate for ts-node's higher memory usage.
 NODE_MEMORY_LIMIT=4096
 
-test_puppeteer:
+test_puppeteer: npm-ci
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
-test_js:
+test_js: npm-ci
 	npx webpack --mode=development
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 test: test_js test_puppeteer
 
 .PHONY: build-frontend-ci
-build-frontend-ci: wasm_libs
-	npm ci
+build-frontend-ci: wasm_libs npm-ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
-test-frontend-ci:
-	npm ci
+test-frontend-ci: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+include ../make/npm.mk

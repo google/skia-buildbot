@@ -11,7 +11,7 @@ sk_element(
     sass_srcs = ["login-sk.scss"],
     ts_deps = [
         "//infra-sk/modules:login_ts_lib",
-        "@infra-sk_npm//elements-sk",
+        "@npm//elements-sk",
     ],
     ts_srcs = [
         "index.ts",
@@ -24,6 +24,6 @@ sk_page(
     name = "login-sk-demo",
     html_file = "login-sk-demo.html",
     sk_element_deps = [":login-sk"],
-    ts_deps = ["@infra-sk_npm//elements-sk"],
+    ts_deps = ["@npm//elements-sk"],
     ts_entry_point = "login-sk-demo.ts",
 )
