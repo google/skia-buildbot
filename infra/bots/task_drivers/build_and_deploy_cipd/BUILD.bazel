@@ -6,11 +6,17 @@ go_library(
     importpath = "go.skia.org/infra/infra/bots/task_drivers/build_and_deploy_cipd",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/auth",
+        "//go/cipd",
         "//go/common",
-        "//go/exec",
+        "//go/httputils",
+        "//task_driver/go/lib/auth_steps",
         "//task_driver/go/lib/bazel",
         "//task_driver/go/lib/os_steps",
         "//task_driver/go/td",
+        "@org_chromium_go_luci//cipd/client/cipd/pkg",
+        "@org_chromium_go_luci//cipd/common",
+        "@org_golang_x_oauth2//:oauth2",
     ],
 )
 
