@@ -1,0 +1,30 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "generate_elements_sk_scss_imports_lib",
+    srcs = ["generate_elements_sk_scss_imports.go"],
+    importpath = "go.skia.org/infra/infra-sk/generate_elements_sk_scss_imports",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//bazel/gazelle/frontend/parsers",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "generate_elements_sk_scss_imports",
+    embed = [":generate_elements_sk_scss_imports_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "generate_elements_sk_scss_imports_test",
+    srcs = ["generate_elements_sk_scss_imports_test.go"],
+    embed = [":generate_elements_sk_scss_imports_lib"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

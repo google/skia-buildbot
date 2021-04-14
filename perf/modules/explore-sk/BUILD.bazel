@@ -2,7 +2,10 @@ load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
 sk_element(
     name = "explore-sk",
-    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+        "//infra-sk:elements-sk_scss",
+    ],
     sass_srcs = ["explore-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/paramset-sk",

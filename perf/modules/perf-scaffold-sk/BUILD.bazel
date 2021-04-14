@@ -7,7 +7,10 @@ sk_demo_page_server(
 
 sk_element(
     name = "perf-scaffold-sk",
-    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+        "//infra-sk:elements-sk_scss",
+    ],
     sass_srcs = ["perf-scaffold-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/alogin-sk",

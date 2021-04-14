@@ -2,7 +2,10 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "calendar-sk",
-    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+        "//infra-sk:elements-sk_scss",
+    ],
     sass_srcs = ["calendar-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

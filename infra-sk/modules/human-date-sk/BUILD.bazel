@@ -7,6 +7,7 @@ sk_demo_page_server(
 
 sk_element(
     name = "human-date-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//common-sk",

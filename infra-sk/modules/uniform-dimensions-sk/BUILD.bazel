@@ -7,6 +7,7 @@ sk_demo_page_server(
 
 sk_element(
     name = "uniform-dimensions-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["uniform-dimensions-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
