@@ -4,10 +4,10 @@ sk_element(
     name = "confirm-dialog-sk",
     sass_srcs = ["confirm-dialog-sk.scss"],
     ts_deps = [
-        "@infra-sk_npm//@types/dialog-polyfill",
-        "@infra-sk_npm//dialog-polyfill",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
+        "@npm//@types/dialog-polyfill",
+        "@npm//dialog-polyfill",
+        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "confirm-dialog-sk.ts",
@@ -21,8 +21,8 @@ sk_page(
     html_file = "confirm-dialog-sk-demo.html",
     sk_element_deps = [":confirm-dialog-sk"],
     ts_deps = [
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//elements-sk",
+        "@npm//common-sk",
+        "@npm//elements-sk",
     ],
     ts_entry_point = "confirm-dialog-sk-demo.ts",
 )
@@ -33,8 +33,8 @@ karma_test(
     deps = [
         ":confirm-dialog-sk",
         "//infra-sk/modules:test_util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 

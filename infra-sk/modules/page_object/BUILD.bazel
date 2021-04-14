@@ -6,8 +6,7 @@ karma_test(
     deps = [
         ":page_object_element_test_cases_ts_lib",
         ":page_object_element_ts_lib",
-        "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//puppeteer",
+        "@npm//puppeteer",
     ],
 )
 
@@ -18,10 +17,9 @@ nodejs_test(
         ":page_object_element_test_cases_ts_lib",
         ":page_object_element_ts_lib",
         "//puppeteer-tests:util_ts_lib",
-        "@infra-sk_npm//@types/express",
-        "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//express",
-        "@infra-sk_npm//puppeteer",
+        "@npm//@types/express",
+        "@npm//express",
+        "@npm//puppeteer",
     ],
 )
 
@@ -31,10 +29,9 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":page_object_element_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//chai",
-        "@infra-sk_npm//puppeteer",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//puppeteer",
     ],
 )
 
@@ -42,10 +39,7 @@ ts_library(
     name = "page_object_element_ts_lib",
     srcs = ["page_object_element.ts"],
     visibility = ["//visibility:public"],
-    deps = [
-        "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//puppeteer",
-    ],
+    deps = ["@npm//puppeteer"],
 )
 
 ts_library(
@@ -54,7 +48,6 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":page_object_element_ts_lib",
-        "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//puppeteer",
+        "@npm//puppeteer",
     ],
 )

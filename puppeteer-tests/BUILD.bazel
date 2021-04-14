@@ -5,12 +5,11 @@ nodejs_test(
     src = "util_nodejs_test.ts",
     deps = [
         ":util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/express",
-        "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//chai",
-        "@infra-sk_npm//express",
-        "@infra-sk_npm//puppeteer",
+        "@npm//@types/chai",
+        "@npm//@types/express",
+        "@npm//chai",
+        "@npm//express",
+        "@npm//puppeteer",
     ],
 )
 
@@ -19,13 +18,12 @@ ts_library(
     srcs = ["util.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        "@infra-sk_npm//@types/express",
-        "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//@types/webpack",
-        "@infra-sk_npm//@types/webpack-dev-middleware",
-        "@infra-sk_npm//express",
-        "@infra-sk_npm//puppeteer",
-        "@infra-sk_npm//webpack",
-        "@infra-sk_npm//webpack-dev-middleware",
+        "@npm//@types/express",
+        "@npm//@types/webpack",
+        "@npm//@types/webpack-dev-middleware",
+        "@npm//express",
+        "@npm//puppeteer",
+        "@npm//webpack",
+        "@npm//webpack-dev-middleware",
     ],
 )
