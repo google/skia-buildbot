@@ -1,14 +1,7 @@
 {
-  "compilerOptions": {
-    "allowJs": true,
-    "esModuleInterop": true,
-    "module": "commonjs",
-    "noImplicitAny": true,
-    "resolveJsonModule": true,
-    "sourceMap": true,
-    "strict": true,
-    "target": "es2017",
-    "types": ["mocha", "node"]
-  },
-  "include": ["./modules/**/*.ts", "./pages/**/*.ts"]
+  "extends": "../tsconfig",
+  "include": [
+    "./modules/**/*.ts",
+    "./pages/**/*.ts",
+  ],
 }
