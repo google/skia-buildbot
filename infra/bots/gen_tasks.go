@@ -636,6 +636,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		"--patch_issue", specs.PLACEHOLDER_ISSUE,
 		"--patch_set", specs.PLACEHOLDER_PATCHSET,
 		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+		"--buildbucket_build_id", specs.PLACEHOLDER_BUILDBUCKET_BUILD_ID,
 		"--alsologtostderr",
 	}
 	if rbe {
