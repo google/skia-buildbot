@@ -284,10 +284,10 @@ func (c *Client) Create(ctx context.Context, name, dir string, installMode pkg.I
 	filter := func(path string) bool {
 		for _, regex := range excludeMatchingFiles {
 			if regex.MatchString(path) {
-				return false
+				return true
 			}
 		}
-		return true
+		return false
 	}
 	files, err := fs.ScanFileSystem(dir, dir, filter, fs.ScanOptions{
 		PreserveModTime:  false,
