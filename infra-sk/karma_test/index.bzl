@@ -1,7 +1,7 @@
 """This module defines the karma_test rule."""
 
-load("@infra-sk_npm//@bazel/rollup:index.bzl", "rollup_bundle")
-load("@infra-sk_npm//karma:index.bzl", _generated_karma_test = "karma_test")
+load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
+load("@npm//karma:index.bzl", _generated_karma_test = "karma_test")
 load("//infra-sk:ts_library.bzl", "ts_library")
 
 def karma_test(name, src, deps = []):
@@ -43,9 +43,9 @@ def karma_test(name, src, deps = []):
         entry_point = src,
         deps = [
             name + "_lib",
-            "@infra-sk_npm//@rollup/plugin-node-resolve",
-            "@infra-sk_npm//@rollup/plugin-commonjs",
-            "@infra-sk_npm//rollup-plugin-sourcemaps",
+            "@npm//@rollup/plugin-node-resolve",
+            "@npm//@rollup/plugin-commonjs",
+            "@npm//rollup-plugin-sourcemaps",
         ],
         format = "umd",
         config_file = "//infra-sk:rollup.config.js",
@@ -58,13 +58,13 @@ def karma_test(name, src, deps = []):
         data = [
             name + "_bundle",
             "//infra-sk/karma_test:karma.conf.js",
-            "@infra-sk_npm//karma-chrome-launcher",
-            "@infra-sk_npm//karma-sinon",
-            "@infra-sk_npm//karma-mocha",
-            "@infra-sk_npm//karma-chai",
-            "@infra-sk_npm//karma-chai-dom",
-            "@infra-sk_npm//karma-spec-reporter",
-            "@infra-sk_npm//mocha",
+            "@npm//karma-chrome-launcher",
+            "@npm//karma-sinon",
+            "@npm//karma-mocha",
+            "@npm//karma-chai",
+            "@npm//karma-chai-dom",
+            "@npm//karma-spec-reporter",
+            "@npm//mocha",
         ],
         templated_args = [
             "start",

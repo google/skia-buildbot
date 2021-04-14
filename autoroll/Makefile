@@ -15,16 +15,9 @@ rpcOutputFiles := ./go/rpc/rpc.pb.go ./go/rpc/rpc.twirp.go ./modules/rpc/rpc.ts 
 $(rpcOutputFiles): $(rpcDependentFiles)
 	go generate ./go/rpc
 
-./package-lock.json: package.json
-	npm install
-
-./node_modules/lastupdate: ./package-lock.json
-	npm ci
-	touch ./node_modules/lastupdate
-
 pages := $(shell find ./pages -type f)
 modules := $(shell find ./modules -type f)
-frontendInputFiles := $(pages) $(modules) $(rpcOutputFiles) ./node_modules/lastupdate
+frontendInputFiles := $(pages) $(modules) $(rpcOutputFiles) npm-ci
 pageBaseNames := $(sort $(basename $(notdir $(pages))))
 distNames := $(addsuffix -bundle.js,$(pageBaseNames)) $(addsuffix -bundle.css,$(pageBaseNames)) $(addsuffix .html,$(pageBaseNames))
 dist := $(addprefix ./dist/,$(distNames))
@@ -138,3 +131,9 @@ validate:
 .PHONY: run-fe
 run-fe: autoroll-fe
 	autoroll-fe --local --logtostderr --firestore_instance=staging --config_file=./config/skia-skiabot-test.json
+
+.PHONY: build-frontend-ci
+build-frontend-ci: npm-ci
+	npx webpack --mode=production
+
+include ../make/npm.mk

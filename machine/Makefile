@@ -1,34 +1,35 @@
 build: web
 	go install -v ./go/...
 
-web: ./modules/json/index.ts package-lock.json
+web: ./modules/json/index.ts npm-ci
 	npx webpack --mode=development
 
 ./modules/json/index.ts: ./go/machine/machine.go
 	go generate ./go/...
 
-
-test:
+test: npm-ci
 	go test -cover ./go/...
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
-testjs:
+testjs: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
-debugjs:
+debugjs: npm-ci
 	npx karma start --no-single-run
 
-testci:
-	rm -rf node_modules
-	npm install
+.PHONY: puppeteer_tests
+puppeteer_tests: npm-ci
+	npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+testci: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
-release: build package-lock.json
+release: build npm-ci
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/machineserver
 	./images/machineserver/release
 
-watch: package-lock.json
+watch: npm-ci
 	npx webpack --mode=development --watch
 
 push: release
@@ -46,18 +47,15 @@ start_pubsub_emulator:
 	docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
 		  --project test-project --host-port 0.0.0.0:8010
 
-package-lock.json: package.json
-	npm install
-
 .PHONY: build-frontend-ci
-build-frontend-ci:
-	npm ci
+build-frontend-ci: npm-ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
-test-frontend-ci:
-	npm ci
+test-frontend-ci: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 build-remote:
 	bazel build //machine/go/machineserver:machineserver --config=remote --remote_instance_name=projects/skia-public/instances/default_instance
+
+include ../make/npm.mk
