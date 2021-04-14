@@ -29,7 +29,7 @@ import (
 
 const (
 	// CIPD server to use for obtaining packages.
-	DefaultServiceURL = "https://chrome-infra-packages.appspot.com"
+	DefaultServiceURL = "https://chrome-infra-packages-dev.appspot.com"
 
 	// Platforms supported by CIPD.
 	PlatformLinuxAmd64   = "linux-amd64"
