@@ -1,10 +1,13 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "target": "es2017",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
     "lib": ["DOM", "ES2017"],
     "noImplicitAny": true,
-    "esModuleInterop": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2017",
     "types": ["mocha", "node"],
-  }
+  },
 }

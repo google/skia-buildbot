@@ -1,9 +1,7 @@
 // Functions used by more than one element.
 import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import * as DEVICE_ALIASES_ANY from '../../modules/devices/devices.json';
-
-const DEVICE_ALIASES = DEVICE_ALIASES_ANY as Record<string, string>;
+import { DEVICE_ALIASES } from '../../modules/devices/devices';
 
 const UNKNOWN = 'unknown';
 

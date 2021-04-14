@@ -1,15 +1,7 @@
 {
-  "compilerOptions": {
-    "allowJs": true,
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "module": "commonjs",
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "strict": true,
-    "target": "es2017",
-    "types": ["mocha", "chai", "node"]
-  },
-  "include": ["./modules/**/*.ts", "./pages/**/*.ts"],
-  "exclude": ["./node_modules/"]
+  "extends": "../tsconfig",
+  "include": [
+    "./modules/**/*.ts",
+    "./pages/**/*.ts",
+  ],
 }
