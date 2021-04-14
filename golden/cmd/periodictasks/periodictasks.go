@@ -25,14 +25,13 @@ const (
 )
 
 // TODO(kjlubick) other periodic tasks
-//   - Fix any races with trace rules (re-apply all rules to Traces and ValuesAtHead)
 //   - Send tasks to diffworker queue (de-duplicating where possible).
 
 type periodicTasksConfig struct {
 	config.Common
 
-	// NullIgnorePeriod is how often we should try to apply the ignore rules to null traces.
-	NullIgnorePeriod config.Duration `json:"null_ignore_period"`
+	// UpdateIgnorePeriod is how often we should try to apply the ignore rules to all traces.
+	UpdateIgnorePeriod config.Duration `json:"null_ignore_period"` // TODO(kjlubick) change JSON
 }
 
 func main() {
@@ -74,26 +73,26 @@ func main() {
 	ctx := context.Background()
 	db := mustInitSQLDatabase(ctx, ptc)
 
-	startUpdateTracesWithNullStatus(ctx, db, ptc)
+	startUpdateTracesIgnoreStatus(ctx, db, ptc)
 
 	sklog.Infof("periodic tasks have been started")
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 	sklog.Fatal(http.ListenAndServe(ptc.ReadyPort, nil))
 }
 
-func startUpdateTracesWithNullStatus(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksConfig) {
+func startUpdateTracesIgnoreStatus(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksConfig) {
 	liveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
-		"task": "updateTracesWithNullStatus",
+		"task": "updateTracesIgnoreStatus",
 	})
-	go util.RepeatCtx(ctx, ptc.NullIgnorePeriod.Duration, func(ctx context.Context) {
+	go util.RepeatCtx(ctx, ptc.UpdateIgnorePeriod.Duration, func(ctx context.Context) {
 		ctx, span := trace.StartSpan(ctx, "updateTracesWithNullStatus")
 		defer span.End()
 		if err := sqlignorestore.UpdateIgnoredTraces(ctx, db); err != nil {
-			sklog.Error("Error while updating null traces: %s", err)
+			sklog.Errorf("Error while updating traces ignore status: %s", err)
 			return // return so the liveness is not updated
 		}
 		liveness.Reset()
-		sklog.Infof("Done with updateTracesWithNullStatus")
+		sklog.Infof("Done with updateTracesIgnoreStatus")
 	})
 }
 
