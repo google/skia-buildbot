@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script is designed to run inside the puppeteer-tests Docker container.
+# This script is designed to run inside the Skia Infra RBE toolchain container.
 
 ################################################################################
 # Set up script environment.                                                   #
@@ -40,6 +40,18 @@ set -e
 # both when a command returns a non-zero exit code and when this script finishes
 # successfully.
 trap cleanup EXIT
+
+################################################################################
+# Prepare the RBE toolchain container to run Webpack-built Puppeteer tests.    #
+################################################################################
+
+# Install Node.js and build-essential, which is needed by some NPM packages.
+curl -fsSL https://deb.nodesource.com/setup_15.x | bash
+apt-get install -y nodejs build-essential
+
+# Input/output directories.
+mkdir -p /tests
+mkdir -p /src
 
 ################################################################################
 # Populate /tests with a subset of the buildbot repository that includes all   #
