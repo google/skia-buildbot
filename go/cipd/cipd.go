@@ -10,10 +10,17 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
+	"regexp"
 
 	"go.chromium.org/luci/cipd/client/cipd"
+	"go.chromium.org/luci/cipd/client/cipd/builder"
 	"go.chromium.org/luci/cipd/client/cipd/ensure"
+	"go.chromium.org/luci/cipd/client/cipd/fs"
+	"go.chromium.org/luci/cipd/client/cipd/pkg"
 	"go.chromium.org/luci/cipd/common"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -22,7 +29,7 @@ import (
 
 const (
 	// CIPD server to use for obtaining packages.
-	ServiceUrl = "https://chrome-infra-packages.appspot.com"
+	DefaultServiceURL = "https://chrome-infra-packages.appspot.com"
 
 	// Platforms supported by CIPD.
 	PlatformLinuxAmd64   = "linux-amd64"
@@ -168,7 +175,7 @@ func GetStrCIPDPkgs(pkgs []*Package) []string {
 // that any previously-installed packages in the given rootDir will be removed
 // if not specified again.
 func Ensure(ctx context.Context, c *http.Client, rootDir string, packages ...*Package) error {
-	cipdClient, err := NewClient(c, rootDir)
+	cipdClient, err := NewClient(c, rootDir, DefaultServiceURL)
 	if err != nil {
 		return fmt.Errorf("Failed to create CIPD client: %s", err)
 	}
@@ -207,6 +214,12 @@ func ParseEnsureFile(file string) ([]*Package, error) {
 type CIPDClient interface {
 	cipd.Client
 
+	// Attach the given refs, tags, and metadata to the given package instance.
+	Attach(ctx context.Context, pin common.Pin, refs []string, tags []string, metadata map[string]string) error
+
+	// Create uploads a new package instance.
+	Create(ctx context.Context, name, dir string, installMode pkg.InstallMode, excludeMatchingFiles []*regexp.Regexp, refs []string, tags []string, metadata map[string]string) (common.Pin, error)
+
 	// Ensure runs "cipd ensure" to get the correct packages in the given location. Note
 	// that any previously-installed packages in the given rootDir will be removed
 	// if not specified again.
@@ -222,9 +235,9 @@ type Client struct {
 }
 
 // NewClient returns a CIPD client.
-func NewClient(c *http.Client, rootDir string) (*Client, error) {
+func NewClient(c *http.Client, rootDir, serviceURL string) (*Client, error) {
 	cipdClient, err := cipd.NewClient(cipd.ClientOptions{
-		ServiceURL:          ServiceUrl,
+		ServiceURL:          serviceURL,
 		Root:                rootDir,
 		AuthenticatedClient: c,
 	})
@@ -265,3 +278,98 @@ func (c *Client) Describe(ctx context.Context, pkg, instance string) (*cipd.Inst
 	}
 	return c.DescribeInstance(ctx, pin, opts)
 }
+
+func (c *Client) Create(ctx context.Context, name, dir string, installMode pkg.InstallMode, excludeMatchingFiles []*regexp.Regexp, refs []string, tags []string, metadata map[string]string) (rv common.Pin, rvErr error) {
+	// Find the files to be included in the package.
+	filter := func(path string) bool {
+		for _, regex := range excludeMatchingFiles {
+			if regex.MatchString(path) {
+				return false
+			}
+		}
+		return true
+	}
+	files, err := fs.ScanFileSystem(dir, dir, filter, fs.ScanOptions{
+		PreserveModTime:  false,
+		PreserveWritable: false,
+	})
+
+	// Create the package file.
+	tmp, err := ioutil.TempDir("", "")
+	if err != nil {
+		return common.Pin{}, skerr.Wrap(err)
+	}
+	defer func() {
+		if err := os.RemoveAll(tmp); err != nil {
+			if rvErr != nil {
+				rvErr = skerr.Wrap(err)
+			}
+		}
+	}()
+	pkgFile := filepath.Join(tmp, "cipd.pkg")
+	f, err := os.Create(pkgFile)
+	if err != nil {
+		return common.Pin{}, skerr.Wrap(err)
+	}
+
+	// Build the package.
+	buildOpts := builder.Options{
+		CompressionLevel: 1,
+		Input:            files,
+		InstallMode:      installMode,
+		Output:           f,
+		PackageName:      name,
+	}
+	pin, err := builder.BuildInstance(ctx, buildOpts)
+	if err != nil {
+		_ = f.Close()
+		return common.Pin{}, skerr.Wrap(err)
+	}
+	if err := f.Close(); err != nil {
+		return common.Pin{}, skerr.Wrap(err)
+	}
+
+	// Register the instance.
+	f, err = os.Open(pkgFile)
+	if err != nil {
+		return common.Pin{}, skerr.Wrap(err)
+	}
+	if err := c.RegisterInstance(ctx, pin, f, cipd.CASFinalizationTimeout); err != nil {
+		return common.Pin{}, skerr.Wrap(err)
+	}
+
+	// Apply the given refs and tags.
+	if err := c.Attach(ctx, pin, refs, tags, metadata); err != nil {
+		return common.Pin{}, skerr.Wrap(err)
+	}
+	return pin, nil
+}
+
+func (c *Client) Attach(ctx context.Context, pin common.Pin, refs []string, tags []string, metadata map[string]string) error {
+	if len(metadata) > 0 {
+		md := make([]cipd.Metadata, 0, len(metadata))
+		for k, v := range metadata {
+			md = append(md, cipd.Metadata{
+				Key:   k,
+				Value: []byte(v),
+			})
+		}
+		if err := c.AttachMetadataWhenReady(ctx, pin, md); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	if len(tags) > 0 {
+		if err := c.AttachTagsWhenReady(ctx, pin, tags); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	for _, ref := range refs {
+		if err := c.SetRefWhenReady(ctx, ref, pin); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return nil
+}
+
+// Ensure that Client implements CIPDClient.
+var _ CIPDClient = &Client{}

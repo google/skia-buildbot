@@ -670,7 +670,6 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 	cipd := []*specs.CipdPackage{
 		b.MustGetCipdPackageFromAsset("bazel"),
 	}
-	cipd = append(cipd, specs.CIPD_PKGS_CIPD...)
 	cipd = append(cipd, specs.CIPD_PKGS_SKIA_INFRA_RBE_KEY...)
 	cmd := []string{
 		"./build_and_deploy_cipd",

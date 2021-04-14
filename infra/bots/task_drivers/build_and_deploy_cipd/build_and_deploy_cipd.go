@@ -4,7 +4,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"path"
@@ -12,8 +11,15 @@ import (
 	"regexp"
 	"strings"
 
+	cipd_pkg "go.chromium.org/luci/cipd/client/cipd/pkg"
+	cipd_common "go.chromium.org/luci/cipd/common"
+	"golang.org/x/oauth2"
+
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"go.skia.org/infra/task_driver/go/lib/bazel"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
@@ -32,7 +38,7 @@ var (
 
 	// Optional flags.
 	buildDir       = flag.String("build_dir", ".", "Directory containing the Bazel workspace to build.")
-	cipdServiceURL = flag.String("cipd_service_url", "https://chrome-infra-packages.appspot.com", "CIPD service URL.")
+	cipdServiceURL = flag.String("cipd_service_url", cipd.DefaultServiceURL, "CIPD service URL.")
 	tags           = common.NewMultiStringFlag("tag", nil, "Tags to apply to the package, in key:value format.")
 	refs           = common.NewMultiStringFlag("ref", nil, "Refs to apply to the package.")
 	metadata       = common.NewMultiStringFlag("metadata", nil, "Metadata to apply to the package, in key:value format.")
@@ -68,13 +74,21 @@ func main() {
 	for _, tag := range *tags {
 		splitPair(ctx, tag, ":")
 	}
+	metadataMap := make(map[string]string, len(*metadata))
 	for _, md := range *metadata {
-		splitPair(ctx, md, ":")
+		k, v := splitPair(ctx, md, ":")
+		metadataMap[k] = v
 	}
 
 	// Create directories for each of the build platforms.
 	pkgs := make([]*pkgSpec, 0, len(*platformsList))
+	var ts oauth2.TokenSource
 	if err := td.Do(ctx, td.Props("Setup").Infra(), func(ctx context.Context) error {
+		var err error
+		ts, err = auth_steps.Init(ctx, *local, auth.SCOPE_USERINFO_EMAIL)
+		if err != nil {
+			return err
+		}
 		for _, platform := range *platformsList {
 			bzlPlatform, cipdPlatform := splitPair(ctx, platform, "=")
 			tmpDir, err := os_steps.TempDir(ctx, "", cipdPlatform)
@@ -175,61 +189,33 @@ func main() {
 	// TODO(borenet): See if we can use the CIPD Go code directly, rather than
 	// having to ship a separate binary.
 	if err := td.Do(ctx, td.Props("Upload to CIPD"), func(ctx context.Context) error {
+		httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+		cipdClient, err := cipd.NewClient(httpClient, ".", *cipdServiceURL)
+		if err != nil {
+			return err
+		}
+
 		// Upload all of the package instances.
 		for _, pkg := range pkgs {
-			outputDir, err := os_steps.TempDir(ctx, "", pkg.cipdPlatform+"_output")
-			if err != nil {
-				return err
-			}
-			defer func() {
-				if err := os_steps.RemoveAll(ctx, outputDir); err != nil {
-					td.Fatal(ctx, err)
+			if err := td.Do(ctx, td.Props(fmt.Sprintf("Upload %s", pkg.cipdPlatform)), func(ctx context.Context) error {
+				pin, err := cipdClient.Create(ctx, pkg.cipdPkgPath, pkg.tmpDir, cipd_pkg.InstallModeCopy, nil, nil, nil, nil)
+				if err != nil {
+					return err
 				}
-			}()
-			outputFile := filepath.Join(outputDir, "results.json")
-
-			cmd := []string{
-				"cipd", "create",
-				"-service-url", *cipdServiceURL,
-				"-compression-level", "1",
-				"-in", pkg.tmpDir,
-				"-name", pkg.cipdPkgPath,
-				"-json-output", outputFile,
-				"-install-mode", "copy",
-			}
-			if _, err := exec.RunCwd(ctx, ".", cmd...); err != nil {
+				pkg.pin = pin
+				return nil
+			}); err != nil {
 				return err
 			}
-			b, err := os_steps.ReadFile(ctx, outputFile)
-			if err != nil {
-				return err
-			}
-			var result cipdResult
-			if err := json.Unmarshal(b, &result); err != nil {
-				return err
-			}
-			pkg.uploadedInstanceID = result.Result.InstanceID
 		}
 		// Apply refs, tags, and metadata. Do this after all platforms have been
 		// built and uploaded to increase the likelihood that the refs and tags
 		// get applied to all packages or none. Otherwise it's possible for some
 		// platforms to be missing when querying by ref or tag.
 		for _, pkg := range pkgs {
-			cmd := []string{
-				"cipd", "attach", pkg.cipdPkgPath,
-				"-service-url", *cipdServiceURL,
-				"-version", pkg.uploadedInstanceID,
-			}
-			for _, md := range *metadata {
-				cmd = append(cmd, "-metadata", md)
-			}
-			for _, ref := range *refs {
-				cmd = append(cmd, "-ref", ref)
-			}
-			for _, tag := range *tags {
-				cmd = append(cmd, "-tag", tag)
-			}
-			if _, err := exec.RunCwd(ctx, ".", cmd...); err != nil {
+			if err := td.Do(ctx, td.Props(fmt.Sprintf("Attach %s", pkg.cipdPlatform)), func(ctx context.Context) error {
+				return cipdClient.Attach(ctx, pkg.pin, *refs, *tags, metadataMap)
+			}); err != nil {
 				return err
 			}
 		}
@@ -252,17 +238,9 @@ func splitPair(ctx context.Context, elem, sep string) (string, string) {
 // pkgSpec contains information about how to build and upload an indivdual CIPD
 // package instance.
 type pkgSpec struct {
-	bazelPlatform      string
-	cipdPlatform       string
-	cipdPkgPath        string
-	tmpDir             string
-	uploadedInstanceID string
-}
-
-// cipdResult describes the structure of CIPD's JSON output.
-type cipdResult struct {
-	Result struct {
-		Package    string `json:"package"`
-		InstanceID string `json:"instance_id"`
-	} `json:"result"`
+	bazelPlatform string
+	cipdPlatform  string
+	cipdPkgPath   string
+	tmpDir        string
+	pin           cipd_common.Pin
 }

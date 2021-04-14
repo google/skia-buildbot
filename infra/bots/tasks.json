@@ -449,11 +449,6 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "infra/tools/cipd/${os}-${arch}",
-          "path": ".",
-          "version": "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378"
-        },
-        {
           "name": "skia/bots/bazel",
           "path": "bazel",
           "version": "version:2"
