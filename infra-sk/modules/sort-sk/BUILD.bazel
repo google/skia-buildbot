@@ -11,8 +11,8 @@ sk_element(
     sass_srcs = ["sort-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//elements-sk",
+        "@npm//common-sk",
+        "@npm//elements-sk",
     ],
     ts_srcs = [
         "index.ts",
@@ -26,8 +26,8 @@ sk_page(
     html_file = "sort-sk-demo.html",
     sk_element_deps = [":sort-sk"],
     ts_deps = [
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//elements-sk",
+        "@npm//common-sk",
+        "@npm//elements-sk",
     ],
     ts_entry_point = "sort-sk-demo.ts",
 )
@@ -38,8 +38,8 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 
@@ -48,8 +48,8 @@ karma_test(
     src = "sort-sk_test.ts",
     deps = [
         ":sort-sk",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
-        "@infra-sk_npm//common-sk",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
     ],
 )

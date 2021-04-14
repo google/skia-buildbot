@@ -1,13 +1,13 @@
-build:
+build: npm-ci
 	npx webpack --mode=development
 
-serve:
+serve: npm-ci
 	npx webpack-dev-server --watch-poll --mode=development
 
-release_build: wasm_libs
+release_build: wasm_libs npm-ci
 	npx webpack --mode=production
 
-watch:
+watch: npm-ci
 	npx webpack --watch --mode=development
 
 get_latest_skia:
@@ -28,9 +28,7 @@ release: release_build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/jsfiddle
 	./build_release
 
-release_ci:
-	cd ../infra-sk && npm ci
-	npm ci
+release_ci: npm-ci
 	# Assumes the environment mounts the wasm outputs to /OUT
 	rm -rf build
 	mkdir -p build/canvaskit build/pathkit
@@ -47,6 +45,7 @@ push: get_latest_skia release
 .PHONY: build serve release_build watch core release wasm_libs get_latest_skia
 
 .PHONY: build-frontend-ci
-build-frontend-ci: wasm_libs
-	npm ci
+build-frontend-ci: wasm_libs npm-ci
 	npx webpack --mode=production
+
+include ../make/npm.mk

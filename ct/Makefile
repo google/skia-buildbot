@@ -2,19 +2,17 @@
 	go run ./go/types -o modules/json/index.ts
 
 .PHONY: ctfe
-ctfe: ./modules/json/index.ts
-	cd ../infra-sk && npm ci
-	npm ci
+ctfe: ./modules/json/index.ts npm-ci
 	npx webpack --mode=production
 	go install -v ./go/ctfe
 
 .PHONY: ctfe_debug
-ctfe_debug: ./modules/json/index.ts
+ctfe_debug: ./modules/json/index.ts npm-ci
 	npx webpack --mode=development
 	go install -v ./go/ctfe
 
 .PHONY: test_js
-test_js:
+test_js: npm-ci
 	npx webpack --mode=development
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
@@ -22,15 +20,15 @@ test_js:
 NODE_MEMORY_LIMIT=4096
 
 .PHONY: puppeteer-tests
-puppeteer-tests:
+puppeteer-tests: npm-ci
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 .PHONY: watch
-watch: package-lock.json
+watch: npm-ci
 	npx webpack --mode=development --watch
 
 .PHONY: serve
-serve:
+serve: npm-ci
 	npx webpack-dev-server --watch_poll --mode=development
 
 .PHONY: local_image
@@ -129,11 +127,11 @@ worker_scripts: create_pagesets capture_archives \
 all: ctfe master_scripts worker_scripts testgo
 
 .PHONY: build-frontend-ci
-build-frontend-ci:
-	npm ci
+build-frontend-ci: npm-ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
-test-frontend-ci:
-	npm ci
+test-frontend-ci: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+include ../make/npm.mk

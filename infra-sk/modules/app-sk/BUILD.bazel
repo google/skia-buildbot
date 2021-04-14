@@ -4,7 +4,7 @@ sk_element(
     name = "app-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["app-sk.scss"],
-    ts_deps = ["@infra-sk_npm//elements-sk"],
+    ts_deps = ["@npm//elements-sk"],
     ts_srcs = [
         "app-sk.ts",
         "index.ts",
@@ -20,7 +20,7 @@ sk_page(
         "//infra-sk/modules/login-sk",
         ":app-sk",
     ],
-    ts_deps = ["@infra-sk_npm//elements-sk"],
+    ts_deps = ["@npm//elements-sk"],
     ts_entry_point = "app-sk-demo.ts",
 )
 
@@ -30,8 +30,8 @@ karma_test(
     deps = [
         ":app-sk",
         "//infra-sk/modules:test_util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 
@@ -46,7 +46,7 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )

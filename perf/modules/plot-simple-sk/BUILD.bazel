@@ -10,8 +10,8 @@ karma_test(
     src = "kd_test.ts",
     deps = [
         ":kd_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 
@@ -29,13 +29,13 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         ":kd_ts_lib",
         ":ticks_ts_lib",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
-        "@infra-sk_npm//@types/d3-array",
-        "@infra-sk_npm//@types/d3-scale",
-        "@infra-sk_npm//d3-array",
-        "@infra-sk_npm//d3-scale",
-        "@infra-sk_npm//resize-observer-polyfill",
+        "@npm//@types/d3-array",
+        "@npm//@types/d3-scale",
+        "@npm//d3-array",
+        "@npm//d3-scale",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+        "@npm//resize-observer-polyfill",
     ],
     ts_srcs = [
         "index.ts",
@@ -52,8 +52,8 @@ sk_page(
         ":plot-simple-sk",
     ],
     ts_deps = [
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//elements-sk",
+        "@npm//common-sk",
+        "@npm//elements-sk",
     ],
     ts_entry_point = "plot-simple-sk-demo.ts",
 )
@@ -64,8 +64,8 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 
@@ -75,8 +75,8 @@ karma_test(
     deps = [
         ":plot-simple-sk",
         "//infra-sk/modules:test_util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 
@@ -85,8 +85,8 @@ karma_test(
     src = "ticks_test.ts",
     deps = [
         ":ticks_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 

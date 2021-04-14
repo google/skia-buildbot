@@ -1,15 +1,12 @@
-default: app
+default: app npm-ci
 	npx webpack --mode=development
 
-release: wasm_libs_tot
+release: wasm_libs_tot npm-ci
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/particles
 	npx webpack --mode=production
 	./build_release
 
-release_ci: app
-	cd ../infra-sk && npm ci
-	cd ../puppeteer-tests && npm ci
-	npm ci
+release_ci: app npm-ci
 	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
 	rm -rf build
 	mkdir -p build/canvaskit
@@ -20,10 +17,10 @@ release_ci: app
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/particles
 	./build_release
 
-serve:
+serve: npm-ci
 	npx webpack-dev-server --mode=development --watch --watch-poll 100
 
-watch:
+watch: npm-ci
 	npx webpack --mode=development --watch
 
 app:
@@ -33,7 +30,7 @@ app:
 NODE_MEMORY_LIMIT=4096
 
 .PHONY: testpptr
-testpptr:
+testpptr: npm-ci
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 get_latest_skia:
@@ -48,7 +45,7 @@ wasm_libs_tot: get_latest_skia
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.ts
 
-wasm_libs_fixed: package-lock.json
+wasm_libs_fixed: npm-ci
 	rm -rf build
 	mkdir -p build/canvaskit
 	curl https://particles.skia.org/dist/canvaskit.js --output build/canvaskit/canvaskit.js
@@ -63,8 +60,7 @@ push: release skia-public
 .PHONY: serve watch app release release_ci wasm_libs_fixed wasm_libs_tot get_latest_skia push
 
 .PHONY: build-frontend-ci
-build-frontend-ci: wasm_libs_tot
-	npm ci
+build-frontend-ci: wasm_libs_tot npm-ci
 	npx webpack --mode=production
 
 # You can either run a local copy of scrapexchange, or port-forward the production instance:
@@ -72,3 +68,5 @@ build-frontend-ci: wasm_libs_tot
 #   kubectl port-forward service/scrapexchange 9000
 run-local-instance:
 	particles --local --logtostderr --scrapexchange=http://localhost:9000
+
+include ../make/npm.mk

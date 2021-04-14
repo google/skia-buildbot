@@ -30,7 +30,8 @@ Examples of tests that make use of Puppeteer might include:
 
 ## Running Puppeteer tests
 
-First, make sure to run `npm ci` from `//puppeteer-tests` if you haven't already.
+First, make sure to run `npm ci` from the repository root if you haven't
+already.
 
 Execute `make puppeteer-tests` from this repository's root directory. This will
 run all Puppeteer tests in the buildbot repository inside a Docker container.
@@ -132,10 +133,9 @@ In order to include an application's Puppeteer tests in the
 must copy any necessary files into the Docker container, install any necessary
 dependencies and actually run the tests.
 
-This is done in three steps:
+This is done in two steps:
 
 1. Make a new directory inside `/tests`, e.g. `/tests/my-app`, and copy the
    necessary files from `//my-app` in the repository.
-2. Run `npm ci` from `/tests/my-app`.
-3. Run the Mocha test runner from `/tests/my-app`, e.g.
+2. Run the Mocha test runner from `/tests/my-app`, e.g.
    `npx mocha /tests/**/*_puppeteer_test.js`.

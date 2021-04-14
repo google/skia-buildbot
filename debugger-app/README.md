@@ -14,11 +14,7 @@ Running locally
 Once, after a clean checkout, run the following
 
 ```
-cd ../infra-sk
-npm ci
-cd ../puppeteer-tests/
-npm ci
-cd ../debugger-app
+cd ..
 npm ci
 ```
 

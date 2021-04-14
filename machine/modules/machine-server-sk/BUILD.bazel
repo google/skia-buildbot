@@ -14,9 +14,9 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//machine/modules/json:index_ts_lib",
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -31,9 +31,9 @@ karma_test(
     deps = [
         ":machine-server-sk",
         "//machine/modules/json:index_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//fetch-mock",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
     ],
 )

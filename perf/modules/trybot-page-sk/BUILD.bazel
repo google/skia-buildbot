@@ -25,9 +25,9 @@ sk_element(
         "//perf/modules/progress:progress_ts_lib",
         "//perf/modules/trybot:calcs_ts_lib",
         "//perf/modules/window:window_ts_lib",
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -46,9 +46,9 @@ sk_page(
     ],
     ts_deps = [
         "//perf/modules/json:index_ts_lib",
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//fetch-mock",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//fetch-mock",
     ],
     ts_entry_point = "trybot-page-sk-demo.ts",
 )
@@ -59,7 +59,7 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )

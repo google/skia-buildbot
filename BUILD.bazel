@@ -59,7 +59,10 @@ exports_files(
 
 buildifier(
     name = "buildifier",
-    exclude_patterns = ["./**/node_modules/*"],
+    exclude_patterns = [
+        "./node_modules/*",
+        "./**/node_modules/*",
+    ],
     lint_mode = "warn",
 )
 

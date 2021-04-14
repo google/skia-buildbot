@@ -62,7 +62,7 @@ export class ConfirmDialogSk extends HTMLElement {
     this.render();
     this.dialog!.showModal();
     return new Promise((resolve, reject) => {
-      this.resolve = resolve;
+      this.resolve = () => resolve(undefined);
       this.reject = reject;
     });
   }

@@ -11,8 +11,8 @@ sk_element(
     sass_srcs = ["query-values-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
+        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -35,7 +35,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//infra-sk/modules/page_object:page_object_ts_lib",
-        "@infra-sk_npm//elements-sk",
+        "@npm//elements-sk",
     ],
 )
 
@@ -46,7 +46,7 @@ karma_test(
         ":query-values-sk",
         ":query-values-sk_po_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )

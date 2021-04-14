@@ -225,9 +225,7 @@ void draw(SkCanvas* canvas) {
     const promises: Promise<never>[] = [];
     fiddle.querySelectorAll('img.result_image').forEach((element) => {
       promises.push(new Promise<never>((resolve) => {
-        element.addEventListener('load', () => {
-          resolve();
-        });
+        element.addEventListener('load', () => (resolve as any)());
       }));
     });
     Promise.all(promises).then(modeComplete);
@@ -289,9 +287,7 @@ void draw(SkCanvas* canvas) {
   const promises: Promise<never>[] = [];
   fiddle.querySelectorAll('video').forEach((element) => {
     promises.push(new Promise<never>((resolve) => {
-      element.addEventListener('canplay', () => {
-        resolve();
-      });
+      element.addEventListener('canplay', () => (resolve as any)());
     }));
   });
   Promise.all(promises).then(modeComplete);

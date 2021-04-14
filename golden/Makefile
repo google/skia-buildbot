@@ -25,39 +25,36 @@ go-test:
 	go test ./go/...
 
 .PHONY: js-test
-js-test:
+js-test: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 .PHONY: js-test-debug
-js-test-debug:
+js-test-debug: npm-ci
 	npx karma start --no-single-run
 
 # Increase Node's heap size to accommodate for ts-node's higher memory usage.
 NODE_MEMORY_LIMIT=4096
 
 .PHONY: puppeteer-test
-puppeteer-test:
+puppeteer-test: npm-ci
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 	echo "results are found in ../puppeteer-tests/output"
 
 .PHONY: puppeteer-test-debug
-puppeteer-test-debug:
+puppeteer-test-debug: npm-ci
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
 	echo "results are found in ../puppeteer-tests/output"
 
-node_modules: package.json
-	npm ci
-
 .PHONY: frontend
-frontend:
+frontend: npm-ci
 	npx webpack-cli --mode=production
 
 .PHONY: frontend-debug
-frontend-debug:
+frontend-debug: npm-ci
 	npx webpack-cli --mode=development
 
 .PHONY: serve
-serve:
+serve: npm-ci
 	npx webpack-dev-server --watch-poll --mode=development
 
 .PHONY: allgo
@@ -152,11 +149,11 @@ mocks:
 	go generate ./...
 
 .PHONY: build-frontend-ci
-build-frontend-ci:
-	npm ci
+build-frontend-ci: npm-ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
-test-frontend-ci:
-	npm ci
+test-frontend-ci: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+include ../make/npm.mk

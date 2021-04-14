@@ -7,10 +7,10 @@ sk_element(
     sk_element_deps = ["//perf/modules/calendar-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@infra-sk_npm//@types/dialog-polyfill",
-        "@infra-sk_npm//dialog-polyfill",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
+        "@npm//@types/dialog-polyfill",
+        "@npm//dialog-polyfill",
+        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "calendar-input-sk.ts",
@@ -32,8 +32,8 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 
@@ -43,8 +43,8 @@ karma_test(
     deps = [
         ":calendar-input-sk",
         "//infra-sk/modules:test_util_ts_lib",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 

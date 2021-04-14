@@ -29,11 +29,11 @@ const (
 	// Namespace under which NPM modules are exposed.
 	//
 	// This must be kept in sync with the npm_install rule in the WORKSPACE file.
-	npmBazelNamespace = "infra-sk_npm"
+	npmBazelNamespace = "npm"
 
 	// packageJsonPath is the path to the package.json file used by the npm_install rule in the
 	// workspace file. This path is relative to the workspace root directory.
-	packageJsonPath = "infra-sk/package.json"
+	packageJsonPath = "package.json"
 )
 
 // Resolver implements the resolve.Resolver interface.
@@ -332,8 +332,8 @@ func setDeps(r *rule.Rule, l label.Label, depsAttr string, deps []label.Label) {
 // resolveDepForSassImport returns the label of the rule that resolves the given Sass import.
 func (rslv *Resolver) resolveDepForSassImport(ruleKind string, ruleLabel label.Label, importPath string) ruleKindAndLabel {
 	// The elements-sk styles are a special case because they come from a genrule that copies them
-	// from //infra-sk/node_modules/elements-sk into //bazel-bin/~elements-sk. These styles can be
-	// accessed via the //infra-sk:elements-sk_scss sass_library.
+	// from //node_modules/elements-sk into //bazel-bin/~elements-sk. These styles can be accessed
+	// via the //infra-sk:elements-sk_scss sass_library.
 	if strings.HasPrefix(importPath, "~elements-sk") {
 		return ruleKindAndLabel{
 			kind:  "sass_library",
@@ -380,13 +380,13 @@ func (rslv *Resolver) resolveDepsForTypeScriptImport(ruleKind string, ruleLabel 
 		// Add as dependencies both the module and its type annotations package, if it exists.
 		rkals = append(rkals, ruleKindAndLabel{
 			kind:  "",                                                   // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
-			label: label.New(npmBazelNamespace, moduleName, moduleName), // e.g. @infra-sk_npm//puppeteer
+			label: label.New(npmBazelNamespace, moduleName, moduleName), // e.g. @npm//puppeteer
 		})
 		typesModuleName := "@types/" + moduleName // e.g. @types/my-module
 		if npmPackages[typesModuleName] {
 			rkals = append(rkals, ruleKindAndLabel{
 				kind:  "",                                                        // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
-				label: label.New(npmBazelNamespace, typesModuleName, moduleName), // e.g. @infra-sk_npm//@types/puppeteer
+				label: label.New(npmBazelNamespace, typesModuleName, moduleName), // e.g. @npm//@types/puppeteer
 			})
 		}
 		return rkals

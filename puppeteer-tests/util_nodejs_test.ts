@@ -42,7 +42,7 @@ describe('utility functions for Puppeteer tests', async () => {
       // Start an HTTP server on a random, unused port.
       const app = express();
       await new Promise((resolve) => {
-        server = app.listen(0, resolve);
+        server = app.listen(0, () => resolve(undefined));
       });
       testPageUrl = `http://localhost:${
         (server!.address() as net.AddressInfo).port

@@ -1,7 +1,6 @@
-
 default: build web
 
-web: ./modules/json/index.ts package-lock.json
+web: ./modules/json/index.ts npm-ci
 	npx webpack --mode=development
 
 ./modules/json/index.ts: ./go/types/types.go
@@ -10,36 +9,32 @@ web: ./modules/json/index.ts package-lock.json
 build: web
 	go install -v ./go/bugs-central
 
-release: build package-lock.json
+release: build npm-ci
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/bugs-central
 	./images/bugs-central-server/build_release
 
-debug:
+debug: npm-ci
 	npx webpack --mode=development
 
 push: release
 	pushk --use-temp-checkout bugs-central
 
-serve: package-lock.json
+serve: npm-ci
 	npx webpack-dev-server --mode=development --watch-poll
 
 testgo:
 	go test ./go/...
 
-watch: package-lock.json
+watch: npm-ci
 	npx webpack --mode=development --watch
 
-package-lock.json: package.json
-	npm install
-
 .PHONY: build-frontend-ci
-build-frontend-ci:
-	npm ci
+build-frontend-ci: npm-ci
 	npx webpack --mode=production
 
 .PHONY: test_js
-test_js:
+test_js: npm-ci
 	npx webpack --mode=development
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
@@ -47,7 +42,7 @@ test_js:
 NODE_MEMORY_LIMIT=4096
 
 .PHONY: puppeteer-tests
-puppeteer-tests:
+puppeteer-tests: npm-ci
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
-
+include ../make/npm.mk
