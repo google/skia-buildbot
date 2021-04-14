@@ -7,6 +7,7 @@ sk_demo_page_server(
 
 sk_element(
     name = "query-count-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["query-count-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -26,6 +27,7 @@ sk_element(
 sk_page(
     name = "query-count-sk-demo",
     html_file = "query-count-sk-demo.html",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [":query-count-sk"],
     ts_deps = [
         "@npm//elements-sk",
