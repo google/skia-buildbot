@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f8363705_d41753d9",
+        "filename": "infra/bots/task_drivers/bazel_test_all/bazel_test_all.go",
+        "patchSetId": 34
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-14T18:59:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b529e5e8_6a956a98",
+      "range": {
+        "startLine": 133,
+        "startChar": 5,
+        "endLine": 133,
+        "endChar": 11
+      },
+      "revId": "683b47f5794fc7897fd8346b7d5a155dd69a9e7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "50ef38f0_5281c07e",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4083ff73_82f13072",
+        "filename": "infra/bots/task_drivers/bazel_test_all/bazel_test_all.go",
+        "patchSetId": 34
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-14T18:59:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "50ef38f0_5281c07e",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 8
+      },
+      "revId": "683b47f5794fc7897fd8346b7d5a155dd69a9e7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6144a857_1e0915b1",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-04-14T13:29:52Z",
       "side": 1,
       "message": "Please add a reminder comment that this is patchset \"order\"",
+      "range": {
+        "startLine": 141,
+        "startChar": 32,
+        "endLine": 141,
+        "endChar": 40
+      },
+      "revId": "683b47f5794fc7897fd8346b7d5a155dd69a9e7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7ea1ca10_bed4b2ac",
+        "filename": "infra/bots/task_drivers/bazel_test_all/bazel_test_all.go",
+        "patchSetId": 34
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-14T18:59:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6144a857_1e0915b1",
       "range": {
         "startLine": 141,
         "startChar": 32,
