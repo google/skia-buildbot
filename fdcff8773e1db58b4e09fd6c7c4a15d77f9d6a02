@@ -22,6 +22,30 @@
       },
       "revId": "fdcff8773e1db58b4e09fd6c7c4a15d77f9d6a02",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "efaa7d12_0e355857",
+        "filename": "package.json",
+        "patchSetId": 20
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-04-14T13:07:40Z",
+      "side": 1,
+      "message": "Agreed. Also, I believe eslint will be happier if all the deps were in dependencies and there was nothing in devDependencies.",
+      "parentUuid": "5eb03ba7_164d02ec",
+      "range": {
+        "startLine": 19,
+        "startChar": 3,
+        "endLine": 19,
+        "endChar": 18
+      },
+      "revId": "fdcff8773e1db58b4e09fd6c7c4a15d77f9d6a02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
