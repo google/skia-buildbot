@@ -257,25 +257,8 @@ func (f *Frontend) initialize() {
 	metrics2.InitPrometheus(f.flags.PromPort)
 	_ = metrics2.NewLiveness("uptime", nil)
 
-	var err error
-	if f.flags.ProxyLogin {
-		compiledRegex, err := regexp.Compile(config.Config.AuthConfig.EmailRegex)
-		if err != nil {
-			sklog.Fatalf("Failed to compile AuthConfig.EmailRegex %q: %s", config.Config.AuthConfig.EmailRegex, err)
-		}
-		f.loginProvider = proxylogin.New(
-			config.Config.AuthConfig.HeaderName,
-			compiledRegex,
-			config.Config.AuthConfig.LoginURL,
-			config.Config.AuthConfig.LogoutURL)
-	} else {
-		f.loginProvider, err = sklogin.New(f.flags.Port, f.flags.Local, f.flags.AuthBypassList)
-		if err != nil {
-			sklog.Fatalf("Failed to initialize the login system: %s", err)
-		}
-	}
-
 	// Add tracker for long running requests.
+	var err error
 	f.progressTracker, err = progress.NewTracker("/_/status/")
 	if err != nil {
 		sklog.Fatalf("Failed to initialize Tracker: %s", err)
@@ -301,6 +284,27 @@ func (f *Frontend) initialize() {
 		config.Config.DataStoreConfig.ConnectionString = f.flags.ConnectionString
 	}
 	cfg := config.Config
+
+	// Configure login.
+	if f.flags.ProxyLogin {
+		var compiledRegex *regexp.Regexp = nil
+		if cfg.AuthConfig.EmailRegex != "" {
+			compiledRegex, err = regexp.Compile(cfg.AuthConfig.EmailRegex)
+			if err != nil {
+				sklog.Fatalf("Failed to compile AuthConfig.EmailRegex %q: %s", config.Config.AuthConfig.EmailRegex, err)
+			}
+		}
+		f.loginProvider = proxylogin.New(
+			cfg.AuthConfig.HeaderName,
+			compiledRegex,
+			cfg.AuthConfig.LoginURL,
+			cfg.AuthConfig.LogoutURL)
+	} else {
+		f.loginProvider, err = sklogin.New(f.flags.Port, f.flags.Local, f.flags.AuthBypassList)
+		if err != nil {
+			sklog.Fatalf("Failed to initialize the login system: %s", err)
+		}
+	}
 
 	ctx := context.Background()
 
@@ -536,7 +540,7 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "query", fr)
+	auditlog.LogWithUser(r, f.loginProvider.LoggedInAs(r).String(), "query", fr)
 	// Remove all empty queries.
 	q := []string{}
 	for _, s := range fr.Queries {
@@ -663,7 +667,7 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "cluster", req)
+	auditlog.LogWithUser(r, f.loginProvider.LoggedInAs(r).String(), "cluster", req)
 
 	cb := func(_ *regression.RegressionDetectionRequest, clusterResponse []*regression.RegressionDetectionResponse, _ string) {
 		// We don't do GroupBy clustering, so there will only be one clusterResponse.
@@ -801,7 +805,8 @@ type TriageResponse struct {
 func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	w.Header().Set("Content-Type", "application/json")
-	if f.loginProvider.LoggedInAs(r) == "" {
+	user := f.loginProvider.LoggedInAs(r)
+	if user == alogin.NotLoggedIn {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to triage.", http.StatusInternalServerError)
 		return
 	}
@@ -810,7 +815,7 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "triage", tr)
+	auditlog.LogWithUser(r, user.String(), "triage", tr)
 	detail, err := f.perfGit.CommitFromCommitNumber(ctx, tr.Cid)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to find CommitID.", http.StatusInternalServerError)
@@ -1254,7 +1259,8 @@ type AlertUpdateResponse struct {
 
 func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if f.loginProvider.LoggedInAs(r) == alogin.NotLoggedIn {
+	user := f.loginProvider.LoggedInAs(r)
+	if user == alogin.NotLoggedIn {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to edit alerts.", http.StatusInternalServerError)
 		return
 	}
@@ -1264,7 +1270,7 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "alert-update", cfg)
+	auditlog.LogWithUser(r, user.String(), "alert-update", cfg)
 	if err := f.alertStore.Save(r.Context(), cfg); err != nil {
 		httputils.ReportError(w, err, "Failed to save alerts.Config.", http.StatusInternalServerError)
 	}
@@ -1278,7 +1284,8 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 func (f *Frontend) alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if f.loginProvider.LoggedInAs(r) == alogin.NotLoggedIn {
+	user := f.loginProvider.LoggedInAs(r)
+	if user == alogin.NotLoggedIn {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to delete alerts.", http.StatusInternalServerError)
 		return
 	}
@@ -1288,7 +1295,7 @@ func (f *Frontend) alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to parse alert id.", http.StatusInternalServerError)
 	}
-	auditlog.Log(r, "alert-delete", sid)
+	auditlog.LogWithUser(r, user.String(), "alert-delete", sid)
 	if err := f.alertStore.Delete(r.Context(), int(id)); err != nil {
 		httputils.ReportError(w, err, "Failed to delete the alerts.Config.", http.StatusInternalServerError)
 		return
@@ -1307,7 +1314,8 @@ type TryBugResponse struct {
 
 func (f *Frontend) alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if f.loginProvider.LoggedInAs(r) == alogin.NotLoggedIn {
+	user := f.loginProvider.LoggedInAs(r)
+	if user == alogin.NotLoggedIn {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to test alerts.", http.StatusInternalServerError)
 		return
 	}
@@ -1317,7 +1325,7 @@ func (f *Frontend) alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "alert-bug-try", req)
+	auditlog.LogWithUser(r, user.String(), "alert-bug-try", req)
 	resp := &TryBugResponse{
 		URL: bug.ExampleExpand(req.BugURITemplate),
 	}
@@ -1328,7 +1336,8 @@ func (f *Frontend) alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 
 func (f *Frontend) alertNotifyTryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if f.loginProvider.LoggedInAs(r) == alogin.NotLoggedIn {
+	user := f.loginProvider.LoggedInAs(r)
+	if user == alogin.NotLoggedIn {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to try alerts.", http.StatusInternalServerError)
 		return
 	}
@@ -1338,7 +1347,7 @@ func (f *Frontend) alertNotifyTryHandler(w http.ResponseWriter, r *http.Request)
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "alert-notify-try", req)
+	auditlog.LogWithUser(r, user.String(), "alert-notify-try", req)
 	if err := f.notifier.ExampleSend(r.Context(), req); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to send email: %s", err), http.StatusInternalServerError)
 	}
@@ -1346,6 +1355,7 @@ func (f *Frontend) alertNotifyTryHandler(w http.ResponseWriter, r *http.Request)
 
 func (f *Frontend) loginStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	sklog.Infof("X-WEBAUTH-USER header value: %s", r.Header.Get("X-WEBAUTH-USER"))
 	if err := json.NewEncoder(w).Encode(f.loginProvider.Status(r)); err != nil {
 		httputils.ReportError(w, err, "Failed to encode login status", http.StatusInternalServerError)
 	}
