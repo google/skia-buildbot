@@ -34,6 +34,24 @@
       "parentUuid": "031e006e_937dcf15",
       "revId": "5c7728034fa92d735e693af191bcc2bf28d41ed3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7a2b7a41_0aa82b41",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-15T19:56:16Z",
+      "side": 1,
+      "message": "Maybe go_repositories.bzl doesn\u0027t need to be updated then. Land it as-is?",
+      "parentUuid": "862a16ab_d7a6b829",
+      "revId": "5c7728034fa92d735e693af191bcc2bf28d41ed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
