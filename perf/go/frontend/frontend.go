@@ -258,23 +258,6 @@ func (f *Frontend) initialize() {
 	_ = metrics2.NewLiveness("uptime", nil)
 
 	var err error
-	if f.flags.ProxyLogin {
-		compiledRegex, err := regexp.Compile(config.Config.AuthConfig.EmailRegex)
-		if err != nil {
-			sklog.Fatalf("Failed to compile AuthConfig.EmailRegex %q: %s", config.Config.AuthConfig.EmailRegex, err)
-		}
-		f.loginProvider = proxylogin.New(
-			config.Config.AuthConfig.HeaderName,
-			compiledRegex,
-			config.Config.AuthConfig.LoginURL,
-			config.Config.AuthConfig.LogoutURL)
-	} else {
-		f.loginProvider, err = sklogin.New(f.flags.Port, f.flags.Local, f.flags.AuthBypassList)
-		if err != nil {
-			sklog.Fatalf("Failed to initialize the login system: %s", err)
-		}
-	}
-
 	// Add tracker for long running requests.
 	f.progressTracker, err = progress.NewTracker("/_/status/")
 	if err != nil {
@@ -301,6 +284,23 @@ func (f *Frontend) initialize() {
 		config.Config.DataStoreConfig.ConnectionString = f.flags.ConnectionString
 	}
 	cfg := config.Config
+
+	if f.flags.ProxyLogin {
+		compiledRegex, err := regexp.Compile(cfg.AuthConfig.EmailRegex)
+		if err != nil {
+			sklog.Fatalf("Failed to compile AuthConfig.EmailRegex %q: %s", config.Config.AuthConfig.EmailRegex, err)
+		}
+		f.loginProvider = proxylogin.New(
+			cfg.AuthConfig.HeaderName,
+			compiledRegex,
+			cfg.AuthConfig.LoginURL,
+			cfg.AuthConfig.LogoutURL)
+	} else {
+		f.loginProvider, err = sklogin.New(f.flags.Port, f.flags.Local, f.flags.AuthBypassList)
+		if err != nil {
+			sklog.Fatalf("Failed to initialize the login system: %s", err)
+		}
+	}
 
 	ctx := context.Background()
 
