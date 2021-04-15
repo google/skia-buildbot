@@ -38,6 +38,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "68bceaee_b963dcc4",
+        "filename": "sk/go/asset/asset.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-15T14:37:48Z",
+      "side": 1,
+      "message": "So after this lands and is adopted, will only VERSION and create.py files be necessary in infra/bots/assets/*/ ?",
+      "parentUuid": "8be0fe67_93904001",
+      "revId": "394f0d935d7487c1237e8275b43a65f82d845e82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d7cafe12_3097551b",
         "filename": "sk/go/asset/asset.go",
         "patchSetId": 3
@@ -73,6 +91,30 @@
       "side": 1,
       "message": "If I correctly understand how copyright works (I probably don\u0027t), this should remain 2017 because this is a direct copy of a script which was written in 2017.",
       "parentUuid": "d7cafe12_3097551b",
+      "range": {
+        "startLine": 40,
+        "startChar": 12,
+        "endLine": 40,
+        "endChar": 16
+      },
+      "revId": "394f0d935d7487c1237e8275b43a65f82d845e82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d7ef5fba_53cffbc4",
+        "filename": "sk/go/asset/asset.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-15T14:37:48Z",
+      "side": 1,
+      "message": "That explanation is good enough for me.",
+      "parentUuid": "57030a95_1e6cecab",
       "range": {
         "startLine": 40,
         "startChar": 12,
