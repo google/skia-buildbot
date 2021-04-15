@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "asset",
+    srcs = ["asset.go"],
+    importpath = "go.skia.org/infra/sk/go/asset",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/cipd",
+        "//go/exec",
+        "//go/git",
+        "//go/httputils",
+        "//go/repo_root",
+        "//go/skerr",
+        "@com_github_urfave_cli_v2//:cli",
+        "@org_chromium_go_luci//cipd/client/cipd",
+        "@org_chromium_go_luci//cipd/client/cipd/pkg",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+    ],
+)
