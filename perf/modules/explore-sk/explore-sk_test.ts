@@ -108,7 +108,7 @@ describe('applyFuncToTraces', () => {
     assert.isTrue(fetchMock.done());
 
     // Confirm the formula is werapped in iqrr().
-    const body = JSON.parse(fetchMock.lastOptions(startURL)?.body as unknown as string);
+    const body = JSON.parse(fetchMock.lastOptions(startURL)?.body as unknown as string) as any;
     assert.deepEqual(body.formulas, ['iqrr(shortcut("Xfoo"))']);
     fetchMock.restore();
   });

@@ -201,6 +201,8 @@ def nodejs_test(
             "--require ts-node/register/transpile-only",
             "--timeout 60000",
             "--colors",
+            # See https://github.com/bazelbuild/rules_nodejs/commit/fdde32fa5653999b15459c4deebfeaa86a099135.
+            "--bazel_patch_module_resolver",
             "$(rootpath %s)" % src,
         ],
         tags = tags,
