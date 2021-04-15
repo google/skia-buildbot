@@ -2,7 +2,6 @@ package builders
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/alerts/alertstest"
@@ -73,16 +71,24 @@ func newCockroachDBConfigForTest(t *testing.T) (context.Context, *config.Instanc
 
 	ctx := context.Background()
 
-	const databaseName = "builders"
+	// This creates a new database with a different random suffix on each call
+	// (e.g. "builders_<random number>").
+	conn, cleanup := sqltest.NewCockroachDBForTests(t, "builders")
 
-	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", emulators.GetEmulatorHostEnvVar(emulators.CockroachDB), databaseName)
-
-	_, cleanup := sqltest.NewCockroachDBForTests(t, databaseName)
+	// If we don't clear the singleton pool, newCockroachDBFromConfig will reuse the DB connection
+	// established by the last executed test case, which points to a different database than the one
+	// we just created (see previous step).
+	singletonPoolMutex.Lock()
+	defer singletonPoolMutex.Unlock()
+	if singletonPool != nil {
+		singletonPool.Close()
+		singletonPool = nil
+	}
 
 	instanceConfig := &config.InstanceConfig{
 		DataStoreConfig: config.DataStoreConfig{
 			DataStoreType:    config.CockroachDBDataStoreType,
-			ConnectionString: connectionString,
+			ConnectionString: conn.Config().ConnString(),
 		},
 	}
 	return ctx, instanceConfig, cleanup
@@ -186,7 +192,7 @@ func TestNewShortcutStoreFromConfig_CockroachDB_InvalidDatastoreTypeIsError(t *t
 
 func TestNewPerfGitFromConfig_CockroachDB_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, _, _, hashes, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	ctx, _, _, hashes, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 
 	instanceConfig.DataStoreConfig.DataStoreType = config.CockroachDBDataStoreType
