@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "559a58c9_a3acb4fe",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 17825
+      },
+      "writtenOn": "2021-04-15T21:47:20Z",
+      "side": 1,
+      "message": "Can we also limit this to one roll per day? I can\u0027t remember off the top of my head how to do that.",
+      "revId": "ab1d4428bd5d8b39985281b5cdfb68c9fd5b0725",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "64c46969_100ff890",
@@ -14,6 +31,30 @@
       "writtenOn": "2021-04-15T17:18:38Z",
       "side": 1,
       "message": "same reviewer?",
+      "range": {
+        "startLine": 12,
+        "startChar": 17,
+        "endLine": 12,
+        "endChar": 26
+      },
+      "revId": "ab1d4428bd5d8b39985281b5cdfb68c9fd5b0725",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9d87fe22_603009c5",
+        "filename": "autoroll/config/v8-emscripten-releases.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 17825
+      },
+      "writtenOn": "2021-04-15T21:47:20Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "64c46969_100ff890",
       "range": {
         "startLine": 12,
         "startChar": 17,
