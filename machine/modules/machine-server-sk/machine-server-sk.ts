@@ -92,7 +92,6 @@ const dimensions = (machine: Description): TemplateResult => {
   `;
 };
 
-
 const annotation = (ann: Annotation | null): TemplateResult => {
   if (!ann?.Message) {
     return html``;
@@ -192,14 +191,13 @@ export const outOfSpecIfTooOld = (lastUpdated: string): string => {
   return diff > MAX_LAST_UPDATED_ACCEPTABLE_MS ? 'outOfSpec' : '';
 };
 
-
 // eslint-disable-next-line no-use-before-define
 const note = (ele: MachineServerSk, machine: Description): TemplateResult => html`
   <edit-icon-sk @click=${() => ele.editNote(machine.Dimensions.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
 `;
 
 // eslint-disable-next-line no-use-before-define
-const rows = (ele: MachineServerSk): TemplateResult[] => ele._machines.map(
+const rows = (ele: MachineServerSk): TemplateResult[] => ele.filteredMachines().map(
   (machine) => html`
       <tr id=${machine.Dimensions.id![0]}>
         <td>${machineLink(machine)}</td>
@@ -246,9 +244,12 @@ const template = (ele: MachineServerSk): TemplateResult => html`
     >
       ${refreshButtonDisplayValue(ele)}
     </span>
-    <theme-chooser-sk
-      title="Toggle between light and dark mode."
-    ></theme-chooser-sk>
+    <span id=header-rhs>
+      <input type="text" placeholder="Filter" @input=${ele.filterInput}>
+      <theme-chooser-sk
+        title="Toggle between light and dark mode."
+      ></theme-chooser-sk>
+    </span>
   </header>
   <main>
     <table>
@@ -280,18 +281,36 @@ const template = (ele: MachineServerSk): TemplateResult => html`
 `;
 
 export class MachineServerSk extends ElementSk {
-  _machines: Description[];
+  machines: Description[] = [];
 
-  _timeout: number;
+  machinesAsString: string[] = [];
+
+  timeout: number;
+
+  filter: string = ''
 
   private noteEditor: NoteEditorSk | null = null;
 
   constructor() {
     super(template);
-    this._machines = [];
 
     // The id of the running setTimeout, if any, otherwise 0.
-    this._timeout = 0;
+    this.timeout = 0;
+  }
+
+  filterInput(e: InputEvent): void {
+    this.filter = (e.target as HTMLInputElement).value.toLowerCase();
+    this._render();
+  }
+
+  filteredMachines(): Description[] {
+    const ret: Description[] = [];
+    this.machinesAsString.forEach((machineAsString, index) => {
+      if (machineAsString.includes(this.filter)) {
+        ret.push(this.machines[index]);
+      }
+    });
+    return ret;
   }
 
   async connectedCallback(): Promise<void> {
@@ -398,11 +417,11 @@ export class MachineServerSk extends ElementSk {
     // Wait for _update to finish so we don't pile up requests if server latency
     // rises.
     await this.update();
-    if (this.refreshing && this._timeout === 0) {
-      this._timeout = window.setTimeout(() => {
+    if (this.refreshing && this.timeout === 0) {
+      this.timeout = window.setTimeout(() => {
         // Only done here, so multiple calls to _refreshStep() won't start
         // parallel setTimeout chains.
-        this._timeout = 0;
+        this.timeout = 0;
 
         this.refreshStep();
       }, 2000);
@@ -425,7 +444,8 @@ export class MachineServerSk extends ElementSk {
       if (changeCursor) {
         this.removeAttribute('waiting');
       }
-      this._machines = json;
+      this.machines = json;
+      this.machinesAsString = this.machines.map((machine) => JSON.stringify(machine).toLowerCase());
       this._render();
     } catch (error) {
       this.onError(error);
