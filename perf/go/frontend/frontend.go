@@ -302,6 +302,27 @@ func (f *Frontend) initialize() {
 	}
 	cfg := config.Config
 
+	// Configure login.
+	if f.flags.ProxyLogin {
+		var compiledRegex *regexp.Regexp = nil
+		if cfg.AuthConfig.EmailRegex != "" {
+			compiledRegex, err = regexp.Compile(cfg.AuthConfig.EmailRegex)
+			if err != nil {
+				sklog.Fatalf("Failed to compile AuthConfig.EmailRegex %q: %s", config.Config.AuthConfig.EmailRegex, err)
+			}
+		}
+		f.loginProvider = proxylogin.New(
+			cfg.AuthConfig.HeaderName,
+			compiledRegex,
+			cfg.AuthConfig.LoginURL,
+			cfg.AuthConfig.LogoutURL)
+	} else {
+		f.loginProvider, err = sklogin.New(f.flags.Port, f.flags.Local, f.flags.AuthBypassList)
+		if err != nil {
+			sklog.Fatalf("Failed to initialize the login system: %s", err)
+		}
+	}
+
 	ctx := context.Background()
 
 	// Fix up resources dir values.
@@ -1346,6 +1367,7 @@ func (f *Frontend) alertNotifyTryHandler(w http.ResponseWriter, r *http.Request)
 
 func (f *Frontend) loginStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	sklog.Infof("X-WEBAUTH-USER header value: %s", r.Header.Get("X-WEBAUTH-USER"))
 	if err := json.NewEncoder(w).Encode(f.loginProvider.Status(r)); err != nil {
 		httputils.ReportError(w, err, "Failed to encode login status", http.StatusInternalServerError)
 	}
