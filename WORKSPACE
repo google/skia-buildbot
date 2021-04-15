@@ -121,8 +121,8 @@ grpc_deps()
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "0f2de53628e848c1691e5729b515022f5a77369c76a09fbe55611e12731c90e3",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/2.0.1/rules_nodejs-2.0.1.tar.gz"],
+    sha256 = "1134ec9b7baee008f1d54f0483049a97e53a57cd3913ec9d6db625549c98395a",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/3.4.0/rules_nodejs-3.4.0.tar.gz"],
 )
 
 # The npm_install rule runs anytime the package.json or package-lock.json file changes. It also
@@ -146,9 +146,9 @@ npm_install(
 
 http_archive(
     name = "io_bazel_rules_sass",
-    sha256 = "aa53d3d2a3313462dae5b357354e00d187f3bb659e994eb9b96a6033c4da2cc2",
-    strip_prefix = "rules_sass-1.26.10",
-    url = "https://github.com/bazelbuild/rules_sass/archive/1.26.10.zip",
+    sha256 = "9ad74e6e75a86939f4349b31d43bb1db4279e4f2a139c5ebaf56cf99feea1faa",
+    strip_prefix = "rules_sass-1.32.8",
+    url = "https://github.com/bazelbuild/rules_sass/archive/1.32.8.zip",
 )
 
 load("@io_bazel_rules_sass//:package.bzl", "rules_sass_dependencies")
