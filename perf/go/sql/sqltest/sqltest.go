@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -24,14 +25,17 @@ type Cleanup func()
 // migrations applied for testing. It also returns a function to call to clean
 // up the database after the tests have completed.
 //
-// We pass in a database name so that different tests work in different
+// We pass in a database name prefix so that different tests work in different
 // databases, even though they may be in the same CockroachDB instance, so that
 // if a test fails it doesn't leave the database in a bad state for a subsequent
-// test.
+// test. A random number will be appended to the database name prefix.
 //
 // If migrations to are be applied then set applyMigrations to true.
-func NewCockroachDBForTests(t *testing.T, databaseName string) (*pgxpool.Pool, Cleanup) {
+func NewCockroachDBForTests(t *testing.T, databaseNamePrefix string) (*pgxpool.Pool, Cleanup) {
 	unittest.RequiresCockroachDB(t)
+
+	rand.Seed(time.Now().UnixNano())
+	databaseName := fmt.Sprintf("%s_%d", databaseNamePrefix, rand.Uint64())
 
 	// Note that the migrationsConnection is different from the sql.Open
 	// connection string since migrations know about CockroachDB, but we use the
@@ -47,8 +51,8 @@ func NewCockroachDBForTests(t *testing.T, databaseName string) (*pgxpool.Pool, C
 
 	// Create a database in cockroachdb just for this test.
 	_, err = db.Exec(fmt.Sprintf(`
- 		CREATE DATABASE IF NOT EXISTS %s;
- 		SET DATABASE = %s;`, databaseName, databaseName))
+		CREATE DATABASE %s;
+		SET DATABASE = %s;`, databaseName, databaseName))
 	require.NoError(t, err)
 
 	cockroachdbMigrations, err := cockroachdb.New()
@@ -56,8 +60,11 @@ func NewCockroachDBForTests(t *testing.T, databaseName string) (*pgxpool.Pool, C
 
 	require.Eventually(t, func() bool {
 		err = migrations.Up(cockroachdbMigrations, migrationsConnection)
+		if err != nil {
+			fmt.Printf("Error while applying database migration: %v", err)
+		}
 		return err == nil
-	}, 2*time.Second, 10*time.Millisecond)
+	}, 10*time.Second, 1*time.Second)
 
 	ctx := context.Background()
 	conn, err := pgxpool.Connect(ctx, connectionString)

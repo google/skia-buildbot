@@ -24,7 +24,7 @@ func TestCockroachDB(t *testing.T) {
 
 	for name, subTest := range subTests {
 		t.Run(name, func(t *testing.T) {
-			ctx, db, gb, hashes, instanceConfig, _, cleanup := gittest.NewForTest(t)
+			ctx, db, gb, hashes, instanceConfig, cleanup := gittest.NewForTest(t)
 			g, err := New(ctx, true, db, instanceConfig)
 			require.NoError(t, err)
 
