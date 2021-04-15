@@ -14,6 +14,10 @@ import (
 // Email is an email address.
 type EMail string
 
+func (e EMail) String() string {
+	return string(e)
+}
+
 // NotLoggedIn is the EMail value used to indicate a user is not logged in.
 const NotLoggedIn EMail = ""
 
