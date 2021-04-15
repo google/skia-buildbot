@@ -7,9 +7,9 @@
     "doc": "docs"
   },
   "dependencies": {
-    "@bazel/rollup": "^2.0.3",
-    "@bazel/terser": "^2.0.3",
-    "@bazel/typescript": "^2.0.3",
+    "@bazel/rollup": "^3.4.0",
+    "@bazel/terser": "^3.4.0",
+    "@bazel/typescript": "^3.4.0",
     "@google-web-components/google-apis": "^3.0.1",
     "@google-web-components/google-chart": "^4.0.2",
     "@rollup/plugin-commonjs": "^15.0.0",
