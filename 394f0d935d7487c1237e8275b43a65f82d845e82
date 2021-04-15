@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "8be0fe67_93904001",
+        "filename": "sk/go/asset/asset.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-15T14:02:56Z",
+      "side": 1,
+      "message": "This manages the VERSION files under infra/bots/assets/*/VERSION.  Those files will remain indefinitely (though we could potentially switch to a single manifest file).  I don\u0027t think I understand the question about the creation scripts; those have to remain as well, since we need to know how to create the assets.",
+      "parentUuid": "76442829_212c03f9",
+      "revId": "394f0d935d7487c1237e8275b43a65f82d845e82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d7cafe12_3097551b",
         "filename": "sk/go/asset/asset.go",
         "patchSetId": 3
@@ -31,6 +49,30 @@
       "writtenOn": "2021-04-15T13:37:22Z",
       "side": 1,
       "message": "nit: 2021 (or dynamically populate the year)",
+      "range": {
+        "startLine": 40,
+        "startChar": 12,
+        "endLine": 40,
+        "endChar": 16
+      },
+      "revId": "394f0d935d7487c1237e8275b43a65f82d845e82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "57030a95_1e6cecab",
+        "filename": "sk/go/asset/asset.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-15T14:02:56Z",
+      "side": 1,
+      "message": "If I correctly understand how copyright works (I probably don\u0027t), this should remain 2017 because this is a direct copy of a script which was written in 2017.",
+      "parentUuid": "d7cafe12_3097551b",
       "range": {
         "startLine": 40,
         "startChar": 12,
