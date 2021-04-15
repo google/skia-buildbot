@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/sk/go/sk",
     visibility = ["//visibility:private"],
     deps = [
+        "//sk/go/asset",
         "//sk/go/release-branch",
         "//sk/go/try",
         "@com_github_urfave_cli_v2//:cli",
