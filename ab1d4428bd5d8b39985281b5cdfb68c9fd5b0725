@@ -63,6 +63,47 @@
       },
       "revId": "ab1d4428bd5d8b39985281b5cdfb68c9fd5b0725",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "73912608_0a491040",
+        "filename": "autoroll/config/v8-emscripten-releases.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 17825
+      },
+      "writtenOn": "2021-04-15T21:52:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9d87fe22_603009c5",
+      "range": {
+        "startLine": 12,
+        "startChar": 17,
+        "endLine": 12,
+        "endChar": 26
+      },
+      "revId": "ab1d4428bd5d8b39985281b5cdfb68c9fd5b0725",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6dee1ae6_dc7e254d",
+        "filename": "autoroll/config/v8-emscripten-releases.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 17825
+      },
+      "writtenOn": "2021-04-15T21:52:12Z",
+      "side": 1,
+      "message": "Oh, I remember. Add\nroll_cooldown: \"24h\"\nhere",
+      "revId": "ab1d4428bd5d8b39985281b5cdfb68c9fd5b0725",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
