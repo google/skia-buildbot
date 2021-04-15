@@ -1,5 +1,10 @@
 {
   "URL": "https://perf.skia.org",
+  "auth_config": {
+    "header_name": "X-WEBAUTH-USER",
+    "login_url": "https://skia.org/login/",
+    "logout_url": "https://skia.org/logout/"
+  },
   "data_store_config": {
     "datastore_type": "cockroachdb",
     "connection_string": "postgresql://root@perf-cockroachdb-public:26257/skia?sslmode=disable",
