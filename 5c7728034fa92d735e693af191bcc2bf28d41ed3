@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "031e006e_937dcf15",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-15T19:34:58Z",
+      "side": 1,
+      "message": "Could you please run \"make gazelle\" to update go_repositories.bzl as well?",
+      "revId": "5c7728034fa92d735e693af191bcc2bf28d41ed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
