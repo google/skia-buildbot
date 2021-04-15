@@ -138,7 +138,7 @@ cluster.alert = alert;
 
 const alert2 = JSON.parse(JSON.stringify(alert)) as Alert;
 alert2.step = 'mannwhitneyu';
-const summary2: FullSummary = JSON.parse(JSON.stringify(fullSummary));
+const summary2 = JSON.parse(JSON.stringify(fullSummary)) as FullSummary;
 summary2.summary.step_fit!.status = 'High';
 summary2.summary.step_fit!.regression = 0.06732;
 summary2.summary.step_fit!.least_squares = 12;
