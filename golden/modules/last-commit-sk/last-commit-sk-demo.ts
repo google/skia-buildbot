@@ -13,4 +13,4 @@ fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 // Now that the mock RPC is setup, create the element
 const ele = document.createElement('last-commit-sk');
-$$('#container').appendChild(ele);
+$$('#container')!.appendChild(ele);
