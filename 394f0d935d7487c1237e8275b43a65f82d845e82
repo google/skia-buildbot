@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "76442829_212c03f9",
+        "filename": "sk/go/asset/asset.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-15T13:37:22Z",
+      "side": 1,
+      "message": "Just questions to understand more-\n\nWhat is the relation between this command and the infra/bots/assets directory?\nI see create gives you the option to make a python script in infra/bots/asset/${new_asset}/create.py\n\nWhy is that required vs doing everything from here? is it incase there is special scripts/downloading from somewhere required that might be easiest from python?\nI would guess we could move everything to Go, but that would be additional work that can be avoided if we use this command as a wrapper?\n\nAfter this lands and is adopted, will we be able to delete everything from infra/bots/assets/*/* (except for creation scripts?).",
+      "revId": "394f0d935d7487c1237e8275b43a65f82d845e82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d7cafe12_3097551b",
+        "filename": "sk/go/asset/asset.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-15T13:37:22Z",
+      "side": 1,
+      "message": "nit: 2021 (or dynamically populate the year)",
+      "range": {
+        "startLine": 40,
+        "startChar": 12,
+        "endLine": 40,
+        "endChar": 16
+      },
+      "revId": "394f0d935d7487c1237e8275b43a65f82d845e82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
