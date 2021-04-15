@@ -147,6 +147,7 @@ require (
 	github.com/twitchtv/twirp v7.1.0+incompatible
 	github.com/unrolled/secure v1.0.8
 	github.com/urfave/cli/v2 v2.3.0
+	github.com/vektra/mockery v1.1.2 // indirect
 	github.com/willf/bitset v1.1.11
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20201029184154-594d11850ebf
