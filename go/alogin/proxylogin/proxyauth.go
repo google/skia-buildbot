@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -43,13 +44,22 @@ type proxyLogin struct {
 //
 // If supplied, the Regex must have a single subexpression that matches the email
 // address.
-func New(headerName string, emailRegex *regexp.Regexp, loginURL, logoutURL string) *proxyLogin {
+func New(headerName, emailRegex, loginURL, logoutURL string) (*proxyLogin, error) {
+	var compiledRegex *regexp.Regexp = nil
+	var err error
+	if emailRegex != "" {
+		compiledRegex, err = regexp.Compile(emailRegex)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to compile email regex %q", emailRegex)
+		}
+	}
+
 	return &proxyLogin{
 		headerName: headerName,
-		emailRegex: emailRegex,
+		emailRegex: compiledRegex,
 		loginURL:   loginURL,
 		logoutURL:  logoutURL,
-	}
+	}, nil
 }
 
 // LoggedInAs implements alogin.Login.

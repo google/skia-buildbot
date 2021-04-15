@@ -57,7 +57,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "dryrun", req)
+	auditlog.LogWithUser(r, "", "dryrun", req)
 	d.tracker.Add(req.Progress)
 
 	if req.Alert.Query == "" {
