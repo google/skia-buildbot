@@ -2,8 +2,6 @@ package dfbuilder
 
 import (
 	"context"
-	"fmt"
-	"math/rand"
 	"net/url"
 	"testing"
 	"time"
@@ -35,8 +33,7 @@ var (
 func TestBuildTraceMapper(t *testing.T) {
 	unittest.LargeTest(t)
 
-	dbName := fmt.Sprintf("dfbuilder%d", rand.Uint32())
-	db, cleanup := sqltest.NewCockroachDBForTests(t, dbName)
+	db, cleanup := sqltest.NewCockroachDBForTests(t, "dfbuilder")
 	defer cleanup()
 
 	store, err := sqltracestore.New(db, cfg.DataStoreConfig)
@@ -72,7 +69,7 @@ func TestBuildNew(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx := context.Background()
 
-	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
@@ -204,7 +201,7 @@ func TestBuildNew(t *testing.T) {
 
 func TestFromIndexRange_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
@@ -230,7 +227,7 @@ func TestFromIndexRange_Success(t *testing.T) {
 
 func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
@@ -245,7 +242,7 @@ func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
 func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
@@ -275,7 +272,7 @@ func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
@@ -321,7 +318,7 @@ func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetReflectsBothTiles(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
@@ -373,7 +370,7 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
@@ -393,7 +390,7 @@ func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
@@ -425,7 +422,7 @@ func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCountsIsReturned(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	ctx, db, _, _, instanceConfig, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)

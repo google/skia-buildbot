@@ -3,9 +3,7 @@ package gittest
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
@@ -38,7 +36,7 @@ var (
 // The repo is populated with 8 commits, one minute apart, starting at StartTime.
 //
 // The hashes for each commit are going to be random and so are returned also.
-func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBuilder, []string, *config.InstanceConfig, string, CleanupFunc) {
+func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBuilder, []string, *config.InstanceConfig, CleanupFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Create a git repo for testing purposes.
@@ -53,9 +51,8 @@ func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBui
 	hashes = append(hashes, gb.CommitGenAt(ctx, "bar.txt", StartTime.Add(6*time.Minute)))
 	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(7*time.Minute)))
 
-	dbName := fmt.Sprintf("git%d", rand.Uint64())
 	// Init our sql database.
-	db, sqlCleanup := sqltest.NewCockroachDBForTests(t, dbName)
+	db, sqlCleanup := sqltest.NewCockroachDBForTests(t, "git")
 
 	// Get tmp dir to use for repo checkout.
 	tmpDir, err := ioutil.TempDir("", "git")
@@ -76,5 +73,5 @@ func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBui
 			Dir: filepath.Join(tmpDir, "checkout"),
 		},
 	}
-	return ctx, db, gb, hashes, instanceConfig, dbName, clean
+	return ctx, db, gb, hashes, instanceConfig, clean
 }
