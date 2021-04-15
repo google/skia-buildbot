@@ -235,6 +235,6 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 	ctx = td.WithEnv(ctx, emulatorHostEnvVars)
 
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
-	_, err := bzl.DoOnRBE(ctx, "test", "//...", "--test_output=errors")
+	_, err := bzl.Do(ctx, "test", "//...", "--test_output=errors")
 	return err
 }
