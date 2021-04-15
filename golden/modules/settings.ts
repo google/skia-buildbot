@@ -6,30 +6,28 @@
  * for that, so as to demystify "where do these values come from?"
  */
 
-/**
- * @return {string}
- */
+export interface GoldSettings {
+  title?: string;
+  defaultCorpus?: string;
+  baseRepoURL?: string;
+}
+
+function getSettings() {
+  return (window as any).GoldSettings as GoldSettings | undefined;
+}
+
 export function title() {
-  return window.GoldSettings && window.GoldSettings.title;
+  return getSettings()?.title || '';
 }
 
-/**
- * @return {string}
- */
 export function defaultCorpus() {
-  return window.GoldSettings && window.GoldSettings.defaultCorpus;
+  return getSettings()?.defaultCorpus || '';
 }
 
-/**
- * @return {string}
- */
 export function baseRepoURL() {
-  return window.GoldSettings && window.GoldSettings.baseRepoURL;
+  return getSettings()?.baseRepoURL || '';
 }
 
-/**
- * @param newSettings {Object}
- */
-export function testOnlySetSettings(newSettings) {
-  window.GoldSettings = newSettings;
+export function testOnlySetSettings(newSettings: GoldSettings) {
+  (window as any).GoldSettings = newSettings;
 }

@@ -1,13 +1,13 @@
 /**
- * Wraps the value toReturn in a Promise that will resolve after "delay"
- * milliseconds. Used to fake RPC latency in demo pages.
- * @param toReturn {Object|Function} Either the body to be returned in a 200 JSON response or a
- *     function that returns the fetch-mock response. RPC latency will be reduced when running as
- *     a Puppeteer test.
- * @param delayMs {number} Delay in milliseconds.
- * @return {Function}
+ * Wraps the value toReturn in a Promise that will resolve after "delay" milliseconds. Used to fake
+ * RPC latency in demo pages.
+ *
+ * @param toReturn Either the body to be returned in a 200 JSON response or a function that
+ *     returns the fetch-mock response. RPC latency will be reduced when running as a
+ *     Puppeteer test.
+ * @param delayMs Delay in milliseconds.
  */
-export function delay(toReturn, delayMs = 100) {
+export function delay<T>(toReturn: T | (() => T), delayMs = 100): () => Promise<T | Response> {
   // We return a function that returns the promise so each call has a "fresh" promise and waits
   // for the allotted time.
   return function() {
@@ -15,15 +15,15 @@ export function delay(toReturn, delayMs = 100) {
     if (isPuppeteerTest()) {
       delayMs = 0;
     }
-    let returnValue;
-    if (typeof toReturn === 'function') {
+    let returnValue: T | Response;
+    if (toReturn instanceof Function) {
       returnValue = toReturn();
     } else {
       returnValue = {
         status: 200,
         body: JSON.stringify(toReturn),
         headers: { 'content-type': 'application/json' },
-      };
+      } as unknown as Response;
     }
 
     return new Promise((resolve) => {
@@ -32,10 +32,7 @@ export function delay(toReturn, delayMs = 100) {
   };
 }
 
-/**
- * Returns true if the page is running from within a Puppeteer-managed browser.
- * @return {boolean}
- */
+/** Returns true if the page is running from within a Puppeteer-managed browser. */
 export function isPuppeteerTest() {
   return document.cookie.indexOf('puppeteer') !== -1;
 }

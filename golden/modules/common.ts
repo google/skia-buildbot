@@ -1,10 +1,10 @@
 /**
  * Takes a URL-encoded search query and returns that query with newlines between each of the
  * terms. This returned value should be easier for a human to understand.
- * @param queryStr {string} URL-encoded query.
- * @return {string} a human readable version of the input.
+ * @param queryStr URL-encoded query.
+ * @return A human readable version of the input.
  */
-export function humanReadableQuery(queryStr) {
+export function humanReadableQuery(queryStr: string): string {
   if (!queryStr) {
     return '';
   }
@@ -15,11 +15,8 @@ export function humanReadableQuery(queryStr) {
  * Takes a string and trims it to be no longer than maxLength. If the string needs to be trimmed,
  * an ellipsis (...) will be added as a suffix, but the total string length (with ellipsis) will
  * stay under maxLength.
- * @param str {string}
- * @param maxLength {number}
- * @return {string}
  */
-export function truncateWithEllipses(str, maxLength = 15) {
+export function truncateWithEllipses(str: string, maxLength = 15): string {
   if (maxLength < 3) {
     throw 'maxLength must be greater than the length of the ellipsis.';
   }
@@ -47,7 +44,7 @@ export function setImageEndpointsForDemos() {
  * @param digest {string}
  * @return {string}
  */
-export function digestImagePath(digest) {
+export function digestImagePath(digest: string): string {
   if (!digest) {
     return '';
   }
@@ -55,13 +52,8 @@ export function digestImagePath(digest) {
   return `${imagePrefix}/${digest}.png`;
 }
 
-/**
- * Returns a link to the PNG image associated with the diff between the given digests.
- * @param d1 {string}
- * @param d2 {string}
- * @return {string}
- */
-export function digestDiffImagePath(d1, d2) {
+/** Returns a link to the PNG image associated with the diff between the given digests. */
+export function digestDiffImagePath(d1: string, d2: string): string {
   if (!d1 || !d2) {
     return '';
   }
@@ -73,13 +65,12 @@ export function digestDiffImagePath(d1, d2) {
 
 /**
  * Returns a link to the details page for a given test-digest pair.
- * @param test {string}
- * @param digest {string}
- * @param clID {string} Optional, omit or use empty string for master branch.
- * @param crs {string} Optional, omit or use empty string for master branch.
- * @return {string}
+ * @param test Test name.
+ * @param digest Digest.
+ * @param clID CL ID. Optional, omit or use empty string for master branch.
+ * @param crs Code review system. Optional, omit or use empty string for master branch.
  */
-export function detailHref(test, digest, clID = '', crs = '') {
+export function detailHref(test: string, digest: string, clID = '', crs = ''): string {
   const u = `/detail?test=${test}&digest=${digest}`;
   if (clID) {
     return `${u}&changelist_id=${clID}&crs=${crs}`;
@@ -89,14 +80,14 @@ export function detailHref(test, digest, clID = '', crs = '') {
 
 /**
  * Returns a link to the diff page for a given pair of digests.
- * @param grouping {string}
- * @param left {string}
- * @param right {string}
- * @param clID {string} Optional, omit or use empty string for master branch.
- * @param crs {string} Optional, omit or use empty string for master branch.
+ * @param grouping Grouping.
+ * @param left Left digest.
+ * @param right Right digest.
+ * @param clID CL ID. Optional, omit or use empty string for master branch.
+ * @param crs Code review system. Optional, omit or use empty string for master branch.
  * @return {string}
  */
-export function diffPageHref(grouping, left, right, clID = '', crs = '') {
+export function diffPageHref(grouping: string, left: string, right: string, clID = '', crs = ''): string {
   if (!left || !right) {
     return '';
   }
@@ -110,27 +101,25 @@ export function diffPageHref(grouping, left, right, clID = '', crs = '') {
 
 /**
  * Helper to tell gold-scaffold-sk that a task has started and the spinner should be set to active.
- * @param ele - this
  */
-export function sendBeginTask(ele) {
+export function sendBeginTask(ele: Element) {
   ele.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
 }
 
 /**
  * Helper to tell gold-scaffold-sk that a task has finished and the spinner should maybe be stopped.
- * @param ele - this
  */
-export function sendEndTask(ele) {
+export function sendEndTask(ele: Element) {
   ele.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
 }
 
 /**
  * Helper to tell gold-scaffold-sk that a fetch failed. This will pop up on the toast-sk.
- * @param ele - this
- * @param e - error received from promise rejection.
- * @param what {string} - describing what was being fetched.
+ * @param ele Element from which to dispatch the 'fetch-error' custom element.
+ * @param e Error received from promise rejection.
+ * @param what Description of what was being fetched.
  */
-export function sendFetchError(ele, e, what) {
+export function sendFetchError(ele: Element, e: any, what: string) {
   ele.dispatchEvent(new CustomEvent('fetch-error', {
     detail: {
       error: e,

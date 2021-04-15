@@ -1,4 +1,6 @@
-export const manyParams = {
+import { ParamSet } from 'common-sk/modules/query';
+
+export const manyParams: ParamSet = {
   alpha_type: [
     'Opaque',
     'Premul',
