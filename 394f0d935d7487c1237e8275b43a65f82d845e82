@@ -56,6 +56,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "f2432315_c5d44787",
+        "filename": "sk/go/asset/asset.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-15T15:05:24Z",
+      "side": 1,
+      "message": "That\u0027s correct.",
+      "parentUuid": "68bceaee_b963dcc4",
+      "revId": "394f0d935d7487c1237e8275b43a65f82d845e82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d7cafe12_3097551b",
         "filename": "sk/go/asset/asset.go",
         "patchSetId": 3
