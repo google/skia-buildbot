@@ -52,7 +52,6 @@ const setUpElement = async (): Promise<MachineServerSk> => {
   return s;
 };
 
-
 describe('machine-server-sk', () => {
   it('loads data by fetch on connectedCallback', async () => {
     const s = await setUpElement();
@@ -186,7 +185,7 @@ describe('machine-server-sk', () => {
     await fetchMock.flush(true);
 
     // Confirm that setTimeout is in progress.
-    assert.notEqual(0, s._timeout);
+    assert.notEqual(0, s.timeout);
     // Confirm we are displaying the right icon.
     assert.isNotNull($$('pause-icon-sk', s));
   }));
@@ -236,7 +235,7 @@ describe('machine-server-sk', () => {
     // Confirm the button text has been updated.
     assert.equal(
       'Waiting for Power Cycle',
-          $$('.powercycle', s)?.textContent?.trim(),
+      $$('.powercycle', s)?.textContent?.trim(),
     );
   }));
 
@@ -361,7 +360,6 @@ describe('machine-server-sk', () => {
 
     assert.isTrue(called);
   }));
-
 
   describe('outOfSpecIfTooOld', () => {
     it('returns an empty string if LastModified is recent enough', () => {
