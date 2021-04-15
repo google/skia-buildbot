@@ -58,4 +58,7 @@ test-frontend-ci: npm-ci
 build-remote:
 	bazel build //machine/go/machineserver:machineserver --config=remote --remote_instance_name=projects/skia-public/instances/default_instance
 
+run-local-instance:
+	machineserver --local --logtostderr
+
 include ../make/npm.mk

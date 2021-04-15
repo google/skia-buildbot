@@ -52,13 +52,25 @@ const setUpElement = async (): Promise<MachineServerSk> => {
   return s;
 };
 
-
 describe('machine-server-sk', () => {
   it('loads data by fetch on connectedCallback', async () => {
     const s = await setUpElement();
 
     // Each row has an id set to the machine id.
     assert.isNotNull($$('#skia-rpi2-rack4-shelf1-002', s));
+  });
+
+  it('filters out elements that do not match', async () => {
+    const s = await setUpElement();
+
+    assert.isNotNull($$('#skia-rpi2-rack4-shelf1-002', s));
+
+    s.filter = 'this string does not appear in any machine';
+    // eslint-disable-next-line dot-notation
+    s['_render']();
+
+    // Each row has an id set to the machine id.
+    assert.isNull($$('#skia-rpi2-rack4-shelf1-002', s));
   });
 
   it('updates the mode when you click on the mode button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
@@ -186,7 +198,7 @@ describe('machine-server-sk', () => {
     await fetchMock.flush(true);
 
     // Confirm that setTimeout is in progress.
-    assert.notEqual(0, s._timeout);
+    assert.notEqual(0, s.timeout);
     // Confirm we are displaying the right icon.
     assert.isNotNull($$('pause-icon-sk', s));
   }));
@@ -236,7 +248,7 @@ describe('machine-server-sk', () => {
     // Confirm the button text has been updated.
     assert.equal(
       'Waiting for Power Cycle',
-          $$('.powercycle', s)?.textContent?.trim(),
+      $$('.powercycle', s)?.textContent?.trim(),
     );
   }));
 
@@ -361,7 +373,6 @@ describe('machine-server-sk', () => {
 
     assert.isTrue(called);
   }));
-
 
   describe('outOfSpecIfTooOld', () => {
     it('returns an empty string if LastModified is recent enough', () => {
