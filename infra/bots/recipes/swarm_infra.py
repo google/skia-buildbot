@@ -88,6 +88,7 @@ def RunSteps(api):
     install_targets = [
       'github.com/golang/protobuf/protoc-gen-go',
       'github.com/kisielk/errcheck',
+      'github.com/vektra/mockery/v2/cmd/mockery',
       'golang.org/x/tools/cmd/goimports',
       'golang.org/x/tools/cmd/stringer',
       'github.com/twitchtv/twirp/protoc-gen-twirp',
