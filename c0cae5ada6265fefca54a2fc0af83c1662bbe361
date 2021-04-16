@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "21e32a92_00de7f6a",
+        "filename": "golden/modules/demo_util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-16T12:15:37Z",
+      "side": 1,
+      "message": "should we explicitly label our return types?",
+      "range": {
+        "startLine": 36,
+        "startChar": 32,
+        "endLine": 36,
+        "endChar": 35
+      },
+      "revId": "c0cae5ada6265fefca54a2fc0af83c1662bbe361",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
