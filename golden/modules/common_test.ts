@@ -11,6 +11,7 @@ import {
   sendFetchError,
 } from './common';
 import { eventPromise } from '../../infra-sk/modules/test_util';
+import { expect } from 'chai';
 
 describe('humanReadableQuery', () => {
   it('turns url encoded queries into human readable version', () => {
@@ -95,14 +96,14 @@ describe('diffPageHref', () => {
 });
 
 describe('event functions', () => {
-  let ele;
+  let ele: Element;
   beforeEach(() => {
     ele = document.createElement('div');
-    $$('body').appendChild(ele);
+    $$('body')!.appendChild(ele);
   });
 
   afterEach(() => {
-    $$('body').removeChild(ele);
+    $$('body')!.removeChild(ele);
   });
 
   it('sends a begin-task', async () => {
@@ -118,7 +119,7 @@ describe('event functions', () => {
   });
 
   it('sends a fetch-error', async () => {
-    const evt = eventPromise('fetch-error');
+    const evt = eventPromise<CustomEvent>('fetch-error');
     sendFetchError(ele, 'some error', 'loading stuff');
     const e = await evt;
     expect(e.detail.error).to.equal('some error');

@@ -113,7 +113,7 @@ type frontendServerConfig struct {
 	// Force the user to be authenticated for all requests.
 	ForceLogin bool `json:"force_login"`
 
-	// Configuration settings that will get passed to the frontend (see modules/settings.js)
+	// Configuration settings that will get passed to the frontend (see modules/settings.ts)
 	FrontendConfig frontendConfig `json:"frontend"`
 
 	// If this instance is simply a mirror of another instance's data.
