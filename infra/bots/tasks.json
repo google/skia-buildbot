@@ -549,6 +549,11 @@
           "version": "version:14"
         },
         {
+          "name": "skia/bots/mockery",
+          "path": "mockery",
+          "version": "version:1"
+        },
+        {
           "name": "skia/bots/protoc",
           "path": "protoc",
           "version": "version:0"
@@ -595,7 +600,8 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
-          "go/go/bin"
+          "go/go/bin",
+          "mockery"
         ]
       },
       "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"

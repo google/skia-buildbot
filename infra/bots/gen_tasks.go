@@ -521,6 +521,7 @@ func createPushAppsFromInfraDockerImage(b *specs.TasksCfgBuilder, name string) s
 func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("mockery"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
 
 	machineType := MACHINE_TYPE_MEDIUM
@@ -546,7 +547,7 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(machineType),
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "mockery"},
 		},
 		ServiceAccount: SERVICE_ACCOUNT_RECREATE_SKPS,
 	}
