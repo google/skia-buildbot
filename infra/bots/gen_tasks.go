@@ -521,6 +521,7 @@ func createPushAppsFromInfraDockerImage(b *specs.TasksCfgBuilder, name string) s
 func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("mockery"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
 
 	machineType := MACHINE_TYPE_MEDIUM
