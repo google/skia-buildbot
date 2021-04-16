@@ -16,6 +16,24 @@
       "message": "Looks like the bot needs the right version of mockery installed?",
       "revId": "76d51f2f33e3e51376ead1c4eb3069e7688ca356",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "071b19d5_b5463e8f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-16T11:51:43Z",
+      "side": 1,
+      "message": "Yes, sorry for the noise.  I\u0027m trying to fix the UpdateCIPDPackages task.  Currently mockery is not even listed as a dependency in our repo, so I\u0027m not sure how the existing test tasks run it during \"go generate\".",
+      "parentUuid": "6ff9aca6_d76b2373",
+      "revId": "76d51f2f33e3e51376ead1c4eb3069e7688ca356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
