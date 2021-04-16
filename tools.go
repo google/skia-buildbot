@@ -12,6 +12,7 @@ import (
 	_ "github.com/google/go-licenses"
 	_ "github.com/kisielk/errcheck"
 	_ "github.com/twitchtv/twirp/protoc-gen-twirp"
+	_ "github.com/vektra/mockery/v2"
 	_ "go.larrymyers.com/protoc-gen-twirp_typescript"
 	_ "golang.org/x/tools/cmd/goimports"
 )
