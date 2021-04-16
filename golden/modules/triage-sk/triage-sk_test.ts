@@ -1,15 +1,17 @@
 import './index';
-import { $, $$ } from 'common-sk/modules/dom';
 import {
   eventPromise,
   noEventPromise,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
+import { expect } from 'chai';
+import { LabelOrEmpty, TriageSk } from './triage-sk';
+import { Label } from '../rpc_types';
 
 describe('triage-sk', () => {
-  const newInstance = setUpElementUnderTest('triage-sk');
+  const newInstance = setUpElementUnderTest<TriageSk>('triage-sk');
 
-  let triageSk;
+  let triageSk: TriageSk;
   beforeEach(() => triageSk = newInstance());
 
   it('is untriaged by default', () => {
@@ -39,30 +41,32 @@ describe('triage-sk', () => {
       });
 
     it('throws an exception upon an invalid value', () => {
-      expect(() => triageSk.value = 'hello world')
+      expect(() => triageSk.value = 'hello world' as LabelOrEmpty)
         .to.throw(RangeError, 'Invalid triage-sk value: "hello world".');
     });
   });
 
   describe('buttons', () => {
-    let changeEvent;
-    beforeEach(() => { changeEvent = eventPromise('change', 100); });
+    let changeEvent: Promise<CustomEvent<LabelOrEmpty>>;
+    beforeEach(() => {
+      changeEvent = eventPromise<CustomEvent<LabelOrEmpty>>('change', 100);
+    });
 
     it('sets value to positive when clicking positive button', async () => {
-      $$('button.positive', triageSk).click();
+      clickButton(triageSk,'positive');
       expectValueAndToggledButtonToBe(triageSk, 'positive');
       expect((await changeEvent).detail).to.equal('positive');
     });
 
     it('sets value to negative when clicking negative button', async () => {
-      $$('button.negative', triageSk).click();
+      clickButton(triageSk,'negative');
       expectValueAndToggledButtonToBe(triageSk, 'negative');
       expect((await changeEvent).detail).to.equal('negative');
     });
 
     it('sets value to untriaged when clicking untriaged button', async () => {
       triageSk.value = 'positive'; // Untriaged by default; change value first.
-      $$('button.untriaged', triageSk).click();
+      clickButton(triageSk,'untriaged');
       expectValueAndToggledButtonToBe(triageSk, 'untriaged');
       expect((await changeEvent).detail).to.equal('untriaged');
     });
@@ -70,17 +74,20 @@ describe('triage-sk', () => {
     it('does not emit event "change" when clicking button for current value',
       async () => {
         const noChangeEvent = noEventPromise('change');
-        $$('button.untriaged', triageSk).click();
+        clickButton(triageSk,'untriaged');
         await noChangeEvent;
       });
   });
 });
 
-const expectValueAndToggledButtonToBe = (triageSk, value) => {
+const clickButton = (triageSk: TriageSk, value: Label) =>
+    triageSk.querySelector<HTMLButtonElement>(`button.${value}`)!.click();
+
+const expectValueAndToggledButtonToBe = (triageSk: TriageSk, value: LabelOrEmpty) => {
   expect(triageSk.value).to.equal(value);
   if (value === '') {
-    expect($('button.selected', triageSk)).to.have.length(0);
+    expect(triageSk.querySelectorAll('button.selected')).to.have.length(0);
   } else {
-    expect($$(`button.${value}`, triageSk).className).to.contain('selected');
+    expect(triageSk.querySelector(`button.${value}`)!.className).to.contain('selected');
   }
 };
