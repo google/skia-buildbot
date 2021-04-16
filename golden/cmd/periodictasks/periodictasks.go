@@ -85,6 +85,7 @@ func startUpdateTracesIgnoreStatus(ctx context.Context, db *pgxpool.Pool, ptc pe
 		"task": "updateTracesIgnoreStatus",
 	})
 	go util.RepeatCtx(ctx, ptc.UpdateIgnorePeriod.Duration, func(ctx context.Context) {
+		sklog.Infof("Updating traces and values at head with ignore status")
 		ctx, span := trace.StartSpan(ctx, "updateTracesWithNullStatus")
 		defer span.End()
 		if err := sqlignorestore.UpdateIgnoredTraces(ctx, db); err != nil {
