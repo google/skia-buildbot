@@ -132,6 +132,35 @@ func TestUpdateIgnoredTraces_StartsNotNull_UpdatedToCorrectValues(t *testing.T) 
 	assert.ElementsMatch(t, expectedData.ValuesAtHead, actualValuesAtHead)
 }
 
+func TestUpdateIgnoredTraces_PartiallySet_UpdatedToCorrectValues(t *testing.T) {
+	unittest.LargeTest(t)
+	existingData := dks.Build()
+	// Only ValuesAtHead are incorrectly set, but should be updated anyway
+	for i := range existingData.ValuesAtHead {
+		existingData.ValuesAtHead[i].MatchesAnyIgnoreRule = schema.NBFalse
+	}
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	// Verify things are that sentinel value
+	row := db.QueryRow(ctx, `SELECT count(*) FROM ValuesAtHead WHERE matches_any_ignore_rule = FALSE`)
+	var count int
+	require.NoError(t, row.Scan(&count))
+	assert.Equal(t, 33, count)
+	assert.Equal(t, 33, len(existingData.ValuesAtHead))
+
+	require.NoError(t, UpdateIgnoredTraces(ctx, db))
+
+	// Verify things were updated to the correct value
+	expectedData := dks.Build()
+	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
+	assert.ElementsMatch(t, expectedData.Traces, actualTraces)
+
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.ElementsMatch(t, expectedData.ValuesAtHead, actualValuesAtHead)
+}
+
 func TestUpdateIgnoredTraces_MultipleBatches_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -347,14 +376,14 @@ func TestStatementForNotIgnoredTraceIDs_Success(t *testing.T) {
 
 	condition := statementForNotIgnoredTraceIDs(paramtools.ParamSet{
 		"key1": []string{"alpha", "beta"},
-	})
+	}, "ValuesAtHead")
 	expectedCondition := `WITH
 U0 AS (
-	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
+	SELECT trace_id FROM ValuesAtHead WHERE keys -> 'key1' = '"alpha"'
 	UNION
-	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"beta"'
+	SELECT trace_id FROM ValuesAtHead WHERE keys -> 'key1' = '"beta"'
 )
-SELECT trace_id FROM Traces WHERE trace_id IN (
+SELECT trace_id FROM ValuesAtHead WHERE trace_id IN (
 SELECT trace_id FROM U0
 ) AND (matches_any_ignore_rule = FALSE OR matches_any_ignore_rule is NULL)`
 	assert.Equal(t, expectedCondition, condition)
@@ -363,7 +392,7 @@ SELECT trace_id FROM U0
 		"key1": []string{"alpha", "beta"},
 		"key2": []string{"gamma"},
 		"key3": []string{"delta", "epsilon", "zeta"},
-	})
+	}, "Traces")
 	expectedCondition = `WITH
 U0 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
@@ -396,7 +425,7 @@ func TestStatementForNotIgnoredTraceIDs_RemovesBadSQLCharacters(t *testing.T) {
 	condition := statementForNotIgnoredTraceIDs(paramtools.ParamSet{
 		"key1":              []string{"alpha", `beta"' OR 1=1`},
 		`key2'='""' OR 1=1`: []string{"1"}, // invalid keys are removed entirely.
-	})
+	}, "Traces")
 	expectedCondition := `WITH
 U0 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'

@@ -176,7 +176,8 @@ CREATE TABLE IF NOT EXISTS ValuesAtHead (
   corpus STRING AS (keys->>'source_type') STORED NOT NULL,
   keys JSONB NOT NULL,
   matches_any_ignore_rule BOOL,
-  INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id)
+  INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id),
+  INVERTED INDEX keys_idx (keys)
 );
 CREATE TABLE IF NOT EXISTS DeprecatedIngestedFiles (
   source_file_id BYTES PRIMARY KEY,

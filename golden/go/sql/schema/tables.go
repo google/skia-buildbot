@@ -559,6 +559,8 @@ type ValueAtHeadRow struct {
 
 	// This index makes application of all ignore rules easier.
 	ignoredGroupingIndex struct{} `sql:"INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id)"`
+	// This index makes querying by keys faster
+	keysIndex struct{} `sql:"INVERTED INDEX keys_idx (keys)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
