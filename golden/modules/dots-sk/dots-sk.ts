@@ -32,10 +32,11 @@ import {
   STROKE_WIDTH,
   TRACE_LINE_COLOR,
 } from './constants';
+import {Commit, Trace, TraceGroup} from '../rpc_types';
 
 // Array of dots-sk component instances. A dots-sk instance is present if it has
 // a pending mousemove update.
-const dotsSkInstancesWithPendingMouseMoveUpdates = [];
+const dotsSkInstancesWithPendingMouseMoveUpdates: DotsSk[] = [];
 
 // Periodically process all pending mousemoves. We do not want to do any work on
 // a mouse move event as that can very easily degrade browser performance, e.g.
@@ -43,28 +44,31 @@ const dotsSkInstancesWithPendingMouseMoveUpdates = [];
 // in batches remedies this.
 setInterval(() => {
   while (dotsSkInstancesWithPendingMouseMoveUpdates.length > 0) {
-    const dotsSk = dotsSkInstancesWithPendingMouseMoveUpdates.pop();
-    dotsSk._updatePendingMouseMove();
+    const dotsSk = dotsSkInstancesWithPendingMouseMoveUpdates.pop()!;
+    dotsSk.updatePendingMouseMove();
   }
 }, 40);
 
 const template = () => html`<canvas></canvas>`;
 
-define('dots-sk', class extends ElementSk {
+export class DotsSk extends ElementSk {
+  private _canvas: HTMLCanvasElement | null = null;
+  private _ctx: CanvasRenderingContext2D | null = null;
+
+  private _commits: Commit[] = [];
+  private _value: TraceGroup = {tileSize: 0, traces: [], digests: [], total_digests: 0};
+  private _id = `id${Math.random()}`;
+
+  // The index of the trace that should be highlighted.
+  private _hoverIndex = -1;
+  private _hasScrolledOnce = false;
+
+  // For capturing the last mousemove event, which is later processed in a
+  // timer.
+  private _lastMouseMove: MouseEvent | null = null;
+
   constructor() {
     super(template);
-    this._commits = [];
-    this._value = { tileSize: 0, traces: [] };
-    this._id = `id${Math.random()}`;
-
-    // The index of the trace that should be highlighted.
-    this._hoverIndex = -1;
-
-    // For capturing the last mousemove event, which is later processed in a
-    // timer.
-    this._lastMouseMove = null;
-
-    this._hasScrolledOnce = false;
 
     // Explicitly bind event handler methods to this.
     this._onMouseMove = this._onMouseMove.bind(this);
@@ -76,17 +80,17 @@ define('dots-sk', class extends ElementSk {
     super.connectedCallback();
     this._render();
     this._canvas = $$('canvas', this);
-    this._canvas.addEventListener('mousemove', this._onMouseMove);
-    this._canvas.addEventListener('mouseleave', this._onMouseLeave);
-    this._canvas.addEventListener('click', this._onClick);
-    this._ctx = this._canvas.getContext('2d');
+    this._canvas!.addEventListener('mousemove', this._onMouseMove);
+    this._canvas!.addEventListener('mouseleave', this._onMouseLeave);
+    this._canvas!.addEventListener('click', this._onClick);
+    this._ctx = this._canvas!.getContext('2d');
     this._draw();
   }
 
   disconnectedCallback() {
-    this._canvas.removeEventListener('mousemove', this._onMouseMove);
-    this._canvas.removeEventListener('mouseleave', this._onMouseLeave);
-    this._canvas.removeEventListener('click', this._onClick);
+    this._canvas!.removeEventListener('mousemove', this._onMouseMove);
+    this._canvas!.removeEventListener('mouseleave', this._onMouseLeave);
+    this._canvas!.removeEventListener('click', this._onClick);
     this._hasScrolledOnce = false;
   }
 
@@ -110,9 +114,9 @@ define('dots-sk', class extends ElementSk {
    * and all digests after the first 8 unique digests are represented by this code. The highest
    * index of data is the most recent data point.
    */
-  get value() { return this._value; }
+  get value(): TraceGroup { return this._value; }
 
-  set value(value) {
+  set value(value: TraceGroup) {
     if (!value || (value.tileSize === 0)) {
       return;
     }
@@ -135,25 +139,25 @@ define('dots-sk', class extends ElementSk {
   }
 
   // Draws the entire canvas.
-  _draw() {
+  private _draw() {
     const w = (this._value.tileSize - 1) * DOT_SCALE_X + 2 * DOT_OFFSET_X;
-    const h = (this._value.traces.length - 1) * DOT_SCALE_Y + 2 * DOT_OFFSET_Y;
-    this._canvas.setAttribute('width', `${w}px`);
-    this._canvas.setAttribute('height', `${h}px`);
+    const h = (this._value.traces!.length - 1) * DOT_SCALE_Y + 2 * DOT_OFFSET_Y;
+    this._canvas!.setAttribute('width', `${w}px`);
+    this._canvas!.setAttribute('height', `${h}px`);
 
     // First clear the canvas.
-    this._ctx.lineWidth = STROKE_WIDTH;
-    this._ctx.fillStyle = '#FFFFFF';
-    this._ctx.fillRect(0, 0, w, h);
+    this._ctx!.lineWidth = STROKE_WIDTH;
+    this._ctx!.fillStyle = '#FFFFFF';
+    this._ctx!.fillRect(0, 0, w, h);
 
     // Draw lines and dots.
-    this._value.traces.forEach((trace, traceIndex) => {
-      this._ctx.strokeStyle = TRACE_LINE_COLOR;
-      this._ctx.beginPath();
-      const firstNonMissingDot = trace.data.findIndex((dot) => dot !== MISSING_DOT);
+    this._value.traces!.forEach((trace, traceIndex) => {
+      this._ctx!.strokeStyle = TRACE_LINE_COLOR;
+      this._ctx!.beginPath();
+      const firstNonMissingDot = trace.data!.findIndex((dot) => dot !== MISSING_DOT);
       let lastNonMissingDot = -1;
-      for (let i = trace.data.length - 1; i >= 0; i--) {
-        if (trace.data[i] !== MISSING_DOT) {
+      for (let i = trace.data!.length - 1; i >= 0; i--) {
+        if (trace.data![i] !== MISSING_DOT) {
           lastNonMissingDot = i;
           break;
         }
@@ -164,36 +168,36 @@ define('dots-sk', class extends ElementSk {
         console.warn(`trace with id ${trace.label} was unexpectedly empty`);
         return;
       }
-      this._ctx.moveTo(
+      this._ctx!.moveTo(
         dotToCanvasX(firstNonMissingDot),
         dotToCanvasY(traceIndex),
       );
-      this._ctx.lineTo(
+      this._ctx!.lineTo(
         dotToCanvasX(lastNonMissingDot),
         dotToCanvasY(traceIndex),
       );
-      this._ctx.stroke();
-      this._drawTraceDots(trace.data, traceIndex);
+      this._ctx!.stroke();
+      this._drawTraceDots(trace.data!, traceIndex);
     });
   }
 
   // Draws the circles for a single trace.
-  _drawTraceDots(colors, y) {
+  private _drawTraceDots(colors: number[], y: number) {
     colors.forEach((c, x) => {
       // We don't draw a dot when it is missing.
       if (c === MISSING_DOT) {
         return;
       }
-      this._ctx.beginPath();
-      this._ctx.strokeStyle = this._getColorSafe(DOT_STROKE_COLORS, c);
-      this._ctx.fillStyle = (this._hoverIndex === y)
+      this._ctx!.beginPath();
+      this._ctx!.strokeStyle = this._getColorSafe(DOT_STROKE_COLORS, c);
+      this._ctx!.fillStyle = (this._hoverIndex === y)
         ? this._getColorSafe(DOT_FILL_COLORS_HIGHLIGHTED, c)
         : this._getColorSafe(DOT_FILL_COLORS, c);
-      this._ctx.arc(
+      this._ctx!.arc(
         dotToCanvasX(x), dotToCanvasY(y), DOT_RADIUS, 0, Math.PI * 2,
       );
-      this._ctx.fill();
-      this._ctx.stroke();
+      this._ctx!.fill();
+      this._ctx!.stroke();
     });
   }
 
@@ -202,17 +206,17 @@ define('dots-sk', class extends ElementSk {
   // MAX_UNIQUE_DIGESTS.
   //
   // This assumes that the color array is of length MAX_UNIQUE_DIGESTS + 1.
-  _getColorSafe(colorArray, uniqueDigestIndex) {
+  private _getColorSafe(colorArray: string[], uniqueDigestIndex: number): string {
     return colorArray[Math.min(colorArray.length - 1, uniqueDigestIndex)];
   }
 
   // Redraws just the circles for a single trace.
-  _redrawTraceDots(traceIndex) {
-    const trace = this._value.traces[traceIndex];
+  private _redrawTraceDots(traceIndex: number) {
+    const trace = this._value.traces![traceIndex];
     if (!trace) {
       return;
     }
-    this._drawTraceDots(trace.data, traceIndex);
+    this._drawTraceDots(trace.data!, traceIndex);
   }
 
   /**
@@ -227,28 +231,25 @@ define('dots-sk', class extends ElementSk {
    *    ...
    *   ]
    */
-  get commits() { return this._commits; }
+  get commits(): Commit[] { return this._commits; }
 
-  set commits(commits) { this._commits = commits; }
+  set commits(commits: Commit[]) { this._commits = commits; }
 
-  _onMouseLeave() {
+  private _onMouseLeave() {
     const oldHoverIndex = this._hoverIndex;
     this._hoverIndex = -1;
     this._redrawTraceDots(oldHoverIndex);
     this._lastMouseMove = null;
   }
 
-  _onMouseMove(e) {
-    this._lastMouseMove = {
-      clientX: e.clientX,
-      clientY: e.clientY,
-    };
+  private _onMouseMove(e: MouseEvent) {
+    this._lastMouseMove = e;
     dotsSkInstancesWithPendingMouseMoveUpdates.push(this);
   }
 
   // Gets the coordinates of the mouse event in dot coordinates.
-  _mouseEventToDotSpace(e) {
-    const rect = this._canvas.getBoundingClientRect();
+  private _mouseEventToDotSpace(e: MouseEvent) {
+    const rect = this._canvas!.getBoundingClientRect();
     const x = (e.clientX - rect.left - DOT_OFFSET_X + STROKE_WIDTH + DOT_RADIUS)
             / DOT_SCALE_X;
     const y = (e.clientY - rect.top - DOT_OFFSET_Y + STROKE_WIDTH + DOT_RADIUS)
@@ -256,9 +257,12 @@ define('dots-sk', class extends ElementSk {
     return { x: Math.floor(x), y: Math.floor(y) };
   }
 
-  // We look at the mousemove event, if one occurred, to determine which trace
-  // to highlight.
-  _updatePendingMouseMove() {
+  /**
+   * We look at the mousemove event, if one occurred, to determine which trace to highlight.
+   *
+   * Not part of the public API.
+   */
+  updatePendingMouseMove() {
     if (!this._lastMouseMove) {
       return;
     }
@@ -270,10 +274,10 @@ define('dots-sk', class extends ElementSk {
       const oldIndex = this._hoverIndex;
       this._hoverIndex = dotCoords.y;
       if (this._hoverIndex >= 0
-          && this._hoverIndex < this._value.traces.length) {
+          && this._hoverIndex < this._value.traces!.length) {
         this.dispatchEvent(new CustomEvent('hover', {
           bubbles: true,
-          detail: this._value.traces[this._hoverIndex].label,
+          detail: this._value.traces![this._hoverIndex].label,
         }));
       }
       // Just update the dots of the traces that have changed.
@@ -283,10 +287,11 @@ define('dots-sk', class extends ElementSk {
 
     // Set the cursor to a pointer if you are hovering over a dot.
     let found = false;
-    const trace = this._value.traces[dotCoords.y];
+    const trace = this._value.traces![dotCoords.y];
     if (trace) {
-      for (let i = trace.data.length - 1; i >= 0; i--) {
-        if (trace.data[i].x === dotCoords.x) {
+      for (let i = trace.data!.length - 1; i >= 0; i--) {
+        const dot = trace.data![dotCoords.x]
+        if (dot !== undefined && dot !== MISSING_DOT ) {
           found = true;
           break;
         }
@@ -298,9 +303,9 @@ define('dots-sk', class extends ElementSk {
   // When a dot is clicked on, produce the showblamelist event with the
   // blamelist; that is, all the commits that are included up to and including
   // that dot.
-  _onClick(e) {
+  private _onClick(e: MouseEvent) {
     const dotCoords = this._mouseEventToDotSpace(e);
-    const trace = this._value.traces[dotCoords.y];
+    const trace = this._value.traces![dotCoords.y];
     if (!trace) {
       return; // Misclick, likely.
     }
@@ -318,8 +323,8 @@ define('dots-sk', class extends ElementSk {
   // blamelist for that dot. The blamelist includes the commit corresponding to
   // the dot, and if the dot is preceded by any missing dots, then their
   // corresponding commits will be included as well.
-  _computeBlamelist(trace, x) {
-    if (trace.data[x] === MISSING_DOT) {
+  private _computeBlamelist(trace: Trace, x: number) {
+    if (trace.data![x] === MISSING_DOT) {
       // Can happen if there's no dot at that X coord, e.g. misclick.
       return null;
     }
@@ -327,7 +332,7 @@ define('dots-sk', class extends ElementSk {
     // 0 is a fine index to compute the blamelist from.
     let lastNonMissingIndex = 0;
     for (let i = x - 1; i >= 0; i--) {
-      if (trace.data[i] !== MISSING_DOT) {
+      if (trace.data![i] !== MISSING_DOT) {
         // We include the last non-missing data in our slice because the slice of commits that
         // Gold returns is not the complete history - Gold elides commits that have no data.
         // This is potentially a problem in the following scenario:
@@ -347,4 +352,6 @@ define('dots-sk', class extends ElementSk {
     blamelist.reverse();
     return blamelist;
   }
-});
+}
+
+define('dots-sk', DotsSk);
