@@ -31,7 +31,17 @@ import '../note-editor-sk';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
 
+/**
+ * Updates should arrive every 30 seconds, so we allow up to 2x that for lag
+ * before showing it as an error.
+ * */
 export const MAX_LAST_UPDATED_ACCEPTABLE_MS = 60 * 1000;
+
+/**
+ * Devices should be restarted every 24 hours, with an hour added if they are
+ * running a test.
+ */
+export const MAX_UPTIME_ACCEPTABLE_S = 60 * 60 * 25;
 
 const temps = (temperatures: { [key: string]: number }): TemplateResult => {
   if (!temperatures) {
@@ -191,6 +201,9 @@ export const outOfSpecIfTooOld = (lastUpdated: string): string => {
   return diff > MAX_LAST_UPDATED_ACCEPTABLE_MS ? 'outOfSpec' : '';
 };
 
+/** Returns the CSS class that should decorate the Uptime value. */
+export const uptimeOutOfSpecIfTooOld = (uptime: number): string => (uptime > MAX_UPTIME_ACCEPTABLE_S ? 'outOfSpec' : '');
+
 // eslint-disable-next-line no-use-before-define
 const note = (ele: MachineServerSk, machine: Description): TemplateResult => html`
   <edit-icon-sk @click=${() => ele.editNote(machine.Dimensions.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
@@ -212,7 +225,7 @@ const rows = (ele: MachineServerSk): TemplateResult[] => ele.filteredMachines().
         <td>${machine.Battery}</td>
         <td>${temps(machine.Temperature)}</td>
         <td class="${outOfSpecIfTooOld(machine.LastUpdated)}">${diffDate(machine.LastUpdated)}</td>
-        <td>${deviceUptime(machine)}</td>
+        <td class="${uptimeOutOfSpecIfTooOld(machine.DeviceUptime)}">${deviceUptime(machine)}</td>
         <td>${dimensions(machine)}</td>
         <td>${note(ele, machine)}</td>
         <td>${annotation(machine.Annotation)}</td>
