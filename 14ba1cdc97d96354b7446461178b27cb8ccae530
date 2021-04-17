@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "db337271_5d1ac94f",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2021-04-17T18:09:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4aa99fe6_50bbc77f",
+      "range": {
+        "startLine": 4,
+        "startChar": 15,
+        "endLine": 4,
+        "endChar": 48
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d9a52a82_eee67bdf",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-04-09T13:22:34Z",
       "side": 1,
       "message": "These are actually flipped; the child is rolled into the parent.",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 33
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bf080cef_59c20879",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2021-04-17T18:09:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d9a52a82_eee67bdf",
       "range": {
         "startLine": 5,
         "startChar": 0,
@@ -72,6 +120,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "21b0986e_bb0267bc",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2021-04-17T18:09:04Z",
+      "side": 1,
+      "message": "is this field required?\n\nRTS model is used only in CQ (it reduces redundant testing only on CQ). There is no waterfal per se.",
+      "parentUuid": "b9be422f_027c07f5",
+      "range": {
+        "startLine": 7,
+        "startChar": 20,
+        "endLine": 7,
+        "endChar": 85
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c2e42b07_dea21d29",
         "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
         "patchSetId": 2
@@ -83,6 +155,30 @@
       "writtenOn": "2021-04-09T13:22:34Z",
       "side": 1,
       "message": "These should be borenet@google.com and rmistry@google.com, respectively.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 28
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c731f5ac_05c88cd4",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2021-04-17T18:09:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c2e42b07_dea21d29",
       "range": {
         "startLine": 8,
         "startChar": 0,
@@ -116,6 +212,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "60e28896_f552c7b7",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2021-04-17T18:09:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "35c353f7_14b4c6be",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 29
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d3971dfa_6ac50069",
@@ -129,6 +249,30 @@
       "writtenOn": "2021-04-09T13:22:34Z",
       "side": 1,
       "message": "This should be \"chromium-autoroll@skia-public.iam.gserviceaccount.com\"",
+      "range": {
+        "startLine": 11,
+        "startChar": 19,
+        "endLine": 11,
+        "endChar": 23
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ecf02983_ca7cc79d",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2021-04-17T18:09:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d3971dfa_6ac50069",
       "range": {
         "startLine": 11,
         "startChar": 19,
