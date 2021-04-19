@@ -234,9 +234,8 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Wrap the result in an object because we don't want to return
-	// a JSON array.
-	sendJSONResponse(w, map[string]interface{}{"data": blameEntries})
+	// Wrap the result in an object because we don't want to return a JSON array.
+	sendJSONResponse(w, frontend.ByBlameResponse{Data: blameEntries})
 }
 
 // computeByBlame creates several ByBlameEntry structs based on the state

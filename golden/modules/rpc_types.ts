@@ -132,6 +132,24 @@ export interface StatusResponse {
 	corpStatus: GUICorpusStatus[];
 }
 
+export interface TestRollup {
+	test: TestName;
+	num: number;
+	sample_digest: Digest;
+}
+
+export interface ByBlameEntry {
+	groupID: string;
+	nDigests: number;
+	nTests: number;
+	affectedTests: TestRollup[] | null;
+	commits: Commit[] | null;
+}
+
+export interface ByBlameResponse {
+	data: ByBlameEntry[] | null;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type ParamSetResponse = { [key: string]: string[] | null };

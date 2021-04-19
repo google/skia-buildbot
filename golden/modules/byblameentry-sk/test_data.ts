@@ -1,6 +1,8 @@
+import { ByBlameEntry } from '../rpc_types';
+
 export const fakeNow = Date.parse('2019-11-08T00:00:00Z');
 
-export const entry = {
+export const entry: ByBlameEntry = {
   groupID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
   nDigests: 112,
   nTests: 7,
@@ -38,10 +40,12 @@ export const entry = {
     hash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
     author: 'Elisa (elisa@example.com)',
     message: 'One glyph() to rule them all!!!',
+    cl_url: '',
   }, {
     commit_time: 1573149564,
     hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     author: 'Joe (joe@example.com)',
     message: 'flesh out blendmodes through Screen',
+    cl_url: '',
   }],
 };
