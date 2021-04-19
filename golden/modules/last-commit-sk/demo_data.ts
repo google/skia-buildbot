@@ -1,4 +1,6 @@
-export const exampleStatusData = {
+import {StatusResponse} from '../rpc_types';
+
+export const exampleStatusData: StatusResponse = {
   ok: true,
   firstCommit: {
     commit_time: 1597819864,

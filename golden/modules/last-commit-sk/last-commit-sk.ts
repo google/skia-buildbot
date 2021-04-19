@@ -11,46 +11,49 @@ import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { baseRepoURL } from '../settings';
-
-const template = (ele) => html`
-<div class=last_commit>
-  <a href="${commitURL(ele._status)}">
-  Last Commit: ${lastCommitText(ele._status)}
-  </a>
-<div>`;
-
-const commitURL = (status) => {
-  const hash = status.lastCommit && status.lastCommit.hash;
-  if (!hash) {
-    return '';
-  }
-  const url = baseRepoURL();
-  if (url.indexOf('github.com') !== -1) {
-    return `${url}/commit/${hash}`;
-  }
-  return `${url}/+show/${hash}`;
-};
-
-const lastCommitText = (status) => {
-  const hash = status.lastCommit && status.lastCommit.hash;
-  let author = status.lastCommit && status.lastCommit.author;
-  if (!hash || !author) {
-    return '';
-  }
-  // Trim off the email address (usually in parens) if it exists.
-  const idx = author.indexOf('(');
-  if (idx) {
-    author = author.substring(0, idx);
-  }
-  return `${hash.substring(0, 7)} - ${author}`;
-};
+import {StatusResponse} from '../rpc_types';
 
 const reloadInterval = 3000;
 
-define('last-commit-sk', class extends ElementSk {
+export class LastCommitSk extends ElementSk {
+  private static template = (ele: LastCommitSk) => html`
+    <div class=last_commit>
+      <a href="${LastCommitSk.commitURL(ele.status)}">
+      Last Commit: ${LastCommitSk.lastCommitText(ele.status)}
+      </a>
+    <div>
+  `;
+
+  private static commitURL = (status: StatusResponse | null): string => {
+    const hash = status?.lastCommit?.hash;
+    if (!hash) {
+      return '';
+    }
+    const url = baseRepoURL();
+    if (url.indexOf('github.com') !== -1) {
+      return `${url}/commit/${hash}`;
+    }
+    return `${url}/+show/${hash}`;
+  };
+
+  private static lastCommitText = (status: StatusResponse | null): string => {
+    const hash = status?.lastCommit?.hash;
+    let author = status?.lastCommit?.author;
+    if (!hash || !author) {
+      return '';
+    }
+    // Trim off the email address (usually in parens) if it exists.
+    const idx = author.indexOf('(');
+    if (idx) {
+      author = author.substring(0, idx);
+    }
+    return `${hash.substring(0, 7)} - ${author}`;
+  };
+
+  private status: StatusResponse | null = null;
+
   constructor() {
-    super(template);
-    this._status = {};
+    super(LastCommitSk.template);
   }
 
   connectedCallback() {
@@ -65,7 +68,7 @@ define('last-commit-sk', class extends ElementSk {
       fetch('/json/v1/trstatus')
         .then(jsonOrThrow)
         .then((json) => {
-          this._status = json;
+          this.status = json as StatusResponse;
           this._render();
           setTimeout(reload, reloadInterval);
         })
@@ -77,4 +80,6 @@ define('last-commit-sk', class extends ElementSk {
     };
     reload();
   }
-});
+}
+
+define('last-commit-sk', LastCommitSk);
