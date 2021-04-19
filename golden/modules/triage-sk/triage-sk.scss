@@ -1,4 +1,5 @@
 @import '../colors';
+@import '~elements-sk/colors';
 
 triage-sk {
   display: inline-block;
@@ -9,7 +10,7 @@ triage-sk {
 
     &.selected {
       background-color: var(--dark-white);
-      border: none;
+      border-color: var(--dark-white);
       box-shadow: none;
     }
 
