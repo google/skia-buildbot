@@ -248,6 +248,11 @@ func FromTilingCommits(xtc []tiling.Commit) []Commit {
 	return rv
 }
 
+// ByBlameResponse is the response for /json/v1/byblame.
+type ByBlameResponse struct {
+	Data []ByBlameEntry `json:"data"`
+}
+
 // ByBlameEntry is a helper structure that is serialized to
 // JSON and sent to the front-end.
 type ByBlameEntry struct {
