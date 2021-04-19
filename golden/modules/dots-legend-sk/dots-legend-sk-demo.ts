@@ -1,7 +1,8 @@
 import './index';
-import { $$ } from 'common-sk/modules/dom';
+import { DigestStatus } from '../rpc_types';
+import { DotsLegendSk } from './dots-legend-sk';
 
-const someDigests = [
+const someDigests: DigestStatus[] = [
   { digest: 'ce0a9d2b546b25e00e39a33860cb72b6', status: 'untriaged' },
   { digest: '34e87ca0f753cf4c884fa01af6c08be9', status: 'positive' },
   { digest: '8ee9a2c61e9f12e6243f07423302f26a', status: 'negative' },
@@ -9,7 +10,7 @@ const someDigests = [
   { digest: 'dcccd6998b47f60ab28dcff17ae57ed2', status: 'positive' },
 ];
 
-const tooManyDigests = [
+const tooManyDigests: DigestStatus[] = [
   ...someDigests,
   { digest: '92d9faf80a25750629118018716387df', status: 'positive' },
   { digest: '1bc4771dcee95d97b2758a1e1945cc40', status: 'untriaged' },
@@ -18,14 +19,15 @@ const tooManyDigests = [
   { digest: 'b00cb97f0d4dd7b22fb9af5378918d9f', status: 'untriaged' },
 ];
 
-function newDotsLegendSk(parentSelector, id, digests, clID, test) {
-  const dotsLegendSk = document.createElement('dots-legend-sk');
+function newDotsLegendSk(
+    parentSelector: string, id: string, digests: DigestStatus[], clID: string, test: string) {
+  const dotsLegendSk = new DotsLegendSk();
   dotsLegendSk.id = id;
   dotsLegendSk.digests = digests;
   dotsLegendSk.changeListID = clID;
   dotsLegendSk.test = test;
   dotsLegendSk.totalDigests = digests.length;
-  $$(parentSelector).appendChild(dotsLegendSk);
+  document.querySelector(parentSelector)!.appendChild(dotsLegendSk);
 }
 
 newDotsLegendSk(
