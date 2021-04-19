@@ -5,8 +5,8 @@ export const DOT_OFFSET_X = 10;
 export const DOT_OFFSET_Y = 10;
 
 // Functions that go from dot space to canvas coordinates.
-export const dotToCanvasX = (x) => x * DOT_SCALE_X + DOT_OFFSET_X;
-export const dotToCanvasY = (y) => y * DOT_SCALE_Y + DOT_OFFSET_Y;
+export const dotToCanvasX = (x: number) => x * DOT_SCALE_X + DOT_OFFSET_X;
+export const dotToCanvasY = (y: number) => y * DOT_SCALE_Y + DOT_OFFSET_Y;
 
 // Maximum number of unique digests to display. If the number of unique digests
 // exceeds this, they will be grouped together with the last color.
