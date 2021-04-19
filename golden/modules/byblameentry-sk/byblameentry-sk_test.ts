@@ -4,11 +4,15 @@ import { deepCopy } from 'common-sk/modules/object';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { entry } from './test_data';
 import { testOnlySetSettings } from '../settings';
+import { ByBlameEntrySk } from './byblameentry-sk';
+import { ByBlameEntry } from '../rpc_types';
+import sinon from 'sinon';
+import { expect } from 'chai';
 
 describe('byblameentry-sk', () => {
-  const newInstance = setUpElementUnderTest('byblameentry-sk');
+  const newInstance = setUpElementUnderTest<ByBlameEntrySk>('byblameentry-sk');
 
-  const newByBlameEntrySk = (byBlameEntry, opts = {}) => {
+  const newByBlameEntrySk = (byBlameEntry: ByBlameEntry, opts: {baseRepoUrl?: string, corpus?: string} = {}) => {
     testOnlySetSettings({
       baseRepoURL: opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git',
     });
@@ -18,7 +22,7 @@ describe('byblameentry-sk', () => {
     });
   };
 
-  let clock;
+  let clock: sinon.SinonFakeTimers;
 
   beforeEach(() => {
     // This is necessary to make commit ages deterministic, and is set to 50
@@ -158,7 +162,7 @@ describe('byblameentry-sk', () => {
     });
 
     it('shows empty commit messages if Git log is empty/missing', async () => {
-      const byBlameEntrySk = newByBlameEntrySk(entry, { testGitLog: { log: [] } });
+      const byBlameEntrySk = newByBlameEntrySk(entry);
       expectBlamesListEquals(
         byBlameEntrySk,
         [{
@@ -230,15 +234,23 @@ describe('byblameentry-sk', () => {
   });
 });
 
-const expectTriageLinkEquals = (byBlameEntrySk, text, href) => {
-  const triageLink = $$('a.triage', byBlameEntrySk);
+const expectTriageLinkEquals = (byBlameEntrySk: ByBlameEntrySk, text: string, href: string) => {
+  const triageLink = $$<HTMLAnchorElement>('a.triage', byBlameEntrySk)!;
   expect(triageLink.innerText).to.contain(text);
   expect(triageLink.href).to.have.string(href);
 };
 
-const expectBlamesListEquals = (byBlameEntrySk, expectedBlames) => {
-  const noBlameList = $$('p.no-blamelist', byBlameEntrySk);
-  const blames = $('ul.blames li', byBlameEntrySk);
+interface ExpectedBlame {
+  linkText: string;
+  linkHref: string;
+  commitMessage: string;
+  author: string;
+  age: string;
+}
+
+const expectBlamesListEquals = (byBlameEntrySk: ByBlameEntrySk, expectedBlames: ExpectedBlame[]) => {
+  const noBlameList = $$<HTMLParagraphElement>('p.no-blamelist', byBlameEntrySk)!;
+  const blames = $<HTMLLIElement>('ul.blames li', byBlameEntrySk);
 
   if (!expectedBlames.length) {
     expect(noBlameList.innerText).to.contain('No blamelist.');
@@ -248,11 +260,11 @@ const expectBlamesListEquals = (byBlameEntrySk, expectedBlames) => {
     expect(blames).to.have.length(expectedBlames.length);
 
     for (let i = 0; i < expectedBlames.length; i++) {
-      const linkText = $$('a', blames[i]).innerText;
-      const linkHref = $$('a', blames[i]).href;
-      const commitMessage = $$('.commit-message', blames[i]).innerText;
-      const author = $$('.author', blames[i]).innerText;
-      const age = $$('.age', blames[i]).innerText;
+      const linkText = $$<HTMLAnchorElement>('a', blames[i])!.innerText;
+      const linkHref = $$<HTMLAnchorElement>('a', blames[i])!.href;
+      const commitMessage = $$<HTMLElement>('.commit-message', blames[i])!.innerText;
+      const author = $$<HTMLElement>('.author', blames[i])!.innerText;
+      const age = $$<HTMLElement>('.age', blames[i])!.innerText;
 
       expect(linkText).to.contain(expectedBlames[i].linkText);
       expect(linkHref).to.equal(expectedBlames[i].linkHref);
@@ -263,18 +275,27 @@ const expectBlamesListEquals = (byBlameEntrySk, expectedBlames) => {
   }
 };
 
-const expectNumTestsAffectedEquals = (byBlameEntrySk, numTestsAffected) => expect($$('.num-tests-affected', byBlameEntrySk).innerText)
-  .to.contain(numTestsAffected);
+const expectNumTestsAffectedEquals = (byBlameEntrySk: ByBlameEntrySk, numTestsAffected: string) =>
+    expect($$<HTMLElement>('.num-tests-affected', byBlameEntrySk)!.innerText)
+        .to.contain(numTestsAffected);
 
-const expectAffectedTestsTableEquals = (byBlameEntrySk, expectedRows) => {
+interface ExpectedRow {
+  test: string;
+  numDigests: number;
+  exampleLinkText: string;
+  exampleLinkHref: string;
+}
+
+const expectAffectedTestsTableEquals =
+    (byBlameEntrySk: ByBlameEntrySk, expectedRows: ExpectedRow[]) => {
   const actualRows = $('.affected-tests tbody tr');
   expect(actualRows.length).to.equal(expectedRows.length);
 
   for (let i = 0; i < expectedRows.length; i++) {
-    const test = $$('.test', actualRows[i]).innerText;
-    const numDigests = +$$('.num-digests', actualRows[i]).innerText;
-    const exampleLinkText = $$('a.example-link', actualRows[i]).innerText;
-    const exampleLinkHref = $$('a.example-link', actualRows[i]).href;
+    const test = $$<HTMLElement>('.test', actualRows[i])!.innerText;
+    const numDigests = +$$<HTMLElement>('.num-digests', actualRows[i])!.innerText;
+    const exampleLinkText = $$<HTMLAnchorElement>('a.example-link', actualRows[i])!.innerText;
+    const exampleLinkHref = $$<HTMLAnchorElement>('a.example-link', actualRows[i])!.href;
 
     expect(test).to.contain(expectedRows[i].test);
     expect(numDigests).to.equal(expectedRows[i].numDigests);
