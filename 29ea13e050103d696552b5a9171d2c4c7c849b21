@@ -16,6 +16,69 @@
       "message": "Added an audio Module to loop animations synced with audio by detecting audio bpms.",
       "revId": "29ea13e050103d696552b5a9171d2c4c7c849b21",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "73c71099_6ba07337",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-20T12:26:30Z",
+      "side": 1,
+      "message": "I don\u0027t understand what the goal of this code is for, which makes it really hard for me to understand the BPM analysis and related code. What user story is this a solution for?\n\nThe skottie web player already has audio support: https://github.com/google/skia-buildbot/blob/master/skottie/modules/audio.js Can you describe why that is insufficient?",
+      "revId": "29ea13e050103d696552b5a9171d2c4c7c849b21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d92c63c7_fef4d394",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-20T12:26:30Z",
+      "side": 1,
+      "message": "I would prefer arrow functions be used instead of bind(this) where possible.",
+      "range": {
+        "startLine": 115,
+        "startChar": 46,
+        "endLine": 115,
+        "endChar": 50
+      },
+      "revId": "29ea13e050103d696552b5a9171d2c4c7c849b21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "df1b991d_9dfd1c9a",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-20T12:26:30Z",
+      "side": 1,
+      "message": "I\u0027m somewhat confused by this. Please extract this as a local variable and explain why a .some() function is mutating the data (I typically think of .some() as being idempotent).",
+      "range": {
+        "startLine": 224,
+        "startChar": 13,
+        "endLine": 224,
+        "endChar": 96
+      },
+      "revId": "29ea13e050103d696552b5a9171d2c4c7c849b21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
