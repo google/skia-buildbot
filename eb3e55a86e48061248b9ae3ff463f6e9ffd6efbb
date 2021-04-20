@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "09aede95_a695c2b6",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1956,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-20T20:28:55Z",
+      "side": 1,
+      "message": ".Sub()?",
+      "range": {
+        "startLine": 1956,
+        "startChar": 27,
+        "endLine": 1956,
+        "endChar": 32
+      },
+      "revId": "eb3e55a86e48061248b9ae3ff463f6e9ffd6efbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "244f84e3_92d31572",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1986,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-20T20:28:55Z",
+      "side": 1,
+      "message": "Would it help to add the rationale for this choice of number?",
+      "range": {
+        "startLine": 1985,
+        "startChar": 16,
+        "endLine": 1986,
+        "endChar": 1
+      },
+      "revId": "eb3e55a86e48061248b9ae3ff463f6e9ffd6efbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
