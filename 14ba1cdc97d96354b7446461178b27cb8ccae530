@@ -144,6 +144,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "9439974a_7bab9461",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-20T13:53:48Z",
+      "side": 1,
+      "message": "Yes, it\u0027s required.  It gives us a place to look to see whether a roll has broken things; in this case we\u0027re rolling into Chromium, so we want to link the main Chromium waterfall page.",
+      "parentUuid": "21b0986e_bb0267bc",
+      "range": {
+        "startLine": 7,
+        "startChar": 20,
+        "endLine": 7,
+        "endChar": 85
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c2e42b07_dea21d29",
         "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
         "patchSetId": 2
