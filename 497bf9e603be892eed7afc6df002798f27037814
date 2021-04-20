@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "56a7807c_12bde8fa",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-20T21:24:34Z",
+      "side": 1,
+      "message": "When converting skottie animations to GIFs, if the new frame hasn\u0027t changed, skottie doesn\u0027t render it, and the gif exporter copies a blank frame because the canvas instance loses the webGL context.\nThis PR adds the ability of passing a second argument to the seek method that can force the render even when the image hasn\u0027t changed.",
+      "revId": "497bf9e603be892eed7afc6df002798f27037814",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
