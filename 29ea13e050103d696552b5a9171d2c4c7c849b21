@@ -120,6 +120,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "18348941_1188269c",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-20T20:21:17Z",
+      "side": 1,
+      "message": "See above suggestion for an example of what I usually do to bind to an event handler function. Hopefully that or something similar works.\n\nI would prefer not to overwrite our function definitions in the constructor, as it could lead to confusion.",
+      "parentUuid": "57303f66_f914b28d",
+      "range": {
+        "startLine": 115,
+        "startChar": 46,
+        "endLine": 115,
+        "endChar": 50
+      },
+      "revId": "29ea13e050103d696552b5a9171d2c4c7c849b21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "df1b991d_9dfd1c9a",
         "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
         "patchSetId": 1
@@ -155,6 +179,30 @@
       "side": 1,
       "message": "My bad, I copied this from the example I had researched and it was implemented this way.\nI changed it to a .find, and although I\u0027m still mutating the object if it matches, since its created on this scope, I\u0027d say it\u0027s ok. What do you think?",
       "parentUuid": "df1b991d_9dfd1c9a",
+      "range": {
+        "startLine": 224,
+        "startChar": 13,
+        "endLine": 224,
+        "endChar": 96
+      },
+      "revId": "29ea13e050103d696552b5a9171d2c4c7c849b21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "985d7416_f68fb67a",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-20T20:21:17Z",
+      "side": 1,
+      "message": "That\u0027s much better, thank you.",
+      "parentUuid": "9b34232e_72500f5d",
       "range": {
         "startLine": 224,
         "startChar": 13,

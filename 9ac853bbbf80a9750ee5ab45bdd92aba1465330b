@@ -16,6 +16,115 @@
       "message": "update with comments, questions and changes",
       "revId": "9ac853bbbf80a9750ee5ab45bdd92aba1465330b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2c35ff9e_f8411d56",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-20T20:21:17Z",
+      "side": 1,
+      "message": "I think I understand things a little better; thank you for the explanations.",
+      "revId": "9ac853bbbf80a9750ee5ab45bdd92aba1465330b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "60456335_df505f2e",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-20T20:21:17Z",
+      "side": 1,
+      "message": "If I understand the examples you showed and what Jorge said, here\u0027s what I think the module is for (and what we should include in the module docs).\n\nThis module lets the user upload a song track and synchronize it with the animation\nby speeding up or slowing down the animation to fit the music. To make this easier, the module can do some analysis of the song to suggest the tempo of the song (in beats per minute or BPMs). Once a song is uploaded, we identify the top 5 likely bpms for the song and make those options or read the bpm encoded in the file name.\n\nOnce we have the bpm of the song, we can derive a \"beat duration\" to sync with the animation. [include one or two more sentences explaining what \"beat duration\" is and how it corresponds with the animation]",
+      "range": {
+        "startLine": 6,
+        "startChar": 26,
+        "endLine": 6,
+        "endChar": 33
+      },
+      "revId": "9ac853bbbf80a9750ee5ab45bdd92aba1465330b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "70fd8f63_5a5c3a3f",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-20T20:21:17Z",
+      "side": 1,
+      "message": "(e) \u003d\u003e ele._onBpmSelected(e) should work, right?",
+      "range": {
+        "startLine": 61,
+        "startChar": 82,
+        "endLine": 61,
+        "endChar": 96
+      },
+      "revId": "9ac853bbbf80a9750ee5ab45bdd92aba1465330b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7047e1a5_56a0f5e3",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-20T20:21:17Z",
+      "side": 1,
+      "message": "Can we display the unit of this? Is it ms?",
+      "range": {
+        "startLine": 94,
+        "startChar": 20,
+        "endLine": 94,
+        "endChar": 28
+      },
+      "revId": "9ac853bbbf80a9750ee5ab45bdd92aba1465330b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c879d431_4af4dc8a",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-20T20:21:17Z",
+      "side": 1,
+      "message": "Could this be () \u003d\u003e this._onAudioLoaded() since we don\u0027t care about the event?",
+      "range": {
+        "startLine": 319,
+        "startChar": 32,
+        "endLine": 319,
+        "endChar": 46
+      },
+      "revId": "9ac853bbbf80a9750ee5ab45bdd92aba1465330b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
