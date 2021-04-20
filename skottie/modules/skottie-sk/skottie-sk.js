@@ -28,6 +28,7 @@ import { SoundMap, AudioPlayer } from '../audio'
 import '../skottie-performance-sk'
 import { renderByDomain } from '../helpers/templates'
 import { supportedDomains } from '../helpers/domains'
+import '../skottie-audio-sk'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
@@ -149,10 +150,35 @@ const library = (ele) => {
   );
 };
 
+const audio = (ele) => {
+  if (!ele._showAudio) {
+    return '';
+  }
+  return renderByDomain(
+    html`
+    <section class=audio>
+      <skottie-audio-sk
+        .animation=${ele._state.lottie}
+        @apply=${ele._applyAudioSync}
+      >
+      </skottie-audio-sk>
+    </section>`,
+    LIBRARY_SUPPORTED_DOMAINS,
+  );
+};
+
 const libraryButton = (ele) => renderByDomain(
   html`<checkbox-sk label="Show library"
      ?checked=${ele._showLibrary}
      @click=${ele._toggleLibrary}>
+  </checkbox-sk>`,
+  LIBRARY_SUPPORTED_DOMAINS,
+);
+
+const audioButton = (ele) => renderByDomain(
+  html`<checkbox-sk label="Show audio"
+     ?checked=${ele._showAudio}
+     @click=${ele._toggleAudio}>
   </checkbox-sk>`,
   LIBRARY_SUPPORTED_DOMAINS,
 );
@@ -200,6 +226,7 @@ const displayLoaded = (ele) => html`
                @click=${ele._togglePerformanceChart}>
   </checkbox-sk>
   ${libraryButton(ele)}
+  ${audioButton(ele)}
   <button @click=${ele._toggleEmbed}>Embed</button>
   <div class=scrub>
     <input id=scrub type=range min=0 max=${SCRUBBER_RANGE+1} step=0.1
@@ -230,6 +257,7 @@ const displayLoaded = (ele) => html`
     ${skottiePlayer(ele)}
   </figure>
   ${lottiePlayer(ele)}
+  ${audio(ele)}
   ${library(ele)}
   ${livePreview(ele)}
 </section>
@@ -312,6 +340,7 @@ define('skottie-sk', class extends HTMLElement {
     this._showTextEditor = false;
     this._showPerformanceChart = false;
     this._showLibrary = false;
+    this._showAudio = false;
     this._scrubbing = false;
     this._playingOnStartOfScrub = false;
 
@@ -331,6 +360,7 @@ define('skottie-sk', class extends HTMLElement {
           't' : this._showTextEditor,
           'p' : this._showPerformanceChart,
           'i' : this._showLibrary,
+          'a' : this._showAudio,
           'w' : this._width,
           'h' : this._height,
           'f' : this._fps,
@@ -343,11 +373,13 @@ define('skottie-sk', class extends HTMLElement {
       this._showTextEditor = newState.t;
       this._showPerformanceChart = newState.p;
       this._showLibrary = newState.i;
+      this._showAudio = newState.a;
       this._width = newState.w;
       this._height = newState.h;
       this._fps = newState.f;
       this._backgroundColor = newState.bg;
       this._applyTextEdits = this._applyTextEdits.bind(this);
+      this._applyAudioSync = this._applyAudioSync.bind(this);
       this._onGifExportStart = this._onGifExportStart.bind(this);
       this.render();
     });
@@ -437,6 +469,16 @@ define('skottie-sk', class extends HTMLElement {
     this._skottieLibrary && this._skottieLibrary.replaceTexts(texts);
 
     this._upload();
+  }
+
+  _applyAudioSync(event) {
+    const detail = event.detail;
+    this._speed = detail.speed;
+    this._previousFrameTime = Date.now();
+    this._elapsedTime = 0;
+    if (!this._playing) {
+      this._playpause();
+    }
   }
 
   _onGifExportStart() {
@@ -661,11 +703,13 @@ define('skottie-sk', class extends HTMLElement {
   }
 
   _playpause() {
+    const audioManager = $$('skottie-audio-sk');
     if (this._playing) {
       this._lottie && this._lottie.pause();
       this._live && this._live.pause();
       this._state.soundMap && this._state.soundMap.pause();
       $$('#playpause').textContent = 'Play';
+      audioManager && audioManager.pause();
     } else {
       this._lottie && this._lottie.play();
       this._live && this._live.play();
@@ -673,6 +717,7 @@ define('skottie-sk', class extends HTMLElement {
       // There is no need call a soundMap.play() function here.
       // Skottie invokes the play by calling seek on the needed audio track.
       $$('#playpause').textContent = 'Pause';
+      audioManager && audioManager.resume();
     }
     this._playing = !this._playing;
   }
@@ -749,8 +794,18 @@ define('skottie-sk', class extends HTMLElement {
         this._renderLottieWeb();
         this._renderJSONEditor();
         this._renderTextEditor();
+        this._renderAudioManager();
       } catch(e) {
         console.warn('caught error while rendering third party code', e);
+      }
+    }
+  }
+
+  _renderAudioManager() {
+    if (this._showAudio) {
+      const audioManager = $$('skottie-audio-sk', this);
+      if (audioManager) {
+        audioManager.animation = this._state.lottie;
       }
     }
   }
@@ -896,6 +951,8 @@ define('skottie-sk', class extends HTMLElement {
       this._live && this._live.goToAndPlay(0);
       this._lottie && this._lottie.goToAndPlay(0);
       this._previousFrameTime = null;
+      const audioManager = $$('skottie-audio-sk', this);
+      audioManager && audioManager.rewind();
     }
   }
 
@@ -940,6 +997,13 @@ define('skottie-sk', class extends HTMLElement {
   _toggleLibrary(e) {
     e.preventDefault();
     this._showLibrary = !this._showLibrary;
+    this._stateChanged();
+    this.render();
+  }
+
+  _toggleAudio(e) {
+    e.preventDefault();
+    this._showAudio = !this._showAudio;
     this._stateChanged();
     this.render();
   }
