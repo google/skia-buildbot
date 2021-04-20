@@ -36,7 +36,6 @@ func Env(depotToolsPath string) []string {
 		fmt.Sprintf("PATH=%s:%s", depotToolsPath, os.Getenv("PATH")),
 		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
 		"DEPOT_TOOLS_UPDATE=0",
-		"GCLIENT_PY3=0",
 	}
 }
 
