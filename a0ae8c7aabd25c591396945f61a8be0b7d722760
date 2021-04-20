@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "78a5c0ac_fd13a5fe",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-20T20:15:40Z",
+      "side": 1,
+      "message": "Note: You will get emailed for every run triggered on CT. Please add a filter for emails from ct@skia.org",
+      "revId": "a0ae8c7aabd25c591396945f61a8be0b7d722760",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
