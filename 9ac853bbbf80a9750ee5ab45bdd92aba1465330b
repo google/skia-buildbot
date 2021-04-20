@@ -60,6 +60,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "9e082587_e370ee05",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-20T21:49:24Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "60456335_df505f2e",
+      "range": {
+        "startLine": 6,
+        "startChar": 26,
+        "endLine": 6,
+        "endChar": 33
+      },
+      "revId": "9ac853bbbf80a9750ee5ab45bdd92aba1465330b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "70fd8f63_5a5c3a3f",
         "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
         "patchSetId": 2
@@ -71,6 +95,30 @@
       "writtenOn": "2021-04-20T20:21:17Z",
       "side": 1,
       "message": "(e) \u003d\u003e ele._onBpmSelected(e) should work, right?",
+      "range": {
+        "startLine": 61,
+        "startChar": 82,
+        "endLine": 61,
+        "endChar": 96
+      },
+      "revId": "9ac853bbbf80a9750ee5ab45bdd92aba1465330b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "95ffae29_274c148b",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-20T21:49:24Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "70fd8f63_5a5c3a3f",
       "range": {
         "startLine": 61,
         "startChar": 82,
@@ -106,6 +154,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ef03692f_71e3769c",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-20T21:49:24Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "7047e1a5_56a0f5e3",
+      "range": {
+        "startLine": 94,
+        "startChar": 20,
+        "endLine": 94,
+        "endChar": 28
+      },
+      "revId": "9ac853bbbf80a9750ee5ab45bdd92aba1465330b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c879d431_4af4dc8a",
         "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
         "patchSetId": 2
@@ -117,6 +189,30 @@
       "writtenOn": "2021-04-20T20:21:17Z",
       "side": 1,
       "message": "Could this be () \u003d\u003e this._onAudioLoaded() since we don\u0027t care about the event?",
+      "range": {
+        "startLine": 319,
+        "startChar": 32,
+        "endLine": 319,
+        "endChar": 46
+      },
+      "revId": "9ac853bbbf80a9750ee5ab45bdd92aba1465330b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "581af570_65c36907",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-20T21:49:24Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "c879d431_4af4dc8a",
       "range": {
         "startLine": 319,
         "startChar": 32,

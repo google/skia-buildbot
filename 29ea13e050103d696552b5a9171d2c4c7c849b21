@@ -144,6 +144,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "dc6350ce_dec6b62f",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-20T21:49:24Z",
+      "side": 1,
+      "message": "changed. I usually try to define them once so there aren\u0027t so many functions declared and destroyed on each render.",
+      "parentUuid": "18348941_1188269c",
+      "range": {
+        "startLine": 115,
+        "startChar": 46,
+        "endLine": 115,
+        "endChar": 50
+      },
+      "revId": "29ea13e050103d696552b5a9171d2c4c7c849b21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "df1b991d_9dfd1c9a",
         "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
         "patchSetId": 1
