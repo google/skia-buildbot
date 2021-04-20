@@ -35,6 +35,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b62396d4_06dc2d30",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 11964
+      },
+      "writtenOn": "2021-04-20T17:37:06Z",
+      "side": 1,
+      "message": "This gets a bit confusing without context, Hernan maybe needs a link to a demo video. T\nhis audio code has a niche application. The existing audio.js supports audio layers driven by the animation, whereas this audio player drives the animation speed using bpm. An example is to have a dancing animation that is sped up/slowed down based on the bpm of the song bound to it.\n\nI\u0027m wondering if there is any recyclable code that the current AudioPlayer can provide. Ideally we can delete similar code.",
+      "parentUuid": "73c71099_6ba07337",
+      "revId": "29ea13e050103d696552b5a9171d2c4c7c849b21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d92c63c7_fef4d394",
