@@ -19,6 +19,7 @@ import (
 
 	"github.com/gorilla/mux"
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"golang.org/x/sync/errgroup"
@@ -1909,32 +1910,91 @@ func (wh *Handlers) ChangelistSummaryHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	ts, err := wh.Search2API.ChangelistLastUpdated(ctx, system.ID, clID)
+	qCLID := sql.Qualify(system.ID, clID)
+	sum, err := wh.getCLSummary2(ctx, qCLID)
 	if err != nil {
-		httputils.ReportError(w, err, "Could not get changelist", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Could not get summary", http.StatusInternalServerError)
 		return
 	}
+	rv := frontend.ConvertChangelistSummaryResponseV1(sum)
+	sendJSONResponse(w, rv)
+}
 
-	qCLID := sql.Qualify(system.ID, clID)
+// getCLSummary2 fetches, caches, and returns the summary for a given CL. If the result has already
+// been cached and the cached value is still valid, it will return that cached value.
+func (wh *Handlers) getCLSummary2(ctx context.Context, qCLID string) (search2.NewAndUntriagedSummary, error) {
+	ts, err := wh.Search2API.ChangelistLastUpdated(ctx, qCLID)
+	if err != nil {
+		return search2.NewAndUntriagedSummary{}, skerr.Wrap(err)
+	}
+
 	cached, ok := wh.clSummaryCache.Get(qCLID)
 	if ok {
 		sum, ok := cached.(search2.NewAndUntriagedSummary)
 		if ok {
 			if ts.Before(sum.LastUpdated) || sum.LastUpdated.Equal(ts) {
-				rv := frontend.ConvertChangelistSummaryResponseV1(sum)
-				sendJSONResponse(w, rv)
-				return
+				return sum, nil
 			}
 		}
 		// Invalid or old cache entry - must overwrite.
 	}
 
-	sum, err := wh.Search2API.NewAndUntriagedSummaryForCL(ctx, system.ID, clID)
+	sum, err := wh.Search2API.NewAndUntriagedSummaryForCL(ctx, qCLID)
 	if err != nil {
-		httputils.ReportError(w, err, "Could not get summary", http.StatusInternalServerError)
-		return
+		return search2.NewAndUntriagedSummary{}, skerr.Wrap(err)
 	}
 	wh.clSummaryCache.Add(qCLID, sum)
-	rv := frontend.ConvertChangelistSummaryResponseV1(sum)
-	sendJSONResponse(w, rv)
+	return sum, nil
+}
+
+// StartCacheWarming starts a go routine to warm the CL Summary cache. This way, most summaries are
+// responsive, even on big instances.
+func (wh *Handlers) StartCacheWarming(ctx context.Context) {
+	// We warm every CL that was open and produced data in the last 5 days. After the first cycle,
+	// we will incrementally update the cache.
+	lastCheck := now.Now(ctx).Add(-5 * 24 * time.Hour)
+	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
+		ctx, span := trace.StartSpan(ctx, "web_warmCacheCycle", trace.WithSampler(trace.AlwaysSample()))
+		defer span.End()
+		newTS := now.Now(ctx)
+		rows, err := wh.DB.Query(ctx, `
+SELECT changelist_id FROM Changelists AS OF SYSTEM TIME '-0.1s'
+WHERE status = 'open' and last_ingested_data > $1
+ORDER BY last_ingested_data DESC`, lastCheck)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				sklog.Infof("No CLS updated since %s", lastCheck)
+				lastCheck = newTS
+				return
+			}
+			sklog.Errorf("Could not fetch updated CLs to warm cache: %s", err)
+			return
+		}
+		defer rows.Close()
+		var qualifiedIDS []string
+		for rows.Next() {
+			var qID string
+			if err := rows.Scan(&qID); err != nil {
+				sklog.Errorf("Could not scan: %s", err)
+			}
+			qualifiedIDS = append(qualifiedIDS, qID)
+		}
+		sklog.Infof("Warming cache for %d CLs", len(qualifiedIDS))
+		span.AddAttributes(trace.Int64Attribute("num_cls", int64(len(qualifiedIDS))))
+		// warm cache 3 at a time.
+		_ = util.ChunkIterParallel(ctx, len(qualifiedIDS), len(qualifiedIDS)/3+1, func(ctx context.Context, startIdx int, endIdx int) error {
+			if err := ctx.Err(); err != nil {
+				return nil
+			}
+			for _, qCLID := range qualifiedIDS[startIdx:endIdx] {
+				_, err := wh.getCLSummary2(ctx, qCLID)
+				if err != nil {
+					sklog.Warningf("Ignoring error while warming CL Cache for %s: %s", qCLID, err)
+				}
+			}
+			return nil
+		})
+		lastCheck = newTS
+		sklog.Infof("Done warming cache")
+	})
 }

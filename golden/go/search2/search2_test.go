@@ -11,6 +11,7 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/sql"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
@@ -30,7 +31,7 @@ func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 
 	s := New(db)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
-	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS)
+	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS))
 	require.NoError(t, err)
 	assert.Equal(t, NewAndUntriagedSummary{
 		ChangelistID: dks.ChangelistIDThatAttemptsToFixIOS,
@@ -59,7 +60,7 @@ func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
 
 	s := New(db)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
-	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests)
+	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests))
 	require.NoError(t, err)
 
 	assert.Equal(t, NewAndUntriagedSummary{
@@ -129,7 +130,7 @@ func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
 
 	s := New(db)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
-	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, clID)
+	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
 
 	assert.Equal(t, NewAndUntriagedSummary{
@@ -162,7 +163,7 @@ func TestNewAndUntriagedSummaryForCL_CLDoesNotExist_ReturnsError(t *testing.T) {
 
 	s := New(db)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
-	_, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritInternalCRS, "does not exist")
+	_, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritInternalCRS, "does not exist"))
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not found")
 }
@@ -232,7 +233,7 @@ func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCou
 
 	s := New(db)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
-	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, clID)
+	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
 
 	assert.Equal(t, NewAndUntriagedSummary{
@@ -320,7 +321,7 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 
 	s := New(db)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
-	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, clID)
+	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
 
 	assert.Equal(t, NewAndUntriagedSummary{
@@ -403,7 +404,7 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 
 	s := New(db)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
-	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, clID)
+	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
 
 	assert.Equal(t, NewAndUntriagedSummary{
@@ -449,7 +450,7 @@ func TestNewAndUntriagedSummaryForCL_MultipleThreadsAtOnce_NoRaces(t *testing.T)
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS)
+			rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS))
 			require.NoError(t, err)
 			assert.Equal(t, NewAndUntriagedSummary{
 				ChangelistID: dks.ChangelistIDThatAttemptsToFixIOS,
@@ -471,7 +472,7 @@ func TestNewAndUntriagedSummaryForCL_MultipleThreadsAtOnce_NoRaces(t *testing.T)
 	wg.Wait()
 }
 
-func TestChangelistLastUpdated_ReturnsLatestTS(t *testing.T) {
+func TestChangelistLastUpdated_ValidCL_ReturnsLatestTS(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -480,9 +481,22 @@ func TestChangelistLastUpdated_ReturnsLatestTS(t *testing.T) {
 	waitForSystemTime()
 
 	s := New(db)
-	ts, err := s.ChangelistLastUpdated(ctx, dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests)
+	ts, err := s.ChangelistLastUpdated(ctx, sql.Qualify(dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests))
 	require.NoError(t, err)
 	assert.Equal(t, changelistTSForNewTests, ts)
+}
+
+func TestChangelistLastUpdated_NonExistantCL_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	s := New(db)
+	_, err := s.ChangelistLastUpdated(ctx, sql.Qualify(dks.GerritInternalCRS, "does not exist"))
+	require.Error(t, err)
 }
 
 // waitForSystemTime waits for a time greater than the duration mentioned in "AS OF SYSTEM TIME"
