@@ -2822,7 +2822,7 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 	unittest.SmallTest(t)
 
 	ms := &mock_search2.API{}
-	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my_system", "my_cl").Return(search2.NewAndUntriagedSummary{
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search2.NewAndUntriagedSummary{
 		ChangelistID: "my_cl",
 		PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
@@ -2839,13 +2839,13 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 		}},
 		LastUpdated: time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC),
 	}, nil)
-	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my_system", "my_cl").Return(time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC), nil)
+	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my-system_my_cl").Return(time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC), nil)
 
 	wh := initCaches(Handlers{
 		HandlersConfig: HandlersConfig{
 			Search2API: ms,
 			ReviewSystems: []clstore.ReviewSystem{{
-				ID: "my_system",
+				ID: "my-system",
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
@@ -2855,7 +2855,7 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 	r = mux.SetURLVars(r, map[string]string{
 		"id":     "my_cl",
-		"system": "my_system",
+		"system": "my-system",
 	})
 	wh.ChangelistSummaryHandler(w, r)
 	// Note this JSON had the patchsets sorted so the latest one is first.
@@ -2868,7 +2868,7 @@ func TestChangelistSummaryHandler_ValidInput_CacheUsed(t *testing.T) {
 
 	ms := &mock_search2.API{}
 	// First call should have just one PS.
-	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my_system", "my_cl").Return(search2.NewAndUntriagedSummary{
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search2.NewAndUntriagedSummary{
 		ChangelistID: "my_cl",
 		PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
@@ -2880,7 +2880,7 @@ func TestChangelistSummaryHandler_ValidInput_CacheUsed(t *testing.T) {
 		LastUpdated: time.Date(2021, time.March, 1, 1, 1, 1, 0, time.UTC),
 	}, nil).Once()
 	// Second call should have two PS and the latest timestamp.
-	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my_system", "my_cl").Return(search2.NewAndUntriagedSummary{
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search2.NewAndUntriagedSummary{
 		ChangelistID: "my_cl",
 		PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
@@ -2897,13 +2897,13 @@ func TestChangelistSummaryHandler_ValidInput_CacheUsed(t *testing.T) {
 		}},
 		LastUpdated: time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC),
 	}, nil).Once()
-	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my_system", "my_cl").Return(time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC), nil)
+	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my-system_my_cl").Return(time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC), nil)
 
 	wh := initCaches(Handlers{
 		HandlersConfig: HandlersConfig{
 			Search2API: ms,
 			ReviewSystems: []clstore.ReviewSystem{{
-				ID: "my_system",
+				ID: "my-system",
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
@@ -2914,7 +2914,7 @@ func TestChangelistSummaryHandler_ValidInput_CacheUsed(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 		r = mux.SetURLVars(r, map[string]string{
 			"id":     "my_cl",
-			"system": "my_system",
+			"system": "my-system",
 		})
 		wh.ChangelistSummaryHandler(w, r)
 		if i == 0 {
@@ -2933,7 +2933,7 @@ func TestChangelistSummaryHandler_MissingCL_BadRequest(t *testing.T) {
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			ReviewSystems: []clstore.ReviewSystem{{
-				ID: "my_system",
+				ID: "my-system",
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
@@ -2942,7 +2942,7 @@ func TestChangelistSummaryHandler_MissingCL_BadRequest(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": "my_system",
+		"system": "my-system",
 	})
 	wh.ChangelistSummaryHandler(w, r)
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
@@ -2954,7 +2954,7 @@ func TestChangelistSummaryHandler_MissingSystem_BadRequest(t *testing.T) {
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			ReviewSystems: []clstore.ReviewSystem{{
-				ID: "my_system",
+				ID: "my-system",
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
@@ -2975,7 +2975,7 @@ func TestChangelistSummaryHandler_IncorrectSystem_BadRequest(t *testing.T) {
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			ReviewSystems: []clstore.ReviewSystem{{
-				ID: "my_system",
+				ID: "my-system",
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
@@ -2985,7 +2985,7 @@ func TestChangelistSummaryHandler_IncorrectSystem_BadRequest(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 	r = mux.SetURLVars(r, map[string]string{
 		"id":     "my_cl",
-		"system": "bad_system",
+		"system": "bad-system",
 	})
 	wh.ChangelistSummaryHandler(w, r)
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
@@ -2995,13 +2995,13 @@ func TestChangelistSummaryHandler_SearchReturnsError_InternalServerError(t *test
 	unittest.SmallTest(t)
 
 	ms := &mock_search2.API{}
-	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my_system", "my_cl").Return(time.Time{}, errors.New("boom"))
+	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my-system_my_cl").Return(time.Time{}, errors.New("boom"))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			Search2API: ms,
 			ReviewSystems: []clstore.ReviewSystem{{
-				ID: "my_system",
+				ID: "my-system",
 			}},
 		},
 		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
@@ -3011,10 +3011,36 @@ func TestChangelistSummaryHandler_SearchReturnsError_InternalServerError(t *test
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 	r = mux.SetURLVars(r, map[string]string{
 		"id":     "my_cl",
-		"system": "my_system",
+		"system": "my-system",
 	})
 	wh.ChangelistSummaryHandler(w, r)
 	assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+}
+
+func TestStartCacheWarming_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	waitForSystemTime()
+
+	wh := initCaches(Handlers{
+		HandlersConfig: HandlersConfig{
+			Search2API: search2.New(db),
+			DB:         db,
+		},
+	})
+
+	// Set the time to be a few days after both CLs in the sample data land.
+	ctx = context.WithValue(ctx, now.ContextKey, time.Date(2020, time.December, 14, 0, 0, 0, 0, time.UTC))
+	wh.StartCacheWarming(ctx)
+	require.Eventually(t, func() bool {
+		return wh.clSummaryCache.Len() == 2
+	}, 5*time.Second, 100*time.Millisecond)
+	assert.True(t, wh.clSummaryCache.Contains("gerrit_CL_fix_ios"))
+	assert.True(t, wh.clSummaryCache.Contains("gerrit-internal_CL_new_tests"))
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL

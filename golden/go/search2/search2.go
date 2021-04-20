@@ -24,9 +24,11 @@ type API interface {
 	// NewAndUntriagedSummaryForCL returns a summarized look at the new digests produced by a CL
 	// (that is, digests not currently on the primary branch for this grouping at all) as well as
 	// how many of the newly produced digests are currently untriaged.
-	NewAndUntriagedSummaryForCL(ctx context.Context, crs, clID string) (NewAndUntriagedSummary, error)
+	NewAndUntriagedSummaryForCL(ctx context.Context, qCLID string) (NewAndUntriagedSummary, error)
 
-	ChangelistLastUpdated(ctx context.Context, crs, clID string) (time.Time, error)
+	// ChangelistLastUpdated returns the timestamp that the given CL was updated. It returns an
+	// error if the CL does not exist.
+	ChangelistLastUpdated(ctx context.Context, qCLID string) (time.Time, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -177,11 +179,10 @@ TiledTraceDigests WHERE tile_id >= $1`, tile)
 
 // NewAndUntriagedSummaryForCL queries all the patchsets in parallel (to keep the query less
 // complex). If there are no patchsets for the provided CL, it returns an error.
-func (s *Impl) NewAndUntriagedSummaryForCL(ctx context.Context, crs, clID string) (NewAndUntriagedSummary, error) {
+func (s *Impl) NewAndUntriagedSummaryForCL(ctx context.Context, qCLID string) (NewAndUntriagedSummary, error) {
 	ctx, span := trace.StartSpan(ctx, "search2_NewAndUntriagedSummaryForCL")
 	defer span.End()
 
-	qCLID := sql.Qualify(crs, clID)
 	patchsets, err := s.getPatchsets(ctx, qCLID)
 	if err != nil {
 		return NewAndUntriagedSummary{}, skerr.Wrap(err)
@@ -215,7 +216,7 @@ FROM Changelists WHERE changelist_id = $1`, qCLID)
 		return NewAndUntriagedSummary{}, skerr.Wrapf(err, "Getting counts for CL %q and %d PS", qCLID, len(patchsets))
 	}
 	return NewAndUntriagedSummary{
-		ChangelistID:      clID,
+		ChangelistID:      sql.Unqualify(qCLID),
 		PatchsetSummaries: rv,
 		LastUpdated:       updatedTS.UTC(),
 	}, nil
@@ -321,10 +322,9 @@ SELECT * FROM LabeledDigests;`
 }
 
 // ChangelistLastUpdated implements the API interface.
-func (s *Impl) ChangelistLastUpdated(ctx context.Context, crs, clID string) (time.Time, error) {
+func (s *Impl) ChangelistLastUpdated(ctx context.Context, qCLID string) (time.Time, error) {
 	ctx, span := trace.StartSpan(ctx, "search2_ChangelistLastUpdated")
 	defer span.End()
-	qCLID := sql.Qualify(crs, clID)
 	var updatedTS time.Time
 	row := s.db.QueryRow(ctx, `SELECT last_ingested_data
 FROM Changelists AS OF SYSTEM TIME '-0.1s' WHERE changelist_id = $1`, qCLID)

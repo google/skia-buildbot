@@ -244,7 +244,7 @@ func main() {
 
 	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB)
 
-	handlers := mustMakeWebHandlers(sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, s2a, statusWatcher, tileSource, tjs)
+	handlers := mustMakeWebHandlers(ctx, sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, s2a, statusWatcher, tileSource, tjs)
 
 	rootRouter := mustMakeRootRouter(fsc, handlers)
 
@@ -681,7 +681,7 @@ func mustStartExpectationsCleanupProcess(ctx context.Context, fsc *frontendServe
 }
 
 // mustMakeWebHandlers returns a new web.Handlers.
-func mustMakeWebHandlers(db *pgxpool.Pool, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, s2a search2.API, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store) *web.Handlers {
+func mustMakeWebHandlers(ctx context.Context, db *pgxpool.Pool, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, s2a search2.API, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
 		Baseliner:         simple_baseliner.New(expStore),
 		DB:                db,
@@ -699,6 +699,7 @@ func mustMakeWebHandlers(db *pgxpool.Pool, expStore expectations.Store, gsClient
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
 	}
+	handlers.StartCacheWarming(ctx)
 	return handlers
 }
 
