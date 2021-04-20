@@ -240,7 +240,7 @@ class SkottieGifExporterSk extends HTMLElement {
         return;
       }
       await this.delay(1); // eslint-disable-line no-await-in-loop
-      this.player.seek(currentTime / duration);
+      this.player.seek(currentTime / duration, true);
       this._gif.addFrame(canvasElement, { delay: increment, copy: true });
       this._state.progress = Math.round((currentTime / duration) * 100);
       currentTime += increment;
