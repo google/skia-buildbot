@@ -168,6 +168,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "650c3fff_d4694012",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2021-04-20T16:56:11Z",
+      "side": 1,
+      "message": "this roll will have no effect on post-submit builds, so Chromium waterfall page won\u0027t tell anything useful about this roll.\n\nContext: this package contains a probabilistic model that tells if a test is worth running given that of changed files. This model is used only on CQ.\n\nSo it seems like you\u0027d need a page showing how things are going on CQ.\nHow about https://ci.chromium.org/p/chromium/g/try/builders ?",
+      "parentUuid": "9439974a_7bab9461",
+      "range": {
+        "startLine": 7,
+        "startChar": 20,
+        "endLine": 7,
+        "endChar": 85
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c2e42b07_dea21d29",
         "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
         "patchSetId": 2
