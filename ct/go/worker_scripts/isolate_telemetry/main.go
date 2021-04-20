@@ -80,7 +80,11 @@ func buildRepo() error {
 	}
 
 	buildOutDir := filepath.Join(util.ChromiumSrcDir, util.TELEMETRY_ISOLATES_OUT_DIR)
-	isolateFile := filepath.Join(buildOutDir, fmt.Sprintf("%s.isolate", util.TELEMETRY_ISOLATES_TARGET))
+	isolateFile := fmt.Sprintf("%s.isolate", util.TELEMETRY_ISOLATES_TARGET)
+	fmt.Println("NNNNNNNNNNNNNNNNNNNNNNNNN")
+	fmt.Println(buildOutDir)
+	fmt.Println(isolateFile)
+	fmt.Println("NNNNNNNNNNNNNNNNNNNNNNNNN")
 
 	// Isolate telemetry artifacts.
 	hash, err := isolate.Upload(ctx, rbe.InstanceChromeSwarming, buildOutDir, isolateFile)
