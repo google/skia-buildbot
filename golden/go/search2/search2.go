@@ -4,14 +4,20 @@ package search2
 
 import (
 	"context"
+	"sync"
 	"time"
 
+	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/sql"
+	"go.skia.org/infra/golden/go/sql/schema"
 )
 
 type API interface {
@@ -57,11 +63,116 @@ type PatchsetNewAndUntriagedSummary struct {
 
 type Impl struct {
 	db *pgxpool.Pool
+
+	// Protects the caches
+	mutex sync.RWMutex
+	// This caches the digests seen per grouping on the primary branch.
+	digestsOnPrimary map[groupingDigestKey]struct{}
 }
 
 // New returns an implementation of API.
 func New(sqlDB *pgxpool.Pool) *Impl {
-	return &Impl{db: sqlDB}
+	return &Impl{
+		db:               sqlDB,
+		digestsOnPrimary: map[groupingDigestKey]struct{}{},
+	}
+}
+
+type groupingDigestKey struct {
+	groupingID schema.MD5Hash
+	digest     schema.MD5Hash
+}
+
+// StartCacheProcess loads the caches used for searching and starts a gorotuine to keep those
+// up to date.
+func (s *Impl) StartCacheProcess(ctx context.Context, interval time.Duration, commitsWithData int) error {
+	if err := s.updateCaches(ctx, commitsWithData); err != nil {
+		return skerr.Wrapf(err, "setting up initial cache values")
+	}
+	go util.RepeatCtx(ctx, interval, func(ctx context.Context) {
+		err := s.updateCaches(ctx, commitsWithData)
+		if err != nil {
+			sklog.Errorf("Could not update caches: %s", err)
+		}
+	})
+	return nil
+}
+
+// updateCaches loads the digestsOnPrimary cache.
+func (s *Impl) updateCaches(ctx context.Context, commitsWithData int) error {
+	ctx, span := trace.StartSpan(ctx, "search2_UpdateCaches", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
+	tile, err := s.getStartingTile(ctx, commitsWithData)
+	if err != nil {
+		return skerr.Wrapf(err, "geting tile to search")
+	}
+	onPrimary, err := s.getDigestsOnPrimary(ctx, tile)
+	if err != nil {
+		return skerr.Wrapf(err, "getting digests on primary branch")
+	}
+	s.mutex.Lock()
+	s.digestsOnPrimary = onPrimary
+	s.mutex.Unlock()
+	sklog.Infof("Digests on Primary cache refreshed with %d entries", len(onPrimary))
+	return nil
+}
+
+// getStartingTile returns the commit ID which is the beginning of the tile of interest (so we
+// get enough data to do our comparisons).
+func (s *Impl) getStartingTile(ctx context.Context, commitsWithDataToSearch int) (schema.TileID, error) {
+	ctx, span := trace.StartSpan(ctx, "getStartingTile")
+	defer span.End()
+	if commitsWithDataToSearch <= 0 {
+		return 0, nil
+	}
+	row := s.db.QueryRow(ctx, `SELECT tile_id FROM CommitsWithData
+AS OF SYSTEM TIME '-0.1s'
+ORDER BY commit_id DESC
+LIMIT 1 OFFSET $1`, commitsWithDataToSearch)
+	var lc pgtype.Int4
+	if err := row.Scan(&lc); err != nil {
+		if err == pgx.ErrNoRows {
+			return 0, nil // not enough commits seen, so start at tile 0.
+		}
+		return 0, skerr.Wrapf(err, "getting latest commit")
+	}
+	if lc.Status == pgtype.Null {
+		// There are no commits with data, so start at tile 0.
+		return 0, nil
+	}
+	return schema.TileID(lc.Int), nil
+}
+
+// getDigestsOnPrimary returns a map of all distinct digests on the primary branch.
+func (s *Impl) getDigestsOnPrimary(ctx context.Context, tile schema.TileID) (map[groupingDigestKey]struct{}, error) {
+	ctx, span := trace.StartSpan(ctx, "getDigestsOnPrimary")
+	defer span.End()
+	rows, err := s.db.Query(ctx, `
+SELECT DISTINCT grouping_id, digest FROM
+TiledTraceDigests WHERE tile_id >= $1`, tile)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return map[groupingDigestKey]struct{}{}, nil
+		}
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	rv := map[groupingDigestKey]struct{}{}
+	var digest schema.DigestBytes
+	var grouping schema.GroupingID
+	var key groupingDigestKey
+	keyGrouping := key.groupingID[:]
+	keyDigest := key.digest[:]
+	for rows.Next() {
+		err := rows.Scan(&grouping, &digest)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		copy(keyGrouping, grouping)
+		copy(keyDigest, digest)
+		rv[key] = struct{}{}
+	}
+	return rv, nil
 }
 
 // NewAndUntriagedSummaryForCL queries all the patchsets in parallel (to keep the query less
@@ -162,23 +273,8 @@ WITH
     FROM SecondaryBranchExpectations
     WHERE branch_name = $1
   ),
-  NewDigests AS (
-    SELECT NonIgnoredCLDigests.digest, NonIgnoredCLDigests.grouping_id
-    FROM NonIgnoredCLDigests
-    LEFT JOIN TiledTraceDigests
-    ON NonIgnoredCLDigests.grouping_id = TiledTraceDigests.grouping_id AND
-      NonIgnoredCLDigests.digest = TiledTraceDigests.digest
-    WHERE TiledTraceDigests.tile_id IS NULL
-  ),
-  LabeledNewDigests AS (
-    SELECT COALESCE(CLExpectations.label, 'u') as label
-    FROM NewDigests
-    LEFT JOIN CLExpectations
-    ON NewDigests.grouping_id = CLExpectations.grouping_id AND
-      NewDigests.digest = CLExpectations.digest
-  ),
   LabeledDigests AS (
-    SELECT COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) as label
+    SELECT NonIgnoredCLDigests.grouping_id, NonIgnoredCLDigests.digest, COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) as label
     FROM NonIgnoredCLDigests
     LEFT JOIN Expectations
     ON NonIgnoredCLDigests.grouping_id = Expectations.grouping_id AND
@@ -187,37 +283,39 @@ WITH
     ON NonIgnoredCLDigests.grouping_id = CLExpectations.grouping_id AND
       NonIgnoredCLDigests.digest = CLExpectations.digest
   )
-SELECT count(*) as "num_digests", '"new"' as "name"
-FROM NewDigests
-UNION
-SELECT count(*) as "num_digests", '"new_unt"' as "name"
-FROM LabeledNewDigests
-WHERE label = 'u'
-UNION
-SELECT count(*) as "num_digests", '"unt"' as "name"
-FROM LabeledDigests
-WHERE label = 'u'`
+SELECT * FROM LabeledDigests;`
 
 	rows, err := s.db.Query(ctx, statement, clid, psID)
 	if err != nil {
 		return PatchsetNewAndUntriagedSummary{}, skerr.Wrapf(err, "getting summary for ps %q in cl %q", psID, clid)
 	}
 	defer rows.Close()
-	rows.Next()
-	var ignore string // to get the union to work, I need to label the values (otherwise they get
-	// deduplicated), but I don't actually need to read this in, since it's always in the provided
-	// order.
-	rv := PatchsetNewAndUntriagedSummary{}
-	if err := rows.Scan(&rv.NewImages, &ignore); err != nil {
-		return PatchsetNewAndUntriagedSummary{}, skerr.Wrap(err)
-	}
-	rows.Next()
-	if err := rows.Scan(&rv.NewUntriagedImages, &ignore); err != nil {
-		return PatchsetNewAndUntriagedSummary{}, skerr.Wrap(err)
-	}
-	rows.Next()
-	if err := rows.Scan(&rv.TotalUntriagedImages, &ignore); err != nil {
-		return PatchsetNewAndUntriagedSummary{}, skerr.Wrap(err)
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	var digest schema.DigestBytes
+	var grouping schema.GroupingID
+	var label schema.ExpectationLabel
+	var key groupingDigestKey
+	keyGrouping := key.groupingID[:]
+	keyDigest := key.digest[:]
+	var rv PatchsetNewAndUntriagedSummary
+
+	for rows.Next() {
+		if err := rows.Scan(&grouping, &digest, &label); err != nil {
+			return PatchsetNewAndUntriagedSummary{}, skerr.Wrap(err)
+		}
+		copy(keyGrouping, grouping)
+		copy(keyDigest, digest)
+		_, isExisting := s.digestsOnPrimary[key]
+		if !isExisting {
+			rv.NewImages++
+		}
+		if label == schema.LabelUntriaged {
+			rv.TotalUntriagedImages++
+			if !isExisting {
+				rv.NewUntriagedImages++
+			}
+		}
 	}
 	return rv, nil
 }

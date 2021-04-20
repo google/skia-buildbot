@@ -242,7 +242,7 @@ func main() {
 
 	mustStartExpectationsCleanupProcess(ctx, fsc, cleaner, ixr)
 
-	s2a := search2.New(sqlDB)
+	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB)
 
 	handlers := mustMakeWebHandlers(sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, s2a, statusWatcher, tileSource, tjs)
 
@@ -251,6 +251,15 @@ func main() {
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + fsc.ReadyPort)
 	sklog.Fatal(http.ListenAndServe(fsc.ReadyPort, rootRouter))
+}
+
+func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pgxpool.Pool) *search2.Impl {
+	s2a := search2.New(sqlDB)
+	err := s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.NumCommits)
+	if err != nil {
+		sklog.Fatalf("Cannot load caches for search2 backend: %s", err)
+	}
+	return s2a
 }
 
 // mustLoadFrontendServerConfig parses the common and instance-specific JSON configuration files.
