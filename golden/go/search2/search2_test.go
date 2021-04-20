@@ -2,6 +2,7 @@ package search2
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -22,11 +23,13 @@ var changelistTSForNewTests = time.Date(2020, time.December, 12, 9, 20, 33, 0, t
 func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	s := New(db)
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS)
 	require.NoError(t, err)
 	assert.Equal(t, NewAndUntriagedSummary{
@@ -49,11 +52,13 @@ func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	s := New(db)
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests)
 	require.NoError(t, err)
 
@@ -87,7 +92,8 @@ func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
 func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	b := dks.RawBuilder()
 	const clID = "new_cl"
@@ -122,6 +128,7 @@ func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 
 	s := New(db)
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, clID)
 	require.NoError(t, err)
 
@@ -148,11 +155,13 @@ func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
 func TestNewAndUntriagedSummaryForCL_CLDoesNotExist_ReturnsError(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	s := New(db)
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	_, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritInternalCRS, "does not exist")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not found")
@@ -161,7 +170,8 @@ func TestNewAndUntriagedSummaryForCL_CLDoesNotExist_ReturnsError(t *testing.T) {
 func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCounted(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	b := dks.RawBuilder()
 	const clID = "new_cl"
@@ -221,6 +231,7 @@ func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCou
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 
 	s := New(db)
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, clID)
 	require.NoError(t, err)
 
@@ -253,7 +264,8 @@ func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCou
 func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	b := dks.RawBuilder()
 	const clID = "make everything blank"
@@ -307,6 +319,7 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 
 	s := New(db)
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, clID)
 	require.NoError(t, err)
 
@@ -333,7 +346,8 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	b := dks.RawBuilder()
 	const clID = "new_cl"
@@ -388,6 +402,7 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 
 	s := New(db)
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, clID)
 	require.NoError(t, err)
 
@@ -415,6 +430,45 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 		}},
 		LastUpdated: time.Date(2021, time.April, 1, 2, 3, 4, 0, time.UTC),
 	}, rv)
+}
+
+func TestNewAndUntriagedSummaryForCL_MultipleThreadsAtOnce_NoRaces(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db)
+	// Update the caches aggressively to be writing to the shared cache while reading from it.
+	require.NoError(t, s.StartCacheProcess(ctx, 100*time.Millisecond, 100))
+
+	wg := sync.WaitGroup{}
+	for i := 0; i < 50; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			rv, err := s.NewAndUntriagedSummaryForCL(ctx, dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS)
+			require.NoError(t, err)
+			assert.Equal(t, NewAndUntriagedSummary{
+				ChangelistID: dks.ChangelistIDThatAttemptsToFixIOS,
+				PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
+					NewImages: 2, // DigestC07Unt_CL and DigestC06Pos_CL
+					// Only 1 of the two CLs "new images" is untriaged, so that's what we report.
+					NewUntriagedImages: 1,
+					// In addition to DigestC07Unt_CL, this PS produces DigestC05Unt and DigestB01Pos
+					// (the latter is incorrectly triaged as untriaged on this CL). C05 was produced
+					// by a ignored trace, so it shouldn't be counted.
+					TotalUntriagedImages: 2,
+					PatchsetID:           dks.PatchSetIDFixesIPadButNotIPhone,
+					PatchsetOrder:        3,
+				}},
+				LastUpdated: changelistTSForIOS,
+			}, rv)
+		}()
+	}
+	wg.Wait()
 }
 
 func TestChangelistLastUpdated_ReturnsLatestTS(t *testing.T) {
