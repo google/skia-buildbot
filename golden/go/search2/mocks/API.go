@@ -16,20 +16,20 @@ type API struct {
 	mock.Mock
 }
 
-// ChangelistLastUpdated provides a mock function with given fields: ctx, crs, clID
-func (_m *API) ChangelistLastUpdated(ctx context.Context, crs string, clID string) (time.Time, error) {
-	ret := _m.Called(ctx, crs, clID)
+// ChangelistLastUpdated provides a mock function with given fields: ctx, qCLID
+func (_m *API) ChangelistLastUpdated(ctx context.Context, qCLID string) (time.Time, error) {
+	ret := _m.Called(ctx, qCLID)
 
 	var r0 time.Time
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) time.Time); ok {
-		r0 = rf(ctx, crs, clID)
+	if rf, ok := ret.Get(0).(func(context.Context, string) time.Time); ok {
+		r0 = rf(ctx, qCLID)
 	} else {
 		r0 = ret.Get(0).(time.Time)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, crs, clID)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, qCLID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -37,20 +37,20 @@ func (_m *API) ChangelistLastUpdated(ctx context.Context, crs string, clID strin
 	return r0, r1
 }
 
-// NewAndUntriagedSummaryForCL provides a mock function with given fields: ctx, crs, clID
-func (_m *API) NewAndUntriagedSummaryForCL(ctx context.Context, crs string, clID string) (search2.NewAndUntriagedSummary, error) {
-	ret := _m.Called(ctx, crs, clID)
+// NewAndUntriagedSummaryForCL provides a mock function with given fields: ctx, qCLID
+func (_m *API) NewAndUntriagedSummaryForCL(ctx context.Context, qCLID string) (search2.NewAndUntriagedSummary, error) {
+	ret := _m.Called(ctx, qCLID)
 
 	var r0 search2.NewAndUntriagedSummary
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) search2.NewAndUntriagedSummary); ok {
-		r0 = rf(ctx, crs, clID)
+	if rf, ok := ret.Get(0).(func(context.Context, string) search2.NewAndUntriagedSummary); ok {
+		r0 = rf(ctx, qCLID)
 	} else {
 		r0 = ret.Get(0).(search2.NewAndUntriagedSummary)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, crs, clID)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, qCLID)
 	} else {
 		r1 = ret.Error(1)
 	}
