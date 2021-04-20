@@ -53,6 +53,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2850120f_181b2de9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-20T19:26:43Z",
+      "side": 1,
+      "message": "My guess is that this will probably evolve into its own page. We agreed with the team to upload it so they could explore how it works and ask for adjustments.\nRegarding reusing the current AudioPlayer, that can work. Not sure its capabilities and if there is an API exposed that I can use.\nGoing back to the original comment, Kevin, should I add a better description on the module itself?\nHere are two videos I recorded to demo how it works\nhttps://labs.nearpod.com/bodymovin/music/demo1.webm\nhttps://labs.nearpod.com/bodymovin/music/demo2.webm",
+      "parentUuid": "b62396d4_06dc2d30",
+      "revId": "29ea13e050103d696552b5a9171d2c4c7c849b21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d92c63c7_fef4d394",
@@ -78,6 +96,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "57303f66_f914b28d",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-20T19:26:43Z",
+      "side": 1,
+      "message": "I usually use arrow functions as well, but I couldn\u0027t make it work declaring it as class methods. Should I define them here in the constructor like this?\n`this._onBpmSelected \u003d (ev) \u003d\u003e this._onBpmSelected(ev);`  \nOr is there a better way?",
+      "parentUuid": "d92c63c7_fef4d394",
+      "range": {
+        "startLine": 115,
+        "startChar": 46,
+        "endLine": 115,
+        "endChar": 50
+      },
+      "revId": "29ea13e050103d696552b5a9171d2c4c7c849b21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "df1b991d_9dfd1c9a",
         "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
         "patchSetId": 1
@@ -89,6 +131,30 @@
       "writtenOn": "2021-04-20T12:26:30Z",
       "side": 1,
       "message": "I\u0027m somewhat confused by this. Please extract this as a local variable and explain why a .some() function is mutating the data (I typically think of .some() as being idempotent).",
+      "range": {
+        "startLine": 224,
+        "startChar": 13,
+        "endLine": 224,
+        "endChar": 96
+      },
+      "revId": "29ea13e050103d696552b5a9171d2c4c7c849b21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9b34232e_72500f5d",
+        "filename": "skottie/modules/skottie-audio-sk/skottie-audio-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-04-20T19:26:43Z",
+      "side": 1,
+      "message": "My bad, I copied this from the example I had researched and it was implemented this way.\nI changed it to a .find, and although I\u0027m still mutating the object if it matches, since its created on this scope, I\u0027d say it\u0027s ok. What do you think?",
+      "parentUuid": "df1b991d_9dfd1c9a",
       "range": {
         "startLine": 224,
         "startChar": 13,
