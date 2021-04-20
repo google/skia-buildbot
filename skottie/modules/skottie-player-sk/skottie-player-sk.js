@@ -205,13 +205,13 @@ define('skottie-player-sk', class extends HTMLElement {
     return this.querySelector(".skottie-canvas");
   }
 
-  seek(t) {
+  seek(t, forceRender = false) {
     this._state.timeOrigin = (Date.now() - this.duration() * t);
 
     if (!this.isPlaying()) {
       // Force-draw a static frame when paused.
       this._updateSeekPoint();
-      this._drawFrame();
+      this._drawFrame(forceRender);
     }
   }
 
@@ -301,7 +301,7 @@ define('skottie-player-sk', class extends HTMLElement {
     }
   }
 
-  _drawFrame(firstFrame) {
+  _drawFrame(forceRender) {
     if (!this._engine.animation || !this._engine.canvas) {
       return;
     }
@@ -322,7 +322,7 @@ define('skottie-player-sk', class extends HTMLElement {
     this._engine.kit.setCurrentContext(this._engine.context);
     const damage = this._engine.animation.seekFrame(frame);
     // Only draw frames when the content changes.
-    if (firstFrame || !skRectIsEmpty(damage)) {
+    if (forceRender || !skRectIsEmpty(damage)) {
       const bounds = this._engine.kit.LTRBRect(0, 0, this._config.width * window.devicePixelRatio,
         this._config.height * window.devicePixelRatio);
       this._engine.animation.render(this._engine.canvas, bounds);
