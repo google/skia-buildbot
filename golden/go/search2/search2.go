@@ -7,6 +7,12 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/golden/go/types"
+
+	"go.skia.org/infra/golden/go/search/frontend"
+	"go.skia.org/infra/golden/go/search/query"
+
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -332,6 +338,60 @@ FROM Changelists AS OF SYSTEM TIME '-0.1s' WHERE changelist_id = $1`, qCLID)
 		return time.Time{}, skerr.Wrapf(err, "Getting last updated ts for cl %q", qCLID)
 	}
 	return updatedTS.UTC(), nil
+}
+
+// Search implements the SearchAPI interface.
+func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "search2_Search")
+	defer span.End()
+
+	traceDigests, err := s.getMatchingDigestsAndTraces(ctx, q)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	spew.Dump(traceDigests)
+
+	return nil, nil
+}
+
+type stageOneResult struct {
+	traceID schema.TraceID
+	digest  schema.DigestBytes
+}
+
+func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context, q *query.Search) ([]stageOneResult, error) {
+	statement := `WITH
+UntriagedDigests AS (
+    SELECT grouping_id, digest FROM Expectations
+    WHERE label = $1
+),
+NonIgnoredTraces AS (
+    SELECT trace_id, grouping_id, digest FROM ValuesAtHead
+	WHERE most_recent_commit_id > $2 AND
+    	corpus = $3 AND
+    	matches_any_ignore_rule = $4
+)
+SELECT trace_id, NonIgnoredTraces.digest FROM
+UntriagedDigests
+JOIN
+NonIgnoredTraces ON UntriagedDigests.grouping_id = NonIgnoredTraces.grouping_id AND
+  UntriagedDigests.digest = NonIgnoredTraces.digest`
+	arguments := []interface{}{schema.LabelUntriaged, "0", q.TraceValues[types.CorpusField][0], false}
+
+	rows, err := s.db.Query(ctx, statement, arguments...)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "searching for query %v", q)
+	}
+	defer rows.Close()
+	var rv []stageOneResult
+	for rows.Next() {
+		var row stageOneResult
+		if err := rows.Scan(&row.traceID, &row.digest); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, row)
+	}
+	return rv, nil
 }
 
 // Make sure Impl implements the API interface.

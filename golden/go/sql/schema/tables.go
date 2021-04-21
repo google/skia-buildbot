@@ -559,6 +559,9 @@ type ValueAtHeadRow struct {
 
 	// This index makes application of all ignore rules easier.
 	ignoredGroupingIndex struct{} `sql:"INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id)"`
+	// This index makes searching for recent untriaged digests faster. The STORING clause is
+	// important to not have to do a lookup after finding the item in the index.
+	corpusCommitIgnoreIndex struct{} `sql:"INDEX corpus_commit_ignore_idx (corpus, most_recent_commit_id, matches_any_ignore_rule) STORING (grouping_id, digest)"`
 	// This index makes querying by keys faster
 	keysIndex struct{} `sql:"INVERTED INDEX keys_idx (keys)"`
 }

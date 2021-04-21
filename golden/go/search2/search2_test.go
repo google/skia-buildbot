@@ -11,11 +11,16 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/expectations"
+	"go.skia.org/infra/golden/go/search/common"
+	"go.skia.org/infra/golden/go/search/frontend"
+	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	"go.skia.org/infra/golden/go/types"
+	web_frontend "go.skia.org/infra/golden/go/web/frontend"
 )
 
 var changelistTSForIOS = time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC)
@@ -497,6 +502,102 @@ func TestChangelistLastUpdated_NonExistantCL_ReturnsError(t *testing.T) {
 	s := New(db)
 	_, err := s.ChangelistLastUpdated(ctx, sql.Qualify(dks.GerritInternalCRS, "does not exist"))
 	require.Error(t, err)
+}
+
+func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db)
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: true,
+		IncludePositiveDigests:           false,
+		IncludeNegativeDigests:           false,
+		IncludeUntriagedDigests:          true,
+		Sort:                             "desc",
+		IncludeIgnoredTraces:             false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{"round"},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestC03Unt,
+			Test:   dks.CircleTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+				types.CorpusField:     []string{"round"},
+				dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
+				dks.OSKey:             []string{dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+			},
+			TraceGroup: frontend.TraceGroup{},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 0, QueryMetric: 0, PixelDiffPercent: 0, NumDiffPixels: 0,
+					MaxRGBADiffs: [4]int{},
+					DimDiffer:    false,
+					Digest:       dks.DigestC01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{"round"},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+					},
+				},
+			},
+			ClosestRef: common.PositiveRef,
+		}, {
+			Digest: dks.DigestC04Unt, // FIXME
+		}, {
+			Digest: dks.DigestC05Unt, // FIXME
+		}},
+		Offset:  0,
+		Size:    0,
+		Commits: kitchenSinkCommits,
+		BulkTriageData: web_frontend.TriageRequestData{
+			dks.CircleTest: {
+				dks.DigestC03Unt: expectations.Positive,
+				dks.DigestC04Unt: expectations.Positive,
+				dks.DigestC05Unt: expectations.Positive,
+			},
+		},
+	}, res)
+}
+
+var kitchenSinkCommits = makeKitchenSinkCommits()
+
+func makeKitchenSinkCommits() []web_frontend.Commit {
+	data := dks.Build()
+	convert := func(row schema.GitCommitRow) web_frontend.Commit {
+		return web_frontend.Commit{
+			CommitTime: row.CommitTime.Unix(),
+			Hash:       row.GitHash,
+			Author:     row.AuthorEmail,
+			Subject:    row.Subject,
+		}
+	}
+	return []web_frontend.Commit{
+		convert(data.GitCommits[0]),
+		convert(data.GitCommits[1]),
+		convert(data.GitCommits[2]),
+		convert(data.GitCommits[3]),
+		convert(data.GitCommits[4]), // There are 3 commits w/o data here
+		convert(data.GitCommits[8]),
+		convert(data.GitCommits[9]),
+		convert(data.GitCommits[10]),
+		convert(data.GitCommits[11]),
+		convert(data.GitCommits[12]),
+	}
 }
 
 // waitForSystemTime waits for a time greater than the duration mentioned in "AS OF SYSTEM TIME"
