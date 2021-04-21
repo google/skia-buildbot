@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9fc1f666_8fbe1bcd",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-04-21T19:08:54Z",
+      "side": 1,
+      "message": "This won\u0027t catch if a prober starts as missing \"1\" when the prober starts.",
+      "range": {
+        "startLine": 297,
+        "startChar": 10,
+        "endLine": 297,
+        "endChar": 15
+      },
+      "revId": "d38b57dac54f12fc5b29347dddf524e3b183cb69",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
