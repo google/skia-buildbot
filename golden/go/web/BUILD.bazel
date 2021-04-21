@@ -41,6 +41,7 @@ go_library(
         "//golden/go/web/frontend",
         "@com_github_gorilla_mux//:mux",
         "@com_github_hashicorp_golang_lru//:golang-lru",
+        "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",
         "@io_opencensus_go//trace",
         "@org_golang_x_sync//errgroup",

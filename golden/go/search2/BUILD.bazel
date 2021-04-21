@@ -8,7 +8,12 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
+        "//go/sklog",
+        "//go/util",
         "//golden/go/sql",
+        "//golden/go/sql/schema",
+        "@com_github_jackc_pgtype//:pgtype",
+        "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",
         "@io_opencensus_go//trace",
         "@org_golang_x_sync//errgroup",
@@ -22,6 +27,7 @@ go_test(
     deps = [
         "//go/paramtools",
         "//go/testutils/unittest",
+        "//golden/go/sql",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",
