@@ -294,8 +294,7 @@ groups:
 
 # Prober
   - alert: ProbeFailure
-    expr: prober{type="failure"} > 0
-    for: 5m
+    expr: delta(prober{type="failure"}[30m]) > 0
     labels:
       category: infra
       severity: critical
