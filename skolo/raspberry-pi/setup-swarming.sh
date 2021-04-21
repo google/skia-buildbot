@@ -20,7 +20,8 @@ chown chrome-bot:chrome-bot /home/chrome-bot/.boto
 
 # This took a very long time for me.  Maybe just a fluke
 apt-get update
-apt-get install libusb-1.0-0-dev libssl-dev openssl time build-essential swig python-m2crypto ntpdate python-pip git android-tools-adb collectd --no-install-recommends
+apt-get install libusb-1.0-0-dev libssl-dev openssl time build-essential swig python-m2crypto ntpdate python-pip \
+  git android-tools-adb collectd python3 --no-install-recommends
 # Disable dhcp, otherwise RPIs can get assigned TWO IP addresses.
 apt-get purge dhcpd5
 
