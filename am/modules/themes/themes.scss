@@ -17,6 +17,7 @@
   --comments: var(--dark-desaturated-blue);
   --icons: var(--green-300);
   --disabled: var(--grey-700);
+  --dialog-background: var(--dark-desaturated-blue);
 }
 
 .body-sk {
@@ -35,11 +36,18 @@
   --minimized: var(--dark-white);
   --comments: var(--dark-white);
   --icons: var(--green);
+  --dialog-background: var(--surface);
 
   input, textarea {
     border: solid 1px var(--on-surface);
-    color: solid 1px var(--on-surface);
-    background: solid 1px var(--surface);
+    color: var(--on-surface);
+    background: var(--surface);
+  }
+
+  dialog {
+    border: solid 2px var(--on-surface);
+    color: var(--on-surface);
+    background: var(--dialog-background);
   }
 
   a {
