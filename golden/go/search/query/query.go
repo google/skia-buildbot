@@ -59,7 +59,6 @@ func ParseSearch(r *http.Request, q *Search) error {
 	// Parse and validate the filter values.
 	q.RGBAMinFilter = int32(validate.Int64FormValue(r, "frgbamin", 0))
 	q.RGBAMaxFilter = int32(validate.Int64FormValue(r, "frgbamax", 255))
-	q.DiffMaxFilter = float32(validate.Float64FormValue(r, "fdiffmax", -1.0))
 
 	// Parse out the issue and patchsets.
 	q.Patchsets = validate.Int64SliceFormValue(r, "patchsets", nil)
@@ -80,13 +79,7 @@ func ParseSearch(r *http.Request, q *Search) error {
 	q.IncludeDigestsProducedOnMaster = r.FormValue("master") == "true"
 
 	// Extract the filter values.
-	q.CommitBeginFilter = r.FormValue("fbegin")
-	q.CommitEndFilter = r.FormValue("fend")
-	q.GroupTestFilter = r.FormValue("fgrouptest")
 	q.MustIncludeReferenceFilter = r.FormValue("fref") == "true"
-
-	// Check if we want diffs.
-	q.NoDiff = r.FormValue("nodiff") == "true"
 
 	return nil
 }

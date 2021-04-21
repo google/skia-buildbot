@@ -41,7 +41,6 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
-	"go.skia.org/infra/golden/go/search/export"
 	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search2"
@@ -583,55 +582,6 @@ func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sendJSONResponse(w, searchResponse)
-}
-
-// ExportHandler is the endpoint to export the Gold knowledge base.
-// It has the same interface as the search endpoint.
-func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
-		return
-	}
-
-	q, ok := parseSearchQuery(w, r)
-	if !ok {
-		return
-	}
-
-	if q.ChangelistID != "" || q.BlameGroupID != "" {
-		http.Error(w, "Search query cannot contain blame or issue information.", http.StatusBadRequest)
-		return
-	}
-
-	// Mark the query to avoid expensive diffs.
-	q.NoDiff = true
-
-	// Execute the search
-	searchResponse, err := wh.SearchAPI.Search(r.Context(), q)
-	if err != nil {
-		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
-		return
-	}
-
-	// Figure out the base URL. This will work in most situations and doesn't
-	// require to pass along additional headers.
-	var baseURL string
-	if strings.Contains(r.Host, "localhost") {
-		baseURL = "http://" + r.Host
-	} else {
-		baseURL = "https://" + r.Host
-	}
-
-	ret := export.ToTestRecords(searchResponse, baseURL)
-
-	// Set it up so that it triggers a save in the browser.
-	setJSONHeaders(w)
-	w.Header().Set("Content-Disposition", "attachment; filename=meta.json")
-
-	if err := export.WriteTestRecords(ret, w); err != nil {
-		httputils.ReportError(w, err, "Unable to serialized knowledge base.", http.StatusInternalServerError)
-	}
 }
 
 // parseSearchQuery extracts the search query from request.
