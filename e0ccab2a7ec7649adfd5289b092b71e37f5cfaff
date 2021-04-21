@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "62a5ad2f_ebda9e02",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-21T21:13:04Z",
+      "side": 1,
+      "message": "Rubber stamp LGTM-ing this urgent change. Eric/Ravi please treat this as TBR. ",
+      "revId": "e0ccab2a7ec7649adfd5289b092b71e37f5cfaff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
