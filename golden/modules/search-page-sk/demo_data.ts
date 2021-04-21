@@ -270,8 +270,7 @@ export const searchResponse: SearchResponse = {
                   "ext": ["png"],
                   "name": ["gold_search-controls-sk_right-hand-trace-filter-editor"],
                   "source_type": ["infra"]
-              },
-              "n": 15
+              }
           }
       },
       "closestRef": "pos"
@@ -344,8 +343,7 @@ export const searchResponse: SearchResponse = {
                   "ext": ["png"],
                   "name": ["perf_alert-config-sk"],
                   "source_type": ["infra"]
-              },
-              "n": 1
+              }
           }
       },
       "closestRef": "pos"
@@ -418,8 +416,7 @@ export const searchResponse: SearchResponse = {
                   "ext": ["png"],
                   "name": ["perf_alert-config-sk"],
                   "source_type": ["infra"]
-              },
-              "n": 24
+              }
           }
       },
       "closestRef": "pos"

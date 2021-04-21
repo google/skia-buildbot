@@ -67,7 +67,6 @@ export interface SRDiffDigest {
 	digest: Digest;
 	status: Label;
 	paramset: ParamSet;
-	n: number;
 }
 
 export interface SearchResult {

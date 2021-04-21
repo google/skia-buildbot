@@ -43,20 +43,13 @@ type Search struct {
 	IncludeDigestsProducedOnMaster bool `json:"master"`
 
 	// Filtering.
-	CommitBeginFilter          string  `json:"fbegin"`     // Start commit
-	CommitEndFilter            string  `json:"fend"`       // End commit
-	RGBAMinFilter              int32   `json:"frgbamin"`   // Min RGBA delta
-	RGBAMaxFilter              int32   `json:"frgbamax"`   // Max RGBA delta
-	DiffMaxFilter              float32 `json:"fdiffmax"`   // Max diff according to metric
-	GroupTestFilter            string  `json:"fgrouptest"` // Op within grouped by test.
-	MustIncludeReferenceFilter bool    `json:"fref"`       // Only digests with reference.
+	RGBAMinFilter              int32 `json:"frgbamin"` // Min RGBA delta
+	RGBAMaxFilter              int32 `json:"frgbamax"` // Max RGBA delta
+	MustIncludeReferenceFilter bool  `json:"fref"`     // Only digests with reference.
 
 	// Pagination.
 	Offset int32 `json:"offset"`
 	Limit  int32 `json:"limit"`
-
-	// Do not include diffs in search.
-	NoDiff bool `json:"nodiff"`
 }
 
 // IgnoreState returns the types.IgnoreState that this

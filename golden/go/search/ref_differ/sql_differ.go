@@ -63,13 +63,11 @@ func (s *SQLImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, me
 	// Find the minimum according to the diff metric.
 	closest := common.NoRef
 	minDiff := float32(math.Inf(1))
-	dCount := s.idx.DigestCountsByTest(iState)[d.Test]
 	for ref, srdd := range ret {
 		if srdd != nil {
 			// Fill in the missing fields.
 			srdd.Status = s.exp.Classification(d.Test, srdd.Digest)
 			srdd.ParamSet = paramsByDigest[srdd.Digest]
-			srdd.OccurrencesInTile = dCount[srdd.Digest]
 
 			// Find the minimum.
 			if srdd.QueryMetric < minDiff {

@@ -77,7 +77,6 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
-		DiffMaxFilter: -1,
 		Sort:          query.SortAscending,
 	}
 
@@ -148,7 +147,6 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 							types.CorpusField:     {"gm"},
 							"ext":                 {data.PNGExtension},
 						},
-						OccurrencesInTile: 2,
 					},
 					common.NegativeRef: {
 						// Big Diff
@@ -166,7 +164,6 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 							types.CorpusField:     {"gm"},
 							"ext":                 {data.PNGExtension},
 						},
-						OccurrencesInTile: 6,
 					},
 				},
 			},
@@ -220,7 +217,6 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 							types.CorpusField:     {"gm"},
 							"ext":                 {data.PNGExtension},
 						},
-						OccurrencesInTile: 6,
 					},
 					common.NegativeRef: nil,
 				},
@@ -264,7 +260,6 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
-		DiffMaxFilter: -1,
 		Sort:          query.SortAscending,
 	}
 
@@ -371,7 +366,6 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
-		DiffMaxFilter: -1,
 		Sort:          query.SortDescending,
 	}, []spotCheck{
 		{
@@ -397,7 +391,6 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 50,
 		RGBAMaxFilter: 255,
-		DiffMaxFilter: -1,
 		Sort:          query.SortDescending,
 	}, []spotCheck{
 		{
@@ -417,7 +410,6 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 50,
-		DiffMaxFilter: -1,
 		Sort:          query.SortDescending,
 	}, []spotCheck{
 		{
@@ -428,74 +420,6 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 			closestNegative: data.AlphaNegativeDigest,
 		},
 	})
-
-	test("combined diff metric less than 1", &query.Search{
-		IncludeUntriagedDigests:          true,
-		OnlyIncludeDigestsProducedAtHead: true,
-
-		Metric:        query.CombinedMetric,
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-		DiffMaxFilter: 1,
-		Sort:          query.SortDescending,
-	}, []spotCheck{
-		{
-			test:            data.AlphaTest,
-			digest:          data.AlphaUntriagedDigest,
-			labelStr:        "untriaged",
-			closestPositive: data.AlphaPositiveDigest,
-			closestNegative: data.AlphaNegativeDigest,
-		},
-	})
-
-	test("percent diff metric less than 1", &query.Search{
-		IncludeUntriagedDigests:          true,
-		OnlyIncludeDigestsProducedAtHead: true,
-
-		Metric:        query.PercentMetric,
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-		DiffMaxFilter: 1,
-		Sort:          query.SortDescending,
-	}, []spotCheck{
-		{
-			test:            data.AlphaTest,
-			digest:          data.AlphaUntriagedDigest,
-			labelStr:        "untriaged",
-			closestPositive: data.AlphaPositiveDigest,
-			closestNegative: data.AlphaNegativeDigest,
-		},
-	})
-
-	test("Fewer than 10 different pixels", &query.Search{
-		IncludeUntriagedDigests:          true,
-		OnlyIncludeDigestsProducedAtHead: true,
-
-		Metric:        query.PixelMetric,
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-		DiffMaxFilter: 10,
-		Sort:          query.SortDescending,
-	}, []spotCheck{
-		{
-			test:            data.AlphaTest,
-			digest:          data.AlphaUntriagedDigest,
-			labelStr:        "untriaged",
-			closestPositive: data.AlphaPositiveDigest,
-			closestNegative: data.AlphaNegativeDigest,
-		},
-	})
-
-	test("Nothing has fewer than 10 different pixels and min RGBA diff >50", &query.Search{
-		IncludeUntriagedDigests:          true,
-		OnlyIncludeDigestsProducedAtHead: true,
-
-		Metric:        query.PixelMetric,
-		RGBAMinFilter: 50,
-		RGBAMaxFilter: 255,
-		DiffMaxFilter: 10,
-		Sort:          query.SortDescending,
-	}, nil)
 
 	test("default query, only those with a reference diff (all of them)", &query.Search{
 		IncludeUntriagedDigests:          true,
@@ -505,7 +429,6 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
-		DiffMaxFilter: -1,
 		Sort:          query.SortAscending,
 	}, []spotCheck{
 		{
@@ -515,73 +438,6 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 			closestPositive: data.AlphaPositiveDigest,
 			closestNegative: data.AlphaNegativeDigest,
 		},
-		{
-			test:            data.BetaTest,
-			digest:          data.BetaUntriagedDigest,
-			labelStr:        "untriaged",
-			closestPositive: data.BetaPositiveDigest,
-			closestNegative: "",
-		},
-	})
-
-	test("starting at the second commit, we only see alpha's untriaged commit at head", &query.Search{
-		IncludeUntriagedDigests:          true,
-		OnlyIncludeDigestsProducedAtHead: true,
-		CommitBeginFilter:                data.MakeTestCommits()[1].Hash,
-
-		Metric:        query.CombinedMetric,
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-		DiffMaxFilter: -1,
-		Sort:          query.SortAscending,
-	}, []spotCheck{
-		{
-			test:            data.AlphaTest,
-			digest:          data.AlphaUntriagedDigest,
-			labelStr:        "untriaged",
-			closestPositive: data.AlphaPositiveDigest,
-			closestNegative: data.AlphaNegativeDigest,
-		},
-	})
-
-	test("starting at the second commit, we see both if we ignore the head restriction", &query.Search{
-		IncludeUntriagedDigests:          true,
-		OnlyIncludeDigestsProducedAtHead: false,
-		CommitBeginFilter:                data.MakeTestCommits()[1].Hash,
-
-		Metric:        query.CombinedMetric,
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-		DiffMaxFilter: -1,
-		Sort:          query.SortAscending,
-	}, []spotCheck{
-		{
-			test:            data.AlphaTest,
-			digest:          data.AlphaUntriagedDigest,
-			labelStr:        "untriaged",
-			closestPositive: data.AlphaPositiveDigest,
-			closestNegative: data.AlphaNegativeDigest,
-		},
-		{
-			test:            data.BetaTest,
-			digest:          data.BetaUntriagedDigest,
-			labelStr:        "untriaged",
-			closestPositive: data.BetaPositiveDigest,
-			closestNegative: "",
-		},
-	})
-
-	test("stopping at the second commit, we only see beta's untriaged", &query.Search{
-		IncludeUntriagedDigests:          true,
-		OnlyIncludeDigestsProducedAtHead: true,
-		CommitEndFilter:                  data.MakeTestCommits()[1].Hash,
-
-		Metric:        query.CombinedMetric,
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-		DiffMaxFilter: -1,
-		Sort:          query.SortAscending,
-	}, []spotCheck{
 		{
 			test:            data.BetaTest,
 			digest:          data.BetaUntriagedDigest,
@@ -601,7 +457,6 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
-		DiffMaxFilter: -1,
 		Sort:          query.SortDescending,
 	}, []spotCheck{})
 }
@@ -679,7 +534,6 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
-		DiffMaxFilter: -1,
 		Sort:          query.SortAscending,
 	}
 
@@ -872,7 +726,6 @@ func TestSearch_ChangelistResults_ChangelistIndexMiss_Success(t *testing.T) {
 		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
-		DiffMaxFilter: -1,
 		Sort:          query.SortAscending,
 	}
 
@@ -955,7 +808,6 @@ func TestSearch_ChangelistResults_ChangelistIndexMiss_Success(t *testing.T) {
 							types.CorpusField:     {"gm"},
 							"ext":                 {data.PNGExtension},
 						},
-						OccurrencesInTile: 6,
 					},
 					common.NegativeRef: nil,
 				},
@@ -1175,7 +1027,6 @@ func TestDigestDetails_PrimaryBranch_Success(t *testing.T) {
 						types.CorpusField:     {"gm"},
 						"ext":                 {data.PNGExtension},
 					},
-					OccurrencesInTile: 6,
 				},
 			},
 		},
@@ -1273,7 +1124,6 @@ func TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest(t *testing.T
 				types.CorpusField:     []string{"gm"},
 				"ext":                 {data.PNGExtension},
 			},
-			OccurrencesInTile: 6,
 		},
 		common.NegativeRef: nil,
 	}, d.Result.RefDiffs)
@@ -1558,7 +1408,6 @@ func TestDigestDetails_TestIgnored_DetailsContainResults_Success(t *testing.T) {
 				types.CorpusField:     {"gm"},
 				"ext":                 {data.PNGExtension},
 			},
-			OccurrencesInTile: 6,
 		},
 		common.PositiveRef: nil,
 	}, result.Result.RefDiffs)
