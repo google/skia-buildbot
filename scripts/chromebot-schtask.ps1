@@ -181,6 +181,8 @@ if ($hostname.StartsWith("ct-")) {
   cmd /c "C:\Python27\Scripts\pip.exe install -U psutil"
   banner "Installing requests using pip. Required for CT win bots (skbug/10960)."
   cmd /c "C:\Python27\Scripts\pip.exe install -U requests"
+  banner "Installing six using pip. Required for CT win bots (skbug/11888)."
+  cmd /c "C:\Python27\Scripts\pip.exe install -U six"
 }
 if ($hostname.StartsWith("ct-windows-builder")) {
   banner "Check out Chromium repository"
