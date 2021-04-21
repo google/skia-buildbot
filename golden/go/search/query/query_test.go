@@ -41,16 +41,11 @@ func TestParseQuery(t *testing.T) {
 		PatchsetsStr:                   "",
 		Patchsets:                      []int64(nil),
 		IncludeDigestsProducedOnMaster: false,
-		CommitBeginFilter:              "",
-		CommitEndFilter:                "",
 		RGBAMinFilter:                  0,
 		RGBAMaxFilter:                  -1,
-		DiffMaxFilter:                  -1,
-		GroupTestFilter:                "",
 		MustIncludeReferenceFilter:     false,
 		Offset:                         0,
 		Limit:                          50,
-		NoDiff:                         false,
 	}, q)
 }
 
@@ -65,32 +60,9 @@ func TestParseSearchValidList(t *testing.T) {
 	queries := strings.Split(contents, "\n")
 
 	for _, qStr := range queries {
-		assertQueryValidity(t, true, qStr)
+		q := &Search{}
+		require.NoError(t, clearParseQuery(q, qStr), qStr)
 	}
-}
-
-// TestParseSearchInvalidList checks a list of queries from live data
-// processes as invalid.
-func TestParseSearchInvalidList(t *testing.T) {
-	unittest.SmallTest(t)
-
-	// Load the list of of live queries.
-	contents := testutils.ReadFile(t, "invalid_queries.txt")
-
-	queries := strings.Split(contents, "\n")
-
-	for _, qStr := range queries {
-		assertQueryValidity(t, false, qStr)
-	}
-}
-
-func assertQueryValidity(t *testing.T, isCorrect bool, qStr string) {
-	assertFn := require.NoError
-	if !isCorrect {
-		assertFn = require.Error
-	}
-	q := &Search{}
-	assertFn(t, clearParseQuery(q, qStr), qStr)
 }
 
 func clearParseQuery(q *Search, qStr string) error {

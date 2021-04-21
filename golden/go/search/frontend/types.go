@@ -100,8 +100,6 @@ type SRDiffDigest struct {
 	// It is for frontend UI presentation only; essentially a word cloud of what drew the primary
 	// digest.
 	ParamSet paramtools.ParamSet `json:"paramset"`
-	// TODO(kjlubick) What is is this? Is it displayed? Can it go away?
-	OccurrencesInTile int `json:"n"`
 }
 
 // DigestDetails contains details about a digest.

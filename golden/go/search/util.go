@@ -37,10 +37,7 @@ func iterTile(ctx context.Context, q *query.Search, addFn iterTileAddFn, acceptF
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) bool { return true }
 	}
 	cpxTile := idx.Tile()
-	traceView, err := getTraceViewFn(cpxTile.DataCommits(), q.CommitBeginFilter, q.CommitEndFilter)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
+
 	// traces is pre-sliced by corpus and test name, if provided.
 	traces := idx.SlicedTraces(q.IgnoreState(), q.TraceValues)
 	digestCountsByTrace := idx.DigestCountsByTrace(q.IgnoreState())
@@ -59,8 +56,7 @@ func iterTile(ctx context.Context, q *query.Search, addFn iterTileAddFn, acceptF
 			// Check if the query matches.
 			if trace.Matches(q.TraceValues) {
 				params := trace.KeysAndOptions()
-				reducedTr := traceView(trace)
-				digests := digestsFromTrace(id, reducedTr, q.OnlyIncludeDigestsProducedAtHead, digestCountsByTrace)
+				digests := digestsFromTrace(id, trace, q.OnlyIncludeDigestsProducedAtHead, digestCountsByTrace)
 
 				// If there is an iterTileAcceptFn defined then check whether
 				// we should include this trace.
@@ -96,63 +92,6 @@ func iterTile(ctx context.Context, q *query.Search, addFn iterTileAddFn, acceptF
 		}
 		return nil
 	})
-}
-
-// traceViewFn returns a view of a trace that contains a subset of values but the same params.
-type traceViewFn func(*tiling.Trace) *tiling.Trace
-
-// traceViewIdentity is a no-op traceViewFn that returns the exact trace that it
-// receives. This is used when no commit range is provided in the query.
-func traceViewIdentity(tr *tiling.Trace) *tiling.Trace {
-	return tr
-}
-
-// getTraceViewFn returns a traceViewFn for the given Git hashes.
-// If startHash occurs after endHash in the tile, an error is returned.
-func getTraceViewFn(commits []tiling.Commit, startHash, endHash string) (traceViewFn, error) {
-	if startHash == "" && endHash == "" {
-		return traceViewIdentity, nil
-	}
-
-	// Find the indices to slice the values of the trace.
-	startIdx, _ := findCommit(commits, startHash)
-	endIdx, _ := findCommit(commits, endHash)
-	if (startIdx == -1) && (endIdx == -1) {
-		return traceViewIdentity, nil
-	}
-
-	// If either was not found set it to the beginning/end.
-	if startIdx == -1 {
-		startIdx = 0
-	} else if endIdx == -1 {
-		endIdx = len(commits) - 1
-	}
-
-	// Increment the last index for the slice operation in the function below.
-	endIdx++
-	if startIdx >= endIdx {
-		return nil, skerr.Fmt("Start commit occurs later than end commit.")
-	}
-
-	ret := func(trace *tiling.Trace) *tiling.Trace {
-		return tiling.NewTrace(trace.Digests[startIdx:endIdx], trace.Keys(), trace.Options())
-	}
-	return ret, nil
-}
-
-// findCommit searches the given commits for the given hash and returns the
-// index of the commit and the commit itself. If the commit cannot be
-// found -1 is returned for index.
-func findCommit(commits []tiling.Commit, targetHash string) (int, tiling.Commit) {
-	if targetHash == "" {
-		return -1, tiling.Commit{}
-	}
-	for idx, commit := range commits {
-		if commit.Hash == targetHash {
-			return idx, commit
-		}
-	}
-	return -1, tiling.Commit{}
 }
 
 // digestsFromTrace returns all the digests in the given trace, controlled by

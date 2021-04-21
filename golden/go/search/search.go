@@ -119,9 +119,6 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 		return nil, skerr.Fmt("nil query")
 	}
 
-	// Keep track if we are including reference diffs. This is going to be true
-	// for the majority of queries. TODO(kjlubick) Who uses this? Do we have tests? Can it go?
-	getRefDiffs := !q.NoDiff
 	// TODO(kjlubick) remove the legacy check against "0" once the frontend is updated
 	//   not to pass it.
 	isChangelistSearch := q.ChangelistID != "" && q.ChangelistID != "0"
@@ -176,18 +173,15 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	// Add the expectation values to the results.
 	addExpectations(results, exp)
 
-	// Get reference diffs unless it was specifically disabled.
-	if getRefDiffs {
-		// Diff stage: Compare all digests found in the previous stages and find
-		// reference points (positive, negative etc.) for each digest.
-		if err := s.getReferenceDiffs(ctx, results, q.Metric, q.Match, q.RightTraceValues, q.IgnoreState(), exp, idx); err != nil {
-			return nil, skerr.Wrapf(err, "fetching reference diffs for %#v", q)
-		}
-
-		// Post-diff stage: Apply all filters that are relevant once we have
-		// diff values for the digests.
-		results = s.afterDiffResultFilter(ctx, results, q)
+	// Diff stage: Compare all digests found in the previous stages and find
+	// reference points (positive, negative etc.) for each digest.
+	if err := s.getReferenceDiffs(ctx, results, q.Metric, q.Match, q.RightTraceValues, q.IgnoreState(), exp, idx); err != nil {
+		return nil, skerr.Wrapf(err, "fetching reference diffs for %#v", q)
 	}
+
+	// Post-diff stage: Apply all filters that are relevant once we have
+	// diff values for the digests.
+	results = s.afterDiffResultFilter(ctx, results, q)
 
 	bulkTriageData := collectDigestsForBulkTriage(results)
 
@@ -695,18 +689,6 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexe
 	ctx, span := trace.StartSpan(ctx, "search.filterTile")
 	defer span.End()
 	var acceptFn iterTileAcceptFn
-	if q.GroupTestFilter == GROUP_TEST_MAX_COUNT {
-		maxDigestsByTest := idx.MaxDigestsByTest(q.IgnoreState())
-		acceptFn = func(params paramtools.Params, digests types.DigestSlice) bool {
-			testName := types.TestName(params[types.PrimaryKeyField])
-			for _, d := range digests {
-				if maxDigestsByTest[testName][d] {
-					return true
-				}
-			}
-			return false
-		}
-	}
 
 	// We'll want to find all traces that generate a given digest for a given grouping.
 	resultsByGroupingAndDigest := map[groupingAndDigest]*frontend.SearchResult{}
@@ -799,7 +781,6 @@ func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*fr
 	defer span.End()
 	newDigestInfo := make([]*frontend.SearchResult, 0, len(digestInfo))
 	filterRGBADiff := (q.RGBAMinFilter > 0) || (q.RGBAMaxFilter < 255)
-	filterDiffMax := q.DiffMaxFilter >= 0
 	for _, digest := range digestInfo {
 		ref, ok := digest.RefDiffs[digest.ClosestRef]
 
@@ -814,11 +795,6 @@ func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*fr
 			if (rgbaMaxDiff < q.RGBAMinFilter) || (rgbaMaxDiff > q.RGBAMaxFilter) {
 				continue
 			}
-		}
-
-		// Filter all digests where the diff is below the given threshold.
-		if filterDiffMax && (!ok || (ref.QueryMetric > q.DiffMaxFilter)) {
-			continue
 		}
 
 		// If selected only consider digests that have a reference to compare to.
