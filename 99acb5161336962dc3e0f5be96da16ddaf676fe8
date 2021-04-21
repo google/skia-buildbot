@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6f605a4c_24d13c19",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-21T17:50:38Z",
+      "side": 1,
+      "message": "ubernit: (c) even if there is only one param",
+      "range": {
+        "startLine": 32,
+        "startChar": 45,
+        "endLine": 32,
+        "endChar": 46
+      },
+      "revId": "99acb5161336962dc3e0f5be96da16ddaf676fe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
