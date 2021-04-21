@@ -1280,13 +1280,16 @@ func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pagination := &httputils.ResponsePagination{
-		Offset: offset,
-		Size:   size,
-		Total:  total,
+	response := frontend.TriageLogResponse{
+		Entries:            logEntries,
+		ResponsePagination: httputils.ResponsePagination{
+			Offset: offset,
+			Size:   size,
+			Total:  total,
+		},
 	}
 
-	sendResponseWithPagination(w, logEntries, pagination)
+	sendJSONResponse(w, response)
 }
 
 // getTriageLog does the actual work of the TriageLogHandler, but is easier to test.
