@@ -51,7 +51,7 @@ var (
 
 // Start creates a GitStore with the provided information and starts periodic
 // ingestion.
-func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL string, includeBranches []string, gitilesURL, gcsBucket, gcsPath string, interval time.Duration, ts oauth2.TokenSource) error {
+func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL string, includeBranches, excludeBranches []string, gitilesURL, gcsBucket, gcsPath string, interval time.Duration, ts oauth2.TokenSource) error {
 	sklog.Infof("Initializing watcher for %s", repoURL)
 	gitStore, err := bt_gitstore.New(ctx, conf, repoURL)
 	if err != nil {
@@ -68,7 +68,7 @@ func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL string, incl
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create PubSub publisher for %s", repoURL)
 	}
-	ri, err := newRepoImpl(ctx, gitStore, gr, gcsClient, gcsPath, p, includeBranches)
+	ri, err := newRepoImpl(ctx, gitStore, gr, gcsClient, gcsPath, p, includeBranches, excludeBranches)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create RepoImpl for %s; using gs://%s/%s.", repoURL, gcsBucket, gcsPath)
 	}
@@ -118,6 +118,7 @@ type repoImpl struct {
 	gitiles         *gitiles.Repo
 	gitstore        gitstore.GitStore
 	includeBranches []string
+	excludeBranches []string
 	// The Publisher may be nil, in which case no pubsub messages are sent.
 	pubsub *pubsub.Publisher
 }
@@ -125,7 +126,7 @@ type repoImpl struct {
 // newRepoImpl returns a repograph.RepoImpl which uses both Gitiles and
 // GitStore.  If includeBranches is non-empty, only the specified branches are
 // synced.
-func newRepoImpl(ctx context.Context, gs gitstore.GitStore, repo *gitiles.Repo, gcsClient gcs.GCSClient, gcsPath string, p *pubsub.Publisher, includeBranches []string) (repograph.RepoImpl, error) {
+func newRepoImpl(ctx context.Context, gs gitstore.GitStore, repo *gitiles.Repo, gcsClient gcs.GCSClient, gcsPath string, p *pubsub.Publisher, includeBranches, excludeBranches []string) (repograph.RepoImpl, error) {
 	indexCommits, err := gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, gitstore.ALL_BRANCHES)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed loading IndexCommits from GitStore.")
@@ -156,7 +157,7 @@ func newRepoImpl(ctx context.Context, gs gitstore.GitStore, repo *gitiles.Repo, 
 	for _, c := range commits {
 		commitsMap[c.Hash] = c
 	}
-	sklog.Infof("Repo %s has %d commits and %d branches.", repo.URL, len(commits), len(branches))
+	sklog.Infof("Repo %s has %d commits and %d branches.", repo.URL(), len(commits), len(branches))
 	for _, b := range branches {
 		sklog.Infof("  branch %s @ %s", b.Name, b.Head)
 	}
@@ -168,6 +169,7 @@ func newRepoImpl(ctx context.Context, gs gitstore.GitStore, repo *gitiles.Repo, 
 		gitstore:         gs,
 		pubsub:           p,
 		includeBranches:  includeBranches,
+		excludeBranches:  excludeBranches,
 	}, nil
 }
 
@@ -267,7 +269,7 @@ func (r *repoImpl) getFilteredBranches(ctx context.Context) ([]*git.Branch, erro
 	}
 	branches := make([]*git.Branch, 0, numBranches)
 	for _, branch := range gitilesBranches {
-		if len(r.includeBranches) == 0 || util.In(branch.Name, r.includeBranches) {
+		if (len(r.includeBranches) == 0 || util.In(branch.Name, r.includeBranches)) && (len(r.excludeBranches) == 0 || !util.In(branch.Name, r.excludeBranches)) {
 			branches = append(branches, branch)
 		}
 	}
@@ -276,7 +278,7 @@ func (r *repoImpl) getFilteredBranches(ctx context.Context) ([]*git.Branch, erro
 
 // initialIngestion performs the first-time ingestion of the repo.
 func (r *repoImpl) initialIngestion(ctx context.Context) error {
-	sklog.Warningf("Performing initial ingestion of %s.", r.gitiles.URL)
+	sklog.Warningf("Performing initial ingestion of %s.", r.gitiles.URL())
 	defer metrics2.FuncTimer().Stop()
 
 	// Create a tmpGitStore.
@@ -461,7 +463,7 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 	}
 	ri.Wait()
 	r.BranchList = branches
-	sklog.Infof("Finished initial ingestion of %s; have %d commits and %d branches.", r.gitiles.URL, graph.Len(), len(graph.Branches()))
+	sklog.Infof("Finished initial ingestion of %s; have %d commits and %d branches.", r.gitiles.URL(), graph.Len(), len(graph.Branches()))
 	return nil
 }
 
@@ -490,7 +492,7 @@ func (r *repoImpl) addCommitsToCacheFn() func(context.Context, *commitBatch) err
 
 // See documentation for RepoImpl interface.
 func (r *repoImpl) Update(ctx context.Context) error {
-	sklog.Infof("repoImpl.Update for %s", r.gitiles.URL)
+	sklog.Infof("repoImpl.Update for %s", r.gitiles.URL())
 	defer metrics2.FuncTimer().Stop()
 	if len(r.BranchList) == 0 {
 		if err := r.initialIngestion(ctx); err != nil {
@@ -499,7 +501,7 @@ func (r *repoImpl) Update(ctx context.Context) error {
 	}
 
 	// Find the old and new branch heads.
-	sklog.Infof("Getting branches for %s.", r.gitiles.URL)
+	sklog.Infof("Getting branches for %s.", r.gitiles.URL())
 	oldBranches := make(map[string]*git.Branch, len(r.BranchList))
 	for _, branch := range r.BranchList {
 		oldBranches[branch.Name] = branch
@@ -521,7 +523,7 @@ func (r *repoImpl) Update(ctx context.Context) error {
 	}
 
 	// Download any new commits and add them to the local cache.
-	sklog.Infof("Processing new commits for %s.", r.gitiles.URL)
+	sklog.Infof("Processing new commits for %s.", r.gitiles.URL())
 	for _, branch := range branches {
 		logExpr := branch.Head
 		if oldBranch, ok := oldBranches[branch.Name]; ok {

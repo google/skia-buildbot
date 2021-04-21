@@ -394,7 +394,7 @@ func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *re
 	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
 	repo := gitiles.NewRepo(g.RepoUrl(), urlMock.Client())
 	gcsClient := mem_gcsclient.New("fake-bucket")
-	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion", nil, nil)
+	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion", nil, nil, nil)
 	require.NoError(t, err)
 	ud := newGitsyncRefresher(t, ctx, gs, g, mockRepo)
 	graph, err := repograph.NewWithRepoImpl(ctx, ri)
