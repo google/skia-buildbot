@@ -214,6 +214,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8bf08c5d_a6eed1c4",
+        "filename": "autoroll/config/chromium-rts-linux-amd64.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2021-04-21T22:21:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "be954237_8b334c5d",
+      "range": {
+        "startLine": 7,
+        "startChar": 20,
+        "endLine": 7,
+        "endChar": 85
+      },
+      "revId": "14ba1cdc97d96354b7446461178b27cb8ccae530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c2e42b07_dea21d29",
