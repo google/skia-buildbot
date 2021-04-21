@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6d3284d7_592b8f80",
+        "filename": "golden/go/web/frontend/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-21T11:49:24Z",
+      "side": 1,
+      "message": "ubernit: I believe it is idiomatic to list embedded structs first",
+      "range": {
+        "startLine": 141,
+        "startChar": 11,
+        "endLine": 141,
+        "endChar": 29
+      },
+      "revId": "2583187af0cd2b1ec760eb8860b2ef449aaa977e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6d46df71_59777aa2",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-21T11:49:24Z",
+      "side": 1,
+      "message": "Please make non-void return values explicit.",
+      "range": {
+        "startLine": 154,
+        "startChar": 48,
+        "endLine": 154,
+        "endChar": 49
+      },
+      "revId": "2583187af0cd2b1ec760eb8860b2ef449aaa977e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
