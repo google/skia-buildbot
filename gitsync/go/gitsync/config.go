@@ -31,6 +31,11 @@ type gitSyncConfig struct {
 	// included; any others are ignored. These are given in the format:
 	// <repo URL>=<branch_name>[,<branch_name>]*
 	IncludeBranches []string `json:"include_branches"`
+	// ExcludeBranches specifies which branches of the given repo should be
+	// excluded; all others (or only those specified by IncludeBranches) are
+	// included.  These are given in the format:
+	// <repo URL>=<branch_name>[,<branch_name]*
+	ExcludeBranches []string `json:"exclude_branches"`
 	// Indicating whether this is running local.
 	Local bool `json:"local"`
 	// Mirrors indicate that the data obtained for a given repo should come
