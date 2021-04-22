@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/blame"
@@ -132,6 +133,12 @@ type TriageLogEntry struct {
 	TS          int64         `json:"ts"` // is milliseconds since the epoch
 	ChangeCount int           `json:"changeCount"`
 	Details     []TriageDelta `json:"details"`
+}
+
+// TriageLogResponse is the response for /json/v1/triagelog.
+type TriageLogResponse struct {
+	httputils.ResponsePagination
+	Entries []TriageLogEntry `json:"entries"`
 }
 
 // ConvertLogEntry turns an expectations.TriageLogEntry into its frontend representation.
