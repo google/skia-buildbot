@@ -45,6 +45,30 @@
       },
       "revId": "32c777810ca57ff6c8db9415aeb0e9273035da2a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c20342c3_87918a8e",
+        "filename": "skolo/authorized_keys",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-04-22T14:19:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b18bf48e_09e1ac19",
+      "range": {
+        "startLine": 10,
+        "startChar": 381,
+        "endLine": 10,
+        "endChar": 388
+      },
+      "revId": "32c777810ca57ff6c8db9415aeb0e9273035da2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
