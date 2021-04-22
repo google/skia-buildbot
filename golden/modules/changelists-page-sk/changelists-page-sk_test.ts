@@ -14,9 +14,11 @@ import {
   setQueryString,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
+import { ChangelistsPageSk } from './changelists-page-sk';
+import { expect } from 'chai';
 
 describe('changelists-page-sk', () => {
-  const newInstance = setUpElementUnderTest('changelists-page-sk');
+  const newInstance = setUpElementUnderTest<ChangelistsPageSk>('changelists-page-sk');
 
   // Instantiate page; wait for RPCs to complete and for the page to render.
   const loadChangelistsPageSk = async () => {
@@ -29,20 +31,22 @@ describe('changelists-page-sk', () => {
   beforeEach(async () => {
     // Clear out any query params we might have to not mess with our current state.
     setQueryString('');
-
-    // These are the default offset/page_size params
-    fetchMock.get('/json/v1/changelists?offset=0&size=50&active=true', changelistSummaries_5);
   });
 
   afterEach(() => {
+    expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
     // Completely remove the mocking which allows each test
     // to be able to mess with the mocked routes w/o impacting other tests.
     fetchMock.reset();
   });
 
   describe('html layout', () => {
-    let changelistsPageSk;
+    let changelistsPageSk: ChangelistsPageSk
+
     beforeEach(async () => {
+      // These are the default offset/page_size params
+      fetchMock.get('/json/v1/changelists?offset=0&size=50&active=true', changelistSummaries_5);
+
       changelistsPageSk = await loadChangelistsPageSk();
     });
 
@@ -68,48 +72,37 @@ describe('changelists-page-sk', () => {
   }); // end describe('html layout')
 
   describe('api calls', () => {
-    let changelistsPageSk;
-    beforeEach(async () => {
-      changelistsPageSk = await loadChangelistsPageSk();
-    });
-
     it('includes pagination params in request to changelists', async () => {
-      fetchMock.resetHistory();
-
-      fetchMock.get('/json/v1/changelists?offset=100&size=10', empty);
-      // pretend these were loaded in via stateReflector
-      changelistsPageSk._offset = 100;
-      changelistsPageSk._page_size = 10;
-      changelistsPageSk._showAll = true;
-
-      await changelistsPageSk._fetch();
+      setQueryString('?offset=100&page_size=10');
+      fetchMock.get('/json/v1/changelists?offset=100&size=10&active=true', empty);
+      await loadChangelistsPageSk()
     });
 
     it('includes the active params unless show_all is set', async () => {
-      fetchMock.resetHistory();
-
-      fetchMock.get('/json/v1/changelists?offset=100&size=10&active=true', empty);
-      // pretend these were loaded in via stateReflector
-      changelistsPageSk._offset = 100;
-      changelistsPageSk._page_size = 10;
-      changelistsPageSk._showAll = false;
-
-      await changelistsPageSk._fetch();
+      setQueryString('?offset=100&page_size=10&show_all=true');
+      fetchMock.get('/json/v1/changelists?offset=100&size=10', empty);
+      await loadChangelistsPageSk()
     });
   }); // end describe('api calls')
 
   describe('navigation', () => {
     it('responds to the browser back/forward buttons', async () => {
+      // These are the default offset/page_size params. This request will be made when we test the
+      // ?hello=world query string.
+      fetchMock.get('/json/v1/changelists?offset=0&size=50&active=true', changelistSummaries_5);
+
       // First page of results.
       fetchMock.get(
         '/json/v1/changelists?offset=0&size=5&active=true',
         changelistSummaries_5,
       );
+
       // Second page of results.
       fetchMock.get(
         '/json/v1/changelists?offset=5&size=5&active=true',
         changelistSummaries_5_offset5,
       );
+
       // Third page of results.
       fetchMock.get(
         '/json/v1/changelists?offset=10&size=5&active=true',
@@ -128,24 +121,24 @@ describe('changelists-page-sk', () => {
       // Instantiate component.
       const changelistsPageSk = await loadChangelistsPageSk();
       expectQueryStringToEqual('?page_size=5');
-      expectFirstPage();
+      expectFirstPage(changelistsPageSk);
 
       await goToNextPage(changelistsPageSk);
       expectQueryStringToEqual('?offset=5&page_size=5');
-      expectSecondPage();
+      expectSecondPage(changelistsPageSk);
 
       await goToNextPage(changelistsPageSk);
       expectQueryStringToEqual('?offset=10&page_size=5');
-      expectThirdPage();
+      expectThirdPage(changelistsPageSk);
 
       await goBack();
       expectQueryStringToEqual('?offset=5&page_size=5');
-      expectSecondPage();
+      expectSecondPage(changelistsPageSk);
 
       // State at component instantiation.
       await goBack();
       expectQueryStringToEqual('?page_size=5');
-      expectFirstPage();
+      expectFirstPage(changelistsPageSk);
 
       // State before the component was instantiated.
       await goBack();
@@ -153,48 +146,44 @@ describe('changelists-page-sk', () => {
 
       await goForward();
       expectQueryStringToEqual('?page_size=5');
-      expectFirstPage();
+      expectFirstPage(changelistsPageSk);
 
       await goForward();
       expectQueryStringToEqual('?offset=5&page_size=5');
-      expectSecondPage();
+      expectSecondPage(changelistsPageSk);
 
       await goForward();
       expectQueryStringToEqual('?offset=10&page_size=5');
-      expectThirdPage();
+      expectThirdPage(changelistsPageSk);
     });
   }); // end describe('navigation')
 
   describe('dynamic content', () => {
-    let changelistsPageSk;
-    beforeEach(async () => {
-      changelistsPageSk = await loadChangelistsPageSk();
-    });
+    it('responds to clicking the show all checkbox', async () => {
+      fetchMock.get('/json/v1/changelists?offset=0&size=5&active=true', empty);
+      fetchMock.get('/json/v1/changelists?offset=0&size=5', empty);
 
-    it('responds to clicking the show all checkbox', () => {
-      fetchMock.get('/json/v1/changelists?offset=0&size=50', empty);
+      setQueryString('?page_size=5');
+      const changelistsPageSk = await loadChangelistsPageSk();
+
       // click on the input inside the checkbox, otherwise, we see double
       // events, since checkbox-sk "re-throws" the click event.
-      const showAllBox = $$('.controls checkbox-sk input', changelistsPageSk);
+      const showAllBox = $$<HTMLInputElement>('.controls checkbox-sk input', changelistsPageSk)!;
       expect(showAllBox).to.not.be.null;
-      expect(changelistsPageSk._showAll).to.equal(false);
-      expectQueryStringToEqual('');
+      expectQueryStringToEqual('?page_size=5');
       showAllBox.click();
-      expect(changelistsPageSk._showAll).to.equal(true);
-      expectQueryStringToEqual('?page_size=50&show_all=true');
+      expectQueryStringToEqual('?page_size=5&show_all=true');
       showAllBox.click();
-      expect(changelistsPageSk._showAll).to.equal(false);
-      expectQueryStringToEqual('?page_size=50');
+      expectQueryStringToEqual('?page_size=5');
       showAllBox.click();
-      expect(changelistsPageSk._showAll).to.equal(true);
-      expectQueryStringToEqual('?page_size=50&show_all=true');
+      expectQueryStringToEqual('?page_size=5&show_all=true');
     });
   }); // end describe('dynamic content')
 });
 
-function goToNextPage(changelistsPageSk) {
+function goToNextPage(changelistsPageSk: ChangelistsPageSk) {
   const event = eventPromise('end-task');
-  $$('pagination-sk button.next', changelistsPageSk).click();
+  $$<HTMLButtonElement>('pagination-sk button.next', changelistsPageSk)!.click();
   return event;
 }
 
@@ -210,14 +199,17 @@ function goForward() {
   return event;
 }
 
-function expectFirstPage(changelistsPageSk) {
-  expect($('td.owner', changelistsPageSk)[0].innerText).to.contain('alpha');
+function expectFirstPage(changelistsPageSk: ChangelistsPageSk) {
+  expect($<HTMLTableDataCellElement>('td.owner', changelistsPageSk)[0].innerText)
+      .to.contain('alpha');
 }
 
-function expectSecondPage(changelistsPageSk) {
-  expect($('td.owner', changelistsPageSk)[0].innerText).to.contain('zeta');
+function expectSecondPage(changelistsPageSk: ChangelistsPageSk) {
+  expect($<HTMLTableDataCellElement>('td.owner', changelistsPageSk)[0].innerText)
+      .to.contain('zeta');
 }
 
-function expectThirdPage(changelistsPageSk) {
-  expect($('td.owner', changelistsPageSk)[0].innerText).to.contain('lambda');
+function expectThirdPage(changelistsPageSk: ChangelistsPageSk) {
+  expect($<HTMLTableDataCellElement>('td.owner', changelistsPageSk)[0].innerText)
+      .to.contain('lambda');
 }
