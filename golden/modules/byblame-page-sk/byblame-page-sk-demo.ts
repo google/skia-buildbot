@@ -11,6 +11,7 @@ import {
 } from './demo_data';
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
+import { ByBlameResponse } from '../rpc_types';
 
 testOnlySetSettings({
   title: 'Skia Public',
@@ -19,16 +20,18 @@ testOnlySetSettings({
 });
 
 // Set up RPC failure simulation.
-const getSimulateRpcFailure = () => sessionStorage.getItem('simulateRpcFailure') === 'true';
-const setSimulateRpcFailure = (val) => sessionStorage.setItem('simulateRpcFailure', val);
-$$('#simulate-rpc-failure').checked = getSimulateRpcFailure();
-$$('#simulate-rpc-failure').addEventListener('change', (e) => {
-  setSimulateRpcFailure(e.target.checked);
+const getSimulateRpcFailure = (): boolean =>
+    sessionStorage.getItem('simulateRpcFailure') === 'true';
+const setSimulateRpcFailure = (val: boolean) =>
+    sessionStorage.setItem('simulateRpcFailure', val.toString());
+$$<HTMLInputElement>('#simulate-rpc-failure')!.checked = getSimulateRpcFailure();
+$$<HTMLInputElement>('#simulate-rpc-failure')!.addEventListener('change', (e: Event) => {
+  setSimulateRpcFailure((e.target as HTMLInputElement).checked);
 });
 
 const fakeRpcDelayMillis = 300;
 
-function byBlame(response) {
+function byBlame(response: ByBlameResponse) {
   if (getSimulateRpcFailure()) {
     return 500; // Fake an internal server error.
   }
@@ -41,7 +44,7 @@ fetchMock.get('/json/v1/byblame?query=source_type%3Dcanvaskit', () => byBlame(ca
 fetchMock.get('/json/v1/byblame?query=source_type%3Dgm', () => byBlame(gm));
 fetchMock.get('/json/v1/byblame?query=source_type%3Dsvg', () => byBlame(svg));
 fetchMock.get('/json/v1/trstatus', () => {
-  if ($$('#simulate-rpc-failure').checked) {
+  if ($$<HTMLInputElement>('#simulate-rpc-failure')!.checked) {
     return 500; // Fake an internal server error.
   }
   return delay(trstatus, fakeRpcDelayMillis);
@@ -50,7 +53,7 @@ fetchMock.get('/json/v1/trstatus', () => {
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = document.createElement('gold-scaffold-sk');
 newScaf.setAttribute('testing_offline', 'true');
-const body = $$('body');
+const body = $$('body')!;
 body.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
 const page = document.createElement('byblame-page-sk');
 newScaf.appendChild(page);

@@ -1,12 +1,17 @@
+import { ByBlameResponse, StatusResponse } from '../rpc_types';
+
 export const fakeNow = Date.parse('2019-11-08T00:00:00Z');
 
-export const canvaskit = {
+export const canvaskit: ByBlameResponse = {
   data: [],
 };
 
-export const gm = {
+export const gm: ByBlameResponse = {
   data: [{
-    groupID: '4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
+    groupID:
+        '4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:' +
+        'a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:' +
+        '05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
     nDigests: 1,
     nTests: 1,
     affectedTests: [{
@@ -19,26 +24,31 @@ export const gm = {
       hash: '05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
       author: 'Elisa (elisa@example.com)',
       message: 'Revert Revert Reland Update commits to have subject information',
+      cl_url: '',
     }, {
       commit_time: 1573171074,
       hash: '3f7c865936cc808af26d88bc1f5740a29cfce200',
       author: 'Iris (iris@example.com)',
       message: 'Revert Reland Update commits to have subject information',
+      cl_url: '',
     }, {
       commit_time: 1573170075,
       hash: 'a1050ed2b1120613d9ae9587e3c0f4116e17337f',
       author: 'Daniel (daniel@example.com)',
       message: 'Reland Update commits to have subject information',
+      cl_url: '',
     }, {
       commit_time: 1573179814,
       hash: '252cdb782418949651cc5eb7d467c57ddff3d1c7',
       author: 'Elisa (elisa@example.com)',
       message: 'Revert Update commits to have subject information',
+      cl_url: '',
     }, {
       commit_time: 1573179564,
       hash: '4edb719f1bc49bae585ff270df17f08039a96b6c',
       author: 'Joe (joe@example.com)',
       message: 'Update commits to have subject information',
+      cl_url: '',
     }],
   }, {
     groupID: '4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7',
@@ -78,11 +88,13 @@ export const gm = {
       hash: '252cdb782418949651cc5eb7d467c57ddff3d1c7',
       author: 'Elisa (elisa@example.com)',
       message: 'Reland Update commits to have subject information',
+      cl_url: '',
     }, {
       commit_time: 1573149564,
       hash: '4edb719f1bc49bae585ff270df17f08039a96b6c',
       author: 'Joe (joe@example.com)',
       message: 'Revert Update commits to have subject information',
+      cl_url: '',
     }],
   }, {
     groupID: '73a722ce97ad935f936a4c7512b6724c41e0ce4e',
@@ -98,6 +110,7 @@ export const gm = {
       hash: '73a722ce97ad935f936a4c7512b6724c41e0ce4e',
       author: 'Bob (bob@example.com)',
       message: 'Update commits to have subject information 4',
+      cl_url: '',
     }],
   }, {
     groupID: '85c3d68f2539ed7a1e71f6c9d12baaf9e6be59d8',
@@ -109,6 +122,7 @@ export const gm = {
       hash: '85c3d68f2539ed7a1e71f6c9d12baaf9e6be59d8',
       author: 'Alice (alice@example.com)',
       message: 'Update commits to have subject information 3',
+      cl_url: '',
     }],
   }, {
     groupID: '7da048b5e8f17374bcd5baf48539eaa7ebe40e5c',
@@ -132,6 +146,7 @@ export const gm = {
       hash: '7da048b5e8f17374bcd5baf48539eaa7ebe40e5c',
       author: 'Frank (frank@example.com)',
       message: 'Update commits to have subject information 2',
+      cl_url: '',
     }],
   }, {
     groupID: '342fbc54844d0d3fc9d20e20b45115db1e33395b',
@@ -150,11 +165,12 @@ export const gm = {
         + 'How will it every fit on the page? I hope this draws ok. Some webpages '
         + 'do not work when the content is way bigger than anticipated. I hope this is '
         + 'not one of those websites',
+      cl_url: '',
     }],
   }],
 };
 
-export const svg = {
+export const svg: ByBlameResponse = {
   data: [{
     groupID: 'd2c67f44f8c2351e60e6ee224a060e916cd44f34',
     nDigests: 12,
@@ -165,91 +181,109 @@ export const svg = {
       hash: '01c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'alfa (alfa@example.com)',
       message: 'Commit #1',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '02c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'bravo (bravo@example.com)',
       message: 'Commit #2',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '03c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'charlie (charlie@example.com)',
       message: 'Commit #3',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '04c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'delta (delta@example.com)',
       message: 'Commit #4',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '05c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'echo (echo@example.com)',
       message: 'Commit #5',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '06c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'foxtrot (foxtrot@example.com)',
       message: 'Commit #6',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '07c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'golf (golf@example.com)',
       message: 'Commit #7',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '08c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'hotel (hotel@example.com)',
       message: 'Commit #8',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '09c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'india (india@example.com)',
       message: 'Commit #9',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '10c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'juliett (juliett@example.com)',
       message: 'Commit #10',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '11c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'kilo (kilo@example.com)',
       message: 'Commit #11',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '12c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'lima (lima@example.com)',
       message: 'Commit #12',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '13c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'mike (mike@example.com)',
       message: 'Commit #13',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '14c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'oscar (oscar@example.com)',
       message: 'Commit #14',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '15c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'papa (papa@example.com)',
       message: 'Commit #15',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '16c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'quebec (quebec@example.com)',
       message: 'Commit #16',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '17c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'romeo (romeo@example.com)',
       message: 'Commit #17',
+      cl_url: '',
     }, {
       commit_time: 1571948193,
       hash: '18c67f44f8c2351e60e6ee224a060e916cd44f34',
       author: 'sierra (sierra@example.com)',
       message: 'Commit #18',
+      cl_url: '',
     }],
   }, {
     groupID: '05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
@@ -265,6 +299,7 @@ export const svg = {
       hash: '05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
       author: 'Elisa (elisa@example.com)',
       message: 'Update commits to have subject information',
+      cl_url: '',
     }],
   }, {
     groupID: 'd84dd4babb71796ee194fa1913150d86d6aa643b',
@@ -280,6 +315,7 @@ export const svg = {
       hash: 'd84dd4babb71796ee194fa1913150d86d6aa643b',
       author: 'Henry (henry@example.com)',
       message: 'Update commits to have subject information',
+      cl_url: '',
     }],
   }, {
     groupID: '3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
@@ -295,11 +331,13 @@ export const svg = {
       hash: '05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
       author: 'Elisa (elisa@example.com)',
       message: 'Revert: Update commits to have subject information',
+      cl_url: '',
     }, {
       commit_time: 1573151074,
       hash: '3f7c865936cc808af26d88bc1f5740a29cfce200',
       author: 'Iris (iris@example.com)',
       message: 'Update commits to have subject information',
+      cl_url: '',
     }],
   }, {
     groupID: 'e1e197186238d8d304a39db9f94258d9584a8973',
@@ -315,24 +353,26 @@ export const svg = {
       hash: 'e1e197186238d8d304a39db9f94258d9584a8973',
       author: 'Iris (iris@example.com)',
       message: 'Update commits to have subject information',
+      cl_url: '',
     }],
   }],
 };
 
-
-export const trstatus = {
+export const trstatus: StatusResponse = {
   ok: false,
   firstCommit: {
     commit_time: 1572357082,
     hash: 'ee08d523f60a04499c9023a349ef8174ab301f8f',
     author: 'Alice (alice@example.com)',
     message: 'Update commits to have subject information',
+    cl_url: '',
   },
   lastCommit: {
     commit_time: 1573598625,
     hash: '9501212cd0580acfed85a90c3a16b81847fde482',
     author: 'Bob (bob@example.com)',
     message: 'Revert Update commits to have subject information',
+    cl_url: '',
   },
   totalCommits: 256,
   filledCommits: 256,
