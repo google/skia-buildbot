@@ -1,0 +1,2 @@
+push_authorized_keys_to_jumphosts:
+	ansible-playbook push_authorized_keys_to_jumphosts.yml
