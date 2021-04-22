@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "11a631c7_51c9bd50",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-22T13:07:12Z",
+      "side": 1,
+      "message": "The rollers are up and running:\nhttps://autoroll.skia.org/r/rts-linux-amd64-chromium-autoroll\nhttps://autoroll.skia.org/r/rts-mac-amd64-chromium-autoroll\nhttps://autoroll.skia.org/r/rts-windows-amd64-chromium-autoroll",
+      "revId": "5baffbe9fd00a585f36a7e0aeb3706bb3cf4484e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
