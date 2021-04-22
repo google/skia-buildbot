@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cb5e8d83_c963985d",
+        "filename": "skolo/raspberry-pi/setup-swarming.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 17844
+      },
+      "writtenOn": "2021-04-22T06:19:45Z",
+      "side": 1,
+      "message": "I don\u0027t know what is the correct information. But Raspberry Pi OS has newer version like 3.7 or 3.8? Or the bots use an old Raspberry Pi OS?\nhttps://www.raspberrypi.org/forums/viewtopic.php?t\u003d291158",
+      "revId": "b2dae2c58c8484b93b4ccc9dde973df221ffc2b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
