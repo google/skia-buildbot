@@ -8,6 +8,7 @@ import { delay } from '../demo_util';
 import { triageLogs } from './demo_data';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
+import { TriageLogEntry, TriageLogResponse } from '../rpc_types';
 
 const fakeRpcDelayMillis = 300;
 
@@ -20,36 +21,33 @@ testOnlySetSettings({
 const undoneIds = new Set();
 
 // Mock /json/v1/triagelog RPC implementation.
-function getTriageLogs(details, offset, size) {
+function getTriageLogs(details: boolean, offset: number, size: number): TriageLogResponse {
   // Filter out undone entries.
   const allTriageLogs = triageLogs.filter((entry) => !undoneIds.has(entry.id));
 
   // Log entries to be returned.
-  const data = [];
-  for (let i = offset; i < allTriageLogs.length && data.length < size; i++) {
+  const entries: TriageLogEntry[] = [];
+  for (let i = offset; i < allTriageLogs.length && entries.length < size; i++) {
     let entry = allTriageLogs[i];
     if (!details) {
       entry = deepCopy(entry);
-      entry.details = undefined;
+      entry.details = null;
     }
-    data.push(entry);
+    entries.push(entry);
   }
 
   return {
-    data: data,
-    status: 200,
-    pagination: {
-      offset: offset,
-      size: size,
-      total: allTriageLogs.length,
-    },
+    entries: entries,
+    offset: offset,
+    size: size,
+    total: allTriageLogs.length,
   };
 }
 
-// TODO(lovisolo): Consider extracting some of the mock fetch logic below into demo_utils.js.
+// TODO(lovisolo): Consider extracting some of the mock fetch logic below into demo_utils.ts.
 
 fetchMock.post('glob:/json/v1/triagelog/undo?id=*', (url) => {
-  if ($$('#simulate-rpc-failure').checked) {
+  if ($$<HTMLInputElement>('#simulate-rpc-failure')!.checked) {
     return 500; // Fake an internal server error.
   }
 
@@ -66,24 +64,26 @@ fetchMock.post('glob:/json/v1/triagelog/undo?id=*', (url) => {
 });
 
 fetchMock.get('glob:/json/v1/triagelog*', (url) => {
-  if ($$('#simulate-rpc-failure').checked) {
+  if ($$<HTMLInputElement>('#simulate-rpc-failure')!.checked) {
     return 500; // Fake an internal server error.
   }
 
   // Parse query string.
   const queryString = url.substring(url.indexOf('?') + 1);
-  const { details, offset, size } = toObject(queryString, /* type hints */ { details: false, offset: 0, size: 0 });
-  console.log(`Mock JSON endpoint: URL=${url}, details=${details}, offset=${offset}, size=${size}`);
+  const { details, offset, size } =
+      toObject(queryString, /* type hints */ { details: false, offset: 0, size: 0 });
 
   // Fake a 300ms delay.
-  return delay(getTriageLogs(details, offset, size), fakeRpcDelayMillis);
+  return delay(
+      getTriageLogs(details as boolean, offset as number, size as number),
+      fakeRpcDelayMillis);
 });
 fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = document.createElement('gold-scaffold-sk');
 newScaf.setAttribute('testing_offline', 'true');
-const body = $$('body');
-body.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
+// Make it the first element in body.
+document.body.insertBefore(newScaf, document.body.childNodes[0]);
 const page = document.createElement('triagelog-page-sk');
 newScaf.appendChild(page);
