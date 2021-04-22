@@ -321,12 +321,16 @@ func TestGetIngestedChangelists_AllChangelists_SunnyDay_Success(t *testing.T) {
 	mcls := &mock_clstore.Store{}
 	defer mcls.AssertExpectations(t)
 
+	const offset = 0
+	const size = 50
+
 	mcls.On("GetChangelists", testutils.AnyContext, clstore.SearchOptions{
-		StartIdx: 0,
-		Limit:    50,
+		StartIdx: offset,
+		Limit:    size,
 	}).Return(makeCodeReviewCLs(), len(makeCodeReviewCLs()), nil)
 
 	wh := Handlers{
+		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
 		HandlersConfig: HandlersConfig{
 			ReviewSystems: []clstore.ReviewSystem{
 				{
@@ -338,19 +342,23 @@ func TestGetIngestedChangelists_AllChangelists_SunnyDay_Success(t *testing.T) {
 		},
 	}
 
-	cls, pagination, err := wh.getIngestedChangelists(context.Background(), 0, 50, false)
-	assert.NoError(t, err)
-	assert.Len(t, cls, 3)
-	assert.NotNil(t, pagination)
+	cls := makeWebCLs()
 
-	assert.Equal(t, &httputils.ResponsePagination{
-		Offset: 0,
-		Size:   50,
-		Total:  3,
-	}, pagination)
+	expectedResponse := frontend.ChangelistsResponse{
+		Changelists: cls,
+		ResponsePagination: httputils.ResponsePagination{
+			Offset: offset,
+			Size:   size,
+			Total:  len(cls),
+		},
+	}
 
-	expected := makeWebCLs()
-	assert.Equal(t, expected, cls)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v1/changelist?size=50", nil)
+	wh.ChangelistsHandler(w, r)
+	b, err := json.Marshal(expectedResponse)
+	require.NoError(t, err)
+	assertJSONResponseWas(t, http.StatusOK, string(b), w)
 }
 
 // TestGetIngestedChangelists_ActiveChangelists_SunnyDay_Success makes sure that we properly get
@@ -361,13 +369,17 @@ func TestGetIngestedChangelists_ActiveChangelists_SunnyDay_Success(t *testing.T)
 	mcls := &mock_clstore.Store{}
 	defer mcls.AssertExpectations(t)
 
+	const offset = 20
+	const size = 30
+
 	mcls.On("GetChangelists", testutils.AnyContext, clstore.SearchOptions{
-		StartIdx:    20,
-		Limit:       30,
+		StartIdx:    offset,
+		Limit:       size,
 		OpenCLsOnly: true,
 	}).Return(makeCodeReviewCLs(), 3, nil)
 
 	wh := Handlers{
+		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
 		HandlersConfig: HandlersConfig{
 			ReviewSystems: []clstore.ReviewSystem{
 				{
@@ -379,19 +391,23 @@ func TestGetIngestedChangelists_ActiveChangelists_SunnyDay_Success(t *testing.T)
 		},
 	}
 
-	cls, pagination, err := wh.getIngestedChangelists(context.Background(), 20, 30, true)
-	assert.NoError(t, err)
-	assert.Len(t, cls, 3)
-	assert.NotNil(t, pagination)
+	cls := makeWebCLs()
 
-	assert.Equal(t, &httputils.ResponsePagination{
-		Offset: 20,
-		Size:   30,
-		Total:  3,
-	}, pagination)
+	expectedResponse := frontend.ChangelistsResponse{
+		Changelists: cls,
+		ResponsePagination: httputils.ResponsePagination{
+			Offset: offset,
+			Size:   size,
+			Total:  len(cls),
+		},
+	}
 
-	expected := makeWebCLs()
-	assert.Equal(t, expected, cls)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v1/changelist?offset=20&size=30&active=true", nil)
+	wh.ChangelistsHandler(w, r)
+	b, err := json.Marshal(expectedResponse)
+	require.NoError(t, err)
+	assertJSONResponseWas(t, http.StatusOK, string(b), w)
 }
 
 func makeCodeReviewCLs() []code_review.Changelist {

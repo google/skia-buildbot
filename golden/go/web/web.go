@@ -384,7 +384,12 @@ func (wh *Handlers) ChangelistsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendResponseWithPagination(w, cls, pagination)
+	response := frontend.ChangelistsResponse{
+		Changelists:        cls,
+		ResponsePagination: *pagination,
+	}
+
+	sendJSONResponse(w, response)
 }
 
 // getIngestedChangelists performs the core of the logic for ChangelistsHandler,
