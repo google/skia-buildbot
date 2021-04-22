@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -13,5 +14,17 @@ go_library(
         "//go/skerr",
         "//task_scheduler/go/specs",
         "@com_github_urfave_cli_v2//:cli",
+    ],
+)
+
+go_test(
+    name = "try_test",
+    srcs = ["try_test.go"],
+    embed = [":try"],
+    deps = [
+        "//go/exec",
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_stretchr_testify//require",
     ],
 )
