@@ -1,0 +1,10 @@
+[jumphosts]
+100.115.95.131
+100.115.95.143
+100.115.95.133
+100.115.95.134
+100.115.95.135
+
+[jumphosts:vars]
+ansible_connection=ssh
+ansible_user=chrome-bot
