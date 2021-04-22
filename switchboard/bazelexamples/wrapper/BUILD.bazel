@@ -1,0 +1,7 @@
+# Example wrapper test that runs arbitrary commands before/after a go_test.
+sh_test(
+    name = "wrapper_test",
+    srcs = ["wrapper.sh"],
+    args = ["--test-bin $(location //switchboard/bazelexamples/wrapper/wrapped_test)"],
+    data = ["//switchboard/bazelexamples/wrapper/wrapped_test"],
+)

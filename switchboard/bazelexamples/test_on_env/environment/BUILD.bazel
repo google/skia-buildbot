@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "environment_lib",
+    srcs = ["environment.go"],
+    importpath = "go.skia.org/infra/switchboard/bazelexamples/test_on_env/environment",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "environment",
+    embed = [":environment_lib"],
+    visibility = ["//visibility:public"],
+)
