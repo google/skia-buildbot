@@ -58,6 +58,9 @@ func addTypes(generator *go2ts.Go2TS) {
 	// Response for the /json/v1/byblame RPC endpoint.
 	generator.Add(frontend.ByBlameResponse{})
 
+	// Response for the /json/v1/triagelog RPC endpoint.
+	generator.Add(frontend.TriageLogResponse{})
+
 	generator.AddUnionWithName(expectations.AllLabel, "Label")
 	generator.AddUnionWithName(common.AllRefClosest, "RefClosest")
 }

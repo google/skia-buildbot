@@ -1,5 +1,7 @@
-export const firstPage = {
-  data: [
+import { TriageLogResponse } from '../rpc_types';
+
+export const firstPage: TriageLogResponse = {
+  entries: [
     {
       id: 'aaa',
       name: 'alpha@google.com',
@@ -38,16 +40,13 @@ export const firstPage = {
       }],
     },
   ],
-  status: 200,
-  pagination: {
-    offset: 0,
-    size: 3,
-    total: 9,
-  },
+  offset: 0,
+  size: 3,
+  total: 9,
 };
 
-export const firstPageAfterUndoingFirstEntry = {
-  data: [
+export const firstPageAfterUndoingFirstEntry: TriageLogResponse = {
+  entries: [
     {
       id: 'bbb',
       name: 'beta@google.com',
@@ -80,45 +79,42 @@ export const firstPageAfterUndoingFirstEntry = {
       }],
     },
   ],
-  status: 200,
-  pagination: {
-    offset: 0,
-    size: 3,
-    total: 9,
-  },
+  offset: 0,
+  size: 3,
+  total: 9,
 };
 
 // Returned by /json/v1/triagelog/undo. We never show this in the UI, but we
 // simulate this response anyway to test that it is ignored by the page.
-export const firstPageWithoutDetailsAfterUndoingFirstEntry = {
-  data: [
+export const firstPageWithoutDetailsAfterUndoingFirstEntry: TriageLogResponse = {
+  entries: [
     {
       id: 'bbb',
       name: 'beta@google.com',
       ts: 1571900000000,
       changeCount: 1,
+      details: null,
     }, {
       id: 'ccc',
       name: 'gamma@google.com',
       ts: 1571800000000,
       changeCount: 1,
+      details: null,
     }, {
       id: 'ddd',
       name: 'delta@google.com',
       ts: 1571700000000,
       changeCount: 1,
+      details: null,
     },
   ],
-  status: 200,
-  pagination: {
-    offset: 0,
-    size: 3,
-    total: 5,
-  },
+  offset: 0,
+  size: 3,
+  total: 5,
 };
 
-export const secondPage = {
-  data: [
+export const secondPage: TriageLogResponse = {
+  entries: [
     {
       id: 'ddd',
       name: 'delta@google.com',
@@ -151,16 +147,13 @@ export const secondPage = {
       }],
     },
   ],
-  status: 200,
-  pagination: {
-    offset: 3,
-    size: 3,
-    total: 9,
-  },
+  offset: 3,
+  size: 3,
+  total: 9,
 };
 
-export const thirdPage = {
-  data: [
+export const thirdPage: TriageLogResponse = {
+  entries: [
     {
       id: 'ggg',
       name: 'eta@google.com',
@@ -193,10 +186,7 @@ export const thirdPage = {
       }],
     },
   ],
-  status: 200,
-  pagination: {
-    offset: 3,
-    size: 3,
-    total: 9,
-  },
+  offset: 3,
+  size: 3,
+  total: 9,
 };

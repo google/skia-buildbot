@@ -15,9 +15,11 @@ import {
   setQueryString,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
+import { TriagelogPageSk } from './triagelog-page-sk';
+import { expect } from 'chai';
 
 describe('triagelog-page-sk', () => {
-  const newInstance = setUpElementUnderTest('triagelog-page-sk');
+  const newInstance = setUpElementUnderTest<TriagelogPageSk>('triagelog-page-sk');
 
   // Instantiate page; wait for RPCs to complete and for the page to render.
   const loadTriagelogPageSk = async () => {
@@ -57,7 +59,7 @@ describe('triagelog-page-sk', () => {
     );
 
     const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
-    await goToNextPageOfResults(); // Load second page.
+    await goToNextPageOfResults(triagelogPageSk); // Load second page.
     expectQueryStringToEqual('?offset=3&page_size=3'); // Reflected in URL.
     expectSecondPageOfResults(triagelogPageSk);
   });
@@ -171,23 +173,23 @@ describe('triagelog-page-sk', () => {
       fetchMock.get('glob:*', 500); // Internal server error on any request.
 
       const event = eventPromise('fetch-error');
-      newInstance(); // Instantiate page; fail due to RPC errors.
+      const triagelogPageSk = newInstance(); // Instantiate page; fail due to RPC errors.
       await event;
 
-      expectEmptyPage();
+      expectEmptyPage(triagelogPageSk);
     });
   });
 });
 
-function goToNextPageOfResults(triagelogPageSk) {
+function goToNextPageOfResults(triagelogPageSk: TriagelogPageSk) {
   const event = eventPromise('end-task');
-  $$('pagination-sk button.next', triagelogPageSk).click();
+  $$<HTMLButtonElement>('pagination-sk button.next', triagelogPageSk)!.click();
   return event;
 }
 
-function undoFirstEntry(triagelogPageSk) {
+function undoFirstEntry(triagelogPageSk: TriagelogPageSk) {
   const event = eventPromise('end-task');
-  $$('tbody button.undo', triagelogPageSk).click();
+  $$<HTMLButtonElement>('tbody button.undo', triagelogPageSk)!.click();
   return event;
 }
 
@@ -203,11 +205,11 @@ function goForward() {
   return event;
 }
 
-function expectEmptyPage(triagelogPageSk) {
-  expect($$('tbody', triagelogPageSk).children).to.be.empty;
+function expectEmptyPage(triagelogPageSk: TriagelogPageSk) {
+  expect($$('tbody', triagelogPageSk)!.children).to.be.empty;
 }
 
-function expectFirstPageOfResults(triagelogPageSk, changelistID = '', crs = '') {
+function expectFirstPageOfResults(triagelogPageSk: TriagelogPageSk, changelistID = '', crs = '') {
   expect(nthEntryTimestamp(triagelogPageSk, 0)).to.equal(toLocalDateStr(1572000000000));
   expect(nthEntryAuthor(triagelogPageSk, 0)).to.equal('alpha@google.com');
   expect(nthEntryNumChanges(triagelogPageSk, 0)).to.equal(2);
@@ -274,7 +276,7 @@ function expectFirstPageOfResults(triagelogPageSk, changelistID = '', crs = '') 
 }
 
 // TODO(kjlubick, lovisolo): rewrite these expects* to be more like above.
-function expectFirstPageOfResultsFirstEntryUndone(triagelogPageSk) {
+function expectFirstPageOfResultsFirstEntryUndone(triagelogPageSk: TriagelogPageSk) {
   expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
     [toLocalDateStr(1571900000000), 'beta@google.com', 1],
   );
@@ -310,7 +312,7 @@ function expectFirstPageOfResultsFirstEntryUndone(triagelogPageSk) {
     'positive']);
 }
 
-function expectSecondPageOfResults(triagelogPageSk) {
+function expectSecondPageOfResults(triagelogPageSk: TriagelogPageSk) {
   expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
     [toLocalDateStr(1571700000000), 'delta@google.com', 1],
   );
@@ -347,7 +349,7 @@ function expectSecondPageOfResults(triagelogPageSk) {
     'positive']);
 }
 
-function expectThirdPageOfResults(triagelogPageSk) {
+function expectThirdPageOfResults(triagelogPageSk: TriagelogPageSk) {
   expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
     [toLocalDateStr(1571400000000), 'eta@google.com', 1],
   );
@@ -383,24 +385,32 @@ function expectThirdPageOfResults(triagelogPageSk) {
     'positive']);
 }
 
-const toLocalDateStr = (timestampMS) => new Date(timestampMS).toLocaleString();
-const digestDetailsHref = (test, digest) => `${window.location.origin
-}/detail?test=${encodeURIComponent(test)}&digest=${encodeURIComponent(digest)}`;
+const toLocalDateStr = (timestampMS: number) => new Date(timestampMS).toLocaleString();
+const digestDetailsHref = (test: string, digest: string) =>
+    `${window.location.origin}/detail?test=${encodeURIComponent(test)}` +
+    `&digest=${encodeURIComponent(digest)}`;
 
-const nthEntryTimestamp = (triagelogPageSk, n) => $('.timestamp', triagelogPageSk)[n].innerText;
-const nthEntryAuthor = (triagelogPageSk, n) => $('.author', triagelogPageSk)[n].innerText;
-const nthEntryNumChanges = (triagelogPageSk, n) => +$('.num-changes', triagelogPageSk)[n].innerText;
-const nthEntry = (triagelogPageSk, n) => [
+const nthEntryTimestamp = (triagelogPageSk: TriagelogPageSk, n: number) =>
+    $<HTMLElement>('.timestamp', triagelogPageSk)[n].innerText;
+const nthEntryAuthor = (triagelogPageSk: TriagelogPageSk, n: number) =>
+    $<HTMLElement>('.author', triagelogPageSk)[n].innerText;
+const nthEntryNumChanges = (triagelogPageSk: TriagelogPageSk, n: number) =>
+    +$<HTMLElement>('.num-changes', triagelogPageSk)[n].innerText;
+const nthEntry = (triagelogPageSk: TriagelogPageSk, n: number) => [
   nthEntryTimestamp(triagelogPageSk, n),
   nthEntryAuthor(triagelogPageSk, n),
   nthEntryNumChanges(triagelogPageSk, n),
 ];
 
-const nthDetailsRowTestName = (triagelogPageSk, n) => $('.details .test-name', triagelogPageSk)[n].innerText;
-const nthDetailsRowDigest = (triagelogPageSk, n) => $('.details .digest', triagelogPageSk)[n].innerText;
-const nthDetailsRowDigestHref = (triagelogPageSk, n) => $('.details .digest a', triagelogPageSk)[n].href;
-const nthDetailsRowLabel = (triagelogPageSk, n) => $('.details .label', triagelogPageSk)[n].innerText;
-const nthDetailsRow = (triagelogPageSk, n) => [
+const nthDetailsRowTestName = (triagelogPageSk: TriagelogPageSk, n: number) =>
+    $<HTMLElement>('.details .test-name', triagelogPageSk)[n].innerText;
+const nthDetailsRowDigest = (triagelogPageSk: TriagelogPageSk, n: number) =>
+    $<HTMLElement>('.details .digest', triagelogPageSk)[n].innerText;
+const nthDetailsRowDigestHref = (triagelogPageSk: TriagelogPageSk, n: number) =>
+    $<HTMLAnchorElement>('.details .digest a', triagelogPageSk)[n].href;
+const nthDetailsRowLabel = (triagelogPageSk: TriagelogPageSk, n: number) =>
+    $<HTMLElement>('.details .label', triagelogPageSk)[n].innerText;
+const nthDetailsRow = (triagelogPageSk: TriagelogPageSk, n: number) => [
   nthDetailsRowTestName(triagelogPageSk, n),
   nthDetailsRowDigest(triagelogPageSk, n),
   nthDetailsRowDigestHref(triagelogPageSk, n),

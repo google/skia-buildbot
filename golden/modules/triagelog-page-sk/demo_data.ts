@@ -1,4 +1,6 @@
-export const triageLogs = [
+import { TriageLogEntry } from '../rpc_types';
+
+export const triageLogs: TriageLogEntry[] = [
   {
     id: 'ws4lT3QdcFgJ91xdrmMJPxkA1n4QBHEHHTegVpDFXyI',
     name: 'alice@example.com',

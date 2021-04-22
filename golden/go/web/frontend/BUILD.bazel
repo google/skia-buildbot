@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/web/frontend",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/httputils",
         "//go/paramtools",
         "//go/skerr",
         "//golden/go/blame",

@@ -844,17 +844,16 @@ func TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success tests getting the triage log and
+// TestTriageLogHandler_MasterBranchNoDetails_SunnyDay_Success tests getting the triage log and
 // converting them to the appropriate types.
-func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
+func TestTriageLogHandler_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mock_expectations.Store{}
 	defer mes.AssertExpectations(t)
 
-	masterBranch := ""
-
 	wh := Handlers{
+		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
 		HandlersConfig: HandlersConfig{
 			ExpectationsStore: mes,
 		},
@@ -900,44 +899,53 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 		},
 	}, offset+2, nil)
 
-	tle, n, err := wh.getTriageLog(context.Background(), masterBranch, masterBranch, offset, size, false)
-	assert.NoError(t, err)
-	assert.Equal(t, offset+2, n)
-	assert.Len(t, tle, 2)
+	expectedResponse := frontend.TriageLogResponse{
+		Entries: []frontend.TriageLogEntry{
+			{
+				ID:          "abc",
+				ChangeCount: 1,
+				User:        "user1@example.com",
+				TS:          ts1.Unix() * 1000,
+				Details: []frontend.TriageDelta{
+					{
+						Label:    expectations.Positive,
+						Digest:   bug_revert.DeltaUntriagedDigest,
+						TestName: bug_revert.TestOne,
+					},
+				},
+			},
+			{
+				ID:          "abc",
+				ChangeCount: 2,
+				User:        "user1@example.com",
+				TS:          ts2.Unix() * 1000,
+				Details: []frontend.TriageDelta{
+					{
+						Label:    expectations.Positive,
+						Digest:   bug_revert.BravoUntriagedDigest,
+						TestName: bug_revert.TestOne,
+					},
+					{
+						Label:    expectations.Negative,
+						Digest:   bug_revert.CharliePositiveDigest,
+						TestName: bug_revert.TestOne,
+					},
+				},
+			},
+		},
+		ResponsePagination: httputils.ResponsePagination{
+			Offset: offset,
+			Size:   size,
+			Total:  12,
+		},
+	}
 
-	assert.Equal(t, []frontend.TriageLogEntry{
-		{
-			ID:          "abc",
-			ChangeCount: 1,
-			User:        "user1@example.com",
-			TS:          ts1.Unix() * 1000,
-			Details: []frontend.TriageDelta{
-				{
-					Label:    expectations.Positive,
-					Digest:   bug_revert.DeltaUntriagedDigest,
-					TestName: bug_revert.TestOne,
-				},
-			},
-		},
-		{
-			ID:          "abc",
-			ChangeCount: 2,
-			User:        "user1@example.com",
-			TS:          ts2.Unix() * 1000,
-			Details: []frontend.TriageDelta{
-				{
-					Label:    expectations.Positive,
-					Digest:   bug_revert.BravoUntriagedDigest,
-					TestName: bug_revert.TestOne,
-				},
-				{
-					Label:    expectations.Negative,
-					Digest:   bug_revert.CharliePositiveDigest,
-					TestName: bug_revert.TestOne,
-				},
-			},
-		},
-	}, tle)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/json/v1/triagelog?offset=%d&size=%d", offset, size), nil)
+	wh.TriageLogHandler(w, r)
+	b, err := json.Marshal(expectedResponse)
+	require.NoError(t, err)
+	assertJSONResponseWas(t, http.StatusOK, string(b), w)
 }
 
 // TestGetDigestsResponse_SunnyDay_Success tests the usual case of fetching digests for a given
