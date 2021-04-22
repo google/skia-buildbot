@@ -12,11 +12,14 @@ import {
   expectQueryStringToEqual,
 } from '../../../infra-sk/modules/test_util';
 import { testOnlySetSettings } from '../settings';
+import { ByBlamePageSk } from './byblame-page-sk';
+import { expect } from 'chai';
 
 describe('byblame-page-sk', () => {
-  const newInstance = setUpElementUnderTest('byblame-page-sk');
+  const newInstance = setUpElementUnderTest<ByBlamePageSk>('byblame-page-sk');
 
-  const loadedByblamePageSk = (opts = {}) => {
+  const loadedByblamePageSk =
+      (opts: {defaultCorpus?: string, baseRepoUrl?: string} = {}): Promise<ByBlamePageSk> => {
     testOnlySetSettings({
       defaultCorpus: opts.defaultCorpus || 'gm',
       baseRepoURL: opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git',
@@ -50,7 +53,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/v1/trstatus', trstatus);
 
     // We'll resolve this RPC later to give the "loading" text a chance to show.
-    let resolveByBlameRpc;
+    let resolveByBlameRpc = (_: {}) => {};
     fetchMock.get(
       '/json/v1/byblame?query=source_type%3Dgm',
       new Promise((resolve) => resolveByBlameRpc = resolve),
@@ -63,7 +66,8 @@ describe('byblame-page-sk', () => {
     const byblamePageSk = newInstance();
 
     // Make these assertions immediately, i.e. do not wait for the page to load.
-    expect($$('.entries', byblamePageSk).innerText).to.equal('Loading untriaged digests...');
+    expect($$<HTMLElement>('.entries', byblamePageSk)!.innerText)
+        .to.equal('Loading untriaged digests...');
     expectHasEmptyBlames(byblamePageSk);
 
     // Resolve RPC. This allows the page to finish loading.
@@ -82,7 +86,7 @@ describe('byblame-page-sk', () => {
     expectQueryStringToEqual('');
     expectCorporaToBe(byblamePageSk, ['canvaskit', 'gm (114)', 'svg (18)']);
     expectSelectedCorpusToBe(byblamePageSk, 'canvaskit');
-    expect($$('.entries', byblamePageSk).innerText)
+    expect($$<HTMLElement>('.entries', byblamePageSk)!.innerText)
       .to.equal('No untriaged digests for corpus canvaskit.');
     expectHasEmptyBlames(byblamePageSk);
   });
@@ -166,37 +170,40 @@ describe('byblame-page-sk', () => {
   });
 });
 
-function selectCorpus(byblamePageSk, corpus) {
+function selectCorpus(byblamePageSk: ByBlamePageSk, corpus: string) {
   const event = eventPromise('end-task');
-  $$(`corpus-selector-sk li[title="${corpus}"]`, byblamePageSk).click();
+  $$<HTMLElement>(`corpus-selector-sk li[title="${corpus}"]`, byblamePageSk)!.click();
   return event;
 }
 
-function expectCorporaToBe(byblamePageSk, corpora) {
-  expect($('corpus-selector-sk li').map((li) => li.innerText))
+function expectCorporaToBe(byblamePageSk: ByBlamePageSk, corpora: string[]) {
+  expect($<HTMLLIElement>('corpus-selector-sk li').map((li) => li.innerText))
     .to.deep.equal(corpora);
 }
 
-function expectSelectedCorpusToBe(byblamePageSk, corpus) {
-  expect($$('corpus-selector-sk li.selected', byblamePageSk).innerText)
+function expectSelectedCorpusToBe(byblamePageSk: ByBlamePageSk, corpus: string) {
+  expect($$<HTMLLIElement>('corpus-selector-sk li.selected', byblamePageSk)!.innerText)
     .to.equal(corpus);
 }
 
-function expectHasEmptyBlames(byblamePageSk) {
+function expectHasEmptyBlames(byblamePageSk: ByBlamePageSk) {
   expectBlames(byblamePageSk, 0);
 }
 
-function expectHasGmBlames(byblamePageSk) {
+function expectHasGmBlames(byblamePageSk: ByBlamePageSk) {
   // Triage links for first and last entries obtained from the demo page.
   expectBlames(
     byblamePageSk,
     6,
-    '/search?blame=4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d&corpus=gm&query=source_type%3Dgm',
+    '/search?blame=' +
+      '4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:' +
+      'a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:' +
+      '05f6a01bf9fd25be9e5fff4af5505c3945058b1d&corpus=gm&query=source_type%3Dgm',
     '/search?blame=342fbc54844d0d3fc9d20e20b45115db1e33395b&corpus=gm&query=source_type%3Dgm',
   );
 }
 
-function expectHasSvgBlames(byblamePageSk) {
+function expectHasSvgBlames(byblamePageSk: ByBlamePageSk) {
   // Triage links for first and last entries obtained from the demo page.
   expectBlames(
     byblamePageSk,
@@ -207,27 +214,27 @@ function expectHasSvgBlames(byblamePageSk) {
 }
 
 function expectBlames(
-  byblamePageSk,
-  numBlames,
-  firstTriageLinkHref,
-  lastTriageLinkHref,
+  byblamePageSk: ByBlamePageSk,
+  numBlames: number,
+  firstTriageLinkHref?: string,
+  lastTriageLinkHref?: string,
 ) {
   const entries = $('byblameentry-sk', byblamePageSk);
   expect(entries).to.have.length(numBlames);
 
   // Spot check first and last entries.
   if (firstTriageLinkHref) {
-    expect($$('a.triage', entries[0]).href)
+    expect($$<HTMLAnchorElement>('a.triage', entries[0])!.href)
       .to.have.string(firstTriageLinkHref);
   }
   if (lastTriageLinkHref) {
-    expect($$('a.triage', entries[entries.length - 1]).href)
+    expect($$<HTMLAnchorElement>('a.triage', entries[entries.length - 1])!.href)
       .to.have.string(lastTriageLinkHref);
   }
 }
 
-function expectFirstCommitLinkHrefToBe(byblamePageSk, expectedHref) {
+function expectFirstCommitLinkHrefToBe(byblamePageSk: ByBlamePageSk, expectedHref: string) {
   const firstCommitLinkSelector = 'byblameentry-sk:first-child ul.blames a:first-child';
-  const actualHref = $$(firstCommitLinkSelector, byblamePageSk).href;
+  const actualHref = $$<HTMLAnchorElement>(firstCommitLinkSelector, byblamePageSk)!.href;
   expect(actualHref).to.equal(expectedHref);
 }
