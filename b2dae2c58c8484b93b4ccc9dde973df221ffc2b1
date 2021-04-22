@@ -34,6 +34,24 @@
       "parentUuid": "cb5e8d83_c963985d",
       "revId": "b2dae2c58c8484b93b4ccc9dde973df221ffc2b1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "92f59b49_17ae25b3",
+        "filename": "skolo/raspberry-pi/setup-swarming.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 17844
+      },
+      "writtenOn": "2021-04-22T14:33:55Z",
+      "side": 1,
+      "message": "I see.\nThe people is talking about the new ones (Buster, Bullseye) in the forum.\nI think it\u0027s ok to use 3.4 for now.\nBut Python3.4 is old and there are some difference from the newer versions. \nIf you hit any issues, please consider updating the OS version for a newer Python.",
+      "parentUuid": "bb5c7081_56f706f0",
+      "revId": "b2dae2c58c8484b93b4ccc9dde973df221ffc2b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
