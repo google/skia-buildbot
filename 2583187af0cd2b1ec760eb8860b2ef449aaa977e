@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7456da6_59fa976b",
+        "filename": "golden/go/web/frontend/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-22T01:00:59Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "6d3284d7_592b8f80",
+      "range": {
+        "startLine": 141,
+        "startChar": 11,
+        "endLine": 141,
+        "endChar": 29
+      },
+      "revId": "2583187af0cd2b1ec760eb8860b2ef449aaa977e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6d46df71_59777aa2",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-04-21T11:49:24Z",
       "side": 1,
       "message": "Please make non-void return values explicit.",
+      "range": {
+        "startLine": 154,
+        "startChar": 48,
+        "endLine": 154,
+        "endChar": 49
+      },
+      "revId": "2583187af0cd2b1ec760eb8860b2ef449aaa977e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "49661f2f_9b1ff17b",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-22T01:00:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d46df71_59777aa2",
       "range": {
         "startLine": 154,
         "startChar": 48,
