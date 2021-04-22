@@ -170,6 +170,13 @@ export interface TriageLogResponse {
 	total: number;
 }
 
+export interface ChangelistsResponse {
+	changelists: Changelist[] | null;
+	offset: number;
+	size: number;
+	total: number;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type ParamSetResponse = { [key: string]: string[] | null };

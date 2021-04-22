@@ -1,7 +1,9 @@
+import { ChangelistsResponse } from '../rpc_types';
+
 export const fakeNow = Date.parse('2019-09-09T19:32:30Z');
 
-export const changelistSummaries_5 = {
-  data: [
+export const changelistSummaries_5: ChangelistsResponse = {
+  changelists: [
     {
       system: 'gerrit',
       id: '1788313',
@@ -25,7 +27,10 @@ export const changelistSummaries_5 = {
       id: '1788259',
       owner: 'gamma@example.org',
       status: 'Open',
-      subject: "Implement deep content compliance and malware scans for uploads. This is a really long subject, like wow! I hope the web UI doesn't mishandle this massively long subject",
+      subject:
+          "Implement deep content compliance and malware scans for uploads. " +
+          "This is a really long subject, like wow! " +
+          "I hope the web UI doesn't mishandle this massively long subject",
       updated: '2019-09-09T19:28:54Z',
       url: 'https://chromium-review.googlesource.com/1788259',
     },
@@ -48,16 +53,13 @@ export const changelistSummaries_5 = {
       url: 'https://chromium-review.googlesource.com/1790066',
     },
   ],
-  status: 200,
-  pagination: {
-    offset: 0,
-    size: 5,
-    total: 2147483647,
-  },
+  offset: 0,
+  size: 5,
+  total: 2147483647,
 };
 
 export const changelistSummaries_5_offset5 = {
-  data: [
+  changelists: [
     {
       system: 'gerrit',
       id: '1806853',
@@ -104,16 +106,13 @@ export const changelistSummaries_5_offset5 = {
       url: 'https://chromium-review.googlesource.com/1804507',
     },
   ],
-  status: 200,
-  pagination: {
-    offset: 5,
-    size: 5,
-    total: 2147483647,
-  },
+  offset: 5,
+  size: 5,
+  total: 2147483647,
 };
 
-export const changelistSummaries_5_offset10 = {
-  data: [
+export const changelistSummaries_5_offset10: ChangelistsResponse = {
+  changelists: [
     {
       system: 'gerrit',
       id: '1793168',
@@ -160,19 +159,14 @@ export const changelistSummaries_5_offset10 = {
       url: 'https://chromium-review.googlesource.com/1805646',
     },
   ],
-  status: 200,
-  pagination: {
-    offset: 10,
-    size: 5,
-    total: 2147483647,
-  },
+  offset: 10,
+  size: 5,
+  total: 2147483647,
 };
 
-export const empty = {
-  status: 200,
-  pagination: {
-    offset: 100,
-    size: 10,
-    total: 100,
-  },
-};
+export const empty = (partial?: Partial<ChangelistsResponse>): ChangelistsResponse => ({
+  changelists: null,
+  offset: partial?.offset || 0,
+  size: partial?.size || 5,
+  total: partial?.total || 2147483647,
+});
