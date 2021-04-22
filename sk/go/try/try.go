@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"sort"
@@ -17,6 +18,14 @@ import (
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/task_scheduler/go/specs"
+)
+
+var (
+	// stdin is an abstraction of os.Stdin which is convenient for testing.
+	stdin io.Reader = os.Stdin
+
+	// tryjobs is an instance of tryJobReader which may be replaced for testing.
+	tryjobs tryJobReader = &tryJobReaderImpl{}
 )
 
 // Command returns a cli.Command instance which represents the "try" command.
@@ -34,6 +43,9 @@ func Command() *cli.Command {
 			},
 		},
 		Action: func(ctx *cli.Context) error {
+			if err := fixupIssue(ctx.Context); err != nil {
+				return err
+			}
 			return try(ctx.Context, ctx.Args().Slice(), ctx.Bool(yFlag))
 		},
 	}
@@ -43,10 +55,7 @@ func Command() *cli.Command {
 // triggers the try jobs selected by the user.
 func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool) error {
 	// Setup.
-	if err := fixupIssue(ctx); err != nil {
-		return err
-	}
-	jobs, err := getTryJobs(ctx)
+	jobs, err := tryjobs.getTryJobs(ctx)
 	if err != nil {
 		return err
 	}
@@ -98,7 +107,8 @@ func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool) e
 	jobsToTrigger := filteredJobs
 	if !triggerWithoutPrompt {
 		fmt.Printf("Do you want to trigger these jobs? (y/n or i for interactive): ")
-		read, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		reader := bufio.NewReader(stdin)
+		read, err := reader.ReadString('\n')
 		if err != nil {
 			return err
 		}
@@ -111,7 +121,7 @@ func try(ctx context.Context, jobRequests []string, triggerWithoutPrompt bool) e
 			for bucket, jobList := range filteredJobs {
 				for _, job := range jobList {
 					fmt.Printf("Trigger %s? (y/n): ", job)
-					trigger, err := bufio.NewReader(os.Stdin).ReadString('\n')
+					trigger, err := reader.ReadString('\n')
 					if err != nil {
 						return err
 					}
@@ -176,12 +186,20 @@ func fixupIssue(ctx context.Context) error {
 	return nil
 }
 
-// getTryJobs reads tasks.json from the current repo and returns a
-// map[string][]string of Buildbucket bucket names to try job names.
-// TODO(borenet): This assumes that the current repo is associated with the
-// skia.primary bucket. This will work for most repos but it would be better to
-// look up the correct bucket to use.
-func getTryJobs(ctx context.Context) (map[string][]string, error) {
+// tryJobReader provides an abstraction for reading the available set of try
+// jobs to facilitate testing.
+type tryJobReader interface {
+	// getTryJobs reads tasks.json from the current repo and returns a
+	// map[string][]string of Buildbucket bucket names to try job names.
+	getTryJobs(context.Context) (map[string][]string, error)
+}
+
+// tryJobReaderImpl is the default tryJobReader implementation which reads from
+// the tasks.json file in the current repo.
+type tryJobReaderImpl struct{}
+
+// GetTryJobs implements tryJobReader.
+func (r *tryJobReaderImpl) getTryJobs(ctx context.Context) (map[string][]string, error) {
 	repoRoot, err := repo_root.GetLocal()
 	if err != nil {
 		return nil, err
@@ -194,6 +212,9 @@ func getTryJobs(ctx context.Context) (map[string][]string, error) {
 	for name := range tasksCfg.Jobs {
 		jobs = append(jobs, name)
 	}
+	// TODO(borenet): This assumes that the current repo is associated with the
+	// skia.primary bucket. This will work for most repos but it would be better
+	// to look up the correct bucket to use.
 	return map[string][]string{
 		"skia/skia.primary": jobs,
 	}, nil
