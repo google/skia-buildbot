@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs"
@@ -206,6 +207,17 @@ func main() {
 		if _, err := gitauth.New(ts, gitcookiesPath, true, cfg.ServiceAccount); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
+
+		// Authenticate to CIPD just in case it's needed.
+		sklog.Infof("Authenticating to CIPD")
+		if _, err := exec.RunCwd(ctx, ".", "cipd", "auth-login", "-service-account-json", "/var/secrets/google/key.json"); err != nil {
+			sklog.Fatalf("Failed to authenticate to CIPD: %s", err)
+		}
+		/*out, err := exec.RunCwd(ctx, ".", "cipd", "auth-info")
+		if err != nil {
+			sklog.Fatalf("Failed to obtain CIPD login info: %s", err)
+		}
+		sklog.Infof("CIPD: %s", out)*/
 	}
 
 	if cfg.GetGerrit() != nil {

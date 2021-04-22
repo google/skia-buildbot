@@ -51,15 +51,16 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		return nil, skerr.Wrap(err)
 	}
 	depotToolsEnv := append(depot_tools.Env(depotTools), "SKIP_GCE_AUTH_FOR_GIT=1")
-	gclientCmd := []string{filepath.Join(depotTools, GClient)}
 	gclient := func(ctx context.Context, cmd ...string) error {
-		args := append(gclientCmd, cmd...)
-		sklog.Infof("Running: %s %s", "python", strings.Join(args, " "))
+		gclient := filepath.Join(depotTools, GClient)
+		luciAuth := filepath.Join(depotTools, "luci-auth")
+		cmd = append([]string{luciAuth, "context", "-service-account-json", "/var/secrets/google/key.json", "--", "python", gclient}, cmd...)
+		sklog.Infof("Running: %s %s", "python", strings.Join(cmd, " "))
 		_, err := exec.RunCommand(ctx, &exec.Command{
 			Dir:  workdir,
 			Env:  depotToolsEnv,
-			Name: "python",
-			Args: args,
+			Name: cmd[0],
+			Args: cmd[1:],
 		})
 		return skerr.Wrap(err)
 	}
