@@ -41,6 +41,12 @@ type Changelist struct {
 	URL      string    `json:"url"`
 }
 
+// ChangelistsResponse is the response for /json/v1/changelists.
+type ChangelistsResponse struct {
+	Changelists []Changelist `json:"changelists"`
+	httputils.ResponsePagination
+}
+
 // ConvertChangelist turns a code_review.Changelist into a Changelist for the frontend.
 func ConvertChangelist(cl code_review.Changelist, system, urlTempl string) Changelist {
 	return Changelist{
