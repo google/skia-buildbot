@@ -26,7 +26,6 @@ go_library(
         "//golden/go/ignore",
         "//golden/go/indexer",
         "//golden/go/search",
-        "//golden/go/search/export",
         "//golden/go/search/frontend",
         "//golden/go/search/query",
         "//golden/go/search2",
