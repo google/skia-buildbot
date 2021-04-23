@@ -229,6 +229,7 @@ export interface AndroidRepoManagerConfig {
   childRevLinkTmpl: string;
   childSubdir: string;
   preUploadSteps?: PreUploadStep[];
+  preUpload?: PreUploadConfig;
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfig;
   includeAuthorsAsReviewers: boolean;
 }
@@ -242,6 +243,7 @@ interface AndroidRepoManagerConfigJSON {
   child_rev_link_tmpl?: string;
   child_subdir?: string;
   pre_upload_steps?: string[];
+  pre_upload?: PreUploadConfigJSON;
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfigJSON;
   include_authors_as_reviewers?: boolean;
 }
@@ -393,11 +395,13 @@ interface GitCheckoutGitHubParentConfigJSON {
 export interface GitCheckoutGitHubFileParentConfig {
   gitCheckout?: GitCheckoutGitHubParentConfig;
   preUploadSteps?: PreUploadStep[];
+  preUpload?: PreUploadConfig;
 }
 
 interface GitCheckoutGitHubFileParentConfigJSON {
   git_checkout?: GitCheckoutGitHubParentConfigJSON;
   pre_upload_steps?: string[];
+  pre_upload?: PreUploadConfigJSON;
 }
 
 export interface GitilesParentConfig {
@@ -431,6 +435,7 @@ export interface DEPSLocalParentConfig {
   checkoutPath: string;
   gclientSpec: string;
   preUploadSteps?: PreUploadStep[];
+  preUpload?: PreUploadConfig;
   runHooks: boolean;
 }
 
@@ -441,6 +446,7 @@ interface DEPSLocalParentConfigJSON {
   checkout_path?: string;
   gclient_spec?: string;
   pre_upload_steps?: string[];
+  pre_upload?: PreUploadConfigJSON;
   run_hooks?: boolean;
 }
 
@@ -658,4 +664,38 @@ interface BuildbucketRevisionFilterConfigJSON {
   project?: string;
   bucket?: string;
   buildset_commit_tmpl?: string;
+}
+
+export interface PreUploadConfig {
+  cipdPackage?: CIPDPackageConfig[];
+  command?: CommandConfig[];
+}
+
+interface PreUploadConfigJSON {
+  cipd_package?: CIPDPackageConfigJSON[];
+  command?: CommandConfigJSON[];
+}
+
+export interface CommandConfig {
+  command: string;
+  cwd: string;
+  env?: string[];
+}
+
+interface CommandConfigJSON {
+  command?: string;
+  cwd?: string;
+  env?: string[];
+}
+
+export interface CIPDPackageConfig {
+  name: string;
+  path: string;
+  version: string;
+}
+
+interface CIPDPackageConfigJSON {
+  name?: string;
+  path?: string;
+  version?: string;
 }

@@ -242,6 +242,8 @@ message AndroidRepoManagerConfig {
     string child_subdir = 7;
     // pre_upload_steps are named steps to run before uploading roll CLs.
     repeated PreUploadStep pre_upload_steps = 8;
+    // pre_upload describes command(s) to run before uploading roll CLs.
+    PreUploadConfig pre_upload = 11;
     // metadata about the child project which should be updated in a file
     // checked into the parent repo.
     ProjectMetadataFileConfig metadata = 9;
@@ -375,6 +377,8 @@ message GitCheckoutGitHubParentConfig {
 message GitCheckoutGitHubFileParentConfig {
     GitCheckoutGitHubParentConfig git_checkout = 1;
     repeated PreUploadStep pre_upload_steps = 2;
+    // pre_upload describes command(s) to run before uploading roll CLs.
+    PreUploadConfig pre_upload = 3;
 }
 
 // GitilesParentConfig provides configuration for a Parent which uses Gitiles.
@@ -413,6 +417,8 @@ message DEPSLocalParentConfig {
     string gclient_spec = 5;
     // pre_upload_steps are steps to run before uploading the CL.
     repeated PreUploadStep pre_upload_steps = 6;
+    // pre_upload describes command(s) to run before uploading roll CLs.
+    PreUploadConfig pre_upload = 8;
     // run_hooks indicates whether to run "gclient runhooks" after syncing.
     bool run_hooks = 7;
 }
@@ -653,4 +659,34 @@ message BuildbucketRevisionFilterConfig {
     string project = 1;
     string bucket = 2;
     string buildset_commit_tmpl = 3;
+}
+
+// PreUploadConfig describes additional steps to run after updating the
+// dependency but before uploading the CL, on rollers which use a local
+// checkout.
+message PreUploadConfig {
+    // CIPD packages needed by the command(s).
+    repeated CIPDPackageConfig cipd_package = 1;
+    // Command(s) to run.
+    repeated CommandConfig command = 2;
+}
+
+// CommandConfig describes a command to run.
+message CommandConfig {
+    // Command to run.
+    string command = 1;
+    // Working directory in which to run the command.
+    string cwd = 2;
+    // Environment variables needed by the command, in "KEY=VALUE" format.
+    repeated string env = 3;
+}
+
+// CIPDPackageConfig describes a CIPD package.
+message CIPDPackageConfig {
+    // Full CIPD package name.
+    string name = 1;
+    // Relative path within the root dir to install the package.
+    string path = 2;
+    // Version of the package.
+    string version = 3;
 }
