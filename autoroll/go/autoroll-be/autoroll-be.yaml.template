@@ -29,8 +29,13 @@ spec:
       containers:
         - name: autoroll-be-{{.rollerName}}
           image: {{.image}}
-          command: ["/usr/local/bin/autoroll-be"]
+          command: ["luci-auth"]
           args:
+            - "context"
+            - "-service-account-json"
+            - "/var/secrets/google/key.json"
+            - "--"
+            - "/usr/local/bin/autoroll-be"
             - "--logtostderr"
             - "--config={{.configBase64}}"
             - "--email_creds=/var/secrets/autoroll-email-creds"
