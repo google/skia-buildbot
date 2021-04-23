@@ -33,9 +33,10 @@ var (
 // Env returns the environment used for depot_tools commands.
 func Env(depotToolsPath string) []string {
 	return []string{
-		fmt.Sprintf("PATH=%s:%s", depotToolsPath, os.Getenv("PATH")),
-		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
 		"DEPOT_TOOLS_UPDATE=0",
+		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
+		fmt.Sprintf("LUCI_CONTEXT=%s", os.Getenv("LUCI_CONTEXT")),
+		fmt.Sprintf("PATH=%s:%s", depotToolsPath, os.Getenv("PATH")),
 	}
 }
 
