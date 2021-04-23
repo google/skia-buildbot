@@ -43,8 +43,6 @@
       'https://android-master-perf.skia.org/_/reg/count',
       'https://ct-perf.skia.org/_/reg/count',
       'https://androidx-perf.skia.org/_/reg/count',
-      'https://flutter-flutter-perf2.skia.org/_/reg/count',
-      'https://flutter-engine-perf2.skia.org/_/reg/count',
     ],
     method: 'GET',
     expected: [200],

@@ -1341,32 +1341,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "skiaperf-flutter",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "skiaperf-flutter",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "skiaperf-flutter",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "skiaperf-flutter-engine2",
           "endpoints": [
             {
@@ -1386,32 +1360,6 @@
           ]
         },
         "name": "skiaperf-flutter-engine2",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "skiaperf-flutter-flutter",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "skiaperf-flutter-flutter",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "skiaperf-flutter-flutter",
         "type": "STRICT_DNS"
       },
       {
@@ -3632,23 +3580,6 @@
                       ]
                     },
                     {
-                      "domains": "flutter-engine-perf-old.skia.org",
-                      "name": "flutter-engine-perf-old.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "skiaperf-flutter",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
                       "domains": "flutter-engine-perf.skia.org",
                       "name": "flutter-engine-perf.skia.org",
                       "routes": [
@@ -3658,23 +3589,6 @@
                           },
                           "route": {
                             "cluster": "skiaperf-flutter-engine2",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "flutter-flutter-perf-old.skia.org",
-                      "name": "flutter-flutter-perf-old.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "skiaperf-flutter-flutter",
                             "timeout": {
                               "seconds": 600
                             }
