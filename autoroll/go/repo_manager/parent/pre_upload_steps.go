@@ -41,19 +41,20 @@ type PreUploadStep func(context.Context, []string, *http.Client, string, *revisi
 var (
 	// preUploadSteps is the registry of known PreUploadStep instances.
 	preUploadSteps = map[config.PreUploadStep]PreUploadStep{
-		config.PreUploadStep_ANGLE_CODE_GENERATION:               ANGLECodeGeneration,
-		config.PreUploadStep_ANGLE_ROLL_CHROMIUM:                 ANGLERollChromium,
-		config.PreUploadStep_GO_GENERATE_CIPD:                    GoGenerateCipd,
-		config.PreUploadStep_TRAIN_INFRA:                         TrainInfra,
-		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS:             FlutterLicenseScripts,
-		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_DART:    FlutterLicenseScriptsForDart,
-		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA: FlutterLicenseScriptsForFuchsia,
-		config.PreUploadStep_ANGLE_GN_TO_BP:                      AngleGnToBp,
-		config.PreUploadStep_SKIA_GN_TO_BP:                       SkiaGnToBp,
-		config.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART:        UpdateFlutterDepsForDart,
-		config.PreUploadStep_VULKAN_DEPS_UPDATE_COMMIT_MESSAGE:   VulkanDepsUpdateCommitMessage,
-		config.PreUploadStep_UPDATE_BORINGSSL:                    UpdateBoringSSL,
-		config.PreUploadStep_CHROMIUM_ROLL_WEBGPU_CTS:            ChromiumRollWebGPUCTS,
+		config.PreUploadStep_ANGLE_CODE_GENERATION:                ANGLECodeGeneration,
+		config.PreUploadStep_ANGLE_ROLL_CHROMIUM:                  ANGLERollChromium,
+		config.PreUploadStep_GO_GENERATE_CIPD:                     GoGenerateCipd,
+		config.PreUploadStep_TRAIN_INFRA:                          TrainInfra,
+		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS:              FlutterLicenseScripts,
+		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_DART:     FlutterLicenseScriptsForDart,
+		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA:  FlutterLicenseScriptsForFuchsia,
+		config.PreUploadStep_ANGLE_GN_TO_BP:                       AngleGnToBp,
+		config.PreUploadStep_SKIA_GN_TO_BP:                        SkiaGnToBp,
+		config.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART:         UpdateFlutterDepsForDart,
+		config.PreUploadStep_VULKAN_DEPS_UPDATE_COMMIT_MESSAGE:    VulkanDepsUpdateCommitMessage,
+		config.PreUploadStep_UPDATE_BORINGSSL:                     UpdateBoringSSL,
+		config.PreUploadStep_CHROMIUM_ROLL_WEBGPU_CTS:             ChromiumRollWebGPUCTS,
+		config.PreUploadStep_EXTRACT_AND_COMMIT_DOUBLEDOWN_EXTRAS: ExtractAndCommitDoubledownExtras,
 	}
 )
 
@@ -422,6 +423,36 @@ func ChromiumRollWebGPUCTS(ctx context.Context, env []string, client *http.Clien
 	}); err != nil {
 		// Log, but don't return the error. The Chromium presubmit will fail if this does not succeed.
 		sklog.Errorf("%s", err)
+	}
+	return nil
+}
+
+// ExtractAndCommitDoubledownExtras downloads and extracts the CIPD package
+// being rolled and runs a script to copy portions of it into the repo.
+func ExtractAndCommitDoubledownExtras(ctx context.Context, env []string, client *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
+	subdir := "g3"
+	// TODO(borenet): It'd be nice to pass the Child in to this function, which
+	// would prevent us having to hard-code this package info.
+	if err := cipd.Ensure(ctx, client, cipdRoot, &cipd.Package{
+		Name:    "chrome_internal/third_party/google3",
+		Path:    subdir,
+		Version: to.Id,
+	}); err != nil {
+		return skerr.Wrap(err)
+	}
+	cipdPackagePath := filepath.Join(cipdRoot, subdir)
+	cmd := []string{"third_party/google3/extract_and_commit_doubledown_extras.py", "--cipd-package-path", cipdPackagePath}
+	sklog.Infof("Running %s", strings.Join(cmd, " "))
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Name: "python3",
+		Args: cmd,
+		Dir:  parentRepoDir,
+		Env:  env,
+	}); err != nil {
+		return skerr.Wrap(err)
+	}
+	if _, err := exec.RunCwd(ctx, parentRepoDir, "git", "add", "third_party/google3/committed"); err != nil {
+		return skerr.Wrap(err)
 	}
 	return nil
 }
