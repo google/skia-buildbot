@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "60478792_7a833602",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-23T14:30:27Z",
+      "side": 1,
+      "message": "It\u0027d be nice if extract_and_commit_doubledown_extras.py did this for us, so we didn\u0027t have to hard-code the path here.",
+      "range": {
+        "startLine": 454,
+        "startChar": 0,
+        "endLine": 454,
+        "endChar": 106
+      },
+      "revId": "1cceeb002e6e6e612b11e3936aef1066e0bedd5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
