@@ -22,6 +22,30 @@
       },
       "revId": "1cceeb002e6e6e612b11e3936aef1066e0bedd5a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "07c8b431_228efb4d",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 11232
+      },
+      "writtenOn": "2021-04-23T15:00:47Z",
+      "side": 1,
+      "message": "I thought you just added everything (git add .). No we definitely do not want you hardcoding things. I can add a git add statement in the script.",
+      "parentUuid": "60478792_7a833602",
+      "range": {
+        "startLine": 454,
+        "startChar": 0,
+        "endLine": 454,
+        "endChar": 106
+      },
+      "revId": "1cceeb002e6e6e612b11e3936aef1066e0bedd5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
