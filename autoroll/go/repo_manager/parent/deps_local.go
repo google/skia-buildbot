@@ -76,7 +76,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 
 	// Pre-upload steps are run after setting the new dependency version and
 	// syncing, but before committing and uploading.
-	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
+	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps, c.PreUploadCommands)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
