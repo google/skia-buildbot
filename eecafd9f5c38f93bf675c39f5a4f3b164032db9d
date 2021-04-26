@@ -16,6 +16,23 @@
       "message": "PTAL.",
       "revId": "eecafd9f5c38f93bf675c39f5a4f3b164032db9d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6e5347bd_0eb3c8e7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5855
+      },
+      "writtenOn": "2021-04-26T15:36:26Z",
+      "side": 1,
+      "message": "Thanks! Looks like I\u0027m not allowed to submit, could you do it for me? Thanks.",
+      "revId": "eecafd9f5c38f93bf675c39f5a4f3b164032db9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
