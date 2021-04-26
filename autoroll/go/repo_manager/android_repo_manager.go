@@ -104,7 +104,7 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 			return nil, skerr.Wrap(err)
 		}
 	}
-	preUploadSteps, err := parent.GetPreUploadSteps(c.PreUploadSteps)
+	preUploadSteps, err := parent.GetPreUploadSteps(c.PreUploadSteps, c.PreUploadCommands)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
