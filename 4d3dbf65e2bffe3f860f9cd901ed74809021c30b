@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "ab52f994_86715001",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-26T13:32:13Z",
+      "side": 1,
+      "message": "What\u0027s special about license scripts?  Scanning over it, it just looks like several commands instead of just one, and some OS calls which could be moved into commands.  Worst case, we write a script and check it into Flutter; after all, we\u0027re operating this roller for them.  SkiaGnToBp seems similar.  I really want to get the custom hard-coded stuff out of the autoroller code, but in the short term we\u0027ll leave both options.\n\nI renamed pre_upload to pre_upload_commands.  We need to keep pre_upload_steps the same to maintain backward compatibility.",
+      "parentUuid": "9f14c898_4ecfd5b7",
+      "range": {
+        "startLine": 9,
+        "startChar": 30,
+        "endLine": 9,
+        "endChar": 40
+      },
+      "revId": "4d3dbf65e2bffe3f860f9cd901ed74809021c30b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "62d35c91_4ce49925",
@@ -54,6 +78,24 @@
       "writtenOn": "2021-04-26T13:01:40Z",
       "side": 1,
       "message": "I know why this is near pre_upload_steps, but should it be below 7 so that it is clear that 8 is the last number?",
+      "revId": "4d3dbf65e2bffe3f860f9cd901ed74809021c30b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dbb4e0cc_aaa3f018",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-26T13:32:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c8c27348_50737193",
       "revId": "4d3dbf65e2bffe3f860f9cd901ed74809021c30b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
