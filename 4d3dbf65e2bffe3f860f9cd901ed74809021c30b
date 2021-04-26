@@ -1,6 +1,29 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "9f14c898_4ecfd5b7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-26T13:01:40Z",
+      "side": 1,
+      "message": "I don\u0027t know how this would remove all of pre-upload steps. I don\u0027t see license scripts moving here without very special handling added. SkiaGnToBp also seems to do something special.\n\nI guess what we want is to leave flexibility to add a function for a complicated pre-upload step and also a simple way to describe a command/cwd for hopefully majority of the cases.\nMaybe to improve naming pre_upload should be pre_upload_commands?\npre_upload_steps would stay the same unless we come up with a better name for it. Maybe pre_upload_function signifying that it\u0027s more complicated than a few commands.",
+      "range": {
+        "startLine": 9,
+        "startChar": 30,
+        "endLine": 9,
+        "endChar": 40
+      },
+      "revId": "4d3dbf65e2bffe3f860f9cd901ed74809021c30b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "62d35c91_4ce49925",
@@ -14,6 +37,23 @@
       "writtenOn": "2021-04-26T11:54:29Z",
       "side": 1,
       "message": "WDYT?  I didn\u0027t convert all of the rollers.  The only real way to test is to push the roller and see if it works, so I figure we should start small.  Maybe smaller than this CL, ie. land this without any config file changes and update rollers individually?",
+      "revId": "4d3dbf65e2bffe3f860f9cd901ed74809021c30b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c8c27348_50737193",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-26T13:01:40Z",
+      "side": 1,
+      "message": "I know why this is near pre_upload_steps, but should it be below 7 so that it is clear that 8 is the last number?",
       "revId": "4d3dbf65e2bffe3f860f9cd901ed74809021c30b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
