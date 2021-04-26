@@ -33,6 +33,7 @@ func NewCockroachDBForTests(ctx context.Context, t testing.TB) *pgxpool.Pool {
 	n, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
 	require.NoError(t, err)
 	dbName := "for_tests" + n.String()
+	fmt.Println(dbName)
 	host := emulators.GetEmulatorHostEnvVar(emulators.CockroachDB)
 
 	out, err = exec.Command("cockroach", "sql", "--insecure", "--host="+host,

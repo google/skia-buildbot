@@ -4,8 +4,26 @@ package search2
 
 import (
 	"context"
+	"encoding/hex"
+	"sort"
 	"sync"
 	"time"
+
+	"go.skia.org/infra/golden/go/search"
+
+	"go.skia.org/infra/golden/go/tiling"
+
+	"go.skia.org/infra/golden/go/expectations"
+	"go.skia.org/infra/golden/go/search/common"
+
+	lru "github.com/hashicorp/golang-lru"
+
+	"go.skia.org/infra/go/paramtools"
+
+	"go.skia.org/infra/golden/go/types"
+
+	"go.skia.org/infra/golden/go/search/frontend"
+	"go.skia.org/infra/golden/go/search/query"
 
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -63,20 +81,33 @@ type PatchsetNewAndUntriagedSummary struct {
 	PatchsetOrder int
 }
 
+const (
+	traceCacheSize = 1_000_000
+)
+
 type Impl struct {
-	db *pgxpool.Pool
+	db           *pgxpool.Pool
+	windowLength int
 
 	// Protects the caches
 	mutex sync.RWMutex
 	// This caches the digests seen per grouping on the primary branch.
 	digestsOnPrimary map[groupingDigestKey]struct{}
+
+	traceCache *lru.Cache
 }
 
 // New returns an implementation of API.
-func New(sqlDB *pgxpool.Pool) *Impl {
+func New(sqlDB *pgxpool.Pool, windowLength int) *Impl {
+	tc, err := lru.New(traceCacheSize)
+	if err != nil {
+		panic(err) // should only happen if traceCacheSize is negative.
+	}
 	return &Impl{
 		db:               sqlDB,
+		windowLength:     windowLength,
 		digestsOnPrimary: map[groupingDigestKey]struct{}{},
+		traceCache:       tc,
 	}
 }
 
@@ -332,6 +363,579 @@ FROM Changelists AS OF SYSTEM TIME '-0.1s' WHERE changelist_id = $1`, qCLID)
 		return time.Time{}, skerr.Wrapf(err, "Getting last updated ts for cl %q", qCLID)
 	}
 	return updatedTS.UTC(), nil
+}
+
+// Search implements the SearchAPI interface.
+func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "search2_Search")
+	defer span.End()
+
+	ctx, err := s.addCommitsData(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	traceDigests, err := s.getMatchingDigestsAndTraces(ctx, q)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// Lookup the closest diffs to the given digests. This returns a subset according to the
+	// limit and offset in the query.
+	closestDiffs, err := s.getClosestDiffs(ctx, traceDigests, q)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// Go fetch history and paramset (within this grouping)
+	paramsetsByDigest, err := s.getParamsetsForDigests(ctx, closestDiffs)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	results, err := s.fillOutTraceHistory(ctx, closestDiffs)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	for _, sr := range results {
+		sr.ParamSet = paramsetsByDigest[sr.Digest]
+		for _, srdd := range sr.RefDiffs {
+			if srdd != nil {
+				srdd.ParamSet = paramsetsByDigest[srdd.Digest]
+			}
+		}
+	}
+
+	return &frontend.SearchResponse{
+		Results: results,
+	}, nil
+}
+
+type searchContextKey string
+
+const (
+	actualWindowLength = searchContextKey("actualWindowLength")
+	commitToIdx        = searchContextKey("commitToIdx")
+	firstCommitID      = searchContextKey("firstCommitID")
+	firstTileID        = searchContextKey("firstTileID")
+)
+
+func getFirstCommitID(ctx context.Context) schema.CommitID {
+	return ctx.Value(firstCommitID).(schema.CommitID)
+}
+
+func getFirstTileID(ctx context.Context) schema.TileID {
+	return ctx.Value(firstTileID).(schema.TileID)
+}
+
+func getCommitToIdxMap(ctx context.Context) map[schema.CommitID]int {
+	return ctx.Value(commitToIdx).(map[schema.CommitID]int)
+}
+
+func getActualWindowLength(ctx context.Context) int {
+	return ctx.Value(actualWindowLength).(int)
+}
+
+func (s *Impl) addCommitsData(ctx context.Context) (context.Context, error) {
+	sCtx, span := trace.StartSpan(ctx, "addCommitsData")
+	defer span.End()
+	const statement = `SELECT commit_id, tile_id FROM CommitsWithData ORDER BY commit_id DESC LIMIT $1`
+	rows, err := s.db.Query(sCtx, statement, s.windowLength)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	ids := make([]schema.CommitID, 0, s.windowLength)
+	var firstObservedTile schema.TileID
+	for rows.Next() {
+		var id schema.CommitID
+		if err := rows.Scan(&id, &firstObservedTile); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		ids = append(ids, id)
+	}
+	if len(ids) == 0 {
+		return nil, skerr.Fmt("No commits with data")
+	}
+	// ids is ordered most recent commit to last commit at this point
+	ctx = context.WithValue(ctx, actualWindowLength, len(ids))
+	ctx = context.WithValue(ctx, firstCommitID, ids[len(ids)-1])
+	ctx = context.WithValue(ctx, firstTileID, firstObservedTile)
+	idToIndex := map[schema.CommitID]int{}
+	idx := 0
+	for i := len(ids) - 1; i >= 0; i-- {
+		idToIndex[ids[i]] = idx
+		idx++
+	}
+	ctx = context.WithValue(ctx, commitToIdx, idToIndex)
+	return ctx, nil
+}
+
+type stageOneResult struct {
+	traceID    schema.TraceID
+	groupingID schema.GroupingID
+	digest     schema.DigestBytes
+}
+
+func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context, q *query.Search) ([]stageOneResult, error) {
+	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTraces")
+	defer span.End()
+	const statement = `WITH
+UntriagedDigests AS (
+    SELECT grouping_id, digest FROM Expectations
+    WHERE label = $1
+),
+NonIgnoredTraces AS (
+    SELECT trace_id, grouping_id, digest FROM ValuesAtHead
+	WHERE most_recent_commit_id > $2 AND
+    	corpus = $3 AND
+    	matches_any_ignore_rule = $4
+)
+SELECT trace_id, UntriagedDigests.grouping_id, NonIgnoredTraces.digest FROM
+UntriagedDigests
+JOIN
+NonIgnoredTraces ON UntriagedDigests.grouping_id = NonIgnoredTraces.grouping_id AND
+  UntriagedDigests.digest = NonIgnoredTraces.digest`
+	// FIXME don't hardcode these
+	arguments := []interface{}{schema.LabelUntriaged, getFirstCommitID(ctx), q.TraceValues[types.CorpusField][0], false}
+
+	rows, err := s.db.Query(ctx, statement, arguments...)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "searching for query %v", q)
+	}
+	defer rows.Close()
+	var rv []stageOneResult
+	for rows.Next() {
+		var row stageOneResult
+		if err := rows.Scan(&row.traceID, &row.groupingID, &row.digest); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, row)
+	}
+	return rv, nil
+}
+
+type stageTwoResult struct {
+	leftDigest      schema.DigestBytes
+	groupingID      schema.GroupingID
+	rightDigests    []schema.DigestBytes
+	traceIDs        []schema.TraceID
+	closestDigest   *frontend.SRDiffDigest // These won't have ParamSets yet
+	closestPositive *frontend.SRDiffDigest
+	closestNegative *frontend.SRDiffDigest
+}
+
+func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult, q *query.Search) ([]stageTwoResult, error) {
+	ctx, span := trace.StartSpan(ctx, "getClosestDiffs")
+	defer span.End()
+	byGrouping := map[schema.MD5Hash][]stageOneResult{}
+	byDigest := map[schema.MD5Hash]stageTwoResult{}
+	for _, input := range inputs {
+		gID := sql.AsMD5Hash(input.groupingID)
+		byGrouping[gID] = append(byGrouping[gID], input)
+		dID := sql.AsMD5Hash(input.digest)
+		bd := byDigest[dID]
+		bd.leftDigest = input.digest
+		bd.groupingID = input.groupingID
+		bd.traceIDs = append(bd.traceIDs, input.traceID)
+		byDigest[dID] = bd
+	}
+
+	for groupingID, inputs := range byGrouping {
+		const statement = `WITH
+ObservedDigestsInTile AS (
+	SELECT digest FROM TiledTraceDigests
+    WHERE grouping_id = $2 and tile_id >= $3
+),
+PositiveOrNegativeDigests AS (
+    SELECT digest, label FROM Expectations
+    WHERE grouping_id = $2 AND (label = 'n' OR label = 'p')
+),
+ComparisonBetweenUntriagedAndObserved AS (
+    SELECT DiffMetrics.* FROM DiffMetrics
+    JOIN ObservedDigestsInTile ON DiffMetrics.right_digest = ObservedDigestsInTile.digest
+    WHERE left_digest = ANY($1) AND max_channel_diff >= $4 AND max_channel_diff <= $5
+)
+-- This will return the right_digest with the smallest combined_metric for each left_digest + label
+SELECT DISTINCT ON (left_digest, label)
+  label, left_digest, right_digest, num_pixels_diff, percent_pixels_diff, max_rgba_diffs,
+  combined_metric, dimensions_differ
+FROM
+  ComparisonBetweenUntriagedAndObserved
+JOIN PositiveOrNegativeDigests
+  ON ComparisonBetweenUntriagedAndObserved.right_digest = PositiveOrNegativeDigests.digest
+ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_digest ASC
+`
+		digests := make([][]byte, 0, len(inputs))
+		for _, input := range inputs {
+			digests = append(digests, input.digest)
+		}
+		rows, err := s.db.Query(ctx, statement, digests, groupingID[:], getFirstTileID(ctx), q.RGBAMinFilter, q.RGBAMaxFilter)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		var label schema.ExpectationLabel
+		var row schema.DiffMetricRow
+		for rows.Next() {
+			if err := rows.Scan(&label, &row.LeftDigest, &row.RightDigest, &row.NumPixelsDiff,
+				&row.PercentPixelsDiff, &row.MaxRGBADiffs, &row.CombinedMetric,
+				&row.DimensionsDiffer); err != nil {
+				rows.Close()
+				return nil, skerr.Wrap(err)
+			}
+			srdd := &frontend.SRDiffDigest{
+				Digest:           types.Digest(hex.EncodeToString(row.RightDigest)),
+				Status:           label.ToExpectation(),
+				CombinedMetric:   row.CombinedMetric,
+				DimDiffer:        row.DimensionsDiffer,
+				MaxRGBADiffs:     row.MaxRGBADiffs,
+				NumDiffPixels:    row.NumPixelsDiff,
+				PixelDiffPercent: row.PercentPixelsDiff,
+				QueryMetric:      row.CombinedMetric,
+			}
+			ld := sql.AsMD5Hash(row.LeftDigest)
+			stageTwo := byDigest[ld]
+			stageTwo.rightDigests = append(stageTwo.rightDigests, row.RightDigest)
+			if label == schema.LabelPositive {
+				stageTwo.closestPositive = srdd
+			} else {
+				stageTwo.closestNegative = srdd
+			}
+			if stageTwo.closestNegative != nil && stageTwo.closestPositive != nil {
+				if stageTwo.closestPositive.CombinedMetric < stageTwo.closestNegative.CombinedMetric {
+					stageTwo.closestDigest = stageTwo.closestPositive
+				} else {
+					stageTwo.closestDigest = stageTwo.closestNegative
+				}
+			} else {
+				// there is only one type of diff, so it defaults to the closest.
+				stageTwo.closestDigest = srdd
+			}
+			byDigest[ld] = stageTwo
+		}
+		rows.Close()
+	}
+
+	rv := make([]stageTwoResult, 0, len(byDigest))
+	for _, s2 := range byDigest {
+		rv = append(rv, s2)
+	}
+	sort.Slice(rv, func(i, j int) bool {
+		if rv[i].closestDigest == nil {
+			return true // sort results with no reference image to the top
+		}
+		if rv[j].closestDigest == nil {
+			return false
+		}
+		return rv[i].closestDigest.CombinedMetric >= rv[j].closestDigest.CombinedMetric
+	})
+	// TODO(kjlubick) use query.limit and offset
+	return rv, nil
+}
+
+func (s *Impl) getParamsetsForDigests(ctx context.Context, inputs []stageTwoResult) (map[types.Digest]paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "getParamsetsForDigests")
+	defer span.End()
+	var digests []schema.DigestBytes
+	for _, input := range inputs {
+		digests = append(digests, input.leftDigest)
+		digests = append(digests, input.rightDigests...)
+	}
+	span.AddAttributes(trace.Int64Attribute("num_digests", int64(len(digests))))
+	const statement = `WITH
+DigestsAndTraces AS (
+	SELECT DISTINCT encode(digest, 'hex') as digest, trace_id
+	FROM TiledTraceDigests WHERE digest = ANY($1) AND tile_id >= $2
+)
+SELECT DigestsAndTraces.digest, DigestsAndTraces.trace_id
+FROM DigestsAndTraces
+JOIN Traces ON DigestsAndTraces.trace_id = Traces.trace_id
+WHERE matches_any_ignore_rule = FALSE
+`
+	rows, err := s.db.Query(ctx, statement, digests, getFirstTileID(ctx))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	digestToTraces := map[types.Digest][]schema.TraceID{}
+	for rows.Next() {
+		var digest types.Digest
+		var traceID schema.TraceID
+		if err := rows.Scan(&digest, &traceID); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		digestToTraces[digest] = append(digestToTraces[digest], traceID)
+	}
+
+	rv, err := s.expandTracesIntoParamsets(ctx, digestToTraces)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return rv, nil
+}
+
+func (s *Impl) expandTracesIntoParamsets(ctx context.Context, toLookUp map[types.Digest][]schema.TraceID) (map[types.Digest]paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "expandTracesIntoParamsets")
+	defer span.End()
+	span.AddAttributes(trace.Int64Attribute("num_trace_sets", int64(len(toLookUp))))
+	mutex := sync.Mutex{}
+	rv := map[types.Digest]paramtools.ParamSet{}
+	eg, ctx := errgroup.WithContext(ctx)
+	for d, t := range toLookUp {
+		digest, traces := d, t
+		eg.Go(func() error {
+			paramset, err := s.expandTracesToParamSet(ctx, traces)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			mutex.Lock()
+			rv[digest] = paramset
+			mutex.Unlock()
+			return nil
+		})
+	}
+	err := eg.Wait()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return rv, nil
+}
+
+func (s *Impl) expandTracesToParamSet(ctx context.Context, traces []schema.TraceID) (paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "expandTracesIntoParamset")
+	defer span.End()
+	paramset := paramtools.ParamSet{}
+	var cacheMisses []schema.TraceID
+	for _, traceID := range traces {
+		if keys, ok := s.traceCache.Get(string(traceID)); ok {
+			paramset.AddParams(keys.(paramtools.Params))
+		} else {
+			cacheMisses = append(cacheMisses, traceID)
+		}
+	}
+	if len(cacheMisses) > 0 {
+		const statement = `SELECT trace_id, keys FROM Traces WHERE trace_id = ANY($1)`
+		rows, err := s.db.Query(ctx, statement, cacheMisses)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		defer rows.Close()
+		var traceID schema.TraceID
+		for rows.Next() {
+			var keys paramtools.Params
+			if err := rows.Scan(&traceID, &keys); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			s.traceCache.Add(string(traceID), keys)
+			paramset.AddParams(keys)
+		}
+	}
+	paramset.Normalize()
+	return paramset, nil
+}
+
+func (s *Impl) expandTraceToParams(ctx context.Context, traceID schema.TraceID) (paramtools.Params, error) {
+	ctx, span := trace.StartSpan(ctx, "expandTraceToParams")
+	defer span.End()
+	if keys, ok := s.traceCache.Get(string(traceID)); ok {
+		return keys.(paramtools.Params).Copy(), nil // Return a copy to protect cached value
+	}
+	// cache miss
+	const statement = `SELECT keys FROM Traces WHERE trace_id = $1`
+	row := s.db.QueryRow(ctx, statement, traceID)
+	var keys paramtools.Params
+	if err := row.Scan(&traceID, &keys); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	s.traceCache.Add(string(traceID), keys)
+	return keys.Copy(), nil // Return a copy to protect cached value
+}
+
+func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []stageTwoResult) ([]*frontend.SearchResult, error) {
+	ctx, span := trace.StartSpan(ctx, "fillOutTraceHistory")
+	span.AddAttributes(trace.Int64Attribute("results", int64(len(inputs))))
+	defer span.End()
+	rv := make([]*frontend.SearchResult, len(inputs))
+	for i, input := range inputs {
+		sr := &frontend.SearchResult{
+			Digest: types.Digest(hex.EncodeToString(input.leftDigest)),
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: input.closestPositive,
+				common.NegativeRef: input.closestNegative,
+			},
+		}
+		if input.closestDigest != nil && input.closestDigest.Status == expectations.Positive {
+			sr.ClosestRef = common.PositiveRef
+		} else if input.closestDigest != nil && input.closestDigest.Status == expectations.Negative {
+			sr.ClosestRef = common.NegativeRef
+		}
+		tg, err := s.traceGroupForTraces(ctx, input.traceIDs, sr.Digest)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if err := s.fillInExpectations(ctx, &tg, input.groupingID); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if err := s.fillInTraceParams(ctx, &tg); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		sr.TraceGroup = tg
+		if len(tg.Digests) > 0 {
+			// The first digest in the trace group is this digest.
+			sr.Status = tg.Digests[0].Status
+		} else {
+			sr.Status = expectations.Untriaged // assume untriaged if digest is not in the window.
+		}
+		if len(tg.Traces) > 0 {
+			sr.Test = types.TestName(tg.Traces[0].Params[types.PrimaryKeyField])
+		}
+		rv[i] = sr
+	}
+	return rv, nil
+}
+
+type traceDigest struct {
+	traceID  schema.TraceID
+	digest   types.Digest
+	commitID schema.CommitID
+}
+
+func (s *Impl) traceGroupForTraces(ctx context.Context, traceIDs []schema.TraceID, primary types.Digest) (frontend.TraceGroup, error) {
+	ctx, span := trace.StartSpan(ctx, "traceGroupForTraces")
+	span.AddAttributes(trace.Int64Attribute("num_traces", int64(len(traceIDs))))
+	defer span.End()
+	const statement = `SELECT trace_id, encode(digest, 'hex'), commit_id
+FROM TraceValues WHERE trace_id = ANY($1) AND commit_id >= $2
+ORDER BY trace_id`
+	rows, err := s.db.Query(ctx, statement, traceIDs, getFirstCommitID(ctx))
+	if err != nil {
+		return frontend.TraceGroup{}, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var dataPoints []traceDigest
+	for rows.Next() {
+		var row traceDigest
+		if err := rows.Scan(&row.traceID, &row.digest, &row.commitID); err != nil {
+			return frontend.TraceGroup{}, skerr.Wrap(err)
+		}
+		dataPoints = append(dataPoints, row)
+	}
+	return makeTraceGroup(ctx, dataPoints, primary)
+}
+
+func (s *Impl) fillInExpectations(ctx context.Context, tg *frontend.TraceGroup, groupingID schema.GroupingID) error {
+	ctx, span := trace.StartSpan(ctx, "fillInExpectations")
+	defer span.End()
+	arguments := make([]interface{}, 0, len(tg.Digests))
+	for _, digestStatus := range tg.Digests {
+		dBytes, err := sql.DigestToBytes(digestStatus.Digest)
+		if err != nil {
+			sklog.Warningf("invalid digest: %s", digestStatus.Digest)
+			continue
+		}
+		arguments = append(arguments, dBytes)
+	}
+	const statement = `SELECT encode(digest, 'hex'), label FROM Expectations
+WHERE grouping_id = $1 and digest = ANY($2)`
+	rows, err := s.db.Query(ctx, statement, groupingID, arguments)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var digest types.Digest
+		var label schema.ExpectationLabel
+		if err := rows.Scan(&digest, &label); err != nil {
+			return skerr.Wrap(err)
+		}
+		for i, ds := range tg.Digests {
+			if ds.Digest == digest {
+				tg.Digests[i].Status = label.ToExpectation()
+			}
+		}
+	}
+	return nil
+}
+
+func (s *Impl) fillInTraceParams(ctx context.Context, tg *frontend.TraceGroup) error {
+	ctx, span := trace.StartSpan(ctx, "fillInTraceParams")
+	defer span.End()
+	for i, tr := range tg.Traces {
+		traceID, err := hex.DecodeString(string(tr.ID))
+		if err != nil {
+			return skerr.Wrapf(err, "invalid trace id %q", tr.ID)
+		}
+		tg.Traces[i].Params, err = s.expandTraceToParams(ctx, traceID)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return nil
+}
+
+func makeTraceGroup(ctx context.Context, data []traceDigest, primary types.Digest) (frontend.TraceGroup, error) {
+	ctx, span := trace.StartSpan(ctx, "makeTraceGroup")
+	defer span.End()
+	tg := frontend.TraceGroup{}
+	if len(data) == 0 {
+		return tg, nil
+	}
+	indexMap := getCommitToIdxMap(ctx)
+	currentTrace := frontend.Trace{
+		ID:            tiling.TraceID(hex.EncodeToString(data[0].traceID)),
+		DigestIndices: emptyIndices(getActualWindowLength(ctx)),
+		RawTrace:      tiling.NewEmptyTrace(getActualWindowLength(ctx), nil, nil),
+	}
+	tg.Traces = append(tg.Traces, currentTrace)
+	for _, dp := range data {
+		tID := tiling.TraceID(hex.EncodeToString(dp.traceID))
+		if currentTrace.ID != tID {
+			currentTrace = frontend.Trace{
+				ID:            tID,
+				DigestIndices: emptyIndices(getActualWindowLength(ctx)),
+				RawTrace:      tiling.NewEmptyTrace(getActualWindowLength(ctx), nil, nil),
+			}
+			tg.Traces = append(tg.Traces, currentTrace)
+		}
+		idx, ok := indexMap[dp.commitID]
+		if !ok {
+			continue
+		}
+		currentTrace.RawTrace.Digests[idx] = dp.digest
+	}
+
+	digestIndices, totalDigests := search.ComputeDigestIndices(&tg, primary)
+	tg.TotalDigests = totalDigests
+
+	tg.Digests = make([]frontend.DigestStatus, len(digestIndices))
+	for digest, idx := range digestIndices {
+		tg.Digests[idx] = frontend.DigestStatus{
+			Digest: digest,
+		}
+	}
+
+	for i, tr := range tg.Traces {
+		for j, digest := range tr.RawTrace.Digests {
+			if digest == tiling.MissingDigest {
+				continue
+			}
+			idx, ok := digestIndices[digest]
+			if ok {
+				tr.DigestIndices[j] = idx
+			} else {
+				// Fold everything else into the last digest index (grey on the frontend).
+				tr.DigestIndices[j] = search.MaxDistinctDigestsToPresent - 1
+			}
+
+		}
+		tg.Traces[i].RawTrace = nil // Done with this
+	}
+	return tg, nil
+}
+
+func emptyIndices(length int) []int {
+	rv := make([]int, length)
+	for i := range rv {
+		rv[i] = search.MissingDigestIndex
+	}
+	return rv
 }
 
 // Make sure Impl implements the API interface.
