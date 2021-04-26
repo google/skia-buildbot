@@ -4,6 +4,8 @@ import (
 	"crypto/md5"
 	"time"
 
+	"go.skia.org/infra/golden/go/expectations"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 
@@ -79,6 +81,18 @@ const (
 	LabelPositive  ExpectationLabel = "p"
 	LabelNegative  ExpectationLabel = "n"
 )
+
+func (e ExpectationLabel) ToExpectation() expectations.Label {
+	switch e {
+	case LabelPositive:
+		return expectations.Positive
+	case LabelNegative:
+		return expectations.Negative
+	case LabelUntriaged:
+		return expectations.Untriaged
+	}
+	return expectations.Untriaged
+}
 
 type ChangelistStatus string
 
@@ -559,6 +573,9 @@ type ValueAtHeadRow struct {
 
 	// This index makes application of all ignore rules easier.
 	ignoredGroupingIndex struct{} `sql:"INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id)"`
+	// This index makes searching for recent untriaged digests faster. The STORING clause is
+	// important to not have to do a lookup after finding the item in the index.
+	corpusCommitIgnoreIndex struct{} `sql:"INDEX corpus_commit_ignore_idx (corpus, most_recent_commit_id, matches_any_ignore_rule) STORING (grouping_id, digest)"`
 	// This index makes querying by keys faster
 	keysIndex struct{} `sql:"INVERTED INDEX keys_idx (keys)"`
 }
