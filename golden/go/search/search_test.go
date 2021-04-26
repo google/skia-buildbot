@@ -182,7 +182,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					TotalDigests: 1,
 					Traces: []frontend.Trace{
 						{
-							DigestIndices: []int{0, missingDigestIndex, missingDigestIndex},
+							DigestIndices: []int{0, MissingDigestIndex, MissingDigestIndex},
 							ID:            data.CrosshatchBetaTraceID,
 							Params: map[string]string{
 								"device":              data.CrosshatchDevice,
@@ -1798,7 +1798,7 @@ func TestFillInFrontEndTraceData_SingleTrace_DigestIndicesAreCorrect(t *testing.
 	unittest.SmallTest(t)
 	// Add some shorthand aliases for easier-to-read test inputs.
 	const mm = tiling.MissingDigest
-	const mdi = missingDigestIndex
+	const mdi = MissingDigestIndex
 	// These constants are not actual md5 digests, but that's ok for the purposes of this test -
 	// any string constants will do.
 	const d0, d1, d2, d3, d4 = types.Digest("d0"), types.Digest("d1"), types.Digest("d2"), types.Digest("d3"), types.Digest("d4")
@@ -1854,7 +1854,7 @@ func TestFillInFrontEndTraceData_SingleTrace_DigestIndicesAreCorrect(t *testing.
 	test("too many distinct digests",
 		[]types.Digest{"dA", "d9", "d8", "d7", "d6", "d5", d4, d3, d2, d1, d0},
 		[]int{8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0})
-	test("Exactly maxDistinctDigestsToPresent digests",
+	test("Exactly MaxDistinctDigestsToPresent digests",
 		[]types.Digest{"d8", "d7", "d6", "d5", d4, d3, d2, d1, d0},
 		[]int{8, 7, 6, 5, 4, 3, 2, 1, 0})
 
@@ -1870,7 +1870,7 @@ func TestFillInFrontEndTraceData_MultipleTraces_DigestIndicesAreCorrect(t *testi
 	unittest.SmallTest(t)
 	// Add some shorthand aliases for easier-to-read test inputs.
 	const mm = tiling.MissingDigest
-	const mdi = missingDigestIndex
+	const mdi = MissingDigestIndex
 
 	test := func(desc string, traceOneDigests, traceTwoDigests []types.Digest, traceOneIndices, traceTwoIndices []int) {
 		require.Equal(t, len(traceTwoDigests), len(traceOneDigests))
@@ -1939,7 +1939,7 @@ func TestFillInFrontEndTraceData_AppendPrimaryDigest_DigestIndicesAreCorrect(t *
 	unittest.SmallTest(t)
 	// Add some shorthand aliases for easier-to-read test inputs.
 	const mm = tiling.MissingDigest
-	const mdi = missingDigestIndex
+	const mdi = MissingDigestIndex
 	// These constants are not actual md5 digests, but that's ok for the purposes of this test -
 	// any string constants will do.
 	const d0, d1, d2, d3, d4 = types.Digest("d0"), types.Digest("d1"), types.Digest("d2"), types.Digest("d3"), types.Digest("d4")
@@ -1984,7 +1984,7 @@ func TestFillInFrontEndTraceData_AppendPrimaryDigest_DigestIndicesAreCorrect(t *
 
 // TestFillInFrontEndTraceData_TotalDigestsCorrect tests that we count unique digests for a
 // TraceGroup correctly, even when there are multiple traces or the number of digests is bigger than
-// maxDistinctDigestsToPresent.
+// MaxDistinctDigestsToPresent.
 func TestFillInFrontEndTraceData_TotalDigestsCorrect(t *testing.T) {
 	unittest.SmallTest(t)
 	// Add some shorthand aliases for easier-to-read test inputs.
