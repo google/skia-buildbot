@@ -50,6 +50,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "9312ed30_2af63534",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-26T13:40:59Z",
+      "side": 1,
+      "message": "\u003e What\u0027s special about license scripts?  Scanning over it, it just looks like several commands instead of just one, and some OS calls which could be moved into commands.  Worst case, we write a script and check it into Flutter; after all, we\u0027re operating this roller for them.  SkiaGnToBp seems similar.  I really want to get the custom hard-coded stuff out of the autoroller code, but in the short term we\u0027ll leave both options.\n\nYes, that *might* work for all the commands in it. There are also conditionals in there that would make this interesting.\nI was also looking at the metrics in flutterLicenseScripts, but that could be built into pre_upload_commands with an alert_on_failure or something config.\n\n\u003e \n\u003e I renamed pre_upload to pre_upload_commands.  We need to keep pre_upload_steps the same to maintain backward compatibility.",
+      "parentUuid": "ab52f994_86715001",
+      "range": {
+        "startLine": 9,
+        "startChar": 30,
+        "endLine": 9,
+        "endChar": 40
+      },
+      "revId": "4d3dbf65e2bffe3f860f9cd901ed74809021c30b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "62d35c91_4ce49925",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 1
