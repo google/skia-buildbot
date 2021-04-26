@@ -231,6 +231,7 @@ export interface AndroidRepoManagerConfig {
   preUploadSteps?: PreUploadStep[];
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfig;
   includeAuthorsAsReviewers: boolean;
+  preUploadCommands?: PreUploadConfig;
 }
 
 interface AndroidRepoManagerConfigJSON {
@@ -244,6 +245,7 @@ interface AndroidRepoManagerConfigJSON {
   pre_upload_steps?: string[];
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfigJSON;
   include_authors_as_reviewers?: boolean;
+  pre_upload_commands?: PreUploadConfigJSON;
 }
 
 export interface CommandRepoManagerConfig_CommandConfig {
@@ -393,11 +395,13 @@ interface GitCheckoutGitHubParentConfigJSON {
 export interface GitCheckoutGitHubFileParentConfig {
   gitCheckout?: GitCheckoutGitHubParentConfig;
   preUploadSteps?: PreUploadStep[];
+  preUploadCommands?: PreUploadConfig;
 }
 
 interface GitCheckoutGitHubFileParentConfigJSON {
   git_checkout?: GitCheckoutGitHubParentConfigJSON;
   pre_upload_steps?: string[];
+  pre_upload_commands?: PreUploadConfigJSON;
 }
 
 export interface GitilesParentConfig {
@@ -432,6 +436,7 @@ export interface DEPSLocalParentConfig {
   gclientSpec: string;
   preUploadSteps?: PreUploadStep[];
   runHooks: boolean;
+  preUploadCommands?: PreUploadConfig;
 }
 
 interface DEPSLocalParentConfigJSON {
@@ -442,6 +447,7 @@ interface DEPSLocalParentConfigJSON {
   gclient_spec?: string;
   pre_upload_steps?: string[];
   run_hooks?: boolean;
+  pre_upload_commands?: PreUploadConfigJSON;
 }
 
 export interface GitCheckoutParentConfig {
@@ -658,4 +664,38 @@ interface BuildbucketRevisionFilterConfigJSON {
   project?: string;
   bucket?: string;
   buildset_commit_tmpl?: string;
+}
+
+export interface PreUploadConfig {
+  cipdPackage?: CIPDPackageConfig[];
+  command?: CommandConfig[];
+}
+
+interface PreUploadConfigJSON {
+  cipd_package?: CIPDPackageConfigJSON[];
+  command?: CommandConfigJSON[];
+}
+
+export interface CommandConfig {
+  command: string;
+  cwd: string;
+  env?: string[];
+}
+
+interface CommandConfigJSON {
+  command?: string;
+  cwd?: string;
+  env?: string[];
+}
+
+export interface CIPDPackageConfig {
+  name: string;
+  path: string;
+  version: string;
+}
+
+interface CIPDPackageConfigJSON {
+  name?: string;
+  path?: string;
+  version?: string;
 }
