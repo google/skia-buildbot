@@ -11,11 +11,16 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/expectations"
+	"go.skia.org/infra/golden/go/search/common"
+	"go.skia.org/infra/golden/go/search/frontend"
+	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	"go.skia.org/infra/golden/go/types"
+	web_frontend "go.skia.org/infra/golden/go/web/frontend"
 )
 
 var changelistTSForIOS = time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC)
@@ -29,7 +34,7 @@ func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
-	s := New(db)
+	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS))
 	require.NoError(t, err)
@@ -58,7 +63,7 @@ func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
-	s := New(db)
+	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests))
 	require.NoError(t, err)
@@ -128,7 +133,7 @@ func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
 
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 
-	s := New(db)
+	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
@@ -161,7 +166,7 @@ func TestNewAndUntriagedSummaryForCL_CLDoesNotExist_ReturnsError(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
-	s := New(db)
+	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	_, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritInternalCRS, "does not exist"))
 	require.Error(t, err)
@@ -231,7 +236,7 @@ func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCou
 
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 
-	s := New(db)
+	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
@@ -319,7 +324,7 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 
-	s := New(db)
+	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
@@ -402,7 +407,7 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 
-	s := New(db)
+	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
@@ -441,7 +446,7 @@ func TestNewAndUntriagedSummaryForCL_MultipleThreadsAtOnce_NoRaces(t *testing.T)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
-	s := New(db)
+	s := New(db, 100)
 	// Update the caches aggressively to be writing to the shared cache while reading from it.
 	require.NoError(t, s.StartCacheProcess(ctx, 100*time.Millisecond, 100))
 
@@ -480,7 +485,7 @@ func TestChangelistLastUpdated_ValidCL_ReturnsLatestTS(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 	waitForSystemTime()
 
-	s := New(db)
+	s := New(db, 100)
 	ts, err := s.ChangelistLastUpdated(ctx, sql.Qualify(dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests))
 	require.NoError(t, err)
 	assert.Equal(t, changelistTSForNewTests, ts)
@@ -494,9 +499,350 @@ func TestChangelistLastUpdated_NonExistantCL_ReturnsError(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 	waitForSystemTime()
 
-	s := New(db)
+	s := New(db, 100)
 	_, err := s.ChangelistLastUpdated(ctx, sql.Qualify(dks.GerritInternalCRS, "does not exist"))
 	require.Error(t, err)
+}
+
+func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: true,
+		IncludePositiveDigests:           false,
+		IncludeNegativeDigests:           false,
+		IncludeUntriagedDigests:          true,
+		Sort:                             "desc",
+		IncludeIgnoredTraces:             false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{"round"},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestC05Unt,
+			Test:   dks.CircleTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+				types.CorpusField:     []string{"round"},
+				dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
+				dks.OSKey:             []string{dks.IOS}, // Note: Android + Taimen are ignored
+				types.PrimaryKeyField: []string{dks.CircleTest},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "0b61c8d85467fc95b1306128ceb2ef6d",
+					DigestIndices: []int{-1, 2, -1, -1, 2, -1, -1, 0, -1, -1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     "round",
+						dks.DeviceKey:         dks.IPhoneDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+				}, {
+					ID:            "22b530e029c22e396c5a24c0900c9ed5",
+					DigestIndices: []int{1, -1, 1, -1, 1, -1, 1, -1, 0, -1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     "round",
+						dks.DeviceKey:         dks.IPhoneDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+				}, {
+					ID:            "273119ca291863331e906fe71bde0e7d",
+					DigestIndices: []int{1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     "round",
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+				}, {
+					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
+					DigestIndices: []int{2, 2, 2, 2, 2, 2, 2, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     "round",
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestC05Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestC01Pos, Status: expectations.Positive},
+					{Digest: dks.DigestC02Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 3,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 4.9783297, QueryMetric: 4.9783297, PixelDiffPercent: 68.75, NumDiffPixels: 44,
+					MaxRGBADiffs: [4]int{40, 149, 100, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{"round"},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}, {
+			Digest: dks.DigestC03Unt,
+			Test:   dks.CircleTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{"round"},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "9156c4774e7d90db488b6aadf416ff8e",
+					DigestIndices: []int{-1, -1, -1, 0, 0, 0, 0, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     "round",
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+				}},
+				Digests: []frontend.DigestStatus{{
+					Digest: dks.DigestC03Unt, Status: expectations.Untriaged,
+				}},
+				TotalDigests: 1,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 0.89245414, QueryMetric: 0.89245414, PixelDiffPercent: 50, NumDiffPixels: 32,
+					MaxRGBADiffs: [4]int{1, 7, 4, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{"round"},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}, {
+			Digest: dks.DigestC04Unt,
+			Test:   dks.CircleTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.GreyColorMode},
+				types.CorpusField:     []string{"round"},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "0310e06f2b4c328cccbac480b5433390",
+					DigestIndices: []int{-1, -1, -1, 0, 0, 0, 0, 0, 0, -1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     "round",
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+				}},
+				Digests: []frontend.DigestStatus{{
+					Digest: dks.DigestC04Unt, Status: expectations.Untriaged,
+				}},
+				TotalDigests: 1,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 0.17843534, QueryMetric: 0.17843534, PixelDiffPercent: 3.125, NumDiffPixels: 2,
+					MaxRGBADiffs: [4]int{3, 3, 3, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC02Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{"round"},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}},
+		Offset:  0,
+		Size:    3,
+		Commits: kitchenSinkCommits,
+		BulkTriageData: web_frontend.TriageRequestData{
+			dks.CircleTest: {
+				dks.DigestC03Unt: expectations.Positive,
+				dks.DigestC04Unt: expectations.Positive,
+				dks.DigestC05Unt: expectations.Positive,
+			},
+		},
+	}, res)
+}
+
+func TestMakeTraceGroup_TwoMostlyStableTraces_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.WithValue(context.Background(), commitToIdx, map[schema.CommitID]int{
+		"10": 0,
+		"11": 1,
+		"12": 2,
+		"17": 3,
+		"20": 4,
+	})
+	ctx = context.WithValue(ctx, actualWindowLength, 5)
+	inputData := []traceDigestCommit{
+		{traceID: schema.TraceID{0xaa}, commitID: "10", digest: dks.DigestA01Pos},
+		{traceID: schema.TraceID{0xaa}, commitID: "11", digest: dks.DigestA01Pos},
+		{traceID: schema.TraceID{0xaa}, commitID: "12", digest: dks.DigestA01Pos},
+		{traceID: schema.TraceID{0xaa}, commitID: "13", digest: dks.DigestA01Pos},
+		{traceID: schema.TraceID{0xaa}, commitID: "20", digest: dks.DigestA01Pos},
+
+		{traceID: schema.TraceID{0xbb}, commitID: "10", digest: dks.DigestA05Unt},
+		{traceID: schema.TraceID{0xbb}, commitID: "12", digest: dks.DigestA01Pos},
+		{traceID: schema.TraceID{0xbb}, commitID: "17", digest: dks.DigestA05Unt},
+		{traceID: schema.TraceID{0xbb}, commitID: "20", digest: dks.DigestA01Pos},
+	}
+
+	tg, err := makeTraceGroup(ctx, inputData, dks.DigestA01Pos)
+	require.NoError(t, err)
+	assert.Equal(t, frontend.TraceGroup{
+		TotalDigests: 2, // saw 2 distinct digests
+		Digests: []frontend.DigestStatus{
+			{Digest: dks.DigestA01Pos},
+			{Digest: dks.DigestA05Unt},
+		},
+		Traces: []frontend.Trace{{
+			ID:            "aa",
+			DigestIndices: []int{0, 0, 0, -1, 0},
+		}, {
+			ID:            "bb",
+			DigestIndices: []int{1, -1, 0, 1, 0},
+		}},
+	}, tg)
+}
+
+func TestMakeTraceGroup_OneFlakyTrace_PrioritizeShowingMostUsedDigests(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.WithValue(context.Background(), commitToIdx, map[schema.CommitID]int{
+		"10": 0,
+		"11": 1,
+		"12": 2,
+		"17": 3,
+		"19": 4,
+		"20": 5,
+		"21": 6,
+		"22": 7,
+		"23": 8,
+		"24": 9,
+		"25": 10,
+		"26": 11,
+		"27": 12,
+		"28": 13,
+		"29": 14,
+		"30": 15,
+		"31": 16,
+		"32": 17,
+	})
+	ctx = context.WithValue(ctx, actualWindowLength, 18)
+	inputData := []traceDigestCommit{
+		{traceID: schema.TraceID{0xaa}, commitID: "10", digest: "dC"},
+		{traceID: schema.TraceID{0xaa}, commitID: "11", digest: "dC"},
+		{traceID: schema.TraceID{0xaa}, commitID: "12", digest: "dC"},
+		{traceID: schema.TraceID{0xaa}, commitID: "17", digest: "dB"},
+		{traceID: schema.TraceID{0xaa}, commitID: "20", digest: "dB"},
+		{traceID: schema.TraceID{0xaa}, commitID: "21", digest: "dA"},
+		{traceID: schema.TraceID{0xaa}, commitID: "22", digest: "d9"},
+		{traceID: schema.TraceID{0xaa}, commitID: "23", digest: "d8"},
+		{traceID: schema.TraceID{0xaa}, commitID: "24", digest: "d7"},
+		{traceID: schema.TraceID{0xaa}, commitID: "25", digest: "d6"},
+		{traceID: schema.TraceID{0xaa}, commitID: "26", digest: "d6"},
+		{traceID: schema.TraceID{0xaa}, commitID: "27", digest: "d5"},
+		{traceID: schema.TraceID{0xaa}, commitID: "28", digest: "d4"},
+		{traceID: schema.TraceID{0xaa}, commitID: "29", digest: "d3"},
+		{traceID: schema.TraceID{0xaa}, commitID: "30", digest: "d2"},
+		{traceID: schema.TraceID{0xaa}, commitID: "31", digest: "d1"},
+		{traceID: schema.TraceID{0xaa}, commitID: "32", digest: "d0"},
+	}
+
+	tg, err := makeTraceGroup(ctx, inputData, "d0")
+	require.NoError(t, err)
+	assert.Equal(t, frontend.TraceGroup{
+		TotalDigests: 13, // saw 13 distinct digests
+		Digests: []frontend.DigestStatus{
+			{Digest: "d0"},
+			{Digest: "d1"},
+			{Digest: "d2"},
+			{Digest: "d3"},
+			{Digest: "dC"},
+			{Digest: "d6"},
+			{Digest: "dB"},
+			{Digest: "d4"},
+			{Digest: "d5"}, // All others combined with this one
+		},
+		Traces: []frontend.Trace{{
+			ID:            "aa",
+			DigestIndices: []int{4, 4, 4, 6, -1, 6, 8, 8, 8, 8, 5, 5, 8, 7, 3, 2, 1, 0},
+		}},
+	}, tg)
+}
+
+var kitchenSinkCommits = makeKitchenSinkCommits()
+
+func makeKitchenSinkCommits() []web_frontend.Commit {
+	data := dks.Build()
+	convert := func(row schema.GitCommitRow) web_frontend.Commit {
+		return web_frontend.Commit{
+			CommitTime: row.CommitTime.Unix(),
+			Hash:       row.GitHash,
+			Author:     row.AuthorEmail,
+			Subject:    row.Subject,
+		}
+	}
+	return []web_frontend.Commit{
+		convert(data.GitCommits[0]),
+		convert(data.GitCommits[1]),
+		convert(data.GitCommits[2]),
+		convert(data.GitCommits[3]),
+		convert(data.GitCommits[4]), // There are 3 commits w/o data here
+		convert(data.GitCommits[8]),
+		convert(data.GitCommits[9]),
+		convert(data.GitCommits[10]),
+		convert(data.GitCommits[11]),
+		convert(data.GitCommits[12]),
+	}
 }
 
 // waitForSystemTime waits for a time greater than the duration mentioned in "AS OF SYSTEM TIME"
