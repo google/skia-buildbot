@@ -177,6 +177,29 @@ export interface ChangelistsResponse {
 	total: number;
 }
 
+export interface IgnoreRuleBody {
+	duration: string;
+	filter: string;
+	note: string;
+}
+
+export interface IgnoreRule {
+	id: string;
+	name: string;
+	updatedBy: string;
+	expires: string;
+	query: string;
+	note: string;
+	countAll: number;
+	exclusiveCountAll: number;
+	count: number;
+	exclusiveCount: number;
+}
+
+export interface IgnoresResponse {
+	rules: IgnoreRule[] | null;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type ParamSetResponse = { [key: string]: string[] | null };
