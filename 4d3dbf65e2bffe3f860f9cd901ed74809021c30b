@@ -74,6 +74,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "b29d1f5f_2fb5c50e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-26T13:53:33Z",
+      "side": 1,
+      "message": "Ah, metrics are a good idea.  Also added support for ignoring command failure (needed by one roller) and renamed the config messages to be clear what they\u0027re used for.",
+      "parentUuid": "9312ed30_2af63534",
+      "range": {
+        "startLine": 9,
+        "startChar": 30,
+        "endLine": 9,
+        "endChar": 40
+      },
+      "revId": "4d3dbf65e2bffe3f860f9cd901ed74809021c30b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "62d35c91_4ce49925",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 1
