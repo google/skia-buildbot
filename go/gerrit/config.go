@@ -257,6 +257,9 @@ var (
 		},
 		DryRunUsesTryjobResults: false,
 	}
+
+	// ConfigSkia is the configuration for Skia Gerrit hosts.
+	ConfigSkia = ConfigChromium
 )
 
 // Config describes the configuration for a Gerrit host.
