@@ -18,6 +18,23 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3a2902fe_76a8e48a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-26T12:09:27Z",
+      "side": 1,
+      "message": "I think I\u0027d like to block this on https://skia-review.googlesource.com/c/buildbot/+/400597, pending Ravi\u0027s approval.",
+      "revId": "1cceeb002e6e6e612b11e3936aef1066e0bedd5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "852aa497_a55386a0",
@@ -31,6 +48,30 @@
       "writtenOn": "2021-04-23T16:01:58Z",
       "side": 1,
       "message": "I thought you said python2? does this mean I can use python3 in the script? (I would much rather do that).",
+      "range": {
+        "startLine": 447,
+        "startChar": 9,
+        "endLine": 447,
+        "endChar": 16
+      },
+      "revId": "1cceeb002e6e6e612b11e3936aef1066e0bedd5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a6a2b6e5_c3920804",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-26T12:09:27Z",
+      "side": 1,
+      "message": "Yes, you can use python3.  We\u0027ve had to update since python2 recently disappeared from our workstations.",
+      "parentUuid": "852aa497_a55386a0",
       "range": {
         "startLine": 447,
         "startChar": 9,
@@ -102,6 +143,30 @@
       "side": 1,
       "message": "crrev.com/i/3778254",
       "parentUuid": "07c8b431_228efb4d",
+      "range": {
+        "startLine": 454,
+        "startChar": 0,
+        "endLine": 454,
+        "endChar": 106
+      },
+      "revId": "1cceeb002e6e6e612b11e3936aef1066e0bedd5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "446db523_72e5f8c8",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-26T12:09:27Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "d40cd4f8_d1b7d710",
       "range": {
         "startLine": 454,
         "startChar": 0,
