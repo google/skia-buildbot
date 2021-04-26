@@ -701,7 +701,17 @@ func (wh *Handlers) ListIgnoreRules(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, ignores)
+	// Dereference ignore rules before populating the response.
+	var derefIgnores []frontend.IgnoreRule
+	for _, ignore := range ignores {
+		derefIgnores = append(derefIgnores, *ignore)
+	}
+
+	response := frontend.IgnoresResponse{
+		Rules: derefIgnores,
+	}
+
+	sendJSONResponse(w, response)
 }
 
 // getIgnores fetches the ignores from the store and optionally counts how many
