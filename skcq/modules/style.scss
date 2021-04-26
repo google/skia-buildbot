@@ -1,0 +1,36 @@
+/* Common SkCQ Styles.
+   Assumes use of infra-sk/modules/theme-chooser-sk.
+
+ Can be imported via:
+
+    @import '../style';
+*/
+
+/* Universal table style */
+table {
+    border-spacing: 0px;
+    .nowrap {
+        white-space: nowrap;
+    }
+    th {
+        text-align: center;
+    }
+}
+
+/* Make Darkmode links visible */
+.darkmode a {
+    color: var(--secondary);
+}
+
+.darkmode table.options {
+    background-color: var(--surface-2dp);
+}
+
+/* Make sure the app doesn't leave empty space on the bottom/right. e.g. blank
+ white in darkmode.
+ */
+html,
+body,
+app-sk {
+    background-color: var(--background);
+}
