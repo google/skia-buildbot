@@ -248,6 +248,8 @@ message AndroidRepoManagerConfig {
     // include_authors_as_reviewers determines whether the authors of rolled
     // changes should be included as change reviewers.
     bool include_authors_as_reviewers = 10;
+    // pre_upload describes command(s) to run before uploading roll CLs.
+    PreUploadConfig pre_upload_commands = 11;
 }
 
 // CommandRepoManagerConfig provides configuration for a roller which runs
@@ -375,6 +377,8 @@ message GitCheckoutGitHubParentConfig {
 message GitCheckoutGitHubFileParentConfig {
     GitCheckoutGitHubParentConfig git_checkout = 1;
     repeated PreUploadStep pre_upload_steps = 2;
+    // pre_upload describes command(s) to run before uploading roll CLs.
+    PreUploadConfig pre_upload_commands = 3;
 }
 
 // GitilesParentConfig provides configuration for a Parent which uses Gitiles.
@@ -415,6 +419,8 @@ message DEPSLocalParentConfig {
     repeated PreUploadStep pre_upload_steps = 6;
     // run_hooks indicates whether to run "gclient runhooks" after syncing.
     bool run_hooks = 7;
+    // pre_upload describes command(s) to run before uploading roll CLs.
+    PreUploadConfig pre_upload_commands = 8;
 }
 
 // GitCheckoutParentConfig provides configuration for a Parent which uses a
@@ -653,4 +659,36 @@ message BuildbucketRevisionFilterConfig {
     string project = 1;
     string bucket = 2;
     string buildset_commit_tmpl = 3;
+}
+
+// PreUploadConfig describes additional steps to run after updating the
+// dependency but before uploading the CL, on rollers which use a local
+// checkout.
+message PreUploadConfig {
+    // CIPD packages needed by the command(s).
+    repeated PreUploadCIPDPackageConfig cipd_package = 1;
+    // Command(s) to run.
+    repeated PreUploadCommandConfig command = 2;
+}
+
+// PreUploadCommandConfig describes a command to run.
+message PreUploadCommandConfig {
+    // Command to run.
+    string command = 1;
+    // Working directory in which to run the command.
+    string cwd = 2;
+    // Environment variables needed by the command, in "KEY=VALUE" format.
+    repeated string env = 3;
+    // If true, log the error returned by the command but don't error out.
+    bool ignore_failure = 4;
+}
+
+// CIPDPackageConfig describes a CIPD package.
+message PreUploadCIPDPackageConfig {
+    // Full CIPD package name.
+    string name = 1;
+    // Relative path within the root dir to install the package.
+    string path = 2;
+    // Version of the package.
+    string version = 3;
 }

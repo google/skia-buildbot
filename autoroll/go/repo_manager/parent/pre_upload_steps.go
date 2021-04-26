@@ -67,7 +67,10 @@ func GetPreUploadStep(s config.PreUploadStep) (PreUploadStep, error) {
 }
 
 // GetPreUploadSteps returns the PreUploadSteps with the given names.
-func GetPreUploadSteps(steps []config.PreUploadStep) ([]PreUploadStep, error) {
+func GetPreUploadSteps(steps []config.PreUploadStep, generic *config.PreUploadConfig) ([]PreUploadStep, error) {
+	if generic != nil {
+		return []PreUploadStep{GetGenericPreUploadStep(generic)}, nil
+	}
 	rv := make([]PreUploadStep, 0, len(steps))
 	for _, s := range steps {
 		step, err := GetPreUploadStep(s)
@@ -423,5 +426,92 @@ func ChromiumRollWebGPUCTS(ctx context.Context, env []string, client *http.Clien
 		// Log, but don't return the error. The Chromium presubmit will fail if this does not succeed.
 		sklog.Errorf("%s", err)
 	}
+	return nil
+}
+
+// GetGenericPreUploadStep returns the generic pre-upload step using the given
+// config.
+func GetGenericPreUploadStep(cfg *config.PreUploadConfig) PreUploadStep {
+	return func(ctx context.Context, env []string, client *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
+		return GenericPreUploadStep(ctx, cfg, env, client, parentRepoDir, from, to)
+	}
+}
+
+// GenericPreUploadStep runs a pre-upload step as specified by the given config.
+func GenericPreUploadStep(ctx context.Context, cfg *config.PreUploadConfig, env []string, client *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
+	defer metrics2.FuncTimer().Stop()
+	preUploadStepFailure := int64(1)
+	defer func() {
+		metrics2.GetInt64Metric("pre_upload_step_failure", nil).Update(preUploadStepFailure)
+	}()
+	sklog.Info("Running pre-upload step...")
+
+	// "Magic" variables.
+	path := os.Getenv("PATH")
+	for _, envVar := range env {
+		split := strings.SplitN(envVar, "=", 2)
+		if len(split) == 2 && split[0] == "PATH" {
+			path = split[1]
+		}
+	}
+	replaceMagicVars := func(s string) string {
+		s = strings.ReplaceAll(s, "${cipd_root}", cipdRoot)
+		s = strings.ReplaceAll(s, "${parent_dir}", parentRepoDir)
+		s = strings.ReplaceAll(s, "${PATH}", path)
+		s = strings.ReplaceAll(s, "${rolling_from}", from.Id)
+		s = strings.ReplaceAll(s, "${rolling_to}", to.Id)
+		return s
+	}
+
+	if len(cfg.CipdPackage) > 0 {
+		cipdPkgs := []*cipd.Package{}
+		for _, pkg := range cfg.CipdPackage {
+			pkgName := replaceMagicVars(pkg.Name)
+			pkgVersion := pkg.Version
+			if pkgVersion == "${use_pinned_version}" {
+				builtin, err := cipd.GetPackage(pkgName)
+				if err != nil {
+					return skerr.Wrap(err)
+				}
+				pkgVersion = builtin.Version
+			}
+			cipdPkgs = append(cipdPkgs, &cipd.Package{
+				Name:    pkgName,
+				Path:    replaceMagicVars(pkg.Path),
+				Version: pkgVersion,
+			})
+		}
+		sklog.Info("Installing CIPD packages...")
+		if err := cipd.Ensure(ctx, client, cipdRoot, cipdPkgs...); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	for _, cmd := range cfg.Command {
+		cmdEnv := make([]string, len(env)+len(cmd.Env))
+		for _, envVar := range env {
+			cmdEnv = append(cmdEnv, replaceMagicVars(envVar))
+		}
+		for _, envVar := range cmd.Env {
+			cmdEnv = append(cmdEnv, replaceMagicVars(envVar))
+		}
+		split := strings.Split(cmd.Command, " ")
+		for idx := range split {
+			split[idx] = replaceMagicVars(split[idx])
+		}
+		sklog.Infof("Running command: %s", strings.Join(split, " "))
+		if _, err := exec.RunCommand(ctx, &exec.Command{
+			Name: split[0],
+			Args: split[1:],
+			Dir:  replaceMagicVars(cmd.Cwd),
+			Env:  cmdEnv,
+		}); err != nil {
+			if cmd.IgnoreFailure {
+				sklog.Errorf("%s", err)
+			} else {
+				return skerr.Wrap(err)
+			}
+		}
+	}
+	preUploadStepFailure = 0
 	return nil
 }

@@ -20,7 +20,7 @@ import (
 func NewGitCheckoutGithubFile(ctx context.Context, c *config.GitCheckoutGitHubFileParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
 	// Pre-upload steps are run after setting the new dependency version and
 	// syncing, but before committing and uploading.
-	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
+	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps, c.PreUploadCommands)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

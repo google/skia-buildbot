@@ -231,6 +231,7 @@ export interface AndroidRepoManagerConfig {
   preUploadSteps?: PreUploadStep[];
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfig;
   includeAuthorsAsReviewers: boolean;
+  preUploadCommands?: PreUploadConfig;
 }
 
 interface AndroidRepoManagerConfigJSON {
@@ -244,6 +245,7 @@ interface AndroidRepoManagerConfigJSON {
   pre_upload_steps?: string[];
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfigJSON;
   include_authors_as_reviewers?: boolean;
+  pre_upload_commands?: PreUploadConfigJSON;
 }
 
 export interface CommandRepoManagerConfig_CommandConfig {
@@ -393,11 +395,13 @@ interface GitCheckoutGitHubParentConfigJSON {
 export interface GitCheckoutGitHubFileParentConfig {
   gitCheckout?: GitCheckoutGitHubParentConfig;
   preUploadSteps?: PreUploadStep[];
+  preUploadCommands?: PreUploadConfig;
 }
 
 interface GitCheckoutGitHubFileParentConfigJSON {
   git_checkout?: GitCheckoutGitHubParentConfigJSON;
   pre_upload_steps?: string[];
+  pre_upload_commands?: PreUploadConfigJSON;
 }
 
 export interface GitilesParentConfig {
@@ -432,6 +436,7 @@ export interface DEPSLocalParentConfig {
   gclientSpec: string;
   preUploadSteps?: PreUploadStep[];
   runHooks: boolean;
+  preUploadCommands?: PreUploadConfig;
 }
 
 interface DEPSLocalParentConfigJSON {
@@ -442,6 +447,7 @@ interface DEPSLocalParentConfigJSON {
   gclient_spec?: string;
   pre_upload_steps?: string[];
   run_hooks?: boolean;
+  pre_upload_commands?: PreUploadConfigJSON;
 }
 
 export interface GitCheckoutParentConfig {
@@ -658,4 +664,40 @@ interface BuildbucketRevisionFilterConfigJSON {
   project?: string;
   bucket?: string;
   buildset_commit_tmpl?: string;
+}
+
+export interface PreUploadConfig {
+  cipdPackage?: PreUploadCIPDPackageConfig[];
+  command?: PreUploadCommandConfig[];
+}
+
+interface PreUploadConfigJSON {
+  cipd_package?: PreUploadCIPDPackageConfigJSON[];
+  command?: PreUploadCommandConfigJSON[];
+}
+
+export interface PreUploadCommandConfig {
+  command: string;
+  cwd: string;
+  env?: string[];
+  ignoreFailure: boolean;
+}
+
+interface PreUploadCommandConfigJSON {
+  command?: string;
+  cwd?: string;
+  env?: string[];
+  ignore_failure?: boolean;
+}
+
+export interface PreUploadCIPDPackageConfig {
+  name: string;
+  path: string;
+  version: string;
+}
+
+interface PreUploadCIPDPackageConfigJSON {
+  name?: string;
+  path?: string;
+  version?: string;
 }
