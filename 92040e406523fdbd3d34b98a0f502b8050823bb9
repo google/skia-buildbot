@@ -16,6 +16,23 @@
       "message": "Please take a look. Thanks!",
       "revId": "92040e406523fdbd3d34b98a0f502b8050823bb9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "45a6f723_913e6c10",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 17859
+      },
+      "writtenOn": "2021-04-26T10:01:31Z",
+      "side": 1,
+      "message": "https://skia.googlesource.com/buildbot/+/refs/changes/38/400438/1/autoroll/config/devtools-frontend-chromium.cfg#12 already lists this email address as a reviewer and I would have expected it already receives email updates for rolls. Could it be that the email group no longer allows emails from SKIA?",
+      "revId": "92040e406523fdbd3d34b98a0f502b8050823bb9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
