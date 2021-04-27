@@ -254,7 +254,7 @@ func main() {
 }
 
 func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pgxpool.Pool) *search2.Impl {
-	s2a := search2.New(sqlDB)
+	s2a := search2.New(sqlDB, fsc.NumCommits)
 	err := s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.NumCommits)
 	if err != nil {
 		sklog.Fatalf("Cannot load caches for search2 backend: %s", err)

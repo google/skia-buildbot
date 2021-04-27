@@ -177,6 +177,7 @@ CREATE TABLE IF NOT EXISTS ValuesAtHead (
   keys JSONB NOT NULL,
   matches_any_ignore_rule BOOL,
   INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id),
+  INDEX corpus_commit_ignore_idx (corpus, most_recent_commit_id, matches_any_ignore_rule) STORING (grouping_id, digest),
   INVERTED INDEX keys_idx (keys)
 );
 CREATE TABLE IF NOT EXISTS DeprecatedIngestedFiles (
