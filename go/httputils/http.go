@@ -50,6 +50,7 @@ const (
 var (
 	serverErr = errors.New("Server error")
 	clientErr = errors.New("Client error")
+	otherErr  = errors.New("Other error")
 )
 
 // HealthCheckHandler returns 200 OK with an empty body, appropriate
@@ -126,6 +127,16 @@ func (c ClientConfig) WithoutRetries() ClientConfig {
 // TokenSource.
 func (c ClientConfig) WithTokenSource(t oauth2.TokenSource) ClientConfig {
 	c.TokenSource = t
+	return c
+}
+
+// RetryNon2XX sets the backoff config to retry all non-2XX status codes. This
+// automatically sets the default backoff config if not set.
+func (c ClientConfig) WithRetryNon2XX() ClientConfig {
+	if c.Retries == nil {
+		c.Retries = DefaultBackOffConfig()
+	}
+	c.Retries.retryNon2XX = true
 	return c
 }
 
@@ -235,6 +246,7 @@ type BackOffConfig struct {
 	maxElapsedTime      time.Duration
 	randomizationFactor float64
 	backOffMultiplier   float64
+	retryNon2XX         bool
 }
 
 func DefaultBackOffConfig() *BackOffConfig {
@@ -322,8 +334,12 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 				// This error will be retried.
 				return serverErr
 			} else if resp.StatusCode < 200 || resp.StatusCode > 299 {
-				// Using Permanent so that the request will not be retried.
-				return backoff.Permanent(clientErr)
+				if t.backOffConfig.retryNon2XX {
+					return otherErr
+				} else {
+					// Using Permanent so that the request will not be retried.
+					return backoff.Permanent(clientErr)
+				}
 			}
 		}
 		return nil
@@ -332,10 +348,13 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		if notifyErr == serverErr {
 			sklog.Warningf("Got server error status code %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
 			resp = nil
+		} else if notifyErr == otherErr {
+			sklog.Warningf("Got error status code %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
+			resp = nil
 		} else {
 			sklog.Warningf("Got error while making the round trip to %s: %s. Retrying HTTP request after sleeping for %s", req.URL, notifyErr, wait)
 			if resp != nil {
-				panic("Expected serverErr when resp is non-nil")
+				panic("Expected serverErr or otherErr when resp is non-nil")
 			}
 		}
 	}
