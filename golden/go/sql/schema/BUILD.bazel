@@ -12,6 +12,7 @@ go_library(
     deps = [
         "//go/paramtools",
         "//go/skerr",
+        "//golden/go/expectations",
         "@com_github_google_uuid//:uuid",
         "@com_github_jackc_pgtype//:pgtype",
     ],

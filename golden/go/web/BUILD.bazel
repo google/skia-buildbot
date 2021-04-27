@@ -29,6 +29,7 @@ go_library(
         "//golden/go/search/frontend",
         "//golden/go/search/query",
         "//golden/go/search2",
+        "//golden/go/search2/frontend",
         "//golden/go/sql",
         "//golden/go/status",
         "//golden/go/storage",
