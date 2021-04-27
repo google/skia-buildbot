@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "29a7b901_282830a6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5695
+      },
+      "writtenOn": "2021-04-27T16:11:35Z",
+      "side": 1,
+      "message": "Interestingly, vulkan-deps into ANGLE is still able to create CLs, e.g. https://chromium-review.googlesource.com/c/angle/angle/+/2854414\nI wonder if that\u0027s because the config wasn\u0027t pushed to it, or is there some other reason, like not attempting to run the script with the wrong path.",
+      "revId": "b46006bd790ce2a98ab2b563f4fcbdd6010c6d90",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
