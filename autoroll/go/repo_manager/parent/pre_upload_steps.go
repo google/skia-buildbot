@@ -467,7 +467,7 @@ func GenericPreUploadStep(ctx context.Context, cfg *config.PreUploadConfig, env 
 		cipdPkgs := []*cipd.Package{}
 		for _, pkg := range cfg.CipdPackage {
 			pkgName := replaceMagicVars(pkg.Name)
-			pkgVersion := pkg.Version
+			pkgVersion := replaceMagicVars(pkg.Version)
 			if pkgVersion == "${use_pinned_version}" {
 				builtin, err := cipd.GetPackage(pkgName)
 				if err != nil {
