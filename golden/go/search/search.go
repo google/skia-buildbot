@@ -187,7 +187,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 
 	// Sort the digests and fill the ones that are going to be displayed with
 	// additional data.
-	displayRet, offset := s.sortAndLimitDigests(ctx, q, results, int(q.Offset), int(q.Limit))
+	displayRet, offset := s.sortAndLimitDigests(ctx, q, results, q.Offset, q.Limit)
 	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(q.CodeReviewSystemID, q.ChangelistID), displayRet)
 	traceComments := s.getTraceComments(ctx)
 	prepareTraceGroups(displayRet, exp, traceComments, isChangelistSearch)
@@ -791,7 +791,7 @@ func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*fr
 				continue
 			}
 
-			rgbaMaxDiff := int32(util.MaxInt(ref.MaxRGBADiffs[:]...))
+			rgbaMaxDiff := util.MaxInt(ref.MaxRGBADiffs[:]...)
 			if (rgbaMaxDiff < q.RGBAMinFilter) || (rgbaMaxDiff > q.RGBAMaxFilter) {
 				continue
 			}
