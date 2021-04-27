@@ -3,6 +3,7 @@
 package search2
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
 	"sort"
@@ -395,6 +396,7 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 	ctx, span := trace.StartSpan(ctx, "search2_Search")
 	defer span.End()
 
+	ctx = context.WithValue(ctx, queryKey, *q)
 	ctx, err := s.addCommitsData(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -405,13 +407,13 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 	}
 
 	// Find all digests and traces that match the given search criteria.
-	traceDigests, err := s.getMatchingDigestsAndTraces(ctx, q)
+	traceDigests, err := s.getMatchingDigestsAndTraces(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	// Lookup the closest diffs to the given digests. This returns a subset according to the
 	// limit and offset in the query.
-	closestDiffs, allClosestLabels, err := s.getClosestDiffs(ctx, traceDigests, q)
+	closestDiffs, allClosestLabels, err := s.getClosestDiffs(ctx, traceDigests)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -441,7 +443,7 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 
 	return &frontend.SearchResponse{
 		Results:        results,
-		Offset:         int(q.Offset),
+		Offset:         q.Offset,
 		Size:           len(allClosestLabels),
 		BulkTriageData: bulkTriageData,
 		Commits:        commits,
@@ -453,26 +455,31 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 type searchContextKey string
 
 const (
-	actualWindowLength = searchContextKey("actualWindowLength")
-	commitToIdx        = searchContextKey("commitToIdx")
-	firstCommitID      = searchContextKey("firstCommitID")
-	firstTileID        = searchContextKey("firstTileID")
+	actualWindowLengthKey = searchContextKey("actualWindowLengthKey")
+	commitToIdxKey        = searchContextKey("commitToIdxKey")
+	firstCommitIDKey      = searchContextKey("firstCommitIDKey")
+	firstTileIDKey        = searchContextKey("firstTileIDKey")
+	queryKey              = searchContextKey("query")
 )
 
 func getFirstCommitID(ctx context.Context) schema.CommitID {
-	return ctx.Value(firstCommitID).(schema.CommitID)
+	return ctx.Value(firstCommitIDKey).(schema.CommitID)
 }
 
 func getFirstTileID(ctx context.Context) schema.TileID {
-	return ctx.Value(firstTileID).(schema.TileID)
+	return ctx.Value(firstTileIDKey).(schema.TileID)
 }
 
 func getCommitToIdxMap(ctx context.Context) map[schema.CommitID]int {
-	return ctx.Value(commitToIdx).(map[schema.CommitID]int)
+	return ctx.Value(commitToIdxKey).(map[schema.CommitID]int)
 }
 
 func getActualWindowLength(ctx context.Context) int {
-	return ctx.Value(actualWindowLength).(int)
+	return ctx.Value(actualWindowLengthKey).(int)
+}
+
+func getQuery(ctx context.Context) query.Search {
+	return ctx.Value(queryKey).(query.Search)
 }
 
 // addCommitsData finds the current sliding window of data (The last N commits) and adds the
@@ -501,16 +508,16 @@ CommitsWithData ORDER BY commit_id DESC LIMIT $1`
 		return nil, skerr.Fmt("No commits with data")
 	}
 	// ids is ordered most recent commit to last commit at this point
-	ctx = context.WithValue(ctx, actualWindowLength, len(ids))
-	ctx = context.WithValue(ctx, firstCommitID, ids[len(ids)-1])
-	ctx = context.WithValue(ctx, firstTileID, firstObservedTile)
+	ctx = context.WithValue(ctx, actualWindowLengthKey, len(ids))
+	ctx = context.WithValue(ctx, firstCommitIDKey, ids[len(ids)-1])
+	ctx = context.WithValue(ctx, firstTileIDKey, firstObservedTile)
 	idToIndex := map[schema.CommitID]int{}
 	idx := 0
 	for i := len(ids) - 1; i >= 0; i-- {
 		idToIndex[ids[i]] = idx
 		idx++
 	}
-	ctx = context.WithValue(ctx, commitToIdx, idToIndex)
+	ctx = context.WithValue(ctx, commitToIdxKey, idToIndex)
 	return ctx, nil
 }
 
@@ -522,7 +529,7 @@ type stageOneResult struct {
 
 // getMatchingDigestsAndTraces returns the tuples of digest+traceID that match the given query.
 // The order of the result is abitrary.
-func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context, q *query.Search) ([]stageOneResult, error) {
+func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context) ([]stageOneResult, error) {
 	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTraces")
 	defer span.End()
 	const statement = `WITH
@@ -542,6 +549,7 @@ JOIN
 NonIgnoredTraces ON UntriagedDigests.grouping_id = NonIgnoredTraces.grouping_id AND
   UntriagedDigests.digest = NonIgnoredTraces.digest`
 
+	q := getQuery(ctx)
 	var triageStatuses []schema.ExpectationLabel
 	if q.IncludeUntriagedDigests {
 		triageStatuses = append(triageStatuses, schema.LabelUntriaged)
@@ -589,7 +597,7 @@ type stageTwoResult struct {
 // input. We are able to batch the queries by grouping and do so for better performance.
 // While this returns a subset of data as defined by the query, it also returns sufficient
 // information to bulk-triage all of the inputs.
-func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult, q *query.Search) ([]stageTwoResult, map[groupingDigestKey]expectations.Label, error) {
+func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]stageTwoResult, map[groupingDigestKey]expectations.Label, error) {
 	ctx, span := trace.StartSpan(ctx, "getClosestDiffs")
 	defer span.End()
 	byGrouping := map[schema.MD5Hash][]stageOneResult{}
@@ -605,8 +613,6 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult, q *
 		byDigest[dID] = bd
 	}
 
-	bulkTriageData := map[groupingDigestKey]expectations.Label{}
-
 	for groupingID, inputs := range byGrouping {
 		const statement = `WITH
 ObservedDigestsInTile AS (
@@ -620,7 +626,7 @@ PositiveOrNegativeDigests AS (
 ComparisonBetweenUntriagedAndObserved AS (
     SELECT DiffMetrics.* FROM DiffMetrics
     JOIN ObservedDigestsInTile ON DiffMetrics.right_digest = ObservedDigestsInTile.digest
-    WHERE left_digest = ANY($1) AND max_channel_diff >= $4 AND max_channel_diff <= $5
+    WHERE left_digest = ANY($1)
 )
 -- This will return the right_digest with the smallest combined_metric for each left_digest + label
 SELECT DISTINCT ON (left_digest, label)
@@ -636,7 +642,7 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 		for _, input := range inputs {
 			digests = append(digests, input.digest)
 		}
-		rows, err := s.db.Query(ctx, statement, digests, groupingID[:], getFirstTileID(ctx), q.RGBAMinFilter, q.RGBAMaxFilter)
+		rows, err := s.db.Query(ctx, statement, digests, groupingID[:], getFirstTileID(ctx))
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
@@ -670,36 +676,65 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 			if stageTwo.closestNegative != nil && stageTwo.closestPositive != nil {
 				if stageTwo.closestPositive.CombinedMetric < stageTwo.closestNegative.CombinedMetric {
 					stageTwo.closestDigest = stageTwo.closestPositive
-					bulkTriageData[groupingDigestKey{groupingID: groupingID, digest: leftDigest}] = expectations.Positive
 				} else {
 					stageTwo.closestDigest = stageTwo.closestNegative
-					bulkTriageData[groupingDigestKey{groupingID: groupingID, digest: leftDigest}] = expectations.Negative
 				}
 			} else {
 				// there is only one type of diff, so it defaults to the closest.
 				stageTwo.closestDigest = srdd
-				bulkTriageData[groupingDigestKey{groupingID: groupingID, digest: leftDigest}] = label.ToExpectation()
 			}
 			byDigest[leftDigest] = stageTwo
 		}
 		rows.Close()
 	}
 
-	rv := make([]stageTwoResult, 0, len(byDigest))
+	q := getQuery(ctx)
+	bulkTriageData := map[groupingDigestKey]expectations.Label{}
+	results := make([]stageTwoResult, 0, len(byDigest))
 	for _, s2 := range byDigest {
-		rv = append(rv, s2)
+		// Filter out any results without a closest triaged digest (if that option is selected).
+		if q.MustIncludeReferenceFilter && s2.closestDigest == nil {
+			continue
+		}
+		if s2.closestDigest != nil {
+			// Apply RGBA Filter here - if the closest digest isn't within range, we remove it.
+			maxDiff := util.MaxInt(s2.closestDigest.MaxRGBADiffs[:]...)
+			if maxDiff < q.RGBAMinFilter || maxDiff > q.RGBAMaxFilter {
+				continue
+			}
+			closestLabel := s2.closestDigest.Status
+			key := groupingDigestKey{groupingID: sql.AsMD5Hash(s2.groupingID), digest: sql.AsMD5Hash(s2.leftDigest)}
+			bulkTriageData[key] = closestLabel
+		}
+		results = append(results, s2)
+
 	}
-	sort.Slice(rv, func(i, j int) bool {
-		if rv[i].closestDigest == nil {
+	if q.Offset >= len(results) {
+		return nil, bulkTriageData, nil
+	}
+	sortAsc := q.Sort == query.SortAscending
+	sort.Slice(results, func(i, j int) bool {
+		if results[i].closestDigest == nil {
 			return true // sort results with no reference image to the top
 		}
-		if rv[j].closestDigest == nil {
+		if results[j].closestDigest == nil {
 			return false
 		}
-		return rv[i].closestDigest.CombinedMetric >= rv[j].closestDigest.CombinedMetric
+		if results[i].closestDigest.CombinedMetric == results[j].closestDigest.CombinedMetric {
+			// Tiebreak using digest in ascending order.
+			return bytes.Compare(results[i].leftDigest, results[j].leftDigest) < 0
+		}
+		if sortAsc {
+			return results[i].closestDigest.CombinedMetric < results[j].closestDigest.CombinedMetric
+		}
+		return results[i].closestDigest.CombinedMetric > results[j].closestDigest.CombinedMetric
 	})
-	// TODO(kjlubick) use query.limit and offset
-	return rv, bulkTriageData, nil
+
+	if q.Limit <= 0 {
+		return results, bulkTriageData, nil
+	}
+	end := util.MinInt(len(results), q.Offset+q.Limit)
+	return results[q.Offset:end], bulkTriageData, nil
 }
 
 // getParamsetsForDigests fetches all the traces that produced the digests in the data and
@@ -708,12 +743,34 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 func (s *Impl) getParamsetsForDigests(ctx context.Context, inputs []stageTwoResult) (map[types.Digest]paramtools.ParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "getParamsetsForDigests")
 	defer span.End()
-	var digests []schema.DigestBytes
+	var leftDigests []schema.DigestBytes
+	var rightDigests []schema.DigestBytes
 	for _, input := range inputs {
-		digests = append(digests, input.leftDigest)
-		digests = append(digests, input.rightDigests...)
+		leftDigests = append(leftDigests, input.leftDigest)
+		rightDigests = append(rightDigests, input.rightDigests...)
 	}
-	span.AddAttributes(trace.Int64Attribute("num_digests", int64(len(digests))))
+	span.AddAttributes(trace.Int64Attribute("num_digests", int64(len(leftDigests)+len(rightDigests))))
+	digestToTraces, err := s.getLeftParamsets(ctx, leftDigests)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := s.addRightParamsets(ctx, digestToTraces, rightDigests); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	rv, err := s.expandTracesIntoParamsets(ctx, digestToTraces)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return rv, nil
+}
+
+// getLeftParamsets finds the traces that draw the given digests. It will respect the ignore rules
+// setting.
+func (s *Impl) getLeftParamsets(ctx context.Context, digests []schema.DigestBytes) (map[types.Digest][]schema.TraceID, error) {
+	ctx, span := trace.StartSpan(ctx, "getLeftParamsets")
+	defer span.End()
+	span.AddAttributes(trace.Int64Attribute("num_left_digests", int64(len(digests))))
+
 	const statement = `WITH
 DigestsAndTraces AS (
 	SELECT DISTINCT encode(digest, 'hex') as digest, trace_id
@@ -722,9 +779,14 @@ DigestsAndTraces AS (
 SELECT DigestsAndTraces.digest, DigestsAndTraces.trace_id
 FROM DigestsAndTraces
 JOIN Traces ON DigestsAndTraces.trace_id = Traces.trace_id
-WHERE matches_any_ignore_rule = FALSE
+WHERE matches_any_ignore_rule = ANY($3)
 `
-	rows, err := s.db.Query(ctx, statement, digests, getFirstTileID(ctx))
+	q := getQuery(ctx)
+	ignoreStatues := []bool{false}
+	if q.IncludeIgnoredTraces {
+		ignoreStatues = append(ignoreStatues, true)
+	}
+	rows, err := s.db.Query(ctx, statement, digests, getFirstTileID(ctx), ignoreStatues)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -738,12 +800,33 @@ WHERE matches_any_ignore_rule = FALSE
 		}
 		digestToTraces[digest] = append(digestToTraces[digest], traceID)
 	}
+	return digestToTraces, nil
+}
 
-	rv, err := s.expandTracesIntoParamsets(ctx, digestToTraces)
+// addRightParamsets finds the traces that draw the given digests. We do not need to consider the
+// ignore rules because those only apply to the search results (that is, the left side).
+func (s *Impl) addRightParamsets(ctx context.Context, digestToTraces map[types.Digest][]schema.TraceID, digests []schema.DigestBytes) error {
+	ctx, span := trace.StartSpan(ctx, "getLeftParamsets")
+	defer span.End()
+	span.AddAttributes(trace.Int64Attribute("num_right_digests", int64(len(digests))))
+
+	const statement = `SELECT DISTINCT encode(digest, 'hex') as digest, trace_id
+FROM TiledTraceDigests WHERE digest = ANY($1) AND tile_id >= $2
+`
+	rows, err := s.db.Query(ctx, statement, digests, getFirstTileID(ctx))
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
-	return rv, nil
+	defer rows.Close()
+	for rows.Next() {
+		var digest types.Digest
+		var traceID schema.TraceID
+		if err := rows.Scan(&digest, &traceID); err != nil {
+			return skerr.Wrap(err)
+		}
+		digestToTraces[digest] = append(digestToTraces[digest], traceID)
+	}
+	return nil
 }
 
 // expandTracesIntoParamsets effectively returns a map detailing "who drew a given digest?". This
@@ -810,7 +893,7 @@ func (s *Impl) expandTraceToParams(ctx context.Context, traceID schema.TraceID) 
 	const statement = `SELECT keys FROM Traces WHERE trace_id = $1`
 	row := s.db.QueryRow(ctx, statement, traceID)
 	var keys paramtools.Params
-	if err := row.Scan(&traceID, &keys); err != nil {
+	if err := row.Scan(&keys); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	s.traceCache.Add(string(traceID), keys)

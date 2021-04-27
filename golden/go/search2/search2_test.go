@@ -518,10 +518,10 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 		IncludePositiveDigests:           false,
 		IncludeNegativeDigests:           false,
 		IncludeUntriagedDigests:          true,
-		Sort:                             "desc",
+		Sort:                             query.SortDescending,
 		IncludeIgnoredTraces:             false,
 		TraceValues: paramtools.ParamSet{
-			types.CorpusField: []string{"round"},
+			types.CorpusField: []string{dks.RoundCorpus},
 		},
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
@@ -534,7 +534,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 			Status: expectations.Untriaged,
 			ParamSet: paramtools.ParamSet{
 				dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
-				types.CorpusField:     []string{"round"},
+				types.CorpusField:     []string{dks.RoundCorpus},
 				dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
 				dks.OSKey:             []string{dks.IOS}, // Note: Android + Taimen are ignored
 				types.PrimaryKeyField: []string{dks.CircleTest},
@@ -545,7 +545,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					DigestIndices: []int{-1, 2, -1, -1, 2, -1, -1, 0, -1, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.GreyColorMode,
-						types.CorpusField:     "round",
+						types.CorpusField:     dks.RoundCorpus,
 						dks.DeviceKey:         dks.IPhoneDevice,
 						dks.OSKey:             dks.IOS,
 						types.PrimaryKeyField: dks.CircleTest,
@@ -555,7 +555,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					DigestIndices: []int{1, -1, 1, -1, 1, -1, 1, -1, 0, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
-						types.CorpusField:     "round",
+						types.CorpusField:     dks.RoundCorpus,
 						dks.DeviceKey:         dks.IPhoneDevice,
 						dks.OSKey:             dks.IOS,
 						types.PrimaryKeyField: dks.CircleTest,
@@ -565,7 +565,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					DigestIndices: []int{1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
-						types.CorpusField:     "round",
+						types.CorpusField:     dks.RoundCorpus,
 						dks.DeviceKey:         dks.IPadDevice,
 						dks.OSKey:             dks.IOS,
 						types.PrimaryKeyField: dks.CircleTest,
@@ -575,7 +575,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					DigestIndices: []int{2, 2, 2, 2, 2, 2, 2, 0, 0, 0},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.GreyColorMode,
-						types.CorpusField:     "round",
+						types.CorpusField:     dks.RoundCorpus,
 						dks.DeviceKey:         dks.IPadDevice,
 						dks.OSKey:             dks.IOS,
 						types.PrimaryKeyField: dks.CircleTest,
@@ -597,7 +597,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					Status:       expectations.Positive,
 					ParamSet: paramtools.ParamSet{
 						dks.ColorModeKey:      []string{dks.RGBColorMode},
-						types.CorpusField:     []string{"round"},
+						types.CorpusField:     []string{dks.RoundCorpus},
 						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
 						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
 						types.PrimaryKeyField: []string{dks.CircleTest},
@@ -612,7 +612,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 			Status: expectations.Untriaged,
 			ParamSet: paramtools.ParamSet{
 				dks.ColorModeKey:      []string{dks.RGBColorMode},
-				types.CorpusField:     []string{"round"},
+				types.CorpusField:     []string{dks.RoundCorpus},
 				dks.DeviceKey:         []string{dks.QuadroDevice},
 				dks.OSKey:             []string{dks.Windows10dot3OS},
 				types.PrimaryKeyField: []string{dks.CircleTest},
@@ -623,7 +623,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					DigestIndices: []int{-1, -1, -1, 0, 0, 0, 0, 0, 0, 0},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
-						types.CorpusField:     "round",
+						types.CorpusField:     dks.RoundCorpus,
 						dks.DeviceKey:         dks.QuadroDevice,
 						dks.OSKey:             dks.Windows10dot3OS,
 						types.PrimaryKeyField: dks.CircleTest,
@@ -643,7 +643,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					Status:       expectations.Positive,
 					ParamSet: paramtools.ParamSet{
 						dks.ColorModeKey:      []string{dks.RGBColorMode},
-						types.CorpusField:     []string{"round"},
+						types.CorpusField:     []string{dks.RoundCorpus},
 						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
 						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
 						types.PrimaryKeyField: []string{dks.CircleTest},
@@ -658,7 +658,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 			Status: expectations.Untriaged,
 			ParamSet: paramtools.ParamSet{
 				dks.ColorModeKey:      []string{dks.GreyColorMode},
-				types.CorpusField:     []string{"round"},
+				types.CorpusField:     []string{dks.RoundCorpus},
 				dks.DeviceKey:         []string{dks.QuadroDevice},
 				dks.OSKey:             []string{dks.Windows10dot3OS},
 				types.PrimaryKeyField: []string{dks.CircleTest},
@@ -669,7 +669,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					DigestIndices: []int{-1, -1, -1, 0, 0, 0, 0, 0, 0, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.GreyColorMode,
-						types.CorpusField:     "round",
+						types.CorpusField:     dks.RoundCorpus,
 						dks.DeviceKey:         dks.QuadroDevice,
 						dks.OSKey:             dks.Windows10dot3OS,
 						types.PrimaryKeyField: dks.CircleTest,
@@ -689,7 +689,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					Status:       expectations.Positive,
 					ParamSet: paramtools.ParamSet{
 						dks.ColorModeKey:      []string{dks.GreyColorMode},
-						types.CorpusField:     []string{"round"},
+						types.CorpusField:     []string{dks.RoundCorpus},
 						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
 						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
 						types.PrimaryKeyField: []string{dks.CircleTest},
@@ -712,17 +712,428 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	}, res)
 }
 
+func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: true,
+		IncludePositiveDigests:           false,
+		IncludeNegativeDigests:           false,
+		IncludeUntriagedDigests:          true,
+		Sort:                             query.SortDescending,
+		IncludeIgnoredTraces:             true,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.RoundCorpus},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	require.Len(t, res.Results, 3)
+	assert.Equal(t, frontend.TraceGroup{
+		Traces: []frontend.Trace{{
+			ID:            "0b61c8d85467fc95b1306128ceb2ef6d",
+			DigestIndices: []int{-1, 2, -1, -1, 2, -1, -1, 0, -1, -1},
+			Params: paramtools.Params{
+				dks.ColorModeKey:      dks.GreyColorMode,
+				types.CorpusField:     dks.RoundCorpus,
+				dks.DeviceKey:         dks.IPhoneDevice,
+				dks.OSKey:             dks.IOS,
+				types.PrimaryKeyField: dks.CircleTest,
+			},
+		}, {
+			ID:            "22b530e029c22e396c5a24c0900c9ed5",
+			DigestIndices: []int{1, -1, 1, -1, 1, -1, 1, -1, 0, -1},
+			Params: paramtools.Params{
+				dks.ColorModeKey:      dks.RGBColorMode,
+				types.CorpusField:     dks.RoundCorpus,
+				dks.DeviceKey:         dks.IPhoneDevice,
+				dks.OSKey:             dks.IOS,
+				types.PrimaryKeyField: dks.CircleTest,
+			},
+		}, {
+			ID:            "273119ca291863331e906fe71bde0e7d",
+			DigestIndices: []int{1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+			Params: paramtools.Params{
+				dks.ColorModeKey:      dks.RGBColorMode,
+				types.CorpusField:     dks.RoundCorpus,
+				dks.DeviceKey:         dks.IPadDevice,
+				dks.OSKey:             dks.IOS,
+				types.PrimaryKeyField: dks.CircleTest,
+			},
+		}, {
+			ID:            "3b44c31afc832ef9d1a2d25a5b873152",
+			DigestIndices: []int{2, 2, 2, 2, 2, 2, 2, 0, 0, 0},
+			Params: paramtools.Params{
+				dks.ColorModeKey:      dks.GreyColorMode,
+				types.CorpusField:     dks.RoundCorpus,
+				dks.DeviceKey:         dks.IPadDevice,
+				dks.OSKey:             dks.IOS,
+				types.PrimaryKeyField: dks.CircleTest,
+			},
+		}, {
+			// This trace matches an ignore rule, but should be visible due to the search
+			// terms
+			ID:            "902ac9eee937cd11b4ccc81d535ff33f",
+			DigestIndices: []int{-1, -1, -1, -1, -1, -1, 0, 0, 0, 0},
+			Params: paramtools.Params{
+				dks.ColorModeKey:      dks.RGBColorMode,
+				types.CorpusField:     dks.RoundCorpus,
+				dks.DeviceKey:         dks.TaimenDevice,
+				dks.OSKey:             dks.AndroidOS,
+				types.PrimaryKeyField: dks.CircleTest,
+			},
+		}},
+		Digests: []frontend.DigestStatus{
+			{Digest: dks.DigestC05Unt, Status: expectations.Untriaged},
+			{Digest: dks.DigestC01Pos, Status: expectations.Positive},
+			{Digest: dks.DigestC02Pos, Status: expectations.Positive},
+		},
+		TotalDigests: 3,
+	}, res.Results[0].TraceGroup)
+	assert.Equal(t, paramtools.ParamSet{
+		dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+		types.CorpusField:     []string{dks.RoundCorpus},
+		dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice},
+		dks.OSKey:             []string{dks.AndroidOS, dks.IOS},
+		types.PrimaryKeyField: []string{dks.CircleTest},
+	}, res.Results[0].ParamSet)
+	// Other two results should be the same as they didn't have any ignored data. We spot-check
+	// that here.
+	assert.Equal(t, paramtools.ParamSet{
+		dks.ColorModeKey:      []string{dks.RGBColorMode},
+		types.CorpusField:     []string{dks.RoundCorpus},
+		dks.DeviceKey:         []string{dks.QuadroDevice},
+		dks.OSKey:             []string{dks.Windows10dot3OS},
+		types.PrimaryKeyField: []string{dks.CircleTest},
+	}, res.Results[1].ParamSet)
+	assert.Equal(t, paramtools.ParamSet{
+		dks.ColorModeKey:      []string{dks.GreyColorMode},
+		types.CorpusField:     []string{dks.RoundCorpus},
+		dks.DeviceKey:         []string{dks.QuadroDevice},
+		dks.OSKey:             []string{dks.Windows10dot3OS},
+		types.PrimaryKeyField: []string{dks.CircleTest},
+	}, res.Results[2].ParamSet)
+}
+
+func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: true,
+		IncludePositiveDigests:           false,
+		IncludeNegativeDigests:           false,
+		IncludeUntriagedDigests:          true,
+		Sort:                             query.SortDescending,
+		IncludeIgnoredTraces:             false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.RoundCorpus},
+		},
+		RGBAMinFilter: 4,
+		RGBAMaxFilter: 20,
+	})
+	require.NoError(t, err)
+	// The other two results are removed because they are above or below the filter.
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestC03Unt,
+			Test:   dks.CircleTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "9156c4774e7d90db488b6aadf416ff8e",
+					DigestIndices: []int{-1, -1, -1, 0, 0, 0, 0, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.CircleTest,
+					},
+				}},
+				Digests: []frontend.DigestStatus{{
+					Digest: dks.DigestC03Unt, Status: expectations.Untriaged,
+				}},
+				TotalDigests: 1,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 0.89245414, QueryMetric: 0.89245414, PixelDiffPercent: 50, NumDiffPixels: 32,
+					MaxRGBADiffs: [4]int{1, 7, 4, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.RoundCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}},
+		Offset:  0,
+		Size:    1,
+		Commits: kitchenSinkCommits,
+		BulkTriageData: web_frontend.TriageRequestData{
+			dks.CircleTest: {
+				dks.DigestC03Unt: expectations.Positive,
+			},
+		},
+	}, res)
+}
+
+func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: true,
+		IncludePositiveDigests:           true,
+		IncludeNegativeDigests:           false,
+		IncludeUntriagedDigests:          false,
+		Sort:                             query.SortAscending,
+		IncludeIgnoredTraces:             false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.CornersCorpus},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		Offset:        3, // Carefully selected to return one result from square and triangle each.
+		Limit:         2,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestA08Pos,
+			Test:   dks.SquareTest,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.CornersCorpus},
+				dks.DeviceKey:         []string{dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "4686a4134535ad178b67325f5f2f613a",
+					DigestIndices: []int{-1, -1, -1, -1, -1, 4, 3, 2, 1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.WalleyeDevice,
+						dks.OSKey:             dks.AndroidOS,
+						types.PrimaryKeyField: dks.SquareTest,
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestA08Pos, Status: expectations.Positive},
+					{Digest: dks.DigestA07Pos, Status: expectations.Positive},
+					{Digest: dks.DigestA06Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+					{Digest: dks.DigestA05Unt, Status: expectations.Untriaged},
+				},
+				TotalDigests: 5,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 0.15655607, QueryMetric: 0.15655607, PixelDiffPercent: 3.125, NumDiffPixels: 2,
+					MaxRGBADiffs: [4]int{4, 0, 0, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestA01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+					},
+				},
+				common.NegativeRef: {
+					CombinedMetric: 10, QueryMetric: 10, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{255, 255, 255, 255},
+					DimDiffer:    false,
+					Digest:       dks.DigestA09Neg,
+					Status:       expectations.Negative,
+					// Even though this is ignored, we are free to show it on the right side
+					// (just not a part of the actual results).
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.TaimenDevice},
+						dks.OSKey:             []string{dks.AndroidOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+					},
+				},
+			},
+			ClosestRef: common.PositiveRef,
+		}, {
+			Digest: dks.DigestB01Pos,
+			Test:   dks.TriangleTest,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:  []string{dks.RGBColorMode},
+				types.CorpusField: []string{dks.CornersCorpus},
+				// Of note - this test is *not* ignored for the taimen device
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice, dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+				types.PrimaryKeyField: []string{dks.TriangleTest},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "1a16cbc8805378f0a6ef654a035d86c4",
+					DigestIndices: []int{-1, -1, -1, -1, -1, -1, 0, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.TaimenDevice,
+						dks.OSKey:             dks.AndroidOS,
+						types.PrimaryKeyField: dks.TriangleTest,
+					},
+				}, {
+					ID:            "555f149dfe944816076a57c633578dbc",
+					DigestIndices: []int{-1, -1, -1, 0, 0, 0, 0, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.TriangleTest,
+					},
+				}, {
+					ID:            "7346d80b7d5d1087fd61ae40098f4277",
+					DigestIndices: []int{2, 0, 0, -1, -1, -1, -1, -1, -1, -1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot2OS,
+						types.PrimaryKeyField: dks.TriangleTest,
+					},
+				}, {
+					ID:            "760c2db998331eafd3023f4b6d135b06",
+					DigestIndices: []int{1, -1, 2, -1, 2, -1, 1, -1, 0, -1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.IPhoneDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.TriangleTest,
+					},
+				}, {
+					ID:            "8fe41dfab19e0a291f37964416432128",
+					DigestIndices: []int{1, 1, 2, 1, 1, 2, 1, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.TriangleTest,
+					},
+				}, {
+					ID:            "ab734e10b7aed9d06a91f46d14746270",
+					DigestIndices: []int{-1, -1, -1, -1, -1, 0, 0, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.WalleyeDevice,
+						dks.OSKey:             dks.AndroidOS,
+						types.PrimaryKeyField: dks.TriangleTest,
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestB01Pos, Status: expectations.Positive},
+					{Digest: dks.DigestB03Neg, Status: expectations.Negative},
+					{Digest: dks.DigestBlank, Status: expectations.Untriaged},
+				},
+				TotalDigests: 3,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 1.9362538, QueryMetric: 1.9362538, PixelDiffPercent: 43.75, NumDiffPixels: 28,
+					MaxRGBADiffs: [4]int{11, 5, 42, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestB02Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.TriangleTest},
+					},
+				},
+				common.NegativeRef: {
+					CombinedMetric: 2.9445405, QueryMetric: 2.9445405, PixelDiffPercent: 10.9375, NumDiffPixels: 7,
+					MaxRGBADiffs: [4]int{250, 244, 197, 51},
+					DimDiffer:    false,
+					Digest:       dks.DigestB03Neg,
+					Status:       expectations.Negative,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
+						dks.OSKey:             []string{dks.IOS},
+						types.PrimaryKeyField: []string{dks.TriangleTest},
+					},
+				},
+			},
+			ClosestRef: common.PositiveRef,
+		}},
+		Offset:  3,
+		Size:    6,
+		Commits: kitchenSinkCommits,
+		BulkTriageData: web_frontend.TriageRequestData{
+			dks.SquareTest: {
+				dks.DigestA01Pos: expectations.Positive,
+				dks.DigestA02Pos: expectations.Positive,
+				dks.DigestA03Pos: expectations.Positive,
+				dks.DigestA08Pos: expectations.Positive,
+			}, dks.TriangleTest: {
+				dks.DigestB02Pos: expectations.Positive,
+				dks.DigestB01Pos: expectations.Positive,
+			},
+		},
+	}, res)
+}
+
 func TestMakeTraceGroup_TwoMostlyStableTraces_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ctx := context.WithValue(context.Background(), commitToIdx, map[schema.CommitID]int{
+	ctx := context.WithValue(context.Background(), commitToIdxKey, map[schema.CommitID]int{
 		"10": 0,
 		"11": 1,
 		"12": 2,
 		"17": 3,
 		"20": 4,
 	})
-	ctx = context.WithValue(ctx, actualWindowLength, 5)
+	ctx = context.WithValue(ctx, actualWindowLengthKey, 5)
 	inputData := []traceDigestCommit{
 		{traceID: schema.TraceID{0xaa}, commitID: "10", digest: dks.DigestA01Pos},
 		{traceID: schema.TraceID{0xaa}, commitID: "11", digest: dks.DigestA01Pos},
@@ -757,7 +1168,7 @@ func TestMakeTraceGroup_TwoMostlyStableTraces_Success(t *testing.T) {
 func TestMakeTraceGroup_OneFlakyTrace_PrioritizeShowingMostUsedDigests(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ctx := context.WithValue(context.Background(), commitToIdx, map[schema.CommitID]int{
+	ctx := context.WithValue(context.Background(), commitToIdxKey, map[schema.CommitID]int{
 		"10": 0,
 		"11": 1,
 		"12": 2,
@@ -777,7 +1188,7 @@ func TestMakeTraceGroup_OneFlakyTrace_PrioritizeShowingMostUsedDigests(t *testin
 		"31": 16,
 		"32": 17,
 	})
-	ctx = context.WithValue(ctx, actualWindowLength, 18)
+	ctx = context.WithValue(ctx, actualWindowLengthKey, 18)
 	inputData := []traceDigestCommit{
 		{traceID: schema.TraceID{0xaa}, commitID: "10", digest: "dC"},
 		{traceID: schema.TraceID{0xaa}, commitID: "11", digest: "dC"},

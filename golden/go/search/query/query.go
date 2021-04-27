@@ -49,16 +49,16 @@ func ParseSearch(r *http.Request, q *Search) error {
 	q.TraceValues = validate.QueryFormValue(r, "query")
 	q.RightTraceValues = validate.QueryFormValue(r, "rquery")
 
-	q.Limit = int32(validate.Int64FormValue(r, "limit", 50))
-	q.Offset = int32(validate.Int64FormValue(r, "offset", 0))
-	q.Offset = util.MaxInt32(q.Offset, 0)
+	q.Limit = int(validate.Int64FormValue(r, "limit", 50))
+	q.Offset = int(validate.Int64FormValue(r, "offset", 0))
+	q.Offset = util.MaxInt(q.Offset, 0)
 
 	validate.StrFormValue(r, "metric", &q.Metric, []string{CombinedMetric, PercentMetric, PixelMetric}, CombinedMetric)
 	validate.StrFormValue(r, "sort", &q.Sort, []string{SortDescending, SortAscending}, SortDescending)
 
 	// Parse and validate the filter values.
-	q.RGBAMinFilter = int32(validate.Int64FormValue(r, "frgbamin", 0))
-	q.RGBAMaxFilter = int32(validate.Int64FormValue(r, "frgbamax", 255))
+	q.RGBAMinFilter = int(validate.Int64FormValue(r, "frgbamin", 0))
+	q.RGBAMaxFilter = int(validate.Int64FormValue(r, "frgbamax", 255))
 
 	// Parse out the issue and patchsets.
 	q.Patchsets = validate.Int64SliceFormValue(r, "patchsets", nil)
