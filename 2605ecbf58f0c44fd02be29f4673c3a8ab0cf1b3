@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "821dd3b9_cf70560d",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1900,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-27T20:57:06Z",
+      "side": 1,
+      "message": "This pattern inspired by go/gotip/episodes/46",
+      "revId": "2605ecbf58f0c44fd02be29f4673c3a8ab0cf1b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
