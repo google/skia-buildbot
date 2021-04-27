@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d881da20_75491a6f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5695
+      },
+      "writtenOn": "2021-04-27T14:13:47Z",
+      "side": 1,
+      "message": "This breaks the autoroller, it can\u0027t create a CL now.\nI don\u0027t have the message from the Chromium one, but into ANGLE says that:\npython3: can\u0027t open file \u0027/data/angle/third_party/vulkan_deps/update-commit-message.py\u0027: [Errno 2] No such file or directory\n\nIt should be vulkan-deps instead of vulkan_deps https://source.chromium.org/chromium/chromium/src/+/master:third_party/vulkan-deps/update-commit-message.py\n",
+      "revId": "26fcd7f4b0201fb5b6a3ab3db5e9107d39009e61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
