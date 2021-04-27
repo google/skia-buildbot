@@ -3052,7 +3052,7 @@ func TestStartCacheWarming_Success(t *testing.T) {
 
 	wh := initCaches(Handlers{
 		HandlersConfig: HandlersConfig{
-			Search2API: search2.New(db),
+			Search2API: search2.New(db, 10),
 			DB:         db,
 		},
 	})

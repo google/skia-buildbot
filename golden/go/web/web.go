@@ -44,6 +44,7 @@ import (
 	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search2"
+	search2_fe "go.skia.org/infra/golden/go/search2/frontend"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
@@ -1874,7 +1875,7 @@ func (wh *Handlers) ChangelistSummaryHandler(w http.ResponseWriter, r *http.Requ
 		httputils.ReportError(w, err, "Could not get summary", http.StatusInternalServerError)
 		return
 	}
-	rv := frontend.ConvertChangelistSummaryResponseV1(sum)
+	rv := search2_fe.ConvertChangelistSummaryResponseV1(sum)
 	sendJSONResponse(w, rv)
 }
 
