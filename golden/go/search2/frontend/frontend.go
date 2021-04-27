@@ -13,6 +13,9 @@ type ChangelistSummaryResponseV1 struct {
 	ChangelistID string `json:"changelist_id"`
 	// PatchsetSummaries is a summary for all Patchsets for which we have data.
 	PatchsetSummaries []PatchsetNewAndUntriagedSummaryV1 `json:"patchsets"`
+	// Outdated will be true if this is a stale cached entry. Clients are free to try again later
+	// for the latest results.
+	Outdated bool `json:"outdated"`
 }
 
 // PatchsetNewAndUntriagedSummaryV1 is the summary for a specific PS. It focuses on the untriaged
@@ -55,5 +58,6 @@ func ConvertChangelistSummaryResponseV1(summary search2.NewAndUntriagedSummary) 
 	return ChangelistSummaryResponseV1{
 		ChangelistID:      summary.ChangelistID,
 		PatchsetSummaries: xps,
+		Outdated:          summary.Outdated,
 	}
 }
