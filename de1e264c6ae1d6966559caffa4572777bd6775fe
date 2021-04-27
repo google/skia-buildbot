@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8cf7a156_44a2abf8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5695
+      },
+      "writtenOn": "2021-04-27T14:14:21Z",
+      "side": 1,
+      "message": "Same as for https://skia-review.googlesource.com/c/buildbot/+/401221, this should be vulkan-deps intead of vulkan_deps.",
+      "revId": "de1e264c6ae1d6966559caffa4572777bd6775fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
