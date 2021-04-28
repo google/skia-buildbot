@@ -16,6 +16,75 @@
       "message": "Changed PS2 to use retryableErr and permanentErr instead of clientErr and serverErr, and only retry 4XX.  PTAL.",
       "revId": "4b9acf6afdeebe5bb6c64ffa5ad8cea43a74ac23",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "450e67e4_3ab4bff6",
+        "filename": "go/httputils/http.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-28T15:17:03Z",
+      "side": 1,
+      "message": "nit: 4XX",
+      "range": {
+        "startLine": 132,
+        "startChar": 53,
+        "endLine": 132,
+        "endChar": 60
+      },
+      "revId": "4b9acf6afdeebe5bb6c64ffa5ad8cea43a74ac23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "deecf118_3317db2e",
+        "filename": "go/httputils/http.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-28T15:17:03Z",
+      "side": 1,
+      "message": "I *think* we don\u0027t need this?\nWe did not have clientErr here before because I think notifyFunc isn\u0027t called when backoff.Permanent(permanentErr) is thrown",
+      "range": {
+        "startLine": 346,
+        "startChar": 34,
+        "endLine": 346,
+        "endChar": 59
+      },
+      "revId": "4b9acf6afdeebe5bb6c64ffa5ad8cea43a74ac23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e63c5233_669ea278",
+        "filename": "go/httputils/http.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-28T15:17:03Z",
+      "side": 1,
+      "message": "Similar comment as above",
+      "range": {
+        "startLine": 352,
+        "startChar": 36,
+        "endLine": 352,
+        "endChar": 48
+      },
+      "revId": "4b9acf6afdeebe5bb6c64ffa5ad8cea43a74ac23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
