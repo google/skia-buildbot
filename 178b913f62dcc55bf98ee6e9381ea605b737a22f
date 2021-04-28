@@ -33,6 +33,24 @@
       "message": "Do you want to do this for only client errors (400-499) instead? I think that\u0027s what you were trying to catch in the bug. That would narrow the scope of what you want to retry. Maybe it doesn\u0027t matter, but just wanted to point it out.\nSeparately: The existing clientErr is not a great name because here we are considering everything \u003c200 and \u003e299 (excluding server errors) as client errors.",
       "revId": "178b913f62dcc55bf98ee6e9381ea605b737a22f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0617f1d3_df6cf668",
+        "filename": "go/httputils/http.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-28T15:09:43Z",
+      "side": 1,
+      "message": "Hrm, yeah, we want the http.Client to handle 3XX and probably 1XX.",
+      "parentUuid": "6bfa1163_fe20713c",
+      "revId": "178b913f62dcc55bf98ee6e9381ea605b737a22f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

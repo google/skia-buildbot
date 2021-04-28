@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3ea33c8f_66d6dc42",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-28T15:09:43Z",
+      "side": 1,
+      "message": "Changed PS2 to use retryableErr and permanentErr instead of clientErr and serverErr, and only retry 4XX.  PTAL.",
+      "revId": "4b9acf6afdeebe5bb6c64ffa5ad8cea43a74ac23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
