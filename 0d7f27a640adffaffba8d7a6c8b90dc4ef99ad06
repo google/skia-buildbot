@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "47be78cf_fd835f01",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1934,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-28T12:21:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9f05b056_9fadcc88",
+      "range": {
+        "startLine": 1930,
+        "startChar": 0,
+        "endLine": 1934,
+        "endChar": 0
+      },
+      "revId": "0d7f27a640adffaffba8d7a6c8b90dc4ef99ad06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1e77befc_5bbdc231",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-04-27T21:16:45Z",
       "side": 1,
       "message": "Ditto here.",
+      "range": {
+        "startLine": 1936,
+        "startChar": 0,
+        "endLine": 1940,
+        "endChar": 0
+      },
+      "revId": "0d7f27a640adffaffba8d7a6c8b90dc4ef99ad06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "44523e52_689644c2",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1940,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-28T12:21:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1e77befc_5bbdc231",
       "range": {
         "startLine": 1936,
         "startChar": 0,
