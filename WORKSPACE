@@ -222,7 +222,7 @@ rbe_autoconfig(
     #
     # Must be updated manually after a new container image is uploaded to the container registry
     # via "bazel run //:push_rbe_container_skia_infra".
-    digest = "sha256:6a3760d431573e9c5d9caee2b20509e5f4e4670868c1024772ffd695f9bcda27",
+    digest = "sha256:341955ba1146b2e117cc858994d123d4bd8f528889b59793a3a8700fcf2fda17",
     # Enable networking. Without this, tests that require network access will fail. Examples include
     # go_test targets that try to clone the Skia Git repo from https://skia.googlesource.com/skia,
     # tests that hit GCS, etc.
