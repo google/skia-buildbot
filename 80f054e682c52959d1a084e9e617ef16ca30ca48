@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f39e3b0a_71de7100",
+        "filename": "BUILD.bazel",
+        "patchSetId": 4
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-04-28T17:53:57Z",
+      "side": 1,
+      "message": "Can we also set the ANDROID_NDK_HOME env variable on the RBE instances?",
+      "revId": "80f054e682c52959d1a084e9e617ef16ca30ca48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
