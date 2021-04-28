@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "813ba931_689d51e3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-04-28T15:17:56Z",
+      "side": 1,
+      "message": "retryableErr and permanentErr look much better!",
+      "parentUuid": "3ea33c8f_66d6dc42",
+      "revId": "4b9acf6afdeebe5bb6c64ffa5ad8cea43a74ac23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "450e67e4_3ab4bff6",
