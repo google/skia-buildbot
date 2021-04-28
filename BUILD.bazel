@@ -216,6 +216,15 @@ container_run_and_commit(
         "mkdir /cipd/etc",  # The below commands fail unless this directory exists.
         "git config --system user.name 'Bazel RBE Test User'",
         "git config --system user.email 'bazel-rbe-test-user@example.com'",
+
+        # Install Android NDK.
+        #
+        # URL and checksum copied from https://developer.android.com/ndk/downloads.
+        "wget https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip",
+        "echo 'c3ebc83c96a4d7f539bd72c241b2be9dcd29bda9  android-ndk-r21e-linux-x86_64.zip' > " +
+        "android-ndk-r21e-linux-x86_64.zip.sha1",
+        "sha1sum -c android-ndk-r21e-linux-x86_64.zip.sha1",
+        "unzip -d /usr/local android-ndk-r21e-linux-x86_64.zip",
     ],
     image = "@rbe_ubuntu1604//image",
     tags = [
