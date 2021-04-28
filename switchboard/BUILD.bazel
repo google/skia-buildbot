@@ -1,0 +1,27 @@
+load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
+
+# Example test that runs alongside another binary.
+test_on_env(
+    name = "test_on_env_test",
+    env = "//switchboard:attach",
+    test = "//switchboard:hello_over_adb",
+)
+
+sh_binary(
+    name = "attach",
+    srcs = ["attach.sh"],
+)
+
+cc_binary(
+    name = "hello",
+    srcs = ["cpp/hello.cpp"],
+)
+
+sh_test(
+    name = "hello_over_adb",
+    srcs = ["hello_over_adb.sh"],
+    args = ["$(rootpath :hello)"],
+    data = [
+        ":hello"
+    ]
+)
