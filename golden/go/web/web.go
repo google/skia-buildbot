@@ -1880,7 +1880,8 @@ func (wh *Handlers) ChangelistSummaryHandler(w http.ResponseWriter, r *http.Requ
 }
 
 // getCLSummary2 fetches, caches, and returns the summary for a given CL. If the result has already
-// been cached and the cached value is still valid, it will return that cached value.
+// been cached, it will return that cached value with a flag if the value is still up to date or
+// not. If the cached data is stale, it will spawn a goroutine to update the cached value.
 func (wh *Handlers) getCLSummary2(ctx context.Context, qCLID string) (search2.NewAndUntriagedSummary, error) {
 	ts, err := wh.Search2API.ChangelistLastUpdated(ctx, qCLID)
 	if err != nil {
@@ -1892,12 +1893,48 @@ func (wh *Handlers) getCLSummary2(ctx context.Context, qCLID string) (search2.Ne
 		sum, ok := cached.(search2.NewAndUntriagedSummary)
 		if ok {
 			if ts.Before(sum.LastUpdated) || sum.LastUpdated.Equal(ts) {
+				sum.Outdated = false
 				return sum, nil
 			}
+			// Result is stale. Start a goroutine to fetch it again.
+			done := make(chan struct{})
+			go func() {
+				// We intentionally use context.Background() and not the request's context because
+				// if we return a result, we want the fetching in the background to continue so
+				// if/when the client tries again, we can serve that updated result.
+				ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+				defer cancel()
+				newValue, err := wh.Search2API.NewAndUntriagedSummaryForCL(ctx, qCLID)
+				if err != nil {
+					sklog.Warningf("Could not fetch out of date summary for cl %s in background: %s", qCLID, err)
+					return
+				}
+				wh.clSummaryCache.Add(qCLID, newValue)
+				done <- struct{}{}
+			}()
+			// Wait up to 500ms to return the latest value quickly if available
+			timer := time.NewTimer(500 * time.Millisecond)
+			defer timer.Stop()
+			select {
+			case <-done:
+			case <-timer.C:
+			}
+			cached, ok = wh.clSummaryCache.Get(qCLID)
+			if ok {
+				if possiblyUpdated, ok := cached.(search2.NewAndUntriagedSummary); ok {
+					if ts.Before(possiblyUpdated.LastUpdated) || possiblyUpdated.LastUpdated.Equal(ts) {
+						// We were able to fetch new data quickly, so return it now.
+						possiblyUpdated.Outdated = false
+						return possiblyUpdated, nil
+					}
+				}
+			}
+			// The cached data is still stale or invalid, so return what we have marked as outdated.
+			sum.Outdated = true
+			return sum, nil
 		}
-		// Invalid or old cache entry - must overwrite.
 	}
-
+	// Invalid or missing cache entry. We must fetch because we have nothing to give the user.
 	sum, err := wh.Search2API.NewAndUntriagedSummaryForCL(ctx, qCLID)
 	if err != nil {
 		return search2.NewAndUntriagedSummary{}, skerr.Wrap(err)
@@ -1909,17 +1946,26 @@ func (wh *Handlers) getCLSummary2(ctx context.Context, qCLID string) (search2.Ne
 // StartCacheWarming starts a go routine to warm the CL Summary cache. This way, most summaries are
 // responsive, even on big instances.
 func (wh *Handlers) StartCacheWarming(ctx context.Context) {
-	// We warm every CL that was open and produced data in the last 5 days. After the first cycle,
-	// we will incrementally update the cache.
+	// We warm every CL that was open and produced data or saw triage activity in the last 5 days.
+	// After the first cycle, we will incrementally update the cache.
 	lastCheck := now.Now(ctx).Add(-5 * 24 * time.Hour)
 	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
 		ctx, span := trace.StartSpan(ctx, "web_warmCacheCycle", trace.WithSampler(trace.AlwaysSample()))
 		defer span.End()
 		newTS := now.Now(ctx)
-		rows, err := wh.DB.Query(ctx, `
-SELECT changelist_id FROM Changelists AS OF SYSTEM TIME '-0.1s'
-WHERE status = 'open' and last_ingested_data > $1
-ORDER BY last_ingested_data DESC`, lastCheck)
+		rows, err := wh.DB.Query(ctx, `WITH
+ChangelistsWithNewData AS (
+	SELECT changelist_id FROM Changelists
+	WHERE status = 'open' and last_ingested_data > $1
+),
+ChangelistsWithTriageActivity AS (
+	SELECT DISTINCT branch_name AS changelist_id FROM ExpectationRecords
+	WHERE branch_name IS NOT NULL AND triage_time > $1
+)
+SELECT changelist_id FROM ChangelistsWithNewData
+UNION
+SELECT changelist_id FROM ChangelistsWithTriageActivity
+`, lastCheck)
 		if err != nil {
 			if err == pgx.ErrNoRows {
 				sklog.Infof("No CLS updated since %s", lastCheck)
@@ -1940,7 +1986,7 @@ ORDER BY last_ingested_data DESC`, lastCheck)
 		}
 		sklog.Infof("Warming cache for %d CLs", len(qualifiedIDS))
 		span.AddAttributes(trace.Int64Attribute("num_cls", int64(len(qualifiedIDS))))
-		// warm cache 3 at a time.
+		// warm cache 3 at a time. This number of goroutines was chosen arbitrarily.
 		_ = util.ChunkIterParallel(ctx, len(qualifiedIDS), len(qualifiedIDS)/3+1, func(ctx context.Context, startIdx int, endIdx int) error {
 			if err := ctx.Err(); err != nil {
 				return nil

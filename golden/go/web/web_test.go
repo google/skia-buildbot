@@ -2883,11 +2883,11 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 	})
 	wh.ChangelistSummaryHandler(w, r)
 	// Note this JSON had the patchsets sorted so the latest one is first.
-	const expectedJSON = `{"changelist_id":"my_cl","patchsets":[{"new_images":5,"new_untriaged_images":6,"total_untriaged_images":7,"patchset_id":"patchset8","patchset_order":8},{"new_images":1,"new_untriaged_images":2,"total_untriaged_images":3,"patchset_id":"patchset1","patchset_order":1}]}`
+	const expectedJSON = `{"changelist_id":"my_cl","patchsets":[{"new_images":5,"new_untriaged_images":6,"total_untriaged_images":7,"patchset_id":"patchset8","patchset_order":8},{"new_images":1,"new_untriaged_images":2,"total_untriaged_images":3,"patchset_id":"patchset1","patchset_order":1}],"outdated":false}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
-func TestChangelistSummaryHandler_ValidInput_CacheUsed(t *testing.T) {
+func TestChangelistSummaryHandler_CachedValueStaleButUpdatesQuickly_ReturnsFreshResult(t *testing.T) {
 	unittest.SmallTest(t)
 
 	ms := &mock_search2.API{}
@@ -2945,7 +2945,75 @@ func TestChangelistSummaryHandler_ValidInput_CacheUsed(t *testing.T) {
 			continue
 		}
 		// Note this JSON had the patchsets sorted so the latest one is first.
-		const expectedJSON = `{"changelist_id":"my_cl","patchsets":[{"new_images":5,"new_untriaged_images":6,"total_untriaged_images":7,"patchset_id":"patchset8","patchset_order":8},{"new_images":1,"new_untriaged_images":2,"total_untriaged_images":3,"patchset_id":"patchset1","patchset_order":1}]}`
+		const expectedJSON = `{"changelist_id":"my_cl","patchsets":[{"new_images":5,"new_untriaged_images":6,"total_untriaged_images":7,"patchset_id":"patchset8","patchset_order":8},{"new_images":1,"new_untriaged_images":2,"total_untriaged_images":3,"patchset_id":"patchset1","patchset_order":1}],"outdated":false}`
+		assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+	}
+	ms.AssertExpectations(t)
+}
+
+func TestChangelistSummaryHandler_CachedValueStaleUpdatesSlowly_ReturnsStaleResult(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ms := &mock_search2.API{}
+	// First call should have just one PS.
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search2.NewAndUntriagedSummary{
+		ChangelistID: "my_cl",
+		PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
+			NewImages:            1,
+			NewUntriagedImages:   2,
+			TotalUntriagedImages: 3,
+			PatchsetID:           "patchset1",
+			PatchsetOrder:        1,
+		}},
+		LastUpdated: time.Date(2021, time.March, 1, 1, 1, 1, 0, time.UTC),
+	}, nil).Once()
+	// Second call should have two PS and the latest timestamp.
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(func(context.Context, string) search2.NewAndUntriagedSummary {
+		// This is longer than the time we wait before giving up and returning stale results.
+		time.Sleep(2 * time.Second)
+		return search2.NewAndUntriagedSummary{
+			ChangelistID: "my_cl",
+			PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
+				NewImages:            1,
+				NewUntriagedImages:   2,
+				TotalUntriagedImages: 3,
+				PatchsetID:           "patchset1",
+				PatchsetOrder:        1,
+			}, {
+				NewImages:            5,
+				NewUntriagedImages:   6,
+				TotalUntriagedImages: 7,
+				PatchsetID:           "patchset8",
+				PatchsetOrder:        8,
+			}},
+			LastUpdated: time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC),
+		}
+	}, nil).Once()
+	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my-system_my_cl").Return(time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC), nil)
+
+	wh := initCaches(Handlers{
+		HandlersConfig: HandlersConfig{
+			Search2API: ms,
+			ReviewSystems: []clstore.ReviewSystem{{
+				ID: "my-system",
+			}},
+		},
+		anonymousGerritQuota: rate.NewLimiter(rate.Inf, 1),
+	})
+
+	for i := 0; i < 2; i++ {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+		r = mux.SetURLVars(r, map[string]string{
+			"id":     "my_cl",
+			"system": "my-system",
+		})
+		wh.ChangelistSummaryHandler(w, r)
+		if i == 0 {
+			continue
+		}
+		// Note this JSON is the first result marked as stale.
+		const expectedJSON = `{"changelist_id":"my_cl","patchsets":[{"new_images":1,"new_untriaged_images":2,"total_untriaged_images":3,"patchset_id":"patchset1","patchset_order":1}],"outdated":true}`
 		assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 	}
 	ms.AssertExpectations(t)
@@ -3048,7 +3116,6 @@ func TestStartCacheWarming_Success(t *testing.T) {
 	defer cancel()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
-	waitForSystemTime()
 
 	wh := initCaches(Handlers{
 		HandlersConfig: HandlersConfig{
