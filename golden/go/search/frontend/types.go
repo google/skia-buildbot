@@ -51,8 +51,10 @@ type SearchResult struct {
 	// TriageHistory is a history of all the times the primary digest has been retriaged for the
 	// given Test.
 	TriageHistory []TriageHistory `json:"triage_history"`
-	// ParamSet is all the params of all traces that produce the primary digest. It is for frontend UI
-	// presentation only; essentially a word cloud of what drew the primary digest.
+	// ParamSet is all the keys and options of all traces that produce the primary digest. It is
+	// for frontend UI presentation only; essentially a word cloud of what drew the primary digest.
+	// TODO(kjlubick) Consider splitting this into keys and options so it's more clear which are
+	// affecting the trace.
 	ParamSet paramtools.ParamSet `json:"paramset"`
 	// TraceGroup represents all traces that produced this digest at least once in the sliding window
 	// of commits.

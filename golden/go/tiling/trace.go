@@ -24,6 +24,8 @@ type Trace struct {
 	// It is strongly recommended to not have the same string be a key in both keys and options.
 	// Doing so could lead to unspecified behavior.
 	options map[string]string
+	// OptionsID is the md5 hash of the options map.
+	OptionsID []byte
 
 	// cache these values so as not to incur the non-zero map lookup cost (~15 ns) repeatedly.
 	testName types.TestName

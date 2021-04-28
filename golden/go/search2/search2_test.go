@@ -538,6 +538,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 				dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
 				dks.OSKey:             []string{dks.IOS}, // Note: Android + Taimen are ignored
 				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
 			},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
@@ -549,6 +550,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						dks.DeviceKey:         dks.IPhoneDevice,
 						dks.OSKey:             dks.IOS,
 						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
 					},
 				}, {
 					ID:            "22b530e029c22e396c5a24c0900c9ed5",
@@ -559,6 +561,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						dks.DeviceKey:         dks.IPhoneDevice,
 						dks.OSKey:             dks.IOS,
 						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
 					},
 				}, {
 					ID:            "273119ca291863331e906fe71bde0e7d",
@@ -569,6 +572,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						dks.DeviceKey:         dks.IPadDevice,
 						dks.OSKey:             dks.IOS,
 						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
 					},
 				}, {
 					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
@@ -579,6 +583,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						dks.DeviceKey:         dks.IPadDevice,
 						dks.OSKey:             dks.IOS,
 						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
 					},
 				}},
 				Digests: []frontend.DigestStatus{
@@ -601,6 +606,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
 						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
 						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
 					},
 				},
 				common.NegativeRef: nil,
@@ -616,6 +622,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 				dks.DeviceKey:         []string{dks.QuadroDevice},
 				dks.OSKey:             []string{dks.Windows10dot3OS},
 				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
 			},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
@@ -627,6 +634,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						dks.DeviceKey:         dks.QuadroDevice,
 						dks.OSKey:             dks.Windows10dot3OS,
 						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
 					},
 				}},
 				Digests: []frontend.DigestStatus{{
@@ -647,6 +655,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
 						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
 						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
 					},
 				},
 				common.NegativeRef: nil,
@@ -662,6 +671,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 				dks.DeviceKey:         []string{dks.QuadroDevice},
 				dks.OSKey:             []string{dks.Windows10dot3OS},
 				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
 			},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
@@ -673,6 +683,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						dks.DeviceKey:         dks.QuadroDevice,
 						dks.OSKey:             dks.Windows10dot3OS,
 						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
 					},
 				}},
 				Digests: []frontend.DigestStatus{{
@@ -693,6 +704,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
 						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
 						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
 					},
 				},
 				common.NegativeRef: nil,
@@ -745,6 +757,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 				dks.DeviceKey:         dks.IPhoneDevice,
 				dks.OSKey:             dks.IOS,
 				types.PrimaryKeyField: dks.CircleTest,
+				"ext":                 "png",
 			},
 		}, {
 			ID:            "22b530e029c22e396c5a24c0900c9ed5",
@@ -755,6 +768,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 				dks.DeviceKey:         dks.IPhoneDevice,
 				dks.OSKey:             dks.IOS,
 				types.PrimaryKeyField: dks.CircleTest,
+				"ext":                 "png",
 			},
 		}, {
 			ID:            "273119ca291863331e906fe71bde0e7d",
@@ -765,6 +779,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 				dks.DeviceKey:         dks.IPadDevice,
 				dks.OSKey:             dks.IOS,
 				types.PrimaryKeyField: dks.CircleTest,
+				"ext":                 "png",
 			},
 		}, {
 			ID:            "3b44c31afc832ef9d1a2d25a5b873152",
@@ -775,6 +790,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 				dks.DeviceKey:         dks.IPadDevice,
 				dks.OSKey:             dks.IOS,
 				types.PrimaryKeyField: dks.CircleTest,
+				"ext":                 "png",
 			},
 		}, {
 			// This trace matches an ignore rule, but should be visible due to the search
@@ -787,6 +803,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 				dks.DeviceKey:         dks.TaimenDevice,
 				dks.OSKey:             dks.AndroidOS,
 				types.PrimaryKeyField: dks.CircleTest,
+				"ext":                 "png",
 			},
 		}},
 		Digests: []frontend.DigestStatus{
@@ -802,6 +819,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 		dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice},
 		dks.OSKey:             []string{dks.AndroidOS, dks.IOS},
 		types.PrimaryKeyField: []string{dks.CircleTest},
+		"ext":                 []string{"png"},
 	}, res.Results[0].ParamSet)
 	// Other two results should be the same as they didn't have any ignored data. We spot-check
 	// that here.
@@ -811,6 +829,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 		dks.DeviceKey:         []string{dks.QuadroDevice},
 		dks.OSKey:             []string{dks.Windows10dot3OS},
 		types.PrimaryKeyField: []string{dks.CircleTest},
+		"ext":                 []string{"png"},
 	}, res.Results[1].ParamSet)
 	assert.Equal(t, paramtools.ParamSet{
 		dks.ColorModeKey:      []string{dks.GreyColorMode},
@@ -818,6 +837,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 		dks.DeviceKey:         []string{dks.QuadroDevice},
 		dks.OSKey:             []string{dks.Windows10dot3OS},
 		types.PrimaryKeyField: []string{dks.CircleTest},
+		"ext":                 []string{"png"},
 	}, res.Results[2].ParamSet)
 }
 
@@ -855,6 +875,7 @@ func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
 				dks.DeviceKey:         []string{dks.QuadroDevice},
 				dks.OSKey:             []string{dks.Windows10dot3OS},
 				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
 			},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
@@ -866,6 +887,7 @@ func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
 						dks.DeviceKey:         dks.QuadroDevice,
 						dks.OSKey:             dks.Windows10dot3OS,
 						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
 					},
 				}},
 				Digests: []frontend.DigestStatus{{
@@ -886,6 +908,7 @@ func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
 						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
 						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
 						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
 					},
 				},
 				common.NegativeRef: nil,
@@ -933,22 +956,28 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 			Test:   dks.SquareTest,
 			Status: expectations.Positive,
 			ParamSet: paramtools.ParamSet{
-				dks.ColorModeKey:      []string{dks.RGBColorMode},
-				types.CorpusField:     []string{dks.CornersCorpus},
-				dks.DeviceKey:         []string{dks.WalleyeDevice},
-				dks.OSKey:             []string{dks.AndroidOS},
-				types.PrimaryKeyField: []string{dks.SquareTest},
+				dks.ColorModeKey:             []string{dks.RGBColorMode},
+				types.CorpusField:            []string{dks.CornersCorpus},
+				dks.DeviceKey:                []string{dks.WalleyeDevice},
+				dks.OSKey:                    []string{dks.AndroidOS},
+				types.PrimaryKeyField:        []string{dks.SquareTest},
+				"ext":                        []string{"png"},
+				"image_matching_algorithm":   []string{"fuzzy"},
+				"fuzzy_max_different_pixels": []string{"2"},
 			},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "4686a4134535ad178b67325f5f2f613a",
 					DigestIndices: []int{-1, -1, -1, -1, -1, 4, 3, 2, 1, 0},
 					Params: paramtools.Params{
-						dks.ColorModeKey:      dks.RGBColorMode,
-						types.CorpusField:     dks.CornersCorpus,
-						dks.DeviceKey:         dks.WalleyeDevice,
-						dks.OSKey:             dks.AndroidOS,
-						types.PrimaryKeyField: dks.SquareTest,
+						dks.ColorModeKey:             dks.RGBColorMode,
+						types.CorpusField:            dks.CornersCorpus,
+						dks.DeviceKey:                dks.WalleyeDevice,
+						dks.OSKey:                    dks.AndroidOS,
+						types.PrimaryKeyField:        dks.SquareTest,
+						"ext":                        "png",
+						"image_matching_algorithm":   "fuzzy",
+						"fuzzy_max_different_pixels": "2",
 					},
 				}},
 				Digests: []frontend.DigestStatus{
@@ -968,11 +997,14 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 					Digest:       dks.DigestA01Pos,
 					Status:       expectations.Positive,
 					ParamSet: paramtools.ParamSet{
-						dks.ColorModeKey:      []string{dks.RGBColorMode},
-						types.CorpusField:     []string{dks.CornersCorpus},
-						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice, dks.WalleyeDevice},
-						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
-						types.PrimaryKeyField: []string{dks.SquareTest},
+						dks.ColorModeKey:             []string{dks.RGBColorMode},
+						types.CorpusField:            []string{dks.CornersCorpus},
+						dks.DeviceKey:                []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice, dks.WalleyeDevice},
+						dks.OSKey:                    []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField:        []string{dks.SquareTest},
+						"ext":                        []string{"png"},
+						"image_matching_algorithm":   []string{"fuzzy"},
+						"fuzzy_max_different_pixels": []string{"2"},
 					},
 				},
 				common.NegativeRef: {
@@ -989,6 +1021,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 						dks.DeviceKey:         []string{dks.TaimenDevice},
 						dks.OSKey:             []string{dks.AndroidOS},
 						types.PrimaryKeyField: []string{dks.SquareTest},
+						"ext":                 []string{"png"},
 					},
 				},
 			},
@@ -1004,6 +1037,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice, dks.WalleyeDevice},
 				dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
 				types.PrimaryKeyField: []string{dks.TriangleTest},
+				"ext":                 []string{"png"},
 			},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
@@ -1015,6 +1049,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 						dks.DeviceKey:         dks.TaimenDevice,
 						dks.OSKey:             dks.AndroidOS,
 						types.PrimaryKeyField: dks.TriangleTest,
+						"ext":                 "png",
 					},
 				}, {
 					ID:            "555f149dfe944816076a57c633578dbc",
@@ -1025,6 +1060,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 						dks.DeviceKey:         dks.QuadroDevice,
 						dks.OSKey:             dks.Windows10dot3OS,
 						types.PrimaryKeyField: dks.TriangleTest,
+						"ext":                 "png",
 					},
 				}, {
 					ID:            "7346d80b7d5d1087fd61ae40098f4277",
@@ -1035,6 +1071,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 						dks.DeviceKey:         dks.QuadroDevice,
 						dks.OSKey:             dks.Windows10dot2OS,
 						types.PrimaryKeyField: dks.TriangleTest,
+						"ext":                 "png",
 					},
 				}, {
 					ID:            "760c2db998331eafd3023f4b6d135b06",
@@ -1045,6 +1082,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 						dks.DeviceKey:         dks.IPhoneDevice,
 						dks.OSKey:             dks.IOS,
 						types.PrimaryKeyField: dks.TriangleTest,
+						"ext":                 "png",
 					},
 				}, {
 					ID:            "8fe41dfab19e0a291f37964416432128",
@@ -1055,6 +1093,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 						dks.DeviceKey:         dks.IPadDevice,
 						dks.OSKey:             dks.IOS,
 						types.PrimaryKeyField: dks.TriangleTest,
+						"ext":                 "png",
 					},
 				}, {
 					ID:            "ab734e10b7aed9d06a91f46d14746270",
@@ -1065,6 +1104,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 						dks.DeviceKey:         dks.WalleyeDevice,
 						dks.OSKey:             dks.AndroidOS,
 						types.PrimaryKeyField: dks.TriangleTest,
+						"ext":                 "png",
 					},
 				}},
 				Digests: []frontend.DigestStatus{
@@ -1087,6 +1127,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
 						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
 						types.PrimaryKeyField: []string{dks.TriangleTest},
+						"ext":                 []string{"png"},
 					},
 				},
 				common.NegativeRef: {
@@ -1101,6 +1142,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 						dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
 						dks.OSKey:             []string{dks.IOS},
 						types.PrimaryKeyField: []string{dks.TriangleTest},
+						"ext":                 []string{"png"},
 					},
 				},
 			},
@@ -1149,6 +1191,9 @@ func TestMakeTraceGroup_TwoMostlyStableTraces_Success(t *testing.T) {
 
 	tg, err := makeTraceGroup(ctx, inputData, dks.DigestA01Pos)
 	require.NoError(t, err)
+	for i := range tg.Traces {
+		tg.Traces[i].RawTrace = nil // We don't want to do assertions on this.
+	}
 	assert.Equal(t, frontend.TraceGroup{
 		TotalDigests: 2, // saw 2 distinct digests
 		Digests: []frontend.DigestStatus{
@@ -1211,6 +1256,9 @@ func TestMakeTraceGroup_OneFlakyTrace_PrioritizeShowingMostUsedDigests(t *testin
 
 	tg, err := makeTraceGroup(ctx, inputData, "d0")
 	require.NoError(t, err)
+	for i := range tg.Traces {
+		tg.Traces[i].RawTrace = nil // We don't want to do assertions on this.
+	}
 	assert.Equal(t, frontend.TraceGroup{
 		TotalDigests: 13, // saw 13 distinct digests
 		Digests: []frontend.DigestStatus{
