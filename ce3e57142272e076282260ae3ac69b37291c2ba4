@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3b7713c0_ffef996a",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-28T17:01:30Z",
+      "side": 1,
+      "message": "Probably better to change this API to return []frontend.IgnoreRule",
+      "range": {
+        "startLine": 698,
+        "startChar": 20,
+        "endLine": 698,
+        "endChar": 30
+      },
+      "revId": "ce3e57142272e076282260ae3ac69b37291c2ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
