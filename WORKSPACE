@@ -257,3 +257,15 @@ container_pull(
     # time a new container image is uploaded to GCR.
     tag = "prod",
 )
+
+# Stuff to test Android builds.
+
+android_sdk_repository(
+    name = "androidsdk", # Required. Name *must* be "androidsdk".
+    path = "/home/jcgregorio/Android/Sdk", # Optional. Can be omitted if `ANDROID_HOME` environment variable is set.
+)
+
+android_ndk_repository(
+    name = "androidndk", # Required. Name *must* be "androidndk".
+    path = "/home/jcgregorio/android-ndk-r21e", # Optional. Can be omitted if `ANDROID_NDK_HOME` environment variable is set.
+)
