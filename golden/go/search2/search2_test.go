@@ -23,8 +23,10 @@ import (
 	web_frontend "go.skia.org/infra/golden/go/web/frontend"
 )
 
-var changelistTSForIOS = time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC)
-var changelistTSForNewTests = time.Date(2020, time.December, 12, 9, 20, 33, 0, time.UTC)
+// These are the later of the times of the last ingested data or last triage action for the
+// given CL.
+var changelistTSForIOS = time.Date(2020, time.December, 10, 5, 0, 2, 0, time.UTC)
+var changelistTSForNewTests = time.Date(2020, time.December, 12, 9, 31, 32, 0, time.UTC)
 
 func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 	unittest.LargeTest(t)
@@ -67,7 +69,6 @@ func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests))
 	require.NoError(t, err)
-
 	assert.Equal(t, NewAndUntriagedSummary{
 		ChangelistID: dks.ChangelistIDThatAddsNewTests,
 		// Should be sorted by PatchsetOrder
@@ -396,10 +397,10 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 			{dks.ColorModeKey: dks.RGBColorMode, types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: dks.TriangleTest},
 			{dks.ColorModeKey: dks.RGBColorMode, types.CorpusField: dks.RoundCorpus, types.PrimaryKeyField: dks.CircleTest},
 		}).OptionsAll(paramtools.Params{"ext": "png"}).
-		FromTryjob("tryjob 3", dks.BuildBucketCIS, "My-Test", "whatever", "2021-04-01T02:03:04Z")
+		FromTryjob("tryjob 3", dks.BuildBucketCIS, "My-Test", "whatever", "2021-04-05T02:03:04Z")
 
-	// The digest was triaged negative after data from the third PS was ingested, but it should
-	// retroactively apply to all PS in the CL because we don't care about time.
+	// The digest was triaged negative after data from PS 2 but before PS 3 was ingested. We want
+	// to see that the latest data impacts the timestamp.
 	cl.AddTriageEvent(dks.UserFour, "2021-04-03T00:00:00Z").
 		ExpectationsForGrouping(paramtools.Params{
 			types.CorpusField: dks.RoundCorpus, types.PrimaryKeyField: dks.CircleTest}).
@@ -434,7 +435,7 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 			PatchsetID:           ps3ID,
 			PatchsetOrder:        7,
 		}},
-		LastUpdated: time.Date(2021, time.April, 1, 2, 3, 4, 0, time.UTC),
+		LastUpdated: time.Date(2021, time.April, 5, 2, 3, 4, 0, time.UTC),
 	}, rv)
 }
 

@@ -400,7 +400,8 @@ type ExpectationRecordRow struct {
 	TriageTime time.Time `sql:"triage_time TIMESTAMP WITH TIME ZONE NOT NULL"`
 	// NumChanges is how many digests were affected. It corresponds to the number of
 	// ExpectationDelta rows have this record as their parent. It is a denormalized field.
-	NumChanges int `sql:"num_changes INT4 NOT NULL"`
+	NumChanges         int      `sql:"num_changes INT4 NOT NULL"`
+	branchTriagedIndex struct{} `sql:"INDEX branch_ts_idx (branch_name, triage_time)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.

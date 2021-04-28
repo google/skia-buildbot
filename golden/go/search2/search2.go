@@ -53,6 +53,10 @@ type NewAndUntriagedSummary struct {
 	// LastUpdated returns the timestamp of the CL, which corresponds to the last datapoint for
 	// this CL.
 	LastUpdated time.Time
+	// Outdated is set to true if the value that was previously cached was out of date and is
+	// currently being recalculated. We do this to return something quickly to the user (even if
+	// something like the
+	Outdated bool
 }
 
 // PatchsetNewAndUntriagedSummary is the summary for a specific PS. It focuses on the untriaged
@@ -247,9 +251,9 @@ func (s *Impl) NewAndUntriagedSummaryForCL(ctx context.Context, qCLID string) (N
 	}
 	var updatedTS time.Time
 	eg.Go(func() error {
-		row := s.db.QueryRow(ctx, `SELECT last_ingested_data
-FROM Changelists WHERE changelist_id = $1`, qCLID)
-		return skerr.Wrap(row.Scan(&updatedTS))
+		var err error
+		updatedTS, err = s.ChangelistLastUpdated(ctx, qCLID)
+		return skerr.Wrap(err)
 	})
 	if err := eg.Wait(); err != nil {
 		return NewAndUntriagedSummary{}, skerr.Wrapf(err, "Getting counts for CL %q and %d PS", qCLID, len(patchsets))
@@ -365,8 +369,21 @@ func (s *Impl) ChangelistLastUpdated(ctx context.Context, qCLID string) (time.Ti
 	ctx, span := trace.StartSpan(ctx, "search2_ChangelistLastUpdated")
 	defer span.End()
 	var updatedTS time.Time
-	row := s.db.QueryRow(ctx, `SELECT last_ingested_data
-FROM Changelists AS OF SYSTEM TIME '-0.1s' WHERE changelist_id = $1`, qCLID)
+	row := s.db.QueryRow(ctx, `WITH
+LastSeenData AS (
+	SELECT last_ingested_data as ts FROM Changelists
+	WHERE changelist_id = $1
+),
+LatestTriageAction AS (
+	SELECT triage_time as ts FROM ExpectationRecords
+	WHERE branch_name = $1
+    ORDER BY triage_time DESC LIMIT 1
+)
+SELECT ts FROM LastSeenData
+UNION
+SELECT ts FROM LatestTriageAction
+ORDER BY ts DESC LIMIT 1
+`, qCLID)
 	if err := row.Scan(&updatedTS); err != nil {
 		return time.Time{}, skerr.Wrapf(err, "Getting last updated ts for cl %q", qCLID)
 	}

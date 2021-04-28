@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS ExpectationRecords (
   branch_name STRING,
   user_name STRING NOT NULL,
   triage_time TIMESTAMP WITH TIME ZONE NOT NULL,
-  num_changes INT4 NOT NULL
+  num_changes INT4 NOT NULL,
+  INDEX branch_ts_idx (branch_name, triage_time)
 );
 CREATE TABLE IF NOT EXISTS Expectations (
   grouping_id BYTES,
