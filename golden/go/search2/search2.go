@@ -81,9 +81,9 @@ type PatchsetNewAndUntriagedSummary struct {
 }
 
 const (
-	commitCacheSize   = 5_000
-	groupingCacheSize = 50_000
-	traceCacheSize    = 1_000_000
+	commitCacheSize          = 5_000
+	optionsGroupingCacheSize = 50_000
+	traceCacheSize           = 1_000_000
 )
 
 type Impl struct {
@@ -95,9 +95,9 @@ type Impl struct {
 	// This caches the digests seen per grouping on the primary branch.
 	digestsOnPrimary map[groupingDigestKey]struct{}
 
-	commitCache   *lru.Cache
-	groupingCache *lru.Cache
-	traceCache    *lru.Cache
+	commitCache          *lru.Cache
+	optionsGroupingCache *lru.Cache
+	traceCache           *lru.Cache
 }
 
 // New returns an implementation of API.
@@ -106,21 +106,21 @@ func New(sqlDB *pgxpool.Pool, windowLength int) *Impl {
 	if err != nil {
 		panic(err) // should only happen if commitCacheSize is negative.
 	}
-	gc, err := lru.New(groupingCacheSize)
+	gc, err := lru.New(optionsGroupingCacheSize)
 	if err != nil {
-		panic(err) // should only happen if groupingCacheSize is negative.
+		panic(err) // should only happen if optionsGroupingCacheSize is negative.
 	}
 	tc, err := lru.New(traceCacheSize)
 	if err != nil {
 		panic(err) // should only happen if traceCacheSize is negative.
 	}
 	return &Impl{
-		db:               sqlDB,
-		windowLength:     windowLength,
-		digestsOnPrimary: map[groupingDigestKey]struct{}{},
-		commitCache:      cc,
-		groupingCache:    gc,
-		traceCache:       tc,
+		db:                   sqlDB,
+		windowLength:         windowLength,
+		digestsOnPrimary:     map[groupingDigestKey]struct{}{},
+		commitCache:          cc,
+		optionsGroupingCache: gc,
+		traceCache:           tc,
 	}
 }
 
@@ -757,7 +757,11 @@ func (s *Impl) getParamsetsForDigests(ctx context.Context, inputs []stageTwoResu
 	if err := s.addRightParamsets(ctx, digestToTraces, rightDigests); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	rv, err := s.expandTracesIntoParamsets(ctx, digestToTraces)
+	traceToOptions, err := s.getOptionsForTraces(ctx, digestToTraces)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	rv, err := s.expandTracesIntoParamsets(ctx, digestToTraces, traceToOptions)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -829,9 +833,69 @@ FROM TiledTraceDigests WHERE digest = ANY($1) AND tile_id >= $2
 	return nil
 }
 
+// getOptionsForTraces returns the most recent option map for each given trace.
+func (s *Impl) getOptionsForTraces(ctx context.Context, digestToTraces map[types.Digest][]schema.TraceID) (map[schema.MD5Hash]paramtools.Params, error) {
+	ctx, span := trace.StartSpan(ctx, "getOptionsForTraces")
+	defer span.End()
+	byTrace := map[schema.MD5Hash]paramtools.Params{}
+	placeHolder := paramtools.Params{}
+	var traceKey schema.MD5Hash
+	for _, traces := range digestToTraces {
+		for _, traceID := range traces {
+			copy(traceKey[:], traceID)
+			byTrace[traceKey] = placeHolder
+		}
+	}
+	// we now have a set of the traces we need to lookup
+	traceIDs := make([]schema.TraceID, 0, len(byTrace))
+	for trID := range byTrace {
+		traceIDs = append(traceIDs, sql.FromMD5Hash(trID))
+	}
+	const statement = `SELECT trace_id, options_id FROM ValuesAtHead
+WHERE trace_id = ANY($1)`
+	rows, err := s.db.Query(ctx, statement, traceIDs)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var traceID schema.TraceID
+	var optionsID schema.OptionsID
+	for rows.Next() {
+		if err := rows.Scan(&traceID, &optionsID); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		ps, err := s.expandOptionsToParams(ctx, optionsID)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		copy(traceKey[:], traceID)
+		byTrace[traceKey] = ps
+	}
+	return byTrace, nil
+}
+
+// expandOptionsToParams returns the params that correspond to a given optionsID. The returned
+// params should not be mutated, as it is not copied (for performance reasons).
+func (s *Impl) expandOptionsToParams(ctx context.Context, optionsID schema.OptionsID) (paramtools.Params, error) {
+	ctx, span := trace.StartSpan(ctx, "expandOptionsToParams")
+	defer span.End()
+	if keys, ok := s.optionsGroupingCache.Get(string(optionsID)); ok {
+		return keys.(paramtools.Params), nil
+	}
+	// cache miss
+	const statement = `SELECT keys FROM Options WHERE options_id = $1`
+	row := s.db.QueryRow(ctx, statement, optionsID)
+	var keys paramtools.Params
+	if err := row.Scan(&keys); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	s.optionsGroupingCache.Add(string(optionsID), keys)
+	return keys, nil
+}
+
 // expandTracesIntoParamsets effectively returns a map detailing "who drew a given digest?". This
 // is done by looking up the keys associated with each trace and combining them.
-func (s *Impl) expandTracesIntoParamsets(ctx context.Context, toLookUp map[types.Digest][]schema.TraceID) (map[types.Digest]paramtools.ParamSet, error) {
+func (s *Impl) expandTracesIntoParamsets(ctx context.Context, toLookUp map[types.Digest][]schema.TraceID, traceToOptions map[schema.MD5Hash]paramtools.Params) (map[types.Digest]paramtools.ParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "expandTracesIntoParamsets")
 	defer span.End()
 	span.AddAttributes(trace.Int64Attribute("num_trace_sets", int64(len(toLookUp))))
@@ -841,6 +905,13 @@ func (s *Impl) expandTracesIntoParamsets(ctx context.Context, toLookUp map[types
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
+		var traceKey schema.MD5Hash
+		for _, traceID := range traces {
+			copy(traceKey[:], traceID)
+			ps := traceToOptions[traceKey]
+			paramset.AddParams(ps)
+		}
+		paramset.Normalize()
 		rv[digest] = paramset
 	}
 	return rv, nil
@@ -877,7 +948,6 @@ func (s *Impl) lookupOrLoadParamSetFromCache(ctx context.Context, traces []schem
 			paramset.AddParams(keys)
 		}
 	}
-	paramset.Normalize()
 	return paramset, nil
 }
 
@@ -949,9 +1019,10 @@ func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []stageTwoResult)
 }
 
 type traceDigestCommit struct {
-	traceID  schema.TraceID
-	digest   types.Digest
-	commitID schema.CommitID
+	traceID   schema.TraceID
+	commitID  schema.CommitID
+	digest    types.Digest
+	optionsID schema.OptionsID
 }
 
 // traceGroupForTraces gets all the history for a slice of traces within the given window and
@@ -960,9 +1031,9 @@ func (s *Impl) traceGroupForTraces(ctx context.Context, traceIDs []schema.TraceI
 	ctx, span := trace.StartSpan(ctx, "traceGroupForTraces")
 	span.AddAttributes(trace.Int64Attribute("num_traces", int64(len(traceIDs))))
 	defer span.End()
-	const statement = `SELECT trace_id, encode(digest, 'hex'), commit_id
+	const statement = `SELECT trace_id, commit_id, encode(digest, 'hex'), options_id
 FROM TraceValues WHERE trace_id = ANY($1) AND commit_id >= $2
-ORDER BY trace_id`
+ORDER BY trace_id, commit_id`
 	rows, err := s.db.Query(ctx, statement, traceIDs, getFirstCommitID(ctx))
 	if err != nil {
 		return frontend.TraceGroup{}, skerr.Wrap(err)
@@ -971,7 +1042,7 @@ ORDER BY trace_id`
 	var dataPoints []traceDigestCommit
 	for rows.Next() {
 		var row traceDigestCommit
-		if err := rows.Scan(&row.traceID, &row.digest, &row.commitID); err != nil {
+		if err := rows.Scan(&row.traceID, &row.commitID, &row.digest, &row.optionsID); err != nil {
 			return frontend.TraceGroup{}, skerr.Wrap(err)
 		}
 		dataPoints = append(dataPoints, row)
@@ -1025,10 +1096,19 @@ func (s *Impl) fillInTraceParams(ctx context.Context, tg *frontend.TraceGroup) e
 		if err != nil {
 			return skerr.Wrapf(err, "invalid trace id %q", tr.ID)
 		}
-		tg.Traces[i].Params, err = s.expandTraceToParams(ctx, traceID)
+		ps, err := s.expandTraceToParams(ctx, traceID)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
+		if tr.RawTrace.OptionsID != nil {
+			opts, err := s.expandOptionsToParams(ctx, tr.RawTrace.OptionsID)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			ps.Add(opts)
+		}
+		tg.Traces[i].Params = ps
+		tg.Traces[i].RawTrace = nil // Done with this temporary data.
 	}
 	return nil
 }
@@ -1040,7 +1120,7 @@ func (s *Impl) convertBulkTriageData(ctx context.Context, data map[groupingDiges
 	rv := map[types.TestName]map[types.Digest]expectations.Label{}
 	for key, label := range data {
 		var groupingKeys paramtools.Params
-		if gk, ok := s.groupingCache.Get(key.groupingID); ok {
+		if gk, ok := s.optionsGroupingCache.Get(key.groupingID); ok {
 			groupingKeys = gk.(paramtools.Params)
 		} else {
 			const statement = `SELECT keys FROM Groupings WHERE grouping_id = $1`
@@ -1048,7 +1128,7 @@ func (s *Impl) convertBulkTriageData(ctx context.Context, data map[groupingDiges
 			if err := row.Scan(&groupingKeys); err != nil {
 				return nil, skerr.Wrap(err)
 			}
-			s.groupingCache.Add(key.groupingID, groupingKeys)
+			s.optionsGroupingCache.Add(key.groupingID, groupingKeys)
 		}
 		testName := types.TestName(groupingKeys[types.PrimaryKeyField])
 		digest := types.Digest(hex.EncodeToString(key.digest[:]))
@@ -1124,6 +1204,8 @@ func makeTraceGroup(ctx context.Context, data []traceDigestCommit, primary types
 			continue
 		}
 		currentTrace.RawTrace.Digests[idx] = dp.digest
+		// We want to report the latest options, so always update this
+		currentTrace.RawTrace.OptionsID = dp.optionsID
 	}
 
 	// Find the most recent / important digests and assign them an index. Everything else will
@@ -1138,7 +1220,7 @@ func makeTraceGroup(ctx context.Context, data []traceDigestCommit, primary types
 		}
 	}
 
-	for i, tr := range tg.Traces {
+	for _, tr := range tg.Traces {
 		for j, digest := range tr.RawTrace.Digests {
 			if digest == tiling.MissingDigest {
 				continue // There is already the missing index there.
@@ -1151,7 +1233,6 @@ func makeTraceGroup(ctx context.Context, data []traceDigestCommit, primary types
 				tr.DigestIndices[j] = search.MaxDistinctDigestsToPresent - 1
 			}
 		}
-		tg.Traces[i].RawTrace = nil // Done with this temporary data.
 	}
 	return tg, nil
 }
