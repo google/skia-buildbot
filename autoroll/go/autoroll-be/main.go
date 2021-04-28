@@ -118,7 +118,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().WithRetry4XX().Client()
 	namespace := ds.AUTOROLL_NS
 	if cfg.IsInternal {
 		namespace = ds.AUTOROLL_INTERNAL_NS
