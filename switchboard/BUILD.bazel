@@ -1,0 +1,15 @@
+load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
+
+# Example test that runs alongside another binary.
+test_on_env(
+    name = "test_on_env_test",
+    env = "//switchboard/connect_to_switchboard",
+    test = "//switchboard/hello",
+)
+
+
+cc_test(
+    name = "hello",
+    srcs = ["cpp/hello.cpp"],
+    tags = ["manual"],
+)
