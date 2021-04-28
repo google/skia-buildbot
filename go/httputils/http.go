@@ -48,8 +48,8 @@ const (
 )
 
 var (
-	serverErr = errors.New("Server error")
-	clientErr = errors.New("Client error")
+	retryableErr = errors.New("Retryable error")
+	permanentErr = errors.New("Permanent error")
 )
 
 // HealthCheckHandler returns 200 OK with an empty body, appropriate
@@ -126,6 +126,16 @@ func (c ClientConfig) WithoutRetries() ClientConfig {
 // TokenSource.
 func (c ClientConfig) WithTokenSource(t oauth2.TokenSource) ClientConfig {
 	c.TokenSource = t
+	return c
+}
+
+// WithRetry4XX sets the backoff config to retry all 4XX status codes. This
+// automatically sets the default backoff config if not set.
+func (c ClientConfig) WithRetry4XX() ClientConfig {
+	if c.Retries == nil {
+		c.Retries = DefaultBackOffConfig()
+	}
+	c.Retries.retry4XX = true
 	return c
 }
 
@@ -235,6 +245,7 @@ type BackOffConfig struct {
 	maxElapsedTime      time.Duration
 	randomizationFactor float64
 	backOffMultiplier   float64
+	retry4XX            bool
 }
 
 func DefaultBackOffConfig() *BackOffConfig {
@@ -320,31 +331,34 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		if resp != nil {
 			if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
 				// This error will be retried.
-				return serverErr
+				return retryableErr
+			} else if resp.StatusCode >= 400 && resp.StatusCode <= 499 && t.backOffConfig.retry4XX {
+				// This error will be retried.
+				return retryableErr
 			} else if resp.StatusCode < 200 || resp.StatusCode > 299 {
 				// Using Permanent so that the request will not be retried.
-				return backoff.Permanent(clientErr)
+				return backoff.Permanent(permanentErr)
 			}
 		}
 		return nil
 	}
 	notifyFunc := func(notifyErr error, wait time.Duration) {
-		if notifyErr == serverErr {
-			sklog.Warningf("Got server error status code %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
+		if notifyErr == retryableErr {
+			sklog.Warningf("Got error status code %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
 			resp = nil
 		} else {
 			sklog.Warningf("Got error while making the round trip to %s: %s. Retrying HTTP request after sleeping for %s", req.URL, notifyErr, wait)
 			if resp != nil {
-				panic("Expected serverErr when resp is non-nil")
+				panic("Expected retryableErr when resp is non-nil")
 			}
 		}
 	}
 
 	// Overall return values should be the return values of the final call to t.Transport.RoundTrip.
-	if err := backoff.RetryNotify(roundTripOp, backOffClient, notifyFunc); err == nil || err == clientErr {
+	if err := backoff.RetryNotify(roundTripOp, backOffClient, notifyFunc); err == nil || err == permanentErr {
 		return resp, nil
-	} else if err == serverErr {
-		sklog.Warningf("Final attempt got server error status code %d in spite of exponential backoff while making the HTTP %s request to %s", resp.StatusCode, req.Method, req.URL)
+	} else if err == retryableErr {
+		sklog.Warningf("Final attempt got error status code %d in spite of exponential backoff while making the HTTP %s request to %s", resp.StatusCode, req.Method, req.URL)
 		return resp, nil
 	} else {
 		sklog.Warningf("Final attempt failed in spite of exponential backoff for HTTP %s request to %s: %s", req.Method, req.URL, err)
