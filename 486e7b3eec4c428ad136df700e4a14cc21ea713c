@@ -105,6 +105,30 @@
       },
       "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e1357ee4_629a2301",
+        "filename": "autoroll/config/chromium-angle.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 7838
+      },
+      "writtenOn": "2021-04-29T16:59:48Z",
+      "side": 1,
+      "message": "It would yes. Good point. I was forgetting about that. Does the roll script update any deps or do we need to run gclient sync at some point?",
+      "parentUuid": "9fe63781_dc23e048",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 9
+      },
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
