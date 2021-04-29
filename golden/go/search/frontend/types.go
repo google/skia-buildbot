@@ -54,9 +54,10 @@ type SearchResult struct {
 	// ParamSet is all the keys and options of all traces that produce the primary digest and
 	// match the given search constraints. It is for frontend UI presentation only; essentially a
 	// word cloud of what drew the primary digest.
-	// TODO(kjlubick) Consider splitting this into keys and options so it's more clear which are
-	//   affecting the trace.
 	ParamSet paramtools.ParamSet `json:"paramset"`
+	// TODO(kjlubick) make use of these instead of the combined ParamSet.
+	TracesKeys    paramtools.ParamSet `json:"-"`
+	TracesOptions paramtools.ParamSet `json:"-"`
 	// TraceGroup represents all traces that produced this digest at least once in the sliding window
 	// of commits.
 	TraceGroup TraceGroup `json:"traces"`
@@ -103,6 +104,9 @@ type SRDiffDigest struct {
 	// It is for frontend UI presentation only; essentially a word cloud of what drew the primary
 	// digest.
 	ParamSet paramtools.ParamSet `json:"paramset"`
+	// TODO(kjlubick) make use of these instead of the combined ParamSet.
+	TracesKeys    paramtools.ParamSet `json:"-"`
+	TracesOptions paramtools.ParamSet `json:"-"`
 }
 
 // DigestDetails contains details about a digest.
@@ -129,6 +133,9 @@ type Trace struct {
 	DigestIndices []int `json:"data"`
 	// Params are the key/value pairs that describe this trace.
 	Params map[string]string `json:"params"`
+	// TODO(kjlubick) Use these split values instead of the combined one.
+	Keys    map[string]string `json:"-"`
+	Options map[string]string `json:"-"`
 	// CommentIndices are indices into the TraceComments slice on the final result. For example,
 	// a 1 means the second TraceComment in the top level TraceComments applies to this trace.
 	CommentIndices []int `json:"comment_indices"`

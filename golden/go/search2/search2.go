@@ -895,12 +895,12 @@ WHERE trace_id = ANY($1)`
 		if err := rows.Scan(&traceID, &optionsID); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		ps, err := s.expandOptionsToParams(ctx, optionsID)
+		opts, err := s.expandOptionsToParams(ctx, optionsID)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 		copy(traceKey[:], traceID)
-		byTrace[traceKey] = ps
+		byTrace[traceKey] = opts
 	}
 	return byTrace, nil
 }

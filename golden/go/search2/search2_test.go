@@ -1492,6 +1492,129 @@ func TestSearch_FilterLeftSideByKeys_Success(t *testing.T) {
 	}, res)
 }
 
+func TestSearch_FilterLeftSideByKeysAndOptions_Success(t *testing.T) {
+	t.Skip("not ready - would need frontend change for searching and removal of old fields")
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: true,
+		IncludePositiveDigests:           true,
+		IncludeNegativeDigests:           false,
+		IncludeUntriagedDigests:          false,
+		Sort:                             query.SortDescending,
+		IncludeIgnoredTraces:             false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.CornersCorpus},
+			dks.DeviceKey:     []string{dks.WalleyeDevice},
+		},
+		OptionsValues: paramtools.ParamSet{
+			"image_matching_algorithm": []string{"fuzzy"},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestA08Pos,
+			Test:   dks.SquareTest,
+			Status: expectations.Positive,
+			TracesKeys: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.CornersCorpus},
+				dks.DeviceKey:         []string{dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+			},
+			TracesOptions: paramtools.ParamSet{
+				"ext":                        []string{"png"},
+				"image_matching_algorithm":   []string{"fuzzy"},
+				"fuzzy_max_different_pixels": []string{"2"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "4686a4134535ad178b67325f5f2f613a",
+					DigestIndices: []int{-1, -1, -1, -1, -1, 4, 3, 2, 1, 0},
+					Keys: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.WalleyeDevice,
+						dks.OSKey:             dks.AndroidOS,
+						types.PrimaryKeyField: dks.SquareTest,
+					},
+					Options: paramtools.Params{
+						"ext":                        "png",
+						"image_matching_algorithm":   "fuzzy",
+						"fuzzy_max_different_pixels": "2",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestA08Pos, Status: expectations.Positive},
+					{Digest: dks.DigestA07Pos, Status: expectations.Positive},
+					{Digest: dks.DigestA06Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+					{Digest: dks.DigestA05Unt, Status: expectations.Untriaged},
+				},
+				TotalDigests: 5,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 0.15655607, QueryMetric: 0.15655607, PixelDiffPercent: 3.125, NumDiffPixels: 2,
+					MaxRGBADiffs: [4]int{4, 0, 0, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestA01Pos,
+					Status:       expectations.Positive,
+					TracesKeys: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+					},
+					TracesOptions: paramtools.ParamSet{
+						"ext":                        []string{"png"},
+						"image_matching_algorithm":   []string{"fuzzy"},
+						"fuzzy_max_different_pixels": []string{"2"},
+					},
+				},
+				common.NegativeRef: {
+					CombinedMetric: 10, QueryMetric: 10, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{255, 255, 255, 255},
+					DimDiffer:    false,
+					Digest:       dks.DigestA09Neg,
+					Status:       expectations.Negative,
+					// Even though this is ignored, we are free to show it on the right side
+					// (just not a part of the actual results).
+					TracesKeys: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.TaimenDevice},
+						dks.OSKey:             []string{dks.AndroidOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+					},
+					TracesOptions: paramtools.ParamSet{
+						"ext": []string{"png"},
+					},
+				},
+			},
+			ClosestRef: common.PositiveRef,
+		}},
+		Offset:  0,
+		Size:    1,
+		Commits: kitchenSinkCommits,
+		BulkTriageData: web_frontend.TriageRequestData{
+			dks.SquareTest: {
+				dks.DigestA08Pos: expectations.Positive,
+			},
+		},
+	}, res)
+}
+
 func TestJoinedTracesStatement_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
