@@ -155,6 +155,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "eec26eb4_8f29a211",
+        "filename": "autoroll/config/chromium-angle.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 7838
+      },
+      "writtenOn": "2021-04-29T19:14:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2ac6f2da_60dcb953",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 9
+      },
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a84ea3c6_ad8b72fc",
@@ -216,6 +240,30 @@
       "side": 1,
       "message": "Just to be clear: the roller does do a \"gclient sync\" after it performs its own update of the DEPS file, before running the pre-upload commands.  It should be safe to run another \"gclient sync\" as its own pre-upload command, although I\u0027m not 100% sure whether PATH is set appropriately at that point.",
       "parentUuid": "cf3c282b_cbf47ced",
+      "range": {
+        "startLine": 65,
+        "startChar": 6,
+        "endLine": 65,
+        "endChar": 22
+      },
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a74ad784_88e12a86",
+        "filename": "autoroll/config/chromium-angle.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 7838
+      },
+      "writtenOn": "2021-04-29T19:14:44Z",
+      "side": 1,
+      "message": "OK, latest step calls sync then run_code_generation. I guess we can land this and try it out, if you can just take a quick peek Eric to re-review.",
+      "parentUuid": "ddc07346_35e1ffe1",
       "range": {
         "startLine": 65,
         "startChar": 6,
