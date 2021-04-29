@@ -81,6 +81,30 @@
       },
       "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9fe63781_dc23e048",
+        "filename": "autoroll/config/chromium-angle.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5695
+      },
+      "writtenOn": "2021-04-29T16:58:08Z",
+      "side": 1,
+      "message": "I was thinking that run_code_generation might behave differently if it runs after we\u0027ve synced some DEPS that were changed in Chromium.",
+      "parentUuid": "f51360ec_3b250fb4",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 9
+      },
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
