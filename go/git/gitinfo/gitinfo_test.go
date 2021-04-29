@@ -287,7 +287,7 @@ func TestRevList(t *testing.T) {
 		Expected []string
 	}{
 		{
-			Input:    []string{git.DefaultBranch},
+			Input:    []string{git.MasterBranch},
 			Expected: revs,
 		},
 		{

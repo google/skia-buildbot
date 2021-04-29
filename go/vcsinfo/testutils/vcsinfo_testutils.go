@@ -236,13 +236,13 @@ func TestBranchInfo(t require.TestingT, vcs vcsinfo.VCS, branches []string) {
 	}{
 		{
 			commitHash: "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-			branchName: git.DefaultBranch,
-			branches:   map[string]bool{git.DefaultBranch: true, "test-branch-1": true},
+			branchName: git.MasterBranch,
+			branches:   map[string]bool{git.MasterBranch: true, "test-branch-1": true},
 		},
 		{
 			commitHash: "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
-			branchName: git.DefaultBranch,
-			branches:   map[string]bool{git.DefaultBranch: true, "test-branch-1": true},
+			branchName: git.MasterBranch,
+			branches:   map[string]bool{git.MasterBranch: true, "test-branch-1": true},
 		},
 		{
 			commitHash: "3f5a807d432ac232a952bbf223bc6952e4b49b2c",

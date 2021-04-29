@@ -326,7 +326,7 @@ func ResetChromiumCheckout(ctx context.Context, chromiumSrcDir, gitExec string) 
 	}
 	sklog.Info("Resetting Skia")
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
-	if err := ResetCheckout(ctx, skiaDir, "HEAD", git.DefaultBranch, gitExec); err != nil {
+	if err := ResetCheckout(ctx, skiaDir, "HEAD", git.MasterBranch, gitExec); err != nil {
 		return fmt.Errorf("Could not reset Skia's checkout in %s: %s", skiaDir, err)
 	}
 	sklog.Info("Resetting V8")
@@ -338,11 +338,11 @@ func ResetChromiumCheckout(ctx context.Context, chromiumSrcDir, gitExec string) 
 	}
 	sklog.Info("Resetting Catapult")
 	catapultDir := filepath.Join(chromiumSrcDir, RelativeCatapultSrcDir)
-	if err := ResetCheckout(ctx, catapultDir, "HEAD", git.DefaultBranch, gitExec); err != nil {
+	if err := ResetCheckout(ctx, catapultDir, "HEAD", git.MasterBranch, gitExec); err != nil {
 		return fmt.Errorf("Could not reset Catapult's checkout in %s: %s", catapultDir, err)
 	}
 	sklog.Info("Resetting Chromium")
-	if err := ResetCheckout(ctx, chromiumSrcDir, "HEAD", git.DefaultBranch, gitExec); err != nil {
+	if err := ResetCheckout(ctx, chromiumSrcDir, "HEAD", git.MasterBranch, gitExec); err != nil {
 		return fmt.Errorf("Could not reset Chromium's checkout in %s: %s", chromiumSrcDir, err)
 	}
 	return nil

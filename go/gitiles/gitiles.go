@@ -214,7 +214,7 @@ func (r *Repo) ReadFileAtRef(ctx context.Context, srcPath, ref string) ([]byte, 
 // ReadFile reads the current version of the given file from the main branch
 // of the Repo.
 func (r *Repo) ReadFile(ctx context.Context, srcPath string) ([]byte, error) {
-	return r.ReadFileAtRef(ctx, srcPath, git.DefaultBranch)
+	return r.ReadFileAtRef(ctx, srcPath, git.MasterBranch)
 }
 
 // DownloadFile downloads the current version of the given file from the main
@@ -257,7 +257,7 @@ func (r *Repo) ListDirAtRef(ctx context.Context, dir, ref string) ([]os.FileInfo
 // file names and a slice of dir names, relative to the given directory, or any
 // error which occurred.
 func (r *Repo) ListDir(ctx context.Context, dir string) ([]os.FileInfo, error) {
-	return r.ListDirAtRef(ctx, dir, git.DefaultBranch)
+	return r.ListDirAtRef(ctx, dir, git.MasterBranch)
 }
 
 // ResolveRef resolves the given ref to a commit hash.
@@ -307,7 +307,7 @@ func (r *Repo) ListFilesRecursiveAtRef(ctx context.Context, topDir, ref string) 
 // ListFilesRecursive returns a list of all file paths, relative to the given
 // directory, under the given directory on the main branch.
 func (r *Repo) ListFilesRecursive(ctx context.Context, dir string) ([]string, error) {
-	return r.ListFilesRecursiveAtRef(ctx, dir, git.DefaultBranch)
+	return r.ListFilesRecursiveAtRef(ctx, dir, git.MasterBranch)
 }
 
 // Author represents the author of a Commit.

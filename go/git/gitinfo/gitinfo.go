@@ -39,7 +39,7 @@ type GitInfo struct {
 func (g *GitInfo) GetBranch() string {
 	// This was added later and we have implicitly assumed that we are tracking
 	// the main branch.
-	return git.DefaultBranch
+	return git.MasterBranch
 }
 
 // NewGitInfo creates a new GitInfo for the Git repository found in directory

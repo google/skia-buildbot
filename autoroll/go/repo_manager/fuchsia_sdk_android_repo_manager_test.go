@@ -27,7 +27,7 @@ func fuchsiaAndroidCfg(t *testing.T) *config.FuchsiaSDKAndroidRepoManagerConfig 
 	return &config.FuchsiaSDKAndroidRepoManagerConfig{
 		Parent: &config.GitCheckoutParentConfig{
 			GitCheckout: &config.GitCheckoutConfig{
-				Branch:  git.DefaultBranch,
+				Branch:  git.MasterBranch,
 				RepoUrl: "todo.git",
 			},
 			Dep: &config.DependencyConfig{
@@ -41,7 +41,7 @@ func fuchsiaAndroidCfg(t *testing.T) *config.FuchsiaSDKAndroidRepoManagerConfig 
 			IncludeMacSdk: false,
 		},
 		GenSdkBpRepo:   "TODO",
-		GenSdkBpBranch: git.DefaultBranch,
+		GenSdkBpBranch: git.MasterBranch,
 	}
 }
 
@@ -104,7 +104,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 	require.NoError(t, err)
 
 	// Initial update, everything up-to-date.
-	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	mockParent.MockGetCommit(ctx, git.MasterBranch)
 	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, fuchsiaSDKAndroidVersionFile, parentHead)
@@ -150,7 +150,7 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	require.Equal(t, 0, len(notRolledRevs))
 
 	// There's a new version.
-	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	mockParent.MockGetCommit(ctx, git.MasterBranch)
 	parentRepoDir := filepath.Join(wd, filepath.Base(parent.Dir()))
 	parentHead, err := git.GitDir(parentRepoDir).RevParse(ctx, "HEAD")
 	require.NoError(t, err)

@@ -156,7 +156,7 @@ func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID, gitExec str
 		return "", skerr.Fmt("Could not have full hash of %s: %s", checkout.Dir(), err)
 	}
 	hash := hashes[0]
-	if msg, err := checkout.Git(ctx, "push", git.DefaultRemote, git.DefaultBranch); err != nil {
+	if msg, err := checkout.Git(ctx, "push", git.DefaultRemote, git.MasterBranch); err != nil {
 		return "", skerr.Fmt("Failed to push updated checkout %q: %s", msg, err)
 	}
 	return hash, nil

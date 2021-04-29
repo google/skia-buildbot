@@ -244,7 +244,7 @@ func setupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, []
 	commits = append(commits, gb.Commit(ctx))
 
 	// 7
-	gb.CheckoutBranch(ctx, git.DefaultBranch)
+	gb.CheckoutBranch(ctx, git.MasterBranch)
 	commits = append(commits, gb.MergeBranch(ctx, "mybranch"))
 
 	// 8

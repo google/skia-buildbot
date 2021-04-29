@@ -62,7 +62,7 @@ func TestGNDownloadSkia(t *testing.T) {
 	err = os.MkdirAll(filepath.Join(checkout, "skia"), 0777)
 	require.NoError(t, err)
 
-	_, err = GNDownloadSkia(ctx, git.DefaultBranch, "aabbccddeeff", checkout, "/mnt/pd0/fiddle/depot_tools", false, false)
+	_, err = GNDownloadSkia(ctx, git.MasterBranch, "aabbccddeeff", checkout, "/mnt/pd0/fiddle/depot_tools", false, false)
 	// Not all of exec is mockable, so GNDownloadSkia will fail, but check the correctness
 	// of the commands we did issue before hitting the failure point.
 	require.Error(t, err)

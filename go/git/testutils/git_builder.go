@@ -46,7 +46,7 @@ func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir string) *GitBuil
 	g := &GitBuilder{
 		t:      t,
 		dir:    dir,
-		branch: git_common.DefaultBranch,
+		branch: git_common.MasterBranch,
 		git:    gitExec,
 		rng:    rand.New(rand.NewSource(0)),
 	}
@@ -60,7 +60,7 @@ func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir string) *GitBuil
 	//
 	// [1] https://git-scm.com/docs/git-config#Documentation/git-config.txt-initdefaultBranch
 	//
-	// TODO(lovisolo): Replace with "git init --initial-branch <git_common.DefaultBranch>" once all
+	// TODO(lovisolo): Replace with "git init --initial-branch <git_common.MasterBranch>" once all
 	//                 GCE instances have been upgraded to Git >= v2.28, which introduces flag
 	//                 --initial-branch.
 	//                 See https://github.com/git/git/commit/32ba12dab2acf1ad11836a627956d1473f6b851a.
@@ -260,7 +260,7 @@ func (g *GitBuilder) UpdateRef(ctx context.Context, args ...string) {
 // a CL on a trybot.
 func (g *GitBuilder) CreateFakeGerritCLGen(ctx context.Context, issue, patchset string) {
 	currentBranch := strings.TrimSpace(g.Git(ctx, "rev-parse", "--abbrev-ref", "HEAD"))
-	g.CreateBranchTrackBranch(ctx, "fake-patch", git_common.DefaultBranch)
+	g.CreateBranchTrackBranch(ctx, "fake-patch", git_common.MasterBranch)
 	patchCommit := g.CommitGen(ctx, "somefile")
 	g.UpdateRef(ctx, fmt.Sprintf("refs/changes/%s/%s/%s", issue[len(issue)-2:], issue, patchset), patchCommit)
 	g.CheckoutBranch(ctx, currentBranch)
@@ -290,7 +290,7 @@ func GitSetup(ctx context.Context, g *GitBuilder) []string {
 	c1 := g.CommitGen(ctx, "myfile.txt")
 	g.CreateBranchTrackBranch(ctx, "branch2", git_common.DefaultRemoteBranch)
 	c2 := g.CommitGen(ctx, "anotherfile.txt")
-	g.CheckoutBranch(ctx, git_common.DefaultBranch)
+	g.CheckoutBranch(ctx, git_common.MasterBranch)
 	c3 := g.CommitGen(ctx, "myfile.txt")
 	c4 := g.MergeBranch(ctx, "branch2")
 	return []string{c0, c1, c2, c3, c4}

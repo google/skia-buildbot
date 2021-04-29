@@ -49,10 +49,10 @@ func androidGerrit(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview
 
 func androidCfg() *config.AndroidRepoManagerConfig {
 	return &config.AndroidRepoManagerConfig{
-		ChildBranch:   git.DefaultBranch,
+		ChildBranch:   git.MasterBranch,
 		ChildPath:     childPath,
 		ChildRepoUrl:  common.REPO_SKIA,
-		ParentBranch:  git.DefaultBranch,
+		ParentBranch:  git.MasterBranch,
 		ParentRepoUrl: "https://my-repo.com",
 		Metadata: &config.AndroidRepoManagerConfig_ProjectMetadataFileConfig{
 			FilePath:    "METADATA",

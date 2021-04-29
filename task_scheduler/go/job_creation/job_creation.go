@@ -203,9 +203,9 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 				if spec.Trigger == specs.TRIGGER_ANY_BRANCH {
 					shouldRun = true
 				} else if spec.Trigger == specs.TRIGGER_MASTER_ONLY || spec.Trigger == specs.TRIGGER_MAIN_ONLY {
-					mainBranch := git.DefaultBranch
+					mainBranch := git.MasterBranch
 					if r.Get(mainBranch) == nil {
-						mainBranch = git.SecondaryDefaultBranch
+						mainBranch = git.MainBranch
 					}
 					if r.Get(mainBranch) == nil {
 						// No known main branch in this repo, so we'll trigger.
@@ -394,12 +394,12 @@ func (jc *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName 
 	// Find the job specs matching the trigger and create Job instances.
 	jobs := []*types.Job{}
 	for repoUrl, repo := range jc.repos {
-		main := repo.Get(git.DefaultBranch)
+		main := repo.Get(git.MasterBranch)
 		if main == nil {
-			main = repo.Get(git.SecondaryDefaultBranch)
+			main = repo.Get(git.MainBranch)
 		}
 		if main == nil {
-			return fmt.Errorf("Failed to retrieve branch %q or %q for %s", git.DefaultBranch, git.SecondaryDefaultBranch, repoUrl)
+			return fmt.Errorf("Failed to retrieve branch %q or %q for %s", git.MasterBranch, git.MainBranch, repoUrl)
 		}
 		rs := types.RepoState{
 			Repo:     repoUrl,
