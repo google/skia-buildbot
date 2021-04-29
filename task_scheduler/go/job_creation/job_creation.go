@@ -194,7 +194,7 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 				sklog.Errorf("Failed to obtain new jobs due to permanent error: %s", err)
 				return nil
 			}
-			return err
+			return skerr.Wrap(err)
 		}
 		alreadyScheduledAllJobs := true
 		for name, spec := range cfg.Jobs {
@@ -202,19 +202,28 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 			if !util.In(spec.Trigger, specs.PERIODIC_TRIGGERS) {
 				if spec.Trigger == specs.TRIGGER_ANY_BRANCH {
 					shouldRun = true
-				} else if spec.Trigger == specs.TRIGGER_MASTER_ONLY {
-					isAncestor, err := r.IsAncestor(c.Hash, git.DefaultBranch)
-					if err != nil {
-						return err
-					} else if isAncestor {
+				} else if spec.Trigger == specs.TRIGGER_MASTER_ONLY || spec.Trigger == specs.TRIGGER_MAIN_ONLY {
+					mainBranch := git.DefaultBranch
+					if r.Get(mainBranch) == nil {
+						mainBranch = git.SecondaryDefaultBranch
+					}
+					if r.Get(mainBranch) == nil {
+						// No known main branch in this repo, so we'll trigger.
 						shouldRun = true
+					} else {
+						isAncestor, err := r.IsAncestor(c.Hash, mainBranch)
+						if err != nil {
+							return skerr.Wrap(err)
+						} else if isAncestor {
+							shouldRun = true
+						}
 					}
 				}
 			}
 			if shouldRun {
 				prevJobs, err := jc.jCache.GetJobsByRepoState(name, rs)
 				if err != nil {
-					return err
+					return skerr.Wrap(err)
 				}
 				alreadyScheduled := false
 				for _, prev := range prevJobs {
@@ -238,7 +247,7 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 							sklog.Errorf("Got ErrNoSuchEntry after a successful call to GetOrCacheRepoState! Job %s; RepoState: %+v", name, rs)
 							continue
 						}
-						return err
+						return skerr.Wrap(err)
 					}
 					j.Requested = firestore.FixTimestamp(c.Timestamp)
 					j.Created = firestore.FixTimestamp(j.Created)
@@ -264,7 +273,7 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 		}
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	// Reverse the new jobs list, so that if we fail to insert all of the
@@ -387,7 +396,10 @@ func (jc *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName 
 	for repoUrl, repo := range jc.repos {
 		main := repo.Get(git.DefaultBranch)
 		if main == nil {
-			return fmt.Errorf("Failed to retrieve branch %q for %s", git.DefaultBranch, repoUrl)
+			main = repo.Get(git.SecondaryDefaultBranch)
+		}
+		if main == nil {
+			return fmt.Errorf("Failed to retrieve branch %q or %q for %s", git.DefaultBranch, git.SecondaryDefaultBranch, repoUrl)
 		}
 		rs := types.RepoState{
 			Repo:     repoUrl,

@@ -22,6 +22,11 @@ import (
 const (
 	// DefaultBranch is the name of the default branch for most repositories.
 	DefaultBranch = "master"
+	// SecondaryDefaultBranch is the name of the default branch for some
+	// repositories which don't use DefaultBranch.
+	// TODO(rmistry): Swap the default branch name and delete this after
+	// http://skbug.com/11842 is resolved.
+	SecondaryDefaultBranch = "main"
 	// DefaultRef is the fully-qualified ref name of the default branch for most
 	// repositories.
 	DefaultRef = RefsHeadsPrefix + DefaultBranch
