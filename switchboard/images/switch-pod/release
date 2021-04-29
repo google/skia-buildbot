@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -x -e
+
+APPNAME=switch-pod
+
+IMAGE=$(dirname "$0")
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+
+# Add the dockerfile.
+${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile      ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${IMAGE}/sleeper.sh      ${ROOT}/usr/local/bin/sleeper.sh
+}
+
+source ../bash/docker_build.sh

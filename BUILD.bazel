@@ -188,6 +188,7 @@ container_run_and_commit(
             "adb",
             "netcat",
             "kubectl",
+            "jq",
         ]),
 
         # Install CockroachDB as per the instructions here:
