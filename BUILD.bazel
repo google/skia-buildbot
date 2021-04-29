@@ -180,7 +180,17 @@ container_run_and_commit(
             "google-cloud-sdk-datastore-emulator",
             "google-cloud-sdk-firestore-emulator",
             "google-cloud-sdk-pubsub-emulator",
+            "kubectl",
         ]),
+
+        # Install the applications needed to access test devices in the
+        # skia-switchboard cluster.
+        "apt-get install -y " + " ".join([
+            "adb",
+            "netcat",
+            "kubectl",
+        ]),
+
 
         # Install CockroachDB as per the instructions here:
         # https://www.cockroachlabs.com/docs/v20.2/install-cockroachdb-linux.
