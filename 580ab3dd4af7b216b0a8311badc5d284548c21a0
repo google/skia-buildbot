@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e8fa8267_4f6344a3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-29T17:31:17Z",
+      "side": 1,
+      "message": "Gold changes are minimal because the branch tracked are in a config file like https://github.com/google/skia-buildbot/blob/master/golden/k8s-instances/skia-infra/skia-infra.json5#L15 As such, that\u0027s where we will toggle between branches.",
+      "revId": "580ab3dd4af7b216b0a8311badc5d284548c21a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
