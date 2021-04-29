@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -432,8 +433,8 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	// Fill in the paramsets of the reference images.
 	for _, sr := range results {
-		sr.ParamSet = paramsetsByDigest[sr.Digest]
 		for _, srdd := range sr.RefDiffs {
 			if srdd != nil {
 				srdd.ParamSet = paramsetsByDigest[srdd.Digest]
@@ -532,22 +533,19 @@ type stageOneResult struct {
 func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context) ([]stageOneResult, error) {
 	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTraces")
 	defer span.End()
-	const statement = `WITH
-UntriagedDigests AS (
+	statement := `WITH
+MatchingDigests AS (
     SELECT grouping_id, digest FROM Expectations
     WHERE label = ANY($1)
-),
-NonIgnoredTraces AS (
-    SELECT trace_id, grouping_id, digest FROM ValuesAtHead
-	WHERE most_recent_commit_id >= $2 AND
-    	corpus = $3 AND
-    	matches_any_ignore_rule = ANY($4)
-)
-SELECT trace_id, UntriagedDigests.grouping_id, NonIgnoredTraces.digest FROM
-UntriagedDigests
+),`
+	tracesBlock, args := matchingTracesStatement(ctx)
+	statement += tracesBlock
+	statement += `
+SELECT trace_id, MatchingDigests.grouping_id, MatchingTraces.digest FROM
+MatchingDigests
 JOIN
-NonIgnoredTraces ON UntriagedDigests.grouping_id = NonIgnoredTraces.grouping_id AND
-  UntriagedDigests.digest = NonIgnoredTraces.digest`
+MatchingTraces ON MatchingDigests.grouping_id = MatchingTraces.grouping_id AND
+  MatchingDigests.digest = MatchingTraces.digest`
 
 	q := getQuery(ctx)
 	var triageStatuses []schema.ExpectationLabel
@@ -560,12 +558,7 @@ NonIgnoredTraces ON UntriagedDigests.grouping_id = NonIgnoredTraces.grouping_id 
 	if q.IncludePositiveDigests {
 		triageStatuses = append(triageStatuses, schema.LabelPositive)
 	}
-
-	ignoreStatuses := []bool{false}
-	if q.IncludeIgnoredTraces {
-		ignoreStatuses = append(ignoreStatuses, true)
-	}
-	arguments := []interface{}{triageStatuses, getFirstCommitID(ctx), q.TraceValues[types.CorpusField][0], ignoreStatuses}
+	arguments := append([]interface{}{triageStatuses}, args...)
 
 	rows, err := s.db.Query(ctx, statement, arguments...)
 	if err != nil {
@@ -581,6 +574,86 @@ NonIgnoredTraces ON UntriagedDigests.grouping_id = NonIgnoredTraces.grouping_id 
 		rv = append(rv, row)
 	}
 	return rv, nil
+}
+
+type filterSets struct {
+	key    string
+	values []string
+}
+
+// matchingTracesStatement returns a SQL snippet that includes a WITH table called MatchingTraces.
+// This table will have rows containing trace_id, grouping_id, and digest of traces that match
+// the given search criteria. The second parameter is the arguments that need to be included
+// in the query. This code knows to start using numbered parameters at 2.
+func matchingTracesStatement(ctx context.Context) (string, []interface{}) {
+	var keyFilters []filterSets
+	q := getQuery(ctx)
+	for key, values := range q.TraceValues {
+		if key == types.CorpusField {
+			continue
+		}
+		if key != sql.Sanitize(key) {
+			sklog.Infof("key %q did not pass sanitization", key)
+			continue
+		}
+		keyFilters = append(keyFilters, filterSets{key: key, values: values})
+	}
+	ignoreStatuses := []bool{false}
+	if q.IncludeIgnoredTraces {
+		ignoreStatuses = append(ignoreStatuses, true)
+	}
+	args := []interface{}{getFirstCommitID(ctx), ignoreStatuses}
+
+	if len(keyFilters) == 0 {
+		// Corpus is being used as a string
+		args = append(args, q.TraceValues[types.CorpusField][0])
+		return `
+MatchingTraces AS (
+    SELECT trace_id, grouping_id, digest FROM ValuesAtHead
+	WHERE most_recent_commit_id >= $2 AND
+    	matches_any_ignore_rule = ANY($3) AND
+    	corpus = $4
+)`, args
+	}
+	// Corpus is being used as a JSONB value here
+	args = append(args, `"`+q.TraceValues[types.CorpusField][0]+`"`)
+	return joinedTracesStatement(keyFilters) + `
+MatchingTraces AS (
+    SELECT ValuesAtHead.trace_id, grouping_id, digest FROM ValuesAtHead
+	JOIN JoinedTraces ON ValuesAtHead.trace_id = JoinedTraces.trace_id
+	WHERE most_recent_commit_id >= $2 AND
+    	matches_any_ignore_rule = ANY($3)
+)`, args
+}
+
+// joinedTracesStatement returns a SQL snippet that includes a WITH table called JoinedTraces.
+// This table contains just the trace_ids that match the given filters. filters is expected to
+// have keys which passed sanitization (it will sanitize the values). The snippet will include
+// other tables that will be unioned and intersected to create the appropriate rows. This is
+// similar to the technique we use for ingore rules, chosen to maximize consistent performance
+// by using the inverted key index. The keys and values are hardcoded into the string instead
+// of being passed in as arguments because kjlubick@ was not able to use the placeholder values
+//to compare JSONB types removed from a JSONB object to a string while still using the indexes.
+func joinedTracesStatement(filters []filterSets) string {
+	statement := ""
+	for i, filter := range filters {
+		statement += fmt.Sprintf("U%d AS (\n", i)
+		for j, value := range filter.values {
+			if j != 0 {
+				statement += "\tUNION\n"
+			}
+			statement += fmt.Sprintf("\tSELECT trace_id FROM Traces WHERE keys -> '%s' = '%q'\n", filter.key, sql.Sanitize(value))
+		}
+		statement += "),\n"
+	}
+	statement += "JoinedTraces AS (\n"
+	for i := range filters {
+		statement += fmt.Sprintf("\tSELECT trace_id FROM U%d\n\tINTERSECT\n", i)
+	}
+	// Include a final intersect for the corpus. The calling logic will make sure a JSONB value
+	// (i.e. a quoted string) is in the arguments slice.
+	statement += "\tSELECT trace_id FROM Traces where keys -> 'source_type' = $4\n),\n"
+	return statement
 }
 
 type stageTwoResult struct {
@@ -743,18 +816,13 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 func (s *Impl) getParamsetsForDigests(ctx context.Context, inputs []stageTwoResult) (map[types.Digest]paramtools.ParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "getParamsetsForDigests")
 	defer span.End()
-	var leftDigests []schema.DigestBytes
 	var rightDigests []schema.DigestBytes
 	for _, input := range inputs {
-		leftDigests = append(leftDigests, input.leftDigest)
 		rightDigests = append(rightDigests, input.rightDigests...)
 	}
-	span.AddAttributes(trace.Int64Attribute("num_digests", int64(len(leftDigests)+len(rightDigests))))
-	digestToTraces, err := s.getLeftParamsets(ctx, leftDigests)
+	span.AddAttributes(trace.Int64Attribute("num_digests", int64(len(rightDigests))))
+	digestToTraces, err := s.addRightTraces(ctx, rightDigests)
 	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := s.addRightParamsets(ctx, digestToTraces, rightDigests); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	traceToOptions, err := s.getOptionsForTraces(ctx, digestToTraces)
@@ -768,34 +836,23 @@ func (s *Impl) getParamsetsForDigests(ctx context.Context, inputs []stageTwoResu
 	return rv, nil
 }
 
-// getLeftParamsets finds the traces that draw the given digests. It will respect the ignore rules
-// setting.
-func (s *Impl) getLeftParamsets(ctx context.Context, digests []schema.DigestBytes) (map[types.Digest][]schema.TraceID, error) {
-	ctx, span := trace.StartSpan(ctx, "getLeftParamsets")
+// addRightTraces finds the traces that draw the given digests. We do not need to consider the
+// ignore rules or other search constraints because those only apply to the search results
+// (that is, the left side).
+func (s *Impl) addRightTraces(ctx context.Context, digests []schema.DigestBytes) (map[types.Digest][]schema.TraceID, error) {
+	ctx, span := trace.StartSpan(ctx, "addRightTraces")
 	defer span.End()
-	span.AddAttributes(trace.Int64Attribute("num_left_digests", int64(len(digests))))
+	span.AddAttributes(trace.Int64Attribute("num_right_digests", int64(len(digests))))
 
-	const statement = `WITH
-DigestsAndTraces AS (
-	SELECT DISTINCT encode(digest, 'hex') as digest, trace_id
-	FROM TiledTraceDigests WHERE digest = ANY($1) AND tile_id >= $2
-)
-SELECT DigestsAndTraces.digest, DigestsAndTraces.trace_id
-FROM DigestsAndTraces
-JOIN Traces ON DigestsAndTraces.trace_id = Traces.trace_id
-WHERE matches_any_ignore_rule = ANY($3)
+	const statement = `SELECT DISTINCT encode(digest, 'hex') as digest, trace_id
+FROM TiledTraceDigests WHERE digest = ANY($1) AND tile_id >= $2
 `
-	q := getQuery(ctx)
-	ignoreStatues := []bool{false}
-	if q.IncludeIgnoredTraces {
-		ignoreStatues = append(ignoreStatues, true)
-	}
-	rows, err := s.db.Query(ctx, statement, digests, getFirstTileID(ctx), ignoreStatues)
+	rows, err := s.db.Query(ctx, statement, digests, getFirstTileID(ctx))
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	defer rows.Close()
 	digestToTraces := map[types.Digest][]schema.TraceID{}
+	defer rows.Close()
 	for rows.Next() {
 		var digest types.Digest
 		var traceID schema.TraceID
@@ -805,32 +862,6 @@ WHERE matches_any_ignore_rule = ANY($3)
 		digestToTraces[digest] = append(digestToTraces[digest], traceID)
 	}
 	return digestToTraces, nil
-}
-
-// addRightParamsets finds the traces that draw the given digests. We do not need to consider the
-// ignore rules because those only apply to the search results (that is, the left side).
-func (s *Impl) addRightParamsets(ctx context.Context, digestToTraces map[types.Digest][]schema.TraceID, digests []schema.DigestBytes) error {
-	ctx, span := trace.StartSpan(ctx, "getLeftParamsets")
-	defer span.End()
-	span.AddAttributes(trace.Int64Attribute("num_right_digests", int64(len(digests))))
-
-	const statement = `SELECT DISTINCT encode(digest, 'hex') as digest, trace_id
-FROM TiledTraceDigests WHERE digest = ANY($1) AND tile_id >= $2
-`
-	rows, err := s.db.Query(ctx, statement, digests, getFirstTileID(ctx))
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var digest types.Digest
-		var traceID schema.TraceID
-		if err := rows.Scan(&digest, &traceID); err != nil {
-			return skerr.Wrap(err)
-		}
-		digestToTraces[digest] = append(digestToTraces[digest], traceID)
-	}
-	return nil
 }
 
 // getOptionsForTraces returns the most recent option map for each given trace.
@@ -1005,7 +1036,7 @@ func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []stageTwoResult)
 			// The first digest in the trace group is this digest.
 			sr.Status = tg.Digests[0].Status
 		} else {
-			// We assume untriaged if digest is not in the window. This would be a surprise.
+			// We assume untriaged if digest is not in the window.
 			sr.Status = expectations.Untriaged
 		}
 		if len(tg.Traces) > 0 {
@@ -1013,6 +1044,12 @@ func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []stageTwoResult)
 			// the same grouping, which includes test name.
 			sr.Test = types.TestName(tg.Traces[0].Params[types.PrimaryKeyField])
 		}
+		leftPS := paramtools.ParamSet{}
+		for _, tr := range tg.Traces {
+			leftPS.AddParams(tr.Params)
+		}
+		leftPS.Normalize()
+		sr.ParamSet = leftPS
 		rv[i] = sr
 	}
 	return rv, nil

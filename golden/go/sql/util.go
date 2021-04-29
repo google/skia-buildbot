@@ -118,3 +118,9 @@ func Unqualify(id string) string {
 	}
 	return pieces[1]
 }
+
+// Sanitize removes unsafe characters from strings to avoid SQL injections. Namely quotes.
+func Sanitize(s string) string {
+	s = strings.ReplaceAll(s, `'`, ``)
+	return strings.ReplaceAll(s, `"`, ``)
+}

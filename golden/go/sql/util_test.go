@@ -150,3 +150,11 @@ func TestUnqualify_Success(t *testing.T) {
 	assert.Equal(t, "1234_6789012", Unqualify("gerrit_1234_6789012"))
 	assert.Equal(t, "67890", Unqualify("67890"))
 }
+
+func TestSanitize_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Equal(t, "All Good!", Sanitize(`All Good!`))
+	assert.Equal(t, "foo OR 1=1", Sanitize(`foo OR '1=1'`))
+	assert.Equal(t, "foo OR 1=1", Sanitize(`foo OR "1=1"`))
+}
