@@ -34,6 +34,29 @@
       "parentUuid": "302a321e_6053b888",
       "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0973a335_4023ba8e",
+        "filename": "autoroll/config/chromium-angle.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5695
+      },
+      "writtenOn": "2021-04-29T16:50:36Z",
+      "side": 1,
+      "message": "I wonder in which order these commands run.\nMaybe we\u0027d want to run code generation AFTER we\u0027ve modified DEPS and synced?\nDoesn\u0027t seem like it\u0027s possible to do it after sync, though.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 9
+      },
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
