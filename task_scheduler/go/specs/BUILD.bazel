@@ -13,7 +13,6 @@ go_library(
         "//go/cas/rbe",
         "//go/cipd",
         "//go/common",
-        "//go/git",
         "//go/periodic",
         "//go/skerr",
         "//go/sklog",
