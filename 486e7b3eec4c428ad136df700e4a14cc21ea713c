@@ -57,6 +57,30 @@
       },
       "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f51360ec_3b250fb4",
+        "filename": "autoroll/config/chromium-angle.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 7838
+      },
+      "writtenOn": "2021-04-29T16:52:54Z",
+      "side": 1,
+      "message": "Right, I forgot to mention this. I looked at the file and I think it should work before or after the roll script. The roll script calls:\n\n_RunCommand([\u0027git\u0027, \u0027commit\u0027, \u0027-a\u0027, \u0027--amend\u0027, \u0027-m\u0027, new_commit_msg])\n\nSo git commit -a --amend should pick up the dirty stuff left by run_code_generation.py. Would be good to keep an eye out for unexpected behaviour though.",
+      "parentUuid": "0973a335_4023ba8e",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 9
+      },
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
