@@ -190,7 +190,6 @@ container_run_and_commit(
             "kubectl",
         ]),
 
-
         # Install CockroachDB as per the instructions here:
         # https://www.cockroachlabs.com/docs/v20.2/install-cockroachdb-linux.
         "wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar xvz",
