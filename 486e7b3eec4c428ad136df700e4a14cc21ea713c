@@ -16,6 +16,24 @@
       "message": "Eric, PTAL. I think I\u0027m missing a step here, don\u0027t recall where it\u0027s documented.",
       "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e49c2c72_3e7e5429",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-29T16:49:51Z",
+      "side": 1,
+      "message": "Looks right to me!  Having the pre-upload commands in the config file is new as of this week.",
+      "parentUuid": "302a321e_6053b888",
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
