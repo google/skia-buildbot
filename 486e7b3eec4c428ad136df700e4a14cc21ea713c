@@ -176,6 +176,30 @@
       },
       "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf3c282b_cbf47ced",
+        "filename": "autoroll/config/chromium-angle.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 7838
+      },
+      "writtenOn": "2021-04-29T17:14:43Z",
+      "side": 1,
+      "message": "I was assuming the checkout step would update vk-gl-cts roller because it\u0027s a single dep, not a \"weird\" meta-dep like the Chromium ones. Maybe we could just run sync manually as a third intermediary command? Eric can you let us know if this is safe?",
+      "parentUuid": "a84ea3c6_ad8b72fc",
+      "range": {
+        "startLine": 65,
+        "startChar": 6,
+        "endLine": 65,
+        "endChar": 22
+      },
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
