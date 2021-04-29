@@ -26,6 +26,8 @@ type Search struct {
 	// URL encoded query string
 	QueryStr    string              `json:"query"`
 	TraceValues paramtools.ParamSet `json:"-"`
+	// Not given to us by the frontend yet.
+	OptionsValues paramtools.ParamSet `json:"-"`
 
 	// URL encoded query string to select the right hand side of comparisons.
 	RightQueryStr    string              `json:"rquery"`
