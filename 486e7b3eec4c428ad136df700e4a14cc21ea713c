@@ -200,6 +200,30 @@
       },
       "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ddc07346_35e1ffe1",
+        "filename": "autoroll/config/chromium-angle.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-29T17:17:51Z",
+      "side": 1,
+      "message": "Just to be clear: the roller does do a \"gclient sync\" after it performs its own update of the DEPS file, before running the pre-upload commands.  It should be safe to run another \"gclient sync\" as its own pre-upload command, although I\u0027m not 100% sure whether PATH is set appropriately at that point.",
+      "parentUuid": "cf3c282b_cbf47ced",
+      "range": {
+        "startLine": 65,
+        "startChar": 6,
+        "endLine": 65,
+        "endChar": 22
+      },
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
