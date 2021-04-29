@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5bc5f8ca_0f4d5d05",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-29T14:12:36Z",
+      "side": 1,
+      "message": "This seems to fix the problems in task scheduler, status, and datahopper.  I\u0027m not confident that there aren\u0027t more problems that haven\u0027t popped up yet.",
+      "revId": "bffb1ffd389f9a893aa0109704b8a91ee122c8d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "36423ffd_5f231956",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-29T14:12:36Z",
+      "side": 1,
+      "message": "This needs to move independently of git.DefaultBranch because it\u0027s used in tasks.json which is referenced in several repos.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 31
+      },
+      "revId": "bffb1ffd389f9a893aa0109704b8a91ee122c8d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
