@@ -44,14 +44,14 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 		err := ltgr.Do(ctx, func(co *git.TempCheckout) error {
 			cfg, err := specs.ReadTasksCfg(co.Dir())
 			if err != nil {
-				return err
+				return skerr.Wrap(err)
 			}
 			for _, casSpec := range cfg.CasSpecs {
 				if casSpec.Digest == "" {
 					root := filepath.Join(co.Dir(), casSpec.Root)
 					digest, err := c.rbeCas.Upload(ctx, root, casSpec.Paths, casSpec.Excludes)
 					if err != nil {
-						return err
+						return skerr.Wrap(err)
 					}
 					casSpec.Digest = digest
 				}
@@ -60,7 +60,7 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 			return nil
 		})
 		if err != nil && !specs.ErrorIsPermanent(err) {
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 		errString := ""
 		if err != nil {
@@ -73,7 +73,7 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 		}, nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	if cv.Err != "" {
 		return nil, skerr.Fmt(cv.Err)
