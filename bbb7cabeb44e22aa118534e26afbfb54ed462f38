@@ -22,6 +22,30 @@
       },
       "revId": "bbb7cabeb44e22aa118534e26afbfb54ed462f38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "89a18e8f_4eac45cb",
+        "filename": "autoroll/config/webgpu-cts-chromium.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-29T15:15:25Z",
+      "side": 1,
+      "message": "Rolled this back at PS2, since the changes in question were not expected, now this is simply a port to the generic pre-upload step.  We should make the scripts run \"git add\" for the files they changed instead.",
+      "parentUuid": "96f26cfb_ceaf9969",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 9
+      },
+      "revId": "bbb7cabeb44e22aa118534e26afbfb54ed462f38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
