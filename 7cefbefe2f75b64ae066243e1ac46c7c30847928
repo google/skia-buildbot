@@ -22,6 +22,30 @@
       },
       "revId": "7cefbefe2f75b64ae066243e1ac46c7c30847928",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "295ffb3d_ec59f460",
+        "filename": "golden/go/search2/search2.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 588,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-04-29T18:20:33Z",
+      "side": 1,
+      "message": "I don\u0027t want to have to rename the function if that detail changes.",
+      "parentUuid": "318d0ab5_fe332504",
+      "range": {
+        "startLine": 587,
+        "startChar": 17,
+        "endLine": 588,
+        "endChar": 28
+      },
+      "revId": "7cefbefe2f75b64ae066243e1ac46c7c30847928",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
