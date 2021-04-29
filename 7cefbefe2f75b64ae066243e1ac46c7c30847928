@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "318d0ab5_fe332504",
+        "filename": "golden/go/search2/search2.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 588,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-04-29T18:18:47Z",
+      "side": 1,
+      "message": "Suggestion: makeTraceStatementWithNumberedParamsStartingAt2",
+      "range": {
+        "startLine": 587,
+        "startChar": 17,
+        "endLine": 588,
+        "endChar": 28
+      },
+      "revId": "7cefbefe2f75b64ae066243e1ac46c7c30847928",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
