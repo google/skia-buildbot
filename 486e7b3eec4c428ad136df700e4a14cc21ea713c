@@ -129,6 +129,53 @@
       },
       "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2ac6f2da_60dcb953",
+        "filename": "autoroll/config/chromium-angle.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5695
+      },
+      "writtenOn": "2021-04-29T17:10:07Z",
+      "side": 1,
+      "message": "roll_chromium_deps.py would update DEPS, but it doesn\u0027t sync",
+      "parentUuid": "e1357ee4_629a2301",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 9
+      },
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a84ea3c6_ad8b72fc",
+        "filename": "autoroll/config/chromium-angle.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5695
+      },
+      "writtenOn": "2021-04-29T17:10:07Z",
+      "side": 1,
+      "message": "Looks like sync happens here after all scripts ran, so I\u0027m not sure if what we want is possible at the moment.\nHowever, vk-gl-cts roller does run run_code_generation, and I think it does it after sync (at least it should), so I\u0027m not sure how this works.\nAnyway, we want to sync between the 2 scripts, and I don\u0027t know how to configure this.",
+      "range": {
+        "startLine": 65,
+        "startChar": 6,
+        "endLine": 65,
+        "endChar": 22
+      },
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
