@@ -51,10 +51,10 @@ func TestGitBranch(t *testing.T) {
 	require.Equal(t, 1, len(branches))
 	main := branches[0]
 	require.Equal(t, commits[0], main.Head)
-	require.Equal(t, DefaultBranch, main.Name)
+	require.Equal(t, MasterBranch, main.Name)
 
 	// Add a branch.
-	gb.CreateBranchTrackBranch(ctx, "newbranch", DefaultBranch)
+	gb.CreateBranchTrackBranch(ctx, "newbranch", MasterBranch)
 	c10 := gb.CommitGen(ctx, "branchfile")
 	_, err = g.Git(ctx, "fetch", DefaultRemote)
 	require.NoError(t, err)
@@ -64,11 +64,11 @@ func TestGitBranch(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(branches))
 	m, o := branches[0], branches[1]
-	if o.Name == DefaultBranch {
+	if o.Name == MasterBranch {
 		m, o = branches[1], branches[0]
 	}
 	require.Equal(t, commits[0], m.Head)
-	require.Equal(t, DefaultBranch, m.Name)
+	require.Equal(t, MasterBranch, m.Name)
 	require.Equal(t, c10, o.Head)
 	require.Equal(t, "newbranch", o.Name)
 

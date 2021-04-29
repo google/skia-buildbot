@@ -58,7 +58,7 @@ var (
 // contents of what the new buildbucket.config file should be.
 func getBuildbucketCfgFromJobs(ctx context.Context, repo *gitiles.Repo) (string, error) {
 	// Read tasks.json from the specified repository.
-	tasksContents, err := repo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, git.DefaultBranch)
+	tasksContents, err := repo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, git.MasterBranch)
 	if err != nil {
 		return "", skerr.Fmt("Could not read %s: %s", specs.TASKS_CFG_FILE, err)
 	}

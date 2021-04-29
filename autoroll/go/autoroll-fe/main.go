@@ -250,7 +250,7 @@ func submitConfigUpdate(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to initialize Gerrit API.", http.StatusInternalServerError)
 		return
 	}
-	baseCommit, err := configGitiles.ResolveRef(ctx, git.DefaultBranch)
+	baseCommit, err := configGitiles.ResolveRef(ctx, git.MasterBranch)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to find base commit.", http.StatusInternalServerError)
 		return
@@ -260,7 +260,7 @@ func submitConfigUpdate(w http.ResponseWriter, r *http.Request) {
 		configFile = path.Join(*configRepoPath, configFile)
 	}
 	// TODO(borenet): Handle custom commit messages.
-	ci, err := gerrit.CreateAndEditChange(ctx, g, *configGerritProject, git.DefaultBranch, "Update AutoRoller Config", baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+	ci, err := gerrit.CreateAndEditChange(ctx, g, *configGerritProject, git.MasterBranch, "Update AutoRoller Config", baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
 		return g.EditFile(ctx, ci, configFile, string(content))
 	})
 	if err != nil {

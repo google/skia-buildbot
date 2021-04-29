@@ -45,11 +45,11 @@ func TestRepo(t *testing.T) {
 	// Verify that we don't have a working copy.
 	_, err = r.Git(ctx, "status")
 	require.Error(t, err)
-	_, err = r.Git(ctx, "checkout", DefaultBranch)
+	_, err = r.Git(ctx, "checkout", MasterBranch)
 	require.Error(t, err)
 
 	// Log.
-	gotCommits, err := r.RevList(ctx, DefaultBranch)
+	gotCommits, err := r.RevList(ctx, MasterBranch)
 	require.NoError(t, err)
 	assertdeep.Equal(t, commits, gotCommits)
 

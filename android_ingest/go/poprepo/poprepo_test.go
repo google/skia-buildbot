@@ -72,7 +72,7 @@ func TestAdd(t *testing.T) {
 
 	buildid, ts, hash, err = p.GetLast(ctx)
 
-	err = p.Add(ctx, 3516727, 1479863307, git.DefaultBranch)
+	err = p.Add(ctx, 3516727, 1479863307, git.MasterBranch)
 	assert.NoError(t, err)
 
 	foundBuildID, branch, err = p.LookupBuildID(ctx, hash)
@@ -81,7 +81,7 @@ func TestAdd(t *testing.T) {
 	assert.Equal(t, "branch1", branch)
 
 	// Try to add something wrong.
-	err = p.Add(ctx, 3516727-1, 1479863307-1, git.DefaultBranch)
+	err = p.Add(ctx, 3516727-1, 1479863307-1, git.MasterBranch)
 	assert.Error(t, err)
 
 	// Confirm we get what we added before the error.

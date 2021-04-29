@@ -37,7 +37,7 @@ func New(ctx context.Context, checkout *git.Checkout) (*Cache, error) {
 	//   git log master --format=oneline --since="4 weeks ago"
 	//
 	// to prepopulate hashes.
-	log, err := checkout.Git(ctx, "log", git.DefaultBranch, "--format=oneline", "--since=\"2 weeks ago\"")
+	log, err := checkout.Git(ctx, "log", git.MasterBranch, "--format=oneline", "--since=\"2 weeks ago\"")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to prime cache from checkout: %s", err)
 	}

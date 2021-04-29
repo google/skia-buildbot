@@ -30,7 +30,7 @@ func copyCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 			CopyParent: &config.CopyParentConfig{
 				Gitiles: &config.GitilesParentConfig{
 					Gitiles: &config.GitilesConfig{
-						Branch:  git.DefaultBranch,
+						Branch:  git.MasterBranch,
 						RepoUrl: "http://fake.parent",
 					},
 					Dep: &config.DependencyConfig{
@@ -61,7 +61,7 @@ func copyCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 		Child: &config.ParentChildRepoManagerConfig_GitilesChild{
 			GitilesChild: &config.GitilesChildConfig{
 				Gitiles: &config.GitilesConfig{
-					Branch:  git.DefaultBranch,
+					Branch:  git.MasterBranch,
 					RepoUrl: "todo.git",
 				},
 			},
@@ -113,13 +113,13 @@ func setupCopy(t *testing.T) (context.Context, *config.ParentChildRepoManagerCon
 
 	// Mock requests for Update.
 	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
-	mockChild.MockGetCommit(ctx, git.DefaultBranch)
+	mockChild.MockGetCommit(ctx, git.MasterBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
 	}
 	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
-	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	mockParent.MockGetCommit(ctx, git.MasterBranch)
 	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
 
 	// Create the RepoManager.
@@ -154,13 +154,13 @@ func TestCopyRepoManager(t *testing.T) {
 
 	// Mock requests for Update.
 	mockChild.MockGetCommit(ctx, lastCommit)
-	mockChild.MockGetCommit(ctx, git.DefaultBranch)
+	mockChild.MockGetCommit(ctx, git.MasterBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], lastCommit))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
 	}
-	parentHead := strings.TrimSpace(parent.Git(ctx, "rev-parse", git.DefaultBranch))
-	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	parentHead := strings.TrimSpace(parent.Git(ctx, "rev-parse", git.MasterBranch))
+	mockParent.MockGetCommit(ctx, git.MasterBranch)
 	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
 
 	// Update.
@@ -179,13 +179,13 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 
 	// Mock requests for Update.
 	mockChild.MockGetCommit(ctx, childCommits[len(childCommits)-1])
-	mockChild.MockGetCommit(ctx, git.DefaultBranch)
+	mockChild.MockGetCommit(ctx, git.MasterBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
 	}
-	parentHead := strings.TrimSpace(parentRepo.Git(ctx, "rev-parse", git.DefaultBranch))
-	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	parentHead := strings.TrimSpace(parentRepo.Git(ctx, "rev-parse", git.MasterBranch))
+	mockParent.MockGetCommit(ctx, git.MasterBranch)
 	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
 
 	// Update.
@@ -228,7 +228,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 
 	// Mock the initial change creation.
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.DefaultBranch, parentHead))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.MasterBranch, parentHead))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",

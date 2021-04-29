@@ -143,9 +143,9 @@ func (c *CapacityClientImpl) getTasksCfg(ctx context.Context, repo string) (*spe
 	if !ok {
 		return nil, "", skerr.Fmt("Unknown repo %q", repo)
 	}
-	commit := repoGraph.Get(git.DefaultBranch)
+	commit := repoGraph.Get(git.MasterBranch)
 	if commit == nil {
-		commit = repoGraph.Get(git.SecondaryDefaultBranch)
+		commit = repoGraph.Get(git.MainBranch)
 	}
 	if commit == nil {
 		return nil, "", skerr.Fmt("Unable to find main branch in %q", repo)

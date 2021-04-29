@@ -20,21 +20,18 @@ import (
 )
 
 const (
-	// DefaultBranch is the name of the default branch for most repositories.
-	DefaultBranch = "master"
-	// SecondaryDefaultBranch is the name of the default branch for some
-	// repositories which don't use DefaultBranch.
-	// TODO(rmistry): Swap the default branch name and delete this after
-	// http://skbug.com/11842 is resolved.
-	SecondaryDefaultBranch = "main"
+	// Apps will gradually migrate to using MainBranch instead of
+	// MasterBranch as more repositories use MainBranch (skbug.com/11842).
+	MasterBranch = "master"
+	MainBranch   = "main"
 	// DefaultRef is the fully-qualified ref name of the default branch for most
 	// repositories.
-	DefaultRef = RefsHeadsPrefix + DefaultBranch
+	DefaultRef = RefsHeadsPrefix + MasterBranch
 	// DefaultRemote is the name of the default remote repository.
 	DefaultRemote = "origin"
 	// DefaultRemoteBranch is the name of the default branch in the default
 	// remote repository, for most repos.
-	DefaultRemoteBranch = DefaultRemote + "/" + DefaultBranch
+	DefaultRemoteBranch = DefaultRemote + "/" + MasterBranch
 	// RefsHeadsPrefix is the "refs/heads/" prefix used for branches.
 	RefsHeadsPrefix = "refs/heads/"
 )

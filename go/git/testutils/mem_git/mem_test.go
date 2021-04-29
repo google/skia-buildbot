@@ -31,17 +31,17 @@ func TestMemGit(t *testing.T) {
 	require.Equal(t, Commit1, commits[0].Hash)
 	require.Equal(t, BaseTime.Add(time.Minute), commits[0].Timestamp)
 	assertdeep.Equal(t, []string{Commit0}, commits[0].Parents)
-	assertdeep.Equal(t, map[string]bool{git.DefaultBranch: true}, commits[0].Branches)
+	assertdeep.Equal(t, map[string]bool{git.MasterBranch: true}, commits[0].Branches)
 	require.Equal(t, 1, commits[0].Index)
 	require.Equal(t, Commit0, commits[1].Hash)
 	require.Equal(t, BaseTime, commits[1].Timestamp)
 	require.Nil(t, commits[1].Parents)
-	assertdeep.Equal(t, map[string]bool{git.DefaultBranch: true}, commits[1].Branches)
+	assertdeep.Equal(t, map[string]bool{git.MasterBranch: true}, commits[1].Branches)
 	require.Equal(t, 0, commits[1].Index)
 	branches, err := gs.GetBranches(ctx)
 	require.NoError(t, err)
 	assertdeep.Equal(t, map[string]*gitstore.BranchPointer{
-		git.DefaultBranch: {
+		git.MasterBranch: {
 			Head:  Commit1,
 			Index: 1,
 		},
@@ -52,7 +52,7 @@ func TestMemGit(t *testing.T) {
 	branches, err = gs.GetBranches(ctx)
 	require.NoError(t, err)
 	assertdeep.Equal(t, map[string]*gitstore.BranchPointer{
-		git.DefaultBranch: {
+		git.MasterBranch: {
 			Head:  Commit1,
 			Index: 1,
 		},
@@ -74,7 +74,7 @@ func TestMemGit(t *testing.T) {
 	branches, err = gs.GetBranches(ctx)
 	require.NoError(t, err)
 	assertdeep.Equal(t, map[string]*gitstore.BranchPointer{
-		git.DefaultBranch: {
+		git.MasterBranch: {
 			Head:  Commit1,
 			Index: 1,
 		},
@@ -85,13 +85,13 @@ func TestMemGit(t *testing.T) {
 	}, branches)
 
 	// Merge into the main branch.
-	g.CheckoutBranch(ctx, git.DefaultBranch)
+	g.CheckoutBranch(ctx, git.MasterBranch)
 	merge := g.Merge(ctx, "branch2")
 	mcs, err := gs.Get(ctx, []string{merge.Hash})
 	require.NoError(t, err)
 	mc := mcs[0]
 	assertdeep.Equal(t, merge, mc)
 	assertdeep.Equal(t, []string{Commit1, bcHash}, mc.Parents)
-	assertdeep.Equal(t, map[string]bool{git.DefaultBranch: true}, mc.Branches)
+	assertdeep.Equal(t, map[string]bool{git.MasterBranch: true}, mc.Branches)
 	require.Equal(t, 2, mc.Index)
 }

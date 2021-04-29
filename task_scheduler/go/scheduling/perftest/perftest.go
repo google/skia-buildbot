@@ -97,7 +97,7 @@ func commit(ctx context.Context, repoDir, message string) {
 
 func makeDummyCommits(ctx context.Context, repoDir string, numCommits int) {
 	gd := git.GitDir(repoDir)
-	_, err := gd.Git(ctx, "checkout", git.DefaultBranch)
+	_, err := gd.Git(ctx, "checkout", git.MasterBranch)
 	assertNoError(err)
 	dummyFile := path.Join(repoDir, "dummyfile.txt")
 	for i := 0; i < numCommits; i++ {
@@ -106,7 +106,7 @@ func makeDummyCommits(ctx context.Context, repoDir string, numCommits int) {
 		_, err = gd.Git(ctx, "add", dummyFile)
 		assertNoError(err)
 		commit(ctx, repoDir, title)
-		_, err = gd.Git(ctx, "push", git.DefaultRemote, git.DefaultBranch)
+		_, err = gd.Git(ctx, "push", git.DefaultRemote, git.MasterBranch)
 		assertNoError(err)
 	}
 }
@@ -226,7 +226,7 @@ func main() {
 	_, err = gd.Git(ctx, "add", specs.TASKS_CFG_FILE)
 	assertNoError(err)
 	commit(ctx, repoDir, "Add more tasks!")
-	_, err = gd.Git(ctx, "push", git.DefaultRemote, git.DefaultBranch)
+	_, err = gd.Git(ctx, "push", git.DefaultRemote, git.MasterBranch)
 	assertNoError(err)
 	_, err = gd.Git(ctx, "branch", "-u", git.DefaultRemoteBranch)
 	assertNoError(err)
@@ -250,9 +250,9 @@ func main() {
 	repo, err := repograph.NewLocalGraph(ctx, repoName, workdir)
 	assertNoError(err)
 	assertNoError(repo.Update(ctx))
-	headCommit := repo.Get(git.DefaultBranch)
+	headCommit := repo.Get(git.MasterBranch)
 	if headCommit == nil {
-		sklog.Fatalf("Could not find HEAD of %s.", git.DefaultBranch)
+		sklog.Fatalf("Could not find HEAD of %s.", git.MasterBranch)
 	}
 	head := headCommit.Hash
 
@@ -329,7 +329,7 @@ func main() {
 
 	// Add more commits to the repo.
 	makeDummyCommits(ctx, repoDir, 200)
-	commits, err = repo.RevList(head, git.DefaultBranch)
+	commits, err = repo.RevList(head, git.MasterBranch)
 	assertNoError(err)
 
 	// Start the profiler.

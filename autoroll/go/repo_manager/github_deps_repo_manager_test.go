@@ -46,7 +46,7 @@ func githubDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 				DepsLocal: &config.DEPSLocalParentConfig{
 					GitCheckout: &config.GitCheckoutParentConfig{
 						GitCheckout: &config.GitCheckoutConfig{
-							Branch:  git.DefaultBranch,
+							Branch:  git.MasterBranch,
 							RepoUrl: "todo.git",
 						},
 						Dep: &config.DependencyConfig{
@@ -69,7 +69,7 @@ func githubDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 			GitCheckoutGithubChild: &config.GitCheckoutGitHubChildConfig{
 				GitCheckout: &config.GitCheckoutChildConfig{
 					GitCheckout: &config.GitCheckoutConfig{
-						Branch:  git.DefaultBranch,
+						Branch:  git.MasterBranch,
 						RepoUrl: "todo.git",
 					},
 				},
@@ -113,7 +113,7 @@ func setupGithubDEPS(t *testing.T, c *config.ParentChildRepoManagerConfig) (cont
 	fork := git_testutils.GitInit(t, ctx)
 	fork.Git(ctx, "remote", "set-url", git.DefaultRemote, parent.RepoUrl())
 	fork.Git(ctx, "fetch", git.DefaultRemote)
-	fork.Git(ctx, "checkout", git.DefaultBranch)
+	fork.Git(ctx, "checkout", git.MasterBranch)
 	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
 	parentCfg := c.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
@@ -210,7 +210,7 @@ func mockGithubRefRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRe
 		},
 	})
 	require.NoError(t, err)
-	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs/%s", githubApiUrl, forkRepoOwner, forkRepoName, "heads%2F"+git.DefaultBranch), mockhttpclient.MockGetDialogue(serializedRef))
+	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs/%s", githubApiUrl, forkRepoOwner, forkRepoName, "heads%2F"+git.MasterBranch), mockhttpclient.MockGetDialogue(serializedRef))
 	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", mockhttpclient.DONT_CARE_REQUEST, nil, http.StatusCreated)
 	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs", githubApiUrl, forkRepoOwner, forkRepoName), md)
 	require.NoError(t, err)

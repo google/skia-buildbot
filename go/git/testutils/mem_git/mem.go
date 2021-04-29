@@ -83,7 +83,7 @@ func FakeCommit(t sktest.TestingT, msg, branch string, parents ...*vcsinfo.LongC
 // New returns a MemGit instance which writes to the given GitStore.
 func New(t sktest.TestingT, gs gitstore.GitStore) *MemGit {
 	return &MemGit{
-		branch: git.DefaultBranch,
+		branch: git.MasterBranch,
 		gs:     gs,
 		t:      t,
 	}

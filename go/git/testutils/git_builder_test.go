@@ -21,7 +21,7 @@ func TestGitSetup(t *testing.T) {
 	// Assert that the default branch has the expected name.
 	output, err := exec.RunCwd(ctx, g.Dir(), g.git, "symbolic-ref", "--short", "HEAD")
 	require.NoError(t, err)
-	require.Equal(t, git_common.DefaultBranch, strings.TrimSpace(output))
+	require.Equal(t, git_common.MasterBranch, strings.TrimSpace(output))
 
 	commits := GitSetup(ctx, g)
 

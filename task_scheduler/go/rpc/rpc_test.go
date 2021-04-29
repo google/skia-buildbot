@@ -140,7 +140,7 @@ func TestTriggerJobs(t *testing.T) {
 	ctx, srv, _, _, _, _, cleanup := setup(t)
 	defer cleanup()
 
-	commit := srv.repos[fakeRepo].Get(git.DefaultBranch).Hash
+	commit := srv.repos[fakeRepo].Get(git.MasterBranch).Hash
 	req := &TriggerJobsRequest{
 		Jobs: []*TriggerJob{
 			{

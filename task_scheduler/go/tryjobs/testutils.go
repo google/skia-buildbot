@@ -104,7 +104,7 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	rs := types.RepoState{
 		Patch:    gerritPatch,
 		Repo:     gb.RepoUrl(),
-		Revision: git.DefaultBranch,
+		Revision: git.MasterBranch,
 	}
 
 	// Create a ref for a fake patch.
