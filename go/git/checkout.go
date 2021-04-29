@@ -87,7 +87,7 @@ func (c *Checkout) CleanupBranch(ctx context.Context, branch string) error {
 // Cleanup forcibly resets all changes and checks out the main branch to match
 // that of the remote. All local changes will be lost.
 func (c *Checkout) Cleanup(ctx context.Context) error {
-	return c.CleanupBranch(ctx, DefaultBranch)
+	return c.CleanupBranch(ctx, MasterBranch)
 }
 
 // UpdateBranch syncs the Checkout from its remote. Forcibly resets and checks
@@ -107,7 +107,7 @@ func (c *Checkout) UpdateBranch(ctx context.Context, branch string) error {
 // the main branch to match the remote. All local changes will be lost.
 // Equivalent to c.Fetch() + c.Cleanup().
 func (c *Checkout) Update(ctx context.Context) error {
-	return c.UpdateBranch(ctx, DefaultBranch)
+	return c.UpdateBranch(ctx, MasterBranch)
 }
 
 // TempCheckout is a temporary Git Checkout.

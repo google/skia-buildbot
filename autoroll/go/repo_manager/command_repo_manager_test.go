@@ -109,7 +109,7 @@ func TestCommandRepoManager(t *testing.T) {
 
 	cfg := &config.CommandRepoManagerConfig{
 		GitCheckout: &config.GitCheckoutConfig{
-			Branch:  git.DefaultBranch,
+			Branch:  git.MasterBranch,
 			RepoUrl: parent.RepoUrl(),
 		},
 		GetTipRev:    getTipRev,

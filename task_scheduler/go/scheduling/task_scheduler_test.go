@@ -88,7 +88,7 @@ var (
 		Timestamp: time.Unix(1571926390, 0),
 		Index:     0,
 		Branches: map[string]bool{
-			git.DefaultBranch: true,
+			git.MasterBranch: true,
 		},
 	}
 	lc2 = &vcsinfo.LongCommit{
@@ -102,7 +102,7 @@ var (
 		Timestamp: time.Unix(1571926450, 0),
 		Index:     1,
 		Branches: map[string]bool{
-			git.DefaultBranch: true,
+			git.MasterBranch: true,
 		},
 	}
 
@@ -1434,7 +1434,7 @@ func TestComputeBlamelist(t *testing.T) {
 	gb.CheckoutBranch(ctx, "otherbranch")
 	commit("H")
 	commit("I")
-	gb.CheckoutBranch(ctx, git.DefaultBranch)
+	gb.CheckoutBranch(ctx, git.MasterBranch)
 	hashes["J"] = gb.Merge(ctx, "otherbranch").Hash
 	require.NoError(t, tcc.Set(ctx, types.RepoState{
 		Repo:     rs1.Repo,
@@ -1514,7 +1514,7 @@ func TestComputeBlamelist(t *testing.T) {
 	// 11. Verify that we correctly track when task specs were added.
 	gb.NewBranch(ctx, "otherbranch2", hashes["O"])
 	commit("P")
-	gb.CheckoutBranch(ctx, git.DefaultBranch)
+	gb.CheckoutBranch(ctx, git.MasterBranch)
 	commit("Q")
 	newTaskCfg := taskCfg.Copy()
 	newTaskCfg.Tasks["added-task"] = &specs.TaskSpec{}
@@ -2197,7 +2197,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	}
 
 	// Run one task. Ensure that it's at tip-of-tree.
-	head := s.repos[rs1.Repo].Get(git.DefaultBranch).Hash
+	head := s.repos[rs1.Repo].Get(git.MasterBranch).Hash
 	mockBots(t, swarmingClient, bot1)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
@@ -2380,7 +2380,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	require.Equal(t, 0, len(s.queue))
-	head := s.repos[rs1.Repo].Get(git.DefaultBranch).Hash
+	head := s.repos[rs1.Repo].Get(git.MasterBranch).Hash
 	tasks, err := s.tCache.GetTasksForCommits(rs1.Repo, []string{head})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tasks[head]))
@@ -3026,7 +3026,7 @@ func setupAddTasksTest(t *testing.T) (context.Context, *mem_git.MemGit, []string
 	// Add some commits to test blamelist calculation.
 	gb.CommitN(ctx, 7)
 	require.NoError(t, s.repos.Update(ctx))
-	hashes, err := s.repos[rs1.Repo].Get(git.DefaultBranch).AllCommits()
+	hashes, err := s.repos[rs1.Repo].Get(git.MasterBranch).AllCommits()
 	require.NoError(t, err)
 	for _, hash := range hashes {
 		require.NoError(t, s.taskCfgCache.Set(ctx, types.RepoState{

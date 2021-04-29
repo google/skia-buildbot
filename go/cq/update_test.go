@@ -25,7 +25,7 @@ func fakeConfig() *config.Config {
 		},
 		ConfigGroups: []*config.ConfigGroup{
 			{
-				Name: git.DefaultBranch,
+				Name: git.MasterBranch,
 				Gerrit: []*config.ConfigGroup_Gerrit{
 					{
 						Url: "gerrit.com",
@@ -89,7 +89,7 @@ func TestCloneBranch(t *testing.T) {
 		cloneCg.Gerrit[0].Projects[0].RefRegexp[0] = "refs/heads/clone"
 		expect.ConfigGroups = append(expect.ConfigGroups, cloneCg)
 		actual := fakeConfig()
-		require.NoError(t, CloneBranch(actual, git.DefaultBranch, "clone", true, true, nil))
+		require.NoError(t, CloneBranch(actual, git.MasterBranch, "clone", true, true, nil))
 		assertdeep.Equal(t, expect, actual)
 	})
 
@@ -101,7 +101,7 @@ func TestCloneBranch(t *testing.T) {
 		cloneCg.Verifiers.Tryjob.Builders = cloneCg.Verifiers.Tryjob.Builders[:1]
 		expect.ConfigGroups = append(expect.ConfigGroups, cloneCg)
 		actual := fakeConfig()
-		require.NoError(t, CloneBranch(actual, git.DefaultBranch, "clone", false, true, nil))
+		require.NoError(t, CloneBranch(actual, git.MasterBranch, "clone", false, true, nil))
 		assertdeep.Equal(t, expect, actual)
 	})
 
@@ -113,7 +113,7 @@ func TestCloneBranch(t *testing.T) {
 		cloneCg.Verifiers.TreeStatus = nil
 		expect.ConfigGroups = append(expect.ConfigGroups, cloneCg)
 		actual := fakeConfig()
-		require.NoError(t, CloneBranch(actual, git.DefaultBranch, "clone", true, false, nil))
+		require.NoError(t, CloneBranch(actual, git.MasterBranch, "clone", true, false, nil))
 		assertdeep.Equal(t, expect, actual)
 	})
 
@@ -126,7 +126,7 @@ func TestCloneBranch(t *testing.T) {
 		expect.ConfigGroups = append(expect.ConfigGroups, cloneCg)
 		excludeRe := regexp.MustCompile("^fake")
 		actual := fakeConfig()
-		require.NoError(t, CloneBranch(actual, git.DefaultBranch, "clone", true, true, []*regexp.Regexp{excludeRe}))
+		require.NoError(t, CloneBranch(actual, git.MasterBranch, "clone", true, true, []*regexp.Regexp{excludeRe}))
 		assertdeep.Equal(t, expect, actual)
 	})
 }

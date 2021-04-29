@@ -55,7 +55,7 @@ func depsCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 				DepsLocal: &config.DEPSLocalParentConfig{
 					GitCheckout: &config.GitCheckoutParentConfig{
 						GitCheckout: &config.GitCheckoutConfig{
-							Branch:  git.DefaultBranch,
+							Branch:  git.MasterBranch,
 							RepoUrl: "TODO",
 						},
 						Dep: &config.DependencyConfig{
@@ -77,7 +77,7 @@ func depsCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 		Child: &config.ParentChildRepoManagerConfig_GitCheckoutChild{
 			GitCheckoutChild: &config.GitCheckoutChildConfig{
 				GitCheckout: &config.GitCheckoutConfig{
-					Branch:  git.DefaultBranch,
+					Branch:  git.MasterBranch,
 					RepoUrl: "TODO",
 				},
 			},

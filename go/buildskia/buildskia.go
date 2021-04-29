@@ -43,7 +43,7 @@ const (
 //
 // If client is nil then a default timeout client is used.
 func GetSkiaHead(client *http.Client) (string, error) {
-	head, err := gitiles.NewRepo(common.REPO_SKIA, client).Details(context.TODO(), git.DefaultBranch)
+	head, err := gitiles.NewRepo(common.REPO_SKIA, client).Details(context.TODO(), git.MasterBranch)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Could not get Skia's HEAD")
 	}

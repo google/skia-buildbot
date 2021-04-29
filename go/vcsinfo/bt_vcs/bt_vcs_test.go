@@ -22,7 +22,7 @@ import (
 
 func TestVCSSuite(t *testing.T) {
 	unittest.LargeTest(t)
-	vcs, _, cleanup := setupVCSLocalRepo(t, git.DefaultBranch)
+	vcs, _, cleanup := setupVCSLocalRepo(t, git.MasterBranch)
 	defer cleanup()
 
 	// Run the VCS test suite.
@@ -68,11 +68,11 @@ func TestConcurrentUpdate(t *testing.T) {
 		hashes = append(hashes, ic.Hash)
 	}
 
-	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, git.DefaultBranch).Return(ics[:1], nil).Once()
+	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, git.MasterBranch).Return(ics[:1], nil).Once()
 	mg.On("Get", testutils.AnyContext, hashes[:1]).Return(lcs[:1], nil).Once()
 
 	ctx := context.Background()
-	vcs, err := New(ctx, mg, git.DefaultBranch)
+	vcs, err := New(ctx, mg, git.MasterBranch)
 	require.NoError(t, err)
 
 	// Now, pretend that the other two commits have landed, and run Update
@@ -81,9 +81,9 @@ func TestConcurrentUpdate(t *testing.T) {
 	// from above, because we request a range which overlaps by one commit.
 	// Subsequent calls should already be loaded with IndexCommits and thus
 	// should start at 2.
-	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, git.DefaultBranch).Return(ics, nil).Once()
+	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, git.MasterBranch).Return(ics, nil).Once()
 	mg.On("Get", testutils.AnyContext, hashes[1:]).Return(lcs[1:], nil).Once()
-	mg.On("RangeN", testutils.AnyContext, 2, math.MaxInt32, git.DefaultBranch).Return(ics[2:], nil)
+	mg.On("RangeN", testutils.AnyContext, 2, math.MaxInt32, git.MasterBranch).Return(ics[2:], nil)
 
 	var egroup errgroup.Group
 	for i := 0; i < numGoroutines; i++ {
@@ -105,10 +105,10 @@ func TestDetailsCaching(t *testing.T) {
 
 	commits := makeTestLongCommits()
 
-	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, git.DefaultBranch).Return(makeTestIndexCommits(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, git.MasterBranch).Return(makeTestIndexCommits(), nil)
 	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(commits, nil).Once()
 
-	vcs, err := New(context.Background(), mg, git.DefaultBranch)
+	vcs, err := New(context.Background(), mg, git.MasterBranch)
 	require.NoError(t, err)
 
 	// query details 3 times, and make sure it uses the cache after the
@@ -138,10 +138,10 @@ func TestDetailsMultiCaching(t *testing.T) {
 
 	commits := makeTestLongCommits()
 
-	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, git.DefaultBranch).Return(makeTestIndexCommits(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, git.MasterBranch).Return(makeTestIndexCommits(), nil)
 	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(commits, nil).Once()
 
-	vcs, err := New(context.Background(), mg, git.DefaultBranch)
+	vcs, err := New(context.Background(), mg, git.MasterBranch)
 	require.NoError(t, err)
 
 	// query details 3 times, and make sure it uses the cache after the

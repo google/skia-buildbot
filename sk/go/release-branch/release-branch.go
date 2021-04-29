@@ -175,7 +175,7 @@ func updateMilestone(ctx context.Context, g gerrit.GerritInterface, baseCommit s
 	changes := map[string]string{
 		milestoneFile: newContents,
 	}
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, git.DefaultBranch, commitMsg, baseCommit, changes, !dryRun)
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, git.MasterBranch, commitMsg, baseCommit, changes, !dryRun)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}

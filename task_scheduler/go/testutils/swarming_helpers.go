@@ -29,7 +29,7 @@ func MockSwarmingBotsForAllTasksForTesting(ctx context.Context, repos map[string
 			continue
 		}
 		for _, branch := range branches {
-			if branch.Name != git.DefaultBranch {
+			if branch.Name != git.MasterBranch {
 				continue
 			}
 			contents, err := repo.GetFile(ctx, specs.TASKS_CFG_FILE, branch.Head)

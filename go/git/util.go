@@ -20,12 +20,12 @@ import (
 )
 
 const (
-	// DefaultBranch is the name of the default branch for most repositories.
-	DefaultBranch = git_common.DefaultBranch
-	// SecondaryDefaultBranch is the name of the default branch for some
-	// repositories which don't use DefaultBranch.
+	// MasterBranch is the name of the default branch for most repositories.
+	MasterBranch = git_common.MasterBranch
+	// MainBranch is the name of the default branch for some
+	// repositories which don't use MasterBranch.
 	// TODO(rmistry): Delete this after http://skbug.com/11842 is resolved.
-	SecondaryDefaultBranch = git_common.SecondaryDefaultBranch
+	MainBranch = git_common.MainBranch
 	// DefaultRef is the fully-qualified ref name of the default branch for most
 	// repositories.
 	DefaultRef = git_common.DefaultRef

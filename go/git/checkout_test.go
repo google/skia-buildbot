@@ -30,7 +30,7 @@ func TestCheckout(t *testing.T) {
 	// Verify that we have a working copy.
 	_, err = c.Git(ctx, "status")
 	require.NoError(t, err)
-	_, err = c.Git(ctx, "checkout", DefaultBranch)
+	_, err = c.Git(ctx, "checkout", MasterBranch)
 	require.NoError(t, err)
 
 	// Log.
@@ -61,7 +61,7 @@ func TestCheckout(t *testing.T) {
 		if len(untracked) != 0 {
 			return false
 		}
-		h1, err := c.RevParse(ctx, DefaultBranch)
+		h1, err := c.RevParse(ctx, MasterBranch)
 		require.NoError(t, err)
 		h2, err := c.RevParse(ctx, DefaultRemoteBranch)
 		require.NoError(t, err)

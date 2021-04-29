@@ -418,7 +418,7 @@ func TestReadRawFileRequest(t *testing.T) {
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	require.NoError(t, err)
-	contents, readRawErr := githubClient.ReadRawFile(git.DefaultBranch, "/dummy/path/to/this.txt")
+	contents, readRawErr := githubClient.ReadRawFile(git.MasterBranch, "/dummy/path/to/this.txt")
 	require.NoError(t, readRawErr)
 	require.Equal(t, "abcd", contents)
 }

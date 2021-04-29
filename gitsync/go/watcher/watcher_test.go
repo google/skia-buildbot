@@ -49,7 +49,7 @@ func TestIngestCommits(t *testing.T) {
 					Hash: h,
 				},
 				Index:    idx,
-				Branches: map[string]bool{git.DefaultBranch: true},
+				Branches: map[string]bool{git.MasterBranch: true},
 			})
 			idx++
 		}
@@ -81,7 +81,7 @@ func TestIngestCommits(t *testing.T) {
 	require.NoError(t, ri.processCommits(ctx, process, func(ctx context.Context, ch chan<- *commitBatch) error {
 		commits := makeCommits("abc123")
 		gs.On("Put", ctx, commits).Return(nil)
-		gs.On("PutBranches", ctx, map[string]string{git.DefaultBranch: commits[len(commits)-1].Hash}).Return(nil)
+		gs.On("PutBranches", ctx, map[string]string{git.MasterBranch: commits[len(commits)-1].Hash}).Return(nil)
 		ch <- &commitBatch{
 			commits: commits,
 		}
@@ -98,7 +98,7 @@ func TestIngestCommits(t *testing.T) {
 			}
 			commits := makeCommits(hashes...)
 			gs.On("Put", ctx, commits).Return(nil)
-			gs.On("PutBranches", ctx, map[string]string{git.DefaultBranch: commits[len(commits)-1].Hash}).Return(nil)
+			gs.On("PutBranches", ctx, map[string]string{git.MasterBranch: commits[len(commits)-1].Hash}).Return(nil)
 			ch <- &commitBatch{
 				commits: commits,
 			}
@@ -113,7 +113,7 @@ func TestIngestCommits(t *testing.T) {
 	require.Equal(t, err, ri.processCommits(ctx, process, func(ctx context.Context, ch chan<- *commitBatch) error {
 		commits := makeCommits("def456")
 		gs.On("Put", ctx, commits).Return(nil)
-		gs.On("PutBranches", ctx, map[string]string{git.DefaultBranch: commits[len(commits)-1].Hash}).Return(nil)
+		gs.On("PutBranches", ctx, map[string]string{git.MasterBranch: commits[len(commits)-1].Hash}).Return(nil)
 		ch <- &commitBatch{
 			commits: commits,
 		}
@@ -140,7 +140,7 @@ func TestIngestCommits(t *testing.T) {
 				gs.On("Put", ctx, commits).Return(errors.New("commit ingestion failed."))
 			} else {
 				gs.On("Put", ctx, commits).Return(nil)
-				gs.On("PutBranches", ctx, map[string]string{git.DefaultBranch: commits[len(commits)-1].Hash}).Return(nil)
+				gs.On("PutBranches", ctx, map[string]string{git.MasterBranch: commits[len(commits)-1].Hash}).Return(nil)
 			}
 			ch <- &commitBatch{
 				commits: commits,
@@ -166,7 +166,7 @@ func TestGetFilteredBranches(t *testing.T) {
 
 	// Create two branches.
 	g.CommitGen(ctx, "file")
-	g.CreateBranchTrackBranch(ctx, "branch2", git.DefaultBranch)
+	g.CreateBranchTrackBranch(ctx, "branch2", git.MasterBranch)
 	g.CommitGen(ctx, "file")
 
 	// Check that getFilteredBranches returns both branches.
@@ -200,7 +200,7 @@ func TestRepoImplIncludeBranches(t *testing.T) {
 
 	// Create two branches.
 	c0 := g.CommitGen(ctx, "file")
-	g.CreateBranchTrackBranch(ctx, "branch2", git.DefaultBranch)
+	g.CreateBranchTrackBranch(ctx, "branch2", git.MasterBranch)
 	c1 := g.CommitGen(ctx, "file")
 
 	// Check that only the included branches are present.
@@ -210,7 +210,7 @@ func TestRepoImplIncludeBranches(t *testing.T) {
 	// has already been ingested.
 	ri.BranchList = []*git.Branch{
 		{
-			Name: git.DefaultBranch,
+			Name: git.MasterBranch,
 			Head: c0,
 		},
 		{
@@ -280,7 +280,7 @@ func (u *gitsyncRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 				logExpr = fmt.Sprintf("%s..%s", oldHead, b.Head)
 			}
 			var opts []gitiles.LogOption
-			if u.initialSync && b.Name == git.DefaultBranch {
+			if u.initialSync && b.Name == git.MasterBranch {
 				opts = append(opts, gitiles.LogReverse(), gitiles.LogBatchSize(batchSize))
 			}
 			u.gitiles.MockLog(ctx, logExpr, opts...)
@@ -468,7 +468,7 @@ func TestMissingOldBranchHeadFallback(t *testing.T) {
 	branches, err := ud.gs.GetBranches(ctx)
 	require.NoError(t, err)
 	assertdeep.Equal(t, map[string]*gitstore.BranchPointer{
-		git.DefaultBranch: {
+		git.MasterBranch: {
 			Head:  deleted,
 			Index: 1,
 		},

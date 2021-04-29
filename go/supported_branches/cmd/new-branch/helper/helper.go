@@ -73,7 +73,7 @@ func AddSupportedBranch(repoUrl, branch, owner, deleteBranch string, excludeTryb
 		if cg != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Already have %s in %s; not adding a duplicate.\n", newRef, cq.CQ_CFG_FILE)
 		} else {
-			if err := cq.CloneBranch(cfg, git.DefaultBranch, git.BranchBaseName(branch), false, false, excludeTrybotRegexp); err != nil {
+			if err := cq.CloneBranch(cfg, git.MasterBranch, git.BranchBaseName(branch), false, false, excludeTrybotRegexp); err != nil {
 				return skerr.Wrap(err)
 			}
 		}
