@@ -604,26 +604,60 @@ func matchingTracesStatement(ctx context.Context) (string, []interface{}) {
 	}
 	args := []interface{}{getFirstCommitID(ctx), ignoreStatuses}
 
-	if len(keyFilters) == 0 {
-		// Corpus is being used as a string
-		args = append(args, q.TraceValues[types.CorpusField][0])
-		return `
+	if q.OnlyIncludeDigestsProducedAtHead {
+		if len(keyFilters) == 0 {
+			// Corpus is being used as a string
+			args = append(args, q.TraceValues[types.CorpusField][0])
+			return `
 MatchingTraces AS (
     SELECT trace_id, grouping_id, digest FROM ValuesAtHead
 	WHERE most_recent_commit_id >= $2 AND
     	matches_any_ignore_rule = ANY($3) AND
     	corpus = $4
 )`, args
-	}
-	// Corpus is being used as a JSONB value here
-	args = append(args, `"`+q.TraceValues[types.CorpusField][0]+`"`)
-	return joinedTracesStatement(keyFilters) + `
+		}
+		// Corpus is being used as a JSONB value here
+		args = append(args, `"`+q.TraceValues[types.CorpusField][0]+`"`)
+		return joinedTracesStatement(keyFilters) + `
 MatchingTraces AS (
     SELECT ValuesAtHead.trace_id, grouping_id, digest FROM ValuesAtHead
 	JOIN JoinedTraces ON ValuesAtHead.trace_id = JoinedTraces.trace_id
 	WHERE most_recent_commit_id >= $2 AND
     	matches_any_ignore_rule = ANY($3)
 )`, args
+	} else {
+		if len(keyFilters) == 0 {
+			// Corpus is being used as a string
+			args = append(args, q.TraceValues[types.CorpusField][0])
+			return `
+TracesOfInterest AS (
+    SELECT trace_id FROM ValuesAtHead
+	WHERE matches_any_ignore_rule = ANY($3) AND
+    	corpus = $4
+),
+MatchingTraces AS (
+	SELECT DISTINCT TraceValues.trace_id, TraceValues.grouping_id, TraceValues.digest
+	FROM TraceValues
+	JOIN TracesOfInterest on TraceValues.trace_id = TracesOfInterest.trace_id
+	WHERE commit_id >= $2
+)
+`, args
+		}
+		// Corpus is being used as a JSONB value here
+		args = append(args, `"`+q.TraceValues[types.CorpusField][0]+`"`)
+		return joinedTracesStatement(keyFilters) + `
+TracesOfInterest AS (
+    SELECT Traces.trace_id FROM Traces
+	JOIN JoinedTraces ON Traces.trace_id = JoinedTraces.trace_id
+	WHERE matches_any_ignore_rule = ANY($3)
+),
+MatchingTraces AS (
+	SELECT DISTINCT TraceValues.trace_id, TraceValues.grouping_id, TraceValues.digest
+	FROM TraceValues
+	JOIN TracesOfInterest on TraceValues.trace_id = TracesOfInterest.trace_id
+	WHERE commit_id >= $2
+)`, args
+	}
 }
 
 // joinedTracesStatement returns a SQL snippet that includes a WITH table called JoinedTraces.
