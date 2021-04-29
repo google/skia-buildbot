@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "d039b5c8_a10d1ad0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-29T14:49:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0b51b89_41170dbf",
+      "revId": "bffb1ffd389f9a893aa0109704b8a91ee122c8d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "5bc5f8ca_0f4d5d05",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 1
@@ -48,6 +66,24 @@
       "writtenOn": "2021-04-29T14:32:30Z",
       "side": 1,
       "message": "I am assuming we can make \"main\" the DefaultBranch after all repos are migrated over and then can remove SecondaryDefaultBranch?\nIf yes, should we add a\n// TODO(rmistry): Remove SecondaryDefaultBranch after skbug.com/11842 is resolved\n?",
+      "revId": "bffb1ffd389f9a893aa0109704b8a91ee122c8d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f770dbf6_0b4efa29",
+        "filename": "go/git/git_common/git_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-29T14:49:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3cf94a60_cf0fe1d9",
       "revId": "bffb1ffd389f9a893aa0109704b8a91ee122c8d8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
@@ -112,6 +148,30 @@
       "side": 1,
       "message": "Oh so this will have to change in tasks.json per repo (if it exists in tasks.json).\nCould you add a TRIGGER_MAIN_ONLY here? so that it will be easy to update tasks.json",
       "parentUuid": "36423ffd_5f231956",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 31
+      },
+      "revId": "bffb1ffd389f9a893aa0109704b8a91ee122c8d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f9c61bc7_7976be91",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-29T14:49:08Z",
+      "side": 1,
+      "message": "Done, but I\u0027m actually not sure of the right way forward here.  Because tasks.json is used on all branches, and non-main (non-master) branches are where this trigger is most important, we\u0027ll need to update tasks.json on all supported branches if this changes.  Note that, as written, this doesn\u0027t actually need to change in any client repos in order to function properly.",
+      "parentUuid": "41b6db5b_0f6c3d82",
       "range": {
         "startLine": 35,
         "startChar": 0,
