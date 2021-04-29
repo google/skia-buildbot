@@ -468,7 +468,10 @@ func (m *overdueJobMetrics) start(ctx context.Context) {
 func getMostRecentCachedRev(ctx context.Context, tcc *task_cfg_cache.TaskCfgCache, repoUrl string, repo *repograph.Graph) (*repograph.Commit, *specs.TasksCfg, error) {
 	head := repo.Get(git.DefaultBranch)
 	if head == nil {
-		return nil, nil, skerr.Fmt("Can't resolve %q in %q.", git.DefaultBranch, repoUrl)
+		head = repo.Get(git.SecondaryDefaultBranch)
+	}
+	if head == nil {
+		return nil, nil, skerr.Fmt("Can't resolve %q or %q in %q.", git.DefaultBranch, git.SecondaryDefaultBranch, repoUrl)
 	}
 	var commit *repograph.Commit
 	var cfg *specs.TasksCfg

@@ -12,7 +12,6 @@ import (
 
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cipd"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -33,7 +32,8 @@ const (
 	// defined.
 	TRIGGER_ANY_BRANCH = ""
 	// Run this job on the main branch only, even if it is defined on others.
-	TRIGGER_MASTER_ONLY = git.DefaultBranch
+	TRIGGER_MASTER_ONLY = "master"
+	TRIGGER_MAIN_ONLY   = "main"
 	// Trigger this job every night.
 	TRIGGER_NIGHTLY = periodic.TRIGGER_NIGHTLY
 	// Don't trigger this job automatically. It will only be run when
@@ -148,6 +148,7 @@ var (
 // TODO(borenet): This should probably be split into two different
 // ErrorIsPermanent functions, in the syncer, and specs packages.
 func ErrorIsPermanent(err error) bool {
+	err = skerr.Unwrap(err)
 	return (strings.Contains(err.Error(), "error: Failed to merge in the changes.") ||
 		strings.Contains(err.Error(), "Failed to apply patch") ||
 		strings.Contains(err.Error(), "Failed to read tasks cfg: could not parse file:") ||
@@ -474,8 +475,8 @@ func (j *JobSpec) Validate() error {
 	// defined.  Therefore, that check needs to occur at a higher level.
 
 	switch j.Trigger {
-	case TRIGGER_ANY_BRANCH, TRIGGER_MASTER_ONLY, TRIGGER_NIGHTLY,
-		TRIGGER_ON_DEMAND, TRIGGER_WEEKLY:
+	case TRIGGER_ANY_BRANCH, TRIGGER_MASTER_ONLY, TRIGGER_MAIN_ONLY,
+		TRIGGER_NIGHTLY, TRIGGER_ON_DEMAND, TRIGGER_WEEKLY:
 		break
 	default:
 		return fmt.Errorf("Invalid job trigger %q", j.Trigger)
