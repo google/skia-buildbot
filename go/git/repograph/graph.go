@@ -893,6 +893,14 @@ func (r *Graph) GetLastNCommits(n int) ([]*vcsinfo.LongCommit, error) {
 	// Find the last Nth commit on the main branch, which we assume has far more
 	// commits than any other branch.
 	commit := r.Get(git.DefaultBranch)
+	if commit == nil {
+		commit = r.Get(git.SecondaryDefaultBranch)
+	}
+	if commit == nil {
+		if len(r.branches) > 0 {
+			commit = r.Get(r.branches[0].Head)
+		}
+	}
 	for i := 0; i < n-1; i++ {
 		p := commit.GetParents()
 		if len(p) < 1 {
