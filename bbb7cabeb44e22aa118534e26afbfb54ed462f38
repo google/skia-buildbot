@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "96f26cfb_ceaf9969",
+        "filename": "autoroll/config/webgpu-cts-chromium.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-29T13:19:55Z",
+      "side": 1,
+      "message": "The behavior remains the same except that I added this \"git add\" command.",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 9
+      },
+      "revId": "bbb7cabeb44e22aa118534e26afbfb54ed462f38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
