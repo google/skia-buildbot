@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/golden/go/sql"
+
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -237,7 +239,7 @@ func statementForNotIgnoredTraceIDs(rule paramtools.ParamSet, table string) stri
 	rule.Normalize()
 	keys := make([]string, 0, len(rule))
 	for key := range rule {
-		if key != sanitize(key) {
+		if key != sql.Sanitize(key) {
 			sklog.Infof("key %q did not pass sanitization", key)
 			continue
 		}
@@ -251,7 +253,7 @@ func statementForNotIgnoredTraceIDs(rule paramtools.ParamSet, table string) stri
 			if j != 0 {
 				statement += "\tUNION\n"
 			}
-			statement += fmt.Sprintf("\tSELECT trace_id FROM %s WHERE keys -> '%s' = '%q'\n", table, key, sanitize(value))
+			statement += fmt.Sprintf("\tSELECT trace_id FROM %s WHERE keys -> '%s' = '%q'\n", table, key, sql.Sanitize(value))
 		}
 		if i == len(keys)-1 {
 			statement += ")\n"
@@ -268,12 +270,6 @@ func statementForNotIgnoredTraceIDs(rule paramtools.ParamSet, table string) stri
 	}
 	statement += ") AND (matches_any_ignore_rule = FALSE OR matches_any_ignore_rule is NULL)"
 	return statement
-}
-
-// sanitize removes unsafe characters from strings to avoid SQL injections. Namely quotes.
-func sanitize(s string) string {
-	s = strings.ReplaceAll(s, `'`, ``)
-	return strings.ReplaceAll(s, `"`, ``)
 }
 
 // updateNullTraces updates all traces where matches_any_ignore_rule is NULL to be false, since
