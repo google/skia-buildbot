@@ -3,6 +3,8 @@ package ingestion_processors
 import (
 	"context"
 	"errors"
+	"io/ioutil"
+	"regexp"
 	"time"
 
 	"go.opencensus.io/trace"
@@ -81,15 +83,23 @@ func (b *btProcessor) Process(ctx context.Context, fileName string) error {
 
 	// If the target commit is not in the primary repository we look it up
 	// in the secondary that has the primary as a dependency.
-	targetHash, err := getCanonicalCommitHash(ctx, b.vcs, gr.GitHash)
-	if err != nil {
-		return skerr.Wrapf(err, "could not identify canonical commit from %q", gr.GitHash)
-	}
+	var targetHash string
+	if gr.CommitID != "" && gr.CommitMetadata != "" {
+		targetHash, err = b.lookupChromeOSMetadata(ctx, gr.CommitMetadata)
+		if err != nil {
+			return skerr.Wrapf(err, "Looking up githash from Chromeos metadata: %q", gr.CommitMetadata)
+		}
+	} else {
+		targetHash, err = getCanonicalCommitHash(ctx, b.vcs, gr.GitHash)
+		if err != nil {
+			return skerr.Wrapf(err, "could not identify canonical commit from %q", gr.GitHash)
+		}
 
-	if ok, err := b.isOnMaster(ctx, targetHash); err != nil {
-		return skerr.Wrapf(err, "could not determine branch for %s", targetHash)
-	} else if !ok {
-		return skerr.Fmt("Commit %s is not in primary branch", targetHash)
+		if ok, err := b.isOnMaster(ctx, targetHash); err != nil {
+			return skerr.Wrapf(err, "could not determine branch for %s", targetHash)
+		} else if !ok {
+			return skerr.Fmt("Commit %s is not in primary branch", targetHash)
+		}
 	}
 
 	// Get the entries that should be added to the tracestore.
@@ -193,4 +203,35 @@ func shouldIngest(params, options map[string]string) error {
 	}
 
 	return nil
+}
+
+// Example input is gs://chromeos-image-archive/sentry-release/R92-13944.0.0/manifest.xml
+var metadataURLRegex = regexp.MustCompile(`gs://(?P<bucket>[a-z\-]+)/(?P<object>.+)`)
+
+// Instead of parsing XML, we use a simple regex to extract the one field we need.
+var revisionRegex = regexp.MustCompile(`name="chromiumos/platform/tast-tests" path="src/platform/tast-tests" revision="(?P<githash>[a-f0-9]+)"`)
+
+// lookupChromeOSMetadata extracts the git hash (of the tast-tests repo) from the provided
+// manifest.xml file. This manifest file contains the revisions of all ChromeOS repos at the
+// time of the build, but we only are tracking the tast-tests one.
+func (b *btProcessor) lookupChromeOSMetadata(ctx context.Context, gcsURL string) (string, error) {
+	gcsClient := b.source.(*ingestion.GCSSource).Client
+	matches := metadataURLRegex.FindStringSubmatch(gcsURL)
+	if matches == nil {
+		return "", skerr.Fmt("Invalid metadata string %q", gcsURL)
+	}
+	// match[1] is the bucket, match[2] is the object.
+	r, err := gcsClient.Bucket(matches[1]).Object(matches[2]).NewReader(ctx)
+	if err != nil {
+		return "", skerr.Wrapf(err, "getting reader for %q", gcsURL)
+	}
+	xmlBytes, err := ioutil.ReadAll(r)
+	if err != nil {
+		return "", skerr.Wrapf(err, "reading from %q", gcsURL)
+	}
+	match := revisionRegex.FindStringSubmatch(string(xmlBytes))
+	if match == nil {
+		return "", skerr.Fmt("Could not find tast-tests revision in XML from %q", gcsURL)
+	}
+	return match[1], nil
 }
