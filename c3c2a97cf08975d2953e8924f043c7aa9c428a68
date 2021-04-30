@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ce0376ce_66f26a12",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-30T14:21:02Z",
+      "side": 1,
+      "message": "I don\u0027t think this will be needed after the first roll lands.  We could prevent this problem in the future by simply doing \"git add .\".  Is there any reason not to do that?",
+      "range": {
+        "startLine": 420,
+        "startChar": 0,
+        "endLine": 424,
+        "endChar": 0
+      },
+      "revId": "c3c2a97cf08975d2953e8924f043c7aa9c428a68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
