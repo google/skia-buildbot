@@ -16,6 +16,24 @@
       "message": "This will add it for all android rollers (ANGLE and Skia into different branches).\nI think we only need it for one particular roller. Maybe it just needs a custom commit message in the roller\u0027s config?\nBut as a quick emergency fix this is fine for now.",
       "revId": "e031d36bc48defe19aadf2e98685bf6475b1cce0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0d169ee4_81e9405f",
+        "filename": "autoroll/go/commit_msg/android.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-04-30T13:07:48Z",
+      "side": 1,
+      "message": "Maybe I don\u0027t understand the problem, it sounded like a bug was now required for all CLs into Android, is that not the case?",
+      "parentUuid": "a7f40751_42a67d3f",
+      "revId": "e031d36bc48defe19aadf2e98685bf6475b1cce0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
