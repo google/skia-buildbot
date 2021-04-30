@@ -172,30 +172,45 @@ type commitCacheEntry struct {
 func (s *sqlPrimaryIngester) getCommitAndTileID(ctx context.Context, gr *jsonio.GoldResults) (schema.CommitID, schema.TileID, error) {
 	ctx, span := trace.StartSpan(ctx, "getCommitAndTileID")
 	defer span.End()
-	if gr.GitHash == "" {
-		// should never happen, assuming the jsonio.Validate works
-		return "", 0, skerr.Fmt("missing GitHash")
-	}
-	if c, ok := s.commitsCache.Get(gr.GitHash); ok {
-		cce, ok := c.(commitCacheEntry)
-		if ok {
-			return cce.commitID, cce.tileID, nil
-		}
-		sklog.Warningf("Corrupt entry in commits cache: %#v", c)
-		s.commitsCache.Remove(gr.GitHash)
-	}
-	// Cache miss - go to DB; We can't assume it's in the CommitsWithData table yet.
-	row := s.db.QueryRow(ctx, `SELECT commit_id FROM GitCommits WHERE git_hash = $1`, gr.GitHash)
 	var commitID schema.CommitID
-	if err := row.Scan(&commitID); err != nil {
-		return "", 0, skerr.Wrapf(err, "looking up git_hash = %q", gr.GitHash)
+	var key string
+	if gr.GitHash != "" {
+		key = gr.GitHash
+		if c, ok := s.commitsCache.Get(key); ok {
+			cce, ok := c.(commitCacheEntry)
+			if ok {
+				return cce.commitID, cce.tileID, nil
+			}
+			sklog.Warningf("Corrupt entry in commits cache: %#v", c)
+			s.commitsCache.Remove(key)
+		}
+		// Cache miss - go to DB; We can't assume it's in the CommitsWithData table yet.
+		row := s.db.QueryRow(ctx, `SELECT commit_id FROM GitCommits WHERE git_hash = $1`, gr.GitHash)
+		if err := row.Scan(&commitID); err != nil {
+			return "", 0, skerr.Wrapf(err, "looking up git_hash = %q", gr.GitHash)
+		}
+	} else if gr.CommitID != "" && gr.CommitMetadata != "" {
+		key = gr.CommitID
+		if _, ok := s.commitsCache.Get(key); !ok {
+			// On a cache miss, make sure we store it to the table.
+			const statement = `INSERT INTO MetadataCommits (commit_id, commit_metadata)
+VALUES ($1, $2) ON CONFLICT DO NOTHING`
+			_, err := s.db.Exec(ctx, statement, gr.CommitID, gr.CommitMetadata)
+			if err != nil {
+				return "", 0, skerr.Wrapf(err, "storing metadata commit %q : %q", gr.CommitID, gr.CommitMetadata)
+			}
+		}
+		commitID = schema.CommitID(gr.CommitID)
+	} else {
+		// should never happen, assuming the jsonio.Validate works
+		return "", 0, skerr.Fmt("missing GitHash and CommitID/CommitMetadata")
 	}
 
 	tileID, err := s.getAndWriteTileIDForCommit(ctx, commitID)
 	if err != nil {
 		return "", 0, skerr.Wrapf(err, "computing tile id for %s", commitID)
 	}
-	s.updateCommitCache(gr, commitID, tileID)
+	s.updateCommitCache(gr, key, commitID, tileID)
 	return commitID, tileID, nil
 }
 
@@ -275,8 +290,8 @@ tile_id = $1`, beforeTileID)
 
 // updateCommitCache updates the local cache of "CommitsWithData" if necessary (so we know we do
 // not have to write to the table the next time).
-func (s *sqlPrimaryIngester) updateCommitCache(gr *jsonio.GoldResults, id schema.CommitID, tileID schema.TileID) {
-	s.commitsCache.Add(gr.GitHash, commitCacheEntry{
+func (s *sqlPrimaryIngester) updateCommitCache(gr *jsonio.GoldResults, key string, id schema.CommitID, tileID schema.TileID) {
+	s.commitsCache.Add(key, commitCacheEntry{
 		commitID: id,
 		tileID:   tileID,
 	})
