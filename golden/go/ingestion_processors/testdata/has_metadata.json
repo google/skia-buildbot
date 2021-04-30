@@ -1,6 +1,7 @@
 {
-  "description": "This file is missing gitHash and commit_id/commit_metadata",
-  "gitHash" : "",
+  "description": "This file has data from three traces across two corpora. It specifies a commit id and metadata. It lines up with datakitchensink",
+  "commit_id" : "0000000100",
+  "commit_metadata" : "gs://example/commit/77e1d3255fde0bebc80f596f6a1c4ad79c8b8bbe",
   "key" : {
     "os": "Windows10.2",
     "device": "QuadroP400"
