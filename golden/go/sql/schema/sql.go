@@ -71,6 +71,10 @@ CREATE TABLE IF NOT EXISTS IgnoreRules (
   note STRING,
   query JSONB NOT NULL
 );
+CREATE TABLE IF NOT EXISTS MetadataCommits (
+  commit_id STRING PRIMARY KEY,
+  commit_metadata STRING NOT NULL
+);
 CREATE TABLE IF NOT EXISTS Options (
   options_id BYTES PRIMARY KEY,
   keys JSONB NOT NULL
