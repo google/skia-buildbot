@@ -286,19 +286,22 @@ func (r *androidRepoManager) abandonRepoBranch(ctx context.Context) error {
 }
 
 // getChangeNumForHash returns the corresponding change number for the provided commit hash by querying Gerrit's search API.
-func (r *androidRepoManager) getChangeForHash(hash string) (*gerrit.ChangeInfo, error) {
-	issues, err := r.g.Search(context.TODO(), 1, false, gerrit.SearchCommit(hash))
+func (r *androidRepoManager) getChangeForHash(ctx context.Context, hash string) (*gerrit.ChangeInfo, error) {
+	issues, err := r.g.Search(ctx, 1, false, gerrit.SearchCommit(hash))
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return r.g.GetIssueProperties(context.TODO(), issues[0].Issue)
+	if len(issues) == 0 {
+		return nil, skerr.Fmt("Unable to find change with hash %q", hash)
+	}
+	return r.g.GetIssueProperties(ctx, issues[0].Issue)
 }
 
 // setTopic sets a topic using the name of the child repo and the change number.
 // Example: skia_merge_1234
-func (r *androidRepoManager) setTopic(changeNum int64) error {
+func (r *androidRepoManager) setTopic(ctx context.Context, changeNum int64) error {
 	topic := fmt.Sprintf("%s_merge_%d", path.Base(r.childDir), changeNum)
-	return r.g.SetTopic(context.TODO(), topic, changeNum)
+	return r.g.SetTopic(ctx, topic, changeNum)
 }
 
 // See documentation for RepoManager interface.
@@ -414,6 +417,11 @@ third_party {
 		sort.Strings(rollEmails)
 	}
 
+	// Explicitly "git add" the "renderengine" directory.
+	if _, err := r.childRepo.Git(ctx, "add", "renderengine"); err != nil {
+		return 0, skerr.Wrap(err)
+	}
+
 	// Commit the change with the above message.
 	if _, commitErr := r.childRepo.Git(ctx, "commit", "-m", commitMsg); commitErr != nil {
 		util.LogErr(r.abandonRepoBranch(ctx))
@@ -442,10 +450,12 @@ third_party {
 		// prompt which shows up when a merge contains more than 5 commits.
 		Stdin: strings.NewReader("yes"),
 	}
-	if _, uploadErr := exec.RunCommand(ctx, uploadCommand); uploadErr != nil {
+	uploadOutput, uploadErr := exec.RunCommand(ctx, uploadCommand)
+	if uploadErr != nil {
 		util.LogErr(r.abandonRepoBranch(ctx))
 		return 0, fmt.Errorf("Could not upload to Gerrit: %s", uploadErr)
 	}
+	sklog.Infof("Output from upload:\n%s", uploadOutput)
 
 	// Get latest hash to find Gerrit change number with.
 	commitHashOutput, revParseErr := r.childRepo.Git(ctx, "rev-parse", "HEAD")
@@ -458,13 +468,13 @@ third_party {
 	util.LogErr(r.abandonRepoBranch(ctx))
 
 	// Get the change number.
-	change, err := r.getChangeForHash(commitHash)
+	change, err := r.getChangeForHash(ctx, commitHash)
 	if err != nil {
 		util.LogErr(r.abandonRepoBranch(ctx))
 		return 0, err
 	}
 	// Set the topic of the merge change.
-	if err := r.setTopic(change.Issue); err != nil {
+	if err := r.setTopic(ctx, change.Issue); err != nil {
 		return 0, err
 	}
 
