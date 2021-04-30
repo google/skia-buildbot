@@ -115,6 +115,7 @@ type Tables struct {
 	GitCommits                  []GitCommitRow                  `sql_backup:"daily"`
 	Groupings                   []GroupingRow                   `sql_backup:"monthly"`
 	IgnoreRules                 []IgnoreRuleRow                 `sql_backup:"daily"`
+	MetadataCommits             []MetadataCommitRow             `sql_backup:"daily"`
 	Options                     []OptionsRow                    `sql_backup:"monthly"`
 	Patchsets                   []PatchsetRow                   `sql_backup:"weekly"`
 	PrimaryBranchParams         []PrimaryBranchParamRow         `sql_backup:"monthly"`
@@ -997,4 +998,23 @@ func (r TrackingCommitRow) ToSQLRow() (colNames []string, colData []interface{})
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TrackingCommitRow) ScanFrom(scan func(...interface{}) error) error {
 	return scan(&r.Repo, &r.LastGitHash)
+}
+
+type MetadataCommitRow struct {
+	// CommitID is a potentially arbitrary string. It is a foreign key in the CommitsWithData table.
+	CommitID CommitID `sql:"commit_id STRING PRIMARY KEY"`
+	// CommitMetadata is an arbitrary string; For current implementations, it is a link to a GCS
+	// file that has more information about the state of the repo when the data was generated.
+	CommitMetadata string `sql:"commit_metadata STRING NOT NULL"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r MetadataCommitRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"commit_id", "commit_metadata"},
+		[]interface{}{r.CommitID, r.CommitMetadata}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *MetadataCommitRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.CommitID, &r.CommitMetadata)
 }

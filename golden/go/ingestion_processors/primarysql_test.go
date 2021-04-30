@@ -244,6 +244,228 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 	assert.Equal(t, resultsMetricBefore+3, s.resultsIngested.Get())
 }
 
+func TestPrimarySQL_Process_CommitIDSpecified_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	// This file has data from 3 traces across 2 corpora. The data is from the third commit.
+	const squareTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"square","os":"Windows10.2","source_type":"corners"}`
+	const triangleTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"triangle","os":"Windows10.2","source_type":"corners"}`
+	const circleTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"circle","os":"Windows10.2","source_type":"round"}`
+	const expectedCommitID = "0000000100"
+	src := fakeGCSSourceFromFile(t, "has_metadata.json")
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	totalMetricBefore := s.filesProcessed.Get()
+	successMetricBefore := s.filesSuccess.Get()
+	resultsMetricBefore := s.resultsIngested.Get()
+
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	err := s.Process(ctx, dks.WindowsFile3)
+	require.NoError(t, err)
+
+	actualSourceFiles := sqltest.GetAllRows(ctx, t, db, "SourceFiles", &schema.SourceFileRow{}).([]schema.SourceFileRow)
+	assert.Equal(t, []schema.SourceFileRow{{
+		SourceFileID: h(dks.WindowsFile3),
+		SourceFile:   dks.WindowsFile3,
+		LastIngested: fakeIngestionTime,
+	}}, actualSourceFiles)
+
+	actualGroupings := sqltest.GetAllRows(ctx, t, db, "Groupings", &schema.GroupingRow{}).([]schema.GroupingRow)
+	assert.ElementsMatch(t, []schema.GroupingRow{{
+		GroupingID: h(circleGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.RoundCorpus,
+			types.PrimaryKeyField: dks.CircleTest,
+		},
+	}, {
+		GroupingID: h(squareGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+		},
+	}, {
+		GroupingID: h(triangleGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.TriangleTest,
+		},
+	}}, actualGroupings)
+
+	actualOptions := sqltest.GetAllRows(ctx, t, db, "Options", &schema.OptionsRow{}).([]schema.OptionsRow)
+	assert.ElementsMatch(t, []schema.OptionsRow{{
+		OptionsID: h(pngOptions),
+		Keys: map[string]string{
+			"ext": "png",
+		},
+	}}, actualOptions)
+
+	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
+	assert.Equal(t, []schema.TraceRow{{
+		TraceID:    h(circleTraceKeys),
+		Corpus:     dks.RoundCorpus,
+		GroupingID: h(circleGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.RoundCorpus,
+			types.PrimaryKeyField: dks.CircleTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.Windows10dot2OS,
+			dks.DeviceKey:         dks.QuadroDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:    h(squareTraceKeys),
+		Corpus:     dks.CornersCorpus,
+		GroupingID: h(squareGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.Windows10dot2OS,
+			dks.DeviceKey:         dks.QuadroDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:    h(triangleTraceKeys),
+		Corpus:     dks.CornersCorpus,
+		GroupingID: h(triangleGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.TriangleTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.Windows10dot2OS,
+			dks.DeviceKey:         dks.QuadroDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}}, actualTraces)
+
+	actualCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
+	assert.Equal(t, []schema.CommitWithDataRow{{
+		CommitID: expectedCommitID,
+		TileID:   0,
+	}}, actualCommitsWithData)
+
+	metadataCommits := sqltest.GetAllRows(ctx, t, db, "MetadataCommits", &schema.MetadataCommitRow{}).([]schema.MetadataCommitRow)
+	assert.Equal(t, []schema.MetadataCommitRow{{
+		CommitID:       expectedCommitID,
+		CommitMetadata: "gs://example/commit/77e1d3255fde0bebc80f596f6a1c4ad79c8b8bbe",
+	}}, metadataCommits)
+
+	actualTraceValues := sqltest.GetAllRows(ctx, t, db, "TraceValues", &schema.TraceValueRow{}).([]schema.TraceValueRow)
+	assert.ElementsMatch(t, []schema.TraceValueRow{{
+		Shard:        0x4,
+		TraceID:      h(squareTraceKeys),
+		CommitID:     expectedCommitID,
+		Digest:       d(dks.DigestA01Pos),
+		GroupingID:   h(squareGrouping),
+		OptionsID:    h(pngOptions),
+		SourceFileID: h(dks.WindowsFile3),
+	}, {
+		Shard:        0x3,
+		TraceID:      h(triangleTraceKeys),
+		CommitID:     expectedCommitID,
+		Digest:       d(dks.DigestB01Pos),
+		GroupingID:   h(triangleGrouping),
+		OptionsID:    h(pngOptions),
+		SourceFileID: h(dks.WindowsFile3),
+	}, {
+		Shard:        0x7,
+		TraceID:      h(circleTraceKeys),
+		CommitID:     expectedCommitID,
+		Digest:       d(dks.DigestC01Pos),
+		GroupingID:   h(circleGrouping),
+		OptionsID:    h(pngOptions),
+		SourceFileID: h(dks.WindowsFile3),
+	}}, actualTraceValues)
+
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.ElementsMatch(t, []schema.ValueAtHeadRow{{
+		TraceID:            h(squareTraceKeys),
+		MostRecentCommitID: expectedCommitID,
+		Digest:             d(dks.DigestA01Pos),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(squareGrouping),
+		Corpus:             dks.CornersCorpus,
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.Windows10dot2OS,
+			dks.DeviceKey:         dks.QuadroDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:            h(triangleTraceKeys),
+		MostRecentCommitID: expectedCommitID,
+		Digest:             d(dks.DigestB01Pos),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(triangleGrouping),
+		Corpus:             dks.CornersCorpus,
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.TriangleTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.Windows10dot2OS,
+			dks.DeviceKey:         dks.QuadroDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:            h(circleTraceKeys),
+		MostRecentCommitID: expectedCommitID,
+		Digest:             d(dks.DigestC01Pos),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(circleGrouping),
+		Corpus:             dks.RoundCorpus,
+		Keys: map[string]string{
+			types.CorpusField:     dks.RoundCorpus,
+			types.PrimaryKeyField: dks.CircleTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.Windows10dot2OS,
+			dks.DeviceKey:         dks.QuadroDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}}, actualValuesAtHead)
+
+	actualExpectations := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{}).([]schema.ExpectationRow)
+	assert.Equal(t, []schema.ExpectationRow{{
+		GroupingID: h(squareGrouping),
+		Digest:     d(dks.DigestA01Pos),
+		Label:      schema.LabelUntriaged,
+	}, {
+		GroupingID: h(triangleGrouping),
+		Digest:     d(dks.DigestB01Pos),
+		Label:      schema.LabelUntriaged,
+	}, {
+		GroupingID: h(circleGrouping),
+		Digest:     d(dks.DigestC01Pos),
+		Label:      schema.LabelUntriaged,
+	}}, actualExpectations)
+
+	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
+	assert.Equal(t, []schema.PrimaryBranchParamRow{
+		{Key: dks.ColorModeKey, Value: dks.RGBColorMode, TileID: 0},
+		{Key: dks.DeviceKey, Value: dks.QuadroDevice, TileID: 0},
+		{Key: "ext", Value: "png", TileID: 0},
+		{Key: types.PrimaryKeyField, Value: dks.CircleTest, TileID: 0},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
+		{Key: types.PrimaryKeyField, Value: dks.TriangleTest, TileID: 0},
+		{Key: dks.OSKey, Value: dks.Windows10dot2OS, TileID: 0},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 0},
+		{Key: types.CorpusField, Value: dks.RoundCorpus, TileID: 0},
+	}, actualPrimaryBranchParams)
+
+	actualTiledTraceDigests := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
+	assert.Equal(t, []schema.TiledTraceDigestRow{
+		{TraceID: h(squareTraceKeys), Digest: d(dks.DigestA01Pos), TileID: 0, GroupingID: h(squareGrouping)},
+		{TraceID: h(triangleTraceKeys), Digest: d(dks.DigestB01Pos), TileID: 0, GroupingID: h(triangleGrouping)},
+		{TraceID: h(circleTraceKeys), Digest: d(dks.DigestC01Pos), TileID: 0, GroupingID: h(circleGrouping)},
+	}, actualTiledTraceDigests)
+
+	assert.Equal(t, totalMetricBefore+1, s.filesProcessed.Get())
+	assert.Equal(t, successMetricBefore+1, s.filesSuccess.Get())
+	assert.Equal(t, resultsMetricBefore+3, s.resultsIngested.Get())
+}
+
 func TestPrimarySQL_Process_TileAlreadyComputed_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx := context.Background()
