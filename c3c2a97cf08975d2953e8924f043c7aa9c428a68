@@ -22,6 +22,30 @@
       },
       "revId": "c3c2a97cf08975d2953e8924f043c7aa9c428a68",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e163b1ab_0eb87498",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-01T20:56:37Z",
+      "side": 1,
+      "message": "If we need to keep this then it needs to be added to android_skia_checkout.FilesGeneratedByGnToGp, so that not all Android rollers have this. Leon, do you know if we need to keep adding this?\n\nWe did not do \"git add .\" in the past to prevent any unintended artifacts from being added and for keeping the set of known files small.",
+      "parentUuid": "ce0376ce_66f26a12",
+      "range": {
+        "startLine": 420,
+        "startChar": 0,
+        "endLine": 424,
+        "endChar": 0
+      },
+      "revId": "c3c2a97cf08975d2953e8924f043c7aa9c428a68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
