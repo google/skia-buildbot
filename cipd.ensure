@@ -9,7 +9,7 @@
 $ServiceURL https://chrome-infra-packages.appspot.com/
 
 # This is the cipd client itself
-infra/tools/cipd/${os}-${arch}  git_revision:e08edbbafd49d56a67366e91098eec27b974e727
+infra/tools/cipd/${os}-${arch}  git_revision:17a932579fd48e5366bff17f058cead4d51d12cb
 
 @Subdir cipd_bin_packages
 infra/3pp/tools/git/linux-amd64                  version:2@2.31.1.chromium.6
@@ -18,24 +18,24 @@ infra/3pp/tools/git/mac-amd64                    version:2@2.31.1.chromium.6
 infra/3pp/tools/git/windows-386                  version:2@2.31.1.chromium.6
 infra/3pp/tools/git/windows-amd64                version:2@2.31.1.chromium.6
 infra/gsutil                                     version:4.46
-infra/3pp/tools/cpython/linux-amd64              version:2@2.7.18.chromium.31
-infra/3pp/tools/cpython/linux-arm64              version:2@2.7.18.chromium.31
-infra/3pp/tools/cpython/mac-amd64                version:2@2.7.18.chromium.31
-infra/3pp/tools/cpython/windows-386              version:2@2.7.18.chromium.31
-infra/3pp/tools/cpython/windows-amd64            version:2@2.7.18.chromium.31
+infra/3pp/tools/cpython/linux-amd64              version:2@2.7.18.chromium.32
+infra/3pp/tools/cpython/linux-arm64              version:2@2.7.18.chromium.32
+infra/3pp/tools/cpython/mac-amd64                version:2@2.7.18.chromium.32
+infra/3pp/tools/cpython/windows-386              version:2@2.7.18.chromium.32
+infra/3pp/tools/cpython/windows-amd64            version:2@2.7.18.chromium.32
 infra/3pp/tools/cpython3/linux-amd64             version:2@3.9.4.chromium.14
 infra/3pp/tools/cpython3/linux-arm64             version:2@3.9.4.chromium.14
 infra/3pp/tools/cpython3/mac-amd64               version:2@3.9.4.chromium.14
 infra/3pp/tools/cpython3/windows-386             version:2@3.9.4.chromium.14
 infra/3pp/tools/cpython3/windows-amd64           version:2@3.9.4.chromium.14
-infra/tools/git/${platform}                      git_revision:e08edbbafd49d56a67366e91098eec27b974e727
-infra/tools/luci-auth/${platform}                git_revision:e08edbbafd49d56a67366e91098eec27b974e727
-infra/tools/luci/git-credential-luci/${platform} git_revision:e08edbbafd49d56a67366e91098eec27b974e727
-infra/tools/luci/isolate/${platform}             git_revision:e08edbbafd49d56a67366e91098eec27b974e727
-infra/tools/luci/isolated/${platform}            git_revision:e08edbbafd49d56a67366e91098eec27b974e727
-infra/tools/luci/swarming/${platform}            git_revision:e08edbbafd49d56a67366e91098eec27b974e727
-infra/tools/luci/vpython/${platform}             git_revision:e08edbbafd49d56a67366e91098eec27b974e727
-skia/tools/goldctl/${platform}                   git_revision:e08edbbafd49d56a67366e91098eec27b974e727
+infra/tools/git/${platform}                      git_revision:17a932579fd48e5366bff17f058cead4d51d12cb
+infra/tools/luci-auth/${platform}                git_revision:17a932579fd48e5366bff17f058cead4d51d12cb
+infra/tools/luci/git-credential-luci/${platform} git_revision:17a932579fd48e5366bff17f058cead4d51d12cb
+infra/tools/luci/isolate/${platform}             git_revision:17a932579fd48e5366bff17f058cead4d51d12cb
+infra/tools/luci/isolated/${platform}            git_revision:17a932579fd48e5366bff17f058cead4d51d12cb
+infra/tools/luci/swarming/${platform}            git_revision:17a932579fd48e5366bff17f058cead4d51d12cb
+infra/tools/luci/vpython/${platform}             git_revision:17a932579fd48e5366bff17f058cead4d51d12cb
+skia/tools/goldctl/${platform}                   git_revision:17a932579fd48e5366bff17f058cead4d51d12cb
 
 @Subdir
-infra/tools/luci/kitchen/${platform}    git_revision:e08edbbafd49d56a67366e91098eec27b974e727
+infra/tools/luci/kitchen/${platform}    git_revision:17a932579fd48e5366bff17f058cead4d51d12cb
