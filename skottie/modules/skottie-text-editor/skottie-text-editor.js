@@ -16,6 +16,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html, render } from 'lit-html';
+import { ifDefined } from 'lit-html/directives/if-defined';
 
 const originTemplateElement = (item) => html`
   <li class="text-element-origin">
@@ -52,6 +53,7 @@ const textElement = (item, element) => html`
         <textarea class="text-element-input"
           @change=${(ev) => element._onChange(ev, item)}
           @input=${(ev) => element._onChange(ev, item)}
+          maxlength=${ifDefined(item.maxChars)}
           .value=${item.text}
         ></textarea>
       </div>
@@ -88,8 +90,8 @@ class SkottieTextEditorSk extends HTMLElement {
       texts: [],
       areTextsCollapsed: true,
     };
-    this._animation = null
-    this._originalAnimation = null
+    this._animation = null;
+    this._originalAnimation = null;
   }
 
   findPrecompName(animation, precompId) {
@@ -144,6 +146,7 @@ class SkottieTextEditorSk extends HTMLElement {
             // this property is the text string of a text layer.
             // It's read as: Text Element > Text document > First Keyframe > Start Value > Text
             text: item.layer.t.d.k[0].s.t,
+            maxChars: item.layer.t.d.k[0].s.mc, // Max characters text document attribute
             precompName: item.precompName,
           };
         }
