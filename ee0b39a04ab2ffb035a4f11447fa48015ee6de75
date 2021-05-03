@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a7eb1f81_0f3234a7",
+        "filename": "golden/modules/list-page-sk/list-page-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-05-03T20:09:20Z",
+      "side": 1,
+      "message": "I think this should be \"desc\" https://github.com/google/skia-buildbot/blob/9659b3187244444eed104bd108a06e31f195eb88/golden/go/search/query/query.go#L19",
+      "range": {
+        "startLine": 79,
+        "startChar": 14,
+        "endLine": 79,
+        "endChar": 24
+      },
+      "revId": "ee0b39a04ab2ffb035a4f11447fa48015ee6de75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
