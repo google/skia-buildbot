@@ -296,6 +296,30 @@
       },
       "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fe5cbb72_a5feb209",
+        "filename": "autoroll/config/chromium-angle.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-03T15:01:16Z",
+      "side": 1,
+      "message": "Ok, \"gclient sync\" was failing because we couldn\u0027t find \"gclient\".  Uploaded https://skia-review.googlesource.com/c/buildbot/+/403516 to fix.",
+      "parentUuid": "bd1503cf_066ed2e6",
+      "range": {
+        "startLine": 65,
+        "startChar": 6,
+        "endLine": 65,
+        "endChar": 22
+      },
+      "revId": "486e7b3eec4c428ad136df700e4a14cc21ea713c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
