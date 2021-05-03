@@ -76,15 +76,8 @@ describe('list-page-sk', () => {
         `positive=${opts.positive}`,
         'reference_image_required=false',
         'right_filter=',
+        'sort=descending',
         `untriaged=${opts.untriaged}`,
-
-        // Parameters for the legacy search page. TODO(lovisolo): Remove.
-        `head=${!opts.showAllDigests}`,
-        `include=${opts.disregardIgnoreRules}`,
-        `neg=${opts.negative}`,
-        `pos=${opts.positive}`,
-        'query=name%3Dthis_is_another_test%26source_type%3Dgm',
-        `unt=${opts.untriaged}`,
       ].join('&');
     };
 
