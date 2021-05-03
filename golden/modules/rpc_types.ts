@@ -52,7 +52,6 @@ export interface DigestStatus {
 }
 
 export interface TraceGroup {
-	tileSize: number;
 	traces: Trace[] | null;
 	digests: DigestStatus[] | null;
 	total_digests: number;

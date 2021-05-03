@@ -48,6 +48,17 @@ setInterval(() => {
   }
 }, 40);
 
+/**
+ * Used to index into the dot color arrays (DOT_STROKE_COLORS, etc.). Returns
+ * the last color in the array if the given unique digest index exceeds
+ * MAX_UNIQUE_DIGESTS.
+ *
+ * This assumes that the color array is of length MAX_UNIQUE_DIGESTS + 1.
+ */
+const getColorSafe = (colorArray: string[], uniqueDigestIndex: number): string => {
+  return colorArray[Math.min(colorArray.length - 1, uniqueDigestIndex)];
+}
+
 export class DotsSk extends ElementSk {
   private static template = () => html`<canvas></canvas>`;
 
@@ -55,7 +66,7 @@ export class DotsSk extends ElementSk {
   private ctx: CanvasRenderingContext2D | null = null;
 
   private _commits: Commit[] = [];
-  private _value: TraceGroup = {tileSize: 0, traces: [], digests: [], total_digests: 0};
+  private _value: TraceGroup = {traces: [], digests: [], total_digests: 0};
 
   // The index of the trace that should be highlighted.
   private hoverIndex = -1;
@@ -114,7 +125,7 @@ export class DotsSk extends ElementSk {
   get value(): TraceGroup { return this._value; }
 
   set value(value: TraceGroup) {
-    if (!value || (value.tileSize === 0)) {
+    if (!value || (!value.traces?.length)) {
       return;
     }
     this._value = value;
@@ -142,8 +153,11 @@ export class DotsSk extends ElementSk {
 
   /** Draws the entire canvas. */
   private draw() {
-    const w = (this._value.tileSize - 1) * DOT_SCALE_X + 2 * DOT_OFFSET_X;
-    const h = (this._value.traces!.length - 1) * DOT_SCALE_Y + 2 * DOT_OFFSET_Y;
+    if (!this._value.traces || !this._value.traces.length) {
+      return;
+    }
+    const w = (this._value.traces[0].data!.length - 1) * DOT_SCALE_X + 2 * DOT_OFFSET_X;
+    const h = (this._value.traces.length - 1) * DOT_SCALE_Y + 2 * DOT_OFFSET_Y;
     this.canvas!.setAttribute('width', `${w}px`);
     this.canvas!.setAttribute('height', `${h}px`);
 
@@ -191,27 +205,16 @@ export class DotsSk extends ElementSk {
         return;
       }
       this.ctx!.beginPath();
-      this.ctx!.strokeStyle = this.getColorSafe(DOT_STROKE_COLORS, c);
+      this.ctx!.strokeStyle = getColorSafe(DOT_STROKE_COLORS, c);
       this.ctx!.fillStyle = (this.hoverIndex === y)
-        ? this.getColorSafe(DOT_FILL_COLORS_HIGHLIGHTED, c)
-        : this.getColorSafe(DOT_FILL_COLORS, c);
+        ? getColorSafe(DOT_FILL_COLORS_HIGHLIGHTED, c)
+        : getColorSafe(DOT_FILL_COLORS, c);
       this.ctx!.arc(
         dotToCanvasX(x), dotToCanvasY(y), DOT_RADIUS, 0, Math.PI * 2,
       );
       this.ctx!.fill();
       this.ctx!.stroke();
     });
-  }
-
-  /**
-   * Used to index into the dot color arrays (DOT_STROKE_COLORS, etc.). Returns
-   * the last color in the array if the given unique digest index exceeds
-   * MAX_UNIQUE_DIGESTS.
-   *
-   * This assumes that the color array is of length MAX_UNIQUE_DIGESTS + 1.
-   */
-  private getColorSafe(colorArray: string[], uniqueDigestIndex: number): string {
-    return colorArray[Math.min(colorArray.length - 1, uniqueDigestIndex)];
   }
 
   /** Redraws just the circles for a single trace. */

@@ -3,20 +3,32 @@
  * @description <h2><code>search-page-sk</code></h2>
  *
  */
-import { html } from 'lit-html';
-import { define } from 'elements-sk/define';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { deepCopy } from 'common-sk/modules/object';
-import { stateReflector } from 'common-sk/modules/stateReflector';
-import { ParamSet, fromParamSet, fromObject } from 'common-sk/modules/query';
+import {html} from 'lit-html';
+import {define} from 'elements-sk/define';
+import {jsonOrThrow} from 'common-sk/modules/jsonOrThrow';
+import {deepCopy} from 'common-sk/modules/object';
+import {stateReflector} from 'common-sk/modules/stateReflector';
+import {fromObject, fromParamSet, ParamSet} from 'common-sk/modules/query';
 import dialogPolyfill from 'dialog-polyfill';
-import { HintableObject } from 'common-sk/modules/hintable';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { ChangelistControlsSkChangeEventDetail } from '../changelist-controls-sk/changelist-controls-sk';
-import { SearchCriteria, SearchCriteriaToHintableObject, SearchCriteriaFromHintableObject } from '../search-controls-sk/search-controls-sk';
-import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
-import { defaultCorpus } from '../settings';
-import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult, ChangelistSummaryResponse, TriageRequestData, Label } from '../rpc_types';
+import {HintableObject} from 'common-sk/modules/hintable';
+import {ElementSk} from '../../../infra-sk/modules/ElementSk';
+import {ChangelistControlsSkChangeEventDetail} from '../changelist-controls-sk/changelist-controls-sk';
+import {
+  SearchCriteria,
+  SearchCriteriaFromHintableObject,
+  SearchCriteriaToHintableObject
+} from '../search-controls-sk/search-controls-sk';
+import {sendBeginTask, sendEndTask, sendFetchError} from '../common';
+import {defaultCorpus} from '../settings';
+import {
+  ChangelistSummaryResponse,
+  Label,
+  ParamSetResponse,
+  SearchResponse,
+  SearchResult,
+  StatusResponse,
+  TriageRequestData
+} from '../rpc_types';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
@@ -183,7 +195,7 @@ export class SearchPageSk extends ElementSk {
   private _blame: string | null = null;
   private _crs: string | null = null;
   private _changelistId: string | null = null;
-  private _useSQL: boolean = false;
+  private _useNewAPI: boolean = false;
 
   // stateReflector update function.
   private _stateChanged: (() => void) | null = null;
@@ -214,7 +226,7 @@ export class SearchPageSk extends ElementSk {
         state.blame = this._blame || '';
         state.crs = this._crs || '';
         state.issue = this._changelistId || '';
-        state.use_sql = this._useSQL || '';
+        state.use_new_api = this._useNewAPI || '';
         state.master = this._includeDigestsFromPrimary || '';
         state.patchsets = this._patchset || '';
         return state;
@@ -227,7 +239,7 @@ export class SearchPageSk extends ElementSk {
         this._blame = (newState.blame as string) || null;
         this._crs = (newState.crs as string) || null;
         this._changelistId = (newState.issue as string) || null;
-        this._useSQL = (newState.use_sql as boolean) || false;
+        this._useNewAPI = (newState.use_new_api as boolean) || false;
         this._includeDigestsFromPrimary = (newState.master as boolean) || null;
         this._patchset = (newState.patchsets as number) || null;
 
@@ -329,7 +341,7 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private _makeSearchRequest() {
+  private _makeSearchRequest(): SearchRequest {
     // Utility function to insert the selected corpus into the left- and right-hand trace filters,
     // as required by the /json/v1/search RPC.
     const insertCorpus = (paramSet: ParamSet) => {
@@ -356,7 +368,6 @@ export class SearchPageSk extends ElementSk {
 
     // Populate optional query parameters.
     if (this._blame) searchRequest.blame = this._blame;
-    if (this._useSQL) searchRequest.use_sql = this._useSQL;
     if (this._crs) searchRequest.crs = this._crs;
     if (this._changelistId) searchRequest.issue = this._changelistId;
     if (this._includeDigestsFromPrimary) searchRequest.master = this._includeDigestsFromPrimary;
@@ -376,12 +387,17 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      const searchResponse: SearchResponse =
-        await fetch(
+      if (!this._useNewAPI) {
+        this._searchResponse = await fetch(
             '/json/v1/search?' + fromObject(searchRequest as any),
             {method: 'GET', signal: this._searchResultsFetchController.signal})
-          .then(jsonOrThrow);
-      this._searchResponse = searchResponse;
+            .then(jsonOrThrow);
+      } else {
+        this._searchResponse = await fetch(
+            '/json/v2/search?' + fromObject(searchRequest as any),
+            {method: 'GET', signal: this._searchResultsFetchController.signal})
+            .then(jsonOrThrow);
+      }
 
       // Reset UI and render.
       this._selectedSearchResultIdx = -1;

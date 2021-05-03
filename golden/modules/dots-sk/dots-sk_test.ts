@@ -153,7 +153,7 @@ function canvasToAscii(dotsSkCanvasCtx: CanvasRenderingContext2D): string {
   const ascii = [];
   for (let y = 0; y < traces.traces!.length; y++) {
     const trace = [];
-    for (let x = 0; x < traces.tileSize; x++) {
+    for (let x = 0; x < traces.traces![0].data!.length; x++) {
       trace.push(dotToAscii(dotsSkCanvasCtx, x, y));
     }
     ascii.push(trace.join(''));
