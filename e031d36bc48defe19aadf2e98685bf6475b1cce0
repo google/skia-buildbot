@@ -52,6 +52,24 @@
       "parentUuid": "0d169ee4_81e9405f",
       "revId": "e031d36bc48defe19aadf2e98685bf6475b1cce0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "93a2d500_0b353435",
+        "filename": "autoroll/go/commit_msg/android.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5255
+      },
+      "writtenOn": "2021-05-03T14:47:43Z",
+      "side": 1,
+      "message": "\u003e My understanding was that this is only a problem for the sc-dev branch because it is being locked down. Not all branches should need this. Leon, is this correct?\n\nI believe so. I haven\u0027t found any documentation specifying that sc-dev is being locked down, but that would make sense based on the timing.\n\nAlso, when a bug isn\u0027t listed, there\u0027s a hover div that references b/35267372 and b/69120821. The latter bug only applies to API changes (as in Android SDK API). The former bug is old, and mentions \"certain branches\". So my educated guess is yes - only needed for some branches.\n\n(As an aside, ag/14283333, which is also in sc-dev, but in a different git project, does not show the warning that it needs a bug id. So maybe it doesn\u0027t apply to all projects? Regardless, it seems to be affecting Skia.)",
+      "parentUuid": "6db05a69_5abebccf",
+      "revId": "e031d36bc48defe19aadf2e98685bf6475b1cce0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
