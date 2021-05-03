@@ -50,6 +50,24 @@
       "message": "I\u0027m guessing commit-queue.cfg is not needed after this. Can you delete it in this CL?",
       "revId": "d4f2f0fff403d2f49be91fc99a5b3f9af4933669",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8e3b961f_dac36522",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-03T17:25:33Z",
+      "side": 1,
+      "message": "I need to update https://chrome-internal.googlesource.com/infradata/config/+/refs/heads/master/configs/luci-config/projects.cfg#735 first, then delete the old configs.",
+      "parentUuid": "8dd1269f_63c836fc",
+      "revId": "d4f2f0fff403d2f49be91fc99a5b3f9af4933669",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
