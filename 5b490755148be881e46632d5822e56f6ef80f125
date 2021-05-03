@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "863d2ccc_f1b4fa5d",
+        "filename": "autoroll/go/repo_manager/parent/deps_local.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-03T15:05:08Z",
+      "side": 1,
+      "message": "Something similar is done in a few places in pre-upload steps. Probably nice to have a util one day.",
+      "revId": "5b490755148be881e46632d5822e56f6ef80f125",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
