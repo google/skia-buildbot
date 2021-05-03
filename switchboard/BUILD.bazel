@@ -1,0 +1,31 @@
+load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+# Example test that runs alongside another binary.
+test_on_env(
+    name = "test_on_remote_pixel",
+    env = "//switchboard:lease_pixel",
+    test = "//switchboard:hello_over_adb",
+)
+
+sh_binary(
+    name = "lease_pixel",
+    srcs = ["lease.sh"],
+    data = [
+        "kubeconfig.yaml",
+    ]
+)
+
+cc_binary(
+    name = "hello",
+    srcs = ["cpp/hello.cpp"],
+)
+
+sh_test(
+    name = "hello_over_adb",
+    srcs = ["hello_over_adb.sh"],
+    args = ["switchboard/hello"],
+    data = [
+        ":hello"
+    ]
+)
