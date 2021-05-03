@@ -17,7 +17,6 @@ import { Commit, TraceGroup } from '../rpc_types';
  * -1 means "missing digest".
  */
 export const traces: TraceGroup = {
-  tileSize: 20,
   traces: [{
     // Note: the backend tops out at 8, but we should handle values greater than
     // MAX_UNIQUE_DIGESTS with grace and poise.

@@ -6,6 +6,10 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+	frontend "go.skia.org/infra/golden/go/search/frontend"
+
+	query "go.skia.org/infra/golden/go/search/query"
+
 	search2 "go.skia.org/infra/golden/go/search2"
 
 	time "time"
@@ -51,6 +55,29 @@ func (_m *API) NewAndUntriagedSummaryForCL(ctx context.Context, qCLID string) (s
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, qCLID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Search provides a mock function with given fields: _a0, _a1
+func (_m *API) Search(_a0 context.Context, _a1 *query.Search) (*frontend.SearchResponse, error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *frontend.SearchResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *query.Search) *frontend.SearchResponse); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*frontend.SearchResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *query.Search) error); ok {
+		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}
