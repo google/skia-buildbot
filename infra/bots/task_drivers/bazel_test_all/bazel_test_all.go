@@ -131,7 +131,8 @@ func uploadPuppeteerScreenshotsToGold(ctx context.Context, bzl *bazel.Bazel) err
 		"--work-dir", goldctlWorkDir,
 		"--instance", "skia-infra",
 		"--git_hash", *checkoutFlags.Revision,
-		"--key", "source_type:infra",
+		"--corpus", "infra",
+		"--key", "build_system:bazel",
 	}
 	if *checkoutFlags.PatchIssue != "" && *checkoutFlags.PatchSet != "" {
 		extraArgs := []string{
@@ -160,7 +161,6 @@ func uploadPuppeteerScreenshotsToGold(ctx context.Context, bzl *bazel.Bazel) err
 				"--work-dir", goldctlWorkDir,
 				"--png-file", filepath.Join(puppeteerScreenshotsDir, fileInfo.Name()),
 				"--test-name", testName,
-				"--add-test-optional-key", "build_system:bazel",
 			}
 			if err := goldctl(ctx, bzl, args...); err != nil {
 				return err
