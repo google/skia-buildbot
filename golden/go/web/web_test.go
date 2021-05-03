@@ -989,9 +989,9 @@ func TestGetDigestsResponse_SunnyDay_Success(t *testing.T) {
 	}, dlr)
 }
 
-// TestGetIgnores_NoCounts_SunnyDay_Success tests the case where we simply return the list of the
-// current ignore rules, without counting any of the traces to which they apply.
-func TestGetIgnores_NoCounts_SunnyDay_Success(t *testing.T) {
+// TestListIgnoreRules_NoCounts_SunnyDay_Success tests the case where we simply return the list of
+// the current ignore rules, without counting any of the traces to which they apply.
+func TestListIgnoreRules_NoCounts_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mis := &mock_ignore.Store{}
@@ -1000,45 +1000,52 @@ func TestGetIgnores_NoCounts_SunnyDay_Success(t *testing.T) {
 	mis.On("List", testutils.AnyContext).Return(makeIgnoreRules(), nil)
 
 	wh := Handlers{
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 		HandlersConfig: HandlersConfig{
 			IgnoreStore: mis,
 		},
 	}
 
-	xir, err := wh.getIgnores(context.Background(), false)
+	expectedResponse := frontend.IgnoresResponse{
+		Rules: []frontend.IgnoreRule{
+			{
+				ID:        "1234",
+				CreatedBy: "user@example.com",
+				UpdatedBy: "user2@example.com",
+				Expires:   firstRuleExpire,
+				Query:     "device=delta",
+				Note:      "Flaky driver",
+			},
+			{
+				ID:        "5678",
+				CreatedBy: "user2@example.com",
+				UpdatedBy: "user@example.com",
+				Expires:   secondRuleExpire,
+				Query:     "name=test_two&source_type=gm",
+				Note:      "Not ready yet",
+			},
+			{
+				ID:        "-1",
+				CreatedBy: "user3@example.com",
+				UpdatedBy: "user3@example.com",
+				Expires:   thirdRuleExpire,
+				Query:     "matches=nothing",
+				Note:      "Oops, this matches nothing",
+			},
+		},
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v1/ignores", nil)
+	wh.ListIgnoreRules(w, r)
+	b, err := json.Marshal(expectedResponse)
 	require.NoError(t, err)
-	clearParsedQueries(xir)
-	assert.Equal(t, []*frontend.IgnoreRule{
-		{
-			ID:        "1234",
-			CreatedBy: "user@example.com",
-			UpdatedBy: "user2@example.com",
-			Expires:   firstRuleExpire,
-			Query:     "device=delta",
-			Note:      "Flaky driver",
-		},
-		{
-			ID:        "5678",
-			CreatedBy: "user2@example.com",
-			UpdatedBy: "user@example.com",
-			Expires:   secondRuleExpire,
-			Query:     "name=test_two&source_type=gm",
-			Note:      "Not ready yet",
-		},
-		{
-			ID:        "-1",
-			CreatedBy: "user3@example.com",
-			UpdatedBy: "user3@example.com",
-			Expires:   thirdRuleExpire,
-			Query:     "matches=nothing",
-			Note:      "Oops, this matches nothing",
-		},
-	}, xir)
+	assertJSONResponseWas(t, http.StatusOK, string(b), w)
 }
 
-// TestGetIgnores_WithCounts_SunnyDay_Success tests the case where we get the list of current ignore
-// rules and count the traces to which those rules apply.
-func TestGetIgnores_WithCounts_SunnyDay_Success(t *testing.T) {
+// TestListIgnoreRules_WithCounts_SunnyDay_Success tests the case where we get the list of current
+// ignore rules and count the traces to which those rules apply.
+func TestListIgnoreRules_WithCounts_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mock_expectations.Store{}
@@ -1061,6 +1068,7 @@ func TestGetIgnores_WithCounts_SunnyDay_Success(t *testing.T) {
 	mis.On("List", testutils.AnyContext).Return(makeIgnoreRules(), nil)
 
 	wh := Handlers{
+		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
 		HandlersConfig: HandlersConfig{
 			ExpectationsStore: mes,
 			IgnoreStore:       mis,
@@ -1068,52 +1076,58 @@ func TestGetIgnores_WithCounts_SunnyDay_Success(t *testing.T) {
 		},
 	}
 
-	xir, err := wh.getIgnores(context.Background(), true /* = withCounts*/)
+	expectedResponse := frontend.IgnoresResponse{
+		Rules: []frontend.IgnoreRule{
+			{
+				ID:                      "1234",
+				CreatedBy:               "user@example.com",
+				UpdatedBy:               "user2@example.com",
+				Expires:                 firstRuleExpire,
+				Query:                   "device=delta",
+				Note:                    "Flaky driver",
+				Count:                   2,
+				ExclusiveCount:          1,
+				UntriagedCount:          1,
+				ExclusiveUntriagedCount: 0,
+			},
+			{
+				ID:                      "5678",
+				CreatedBy:               "user2@example.com",
+				UpdatedBy:               "user@example.com",
+				Expires:                 secondRuleExpire,
+				Query:                   "name=test_two&source_type=gm",
+				Note:                    "Not ready yet",
+				Count:                   4,
+				ExclusiveCount:          3,
+				UntriagedCount:          2,
+				ExclusiveUntriagedCount: 1,
+			},
+			{
+				ID:                      "-1",
+				CreatedBy:               "user3@example.com",
+				UpdatedBy:               "user3@example.com",
+				Expires:                 thirdRuleExpire,
+				Query:                   "matches=nothing",
+				Note:                    "Oops, this matches nothing",
+				Count:                   0,
+				ExclusiveCount:          0,
+				UntriagedCount:          0,
+				ExclusiveUntriagedCount: 0,
+			},
+		},
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v1/ignores?counts=1", nil)
+	wh.ListIgnoreRules(w, r)
+	b, err := json.Marshal(expectedResponse)
 	require.NoError(t, err)
-	clearParsedQueries(xir)
-	assert.Equal(t, []*frontend.IgnoreRule{
-		{
-			ID:                      "1234",
-			CreatedBy:               "user@example.com",
-			UpdatedBy:               "user2@example.com",
-			Expires:                 firstRuleExpire,
-			Query:                   "device=delta",
-			Note:                    "Flaky driver",
-			Count:                   2,
-			ExclusiveCount:          1,
-			UntriagedCount:          1,
-			ExclusiveUntriagedCount: 0,
-		},
-		{
-			ID:                      "5678",
-			CreatedBy:               "user2@example.com",
-			UpdatedBy:               "user@example.com",
-			Expires:                 secondRuleExpire,
-			Query:                   "name=test_two&source_type=gm",
-			Note:                    "Not ready yet",
-			Count:                   4,
-			ExclusiveCount:          3,
-			UntriagedCount:          2,
-			ExclusiveUntriagedCount: 1,
-		},
-		{
-			ID:                      "-1",
-			CreatedBy:               "user3@example.com",
-			UpdatedBy:               "user3@example.com",
-			Expires:                 thirdRuleExpire,
-			Query:                   "matches=nothing",
-			Note:                    "Oops, this matches nothing",
-			Count:                   0,
-			ExclusiveCount:          0,
-			UntriagedCount:          0,
-			ExclusiveUntriagedCount: 0,
-		},
-	}, xir)
+	assertJSONResponseWas(t, http.StatusOK, string(b), w)
 }
 
-// TestGetIgnores_WithCountsOnBigTile_SunnyDay_NoRaceConditions uses an artificially bigger tile to
-// process to make sure the counting code has no races in it when sharded.
-func TestGetIgnores_WithCountsOnBigTile_SunnyDay_NoRaceConditions(t *testing.T) {
+// TestListIgnoreRules_WithCountsOnBigTile_SunnyDay_NoRaceConditions uses an artificially bigger
+// tile to process to make sure the counting code has no races in it when sharded.
+func TestListIgnoreRules_WithCountsOnBigTile_SunnyDay_NoRaceConditions(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mock_expectations.Store{}
@@ -1134,6 +1148,7 @@ func TestGetIgnores_WithCountsOnBigTile_SunnyDay_NoRaceConditions(t *testing.T) 
 	mis.On("List", testutils.AnyContext).Return(makeIgnoreRules(), nil)
 
 	wh := Handlers{
+		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
 		HandlersConfig: HandlersConfig{
 			ExpectationsStore: mes,
 			IgnoreStore:       mis,
@@ -1141,10 +1156,15 @@ func TestGetIgnores_WithCountsOnBigTile_SunnyDay_NoRaceConditions(t *testing.T) 
 		},
 	}
 
-	xir, err := wh.getIgnores(context.Background(), true /* = withCounts*/)
-	require.NoError(t, err)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v1/ignores?counts=1", nil)
+	wh.ListIgnoreRules(w, r)
+	responseBytes := assertJSONResponseAndReturnBody(t, http.StatusOK, w)
+	response := frontend.IgnoresResponse{}
+	require.NoError(t, json.Unmarshal(responseBytes, &response))
+
 	// Just check the length, other unit tests will validate the correctness.
-	assert.Len(t, xir, 3)
+	assert.Len(t, response.Rules, 3)
 }
 
 // TestHandlersThatRequireLogin_NotLoggedIn_UnauthorizedError tests a list of handlers to make sure
@@ -3175,27 +3195,26 @@ func makeIgnoreRules() []ignore.Rule {
 	}
 }
 
-// clearParsedQueries removes the implementation detail parts of the IgnoreRule that don't make
-// sense to assert against.
-func clearParsedQueries(xir []*frontend.IgnoreRule) {
-	for _, ir := range xir {
-		ir.ParsedQuery = nil
-	}
-}
-
-// assertJSONResponseWasOK asserts that the given ResponseRecorder was given the appropriate JSON
-// headers and saw a status OK (200) response.
-func assertJSONResponseWas(t *testing.T, status int, body string, w *httptest.ResponseRecorder) {
+// assertJSONResponseAndReturnBody asserts that the given ResponseRecorder was given the
+// appropriate JSON and the expected status code, and returns the response body.
+func assertJSONResponseAndReturnBody(t *testing.T, expectedStatusCode int, w *httptest.ResponseRecorder) []byte {
 	resp := w.Result()
-	assert.Equal(t, status, resp.StatusCode)
+	assert.Equal(t, expectedStatusCode, resp.StatusCode)
 	assert.Equal(t, jsonContentType, resp.Header.Get(contentTypeHeader))
 	assert.Equal(t, allowAllOrigins, resp.Header.Get(accessControlHeader))
 	assert.Equal(t, noSniffContent, resp.Header.Get(contentTypeOptionsHeader))
 	respBody, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
+	return respBody
+}
+
+// assertJSONResponseWas asserts that the given ResponseRecorder was given the appropriate JSON
+// headers and the expected status code and response body.
+func assertJSONResponseWas(t *testing.T, expectedStatusCode int, expectedBody string, w *httptest.ResponseRecorder) {
+	actualBody := assertJSONResponseAndReturnBody(t, expectedStatusCode, w)
 	// The JSON encoder includes a newline "\n" at the end of the body, which is awkward to include
 	// in the literals passed in above, so we add that here
-	assert.Equal(t, body+"\n", string(respBody))
+	assert.Equal(t, expectedBody+"\n", string(actualBody))
 }
 
 func assertImageResponseWas(t *testing.T, expected []byte, w *httptest.ResponseRecorder) {

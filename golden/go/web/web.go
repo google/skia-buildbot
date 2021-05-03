@@ -728,25 +728,29 @@ func (wh *Handlers) ListIgnoreRules(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, ignores)
+	response := frontend.IgnoresResponse{
+		Rules: ignores,
+	}
+
+	sendJSONResponse(w, response)
 }
 
 // getIgnores fetches the ignores from the store and optionally counts how many
 // times they are applied.
-func (wh *Handlers) getIgnores(ctx context.Context, withCounts bool) ([]*frontend.IgnoreRule, error) {
+func (wh *Handlers) getIgnores(ctx context.Context, withCounts bool) ([]frontend.IgnoreRule, error) {
 	rules, err := wh.IgnoreStore.List(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "fetching ignores from store")
 	}
 
 	// We want to make a slice of pointers because addIgnoreCounts will add the counts in-place.
-	ret := make([]*frontend.IgnoreRule, 0, len(rules))
+	ret := make([]frontend.IgnoreRule, 0, len(rules))
 	for _, r := range rules {
 		fr, err := frontend.ConvertIgnoreRule(r)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		ret = append(ret, &fr)
+		ret = append(ret, fr)
 	}
 
 	if withCounts {
@@ -762,7 +766,7 @@ func (wh *Handlers) getIgnores(ctx context.Context, withCounts bool) ([]*fronten
 // addIgnoreCounts goes through the whole tile and counts how many traces each of the rules
 // applies to. This uses the most recent index, so there may be some discrepancies in the counts
 // if a new rule has been added since the last index was computed.
-func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.IgnoreRule) error {
+func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []frontend.IgnoreRule) error {
 	defer metrics2.FuncTimer().Stop()
 	sklog.Debugf("adding counts to %d rules", len(rules))
 
@@ -830,11 +834,11 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 		}
 		mutex.Lock()
 		defer mutex.Unlock()
-		for i, r := range rules {
-			r.Count += ruleCounts[i].Count
-			r.UntriagedCount += ruleCounts[i].UntriagedCount
-			r.ExclusiveCount += ruleCounts[i].ExclusiveCount
-			r.ExclusiveUntriagedCount += ruleCounts[i].ExclusiveUntriagedCount
+		for i := range rules {
+			(&rules[i]).Count += ruleCounts[i].Count
+			(&rules[i]).UntriagedCount += ruleCounts[i].UntriagedCount
+			(&rules[i]).ExclusiveCount += ruleCounts[i].ExclusiveCount
+			(&rules[i]).ExclusiveUntriagedCount += ruleCounts[i].ExclusiveUntriagedCount
 		}
 		return nil
 	})
