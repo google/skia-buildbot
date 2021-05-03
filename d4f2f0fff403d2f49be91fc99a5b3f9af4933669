@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "82e908b1_afb136b7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-03T17:18:04Z",
+      "side": 1,
+      "message": "`lucicfg semantic-diff main.star project.cfg commit-queue.cfg` produces only one diff, the name of the commit queue config.",
+      "revId": "d4f2f0fff403d2f49be91fc99a5b3f9af4933669",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
