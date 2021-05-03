@@ -152,7 +152,8 @@ CREATE TABLE IF NOT EXISTS TraceValues (
   grouping_id BYTES NOT NULL,
   options_id BYTES NOT NULL,
   source_file_id BYTES NOT NULL,
-  PRIMARY KEY (shard, commit_id, trace_id)
+  PRIMARY KEY (shard, commit_id, trace_id),
+  INDEX trace_commit_idx (trace_id, commit_id) STORING (digest, options_id)
 );
 CREATE TABLE IF NOT EXISTS Traces (
   trace_id BYTES PRIMARY KEY,

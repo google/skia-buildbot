@@ -175,9 +175,6 @@ func ToTraceComment(c trace.Comment) TraceComment {
 // TraceGroup is info about a group of traces. The concrete use of TraceGroup is to represent all
 // traces that draw a given digest (known below as the "primary digest") for a given test.
 type TraceGroup struct {
-	// TileSize is how many digests appear in Traces.
-	// TODO(kjlubick) this is no longer needed, now that Traces are dense and not skipping commits.
-	TileSize int `json:"tileSize"`
 	// Traces represents all traces in the TraceGroup. All of these traces have the primary digest.
 	Traces []Trace `json:"traces"`
 	// Digests represents the triage status of the primary digest and the first N-1 digests that

@@ -1146,6 +1146,67 @@ func TestPrimarySQL_Process_MoreRecentDataWithCaches_ValuesAtHeadUpdated(t *test
 	})
 }
 
+func TestPrimarySQL_Process_DataFromSameTraceWithDifferentOptions_ValuesAtHeadUpdated(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const circleTraceKeys = `{"color mode":"RGB","device":"taimen","name":"circle","os":"Android","source_type":"round"}`
+	const newOptions = `{"build_system":"bazel","ext":"png"}`
+	const expectedCommitID = "0000000110"
+	src := fakeGCSSourceFromFile(t, "trace_with_new_option.json")
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	require.NoError(t, s.Process(ctx, "trace_with_new_option.json"))
+
+	// Spot check the created or updated data due to the ingested file.
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.Contains(t, actualValuesAtHead, schema.ValueAtHeadRow{
+		TraceID:            h(circleTraceKeys),
+		MostRecentCommitID: expectedCommitID,
+		Digest:             d(dks.DigestC01Pos), // This was updated
+		OptionsID:          h(newOptions),       // This was updated
+		GroupingID:         h(circleGrouping),
+		Corpus:             dks.RoundCorpus,
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.CircleTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBTrue,
+	})
+
+	actualTraceValues := sqltest.GetAllRows(ctx, t, db, "TraceValues", &schema.TraceValueRow{}).([]schema.TraceValueRow)
+	assert.Contains(t, actualTraceValues, schema.TraceValueRow{
+		Shard:        0,
+		TraceID:      h(circleTraceKeys),
+		CommitID:     expectedCommitID,
+		Digest:       d(dks.DigestC01Pos), // This was updated
+		GroupingID:   h(circleGrouping),   // This was updated
+		OptionsID:    h(newOptions),
+		SourceFileID: h("trace_with_new_option.json"),
+	})
+
+	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
+	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
+		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC01Pos), TileID: 1, GroupingID: h(circleGrouping)})
+	// previous value should still be there
+	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
+		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 1, GroupingID: h(circleGrouping)})
+
+	actualOptions := sqltest.GetAllRows(ctx, t, db, "Options", &schema.OptionsRow{}).([]schema.OptionsRow)
+	assert.Contains(t, actualOptions, schema.OptionsRow{
+		OptionsID: h(newOptions),
+		Keys: paramtools.Params{
+			"build_system": "bazel",
+			"ext":          "png",
+		},
+	})
+
+}
+
 func TestPrimarySQL_Process_OlderData_SomeValuesAtHeadUpdated(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx := context.Background()

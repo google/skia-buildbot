@@ -104,7 +104,6 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					"ext":                 {data.PNGExtension},
 				},
 				TraceGroup: frontend.TraceGroup{
-					TileSize:     3, // 3 commits in tile
 					TotalDigests: 2,
 					Traces: []frontend.Trace{
 						{
@@ -178,7 +177,6 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					"ext":                 {data.PNGExtension},
 				},
 				TraceGroup: frontend.TraceGroup{
-					TileSize:     3,
 					TotalDigests: 1,
 					Traces: []frontend.Trace{
 						{
@@ -777,7 +775,6 @@ func TestSearch_ChangelistResults_ChangelistIndexMiss_Success(t *testing.T) {
 							},
 						},
 					},
-					TileSize: 4,
 					Digests: []frontend.DigestStatus{
 						{
 							Digest: BetaBrandNewDigest,
@@ -973,7 +970,6 @@ func TestDigestDetails_PrimaryBranch_Success(t *testing.T) {
 				"ext":                 {data.PNGExtension},
 			},
 			TraceGroup: frontend.TraceGroup{
-				TileSize:     3, // 3 commits in tile
 				TotalDigests: 2,
 				Traces: []frontend.Trace{ // the digest we care about appears in two traces
 					{

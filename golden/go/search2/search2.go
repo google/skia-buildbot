@@ -43,6 +43,10 @@ type API interface {
 	// ChangelistLastUpdated returns the timestamp that the given CL was updated. It returns an
 	// error if the CL does not exist.
 	ChangelistLastUpdated(ctx context.Context, qCLID string) (time.Time, error)
+
+	// Search queries the current tile based on the parameters specified in
+	// the instance of the *query.Search.
+	Search(context.Context, *query.Search) (*frontend.SearchResponse, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on

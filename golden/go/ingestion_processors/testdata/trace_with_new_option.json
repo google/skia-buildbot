@@ -1,0 +1,22 @@
+{
+  "description": "This file has data from one trace on commit id 0000000110. It has different options than datakitchensink.",
+  "gitHash": "f4412901bfb130a8774c0c719450d1450845f471",
+  "key": {
+    "os": "Android",
+    "device": "taimen"
+  },
+  "results": [
+    {
+      "key": {
+        "color mode": "RGB",
+        "name": "circle",
+        "source_type": "round"
+      },
+      "md5": "c01c01c01c01c01c01c01c01c01c01c0",
+      "options": {
+        "ext": "png",
+        "build_system": "bazel"
+      }
+    }
+  ]
+}

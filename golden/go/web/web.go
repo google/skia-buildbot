@@ -579,12 +579,38 @@ func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Minute)
 	defer cancel()
-	ctx, span := trace.StartSpan(ctx, "SearchHandler_sql")
+	ctx, span := trace.StartSpan(ctx, "SearchHandler")
 	defer span.End()
 
 	searchResponse, err := wh.SearchAPI.Search(ctx, q)
 	if err != nil {
 		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(w, searchResponse)
+}
+
+// SearchHandler2 searches the data in the new SQL backend. It times out after 3 minutes, to prevent
+// outstanding requests from growing unbounded.
+func (wh *Handlers) SearchHandler2(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	q, ok := parseSearchQuery(w, r)
+	if !ok {
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Minute)
+	defer cancel()
+	ctx, span := trace.StartSpan(ctx, "web_SearchHandler2", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
+
+	searchResponse, err := wh.Search2API.Search(ctx, q)
+	if err != nil {
+		httputils.ReportError(w, err, "Search for digests failed in the SQL backend.", http.StatusInternalServerError)
 		return
 	}
 	sendJSONResponse(w, searchResponse)

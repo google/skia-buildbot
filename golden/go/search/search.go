@@ -942,7 +942,6 @@ func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestNam
 		// No longer need the RawTrace data, now that it has been turned into the frontend version.
 		oneTrace.RawTrace = nil
 		traceGroup.Traces[idx] = oneTrace
-		traceGroup.TileSize = traceLen // TileSize will go away soon.
 	}
 	traceGroup.TotalDigests = totalDigests
 }

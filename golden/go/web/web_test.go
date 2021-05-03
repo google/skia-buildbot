@@ -2658,7 +2658,7 @@ func TestDiffHandler_DefaultUsesSQL_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v1/diff?test=alpha&left=11111111111111111111111111111111&right=22222222222222222222222222222222", nil)
 	wh.DiffHandler(w, r)
-	const expectedResponse = `{"left":{"digest":"11111111111111111111111111111111","test":"alpha","status":"untriaged","triage_history":null,"paramset":{"device":["bullhead"],"ext":["png"],"name":["test_alpha"],"source_type":["gm"]},"traces":{"tileSize":0,"traces":null,"digests":null,"total_digests":0},"refDiffs":null,"closestRef":""},"right":{"numDiffPixels":13,"combinedMetric":4.2,"pixelDiffPercent":0.5,"maxRGBADiffs":[8,9,10,11],"dimDiffer":true,"digest":"22222222222222222222222222222222","status":"positive","paramset":{"device":["angler","crosshatch"],"ext":["png"],"name":["test_alpha"],"source_type":["gm"]}}}`
+	const expectedResponse = `{"left":{"digest":"11111111111111111111111111111111","test":"alpha","status":"untriaged","triage_history":null,"paramset":{"device":["bullhead"],"ext":["png"],"name":["test_alpha"],"source_type":["gm"]},"traces":{"traces":null,"digests":null,"total_digests":0},"refDiffs":null,"closestRef":""},"right":{"numDiffPixels":13,"combinedMetric":4.2,"pixelDiffPercent":0.5,"maxRGBADiffs":[8,9,10,11],"dimDiffer":true,"digest":"22222222222222222222222222222222","status":"positive","paramset":{"device":["angler","crosshatch"],"ext":["png"],"name":["test_alpha"],"source_type":["gm"]}}}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 

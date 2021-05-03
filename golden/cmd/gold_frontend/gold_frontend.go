@@ -838,6 +838,10 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	add("/json/v1/paramset", handlers.ParamsHandler, "GET")
 	add("/json/search", handlers.SearchHandler, "GET")
 	add("/json/v1/search", handlers.SearchHandler, "GET")
+	if !fsc.IsPublicView {
+		// Search2 API doesn't support public view yet
+		add("/json/v2/search", handlers.SearchHandler2, "GET")
+	}
 	add("/json/triage", handlers.TriageHandler, "POST")
 	add("/json/v1/triage", handlers.TriageHandler, "POST")
 	add("/json/triagelog", handlers.TriageLogHandler, "GET")
