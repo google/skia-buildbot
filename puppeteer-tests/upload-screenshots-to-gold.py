@@ -79,49 +79,43 @@ def main():
           'DO NOT USE IN PRODUCTION.')
     print('')
 
-  # Generate keys file.
-  with tempfile.NamedTemporaryFile(mode='w') as keys_file:
-    keys_file.write('{"source_type": "infra"}\n')  # Corpus.
-    keys_file.flush()
-
-    # Authorize goldctl.
-    with tempfile.TemporaryDirectory() as work_dir:  # pylint: disable=no-member
-      goldctl(['auth', '--work-dir', work_dir] + ([] if args.local
-                                                     else ['--luci']))
-
-      # Initialize.
-      cmd = [
-          'imgtest', 'init',
-          '--work-dir', work_dir,
-          '--instance', 'skia-infra',
-          '--commit', args.revision,
-          '--keys-file', keys_file.name,
+  # Authorize goldctl.
+  with tempfile.TemporaryDirectory() as work_dir:  # pylint: disable=no-member
+    goldctl(['auth', '--work-dir', work_dir] + ([] if args.local
+                                                   else ['--luci']))
+    # Initialize.
+    cmd = [
+        'imgtest', 'init',
+        '--work-dir', work_dir,
+        '--instance', 'skia-infra',
+        '--commit', args.revision,
+        '--corpus', 'infra',
+        '--key', 'build_system:webpack',
+    ]
+    if is_trybot:
+      cmd += [
+          '--crs', 'gerrit',
+          '--cis', 'buildbucket',
+          '--changelist', str(args.issue),
+          '--patchset', str(args.patch_set),
+          '--jobid', args.task_id,
       ]
-      if is_trybot:
-        cmd += [
-            '--crs', 'gerrit',
-            '--cis', 'buildbucket',
-            '--changelist', str(args.issue),
-            '--patchset', str(args.patch_set),
-            '--jobid', args.task_id,
-        ]
-      goldctl(cmd)
+    goldctl(cmd)
 
-      # Add images.
-      for filename in os.listdir(args.images_dir):
-        if not filename.lower().endswith('.png'):
-          print('Ignoring non-PNG file: ' + filename)
-          continue
-        goldctl([
-            'imgtest', 'add',
-            '--work-dir', work_dir,
-            '--png-file', os.path.join(args.images_dir, filename),
-            '--test-name', filename[:-4], # Remove .png extension.
-            '--add-test-optional-key', 'build_system:webpack',
-        ])
+    # Add images.
+    for filename in os.listdir(args.images_dir):
+      if not filename.lower().endswith('.png'):
+        print('Ignoring non-PNG file: ' + filename)
+        continue
+      goldctl([
+          'imgtest', 'add',
+          '--work-dir', work_dir,
+          '--png-file', os.path.join(args.images_dir, filename),
+          '--test-name', filename[:-4], # Remove .png extension.
+      ])
 
-      # Finalize and clean up.
-      goldctl(['imgtest', 'finalize', '--work-dir', work_dir])
+    # Finalize and clean up.
+    goldctl(['imgtest', 'finalize', '--work-dir', work_dir])
 
 
 if __name__ == '__main__':
