@@ -709,12 +709,12 @@ options_id, grouping_id, keys) VALUES `
 				row.OptionsID, row.GroupingID, row.Keys)
 		}
 		// If the row already exists, we'll update these three fields if and only if the
-		// commit_id comes after the stored commit_id.
+		// commit_id comes after or at the stored commit_id.
 		statement += `
 ON CONFLICT (trace_id)
 DO UPDATE SET (most_recent_commit_id, digest, options_id) =
     (excluded.most_recent_commit_id, excluded.digest, excluded.options_id)
-WHERE excluded.most_recent_commit_id > ValuesAtHead.most_recent_commit_id`
+WHERE excluded.most_recent_commit_id >= ValuesAtHead.most_recent_commit_id`
 		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
 			return err // Don't wrap - crdbpgx might retry
