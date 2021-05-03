@@ -22,6 +22,30 @@
       },
       "revId": "ee0b39a04ab2ffb035a4f11447fa48015ee6de75",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "851837c3_9c8ae0f3",
+        "filename": "golden/modules/list-page-sk/list-page-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-05-03T21:12:23Z",
+      "side": 1,
+      "message": "This is actually converted into a SearchCriteriaHintableObject: https://github.com/google/skia-buildbot/blob/9659b3187244444eed104bd108a06e31f195eb88/golden/modules/search-controls-sk/search-controls-sk.ts#L64.\n\nThe search page eventually transforms the hintable object into the structure you linked above: https://github.com/google/skia-buildbot/blob/9659b3187244444eed104bd108a06e31f195eb88/golden/modules/search-page-sk/search-page-sk.ts#L349.",
+      "parentUuid": "a7eb1f81_0f3234a7",
+      "range": {
+        "startLine": 79,
+        "startChar": 14,
+        "endLine": 79,
+        "endChar": 24
+      },
+      "revId": "ee0b39a04ab2ffb035a4f11447fa48015ee6de75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
