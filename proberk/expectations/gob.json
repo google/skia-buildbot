@@ -4,10 +4,6 @@
     "name": "buildbot",
     "clone_url": "https://skia.googlesource.com/buildbot"
   },
-  "common": {
-    "name": "common",
-    "clone_url": "https://skia.googlesource.com/common"
-  },
   "external/github.com/2d-inc/Nima-Cpp": {
     "name": "external/github.com/2d-inc/Nima-Cpp",
     "clone_url": "https://skia.googlesource.com/external/github.com/2d-inc/Nima-Cpp",
@@ -113,10 +109,6 @@
     "clone_url": "https://skia.googlesource.com/external/github.com/unicode-org/icu",
     "mirrored_from_url": "https://github.com/unicode-org/icu.git"
   },
-  "git-master-skia": {
-    "name": "git-master-skia",
-    "clone_url": "https://skia.googlesource.com/git-master-skia"
-  },
   "libgifcodec": {
     "name": "libgifcodec",
     "clone_url": "https://skia.googlesource.com/libgifcodec"
@@ -149,14 +141,6 @@
     "name": "skiabot-test",
     "clone_url": "https://skia.googlesource.com/skiabot-test"
   },
-  "skia-public-config": {
-    "name": "skia-public-config",
-    "clone_url": "https://skia.googlesource.com/skia-public-config"
-  },
-  "skia-recipes": {
-    "name": "skia-recipes",
-    "clone_url": "https://skia.googlesource.com/skia-recipes"
-  },
   "third_party/fontconfig": {
     "name": "third_party/fontconfig",
     "clone_url": "https://skia.googlesource.com/third_party/fontconfig",
@@ -180,10 +164,6 @@
   "third_party/libpng": {
     "name": "third_party/libpng",
     "clone_url": "https://skia.googlesource.com/third_party/libpng"
-  },
-  "third_party/libpng_test": {
-    "name": "third_party/libpng_test",
-    "clone_url": "https://skia.googlesource.com/third_party/libpng_test"
   },
   "third_party/libwebp": {
     "name": "third_party/libwebp",
