@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -51,6 +52,14 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		return nil, skerr.Wrap(err)
 	}
 	depotToolsEnv := append(depot_tools.Env(depotTools), "SKIP_GCE_AUTH_FOR_GIT=1")
+	for _, envVar := range depotToolsEnv {
+		split := strings.SplitN(envVar, "=", 2)
+		if len(split) == 2 && split[0] == "PATH" {
+			if err := os.Setenv(split[0], split[1]); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+		}
+	}
 	gclientCmd := []string{filepath.Join(depotTools, GClient)}
 	gclient := func(ctx context.Context, cmd ...string) error {
 		args := append(gclientCmd, cmd...)
