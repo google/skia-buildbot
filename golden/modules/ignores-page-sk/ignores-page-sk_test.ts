@@ -9,13 +9,18 @@ import {
   setQueryString,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
+import { IgnoresPageSk } from './ignores-page-sk';
+import { ParamSet } from '../rpc_types';
 import { fakeNow, ignoreRules_10 } from './test_data';
+import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { EditIgnoreRuleSk } from '../edit-ignore-rule-sk/edit-ignore-rule-sk';
+import { expect } from 'chai';
 
-describe('ignores-page-sk', () => {
-  const newInstance = setUpElementUnderTest('ignores-page-sk');
+describe.only('ignores-page-sk', () => {
+  const newInstance = setUpElementUnderTest<IgnoresPageSk>('ignores-page-sk');
 
   const regularNow = Date.now;
-  let ignoresPageSk;
+  let ignoresPageSk: IgnoresPageSk;
 
   beforeEach(async () => {
     // Clear out any query params we might have to not mess with our current state.
@@ -24,7 +29,7 @@ describe('ignores-page-sk', () => {
     fetchMock.get('/json/v1/ignores?counts=1', ignoreRules_10);
     // We only need a few params to make sure the edit-ignore-rule-dialog works properly and it
     // does not matter really what they are, so we use a small subset of actual params.
-    const someParams = {
+    const someParams: ParamSet = {
       alpha_type: ['Opaque', 'Premul'],
       arch: ['arm', 'arm64', 'x86', 'x86_64'],
     };
@@ -55,7 +60,7 @@ describe('ignores-page-sk', () => {
 
     it('creates links to test the filter', () => {
       const rows = $('table tbody tr', ignoresPageSk);
-      const queryLink = $$('.query a', rows[9]);
+      const queryLink = $$<HTMLAnchorElement>('.query a', rows[9])!;
       expect(queryLink.href).to.contain(
         'include=true&query=config%3Dglmsaa4%26cpu_or_gpu_value%3DTegraX1%26name%3Drg1024_green_grapes.svg',
       );
@@ -68,12 +73,12 @@ describe('ignores-page-sk', () => {
       const rows = $('table tbody tr', ignoresPageSk);
       const firstRow = rows[0];
       expect(firstRow.className).to.contain('expired');
-      let timeBox = $$('.expired', firstRow);
+      let timeBox = $$<HTMLElement>('.expired', firstRow)!;
       expect(timeBox.innerText).to.contain('Expired');
 
       const fourthRow = rows[4];
       expect(fourthRow.className).to.not.contain('expired');
-      timeBox = $$('.expired', fourthRow);
+      timeBox = $$<HTMLElement>('.expired', fourthRow)!;
       expect(timeBox).to.be.null;
     });
   }); // end describe('html layout')
@@ -82,21 +87,21 @@ describe('ignores-page-sk', () => {
     it('toggles between counting traces with untriaged digests and all traces', () => {
       let checkbox = findUntriagedDigestsCheckbox(ignoresPageSk);
       expect(checkbox.checked).to.be.true;
-      expect(findMatchesTextForRow(2, ignoresPageSk)).to.contain('0 / 4');
+      expect(findMatchesTextForRow(ignoresPageSk, 2)).to.contain('0 / 4');
       expectQueryStringToEqual('');
 
       clickUntriagedDigestsCheckbox(ignoresPageSk);
 
       checkbox = findUntriagedDigestsCheckbox(ignoresPageSk);
       expect(checkbox.checked).to.be.false;
-      expect(findMatchesTextForRow(2, ignoresPageSk)).to.contain('6 / 10');
+      expect(findMatchesTextForRow(ignoresPageSk, 2)).to.contain('6 / 10');
       expectQueryStringToEqual('?count_all=true');
 
       clickUntriagedDigestsCheckbox(ignoresPageSk);
 
       checkbox = findUntriagedDigestsCheckbox(ignoresPageSk);
       expect(checkbox.checked).to.be.true;
-      expect(findMatchesTextForRow(2, ignoresPageSk)).to.contain('0 / 4');
+      expect(findMatchesTextForRow(ignoresPageSk, 2)).to.contain('0 / 4');
       expectQueryStringToEqual('');
     });
 
@@ -120,17 +125,17 @@ describe('ignores-page-sk', () => {
       const dialog = findConfirmDeleteDialog(ignoresPageSk);
       expect(dialog.hasAttribute('open')).to.be.false;
 
-      const del = findDeleteForRow(2);
+      const del = findDeleteForRow(ignoresPageSk, 2);
       del.click();
 
       expect(dialog.hasAttribute('open')).to.be.true;
-      const msg = $$('.message', dialog);
+      const msg = $$<HTMLElement>('.message', dialog)!;
       expect(msg.innerText).to.contain('Are you sure you want to delete');
     });
 
     it('deletes an existing ignore rule', async () => {
       const idOfThirdRule = '7589748925671328782';
-      const del = findDeleteForRow(2);
+      const del = findDeleteForRow(ignoresPageSk, 2);
       del.click();
 
       fetchMock.post(`/json/v1/ignores/del/${idOfThirdRule}`, '{"deleted": "true"}');
@@ -167,7 +172,7 @@ describe('ignores-page-sk', () => {
 
     it('updates an existing ignore rule', async () => {
       const idOfThirdRule = '7589748925671328782';
-      const edit = findUpdateForRow(2);
+      const edit = findUpdateForRow(ignoresPageSk, 2);
       edit.click();
 
       const dialog = findCreateEditIgnoreRuleDialog(ignoresPageSk);
@@ -201,59 +206,58 @@ describe('ignores-page-sk', () => {
   });
 });
 
-function findUntriagedDigestsCheckbox(ele) {
-  return $$('.controls checkbox-sk', ele);
+function findUntriagedDigestsCheckbox(ele: IgnoresPageSk): CheckOrRadio {
+  return $$<CheckOrRadio>('.controls checkbox-sk', ele)!;
 }
 
-function findMatchesTextForRow(n, ele) {
-  const row = $('table tbody tr', ele)[n];
-  const cell = $$('td.matches', row);
+function findMatchesTextForRow(ele: IgnoresPageSk, n: number): string {
+  const row = $<HTMLTableRowElement>('table tbody tr', ele)[n];
+  const cell = $$<HTMLTableDataCellElement>('td.matches', row)!;
   // condense all whitespace and then trim to avoid the formatting of
   // the html from impacting the tests too much (e.g. extraneous \n)
   return cell.innerText;
 }
 
-function findDeleteForRow(n, ele) {
+function findDeleteForRow(ele: IgnoresPageSk, n: number): HTMLElement {
   const row = $('table tbody tr', ele)[n];
-  return $$('.mutate-icons delete-icon-sk', row);
+  return $$<HTMLElement>('.mutate-icons delete-icon-sk', row)!;
 }
 
-function findUpdateForRow(n, ele) {
+function findUpdateForRow(ele: IgnoresPageSk, n: number): HTMLElement {
   const row = $('table tbody tr', ele)[n];
-  return $$('.mutate-icons mode-edit-icon-sk', row);
+  return $$<HTMLElement>('.mutate-icons mode-edit-icon-sk', row)!;
 }
 
-function findConfirmDeleteDialog(ele) {
-  return $$('confirm-dialog-sk dialog', ele);
+function findConfirmDeleteDialog(ele: IgnoresPageSk): HTMLDialogElement {
+  return $$<HTMLDialogElement>('confirm-dialog-sk dialog', ele)!;
 }
 
-function findCreateEditIgnoreRuleDialog(ele) {
-  return $$('dialog#edit-ignore-rule-dialog', ele);
+function findCreateEditIgnoreRuleDialog(ele: IgnoresPageSk): HTMLDialogElement {
+  return $$<HTMLDialogElement>('dialog#edit-ignore-rule-dialog', ele)!;
 }
 
-function findConfirmSaveIgnoreRuleButton(ele) {
-  return $$('#edit-ignore-rule-dialog button#ok', ele);
+function findConfirmSaveIgnoreRuleButton(ele: IgnoresPageSk): HTMLButtonElement {
+  return $$<HTMLButtonElement>('#edit-ignore-rule-dialog button#ok', ele)!;
 }
 
-function clickUntriagedDigestsCheckbox(ele) {
+function clickUntriagedDigestsCheckbox(ele: IgnoresPageSk) {
   // We need to click on the input element to accurately mimic a user event. This is
   // because the checkbox-sk element listens for the click event created by the
   // internal input event.
-  const input = $$('input[type="checkbox"]', findUntriagedDigestsCheckbox(ele));
+  const input = $$<HTMLInputElement>('input[type="checkbox"]', findUntriagedDigestsCheckbox(ele))!;
   input.click();
 }
 
-function clickConfirmDeleteButton(ele) {
-  const ok = $$('button.confirm', findConfirmDeleteDialog(ele));
-  ok.click();
+function clickConfirmDeleteButton(ele: IgnoresPageSk) {
+  $$<HTMLButtonElement>('button.confirm', findConfirmDeleteDialog(ele))!.click();
 }
 
-function clickCreateIgnoreRuleButton(ele) {
-  $$('.controls button.create', ele).click();
+function clickCreateIgnoreRuleButton(ele: IgnoresPageSk) {
+  $$<HTMLButtonElement>('.controls button.create', ele)!.click();
 }
 
-function setIgnoreRuleProperties(ele, query, expires, note) {
-  const editor = $$('edit-ignore-rule-sk', findCreateEditIgnoreRuleDialog(ele));
+function setIgnoreRuleProperties(ele: IgnoresPageSk, query: string, expires: string, note: string) {
+  const editor = $$<EditIgnoreRuleSk>('edit-ignore-rule-sk', findCreateEditIgnoreRuleDialog(ele))!;
   editor.query = query;
   editor.expires = expires;
   editor.note = note;

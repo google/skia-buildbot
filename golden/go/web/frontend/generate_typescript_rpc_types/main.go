@@ -64,6 +64,12 @@ func addTypes(generator *go2ts.Go2TS) {
 	// Response for the /json/v1/changelists RPC endpoint.
 	generator.Add(frontend.ChangelistsResponse{})
 
+	// Payload for the /json/v1/ignores/add and /json/v1/ignores/save RPC endpoints.
+	generator.Add(frontend.IgnoreRuleBody{})
+
+	// Response for the /json/v1/ignores RPC endpoint.
+	generator.Add(frontend.IgnoresResponse{})
+
 	generator.AddUnionWithName(expectations.AllLabel, "Label")
 	generator.AddUnionWithName(common.AllRefClosest, "RefClosest")
 }

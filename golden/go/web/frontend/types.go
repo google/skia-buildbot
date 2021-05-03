@@ -168,6 +168,11 @@ type DigestListResponse struct {
 	Digests []types.Digest `json:"digests"`
 }
 
+// IgnoresResponse is the response for /json/v1/ignores.
+type IgnoresResponse struct {
+	Rules []IgnoreRule `json:"rules"`
+}
+
 // IgnoreRule represents an ignore.Rule as well as how many times the rule
 // was applied. This allows for the decoupling of the rule as stored in the
 // DB from how we present it to the UI.

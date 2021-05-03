@@ -1,7 +1,6 @@
 import './index';
 import '../gold-scaffold-sk';
 
-import { $$ } from 'common-sk/modules/dom';
 import { delay } from '../demo_util';
 import { ignoreRules_10, fakeNow } from './test_data';
 import { manyParams } from '../shared_demo_data';
@@ -25,8 +24,8 @@ fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = document.createElement('gold-scaffold-sk');
 newScaf.setAttribute('testing_offline', 'true');
-const body = $$('body');
-body.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
+// Make it the first element in body.
+document.body.insertBefore(newScaf, document.body.childNodes[0]);
 const page = document.createElement('ignores-page-sk');
 page.setAttribute('page_size', '10');
 newScaf.appendChild(page);
