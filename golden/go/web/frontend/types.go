@@ -357,4 +357,10 @@ type TestSummary struct {
 	PositiveDigests  int            `json:"positive_digests"`
 	NegativeDigests  int            `json:"negative_digests"`
 	UntriagedDigests int            `json:"untriaged_digests"`
+	TotalDigests     int            `json:"total_digests"`
+}
+
+// ListTestsResponse is the response for /json/v1/list.
+type ListTestsResponse struct {
+	Tests []TestSummary `json:"tests"`
 }
