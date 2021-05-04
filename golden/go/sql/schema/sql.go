@@ -49,7 +49,8 @@ CREATE TABLE IF NOT EXISTS Expectations (
   digest BYTES,
   label CHAR NOT NULL,
   expectation_record_id UUID,
-  PRIMARY KEY (grouping_id, digest)
+  PRIMARY KEY (grouping_id, digest),
+  INDEX label_idx (label)
 );
 CREATE TABLE IF NOT EXISTS GitCommits (
   git_hash STRING PRIMARY KEY,
@@ -138,7 +139,8 @@ CREATE TABLE IF NOT EXISTS TiledTraceDigests (
   digest BYTES NOT NULL,
   grouping_id BYTES NOT NULL,
   PRIMARY KEY (trace_id, tile_id, digest),
-  INDEX grouping_digest_idx (grouping_id, digest)
+  INDEX grouping_digest_idx (grouping_id, digest),
+  INDEX tile_trace_idx (tile_id, trace_id)
 );
 CREATE TABLE IF NOT EXISTS TrackingCommits (
   repo STRING PRIMARY KEY,
