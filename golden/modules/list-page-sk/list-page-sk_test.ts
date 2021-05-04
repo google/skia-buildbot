@@ -10,11 +10,19 @@ import {
 } from '../../../infra-sk/modules/test_util';
 import { sampleByTestList } from './test_data';
 import { testOnlySetSettings } from '../settings';
+import { ListPageSk } from './list-page-sk';
+import { expect } from 'chai';
+import { CorpusSelectorSk } from '../corpus-selector-sk/corpus-selector-sk';
+import { QueryDialogSk } from '../query-dialog-sk/query-dialog-sk';
+import { QueryDialogSkPO} from '../query-dialog-sk/query-dialog-sk_po';
+import { CorpusSelectorSkPO } from '../corpus-selector-sk/corpus-selector-sk_po';
 
 describe('list-page-sk', () => {
-  const newInstance = setUpElementUnderTest('list-page-sk');
+  const newInstance = setUpElementUnderTest<ListPageSk>('list-page-sk');
 
-  let listPageSk;
+  let listPageSk: ListPageSk;
+  let queryDialogSkPO: QueryDialogSkPO;
+  let corpusSelectorSkPO: CorpusSelectorSkPO;
 
   beforeEach(async () => {
     // Clear out any query params we might have to not mess with our current state.
@@ -38,6 +46,12 @@ describe('list-page-sk', () => {
     const event = eventPromise('end-task');
     listPageSk = newInstance();
     await event;
+
+    queryDialogSkPO =
+        new QueryDialogSkPO(listPageSk.querySelector<QueryDialogSk>('query-dialog-sk')!);
+    corpusSelectorSkPO =
+        new CorpusSelectorSkPO(
+            listPageSk.querySelector<CorpusSelectorSk<string>>('corpus-selector-sk')!);
   });
 
   afterEach(() => {
@@ -54,17 +68,24 @@ describe('list-page-sk', () => {
       expect(rows).to.have.length(2);
     });
 
-    it('should have 3 corpora loaded in, with the default selected', () => {
-      const corpusSelector = $$('corpus-selector-sk', listPageSk);
-      expect(corpusSelector.corpora).to.have.length(3);
-      expect(corpusSelector.selectedCorpus).to.equal('gm');
+    it('should have 3 corpora loaded in, with the default selected', async () => {
+      expect(await corpusSelectorSkPO.getCorpora()).to.have.length(3);
+      expect(await corpusSelectorSkPO.getSelectedCorpus()).to.equal('gm');
     });
 
     it('does not have source_type (corpus) in the params', () => {
-      expect(listPageSk._paramset.source_type).to.be.undefined;
+      // Field "paramset" is private, thus the cast to any. Is this test really necessary?
+      expect((listPageSk as any).paramset.source_type).to.be.undefined;
     });
 
-    const expectedSearchPageHref = (opts) => {
+    const expectedSearchPageHref =
+        (opts: {
+          positive: boolean,
+          negative: boolean,
+          untriaged: boolean,
+          showAllDigests: boolean,
+          disregardIgnoreRules: boolean
+        }): string => {
       return '/search?' + [
         'corpus=gm',
         `include_ignored=${opts.disregardIgnoreRules}`,
@@ -81,7 +102,8 @@ describe('list-page-sk', () => {
       ].join('&');
     };
 
-    const expectedClusterPageHref = (opts) => {
+    const expectedClusterPageHref =
+        (opts: {showAllDigests: boolean, disregardIgnoreRules: boolean}): string => {
       return '/cluster?' + [
         'corpus=gm',
         'grouping=this_is_another_test',
@@ -100,8 +122,8 @@ describe('list-page-sk', () => {
     };
 
     it('should have links for searching and the cluster view', () => {
-      const secondRow = $$('table tbody tr:nth-child(2)', listPageSk);
-      const links = $('a', secondRow);
+      const secondRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(2)', listPageSk)!;
+      const links = $<HTMLAnchorElement>('a', secondRow)!;
       expect(links).to.have.length(6);
 
       // First link should be to the search results for all digests.
@@ -154,11 +176,14 @@ describe('list-page-sk', () => {
         expectedClusterPageHref({showAllDigests: false, disregardIgnoreRules: false}));
     });
 
-    it('updates the links based on toggle positions', () => {
-      listPageSk._showAllDigests = true;
-      listPageSk._disregardIgnoreRules = true;
-      listPageSk._render();
-      const secondRow = $$('table tbody tr:nth-child(2)', listPageSk);
+    it('updates the links based on toggle positions', async () => {
+      fetchMock.get('/json/v1/list?corpus=gm', sampleByTestList);
+      fetchMock.get('/json/v1/list?corpus=gm&include_ignored_traces=true', sampleByTestList);
+
+      await clickDigestsAtHeadOnlyCheckbox(listPageSk)
+      await clickDisregardIgnoreRulesCheckbox(listPageSk)
+
+      const secondRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(2)', listPageSk)!;
       const links = $('a', secondRow);
       expect(links).to.have.length(6);
 
@@ -213,79 +238,84 @@ describe('list-page-sk', () => {
     });
 
     it('updates the sort order by clicking on sort-toggle-sk', async () => {
-      let firstRow = $$('table tbody tr:nth-child(1)', listPageSk);
-      expect($$('td', firstRow).innerText).to.equal('this_is_a_test');
+      let firstRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(1)', listPageSk)!;
+      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal('this_is_a_test');
 
       // After first click, it will be sorting in descending order by number of negatives.
       clickOnNegativeHeader(listPageSk);
 
-      firstRow = $$('table tbody tr:nth-child(1)', listPageSk);
-      expect($$('td', firstRow).innerText).to.equal('this_is_another_test');
+      firstRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(1)', listPageSk)!;
+      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText)
+          .to.equal('this_is_another_test');
 
       // After second click, it will be sorting in ascending order by number of negatives.
       clickOnNegativeHeader(listPageSk);
 
-      firstRow = $$('table tbody tr:nth-child(1)', listPageSk);
-      expect($$('td', firstRow).innerText).to.equal('this_is_a_test');
+      firstRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(1)', listPageSk)!;
+      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal('this_is_a_test');
     });
   }); // end describe('html layout')
 
   describe('RPC calls', () => {
     it('has a checkbox to toggle use of ignore rules', async () => {
-      fetchMock.get('/json/v1/list?corpus=gm&at_head_only=true&include_ignored_traces=true', sampleByTestList);
+      fetchMock.get(
+          '/json/v1/list?corpus=gm&at_head_only=true&include_ignored_traces=true',
+          sampleByTestList);
 
-      const checkbox = $$('checkbox-sk.ignore_rules input', listPageSk);
-      const event = eventPromise('end-task');
-      checkbox.click();
-      await event;
+      await clickDisregardIgnoreRulesCheckbox(listPageSk);
       expectQueryStringToEqual('?corpus=gm&disregard_ignores=true');
     });
 
     it('has a checkbox to toggle measuring at head', async () => {
       fetchMock.get('/json/v1/list?corpus=gm', sampleByTestList);
 
-      const checkbox = $$('checkbox-sk.head_only input', listPageSk);
-      const event = eventPromise('end-task');
-      checkbox.click();
-      await event;
+      await clickDigestsAtHeadOnlyCheckbox(listPageSk);
       expectQueryStringToEqual('?all_digests=true&corpus=gm');
     });
 
     it('changes the corpus based on an event from corpus-selector-sk', async () => {
-      fetchMock.get('/json/v1/list?corpus=corpus%20with%20spaces&at_head_only=true', sampleByTestList);
+      fetchMock.get(
+          '/json/v1/list?corpus=corpus%20with%20spaces&at_head_only=true', sampleByTestList);
 
-      const corpusSelector = $$('corpus-selector-sk', listPageSk);
       const event = eventPromise('end-task');
-      corpusSelector.dispatchEvent(
-        new CustomEvent('corpus-selected', {
-          detail: 'corpus with spaces',
-          bubbles: true,
-        }),
-      );
+      await corpusSelectorSkPO.clickCorpus('corpus with spaces');
       await event;
+
       expectQueryStringToEqual('?corpus=corpus%20with%20spaces');
     });
 
     it('changes the search params based on an event from query-dialog-sk', async () => {
       fetchMock.get(
-        '/json/v1/list?corpus=gm&at_head_only=true&trace_values=alpha_type%3DOpaque%26arch%3Darm64',
+        '/json/v1/list?' +
+          'corpus=gm&at_head_only=true&trace_values=alpha_type%3DOpaque%26arch%3Darm64',
         sampleByTestList,
       );
 
-      const queryDialog = $$('query-dialog-sk', listPageSk);
       const event = eventPromise('end-task');
-      queryDialog.dispatchEvent(
-        new CustomEvent('edit', {
-          detail: 'alpha_type=Opaque&arch=arm64',
-          bubbles: true,
-        }),
-      );
+      $$<HTMLButtonElement>('.show_query_dialog', listPageSk)!.click();
+      await queryDialogSkPO.setSelection({'alpha_type': ['Opaque'], 'arch': ['arm64']});
+      await queryDialogSkPO.clickShowMatchesBtn();
       await event;
+
       expectQueryStringToEqual('?corpus=gm&query=alpha_type%3DOpaque%26arch%3Darm64');
     });
   });
 });
 
-function clickOnNegativeHeader(ele) {
-  $$('table > thead > tr > th:nth-child(3)', ele).click();
+function clickOnNegativeHeader(ele: ListPageSk) {
+  $$<HTMLTableHeaderCellElement>('table > thead > tr > th:nth-child(3)', ele)!.click();
+}
+
+async function clickDigestsAtHeadOnlyCheckbox(listPageSk: ListPageSk) {
+  const checkbox = $$<HTMLInputElement>('checkbox-sk.head_only input', listPageSk)!;
+  const event = eventPromise('end-task');
+  checkbox.click();
+  await event;
+}
+
+async function clickDisregardIgnoreRulesCheckbox(listPageSk: ListPageSk) {
+  const checkbox = $$<HTMLInputElement>('checkbox-sk.ignore_rules input', listPageSk)!;
+  const event = eventPromise('end-task');
+  checkbox.click();
+  await event;
 }

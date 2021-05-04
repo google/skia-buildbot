@@ -70,6 +70,9 @@ func addTypes(generator *go2ts.Go2TS) {
 	// Response for the /json/v1/ignores RPC endpoint.
 	generator.Add(frontend.IgnoresResponse{})
 
+	// Response for the /json/v1/list RPC endpoint.
+	generator.Add(frontend.ListTestsResponse{})
+
 	generator.AddUnionWithName(expectations.AllLabel, "Label")
 	generator.AddUnionWithName(common.AllRefClosest, "RefClosest")
 }
