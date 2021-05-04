@@ -474,6 +474,7 @@ type ExpectationRow struct {
 	// ExpectationRecordID corresponds to most recent ExpectationRecordRow that set the given label.
 	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
 	primaryKey          struct{}   `sql:"PRIMARY KEY (grouping_id, digest)"`
+	labelIndex          struct{}   `sql:"INDEX label_idx (label)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -657,6 +658,7 @@ type TiledTraceDigestRow struct {
 	// This index makes it easier to answer the question "What digests are being produced by
 	// a given grouping on the primary branch).
 	groupingDigestIndex struct{} `sql:"INDEX grouping_digest_idx (grouping_id, digest)"`
+	tileTraceIndex      struct{} `sql:"INDEX tile_trace_idx (tile_id, trace_id)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
