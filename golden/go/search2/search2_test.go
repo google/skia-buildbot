@@ -2,6 +2,8 @@ package search2
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"sync"
 	"testing"
 	"time"
@@ -2002,6 +2004,49 @@ func TestSearch_AcrossAllHistory_Success(t *testing.T) {
 	assert.Equal(t, dks.DigestC04Unt, res.Results[2].Digest)
 }
 
+func TestSearch_AvoidsTiledArtifacts_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := dks.Build()
+	existingData.TiledTraceDigests = append(existingData.TiledTraceDigests, schema.TiledTraceDigestRow{
+		TraceID:    h(`{"color mode":"RGB","device":"walleye","name":"square","os":"Android","source_type":"corners"}`),
+		TileID:     1,
+		Digest:     d(dks.DigestC04Unt), // abberant data, perhaps from a retry
+		GroupingID: h(squareGrouping),
+	})
+	existingData.Expectations = append(existingData.Expectations, schema.ExpectationRow{
+		GroupingID: h(squareGrouping),
+		Digest:     d(dks.DigestC04Unt),
+		Label:      "u",
+	})
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	s := New(db, 100)
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: false,
+		IncludePositiveDigests:           false,
+		IncludeNegativeDigests:           false,
+		IncludeUntriagedDigests:          true,
+		Sort:                             query.SortDescending,
+		IncludeIgnoredTraces:             true,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.CornersCorpus},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	require.Len(t, res.Results, 4)
+	// Spot check this data, making sure the additional data doesn't show up as a result with
+	// no trace data.
+	assert.Equal(t, dks.DigestBlank, res.Results[0].Digest)
+	assert.Equal(t, dks.DigestA05Unt, res.Results[1].Digest)
+	assert.Equal(t, dks.DigestA04Unt, res.Results[2].Digest)
+	assert.Equal(t, dks.DigestA06Unt, res.Results[3].Digest)
+}
+
 func TestJoinedTracesStatement_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -2078,6 +2123,28 @@ JoinedTraces AS (
 ),
 `
 	assert.Equal(t, expectedCondition, statement)
+}
+
+const (
+	squareGrouping = `{"name":"square","source_type":"corners"}`
+)
+
+// h returns the MD5 hash of the provided string.
+func h(s string) []byte {
+	hash := md5.Sum([]byte(s))
+	return hash[:]
+}
+
+// d returns the bytes associated with the hex-encoded digest string.
+func d(digest types.Digest) []byte {
+	if len(digest) != 2*md5.Size {
+		panic("digest wrong length " + string(digest))
+	}
+	b, err := hex.DecodeString(string(digest))
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
 
 var kitchenSinkCommits = makeKitchenSinkCommits()

@@ -606,12 +606,12 @@ func matchingTracesStatement(ctx context.Context) (string, []interface{}) {
 	if q.IncludeIgnoredTraces {
 		ignoreStatuses = append(ignoreStatuses, true)
 	}
-	args := []interface{}{getFirstCommitID(ctx), ignoreStatuses}
+	var args []interface{}
 
 	if q.OnlyIncludeDigestsProducedAtHead {
 		if len(keyFilters) == 0 {
 			// Corpus is being used as a string
-			args = append(args, q.TraceValues[types.CorpusField][0])
+			args = append(args, getFirstCommitID(ctx), ignoreStatuses, q.TraceValues[types.CorpusField][0])
 			return `
 MatchingTraces AS (
     SELECT trace_id, grouping_id, digest FROM ValuesAtHead
@@ -621,7 +621,7 @@ MatchingTraces AS (
 )`, args
 		}
 		// Corpus is being used as a JSONB value here
-		args = append(args, `"`+q.TraceValues[types.CorpusField][0]+`"`)
+		args = append(args, getFirstCommitID(ctx), ignoreStatuses, `"`+q.TraceValues[types.CorpusField][0]+`"`)
 		return joinedTracesStatement(keyFilters) + `
 MatchingTraces AS (
     SELECT ValuesAtHead.trace_id, grouping_id, digest FROM ValuesAtHead
@@ -632,34 +632,35 @@ MatchingTraces AS (
 	} else {
 		if len(keyFilters) == 0 {
 			// Corpus is being used as a string
-			args = append(args, q.TraceValues[types.CorpusField][0])
+			args = append(args, getFirstCommitID(ctx), ignoreStatuses, q.TraceValues[types.CorpusField][0], getFirstTileID(ctx))
 			return `
 TracesOfInterest AS (
-    SELECT trace_id FROM ValuesAtHead
+    SELECT trace_id, grouping_id FROM ValuesAtHead
 	WHERE matches_any_ignore_rule = ANY($3) AND
+		most_recent_commit_id >= $2 AND
     	corpus = $4
 ),
 MatchingTraces AS (
-	SELECT DISTINCT TraceValues.trace_id, TraceValues.grouping_id, TraceValues.digest
-	FROM TraceValues
-	JOIN TracesOfInterest on TraceValues.trace_id = TracesOfInterest.trace_id
-	WHERE commit_id >= $2
+	SELECT DISTINCT TiledTraceDigests.trace_id, TracesOfInterest.grouping_id, TiledTraceDigests.digest
+	FROM TiledTraceDigests
+	JOIN TracesOfInterest on TracesOfInterest.trace_id = TiledTraceDigests.trace_id
+	WHERE tile_id >= $5
 )
 `, args
 		}
 		// Corpus is being used as a JSONB value here
-		args = append(args, `"`+q.TraceValues[types.CorpusField][0]+`"`)
+		args = append(args, getFirstTileID(ctx), ignoreStatuses, `"`+q.TraceValues[types.CorpusField][0]+`"`)
 		return joinedTracesStatement(keyFilters) + `
 TracesOfInterest AS (
-    SELECT Traces.trace_id FROM Traces
+    SELECT Traces.trace_id, grouping_id FROM Traces
 	JOIN JoinedTraces ON Traces.trace_id = JoinedTraces.trace_id
 	WHERE matches_any_ignore_rule = ANY($3)
 ),
 MatchingTraces AS (
-	SELECT DISTINCT TraceValues.trace_id, TraceValues.grouping_id, TraceValues.digest
-	FROM TraceValues
-	JOIN TracesOfInterest on TraceValues.trace_id = TracesOfInterest.trace_id
-	WHERE commit_id >= $2
+	SELECT DISTINCT TiledTraceDigests.trace_id, TracesOfInterest.grouping_id, TiledTraceDigests.digest
+	FROM TiledTraceDigests
+	JOIN TracesOfInterest on TracesOfInterest.trace_id = TiledTraceDigests.trace_id
+	WHERE tile_id >= $2
 )`, args
 	}
 }
@@ -1045,52 +1046,72 @@ func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []stageTwoResult)
 	ctx, span := trace.StartSpan(ctx, "fillOutTraceHistory")
 	span.AddAttributes(trace.Int64Attribute("results", int64(len(inputs))))
 	defer span.End()
-	rv := make([]*frontend.SearchResult, len(inputs))
-	for i, input := range inputs {
-		sr := &frontend.SearchResult{
-			Digest: types.Digest(hex.EncodeToString(input.leftDigest)),
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: input.closestPositive,
-				common.NegativeRef: input.closestNegative,
-			},
-		}
-		if input.closestDigest != nil && input.closestDigest.Status == expectations.Positive {
-			sr.ClosestRef = common.PositiveRef
-		} else if input.closestDigest != nil && input.closestDigest.Status == expectations.Negative {
-			sr.ClosestRef = common.NegativeRef
-		}
-		tg, err := s.traceGroupForTraces(ctx, input.traceIDs, sr.Digest)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		if err := s.fillInExpectations(ctx, &tg, input.groupingID); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		if err := s.fillInTraceParams(ctx, &tg); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		sr.TraceGroup = tg
-		if len(tg.Digests) > 0 {
-			// The first digest in the trace group is this digest.
-			sr.Status = tg.Digests[0].Status
-		} else {
-			// We assume untriaged if digest is not in the window.
-			sr.Status = expectations.Untriaged
-		}
-		if len(tg.Traces) > 0 {
+	// Fill out these histories in parallel. We avoid race conditions by writing to a prescribed
+	// index in the results slice.
+	results := make([]*frontend.SearchResult, len(inputs))
+	eg, eCtx := errgroup.WithContext(ctx)
+	for i, j := range inputs {
+		idx, input := i, j
+		eg.Go(func() error {
+			sr := &frontend.SearchResult{
+				Digest: types.Digest(hex.EncodeToString(input.leftDigest)),
+				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+					common.PositiveRef: input.closestPositive,
+					common.NegativeRef: input.closestNegative,
+				},
+			}
+			if input.closestDigest != nil && input.closestDigest.Status == expectations.Positive {
+				sr.ClosestRef = common.PositiveRef
+			} else if input.closestDigest != nil && input.closestDigest.Status == expectations.Negative {
+				sr.ClosestRef = common.NegativeRef
+			}
+			tg, err := s.traceGroupForTraces(eCtx, input.traceIDs, sr.Digest)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			if len(tg.Traces) == 0 {
+				// We have no traces with the this search result's digest. Therefore, we have
+				// nothing to show. This can happen if data exists on a tile we are looking at, but
+				// no longer in the history (e.g. overwritten with a retry).
+				return nil
+			}
+			if err := s.fillInExpectations(eCtx, &tg, input.groupingID); err != nil {
+				return skerr.Wrap(err)
+			}
+			if err := s.fillInTraceParams(eCtx, &tg); err != nil {
+				return skerr.Wrap(err)
+			}
+			sr.TraceGroup = tg
+			if len(tg.Digests) > 0 {
+				// The first digest in the trace group is this digest.
+				sr.Status = tg.Digests[0].Status
+			} else {
+				// We assume untriaged if digest is not in the window.
+				sr.Status = expectations.Untriaged
+			}
 			// Grab the test name from the first trace, since we know all the traces are of
 			// the same grouping, which includes test name.
 			sr.Test = types.TestName(tg.Traces[0].Params[types.PrimaryKeyField])
-		}
-		leftPS := paramtools.ParamSet{}
-		for _, tr := range tg.Traces {
-			leftPS.AddParams(tr.Params)
-		}
-		leftPS.Normalize()
-		sr.ParamSet = leftPS
-		rv[i] = sr
+			leftPS := paramtools.ParamSet{}
+			for _, tr := range tg.Traces {
+				leftPS.AddParams(tr.Params)
+			}
+			leftPS.Normalize()
+			sr.ParamSet = leftPS
+			results[idx] = sr
+			return nil
+		})
 	}
-	return rv, nil
+	if err := eg.Wait(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	withoutNils := make([]*frontend.SearchResult, 0, len(results))
+	for _, r := range results {
+		if r != nil {
+			withoutNils = append(withoutNils, r)
+		}
+	}
+	return withoutNils, nil
 }
 
 type traceDigestCommit struct {
@@ -1263,24 +1284,36 @@ func makeTraceGroup(ctx context.Context, data []traceDigestCommit, primary types
 		DigestIndices: emptyIndices(getActualWindowLength(ctx)),
 		RawTrace:      tiling.NewEmptyTrace(getActualWindowLength(ctx), nil, nil),
 	}
-	tg.Traces = append(tg.Traces, currentTrace)
+	traceHasPrimary := false // We want to make sure the traces we show have the primary digest.
 	for _, dp := range data {
 		tID := tiling.TraceID(hex.EncodeToString(dp.traceID))
 		if currentTrace.ID != tID {
+			if traceHasPrimary {
+				tg.Traces = append(tg.Traces, currentTrace)
+			}
 			currentTrace = frontend.Trace{
 				ID:            tID,
 				DigestIndices: emptyIndices(getActualWindowLength(ctx)),
 				RawTrace:      tiling.NewEmptyTrace(getActualWindowLength(ctx), nil, nil),
 			}
-			tg.Traces = append(tg.Traces, currentTrace)
+			traceHasPrimary = false
 		}
 		idx, ok := indexMap[dp.commitID]
 		if !ok {
 			continue
 		}
 		currentTrace.RawTrace.Digests[idx] = dp.digest
+		if dp.digest == primary {
+			traceHasPrimary = true
+		}
 		// We want to report the latest options, so always update this
 		currentTrace.RawTrace.OptionsID = dp.optionsID
+	}
+	if traceHasPrimary {
+		tg.Traces = append(tg.Traces, currentTrace)
+	}
+	if len(tg.Traces) == 0 { // short circuit - no data to show
+		return frontend.TraceGroup{}, nil
 	}
 
 	// Find the most recent / important digests and assign them an index. Everything else will
