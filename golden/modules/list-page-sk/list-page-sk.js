@@ -69,20 +69,8 @@ const template = (ele) => html`
 `;
 
 const testRow = (row, ele) => {
-  // Returns a HintableObject for building the GET parameters to the legacy search page.
-  //
-  // TODO(lovisolo): Delete after the legacy search page has been removed.
-  const makeOldSearchCriteria = (opts) => ({
-    query: {'name': [row.name], 'source_type': [ele._currentCorpus]},
-    pos: opts.positive,
-    neg: opts.negative,
-    unt: opts.untriaged,
-    head: ele._showAllDigests ? 'false' : 'true',
-    include: ele._disregardIgnoreRules ? 'true' : 'false',
-  });
-
-  // Returns a HintableObject for building the GET parameters to the lit-html search page.
-  const makeNewSearchCriteria = (opts) => SearchCriteriaToHintableObject({
+  // Returns a HintableObject for building the GET parameters to the search page.
+  const makeSearchCriteria = (opts) => SearchCriteriaToHintableObject({
     corpus: ele._currentCorpus,
     leftHandTraceFilter: {'name': [row.name]},
     includePositiveDigests: opts.positive,
@@ -93,22 +81,14 @@ const testRow = (row, ele) => {
   });
 
   const searchPageHref = (opts) => {
-    const oldSearchCriteria = makeOldSearchCriteria(opts);
-
-    const newSearchCriteria = makeNewSearchCriteria(opts);
-    // Delete the "sort" parameter, which the legacy and lit-html versions of the search page read
-    // in incompatible ways: asc/desc vs. ascending/descending, respectively. Will default to
-    // descending if absent.
-    delete newSearchCriteria['sort'];
-
-    const oldQueryParameters = fromObject(oldSearchCriteria);
-    const newQueryParameters = fromObject(newSearchCriteria);
-    return `/search?${newQueryParameters}&${oldQueryParameters}`;
+    const searchCriteria = makeSearchCriteria(opts);
+    const queryParameters = fromObject(searchCriteria);
+    return `/search?${queryParameters}`;
   };
 
   const clusterPageHref = () => {
     const hintableObject = {
-      ...makeNewSearchCriteria({positive: true, negative: true, untriaged: true}),
+      ...makeSearchCriteria({positive: true, negative: true, untriaged: true}),
       left_filter: '',
       grouping: row.name,
     };
