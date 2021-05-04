@@ -2,6 +2,8 @@ package search2
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"sync"
 	"testing"
 	"time"
@@ -2079,6 +2081,28 @@ JoinedTraces AS (
 ),
 `
 	assert.Equal(t, expectedCondition, statement)
+}
+
+const (
+	squareGrouping = `{"name":"square","source_type":"corners"}`
+)
+
+// h returns the MD5 hash of the provided string.
+func h(s string) []byte {
+	hash := md5.Sum([]byte(s))
+	return hash[:]
+}
+
+// d returns the bytes associated with the hex-encoded digest string.
+func d(digest types.Digest) []byte {
+	if len(digest) != 2*md5.Size {
+		panic("digest wrong length " + string(digest))
+	}
+	b, err := hex.DecodeString(string(digest))
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
 
 var kitchenSinkCommits = makeKitchenSinkCommits()
