@@ -716,16 +716,21 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 	ctx, span := trace.StartSpan(ctx, "getClosestDiffs")
 	defer span.End()
 	byGrouping := map[schema.MD5Hash][]stageOneResult{}
-	byDigest := map[schema.MD5Hash]stageTwoResult{}
+	// Even if two groupings draw the same digest, we want those as two different results because
+	// they could be triaged differently.
+	byDigestAndGrouping := map[groupingDigestKey]stageTwoResult{}
 	for _, input := range inputs {
 		gID := sql.AsMD5Hash(input.groupingID)
 		byGrouping[gID] = append(byGrouping[gID], input)
-		dID := sql.AsMD5Hash(input.digest)
-		bd := byDigest[dID]
+		key := groupingDigestKey{
+			digest:     sql.AsMD5Hash(input.digest),
+			groupingID: sql.AsMD5Hash(input.groupingID),
+		}
+		bd := byDigestAndGrouping[key]
 		bd.leftDigest = input.digest
 		bd.groupingID = input.groupingID
 		bd.traceIDs = append(bd.traceIDs, input.traceID)
-		byDigest[dID] = bd
+		byDigestAndGrouping[key] = bd
 	}
 
 	for groupingID, inputs := range byGrouping {
@@ -780,8 +785,11 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 				PixelDiffPercent: row.PercentPixelsDiff,
 				QueryMetric:      row.CombinedMetric,
 			}
-			leftDigest := sql.AsMD5Hash(row.LeftDigest)
-			stageTwo := byDigest[leftDigest]
+			key := groupingDigestKey{
+				digest:     sql.AsMD5Hash(row.LeftDigest),
+				groupingID: groupingID,
+			}
+			stageTwo := byDigestAndGrouping[key]
 			stageTwo.rightDigests = append(stageTwo.rightDigests, row.RightDigest)
 			if label == schema.LabelPositive {
 				stageTwo.closestPositive = srdd
@@ -798,15 +806,15 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 				// there is only one type of diff, so it defaults to the closest.
 				stageTwo.closestDigest = srdd
 			}
-			byDigest[leftDigest] = stageTwo
+			byDigestAndGrouping[key] = stageTwo
 		}
 		rows.Close()
 	}
 
 	q := getQuery(ctx)
 	bulkTriageData := map[groupingDigestKey]expectations.Label{}
-	results := make([]stageTwoResult, 0, len(byDigest))
-	for _, s2 := range byDigest {
+	results := make([]stageTwoResult, 0, len(byDigestAndGrouping))
+	for _, s2 := range byDigestAndGrouping {
 		// Filter out any results without a closest triaged digest (if that option is selected).
 		if q.MustIncludeReferenceFilter && s2.closestDigest == nil {
 			continue

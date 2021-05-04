@@ -435,13 +435,13 @@ func RawBuilder() databuilder.TablesBuilder {
 			types.CorpusField: RoundCorpus, types.PrimaryKeyField: RoundRectTest,
 		}).Triage(DigestE03Unt_CL, schema.LabelNegative, schema.LabelUntriaged)
 
-	b.ComputeDiffMetricsFromImages(getImgDirectory(), "2020-12-12T12:12:12Z")
+	b.ComputeDiffMetricsFromImages(GetImgDirectory(), "2020-12-12T12:12:12Z")
 	return b
 }
 
-// getImgDirectory returns the path to the img directory in this folder that is friendly to both
+// GetImgDirectory returns the path to the img directory in this folder that is friendly to both
 // `go test` and `bazel test`.
-func getImgDirectory() string {
+func GetImgDirectory() string {
 	root, err := repo_root.Get()
 	if err != nil {
 		panic(err)

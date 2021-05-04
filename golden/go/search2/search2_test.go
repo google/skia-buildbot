@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
+	"go.skia.org/infra/golden/go/sql/databuilder"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
@@ -2079,6 +2080,181 @@ JoinedTraces AS (
 ),
 `
 	assert.Equal(t, expectedCondition, statement)
+}
+
+func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	b := databuilder.TablesBuilder{TileWidth: 100}
+	b.CommitsWithData().
+		Insert("0111", "don't care", "commit 111", "2021-05-01T00:00:00Z").
+		Insert("0222", "don't care", "commit 222", "2021-05-02T00:00:00Z").
+		Insert("0333", "don't care", "commit 333", "2021-05-03T00:00:00Z")
+
+	b.SetDigests(map[rune]types.Digest{
+		'A': dks.DigestA01Pos,
+		'b': dks.DigestA05Unt,
+	})
+	b.SetGroupingKeys(types.CorpusField, types.PrimaryKeyField)
+	b.AddTracesWithCommonKeys(paramtools.Params{
+		types.CorpusField: dks.CornersCorpus,
+		dks.DeviceKey:     dks.WalleyeDevice,
+	}).History(
+		"Abb",
+		"AAb",
+	).Keys([]paramtools.Params{
+		{types.PrimaryKeyField: "draw_a_square"},
+		{types.PrimaryKeyField: "draw_a_square_but_faster"},
+	}).OptionsAll(paramtools.Params{"ext": "png"}).
+		IngestedFrom([]string{"don't care", "don't care 2", "don't care 3"}, []string{
+			"2021-05-01T00:01:00Z", "2021-05-02T00:02:00Z", "2021-05-03T00:03:00Z",
+		})
+	b.AddTriageEvent("somebody", "2021-02-01T01:01:01Z").
+		ExpectationsForGrouping(map[string]string{types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: "draw_a_square"}).
+		Positive(dks.DigestA01Pos).
+		ExpectationsForGrouping(map[string]string{types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: "draw_a_square_but_faster"}).
+		Positive(dks.DigestA01Pos)
+	b.AddIgnoreRule("user", "user", "2030-12-30T15:16:17Z", "Doesn't match anything",
+		paramtools.ParamSet{
+			"some key": []string{"foo bar"},
+		})
+	b.ComputeDiffMetricsFromImages(dks.GetImgDirectory(), "2021-05-03T06:00:00Z")
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
+
+	s := New(db, 100)
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: true,
+		IncludePositiveDigests:           false,
+		IncludeNegativeDigests:           false,
+		IncludeUntriagedDigests:          true,
+		Sort:                             query.SortDescending,
+		IncludeIgnoredTraces:             false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.CornersCorpus},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestA05Unt,
+			Test:   "draw_a_square_but_faster",
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				types.CorpusField:     []string{dks.CornersCorpus},
+				types.PrimaryKeyField: []string{"draw_a_square_but_faster"},
+				dks.DeviceKey:         []string{dks.WalleyeDevice},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "04fe79d1ad2d6d472aafdb997bbb26d3",
+					DigestIndices: []int{1, 1, 0},
+					Params: paramtools.Params{
+						types.CorpusField:     dks.CornersCorpus,
+						types.PrimaryKeyField: "draw_a_square_but_faster",
+						dks.DeviceKey:         dks.WalleyeDevice,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestA05Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 2,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 0.20710422, QueryMetric: 0.20710422, PixelDiffPercent: 3.125, NumDiffPixels: 2,
+					MaxRGBADiffs: [4]int{7, 0, 0, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestA01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						types.CorpusField:     []string{dks.CornersCorpus},
+						types.PrimaryKeyField: []string{"draw_a_square", "draw_a_square_but_faster"},
+						dks.DeviceKey:         []string{dks.WalleyeDevice},
+						"ext":                 []string{"png"},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}, {
+			Digest: dks.DigestA05Unt,
+			Test:   "draw_a_square",
+			Status: "untriaged",
+			ParamSet: paramtools.ParamSet{
+				types.CorpusField:     []string{dks.CornersCorpus},
+				types.PrimaryKeyField: []string{"draw_a_square"},
+				dks.DeviceKey:         []string{dks.WalleyeDevice},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "9253edab166210e7198cf7e901ac87ec",
+					DigestIndices: []int{1, 0, 0},
+					Params: paramtools.Params{
+						types.CorpusField:     dks.CornersCorpus,
+						types.PrimaryKeyField: "draw_a_square",
+						dks.DeviceKey:         dks.WalleyeDevice,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestA05Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 2,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 0.20710422, QueryMetric: 0.20710422, PixelDiffPercent: 3.125, NumDiffPixels: 2,
+					MaxRGBADiffs: [4]int{7, 0, 0, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestA01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						types.CorpusField:     []string{dks.CornersCorpus},
+						types.PrimaryKeyField: []string{"draw_a_square", "draw_a_square_but_faster"},
+						dks.DeviceKey:         []string{dks.WalleyeDevice},
+						"ext":                 []string{"png"},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}},
+		Offset: 0,
+		Size:   2,
+		BulkTriageData: map[types.TestName]map[types.Digest]expectations.Label{
+			"draw_a_square": {
+				dks.DigestA05Unt: "positive",
+			},
+			"draw_a_square_but_faster": {
+				dks.DigestA05Unt: "positive",
+			},
+		},
+		Commits: []web_frontend.Commit{{
+			Subject:    "commit 111",
+			CommitTime: 1619827200,
+			Hash:       "6c505df96f1faab539199949572820b2c90f6959",
+			Author:     "don't care",
+		}, {
+			Subject:    "commit 222",
+			CommitTime: 1619913600,
+			Hash:       "aac89c40628a35265f632940b678104349122a9f",
+			Author:     "don't care",
+		}, {
+			Subject:    "commit 333",
+			CommitTime: 1620000000,
+			Hash:       "cb197b480a07a794b94ca9d50661db1fad2e3873",
+			Author:     "don't care",
+		}},
+	}, res)
 }
 
 var kitchenSinkCommits = makeKitchenSinkCommits()
