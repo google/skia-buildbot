@@ -16,7 +16,7 @@ import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { EditIgnoreRuleSk } from '../edit-ignore-rule-sk/edit-ignore-rule-sk';
 import { expect } from 'chai';
 
-describe.only('ignores-page-sk', () => {
+describe('ignores-page-sk', () => {
   const newInstance = setUpElementUnderTest<IgnoresPageSk>('ignores-page-sk');
 
   const regularNow = Date.now;
