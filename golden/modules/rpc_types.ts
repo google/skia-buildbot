@@ -199,6 +199,18 @@ export interface IgnoresResponse {
 	rules: IgnoreRule[] | null;
 }
 
+export interface TestSummary {
+	name: TestName;
+	positive_digests: number;
+	negative_digests: number;
+	untriaged_digests: number;
+	total_digests: number;
+}
+
+export interface ListTestsResponse {
+	tests: TestSummary[] | null;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type ParamSetResponse = { [key: string]: string[] | null };

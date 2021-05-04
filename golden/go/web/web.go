@@ -1219,6 +1219,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 				PositiveDigests:  s.Pos,
 				NegativeDigests:  s.Neg,
 				UntriagedDigests: s.Untriaged,
+				TotalDigests:     s.Pos + s.Neg + s.Untriaged,
 			})
 		}
 	}
@@ -1226,9 +1227,10 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	sort.Slice(tests, func(i, j int) bool {
 		return tests[i].Name < tests[j].Name
 	})
-	// Outputs: []frontend.TestSummary
-	//   Frontend will have option to hide tests with no digests.
-	sendJSONResponse(w, tests)
+
+	// Frontend will have option to hide tests with no digests.
+	response := frontend.ListTestsResponse{Tests: tests}
+	sendJSONResponse(w, response)
 }
 
 // TriageLogHandler returns the entries in the triagelog paginated
