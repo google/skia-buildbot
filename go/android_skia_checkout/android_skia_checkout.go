@@ -13,15 +13,16 @@ import (
 
 var (
 	// Files within the Skia checkout.
-	SkUserConfigRelPath        = path.Join("include", "config", "SkUserConfig.h")
-	SkUserConfigAndroidRelPath = path.Join("android", "include", "config", "SkUserConfig.h")
-	SkUserConfigLinuxRelPath   = path.Join("linux", "include", "config", "SkUserConfig.h")
-	SkUserConfigMacRelPath     = path.Join("mac", "include", "config", "SkUserConfig.h")
-	SkUserConfigWinRelPath     = path.Join("win", "include", "config", "SkUserConfig.h")
-	AndroidBpRelPath           = path.Join("Android.bp")
-	LibGifRelPath              = path.Join("third_party", "libgifcodec")
+	SkUserConfigRelPath             = path.Join("include", "config", "SkUserConfig.h")
+	SkUserConfigAndroidRelPath      = path.Join("android", "include", "config", "SkUserConfig.h")
+	SkUserConfigLinuxRelPath        = path.Join("linux", "include", "config", "SkUserConfig.h")
+	SkUserConfigMacRelPath          = path.Join("mac", "include", "config", "SkUserConfig.h")
+	SkUserConfigWinRelPath          = path.Join("win", "include", "config", "SkUserConfig.h")
+	SkUserConfigRenderengineRelPath = path.Join("renderengine", "include", "config", "SkUserConfig.h")
+	AndroidBpRelPath                = path.Join("Android.bp")
+	LibGifRelPath                   = path.Join("third_party", "libgifcodec")
 
-	FilesGeneratedByGnToGp = []string{SkUserConfigAndroidRelPath, SkUserConfigLinuxRelPath, SkUserConfigMacRelPath, SkUserConfigWinRelPath, AndroidBpRelPath}
+	FilesGeneratedByGnToGp = []string{SkUserConfigAndroidRelPath, SkUserConfigLinuxRelPath, SkUserConfigMacRelPath, SkUserConfigWinRelPath, AndroidBpRelPath, SkUserConfigRenderengineRelPath}
 )
 
 const (
