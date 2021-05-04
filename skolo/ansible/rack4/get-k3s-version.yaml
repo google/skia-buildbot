@@ -1,0 +1,8 @@
+- name: get rpi k3s version
+  hosts: rack4_trial_run
+  tasks:
+    - name: get k3s version
+      become: yes
+      command: k3s -version
+      register: version
+    - debug: msg="{{ version.stdout }}"
