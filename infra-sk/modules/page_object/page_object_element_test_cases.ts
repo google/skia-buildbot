@@ -43,6 +43,14 @@ export const describePageObjectElement = (testBed: TestBed) => {
     expect(await poe.innerText).to.equal('Hello, world!');
   });
 
+  it('supports isInnerTextEqualTo', async () => {
+    const poe = await testBed.setUpPageObjectElement('<div>Hello, world!</div>');
+    expect(await poe.isInnerTextEqualTo('Hello, world!')).to.be.true;
+    expect(await poe.isInnerTextEqualTo(' Hello, world!')).to.be.false;
+    expect(await poe.isInnerTextEqualTo('Hello, world! ')).to.be.false;
+    expect(await poe.isInnerTextEqualTo('Goodbye')).to.be.false;
+  });
+
   it('supports className', async () => {
     const poe = await testBed.setUpPageObjectElement('<div class="hello world"></div>');
     expect(await poe.className).to.equal('hello world');
