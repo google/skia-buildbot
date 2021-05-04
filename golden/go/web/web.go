@@ -788,7 +788,7 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []frontend.Ignore
 	// This mutex protects the passed in rules array and allows the final step of each
 	// of the goroutines below to be done safely in parallel to add each shard's results
 	// to the total.
-	var mutex sync.Mutex
+	var mutex sync.RWMutex
 	err = util.ChunkIterParallel(ctx, len(traces), chunkSize, func(ctx context.Context, start, stop int) error {
 		type counts struct {
 			Count                   int
@@ -796,42 +796,53 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []frontend.Ignore
 			ExclusiveCount          int
 			ExclusiveUntriagedCount int
 		}
-		ruleCounts := make([]counts, len(rules))
-		for _, tp := range traces[start:stop] {
-			if err := ctx.Err(); err != nil {
-				return skerr.Wrap(err)
-			}
-			id, tr := tp.ID, tp.Trace
-			if _, ok := nonIgnoredTraces[id]; ok {
-				// This wasn't ignored, so we can skip having to count it
-				continue
-			}
-			idxMatched := -1
-			untIdxMatched := -1
-			numMatched := 0
-			untMatched := 0
-			for i, r := range rules {
-				if tr.Matches(r.ParsedQuery) {
-					numMatched++
-					ruleCounts[i].Count++
-					idxMatched = i
 
-					// Check to see if the digest is untriaged at head
-					if d := tr.AtHead(); d != tiling.MissingDigest && exp.Classification(tr.TestName(), d) == expectations.Untriaged {
-						ruleCounts[i].UntriagedCount++
-						untMatched++
-						untIdxMatched = i
+		ruleCounts, err := func() ([]counts, error) {
+			mutex.RLock()
+			defer mutex.RUnlock()
+
+			ruleCounts := make([]counts, len(rules))
+			for _, tp := range traces[start:stop] {
+				if err := ctx.Err(); err != nil {
+					return nil, skerr.Wrap(err)
+				}
+				id, tr := tp.ID, tp.Trace
+				if _, ok := nonIgnoredTraces[id]; ok {
+					// This wasn't ignored, so we can skip having to count it
+					continue
+				}
+				idxMatched := -1
+				untIdxMatched := -1
+				numMatched := 0
+				untMatched := 0
+				for i, r := range rules {
+					if tr.Matches(r.ParsedQuery) {
+						numMatched++
+						ruleCounts[i].Count++
+						idxMatched = i
+
+						// Check to see if the digest is untriaged at head
+						if d := tr.AtHead(); d != tiling.MissingDigest && exp.Classification(tr.TestName(), d) == expectations.Untriaged {
+							ruleCounts[i].UntriagedCount++
+							untMatched++
+							untIdxMatched = i
+						}
 					}
 				}
+				// Check for any exclusive matches
+				if numMatched == 1 {
+					ruleCounts[idxMatched].ExclusiveCount++
+				}
+				if untMatched == 1 {
+					ruleCounts[untIdxMatched].ExclusiveUntriagedCount++
+				}
 			}
-			// Check for any exclusive matches
-			if numMatched == 1 {
-				ruleCounts[idxMatched].ExclusiveCount++
-			}
-			if untMatched == 1 {
-				ruleCounts[untIdxMatched].ExclusiveUntriagedCount++
-			}
+			return ruleCounts, nil
+		}()
+		if err != nil {
+			return skerr.Wrap(err)
 		}
+
 		mutex.Lock()
 		defer mutex.Unlock()
 		for i := range rules {
