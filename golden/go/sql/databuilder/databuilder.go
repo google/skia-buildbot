@@ -257,6 +257,7 @@ func (b *TablesBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr strin
 			}
 		}
 	}
+	duplicates := map[string]bool{}
 	// For each grouping, compare each digest to every other digest and create the metric rows
 	// for that.
 	for _, xd := range toCompute {
@@ -267,6 +268,13 @@ func (b *TablesBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr strin
 			for rightIdx := leftIdx + 1; rightIdx < len(digests); rightIdx++ {
 				rightDigest := digests[rightIdx]
 				rightImg := images[rightDigest]
+				key1 := string(leftDigest) + string(rightDigest)
+				key2 := string(rightDigest) + string(leftDigest)
+				if duplicates[key1] || duplicates[key2] {
+					continue
+				}
+				duplicates[key1] = true
+				duplicates[key2] = true
 				dm := diff.ComputeDiffMetrics(leftImg, rightImg)
 				if dm.NumDiffPixels == 0 {
 					logAndPanic("%s and %s aren't different", leftDigest, rightDigest)
