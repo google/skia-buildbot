@@ -12,6 +12,7 @@ import {
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
 import { ByBlameResponse } from '../rpc_types';
+import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 
 testOnlySetSettings({
   title: 'Skia Public',
@@ -51,8 +52,8 @@ fetchMock.get('/json/v1/trstatus', () => {
 });
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
-const newScaf = document.createElement('gold-scaffold-sk');
-newScaf.setAttribute('testing_offline', 'true');
+const newScaf = new GoldScaffoldSk();
+newScaf.testingOffline = true;
 const body = $$('body')!;
 body.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
 const page = document.createElement('byblame-page-sk');

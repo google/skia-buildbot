@@ -9,6 +9,7 @@ import { triageLogs } from './demo_data';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { TriageLogEntry, TriageLogResponse } from '../rpc_types';
+import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 
 const fakeRpcDelayMillis = 300;
 
@@ -81,8 +82,8 @@ fetchMock.get('glob:/json/v1/triagelog*', (url) => {
 fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
-const newScaf = document.createElement('gold-scaffold-sk');
-newScaf.setAttribute('testing_offline', 'true');
+const newScaf = new GoldScaffoldSk();
+newScaf.testingOffline = true;
 // Make it the first element in body.
 document.body.insertBefore(newScaf, document.body.childNodes[0]);
 const page = document.createElement('triagelog-page-sk');

@@ -8,6 +8,7 @@ import { searchResponse, statusResponse, paramSetResponse, fakeNow, changeListSu
 import fetchMock from 'fetch-mock';
 import { setImageEndpointsForDemos } from '../common';
 import { TriageRequest } from '../rpc_types';
+import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 
 testOnlySetSettings({
   title: 'Skia Infra',
@@ -86,8 +87,8 @@ fetchMock.post('/json/v1/triage', (_: any, req: any) => {
 
 setImageEndpointsForDemos();
 
-const newScaf = document.createElement('gold-scaffold-sk');
-newScaf.setAttribute('testing_offline', 'true');
+const newScaf = new GoldScaffoldSk();
+newScaf.testingOffline = true;
 const body = $$('body');
 body?.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
 const page = new SearchPageSk();

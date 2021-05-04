@@ -7,6 +7,7 @@ import { delay } from '../demo_util';
 import { fakeNow, changelistSummaries_5, empty } from './test_data';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
+import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 
 testOnlySetSettings({
   title: 'Skia Public',
@@ -42,8 +43,8 @@ fetchMock.get('glob:/json/v1/changelists*', delay(empty(), fakeRpcDelayMillis));
 fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
-const newScaf = document.createElement('gold-scaffold-sk');
-newScaf.setAttribute('testing_offline', 'true');
+const newScaf = new GoldScaffoldSk();
+newScaf.testingOffline = true;
 // Make it the first element in body.
 document.body.insertBefore(newScaf, document.body.childNodes[0]);
 const page = document.createElement('changelists-page-sk');

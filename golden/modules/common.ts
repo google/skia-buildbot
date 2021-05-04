@@ -113,6 +113,12 @@ export function sendEndTask(ele: Element) {
   ele.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
 }
 
+/** Detail of the fetch-error event. */
+export interface FetchErrorEventDetail {
+  error: any;
+  loading: string;
+};
+
 /**
  * Helper to tell gold-scaffold-sk that a fetch failed. This will pop up on the toast-sk.
  * @param ele Element from which to dispatch the 'fetch-error' custom element.
@@ -120,7 +126,7 @@ export function sendEndTask(ele: Element) {
  * @param what Description of what was being fetched.
  */
 export function sendFetchError(ele: Element, e: any, what: string) {
-  ele.dispatchEvent(new CustomEvent('fetch-error', {
+  ele.dispatchEvent(new CustomEvent<FetchErrorEventDetail>('fetch-error', {
     detail: {
       error: e,
       loading: what,
