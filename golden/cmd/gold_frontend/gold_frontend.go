@@ -21,7 +21,6 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/oauth2"
@@ -79,7 +78,7 @@ const (
 	callbackPath = "/oauth2callback/"
 
 	// Arbitrarily picked.
-	maxSQLConnections = 20
+	maxSQLConnections = 32
 )
 
 type frontendServerConfig struct {
@@ -183,8 +182,7 @@ func main() {
 	// Speculative memory usage fix? https://github.com/googleapis/google-cloud-go/issues/375
 	grpc.EnableTracing = false
 
-	// Record the traces of all spans, since we expect web requests to be somewhat rare.
-	if err := tracing.Initialize(1.0); err != nil {
+	if err := tracing.Initialize(0.01); err != nil {
 		sklog.Fatalf("Could not initialize tracing: %s", err)
 	}
 
@@ -590,8 +588,6 @@ type pubsubDiffPublisher struct {
 // CalculateDiffs publishes a WorkerMessage to the configured PubSub topic so that a worker
 // (see diffcalculator) can pick it up and calculate the diffs.
 func (p *pubsubDiffPublisher) CalculateDiffs(ctx context.Context, grouping paramtools.Params, left, right []types.Digest) error {
-	ctx, span := trace.StartSpan(ctx, "PublishDiffMessage")
-	defer span.End()
 	body, err := json.Marshal(diff.WorkerMessage{
 		Version:         diff.WorkerMessageVersion,
 		Grouping:        grouping,
