@@ -9,7 +9,7 @@
     // Arbitrary commit from 1 Apr 2021
     initial_commit: "0a6b4d1045df5b7ccaa851203111b6f4bcb4340c",
     system_name: "gerrit",
-    branch: "master",
+    branch: "main",
     legacy_updater_in_use: true,
   }],
 
