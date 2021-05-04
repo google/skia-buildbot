@@ -85,6 +85,8 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 Bug: fakebugproject:1234
 Bug: fakebugproject:5678
 Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
 `, result)
 }
 
@@ -125,6 +127,8 @@ Tbr: reviewer@google.com
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
 `, result)
 }
 
@@ -160,5 +164,7 @@ https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
 
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
+My-Footer: BlahBlah
+My-Other-Footer: Blah
 `, result)
 }
