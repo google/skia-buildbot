@@ -24,7 +24,11 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 {{- end -}}
 {{- if .IncludeTests -}}
 {{ range .Tests }}Test: {{ . }}
-{{- end}}
+{{ end -}}
+{{- end -}}
+{{ if .ExtraFooters -}}
+{{ range .ExtraFooters }}{{.}}
+{{ end -}}
 {{- end -}}
 {{- end -}}`))
 )

@@ -46,6 +46,8 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 Bug: fakebugproject:1234
 Bug: fakebugproject:5678
 Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
 `, result)
 }
 
@@ -85,6 +87,8 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 Bug: fakebugproject:1234
 Bug: fakebugproject:5678
 Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
 `, result)
 }
 
@@ -125,6 +129,8 @@ Tbr: reviewer@google.com
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
 `, result)
 }
 
@@ -141,6 +147,7 @@ func TestNamedTemplateAndroid_Minimal(t *testing.T) {
 	b.cfg.IncludeLog = false
 	b.cfg.IncludeTbrLine = false
 	b.cfg.IncludeTests = false
+	b.cfg.ExtraFooters = nil
 	b.transitiveDeps = nil
 	result, err := b.Build(FakeCommitMsgInputs())
 	require.NoError(t, err)
