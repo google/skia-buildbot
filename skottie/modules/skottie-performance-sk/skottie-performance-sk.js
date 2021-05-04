@@ -13,7 +13,7 @@
 import { define } from 'elements-sk/define';
 import { html, render } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
-import Chart from 'chart.js';
+import { Chart } from 'chart.js';
 
 const marks = {
   START: 'Start Skottie Frame',
