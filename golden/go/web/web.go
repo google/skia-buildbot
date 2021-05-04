@@ -1919,6 +1919,9 @@ func (wh *Handlers) getCLSummary2(ctx context.Context, qCLID string) (search2.Ne
 	if err != nil {
 		return search2.NewAndUntriagedSummary{}, skerr.Wrap(err)
 	}
+	if ts.IsZero() { // A Zero time means we have no data for this CL.
+		return search2.NewAndUntriagedSummary{}, nil
+	}
 
 	cached, ok := wh.clSummaryCache.Get(qCLID)
 	if ok {

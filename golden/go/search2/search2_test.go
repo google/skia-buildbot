@@ -492,7 +492,7 @@ func TestChangelistLastUpdated_ValidCL_ReturnsLatestTS(t *testing.T) {
 	assert.Equal(t, changelistTSForNewTests, ts)
 }
 
-func TestChangelistLastUpdated_NonExistantCL_ReturnsError(t *testing.T) {
+func TestChangelistLastUpdated_NonExistentCL_ReturnsZeroTime(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -501,8 +501,9 @@ func TestChangelistLastUpdated_NonExistantCL_ReturnsError(t *testing.T) {
 	waitForSystemTime()
 
 	s := New(db, 100)
-	_, err := s.ChangelistLastUpdated(ctx, sql.Qualify(dks.GerritInternalCRS, "does not exist"))
-	require.Error(t, err)
+	ts, err := s.ChangelistLastUpdated(ctx, sql.Qualify(dks.GerritInternalCRS, "does not exist"))
+	require.NoError(t, err)
+	assert.True(t, ts.IsZero())
 }
 
 func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {

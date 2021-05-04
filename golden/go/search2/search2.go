@@ -391,6 +391,9 @@ SELECT ts FROM LatestTriageAction
 ORDER BY ts DESC LIMIT 1
 `, qCLID)
 	if err := row.Scan(&updatedTS); err != nil {
+		if err == pgx.ErrNoRows {
+			return time.Time{}, nil
+		}
 		return time.Time{}, skerr.Wrapf(err, "Getting last updated ts for cl %q", qCLID)
 	}
 	return updatedTS.UTC(), nil
