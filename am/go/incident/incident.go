@@ -32,6 +32,7 @@ const (
 	OWNER            = "owner"
 	ABBR_OWNER_REGEX = "abbr_owner_regex"
 	K8S_POD_NAME     = "kubernetes_pod_name"
+	COMMITTED_IMAGE  = "committedImage"
 )
 
 const (
@@ -39,6 +40,13 @@ const (
 	NUM_RECENTLY_RESOLVED        = 20
 	NUM_RECENTLY_RESOLVED_FOR_ID = 20
 )
+
+const DirtyCommittedK8sImageAlertName = "DirtyCommittedK8sImage"
+
+// Matches images like gcr.io/skia-public/autoroll-be:2021-04-30T14_04_37Z-borenet-c3ecfbb-dirty
+const DirtyCommittedImageRegexString = ".+?-(?P<Owner>\\w+?)-\\w+?-dirty"
+
+var DirtyCommittedImageRegex = regexp.MustCompile(DirtyCommittedImageRegexString)
 
 // Incident - An alert that is being acted on.
 //
@@ -194,9 +202,27 @@ func getOwnerIfMatch(abbrOwnerRegex, abbr string) (string, error) {
 	return "", nil
 }
 
+// getOwnerFromDirtyCommittedImage returns the owner from a dirty committed image if it matches the
+// DirtyCommittedImageRegex else an empty string is returned.
+func getOwnerFromDirtyCommittedImage(committedImage string) string {
+	matches := DirtyCommittedImageRegex.FindStringSubmatch(committedImage)
+	if len(matches) == 0 {
+		return ""
+	}
+	lastIndex := DirtyCommittedImageRegex.SubexpIndex("Owner")
+	if lastIndex == -1 {
+		return ""
+	}
+	return matches[lastIndex]
+}
+
 // inFromAlert creates an Incident from an alert.
 func (s *Store) inFromAlert(m map[string]string, id string) *Incident {
 	m[ID] = id
+
+	// The following attempts to determine an owner from the alert's parameters.
+	//
+	// 1. Determine owner using the abbr_owner_regex label.
 	if abbr, abbr_exists := m[ABBR]; abbr_exists {
 		if abbr_owner_regex, abbr_owner_regex_exists := m[ABBR_OWNER_REGEX]; abbr_owner_regex_exists {
 			owner, err := getOwnerIfMatch(abbr_owner_regex, abbr)
@@ -204,6 +230,17 @@ func (s *Store) inFromAlert(m map[string]string, id string) *Incident {
 				sklog.Errorf("Could not match %s with %s: %s", abbr_owner_regex, abbr, err)
 			} else if owner != "" {
 				m[OWNER] = owner
+			}
+		}
+	}
+
+	// 2. Determine owner by parsing the committedImage for DirtyCommittedK8sImage alerts.
+	if alertName, alertNameExists := m[ALERT_NAME]; alertNameExists && alertName == DirtyCommittedK8sImageAlertName {
+		if committedImage, committedImageExists := m[COMMITTED_IMAGE]; committedImageExists {
+			owner := getOwnerFromDirtyCommittedImage(committedImage)
+			if owner != "" {
+				// Store the full email address of the owner.
+				m[OWNER] = fmt.Sprintf("%s@google.com", owner)
 			}
 		}
 	}
