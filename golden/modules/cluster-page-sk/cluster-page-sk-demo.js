@@ -9,6 +9,7 @@ import { setImageEndpointsForDemos } from '../common';
 import { clusterDiffJSON } from './test_data';
 import { fakeNow, twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
+import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 
 testOnlySetSettings({
   title: 'Skia Demo',
@@ -50,8 +51,8 @@ fetchMock.get('glob:/json/v1/diff*', delay({
 }, fakeRpcDelayMillis));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
-const newScaf = document.createElement('gold-scaffold-sk');
-newScaf.setAttribute('testing_offline', 'true');
+const newScaf = new GoldScaffoldSk();
+newScaf.testingOffline = true;
 const body = $$('body');
 body.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
 const page = document.createElement('cluster-page-sk');

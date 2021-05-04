@@ -6,11 +6,15 @@ import { sendBeginTask, sendEndTask } from '../common';
 import fetchMock from 'fetch-mock';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { testOnlySetSettings } from '../settings';
+import { GoldScaffoldSk } from './gold-scaffold-sk';
+import { expect } from 'chai';
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 
 describe('gold-scaffold-sk', () => {
-  const newInstance = setUpElementUnderTest('gold-scaffold-sk');
+  const newInstance = setUpElementUnderTest<GoldScaffoldSk>('gold-scaffold-sk');
 
-  let goldScaffoldSk;
+  let goldScaffoldSk: GoldScaffoldSk;
+
   beforeEach(() => {
     testOnlySetSettings({
       title: 'Skia Public',
@@ -38,16 +42,16 @@ describe('gold-scaffold-sk', () => {
     it('adds a sidebar with links', () => {
       const nav = $$('aside nav', goldScaffoldSk);
       expect(nav).to.not.be.null;
-      const links = $('a', nav);
+      const links = $('a', nav!);
       expect(links.length).not.to.equal(0);
     });
 
     it('puts the content under <main>', () => {
-      const main = $$('main', goldScaffoldSk);
+      const main = $$<HTMLElement>('main', goldScaffoldSk);
       expect(main).to.not.be.null;
-      const content = $$('div', main);
+      const content = $$<HTMLDivElement>('div', main!);
       expect(content).to.not.be.null;
-      expect(content.textContent).to.equal('content');
+      expect(content!.textContent).to.equal('content');
     });
   });// end describe('html layout')
 
@@ -65,7 +69,7 @@ describe('gold-scaffold-sk', () => {
     });
 
     it('keeps spinner active while busy', () => {
-      const spinner = $$('header spinner-sk', goldScaffoldSk);
+      const spinner = $$<SpinnerSk>('header spinner-sk', goldScaffoldSk)!;
       expect(spinner.active).to.equal(false);
 
       sendBeginTask(goldScaffoldSk);

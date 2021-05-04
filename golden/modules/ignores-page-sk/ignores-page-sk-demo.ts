@@ -7,6 +7,7 @@ import { manyParams } from '../shared_demo_data';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import fetchMock from 'fetch-mock';
+import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 
 Date.now = () => fakeNow;
 testOnlySetSettings({
@@ -22,8 +23,8 @@ fetchMock.post('glob:/json/v1/ignores/save/*', delay({}, 600));
 fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
-const newScaf = document.createElement('gold-scaffold-sk');
-newScaf.setAttribute('testing_offline', 'true');
+const newScaf = new GoldScaffoldSk();
+newScaf.testingOffline = true;
 // Make it the first element in body.
 document.body.insertBefore(newScaf, document.body.childNodes[0]);
 const page = document.createElement('ignores-page-sk');
