@@ -359,7 +359,9 @@ func (jc *JobCreator) initCaches(ctx context.Context) error {
 		rs := rs // https://golang.org/doc/faq#closures_and_goroutines
 		g.Go(func() error {
 			if _, err := jc.cacher.GetOrCacheRepoState(ctx, rs); err != nil {
-				return fmt.Errorf("Failed to cache RepoState: %s", err)
+				if !cacher.IsCachedError(err) {
+					return fmt.Errorf("Failed to cache RepoState: %s", err)
+				}
 			}
 			return nil
 		})
