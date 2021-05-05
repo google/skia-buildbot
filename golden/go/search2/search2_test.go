@@ -529,6 +529,37 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 		RGBAMaxFilter: 255,
 	})
 	require.NoError(t, err)
+	assertUntriagedDigestsAtHead(t, res)
+}
+
+func TestSearch_UntriagedDigestsAtHead_WithMaterializedViews(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 10) // Otherwise there's no commit for the materialized views
+	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: true,
+		IncludePositiveDigests:           false,
+		IncludeNegativeDigests:           false,
+		IncludeUntriagedDigests:          true,
+		Sort:                             query.SortDescending,
+		IncludeIgnoredTraces:             false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.RoundCorpus},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assertUntriagedDigestsAtHead(t, res)
+}
+
+func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 	assert.Equal(t, &frontend.SearchResponse{
 		Results: []*frontend.SearchResult{{
 			Digest: dks.DigestC05Unt,
@@ -724,6 +755,27 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 			},
 		},
 	}, res)
+}
+
+func TestStartMaterializedViews_ViewsAreNonEmpty(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 10)
+	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
+
+	row := db.QueryRow(ctx, `SELECT COUNT(*) FROM mv_corners_traces`)
+	var count int
+	require.NoError(t, row.Scan(&count))
+	assert.Equal(t, 21, count)
+	row = db.QueryRow(ctx, `SELECT COUNT(*) FROM mv_round_traces`)
+	count = 0
+	require.NoError(t, row.Scan(&count))
+	assert.Equal(t, 10, count)
 }
 
 func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
@@ -1305,6 +1357,39 @@ func TestSearch_FilterLeftSideByKeys_Success(t *testing.T) {
 		RGBAMaxFilter: 255,
 	})
 	require.NoError(t, err)
+	assertFilterLeftSideByKeys(t, res)
+}
+
+func TestSearch_FilterLeftSideByKeys_WithMaterializedViews(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 10) // Otherwise there's no commit for the materialized views
+	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: true,
+		IncludePositiveDigests:           true,
+		IncludeNegativeDigests:           false,
+		IncludeUntriagedDigests:          false,
+		Sort:                             query.SortDescending,
+		IncludeIgnoredTraces:             false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField:     []string{dks.CornersCorpus},
+			types.PrimaryKeyField: []string{dks.TriangleTest},
+			dks.DeviceKey:         []string{dks.WalleyeDevice, dks.QuadroDevice},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assertFilterLeftSideByKeys(t, res)
+}
+
+func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 	assert.Equal(t, &frontend.SearchResponse{
 		Results: []*frontend.SearchResult{{
 			Digest: dks.DigestB01Pos,
@@ -1640,6 +1725,37 @@ func TestSearch_FilteredAcrossAllHistory_Success(t *testing.T) {
 		RGBAMaxFilter: 255,
 	})
 	require.NoError(t, err)
+	assertFilteredAcrossAllHistory(t, res)
+}
+
+func TestSearch_FilteredAcrossAllHistory_WithMaterializedView(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 10) // Otherwise there's no commit for the materialized views
+	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: false,
+		IncludePositiveDigests:           false,
+		IncludeNegativeDigests:           true,
+		IncludeUntriagedDigests:          true,
+		Sort:                             query.SortDescending,
+		IncludeIgnoredTraces:             false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.CornersCorpus},
+			dks.OSKey:         []string{dks.IOS},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assertFilteredAcrossAllHistory(t, res)
+}
+
+func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) {
 	assert.Equal(t, &frontend.SearchResponse{
 		Results: []*frontend.SearchResult{{
 			Digest: dks.DigestBlank,
@@ -2004,12 +2120,42 @@ func TestSearch_AcrossAllHistory_Success(t *testing.T) {
 	assert.Equal(t, dks.DigestC04Unt, res.Results[2].Digest)
 }
 
+func TestSearch_AcrossAllHistory_WithMaterializedViews(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 10) // Otherwise there's no commit for the materialized views
+	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
+	res, err := s.Search(ctx, &query.Search{
+		OnlyIncludeDigestsProducedAtHead: false,
+		IncludePositiveDigests:           false,
+		IncludeNegativeDigests:           false,
+		IncludeUntriagedDigests:          true,
+		Sort:                             query.SortDescending,
+		IncludeIgnoredTraces:             false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.RoundCorpus},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	require.Len(t, res.Results, 3)
+	// Spot check this data
+	assert.Equal(t, dks.DigestC05Unt, res.Results[0].Digest)
+	assert.Equal(t, dks.DigestC03Unt, res.Results[1].Digest)
+	assert.Equal(t, dks.DigestC04Unt, res.Results[2].Digest)
+}
+
 func TestJoinedTracesStatement_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	statement := joinedTracesStatement([]filterSets{
 		{key: "key1", values: []string{"alpha", "beta"}},
-	})
+	}, "my_corpus")
 	expectedCondition := `U0 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
 	UNION
@@ -2018,7 +2164,7 @@ func TestJoinedTracesStatement_Success(t *testing.T) {
 JoinedTraces AS (
 	SELECT trace_id FROM U0
 	INTERSECT
-	SELECT trace_id FROM Traces where keys -> 'source_type' = $4
+	SELECT trace_id FROM Traces where keys -> 'source_type' = '"my_corpus"'
 ),
 `
 	assert.Equal(t, expectedCondition, statement)
@@ -2027,7 +2173,7 @@ JoinedTraces AS (
 		{key: "key1", values: []string{"alpha", "beta"}},
 		{key: "key2", values: []string{"gamma"}},
 		{key: "key3", values: []string{"delta", "epsilon", "zeta"}},
-	})
+	}, "other_corpus")
 	expectedCondition = `U0 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
 	UNION
@@ -2050,7 +2196,7 @@ JoinedTraces AS (
 	INTERSECT
 	SELECT trace_id FROM U2
 	INTERSECT
-	SELECT trace_id FROM Traces where keys -> 'source_type' = $4
+	SELECT trace_id FROM Traces where keys -> 'source_type' = '"other_corpus"'
 ),
 `
 	assert.Equal(t, expectedCondition, statement)
@@ -2062,7 +2208,7 @@ func TestJoinedTracesStatement_RemovesBadSQLCharacters(t *testing.T) {
 	statement := joinedTracesStatement([]filterSets{
 		{key: "key1", values: []string{"alpha", `beta"' OR 1=1`}},
 		{key: `key2'='""' OR 1=1`, values: []string{"1"}}, // invalid keys are removed entirely.
-	})
+	}, "some thing")
 	expectedCondition := `U0 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
 	UNION
@@ -2076,7 +2222,7 @@ JoinedTraces AS (
 	INTERSECT
 	SELECT trace_id FROM U1
 	INTERSECT
-	SELECT trace_id FROM Traces where keys -> 'source_type' = $4
+	SELECT trace_id FROM Traces where keys -> 'source_type' = '"some thing"'
 ),
 `
 	assert.Equal(t, expectedCondition, statement)
