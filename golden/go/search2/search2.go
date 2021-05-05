@@ -844,8 +844,12 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 			return false
 		}
 		if results[i].closestDigest.CombinedMetric == results[j].closestDigest.CombinedMetric {
-			// Tiebreak using digest in ascending order.
-			return bytes.Compare(results[i].leftDigest, results[j].leftDigest) < 0
+			// Tiebreak using digest in ascending order, followed by groupingID.
+			c := bytes.Compare(results[i].leftDigest, results[j].leftDigest)
+			if c != 0 {
+				return c < 0
+			}
+			return bytes.Compare(results[i].groupingID, results[j].groupingID) < 0
 		}
 		if sortAsc {
 			return results[i].closestDigest.CombinedMetric < results[j].closestDigest.CombinedMetric
