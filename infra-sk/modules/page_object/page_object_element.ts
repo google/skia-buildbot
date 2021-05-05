@@ -1,6 +1,6 @@
 import { ElementHandle, Serializable } from 'puppeteer';
 
-// Custon type guard to tell DOM elements and Puppeteer element handles apart.
+// Custom type guard to tell DOM elements and Puppeteer element handles apart.
 function isPptrElement(
     element: HTMLElement | ElementHandle<HTMLElement>): element is ElementHandle<HTMLElement> {
   return (element as ElementHandle).asElement !== undefined;
@@ -27,7 +27,7 @@ function isPptrElement(
  * [2] https://github.com/google/pageloader
  */
 export class PageObjectElement {
-  private element: HTMLElement | ElementHandle<HTMLElement>;
+  private readonly element: HTMLElement | ElementHandle<HTMLElement>;
 
   constructor(element: HTMLElement | ElementHandle<HTMLElement>) {
     if (element === null) {
@@ -48,6 +48,11 @@ export class PageObjectElement {
   /** Analogous to HTMLElement#innerText. */
   get innerText() {
     return this.applyFnToDOMNode((el) => el.innerText);
+  }
+
+  /** Returns true if the element's inner text equals the given string. */
+  async isInnerTextEqualTo(text: string): Promise<boolean> {
+    return (await this.innerText) === text;
   }
 
   /** Analogous to HTMLElement#className. */
