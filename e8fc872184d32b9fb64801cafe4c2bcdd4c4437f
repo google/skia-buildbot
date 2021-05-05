@@ -1,0 +1,30 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000010506910",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296079?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "bd79acb1_95d61559",
+        "filename": "sk8s/images/rpi-swarming-client/libimobiledevice-build.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-05-05T17:29:15Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 74,
+        "startChar": 12,
+        "endLine": 74,
+        "endChar": 13
+      },
+      "revId": "e8fc872184d32b9fb64801cafe4c2bcdd4c4437f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
