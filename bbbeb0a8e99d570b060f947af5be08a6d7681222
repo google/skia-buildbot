@@ -1,0 +1,56 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000010507029",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/283717?revision\u003d5",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "0577bf1e_210958a7",
+        "filename": "android_compile/modules/list-tasks-sk/list-tasks-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-05-05T17:29:37Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 102,
+        "startChar": 17,
+        "endLine": 102,
+        "endChar": 20
+      },
+      "revId": "bbbeb0a8e99d570b060f947af5be08a6d7681222",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000010507029",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/283717?revision\u003d5",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "40a4036e_d99364c4",
+        "filename": "android_compile/package-lock.json",
+        "patchSetId": 5
+      },
+      "lineNbr": 12580,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-05-05T17:29:37Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 12580,
+        "startChar": 77,
+        "endLine": 12580,
+        "endChar": 80
+      },
+      "revId": "bbbeb0a8e99d570b060f947af5be08a6d7681222",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
