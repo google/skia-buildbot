@@ -1250,7 +1250,7 @@
         {
           "name": "skia/bots/cockroachdb",
           "path": "cockroachdb",
-          "version": "version:3"
+          "version": "version:4"
         },
         {
           "name": "skia/bots/gcloud_linux",
@@ -1687,7 +1687,7 @@
         {
           "name": "skia/bots/cockroachdb",
           "path": "cockroachdb",
-          "version": "version:3"
+          "version": "version:4"
         },
         {
           "name": "skia/bots/gcloud_linux",
@@ -1905,7 +1905,7 @@
         {
           "name": "skia/bots/cockroachdb",
           "path": "cockroachdb",
-          "version": "version:3"
+          "version": "version:4"
         },
         {
           "name": "skia/bots/gcloud_linux",
@@ -2026,7 +2026,7 @@
         {
           "name": "skia/bots/cockroachdb",
           "path": "cockroachdb",
-          "version": "version:3"
+          "version": "version:4"
         },
         {
           "name": "skia/bots/gcloud_linux",
