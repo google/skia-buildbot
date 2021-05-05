@@ -187,7 +187,6 @@ export class AlertManagerSk extends HTMLElement {
 <footer>
 `;
 
-
   connectedCallback(): void {
     this.requestDesktopNotificationPermission();
 
@@ -294,17 +293,18 @@ export class AlertManagerSk extends HTMLElement {
     return (this.incidentsToRecentlyExpired[incident.id]) ? '' : 'invisible';
   }
 
-  private displayIncident(incident: Incident): string {
+  private displayIncident(incident: Incident): TemplateResult {
     const ret = [incident.params.alertname];
     const abbr = incident.params.abbr;
     if (abbr) {
       ret.push(` - ${abbr}`);
     }
-    let s = ret.join(' ');
-    if (s.length > 33) {
-      s = `${s.slice(0, 30)}...`;
+    const fullIncident = ret.join(' ');
+    let displayIncident = fullIncident;
+    if (displayIncident.length > 33) {
+      displayIncident = `${displayIncident.slice(0, 30)}...`;
     }
-    return s;
+    return html`<span title="${fullIncident}">${displayIncident}</span>`;
   }
 
   private infraGardener(): TemplateResult {
@@ -420,7 +420,6 @@ export class AlertManagerSk extends HTMLElement {
     this.checked = new Set();
     this._render();
   }
-
 
   private displayAssignMultiple(): TemplateResult {
     return html`<button class=selection ?disabled=${this.checked.size === 0} @click=${this.assignMultiple}>Assign ${this.checked.size} alerts</button>`;
