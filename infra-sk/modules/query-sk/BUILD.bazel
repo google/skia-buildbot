@@ -36,6 +36,8 @@ ts_library(
     srcs = ["query-sk_po.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//infra-sk/modules:async_ts_lib",
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
         "//infra-sk/modules/query-values-sk:query-values-sk_po_ts_lib",
         "@npm//common-sk",
