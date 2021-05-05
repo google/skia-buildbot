@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -103,6 +104,8 @@ type Impl struct {
 	commitCache          *lru.Cache
 	optionsGroupingCache *lru.Cache
 	traceCache           *lru.Cache
+
+	materializedViews map[string]string
 }
 
 // New returns an implementation of API.
@@ -134,7 +137,7 @@ type groupingDigestKey struct {
 	digest     schema.MD5Hash
 }
 
-// StartCacheProcess loads the caches used for searching and starts a gorotuine to keep those
+// StartCacheProcess loads the caches used for searching and starts a goroutine to keep those
 // up to date.
 func (s *Impl) StartCacheProcess(ctx context.Context, interval time.Duration, commitsWithData int) error {
 	if err := s.updateCaches(ctx, commitsWithData); err != nil {
@@ -224,6 +227,65 @@ TiledTraceDigests WHERE tile_id >= $1`, tile)
 		rv[key] = struct{}{}
 	}
 	return rv, nil
+}
+
+// StartMaterializedViews creates materialized views for non-ignored traces belonging to the
+// given corpora. It starts a goroutine to keep these up to date.
+func (s *Impl) StartMaterializedViews(ctx context.Context, corpora []string, updateInterval time.Duration) error {
+	_, span := trace.StartSpan(ctx, "StartMaterializedViews", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
+	if len(corpora) == 0 {
+		sklog.Infof("No materialized views configured")
+		return nil
+	}
+	sklog.Infof("Initializing %d materialized views", len(corpora))
+	eg, eCtx := errgroup.WithContext(ctx)
+	for _, c := range corpora {
+		corpus := c
+		mvName := "mv_" + corpus + "_traces"
+		eg.Go(func() error {
+			statement := "CREATE MATERIALIZED VIEW IF NOT EXISTS " + mvName
+			statement += `
+AS WITH
+BeginningOfWindow AS (
+    SELECT commit_id FROM CommitsWithData
+    ORDER BY commit_id DESC
+    OFFSET ` + strconv.Itoa(s.windowLength-1) + ` LIMIT 1
+)
+SELECT trace_id, grouping_id, digest FROM ValuesAtHead
+JOIN BeginningOfWindow ON ValuesAtHead.most_recent_commit_id >= BeginningOfWindow.commit_id
+WHERE corpus = '` + corpus + `' AND matches_any_ignore_rule = FALSE
+`
+			_, err := s.db.Exec(eCtx, statement)
+			return skerr.Wrap(err)
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return skerr.Wrapf(err, "initializing materialized views %q", corpora)
+	}
+
+	s.materializedViews = map[string]string{}
+	for _, c := range corpora {
+		corpus := c
+		mvName := "mv_" + corpus + "_traces"
+		s.materializedViews[corpus] = mvName
+	}
+	sklog.Infof("Initialized %d materialized views", len(corpora))
+	go util.RepeatCtx(ctx, updateInterval, func(ctx context.Context) {
+		eg, eCtx := errgroup.WithContext(ctx)
+		for _, v := range s.materializedViews {
+			view := v
+			eg.Go(func() error {
+				statement := `REFRESH MATERIALIZED VIEW ` + view
+				_, err := s.db.Exec(eCtx, statement)
+				return skerr.Wrapf(err, "updating %s", view)
+			})
+		}
+		if err := eg.Wait(); err != nil {
+			sklog.Warningf("Could not refresh material views: %s", err)
+		}
+	})
+	return nil
 }
 
 // NewAndUntriagedSummaryForCL queries all the patchsets in parallel (to keep the query less
@@ -545,7 +607,7 @@ MatchingDigests AS (
     SELECT grouping_id, digest FROM Expectations
     WHERE label = ANY($1)
 ),`
-	tracesBlock, args := matchingTracesStatement(ctx)
+	tracesBlock, args := s.matchingTracesStatement(ctx)
 	statement += tracesBlock
 	statement += `
 SELECT trace_id, MatchingDigests.grouping_id, MatchingTraces.digest FROM
@@ -592,7 +654,7 @@ type filterSets struct {
 // This table will have rows containing trace_id, grouping_id, and digest of traces that match
 // the given search criteria. The second parameter is the arguments that need to be included
 // in the query. This code knows to start using numbered parameters at 2.
-func matchingTracesStatement(ctx context.Context) (string, []interface{}) {
+func (s *Impl) matchingTracesStatement(ctx context.Context) (string, []interface{}) {
 	var keyFilters []filterSets
 	q := getQuery(ctx)
 	for key, values := range q.TraceValues {
@@ -609,12 +671,15 @@ func matchingTracesStatement(ctx context.Context) (string, []interface{}) {
 	if q.IncludeIgnoredTraces {
 		ignoreStatuses = append(ignoreStatuses, true)
 	}
-	var args []interface{}
-
+	corpus := sql.Sanitize(q.TraceValues[types.CorpusField][0])
+	materializedView := s.materializedViews[corpus]
 	if q.OnlyIncludeDigestsProducedAtHead {
 		if len(keyFilters) == 0 {
+			if materializedView != "" && !q.IncludeIgnoredTraces {
+				return "MatchingTraces AS (SELECT * FROM " + materializedView + ")", nil
+			}
 			// Corpus is being used as a string
-			args = append(args, getFirstCommitID(ctx), ignoreStatuses, q.TraceValues[types.CorpusField][0])
+			args := []interface{}{getFirstCommitID(ctx), ignoreStatuses, corpus}
 			return `
 MatchingTraces AS (
     SELECT trace_id, grouping_id, digest FROM ValuesAtHead
@@ -623,9 +688,16 @@ MatchingTraces AS (
     	corpus = $4
 )`, args
 		}
+		if materializedView != "" && !q.IncludeIgnoredTraces {
+			return joinedTracesStatement(keyFilters, corpus) + `
+MatchingTraces AS (
+    SELECT JoinedTraces.trace_id, grouping_id, digest FROM ` + materializedView + `
+	JOIN JoinedTraces ON JoinedTraces.trace_id = ` + materializedView + `.trace_id
+)`, nil
+		}
 		// Corpus is being used as a JSONB value here
-		args = append(args, getFirstCommitID(ctx), ignoreStatuses, `"`+q.TraceValues[types.CorpusField][0]+`"`)
-		return joinedTracesStatement(keyFilters) + `
+		args := []interface{}{getFirstCommitID(ctx), ignoreStatuses}
+		return joinedTracesStatement(keyFilters, corpus) + `
 MatchingTraces AS (
     SELECT ValuesAtHead.trace_id, grouping_id, digest FROM ValuesAtHead
 	JOIN JoinedTraces ON ValuesAtHead.trace_id = JoinedTraces.trace_id
@@ -634,8 +706,17 @@ MatchingTraces AS (
 )`, args
 	} else {
 		if len(keyFilters) == 0 {
+			if materializedView != "" && !q.IncludeIgnoredTraces {
+				args := []interface{}{getFirstTileID(ctx)}
+				return `MatchingTraces AS (
+	SELECT DISTINCT TiledTraceDigests.trace_id, TiledTraceDigests.grouping_id, TiledTraceDigests.digest
+	FROM TiledTraceDigests
+	JOIN ` + materializedView + ` ON ` + materializedView + `.trace_id = TiledTraceDigests.trace_id
+	WHERE tile_id >= $2
+)`, args
+			}
 			// Corpus is being used as a string
-			args = append(args, getFirstCommitID(ctx), ignoreStatuses, q.TraceValues[types.CorpusField][0], getFirstTileID(ctx))
+			args := []interface{}{getFirstCommitID(ctx), ignoreStatuses, corpus, getFirstTileID(ctx)}
 			return `
 TracesOfInterest AS (
     SELECT trace_id, grouping_id FROM ValuesAtHead
@@ -646,14 +727,28 @@ TracesOfInterest AS (
 MatchingTraces AS (
 	SELECT DISTINCT TiledTraceDigests.trace_id, TracesOfInterest.grouping_id, TiledTraceDigests.digest
 	FROM TiledTraceDigests
-	JOIN TracesOfInterest on TracesOfInterest.trace_id = TiledTraceDigests.trace_id
+	JOIN TracesOfInterest ON TracesOfInterest.trace_id = TiledTraceDigests.trace_id
 	WHERE tile_id >= $5
 )
 `, args
 		}
+		if materializedView != "" && !q.IncludeIgnoredTraces {
+			args := []interface{}{getFirstTileID(ctx)}
+			return joinedTracesStatement(keyFilters, corpus) + `
+TracesOfInterest AS (
+    SELECT JoinedTraces.trace_id, grouping_id FROM ` + materializedView + `
+	JOIN JoinedTraces ON JoinedTraces.trace_id = ` + materializedView + `.trace_id
+),
+MatchingTraces AS (
+	SELECT DISTINCT TiledTraceDigests.trace_id, TracesOfInterest.grouping_id, TiledTraceDigests.digest
+	FROM TiledTraceDigests
+	JOIN TracesOfInterest on TracesOfInterest.trace_id = TiledTraceDigests.trace_id
+	WHERE tile_id >= $2
+)`, args
+		}
 		// Corpus is being used as a JSONB value here
-		args = append(args, getFirstTileID(ctx), ignoreStatuses, `"`+q.TraceValues[types.CorpusField][0]+`"`)
-		return joinedTracesStatement(keyFilters) + `
+		args := []interface{}{getFirstTileID(ctx), ignoreStatuses}
+		return joinedTracesStatement(keyFilters, corpus) + `
 TracesOfInterest AS (
     SELECT Traces.trace_id, grouping_id FROM Traces
 	JOIN JoinedTraces ON Traces.trace_id = JoinedTraces.trace_id
@@ -676,7 +771,7 @@ MatchingTraces AS (
 // by using the inverted key index. The keys and values are hardcoded into the string instead
 // of being passed in as arguments because kjlubick@ was not able to use the placeholder values
 //to compare JSONB types removed from a JSONB object to a string while still using the indexes.
-func joinedTracesStatement(filters []filterSets) string {
+func joinedTracesStatement(filters []filterSets, corpus string) string {
 	statement := ""
 	for i, filter := range filters {
 		statement += fmt.Sprintf("U%d AS (\n", i)
@@ -694,7 +789,7 @@ func joinedTracesStatement(filters []filterSets) string {
 	}
 	// Include a final intersect for the corpus. The calling logic will make sure a JSONB value
 	// (i.e. a quoted string) is in the arguments slice.
-	statement += "\tSELECT trace_id FROM Traces where keys -> 'source_type' = $4\n),\n"
+	statement += "\tSELECT trace_id FROM Traces where keys -> 'source_type' = '\"" + corpus + "\"'\n),\n"
 	return statement
 }
 
