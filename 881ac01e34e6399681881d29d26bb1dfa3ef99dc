@@ -1,0 +1,82 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000010507046",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/279596?revision\u003d19",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "216cdb9f_6dcb0cd4",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-05-05T17:29:44Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 137,
+        "startChar": 51,
+        "endLine": 137,
+        "endChar": 60
+      },
+      "revId": "881ac01e34e6399681881d29d26bb1dfa3ef99dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000010507046",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/279596?revision\u003d19",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "386d4123_c89aeccd",
+        "filename": "leasing/package-lock.json",
+        "patchSetId": 19
+      },
+      "lineNbr": 12541,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-05-05T17:29:44Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 12541,
+        "startChar": 77,
+        "endLine": 12541,
+        "endChar": 80
+      },
+      "revId": "881ac01e34e6399681881d29d26bb1dfa3ef99dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000010507046",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/279596?revision\u003d19",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "1c8026a9_d7ab8b61",
+        "filename": "leasing/pages/index.html",
+        "patchSetId": 19
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-05-05T17:29:44Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 11,
+        "startChar": 52,
+        "endLine": 11,
+        "endChar": 53
+      },
+      "revId": "881ac01e34e6399681881d29d26bb1dfa3ef99dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
