@@ -1,0 +1,56 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000010507052",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/279596?revision\u003d27",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "1812e4bd_cc76092e",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-05-05T17:29:46Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 125,
+        "startChar": 51,
+        "endLine": 125,
+        "endChar": 60
+      },
+      "revId": "0689bbd3931b749fec18249b74d860607bfaddb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000010507052",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/279596?revision\u003d27",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "ef5fd612_32bfd453",
+        "filename": "leasing/package-lock.json",
+        "patchSetId": 27
+      },
+      "lineNbr": 12541,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-05-05T17:29:46Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 12541,
+        "startChar": 77,
+        "endLine": 12541,
+        "endChar": 80
+      },
+      "revId": "0689bbd3931b749fec18249b74d860607bfaddb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
