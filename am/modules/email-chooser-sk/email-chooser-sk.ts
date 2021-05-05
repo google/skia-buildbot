@@ -26,12 +26,15 @@ export class EmailChooserSk extends HTMLElement {
 
   private owner: string = '';
 
+  private ownerSelected: boolean = false;
+
   private selected: string = '';
 
   private static template = (ele: EmailChooserSk) => html`<dialog>
   <h2>Assign</h2>
+  <span>${!ele.ownerSelected}</span>
   <select size=10 @input=${ele.input}>
-    <option value='' selected>(un-assign)</option>
+    <option value='' ?selected=${!ele.ownerSelected}>(un-assign)</option>
     ${ele.emails.map((email: string) => ele.displayEmail(email))}
   </select>
   <div class=buttons>
@@ -57,6 +60,8 @@ export class EmailChooserSk extends HTMLElement {
   public open(emails: string[], owner: string): Promise<string | undefined> {
     this.emails = emails;
     this.owner = owner;
+    this.ownerSelected = false;
+    console.log('OWNER SELECTED IS FALSE NOW!');
     this._render();
     this.dialog!.showModal();
     ($$('select', this) as HTMLSelectElement).focus();
@@ -67,7 +72,9 @@ export class EmailChooserSk extends HTMLElement {
 
   private displayEmail(email: string): TemplateResult {
     if (this.owner === email) {
-      return html`<option value=${email}>${email} (alert owner)</option>`;
+      console.log('OWNER WAS SELECTED!!!');
+      this.ownerSelected = true;
+      return html`<option value=${email} selected>${email} (owner)</option>`;
     }
     return html`<option value=${email}>${email}</option>`;
   }

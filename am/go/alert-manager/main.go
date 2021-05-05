@@ -89,7 +89,7 @@ func New() (baseapp.App, error) {
 		}
 	} else {
 		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
-		assign = allowed.NewAllowedFromList([]string{"betty@example.org", "fred@example.org", "barney@example.org", "wilma@example.org"})
+		assign = allowed.NewAllowedFromList([]string{"rmistry@google.com", "betty@example.org", "fred@example.org", "barney@example.org", "wilma@example.org"})
 	}
 
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)

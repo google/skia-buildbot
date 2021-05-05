@@ -187,7 +187,6 @@ export class AlertManagerSk extends HTMLElement {
 <footer>
 `;
 
-
   connectedCallback(): void {
     this.requestDesktopNotificationPermission();
 
@@ -420,7 +419,6 @@ export class AlertManagerSk extends HTMLElement {
     this.checked = new Set();
     this._render();
   }
-
 
   private displayAssignMultiple(): TemplateResult {
     return html`<button class=selection ?disabled=${this.checked.size === 0} @click=${this.assignMultiple}>Assign ${this.checked.size} alerts</button>`;
@@ -764,8 +762,37 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private assignMultiple(): void {
-    const owner = (this.selected && (this.selected as Incident).params.owner) || '';
-    ($$('#email-chooser', this) as EmailChooserSk).open(this.emails, owner).then((email) => {
+    // See if the selected incidents have a common owner.
+    console.log('LOOK FOR COMMON OWNER');
+    let commonOwner = '';
+    for (let i = 0; i < this.incidents.length; i++) {
+      if (!this.checked.has(this.incidents[i].key)) {
+        // This incident has not been checked.
+        continue;
+      }
+      const incidentOwner = this.incidents[i].params.owner;
+      console.log(this.incidents[i]);
+      console.log('INCIDENT OWNER IS');
+      console.log(incidentOwner);
+      if (incidentOwner) {
+        if (commonOwner === '') {
+          commonOwner = incidentOwner;
+        } else if (commonOwner !== incidentOwner) {
+          // The incident owner is different than the common owner found so far.
+          // This means there is no common owner;
+          commonOwner = '';
+          break;
+        }
+      } else {
+        // This incident has no owner so there can be no common owner.
+        commonOwner = '';
+        break;
+      }
+    }
+    console.log(commonOwner);
+
+    // DISPLAY AND HIGHTLIGHT OWNER!!!
+    ($$('#email-chooser', this) as EmailChooserSk).open(this.emails, commonOwner).then((email) => {
       const detail = {
         keys: Array.from(this.checked),
         email: email,
