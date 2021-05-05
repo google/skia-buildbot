@@ -13,7 +13,7 @@ const linkRe = /(http[s]?:\/\/[^\s]*)/gm;
  *
  * silence - The silence being displayed.
  */
-export function displaySilence(silence: Silence | State): string {
+export function displaySilence(silence: Silence | State): TemplateResult {
   const ret: string[] = [];
   Object.keys(silence.param_set!).forEach((key) => {
     if (key.startsWith('__')) {
@@ -21,14 +21,15 @@ export function displaySilence(silence: Silence | State): string {
     }
     ret.push(`${silence.param_set![key]!.join(', ')}`);
   });
-  let s = ret.join(' ');
-  if (s.length > 33) {
-    s = `${s.slice(0, 30)}...`;
+  const fullName = ret.join(' ');
+  let displayName = fullName;
+  if (displayName.length > 33) {
+    displayName = `${displayName.slice(0, 30)}...`;
   }
-  if (!s.length) {
-    s = '(*)';
+  if (!displayName.length) {
+    displayName = '(*)';
   }
-  return s;
+  return html`<span title="${fullName}">${displayName}</span>`;
 }
 
 /**
