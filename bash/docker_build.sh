@@ -62,7 +62,7 @@ if git update-index --refresh ; then
     REPO_STATE=dirty
     echo "Setting DIRTY=true due to modified files:"
     echo "$(git diff-index --name-status HEAD --)"
-  elif ! git merge-base --is-ancestor HEAD origin/master ; then
+  elif ! git merge-base --is-ancestor HEAD origin/main ; then
     REPO_STATE=dirty
     echo "Setting DIRTY=true due to current branch: " \
       "$(git rev-parse --abbrev-ref HEAD)"
