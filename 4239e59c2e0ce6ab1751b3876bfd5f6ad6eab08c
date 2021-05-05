@@ -16,6 +16,24 @@
       "message": "Should we log the CachedError somewhere?",
       "revId": "4239e59c2e0ce6ab1751b3876bfd5f6ad6eab08c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ae7794bb_9e107697",
+        "filename": "task_scheduler/go/job_creation/job_creation.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-05T16:47:21Z",
+      "side": 1,
+      "message": "Honestly, I\u0027m not sure it\u0027s worth it.  The output from \"gclient sync\" is so huge that it makes the whole log impossible to read.  I guess we could make a note of the fact that there\u0027s a cached error at this RepoState, without necessarily logging the error itself.",
+      "parentUuid": "02b5d3c8_e5c46eca",
+      "revId": "4239e59c2e0ce6ab1751b3876bfd5f6ad6eab08c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
