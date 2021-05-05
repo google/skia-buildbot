@@ -42,6 +42,7 @@ go_test(
         "//golden/go/search/frontend",
         "//golden/go/search/query",
         "//golden/go/sql",
+        "//golden/go/sql/databuilder",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",
