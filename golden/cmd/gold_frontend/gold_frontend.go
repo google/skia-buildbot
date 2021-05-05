@@ -118,6 +118,10 @@ type frontendServerConfig struct {
 	// If this instance is simply a mirror of another instance's data.
 	IsPublicView bool `json:"is_public_view"`
 
+	// MaterializedViewCorpora is the optional list of corpora that should have a materialized
+	// view created and refreshed to speed up search results.
+	MaterializedViewCorpora []string `json:"materialized_view_corpora" optional:"true"`
+
 	// The longest time negative expectations can go unused before being purged. (0 means infinity)
 	NegativesMaxAge config.Duration `json:"negatives_max_age" optional:"true"`
 
@@ -256,6 +260,9 @@ func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pg
 	err := s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.NumCommits)
 	if err != nil {
 		sklog.Fatalf("Cannot load caches for search2 backend: %s", err)
+	}
+	if err := s2a.StartMaterializedViews(ctx, fsc.MaterializedViewCorpora, 5*time.Minute); err != nil {
+		sklog.Fatalf("Cannot create materialized views %s: %s", fsc.MaterializedViewCorpora, err)
 	}
 	return s2a
 }

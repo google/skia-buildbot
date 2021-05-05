@@ -13,6 +13,7 @@ View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}",
     defaultCorpus: "gm",
     title: "Skia Gold",
   },
+  materialized_view_corpora: ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"],
   negatives_max_age: "4320h", // 180 days
   num_commits: 256,
   positives_max_age: "720h", // 30 days

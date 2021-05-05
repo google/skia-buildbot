@@ -14,6 +14,7 @@
     defaultCorpus: "gm",
     title: "Skia Public Gold",
   },
+  materialized_view_corpora: ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"],
   num_commits: 256,
   prom_port: ":20000",
   ready_port: ":8000",
