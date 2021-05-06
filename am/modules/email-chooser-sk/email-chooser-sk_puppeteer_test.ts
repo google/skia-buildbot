@@ -25,18 +25,18 @@ describe('email-chooser-sk', () => {
   });
 
   describe('screenshots', () => {
-    it('shows the default view', async () => {
-      await takeScreenshot(testBed.page, 'am', 'email-chooser-sk');
+    it('shows the default views', async () => {
+      await takeScreenshot(testBed.page, 'am', 'email-chooser-sk-default');
+    });
+
+    it('shows that unassigned is selected', async () => {
+      await testBed.page.click('email-chooser-sk-with-owner option:nth-child(1)');
+      await takeScreenshot(testBed.page, 'am', 'email-chooser-sk_unassigned-selected');
     });
 
     it('shows that a non-owner is selected', async () => {
-      await testBed.page.click('email-chooser-sk option:nth-child(2)');
+      await testBed.page.click('email-chooser-sk-with-owner option:nth-child(2)');
       await takeScreenshot(testBed.page, 'am', 'email-chooser-sk_non-owner-selected');
-    });
-
-    it('shows that the owner is selected', async () => {
-      await testBed.page.click('email-chooser-sk option:nth-child(3)');
-      await takeScreenshot(testBed.page, 'am', 'email-chooser-sk_owner-selected');
     });
   });
 });
