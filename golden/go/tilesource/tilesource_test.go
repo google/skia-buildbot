@@ -294,12 +294,11 @@ func TestUpdateTileWithPublicParams(t *testing.T) {
 
 	mct.On("AllCommits").Return(makeSparseTilingCommits())
 
-	publicMatcher, err := publicparams.MatcherFromJSON([]byte(`
-{
-  "gm": {
-    "device": ["angler", "bullhead"],
-  }
-}`))
+	publicMatcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
+		"gm": {
+			"device": {"angler", "bullhead"},
+		},
+	})
 	require.NoError(t, err)
 
 	ts := New(CachedTileSourceConfig{
