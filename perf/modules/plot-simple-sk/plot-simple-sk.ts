@@ -218,6 +218,8 @@ interface Point {
   y: number;
 }
 
+const defaultPoint: Point = { x: 0, y: 0 };
+
 interface Rect extends Point {
   width: number;
   height: number;
@@ -443,6 +445,12 @@ export class PlotSimpleSk extends ElementSk {
 
   /** The source coordinate where a zoom started. */
   private _zoomBegin: number = 0;
+
+  /** The starting point of a zoom rectangle on the details region. */
+  private zoomRectBegin: Point = defaultPoint;
+
+  /** The ending point of a zoom rectangle on the details region. */
+  private zoomRectEnd: Point = defaultPoint;
 
   /**
    * True if we are currently drag zooming, i.e. the mouse is pressed and moving
@@ -679,6 +687,12 @@ export class PlotSimpleSk extends ElementSk {
         this._inZoomDrag = 'summary';
         this._zoomBegin = zx;
         this.zoom = [zx, zx + 0.01]; // Add a smidge to the second zx to avoid a degenerate detail plot.
+      }
+      if (inRect(pt, this._detail.rect!)) {
+        this._inZoomDrag = 'details';
+        this.zoomRectBegin = pt;
+        // Add a smidge to the end of the rect so we start by drawing something.
+        this.zoomRectEnd = { x: pt.x + 1, y: pt.y + 1 };
       }
     });
 
@@ -1032,21 +1046,28 @@ export class PlotSimpleSk extends ElementSk {
         };
       }
       this._drawOverlayCanvas();
-      this._mouseMoveRaw = null;
     } else {
       // We are zooming.
       const pt = this._eventToCanvasPt(this._mouseMoveRaw);
-      clampToRect(pt, this._summary.rect);
 
-      // x in source coordinates.
-      const sx = this._summary.range.x.invert(pt.x);
+      if (this._inZoomDrag === 'summary') {
+        clampToRect(pt, this._summary.rect);
 
-      // Set zoom, always making sure we go from lowest to highest.
-      let zoom: ZoomRange = [this._zoomBegin, sx];
-      if (this._zoomBegin > sx) {
-        zoom = [sx, this._zoomBegin];
+        // x in source coordinates.
+        const sx = this._summary.range.x.invert(pt.x);
+
+        // Set zoom, always making sure we go from lowest to highest.
+        let zoom: ZoomRange = [this._zoomBegin, sx];
+        if (this._zoomBegin > sx) {
+          zoom = [sx, this._zoomBegin];
+        }
+        this.zoom = zoom;
+      } else if (this._inZoomDrag === 'details') {
+        clampToRect(pt, this._detail.rect);
+        this.zoomRectEnd = pt;
+        this._drawOverlayCanvas();
       }
-      this.zoom = zoom;
+      this._mouseMoveRaw = null;
     }
   }
 
@@ -1400,7 +1421,9 @@ export class PlotSimpleSk extends ElementSk {
         }
       }
 
-      if (this._inZoomDrag === 'no-zoom') {
+      if (this._inZoomDrag === 'details') {
+        this.drawZoomRect(ctx, this.zoomRectBegin, this.zoomRectEnd);
+      } else if (this._inZoomDrag === 'no-zoom') {
         // Draw the crosshairs.
         ctx.strokeStyle = this.CROSSHAIR_COLOR;
         ctx.lineWidth = AXIS_LINE_WIDTH;
@@ -1461,6 +1484,16 @@ export class PlotSimpleSk extends ElementSk {
       }
     }
     ctx.restore();
+  }
+
+  // Draw a dashed rectangle for the details zoom.
+  private drawZoomRect(ctx: CanvasRenderingContext2D, begin: Point, end: Point) {
+    ctx.strokeStyle = this.LABEL_COLOR;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.rect(begin.x, begin.y, end.x - begin.x, end.y - begin.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
 
   // Draw the xbar in the given area with the given width.
