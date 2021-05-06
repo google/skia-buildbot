@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expectations"
+	"go.skia.org/infra/golden/go/publicparams"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
@@ -100,6 +101,8 @@ type Impl struct {
 	mutex sync.RWMutex
 	// This caches the digests seen per grouping on the primary branch.
 	digestsOnPrimary map[groupingDigestKey]struct{}
+	// This caches the trace ids that are publicly visible.
+	publiclyVisibleTraces map[schema.MD5Hash]struct{}
 
 	commitCache          *lru.Cache
 	optionsGroupingCache *lru.Cache
@@ -283,6 +286,51 @@ WHERE corpus = '` + corpus + `' AND matches_any_ignore_rule = FALSE
 		}
 		if err := eg.Wait(); err != nil {
 			sklog.Warningf("Could not refresh material views: %s", err)
+		}
+	})
+	return nil
+}
+
+// StartApplyingPublicParams loads the cached set of traces which are publicly visible and then
+// starts a goroutine to update this cache as per the provided interval.
+func (s *Impl) StartApplyingPublicParams(ctx context.Context, matcher publicparams.Matcher, interval time.Duration) error {
+	_, span := trace.StartSpan(ctx, "StartApplyingPublicParams", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
+
+	cycle := func(ctx context.Context) error {
+		rows, err := s.db.Query(ctx, `SELECT trace_id, keys FROM Traces AS OF SYSTEM TIME '-0.1s'`)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		publiclyVisibleTraces := map[schema.MD5Hash]struct{}{}
+		var yes struct{}
+		var traceKey schema.MD5Hash
+		defer rows.Close()
+		for rows.Next() {
+			var traceID schema.TraceID
+			var keys paramtools.Params
+			if err := rows.Scan(&traceID, &keys); err != nil {
+				return skerr.Wrap(err)
+			}
+			if matcher.Matches(keys) {
+				copy(traceKey[:], traceID)
+				publiclyVisibleTraces[traceKey] = yes
+			}
+		}
+		s.mutex.Lock()
+		defer s.mutex.Unlock()
+		s.publiclyVisibleTraces = publiclyVisibleTraces
+		return nil
+	}
+	if err := cycle(ctx); err != nil {
+		return skerr.Wrapf(err, "initializing cache of visible traces")
+	}
+	sklog.Infof("Successfully initialized visible trace cache.")
+
+	go util.RepeatCtx(ctx, interval, func(ctx context.Context) {
+		err := cycle(ctx)
+		if err != nil {
+			sklog.Warningf("Could not update map of public traces: %s", err)
 		}
 	})
 	return nil
@@ -477,6 +525,7 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 	}
 
 	// Find all digests and traces that match the given search criteria.
+	// This will be filtered according to the publiclyAllowedParams as well.
 	traceDigests, err := s.getMatchingDigestsAndTraces(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -487,7 +536,7 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	// Go fetch history and paramset (within this grouping)
+	// Go fetch history and paramset (within this grouping, and respecting publiclyAllowedParams).
 	paramsetsByDigest, err := s.getParamsetsForDigests(ctx, closestDiffs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -635,10 +684,19 @@ MatchingTraces ON MatchingDigests.grouping_id = MatchingTraces.grouping_id AND
 	}
 	defer rows.Close()
 	var rv []stageOneResult
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	var traceKey schema.MD5Hash
 	for rows.Next() {
 		var row stageOneResult
 		if err := rows.Scan(&row.traceID, &row.groupingID, &row.digest); err != nil {
 			return nil, skerr.Wrap(err)
+		}
+		if s.publiclyVisibleTraces != nil {
+			copy(traceKey[:], row.traceID)
+			if _, ok := s.publiclyVisibleTraces[traceKey]; !ok {
+				continue
+			}
 		}
 		rv = append(rv, row)
 	}
@@ -1007,11 +1065,20 @@ WHERE digest = ANY($1) AND grouping_id = $2 AND tile_id >= $3
 			defer rows.Close()
 			mutex.Lock()
 			defer mutex.Unlock()
+			s.mutex.RLock()
+			defer s.mutex.RUnlock()
+			var traceKey schema.MD5Hash
 			for rows.Next() {
 				var digest types.Digest
 				var traceID schema.TraceID
 				if err := rows.Scan(&digest, &traceID); err != nil {
 					return skerr.Wrap(err)
+				}
+				if s.publiclyVisibleTraces != nil {
+					copy(traceKey[:], traceID)
+					if _, ok := s.publiclyVisibleTraces[traceKey]; !ok {
+						continue
+					}
 				}
 				digestToTraces[digest] = append(digestToTraces[digest], traceID)
 			}
