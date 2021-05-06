@@ -33,6 +33,7 @@ const (
 	ABBR_OWNER_REGEX = "abbr_owner_regex"
 	K8S_POD_NAME     = "kubernetes_pod_name"
 	COMMITTED_IMAGE  = "committedImage"
+	LIVE_IMAGE       = "liveImage"
 )
 
 const (
@@ -41,12 +42,17 @@ const (
 	NUM_RECENTLY_RESOLVED_FOR_ID = 20
 )
 
-const DirtyCommittedK8sImageAlertName = "DirtyCommittedK8sImage"
+// Well known alert names.
+const (
+	DirtyCommittedK8sImageAlertName = "DirtyCommittedK8sImage"
+	StaleK8sImageAlertName          = "StaleK8sImage"
+	DirtyRunningK8sConfigAlertName  = "DirtyRunningK8sConfig"
+)
 
 // Matches images like gcr.io/skia-public/autoroll-be:2021-04-30T14_04_37Z-borenet-c3ecfbb-dirty
-const DirtyCommittedImageRegexString = ".+?-(?P<Owner>\\w+?)-\\w+?-dirty"
+const DockerImageRegexString = ".+?-(?P<Owner>\\w+?)-\\w+?-(dirty|clean)$"
 
-var DirtyCommittedImageRegex = regexp.MustCompile(DirtyCommittedImageRegexString)
+var DockerImageRegex = regexp.MustCompile(DockerImageRegexString)
 
 // Incident - An alert that is being acted on.
 //
@@ -202,18 +208,18 @@ func getOwnerIfMatch(abbrOwnerRegex, abbr string) (string, error) {
 	return "", nil
 }
 
-// getOwnerFromDirtyCommittedImage returns the owner from a dirty committed image if it matches the
-// DirtyCommittedImageRegex else an empty string is returned.
-func getOwnerFromDirtyCommittedImage(committedImage string) string {
-	matches := DirtyCommittedImageRegex.FindStringSubmatch(committedImage)
+// getOwnerFromDockerImage returns the full email address of an owner from a docker image
+// if it matches the DockerImageRegex else an empty string is returned.
+func getOwnerFromDockerImage(dockerImage string) string {
+	matches := DockerImageRegex.FindStringSubmatch(dockerImage)
 	if len(matches) == 0 {
 		return ""
 	}
-	lastIndex := DirtyCommittedImageRegex.SubexpIndex("Owner")
+	lastIndex := DockerImageRegex.SubexpIndex("Owner")
 	if lastIndex == -1 {
 		return ""
 	}
-	return matches[lastIndex]
+	return fmt.Sprintf("%s@google.com", matches[lastIndex])
 }
 
 // inFromAlert creates an Incident from an alert.
@@ -234,13 +240,25 @@ func (s *Store) inFromAlert(m map[string]string, id string) *Incident {
 		}
 	}
 
-	// 2. Determine owner by parsing the committedImage for DirtyCommittedK8sImage alerts.
-	if alertName, alertNameExists := m[ALERT_NAME]; alertNameExists && alertName == DirtyCommittedK8sImageAlertName {
-		if committedImage, committedImageExists := m[COMMITTED_IMAGE]; committedImageExists {
-			owner := getOwnerFromDirtyCommittedImage(committedImage)
-			if owner != "" {
-				// Store the full email address of the owner.
-				m[OWNER] = fmt.Sprintf("%s@google.com", owner)
+	if alertName, alertNameExists := m[ALERT_NAME]; alertNameExists {
+		// 2. Determine owner by parsing the committedImage for DirtyCommittedK8sImage alerts.
+		if alertName == DirtyCommittedK8sImageAlertName {
+			if committedImage, committedImageExists := m[COMMITTED_IMAGE]; committedImageExists {
+				owner := getOwnerFromDockerImage(committedImage)
+				if owner != "" {
+					m[OWNER] = owner
+				}
+			}
+		}
+
+		// 3. Determine owner by parsing the liveImage for StaleK8sImage alerts.
+		// 4. Determine owner by parsing the liveImage for DirtyRunningK8sConfig alerts.
+		if alertName == StaleK8sImageAlertName || alertName == DirtyRunningK8sConfigAlertName {
+			if liveImage, liveImageExists := m[LIVE_IMAGE]; liveImageExists {
+				owner := getOwnerFromDockerImage(liveImage)
+				if owner != "" {
+					m[OWNER] = owner
+				}
 			}
 		}
 	}

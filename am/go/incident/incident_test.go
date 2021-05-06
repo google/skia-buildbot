@@ -253,18 +253,19 @@ func TestGetOwnerIfMatch(t *testing.T) {
 	assert.Equal(t, "", ownerBadTest)
 }
 
-func TestGetOwnerFromCommittedImage(t *testing.T) {
+func TestGetOwnerFromDockerImage(t *testing.T) {
 	unittest.SmallTest(t)
 
 	tests := []struct {
-		committedImage string
-		expectedOwner  string
+		dockerImage   string
+		expectedOwner string
 	}{
-		{committedImage: "abc", expectedOwner: ""},
-		{committedImage: "gcr.io/skia-public/autoroll-be:2021-04-30T14_04_37Z-rmistry-c3ecfbb-dirty", expectedOwner: "rmistry"},
-		{committedImage: "gcr.io/skia-public/autoroll-be:2021-04-30T14_04_37Z-rmistry-c3ecfbb-clean", expectedOwner: ""},
+		{dockerImage: "abc", expectedOwner: ""},
+		{dockerImage: "gcr.io/skia-public/autoroll-be:2021-04-30T14_04_37Z-batman-c3ecfbb-dirty", expectedOwner: "batman@google.com"},
+		{dockerImage: "gcr.io/skia-public/autoroll-be:2021-04-30T14_04_37Z-batman-c3ecfbb-clean", expectedOwner: "batman@google.com"},
+		{dockerImage: "gcr.io/skia-public/autoroll-be:2021-04-30T14_04_37Z-batman-c3ecfbb-invalidtag", expectedOwner: ""},
 	}
 	for _, test := range tests {
-		assert.Equal(t, test.expectedOwner, getOwnerFromDirtyCommittedImage(test.committedImage))
+		assert.Equal(t, test.expectedOwner, getOwnerFromDockerImage(test.dockerImage))
 	}
 }
