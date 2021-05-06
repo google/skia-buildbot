@@ -965,12 +965,7 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 func (s *Impl) getParamsetsForDigests(ctx context.Context, inputs []stageTwoResult) (map[types.Digest]paramtools.ParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "getParamsetsForDigests")
 	defer span.End()
-	var rightDigests []schema.DigestBytes
-	for _, input := range inputs {
-		rightDigests = append(rightDigests, input.rightDigests...)
-	}
-	span.AddAttributes(trace.Int64Attribute("num_digests", int64(len(rightDigests))))
-	digestToTraces, err := s.addRightTraces(ctx, rightDigests)
+	digestToTraces, err := s.addRightTraces(ctx, inputs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -988,28 +983,46 @@ func (s *Impl) getParamsetsForDigests(ctx context.Context, inputs []stageTwoResu
 // addRightTraces finds the traces that draw the given digests. We do not need to consider the
 // ignore rules or other search constraints because those only apply to the search results
 // (that is, the left side).
-func (s *Impl) addRightTraces(ctx context.Context, digests []schema.DigestBytes) (map[types.Digest][]schema.TraceID, error) {
+func (s *Impl) addRightTraces(ctx context.Context, inputs []stageTwoResult) (map[types.Digest][]schema.TraceID, error) {
 	ctx, span := trace.StartSpan(ctx, "addRightTraces")
 	defer span.End()
-	span.AddAttributes(trace.Int64Attribute("num_right_digests", int64(len(digests))))
 
-	const statement = `SELECT DISTINCT encode(digest, 'hex') as digest, trace_id
-FROM TiledTraceDigests WHERE digest = ANY($1) AND tile_id >= $2
+	digestToTraces := map[types.Digest][]schema.TraceID{}
+	var mutex sync.Mutex
+	eg, eCtx := errgroup.WithContext(ctx)
+	totalDigests := 0
+	for _, input := range inputs {
+		groupingID := input.groupingID
+		rightDigests := input.rightDigests
+		totalDigests += len(input.rightDigests)
+		eg.Go(func() error {
+			const statement = `SELECT DISTINCT encode(digest, 'hex') AS digest, trace_id
+FROM TiledTraceDigests@grouping_digest_idx
+WHERE digest = ANY($1) AND grouping_id = $2 AND tile_id >= $3
 `
-	rows, err := s.db.Query(ctx, statement, digests, getFirstTileID(ctx))
-	if err != nil {
+			rows, err := s.db.Query(eCtx, statement, rightDigests, groupingID, getFirstTileID(ctx))
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			defer rows.Close()
+			mutex.Lock()
+			defer mutex.Unlock()
+			for rows.Next() {
+				var digest types.Digest
+				var traceID schema.TraceID
+				if err := rows.Scan(&digest, &traceID); err != nil {
+					return skerr.Wrap(err)
+				}
+				digestToTraces[digest] = append(digestToTraces[digest], traceID)
+			}
+			return nil
+		})
+	}
+	span.AddAttributes(trace.Int64Attribute("num_right_digests", int64(totalDigests)))
+	if err := eg.Wait(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	digestToTraces := map[types.Digest][]schema.TraceID{}
-	defer rows.Close()
-	for rows.Next() {
-		var digest types.Digest
-		var traceID schema.TraceID
-		if err := rows.Scan(&digest, &traceID); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		digestToTraces[digest] = append(digestToTraces[digest], traceID)
-	}
+
 	return digestToTraces, nil
 }
 
