@@ -395,116 +395,186 @@ export interface PlotSimpleSkZoomEventDetails {
   xEnd: Date;
 }
 
-export class PlotSimpleSk extends ElementSk {
-  // The location of the XBar. See the xbar property..
-  private _xbar: number;
+/**
+ * The type of zoom being done, or 'no-zoom' if no zoom is currently being done.
+ */
+export type ZoomDragType = 'no-zoom' | 'details' | 'summary'
 
-  // If true then draw dots on the traces.
+export class PlotSimpleSk extends ElementSk {
+  /** The location of the XBar. See the xbar property. */
+  private _xbar: number = -1;
+
+  /** If true then draw dots on the traces. */
   private _dots: boolean = true;
 
-  // The locations of the background bands. See bands property.
-  private _bands: number[];
+  /** The locations of the background bands. See bands property. */
+  private _bands: number[] = [];
 
-  // A map of trace names to 'true' of traces that are highlighted.
-  private _highlighted: { [key: string]: boolean };
+  /** A map of trace names to 'true' of traces that are highlighted. */
+  private _highlighted: { [key: string]: boolean } = {};
 
-  // The data we are plotting.
-  // An array of objects of this form:
-  //   {
-  //     name: key,
-  //     values: [1.0, 1.1, 0.9, ...],
-  //     detail: {
-  //       linePath: Path2D,
-  //       dotsPath: Path2D,
-  //     },
-  //     summary: {
-  //       linePath: Path2D,
-  //       dotsPath: Path2D,
-  //     },
-  //   }
-  private _lineData: LineData[];
+  /**
+   *  The data we are plotting.
+   *  An array of objects of this form:
+   *
+   *   {
+   *     name: key,
+   *     values: [1.0, 1.1, 0.9, ...],
+   *     detail: {
+   *       linePath: Path2D,
+   *       dotsPath: Path2D,
+   *     },
+   *     summary: {
+   *       linePath: Path2D,
+   *       dotsPath: Path2D,
+   *     },
+   *   }
+   */
+  private _lineData: LineData[] = [];
 
-  // An array of Date()'s the same length as the values in _lineData.
-  private _labels: Date[];
+  /** An array of Date()'s the same length as the values in _lineData. */
+  private _labels: Date[] = [];
 
-  // The current zoom, either null or an array of two values in source x
-  // coordinates, e.g. [1, 12].
-  private _zoom: ZoomRange;
+  /**
+   * The current zoom, either null or an array of two values in source x
+   * coordinates, e.g. [1, 12].
+   */
+  private _zoom: ZoomRange = null;
 
-  // The source coordinate where a zoom started.
-  private _zoomBegin: number;
+  /** The source coordinate where a zoom started. */
+  private _zoomBegin: number = 0;
 
-  // True if we are currently drag zooming, i.e. the mouse is pressed and
-  // moving over the summary.
-  private _inZoomDrag: boolean;
+  /**
+   * True if we are currently drag zooming, i.e. the mouse is pressed and moving
+   * over the summary.
+   */
+  private _inZoomDrag: ZoomDragType = 'no-zoom';
 
-  // The Canvas 2D context of the traces canvas.
-  private _ctx: CanvasRenderingContext2D | null;
+  /** The Canvas 2D context of the traces canvas. */
+  private _ctx: CanvasRenderingContext2D | null = null;
 
-  // The Canvas 2D context of the overlay canvas.
-  private _overlayCtx: CanvasRenderingContext2D | null;
+  /** The Canvas 2D context of the overlay canvas. */
+  private _overlayCtx: CanvasRenderingContext2D | null = null;
 
-  // The window.devicePixelRatio.
-  private _scale: number;
+  /** The window.devicePixelRatio. */
+  private _scale: number = 1.0;
 
-  // A copy of the clientX, clientY, and shiftKey values of mousemove events,
-  // or null if a mousemove event hasn't occurred since the last time it was
-  // processed.
-  private _mouseMoveRaw: MouseMoveRaw | null;
+  /**
+   * A copy of the clientX, clientY, and shiftKey values of mousemove events,
+   * or null if a mousemove event hasn't occurred since the last time it was
+   * processed.
+   */
+  private _mouseMoveRaw: MouseMoveRaw | null = null;
 
-  // A kdTree for all the points being displayed, in source coordinates. Is
-  // null if no traces are being displayed.
-  private _pointSearch: KDTree<SearchPoint> | null;
+  /**
+   * A kdTree for all the points being displayed, in source coordinates. Is
+   * null if no traces are being displayed.
+   */
+  private _pointSearch: KDTree<SearchPoint> | null = null;
 
-  // The closest trace point to the mouse. May be {} if no traces are
-  // displayed or the mouse hasn't moved over the canvas yet. Has the form:
-  //   {
-  //     x: x,
-  //     y: y,
-  //     name: String, // name of trace
-  //   }
-  private _hoverPt: HoverPoint;
+  /**
+   * The closest trace point to the mouse. May be {} if no traces are
+   * displayed or the mouse hasn't moved over the canvas yet. Has the form:
+   *   {
+   *     x: x,
+   *     y: y,
+   *     name: String, // name of trace
+   *   }
+   */
+  private _hoverPt: HoverPoint = {
+    x: -1,
+    y: -1,
+    name: '',
+  };
 
-  // The location of the crosshair in canvas coordinates. Of the form:
-  //   {
-  //     x: x,
-  //     y: y,
-  //     shift: Boolean,
-  //   }
-  //
-  // The value of shift is true of the shift key is being pressed while the
-  // mouse moves.
-  // }
-  private _crosshair: CrosshairPoint;
+  /**
+   * The location of the crosshair in canvas coordinates. Of the form:
+   *   {
+   *     x: x,
+   *     y: y,
+   *     shift: Boolean,
+   *   }
+   *
+   * The value of shift is true of the shift key is being pressed while the
+   * mouse moves.
+   * }
+   */
+  private _crosshair: CrosshairPoint = {
+    x: -1,
+    y: -1,
+    shift: false,
+  };
 
-  // All the info we need about the summary area.
-  private _summary: SummaryArea;
+  /** All the info we need about the summary area. */
+  private _summary: SummaryArea = {
+    rect: {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+    },
+    axis: {
+      path: new Path2D(), // Path2D.
+      labels: [], // The labels and locations to draw them. {x, y, text}.
+    },
+    range: {
+      x: d3Scale.scaleLinear(),
+      y: d3Scale.scaleLinear(),
+    },
+  };
 
-  // All the info we need about the details area.
-  private _detail: DetailArea;
+  /** All the info we need about the details area. */
+  private _detail: DetailArea = {
+    rect: {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+    },
+    axis: {
+      path: new Path2D(), // Path2D.
+      labels: [], // The labels and locations to draw them. {x, y, text}.
+    },
+    yaxis: {
+      path: new Path2D(),
+      labels: [], // The labels and locations to draw them. {x, y, text}.
+    },
+    range: {
+      x: d3Scale.scaleLinear(),
+      y: d3Scale.scaleLinear(),
+    },
+  };
 
-  // The total number of points we are displaying. Used to decide whether or
-  // not to update the details traces when zooming.
-  private _numPoints: number;
+  /**
+   * The total number of points we are displaying. Used to decide whether or not
+   * to update the details traces when zooming.
+   */
+  private _numPoints: number = 0;
 
-  // A task to rebuild the k-d search tree used for finding the closest point
-  // to the mouse. The actual value is a window.setTimer timerId or zero if no
-  // task is scheduled.
-  //
-  // See https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/
-  // for details on tasks vs microtasks.
-  private _recalcSearchTask: number;
+  /**
+   * A task to rebuild the k-d search tree used for finding the closest point
+   * to the mouse. The actual value is a window.setTimer timerId or zero if no
+   * task is scheduled.
+   *
+   * See https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/
+   * for details on tasks vs microtasks.
+   */
+  private _recalcSearchTask: number = 0;
 
-  // A task to do the actual re-draw work of a zoom. The actual value is a
-  // window.setTimer timerId or zero if no task is scheduled.
-  //
-  // See https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/
-  // for details on tasks vs microtasks.
-  private _zoomTask: number;
+  /**
+   * A task to do the actual re-draw work of a zoom. The actual value is a
+   * window.setTimer timerId or zero if no task is scheduled.
+   *
+   * See https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/
+   * for details on tasks vs microtasks.
+   */
+  private _zoomTask: number = 0;
 
-  // A formatter that prints numbers nicely, such as adding commas. Used when
-  // display the hover text.
-  private _numberFormatter: Intl.NumberFormat;
+  /**
+   * A formatter that prints numbers nicely, such as adding commas. Used when
+   * display the hover text.
+   */
+  private _numberFormatter: Intl.NumberFormat = new Intl.NumberFormat();
 
   private SUMMARY_HEIGHT!: number; // px
 
@@ -545,154 +615,6 @@ export class PlotSimpleSk extends ElementSk {
   constructor() {
     super(PlotSimpleSk.template);
 
-    // The location of the XBar. See the xbar property..
-    this._xbar = -1;
-
-    // The locations of the background bands. See bands property.
-    this._bands = [];
-
-    // A map of trace names to 'true' of traces that are highlighted.
-    this._highlighted = {};
-
-    // The data we are plotting.
-    // An array of objects of this form:
-    //   {
-    //     name: key,
-    //     values: [1.0, 1.1, 0.9, ...],
-    //     detail: {
-    //       linePath: Path2D,
-    //       dotsPath: Path2D,
-    //     },
-    //     summary: {
-    //       linePath: Path2D,
-    //       dotsPath: Path2D,
-    //     },
-    //   }
-    this._lineData = [];
-
-    // An array of Date()'s the same length as the values in _lineData.
-    this._labels = [];
-
-    // The current zoom, either null or an array of two values in source x
-    // coordinates, e.g. [1, 12].
-    this._zoom = null;
-
-    // True if we are currently drag zooming, i.e. the mouse is pressed and
-    // moving over the summary.
-    this._inZoomDrag = false;
-
-    this._zoomBegin = 0;
-
-    // The Canvas 2D context of the traces canvas.
-    this._ctx = null;
-
-    // The Canvas 2D context of the overlay canvas.
-    this._overlayCtx = null;
-
-    // The window.devicePixelRatio.
-    this._scale = 1.0;
-
-    // A copy of the clientX, clientY, and shiftKey values of mousemove events,
-    // or null if a mousemove event hasn't occurred since the last time it was
-    // processed.
-    this._mouseMoveRaw = null;
-
-    // A kdTree for all the points being displayed, in source coordinates. Is
-    // null if no traces are being displayed.
-    this._pointSearch = null;
-
-    // The closest trace point to the mouse. May be {} if no traces are
-    // displayed or the mouse hasn't moved over the canvas yet. Has the form:
-    //   {
-    //     x: x,
-    //     y: y,
-    //     name: String, // name of trace
-    //   }
-    this._hoverPt = {
-      x: -1,
-      y: -1,
-      name: '',
-    };
-
-    // The location of the crosshair in canvas coordinates. Of the form:
-    //   {
-    //     x: x,
-    //     y: y,
-    //     shift: Boolean,
-    //   }
-    //
-    // The value of shift is true of the shift key is being pressed while the
-    // mouse moves.
-    // }
-    this._crosshair = {
-      x: -1,
-      y: -1,
-      shift: false,
-    };
-
-    // All the info we need about the summary area.
-    this._summary = {
-      rect: {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-      },
-      axis: {
-        path: new Path2D(), // Path2D.
-        labels: [], // The labels and locations to draw them. {x, y, text}.
-      },
-      range: {
-        x: d3Scale.scaleLinear(),
-        y: d3Scale.scaleLinear(),
-      },
-    };
-
-    // All the info we need about the details area.
-    this._detail = {
-      rect: {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-      },
-      axis: {
-        path: new Path2D(), // Path2D.
-        labels: [], // The labels and locations to draw them. {x, y, text}.
-      },
-      yaxis: {
-        path: new Path2D(),
-        labels: [], // The labels and locations to draw them. {x, y, text}.
-      },
-      range: {
-        x: d3Scale.scaleLinear(),
-        y: d3Scale.scaleLinear(),
-      },
-    };
-
-    // The total number of points we are displaying. Used to decide whether or
-    // not to update the details traces when zooming.
-    this._numPoints = 0;
-
-    // A task to rebuild the k-d search tree used for finding the closest point
-    // to the mouse. The actual value is a window.setTimer timerId or zero if no
-    // task is scheduled.
-    //
-    // See https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/
-    // for details on tasks vs microtasks.
-    this._recalcSearchTask = 0;
-
-    // A task to do the actual re-draw work of a zoom. The actual value is a
-    // window.setTimer timerId or zero if no task is scheduled.
-    //
-    // See https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/
-    // for details on tasks vs microtasks.
-    this._zoomTask = 0;
-
-    // A formatter that prints numbers nicely, such as adding commas. Used when
-    // display the hover text.
-    this._numberFormatter = new Intl.NumberFormat();
-
     this._upgradeProperty('width');
     this._upgradeProperty('height');
     this._upgradeProperty('bands');
@@ -702,7 +624,6 @@ export class PlotSimpleSk extends ElementSk {
 
     this._updateScaledMeasurements();
   }
-
 
   // Note that in both of the canvas elements we are setting a CSS transform that
   // takes into account window.devicePixelRatio, that is, we are drawing to a
@@ -725,7 +646,6 @@ export class PlotSimpleSk extends ElementSk {
       / window.devicePixelRatio});"
     ></canvas>
   `;
-
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -756,24 +676,24 @@ export class PlotSimpleSk extends ElementSk {
       // If you click in the summary area then begin zooming via drag.
       if (inRect(pt, this._summary.rect!)) {
         const zx = this._summary.range.x.invert(pt.x);
-        this._inZoomDrag = true;
+        this._inZoomDrag = 'summary';
         this._zoomBegin = zx;
         this.zoom = [zx, zx + 0.01]; // Add a smidge to the second zx to avoid a degenerate detail plot.
       }
     });
 
     this.addEventListener('mouseup', () => {
-      if (this._inZoomDrag) {
+      if (this._inZoomDrag !== 'no-zoom') {
         this._dispatchZoomEvent();
       }
-      this._inZoomDrag = false;
+      this._inZoomDrag = 'no-zoom';
     });
 
     this.addEventListener('mouseleave', () => {
-      if (this._inZoomDrag) {
+      if (this._inZoomDrag !== 'no-zoom') {
         this._dispatchZoomEvent();
       }
-      this._inZoomDrag = false;
+      this._inZoomDrag = 'no-zoom';
     });
 
     this.addEventListener('click', (e) => {
@@ -933,7 +853,7 @@ export class PlotSimpleSk extends ElementSk {
     this._highlighted = {};
     this._xbar = -1;
     this._zoom = null;
-    this._inZoomDrag = false;
+    this._inZoomDrag = 'no-zoom';
     this._numPoints = 0;
     this._drawTracesCanvas();
   }
@@ -1074,7 +994,7 @@ export class PlotSimpleSk extends ElementSk {
     if (this._mouseMoveRaw === null) {
       return;
     }
-    if (this._inZoomDrag === false) {
+    if (this._inZoomDrag === 'no-zoom') {
       const pt = this._eventToCanvasPt(this._mouseMoveRaw);
 
       // Update _hoverPt if needed.
@@ -1130,7 +1050,6 @@ export class PlotSimpleSk extends ElementSk {
     }
   }
 
-
   /**
    * This is a super simple hash (h = h * 31 + x_i) currently used
    * for things like assigning colors to graphs based on trace ids. It
@@ -1149,7 +1068,6 @@ export class PlotSimpleSk extends ElementSk {
     }
     return Math.abs(hash);
   }
-
 
   private _updateCount() {
     this._numPoints = 0;
@@ -1482,7 +1400,7 @@ export class PlotSimpleSk extends ElementSk {
         }
       }
 
-      if (!this._inZoomDrag) {
+      if (this._inZoomDrag === 'no-zoom') {
         // Draw the crosshairs.
         ctx.strokeStyle = this.CROSSHAIR_COLOR;
         ctx.lineWidth = AXIS_LINE_WIDTH;
@@ -1583,7 +1501,7 @@ export class PlotSimpleSk extends ElementSk {
     const height = this._ctx!.canvas.height;
     const ctx = this._ctx!;
 
-    if (this._inZoomDrag) {
+    if (this._inZoomDrag !== 'no-zoom') {
       ctx.clearRect(
         this._detail.rect.x - this.MARGIN,
         this._detail.rect.y - this.MARGIN,
@@ -1616,7 +1534,7 @@ export class PlotSimpleSk extends ElementSk {
     ctx.restore();
     this._drawXAxis(ctx, this._detail);
 
-    if (!this._inZoomDrag && this.summary) {
+    if (this._inZoomDrag === 'no-zoom' && this.summary) {
       // Draw the summary.
       ctx.save();
       {
@@ -1670,7 +1588,6 @@ export class PlotSimpleSk extends ElementSk {
     });
   }
 
-
   /**
    *  An array of trace ids to highlight. Set to [] to remove all highlighting.
    */
@@ -1698,7 +1615,6 @@ export class PlotSimpleSk extends ElementSk {
     this._xbar = value;
     this._drawOverlayCanvas();
   }
-
 
   /**
    * A list of x source offsets to place vertical markers. into labels. Can be
