@@ -19,7 +19,7 @@ if git status > /dev/null 2> /dev/null; then
   # Based on:
   # https://skia.googlesource.com/buildbot/+/cdbd6dc7cd9e06604042bb53a6179a77b4c83c25/bash/docker_build.sh#53
   STABLE_GIT_STATUS=clean
-  # Detect if we have unchecked in local changes, or if we're not on the master branch (possibly at
+  # Detect if we have unchecked in local changes, or if we're not on the main branch (possibly at
   # an older revision).
   git fetch > /dev/null
   # diff-index requires update-index --refresh; see:
@@ -28,8 +28,8 @@ if git status > /dev/null 2> /dev/null; then
     if ! git diff-index --quiet HEAD -- ; then
       # Repository is dirty due to modified files.
       STABLE_GIT_STATUS=dirty
-    elif ! git merge-base --is-ancestor HEAD origin/master ; then
-      # Repository is dirty because we're not on the master branch (possibly an older revision).
+    elif ! git merge-base --is-ancestor HEAD origin/main ; then
+      # Repository is dirty because we're not on the main branch (possibly an older revision).
       STABLE_GIT_STATUS=dirty
     fi
   else
