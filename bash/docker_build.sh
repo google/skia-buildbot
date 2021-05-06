@@ -52,7 +52,7 @@ HASH=`git rev-parse HEAD`
 
 # Determine repo state.
 REPO_STATE=clean
-# Detect if we have unchecked in local changes, or if we're not on the master
+# Detect if we have unchecked in local changes, or if we're not on the main
 # branch (possibly at an older revision).
 git fetch
 # diff-index requires update-index --refresh; see:
@@ -62,7 +62,7 @@ if git update-index --refresh ; then
     REPO_STATE=dirty
     echo "Setting DIRTY=true due to modified files:"
     echo "$(git diff-index --name-status HEAD --)"
-  elif ! git merge-base --is-ancestor HEAD origin/master ; then
+  elif ! git merge-base --is-ancestor HEAD origin/main ; then
     REPO_STATE=dirty
     echo "Setting DIRTY=true due to current branch: " \
       "$(git rev-parse --abbrev-ref HEAD)"
