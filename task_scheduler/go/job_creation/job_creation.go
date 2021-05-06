@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/cas"
@@ -186,12 +187,15 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 		}
 		cfg, err := jc.cacher.GetOrCacheRepoState(ctx, rs)
 		if err != nil {
-			if specs.ErrorIsPermanent(err) {
+			if cacher.IsCachedError(err) {
 				// If we return an error here, we'll never
 				// recover from bad commits.
-				// TODO(borenet): We should consider canceling the jobs
-				// (how?) since we can never fulfill them.
-				sklog.Errorf("Failed to obtain new jobs due to permanent error: %s", err)
+				sklog.Warningf("Repo %s @ %s has a permanent cached error which prevents jobs from being scheduled at this commit. Skipping.", rs.Repo, rs.Revision)
+				errSplit := strings.Split(err.Error(), "\n")
+				if len(errSplit) > 50 {
+					errSplit = errSplit[len(errSplit)-50:]
+				}
+				sklog.Debugf("Last 50 lines of error: %s", strings.Join(errSplit, "\n"))
 				return nil
 			}
 			return skerr.Wrap(err)
@@ -359,7 +363,16 @@ func (jc *JobCreator) initCaches(ctx context.Context) error {
 		rs := rs // https://golang.org/doc/faq#closures_and_goroutines
 		g.Go(func() error {
 			if _, err := jc.cacher.GetOrCacheRepoState(ctx, rs); err != nil {
-				return fmt.Errorf("Failed to cache RepoState: %s", err)
+				if cacher.IsCachedError(err) {
+					// Returning an error here would cause the app to repeatedly
+					// fail to start, and since the error is permanent, retries
+					// wouldn't help us.  Note that there was an error in the
+					// log, but don't log the error itself, which is typically
+					// very long.
+					sklog.Errorf("Have cached error for RepoState %s", rs.RowKey())
+				} else {
+					return fmt.Errorf("Failed to cache RepoState: %s", err)
+				}
 			}
 			return nil
 		})

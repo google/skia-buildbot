@@ -13,6 +13,22 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
+// CachedError
+type CachedError struct {
+	err error
+}
+
+// Error implements error.
+func (e *CachedError) Error() string {
+	return e.err.Error()
+}
+
+// IsCachedError returns true if the given error is a CachedError.
+func IsCachedError(err error) bool {
+	_, ok := err.(*CachedError)
+	return ok
+}
+
 // Cacher is a struct which handles insertion of data for RepoStates into
 // various caches used by Task Scheduler. It ensures that we only sync to a
 // given RepoState once (barring transient errors).
@@ -76,7 +92,7 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 		return nil, skerr.Wrap(err)
 	}
 	if cv.Err != "" {
-		return nil, skerr.Fmt(cv.Err)
+		return nil, &CachedError{err: skerr.Fmt(cv.Err)}
 	}
 	return cv.Cfg, nil
 }
