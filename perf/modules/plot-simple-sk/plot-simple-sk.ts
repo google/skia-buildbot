@@ -119,6 +119,8 @@ const DETAIL_LINE_WIDTH = 1; // px
 
 const AXIS_LINE_WIDTH = 1; // px
 
+const MIN_MOUSE_MOVE_FOR_ZOOM = 5; // px
+
 // As backup use a Polyfill for ResizeObserver if it isn't supported. This can
 // go away when Safari supports ResizeObserver:
 // https://caniuse.com/#feat=resizeobserver
@@ -222,6 +224,13 @@ interface Rect extends Point {
   width: number;
   height: number;
 }
+
+const defaultRect: Rect = {
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0,
+};
 
 interface SearchPoint extends Point {
   // Source coordinates.
@@ -443,6 +452,12 @@ export class PlotSimpleSk extends ElementSk {
 
   /** The source coordinate where a zoom started. */
   private _zoomBegin: number = 0;
+
+  /** The zoom rectangle on the details region. Stored in destination units. */
+  private zoomRect: Rect = defaultRect;
+
+  /** The extent of the zoom rectangle in domain units, or null if there is no rect zoom. */
+  private detailsZoomRange: Rect | null = null;
 
   /**
    * True if we are currently drag zooming, i.e. the mouse is pressed and moving
@@ -679,12 +694,25 @@ export class PlotSimpleSk extends ElementSk {
         this._inZoomDrag = 'summary';
         this._zoomBegin = zx;
         this.zoom = [zx, zx + 0.01]; // Add a smidge to the second zx to avoid a degenerate detail plot.
+        this.detailsZoomRange = null; // Clear any zooms in the details region.
+      }
+      if (inRect(pt, this._detail.rect!)) {
+        this._inZoomDrag = 'details';
+        this.zoomRect = {
+          x: pt.x,
+          y: pt.y,
+          width: 0,
+          height: 0,
+        };
       }
     });
 
     this.addEventListener('mouseup', () => {
       if (this._inZoomDrag !== 'no-zoom') {
         this._dispatchZoomEvent();
+      }
+      if (this._inZoomDrag === 'details') {
+        this.doDetailsZoom();
       }
       this._inZoomDrag = 'no-zoom';
     });
@@ -693,7 +721,20 @@ export class PlotSimpleSk extends ElementSk {
       if (this._inZoomDrag !== 'no-zoom') {
         this._dispatchZoomEvent();
       }
+      if (this._inZoomDrag === 'details') {
+        this.doDetailsZoom();
+      }
       this._inZoomDrag = 'no-zoom';
+    });
+
+    this.addEventListener('wheel', (e: WheelEvent) => {
+      // If the wheel is spun while we are zoomed then remove the zoom.
+      if (this.detailsZoomRange) {
+        e.stopPropagation();
+        e.preventDefault();
+        this.detailsZoomRange = null;
+        this._zoomImpl();
+      }
     });
 
     this.addEventListener('click', (e) => {
@@ -854,6 +895,7 @@ export class PlotSimpleSk extends ElementSk {
     this._xbar = -1;
     this._zoom = null;
     this._inZoomDrag = 'no-zoom';
+    this.detailsZoomRange = null;
     this._numPoints = 0;
     this._drawTracesCanvas();
   }
@@ -1032,21 +1074,29 @@ export class PlotSimpleSk extends ElementSk {
         };
       }
       this._drawOverlayCanvas();
-      this._mouseMoveRaw = null;
     } else {
       // We are zooming.
       const pt = this._eventToCanvasPt(this._mouseMoveRaw);
-      clampToRect(pt, this._summary.rect);
 
-      // x in source coordinates.
-      const sx = this._summary.range.x.invert(pt.x);
+      if (this._inZoomDrag === 'summary') {
+        clampToRect(pt, this._summary.rect);
 
-      // Set zoom, always making sure we go from lowest to highest.
-      let zoom: ZoomRange = [this._zoomBegin, sx];
-      if (this._zoomBegin > sx) {
-        zoom = [sx, this._zoomBegin];
+        // x in source coordinates.
+        const sx = this._summary.range.x.invert(pt.x);
+
+        // Set zoom, always making sure we go from lowest to highest.
+        let zoom: ZoomRange = [this._zoomBegin, sx];
+        if (this._zoomBegin > sx) {
+          zoom = [sx, this._zoomBegin];
+        }
+        this.zoom = zoom;
+      } else if (this._inZoomDrag === 'details') {
+        clampToRect(pt, this._detail.rect);
+        this.zoomRect.width = pt.x - this.zoomRect.x;
+        this.zoomRect.height = pt.y - this.zoomRect.y;
+        this._drawOverlayCanvas();
       }
-      this.zoom = zoom;
+      this._mouseMoveRaw = null;
     }
   }
 
@@ -1249,6 +1299,12 @@ export class PlotSimpleSk extends ElementSk {
     this._detail.range.y = this._detail.range.y.domain(domain).nice();
 
     this._summary.range.y = this._summary.range.y.domain(domain);
+
+    // If this.detailsZoomRange is not null then it over-rides the detail range.
+    if (this.detailsZoomRange) {
+      this._detail.range.x = this._detail.range.x.domain([this.detailsZoomRange.x, this.detailsZoomRange.x + this.detailsZoomRange.width]);
+      this._detail.range.y = this._detail.range.y.domain([this.detailsZoomRange.y, this.detailsZoomRange.y + this.detailsZoomRange.height]);
+    }
   }
 
   // Updates all of our d3Scale ranges. Also updates detail and summary rects.
@@ -1289,6 +1345,38 @@ export class PlotSimpleSk extends ElementSk {
       width: width - this.MARGIN - this.LEFT_MARGIN,
       height: height - this.SUMMARY_HEIGHT - 3 * this.MARGIN,
     };
+  }
+
+  private doDetailsZoom() {
+    // Don't actually do the zoom if the box isn't big enough.
+    if (
+      Math.abs(this.zoomRect.width) < MIN_MOUSE_MOVE_FOR_ZOOM
+      || Math.abs(this.zoomRect.height) < MIN_MOUSE_MOVE_FOR_ZOOM
+    ) {
+      return;
+    }
+    let left = this.zoomRect.x;
+    let top = this.zoomRect.y;
+    let right = this.zoomRect.x + this.zoomRect.width;
+    let bottom = this.zoomRect.y + this.zoomRect.height;
+    if (right < left) {
+      [left, right] = [right, left];
+    }
+    // We do this backwards since range.y then does a second direction reversal,
+    // i.e. Canvas y-axis is in the opposite direction of the y-axis we use in
+    // the data units.
+    if (top < bottom) {
+      [bottom, top] = [top, bottom];
+    }
+
+    this.detailsZoomRange = {
+      x: this._detail.range.x.invert(left),
+      y: this._detail.range.y.invert(top),
+      width: this._detail.range.x.invert(right) - this._detail.range.x.invert(left),
+      height: this._detail.range.y.invert(bottom) - this._detail.range.y.invert(top),
+    };
+    this._inZoomDrag = 'no-zoom';
+    this._zoomImpl();
   }
 
   // Draw the contents of the overlay canvas.
@@ -1400,7 +1488,9 @@ export class PlotSimpleSk extends ElementSk {
         }
       }
 
-      if (this._inZoomDrag === 'no-zoom') {
+      if (this._inZoomDrag === 'details') {
+        this.drawZoomRect(ctx, this.zoomRect);
+      } else if (this._inZoomDrag === 'no-zoom') {
         // Draw the crosshairs.
         ctx.strokeStyle = this.CROSSHAIR_COLOR;
         ctx.lineWidth = AXIS_LINE_WIDTH;
@@ -1461,6 +1551,16 @@ export class PlotSimpleSk extends ElementSk {
       }
     }
     ctx.restore();
+  }
+
+  // Draw a dashed rectangle for the details zoom.
+  private drawZoomRect(ctx: CanvasRenderingContext2D, rect: Rect) {
+    ctx.strokeStyle = this.LABEL_COLOR;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.rect(rect.x, rect.y, rect.width, rect.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
 
   // Draw the xbar in the given area with the given width.
