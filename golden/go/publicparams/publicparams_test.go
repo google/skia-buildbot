@@ -28,17 +28,6 @@ const (
 
 	testOne = "test1"
 	testTwo = "test2"
-
-	// jsonConfig is valid JSON that can be used to create a Matcher. It uses the above string
-	// constants in a way consistent with real-world data.
-	jsonConfig = `
-{
-  "alpha": {},
-  "beta": {
-    "model": ["model1", "model2"],
-    "sdk": ["sdk1", "sdk2", "sdk3"]
-  }
-}`
 )
 
 var (
@@ -67,9 +56,15 @@ var (
 	knownModelSDK_EmptyCorpus_False = paramtools.Params{corpus: "", model: modelOne, sdk: sdkTwo, test: testOne}
 )
 
-func TestMatcherFromJSON_ValidConfig_RulesAreFollowed(t *testing.T) {
+func TestMatcherFromRules_ValidConfig_RulesAreFollowed(t *testing.T) {
 	unittest.SmallTest(t)
-	m, err := MatcherFromJSON([]byte(jsonConfig))
+	m, err := MatcherFromRules(MatchingRules{
+		"alpha": {},
+		"beta": {
+			"model": {"model1", "model2"},
+			"sdk":   {"sdk1", "sdk2", "sdk3"},
+		},
+	})
 	require.NoError(t, err)
 
 	assert.True(t, m.Matches(knownCorpus_True))
@@ -89,23 +84,18 @@ func TestMatcherFromJSON_ValidConfig_RulesAreFollowed(t *testing.T) {
 	assert.False(t, m.Matches(nil))
 }
 
-func TestMatcherFromJSON_EmptyConfig_ReturnsError(t *testing.T) {
+func TestMatcherFromRules_EmptyConfig_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
-	_, err := MatcherFromJSON([]byte("{}"))
+	_, err := MatcherFromRules(MatchingRules{})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "No rules detected")
 }
 
-func TestMatcherFromJSON_EmptyCorpus_ReturnsError(t *testing.T) {
+func TestMatcherFromRules_EmptyCorpus_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
-	_, err := MatcherFromJSON([]byte(`{"":{}}`))
+	_, err := MatcherFromRules(MatchingRules{
+		"": {},
+	})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "empty")
-}
-
-func TestMatcherFromJSON_InvalidJSON_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
-	_, err := MatcherFromJSON([]byte("This is not JSON"))
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid")
 }

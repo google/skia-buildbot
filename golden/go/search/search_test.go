@@ -1312,12 +1312,11 @@ func TestDigestDetails_NewTestOnChangelist_WithPublicParams_Success(t *testing.T
 		},
 	}, nil)
 
-	publicMatcher, err := publicparams.MatcherFromJSON([]byte(`
-{
-  "gm": {
-    "os": ["Android"],
-  }
-}`))
+	publicMatcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
+		"gm": {
+			"os": {"Android"},
+		},
+	})
 	require.NoError(t, err)
 
 	reviewSystems := []clstore.ReviewSystem{

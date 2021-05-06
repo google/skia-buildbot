@@ -1,7 +1,6 @@
 package publicparams
 
 import (
-	"github.com/flynn/json5"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/types"
@@ -54,20 +53,6 @@ func (m paramMatcher) Matches(traceParams paramtools.Params) bool {
 		}
 	}
 	return true
-}
-
-// MatcherFromJSON creates a param matcher from a JSON map. The top level keys in this map are
-// the publicly viewable corpora. The values for those corpora is another map of required keys
-// and their corresponding allowed values. If a trace belonging to a given corpus has all of the
-// required keys and the corresponding values are in the list of allowed values, then it will
-// be publicly visible. Otherwise, it will not be. See publicparams_test.go for a concrete example.
-// TODO(kjlubick) remove in favor of MatcherFromRules
-func MatcherFromJSON(jsonBytes []byte) (*paramMatcher, error) {
-	var rules MatchingRules
-	if err := json5.Unmarshal(jsonBytes, &rules); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return MatcherFromRules(rules)
 }
 
 // MatcherFromRules creates a param matcher from a map of rules. The top level keys in this map are
