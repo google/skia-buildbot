@@ -63,7 +63,6 @@ import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 import { MISSING_DATA_SENTINEL } from '../plot-simple-sk/plot-simple-sk';
 import { messageByName, messagesToErrorString, startRequest } from '../progress/progress';
 
-
 // The trace id of the zero line, a trace of all zeros.
 const ZERO_NAME = 'special_zero';
 
@@ -234,7 +233,6 @@ export class ExploreSk extends ElementSk {
 
   // All the data converted into a CVS blob to download.
   private _csvBlobURL: string = '';
-
 
   private _initialized: boolean = false;
 
@@ -423,6 +421,8 @@ export class ExploreSk extends ElementSk {
       <tr><td class=mono>Hover</td><td>Snap crosshair to closest point.</td></tr>
       <tr><td class=mono>Shift + Hover</td><td>Highlight closest trace.</td></tr>
       <tr><td class=mono>Click</td><td>Select closest point.</td></tr>
+      <tr><td class=mono>Drag</td><td>Zoom into rectangular region.</td></tr>
+      <tr><td class=mono>Wheel</td><td>Remove rectangular zoom.</td></tr>
       <tr><td colspan=2><h3>Keyboard Controls</h3></td></tr>
       <tr><td class=mono>'w'/'s'</td><td>Zoom in/out.<sup>1</sup></td></tr>
       <tr><td class=mono>'a'/'d'</td><td>Pan left/right.<sup>1</sup></td></tr>
