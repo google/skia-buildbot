@@ -13,6 +13,7 @@ Please triage them using one of the following links before submitting:\n\
 If all the trybots passed and you don't expect your CL to have any effect on browser UI, you can likely ignore this message.\n\
 See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8FFvY3YF-6BT4Mqgrb9U40t0HMfEVSSEpNs/edit?usp=sharing\n",
   client_secret_file: "/etc/skia.org/login.json",
+  disable_cl_comments: true,
   disable_sql_exp_cl: true,
   flaky_trace_threshold: 2, // traces creating 3 or more unique digests are flaky.
   force_login: true, // This instance requires authentication. It has a public view (chrome-public)
