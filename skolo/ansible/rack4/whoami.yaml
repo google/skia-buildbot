@@ -1,0 +1,5 @@
+- name: who
+  hosts: rack4_trial_run
+  tasks:
+    - name: uname
+      command: uname -a
