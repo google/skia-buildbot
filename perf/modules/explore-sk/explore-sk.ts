@@ -63,7 +63,6 @@ import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 import { MISSING_DATA_SENTINEL } from '../plot-simple-sk/plot-simple-sk';
 import { messageByName, messagesToErrorString, startRequest } from '../progress/progress';
 
-
 // The trace id of the zero line, a trace of all zeros.
 const ZERO_NAME = 'special_zero';
 
@@ -234,7 +233,6 @@ export class ExploreSk extends ElementSk {
 
   // All the data converted into a CVS blob to download.
   private _csvBlobURL: string = '';
-
 
   private _initialized: boolean = false;
 
