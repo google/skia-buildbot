@@ -10,7 +10,6 @@ go_library(
         "//go/paramtools",
         "//go/skerr",
         "//golden/go/types",
-        "@com_github_flynn_json5//:json5",
     ],
 )
 
