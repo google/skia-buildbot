@@ -244,7 +244,7 @@ func main() {
 
 	mustStartExpectationsCleanupProcess(ctx, fsc, cleaner, ixr)
 
-	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB)
+	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB, publiclyViewableParams)
 
 	handlers := mustMakeWebHandlers(ctx, sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, s2a, statusWatcher, tileSource, tjs)
 
@@ -255,7 +255,7 @@ func main() {
 	sklog.Fatal(http.ListenAndServe(fsc.ReadyPort, rootRouter))
 }
 
-func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pgxpool.Pool) *search2.Impl {
+func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pgxpool.Pool, publiclyViewableParams publicparams.Matcher) *search2.Impl {
 	s2a := search2.New(sqlDB, fsc.NumCommits)
 	err := s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.NumCommits)
 	if err != nil {
@@ -263,6 +263,12 @@ func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pg
 	}
 	if err := s2a.StartMaterializedViews(ctx, fsc.MaterializedViewCorpora, 5*time.Minute); err != nil {
 		sklog.Fatalf("Cannot create materialized views %s: %s", fsc.MaterializedViewCorpora, err)
+	}
+	if fsc.IsPublicView {
+		if err := s2a.StartApplyingPublicParams(ctx, publiclyViewableParams, 5*time.Minute); err != nil {
+			sklog.Fatalf("Could not apply public params: %s", err)
+		}
+		sklog.Infof("Public params applied to search2")
 	}
 	return s2a
 }
@@ -841,10 +847,7 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	add("/json/v1/paramset", handlers.ParamsHandler, "GET")
 	add("/json/search", handlers.SearchHandler, "GET")
 	add("/json/v1/search", handlers.SearchHandler, "GET")
-	if !fsc.IsPublicView {
-		// Search2 API doesn't support public view yet
-		add("/json/v2/search", handlers.SearchHandler2, "GET")
-	}
+	add("/json/v2/search", handlers.SearchHandler2, "GET")
 	add("/json/triage", handlers.TriageHandler, "POST")
 	add("/json/v1/triage", handlers.TriageHandler, "POST")
 	add("/json/triagelog", handlers.TriageLogHandler, "GET")
