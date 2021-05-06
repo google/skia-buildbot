@@ -29,14 +29,14 @@ describe('email-chooser-sk', () => {
       await takeScreenshot(testBed.page, 'am', 'email-chooser-sk');
     });
 
+    it('shows that unassigned is selected', async () => {
+      await testBed.page.click('email-chooser-sk option:nth-child(1)');
+      await takeScreenshot(testBed.page, 'am', 'email-chooser-sk_unassigned-selected');
+    });
+
     it('shows that a non-owner is selected', async () => {
       await testBed.page.click('email-chooser-sk option:nth-child(2)');
       await takeScreenshot(testBed.page, 'am', 'email-chooser-sk_non-owner-selected');
-    });
-
-    it('shows that the owner is selected', async () => {
-      await testBed.page.click('email-chooser-sk option:nth-child(3)');
-      await takeScreenshot(testBed.page, 'am', 'email-chooser-sk_owner-selected');
     });
   });
 });
