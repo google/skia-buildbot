@@ -456,8 +456,31 @@ export class PlotSimpleSk extends ElementSk {
   /** The zoom rectangle on the details region. Stored in destination units. */
   private zoomRect: Rect = defaultRect;
 
-  /** The extent of the zoom rectangle in domain units, or null if there is no rect zoom. */
-  private detailsZoomRange: Rect | null = null;
+  /**
+   * detailsZoomRangesStack and inactiveZoomRangesStack work together to manage
+   * a stack of zoom levels. As new zoom ranges are dragged out they are pushed
+   * onto detailsZoomRangesStack, and as the mouse wheel is turned we push/pop
+   * zoom ranges between detailsZoomRangesStack and inactiveZoomRangesStack.
+   * Scroll up means to zoom in, so we pop a rect off the inactive stack and
+   * push it on the active stack. Scrolling down means to zoom out, so we do the
+   * reverse, pop of the active stack and push it onto the inactive stack.
+   *
+   * When plotting we only look at the top of the active stack, i.e. the end of
+   * detailsZoomRangesStack.
+   *
+   * detailsZoomRangesStack is a stack of zoom ranges, each zoom range in the
+   * stack represents a smaller area than the zoom range below it on the stack.
+   * Zoom ranges are stored in domain units.
+   */
+  private detailsZoomRangesStack: Rect[] = [];
+
+  /**
+   * As we use the mouse wheel to move through zooms we store the ones we've
+   * popped off of detailsZoomRangesStack here.
+   *
+   * Zoom ranges are stored in domain units.
+   */
+  private inactiveDetailsZoomRangesStack: Rect[] = [];
 
   /**
    * True if we are currently drag zooming, i.e. the mouse is pressed and moving
@@ -694,7 +717,10 @@ export class PlotSimpleSk extends ElementSk {
         this._inZoomDrag = 'summary';
         this._zoomBegin = zx;
         this.zoom = [zx, zx + 0.01]; // Add a smidge to the second zx to avoid a degenerate detail plot.
-        this.detailsZoomRange = null; // Clear any zooms in the details region.
+
+        // Zooming via the summary area clears all details area zooms.
+        this.detailsZoomRangesStack = [];
+        this.inactiveDetailsZoomRangesStack = [];
       }
       if (inRect(pt, this._detail.rect!)) {
         this._inZoomDrag = 'details';
@@ -728,11 +754,26 @@ export class PlotSimpleSk extends ElementSk {
     });
 
     this.addEventListener('wheel', (e: WheelEvent) => {
-      // If the wheel is spun while we are zoomed then remove the zoom.
-      if (this.detailsZoomRange) {
-        e.stopPropagation();
-        e.preventDefault();
-        this.detailsZoomRange = null;
+      e.stopPropagation();
+      e.preventDefault();
+      // If the wheel is spun while we are zoomed then move through the stack of
+      // zoom ranges.
+      if (this.detailsZoomRangesStack) {
+        // Scrolling up on the scroll wheel gives e.deltaY a negative value. Up
+        // means to scroll in, which means we want to take a rect from
+        // inactiveDetailsZoomRangesStack and make it active by pushing it on
+        // detailsZoomRangesStack. Down reverses the push/pop direction.
+        if (e.deltaY < 0) {
+          if (this.inactiveDetailsZoomRangesStack.length === 0) {
+            return;
+          }
+          this.detailsZoomRangesStack.push(this.inactiveDetailsZoomRangesStack.pop()!);
+        } else {
+          if (this.detailsZoomRangesStack.length === 0) {
+            return;
+          }
+          this.inactiveDetailsZoomRangesStack.push(this.detailsZoomRangesStack.pop()!);
+        }
         this._zoomImpl();
       }
     });
@@ -895,7 +936,8 @@ export class PlotSimpleSk extends ElementSk {
     this._xbar = -1;
     this._zoom = null;
     this._inZoomDrag = 'no-zoom';
-    this.detailsZoomRange = null;
+    this.detailsZoomRangesStack = [];
+    this.inactiveDetailsZoomRangesStack = [];
     this._numPoints = 0;
     this._drawTracesCanvas();
   }
@@ -1300,10 +1342,12 @@ export class PlotSimpleSk extends ElementSk {
 
     this._summary.range.y = this._summary.range.y.domain(domain);
 
-    // If this.detailsZoomRange is not null then it over-rides the detail range.
-    if (this.detailsZoomRange) {
-      this._detail.range.x = this._detail.range.x.domain([this.detailsZoomRange.x, this.detailsZoomRange.x + this.detailsZoomRange.width]);
-      this._detail.range.y = this._detail.range.y.domain([this.detailsZoomRange.y, this.detailsZoomRange.y + this.detailsZoomRange.height]);
+    // If detailsZoomRangeStacks is not empty then it overrides the detail
+    // range.
+    if (this.detailsZoomRangesStack.length > 0) {
+      const zoom = this.detailsZoomRangesStack[this.detailsZoomRangesStack.length - 1];
+      this._detail.range.x = this._detail.range.x.domain([zoom.x, zoom.x + zoom.width]);
+      this._detail.range.y = this._detail.range.y.domain([zoom.y, zoom.y + zoom.height]);
     }
   }
 
@@ -1369,12 +1413,16 @@ export class PlotSimpleSk extends ElementSk {
       [bottom, top] = [top, bottom];
     }
 
-    this.detailsZoomRange = {
+    this.detailsZoomRangesStack.push({
       x: this._detail.range.x.invert(left),
       y: this._detail.range.y.invert(top),
       width: this._detail.range.x.invert(right) - this._detail.range.x.invert(left),
       height: this._detail.range.y.invert(bottom) - this._detail.range.y.invert(top),
-    };
+    });
+
+    // We added a new zoom range, which means all the inactive zoom ranges are
+    // no longer valid.
+    this.inactiveDetailsZoomRangesStack = [];
     this._inZoomDrag = 'no-zoom';
     this._zoomImpl();
   }
