@@ -763,8 +763,31 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private assignMultiple(): void {
-    const owner = (this.selected && (this.selected as Incident).params.owner) || '';
-    ($$('#email-chooser', this) as EmailChooserSk).open(this.emails, owner).then((email) => {
+    // See if the selected incidents have a common owner.
+    let commonOwner = '';
+    for (let i = 0; i < this.incidents.length; i++) {
+      if (!this.checked.has(this.incidents[i].key)) {
+        // This incident has not been selected.
+        continue;
+      }
+      const incidentOwner = this.incidents[i].params.owner;
+      if (incidentOwner) {
+        if (commonOwner === '') {
+          commonOwner = incidentOwner;
+        } else if (commonOwner !== incidentOwner) {
+          // The incident owner is different than the common owner found so far.
+          // This means there is no common owner;
+          commonOwner = '';
+          break;
+        }
+      } else {
+        // This incident has no owner so there can be no common owner.
+        commonOwner = '';
+        break;
+      }
+    }
+
+    ($$('#email-chooser', this) as EmailChooserSk).open(this.emails, commonOwner).then((email) => {
       const detail = {
         keys: Array.from(this.checked),
         email: email,
