@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b428f66a_007ab4f1",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 730,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-05-06T18:52:51Z",
+      "side": 1,
+      "message": "Not sure what your testing strategy is, but Puppeteer should be ideal for emulating these kinds of user behaviors.",
+      "range": {
+        "startLine": 730,
+        "startChar": 0,
+        "endLine": 730,
+        "endChar": 55
+      },
+      "revId": "57dfc7fdf87d1be5bfd644823575e082bb93d08c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "120f173a_d80b357f",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 1311,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-05-06T18:52:51Z",
+      "side": 1,
+      "message": "You might want to drop the underscores from all private methods / fields at some point.",
+      "range": {
+        "startLine": 1311,
+        "startChar": 10,
+        "endLine": 1311,
+        "endChar": 28
+      },
+      "revId": "57dfc7fdf87d1be5bfd644823575e082bb93d08c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2b575e91_2f8208f3",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 1352,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-05-06T18:52:51Z",
+      "side": 1,
+      "message": "Ubernit: line length.",
+      "range": {
+        "startLine": 1352,
+        "startChar": 0,
+        "endLine": 1352,
+        "endChar": 126
+      },
+      "revId": "57dfc7fdf87d1be5bfd644823575e082bb93d08c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
