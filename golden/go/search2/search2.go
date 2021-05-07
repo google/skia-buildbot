@@ -872,6 +872,7 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 	// Even if two groupings draw the same digest, we want those as two different results because
 	// they could be triaged differently.
 	byDigestAndGrouping := map[groupingDigestKey]stageTwoResult{}
+	var mutex sync.Mutex
 	for _, input := range inputs {
 		gID := sql.AsMD5Hash(input.groupingID)
 		byGrouping[gID] = append(byGrouping[gID], input)
@@ -886,82 +887,55 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 		byDigestAndGrouping[key] = bd
 	}
 
-	for groupingID, inputs := range byGrouping {
-		const statement = `WITH
-ObservedDigestsInTile AS (
-	SELECT digest FROM TiledTraceDigests
-    WHERE grouping_id = $2 and tile_id >= $3
-),
-PositiveOrNegativeDigests AS (
-    SELECT digest, label FROM Expectations
-    WHERE grouping_id = $2 AND (label = 'n' OR label = 'p')
-),
-ComparisonBetweenUntriagedAndObserved AS (
-    SELECT DiffMetrics.* FROM DiffMetrics
-    JOIN ObservedDigestsInTile ON DiffMetrics.right_digest = ObservedDigestsInTile.digest
-    WHERE left_digest = ANY($1)
-)
--- This will return the right_digest with the smallest combined_metric for each left_digest + label
-SELECT DISTINCT ON (left_digest, label)
-  label, left_digest, right_digest, num_pixels_diff, percent_pixels_diff, max_rgba_diffs,
-  combined_metric, dimensions_differ
-FROM
-  ComparisonBetweenUntriagedAndObserved
-JOIN PositiveOrNegativeDigests
-  ON ComparisonBetweenUntriagedAndObserved.right_digest = PositiveOrNegativeDigests.digest
-ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_digest ASC
-`
-		digests := make([][]byte, 0, len(inputs))
-		for _, input := range inputs {
-			digests = append(digests, input.digest)
-		}
-		rows, err := s.db.Query(ctx, statement, digests, groupingID[:], getFirstTileID(ctx))
-		if err != nil {
-			return nil, nil, skerr.Wrap(err)
-		}
-		var label schema.ExpectationLabel
-		var row schema.DiffMetricRow
-		for rows.Next() {
-			if err := rows.Scan(&label, &row.LeftDigest, &row.RightDigest, &row.NumPixelsDiff,
-				&row.PercentPixelsDiff, &row.MaxRGBADiffs, &row.CombinedMetric,
-				&row.DimensionsDiffer); err != nil {
-				rows.Close()
-				return nil, nil, skerr.Wrap(err)
+	// Look up the diffs in parallel by grouping, as we only want to compare the images to other
+	// images produced by traces in the same grouping.
+	eg, eCtx := errgroup.WithContext(ctx)
+	for g, i := range byGrouping {
+		groupingID, inputs := g, i
+		eg.Go(func() error {
+			digests := make([]schema.DigestBytes, 0, len(inputs))
+			for _, input := range inputs {
+				digests = append(digests, input.digest)
 			}
-			srdd := &frontend.SRDiffDigest{
-				Digest:           types.Digest(hex.EncodeToString(row.RightDigest)),
-				Status:           label.ToExpectation(),
-				CombinedMetric:   row.CombinedMetric,
-				DimDiffer:        row.DimensionsDiffer,
-				MaxRGBADiffs:     row.MaxRGBADiffs,
-				NumDiffPixels:    row.NumPixelsDiff,
-				PixelDiffPercent: row.PercentPixelsDiff,
-				QueryMetric:      row.CombinedMetric,
+			resultsForGrouping, err := s.getDiffsForGrouping(eCtx, groupingID, digests)
+			if err != nil {
+				return skerr.Wrap(err)
 			}
-			key := groupingDigestKey{
-				digest:     sql.AsMD5Hash(row.LeftDigest),
-				groupingID: groupingID,
-			}
-			stageTwo := byDigestAndGrouping[key]
-			stageTwo.rightDigests = append(stageTwo.rightDigests, row.RightDigest)
-			if label == schema.LabelPositive {
-				stageTwo.closestPositive = srdd
-			} else {
-				stageTwo.closestNegative = srdd
-			}
-			if stageTwo.closestNegative != nil && stageTwo.closestPositive != nil {
-				if stageTwo.closestPositive.CombinedMetric < stageTwo.closestNegative.CombinedMetric {
-					stageTwo.closestDigest = stageTwo.closestPositive
-				} else {
-					stageTwo.closestDigest = stageTwo.closestNegative
+			// Combine those results into our search results.
+			mutex.Lock()
+			defer mutex.Unlock()
+			for key, diffs := range resultsForGrouping {
+				// combine this map with the other
+				stageTwo := byDigestAndGrouping[key]
+				for _, srdd := range diffs {
+					digestBytes, err := sql.DigestToBytes(srdd.Digest)
+					if err != nil {
+						return skerr.Wrap(err)
+					}
+					stageTwo.rightDigests = append(stageTwo.rightDigests, digestBytes)
+					if srdd.Status == expectations.Positive {
+						stageTwo.closestPositive = srdd
+					} else {
+						stageTwo.closestNegative = srdd
+					}
+					if stageTwo.closestNegative != nil && stageTwo.closestPositive != nil {
+						if stageTwo.closestPositive.CombinedMetric < stageTwo.closestNegative.CombinedMetric {
+							stageTwo.closestDigest = stageTwo.closestPositive
+						} else {
+							stageTwo.closestDigest = stageTwo.closestNegative
+						}
+					} else {
+						// there is only one type of diff, so it defaults to the closest.
+						stageTwo.closestDigest = srdd
+					}
 				}
-			} else {
-				// there is only one type of diff, so it defaults to the closest.
-				stageTwo.closestDigest = srdd
+				byDigestAndGrouping[key] = stageTwo
 			}
-			byDigestAndGrouping[key] = stageTwo
-		}
-		rows.Close()
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, nil, skerr.Wrap(err)
 	}
 
 	q := getQuery(ctx)
@@ -1015,6 +989,70 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 	}
 	end := util.MinInt(len(results), q.Offset+q.Limit)
 	return results[q.Offset:end], bulkTriageData, nil
+}
+
+// getDiffsForGrouping returns the closest positive and negative diffs for the provided digests
+// in the given grouping.
+func (s *Impl) getDiffsForGrouping(ctx context.Context, groupingID schema.MD5Hash, digests []schema.DigestBytes) (map[groupingDigestKey][]*frontend.SRDiffDigest, error) {
+	ctx, span := trace.StartSpan(ctx, "getDiffsForGrouping")
+	defer span.End()
+	const statement = `WITH
+ObservedDigestsInTile AS (
+	SELECT DISTINCT digest FROM TiledTraceDigests
+    WHERE grouping_id = $2 and tile_id >= $3
+),
+PositiveOrNegativeDigests AS (
+    SELECT digest, label FROM Expectations
+    WHERE grouping_id = $2 AND (label = 'n' OR label = 'p')
+),
+ComparisonBetweenUntriagedAndObserved AS (
+    SELECT DiffMetrics.* FROM DiffMetrics
+    JOIN ObservedDigestsInTile ON DiffMetrics.right_digest = ObservedDigestsInTile.digest
+    WHERE left_digest = ANY($1)
+)
+-- This will return the right_digest with the smallest combined_metric for each left_digest + label
+SELECT DISTINCT ON (left_digest, label)
+  label, left_digest, right_digest, num_pixels_diff, percent_pixels_diff, max_rgba_diffs,
+  combined_metric, dimensions_differ
+FROM
+  ComparisonBetweenUntriagedAndObserved
+JOIN PositiveOrNegativeDigests
+  ON ComparisonBetweenUntriagedAndObserved.right_digest = PositiveOrNegativeDigests.digest
+ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_digest ASC
+`
+
+	rows, err := s.db.Query(ctx, statement, digests, groupingID[:], getFirstTileID(ctx))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	results := map[groupingDigestKey][]*frontend.SRDiffDigest{}
+	var label schema.ExpectationLabel
+	var row schema.DiffMetricRow
+	for rows.Next() {
+		if err := rows.Scan(&label, &row.LeftDigest, &row.RightDigest, &row.NumPixelsDiff,
+			&row.PercentPixelsDiff, &row.MaxRGBADiffs, &row.CombinedMetric,
+			&row.DimensionsDiffer); err != nil {
+			rows.Close()
+			return nil, skerr.Wrap(err)
+		}
+		srdd := &frontend.SRDiffDigest{
+			Digest:           types.Digest(hex.EncodeToString(row.RightDigest)),
+			Status:           label.ToExpectation(),
+			CombinedMetric:   row.CombinedMetric,
+			DimDiffer:        row.DimensionsDiffer,
+			MaxRGBADiffs:     row.MaxRGBADiffs,
+			NumDiffPixels:    row.NumPixelsDiff,
+			PixelDiffPercent: row.PercentPixelsDiff,
+			QueryMetric:      row.CombinedMetric,
+		}
+		key := groupingDigestKey{
+			digest:     sql.AsMD5Hash(row.LeftDigest),
+			groupingID: groupingID,
+		}
+		results[key] = append(results[key], srdd)
+	}
+	return results, nil
 }
 
 // getParamsetsForDigests fetches all the traces that produced the digests in the data and
