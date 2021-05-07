@@ -16,6 +16,24 @@
       "message": "Pushed to the roller.",
       "revId": "801e07c743345d1e81bee325d5bdc386258ce4cb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "15eb64a7_c3cdcbf2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5695
+      },
+      "writtenOn": "2021-05-07T22:34:49Z",
+      "side": 1,
+      "message": "Thanks, Eric!",
+      "parentUuid": "d2bce329_885883d6",
+      "revId": "801e07c743345d1e81bee325d5bdc386258ce4cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
