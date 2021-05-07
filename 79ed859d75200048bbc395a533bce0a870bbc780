@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "32172e1a_70e4c2b5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-05-07T00:43:30Z",
+      "side": 1,
+      "message": "added support for removing transparent background and selecting background color to compose with transparent pixels for the gif exporter.\nBoth options can work together since the background color is composed with the semi transparent pixels and the transparent option is the color to map to full transparent pixels.",
+      "revId": "79ed859d75200048bbc395a533bce0a870bbc780",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
