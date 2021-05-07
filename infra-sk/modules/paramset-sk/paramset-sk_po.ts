@@ -1,7 +1,7 @@
 import { ParamSet } from 'common-sk/modules/query';
 import { BySelectorAll, PageObject } from '../page_object/page_object';
 import { PageObjectElement } from '../page_object/page_object_element';
-import { asyncFind, asyncMap } from '../async';
+import {asyncFind, asyncForEach, asyncMap} from '../async';
 
 /**
  * A (ParamSet index, key, value) tuple used by ParamSetSkPO to refer to specific key/value pairs
@@ -19,10 +19,13 @@ export interface ParamSetKeyValueTuple {
 /** A page object for the ParamSetSk component. */
 export class ParamSetSkPO extends PageObject {
   @BySelectorAll('tr:nth-child(1) th:not(:nth-child(1))') // First <th> is always empty.
-  private titles?: Promise<PageObjectElement[]>
+  private titles!: Promise<PageObjectElement[]>
 
   @BySelectorAll('tr:not(:nth-child(1)) th') // Skip the first row, which contains the titles.
-  private keys?: Promise<PageObjectElement[]>;
+  private keys!: Promise<PageObjectElement[]>;
+
+  @BySelectorAll('tr:not(:nth-child(1))') // Skip the first row, which contains the titles.
+  private rows!: Promise<PageObjectElement[]>;
 
   async getTitles() { return asyncMap(this.titles, (th) => th.innerText); }
 
@@ -74,18 +77,18 @@ export class ParamSetSkPO extends PageObject {
 
   private async _forEachParamSetKeyValue(
       fn: (pkv: ParamSetKeyValueTuple, valueDiv: PageObjectElement) => Promise<void>) {
-    await this.selectAllPOEThenForEach('tr:not(:nth-child(1))', async (tr) => {
-      const key = await tr.selectOnePOEThenApplyFn('th', (th) => th.innerText); // One key per row.
+    // Iterate over all rows.
+    await asyncForEach(this.rows, async (row) => {
+      const key = await (await row.selectOnePOE('th')).innerText;
 
-      // Iterate over all cells. Each cells corresponds to one ParamSet.
-      await tr.selectAllPOEThenForEach('td', async (td, paramSetIndex) => {
+      // Iterate over all cells. Each cell corresponds to one ParamSet.
+      await asyncForEach(row.selectAllPOE('td'), async (td, paramSetIndex) => {
 
-        // Visit each value for the current key and ParamSet.
-        await td.selectAllPOEThenForEach(
-          'div',
-          async (div) =>
-            fn({paramSetIndex: paramSetIndex, key: key!, value: await div.innerText}, div));
-      });
+        // Iterate over each value of the current ParamSet.
+        await asyncForEach(td.selectAllPOE('div'), async (div) => {
+          await fn({paramSetIndex: paramSetIndex, key: key, value: await div.innerText}, div);
+        });
+      })
     });
   }
 }

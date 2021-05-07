@@ -31,10 +31,10 @@ export abstract class PageObject {
    * @example
    *     class MyElementPO extends PageObject {
    *       @BySelector('button.submit')
-   *       submitBtn?: Promise<PageObjectElement>;
+   *       submitBtn!: Promise<PageObjectElement>;
    *
    *       async clickSubmitBtn() {
-   *         await (await this.submitBtn)?.click();
+   *         await (await this.submitBtn).click();
    *       }
    *
    *       ...
@@ -59,10 +59,10 @@ export abstract class PageObject {
    * @example
    *     class MyElementPO extends PageObject {
    *       @BySelectorAll('table.foo tr')
-   *       rows?: Promise<PageObjectElement[]>;
+   *       rows!: Promise<PageObjectElement[]>;
    *
    *       async getNumRows() {
-   *         return (await this.rows)?.length;
+   *         return (await this.rows).length;
    *       }
    *
    *       ...
@@ -90,10 +90,10 @@ export abstract class PageObject {
    *
    *     class MyElementPO extends PageObject {
    *       @POBySelector('another-element', AnotherElementPO)
-   *       anotherElementPO?: Promise<AnotherElementPO>;
+   *       anotherElementPO!: Promise<AnotherElementPO>;
    *
    *       async doSomething() {
-   *         await (await this.anotherElementPO)?.clickSomeBtn();
+   *         await (await this.anotherElementPO).clickSomeBtn();
    *       }
    *
    *       ...
@@ -113,6 +113,36 @@ export abstract class PageObject {
     return decorator;
   }
 
+  /**
+   * A property decorator that instantiates nested PageObjects for all the child elements that
+   * match the selector.
+   *
+   * @example
+   *     class MyElementPO extends PageObject {
+   *       @POBySelectorAll('another-element')
+   *       anotherElementPOs!: Promise<AnotherElementPO[]>;
+   *
+   *       async clickNthElement(n: number) {
+   *         await (await this.anotherElementPOs)[n].clickSomeBtn();
+   *       }
+   *
+   *       ...
+   *     }
+   */
+  public static POBySelectorAll<T extends PageObject>(
+      selector: string, ctor: { new(...args: any[]): T }): any {
+    const decorator: PropertyDecorator = (target: Object, propertyKey: string | symbol) => {
+      const propertyDescriptor: PropertyDescriptor = {
+        get(): any {
+          const po = this as PageObject;
+          return po.selectAllPOE(selector).then((poes) => poes.map((poe) => new ctor(poe)));
+        },
+      };
+      Object.defineProperty(target, propertyKey, propertyDescriptor);
+    }
+    return decorator;
+  }
+
   protected element: PageObjectElement;
 
   constructor(element: HTMLElement | ElementHandle | PageObjectElement) {
@@ -121,6 +151,11 @@ export abstract class PageObject {
     } else {
       this.element = new PageObjectElement(element);
     }
+  }
+
+  /** Returns true if the underlying PageObjectElement is empty. */
+  get empty() {
+    return this.element.empty;
   }
 
   /**
@@ -190,3 +225,4 @@ export abstract class PageObject {
 export const BySelector = PageObject.BySelector;
 export const BySelectorAll = PageObject.BySelectorAll;
 export const POBySelector = PageObject.POBySelector;
+export const POBySelectorAll = PageObject.POBySelectorAll;

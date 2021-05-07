@@ -38,6 +38,12 @@ export interface TestBed {
  * page_object_element_karma_test.ts or page_object_element_nodejs_test.ts.
  */
 export const describePageObjectElement = (testBed: TestBed) => {
+  it('supports empty', async () => {
+    const poe = await testBed.setUpPageObjectElement('<div>Hello, world!</div>');
+    expect(poe.empty).to.be.false;
+    expect(new PageObjectElement().empty).to.be.true;
+  });
+
   it('supports innerText', async () => {
     const poe = await testBed.setUpPageObjectElement('<div>Hello, world!</div>');
     expect(await poe.innerText).to.equal('Hello, world!');
@@ -54,6 +60,13 @@ export const describePageObjectElement = (testBed: TestBed) => {
   it('supports className', async () => {
     const poe = await testBed.setUpPageObjectElement('<div class="hello world"></div>');
     expect(await poe.className).to.equal('hello world');
+  });
+
+  it('supports hasClassName', async () => {
+    const poe = await testBed.setUpPageObjectElement('<div class="hello world"></div>');
+    expect(await poe.hasClassName('hello')).to.be.true;
+    expect(await poe.hasClassName('world')).to.be.true;
+    expect(await poe.hasClassName('goodbye')).to.be.false;
   });
 
   it('supports focus', async () => {
@@ -162,8 +175,8 @@ export const describePageObjectElement = (testBed: TestBed) => {
     });
 
     it('supports selectOnePOE', async () => {
-      expect(await poe.selectOnePOE('p')).to.be.null;
-      expect(await poe.selectOnePOE('span')).to.not.be.null;
+      expect((await poe.selectOnePOE('p')).empty).to.be.true;
+      expect((await poe.selectOnePOE('span')).empty).to.be.false;
       expect(await (await poe.selectOnePOE('span.name'))!.innerText).to.equal('World');
     });
 
