@@ -996,11 +996,11 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 func (s *Impl) getDiffsForGrouping(ctx context.Context, groupingID schema.MD5Hash, digests []schema.DigestBytes) (map[groupingDigestKey][]*frontend.SRDiffDigest, error) {
 	ctx, span := trace.StartSpan(ctx, "getDiffsForGrouping")
 	defer span.End()
-	const statement = `WITH
-ObservedDigestsInTile AS (
-	SELECT DISTINCT digest FROM TiledTraceDigests
-    WHERE grouping_id = $2 and tile_id >= $3
-),
+	statement, err := observedDigestsStatement(getQuery(ctx).RightTraceValues)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	statement += `
 PositiveOrNegativeDigests AS (
     SELECT digest, label FROM Expectations
     WHERE grouping_id = $2 AND (label = 'n' OR label = 'p')
@@ -1053,6 +1053,50 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 		results[key] = append(results[key], srdd)
 	}
 	return results, nil
+}
+
+// observedDigestsStatement returns a statement creating a subquery called ObservedDigestsInTile.
+// If the provided paramset is non empty, the digests will be constrained to traces matching those
+// values.
+func observedDigestsStatement(ps paramtools.ParamSet) (string, error) {
+	if len(ps) == 0 {
+		return `WITH
+ObservedDigestsInTile AS (
+	SELECT DISTINCT digest FROM TiledTraceDigests
+    WHERE grouping_id = $2 and tile_id >= $3
+),`, nil
+	}
+	statement := "WITH\n"
+	unionIndex := 0
+	for key, values := range ps {
+		if key != sql.Sanitize(key) {
+			return "", skerr.Fmt("Invalid query key %q", key)
+		}
+		statement += fmt.Sprintf("U%d AS (\n", unionIndex)
+		for j, value := range values {
+			if value != sql.Sanitize(value) {
+				return "", skerr.Fmt("Invalid query value %q", value)
+			}
+			if j != 0 {
+				statement += "\tUNION\n"
+			}
+			statement += fmt.Sprintf("\tSELECT trace_id FROM Traces WHERE keys -> '%s' = '%q'\n", key, value)
+		}
+		statement += "),\n"
+		unionIndex++
+	}
+	statement += "MatchingTraces AS (\n"
+	for i := 0; i < unionIndex; i++ {
+		statement += fmt.Sprintf("\tSELECT trace_id FROM U%d\n\tINTERSECT\n", i)
+	}
+	// Include a final intersect for the grouping and to then use the MatchingTraces.
+	statement += `	SELECT trace_id FROM Traces WHERE grouping_id = $2
+),
+ObservedDigestsInTile AS (
+	SELECT DISTINCT digest FROM TiledTraceDigests
+	JOIN MatchingTraces ON TiledTraceDigests.trace_id = MatchingTraces.trace_id AND tile_id >= $3
+),`
+	return statement, nil
 }
 
 // getParamsetsForDigests fetches all the traces that produced the digests in the data and
