@@ -502,7 +502,7 @@
                         this._canvas.height = this.options.height
                     }
                     ctx = this._canvas.getContext("2d");
-                    ctx.setFill = this.options.background;
+                    ctx.fillStyle = this.options.background;
                     ctx.fillRect(0, 0, this.options.width, this.options.height);
                     ctx.drawImage(image, 0, 0);
                     return this.getContextData(ctx)

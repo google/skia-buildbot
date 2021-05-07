@@ -26,6 +26,20 @@ const ditherOptions = [
   'Atkinson',
 ];
 
+
+const backgroundOptions = [
+  {
+    id: '1',
+    label: 'Black',
+    color: '#000000',
+  },
+  {
+    id: '2',
+    label: 'White',
+    color: '#ffffff',
+  },
+];
+
 const exportStates = {
   IDLE: 'idle',
   GIF_PROCESSING: 'gif processing',
@@ -85,6 +99,26 @@ const renderDither = (ele) => {
   return null;
 };
 
+const renderBackgroundOption = (ele, item) => html`
+  <div
+    role="option"
+    ?selected=${ele._state.backgroundValue.id === item.id}
+  >
+    ${item.label}
+  </div>
+`;
+
+const renderBackgroundSelect = (ele) => {
+  return html`
+    <select-sk
+      role="listbox"
+      @selection-changed=${ele._backgroundOptionChange}
+    >
+      ${backgroundOptions.map((item, index) => renderBackgroundOption(ele, item, index))}
+    </select-sk>
+  `;
+};
+
 const renderIdle = (ele) => html`
   <div class=form>
     <div class=form-elem>
@@ -110,6 +144,16 @@ const renderIdle = (ele) => html`
          @click=${ele._toggleDither}>
       </checkbox-sk>
       ${renderDither(ele)}
+    </div>
+    <div class=form-elem>
+      <checkbox-sk label="Include Transparent Background"
+         ?checked=${ele._state.transparent}
+         @click=${ele._toggleTransparent}>
+      </checkbox-sk>
+    </div>
+    <div class=form-elem>
+      <div class=form-elem-label>Select Background Color to compose on Transparent</div>
+      ${renderBackgroundSelect(ele)}
     </div>
   </div>
 `;
@@ -178,11 +222,13 @@ class SkottieGifExporterSk extends HTMLElement {
       quality: 50,
       repeat: -1,
       dither: false,
+      transparent: true,
       ditherValue: 0,
       state: exportStates.IDLE,
       progress: 0,
       blob: null,
       exportDuration: 0,
+      backgroundValue: backgroundOptions[0],
     };
   }
 
@@ -211,9 +257,21 @@ class SkottieGifExporterSk extends HTMLElement {
     this._render();
   }
 
+  _toggleTransparent(e) {
+    e.preventDefault();
+    this._state.transparent = !this._state.transparent;
+    this._render();
+  }
+
   _ditherOptionChange(e) {
     e.preventDefault();
     this._state.ditherValue = e.detail.selection;
+    this._render();
+  }
+
+  _backgroundOptionChange(e) {
+    e.preventDefault();
+    this._state.backgroundValue = backgroundOptions[e.detail.selection];
     this._render();
   }
 
@@ -265,7 +323,8 @@ class SkottieGifExporterSk extends HTMLElement {
       quality: this._state.quality,
       repeat: this._state.repeat,
       dither: this._state.dither ? ditherOptions[this._state.ditherValue] : false,
-      transparent: 0x00000000,
+      transparent: this._state.transparent ? 0x00000000 : undefined,
+      background: this._state.backgroundValue.color,
       workerScript: '/static/gif.worker.js',
     });
     this._gif.on('finished', (blob) => {
