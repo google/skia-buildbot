@@ -38,7 +38,7 @@ export class CalendarInputSk extends ElementSk {
   private static template = (ele: CalendarInputSk) => html`
     <label>
       <input
-        @change=${ele.inputChangeHandler}
+        @input=${ele.inputChangeHandler}
         type="text"
         pattern="[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}"
         title="Date in YYYY-MM-DD format."

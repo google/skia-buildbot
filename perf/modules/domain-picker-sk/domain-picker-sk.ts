@@ -72,7 +72,7 @@ export class DomainPickerSk extends ElementSk {
       <label>
         <span class="prefix">End:</span>
         <calendar-input-sk
-          @change=${ele.endChange}
+          @input=${ele.endChange}
           .displayDate=${toDate(ele._state.end)}
         ></calendar-input-sk>
       </label>
@@ -106,7 +106,7 @@ export class DomainPickerSk extends ElementSk {
         <label>
           <span class="prefix">Begin:</span>
           <calendar-input-sk
-            @change=${ele.beginChange}
+            @input=${ele.beginChange}
             .displayDate=${toDate(ele._state.begin)}
           ></calendar-input-sk>
         </label>
@@ -134,7 +134,6 @@ export class DomainPickerSk extends ElementSk {
       </datalist>
     `;
   };
-
 
   connectedCallback(): void {
     super.connectedCallback();
