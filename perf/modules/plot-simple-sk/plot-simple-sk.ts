@@ -220,6 +220,13 @@ interface Point {
   y: number;
 }
 
+const invalidPoint: Point = {
+  x: Number.MIN_SAFE_INTEGER,
+  y: Number.MIN_SAFE_INTEGER,
+};
+
+const pointIsValid = (p: Point): boolean => p.x !== invalidPoint.x;
+
 interface Rect extends Point {
   width: number;
   height: number;
@@ -1216,12 +1223,31 @@ export class PlotSimpleSk extends ElementSk {
         this.DETAIL_RADIUS,
       );
 
+      let previousPoint: Point = invalidPoint;
+      let addedPointFromBeforeTheDomain = false;
+      let addedPointFromAfterTheDomain = false;
       line.values.forEach((y, x) => {
         if (Number.isNaN(y)) {
           return;
         }
-        if (x < domain[0] || x > domain[1]) {
+        // Always add in one point after the domain so we draw all visible line
+        // segments.
+        if (x > domain[1] && !addedPointFromAfterTheDomain) {
+          detailBuilder.add(x, y);
+          addedPointFromAfterTheDomain = true;
           return;
+        }
+        if (x < domain[0] || x > domain[1]) {
+          previousPoint = { x: x, y: y };
+          return;
+        }
+        // Always add in one point before the domain so we draw all visible line
+        // segments.
+        if (!addedPointFromBeforeTheDomain) {
+          if (pointIsValid(previousPoint)) {
+            detailBuilder.add(previousPoint.x, previousPoint.y);
+          }
+          addedPointFromBeforeTheDomain = true;
         }
         detailBuilder.add(x, y);
       });
@@ -1448,6 +1474,24 @@ export class PlotSimpleSk extends ElementSk {
 
         // Draw the bands.
         this._drawBands(ctx, this._summary, this.SUMMARY_BAR_WIDTH);
+
+        // If detailsZoomRangeStacks is not empty then draw a box to indicate
+        // the zoomed region.
+        if (this.detailsZoomRangesStack.length > 0) {
+          const zoom = this.detailsZoomRangesStack[this.detailsZoomRangesStack.length - 1];
+          const cleft = this._summary.range.x(zoom.x);
+          const ctop = this._summary.range.y(zoom.y);
+          const cright = this._summary.range.x(zoom.x + zoom.width);
+          const cbottom = this._summary.range.y(zoom.y + zoom.height);
+          const zoomRect = {
+            x: cleft,
+            y: ctop,
+            width: cright - cleft,
+            height: cbottom - ctop,
+          };
+
+          this.drawZoomRect(ctx, zoomRect);
+        }
 
         // Draw the zoom on the summary.
         if (this._zoom !== null) {
