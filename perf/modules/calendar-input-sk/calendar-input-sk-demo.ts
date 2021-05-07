@@ -8,7 +8,7 @@ document
   .forEach((ele, i) => {
     ele.displayDate = new Date(2020, 4, 21);
     ele.locale = locales[i];
-    ele.addEventListener('change', (e) => {
+    ele.addEventListener('input', (e) => {
       evt.innerText = (e as CustomEvent<Date>).detail.toString();
     });
   });
