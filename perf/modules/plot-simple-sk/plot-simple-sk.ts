@@ -143,7 +143,7 @@ const COLORS = [
 
 // Contains linear scales to convert from source coordinates into
 // device/destination coordinates.
-interface Range {
+export interface Range {
   x: d3Scale.ScaleLinear<number, number>;
   y: d3Scale.ScaleLinear<number, number>;
 }
@@ -220,10 +220,65 @@ interface Point {
   y: number;
 }
 
+const invalidPoint: Point = {
+  x: Number.MIN_SAFE_INTEGER,
+  y: Number.MIN_SAFE_INTEGER,
+};
+
+const pointIsValid = (p: Point): boolean => p.x !== invalidPoint.x;
+
 interface Rect extends Point {
   width: number;
   height: number;
 }
+
+/**
+ * Convert rect in domain units into canvas coordinates using the given range.
+ *
+ * Presumes the rect was previously gotten from rectFromRangeInvert, so we don't
+ * need to flip top and bottom.
+ */
+export const rectFromRange = (range: Range, rect: Rect): Rect => {
+  const cleft = range.x(rect.x);
+  const ctop = range.y(rect.y);
+  const cright = range.x(rect.x + rect.width);
+  const cbottom = range.y(rect.y + rect.height);
+  return {
+    x: cleft,
+    y: ctop,
+    width: cright - cleft,
+    height: cbottom - ctop,
+  };
+};
+
+/**
+ * Convert rect in canvas units into domain units given the given range.
+ *
+ * Presumes this comes from a dragged out mouse region, which could be backwards
+ * and/or upside down, so corrections are done to the corners.
+ */
+export const rectFromRangeInvert = (range: Range, rect: Rect): Rect => {
+  let left = rect.x;
+  let top = rect.y;
+  let right = rect.x + rect.width;
+  let bottom = rect.y + rect.height;
+  if (right < left) {
+    [left, right] = [right, left];
+  }
+  // We do this backwards since range.y then does a second direction reversal,
+  // i.e. Canvas y-axis is in the opposite direction of the y-axis we use in
+  // the data units.
+  if (top < bottom) {
+    [bottom, top] = [top, bottom];
+  }
+
+  return {
+    x: range.x.invert(left),
+    y: range.y.invert(top),
+    width: range.x.invert(right) - range.x.invert(left),
+    height: range.y.invert(bottom) - range.y.invert(top),
+  };
+};
 
 const defaultRect: Rect = {
   x: 0,
@@ -1216,12 +1271,31 @@ export class PlotSimpleSk extends ElementSk {
         this.DETAIL_RADIUS,
       );
 
+      let previousPoint: Point = invalidPoint;
+      let addedPointFromBeforeTheDomain = false;
+      let addedPointFromAfterTheDomain = false;
       line.values.forEach((y, x) => {
         if (Number.isNaN(y)) {
           return;
         }
-        if (x < domain[0] || x > domain[1]) {
+        // Always add in one point after the domain so we draw all visible line
+        // segments.
+        if (x > domain[1] && !addedPointFromAfterTheDomain) {
+          detailBuilder.add(x, y);
+          addedPointFromAfterTheDomain = true;
           return;
+        }
+        if (x < domain[0] || x > domain[1]) {
+          previousPoint = { x: x, y: y };
+          return;
+        }
+        // Always add in one point before the domain so we draw all visible line
+        // segments.
+        if (!addedPointFromBeforeTheDomain) {
+          if (pointIsValid(previousPoint)) {
+            detailBuilder.add(previousPoint.x, previousPoint.y);
+          }
+          addedPointFromBeforeTheDomain = true;
         }
         detailBuilder.add(x, y);
       });
@@ -1399,26 +1473,9 @@ export class PlotSimpleSk extends ElementSk {
     ) {
       return;
     }
-    let left = this.zoomRect.x;
-    let top = this.zoomRect.y;
-    let right = this.zoomRect.x + this.zoomRect.width;
-    let bottom = this.zoomRect.y + this.zoomRect.height;
-    if (right < left) {
-      [left, right] = [right, left];
-    }
-    // We do this backwards since range.y then does a second direction reversal,
-    // i.e. Canvas y-axis is in the opposite direction of the y-axis we use in
-    // the data units.
-    if (top < bottom) {
-      [bottom, top] = [top, bottom];
-    }
-
-    this.detailsZoomRangesStack.push({
-      x: this._detail.range.x.invert(left),
-      y: this._detail.range.y.invert(top),
-      width: this._detail.range.x.invert(right) - this._detail.range.x.invert(left),
-      height: this._detail.range.y.invert(bottom) - this._detail.range.y.invert(top),
-    });
+    this.detailsZoomRangesStack.push(
+      rectFromRangeInvert(this._detail.range, this.zoomRect),
+    );
 
     // We added a new zoom range, which means all the inactive zoom ranges are
     // no longer valid.
@@ -1448,6 +1505,13 @@ export class PlotSimpleSk extends ElementSk {
 
         // Draw the bands.
         this._drawBands(ctx, this._summary, this.SUMMARY_BAR_WIDTH);
+
+        // If detailsZoomRangeStacks is not empty then draw a box to indicate
+        // the zoomed region.
+        if (this.detailsZoomRangesStack.length > 0) {
+          const zoom = this.detailsZoomRangesStack[this.detailsZoomRangesStack.length - 1];
+          this.drawZoomRect(ctx, rectFromRange(this._summary.range, zoom));
+        }
 
         // Draw the zoom on the summary.
         if (this._zoom !== null) {
@@ -1604,10 +1668,9 @@ export class PlotSimpleSk extends ElementSk {
   // Draw a dashed rectangle for the details zoom.
   private drawZoomRect(ctx: CanvasRenderingContext2D, rect: Rect) {
     ctx.strokeStyle = this.LABEL_COLOR;
-    ctx.setLineDash([5, 5]);
-    ctx.beginPath();
-    ctx.rect(rect.x, rect.y, rect.width, rect.height);
-    ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 2]);
+    ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
     ctx.setLineDash([]);
   }
 
