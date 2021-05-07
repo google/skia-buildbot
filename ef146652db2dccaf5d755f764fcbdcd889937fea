@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e5f28085_ef8c2787",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-07T18:15:16Z",
+      "side": 1,
+      "message": "I\u0027ll want to verify that \"sk release-branch\" works as expected once the starlark config CL lands.",
+      "revId": "ef146652db2dccaf5d755f764fcbdcd889937fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
