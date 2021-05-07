@@ -44,9 +44,9 @@ describe('edit-ignore-rule-sk', () => {
     });
 
     it('reflects interactions with the query-sk element', async () => {
-      const querySkPO = await editIgnoreRuleSkPO.getQuerySkPO();
-      await querySkPO.clickKey('alpha_type');
-      await querySkPO.clickValue('Opaque');
+      const querySkPO = await editIgnoreRuleSkPO.querySkPO;
+      await querySkPO?.clickKey('alpha_type');
+      await querySkPO?.clickValue('Opaque');
       expect(editIgnoreRuleSk.query).to.equal('alpha_type=Opaque');
     });
 

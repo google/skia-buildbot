@@ -121,9 +121,9 @@ describe('search-page-sk', () => {
     await events;
 
     searchPageSkPO = new SearchPageSkPO(searchPageSk);
-    searchControlsSkPO = await searchPageSkPO.getSearchControlsSkPO();
-    changelistControlsSkPO = await searchPageSkPO.getChangelistControlsSkPO();
-    bulkTriageSkPO = await searchPageSkPO.getBulkTriageSkPO();
+    searchControlsSkPO = await searchPageSkPO.searchControlsSkPO;
+    changelistControlsSkPO = await searchPageSkPO.changelistControlsSkPO;
+    bulkTriageSkPO = await searchPageSkPO.bulkTriageSkPO;
   }
 
   before(() => {
@@ -822,18 +822,18 @@ describe('search-page-sk', () => {
       });
 
       it('disables keyboard shortcuts when the left-hand trace filter dialog is open', async () => {
-        const leftHandTraceFilterSkPO = await searchControlsSkPO.getTraceFilterSkPO();
-        await leftHandTraceFilterSkPO.clickEditBtn(); // Open left-hand trace filter dialog.
+        const leftHandTraceFilterSkPO = await searchControlsSkPO.traceFilterSkPO;
+        await leftHandTraceFilterSkPO?.clickEditBtn(); // Open left-hand trace filter dialog.
 
-        expect(await leftHandTraceFilterSkPO.isQueryDialogSkOpen()).to.be.true;
+        expect(await leftHandTraceFilterSkPO?.isQueryDialogSkOpen()).to.be.true;
         await expectKeyboardShortcutsToBeDisabled();
       });
 
       it('disables keyboard shortcuts when the more filters dialog is open', async () => {
-        const filterDialogSkPO = await searchControlsSkPO.getFilterDialogSkPO();
+        const filterDialogSkPO = await searchControlsSkPO.filterDialogSkPO;
         await searchControlsSkPO.clickMoreFiltersBtn(); // Open more filters dialog.
 
-        expect(await filterDialogSkPO.isDialogOpen()).to.be.true;
+        expect(await filterDialogSkPO?.isDialogOpen()).to.be.true;
         await expectKeyboardShortcutsToBeDisabled();
       });
 
@@ -841,14 +841,14 @@ describe('search-page-sk', () => {
           'disables keyboard shortcuts when the right-hand trace filter dialog is open',
           async () => {
 
-        const filterDialogSkPO = await searchControlsSkPO.getFilterDialogSkPO();
+        const filterDialogSkPO = await searchControlsSkPO.filterDialogSkPO;
         await searchControlsSkPO.clickMoreFiltersBtn(); // Open more filters dialog.
 
-        const rightHandTraceFilterSkPO = await filterDialogSkPO.getTraceFilterSkPO();
-        await rightHandTraceFilterSkPO.clickEditBtn(); // Open right-hand trace filter dialog.
+        const rightHandTraceFilterSkPO = await filterDialogSkPO?.traceFilterSkPO;
+        await rightHandTraceFilterSkPO?.clickEditBtn(); // Open right-hand trace filter dialog.
 
-        expect(await filterDialogSkPO.isDialogOpen()).to.be.true;
-        expect(await rightHandTraceFilterSkPO.isQueryDialogSkOpen()).to.be.true;
+        expect(await filterDialogSkPO?.isDialogOpen()).to.be.true;
+        expect(await rightHandTraceFilterSkPO?.isQueryDialogSkOpen()).to.be.true;
         await expectKeyboardShortcutsToBeDisabled();
       });
 
