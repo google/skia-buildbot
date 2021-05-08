@@ -1,6 +1,7 @@
 import { ParamSet } from 'common-sk/modules/query';
-import { PageObject } from '../page_object/page_object';
+import { BySelectorAll, PageObject } from '../page_object/page_object';
 import { PageObjectElement } from '../page_object/page_object_element';
+import { asyncFind, asyncMap } from '../async';
 
 /**
  * A (ParamSet index, key, value) tuple used by ParamSetSkPO to refer to specific key/value pairs
@@ -13,14 +14,17 @@ export interface ParamSetKeyValueTuple {
   paramSetIndex: number;
   key: string;
   value: string;
-};
+}
 
 /** A page object for the ParamSetSk component. */
 export class ParamSetSkPO extends PageObject {
-  async getTitles() {
-    // First <th> is always empty.
-    return this.selectAllPOEThenMap('tr:nth-child(1) th:not(:nth-child(1))', (th) => th.innerText);
-  }
+  @BySelectorAll('tr:nth-child(1) th:not(:nth-child(1))') // First <th> is always empty.
+  private titles?: Promise<PageObjectElement[]>
+
+  @BySelectorAll('tr:not(:nth-child(1)) th') // Skip the first row, which contains the titles.
+  private keys?: Promise<PageObjectElement[]>;
+
+  async getTitles() { return asyncMap(this.titles, (th) => th.innerText); }
 
   async getParamSets() {
     const paramSets: ParamSet[] = [];
@@ -54,11 +58,8 @@ export class ParamSetSkPO extends PageObject {
   }
 
   async clickKey(key: string) {
-    const th =
-      await this.selectAllPOEThenFind(
-        'tr:not(:nth-child(1)) th', // Skip the first row, which contains the titles.
-        async (th) => await th.innerText === key);
-    await th!.click();
+    const th = await asyncFind(this.keys, (th) => th.isInnerTextEqualTo(key));
+    await th?.click();
   }
 
   async clickValue(pkv: ParamSetKeyValueTuple) {
@@ -87,4 +88,4 @@ export class ParamSetSkPO extends PageObject {
       });
     });
   }
-};
+}
