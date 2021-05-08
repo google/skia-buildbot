@@ -61,3 +61,19 @@ ts_library(
         "@npm//common-sk",
     ],
 )
+
+karma_test(
+    name = "async_test",
+    src = "async_test.ts",
+    deps = [
+        ":async_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+ts_library(
+    name = "async_ts_lib",
+    srcs = ["async.ts"],
+    visibility = ["//visibility:public"],
+)
