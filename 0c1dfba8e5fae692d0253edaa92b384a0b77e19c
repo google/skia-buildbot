@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dcf8845d_a1bf2144",
+        "filename": "go/cq/update.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-09T19:22:50Z",
+      "side": 1,
+      "message": "nit: What is the TODO?",
+      "range": {
+        "startLine": 74,
+        "startChar": 53,
+        "endLine": 74,
+        "endChar": 57
+      },
+      "revId": "0c1dfba8e5fae692d0253edaa92b384a0b77e19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
