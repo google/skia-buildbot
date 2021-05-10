@@ -43,13 +43,14 @@ const (
 
 var (
 	// Flags.
-	repoUrl       = flag.String("repo_url", common.REPO_SKIA, "Repo that needs buildbucket.config updated from it's tasks.json file.")
-	bucketName    = flag.String("bucket_name", "luci.skia.skia.primary", "Name of the bucket to update in buildbucket.config.")
-	emptyBuckets  = common.NewMultiStringFlag("empty_bucket", nil, "Empty buckets to specify in buildbucket.config. Eg: luci.chromium.try. See skbug.com/9639 for why these buckets are empty.")
-	pollingPeriod = flag.Duration("polling_period", 10*time.Minute, "How often to poll tasks.json.")
-	submit        = flag.Bool("submit", false, "If set, automatically submit the Gerrit change to update buildbucket.config")
-	local         = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	promPort      = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	repoUrl           = flag.String("repo_url", common.REPO_SKIA, "Repo that needs buildbucket.config updated from it's tasks.json file.")
+	repoDefaultBranch = flag.String("branch", git.MasterBranch, "The default branch of the specified repo.")
+	bucketName        = flag.String("bucket_name", "luci.skia.skia.primary", "Name of the bucket to update in buildbucket.config.")
+	emptyBuckets      = common.NewMultiStringFlag("empty_bucket", nil, "Empty buckets to specify in buildbucket.config. Eg: luci.chromium.try. See skbug.com/9639 for why these buckets are empty.")
+	pollingPeriod     = flag.Duration("polling_period", 10*time.Minute, "How often to poll tasks.json.")
+	submit            = flag.Bool("submit", false, "If set, automatically submit the Gerrit change to update buildbucket.config")
+	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 
 	bbCfgTemplateParsed = template.Must(template.New("buildbucket_config").Parse(bbCfgTemplate))
 )
@@ -58,7 +59,7 @@ var (
 // contents of what the new buildbucket.config file should be.
 func getBuildbucketCfgFromJobs(ctx context.Context, repo *gitiles.Repo) (string, error) {
 	// Read tasks.json from the specified repository.
-	tasksContents, err := repo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, git.MasterBranch)
+	tasksContents, err := repo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, *repoDefaultBranch)
 	if err != nil {
 		return "", skerr.Fmt("Could not read %s: %s", specs.TASKS_CFG_FILE, err)
 	}
