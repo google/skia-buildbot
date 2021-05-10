@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3a877951_7f19bf0b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-10T19:18:39Z",
+      "side": 1,
+      "message": "An alternative to https://skia-review.googlesource.com/c/buildbot/+/406198",
+      "revId": "aceaab603e7ce5bb4ca56dc083c350a47dba457f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
