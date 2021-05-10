@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8d523bb5_f58c02c1",
+        "filename": "trybot_updater/go/trybot-updater/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-10T18:09:43Z",
+      "side": 1,
+      "message": "Nit: could probably just call this \"branch\"",
+      "range": {
+        "startLine": 47,
+        "startChar": 34,
+        "endLine": 47,
+        "endChar": 53
+      },
+      "revId": "89fbd6c14f5224570753e559db85432e1d2f1f7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
