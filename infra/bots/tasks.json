@@ -1148,6 +1148,8 @@
         "https://skia-review.googlesource.com",
         "--repo",
         "<(REPO)",
+        "--default_branch",
+        "main",
         "--revision",
         "<(REVISION)",
         "--patch_issue",

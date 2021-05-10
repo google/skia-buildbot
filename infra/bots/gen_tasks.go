@@ -464,6 +464,7 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 			"--gerrit_project", "buildbot",
 			"--gerrit_url", "https://skia-review.googlesource.com",
 			"--repo", specs.PLACEHOLDER_REPO,
+			"--default_branch", "main",
 			"--revision", specs.PLACEHOLDER_REVISION,
 			"--patch_issue", specs.PLACEHOLDER_ISSUE,
 			"--patch_set", specs.PLACEHOLDER_PATCHSET,
