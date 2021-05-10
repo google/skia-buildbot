@@ -1068,12 +1068,17 @@ ObservedDigestsInTile AS (
 	}
 	statement := "WITH\n"
 	unionIndex := 0
-	for key, values := range ps {
+	keys := make([]string, 0, len(ps))
+	for key := range ps {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys) // sort for determinism
+	for _, key := range keys {
 		if key != sql.Sanitize(key) {
 			return "", skerr.Fmt("Invalid query key %q", key)
 		}
 		statement += fmt.Sprintf("U%d AS (\n", unionIndex)
-		for j, value := range values {
+		for j, value := range ps[key] {
 			if value != sql.Sanitize(value) {
 				return "", skerr.Fmt("Invalid query value %q", value)
 			}

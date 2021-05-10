@@ -2782,12 +2782,12 @@ ObservedDigestsInTile AS (
 	require.NoError(t, err)
 	assert.Equal(t, `WITH
 U0 AS (
-	SELECT trace_id FROM Traces WHERE keys -> 'some key' = '"a single value"'
-),
-U1 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'another key' = '"two"'
 	UNION
 	SELECT trace_id FROM Traces WHERE keys -> 'another key' = '"values"'
+),
+U1 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'some key' = '"a single value"'
 ),
 MatchingTraces AS (
 	SELECT trace_id FROM U0
