@@ -30,11 +30,12 @@ const (
 )
 
 var (
-	port          = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	local         = flag.Bool("local", false, "Is this running locally for development (use gcloud for auth)")
-	resourcesDir  = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank ./dist will be used.")
-	demosRepo     = flag.String("repo_url", "https://skia.googlesource.com/infra-internal", "The repo from where to fetch the demos. Defaults to https://skia.googlesource.com/infra-internal")
-	demosRepoPath = flag.String("demos_dir", "demos/internal", "The top level directory in the repo that holds the demos.")
+	port                   = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	local                  = flag.Bool("local", false, "Is this running locally for development (use gcloud for auth)")
+	resourcesDir           = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank ./dist will be used.")
+	demosRepo              = flag.String("repo_url", "https://skia.googlesource.com/infra-internal", "The repo from where to fetch the demos. Defaults to https://skia.googlesource.com/infra-internal")
+	demosRepoPath          = flag.String("demos_dir", "demos/internal", "The top level directory in the repo that holds the demos.")
+	demosRepoDefaultBranch = flag.String("repo_default_branch", git.MasterBranch, "The default branch of the repo (ie. master or main).")
 )
 
 type syncedDemos struct {
@@ -122,7 +123,7 @@ func (s *syncedDemos) Sync(ctx context.Context) {
 	s.Lock()
 	defer s.Unlock()
 
-	if err := s.repo.Update(ctx); err != nil {
+	if err := s.repo.UpdateBranch(ctx, *demosRepoDefaultBranch); err != nil {
 		sklog.Errorf("Failed to update repo: %s", err)
 	}
 
