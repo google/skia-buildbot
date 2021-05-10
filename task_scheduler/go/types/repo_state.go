@@ -81,16 +81,18 @@ func (p Patch) RowKey() string {
 // repo.
 type RepoState struct {
 	Patch
-	Repo     string `json:"repo"`
-	Revision string `json:"revision"`
+	Repo          string `json:"repo"`
+	Revision      string `json:"revision"`
+	DefaultBranch string `json:"default_branch"` // Assumed to be git.MasterBranch if not specified.
 }
 
 // Copy returns a copy of the RepoState.
 func (s *RepoState) Copy() RepoState {
 	return RepoState{
-		Patch:    s.Patch.Copy(),
-		Repo:     s.Repo,
-		Revision: s.Revision,
+		Patch:         s.Patch.Copy(),
+		Repo:          s.Repo,
+		Revision:      s.Revision,
+		DefaultBranch: s.DefaultBranch,
 	}
 }
 

@@ -34,8 +34,9 @@ func TestCopyRepoState(t *testing.T) {
 			PatchRepo: "https://dummy-repo.git",
 			Server:    "volley.com",
 		},
-		Repo:     "nou.git",
-		Revision: "1",
+		Repo:          "nou.git",
+		DefaultBranch: "main",
+		Revision:      "1",
 	}
 	assertdeep.Copy(t, v, v.Copy())
 }

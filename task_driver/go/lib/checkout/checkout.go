@@ -205,7 +205,11 @@ func EnsureGitCheckout(ctx context.Context, dest string, rs types.RepoState) (*g
 	// dir, but it could be in any state. co.Update() will forcibly clean
 	// the checkout and update it to match the upstream.
 	sklog.Infof("Updating git checkout")
-	if err := co.Update(ctx); err != nil {
+	branch := rs.DefaultBranch
+	if branch == "" {
+		branch = git.MasterBranch
+	}
+	if err := co.UpdateBranch(ctx, branch); err != nil {
 		return nil, td.FailStep(ctx, err)
 	}
 
