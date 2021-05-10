@@ -26,6 +26,18 @@ spec:
       securityContext:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
+{{if .kubernetes.disk}}
+      initContainers:
+        - name: init-autoroll-be-{{.rollerName}}
+          image: {{.image}}
+          command: ['mkdir', '-p', '$(TMPDIR)']
+          env:
+            - name: TMPDIR
+              value: {{if .kubernetes.disk}}/data{{end}}/tmp
+          volumeMounts:
+            - name: autoroll-be-{{.rollerName}}-storage
+              mountPath: /data
+{{end}}
       containers:
         - name: autoroll-be-{{.rollerName}}
           image: {{.image}}
