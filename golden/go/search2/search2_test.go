@@ -1273,8 +1273,9 @@ func TestMakeTraceGroup_TwoMostlyStableTraces_Success(t *testing.T) {
 	assert.Equal(t, frontend.TraceGroup{
 		TotalDigests: 2, // saw 2 distinct digests
 		Digests: []frontend.DigestStatus{
-			{Digest: dks.DigestA01Pos},
-			{Digest: dks.DigestA05Unt},
+			// We default these to untriaged. The actual values will be applied in a later step.
+			{Digest: dks.DigestA01Pos, Status: expectations.Untriaged},
+			{Digest: dks.DigestA05Unt, Status: expectations.Untriaged},
 		},
 		Traces: []frontend.Trace{{
 			ID:            "aa",
@@ -1338,15 +1339,15 @@ func TestMakeTraceGroup_OneFlakyTrace_PrioritizeShowingMostUsedDigests(t *testin
 	assert.Equal(t, frontend.TraceGroup{
 		TotalDigests: 13, // saw 13 distinct digests
 		Digests: []frontend.DigestStatus{
-			{Digest: "d0"},
-			{Digest: "d1"},
-			{Digest: "d2"},
-			{Digest: "d3"},
-			{Digest: "dC"},
-			{Digest: "d6"},
-			{Digest: "dB"},
-			{Digest: "d4"},
-			{Digest: "d5"}, // All others combined with this one
+			{Digest: "d0", Status: expectations.Untriaged},
+			{Digest: "d1", Status: expectations.Untriaged},
+			{Digest: "d2", Status: expectations.Untriaged},
+			{Digest: "d3", Status: expectations.Untriaged},
+			{Digest: "dC", Status: expectations.Untriaged},
+			{Digest: "d6", Status: expectations.Untriaged},
+			{Digest: "dB", Status: expectations.Untriaged},
+			{Digest: "d4", Status: expectations.Untriaged},
+			{Digest: "d5", Status: expectations.Untriaged}, // All others combined with this one
 		},
 		Traces: []frontend.Trace{{
 			ID:            "aa",
@@ -2813,6 +2814,469 @@ func TestObservedDigestStatement_InvalidInputs_ReturnsError(t *testing.T) {
 		"'quote": []string{`"a single value"`},
 	})
 	require.Error(t, err)
+}
+
+func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	s.SetReviewSystemTemplates(map[string]string{
+		dks.GerritCRS:         "http://example.com/public/%s",
+		dks.GerritInternalCRS: "http://example.com/internal/%s",
+	})
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
+	res, err := s.Search(ctx, &query.Search{
+		IncludePositiveDigests:  true,
+		IncludeNegativeDigests:  false,
+		IncludeUntriagedDigests: true,
+		Sort:                    query.SortDescending,
+		IncludeIgnoredTraces:    false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.RoundCorpus},
+		},
+		RGBAMinFilter:                  0,
+		RGBAMaxFilter:                  255,
+		ChangelistID:                   dks.ChangelistIDThatAttemptsToFixIOS,
+		CodeReviewSystemID:             dks.GerritCRS,
+		Patchsets:                      []int64{3}, // The first data we have for is PS order 3.
+		IncludeDigestsProducedOnMaster: false,
+	})
+	require.NoError(t, err)
+	var clCommits []web_frontend.Commit
+	clCommits = append(clCommits, kitchenSinkCommits...)
+	clCommits = append(clCommits, web_frontend.Commit{
+		// This is the last time we ingested data for this CL.
+		CommitTime:    time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC).Unix(),
+		Hash:          dks.ChangelistIDThatAttemptsToFixIOS,
+		Author:        dks.UserOne,
+		Subject:       "Fix iOS",
+		ChangelistURL: "http://example.com/public/CL_fix_ios",
+	})
+
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestC07Unt_CL,
+			Test:   dks.CircleTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.IPhoneDevice}, // IPad is drawing correctly
+				dks.OSKey:             []string{dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "22b530e029c22e396c5a24c0900c9ed5",
+					DigestIndices: []int{2, -1, 2, -1, 2, -1, 2, -1, 1, -1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.IPhoneDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestC07Unt_CL, Status: expectations.Untriaged},
+					{Digest: dks.DigestC05Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestC01Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 3,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 4.240108, QueryMetric: 4.240108, PixelDiffPercent: 68.75, NumDiffPixels: 44,
+					MaxRGBADiffs: [4]int{77, 77, 77, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC02Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{dks.RoundCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}, {
+			Digest: dks.DigestC06Pos_CL,
+			Test:   dks.CircleTest,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.IPadDevice},
+				dks.OSKey:             []string{dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "273119ca291863331e906fe71bde0e7d",
+					DigestIndices: []int{2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestC06Pos_CL, Status: expectations.Positive},
+					{Digest: dks.DigestC05Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestC01Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 3,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 1.0217842, QueryMetric: 1.0217842, PixelDiffPercent: 6.25, NumDiffPixels: 4,
+					MaxRGBADiffs: [4]int{15, 12, 83, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.RoundCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}},
+		Offset:  0,
+		Size:    2,
+		Commits: clCommits,
+		BulkTriageData: web_frontend.TriageRequestData{
+			dks.CircleTest: {
+				dks.DigestC06Pos_CL: expectations.Positive,
+				dks.DigestC07Unt_CL: expectations.Positive,
+			},
+		},
+	}, res)
+}
+
+func TestMatchingCLTracesStatement_ValidInputs_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	statement, err := matchingCLTracesStatement(paramtools.ParamSet{
+		types.CorpusField: []string{"the corpus"},
+	}, false)
+	require.NoError(t, err)
+	assert.Equal(t, `MatchingTraces AS (
+	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND matches_any_ignore_rule = FALSE
+),`, statement)
+
+	statement, err = matchingCLTracesStatement(paramtools.ParamSet{
+		types.CorpusField: []string{"the corpus"},
+		"some key":        []string{"a single value"},
+		"another key":     []string{"two", "values"},
+	}, false)
+	require.NoError(t, err)
+	assert.Equal(t, `U0 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'another key' = '"two"'
+	UNION
+	SELECT trace_id FROM Traces WHERE keys -> 'another key' = '"values"'
+),
+U1 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'some key' = '"a single value"'
+),
+MatchingTraces AS (
+	SELECT trace_id FROM U0
+	INTERSECT
+	SELECT trace_id FROM U1
+	INTERSECT
+	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND matches_any_ignore_rule = FALSE
+),
+`, statement)
+
+	statement, err = matchingCLTracesStatement(paramtools.ParamSet{
+		types.CorpusField: []string{"the corpus"},
+		"some key":        []string{"a single value"},
+		"another key":     []string{"two", "values"},
+	}, true)
+	require.NoError(t, err)
+	assert.Equal(t, `U0 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'another key' = '"two"'
+	UNION
+	SELECT trace_id FROM Traces WHERE keys -> 'another key' = '"values"'
+),
+U1 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'some key' = '"a single value"'
+),
+MatchingTraces AS (
+	SELECT trace_id FROM U0
+	INTERSECT
+	SELECT trace_id FROM U1
+	INTERSECT
+	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND matches_any_ignore_rule IS NOT NULL
+),
+`, statement)
+}
+
+func TestMatchingCLTracesStatement_InvalidInputs_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_, err := matchingCLTracesStatement(paramtools.ParamSet{
+		"'quote":          []string{"a single value"},
+		types.CorpusField: []string{"this is fine"},
+	}, false)
+	require.Error(t, err)
+	_, err = matchingCLTracesStatement(paramtools.ParamSet{
+		"'quote":          []string{`"a single value"`},
+		types.CorpusField: []string{"this is fine"},
+	}, false)
+	require.Error(t, err)
+	_, err = matchingCLTracesStatement(paramtools.ParamSet{
+		"missing_corpus": []string{"its not here"},
+	}, false)
+	require.Error(t, err)
+	_, err = matchingCLTracesStatement(paramtools.ParamSet{
+		types.CorpusField: []string{"it's invalid"},
+	}, false)
+	require.Error(t, err)
+}
+
+func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	s.SetReviewSystemTemplates(map[string]string{
+		dks.GerritCRS:         "http://example.com/public/%s",
+		dks.GerritInternalCRS: "http://example.com/internal/%s",
+	})
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
+	res, err := s.Search(ctx, &query.Search{
+		IncludePositiveDigests:  true,
+		IncludeNegativeDigests:  false,
+		IncludeUntriagedDigests: true,
+		Sort:                    query.SortDescending,
+		IncludeIgnoredTraces:    false,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField:     []string{dks.CornersCorpus},
+			types.PrimaryKeyField: []string{dks.SquareTest, dks.TriangleTest},
+			dks.ColorModeKey:      []string{dks.RGBColorMode},
+		},
+		RGBAMinFilter:                  0,
+		RGBAMaxFilter:                  255,
+		ChangelistID:                   dks.ChangelistIDThatAttemptsToFixIOS,
+		CodeReviewSystemID:             dks.GerritCRS,
+		Patchsets:                      []int64{3}, // The first data we have for is PS order 3.
+		IncludeDigestsProducedOnMaster: true,
+	})
+	require.NoError(t, err)
+	var clCommits []web_frontend.Commit
+	clCommits = append(clCommits, kitchenSinkCommits...)
+	clCommits = append(clCommits, web_frontend.Commit{
+		// This is the last time we ingested data for this CL.
+		CommitTime:    time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC).Unix(),
+		Hash:          dks.ChangelistIDThatAttemptsToFixIOS,
+		Author:        dks.UserOne,
+		Subject:       "Fix iOS",
+		ChangelistURL: "http://example.com/public/CL_fix_ios",
+	})
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestB01Pos,
+			Test:   dks.TriangleTest,
+			// For this CL, the image has incorrectly had its triage status set to untriaged.
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.CornersCorpus},
+				dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice},
+				dks.OSKey:             []string{dks.AndroidOS, dks.IOS},
+				types.PrimaryKeyField: []string{dks.TriangleTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "1a16cbc8805378f0a6ef654a035d86c4",
+					DigestIndices: []int{-1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.TaimenDevice,
+						dks.OSKey:             dks.AndroidOS,
+						types.PrimaryKeyField: dks.TriangleTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "760c2db998331eafd3023f4b6d135b06",
+					DigestIndices: []int{1, -1, 2, -1, 2, -1, 1, -1, 0, -1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.IPhoneDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.TriangleTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "8fe41dfab19e0a291f37964416432128",
+					DigestIndices: []int{1, 1, 2, 1, 1, 2, 1, 0, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.TriangleTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					// A user has incorrectly triaged B01Pos as untriaged on this CL.
+					{Digest: dks.DigestB01Pos, Status: expectations.Untriaged},
+					{Digest: dks.DigestB03Neg, Status: expectations.Negative},
+					{Digest: dks.DigestBlank, Status: expectations.Untriaged},
+				},
+				TotalDigests: 3,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 1.9362538, QueryMetric: 1.9362538, PixelDiffPercent: 43.75, NumDiffPixels: 28,
+					MaxRGBADiffs: [4]int{11, 5, 42, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestB02Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.TriangleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				common.NegativeRef: {
+					CombinedMetric: 2.9445405, QueryMetric: 2.9445405, PixelDiffPercent: 10.9375, NumDiffPixels: 7,
+					MaxRGBADiffs: [4]int{250, 244, 197, 51},
+					DimDiffer:    false,
+					Digest:       dks.DigestB03Neg,
+					Status:       expectations.Negative,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
+						dks.OSKey:             []string{dks.IOS},
+						types.PrimaryKeyField: []string{dks.TriangleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+			},
+			ClosestRef: common.PositiveRef,
+		}, {
+			Digest: dks.DigestA01Pos,
+			Test:   dks.SquareTest,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.CornersCorpus},
+				dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
+				dks.OSKey:             []string{dks.IOS},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "a95ccd579ee7c4771019a3374753db36",
+					DigestIndices: []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.SquareTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "ea0999cdbdb83a632327e9a1d65a565a",
+					DigestIndices: []int{0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.CornersCorpus,
+						dks.DeviceKey:         dks.IPhoneDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.SquareTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 1,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 0.15655607, QueryMetric: 0.15655607, PixelDiffPercent: 3.125, NumDiffPixels: 2,
+					MaxRGBADiffs: [4]int{4, 0, 0, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestA08Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:             []string{dks.RGBColorMode},
+						types.CorpusField:            []string{dks.CornersCorpus},
+						dks.DeviceKey:                []string{dks.WalleyeDevice},
+						dks.OSKey:                    []string{dks.AndroidOS},
+						types.PrimaryKeyField:        []string{dks.SquareTest},
+						"ext":                        []string{"png"},
+						"image_matching_algorithm":   []string{"fuzzy"},
+						"fuzzy_max_different_pixels": []string{"2"},
+					},
+				},
+				common.NegativeRef: {
+					CombinedMetric: 10, QueryMetric: 10, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{255, 255, 255, 255},
+					DimDiffer:    false,
+					Digest:       dks.DigestA09Neg,
+					Status:       expectations.Negative,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.CornersCorpus},
+						dks.DeviceKey:         []string{dks.TaimenDevice},
+						dks.OSKey:             []string{dks.AndroidOS},
+						types.PrimaryKeyField: []string{dks.SquareTest},
+						"ext":                 []string{"png"},
+					},
+				},
+			},
+			ClosestRef: common.PositiveRef,
+		}},
+		Offset:  0,
+		Size:    2,
+		Commits: clCommits,
+		BulkTriageData: web_frontend.TriageRequestData{
+			dks.SquareTest: {
+				dks.DigestA01Pos: expectations.Positive,
+			},
+			dks.TriangleTest: {
+				dks.DigestB01Pos: expectations.Positive,
+			},
+		},
+	}, res)
 }
 
 var kitchenSinkCommits = makeKitchenSinkCommits()
