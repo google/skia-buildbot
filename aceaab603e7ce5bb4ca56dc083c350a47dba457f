@@ -16,6 +16,29 @@
       "message": "An alternative to https://skia-review.googlesource.com/c/buildbot/+/406198",
       "revId": "aceaab603e7ce5bb4ca56dc083c350a47dba457f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "705a899c_cbcb7400",
+        "filename": "task_driver/go/lib/checkout/checkout.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-10T19:22:42Z",
+      "side": 1,
+      "message": "Per my comment on the other CL, I think we can just assume the use of git.MainBranch here, or if you wanted to be thorough, swap this and use \"master\" as the fallback.",
+      "range": {
+        "startLine": 208,
+        "startChar": 0,
+        "endLine": 214,
+        "endChar": 0
+      },
+      "revId": "aceaab603e7ce5bb4ca56dc083c350a47dba457f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
