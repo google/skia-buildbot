@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a5db663b_f1a1e673",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-10T18:12:08Z",
+      "side": 1,
+      "message": "WDYT? Is there a better way to handle this?\n\n",
+      "revId": "f6004f37ebcef41f66006e093aed08f0eee549ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
