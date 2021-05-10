@@ -785,7 +785,7 @@ func TestSearch_ChangelistResults_ChangelistIndexMiss_Success(t *testing.T) {
 							Status: "positive",
 						},
 					},
-					TotalDigests: 1,
+					TotalDigests: 2,
 				},
 				ClosestRef: common.PositiveRef,
 				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
