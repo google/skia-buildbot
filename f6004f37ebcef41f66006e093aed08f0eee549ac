@@ -16,6 +16,29 @@
       "message": "WDYT? Is there a better way to handle this?\n\n",
       "revId": "f6004f37ebcef41f66006e093aed08f0eee549ac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "75252691_2d69f78b",
+        "filename": "task_driver/go/lib/checkout/checkout.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-10T19:19:59Z",
+      "side": 1,
+      "message": "The simplest fix is probably just to use git.MainBranch here; I don\u0027t think there are any users of this code outside of buildbot.git and if there are they rely on a Go deps roll, which isn\u0027t currently working anyway.\n\nAnother possibility is to use something like:\n\ngit remote show $(git remote) | grep \"HEAD branch\"\n\nAnd pass the result into UpdateBranch.",
+      "range": {
+        "startLine": 212,
+        "startChar": 32,
+        "endLine": 212,
+        "endChar": 38
+      },
+      "revId": "f6004f37ebcef41f66006e093aed08f0eee549ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
