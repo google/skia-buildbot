@@ -39,6 +39,30 @@
       },
       "revId": "aceaab603e7ce5bb4ca56dc083c350a47dba457f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "17b91fa6_233477f9",
+        "filename": "task_driver/go/lib/checkout/checkout.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-10T20:00:10Z",
+      "side": 1,
+      "message": "We will need a fall back here because the repo could be skia (which does not have a main branch for now).\nI\u0027ll swap the two and add a TODO.",
+      "parentUuid": "705a899c_cbcb7400",
+      "range": {
+        "startLine": 208,
+        "startChar": 0,
+        "endLine": 214,
+        "endChar": 0
+      },
+      "revId": "aceaab603e7ce5bb4ca56dc083c350a47dba457f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
