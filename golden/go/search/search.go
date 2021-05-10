@@ -976,12 +976,16 @@ func ComputeDigestIndices(traceGroup *frontend.TraceGroup, primary types.Digest)
 	// Populate digestStats, iterating over the digests from all traces from oldest to newest.
 	// By construction, all traces in the TraceGroup will have the same length.
 	traceLength := len(traceGroup.Traces[0].RawTrace.Digests)
+	sawPrimary := false
 	for idx := 0; idx < traceLength; idx++ {
 		for _, tr := range traceGroup.Traces {
 			digest := tr.RawTrace.Digests[idx]
 			// Don't bother counting up data for missing digests.
 			if digest == tiling.MissingDigest {
 				continue
+			}
+			if digest == primary {
+				sawPrimary = true
 			}
 			// Go look up the entry for this digest. The sentinel value -1 will tell us if we haven't
 			// seen one and need to add one.
@@ -1056,7 +1060,11 @@ func ComputeDigestIndices(traceGroup *frontend.TraceGroup, primary types.Digest)
 		digestIndices[ds.digest] = digestIndex
 		digestIndex++
 	}
-	return digestIndices, len(digestStats)
+	totalDigests := len(digestStats)
+	if !sawPrimary {
+		totalDigests++
+	}
+	return digestIndices, totalDigests
 }
 
 // UntriagedUnignoredTryJobExclusiveDigests implements the SearchAPI interface. It uses the cached
