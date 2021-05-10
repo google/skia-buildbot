@@ -1233,6 +1233,11 @@
           "version": "git_revision:17a932579fd48e5366bff17f058cead4d51d12cb"
         },
         {
+          "name": "infra/tools/luci/isolate/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:17a932579fd48e5366bff17f058cead4d51d12cb"
+        },
+        {
           "name": "infra/tools/luci/isolated/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:17a932579fd48e5366bff17f058cead4d51d12cb"
@@ -1661,6 +1666,11 @@
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:17a932579fd48e5366bff17f058cead4d51d12cb"
+        },
+        {
+          "name": "infra/tools/luci/isolate/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:17a932579fd48e5366bff17f058cead4d51d12cb"
         },
