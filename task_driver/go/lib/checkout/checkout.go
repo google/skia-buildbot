@@ -202,11 +202,15 @@ func EnsureGitCheckout(ctx context.Context, dest string, rs types.RepoState) (*g
 	co := &git.Checkout{GitDir: git.GitDir(dest)}
 
 	// Now we know we have a git checkout of the correct repo in the dest
-	// dir, but it could be in any state. co.Update() will forcibly clean
+	// dir, but it could be in any state. co.UpdateBranch() will forcibly clean
 	// the checkout and update it to match the upstream.
 	sklog.Infof("Updating git checkout")
-	if err := co.Update(ctx); err != nil {
-		return nil, td.FailStep(ctx, err)
+	if mainErr := co.UpdateBranch(ctx, git.MainBranch); mainErr != nil {
+		// Now try updating master branch incase this repo does not have a main branch yet.
+		// TODO(rmistry): Remove this after skbug.com/11842 is fixed.
+		if masterErr := co.UpdateBranch(ctx, git.MasterBranch); masterErr != nil {
+			return nil, td.FailStep(ctx, fmt.Errorf("Could update neither %s nor %s: %s", git.MainBranch, git.MasterBranch, mainErr))
+		}
 	}
 
 	// Apply a patch, or reset to the requested commit.
