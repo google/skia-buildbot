@@ -22,6 +22,30 @@
       },
       "revId": "f1f1fc48abcbb813ddaa79dc2f0f2fdc8b17f941",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "28e558cb_441401f2",
+        "filename": "autoroll/config/swiftshader-android-master.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-10T13:29:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "814e7384_a5f08cb5",
+      "range": {
+        "startLine": 4,
+        "startChar": 35,
+        "endLine": 4,
+        "endChar": 43
+      },
+      "revId": "f1f1fc48abcbb813ddaa79dc2f0f2fdc8b17f941",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
