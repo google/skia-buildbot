@@ -1,0 +1,45 @@
+import { BySelector, PageObject } from '../../../infra-sk/modules/page_object/page_object';
+import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
+import { Label } from '../rpc_types';
+import { LabelOrEmpty } from './triage-sk';
+
+/** A page object for the TriageSk component. */
+export class TriageSkPO extends PageObject {
+  @BySelector('button.positive')
+  private positiveBtn!: Promise<PageObjectElement>
+
+  @BySelector('button.negative')
+  private negativeBtn!: Promise<PageObjectElement>
+
+  @BySelector('button.untriaged')
+  private untriagedBtn!: Promise<PageObjectElement>
+
+  async getLabelOrEmpty(): Promise<LabelOrEmpty> {
+    const labels: Label[] = ['positive', 'negative', 'untriaged'];
+    for (const label of labels) {
+      if (await this.isButtonSelected(label)) {
+        return label;
+      }
+    }
+    return '';
+  }
+
+  async isButtonSelected(label: Label) {
+    return (await this.getBtn(label)).hasClassName('selected');
+  }
+
+  async clickButton(label: Label) { await (await this.getBtn(label)).click(); }
+
+  private getBtn(label: Label) {
+    switch(label) {
+      case 'positive':
+        return this.positiveBtn;
+      case 'negative':
+        return this.negativeBtn;
+      case 'untriaged':
+        return this.untriagedBtn;
+      default:
+        throw new Error(`Unknown label: ${label}`);
+    }
+  }
+}
