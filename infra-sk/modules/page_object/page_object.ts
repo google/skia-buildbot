@@ -45,7 +45,7 @@ export abstract class PageObject {
       const propertyDescriptor: TypedPropertyDescriptor<Promise<PageObjectElement>> = {
         get(): Promise<PageObjectElement> {
           const po = this as PageObject;
-          return po.selectOnePOE(selector);
+          return po.bySelector(selector);
         },
       };
       Object.defineProperty(target, propertyKey, propertyDescriptor);
@@ -73,7 +73,7 @@ export abstract class PageObject {
       const propertyDescriptor: TypedPropertyDescriptor<Promise<PageObjectElement[]>> = {
         get(): Promise<PageObjectElement[]> {
           const po = this as PageObject;
-          return po.selectAllPOE(selector);
+          return po.bySelectorAll(selector);
         },
       };
       Object.defineProperty(target, propertyKey, propertyDescriptor);
@@ -105,7 +105,7 @@ export abstract class PageObject {
       const propertyDescriptor: TypedPropertyDescriptor<Promise<T>> = {
         async get(): Promise<T> {
           const po = this as PageObject;
-          return new ctor(await po.selectOnePOE(selector));
+          return new ctor(await po.bySelector(selector));
         },
       };
       Object.defineProperty(target, propertyKey, propertyDescriptor);
@@ -135,7 +135,7 @@ export abstract class PageObject {
       const propertyDescriptor: TypedPropertyDescriptor<Promise<T[]>> = {
         get(): Promise<T[]> {
           const po = this as PageObject;
-          return po.selectAllPOE(selector).then((poes) => poes.map((poe) => new ctor(poe)));
+          return po.bySelectorAll(selector).then((poes) => poes.map((poe) => new ctor(poe)));
         },
       };
       Object.defineProperty(target, propertyKey, propertyDescriptor);
@@ -159,19 +159,19 @@ export abstract class PageObject {
   }
 
   /**
-   * Returns the result of calling PageObjectElement#selectOnePOE() on the underlying
+   * Returns the result of calling PageObjectElement#bySelector() on the underlying
    * PageObjectElement.
    */
-  protected selectOnePOE(selector: string): Promise<PageObjectElement> {
-    return this.element.selectOnePOE(selector);
+  protected bySelector(selector: string): Promise<PageObjectElement> {
+    return this.element.bySelector(selector);
   }
 
   /**
-   * Returns the result of calling PageObjectElement#selectAllPOE() on the underlying
+   * Returns the result of calling PageObjectElement#bySelectorAll() on the underlying
    * PageObjectElement.
    */
-  protected selectAllPOE(selector: string): Promise<PageObjectElement[]> {
-    return this.element.selectAllPOE(selector);
+  protected bySelectorAll(selector: string): Promise<PageObjectElement[]>  {
+    return this.element.bySelectorAll(selector);
   }
 }
 
