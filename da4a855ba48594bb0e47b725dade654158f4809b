@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "21143006_2d237b90",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-11T17:56:37Z",
+      "side": 1,
+      "message": "Update_go_deps is also used by the Skia repo. But that bot has been failing for a while for different reasons, so hopefully Skia will be on the main branch by the time the bot is up and running again.",
+      "revId": "da4a855ba48594bb0e47b725dade654158f4809b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
