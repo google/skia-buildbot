@@ -1,96 +1,114 @@
-import { PageObject } from '../page_object/page_object';
-import { QueryValuesSkPO } from '../query-values-sk/query-values-sk_po';
-import { ParamSet } from 'common-sk/modules/query';
+import { BySelector, BySelectorAll, PageObject } from '../page_object/page_object';
+import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { PageObjectElement } from '../page_object/page_object_element';
+import { asyncFind, asyncForEach, asyncMap } from '../async';
 
-/** A page object for the QuerySk component. */
-export class QuerySkPO extends PageObject {
-  getFilter() {
-    return this.selectOnePOEThenApplyFn('#fast', (filter) => filter.value);
+/** A page object for the QueryValuesSk component. */
+export class QueryValuesSkPO extends PageObject {
+  @BySelector('checkbox-sk#invert')
+  private invertCheckBox!: Promise<PageObjectElement>
+
+  @BySelector('checkbox-sk#regex')
+  private regexCheckBox!: Promise<PageObjectElement>
+
+  @BySelector('#regexValue')
+  private regexInput!: Promise<PageObjectElement>
+
+  @BySelectorAll('multi-select-sk#values div')
+  private options!: Promise<PageObjectElement[]>
+
+  @BySelectorAll('multi-select-sk#values div[selected]')
+  private selectedOptions!: Promise<PageObjectElement[]>
+
+  async isInvertCheckboxChecked() {
+    return (await this.invertCheckBox)
+        .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
   }
 
-  async setFilter(value: string) {
-    await this.selectOnePOEThenApplyFn('#fast', (filter) => filter.enterValue(value));
+  async isRegexCheckboxChecked() {
+    return (await this.regexCheckBox)
+        .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
   }
 
-  async clickClearFilter() {
-    return this.selectOnePOEThenApplyFn('button.clear_filters', (btn) => btn.click());
+  async clickInvertCheckbox() { await (await this.invertCheckBox).click(); }
+
+  async clickRegexCheckbox() { await (await this.regexCheckBox).click(); }
+
+  async isInvertCheckboxHidden() { return (await this.invertCheckBox).hasAttribute('hidden'); }
+
+  async isRegexCheckboxHidden() { return (await this.regexCheckBox).hasAttribute('hidden'); }
+
+  async getRegexValue() { return (await this.regexInput).value; }
+
+  async setRegexValue(value: string) { await (await this.regexInput).enterValue(value); }
+
+  async clickOption(option: string) {
+    const optionDiv = await asyncFind(this.options, (div) => div.isInnerTextEqualTo(option));
+    await optionDiv?.click();
   }
 
-  async clickClearSelections() {
-    return this.selectOnePOEThenApplyFn('button.clear_selections', (btn) => btn.click());
-  }
+  getOptions() { return asyncMap(this.options, (option) => option.innerText); }
 
-  getKeys() {
-    return this.selectAllPOEThenMap('select-sk div', (div) => div.innerText);
-  }
+  getSelectedOptions() { return asyncMap(this.selectedOptions, (option) => option.innerText); }
 
-  async getSelectedKey(key: string) {
-    return this.selectOnePOEThenApplyFn('select-sk div[selected]', (div) => div.innerText);
-  }
-
-  async clickKey(key: string) {
-    const keyDiv =
-      await this.selectAllPOEThenFind(
-        'select-sk div', async (div) => (await div.innerText) === key);
-    await keyDiv!.click();
-  }
-
-  getQueryValuesSkPO() {
-    return this.selectOnePOEThenApplyFn('query-values-sk', async (el) => new QueryValuesSkPO(el));
-  }
-
-  async getSelectedValues() {
-    const values = await this.getQueryValuesSkPO();
-    return values.getSelectedOptions();
-  }
-
-  async clickValue(value: string) {
-    const values = await this.getQueryValuesSkPO();
-    await values.clickOption(value);
-  }
-
-  /** Analogous to the "paramset" property getter. */
-  async getParamSet() {
-    const queryValuesSkPO = await this.getQueryValuesSkPO();
-
-    const paramSet: ParamSet = {};
-    const keys = await this.getKeys();
-
-    for (const key of keys) {
-      await this.clickKey(key);
-      const options = await queryValuesSkPO.getOptions();
-      paramSet[key] = options;
+  /** Analogous to the "selected" property getter. */
+  async getSelected() {
+    if (await this.isRegexCheckboxChecked()) {
+      const regex = await this.getRegexValue();
+      return ['~' + regex];
     }
 
-    return paramSet;
+    const selectedOptions = await this.getSelectedOptions();
+    if (await this.isInvertCheckboxChecked()) {
+      return selectedOptions.map((option) => '!' + option);
+    }
+    return selectedOptions;
   }
 
-  /** Analogous to the "current_query" property getter. */
-  async getCurrentQuery() {
-    const queryValuesSkPO = await this.getQueryValuesSkPO();
-
-    const paramSet: ParamSet = {};
-    const keys = await this.getKeys();
-
-    for (const key of keys) {
-      await this.clickKey(key);
-      const selected = await queryValuesSkPO.getSelected();
-      if (selected.length > 0) {
-        paramSet[key] = selected;
+  /** Analogous to the "selected" property setter. */
+  async setSelected(selected: string[]) {
+    // Is it a regex?
+    if (selected.some((value) => value.startsWith('~'))) {
+      // There can only be one regex.
+      if (selected.length > 1) {
+        throw new Error('invalid selection: regex found in selection of length > 1');
       }
+
+      // Click the regex checkbox if it isn't checked.
+      if (!(await this.isRegexCheckboxChecked())) {
+        await this.clickRegexCheckbox();
+      }
+
+      // Enter the regex value.
+      const regex = selected[0].substring(1); // Remove the tilde at the beginning.
+      await this.setRegexValue(regex);
     }
 
-    return paramSet;
-  }
+    // Is it an inverted selection?
+    if (selected.some((value) => value.startsWith('!'))) {
+      // If one item is inverted, all items must be inverted as well.
+      if (!selected.every((value) => value.startsWith('!'))) {
+        throw new Error('invalid selection: inverted and non-inverted items found');
+      }
 
-  /** Analogous to the "current_query" property setter. */
-  async setCurrentQuery(query: ParamSet) {
-    const queryValuesSkPO = await this.getQueryValuesSkPO();
+      // Click the invert checkbox if it isn't checked.
+      if (!(await this.isInvertCheckboxChecked())) {
+        await this.clickInvertCheckbox();
+      }
 
-    for (const key of await this.getKeys()) {
-      const values = query[key] || [];
-      await this.clickKey(key);
-      await queryValuesSkPO.setSelected(values);
+      selected = selected.map((value) => value.substring(1)); // Remove checks.
     }
+
+    // Set the selection by clicking on the options as needed.
+    const allOptions = await this.getOptions();
+    const currentlySelectedOptions = await this.getSelectedOptions();
+    await asyncForEach(allOptions, async (option) => {
+      const isSelected = currentlySelectedOptions.includes(option);
+      const shouldBeSelected = selected.includes(option);
+
+      if (isSelected !== shouldBeSelected) {
+        await this.clickOption(option);
+      }
+    });
   }
-};
+}
