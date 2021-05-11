@@ -125,10 +125,6 @@
     "name": "Public-Projects",
     "clone_url": "https://skia.googlesource.com/Public-Projects"
   },
-  "resources": {
-    "name": "resources",
-    "clone_url": "https://skia.googlesource.com/resources"
-  },
   "skcms": {
     "name": "skcms",
     "clone_url": "https://skia.googlesource.com/skcms"
