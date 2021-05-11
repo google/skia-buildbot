@@ -1,32 +1,30 @@
-import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
+import { BySelector, BySelectorAll, PageObject } from '../../../infra-sk/modules/page_object/page_object';
+import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
+import { asyncFind, asyncMap } from '../../../infra-sk/modules/async';
 
 /** A page object for the CorpusSelectorSkPO component. */
 export class CorpusSelectorSkPO extends PageObject {
-  async isLoadingMessageVisible() {
-    return (await this.selectOnePOE('p')) !== null;
-  }
+  @BySelector('p')
+  private loadingMessage!: Promise<PageObjectElement>;
 
-  async getCorpora() {
-    return this.selectAllPOEThenMap('li', (li) => li.innerText);
-  }
+  @BySelector('li.selected')
+  private selectedCorpus!: Promise<PageObjectElement>;
+
+  @BySelectorAll('li')
+  private corpora!: Promise<PageObjectElement[]>;
+
+  async isLoadingMessageVisible() { return !(await this.loadingMessage).empty; }
+
+  async getCorpora() { return asyncMap(this.corpora, (li) => li.innerText); }
 
   /** Returns the selected corpus, or null if none is selected. */
   async getSelectedCorpus() {
-    const selectedCorpora = await this.selectAllPOEThenMap('li.selected', (li) => li.innerText);
-
-    // There can be at most one selected corpora.
-    if (selectedCorpora.length > 1) {
-      throw new Error('there are more than one selected corpora');
-    }
-
-    if (selectedCorpora.length) {
-      return selectedCorpora[0];
-    }
-    return null;
-  }
+    const selectedCorpus = await this.selectedCorpus;
+    return selectedCorpus.empty ? null : selectedCorpus.innerText;
+  };
 
   async clickCorpus(corpus: string) {
-    const li = await this.selectAllPOEThenFind('li', async (li) => (await li.innerText) === corpus);
-    await li!.click();
+    const corpusLi = await asyncFind(this.corpora, (li) => li.isInnerTextEqualTo(corpus));
+    await corpusLi!.click();
   }
 }

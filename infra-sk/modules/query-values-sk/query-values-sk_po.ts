@@ -1,41 +1,45 @@
-import { PageObject } from '../page_object/page_object';
+import { BySelector, BySelectorAll, PageObject } from '../page_object/page_object';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { PageObjectElement } from '../page_object/page_object_element';
 
 /** A page object for the QueryValuesSk component. */
 export class QueryValuesSkPO extends PageObject {
-  isInvertCheckboxChecked() {
-    return this.selectOneDOMNodeThenApplyFn(
-      'checkbox-sk#invert', (c) => (c as CheckOrRadio).checked);
+  @BySelector('checkbox-sk#invert')
+  private invertCheckBox!: Promise<PageObjectElement>
+
+  @BySelector('checkbox-sk#regex')
+  private regexCheckBox!: Promise<PageObjectElement>
+
+  @BySelector('#regexValue')
+  private regexInput!: Promise<PageObjectElement>
+
+  @BySelectorAll('multi-select-sk#values div')
+  private options!: Promise<PageObjectElement[]>
+
+  @BySelectorAll('multi-select-sk#values div[selected]')
+  private selectedOptions!: Promise<PageObjectElement[]>
+
+  async isInvertCheckboxChecked() {
+    return (await this.invertCheckBox)
+        .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
   }
 
-  isRegexCheckboxChecked() {
-    return this.selectOneDOMNodeThenApplyFn(
-      'checkbox-sk#regex', (c) => (c as CheckOrRadio).checked);
+  async isRegexCheckboxChecked() {
+    return (await this.regexCheckBox)
+        .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
   }
 
-  clickInvertCheckbox() {
-    return this.selectOnePOEThenApplyFn('checkbox-sk#invert', (el) => el.click());
-  }
+  async clickInvertCheckbox() { await (await this.invertCheckBox).click(); }
 
-  clickRegexCheckbox() {
-    return this.selectOnePOEThenApplyFn('checkbox-sk#regex', (el) => el.click());
-  }
+  async clickRegexCheckbox() { await (await this.regexCheckBox).click(); }
 
-  isInvertCheckboxHidden() {
-    return this.selectOnePOEThenApplyFn('checkbox-sk#invert', (el) => el.hasAttribute('hidden'));
-  }
+  async isInvertCheckboxHidden() { return (await this.invertCheckBox).hasAttribute('hidden'); }
 
-  isRegexCheckboxHidden() {
-    return this.selectOnePOEThenApplyFn('checkbox-sk#regex', (el) => el.hasAttribute('hidden'));
-  }
+  async isRegexCheckboxHidden() { return (await this.regexCheckBox).hasAttribute('hidden'); }
 
-  async getRegexValue() {
-    return this.selectOnePOEThenApplyFn('#regexValue', (input) => input.value);
-  }
+  async getRegexValue() { return (await this.regexInput).value; }
 
-  async setRegexValue(value: string) {
-    return this.selectOnePOEThenApplyFn('#regexValue', (input) => input.enterValue(value));
-  }
+  async setRegexValue(value: string) { await (await this.regexInput).enterValue(value); }
 
   async clickOption(option: string) {
     const div =
@@ -110,4 +114,4 @@ export class QueryValuesSkPO extends PageObject {
       }
     });
   }
-};
+}
