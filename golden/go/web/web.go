@@ -1379,6 +1379,44 @@ func (wh *Handlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, tile.ParamSet)
 }
 
+// ParamsHandler2 returns all Params that could be searched over. It uses the SQL Backend
+func (wh *Handlers) ParamsHandler2(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, err, "Invalid form headers", http.StatusBadRequest)
+		return
+	}
+	clID := r.Form.Get("changelist_id")
+	crs := r.Form.Get("crs")
+
+	if clID == "" {
+		ps, err := wh.Search2API.GetPrimaryBranchParamset(r.Context())
+		if err != nil {
+			httputils.ReportError(w, err, "Could not get paramset for primary branch", http.StatusInternalServerError)
+			return
+		}
+		sendJSONResponse(w, ps)
+		return
+	}
+
+	if _, ok := wh.getCodeReviewSystem(crs); !ok {
+		http.Error(w, "Invalid Code Review System; did you include crs?", http.StatusBadRequest)
+		return
+	}
+	ps, err := wh.Search2API.GetChangelistParamset(r.Context(), crs, clID)
+	if err != nil {
+		httputils.ReportError(w, err, "Could not get paramset for given CL", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(w, ps)
+	return
+}
+
 // CommitsHandler returns the commits from the most recent tile.
 func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
