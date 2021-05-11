@@ -52,7 +52,7 @@ setup-internal-config-repo:
 		git clone https://skia.googlesource.com/skia-autoroll-internal-config.git $(ROLLER_INTERNAL_CONFIG_DIR); \
 	else \
 		git -C $(ROLLER_INTERNAL_CONFIG_DIR) fetch && \
-		git -C $(ROLLER_INTERNAL_CONFIG_DIR) diff --quiet origin/master || \
+		git -C $(ROLLER_INTERNAL_CONFIG_DIR) diff --quiet origin/main || \
 		if [ $$? -ne 0 ]; then \
 			if [[ "$(USE_INTERNAL_CONFIG_DIR_PROMPT)" != "y" ]]; then \
 				echo "Exiting"; exit 1; \
