@@ -1252,17 +1252,20 @@ func TestMakeTraceGroup_TwoMostlyStableTraces_Success(t *testing.T) {
 		"20": 4,
 	})
 	ctx = context.WithValue(ctx, actualWindowLengthKey, 5)
-	inputData := []traceDigestCommit{
-		{traceID: schema.TraceID{0xaa}, commitID: "10", digest: dks.DigestA01Pos},
-		{traceID: schema.TraceID{0xaa}, commitID: "11", digest: dks.DigestA01Pos},
-		{traceID: schema.TraceID{0xaa}, commitID: "12", digest: dks.DigestA01Pos},
-		{traceID: schema.TraceID{0xaa}, commitID: "13", digest: dks.DigestA01Pos},
-		{traceID: schema.TraceID{0xaa}, commitID: "20", digest: dks.DigestA01Pos},
-
-		{traceID: schema.TraceID{0xbb}, commitID: "10", digest: dks.DigestA05Unt},
-		{traceID: schema.TraceID{0xbb}, commitID: "12", digest: dks.DigestA01Pos},
-		{traceID: schema.TraceID{0xbb}, commitID: "17", digest: dks.DigestA05Unt},
-		{traceID: schema.TraceID{0xbb}, commitID: "20", digest: dks.DigestA01Pos},
+	inputData := map[schema.MD5Hash][]traceDigestCommit{
+		{0xaa}: {
+			{commitID: "10", digest: dks.DigestA01Pos},
+			{commitID: "11", digest: dks.DigestA01Pos},
+			{commitID: "12", digest: dks.DigestA01Pos},
+			{commitID: "13", digest: dks.DigestA01Pos},
+			{commitID: "20", digest: dks.DigestA01Pos},
+		},
+		{0xbb}: {
+			{commitID: "10", digest: dks.DigestA05Unt},
+			{commitID: "12", digest: dks.DigestA01Pos},
+			{commitID: "17", digest: dks.DigestA05Unt},
+			{commitID: "20", digest: dks.DigestA01Pos},
+		},
 	}
 
 	tg, err := makeTraceGroup(ctx, inputData, dks.DigestA01Pos)
@@ -1278,11 +1281,52 @@ func TestMakeTraceGroup_TwoMostlyStableTraces_Success(t *testing.T) {
 			{Digest: dks.DigestA05Unt, Status: expectations.Untriaged},
 		},
 		Traces: []frontend.Trace{{
-			ID:            "aa",
+			ID:            "aa000000000000000000000000000000",
 			DigestIndices: []int{0, 0, 0, -1, 0},
 		}, {
-			ID:            "bb",
+			ID:            "bb000000000000000000000000000000",
 			DigestIndices: []int{1, -1, 0, 1, 0},
+		}},
+	}, tg)
+}
+
+func TestMakeTraceGroup_TwoNewTracesInCL_DataAppended(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.WithValue(context.Background(), commitToIdxKey, map[schema.CommitID]int{
+		"10": 0,
+		"11": 1,
+		"12": 2,
+		"17": 3,
+		"20": 4,
+	})
+	ctx = context.WithValue(ctx, actualWindowLengthKey, 5)
+	ctx = context.WithValue(ctx, qualifiedCLIDKey, "whatever") // indicate this is a CL
+	inputData := map[schema.MD5Hash][]traceDigestCommit{
+		{0xaa}: nil,
+		{0xbb}: nil,
+	}
+
+	tg, err := makeTraceGroup(ctx, inputData, dks.DigestA01Pos)
+	require.NoError(t, err)
+	for i := range tg.Traces {
+		tg.Traces[i].RawTrace = nil // We don't want to do assertions on this.
+	}
+	assert.Equal(t, frontend.TraceGroup{
+		TotalDigests: 1,
+		Digests: []frontend.DigestStatus{
+			// We default these to untriaged. The actual values will be applied in a later step.
+			{Digest: dks.DigestA01Pos, Status: expectations.Untriaged},
+		},
+		Traces: []frontend.Trace{{
+			ID: "aa000000000000000000000000000000",
+			// There are the 5 missing values for the primary commits (because no data was
+			// supplied for those) and then the primary value attached to the end because this is
+			// a CL.
+			DigestIndices: []int{-1, -1, -1, -1, -1, 0},
+		}, {
+			ID:            "bb000000000000000000000000000000",
+			DigestIndices: []int{-1, -1, -1, -1, -1, 0},
 		}},
 	}, tg)
 }
@@ -1311,24 +1355,26 @@ func TestMakeTraceGroup_OneFlakyTrace_PrioritizeShowingMostUsedDigests(t *testin
 		"32": 17,
 	})
 	ctx = context.WithValue(ctx, actualWindowLengthKey, 18)
-	inputData := []traceDigestCommit{
-		{traceID: schema.TraceID{0xaa}, commitID: "10", digest: "dC"},
-		{traceID: schema.TraceID{0xaa}, commitID: "11", digest: "dC"},
-		{traceID: schema.TraceID{0xaa}, commitID: "12", digest: "dC"},
-		{traceID: schema.TraceID{0xaa}, commitID: "17", digest: "dB"},
-		{traceID: schema.TraceID{0xaa}, commitID: "20", digest: "dB"},
-		{traceID: schema.TraceID{0xaa}, commitID: "21", digest: "dA"},
-		{traceID: schema.TraceID{0xaa}, commitID: "22", digest: "d9"},
-		{traceID: schema.TraceID{0xaa}, commitID: "23", digest: "d8"},
-		{traceID: schema.TraceID{0xaa}, commitID: "24", digest: "d7"},
-		{traceID: schema.TraceID{0xaa}, commitID: "25", digest: "d6"},
-		{traceID: schema.TraceID{0xaa}, commitID: "26", digest: "d6"},
-		{traceID: schema.TraceID{0xaa}, commitID: "27", digest: "d5"},
-		{traceID: schema.TraceID{0xaa}, commitID: "28", digest: "d4"},
-		{traceID: schema.TraceID{0xaa}, commitID: "29", digest: "d3"},
-		{traceID: schema.TraceID{0xaa}, commitID: "30", digest: "d2"},
-		{traceID: schema.TraceID{0xaa}, commitID: "31", digest: "d1"},
-		{traceID: schema.TraceID{0xaa}, commitID: "32", digest: "d0"},
+	inputData := map[schema.MD5Hash][]traceDigestCommit{
+		{0xaa}: {
+			{commitID: "10", digest: "dC"},
+			{commitID: "11", digest: "dC"},
+			{commitID: "12", digest: "dC"},
+			{commitID: "17", digest: "dB"},
+			{commitID: "20", digest: "dB"},
+			{commitID: "21", digest: "dA"},
+			{commitID: "22", digest: "d9"},
+			{commitID: "23", digest: "d8"},
+			{commitID: "24", digest: "d7"},
+			{commitID: "25", digest: "d6"},
+			{commitID: "26", digest: "d6"},
+			{commitID: "27", digest: "d5"},
+			{commitID: "28", digest: "d4"},
+			{commitID: "29", digest: "d3"},
+			{commitID: "30", digest: "d2"},
+			{commitID: "31", digest: "d1"},
+			{commitID: "32", digest: "d0"},
+		},
 	}
 
 	tg, err := makeTraceGroup(ctx, inputData, "d0")
@@ -1350,7 +1396,7 @@ func TestMakeTraceGroup_OneFlakyTrace_PrioritizeShowingMostUsedDigests(t *testin
 			{Digest: "d5", Status: expectations.Untriaged}, // All others combined with this one
 		},
 		Traces: []frontend.Trace{{
-			ID:            "aa",
+			ID:            "aa000000000000000000000000000000",
 			DigestIndices: []int{4, 4, 4, 6, -1, 6, 8, 8, 8, 8, 5, 5, 8, 7, 3, 2, 1, 0},
 		}},
 	}, tg)
@@ -3274,6 +3320,128 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 			},
 			dks.TriangleTest: {
 				dks.DigestB01Pos: expectations.Positive,
+			},
+		},
+	}, res)
+}
+
+func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	s.SetReviewSystemTemplates(map[string]string{
+		dks.GerritCRS:         "http://example.com/public/%s",
+		dks.GerritInternalCRS: "http://example.com/internal/%s",
+	})
+	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
+	res, err := s.Search(ctx, &query.Search{
+		IncludePositiveDigests:  true,
+		IncludeNegativeDigests:  true,
+		IncludeUntriagedDigests: true,
+		Sort:                    query.SortDescending,
+		IncludeIgnoredTraces:    true,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.TextCorpus},
+		},
+		RGBAMinFilter:                  0,
+		RGBAMaxFilter:                  255,
+		ChangelistID:                   dks.ChangelistIDThatAddsNewTests,
+		CodeReviewSystemID:             dks.GerritInternalCRS,
+		Patchsets:                      []int64{4}, // This is the second PS we have data for.
+		IncludeDigestsProducedOnMaster: false,
+	})
+	require.NoError(t, err)
+	var clCommits []web_frontend.Commit
+	clCommits = append(clCommits, kitchenSinkCommits...)
+	clCommits = append(clCommits, web_frontend.Commit{
+		// This is the last time we ingested data for this CL.
+		CommitTime:    time.Date(2020, time.December, 12, 9, 20, 33, 0, time.UTC).Unix(),
+		Hash:          dks.ChangelistIDThatAddsNewTests,
+		Author:        dks.UserTwo,
+		Subject:       "Increase test coverage",
+		ChangelistURL: "http://example.com/internal/CL_new_tests",
+	})
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestD01Pos_CL,
+			Test:   dks.SevenTest,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+				types.CorpusField:     []string{dks.TextCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.SevenTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "03fd07d9277767cd5461069ceb0a93ba",
+					DigestIndices: []int{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     dks.TextCorpus,
+						dks.DeviceKey:         dks.WalleyeDevice,
+						dks.OSKey:             dks.AndroidOS,
+						types.PrimaryKeyField: dks.SevenTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "0c3ffc9f53f2376f369ce73bc32f5ea9",
+					DigestIndices: []int{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     dks.TextCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.SevenTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "96e321dd10013b47edda21bf24029e0b",
+					DigestIndices: []int{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.TextCorpus,
+						dks.DeviceKey:         dks.WalleyeDevice,
+						dks.OSKey:             dks.AndroidOS,
+						types.PrimaryKeyField: dks.SevenTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "c2a8d3f424ab2aee3c5bebb818c91557",
+					DigestIndices: []int{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.TextCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.SevenTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestD01Pos_CL, Status: expectations.Positive},
+				},
+				TotalDigests: 1,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: nil,
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.NoRef,
+		}},
+		Offset:  0,
+		Size:    1,
+		Commits: clCommits,
+		BulkTriageData: web_frontend.TriageRequestData{
+			dks.SevenTest: {
+				dks.DigestD01Pos_CL: "", // empty string means no closest reference
 			},
 		},
 	}, res)
