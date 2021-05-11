@@ -6,41 +6,41 @@ import { asyncFind, asyncForEach, asyncMap } from '../async';
 /** A page object for the QueryValuesSk component. */
 export class QueryValuesSkPO extends PageObject {
   @BySelector('checkbox-sk#invert')
-  private invertCheckBox?: Promise<PageObjectElement>
+  private invertCheckBox!: Promise<PageObjectElement>
 
   @BySelector('checkbox-sk#regex')
-  private regexCheckBox?: Promise<PageObjectElement>
+  private regexCheckBox!: Promise<PageObjectElement>
 
   @BySelector('#regexValue')
-  private regexInput?: Promise<PageObjectElement>
+  private regexInput!: Promise<PageObjectElement>
 
   @BySelectorAll('multi-select-sk#values div')
-  private options?: Promise<PageObjectElement[]>
+  private options!: Promise<PageObjectElement[]>
 
   @BySelectorAll('multi-select-sk#values div[selected]')
-  private selectedOptions?: Promise<PageObjectElement[]>
+  private selectedOptions!: Promise<PageObjectElement[]>
 
   async isInvertCheckboxChecked() {
     return (await this.invertCheckBox)
-        ?.applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
+        .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
   }
 
   async isRegexCheckboxChecked() {
     return (await this.regexCheckBox)
-        ?.applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
+        .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
   }
 
-  async clickInvertCheckbox() { await (await this.invertCheckBox)?.click(); }
+  async clickInvertCheckbox() { await (await this.invertCheckBox).click(); }
 
-  async clickRegexCheckbox() { await (await this.regexCheckBox)?.click(); }
+  async clickRegexCheckbox() { await (await this.regexCheckBox).click(); }
 
-  async isInvertCheckboxHidden() { return (await this.invertCheckBox)?.hasAttribute('hidden'); }
+  async isInvertCheckboxHidden() { return (await this.invertCheckBox).hasAttribute('hidden'); }
 
-  async isRegexCheckboxHidden() { return (await this.regexCheckBox)?.hasAttribute('hidden'); }
+  async isRegexCheckboxHidden() { return (await this.regexCheckBox).hasAttribute('hidden'); }
 
-  async getRegexValue() { return (await this.regexInput)?.value; }
+  async getRegexValue() { return (await this.regexInput).value; }
 
-  async setRegexValue(value: string) { await (await this.regexInput)?.enterValue(value); }
+  async setRegexValue(value: string) { await (await this.regexInput).enterValue(value); }
 
   async clickOption(option: string) {
     const optionDiv = await asyncFind(this.options, (div) => div.isInnerTextEqualTo(option));
