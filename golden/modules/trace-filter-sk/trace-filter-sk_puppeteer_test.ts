@@ -36,7 +36,7 @@ describe('trace-filter-sk', () => {
 
     it('opens the query dialog', async () => {
       await traceFilterSkPO.clickEditBtn();
-      const queryDialogSkPO = await traceFilterSkPO.getQueryDialogSkPO();
+      const queryDialogSkPO = await traceFilterSkPO.queryDialogSkPO;
       await queryDialogSkPO.clickKey('car make');
       await takeScreenshot(
         testBed.page, 'gold', 'trace-filter-sk_query-dialog-open');
@@ -50,7 +50,7 @@ describe('trace-filter-sk', () => {
 
     it('opens the query dialog', async () => {
       await traceFilterSkPO.clickEditBtn();
-      const queryDialogSkPO = await traceFilterSkPO.getQueryDialogSkPO();
+      const queryDialogSkPO = await traceFilterSkPO.queryDialogSkPO;
       await queryDialogSkPO.clickKey('car make');
       await takeScreenshot(
         testBed.page, 'gold', 'trace-filter-sk_nonempty_query-dialog-open');
