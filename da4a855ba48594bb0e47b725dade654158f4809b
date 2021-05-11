@@ -16,6 +16,24 @@
       "message": "Update_go_deps is also used by the Skia repo. But that bot has been failing for a while for different reasons, so hopefully Skia will be on the main branch by the time the bot is up and running again.",
       "revId": "da4a855ba48594bb0e47b725dade654158f4809b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "adc41591_c4a3b22d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-11T18:10:17Z",
+      "side": 1,
+      "message": "Also, Skia repo wouldn\u0027t inherit this change until the next Go deps roll, so it shouldn\u0027t be a problem either way.",
+      "parentUuid": "21143006_2d237b90",
+      "revId": "da4a855ba48594bb0e47b725dade654158f4809b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
