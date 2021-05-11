@@ -85,13 +85,13 @@ describe('search-page-sk', () => {
   it('reads search params from the URL', async () => {
     await goToPage('?untriaged=true&positive=true&negative=true');
 
-    let searchControlsSkPO = await searchPageSkPO.getSearchControlsSkPO();
+    let searchControlsSkPO = await searchPageSkPO.searchControlsSkPO;
     expect(await searchControlsSkPO.isIncludeUntriagedDigestsCheckboxChecked()).to.be.true;
     expect(await searchControlsSkPO.isIncludePositiveDigestsCheckboxChecked()).to.be.true;
     expect(await searchControlsSkPO.isIncludeNegativeDigestsCheckboxChecked()).to.be.true;
 
     await goToPage('?untriaged=true&positive=false&negative=false');
-    searchControlsSkPO = await searchPageSkPO.getSearchControlsSkPO();
+    searchControlsSkPO = await searchPageSkPO.searchControlsSkPO;
     expect(await searchControlsSkPO.isIncludeUntriagedDigestsCheckboxChecked()).to.be.true;
     expect(await searchControlsSkPO.isIncludePositiveDigestsCheckboxChecked()).to.be.false;
     expect(await searchControlsSkPO.isIncludeNegativeDigestsCheckboxChecked()).to.be.false;
@@ -101,7 +101,7 @@ describe('search-page-sk', () => {
   it('updates the URL whe the search controls change', async () => {
     await goToPage();
 
-    const searchControlsSkPO = await searchPageSkPO.getSearchControlsSkPO();
+    const searchControlsSkPO = await searchPageSkPO.searchControlsSkPO;
 
     // "Positive" is initially unchecked.
     expect(testBed.page.url()).to.not.include('positive=true');
@@ -122,7 +122,7 @@ describe('search-page-sk', () => {
   it('supports the browser back/forward buttons', async () => {
     await goToPage();
 
-    const searchControlsSkPO = await searchPageSkPO.getSearchControlsSkPO();
+    const searchControlsSkPO = await searchPageSkPO.searchControlsSkPO;
 
     expect(testBed.page.url()).to.not.include('positive=true');
     expect(testBed.page.url()).to.not.include('negative=true');
