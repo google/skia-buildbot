@@ -1,78 +1,107 @@
-import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
+import { BySelector, PageObject, POBySelector } from '../../../infra-sk/modules/page_object/page_object';
 import { TraceFilterSkPO } from '../trace-filter-sk/trace-filter-sk_po';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { Filters } from './filter-dialog-sk';
+import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
+
+/**
+ * A page object for the numeric parameter input fields in FilterDialogSk.
+ *
+ * This type of field is composed of an <input type=range> and an <input type=number> that reflect
+ * each other's values (when one changes, the other changes as well).
+ */
+export class NumericParamPO extends PageObject {
+  @BySelector('input[type=range]')
+  private rangeInput!: Promise<PageObjectElement>;
+
+  @BySelector('input[type=number]')
+  private numberInput!: Promise<PageObjectElement>;
+
+  async focusRangeInput() { await (await this.rangeInput).focus(); }
+
+  async focusNumberInput() { await (await this.numberInput).focus(); }
+
+  async getRangeInputValue() { return parseInt(await (await this.rangeInput).value); }
+
+  async setRangeInputValue(value: number) {
+    await (await this.rangeInput).enterValue(value.toString());
+  }
+
+  async geNumberInputValue() { return parseInt(await (await this.numberInput).value); }
+
+  async setNumberInputValue(value: number) {
+    await (await this.numberInput).enterValue(value.toString());
+  }
+}
 
 /** A page object for the FilterDialogSk component. */
 export class FilterDialogSkPO extends PageObject {
-  getTraceFilterSkPO() {
-    return this.selectOnePOEThenApplyFn(
-      'trace-filter-sk', async (el) => new TraceFilterSkPO(el));
-  }
+  @POBySelector('trace-filter-sk', TraceFilterSkPO)
+  traceFilterSkPO!: Promise<TraceFilterSkPO>;
 
-  getMinRGBADeltaPO() {
-    return this.selectOnePOEThenApplyFn(
-      '#min-rgba-delta-numeric-param', async (el) => new NumericParamPO(el));
-  }
+  @POBySelector('#min-rgba-delta-numeric-param', NumericParamPO)
+  minRGBADeltaPO!: Promise<NumericParamPO>;
 
-  getMaxRGBADeltaPO() {
-    return this.selectOnePOEThenApplyFn(
-      '#max-rgba-delta-numeric-param', async (el) => new NumericParamPO(el));
-  }
+  @POBySelector('#max-rgba-delta-numeric-param', NumericParamPO)
+  maxRGBADeltaPO!: Promise<NumericParamPO>;
+
+  @BySelector('#must-have-reference-image')
+  mustHaveReferenceImageCheckBox!: Promise<PageObjectElement>;
+
+  @BySelector('select#sort-order')
+  sortOrderDropDown!: Promise<PageObjectElement>
+
+  @BySelector('dialog.filter-dialog')
+  private filterDialog!: Promise<PageObjectElement>;
+
+  @BySelector('dialog.filter-dialog > .buttons > .filter')
+  private filterDialogFilterBtn!: Promise<PageObjectElement>;
+
+  @BySelector('dialog.filter-dialog > .buttons > .cancel')
+  private filterDialogCancelBtn!: Promise<PageObjectElement>;
 
   async isDialogOpen() {
-    return this.selectOneDOMNodeThenApplyFn(
-      'dialog.filter-dialog', (dialog) => (dialog as HTMLDialogElement).open);
+    return (await this.filterDialog)
+        .applyFnToDOMNode((dialog) => (dialog as HTMLDialogElement).open);
   }
 
-  async getMinRGBADelta() {
-    return (await this.getMinRGBADeltaPO()).getValue();
-  }
+  async getMinRGBADelta() { return (await this.minRGBADeltaPO).getRangeInputValue(); }
 
   async setMinRGBADelta(value: number) {
-    return (await this.getMinRGBADeltaPO()).setValue(value);
+    return (await this.minRGBADeltaPO).setRangeInputValue(value);
   }
 
-  async getMaxRGBADelta() {
-    return (await this.getMaxRGBADeltaPO()).getValue();
-  }
+  async getMaxRGBADelta() { return (await this.maxRGBADeltaPO).getRangeInputValue(); }
 
   async setMaxRGBADelta(value: number) {
-    return (await this.getMaxRGBADeltaPO()).setValue(value);
+    return (await this.maxRGBADeltaPO).setRangeInputValue(value);
   }
 
   async getSortOrder() {
-    const value = await this.selectOnePOEThenApplyFn('select#sort-order', (select) => select.value);
-    return value as 'ascending' | 'descending';
+    return await (await this.sortOrderDropDown).value as 'ascending' | 'descending';
   }
 
   async setSortOrder(value: 'ascending' | 'descending') {
-    await this.selectOnePOEThenApplyFn('select#sort-order', (select) => select.enterValue(value));
+    await (await this.sortOrderDropDown).enterValue(value);
   }
 
-  isReferenceImageCheckboxChecked() {
-    return this.selectOneDOMNodeThenApplyFn(
-      '#must-have-reference-image', (c) => (c as CheckOrRadio).checked);
+  async isReferenceImageCheckboxChecked() {
+    return (await this.mustHaveReferenceImageCheckBox)
+        .applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
   }
 
   async clickReferenceImageCheckbox() {
-    await this.selectOnePOEThenApplyFn('#must-have-reference-image', (el) => el.click());
+    return (await this.mustHaveReferenceImageCheckBox).click();
   }
 
-  async clickFilterBtn() {
-    return this.selectOnePOEThenApplyFn(
-      '.filter-dialog > .buttons > .filter', (btn) => btn.click());
-  }
+  async clickFilterBtn() { await (await this.filterDialogFilterBtn).click(); }
 
-  async clickCancelBtn() {
-    return this.selectOnePOEThenApplyFn(
-      '.filter-dialog > .buttons > .cancel', (btn) => btn.click());
-  }
+  async clickCancelBtn() { await (await this.filterDialogCancelBtn).click(); }
 
   /** Gets the selected filters. */
   async getSelectedFilters() {
     const filters: Filters = {
-      diffConfig: await (await this.getTraceFilterSkPO()).getSelection(),
+      diffConfig: await (await this.traceFilterSkPO).getSelection(),
       minRGBADelta: await this.getMinRGBADelta(),
       maxRGBADelta: await this.getMaxRGBADelta(),
       sortOrder: await this.getSortOrder(),
@@ -83,7 +112,7 @@ export class FilterDialogSkPO extends PageObject {
 
   /** Sets the selected filters. */
   async setSelectedFilters(filters: Filters) {
-    const traceFilterSkPO = await this.getTraceFilterSkPO();
+    const traceFilterSkPO = await this.traceFilterSkPO;
     await traceFilterSkPO.clickEditBtn();
     await traceFilterSkPO.setQueryDialogSkSelection(filters.diffConfig);
     await traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
@@ -95,31 +124,5 @@ export class FilterDialogSkPO extends PageObject {
     if (filters.mustHaveReferenceImage !== (await this.isReferenceImageCheckboxChecked())) {
       await this.clickReferenceImageCheckbox();
     }
-  }
-};
-
-/**
- * A page object for the numeric parameter input fields in FilterDialogSk.
- *
- * This type of field is composed of an <input type=range> and an <input type=number> that reflect
- * each other's values (when one changes, the other changes as well).
- */
-export class NumericParamPO extends PageObject {
-  async getRangeInput() {
-    const input = await this.selectOnePOE('input[type=range]');
-    return input!;
-  }
-
-  async getNumberInput() {
-    const input = await this.selectOnePOE('input[type=number]');
-    return input!;
-  }
-
-  async getValue() {
-    return parseInt(await (await this.getRangeInput()).value);
-  }
-
-  async setValue(value: number) {
-    await (await this.getRangeInput()).enterValue(value.toString());
   }
 }

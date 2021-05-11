@@ -153,6 +153,11 @@ export abstract class PageObject {
     }
   }
 
+  /** Returns true if the underlying PageObjectElement is empty. */
+  get empty() {
+    return this.element.empty;
+  }
+
   /**
    * Returns the result of calling PageObjectElement#selectOnePOE() on the underlying
    * PageObjectElement.
