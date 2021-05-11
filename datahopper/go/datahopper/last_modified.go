@@ -21,9 +21,12 @@ func updateLastModifiedMetrics(ctx context.Context, client *http.Client, reposTo
 	now := time.Now()
 	for repo, files := range reposToFiles {
 		for _, file := range files {
-			log, err := repo.Log(ctx, git.MasterBranch, gitiles.LogLimit(1), gitiles.LogPath(file))
+			log, err := repo.Log(ctx, git.MainBranch, gitiles.LogLimit(1), gitiles.LogPath(file))
 			if err != nil {
-				return skerr.Wrapf(err, "Failed loading %s", file)
+				log, err = repo.Log(ctx, git.MasterBranch, gitiles.LogLimit(1), gitiles.LogPath(file))
+				if err != nil {
+					return skerr.Wrapf(err, "Failed loading %s", file)
+				}
 			}
 			if len(log) != 1 {
 				return skerr.Fmt("Failed to obtain the last commit which modified %s in %s; expected 1 commit but got %d", file, repo.URL(), len(log))
