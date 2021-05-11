@@ -1,6 +1,6 @@
 import { ElementHandle, Serializable } from 'puppeteer';
 
-// Custon type guard to tell DOM elements and Puppeteer element handles apart.
+// Custom type guard to tell DOM elements and Puppeteer element handles apart.
 function isPptrElement(
     element: HTMLElement | ElementHandle<HTMLElement>): element is ElementHandle<HTMLElement> {
   return (element as ElementHandle).asElement !== undefined;
@@ -27,16 +27,15 @@ function isPptrElement(
  * [2] https://github.com/google/pageloader
  */
 export class PageObjectElement {
-  private element: HTMLElement | ElementHandle<HTMLElement>;
+  private readonly element?: HTMLElement | ElementHandle<HTMLElement>;
 
-  constructor(element: HTMLElement | ElementHandle<HTMLElement>) {
-    if (element === null) {
-      throw new TypeError('element cannot be null');
-    }
-    if (element === undefined) {
-      throw new TypeError('element cannot be undefined');
-    }
+  constructor(element?: HTMLElement | ElementHandle<HTMLElement>) {
     this.element = element;
+  }
+
+  /** Returns true if the underlying DOM node or Puppeteer handle is empty. */
+  get empty() {
+    return !this.element;
   }
 
   /////////////////////////////////////////////////////////////////
@@ -50,19 +49,31 @@ export class PageObjectElement {
     return this.applyFnToDOMNode((el) => el.innerText);
   }
 
+  /** Returns true if the element's inner text equals the given string. */
+  async isInnerTextEqualTo(text: string): Promise<boolean> {
+    return (await this.innerText) === text;
+  }
+
   /** Analogous to HTMLElement#className. */
   get className() {
     return this.applyFnToDOMNode((el) => el.className);
   }
 
+  /** Returns true if the element has the given CSS class. */
+  async hasClassName(className: string) {
+    return this.applyFnToDOMNode(
+        (el, className) => el.classList.contains(className as string),
+        className);
+  }
+
   /** Analogous to HTMLElement#focus(). */
   async focus() {
-    await this.element.focus();
+    await this.element!.focus();
   }
 
   /** Analogous to HTMLElement#click(). */
   async click() {
-    await this.element.click();
+    await this.element!.click();
   }
 
   /** Analogous to HTMLElement#hasAttribute(). */
@@ -91,12 +102,12 @@ export class PageObjectElement {
    * @param key The "key" attribute of the KeyboardEvent to be dispatched.
    */
   async typeKey(key: string) {
-    if (isPptrElement(this.element)) {
+    if (isPptrElement(this.element!)) {
       return this.element.type(key);
     }
-    this.element.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, key: key}));
-    this.element.dispatchEvent(new KeyboardEvent('keypress', {bubbles: true, key: key}));
-    this.element.dispatchEvent(new KeyboardEvent('keyup', {bubbles: true, key: key}));
+    this.element!.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, key: key}));
+    this.element!.dispatchEvent(new KeyboardEvent('keypress', {bubbles: true, key: key}));
+    this.element!.dispatchEvent(new KeyboardEvent('keyup', {bubbles: true, key: key}));
   }
 
   /**
@@ -130,10 +141,10 @@ export class PageObjectElement {
    */
   async applyFnToDOMNode<T extends Serializable | void>(
       fn: (element: HTMLElement, ...args: Serializable[]) => T, ...args: Serializable[]) {
-    if (isPptrElement(this.element)) {
+    if (isPptrElement(this.element!)) {
       return await this.element.evaluate(fn, ...args) as T;
     }
-    return fn(this.element, ...args);
+    return fn(this.element!, ...args);
   }
 
   ////////////////////////////////////////////////////////////////////
@@ -142,21 +153,21 @@ export class PageObjectElement {
 
   /** Analogous to HTMLElement#querySelector(). */
   async selectOnePOE(selector: string) {
-    if (isPptrElement(this.element)) {
+    if (isPptrElement(this.element!)) {
       // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
       // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
       // ElementHandle#$$() methods are the other way around.
       const handle = await this.element.$(selector);
-      return handle ? new PageObjectElement(handle) : null;
+      return handle ? new PageObjectElement(handle) : new PageObjectElement();
     }
 
-    const element = this.element.querySelector<HTMLElement>(selector);
-    return element ? new PageObjectElement(element) : null;
+    const element = this.element!.querySelector<HTMLElement>(selector);
+    return element ? new PageObjectElement(element) : new PageObjectElement();
   }
 
   /** Analogous to HTMLElement#querySelectorAll(). */
   async selectAllPOE(selector: string) {
-    if (isPptrElement(this.element)) {
+    if (isPptrElement(this.element!)) {
       // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
       // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
       // ElementHandle#$$() methods are the other way around.
@@ -164,7 +175,7 @@ export class PageObjectElement {
       return handles.map((handle) => new PageObjectElement(handle));
     }
 
-    const elements = Array.from(this.element.querySelectorAll<HTMLElement>(selector));
+    const elements = Array.from(this.element!.querySelectorAll<HTMLElement>(selector));
     return elements.map((element) => new PageObjectElement(element));
   }
 
@@ -183,7 +194,7 @@ export class PageObjectElement {
   async selectOnePOEThenApplyFn<T>(
       selector: string, fn: (element: PageObjectElement) => Promise<T>) {
     const element = await this.selectOnePOE(selector);
-    if (!element) {
+    if (element.empty) {
       throw new Error(`selector "${selector}" did not match any elements`);
     }
     return fn(element);
@@ -204,7 +215,7 @@ export class PageObjectElement {
   async selectOneDOMNodeThenApplyFn<T extends Serializable | void>(
       selector: string, fn: (element: HTMLElement) => T, ...args: Serializable[]) {
     const element = await this.selectOnePOE(selector);
-    if (!element) {
+    if (element.empty) {
       throw new Error(`selector "${selector}" did not match any elements`);
     }
     return element.applyFnToDOMNode(fn, ...args);
