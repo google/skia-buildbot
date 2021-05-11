@@ -79,13 +79,13 @@ export class ParamSetSkPO extends PageObject {
       fn: (pkv: ParamSetKeyValueTuple, valueDiv: PageObjectElement) => Promise<void>) {
     // Iterate over all rows.
     await asyncForEach(this.rows, async (row) => {
-      const key = await (await row.selectOnePOE('th')).innerText;
+      const key = await (await row.bySelector('th')).innerText;
 
       // Iterate over all cells. Each cell corresponds to one ParamSet.
-      await asyncForEach(row.selectAllPOE('td'), async (td, paramSetIndex) => {
+      await asyncForEach(row.bySelectorAll('td'), async (td, paramSetIndex) => {
 
         // Iterate over each value of the current ParamSet.
-        await asyncForEach(td.selectAllPOE('div'), async (div) => {
+        await asyncForEach(td.bySelectorAll('div'), async (div) => {
           await fn({paramSetIndex: paramSetIndex, key: key, value: await div.innerText}, div);
         });
       })
