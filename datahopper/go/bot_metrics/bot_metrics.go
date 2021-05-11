@@ -85,6 +85,10 @@ func read(edb events.EventDB, repos repograph.Map, from, to time.Time) (map[stri
 			}
 			c := repo.Get(d.Hash)
 			if c == nil {
+				// This commit was lost in the master -> main migration.
+				if d.Hash == "33de3938b2440af4f41979a6dacbee967d30aa56" {
+					continue
+				}
 				return nil, fmt.Errorf("No such commit %q in %s", d.Hash, repoUrl)
 			}
 			rvSub[c] = d
