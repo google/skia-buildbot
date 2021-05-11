@@ -37,7 +37,7 @@ import { EmailChooserSk } from '../email-chooser-sk/email-chooser-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 import * as paramset from '../paramset';
-import { displaySilence, expiresIn } from '../am';
+import { displaySilence, expiresIn, getSilenceFullName } from '../am';
 
 import {
   Silence, Incident, StatsRequest, Stat, IncidentsResponse, ParamSet, Params, IncidentsInRangeRequest,
@@ -67,6 +67,8 @@ interface RotationResp {
 
 export class AlertManagerSk extends HTMLElement {
   private incidents: Incident[] = []; // All active incidents.
+
+  private filterSilencesVal: string = '';
 
   private silences: Silence[] = []; // All active silences.
 
@@ -159,7 +161,9 @@ export class AlertManagerSk extends HTMLElement {
       ${ele.incidentList(ele.incidents, ele.isBotCentricView)}
     </section>
     <section class=silences>
-      ${ele.silences.slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i: Silence) => html`
+    / rmistry
+      <input class=silences-filter label="Filter here" .value="${ele.filterSilencesVal}" @change=${(e: Event) => ele.filterDisplayedSilences(e)}></input>
+      ${ele.silences.filter((silence: Silence) => getSilenceFullName(silence).includes(ele.filterSilencesVal)).slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i: Silence) => html`
         <h2 class=${ele.classOfSilenceH2(i)} @click=${() => ele.silenceClick(i)}>
           <span>
             ${displaySilence(i)}
@@ -416,6 +420,26 @@ export class AlertManagerSk extends HTMLElement {
     return html`<button class=selection ?disabled=${this.checked.size === 0} @click=${this.clearSelections}>Clear selections</button>`;
   }
 
+  // private filterSilences(silence: Silence): boolean {
+
+  //   return false;
+  // }
+
+  // rmistry
+  // inline?
+  // private silencesFilter(): TemplateResult {
+  //   return html`<input class=silences-filter label="Filter here" @change=${(e: Event) => this.modifyDisplayedSilences(e)}></input>`;
+  // }
+
+  // rmistry
+  private filterDisplayedSilences(e: Event): void {
+    // const filterVal = (e.target as HTMLInputElement).value;
+    // this.silences = this.silences.filter((silence: Silence) => getSilenceFullName(silence).includes((e.target as HTMLInputElement).value));
+    this.filterSilencesVal = (e.target as HTMLInputElement).value;
+    console.log('RENDERING!!!');
+    this._render();
+  }
+
   private clearSelections(): void {
     this.checked = new Set();
     this._render();
@@ -493,6 +517,9 @@ export class AlertManagerSk extends HTMLElement {
     // Unset alert_id when switching tabs.
     this.state.alert_id = '';
     this.stateHasChanged();
+    // Unset silences filter when switching tabs.
+    console.log('UNSETTING THIS!!!!');
+    this.filterSilencesVal = '';
 
     // If tab is stats then load stats.
     if (e.detail.index === 3) {
