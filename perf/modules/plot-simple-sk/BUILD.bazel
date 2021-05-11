@@ -24,8 +24,8 @@ ts_library(
 sk_element(
     name = "plot-simple-sk",
     sass_deps = [
-        "//perf/modules/themes:themes_sass_lib",
         "//infra-sk:elements-sk_scss",
+        "//perf/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["plot-simple-sk.scss"],
     ts_deps = [
@@ -80,7 +80,9 @@ karma_test(
         ":plot-simple-sk",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
+        "@npm//@types/d3-scale",
         "@npm//chai",
+        "@npm//d3-scale",
     ],
 )
 
