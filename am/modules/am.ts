@@ -9,6 +9,20 @@ import { Note, Silence } from './json';
 const linkRe = /(http[s]?:\/\/[^\s]*)/gm;
 
 /**
+ * Returns the full name of a silence.
+ */
+export function getSilenceFullName(silence: Silence | State): string {
+  const ret: string[] = [];
+  Object.keys(silence.param_set!).forEach((key) => {
+    if (key.startsWith('__')) {
+      return;
+    }
+    ret.push(`${silence.param_set![key]!.join(', ')}`);
+  });
+  return ret.join(' ');
+}
+
+/**
  * Formats the text for a silence header.
  *
  * silence - The silence being displayed.
@@ -21,7 +35,7 @@ export function displaySilence(silence: Silence | State): TemplateResult {
     }
     ret.push(`${silence.param_set![key]!.join(', ')}`);
   });
-  const fullName = ret.join(' ');
+  const fullName = getSilenceFullName(silence);
   let displayName = fullName;
   if (displayName.length > 33) {
     displayName = `${displayName.slice(0, 30)}...`;

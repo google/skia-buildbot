@@ -37,7 +37,7 @@ import { EmailChooserSk } from '../email-chooser-sk/email-chooser-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 import * as paramset from '../paramset';
-import { displaySilence, expiresIn } from '../am';
+import { displaySilence, expiresIn, getSilenceFullName } from '../am';
 
 import {
   Silence, Incident, StatsRequest, Stat, IncidentsResponse, ParamSet, Params, IncidentsInRangeRequest,
@@ -159,7 +159,8 @@ export class AlertManagerSk extends HTMLElement {
       ${ele.incidentList(ele.incidents, ele.isBotCentricView)}
     </section>
     <section class=silences>
-      ${ele.silences.slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i: Silence) => html`
+      ${ele.silencesFilter()}
+      ${ele.silences.filter(filterSilences()).slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i: Silence) => html`
         <h2 class=${ele.classOfSilenceH2(i)} @click=${() => ele.silenceClick(i)}>
           <span>
             ${displaySilence(i)}
@@ -414,6 +415,19 @@ export class AlertManagerSk extends HTMLElement {
 
   private displayClearSelections(): TemplateResult {
     return html`<button class=selection ?disabled=${this.checked.size === 0} @click=${this.clearSelections}>Clear selections</button>`;
+  }
+
+  // rmistry
+  // inline?
+  private silencesFilter(): TemplateResult {
+    return html`<input class=silences-filter label="Filter here" @change=${(e: Event) => this.modifyDisplayedSilences(e)}></input>`;
+  }
+
+  // rmistry
+  private modifyDisplayedSilences(e: Event): void {
+    const filterVal = (e.target as HTMLInputElement).value;
+    this.silences = this.silences.filter((silence: Silence) => getSilenceFullName(silence).includes(filterVal));
+    this._render();
   }
 
   private clearSelections(): void {
