@@ -151,8 +151,10 @@ export class PageObjectElement {
   // Query selectors and convenience methods using query selectors. //
   ////////////////////////////////////////////////////////////////////
 
-  /** Analogous to HTMLElement#querySelector(). */
-  async selectOnePOE(selector: string) {
+  /**
+   * Analogous to HTMLElement#querySelector().
+   */
+  async bySelector(selector: string) {
     if (isPptrElement(this.element!)) {
       // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
       // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
@@ -166,7 +168,7 @@ export class PageObjectElement {
   }
 
   /** Analogous to HTMLElement#querySelectorAll(). */
-  async selectAllPOE(selector: string) {
+  async bySelectorAll(selector: string) {
     if (isPptrElement(this.element!)) {
       // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
       // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
