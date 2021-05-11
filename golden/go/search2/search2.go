@@ -550,7 +550,7 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 		return nil, skerr.Wrap(err)
 	}
 	// Go fetch history and paramset (within this grouping, and respecting publiclyAllowedParams).
-	paramsetsByDigest, err := s.getParamsetsForDigests(ctx, closestDiffs)
+	paramsetsByDigest, err := s.getParamsetsForRightSide(ctx, closestDiffs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -671,10 +671,13 @@ type stageOneResult struct {
 	traceID    schema.TraceID
 	groupingID schema.GroupingID
 	digest     schema.DigestBytes
+	// optionsID will be set for CL data only; for primary data we have to look it up from a
+	// different table and the options could change over time.
+	optionsID schema.OptionsID
 }
 
 // getMatchingDigestsAndTraces returns the tuples of digest+traceID that match the given query.
-// The order of the result is abitrary.
+// The order of the result is arbitrary.
 func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context) ([]stageOneResult, error) {
 	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTraces")
 	defer span.End()
@@ -883,6 +886,7 @@ type stageTwoResult struct {
 	groupingID      schema.GroupingID
 	rightDigests    []schema.DigestBytes
 	traceIDs        []schema.TraceID
+	optionsIDs      []schema.OptionsID     // will be set for CL data only
 	closestDigest   *frontend.SRDiffDigest // These won't have ParamSets yet
 	closestPositive *frontend.SRDiffDigest
 	closestNegative *frontend.SRDiffDigest
@@ -911,6 +915,9 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 		bd.leftDigest = input.digest
 		bd.groupingID = input.groupingID
 		bd.traceIDs = append(bd.traceIDs, input.traceID)
+		if input.optionsID != nil {
+			bd.optionsIDs = append(bd.optionsIDs, input.optionsID)
+		}
 		byDigestAndGrouping[key] = bd
 	}
 
@@ -920,18 +927,26 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 	for g, i := range byGrouping {
 		groupingID, inputs := g, i
 		eg.Go(func() error {
+			// Aggregate and deduplicate digests from the stage one results.
 			digests := make([]schema.DigestBytes, 0, len(inputs))
+			duplicates := map[schema.MD5Hash]bool{}
+			var key schema.MD5Hash
 			for _, input := range inputs {
+				copy(key[:], input.digest)
+				if duplicates[key] {
+					continue
+				}
+				duplicates[key] = true
 				digests = append(digests, input.digest)
 			}
-			resultsForGrouping, err := s.getDiffsForGrouping(eCtx, groupingID, digests)
+			resultsByDigest, err := s.getDiffsForGrouping(eCtx, groupingID, digests)
 			if err != nil {
 				return skerr.Wrap(err)
 			}
 			// Combine those results into our search results.
 			mutex.Lock()
 			defer mutex.Unlock()
-			for key, diffs := range resultsForGrouping {
+			for key, diffs := range resultsByDigest {
 				// combine this map with the other
 				stageTwo := byDigestAndGrouping[key]
 				for _, srdd := range diffs {
@@ -973,6 +988,7 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 		if q.MustIncludeReferenceFilter && s2.closestDigest == nil {
 			continue
 		}
+		key := groupingDigestKey{groupingID: sql.AsMD5Hash(s2.groupingID), digest: sql.AsMD5Hash(s2.leftDigest)}
 		if s2.closestDigest != nil {
 			// Apply RGBA Filter here - if the closest digest isn't within range, we remove it.
 			maxDiff := util.MaxInt(s2.closestDigest.MaxRGBADiffs[:]...)
@@ -980,8 +996,11 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 				continue
 			}
 			closestLabel := s2.closestDigest.Status
-			key := groupingDigestKey{groupingID: sql.AsMD5Hash(s2.groupingID), digest: sql.AsMD5Hash(s2.leftDigest)}
 			bulkTriageData[key] = closestLabel
+		} else {
+			// Include a blank entry for results that have no other reference images. This allows
+			// us to still bulk triage them and count them towards the total.
+			bulkTriageData[key] = ""
 		}
 		results = append(results, s2)
 
@@ -1131,11 +1150,11 @@ ObservedDigestsInTile AS (
 	return statement, nil
 }
 
-// getParamsetsForDigests fetches all the traces that produced the digests in the data and
+// getParamsetsForRightSide fetches all the traces that produced the digests in the data and
 // the keys for these traces as ParamSets. The ParamSets are mapped according to the digest
 // which produced them in the given window (or the tiles that approximate this).
-func (s *Impl) getParamsetsForDigests(ctx context.Context, inputs []stageTwoResult) (map[types.Digest]paramtools.ParamSet, error) {
-	ctx, span := trace.StartSpan(ctx, "getParamsetsForDigests")
+func (s *Impl) getParamsetsForRightSide(ctx context.Context, inputs []stageTwoResult) (map[types.Digest]paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "getParamsetsForRightSide")
 	defer span.End()
 	digestToTraces, err := s.addRightTraces(ctx, inputs)
 	if err != nil {
@@ -1369,7 +1388,7 @@ func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []stageTwoResult)
 			} else if input.closestDigest != nil && input.closestDigest.Status == expectations.Negative {
 				sr.ClosestRef = common.NegativeRef
 			}
-			tg, err := s.traceGroupForTraces(eCtx, input.traceIDs, sr.Digest)
+			tg, err := s.traceGroupForTraces(eCtx, input.traceIDs, input.optionsIDs, sr.Digest)
 			if err != nil {
 				return skerr.Wrap(err)
 			}
@@ -1409,18 +1428,30 @@ func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []stageTwoResult)
 }
 
 type traceDigestCommit struct {
-	traceID   schema.TraceID
 	commitID  schema.CommitID
 	digest    types.Digest
 	optionsID schema.OptionsID
 }
 
 // traceGroupForTraces gets all the history for a slice of traces within the given window and
-// turns it into a format that the frontend can render.
-func (s *Impl) traceGroupForTraces(ctx context.Context, traceIDs []schema.TraceID, primary types.Digest) (frontend.TraceGroup, error) {
+// turns it into a format that the frontend can render. If latestOptions is provided, it is assumed
+// to be a parallel slice to traceIDs - those options will be used as the options for each trace
+// instead of the ones that were searched.
+func (s *Impl) traceGroupForTraces(ctx context.Context, traceIDs []schema.TraceID, latestOptions []schema.OptionsID, primary types.Digest) (frontend.TraceGroup, error) {
 	ctx, span := trace.StartSpan(ctx, "traceGroupForTraces")
 	span.AddAttributes(trace.Int64Attribute("num_traces", int64(len(traceIDs))))
 	defer span.End()
+
+	traceData := make(map[schema.MD5Hash][]traceDigestCommit, len(traceIDs))
+	// Make sure there's an entry for each trace. That way, even if the trace is not seen on
+	// the primary branch (e.g. newly added in a CL), we can show something for it.
+	for i := range traceIDs {
+		key := sql.AsMD5Hash(traceIDs[i])
+		traceData[key] = nil
+		if latestOptions != nil {
+			traceData[key] = append(traceData[key], traceDigestCommit{optionsID: latestOptions[i]})
+		}
+	}
 	const statement = `SELECT trace_id, commit_id, encode(digest, 'hex'), options_id
 FROM TraceValues WHERE trace_id = ANY($1) AND commit_id >= $2
 ORDER BY trace_id, commit_id`
@@ -1429,15 +1460,17 @@ ORDER BY trace_id, commit_id`
 		return frontend.TraceGroup{}, skerr.Wrap(err)
 	}
 	defer rows.Close()
-	var dataPoints []traceDigestCommit
+	var key schema.MD5Hash
+	var traceID schema.TraceID
 	for rows.Next() {
 		var row traceDigestCommit
-		if err := rows.Scan(&row.traceID, &row.commitID, &row.digest, &row.optionsID); err != nil {
+		if err := rows.Scan(&traceID, &row.commitID, &row.digest, &row.optionsID); err != nil {
 			return frontend.TraceGroup{}, skerr.Wrap(err)
 		}
-		dataPoints = append(dataPoints, row)
+		copy(key[:], traceID)
+		traceData[key] = append(traceData[key], row)
 	}
-	return makeTraceGroup(ctx, dataPoints, primary)
+	return makeTraceGroup(ctx, traceData, primary)
 }
 
 // fillInExpectations looks up all the expectations for the digests included in the given
@@ -1618,7 +1651,7 @@ func (s *Impl) searchCLData(ctx context.Context) (*frontend.SearchResponse, erro
 		return nil, skerr.Wrap(err)
 	}
 	// Go fetch history and paramset (within this grouping, and respecting publiclyAllowedParams).
-	paramsetsByDigest, err := s.getParamsetsForDigests(ctx, closestDiffs)
+	paramsetsByDigest, err := s.getParamsetsForRightSide(ctx, closestDiffs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -1711,7 +1744,7 @@ func (s *Impl) getMatchingDigestsAndTracesForCL(ctx context.Context) ([]stageOne
 	q := getQuery(ctx)
 	statement := `WITH
 CLDigests AS (
-	SELECT secondary_branch_trace_id, digest, grouping_id
+	SELECT secondary_branch_trace_id, digest, grouping_id, options_id
 	FROM SecondaryBranchValues
 	WHERE branch_name = $1 and version_name = $2
 ),`
@@ -1722,7 +1755,7 @@ CLDigests AS (
 	statement += mt
 	statement += `
 MatchingCLDigests AS (
-	SELECT trace_id, digest, grouping_id
+	SELECT trace_id, digest, grouping_id, options_id
 	FROM CLDigests JOIN MatchingTraces
 		ON CLDigests.secondary_branch_trace_id = MatchingTraces.trace_id
 ),
@@ -1731,7 +1764,7 @@ CLExpectations AS (
 	FROM SecondaryBranchExpectations
 	WHERE branch_name = $1
 )
-SELECT trace_id, MatchingCLDigests.grouping_id, MatchingCLDigests.digest
+SELECT trace_id, MatchingCLDigests.grouping_id, MatchingCLDigests.digest, options_id
 FROM MatchingCLDigests
 LEFT JOIN Expectations
 	ON MatchingCLDigests.grouping_id = Expectations.grouping_id AND
@@ -1767,7 +1800,7 @@ WHERE COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) = ANY($3
 	keyDigest := key.digest[:]
 	for rows.Next() {
 		var row stageOneResult
-		if err := rows.Scan(&row.traceID, &row.groupingID, &row.digest); err != nil {
+		if err := rows.Scan(&row.traceID, &row.groupingID, &row.digest, &row.optionsID); err != nil {
 			return nil, skerr.Wrap(err)
 		}
 		if s.publiclyVisibleTraces != nil {
@@ -1845,7 +1878,8 @@ func matchingCLTracesStatement(ps paramtools.ParamSet, includeIgnored bool) (str
 
 // makeTraceGroup converts all the trace+digest+commit triples into a TraceGroup. On the frontend,
 // we only show the top 9 digests before fading them to grey - this handles that logic.
-func makeTraceGroup(ctx context.Context, data []traceDigestCommit, primary types.Digest) (frontend.TraceGroup, error) {
+// It is assumed that the slices in the data map are in ascending order of commits.
+func makeTraceGroup(ctx context.Context, data map[schema.MD5Hash][]traceDigestCommit, primary types.Digest) (frontend.TraceGroup, error) {
 	ctx, span := trace.StartSpan(ctx, "makeTraceGroup")
 	defer span.End()
 	isCL := getQualifiedCL(ctx) != ""
@@ -1858,30 +1892,29 @@ func makeTraceGroup(ctx context.Context, data []traceDigestCommit, primary types
 		traceLength++ // We will append the current data to the end.
 	}
 	indexMap := getCommitToIdxMap(ctx)
-	currentTrace := frontend.Trace{
-		ID:            tiling.TraceID(hex.EncodeToString(data[0].traceID)),
-		DigestIndices: emptyIndices(traceLength),
-		RawTrace:      tiling.NewEmptyTrace(traceLength, nil, nil),
-	}
-	tg.Traces = append(tg.Traces, currentTrace)
-	for _, dp := range data {
-		tID := tiling.TraceID(hex.EncodeToString(dp.traceID))
-		if currentTrace.ID != tID {
-			currentTrace = frontend.Trace{
-				ID:            tID,
-				DigestIndices: emptyIndices(traceLength),
-				RawTrace:      tiling.NewEmptyTrace(traceLength, nil, nil),
+	for trID, points := range data {
+		currentTrace := frontend.Trace{
+			ID:            tiling.TraceID(hex.EncodeToString(trID[:])),
+			DigestIndices: emptyIndices(traceLength),
+			RawTrace:      tiling.NewEmptyTrace(traceLength, nil, nil),
+		}
+		for _, dp := range points {
+			if dp.optionsID != nil {
+				// We want to report the latest options, so always update this if non-nil.
+				currentTrace.RawTrace.OptionsID = dp.optionsID
 			}
-			tg.Traces = append(tg.Traces, currentTrace)
+			idx, ok := indexMap[dp.commitID]
+			if !ok {
+				continue
+			}
+			currentTrace.RawTrace.Digests[idx] = dp.digest
 		}
-		idx, ok := indexMap[dp.commitID]
-		if !ok {
-			continue
-		}
-		currentTrace.RawTrace.Digests[idx] = dp.digest
-		// We want to report the latest options, so always update this
-		currentTrace.RawTrace.OptionsID = dp.optionsID
+		tg.Traces = append(tg.Traces, currentTrace)
 	}
+	// Sort traces by ID for determinism
+	sort.Slice(tg.Traces, func(i, j int) bool {
+		return tg.Traces[i].ID < tg.Traces[j].ID
+	})
 
 	// Find the most recent / important digests and assign them an index. Everything else will
 	// be given the sentinel value.
