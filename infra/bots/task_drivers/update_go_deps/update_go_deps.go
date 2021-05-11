@@ -260,7 +260,7 @@ func main() {
 			reviewers = append(reviewers, ci.Owner.Email)
 		}
 	}
-	if err := gerrit_steps.UploadCL(ctx, g, co, *gerritProject, git.MasterBranch, rs.Revision, "Update Go Deps", reviewers, isTryJob); err != nil {
+	if err := gerrit_steps.UploadCL(ctx, g, co, *gerritProject, git.MainBranch, rs.Revision, "Update Go Deps", reviewers, isTryJob); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
