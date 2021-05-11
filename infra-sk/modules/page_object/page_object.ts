@@ -167,56 +167,11 @@ export abstract class PageObject {
   }
 
   /**
-   * Returns the result of calling PageObjectElement#selectOnePOEThenApplyFn() on the underlying
-   * PageObjectElement.
-   */
-  protected selectOnePOEThenApplyFn<T>(
-      selector: string, fn: (element: PageObjectElement) => Promise<T>) {
-    return this.element.selectOnePOEThenApplyFn<T>(selector, fn);
-  }
-
-  /**
-   * Returns the result of calling PageObjectElement#selectOneDOMNodeThenApplyFn() on the
-   * underlying PageObjectElement.
-   */
-  protected selectOneDOMNodeThenApplyFn<T extends Serializable | void>(
-      selector: string, fn: (element: HTMLElement) => T, ...args: Serializable[]) {
-    return this.element.selectOneDOMNodeThenApplyFn<T>(selector, fn, ...args);
-  }
-
-  /**
    * Returns the result of calling PageObjectElement#selectAllPOE() on the underlying
    * PageObjectElement.
    */
   protected selectAllPOE(selector: string) {
     return this.element.selectAllPOE(selector);
-  }
-
-  /**
-   * Returns the result of calling PageObjectElement#selectAllPOEThenMap() on the underlying
-   * PageObjectElement.
-   */
-  protected selectAllPOEThenMap<T>(
-      selector: string, fn: (element: PageObjectElement, index: number) => Promise<T>) {
-    return this.element.selectAllPOEThenMap<T>(selector, fn);
-  }
-
-  /**
-   * Returns the result of calling PageObjectElement#selectAllPOEThenForEach() on the underlying
-   * PageObjectElement.
-   */
-  protected selectAllPOEThenForEach(
-      selector: string, fn: (element: PageObjectElement, index: number) => Promise<void>) {
-    return this.element.selectAllPOEThenForEach(selector, fn);
-  }
-
-  /**
-   * Returns the result of calling PageObjectElement#$find() on the underlying
-   * PageObjectElement.
-   */
-  protected selectAllPOEThenFind(
-      selector: string, fn: (element: PageObjectElement, index: number) => Promise<boolean>) {
-    return this.element.selectAllPOEThenFind(selector, fn);
   }
 }
 
