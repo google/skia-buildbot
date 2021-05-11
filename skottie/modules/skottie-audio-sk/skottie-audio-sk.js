@@ -350,7 +350,7 @@ class SkottieAudioSk extends HTMLElement {
 
   _onBeatDurationChange(ev) {
     ev.preventDefault();
-    const value = parseInt(ev.target.value, 10);
+    const value = Number(ev.target.value);
     if (this._state.beatDuration !== value) {
       this._state.beatDuration = value;
     }
