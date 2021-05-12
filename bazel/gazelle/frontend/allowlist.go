@@ -10,6 +10,7 @@ var targetDirectories = map[string]bool{
 	"infra-sk/modules":    true,
 	"machine/modules":     true,
 	"machine/pages":       true,
+	"modules/devices":     true,
 	"new_element/modules": true,
 	"perf/modules":        true,
 	"perf/pages":          true,

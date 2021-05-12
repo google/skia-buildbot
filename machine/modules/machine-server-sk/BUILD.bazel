@@ -17,6 +17,7 @@ sk_element(
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//modules/devices:devices_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
