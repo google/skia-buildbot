@@ -157,6 +157,10 @@ alert-manager-sk {
     }
   }
 
+  .silences-filter {
+    width: 100%;
+  }
+
   comment-icon-sk, alarm-off-icon-sk, thumbs-up-down-icon-sk {
     fill: var(--icons);
     padding: 0.2em 0.6em;
