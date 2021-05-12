@@ -66,7 +66,7 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
   });
 
   $$<HTMLButtonElement>('#high')!.addEventListener('click', () => {
-    ele.highlight = [`trace${n - 1}`, `trace${n - 2}`];
+    ele.highlight = ['trace0', 'trace1'];
   });
 
   $$<HTMLButtonElement>('#clearhigh')!.addEventListener('click', () => {
