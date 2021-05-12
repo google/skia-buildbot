@@ -4,7 +4,7 @@ import { setUpElementUnderTest, eventPromise, noEventPromise } from '../../../in
 import { QueryDialogSk } from './query-dialog-sk';
 import { QueryDialogSkPO } from './query-dialog-sk_po';
 import { ParamSet, fromParamSet } from 'common-sk/modules/query';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $$ } from 'common-sk/modules/dom';
 
 const expect = chai.expect;
 

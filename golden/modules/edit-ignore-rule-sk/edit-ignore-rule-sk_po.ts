@@ -1,60 +1,64 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { QuerySkPO } from '../../../infra-sk/modules/query-sk/query-sk_po';
+import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 
 /** A page object for the EditIgnoreRuleSk component. */
 export class EditIgnoreRuleSkPO extends PageObject {
-  getExpires(): Promise<string> {
-    return this.selectOnePOEThenApplyFn('#expires', (poe) => poe.value);
+  get querySkPO(): Promise<QuerySkPO> {
+    return this.poBySelector('query-sk', QuerySkPO);
   }
 
-  async setExpires(value: string) {
-    await this.selectOnePOEThenApplyFn('#expires', (poe) => poe.enterValue(value));
+  private get expiresInput(): Promise<PageObjectElement> {
+    return this.selectOnePOE('#expires');
   }
 
-  getNote(): Promise<string> {
-    return this.selectOnePOEThenApplyFn('#note', (poe) => poe.value);
+  private get noteInput(): Promise<PageObjectElement> {
+    return this.selectOnePOE('#note');
   }
 
-  async setNote(value: string) {
-    await this.selectOnePOEThenApplyFn('#note', (poe) => poe.enterValue(value));
+  private get customKeyInput(): Promise<PageObjectElement> {
+    return this.selectOnePOE('.custom_key');
   }
 
-  getCustomKey(): Promise<string> {
-    return this.selectOnePOEThenApplyFn('.custom_key', (poe) => poe.value);
+  private get customValueInput(): Promise<PageObjectElement> {
+    return this.selectOnePOE('.custom_value');
   }
 
-  async setCustomKey(value: string) {
-    await this.selectOnePOEThenApplyFn('.custom_key', (poe) => poe.enterValue(value));
+  private get addCustomParamBtn(): Promise<PageObjectElement> {
+    return this.selectOnePOE('.add_custom');
   }
 
-  getCustomValue(): Promise<string> {
-    return this.selectOnePOEThenApplyFn('.custom_value', (poe) => poe.value);
+  private get query(): Promise<PageObjectElement> {
+    return this.selectOnePOE('.query');
   }
 
-  async setCustomValue(value: string) {
-    await this.selectOnePOEThenApplyFn('.custom_value', (poe) => poe.enterValue(value));
+  private get errorMessage(): Promise<PageObjectElement> {
+    return this.selectOnePOE('.error');
   }
 
-  async clickAddCustomParamBtn() {
-    const btn = await this.selectOnePOE('.add_custom');
-    await btn!.click();
+  async getExpires(): Promise<string> { return (await this.expiresInput).value; }
+
+  async setExpires(value: string) { await (await this.expiresInput).enterValue(value); }
+
+  async getNote(): Promise<string> { return (await this.noteInput).value; }
+
+  async setNote(value: string) { await (await this.noteInput).enterValue(value); }
+
+  async getCustomKey(): Promise<string> { return (await this.customKeyInput).value; }
+
+  async setCustomKey(value: string) { await (await this.customKeyInput).enterValue(value); }
+
+  async getCustomValue(): Promise<string> { return (await this.customValueInput).value; }
+
+  async setCustomValue(value: string) { await (await this.customValueInput).enterValue(value); }
+
+  async clickAddCustomParamBtn() { await (await this.addCustomParamBtn).click(); }
+
+  async getQuery(): Promise<string> { return (await this.query).innerText; }
+
+  async isErrorMessageVisible(): Promise<boolean> {
+    return !(await (await this.errorMessage).hasAttribute('hidden'));
   }
 
-  getQuery(): Promise<string> {
-    return this.selectOnePOEThenApplyFn('.query', (poe) => poe.innerText);
-  }
-
-  isErrorMessageVisible(): Promise<boolean> {
-    return this.selectOnePOEThenApplyFn(
-        '.error',
-        async (poe) => !(await poe.hasAttribute('hidden')));
-  }
-
-  getErrorMessage(): Promise<string> {
-    return this.selectOnePOEThenApplyFn('.error', (poe) => poe.innerText);
-  }
-
-  getQuerySkPO(): Promise<QuerySkPO> {
-    return this.selectOnePOEThenApplyFn('query-sk', async (poe) => new QuerySkPO(poe));
-  }
+  async getErrorMessage(): Promise<string> { return (await this.errorMessage).innerText; }
 }
