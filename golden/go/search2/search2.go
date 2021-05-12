@@ -116,6 +116,7 @@ type Impl struct {
 	digestsOnPrimary map[groupingDigestKey]struct{}
 	// This caches the trace ids that are publicly visible.
 	publiclyVisibleTraces map[schema.MD5Hash]struct{}
+	isPublicView          bool
 
 	commitCache          *lru.Cache
 	optionsGroupingCache *lru.Cache
@@ -319,6 +320,7 @@ WHERE corpus = '` + corpus + `' AND matches_any_ignore_rule = FALSE
 func (s *Impl) StartApplyingPublicParams(ctx context.Context, matcher publicparams.Matcher, interval time.Duration) error {
 	_, span := trace.StartSpan(ctx, "StartApplyingPublicParams", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
+	s.isPublicView = true
 
 	cycle := func(ctx context.Context) error {
 		rows, err := s.db.Query(ctx, `SELECT trace_id, keys FROM Traces AS OF SYSTEM TIME '-0.1s'`)
@@ -1988,8 +1990,13 @@ func (s *Impl) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnl
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if len(s.publiclyVisibleTraces) != 0 {
-		return nil, skerr.Fmt("not implemented for public views yet")
+	if s.isPublicView {
+		roPS, err := s.getPublicParamsetForPrimaryBranch(ctx)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		s.paramsetCache.Set(primaryBranchKey, roPS, 5*time.Minute)
+		return roPS, nil
 	}
 
 	const statement = `SELECT DISTINCT key, value FROM PrimaryBranchParams
@@ -2015,15 +2022,67 @@ WHERE tile_id >= $1`
 	return roPS, nil
 }
 
+func (s *Impl) getPublicParamsetForPrimaryBranch(ctx context.Context) (paramtools.ReadOnlyParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "getPublicParamsetForPrimaryBranch")
+	defer span.End()
+
+	const statement = `SELECT trace_id, keys, options_id FROM ValuesAtHead WHERE most_recent_commit_id >= $1`
+	rows, err := s.db.Query(ctx, statement, getFirstCommitID(ctx))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	combinedParamset := paramtools.ParamSet{}
+	var ps paramtools.Params
+	var traceID schema.TraceID
+	var traceKey schema.MD5Hash
+	var optionsID schema.OptionsID
+	var optionsKey schema.MD5Hash
+	uniqueOptions := map[schema.MD5Hash]bool{}
+
+	s.mutex.RLock()
+	for rows.Next() {
+		if err := rows.Scan(&traceID, &ps, &optionsID); err != nil {
+			s.mutex.RUnlock()
+			return nil, skerr.Wrap(err)
+		}
+		copy(traceKey[:], traceID)
+		if _, ok := s.publiclyVisibleTraces[traceKey]; ok {
+			combinedParamset.AddParams(ps)
+			copy(optionsKey[:], optionsID)
+			uniqueOptions[optionsKey] = true
+		}
+	}
+	s.mutex.RUnlock()
+	rows.Close()
+	for optID := range uniqueOptions {
+		opts, err := s.expandOptionsToParams(ctx, optID[:])
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		combinedParamset.AddParams(opts)
+	}
+
+	combinedParamset.Normalize()
+	return paramtools.ReadOnlyParamSet(combinedParamset), nil
+}
+
+// GetChangelistParamset returns a possibly cached ParamSet of all visible traces seen in the
+// given changelist. It returns an error if no data has been seen for the given CL.
 func (s *Impl) GetChangelistParamset(ctx context.Context, crs, clID string) (paramtools.ReadOnlyParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "search2_GetChangelistParamset")
 	defer span.End()
-	if len(s.publiclyVisibleTraces) != 0 {
-		return nil, skerr.Fmt("not implemented for public views yet")
-	}
 	qCLID := sql.Qualify(crs, clID)
 	if val, ok := s.paramsetCache.Get(qCLID); ok {
 		return val.(paramtools.ReadOnlyParamSet), nil
+	}
+	if s.isPublicView {
+		roPS, err := s.getPublicParamsetForCL(ctx, qCLID)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		s.paramsetCache.Set(qCLID, roPS, 5*time.Minute)
+		return roPS, nil
 	}
 	const statement = `SELECT DISTINCT key, value FROM SecondaryBranchParams
 WHERE branch_name = $1`
@@ -2049,6 +2108,60 @@ WHERE branch_name = $1`
 	roPS := paramtools.ReadOnlyParamSet(ps)
 	s.paramsetCache.Set(qCLID, roPS, 5*time.Minute)
 	return roPS, nil
+}
+
+func (s *Impl) getPublicParamsetForCL(ctx context.Context, qualifiedCLID string) (paramtools.ReadOnlyParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "getPublicParamsetForCL")
+	defer span.End()
+
+	const statement = `SELECT secondary_branch_trace_id, options_id FROM SecondaryBranchValues
+WHERE branch_name = $1
+`
+	rows, err := s.db.Query(ctx, statement, qualifiedCLID)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var traceID schema.TraceID
+	var traceKey schema.MD5Hash
+	var optionsID schema.OptionsID
+	var optionsKey schema.MD5Hash
+	uniqueOptions := map[schema.MD5Hash]bool{}
+	var traceIDsToExpand []schema.TraceID
+	s.mutex.RLock()
+	for rows.Next() {
+		if err := rows.Scan(&traceID, &optionsID); err != nil {
+			s.mutex.RUnlock()
+			return nil, skerr.Wrap(err)
+		}
+		copy(traceKey[:], traceID)
+		if _, ok := s.publiclyVisibleTraces[traceKey]; ok {
+			traceIDsToExpand = append(traceIDsToExpand, traceID)
+			copy(optionsKey[:], optionsID)
+			uniqueOptions[optionsKey] = true
+		}
+	}
+	s.mutex.RUnlock()
+	rows.Close()
+
+	combinedParamset := paramtools.ParamSet{}
+	for optID := range uniqueOptions {
+		opts, err := s.expandOptionsToParams(ctx, optID[:])
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		combinedParamset.AddParams(opts)
+	}
+	for _, traceID := range traceIDsToExpand {
+		ps, err := s.expandTraceToParams(ctx, traceID)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		combinedParamset.AddParams(ps)
+	}
+
+	combinedParamset.Normalize()
+	return paramtools.ReadOnlyParamSet(combinedParamset), nil
 }
 
 // Make sure Impl implements the API interface.
