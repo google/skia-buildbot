@@ -6,13 +6,13 @@ import { LabelOrEmpty } from './triage-sk';
 /** A page object for the TriageSk component. */
 export class TriageSkPO extends PageObject {
   @BySelector('button.positive')
-  private positiveBtn!: Promise<PageObjectElement>
+  private positiveBtn!: PageObjectElement;
 
   @BySelector('button.negative')
-  private negativeBtn!: Promise<PageObjectElement>
+  private negativeBtn!: PageObjectElement;
 
   @BySelector('button.untriaged')
-  private untriagedBtn!: Promise<PageObjectElement>
+  private untriagedBtn!: PageObjectElement;
 
   async getLabelOrEmpty(): Promise<LabelOrEmpty> {
     const labels: Label[] = ['positive', 'negative', 'untriaged'];
@@ -25,12 +25,12 @@ export class TriageSkPO extends PageObject {
   }
 
   async isButtonSelected(label: Label) {
-    return (await this.getBtn(label)).hasClassName('selected');
+    return this.getButtonForLabel(label).hasClassName('selected');
   }
 
-  async clickButton(label: Label) { await (await this.getBtn(label)).click(); }
+  async clickButton(label: Label) { await this.getButtonForLabel(label).click(); }
 
-  private getBtn(label: Label) {
+  private getButtonForLabel(label: Label) {
     switch(label) {
       case 'positive':
         return this.positiveBtn;

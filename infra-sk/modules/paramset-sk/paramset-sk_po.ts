@@ -1,6 +1,6 @@
 import { ParamSet } from 'common-sk/modules/query';
 import { BySelectorAll, PageObject } from '../page_object/page_object';
-import { PageObjectElement } from '../page_object/page_object_element';
+import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
 import { asyncFind, asyncForEach, asyncMap } from '../async';
 
 /**
@@ -19,15 +19,15 @@ export interface ParamSetKeyValueTuple {
 /** A page object for the ParamSetSk component. */
 export class ParamSetSkPO extends PageObject {
   @BySelectorAll('tr:nth-child(1) th:not(:nth-child(1))') // First <th> is always empty.
-  private titles!: Promise<PageObjectElement[]>
+  private titles!: PageObjectElementList;
 
   @BySelectorAll('tr:not(:nth-child(1)) th') // Skip the first row, which contains the titles.
-  private keys!: Promise<PageObjectElement[]>;
+  private keys!: PageObjectElementList;
 
   @BySelectorAll('tr:not(:nth-child(1))') // Skip the first row, which contains the titles.
-  private rows!: Promise<PageObjectElement[]>;
+  private rows!: PageObjectElementList;
 
-  async getTitles() { return asyncMap(this.titles, (th) => th.innerText); }
+  async getTitles() { return this.titles.map((th) => th.innerText); }
 
   async getParamSets() {
     const paramSets: ParamSet[] = [];
@@ -61,7 +61,7 @@ export class ParamSetSkPO extends PageObject {
   }
 
   async clickKey(key: string) {
-    const th = await asyncFind(this.keys, (th) => th.isInnerTextEqualTo(key));
+    const th = await this.keys.find((th) => th.isInnerTextEqualTo(key));
     await th?.click();
   }
 
@@ -78,14 +78,12 @@ export class ParamSetSkPO extends PageObject {
   private async _forEachParamSetKeyValue(
       fn: (pkv: ParamSetKeyValueTuple, valueDiv: PageObjectElement) => Promise<void>) {
     // Iterate over all rows.
-    await asyncForEach(this.rows, async (row) => {
-      const key = await (await row.bySelector('th')).innerText;
-
+    await this.rows.forEach(async (row) => {
+      const key = await row.bySelector('th').innerText;
       // Iterate over all cells. Each cell corresponds to one ParamSet.
-      await asyncForEach(row.bySelectorAll('td'), async (td, paramSetIndex) => {
-
+      await row.bySelectorAll('td').forEach(async (td, paramSetIndex) => {
         // Iterate over each value of the current ParamSet.
-        await asyncForEach(td.bySelectorAll('div'), async (div) => {
+        await td.bySelectorAll('div').forEach(async (div) => {
           await fn({paramSetIndex: paramSetIndex, key: key, value: await div.innerText}, div);
         });
       })

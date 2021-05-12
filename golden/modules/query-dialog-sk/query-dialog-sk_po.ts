@@ -7,55 +7,55 @@ import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_ob
 /** A page object for the QueryDialogSk component. */
 export class QueryDialogSkPO extends PageObject {
   @POBySelector('query-sk', QuerySkPO)
-  querySkPO!: Promise<QuerySkPO>;
+  querySkPO!: QuerySkPO;
 
   @POBySelector('paramset-sk', ParamSetSkPO)
-  paramSetSkPO!: Promise<ParamSetSkPO>;
+  paramSetSkPO!: ParamSetSkPO;
 
   @BySelector('dialog')
-  private dialog!: Promise<PageObjectElement>;
+  private dialog!: PageObjectElement;
 
   @BySelector('.empty-selection')
-  private emptySelectionMessage!: Promise<PageObjectElement>;
+  private emptySelectionMessage!: PageObjectElement;
 
   @BySelector('button.show-matches')
-  private showMatchesBtn!: Promise<PageObjectElement>;
+  private showMatchesBtn!: PageObjectElement;
 
   @BySelector('button.cancel')
-  private cancelBtn!: Promise<PageObjectElement>;
+  private cancelBtn!: PageObjectElement;
 
   async isDialogOpen() {
-    return (await this.dialog).applyFnToDOMNode((d) => (d as HTMLDialogElement).open);
+    return this.dialog.applyFnToDOMNode((d) => (d as HTMLDialogElement).open);
   }
 
-  async isEmptySelectionMessageVisible() { return !(await this.emptySelectionMessage).isEmpty(); }
+  async isEmptySelectionMessageVisible() { return !(await this.emptySelectionMessage.isEmpty()); }
 
-  async isParamSetSkVisible() { return !(await this.paramSetSkPO).isEmpty(); }
+  async isParamSetSkVisible() { return !(await this.paramSetSkPO.isEmpty()); }
 
-  async clickKey(key: string) { await (await this.querySkPO).clickKey(key); }
+  async clickKey(key: string) { await this.querySkPO.clickKey(key); }
 
-  async clickValue(value: string) { await (await this.querySkPO).clickValue(value); }
+  async clickValue(value: string) { await this.querySkPO.clickValue(value); }
 
-  async clickShowMatchesBtn() { await (await this.showMatchesBtn).click(); }
+  async clickShowMatchesBtn() { await this.showMatchesBtn.click(); }
 
-  async clickCancelBtn() { await (await this.cancelBtn).click(); }
+  async clickCancelBtn() { await this.cancelBtn.click(); }
 
   async getParamSetSkContents() {
-    const paramSets = await (await this.paramSetSkPO).getParamSets();
+    const paramSets = await this.paramSetSkPO.getParamSets();
     return paramSets[0]; // There's only one ParamSet.
   }
 
   /** Returns the key/value pairs available for the user to choose from. */
-  async getParamSet() { return (await this.querySkPO).getParamSet(); }
+  async getParamSet() { return this.querySkPO.getParamSet(); }
 
   /** Gets the selected query. */
-  async getSelection() { return (await this.querySkPO).getCurrentQuery(); }
+  async getSelection() { return this.querySkPO.getCurrentQuery(); }
 
   /** Sets the selected query via simulated UI interactions. */
   async setSelection(selection: ParamSet) {
-    await (await this.querySkPO).setCurrentQuery(selection);
+    await this.querySkPO.setCurrentQuery(selection);
 
     // Remove focus from the last selected value in the query-sk component. This reduces flakiness.
-    await (await this.dialog).click();
+    await this.dialog.click();
   }
 }
