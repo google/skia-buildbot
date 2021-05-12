@@ -5,52 +5,52 @@ import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_ob
 /** A page object for the EditIgnoreRuleSk component. */
 export class EditIgnoreRuleSkPO extends PageObject {
   @POBySelector('query-sk', QuerySkPO)
-  querySkPO!: Promise<QuerySkPO>;
+  querySkPO!: QuerySkPO;
 
   @BySelector('#expires')
-  private expiresInput!: Promise<PageObjectElement>;
+  private expiresInput!: PageObjectElement;
 
   @BySelector('#note')
-  private noteInput!: Promise<PageObjectElement>;
+  private noteInput!: PageObjectElement;
 
   @BySelector('.custom_key')
-  private customKeyInput!: Promise<PageObjectElement>;
+  private customKeyInput!: PageObjectElement;
 
   @BySelector('.custom_value')
-  private customValueInput!: Promise<PageObjectElement>;
+  private customValueInput!: PageObjectElement;
 
   @BySelector('.add_custom')
-  private addCustomParamBtn!: Promise<PageObjectElement>;
+  private addCustomParamBtn!: PageObjectElement;
 
   @BySelector('.query')
-  private query!: Promise<PageObjectElement>;
+  private query!: PageObjectElement;
 
   @BySelector('.error')
-  private errorMessage!: Promise<PageObjectElement>;
+  private errorMessage!: PageObjectElement;
 
-  async getExpires(): Promise<string> { return (await this.expiresInput).value; }
+  async getExpires(): Promise<string> { return this.expiresInput.value; }
 
-  async setExpires(value: string) { await (await this.expiresInput).enterValue(value); }
+  async setExpires(value: string) { await this.expiresInput.enterValue(value); }
 
-  async getNote(): Promise<string> { return (await this.noteInput).value; }
+  async getNote(): Promise<string> { return this.noteInput.value; }
 
-  async setNote(value: string) { await (await this.noteInput).enterValue(value); }
+  async setNote(value: string) { await this.noteInput.enterValue(value); }
 
-  async getCustomKey(): Promise<string> { return (await this.customKeyInput).value; }
+  async getCustomKey(): Promise<string> { return this.customKeyInput.value; }
 
-  async setCustomKey(value: string) { await (await this.customKeyInput).enterValue(value); }
+  async setCustomKey(value: string) { await this.customKeyInput.enterValue(value); }
 
-  async getCustomValue(): Promise<string> { return (await this.customValueInput).value; }
+  async getCustomValue(): Promise<string> { return this.customValueInput.value; }
 
-  async setCustomValue(value: string) { await (await this.customValueInput).enterValue(value); }
+  async setCustomValue(value: string) { await this.customValueInput.enterValue(value); }
 
-  async clickAddCustomParamBtn() { await (await this.addCustomParamBtn).click(); }
+  async clickAddCustomParamBtn() { await this.addCustomParamBtn.click(); }
 
-  async getQuery(): Promise<string> { return (await this.query).innerText; }
+  async getQuery(): Promise<string> { return this.query.innerText; }
 
   async isErrorMessageVisible(): Promise<boolean> {
-    return !(await (await this.errorMessage).hasAttribute('hidden'));
+    return !(await this.errorMessage.hasAttribute('hidden'));
   }
 
-  async getErrorMessage(): Promise<string> { return (await this.errorMessage).innerText; }
+  async getErrorMessage(): Promise<string> { return this.errorMessage.innerText; }
 }

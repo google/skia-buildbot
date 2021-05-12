@@ -1,5 +1,5 @@
 import { ElementHandle } from 'puppeteer';
-import { PageObjectElement } from './page_object_element';
+import {AsyncList, PageObjectElement, PageObjectElementList} from './page_object_element';
 
 /**
  * A base class for writing page objects[1] that work both on in-browser and Puppeteer tests.
@@ -31,10 +31,10 @@ export abstract class PageObject {
    * @example
    *     class MyElementPO extends PageObject {
    *       @BySelector('button.submit')
-   *       submitBtn!: Promise<PageObjectElement>;
+   *       submitBtn!: PageObjectElement;
    *
    *       async clickSubmitBtn() {
-   *         await (await this.submitBtn).click();
+   *         await this.submitBtn.click();
    *       }
    *
    *       ...
@@ -42,8 +42,8 @@ export abstract class PageObject {
    */
   public static BySelector(selector: string): PropertyDecorator {
     const decorator: PropertyDecorator = (target: Object, propertyKey: string | symbol) => {
-      const propertyDescriptor: TypedPropertyDescriptor<Promise<PageObjectElement>> = {
-        get(): Promise<PageObjectElement> {
+      const propertyDescriptor: TypedPropertyDescriptor<PageObjectElement> = {
+        get(): PageObjectElement {
           const po = this as PageObject;
           return po.bySelector(selector);
         },
@@ -59,10 +59,10 @@ export abstract class PageObject {
    * @example
    *     class MyElementPO extends PageObject {
    *       @BySelectorAll('table.foo tr')
-   *       rows!: Promise<PageObjectElement[]>;
+   *       rows!: PageObjectElementList;
    *
    *       async getNumRows() {
-   *         return (await this.rows).length;
+   *         return await this.rows.length;
    *       }
    *
    *       ...
@@ -70,8 +70,8 @@ export abstract class PageObject {
    */
   public static BySelectorAll(selector: string): PropertyDecorator {
     const decorator: PropertyDecorator = (target: Object, propertyKey: string | symbol) => {
-      const propertyDescriptor: TypedPropertyDescriptor<Promise<PageObjectElement[]>> = {
-        get(): Promise<PageObjectElement[]> {
+      const propertyDescriptor: TypedPropertyDescriptor<PageObjectElementList> = {
+        get(): PageObjectElementList {
           const po = this as PageObject;
           return po.bySelectorAll(selector);
         },
@@ -90,10 +90,10 @@ export abstract class PageObject {
    *
    *     class MyElementPO extends PageObject {
    *       @POBySelector('another-element', AnotherElementPO)
-   *       anotherElementPO!: Promise<AnotherElementPO>;
+   *       anotherElementPO!: AnotherElementPO;
    *
    *       async doSomething() {
-   *         await (await this.anotherElementPO).clickSomeBtn();
+   *         await this.anotherElementPO.clickSomeBtn();
    *       }
    *
    *       ...
@@ -102,10 +102,10 @@ export abstract class PageObject {
   public static POBySelector<T extends PageObject>(
       selector: string, ctor: { new(...args: any[]): T }): PropertyDecorator {
     const decorator: PropertyDecorator = (target: Object, propertyKey: string | symbol) => {
-      const propertyDescriptor: TypedPropertyDescriptor<Promise<T>> = {
-        async get(): Promise<T> {
+      const propertyDescriptor: TypedPropertyDescriptor<T> = {
+        get(): T {
           const po = this as PageObject;
-          return new ctor(await po.bySelector(selector));
+          return new ctor(po.bySelector(selector));
         },
       };
       Object.defineProperty(target, propertyKey, propertyDescriptor);
@@ -120,10 +120,10 @@ export abstract class PageObject {
    * @example
    *     class MyElementPO extends PageObject {
    *       @POBySelectorAll('another-element')
-   *       anotherElementPOs!: Promise<AnotherElementPO[]>;
+   *       anotherElementPOs!: PageObjectList<AnotherElementPO>;
    *
-   *       async clickNthElement(n: number) {
-   *         await (await this.anotherElementPOs)[n].clickSomeBtn();
+   *       async clickAll() {
+   *         await this.anotherElementPOs.forEach((po) => po.clickSomeBtn());
    *       }
    *
    *       ...
@@ -132,10 +132,11 @@ export abstract class PageObject {
   public static POBySelectorAll<T extends PageObject>(
       selector: string, ctor: { new(...args: any[]): T }): PropertyDecorator {
     const decorator: PropertyDecorator = (target: Object, propertyKey: string | symbol) => {
-      const propertyDescriptor: TypedPropertyDescriptor<Promise<T[]>> = {
-        get(): Promise<T[]> {
+      const propertyDescriptor: TypedPropertyDescriptor<PageObjectList<T>> = {
+        get(): PageObjectList<T> {
           const po = this as PageObject;
-          return po.bySelectorAll(selector).then((poes) => poes.map((poe) => new ctor(poe)));
+          return new PageObjectList<T>(
+              po.bySelectorAll(selector).map(async (poe) => new ctor(poe)));
         },
       };
       Object.defineProperty(target, propertyKey, propertyDescriptor);
@@ -154,15 +155,15 @@ export abstract class PageObject {
   }
 
   /** Returns true if the underlying PageObjectElement is empty. */
-  isEmpty(): boolean {
-    return this.element.isEmpty();
+  async isEmpty(): Promise<boolean> {
+    return await this.element.isEmpty();
   }
 
   /**
    * Returns the result of calling PageObjectElement#bySelector() on the underlying
    * PageObjectElement.
    */
-  protected bySelector(selector: string): Promise<PageObjectElement> {
+  protected bySelector(selector: string): PageObjectElement {
     return this.element.bySelector(selector);
   }
 
@@ -170,8 +171,15 @@ export abstract class PageObject {
    * Returns the result of calling PageObjectElement#bySelectorAll() on the underlying
    * PageObjectElement.
    */
-  protected bySelectorAll(selector: string): Promise<PageObjectElement[]>  {
+  protected bySelectorAll(selector: string): PageObjectElementList  {
     return this.element.bySelectorAll(selector);
+  }
+}
+
+/** Convenience wrapper around a promise of a list of page objects. */
+export class PageObjectList<T extends PageObject> extends AsyncList<T> {
+  constructor(itemsPromise: Promise<T[]>) {
+    super(itemsPromise);
   }
 }
 
