@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	ttlcache "github.com/patrickmn/go-cache"
 	"go.opencensus.io/trace"
 	"golang.org/x/sync/errgroup"
 
@@ -49,6 +50,16 @@ type API interface {
 	// Search queries the current tile based on the parameters specified in
 	// the instance of the *query.Search.
 	Search(context.Context, *query.Search) (*frontend.SearchResponse, error)
+
+	// GetPrimaryBranchParamset returns all params that are on the most recent few tiles. If
+	// this is public view, it will only return the params on the traces which match the publicly
+	// visible rules.
+	GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnlyParamSet, error)
+
+	// GetChangelistParamset returns all params that were produced by the given CL. If
+	// this is public view, it will only return the params on the traces which match the publicly
+	// visible rules.
+	GetChangelistParamset(ctx context.Context, crs, clID string) (paramtools.ReadOnlyParamSet, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -109,6 +120,7 @@ type Impl struct {
 	commitCache          *lru.Cache
 	optionsGroupingCache *lru.Cache
 	traceCache           *lru.Cache
+	paramsetCache        *ttlcache.Cache
 
 	materializedViews map[string]string
 }
@@ -127,6 +139,7 @@ func New(sqlDB *pgxpool.Pool, windowLength int) *Impl {
 	if err != nil {
 		panic(err) // should only happen if traceCacheSize is negative.
 	}
+	pc := ttlcache.New(time.Minute, 10*time.Minute)
 	return &Impl{
 		db:                   sqlDB,
 		windowLength:         windowLength,
@@ -134,6 +147,7 @@ func New(sqlDB *pgxpool.Pool, windowLength int) *Impl {
 		commitCache:          cc,
 		optionsGroupingCache: gc,
 		traceCache:           tc,
+		paramsetCache:        pc,
 		reviewSystemMapping:  map[string]string{},
 	}
 }
@@ -1959,6 +1973,82 @@ func emptyIndices(length int) []int {
 		rv[i] = search.MissingDigestIndex
 	}
 	return rv
+}
+
+// GetPrimaryBranchParamset returns a possibly cached ParamSet of all visible traces over the last
+// N tiles that correspond to the windowLength.
+func (s *Impl) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnlyParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "search2_GetPrimaryBranchParamset")
+	defer span.End()
+	const primaryBranchKey = "primary_branch"
+	if val, ok := s.paramsetCache.Get(primaryBranchKey); ok {
+		return val.(paramtools.ReadOnlyParamSet), nil
+	}
+	ctx, err := s.addCommitsData(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if len(s.publiclyVisibleTraces) != 0 {
+		return nil, skerr.Fmt("not implemented for public views yet")
+	}
+
+	const statement = `SELECT DISTINCT key, value FROM PrimaryBranchParams
+WHERE tile_id >= $1`
+	rows, err := s.db.Query(ctx, statement, getFirstTileID(ctx))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	ps := paramtools.ParamSet{}
+	var key string
+	var value string
+
+	for rows.Next() {
+		if err := rows.Scan(&key, &value); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		ps[key] = append(ps[key], value) // We rely on the SQL query to deduplicate values
+	}
+	ps.Normalize()
+	roPS := paramtools.ReadOnlyParamSet(ps)
+	s.paramsetCache.Set(primaryBranchKey, roPS, 5*time.Minute)
+	return roPS, nil
+}
+
+func (s *Impl) GetChangelistParamset(ctx context.Context, crs, clID string) (paramtools.ReadOnlyParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "search2_GetChangelistParamset")
+	defer span.End()
+	if len(s.publiclyVisibleTraces) != 0 {
+		return nil, skerr.Fmt("not implemented for public views yet")
+	}
+	qCLID := sql.Qualify(crs, clID)
+	if val, ok := s.paramsetCache.Get(qCLID); ok {
+		return val.(paramtools.ReadOnlyParamSet), nil
+	}
+	const statement = `SELECT DISTINCT key, value FROM SecondaryBranchParams
+WHERE branch_name = $1`
+	rows, err := s.db.Query(ctx, statement, qCLID)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	ps := paramtools.ParamSet{}
+	var key string
+	var value string
+
+	for rows.Next() {
+		if err := rows.Scan(&key, &value); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		ps[key] = append(ps[key], value) // We rely on the SQL query to deduplicate values
+	}
+	if len(ps) == 0 {
+		return nil, skerr.Fmt("Could not find params for CL %q in system %q", clID, crs)
+	}
+	ps.Normalize()
+	roPS := paramtools.ReadOnlyParamSet(ps)
+	s.paramsetCache.Set(qCLID, roPS, 5*time.Minute)
+	return roPS, nil
 }
 
 // Make sure Impl implements the API interface.
