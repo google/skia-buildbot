@@ -3469,6 +3469,42 @@ func TestGetPrimaryBranchParamset_Success(t *testing.T) {
 	}, ps)
 }
 
+func TestGetPrimaryBranchParamset_RespectsPublicParams_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
+		dks.RoundCorpus: {
+			dks.DeviceKey: {dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+		},
+		dks.CornersCorpus: {
+			dks.DeviceKey: {dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+		},
+	})
+	require.NoError(t, err)
+
+	s := New(db, 100)
+	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
+
+	ps, err := s.GetPrimaryBranchParamset(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, paramtools.ReadOnlyParamSet{
+		dks.ColorModeKey:             []string{dks.GreyColorMode, dks.RGBColorMode},
+		dks.DeviceKey:                []string{dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+		types.PrimaryKeyField:        []string{dks.CircleTest, dks.SquareTest, dks.TriangleTest},
+		dks.OSKey:                    []string{dks.AndroidOS, dks.IOS},
+		types.CorpusField:            []string{dks.CornersCorpus, dks.RoundCorpus},
+		"ext":                        []string{"png"},
+		"fuzzy_max_different_pixels": []string{"2"},
+		"image_matching_algorithm":   []string{"fuzzy"},
+	}, ps)
+}
+
 func TestGetChangelistParamset_ValidCLs_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -3512,6 +3548,55 @@ func TestGetChangelistParamset_InvalidCL_ReturnsError(t *testing.T) {
 	_, err := s.GetChangelistParamset(ctx, "does not", "exist")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Could not find")
+}
+
+func TestGetChangelistParamset_RespectsPublicView_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
+		dks.RoundCorpus: {
+			dks.DeviceKey: {dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+		},
+		dks.CornersCorpus: {
+			dks.DeviceKey: {dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+		},
+		dks.TextCorpus: {
+			dks.DeviceKey: {dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+		},
+	})
+	require.NoError(t, err)
+
+	s := New(db, 100)
+	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
+	ps, err := s.GetChangelistParamset(ctx, dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS)
+	require.NoError(t, err)
+	assert.Equal(t, paramtools.ReadOnlyParamSet{
+		dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+		dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
+		types.PrimaryKeyField: []string{dks.CircleTest, dks.SquareTest, dks.TriangleTest},
+		dks.OSKey:             []string{dks.IOS},
+		types.CorpusField:     []string{dks.CornersCorpus, dks.RoundCorpus},
+		"ext":                 []string{"png"},
+	}, ps)
+
+	ps, err = s.GetChangelistParamset(ctx, dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests)
+	require.NoError(t, err)
+	assert.Equal(t, paramtools.ReadOnlyParamSet{
+		dks.ColorModeKey:             []string{dks.GreyColorMode, dks.RGBColorMode},
+		dks.DeviceKey:                []string{dks.WalleyeDevice},
+		types.PrimaryKeyField:        []string{dks.CircleTest, dks.RoundRectTest, dks.SevenTest, dks.SquareTest, dks.TriangleTest},
+		dks.OSKey:                    []string{dks.AndroidOS},
+		types.CorpusField:            []string{dks.CornersCorpus, dks.RoundCorpus, dks.TextCorpus},
+		"ext":                        []string{"png"},
+		"fuzzy_max_different_pixels": []string{"2"},
+		"image_matching_algorithm":   []string{"fuzzy"},
+	}, ps)
 }
 
 var kitchenSinkCommits = makeKitchenSinkCommits()
