@@ -1,6 +1,6 @@
 import { ElementHandle, Serializable } from 'puppeteer';
 
-// Custon type guard to tell DOM elements and Puppeteer element handles apart.
+// Custom type guard to tell DOM elements and Puppeteer element handles apart.
 function isPptrElement(
     element: HTMLElement | ElementHandle<HTMLElement>): element is ElementHandle<HTMLElement> {
   return (element as ElementHandle).asElement !== undefined;
@@ -27,7 +27,7 @@ function isPptrElement(
  * [2] https://github.com/google/pageloader
  */
 export class PageObjectElement {
-  private element: HTMLElement | ElementHandle<HTMLElement>;
+  private readonly element: HTMLElement | ElementHandle<HTMLElement>;
 
   constructor(element: HTMLElement | ElementHandle<HTMLElement>) {
     if (element === null) {
@@ -46,12 +46,12 @@ export class PageObjectElement {
   // Please add any missing wrappers as needed.
 
   /** Analogous to HTMLElement#innerText. */
-  get innerText() {
+  get innerText(): Promise<string> {
     return this.applyFnToDOMNode((el) => el.innerText);
   }
 
   /** Analogous to HTMLElement#className. */
-  get className() {
+  get className(): Promise<string> {
     return this.applyFnToDOMNode((el) => el.className);
   }
 
@@ -66,19 +66,19 @@ export class PageObjectElement {
   }
 
   /** Analogous to HTMLElement#hasAttribute(). */
-  async hasAttribute(attribute: string) {
+  async hasAttribute(attribute: string): Promise<boolean> {
     return this.applyFnToDOMNode(
       (el, attribute) => el.hasAttribute(attribute as string), attribute);
   }
 
   /** Analogous to HTMLElement#getAttribute(). */
-  async getAttribute(attribute: string) {
+  async getAttribute(attribute: string): Promise<string | null> {
     return this.applyFnToDOMNode(
       (el, attribute) => el.getAttribute(attribute as string), attribute);
   }
 
   /** Analogous to the HTMLElement#value property getter (e.g. for text inputs, selects, etc.). */
-  get value() {
+  get value(): Promise<string> {
     return this.applyFnToDOMNode((el) => (el as HTMLInputElement).value);
   }
 
@@ -129,7 +129,8 @@ export class PageObjectElement {
    * element.
    */
   async applyFnToDOMNode<T extends Serializable | void>(
-      fn: (element: HTMLElement, ...args: Serializable[]) => T, ...args: Serializable[]) {
+      fn: (element: HTMLElement, ...args: Serializable[]) => T,
+      ...args: Serializable[]): Promise<T> {
     if (isPptrElement(this.element)) {
       return await this.element.evaluate(fn, ...args) as T;
     }
@@ -141,7 +142,7 @@ export class PageObjectElement {
   ////////////////////////////////////////////////////////////////////
 
   /** Analogous to HTMLElement#querySelector(). */
-  async selectOnePOE(selector: string) {
+  async selectOnePOE(selector: string): Promise<PageObjectElement | null> {
     if (isPptrElement(this.element)) {
       // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
       // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
@@ -155,7 +156,7 @@ export class PageObjectElement {
   }
 
   /** Analogous to HTMLElement#querySelectorAll(). */
-  async selectAllPOE(selector: string) {
+  async selectAllPOE(selector: string): Promise<PageObjectElement[]> {
     if (isPptrElement(this.element)) {
       // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
       // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
@@ -181,7 +182,7 @@ export class PageObjectElement {
    * await pageObjectElement.selectOnePOEThenApplyFn('button.submit', (btn) => btn.click());
    */
   async selectOnePOEThenApplyFn<T>(
-      selector: string, fn: (element: PageObjectElement) => Promise<T>) {
+      selector: string, fn: (element: PageObjectElement) => Promise<T>): Promise<T> {
     const element = await this.selectOnePOE(selector);
     if (!element) {
       throw new Error(`selector "${selector}" did not match any elements`);
@@ -202,7 +203,7 @@ export class PageObjectElement {
    *   await poe.selectOneDOMNodeThenApplyFn('my-component', (c as MyComponent) => c.foo());
    */
   async selectOneDOMNodeThenApplyFn<T extends Serializable | void>(
-      selector: string, fn: (element: HTMLElement) => T, ...args: Serializable[]) {
+      selector: string, fn: (element: HTMLElement) => T, ...args: Serializable[]): Promise<T> {
     const element = await this.selectOnePOE(selector);
     if (!element) {
       throw new Error(`selector "${selector}" did not match any elements`);
@@ -215,7 +216,8 @@ export class PageObjectElement {
    * PageObjectElement matching the selector.
    */
   async selectAllPOEThenMap<T>(
-      selector: string, fn: (element: PageObjectElement, index: number) => Promise<T>) {
+      selector: string,
+      fn: (element: PageObjectElement, index: number) => Promise<T>): Promise<T[]> {
     const elements = await this.selectAllPOE(selector);
     return await Promise.all(elements.map(fn));
   }
@@ -231,7 +233,9 @@ export class PageObjectElement {
    * provided testing function, or null if none satisfies it.
    */
   async selectAllPOEThenFind(
-      selector: string, fn: (element: PageObjectElement, index: number) => Promise<boolean>) {
+      selector: string,
+      fn: (element: PageObjectElement, index: number) => Promise<boolean>
+  ): Promise<PageObjectElement | null> {
     let i = 0;
     for (const element of await this.selectAllPOE(selector)) {
       if (await fn(element, i++)) {
