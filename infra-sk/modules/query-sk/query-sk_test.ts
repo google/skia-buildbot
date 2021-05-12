@@ -175,13 +175,13 @@ describe('query-sk', () => {
     await querySkPO.clickKey('arch');
 
     // Click the invert checkbox.
-    await (await querySkPO.getQueryValuesSkPO()).clickInvertCheckbox();
+    await (await querySkPO.queryValuesSkPO)?.clickInvertCheckbox();
 
     // Confirm that the undisplayed query values get inverted.
     assert.equal(querySk.current_query, 'arch=!x86');
 
     // Now go the other way, back to no-invert.
-    await (await querySkPO.getQueryValuesSkPO()).clickInvertCheckbox();
+    await (await querySkPO.queryValuesSkPO)?.clickInvertCheckbox();
 
     // Confirm that the undisplayed query values get inverted.
     assert.equal(querySk.current_query, 'arch=x86');
@@ -201,7 +201,7 @@ describe('query-sk', () => {
     await querySkPO.clickKey('arch');
 
     // Click the regex checkbox.
-    await (await querySkPO.getQueryValuesSkPO()).clickRegexCheckbox();
+    await (await querySkPO.queryValuesSkPO)?.clickRegexCheckbox();
 
     // Confirm that the current_query gets cleared.
     assert.equal(querySk.current_query, '');
