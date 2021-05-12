@@ -28,6 +28,7 @@ import 'elements-sk/icon/power-settings-new-icon-sk';
 import 'elements-sk/styles/buttons/index';
 import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
 import '../note-editor-sk';
+import { DEVICE_ALIASES } from '../../../modules/devices/devices';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
 
@@ -209,13 +210,29 @@ const note = (ele: MachineServerSk, machine: Description): TemplateResult => htm
   <edit-icon-sk @click=${() => ele.editNote(machine.Dimensions.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
 `;
 
+// Returns the device_type separated with vertical bars and a trailing device
+// alias if that name is known.
+export const pretty_device_name = (devices: string[] | null): string => {
+  if (!devices) {
+    return '';
+  }
+  let alias = '';
+  for (let i = 0; i < devices.length; i++) {
+    const found = DEVICE_ALIASES[devices[i]];
+    if (found) {
+      alias = `(${found})`;
+    }
+  }
+  return `${devices.join(' | ')} ${alias}`;
+};
+
 // eslint-disable-next-line no-use-before-define
 const rows = (ele: MachineServerSk): TemplateResult[] => ele.filteredMachines().map(
   (machine) => html`
       <tr id=${machine.Dimensions.id![0]}>
         <td>${machineLink(machine)}</td>
         <td>${machine.PodName}</td>
-        <td>${machine.Dimensions.device_type}</td>
+        <td>${pretty_device_name(machine.Dimensions.device_type)}</td>
         <td>${toggleMode(ele, machine)}</td>
         <td>${update(ele, machine)}</td>
         <td class="powercycle">${powerCycle(ele, machine)}</td>

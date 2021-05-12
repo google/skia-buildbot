@@ -2,7 +2,9 @@ import './machine-server-sk';
 import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
 import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
-import { MachineServerSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld } from './machine-server-sk';
+import {
+  MachineServerSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name,
+} from './machine-server-sk';
 import { Annotation } from '../json';
 
 fetchMock.config.overwriteRoutes = true;
@@ -383,6 +385,18 @@ describe('machine-server-sk', () => {
     it('returns outOfSpec if LastModified is too old', () => {
       const old = new Date(Date.now() - 2 * MAX_LAST_UPDATED_ACCEPTABLE_MS);
       assert.equal(outOfSpecIfTooOld(old.toString()), 'outOfSpec');
+    });
+  });
+
+  describe('pretty_device_name', () => {
+    it('returns an empty string on null', () => {
+      assert.equal('', pretty_device_name(null));
+    });
+    it('returns Pixel 5 for redfin.', () => {
+      assert.equal('redfin (Pixel 5)', pretty_device_name(['redfin']));
+    });
+    it('returns the last match in a list', () => {
+      assert.equal('herolte | universal8890 (Galaxy S7 [Global])', pretty_device_name(['herolte', 'universal8890']));
     });
   });
 });
