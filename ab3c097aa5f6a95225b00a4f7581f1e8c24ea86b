@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1adf9534_977430e2",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 475,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-05-12T18:07:16Z",
+      "side": 1,
+      "message": "All of these are the private storage for get/set properties.",
+      "parentUuid": "ae45271e_b3e90686",
+      "range": {
+        "startLine": 469,
+        "startChar": 0,
+        "endLine": 475,
+        "endChar": 32
+      },
+      "revId": "ab3c097aa5f6a95225b00a4f7581f1e8c24ea86b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0cefc135_7d623ae6",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-05-12T17:39:34Z",
       "side": 1,
       "message": "_",
+      "range": {
+        "startLine": 499,
+        "startChar": 60,
+        "endLine": 499,
+        "endChar": 69
+      },
+      "revId": "ab3c097aa5f6a95225b00a4f7581f1e8c24ea86b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b0afd8bd_33f7e402",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 499,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-05-12T18:07:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0cefc135_7d623ae6",
       "range": {
         "startLine": 499,
         "startChar": 60,
@@ -87,6 +135,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a8012462_e7485a5a",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 506,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-05-12T18:07:16Z",
+      "side": 1,
+      "message": "Also private storage for get/set property.",
+      "parentUuid": "ceacfc5d_97421950",
+      "range": {
+        "startLine": 506,
+        "startChar": 10,
+        "endLine": 506,
+        "endChar": 15
+      },
+      "revId": "ab3c097aa5f6a95225b00a4f7581f1e8c24ea86b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5cdf8304_7e6c5a48",
@@ -110,6 +182,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e8ed984e_5c4b7614",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 718,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-05-12T18:07:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5cdf8304_7e6c5a48",
+      "range": {
+        "startLine": 718,
+        "startChar": 34,
+        "endLine": 718,
+        "endChar": 59
+      },
+      "revId": "ab3c097aa5f6a95225b00a4f7581f1e8c24ea86b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "cb9c04a0_4c245725",
@@ -123,6 +219,30 @@
       "writtenOn": "2021-05-12T17:39:34Z",
       "side": 1,
       "message": "_",
+      "range": {
+        "startLine": 752,
+        "startChar": 44,
+        "endLine": 752,
+        "endChar": 48
+      },
+      "revId": "ab3c097aa5f6a95225b00a4f7581f1e8c24ea86b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "be05648e_ef233da6",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 752,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-05-12T18:07:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cb9c04a0_4c245725",
       "range": {
         "startLine": 752,
         "startChar": 44,
