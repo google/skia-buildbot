@@ -1,4 +1,5 @@
 import { ElementHandle, Serializable } from 'puppeteer';
+import { asyncFilter, asyncFind, asyncForEach, asyncMap } from '../async';
 
 // Custom type guard to tell DOM elements and Puppeteer element handles apart.
 function isPptrElement(
@@ -27,15 +28,23 @@ function isPptrElement(
  * [2] https://github.com/google/pageloader
  */
 export class PageObjectElement {
-  private readonly element?: HTMLElement | ElementHandle<HTMLElement>;
+  private readonly elementPromise: Promise<HTMLElement | ElementHandle<HTMLElement> | null>;
 
-  constructor(element?: HTMLElement | ElementHandle<HTMLElement>) {
-    this.element = element;
+  constructor(
+      element:
+          HTMLElement |
+          ElementHandle<HTMLElement> |
+          Promise<HTMLElement | ElementHandle<HTMLElement> | null>) {
+    if (element instanceof Promise) {
+      this.elementPromise = element;
+    } else {
+      this.elementPromise = new Promise((resolve) => resolve(element));
+    }
   }
 
   /** Returns true if the underlying DOM node or Puppeteer handle is empty. */
-  isEmpty(): boolean {
-    return !this.element;
+  async isEmpty(): Promise<boolean> {
+    return !(await this.elementPromise);
   }
 
   /////////////////////////////////////////////////////////////////
@@ -68,12 +77,14 @@ export class PageObjectElement {
 
   /** Analogous to HTMLElement#focus(). */
   async focus() {
-    await this.element!.focus();
+    const element = await this.elementPromise;
+    await element!.focus();
   }
 
   /** Analogous to HTMLElement#click(). */
   async click() {
-    await this.element!.click();
+    const element = await this.elementPromise;
+    await element!.click();
   }
 
   /** Analogous to HTMLElement#hasAttribute(). */
@@ -102,12 +113,13 @@ export class PageObjectElement {
    * @param key The "key" attribute of the KeyboardEvent to be dispatched.
    */
   async typeKey(key: string) {
-    if (isPptrElement(this.element!)) {
-      return this.element.type(key);
+    const element = await this.elementPromise;
+    if (isPptrElement(element!)) {
+      return element.type(key);
     }
-    this.element!.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, key: key}));
-    this.element!.dispatchEvent(new KeyboardEvent('keypress', {bubbles: true, key: key}));
-    this.element!.dispatchEvent(new KeyboardEvent('keyup', {bubbles: true, key: key}));
+    element!.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, key: key}));
+    element!.dispatchEvent(new KeyboardEvent('keypress', {bubbles: true, key: key}));
+    element!.dispatchEvent(new KeyboardEvent('keyup', {bubbles: true, key: key}));
   }
 
   /**
@@ -142,10 +154,11 @@ export class PageObjectElement {
   async applyFnToDOMNode<T extends Serializable | void>(
       fn: (element: HTMLElement, ...args: Serializable[]) => T,
       ...args: Serializable[]): Promise<T> {
-    if (isPptrElement(this.element!)) {
-      return await this.element.evaluate(fn, ...args) as T;
+    const element = await this.elementPromise;
+    if (isPptrElement(element!)) {
+      return await element.evaluate(fn, ...args) as T;
     }
-    return fn(this.element!, ...args);
+    return fn(element!, ...args);
   }
 
   ////////////////////////////////////////////////////////////////////
@@ -153,30 +166,86 @@ export class PageObjectElement {
   ////////////////////////////////////////////////////////////////////
 
   /** Analogous to HTMLElement#querySelector(). */
-  async bySelector(selector: string): Promise<PageObjectElement> {
-    if (isPptrElement(this.element!)) {
-      // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
-      // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
-      // ElementHandle#$$() methods are the other way around.
-      const handle = await this.element.$(selector);
-      return handle ? new PageObjectElement(handle) : new PageObjectElement();
-    }
-
-    const element = this.element!.querySelector<HTMLElement>(selector);
-    return element ? new PageObjectElement(element) : new PageObjectElement();
+  bySelector(selector: string): PageObjectElement {
+    return new PageObjectElement(this.elementPromise.then((element) => {
+      if (!element) {
+        return new Promise((resolve) => resolve(null));
+      }
+      if (isPptrElement(element)) {
+        // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
+        // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
+        // ElementHandle#$$() methods are the other way around.
+        return element.$(selector);
+      }
+      return new Promise((resolve) => resolve(element.querySelector<HTMLElement>(selector)));
+    }));
   }
 
   /** Analogous to HTMLElement#querySelectorAll(). */
-  async bySelectorAll(selector: string): Promise<PageObjectElement[]> {
-    if (isPptrElement(this.element!)) {
-      // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
-      // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
-      // ElementHandle#$$() methods are the other way around.
-      const handles = await this.element.$$(selector);
-      return handles.map((handle) => new PageObjectElement(handle));
-    }
+  bySelectorAll(selector: string): PageObjectElementList {
+    return new PageObjectElementList(this.elementPromise.then((element) => {
+      if (!element) {
+        return [];
+      }
+      if (isPptrElement(element)) {
+        // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
+        // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
+        // ElementHandle#$$() methods are the other way around.
+        return element.$$(selector);
+      }
+      return new Promise((resolve) =>
+          resolve(Array.from(element.querySelectorAll<HTMLElement>(selector))));
+    }));
+  }
+}
 
-    const elements = Array.from(this.element!.querySelectorAll<HTMLElement>(selector));
-    return elements.map((element) => new PageObjectElement(element));
+/** Convenience wrapper around a promise that returns a list. */
+export abstract class AsyncList<T> {
+  private readonly itemsPromise: Promise<T[]>;
+
+  protected constructor(items?: Promise<T[]>) {
+    if (!items) {
+      items = new Promise<T[]>((resolve) => resolve([]));
+    }
+    this.itemsPromise = items;
+  }
+
+  /** Returns the item with the given index from the list. */
+  async item(index: number): Promise<T> {
+    return (await this.itemsPromise)[index];
+  }
+
+  /** Analogous to Array.prototype.length. */
+  get length(): Promise<number> {
+    return this.itemsPromise.then((items) => items.length);
+  }
+
+  /** Analogous to Array.prototype.filter, where the callback function returns a promise. */
+  filter(fn: (item: T, index: number) => Promise<boolean>): Promise<T[]> {
+    return asyncFilter(this.itemsPromise, fn);
+  }
+
+  /** Analogous to Array.prototype.find, where the callback function returns a promise. */
+  find(fn: (item: T, index: number) => Promise<boolean>): Promise<T | null> {
+    return asyncFind(this.itemsPromise, fn);
+  }
+
+  /** Analogous to Array.prototype.forEach, where the callback function returns a promise. */
+  forEach(fn: (item: T, index: number) => Promise<void>): Promise<void> {
+    return asyncForEach(this.itemsPromise, fn);
+  }
+
+  /** Analogous to Array.prototype.map, where the callback function returns a promise. */
+  map<U>(fn: (item: T, index: number) => Promise<U>): Promise<U[]> {
+    return asyncMap(this.itemsPromise, fn);
+  }
+}
+
+/** Convenience wrapper around a Promise<PageObjectElement[]>. */
+export class PageObjectElementList extends AsyncList<PageObjectElement> {
+  constructor(itemsPromise?: Promise<HTMLElement[] | ElementHandle<HTMLElement>[]>) {
+    super(itemsPromise?.then((items) =>
+        items.map((item: HTMLElement | ElementHandle<HTMLElement>) =>
+            new PageObjectElement(item))));
   }
 }

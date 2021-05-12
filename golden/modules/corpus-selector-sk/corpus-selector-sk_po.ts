@@ -1,33 +1,31 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
-import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
-import { asyncFind, asyncMap } from '../../../infra-sk/modules/async';
+import { PageObjectElement, PageObjectElementList } from '../../../infra-sk/modules/page_object/page_object_element';
 
 /** A page object for the CorpusSelectorSkPO component. */
 export class CorpusSelectorSkPO extends PageObject {
-  private get loadingMessage(): Promise<PageObjectElement> {
+  private get loadingMessage(): PageObjectElement {
     return this.bySelector('p');
   }
 
-  private get selectedCorpus(): Promise<PageObjectElement> {
+  private get selectedCorpus(): PageObjectElement {
     return this.bySelector('li.selected');
   }
 
-  private get corpora(): Promise<PageObjectElement[]> {
+  private get corpora(): PageObjectElementList {
     return this.bySelectorAll('li');
   }
 
-  async isLoadingMessageVisible() { return !(await this.loadingMessage).isEmpty(); }
+  async isLoadingMessageVisible() { return !(await this.loadingMessage.isEmpty()); }
 
-  async getCorpora() { return asyncMap(this.corpora, (li) => li.innerText); }
+  async getCorpora() { return this.corpora.map((li) => li.innerText); }
 
   /** Returns the selected corpus, or null if none is selected. */
   async getSelectedCorpus() {
-    const selectedCorpus = await this.selectedCorpus;
-    return selectedCorpus.isEmpty() ? null : selectedCorpus.innerText;
+    return (await this.selectedCorpus.isEmpty()) ? null : this.selectedCorpus.innerText;
   };
 
   async clickCorpus(corpus: string) {
-    const corpusLi = await asyncFind(this.corpora, (li) => li.isInnerTextEqualTo(corpus));
+    const corpusLi = await this.corpora.find((li) => li.isInnerTextEqualTo(corpus));
     await corpusLi!.click();
   }
 }
