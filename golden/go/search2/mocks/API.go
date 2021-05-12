@@ -8,6 +8,8 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	frontend "go.skia.org/infra/golden/go/search/frontend"
 
+	paramtools "go.skia.org/infra/go/paramtools"
+
 	query "go.skia.org/infra/golden/go/search/query"
 
 	search2 "go.skia.org/infra/golden/go/search2"
@@ -34,6 +36,52 @@ func (_m *API) ChangelistLastUpdated(ctx context.Context, qCLID string) (time.Ti
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, qCLID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetChangelistParamset provides a mock function with given fields: ctx, crs, clID
+func (_m *API) GetChangelistParamset(ctx context.Context, crs string, clID string) (paramtools.ReadOnlyParamSet, error) {
+	ret := _m.Called(ctx, crs, clID)
+
+	var r0 paramtools.ReadOnlyParamSet
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) paramtools.ReadOnlyParamSet); ok {
+		r0 = rf(ctx, crs, clID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(paramtools.ReadOnlyParamSet)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, crs, clID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPrimaryBranchParamset provides a mock function with given fields: ctx
+func (_m *API) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnlyParamSet, error) {
+	ret := _m.Called(ctx)
+
+	var r0 paramtools.ReadOnlyParamSet
+	if rf, ok := ret.Get(0).(func(context.Context) paramtools.ReadOnlyParamSet); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(paramtools.ReadOnlyParamSet)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}

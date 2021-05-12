@@ -3447,6 +3447,73 @@ func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T)
 	}, res)
 }
 
+func TestGetPrimaryBranchParamset_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	ps, err := s.GetPrimaryBranchParamset(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, paramtools.ReadOnlyParamSet{
+		dks.ColorModeKey:             []string{dks.GreyColorMode, dks.RGBColorMode},
+		dks.DeviceKey:                []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice, dks.WalleyeDevice},
+		types.PrimaryKeyField:        []string{dks.CircleTest, dks.SquareTest, dks.TriangleTest},
+		dks.OSKey:                    []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+		types.CorpusField:            []string{dks.CornersCorpus, dks.RoundCorpus},
+		"ext":                        []string{"png"},
+		"fuzzy_max_different_pixels": []string{"2"},
+		"image_matching_algorithm":   []string{"fuzzy"},
+	}, ps)
+}
+
+func TestGetChangelistParamset_ValidCLs_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	ps, err := s.GetChangelistParamset(ctx, dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS)
+	require.NoError(t, err)
+	assert.Equal(t, paramtools.ReadOnlyParamSet{
+		dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+		dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice},
+		types.PrimaryKeyField: []string{dks.CircleTest, dks.SquareTest, dks.TriangleTest},
+		dks.OSKey:             []string{dks.AndroidOS, dks.IOS},
+		types.CorpusField:     []string{dks.CornersCorpus, dks.RoundCorpus},
+		"ext":                 []string{"png"},
+	}, ps)
+
+	ps, err = s.GetChangelistParamset(ctx, dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests)
+	require.NoError(t, err)
+	assert.Equal(t, paramtools.ReadOnlyParamSet{
+		dks.ColorModeKey:             []string{dks.GreyColorMode, dks.RGBColorMode},
+		dks.DeviceKey:                []string{dks.QuadroDevice, dks.WalleyeDevice},
+		types.PrimaryKeyField:        []string{dks.CircleTest, dks.RoundRectTest, dks.SevenTest, dks.SquareTest, dks.TriangleTest},
+		dks.OSKey:                    []string{dks.AndroidOS, dks.Windows10dot3OS},
+		types.CorpusField:            []string{dks.CornersCorpus, dks.RoundCorpus, dks.TextCorpus},
+		"ext":                        []string{"png"},
+		"fuzzy_max_different_pixels": []string{"2"},
+		"image_matching_algorithm":   []string{"fuzzy"},
+	}, ps)
+}
+
+func TestGetChangelistParamset_InvalidCL_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	s := New(db, 100)
+	_, err := s.GetChangelistParamset(ctx, "does not", "exist")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Could not find")
+}
+
 var kitchenSinkCommits = makeKitchenSinkCommits()
 
 func makeKitchenSinkCommits() []web_frontend.Commit {
