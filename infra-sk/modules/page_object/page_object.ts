@@ -39,7 +39,7 @@ export abstract class PageObject {
    * Returns the result of calling PageObjectElement#selectOnePOE() on the underlying
    * PageObjectElement.
    */
-  protected selectOnePOE(selector: string) {
+  protected selectOnePOE(selector: string): Promise<PageObjectElement | null> {
     return this.element.selectOnePOE(selector);
   }
 
@@ -48,7 +48,7 @@ export abstract class PageObject {
    * PageObjectElement.
    */
   protected selectOnePOEThenApplyFn<T>(
-      selector: string, fn: (element: PageObjectElement) => Promise<T>) {
+      selector: string, fn: (element: PageObjectElement) => Promise<T>): Promise<T> {
     return this.element.selectOnePOEThenApplyFn<T>(selector, fn);
   }
 
@@ -57,7 +57,8 @@ export abstract class PageObject {
    * underlying PageObjectElement.
    */
   protected selectOneDOMNodeThenApplyFn<T extends Serializable | void>(
-      selector: string, fn: (element: HTMLElement) => T, ...args: Serializable[]) {
+      selector: string,
+      fn: (element: HTMLElement) => T, ...args: Serializable[]): Promise<T> {
     return this.element.selectOneDOMNodeThenApplyFn<T>(selector, fn, ...args);
   }
 
@@ -65,7 +66,7 @@ export abstract class PageObject {
    * Returns the result of calling PageObjectElement#selectAllPOE() on the underlying
    * PageObjectElement.
    */
-  protected selectAllPOE(selector: string) {
+  protected selectAllPOE(selector: string): Promise<PageObjectElement[]> {
     return this.element.selectAllPOE(selector);
   }
 
@@ -74,7 +75,8 @@ export abstract class PageObject {
    * PageObjectElement.
    */
   protected selectAllPOEThenMap<T>(
-      selector: string, fn: (element: PageObjectElement, index: number) => Promise<T>) {
+      selector: string,
+      fn: (element: PageObjectElement, index: number) => Promise<T>): Promise<T[]> {
     return this.element.selectAllPOEThenMap<T>(selector, fn);
   }
 
@@ -92,7 +94,9 @@ export abstract class PageObject {
    * PageObjectElement.
    */
   protected selectAllPOEThenFind(
-      selector: string, fn: (element: PageObjectElement, index: number) => Promise<boolean>) {
+      selector: string,
+      fn: (element: PageObjectElement, index: number) => Promise<boolean>
+  ): Promise<PageObjectElement | null> {
     return this.element.selectAllPOEThenFind(selector, fn);
   }
-};
+}
