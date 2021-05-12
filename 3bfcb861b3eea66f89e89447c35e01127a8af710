@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "934fb69a_d0b41078",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-12T15:41:33Z",
+      "side": 1,
+      "message": "Not ready to be submitted. Just keeping the change ready.",
+      "revId": "3bfcb861b3eea66f89e89447c35e01127a8af710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
