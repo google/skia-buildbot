@@ -6,29 +6,29 @@ import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_ob
 
 /** A page object for the TraceFilterSk component. */
 export class TraceFilterSkPO extends PageObject {
-  get paramSetSkPO(): Promise<ParamSetSkPO> {
+  get paramSetSkPO(): ParamSetSkPO {
     return this.poBySelector('.selection paramset-sk', ParamSetSkPO);
   }
 
-  get queryDialogSkPO(): Promise<QueryDialogSkPO> {
+  get queryDialogSkPO(): QueryDialogSkPO {
     return this.poBySelector('query-dialog-sk', QueryDialogSkPO);
   }
 
-  private get emptyFilterMessage(): Promise<PageObjectElement> {
+  private get emptyFilterMessage(): PageObjectElement {
     return this.bySelector('.selection .empty-placeholder');
   }
 
-  private get editBtn(): Promise<PageObjectElement> {
+  private get editBtn(): PageObjectElement {
     return this.bySelector('.edit-query');
   }
 
-  async isQueryDialogSkOpen() { return (await this.queryDialogSkPO).isDialogOpen(); }
+  async isQueryDialogSkOpen() { return this.queryDialogSkPO.isDialogOpen(); }
 
-  async isEmptyFilterMessageVisible() { return !(await this.emptyFilterMessage).isEmpty(); }
+  async isEmptyFilterMessageVisible() { return !(await this.emptyFilterMessage.isEmpty()); }
 
-  async isParamSetSkVisible() { return !(await this.paramSetSkPO).isEmpty(); }
+  async isParamSetSkVisible() { return !(await this.paramSetSkPO.isEmpty()); }
 
-  async clickEditBtn() { await (await this.editBtn).click(); }
+  async clickEditBtn() { await this.editBtn.click(); }
 
   async getParamSetSkContents() {
     const paramSetSkPO = await this.paramSetSkPO;
@@ -37,24 +37,24 @@ export class TraceFilterSkPO extends PageObject {
   }
 
   async clickQueryDialogSkShowMatchesBtn() {
-    return (await this.queryDialogSkPO).clickShowMatchesBtn();
+    return this.queryDialogSkPO.clickShowMatchesBtn();
   }
 
   async clickQueryDialogSkCancelBtn() {
-    return (await this.queryDialogSkPO).clickCancelBtn();
+    return this.queryDialogSkPO.clickCancelBtn();
   }
 
   async getQueryDialogSkParamSet() {
-    return (await this.queryDialogSkPO).getParamSet();
+    return this.queryDialogSkPO.getParamSet();
   }
 
   async getQueryDialogSkSelection() {
-    return (await this.queryDialogSkPO).getSelection();
+    return this.queryDialogSkPO.getSelection();
   }
 
   /** Sets the selected query in the query-dialog-sk via simulated UI interactions. */
   async setQueryDialogSkSelection(selection: ParamSet) {
-    return (await this.queryDialogSkPO).setSelection(selection);
+    return this.queryDialogSkPO.setSelection(selection);
   }
 
   /** Analogous to the "selection" property getter. */
