@@ -25,6 +25,124 @@ import { PageObjectElement } from './page_object_element';
  * [3] https://github.com/google/pageloader/blob/master/best_practices.md
  */
 export abstract class PageObject {
+  /**
+   * A property decorator that returns the first child element that matches the selector.
+   *
+   * @example
+   *     class MyElementPO extends PageObject {
+   *       @BySelector('button.submit')
+   *       submitBtn!: Promise<PageObjectElement | null>;
+   *
+   *       async clickSubmitBtn() {
+   *         await (await this.submitBtn)!.click();
+   *       }
+   *
+   *       ...
+   *     }
+   */
+  public static BySelector(selector: string): PropertyDecorator {
+    const decorator: PropertyDecorator = (target: Object, propertyKey: string | symbol) => {
+      const propertyDescriptor: TypedPropertyDescriptor<Promise<PageObjectElement | null>> = {
+        get(): Promise<PageObjectElement | null> {
+          const po = this as PageObject;
+          return po.selectOnePOE(selector);
+        },
+      };
+      Object.defineProperty(target, propertyKey, propertyDescriptor);
+    }
+    return decorator;
+  }
+
+  /**
+   * A property decorator that returns all the child elements that match the selector.
+   *
+   * @example
+   *     class MyElementPO extends PageObject {
+   *       @BySelectorAll('table.foo tr')
+   *       rows!: Promise<PageObjectElement[]>;
+   *
+   *       async getNumRows() {
+   *         return (await this.rows).length;
+   *       }
+   *
+   *       ...
+   *     }
+   */
+  public static BySelectorAll(selector: string): PropertyDecorator {
+    const decorator: PropertyDecorator = (target: Object, propertyKey: string | symbol) => {
+      const propertyDescriptor: TypedPropertyDescriptor<Promise<PageObjectElement[]>> = {
+        get(): Promise<PageObjectElement[]> {
+          const po = this as PageObject;
+          return po.selectAllPOE(selector);
+        },
+      };
+      Object.defineProperty(target, propertyKey, propertyDescriptor);
+    }
+    return decorator;
+  }
+
+  /**
+   * A property decorator that instantiates a nested PageObject for the first child element that
+   * matches the selector.
+   *
+   * @example
+   *     import { AnotherElementPO } from 'path/to/another_po';
+   *
+   *     class MyElementPO extends PageObject {
+   *       @POBySelector('another-element', AnotherElementPO)
+   *       anotherElementPO!: Promise<AnotherElementPO>;
+   *
+   *       async doSomething() {
+   *         await (await this.anotherElementPO).clickSomeBtn();
+   *       }
+   *
+   *       ...
+   *     }
+   */
+  public static POBySelector<T extends PageObject>(
+      selector: string, ctor: { new(...args: any[]): T }): PropertyDecorator {
+    const decorator: PropertyDecorator = (target: Object, propertyKey: string | symbol) => {
+      const propertyDescriptor: TypedPropertyDescriptor<Promise<T>> = {
+        async get(): Promise<T> {
+          const po = this as PageObject;
+          return new ctor(await po.selectOnePOE(selector));
+        },
+      };
+      Object.defineProperty(target, propertyKey, propertyDescriptor);
+    }
+    return decorator;
+  }
+
+  /**
+   * A property decorator that instantiates nested PageObjects for all the child elements that
+   * match the selector.
+   *
+   * @example
+   *     class MyElementPO extends PageObject {
+   *       @POBySelectorAll('another-element')
+   *       anotherElementPOs!: Promise<AnotherElementPO[]>;
+   *
+   *       async clickNthElement(n: number) {
+   *         await (await this.anotherElementPOs)[n].clickSomeBtn();
+   *       }
+   *
+   *       ...
+   *     }
+   */
+  public static POBySelectorAll<T extends PageObject>(
+      selector: string, ctor: { new(...args: any[]): T }): PropertyDecorator {
+    const decorator: PropertyDecorator = (target: Object, propertyKey: string | symbol) => {
+      const propertyDescriptor: TypedPropertyDescriptor<Promise<T[]>> = {
+        get(): Promise<T[]> {
+          const po = this as PageObject;
+          return po.selectAllPOE(selector).then((poes) => poes.map((poe) => new ctor(poe)));
+        },
+      };
+      Object.defineProperty(target, propertyKey, propertyDescriptor);
+    }
+    return decorator;
+  }
+
   protected element: PageObjectElement;
 
   constructor(element: HTMLElement | ElementHandle | PageObjectElement) {
@@ -100,3 +218,10 @@ export abstract class PageObject {
     return this.element.selectAllPOEThenFind(selector, fn);
   }
 }
+
+// Re-export decorators as module-level constants for brevity on the client code's side.
+
+export const BySelector = PageObject.BySelector;
+export const BySelectorAll = PageObject.BySelectorAll;
+export const POBySelector = PageObject.POBySelector;
+export const POBySelectorAll = PageObject.POBySelectorAll;
