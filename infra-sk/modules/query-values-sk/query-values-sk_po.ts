@@ -1,24 +1,24 @@
 import { BySelector, BySelectorAll, PageObject } from '../page_object/page_object';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
-import { PageObjectElement } from '../page_object/page_object_element';
-import { asyncFind, asyncForEach, asyncMap } from '../async';
+import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
+import { asyncForEach } from '../async';
 
 /** A page object for the QueryValuesSk component. */
 export class QueryValuesSkPO extends PageObject {
   @BySelector('checkbox-sk#invert')
-  private invertCheckBox!: Promise<PageObjectElement>
+  private invertCheckBox!: Promise<PageObjectElement>;
 
   @BySelector('checkbox-sk#regex')
-  private regexCheckBox!: Promise<PageObjectElement>
+  private regexCheckBox!: Promise<PageObjectElement>;
 
   @BySelector('#regexValue')
-  private regexInput!: Promise<PageObjectElement>
+  private regexInput!: Promise<PageObjectElement>;
 
   @BySelectorAll('multi-select-sk#values div')
-  private options!: Promise<PageObjectElement[]>
+  private options!: PageObjectElementList;
 
   @BySelectorAll('multi-select-sk#values div[selected]')
-  private selectedOptions!: Promise<PageObjectElement[]>
+  private selectedOptions!: PageObjectElementList;
 
   async isInvertCheckboxChecked() {
     return (await this.invertCheckBox)
@@ -43,13 +43,13 @@ export class QueryValuesSkPO extends PageObject {
   async setRegexValue(value: string) { await (await this.regexInput).enterValue(value); }
 
   async clickOption(option: string) {
-    const optionDiv = await asyncFind(this.options, (div) => div.isInnerTextEqualTo(option));
+    const optionDiv = await this.options.find((div) => div.isInnerTextEqualTo(option));
     await optionDiv?.click();
   }
 
-  getOptions() { return asyncMap(this.options, (option) => option.innerText); }
+  getOptions() { return this.options.map((option) => option.innerText); }
 
-  getSelectedOptions() { return asyncMap(this.selectedOptions, (option) => option.innerText); }
+  getSelectedOptions() { return this.selectedOptions.map((option) => option.innerText); }
 
   /** Analogous to the "selected" property getter. */
   async getSelected() {
@@ -100,12 +100,10 @@ export class QueryValuesSkPO extends PageObject {
     }
 
     // Set the selection by clicking on the options as needed.
-    const allOptions = await this.getOptions();
     const currentlySelectedOptions = await this.getSelectedOptions();
-    await asyncForEach(allOptions, async (option) => {
+    await asyncForEach(this.getOptions(), async (option) => {
       const isSelected = currentlySelectedOptions.includes(option);
       const shouldBeSelected = selected.includes(option);
-
       if (isSelected !== shouldBeSelected) {
         await this.clickOption(option);
       }
