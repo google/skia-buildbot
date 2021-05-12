@@ -1,64 +1,64 @@
-import {BySelector, PageObject} from '../../../infra-sk/modules/page_object/page_object';
+import { BySelector, PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
-import {PageObjectElement} from '../../../infra-sk/modules/page_object/page_object_element';
+import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 
 /** A page object for the BulkTriageSkPO component. */
 export class BulkTriageSkPO extends PageObject {
   @BySelector('p.cl')
-  private cl!: Promise<PageObjectElement>;
+  private cl!: PageObjectElement;
 
   @BySelector('button.positive')
-  private positiveBtn!: Promise<PageObjectElement>;
+  private positiveBtn!: PageObjectElement;
 
   @BySelector('button.negative')
-  private negativeBtn!: Promise<PageObjectElement>;
+  private negativeBtn!: PageObjectElement;
 
   @BySelector('button.untriaged')
-  private untriagedBtn!: Promise<PageObjectElement>;
+  private untriagedBtn!: PageObjectElement;
 
   @BySelector('button.closest')
-  private closestBtn!: Promise<PageObjectElement>;
+  private closestBtn!: PageObjectElement;
 
   @BySelector('checkbox-sk.triage_all')
-  private triageAllCheckBox!: Promise<PageObjectElement>;
+  private triageAllCheckBox!: PageObjectElement;
 
   @BySelector('button.triage')
-  private triageBtn!: Promise<PageObjectElement>;
+  private triageBtn!: PageObjectElement;
 
   @BySelector('button.cancel')
-  private cancelBtn!: Promise<PageObjectElement>;
+  private cancelBtn!: PageObjectElement;
 
-  async isAffectedChangelistIdVisible() { return !(await this.cl).isEmpty(); }
+  async isAffectedChangelistIdVisible() { return !(await this.cl.isEmpty()); }
 
-  async getAffectedChangelistId() { return (await this.cl).innerText; }
+  async getAffectedChangelistId() { return this.cl.innerText; }
 
-  async isUntriagedBtnSelected() { return (await this.untriagedBtn).hasClassName('selected'); }
+  async isUntriagedBtnSelected() { return this.untriagedBtn.hasClassName('selected'); }
 
-  async clickUntriagedBtn() { await (await this.untriagedBtn).click(); }
+  async clickUntriagedBtn() { await this.untriagedBtn.click(); }
 
-  async isPositiveBtnSelected() { return (await this.positiveBtn).hasClassName('selected'); }
+  async isPositiveBtnSelected() { return this.positiveBtn.hasClassName('selected'); }
 
-  async clickPositiveBtn() { return (await this.positiveBtn).click(); }
+  async clickPositiveBtn() { await this.positiveBtn.click(); }
 
-  async isNegativeBtnSelected() { return (await this.negativeBtn).hasClassName('selected'); }
+  async isNegativeBtnSelected() { return this.negativeBtn.hasClassName('selected'); }
 
-  async clickNegativeBtn() { await (await this.negativeBtn).click(); }
+  async clickNegativeBtn() { await this.negativeBtn.click(); }
 
-  async isClosestBtnSelected() { return (await this.closestBtn).hasClassName('selected'); }
+  async isClosestBtnSelected() { return this.closestBtn.hasClassName('selected'); }
 
-  async clickClosestBtn() { await (await this.closestBtn).click(); }
+  async clickClosestBtn() { await this.closestBtn.click(); }
 
-  async getTriageAllCheckboxLabel() {  return (await this.triageAllCheckBox).innerText; }
+  async getTriageAllCheckboxLabel() {  return this.triageAllCheckBox.innerText; }
 
   async isTriageAllCheckboxChecked() {
-    return (await this.triageAllCheckBox).applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
+    return this.triageAllCheckBox.applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
   }
 
-  async clickTriageAllCheckbox() { await (await this.triageAllCheckBox).click(); }
+  async clickTriageAllCheckbox() { await this.triageAllCheckBox.click(); }
 
-  async getTriageBtnLabel() { return (await this.triageBtn).innerText; }
+  async getTriageBtnLabel() { return this.triageBtn.innerText; }
 
-  async clickTriageBtn() { await (await this.triageBtn).click(); }
+  async clickTriageBtn() { await this.triageBtn.click(); }
 
-  async clickCancelBtn() { await (await this.cancelBtn).click(); }
+  async clickCancelBtn() { await this.cancelBtn.click(); }
 }
