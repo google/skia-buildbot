@@ -15,11 +15,11 @@ export class TraceFilterSkPO extends PageObject {
   }
 
   private get emptyFilterMessage(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.selection .empty-placeholder');
+    return this.bySelector('.selection .empty-placeholder');
   }
 
   private get editBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.edit-query');
+    return this.bySelector('.edit-query');
   }
 
   async isQueryDialogSkOpen() { return (await this.queryDialogSkPO).isDialogOpen(); }
