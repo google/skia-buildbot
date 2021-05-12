@@ -9,31 +9,31 @@ export class EditIgnoreRuleSkPO extends PageObject {
   }
 
   private get expiresInput(): Promise<PageObjectElement> {
-    return this.selectOnePOE('#expires');
+    return this.bySelector('#expires');
   }
 
   private get noteInput(): Promise<PageObjectElement> {
-    return this.selectOnePOE('#note');
+    return this.bySelector('#note');
   }
 
   private get customKeyInput(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.custom_key');
+    return this.bySelector('.custom_key');
   }
 
   private get customValueInput(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.custom_value');
+    return this.bySelector('.custom_value');
   }
 
   private get addCustomParamBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.add_custom');
+    return this.bySelector('.add_custom');
   }
 
   private get query(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.query');
+    return this.bySelector('.query');
   }
 
   private get errorMessage(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.error');
+    return this.bySelector('.error');
   }
 
   async getExpires(): Promise<string> { return (await this.expiresInput).value; }

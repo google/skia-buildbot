@@ -11,23 +11,23 @@ export class QuerySkPO extends PageObject {
   }
 
   private get filter(): Promise<PageObjectElement> {
-    return this.selectOnePOE('#fast');
+    return this.bySelector('#fast');
   }
 
   private get clearFiltersBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.clear_filters');
+    return this.bySelector('button.clear_filters');
   }
 
   private get clearSelectionsBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.clear_selections');
+    return this.bySelector('button.clear_selections');
   }
 
   private get selectSkKeys(): Promise<PageObjectElement[]> {
-    return this.selectAllPOE('select-sk div');
+    return this.bySelectorAll('select-sk div');
   }
 
   private get selectSkSelectedKey(): Promise<PageObjectElement> {
-    return this.selectOnePOE('select-sk div[selected]');
+    return this.bySelector('select-sk div[selected]');
   }
 
   async getFilter() { return (await this.filter).value; }

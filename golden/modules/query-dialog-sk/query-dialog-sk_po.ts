@@ -15,19 +15,19 @@ export class QueryDialogSkPO extends PageObject {
   }
 
   private get dialog(): Promise<PageObjectElement> {
-    return this.selectOnePOE('dialog');
+    return this.bySelector('dialog');
   }
 
   private get emptySelectionMessage(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.empty-selection');
+    return this.bySelector('.empty-selection');
   }
 
   private get showMatchesBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.show-matches');
+    return this.bySelector('button.show-matches');
   }
 
   private get cancelBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.cancel');
+    return this.bySelector('button.cancel');
   }
 
   async isDialogOpen() {
