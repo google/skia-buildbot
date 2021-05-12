@@ -31,10 +31,10 @@ export abstract class PageObject {
    * @example
    *     class MyElementPO extends PageObject {
    *       @BySelector('button.submit')
-   *       submitBtn!: Promise<PageObjectElement | null>;
+   *       submitBtn!: Promise<PageObjectElement>;
    *
    *       async clickSubmitBtn() {
-   *         await (await this.submitBtn)!.click();
+   *         await (await this.submitBtn).click();
    *       }
    *
    *       ...
@@ -42,8 +42,8 @@ export abstract class PageObject {
    */
   public static BySelector(selector: string): PropertyDecorator {
     const decorator: PropertyDecorator = (target: Object, propertyKey: string | symbol) => {
-      const propertyDescriptor: TypedPropertyDescriptor<Promise<PageObjectElement | null>> = {
-        get(): Promise<PageObjectElement | null> {
+      const propertyDescriptor: TypedPropertyDescriptor<Promise<PageObjectElement>> = {
+        get(): Promise<PageObjectElement> {
           const po = this as PageObject;
           return po.selectOnePOE(selector);
         },
@@ -153,11 +153,16 @@ export abstract class PageObject {
     }
   }
 
+  /** Returns true if the underlying PageObjectElement is empty. */
+  isEmpty(): boolean {
+    return this.element.isEmpty();
+  }
+
   /**
    * Returns the result of calling PageObjectElement#selectOnePOE() on the underlying
    * PageObjectElement.
    */
-  protected selectOnePOE(selector: string): Promise<PageObjectElement | null> {
+  protected selectOnePOE(selector: string): Promise<PageObjectElement> {
     return this.element.selectOnePOE(selector);
   }
 
