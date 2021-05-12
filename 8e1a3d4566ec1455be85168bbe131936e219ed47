@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0104d668_0c09458e",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-05-12T14:18:07Z",
+      "side": 1,
+      "message": "@input will do the filtering as each key is pressed, which if the filtering is fast, will be a nicer user experience.",
+      "range": {
+        "startLine": 164,
+        "startChar": 100,
+        "endLine": 164,
+        "endChar": 106
+      },
+      "revId": "8e1a3d4566ec1455be85168bbe131936e219ed47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
