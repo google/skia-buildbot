@@ -1,4 +1,4 @@
-import { ElementHandle, Serializable } from 'puppeteer';
+import { ElementHandle } from 'puppeteer';
 import { PageObjectElement } from './page_object_element';
 import { asyncMap } from '../async';
 
@@ -50,60 +50,11 @@ export abstract class PageObject {
   }
 
   /**
-   * Returns the result of calling PageObjectElement#selectOnePOEThenApplyFn() on the underlying
-   * PageObjectElement.
-   */
-  protected selectOnePOEThenApplyFn<T>(
-      selector: string, fn: (element: PageObjectElement) => Promise<T>): Promise<T> {
-    return this.element.selectOnePOEThenApplyFn<T>(selector, fn);
-  }
-
-  /**
-   * Returns the result of calling PageObjectElement#selectOneDOMNodeThenApplyFn() on the
-   * underlying PageObjectElement.
-   */
-  protected selectOneDOMNodeThenApplyFn<T extends Serializable | void>(
-      selector: string,
-      fn: (element: HTMLElement) => T, ...args: Serializable[]): Promise<T> {
-    return this.element.selectOneDOMNodeThenApplyFn<T>(selector, fn, ...args);
-  }
-
-  /**
    * Returns the result of calling PageObjectElement#selectAllPOE() on the underlying
    * PageObjectElement.
    */
   protected selectAllPOE(selector: string): Promise<PageObjectElement[]> {
     return this.element.selectAllPOE(selector);
-  }
-
-  /**
-   * Returns the result of calling PageObjectElement#selectAllPOEThenMap() on the underlying
-   * PageObjectElement.
-   */
-  protected selectAllPOEThenMap<T>(
-      selector: string,
-      fn: (element: PageObjectElement, index: number) => Promise<T>): Promise<T[]> {
-    return this.element.selectAllPOEThenMap<T>(selector, fn);
-  }
-
-  /**
-   * Returns the result of calling PageObjectElement#selectAllPOEThenForEach() on the underlying
-   * PageObjectElement.
-   */
-  protected selectAllPOEThenForEach(
-      selector: string, fn: (element: PageObjectElement, index: number) => Promise<void>) {
-    return this.element.selectAllPOEThenForEach(selector, fn);
-  }
-
-  /**
-   * Returns the result of calling PageObjectElement#$find() on the underlying
-   * PageObjectElement.
-   */
-  protected selectAllPOEThenFind(
-      selector: string,
-      fn: (element: PageObjectElement, index: number) => Promise<boolean>
-  ): Promise<PageObjectElement | null> {
-    return this.element.selectAllPOEThenFind(selector, fn);
   }
 
   /** Instantiates a PageObject with the first element that matches the given selector. */
