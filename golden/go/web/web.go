@@ -345,7 +345,7 @@ func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]fronte
 	}
 	sort.Slice(blameEntries, func(i, j int) bool {
 		return blameEntries[i].NDigests > blameEntries[j].NDigests ||
-			// For test determinism, use GroupID as a tie-breaker
+			// For test determinism, use CommitRange as a tie-breaker
 			(blameEntries[i].NDigests == blameEntries[j].NDigests && blameEntries[i].GroupID < blameEntries[j].GroupID)
 	})
 
@@ -359,6 +359,55 @@ func lookUpCommits(freq []int, commits []tiling.Commit) []string {
 		ret = append(ret, commits[index].Hash)
 	}
 	return ret
+}
+
+// ByBlameHandler2 takes the response from the SQL backend's GetBlamesForUntriagedDigests and
+// converts it into the same format that the legacy version (v1) produced.
+func (wh *Handlers) ByBlameHandler2(w http.ResponseWriter, r *http.Request) {
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+	ctx, span := trace.StartSpan(r.Context(), "web_ByBlameHandler2", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
+
+	// Extract the corpus from the query parameters.
+	corpus := ""
+	if v := r.FormValue("query"); v != "" {
+		if qp, err := url.ParseQuery(v); err != nil {
+			httputils.ReportError(w, err, "invalid input", http.StatusBadRequest)
+			return
+		} else if corpus = qp.Get(types.CorpusField); corpus == "" {
+			// If no corpus specified report an error.
+			http.Error(w, "did not receive value for corpus", http.StatusBadRequest)
+			return
+		}
+	}
+	summary, err := wh.Search2API.GetBlamesForUntriagedDigests(ctx, corpus)
+	if err != nil {
+		httputils.ReportError(w, err, "Could not compute blames", http.StatusInternalServerError)
+		return
+	}
+	result := frontend.ByBlameResponse{}
+	for _, sr := range summary.Ranges {
+		entry := frontend.ByBlameEntry{
+			GroupID:  sr.CommitRange,
+			NDigests: sr.TotalUntriagedDigests,
+			NTests:   len(sr.AffectedGroupings),
+			Commits:  sr.Commits,
+		}
+		var groupings []frontend.TestRollup
+		for _, gr := range sr.AffectedGroupings {
+			groupings = append(groupings, frontend.TestRollup{
+				Test:         gr.Grouping,
+				Num:          gr.UntriagedDigests,
+				SampleDigest: gr.SampleDigest,
+			})
+		}
+		entry.AffectedTests = groupings
+		result.Data = append(result.Data, entry)
+	}
+	sendJSONResponse(w, result)
 }
 
 // ChangelistsHandler returns the list of code_review.Changelists that have
