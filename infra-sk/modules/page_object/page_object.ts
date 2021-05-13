@@ -1,6 +1,5 @@
 import { ElementHandle } from 'puppeteer';
-import { PageObjectElement } from './page_object_element';
-import { asyncMap } from '../async';
+import { AsyncList, PageObjectElement, PageObjectElementList } from './page_object_element';
 
 /**
  * A base class for writing page objects[1] that work both on in-browser and Puppeteer tests.
@@ -37,15 +36,15 @@ export abstract class PageObject {
   }
 
   /** Returns true if the underlying PageObjectElement is empty. */
-  isEmpty(): boolean {
-    return this.element.isEmpty();
+  async isEmpty(): Promise<boolean> {
+    return await this.element.isEmpty();
   }
 
   /**
    * Returns the result of calling PageObjectElement#bySelector() on the underlying
    * PageObjectElement.
    */
-  protected bySelector(selector: string): Promise<PageObjectElement> {
+  protected bySelector(selector: string): PageObjectElement {
     return this.element.bySelector(selector);
   }
 
@@ -53,19 +52,27 @@ export abstract class PageObject {
    * Returns the result of calling PageObjectElement#bySelectorAll() on the underlying
    * PageObjectElement.
    */
-  protected bySelectorAll(selector: string): Promise<PageObjectElement[]>  {
+  protected bySelectorAll(selector: string): PageObjectElementList  {
     return this.element.bySelectorAll(selector);
   }
 
   /** Instantiates a PageObject with the first element that matches the given selector. */
-  protected async poBySelector<T extends PageObject>(
-      selector: string, ctor: { new(...args: any): T }): Promise<T> {
-    return new ctor(await this.bySelector(selector));
+  protected poBySelector<T extends PageObject>(
+      selector: string, ctor: { new(...args: any): T }): T {
+    return new ctor(this.bySelector(selector));
   }
 
   /** Instantiates one PageObject for each element that match the given selector. */
-  protected async poBySelectorAll<T extends PageObject>(
-      selector: string, ctor: { new(...args: any): T }): Promise<T[]> {
-    return asyncMap(this.bySelectorAll(selector), async (poe: PageObjectElement) => new ctor(poe));
+  protected poBySelectorAll<T extends PageObject>(
+      selector: string, ctor: { new(...args: any): T }): PageObjectList<T> {
+    return new PageObjectList(this.bySelectorAll(selector)
+        .map(async (poe: PageObjectElement) => new ctor(poe)));
+  }
+}
+
+/** Convenience wrapper around a promise of a list of page objects. */
+export class PageObjectList<T extends PageObject> extends AsyncList<T> {
+  constructor(itemsPromise: Promise<T[]>) {
+    super(itemsPromise);
   }
 }

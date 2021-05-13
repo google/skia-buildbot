@@ -40,8 +40,9 @@ export interface TestBed {
 export const describePageObjectElement = (testBed: TestBed) => {
   it('supports isEmpty', async () => {
     const poe = await testBed.setUpPageObjectElement('<div>Hello, world!</div>');
-    expect(poe.isEmpty()).to.be.false;
-    expect(new PageObjectElement().isEmpty()).to.be.true;
+    expect(await poe.isEmpty()).to.be.false;
+    const nullPromise = new Promise<null>((resolve) => resolve(null));
+    expect(await (new PageObjectElement(nullPromise)).isEmpty()).to.be.true;
   });
 
   it('supports innerText', async () => {
@@ -175,19 +176,16 @@ export const describePageObjectElement = (testBed: TestBed) => {
     });
 
     it('supports bySelector', async () => {
-      expect((await poe.bySelector('p')).isEmpty()).to.be.true;
-      expect((await poe.bySelector('span')).isEmpty()).to.be.false;
-      expect(await (await poe.bySelector('span.name'))!.innerText).to.equal('World');
+      expect(await poe.bySelector('p').isEmpty()).to.be.true;
+      expect(await poe.bySelector('span').isEmpty()).to.be.false;
+      expect(await poe.bySelector('span.name').innerText).to.equal('World');
     });
 
     it('supports bySelectorAll', async () => {
-      const innerTexts =
-        async (pageObjectElements: Promise<PageObjectElement[]>) =>
-          await Promise.all((await pageObjectElements).map((el) => el.innerText));
-
-      expect(await poe.bySelectorAll('p')).to.have.length(0);
-      expect(await poe.bySelectorAll('span')).to.have.length(2);
-      expect(await innerTexts(poe.bySelectorAll('span'))).to.deep.equal(['Hello', 'World']);
+      expect(await poe.bySelectorAll('p').length).to.equal(0);
+      expect(await poe.bySelectorAll('span').length).to.equal(2);
+      expect(await poe.bySelectorAll('span').map((el) => el.innerText))
+          .to.deep.equal(['Hello', 'World']);
     });
   });
 };

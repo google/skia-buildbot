@@ -11,107 +11,94 @@ import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_ob
  * each other's values (when one changes, the other changes as well).
  */
 export class NumericParamPO extends PageObject {
-  private get rangeInput(): Promise<PageObjectElement> {
+  private get rangeInput(): PageObjectElement {
     return this.bySelector('input[type=range]');
   }
 
-  private get numberInput(): Promise<PageObjectElement> {
+  private get numberInput(): PageObjectElement {
     return this.bySelector('input[type=number]')
   }
 
-  async focusRangeInput() { await (await this.rangeInput).focus(); }
+  async focusRangeInput() { await this.rangeInput.focus(); }
 
-  async focusNumberInput() { await (await this.numberInput).focus(); }
+  async focusNumberInput() { await this.numberInput.focus(); }
 
-  async getRangeInputValue() { return parseInt(await (await this.rangeInput).value); }
+  async getRangeInputValue() { return parseInt(await this.rangeInput.value); }
 
-  async setRangeInputValue(value: number) {
-    await (await this.rangeInput).enterValue(value.toString());
-  }
+  async setRangeInputValue(value: number) { await this.rangeInput.enterValue(value.toString()); }
 
-  async geNumberInputValue() { return parseInt(await (await this.numberInput).value); }
+  async geNumberInputValue() { return parseInt(await this.numberInput.value); }
 
-  async setNumberInputValue(value: number) {
-    await (await this.numberInput).enterValue(value.toString());
-  }
+  async setNumberInputValue(value: number) { await this.numberInput.enterValue(value.toString()); }
 }
 
 /** A page object for the FilterDialogSk component. */
 export class FilterDialogSkPO extends PageObject {
-  get traceFilterSkPO(): Promise<TraceFilterSkPO> {
+  get traceFilterSkPO(): TraceFilterSkPO {
     return this.poBySelector('trace-filter-sk', TraceFilterSkPO);
   }
 
-  get minRGBADeltaPO(): Promise<NumericParamPO> {
+  get minRGBADeltaPO(): NumericParamPO {
     return this.poBySelector('#min-rgba-delta-numeric-param', NumericParamPO);
   }
 
-  get maxRGBADeltaPO(): Promise<NumericParamPO> {
+  get maxRGBADeltaPO(): NumericParamPO {
     return this.poBySelector('#max-rgba-delta-numeric-param', NumericParamPO);
   }
 
-  private get mustHaveReferenceImageCheckBox(): Promise<PageObjectElement> {
+  private get mustHaveReferenceImageCheckBox(): PageObjectElement {
     return this.bySelector('#must-have-reference-image');
   }
 
-  private get sortOrderDropDown(): Promise<PageObjectElement> {
+  private get sortOrderDropDown(): PageObjectElement {
     return this.bySelector('select#sort-order');
   }
 
-  private get filterDialog(): Promise<PageObjectElement> {
+  private get filterDialog(): PageObjectElement {
     return this.bySelector('dialog.filter-dialog');
   }
 
-  private get filterDialogFilterBtn(): Promise<PageObjectElement> {
+  private get filterDialogFilterBtn(): PageObjectElement {
     return this.bySelector('dialog.filter-dialog > .buttons > .filter');
   }
 
-  private get filterDialogCancelBtn(): Promise<PageObjectElement> {
+  private get filterDialogCancelBtn(): PageObjectElement {
     return this.bySelector('dialog.filter-dialog > .buttons > .cancel');
   }
 
   async isDialogOpen() {
-    return (await this.filterDialog)
-        .applyFnToDOMNode((dialog) => (dialog as HTMLDialogElement).open);
+    return this.filterDialog.applyFnToDOMNode((dialog) => (dialog as HTMLDialogElement).open);
   }
 
-  async getMinRGBADelta() { return (await this.minRGBADeltaPO).getRangeInputValue(); }
+  async getMinRGBADelta() { return this.minRGBADeltaPO.getRangeInputValue(); }
 
-  async setMinRGBADelta(value: number) {
-    return (await this.minRGBADeltaPO).setRangeInputValue(value);
-  }
+  async setMinRGBADelta(value: number) { await this.minRGBADeltaPO.setRangeInputValue(value); }
 
-  async getMaxRGBADelta() { return (await this.maxRGBADeltaPO).getRangeInputValue(); }
+  async getMaxRGBADelta() { return this.maxRGBADeltaPO.getRangeInputValue(); }
 
-  async setMaxRGBADelta(value: number) {
-    return (await this.maxRGBADeltaPO).setRangeInputValue(value);
-  }
+  async setMaxRGBADelta(value: number) { await this.maxRGBADeltaPO.setRangeInputValue(value); }
 
-  async getSortOrder() {
-    return await (await this.sortOrderDropDown).value as 'ascending' | 'descending';
-  }
+  async getSortOrder() { return await this.sortOrderDropDown.value as 'ascending' | 'descending'; }
 
   async setSortOrder(value: 'ascending' | 'descending') {
-    await (await this.sortOrderDropDown).enterValue(value);
+    await this.sortOrderDropDown.enterValue(value);
   }
 
   async isReferenceImageCheckboxChecked() {
-    return (await this.mustHaveReferenceImageCheckBox)
+    return this.mustHaveReferenceImageCheckBox
         .applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
   }
 
-  async clickReferenceImageCheckbox() {
-    return (await this.mustHaveReferenceImageCheckBox).click();
-  }
+  async clickReferenceImageCheckbox() { await this.mustHaveReferenceImageCheckBox.click(); }
 
-  async clickFilterBtn() { await (await this.filterDialogFilterBtn).click(); }
+  async clickFilterBtn() { await this.filterDialogFilterBtn.click(); }
 
-  async clickCancelBtn() { await (await this.filterDialogCancelBtn).click(); }
+  async clickCancelBtn() { await this.filterDialogCancelBtn.click(); }
 
   /** Gets the selected filters. */
   async getSelectedFilters() {
     const filters: Filters = {
-      diffConfig: await (await this.traceFilterSkPO).getSelection(),
+      diffConfig: await this.traceFilterSkPO.getSelection(),
       minRGBADelta: await this.getMinRGBADelta(),
       maxRGBADelta: await this.getMaxRGBADelta(),
       sortOrder: await this.getSortOrder(),
@@ -122,10 +109,9 @@ export class FilterDialogSkPO extends PageObject {
 
   /** Sets the selected filters. */
   async setSelectedFilters(filters: Filters) {
-    const traceFilterSkPO = await this.traceFilterSkPO;
-    await traceFilterSkPO.clickEditBtn();
-    await traceFilterSkPO.setQueryDialogSkSelection(filters.diffConfig);
-    await traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
+    await this.traceFilterSkPO.clickEditBtn();
+    await this.traceFilterSkPO.setQueryDialogSkSelection(filters.diffConfig);
+    await this.traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
 
     await this.setMinRGBADelta(filters.minRGBADelta);
     await this.setMaxRGBADelta(filters.maxRGBADelta);

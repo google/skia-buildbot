@@ -39,7 +39,10 @@ ts_library(
     name = "page_object_element_ts_lib",
     srcs = ["page_object_element.ts"],
     visibility = ["//visibility:public"],
-    deps = ["@npm//puppeteer"],
+    deps = [
+        "//infra-sk/modules:async_ts_lib",
+        "@npm//puppeteer",
+    ],
 )
 
 ts_library(
@@ -48,7 +51,6 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":page_object_element_ts_lib",
-        "//infra-sk/modules:async_ts_lib",
         "@npm//puppeteer",
     ],
 )
