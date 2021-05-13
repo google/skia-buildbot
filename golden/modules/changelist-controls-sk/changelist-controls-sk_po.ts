@@ -1,41 +1,45 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
+import { asyncMap } from '../../../infra-sk/modules/async';
 
 /** A page object for the ChangelistControlsSk component. */
 export class ChangelistControlsSkPO extends PageObject {
+  private get patchsetDropDown(): Promise<PageObjectElement> {
+    return this.selectOnePOE('.inputs select');
+  }
+
+  private get includeMasterRadio(): Promise<PageObjectElement> {
+    return this.selectOnePOE('.inputs radio-sk.include-master');
+  }
+
+  private get excludeMasterRadio(): Promise<PageObjectElement> {
+    return this.selectOnePOE('.inputs radio-sk.exclude-master');
+  }
+
+  private get tryjobs(): Promise<PageObjectElement[]> {
+    return this.selectAllPOE('.tryjob-container .tryjob');
+  }
 
   isVisible() {
     return this.element.applyFnToDOMNode((el) => el.children.length > 0);
   }
 
-  getPatchset() {
-    return this.selectOnePOEThenApplyFn('.inputs select', (el) => el.value);
+  async getPatchset() { return (await this.patchsetDropDown).value; }
+
+  async setPatchset(value: string) { await (await this.patchsetDropDown).enterValue(value); }
+
+  async isExcludeResultsFromPrimaryRadioChecked() {
+    return (await this.excludeMasterRadio).applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
   }
 
-  setPatchset(value: string) {
-    return this.selectOnePOEThenApplyFn('.inputs select', (el) => el.enterValue(value));
+  async clickExcludeResultsFromPrimaryRadio() { await (await this.excludeMasterRadio).click(); }
+
+  async isShowAllResultsRadioChecked() {
+    return (await this.includeMasterRadio).applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
   }
 
-  isExcludeResultsFromPrimaryRadioChecked() {
-    return this.selectOneDOMNodeThenApplyFn(
-      '.inputs radio-sk.exclude-master', (el) => (el as CheckOrRadio).checked);
-  }
+  async clickShowAllResultsRadio() { await (await this.includeMasterRadio).click(); }
 
-  async clickExcludeResultsFromPrimaryRadio() {
-    await this.selectOnePOEThenApplyFn('.inputs radio-sk.exclude-master', (el) => el.click());
-  }
-
-  isShowAllResultsRadioChecked() {
-    return this.selectOneDOMNodeThenApplyFn(
-      '.inputs radio-sk.include-master', (el) => (el as CheckOrRadio).checked);
-  }
-
-  async clickShowAllResultsRadio() {
-    await this.selectOnePOEThenApplyFn('.inputs radio-sk.include-master', (el) => el.click());
-  }
-
-  getTryJobs() {
-    return this.selectAllPOEThenMap('.tryjob-container .tryjob', (el) => el.innerText);
-  }
-
-};
+  async getTryJobs() { return asyncMap(this.tryjobs, (tryjob) => tryjob.innerText); }
+}

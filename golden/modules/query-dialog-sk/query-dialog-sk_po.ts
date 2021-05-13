@@ -2,68 +2,66 @@ import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { ParamSetSkPO } from '../../../infra-sk/modules/paramset-sk/paramset-sk_po';
 import { QuerySkPO } from '../../../infra-sk/modules/query-sk/query-sk_po';
 import { ParamSet } from 'common-sk/modules/query';
+import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 
 /** A page object for the QueryDialogSk component. */
 export class QueryDialogSkPO extends PageObject {
-  getQuerySkPO() {
-    return this.selectOnePOEThenApplyFn('query-sk', async (el) => new QuerySkPO(el));
+  get querySkPO(): Promise<QuerySkPO> {
+    return this.poBySelector('query-sk', QuerySkPO);
   }
 
-  getParamSetSkPO() {
-    return this.selectOnePOEThenApplyFn('paramset-sk', async (el) => new ParamSetSkPO(el));
+  get paramSetSkPO(): Promise<ParamSetSkPO> {
+    return this.poBySelector('paramset-sk', ParamSetSkPO);
+  }
+
+  private get dialog(): Promise<PageObjectElement> {
+    return this.selectOnePOE('dialog');
+  }
+
+  private get emptySelectionMessage(): Promise<PageObjectElement> {
+    return this.selectOnePOE('.empty-selection');
+  }
+
+  private get showMatchesBtn(): Promise<PageObjectElement> {
+    return this.selectOnePOE('button.show-matches');
+  }
+
+  private get cancelBtn(): Promise<PageObjectElement> {
+    return this.selectOnePOE('button.cancel');
   }
 
   async isDialogOpen() {
-    return this.selectOneDOMNodeThenApplyFn(
-      'dialog', (dialog) => (dialog as HTMLDialogElement).open);
+    return (await this.dialog).applyFnToDOMNode((d) => (d as HTMLDialogElement).open);
   }
 
-  async isEmptySelectionMessageVisible() {
-    return (await this.selectOnePOE('.empty-selection')) !== null;
-  }
+  async isEmptySelectionMessageVisible() { return !(await this.emptySelectionMessage).isEmpty(); }
 
-  async isParamSetSkVisible() {
-    return (await this.selectOnePOE('paramset-sk')) !== null;
-  }
+  async isParamSetSkVisible() { return !(await this.paramSetSkPO).isEmpty(); }
 
-  async clickKey(key: string) {
-    return (await this.getQuerySkPO()).clickKey(key);
-  }
+  async clickKey(key: string) { await (await this.querySkPO).clickKey(key); }
 
-  async clickValue(value: string) {
-    return (await this.getQuerySkPO()).clickValue(value);
-  }
+  async clickValue(value: string) { await (await this.querySkPO).clickValue(value); }
 
-  async clickShowMatchesBtn() {
-    return this.selectOnePOEThenApplyFn('button.show-matches', (btn) => btn.click());
-  }
+  async clickShowMatchesBtn() { await (await this.showMatchesBtn).click(); }
 
-  async clickCancelBtn() {
-    return this.selectOnePOEThenApplyFn('button.cancel', (btn) => btn.click());
-  }
+  async clickCancelBtn() { await (await this.cancelBtn).click(); }
 
   async getParamSetSkContents() {
-    const paramSetSkPO = await this.getParamSetSkPO();
-    const paramSets = await paramSetSkPO.getParamSets();
+    const paramSets = await (await this.paramSetSkPO).getParamSets();
     return paramSets[0]; // There's only one ParamSet.
   }
 
   /** Returns the key/value pairs available for the user to choose from. */
-  async getParamSet() {
-    return (await this.getQuerySkPO()).getParamSet();
-  }
+  async getParamSet() { return (await this.querySkPO).getParamSet(); }
 
   /** Gets the selected query. */
-  async getSelection() {
-    return (await this.getQuerySkPO()).getCurrentQuery();
-  }
+  async getSelection() { return (await this.querySkPO).getCurrentQuery(); }
 
   /** Sets the selected query via simulated UI interactions. */
   async setSelection(selection: ParamSet) {
-    const querySkPO = await this.getQuerySkPO();
-    await querySkPO.setCurrentQuery(selection);
+    await (await this.querySkPO).setCurrentQuery(selection);
 
     // Remove focus from the last selected value in the query-sk component. This reduces flakiness.
-    await this.selectOnePOEThenApplyFn('dialog', (el) => el.click());
+    await (await this.dialog).click();
   }
-};
+}

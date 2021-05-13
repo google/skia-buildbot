@@ -1,7 +1,6 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
-import { FilterDialogSkPO } from './filter-dialog-sk_po';
-import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import { FilterDialogSkPO, NumericParamPO } from './filter-dialog-sk_po';
 import path from "path";
 
 describe('filter-dialog-sk', () => {
@@ -29,44 +28,40 @@ describe('filter-dialog-sk', () => {
   // these inputs listen to each other's "input" event to keep their values in sync, and it is not
   // possible to realistically trigger said event from a Karma test.
   describe('numeric inputs (range/number input pairs)', () => {
-    let rangeInput: PageObjectElement;
-    let numberInput: PageObjectElement;
+    let numericParamPO: NumericParamPO;
 
     beforeEach(async () => {
       await openDialog();
-
-      const numericParamPO = await filterDialogSkPO.getMinRGBADeltaPO();
-      rangeInput = await numericParamPO.getRangeInput();
-      numberInput = await numericParamPO.getNumberInput();
+      numericParamPO = await filterDialogSkPO.minRGBADeltaPO;
     });
 
     it('initially shows the same value on both inputs', async () => {
-      expect(await rangeInput.value).to.equal('0');
-      expect(await numberInput.value).to.equal('0');
+      expect(await numericParamPO.getRangeInputValue()).to.equal(0);
+      expect(await numericParamPO.geNumberInputValue()).to.equal(0);
     });
 
     it('updates number input when range input changes', async () => {
-      await rangeInput.focus();
+      await numericParamPO.focusRangeInput();
 
       await testBed.page.keyboard.down('ArrowRight');
-      expect(await rangeInput.value).to.equal('1');
-      expect(await numberInput.value).to.equal('1');
+      expect(await numericParamPO.getRangeInputValue()).to.equal(1);
+      expect(await numericParamPO.geNumberInputValue()).to.equal(1);
 
       await testBed.page.keyboard.down('ArrowLeft');
-      expect(await rangeInput.value).to.equal('0');
-      expect(await numberInput.value).to.equal('0');
+      expect(await numericParamPO.getRangeInputValue()).to.equal(0);
+      expect(await numericParamPO.geNumberInputValue()).to.equal(0);
     });
 
     it('updates range input when number input changes', async () => {
-      await numberInput.focus();
+      await numericParamPO.focusNumberInput();
 
       await testBed.page.keyboard.down('ArrowUp');
-      expect(await rangeInput.value).to.equal('1');
-      expect(await numberInput.value).to.equal('1');
+      expect(await numericParamPO.getRangeInputValue()).to.equal(1);
+      expect(await numericParamPO.geNumberInputValue()).to.equal(1);
 
       await testBed.page.keyboard.down('ArrowDown');
-      expect(await rangeInput.value).to.equal('0');
-      expect(await numberInput.value).to.equal('0');
+      expect(await numericParamPO.getRangeInputValue()).to.equal(0);
+      expect(await numericParamPO.geNumberInputValue()).to.equal(0);
     });
   });
 
@@ -78,7 +73,7 @@ describe('filter-dialog-sk', () => {
 
     it('should take a screenshot with the query dialog visible', async () => {
       await openDialog();
-      await (await filterDialogSkPO.getTraceFilterSkPO()).clickEditBtn();
+      await (await filterDialogSkPO.traceFilterSkPO).clickEditBtn();
       await takeScreenshot(testBed.page, 'gold', 'filter-dialog-sk_query-dialog-open');
     });
   });

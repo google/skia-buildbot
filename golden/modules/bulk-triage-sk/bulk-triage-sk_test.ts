@@ -86,7 +86,7 @@ describe('bulk-triage-sk', () => {
       await bulkTriageSkPO.clickTriageAllCheckbox();
 
       const finishedPromise = eventPromise('bulk_triage_finished');
-      bulkTriageSkPO.clickTriageBtn();
+      await bulkTriageSkPO.clickTriageBtn();
       await finishedPromise;
     });
   });
