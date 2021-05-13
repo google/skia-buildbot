@@ -1,5 +1,6 @@
 import { ElementHandle, Serializable } from 'puppeteer';
 import { PageObjectElement } from './page_object_element';
+import { asyncMap } from '../async';
 
 /**
  * A base class for writing page objects[1] that work both on in-browser and Puppeteer tests.
@@ -35,11 +36,16 @@ export abstract class PageObject {
     }
   }
 
+  /** Returns true if the underlying PageObjectElement is empty. */
+  isEmpty(): boolean {
+    return this.element.isEmpty();
+  }
+
   /**
    * Returns the result of calling PageObjectElement#selectOnePOE() on the underlying
    * PageObjectElement.
    */
-  protected selectOnePOE(selector: string): Promise<PageObjectElement | null> {
+  protected selectOnePOE(selector: string): Promise<PageObjectElement> {
     return this.element.selectOnePOE(selector);
   }
 
@@ -98,5 +104,17 @@ export abstract class PageObject {
       fn: (element: PageObjectElement, index: number) => Promise<boolean>
   ): Promise<PageObjectElement | null> {
     return this.element.selectAllPOEThenFind(selector, fn);
+  }
+
+  /** Instantiates a PageObject with the first element that matches the given selector. */
+  protected async poBySelector<T extends PageObject>(
+      selector: string, ctor: { new(...args: any): T }): Promise<T> {
+    return new ctor(await this.selectOnePOE(selector));
+  }
+
+  /** Instantiates one PageObject for each element that match the given selector. */
+  protected async poBySelectorAll<T extends PageObject>(
+      selector: string, ctor: { new(...args: any): T }): Promise<T[]> {
+    return asyncMap(this.selectAllPOE(selector), async (poe: PageObjectElement) => new ctor(poe));
   }
 }
