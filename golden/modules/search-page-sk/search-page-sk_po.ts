@@ -20,20 +20,20 @@ export class DigestDetailsSkPO extends PageObject {
 
   // TODO(lovisolo): Use a less brittle selector (add a "left" CSS class).
   private get leftDigest(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.digest_label:nth-child(1)');
+    return this.bySelector('.digest_label:nth-child(1)');
   }
 
   // TODO(lovisolo): Use a less brittle selector (add a "right" CSS class).
   private get rightDigest(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.digest_label:nth-child(2)');
+    return this.bySelector('.digest_label:nth-child(2)');
   }
 
   private get diffPageLink(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.diffpage_link');
+    return this.bySelector('.diffpage_link');
   }
 
   private get zoomDialog(): Promise<PageObjectElement> {
-    return this.selectOnePOE('dialog.zoom_dialog');
+    return this.bySelector('dialog.zoom_dialog');
   }
 
   async isSelected() { return this.element.hasClassName('selected'); }
@@ -70,27 +70,27 @@ export class SearchPageSkPO extends PageObject {
   }
 
   private get bulkTriageBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.bulk-triage');
+    return this.bySelector('button.bulk-triage');
   }
 
   private get bulkTriageDialog(): Promise<PageObjectElement> {
-    return this.selectOnePOE('dialog.bulk-triage');
+    return this.bySelector('dialog.bulk-triage');
   }
 
   private get helpBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.help');
+    return this.bySelector('button.help');
   }
 
   private get helpDialog(): Promise<PageObjectElement> {
-    return this.selectOnePOE('dialog.help');
+    return this.bySelector('dialog.help');
   }
 
   private get helpDialogCancelBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('dialog.help button.cancel');
+    return this.bySelector('dialog.help button.cancel');
   }
 
   private get summary(): Promise<PageObjectElement> {
-    return this.selectOnePOE('p.summary');
+    return this.bySelector('p.summary');
   }
 
   async clickBulkTriageBtn() { await (await this.bulkTriageBtn).click(); }

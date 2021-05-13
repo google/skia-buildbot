@@ -6,23 +6,23 @@ import { asyncFind, asyncForEach, asyncMap } from '../async';
 /** A page object for the QueryValuesSk component. */
 export class QueryValuesSkPO extends PageObject {
   private get invertCheckBox(): Promise<PageObjectElement> {
-    return this.selectOnePOE('checkbox-sk#invert');
+    return this.bySelector('checkbox-sk#invert');
   }
 
   private get regexCheckBox(): Promise<PageObjectElement> {
-    return this.selectOnePOE('checkbox-sk#regex');
+    return this.bySelector('checkbox-sk#regex');
   }
 
   private get regexInput(): Promise<PageObjectElement> {
-    return this.selectOnePOE('#regexValue');
+    return this.bySelector('#regexValue');
   }
 
   private get options(): Promise<PageObjectElement[]> {
-    return this.selectAllPOE('multi-select-sk#values div');
+    return this.bySelectorAll('multi-select-sk#values div');
   }
 
   private get selectedOptions(): Promise<PageObjectElement[]> {
-    return this.selectAllPOE('multi-select-sk#values div[selected]');
+    return this.bySelectorAll('multi-select-sk#values div[selected]');
   }
 
   async isInvertCheckboxChecked() {
