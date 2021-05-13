@@ -298,9 +298,13 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
+      let url = '/json/v1/paramset';
+      if (this._useNewAPI) {
+        url = '/json/v2/paramset';
+      }
       const paramSetResponse: ParamSetResponse =
         await fetch(
-            '/json/v1/paramset' + (changeListId ? '?changelist_id='+  changeListId : ''),
+            url + (changeListId ? '?changelist_id='+  changeListId : ''),
             {method: 'GET'})
           .then(jsonOrThrow);
 
