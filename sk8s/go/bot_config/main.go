@@ -16,11 +16,14 @@ import (
 	"go.skia.org/infra/sk8s/go/bot_config/machine"
 	"go.skia.org/infra/sk8s/go/bot_config/server"
 	"go.skia.org/infra/sk8s/go/bot_config/swarming"
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 // flags
 var (
 	configFlag     = flag.String("config", "", "The path to the configuration file.")
+	kubeconfig     = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	metadataURL    = flag.String("metadata_url", "http://metadata:8000/computeMetadata/v1/instance/service-accounts/default/token", "The URL of the metadata server that provides service account tokens.")
 	port           = flag.String("port", ":11000", "HTTP service address (e.g., ':8000')")
@@ -55,6 +58,8 @@ func main() {
 	if err := m.Start(ctx); err != nil {
 		sklog.Fatal("Failed to start machine: %s", err)
 	}
+
+	// TODO(jcgregorio) Start reverse-port-forward to the skia-switchboard cluster here.
 
 	sklog.Infof("Starting the server.")
 	s, err := server.New(m)

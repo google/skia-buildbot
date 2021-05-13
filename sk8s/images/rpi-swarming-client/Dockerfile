@@ -12,7 +12,12 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     bash \
     openssl \
     libssl-dev \
+    openssh-server \
     adb
+
+RUN sed --in-place 's/#ListenAddress ::/#ListenAddress ::\nListenAddress localhost/' /etc/ssh/sshd_config
+
+RUN echo '\nPasswordAuthentication yes\n PermitRootLogin yes\n' >> /etc/ssh/sshd_config
 
 RUN     c_rehash
 # Run c_rehash because https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=923479
