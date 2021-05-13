@@ -42,30 +42,30 @@ export abstract class PageObject {
   }
 
   /**
-   * Returns the result of calling PageObjectElement#selectOnePOE() on the underlying
+   * Returns the result of calling PageObjectElement#bySelector() on the underlying
    * PageObjectElement.
    */
-  protected selectOnePOE(selector: string): Promise<PageObjectElement> {
-    return this.element.selectOnePOE(selector);
+  protected bySelector(selector: string): Promise<PageObjectElement> {
+    return this.element.bySelector(selector);
   }
 
   /**
-   * Returns the result of calling PageObjectElement#selectAllPOE() on the underlying
+   * Returns the result of calling PageObjectElement#bySelectorAll() on the underlying
    * PageObjectElement.
    */
-  protected selectAllPOE(selector: string): Promise<PageObjectElement[]> {
-    return this.element.selectAllPOE(selector);
+  protected bySelectorAll(selector: string): Promise<PageObjectElement[]>  {
+    return this.element.bySelectorAll(selector);
   }
 
   /** Instantiates a PageObject with the first element that matches the given selector. */
   protected async poBySelector<T extends PageObject>(
       selector: string, ctor: { new(...args: any): T }): Promise<T> {
-    return new ctor(await this.selectOnePOE(selector));
+    return new ctor(await this.bySelector(selector));
   }
 
   /** Instantiates one PageObject for each element that match the given selector. */
   protected async poBySelectorAll<T extends PageObject>(
       selector: string, ctor: { new(...args: any): T }): Promise<T[]> {
-    return asyncMap(this.selectAllPOE(selector), async (poe: PageObjectElement) => new ctor(poe));
+    return asyncMap(this.bySelectorAll(selector), async (poe: PageObjectElement) => new ctor(poe));
   }
 }

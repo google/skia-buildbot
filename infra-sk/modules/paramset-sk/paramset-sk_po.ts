@@ -20,17 +20,17 @@ export interface ParamSetKeyValueTuple {
 export class ParamSetSkPO extends PageObject {
   private get titles(): Promise<PageObjectElement[]> {
     // First <th> is always empty.
-    return this.selectAllPOE('tr:nth-child(1) th:not(:nth-child(1))');
+    return this.bySelectorAll('tr:nth-child(1) th:not(:nth-child(1))');
   }
 
   private get keys(): Promise<PageObjectElement[]> {
     // Skip the first row, which contains the titles.
-    return this.selectAllPOE('tr:not(:nth-child(1)) th');
+    return this.bySelectorAll('tr:not(:nth-child(1)) th');
   }
 
   private get rows(): Promise<PageObjectElement[]> {
     // Skip the first row, which contains the titles.
-    return this.selectAllPOE('tr:not(:nth-child(1))');
+    return this.bySelectorAll('tr:not(:nth-child(1))');
   }
 
   async getTitles() { return asyncMap(this.titles, (th) => th.innerText); }
@@ -85,13 +85,13 @@ export class ParamSetSkPO extends PageObject {
       fn: (pkv: ParamSetKeyValueTuple, valueDiv: PageObjectElement) => Promise<void>) {
     // Iterate over all rows.
     await asyncForEach(this.rows, async (row) => {
-      const key = await (await row.selectOnePOE('th')).innerText;
+      const key = await (await row.bySelector('th')).innerText;
 
       // Iterate over all cells. Each cell corresponds to one ParamSet.
-      await asyncForEach(row.selectAllPOE('td'), async (td, paramSetIndex) => {
+      await asyncForEach(row.bySelectorAll('td'), async (td, paramSetIndex) => {
 
         // Iterate over each value of the current ParamSet.
-        await asyncForEach(td.selectAllPOE('div'), async (div) => {
+        await asyncForEach(td.bySelectorAll('div'), async (div) => {
           await fn({paramSetIndex: paramSetIndex, key: key, value: await div.innerText}, div);
         });
       })

@@ -162,7 +162,7 @@ export const describePageObjectElement = (testBed: TestBed) => {
     expect(result).to.equal('The contents are: "Hello, world!". That is all.');
   });
 
-  describe('query selector functions', () => {
+  describe('selector functions', () => {
     let poe: PageObjectElement;
 
     beforeEach(async () => {
@@ -174,20 +174,20 @@ export const describePageObjectElement = (testBed: TestBed) => {
       `);
     });
 
-    it('supports selectOnePOE', async () => {
-      expect((await poe.selectOnePOE('p')).isEmpty()).to.be.true;
-      expect((await poe.selectOnePOE('span')).isEmpty()).to.be.false;
-      expect(await (await poe.selectOnePOE('span.name'))!.innerText).to.equal('World');
+    it('supports bySelector', async () => {
+      expect((await poe.bySelector('p')).isEmpty()).to.be.true;
+      expect((await poe.bySelector('span')).isEmpty()).to.be.false;
+      expect(await (await poe.bySelector('span.name'))!.innerText).to.equal('World');
     });
 
-    it('supports selectAllPOE', async () => {
+    it('supports bySelectorAll', async () => {
       const innerTexts =
         async (pageObjectElements: Promise<PageObjectElement[]>) =>
           await Promise.all((await pageObjectElements).map((el) => el.innerText));
 
-      expect(await poe.selectAllPOE('p')).to.have.length(0);
-      expect(await poe.selectAllPOE('span')).to.have.length(2);
-      expect(await innerTexts(poe.selectAllPOE('span'))).to.deep.equal(['Hello', 'World']);
+      expect(await poe.bySelectorAll('p')).to.have.length(0);
+      expect(await poe.bySelectorAll('span')).to.have.length(2);
+      expect(await innerTexts(poe.bySelectorAll('span'))).to.deep.equal(['Hello', 'World']);
     });
   });
 };

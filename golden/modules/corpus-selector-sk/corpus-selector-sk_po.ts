@@ -5,15 +5,15 @@ import { asyncFind, asyncMap } from '../../../infra-sk/modules/async';
 /** A page object for the CorpusSelectorSkPO component. */
 export class CorpusSelectorSkPO extends PageObject {
   private get loadingMessage(): Promise<PageObjectElement> {
-    return this.selectOnePOE('p');
+    return this.bySelector('p');
   }
 
   private get selectedCorpus(): Promise<PageObjectElement> {
-    return this.selectOnePOE('li.selected');
+    return this.bySelector('li.selected');
   }
 
   private get corpora(): Promise<PageObjectElement[]> {
-    return this.selectAllPOE('li');
+    return this.bySelectorAll('li');
   }
 
   async isLoadingMessageVisible() { return !(await this.loadingMessage).isEmpty(); }

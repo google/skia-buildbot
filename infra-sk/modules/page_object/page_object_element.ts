@@ -153,7 +153,7 @@ export class PageObjectElement {
   ////////////////////////////////////////////////////////////////////
 
   /** Analogous to HTMLElement#querySelector(). */
-  async selectOnePOE(selector: string): Promise<PageObjectElement> {
+  async bySelector(selector: string): Promise<PageObjectElement> {
     if (isPptrElement(this.element!)) {
       // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
       // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
@@ -167,7 +167,7 @@ export class PageObjectElement {
   }
 
   /** Analogous to HTMLElement#querySelectorAll(). */
-  async selectAllPOE(selector: string): Promise<PageObjectElement[]> {
+  async bySelectorAll(selector: string): Promise<PageObjectElement[]> {
     if (isPptrElement(this.element!)) {
       // Note that common-sk functions $ and $$ are aliases for HTMLElement#querySelectorAll() and
       // HTMLElement#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and

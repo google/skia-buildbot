@@ -5,35 +5,35 @@ import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_ob
 /** A page object for the BulkTriageSkPO component. */
 export class BulkTriageSkPO extends PageObject {
   private get cl(): Promise<PageObjectElement> {
-    return this.selectOnePOE('p.cl');
+    return this.bySelector('p.cl');
   }
 
   private get positiveBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.positive');
+    return this.bySelector('button.positive');
   }
 
   private get negativeBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.negative');
+    return this.bySelector('button.negative');
   }
 
   private get untriagedBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.untriaged');
+    return this.bySelector('button.untriaged');
   }
 
   private get closestBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.closest');
+    return this.bySelector('button.closest');
   }
 
   private get triageAllCheckBox(): Promise<PageObjectElement> {
-    return this.selectOnePOE('checkbox-sk.triage_all');
+    return this.bySelector('checkbox-sk.triage_all');
   }
 
   private get triageBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.triage');
+    return this.bySelector('button.triage');
   }
 
   private get cancelBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.cancel');
+    return this.bySelector('button.cancel');
   }
 
   async isAffectedChangelistIdVisible() { return !(await this.cl).isEmpty(); }

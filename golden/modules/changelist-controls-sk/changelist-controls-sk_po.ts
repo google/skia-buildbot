@@ -6,19 +6,19 @@ import { asyncMap } from '../../../infra-sk/modules/async';
 /** A page object for the ChangelistControlsSk component. */
 export class ChangelistControlsSkPO extends PageObject {
   private get patchsetDropDown(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.inputs select');
+    return this.bySelector('.inputs select');
   }
 
   private get includeMasterRadio(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.inputs radio-sk.include-master');
+    return this.bySelector('.inputs radio-sk.include-master');
   }
 
   private get excludeMasterRadio(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.inputs radio-sk.exclude-master');
+    return this.bySelector('.inputs radio-sk.exclude-master');
   }
 
   private get tryjobs(): Promise<PageObjectElement[]> {
-    return this.selectAllPOE('.tryjob-container .tryjob');
+    return this.bySelectorAll('.tryjob-container .tryjob');
   }
 
   isVisible() {

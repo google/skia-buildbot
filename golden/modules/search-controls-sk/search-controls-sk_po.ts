@@ -21,27 +21,27 @@ export class SearchControlsSkPO extends PageObject {
   }
 
   private get includePositiveDigestsCheckBox(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.include-positive-digests');
+    return this.bySelector('.include-positive-digests');
   }
 
   private get includeNegativeDigestsCheckBox(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.include-negative-digests');
+    return this.bySelector('.include-negative-digests');
   }
 
   private get includeUntriagedDigestsCheckBox(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.include-untriaged-digests');
+    return this.bySelector('.include-untriaged-digests');
   }
 
   private get includeDigestsNotAtHeadCheckBox(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.include-digests-not-at-head');
+    return this.bySelector('.include-digests-not-at-head');
   }
 
   private get includeIgnoredDigestsCheckBox(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.include-ignored-digests');
+    return this.bySelector('.include-ignored-digests');
   }
 
   private get moreFiltersBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('.more-filters');
+    return this.bySelector('.more-filters');
   }
 
   async isIncludePositiveDigestsCheckboxChecked() {

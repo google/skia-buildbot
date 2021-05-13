@@ -6,15 +6,15 @@ import { LabelOrEmpty } from './triage-sk';
 /** A page object for the TriageSk component. */
 export class TriageSkPO extends PageObject {
   private get positiveBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.positive');
+    return this.bySelector('button.positive');
   }
 
   private get negativeBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.negative');
+    return this.bySelector('button.negative');
   }
 
   private get untriagedBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('button.untriaged');
+    return this.bySelector('button.untriaged');
   }
 
   async getLabelOrEmpty(): Promise<LabelOrEmpty> {

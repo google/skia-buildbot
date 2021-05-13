@@ -12,11 +12,11 @@ import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_ob
  */
 export class NumericParamPO extends PageObject {
   private get rangeInput(): Promise<PageObjectElement> {
-    return this.selectOnePOE('input[type=range]');
+    return this.bySelector('input[type=range]');
   }
 
   private get numberInput(): Promise<PageObjectElement> {
-    return this.selectOnePOE('input[type=number]')
+    return this.bySelector('input[type=number]')
   }
 
   async focusRangeInput() { await (await this.rangeInput).focus(); }
@@ -51,23 +51,23 @@ export class FilterDialogSkPO extends PageObject {
   }
 
   private get mustHaveReferenceImageCheckBox(): Promise<PageObjectElement> {
-    return this.selectOnePOE('#must-have-reference-image');
+    return this.bySelector('#must-have-reference-image');
   }
 
   private get sortOrderDropDown(): Promise<PageObjectElement> {
-    return this.selectOnePOE('select#sort-order');
+    return this.bySelector('select#sort-order');
   }
 
   private get filterDialog(): Promise<PageObjectElement> {
-    return this.selectOnePOE('dialog.filter-dialog');
+    return this.bySelector('dialog.filter-dialog');
   }
 
   private get filterDialogFilterBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('dialog.filter-dialog > .buttons > .filter');
+    return this.bySelector('dialog.filter-dialog > .buttons > .filter');
   }
 
   private get filterDialogCancelBtn(): Promise<PageObjectElement> {
-    return this.selectOnePOE('dialog.filter-dialog > .buttons > .cancel');
+    return this.bySelector('dialog.filter-dialog > .buttons > .cancel');
   }
 
   async isDialogOpen() {
