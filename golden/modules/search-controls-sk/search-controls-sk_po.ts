@@ -8,88 +8,88 @@ import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_ob
 
 /** A page object for the SearchControlsSkPO component. */
 export class SearchControlsSkPO extends PageObject {
-  get corpusSelectorSkPO(): Promise<CorpusSelectorSkPO> {
+  get corpusSelectorSkPO(): CorpusSelectorSkPO {
     return this.poBySelector('corpus-selector-sk', CorpusSelectorSkPO);
   }
 
-  get traceFilterSkPO(): Promise<TraceFilterSkPO> {
+  get traceFilterSkPO(): TraceFilterSkPO {
     return this.poBySelector('.traces > trace-filter-sk', TraceFilterSkPO);
   }
 
-  get filterDialogSkPO(): Promise<FilterDialogSkPO> {
+  get filterDialogSkPO(): FilterDialogSkPO {
     return this.poBySelector('filter-dialog-sk', FilterDialogSkPO);
   }
 
-  private get includePositiveDigestsCheckBox(): Promise<PageObjectElement> {
+  private get includePositiveDigestsCheckBox(): PageObjectElement {
     return this.bySelector('.include-positive-digests');
   }
 
-  private get includeNegativeDigestsCheckBox(): Promise<PageObjectElement> {
+  private get includeNegativeDigestsCheckBox(): PageObjectElement {
     return this.bySelector('.include-negative-digests');
   }
 
-  private get includeUntriagedDigestsCheckBox(): Promise<PageObjectElement> {
+  private get includeUntriagedDigestsCheckBox(): PageObjectElement {
     return this.bySelector('.include-untriaged-digests');
   }
 
-  private get includeDigestsNotAtHeadCheckBox(): Promise<PageObjectElement> {
+  private get includeDigestsNotAtHeadCheckBox(): PageObjectElement {
     return this.bySelector('.include-digests-not-at-head');
   }
 
-  private get includeIgnoredDigestsCheckBox(): Promise<PageObjectElement> {
+  private get includeIgnoredDigestsCheckBox(): PageObjectElement {
     return this.bySelector('.include-ignored-digests');
   }
 
-  private get moreFiltersBtn(): Promise<PageObjectElement> {
+  private get moreFiltersBtn(): PageObjectElement {
     return this.bySelector('.more-filters');
   }
 
   async isIncludePositiveDigestsCheckboxChecked() {
-    return (await this.includePositiveDigestsCheckBox)
-        .applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
+    return this.includePositiveDigestsCheckBox.applyFnToDOMNode(
+        (c) => (c as CheckOrRadio).checked);
   }
 
   async clickIncludePositiveDigestsCheckbox() {
-    await (await this.includePositiveDigestsCheckBox).click();
+    await this.includePositiveDigestsCheckBox.click();
   }
 
   async isIncludeNegativeDigestsCheckboxChecked() {
-    return (await this.includeNegativeDigestsCheckBox)
+    return this.includeNegativeDigestsCheckBox
         .applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
   }
 
   async clickIncludeNegativeDigestsCheckbox() {
-    await (await this.includeNegativeDigestsCheckBox).click();
+    await this.includeNegativeDigestsCheckBox.click();
   }
 
   async isIncludeUntriagedDigestsCheckboxChecked() {
-    return (await this.includeUntriagedDigestsCheckBox)
-        .applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
+    return this.includeUntriagedDigestsCheckBox.applyFnToDOMNode(
+        (c) => (c as CheckOrRadio).checked);
   }
 
   async clickIncludeUntriagedDigestsCheckbox() {
-    await (await this.includeUntriagedDigestsCheckBox).click();
+    await this.includeUntriagedDigestsCheckBox.click();
   }
 
   async isIncludeDigestsNotAtHeadCheckboxChecked() {
-    return (await this.includeDigestsNotAtHeadCheckBox)
-        .applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
+    return this.includeDigestsNotAtHeadCheckBox.applyFnToDOMNode(
+        (c) => (c as CheckOrRadio).checked);
   }
 
   async clickIncludeDigestsNotAtHeadCheckbox() {
-    await (await this.includeDigestsNotAtHeadCheckBox).click();
+    await this.includeDigestsNotAtHeadCheckBox.click();
   }
 
   async isIncludeIgnoredDigestsCheckboxChecked() {
-    return (await this.includeIgnoredDigestsCheckBox)
-        .applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
+    return this.includeIgnoredDigestsCheckBox.applyFnToDOMNode(
+        (c) => (c as CheckOrRadio).checked);
   }
 
   async clickIncludeIgnoredDigestsCheckbox() {
-    await (await this.includeIgnoredDigestsCheckBox).click();
+    await this.includeIgnoredDigestsCheckBox.click();
   }
 
-  async clickMoreFiltersBtn() { await (await this.moreFiltersBtn).click(); }
+  async clickMoreFiltersBtn() { await this.moreFiltersBtn.click(); }
 
   /**
    * Gets the search criteria via simulated UI interactions.
@@ -98,8 +98,8 @@ export class SearchControlsSkPO extends PageObject {
    */
   async getSearchCriteria() {
     const searchCriteria: Partial<SearchCriteria> = {}
-    searchCriteria.corpus = (await (await this.corpusSelectorSkPO).getSelectedCorpus())!;
-    searchCriteria.leftHandTraceFilter = (await (await this.traceFilterSkPO).getSelection());
+    searchCriteria.corpus = (await this.corpusSelectorSkPO.getSelectedCorpus())!;
+    searchCriteria.leftHandTraceFilter = await this.traceFilterSkPO.getSelection();
     searchCriteria.includePositiveDigests = await this.isIncludePositiveDigestsCheckboxChecked();
     searchCriteria.includeNegativeDigests = await this.isIncludeNegativeDigestsCheckboxChecked();
     searchCriteria.includeUntriagedDigests = await this.isIncludeUntriagedDigestsCheckboxChecked();
@@ -108,14 +108,13 @@ export class SearchControlsSkPO extends PageObject {
 
     // More filters dialog.
     await this.clickMoreFiltersBtn();
-    const filterDialogSkPO = await this.filterDialogSkPO;
-    const filters = await filterDialogSkPO.getSelectedFilters();
+    const filters = await this.filterDialogSkPO.getSelectedFilters();
     searchCriteria.rightHandTraceFilter = filters.diffConfig;
     searchCriteria.minRGBADelta = filters.minRGBADelta;
     searchCriteria.maxRGBADelta = filters.maxRGBADelta;
     searchCriteria.mustHaveReferenceImage = filters.mustHaveReferenceImage;
     searchCriteria.sortOrder = filters.sortOrder;
-    await filterDialogSkPO.clickCancelBtn();
+    await this.filterDialogSkPO.clickCancelBtn();
 
     return searchCriteria as SearchCriteria;
   }
@@ -126,16 +125,14 @@ export class SearchControlsSkPO extends PageObject {
    * Analogous to the searchCriteria property setter.
    */
   async setSearchCriteria(searchCriteria: SearchCriteria) {
-    const corpusSelectorSkPO = await this.corpusSelectorSkPO;
-    if (await corpusSelectorSkPO.getSelectedCorpus() !== searchCriteria.corpus) {
-      await corpusSelectorSkPO.clickCorpus(searchCriteria.corpus);
+    if (await this.corpusSelectorSkPO.getSelectedCorpus() !== searchCriteria.corpus) {
+      await this.corpusSelectorSkPO.clickCorpus(searchCriteria.corpus);
     }
 
     // Left-hand traces.
-    const traceFilterSkPO = await this.traceFilterSkPO;
-    await traceFilterSkPO.clickEditBtn();
-    await traceFilterSkPO.setQueryDialogSkSelection(searchCriteria.leftHandTraceFilter);
-    await traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
+    await this.traceFilterSkPO.clickEditBtn();
+    await this.traceFilterSkPO.setQueryDialogSkSelection(searchCriteria.leftHandTraceFilter);
+    await this.traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
 
     // Include positive digests.
     if (await this.isIncludePositiveDigestsCheckboxChecked() !==
@@ -169,14 +166,13 @@ export class SearchControlsSkPO extends PageObject {
 
     // More filters dialog.
     await this.clickMoreFiltersBtn();
-    const filterDialogSkPO = await this.filterDialogSkPO;
-    await filterDialogSkPO.setSelectedFilters({
+    await this.filterDialogSkPO.setSelectedFilters({
       diffConfig: searchCriteria.rightHandTraceFilter,
       minRGBADelta: searchCriteria.minRGBADelta,
       maxRGBADelta: searchCriteria.maxRGBADelta,
       mustHaveReferenceImage: searchCriteria.mustHaveReferenceImage,
       sortOrder: searchCriteria.sortOrder
     });
-    await filterDialogSkPO.clickFilterBtn();
+    await this.filterDialogSkPO.clickFilterBtn();
   }
 }

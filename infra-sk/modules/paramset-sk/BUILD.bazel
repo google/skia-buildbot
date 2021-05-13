@@ -36,7 +36,6 @@ ts_library(
     srcs = ["paramset-sk_po.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        "//infra-sk/modules:async_ts_lib",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
         "@npm//common-sk",
