@@ -189,56 +189,5 @@ export const describePageObjectElement = (testBed: TestBed) => {
       expect(await poe.selectAllPOE('span')).to.have.length(2);
       expect(await innerTexts(poe.selectAllPOE('span'))).to.deep.equal(['Hello', 'World']);
     });
-
-    it('supports selectOnePOEThenApplyFn', async () => {
-      expect(await poe.selectOnePOEThenApplyFn<string>('span.name', (el) => el.innerText))
-        .to.equal('World');
-
-      await expectError(
-        () => poe.selectOnePOEThenApplyFn<string>('unknown-element', async (el) => ''),
-        'selector "unknown-element" did not match any elements');
-    });
-
-    it('supports selectOneDOMNodeThenApplyFn', async () => {
-      expect(await poe.selectOneDOMNodeThenApplyFn('span.name', (el) => el.innerText))
-        .to.equal('World');
-
-      await expectError(
-        () => poe.selectOneDOMNodeThenApplyFn<string>('unknown-element', (el) => ''),
-        'selector "unknown-element" did not match any elements');
-    });
-
-    it('supports selectAllPOEThenMap', async () => {
-      expect(await poe.selectAllPOEThenMap('span', (el) => el.innerText))
-        .to.deep.equal(['Hello', 'World']);
-    });
-
-    it('supports selectAllPOEThenForEach', async () => {
-      const text: string[] = [];
-      await poe.selectAllPOEThenForEach('span', async (el) => {
-        text.push(await el.innerText);
-      });
-      expect(text).to.deep.equal(['Hello', 'World']);
-    });
-
-    it('supports selectAllPOEThenFind', async () => {
-      expect(
-          await poe.selectAllPOEThenFind('span', async (el) => (await el.className) === 'unknown'))
-        .to.be.null;
-
-      const span =
-        await poe.selectAllPOEThenFind('span', async (el) => (await el.className) === 'name');
-      expect(await span!.innerText).to.equal('World');
-    });
   });
-};
-
-const expectError = async <T>(fn: () => Promise<T>, expectedMessage: string) => {
-  try {
-    await fn();
-  } catch (e) {
-    expect(e.message).to.equal(expectedMessage);
-    return;
-  }
-  expect.fail('expection not thrown');
 };
