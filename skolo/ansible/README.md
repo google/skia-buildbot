@@ -1,0 +1,33 @@
+# Skolo Ansible Access
+
+These Ansible scripts need to be run from your desktop machine and not from a
+lab computer.
+
+1. Visit http://go/corp-ssh-helper and following the directions there.
+2. Append the [ssh.cfg](ssh.cfg) file to your existing `~/.ssh/config` file.
+
+At this point you should be able to connect to any skolo device. Test this by
+trying:
+
+        $ ssh rack4
+
+or
+
+        $ ssh skia-rpi-001
+
+## Debugging
+
+Occasionally an Ansible run will fail all ssh connections, it appears
+corp-ssh-helper gets in a bad place, you can usually fix this by running:
+
+        $ killall corp-ssh-helper
+
+## Tips
+
+Runs might fail for a small number of hosts, you can re-run a script for a
+specific host by passing `-l (hostname)` to the `ansible-playbook` command.
+
+## Design
+
+Most of the proxy config is done in ssh.cfg, but we add a couple extra args via
+ansible.cfg ssh_connection section.
