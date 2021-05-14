@@ -600,6 +600,33 @@ const (
 	Tryjob06FileWalleye   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/walleye.json"
 )
 
+const (
+	// Here are the git hashes in commit order:
+	//"d6ccb84da1169020d632bae7a5db48e6aa4c6767",
+	//"248ad6d0594212b32036b3ca687ab4af9270ca43",
+	//"77e1d3255fde0bebc80f596f6a1c4ad79c8b8bbe",
+	//"c43edfb29110b09c89eac7359659151e2a9fc047",
+	//"6abbeb6272480820e7fc00392b771a71892563a5",
+	//"0103010301030103010301030103010301030103",
+	//"0104010401040104010401040104010401040104",
+	//"0105010501050105010501050105010501050105",
+	//"84c2c3c8a79279939973884e01c7a183c00f0077",
+	//"200bbd369fac004c716d61fd8f45f8ba305ab004",
+	//"7bdc929af0c52a997bb6d5ccadbe86ddc532a25a",
+	//"0b1a16e767f3accd50da5acfbf953ce0c66a0183",
+	//"f4412901bfb130a8774c0c719450d1450845f471",
+	//"0111011101110111011101110111011101110111",
+
+	FirstCommit = "d6ccb84da1169020d632bae7a5db48e6aa4c6767"
+
+	// The windows driver was updated on the 4th commit with data.
+	WindowsDriverUpdateCommit = "c43edfb29110b09c89eac7359659151e2a9fc047"
+
+	// The triangle tests were fixed for IOS on the 8th commit with data. This had the side effect
+	// of breaking the circle tests.
+	IOSFixTriangleTestsBreakCircleTestsCommit = "7bdc929af0c52a997bb6d5ccadbe86ddc532a25a"
+)
+
 var (
 	Tryjob01LastIngested = time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC)
 	Tryjob02LastIngested = time.Date(2020, time.December, 10, 3, 2, 1, 0, time.UTC)
