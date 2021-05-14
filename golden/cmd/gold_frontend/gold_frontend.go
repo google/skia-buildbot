@@ -823,6 +823,7 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 
 	add("/json/byblame", handlers.ByBlameHandler, "GET")
 	add("/json/v1/byblame", handlers.ByBlameHandler, "GET")
+	add("/json/v2/byblame", handlers.ByBlameHandler2, "GET")
 	add("/json/changelists", handlers.ChangelistsHandler, "GET")
 	add("/json/v1/changelists", handlers.ChangelistsHandler, "GET")
 	add("/json/clusterdiff", handlers.ClusterDiffHandler, "GET")
