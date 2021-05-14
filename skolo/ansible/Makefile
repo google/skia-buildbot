@@ -1,2 +1,14 @@
 push_authorized_keys_to_jumphosts:
-	ansible-playbook push_authorized_keys_to_jumphosts.yml
+	runlocalssh ansible-playbook push_authorized_keys_to_jumphosts.yml
+
+rack4_rpi_setup_access:
+	ansible-playbook -v rack4/setup-access.yaml
+
+get_rack4_rpi_k3s_versions:
+	runlocalssh ansible-playbook rack4/get-k3s-version.yaml
+
+who:
+	ANSIBLE_TIMEOUT=60 runlocalssh ansible-playbook rack4/whoami.yaml
+
+rack4-push_authorized_keys:
+	ANSIBLE_TIMEOUT=60 runlocalssh ansible-playbook rack4/setup-access.yaml
