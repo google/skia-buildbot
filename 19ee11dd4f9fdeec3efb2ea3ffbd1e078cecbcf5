@@ -1,0 +1,56 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000010808080",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/404316?revision\u003d6",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b04f32e7_96d27dc7",
+        "filename": "skolo/ansible/Makefile",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-05-14T19:14:54Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 16,
+        "startChar": 101,
+        "endLine": 16,
+        "endChar": 102
+      },
+      "revId": "19ee11dd4f9fdeec3efb2ea3ffbd1e078cecbcf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000010808080",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/404316?revision\u003d6",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "cfc3baa7_8c86724d",
+        "filename": "skolo/ansible/ssh.cfg",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-05-14T19:14:54Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 2
+      },
+      "revId": "19ee11dd4f9fdeec3efb2ea3ffbd1e078cecbcf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
