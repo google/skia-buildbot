@@ -1,0 +1,30 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000010822985",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/404316?revision\u003d10",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "ff1f0201_3b568c14",
+        "filename": "skolo/ansible/Makefile",
+        "patchSetId": 10
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-05-15T14:35:47Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 14,
+        "startChar": 101,
+        "endLine": 14,
+        "endChar": 102
+      },
+      "revId": "02f3b868640482a4210d2dc626b52732dec2bb30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
