@@ -1,4 +1,5 @@
-- hosts: jumphosts
+- hosts: '{{ variable_hosts }}'
+  gather_facts: False
   tasks:
     - name: Copy authorized_keys with owner and permissions
       ansible.builtin.copy:
