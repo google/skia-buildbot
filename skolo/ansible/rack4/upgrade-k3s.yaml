@@ -1,0 +1,11 @@
+- name: upgrade rpi k3s version to latest
+  hosts: rack4_rpis
+  tasks:
+    - name: curl and install
+      become: yes
+      shell:
+        curl -sfL https://get.k3s.io | K3S_URL=https://jumphost:6443
+        K3S_TOKEN=K10360f3ae8582d74d299f332aab06501eaaeff7949cb24f06466c6da8c103e4051::server:5ea17177912be6d2c3f53759a3fef1fe
+        sh -
+      register: upgrade
+    - debug: msg="{{ upgrade.stdout }}"
