@@ -2558,7 +2558,9 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 func getRangeAndBlame(commits []web_frontend.Commit, startIndex, endIndex int) (string, []web_frontend.Commit) {
 	endCommit := commits[endIndex]
 	// If the indexes are within 1 (or rarely, equal), we have pinned the range down to one commit.
-	if (endIndex-startIndex) == 1 || startIndex == endIndex {
+	// If startIndex is -1, then we have no data all the way to the beginning of the window - this
+	// commonly happens when a new test is added.
+	if (endIndex-startIndex) == 1 || startIndex == endIndex || startIndex == -1 {
 		return endCommit.Hash, []web_frontend.Commit{endCommit}
 	}
 	// Add 1 because startIndex is the last known "good" index, and we want our blamelist to only
