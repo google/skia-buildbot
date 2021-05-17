@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	CQ_CFG_FILE = "commit-queue.cfg"
+	CQ_CFG_FILE = "generated/commit-queue.cfg"
 	CQ_CFG_REF  = "infra/config"
 
 	MAIN_REF = git.DefaultRef

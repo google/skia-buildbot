@@ -22,12 +22,12 @@ import (
 
 const (
 	refsHeadsPrefix              = "refs/heads/"
-	chromeRefTmpl                = refsHeadsPrefix + "chrome/m%d"
+	chromeBranchTmpl             = "chrome/m%d"
 	flagDryRun                   = "dry-run"
 	gerritProject                = "skia"
 	milestoneFile                = "include/core/SkMilestone.h"
 	milestoneTmpl                = "#define SK_MILESTONE %s"
-	supportedChromeBranches      = 3
+	supportedChromeBranches      = 2
 	updateMilestoneCommitMsgTmpl = "Update Skia milestone to %d"
 )
 
@@ -91,12 +91,12 @@ func releaseBranch(ctx context.Context, commit string, dryRun bool) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	newBranch := fmt.Sprintf(chromeRefTmpl, milestone)
-	oldBranch := fmt.Sprintf(chromeRefTmpl, milestone-supportedChromeBranches)
+	newBranch := fmt.Sprintf(chromeBranchTmpl, milestone)
+	oldBranch := fmt.Sprintf(chromeBranchTmpl, milestone-supportedChromeBranches)
 	fmt.Println(fmt.Sprintf("Creating branch %s and removing support (eg. CQ) for %s", newBranch, oldBranch))
 
 	fmt.Println(fmt.Sprintf("Creating branch %s...", newBranch))
-	if err := createNewBranch(ctx, newBranch, commit, dryRun); err != nil {
+	if err := createNewBranch(ctx, refsHeadsPrefix+newBranch, commit, dryRun); err != nil {
 		return skerr.Wrap(err)
 	}
 	fmt.Println("Creating CL to update milestone...")

@@ -118,6 +118,11 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/tools/luci/kitchen/${platform}",
 		Version: "git_revision:09cdd9c70101c341f7cf9e156641ca884849e01e",
 	},
+	"infra/tools/luci/lucicfg/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/tools/luci/lucicfg/${platform}",
+		Version: "git_revision:09cdd9c70101c341f7cf9e156641ca884849e01e",
+	},
 	"infra/tools/luci/swarming/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/swarming/${platform}",
