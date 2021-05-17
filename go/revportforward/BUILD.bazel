@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "revportforward",
+    srcs = ["revportforward.go"],
+    importpath = "go.skia.org/infra/go/revportforward",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@io_k8s_api//core/v1:core",
+        "@io_k8s_client_go//kubernetes",
+        "@io_k8s_client_go//rest",
+        "@io_k8s_client_go//tools/clientcmd",
+        "@io_k8s_client_go//tools/remotecommand",
+        "@io_k8s_kubectl//pkg/scheme",
+    ],
+)
