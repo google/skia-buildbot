@@ -3615,7 +3615,7 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *
 	assert.Equal(t, BlameSummaryV1{
 		Ranges: []BlameEntry{
 			{
-				CommitRange:           dks.FirstCommit + ":" + dks.WindowsDriverUpdateCommit,
+				CommitRange:           dks.WindowsDriverUpdateCommit,
 				TotalUntriagedDigests: 2,
 				AffectedGroupings: []*AffectedGrouping{
 					{
@@ -3627,7 +3627,7 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *
 						SampleDigest:     dks.DigestC03Unt,
 					},
 				},
-				Commits: kitchenSinkCommits[0:4],
+				Commits: []web_frontend.Commit{kitchenSinkCommits[3]},
 			},
 			{
 				CommitRange:           dks.IOSFixTriangleTestsBreakCircleTestsCommit,
@@ -3643,6 +3643,48 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *
 					},
 				},
 				Commits: kitchenSinkCommits[7:8],
+			},
+		},
+	}, blames)
+}
+
+func TestGetBlamesForUntriagedDigests_RespectsPublicParams_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
+		dks.RoundCorpus: {
+			dks.DeviceKey: {dks.QuadroDevice},
+		},
+	})
+	require.NoError(t, err)
+
+	s := New(db, 100)
+	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
+
+	blames, err := s.GetBlamesForUntriagedDigests(ctx, dks.RoundCorpus)
+	require.NoError(t, err)
+	assert.Equal(t, BlameSummaryV1{
+		Ranges: []BlameEntry{
+			{
+				CommitRange:           dks.WindowsDriverUpdateCommit,
+				TotalUntriagedDigests: 2,
+				AffectedGroupings: []*AffectedGrouping{
+					{
+						Grouping: paramtools.Params{
+							types.CorpusField:     dks.RoundCorpus,
+							types.PrimaryKeyField: dks.CircleTest,
+						},
+						UntriagedDigests: 2,
+						SampleDigest:     dks.DigestC03Unt,
+					},
+				},
+				Commits: []web_frontend.Commit{kitchenSinkCommits[3]},
 			},
 		},
 	}, blames)
