@@ -469,7 +469,7 @@ func startBackupPolling(ctx context.Context, isc ingestionServerConfig, sourcesT
 }
 
 func getTimesToPoll(ctx context.Context, duration time.Duration) (time.Time, time.Time) {
-	endTS := now.Now(ctx)
+	endTS := now.Now(ctx).UTC()
 	return endTS.Add(-duration), endTS
 }
 
