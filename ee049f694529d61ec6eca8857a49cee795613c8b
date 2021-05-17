@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "59dfc794_267a18e3",
+        "filename": "autoroll/config/swiftshader-android-master.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-17T13:15:09Z",
+      "side": 1,
+      "message": "Just FTR, I think \"swiftshader-team@google.com\" should work.",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 37
+      },
+      "revId": "ee049f694529d61ec6eca8857a49cee795613c8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
