@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/cas/rbe"
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
@@ -311,6 +312,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_ISOLATE...)
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("gcloud_linux"))
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("cockroachdb"))
+		task.CipdPackages = append(task.CipdPackages, cipd.MustGetPackage("infra/tools/luci/lucicfg/${platform}"))
 	}
 
 	// Re-run failing bots but not when testing for race conditions.

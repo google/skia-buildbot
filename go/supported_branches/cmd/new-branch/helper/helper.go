@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
-	cq_config "go.chromium.org/luci/cv/api/config/v2"
+	"github.com/bazelbuild/buildtools/build"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cq"
@@ -21,6 +23,8 @@ import (
 	"go.skia.org/infra/go/supported_branches"
 	"go.skia.org/infra/go/util"
 )
+
+const DefaultMainStarFile = "main.star"
 
 // AddSupportedBranch adds a new supported branch, optionally deleting an old
 // supported branch.
@@ -59,31 +63,37 @@ func AddSupportedBranch(repoUrl, branch, owner, deleteBranch string, excludeTryb
 		return skerr.Wrap(err)
 	}
 	baseCommit := baseCommitInfo.Hash
-
-	// Download the CQ config file and modify it.
-	cfgContents, err := repo.ReadFileAtRef(ctx, cq.CQ_CFG_FILE, baseCommit)
+	tmp, err := ioutil.TempDir("", "")
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	newCfgBytes, err := cq.WithUpdateCQConfig(cfgContents, func(cfg *cq_config.Config) error {
-		cg, _, _, err := cq.MatchConfigGroup(cfg, newRef)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		if cg != nil {
+	defer util.RemoveAll(tmp)
+
+	// Download the CQ config file and modify it.
+	mainStarFile := filepath.Join(tmp, DefaultMainStarFile)
+	if err := repo.DownloadFileAtRef(ctx, DefaultMainStarFile, baseCommit, mainStarFile); err != nil {
+		return skerr.Wrapf(err, "failed to download %q", DefaultMainStarFile)
+	}
+	if err := cq.WithUpdateCQConfig(ctx, mainStarFile, filepath.Join(tmp, "generated"), func(f *build.File) error {
+		_, _, err := cq.FindExprForBranch(f, branch)
+		if err == nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Already have %s in %s; not adding a duplicate.\n", newRef, cq.CQ_CFG_FILE)
 		} else {
-			if err := cq.CloneBranch(cfg, git.MasterBranch, git.BranchBaseName(branch), false, false, excludeTrybotRegexp); err != nil {
+			if err := cq.CloneBranch(f, git.MasterBranch, git.BranchBaseName(branch), false, false, excludeTrybotRegexp); err != nil {
 				return skerr.Wrap(err)
 			}
 		}
 		if deleteBranch != "" {
-			if err := cq.DeleteBranch(cfg, deleteBranch); err != nil {
-				return skerr.Wrap(err)
+			if _, _, err := cq.FindExprForBranch(f, deleteBranch); err == nil {
+				if err := cq.DeleteBranch(f, deleteBranch); err != nil {
+					return skerr.Wrap(err)
+				}
 			}
 		}
 		return nil
-	})
+	}); err != nil {
+		return skerr.Wrap(err)
+	}
 
 	// Download and modify the supported-branches.json file.
 	branchesContents, err := repo.ReadFileAtRef(ctx, supported_branches.SUPPORTED_BRANCHES_FILE, baseCommit)
@@ -130,8 +140,29 @@ func AddSupportedBranch(repoUrl, branch, owner, deleteBranch string, excludeTryb
 	repoSplit := strings.Split(repoUrl, "/")
 	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
 	changes := map[string]string{
-		cq.CQ_CFG_FILE: string(newCfgBytes),
 		supported_branches.SUPPORTED_BRANCHES_FILE: string(buf.Bytes()),
+	}
+	if err := filepath.Walk(tmp, func(path string, info fs.FileInfo, err error) error {
+		if !info.IsDir() {
+			relpath, err := filepath.Rel(tmp, path)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			contents, err := ioutil.ReadFile(path)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			remoteContents, err := repo.ReadFileAtRef(ctx, relpath, cq.CQ_CFG_REF)
+			if err != nil {
+				return skerr.Wrapf(err, "failed to retrieve %q", relpath)
+			}
+			if string(contents) != string(remoteContents) {
+				changes[relpath] = string(contents)
+			}
+		}
+		return nil
+	}); err != nil {
+		return skerr.Wrap(err)
 	}
 	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, cq.CQ_CFG_REF, commitMsg, baseCommit, changes, submit)
 	if ci != nil {

@@ -1,17 +1,16 @@
 package main
 
 import (
+	"context"
 	"flag"
-	"io"
-	"io/ioutil"
+	"path/filepath"
 	"regexp"
 
-	"go.chromium.org/luci/cv/api/config/v2"
+	"github.com/bazelbuild/buildtools/build"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -41,25 +40,11 @@ func main() {
 		excludeTrybotRegexp = append(excludeTrybotRegexp, re)
 	}
 
-	// Read the config file.
-	oldCfgBytes, err := ioutil.ReadFile(*configFile)
-	if err != nil {
-		sklog.Fatalf("Failed to read %s; %s", *configFile, err)
-	}
-
-	// Update the config.
-	newCfgBytes, err := cq.WithUpdateCQConfig(oldCfgBytes, func(cfg *config.Config) error {
-		return cq.CloneBranch(cfg, *oldBranch, *newBranch, *includeExperimental, *includeTreeCheck, excludeTrybotRegexp)
-	})
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
-	// Write the new config.
-	if err := util.WithWriteFile(*configFile, func(w io.Writer) error {
-		_, err := w.Write(newCfgBytes)
-		return err
+	ctx := context.Background()
+	generatedDir := filepath.Join(filepath.Dir(*configFile), "generated")
+	if err := cq.WithUpdateCQConfig(ctx, *configFile, generatedDir, func(f *build.File) error {
+		return cq.CloneBranch(f, *oldBranch, *newBranch, *includeExperimental, *includeTreeCheck, excludeTrybotRegexp)
 	}); err != nil {
-		sklog.Fatalf("Failed to write config file: %s", err)
+		sklog.Fatal(err)
 	}
 }
