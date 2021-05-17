@@ -3615,7 +3615,7 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *
 	assert.Equal(t, BlameSummaryV1{
 		Ranges: []BlameEntry{
 			{
-				CommitRange:           dks.FirstCommit + ":" + dks.WindowsDriverUpdateCommit,
+				CommitRange:           dks.WindowsDriverUpdateCommit,
 				TotalUntriagedDigests: 2,
 				AffectedGroupings: []*AffectedGrouping{
 					{
@@ -3627,7 +3627,7 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *
 						SampleDigest:     dks.DigestC03Unt,
 					},
 				},
-				Commits: kitchenSinkCommits[0:4],
+				Commits: []web_frontend.Commit{kitchenSinkCommits[3]},
 			},
 			{
 				CommitRange:           dks.IOSFixTriangleTestsBreakCircleTestsCommit,
@@ -3809,13 +3809,13 @@ f:alpha
 		}},
 		Commits: []web_frontend.Commit{simpleCommits[5], simpleCommits[6]},
 	}})
-	test("new traces appear in middle of window", `
+	test("new traces appearing are blamed to first occurrence", `
 b:alpha
 	-------bbb
 c:beta
 	-------cc-
 `, []BlameEntry{{
-		CommitRange:           "commit01:commit08",
+		CommitRange:           "commit08",
 		TotalUntriagedDigests: 2,
 		AffectedGroupings: []*AffectedGrouping{{
 			Grouping:         alphaGrouping,
@@ -3826,7 +3826,7 @@ c:beta
 			UntriagedDigests: 1,
 			SampleDigest:     "cccccccccccccccccccccccccccccccc",
 		}},
-		Commits: simpleCommits[0:8],
+		Commits: []web_frontend.Commit{simpleCommits[7]},
 	}})
 	// This might happen if a digest was triaged after we made our initial query.
 	// If so, it shouldn't show up in any BlameEntries
