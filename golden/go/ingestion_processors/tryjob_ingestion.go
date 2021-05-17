@@ -3,6 +3,7 @@ package ingestion_processors
 import (
 	"context"
 	"crypto/md5"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -24,6 +25,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
@@ -171,21 +173,9 @@ func codeReviewSystemFactory(ctx context.Context, crsName string, configParams m
 		return g, nil
 	}
 	if crsName == gerritInternalCRS {
-		gerritURL := configParams[gerritInternalURLParam]
-		if strings.TrimSpace(gerritURL) == "" {
-			return nil, skerr.Fmt("missing URL for the Gerrit internal code review system")
-		}
-		gerritClient, err := gerrit.NewGerrit(gerritURL, client)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "creating gerrit client for %s", gerritURL)
-		}
-		g := gerrit_crs.New(gerritClient)
-		email, err := g.LoggedInAs(ctx)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Getting logged in client to gerrit-internal")
-		}
-		sklog.Infof("Logged into gerrit-internal as %s", email)
-		return g, nil
+		// TODO(skbug.com/12007)
+		sklog.Infof("Using rubberstamp CRS implementation for gerrit-internal")
+		return rubberstampCRS{}, nil
 	}
 	if crsName == githubCRS {
 		githubRepo := configParams[githubRepoParam]
@@ -757,3 +747,39 @@ func convertFromStatusEnum(status code_review.CLStatus) schema.ChangelistStatus 
 
 // Make sure goldTryjobProcessor implements the ingestion.Processor interface.
 var _ ingestion.Processor = (*goldTryjobProcessor)(nil)
+
+// rubberstampCRS implements a simple Code Review System that pretends every CL it sees exists.
+type rubberstampCRS struct {
+}
+
+func (r rubberstampCRS) GetChangelist(_ context.Context, id string) (code_review.Changelist, error) {
+	sklog.Infof("Rubberstamp CL response for %s", id)
+	return code_review.Changelist{
+		SystemID: id,
+		Owner:    "<unknown>",
+		Status:   code_review.Open,
+		Subject:  "<unknown>",
+		Updated:  time.Now(),
+	}, nil
+}
+
+func (r rubberstampCRS) GetPatchset(_ context.Context, clID, psID string, psOrder int) (code_review.Patchset, error) {
+	if psOrder == 0 {
+		return code_review.Patchset{}, skerr.Fmt("The order of the Patchset must be provided in rubberstamp mode")
+	}
+	sklog.Infof("Rubberstamp PS response for %s %s %d", clID, psID, psOrder)
+	return code_review.Patchset{
+		SystemID:     fmt.Sprintf("%s_%s_%d", clID, psID, psOrder),
+		ChangelistID: clID,
+		Order:        psOrder,
+		GitHash:      "<unknown>",
+	}, nil
+}
+
+func (r rubberstampCRS) GetChangelistIDForCommit(_ context.Context, _ *vcsinfo.LongCommit) (string, error) {
+	return "", skerr.Fmt("not implemented")
+}
+
+func (r rubberstampCRS) CommentOn(_ context.Context, _, _ string) error {
+	return skerr.Fmt("not implemented")
+}
