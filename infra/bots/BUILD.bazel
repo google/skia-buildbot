@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/cas/rbe",
+        "//go/cipd",
         "//go/sklog",
         "//task_scheduler/go/specs",
     ],

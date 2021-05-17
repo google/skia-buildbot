@@ -1,21 +1,20 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "new-branch-cq_lib",
+    name = "revportforward_lib",
     srcs = ["main.go"],
-    importpath = "go.skia.org/infra/go/cq/cmd/new-branch-cq",
+    importpath = "go.skia.org/infra/go/revportforward/cmd/revportforward",
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
-        "//go/cq",
-        "//go/git",
+        "//go/revportforward",
         "//go/sklog",
-        "@com_github_bazelbuild_buildtools//build",
+        "@io_k8s_client_go//plugin/pkg/client/auth/gcp",
     ],
 )
 
 go_binary(
-    name = "new-branch-cq",
-    embed = [":new-branch-cq_lib"],
+    name = "revportforward",
+    embed = [":revportforward_lib"],
     visibility = ["//visibility:public"],
 )

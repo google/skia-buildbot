@@ -11,15 +11,17 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/common",
+        "//go/exec",
         "//go/gerrit",
         "//go/git",
         "//go/gitiles",
         "//go/metrics2",
+        "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "@com_github_bazelbuild_buildtools//build",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
-        "@io_bazel_rules_go//proto/wkt:duration_go_proto",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//cv/api/config/v2:config",
     ],
@@ -27,14 +29,16 @@ go_library(
 
 go_test(
     name = "cq_test",
-    srcs = ["update_test.go"],
+    srcs = [
+        "update_expectations_test.go",
+        "update_test.go",
+    ],
     embed = [":cq"],
     deps = [
-        "//go/deepequal/assertdeep",
         "//go/git",
+        "//go/testutils",
         "//go/testutils/unittest",
+        "@com_github_bazelbuild_buildtools//build",
         "@com_github_stretchr_testify//require",
-        "@io_bazel_rules_go//proto/wkt:duration_go_proto",
-        "@org_chromium_go_luci//cv/api/config/v2:config",
     ],
 )
