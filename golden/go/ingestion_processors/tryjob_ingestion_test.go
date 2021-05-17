@@ -317,6 +317,105 @@ func TestTryjobSQL_Process_FirstFileForCL_Success(t *testing.T) {
 	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}))
 }
 
+func TestTryjobSQL_Process_UsesRubberstampCRS_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	const tjID = dks.Tryjob01IPhoneRGB
+	const squareTraceKeys = `{"color mode":"RGB","device":"iPhone12,1","name":"square","os":"iOS","source_type":"corners"}`
+	const triangleTraceKeys = `{"color mode":"RGB","device":"iPhone12,1","name":"triangle","os":"iOS","source_type":"corners"}`
+	const circleTraceKeys = `{"color mode":"RGB","device":"iPhone12,1","name":"circle","os":"iOS","source_type":"round"}`
+
+	const qualifiedCL = "gerrit_CL_fix_ios"
+	const qualifiedRubberstampPS = "gerrit_CL_fix_ios__3"
+	const qualifiedTJ = "buildbucket_tryjob_01_iphonergb"
+
+	mcis := &mock_cis.Client{}
+	mcis.On("GetTryJob", testutils.AnyContext, tjID).Return(ci.TryJob{
+		SystemID:    tjID,
+		System:      dks.BuildBucketCIS,
+		DisplayName: "Test-iPhone-RGB",
+	}, nil)
+
+	// This file has data from 3 traces across 2 corpora. The data is for the patchset with order 3.
+	src := fakeGCSSourceFromFile(t, "from_goldctl_legacy_fields.json")
+	gtp := initCaches(goldTryjobProcessor{
+		cisClients: map[string]ci.Client{
+			buildbucketCIS: mcis,
+		},
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: rubberstampCRS{},
+			},
+		},
+		db:     db,
+		source: src,
+	})
+
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	err := gtp.Process(ctx, dks.Tryjob01FileIPhoneRGB)
+	require.NoError(t, err)
+
+	actualChangelists := sqltest.GetAllRows(ctx, t, db, "Changelists", &schema.ChangelistRow{}).([]schema.ChangelistRow)
+	assert.Equal(t, []schema.ChangelistRow{{
+		ChangelistID:     qualifiedCL,
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen,
+		OwnerEmail:       "<unknown>",
+		Subject:          "<unknown>",
+		LastIngestedData: fakeIngestionTime,
+	}}, actualChangelists)
+
+	actualPatchsets := sqltest.GetAllRows(ctx, t, db, "Patchsets", &schema.PatchsetRow{}).([]schema.PatchsetRow)
+	assert.Equal(t, []schema.PatchsetRow{{
+		PatchsetID:   qualifiedRubberstampPS,
+		System:       dks.GerritCRS,
+		ChangelistID: qualifiedCL,
+		Order:        3,
+		GitHash:      "<unknown>",
+	}}, actualPatchsets)
+
+	actualTryjobs := sqltest.GetAllRows(ctx, t, db, "Tryjobs", &schema.TryjobRow{}).([]schema.TryjobRow)
+	assert.Equal(t, []schema.TryjobRow{{
+		TryjobID:         qualifiedTJ,
+		System:           dks.BuildBucketCIS,
+		ChangelistID:     qualifiedCL,
+		PatchsetID:       qualifiedRubberstampPS,
+		DisplayName:      "Test-iPhone-RGB",
+		LastIngestedData: fakeIngestionTime,
+	}}, actualTryjobs)
+
+	actualValues := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchValues", &schema.SecondaryBranchValueRow{}).([]schema.SecondaryBranchValueRow)
+	assert.ElementsMatch(t, []schema.SecondaryBranchValueRow{{
+		BranchName: qualifiedCL, VersionName: qualifiedRubberstampPS,
+		TraceID:      h(squareTraceKeys),
+		Digest:       d(dks.DigestA01Pos),
+		GroupingID:   h(squareGrouping),
+		OptionsID:    h(pngOptions),
+		SourceFileID: h(dks.Tryjob01FileIPhoneRGB),
+		TryjobID:     qualifiedTJ,
+	}, {
+		BranchName: qualifiedCL, VersionName: qualifiedRubberstampPS,
+		TraceID:      h(triangleTraceKeys),
+		Digest:       d(dks.DigestB01Pos),
+		GroupingID:   h(triangleGrouping),
+		OptionsID:    h(pngOptions),
+		SourceFileID: h(dks.Tryjob01FileIPhoneRGB),
+		TryjobID:     qualifiedTJ,
+	}, {
+		BranchName: qualifiedCL, VersionName: qualifiedRubberstampPS,
+		TraceID:      h(circleTraceKeys),
+		Digest:       d(dks.DigestC07Unt_CL),
+		GroupingID:   h(circleGrouping),
+		OptionsID:    h(pngOptions),
+		SourceFileID: h(dks.Tryjob01FileIPhoneRGB),
+		TryjobID:     qualifiedTJ,
+	}}, actualValues)
+}
+
 func TestTryjobSQL_Process_SomeDataExists_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
