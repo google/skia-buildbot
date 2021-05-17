@@ -2222,6 +2222,9 @@ func (s *Impl) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) 
 	if err != nil {
 		return BlameSummaryV1{}, skerr.Wrap(err)
 	}
+	if s.isPublicView {
+		tracesByDigest = s.applyPublicFilter(ctx, tracesByDigest)
+	}
 	if len(tracesByDigest) == 0 {
 		return BlameSummaryV1{}, nil // No data, we can stop here
 	}
@@ -2298,6 +2301,26 @@ JOIN UnignoredDataAtHead ON UntriagedDigests.grouping_id = UnignoredDataAtHead.g
 		rv[key] = append(rv[key], traceID)
 	}
 	return rv, nil
+}
+
+// applyPublicFilter filters the traces according to the publicly visible traces map.
+func (s *Impl) applyPublicFilter(ctx context.Context, data map[groupingDigestKey][]schema.TraceID) map[groupingDigestKey][]schema.TraceID {
+	ctx, span := trace.StartSpan(ctx, "applyPublicFilter")
+	defer span.End()
+	filtered := make(map[groupingDigestKey][]schema.TraceID, len(data))
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	var traceKey schema.MD5Hash
+	traceID := traceKey[:]
+	for gdk, traces := range data {
+		for _, tr := range traces {
+			copy(traceID, tr)
+			if _, ok := s.publiclyVisibleTraces[traceKey]; ok {
+				filtered[gdk] = append(filtered[gdk], tr)
+			}
+		}
+	}
+	return filtered
 }
 
 // untriagedDigestAtHead represents a single untriaged digest in a particular grouping observed
