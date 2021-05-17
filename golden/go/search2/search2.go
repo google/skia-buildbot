@@ -157,7 +157,7 @@ type Impl struct {
 	traceCache           *lru.Cache
 	paramsetCache        *ttlcache.Cache
 
-	materializedViews map[string]string
+	materializedViews map[string]bool
 }
 
 // New returns an implementation of API.
@@ -290,6 +290,11 @@ TiledTraceDigests WHERE tile_id >= $1`, tile)
 	return rv, nil
 }
 
+const (
+	unignoredRecentTracesView = "traces"
+	byBlameView               = "byblame"
+)
+
 // StartMaterializedViews creates materialized views for non-ignored traces belonging to the
 // given corpora. It starts a goroutine to keep these up to date.
 func (s *Impl) StartMaterializedViews(ctx context.Context, corpora []string, updateInterval time.Duration) error {
@@ -299,42 +304,41 @@ func (s *Impl) StartMaterializedViews(ctx context.Context, corpora []string, upd
 		sklog.Infof("No materialized views configured")
 		return nil
 	}
-	sklog.Infof("Initializing %d materialized views", len(corpora))
+	sklog.Infof("Initializing materialized views")
 	eg, eCtx := errgroup.WithContext(ctx)
+	var mutex sync.Mutex
+	s.materializedViews = map[string]bool{}
 	for _, c := range corpora {
 		corpus := c
-		mvName := "mv_" + corpus + "_traces"
 		eg.Go(func() error {
-			statement := "CREATE MATERIALIZED VIEW IF NOT EXISTS " + mvName
-			statement += `
-AS WITH
-BeginningOfWindow AS (
-    SELECT commit_id FROM CommitsWithData
-    ORDER BY commit_id DESC
-    OFFSET ` + strconv.Itoa(s.windowLength-1) + ` LIMIT 1
-)
-SELECT trace_id, grouping_id, digest FROM ValuesAtHead
-JOIN BeginningOfWindow ON ValuesAtHead.most_recent_commit_id >= BeginningOfWindow.commit_id
-WHERE corpus = '` + corpus + `' AND matches_any_ignore_rule = FALSE
-`
-			_, err := s.db.Exec(eCtx, statement)
-			return skerr.Wrap(err)
+			mvName, err := s.createUnignoredRecentTracesView(eCtx, corpus)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			mutex.Lock()
+			defer mutex.Unlock()
+			s.materializedViews[mvName] = true
+			return nil
+		})
+		eg.Go(func() error {
+			mvName, err := s.createByBlameView(eCtx, corpus)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			mutex.Lock()
+			defer mutex.Unlock()
+			s.materializedViews[mvName] = true
+			return nil
 		})
 	}
 	if err := eg.Wait(); err != nil {
 		return skerr.Wrapf(err, "initializing materialized views %q", corpora)
 	}
 
-	s.materializedViews = map[string]string{}
-	for _, c := range corpora {
-		corpus := c
-		mvName := "mv_" + corpus + "_traces"
-		s.materializedViews[corpus] = mvName
-	}
-	sklog.Infof("Initialized %d materialized views", len(corpora))
+	sklog.Infof("Initialized %d materialized views", len(s.materializedViews))
 	go util.RepeatCtx(ctx, updateInterval, func(ctx context.Context) {
 		eg, eCtx := errgroup.WithContext(ctx)
-		for _, v := range s.materializedViews {
+		for v := range s.materializedViews {
 			view := v
 			eg.Go(func() error {
 				statement := `REFRESH MATERIALIZED VIEW ` + view
@@ -347,6 +351,65 @@ WHERE corpus = '` + corpus + `' AND matches_any_ignore_rule = FALSE
 		}
 	})
 	return nil
+}
+
+func (s *Impl) createUnignoredRecentTracesView(ctx context.Context, corpus string) (string, error) {
+	mvName := "mv_" + corpus + "_" + unignoredRecentTracesView
+	statement := "CREATE MATERIALIZED VIEW IF NOT EXISTS " + mvName
+	statement += `
+AS WITH
+BeginningOfWindow AS (
+    SELECT commit_id FROM CommitsWithData
+    ORDER BY commit_id DESC
+    OFFSET ` + strconv.Itoa(s.windowLength-1) + ` LIMIT 1
+)
+SELECT trace_id, grouping_id, digest FROM ValuesAtHead
+JOIN BeginningOfWindow ON ValuesAtHead.most_recent_commit_id >= BeginningOfWindow.commit_id
+WHERE corpus = '` + corpus + `' AND matches_any_ignore_rule = FALSE
+`
+	_, err := s.db.Exec(ctx, statement)
+	return mvName, skerr.Wrap(err)
+}
+
+func (s *Impl) createByBlameView(ctx context.Context, corpus string) (string, error) {
+	mvName := "mv_" + corpus + "_" + byBlameView
+	statement := "CREATE MATERIALIZED VIEW IF NOT EXISTS " + mvName
+	statement += `
+AS WITH
+BeginningOfWindow AS (
+    SELECT commit_id FROM CommitsWithData
+    ORDER BY commit_id DESC
+    OFFSET ` + strconv.Itoa(s.windowLength-1) + ` LIMIT 1
+),
+UntriagedDigests AS (
+	SELECT grouping_id, digest FROM Expectations
+	WHERE label = 'u'
+),
+UnignoredDataAtHead AS (
+	SELECT trace_id, grouping_id, digest FROM ValuesAtHead
+	JOIN BeginningOfWindow ON ValuesAtHead.most_recent_commit_id >= BeginningOfWindow.commit_id
+	WHERE matches_any_ignore_rule = FALSE AND corpus = '` + corpus + `'
+)
+SELECT UnignoredDataAtHead.trace_id, UnignoredDataAtHead.grouping_id, UnignoredDataAtHead.digest FROM
+UntriagedDigests
+JOIN UnignoredDataAtHead ON UntriagedDigests.grouping_id = UnignoredDataAtHead.grouping_id AND
+	 UntriagedDigests.digest = UnignoredDataAtHead.digest
+`
+	_, err := s.db.Exec(ctx, statement)
+	return mvName, skerr.Wrap(err)
+}
+
+// getMaterializedView returns the name of the materialized view if it has been created, or empty
+// string if there is not such a view.
+func (s *Impl) getMaterializedView(viewName, corpus string) string {
+	if len(s.materializedViews) == 0 {
+		return ""
+	}
+	mv := "mv_" + corpus + "_" + viewName
+	if s.materializedViews[mv] {
+		return mv
+	}
+	return ""
 }
 
 // StartApplyingPublicParams loads the cached set of traces which are publicly visible and then
@@ -810,7 +873,7 @@ func (s *Impl) matchingTracesStatement(ctx context.Context) (string, []interface
 		ignoreStatuses = append(ignoreStatuses, true)
 	}
 	corpus := sql.Sanitize(q.TraceValues[types.CorpusField][0])
-	materializedView := s.materializedViews[corpus]
+	materializedView := s.getMaterializedView(unignoredRecentTracesView, corpus)
 	if q.OnlyIncludeDigestsProducedAtHead {
 		if len(keyFilters) == 0 {
 			if materializedView != "" && !q.IncludeIgnoredTraces {
@@ -2265,8 +2328,7 @@ type traceData []types.Digest
 func (s *Impl) getTracesWithUntriagedDigestsAtHead(ctx context.Context, corpus string) (map[groupingDigestKey][]schema.TraceID, error) {
 	ctx, span := trace.StartSpan(ctx, "getTracesWithUntriagedDigestsAtHead")
 	defer span.End()
-	// TODO(kjlubick) use a materialized view here for better performance.
-	const statement = `WITH
+	statement := `WITH
 UntriagedDigests AS (
 	SELECT grouping_id, digest FROM Expectations
 	WHERE label = 'u'
@@ -2280,7 +2342,13 @@ UntriagedDigests
 JOIN UnignoredDataAtHead ON UntriagedDigests.grouping_id = UnignoredDataAtHead.grouping_id AND
 	 UntriagedDigests.digest = UnignoredDataAtHead.digest
 `
-	rows, err := s.db.Query(ctx, statement, getFirstCommitID(ctx), corpus)
+	arguments := []interface{}{getFirstCommitID(ctx), corpus}
+	if mv := s.getMaterializedView(byBlameView, corpus); mv != "" {
+		statement = `SELECT * FROM ` + mv
+		arguments = nil
+	}
+
+	rows, err := s.db.Query(ctx, statement, arguments...)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
