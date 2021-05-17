@@ -25,3 +25,7 @@ alias skolo_win3_router='google-chrome https://localhost:8888; ssh -L 8888:192.1
 
 # Connects to both the router and the switch.
 alias skolo_rpi2_network='google-chrome https://localhost:8888; google-chrome https://localhost:8889; ssh -L 8888:192.168.1.1:443 -L 8889:rack4-shelf1-poe-switch:443 chrome-bot@100.115.95.135'
+
+alias skia-public='gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public; gcloud config set project skia-public'
+alias skia-corp='gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp; gcloud config set project google.com:skia-corp'
+alias skia-switchboard='gcloud container clusters get-credentials skia-switchboard --zone us-central1 --project skia-switchboard; gcloud config set project skia-switchboard'
