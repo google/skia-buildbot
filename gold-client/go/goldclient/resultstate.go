@@ -155,7 +155,7 @@ func (r *resultState) loadExpectations(ctx context.Context) error {
 // The file name of the path also contains a timestamp to make it unique since all
 // calls within the same test run are written to the same output path.
 func (r *resultState) getResultFilePath(ctx context.Context) string {
-	ts := now.Now(ctx)
+	ts := now.Now(ctx).UTC()
 	year, month, day := ts.Date()
 	hour := ts.Hour()
 
