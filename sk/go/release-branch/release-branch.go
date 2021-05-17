@@ -27,7 +27,7 @@ const (
 	gerritProject                = "skia"
 	milestoneFile                = "include/core/SkMilestone.h"
 	milestoneTmpl                = "#define SK_MILESTONE %s"
-	supportedChromeBranches      = 2
+	supportedChromeBranches      = 4
 	updateMilestoneCommitMsgTmpl = "Update Skia milestone to %d"
 )
 
