@@ -2,6 +2,9 @@ package search2
 
 import (
 	"context"
+	"crypto/md5"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -3597,6 +3600,339 @@ func TestGetChangelistParamset_RespectsPublicView_Success(t *testing.T) {
 		"fuzzy_max_different_pixels": []string{"2"},
 		"image_matching_algorithm":   []string{"fuzzy"},
 	}, ps)
+}
+
+func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	s := New(db, 100)
+
+	blames, err := s.GetBlamesForUntriagedDigests(ctx, dks.RoundCorpus)
+	require.NoError(t, err)
+	assert.Equal(t, BlameSummaryV1{
+		Ranges: []BlameEntry{
+			{
+				CommitRange:           dks.FirstCommit + ":" + dks.WindowsDriverUpdateCommit,
+				TotalUntriagedDigests: 2,
+				AffectedGroupings: []*AffectedGrouping{
+					{
+						Grouping: paramtools.Params{
+							types.CorpusField:     dks.RoundCorpus,
+							types.PrimaryKeyField: dks.CircleTest,
+						},
+						UntriagedDigests: 2,
+						SampleDigest:     dks.DigestC03Unt,
+					},
+				},
+				Commits: kitchenSinkCommits[0:4],
+			},
+			{
+				CommitRange:           dks.IOSFixTriangleTestsBreakCircleTestsCommit,
+				TotalUntriagedDigests: 1,
+				AffectedGroupings: []*AffectedGrouping{
+					{
+						Grouping: paramtools.Params{
+							types.CorpusField:     dks.RoundCorpus,
+							types.PrimaryKeyField: dks.CircleTest,
+						},
+						UntriagedDigests: 1,
+						SampleDigest:     dks.DigestC05Unt,
+					},
+				},
+				Commits: kitchenSinkCommits[7:8],
+			},
+		},
+	}, blames)
+}
+
+func TestGetBlamesForUntriagedDigests_NoUntriagedDigestsAtHead_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	s := New(db, 100)
+
+	// None of the traces for the corner tests have unignored, untriaged digests at head.
+	// As a result, the blame returned should be empty.
+	blames, err := s.GetBlamesForUntriagedDigests(ctx, dks.CornersCorpus)
+	require.NoError(t, err)
+	assert.Equal(t, BlameSummaryV1{}, blames)
+}
+
+func TestCombineIntoRanges_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	alphaGrouping := paramtools.Params{types.PrimaryKeyField: "alpha", types.CorpusField: "the_corpus"}
+	betaGrouping := paramtools.Params{types.PrimaryKeyField: "beta", types.CorpusField: "the_corpus"}
+	groupings := map[schema.MD5Hash]paramtools.Params{
+		mustHash(alphaGrouping): alphaGrouping,
+		mustHash(betaGrouping):  betaGrouping,
+	}
+	simpleCommits := []web_frontend.Commit{
+		{Hash: "commit01"},
+		{Hash: "commit02"},
+		{Hash: "commit03"},
+		{Hash: "commit04"},
+		{Hash: "commit05"},
+		{Hash: "commit06"},
+		{Hash: "commit07"},
+		{Hash: "commit08"},
+		{Hash: "commit09"},
+		{Hash: "commit10"},
+	}
+	ctx := context.Background()
+
+	test := func(name, inputDrawing string, expectedOutput []BlameEntry) {
+		t.Run(name, func(t *testing.T) {
+			input, exp := fromDrawing(inputDrawing, groupings)
+			actual := combineIntoRanges(ctx, input, groupings, simpleCommits, exp)
+			assert.Equal(t, expectedOutput, actual)
+		})
+	}
+
+	// The convention for these drawings is that the left-aligned text define a digest (and its
+	// associated grouping after the colon) that was untriaged at head. The indented text are the
+	// traces that are producing that digest at head and should be processed to produce the blame.
+	// The convention is that positively triaged digests are denoted by uppercase letters,
+	// untriaged digests by lowercase letters/numbers and missing data by a dash.
+	test("Three traces for the same test change at the same commit", `
+b:alpha
+	AAAAbbb
+	AAAAbb-
+	AAAAb-b
+`, []BlameEntry{{
+		CommitRange:           "commit05",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         alphaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		}},
+		Commits: []web_frontend.Commit{simpleCommits[4]},
+	}})
+	test("Three traces for the same test change to something different at the same commit", `
+b:alpha
+	AAAAbbb
+c:alpha
+	AAAAccc
+d:alpha
+	AAAAddd
+`, []BlameEntry{{
+		CommitRange:           "commit05",
+		TotalUntriagedDigests: 3,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         alphaGrouping,
+			UntriagedDigests: 3,
+			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		}},
+		Commits: []web_frontend.Commit{simpleCommits[4]},
+	}})
+	test("Three sparse traces for the same test change in the same range", `
+b:alpha
+	AAA---b
+	AA--bbb
+	AA---bb
+`, []BlameEntry{{
+		CommitRange:           "commit04:commit05",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         alphaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		}},
+		Commits: []web_frontend.Commit{simpleCommits[3], simpleCommits[4]},
+	}})
+	test("Three sparse traces for different tests change in the same range", `
+b:alpha
+	AAA---b
+	AA--bbb
+d:beta
+	CCC-ddd
+`, []BlameEntry{{
+		CommitRange:           "commit04:commit05",
+		TotalUntriagedDigests: 2,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         alphaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		}, {
+			Grouping:         betaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "dddddddddddddddddddddddddddddddd",
+		}},
+		Commits: []web_frontend.Commit{simpleCommits[3], simpleCommits[4]},
+	}})
+	test("Specific commit turned five traces flaky", `
+d:alpha
+	AAAAAcd
+f:alpha
+	AAAAAef
+1:beta
+	BBBBB01
+2:beta
+	BBBBB-2
+4:beta
+	BBBB-34
+`, []BlameEntry{{
+		CommitRange:           "commit06",
+		TotalUntriagedDigests: 3,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         alphaGrouping,
+			UntriagedDigests: 2,
+			SampleDigest:     "dddddddddddddddddddddddddddddddd",
+		}, {
+			Grouping:         betaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "11111111111111111111111111111111",
+		}},
+		Commits: []web_frontend.Commit{simpleCommits[5]},
+	}, {
+		CommitRange:           "commit05:commit06",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         betaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "44444444444444444444444444444444",
+		}},
+		Commits: []web_frontend.Commit{simpleCommits[4], simpleCommits[5]},
+	}, {
+		CommitRange:           "commit06:commit07",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         betaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "22222222222222222222222222222222",
+		}},
+		Commits: []web_frontend.Commit{simpleCommits[5], simpleCommits[6]},
+	}})
+	test("new traces appear in middle of window", `
+b:alpha
+	-------bbb
+c:beta
+	-------cc-
+`, []BlameEntry{{
+		CommitRange:           "commit01:commit08",
+		TotalUntriagedDigests: 2,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         alphaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		}, {
+			Grouping:         betaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "cccccccccccccccccccccccccccccccc",
+		}},
+		Commits: simpleCommits[0:8],
+	}})
+	// This might happen if a digest was triaged after we made our initial query.
+	// If so, it shouldn't show up in any BlameEntries
+	test("trace produces all triaged data", `
+B:alpha
+	BBBBBBBBBB
+`, []BlameEntry{})
+}
+
+// fromDrawing turns a human readable drawing of test names and trace data into actual data
+// that can be used to feed into combineIntoRanges.
+func fromDrawing(drawing string, groupings map[schema.MD5Hash]paramtools.Params) ([]untriagedDigestAtHead, map[expectationKey]expectations.Label) {
+	drawing = strings.TrimSpace(drawing)
+	lines := strings.Split(drawing, "\n")
+	findGroupingKey := func(testName string) schema.MD5Hash {
+		for key, params := range groupings {
+			if params[types.PrimaryKeyField] == testName {
+				return key
+			}
+		}
+		panic("unknown test name " + testName)
+	}
+
+	traceSize := 0
+
+	var data []untriagedDigestAtHead
+	exp := map[expectationKey]expectations.Label{}
+	var currentData *untriagedDigestAtHead
+	for i, line := range lines {
+		if !strings.HasPrefix(line, "\t") {
+			// Lines without a tab specify a new grouping:digest
+			parts := strings.Split(line, ":")
+			if len(parts) != 2 {
+				panic("grouping lines should be like b:foo | line:" + strconv.Itoa(i))
+			}
+			if currentData != nil {
+				data = append(data, *currentData)
+			}
+			currentData = &untriagedDigestAtHead{
+				atHead: groupingDigestKey{
+					groupingID: findGroupingKey(parts[1]),
+					digest:     expandDigestToHash(parts[0]),
+				},
+			}
+		} else {
+			if currentData == nil {
+				panic("need to specify grouping first")
+			}
+			line = strings.TrimPrefix(line, "\t")
+			// Lines with a tab specify a trace's data, using one character per digest
+			if traceSize != 0 && traceSize != len(line) {
+				panic("traces must all have the same length | line:" + strconv.Itoa(i))
+			} else if traceSize == 0 {
+				traceSize = len(line)
+			}
+			traceData := make(traceData, traceSize)
+			for i, c := range line {
+				if c == '-' {
+					continue
+				}
+				letter := string(c)
+				digest := expandDigest(letter)
+				traceData[i] = digest
+				if letter == strings.ToLower(letter) {
+					// lowercase and numbers are untriaged
+					exp[expectationKey{
+						groupingID: currentData.atHead.groupingID,
+						digest:     digest,
+					}] = expectations.Untriaged
+				} else {
+					exp[expectationKey{
+						groupingID: currentData.atHead.groupingID,
+						digest:     digest,
+					}] = expectations.Positive
+				}
+			}
+			currentData.traces = append(currentData.traces, traceData)
+		}
+	}
+	data = append(data, *currentData)
+	return data, exp
+}
+
+// expandDigest repeats the given letter 32 times to make a well-formatted digest.
+func expandDigest(letter string) types.Digest {
+	if len(letter) != 1 {
+		panic("expected to expand a single letter into a digest: " + letter)
+	}
+	return types.Digest(strings.Repeat(letter, 2*md5.Size))
+}
+
+// expandDigestToHash creates a digest by expanding the given letter and returns it as a
+// schema.MD5Hash
+func expandDigestToHash(letter string) schema.MD5Hash {
+	digest := expandDigest(letter)
+	db, err := sql.DigestToBytes(digest)
+	if err != nil {
+		panic(err)
+	}
+	return sql.AsMD5Hash(db)
+}
+
+// mustHash returns the MD5hash of the serialized version of the map.
+func mustHash(grouping paramtools.Params) schema.MD5Hash {
+	_, b := sql.SerializeMap(grouping)
+	return sql.AsMD5Hash(b)
 }
 
 var kitchenSinkCommits = makeKitchenSinkCommits()

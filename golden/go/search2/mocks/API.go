@@ -43,6 +43,27 @@ func (_m *API) ChangelistLastUpdated(ctx context.Context, qCLID string) (time.Ti
 	return r0, r1
 }
 
+// GetBlamesForUntriagedDigests provides a mock function with given fields: ctx, corpus
+func (_m *API) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) (search2.BlameSummaryV1, error) {
+	ret := _m.Called(ctx, corpus)
+
+	var r0 search2.BlameSummaryV1
+	if rf, ok := ret.Get(0).(func(context.Context, string) search2.BlameSummaryV1); ok {
+		r0 = rf(ctx, corpus)
+	} else {
+		r0 = ret.Get(0).(search2.BlameSummaryV1)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, corpus)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChangelistParamset provides a mock function with given fields: ctx, crs, clID
 func (_m *API) GetChangelistParamset(ctx context.Context, crs string, clID string) (paramtools.ReadOnlyParamSet, error) {
 	ret := _m.Called(ctx, crs, clID)

@@ -3154,6 +3154,57 @@ func TestStartCacheWarming_Success(t *testing.T) {
 	assert.True(t, wh.clSummaryCache.Contains("gerrit-internal_CL_new_tests"))
 }
 
+func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ms := &mock_search2.API{}
+
+	ms.On("GetBlamesForUntriagedDigests", testutils.AnyContext, "the_corpus").Return(search2.BlameSummaryV1{
+		Ranges: []search2.BlameEntry{{
+			CommitRange:           "commit04:commit05",
+			TotalUntriagedDigests: 2,
+			AffectedGroupings: []*search2.AffectedGrouping{{
+				Grouping: paramtools.Params{
+					types.CorpusField:     "the_corpus",
+					types.PrimaryKeyField: "alpha",
+				},
+				UntriagedDigests: 1,
+				SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			}, {
+				Grouping: paramtools.Params{
+					types.CorpusField:     "the_corpus",
+					types.PrimaryKeyField: "beta",
+				},
+				UntriagedDigests: 1,
+				SampleDigest:     "dddddddddddddddddddddddddddddddd",
+			}},
+			Commits: []frontend.Commit{{
+				CommitTime: 12345678000,
+				Hash:       "1234567890abcdef1234567890abcdef12345678",
+				Author:     "user1@example.com",
+				Subject:    "Probably broke something",
+			}, {
+				CommitTime: 12345678900,
+				Hash:       "4567890abcdef1234567890abcdef1234567890a",
+				Author:     "user2@example.com",
+				Subject:    "Might not have broke anything",
+			}},
+		}}}, nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Search2API: ms,
+		},
+		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v2/byblame?query=source_type%3Dthe_corpus", nil)
+	wh.ByBlameHandler2(w, r)
+	const expectedJSON = `{"data":[{"groupID":"commit04:commit05","nDigests":2,"nTests":2,"affectedTests":[{"test":"alpha","num":1,"sample_digest":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},{"test":"beta","num":1,"sample_digest":"dddddddddddddddddddddddddddddddd"}],"commits":[{"commit_time":12345678000,"hash":"1234567890abcdef1234567890abcdef12345678","author":"user1@example.com","message":"Probably broke something","cl_url":""},{"commit_time":12345678900,"hash":"4567890abcdef1234567890abcdef1234567890a","author":"user2@example.com","message":"Might not have broke anything","cl_url":""}]}]}`
+	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"
