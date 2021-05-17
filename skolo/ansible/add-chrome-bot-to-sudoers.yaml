@@ -1,0 +1,27 @@
+- hosts: '{{ variable_hosts }}'
+  gather_facts: False
+  vars:
+    sudoers:
+      - chrome-bot
+  tasks:
+    - name: Make sure we have a 'sudo' group
+      group:
+        name: sudo
+        state: present
+
+    - name: Allow 'sudo' group to have passwordless sudo
+      become: yes
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%sudo'
+        line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+        validate: visudo -cf %s
+
+    - name: Add sudoers users to sudo group
+      become: yes
+      user:
+        name: '{{ item }}'
+        groups: sudo
+        append: yes
+      with_items: '{{ sudoers }}'
