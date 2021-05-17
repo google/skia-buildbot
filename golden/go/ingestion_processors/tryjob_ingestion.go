@@ -52,11 +52,12 @@ const (
 
 	lookupParam = "LookupCLsIn"
 
-	gerritCRS         = "gerrit"
-	gerritInternalCRS = "gerrit-internal"
-	githubCRS         = "github"
-	buildbucketCIS    = "buildbucket"
-	cirrusCIS         = "cirrus"
+	gerritCRS              = "gerrit"
+	gerritInternalCRS      = "gerrit-internal"
+	githubCRS              = "github"
+	buildbucketCIS         = "buildbucket"
+	buildbucketInternalCIS = "buildbucket-internal"
+	cirrusCIS              = "cirrus"
 
 	clCacheSize = 1000
 )
@@ -204,6 +205,10 @@ func continuousIntegrationSystemFactory(cisName string, client *http.Client) (co
 		return buildbucket_cis.New(bbClient), nil
 	}
 	if cisName == cirrusCIS {
+		return simple_cis.New(cisName), nil
+	}
+	if cisName == buildbucketInternalCIS {
+		// TODO(skbug.com/12011)
 		return simple_cis.New(cisName), nil
 	}
 	return nil, skerr.Fmt("ContinuousIntegrationSystem %q not recognized", cisName)

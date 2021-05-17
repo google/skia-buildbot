@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/golden/go/continuous_integration/simple_cis"
+
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -317,13 +319,12 @@ func TestTryjobSQL_Process_FirstFileForCL_Success(t *testing.T) {
 	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}))
 }
 
-func TestTryjobSQL_Process_UsesRubberstampCRS_Success(t *testing.T) {
+func TestTryjobSQL_Process_UsesRubberstampCRSAndSimpleCIS_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
-	const tjID = dks.Tryjob01IPhoneRGB
 	const squareTraceKeys = `{"color mode":"RGB","device":"iPhone12,1","name":"square","os":"iOS","source_type":"corners"}`
 	const triangleTraceKeys = `{"color mode":"RGB","device":"iPhone12,1","name":"triangle","os":"iOS","source_type":"corners"}`
 	const circleTraceKeys = `{"color mode":"RGB","device":"iPhone12,1","name":"circle","os":"iOS","source_type":"round"}`
@@ -332,18 +333,11 @@ func TestTryjobSQL_Process_UsesRubberstampCRS_Success(t *testing.T) {
 	const qualifiedRubberstampPS = "gerrit_CL_fix_ios__3"
 	const qualifiedTJ = "buildbucket_tryjob_01_iphonergb"
 
-	mcis := &mock_cis.Client{}
-	mcis.On("GetTryJob", testutils.AnyContext, tjID).Return(ci.TryJob{
-		SystemID:    tjID,
-		System:      dks.BuildBucketCIS,
-		DisplayName: "Test-iPhone-RGB",
-	}, nil)
-
 	// This file has data from 3 traces across 2 corpora. The data is for the patchset with order 3.
 	src := fakeGCSSourceFromFile(t, "from_goldctl_legacy_fields.json")
 	gtp := initCaches(goldTryjobProcessor{
 		cisClients: map[string]ci.Client{
-			buildbucketCIS: mcis,
+			buildbucketCIS: simple_cis.New(dks.BuildBucketCIS),
 		},
 		reviewSystems: []clstore.ReviewSystem{
 			{
@@ -384,7 +378,7 @@ func TestTryjobSQL_Process_UsesRubberstampCRS_Success(t *testing.T) {
 		System:           dks.BuildBucketCIS,
 		ChangelistID:     qualifiedCL,
 		PatchsetID:       qualifiedRubberstampPS,
-		DisplayName:      "Test-iPhone-RGB",
+		DisplayName:      "tryjob_01_iphonergb",
 		LastIngestedData: fakeIngestionTime,
 	}}, actualTryjobs)
 
