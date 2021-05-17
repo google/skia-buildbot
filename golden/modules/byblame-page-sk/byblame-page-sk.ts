@@ -60,6 +60,7 @@ export class ByBlamePageSk extends ElementSk {
   private corpus = '';
   private entries: ByBlameEntry[] = [];
   private loaded = false;
+  private useNewAPI = false;
 
   private readonly stateChanged: () => void;
   private fetchController: AbortController | null = null;
@@ -72,6 +73,7 @@ export class ByBlamePageSk extends ElementSk {
       /* getState */ () => ({
         // Provide empty values.
         corpus: this.corpus,
+        use_new_api: this.useNewAPI || '',
       }),
       /* setState */ (newState) => {
         // The stateReflector's lingering popstate event handler will continue
@@ -82,6 +84,7 @@ export class ByBlamePageSk extends ElementSk {
         }
 
         this.corpus = newState.corpus as string || defaultCorpus();
+        this.useNewAPI = (newState.use_new_api as boolean) || false;
         this._render(); // Update corpus selector immediately.
         this.fetch();
       },
@@ -113,7 +116,10 @@ export class ByBlamePageSk extends ElementSk {
     };
 
     const query = encodeURIComponent(`source_type=${this.corpus}`);
-    const byBlameURL = `/json/v1/byblame?query=${query}`;
+    let byBlameURL = `/json/v1/byblame?query=${query}`;
+    if (this.useNewAPI) {
+      byBlameURL = `/json/v2/byblame?query=${query}`;
+    }
 
     sendBeginTask(this);
     fetch(byBlameURL, options)
