@@ -1,0 +1,43 @@
+load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+# Lease the device and connect via the skia-switchboard cluster.
+test_on_env(
+    name = "test_on_remote_pixel",
+    env = "//switchboard:lease_pixel",
+    test = "//switchboard:hello_over_adb",
+)
+
+# Lease the device and connect directly using corp-ssh-helper.
+test_on_env(
+    name = "test_on_remote_pixel_from_workstation",
+    env = "//switchboard:lease_pixel_from_workstation",
+    test = "//switchboard:hello_over_adb",
+)
+
+sh_binary(
+    name = "lease_pixel",
+    srcs = ["lease_pixel.sh"],
+    data = [
+        "kubeconfig.yaml",
+    ]
+)
+
+sh_binary(
+    name = "lease_pixel_from_workstation",
+    srcs = ["lease_pixel_from_workstation.sh"],
+)
+
+cc_binary(
+    name = "hello",
+    srcs = ["cpp/hello.cpp"],
+)
+
+sh_test(
+    name = "hello_over_adb",
+    srcs = ["hello_over_adb.sh"],
+    args = ["switchboard/hello"],
+    data = [
+        ":hello"
+    ]
+)
