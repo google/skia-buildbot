@@ -3612,6 +3612,25 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *
 
 	blames, err := s.GetBlamesForUntriagedDigests(ctx, dks.RoundCorpus)
 	require.NoError(t, err)
+	assertByBlameResponse(t, blames)
+}
+
+func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_WithMaterializedViews(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	s := New(db, 9)
+	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
+
+	blames, err := s.GetBlamesForUntriagedDigests(ctx, dks.RoundCorpus)
+	require.NoError(t, err)
+	assertByBlameResponse(t, blames)
+}
+
+func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
 	assert.Equal(t, BlameSummaryV1{
 		Ranges: []BlameEntry{
 			{
