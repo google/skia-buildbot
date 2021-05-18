@@ -774,7 +774,7 @@ func (r rubberstampCRS) GetPatchset(_ context.Context, clID, psID string, psOrde
 	}
 	sklog.Infof("Rubberstamp PS response for %s %s %d", clID, psID, psOrder)
 	return code_review.Patchset{
-		SystemID:     fmt.Sprintf("%s_%s_%d", clID, psID, psOrder),
+		SystemID:     fmt.Sprintf("%s|%s|%d", clID, psID, psOrder),
 		ChangelistID: clID,
 		Order:        psOrder,
 		GitHash:      "<unknown>",
