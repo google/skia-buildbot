@@ -125,8 +125,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
 	if isChangelistSearch && q.CodeReviewSystemID == "" {
-		// TODO(kjlubick) remove this default after the search page is converted to lit-html.
-		q.CodeReviewSystemID = s.reviewSystems[0].ID
+		return nil, skerr.Fmt("Code Review System (crs) must be specified")
 	}
 	exp, err := s.getExpectations(ctx, q.ChangelistID, q.CodeReviewSystemID)
 	if err != nil {
@@ -140,11 +139,11 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	if isChangelistSearch {
 		reviewSystem, err := s.reviewSystem(q.CodeReviewSystemID)
 		if err != nil {
-			return nil, skerr.Wrap(err)
+			return nil, skerr.Wrapf(err, "Could not find system %q", q.CodeReviewSystemID)
 		}
 		cl, err := reviewSystem.Store.GetChangelist(ctx, q.ChangelistID)
 		if err != nil {
-			return nil, skerr.Wrap(err)
+			return nil, skerr.Wrapf(err, "Could not find CL %q in system %q - %#v", q.ChangelistID, q.CodeReviewSystemID, q)
 		}
 		// Add this CL information as a faux Commit, so we can properly show the blamelists for
 		// the trace data, which will include this CL's output appended to the end (as if it was the
