@@ -330,7 +330,7 @@ func TestTryjobSQL_Process_UsesRubberstampCRSAndSimpleCIS_Success(t *testing.T) 
 	const circleTraceKeys = `{"color mode":"RGB","device":"iPhone12,1","name":"circle","os":"iOS","source_type":"round"}`
 
 	const qualifiedCL = "gerrit_CL_fix_ios"
-	const qualifiedRubberstampPS = "gerrit_CL_fix_ios__3"
+	const qualifiedRubberstampPS = "gerrit_CL_fix_ios||3"
 	const qualifiedTJ = "buildbucket_tryjob_01_iphonergb"
 
 	// This file has data from 3 traces across 2 corpora. The data is for the patchset with order 3.
