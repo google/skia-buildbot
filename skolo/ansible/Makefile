@@ -9,6 +9,12 @@ push_authorized_keys_to_rack4_rpis_incremental:
 push_authorized_keys_to_rack4_rpis_full:
 	${SSH_WRAP} ansible-playbook push_authorized_keys_to_linux.yml --extra-vars variable_hosts=rack4_rpis
 
+push_authorized_keys_to_rack1_rpis_incremental:
+	${SSH_WRAP} ansible-playbook push_authorized_keys_to_linux.yml --extra-vars variable_hosts=rack1_rpis_incremental_rollout -f 1 --ask-pass
+
+push_authorized_keys_to_rack1_rpis_full:
+	${SSH_WRAP} ansible-playbook push_authorized_keys_to_linux.yml --extra-vars variable_hosts=rack1_rpis -f 1 --ask-pass
+
 # If you need to set up authorized_hosts on machines that don't already have an
 # authorized_hosts and only password access you should pass the following flags
 # to ansible-playbook:
