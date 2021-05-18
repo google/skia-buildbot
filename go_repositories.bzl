@@ -257,6 +257,9 @@ def go_repositories():
 
     go_repository(
         name = "com_github_bazelbuild_buildtools",
+        # The BUILD files included in this Go module use the go_default_library naming convention.
+        # See https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository.
+        build_naming_convention = "go_default_library",
         importpath = "github.com/bazelbuild/buildtools",
         sum = "h1:a+J2VBrlAmgdb1eXDTFxdoPA/wA/L2+33DcdfzhnhXM=",
         version = "v0.0.0-20201102150426-f0f162f0456b",

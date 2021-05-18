@@ -15,6 +15,6 @@ go_library(
         "//go/skerr",
         "//go/supported_branches",
         "//go/util",
-        "@com_github_bazelbuild_buildtools//build",
+        "@com_github_bazelbuild_buildtools//build:go_default_library",
     ],
 )
