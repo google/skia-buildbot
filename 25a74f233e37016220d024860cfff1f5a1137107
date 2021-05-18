@@ -22,6 +22,30 @@
       },
       "revId": "25a74f233e37016220d024860cfff1f5a1137107",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0756e310_b8b343df",
+        "filename": "skolo/ansible/hosts.ini",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-05-18T17:31:23Z",
+      "side": 1,
+      "message": "Those are RPis that have no device attached and have been unplugged.",
+      "parentUuid": "4c8c6092_9009bea4",
+      "range": {
+        "startLine": 38,
+        "startChar": 9,
+        "endLine": 38,
+        "endChar": 12
+      },
+      "revId": "25a74f233e37016220d024860cfff1f5a1137107",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
