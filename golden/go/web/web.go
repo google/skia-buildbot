@@ -1467,7 +1467,6 @@ func (wh *Handlers) ParamsHandler2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sendJSONResponse(w, ps)
-	return
 }
 
 // CommitsHandler returns the commits from the most recent tile.
