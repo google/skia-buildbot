@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "19cc2a8f_2ee9c070",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 515,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-18T14:09:32Z",
+      "side": 1,
+      "message": "At the moment, I can\u0027t think of a downside to using LookPath with every call to exec.RunCommand and its siblings, using any passed-in PATH variable.  I didn\u0027t do that due to the potential risk.",
+      "range": {
+        "startLine": 508,
+        "startChar": 0,
+        "endLine": 515,
+        "endChar": 20
+      },
+      "revId": "df9389fa3be50a86344ae25d5b7ecde809884ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
