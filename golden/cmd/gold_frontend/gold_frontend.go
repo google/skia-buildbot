@@ -244,7 +244,7 @@ func main() {
 
 	mustStartExpectationsCleanupProcess(ctx, fsc, cleaner, ixr)
 
-	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB, publiclyViewableParams)
+	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB, publiclyViewableParams, reviewSystems)
 
 	handlers := mustMakeWebHandlers(ctx, sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, s2a, statusWatcher, tileSource, tjs)
 
@@ -255,8 +255,15 @@ func main() {
 	sklog.Fatal(http.ListenAndServe(fsc.ReadyPort, rootRouter))
 }
 
-func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pgxpool.Pool, publiclyViewableParams publicparams.Matcher) *search2.Impl {
+func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pgxpool.Pool, publiclyViewableParams publicparams.Matcher, systems []clstore.ReviewSystem) *search2.Impl {
+	templates := map[string]string{}
+	for _, crs := range systems {
+		templates[crs.ID] = crs.URLTemplate
+	}
+
 	s2a := search2.New(sqlDB, fsc.NumCommits)
+	s2a.SetReviewSystemTemplates(templates)
+	sklog.Infof("SQL Search loaded with CRS templates %s", templates)
 	err := s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.NumCommits)
 	if err != nil {
 		sklog.Fatalf("Cannot load caches for search2 backend: %s", err)
@@ -270,6 +277,7 @@ func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pg
 		}
 		sklog.Infof("Public params applied to search2")
 	}
+
 	return s2a
 }
 

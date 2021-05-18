@@ -642,6 +642,9 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*legacy_frontend.Se
 		return nil, skerr.Wrap(err)
 	}
 	if q.ChangelistID != "" {
+		if q.CodeReviewSystemID == "" {
+			return nil, skerr.Fmt("Code Review System (crs) must be specified")
+		}
 		return s.searchCLData(ctx)
 	}
 
@@ -1819,7 +1822,7 @@ changelist_id = $1 AND system = $2 AND ps_order = $3`
 	var qPSID string
 	if err := row.Scan(&qPSID); err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, skerr.Fmt("CL %q has no PS with order %d", qCLID, q.Patchsets[0])
+			return nil, skerr.Fmt("CL %q has no PS with order %d: %#v", qCLID, q.Patchsets[0], q)
 		}
 		return nil, skerr.Wrap(err)
 	}
@@ -1932,7 +1935,7 @@ WHERE COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) = ANY($3
 				continue
 			}
 		}
-		if q.IncludeDigestsProducedOnMaster == false {
+		if !q.IncludeDigestsProducedOnMaster {
 			copy(keyGrouping, row.groupingID)
 			copy(keyDigest, row.digest)
 			if _, existsOnPrimary := s.digestsOnPrimary[key]; existsOnPrimary {

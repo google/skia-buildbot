@@ -63,6 +63,7 @@ func ParseSearch(r *http.Request, q *Search) error {
 	// Parse out the issue and patchsets.
 	q.Patchsets = validate.Int64SliceFormValue(r, "patchsets", nil)
 	q.ChangelistID = r.FormValue("issue")
+	q.CodeReviewSystemID = r.FormValue("crs")
 
 	// Check whether any of the validations failed.
 	if err := validate.Errors(); err != nil {

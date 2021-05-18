@@ -104,6 +104,7 @@ SELECT status, owner_email, subject, last_ingested_data FROM Changelists WHERE c
 	err := row.Scan(&r.Status, &r.OwnerEmail, &r.Subject, &r.LastIngestedData)
 	if err != nil {
 		if err == pgx.ErrNoRows {
+			sklog.Warningf("No SQL CL found for changelist_id = %q", qID)
 			return code_review.Changelist{}, clstore.ErrNotFound
 		}
 		return code_review.Changelist{}, skerr.Wrapf(err, "querying for id %s", qID)

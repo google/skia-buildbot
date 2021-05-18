@@ -18,7 +18,7 @@ func TestParseQuery(t *testing.T) {
 	unittest.SmallTest(t)
 
 	q := &Search{}
-	err := clearParseQuery(q, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
+	err := clearParseQuery(q, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&crs=gerrit-internal&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
 	require.NoError(t, err)
 
 	require.Equal(t, &Search{
@@ -37,6 +37,7 @@ func TestParseQuery(t *testing.T) {
 		},
 		RightQueryStr:                  "",
 		RightTraceValues:               paramtools.ParamSet{},
+		CodeReviewSystemID:             "gerrit-internal",
 		ChangelistID:                   "2370153003",
 		PatchsetsStr:                   "",
 		Patchsets:                      []int64(nil),
