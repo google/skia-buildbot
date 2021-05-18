@@ -10,7 +10,7 @@ go_library(
         "//go/cq",
         "//go/git",
         "//go/sklog",
-        "@com_github_bazelbuild_buildtools//build",
+        "@com_github_bazelbuild_buildtools//build:go_default_library",
     ],
 )
 

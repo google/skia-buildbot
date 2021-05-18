@@ -78,6 +78,7 @@ go_test(
         "//golden/go/code_review/mocks",
         "//golden/go/continuous_integration",
         "//golden/go/continuous_integration/mocks",
+        "//golden/go/continuous_integration/simple_cis",
         "//golden/go/ingestion",
         "//golden/go/ingestion_processors/mocks",
         "//golden/go/jsonio",
