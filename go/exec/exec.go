@@ -32,8 +32,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	osexec "os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -393,4 +395,51 @@ func (w *threadSafeWriter) Write(b []byte) (int, error) {
 	w.mtx.Lock()
 	defer w.mtx.Unlock()
 	return w.w.Write(b)
+}
+
+// findExecutable determines whether the given file path is an executable.
+// Implementation taken directly from os/exec package.
+func findExecutable(file string) error {
+	d, err := os.Stat(file)
+	if err != nil {
+		return err
+	}
+	if m := d.Mode(); !m.IsDir() && m&0111 != 0 {
+		return nil
+	}
+	return fs.ErrPermission
+}
+
+// LookPath searches for an executable named file in the directories named by
+// the path argument. Implementation is taken directly from the os/exec package
+// but modified to search given path argument instead of os.Getenv("PATH").
+func LookPath(file, path string) (string, error) {
+	// NOTE(rsc): I wish we could use the Plan 9 behavior here
+	// (only bypass the path if file begins with / or ./ or ../)
+	// but that would not match all the Unix shells.
+
+	if strings.Contains(file, "/") {
+		err := findExecutable(file)
+		if err == nil {
+			return file, nil
+		}
+		return "", &osexec.Error{
+			Name: file,
+			Err:  err,
+		}
+	}
+	for _, dir := range filepath.SplitList(path) {
+		if dir == "" {
+			// Unix shell semantics: path element "" means "."
+			dir = "."
+		}
+		path := filepath.Join(dir, file)
+		if err := findExecutable(path); err == nil {
+			return path, nil
+		}
+	}
+	return "", &osexec.Error{
+		Name: file,
+		Err:  osexec.ErrNotFound,
+	}
 }
