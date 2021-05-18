@@ -494,13 +494,25 @@ func GenericPreUploadStep(ctx context.Context, cfg *config.PreUploadConfig, env 
 		for _, envVar := range cmd.Env {
 			cmdEnv = append(cmdEnv, replaceMagicVars(envVar))
 		}
+		pathVar := os.Getenv("PATH")
+		for _, envVar := range cmdEnv {
+			split := strings.SplitN(envVar, "=", 2)
+			if len(split) == 2 && split[0] == "PATH" {
+				pathVar = split[1]
+			}
+		}
 		split := strings.Split(cmd.Command, " ")
 		for idx := range split {
 			split[idx] = replaceMagicVars(split[idx])
 		}
+		executable, err := exec.LookPath(split[0], pathVar)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+
 		sklog.Infof("Running command: %s", strings.Join(split, " "))
 		if _, err := exec.RunCommand(ctx, &exec.Command{
-			Name: split[0],
+			Name: executable,
 			Args: split[1:],
 			Dir:  replaceMagicVars(cmd.Cwd),
 			Env:  cmdEnv,
