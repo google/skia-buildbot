@@ -19,7 +19,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "@com_github_bazelbuild_buildtools//build",
+        "@com_github_bazelbuild_buildtools//build:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@org_chromium_go_luci//buildbucket/proto",
@@ -38,7 +38,7 @@ go_test(
         "//go/git",
         "//go/testutils",
         "//go/testutils/unittest",
-        "@com_github_bazelbuild_buildtools//build",
+        "@com_github_bazelbuild_buildtools//build:go_default_library",
         "@com_github_stretchr_testify//require",
     ],
 )
