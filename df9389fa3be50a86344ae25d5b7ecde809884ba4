@@ -116,6 +116,30 @@
       },
       "revId": "df9389fa3be50a86344ae25d5b7ecde809884ba4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "77871bf4_6fbeeb55",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-18T14:26:05Z",
+      "side": 1,
+      "message": "Reading the 2nd line confused me because it said implementation is taken directly from the os/exec package, I figured it might help make the sentence more accurate by saying it is taken directly and modified.\nThis is what I was proposing-\n\"LookPath searches for an executable named file in the directories named by the path argument. Implementation is taken directly from the os/exec package but modified to search given path argument instead of os.Getenv(\"PATH\").\n\nTotally optional.",
+      "parentUuid": "73a0f758_c2d20bfe",
+      "range": {
+        "startLine": 414,
+        "startChar": 42,
+        "endLine": 415,
+        "endChar": 22
+      },
+      "revId": "df9389fa3be50a86344ae25d5b7ecde809884ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
