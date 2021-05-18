@@ -17,7 +17,7 @@
         "skolo-rack4": {
             "type": "k3s",
             "context_name": "skolo-rack4",
-            "ip": "100.115.95.135",
+            "jumphost": "rack4",
             "port": "6442"
         }
     }

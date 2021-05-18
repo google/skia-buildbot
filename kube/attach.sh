@@ -1,6 +1,10 @@
 #!/bin/bash
 
-# Creates a shell where kubectl is hooked up to the selected cluster.
+# Creates a shell where kubectl is hooked up to the selected cluster. Make sure
+# you have followed the ssh setup instructions before running this script:
+#
+#     http://go/skolo-maintenance#heading=h.or4jzu6r2mzn
+#
 
 # Record the directory of this file.
 REL=$(dirname "$0")
@@ -41,15 +45,15 @@ if [ "${TYPE}" == "gke" ]; then
     gcloud container clusters get-credentials ${CLUSTER} --zone ${ZONE} --project ${PROJECT}
     gcloud config set project ${PROJECT}
 else # Type == "k3s".
-    IP=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".ip")
+    JUMPHOST=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".jumphost")
     PORT=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".port")
 
     # Grab config from the kubernetes cluster and store in the config file.
-    ssh chrome-bot@${IP} "sudo kubectl config view --raw" > ${DIR}/config
+    ssh ${JUMPHOST} "sudo kubectl config view --raw" > ${DIR}/config
 
     # Set up port-forward to the k83 control endpoint and record the PID of the
     # background task.
-    ssh -N -L ${PORT}:localhost:6443 chrome-bot@${IP} &
+    ssh -N -L ${PORT}:localhost:6443 ${JUMPHOST} &
     PID=$!
 
     # Wait until the port is available.
