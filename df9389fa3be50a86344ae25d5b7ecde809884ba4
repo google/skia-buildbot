@@ -22,6 +22,52 @@
       },
       "revId": "df9389fa3be50a86344ae25d5b7ecde809884ba4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a931b8de_8b33d609",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-18T14:15:39Z",
+      "side": 1,
+      "message": "Why can\u0027t we use the one from os/exec instead?",
+      "range": {
+        "startLine": 401,
+        "startChar": 3,
+        "endLine": 401,
+        "endChar": 53
+      },
+      "revId": "df9389fa3be50a86344ae25d5b7ecde809884ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2b47856c_d4d11a7f",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-18T14:15:39Z",
+      "side": 1,
+      "message": "nit: Implementation is taken directly from the os/exec package but modified to search given PATH variable instead of... (and remove the preceding line)",
+      "range": {
+        "startLine": 414,
+        "startChar": 42,
+        "endLine": 415,
+        "endChar": 22
+      },
+      "revId": "df9389fa3be50a86344ae25d5b7ecde809884ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
