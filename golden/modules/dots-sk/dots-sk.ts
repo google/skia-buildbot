@@ -32,7 +32,7 @@ import {
   STROKE_WIDTH,
   TRACE_LINE_COLOR,
 } from './constants';
-import { Commit, Trace, TraceGroup } from '../rpc_types';
+import {Commit, Trace, TraceGroup, TraceID} from '../rpc_types';
 
 // Array of dots-sk component instances. A dots-sk instance is present if it has a pending
 // mousemove update.
@@ -266,7 +266,7 @@ export class DotsSk extends ElementSk {
       this.hoverIndex = dotCoords.y;
       if (this.hoverIndex >= 0
           && this.hoverIndex < this._value.traces!.length) {
-        this.dispatchEvent(new CustomEvent('hover', {
+        this.dispatchEvent(new CustomEvent<TraceID>('hover', {
           bubbles: true,
           detail: this._value.traces![this.hoverIndex].label,
         }));
@@ -305,7 +305,7 @@ export class DotsSk extends ElementSk {
     if (!blamelist) {
       return; // No blamelist if there's no dot at that X coord, i.e. misclick.
     }
-    this.dispatchEvent(new CustomEvent('showblamelist', {
+    this.dispatchEvent(new CustomEvent<Commit[]>('showblamelist', {
       bubbles: true,
       detail: blamelist,
     }));

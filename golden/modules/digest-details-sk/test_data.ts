@@ -1,10 +1,12 @@
+import {Commit, SearchResult} from '../rpc_types';
+
 export const fakeNow = Date.parse('2020-03-22T00:00:00.000Z');
 
-const allTheSame = Array(200).fill(0);
-const mod2Data = Array(200).fill(1).map((_, index) => index % 2);
-const mod3Data = Array(200).fill(1).map((_, index) => index % 3);
+const allTheSame: number[] = Array(200).fill(0);
+const mod2Data: number[] = Array(200).fill(1).map((_, index) => index % 2);
+const mod3Data: number[] = Array(200).fill(1).map((_, index) => index % 3);
 
-export const typicalDetails = {
+export const typicalDetails: SearchResult = {
   test: 'dots-legend-sk_too-many-digests',
   digest: '6246b773851984c726cb2e1cb13510c2',
   status: 'positive',
@@ -33,7 +35,6 @@ export const typicalDetails = {
     ],
   },
   traces: {
-    tileSize: 200,
     traces: [
       {
         data: mod2Data,
@@ -103,7 +104,6 @@ export const typicalDetails = {
           'Linux',
         ],
       },
-      n: 1,
     },
     pos: {
       numDiffPixels: 3766,
@@ -132,12 +132,11 @@ export const typicalDetails = {
           'Mac', 'Linux',
         ],
       },
-      n: 143,
     },
   },
 };
 
-export const negativeOnly = {
+export const negativeOnly: SearchResult = {
   test: 'dots-legend-sk_too-many-digests',
   digest: '6246b773851984c726cb2e1cb13510c2',
   status: 'positive',
@@ -166,7 +165,6 @@ export const negativeOnly = {
     ],
   },
   traces: {
-    tileSize: 200,
     traces: [
       {
         data: mod2Data,
@@ -221,12 +219,11 @@ export const negativeOnly = {
           'Mac',
         ],
       },
-      n: 1,
     },
   },
 };
 
-export const noRefs = {
+export const noRefs: SearchResult = {
   test: 'dots-legend-sk_too-many-digests',
   digest: '6246b773851984c726cb2e1cb13510c2',
   status: 'positive',
@@ -255,7 +252,6 @@ export const noRefs = {
     ],
   },
   traces: {
-    tileSize: 200,
     traces: [
       {
         data: allTheSame,
@@ -278,10 +274,10 @@ export const noRefs = {
     total_digests: 3,
   },
   closestRef: '',
-  refDiffs: null,
+  refDiffs: {},
 };
 
-export const noRefsYet = {
+export const noRefsYet: SearchResult = {
   test: 'dots-legend-sk_too-many-digests',
   digest: '6246b773851984c726cb2e1cb13510c2',
   status: 'positive',
@@ -310,7 +306,6 @@ export const noRefsYet = {
     ],
   },
   traces: {
-    tileSize: 200,
     traces: [
       {
         data: mod2Data,
@@ -337,10 +332,10 @@ export const noRefsYet = {
     total_digests: 3,
   },
   closestRef: '',
-  refDiffs: null,
+  refDiffs: {},
 };
 
-export const noTraces = {
+export const noTraces: SearchResult = {
   test: 'dots-legend-sk_too-many-digests',
   digest: '6246b773851984c726cb2e1cb13510c2',
   status: 'positive',
@@ -356,6 +351,8 @@ export const noTraces = {
   ],
   traces: {
     traces: [],
+    digests: [],
+    total_digests: 0,
   },
   paramset: {
     ext: [
@@ -400,7 +397,6 @@ export const noTraces = {
           'Linux',
         ],
       },
-      n: 1,
     },
     pos: {
       numDiffPixels: 3766,
@@ -429,21 +425,21 @@ export const noTraces = {
           'Mac', 'Linux',
         ],
       },
-      n: 143,
     },
   },
 };
 
 const tsStartTime = 1583130000; // an arbitrary timestamp.
 
-function makeCommits(n) {
-  const rv = [];
+function makeCommits(n: number): Commit[] {
+  const rv: Commit[] = [];
   for (let i = 0; i < n; i++) {
     rv.push({
       commit_time: tsStartTime + i * 123, // arbitrary spacing
       hash: `${i}`.padEnd(32, '0'), // make a deterministic "md5 hash", which is 32 chars long
       author: `user${i % 7}@example.com`,
       message: `This is a nice message. I've repeated it ${i + 1} time(s)`,
+      cl_url: '',
     });
   }
   return rv;

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import path from "path";
 
-describe('multi-zoom-sk', () => {
+describe.only('multi-zoom-sk', () => {
   let testBed: TestBed;
   before(async () => {
     testBed = await loadCachedTestBed(
