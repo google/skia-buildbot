@@ -60,3 +60,10 @@ add_chrome_bot_to_sudoers_rpis_rack4:
 
 get_rack4_rpi_k3s_versions:
 	${SSH_WRAP} ansible-playbook rack4/get-k3s-version.yaml --extra-vars variable_hosts=rack4_rpis
+
+# Rack 5
+push_authorized_keys_to_rack5_linux_incremental:
+	${SSH_WRAP} ansible-playbook push_authorized_keys_to_linux.yml --extra-vars variable_hosts=rack5_linux -l skia-i-gapid-001 --ask-pass
+
+push_authorized_keys_to_rack5_linux_full:
+	${SSH_WRAP} ansible-playbook push_authorized_keys_to_linux.yml --extra-vars variable_hosts=rack5_linux -f 1 --ask-pass
