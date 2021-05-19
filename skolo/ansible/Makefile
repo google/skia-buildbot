@@ -12,6 +12,9 @@
 push_authorized_keys_to_jumphosts:
 	${SSH_WRAP} ansible-playbook push_authorized_keys_to_linux.yml --extra-vars variable_hosts=jumphosts
 
+push_authorized_keys_to_routers:
+	${SSH_WRAP} ansible-playbook push_authorized_keys_to_router.yml --extra-vars variable_hosts=routers -f 1
+
 # Rack 1
 push_authorized_keys_to_rack1_rpis_incremental:
 	${SSH_WRAP} ansible-playbook push_authorized_keys_to_linux.yml --extra-vars variable_hosts=rack1_rpis_incremental_rollout -f 1 --ask-pass
