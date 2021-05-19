@@ -238,7 +238,10 @@ type GetPerTraceDigestsByTestNameResponse map[tiling.TraceID][]types.Digest
 // Commit represents a git Commit for use on the frontend.
 type Commit struct {
 	// CommitTime is in seconds since the epoch
-	CommitTime    int64  `json:"commit_time"`
+	CommitTime int64  `json:"commit_time"`
+	ID         string `json:"id"`
+	// Hash refers to the githash of a commit. It is deprecated, we should refer to commit IDs, not
+	// hashes.
 	Hash          string `json:"hash"` // For CLs, this is the CL ID.
 	Author        string `json:"author"`
 	Subject       string `json:"message"`

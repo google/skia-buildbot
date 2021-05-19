@@ -29,11 +29,11 @@ func RawBuilder() databuilder.TablesBuilder {
 		Insert("0000000098", UserOne, "commit 98", "2020-12-01T00:00:00Z").
 		Insert("0000000099", UserTwo, "commit 99", "2020-12-02T00:00:00Z").
 		Insert("0000000100", UserThree, "commit 100", "2020-12-03T00:00:00Z").
-		Insert("0000000101", UserTwo, "Update Windows 10.2 to 10.3", "2020-12-04T00:00:00Z").
+		Insert(WindowsDriverUpdateCommitID, UserTwo, "Update Windows 10.2 to 10.3", "2020-12-04T00:00:00Z").
 		Insert("0000000102", UserOne, "commit 102", "2020-12-05T00:00:00Z").
 		Insert("0000000106", UserTwo, "Add walleye device", "2020-12-07T00:00:00Z").
 		Insert("0000000107", UserThree, "Add taimen device [flaky]", "2020-12-08T00:00:00Z").
-		Insert("0000000108", UserTwo, "Fix iOS Triangle tests [accidental break of circle tests]", "2020-12-09T00:00:00Z").
+		Insert(IOSFixTriangleTestsBreakCircleTestsCommitID, UserTwo, "Fix iOS Triangle tests [accidental break of circle tests]", "2020-12-09T00:00:00Z").
 		Insert("0000000109", UserOne, "Enable autotriage of walleye", "2020-12-10T00:00:00Z").
 		Insert("0000000110", UserTwo, "commit 110", "2020-12-11T00:00:00Z")
 
@@ -617,14 +617,12 @@ const (
 	//"f4412901bfb130a8774c0c719450d1450845f471",
 	//"0111011101110111011101110111011101110111",
 
-	FirstCommit = "d6ccb84da1169020d632bae7a5db48e6aa4c6767"
-
 	// The windows driver was updated on the 4th commit with data.
-	WindowsDriverUpdateCommit = "c43edfb29110b09c89eac7359659151e2a9fc047"
+	WindowsDriverUpdateCommitID = "0000000101"
 
 	// The triangle tests were fixed for IOS on the 8th commit with data. This had the side effect
 	// of breaking the circle tests.
-	IOSFixTriangleTestsBreakCircleTestsCommit = "7bdc929af0c52a997bb6d5ccadbe86ddc532a25a"
+	IOSFixTriangleTestsBreakCircleTestsCommitID = "0000000108"
 )
 
 var (

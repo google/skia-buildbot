@@ -166,7 +166,7 @@ type TraceValueRow struct {
 	// commit_id were first) and w/o spreading our data too thin (if trace_id were first).
 	primaryKey struct{} `sql:"PRIMARY KEY (shard, commit_id, trace_id)"`
 
-	traceCommitIndex struct{} `sql:"INDEX trace_commit_idx (trace_id, commit_id) STORING (digest, options_id)"`
+	traceCommitIndex struct{} `sql:"INDEX trace_commit_idx (trace_id, commit_id) STORING (digest, options_id, grouping_id)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.

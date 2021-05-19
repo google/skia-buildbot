@@ -81,6 +81,7 @@ export interface SearchResult {
 
 export interface Commit {
 	commit_time: number;
+	id: string;
 	hash: string;
 	author: string;
 	message: string;
