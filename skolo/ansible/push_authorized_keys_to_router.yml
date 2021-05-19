@@ -1,0 +1,9 @@
+- hosts: '{{ variable_hosts }}'
+  gather_facts: False
+  tasks:
+    - name: Copy authorized_keys with owner and permissions
+      ansible.builtin.copy:
+        src: ../authorized_keys
+        dest: /home/admin/.ssh/authorized_keys
+        owner: admin
+        mode: '0644'
