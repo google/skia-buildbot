@@ -6,11 +6,11 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	frontend "go.skia.org/infra/golden/go/search/frontend"
+	frontend "go.skia.org/infra/golden/go/web/frontend"
 
 	paramtools "go.skia.org/infra/go/paramtools"
 
-	query "go.skia.org/infra/golden/go/search/query"
+	query "go.skia.org/infra/golden/go/search2/query"
 
 	search2 "go.skia.org/infra/golden/go/search2"
 

@@ -5,22 +5,23 @@ package updater
 import (
 	"context"
 
+	"github.com/jackc/pgx/v4/pgxpool"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
-	"go.skia.org/infra/golden/go/expectations"
 )
 
 type Impl struct {
-	expStore      expectations.Store
+	db            *pgxpool.Pool
 	reviewSystems []clstore.ReviewSystem
 }
 
-func New(e expectations.Store, reviewSystems []clstore.ReviewSystem) *Impl {
+func New(db *pgxpool.Pool, reviewSystems []clstore.ReviewSystem) *Impl {
 	return &Impl{
-		expStore:      e,
+		db:            db,
 		reviewSystems: reviewSystems,
 	}
 }
@@ -77,18 +78,8 @@ func (u *Impl) UpdateChangelistsAsLanded(ctx context.Context, commits []*vcsinfo
 			return skerr.Fmt("cl %v of revision %s was supposed to have landed, but wasn't according to %s", cl, c.Hash, system.ID)
 		}
 
-		// Write the expectations (if any) for the CL to master
-		clExp := u.expStore.ForChangelist(cl.SystemID, system.ID)
-		e, err := clExp.Get(ctx)
-		if err != nil {
-			return skerr.Wrapf(err, "getting CLExpectations for %s (%s)", cl.SystemID, system.ID)
-		}
-		if !e.Empty() {
-			delta := expectations.AsDelta(e)
-			if err := u.expStore.AddChange(ctx, delta, cl.Owner); err != nil {
-				return skerr.Wrapf(err, "writing CLExpectations for %s (%s) to master: %v", cl.SystemID, system.ID, e)
-			}
-		}
+		// TODO(kjlubick) write Expectations as landed
+
 		// cl.Status must be Landed at this point and the CRS has set the cl's Updated time to
 		// the time that it was closed or marked as landed.
 		if err := system.Store.PutChangelist(ctx, cl); err != nil {

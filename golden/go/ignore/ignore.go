@@ -2,15 +2,7 @@ package ignore
 
 import (
 	"context"
-	"net/url"
 	"time"
-
-	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/tiling"
 )
 
 // Store is an interface for a database that saves ignore rules.
@@ -46,94 +38,4 @@ type Rule struct {
 	Query string
 	// Note is a comment by a developer, typically a bug.
 	Note string
-}
-
-// NewRule creates a new ignore rule with the given data.
-func NewRule(createdByUser string, expires time.Time, queryStr string, note string) Rule {
-	return Rule{
-		CreatedBy: createdByUser,
-		UpdatedBy: createdByUser,
-		Expires:   expires,
-		Query:     queryStr,
-		Note:      note,
-	}
-}
-
-// AsMatcher makes a paramtools.ParamMatcher from the given slice of Rules. If any rules are
-// invalid, an error will be returned.
-func AsMatcher(ignores []Rule) (paramtools.ParamMatcher, error) {
-	var ret paramtools.ParamMatcher
-	for _, ignore := range ignores {
-		v, err := url.ParseQuery(ignore.Query)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "invalid ignore rule id %q; query %q", ignore.ID, ignore.Query)
-		}
-		ret = append(ret, paramtools.ParamSet(v))
-	}
-	return ret, nil
-}
-
-// FilterIgnored returns a copy of the given tile with all traces removed
-// that match the ignore rules in the given ignore store. It also returns the
-// ignore rules for later matching.
-func FilterIgnored(inputTile *tiling.Tile, ignores []Rule) (*tiling.Tile, paramtools.ParamMatcher, error) {
-	// Make a shallow copy with a new Traces map
-	ret := &tiling.Tile{
-		Traces:   map[tiling.TraceID]*tiling.Trace{},
-		ParamSet: inputTile.ParamSet,
-		Commits:  inputTile.Commits,
-	}
-
-	// Then, add any traces that don't match any ignore rules
-	ignoreQueries, err := AsMatcher(ignores)
-	if err != nil {
-		return nil, nil, skerr.Wrap(err)
-	}
-nextTrace:
-	for id, tr := range inputTile.Traces {
-		for _, q := range ignoreQueries {
-			if tr.Matches(q) {
-				continue nextTrace
-			}
-		}
-		ret.Traces[id] = tr
-	}
-
-	return ret, ignoreQueries, nil
-}
-
-// oneStep counts the number of ignore rules in the given store that are expired.
-func oneStep(ctx context.Context, store Store, metric metrics2.Int64Metric) error {
-	list, err := store.List(ctx)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	n := 0
-	for _, rule := range list {
-		if time.Now().After(rule.Expires) {
-			n += 1
-		}
-	}
-	metric.Update(int64(n))
-	return nil
-}
-
-// StartMetrics starts a new monitoring routine for the given
-// ignore.Store that counts expired ignore rules and pushes
-// that info into a metric.
-func StartMetrics(ctx context.Context, store Store, interval time.Duration) error {
-	numExpired := metrics2.GetInt64Metric("gold_num_expired_ignore_rules", nil)
-	liveness := metrics2.NewLiveness("gold_expired_ignore_rules_monitoring")
-
-	if err := oneStep(ctx, store, numExpired); err != nil {
-		return skerr.Wrapf(err, "starting to monitor ignore rules")
-	}
-	go util.RepeatCtx(ctx, interval, func(ctx context.Context) {
-		if err := oneStep(ctx, store, numExpired); err != nil {
-			sklog.Errorf("Failed one step of monitoring ignore rules: %s", err)
-			return
-		}
-		liveness.Reset()
-	})
-	return nil
 }

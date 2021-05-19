@@ -17,16 +17,14 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/publicparams"
-	"go.skia.org/infra/golden/go/search/common"
-	"go.skia.org/infra/golden/go/search/frontend"
-	"go.skia.org/infra/golden/go/search/query"
+	"go.skia.org/infra/golden/go/search2/query"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/databuilder"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	"go.skia.org/infra/golden/go/types"
-	web_frontend "go.skia.org/infra/golden/go/web/frontend"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 // These are the later of the times of the last ingested data or last triage action for the
@@ -631,8 +629,8 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 				},
 				TotalDigests: 3,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 4.9783297, QueryMetric: 4.9783297, PixelDiffPercent: 68.75, NumDiffPixels: 44,
 					MaxRGBADiffs: [4]int{40, 149, 100, 0},
 					DimDiffer:    false,
@@ -647,9 +645,9 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestC03Unt,
 			Test:   dks.CircleTest,
@@ -680,8 +678,8 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 				}},
 				TotalDigests: 1,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 0.89245414, QueryMetric: 0.89245414, PixelDiffPercent: 50, NumDiffPixels: 32,
 					MaxRGBADiffs: [4]int{1, 7, 4, 0},
 					DimDiffer:    false,
@@ -696,9 +694,9 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestC04Unt,
 			Test:   dks.CircleTest,
@@ -729,8 +727,8 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 				}},
 				TotalDigests: 1,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 0.17843534, QueryMetric: 0.17843534, PixelDiffPercent: 3.125, NumDiffPixels: 2,
 					MaxRGBADiffs: [4]int{3, 3, 3, 0},
 					DimDiffer:    false,
@@ -745,14 +743,14 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}},
 		Offset:  0,
 		Size:    3,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC04Unt: expectations.Positive,
@@ -974,8 +972,8 @@ func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
 				}},
 				TotalDigests: 1,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 0.89245414, QueryMetric: 0.89245414, PixelDiffPercent: 50, NumDiffPixels: 32,
 					MaxRGBADiffs: [4]int{1, 7, 4, 0},
 					DimDiffer:    false,
@@ -990,14 +988,14 @@ func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}},
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 			},
@@ -1068,8 +1066,8 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 				},
 				TotalDigests: 5,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 0.15655607, QueryMetric: 0.15655607, PixelDiffPercent: 3.125, NumDiffPixels: 2,
 					MaxRGBADiffs: [4]int{4, 0, 0, 0},
 					DimDiffer:    false,
@@ -1086,7 +1084,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 						"fuzzy_max_different_pixels": []string{"2"},
 					},
 				},
-				common.NegativeRef: {
+				frontend.NegativeRef: {
 					CombinedMetric: 10, QueryMetric: 10, PixelDiffPercent: 100, NumDiffPixels: 64,
 					MaxRGBADiffs: [4]int{255, 255, 255, 255},
 					DimDiffer:    false,
@@ -1104,7 +1102,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 					},
 				},
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestB01Pos,
 			Test:   dks.TriangleTest,
@@ -1193,8 +1191,8 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 				},
 				TotalDigests: 3,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 1.9362538, QueryMetric: 1.9362538, PixelDiffPercent: 43.75, NumDiffPixels: 28,
 					MaxRGBADiffs: [4]int{11, 5, 42, 0},
 					DimDiffer:    false,
@@ -1209,7 +1207,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: {
+				frontend.NegativeRef: {
 					CombinedMetric: 2.9445405, QueryMetric: 2.9445405, PixelDiffPercent: 10.9375, NumDiffPixels: 7,
 					MaxRGBADiffs: [4]int{250, 244, 197, 51},
 					DimDiffer:    false,
@@ -1225,12 +1223,12 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 					},
 				},
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}},
 		Offset:  3,
 		Size:    6,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			dks.SquareTest: {
 				dks.DigestA01Pos: expectations.Positive,
 				dks.DigestA02Pos: expectations.Positive,
@@ -1518,8 +1516,8 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 				},
 				TotalDigests: 2,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 1.9362538, QueryMetric: 1.9362538, PixelDiffPercent: 43.75, NumDiffPixels: 28,
 					MaxRGBADiffs: [4]int{11, 5, 42, 0},
 					DimDiffer:    false,
@@ -1534,7 +1532,7 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: {
+				frontend.NegativeRef: {
 					CombinedMetric: 2.9445405, QueryMetric: 2.9445405, PixelDiffPercent: 10.9375, NumDiffPixels: 7,
 					MaxRGBADiffs: [4]int{250, 244, 197, 51},
 					DimDiffer:    false,
@@ -1550,7 +1548,7 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 					},
 				},
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestB02Pos,
 			Test:   dks.TriangleTest,
@@ -1605,8 +1603,8 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 				},
 				TotalDigests: 1,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 1.9362538, QueryMetric: 1.9362538, PixelDiffPercent: 43.75, NumDiffPixels: 28,
 					MaxRGBADiffs: [4]int{11, 5, 42, 0},
 					DimDiffer:    false,
@@ -1621,7 +1619,7 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: {
+				frontend.NegativeRef: {
 					CombinedMetric: 6.489451, QueryMetric: 6.489451, PixelDiffPercent: 53.125, NumDiffPixels: 34,
 					MaxRGBADiffs: [4]int{250, 244, 197, 51},
 					DimDiffer:    false,
@@ -1637,12 +1635,12 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 					},
 				},
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}},
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			dks.TriangleTest: {
 				dks.DigestB01Pos: expectations.Positive,
 				dks.DigestB02Pos: expectations.Positive,
@@ -1721,8 +1719,8 @@ func TestSearch_FilterLeftSideByKeysAndOptions_Success(t *testing.T) {
 				},
 				TotalDigests: 5,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 0.15655607, QueryMetric: 0.15655607, PixelDiffPercent: 3.125, NumDiffPixels: 2,
 					MaxRGBADiffs: [4]int{4, 0, 0, 0},
 					DimDiffer:    false,
@@ -1741,7 +1739,7 @@ func TestSearch_FilterLeftSideByKeysAndOptions_Success(t *testing.T) {
 						"fuzzy_max_different_pixels": []string{"2"},
 					},
 				},
-				common.NegativeRef: {
+				frontend.NegativeRef: {
 					CombinedMetric: 10, QueryMetric: 10, PixelDiffPercent: 100, NumDiffPixels: 64,
 					MaxRGBADiffs: [4]int{255, 255, 255, 255},
 					DimDiffer:    false,
@@ -1761,12 +1759,12 @@ func TestSearch_FilterLeftSideByKeysAndOptions_Success(t *testing.T) {
 					},
 				},
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}},
 		Offset:  0,
 		Size:    1,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			dks.SquareTest: {
 				dks.DigestA08Pos: expectations.Positive,
 			},
@@ -1896,8 +1894,8 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 				},
 				TotalDigests: 5,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 9.189747, QueryMetric: 9.189747, PixelDiffPercent: 90.625, NumDiffPixels: 58,
 					MaxRGBADiffs: [4]int{250, 244, 197, 255},
 					DimDiffer:    false,
@@ -1912,7 +1910,7 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: {
+				frontend.NegativeRef: {
 					CombinedMetric: 9.519716, QueryMetric: 9.519716, PixelDiffPercent: 90.625, NumDiffPixels: 58,
 					MaxRGBADiffs: [4]int{255, 255, 255, 255},
 					DimDiffer:    true,
@@ -1928,7 +1926,7 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 					},
 				},
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestB04Neg,
 			Test:   dks.TriangleTest,
@@ -1972,8 +1970,8 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 				},
 				TotalDigests: 3,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 7.465255, QueryMetric: 7.465255, PixelDiffPercent: 64.0625, NumDiffPixels: 41,
 					MaxRGBADiffs: [4]int{255, 255, 255, 42},
 					DimDiffer:    true,
@@ -1988,7 +1986,7 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: {
+				frontend.NegativeRef: {
 					CombinedMetric: 9.336915, QueryMetric: 9.336915, PixelDiffPercent: 100, NumDiffPixels: 64,
 					MaxRGBADiffs: [4]int{255, 255, 255, 51},
 					DimDiffer:    true,
@@ -2004,7 +2002,7 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 					},
 				},
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestB03Neg,
 			Test:   dks.TriangleTest,
@@ -2048,8 +2046,8 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 				},
 				TotalDigests: 3,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 2.9445405, QueryMetric: 2.9445405, PixelDiffPercent: 10.9375, NumDiffPixels: 7,
 					MaxRGBADiffs: [4]int{250, 244, 197, 51},
 					DimDiffer:    false,
@@ -2064,7 +2062,7 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: {
+				frontend.NegativeRef: {
 					CombinedMetric: 9.336915, QueryMetric: 9.336915, PixelDiffPercent: 100, NumDiffPixels: 64,
 					MaxRGBADiffs: [4]int{255, 255, 255, 51},
 					DimDiffer:    true,
@@ -2080,7 +2078,7 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 					},
 				},
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestA04Unt,
 			Test:   dks.SquareTest,
@@ -2113,8 +2111,8 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 				},
 				TotalDigests: 3,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 0.17843534, QueryMetric: 0.17843534, PixelDiffPercent: 3.125, NumDiffPixels: 2,
 					MaxRGBADiffs: [4]int{3, 3, 3, 0},
 					DimDiffer:    false,
@@ -2129,7 +2127,7 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: {
+				frontend.NegativeRef: {
 					CombinedMetric: 10, QueryMetric: 10, PixelDiffPercent: 100, NumDiffPixels: 64,
 					MaxRGBADiffs: [4]int{255, 255, 255, 255},
 					DimDiffer:    false,
@@ -2145,12 +2143,12 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 					},
 				},
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}},
 		Offset:  0,
 		Size:    4,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			dks.SquareTest: {
 				dks.DigestA04Unt: expectations.Positive,
 			},
@@ -2384,8 +2382,8 @@ func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T)
 				},
 				TotalDigests: 2,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 0.20710422, QueryMetric: 0.20710422, PixelDiffPercent: 3.125, NumDiffPixels: 2,
 					MaxRGBADiffs: [4]int{7, 0, 0, 0},
 					DimDiffer:    false,
@@ -2398,9 +2396,9 @@ func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T)
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestA05Unt,
 			Test:   "draw_a_square",
@@ -2428,8 +2426,8 @@ func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T)
 				},
 				TotalDigests: 2,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 0.20710422, QueryMetric: 0.20710422, PixelDiffPercent: 3.125, NumDiffPixels: 2,
 					MaxRGBADiffs: [4]int{7, 0, 0, 0},
 					DimDiffer:    false,
@@ -2442,9 +2440,9 @@ func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T)
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}},
 		Offset: 0,
 		Size:   2,
@@ -2456,7 +2454,7 @@ func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T)
 				dks.DigestA05Unt: "positive",
 			},
 		},
-		Commits: []web_frontend.Commit{{
+		Commits: []frontend.Commit{{
 			Subject:    "commit 111",
 			CommitTime: 1619827200,
 			Hash:       "6c505df96f1faab539199949572820b2c90f6959",
@@ -2578,8 +2576,8 @@ func assertPublicUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchRespon
 				}},
 				TotalDigests: 1,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 0.89245414, QueryMetric: 0.89245414, PixelDiffPercent: 50, NumDiffPixels: 32,
 					MaxRGBADiffs: [4]int{1, 7, 4, 0},
 					DimDiffer:    false,
@@ -2595,9 +2593,9 @@ func assertPublicUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchRespon
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestC04Unt,
 			Test:   dks.CircleTest,
@@ -2628,8 +2626,8 @@ func assertPublicUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchRespon
 				}},
 				TotalDigests: 1,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 0.17843534, QueryMetric: 0.17843534, PixelDiffPercent: 3.125, NumDiffPixels: 2,
 					MaxRGBADiffs: [4]int{3, 3, 3, 0},
 					DimDiffer:    false,
@@ -2644,14 +2642,14 @@ func assertPublicUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchRespon
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}},
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC04Unt: expectations.Positive,
@@ -2733,8 +2731,8 @@ func assertRightSideTraces(t *testing.T, res *frontend.SearchResponse) {
 				},
 				TotalDigests: 2,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 6.851621, QueryMetric: 6.851621, PixelDiffPercent: 100, NumDiffPixels: 64,
 					MaxRGBADiffs: [4]int{141, 96, 168, 0},
 					DimDiffer:    false,
@@ -2749,9 +2747,9 @@ func assertRightSideTraces(t *testing.T, res *frontend.SearchResponse) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestC03Unt,
 			Test:   dks.CircleTest,
@@ -2782,8 +2780,8 @@ func assertRightSideTraces(t *testing.T, res *frontend.SearchResponse) {
 				}},
 				TotalDigests: 1,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 6.7015314, QueryMetric: 6.7015314, PixelDiffPercent: 100, NumDiffPixels: 64,
 					MaxRGBADiffs: [4]int{141, 66, 168, 0},
 					DimDiffer:    false,
@@ -2798,14 +2796,14 @@ func assertRightSideTraces(t *testing.T, res *frontend.SearchResponse) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}},
 		Offset:  0,
 		Size:    2,
 		Commits: kitchenSinkCommits,
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			dks.CircleTest: {
 				dks.DigestC03Unt: expectations.Positive,
 				dks.DigestC05Unt: expectations.Positive,
@@ -2896,9 +2894,9 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 		IncludeDigestsProducedOnMaster: false,
 	})
 	require.NoError(t, err)
-	var clCommits []web_frontend.Commit
+	var clCommits []frontend.Commit
 	clCommits = append(clCommits, kitchenSinkCommits...)
-	clCommits = append(clCommits, web_frontend.Commit{
+	clCommits = append(clCommits, frontend.Commit{
 		// This is the last time we ingested data for this CL.
 		CommitTime:    time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC).Unix(),
 		Hash:          dks.ChangelistIDThatAttemptsToFixIOS,
@@ -2940,8 +2938,8 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 				},
 				TotalDigests: 3,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 4.240108, QueryMetric: 4.240108, PixelDiffPercent: 68.75, NumDiffPixels: 44,
 					MaxRGBADiffs: [4]int{77, 77, 77, 0},
 					DimDiffer:    false,
@@ -2956,9 +2954,9 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestC06Pos_CL,
 			Test:   dks.CircleTest,
@@ -2991,8 +2989,8 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 				},
 				TotalDigests: 3,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 1.0217842, QueryMetric: 1.0217842, PixelDiffPercent: 6.25, NumDiffPixels: 4,
 					MaxRGBADiffs: [4]int{15, 12, 83, 0},
 					DimDiffer:    false,
@@ -3007,14 +3005,14 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}},
 		Offset:  0,
 		Size:    2,
 		Commits: clCommits,
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			dks.CircleTest: {
 				dks.DigestC06Pos_CL: expectations.Positive,
 				dks.DigestC07Unt_CL: expectations.Positive,
@@ -3137,9 +3135,9 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 		IncludeDigestsProducedOnMaster: true,
 	})
 	require.NoError(t, err)
-	var clCommits []web_frontend.Commit
+	var clCommits []frontend.Commit
 	clCommits = append(clCommits, kitchenSinkCommits...)
-	clCommits = append(clCommits, web_frontend.Commit{
+	clCommits = append(clCommits, frontend.Commit{
 		// This is the last time we ingested data for this CL.
 		CommitTime:    time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC).Unix(),
 		Hash:          dks.ChangelistIDThatAttemptsToFixIOS,
@@ -3204,8 +3202,8 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 				},
 				TotalDigests: 3,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 1.9362538, QueryMetric: 1.9362538, PixelDiffPercent: 43.75, NumDiffPixels: 28,
 					MaxRGBADiffs: [4]int{11, 5, 42, 0},
 					DimDiffer:    false,
@@ -3220,7 +3218,7 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 						"ext":                 []string{"png"},
 					},
 				},
-				common.NegativeRef: {
+				frontend.NegativeRef: {
 					CombinedMetric: 2.9445405, QueryMetric: 2.9445405, PixelDiffPercent: 10.9375, NumDiffPixels: 7,
 					MaxRGBADiffs: [4]int{250, 244, 197, 51},
 					DimDiffer:    false,
@@ -3236,7 +3234,7 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 					},
 				},
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}, {
 			Digest: dks.DigestA01Pos,
 			Test:   dks.SquareTest,
@@ -3278,8 +3276,8 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 				},
 				TotalDigests: 1,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: {
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
 					CombinedMetric: 0.15655607, QueryMetric: 0.15655607, PixelDiffPercent: 3.125, NumDiffPixels: 2,
 					MaxRGBADiffs: [4]int{4, 0, 0, 0},
 					DimDiffer:    false,
@@ -3296,7 +3294,7 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 						"fuzzy_max_different_pixels": []string{"2"},
 					},
 				},
-				common.NegativeRef: {
+				frontend.NegativeRef: {
 					CombinedMetric: 10, QueryMetric: 10, PixelDiffPercent: 100, NumDiffPixels: 64,
 					MaxRGBADiffs: [4]int{255, 255, 255, 255},
 					DimDiffer:    false,
@@ -3312,12 +3310,12 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 					},
 				},
 			},
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		}},
 		Offset:  0,
 		Size:    2,
 		Commits: clCommits,
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			dks.SquareTest: {
 				dks.DigestA01Pos: expectations.Positive,
 			},
@@ -3359,9 +3357,9 @@ func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T)
 		IncludeDigestsProducedOnMaster: false,
 	})
 	require.NoError(t, err)
-	var clCommits []web_frontend.Commit
+	var clCommits []frontend.Commit
 	clCommits = append(clCommits, kitchenSinkCommits...)
-	clCommits = append(clCommits, web_frontend.Commit{
+	clCommits = append(clCommits, frontend.Commit{
 		// This is the last time we ingested data for this CL.
 		CommitTime:    time.Date(2020, time.December, 12, 9, 20, 33, 0, time.UTC).Unix(),
 		Hash:          dks.ChangelistIDThatAddsNewTests,
@@ -3433,16 +3431,16 @@ func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T)
 				},
 				TotalDigests: 1,
 			},
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: nil,
-				common.NegativeRef: nil,
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: nil,
+				frontend.NegativeRef: nil,
 			},
-			ClosestRef: common.NoRef,
+			ClosestRef: frontend.NoRef,
 		}},
 		Offset:  0,
 		Size:    1,
 		Commits: clCommits,
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			dks.SevenTest: {
 				dks.DigestD01Pos_CL: "", // empty string means no closest reference
 			},
@@ -3646,7 +3644,7 @@ func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
 						SampleDigest:     dks.DigestC03Unt,
 					},
 				},
-				Commits: []web_frontend.Commit{kitchenSinkCommits[3]},
+				Commits: []frontend.Commit{kitchenSinkCommits[3]},
 			},
 			{
 				CommitRange:           dks.IOSFixTriangleTestsBreakCircleTestsCommit,
@@ -3703,7 +3701,7 @@ func TestGetBlamesForUntriagedDigests_RespectsPublicParams_Success(t *testing.T)
 						SampleDigest:     dks.DigestC03Unt,
 					},
 				},
-				Commits: []web_frontend.Commit{kitchenSinkCommits[3]},
+				Commits: []frontend.Commit{kitchenSinkCommits[3]},
 			},
 		},
 	}, blames)
@@ -3733,7 +3731,7 @@ func TestCombineIntoRanges_Success(t *testing.T) {
 		mustHash(alphaGrouping): alphaGrouping,
 		mustHash(betaGrouping):  betaGrouping,
 	}
-	simpleCommits := []web_frontend.Commit{
+	simpleCommits := []frontend.Commit{
 		{Hash: "commit01"},
 		{Hash: "commit02"},
 		{Hash: "commit03"},
@@ -3773,7 +3771,7 @@ b:alpha
 			UntriagedDigests: 1,
 			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 		}},
-		Commits: []web_frontend.Commit{simpleCommits[4]},
+		Commits: []frontend.Commit{simpleCommits[4]},
 	}})
 	test("Three traces for the same test change to something different at the same commit", `
 b:alpha
@@ -3790,7 +3788,7 @@ d:alpha
 			UntriagedDigests: 3,
 			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 		}},
-		Commits: []web_frontend.Commit{simpleCommits[4]},
+		Commits: []frontend.Commit{simpleCommits[4]},
 	}})
 	test("Three sparse traces for the same test change in the same range", `
 b:alpha
@@ -3805,7 +3803,7 @@ b:alpha
 			UntriagedDigests: 1,
 			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 		}},
-		Commits: []web_frontend.Commit{simpleCommits[3], simpleCommits[4]},
+		Commits: []frontend.Commit{simpleCommits[3], simpleCommits[4]},
 	}})
 	test("Three sparse traces for different tests change in the same range", `
 b:alpha
@@ -3825,7 +3823,7 @@ d:beta
 			UntriagedDigests: 1,
 			SampleDigest:     "dddddddddddddddddddddddddddddddd",
 		}},
-		Commits: []web_frontend.Commit{simpleCommits[3], simpleCommits[4]},
+		Commits: []frontend.Commit{simpleCommits[3], simpleCommits[4]},
 	}})
 	test("Specific commit turned five traces flaky", `
 d:alpha
@@ -3850,7 +3848,7 @@ f:alpha
 			UntriagedDigests: 1,
 			SampleDigest:     "11111111111111111111111111111111",
 		}},
-		Commits: []web_frontend.Commit{simpleCommits[5]},
+		Commits: []frontend.Commit{simpleCommits[5]},
 	}, {
 		CommitRange:           "commit05:commit06",
 		TotalUntriagedDigests: 1,
@@ -3859,7 +3857,7 @@ f:alpha
 			UntriagedDigests: 1,
 			SampleDigest:     "44444444444444444444444444444444",
 		}},
-		Commits: []web_frontend.Commit{simpleCommits[4], simpleCommits[5]},
+		Commits: []frontend.Commit{simpleCommits[4], simpleCommits[5]},
 	}, {
 		CommitRange:           "commit06:commit07",
 		TotalUntriagedDigests: 1,
@@ -3868,7 +3866,7 @@ f:alpha
 			UntriagedDigests: 1,
 			SampleDigest:     "22222222222222222222222222222222",
 		}},
-		Commits: []web_frontend.Commit{simpleCommits[5], simpleCommits[6]},
+		Commits: []frontend.Commit{simpleCommits[5], simpleCommits[6]},
 	}})
 	test("new traces appearing are blamed to first occurrence", `
 b:alpha
@@ -3887,7 +3885,7 @@ c:beta
 			UntriagedDigests: 1,
 			SampleDigest:     "cccccccccccccccccccccccccccccccc",
 		}},
-		Commits: []web_frontend.Commit{simpleCommits[7]},
+		Commits: []frontend.Commit{simpleCommits[7]},
 	}})
 	// This might happen if a digest was triaged after we made our initial query.
 	// If so, it shouldn't show up in any BlameEntries
@@ -3998,17 +3996,17 @@ func mustHash(grouping paramtools.Params) schema.MD5Hash {
 
 var kitchenSinkCommits = makeKitchenSinkCommits()
 
-func makeKitchenSinkCommits() []web_frontend.Commit {
+func makeKitchenSinkCommits() []frontend.Commit {
 	data := dks.Build()
-	convert := func(row schema.GitCommitRow) web_frontend.Commit {
-		return web_frontend.Commit{
+	convert := func(row schema.GitCommitRow) frontend.Commit {
+		return frontend.Commit{
 			CommitTime: row.CommitTime.Unix(),
 			Hash:       row.GitHash,
 			Author:     row.AuthorEmail,
 			Subject:    row.Subject,
 		}
 	}
-	return []web_frontend.Commit{
+	return []frontend.Commit{
 		convert(data.GitCommits[0]),
 		convert(data.GitCommits[1]),
 		convert(data.GitCommits[2]),

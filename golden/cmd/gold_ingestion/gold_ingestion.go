@@ -248,14 +248,7 @@ func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClien
 	}
 
 	var primaryBranchProcessor ingestion.Processor
-	var err error
-	if conf.Type == ingestion_processors.BigTableTraceStore {
-		primaryBranchProcessor, err = ingestion_processors.PrimaryBranchBigTable(ctx, src, conf.ExtraParams, vcs)
-		if err != nil {
-			return nil, nil, skerr.Wrap(err)
-		}
-		sklog.Infof("Configured BT-backed primary branch ingestion")
-	} else if conf.Type == ingestion_processors.SQLPrimaryBranch {
+	if conf.Type == ingestion_processors.SQLPrimaryBranch {
 		sqlProcessor := ingestion_processors.PrimaryBranchSQL(src, conf.ExtraParams, db)
 		sqlProcessor.MonitorCacheMetrics(ctx)
 		primaryBranchProcessor = sqlProcessor

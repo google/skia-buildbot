@@ -9,14 +9,14 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/jackc/pgx/v4/pgxpool"
+
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
-	"go.skia.org/infra/golden/go/search"
-	"go.skia.org/infra/golden/go/tjstore"
 )
 
 const (
@@ -32,14 +32,14 @@ type Impl struct {
 	publicURL       string
 	logCommentsOnly bool
 	messageTemplate *template.Template
-	search          search.SearchAPI
+	db              *pgxpool.Pool
 
 	liveness metrics2.Liveness
 	// used to mock the time in tests
 	now func() time.Time
 }
 
-func New(system clstore.ReviewSystem, search search.SearchAPI, messageTemplate, instanceURL, publicURL string, logCommentsOnly bool) (*Impl, error) {
+func New(system clstore.ReviewSystem, db *pgxpool.Pool, messageTemplate, instanceURL, publicURL string, logCommentsOnly bool) (*Impl, error) {
 	templ, err := template.New("message").Parse(messageTemplate)
 	if err != nil && messageTemplate != "" {
 		return nil, skerr.Wrapf(err, "Message template %q", messageTemplate)
@@ -51,7 +51,7 @@ func New(system clstore.ReviewSystem, search search.SearchAPI, messageTemplate, 
 		logCommentsOnly: logCommentsOnly,
 		messageTemplate: templ,
 		liveness:        metrics2.NewLiveness(completedCommentCycle),
-		search:          search,
+		db:              db,
 		now:             time.Now,
 	}, nil
 }
@@ -246,17 +246,8 @@ func (i *Impl) updateCLInStoreIfAbandoned(ctx context.Context, cl code_review.Ch
 // are untriaged, unignored and not on the master branch. It also returns the freshness of this
 // data. If there is an error querying the search index, it is logged and 0 is returned.
 func (i *Impl) searchIndexForNewUntriagedDigests(ctx context.Context, clID, psID string) (int, time.Time) {
-	digestList, err := i.search.UntriagedUnignoredTryJobExclusiveDigests(ctx, tjstore.CombinedPSID{
-		CL:  clID,
-		CRS: i.system.ID,
-		PS:  psID,
-	})
-	if err != nil {
-		sklog.Errorf("could not check search index for untriaged digests for CL %s: %s", clID, err)
-		return 0, i.now()
-	}
-	return len(digestList.Digests), digestList.TS
-
+	// TODO(kjlubick)
+	panic("not impl")
 }
 
 // Make sure Impl fulfills the code_review.ChangelistCommenter interface.

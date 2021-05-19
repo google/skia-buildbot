@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jackc/pgx/v4/pgxpool"
+
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/golden/go/clstore"
@@ -22,9 +24,7 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/config"
-	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/web"
@@ -66,21 +66,6 @@ func main() {
 
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, logOpts...)
-	// Auth note: the underlying firestore.NewClient looks at the
-	// GOOGLE_APPLICATION_CREDENTIALS env variable, so we don't need to supply
-	// a token source.
-	fsClient, err := firestore.NewClient(ctx, bsc.FirestoreProjectID, "gold", bsc.FirestoreNamespace, nil)
-	if err != nil {
-		sklog.Fatalf("Unable to configure Firestore: %s", err)
-	}
-
-	expStore := fs_expectationstore.New(fsClient, nil, fs_expectationstore.ReadOnly)
-	if err := expStore.Initialize(ctx); err != nil {
-		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
-	}
-
-	// Initialize the Baseliner instance from the values set above.
-	baseliner := simple_baseliner.New(expStore)
 
 	gsClientOpt := storage.GCSClientOptions{
 		Bucket:             bsc.GCSBucket,
@@ -105,12 +90,14 @@ func main() {
 		reviewSystems = append(reviewSystems, clstore.ReviewSystem{ID: cfg.ID})
 	}
 
+	var sqlDB *pgxpool.Pool // TODO(kjlubick)
+
 	// We only need to fill in the HandlersConfig struct with the following subset, since the baseline
 	// server only supplies a subset of the functionality.
 	handlers, err := web.NewHandlers(web.HandlersConfig{
-		Baseliner:     baseliner,
 		GCSClient:     gsClient,
 		ReviewSystems: reviewSystems,
+		DB:            sqlDB,
 	}, web.BaselineSubset)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
@@ -160,8 +147,6 @@ func main() {
 	v0(shared.KnownHashesRoute, handlers.TextKnownHashesProxy).Methods("GET")
 	v1(shared.KnownHashesRouteV1, handlers.TextKnownHashesProxy).Methods("GET")
 	// Serve the expectations for the master branch and for CLs in progress.
-	v0(shared.ExpectationsRoute, handlers.BaselineHandlerV1).Methods("GET")
-	v1(shared.ExpectationsRouteV1, handlers.BaselineHandlerV1).Methods("GET")
 	v2(shared.ExpectationsRouteV2, handlers.BaselineHandlerV2).Methods("GET")
 
 	// Only log and compress the app routes, but not the health check.
