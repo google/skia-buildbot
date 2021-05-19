@@ -27,7 +27,7 @@ func TestCommitToSyntheticRepo(t *testing.T) {
 	ctx := context.Background()
 
 	// Create a test repo.
-	gb := git_testutils.GitInit(t, ctx)
+	gb := git_testutils.GitInitWithDefaultBranch(t, ctx, git.MainBranch)
 	defer gb.Cleanup()
 
 	// Populate it with an initial whitespace file. Below CreateBranchTrackBranch
@@ -36,7 +36,7 @@ func TestCommitToSyntheticRepo(t *testing.T) {
 	gb.CommitMsg(ctx, "Initial whitespace commit")
 	// Create a branch and check it out, otherwise we can't push
 	// to git.DefaultRemoteBranch on this repo.
-	gb.CreateBranchTrackBranch(ctx, "somebranch", git.DefaultRemoteBranch)
+	gb.CreateBranchTrackBranch(ctx, "somebranch", git.DefaultRemote+"/"+git.MainBranch)
 	gb.CheckoutBranch(ctx, "somebranch")
 
 	// Create tmp dir that gets cleaned up.
@@ -47,7 +47,7 @@ func TestCommitToSyntheticRepo(t *testing.T) {
 	// Create git.Checkout.
 	checkout, err := git.NewCheckout(context.Background(), gb.Dir(), workdir)
 	require.NoError(t, err)
-	err = checkout.Cleanup(ctx)
+	err = checkout.CleanupBranch(ctx, git.MainBranch)
 	require.NoError(t, err)
 
 	// Make sure email and name are correctly set.
