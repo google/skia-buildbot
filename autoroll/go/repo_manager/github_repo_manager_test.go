@@ -86,7 +86,7 @@ func setupGithub(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (contex
 	// Create child and parent repos.
 	childPath := filepath.Join(wd, "earth")
 	require.NoError(t, os.MkdirAll(childPath, 0755))
-	child := git_testutils.GitInitWithDir(t, ctx, childPath)
+	child := git_testutils.GitInitWithDir(t, ctx, childPath, git.MasterBranch)
 	f := "somefile.txt"
 	childCommits := make([]string, 0, 10)
 	for i := 0; i < numChildCommits; i++ {
@@ -95,7 +95,7 @@ func setupGithub(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (contex
 
 	parentPath := filepath.Join(wd, "krypton")
 	require.NoError(t, os.MkdirAll(parentPath, 0755))
-	parent := git_testutils.GitInitWithDir(t, ctx, parentPath)
+	parent := git_testutils.GitInitWithDir(t, ctx, parentPath, git.MasterBranch)
 	parent.Add(ctx, githubVersionFile, fmt.Sprintf(`%s`, childCommits[0]))
 	parent.Commit(ctx)
 
