@@ -26,27 +26,35 @@ type GitBuilder struct {
 	rng    *rand.Rand
 }
 
-// GitInit creates a new git repo in a temporary directory and returns a
-// GitBuilder to manage it. Call Cleanup to remove the temporary directory. The
-// current branch will be the main branch.
+// GitInit calls GitInitWithDefaultBranch with MasterBranch.
 func GitInit(t sktest.TestingT, ctx context.Context) *GitBuilder {
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
-	return GitInitWithDir(t, ctx, tmp)
+	return GitInitWithDir(t, ctx, tmp, git_common.MasterBranch)
+}
+
+// GitInitWithDefaultBranch creates a new git repo in a temporary directory with the
+// specified default branch and returns a GitBuilder to manage it. Call Cleanup to
+// remove the temporary directory. The current branch will be the main branch.
+func GitInitWithDefaultBranch(t sktest.TestingT, ctx context.Context, defaultBranch string) *GitBuilder {
+	tmp, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+
+	return GitInitWithDir(t, ctx, tmp, defaultBranch)
 }
 
 // GitInit creates a new git repo in the specified directory and returns a
 // GitBuilder to manage it. Call Cleanup to remove the temporary directory. The
 // current branch will be the main branch.
-func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir string) *GitBuilder {
+func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir, defaultBranch string) *GitBuilder {
 	gitExec, _, _, err := git_common.FindGit(ctx)
 	require.NoError(t, err)
 
 	g := &GitBuilder{
 		t:      t,
 		dir:    dir,
-		branch: git_common.MasterBranch,
+		branch: defaultBranch,
 		git:    gitExec,
 		rng:    rand.New(rand.NewSource(0)),
 	}
