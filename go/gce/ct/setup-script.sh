@@ -25,6 +25,12 @@ sudo apt-get -y install autotools-dev blt-dev bzip2 dpkg-dev g++-multilib \
     python-crypto python-mox3 python-pil python-ply quilt tk-dev zlib1g-dev \
     mesa-utils android-tools-adb
 
+# Install python3.8 (skbug.com/12021). This will not be needed when all of CT
+# uses python3 and we can use it via CIPD instead.
+sudo apt install python3.8 -y
+sudo rm /usr/bin/python3
+sudo ln -s /usr/bin/python3.8 /usr/bin/python3
+
 echo "Bring artifacts in from Google storage..."
 # TODO(rmistry): Figure out which ones we really need.
 /snap/bin/gsutil cp gs://cluster-telemetry-bucket/artifacts/bots/.gitconfig_ct ~/.gitconfig
