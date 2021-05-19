@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -659,6 +660,11 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*legacy_frontend.Se
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if len(traceDigests) == 0 {
+		return &legacy_frontend.SearchResponse{
+			Commits: commits,
+		}, nil
+	}
 	// Lookup the closest diffs to the given digests. This returns a subset according to the
 	// limit and offset in the query.
 	closestDiffs, allClosestLabels, err := s.getClosestDiffs(ctx, traceDigests)
@@ -797,6 +803,18 @@ type stageOneResult struct {
 func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context) ([]stageOneResult, error) {
 	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTraces")
 	defer span.End()
+	q := getQuery(ctx)
+	corpus := q.TraceValues[types.CorpusField][0]
+	if corpus == "" {
+		return nil, skerr.Fmt("must specify corpus in search of left side.")
+	}
+	if q.BlameGroupID != "" {
+		results, err := s.getTracesForBlame(ctx, corpus, q.BlameGroupID)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "searching for blame %q in corpus %q", q.BlameGroupID, corpus)
+		}
+		return results, nil
+	}
 	statement := `WITH
 MatchingDigests AS (
     SELECT grouping_id, digest FROM Expectations
@@ -811,7 +829,6 @@ JOIN
 MatchingTraces ON MatchingDigests.grouping_id = MatchingTraces.grouping_id AND
   MatchingDigests.digest = MatchingTraces.digest`
 
-	q := getQuery(ctx)
 	var triageStatuses []schema.ExpectationLabel
 	if q.IncludeUntriagedDigests {
 		triageStatuses = append(triageStatuses, schema.LabelUntriaged)
@@ -843,6 +860,87 @@ MatchingTraces ON MatchingDigests.grouping_id = MatchingTraces.grouping_id AND
 			if _, ok := s.publiclyVisibleTraces[traceKey]; !ok {
 				continue
 			}
+		}
+		rv = append(rv, row)
+	}
+	return rv, nil
+}
+
+// getTracesForBlame returns the traces that match the given blameID. That is, those traces which
+// have untriaged digests at head and at the given commit or in the range of commits as specified
+// by blameID. The blameID is either a single commit id or two commitIDs that represent an inclusive
+// range.
+func (s *Impl) getTracesForBlame(ctx context.Context, corpus string, blameID string) ([]stageOneResult, error) {
+	ctx, span := trace.StartSpan(ctx, "getTracesForBlame")
+	defer span.End()
+	// Find untriaged digests at head and the traces that produced them.
+	tracesByDigest, err := s.getTracesWithUntriagedDigestsAtHead(ctx, corpus)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if s.isPublicView {
+		tracesByDigest = s.applyPublicFilter(ctx, tracesByDigest)
+	}
+	var traces []schema.TraceID
+	for _, xt := range tracesByDigest {
+		traces = append(traces, xt...)
+	}
+	if len(traces) == 0 {
+		return nil, nil // No data, we can stop here
+	}
+
+	// Assume blameID is a single commit
+	startCommit, endCommit := blameID, blameID
+	// Check to see if it's in two parts otherwise.
+	if parts := strings.Split(blameID, ":"); len(parts) == 2 {
+		startCommit = parts[0]
+		endCommit = parts[1]
+	}
+	// This SQL finds the first digest seen before the range and the first digest seen after
+	// the range for all traces. It then returns only those traces whose digest after is untriaged
+	// and the digest before is either triaged or null. This will indicate the change from
+	// triaged to untriaged started within the range, which is what the blame range fundamentally
+	// means.
+	const statement = `WITH
+FirstDigestBeforeRange AS (
+	SELECT DISTINCT ON (trace_id)
+       trace_id, grouping_id, digest FROM TraceValues@trace_commit_idx
+	WHERE trace_id = ANY($1) AND commit_id > $2 AND commit_id < $3
+	ORDER BY trace_id, commit_id DESC
+),
+FirstDigestAfterRange AS (
+	SELECT DISTINCT ON (trace_id)
+       trace_id, grouping_id, digest FROM TraceValues@trace_commit_idx
+	WHERE trace_id = ANY($1) AND commit_id >= $4
+	ORDER BY trace_id, commit_id ASC
+),
+TriagedBeforeRange AS (
+	SELECT trace_id, label FROM FirstDigestBeforeRange
+	JOIN Expectations ON FirstDigestBeforeRange.grouping_id = Expectations.grouping_id AND
+	FirstDigestBeforeRange.digest = Expectations.digest
+),
+UntriagedAfterRange AS (
+	SELECT FirstDigestAfterRange.* FROM FirstDigestAfterRange
+	JOIN Expectations ON FirstDigestAfterRange.grouping_id = Expectations.grouping_id AND
+	FirstDigestAfterRange.digest = Expectations.digest
+	WHERE label = 'u'
+)
+SELECT UntriagedAfterRange.* FROM
+	UntriagedAfterRange LEFT JOIN
+	TriagedBeforeRange ON UntriagedAfterRange.trace_id = TriagedBeforeRange.trace_id
+	WHERE TriagedBeforeRange.label IS NULL -- no digests before range (e.g. new trace)
+		OR TriagedBeforeRange.label = 'n' OR TriagedBeforeRange.label = 'p'
+`
+	rows, err := s.db.Query(ctx, statement, traces, getFirstCommitID(ctx), startCommit, endCommit)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var rv []stageOneResult
+	for rows.Next() {
+		var row stageOneResult
+		if err := rows.Scan(&row.traceID, &row.groupingID, &row.digest); err != nil {
+			return nil, skerr.Wrap(err)
 		}
 		rv = append(rv, row)
 	}
@@ -1732,6 +1830,7 @@ FROM GitCommits WHERE commit_id = $1`
 			}
 			commit = web_frontend.Commit{
 				CommitTime: dbRow.CommitTime.UTC().Unix(),
+				ID:         string(commitID),
 				Hash:       dbRow.GitHash,
 				Author:     dbRow.AuthorEmail,
 				Subject:    dbRow.Subject,
@@ -2655,12 +2754,12 @@ func getRangeAndBlame(commits []web_frontend.Commit, startIndex, endIndex int) (
 	// If startIndex is -1, then we have no data all the way to the beginning of the window - this
 	// commonly happens when a new test is added.
 	if (endIndex-startIndex) == 1 || startIndex == endIndex || startIndex == -1 {
-		return endCommit.Hash, []web_frontend.Commit{endCommit}
+		return endCommit.ID, []web_frontend.Commit{endCommit}
 	}
 	// Add 1 because startIndex is the last known "good" index, and we want our blamelist to only
 	// encompass "bad" commits.
 	startCommit := commits[startIndex+1]
-	return fmt.Sprintf("%s:%s", startCommit.Hash, endCommit.Hash), commits[startIndex+1 : endIndex+1]
+	return fmt.Sprintf("%s:%s", startCommit.ID, endCommit.ID), commits[startIndex+1 : endIndex+1]
 }
 
 // Make sure Impl implements the API interface.

@@ -3161,7 +3161,7 @@ func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.
 
 	ms.On("GetBlamesForUntriagedDigests", testutils.AnyContext, "the_corpus").Return(search2.BlameSummaryV1{
 		Ranges: []search2.BlameEntry{{
-			CommitRange:           "commit04:commit05",
+			CommitRange:           "000054321:000054322",
 			TotalUntriagedDigests: 2,
 			AffectedGroupings: []*search2.AffectedGrouping{{
 				Grouping: paramtools.Params{
@@ -3181,11 +3181,13 @@ func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.
 			Commits: []frontend.Commit{{
 				CommitTime: 12345678000,
 				Hash:       "1234567890abcdef1234567890abcdef12345678",
+				ID:         "000054321",
 				Author:     "user1@example.com",
 				Subject:    "Probably broke something",
 			}, {
 				CommitTime: 12345678900,
 				Hash:       "4567890abcdef1234567890abcdef1234567890a",
+				ID:         "000054322",
 				Author:     "user2@example.com",
 				Subject:    "Might not have broke anything",
 			}},
@@ -3201,7 +3203,7 @@ func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/byblame?query=source_type%3Dthe_corpus", nil)
 	wh.ByBlameHandler2(w, r)
-	const expectedJSON = `{"data":[{"groupID":"commit04:commit05","nDigests":2,"nTests":2,"affectedTests":[{"test":"alpha","num":1,"sample_digest":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},{"test":"beta","num":1,"sample_digest":"dddddddddddddddddddddddddddddddd"}],"commits":[{"commit_time":12345678000,"hash":"1234567890abcdef1234567890abcdef12345678","author":"user1@example.com","message":"Probably broke something","cl_url":""},{"commit_time":12345678900,"hash":"4567890abcdef1234567890abcdef1234567890a","author":"user2@example.com","message":"Might not have broke anything","cl_url":""}]}]}`
+	const expectedJSON = `{"data":[{"groupID":"000054321:000054322","nDigests":2,"nTests":2,"affectedTests":[{"test":"alpha","num":1,"sample_digest":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},{"test":"beta","num":1,"sample_digest":"dddddddddddddddddddddddddddddddd"}],"commits":[{"commit_time":12345678000,"id":"000054321","hash":"1234567890abcdef1234567890abcdef12345678","author":"user1@example.com","message":"Probably broke something","cl_url":""},{"commit_time":12345678900,"id":"000054322","hash":"4567890abcdef1234567890abcdef1234567890a","author":"user2@example.com","message":"Might not have broke anything","cl_url":""}]}]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
