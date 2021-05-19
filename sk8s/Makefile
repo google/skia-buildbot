@@ -22,3 +22,18 @@ release_rpi_swarming:
 
 push_rpi_swarming: release_rpi_swarming
 	pushk rpi-swarming-client
+
+release_skolo_access:
+	CGO_ENABLED=0 GOOS=linux go install -a ../kube/go/auth-proxy
+	./images/skolo-access/release
+
+push_skolo_access: release_skolo_access
+	pushk skolo-access
+
+
+release_skolo_revportforward:
+	CGO_ENABLED=0 GOOS=linux go install -a ../go/revportforward/cmd/revportforward
+	./images/skolo-revportforward/release
+
+push_skolo_revportforward: release_skolo_revportforward
+	pushk skolo-revportforward

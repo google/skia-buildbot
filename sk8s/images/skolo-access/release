@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -x -e
+
+APPNAME=skolo-access
+
+IMAGE=$(dirname "$0")
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+
+# Add the dockerfile and binary.
+${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile       ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/auth-proxy  ${ROOT}/usr/local/bin/auth-proxy
+
+}
+
+source ../bash/docker_build.sh
