@@ -28,14 +28,12 @@ import (
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/publicparams"
 	"go.skia.org/infra/golden/go/search"
-	"go.skia.org/infra/golden/go/search/common"
-	legacy_frontend "go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
-	web_frontend "go.skia.org/infra/golden/go/web/frontend"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 type API interface {
@@ -50,7 +48,7 @@ type API interface {
 
 	// Search queries the current tile based on the parameters specified in
 	// the instance of the *query.Search.
-	Search(context.Context, *query.Search) (*legacy_frontend.SearchResponse, error)
+	Search(context.Context, *query.Search) (*frontend.SearchResponse, error)
 
 	// GetPrimaryBranchParamset returns all params that are on the most recent few tiles. If
 	// this is public view, it will only return the params on the traces which match the publicly
@@ -121,7 +119,7 @@ type BlameEntry struct {
 	// AffectedGroupings summarize the untriaged digests affected in the commit range.
 	AffectedGroupings []*AffectedGrouping
 	// Commits is one or two commits corresponding to the CommitRange.
-	Commits []web_frontend.Commit
+	Commits []frontend.Commit
 }
 
 type AffectedGrouping struct {
@@ -633,7 +631,7 @@ ORDER BY ts DESC LIMIT 1
 }
 
 // Search implements the SearchAPI interface.
-func (s *Impl) Search(ctx context.Context, q *query.Search) (*legacy_frontend.SearchResponse, error) {
+func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "search2_Search")
 	defer span.End()
 
@@ -661,7 +659,7 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*legacy_frontend.Se
 		return nil, skerr.Wrap(err)
 	}
 	if len(traceDigests) == 0 {
-		return &legacy_frontend.SearchResponse{
+		return &frontend.SearchResponse{
 			Commits: commits,
 		}, nil
 	}
@@ -695,7 +693,7 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*legacy_frontend.Se
 		}
 	}
 
-	return &legacy_frontend.SearchResponse{
+	return &frontend.SearchResponse{
 		Results:        results,
 		Offset:         q.Offset,
 		Size:           len(allClosestLabels),
@@ -1100,10 +1098,10 @@ type stageTwoResult struct {
 	groupingID      schema.GroupingID
 	rightDigests    []schema.DigestBytes
 	traceIDs        []schema.TraceID
-	optionsIDs      []schema.OptionsID            // will be set for CL data only
-	closestDigest   *legacy_frontend.SRDiffDigest // These won't have ParamSets yet
-	closestPositive *legacy_frontend.SRDiffDigest
-	closestNegative *legacy_frontend.SRDiffDigest
+	optionsIDs      []schema.OptionsID     // will be set for CL data only
+	closestDigest   *frontend.SRDiffDigest // These won't have ParamSets yet
+	closestPositive *frontend.SRDiffDigest
+	closestNegative *frontend.SRDiffDigest
 }
 
 // getClosestDiffs returns information about the closest triaged digests for each result in the
@@ -1253,7 +1251,7 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 
 // getDiffsForGrouping returns the closest positive and negative diffs for the provided digests
 // in the given grouping.
-func (s *Impl) getDiffsForGrouping(ctx context.Context, groupingID schema.MD5Hash, digests []schema.DigestBytes) (map[groupingDigestKey][]*legacy_frontend.SRDiffDigest, error) {
+func (s *Impl) getDiffsForGrouping(ctx context.Context, groupingID schema.MD5Hash, digests []schema.DigestBytes) (map[groupingDigestKey][]*frontend.SRDiffDigest, error) {
 	ctx, span := trace.StartSpan(ctx, "getDiffsForGrouping")
 	defer span.End()
 	statement, err := observedDigestsStatement(getQuery(ctx).RightTraceValues)
@@ -1286,7 +1284,7 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 		return nil, skerr.Wrap(err)
 	}
 	defer rows.Close()
-	results := map[groupingDigestKey][]*legacy_frontend.SRDiffDigest{}
+	results := map[groupingDigestKey][]*frontend.SRDiffDigest{}
 	var label schema.ExpectationLabel
 	var row schema.DiffMetricRow
 	for rows.Next() {
@@ -1296,7 +1294,7 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 			rows.Close()
 			return nil, skerr.Wrap(err)
 		}
-		srdd := &legacy_frontend.SRDiffDigest{
+		srdd := &frontend.SRDiffDigest{
 			Digest:           types.Digest(hex.EncodeToString(row.RightDigest)),
 			Status:           label.ToExpectation(),
 			CombinedMetric:   row.CombinedMetric,
@@ -1579,28 +1577,28 @@ func (s *Impl) expandTraceToParams(ctx context.Context, traceID schema.TraceID) 
 
 // fillOutTraceHistory returns a slice of SearchResults that are mostly filled in, particularly
 // including the history of the traces for each result.
-func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []stageTwoResult) ([]*legacy_frontend.SearchResult, error) {
+func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []stageTwoResult) ([]*frontend.SearchResult, error) {
 	ctx, span := trace.StartSpan(ctx, "fillOutTraceHistory")
 	span.AddAttributes(trace.Int64Attribute("results", int64(len(inputs))))
 	defer span.End()
 	// Fill out these histories in parallel. We avoid race conditions by writing to a prescribed
 	// index in the results slice.
-	results := make([]*legacy_frontend.SearchResult, len(inputs))
+	results := make([]*frontend.SearchResult, len(inputs))
 	eg, eCtx := errgroup.WithContext(ctx)
 	for i, j := range inputs {
 		idx, input := i, j
 		eg.Go(func() error {
-			sr := &legacy_frontend.SearchResult{
+			sr := &frontend.SearchResult{
 				Digest: types.Digest(hex.EncodeToString(input.leftDigest)),
-				RefDiffs: map[common.RefClosest]*legacy_frontend.SRDiffDigest{
-					common.PositiveRef: input.closestPositive,
-					common.NegativeRef: input.closestNegative,
+				RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+					frontend.PositiveRef: input.closestPositive,
+					frontend.NegativeRef: input.closestNegative,
 				},
 			}
 			if input.closestDigest != nil && input.closestDigest.Status == expectations.Positive {
-				sr.ClosestRef = common.PositiveRef
+				sr.ClosestRef = frontend.PositiveRef
 			} else if input.closestDigest != nil && input.closestDigest.Status == expectations.Negative {
-				sr.ClosestRef = common.NegativeRef
+				sr.ClosestRef = frontend.NegativeRef
 			}
 			tg, err := s.traceGroupForTraces(eCtx, input.traceIDs, input.optionsIDs, sr.Digest)
 			if err != nil {
@@ -1651,7 +1649,7 @@ type traceDigestCommit struct {
 // turns it into a format that the frontend can render. If latestOptions is provided, it is assumed
 // to be a parallel slice to traceIDs - those options will be used as the options for each trace
 // instead of the ones that were searched.
-func (s *Impl) traceGroupForTraces(ctx context.Context, traceIDs []schema.TraceID, latestOptions []schema.OptionsID, primary types.Digest) (legacy_frontend.TraceGroup, error) {
+func (s *Impl) traceGroupForTraces(ctx context.Context, traceIDs []schema.TraceID, latestOptions []schema.OptionsID, primary types.Digest) (frontend.TraceGroup, error) {
 	ctx, span := trace.StartSpan(ctx, "traceGroupForTraces")
 	span.AddAttributes(trace.Int64Attribute("num_traces", int64(len(traceIDs))))
 	defer span.End()
@@ -1671,7 +1669,7 @@ FROM TraceValues WHERE trace_id = ANY($1) AND commit_id >= $2
 ORDER BY trace_id, commit_id`
 	rows, err := s.db.Query(ctx, statement, traceIDs, getFirstCommitID(ctx))
 	if err != nil {
-		return legacy_frontend.TraceGroup{}, skerr.Wrap(err)
+		return frontend.TraceGroup{}, skerr.Wrap(err)
 	}
 	defer rows.Close()
 	var key schema.MD5Hash
@@ -1679,7 +1677,7 @@ ORDER BY trace_id, commit_id`
 	for rows.Next() {
 		var row traceDigestCommit
 		if err := rows.Scan(&traceID, &row.commitID, &row.digest, &row.optionsID); err != nil {
-			return legacy_frontend.TraceGroup{}, skerr.Wrap(err)
+			return frontend.TraceGroup{}, skerr.Wrap(err)
 		}
 		copy(key[:], traceID)
 		traceData[key] = append(traceData[key], row)
@@ -1689,7 +1687,7 @@ ORDER BY trace_id, commit_id`
 
 // fillInExpectations looks up all the expectations for the digests included in the given
 // TraceGroup and updates the passed in TraceGroup directly.
-func (s *Impl) fillInExpectations(ctx context.Context, tg *legacy_frontend.TraceGroup, groupingID schema.GroupingID) error {
+func (s *Impl) fillInExpectations(ctx context.Context, tg *frontend.TraceGroup, groupingID schema.GroupingID) error {
 	ctx, span := trace.StartSpan(ctx, "fillInExpectations")
 	defer span.End()
 	digests := make([]interface{}, 0, len(tg.Digests))
@@ -1746,7 +1744,7 @@ CLExpectations FULL OUTER JOIN PrimaryExpectations ON
 
 // fillInTraceParams looks up the keys (params) for each trace and fills them in on the passed in
 // TraceGroup.
-func (s *Impl) fillInTraceParams(ctx context.Context, tg *legacy_frontend.TraceGroup) error {
+func (s *Impl) fillInTraceParams(ctx context.Context, tg *frontend.TraceGroup) error {
 	ctx, span := trace.StartSpan(ctx, "fillInTraceParams")
 	defer span.End()
 	for i, tr := range tg.Traces {
@@ -1772,7 +1770,7 @@ func (s *Impl) fillInTraceParams(ctx context.Context, tg *legacy_frontend.TraceG
 }
 
 // convertBulkTriageData converts the passed in map into the version usable by the frontend.
-func (s *Impl) convertBulkTriageData(ctx context.Context, data map[groupingDigestKey]expectations.Label) (web_frontend.TriageRequestData, error) {
+func (s *Impl) convertBulkTriageData(ctx context.Context, data map[groupingDigestKey]expectations.Label) (frontend.TriageRequestData, error) {
 	ctx, span := trace.StartSpan(ctx, "convertBulkTriageData")
 	defer span.End()
 	rv := map[types.TestName]map[types.Digest]expectations.Label{}
@@ -1810,15 +1808,15 @@ func (s *Impl) expandGrouping(ctx context.Context, groupingID schema.MD5Hash) (p
 }
 
 // getCommits returns the front-end friendly version of the commits within the searched window.
-func (s *Impl) getCommits(ctx context.Context) ([]web_frontend.Commit, error) {
+func (s *Impl) getCommits(ctx context.Context) ([]frontend.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "getCommits")
 	defer span.End()
-	rv := make([]web_frontend.Commit, getActualWindowLength(ctx))
+	rv := make([]frontend.Commit, getActualWindowLength(ctx))
 	commitIDs := getCommitToIdxMap(ctx)
 	for commitID, idx := range commitIDs {
-		var commit web_frontend.Commit
+		var commit frontend.Commit
 		if c, ok := s.commitCache.Get(commitID); ok {
-			commit = c.(web_frontend.Commit)
+			commit = c.(frontend.Commit)
 		} else {
 			// TODO(kjlubick) will need to handle non-git repos too
 			const statement = `SELECT git_hash, commit_time, author_email, subject
@@ -1828,7 +1826,7 @@ FROM GitCommits WHERE commit_id = $1`
 			if err := row.Scan(&dbRow.GitHash, &dbRow.CommitTime, &dbRow.AuthorEmail, &dbRow.Subject); err != nil {
 				return nil, skerr.Wrap(err)
 			}
-			commit = web_frontend.Commit{
+			commit = frontend.Commit{
 				CommitTime: dbRow.CommitTime.UTC().Unix(),
 				ID:         string(commitID),
 				Hash:       dbRow.GitHash,
@@ -1846,7 +1844,7 @@ FROM GitCommits WHERE commit_id = $1`
 // exists). It reuses much of the same pipeline structure as the normal search, with a few key
 // differences. It prepends the data to all traces, pretending as if the CL were to land and the
 // new data would be drawn at ToT (this can be confusing for CLs which already landed).
-func (s *Impl) searchCLData(ctx context.Context) (*legacy_frontend.SearchResponse, error) {
+func (s *Impl) searchCLData(ctx context.Context) (*frontend.SearchResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "searchCLData")
 	defer span.End()
 	var err error
@@ -1899,7 +1897,7 @@ func (s *Impl) searchCLData(ctx context.Context) (*legacy_frontend.SearchRespons
 		}
 	}
 
-	return &legacy_frontend.SearchResponse{
+	return &frontend.SearchResponse{
 		Results:        results,
 		Offset:         getQuery(ctx).Offset,
 		Size:           len(allClosestLabels),
@@ -1931,7 +1929,7 @@ changelist_id = $1 AND system = $2 AND ps_order = $3`
 }
 
 // addCLCommit adds a fake commit to the end of the trace data to represent the data for this CL.
-func (s *Impl) addCLCommit(ctx context.Context, commits []web_frontend.Commit) ([]web_frontend.Commit, error) {
+func (s *Impl) addCLCommit(ctx context.Context, commits []frontend.Commit) ([]frontend.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "addCLCommit")
 	defer span.End()
 	q := getQuery(ctx)
@@ -1949,7 +1947,7 @@ WHERE changelist_id = $1`
 	if err := row.Scan(&cl.OwnerEmail, &cl.Subject, &cl.LastIngestedData); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return append(commits, web_frontend.Commit{
+	return append(commits, frontend.Commit{
 		CommitTime:    cl.LastIngestedData.UTC().Unix(),
 		Hash:          q.ChangelistID,
 		Author:        cl.OwnerEmail,
@@ -2104,11 +2102,11 @@ func matchingCLTracesStatement(ps paramtools.ParamSet, includeIgnored bool) (str
 // makeTraceGroup converts all the trace+digest+commit triples into a TraceGroup. On the frontend,
 // we only show the top 9 digests before fading them to grey - this handles that logic.
 // It is assumed that the slices in the data map are in ascending order of commits.
-func makeTraceGroup(ctx context.Context, data map[schema.MD5Hash][]traceDigestCommit, primary types.Digest) (legacy_frontend.TraceGroup, error) {
+func makeTraceGroup(ctx context.Context, data map[schema.MD5Hash][]traceDigestCommit, primary types.Digest) (frontend.TraceGroup, error) {
 	ctx, span := trace.StartSpan(ctx, "makeTraceGroup")
 	defer span.End()
 	isCL := getQualifiedCL(ctx) != ""
-	tg := legacy_frontend.TraceGroup{}
+	tg := frontend.TraceGroup{}
 	if len(data) == 0 {
 		return tg, nil
 	}
@@ -2118,7 +2116,7 @@ func makeTraceGroup(ctx context.Context, data map[schema.MD5Hash][]traceDigestCo
 	}
 	indexMap := getCommitToIdxMap(ctx)
 	for trID, points := range data {
-		currentTrace := legacy_frontend.Trace{
+		currentTrace := frontend.Trace{
 			ID:            tiling.TraceID(hex.EncodeToString(trID[:])),
 			DigestIndices: emptyIndices(traceLength),
 			RawTrace:      tiling.NewEmptyTrace(traceLength, nil, nil),
@@ -2146,9 +2144,9 @@ func makeTraceGroup(ctx context.Context, data map[schema.MD5Hash][]traceDigestCo
 	digestIndices, totalDigests := search.ComputeDigestIndices(&tg, primary)
 	tg.TotalDigests = totalDigests
 
-	tg.Digests = make([]legacy_frontend.DigestStatus, len(digestIndices))
+	tg.Digests = make([]frontend.DigestStatus, len(digestIndices))
 	for digest, idx := range digestIndices {
-		tg.Digests[idx] = legacy_frontend.DigestStatus{
+		tg.Digests[idx] = frontend.DigestStatus{
 			Digest: digest,
 			Status: expectations.Untriaged,
 		}
@@ -2648,7 +2646,7 @@ func (s *Impl) expandGroupings(ctx context.Context, groupings map[groupingDigest
 // in the window that have affected different tests, so this algorithm combines ranges and returns
 // them as a slice, with the commits that produced the most untriaged digests coming first.
 // It is recommended to look at the tests for this function to see some examples.
-func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, groupings map[schema.MD5Hash]paramtools.Params, commits []web_frontend.Commit, exp map[expectationKey]expectations.Label) []BlameEntry {
+func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, groupings map[schema.MD5Hash]paramtools.Params, commits []frontend.Commit, exp map[expectationKey]expectations.Label) []BlameEntry {
 	ctx, span := trace.StartSpan(ctx, "combineIntoRanges")
 	defer span.End()
 
@@ -2748,13 +2746,13 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 
 // getRangeAndBlame returns a range identifier (either a single commit id or a start and end
 // commit id separated by a colon) and the corresponding web commit objects.
-func getRangeAndBlame(commits []web_frontend.Commit, startIndex, endIndex int) (string, []web_frontend.Commit) {
+func getRangeAndBlame(commits []frontend.Commit, startIndex, endIndex int) (string, []frontend.Commit) {
 	endCommit := commits[endIndex]
 	// If the indexes are within 1 (or rarely, equal), we have pinned the range down to one commit.
 	// If startIndex is -1, then we have no data all the way to the beginning of the window - this
 	// commonly happens when a new test is added.
 	if (endIndex-startIndex) == 1 || startIndex == endIndex || startIndex == -1 {
-		return endCommit.ID, []web_frontend.Commit{endCommit}
+		return endCommit.ID, []frontend.Commit{endCommit}
 	}
 	// Add 1 because startIndex is the last known "good" index, and we want our blamelist to only
 	// encompass "bad" commits.

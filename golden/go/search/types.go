@@ -3,10 +3,10 @@ package search
 import (
 	"context"
 
-	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 // SearchAPI provides multiple ways to query the current tile for digests.

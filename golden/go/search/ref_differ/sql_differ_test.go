@@ -13,13 +13,12 @@ import (
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
-	"go.skia.org/infra/golden/go/search/common"
-	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 func TestSQLRefDiffer_PositiveAndNegativeDigestsExist_CombinedMetric_Success(t *testing.T) {
@@ -68,8 +67,8 @@ func TestSQLRefDiffer_PositiveAndNegativeDigestsExist_CombinedMetric_Success(t *
 	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
 	require.NoError(t, err)
-	assert.Equal(t, common.NegativeRef, input.ClosestRef)
-	posRef := input.RefDiffs[common.PositiveRef]
+	assert.Equal(t, frontend.NegativeRef, input.ClosestRef)
+	posRef := input.RefDiffs[frontend.PositiveRef]
 	require.NotNil(t, posRef)
 	assert.Equal(t, posDigestThree, posRef.Digest)
 	assert.Equal(t, [4]int{9, 10, 11, 12}, posRef.MaxRGBADiffs)
@@ -79,7 +78,7 @@ func TestSQLRefDiffer_PositiveAndNegativeDigestsExist_CombinedMetric_Success(t *
 	assert.True(t, posRef.DimDiffer)
 	assert.Equal(t, posRef.CombinedMetric, posRef.QueryMetric)
 
-	negRef := input.RefDiffs[common.NegativeRef]
+	negRef := input.RefDiffs[frontend.NegativeRef]
 	require.NotNil(t, negRef)
 	assert.Equal(t, negDigestSeven, negRef.Digest)
 	assert.Equal(t, [4]int{17, 18, 19, 20}, negRef.MaxRGBADiffs)
@@ -136,13 +135,13 @@ func TestSQLRefDiffer_PositiveAndNegativeDigestsExist_PercentPixels_Success(t *t
 	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
 	require.NoError(t, err)
-	assert.Equal(t, common.PositiveRef, input.ClosestRef)
-	posRef := input.RefDiffs[common.PositiveRef]
+	assert.Equal(t, frontend.PositiveRef, input.ClosestRef)
+	posRef := input.RefDiffs[frontend.PositiveRef]
 	require.NotNil(t, posRef)
 	assert.Equal(t, posDigestTwo, posRef.Digest)
 	assert.Equal(t, float32(0.1), posRef.PixelDiffPercent)
 	assert.Equal(t, posRef.PixelDiffPercent, posRef.QueryMetric)
-	negRef := input.RefDiffs[common.NegativeRef]
+	negRef := input.RefDiffs[frontend.NegativeRef]
 	require.NotNil(t, negRef)
 	assert.Equal(t, negDigestSix, negRef.Digest)
 	assert.Equal(t, float32(0.15), negRef.PixelDiffPercent)
@@ -195,13 +194,13 @@ func TestSQLRefDiffer_PositiveAndNegativeDigestsExist_NumPixels_Success(t *testi
 	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
 	require.NoError(t, err)
-	assert.Equal(t, common.PositiveRef, input.ClosestRef)
-	posRef := input.RefDiffs[common.PositiveRef]
+	assert.Equal(t, frontend.PositiveRef, input.ClosestRef)
+	posRef := input.RefDiffs[frontend.PositiveRef]
 	require.NotNil(t, posRef)
 	assert.Equal(t, posDigestOne, posRef.Digest)
 	assert.Equal(t, 100, posRef.NumDiffPixels)
 	assert.Equal(t, float32(posRef.NumDiffPixels), posRef.QueryMetric)
-	negRef := input.RefDiffs[common.NegativeRef]
+	negRef := input.RefDiffs[frontend.NegativeRef]
 	require.NotNil(t, negRef)
 	assert.Equal(t, negDigestSix, negRef.Digest)
 	assert.Equal(t, 150, negRef.NumDiffPixels)
@@ -250,12 +249,12 @@ func TestSQLRefDiffer_NoNegativeDigests_Success(t *testing.T) {
 	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
 	require.NoError(t, err)
-	assert.Equal(t, common.PositiveRef, input.ClosestRef)
-	posRef := input.RefDiffs[common.PositiveRef]
+	assert.Equal(t, frontend.PositiveRef, input.ClosestRef)
+	posRef := input.RefDiffs[frontend.PositiveRef]
 	require.NotNil(t, posRef)
 	assert.Equal(t, posDigestThree, posRef.Digest)
 
-	negRef := input.RefDiffs[common.NegativeRef]
+	negRef := input.RefDiffs[frontend.NegativeRef]
 	require.Nil(t, negRef)
 }
 
@@ -299,9 +298,9 @@ func TestSQLRefDiffer_NoMatchingDigests_Success(t *testing.T) {
 	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
 	require.NoError(t, err)
-	assert.Equal(t, common.NoRef, input.ClosestRef)
-	assert.Nil(t, input.RefDiffs[common.PositiveRef])
-	assert.Nil(t, input.RefDiffs[common.NegativeRef])
+	assert.Equal(t, frontend.NoRef, input.ClosestRef)
+	assert.Nil(t, input.RefDiffs[frontend.PositiveRef])
+	assert.Nil(t, input.RefDiffs[frontend.NegativeRef])
 }
 
 func TestSQLRefDiffer_NoDiffMetrics_Success(t *testing.T) {
@@ -341,9 +340,9 @@ func TestSQLRefDiffer_NoDiffMetrics_Success(t *testing.T) {
 	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
 	require.NoError(t, err)
-	assert.Equal(t, common.NoRef, input.ClosestRef)
-	assert.Nil(t, input.RefDiffs[common.PositiveRef])
-	assert.Nil(t, input.RefDiffs[common.NegativeRef])
+	assert.Equal(t, frontend.NoRef, input.ClosestRef)
+	assert.Nil(t, input.RefDiffs[frontend.PositiveRef])
+	assert.Nil(t, input.RefDiffs[frontend.NegativeRef])
 }
 
 func makeClassifier(positive []types.Digest, negative []types.Digest) expectations.Classifier {

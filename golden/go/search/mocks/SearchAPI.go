@@ -6,7 +6,7 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	frontend "go.skia.org/infra/golden/go/search/frontend"
+	frontend "go.skia.org/infra/golden/go/web/frontend"
 
 	query "go.skia.org/infra/golden/go/search/query"
 

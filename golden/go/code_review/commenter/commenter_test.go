@@ -19,9 +19,9 @@ import (
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
 	mock_codereview "go.skia.org/infra/golden/go/code_review/mocks"
-	"go.skia.org/infra/golden/go/search/frontend"
 	mock_search "go.skia.org/infra/golden/go/search/mocks"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 // TestUpdateNotOpenBotsSunnyDay tests a typical case where two of the known open CLs are no longer

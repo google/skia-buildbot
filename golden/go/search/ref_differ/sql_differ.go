@@ -6,20 +6,18 @@ import (
 	"math"
 	"sort"
 
-	"go.skia.org/infra/go/util"
-
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/indexer"
-	"go.skia.org/infra/golden/go/search/common"
-	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 type SQLImpl struct {
@@ -50,18 +48,18 @@ func (s *SQLImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, me
 	negDigests := getDigestsWithLabel(s.exp, d, match, paramsByDigest, rhsQuery, expectations.Negative)
 
 	var err error
-	ret := make(map[common.RefClosest]*frontend.SRDiffDigest, 2)
-	ret[common.PositiveRef], err = s.getClosestDiff(ctx, metric, d.Digest, posDigests)
+	ret := make(map[frontend.RefClosest]*frontend.SRDiffDigest, 2)
+	ret[frontend.PositiveRef], err = s.getClosestDiff(ctx, metric, d.Digest, posDigests)
 	if err != nil {
 		return skerr.Wrapf(err, "fetching positive diffs")
 	}
-	ret[common.NegativeRef], err = s.getClosestDiff(ctx, metric, d.Digest, negDigests)
+	ret[frontend.NegativeRef], err = s.getClosestDiff(ctx, metric, d.Digest, negDigests)
 	if err != nil {
 		return skerr.Wrapf(err, "fetching negative diffs")
 	}
 
 	// Find the minimum according to the diff metric.
-	closest := common.NoRef
+	closest := frontend.NoRef
 	minDiff := float32(math.Inf(1))
 	for ref, srdd := range ret {
 		if srdd != nil {

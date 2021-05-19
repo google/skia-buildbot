@@ -9,10 +9,10 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/search/mocks",
     visibility = ["//visibility:public"],
     deps = [
-        "//golden/go/search/frontend",
         "//golden/go/search/query",
         "//golden/go/tjstore",
         "//golden/go/types",
+        "//golden/go/web/frontend",
         "@com_github_stretchr_testify//mock",
     ],
 )

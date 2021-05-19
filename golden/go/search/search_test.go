@@ -28,8 +28,6 @@ import (
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/publicparams"
-	"go.skia.org/infra/golden/go/search/common"
-	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -39,7 +37,7 @@ import (
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
-	web_frontend "go.skia.org/infra/golden/go/web/frontend"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 // TODO(kjlubick) Add tests for:
@@ -82,7 +80,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	require.NotNil(t, resp)
 
 	assert.Equal(t, &frontend.SearchResponse{
-		Commits: web_frontend.FromTilingCommits(data.MakeTestCommits()),
+		Commits: frontend.FromTilingCommits(data.MakeTestCommits()),
 		Offset:  0,
 		Size:    2,
 		Results: []*frontend.SearchResult{
@@ -125,9 +123,9 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						},
 					},
 				},
-				ClosestRef: common.PositiveRef,
-				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-					common.PositiveRef: {
+				ClosestRef: frontend.PositiveRef,
+				RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+					frontend.PositiveRef: {
 						// Small diff
 						NumDiffPixels:    8,
 						PixelDiffPercent: 0.02,
@@ -144,7 +142,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 							"ext":                 {data.PNGExtension},
 						},
 					},
-					common.NegativeRef: {
+					frontend.NegativeRef: {
 						// Big Diff
 						NumDiffPixels:    88812,
 						PixelDiffPercent: 98.68,
@@ -194,9 +192,9 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						},
 					},
 				},
-				ClosestRef: common.PositiveRef,
-				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-					common.PositiveRef: {
+				ClosestRef: frontend.PositiveRef,
+				RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+					frontend.PositiveRef: {
 						// Big Diff
 						NumDiffPixels:    88812,
 						PixelDiffPercent: 98.68,
@@ -213,11 +211,11 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 							"ext":                 {data.PNGExtension},
 						},
 					},
-					common.NegativeRef: nil,
+					frontend.NegativeRef: nil,
 				},
 			},
 		},
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			data.AlphaTest: {
 				data.AlphaUntriagedDigest: expectations.Positive,
 			},
@@ -267,7 +265,7 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	// This checks that the returned result is the first one of the results we expect.
 	assert.Equal(t, data.AlphaUntriagedDigest, resp.Results[0].Digest)
 	// BulkTriageData should still be fully filled out for all digests in the full results.
-	assert.Equal(t, web_frontend.TriageRequestData{
+	assert.Equal(t, frontend.TriageRequestData{
 		data.AlphaTest: {
 			data.AlphaUntriagedDigest: expectations.Positive,
 		},
@@ -288,7 +286,7 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	// This checks that the returned result is the second one of the results we expect.
 	assert.Equal(t, data.BetaUntriagedDigest, resp.Results[0].Digest)
 	// BulkTriageData should still be fully filled out for all digests in the full results.
-	assert.Equal(t, web_frontend.TriageRequestData{
+	assert.Equal(t, frontend.TriageRequestData{
 		data.AlphaTest: {
 			data.AlphaUntriagedDigest: expectations.Positive,
 		},
@@ -337,16 +335,16 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 				assert.Equal(t, expected.digest, actualDigest.Digest)
 				assert.Equal(t, expected.labelStr, actualDigest.Status)
 				if expected.closestPositive == "" {
-					assert.Nil(t, actualDigest.RefDiffs[common.PositiveRef])
+					assert.Nil(t, actualDigest.RefDiffs[frontend.PositiveRef])
 				} else {
-					cp := actualDigest.RefDiffs[common.PositiveRef]
+					cp := actualDigest.RefDiffs[frontend.PositiveRef]
 					require.NotNil(t, cp)
 					assert.Equal(t, expected.closestPositive, cp.Digest)
 				}
 				if expected.closestNegative == "" {
-					assert.Nil(t, actualDigest.RefDiffs[common.NegativeRef])
+					assert.Nil(t, actualDigest.RefDiffs[frontend.NegativeRef])
 				} else {
-					cp := actualDigest.RefDiffs[common.NegativeRef]
+					cp := actualDigest.RefDiffs[frontend.NegativeRef]
 					require.NotNil(t, cp)
 					assert.Equal(t, expected.closestNegative, cp.Digest)
 				}
@@ -623,8 +621,8 @@ func TestSearch_ChangelistResults_ChangelistIndexMiss_Success(t *testing.T) {
 	assert.Len(t, options, 1)
 
 	// We expect to see the current CL appended to the list of master branch commits.
-	masterBranchCommits := web_frontend.FromTilingCommits(data.MakeTestCommits())
-	masterBranchCommitsWithCL := append(masterBranchCommits, web_frontend.Commit{
+	masterBranchCommits := frontend.FromTilingCommits(data.MakeTestCommits())
+	masterBranchCommitsWithCL := append(masterBranchCommits, frontend.Commit{
 		CommitTime:    clTime.Unix(),
 		Hash:          clID,
 		Author:        clAuthor,
@@ -674,9 +672,9 @@ func TestSearch_ChangelistResults_ChangelistIndexMiss_Success(t *testing.T) {
 					},
 					TotalDigests: 2,
 				},
-				ClosestRef: common.PositiveRef,
-				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-					common.PositiveRef: {
+				ClosestRef: frontend.PositiveRef,
+				RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+					frontend.PositiveRef: {
 						// Small diff
 						NumDiffPixels:    8,
 						PixelDiffPercent: 0.02,
@@ -693,11 +691,11 @@ func TestSearch_ChangelistResults_ChangelistIndexMiss_Success(t *testing.T) {
 							"ext":                 {data.PNGExtension},
 						},
 					},
-					common.NegativeRef: nil,
+					frontend.NegativeRef: nil,
 				},
 			},
 		},
-		BulkTriageData: web_frontend.TriageRequestData{
+		BulkTriageData: frontend.TriageRequestData{
 			data.BetaTest: {
 				BetaBrandNewDigest: expectations.Positive,
 			},
@@ -839,7 +837,7 @@ func TestDigestDetails_PrimaryBranch_Success(t *testing.T) {
 	details, err := s.GetDigestDetails(ctx, testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
 	assert.Equal(t, &frontend.DigestDetails{
-		Commits: web_frontend.FromTilingCommits(data.MakeTestCommits()),
+		Commits: frontend.FromTilingCommits(data.MakeTestCommits()),
 		Result: frontend.SearchResult{
 			Test:   testWeWantDetailsAbout,
 			Digest: digestWeWantDetailsAbout,
@@ -891,10 +889,10 @@ func TestDigestDetails_PrimaryBranch_Success(t *testing.T) {
 					},
 				},
 			},
-			ClosestRef: common.NegativeRef,
-			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
-				common.PositiveRef: nil,
-				common.NegativeRef: {
+			ClosestRef: frontend.NegativeRef,
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: nil,
+				frontend.NegativeRef: {
 					// Big Diff
 					NumDiffPixels:    88812,
 					PixelDiffPercent: 98.68,
@@ -990,8 +988,8 @@ func TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest(t *testing.T
 	// whole struct.
 	assert.Equal(t, digestWeWantDetailsAbout, d.Result.Digest)
 	assert.Equal(t, testWeWantDetailsAbout, d.Result.Test)
-	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
-		common.PositiveRef: {
+	assert.Equal(t, map[frontend.RefClosest]*frontend.SRDiffDigest{
+		frontend.PositiveRef: {
 			// Small diff
 			NumDiffPixels:    8,
 			PixelDiffPercent: 0.02,
@@ -1008,7 +1006,7 @@ func TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest(t *testing.T
 				"ext":                 {data.PNGExtension},
 			},
 		},
-		common.NegativeRef: nil,
+		frontend.NegativeRef: nil,
 	}, d.Result.RefDiffs)
 }
 
@@ -1032,7 +1030,7 @@ func TestDigestDetails_BadDigest_NoError(t *testing.T) {
 	require.NoError(t, err)
 	// Since we couldn't find the digest, we have nothing to compare against.
 	assert.Equal(t, r.Result.Digest, digestWeWantDetailsAbout)
-	assert.Equal(t, r.Result.ClosestRef, common.NoRef)
+	assert.Equal(t, r.Result.ClosestRef, frontend.NoRef)
 }
 
 func TestDigestDetails_BadTest_ReturnsError(t *testing.T) {
@@ -1273,8 +1271,8 @@ func TestDigestDetails_TestIgnored_DetailsContainResults_Success(t *testing.T) {
 		types.CorpusField:     {"gm"},
 		"ext":                 {data.PNGExtension},
 	}, result.Result.ParamSet)
-	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
-		common.NegativeRef: {
+	assert.Equal(t, map[frontend.RefClosest]*frontend.SRDiffDigest{
+		frontend.NegativeRef: {
 			// Big Diff
 			NumDiffPixels:    88812,
 			PixelDiffPercent: 98.68,
@@ -1291,7 +1289,7 @@ func TestDigestDetails_TestIgnored_DetailsContainResults_Success(t *testing.T) {
 				"ext":                 {data.PNGExtension},
 			},
 		},
-		common.PositiveRef: nil,
+		frontend.PositiveRef: nil,
 	}, result.Result.RefDiffs)
 }
 
@@ -2142,22 +2140,22 @@ func TestCollectDigestsForBulkTriage_Success(t *testing.T) {
 		{
 			Test:       "apple",
 			Digest:     "grannysmith",
-			ClosestRef: common.PositiveRef,
+			ClosestRef: frontend.PositiveRef,
 		},
 		{
 			Test:       "apple",
 			Digest:     "honeycrisp",
-			ClosestRef: common.NoRef, // Nothing compares to a Honeycrisp Apple. They are the best kind.
+			ClosestRef: frontend.NoRef, // Nothing compares to a Honeycrisp Apple. They are the best kind.
 		},
 		{
 			Test:       "grapefruit",
 			Digest:     "oro_blanco",
-			ClosestRef: common.NegativeRef, // Who likes grapefruit???
+			ClosestRef: frontend.NegativeRef, // Who likes grapefruit???
 		},
 	}
 
 	bulkTriageData := collectDigestsForBulkTriage(results)
-	assert.Equal(t, web_frontend.TriageRequestData{
+	assert.Equal(t, frontend.TriageRequestData{
 		"apple": {
 			"grannysmith": "positive",
 			"honeycrisp":  "",

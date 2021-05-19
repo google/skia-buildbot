@@ -41,10 +41,8 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
-	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search2"
-	search2_fe "go.skia.org/infra/golden/go/search2/frontend"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
@@ -610,7 +608,7 @@ func (wh *Handlers) ChangelistUntriagedHandler(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		sklog.Warningf("Could not get untriaged digests for %v - possibly this CL/PS has none or is too old to be indexed: %s", id, err)
 		// Errors can trip up the Gerrit Plugin (at least until skbug/10706 is resolved).
-		sendJSONResponse(w, search_fe.UntriagedDigestList{TS: time.Now()})
+		sendJSONResponse(w, frontend.UntriagedDigestList{TS: time.Now()})
 		return
 	}
 	sendJSONResponse(w, dl)
@@ -2008,7 +2006,7 @@ func (wh *Handlers) ChangelistSummaryHandler(w http.ResponseWriter, r *http.Requ
 		httputils.ReportError(w, err, "Could not get summary", http.StatusInternalServerError)
 		return
 	}
-	rv := search2_fe.ConvertChangelistSummaryResponseV1(sum)
+	rv := convertChangelistSummaryResponseV1(sum)
 	sendJSONResponse(w, rv)
 }
 
@@ -2077,6 +2075,30 @@ func (wh *Handlers) getCLSummary2(ctx context.Context, qCLID string) (search2.Ne
 	}
 	wh.clSummaryCache.Add(qCLID, sum)
 	return sum, nil
+}
+
+// convertChangelistSummaryResponseV1 converts the search2 version of a Changelist summary into
+// the version expected by the frontend.
+func convertChangelistSummaryResponseV1(summary search2.NewAndUntriagedSummary) frontend.ChangelistSummaryResponseV1 {
+	xps := make([]frontend.PatchsetNewAndUntriagedSummaryV1, 0, len(summary.PatchsetSummaries))
+	for _, ps := range summary.PatchsetSummaries {
+		xps = append(xps, frontend.PatchsetNewAndUntriagedSummaryV1{
+			NewImages:            ps.NewImages,
+			NewUntriagedImages:   ps.NewUntriagedImages,
+			TotalUntriagedImages: ps.TotalUntriagedImages,
+			PatchsetID:           ps.PatchsetID,
+			PatchsetOrder:        ps.PatchsetOrder,
+		})
+	}
+	// It is convenient for the UI to have these sorted with the latest patchset first.
+	sort.Slice(xps, func(i, j int) bool {
+		return xps[i].PatchsetOrder > xps[j].PatchsetOrder
+	})
+	return frontend.ChangelistSummaryResponseV1{
+		ChangelistID:      summary.ChangelistID,
+		PatchsetSummaries: xps,
+		Outdated:          summary.Outdated,
+	}
 }
 
 // StartCacheWarming starts a go routine to warm the CL Summary cache. This way, most summaries are

@@ -43,7 +43,6 @@ import (
 	mock_indexer "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
-	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	mock_search "go.skia.org/infra/golden/go/search/mocks"
 	"go.skia.org/infra/golden/go/search2"
 	mock_search2 "go.skia.org/infra/golden/go/search2/mocks"
@@ -2314,7 +2313,7 @@ func TestChangelistSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 		// Other fields should be ignored
 	})
 
-	mockSearchAPI.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, combinedID).Return(&search_fe.UntriagedDigestList{
+	mockSearchAPI.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, combinedID).Return(&frontend.UntriagedDigestList{
 		Corpora: []string{"one_corpus", "two_corpus"},
 	}, nil)
 
@@ -2639,9 +2638,9 @@ func TestDiffHandler_DefaultUsesSQL_Success(t *testing.T) {
 	const testAlpha = types.TestName("alpha")
 	const leftDigest = types.Digest("11111111111111111111111111111111")
 	const rightDigest = types.Digest("22222222222222222222222222222222")
-	ms.On("DiffDigests", testutils.AnyContext, testAlpha, leftDigest, rightDigest, "", "").Return(&search_fe.DigestComparison{
+	ms.On("DiffDigests", testutils.AnyContext, testAlpha, leftDigest, rightDigest, "", "").Return(&frontend.DigestComparison{
 		// Arbitrary data from a search unit test.
-		Left: search_fe.SearchResult{
+		Left: frontend.SearchResult{
 			Test:   testAlpha,
 			Digest: leftDigest,
 			Status: expectations.Untriaged,
@@ -2652,7 +2651,7 @@ func TestDiffHandler_DefaultUsesSQL_Success(t *testing.T) {
 				"ext":                 {data.PNGExtension},
 			},
 		},
-		Right: &search_fe.SRDiffDigest{
+		Right: &frontend.SRDiffDigest{
 			Digest:           rightDigest,
 			Status:           expectations.Positive,
 			NumDiffPixels:    13,
