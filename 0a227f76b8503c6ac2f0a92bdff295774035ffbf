@@ -16,6 +16,24 @@
       "message": "If you haven\u0027t already, please remember to \"make gazelle\" to update any BUILD.bazel files that reference the deleted targets (e.g. via a go_library\u0027s deps).",
       "revId": "0a227f76b8503c6ac2f0a92bdff295774035ffbf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9fb8c30b_72626670",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-05-19T19:59:00Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "fd214169_37e31a93",
+      "revId": "0a227f76b8503c6ac2f0a92bdff295774035ffbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
