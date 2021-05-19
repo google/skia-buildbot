@@ -88,22 +88,11 @@ export interface Commit {
 	cl_url: string;
 }
 
-export interface TraceComment {
-	id: ID;
-	created_by: string;
-	updated_by: string;
-	created_ts: string;
-	updated_ts: string;
-	text: string;
-	query: ParamSet;
-}
-
 export interface SearchResponse {
 	digests: SearchResult[];
 	offset: number;
 	size: number;
 	commits: Commit[] | null;
-	trace_comments: TraceComment[] | null;
 	bulk_triage_data: TriageRequestData;
 }
 
@@ -225,7 +214,5 @@ export type Label = "untriaged" | "positive" | "negative";
 export type TraceID = string;
 
 export type RefClosest = "pos" | "neg" | "";
-
-export type ID = string;
 
 export type TriageRequestData = { [key: string]: { [key: string]: Label } };

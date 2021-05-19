@@ -234,8 +234,7 @@ func main() {
 
 	ixr := mustMakeIndexer(ctx, fsc, expStore, expChangeHandler, gsClient, reviewSystems, tileSource, tjs)
 
-	// TODO(kjlubick) include non-nil comment.Store when it is implemented.
-	searchAPI := search.New(expStore, expChangeHandler, ixr, reviewSystems, tjs, nil, publiclyViewableParams, fsc.FlakyTraceThreshold, sqlDB)
+	searchAPI := search.New(expStore, expChangeHandler, ixr, reviewSystems, tjs, publiclyViewableParams, fsc.FlakyTraceThreshold, sqlDB)
 	sklog.Infof("Search API created")
 
 	mustStartCommenters(ctx, fsc, reviewSystems, searchAPI)
