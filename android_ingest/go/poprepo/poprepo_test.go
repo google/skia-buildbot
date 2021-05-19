@@ -19,7 +19,7 @@ func TestAdd(t *testing.T) {
 	ctx := context.Background()
 
 	// Create a test repo.
-	gb := testutils.GitInit(t, ctx)
+	gb := testutils.GitInitWithDefaultBranch(t, ctx, git.MainBranch)
 	defer gb.Cleanup()
 
 	// Populate it with an initial BUILDID file.
@@ -28,7 +28,7 @@ func TestAdd(t *testing.T) {
 
 	// Create a branch and check it out, otherwise we can't push
 	// to 'master' on this repo.
-	gb.CreateBranchTrackBranch(ctx, "somebranch", git.DefaultRemoteBranch)
+	gb.CreateBranchTrackBranch(ctx, "somebranch", git.DefaultRemote+"/"+git.MainBranch)
 	gb.CheckoutBranch(ctx, "somebranch")
 
 	// Create tmp dir that gets cleaned up.
@@ -41,7 +41,7 @@ func TestAdd(t *testing.T) {
 	// Start testing.
 	checkout, err := git.NewCheckout(context.Background(), gb.Dir(), workdir)
 	assert.NoError(t, err)
-	err = checkout.Cleanup(ctx)
+	err = checkout.CleanupBranch(ctx, git.MainBranch)
 	assert.NoError(t, err)
 
 	p := NewPopRepo(checkout, true, "android-ingest")
@@ -72,7 +72,7 @@ func TestAdd(t *testing.T) {
 
 	buildid, ts, hash, err = p.GetLast(ctx)
 
-	err = p.Add(ctx, 3516727, 1479863307, git.MasterBranch)
+	err = p.Add(ctx, 3516727, 1479863307, git.MainBranch)
 	assert.NoError(t, err)
 
 	foundBuildID, branch, err = p.LookupBuildID(ctx, hash)
@@ -81,7 +81,7 @@ func TestAdd(t *testing.T) {
 	assert.Equal(t, "branch1", branch)
 
 	// Try to add something wrong.
-	err = p.Add(ctx, 3516727-1, 1479863307-1, git.MasterBranch)
+	err = p.Add(ctx, 3516727-1, 1479863307-1, git.MainBranch)
 	assert.Error(t, err)
 
 	// Confirm we get what we added before the error.
