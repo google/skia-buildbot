@@ -2458,16 +2458,19 @@ func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T)
 		},
 		Commits: []web_frontend.Commit{{
 			Subject:    "commit 111",
+			ID:         "0111",
 			CommitTime: 1619827200,
 			Hash:       "6c505df96f1faab539199949572820b2c90f6959",
 			Author:     "don't care",
 		}, {
 			Subject:    "commit 222",
+			ID:         "0222",
 			CommitTime: 1619913600,
 			Hash:       "aac89c40628a35265f632940b678104349122a9f",
 			Author:     "don't care",
 		}, {
 			Subject:    "commit 333",
+			ID:         "0333",
 			CommitTime: 1620000000,
 			Hash:       "cb197b480a07a794b94ca9d50661db1fad2e3873",
 			Author:     "don't care",
@@ -3634,7 +3637,7 @@ func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
 	assert.Equal(t, BlameSummaryV1{
 		Ranges: []BlameEntry{
 			{
-				CommitRange:           dks.WindowsDriverUpdateCommit,
+				CommitRange:           dks.WindowsDriverUpdateCommitID,
 				TotalUntriagedDigests: 2,
 				AffectedGroupings: []*AffectedGrouping{
 					{
@@ -3649,7 +3652,7 @@ func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
 				Commits: []web_frontend.Commit{kitchenSinkCommits[3]},
 			},
 			{
-				CommitRange:           dks.IOSFixTriangleTestsBreakCircleTestsCommit,
+				CommitRange:           dks.IOSFixTriangleTestsBreakCircleTestsCommitID,
 				TotalUntriagedDigests: 1,
 				AffectedGroupings: []*AffectedGrouping{
 					{
@@ -3661,10 +3664,423 @@ func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
 						SampleDigest:     dks.DigestC05Unt,
 					},
 				},
-				Commits: kitchenSinkCommits[7:8],
+				Commits: []web_frontend.Commit{kitchenSinkCommits[7]},
 			},
 		},
 	}, blames)
+}
+
+func TestSearch_IncludesBlameCommit_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+
+	res, err := s.Search(ctx, &query.Search{
+		BlameGroupID: dks.WindowsDriverUpdateCommitID,
+		Sort:         query.SortDescending,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.RoundCorpus},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assertSearchBlameCommitResponse(t, res)
+}
+
+func TestSearch_IncludesBlameCommit_WithMaterializedViews(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	s := New(db, 10)
+	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
+
+	res, err := s.Search(ctx, &query.Search{
+		BlameGroupID: dks.WindowsDriverUpdateCommitID,
+		Sort:         query.SortDescending,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.RoundCorpus},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assertSearchBlameCommitResponse(t, res)
+}
+
+func assertSearchBlameCommitResponse(t *testing.T, res *frontend.SearchResponse) {
+	// This contains only the trace which still have an untriaged digest at head and had
+	// an untriaged digest at the fourth commit (e.g. when the Windows OS was updated),
+	// but not in a previous commit (if any).
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestC03Unt,
+			Test:   dks.CircleTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "9156c4774e7d90db488b6aadf416ff8e",
+					DigestIndices: []int{-1, -1, -1, 0, 0, 0, 0, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{{
+					Digest: dks.DigestC03Unt, Status: expectations.Untriaged,
+				}},
+				TotalDigests: 1,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 0.89245414, QueryMetric: 0.89245414, PixelDiffPercent: 50, NumDiffPixels: 32,
+					MaxRGBADiffs: [4]int{1, 7, 4, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.RoundCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}, {
+			Digest: dks.DigestC04Unt,
+			Test:   dks.CircleTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.GreyColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "0310e06f2b4c328cccbac480b5433390",
+					DigestIndices: []int{-1, -1, -1, 0, 0, 0, 0, 0, 0, -1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot3OS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{{
+					Digest: dks.DigestC04Unt, Status: expectations.Untriaged,
+				}},
+				TotalDigests: 1,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 0.17843534, QueryMetric: 0.17843534, PixelDiffPercent: 3.125, NumDiffPixels: 2,
+					MaxRGBADiffs: [4]int{3, 3, 3, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC02Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.GreyColorMode},
+						types.CorpusField:     []string{dks.RoundCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}},
+		Offset:  0,
+		Size:    2,
+		Commits: kitchenSinkCommits,
+		BulkTriageData: web_frontend.TriageRequestData{
+			dks.CircleTest: {
+				dks.DigestC03Unt: expectations.Positive,
+				dks.DigestC04Unt: expectations.Positive,
+			},
+		},
+	}, res)
+}
+
+func TestSearch_IncludesBlameRange_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+
+	res, err := s.Search(ctx, &query.Search{
+		// This isn't quite the same blame range that would have been returned, but it should
+		// be equivalent.
+		BlameGroupID: "0000000106:0000000108",
+		Sort:         query.SortDescending,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.RoundCorpus},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestC05Unt,
+			Test:   dks.CircleTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
+				dks.OSKey:             []string{dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "0b61c8d85467fc95b1306128ceb2ef6d",
+					DigestIndices: []int{-1, 2, -1, -1, 2, -1, -1, 0, -1, -1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.IPhoneDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}, {
+					// This trace is especially important because there was the untriaged data
+					// wasn't seen in the range, but just after. Our algorithm should identify that
+					// the the change in behavior that produced the untriaged digest could have
+					// occurred in the range (because the data was simply missing in that time span)
+					// and return it in the results.
+					ID:            "22b530e029c22e396c5a24c0900c9ed5",
+					DigestIndices: []int{1, -1, 1, -1, 1, -1, 1, -1, 0, -1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.IPhoneDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "273119ca291863331e906fe71bde0e7d",
+					DigestIndices: []int{1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
+					DigestIndices: []int{2, 2, 2, 2, 2, 2, 2, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestC05Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestC01Pos, Status: expectations.Positive},
+					{Digest: dks.DigestC02Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 3,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 4.9783297, QueryMetric: 4.9783297, PixelDiffPercent: 68.75, NumDiffPixels: 44,
+					MaxRGBADiffs: [4]int{40, 149, 100, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.RoundCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}},
+		Offset:  0,
+		Size:    1,
+		Commits: kitchenSinkCommits,
+		BulkTriageData: web_frontend.TriageRequestData{
+			dks.CircleTest: {
+				dks.DigestC05Unt: expectations.Positive,
+			},
+		},
+	}, res)
+}
+
+func TestSearch_BlameRespectsPublicParams_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
+		dks.RoundCorpus: {
+			dks.DeviceKey: {dks.IPadDevice},
+		},
+	})
+	require.NoError(t, err)
+
+	s := New(db, 100)
+	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
+	res, err := s.Search(ctx, &query.Search{
+		BlameGroupID: "0000000106:0000000108",
+		Sort:         query.SortDescending,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.RoundCorpus},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.SearchResponse{
+		Results: []*frontend.SearchResult{{
+			Digest: dks.DigestC05Unt,
+			Test:   dks.CircleTest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.IPadDevice},
+				dks.OSKey:             []string{dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "273119ca291863331e906fe71bde0e7d",
+					DigestIndices: []int{1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.RGBColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
+					DigestIndices: []int{2, 2, 2, 2, 2, 2, 2, 0, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestC05Unt, Status: expectations.Untriaged},
+					{Digest: dks.DigestC01Pos, Status: expectations.Positive},
+					{Digest: dks.DigestC02Pos, Status: expectations.Positive},
+				},
+				TotalDigests: 3,
+			},
+			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+				common.PositiveRef: {
+					CombinedMetric: 4.9783297, QueryMetric: 4.9783297, PixelDiffPercent: 68.75, NumDiffPixels: 44,
+					MaxRGBADiffs: [4]int{40, 149, 100, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.RoundCorpus},
+						dks.DeviceKey:         []string{dks.IPadDevice},
+						dks.OSKey:             []string{dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				common.NegativeRef: nil,
+			},
+			ClosestRef: common.PositiveRef,
+		}},
+		Offset:  0,
+		Size:    1,
+		Commits: kitchenSinkCommits,
+		BulkTriageData: web_frontend.TriageRequestData{
+			dks.CircleTest: {
+				dks.DigestC05Unt: expectations.Positive,
+			},
+		},
+	}, res)
+}
+
+func TestSearch_BlameCommitInCorpusWithNoUntriaged_ReturnsEmptyResult(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+
+	res, err := s.Search(ctx, &query.Search{
+		BlameGroupID: dks.WindowsDriverUpdateCommitID,
+		Sort:         query.SortDescending,
+		TraceValues: paramtools.ParamSet{
+			types.CorpusField: []string{dks.CornersCorpus},
+		},
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, &frontend.SearchResponse{
+		Offset:  0,
+		Size:    0,
+		Commits: kitchenSinkCommits,
+	}, res)
 }
 
 func TestGetBlamesForUntriagedDigests_RespectsPublicParams_Success(t *testing.T) {
@@ -3691,7 +4107,7 @@ func TestGetBlamesForUntriagedDigests_RespectsPublicParams_Success(t *testing.T)
 	assert.Equal(t, BlameSummaryV1{
 		Ranges: []BlameEntry{
 			{
-				CommitRange:           dks.WindowsDriverUpdateCommit,
+				CommitRange:           dks.WindowsDriverUpdateCommitID,
 				TotalUntriagedDigests: 2,
 				AffectedGroupings: []*AffectedGrouping{
 					{
@@ -3734,16 +4150,16 @@ func TestCombineIntoRanges_Success(t *testing.T) {
 		mustHash(betaGrouping):  betaGrouping,
 	}
 	simpleCommits := []web_frontend.Commit{
-		{Hash: "commit01"},
-		{Hash: "commit02"},
-		{Hash: "commit03"},
-		{Hash: "commit04"},
-		{Hash: "commit05"},
-		{Hash: "commit06"},
-		{Hash: "commit07"},
-		{Hash: "commit08"},
-		{Hash: "commit09"},
-		{Hash: "commit10"},
+		{ID: "commit01"},
+		{ID: "commit02"},
+		{ID: "commit03"},
+		{ID: "commit04"},
+		{ID: "commit05"},
+		{ID: "commit06"},
+		{ID: "commit07"},
+		{ID: "commit08"},
+		{ID: "commit09"},
+		{ID: "commit10"},
 	}
 	ctx := context.Background()
 
@@ -4003,6 +4419,7 @@ func makeKitchenSinkCommits() []web_frontend.Commit {
 	convert := func(row schema.GitCommitRow) web_frontend.Commit {
 		return web_frontend.Commit{
 			CommitTime: row.CommitTime.Unix(),
+			ID:         string(row.CommitID),
 			Hash:       row.GitHash,
 			Author:     row.AuthorEmail,
 			Subject:    row.Subject,
