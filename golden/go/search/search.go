@@ -26,15 +26,13 @@ import (
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/publicparams"
-	"go.skia.org/infra/golden/go/search/common"
-	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search/ref_differ"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
-	web_frontend "go.skia.org/infra/golden/go/web/frontend"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 const (
@@ -130,7 +128,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	}
 	idx := s.indexSource.GetIndex()
 
-	commits := web_frontend.FromTilingCommits(idx.Tile().DataCommits())
+	commits := frontend.FromTilingCommits(idx.Tile().DataCommits())
 	var results []*frontend.SearchResult
 	// Find the digests (left hand side) we are interested in.
 	if isChangelistSearch {
@@ -145,7 +143,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 		// Add this CL information as a faux Commit, so we can properly show the blamelists for
 		// the trace data, which will include this CL's output appended to the end (as if it was the
 		// most recent commit to land on master).
-		commits = append(commits, web_frontend.Commit{
+		commits = append(commits, frontend.Commit{
 			CommitTime:    cl.Updated.Unix(),
 			Hash:          cl.SystemID,
 			Author:        cl.Owner,
@@ -198,8 +196,8 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	return searchRet, nil
 }
 
-func collectDigestsForBulkTriage(results []*frontend.SearchResult) web_frontend.TriageRequestData {
-	testNameToPrimaryDigest := web_frontend.TriageRequestData{}
+func collectDigestsForBulkTriage(results []*frontend.SearchResult) frontend.TriageRequestData {
+	testNameToPrimaryDigest := frontend.TriageRequestData{}
 	for _, r := range results {
 		test := r.Test
 		digestToLabel, ok := testNameToPrimaryDigest[test]
@@ -209,11 +207,11 @@ func collectDigestsForBulkTriage(results []*frontend.SearchResult) web_frontend.
 		}
 		primary := r.Digest
 		switch r.ClosestRef {
-		case common.PositiveRef:
+		case frontend.PositiveRef:
 			digestToLabel[primary] = expectations.Positive
-		case common.NegativeRef:
+		case frontend.NegativeRef:
 			digestToLabel[primary] = expectations.Negative
-		case common.NoRef:
+		case frontend.NoRef:
 			digestToLabel[primary] = ""
 		}
 	}
@@ -291,7 +289,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 
 	return &frontend.DigestDetails{
 		Result:  result,
-		Commits: web_frontend.FromTilingCommits(tile.Commits),
+		Commits: frontend.FromTilingCommits(tile.Commits),
 	}, nil
 }
 
