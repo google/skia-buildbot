@@ -6,13 +6,15 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	frontend "go.skia.org/infra/golden/go/search/frontend"
+	frontend "go.skia.org/infra/golden/go/web/frontend"
 
 	paramtools "go.skia.org/infra/go/paramtools"
 
 	query "go.skia.org/infra/golden/go/search/query"
 
 	search2 "go.skia.org/infra/golden/go/search2"
+
+	searchfrontend "go.skia.org/infra/golden/go/search/frontend"
 
 	time "time"
 )
@@ -87,6 +89,27 @@ func (_m *API) GetChangelistParamset(ctx context.Context, crs string, clID strin
 	return r0, r1
 }
 
+// GetCluster provides a mock function with given fields: ctx, opts
+func (_m *API) GetCluster(ctx context.Context, opts search2.ClusterOptions) (frontend.ClusterDiffResult, error) {
+	ret := _m.Called(ctx, opts)
+
+	var r0 frontend.ClusterDiffResult
+	if rf, ok := ret.Get(0).(func(context.Context, search2.ClusterOptions) frontend.ClusterDiffResult); ok {
+		r0 = rf(ctx, opts)
+	} else {
+		r0 = ret.Get(0).(frontend.ClusterDiffResult)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, search2.ClusterOptions) error); ok {
+		r1 = rf(ctx, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPrimaryBranchParamset provides a mock function with given fields: ctx
 func (_m *API) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnlyParamSet, error) {
 	ret := _m.Called(ctx)
@@ -132,15 +155,15 @@ func (_m *API) NewAndUntriagedSummaryForCL(ctx context.Context, qCLID string) (s
 }
 
 // Search provides a mock function with given fields: _a0, _a1
-func (_m *API) Search(_a0 context.Context, _a1 *query.Search) (*frontend.SearchResponse, error) {
+func (_m *API) Search(_a0 context.Context, _a1 *query.Search) (*searchfrontend.SearchResponse, error) {
 	ret := _m.Called(_a0, _a1)
 
-	var r0 *frontend.SearchResponse
-	if rf, ok := ret.Get(0).(func(context.Context, *query.Search) *frontend.SearchResponse); ok {
+	var r0 *searchfrontend.SearchResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *query.Search) *searchfrontend.SearchResponse); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*frontend.SearchResponse)
+			r0 = ret.Get(0).(*searchfrontend.SearchResponse)
 		}
 	}
 
