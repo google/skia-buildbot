@@ -97,6 +97,10 @@ const template = (ele) => html`
                 id=${INPUT_FILE_ID}
             /> Choose audio file
           </label>
+          <checkbox-sk label="Loop"
+            ?checked=${ele._state.loop}
+            @click=${ele._toggleLoop}>
+          </checkbox-sk>
           <label class=input-label>
             <input
               type=number
@@ -126,6 +130,7 @@ class SkottieAudioSk extends HTMLElement {
     this._state = {
       bpm: 0,
       beatDuration: 0,
+      loop: true,
       loadingState: LOADING_STATES.IDLE,
       bpmCalculationState: LOADING_STATES.IDLE,
       bmpList: [],
@@ -311,7 +316,7 @@ class SkottieAudioSk extends HTMLElement {
       offlineContext.startRendering();
     });
 
-    offlineContext.oncomplete = (ev) => this._onOfflineRenderComplete(ev);
+    offlineContext.oncomplete = (evt) => this._onOfflineRenderComplete(evt);
   }
 
   _onBpmSelected(option) {
@@ -330,8 +335,8 @@ class SkottieAudioSk extends HTMLElement {
     }
     this._sound = new Howl({
       src: [result],
+      loop: this._state.loop,
     });
-    window._sound = this._sound;
     this._sound.on('load', () => this._onAudioLoaded());
   }
 
@@ -353,6 +358,15 @@ class SkottieAudioSk extends HTMLElement {
     const value = Number(ev.target.value);
     if (this._state.beatDuration !== value) {
       this._state.beatDuration = value;
+    }
+    this._render();
+  }
+
+  _toggleLoop(ev) {
+    ev.preventDefault();
+    this._state.loop = !this._state.loop;
+    if (this._sound) {
+      this._sound.loop(this._state.loop);
     }
     this._render();
   }
