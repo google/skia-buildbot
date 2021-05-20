@@ -435,6 +435,7 @@ function makeCommits(n: number): Commit[] {
   const rv: Commit[] = [];
   for (let i = 0; i < n; i++) {
     rv.push({
+      id: 'commit_id',
       commit_time: tsStartTime + i * 123, // arbitrary spacing
       hash: `${i}`.padEnd(32, '0'), // make a deterministic "md5 hash", which is 32 chars long
       author: `user${i % 7}@example.com`,
