@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9b73ed37_4e770f81",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-20T16:05:20Z",
+      "side": 1,
+      "message": "Nit: maybe add a TODO to change back to git.DefaultRef once that switches to refs/heads/main?",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 55
+      },
+      "revId": "c088aa5adb45a572c3378b5b380d224d4800a456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
