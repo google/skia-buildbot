@@ -64,6 +64,11 @@ type API interface {
 	// which commits first introduced those untriaged digests. It returns a list of commits or
 	// commit ranges that are believed to have caused those untriaged digests.
 	GetBlamesForUntriagedDigests(ctx context.Context, corpus string) (BlameSummaryV1, error)
+
+	// GetCluster returns all digests from the traces matching the various filters compared to
+	// all other digests in that set, so they can be drawn as a 2d cluster. This helps visualize
+	// patterns in the images, which can identify errors in triaging, among other things.
+	GetCluster(ctx context.Context, opts ClusterOptions) (frontend.ClusterDiffResult, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -131,6 +136,17 @@ type AffectedGrouping struct {
 	groupingID schema.MD5Hash
 }
 
+type ClusterOptions struct {
+	Grouping                paramtools.Params
+	Filters                 paramtools.ParamSet
+	IncludePositiveDigests  bool
+	IncludeNegativeDigests  bool
+	IncludeUntriagedDigests bool
+	CodeReviewSystem        string
+	ChangelistID            string
+	PatchsetOrder           int
+}
+
 const (
 	commitCacheSize          = 5_000
 	optionsGroupingCacheSize = 50_000
@@ -143,7 +159,7 @@ type Impl struct {
 	// Lets us create links from CL data to the Code Review System that produced it.
 	reviewSystemMapping map[string]string
 
-	// Protects the caches
+	// mutex protects the caches, e.g. digestsOnPrimary and publiclyVisibleTraces
 	mutex sync.RWMutex
 	// This caches the digests seen per grouping on the primary branch.
 	digestsOnPrimary map[groupingDigestKey]struct{}
@@ -2758,6 +2774,203 @@ func getRangeAndBlame(commits []frontend.Commit, startIndex, endIndex int) (stri
 	// encompass "bad" commits.
 	startCommit := commits[startIndex+1]
 	return fmt.Sprintf("%s:%s", startCommit.ID, endCommit.ID), commits[startIndex+1 : endIndex+1]
+}
+
+// GetCluster implements the API interface.
+func (s *Impl) GetCluster(ctx context.Context, opts ClusterOptions) (frontend.ClusterDiffResult, error) {
+	ctx, span := trace.StartSpan(ctx, "search2_GetCluster")
+	defer span.End()
+
+	ctx, err := s.addCommitsData(ctx)
+	if err != nil {
+		return frontend.ClusterDiffResult{}, skerr.Wrap(err)
+	}
+	// Fetch all digests and traces that match the options. If this is a public view, those traces
+	// will be filtered.
+	digestsAndTraces, err := s.getDigestsAndTracesForCluster(ctx, opts)
+	if err != nil {
+		return frontend.ClusterDiffResult{}, skerr.Wrap(err)
+	}
+	nodes, links, err := s.getLinks(ctx, digestsAndTraces)
+	if err != nil {
+		return frontend.ClusterDiffResult{}, skerr.Wrap(err)
+	}
+	byDigest, combined, err := s.getParamsetsForCluster(ctx, digestsAndTraces)
+	if err != nil {
+		return frontend.ClusterDiffResult{}, skerr.Wrap(err)
+	}
+
+	return frontend.ClusterDiffResult{
+		Nodes:            nodes,
+		Links:            links,
+		Test:             types.TestName(opts.Grouping[types.PrimaryKeyField]),
+		ParamsetByDigest: byDigest,
+		ParamsetsUnion:   combined,
+	}, nil
+}
+
+type digestClusterInfo struct {
+	label      schema.ExpectationLabel
+	traceIDs   []schema.TraceID
+	optionsIDs []schema.OptionsID
+}
+
+// getDigestsAndTracesForCluster returns the digests, traces, and options *at head* that match the
+// given cluster options.
+func (s *Impl) getDigestsAndTracesForCluster(ctx context.Context, opts ClusterOptions) (map[schema.MD5Hash]*digestClusterInfo, error) {
+	ctx, span := trace.StartSpan(ctx, "getDigestsAndTracesForCluster")
+	defer span.End()
+
+	const statement = `WITH
+DataOfInterest AS (
+	SELECT trace_id, options_id, digest FROM ValuesAtHead
+	WHERE grouping_id = $1 AND matches_any_ignore_rule = FALSE AND most_recent_commit_id >= $2
+)
+SELECT DataOfInterest.*, label
+FROM DataOfInterest JOIN Expectations
+	ON Expectations.grouping_id = $1 and DataOfInterest.digest = Expectations.digest
+WHERE label = ANY($3)
+`
+	// TODO(kjlubick) account for filters
+	var triageStatuses []schema.ExpectationLabel
+	if opts.IncludeUntriagedDigests {
+		triageStatuses = append(triageStatuses, schema.LabelUntriaged)
+	}
+	if opts.IncludeNegativeDigests {
+		triageStatuses = append(triageStatuses, schema.LabelNegative)
+	}
+	if opts.IncludePositiveDigests {
+		triageStatuses = append(triageStatuses, schema.LabelPositive)
+	}
+	if len(triageStatuses) == 0 {
+		return nil, nil // If no triage status is set, there can be no results.
+	}
+
+	_, groupingID := sql.SerializeMap(opts.Grouping)
+	rows, err := s.db.Query(ctx, statement, groupingID, getFirstCommitID(ctx), triageStatuses)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var digestKey schema.MD5Hash
+	var digest schema.DigestBytes
+	rv := map[schema.MD5Hash]*digestClusterInfo{}
+	for rows.Next() {
+		var traceID schema.TraceID
+		var optionsID schema.OptionsID
+		var label schema.ExpectationLabel
+		if err := rows.Scan(&traceID, &optionsID, &digest, &label); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		copy(digestKey[:], digest)
+		info := rv[digestKey]
+		if info == nil {
+			info = &digestClusterInfo{
+				label: label,
+			}
+			rv[digestKey] = info
+		}
+		info.traceIDs = append(info.traceIDs, traceID)
+		info.optionsIDs = append(info.optionsIDs, optionsID)
+	}
+	if s.isPublicView {
+		// TODO(kjlubick)
+	}
+	return rv, nil
+}
+
+// getLinks returns the nodes and links that correspond to the digests and how each compares to
+// the other digests.
+func (s *Impl) getLinks(ctx context.Context, digests map[schema.MD5Hash]*digestClusterInfo) ([]frontend.Node, []frontend.Link, error) {
+	ctx, span := trace.StartSpan(ctx, "getDigestsAndTracesForCluster")
+	defer span.End()
+
+	var digestsToLookup []schema.DigestBytes
+	nodes := make([]frontend.Node, 0, len(digestsToLookup))
+	for digest, info := range digests {
+		if len(info.traceIDs) > 0 {
+			digestsToLookup = append(digestsToLookup, sql.FromMD5Hash(digest))
+			nodes = append(nodes, frontend.Node{
+				Digest: types.Digest(hex.EncodeToString(digest[:])),
+				Status: info.label.ToExpectation(),
+			})
+		}
+	}
+	if len(digestsToLookup) == 0 {
+		return nil, nil, skerr.Fmt("No digests matched the query")
+	}
+	// sort the nodes by digest for determinism.
+	sort.Slice(nodes, func(i, j int) bool {
+		return nodes[i].Digest < nodes[j].Digest
+	})
+	// Make a map so we can easily go from digest to index as we go through our results.
+	digestToIndex := make(map[types.Digest]int, len(digestsToLookup))
+	for i, n := range nodes {
+		digestToIndex[n.Digest] = i
+	}
+
+	span.AddAttributes(trace.Int64Attribute("num_digests", int64(len(digestsToLookup))))
+	const statement = `SELECT encode(left_digest, 'hex'), encode(right_digest, 'hex'), percent_pixels_diff
+FROM DiffMetrics AS OF SYSTEM TIME '-0.1s'
+WHERE left_digest = ANY($1) AND right_digest = ANY($1) AND left_digest < right_digest
+ORDER BY 1, 2`
+	rows, err := s.db.Query(ctx, statement, digestsToLookup)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var leftDigest types.Digest
+	var rightDigest types.Digest
+	links := make([]frontend.Link, 0, len(nodes)*(len(nodes)-1)/2)
+	for rows.Next() {
+		var link frontend.Link
+		if err := rows.Scan(&leftDigest, &rightDigest, &link.Distance); err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		link.LeftIndex = digestToIndex[leftDigest]
+		link.RightIndex = digestToIndex[rightDigest]
+		links = append(links, link)
+	}
+	return nodes, links, nil
+}
+
+// getParamsetsForCluster looks up all the params for the given traces and options and returns
+// them grouped by digest and in totality.
+func (s *Impl) getParamsetsForCluster(ctx context.Context, digests map[schema.MD5Hash]*digestClusterInfo) (map[types.Digest]paramtools.ParamSet, paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "getParamsetsForCluster")
+	defer span.End()
+	byDigest := make(map[types.Digest]paramtools.ParamSet, len(digests))
+	combined := paramtools.ParamSet{}
+	for d, info := range digests {
+		digest := types.Digest(hex.EncodeToString(d[:]))
+		thisDigestsParamset, ok := byDigest[digest]
+		if !ok {
+			thisDigestsParamset = paramtools.ParamSet{}
+			byDigest[digest] = thisDigestsParamset
+		}
+		for _, traceID := range info.traceIDs {
+			p, err := s.expandTraceToParams(ctx, traceID)
+			if err != nil {
+				return nil, nil, skerr.Wrap(err)
+			}
+			thisDigestsParamset.AddParams(p)
+			combined.AddParams(p)
+		}
+		for _, optID := range info.optionsIDs {
+			p, err := s.expandOptionsToParams(ctx, optID)
+			if err != nil {
+				return nil, nil, skerr.Wrap(err)
+			}
+			thisDigestsParamset.AddParams(p)
+			combined.AddParams(p)
+		}
+	}
+	// Normalize the paramsets for determinism
+	for _, ps := range byDigest {
+		ps.Normalize()
+	}
+	combined.Normalize()
+	return byDigest, combined, nil
 }
 
 // Make sure Impl implements the API interface.

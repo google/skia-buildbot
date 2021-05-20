@@ -576,3 +576,38 @@ type PatchsetNewAndUntriagedSummaryV1 struct {
 	// PatchsetOrder is represents the chronological order the patchsets are in. It starts at 1.
 	PatchsetOrder int `json:"patchset_order"`
 }
+
+// ClusterDiffResult contains the result of comparing all digests within a test.
+// It is structured to be easy to render by the D3.js.
+type ClusterDiffResult struct {
+	// Nodes represents each digest that matched the cluster criteria.
+	Nodes []Node `json:"nodes"`
+	// Links represents all possible comparisons between the nodes. There should be
+	// (n-1) + (n-2) ... + 2 + 1 links for n nodes, or n(n-1)/2
+	Links []Link `json:"links"`
+
+	Test types.TestName `json:"test"`
+	// ParamsetByDigest is a mapping of digest to the ParamSet created by combining all Params
+	// for all traces that produce this digest.
+	ParamsetByDigest map[types.Digest]paramtools.ParamSet `json:"paramsetByDigest"`
+	// ParamsetsUnion is the union of all Params from all Traces that matched the cluster criteria.
+	// It is also a union of all ParamSet in ParamsetByDigest.
+	ParamsetsUnion paramtools.ParamSet `json:"paramsetsUnion"`
+}
+
+// Node represents a single node in a d3 diagram. Used in ClusterDiffResult.
+type Node struct {
+	Digest types.Digest       `json:"name"`
+	Status expectations.Label `json:"status"`
+}
+
+// Link represents a link between d3 nodes, used in ClusterDiffResult.
+type Link struct {
+	// LeftIndex is the index in the sibling Nodes slice corresponding to the "left" digest.
+	LeftIndex int `json:"source"`
+	// RightIndex is the index in the sibling Nodes slice corresponding to the "right" digest.
+	RightIndex int `json:"target"`
+	// Distance is how far apart the two digests are. This distance is currently the percentage
+	// of pixels different between the two images.
+	Distance float32 `json:"value"`
+}
