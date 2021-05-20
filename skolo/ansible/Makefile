@@ -48,6 +48,11 @@ push_authorized_keys_to_rack3_mac_incremental:
 push_authorized_keys_to_rack3_mac_full:
 	${SSH_WRAP} ansible-playbook push_authorized_keys_to_mac.yml --extra-vars variable_hosts=rack3_mac -f 1 --ask-pass
 
+
+push_authorized_keys_to_rack3_win_incremental:
+	${SSH_WRAP} ansible-playbook push_authorized_keys_to_win.yml --extra-vars variable_hosts=rack3_win -l skia-e-win-302 --ask-pass
+
+
 # Rack 4
 push_authorized_keys_to_rack4_rpis_incremental:
 	${SSH_WRAP} ansible-playbook push_authorized_keys_to_linux.yml --extra-vars variable_hosts=rack4_rpis_incremental_rollout
