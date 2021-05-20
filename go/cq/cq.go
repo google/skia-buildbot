@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -26,7 +27,7 @@ const (
 	CQ_CFG_FILE = "generated/commit-queue.cfg"
 	CQ_CFG_REF  = "infra/config"
 
-	MAIN_REF = git.DefaultRef
+	MAIN_REF = git_common.RefsHeadsPrefix + git.MainBranch
 
 	// Constants for in-flight metrics.
 	INFLIGHT_METRIC_NAME     = "in_flight"
