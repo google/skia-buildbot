@@ -1823,7 +1823,6 @@ export const searchResponse: SearchResponse = {
       "message": "[autoroll] Fixes",
       "cl_url": ""
   }],
-  "trace_comments": null,
   "bulk_triage_data": {
       "gold_details-page-sk": {
           "29f31f703510c2091840b5cf2b032f56": "positive",
