@@ -117,7 +117,7 @@ func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64, branch strin
 		if !rollback {
 			return
 		}
-		if err := p.checkout.Update(ctx); err != nil {
+		if err := p.checkout.UpdateBranch(ctx, git.MainBranch); err != nil {
 			sklog.Errorf("While rolling back failed Add(): Unable to update the checkout at %q: %s", p.checkout.Dir(), err)
 		}
 	}()

@@ -97,7 +97,7 @@ func initialize() {
 	if err != nil {
 		sklog.Fatalf("Unable to create the checkout of %q at %q: %s", *repoURL, *workRoot, err)
 	}
-	if err := checkout.Update(ctx); err != nil {
+	if err := checkout.UpdateBranch(ctx, git.MainBranch); err != nil {
 		sklog.Fatalf("Unable to update the checkout of %q at %q: %s", *repoURL, *workRoot, err)
 	}
 
