@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
-	"go.skia.org/infra/golden/go/comment"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/indexer"
@@ -58,7 +57,6 @@ type SearchImpl struct {
 	indexSource       indexer.IndexSource
 	reviewSystems     []clstore.ReviewSystem
 	tryJobStore       tjstore.Store
-	commentStore      comment.Store
 
 	// storeCache allows for better performance by caching values from changelistStore and
 	// tryJobStore for a little while, before evicting them.
@@ -83,7 +81,7 @@ type SearchImpl struct {
 }
 
 // New returns a new SearchImpl instance.
-func New(es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, reviewSystems []clstore.ReviewSystem, tjs tjstore.Store, cs comment.Store, publiclyViewableParams publicparams.Matcher, flakyThreshold int, sqlDB *pgxpool.Pool) *SearchImpl {
+func New(es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, reviewSystems []clstore.ReviewSystem, tjs tjstore.Store, publiclyViewableParams publicparams.Matcher, flakyThreshold int, sqlDB *pgxpool.Pool) *SearchImpl {
 	var triageHistoryCache sync.Map
 	if cer != nil {
 		// If the expectations change for a given ID, we should purge it from our cache so as not
@@ -98,7 +96,6 @@ func New(es expectations.Store, cer expectations.ChangeEventRegisterer, is index
 		indexSource:            is,
 		reviewSystems:          reviewSystems,
 		tryJobStore:            tjs,
-		commentStore:           cs,
 		publiclyViewableParams: publiclyViewableParams,
 		flakyTraceThreshold:    flakyThreshold,
 		sqlDB:                  sqlDB,
@@ -188,8 +185,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	// additional data.
 	displayRet, offset := s.sortAndLimitDigests(ctx, q, results, q.Offset, q.Limit)
 	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(q.CodeReviewSystemID, q.ChangelistID), displayRet)
-	traceComments := s.getTraceComments(ctx)
-	prepareTraceGroups(displayRet, exp, traceComments, isChangelistSearch)
+	prepareTraceGroups(displayRet, exp, isChangelistSearch)
 
 	// Return all digests with the selected offset within the result set.
 	searchRet := &frontend.SearchResponse{
@@ -198,7 +194,6 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 		Size:           len(results),
 		Commits:        commits,
 		BulkTriageData: bulkTriageData,
-		TraceComments:  traceComments,
 	}
 	return searchRet, nil
 }
@@ -288,18 +283,15 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 		return nil, skerr.Wrapf(err, "Fetching reference diffs for test %s, digest %s", test, digest)
 	}
 
-	var traceComments []frontend.TraceComment
 	if len(result.TraceGroup.Traces) > 0 {
 		// Get the params and traces.
-		traceComments = s.getTraceComments(ctx)
-		prepareTraceGroups(results, exp, traceComments, false)
+		prepareTraceGroups(results, exp, false)
 	}
 	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(crs, clID), results)
 
 	return &frontend.DigestDetails{
-		Result:        result,
-		Commits:       web_frontend.FromTilingCommits(tile.Commits),
-		TraceComments: traceComments,
+		Result:  result,
+		Commits: web_frontend.FromTilingCommits(tile.Commits),
 	}, nil
 }
 
@@ -377,7 +369,6 @@ func (s *SearchImpl) getCLOnlyDigestDetails(ctx context.Context, test types.Test
 	}
 
 	return &frontend.DigestDetails{
-		TraceComments: nil, // TODO(skbug.com/6630)
 		Result: frontend.SearchResult{
 			Test:          test,
 			Digest:        digest,
@@ -832,36 +823,13 @@ func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, d
 	return digestInfo[offset:end], offset
 }
 
-// getTraceComments returns the complete list of TraceComments, ready for display on the frontend.
-func (s *SearchImpl) getTraceComments(ctx context.Context) []frontend.TraceComment {
-	ctx, span := trace.StartSpan(ctx, "search.getTraceComments")
-	defer span.End()
-	var traceComments []frontend.TraceComment
-	// TODO(kjlubick) remove this check once the commentStore is implemented and included from main.
-	if s.commentStore != nil {
-		xtc, err := s.commentStore.ListComments(ctx)
-		if err != nil {
-			sklog.Warningf("Omitting comments due to error: %s", err)
-			traceComments = nil
-		} else {
-			for _, tc := range xtc {
-				traceComments = append(traceComments, frontend.ToTraceComment(tc))
-			}
-			sort.Slice(traceComments, func(i, j int) bool {
-				return traceComments[i].UpdatedTS.Before(traceComments[j].UpdatedTS)
-			})
-		}
-	}
-	return traceComments
-}
-
 // prepareTraceGroups processes the TraceGroup for each SearchResult, preparing it to be displayed
 // on the frontend. If appendPrimaryDigest is true, the primary digest for each SearchResult will
 // be appended to the end of the trace data, useful for visualizing changelist results.
-func prepareTraceGroups(searchResults []*frontend.SearchResult, exp expectations.Classifier, comments []frontend.TraceComment, appendPrimaryDigest bool) {
+func prepareTraceGroups(searchResults []*frontend.SearchResult, exp expectations.Classifier, appendPrimaryDigest bool) {
 	for _, di := range searchResults {
 		// Add the drawable traces to the result.
-		fillInFrontEndTraceData(&di.TraceGroup, di.Test, di.Digest, exp, comments, appendPrimaryDigest)
+		fillInFrontEndTraceData(&di.TraceGroup, di.Test, di.Digest, exp, appendPrimaryDigest)
 	}
 }
 
@@ -880,7 +848,7 @@ const (
 
 // fillInFrontEndTraceData fills in the data needed to draw the traces for the given test/digest
 // and to connect the traces to the appropriate comments.
-func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestName, primary types.Digest, exp expectations.Classifier, comments []frontend.TraceComment, appendPrimaryDigest bool) {
+func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestName, primary types.Digest, exp expectations.Classifier, appendPrimaryDigest bool) {
 	if len(traceGroup.Traces) == 0 {
 		return
 	}
@@ -933,11 +901,6 @@ func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestNam
 			}
 		}
 
-		for i, c := range comments {
-			if c.QueryToMatch.MatchesParams(oneTrace.Params) {
-				oneTrace.CommentIndices = append(oneTrace.CommentIndices, i)
-			}
-		}
 		// No longer need the RawTrace data, now that it has been turned into the frontend version.
 		oneTrace.RawTrace = nil
 		traceGroup.Traces[idx] = oneTrace

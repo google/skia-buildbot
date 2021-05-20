@@ -40,13 +40,11 @@ fetchMock.get('glob:/json/v1/details*', delay(() => {
         status: 'untriaged',
       },
       commits: twoHundredCommits,
-      trace_comments: null,
     });
   }
   return JSON.stringify({
     digest: typicalDetails,
     commits: twoHundredCommits,
-    trace_comments: null,
   });
 }, rpcDelay));
 fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));

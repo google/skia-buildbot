@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/golden/go/comment/trace"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/tiling"
@@ -21,9 +20,8 @@ type SearchResponse struct {
 	// Offset is the offset of the digest into the total list of digests.
 	Offset int `json:"offset"`
 	// Size is the total number of Digests that match the current query.
-	Size          int               `json:"size"`
-	Commits       []frontend.Commit `json:"commits"`
-	TraceComments []TraceComment    `json:"trace_comments"`
+	Size    int               `json:"size"`
+	Commits []frontend.Commit `json:"commits"`
 	// BulkTriageData contains *all* digests that match the query as keys. The value for each key is
 	// an expectations.Label value giving the label of the closest triaged digest to the key digest
 	// or empty string if there is no "closest digest". Note the similarity to the
@@ -111,9 +109,8 @@ type SRDiffDigest struct {
 
 // DigestDetails contains details about a digest.
 type DigestDetails struct {
-	Result        SearchResult      `json:"digest"`
-	Commits       []frontend.Commit `json:"commits"`
-	TraceComments []TraceComment    `json:"trace_comments"`
+	Result  SearchResult      `json:"digest"`
+	Commits []frontend.Commit `json:"commits"`
 }
 
 // Trace describes a single trace, used in TraceGroup.
@@ -139,37 +136,6 @@ type Trace struct {
 	// CommentIndices are indices into the TraceComments slice on the final result. For example,
 	// a 1 means the second TraceComment in the top level TraceComments applies to this trace.
 	CommentIndices []int `json:"comment_indices"`
-}
-
-// TraceComment is the frontend representation of a trace.Comment
-type TraceComment struct {
-	ID trace.ID `json:"id"`
-	// CreatedBy is the email address of the user who created this trace comment.
-	CreatedBy string `json:"created_by"`
-	// UpdatedBy is the email address of the user who most recently updated this trace comment.
-	UpdatedBy string `json:"updated_by"`
-	// CreatedTS is when the comment was created.
-	CreatedTS time.Time `json:"created_ts"`
-	// UpdatedTS is when the comment was updated.
-	UpdatedTS time.Time `json:"updated_ts"`
-	// Text is an arbitrary string. There can be special rules that only the frontend cares about
-	// (e.g. some markdown or coordinates).
-	Text string `json:"text"`
-	// QueryToMatch represents which traces this trace comment should apply to.
-	QueryToMatch paramtools.ParamSet `json:"query"`
-}
-
-// ToTraceComment converts a trace.Comment into a TraceComment
-func ToTraceComment(c trace.Comment) TraceComment {
-	return TraceComment{
-		ID:           c.ID,
-		CreatedBy:    c.CreatedBy,
-		UpdatedBy:    c.UpdatedBy,
-		CreatedTS:    c.CreatedTS,
-		UpdatedTS:    c.UpdatedTS,
-		Text:         c.Comment,
-		QueryToMatch: c.QueryToMatch,
-	}
 }
 
 // TraceGroup is info about a group of traces. The concrete use of TraceGroup is to represent all

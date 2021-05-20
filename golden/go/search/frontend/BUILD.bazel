@@ -7,7 +7,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/paramtools",
-        "//golden/go/comment/trace",
         "//golden/go/expectations",
         "//golden/go/search/common",
         "//golden/go/tiling",
