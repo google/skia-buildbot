@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f216bdbd_31008221",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk_po.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-05-20T17:24:54Z",
+      "side": 1,
+      "message": "This is a bit confusing to me to all be in a string template literal. Please pull it outside the literal and then add the # prefix later.",
+      "range": {
+        "startLine": 66,
+        "startChar": 7,
+        "endLine": 72,
+        "endChar": 18
+      },
+      "revId": "481deb957b13098f4ceef7804d3dc00a81c25e18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
