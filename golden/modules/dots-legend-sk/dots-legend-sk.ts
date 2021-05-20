@@ -31,9 +31,7 @@ export class DotsLegendSk extends ElementSk {
 
   private static digestTemplate = (el: DotsLegendSk, digest: DigestStatus, index: number) => html`
     ${DotsLegendSk.dotTemplate(index)}
-    <a target=_blank class=digest href="${el.digestDetailHref(index)}">
-      ${digest.digest}
-    </a>
+    <a target=_blank class=digest href="${el.digestDetailHref(index)}">${digest.digest}</a>
     ${DotsLegendSk.statusIconTemplate(digest.status)}
     ${index > 0
         ? html`<a target=_blank class=diff href="${el.digestDiffHref(index)}">
