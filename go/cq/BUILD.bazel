@@ -14,6 +14,7 @@ go_library(
         "//go/exec",
         "//go/gerrit",
         "//go/git",
+        "//go/git/git_common",
         "//go/gitiles",
         "//go/metrics2",
         "//go/skerr",
