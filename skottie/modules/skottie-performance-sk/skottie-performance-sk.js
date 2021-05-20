@@ -13,7 +13,20 @@
 import { define } from 'elements-sk/define';
 import { html, render } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
-import { Chart } from 'chart.js';
+import {
+  Chart,
+  BarController,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+} from 'chart.js';
+
+Chart.register(
+  BarElement,
+  BarController,
+  CategoryScale,
+  LinearScale,
+);
 
 const marks = {
   START: 'Start Skottie Frame',
