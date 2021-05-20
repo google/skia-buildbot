@@ -1147,16 +1147,16 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		digestIndex[d] = i
 	}
 
-	d3 := ClusterDiffResult{
+	d3 := frontend.ClusterDiffResult{
 		Test:             types.TestName(testName),
-		Nodes:            []Node{},
-		Links:            []Link{},
+		Nodes:            []frontend.Node{},
+		Links:            []frontend.Link{},
 		ParamsetByDigest: map[types.Digest]paramtools.ParamSet{},
 		ParamsetsUnion:   paramtools.ParamSet{},
 	}
 	for i, d := range searchResponse.Results {
-		d3.Nodes = append(d3.Nodes, Node{
-			Name:   d.Digest,
+		d3.Nodes = append(d3.Nodes, frontend.Node{
+			Digest: d.Digest,
 			Status: d.Status,
 		})
 		remaining := digests[i:]
@@ -1166,10 +1166,10 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for otherDigest, distance := range links {
-			d3.Links = append(d3.Links, Link{
-				Source: digestIndex[d.Digest],
-				Target: digestIndex[otherDigest],
-				Value:  distance,
+			d3.Links = append(d3.Links, frontend.Link{
+				LeftIndex:  digestIndex[d.Digest],
+				RightIndex: digestIndex[otherDigest],
+				Distance:   distance,
 			})
 		}
 		d3.ParamsetByDigest[d.Digest] = idx.GetParamsetSummary(d.Test, d.Digest, types.ExcludeIgnoredTraces)
@@ -1227,28 +1227,52 @@ WHERE left_digest = $1 AND right_digest IN `
 	return rv, nil
 }
 
-// Node represents a single node in a d3 diagram. Used in ClusterDiffResult.
-type Node struct {
-	Name   types.Digest       `json:"name"`
-	Status expectations.Label `json:"status"`
-}
+func (wh *Handlers) ClusterDiffHandler2(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_ClusterDiffHandler2")
+	defer span.End()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
 
-// Link represents a link between d3 nodes, used in ClusterDiffResult.
-type Link struct {
-	Source int     `json:"source"`
-	Target int     `json:"target"`
-	Value  float32 `json:"value"`
-}
+	var q query.Search
+	if err := query.ParseSearch(r, &q); err != nil {
+		httputils.ReportError(w, err, "Unable to parse query parameter.", http.StatusBadRequest)
+		return
+	}
+	corpora, ok := q.TraceValues[types.CorpusField]
+	if !ok || len(corpora) == 0 {
+		http.Error(w, "Must include corpus", http.StatusBadRequest)
+		return
+	}
+	testNames, ok := q.TraceValues[types.PrimaryKeyField]
+	if !ok || len(testNames) == 0 {
+		http.Error(w, "Must include test name", http.StatusBadRequest)
+		return
+	}
+	leftGrouping := paramtools.Params{
+		types.CorpusField:     corpora[0],
+		types.PrimaryKeyField: testNames[0],
+	}
+	delete(q.TraceValues, types.CorpusField)
+	delete(q.TraceValues, types.PrimaryKeyField)
+	clusterOpts := search2.ClusterOptions{
+		Grouping:                leftGrouping,
+		Filters:                 q.TraceValues,
+		IncludePositiveDigests:  q.IncludePositiveDigests,
+		IncludeNegativeDigests:  q.IncludeNegativeDigests,
+		IncludeUntriagedDigests: q.IncludeUntriagedDigests,
 
-// ClusterDiffResult contains the result of comparing all digests within a test.
-// It is structured to be easy to render by the D3.js.
-type ClusterDiffResult struct {
-	Nodes []Node `json:"nodes"`
-	Links []Link `json:"links"`
-
-	Test             types.TestName                       `json:"test"`
-	ParamsetByDigest map[types.Digest]paramtools.ParamSet `json:"paramsetByDigest"`
-	ParamsetsUnion   paramtools.ParamSet                  `json:"paramsetsUnion"`
+		CodeReviewSystem: q.CodeReviewSystemID,
+		ChangelistID:     q.ChangelistID,
+		PatchsetOrder:    int(q.Patchsets[0]),
+	}
+	clusterResp, err := wh.Search2API.GetCluster(ctx, clusterOpts)
+	if err != nil {
+		httputils.ReportError(w, err, "Unable to compute cluster.", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(w, clusterResp)
 }
 
 // ListTestsHandler returns a summary of the digests seen for a given test.
