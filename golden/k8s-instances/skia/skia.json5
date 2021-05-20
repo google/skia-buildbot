@@ -12,7 +12,7 @@
   diff_work_topic: "gold-skia-diffmetrics", // includes instance id
   gcs_bucket: "skia-infra-gm", // Legacy bucket name
   git_bt_table: "git-repos2",
-  git_repo_branch: "master",
+  git_repo_branch: "main",
   git_repo_url: "https://skia.googlesource.com/skia.git",
   fs_namespace: "skia",
   fs_project_id: "skia-firestore",

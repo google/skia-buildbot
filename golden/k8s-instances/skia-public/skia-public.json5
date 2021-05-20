@@ -11,7 +11,7 @@
   ],
   gcs_bucket: "skia-infra-gm",
   git_bt_table: "git-repos2",
-  git_repo_branch: "master",
+  git_repo_branch: "main",
   git_repo_url: "https://skia.googlesource.com/skia.git",
   enable_sql_expectation: true,
   fs_namespace: "skia",
