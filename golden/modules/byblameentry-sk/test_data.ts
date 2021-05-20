@@ -36,12 +36,14 @@ export const entry: ByBlameEntry = {
     sample_digest: 'fed2ff29abe371fc0ec1b2c65dfb3949',
   }],
   commits: [{
+    id: 'elisabbbb',
     commit_time: 1573169814,
     hash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
     author: 'Elisa (elisa@example.com)',
     message: 'One glyph() to rule them all!!!',
     cl_url: '',
   }, {
+    id: 'joeaaaa',
     commit_time: 1573149564,
     hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     author: 'Joe (joe@example.com)',
