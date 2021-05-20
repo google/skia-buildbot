@@ -22,6 +22,30 @@
       },
       "revId": "481deb957b13098f4ceef7804d3dc00a81c25e18",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f3c1e218_63152e00",
+        "filename": "golden/modules/dots-legend-sk/dots-legend-sk_po.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-05-20T17:56:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f216bdbd_31008221",
+      "range": {
+        "startLine": 66,
+        "startChar": 7,
+        "endLine": 72,
+        "endChar": 18
+      },
+      "revId": "481deb957b13098f4ceef7804d3dc00a81c25e18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
