@@ -1,0 +1,19 @@
+- hosts: '{{ variable_hosts }}'
+  gather_facts: False
+  tasks:
+    - name: Create .ssh directory if it doesn't exist.
+      ansible.windows.win_file:
+        path: C:\Users\chrome-bot\.ssh
+        state: directory
+    - name: Copy sshd_config
+      ansible.builtin.copy:
+        src: ./templates/win_sshd_config
+        dest: C:\ProgramData\ssh\sshd_config
+    - name: Copy authorized_keys
+      ansible.builtin.copy:
+        src: ../authorized_keys
+        dest: C:\Users\chrome-bot\.ssh\authorized_keys
+    - name: Restart sshd
+      ansible.windows.win_service:
+        state: restarted
+        name: sshd
