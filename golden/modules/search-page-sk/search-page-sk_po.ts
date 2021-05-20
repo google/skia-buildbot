@@ -1,53 +1,10 @@
-import { PageObject, PageObjectList } from '../../../infra-sk/modules/page_object/page_object';
-import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
-import { SearchControlsSkPO } from '../search-controls-sk/search-controls-sk_po';
-import { ChangelistControlsSkPO } from '../changelist-controls-sk/changelist-controls-sk_po';
-import { BulkTriageSkPO } from '../bulk-triage-sk/bulk-triage-sk_po';
-import { TriageSkPO } from '../triage-sk/triage-sk_po';
-import { Label } from '../rpc_types';
-
-/**
- * A page object for the DigestDetailsSk component.
- *
- * TODO(lovisolo): Extract into //golden/modules/digest-details-sk/digest-details-sk_po.ts once
- *                 digest-details-sk is ported to TypeScript.
- */
-export class DigestDetailsSkPO extends PageObject {
-  get triageSkPO(): TriageSkPO {
-    return this.poBySelector('triage-sk', TriageSkPO);
-  }
-
-  // TODO(lovisolo): Use a less brittle selector (add a "left" CSS class).
-  private get leftDigest(): PageObjectElement {
-    return this.bySelector('.digest_label:nth-child(1)');
-  }
-
-  // TODO(lovisolo): Use a less brittle selector (add a "right" CSS class).
-  private get rightDigest(): PageObjectElement {
-    return this.bySelector('.digest_label:nth-child(2)');
-  }
-
-  private get diffPageLink(): PageObjectElement {
-    return this.bySelector('.diffpage_link');
-  }
-
-  private get zoomDialog(): PageObjectElement {
-    return this.bySelector('dialog.zoom_dialog');
-  }
-
-  async isSelected() { return this.element.hasClassName('selected'); }
-
-  async getLeftDigest() { return this.leftDigest.innerText; }
-
-  async getRightDigest() {
-    // Not all DigestDetailsSk instances have a right digest.
-    return (await this.rightDigest.isEmpty()) ? null : this.rightDigest.innerText;
-  }
-
-  async getDiffPageLink() { return this.diffPageLink.getAttribute('href'); }
-
-  async isZoomDialogOpen() { return this.zoomDialog.hasAttribute('open'); }
-}
+import {PageObject, PageObjectList} from '../../../infra-sk/modules/page_object/page_object';
+import {PageObjectElement} from '../../../infra-sk/modules/page_object/page_object_element';
+import {SearchControlsSkPO} from '../search-controls-sk/search-controls-sk_po';
+import {ChangelistControlsSkPO} from '../changelist-controls-sk/changelist-controls-sk_po';
+import {BulkTriageSkPO} from '../bulk-triage-sk/bulk-triage-sk_po';
+import {Label} from '../rpc_types';
+import {DigestDetailsSkPO} from '../digest-details-sk/digest-details-sk_po';
 
 /** A page object for the SearchPageSk component. */
 export class SearchPageSkPO extends PageObject {
