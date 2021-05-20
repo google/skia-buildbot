@@ -32,6 +32,7 @@ go_test(
     name = "cq_test",
     srcs = [
         "update_expectations_test.go",
+        "update_manual_test.go",
         "update_test.go",
     ],
     embed = [":cq"],
