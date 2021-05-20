@@ -3,7 +3,7 @@
     "allowJs": true,
     "esModuleInterop": true,
     "module": "commonjs",
-    "lib": ["DOM", "ES2017"],
+    "lib": ["DOM", "ES2017", "ESNext"],
     "noImplicitAny": true,
     "sourceMap": true,
     "strict": true,
