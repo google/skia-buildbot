@@ -80,3 +80,9 @@ push_authorized_keys_to_rack5_linux_incremental:
 
 push_authorized_keys_to_rack5_linux_full:
 	${SSH_WRAP} ansible-playbook push_authorized_keys_to_linux.yml --extra-vars variable_hosts=rack5_linux -f 1 --ask-pass
+
+push_authorized_keys_to_all:
+	-${SSH_WRAP} ansible-playbook push_authorized_keys_to_linux.yml --extra-vars variable_hosts=all_linux
+	-${SSH_WRAP} ansible-playbook push_authorized_keys_to_router.yml --extra-vars variable_hosts=routers
+	-${SSH_WRAP} ansible-playbook push_authorized_keys_to_mac.yml --extra-vars variable_hosts=all_mac
+	-${SSH_WRAP} ansible-playbook push_authorized_keys_to_win.yml --extra-vars variable_hosts=all_win
