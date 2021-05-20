@@ -576,3 +576,27 @@ type PatchsetNewAndUntriagedSummaryV1 struct {
 	// PatchsetOrder is represents the chronological order the patchsets are in. It starts at 1.
 	PatchsetOrder int `json:"patchset_order"`
 }
+
+// Node represents a single node in a d3 diagram. Used in ClusterDiffResult.
+type Node struct {
+	Name   types.Digest       `json:"name"`
+	Status expectations.Label `json:"status"`
+}
+
+// Link represents a link between d3 nodes, used in ClusterDiffResult.
+type Link struct {
+	Source int     `json:"source"`
+	Target int     `json:"target"`
+	Value  float32 `json:"value"`
+}
+
+// ClusterDiffResult contains the result of comparing all digests within a test.
+// It is structured to be easy to render by the D3.js.
+type ClusterDiffResult struct {
+	Nodes []Node `json:"nodes"`
+	Links []Link `json:"links"`
+
+	Test             types.TestName                       `json:"test"`
+	ParamsetByDigest map[types.Digest]paramtools.ParamSet `json:"paramsetByDigest"`
+	ParamsetsUnion   paramtools.ParamSet                  `json:"paramsetsUnion"`
+}

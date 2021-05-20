@@ -64,6 +64,11 @@ type API interface {
 	// which commits first introduced those untriaged digests. It returns a list of commits or
 	// commit ranges that are believed to have caused those untriaged digests.
 	GetBlamesForUntriagedDigests(ctx context.Context, corpus string) (BlameSummaryV1, error)
+
+	// GetCluster returns all digests from the traces matching the various filters compared to
+	// all other digests in that set, so they can be drawn as a 2d cluster. This helps visualize
+	// patterns in the images, which can identify errors in triaging, among other things.
+	GetCluster(ctx context.Context, opts ClusterOptions) (frontend.ClusterDiffResult, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -129,6 +134,18 @@ type AffectedGrouping struct {
 
 	// groupingID is used as an intermediate step
 	groupingID schema.MD5Hash
+}
+
+type ClusterOptions struct {
+	LeftGrouping            paramtools.Params
+	LeftFilters             paramtools.ParamSet
+	RightFilters            paramtools.ParamSet
+	IncludePositiveDigests  bool
+	IncludeNegativeDigests  bool
+	IncludeUntriagedDigests bool
+	CodeReviewSystem        string
+	ChangelistID            string
+	PatchsetOrder           int
 }
 
 const (
@@ -2758,6 +2775,11 @@ func getRangeAndBlame(commits []frontend.Commit, startIndex, endIndex int) (stri
 	// encompass "bad" commits.
 	startCommit := commits[startIndex+1]
 	return fmt.Sprintf("%s:%s", startCommit.ID, endCommit.ID), commits[startIndex+1 : endIndex+1]
+}
+
+// GetCluster implements the API interface.
+func (s *Impl) GetCluster(ctx context.Context, opts ClusterOptions) (frontend.ClusterDiffResult, error) {
+	panic("implement me")
 }
 
 // Make sure Impl implements the API interface.
