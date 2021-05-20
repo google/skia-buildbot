@@ -1,0 +1,7 @@
+- hosts: '{{ variable_hosts }}'
+  gather_facts: False
+  tasks:
+    - name: Copy authorized_keys with owner and permissions
+      ansible.builtin.copy:
+        src: ../authorized_keys
+        dest: C:\Users\chrome-bot\.ssh\authorized_keys
