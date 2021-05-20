@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b05bcc4d_3b892fe4",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk_po.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-05-20T13:39:44Z",
+      "side": 1,
+      "message": "!\u003d\u003d",
+      "range": {
+        "startLine": 96,
+        "startChar": 27,
+        "endLine": 96,
+        "endChar": 29
+      },
+      "revId": "201351c5d0baee63743830be29b5241e1e5c5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "40afc309_f2f9e161",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-05-20T13:39:44Z",
+      "side": 1,
+      "message": "The PO makes these tests very easy to understand. I like it a lot!",
+      "range": {
+        "startLine": 107,
+        "startChar": 10,
+        "endLine": 107,
+        "endChar": 23
+      },
+      "revId": "201351c5d0baee63743830be29b5241e1e5c5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
