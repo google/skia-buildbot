@@ -87,6 +87,27 @@ func (_m *API) GetChangelistParamset(ctx context.Context, crs string, clID strin
 	return r0, r1
 }
 
+// GetCluster provides a mock function with given fields: ctx, opts
+func (_m *API) GetCluster(ctx context.Context, opts search2.ClusterOptions) (frontend.ClusterDiffResult, error) {
+	ret := _m.Called(ctx, opts)
+
+	var r0 frontend.ClusterDiffResult
+	if rf, ok := ret.Get(0).(func(context.Context, search2.ClusterOptions) frontend.ClusterDiffResult); ok {
+		r0 = rf(ctx, opts)
+	} else {
+		r0 = ret.Get(0).(frontend.ClusterDiffResult)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, search2.ClusterOptions) error); ok {
+		r1 = rf(ctx, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPrimaryBranchParamset provides a mock function with given fields: ctx
 func (_m *API) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnlyParamSet, error) {
 	ret := _m.Called(ctx)

@@ -4410,6 +4410,89 @@ func mustHash(grouping paramtools.Params) schema.MD5Hash {
 	return sql.AsMD5Hash(b)
 }
 
+func TestGetCluster_ShowAllDataFromPrimaryBranch_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+	s := New(db, 100)
+	res, err := s.GetCluster(ctx, ClusterOptions{
+		Grouping: paramtools.Params{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+		},
+		IncludePositiveDigests:  true,
+		IncludeNegativeDigests:  true,
+		IncludeUntriagedDigests: true,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, frontend.ClusterDiffResult{
+		Test: dks.SquareTest,
+		Nodes: []frontend.Node{
+			{Digest: dks.DigestA01Pos, Status: expectations.Positive},
+			{Digest: dks.DigestA02Pos, Status: expectations.Positive},
+			{Digest: dks.DigestA03Pos, Status: expectations.Positive},
+			{Digest: dks.DigestA08Pos, Status: expectations.Positive},
+		},
+		Links: []frontend.Link{
+			{LeftIndex: 0, RightIndex: 1, Distance: 56.25},
+			{LeftIndex: 0, RightIndex: 2, Distance: 56.25},
+			{LeftIndex: 0, RightIndex: 3, Distance: 3.125},
+			{LeftIndex: 1, RightIndex: 2, Distance: 1.5625},
+			{LeftIndex: 1, RightIndex: 3, Distance: 56.25},
+			{LeftIndex: 2, RightIndex: 3, Distance: 56.25},
+		},
+		ParamsetByDigest: map[types.Digest]paramtools.ParamSet{
+			dks.DigestA01Pos: {
+				types.CorpusField:     []string{dks.CornersCorpus},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice},
+				dks.OSKey:             []string{dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+				"ext":                 []string{"png"},
+			},
+			dks.DigestA02Pos: {
+				types.CorpusField:     []string{dks.CornersCorpus},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+				dks.ColorModeKey:      []string{dks.GreyColorMode},
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot3OS, dks.IOS},
+				"ext":                 []string{"png"},
+			},
+			dks.DigestA03Pos: {
+				types.CorpusField:     []string{dks.CornersCorpus},
+				types.PrimaryKeyField: []string{dks.SquareTest},
+				dks.ColorModeKey:      []string{dks.GreyColorMode},
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice},
+				dks.OSKey:             []string{dks.Windows10dot2OS, dks.IOS},
+				"ext":                 []string{"png"},
+			},
+			dks.DigestA08Pos: {
+				types.CorpusField:            []string{dks.CornersCorpus},
+				types.PrimaryKeyField:        []string{dks.SquareTest},
+				dks.ColorModeKey:             []string{dks.RGBColorMode},
+				dks.DeviceKey:                []string{dks.WalleyeDevice},
+				dks.OSKey:                    []string{dks.AndroidOS},
+				"ext":                        []string{"png"},
+				"fuzzy_max_different_pixels": []string{"2"},
+				"image_matching_algorithm":   []string{"fuzzy"},
+			},
+		},
+		ParamsetsUnion: paramtools.ParamSet{
+			types.CorpusField:            []string{dks.CornersCorpus},
+			types.PrimaryKeyField:        []string{dks.SquareTest},
+			dks.ColorModeKey:             []string{dks.GreyColorMode, dks.RGBColorMode},
+			dks.DeviceKey:                []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+			dks.OSKey:                    []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+			"ext":                        []string{"png"},
+			"fuzzy_max_different_pixels": []string{"2"},
+			"image_matching_algorithm":   []string{"fuzzy"},
+		},
+	}, res)
+}
+
 var kitchenSinkCommits = makeKitchenSinkCommits()
 
 func makeKitchenSinkCommits() []frontend.Commit {
