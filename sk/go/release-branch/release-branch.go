@@ -21,7 +21,6 @@ import (
 )
 
 const (
-	refsHeadsPrefix              = "refs/heads/"
 	chromeBranchTmpl             = "chrome/m%d"
 	flagDryRun                   = "dry-run"
 	gerritProject                = "skia"
@@ -96,7 +95,7 @@ func releaseBranch(ctx context.Context, commit string, dryRun bool) error {
 	fmt.Println(fmt.Sprintf("Creating branch %s and removing support (eg. CQ) for %s", newBranch, oldBranch))
 
 	fmt.Println(fmt.Sprintf("Creating branch %s...", newBranch))
-	if err := createNewBranch(ctx, refsHeadsPrefix+newBranch, commit, dryRun); err != nil {
+	if err := createNewBranch(ctx, newBranch, commit, dryRun); err != nil {
 		return skerr.Wrap(err)
 	}
 	fmt.Println("Creating CL to update milestone...")
@@ -175,7 +174,7 @@ func updateMilestone(ctx context.Context, g gerrit.GerritInterface, baseCommit s
 	changes := map[string]string{
 		milestoneFile: newContents,
 	}
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, git.MasterBranch, commitMsg, baseCommit, changes, !dryRun)
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, git.MainBranch, commitMsg, baseCommit, changes, !dryRun)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}
