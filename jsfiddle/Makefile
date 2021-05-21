@@ -1,4 +1,5 @@
 build: npm-ci
+	go install ./go/...
 	npx webpack --mode=development
 
 serve: npm-ci
@@ -48,5 +49,8 @@ push: get_latest_skia release
 .PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs npm-ci
 	npx webpack --mode=production
+
+run-local-instance:
+	jsfiddle --local --logtostderr
 
 include ../make/npm.mk
