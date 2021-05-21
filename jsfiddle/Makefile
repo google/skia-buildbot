@@ -11,9 +11,6 @@ release_build: wasm_libs npm-ci
 watch: npm-ci
 	npx webpack --watch --mode=development
 
-get_latest_skia:
-	docker pull gcr.io/skia-public/skia-wasm-release:prod
-
 wasm_libs:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
 	rm -rf build
