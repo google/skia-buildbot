@@ -14,6 +14,7 @@ get_latest_skia:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
 
 wasm_libs:
+	docker pull gcr.io/skia-public/skia-wasm-release:prod
 	rm -rf build
 	mkdir -p build/canvaskit build/pathkit
 	# Extract them from the most recently built ones. These are built
