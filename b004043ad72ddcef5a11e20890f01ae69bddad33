@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fce4ebba_4c42b249",
+        "filename": "golden/modules/diff-page-sk/diff-page-sk-demo.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-05-21T19:23:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "94a92947_caffc307",
+      "range": {
+        "startLine": 60,
+        "startChar": 15,
+        "endLine": 60,
+        "endChar": 24
+      },
+      "revId": "b004043ad72ddcef5a11e20890f01ae69bddad33",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3d2d1991_6b209a8d",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-05-21T12:41:28Z",
       "side": 1,
       "message": "This changed the gold images because this is not a valid image to load. That decreases the usefulness of the test.",
+      "range": {
+        "startLine": 22,
+        "startChar": 13,
+        "endLine": 22,
+        "endChar": 45
+      },
+      "revId": "b004043ad72ddcef5a11e20890f01ae69bddad33",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "890b1415_55c088e0",
+        "filename": "golden/modules/diff-page-sk/diff-page-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-05-21T19:23:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d2d1991_6b209a8d",
       "range": {
         "startLine": 22,
         "startChar": 13,
