@@ -27,7 +27,12 @@ import { AsyncList, PageObjectElement, PageObjectElementList } from './page_obje
 export abstract class PageObject {
   protected element: PageObjectElement;
 
-  constructor(element: HTMLElement | ElementHandle | PageObjectElement) {
+  constructor(
+      element:
+          HTMLElement |
+          ElementHandle<HTMLElement> |
+          Promise<ElementHandle<HTMLElement> | null> |
+          PageObjectElement) {
     if (element instanceof PageObjectElement) {
       this.element = element;
     } else {
