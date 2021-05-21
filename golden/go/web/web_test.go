@@ -3206,6 +3206,56 @@ func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
+func TestClusterDiffHandler2_ValidInput_CorrectJSONReturned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ms := &mock_search2.API{}
+
+	expectedOptions := search2.ClusterOptions{
+		Grouping: paramtools.Params{
+			types.CorpusField:     "infra",
+			types.PrimaryKeyField: "infra-sk_paramset-sk_many-paramsets_no-titles",
+		},
+		Filters: paramtools.ParamSet{
+			"build_system": []string{"bazel", "webpack"},
+		},
+		IncludePositiveDigests:  true,
+		IncludeNegativeDigests:  false,
+		IncludeUntriagedDigests: true,
+	}
+
+	ms.On("GetCluster", testutils.AnyContext, expectedOptions).Return(frontend.ClusterDiffResult{
+		Nodes: []frontend.Node{
+			{Digest: datakitchensink.DigestB01Pos, Status: expectations.Positive},
+		},
+		Links: []frontend.Link{},
+		Test:  "my_test",
+		ParamsetByDigest: map[types.Digest]paramtools.ParamSet{
+			datakitchensink.DigestB01Pos: {
+				"key1": []string{"value1", "value2"},
+			},
+		},
+		ParamsetsUnion: paramtools.ParamSet{
+			"key1": []string{"value1", "value2"},
+		},
+	}, nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Search2API: ms,
+		},
+		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	// Taken from a production request
+	url := `/json/v2/clusterdiff?neg=false&pos=true&query=build_system%3Dbazel%26build_system%3Dwebpack%26name%3Dinfra-sk_paramset-sk_many-paramsets_no-titles&source_type=infra&unt=true`
+	r := httptest.NewRequest(http.MethodGet, url, nil)
+	wh.ClusterDiffHandler2(w, r)
+	const expectedJSON = `{"nodes":[{"name":"b01b01b01b01b01b01b01b01b01b01b0","status":"positive"}],"links":[],"test":"my_test","paramsetByDigest":{"b01b01b01b01b01b01b01b01b01b01b0":{"key1":["value1","value2"]}},"paramsetsUnion":{"key1":["value1","value2"]}}`
+	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"

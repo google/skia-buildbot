@@ -144,7 +144,7 @@ type ClusterOptions struct {
 	IncludeUntriagedDigests bool
 	CodeReviewSystem        string
 	ChangelistID            string
-	PatchsetOrder           int
+	PatchsetID              string
 }
 
 const (
@@ -2777,6 +2777,7 @@ func getRangeAndBlame(commits []frontend.Commit, startIndex, endIndex int) (stri
 }
 
 // GetCluster implements the API interface.
+// TODO(kjlubick) Handle CL data (frontend currently does not).
 func (s *Impl) GetCluster(ctx context.Context, opts ClusterOptions) (frontend.ClusterDiffResult, error) {
 	ctx, span := trace.StartSpan(ctx, "search2_GetCluster")
 	defer span.End()
@@ -2820,18 +2821,17 @@ type digestClusterInfo struct {
 func (s *Impl) getDigestsAndTracesForCluster(ctx context.Context, opts ClusterOptions) (map[schema.MD5Hash]*digestClusterInfo, error) {
 	ctx, span := trace.StartSpan(ctx, "getDigestsAndTracesForCluster")
 	defer span.End()
-
-	const statement = `WITH
-DataOfInterest AS (
-	SELECT trace_id, options_id, digest FROM ValuesAtHead
-	WHERE grouping_id = $1 AND matches_any_ignore_rule = FALSE AND most_recent_commit_id >= $2
-)
+	statement := "WITH "
+	dataOfInterest, err := clusterDataOfInterestStatement(opts)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	statement += dataOfInterest + `
 SELECT DataOfInterest.*, label
 FROM DataOfInterest JOIN Expectations
 	ON Expectations.grouping_id = $1 and DataOfInterest.digest = Expectations.digest
 WHERE label = ANY($3)
 `
-	// TODO(kjlubick) account for filters
 	var triageStatuses []schema.ExpectationLabel
 	if opts.IncludeUntriagedDigests {
 		triageStatuses = append(triageStatuses, schema.LabelUntriaged)
@@ -2874,9 +2874,77 @@ WHERE label = ANY($3)
 		info.optionsIDs = append(info.optionsIDs, optionsID)
 	}
 	if s.isPublicView {
-		// TODO(kjlubick)
+		s.mutex.RLock()
+		defer s.mutex.RUnlock()
+		for _, info := range rv {
+			var filteredTraceIDs []schema.TraceID
+			var filteredOptionIDs []schema.OptionsID
+			var traceKey schema.MD5Hash
+			tr := traceKey[:]
+			for i := range info.traceIDs {
+				copy(tr, info.traceIDs[i])
+				if _, ok := s.publiclyVisibleTraces[traceKey]; ok {
+					filteredTraceIDs = append(filteredTraceIDs, info.traceIDs[i])
+					filteredOptionIDs = append(filteredOptionIDs, info.optionsIDs[i])
+				}
+			}
+			info.traceIDs = filteredTraceIDs
+			info.optionsIDs = filteredOptionIDs
+		}
 	}
 	return rv, nil
+}
+
+// clusterDataOfInterestStatement returns a statement called DataOfInterest that contains
+// the trace_id, options_id, digest from the ValuesAtHead table from the traces that match
+// the given options. It will make use of the $1 placeholder for grouping_id and $2 for
+// most_recent_commit_id
+func clusterDataOfInterestStatement(opts ClusterOptions) (string, error) {
+	if len(opts.Filters) == 0 {
+		return `
+DataOfInterest AS (
+	SELECT trace_id, options_id, digest FROM ValuesAtHead
+	WHERE grouping_id = $1 AND matches_any_ignore_rule = FALSE AND most_recent_commit_id >= $2
+)`, nil
+	}
+	keys := make([]string, 0, len(opts.Filters))
+	for key := range opts.Filters {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys) // sort for determinism
+
+	statement := "\n"
+	unionIndex := 0
+	for _, key := range keys {
+		if key != sql.Sanitize(key) {
+			return "", skerr.Fmt("Invalid query key %q", key)
+		}
+		statement += fmt.Sprintf("U%d AS (\n", unionIndex)
+		for j, value := range opts.Filters[key] {
+			if value != sql.Sanitize(value) {
+				return "", skerr.Fmt("Invalid query value %q", value)
+			}
+			if j != 0 {
+				statement += "\tUNION\n"
+			}
+			statement += fmt.Sprintf("\tSELECT trace_id FROM Traces WHERE keys -> '%s' = '%q'\n", key, value)
+		}
+		statement += "),\n"
+		unionIndex++
+	}
+	statement += "TracesOfInterest AS (\n"
+	for i := 0; i < unionIndex; i++ {
+		statement += fmt.Sprintf("\tSELECT trace_id FROM U%d\n\tINTERSECT\n", i)
+	}
+	// Include a final intersect for the corpus
+	statement += `	SELECT trace_id FROM Traces WHERE grouping_id = $1 AND matches_any_ignore_rule = FALSE
+),
+DataOfInterest AS (
+	SELECT ValuesAtHead.trace_id, options_id, digest FROM ValuesAtHead
+	JOIN TracesOfInterest ON ValuesAtHead.trace_id = TracesOfInterest.trace_id
+	WHERE most_recent_commit_id >= $2
+)`
+	return statement, nil
 }
 
 // getLinks returns the nodes and links that correspond to the digests and how each compares to
@@ -2897,7 +2965,7 @@ func (s *Impl) getLinks(ctx context.Context, digests map[schema.MD5Hash]*digestC
 		}
 	}
 	if len(digestsToLookup) == 0 {
-		return nil, nil, skerr.Fmt("No digests matched the query")
+		return nil, nil, nil
 	}
 	// sort the nodes by digest for determinism.
 	sort.Slice(nodes, func(i, j int) bool {
@@ -2939,6 +3007,9 @@ ORDER BY 1, 2`
 func (s *Impl) getParamsetsForCluster(ctx context.Context, digests map[schema.MD5Hash]*digestClusterInfo) (map[types.Digest]paramtools.ParamSet, paramtools.ParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "getParamsetsForCluster")
 	defer span.End()
+	if len(digests) == 0 {
+		return nil, nil, nil
+	}
 	byDigest := make(map[types.Digest]paramtools.ParamSet, len(digests))
 	combined := paramtools.ParamSet{}
 	for d, info := range digests {

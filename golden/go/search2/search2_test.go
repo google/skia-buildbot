@@ -4493,6 +4493,242 @@ func TestGetCluster_ShowAllDataFromPrimaryBranch_Success(t *testing.T) {
 	}, res)
 }
 
+func TestGetCluster_RespectsTriageStatuses_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+	s := New(db, 100)
+	res, err := s.GetCluster(ctx, ClusterOptions{
+		Grouping: paramtools.Params{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.TriangleTest,
+		},
+		IncludePositiveDigests:  false,
+		IncludeNegativeDigests:  true,
+		IncludeUntriagedDigests: true,
+	})
+	require.NoError(t, err)
+	// For this test, we expect there to be no results, so it should return an empty response.
+	assert.Equal(t, frontend.ClusterDiffResult{
+		Test: dks.TriangleTest,
+	}, res)
+}
+
+func TestGetCluster_RespectsFilters_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+	s := New(db, 100)
+	res, err := s.GetCluster(ctx, ClusterOptions{
+		Grouping: paramtools.Params{
+			types.CorpusField:     dks.RoundCorpus,
+			types.PrimaryKeyField: dks.CircleTest,
+		},
+		Filters: paramtools.ParamSet{
+			dks.ColorModeKey: []string{dks.GreyColorMode},
+			dks.OSKey:        []string{dks.AndroidOS, dks.IOS},
+		},
+		IncludePositiveDigests:  true,
+		IncludeNegativeDigests:  true,
+		IncludeUntriagedDigests: true,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, frontend.ClusterDiffResult{
+		Test: dks.CircleTest,
+		Nodes: []frontend.Node{
+			{Digest: dks.DigestC02Pos, Status: expectations.Positive},
+			{Digest: dks.DigestC05Unt, Status: expectations.Untriaged},
+		},
+		Links: []frontend.Link{
+			{LeftIndex: 0, RightIndex: 1, Distance: 100},
+		},
+		ParamsetByDigest: map[types.Digest]paramtools.ParamSet{
+			dks.DigestC02Pos: {
+				types.CorpusField:     []string{dks.RoundCorpus},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				dks.ColorModeKey:      []string{dks.GreyColorMode},
+				dks.DeviceKey:         []string{dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS},
+				"ext":                 []string{"png"},
+			},
+			dks.DigestC05Unt: {
+				types.CorpusField:     []string{dks.RoundCorpus},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				dks.ColorModeKey:      []string{dks.GreyColorMode},
+				dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice},
+				dks.OSKey:             []string{dks.IOS},
+				"ext":                 []string{"png"},
+			},
+		},
+		ParamsetsUnion: paramtools.ParamSet{
+			types.CorpusField:     []string{dks.RoundCorpus},
+			types.PrimaryKeyField: []string{dks.CircleTest},
+			dks.ColorModeKey:      []string{dks.GreyColorMode},
+			dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+			dks.OSKey:             []string{dks.AndroidOS, dks.IOS},
+			"ext":                 []string{"png"},
+		},
+	}, res)
+}
+
+func TestGetCluster_RespectsPublicParams_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
+		dks.CornersCorpus: {
+			dks.DeviceKey: {dks.QuadroDevice},
+		},
+	})
+	require.NoError(t, err)
+	s := New(db, 100)
+	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
+	res, err := s.GetCluster(ctx, ClusterOptions{
+		Grouping: paramtools.Params{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.TriangleTest,
+		},
+		IncludePositiveDigests:  true,
+		IncludeNegativeDigests:  true,
+		IncludeUntriagedDigests: true,
+	})
+	require.NoError(t, err)
+	// For this test, we expect there to be no results, so it should return an empty response.
+	assert.Equal(t, frontend.ClusterDiffResult{
+		Test: dks.TriangleTest,
+		Nodes: []frontend.Node{
+			{Digest: dks.DigestB01Pos, Status: expectations.Positive},
+			{Digest: dks.DigestB02Pos, Status: expectations.Positive},
+		},
+		Links: []frontend.Link{
+			{LeftIndex: 0, RightIndex: 1, Distance: 43.75},
+		},
+		ParamsetByDigest: map[types.Digest]paramtools.ParamSet{
+			dks.DigestB01Pos: {
+				types.CorpusField:     []string{dks.CornersCorpus},
+				types.PrimaryKeyField: []string{dks.TriangleTest},
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot2OS, dks.Windows10dot3OS},
+				"ext":                 []string{"png"},
+			},
+			dks.DigestB02Pos: {
+				types.CorpusField:     []string{dks.CornersCorpus},
+				types.PrimaryKeyField: []string{dks.TriangleTest},
+				dks.ColorModeKey:      []string{dks.GreyColorMode},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot2OS, dks.Windows10dot3OS},
+				"ext":                 []string{"png"},
+			},
+		},
+		ParamsetsUnion: paramtools.ParamSet{
+			types.CorpusField:     []string{dks.CornersCorpus},
+			types.PrimaryKeyField: []string{dks.TriangleTest},
+			dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+			dks.DeviceKey:         []string{dks.QuadroDevice},
+			dks.OSKey:             []string{dks.Windows10dot2OS, dks.Windows10dot3OS},
+			"ext":                 []string{"png"},
+		},
+	}, res)
+}
+
+func TestClusterDataOfInterestStatement_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	statement, err := clusterDataOfInterestStatement(ClusterOptions{
+		Filters: paramtools.ParamSet{
+			"key1": []string{"alpha", "beta"},
+		},
+	})
+	require.NoError(t, err)
+	expectedCondition := `
+U0 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
+	UNION
+	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"beta"'
+),
+TracesOfInterest AS (
+	SELECT trace_id FROM U0
+	INTERSECT
+	SELECT trace_id FROM Traces WHERE grouping_id = $1 AND matches_any_ignore_rule = FALSE
+),
+DataOfInterest AS (
+	SELECT ValuesAtHead.trace_id, options_id, digest FROM ValuesAtHead
+	JOIN TracesOfInterest ON ValuesAtHead.trace_id = TracesOfInterest.trace_id
+	WHERE most_recent_commit_id >= $2
+)`
+	assert.Equal(t, expectedCondition, statement)
+
+	statement, err = clusterDataOfInterestStatement(ClusterOptions{
+		Filters: paramtools.ParamSet{
+			"key1": []string{"alpha", "beta"},
+			"key2": []string{"gamma"},
+			"key3": []string{"delta", "epsilon", "zeta"},
+		},
+	})
+	require.NoError(t, err)
+	expectedCondition = `
+U0 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
+	UNION
+	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"beta"'
+),
+U1 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'key2' = '"gamma"'
+),
+U2 AS (
+	SELECT trace_id FROM Traces WHERE keys -> 'key3' = '"delta"'
+	UNION
+	SELECT trace_id FROM Traces WHERE keys -> 'key3' = '"epsilon"'
+	UNION
+	SELECT trace_id FROM Traces WHERE keys -> 'key3' = '"zeta"'
+),
+TracesOfInterest AS (
+	SELECT trace_id FROM U0
+	INTERSECT
+	SELECT trace_id FROM U1
+	INTERSECT
+	SELECT trace_id FROM U2
+	INTERSECT
+	SELECT trace_id FROM Traces WHERE grouping_id = $1 AND matches_any_ignore_rule = FALSE
+),
+DataOfInterest AS (
+	SELECT ValuesAtHead.trace_id, options_id, digest FROM ValuesAtHead
+	JOIN TracesOfInterest ON ValuesAtHead.trace_id = TracesOfInterest.trace_id
+	WHERE most_recent_commit_id >= $2
+)`
+	assert.Equal(t, expectedCondition, statement)
+}
+
+func TestClusterDataOfInterestStatement_InvalidInput_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_, err := clusterDataOfInterestStatement(ClusterOptions{
+		Filters: paramtools.ParamSet{
+			"key1": []string{"alpha", `beta"' OR 1=1`},
+		},
+	})
+	require.Error(t, err)
+
+	_, err = clusterDataOfInterestStatement(ClusterOptions{
+		Filters: paramtools.ParamSet{
+			`key1'='""' OR 1=1`: []string{"alpha"},
+		},
+	})
+	require.Error(t, err)
+}
+
 var kitchenSinkCommits = makeKitchenSinkCommits()
 
 func makeKitchenSinkCommits() []frontend.Commit {
