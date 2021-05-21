@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "365b94c8_ff47f5d7",
+        "filename": "skottie/modules/helpers/gifStorage.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-05-21T13:14:55Z",
+      "side": 1,
+      "message": "done!",
+      "parentUuid": "75deaed4_7ef7671a",
+      "range": {
+        "startLine": 5,
+        "startChar": 6,
+        "endLine": 5,
+        "endChar": 16
+      },
+      "revId": "cf90ff78191b0c30f765a7235c7827716cd383f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "69a2ff1e_2dac16cc",
         "filename": "skottie/modules/helpers/localStorage.js",
         "patchSetId": 1
@@ -37,6 +61,24 @@
       "writtenOn": "2021-05-21T12:33:16Z",
       "side": 1,
       "message": "Please add a bit of documentation. e.g. \"This module adds a few helper methods around the native localStorage API to make it easier to store and retrieve objects\"",
+      "revId": "cf90ff78191b0c30f765a7235c7827716cd383f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9e97207c_b34c91fe",
+        "filename": "skottie/modules/helpers/localStorage.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-05-21T13:14:55Z",
+      "side": 1,
+      "message": "done!",
+      "parentUuid": "69a2ff1e_2dac16cc",
       "revId": "cf90ff78191b0c30f765a7235c7827716cd383f8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
