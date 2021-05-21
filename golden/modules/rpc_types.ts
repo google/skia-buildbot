@@ -201,6 +201,11 @@ export interface ListTestsResponse {
 	tests: TestSummary[] | null;
 }
 
+export interface DigestComparison {
+	left: SearchResult;
+	right: SRDiffDigest | null;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type ParamSetResponse = { [key: string]: string[] | null };
