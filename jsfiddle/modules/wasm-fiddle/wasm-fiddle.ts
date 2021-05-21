@@ -4,135 +4,172 @@ import { $$ } from 'common-sk/modules/dom';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 
-import { html, render } from 'lit-html';
+import { html, render, TemplateResult } from 'lit-html';
 
+import type {
+  CanvasKit,
+} from '../../build/canvaskit/canvaskit.js';
 
-export function codeEditor(ele) {
-  return html`
-<div id=editor>
-  <textarea class=code spellcheck=false rows=${lines(ele.content)} cols=80
-        @paste=${ele._changed} @input=${ele._changed}
-  ></textarea>
-  <div class=numbers>
-    ${repeat(lines(ele.content)).map((_, n) => _lineNumber(n + 1))}
-  </div>
+/**
+ * PathKit doesn't export TypeScript interfaces like CanvasKit does, so we use
+ * 'any' for now. */
+type PathKit = any;
 
-</editor>`;
-}
+/** What users call the library e.g. 'CanvasKit' */
+type LibraryName = 'CanvasKit' | 'PathKit'
 
-export function floatSlider(name, i) {
-  if (!name) {
-    return '';
-  }
-  // By setting the input's name=sliderN, the JS function will magically have a global variable
-  // called sliderN that refers to the input HTML element.
-  // https://www.w3schools.com/tags/att_input_name.asp
-  return html`
-<div class=widget>
-  <input name=${`slider${i}`} id=${`slider${i}`} min=0 max=1 step=0.00001 type=range>
-  <label for=${`slider${i}`}>${name}</label>
-</div>`;
-}
+/** The backend name for the fiddle e.g. 'canvasKit'. */
+type FiddleType = 'canvasKit' | 'pathKit'
 
-export function colorPicker(name, i) {
-  if (!name) {
-    return '';
-  }
-  // By setting the input's name=colorN, the JS function will magically have a global variable
-  // called colorN that refers to the input HTML element.
-  // https://www.w3schools.com/tags/att_input_name.asp
-  return html`
-<div class=widget>
-  <input name=${`color${i}`} id=${`color${i}`} type=color>
-  <label for=${`color${i}`}>${name}</label>
-</div>`;
-}
-
-// Returns the number of lines in str, with a minimum of 10
-// (because the editor with less than 10 lines looks a bit strange).
-function lines(str) {
-  // see https://stackoverflow.com/a/4009768
-  return Math.max(10, (str.match(/\n/g) || []).length + 1);
-}
-
-// repeat returns an array of n 'undefined' which allows
-// for repeating a template a fixed number of times
-// using map.
-function repeat(n) {
-  // See https://stackoverflow.com/a/10050831
-  return [...Array(n)];
-}
-
-const _lineNumber = (n) => html`
-  <div id=${`L${n}`}>${n}</div>
-`;
-
+// Regular expressions to pull information out of the code.
 const sliderRegex = /#slider(\d):(\S+)/g;
 const colorPickerRegex = /#color(\d):(\S+)/g;
 const fpsRegex = /benchmarkFPS/;
 
 /**
- * @module jsfiddle/modules/wasm-fiddle
- * @description <h2><code>wasm-fiddle</code></h2>
+ * Base class for the PathKit and CanvasKit elements, an element that has a code
+ * editor and canvas on which to display the output of a WASM-based library.
  *
- * <p>
- *   An element that has a code editor and canvas on which
- *   to display the output of a WASM-based library.
- * </p>
- * <h2> Assumptions <h2>
- * <ul>
- *   <li>The main template makes a call to codeEditor() and has a
- *   &lt;div&gt; element with id 'canvasContainer' where the canvas
- *   should go.</li>
- *   <li>There are buttons that call run() and save() on 'this'</li>
- *   <li>The foo.wasm has been copied into /res/ by means of CopyWebpackPlugin.</li>
- * </ul>
+ * Assumptions:
  *
+ * - The main template makes a call to WasmFiddle.codeEditor() and has a
+ *   <div> element with id 'canvasContainer' where the canvas
+ *   should go.
+ * - There are buttons that call run() and save() on 'this'.
+ * - The foo.wasm has been copied into /res/ by means of CopyWebpackPlugin.
  *
  */
 export class WasmFiddle extends HTMLElement {
+  _content: string = '';
+
+  Wasm: CanvasKit | PathKit | null = null;
+
+  wasmPromise: Promise<CanvasKit | PathKit>;
+
+  _editor: HTMLTextAreaElement | null = null;
+
+  template: TemplateResult;
+
+  libraryName: LibraryName;
+
+  fiddleType: FiddleType;
+
+  hasRun: boolean = false;
+
+  loadedWasm: boolean = false;
+
+  sliders: string[] = []; // The display names of the sliders.
+
+  colorpickers: string[] = []; // The display names of the color pickers.
+
+  fpsMeter: boolean = false; // True if the supplied template has an FPS meter.
+
   /**
-  * @param {Promise} wasmPromise: promise that will resolve with the WASM library.
-  * @param {Object} template: The base template for this element.
-  * @param {String} libraryName: What users call the library e.g. 'CanvasKit'
-  * @param {String} fiddleType: The backend name for the fiddle e.g. 'canvasKit'
-  */
-  constructor(wasmPromise, template, libraryName, fiddleType) {
+   * This will be updated to have any captured console.log (but not console.error or console.warn)
+   * messages. this._render will be called on any updates to log as well.
+   */
+  log: string = '';
+
+  /**
+   * runID is a unique identifier that changes every time run is clicked. This allows the client
+   * code to stop animation loops when run is clicked a second time. See _activeRunInstance().
+   */
+  runID: number = 0;
+
+  /**
+    * @param wasmPromise: Promise that will resolve with the WASM library.
+    * @param template: The base template for this element.
+    * @param libraryName: What users call the library e.g. 'CanvasKit'
+    * @param fiddleType: The backend name for the fiddle e.g. 'canvasKit'
+    */
+  constructor(wasmPromise: Promise<CanvasKit | PathKit>, template: TemplateResult, libraryName: LibraryName, fiddleType: FiddleType) {
     super();
 
-    // allows demo pages to supply content w/o making a network request
-    this._content = this.getAttribute('content') || '';
-    this.Wasm = null;
     this.wasmPromise = wasmPromise;
-    this._editor = null; // set in render to be the textarea
     this.template = template;
     this.libraryName = libraryName; // e.g. 'CanvasKit' , 'PathKit'
     this.fiddleType = fiddleType; // e.g. 'canvaskit', 'pathkit'
-    this.hasRun = false;
-    this.loadedWasm = false;
-    this.sliders = [];
-    this.colorpickers = [];
-    this.fpsMeter = false;
-    // This will be updated to have any captured console.log (but not console.error or console.warn)
-    // messages. this._render will be called on any updates to log as well.
-    this.log = '';
-    // runID is a unique identifier that changes every time run is clicked. This allows the client
-    // code to stop animation loops when run is clicked a second time. See _activeRunInstance().
-    this.runID = 0;
   }
 
-  /** @prop {String} content - The current code in the editor. */
-  get content() { return this._content; }
+  /**
+   * Returns the number of lines in str, with a minimum of 10 (because the
+   * editor with less than 10 lines looks a bit strange). See
+   * https://stackoverflow.com/a/4009768
+   */
+  static lines = (str: string): number => Math.max(10, (str.match(/\n/g) || []).length + 1)
 
-  set content(c) {
+  /**
+   * repeat returns an array of n 'undefined' which allows for repeating a
+   * template a fixed number of times  using map. See
+   * https://stackoverflow.com/a/10050831
+   */
+  static repeat = (n: number): any[] => [...Array(n)]
+
+  static lineNumber = (n: number): TemplateResult => html`<div id=${`L${n}`}>${n}</div>`;
+
+  // TODO(jcgregorio) Replace with CodeMirror after port to TS is done.
+  static codeEditor = (ele: WasmFiddle): TemplateResult => html`
+    <div id=editor>
+      <textarea class=code spellcheck=false rows=${WasmFiddle.lines(ele.content)} cols=80
+            @paste=${ele._changed} @input=${ele._changed}
+      ></textarea>
+      <div class=numbers>
+        ${WasmFiddle.repeat(WasmFiddle.lines(ele.content)).map((_, n) => WasmFiddle.lineNumber(n + 1))}
+      </div>
+    </div>`
+
+  static floatSlider = (name: string, i: number): TemplateResult => {
+    if (!name) {
+      return html``;
+    }
+    // By setting the input's name=sliderN, the JS function will magically have a global variable
+    // called sliderN that refers to the input HTML element.
+    // https://www.w3schools.com/tags/att_input_name.asp
+    return html`<div class="widget">
+      <input
+        name=${`slider${i}`}
+        id=${`slider${i}`}
+        min="0"
+        max="1"
+        step="0.00001"
+        type="range"
+      />
+      <label for=${`slider${i}`}>${name}</label>
+    </div>`;
+  }
+
+  static colorPicker = (name: string, i: number): TemplateResult => {
+    if (!name) {
+      return html``;
+    }
+    // By setting the input's name=colorN, the JS function will magically have a global variable
+    // called colorN that refers to the input HTML element.
+    // https://www.w3schools.com/tags/att_input_name.asp
+    return html` <div class="widget">
+      <input name=${`color${i}`} id=${`color${i}`} type="color" />
+      <label for=${`color${i}`}>${name}</label>
+    </div>`;
+  }
+
+  /** @prop The current code in the editor. */
+  get content(): string {
+    return this._content;
+  }
+
+  set content(c: string) {
     this._content = c;
     this._enumerateWidgets();
     this._render();
-    this._editor.value = c;
+    this._editor!.value = c;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
+    // Allows demo pages to supply content w/o making a network request
+    this._content = this.getAttribute('content') || '';
+
     this._render();
+    this._editor = $$('#editor textarea', this);
+
     this.wasmPromise.then((LoadedWasm) => {
       this.Wasm = LoadedWasm;
       this.loadedWasm = true;
@@ -148,15 +185,15 @@ export class WasmFiddle extends HTMLElement {
     window.addEventListener('popstate', this._loadCode.bind(this));
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     window.removeEventListener('popstate', this._loadCode.bind(this));
   }
 
   // Returns a helper function that will return true if the current running instance is the most
   // recent instance. This can be used by client code to stop their animation loops when the Run
   // button is hit again.
-  _activeRunInstance(currentRunID) {
-    return () => currentRunID === this.runID;
+  _activeRunInstance(currentRunID: number) {
+    return (): boolean => currentRunID === this.runID;
   }
 
   // Returns a helper function that will store the last 10 frame times and every tenth frame will
@@ -169,7 +206,7 @@ export class WasmFiddle extends HTMLElement {
     let frameIdx = 0;
     const frames = new Float64Array(10);
     let fpsEle = null;
-    return () => {
+    return (): void => {
       if (this.runID !== currentRunID) {
         return;
       }
@@ -193,7 +230,7 @@ export class WasmFiddle extends HTMLElement {
     };
   }
 
-  _changed() {
+  _changed(): boolean {
     this.content = this._editor.value;
   }
 
@@ -207,21 +244,21 @@ export class WasmFiddle extends HTMLElement {
 
     const sliderMatches = this.content.matchAll(sliderRegex);
     for (const match of sliderMatches) {
-      // match[1] is the index of the slider.
-      // match[2] is the display name.
+    // match[1] is the index of the slider.
+    // match[2] is the display name.
       this.sliders[match[1]] = match[2];
     }
 
     const colorMatches = this.content.matchAll(colorPickerRegex);
     for (const match of colorMatches) {
-      // match[1] is the index of the color picker.
-      // match[2] is the display name.
+    // match[1] is the index of the color picker.
+    // match[2] is the display name.
       this.colorpickers[match[1]] = match[2];
     }
   }
 
   _loadCode() {
-    // The location should be either /<fiddleType> or /<fiddleType>/<fiddlehash>
+  // The location should be either /<fiddleType> or /<fiddleType>/<fiddlehash>
     const path = window.location.pathname;
     let hash = '';
     const len = this.fiddleType.length + 2; // count of chars in /<fiddleType>/
@@ -233,7 +270,8 @@ export class WasmFiddle extends HTMLElement {
       .then(jsonOrThrow)
       .then((json) => {
         this.content = json.code;
-      }).catch((e) => {
+      })
+      .catch((e) => {
         errorMessage('Fiddle not Found', 10000);
         this.content = '';
         const canvas = $$('#canvas', this);
@@ -243,7 +281,6 @@ export class WasmFiddle extends HTMLElement {
 
   _render() {
     render(this.template(this), this, { eventContext: this });
-    this._editor = $$('#editor textarea', this);
   }
 
   // create a brand new canvas. Without this, the context can get muddled
@@ -271,14 +308,14 @@ export class WasmFiddle extends HTMLElement {
     // consoleInterceptor is used to intercept console.log calls and store them.
     const consoleInterceptor = {
       log: (...rest) => {
-        // pipe this through to regular console.log
+      // pipe this through to regular console.log
         console.log(...rest);
         // stringify all the arguments for rendering using the log property.
         for (let i = 0; i < rest.length; i++) {
           const a = rest[i];
           if (typeof a === 'object') {
-            // Make an attempt to prettify objects - this doesn't work well on WASM objects
-            // or DOMElements.
+          // Make an attempt to prettify objects - this doesn't work well on WASM objects
+          // or DOMElements.
             this.log += JSON.stringify(a);
           } else {
             this.log += a;
@@ -293,7 +330,9 @@ export class WasmFiddle extends HTMLElement {
     };
 
     if (!this.Wasm) {
-      errorMessage(`${this.libraryName} is still loading. Try again in a few seconds.`);
+      errorMessage(
+        `${this.libraryName} is still loading. Try again in a few seconds.`,
+      );
       return;
     }
     this.hasRun = true;
@@ -301,10 +340,10 @@ export class WasmFiddle extends HTMLElement {
     this._render();
     const canvas = this._resetCanvas();
 
-
     try {
-      // Because of the magic of setting <input name=sliderN>, we don't need to declare any
-      // variables for sliders or colorpickers (see floatSlider and colorPicker above).
+    // Because of the magic of setting <input name=sliderN>, we don't need to declare any
+    // variables for sliders or colorpickers (see floatSlider and colorPicker above).
+    // eslint-disable-next-line no-new-func
       const f = new Function(
         this.libraryName, // e.g. "CanvasKit", the name of the WASM library.
         'canvas', // We provide the canvas element to the user as a parameter named 'canvas'.
@@ -315,8 +354,13 @@ export class WasmFiddle extends HTMLElement {
         'isRunning', // provide a helper for the user to stop their animation when run is clicked.
         this.content, // user provided code, as a string, which will be interpreted and executed.
       );
-      f(this.Wasm, canvas, consoleInterceptor, this._benchmarkFPSInstance(this.runID),
-        this._activeRunInstance(this.runID));
+      f(
+        this.Wasm,
+        canvas,
+        consoleInterceptor,
+        this._benchmarkFPSInstance(this.runID),
+        this._activeRunInstance(this.runID),
+      );
     } catch (e) {
       errorMessage(e);
     }
@@ -336,8 +380,11 @@ export class WasmFiddle extends HTMLElement {
         code: this.content,
         type: this.fiddleType,
       }),
-    }).then(jsonOrThrow).then((json) => {
-      history.pushState(null, '', json.new_url);
-    }).catch(errorMessage);
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        history.pushState(null, '', json.new_url);
+      })
+      .catch(errorMessage);
   }
 }
