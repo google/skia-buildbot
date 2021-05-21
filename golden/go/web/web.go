@@ -1227,6 +1227,51 @@ WHERE left_digest = $1 AND right_digest IN `
 	return rv, nil
 }
 
+// ClusterDiffRequest contains the options that the frontend provides to the clusterdiff RPC.
+type ClusterDiffRequest struct {
+	Corpus                  string
+	Filters                 paramtools.ParamSet
+	IncludePositiveDigests  bool
+	IncludeNegativeDigests  bool
+	IncludeUntriagedDigests bool
+	// TODO(kjlubick) the frontend does not yet support these yet.
+	ChangelistID       string
+	CodeReviewSystemID string
+	PatchsetID         string
+}
+
+func parseClusterDiffQuery(r *http.Request) (ClusterDiffRequest, error) {
+	if err := r.ParseForm(); err != nil {
+		return ClusterDiffRequest{}, skerr.Wrap(err)
+	}
+	var rv ClusterDiffRequest
+	// TODO(kjlubick) rename this field on the UI side
+	if corpus := r.FormValue("source_type"); corpus == "" {
+		return ClusterDiffRequest{}, skerr.Fmt("Must include corpus")
+	} else {
+		rv.Corpus = corpus
+	}
+	if q := r.FormValue("query"); q == "" {
+		return ClusterDiffRequest{}, skerr.Fmt("Must include query")
+	} else {
+		filters, err := url.ParseQuery(q)
+		if err != nil {
+			return ClusterDiffRequest{}, skerr.Wrapf(err, "invalid query %q", q)
+		}
+		rv.Filters = paramtools.ParamSet(filters)
+	}
+	rv.IncludePositiveDigests = r.FormValue("pos") == "true"
+	rv.IncludeNegativeDigests = r.FormValue("neg") == "true"
+	rv.IncludeUntriagedDigests = r.FormValue("unt") == "true"
+
+	rv.CodeReviewSystemID = r.FormValue("crs")
+	rv.ChangelistID = r.FormValue("cl_id")
+	rv.PatchsetID = r.FormValue("ps_id")
+	return rv, nil
+}
+
+// ClusterDiffHandler2 computes the diffs between all digests that match the filters and
+// returns them in a way that is convenient for rendering via d3.js
 func (wh *Handlers) ClusterDiffHandler2(w http.ResponseWriter, r *http.Request) {
 	ctx, span := trace.StartSpan(r.Context(), "web_ClusterDiffHandler2")
 	defer span.End()
@@ -1235,37 +1280,32 @@ func (wh *Handlers) ClusterDiffHandler2(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var q query.Search
-	if err := query.ParseSearch(r, &q); err != nil {
-		httputils.ReportError(w, err, "Unable to parse query parameter.", http.StatusBadRequest)
+	q, err := parseClusterDiffQuery(r)
+	if err != nil {
+		httputils.ReportError(w, err, "Invalid requrest", http.StatusBadRequest)
 		return
 	}
-	corpora, ok := q.TraceValues[types.CorpusField]
-	if !ok || len(corpora) == 0 {
-		http.Error(w, "Must include corpus", http.StatusBadRequest)
-		return
-	}
-	testNames, ok := q.TraceValues[types.PrimaryKeyField]
+
+	testNames, ok := q.Filters[types.PrimaryKeyField]
 	if !ok || len(testNames) == 0 {
 		http.Error(w, "Must include test name", http.StatusBadRequest)
 		return
 	}
 	leftGrouping := paramtools.Params{
-		types.CorpusField:     corpora[0],
+		types.CorpusField:     q.Corpus,
 		types.PrimaryKeyField: testNames[0],
 	}
-	delete(q.TraceValues, types.CorpusField)
-	delete(q.TraceValues, types.PrimaryKeyField)
+	delete(q.Filters, types.PrimaryKeyField)
 	clusterOpts := search2.ClusterOptions{
 		Grouping:                leftGrouping,
-		Filters:                 q.TraceValues,
+		Filters:                 q.Filters,
 		IncludePositiveDigests:  q.IncludePositiveDigests,
 		IncludeNegativeDigests:  q.IncludeNegativeDigests,
 		IncludeUntriagedDigests: q.IncludeUntriagedDigests,
 
 		CodeReviewSystem: q.CodeReviewSystemID,
 		ChangelistID:     q.ChangelistID,
-		PatchsetOrder:    int(q.Patchsets[0]),
+		PatchsetID:       q.PatchsetID,
 	}
 	clusterResp, err := wh.Search2API.GetCluster(ctx, clusterOpts)
 	if err != nil {
