@@ -14,6 +14,7 @@ import 'elements-sk/select-sk';
 import { html, render } from 'lit-html';
 import { bytes, diffDate } from 'common-sk/modules/human';
 import GIF from './gif';
+import gifStorage from '../helpers/gifStorage';
 
 const QUALITY_SCRUBBER_RANGE = 50;
 
@@ -26,17 +27,16 @@ const ditherOptions = [
   'Atkinson',
 ];
 
-
 const backgroundOptions = [
   {
     id: '1',
-    label: 'Black',
-    color: '#000000',
+    label: 'White',
+    color: '#ffffff',
   },
   {
     id: '2',
-    label: 'White',
-    color: '#ffffff',
+    label: 'Black',
+    color: '#000000',
   },
 ];
 
@@ -108,23 +108,22 @@ const renderBackgroundOption = (ele, item) => html`
   </div>
 `;
 
-const renderBackgroundSelect = (ele) => {
-  return html`
-    <select-sk
-      role="listbox"
-      @selection-changed=${ele._backgroundOptionChange}
-    >
-      ${backgroundOptions.map((item, index) => renderBackgroundOption(ele, item, index))}
-    </select-sk>
-  `;
-};
+const renderBackgroundSelect = (ele) => html`
+  <select-sk
+    role="listbox"
+    @selection-changed=${ele._backgroundOptionChange}
+  >
+    ${backgroundOptions.map((item, index) => renderBackgroundOption(ele, item, index))}
+  </select-sk>
+`;
 
 const renderIdle = (ele) => html`
   <div class=form>
     <div class=form-elem>
       <div>Sample (${ele._state.quality})</div>
       <input id=sampleScrub type=range min=1 max=${QUALITY_SCRUBBER_RANGE} step=1
-          @input=${ele._onSampleScrub} @change=${ele._onSampleScrubEnd}>
+          @input=${ele._onSampleScrub} @change=${ele._onSampleScrubEnd}
+          .value=${ele._state.quality}>
     </div>
     <div class=form-elem>
       <label class=number>
@@ -218,17 +217,24 @@ const template = (ele) => html`
 class SkottieGifExporterSk extends HTMLElement {
   constructor() {
     super();
+    const repeat = gifStorage.get('repeat', 0);
+    const quality = gifStorage.get('quality', 50);
+    const backgroundValueIndex = gifStorage.get('backgroundIndex', 0);
+    const transparent = gifStorage.get('transparent', true);
+    const dither = gifStorage.get('dither', false);
+    const ditherValue = gifStorage.get('ditherValue', 0);
+
     this._state = {
-      quality: 50,
-      repeat: -1,
-      dither: false,
-      transparent: true,
-      ditherValue: 0,
+      quality,
+      repeat,
+      dither,
+      transparent,
+      ditherValue,
       state: exportStates.IDLE,
       progress: 0,
       blob: null,
       exportDuration: 0,
-      backgroundValue: backgroundOptions[0],
+      backgroundValue: backgroundOptions[backgroundValueIndex],
     };
   }
 
@@ -238,40 +244,47 @@ class SkottieGifExporterSk extends HTMLElement {
 
   _onSampleScrub(ev) {
     this._state.quality = ev.target.value;
+    gifStorage.set('quality', this._state.quality);
     this._render();
   }
 
   _onSampleScrubEnd(ev) {
     this._state.quality = ev.target.value;
+    gifStorage.set('quality', this._state.quality);
     this._render();
   }
 
   _onRepeatChange(ev) {
     this._state.repeat = parseInt(ev.target.value, 10);
+    gifStorage.set('repeat', this._state.repeat);
     this._render();
   }
 
   _toggleDither(e) {
     e.preventDefault();
     this._state.dither = !this._state.dither;
+    gifStorage.set('dither', this._state.dither);
     this._render();
   }
 
   _toggleTransparent(e) {
     e.preventDefault();
     this._state.transparent = !this._state.transparent;
+    gifStorage.set('transparent', this._state.transparent);
     this._render();
   }
 
   _ditherOptionChange(e) {
     e.preventDefault();
     this._state.ditherValue = e.detail.selection;
+    gifStorage.set('ditherValue', this._state.ditherValue);
     this._render();
   }
 
   _backgroundOptionChange(e) {
     e.preventDefault();
     this._state.backgroundValue = backgroundOptions[e.detail.selection];
+    gifStorage.set('backgroundIndex', e.detail.selection);
     this._render();
   }
 
