@@ -1,4 +1,4 @@
-import {Commit, SearchResult} from '../rpc_types';
+import {Commit, Digest, SearchResult, TestName} from '../rpc_types';
 
 export const fakeNow = Date.parse('2020-03-22T00:00:00.000Z');
 
@@ -6,9 +6,9 @@ const allTheSame: number[] = Array(200).fill(0);
 const mod2Data: number[] = Array(200).fill(1).map((_, index) => index % 2);
 const mod3Data: number[] = Array(200).fill(1).map((_, index) => index % 3);
 
-export const typicalDetails: SearchResult = {
-  test: 'dots-legend-sk_too-many-digests',
-  digest: '6246b773851984c726cb2e1cb13510c2',
+export const makeTypicalSearchResult = (testName: TestName, digest: Digest, closestDigest: Digest): SearchResult => ({
+  test: testName,
+  digest: digest,
   status: 'positive',
   triage_history: [
     {
@@ -25,7 +25,7 @@ export const typicalDetails: SearchResult = {
       'png',
     ],
     name: [
-      'dots-legend-sk_too-many-digests',
+      testName,
     ],
     source_type: [
       'infra',
@@ -38,10 +38,10 @@ export const typicalDetails: SearchResult = {
     traces: [
       {
         data: mod2Data,
-        label: ',name=dots-legend-sk_too-many-digests,os=Linux,source_type=infra,',
+        label: `,name=${testName},os=Linux,source_type=infra,`,
         params: {
           ext: 'png',
-          name: 'dots-legend-sk_too-many-digests',
+          name: testName,
           os: 'Linux',
           source_type: 'infra',
         },
@@ -49,10 +49,10 @@ export const typicalDetails: SearchResult = {
       },
       {
         data: mod3Data,
-        label: ',name=dots-legend-sk_too-many-digests,os=Mac,source_type=infra,',
+        label: `,name=${testName},os=Mac,source_type=infra,`,
         params: {
           ext: 'png',
-          name: 'dots-legend-sk_too-many-digests',
+          name: testName,
           os: 'Mac',
           source_type: 'infra',
         },
@@ -61,11 +61,11 @@ export const typicalDetails: SearchResult = {
     ],
     digests: [
       {
-        digest: '6246b773851984c726cb2e1cb13510c2',
+        digest: digest,
         status: 'positive',
       },
       {
-        digest: '99c58c7002073346ff55f446d47d6311',
+        digest: closestDigest,
         status: 'positive',
       },
       {
@@ -95,7 +95,7 @@ export const typicalDetails: SearchResult = {
           'png',
         ],
         name: [
-          'dots-legend-sk_too-many-digests',
+          testName,
         ],
         source_type: [
           'infra',
@@ -116,14 +116,14 @@ export const typicalDetails: SearchResult = {
       ],
       dimDiffer: false,
       combinedMetric: 0.082530275,
-      digest: '99c58c7002073346ff55f446d47d6311',
+      digest: closestDigest,
       status: 'positive',
       paramset: {
         ext: [
           'png',
         ],
         name: [
-          'dots-legend-sk_too-many-digests',
+          testName,
         ],
         source_type: [
           'infra',
@@ -134,7 +134,13 @@ export const typicalDetails: SearchResult = {
       },
     },
   },
-};
+});
+
+export const typicalDetails =
+    makeTypicalSearchResult(
+        'dots-legend-sk_too-many-digests',
+        '6246b773851984c726cb2e1cb13510c2',
+        '99c58c7002073346ff55f446d47d6311');
 
 export const negativeOnly: SearchResult = {
   test: 'dots-legend-sk_too-many-digests',
