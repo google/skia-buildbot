@@ -74,6 +74,9 @@ func addTypes(generator *go2ts.Go2TS) {
 	// Response for the /json/v1/diff RPC endpoint.
 	generator.Add(frontend.DigestComparison{})
 
+	// Response for the /json/v1/details RPC endpoint.
+	generator.Add(frontend.DigestDetails{})
+
 	generator.AddUnionWithName(expectations.AllLabel, "Label")
 	generator.AddUnionWithName([]frontend.RefClosest{frontend.PositiveRef, frontend.NegativeRef, frontend.NoRef}, "RefClosest")
 }
