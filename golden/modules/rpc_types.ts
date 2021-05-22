@@ -206,6 +206,11 @@ export interface DigestComparison {
 	right: SRDiffDigest | null;
 }
 
+export interface DigestDetails {
+	digest: SearchResult;
+	commits: Commit[] | null;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type ParamSetResponse = { [key: string]: string[] | null };
