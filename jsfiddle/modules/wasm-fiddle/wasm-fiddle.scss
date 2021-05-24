@@ -1,4 +1,8 @@
 @import '~elements-sk/themes/themes';
+@import '~codemirror/lib/codemirror.css';
+@import '~codemirror/theme/ambiance.css';
+@import '~codemirror/theme/base16-light.css';
+
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500');
 
 /*
@@ -132,28 +136,8 @@ body {
     font-size: 13px;
     width: 57em;
 
-    textarea {
-      color: var(--on-surface);
-      background: var(--surface);
-      border: none;
-      margin-left: 32px;
-      outline: none;
-      overflow-x: auto;
-      font-family: Roboto Mono, monospace;
-      padding: 16px;
-      resize: none;
-    }
-
-    .numbers {
-      position: absolute;
-      top: 0;
-      left: 0;
-      padding: 16px 0;
-      font-family: Roboto Mono, monospace;
-      text-align: right;
-      color: var(--secondary);
-      background: var(--surface);
-      width: 24px;
+    .CodeMirror {
+      height: 80vh;
     }
   }
 }
