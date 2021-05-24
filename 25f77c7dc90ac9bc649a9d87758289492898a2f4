@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d12bfe50_f1a8f62e",
+        "filename": "autoroll/go/repo_manager/child/cipd.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-24T15:31:03Z",
+      "side": 1,
+      "message": "No, we never actually use this branch in CIPDChild.",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 51
+      },
+      "revId": "25f77c7dc90ac9bc649a9d87758289492898a2f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0d3de829_3cc82336",
+        "filename": "autoroll/go/repo_manager/child/cipd.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-24T15:31:03Z",
+      "side": 1,
+      "message": "Did you mean to update this?",
+      "range": {
+        "startLine": 54,
+        "startChar": 16,
+        "endLine": 54,
+        "endChar": 28
+      },
+      "revId": "25f77c7dc90ac9bc649a9d87758289492898a2f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
