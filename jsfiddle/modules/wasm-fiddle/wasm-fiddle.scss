@@ -1,135 +1,243 @@
+@import '~elements-sk/themes/themes';
+@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500');
+
+/*
+  Only define deltas from the original theme and global changes from elemets-sk
+  elements.
+*/
+
 body {
   margin: 0;
   padding: 0;
+  font-family: Roboto, sans-serif;
 }
 
-main {
-  padding: 5px;
+.body-sk.darkmode {
+  --primary: var(--light-blue-500);
+  --primary-variant: var(--light-blue-200);
+  --on-primary-variant: var(--black);
+}
 
-  .output {
+.body-sk {
+  --secondary: var(--green-500);
+  --primary-variant: var(--light-blue-600);
+
+  input {
+    border: solid 1px var(--on-surface);
+    color: solid 1px var(--on-surface);
+    background: solid 1px var(--surface);
     display: inline-block;
-    vertical-align: top;
-    max-width: 500px;
+  }
 
-    .widget {
+  button {
+    min-width: auto;
+    text-align: center;
+    text-transform: none;
+    padding: 4px;
+    height: fit-content;
+    margin: 0 8px 8px 0;
+    box-shadow: inset 0 0 2.3px 0px var(--on-surface);
+    outline: none;
+  }
+
+  error-toast-sk {
+    padding: 8px;
+  }
+
+  error-toast-sk button {
+    margin: 0 0 0 8px;
+    padding: 4px;
+  }
+
+  main > * {
+    margin: 0 8px 8px 0;
+  }
+
+  main {
+    padding: 8px;
+
+    .output > * {
+      margin: 0 8px 8px 0;
+    }
+
+    .output {
       display: inline-block;
-      margin: 0 3px;
-      padding: 2px;
-      border-radius: 5px;
-      border: 1px solid #DDD;
-      * {
-        vertical-align: middle;
+      vertical-align: top;
+      max-width: 500px;
+
+      .widget {
+        display: block;
+        border: none;
+      }
+
+      .buttons,
+      canvas {
+        display: block;
+      }
+
+      canvas {
+        border: 1px dashed var(--on-surface);
+        vertical-align: top;
       }
     }
 
-    .buttons, canvas {
-      display:block;
-    }
-
-    canvas {
-      border: 1px dashed grey;
-      vertical-align: top;
+    input[type='range'] {
+      margin: 0;
+      padding: 0;
+      border: none;
     }
   }
-}
 
-header {
-  margin: 0;
-  padding: 1em 0.5em;
-  color: white;
-  background: #1f78b4;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  header {
+    margin: 0;
+    padding: 1em 0.5em;
+    color: var(--primary);
+    background: var(--surface-1dp);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 
-  a {
-    color: white;
+    a {
+      color: var(--primary);
+    }
+
+    .title {
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .npm {
+      margin: auto 8px;
+      font-size: 1em;
+    }
+
+    .version {
+      margin: auto;
+      font-size: 1.1em;
+    }
+
+    .flex {
+      flex: 1;
+      flex-basis: 0.000000001px;
+    }
   }
 
-  .title {
-    font-size: 1.5em;
-    font-weight: bold;
-  }
-
-  .npm {
-    margin: auto 10px;
-    font-size: 1.0em;
-  }
-
-  .version {
-    margin: auto;
-    font-size: 1.1em;
-
-  }
-}
-
-.code {
-  font-family: monospace;
-}
-
-#editor {
-  display: inline-block;
-  position: relative;
-  overflow: hidden;
-  background: #ddd;
-  font-family: monospace;
-  font-size: 13px;
-  width: 57em;
-
-  textarea {
-    background: #eee;
-    border: none;
-    font-family: monospace;
+  #editor {
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    color: var(--on-surface);
+    background: var(--surface);
+    font-family: Roboto Mono, monospace;
     font-size: 13px;
-    margin-left: 5em;
-    outline: none;
-    overflow-x: auto;
-    padding: 0.5em 0.5em 2.0em 0.5em;
-    resize: none;
-  }
+    width: 57em;
 
-  .numbers {
-    position: absolute;
-    top: 0;
-    left: 0;
-    font-family: monospace;
-    font-size: 13px;
-    padding: 0.5em;
-    text-align: right;
-    background: #ddd;
-    width: 3em;
-  }
-}
+    textarea {
+      color: var(--on-surface);
+      background: var(--surface);
+      border: none;
+      margin-left: 32px;
+      outline: none;
+      overflow-x: auto;
+      font-family: Roboto Mono, monospace;
+      padding: 16px;
+      resize: none;
+    }
 
-.flex {
-  flex: 1;
-  flex-basis: 0.000000001px;
+    .numbers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 16px 0;
+      font-family: Roboto Mono, monospace;
+      text-align: right;
+      color: var(--secondary);
+      background: var(--surface);
+      width: 24px;
+    }
+  }
 }
 
 button.action {
   cursor: pointer;
 
   &.prompt {
-    animation: pulse .8s 5 linear;
+    animation: pulse 0.5s 1 linear;
   }
 }
 
 @keyframes pulse {
   0% {
-    box-shadow: 0px 0px 8px 4px #4caf50;
+    box-shadow: 0px 0px 2px 2px var(--primary);
   }
 
   50% {
-    box-shadow: 0px 0px 8px 8px #4caf50;
+    box-shadow: 0px 0px 2px 2px var(--primary);
   }
 
   100% {
-    box-shadow: 0px 0px 8px 4px #4caf50;
+    box-shadow: 0px 0px 2px 2px var(--primary);
   }
 }
 
 #logsContainer {
-  margin-top: 5px;
+  color: var(--on-surface);
+  background: var(--surface);
+  margin: 0 8px 8px 0;
   width: 100%;
   min-height: 200px;
+}
+
+/*
+   The following styles are for scrollbars. There are some non-standard looking
+   styles because it is 2020 and there's still no standard way to style
+   scrollbars on a web page.
+
+   https://caniuse.com/#feat=css-scrollbar
+
+   There is currently an editor's draft for styling scrollbars:
+   https://drafts.csswg.org/css-scrollbars-1/, but it is only supported by
+   FireFox. So set that first.
+*/
+
+* {
+  scrollbar-color: var(--surface-1dp) var(--background);
+}
+
+/* Now set the non-standard styles. Unfortunately the way webpack/cssmin is
+   configured currently it will strip the following rules from the output so we
+   turn the autoprefixer off.
+*/
+
+/* autoprefixer: off */
+
+/* Turn on a 13x13 scrollbar */
+::-webkit-scrollbar {
+  width: 13px;
+  height: 13px;
+}
+
+/* Turn off single button up on top and down on bottom */
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment,
+::-webkit-scrollbar-button:vertical:start:increment,
+::-webkit-scrollbar-button:vertical:end:decrement {
+  display: none;
+}
+
+/* Track below and above */
+::-webkit-scrollbar-track-piece {
+  background-color: var(--background);
+  border: solid 1px var(--surface-2dp);
+}
+
+/* The thumb itself */
+::-webkit-scrollbar-thumb {
+  border: solid 1px var(--on-surface);
+  background: var(--surface-1dp);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--surface);
 }
