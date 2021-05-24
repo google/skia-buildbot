@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4fd0f832_a2b60f15",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-05-24T18:52:35Z",
+      "side": 1,
+      "message": "Screenshots:\n   https://screenshot.googleplex.com/AbRSUbA7LmutvnT.png\n   https://screenshot.googleplex.com/7hyH6Nr9cdLkVxC.png",
+      "revId": "6dd88cea965f66af459b5d5639829e3dd12ae9a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
