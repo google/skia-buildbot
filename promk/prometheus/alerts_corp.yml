@@ -10,7 +10,7 @@ groups:
       severity: warning
       owner: borenet@google.com
     annotations:
-      description: 'The last DEPS roll into internal_test repo failed. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#autoroll_failed'
+      description: 'The last DEPS roll into internal_test repo failed. https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#autoroll_failed'
 
   - alert: InternalAutoRoll24H
     expr: liveness_last_autoroll_landed_s{roller="skia-internal-autoroll"}/60/60 > 24
@@ -19,7 +19,7 @@ groups:
       severity: warning
       owner: borenet@google.com
     annotations:
-      description: 'The last-landed roll into internal_test was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h'
+      description: 'The last-landed roll into internal_test was over 24h ago. https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#no_rolls_24h'
 
   - alert: TrybotUpdaterErrorRate
     expr: rate(num_log_lines{level="ERROR",app=~"trybot-updater.*"}[1h]) > 0.001
