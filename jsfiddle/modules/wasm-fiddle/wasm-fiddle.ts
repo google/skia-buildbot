@@ -1,15 +1,19 @@
 import 'elements-sk/styles/buttons';
 
+import 'codemirror/mode/javascript/javascript'; // Syntax highlighting for js.
 import { $$ } from 'common-sk/modules/dom';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { html, render, TemplateResult } from 'lit-html';
+import CodeMirror from 'codemirror';
 import { FPS } from '../../../infra-sk/modules/fps/fps';
 import 'elements-sk/styles/buttons';
+import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 
 import type {
   CanvasKit,
 } from '../../build/canvaskit/canvaskit.js';
+import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 /** Regexp to determine if the code measures FPS. */
 const fpsRegex = /benchmarkFPS/;
@@ -59,7 +63,7 @@ export class WasmFiddle extends HTMLElement {
 
   wasmPromise: Promise<CanvasKit | PathKit>;
 
-  _editor: HTMLTextAreaElement | null = null;
+  editor: CodeMirror.Editor | null = null;
 
   templateFunc: (ele: WasmFiddle)=> TemplateResult;
 
@@ -120,16 +124,7 @@ export class WasmFiddle extends HTMLElement {
 
   static lineNumber = (n: number): TemplateResult => html`<div id=${`L${n}`}>${n}</div>`;
 
-  // TODO(jcgregorio) Replace with CodeMirror after port to TS is done.
-  static codeEditor = (ele: WasmFiddle): TemplateResult => html`
-    <div id=editor>
-      <textarea class=code spellcheck=false rows=${WasmFiddle.lines(ele.content)} cols=80
-            @paste=${ele.changed} @input=${ele.changed}
-      ></textarea>
-      <div class=numbers>
-        ${WasmFiddle.repeat(WasmFiddle.lines(ele.content)).map((_, n) => WasmFiddle.lineNumber(n + 1))}
-      </div>
-    </div>`
+  static codeEditor = (ele: WasmFiddle): TemplateResult => html`<div id=editor></div>`
 
   static floatSlider = (name: string, i: number): TemplateResult => {
     if (!name) {
@@ -173,15 +168,35 @@ export class WasmFiddle extends HTMLElement {
     this._content = c;
     this.enumerateWidgets();
     this._render();
-    this._editor!.value = c;
+    // Avoid infinite recursion.
+    if (c !== this.editor!.getValue()) {
+      this.editor!.setValue(c);
+    }
   }
+
+  /** Returns the CodeMirror theme based on the state of the page's darkmode.
+   *
+   * For this to work the associated CSS themes must be loaded. See
+   * wasm-fiddle.scss.
+   */
+  private static themeFromCurrentMode = () => (isDarkMode() ? 'ambiance' : 'base16-light');
 
   connectedCallback(): void {
     // Allows demo pages to supply content w/o making a network request
     this._content = this.getAttribute('content') || '';
 
     this._render();
-    this._editor = $$('#editor textarea', this);
+    this.editor = CodeMirror($$<HTMLDivElement>('#editor', this)!, {
+      lineNumbers: true,
+      theme: WasmFiddle.themeFromCurrentMode(),
+      viewportMargin: Infinity,
+      scrollbarStyle: 'native',
+      mode: 'javascript',
+    });
+    this.editor.on('change', () => this.changed());
+    document.addEventListener('theme-chooser-toggle', () => {
+      this.editor!.setOption('theme', WasmFiddle.themeFromCurrentMode());
+    });
 
     this.wasmPromise.then((LoadedWasm) => {
       this.Wasm = LoadedWasm;
@@ -303,7 +318,7 @@ export class WasmFiddle extends HTMLElement {
   }
 
   private changed(): void {
-    this.content = this._editor!.value;
+    this.content = this.editor!.getValue();
   }
 
   // Look through the current source code for references to sliders or colorpickers.
@@ -316,7 +331,7 @@ export class WasmFiddle extends HTMLElement {
   }
 
   private loadCode(): void {
-  // The location should be either /<fiddleType> or /<fiddleType>/<fiddlehash>
+    // The location should be either /<fiddleType> or /<fiddleType>/<fiddlehash>
     const path = window.location.pathname;
     let hash = '';
     const len = this.fiddleType.length + 2; // count of chars in /<fiddleType>/
