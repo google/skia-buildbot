@@ -76,7 +76,7 @@ export class TaskSchedulerScaffoldSk extends ElementSk {
             <search-icon-sk></search-icon-sk><span>Search Jobs</span>
           </a>
           <a
-            href="https://skia.googlesource.com/buildbot/+/master/task_scheduler/README.md"
+            href="https://skia.googlesource.com/buildbot/+/main/task_scheduler/README.md"
           >
             <help-icon-sk></help-icon-sk><span>Docs</span>
           </a>

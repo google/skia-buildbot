@@ -59,7 +59,7 @@ export class ARBScaffoldSk extends ElementSk {
       <a href="/" tab-index=0>
         <home-icon-sk></home-icon-sk><span>Home</span>
       </a>
-      <a href="https://skia.googlesource.com/buildbot/+/master/autoroll/README.md" tab-index=0>
+      <a href="https://skia.googlesource.com/buildbot/+/main/autoroll/README.md" tab-index=0>
         <help-icon-sk></help-icon-sk><span>Docs</span>
       </a>
     </nav>
