@@ -107,6 +107,9 @@ export class GoldScaffoldSk extends ElementSk {
     super.connectedCallback();
     // Don't call more than once.
     if (this.main) {
+      // We still want to re-render in case the GoldSettings have changed (e.g. the title), which
+      // is common in tests.
+      this._render();
       return;
     }
     this.addEventListener('begin-task', this.addBusyTask);
