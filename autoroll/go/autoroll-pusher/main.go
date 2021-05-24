@@ -585,7 +585,7 @@ func main() {
 			if _, err := co.Git(ctx, "commit", "-m", *commitMsg); err != nil {
 				log.Fatalf("Failed to 'git commit' k8s config file(s): %s", err)
 			}
-			if _, err := co.Git(ctx, "push", git.DefaultRemote, "HEAD:"+git.MasterBranch); err != nil {
+			if _, err := co.Git(ctx, "push", git.DefaultRemote, "HEAD:"+git.MainBranch); err != nil {
 				// The upstream might have changed while we were
 				// working. Rebase and try again.
 				if err2 := co.Fetch(ctx); err2 != nil {

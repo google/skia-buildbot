@@ -399,7 +399,7 @@ func (g *Goldpushk) commitConfigFiles(ctx context.Context) (bool, error) {
 	if _, err := g.k8sConfigCheckout.Git(ctx, "commit", "-m", "Push"); err != nil {
 		return false, skerr.Wrap(err)
 	}
-	if _, err := g.k8sConfigCheckout.Git(ctx, "push", git.DefaultRemote, git.MasterBranch); err != nil {
+	if _, err := g.k8sConfigCheckout.Git(ctx, "push", git.DefaultRemote, git.MainBranch); err != nil {
 		return false, skerr.Wrap(err)
 	}
 
