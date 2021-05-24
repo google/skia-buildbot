@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5d5aee8d_ba516a40",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-24T14:08:20Z",
+      "side": 0,
+      "message": "Aren\u0027t these alerts names correct in the context of swarming (that\u0027s what it\u0027s called in swarming)? BotMissing/BotUnemployed/etc ?\n\nI would revert the changes in alerts_general, maybe better to update them whenever we move off swarming.\nAlso, changing these names right now will require changes in am/... some behavior there unfortunately relies on these hardcoded names.",
+      "range": {
+        "startLine": 476,
+        "startChar": 16,
+        "endLine": 476,
+        "endChar": 21
+      },
+      "revId": "d0715cf29d0a68239859b8c9d34cef823844fa45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
