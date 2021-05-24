@@ -117,6 +117,30 @@
       },
       "revId": "25f77c7dc90ac9bc649a9d87758289492898a2f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "79038c03_8d7c0eea",
+        "filename": "autoroll/go/repo_manager/child/cipd.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-24T17:44:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eef2b5b0_7794de06",
+      "range": {
+        "startLine": 54,
+        "startChar": 16,
+        "endLine": 54,
+        "endChar": 28
+      },
+      "revId": "25f77c7dc90ac9bc649a9d87758289492898a2f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
