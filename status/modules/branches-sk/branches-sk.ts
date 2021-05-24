@@ -469,18 +469,18 @@ function prepareCommitsForDisplay(
     remaining.set(c.hash, c);
   }
 
-  // Pre-process the branches. We want master first, and no HEAD.
-  let masterIdx = -1;
+  // Pre-process the branches. We want main first, and no HEAD.
+  let mainIdx = -1;
   const branches: Array<Branch> = [];
   for (let b = 0; b < branch_heads.length; b++) {
-    if (branch_heads[b].name === 'master') {
-      masterIdx = b;
+    if (branch_heads[b].name === 'main') {
+      mainIdx = b;
       branches.push(branch_heads[b]);
     }
   }
   for (let b = 0; b < branch_heads.length; b++) {
     var branch = branch_heads[b];
-    if (b != masterIdx && branch.name != 'HEAD') {
+    if (b != mainIdx && branch.name != 'HEAD') {
       branches.push(branch);
     }
   }
