@@ -366,7 +366,7 @@ groups:
       abbr: '{{ $labels.exported_instance }}'
       description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
-# External bots except RPis.
+# External machines except RPis.
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df="root",exported_instance=~"skia-e-[^r].+",type="free"} < 1e9
     for: 5m
@@ -388,7 +388,7 @@ groups:
       abbr: '{{ $labels.exported_instance }}'
       description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
-# Dev bots except RPis.
+# Dev machines except RPis.
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df="root",exported_instance=~"skia-d-[^r].+",type="free"} < 1e9
     for: 5m
@@ -410,7 +410,7 @@ groups:
       abbr: '{{ $labels.exported_instance }}'
       description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
-# Internal bots except RPis.
+# Internal machines except RPis.
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df="root",exported_instance=~"skia-i-[^r].+",type="free"} < 1e9
     for: 5m
@@ -421,7 +421,7 @@ groups:
       abbr: '{{ $labels.exported_instance }}'
       description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
-# GCE machines (other than bots), root disk.
+# GCE machines (other than machines), root disk.
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df="root",exported_instance!~"skia-(e|i|d|rpi)-.+",type="free"} < 1e9
     for: 5m
@@ -432,7 +432,7 @@ groups:
       abbr: '{{ $labels.exported_instance }}'
       description: 'Low Root Disk Space on {{ $labels.exported_instance }}.  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
-# GCE bots, /b (aka /mnt/pd0)
+# GCE machines, /b (aka /mnt/pd0)
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df="mnt-pd0", exported_instance=~"skia-e-gce.+",type="free"} < 1e10
     for: 5m

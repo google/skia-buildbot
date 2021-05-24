@@ -16,10 +16,10 @@ If there are Task Scheduler alerts, resolve those first.
 Otherwise, you should check the logs to try to diagnose what's failing.
 
 
-bot_coverage_metrics
+machine_coverage_metrics
 --------------------
 
-The [bot coverage
+The [machine coverage
 metrics](https://skia.googlesource.com/buildbot/+show/main/datahopper/go/bot_metrics/bot_metrics.go)
 goroutine has not successfully completed a cycle for some time. You should
 check the logs to try to diagnose what's failing.
@@ -44,12 +44,12 @@ time. You should check the logs to try to diagnose what's failing. Double-check
 the instance name to verify which log stream to investigate.
 
 
-swarming_bot_metrics
+swarming_machine_metrics
 --------------------
 
-The [Swarming bot
+The [Swarming machine
 metrics](https://skia.googlesource.com/buildbot/+show/main/datahopper/go/swarming_metrics/bots.go)
-goroutine has not successfully queried for Swarming bots for some time. See the
+goroutine has not successfully queried for Swarming machines for some time. See the
 alert for which pool and server is failing. You should check the logs to try
 to diagnose what's failing.
 
