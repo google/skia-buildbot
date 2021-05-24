@@ -1,0 +1,32 @@
+load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+# Lease the device and connect via the skia-switchboard cluster.
+test_on_env(
+    name = "test_on_remote_pixel",
+    env = "//switchboard:lease_pixel",
+    test = "//switchboard:run_test_on_leased_rpi",
+)
+
+sh_binary(
+    name = "lease_pixel",
+    srcs = ["lease_pixel.sh"],
+    data = [
+        "kubeconfig.yaml",
+    ]
+)
+
+cc_binary(
+    name = "hello",
+    srcs = ["cpp/hello.cpp"],
+)
+
+sh_test(
+    name = "run_test_on_leased_rpi",
+    srcs = ["rsync_assetts_to_rpi.sh"],
+    args = ["switchboard/hello"],
+    data = [
+        ":hello",
+        "hello_over_adb.sh"
+    ]
+)
