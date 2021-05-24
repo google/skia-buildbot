@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/cipd"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -50,7 +49,7 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Re
 	var gitRepo *gitiles_common.GitilesRepo
 	if c.GitilesRepo != "" {
 		gitRepo, err = gitiles_common.NewGitilesRepo(ctx, &config.GitilesConfig{
-			Branch:  git.MasterBranch,
+			Branch:  "branch is unused",
 			RepoUrl: c.GitilesRepo,
 		}, reg, client)
 		if err != nil {
