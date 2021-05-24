@@ -1,7 +1,6 @@
 import { Commit } from '../commits-table-sk/commits-table-sk';
 import { Branch } from '../rpc/status';
-import { deepCopy } from 'common-sk/modules/object';
-import {} from '../rpc-mock/test_data';
+import { } from '../rpc-mock/test_data';
 
 const fixedDate = Date.now();
 const timestampSinceFixed = (seconds: number = 0) => {
@@ -33,7 +32,7 @@ function commit(curr: number, parent: number) {
 }
 
 export const singleBranchData: [Array<Branch>, Array<Commit>] = [
-  [{ name: 'master', head: 'abc0' }],
+  [{ name: 'main', head: 'abc0' }],
   (() => {
     const ret: Array<Commit> = [];
     for (let i = 0; i < 20; ++i) {
@@ -45,7 +44,7 @@ export const singleBranchData: [Array<Branch>, Array<Commit>] = [
 
 export const doubleBranchData: [Array<Branch>, Array<Commit>] = [
   [
-    { name: 'master', head: 'abc0' },
+    { name: 'main', head: 'abc0' },
     { name: 'branch', head: 'abc1' },
   ],
   (() => {
@@ -65,7 +64,7 @@ export const doubleBranchData: [Array<Branch>, Array<Commit>] = [
 
 export const complexBranchData: [Array<Branch>, Array<Commit>] = [
   [
-    { name: 'master', head: 'abc0' },
+    { name: 'main', head: 'abc0' },
     { name: 'branch1', head: 'abc1' },
     { name: 'branch2', head: 'abc22' },
     { name: 'branch3', head: 'abc3' },
