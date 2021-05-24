@@ -8,7 +8,7 @@ Do a git checkout of the target repo:
 
 Then point to that directory as the url handed to androidingest as the
 --repo_url. This will give you up to date commits, but also doesn't require
-write access to the origin repo. You will probably have to be on a non-master
+write access to the origin repo. You will probably have to be on a non-primary
 branch in the checkout so that the copy androidingest builds can push back to
 it.
 
