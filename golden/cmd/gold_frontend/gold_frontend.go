@@ -38,14 +38,12 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/clstore/sqlclstore"
 	"go.skia.org/infra/golden/go/code_review"
-	"go.skia.org/infra/golden/go/code_review/commenter"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	"go.skia.org/infra/golden/go/code_review/github_crs"
 	"go.skia.org/infra/golden/go/code_review/updater"
@@ -86,10 +84,6 @@ type frontendServerConfig struct {
 
 	// A list of email addresses or domains that can log into this instance.
 	AuthorizedUsers []string `json:"authorized_users"`
-
-	// A string with placeholders for generating a comment message. See
-	// commenter.commentTemplateContext for the exact fields.
-	CLCommentTemplate string `json:"cl_comment_template"`
 
 	// Client secret file for OAuth2 authentication.
 	ClientSecretFile string `json:"client_secret_file"`
@@ -236,8 +230,6 @@ func main() {
 
 	searchAPI := search.New(expStore, expChangeHandler, ixr, reviewSystems, tjs, publiclyViewableParams, fsc.FlakyTraceThreshold, sqlDB)
 	sklog.Infof("Search API created")
-
-	mustStartCommenters(ctx, fsc, reviewSystems, searchAPI)
 
 	statusWatcher := mustMakeStatusWatcher(ctx, vcs, expStore, expChangeHandler, tileSource)
 
@@ -629,33 +621,6 @@ type noopDiffPublisher struct{}
 // CalculateDiffs does nothing, but implements the diff.Calculator interface.
 func (p *noopDiffPublisher) CalculateDiffs(_ context.Context, _ paramtools.Params, _, _ []types.Digest) error {
 	return nil
-}
-
-// mustStartCommenters starts a background process that comments on CLs for each of the review
-// systems specified in the JSON configuration files, unless the Gold instance is not authoritative
-// (e.g. when running locally) or when CL tracking is disabled via the JSON configuration.
-func mustStartCommenters(ctx context.Context, fsc *frontendServerConfig, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI) {
-	if fsc.IsAuthoritative() && !fsc.DisableCLTracking {
-		for _, rs := range reviewSystems {
-			clCommenter, err := commenter.New(rs, searchAPI, fsc.CLCommentTemplate, fsc.SiteURL, fsc.PublicSiteURL, fsc.DisableCLComments)
-			if err != nil {
-				sklog.Fatalf("Could not initialize commenter: %s", err)
-			}
-			startCommenter(ctx, clCommenter)
-		}
-	}
-}
-
-// startCommenter begins the background process that comments on CLs.
-func startCommenter(ctx context.Context, cmntr code_review.ChangelistCommenter) {
-	go func() {
-		// TODO(kjlubick): tune this time, maybe make it a flag
-		util.RepeatCtx(ctx, 3*time.Minute, func(ctx context.Context) {
-			if err := cmntr.CommentOnChangelistsWithUntriagedDigests(ctx); err != nil {
-				sklog.Errorf("Could not comment on CLs with Untriaged Digests: %s", err)
-			}
-		})
-	}()
 }
 
 // mustMakeStatusWatcher returns a new status.StatusWatcher.

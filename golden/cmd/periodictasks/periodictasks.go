@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/code_review/commenter"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
 	"go.skia.org/infra/golden/go/sql"
@@ -29,6 +30,10 @@ const (
 
 type periodicTasksConfig struct {
 	config.Common
+
+	// CommentOnCLsPeriod, if positive, is how often to check recent CLs and Patchsets for
+	// untriaged digests and comment on them if appropriate.
+	CommentOnCLsPeriod config.Duration `json:"comment_on_cls_period"`
 
 	// UpdateIgnorePeriod is how often we should try to apply the ignore rules to all traces.
 	UpdateIgnorePeriod config.Duration `json:"null_ignore_period"` // TODO(kjlubick) change JSON
@@ -75,26 +80,11 @@ func main() {
 
 	startUpdateTracesIgnoreStatus(ctx, db, ptc)
 
+	startCommentOnCLs(ctx, db, ptc)
+
 	sklog.Infof("periodic tasks have been started")
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 	sklog.Fatal(http.ListenAndServe(ptc.ReadyPort, nil))
-}
-
-func startUpdateTracesIgnoreStatus(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksConfig) {
-	liveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
-		"task": "updateTracesIgnoreStatus",
-	})
-	go util.RepeatCtx(ctx, ptc.UpdateIgnorePeriod.Duration, func(ctx context.Context) {
-		sklog.Infof("Updating traces and values at head with ignore status")
-		ctx, span := trace.StartSpan(ctx, "updateTracesWithNullStatus")
-		defer span.End()
-		if err := sqlignorestore.UpdateIgnoredTraces(ctx, db); err != nil {
-			sklog.Errorf("Error while updating traces ignore status: %s", err)
-			return // return so the liveness is not updated
-		}
-		liveness.Reset()
-		sklog.Infof("Done with updateTracesIgnoreStatus")
-	})
 }
 
 func mustInitSQLDatabase(ctx context.Context, ptc periodicTasksConfig) *pgxpool.Pool {
@@ -114,4 +104,44 @@ func mustInitSQLDatabase(ctx context.Context, ptc periodicTasksConfig) *pgxpool.
 	}
 	sklog.Infof("Connected to SQL database %s", ptc.SQLDatabaseName)
 	return db
+}
+
+func startUpdateTracesIgnoreStatus(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksConfig) {
+	liveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
+		"task": "updateTracesIgnoreStatus",
+	})
+	go util.RepeatCtx(ctx, ptc.UpdateIgnorePeriod.Duration, func(ctx context.Context) {
+		sklog.Infof("Updating traces and values at head with ignore status")
+		ctx, span := trace.StartSpan(ctx, "periodic_updateTracesIgnoreStatus")
+		defer span.End()
+		if err := sqlignorestore.UpdateIgnoredTraces(ctx, db); err != nil {
+			sklog.Errorf("Error while updating traces ignore status: %s", err)
+			return // return so the liveness is not updated
+		}
+		liveness.Reset()
+		sklog.Infof("Done with updateTracesIgnoreStatus")
+	})
+}
+
+func startCommentOnCLs(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksConfig) {
+	if ptc.CommentOnCLsPeriod.Duration <= 0 {
+		sklog.Infof("Not commenting on CLs because duration was zero.")
+		return
+	}
+	var cmntr commenter.Impl
+	// TODO(kjlubick) initialize cmntr
+	liveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
+		"task": "commentOnCLs",
+	})
+	go util.RepeatCtx(ctx, ptc.CommentOnCLsPeriod.Duration, func(ctx context.Context) {
+		sklog.Infof("Checking CLs for untriaged results and commenting if necessary")
+		ctx, span := trace.StartSpan(ctx, "periodic_commentOnCLsWithUntriagedDigests")
+		defer span.End()
+		if err := cmntr.CommentOnChangelistsWithUntriagedDigests(ctx); err != nil {
+			sklog.Errorf("Error while commenting on CLs: %s", err)
+			return // return so the liveness is not updated
+		}
+		liveness.Reset()
+		sklog.Infof("Done checking on CLs to comment")
+	})
 }
