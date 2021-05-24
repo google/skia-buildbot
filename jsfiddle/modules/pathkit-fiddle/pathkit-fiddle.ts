@@ -4,13 +4,16 @@ import { html } from 'lit-html';
 
 import { SKIA_VERSION } from '../../build/version';
 import {
-  WasmFiddle, codeEditor, floatSlider, colorPicker,
-} from '../wasm-fiddle';
+  WasmFiddle,
+} from '../wasm-fiddle/wasm-fiddle';
 
+import '../../../infra-sk/modules/theme-chooser-sk';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const PathKitInit = require('../../build/pathkit/pathkit.js');
 
 // Main template for this element
-const template = (ele) => html`
+const template = (ele: WasmFiddle) => html`
 <header>
   <div class=title>PathKit Fiddle</div>
   <div class=npm>
@@ -21,19 +24,18 @@ const template = (ele) => html`
   <div class=version>
     <a href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">${SKIA_VERSION.substring(0, 10)}</a>
   </div>
+  <theme-chooser-sk dark></theme-chooser-sk>
 </header>
 
 <main>
-  ${codeEditor(ele)}
+  ${WasmFiddle.codeEditor(ele)}
   <div class=output>
-    <div class=sliders>
-      ${ele.sliders.map(floatSlider)}
-      ${ele.colorpickers.map(colorPicker)}
-      ${ele.fpsMeter ? html`<div class=widget id=fps>0 FPS</div>` : ''}
-    </div>
+    ${ele.sliders.map(WasmFiddle.floatSlider)}
+    ${ele.colorpickers.map(WasmFiddle.colorPicker)}
+    ${ele.fpsMeter ? html`<div class=widget id=fps>0 FPS</div>` : ''}
     <div class=buttons>
       <button class="action ${(ele.hasRun || !ele.loadedWasm) ? '' : 'prompt'}" @click=${ele.run}>Run</button>
-      <button class=action @click=${ele.save}>Save</button>
+      <button @click=${ele.save}>Save</button>
     </div>
     <div id=canvasContainer><canvas width=500 height=500></canvas></div>
     <textarea id=logsContainer placeholder="Console Logs" readonly>${ele.log}</textarea>
@@ -44,7 +46,7 @@ const template = (ele) => html`
 </footer>`;
 
 const wasmPromise = PathKitInit({
-  locateFile: (file) => `/res/${file}`,
+  locateFile: (file: string) => `/res/${file}`,
 });
 
 /**
@@ -58,8 +60,11 @@ const wasmPromise = PathKitInit({
  * </p>
  *
  */
-define('pathkit-fiddle', class extends WasmFiddle {
+
+class PathKitFiddle extends WasmFiddle {
   constructor() {
     super(wasmPromise, template, 'PathKit', 'pathkit');
   }
-});
+}
+
+define('pathkit-fiddle', PathKitFiddle);

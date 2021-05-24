@@ -11,9 +11,6 @@ release_build: wasm_libs npm-ci
 watch: npm-ci
 	npx webpack --watch --mode=development
 
-get_latest_skia:
-	docker pull gcr.io/skia-public/skia-wasm-release:prod
-
 wasm_libs:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
 	rm -rf build
@@ -22,6 +19,11 @@ wasm_libs:
 	# using cloudbuild.yaml in the Skia repo.
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod sh -c "cp -r /tmp/* /OUT/"
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
+
+.PHONY: testjs
+testjs: npm-ci
+	# Run the generated tests just once under Xvfb.
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 core:
 	go install -v ./go/jsfiddle
