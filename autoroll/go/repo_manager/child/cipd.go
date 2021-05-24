@@ -50,6 +50,7 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Re
 	var gitRepo *gitiles_common.GitilesRepo
 	if c.GitilesRepo != "" {
 		gitRepo, err = gitiles_common.NewGitilesRepo(ctx, &config.GitilesConfig{
+			// TODO: Does this need to be made configurable?
 			Branch:  git.MasterBranch,
 			RepoUrl: c.GitilesRepo,
 		}, reg, client)
