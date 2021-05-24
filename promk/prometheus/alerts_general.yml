@@ -421,7 +421,7 @@ groups:
       abbr: '{{ $labels.app }}'
       description: '{{ $labels.app }} has failed to update job metrics for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#job_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
-  - alert: BotCoverageMetricsLiveness
+  - alert: MachineCoverageMetricsLiveness
     expr: liveness_last_successful_bot_coverage_metrics_s/60 > 60
     labels:
       category: infra
@@ -429,7 +429,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update bot coverage metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#bot_coverage_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update machine coverage metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#machine_coverage_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: SwarmingTaskMetricsLiveness
     expr: liveness_last_successful_swarming_task_metrics_s/60 > 60
@@ -451,7 +451,7 @@ groups:
       abbr: '{{ $labels.app }}'
       description: '{{ $labels.app }} has failed to update event metrics for {{ $labels.measurement }} for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#event_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
-  - alert: SwarmingBotMetricsLiveness
+  - alert: SwarmingMachineMetricsLiveness
     expr: liveness_last_successful_report_bot_metrics_s/60 > 10
     labels:
       category: infra
@@ -459,7 +459,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.pool }}'
-      description: '{{ $labels.app }} has failed to update swarming task metrics for pool {{ $labels.pool }} on {{ $labels.server }} for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#swarming_bot_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update swarming machine metrics for pool {{ $labels.pool }} on {{ $labels.server }} for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#swarming_machine_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: FirestoreBackupMetricsLiveness
     expr: liveness_last_successful_firestore_backup_metrics_update_s/60 > 15
@@ -473,7 +473,7 @@ groups:
 
 # Swarming
 
-  - alert: BotMissing
+  - alert: MachineMissing
     expr: swarming_bots_last_seen{bot!~"(ct-gce-.*)|(build4.+device.+)|skia-rpi-template"}/1000/1000/1000/60 > 15
     labels:
       category: infra
@@ -481,9 +481,9 @@ groups:
       abbr_owner_regex: rmistry@google.com:^build[0-9]+-m5$
     annotations:
       abbr: '{{ $labels.bot }}'
-      description: 'Swarming bot {{ $labels.bot }} is missing. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
+      description: 'Swarming machine {{ $labels.bot }} is missing. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
-  - alert: BotUnemployed
+  - alert: MachineUnemployed
     expr: swarming_bots_last_task{pool=~"Skia.*",bot!="skia-rpi-template"}/1000/1000/1000/60/60 >= 72
     labels:
       category: infra
@@ -491,9 +491,9 @@ groups:
       abbr_owner_regex: rmistry@google.com:^build[0-9]+-m5$
     annotations:
       abbr: '{{ $labels.bot }}'
-      description: 'Swarming bot {{ $labels.bot }} has not run a job in 72 hours. Maybe its dimensions need changing? https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
+      description: 'Swarming machine {{ $labels.bot }} has not run a task in 72 hours. Maybe its dimensions need changing? https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
-  - alert: BotQuarantined
+  - alert: MachineQuarantined
     expr: swarming_bots_quarantined{device_state!~"(too_hot)|(low_battery)",bot!="skia-rpi-template"} >= 1
     for: 10m
     labels:
@@ -502,7 +502,7 @@ groups:
       abbr_owner_regex: rmistry@google.com:^build[0-9]+-m5$
     annotations:
       abbr: '{{ $labels.bot }}'
-      description: 'Swarming bot {{ $labels.bot }} is quarantined. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
+      description: 'Swarming machine {{ $labels.bot }} is quarantined. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
   - alert: DeviceUnhealthy
     expr: avg(avg_over_time(swarming_bots_quarantined{device_state=~"(too_hot)|(low_battery)",bot!="skia-rpi-template"}[1h])) by (swarming, bot, device_state) >= 1
@@ -511,16 +511,16 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.bot }}'
-      description: 'Swarming bot {{ $labels.bot }} is quarantined because the device is {{ $labels.device_state }} and has not resolved itself in 1+ hours. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
+      description: 'Swarming machine {{ $labels.bot }} is quarantined because the device is {{ $labels.device_state }} and has not resolved itself in 1+ hours. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
-  - alert: BotUptime
+  - alert: MachineUptime
     expr: swarming_bots_uptime_s{bot!~"skia-rpi2.*"} / 60 / 60 > 36
     labels:
       category: infra
       severity: critical
     annotations:
       abbr: '{{ $labels.bot }}'
-      description: 'Swarming bot {{ $labels.bot }} has gone too long without a reboot. Check the events on the Swarming bot page and reboot manually if necessary. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
+      description: 'Swarming machine {{ $labels.bot }} has gone too long without a reboot. Check the events on the Swarming page and reboot manually if necessary. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
 # Alerts for supported branches.
 
@@ -542,14 +542,14 @@ groups:
       abbr: '{{ $labels.branch }}'
       description: 'The commit queue config for supported branch {{ $labels.branch }} in {{ $labels.repo }} references unknown job {{ $labels.tryjob }}. Either the job needs to be removed or renamed in {{ $labels.repo }}/+show/infra/config/commit-queue.cfg or the job needs to be added to {{ $labels.repo }}/+show/{{ $labels.branch}}/infra/bots/tasks.json'
 
-  - alert: NoBotsExistForTryjobOnSupportedBranch
+  - alert: NoMachinesExistForTryjobOnSupportedBranch
     expr: cq_cfg_bot_exists_for_tryjob == 0
     labels:
       category: infra
       severity: critical
     annotations:
       abbr: '{{ $labels.branch }}'
-      description: 'There are no bots which can run the tasks for {{ $labels.tryjob }} on supported branch {{ $labels.branch }} in {{ $labels.repo }}.  Either the dimensions for the tasks used by the job need to be updated in {{ $labels.repo }}/+show/{{ $labels.branch}}/infra/bots/tasks.json or bots need to be added which can run the tasks. See the logs for details: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: 'There are no machines which can run the tasks for {{ $labels.tryjob }} on supported branch {{ $labels.branch }} in {{ $labels.repo }}.  Either the dimensions for the tasks used by the job need to be updated in {{ $labels.repo }}/+show/{{ $labels.branch}}/infra/bots/tasks.json or machines need to be added which can run the tasks. See the logs for details: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
 # K8s Checker
   - alert: K8sCheckerLiveness
