@@ -59,7 +59,7 @@ describe('digest-details-sk', () => {
       expect(await digestDetailsSkPO.isSizeWarningVisible()).to.be.false;
     });
 
-    it('has a triage button and shows the triage history', async () => {
+    it.skip('has a triage button and shows the triage history', async () => {
       expect(await digestDetailsSkPO.triageSkPO.getLabelOrEmpty()).to.equal('positive');
       expect(await digestDetailsSkPO.getTriageHistory()).to.equal('64w ago by user1@');
     });
