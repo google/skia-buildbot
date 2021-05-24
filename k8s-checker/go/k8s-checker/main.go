@@ -19,6 +19,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/kube/clusterconfig"
@@ -235,7 +236,7 @@ func performChecks(ctx context.Context, clientset *kubernetes.Clientset, g *giti
 	}
 
 	// Read files from the k8sYamlRepo using gitiles.
-	fileInfos, err := g.ListDir(ctx, *cluster)
+	fileInfos, err := g.ListDirAtRef(ctx, *cluster, git.MainBranch)
 	if err != nil {
 		return nil, fmt.Errorf("Error when listing files from %s: %s", k8sYamlRepo, err)
 	}
