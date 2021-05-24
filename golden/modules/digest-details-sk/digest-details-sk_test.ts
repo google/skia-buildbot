@@ -14,9 +14,17 @@ describe('digest-details-sk', () => {
   let digestDetailsSk: DigestDetailsSk;
   let digestDetailsSkPO: DigestDetailsSkPO;
 
+  const regularNow = Date.now;
+
   beforeEach(() => {
     digestDetailsSk = newInstance();
     digestDetailsSkPO = new DigestDetailsSkPO(digestDetailsSk);
+
+    Date.now = () => Date.parse('2020-01-01T00:00:00Z');
+  });
+
+  afterEach(() => {
+    Date.now = regularNow;
   });
 
   describe('layout with positive and negative references', () => {
@@ -59,9 +67,9 @@ describe('digest-details-sk', () => {
       expect(await digestDetailsSkPO.isSizeWarningVisible()).to.be.false;
     });
 
-    it.skip('has a triage button and shows the triage history', async () => {
+    it('has a triage button and shows the triage history', async () => {
       expect(await digestDetailsSkPO.triageSkPO.getLabelOrEmpty()).to.equal('positive');
-      expect(await digestDetailsSkPO.getTriageHistory()).to.equal('64w ago by user1@');
+      expect(await digestDetailsSkPO.getTriageHistory()).to.equal('8w ago by user1@');
     });
 
     it('has an image-compare-sk with the right values', async () => {
