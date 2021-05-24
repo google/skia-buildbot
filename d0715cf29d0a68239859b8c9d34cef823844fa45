@@ -22,6 +22,30 @@
       },
       "revId": "d0715cf29d0a68239859b8c9d34cef823844fa45",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a016ac6b_f2d0c711",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-05-24T14:09:34Z",
+      "side": 0,
+      "message": "Fair enough. I\u0027ll just abandon the change for now.",
+      "parentUuid": "5d5aee8d_ba516a40",
+      "range": {
+        "startLine": 476,
+        "startChar": 16,
+        "endLine": 476,
+        "endChar": 21
+      },
+      "revId": "d0715cf29d0a68239859b8c9d34cef823844fa45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
