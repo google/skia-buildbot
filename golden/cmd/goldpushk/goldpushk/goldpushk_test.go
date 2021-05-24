@@ -882,7 +882,7 @@ func makeID(instance Instance, service Service) DeployableUnitID {
 // used as fake k8s-config repository in tests.
 func createFakeK8sConfigRepo(t *testing.T, ctx context.Context) *testutils.GitBuilder {
 	// "git init" a temporary directory.
-	fakeK8sConfig := testutils.GitInit(t, ctx)
+	fakeK8sConfig := testutils.GitInitWithDefaultBranch(t, ctx, git.MainBranch)
 
 	// Populate fake repository with a file that will make it easier to identify it later on.
 	fakeK8sConfig.Add(ctx, "README.md", "This is repo k8s-config!")
@@ -980,7 +980,7 @@ func assertNumCommits(t *testing.T, ctx context.Context, repo *testutils.GitBuil
 func assertRepositoryContainsFileWithContents(t *testing.T, ctx context.Context, repo *testutils.GitBuilder, filename, expectedContents string) {
 	clone, err := git.NewTempCheckout(ctx, repo.RepoUrl())
 	require.NoError(t, err)
-	commits, err := clone.RevList(ctx, git.MasterBranch)
+	commits, err := clone.RevList(ctx, git.MainBranch)
 	require.NoError(t, err)
 	lastCommit := commits[0]
 	actualContents, err := clone.GetFile(ctx, filename, lastCommit)
