@@ -7,6 +7,7 @@ import {
 import { setImageEndpointsForDemos } from '../common';
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
+import {DigestDetailsSk} from './digest-details-sk';
 
 Date.now = () => fakeNow;
 testOnlySetSettings({
@@ -14,69 +15,69 @@ testOnlySetSettings({
 });
 
 setImageEndpointsForDemos();
-let ele = document.createElement('digest-details-sk');
+let ele = new DigestDetailsSk();
 ele.details = typicalDetails;
 ele.commits = twoHundredCommits;
-$$('#normal').appendChild(ele);
+$$('#normal')!.appendChild(ele);
 
-ele = document.createElement('digest-details-sk');
+ele = new DigestDetailsSk();
 ele.details = negativeOnly;
 ele.commits = twoHundredCommits;
-$$('#negative_only').appendChild(ele);
+$$('#negative_only')!.appendChild(ele);
 
-ele = document.createElement('digest-details-sk');
+ele = new DigestDetailsSk();
 ele.details = noRefs;
 ele.commits = twoHundredCommits;
-$$('#no_refs').appendChild(ele);
+$$('#no_refs')!.appendChild(ele);
 
-ele = document.createElement('digest-details-sk');
+ele = new DigestDetailsSk();
 ele.details = noRefsYet;
 ele.commits = twoHundredCommits;
-$$('#no_refs_yet').appendChild(ele);
+$$('#no_refs_yet')!.appendChild(ele);
 
-ele = document.createElement('digest-details-sk');
+ele = new DigestDetailsSk();
 ele.details = typicalDetails;
 ele.commits = twoHundredCommits;
 ele.changeListID = '12345';
 ele.crs = 'gerrit';
-$$('#changelist_id').appendChild(ele);
+$$('#changelist_id')!.appendChild(ele);
 
-ele = document.createElement('digest-details-sk');
+ele = new DigestDetailsSk();
 ele.details = typicalDetails;
 ele.commits = twoHundredCommits;
 ele.right = typicalDetails.refDiffs.neg;
-$$('#right_overridden').appendChild(ele);
+$$('#right_overridden')!.appendChild(ele);
 
-ele = document.createElement('digest-details-sk');
+ele = new DigestDetailsSk();
 ele.details = noTraces;
 ele.commits = twoHundredCommits;
-$$('#no_traces').appendChild(ele);
+$$('#no_traces')!.appendChild(ele);
 
-ele = document.createElement('digest-details-sk');
+ele = new DigestDetailsSk();
 const noParams = JSON.parse(JSON.stringify(noTraces));
 noParams.paramset = {};
 ele.details = noParams;
 ele.commits = twoHundredCommits;
-$$('#no_params').appendChild(ele);
+$$('#no_params')!.appendChild(ele);
 
 document.addEventListener('triage', (e) => {
-  $$('#event').textContent = `triage: ${JSON.stringify(e.detail)}`;
+  $$('#event')!.textContent = `triage: ${JSON.stringify((e as CustomEvent).detail)}`;
 });
 document.addEventListener('show-commits', (e) => {
-  $$('#event').textContent = `show-commits: ${JSON.stringify(e.detail)}`;
+  $$('#event')!.textContent = `show-commits: ${JSON.stringify((e as CustomEvent).detail)}`;
 });
 document.addEventListener('zoom-dialog-opened', (e) => {
-  $$('#event').textContent = `zoom-dialog-opened: ${JSON.stringify(e.detail)}`;
+  $$('#event')!.textContent = `zoom-dialog-opened: ${JSON.stringify((e as CustomEvent).detail)}`;
 });
 document.addEventListener('zoom-dialog-closed', (e) => {
-  $$('#event').textContent = `zoom-dialog-closed: ${JSON.stringify(e.detail)}`;
+  $$('#event')!.textContent = `zoom-dialog-closed: ${JSON.stringify((e as CustomEvent).detail)}`;
 });
 document.addEventListener('fetch-error', (e) => {
-  $$('#event').textContent = `fetch-error: ${JSON.stringify(e.detail)}`;
+  $$('#event')!.textContent = `fetch-error: ${JSON.stringify((e as CustomEvent).detail)}`;
 });
 
 fetchMock.post('/json/v1/triage', delay(() => {
-  if ($$('#simulate-not-logged-in').checked) {
+  if ($$<HTMLInputElement>('#simulate-not-logged-in')!.checked) {
     return 403;
   }
   return 200;
