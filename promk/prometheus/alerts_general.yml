@@ -115,7 +115,7 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'The error rate for autoroll on {{ $labels.app }} is too high.
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
-      https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate'
+      https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#error_rate'
 
   - alert: AutoRollFrontendErrorRate
     expr: rate(num_log_lines{level="ERROR",app=~"autoroll-fe.*"}[1h]) > 0.001
@@ -127,7 +127,7 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'The error rate for autoroll on {{ $labels.app }} is too high.
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2Fskia-public%2Flogs%2F{{ $labels.app }}
-      https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate'
+      https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#error_rate'
 
   - alert: AutoRollLastTransition
     expr: liveness_last_successful_autoroll_tick_s{roller!="skia-flutter-autoroll"} > 20*60
@@ -201,7 +201,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'Firestore usage from {{ $labels.app }} over the last 2h is high. This sometimes happens when an instance restarts. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md'
+      description: 'Firestore usage from {{ $labels.app }} over the last 2h is high. This sometimes happens when an instance restarts. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md'
 
   - alert: HighFirestoreUsageBurst
     expr: sum(rate(firestore_ops_count{count="rows"}[30m])) by (app) > 1000
@@ -234,7 +234,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.probename }}'
-      description: 'The endpoint for {{ $labels.probename }} took more than 10s to respond. https://skia.googlesource.com/buildbot/%2B/master/status/PROD.md#http_latency Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: 'The endpoint for {{ $labels.probename }} took more than 10s to respond. https://skia.googlesource.com/buildbot/%2B/main/status/PROD.md#http_latency Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: StatusIncrementalCacheUpdate
     expr: liveness_last_successful_incremental_cache_update_s > 5*60
@@ -244,7 +244,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'IncrementalCache UpdateLoop on {{ $labels.app }} has failed to update data for more than 5 minutes. Playbook: https://skia.googlesource.com/buildbot/%2B/master/status/PROD.md#incremental_cache_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: 'IncrementalCache UpdateLoop on {{ $labels.app }} has failed to update data for more than 5 minutes. Playbook: https://skia.googlesource.com/buildbot/%2B/main/status/PROD.md#incremental_cache_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: StatusErrorRate
     expr: rate(num_log_lines{level="ERROR",app=~"status.*"}[2m]) > 0.05
@@ -266,7 +266,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to schedule for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#scheduling_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to schedule for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#scheduling_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: TaskSchedulerUpdateReposLiveness
     expr: liveness_last_successful_repo_update_s/60 > 10
@@ -276,7 +276,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update repos and insert new jobs for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#update_repos_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update repos and insert new jobs for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#update_repos_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: TaskSchedulerBuildbucketPollLiveness
     expr: liveness_last_successful_poll_buildbucket_for_new_tryjobs_s/60 > 10
@@ -286,7 +286,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to poll Buildbucket for new tryjobs for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#poll_buildbucket_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to poll Buildbucket for new tryjobs for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#poll_buildbucket_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: TaskSchedulerBuildbucketUpdateLiveness
     expr: liveness_last_successful_update_buildbucket_tryjob_state_s/60 > 2
@@ -296,7 +296,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to send updates to Buildbucket for in-progress and completed tryjobs for the last 2 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#update_buildbucket_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to send updates to Buildbucket for in-progress and completed tryjobs for the last 2 minutes. https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#update_buildbucket_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: TaskSchedulerLatency
     expr: prober{type="latency",probename="task_scheduler"} > 300
@@ -306,7 +306,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.probename }}'
-      description: 'The endpoint for {{ $labels.probename }} took more than 300ms to respond. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#http_latency Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: 'The endpoint for {{ $labels.probename }} took more than 300ms to respond. https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#http_latency Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: TaskSchedulerErrorRate
     expr: rate(num_log_lines{level="ERROR",app=~"task-scheduler.*"}[2m]) > 0.05
@@ -327,7 +327,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'There are too many task candidates for dimensions: {{ $labels.dimensions }} https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#too_many_candidates'
+      description: 'There are too many task candidates for dimensions: {{ $labels.dimensions }} https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#too_many_candidates'
 
   - alert: OverdueMetricsLiveness
     expr: liveness_last_successful_overdue_metrics_update_s/60 > 10
@@ -337,29 +337,29 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update overdue_job_specs_s for the last 10 minutes. Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_metrics_liveness Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update overdue_job_specs_s for the last 10 minutes. Production Manual: https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#overdue_metrics_liveness Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
 # These jobs have tasks with an expiration of 4 hours, and we allow 2 attempts, so they should
 # normally finish within 8 hours.
   - alert: OverdueJobSpec
-    expr: overdue_job_specs_s{job_trigger=~"|master",job_name!~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 8
+    expr: overdue_job_specs_s{job_trigger=~"|main",job_name!~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 8
     labels:
       category: infra
       severity: critical
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not finished for any commit in the last 8 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+      description: '{{ $labels.job_name }} has not finished for any commit in the last 8 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/main/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#overdue_job_spec'
 
 # These jobs have tasks with an expiration of 9 hours, and we allow 2 attempts, so they should
 # normally finish within 18 hours.
   - alert: OverdueJobSpecLong
-    expr: overdue_job_specs_s{job_trigger=~"|master",job_name=~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 18
+    expr: overdue_job_specs_s{job_trigger=~"|main",job_name=~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 18
     labels:
       category: infra
       severity: critical
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not finished for any commit in the last 9 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+      description: '{{ $labels.job_name }} has not finished for any commit in the last 9 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/main/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#overdue_job_spec'
 
   - alert: OverdueJobSpecNightly
     expr: overdue_job_specs_s{job_trigger="nightly"}/60/60 > 28
@@ -368,7 +368,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not completed in the last 28 hours (nightly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+      description: '{{ $labels.job_name }} has not completed in the last 28 hours (nightly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/main/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#overdue_job_spec'
 
   - alert: OverdueJobSpecWeekly
     expr: overdue_job_specs_s{job_trigger="weekly"}/60/60 > 7*24+4
@@ -377,7 +377,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not completed in the last week + 4 hours (weekly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+      description: '{{ $labels.job_name }} has not completed in the last week + 4 hours (weekly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/main/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#overdue_job_spec'
 
   - alert: LatestJobAgeNightly
     expr: latest_job_age_s{job_trigger="nightly"}/60/60 > 25
@@ -387,7 +387,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not been triggered in the last 25 hours (nightly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#latest_job_age'
+      description: '{{ $labels.job_name }} has not been triggered in the last 25 hours (nightly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+show/main/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#latest_job_age'
 
   - alert: LatestJobAgeWeekly
     expr: latest_job_age_s{job_trigger="weekly"}/60/60 > 7*24+1
@@ -397,7 +397,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not been triggered in the last week + 1 hour (weekly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#latest_job_age'
+      description: '{{ $labels.job_name }} has not been triggered in the last week + 1 hour (weekly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+show/main/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/main/task_scheduler/PROD.md#latest_job_age'
 
 # Datahopper
 
@@ -419,7 +419,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update job metrics for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#job_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update job metrics for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#job_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: BotCoverageMetricsLiveness
     expr: liveness_last_successful_bot_coverage_metrics_s/60 > 60
@@ -429,7 +429,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update bot coverage metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#bot_coverage_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update bot coverage metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#bot_coverage_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: SwarmingTaskMetricsLiveness
     expr: liveness_last_successful_swarming_task_metrics_s/60 > 60
@@ -439,7 +439,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update swarming task metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#swarming_task_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update swarming task metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#swarming_task_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: EventMetricsLiveness
     expr: liveness_last_successful_event_metrics_update_s/60 > 30
@@ -449,7 +449,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update event metrics for {{ $labels.measurement }} for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#event_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update event metrics for {{ $labels.measurement }} for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#event_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: SwarmingBotMetricsLiveness
     expr: liveness_last_successful_report_bot_metrics_s/60 > 10
@@ -459,7 +459,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.pool }}'
-      description: '{{ $labels.app }} has failed to update swarming task metrics for pool {{ $labels.pool }} on {{ $labels.server }} for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#swarming_bot_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update swarming task metrics for pool {{ $labels.pool }} on {{ $labels.server }} for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#swarming_bot_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: FirestoreBackupMetricsLiveness
     expr: liveness_last_successful_firestore_backup_metrics_update_s/60 > 15
@@ -469,7 +469,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update Firestore backup metrics for the last 15 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#firestore_backup_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update Firestore backup metrics for the last 15 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#firestore_backup_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
 # Swarming
 
@@ -579,7 +579,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.yaml }}'
-      description: 'There is a dirty committed image {{ $labels.committedImage }} in {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.project }}/{{ $labels.yaml }}'
+      description: 'There is a dirty committed image {{ $labels.committedImage }} in {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }}'
 
   - alert: DirtyRunningK8sConfig
     expr: dirty_config_metric == 1
@@ -589,7 +589,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.project }}/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
+      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
 
   - alert: StaleK8sImage
     expr: stale_image_metric > 30
@@ -609,7 +609,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_app }}'
-      description: 'The app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.project }}/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
+      description: 'The app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
 
   - alert: CheckedInK8sContainerNotRunning
     expr: container_running_metric == 0
@@ -619,7 +619,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'The container {{ $labels.container }} of app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.project }}/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
+      description: 'The container {{ $labels.container }} of app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
 
   - alert: RunningK8sAppNotCheckedIn
     expr: running_app_has_config_metric == 0
@@ -659,7 +659,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.repo }}'
-      description: 'gitsync has failed to update {{ $labels.repo }} for the last 5 minutes. Check out pod {{ $labels.statefulset_kubernetes_io_pod_name }} in project {{ $labels.project }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/gitsync/PROD.md#GitSyncStalled'
+      description: 'gitsync has failed to update {{ $labels.repo }} for the last 5 minutes. Check out pod {{ $labels.statefulset_kubernetes_io_pod_name }} in project {{ $labels.project }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/gitsync/PROD.md#GitSyncStalled'
 
   - alert: GitSyncErrorRate
     expr: rate(num_log_lines{level="ERROR",app=~"gitsync.*"}[5m]) > 0.005
@@ -670,7 +670,7 @@ groups:
     annotations:
       abbr: '{{ $labels.app }}'
       description: 'The error rate for {{ $labels.app }} is too high.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }} https://skia.googlesource.com/buildbot/+doc/refs/heads/master/gitsync/PROD.md#GitSyncErrorRate'
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/gitsync/PROD.md#GitSyncErrorRate'
 
 # Gold Alerts
   - alert: GoldIgnoreMonitoring
@@ -681,7 +681,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has not checked for expired ignore rules in a while. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldignoremonitoring'
+      description: '{{ $labels.app }} has not checked for expired ignore rules in a while. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldignoremonitoring'
 
   - alert: GoldPollingIngestionStalled
     expr: liveness_gold_ingestion_s{metric="since_last_successful_poll"} > 150*60
@@ -691,7 +691,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has not been able to poll the bucket for missed files to ingest for a while. See https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldpollingingestionstalled'
+      description: '{{ $labels.app }} has not been able to poll the bucket for missed files to ingest for a while. See https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldpollingingestionstalled'
 
   - alert: GoldStreamingIngestionStalled
     expr: liveness_gold_ingestion_s{metric="since_last_successful_streaming_result"} > 24*60*60
@@ -701,7 +701,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has not successfully ingested files via streaming in a long time. See https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldstreamingingestionstalled'
+      description: '{{ $labels.app }} has not successfully ingested files via streaming in a long time. See https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldstreamingingestionstalled'
 
   - alert: GoldCommitTooOldWallTime
     expr: gold_last_commit_age_s{type="wall_time"} > 24*60*60
@@ -711,7 +711,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been at least 24 hours since the last commit made it into Gold for {{ $labels.app }}. Some process might have hung, or perhaps that repo simply has not seen a commit in that period. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldcommittoooldwalltime'
+      description: 'It has been at least 24 hours since the last commit made it into Gold for {{ $labels.app }}. Some process might have hung, or perhaps that repo simply has not seen a commit in that period. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldcommittoooldwalltime'
 
   - alert: GoldCommitTooOldNewerCommit
     expr: gold_last_commit_age_s{type="with_new_commit"} > 60*60
@@ -721,7 +721,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been at least 1 hour since a new commit landed in {{ $labels.app }}, and Gold still has not picked it up. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldcommittoooldnewercommit'
+      description: 'It has been at least 1 hour since a new commit landed in {{ $labels.app }}, and Gold still has not picked it up. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldcommittoooldnewercommit'
 
   - alert: GoldStatusStalled
     expr: liveness_gold_status_monitoring_s > 20*60
@@ -731,7 +731,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been at least 20 minutes since the Gold status was re-computed for {{ $labels.app }}. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldstatusstalled'
+      description: 'It has been at least 20 minutes since the Gold status was re-computed for {{ $labels.app }}. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldstatusstalled'
 
   - alert: GoldExpectationsStale
     expr: stopped_expstore_shards > 0
@@ -741,7 +741,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'Shards of QuerySnapshotIterators have stopped. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldexpectationsstale'
+      description: 'Shards of QuerySnapshotIterators have stopped. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldexpectationsstale'
 
   - alert: GoldNoDataAtHead
     expr: gold_empty_commits_at_head{appgroup!~"gold-chrome.*"} >= 20
@@ -751,7 +751,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'The most recent 20 commits for {{ $labels.app }} have no data. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldnodataathead'
+      description: 'The most recent 20 commits for {{ $labels.app }} have no data. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldnodataathead'
 
   - alert: GoldTooManyCLs
     expr: gold_num_recent_open_cls{appgroup!~"gold-chrome.*"} >= 50
@@ -761,7 +761,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'There are more than 50 recent, open CLs with tryjob data for {{ $labels.app }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldtoomanycls'
+      description: 'There are more than 50 recent, open CLs with tryjob data for {{ $labels.app }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldtoomanycls'
 
   - alert: GoldTooManyCLsChrome
     expr: gold_num_recent_open_cls{appgroup=~"gold-chrome.*"} >= 200
@@ -771,7 +771,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'There are more than 200 recent, open CLs with tryjob data for {{ $labels.app }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldtoomanycls'
+      description: 'There are more than 200 recent, open CLs with tryjob data for {{ $labels.app }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldtoomanycls'
 
   - alert: GoldCommentingStalled
     expr: liveness_gold_comment_monitoring_s > 20*60
@@ -781,7 +781,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been at least 20 minutes since the Gold went through all open CLs in for {{ $labels.app }} to maybe comment them on. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldcommentingstalled'
+      description: 'It has been at least 20 minutes since the Gold went through all open CLs in for {{ $labels.app }} to maybe comment them on. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldcommentingstalled'
 
   - alert: GoldHeavyTraffic
     expr: rate(gold_rpc_call_counter[5m]) > 50
@@ -791,7 +791,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} is experiencing high traffic on {{ $labels.route }} https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldheavytraffic'
+      description: '{{ $labels.app }} is experiencing high traffic on {{ $labels.route }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldheavytraffic'
 
   - alert: GoldDiffCalcFailures
     expr: delta(diffcalculator_nack{}[30m])/(delta(diffcalculator_ack{}[30m])+delta(diffcalculator_nack{}[30m])) > .01
@@ -801,7 +801,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} is failing to calculate diffs for more than 1 percent of requests https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#golddiffcalcfailures'
+      description: '{{ $labels.app }} is failing to calculate diffs for more than 1 percent of requests https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#golddiffcalcfailures'
 
   - alert: GoldIngestionFailures
     expr: delta(gold_ingestion_failure{}[10m])/(delta(gold_ingestion_success{}[10m])+delta(gold_ingestion_failure{}[10m])) > .1
@@ -811,7 +811,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} is failing to ingest more than 10 percent of files https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldingestionfailures'
+      description: '{{ $labels.app }} is failing to ingest more than 10 percent of files https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldingestionfailures'
 
 
 # Velero Backup
@@ -823,7 +823,7 @@ groups:
       owner: jcgregorio@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been more than 24 hours since a successful backup in {{ $labels.project }}. See https://skia.googlesource.com/buildbot/%2B/master/velero/PROD.md#backup_failed'
+      description: 'It has been more than 24 hours since a successful backup in {{ $labels.project }}. See https://skia.googlesource.com/buildbot/%2B/main/velero/PROD.md#backup_failed'
 
 # Git is supposed to be obtained through CIPD.
   - alert: GitNotFromCIPD

@@ -76,7 +76,7 @@ groups:
       severity: warning
       owner: jcgregorio@google.com
     annotations:
-      description: 'Fiddle is experiencing heavy load and has insufficient idle fiddler pods. https://skia.googlesource.com/buildbot/%2B/master/fiddlek/PROD.md#fiddler_pods'
+      description: 'Fiddle is experiencing heavy load and has insufficient idle fiddler pods. https://skia.googlesource.com/buildbot/%2B/main/fiddlek/PROD.md#fiddler_pods'
 
   - alert: NamedFiddlesFailing
     expr: named_fiddles_total_invalid > 0
@@ -107,7 +107,7 @@ groups:
       category: infra
       severity: warning
     annotations:
-      description: 'There are 10 CLs or more waiting in the CQ. Dry run queue: https://skia-review.googlesource.com/q/label:Commit-Queue%253D1+status:open and Commit queue: https://skia-review.googlesource.com/q/label:Commit-Queue%253D2+status:open Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_cls'
+      description: 'There are 10 CLs or more waiting in the CQ. Dry run queue: https://skia-review.googlesource.com/q/label:Commit-Queue%253D1+status:open and Commit queue: https://skia-review.googlesource.com/q/label:Commit-Queue%253D2+status:open Playbook: https://skia.googlesource.com/buildbot/%2B/main/cq_watcher/PROD.md#too_many_cls'
 
   - alert: CQTrybotRunningTooLong
     expr: max_over_time(cq_watcher_in_flight_trybot_duration{app="cq-watcher"}[20m]) > 2700
@@ -116,7 +116,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.trybot }}'
-      description: '{{ $labels.trybot }} ran longer than 45 mins on {{ $labels.gerritURL }} Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold'
+      description: '{{ $labels.trybot }} ran longer than 45 mins on {{ $labels.gerritURL }} Playbook: https://skia.googlesource.com/buildbot/%2B/main/cq_watcher/PROD.md#trybot_duration_beyond_threshold'
 
   - alert: TooManyCQTrybotsForCL
     expr: max_over_time(cq_watcher_in_flight_trybot_num{app="cq-watcher"}[20m]) > 100
@@ -124,7 +124,7 @@ groups:
       category: infra
       severity: warning
     annotations:
-      description: 'There are more than 100 CQ trybots triggered by {{ $labels.gerritURL }} Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered'
+      description: 'There are more than 100 CQ trybots triggered by {{ $labels.gerritURL }} Playbook: https://skia.googlesource.com/buildbot/%2B/main/cq_watcher/PROD.md#too_many_trybots_triggered'
 
  # datatore backups
   - alert: BackupNotDone
@@ -134,7 +134,7 @@ groups:
       severity: critical
     annotations:
       abbr: skia-public
-      description: 'A backup of Cloud Datastore has not succeeded in the last week. https://skia.googlesource.com/buildbot/%2B/master/ds/PROD.md#backup_not_done'
+      description: 'A backup of Cloud Datastore has not succeeded in the last week. https://skia.googlesource.com/buildbot/%2B/main/ds/PROD.md#backup_not_done'
 
 # alert-to-pubsub liveness
   - alert: AlertToPubSubLiveness
@@ -145,7 +145,7 @@ groups:
       owner: jcgregorio@google.com
     annotations:
       abbr: '{{ $labels.location }}'
-      description: 'alert-to-pubsub for {{ $labels.location }} has failed to send a healthz PubSub event in 90s. https://skia.googlesource.com/buildbot/%2B/master/am/PROD.md#alert_to_pubsub'
+      description: 'alert-to-pubsub for {{ $labels.location }} has failed to send a healthz PubSub event in 90s. https://skia.googlesource.com/buildbot/%2B/main/am/PROD.md#alert_to_pubsub'
 
 # CT
 # TODO(rmistry): Add error rate alert once logmetrics is ported to skia-public.
@@ -157,7 +157,7 @@ groups:
       severity: critical
       owner: rmistry@google.com
     annotations:
-      description: 'There are a lot of CTFE pending tasks. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks'
+      description: 'There are a lot of CTFE pending tasks. https://skia.googlesource.com/buildbot/%2B/main/ct/PROD.md#ctfe_pending_tasks'
 
   - alert: CTFEPendingTaskNotRunning
     expr: oldest_pending_task_status{app="ctfe"} >= 2
@@ -167,7 +167,7 @@ groups:
       severity: critical
       owner: rmistry@google.com
     annotations:
-      description: 'A task has been waiting to be executed for a while and it has still not started. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks'
+      description: 'A task has been waiting to be executed for a while and it has still not started. https://skia.googlesource.com/buildbot/%2B/main/ct/PROD.md#ctfe_pending_tasks'
 
   - alert: AutoRollLatency
     expr: prober{type="latency",probename="autoroll"} > 200
@@ -177,7 +177,7 @@ groups:
       severity: critical
       owner: borenet@google.com
     annotations:
-      description: 'The endpoint for {{ $labels.probename }} {{ $labels.url }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#http_latency'
+      description: 'The endpoint for {{ $labels.probename }} {{ $labels.url }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#http_latency'
 
   - alert: FlutterLicenseScriptFailure
     expr: flutter_license_script_failure{app="autoroll-be-skia-flutter-autoroll"} > 0
@@ -189,7 +189,7 @@ groups:
     annotations:
       description: 'The License scripts in the Skia->Flutter roller have failed.
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2Fskia-public%2Flogs%2F{{ $labels.app }}
-      https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#flutter_license_script_failure'
+      https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#flutter_license_script_failure'
 
 # skia-flutter-autoroll takes a long time to transition because its pre-upload
 # scripts run flutter's license script which can take around 40 minutes.
@@ -222,7 +222,7 @@ groups:
       severity: critical
       owner: jcgregorio@google.com
     annotations:
-      description: 'Perf failed to find any regressions in an hour. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#regression_detection_slow'
+      description: 'Perf failed to find any regressions in an hour. See https://github.com/google/skia-buildbot/blob/main/android_ingest/PROD.md#regression_detection_slow'
 
   - alert: AndroidIngestFailures
     expr: rate(process_failures[1h]) > 0.01
@@ -231,7 +231,7 @@ groups:
       severity: critical
       owner: jcgregorio@google.com
     annotations:
-      description: 'Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures'
+      description: 'Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/main/android_ingest/PROD.md#process_failures'
 
   - alert: AndroidIngestLiveness
     expr: liveness_last_successful_add_s > 300
@@ -240,7 +240,7 @@ groups:
       severity: critical
       owner: jcgregorio@google.com
     annotations:
-      description: 'Liveness for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#liveness'
+      description: 'Liveness for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/main/android_ingest/PROD.md#liveness'
 
 
   - alert: AndroidIngestBadFilesTooHigh
@@ -250,7 +250,7 @@ groups:
       severity: critical
       owner: jcgregorio@google.com
     annotations:
-      description: 'Error rate for bad_files is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#bad_files'
+      description: 'Error rate for bad_files is too high. See https://github.com/google/skia-buildbot/blob/main/android_ingest/PROD.md#bad_files'
 
   - alert: AndroidTxLogFailures
     expr: tx_log_write_failure > 0
@@ -259,7 +259,7 @@ groups:
       severity: critical
       owner: jcgregorio@google.com
     annotations:
-      description: 'android_ingest failing to record incoming data to transaction log. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#tx_log'
+      description: 'android_ingest failing to record incoming data to transaction log. See https://github.com/google/skia-buildbot/blob/main/android_ingest/PROD.md#tx_log'
 
   - alert: PerfIngestionSuccessRateTooLow
     expr: perfserver_ingest_successful_write/perfserver_ingest_files_received  < 0.98
@@ -269,7 +269,7 @@ groups:
       severity: critical
       owner: jcgregorio@google.com
     annotations:
-      description: 'Too few ingestion files are being successfully ingested. See https://github.com/google/skia-buildbot/blob/master/perf/PROD.md#success_rate_too_low'
+      description: 'Too few ingestion files are being successfully ingested. See https://github.com/google/skia-buildbot/blob/main/perf/PROD.md#success_rate_too_low'
 
   - alert: PerfAndroidClusteringSlow
     expr: sum(rate(perf_clustering_runs{app="perf-clustering-android"}[1h])*60*60) < 1
@@ -279,7 +279,7 @@ groups:
       severity: critical
       owner: jcgregorio@google.com
     annotations:
-      description: 'Android Perf Clustering (https://android-master-perf.skia.org)Rate is too low. See https://github.com/google/skia-buildbot/blob/master/perf/PROD.md#android_clustering_rate'
+      description: 'Android Perf Clustering (https://android-main-perf.skia.org)Rate is too low. See https://github.com/google/skia-buildbot/blob/main/perf/PROD.md#android_clustering_rate'
 
   - alert: PerfClusteringSlow
     expr: rate(perf_clustering_runs{app!="skiaperf-android"}[1h])*60*60 < 1
@@ -289,7 +289,7 @@ groups:
       severity: critical
       owner: jcgregorio@google.com
     annotations:
-      description: 'Perf Clustering Rate is too low. See https://github.com/google/skia-buildbot/blob/master/perf/PROD.md#clustering_rate'
+      description: 'Perf Clustering Rate is too low. See https://github.com/google/skia-buildbot/blob/main/perf/PROD.md#clustering_rate'
 
 # Prober
   - alert: ProbeFailure
@@ -343,7 +343,7 @@ groups:
       severity: critical
       owner: borenet@google.com
     annotations:
-      description: 'The most recent successful Firestore weekly backup was more than 7 days ago. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#firestore_weekly_backup'
+      description: 'The most recent successful Firestore weekly backup was more than 7 days ago. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#firestore_weekly_backup'
 
   - alert: GoDEPSTooOld
     expr: liveness_last_file_modification_s{file="go.mod"}/60/60/24 > 3
@@ -353,7 +353,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.file }} in {{ $labels.repo }} too old'
-      description: 'The {{ $labels.file }} file in {{ $labels.repo }} was last updated more than 3 days ago. https://skia.googlesource.com/buildbot/%2B/master/infra/bots/task_drivers/update_go_deps/update_go_deps.go'
+      description: 'The {{ $labels.file }} file in {{ $labels.repo }} was last updated more than 3 days ago. https://skia.googlesource.com/buildbot/%2B/main/infra/bots/task_drivers/update_go_deps/update_go_deps.go'
 
 # External RPis.
   - alert: DiskSpaceLow
@@ -364,7 +364,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/master/docs/PROD.md#diskspacelow'
+      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
 # External bots except RPis.
   - alert: DiskSpaceLow
@@ -375,7 +375,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/master/docs/PROD.md#diskspacelow'
+      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
 # Dev RPis.
   - alert: DiskSpaceLow
@@ -386,7 +386,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/master/docs/PROD.md#diskspacelow'
+      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
 # Dev bots except RPis.
   - alert: DiskSpaceLow
@@ -397,7 +397,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/master/docs/PROD.md#diskspacelow'
+      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
 # Internal RPis.
   - alert: DiskSpaceLow
@@ -408,7 +408,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/master/docs/PROD.md#diskspacelow'
+      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
 # Internal bots except RPis.
   - alert: DiskSpaceLow
@@ -419,7 +419,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/master/docs/PROD.md#diskspacelow'
+      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
 # GCE machines (other than bots), root disk.
   - alert: DiskSpaceLow
@@ -430,7 +430,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Root Disk Space on {{ $labels.exported_instance }}.  https://skia.googlesource.com/buildbot/+doc/master/docs/PROD.md#diskspacelow'
+      description: 'Low Root Disk Space on {{ $labels.exported_instance }}.  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
 # GCE bots, /b (aka /mnt/pd0)
   - alert: DiskSpaceLow
@@ -441,7 +441,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.exported_instance }}'
-      description: 'Low Disk Space on /b for {{ $labels.exported_instance }}. https://skia.googlesource.com/buildbot/+doc/master/docs/PROD.md#diskspacelow'
+      description: 'Low Disk Space on /b for {{ $labels.exported_instance }}. https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
 
 # Envoy
@@ -454,7 +454,7 @@ groups:
     annotations:
       abbr: '{{ $labels.envoy_cluster_name }}'
       description: 'Envoy Cluster Bind Error for {{ $labels.envoy_cluster_name
-      }}. https://skia.googlesource.com/buildbot/+doc/master/skfe/PROD.md#cluster_bind_error'
+      }}. https://skia.googlesource.com/buildbot/+doc/main/skfe/PROD.md#cluster_bind_error'
 
   - alert: EnvoyRuntimeLoadError
     expr: envoy_runtime_load_error > 0
@@ -464,7 +464,7 @@ groups:
       severity: error
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'Envoy Runtime Load Error for {{ $labels.app }}. https://skia.googlesource.com/buildbot/%2B/master/skfe/PROD.md#runtime_load_error'
+      description: 'Envoy Runtime Load Error for {{ $labels.app }}. https://skia.googlesource.com/buildbot/%2B/main/skfe/PROD.md#runtime_load_error'
 
   - alert: EnvoyClusterNotOK
     expr: envoy_cluster_lb_local_cluster_not_ok > 0
@@ -474,7 +474,7 @@ groups:
       severity: error
     annotations:
       abbr: '{{ $labels.envoy_cluster_name }}'
-      description: 'Envoy Cluster Not OK for {{ $labels.envoy_cluster_name }}. https://skia.googlesource.com/buildbot/%2B/master/skfe/PROD.md#envoy_cluster_lb_local_cluster_not_ok'
+      description: 'Envoy Cluster Not OK for {{ $labels.envoy_cluster_name }}. https://skia.googlesource.com/buildbot/%2B/main/skfe/PROD.md#envoy_cluster_lb_local_cluster_not_ok'
 
 # Push
   - alert: DirtyPackages
@@ -494,7 +494,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'The most recent 100 commits for {{ $labels.app }} have no data. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldnodataathead'
+      description: 'The most recent 100 commits for {{ $labels.app }} have no data. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldnodataathead'
 
 # Docsyserver
   - alert: SkiaDotOrgRefreshFail

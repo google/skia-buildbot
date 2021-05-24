@@ -103,7 +103,7 @@ solutions = [
 Useful documentation links:
 * How to checkout flutter is documented [here](https://github.com/flutter/flutter/wiki/Setting-up-the-Engine-development-environment).
 * License script documentation is [here](https://github.com/flutter/engine/blob/master/tools/licenses/README.md).
-* The code for the pre-upload license step used by the autoroller is [here](https://skia.googlesource.com/buildbot/+show/master/autoroll/go/repo_manager/parent/pre_upload_steps.go).
+* The code for the pre-upload license step used by the autoroller is [here](https://skia.googlesource.com/buildbot/+show/main/autoroll/go/repo_manager/parent/pre_upload_steps.go).
 
 
 Other Troubleshooting Tips
