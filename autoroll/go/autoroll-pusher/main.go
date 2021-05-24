@@ -254,7 +254,7 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 	b, err := ioutil.ReadFile(k8sFeConfigFile)
 	if err != nil && !os.IsNotExist(err) {
 		return nil, skerr.Wrapf(err, "failed to read k8s config file for frontend")
-	} else if err == nil {
+		} else if err == nil {
 		// TODO(borenet): Should we parse the config as YAML?
 		for _, line := range strings.Split(string(b), "\n") {
 			if strings.Contains(line, "--config=") {
@@ -585,7 +585,7 @@ func main() {
 			if _, err := co.Git(ctx, "commit", "-m", *commitMsg); err != nil {
 				log.Fatalf("Failed to 'git commit' k8s config file(s): %s", err)
 			}
-			if _, err := co.Git(ctx, "push", git.DefaultRemote, "HEAD:"+git.MasterBranch); err != nil {
+			if _, err := co.Git(ctx, "push", git.DefaultRemote, "HEAD:"+git.MainBranch); err != nil {
 				// The upstream might have changed while we were
 				// working. Rebase and try again.
 				if err2 := co.Fetch(ctx); err2 != nil {

@@ -228,7 +228,7 @@ func main() {
 			sklog.Fatalf("Found dirty checkout in %s:\n%s", checkout.Dir(), output)
 		}
 	} else {
-		if err := checkout.Update(ctx); err != nil {
+		if err := checkout.UpdateBranch(ctx, git.MainBranch); err != nil {
 			sklog.Fatal(err)
 		}
 	}
@@ -389,7 +389,7 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Failed to commit to the config repo: %s: %q", err, msg)
 		}
-		msg, err = checkout.Git(ctx, "push", git.DefaultRemote, git.MasterBranch)
+		msg, err = checkout.Git(ctx, "push", git.DefaultRemote, git.MainBranch)
 		if err != nil {
 			sklog.Fatalf("Failed to push the config repo: %s: %q", err, msg)
 		}
