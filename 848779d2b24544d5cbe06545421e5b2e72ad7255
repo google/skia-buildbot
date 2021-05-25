@@ -22,6 +22,30 @@
       },
       "revId": "848779d2b24544d5cbe06545421e5b2e72ad7255",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2d28ec2f_95a4771a",
+        "filename": "ct/py/gclient_utils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-25T15:52:57Z",
+      "side": 1,
+      "message": "I probably don\u0027t need any of this here because I do the cleaning from the Go code before calling these scripts. Things were likely here for legacy reasons. I really need to port whatever I need from these python scripts into Go code..",
+      "parentUuid": "bbb5e061_d9090b74",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 64
+      },
+      "revId": "848779d2b24544d5cbe06545421e5b2e72ad7255",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
