@@ -6,8 +6,8 @@ import commonBuilder from '../infra-sk/pulito/webpack.common';
 const configFactory: webpack.ConfigurationFactory = (_, args) => {
   const config = commonBuilder(__dirname, args.mode);
 
-  // Make all CSS/JS files appear at the /res location.
-  config.output!.publicPath = '/res/';
+  // Make all CSS/JS files appear at the /dist location.
+  config.output!.publicPath = '/dist/';
 
   config.plugins!.push(
     new CopyWebpackPlugin([

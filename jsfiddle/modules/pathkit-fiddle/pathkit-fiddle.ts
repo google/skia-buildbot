@@ -46,7 +46,7 @@ const template = (ele: WasmFiddle) => html`
 </footer>`;
 
 const wasmPromise = PathKitInit({
-  locateFile: (file: string) => `/res/${file}`,
+  locateFile: (file: string) => `/dist/${file}`,
 });
 
 /**
