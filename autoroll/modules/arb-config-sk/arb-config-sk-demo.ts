@@ -2,8 +2,7 @@ import 'elements-sk/error-toast-sk';
 import fetchMock from 'fetch-mock';
 import '../../../infra-sk/modules/login-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { ARBConfigSk } from './arb-config-sk';
-import { SetupMocks, GetFakeStatus } from '../rpc-mock';
+import { SetupMocks } from '../rpc-mock';
 import { GetFakeConfig } from '../rpc-mock/fake-config';
 
 fetchMock.get('/loginstatus/', {
@@ -15,4 +14,3 @@ fetchMock.get('/r/skia-skiabot-test/config', GetFakeConfig());
 SetupMocks();
 
 import './index.ts';
-

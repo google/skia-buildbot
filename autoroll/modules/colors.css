@@ -33,9 +33,12 @@ a.visited {
   color: var(--link-color);
 }
 
-.darkmode input, .darkmode textarea {
-  background-color: var(--surface-2dp);
-  color: var(--on-surface);
+input, textarea {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--surface-2dp);
+  color: inherit;
+  padding: 5px;
 }
 
 :disabled {
