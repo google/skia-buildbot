@@ -64,7 +64,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 		w.Header().Add("Cache-Control", "max-age=60")
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		p := r.URL.Path
-		r.URL.Path = strings.TrimPrefix(p, "/res")
+		r.URL.Path = strings.TrimPrefix(p, "/dist")
 		fileServer.ServeHTTP(w, r)
 	}
 }
@@ -193,7 +193,7 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler()).Methods("GET")
+	r.PathPrefix("/dist/").HandlerFunc(makeResourceHandler()).Methods("GET")
 	r.HandleFunc("/canvaskit", cspHandler(htmlHandler(canvaskitPage))).Methods("GET")
 	r.HandleFunc("/canvaskit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(canvaskitPage))).Methods("GET")
 	r.HandleFunc("/pathkit", cspHandler(htmlHandler(pathkitPage))).Methods("GET")
