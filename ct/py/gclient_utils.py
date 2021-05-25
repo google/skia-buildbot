@@ -87,7 +87,7 @@ def Sync(revisions=None, force=False, delete_unversioned_trees=False,
       extra_args: optional list; any additional arguments.
   """
   for branch, _ in (revisions or []):
-    # Do whatever it takes to get up-to-date with origin/master.
+    # Do whatever it takes to get up-to-date with origin/main.
     if os.path.exists(branch):
       with misc.ChDir(branch):
         # First, fix the git identity if needed.
@@ -96,11 +96,11 @@ def Sync(revisions=None, force=False, delete_unversioned_trees=False,
         # If there are local changes, "git checkout" will fail.
         shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
         # In case HEAD is detached...
-        shell_utils.run([GIT, 'checkout', 'master'])
+        shell_utils.run([GIT, 'checkout', 'main'])
         # Always fetch, in case we're unmanaged.
         shell_utils.run_retry([GIT, 'fetch'], attempts=5)
-        # This updates us to origin/master even if master has diverged.
-        shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
+        # This updates us to origin/main even if main has diverged.
+        shell_utils.run([GIT, 'reset', '--hard', 'origin/main'])
 
   cmd = ['sync', '--no-nag-max']
   if verbose:
@@ -127,7 +127,7 @@ def Sync(revisions=None, force=False, delete_unversioned_trees=False,
       if revision:
         shell_utils.run([GIT, 'reset', '--hard', revision])
       else:
-        shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
+        shell_utils.run([GIT, 'reset', '--hard', 'origin/main'])
   return output
 
 
