@@ -1,4 +1,8 @@
 {
+  cl_comment_template: "Gold has detected about {{.NumNewDigests}} new digest(s) on patchset {{.PatchsetOrder}}.\n\
+\n\
+Please triage them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}.\n",
+  comment_on_cls_period: "5m",
   null_ignore_period: "1m", // deprecated config, will be removed
   update_traces_ignore_period: "1m",
   prom_port: ":20000",
