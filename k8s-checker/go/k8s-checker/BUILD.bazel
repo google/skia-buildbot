@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/auth",
         "//go/common",
+        "//go/git",
         "//go/gitiles",
         "//go/httputils",
         "//go/kube/clusterconfig",
