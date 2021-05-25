@@ -155,6 +155,12 @@ cp -r /src/machine/webpack.config.ts         /tests/machine
 cp -r /src/machine/tsconfig.json             /tests/machine
 cp -r /src/machine/modules                   /tests/machine
 
+mkdir /tests/jsfiddle
+cp -r /src/jsfiddle/webpack.config.ts         /tests/jsfiddle
+cp -r /src/jsfiddle/tsconfig.json             /tests/jsfiddle
+cp -r /src/jsfiddle/modules                   /tests/jsfiddle
+
+
 ################################################################################
 # Install node modules and WASM dependencies.                                  #
 ################################################################################
@@ -167,6 +173,10 @@ make wasm_libs_fixed
 
 cd /tests/shaders
 make wasm_libs_fixed
+
+cd /tests/jsfiddle
+make wasm_libs_fixed
+
 
 ################################################################################
 # Run tests.                                                                   #
@@ -224,4 +234,7 @@ cd /tests/shaders
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/machine
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/jsfiddle
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts

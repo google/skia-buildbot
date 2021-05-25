@@ -48,7 +48,7 @@ ${ele.log}</textarea
   </footer>`;
 
 const wasmPromise = CanvasKitInit({
-  locateFile: (file: string) => `/res/${file}`,
+  locateFile: (file: string) => `/dist/${file}`,
 });
 
 /**
