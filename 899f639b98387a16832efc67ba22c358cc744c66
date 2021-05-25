@@ -22,6 +22,30 @@
       },
       "revId": "899f639b98387a16832efc67ba22c358cc744c66",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b27300c7_02ab27fc",
+        "filename": "go/taskname/gen_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-25T15:22:24Z",
+      "side": 1,
+      "message": "Will have to see all the uses of ReadFile. I suspect that is doable now, will check in a separate CL.",
+      "parentUuid": "020126e9_48bb283d",
+      "range": {
+        "startLine": 51,
+        "startChar": 13,
+        "endLine": 51,
+        "endChar": 26
+      },
+      "revId": "899f639b98387a16832efc67ba22c358cc744c66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
