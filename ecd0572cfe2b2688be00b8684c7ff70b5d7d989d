@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3062b59b_29e03d33",
+        "filename": "jsfiddle/go/jsfiddle/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-05-25T11:23:17Z",
+      "side": 1,
+      "message": "How about https://jsfiddle.skia.org/canvaskit/9c4df220dd05d8109ceb3a5cdb59653fd20d001affc2f4c1dabdd7b60c57d206 which clears the background with transparent, so it matches both dark mode and light mode?",
+      "range": {
+        "startLine": 101,
+        "startChar": 11,
+        "endLine": 101,
+        "endChar": 75
+      },
+      "revId": "ecd0572cfe2b2688be00b8684c7ff70b5d7d989d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
