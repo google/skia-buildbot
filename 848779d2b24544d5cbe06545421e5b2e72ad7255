@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bbb5e061_d9090b74",
+        "filename": "ct/py/gclient_utils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-25T15:07:50Z",
+      "side": 1,
+      "message": "May as well run git.Checkout.CleanupBranch()? https://skia.googlesource.com/buildbot/+/main/go/git/checkout.go#71  Either way, you probably want a \"git clean -d -f\" here.",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 64
+      },
+      "revId": "848779d2b24544d5cbe06545421e5b2e72ad7255",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
