@@ -27,20 +27,20 @@ DEFAULT_FETCH_TARGET = 'chromium'
 
 # Sync Chrome to LKGR.
 CHROME_REV_LKGR = 'CHROME_REV_LKGR'
-# Sync Chrome to origin/master.
-CHROME_REV_MASTER = 'CHROME_REV_MASTER'
+# Sync Chrome to origin/main.
+CHROME_REV_MAIN = 'CHROME_REV_MAIN'
 
 # Skia repo URL.
 SKIA_GIT_URL = 'https://skia.googlesource.com/skia.git'
 # Code revision specified by DEPS.
 SKIA_REV_DEPS = 'SKIA_REV_DEPS'
-# Sync to origin/master.
-SKIA_REV_MASTER = 'SKIA_REV_MASTER'
+# Sync to origin/main.
+SKIA_REV_MAIN = 'SKIA_REV_MAIN'
 
 
-def GetRemoteMasterHash(git_url):
+def GetRemoteMainHash(git_url):
   return shell_utils.run(['git', 'ls-remote', git_url, '--verify',
-                          'refs/heads/master']).rstrip()
+                          'refs/heads/main']).rstrip()
 
 
 def GetDepsVar(deps_filepath, variable):
@@ -66,29 +66,29 @@ def Sync(skia_revision=SKIA_REV_DEPS, chrome_revision=CHROME_REV_LKGR,
   obtained revision of Chrome.
 
   skia_revision: revision of Skia to sync. Should be a commit hash or one of
-      (SKIA_REV_DEPS, SKIA_REV_MASTER).
+      (SKIA_REV_DEPS, SKIA_REV_MAIN).
   chrome_revision: revision of Chrome to sync. Should be a commit hash or one
-      of (CHROME_REV_LKGR, CHROME_REV_MASTER).
+      of (CHROME_REV_LKGR, CHROME_REV_MAIN).
   fetch_target: string; Calls the fetch tool in depot_tools with the specified
       argument. Default is DEFAULT_FETCH_TARGET.
   gyp_defines: optional string; GYP_DEFINES to be passed to Gyp.
   gyp_generators: optional string; which GYP_GENERATORS to use.
   """
   # Figure out what revision of Skia we should use.
-  if skia_revision == SKIA_REV_MASTER:
-    output = GetRemoteMasterHash(SKIA_GIT_URL)
+  if skia_revision == SKIA_REV_MAIN:
+    output = GetRemoteMainHash(SKIA_GIT_URL)
     if output:
       skia_revision = shlex.split(output)[0]
     if not skia_revision:
       raise Exception('Could not determine current Skia revision!')
   skia_revision = str(skia_revision)
 
-  # Use Chrome LKGR, since gclient_utils will force a sync to origin/master.
+  # Use Chrome LKGR, since gclient_utils will force a sync to origin/main.
   if chrome_revision == CHROME_REV_LKGR:
     chrome_revision = urllib2.urlopen(CHROME_LKGR_URL).read()
-  elif chrome_revision == CHROME_REV_MASTER:
+  elif chrome_revision == CHROME_REV_MAIN:
     chrome_revision = shlex.split(
-        GetRemoteMasterHash(CHROME_GIT_URL))[0]
+        GetRemoteMainHash(CHROME_GIT_URL))[0]
 
   # Run "fetch chromium". The initial run is allowed to fail after it does some
   # work. At the least, we expect the .gclient file to be present when it
@@ -191,7 +191,7 @@ def Main():
   with misc.ChDir(dest_dir):
     actual_skia_rev, actual_chrome_rev = Sync(
         skia_revision=options.skia_revision or SKIA_REV_DEPS,
-        chrome_revision=options.chrome_revision or CHROME_REV_MASTER,
+        chrome_revision=options.chrome_revision or CHROME_REV_MAIN,
         fetch_target=options.fetch_target)
     print 'Chrome synced to %s' % actual_chrome_rev
     print 'Skia synced to %s' % actual_skia_rev
