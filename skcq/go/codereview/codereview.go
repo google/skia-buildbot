@@ -1,0 +1,94 @@
+package codereview
+
+import (
+	"context"
+	"net/http"
+	"strconv"
+
+	"go.skia.org/infra/go/skerr"
+
+	"go.skia.org/infra/go/gerrit"
+)
+
+// Defines a generic interface used by the different code-review frameworks.
+
+// After this is done look at autoroller codereview framework as well.
+type CodeReview interface {
+	// TODO(rmistry): Will definitely need an abstraction for ChangeInfo after you know all the things you really want.
+	Search(ctx context.Context) ([]*gerrit.ChangeInfo, error)
+
+	// Have this return something like CodeReviewChange and then can pass this around below.
+	GetDetails(cl int) string
+
+	AddComment(cl int, comment string) string
+
+	UpdateLabel(cl int) string
+
+	Submit() string
+}
+
+// Extract this into it's own module under codereview called gerrit (also a mock one?)
+
+// NewGerrit returns a gerritCodeReview instance.
+func NewGerrit(httpClient *http.Client, config *gerrit.Config, gerritURL string) (CodeReview, error) {
+
+	g, err := gerrit.NewGerritWithConfig(config, gerritURL, httpClient)
+	if err != nil {
+		return nil, err
+	}
+	return &gerritCodeReview{
+		gerritClient: g,
+	}, nil
+}
+
+type gerritCodeReview struct {
+	gerritClient gerrit.GerritInterface
+}
+
+func (gc *gerritCodeReview) Search(ctx context.Context) ([]*gerrit.ChangeInfo, error) {
+	openSearchTerm := gerrit.SearchStatus("OPEN")
+	// Construct search labels from the provided config.
+	// Do one search for CQ and one for dry-runs.
+
+	// Below will need some better refactorings...
+
+	searchTermsCQ := []*gerrit.SearchTerm{openSearchTerm}
+	for label, val := range gc.gerritClient.Config().SelfApproveLabels {
+		searchTermsCQ = append(searchTermsCQ, gerrit.SearchLabel(label, strconv.Itoa(val)))
+	}
+	for label, val := range gc.gerritClient.Config().SetCqLabels {
+		searchTermsCQ = append(searchTermsCQ, gerrit.SearchLabel(label, strconv.Itoa(val)))
+	}
+	changesCQ, err := gc.gerritClient.Search(ctx, 100, true, searchTermsCQ...)
+	if err != nil {
+		return nil, skerr.Fmt("Could not search for CQ issues: %s", err)
+	}
+
+	searchTermsDryRun := []*gerrit.SearchTerm{openSearchTerm}
+	for label, val := range gc.gerritClient.Config().SetDryRunLabels {
+		searchTermsDryRun = append(searchTermsDryRun, gerrit.SearchLabel(label, strconv.Itoa(val)))
+	}
+	changesDryRun, err := gc.gerritClient.Search(ctx, 100, true, searchTermsDryRun...)
+	if err != nil {
+		return nil, skerr.Fmt("Could not search for dry-run issues: %s", err)
+	}
+
+	matchingChanges := append(changesCQ, changesDryRun...)
+	return matchingChanges, nil
+}
+
+func (gc *gerritCodeReview) GetDetails(cl int) string {
+	return ""
+}
+
+func (gc *gerritCodeReview) AddComment(cl int, comment string) string {
+	return ""
+}
+
+func (gc *gerritCodeReview) UpdateLabel(cl int) string {
+	return ""
+}
+
+func (gc *gerritCodeReview) Submit() string {
+	return ""
+}
