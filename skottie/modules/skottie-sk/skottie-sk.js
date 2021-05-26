@@ -29,6 +29,7 @@ import '../skottie-performance-sk'
 import { renderByDomain } from '../helpers/templates'
 import { supportedDomains } from '../helpers/domains'
 import '../skottie-audio-sk'
+import viewModes from '../helpers/viewModes';
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
@@ -128,6 +129,7 @@ const jsonTextEditor = (ele) => {
 <section class=editor>
   <skottie-text-editor
     .animation=${ele._state.lottie}
+    .mode=${ele._viewMode}
     @apply=${ele._applyTextEdits}
   >
   </skottie-text-editor>
@@ -349,6 +351,7 @@ define('skottie-sk', class extends HTMLElement {
     this._fps = 0;
     this._speed = 1; // This is a playback multiplier
     this._backgroundColor = 'rgba(0,0,0,0)';
+    this._viewMode = viewModes.DEFAULT;
 
     this._stateChanged = stateReflector(
       /*getState*/() => {
@@ -365,6 +368,7 @@ define('skottie-sk', class extends HTMLElement {
           'h' : this._height,
           'f' : this._fps,
           'bg': this._backgroundColor,
+          'mode': this._viewMode,
         }
     }, /*setState*/(newState) => {
       this._showLottie = newState.l;
@@ -377,6 +381,9 @@ define('skottie-sk', class extends HTMLElement {
       this._width = newState.w;
       this._height = newState.h;
       this._fps = newState.f;
+      this._viewMode = Object.values(viewModes).includes(newState.mode)
+        ? newState.mode
+        : viewModes.DEFAULT;
       this._backgroundColor = newState.bg;
       this._applyTextEdits = this._applyTextEdits.bind(this);
       this._applyAudioSync = this._applyAudioSync.bind(this);
