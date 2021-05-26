@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2e6031ca_a2920912",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-05-26T22:52:15Z",
+      "side": 1,
+      "message": "Added view modes for the skottie tool and included support for the two modes on the text editor",
+      "revId": "0a96a17a5647ef5e4ea519c09864442b09cd0ea0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
