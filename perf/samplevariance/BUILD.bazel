@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "samplevariance_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/samplevariance",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//perf/go/ingest/format",
+        "//perf/go/ingest/parser",
+        "@com_github_aclements_go_moremath//stats",
+    ],
+)
+
+go_binary(
+    name = "samplevariance",
+    embed = [":samplevariance_lib"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "run",
+    srcs = ["run.sh"],
+    visibility = ["//visibility:public"],
+    data = [
+        ":single_step.sh",
+        ":samplevariance",
+        ]
+)
+
+genrule(
+    name = "genrun",
+    srcs = ["run.sh"],
+    outs = ["short-sorted.csv"],
+    tools = [":run.sh", ":single_step.sh", ":samplevariance"],
+    cmd = """
+./$(location :run.sh) $@
+"""
+)
