@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "405b5657_d8cc4c24",
+        "filename": "perf/samplevariance/main.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-26T14:53:11Z",
+      "side": 1,
+      "message": "nit: Should these be configurable via flags?",
+      "range": {
+        "startLine": 26,
+        "startChar": 2,
+        "endLine": 26,
+        "endChar": 89
+      },
+      "revId": "4c6f71366a7694edf0cc63c5a67026c4fcc8cb90",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e3460dfd_293ec471",
+        "filename": "perf/samplevariance/run.sh",
+        "patchSetId": 17
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-26T14:53:11Z",
+      "side": 1,
+      "message": "should this be an argument?",
+      "range": {
+        "startLine": 19,
+        "startChar": 39,
+        "endLine": 19,
+        "endChar": 53
+      },
+      "revId": "4c6f71366a7694edf0cc63c5a67026c4fcc8cb90",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
