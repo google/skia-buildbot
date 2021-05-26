@@ -35,6 +35,8 @@ export class DetailsPageSk extends ElementSk {
                          .details=${ele.details}
                          .useNewAPI=${ele.useNewAPI}>
       </digest-details-sk>
+      This is an intentional change!!!!!!
+      Part 2
     `;
   };
 
