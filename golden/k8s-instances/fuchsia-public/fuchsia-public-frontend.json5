@@ -2,8 +2,6 @@
   authorized_users: [
     "google.com",
   ],
-  cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchsetOrder}}.\n\
-View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}",
   client_secret_file: "/etc/skia.org/login.json",
   disable_sql_exp_cl: true,
   flaky_trace_threshold: 10000, // no trace is flaky
@@ -13,11 +11,9 @@ View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}",
     defaultCorpus: "test",
     title: "Fuchsia Gold",
   },
-  num_commits: 200,
   prom_port: ":20000",
   ready_port: ":8000",
   resources_path: "/usr/local/share/frontend/dist",
-  site_url: "https://fuchsia-public-gold.skia.org",
   tile_freshness: "1m",
   trace_bt_table: "gold-fuchsia-public",
 

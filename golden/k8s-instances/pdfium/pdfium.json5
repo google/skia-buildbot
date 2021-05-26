@@ -17,9 +17,11 @@
   fs_namespace: "pdfium",
   fs_project_id: "skia-firestore",
   pubsub_project_id: "skia-public",
+  site_url: "https://pdfium-gold.skia.org",
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "pdfium",
   known_hashes_gcs_path: "skia-pdfium-gm/hash_files/gold-pdfium-hashes.txt",
+  window_size: 500,
 
   // These values affect the k8s deployment; they are not read in by the binary.
   INCLUDE_GITHUB_CREDS: false

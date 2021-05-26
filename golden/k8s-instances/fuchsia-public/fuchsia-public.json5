@@ -17,9 +17,11 @@
   fs_namespace: "fuchsia-public",
   fs_project_id: "skia-firestore",
   pubsub_project_id: "skia-public",
+  site_url: "https://fuchsia-public-gold.skia.org",
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "fuchsiapublic",
   known_hashes_gcs_path: "skia-gold-fuchsia-public/hash_files/gold-fuchsia-public-hashes.txt",
+  window_size: 2000,
 
   // These values affect the k8s deployment; they are not read in by the binary.
   INCLUDE_GITHUB_CREDS: false
