@@ -13,10 +13,14 @@
  * @attr animation the animation json.
  *         At the moment it only reads it at load time.
  *
+ * @attr mode - the view mode.
+ *         Supported values are default and presentation
+ *
  */
 import { define } from 'elements-sk/define';
 import { html, render } from 'lit-html';
 import { ifDefined } from 'lit-html/directives/if-defined';
+import viewModes from '../helpers/viewModes';
 
 const originTemplateElement = (item) => html`
   <li class="text-element-origin">
@@ -24,28 +28,42 @@ const originTemplateElement = (item) => html`
   </li>
 `;
 
-const originTemplate = (group) => html`
+const originTemplate = (group, mode) => {
+  if (mode === viewModes.PRESENTATION) {
+    return null;
+  }
+  return html`
+    <div class="text-element-item">
+      <div class="text-element-label">
+        Origin${group.items.length > 1 ? 's' : ''}:
+      </div>
+        <ul>
+          ${group.items.map(originTemplateElement)}
+        </ul>
+    </div>
+  `;
+};
+
+const textElementTitle = (name, mode) => {
+  if (mode === viewModes.PRESENTATION) {
+    return null;
+  }
+  return html`
   <div class="text-element-item">
     <div class="text-element-label">
-       Origin${group.items.length > 1 ? 's' : ''}:
+      Layer name:
     </div>
-      <ul>
-        ${group.items.map(originTemplateElement)}
-      </ul>
+    <div>
+      ${name}
+    </div>
   </div>
-`;
+  `;
+};
 
 const textElement = (item, element) => html`
   <li class="text-element">
     <div class="text-element-wrapper">
-      <div class="text-element-item">
-        <div class="text-element-label">
-          Layer name:
-        </div>
-        <div>
-          ${item.name}
-        </div>
-      </div>
+      ${textElementTitle(item.name, element.mode)}
       <div class="text-element-item">
         <div class="text-element-label">
           Layer text:
@@ -57,17 +75,31 @@ const textElement = (item, element) => html`
           .value=${item.text}
         ></textarea>
       </div>
-      <div>${originTemplate(item)}</div>
+      <div>${originTemplate(item, element.mode)}</div>
     </div>
   </li>
 `;
+
+const ungroupButton = (element) => {
+  if (element.mode === viewModes.PRESENTATION) {
+    return null;
+  }
+  return html`
+  <button
+    class="editor-header-save-button"
+    @click=${element._toggleTextsCollapse}>
+    ${element._state.areTextsCollapsed
+    ? 'Ungroup Texts'
+    : 'Group Texts'}
+    </button>`;
+};
 
 const template = (ele) => html`
   <div>
     <header class="editor-header">
       <div class="editor-header-title">Text Editor</div>
       <div class="editor-header-separator"></div>
-      <button class="editor-header-save-button" @click=${ele._toggleTextsCollapse}>${ele._state.areTextsCollapsed ? 'Ungroup Texts' : 'Group Texts'}</button>
+      ${ungroupButton(ele)}
       <button class="editor-header-save-button" @click=${ele._save}>Save</button>
     </header>
     <section>
@@ -214,6 +246,7 @@ class SkottieTextEditorSk extends HTMLElement {
   connectedCallback() {
     this._updateAnimation(this.animation);
     this.addEventListener('input', this._inputEvent);
+    this._render();
   }
 
   disconnectedCallback() {
