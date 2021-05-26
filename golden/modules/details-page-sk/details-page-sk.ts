@@ -34,6 +34,7 @@ export class DetailsPageSk extends ElementSk {
                          .crs=${ele.crs}
                          .details=${ele.details}>
       </digest-details-sk>
+      This is an intentional change!!!!!!
     `;
   };
 
