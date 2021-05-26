@@ -20,6 +20,7 @@
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "skia",
   known_hashes_gcs_path: "skia-infra-gm/hash_files/gold-prod-hashes.txt",
+  window_size: 256,
 
   // These values affect the k8s deployment; they are not read in by the binary.
   INCLUDE_GITHUB_CREDS: false

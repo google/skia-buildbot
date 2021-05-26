@@ -38,14 +38,12 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/clstore/sqlclstore"
 	"go.skia.org/infra/golden/go/code_review"
-	"go.skia.org/infra/golden/go/code_review/commenter"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	"go.skia.org/infra/golden/go/code_review/github_crs"
 	"go.skia.org/infra/golden/go/code_review/updater"
@@ -87,10 +85,6 @@ type frontendServerConfig struct {
 	// A list of email addresses or domains that can log into this instance.
 	AuthorizedUsers []string `json:"authorized_users"`
 
-	// A string with placeholders for generating a comment message. See
-	// commenter.commentTemplateContext for the exact fields.
-	CLCommentTemplate string `json:"cl_comment_template"`
-
 	// Client secret file for OAuth2 authentication.
 	ClientSecretFile string `json:"client_secret_file"`
 
@@ -106,7 +100,7 @@ type frontendServerConfig struct {
 	DisableSQLExpectationsForCLUpdater bool `json:"disable_sql_exp_cl"`
 
 	// If a trace has more unique digests than this, it will be considered flaky. If this number is
-	// greater than NumCommits, then no trace can ever be flaky.
+	// greater than WindowSize, then no trace can ever be flaky.
 	FlakyTraceThreshold int `json:"flaky_trace_threshold"`
 
 	// Force the user to be authenticated for all requests.
@@ -125,10 +119,6 @@ type frontendServerConfig struct {
 	// The longest time negative expectations can go unused before being purged. (0 means infinity)
 	NegativesMaxAge config.Duration `json:"negatives_max_age" optional:"true"`
 
-	// Number of recent commits to include in the slideing window of data analysis. Also called the
-	// tile size.
-	NumCommits int `json:"num_commits"`
-
 	// The longest time positive expectations can go unused before being purged. (0 means infinity)
 	PositivesMaxAge config.Duration `json:"positives_max_age" optional:"true"`
 
@@ -136,14 +126,8 @@ type frontendServerConfig struct {
 	// this instance.
 	PubliclyAllowableParams publicparams.MatchingRules `json:"publicly_allowed_params" optional:"true"`
 
-	// This can be used in a CL comment to direct users to the public instance for triaging.
-	PublicSiteURL string `json:"public_site_url" optional:"true"`
-
 	// Path to a directory with static assets that should be served to the frontend (JS, CSS, etc.).
 	ResourcesPath string `json:"resources_path"`
-
-	// URL where this app is hosted.
-	SiteURL string `json:"site_url"`
 
 	// How often to re-fetch the tile, compute the index, and report metrics about the index.
 	TileFreshness config.Duration `json:"tile_freshness"`
@@ -237,8 +221,6 @@ func main() {
 	searchAPI := search.New(expStore, expChangeHandler, ixr, reviewSystems, tjs, publiclyViewableParams, fsc.FlakyTraceThreshold, sqlDB)
 	sklog.Infof("Search API created")
 
-	mustStartCommenters(ctx, fsc, reviewSystems, searchAPI)
-
 	statusWatcher := mustMakeStatusWatcher(ctx, vcs, expStore, expChangeHandler, tileSource)
 
 	mustStartExpectationsCleanupProcess(ctx, fsc, cleaner, ixr)
@@ -260,10 +242,10 @@ func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pg
 		templates[crs.ID] = crs.URLTemplate
 	}
 
-	s2a := search2.New(sqlDB, fsc.NumCommits)
+	s2a := search2.New(sqlDB, fsc.WindowSize)
 	s2a.SetReviewSystemTemplates(templates)
 	sklog.Infof("SQL Search loaded with CRS templates %s", templates)
-	err := s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.NumCommits)
+	err := s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.WindowSize)
 	if err != nil {
 		sklog.Fatalf("Cannot load caches for search2 backend: %s", err)
 	}
@@ -553,7 +535,7 @@ func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore
 	ctc := tilesource.CachedTileSourceConfig{
 		CLUpdater:              clUpdater,
 		IgnoreStore:            ignoreStore,
-		NCommits:               fsc.NumCommits,
+		NCommits:               fsc.WindowSize,
 		PubliclyViewableParams: publiclyViewableParams,
 		TraceStore:             traceStore,
 		VCS:                    vcs,
@@ -629,33 +611,6 @@ type noopDiffPublisher struct{}
 // CalculateDiffs does nothing, but implements the diff.Calculator interface.
 func (p *noopDiffPublisher) CalculateDiffs(_ context.Context, _ paramtools.Params, _, _ []types.Digest) error {
 	return nil
-}
-
-// mustStartCommenters starts a background process that comments on CLs for each of the review
-// systems specified in the JSON configuration files, unless the Gold instance is not authoritative
-// (e.g. when running locally) or when CL tracking is disabled via the JSON configuration.
-func mustStartCommenters(ctx context.Context, fsc *frontendServerConfig, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI) {
-	if fsc.IsAuthoritative() && !fsc.DisableCLTracking {
-		for _, rs := range reviewSystems {
-			clCommenter, err := commenter.New(rs, searchAPI, fsc.CLCommentTemplate, fsc.SiteURL, fsc.PublicSiteURL, fsc.DisableCLComments)
-			if err != nil {
-				sklog.Fatalf("Could not initialize commenter: %s", err)
-			}
-			startCommenter(ctx, clCommenter)
-		}
-	}
-}
-
-// startCommenter begins the background process that comments on CLs.
-func startCommenter(ctx context.Context, cmntr code_review.ChangelistCommenter) {
-	go func() {
-		// TODO(kjlubick): tune this time, maybe make it a flag
-		util.RepeatCtx(ctx, 3*time.Minute, func(ctx context.Context) {
-			if err := cmntr.CommentOnChangelistsWithUntriagedDigests(ctx); err != nil {
-				sklog.Errorf("Could not comment on CLs with Untriaged Digests: %s", err)
-			}
-		})
-	}()
 }
 
 // mustMakeStatusWatcher returns a new status.StatusWatcher.

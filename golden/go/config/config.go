@@ -62,6 +62,9 @@ type Common struct {
 	// The port to provide a web handler for /healthz and any other web requests.
 	ReadyPort string `json:"ready_port"`
 
+	// URL where this app is hosted.
+	SiteURL string `json:"site_url"`
+
 	// SQL username, host and port; typically root@localhost:26234 or root@gold-cockroachdb:26234
 	SQLConnection string `json:"sql_connection" optional:"true"`
 
@@ -70,6 +73,10 @@ type Common struct {
 
 	// TracingProportion overrides the per-service default, which is handy for debugging.
 	TracingProportion float64 `json:"tracing_proportion" optional:"true"`
+
+	// Number of recent commits to include in the sliding window of data analysis. Also called the
+	// tile size.
+	WindowSize int `json:"window_size"`
 
 	// If provided (e.g. ":9002"), a port serving performance-related and other debugging RPCS will
 	// be opened up. This RPC will not require authentication.

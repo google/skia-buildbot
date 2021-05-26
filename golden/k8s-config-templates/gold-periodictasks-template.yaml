@@ -77,3 +77,8 @@ spec:
         - name: gold-service-account-secrets
           secret:
             secretName: gold-service-account-secrets
+        {{if .INCLUDE_GITHUB_CREDS}}
+        - name: gold-github-token
+          secret:
+            secretName: gold-github-token
+        {{end}}

@@ -17,9 +17,11 @@
   fs_namespace: "angle",
   fs_project_id: "skia-firestore",
   pubsub_project_id: "skia-public",
+  site_url: "https://angle-gold.skia.org",
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "angle",
   known_hashes_gcs_path: "skia-gold-angle/hash_files/gold-angle-hashes.txt",
+  window_size: 512,
 
   // These values affect the k8s deployment; they are not read in by the binary.
   INCLUDE_GITHUB_CREDS: false
