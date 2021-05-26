@@ -45,6 +45,30 @@
       },
       "revId": "4c6f71366a7694edf0cc63c5a67026c4fcc8cb90",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7751ef27_31352a59",
+        "filename": "perf/samplevariance/run.sh",
+        "patchSetId": 17
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-05-26T17:42:55Z",
+      "side": 1,
+      "message": "Good idea. I\u0027ve decided to this exclusively as a Go program. I will add you back as a reviewer once that transition is complete.",
+      "parentUuid": "e3460dfd_293ec471",
+      "range": {
+        "startLine": 19,
+        "startChar": 39,
+        "endLine": 19,
+        "endChar": 53
+      },
+      "revId": "4c6f71366a7694edf0cc63c5a67026c4fcc8cb90",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
