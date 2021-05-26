@@ -4,16 +4,7 @@
     "chrome-gold-internal@chops-service-accounts.iam.gserviceaccount.com",
     "chrome-gold@chops-service-accounts.iam.gserviceaccount.com",
   ],
-  cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchsetOrder}}.\n\
-Please triage them using one of the following links before submitting:\n\
-\n\
-  - {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}} if you are working on an internal repo or otherwise expect some test results to be non-public.\n\
-  - {{.PublicInstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}} otherwise.\n\
-\n\
-If all the trybots passed and you don't expect your CL to have any effect on browser UI, you can likely ignore this message.\n\
-See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8FFvY3YF-6BT4Mqgrb9U40t0HMfEVSSEpNs/edit?usp=sharing\n",
   client_secret_file: "/etc/skia.org/login.json",
-  disable_cl_comments: true,
   disable_sql_exp_cl: true,
   flaky_trace_threshold: 2, // traces creating 3 or more unique digests are flaky.
   force_login: true, // This instance requires authentication. It has a public view (chrome-public)
@@ -22,12 +13,10 @@ See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8F
     defaultCorpus: "android-render-tests",
     title: "Chrome Gold",
   },
-  num_commits: 512,
   prom_port: ":20000",
   ready_port: ":8000",
   public_site_url: "https://chrome-public-gold.skia.org",
   resources_path: "/usr/local/share/frontend/dist",
-  site_url: "https://chrome-gold.skia.org",
   tile_freshness: "1m",
   trace_bt_table: "gold-chrome",
 

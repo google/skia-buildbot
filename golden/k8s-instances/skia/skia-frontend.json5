@@ -2,8 +2,6 @@
   authorized_users: [
     "google.com", "mtklein@chromium.org", "skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com",
   ],
-  cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchsetOrder}}.\n\
-View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}",
   client_secret_file: "/etc/skia.org/login.json",
   disable_sql_exp_cl: true,
   flaky_trace_threshold: 10,
@@ -15,12 +13,10 @@ View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}",
   },
   materialized_view_corpora: ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"],
   negatives_max_age: "4320h", // 180 days
-  num_commits: 256,
   positives_max_age: "720h", // 30 days
   prom_port: ":20000",
   ready_port: ":8000",
   resources_path: "/usr/local/share/frontend/dist",
-  site_url: "https://gold.skia.org",
   tile_freshness: "5m",
   trace_bt_table: "gold-skia",
 
