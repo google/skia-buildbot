@@ -4,100 +4,157 @@
       "tasks": [
         "Housekeeper-Nightly-UpdateGoDeps"
       ],
-      "trigger": "nightly"
+      "trigger": "nightly",
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Housekeeper-OnDemand-Presubmit": {
       "priority": 1,
       "tasks": [
         "Housekeeper-OnDemand-Presubmit"
       ],
-      "trigger": "on demand"
+      "trigger": "on demand",
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Housekeeper-PerCommit-CIPD-SK": {
       "tasks": [
         "Housekeeper-PerCommit-CIPD-SK"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Housekeeper-Weekly-UpdateCIPDPackages": {
       "tasks": [
         "Housekeeper-Weekly-UpdateCIPDPackages"
       ],
-      "trigger": "weekly"
+      "trigger": "weekly",
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-Experimental-Small-Linux": {
       "tasks": [
         "Infra-Experimental-Small-Linux"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-Experimental-Small-Win": {
       "tasks": [
         "Infra-Experimental-Small-Win"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-Build": {
       "tasks": [
         "Infra-PerCommit-Build"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-Build-Bazel-Local": {
       "tasks": [
         "Infra-PerCommit-Build-Bazel-Local"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-Build-Bazel-RBE": {
       "tasks": [
         "Infra-PerCommit-Build-Bazel-RBE"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-CreateDockerImage": {
       "tasks": [
         "Infra-PerCommit-CreateDockerImage"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-Large": {
       "tasks": [
         "Infra-PerCommit-Large"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-Medium": {
       "tasks": [
         "Infra-PerCommit-Medium"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-Puppeteer": {
       "tasks": [
         "Infra-PerCommit-Puppeteer"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-PushAppsFromInfraDockerImage": {
       "tasks": [
         "Infra-PerCommit-PushAppsFromInfraDockerImage"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-Race": {
       "tasks": [
         "Infra-PerCommit-Race"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-Small": {
       "tasks": [
         "Infra-PerCommit-Small"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-Test-Bazel-Local": {
       "tasks": [
         "Infra-PerCommit-Test-Bazel-Local"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-Test-Bazel-RBE": {
       "tasks": [
         "Infra-PerCommit-Test-Bazel-RBE"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     },
     "Infra-PerCommit-ValidateAutorollConfigs": {
       "tasks": [
         "Infra-PerCommit-ValidateAutorollConfigs"
-      ]
+      ],
+      "run_on_cq": false,
+      "cq_location_regexes": null,
+      "cq_experiment_percentage": 0
     }
   },
   "tasks": {
