@@ -63,6 +63,30 @@
       },
       "revId": "6923fcc70de5a8fdb023ca0037ec4495cef03283",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9aea089d_dfd27689",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-05-27T15:05:11Z",
+      "side": 1,
+      "message": "Two notes:\n- jobs.json is an implementation detail of gen_tasks in skia.git specifically, and is not guaranteed to exist generally.  CQ will need to read tasks.json.\n- I think it\u0027s probably preferable to add a new, optional, section to TasksCfg which defines the CQ trybots.  This prevents bloating the job DB with new fields which aren\u0027t used.  The structure would be something like:\n\nCommitQueue: map[string]struct{\n  LocationRegexes []string\n  ExperimentPercentage float64\n}",
+      "parentUuid": "7a591e87_2ac2473e",
+      "range": {
+        "startLine": 356,
+        "startChar": 0,
+        "endLine": 368,
+        "endChar": 74
+      },
+      "revId": "6923fcc70de5a8fdb023ca0037ec4495cef03283",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
