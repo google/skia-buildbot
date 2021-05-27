@@ -531,7 +531,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.branch }}'
-      description: 'There is no commit queue config entry for supported branch {{ $labels.branch }} in {{ $labels.repo }}. Either an entry needs to be added to {{ $labels.repo }}/+show/infra/config/commit-queue.cfg or the branch needs to be marked as not supported in {{ $labels.repo }}/+show/infra/config/supported-branches.json'
+      description: 'There is no commit queue config entry for supported branch {{ $labels.branch }} in {{ $labels.repo }}. Either an entry needs to be added to {{ $labels.repo }}/+show/infra/config/main.star or the branch needs to be marked as not supported in {{ $labels.repo }}/+show/infra/config/supported-branches.json'
 
   - alert: NoSuchCQTryjobForSupportedBranch
     expr: cq_cfg_tryjob_exists == 0
@@ -540,7 +540,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.branch }}'
-      description: 'The commit queue config for supported branch {{ $labels.branch }} in {{ $labels.repo }} references unknown job {{ $labels.tryjob }}. Either the job needs to be removed or renamed in {{ $labels.repo }}/+show/infra/config/commit-queue.cfg or the job needs to be added to {{ $labels.repo }}/+show/{{ $labels.branch}}/infra/bots/tasks.json'
+      description: 'The commit queue config for supported branch {{ $labels.branch }} in {{ $labels.repo }} references unknown job {{ $labels.tryjob }}. Either the job needs to be removed or renamed in {{ $labels.repo }}/+show/infra/config/main.star or the job needs to be added to {{ $labels.repo }}/+show/{{ $labels.branch}}/infra/bots/tasks.json'
 
   - alert: NoBotsExistForTryjobOnSupportedBranch
     expr: cq_cfg_bot_exists_for_tryjob == 0
