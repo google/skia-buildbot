@@ -52,6 +52,10 @@ spec:
               mountPath: /etc/gold-config/
             - name: gold-service-account-secrets
               mountPath: /etc/gold-secrets/
+            {{if .INCLUDE_GITHUB_CREDS}}
+            - name: gold-github-token
+              mountPath: /var/secrets/github/
+            {{end}}
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /etc/gold-secrets/service-account.json
