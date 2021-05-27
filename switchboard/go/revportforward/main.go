@@ -20,6 +20,7 @@ var (
 	podName      = flag.String("pod_name", "", "Name of the pod to reverse port-forward from.")
 	podPort      = flag.Int("pod_port", -1, "The port on the pod.")
 	localAddress = flag.String("local_address", "", `The address to forward the connection to, for example: "localhost:22".`)
+	useNcRev     = flag.Bool("use_ncrev", true, "Use ncrev instead of netcat (nc).")
 )
 
 func init() {
@@ -81,7 +82,7 @@ func main() {
 		exitWithUsageAndMessage("The --local_address flag is required.")
 	}
 
-	r, err := revportforward.New(*kubeconfig, *podName, *podPort, *localAddress)
+	r, err := revportforward.New(*kubeconfig, *podName, *podPort, *localAddress, *useNcRev)
 	if err != nil {
 		sklog.Fatal(err)
 	}
