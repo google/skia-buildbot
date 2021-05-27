@@ -52,9 +52,12 @@ func fakeTaskSpec() *TaskSpec {
 
 func fakeJobSpec() *JobSpec {
 	return &JobSpec{
-		TaskSpecs: []string{"Build", "Test"},
-		Trigger:   "trigger-name",
-		Priority:  753,
+		TaskSpecs:                       []string{"Build", "Test"},
+		Trigger:                         "trigger-name",
+		Priority:                        753,
+		RunOnCommitQueue:                true,
+		CommitQueueLocationRegexes:      []string{"infra/canvaskit/.*", "modules/canvaskit/.*"},
+		CommitQueueExperimentPercentage: 50.0,
 	}
 }
 

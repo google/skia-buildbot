@@ -467,6 +467,17 @@ type JobSpec struct {
 	TaskSpecs []string `json:"tasks"`
 	// One of the TRIGGER_* constants; see documentation above.
 	Trigger string `json:"trigger,omitempty"`
+
+	// Whether this task should run on the Commit Queue.
+	RunOnCommitQueue bool `json:"run_on_cq"`
+	// Run on the Commit Queue only if the change contains modifications to the
+	// following location regexes. Only useful if RunOnCommitQueue is true.
+	CommitQueueLocationRegexes []string `json:"cq_location_regexes"`
+	// Marks the task as experimental. It is only triggered on a given percentage
+	// of the CLs and the outcome does not affect the decision of whether a CL
+	// can land or not. This is typically used to test new builders and estimate
+	// their capacity requirements. Only useful if RunOnCommitQueue is true.
+	CommitQueueExperimentPercentage float64 `json:"cq_experiment_percentage"`
 }
 
 // Validate returns an error if the JobSpec is not valid.
@@ -491,10 +502,14 @@ func (j *JobSpec) Copy() *JobSpec {
 		taskSpecs = make([]string, len(j.TaskSpecs))
 		copy(taskSpecs, j.TaskSpecs)
 	}
+	cqLocationRegexes := util.CopyStringSlice(j.CommitQueueLocationRegexes)
 	return &JobSpec{
-		Priority:  j.Priority,
-		TaskSpecs: taskSpecs,
-		Trigger:   j.Trigger,
+		Priority:                        j.Priority,
+		TaskSpecs:                       taskSpecs,
+		Trigger:                         j.Trigger,
+		RunOnCommitQueue:                j.RunOnCommitQueue,
+		CommitQueueLocationRegexes:      cqLocationRegexes,
+		CommitQueueExperimentPercentage: j.CommitQueueExperimentPercentage,
 	}
 }
 
