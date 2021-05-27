@@ -39,6 +39,30 @@
       },
       "revId": "6923fcc70de5a8fdb023ca0037ec4495cef03283",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7a591e87_2ac2473e",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-27T14:56:09Z",
+      "side": 1,
+      "message": "Yes right, it should be in JobSpec and not TaskSpec. This is the wrong place.\nThere\u0027s rough incomplete design doc, I wanted to get the prototype done first so I can put in much more detail in the design doc by figuring things out. But I\u0027m going to send it to you anyway..\n\nOne of the central things that should not change is that the CQ will look at jobs.json (not tasks.json) to figure out which bots are CQ bots.",
+      "parentUuid": "24c1dd74_01010b84",
+      "range": {
+        "startLine": 356,
+        "startChar": 0,
+        "endLine": 368,
+        "endChar": 74
+      },
+      "revId": "6923fcc70de5a8fdb023ca0037ec4495cef03283",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
