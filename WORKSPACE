@@ -222,7 +222,7 @@ rbe_autoconfig(
     #
     # Must be updated manually after a new container image is uploaded to the container registry
     # via "bazel run //:push_rbe_container_skia_infra".
-    digest = "sha256:5deebf6be17a276a44580301daacdbb580c0b2b25eb4b0dea7e51f8011ec12ff",
+    digest = "sha256:17cc67cbd04619bfdf557dc2dc3a73aa0eafeef8f3253d88c432ee896841354d",
     # Enable networking. Without this, tests that require network access will fail. Examples include
     # go_test targets that try to clone the Skia Git repo from https://skia.googlesource.com/skia,
     # tests that hit GCS, etc.
@@ -256,4 +256,16 @@ container_pull(
     # with the latest digest. But this requires setting up an autoroller to update the digest every
     # time a new container image is uploaded to GCR.
     tag = "prod",
+)
+
+# Stuff to test Android builds.
+
+android_sdk_repository(
+    name = "androidsdk", # Required. Name *must* be "androidsdk".
+   # path = "/home/jcgregorio/Android/Sdk", # Optional. Can be omitted if `ANDROID_HOME` environment variable is set.
+)
+
+android_ndk_repository(
+    name = "androidndk", # Required. Name *must* be "androidndk".
+    #path = "/usr/local/android-ndk-r21e", # path is Optional. Can be omitted if `ANDROID_NDK_HOME` environment variable is set.
 )
