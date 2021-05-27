@@ -33,6 +33,24 @@
       "message": "nit: will be hard to remember to update this README.md if flags of samplevariance ever change",
       "revId": "df4831ee97a85aa99c1e3eca355c5603670cf050",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7a7a9767_ab254288",
+        "filename": "perf/samplevariance/README.md",
+        "patchSetId": 27
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-05-27T13:00:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8fd5f783_471a7bc3",
+      "revId": "df4831ee97a85aa99c1e3eca355c5603670cf050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
