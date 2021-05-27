@@ -1,0 +1,44 @@
+load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+# Lease the device and connect via the skia-switchboard cluster.
+test_on_env(
+    name = "test_on_remote_pixel",
+    env = "//switchboard:lease_pixel",
+    test = "//switchboard:run_test_on_leased_rpi_via_switchboard",
+)
+
+sh_binary(
+    name = "lease_pixel",
+    srcs = ["lease_pixel.sh"],
+    data = [
+        "kubeconfig.yaml",
+    ]
+)
+
+cc_binary(
+    name = "hello",
+    srcs = ["cpp/hello.cpp"],
+)
+
+# This just runs the test w/o the need for the parallel env task.
+# Works from workstation.
+sh_test(
+    name = "run_test_on_leased_rpi",
+    srcs = ["rsync_assetts_to_rpi.sh"],
+    args = ["root@skia-rpi2-rack4-switchboard-01", "22"],
+    data = [
+        ":hello",
+        "hello_over_adb.sh"
+    ]
+)
+
+sh_test(
+    name = "run_test_on_leased_rpi_via_switchboard",
+    srcs = ["rsync_assetts_to_rpi.sh"],
+    args = ["localhost", "9000"],
+    data = [
+        ":hello",
+        "hello_over_adb.sh"
+    ]
+)
