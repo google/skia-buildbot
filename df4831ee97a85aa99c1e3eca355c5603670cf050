@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "da707d6a_ac487744",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 27
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-27T12:27:46Z",
+      "side": 1,
+      "message": "LGTM",
+      "revId": "df4831ee97a85aa99c1e3eca355c5603670cf050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8fd5f783_471a7bc3",
+        "filename": "perf/samplevariance/README.md",
+        "patchSetId": 27
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-27T12:27:46Z",
+      "side": 1,
+      "message": "nit: will be hard to remember to update this README.md if flags of samplevariance ever change",
+      "revId": "df4831ee97a85aa99c1e3eca355c5603670cf050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
