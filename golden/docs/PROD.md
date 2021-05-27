@@ -236,20 +236,11 @@ GoldNoDataAtHead
 The last 20 commits (100 for Chrome, since their tests are slower) have seen 0 data. This probably
 means something is wrong with goldctl or whatever means is getting data into gold.
 
-Check out the bucket for the instance to confirm nothing is being uploaded and the logs
-of the ingester if newer stuff is in the bucket, but hasn't been processed already. (If it's
+Check out the bucket for the instance to confirm nothing is being uploaded. Then check the logs
+of the ingester to see if newer stuff is in the bucket, but hasn't been processed already. (If it's
 an issue with ingestion, expect other alerts to be firing)
 
 Key metrics: gold_empty_commits_at_head
-
-GoldTooManyCLs
---------------
-There are many open CLs that have recently seen data from Gold. Having too many open CLs may cause
-a higher load on CodeReviewSystems (e.g. Gerrit, GitHub) than usual, as we scan over all of these
-to see if they are still open. Seeing this alert may indicate issues with marking CLs as closed
-or some other problem with processing CLs.
-
-Key metrics: gold_num_recent_open_cls
 
 GoldCommentingStalled
 ---------------------
@@ -261,9 +252,8 @@ frontend server to see what's up.
 This might mean we are doing too much and running out of quota to talk to the CRS.  Usually
 out of quota messages will be in the error messages or the bodies of the failing requests.
 
-Key metrics: liveness_gold_comment_monitoring_s, gold_num_recent_open_cls
+Key metrics: liveness_periodic_tasks_s{task="commentOnCLs"}
 
-rate(firestore_ops_count{app=~"gold.+"}[10m]) > 100
 
 HighFirestoreUsageBurst or HighFirestoreUsageSustainedGold
 ----------------------------------------------------------
