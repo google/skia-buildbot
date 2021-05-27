@@ -15,12 +15,17 @@
 //
 // The code works by running netcat (nc) in the pod in listen mode and then
 // connects the exec streams to local target address.
+//
+// This also support having ncrev installed on the pod, a safer version of nc in
+// that it checks that there are no other listeners on the given port before
+// starting.
 
 package revportforward
 
 import (
 	"fmt"
 	"net"
+	"os"
 
 	"go.skia.org/infra/go/skerr"
 	v1 "k8s.io/api/core/v1"
@@ -38,6 +43,7 @@ type ReversePortForward struct {
 	localaddress string
 	pod          string
 	podPort      int
+	useNcRev     bool
 }
 
 // New returns a new RevPortForward instance.
@@ -47,7 +53,7 @@ type ReversePortForward struct {
 // podPort - The port to forward from within the pod.
 // localaddress - The address we want the incoming connection to be forwarded
 //    to, something like "localhost:22"
-func New(kubeconfig, podName string, podPort int, localaddress string) (*ReversePortForward, error) {
+func New(kubeconfig, podName string, podPort int, localaddress string, useNcRev bool) (*ReversePortForward, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to initialize from kubeconfig: %s", kubeconfig)
@@ -57,6 +63,7 @@ func New(kubeconfig, podName string, podPort int, localaddress string) (*Reverse
 		pod:          podName,
 		podPort:      podPort,
 		localaddress: localaddress,
+		useNcRev:     useNcRev,
 	}, nil
 }
 
@@ -88,6 +95,14 @@ func (r *ReversePortForward) Start() error {
 		"sh",
 		"-c",
 		fmt.Sprintf("nc -vv -l -p %d", r.podPort),
+	}
+	if r.useNcRev {
+		hostname, _ := os.Hostname() // If hostname errs then use the empty string.
+		cmd = []string{
+			"sh",
+			"-c",
+			fmt.Sprintf("ncrev --port=:%d --machine=%s", r.podPort, hostname),
+		}
 	}
 	req := clientset.CoreV1().RESTClient().Post().Resource("pods").Name(r.pod).Namespace("default").SubResource("exec")
 	option := &v1.PodExecOptions{
