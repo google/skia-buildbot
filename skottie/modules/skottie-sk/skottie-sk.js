@@ -55,13 +55,21 @@ const displayDialog = (ele) => html`
     .height=${ele._height} .fps=${ele._fps} .backgroundColor=${ele._backgroundColor}></skottie-config-sk>
 `;
 
+const caption = (text, mode) => {
+  if (mode === viewModes.PRESENTATION) {
+    return null;
+  }
+  return html`
+  <figcaption>
+  ${text}
+  </figcaption>
+  `;
+};
+
 const skottiePlayer = (ele) => html`
 <skottie-player-sk paused width=${ele._width} height=${ele._height}>
 </skottie-player-sk>
-
-<figcaption>
-  skottie-wasm
-</figcaption>`;
+${caption('skottie-wasm', ele._viewMode)}`;
 
 const lottiePlayer = (ele) => {
   if (!ele._showLottie) {
@@ -71,9 +79,9 @@ const lottiePlayer = (ele) => {
 <figure>
   <div id=container title=lottie-web
        style='width: ${ele._width}px; height: ${ele._height}px; background-color: ${ele._backgroundColor}'></div>
-  <figcaption>lottie-web (${bodymovin.version})</figcaption>
+       ${caption(`lottie-web ${bodymovin.version}`, ele._viewMode)}
 </figure>`;
-}
+};
 
 // TODO(kjlubick): Make the live preview use skottie
 const livePreview = (ele) => {
@@ -193,55 +201,63 @@ const performanceChart = (ele) => {
 <skottie-performance-sk></skottie-performance-sk>`;
 };
 
-const displayLoaded = (ele) => html`
-<button class=edit-config @click=${ ele._startEdit}>
+const controls = (ele) => {
+  if (ele._viewMode === viewModes.PRESENTATION) {
+    return null;
+  } return html`
+  <button class=edit-config @click=${ ele._startEdit}>
   ${ele._state.filename} ${ele._width}x${ele._height} ...
-</button>
-<div class=controls>
-  <button @click=${ele._rewind}>Rewind</button>
-  <button id=playpause @click=${ele._playpause}>Pause</button>
-  <button ?hidden=${!ele._hasEdits} @click=${ele._applyEdits}>Apply Edits</button>
-  <div class=download>
-    <a target=_blank download=${ele._state.filename} href=${ele._downloadUrl}>
-      JSON
-    </a>
-    ${ele._hasEdits? '(without edits)': ''}
+  </button>
+  <div class=controls>
+    <button @click=${ele._rewind}>Rewind</button>
+    <button id=playpause @click=${ele._playpause}>Pause</button>
+    <button ?hidden=${!ele._hasEdits} @click=${ele._applyEdits}>Apply Edits</button>
+    <div class=download>
+      <a target=_blank download=${ele._state.filename} href=${ele._downloadUrl}>
+        JSON
+      </a>
+      ${ele._hasEdits? '(without edits)': ''}
+    </div>
+    <checkbox-sk label="Show lottie-web"
+                ?checked=${ele._showLottie}
+                @click=${ele._toggleLottie}>
+    </checkbox-sk>
+    <checkbox-sk label="Show editor"
+                ?checked=${ele._showEditor}
+                @click=${ele._toggleEditor}>
+    </checkbox-sk>
+    <checkbox-sk label="Show gif exporter"
+                ?checked=${ele._showGifExporter}
+                @click=${ele._toggleGifExporter}>
+    </checkbox-sk>
+    <checkbox-sk label="Show text editor"
+                ?checked=${ele._showTextEditor}
+                @click=${ele._toggleTextEditor}>
+    </checkbox-sk>
+    <checkbox-sk label="Show performance chart"
+                ?checked=${ele._showPerformanceChart}
+                @click=${ele._togglePerformanceChart}>
+    </checkbox-sk>
+    ${libraryButton(ele)}
+    ${audioButton(ele)}
+    <button @click=${ele._toggleEmbed}>Embed</button>
+    <div class=scrub>
+      <input id=scrub type=range min=0 max=${SCRUBBER_RANGE+1} step=0.1
+          @input=${ele._onScrub} @change=${ele._onScrubEnd}>
+    </div>
+    <collapse-sk id=volume closed>
+      <p>
+        Volume:
+      </p>
+      <input id=volume-slider type=range min=0 max=1 step=.05 value=1
+        @input=${ele._onVolumeChange}>
+    </collapse-sk>
   </div>
-  <checkbox-sk label="Show lottie-web"
-               ?checked=${ele._showLottie}
-               @click=${ele._toggleLottie}>
-  </checkbox-sk>
-  <checkbox-sk label="Show editor"
-               ?checked=${ele._showEditor}
-               @click=${ele._toggleEditor}>
-  </checkbox-sk>
-  <checkbox-sk label="Show gif exporter"
-               ?checked=${ele._showGifExporter}
-               @click=${ele._toggleGifExporter}>
-  </checkbox-sk>
-  <checkbox-sk label="Show text editor"
-               ?checked=${ele._showTextEditor}
-               @click=${ele._toggleTextEditor}>
-  </checkbox-sk>
-  <checkbox-sk label="Show performance chart"
-               ?checked=${ele._showPerformanceChart}
-               @click=${ele._togglePerformanceChart}>
-  </checkbox-sk>
-  ${libraryButton(ele)}
-  ${audioButton(ele)}
-  <button @click=${ele._toggleEmbed}>Embed</button>
-  <div class=scrub>
-    <input id=scrub type=range min=0 max=${SCRUBBER_RANGE+1} step=0.1
-        @input=${ele._onScrub} @change=${ele._onScrubEnd}>
-  </div>
-  <collapse-sk id=volume closed>
-    <p>
-      Volume:
-    </p>
-    <input id=volume-slider type=range min=0 max=1 step=.05 value=1
-      @input=${ele._onVolumeChange}>
-  </collapse-sk>
-</div>
+  `
+}
+
+const displayLoaded = (ele) => html`
+${controls(ele)}
 <collapse-sk id=embed closed>
   <p>
     <label>
@@ -1016,8 +1032,10 @@ define('skottie-sk', class extends HTMLElement {
   }
 
   _toggleEmbed() {
-    let collapse = $$('#embed', this);
-    collapse.closed = !collapse.closed;
+    const collapse = $$('#embed', this);
+    if (collapse) {
+      collapse.closed = !collapse.closed;
+    }
   }
 
   _toggleLottie(e) {
@@ -1029,8 +1047,10 @@ define('skottie-sk', class extends HTMLElement {
   }
 
   _hideVolumeSlider(v) {
-    let collapse = $$('#volume', this);
-    collapse.closed = v;
+    const collapse = $$('#volume', this);
+    if (collapse) {
+      collapse.closed = v;
+    }
   }
 
   _upload() {
