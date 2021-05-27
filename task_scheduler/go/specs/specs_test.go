@@ -41,12 +41,15 @@ func fakeTaskSpec() *TaskSpec {
 		ExtraTags: map[string]string{
 			"dummy_tag": "dummy_val",
 		},
-		Idempotent:     true,
-		IoTimeout:      10 * time.Minute,
-		MaxAttempts:    5,
-		Outputs:        []string{"out"},
-		Priority:       19.0,
-		ServiceAccount: "fake-account@gmail.com",
+		Idempotent:                      true,
+		IoTimeout:                       10 * time.Minute,
+		MaxAttempts:                     5,
+		Outputs:                         []string{"out"},
+		Priority:                        19.0,
+		ServiceAccount:                  "fake-account@gmail.com",
+		RunOnCommitQueue:                true,
+		CommitQueueLocationRegexes:      []string{"infra/canvaskit/.*", "modules/canvaskit/.*"},
+		CommitQueueExperimentPercentage: 50.0,
 	}
 }
 

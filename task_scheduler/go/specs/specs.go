@@ -353,6 +353,19 @@ type TaskSpec struct {
 	// ServiceAccount indicates the Swarming service account to use for the
 	// task. If not specified, we will attempt to choose a suitable default.
 	ServiceAccount string `json:"service_account,omitempty"`
+
+	// Whether this task should run on the Commit Queue.
+	RunOnCommitQueue bool `json:"run_on_cq"`
+
+	// Run on the Commit Queue only if the change contains modifications to the
+	// following location regexes. Only useful if RunOnCommitQueue is true.
+	CommitQueueLocationRegexes []string `json:"cq_location_regexes"`
+
+	// Marks the task as experimental. It is only triggered on a given percentage
+	// of the CLs and the outcome does not affect the decision of whether a CL
+	// can land or not. This is typically used to test new builders and estimate
+	// their capacity requirements. Only useful if RunOnCommitQueue is true.
+	CommitQueueExperimentPercentage float64 `json:"cq_experiment_percentage"`
 }
 
 // Validate ensures that the TaskSpec is defined properly.
@@ -413,25 +426,29 @@ func (t *TaskSpec) Copy() *TaskSpec {
 	extraArgs := util.CopyStringSlice(t.ExtraArgs)
 	extraTags := util.CopyStringMap(t.ExtraTags)
 	outputs := util.CopyStringSlice(t.Outputs)
+	cqLocationRegexes := util.CopyStringSlice(t.CommitQueueLocationRegexes)
 	return &TaskSpec{
-		Caches:           caches,
-		CasSpec:          t.CasSpec,
-		CipdPackages:     cipdPackages,
-		Command:          cmd,
-		Dependencies:     deps,
-		Dimensions:       dims,
-		Environment:      environment,
-		EnvPrefixes:      envPrefixes,
-		ExecutionTimeout: t.ExecutionTimeout,
-		Expiration:       t.Expiration,
-		ExtraArgs:        extraArgs,
-		ExtraTags:        extraTags,
-		Idempotent:       t.Idempotent,
-		IoTimeout:        t.IoTimeout,
-		MaxAttempts:      t.MaxAttempts,
-		Outputs:          outputs,
-		Priority:         t.Priority,
-		ServiceAccount:   t.ServiceAccount,
+		Caches:                          caches,
+		CasSpec:                         t.CasSpec,
+		CipdPackages:                    cipdPackages,
+		Command:                         cmd,
+		Dependencies:                    deps,
+		Dimensions:                      dims,
+		Environment:                     environment,
+		EnvPrefixes:                     envPrefixes,
+		ExecutionTimeout:                t.ExecutionTimeout,
+		Expiration:                      t.Expiration,
+		ExtraArgs:                       extraArgs,
+		ExtraTags:                       extraTags,
+		Idempotent:                      t.Idempotent,
+		IoTimeout:                       t.IoTimeout,
+		MaxAttempts:                     t.MaxAttempts,
+		Outputs:                         outputs,
+		Priority:                        t.Priority,
+		ServiceAccount:                  t.ServiceAccount,
+		RunOnCommitQueue:                t.RunOnCommitQueue,
+		CommitQueueLocationRegexes:      cqLocationRegexes,
+		CommitQueueExperimentPercentage: t.CommitQueueExperimentPercentage,
 	}
 }
 
