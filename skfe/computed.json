@@ -1523,6 +1523,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "switchboard",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "switchboard",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "switchboard",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "task-driver-server",
           "endpoints": [
             {
@@ -3691,6 +3717,23 @@
                           },
                           "route": {
                             "cluster": "status-staging",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "switchboard.skia.org",
+                      "name": "switchboard.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "switchboard",
                             "timeout": {
                               "seconds": 600
                             }
