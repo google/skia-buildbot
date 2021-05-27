@@ -24,6 +24,7 @@ const (
 // Group is used in Response.
 type Group struct {
 	Members []string `json:"members"`
+	Nested  []string `json:"nested"`
 }
 
 // Response represents the format returned from GROUP_URL_TEMPLATE.
@@ -36,7 +37,7 @@ type Response struct {
 //
 // It implements Allow.
 type AllowedFromChromeInfraAuth struct {
-	url     string
+	group   string
 	client  *http.Client
 	mutex   sync.RWMutex
 	allowed *AllowedFromList
@@ -52,7 +53,7 @@ type AllowedFromChromeInfraAuth struct {
 // not start.
 func NewAllowedFromChromeInfraAuth(client *http.Client, group string) (*AllowedFromChromeInfraAuth, error) {
 	ret := &AllowedFromChromeInfraAuth{
-		url:    fmt.Sprintf(GROUP_URL_TEMPLATE, group),
+		group:  group,
 		client: client,
 	}
 	if err := ret.reload(); err != nil {
@@ -91,26 +92,42 @@ func infraAuthToAllowFromList(infra []string) []string {
 	return ret
 }
 
-func (a *AllowedFromChromeInfraAuth) reload() error {
-	resp, err := a.client.Get(a.url)
+func (a *AllowedFromChromeInfraAuth) getMembers(group string) ([]string, error) {
+	resp, err := a.client.Get(fmt.Sprintf(GROUP_URL_TEMPLATE, group))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Non-OK status: %s", resp.Status)
+		return nil, fmt.Errorf("Non-OK status: %s", resp.Status)
 	}
 	var r Response
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
+		return nil, err
+	}
+	members := r.Group.Members
+	// Get all members from nested groups.
+	for _, nestedGroup := range r.Group.Nested {
+		indirectMembers, err := a.getMembers(nestedGroup)
+		if err != nil {
+			return nil, err
+		}
+		members = append(members, indirectMembers...)
+	}
+	return members, nil
+}
+
+func (a *AllowedFromChromeInfraAuth) reload() error {
+	members, err := a.getMembers(a.group)
+	if err != nil {
 		return err
 	}
-	sort.Strings(r.Group.Members)
-
+	sort.Strings(members)
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 
 	// Convert infra auth format to AllowFromList format.
-	a.allowed = NewAllowedFromList(infraAuthToAllowFromList(r.Group.Members))
+	a.allowed = NewAllowedFromList(infraAuthToAllowFromList(members))
 	return nil
 }
 
