@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b23f5d2a_d931bce8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-05-27T14:36:44Z",
+      "side": 1,
+      "message": "These fields will not be used for a long time but need this in place for testing purposes.",
+      "revId": "6923fcc70de5a8fdb023ca0037ec4495cef03283",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
