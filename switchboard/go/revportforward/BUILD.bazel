@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "revportforward_lib",
     srcs = ["main.go"],
-    importpath = "go.skia.org/infra/go/revportforward/cmd/revportforward",
+    importpath = "go.skia.org/infra/switchboard/go/revportforward",
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
