@@ -107,8 +107,8 @@ export class PageObjectElement {
   /**
    * Sends a single key press.
    *
-   * Sends actual key presses on Puppeteer. Simulates events "keydown", "keypress" y "keyup" on the
-   * browser.
+   * Sends actual key presses on Puppeteer. Simulates events "keydown", "keypress" and "keyup" on
+   * the browser.
    *
    * @param key The "key" attribute of the KeyboardEvent to be dispatched.
    */
