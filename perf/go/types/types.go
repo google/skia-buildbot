@@ -100,6 +100,10 @@ const (
 	// change.
 	AbsoluteStep StepDetection = "absolute"
 
+	// Const is a step detection that detects if the absolute value of the trace
+	// value exceeds some constant.
+	Const StepDetection = "const"
+
 	// PercentStep is a simple check if the step size is greater than some
 	// percentage of the mean of the first half of the trace.
 	PercentStep StepDetection = "percent"
@@ -122,6 +126,7 @@ var (
 	AllStepDetections = []StepDetection{
 		OriginalStep,
 		AbsoluteStep,
+		Const,
 		PercentStep,
 		CohenStep,
 		MannWhitneyU,
