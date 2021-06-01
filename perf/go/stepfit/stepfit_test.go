@@ -77,6 +77,27 @@ func TestStepFit_Absolute_StepTooSmall(t *testing.T) {
 		GetStepFitAtMid([]float32{1, 1, 1.5, 1.5, x}, minStdDev, 1.0, types.AbsoluteStep))
 }
 
+func TestStepFit_Const_NoRegression(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{TurningPoint: 2, StepSize: -1, Status: UNINTERESTING, Regression: -1, LeastSquares: InvalidLeastSquaresError},
+		GetStepFitAtMid([]float32{0, 0, 1, 0, x}, minStdDev, 2.0, types.Const))
+}
+
+func TestStepFit_Const_RegressionExactlyAtThreshhold(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{TurningPoint: 2, StepSize: 0, Status: HIGH, Regression: -1, LeastSquares: InvalidLeastSquaresError},
+		GetStepFitAtMid([]float32{0, 0, 1, 0, x}, minStdDev, 1.0, types.Const))
+}
+
+func TestStepFit_Const_RegressionAfterApplyingAbs(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{TurningPoint: 2, StepSize: 1, Status: HIGH, Regression: -2, LeastSquares: InvalidLeastSquaresError},
+		GetStepFitAtMid([]float32{0, 0, -2, 0, x}, minStdDev, 1.0, types.Const))
+}
+
 func TestStepFit_Percent_NoStep(t *testing.T) {
 	unittest.SmallTest(t)
 	assert.Equal(t,
