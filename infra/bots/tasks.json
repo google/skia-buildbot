@@ -204,9 +204,9 @@
       "casSpec": "run-recipe",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -399,9 +399,9 @@
       "casSpec": "recipes",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -620,9 +620,9 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -706,9 +706,9 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/windows-amd64",
+          "name": "infra/3pp/tools/cpython3/windows-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/windows-amd64",
@@ -795,9 +795,9 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1198,9 +1198,9 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1337,9 +1337,9 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1440,9 +1440,9 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1640,9 +1640,9 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1769,9 +1769,9 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1868,9 +1868,9 @@
       "casSpec": "empty",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1989,9 +1989,9 @@
       "casSpec": "empty",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages",
-          "version": "version:2@2.7.18.chromium.37"
+          "version": "version:2@3.9.5.chromium.17"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
