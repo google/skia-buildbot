@@ -132,6 +132,12 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 		// A simple check if the step size is greater than some absolute value.
 		stepSize = (y0 - y1)
 		regression = stepSize
+	} else if stepDetection == types.Const {
+		// For this calculation we only look at the trace value at 'i', and only
+		// its absolute value.
+		absTraceValue := float32(math.Abs(float64(trace[i])))
+		stepSize = absTraceValue - interesting
+		regression = -1 * absTraceValue // * -1 So that regressions get flagged as HIGH.
 	} else if stepDetection == types.PercentStep {
 		// A simple check if the step size is greater than some percentage of
 		// the mean of the first half of the trace.

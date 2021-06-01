@@ -282,7 +282,7 @@ export type ReadOnlyParamSet = { [key: string]: string[] };
 
 export type ClusterAlgo = "kmeans" | "stepfit";
 
-export type StepDetection = "" | "absolute" | "percent" | "cohen" | "mannwhitneyu";
+export type StepDetection = "" | "absolute" | "const" | "percent" | "cohen" | "mannwhitneyu";
 
 export type ConfigState = "ACTIVE" | "DELETED";
 

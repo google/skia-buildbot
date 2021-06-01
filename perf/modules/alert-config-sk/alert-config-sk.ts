@@ -81,6 +81,10 @@ const thresholdDescriptors: Record<StepDetection, ThresholdDescriptor> = {
     label: `Consider change significant if |(x-y)/x| > percent.
       Values between 0.1 and 1.0 work well.`,
   },
+  const: {
+    units: 'magnitude',
+    label: 'Consider change significant if |x| > magnitude',
+  },
   absolute: {
     units: 'magnitude',
     label: 'Consider change significant if |(x-y)| > magnitude',

@@ -108,6 +108,14 @@ const labelsForStepDetection: Record<StepDetection, LabelsAndFormatters> = {
     lse: '',
     lseFormatter: emptyFormatter,
   },
+  const: {
+    regression: 'Constant Threshhold:',
+    regressionFormatter: decimalFormatter,
+    stepSize: '',
+    stepSizeFormatter: emptyFormatter,
+    lse: '',
+    lseFormatter: emptyFormatter,
+  },
   percent: {
     regression: 'Percentage Change:',
     regressionFormatter: percentFormatter,
