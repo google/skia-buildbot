@@ -1,10 +1,12 @@
-export const positiveDigest = '99c58c7002073346ff55f446d47d6311';
-export const negativeDigest = 'ec3b8f27397d99581e06eaa46d6d5837';
-export const untriagedDigest = '6246b773851984c726cb2e1cb13510c2';
+import {ClusterDiffResult, Digest} from '../rpc_types';
+
+export const positiveDigest: Digest = '99c58c7002073346ff55f446d47d6311';
+export const negativeDigest: Digest = 'ec3b8f27397d99581e06eaa46d6d5837';
+export const untriagedDigest: Digest = '6246b773851984c726cb2e1cb13510c2';
 
 // This is the data returned from Gold's /clusterdiff RPC. Not all of it is used in
 // cluster-digests-sk.
-export const clusterDiffJSON = {
+export const clusterDiffJSON: ClusterDiffResult = {
   nodes: [
     {
       name: positiveDigest,
@@ -38,7 +40,7 @@ export const clusterDiffJSON = {
   ],
   test: 'dots-legend-sk_too-many-digests',
   paramsetByDigest: {
-    '99c58c7002073346ff55f446d47d6311': {
+    [positiveDigest]: {
       ext: [
         'png',
       ],
@@ -52,7 +54,7 @@ export const clusterDiffJSON = {
         'infra',
       ],
     },
-    '6246b773851984c726cb2e1cb13510c2': {
+    [untriagedDigest]: {
       ext: [
         'png',
       ],
@@ -66,7 +68,7 @@ export const clusterDiffJSON = {
         'infra',
       ],
     },
-    ec3b8f27397d99581e06eaa46d6d5837: {
+    [negativeDigest]: {
       ext: [
         'png',
       ],

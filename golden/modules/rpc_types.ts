@@ -211,6 +211,25 @@ export interface DigestDetails {
 	commits: Commit[] | null;
 }
 
+export interface ClusterDiffNode {
+	name: Digest;
+	status: Label;
+}
+
+export interface ClusterDiffLink {
+	source: number;
+	target: number;
+	value: number;
+}
+
+export interface ClusterDiffResult {
+	nodes: ClusterDiffNode[] | null;
+	links: ClusterDiffLink[] | null;
+	test: TestName;
+	paramsetByDigest: { [key: string]: ParamSet };
+	paramsetsUnion: ParamSet;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type ParamSetResponse = { [key: string]: string[] | null };

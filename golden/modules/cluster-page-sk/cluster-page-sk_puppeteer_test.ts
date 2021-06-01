@@ -4,10 +4,6 @@ import {
   takeScreenshot, TestBed
 } from '../../../puppeteer-tests/util';
 import { positiveDigest, negativeDigest, untriagedDigest } from '../cluster-page-sk/test_data';
-import {
-  clickNodeWithDigest,
-  shiftClickNodeWithDigest
-} from '../cluster-digests-sk/cluster-digests-sk_puppeteer_test';
 import path from "path";
 
 describe('cluster-page-sk', () => {
@@ -115,3 +111,15 @@ describe('cluster-page-sk', () => {
     await testBed.page.click(`paramset-sk[clickable] div[data-value="${value}"]`);
   }
 });
+
+// TODO(lovisolo): Replace with a PO when cluster-page-sk is ported to TypeScript.
+async function clickNodeWithDigest(testBed: TestBed, digest: string) {
+  await testBed.page.click(`circle.node[data-digest="${digest}"]`);
+}
+
+// TODO(lovisolo): Replace with a PO when cluster-page-sk is ported to TypeScript.
+async function shiftClickNodeWithDigest(testBed: TestBed, digest: string) {
+  await testBed.page.keyboard.down('Shift');
+  await clickNodeWithDigest(testBed, digest);
+  await testBed.page.keyboard.up('Shift');
+}
