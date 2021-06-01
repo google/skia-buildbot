@@ -45,7 +45,7 @@ const (
 	pkgGitTmpl = "infra/3pp/tools/git/%s"
 
 	// Template for cpython CIPD package for a particular platform.
-	pkgCpythonTmpl = "infra/3pp/tools/cpython/%s"
+	pkgCpythonTmpl = "infra/3pp/tools/cpython3/%s"
 )
 
 var (
