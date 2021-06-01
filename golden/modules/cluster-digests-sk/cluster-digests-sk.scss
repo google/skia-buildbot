@@ -1,6 +1,10 @@
 @import '../colors';
 
 cluster-digests-sk {
+  // This guarantees that the <cluster-digests-sk> DOM node will have the same width and height as
+  // the child <svg> node.
+  display: inline-flex;
+
   svg {
     border: 1px solid grey;
 
