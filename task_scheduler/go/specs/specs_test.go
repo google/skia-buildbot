@@ -79,6 +79,12 @@ func TestCopyTasksCfg(t *testing.T) {
 		Tasks: map[string]*TaskSpec{
 			"task-name": fakeTaskSpec(),
 		},
+		CommitQueue: map[string]CommitQueueJobConfig{
+			"job-name": {
+				LocationRegexes: []string{"infra/canvaskit/.*", "modules/canvaskit/.*"},
+				Experimental:    false,
+			},
+		},
 	}
 	assertdeep.Copy(t, v, v.Copy())
 }
