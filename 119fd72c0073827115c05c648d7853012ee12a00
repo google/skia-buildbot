@@ -93,6 +93,30 @@
       },
       "revId": "119fd72c0073827115c05c648d7853012ee12a00",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ba09db4b_965ab4a1",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-02T16:18:22Z",
+      "side": 1,
+      "message": "for cqJob :\u003d range c.CommitQueue {\n  if _, ok :\u003d c.Jobs[cqJob]; !ok {\n    return fmt.Errorf(\"Unknown job %q in CQ config\", cqJob)\n  }\n}",
+      "parentUuid": "c00fb22b_437fe468",
+      "range": {
+        "startLine": 305,
+        "startChar": 0,
+        "endLine": 305,
+        "endChar": 1
+      },
+      "revId": "119fd72c0073827115c05c648d7853012ee12a00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
