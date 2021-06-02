@@ -5,23 +5,36 @@ import {
 } from '../../../puppeteer-tests/util';
 import { positiveDigest, negativeDigest, untriagedDigest } from '../cluster-page-sk/test_data';
 import path from "path";
+import {ClusterPageSkPO} from './cluster-page-sk_po';
+import {ElementHandle} from 'puppeteer';
 
 describe('cluster-page-sk', () => {
   let testBed: TestBed;
+
   before(async () => {
     testBed = await loadCachedTestBed(
         path.join(__dirname, '..', '..', 'webpack.config.ts')
     );
   });
 
+  let clusterPageSk: ElementHandle;
+  let clusterPageSkPO: ClusterPageSkPO;
+
   let promiseFactory: <T>(eventName: EventName) => Promise<T>;
 
   beforeEach(async () => {
-    promiseFactory = await addEventListenersToPuppeteerPage(testBed.page,
-        ['layout-complete', 'selection-changed']);
+    await testBed.page.setViewport({ width: 1200, height: 1200 });
+
+    promiseFactory =
+        await addEventListenersToPuppeteerPage(
+            testBed.page, ['layout-complete', 'selection-changed']);
+
     const loaded = promiseFactory('layout-complete'); // Emitted when layout stabilizes.
     await testBed.page.goto(`${testBed.baseUrl}/dist/cluster-page-sk.html`);
     await loaded;
+
+    clusterPageSk = (await testBed.page.$('cluster-page-sk'))!;
+    clusterPageSkPO = new ClusterPageSkPO(clusterPageSk);
   });
 
   it('should render the demo page', async () => {
@@ -30,96 +43,66 @@ describe('cluster-page-sk', () => {
   });
 
   it('should take a screenshot', async () => {
-    await testBed.page.setViewport({ width: 1200, height: 1200 });
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk');
   });
 
   it('shows details about a single digest when clicked', async () => {
-    await testBed.page.setViewport({ width: 1200, height: 1200 });
-    await clickNodeWithDigest(testBed, positiveDigest);
+    await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_one-digest-selected');
   });
 
   it('shows diff between two digests that are selected', async () => {
-    await testBed.page.setViewport({ width: 1200, height: 1200 });
-    await clickNodeWithDigest(testBed, positiveDigest);
-    await shiftClickNodeWithDigest(testBed, negativeDigest);
+    await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
+    await clusterPageSkPO.clusterDigestsSkPO.shiftClickNode(negativeDigest);
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_two-digests-selected');
   });
 
   it('shows a summary when more than two digests are selected', async () => {
-    await testBed.page.setViewport({ width: 1200, height: 1200 });
-    await clickNodeWithDigest(testBed, positiveDigest);
-    await shiftClickNodeWithDigest(testBed, negativeDigest);
-    await shiftClickNodeWithDigest(testBed, untriagedDigest);
+    await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
+    await clusterPageSkPO.clusterDigestsSkPO.shiftClickNode(negativeDigest);
+    await clusterPageSkPO.clusterDigestsSkPO.shiftClickNode(untriagedDigest);
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_three-digests-selected');
   });
 
   it('shows all values when a paramset key is clicked', async () => {
-    await testBed.page.setViewport({ width: 1200, height: 1200 });
     const done = promiseFactory('layout-complete');
-    await clickParamKey(testBed, 'gpu');
+    await clusterPageSkPO.paramSetSkPO.clickKey('gpu');
     await done;
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_key-clicked');
   });
 
   it('shows nodes with matching values when a value is clicked', async () => {
-    await testBed.page.setViewport({ width: 1200, height: 1200 });
     const done = promiseFactory('layout-complete');
-    await clickParamValue(testBed, 'AMD');
+    await clusterPageSkPO.paramSetSkPO.clickValue({paramSetIndex: 0, key: 'gpu', value: 'AMD'});
     await done;
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_value-clicked');
   });
 
   it('can zoom in using the keyboard', async () => {
-    await testBed.page.setViewport({ width: 1200, height: 1200 });
     const done = promiseFactory('layout-complete');
-    await testBed.page.type('cluster-page-sk', 'aa');
+    await clusterPageSk.type( 'aa');
     await done;
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_zoom-in');
   });
 
   it('can zoom out using the keyboard', async () => {
-    await testBed.page.setViewport({ width: 1200, height: 1200 });
     const done = promiseFactory('layout-complete');
-    await testBed.page.type('cluster-page-sk', 'zz');
+    await clusterPageSk.type('zz');
     await done;
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_zoom-out');
   });
 
   it('can increase node spacing using the keyboard', async () => {
-    await testBed.page.setViewport({ width: 1200, height: 1200 });
     const done = promiseFactory('layout-complete');
-    await testBed.page.type('cluster-page-sk', 'ss');
+    await clusterPageSk.type('ss');
     await done;
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_more-node-space');
   });
 
   it('can decrease node spacing using the keyboard', async () => {
-    await testBed.page.setViewport({ width: 1200, height: 1200 });
     const done = promiseFactory('layout-complete');
-    await testBed.page.type('cluster-page-sk', 'xx');
+    await clusterPageSk.type('xx');
     await done;
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_less-node-space');
   });
-
-  async function clickParamKey(testBed: TestBed, key: string) {
-    await testBed.page.click(`paramset-sk[clickable] th[data-key="${key}"]`);
-  }
-
-  async function clickParamValue(testBed: TestBed, value: string) {
-    await testBed.page.click(`paramset-sk[clickable] div[data-value="${value}"]`);
-  }
 });
-
-// TODO(lovisolo): Replace with a PO when cluster-page-sk is ported to TypeScript.
-async function clickNodeWithDigest(testBed: TestBed, digest: string) {
-  await testBed.page.click(`circle.node[data-digest="${digest}"]`);
-}
-
-// TODO(lovisolo): Replace with a PO when cluster-page-sk is ported to TypeScript.
-async function shiftClickNodeWithDigest(testBed: TestBed, digest: string) {
-  await testBed.page.keyboard.down('Shift');
-  await clickNodeWithDigest(testBed, digest);
-  await testBed.page.keyboard.up('Shift');
-}

@@ -1,7 +1,6 @@
 import './index';
 import '../gold-scaffold-sk';
 
-import { $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
 import { testOnlySetSettings } from '../settings';
 import { delay, isPuppeteerTest } from '../demo_util';
@@ -10,6 +9,7 @@ import { clusterDiffJSON } from './test_data';
 import { fakeNow, twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
+import {ClusterPageSk} from './cluster-page-sk';
 
 testOnlySetSettings({
   title: 'Skia Demo',
@@ -53,7 +53,6 @@ fetchMock.get('glob:/json/v1/diff*', delay({
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = new GoldScaffoldSk();
 newScaf.testingOffline = true;
-const body = $$('body');
-body.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
-const page = document.createElement('cluster-page-sk');
-newScaf.appendChild(page);
+// Make it the first element in body.
+document.body.insertBefore(newScaf, document.body.childNodes[0]);
+newScaf.appendChild(new ClusterPageSk());
