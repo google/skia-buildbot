@@ -67,6 +67,13 @@ func fakeCasSpec() *CasSpec {
 	}
 }
 
+func fakeCommitQueueJobConfig() *CommitQueueJobConfig {
+	return &CommitQueueJobConfig{
+		LocationRegexes: []string{"infra/canvaskit/.*", "modules/canvaskit/.*"},
+		Experimental:    true,
+	}
+}
+
 func TestCopyTasksCfg(t *testing.T) {
 	unittest.SmallTest(t)
 	v := &TasksCfg{
@@ -78,6 +85,9 @@ func TestCopyTasksCfg(t *testing.T) {
 		},
 		Tasks: map[string]*TaskSpec{
 			"task-name": fakeTaskSpec(),
+		},
+		CommitQueue: map[string]*CommitQueueJobConfig{
+			"job-name": fakeCommitQueueJobConfig(),
 		},
 	}
 	assertdeep.Copy(t, v, v.Copy())
@@ -98,6 +108,12 @@ func TestCopyJobSpec(t *testing.T) {
 func TestCopyCasSpec(t *testing.T) {
 	unittest.SmallTest(t)
 	v := fakeCasSpec()
+	assertdeep.Copy(t, v, v.Copy())
+}
+
+func TestCommitQueueJobConfig(t *testing.T) {
+	unittest.SmallTest(t)
+	v := fakeCommitQueueJobConfig()
 	assertdeep.Copy(t, v, v.Copy())
 }
 
