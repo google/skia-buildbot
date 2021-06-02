@@ -206,6 +206,7 @@ export class AlertConfigSk extends ElementSk {
     >
       <div value="">Original Regression Factor</div>
       <div value="absolute">Absolute</div>
+      <div value="const">Const</div>
       <div value="percent">Percent</div>
       <div value="cohen">Cohen's d</div>
       <div value="mannwhitneyu">Mann-Whitney U (Wilcoxon rank-sum)</div>
