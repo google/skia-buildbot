@@ -30,6 +30,7 @@ type Incoming struct {
 	Branch         string `json:"branch"`
 	DeviceName     string `json:"device_name"`
 	SDKReleaseName string `json:"sdk_release_name"`
+	JIT            string `json:"jit"`
 
 	// Metrics is a map[test name]map[metric]value, where value
 	// is a string encoded float, thus the use of json.Number.
@@ -147,6 +148,9 @@ func (c *Converter) Convert(incoming io.Reader, txLogName string) (*format.Bench
 	}
 	if in.SDKReleaseName != "" {
 		benchData.Key["sdk_release_name"] = in.SDKReleaseName
+	}
+	if in.JIT != "" {
+		benchData.Key["jit"] = in.JIT
 	}
 
 	// Record the branch name.

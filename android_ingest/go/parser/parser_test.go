@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"fmt"
 	"testing"
+	"testing/iotest"
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func TestParse(t *testing.T) {
+func TestParse_Incoming_Success(t *testing.T) {
 	unittest.SmallTest(t)
-	r := bytes.NewBufferString(INCOMING)
+	r := bytes.NewBufferString(incoming)
 	in, err := Parse(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "google-marlin-marlin-O", in.Branch)
@@ -21,18 +22,26 @@ func TestParse(t *testing.T) {
 	assert.Equal(t, 8.4, f)
 	assert.Equal(t, "coral", in.DeviceName)
 	assert.Equal(t, "API_29_R", in.SDKReleaseName)
+	assert.Equal(t, "disabled", in.JIT)
 }
 
-func TestParse2(t *testing.T) {
+func TestParse_Incoming2_Success(t *testing.T) {
 	unittest.SmallTest(t)
-	r := bytes.NewBufferString(INCOMING2)
+	r := bytes.NewBufferString(incoming2)
 	in, err := Parse(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "google-angler-angler-O", in.Branch)
+	assert.Equal(t, "", in.JIT)
 	assert.Len(t, in.Metrics, 1)
 	f, err := in.Metrics["coremark"]["score"].Float64()
 	assert.NoError(t, err)
 	assert.Equal(t, 5439.620216, f)
+}
+
+func TestParse_ErrReader_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	_, err := Parse(iotest.ErrReader(fmt.Errorf("Failed")))
+	assert.Contains(t, err.Error(), "Failed to decode")
 }
 
 type lookupMockGood struct {
@@ -49,10 +58,10 @@ func (l lookupMockBad) Lookup(buildid int64) (string, error) {
 	return "", fmt.Errorf("Failed to find buildid.")
 }
 
-func TestConvert(t *testing.T) {
+func TestConvert_ParseIncoming_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	c := New(lookupMockGood{})
-	r := bytes.NewBufferString(INCOMING)
+	r := bytes.NewBufferString(incoming)
 	benchData, err := c.Convert(r, "")
 	assert.NoError(t, err)
 	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
@@ -62,26 +71,13 @@ func TestConvert(t *testing.T) {
 	assert.Equal(t, "google-marlin-marlin-O", benchData.Key["branch"])
 	assert.Equal(t, "coral", benchData.Key["device_name"])
 	assert.Equal(t, "API_29_R", benchData.Key["sdk_release_name"])
+	assert.Equal(t, "disabled", benchData.Key["jit"])
 }
 
-func TestConvertSecondBranch(t *testing.T) {
-	unittest.SmallTest(t)
-	// If our branch isn't listed as the main branch it should become part of the key.
-	c := New(lookupMockGood{})
-	r := bytes.NewBufferString(INCOMING)
-	benchData, err := c.Convert(r, "")
-	assert.NoError(t, err)
-	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
-	assert.Len(t, benchData.Results, 7)
-	assert.Equal(t, 8.4, benchData.Results["android.platform.systemui.tests.jank.LauncherJankTests#testAppSwitchGMailtoHome"]["default"]["frame-avg-jank"])
-	assert.Equal(t, "marlin-userdebug", benchData.Key["build_flavor"])
-	assert.Equal(t, "google-marlin-marlin-O", benchData.Key["branch"])
-}
-
-func TestConvert2(t *testing.T) {
+func TestConvert_ParseIncoming2_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	c := New(lookupMockGood{})
-	r := bytes.NewBufferString(INCOMING2)
+	r := bytes.NewBufferString(incoming2)
 	benchData, err := c.Convert(r, "")
 	assert.NoError(t, err)
 	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
@@ -90,36 +86,29 @@ func TestConvert2(t *testing.T) {
 	assert.Equal(t, "google-angler-angler-O", benchData.Key["branch"])
 }
 
-func TestConvertFailHashLookup(t *testing.T) {
+func TestConvert_HashLookupFails_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	c := New(lookupMockBad{})
-	r := bytes.NewBufferString(INCOMING)
+	r := bytes.NewBufferString(incoming)
 	_, err := c.Convert(r, "")
 	assert.Error(t, err)
 }
 
-func TestConvertFailWrongBranch(t *testing.T) {
-	unittest.SmallTest(t)
-	c := New(lookupMockGood{})
-	r := bytes.NewBufferString(INCOMING)
-	_, err := c.Convert(r, "")
-	assert.NoError(t, err)
-}
-
-func TestConvert_IgnorePresubmitResults(t *testing.T) {
+func TestConvert_IgnorePresubmitResults_ReturnsErrIgnorable(t *testing.T) {
 	unittest.SmallTest(t)
 
 	c := New(lookupMockGood{})
-	r := bytes.NewBufferString(INCOMING_PRESUBMIT)
+	r := bytes.NewBufferString(incoming_presubmit)
 	_, err := c.Convert(r, "")
 	assert.Equal(t, ErrIgnorable, err)
 }
 
-const INCOMING = `{
+const incoming = `{
 	"build_id": "3567162",
 	"build_flavor": "marlin-userdebug",
 	"device_name":"coral",
 	"sdk_release_name":"API_29_R",
+	"jit": "disabled",
 	"metrics": {
 		"android.platform.systemui.tests.jank.LauncherJankTests#testAppSwitchGMailtoHome": {
 			"frame-fps": "9.328892269753897",
@@ -231,7 +220,7 @@ const INCOMING = `{
 	"branch": "google-marlin-marlin-O"
 }`
 
-const INCOMING2 = `{
+const incoming2 = `{
    "build_id" : "3842951",
    "metrics" : {
       "coremark" : {
@@ -243,8 +232,8 @@ const INCOMING2 = `{
    "branch" : "google-angler-angler-O"
 }`
 
-// INCOMING_PRESUBMIT is a file with a build_id that begins with "P", which
+// incoming_presubmit is a file with a build_id that begins with "P", which
 // means it is a presubmit result and can be ignored.
-const INCOMING_PRESUBMIT = `{
+const incoming_presubmit = `{
 	"build_id" : "P3842951"
  }`
