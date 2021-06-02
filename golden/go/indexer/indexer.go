@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/clstore"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/paramsets"
@@ -271,7 +270,6 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 
 type IndexerConfig struct {
 	ExpChangeListener expectations.ChangeEventRegisterer
-	DiffWorkPublisher diff.Calculator
 	ExpectationsStore expectations.Store
 	GCSClient         storage.GCSClient
 	ReviewSystems     []clstore.ReviewSystem
@@ -314,9 +312,6 @@ func New(ctx context.Context, ic IndexerConfig, interval time.Duration) (*Indexe
 	// These are run in parallel because they can take tens of seconds
 	// in large repos like Skia.
 	countsNodeExclude := root.Child(calcDigestCountsExclude)
-
-	// This can run in parallel because it's just counting and sending data to Pub/Sub.
-	root.Child(ret.sendWorkToDiffCalculators)
 
 	preSliceNode := root.Child(preSliceData)
 
@@ -773,9 +768,6 @@ func (ix *Indexer) calcChangelistIndices(ctx context.Context) {
 						return skerr.Wrap(err)
 					}
 					untriagedResults, params := indexTryJobResults(ctx, existingUntriagedResults, xtjr, exps)
-					if err := ix.sendCLWorkToDiffCalculators(ctx, primaryExp, xtjr, system.ID+"_"+cl.SystemID); err != nil {
-						return skerr.Wrap(err)
-					}
 					// Copy the existing ParamSet into the newly created one. It is important to copy it from
 					// old into new (and not new into old), so we don't cause a race condition on the cached
 					// ParamSet by writing to it while GetIndexForCL is reading from it.
@@ -836,105 +828,6 @@ func indexTryJobResults(ctx context.Context, existing, newResults []tjstore.TryJ
 	return combined, params
 }
 
-func (ix *Indexer) sendCLWorkToDiffCalculators(ctx context.Context, primaryExp expectations.Classifier, xtjr []tjstore.TryJobResult, clID string) error {
-	ctx, span := trace.StartSpan(ctx, "indexer_sendCLWorkToDiffCalculators")
-	defer span.End()
-	if len(xtjr) == 0 {
-		sklog.Infof("No new Tryjob results for CL %s", clID)
-		return nil
-	}
-	idx := ix.getIndex()
-	if idx == nil {
-		// Should not happen because we compute the primary branch index synchronously
-		// before starting to index CLs.
-		return skerr.Fmt("Primary branch index not ready yet")
-	}
-	digestsPerGrouping, err := groupDataFromTryJobs(ctx, xtjr)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	left, right, err := addDataFromPrimaryBranch(ctx, idx, digestsPerGrouping, primaryExp)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-
-	sklog.Infof("Sending diff messages for CL %s covering %d groupings to diffcalculator", clID, len(left))
-	for hg := range left {
-		grouping := paramtools.Params{
-			types.CorpusField:     hg[0],
-			types.PrimaryKeyField: hg[1],
-		}
-		leftDigests := left[hg].Keys()
-		rightDigests := right[hg].Keys()
-		// This should be pretty fast because it's just sending off the work, not blocking until
-		// the work is calculated.
-		if err := ix.DiffWorkPublisher.CalculateDiffs(ctx, grouping, leftDigests, rightDigests); err != nil {
-			return skerr.Wrapf(err, "publishing diff calculation for CL %s - %d, %d digests in grouping %v", clID, len(leftDigests), len(rightDigests), grouping)
-		}
-	}
-	return nil
-}
-
-// groupDataFromTryJobs takes the data from the provided TryJobResults and groups the unique
-// digests by grouping.
-func groupDataFromTryJobs(ctx context.Context, xtjr []tjstore.TryJobResult) (map[hashableGrouping]types.DigestSet, error) {
-	ctx, span := trace.StartSpan(ctx, "groupDataFromTryJobs")
-	span.AddAttributes(trace.Int64Attribute("data_points", int64(len(xtjr))))
-	defer span.End()
-	// The left and right digests will be the data from these tryjobs as well as the non-ignored
-	// data on the primary branch for the corresponding groupings.
-	digestsPerGrouping := map[hashableGrouping]types.DigestSet{}
-	for _, tjr := range xtjr {
-		if err := ctx.Err(); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		traceKeys := paramtools.Params{}
-		traceKeys.Add(tjr.GroupParams, tjr.ResultParams)
-		grouping := getHashableGrouping(traceKeys)
-		uniqueDigests := digestsPerGrouping[grouping]
-		if len(uniqueDigests) == 0 {
-			uniqueDigests = types.DigestSet{}
-		}
-		if tjr.Digest != tiling.MissingDigest {
-			uniqueDigests[tjr.Digest] = true
-		}
-		digestsPerGrouping[grouping] = uniqueDigests
-	}
-	return digestsPerGrouping, nil
-}
-
-// addDataFromPrimaryBranch adds the triaged digests from the primary branch to
-// the provided map and returns it as the first return value (the left digests). It adds those same
-// digests to a new map and returns it as the second return value (the right digests).
-func addDataFromPrimaryBranch(ctx context.Context, idx *SearchIndex, leftDigests map[hashableGrouping]types.DigestSet, exp expectations.Classifier) (map[hashableGrouping]types.DigestSet, map[hashableGrouping]types.DigestSet, error) {
-	ctx, span := trace.StartSpan(ctx, "addDataFromPrimaryBranch")
-	span.AddAttributes(trace.Int64Attribute("groupings", int64(len(leftDigests))))
-	defer span.End()
-	countByTest := idx.dCounters[types.IncludeIgnoredTraces].ByTest()
-	rightDigests := make(map[hashableGrouping]types.DigestSet, len(leftDigests))
-	// Add the digests from the primary branch (using the index)
-	for grouping := range leftDigests {
-		if err := ctx.Err(); err != nil {
-			return nil, nil, skerr.Wrap(err)
-		}
-		allLeftDigests := leftDigests[grouping]
-		allRightDigests := types.DigestSet{}
-		// We assume that test names are unique across corpora. This may not be true in general,
-		// but it allows us to avoid iterating the tile again.
-		for digest := range countByTest[types.TestName(grouping[1])] {
-			if exp.Classification(types.TestName(grouping[1]), digest) != expectations.Untriaged {
-				allLeftDigests[digest] = true
-				allRightDigests[digest] = true
-			}
-		}
-		// This won't make a new key in the map, so it should be safe overwrite this key and not
-		// affect iteration.
-		leftDigests[grouping] = allLeftDigests
-		rightDigests[grouping] = allRightDigests
-	}
-	return leftDigests, rightDigests, nil
-}
-
 // getCLIndex is a helper that returns the appropriately typed element from changelistIndices.
 // We return a struct and not a pointer so that we can update the index w/o having to need a mutex.
 func (ix *Indexer) getCLIndex(key string) (ChangelistIndex, bool) {
@@ -954,74 +847,6 @@ func (ix *Indexer) GetIndexForCL(crs, clID string) *ChangelistIndex {
 	}
 	// Return a copy to prevent clients from messing with the cached version.
 	return clIdx.Copy()
-}
-
-// sendWorkToDiffCalculators groups the digests seen per test and sends them to the DiffCalculators
-// (via Pub/Sub). We cannot use the results of digestCounters since those do not report the corpus,
-// which we need for groupings.
-func (ix *Indexer) sendWorkToDiffCalculators(ctx context.Context, state interface{}) error {
-	idx := state.(*SearchIndex)
-	tile := idx.cpxTile.GetTile(types.IncludeIgnoredTraces)
-	// For every digest on every trace within the sliding window (tile), compute the
-	// unique digests for each grouping (i.e. test). These will be the left digests.
-	leftDigestsPerGrouping := map[hashableGrouping]types.DigestSet{}
-	for _, tr := range tile.Traces {
-		grouping := getHashableGrouping(tr.Keys())
-		uniqueDigests := leftDigestsPerGrouping[grouping]
-		if len(uniqueDigests) == 0 {
-			uniqueDigests = types.DigestSet{}
-		}
-		for _, d := range tr.Digests {
-			if d != tiling.MissingDigest {
-				uniqueDigests[d] = true
-			}
-		}
-		leftDigestsPerGrouping[grouping] = uniqueDigests
-	}
-
-	exp, err := idx.expectationsStore.Get(ctx)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	// For every digest on every trace within the sliding window (tile), compute the
-	// unique digests for each grouping (i.e. test). These will be the right digests, i.e.
-	// all the "triaged" digests (including ignored, triaged digests).
-	rightDigestsPerGrouping := map[hashableGrouping]types.DigestSet{}
-	for _, tr := range tile.Traces {
-		grouping := getHashableGrouping(tr.Keys())
-		uniqueDigests := rightDigestsPerGrouping[grouping]
-		if len(uniqueDigests) == 0 {
-			uniqueDigests = types.DigestSet{}
-		}
-		for _, d := range tr.Digests {
-			if d != tiling.MissingDigest && exp.Classification(tr.TestName(), d) != expectations.Untriaged {
-				uniqueDigests[d] = true
-			}
-		}
-		rightDigestsPerGrouping[grouping] = uniqueDigests
-	}
-
-	for hg, ds := range leftDigestsPerGrouping {
-		grouping := paramtools.Params{
-			types.CorpusField:     hg[0],
-			types.PrimaryKeyField: hg[1],
-		}
-		leftDigests := ds.Keys()
-		rightDigests := rightDigestsPerGrouping[hg].Keys()
-		// This should be pretty fast because it's just sending off the work, not blocking until
-		// the work is calculated.
-		if err := ix.DiffWorkPublisher.CalculateDiffs(ctx, grouping, leftDigests, rightDigests); err != nil {
-			return skerr.Wrapf(err, "publishing diff calculation of (%d, %d) digests in grouping %v", len(leftDigests), len(rightDigests), grouping)
-		}
-	}
-	return nil
-}
-
-// hashableGrouping is the corpus and test name of a trace.
-type hashableGrouping [2]string
-
-func getHashableGrouping(keys paramtools.Params) [2]string {
-	return [2]string{keys[types.CorpusField], keys[types.PrimaryKeyField]}
 }
 
 // Make sure SearchIndex fulfills the IndexSearcher interface
