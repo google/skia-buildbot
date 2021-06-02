@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6b5118f1_4d996fb3",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-02T15:23:18Z",
+      "side": 1,
+      "message": "This should be v.Copy(), and we need to add CommitQueueJobConfig.Copy().  Also need tests for Copy().",
+      "range": {
+        "startLine": 269,
+        "startChar": 20,
+        "endLine": 269,
+        "endChar": 21
+      },
+      "revId": "119fd72c0073827115c05c648d7853012ee12a00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "75fe8966_d1d983b8",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-02T15:23:18Z",
+      "side": 1,
+      "message": "Need to add a section which validates the CommitQueueJobConfigs, ensuring that the job names are all valid and that the CommitQueueJobConfigs themselves are valid.",
+      "range": {
+        "startLine": 305,
+        "startChar": 0,
+        "endLine": 305,
+        "endChar": 1
+      },
+      "revId": "119fd72c0073827115c05c648d7853012ee12a00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
