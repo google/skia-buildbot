@@ -22,6 +22,30 @@
       },
       "revId": "1ccd6ff9f8bc9b36cdcd21f411c0eeb12e8390cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0f94564f_893fd73c",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-02T13:52:23Z",
+      "side": 1,
+      "message": "Ah sorry, I misunderstood your last comment.\nYou said: \"I think it\u0027s probably preferable to add a new, optional, section to TasksCfg which defines the CQ trybots\"\n\nThe new section will define all CQ tryjobs and will be a map from bot name to the CommitQueueCfg. In repos that have gen_tasks.go, it will be doing the populating of tasks.json. In other repos, the populating will be done by hand. Is this right?",
+      "parentUuid": "57a0ecb4_d17657ed",
+      "range": {
+        "startLine": 368,
+        "startChar": 0,
+        "endLine": 372,
+        "endChar": 60
+      },
+      "revId": "1ccd6ff9f8bc9b36cdcd21f411c0eeb12e8390cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
