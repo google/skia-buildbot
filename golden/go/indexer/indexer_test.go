@@ -19,8 +19,6 @@ import (
 	"go.skia.org/infra/golden/go/clstore"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
-	"go.skia.org/infra/golden/go/diff"
-	diff_mocks "go.skia.org/infra/golden/go/diff/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
 	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
@@ -42,16 +40,13 @@ func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 
 	mes := &mock_expectations.Store{}
 	mgc := &mocks.GCSClient{}
-	mdp := &diff_mocks.Calculator{}
 
 	defer mes.AssertExpectations(t)
 	defer mgc.AssertExpectations(t)
-	defer mdp.AssertExpectations(t)
 
 	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
 
 	ic := IndexerConfig{
-		DiffWorkPublisher: mdp,
 		ExpectationsStore: mes,
 		GCSClient:         mgc,
 	}
@@ -71,29 +66,6 @@ func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 	})
 
 	async(mgc.On("WriteKnownDigests", testutils.AnyContext, dMatcher).Return(nil))
-	mdp.On("CalculateDiffs", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-		grouping := args.Get(1).(paramtools.Params)
-		leftDigests := args.Get(2).([]types.Digest)
-		rightDigests := args.Get(3).([]types.Digest)
-		if grouping[types.PrimaryKeyField] == string(data.AlphaTest) {
-			assert.Equal(t, paramtools.Params{
-				types.CorpusField:     data.GMCorpus,
-				types.PrimaryKeyField: string(data.AlphaTest),
-			}, grouping)
-			assert.ElementsMatch(t, []types.Digest{data.AlphaPositiveDigest, data.AlphaNegativeDigest, data.AlphaUntriagedDigest}, leftDigests)
-			assert.ElementsMatch(t, []types.Digest{data.AlphaPositiveDigest, data.AlphaNegativeDigest}, rightDigests)
-		} else if grouping[types.PrimaryKeyField] == string(data.BetaTest) {
-			assert.Equal(t, paramtools.Params{
-				types.CorpusField:     data.GMCorpus,
-				types.PrimaryKeyField: string(data.BetaTest),
-			}, grouping)
-			assert.ElementsMatch(t, []types.Digest{data.BetaPositiveDigest, data.BetaUntriagedDigest}, leftDigests)
-			// data.BetaUntriagedDigest is produced by an ignored trace.
-			assert.ElementsMatch(t, []types.Digest{data.BetaPositiveDigest}, rightDigests)
-		} else {
-			assert.Fail(t, "unknown grouping %v, leftDigests %s, rightDigests %s", grouping, leftDigests, rightDigests)
-		}
-	}).Return(nil)
 
 	ixr, err := New(context.Background(), ic, 0)
 	require.NoError(t, err)
@@ -298,21 +270,6 @@ func TestIndexer_CalcChangelistIndices_NoPreviousIndices_Success(t *testing.T) {
 		},
 	}, nil)
 
-	expectedGrouping := paramtools.Params{
-		types.CorpusField:     "some_corpus",
-		types.PrimaryKeyField: string(data.AlphaTest),
-	}
-	leftDigestsMatcher := mock.MatchedBy(func(left []types.Digest) bool {
-		assert.ElementsMatch(t, []types.Digest{data.AlphaUntriagedDigest, data.AlphaPositiveDigest, data.AlphaNegativeDigest}, left)
-		return true
-	})
-	rightDigestsMatcher := mock.MatchedBy(func(right []types.Digest) bool {
-		assert.ElementsMatch(t, []types.Digest{data.AlphaPositiveDigest}, right)
-		return true
-	})
-	mdc := &diff_mocks.Calculator{}
-	mdc.On("CalculateDiffs", testutils.AnyContext, expectedGrouping, leftDigestsMatcher, rightDigestsMatcher).Return(nil)
-
 	ctx := context.Background()
 	ic := IndexerConfig{
 		ExpectationsStore: mes,
@@ -324,7 +281,6 @@ func TestIndexer_CalcChangelistIndices_NoPreviousIndices_Success(t *testing.T) {
 				// URLTemplate and Client are unused here
 			},
 		},
-		DiffWorkPublisher: mdc,
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
@@ -368,13 +324,6 @@ func TestIndexer_CalcChangelistIndices_NoPreviousIndices_Success(t *testing.T) {
 	}, clIdx.ParamSet)
 
 	assert.Equal(t, int64(2), ixr.changelistsReindexed.Get())
-}
-
-// noopPublisher returns a DiffPublisher that accepts any and all calls to CalculateDiffs.
-func noopPublisher() diff.Calculator {
-	mdc := diff_mocks.Calculator{}
-	mdc.On("CalculateDiffs", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	return &mdc
 }
 
 // fakeSearchIndex returns an arbitrary SearchIndex with enough data to compute CL diff messages.
@@ -459,7 +408,6 @@ func TestIndexer_CalcChangelistIndices_HasIndexForPreviousPS_Success(t *testing.
 				// URLTemplate and Client are unused here
 			},
 		},
-		DiffWorkPublisher: noopPublisher(),
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
@@ -585,7 +533,6 @@ func TestIndexer_CalcChangelistIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 				// URLTemplate and Client are unused here
 			},
 		},
-		DiffWorkPublisher: noopPublisher(),
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)

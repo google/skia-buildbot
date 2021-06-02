@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"io/ioutil"
 	"net/http"
 	"strings"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"golang.org/x/oauth2"
@@ -16,6 +18,8 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/code_review"
@@ -23,29 +27,41 @@ import (
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	"go.skia.org/infra/golden/go/code_review/github_crs"
 	"go.skia.org/infra/golden/go/config"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/tracing"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const (
 	// Arbitrary number
 	maxSQLConnections = 4
-)
 
-// TODO(kjlubick) other periodic tasks
-//   - Send tasks to diffworker queue (de-duplicating where possible).
+	// Keys are a SHA256 digest, which are 32 bytes. 32 * 1 Million = 32 MB
+	diffWorkCacheSize = 1_000_000
+)
 
 type periodicTasksConfig struct {
 	config.Common
 
-	// A string with placeholders for generating a comment message. See
+	// ChangelistDiffPeriod is how often to look at recently updated CLs and tabulate the diffs
+	// for the digests produced.
+	// The diffs are not calculated in this service, but sent via pubsub to the appropriate workers.
+	ChangelistDiffPeriod config.Duration `json:"changelist_diff_period"`
+
+	// CLCommentTemplate is a string with placeholders for generating a comment message. See
 	// commenter.commentTemplateContext for the exact fields.
 	CLCommentTemplate string `json:"cl_comment_template" optional:"true"`
 
 	// CommentOnCLsPeriod, if positive, is how often to check recent CLs and Patchsets for
 	// untriaged digests and comment on them if appropriate.
 	CommentOnCLsPeriod config.Duration `json:"comment_on_cls_period" optional:"true"`
+
+	// PrimaryBranchDiffPeriod is how often to look at the most recent window of commits and
+	// tabulate diffs between all groupings based on the digests produced on the primary branch.
+	// The diffs are not calculated in this service, but sent via pubsub to the appropriate workers.
+	PrimaryBranchDiffPeriod config.Duration `json:"primary_branch_diff_period"`
 
 	// UpdateIgnorePeriod is how often we should try to apply the ignore rules to all traces.
 	UpdateIgnorePeriod config.Duration `json:"null_ignore_period"` // TODO(kjlubick) change JSON
@@ -90,13 +106,34 @@ func main() {
 	ctx := context.Background()
 	db := mustInitSQLDatabase(ctx, ptc)
 
+	psClient := mustInitPubsubClient(ctx, ptc)
+
 	startUpdateTracesIgnoreStatus(ctx, db, ptc)
 
 	startCommentOnCLs(ctx, db, ptc)
 
+	gatherer := &diffWorkGatherer{
+		db:         db,
+		windowSize: ptc.WindowSize,
+		publisher: &pubsubDiffPublisher{
+			client: psClient,
+			topic:  ptc.DiffWorkTopic,
+		},
+	}
+	startPrimaryBranchDiffWork(ctx, gatherer, ptc)
+	startChangelistsDiffWork(ctx, gatherer, ptc)
+
 	sklog.Infof("periodic tasks have been started")
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 	sklog.Fatal(http.ListenAndServe(ptc.ReadyPort, nil))
+}
+
+func mustInitPubsubClient(ctx context.Context, ptc periodicTasksConfig) *pubsub.Client {
+	psc, err := pubsub.NewClient(ctx, ptc.PubsubProjectID)
+	if err != nil {
+		sklog.Fatalf("initializing pubsub client for project %s: %s", ptc.PubsubProjectID, err)
+	}
+	return psc
 }
 
 func mustInitSQLDatabase(ctx context.Context, ptc periodicTasksConfig) *pgxpool.Pool {
@@ -202,4 +239,78 @@ func mustInitializeSystems(ptc periodicTasksConfig) []commenter.ReviewSystem {
 		})
 	}
 	return rv
+}
+
+type workPublisher interface {
+	PublishWork(ctx context.Context, grouping paramtools.Params, left, right []types.Digest) error
+}
+
+type diffWorkGatherer struct {
+	db         *pgxpool.Pool
+	publisher  workPublisher
+	windowSize int
+}
+
+func startPrimaryBranchDiffWork(ctx context.Context, gatherer *diffWorkGatherer, ptc periodicTasksConfig) {
+	liveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
+		"task": "calculatePrimaryBranchDiffWork",
+	})
+	go util.RepeatCtx(ctx, ptc.PrimaryBranchDiffPeriod.Duration, func(ctx context.Context) {
+		sklog.Infof("Calculating diffs for images seen recently")
+		ctx, span := trace.StartSpan(ctx, "periodic_gatherFromPrimaryBranch")
+		defer span.End()
+		if err := gatherer.gatherFromPrimaryBranch(ctx); err != nil {
+			sklog.Errorf("Error while gathering diff work on primary branch: %s", err)
+			return // return so the liveness is not updated
+		}
+		liveness.Reset()
+		sklog.Infof("Done with sending diffs from primary branch")
+	})
+}
+
+func (g *diffWorkGatherer) gatherFromPrimaryBranch(ctx context.Context) error {
+	// For each grouping, left digests are everything in the window. right digests are everything
+	// that is triaged.
+
+	// Check the map of work sent and deduplicate it HERE
+
+	// Send via pubsub
+	return nil
+}
+
+func startChangelistsDiffWork(ctx context.Context, gatherer *diffWorkGatherer, ptc periodicTasksConfig) {
+
+	// Check all changelists updated since last cycle (or 5 days, initially).
+
+	// For each grouping, left digests are everything the CL produced and triaged digests from the
+	// the primary branch. The right digests are everything that is triaged both on this CL
+	// and the primary branch. If the CL did not produce anything for a grouping, we won't send it.
+
+	// Check the map of work sent and deduplicate it HERE
+
+	// Send via pubsub
+}
+
+type pubsubDiffPublisher struct {
+	client *pubsub.Client
+	topic  string
+}
+
+// PublishWork publishes a WorkerMessage to the configured PubSub topic so that a worker
+// (see diffcalculator) can pick it up and calculate the diffs.
+func (p *pubsubDiffPublisher) PublishWork(ctx context.Context, grouping paramtools.Params, left, right []types.Digest) error {
+	body, err := json.Marshal(diff.WorkerMessage{
+		Version:         diff.WorkerMessageVersion,
+		Grouping:        grouping,
+		AdditionalLeft:  left,
+		AdditionalRight: right,
+	})
+	if err != nil {
+		return skerr.Wrap(err) // should never happen because JSON input is well-formed.
+	}
+	p.client.Topic(p.topic).Publish(ctx, &pubsub.Message{
+		Data: body,
+	})
+	// Don't block until message is sent to speed up throughput.
+	return nil
 }
