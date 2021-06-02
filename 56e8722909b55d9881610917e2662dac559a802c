@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "95cddf67_1eed09ae",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-02T16:54:45Z",
+      "side": 1,
+      "message": "LGTM with nit",
+      "revId": "56e8722909b55d9881610917e2662dac559a802c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4a835f96_103853f6",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 2172,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-02T16:54:45Z",
+      "side": 1,
+      "message": "Let\u0027s add omitempty to TasksCfg so that this doesn\u0027t have to be present if it\u0027s not specified.",
+      "range": {
+        "startLine": 2172,
+        "startChar": 0,
+        "endLine": 2172,
+        "endChar": 22
+      },
+      "revId": "56e8722909b55d9881610917e2662dac559a802c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "68544fab_0a45614b",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-02T16:54:45Z",
+      "side": 1,
+      "message": "nit: omitempty",
+      "range": {
+        "startLine": 254,
+        "startChar": 65,
+        "endLine": 254,
+        "endChar": 66
+      },
+      "revId": "56e8722909b55d9881610917e2662dac559a802c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
