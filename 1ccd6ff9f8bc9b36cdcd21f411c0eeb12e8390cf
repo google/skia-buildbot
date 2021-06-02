@@ -46,6 +46,30 @@
       },
       "revId": "1ccd6ff9f8bc9b36cdcd21f411c0eeb12e8390cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e6ff17d2_2eb35177",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-02T13:55:50Z",
+      "side": 1,
+      "message": "That\u0027s correct, it maps job name to CommitQueueCfg (which should maybe be called CommitQueueJobConfig or some such).  We\u0027ll need to add test cases which verify that the job names are valid, and we\u0027ll want to add some tools to gen_tasks_logic in Skia to make it easy to add jobs to the CQ.",
+      "parentUuid": "0f94564f_893fd73c",
+      "range": {
+        "startLine": 368,
+        "startChar": 0,
+        "endLine": 372,
+        "endChar": 60
+      },
+      "revId": "1ccd6ff9f8bc9b36cdcd21f411c0eeb12e8390cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
