@@ -16,6 +16,24 @@
       "message": "Please add a TODO(kjlubick) to add a specific type for cluster requests, as some of these fields are not used by the cluster RPC (which I discovered in https://skia-review.googlesource.com/c/buildbot/+/411237).",
       "revId": "a472cc3f631aff8fe2a91d5d54a421f29f06560b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3662adf2_08f9c76d",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-02T19:13:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e665ba2f_e7a3907e",
+      "revId": "a472cc3f631aff8fe2a91d5d54a421f29f06560b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
