@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "89917a1b_509b55a6",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-02T15:49:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b5118f1_4d996fb3",
+      "range": {
+        "startLine": 269,
+        "startChar": 20,
+        "endLine": 269,
+        "endChar": 21
+      },
+      "revId": "119fd72c0073827115c05c648d7853012ee12a00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "75fe8966_d1d983b8",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-06-02T15:23:18Z",
       "side": 1,
       "message": "Need to add a section which validates the CommitQueueJobConfigs, ensuring that the job names are all valid and that the CommitQueueJobConfigs themselves are valid.",
+      "range": {
+        "startLine": 305,
+        "startChar": 0,
+        "endLine": 305,
+        "endChar": 1
+      },
+      "revId": "119fd72c0073827115c05c648d7853012ee12a00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c00fb22b_437fe468",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-02T15:49:51Z",
+      "side": 1,
+      "message": "I think CommitQueueJobConfigs will always be valid (based on the types in the struct).\nI\u0027m not sure how to validate the job names, I thought the \"// Validate all jobs.\" section above would do that (and I would do something similar) but it only validates the JobSpec.",
+      "parentUuid": "75fe8966_d1d983b8",
       "range": {
         "startLine": 305,
         "startChar": 0,
