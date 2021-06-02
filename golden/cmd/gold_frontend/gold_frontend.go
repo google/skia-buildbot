@@ -88,16 +88,9 @@ type frontendServerConfig struct {
 	// Client secret file for OAuth2 authentication.
 	ClientSecretFile string `json:"client_secret_file"`
 
-	// If true, Gold will only log comments, it won't actually comment on the CRSes.
-	DisableCLComments bool `json:"disable_cl_comments"`
-
 	// If the frontend shouldn't track any CLs. For example, if we are tracking a repo that doesn't
 	// have a CQ.
 	DisableCLTracking bool `json:"disable_changelist_tracking"`
-
-	// DisableSQLExpectationsForCLUpdater will only write expectations from landed CLs to the
-	// Firestore expectations. This should be true if gitilesfollower is used to track landed CLs.
-	DisableSQLExpectationsForCLUpdater bool `json:"disable_sql_exp_cl"`
 
 	// If a trace has more unique digests than this, it will be considered flaky. If this number is
 	// greater than WindowSize, then no trace can ever be flaky.
@@ -522,14 +515,9 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client, sql
 func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, ignoreStore ignore.Store, traceStore *bt_tracestore.BTTraceStore, vcs vcsinfo.VCS, publiclyViewableParams publicparams.Matcher, reviewSystems []clstore.ReviewSystem) tilesource.TileSource {
 	var clUpdater code_review.ChangelistLandedUpdater
 	if fsc.IsAuthoritative() && !fsc.DisableCLTracking {
-		if fsc.DisableSQLExpectationsForCLUpdater {
-			sklog.Infof("CL updater writing expectations to Firestore only")
-			sqlw := expStore.(*sqlwrapped.Impl)
-			clUpdater = updater.New(sqlw.LegacyStore, reviewSystems)
-		} else {
-			sklog.Infof("CL updater writing expectations to Firestore and SQL")
-			clUpdater = updater.New(expStore, reviewSystems)
-		}
+		sklog.Infof("CL updater writing expectations to Firestore only")
+		sqlw := expStore.(*sqlwrapped.Impl)
+		clUpdater = updater.New(sqlw.LegacyStore, reviewSystems)
 	}
 
 	ctc := tilesource.CachedTileSourceConfig{
