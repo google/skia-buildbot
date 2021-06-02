@@ -22,6 +22,30 @@
       },
       "revId": "e6bce5f8148dcb4f082e365e7f261b2e7df4e289",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "57364444_9e654fcd",
+        "filename": "package-lock.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 760,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-02T19:10:26Z",
+      "side": 0,
+      "message": "AFAIK the only other consumer of d3 at this point is Perf:\n\n  $ git grep \"import.*d3\"\n  golden/modules/cluster-digests-sk/cluster-digests-sk.ts:22:import * as d3Force from \u0027d3-force\u0027;\n  golden/modules/cluster-digests-sk/cluster-digests-sk.ts:23:import * as d3Select from \u0027d3-selection\u0027;\n  golden/modules/cluster-digests-sk/cluster-digests-sk.ts:26:import {SimulationLinkDatum, SimulationNodeDatum} from \u0027d3-force\u0027;\n  perf/modules/plot-simple-sk/plot-simple-sk.ts:95:import * as d3Scale from \u0027d3-scale\u0027;\n  perf/modules/plot-simple-sk/plot-simple-sk.ts:96:import * as d3Array from \u0027d3-array\u0027;\n  perf/modules/plot-simple-sk/plot-simple-sk_test.ts:3:import * as d3Scale from \u0027d3-scale\u0027;\n\nplot-simple-sk has a Puppeteer test that did not produce any diffs after updating d3-selection: https://skia-infra-gold.skia.org/search?crs\u003dgerrit\u0026include_ignored\u003dtrue\u0026issue\u003d414461\u0026left_filter\u003dname%3Dperf_plot-simple-sk\u0026master\u003dtrue\u0026negative\u003dtrue\u0026not_at_head\u003dtrue\u0026patchsets\u003d4\u0026positive\u003dtrue\n\nWDYT?",
+      "parentUuid": "ad4f47bd_e5181ce3",
+      "range": {
+        "startLine": 760,
+        "startChar": 18,
+        "endLine": 760,
+        "endChar": 23
+      },
+      "revId": "e6bce5f8148dcb4f082e365e7f261b2e7df4e289",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
