@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "57a0ecb4_d17657ed",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-02T13:44:39Z",
+      "side": 1,
+      "message": "I don\u0027t think we want to add to TaskSpec for this.  Let\u0027s make the CQ config a part of the TasksCfg struct instead, or put it in a separate infra.cfg file.",
+      "range": {
+        "startLine": 368,
+        "startChar": 0,
+        "endLine": 372,
+        "endChar": 60
+      },
+      "revId": "1ccd6ff9f8bc9b36cdcd21f411c0eeb12e8390cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
