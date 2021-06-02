@@ -4,6 +4,10 @@
     "name": "buildbot",
     "clone_url": "https://skia.googlesource.com/buildbot"
   },
+  "common": {
+    "name": "common",
+    "clone_url": "https://skia.googlesource.com/common"
+  },
   "external/github.com/2d-inc/Nima-Cpp": {
     "name": "external/github.com/2d-inc/Nima-Cpp",
     "clone_url": "https://skia.googlesource.com/external/github.com/2d-inc/Nima-Cpp",
