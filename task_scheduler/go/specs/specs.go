@@ -283,6 +283,18 @@ func (c *TasksCfg) Validate() error {
 	return nil
 }
 
+// CommitQueueCfg describes how a task should run on the Commit Queue.
+type CommitQueueCfg struct {
+	// Run on the Commit Queue only if the change contains modifications to the
+	// following location regexes.
+	LocationRegexes []string `json:"location_regexes"`
+	// If this flag is true then the task is marked as being experimental. It will
+	// be triggered on all CLs but their outcome will not affect the Commit Queue.
+	// i.e. the experimental task could fail but if all other non-experimental tasks
+	// have succeeded then the Commit Queue will succeed.
+	Experimental bool `json:"experimental"`
+}
+
 // TaskSpec is a struct which describes a Swarming task to run.
 // Be sure to add any new fields to the Copy() method.
 type TaskSpec struct {
@@ -353,6 +365,11 @@ type TaskSpec struct {
 	// ServiceAccount indicates the Swarming service account to use for the
 	// task. If not specified, we will attempt to choose a suitable default.
 	ServiceAccount string `json:"service_account,omitempty"`
+
+	// If the map has exactly one key then this task will run on the Commit Queue.
+	// If there are no keys then the task will not run on the Commit Queue.
+	// If there is more than one key present then the Commit Queue will log errors.
+	CommitQueue map[string]CommitQueueCfg `json:"commit_queue"`
 }
 
 // Validate ensures that the TaskSpec is defined properly.
@@ -413,6 +430,13 @@ func (t *TaskSpec) Copy() *TaskSpec {
 	extraArgs := util.CopyStringSlice(t.ExtraArgs)
 	extraTags := util.CopyStringMap(t.ExtraTags)
 	outputs := util.CopyStringSlice(t.Outputs)
+	var commitQueue map[string]CommitQueueCfg
+	if len(t.CommitQueue) > 0 {
+		commitQueue = make(map[string]CommitQueueCfg, len(t.CommitQueue))
+		for k, v := range t.CommitQueue {
+			commitQueue[k] = v
+		}
+	}
 	return &TaskSpec{
 		Caches:           caches,
 		CasSpec:          t.CasSpec,
@@ -432,6 +456,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		Outputs:          outputs,
 		Priority:         t.Priority,
 		ServiceAccount:   t.ServiceAccount,
+		CommitQueue:      commitQueue,
 	}
 }
 

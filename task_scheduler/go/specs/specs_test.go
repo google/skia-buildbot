@@ -47,6 +47,12 @@ func fakeTaskSpec() *TaskSpec {
 		Outputs:        []string{"out"},
 		Priority:       19.0,
 		ServiceAccount: "fake-account@gmail.com",
+		CommitQueue: map[string]CommitQueueCfg{
+			"commit-queue": {
+				LocationRegexes: []string{"infra/canvaskit/.*", "modules/canvaskit/.*"},
+				Experimental:    false,
+			},
+		},
 	}
 }
 

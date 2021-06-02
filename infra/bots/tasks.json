@@ -184,7 +184,8 @@
           "go/go/bin"
         ]
       },
-      "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Housekeeper-OnDemand-Presubmit": {
       "caches": [
@@ -273,7 +274,8 @@
       "extra_tags": {
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": {
       "caches": [
@@ -333,7 +335,8 @@
           "go/go/bin"
         ]
       },
-      "idempotent": true
+      "idempotent": true,
+      "commit_queue": null
     },
     "Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64": {
       "caches": [
@@ -393,7 +396,8 @@
           "go/go/bin"
         ]
       },
-      "idempotent": true
+      "idempotent": true,
+      "commit_queue": null
     },
     "Housekeeper-PerCommit-BundleRecipes": {
       "casSpec": "recipes",
@@ -443,7 +447,8 @@
           "cipd_bin_packages/bin"
         ]
       },
-      "idempotent": true
+      "idempotent": true,
+      "commit_queue": null
     },
     "Housekeeper-PerCommit-CIPD-SK": {
       "casSpec": "whole-repo",
@@ -513,7 +518,8 @@
           "bazel/bin"
         ]
       },
-      "service_account": "cipd-uploader@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "cipd-uploader@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Housekeeper-Weekly-UpdateCIPDPackages": {
       "caches": [
@@ -604,7 +610,8 @@
           "mockery"
         ]
       },
-      "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-Experimental-Small-Linux": {
       "caches": [
@@ -690,7 +697,8 @@
           "go/go/bin"
         ]
       },
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-Experimental-Small-Win": {
       "caches": [
@@ -775,7 +783,8 @@
           "go/go/bin"
         ]
       },
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-Build": {
       "caches": [
@@ -889,7 +898,8 @@
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "max_attempts": 2,
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-Build-Bazel-Local": {
       "caches": [
@@ -982,7 +992,8 @@
           "bazel/bin"
         ]
       },
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-Build-Bazel-RBE": {
       "caches": [
@@ -1083,7 +1094,8 @@
           "bazel/bin"
         ]
       },
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-CreateDockerImage": {
       "caches": [
@@ -1178,7 +1190,8 @@
           "go/go/bin"
         ]
       },
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-Large": {
       "caches": [
@@ -1317,7 +1330,8 @@
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "max_attempts": 2,
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-Medium": {
       "caches": [
@@ -1420,7 +1434,8 @@
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "max_attempts": 2,
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-Puppeteer": {
       "caches": [
@@ -1530,7 +1545,8 @@
       },
       "io_timeout_ns": 3600000000000,
       "max_attempts": 2,
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-PushAppsFromInfraDockerImage": {
       "caches": [
@@ -1620,7 +1636,8 @@
           "go/go/bin"
         ]
       },
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-Race": {
       "caches": [
@@ -1749,7 +1766,8 @@
       },
       "io_timeout_ns": 3600000000000,
       "max_attempts": 1,
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-Small": {
       "caches": [
@@ -1852,7 +1870,8 @@
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "max_attempts": 2,
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-Test-Bazel-Local": {
       "caches": [
@@ -1973,7 +1992,8 @@
           "gcloud_linux/bin"
         ]
       },
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-Test-Bazel-RBE": {
       "caches": [
@@ -2102,7 +2122,8 @@
           "gcloud_linux/bin"
         ]
       },
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     },
     "Infra-PerCommit-ValidateAutorollConfigs": {
       "casSpec": "autoroll-configs",
@@ -2131,7 +2152,8 @@
         "machine_type:n1-highmem-2",
         "docker_installed:true"
       ],
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com",
+      "commit_queue": null
     }
   },
   "casSpecs": {
