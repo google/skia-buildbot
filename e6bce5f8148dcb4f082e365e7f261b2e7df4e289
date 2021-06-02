@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ad4f47bd_e5181ce3",
+        "filename": "package-lock.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 760,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-02T12:19:49Z",
+      "side": 0,
+      "message": "Are you sure this doesn\u0027t break status? They are the other consumer of d3, IIRC",
+      "range": {
+        "startLine": 760,
+        "startChar": 18,
+        "endLine": 760,
+        "endChar": 23
+      },
+      "revId": "e6bce5f8148dcb4f082e365e7f261b2e7df4e289",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
