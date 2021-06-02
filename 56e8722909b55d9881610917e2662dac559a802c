@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fc5ca5cc_977233a8",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 2172,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-02T17:07:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4a835f96_103853f6",
+      "range": {
+        "startLine": 2172,
+        "startChar": 0,
+        "endLine": 2172,
+        "endChar": 22
+      },
+      "revId": "56e8722909b55d9881610917e2662dac559a802c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "68544fab_0a45614b",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-06-02T16:54:45Z",
       "side": 1,
       "message": "nit: omitempty",
+      "range": {
+        "startLine": 254,
+        "startChar": 65,
+        "endLine": 254,
+        "endChar": 66
+      },
+      "revId": "56e8722909b55d9881610917e2662dac559a802c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eeba040f_18c062ac",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-02T17:07:23Z",
+      "side": 1,
+      "message": "Makes sense. Done.",
+      "parentUuid": "68544fab_0a45614b",
       "range": {
         "startLine": 254,
         "startChar": 65,
