@@ -86,7 +86,7 @@ var (
 	//     $ gcloud iam service-accounts keys create ./skia_infra_rbe_key rbe-ci.json \
 	//           --iam-account rbe-ci@skia-public.iam.gserviceaccount.com
 	//     $ cipd create -name skia/internal/skia_infra_rbe_key -in ./skia_infra_rbe_key/ \
-	//           -tag version:0
+	//           -tag version:2
 	//     $ cipd acl-edit skia/internal/skia_infra_rbe_key  \
 	//           -reader user:pool-skia@chromium-swarm.iam.gserviceaccount.com
 	//
@@ -96,7 +96,7 @@ var (
 		{
 			Path:    "skia_infra_rbe_key",
 			Name:    "skia/internal/skia_infra_rbe_key",
-			Version: "version:1",
+			Version: "version:2",
 		},
 	}
 
