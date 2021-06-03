@@ -1,0 +1,30 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000011423900",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/401222?revision\u003d52",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "e5f5e2d5_5db0377f",
+        "filename": "skcq/go/verifiers/cq_access_list_verifier.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-06-03T18:02:22Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 15,
+        "startChar": 61,
+        "endLine": 15,
+        "endChar": 65
+      },
+      "revId": "3bcba7dbf431a4af1eac9786aea7886b7102b4d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
