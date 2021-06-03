@@ -17,13 +17,6 @@ type Baseline struct {
 	// positive and negative digests (i.e. no untriaged digest) of the current commit.
 	Expectations expectations.Baseline `json:"primary,omitempty"`
 
-	// DeprecatedExpectations captures the "baseline expectations", that is, the expectations with only
-	// the positive and negative digests (i.e. no untriaged digest) of the current commit.
-	//
-	// TODO(skbug.com/10522): Rename to json:"primary" once the refactor from expectations.LabelStr to
-	//                        expectations.Label is finished.
-	DeprecatedExpectations expectations.Baseline `json:"master_str,omitempty"`
-
 	// ChangelistID indicates the Gerrit or GitHub issue id of this baseline.
 	// "" indicates the master branch.
 	ChangelistID string `json:"cl_id,omitempty"`
@@ -36,10 +29,5 @@ type Baseline struct {
 type BaselineFetcher interface {
 	// FetchBaseline fetches a Baseline. If clID and crs are non-empty, the given Changelist will be
 	// created by loading the master baseline and the CL baseline and combining them.
-	//
-	// If issueOnly is true and clID/crs != "" then only the expectations attached to the CL are
-	// returned (omitting the baselines of the master branch).
-	//
-	// issueOnly is primarily used for debugging.
-	FetchBaseline(ctx context.Context, clID, crs string, issueOnly bool) (*Baseline, error)
+	FetchBaseline(ctx context.Context, clID, crs string) (*Baseline, error)
 }

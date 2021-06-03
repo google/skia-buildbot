@@ -66,10 +66,9 @@ const (
 func MakeTestBaseline() *baseline.Baseline {
 	e := MakeTestExpectations()
 	b := baseline.Baseline{
-		Expectations:           e.AsBaseline(),
-		DeprecatedExpectations: e.AsBaseline(),
-		ChangelistID:           "",
-		CodeReviewSystem:       "",
+		Expectations:     e.AsBaseline(),
+		ChangelistID:     "",
+		CodeReviewSystem: "",
 	}
 	var err error
 	b.MD5, err = util.MD5Sum(b.Expectations)
