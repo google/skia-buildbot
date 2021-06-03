@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9894b18c_d456c333",
+        "filename": "leasing/go/types/ts/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-03T21:05:50Z",
+      "side": 1,
+      "message": "I think the Makefile needs go generate as well instead of go run.",
+      "revId": "7ab1f360d5e37ad704b74b0fc234c8d71f3a1480",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
