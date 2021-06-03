@@ -37,21 +37,21 @@ func TestGatherFromPrimaryBranch_ReportsAllGroupingsOnPrimaryBranch(t *testing.T
 				types.CorpusField:     dks.RoundCorpus,
 				types.PrimaryKeyField: dks.CircleTest,
 			},
-			AdditionalLeft: nil, AdditionalRight: nil,
+			AdditionalLeft: nil,
 		},
 		{
 			Grouping: paramtools.Params{
 				types.CorpusField:     dks.CornersCorpus,
 				types.PrimaryKeyField: dks.SquareTest,
 			},
-			AdditionalLeft: nil, AdditionalRight: nil,
+			AdditionalLeft: nil,
 		},
 		{
 			Grouping: paramtools.Params{
 				types.CorpusField:     dks.CornersCorpus,
 				types.PrimaryKeyField: dks.TriangleTest,
 			},
-			AdditionalLeft: nil, AdditionalRight: nil,
+			AdditionalLeft: nil,
 		},
 	}, pub.messages)
 }
@@ -81,7 +81,7 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 			},
 			AdditionalLeft: []types.Digest{
 				dks.DigestC06Pos_CL, dks.DigestC07Unt_CL,
-			}, AdditionalRight: nil,
+			},
 		},
 		{ // This entry is from the new tests CL
 			Grouping: paramtools.Params{
@@ -90,7 +90,7 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 			},
 			AdditionalLeft: []types.Digest{
 				dks.DigestE01Pos_CL, dks.DigestE02Pos_CL, dks.DigestE03Unt_CL,
-			}, AdditionalRight: nil,
+			},
 		},
 		{ // This entry is from the new tests CL
 			Grouping: paramtools.Params{
@@ -99,7 +99,7 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 			},
 			AdditionalLeft: []types.Digest{
 				dks.DigestBlank, dks.DigestD01Pos_CL,
-			}, AdditionalRight: nil,
+			},
 		},
 	}, pub.messages)
 	assert.Equal(t, fakeNow, g.mostRecentCLScan)
@@ -109,22 +109,17 @@ type fakePublisher struct {
 	messages []diff.WorkerMessage
 }
 
-func (p *fakePublisher) PublishWork(_ context.Context, grouping paramtools.Params, left, right []types.Digest) error {
+func (p *fakePublisher) PublishWork(_ context.Context, grouping paramtools.Params, left []types.Digest) error {
 	// We need to copy the data that has been given to us in case the caller mutates it.
 	var leftCopy []types.Digest
 	if len(left) != 0 {
 		leftCopy = make([]types.Digest, len(left))
 		copy(leftCopy, left)
 	}
-	var rightCopy []types.Digest
-	if len(right) != 0 {
-		rightCopy = make([]types.Digest, len(right))
-		copy(leftCopy, right)
-	}
+
 	msg := diff.WorkerMessage{
-		Grouping:        grouping.Copy(),
-		AdditionalLeft:  leftCopy,
-		AdditionalRight: rightCopy,
+		Grouping:       grouping.Copy(),
+		AdditionalLeft: leftCopy,
 	}
 	p.messages = append(p.messages, msg)
 	return nil
