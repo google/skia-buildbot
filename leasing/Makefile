@@ -3,7 +3,7 @@ include ../kube/kube.mk
 default: build
 
 ./modules/json/index.ts:
-	go run ./go/types/ts -o modules/json/index.ts
+	go generate ./go/types/ts
 
 build: ./modules/json/index.ts npm-ci
 	npx webpack --mode=production
