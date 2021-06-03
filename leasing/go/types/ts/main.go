@@ -1,7 +1,7 @@
 // Program to generate TypeScript definition files for Golang structs that are
 // serialized to JSON for the web UI.
 //
-//go:generate go run . -o ../../modules/json/index.ts
+//go:generate go run . -o ../../../modules/json/index.ts
 package main
 
 import (
