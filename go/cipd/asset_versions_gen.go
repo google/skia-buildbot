@@ -136,7 +136,7 @@ var PACKAGES = map[string]*Package{
 	"skia/bots/bazel": {
 		Path:    "bazel",
 		Name:    "skia/bots/bazel",
-		Version: "version:2",
+		Version: "version:3",
 	},
 	"skia/bots/cockroachdb": {
 		Path:    "cockroachdb",
