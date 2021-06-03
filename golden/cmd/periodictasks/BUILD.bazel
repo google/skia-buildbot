@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
@@ -11,6 +12,9 @@ go_library(
         "//go/gerrit",
         "//go/httputils",
         "//go/metrics2",
+        "//go/now",
+        "//go/paramtools",
+        "//go/skerr",
         "//go/sklog",
         "//go/util",
         "//golden/go/code_review",
@@ -18,10 +22,14 @@ go_library(
         "//golden/go/code_review/gerrit_crs",
         "//golden/go/code_review/github_crs",
         "//golden/go/config",
+        "//golden/go/diff",
         "//golden/go/ignore/sqlignorestore",
         "//golden/go/sql",
+        "//golden/go/sql/schema",
         "//golden/go/tracing",
+        "//golden/go/types",
         "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_google_cloud_go_pubsub//:pubsub",
         "@io_opencensus_go//trace",
         "@org_golang_x_oauth2//:oauth2",
     ],
@@ -31,4 +39,21 @@ go_binary(
     name = "periodictasks",
     embed = [":periodictasks_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "periodictasks_test",
+    srcs = ["periodictasks_test.go"],
+    embed = [":periodictasks_lib"],
+    deps = [
+        "//go/now",
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//golden/go/diff",
+        "//golden/go/sql/datakitchensink",
+        "//golden/go/sql/sqltest",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
 )
