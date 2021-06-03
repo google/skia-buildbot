@@ -117,13 +117,6 @@ func TestEnv(t *testing.T) {
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
 
-	// vpython will fail to import anything if we use an empty PATH without
-	// setting PYTHONPATH or PYTHONHOME. Find the Python executable and add
-	// its location to PATH.
-	python, err := exec.LookPath("python")
-	require.NoError(t, err)
-	pythonPath := filepath.Dir(python)
-
 	err = Run(context.Background(), &Command{
 		Name: "python",
 		Args: []string{"-c", `
@@ -131,7 +124,8 @@ import os
 with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
   f.write('')
 `},
-		Env: []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file), fmt.Sprintf("PATH=%s", pythonPath)},
+		Env:         []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file)},
+		InheritPath: true,
 	})
 	require.NoError(t, err)
 	_, err = os.Stat(file)
@@ -186,6 +180,7 @@ with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
 	lines := strings.Split(strings.TrimSpace(string(contents)), "\n")
 	require.Equal(t, 5, len(lines))
 	// Python may append site_packages dir to PATH.
+	sklog.Errorf(string(contents))
 	expect.True(t, strings.Contains(lines[0], "x"+os.Getenv("PATH")))
 	expect.Equal(t, "x"+os.Getenv("USER"), lines[1])
 	expect.Equal(t, "x"+os.Getenv("PWD"), lines[2])
