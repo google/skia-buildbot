@@ -188,7 +188,14 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 		},
 		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin"},
+			"PATH": {
+				"cipd_bin_packages",
+				"cipd_bin_packages/bin",
+				"cipd_bin_packages/cpython",
+				"cipd_bin_packages/cpython/bin",
+				"cipd_bin_packages/cpython3",
+				"cipd_bin_packages/cpython3/bin",
+			},
 		},
 		Idempotent: true,
 	})
@@ -263,7 +270,14 @@ func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []stri
 		Dependencies: []string{BUNDLE_RECIPES_NAME},
 		Dimensions:   dimensions,
 		EnvPrefixes: map[string][]string{
-			"PATH":                    {"cipd_bin_packages", "cipd_bin_packages/bin"},
+			"PATH": {
+				"cipd_bin_packages",
+				"cipd_bin_packages/bin",
+				"cipd_bin_packages/cpython",
+				"cipd_bin_packages/cpython/bin",
+				"cipd_bin_packages/cpython3",
+				"cipd_bin_packages/cpython3/bin",
+			},
 			"VPYTHON_VIRTUALENV_ROOT": {"${cache_dir}/vpython"},
 		},
 		ExtraTags: map[string]string{
@@ -401,7 +415,15 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 		Dependencies: deps,
 		Dimensions:   dims,
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+			"PATH": {
+				"cipd_bin_packages",
+				"cipd_bin_packages/bin",
+				"cipd_bin_packages/cpython",
+				"cipd_bin_packages/cpython/bin",
+				"cipd_bin_packages/cpython3",
+				"cipd_bin_packages/cpython3/bin",
+				"go/go/bin",
+			},
 		},
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
@@ -658,6 +680,10 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 			"PATH": {
 				"cipd_bin_packages",
 				"cipd_bin_packages/bin",
+				"cipd_bin_packages/cpython",
+				"cipd_bin_packages/cpython/bin",
+				"cipd_bin_packages/cpython3",
+				"cipd_bin_packages/cpython3/bin",
 				"go/go/bin",
 				"bazel/bin",
 				"cockroachdb",

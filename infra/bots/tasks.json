@@ -204,8 +204,13 @@
       "casSpec": "run-recipe",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -264,7 +269,11 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
@@ -399,8 +408,13 @@
       "casSpec": "recipes",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -440,7 +454,11 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ]
       },
       "idempotent": true
@@ -620,8 +638,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -687,6 +710,10 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "go/go/bin"
         ]
       },
@@ -706,9 +733,14 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython3/windows-amd64",
-          "path": "cipd_bin_packages",
-          "version": "version:2@3.9.5.chromium.17"
+          "name": "infra/3pp/tools/cpython/windows-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
+          "name": "infra/3pp/tools/cpython/windows-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
         },
         {
           "name": "infra/3pp/tools/git/windows-amd64",
@@ -772,6 +804,10 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "go/go/bin"
         ]
       },
@@ -795,8 +831,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -879,6 +920,10 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "mockery"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
@@ -1198,8 +1243,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1307,6 +1357,10 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "mockery"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
@@ -1337,8 +1391,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1410,7 +1469,11 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
@@ -1440,8 +1503,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1518,7 +1586,11 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
@@ -1640,8 +1712,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1738,7 +1815,11 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
@@ -1769,8 +1850,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1842,7 +1928,11 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
@@ -1868,8 +1958,13 @@
       "casSpec": "empty",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1967,6 +2062,10 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "go/go/bin",
           "bazel/bin",
           "cockroachdb",
@@ -1989,8 +2088,13 @@
       "casSpec": "empty",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -2096,6 +2200,10 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "go/go/bin",
           "bazel/bin",
           "cockroachdb",
