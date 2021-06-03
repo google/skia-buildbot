@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "16463a51_5addcdf7",
+        "filename": "golden/cmd/baseline_server/baseline_server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-03T17:32:07Z",
+      "side": 0,
+      "message": "Should we also remove the shared.ExpectationsRoute and shared.ExpectationsRouteV1 constants?",
+      "range": {
+        "startLine": 163,
+        "startChar": 0,
+        "endLine": 165,
+        "endChar": 0
+      },
+      "revId": "6be53e5cdf43dd27362d2abeecd53dd7a1ce87a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
