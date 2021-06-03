@@ -1,5 +1,6 @@
 {
-  null_ignore_period: "5m", // deprecated config, will be removed
+  changelist_diff_period: "5m",
+  primary_branch_diff_period: "5m",
   update_traces_ignore_period: "5m",
   prom_port: ":20000",
   ready_port: ":8000"

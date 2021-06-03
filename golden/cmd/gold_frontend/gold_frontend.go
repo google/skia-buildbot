@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -18,11 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/oauth2"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -36,7 +32,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
@@ -48,7 +43,6 @@ import (
 	"go.skia.org/infra/golden/go/code_review/github_crs"
 	"go.skia.org/infra/golden/go/code_review/updater"
 	"go.skia.org/infra/golden/go/config"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expectations/cleanup"
 	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
@@ -541,17 +535,7 @@ func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore
 
 // mustMakeIndexer makes a new indexer.Indexer.
 func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, gsClient storage.GCSClient, reviewSystems []clstore.ReviewSystem, tileSource tilesource.TileSource, tjs tjstore.Store) *indexer.Indexer {
-	psc, err := pubsub.NewClient(ctx, fsc.PubsubProjectID)
-	if err != nil {
-		sklog.Fatalf("initializing pubsub client for project %s: %s", fsc.PubsubProjectID, err)
-	}
-
-	dwp := diff.Calculator(&noopDiffPublisher{})
-	if !fsc.IsPublicView {
-		dwp = &pubsubDiffPublisher{client: psc, topic: fsc.DiffWorkTopic}
-	}
 	ic := indexer.IndexerConfig{
-		DiffWorkPublisher: dwp,
 		ExpChangeListener: expChangeHandler,
 		ExpectationsStore: expStore,
 		GCSClient:         gsClient,
@@ -568,37 +552,6 @@ func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore ex
 	}
 	sklog.Infof("Indexer created.")
 	return ixr
-}
-
-type pubsubDiffPublisher struct {
-	client *pubsub.Client
-	topic  string
-}
-
-// CalculateDiffs publishes a WorkerMessage to the configured PubSub topic so that a worker
-// (see diffcalculator) can pick it up and calculate the diffs.
-func (p *pubsubDiffPublisher) CalculateDiffs(ctx context.Context, grouping paramtools.Params, left, right []types.Digest) error {
-	body, err := json.Marshal(diff.WorkerMessage{
-		Version:         diff.WorkerMessageVersion,
-		Grouping:        grouping,
-		AdditionalLeft:  left,
-		AdditionalRight: right,
-	})
-	if err != nil {
-		return skerr.Wrap(err) // should never happen because JSON input is well-formed.
-	}
-	p.client.Topic(p.topic).Publish(ctx, &pubsub.Message{
-		Data: body,
-	})
-	// Don't block until message is sent to speed up throughput.
-	return nil
-}
-
-type noopDiffPublisher struct{}
-
-// CalculateDiffs does nothing, but implements the diff.Calculator interface.
-func (p *noopDiffPublisher) CalculateDiffs(_ context.Context, _ paramtools.Params, _, _ []types.Digest) error {
-	return nil
 }
 
 // mustMakeStatusWatcher returns a new status.StatusWatcher.
