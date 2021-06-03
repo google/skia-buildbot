@@ -182,7 +182,7 @@ func TestGetCopy_CLPartition_CallerMutatesReturnValue_StoreUnaffected(t *testing
 
 	masterStore := New(c, nil, ReadWrite)
 	clStore := masterStore.ForChangelist("123", "github") // These are arbitrary
-	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
+	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, positiveInt, userOne)
 
 	clExps, err := clStore.GetCopy(ctx)
 	require.NoError(t, err)
@@ -209,7 +209,7 @@ func TestGetCopy_MasterPartition_CallerMutatesReturnValue_StoreUnaffected(t *tes
 
 	masterStore := New(c, nil, ReadWrite)
 	require.NoError(t, masterStore.Initialize(ctx))
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, positiveInt, userOne)
 
 	// Wait for the query snapshot to show up in the RAM cache.
 	assert.Eventually(t, func() bool {
@@ -250,9 +250,9 @@ func TestInitialize_ExpectationCacheIsFilledAndUpdated_Success(t *testing.T) {
 
 	// Initialize store with some expectations.
 	masterStore := New(c, nil, ReadWrite)
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaNegativeDigest, expectations.NegativeInt, userOne)
-	putEntry(ctx, t, masterStore, data.AlphaTest, firstPositiveThenUntriaged, expectations.PositiveInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, positiveInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaNegativeDigest, negativeInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, firstPositiveThenUntriaged, positiveInt, userOne)
 
 	// Create a read-only store and assert the cache is empty before we call Initialize.
 	readOnly := New(c, nil, ReadOnly)
@@ -272,8 +272,8 @@ func TestInitialize_ExpectationCacheIsFilledAndUpdated_Success(t *testing.T) {
 	assert.Equal(t, expectations.Positive, roExps.Classification(data.AlphaTest, firstPositiveThenUntriaged))
 
 	// This should update the existing entry, leaving us with 4 total entries, not 5
-	putEntry(ctx, t, masterStore, data.AlphaTest, firstPositiveThenUntriaged, expectations.UntriagedInt, userOne)
-	putEntry(ctx, t, masterStore, data.BetaTest, data.BetaPositiveDigest, expectations.PositiveInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, firstPositiveThenUntriaged, untriagedInt, userOne)
+	putEntry(ctx, t, masterStore, data.BetaTest, data.BetaPositiveDigest, positiveInt, userOne)
 
 	assert.Eventually(t, func() bool {
 		readOnly.entryCacheMutex.RLock()
@@ -374,7 +374,7 @@ func TestAddChange_ExpectationsDoNotConflictBetweenMasterAndCLPartition(t *testi
 
 	masterStore := New(c, nil, ReadWrite)
 	require.NoError(t, masterStore.Initialize(ctx))
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.NegativeInt, userTwo)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, negativeInt, userTwo)
 
 	clStore := masterStore.ForChangelist("117", "gerrit") // arbitrary cl id
 	// Check that it starts out blank.
@@ -383,11 +383,11 @@ func TestAddChange_ExpectationsDoNotConflictBetweenMasterAndCLPartition(t *testi
 	require.True(t, clExps.Empty())
 
 	// Add to the CL expectations
-	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
-	putEntry(ctx, t, clStore, data.BetaTest, data.BetaPositiveDigest, expectations.PositiveInt, userTwo)
+	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, positiveInt, userOne)
+	putEntry(ctx, t, clStore, data.BetaTest, data.BetaPositiveDigest, positiveInt, userTwo)
 
 	// Add to the master expectations
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaNegativeDigest, expectations.NegativeInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaNegativeDigest, negativeInt, userOne)
 
 	// Wait for the entries to sync.
 	assert.Eventually(t, func() bool {
@@ -589,7 +589,7 @@ func TestGetTriageHistory_MasterPartition_RepeatedlyOverwriteOneEntry_Success(t 
 
 	// This will wait for the firestore query snapshots to update the cache to have the entry we care
 	// about to have the given label.
-	waitForCacheToBe := func(label expectations.LabelInt) {
+	waitForCacheToBe := func(label labelInt) {
 		require.Eventually(t, func() bool {
 			masterStore.entryCacheMutex.RLock()
 			defer masterStore.entryCacheMutex.RUnlock()
@@ -603,20 +603,20 @@ func TestGetTriageHistory_MasterPartition_RepeatedlyOverwriteOneEntry_Success(t 
 		}, 10*time.Second, 100*time.Millisecond)
 	}
 
-	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, expectations.PositiveInt, userOne)
-	waitForCacheToBe(expectations.PositiveInt)
+	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, positiveInt, userOne)
+	waitForCacheToBe(positiveInt)
 
 	fakeNow = fakeNow.Add(time.Minute)
-	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, expectations.NegativeInt, userOne)
-	waitForCacheToBe(expectations.NegativeInt)
+	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, negativeInt, userOne)
+	waitForCacheToBe(negativeInt)
 
 	fakeNow = fakeNow.Add(time.Minute)
-	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, expectations.UntriagedInt, userTwo)
-	waitForCacheToBe(expectations.UntriagedInt)
+	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, untriagedInt, userTwo)
+	waitForCacheToBe(untriagedInt)
 
 	fakeNow = fakeNow.Add(time.Minute)
-	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, expectations.PositiveInt, userTwo)
-	waitForCacheToBe(expectations.PositiveInt)
+	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, positiveInt, userTwo)
+	waitForCacheToBe(positiveInt)
 
 	xth, err := masterStore.GetTriageHistory(ctx, theEntry.Grouping, theEntry.Digest)
 	require.NoError(t, err)
@@ -715,7 +715,7 @@ func TestQueryLog_WithoutDetails_OffsetsAndLimitsAreRespected(t *testing.T) {
 		return fakeNow
 	}
 
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, positiveInt, userOne)
 	secondTime := time.Date(2020, time.March, 14, 2, 3, 4, 0, time.UTC)
 	fakeNow = secondTime
 
@@ -788,7 +788,7 @@ func TestQueryLog_MasterAndCLPartitionsDoNotConflict_Success(t *testing.T) {
 		return fakeNow
 	}
 
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, positiveInt, userOne)
 
 	clStore := masterStore.ForChangelist("1687", "gerrit") // this is arbitrary
 	secondTime := time.Date(2020, time.March, 14, 2, 3, 4, 0, time.UTC)
@@ -847,7 +847,7 @@ func TestQueryLog_InvalidOffsets_Error(t *testing.T) {
 	defer cleanup()
 
 	masterStore := New(c, nil, ReadWrite)
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, positiveInt, userOne)
 
 	_, _, err := masterStore.QueryLog(ctx, -1, 100, false)
 	require.Error(t, err)
@@ -870,7 +870,7 @@ func TestQueryLog_WithDetails_Success(t *testing.T) {
 		return fakeNow
 	}
 
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, positiveInt, userOne)
 	secondTime := time.Date(2020, time.March, 14, 2, 3, 4, 0, time.UTC)
 	fakeNow = secondTime
 
@@ -999,9 +999,9 @@ func TestUndo_MasterPartition_EntriesExist_Success(t *testing.T) {
 	masterStore := New(c, nil, ReadWrite)
 	require.NoError(t, masterStore.Initialize(ctx))
 
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.NegativeInt, userOne) // will be undone
-	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaNegativeDigest, expectations.NegativeInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, positiveInt, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, negativeInt, userOne) // will be undone
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaNegativeDigest, negativeInt, userOne)
 
 	entries, _, err := masterStore.QueryLog(ctx, 0, 10, false)
 	require.NoError(t, err)
@@ -1041,9 +1041,9 @@ func TestUndo_CLPartition_EntriesExist_Success(t *testing.T) {
 	masterStore := New(c, nil, ReadWrite)
 	clStore := masterStore.ForChangelist("123", "github") // These are arbitrary
 
-	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
-	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.NegativeInt, userOne) // will be undone
-	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaNegativeDigest, expectations.NegativeInt, userOne)
+	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, positiveInt, userOne)
+	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, negativeInt, userOne) // will be undone
+	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaNegativeDigest, negativeInt, userOne)
 
 	entries, _, err := clStore.QueryLog(ctx, 0, 10, false)
 	require.NoError(t, err)
@@ -1183,12 +1183,12 @@ func TestMarkUnusedEntriesForGC_EntriesRecentlyUsed_NoEntriesMarked_Success(t *t
 	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
 
 	// The time passed here is before all entries
-	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.PositiveInt, entryOne.LastUsed.Add(-time.Second))
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryOne.LastUsed.Add(-time.Second))
 	require.NoError(t, err)
 	assert.Equal(t, 0, n)
 	// The time passed here is before all negative entries. It is after entryOne (which is positive)
 	// so we still expect nothing to have changed.
-	n, err = masterStore.MarkUnusedEntriesForGC(ctx, expectations.NegativeInt, entryTwo.LastUsed.Add(-time.Second))
+	n, err = masterStore.MarkUnusedEntriesForGC(ctx, expectations.Negative, entryTwo.LastUsed.Add(-time.Second))
 	require.NoError(t, err)
 	assert.Equal(t, 0, n)
 
@@ -1217,7 +1217,7 @@ func TestMarkUnusedEntriesForGC_OnePositiveEntryMarked_Success(t *testing.T) {
 	cutoff := entryThree.LastUsed.Add(-time.Minute)
 	assert.True(t, cutoff.After(entryOne.LastUsed))
 	assert.True(t, cutoff.After(entryTwo.LastUsed))
-	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.PositiveInt, cutoff)
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
 	require.NoError(t, err)
 	assert.Equal(t, 1, n)
 
@@ -1246,7 +1246,7 @@ func TestMarkUnusedEntriesForGC_OneNegativeEntryMarked_Success(t *testing.T) {
 	cutoff := entryThree.LastUsed.Add(time.Minute)
 	assert.True(t, cutoff.After(entryOne.LastUsed))
 	assert.True(t, cutoff.After(entryTwo.LastUsed))
-	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.NegativeInt, cutoff)
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Negative, cutoff)
 	require.NoError(t, err)
 	assert.Equal(t, 1, n)
 
@@ -1275,7 +1275,7 @@ func TestMarkUnusedEntriesForGC_MultiplePositiveEntriesAffected(t *testing.T) {
 	cutoff := entryThree.LastUsed.Add(time.Minute)
 	assert.True(t, cutoff.After(entryOne.LastUsed))
 	assert.True(t, cutoff.After(entryTwo.LastUsed))
-	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.PositiveInt, cutoff)
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
 	require.NoError(t, err)
 	assert.Equal(t, 2, n)
 
@@ -1308,7 +1308,7 @@ func TestMarkUnusedEntriesForGC_LastUsedLongAgo_UpdatedRecently_NoEntriesMarked_
 	cutoff := entryThree.LastUsed.Add(time.Minute)
 	assert.True(t, cutoff.After(entryOne.LastUsed))
 	assert.True(t, cutoff.After(entryTwo.LastUsed))
-	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.PositiveInt, cutoff)
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
 	require.NoError(t, err)
 	// None should be affected because the modified stamp is too new.
 	assert.Equal(t, 0, n)
@@ -1333,7 +1333,7 @@ func TestGarbageCollect_MultipleEntriesDeleted(t *testing.T) {
 	masterStore := New(c, nil, ReadWrite)
 	_, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
 
-	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.PositiveInt, entryThree.LastUsed.Add(time.Minute))
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryThree.LastUsed.Add(time.Minute))
 	require.NoError(t, err)
 	assert.Equal(t, 2, n)
 	n, err = masterStore.GarbageCollect(ctx)
@@ -1396,7 +1396,7 @@ func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	cutoff := time.Now().Add(time.Hour)
-	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.PositiveInt, cutoff)
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
 	require.NoError(t, err)
 	assert.Equal(t, 0, n)
 
@@ -1408,7 +1408,7 @@ func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
 		{
 			FirstIndex: beginningOfTime,
 			LastIndex:  endOfTime,
-			Label:      expectations.PositiveInt,
+			Label:      positiveInt,
 		},
 	}, actualEntryOne.Ranges)
 }
@@ -1448,7 +1448,7 @@ func countTriageRecords(ctx context.Context, t *testing.T, f *Store) int {
 	return count
 }
 
-func putEntry(ctx context.Context, t *testing.T, f expectations.Store, name types.TestName, digest types.Digest, label expectations.LabelInt, user string) {
+func putEntry(ctx context.Context, t *testing.T, f expectations.Store, name types.TestName, digest types.Digest, label labelInt, user string) {
 	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: name,
@@ -1486,7 +1486,7 @@ func populateFirestore(ctx context.Context, t *testing.T, c *ifirestore.Client, 
 		Grouping: entryOneGrouping,
 		Digest:   entryOneDigest,
 		Ranges: []triageRange{
-			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: expectations.PositiveInt},
+			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: positiveInt},
 		},
 		Updated:  modified,
 		LastUsed: entryOneUsed,
@@ -1495,7 +1495,7 @@ func populateFirestore(ctx context.Context, t *testing.T, c *ifirestore.Client, 
 		Grouping: entryTwoGrouping,
 		Digest:   entryTwoDigest,
 		Ranges: []triageRange{
-			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: expectations.NegativeInt},
+			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: negativeInt},
 		},
 		Updated:  modified,
 		LastUsed: entryTwoUsed,
@@ -1504,7 +1504,7 @@ func populateFirestore(ctx context.Context, t *testing.T, c *ifirestore.Client, 
 		Grouping: entryThreeGrouping,
 		Digest:   entryThreeDigest,
 		Ranges: []triageRange{
-			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: expectations.PositiveInt},
+			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: positiveInt},
 		},
 		Updated:  modified,
 		LastUsed: entryThreeUsed,
