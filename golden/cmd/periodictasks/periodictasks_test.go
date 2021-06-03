@@ -81,7 +81,10 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 			},
 			AdditionalLeft: []types.Digest{
 				dks.DigestC06Pos_CL, dks.DigestC07Unt_CL,
-			}, AdditionalRight: nil,
+			},
+			AdditionalRight: []types.Digest{
+				dks.DigestC06Pos_CL, dks.DigestC07Unt_CL,
+			},
 		},
 		{ // This entry is from the new tests CL
 			Grouping: paramtools.Params{
@@ -90,7 +93,10 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 			},
 			AdditionalLeft: []types.Digest{
 				dks.DigestE01Pos_CL, dks.DigestE02Pos_CL, dks.DigestE03Unt_CL,
-			}, AdditionalRight: nil,
+			},
+			AdditionalRight: []types.Digest{
+				dks.DigestE01Pos_CL, dks.DigestE02Pos_CL, dks.DigestE03Unt_CL,
+			},
 		},
 		{ // This entry is from the new tests CL
 			Grouping: paramtools.Params{
@@ -99,7 +105,10 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 			},
 			AdditionalLeft: []types.Digest{
 				dks.DigestBlank, dks.DigestD01Pos_CL,
-			}, AdditionalRight: nil,
+			},
+			AdditionalRight: []types.Digest{
+				dks.DigestBlank, dks.DigestD01Pos_CL,
+			},
 		},
 	}, pub.messages)
 	assert.Equal(t, fakeNow, g.mostRecentCLScan)
@@ -109,22 +118,18 @@ type fakePublisher struct {
 	messages []diff.WorkerMessage
 }
 
-func (p *fakePublisher) PublishWork(_ context.Context, grouping paramtools.Params, left, right []types.Digest) error {
+func (p *fakePublisher) PublishWork(_ context.Context, grouping paramtools.Params, newDigests []types.Digest) error {
 	// We need to copy the data that has been given to us in case the caller mutates it.
-	var leftCopy []types.Digest
-	if len(left) != 0 {
-		leftCopy = make([]types.Digest, len(left))
-		copy(leftCopy, left)
+	var newDigestsCopy []types.Digest
+	if len(newDigests) != 0 {
+		newDigestsCopy = make([]types.Digest, len(newDigests))
+		copy(newDigestsCopy, newDigests)
 	}
-	var rightCopy []types.Digest
-	if len(right) != 0 {
-		rightCopy = make([]types.Digest, len(right))
-		copy(leftCopy, right)
-	}
+
 	msg := diff.WorkerMessage{
 		Grouping:        grouping.Copy(),
-		AdditionalLeft:  leftCopy,
-		AdditionalRight: rightCopy,
+		AdditionalLeft:  newDigestsCopy,
+		AdditionalRight: newDigestsCopy,
 	}
 	p.messages = append(p.messages, msg)
 	return nil

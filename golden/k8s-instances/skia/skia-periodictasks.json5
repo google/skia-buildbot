@@ -1,6 +1,7 @@
 {
   changelist_diff_period: "5m",
   primary_branch_diff_period: "5m",
+  tracing_proportion: 0.1,
   update_traces_ignore_period: "5m",
   prom_port: ":20000",
   ready_port: ":8000"
