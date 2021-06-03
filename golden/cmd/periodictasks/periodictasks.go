@@ -244,7 +244,7 @@ func mustInitializeSystems(ptc periodicTasksConfig) []commenter.ReviewSystem {
 }
 
 type workPublisher interface {
-	PublishWork(ctx context.Context, grouping paramtools.Params, left, right []types.Digest) error
+	PublishWork(ctx context.Context, grouping paramtools.Params, newDigests []types.Digest) error
 }
 
 type diffWorkGatherer struct {
@@ -305,7 +305,7 @@ JOIN GroupingsWithRecentData on Groupings.grouping_id = GroupingsWithRecentData.
 		if err := rows.Scan(&grouping); err != nil {
 			return skerr.Wrap(err)
 		}
-		if err := g.publisher.PublishWork(ctx, grouping, nil, nil); err != nil {
+		if err := g.publisher.PublishWork(ctx, grouping, nil); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
@@ -450,7 +450,7 @@ ORDER BY 1, 3
 		if bytes.Equal(currentGroupingID, groupingID) {
 			additionalLeftDigests = append(additionalLeftDigests, digest)
 		} else {
-			if err := g.publisher.PublishWork(ctx, currentGrouping, additionalLeftDigests, nil); err != nil {
+			if err := g.publisher.PublishWork(ctx, currentGrouping, additionalLeftDigests); err != nil {
 				return skerr.Wrap(err)
 			}
 			currentGroupingID = groupingID
@@ -460,7 +460,7 @@ ORDER BY 1, 3
 		}
 	}
 	// Publish the last set
-	if err := g.publisher.PublishWork(ctx, currentGrouping, additionalLeftDigests, nil); err != nil {
+	if err := g.publisher.PublishWork(ctx, currentGrouping, additionalLeftDigests); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
@@ -473,12 +473,12 @@ type pubsubDiffPublisher struct {
 
 // PublishWork publishes a WorkerMessage to the configured PubSub topic so that a worker
 // (see diffcalculator) can pick it up and calculate the diffs.
-func (p *pubsubDiffPublisher) PublishWork(ctx context.Context, grouping paramtools.Params, left, right []types.Digest) error {
+func (p *pubsubDiffPublisher) PublishWork(ctx context.Context, grouping paramtools.Params, newDigests []types.Digest) error {
 	body, err := json.Marshal(diff.WorkerMessage{
 		Version:         diff.WorkerMessageVersion,
 		Grouping:        grouping,
-		AdditionalLeft:  left,
-		AdditionalRight: right,
+		AdditionalLeft:  newDigests,
+		AdditionalRight: newDigests, // We want to compare all new digests from CLs with themselves
 	})
 	if err != nil {
 		return skerr.Wrap(err) // should never happen because JSON input is well-formed.
