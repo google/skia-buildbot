@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -368,7 +367,7 @@ func storeSecondaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, bra
 }
 
 // find returns a matching record id for the given change and true or the catch-all UUID and false.
-func find(grouping types.TestName, digest types.Digest, label expectations.LabelInt, deltas []v3ExpectationChange) (uuid.UUID, bool) {
+func find(grouping types.TestName, digest types.Digest, label labelInt, deltas []v3ExpectationChange) (uuid.UUID, bool) {
 	for _, delta := range deltas {
 		if delta.Grouping == grouping && delta.Digest == digest && delta.AffectedRange.Label == label {
 			return uuid.Must(uuid.FromBytes(hash(delta.RecordID))), true
@@ -377,13 +376,25 @@ func find(grouping types.TestName, digest types.Digest, label expectations.Label
 	return catchAllUUID, false
 }
 
-func convertLabel(label expectations.LabelInt) schema.ExpectationLabel {
+// labelInt is the integer version of Label, used as the storage format in firestore
+type labelInt int
+
+const (
+	// untriagedInt represents a previously unseen digest.
+	untriagedInt labelInt = iota // == 0
+	// positiveInt represents a known good digest.
+	positiveInt
+	// negativeInt represents a known bad digest.
+	negativeInt
+)
+
+func convertLabel(label labelInt) schema.ExpectationLabel {
 	switch label {
-	case expectations.UntriagedInt:
+	case untriagedInt:
 		return schema.LabelUntriaged
-	case expectations.PositiveInt:
+	case positiveInt:
 		return schema.LabelPositive
-	case expectations.NegativeInt:
+	case negativeInt:
 		return schema.LabelNegative
 	}
 	return schema.LabelUntriaged
@@ -428,9 +439,9 @@ func (e *v3ExpectationEntry) id() string {
 }
 
 type v3TriageRange struct {
-	FirstIndex int                   `firestore:"first_index"`
-	LastIndex  int                   `firestore:"last_index"`
-	Label      expectations.LabelInt `firestore:"label"`
+	FirstIndex int      `firestore:"first_index"`
+	LastIndex  int      `firestore:"last_index"`
+	Label      labelInt `firestore:"label"`
 }
 
 type v3TriageRecord struct {
@@ -443,11 +454,11 @@ type v3TriageRecord struct {
 
 type v3ExpectationChange struct {
 	// RecordID refers to a document in the records collection.
-	RecordID      string                `firestore:"record_id"`
-	Grouping      types.TestName        `firestore:"grouping"`
-	Digest        types.Digest          `firestore:"digest"`
-	AffectedRange v3TriageRange         `firestore:"affected_range"`
-	LabelBefore   expectations.LabelInt `firestore:"label_before"`
+	RecordID      string         `firestore:"record_id"`
+	Grouping      types.TestName `firestore:"grouping"`
+	Digest        types.Digest   `firestore:"digest"`
+	AffectedRange v3TriageRange  `firestore:"affected_range"`
+	LabelBefore   labelInt       `firestore:"label_before"`
 }
 
 func (v v3Impl) fetchTriageRecords(ctx context.Context) (map[string][]v3TriageRecord, error) {
