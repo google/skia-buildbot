@@ -160,8 +160,6 @@ func main() {
 	v0(shared.KnownHashesRoute, handlers.TextKnownHashesProxy).Methods("GET")
 	v1(shared.KnownHashesRouteV1, handlers.TextKnownHashesProxy).Methods("GET")
 	// Serve the expectations for the master branch and for CLs in progress.
-	v0(shared.ExpectationsRoute, handlers.BaselineHandlerV1).Methods("GET")
-	v1(shared.ExpectationsRouteV1, handlers.BaselineHandlerV1).Methods("GET")
 	v2(shared.ExpectationsRouteV2, handlers.BaselineHandlerV2).Methods("GET")
 
 	// Only log and compress the app routes, but not the health check.

@@ -15,13 +15,13 @@ type BaselineFetcher struct {
 	mock.Mock
 }
 
-// FetchBaseline provides a mock function with given fields: ctx, clID, crs, issueOnly
-func (_m *BaselineFetcher) FetchBaseline(ctx context.Context, clID string, crs string, issueOnly bool) (*baseline.Baseline, error) {
-	ret := _m.Called(ctx, clID, crs, issueOnly)
+// FetchBaseline provides a mock function with given fields: ctx, clID, crs
+func (_m *BaselineFetcher) FetchBaseline(ctx context.Context, clID string, crs string) (*baseline.Baseline, error) {
+	ret := _m.Called(ctx, clID, crs)
 
 	var r0 *baseline.Baseline
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, bool) *baseline.Baseline); ok {
-		r0 = rf(ctx, clID, crs, issueOnly)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *baseline.Baseline); ok {
+		r0 = rf(ctx, clID, crs)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*baseline.Baseline)
@@ -29,8 +29,8 @@ func (_m *BaselineFetcher) FetchBaseline(ctx context.Context, clID string, crs s
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, bool) error); ok {
-		r1 = rf(ctx, clID, crs, issueOnly)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, clID, crs)
 	} else {
 		r1 = ret.Error(1)
 	}

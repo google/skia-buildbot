@@ -14,11 +14,9 @@ import (
 
 // Define common routes used by multiple servers and goldctl
 const (
-	// ExpectationsRoute serves the expectations of the master branch. If a changelist ID is provided
-	// via the "issue" GET parameter, the expectations associated with that CL will be merged onto
-	// the returned baseline.
-	ExpectationsRoute   = "/json/expectations"
-	ExpectationsRouteV1 = "/json/v1/expectations"
+	// ExpectationsRouteV2 serves the expectations of the master branch. If a changelist ID is
+	// provided via the "issue" GET parameter, the expectations associated with that CL will be
+	// merged onto the returned baseline.
 	ExpectationsRouteV2 = "/json/v2/expectations"
 
 	// KnownHashesRoute serves the list of known hashes.

@@ -1565,62 +1565,16 @@ func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// BaselineHandlerV1 differs from BaselineHandlerV2 in that the "primary" field in the JSON response
-// is named "master_str".
-//
-// TODO(lovisolo): Remove this after all clients have been migrated to the V2 of this RPC.
-func (wh *Handlers) BaselineHandlerV1(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	// No limit for anon users - this is an endpoint backed up by baseline servers, and
-	// should be able to handle a large load.
-
-	// Track usage of the legacy /json/expectations/commit/{commit_hash} route.
-	if _, ok := mux.Vars(r)["commit_hash"]; ok {
-		metrics2.GetCounter("gold_baselinehandler_route_legacy").Inc(1)
-	} else {
-		metrics2.GetCounter("gold_baselinehandler_route_new").Inc(1)
-	}
-
-	q := r.URL.Query()
-	clID := q.Get("issue")
-	issueOnly := q.Get("issueOnly") == "true"
-	crs := q.Get("crs")
-
-	if clID != "" {
-		if crs == "" {
-			// TODO(kjlubick) remove this default after the search page is converted to lit-html.
-			crs = wh.ReviewSystems[0].ID
-		}
-		if _, ok := wh.getCodeReviewSystem(crs); !ok {
-			http.Error(w, "Invalid CRS provided.", http.StatusBadRequest)
-			return
-		}
-	} else {
-		crs = ""
-	}
-
-	bl, err := wh.Baseliner.FetchBaseline(r.Context(), clID, crs, issueOnly)
-	if err != nil {
-		httputils.ReportError(w, err, "Fetching baselines failed.", http.StatusInternalServerError)
-		return
-	}
-	bl.Expectations = expectations.Baseline{}
-	sendJSONResponse(w, bl)
-}
-
 // BaselineHandlerV2 returns a JSON representation of that baseline including
 // baselines for a options issue. It can respond to requests like these:
 //
 //    /json/expectations
 //    /json/expectations?issue=123456
-//    /json/expectations?issue=123456&issueOnly=true
 //
 // The "issue" parameter indicates the changelist ID for which we would like to
 // retrieve the baseline. In that case the returned options will be a blend of
 // the master baseline and the baseline defined for the changelist (usually
 // based on tryjob results).
-//
-// Parameter "issueOnly" is for debugging purposes only.
 func (wh *Handlers) BaselineHandlerV2(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// No limit for anon users - this is an endpoint backed up by baseline servers, and
@@ -1628,14 +1582,9 @@ func (wh *Handlers) BaselineHandlerV2(w http.ResponseWriter, r *http.Request) {
 
 	q := r.URL.Query()
 	clID := q.Get("issue")
-	issueOnly := q.Get("issueOnly") == "true"
 	crs := q.Get("crs")
 
 	if clID != "" {
-		if crs == "" {
-			// TODO(kjlubick) remove this default after the search page is converted to lit-html.
-			crs = wh.ReviewSystems[0].ID
-		}
 		if _, ok := wh.getCodeReviewSystem(crs); !ok {
 			http.Error(w, "Invalid CRS provided.", http.StatusBadRequest)
 			return
@@ -1644,14 +1593,11 @@ func (wh *Handlers) BaselineHandlerV2(w http.ResponseWriter, r *http.Request) {
 		crs = ""
 	}
 
-	bl, err := wh.Baseliner.FetchBaseline(r.Context(), clID, crs, issueOnly)
+	bl, err := wh.Baseliner.FetchBaseline(r.Context(), clID, crs)
 	if err != nil {
 		httputils.ReportError(w, err, "Fetching baselines failed.", http.StatusInternalServerError)
 		return
 	}
-
-	// TODO(lovisolo): Delete after the ExpectationsMasterStr field has been removed.
-	bl.DeprecatedExpectations = expectations.Baseline{}
 
 	sendJSONResponse(w, bl)
 }

@@ -28,13 +28,13 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 
 	baseliner := New(mes)
 
-	b, err := baseliner.FetchBaseline(context.Background(), primaryBranch, "github", false)
+	b, err := baseliner.FetchBaseline(context.Background(), primaryBranch, "github")
 	assert.NoError(t, err)
 
 	exp := three_devices.MakeTestExpectations()
 	expectedBaseline := exp.AsBaseline()
 
-	assert.Equal(t, expectedBaseline, b.DeprecatedExpectations)
+	assert.Equal(t, expectedBaseline, b.Expectations)
 	assert.Equal(t, primaryBranch, b.ChangelistID)
 	assert.Equal(t, noCRS, b.CodeReviewSystem)
 	assert.NotEqual(t, "", b.MD5)
@@ -77,7 +77,7 @@ func TestFetchBaselineChangelistSunnyDay(t *testing.T) {
 
 	baseliner := New(mes)
 
-	b, err := baseliner.FetchBaseline(context.Background(), clID, crs, false)
+	b, err := baseliner.FetchBaseline(context.Background(), clID, crs)
 	assert.NoError(t, err)
 
 	assert.Equal(t, clID, b.ChangelistID)
@@ -100,27 +100,11 @@ func TestFetchBaselineChangelistSunnyDay(t *testing.T) {
 			three_devices.BetaUntriagedDigest: expectations.Positive,
 		},
 	}, b.Expectations)
-	assert.Equal(t, expectations.Baseline{
-		"brand-new-test": {
-			IotaNewDigest:  expectations.Positive,
-			KappaNewDigest: expectations.Negative,
-		},
-		// AlphaTest should be unchanged from the baseline for the primary branch.
-		three_devices.AlphaTest: {
-			three_devices.AlphaPositiveDigest: expectations.Positive,
-			three_devices.AlphaNegativeDigest: expectations.Negative,
-		},
-		three_devices.BetaTest: {
-			MuNewDigest:                       expectations.Positive,
-			three_devices.BetaPositiveDigest:  expectations.Negative,
-			three_devices.BetaUntriagedDigest: expectations.Positive,
-		},
-	}, b.DeprecatedExpectations)
 
 	mes.On("GetCopy", testutils.AnyContext).Return(three_devices.MakeTestExpectations(), nil).Once()
 
 	// Ensure that reading the issue branch does not impact the primary branch
-	b, err = baseliner.FetchBaseline(context.Background(), primaryBranch, noCRS, false)
+	b, err = baseliner.FetchBaseline(context.Background(), primaryBranch, noCRS)
 	assert.NoError(t, err)
 	assert.Equal(t, three_devices.MakeTestBaseline(), b)
 }

@@ -28,17 +28,16 @@ func New(e expectations.Store) *SimpleBaselineFetcher {
 }
 
 // FetchBaseline implements the BaselineFetcher interface.
-func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs string, issueOnly bool) (*baseline.Baseline, error) {
+func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs string) (*baseline.Baseline, error) {
 	if clID == "" {
 		exp, err := f.exp.GetCopy(ctx)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "getting master branch expectations")
 		}
 		b := baseline.Baseline{
-			ChangelistID:           "",
-			CodeReviewSystem:       "",
-			Expectations:           exp.AsBaseline(),
-			DeprecatedExpectations: exp.AsBaseline(),
+			ChangelistID:     "",
+			CodeReviewSystem: "",
+			Expectations:     exp.AsBaseline(),
 		}
 		md5Sum, err := util.MD5Sum(b.Expectations)
 		if err != nil {
@@ -54,19 +53,6 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 	if err != nil {
 		return nil, skerr.Wrapf(err, "getting expectations for %s (%s)", clID, crs)
 	}
-	if issueOnly {
-		md5Sum, err := util.MD5Sum(iexp)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "calculating md5 hash of issue expectations")
-		}
-		return &baseline.Baseline{
-			ChangelistID:           clID,
-			CodeReviewSystem:       crs,
-			Expectations:           iexp.AsBaseline(),
-			DeprecatedExpectations: iexp.AsBaseline(),
-			MD5:                    md5Sum,
-		}, nil
-	}
 
 	exp, err := f.exp.GetCopy(ctx)
 	if err != nil {
@@ -76,10 +62,9 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 	exp.MergeExpectations(iexp)
 
 	b := baseline.Baseline{
-		ChangelistID:           clID,
-		CodeReviewSystem:       crs,
-		Expectations:           exp.AsBaseline(),
-		DeprecatedExpectations: exp.AsBaseline(),
+		ChangelistID:     clID,
+		CodeReviewSystem: crs,
+		Expectations:     exp.AsBaseline(),
 	}
 	md5Sum, err := util.MD5Sum(b.Expectations)
 	if err != nil {
