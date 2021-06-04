@@ -15,6 +15,7 @@ import (
 
 	"github.com/gorilla/mux"
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -25,7 +26,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/clstore"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
@@ -45,6 +45,7 @@ import (
 	mock_search "go.skia.org/infra/golden/go/search/mocks"
 	"go.skia.org/infra/golden/go/search2"
 	mock_search2 "go.skia.org/infra/golden/go/search2/mocks"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
@@ -75,7 +76,7 @@ func TestNewHandlers_BaselineSubset_HasAllPieces_Success(t *testing.T) {
 
 	hc := HandlersConfig{
 		GCSClient: &mocks.GCSClient{},
-		Baseliner: &mocks.BaselineFetcher{},
+		DB:        &pgxpool.Pool{},
 		ReviewSystems: []clstore.ReviewSystem{
 			{
 				ID:     "whatever",
@@ -99,7 +100,7 @@ func TestNewHandlers_BaselineSubset_MissingPieces_Failure(t *testing.T) {
 	assert.Contains(t, err.Error(), "cannot be nil")
 
 	hc = HandlersConfig{
-		Baseliner: &mocks.BaselineFetcher{},
+		DB:        &pgxpool.Pool{},
 		GCSClient: &mocks.GCSClient{},
 	}
 	_, err = NewHandlers(hc, BaselineSubset)
@@ -121,7 +122,7 @@ func TestNewHandlers_FullFrontEnd_MissingPieces_Failure(t *testing.T) {
 
 	hc = HandlersConfig{
 		GCSClient: &mocks.GCSClient{},
-		Baseliner: &mocks.BaselineFetcher{},
+		DB:        &pgxpool.Pool{},
 		ReviewSystems: []clstore.ReviewSystem{
 			{
 				ID:     "whatever",
@@ -1472,118 +1473,133 @@ func TestDeleteIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }
 
-// TestBaselineHandlerV2_Success tests that the handler correctly calls the BaselineFetcher when no
-// GET parameters are set.
-func TestBaselineHandlerV2_Success(t *testing.T) {
-	unittest.SmallTest(t)
+func TestBaselineHandlerV2_PrimaryBranch_Success(t *testing.T) {
+	unittest.LargeTest(t)
 
-	const gerritCRS = "gerrit"
-	mbf := &mocks.BaselineFetcher{}
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Baseliner: mbf,
-			ReviewSystems: []clstore.ReviewSystem{
-				{
-					ID: gerritCRS,
-				},
-			},
+			DB: db,
 		},
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r := httptest.NewRequest(http.MethodGet, shared.ExpectationsRouteV2, nil)
 
-	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
-	bl := &baseline.Baseline{
-		MD5: "fakehash",
-		Expectations: expectations.Baseline{
-			"faketest": map[types.Digest]expectations.Label{
-				"abc123": "positive",
-			},
-		},
-		CodeReviewSystem: gerritCRS,
-	}
-	expectedJSONResponse := `{"md5":"fakehash","primary":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
+	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b01b01b01b01b01b01b01b01b01b01b0":"positive","b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}}}`
 
-	// FetchBaseline should be called as per the request parameters.
-	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "").Return(bl, nil)
-	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
-
-	// Call route handler under test.
 	wh.BaselineHandlerV2(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 }
 
-// TestBaselineHandlerV2_IssueSet_Success tests that the handler correctly calls the BaselineFetcher
-// when the "issue" GET parameter is set.
-func TestBaselineHandlerV2_IssueSet_Success(t *testing.T) {
-	unittest.SmallTest(t)
+func TestBaselineHandlerV2_ValidChangelist_Success(t *testing.T) {
+	unittest.LargeTest(t)
 
-	const gerritCRS = "gerrit"
-	mbf := &mocks.BaselineFetcher{}
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Baseliner: mbf,
+			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID: gerritCRS,
+					ID: datakitchensink.GerritCRS,
 				},
 			},
 		},
 	}
 	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, shared.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=gerrit", nil)
 
-	// GET parameter "issue" is set.
-	r := httptest.NewRequest(http.MethodGet, requestURL+"?issue=123456&crs=gerrit", nil)
+	// Note that DigestC06Pos_CL is here, but DigestC07Unt_CL is not because the latter is
+	// untriaged (and thus omitted from the baseline).
+	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive","c06c06c06c06c06c06c06c06c06c06c0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}},"cl_id":"CL_fix_ios","crs":"gerrit"}`
 
-	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
-	bl := &baseline.Baseline{
-		MD5: "fakehash",
-		Expectations: expectations.Baseline{
-			"faketest": map[types.Digest]expectations.Label{
-				"abc123": "positive",
-			},
-		},
-		CodeReviewSystem: gerritCRS,
-	}
-	expectedJSONResponse := `{"md5":"fakehash","primary":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
-
-	// FetchBaseline should be called as per the request parameters.
-	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, gerritCRS).Return(bl, nil)
-	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
-
-	// Call route handler under test.
 	wh.BaselineHandlerV2(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 }
 
-// TestBaselineHandlerV2_BaselineFetcherError_InternalServerError tests that the handler correctly
-// handles BaselineFetcher errors.
-func TestBaselineHandlerV2_BaselineFetcherError_InternalServerError(t *testing.T) {
-	unittest.SmallTest(t)
+func TestBaselineHandlerV2_ValidChangelistWithNewTests_Success(t *testing.T) {
+	unittest.LargeTest(t)
 
-	const gerritCRS = "gerrit"
-	mbf := &mocks.BaselineFetcher{}
-	mbf.On("FetchBaseline", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, errors.New("oops"))
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Baseliner: mbf,
+			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID: gerritCRS,
+					ID: datakitchensink.GerritCRS,
+				},
+				{
+					ID: datakitchensink.GerritInternalCRS,
 				},
 			},
 		},
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r := httptest.NewRequest(http.MethodGet, shared.ExpectationsRouteV2+"?issue=CL_new_tests&crs=gerrit-internal", nil)
 
-	// Call route handler under test.
+	// We expect to see data from the Seven Test and RoundRect Test.
+	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive"},"round rect":{"e01e01e01e01e01e01e01e01e01e01e0":"positive","e02e02e02e02e02e02e02e02e02e02e0":"positive"},"seven":{"d01d01d01d01d01d01d01d01d01d01d0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b01b01b01b01b01b01b01b01b01b01b0":"positive","b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}},"cl_id":"CL_new_tests","crs":"gerrit-internal"}`
+
 	wh.BaselineHandlerV2(w, r)
-	resp := w.Result()
-	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+}
+
+func TestBaselineHandlerV2_InvalidCRS_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: datakitchensink.GerritCRS,
+				},
+			},
+		},
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, shared.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=wrong", nil)
+
+	wh.BaselineHandlerV2(w, r)
+	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	assert.Contains(t, w.Body.String(), "Invalid CRS")
+}
+
+func TestBaselineHandlerV2_InvalidCL_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: datakitchensink.GerritCRS,
+				},
+			},
+		},
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, shared.ExpectationsRouteV2+"?issue=InvalidCLID&crs=gerrit", nil)
+
+	wh.BaselineHandlerV2(w, r)
+	assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+	assert.Contains(t, w.Body.String(), "Fetching baseline failed")
 }
 
 // TestWhoami_NotLoggedIn_Success tests that /json/whoami returns the expected empty response when

@@ -1883,8 +1883,9 @@ func (s *Impl) searchCLData(ctx context.Context) (*frontend.SearchResponse, erro
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	// Lookup the closest diffs to the given digests. This returns a subset according to the
-	// limit and offset in the query.
+	// Lookup the closest diffs on the primary branch to the given digests. This returns a subset
+	// according to the limit and offset in the query.
+	// TODO(kjlubick) perhaps we want to include the digests produced by this CL/PS as well?
 	closestDiffs, allClosestLabels, err := s.getClosestDiffs(ctx, traceDigests)
 	if err != nil {
 		return nil, skerr.Wrap(err)
