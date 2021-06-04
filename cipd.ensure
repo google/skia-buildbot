@@ -18,16 +18,6 @@ infra/3pp/tools/git/mac-amd64                    version:2@2.32.0-rc2.chromium.6
 infra/3pp/tools/git/windows-386                  version:2@2.31.1.chromium.6
 infra/3pp/tools/git/windows-amd64                version:2@2.31.1.chromium.6
 infra/gsutil                                     version:4.46
-infra/3pp/tools/cpython/linux-amd64              version:2@2.7.18.chromium.37
-infra/3pp/tools/cpython/linux-arm64              version:2@2.7.18.chromium.37
-infra/3pp/tools/cpython/mac-amd64                version:2@2.7.18.chromium.37
-infra/3pp/tools/cpython/windows-386              version:2@2.7.18.chromium.37
-infra/3pp/tools/cpython/windows-amd64            version:2@2.7.18.chromium.37
-infra/3pp/tools/cpython3/linux-amd64             version:2@3.9.5.chromium.17
-infra/3pp/tools/cpython3/linux-arm64             version:2@3.9.5.chromium.17
-infra/3pp/tools/cpython3/mac-amd64               version:2@3.9.5.chromium.17
-infra/3pp/tools/cpython3/windows-386             version:2@3.9.5.chromium.17
-infra/3pp/tools/cpython3/windows-amd64           version:2@3.9.5.chromium.17
 infra/tools/git/${platform}                      git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db
 infra/tools/luci-auth/${platform}                git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db
 infra/tools/luci/git-credential-luci/${platform} git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db
@@ -36,7 +26,22 @@ infra/tools/luci/isolated/${platform}            git_revision:7317931d94ebd2a600
 infra/tools/luci/lucicfg/${platform}             git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db
 infra/tools/luci/swarming/${platform}            git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db
 infra/tools/luci/vpython/${platform}             git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db
+infra/tools/luci/vpython-native/${platform}      git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db
 skia/tools/goldctl/${platform}                   git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db
+
+@subdir cipd_bin_packages/cpython
+infra/3pp/tools/cpython/linux-amd64              version:2@2.7.18.chromium.37
+infra/3pp/tools/cpython/linux-arm64              version:2@2.7.18.chromium.37
+infra/3pp/tools/cpython/mac-amd64                version:2@2.7.18.chromium.37
+infra/3pp/tools/cpython/windows-386              version:2@2.7.18.chromium.37
+infra/3pp/tools/cpython/windows-amd64            version:2@2.7.18.chromium.37
+
+@subdir cipd_bin_packages/cpython3
+infra/3pp/tools/cpython3/linux-amd64             version:2@3.9.5.chromium.17
+infra/3pp/tools/cpython3/linux-arm64             version:2@3.9.5.chromium.17
+infra/3pp/tools/cpython3/mac-amd64               version:2@3.9.5.chromium.17
+infra/3pp/tools/cpython3/windows-386             version:2@3.9.5.chromium.17
+infra/3pp/tools/cpython3/windows-amd64           version:2@3.9.5.chromium.17
 
 @Subdir
 infra/tools/luci/kitchen/${platform}    git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db

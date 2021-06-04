@@ -96,7 +96,7 @@ func TestSquashWriters(t *testing.T) {
 }
 
 func TestBasic(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
@@ -111,18 +111,11 @@ func TestBasic(t *testing.T) {
 }
 
 func TestEnv(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
-
-	// vpython will fail to import anything if we use an empty PATH without
-	// setting PYTHONPATH or PYTHONHOME. Find the Python executable and add
-	// its location to PATH.
-	python, err := exec.LookPath("python")
-	require.NoError(t, err)
-	pythonPath := filepath.Dir(python)
 
 	err = Run(context.Background(), &Command{
 		Name: "python",
@@ -131,7 +124,8 @@ import os
 with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
   f.write('')
 `},
-		Env: []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file), fmt.Sprintf("PATH=%s", pythonPath)},
+		Env:         []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file)},
+		InheritPath: true,
 	})
 	require.NoError(t, err)
 	_, err = os.Stat(file)
@@ -161,7 +155,7 @@ with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
 }
 
 func TestInheritEnv(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
@@ -172,7 +166,7 @@ func TestInheritEnv(t *testing.T) {
 import os
 with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
   for var in ('PATH', 'USER', 'PWD', 'HOME', 'GOPATH'):
-    f.write('x%s\n' % os.environ.get(var, ''))
+    f.write('%s\n' % os.environ.get(var, ''))
 `},
 		Env: []string{
 			fmt.Sprintf("EXEC_TEST_FILE=%s", file),
@@ -185,16 +179,16 @@ with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
 	require.NoError(t, err)
 	lines := strings.Split(strings.TrimSpace(string(contents)), "\n")
 	require.Equal(t, 5, len(lines))
-	// Python may append site_packages dir to PATH.
-	expect.True(t, strings.Contains(lines[0], "x"+os.Getenv("PATH")))
-	expect.Equal(t, "x"+os.Getenv("USER"), lines[1])
-	expect.Equal(t, "x"+os.Getenv("PWD"), lines[2])
-	expect.Equal(t, "x"+dir, lines[3])
-	expect.Equal(t, "x"+os.Getenv("GOPATH"), lines[4])
+	// Python may add to PATH.
+	expect.True(t, strings.Contains(lines[0], os.Getenv("PATH")))
+	expect.Equal(t, os.Getenv("USER"), lines[1])
+	expect.Equal(t, os.Getenv("PWD"), lines[2])
+	expect.Equal(t, dir, lines[3])
+	expect.Equal(t, os.Getenv("GOPATH"), lines[4])
 }
 
 func TestDir(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	dir1, err := ioutil.TempDir("", "exec_test1")
 	require.NoError(t, err)
 	defer RemoveAll(dir1)
@@ -212,7 +206,7 @@ func TestDir(t *testing.T) {
 }
 
 func TestSimpleIO(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	inputString := "foo\nbar\nbaz\n"
 	output := bytes.Buffer{}
 	require.NoError(t, Run(context.Background(), &Command{
@@ -225,7 +219,7 @@ func TestSimpleIO(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
@@ -248,7 +242,7 @@ sys.exit(123)
 }
 
 func TestCombinedOutput(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
@@ -275,7 +269,7 @@ sys.stderr.write('blue')
 // Run(&Command{... Stdout: outputFile})
 // See http://devs.cloudimmunity.com/gotchas-and-common-mistakes-in-go-golang/index.html#nil_in_nil_in_vals
 func TestNilIO(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	inputString := "foo\nbar\nbaz\n"
 	require.NoError(t, Run(context.Background(), &Command{
 		Name:   "python",
@@ -363,7 +357,7 @@ func TestRunSimple(t *testing.T) {
 }
 
 func TestRunCwd(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
@@ -410,7 +404,7 @@ func TestCommandCollector(t *testing.T) {
 }
 
 func TestRunCommand(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := context.Background()
 	// Without a thread-safe io.Writer for Command.CombinedOutput, this test
 	// fails "go test -race" and the output does not consistently match the

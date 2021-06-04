@@ -204,8 +204,13 @@
       "casSpec": "run-recipe",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -239,13 +244,18 @@
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
         {
+          "name": "infra/tools/luci/vpython-native/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         }
       ],
       "command": [
-        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
         "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
@@ -264,10 +274,14 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
-          "${cache_dir}/vpython"
+          "cache/vpython"
         ]
       },
       "extra_tags": {
@@ -399,8 +413,13 @@
       "casSpec": "recipes",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -415,6 +434,11 @@
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
+          "name": "infra/tools/luci/vpython-native/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
@@ -440,7 +464,11 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ]
       },
       "idempotent": true
@@ -620,8 +648,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -641,6 +674,11 @@
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
+          "name": "infra/tools/luci/vpython-native/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
@@ -687,6 +725,10 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "go/go/bin"
         ]
       },
@@ -706,8 +748,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/windows-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/windows-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -727,6 +774,11 @@
         },
         {
           "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
+          "name": "infra/tools/luci/vpython-native/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
@@ -772,6 +824,10 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "go/go/bin"
         ]
       },
@@ -795,8 +851,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -830,6 +891,11 @@
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
         {
+          "name": "infra/tools/luci/vpython-native/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
@@ -856,7 +922,7 @@
         }
       ],
       "command": [
-        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
         "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
@@ -879,10 +945,14 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "mockery"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
-          "${cache_dir}/vpython"
+          "cache/vpython"
         ]
       },
       "extra_tags": {
@@ -1198,8 +1268,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1248,6 +1323,11 @@
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
         {
+          "name": "infra/tools/luci/vpython-native/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
@@ -1260,7 +1340,7 @@
         {
           "name": "skia/bots/gcloud_linux",
           "path": "gcloud_linux",
-          "version": "version:14"
+          "version": "version:15"
         },
         {
           "name": "skia/bots/go",
@@ -1284,7 +1364,7 @@
         }
       ],
       "command": [
-        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
         "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
@@ -1307,10 +1387,14 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "mockery"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
-          "${cache_dir}/vpython"
+          "cache/vpython"
         ]
       },
       "extra_tags": {
@@ -1337,8 +1421,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1372,6 +1461,11 @@
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
         {
+          "name": "infra/tools/luci/vpython-native/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
@@ -1388,7 +1482,7 @@
         }
       ],
       "command": [
-        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
         "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
@@ -1410,10 +1504,14 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
-          "${cache_dir}/vpython"
+          "cache/vpython"
         ]
       },
       "extra_tags": {
@@ -1440,8 +1538,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1475,6 +1578,11 @@
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
         {
+          "name": "infra/tools/luci/vpython-native/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
@@ -1496,7 +1604,7 @@
         }
       ],
       "command": [
-        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
         "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
@@ -1518,10 +1626,14 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
-          "${cache_dir}/vpython"
+          "cache/vpython"
         ]
       },
       "execution_timeout_ns": 3600000000000,
@@ -1640,8 +1752,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1690,6 +1807,11 @@
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
         {
+          "name": "infra/tools/luci/vpython-native/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
@@ -1702,7 +1824,7 @@
         {
           "name": "skia/bots/gcloud_linux",
           "path": "gcloud_linux",
-          "version": "version:14"
+          "version": "version:15"
         },
         {
           "name": "skia/bots/go",
@@ -1716,7 +1838,7 @@
         }
       ],
       "command": [
-        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
         "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
@@ -1738,10 +1860,14 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
-          "${cache_dir}/vpython"
+          "cache/vpython"
         ]
       },
       "extra_tags": {
@@ -1769,8 +1895,13 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1804,6 +1935,11 @@
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
         {
+          "name": "infra/tools/luci/vpython-native/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
@@ -1820,7 +1956,7 @@
         }
       ],
       "command": [
-        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
         "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
@@ -1842,10 +1978,14 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
-          "${cache_dir}/vpython"
+          "cache/vpython"
         ]
       },
       "extra_tags": {
@@ -1868,8 +2008,13 @@
       "casSpec": "empty",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -1903,6 +2048,11 @@
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
         {
+          "name": "infra/tools/luci/vpython-native/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
@@ -1920,7 +2070,7 @@
         {
           "name": "skia/bots/gcloud_linux",
           "path": "gcloud_linux",
-          "version": "version:14"
+          "version": "version:15"
         },
         {
           "name": "skia/bots/go",
@@ -1967,6 +2117,10 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "go/go/bin",
           "bazel/bin",
           "cockroachdb",
@@ -1989,8 +2143,13 @@
       "casSpec": "empty",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.37"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
-          "path": "cipd_bin_packages",
+          "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.9.5.chromium.17"
         },
         {
@@ -2024,6 +2183,11 @@
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
         },
         {
+          "name": "infra/tools/luci/vpython-native/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
+        },
+        {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db"
@@ -2041,7 +2205,7 @@
         {
           "name": "skia/bots/gcloud_linux",
           "path": "gcloud_linux",
-          "version": "version:14"
+          "version": "version:15"
         },
         {
           "name": "skia/bots/go",
@@ -2096,6 +2260,10 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython",
+          "cipd_bin_packages/cpython/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
           "go/go/bin",
           "bazel/bin",
           "cockroachdb",

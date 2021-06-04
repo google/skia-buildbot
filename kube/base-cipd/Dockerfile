@@ -19,8 +19,8 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y git curl python2-
 USER skia:skia
 COPY ./tmp/recipes.cfg /tmp/recipes.cfg
 RUN cat /tmp/recipes.cfg | \
-    python2 -c "import json; import sys; print json.load(sys.stdin)['deps']['depot_tools']['revision']" > \
-    /tmp/depot_tools_rev \
+  python2 -c "import json; import sys; print json.load(sys.stdin)['deps']['depot_tools']['revision']" > \
+  /tmp/depot_tools_rev \
   && cd $(mktemp -d) \
   && git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git \
   && cd depot_tools \
@@ -50,4 +50,4 @@ FROM base AS base-cipd
 ARG CIPD_ROOT
 ENV CIPD_ROOT=$CIPD_ROOT
 COPY --from=install_pkgs ${CIPD_ROOT} ${CIPD_ROOT}
-ENV PATH="${CIPD_ROOT}:${CIPD_ROOT}/cipd_bin_packages:${CIPD_ROOT}/cipd_bin_packages/bin:${PATH}"
+ENV PATH="${CIPD_ROOT}:${CIPD_ROOT}/cipd_bin_packages:${CIPD_ROOT}/cipd_bin_packages/bin:${CIPD_ROOT}/cipd_bin_packages/cpython:${CIPD_ROOT}/cipd_bin_packages/cpython/bin:${CIPD_ROOT}/cipd_bin_packages/cpython3:${CIPD_ROOT}/cipd_bin_packages/cpython3/bin:${PATH}"

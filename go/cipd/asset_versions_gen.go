@@ -4,52 +4,52 @@ package cipd
 
 var PACKAGES = map[string]*Package{
 	"infra/3pp/tools/cpython/linux-amd64": {
-		Path:    "cipd_bin_packages",
+		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/linux-amd64",
 		Version: "version:2@2.7.18.chromium.37",
 	},
 	"infra/3pp/tools/cpython/linux-arm64": {
-		Path:    "cipd_bin_packages",
+		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/linux-arm64",
 		Version: "version:2@2.7.18.chromium.37",
 	},
 	"infra/3pp/tools/cpython/mac-amd64": {
-		Path:    "cipd_bin_packages",
+		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/mac-amd64",
 		Version: "version:2@2.7.18.chromium.37",
 	},
 	"infra/3pp/tools/cpython/windows-386": {
-		Path:    "cipd_bin_packages",
+		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/windows-386",
 		Version: "version:2@2.7.18.chromium.37",
 	},
 	"infra/3pp/tools/cpython/windows-amd64": {
-		Path:    "cipd_bin_packages",
+		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/windows-amd64",
 		Version: "version:2@2.7.18.chromium.37",
 	},
 	"infra/3pp/tools/cpython3/linux-amd64": {
-		Path:    "cipd_bin_packages",
+		Path:    "cipd_bin_packages/cpython3",
 		Name:    "infra/3pp/tools/cpython3/linux-amd64",
 		Version: "version:2@3.9.5.chromium.17",
 	},
 	"infra/3pp/tools/cpython3/linux-arm64": {
-		Path:    "cipd_bin_packages",
+		Path:    "cipd_bin_packages/cpython3",
 		Name:    "infra/3pp/tools/cpython3/linux-arm64",
 		Version: "version:2@3.9.5.chromium.17",
 	},
 	"infra/3pp/tools/cpython3/mac-amd64": {
-		Path:    "cipd_bin_packages",
+		Path:    "cipd_bin_packages/cpython3",
 		Name:    "infra/3pp/tools/cpython3/mac-amd64",
 		Version: "version:2@3.9.5.chromium.17",
 	},
 	"infra/3pp/tools/cpython3/windows-386": {
-		Path:    "cipd_bin_packages",
+		Path:    "cipd_bin_packages/cpython3",
 		Name:    "infra/3pp/tools/cpython3/windows-386",
 		Version: "version:2@3.9.5.chromium.17",
 	},
 	"infra/3pp/tools/cpython3/windows-amd64": {
-		Path:    "cipd_bin_packages",
+		Path:    "cipd_bin_packages/cpython3",
 		Name:    "infra/3pp/tools/cpython3/windows-amd64",
 		Version: "version:2@3.9.5.chromium.17",
 	},
@@ -128,6 +128,11 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/tools/luci/swarming/${platform}",
 		Version: "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db",
 	},
+	"infra/tools/luci/vpython-native/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/tools/luci/vpython-native/${platform}",
+		Version: "git_revision:7317931d94ebd2a6007d5c734155397cf7efb1db",
+	},
 	"infra/tools/luci/vpython/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/vpython/${platform}",
@@ -146,7 +151,7 @@ var PACKAGES = map[string]*Package{
 	"skia/bots/gcloud_linux": {
 		Path:    "gcloud_linux",
 		Name:    "skia/bots/gcloud_linux",
-		Version: "version:14",
+		Version: "version:15",
 	},
 	"skia/bots/go": {
 		Path:    "go",
