@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/jsonio"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/web/frontend"
 )
@@ -98,7 +97,7 @@ func (r *resultState) loadKnownHashes(ctx context.Context) error {
 	r.KnownHashes = types.DigestSet{}
 
 	// Fetch the known hashes via http
-	hashesURL := r.GoldURL + shared.KnownHashesRouteV1
+	hashesURL := r.GoldURL + frontend.KnownHashesRouteV1
 	body, err := getWithRetries(ctx, hashesURL)
 	if err != nil {
 		return skerr.Wrapf(err, "getting known hashes from %s (with retries)", hashesURL)
@@ -120,7 +119,7 @@ func (r *resultState) loadKnownHashes(ctx context.Context) error {
 
 // loadExpectations fetches the expectations from Gold to compare to tests.
 func (r *resultState) loadExpectations(ctx context.Context) error {
-	urlPath := shared.ExpectationsRouteV2
+	urlPath := frontend.ExpectationsRouteV2
 	if r.SharedConfig.ChangelistID != "" {
 		urlPath = fmt.Sprintf("%s?issue=%s&crs=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangelistID), url.QueryEscape(r.SharedConfig.CodeReviewSystem))
 	}

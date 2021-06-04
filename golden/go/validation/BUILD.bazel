@@ -6,6 +6,7 @@ go_library(
     srcs = ["validation.go"],
     importpath = "go.skia.org/infra/golden/go/validation",
     visibility = ["//visibility:public"],
+    deps = ["//go/util"],
 )
 
 go_test(

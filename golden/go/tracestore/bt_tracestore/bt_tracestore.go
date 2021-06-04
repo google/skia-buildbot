@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	"go.opencensus.io/trace"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/codes"
 
@@ -103,7 +104,8 @@ func New(ctx context.Context, conf BTConfig, cache bool) (*BTTraceStore, error) 
 
 // Put implements the TraceStore interface.
 func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tracestore.Entry, ts time.Time) error {
-	defer metrics2.FuncTimer().Stop()
+	ctx, span := trace.StartSpan(ctx, "bttracestore_Put")
+	defer span.End()
 	// if there are no entries this becomes a no-op.
 	if len(entries) == 0 {
 		return nil
@@ -365,9 +367,9 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 				paramSet.AddParams(params)
 				paramSet.AddParams(options[idx][pair.ID])
 			}
-			trace := tileTraces[traceKey]
+			tr := tileTraces[traceKey]
 			digests := pair.Digests[startOffset : startOffset+segLen]
-			copy(trace.Digests[traceIdx:traceIdx+segLen], digests)
+			copy(tr.Digests[traceIdx:traceIdx+segLen], digests)
 		}
 	}
 
