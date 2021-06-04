@@ -60,6 +60,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a9b99782_787c77fd",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-04T18:21:22Z",
+      "side": 1,
+      "message": "bot_config already does this, keeping the machine.Description up to date with the state of the machine. I\u0027ve added comments to explain how LastUpdated is used.",
+      "parentUuid": "1905ba91_178b79d3",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 12
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4355d6f1_c4c31bc4",
         "filename": "machine/go/switchboard/switchboard.go",
         "patchSetId": 2
@@ -71,6 +95,30 @@
       "writtenOn": "2021-06-04T14:58:19Z",
       "side": 1,
       "message": "nit: All these functions should take a context.Context as the first arg.",
+      "range": {
+        "startLine": 34,
+        "startChar": 17,
+        "endLine": 34,
+        "endChar": 26
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e3d2521f_d9d3ecb6",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-04T18:21:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4355d6f1_c4c31bc4",
       "range": {
         "startLine": 34,
         "startChar": 17,
@@ -94,6 +142,30 @@
       "writtenOn": "2021-06-04T14:58:19Z",
       "side": 1,
       "message": "Suggestion: Move ReserveMeetingPoint and KeepAliveMeetingPoint to an interface LegacySwarmingSupport that Switchboard embeds. That way we can be clear which of these functions are not for the long term.",
+      "range": {
+        "startLine": 43,
+        "startChar": 1,
+        "endLine": 43,
+        "endChar": 20
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1609c0cb_20e5cc4d",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-04T18:21:22Z",
+      "side": 1,
+      "message": "All of these functions are for the long term, as bot_config is the shim that we\u0027ll use to replace swarming.",
+      "parentUuid": "b383a567_8fb0c7f4",
       "range": {
         "startLine": 43,
         "startChar": 1,
@@ -150,6 +222,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4d4f1bf7_f485ff57",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-04T18:21:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "355048eb_f5a771c0",
+      "range": {
+        "startLine": 62,
+        "startChar": 22,
+        "endLine": 62,
+        "endChar": 23
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e0866eba_bd4bd11c",
@@ -163,6 +259,30 @@
       "writtenOn": "2021-06-04T14:58:19Z",
       "side": 1,
       "message": "Do machines with bot_config need something similar? As a way to gracefully remove themselves from the switchboard pool?",
+      "range": {
+        "startLine": 66,
+        "startChar": 1,
+        "endLine": 66,
+        "endChar": 10
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6d267c2c_866bfe2c",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-04T18:21:22Z",
+      "side": 1,
+      "message": "That is ClearMeetingPoint. I\u0027ve expanded the text on ClearMeetingPoint.",
+      "parentUuid": "e0866eba_bd4bd11c",
       "range": {
         "startLine": 66,
         "startChar": 1,
@@ -196,6 +316,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b1bf47ab_6bfba357",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-04T18:21:22Z",
+      "side": 1,
+      "message": "Just for UI. Added prose to that effect.",
+      "parentUuid": "de0d9b30_38dd12dc",
+      "range": {
+        "startLine": 69,
+        "startChar": 1,
+        "endLine": 69,
+        "endChar": 9
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ca4b587a_ce06b942",
@@ -209,6 +353,30 @@
       "writtenOn": "2021-06-04T14:58:19Z",
       "side": 1,
       "message": "Is this just for the switchboard UI?",
+      "range": {
+        "startLine": 72,
+        "startChar": 1,
+        "endLine": 72,
+        "endChar": 18
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "78e35207_31c91da6",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-04T18:21:22Z",
+      "side": 1,
+      "message": "Just for UI. Added prose to that effect.",
+      "parentUuid": "ca4b587a_ce06b942",
       "range": {
         "startLine": 72,
         "startChar": 1,
