@@ -16,6 +16,207 @@
       "message": "Before I started on the implementation I wanted to get your eyes on this before your vacation.\n\nSee also http://go/switchboard-interaction-diagram. The actual Design Doc is WIP.",
       "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "38a13b4c_e23a445f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T14:58:19Z",
+      "side": 1,
+      "message": "Several questions and a few suggestions. Hopefully more suggestions to follow.",
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1905ba91_178b79d3",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T14:58:19Z",
+      "side": 1,
+      "message": "This appears to only be set by machines running bot_config. It\u0027s not clear to me who or how this is used. Should pods running in the skolo set this periodically too? Is it the task of switchboard or machines.skia.org or both to care about/know about dead machines?\n\nMaybe we should have bot_config machines tell their liveness to machines instead, so that can be the service that knows about machine uptime, task business, etc.",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 12
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4355d6f1_c4c31bc4",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T14:58:19Z",
+      "side": 1,
+      "message": "nit: All these functions should take a context.Context as the first arg.",
+      "range": {
+        "startLine": 34,
+        "startChar": 17,
+        "endLine": 34,
+        "endChar": 26
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b383a567_8fb0c7f4",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T14:58:19Z",
+      "side": 1,
+      "message": "Suggestion: Move ReserveMeetingPoint and KeepAliveMeetingPoint to an interface LegacySwarmingSupport that Switchboard embeds. That way we can be clear which of these functions are not for the long term.",
+      "range": {
+        "startLine": 43,
+        "startChar": 1,
+        "endLine": 43,
+        "endChar": 20
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "355048eb_f5a771c0",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T14:58:19Z",
+      "side": 1,
+      "message": "nit: AddPod and RemovePod should return at least an error",
+      "range": {
+        "startLine": 62,
+        "startChar": 22,
+        "endLine": 62,
+        "endChar": 23
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b00a2865_b7d0abc6",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T14:58:19Z",
+      "side": 1,
+      "message": "How does switchboard make a mapping between machineID and podName? I think the pod including that information here in AddPod would be the cleanest (and avoid a dependency cycle between switchboard and machines)",
+      "range": {
+        "startLine": 62,
+        "startChar": 1,
+        "endLine": 62,
+        "endChar": 7
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e0866eba_bd4bd11c",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T14:58:19Z",
+      "side": 1,
+      "message": "Do machines with bot_config need something similar? As a way to gracefully remove themselves from the switchboard pool?",
+      "range": {
+        "startLine": 66,
+        "startChar": 1,
+        "endLine": 66,
+        "endChar": 10
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "de0d9b30_38dd12dc",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T14:58:19Z",
+      "side": 1,
+      "message": "Who would call this? From the diagram, I\u0027m not sure if task scheduler or machines would call this. Is it just for the UI?",
+      "range": {
+        "startLine": 69,
+        "startChar": 1,
+        "endLine": 69,
+        "endChar": 9
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ca4b587a_ce06b942",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T14:58:19Z",
+      "side": 1,
+      "message": "Is this just for the switchboard UI?",
+      "range": {
+        "startLine": 72,
+        "startChar": 1,
+        "endLine": 72,
+        "endChar": 18
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
