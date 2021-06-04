@@ -17,7 +17,7 @@ tmp="$(mktemp -d)"
 touch ${tmp}/cipd.ensure
 while IFS="" read -r line || [ -n "$line" ]
 do
-  if [[ ! "$line" =~ arm64|windows|mac ]]; then
+  if [[ ! "$line" =~ arm64|armv6l|windows|mac ]]; then
     echo "$line" >> ${tmp}/cipd.ensure
   fi
 done < ../cipd.ensure
