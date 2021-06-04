@@ -2,9 +2,12 @@
 package paramsets
 
 import (
+	"context"
+
+	"go.opencensus.io/trace"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/digest_counter"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -57,7 +60,8 @@ func byTestForTile(tile *tiling.Tile, digestCountsByTrace map[tiling.TraceID]dig
 
 // NewParamSummary creates a new ParamSummaryImpl.
 func NewParamSummary(tile *tiling.Tile, dCounter digest_counter.DigestCounter) *ParamSummaryImpl {
-	defer shared.NewMetricsTimer("param_summary_calculate").Stop()
+	_, span := trace.StartSpan(context.TODO(), "param_summary_calculate")
+	defer span.End()
 	p := &ParamSummaryImpl{
 		byTest: byTestForTile(tile, dCounter.ByTrace()),
 	}
