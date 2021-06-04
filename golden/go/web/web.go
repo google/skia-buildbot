@@ -34,7 +34,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
@@ -44,6 +43,7 @@ import (
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search2"
 	"go.skia.org/infra/golden/go/sql"
+	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tilesource"
@@ -85,13 +85,12 @@ type validateFields int
 const (
 	// FullFrontEnd means all fields should be set
 	FullFrontEnd validateFields = iota
-	// BaselineSubset means just the fields needed for Baseline Server should be set.
+	// BaselineSubset means just the fields needed for BaselineV2Response Server should be set.
 	BaselineSubset
 )
 
 // HandlersConfig holds the environment needed by the various http handler functions.
 type HandlersConfig struct {
-	Baseliner         baseline.BaselineFetcher
 	DB                *pgxpool.Pool
 	ExpectationsStore expectations.Store
 	GCSClient         storage.GCSClient
@@ -123,7 +122,7 @@ type Handlers struct {
 // NewHandlers returns a new instance of Handlers.
 func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 	// These fields are required by all types.
-	if conf.Baseliner == nil {
+	if conf.DB == nil {
 		return nil, skerr.Fmt("Baseliner cannot be nil")
 	}
 	if len(conf.ReviewSystems) == 0 {
@@ -134,9 +133,6 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 	}
 
 	if val == FullFrontEnd {
-		if conf.DB == nil {
-			return nil, skerr.Fmt("DB cannot be nil")
-		}
 		if conf.ExpectationsStore == nil {
 			return nil, skerr.Fmt("ExpectationsStore cannot be nil")
 		}
@@ -1576,7 +1572,8 @@ func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request)
 // the master baseline and the baseline defined for the changelist (usually
 // based on tryjob results).
 func (wh *Handlers) BaselineHandlerV2(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
+	ctx, span := trace.StartSpan(r.Context(), "frontend_BaselineHandlerV2")
+	defer span.End()
 	// No limit for anon users - this is an endpoint backed up by baseline servers, and
 	// should be able to handle a large load.
 
@@ -1593,13 +1590,87 @@ func (wh *Handlers) BaselineHandlerV2(w http.ResponseWriter, r *http.Request) {
 		crs = ""
 	}
 
-	bl, err := wh.Baseliner.FetchBaseline(r.Context(), clID, crs)
+	bl, err := wh.fetchBaseline(ctx, crs, clID)
 	if err != nil {
-		httputils.ReportError(w, err, "Fetching baselines failed.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Fetching baseline failed.", http.StatusInternalServerError)
 		return
 	}
 
 	sendJSONResponse(w, bl)
+}
+
+// fetchBaseline returns an object that contains all the positive and negatively triaged digests
+// for either the primary branch or the primary branch and the CL. As per usual, the triage status
+// on a CL overrides the triage status on the primary branch.
+func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) (frontend.BaselineV2Response, error) {
+	ctx, span := trace.StartSpan(ctx, "fetchBaseline")
+	defer span.End()
+
+	statement := `WITH
+PrimaryBranchExps AS (
+	SELECT grouping_id, digest, label FROM Expectations
+	WHERE label = 'n' OR label = 'p'
+)`
+	var args []interface{}
+	if crs == "" {
+		span.AddAttributes(trace.StringAttribute("type", "primary"))
+		statement += `
+SELECT Groupings.keys ->> 'name', encode(digest, 'hex'), label FROM PrimaryBranchExps
+JOIN Groupings ON PrimaryBranchExps.grouping_id = Groupings.grouping_id`
+	} else {
+		span.AddAttributes(trace.StringAttribute("type", "changelist"))
+		qCLID := sql.Qualify(crs, clID)
+		row := wh.DB.QueryRow(ctx, `SELECT changelist_id FROM Changelists WHERE
+changelist_id = $1 AND system = $2`, qCLID, crs)
+		var c string
+		if err := row.Scan(&c); err != nil {
+			return frontend.BaselineV2Response{}, skerr.Wrapf(err, "could not verify CL %q in system %q", crs, clID)
+		}
+
+		statement += `,
+CLExps AS (
+	SELECT grouping_id, digest, label FROM SecondaryBranchExpectations
+	WHERE branch_name = $1
+),
+JoinedExps AS (
+	SELECT COALESCE(CLExps.grouping_id, PrimaryBranchExps.grouping_id) as grouping_id,
+		COALESCE(CLExps.digest, PrimaryBranchExps.digest) as digest,
+		COALESCE(CLExps.label, PrimaryBranchExps.label, 'u') as label
+    FROM CLExps FULL OUTER JOIN PrimaryBranchExps ON
+		CLExps.grouping_id = PrimaryBranchExps.grouping_id
+		AND CLExps.digest = PrimaryBranchExps.digest
+)
+SELECT Groupings.keys ->> 'name', encode(digest, 'hex'), label FROM JoinedExps
+JOIN Groupings ON JoinedExps.grouping_id = Groupings.grouping_id
+WHERE label = 'n' OR label = 'p'`
+		args = append(args, qCLID)
+	}
+	rows, err := wh.DB.Query(ctx, statement, args...)
+	if err != nil {
+		return frontend.BaselineV2Response{}, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	baseline := expectations.Baseline{}
+	for rows.Next() {
+		var testName types.TestName
+		var digest types.Digest
+		var label schema.ExpectationLabel
+		if err := rows.Scan(&testName, &digest, &label); err != nil {
+			return frontend.BaselineV2Response{}, skerr.Wrap(err)
+		}
+		byDigest, ok := baseline[testName]
+		if !ok {
+			byDigest = map[types.Digest]expectations.Label{}
+			baseline[testName] = byDigest
+		}
+		byDigest[digest] = label.ToExpectation()
+	}
+
+	return frontend.BaselineV2Response{
+		CodeReviewSystem: crs,
+		ChangelistID:     clID,
+		Expectations:     baseline,
+	}, nil
 }
 
 // MakeResourceHandler creates a static file handler that sets a caching policy.
