@@ -76,7 +76,6 @@ go_test(
         "//golden/go/search/mocks",
         "//golden/go/search2",
         "//golden/go/search2/mocks",
-        "//golden/go/shared",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/sqltest",
         "//golden/go/testutils/data_bug_revert",

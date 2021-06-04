@@ -52,7 +52,6 @@ import (
 	"go.skia.org/infra/golden/go/publicparams"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/search2"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
@@ -62,6 +61,7 @@ import (
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/tracing"
 	"go.skia.org/infra/golden/go/web"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 const (
@@ -763,11 +763,11 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 
 	// Routes shared with the baseline server. These usually don't see traffic because the envoy
 	// routing directs these requests to the baseline servers, if there are some.
-	add(shared.KnownHashesRoute, handlers.TextKnownHashesProxy, "GET")
-	add(shared.KnownHashesRouteV1, handlers.TextKnownHashesProxy, "GET")
+	add(frontend.KnownHashesRoute, handlers.TextKnownHashesProxy, "GET")
+	add(frontend.KnownHashesRouteV1, handlers.TextKnownHashesProxy, "GET")
 	// Retrieving a baseline for the primary branch and a Gerrit issue are handled the same way.
 	// These routes can be served with baseline_server for higher availability.
-	add(shared.ExpectationsRouteV2, handlers.BaselineHandlerV2, "GET")
+	add(frontend.ExpectationsRouteV2, handlers.BaselineHandlerV2, "GET")
 
 	// Only expose these endpoints if this instance is not a public view. The reason we want to hide
 	// ignore rules is so that we don't leak params that might be in them.

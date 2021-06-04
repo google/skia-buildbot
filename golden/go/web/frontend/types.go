@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/validation"
+
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -17,7 +19,6 @@ import (
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/ignore"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -36,6 +37,18 @@ const (
 	NoRef = RefClosest("")
 
 	urlPlaceholder = "%s"
+)
+
+// Define common routes used by multiple servers and goldctl
+const (
+	// ExpectationsRouteV2 serves the expectations of the master branch. If a changelist ID is
+	// provided via the "issue" GET parameter, the expectations associated with that CL will be
+	// merged onto the returned baseline.
+	ExpectationsRouteV2 = "/json/v2/expectations"
+
+	// KnownHashesRoute serves the list of known hashes.
+	KnownHashesRoute   = "/json/hashes"
+	KnownHashesRouteV1 = "/json/v1/hashes"
 )
 
 // Changelist encapsulates how the frontend expects to get information
@@ -359,7 +372,7 @@ func ParseListTestsQuery(r *http.Request) (ListTestsQuery, error) {
 		ltq.IgnoreState = types.ExcludeIgnoredTraces
 	}
 
-	validate := shared.Validation{}
+	validate := validation.Validation{}
 	ltq.TraceValues = validate.QueryFormValue(r, "trace_values")
 
 	if err := validate.Errors(); err != nil {

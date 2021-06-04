@@ -32,7 +32,6 @@ go_library(
         "//golden/go/continuous_integration/simple_cis",
         "//golden/go/ingestion",
         "//golden/go/jsonio",
-        "//golden/go/shared",
         "//golden/go/sql",
         "//golden/go/sql/schema",
         "//golden/go/tracestore",

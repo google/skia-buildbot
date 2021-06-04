@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/jsonio"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/types"
@@ -108,8 +107,6 @@ func (b *btProcessor) Process(ctx context.Context, fileName string) error {
 		// Probably invalid, don't retry
 		return skerr.Wrapf(err, "could not create entries")
 	}
-
-	defer shared.NewMetricsTimer("put_tracestore_entry").Stop()
 
 	sklog.Debugf("Ingested %d entries to commit %s from file %s", len(entries), targetHash, fileName)
 	// Write the result to the tracestore.

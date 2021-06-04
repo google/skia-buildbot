@@ -14,8 +14,8 @@ go_library(
         "//go/skerr",
         "//go/util",
         "//golden/go/expectations",
-        "//golden/go/shared",
         "//golden/go/types",
+        "//golden/go/validation",
     ],
 )
 

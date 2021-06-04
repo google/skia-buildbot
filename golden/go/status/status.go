@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
@@ -202,7 +202,8 @@ func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 
 func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTile) error {
 	defer s.updateLastCommitAge()
-	defer shared.NewMetricsTimer("calculate_status").Stop()
+	ctx, span := trace.StartSpan(ctx, "calculate_status")
+	defer span.End()
 
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
@@ -223,13 +224,13 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 		return nil
 	}
 	tileLen := dataTile.LastCommitIndex() + 1
-	for _, trace := range dataTile.Traces {
+	for _, tr := range dataTile.Traces {
 		if err := ctx.Err(); err != nil {
 			return skerr.Wrap(err)
 		}
 
 		idx := tileLen - 1
-		for (idx >= 0) && (trace.Digests[idx] == tiling.MissingDigest) {
+		for (idx >= 0) && (tr.Digests[idx] == tiling.MissingDigest) {
 			idx--
 		}
 
@@ -239,7 +240,7 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 		}
 
 		// If this corpus doesn't exist yet, we initialize it.
-		corpus := trace.Corpus()
+		corpus := tr.Corpus()
 		if _, ok := byCorpus[corpus]; !ok {
 			okByCorpus[corpus] = true
 			byCorpus[corpus] = map[expectations.Label]map[string]bool{
@@ -258,8 +259,8 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 		}
 
 		// Account for the corpus and testname.
-		digest := trace.Digests[idx]
-		testName := trace.TestName()
+		digest := tr.Digests[idx]
+		testName := tr.TestName()
 		status := exp.Classification(testName, digest)
 
 		okByCorpus[corpus] = okByCorpus[corpus] &&

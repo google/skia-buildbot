@@ -12,11 +12,11 @@ go_library(
         "//go/sklog",
         "//go/vcsinfo",
         "//golden/go/expectations",
-        "//golden/go/shared",
         "//golden/go/tilesource",
         "//golden/go/tiling",
         "//golden/go/types",
         "//golden/go/web/frontend",
+        "@io_opencensus_go//trace",
     ],
 )
 

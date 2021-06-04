@@ -23,10 +23,10 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/config"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/web"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 const (
@@ -145,10 +145,10 @@ func main() {
 	}
 
 	// Serve the known hashes from GCS.
-	v0(shared.KnownHashesRoute, handlers.TextKnownHashesProxy).Methods("GET")
-	v1(shared.KnownHashesRouteV1, handlers.TextKnownHashesProxy).Methods("GET")
+	v0(frontend.KnownHashesRoute, handlers.TextKnownHashesProxy).Methods("GET")
+	v1(frontend.KnownHashesRouteV1, handlers.TextKnownHashesProxy).Methods("GET")
 	// Serve the expectations for the master branch and for CLs in progress.
-	v2(shared.ExpectationsRouteV2, handlers.BaselineHandlerV2).Methods("GET")
+	v2(frontend.ExpectationsRouteV2, handlers.BaselineHandlerV2).Methods("GET")
 
 	// Only log and compress the app routes, but not the health check.
 	router := mux.NewRouter()
