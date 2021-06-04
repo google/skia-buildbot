@@ -10,7 +10,6 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "//golden/go/expectations",
         "//golden/go/fs_utils",
         "//golden/go/sql",
         "//golden/go/sql/schema",
