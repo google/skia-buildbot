@@ -34,6 +34,7 @@ const (
 	// Platforms supported by CIPD.
 	PlatformLinuxAmd64   = "linux-amd64"
 	PlatformLinuxArm64   = "linux-arm64"
+	PlatformLinuxArmv6l  = "linux-armv6l"
 	PlatformMacAmd64     = "mac-amd64"
 	PlatformWindows386   = "windows-386"
 	PlatformWindowsAmd64 = "windows-amd64"
@@ -71,6 +72,11 @@ var (
 			MustGetPackage("infra/tools/git/${platform}"),
 			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
 		},
+		PlatformLinuxArmv6l: {
+			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformLinuxArmv6l)),
+			MustGetPackage("infra/tools/git/${platform}"),
+			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
+		},
 		PlatformMacAmd64: {
 			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformMacAmd64)),
 			MustGetPackage("infra/tools/git/${platform}"),
@@ -99,6 +105,12 @@ var (
 		PlatformLinuxArm64: {
 			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformLinuxArm64)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformLinuxArm64)),
+			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+			MustGetPackage("infra/tools/luci/vpython-native/${platform}"),
+		},
+		PlatformLinuxArmv6l: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformLinuxArmv6l)),
+			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformLinuxArmv6l)),
 			MustGetPackage("infra/tools/luci/vpython/${platform}"),
 			MustGetPackage("infra/tools/luci/vpython-native/${platform}"),
 		},
