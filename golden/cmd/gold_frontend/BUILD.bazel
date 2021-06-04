@@ -19,7 +19,6 @@ go_library(
         "//go/sklog",
         "//go/vcsinfo",
         "//go/vcsinfo/bt_vcs",
-        "//golden/go/baseline/simple_baseliner",
         "//golden/go/clstore",
         "//golden/go/clstore/sqlclstore",
         "//golden/go/code_review",

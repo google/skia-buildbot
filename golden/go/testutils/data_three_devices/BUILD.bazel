@@ -6,8 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/testutils/data_three_devices",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/util",
-        "//golden/go/baseline",
         "//golden/go/expectations",
         "//golden/go/tiling",
         "//golden/go/types",
