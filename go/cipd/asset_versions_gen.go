@@ -13,6 +13,11 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/3pp/tools/cpython/linux-arm64",
 		Version: "version:2@2.7.18.chromium.37",
 	},
+	"infra/3pp/tools/cpython/linux-armv6l": {
+		Path:    "cipd_bin_packages/cpython",
+		Name:    "infra/3pp/tools/cpython/linux-armv6l",
+		Version: "version:2@2.7.18.chromium.37",
+	},
 	"infra/3pp/tools/cpython/mac-amd64": {
 		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/mac-amd64",
@@ -38,6 +43,11 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/3pp/tools/cpython3/linux-arm64",
 		Version: "version:2@3.9.5.chromium.17",
 	},
+	"infra/3pp/tools/cpython3/linux-armv6l": {
+		Path:    "cipd_bin_packages/cpython3",
+		Name:    "infra/3pp/tools/cpython3/linux-armv6l",
+		Version: "version:2@3.9.5.chromium.17",
+	},
 	"infra/3pp/tools/cpython3/mac-amd64": {
 		Path:    "cipd_bin_packages/cpython3",
 		Name:    "infra/3pp/tools/cpython3/mac-amd64",
@@ -61,6 +71,11 @@ var PACKAGES = map[string]*Package{
 	"infra/3pp/tools/git/linux-arm64": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/linux-arm64",
+		Version: "version:2@2.32.0-rc2.chromium.6",
+	},
+	"infra/3pp/tools/git/linux-armv6l": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/3pp/tools/git/linux-armv6l",
 		Version: "version:2@2.32.0-rc2.chromium.6",
 	},
 	"infra/3pp/tools/git/mac-amd64": {
