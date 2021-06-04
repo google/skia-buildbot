@@ -22,6 +22,30 @@
       },
       "revId": "03dcaff8243da959c8f8b206d118175c5f914b19",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a531d965_323be8af",
+        "filename": "machine/go/switchboard/mocks/Switchboard.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-04T20:29:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "96f8fe13_fd32b239",
+      "range": {
+        "startLine": 16,
+        "startChar": 23,
+        "endLine": 16,
+        "endChar": 29
+      },
+      "revId": "03dcaff8243da959c8f8b206d118175c5f914b19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
