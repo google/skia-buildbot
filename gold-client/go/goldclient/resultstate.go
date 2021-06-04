@@ -9,10 +9,11 @@ import (
 	"net/url"
 	"regexp"
 
+	"go.skia.org/infra/golden/go/web/frontend"
+
 	"go.skia.org/infra/go/now"
 
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
@@ -132,7 +133,7 @@ func (r *resultState) loadExpectations(ctx context.Context) error {
 		return skerr.Wrapf(err, "getting expectations from %s (with retries)", u)
 	}
 
-	exp := &baseline.Baseline{}
+	exp := &frontend.BaselineV2Response{}
 
 	if err := json.Unmarshal(jsonBytes, exp); err != nil {
 		infof(ctx, "Fetched from %s\n", u)
