@@ -45,7 +45,6 @@ import (
 	mock_search "go.skia.org/infra/golden/go/search/mocks"
 	"go.skia.org/infra/golden/go/search2"
 	mock_search2 "go.skia.org/infra/golden/go/search2/mocks"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
@@ -1486,7 +1485,7 @@ func TestBaselineHandlerV2_PrimaryBranch_Success(t *testing.T) {
 		},
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, shared.ExpectationsRouteV2, nil)
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2, nil)
 
 	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b01b01b01b01b01b01b01b01b01b01b0":"positive","b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}}}`
 
@@ -1512,7 +1511,7 @@ func TestBaselineHandlerV2_ValidChangelist_Success(t *testing.T) {
 		},
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, shared.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=gerrit", nil)
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=gerrit", nil)
 
 	// Note that DigestC06Pos_CL is here, but DigestC07Unt_CL is not because the latter is
 	// untriaged (and thus omitted from the baseline).
@@ -1543,7 +1542,7 @@ func TestBaselineHandlerV2_ValidChangelistWithNewTests_Success(t *testing.T) {
 		},
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, shared.ExpectationsRouteV2+"?issue=CL_new_tests&crs=gerrit-internal", nil)
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_new_tests&crs=gerrit-internal", nil)
 
 	// We expect to see data from the Seven Test and RoundRect Test.
 	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive"},"round rect":{"e01e01e01e01e01e01e01e01e01e01e0":"positive","e02e02e02e02e02e02e02e02e02e02e0":"positive"},"seven":{"d01d01d01d01d01d01d01d01d01d01d0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b01b01b01b01b01b01b01b01b01b01b0":"positive","b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}},"cl_id":"CL_new_tests","crs":"gerrit-internal"}`
@@ -1570,7 +1569,7 @@ func TestBaselineHandlerV2_InvalidCRS_ReturnsError(t *testing.T) {
 		},
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, shared.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=wrong", nil)
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=CL_fix_ios&crs=wrong", nil)
 
 	wh.BaselineHandlerV2(w, r)
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
@@ -1595,7 +1594,7 @@ func TestBaselineHandlerV2_InvalidCL_ReturnsError(t *testing.T) {
 		},
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, shared.ExpectationsRouteV2+"?issue=InvalidCLID&crs=gerrit", nil)
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=InvalidCLID&crs=gerrit", nil)
 
 	wh.BaselineHandlerV2(w, r)
 	assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)

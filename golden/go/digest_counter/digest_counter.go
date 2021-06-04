@@ -2,8 +2,10 @@
 package digest_counter
 
 import (
+	"context"
+
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -43,9 +45,9 @@ type Counter struct {
 
 // New creates a new Counter object.
 func New(tile *tiling.Tile) *Counter {
-	trace, test, maxCountsByTest := calculate(tile)
+	tr, test, maxCountsByTest := calculate(tile)
 	return &Counter{
-		traceDigestCount: trace,
+		traceDigestCount: tr,
 		testDigestCount:  test,
 		maxCountsByTest:  maxCountsByTest,
 	}
@@ -90,12 +92,13 @@ func countByQuery(tile *tiling.Tile, traceDigestCount map[tiling.TraceID]DigestC
 
 // calculate computes the counts by trace id and test name from the given Tile.
 func calculate(tile *tiling.Tile) (map[tiling.TraceID]DigestCount, map[types.TestName]DigestCount, map[types.TestName]types.DigestSet) {
-	defer shared.NewMetricsTimer("digest_counter_calculate").Stop()
+	_, span := trace.StartSpan(context.TODO(), "digest_counter_calculate")
+	defer span.End()
 	traceDigestCount := map[tiling.TraceID]DigestCount{}
 	testDigestCount := map[types.TestName]DigestCount{}
-	for k, trace := range tile.Traces {
+	for k, tr := range tile.Traces {
 		dCount := DigestCount{}
-		for _, d := range trace.Digests {
+		for _, d := range tr.Digests {
 			if d == tiling.MissingDigest {
 				continue
 			}
@@ -106,7 +109,7 @@ func calculate(tile *tiling.Tile) (map[tiling.TraceID]DigestCount, map[types.Tes
 			}
 		}
 		traceDigestCount[k] = dCount
-		testName := trace.TestName()
+		testName := tr.TestName()
 		if t, ok := testDigestCount[testName]; ok {
 			for digest, n := range dCount {
 				t[digest] += n
