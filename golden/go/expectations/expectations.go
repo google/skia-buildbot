@@ -25,7 +25,7 @@ type Expectations struct {
 	labels map[types.TestName]map[types.Digest]Label
 }
 
-// Baseline is a simplified view of the Expectations, suitable for JSON encoding. A BaselineInt only
+// Baseline is a simplified view of the Expectations, suitable for JSON encoding. A Baseline only
 // has entries with positive and negative labels (i.e. no untriaged entries).
 type Baseline map[types.TestName]map[types.Digest]Label
 

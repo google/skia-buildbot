@@ -28,7 +28,6 @@ import (
 	"go.skia.org/infra/gold-client/go/imagedownloader"
 	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/gold-client/go/mocks"
-	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/tiling"
@@ -919,8 +918,7 @@ func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 	knownResp := strings.Join(r.knownDigests, "\n")
 	mh.On("Get", r.urlBase+"/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
 
-	exp, err := json.Marshal(baseline.Baseline{
-		MD5:          "somemd5",
+	exp, err := json.Marshal(frontend.BaselineV2Response{
 		Expectations: r.exp.AsBaseline(),
 	})
 	if err != nil {
@@ -947,8 +945,7 @@ func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 	knownResp := strings.Join(r.knownDigests, "\n")
 	mh.On("Get", r.urlBase+"/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
 
-	exp, err := json.Marshal(baseline.Baseline{
-		MD5:              "somemd5",
+	exp, err := json.Marshal(frontend.BaselineV2Response{
 		Expectations:     r.exp.AsBaseline(),
 		ChangelistID:     clID,
 		CodeReviewSystem: crs,
@@ -987,7 +984,7 @@ func TestRPCResponsesBuilder_Default_ReturnsBlankValues(t *testing.T) {
 	require.NoError(t, err)
 	b, err = ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
-	assert.Equal(t, `{"md5":"somemd5"}`, string(b))
+	assert.Equal(t, `{}`, string(b))
 }
 
 func TestRPCResponsesBuilder_WithValues_ReturnsValidListsAndJSON(t *testing.T) {
@@ -1015,7 +1012,7 @@ fifth_digest`, string(b))
 	require.NoError(t, err)
 	b, err = ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
-	assert.Equal(t, `{"md5":"somemd5","primary":{"alpha test":{"fourth_digest":"negative","second_digest":"positive"},"beta test":{"third_digest":"positive"}}}`, string(b))
+	assert.Equal(t, `{"primary":{"alpha test":{"fourth_digest":"negative","second_digest":"positive"},"beta test":{"third_digest":"positive"}}}`, string(b))
 
 	resp, err = mh.Get("http://my-custom-url.example.com/json/v1/latestpositivedigest/,alpha=beta,gamma=delta epsilon,")
 	require.NoError(t, err)

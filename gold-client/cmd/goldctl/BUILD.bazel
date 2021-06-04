@@ -58,7 +58,6 @@ go_test(
         "//gold-client/go/imagedownloader",
         "//gold-client/go/imgmatching",
         "//gold-client/go/mocks",
-        "//golden/go/baseline",
         "//golden/go/expectations",
         "//golden/go/jsonio",
         "//golden/go/tiling",

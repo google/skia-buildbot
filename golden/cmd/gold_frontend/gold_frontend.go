@@ -35,7 +35,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
-	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/clstore/sqlclstore"
 	"go.skia.org/infra/golden/go/code_review"
@@ -595,7 +594,6 @@ func mustStartExpectationsCleanupProcess(ctx context.Context, fsc *frontendServe
 // mustMakeWebHandlers returns a new web.Handlers.
 func mustMakeWebHandlers(ctx context.Context, db *pgxpool.Pool, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, s2a search2.API, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
-		Baseliner:         simple_baseliner.New(expStore),
 		DB:                db,
 		ExpectationsStore: expStore,
 		GCSClient:         gsClient,

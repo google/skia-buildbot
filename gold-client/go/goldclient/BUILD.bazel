@@ -21,7 +21,6 @@ go_library(
         "//gold-client/go/httpclient",
         "//gold-client/go/imagedownloader",
         "//gold-client/go/imgmatching",
-        "//golden/go/baseline",
         "//golden/go/diff",
         "//golden/go/expectations",
         "//golden/go/jsonio",
