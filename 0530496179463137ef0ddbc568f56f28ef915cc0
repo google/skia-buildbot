@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b51b0b2e_c7176375",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-04T14:06:19Z",
+      "side": 1,
+      "message": "Before I started on the implementation I wanted to get your eyes on this before your vacation.\n\nSee also http://go/switchboard-interaction-diagram. The actual Design Doc is WIP.",
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
