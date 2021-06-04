@@ -82,6 +82,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2265c6a8_484f6546",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T20:01:02Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a9b99782_787c77fd",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 12
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4355d6f1_c4c31bc4",
@@ -176,6 +200,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "05316dc5_92f3a4eb",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T20:01:02Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1609c0cb_20e5cc4d",
+      "range": {
+        "startLine": 43,
+        "startChar": 1,
+        "endLine": 43,
+        "endChar": 20
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "355048eb_f5a771c0",
@@ -241,6 +289,30 @@
         "startChar": 22,
         "endLine": 62,
         "endChar": 23
+      },
+      "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e3305b7b_5464dbe9",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T20:01:02Z",
+      "side": 1,
+      "message": "I now understand that the call to AddPod does not need to include machine id because that is handled later when a meeting point is made.",
+      "parentUuid": "b00a2865_b7d0abc6",
+      "range": {
+        "startLine": 62,
+        "startChar": 1,
+        "endLine": 62,
+        "endChar": 7
       },
       "revId": "0530496179463137ef0ddbc568f56f28ef915cc0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
