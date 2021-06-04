@@ -15,11 +15,8 @@
 package data_three_devices
 
 import (
-	"fmt"
 	"time"
 
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
@@ -62,21 +59,6 @@ const (
 	GMCorpus     = "gm"
 	PNGExtension = "png"
 )
-
-func MakeTestBaseline() *baseline.Baseline {
-	e := MakeTestExpectations()
-	b := baseline.Baseline{
-		Expectations:     e.AsBaseline(),
-		ChangelistID:     "",
-		CodeReviewSystem: "",
-	}
-	var err error
-	b.MD5, err = util.MD5Sum(b.Expectations)
-	if err != nil {
-		panic(fmt.Sprintf("Error computing MD5 of the baseline: %s", err))
-	}
-	return &b
-}
 
 func MakeTestCommits() []tiling.Commit {
 	// Three commits, with completely arbitrary data
