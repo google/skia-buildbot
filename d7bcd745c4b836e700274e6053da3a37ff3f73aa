@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0b412345_872c5eea",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-04T13:10:54Z",
+      "side": 1,
+      "message": "This whole chain needs to wait until I resolve expectations from public instances not landing in the SQL backend.",
+      "revId": "d7bcd745c4b836e700274e6053da3a37ff3f73aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
