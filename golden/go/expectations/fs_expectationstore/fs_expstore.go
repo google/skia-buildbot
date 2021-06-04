@@ -54,6 +54,37 @@ const (
 	clPartitionShards     = 2
 )
 
+// labelInt is the integer version of Label, used as the storage format in firestore
+type labelInt int
+
+const (
+	// untriagedInt represents a previously unseen digest.
+	untriagedInt labelInt = iota // == 0
+	// positiveInt represents a known good digest.
+	positiveInt
+	// negativeInt represents a known bad digest.
+	negativeInt
+)
+
+func (l labelInt) String() expectations.Label {
+	return expectations.AllLabel[l]
+}
+
+var labels = map[expectations.Label]labelInt{
+	expectations.Untriaged: untriagedInt,
+	expectations.Positive:  positiveInt,
+	expectations.Negative:  negativeInt,
+}
+
+// labelIntFromString returns the labelInt corresponding to the given Label, or Untriaged if there
+// is no match.
+func labelIntFromString(s expectations.Label) labelInt {
+	if l, ok := labels[s]; ok {
+		return l
+	}
+	return untriagedInt
+}
+
 // Store implements expectations.Store backed by Firestore. It has a local expectationCache of the
 // expectations to reduce load on firestore
 type Store struct {
@@ -136,17 +167,17 @@ func entryID(id expectations.ID) string {
 // expectationChange represents the changing of a single expectation entry.
 type expectationChange struct {
 	// RecordID refers to a document in the records collection.
-	RecordID      string                `firestore:"record_id"`
-	Grouping      types.TestName        `firestore:"grouping"`
-	Digest        types.Digest          `firestore:"digest"`
-	AffectedRange triageRange           `firestore:"affected_range"`
-	LabelBefore   expectations.LabelInt `firestore:"label_before"`
+	RecordID      string         `firestore:"record_id"`
+	Grouping      types.TestName `firestore:"grouping"`
+	Digest        types.Digest   `firestore:"digest"`
+	AffectedRange triageRange    `firestore:"affected_range"`
+	LabelBefore   labelInt       `firestore:"label_before"`
 }
 
 type triageRange struct {
-	FirstIndex int                   `firestore:"first_index"`
-	LastIndex  int                   `firestore:"last_index"`
-	Label      expectations.LabelInt `firestore:"label"`
+	FirstIndex int      `firestore:"first_index"`
+	LastIndex  int      `firestore:"last_index"`
+	Label      labelInt `firestore:"label"`
 }
 
 // triageRecord represents a group of changes made in a single triage action by a user.
@@ -411,9 +442,9 @@ func (s *Store) makeEntriesAndChanges(ctx context.Context, now time.Time, delta 
 		newRange := triageRange{
 			FirstIndex: firstIdx,
 			LastIndex:  lastIdx,
-			Label:      expectations.LabelIntFromString(d.Label),
+			Label:      labelIntFromString(d.Label),
 		}
-		previousLabel := expectations.UntriagedInt
+		previousLabel := untriagedInt
 		replacedRange := false
 		// TODO(kjlubick): if needed, this could be a binary search, but since there will be < 20
 		//   ranges for almost all entries, it probably doesn't matter.
@@ -785,16 +816,18 @@ func (s *Store) UpdateLastUsed(ctx context.Context, ids []expectations.ID, now t
 }
 
 // MarkUnusedEntriesForGC implements the expectations.GarbageCollector interface.
-func (s *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.LabelInt, ts time.Time) (int, error) {
+func (s *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.Label, ts time.Time) (int, error) {
 	if s.partition != masterPartition {
 		return 0, skerr.Fmt("Cannot call UpdateLastUsed except on the master partition")
 	}
 	q := s.expectationsCollection().Where(lastUsedField, "<", ts)
 
+	labelAsInt := labelIntFromString(label)
+
 	var toGC []*firestore.DocumentRef
 	// Use IterDocs instead of q.Documents(ctx).GetAll because this might be a very large query
 	// and we want to use the retry/restart logic of IterDocs to get them all.
-	err := s.client.IterDocs(ctx, "mark_expectations_for_GC", string(label.String()), q, 3, 10*time.Minute, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs(ctx, "mark_expectations_for_GC", string(label), q, 3, 10*time.Minute, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -815,7 +848,7 @@ func (s *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.L
 			return nil
 		}
 		latestRange := er.Ranges[0]
-		if latestRange.Label != label {
+		if latestRange.Label != labelAsInt {
 			return nil
 		}
 		toGC = append(toGC, doc.Ref)
