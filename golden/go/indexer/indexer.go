@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/pdag"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
@@ -369,8 +368,8 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 		sklog.Warning("Not starting indexer because duration was 0")
 		return nil
 	}
-
-	defer shared.NewMetricsTimer("initial_synchronous_index").Stop()
+	ctx, span := trace.StartSpan(ctx, "initial_synchronous_index")
+	defer span.End()
 	// Build the first index synchronously.
 	tileStream := tilesource.GetTileStreamNow(ix.TileSource, interval, "gold-indexer")
 	if err := ix.executePipeline(ctx, <-tileStream); err != nil {
@@ -445,7 +444,8 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 // executePipeline runs the given tile through the the indexing pipeline.
 // pipeline.Trigger blocks until everything is done, so this function will as well.
 func (ix *Indexer) executePipeline(ctx context.Context, cpxTile tiling.ComplexTile) error {
-	defer shared.NewMetricsTimer("indexer_execute_pipeline").Stop()
+	ctx, span := trace.StartSpan(ctx, "indexer_execute_pipeline")
+	defer span.End()
 	// Create a new index from the given tile.
 	sic := searchIndexConfig{
 		expectationsStore: ix.ExpectationsStore,
@@ -456,6 +456,8 @@ func (ix *Indexer) executePipeline(ctx context.Context, cpxTile tiling.ComplexTi
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
 func (ix *Indexer) indexTests(ctx context.Context, testChanges []expectations.ID) {
+	ctx, span := trace.StartSpan(ctx, "index_tests")
+	defer span.End()
 	// Get all the test names that had expectations changed.
 	testNames := types.TestNameSet{}
 	for _, d := range testChanges {
@@ -467,7 +469,6 @@ func (ix *Indexer) indexTests(ctx context.Context, testChanges []expectations.ID
 
 	sklog.Infof("Going to re-index %d tests", len(testNames))
 
-	defer shared.NewMetricsTimer("index_tests").Stop()
 	newIdx := ix.cloneLastIndex()
 	// Set the testNames such that we only recompute those tests.
 	newIdx.testNames = testNames

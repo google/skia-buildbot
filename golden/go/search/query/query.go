@@ -5,9 +5,10 @@ package query
 import (
 	"net/http"
 
+	"go.skia.org/infra/golden/go/validation"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -43,7 +44,7 @@ func ParseSearch(r *http.Request, q *Search) error {
 		q.Match = []string{types.PrimaryKeyField}
 	}
 
-	validate := shared.Validation{}
+	validate := validation.Validation{}
 
 	// Parse the query strings.
 	q.TraceValues = validate.QueryFormValue(r, "query")
