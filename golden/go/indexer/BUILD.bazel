@@ -21,7 +21,6 @@ go_library(
         "//golden/go/expectations",
         "//golden/go/paramsets",
         "//golden/go/pdag",
-        "//golden/go/shared",
         "//golden/go/storage",
         "//golden/go/summary",
         "//golden/go/tilesource",

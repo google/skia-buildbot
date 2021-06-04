@@ -23,6 +23,7 @@ go_library(
         "//golden/go/tracestore",
         "//golden/go/types",
         "@com_google_cloud_go_bigtable//:bigtable",
+        "@io_opencensus_go//trace",
         "@org_golang_google_grpc//codes",
         "@org_golang_x_sync//errgroup",
     ],

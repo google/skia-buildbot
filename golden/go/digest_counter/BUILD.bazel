@@ -8,9 +8,9 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/paramtools",
-        "//golden/go/shared",
         "//golden/go/tiling",
         "//golden/go/types",
+        "@io_opencensus_go//trace",
     ],
 )
 

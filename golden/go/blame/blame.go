@@ -1,11 +1,13 @@
 package blame
 
 import (
+	"context"
 	"sort"
+
+	"go.opencensus.io/trace"
 
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -143,7 +145,8 @@ func (b *BlamerImpl) getBlame(freq blameCounts, blameCommits, commits []tiling.C
 }
 
 func (b *BlamerImpl) calculate(tile *tiling.Tile, exp expectations.ReadOnly) error {
-	defer shared.NewMetricsTimer("blame_calculate").Stop()
+	_, span := trace.StartSpan(context.TODO(), "blame_calculate")
+	defer span.End()
 
 	if len(tile.Commits) == 0 {
 		return nil
@@ -159,14 +162,14 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp expectations.ReadOnly) err
 	tileLen := tile.LastCommitIndex() + 1
 	ret := map[types.TestName]map[types.Digest]blameCounts{}
 
-	for _, trace := range tile.Traces {
-		testName := trace.TestName()
+	for _, tr := range tile.Traces {
+		testName := tr.TestName()
 
 		// lastIdx tracks the index of the last digest that is definitely
 		// not in the blamelist.
 		lastIdx := -1
 		found := types.DigestSet{}
-		for idx, digest := range trace.Digests[:tileLen] {
+		for idx, digest := range tr.Digests[:tileLen] {
 			if digest == tiling.MissingDigest {
 				continue
 			}
