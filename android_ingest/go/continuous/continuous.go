@@ -7,7 +7,6 @@ import (
 	"context"
 	"math"
 	"net/http"
-	"sort"
 	"time"
 
 	"go.skia.org/infra/android_ingest/go/buildapi"
@@ -72,7 +71,15 @@ func rationalizeTimestamps(builds []buildapi.Build, startTS int64) []buildapi.Bu
 	return ret
 }
 
-type BuildSlice []buildapi.Build
+// Build represents a single build at the earliest timestamp that it was committed
+// to any target. I.e. we find all the timestamps of when the buildid landed in
+// all the targets and then take the earliest value.
+type Build struct {
+	BuildId int64
+	TS      int64
+}
+
+type BuildSlice []Build
 
 func (p BuildSlice) Len() int           { return len(p) }
 func (p BuildSlice) Less(i, j int) bool { return p[i].BuildId < p[j].BuildId }
@@ -96,19 +103,28 @@ func (c *Process) Start(ctx context.Context) {
 			}
 			sklog.Info("= After GetLast")
 			sklog.Info("= Before List")
-			builds, err := c.api.List(buildid)
+			mostRecentBuildID, mostRecentBuildTimestamp, err := c.api.GetMostRecentBuildID()
 			if err != nil {
 				failures.Inc(1)
 				sklog.Errorf("Failed to get buildids from api: %s", err)
 				continue
 			}
+
+			builds := []Build{}
+			ts := startTS + 1
+			for b := buildid + 1; b <= mostRecentBuildID; b++ {
+				builds = append(builds, Build{
+					BuildId: b,
+					TS:      ts,
+				})
+				ts += 1
+			}
 			sklog.Infof("= List Timer: %s", time.Now().Sub(begin).String())
 			begin = time.Now()
 			sklog.Info("= After List")
-			sort.Sort(BuildSlice(builds))
 			builds = rationalizeTimestamps(builds, startTS)
 			for _, b := range builds {
-				if err := c.Repo.Add(ctx, b.BuildId, b.TS, b.Branch); err != nil {
+				if err := c.Repo.Add(ctx, b.BuildId, b.TS); err != nil {
 					failures.Inc(1)
 					sklog.Errorf("Failed to add new buildid to repo: %s", err)
 					// Break since we don't want to add anymore buildids until this one
