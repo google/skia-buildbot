@@ -7,7 +7,6 @@ import (
 	"context"
 	"math"
 	"net/http"
-	"sort"
 	"time"
 
 	"go.skia.org/infra/android_ingest/go/buildapi"
@@ -88,7 +87,7 @@ func (c *Process) Start(ctx context.Context) {
 			begin := time.Now()
 			sklog.Info("= START")
 			t.Start()
-			buildid, startTS, _, err := c.Repo.GetLast(ctx)
+			startBuildID, startTS, _, err := c.Repo.GetLast(ctx)
 			if err != nil {
 				failures.Inc(1)
 				sklog.Errorf("Failed to get last buildid: %s", err)
@@ -96,19 +95,37 @@ func (c *Process) Start(ctx context.Context) {
 			}
 			sklog.Info("= After GetLast")
 			sklog.Info("= Before List")
-			builds, err := c.api.List(buildid)
+			mostRecentBuildID, mostRecentBuildTS, err := c.api.GetMostRecentBuildID()
 			if err != nil {
 				failures.Inc(1)
 				sklog.Errorf("Failed to get buildids from api: %s", err)
 				continue
 			}
-			sklog.Infof("= List Timer: %s", time.Now().Sub(begin).String())
+
+			builds := []buildapi.Build{}
+			ts := startTS + 1
+			numCommits := mostRecentBuildID - startBuildID
+			for i := int64(0); i < numCommits; i++ {
+				builds = append(builds, buildapi.Build{
+					BuildId: startBuildID + i + 1,                   // startBuildID + mostRecentBuildID - startBuildID - 1 + 1 = mostRecentBuildID
+					TS:      mostRecentBuildTS - numCommits + i + 1, // mostRecentBuildTS - (mostRecentBuildID - startBuildID) + (mostRecentBuildID - startBuildID ) - 1 + 1 = mostRecentBuildTS
+				})
+				ts += 1
+
+			}
+			for b := startBuildID + 1; b <= mostRecentBuildID; b++ {
+				builds = append(builds, buildapi.Build{
+					BuildId: b,
+					TS:      ts,
+				})
+				ts += 1
+			}
+			sklog.Infof("= List Timer: %s", time.Since(begin).String())
 			begin = time.Now()
 			sklog.Info("= After List")
-			sort.Sort(BuildSlice(builds))
 			builds = rationalizeTimestamps(builds, startTS)
 			for _, b := range builds {
-				if err := c.Repo.Add(ctx, b.BuildId, b.TS, b.Branch); err != nil {
+				if err := c.Repo.Add(ctx, b.BuildId, b.TS); err != nil {
 					failures.Inc(1)
 					sklog.Errorf("Failed to add new buildid to repo: %s", err)
 					// Break since we don't want to add anymore buildids until this one
@@ -124,7 +141,7 @@ func (c *Process) Start(ctx context.Context) {
 				}
 				c.lookup.Add(buildid, hash)
 			}
-			sklog.Infof("= Gerrit Timer: %s", time.Now().Sub(begin).String())
+			sklog.Infof("= Gerrit Timer: %s", time.Since(begin).String())
 			liveness.Reset()
 			t.Stop()
 		}
