@@ -80,12 +80,14 @@ func TestBuildsFromStartToMostRecent_MatchingBeginAndEndTime_ReturnsEmptySlice(t
 	assert.Equal(t, expected, builds)
 }
 
-func TestBuildsFromStartToMostRecent_NotEnoughSecondsToHaveOneCommitPerSecond_ReturnsOnlyMostRecentBuildsThatWillFit(t *testing.T) {
+func TestBuildsFromStartToMostRecent_NotEnoughSecondsToHaveOneCommitPerSecond_ReturnAllBuilds(t *testing.T) {
 	unittest.SmallTest(t)
 	builds := buildsFromStartToMostRecent(startBuildID, startTS, startBuildID+4, startTS+2)
 	expected := []buildapi.Build{
-		{BuildId: startBuildID + 3, TS: startTS + 1},
-		{BuildId: startBuildID + 4, TS: startTS + 2},
+		{BuildId: startBuildID + 1, TS: startTS + 1},
+		{BuildId: startBuildID + 2, TS: startTS + 2},
+		{BuildId: startBuildID + 3, TS: startTS + 3},
+		{BuildId: startBuildID + 4, TS: startTS + 4},
 	}
 	assert.Equal(t, expected, builds)
 }

@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 // Process periodically queries the android build api and looks for new
@@ -80,21 +81,18 @@ func (p BuildSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // buildsFromStartToMostRecent return a slice of builds in the range
 // (startBuildID, mostRecentBuildID], i.e. exclusive of the start, and inclusive
 // of the end.
+//
+// The timestamps of the builds may exceed mostRecentBuildTS, but that's OK as
+// they will only be off by a few seconds.
 func buildsFromStartToMostRecent(startBuildID, startTS, mostRecentBuildID, mostRecentBuildTS int64) []buildapi.Build {
 	builds := []buildapi.Build{}
-	ts := mostRecentBuildTS - (mostRecentBuildID - startBuildID)
+	ts := util.MaxInt64(startTS+1, mostRecentBuildTS-(mostRecentBuildID-startBuildID)+1)
 	for i := startBuildID + 1; i <= mostRecentBuildID; i++ {
-		ts += 1
-		// We need to guarantee only one commit per second, and if builds arrive
-		// too quickly we will record only the most recent builds and drop the
-		// earlier builds on the floor. In theory this never happens.
-		if ts <= startTS {
-			continue
-		}
 		builds = append(builds, buildapi.Build{
 			BuildId: i,
 			TS:      ts,
 		})
+		ts += 1
 	}
 	return builds
 }
