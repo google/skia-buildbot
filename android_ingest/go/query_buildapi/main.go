@@ -31,11 +31,9 @@ func main() {
 		sklog.Fatalf("Failed to create client: %s", err)
 	}
 	// List all the buildids that come after the given buildid.
-	builds, err := api.List(*buildid)
+	buildid, timestamp, err := api.GetMostRecentBuildID()
 	if err != nil {
 		sklog.Fatalf("Failed to retrieve builds: %s", err)
 	}
-	for _, b := range builds {
-		fmt.Printf("%d %d\n", b.BuildId, b.TS)
-	}
+	fmt.Printf("%d %d\n", buildid, timestamp)
 }
