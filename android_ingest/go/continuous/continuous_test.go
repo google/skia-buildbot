@@ -59,3 +59,33 @@ func TestSort(t *testing.T) {
 	assert.Equal(t, int64(12), builds[1].BuildId)
 	assert.Equal(t, int64(13), builds[2].BuildId)
 }
+
+const startBuildID int64 = 123
+const startTS int64 = 1622980000
+
+func TestBuildsFromStartToMostRecent_Simple_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	builds := buildsFromStartToMostRecent(startBuildID, startTS, startBuildID+2, startTS+20)
+	expected := []buildapi.Build{
+		{BuildId: startBuildID + 1, TS: startTS + 19},
+		{BuildId: startBuildID + 2, TS: startTS + 20},
+	}
+	assert.Equal(t, expected, builds)
+}
+
+func TestBuildsFromStartToMostRecent_MatchingBeginAndEndTime_ReturnsEmptySlice(t *testing.T) {
+	unittest.SmallTest(t)
+	builds := buildsFromStartToMostRecent(startBuildID, startTS, startBuildID, startTS)
+	expected := []buildapi.Build{}
+	assert.Equal(t, expected, builds)
+}
+
+func TestBuildsFromStartToMostRecent_NotEnoughSecondsToHaveOneCommitPerSecond_ReturnsOnlyMostRecentBuildsThatWillFit(t *testing.T) {
+	unittest.SmallTest(t)
+	builds := buildsFromStartToMostRecent(startBuildID, startTS, startBuildID+4, startTS+2)
+	expected := []buildapi.Build{
+		{BuildId: startBuildID + 3, TS: startTS + 1},
+		{BuildId: startBuildID + 4, TS: startTS + 2},
+	}
+	assert.Equal(t, expected, builds)
+}
