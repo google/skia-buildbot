@@ -32,10 +32,10 @@ type PopRepoI interface {
 	GetLast(ctx context.Context) (int64, int64, string, error)
 
 	// Add a new buildid to the repo.
-	Add(ctx context.Context, buildid, ts int64, branch string) error
+	Add(ctx context.Context, buildid, ts int64) error
 
 	// LookupBuildID looks up a buildid and branch from the git hash.
-	LookupBuildID(ctx context.Context, hash string) (int64, string, error)
+	LookupBuildID(ctx context.Context, hash string) (int64, error)
 }
 
 // PopRepo implements PopRepoI.
@@ -91,27 +91,22 @@ func (p *PopRepo) GetLast(ctx context.Context) (int64, int64, string, error) {
 }
 
 // See PopRepoI.
-func (p *PopRepo) LookupBuildID(ctx context.Context, hash string) (int64, string, error) {
+func (p *PopRepo) LookupBuildID(ctx context.Context, hash string) (int64, error) {
 	commit, err := p.checkout.Details(ctx, hash)
 	if err != nil {
-		return -1, "", fmt.Errorf("Failed looking up buildid: %s", err)
+		return -1, fmt.Errorf("Failed looking up buildid: %s", err)
 	}
 	u, err := url.Parse(commit.Subject)
 	if err != nil {
-		return -1, "", fmt.Errorf("Commit subject was not a valid URL: %s", err)
+		return -1, fmt.Errorf("Commit subject was not a valid URL: %s", err)
 	}
-	branch := u.Query().Get("branch")
-	if branch == "" {
-		branch = "git_master"
-	}
-
 	id, err := strconv.ParseInt(filepath.Base(u.Path), 10, 64)
-	return id, branch, err
+	return id, err
 }
 
 // Add a new buildid and its assocatied Unix timestamp to the repo.
 //
-func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64, branch string) error {
+func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64) error {
 	rollback := false
 	defer func() {
 		if !rollback {
@@ -130,7 +125,7 @@ func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64, branch strin
 	output := bytes.Buffer{}
 	cmd := exec.Command{
 		Name:           gitExec,
-		Args:           []string{"commit", "-m", fmt.Sprintf("https://%s.skia.org/r/%d?branch=%s", p.subdomain, buildid, branch), fmt.Sprintf("--date=%d", ts)},
+		Args:           []string{"commit", "-m", fmt.Sprintf("https://android-build.googleplex.com/builds/jump-to-build/%d", buildid), fmt.Sprintf("--date=%d", ts)},
 		Env:            []string{fmt.Sprintf("GIT_COMMITTER_DATE=%d", ts)},
 		Dir:            p.checkout.Dir(),
 		InheritEnv:     true,

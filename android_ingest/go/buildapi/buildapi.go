@@ -4,13 +4,12 @@ package buildapi
 import (
 	"fmt"
 	"net/http"
-	"sort"
 	"strconv"
 	"time"
 
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -23,15 +22,6 @@ const (
 	// SLEEP_DURATION is the time to sleep between failed calls.
 	SLEEP_DURATION = 5 * time.Second
 )
-
-// Build represents a single build at the earliest timestamp that it was committed
-// to any target. I.e. we find all the timestamps of when the buildid landed in
-// all the targets and then take the earliest value.
-type Build struct {
-	BuildId int64
-	TS      int64
-	Branch  string
-}
 
 // API allows finding all the Build's.
 type API struct {
@@ -52,93 +42,30 @@ func NewAPI(client *http.Client) (*API, error) {
 	}, nil
 }
 
-type singleBuild struct {
-	Branch    string
-	Timestamp int64
+// Build represents a single build and its creation timestamp.
+type Build struct {
+	BuildId int64
+	TS      int64
 }
 
-// List returns all buildIDs with Skia commits from latest build back to endBuildId.
-//
-// The value of endBuildId must not be zero.
-func (a *API) List(endBuildId int64) ([]Build, error) {
-	if endBuildId == 0 {
-		return nil, fmt.Errorf("endBuildId must be a non-zero value, got %d", endBuildId)
-	}
-	pageToken := ""
-	var err error
-	// collect is a map[buildid]timestamp.
-	collect := map[int64]singleBuild{}
-	for {
-		pageToken, err = a.onePage(endBuildId, collect, pageToken)
-		if err != nil {
-			return nil, err
-		}
-		// We've reached the last page when no pageToken is returned.
-		if pageToken == "" {
-			break
-		}
-	}
+// GetMostRecentBuildID returns the most recent build id and its timestamp.
+func (a *API) GetMostRecentBuildID() (int64, int64, error) {
+	request := a.service.Build.List().BuildType("submitted").MaxResults(1).Fields("builds(buildId, creationTimestamp)")
 
-	// Turn 'collect' into a []Build, sorted by ascending timestamp.
-	ret := []Build{}
-	keys := []int64{}
-	for key := range collect {
-		keys = append(keys, key)
+	resp, err := request.Do()
+	if err != nil {
+		sklog.Infof("Call failed: %s", err)
+		time.Sleep(SLEEP_DURATION)
+		return -1, -1, skerr.Wrap(err)
 	}
-	sort.Sort(util.Int64Slice(keys))
-	for _, key := range keys {
-		ret = append(ret, Build{
-			BuildId: key,
-			TS:      collect[key].Timestamp,
-			Branch:  collect[key].Branch,
-		})
+	sklog.Infof("Got %d items.", len(resp.Builds))
+	build := resp.Builds[0]
+	// Convert build.BuildId to int64.
+	buildId, err := strconv.ParseInt(build.BuildId, 10, 64)
+	if err != nil {
+		return -1, -1, skerr.Wrapf(err, "Got an invalid buildid %q", build.BuildId)
 	}
-	return ret, nil
-}
+	timestamp := build.CreationTimestamp / 1000
 
-// onePage does the work of reading and parsing one page of the API response to androidbuildinternal.
-//
-// The 'collect' map[int64]int64, which is a map[buildid]timestamp, is populated with results
-// after a successful call into the api.
-func (a *API) onePage(endBuildId int64, collect map[int64]singleBuild, pageToken string) (string, error) {
-	for i := 0; i < RETRIES; i++ {
-		sklog.Infof("Querying for %d", endBuildId)
-		request := a.service.Build.List().BuildType("submitted").MaxResults(PAGE_SIZE).Fields("builds(buildId,creationTimestamp,branch),nextPageToken")
-		request.EndBuildId(fmt.Sprintf("%d", endBuildId))
-		if pageToken != "" {
-			request.PageToken(pageToken)
-		}
-		resp, err := request.Do()
-		if err != nil {
-			sklog.Infof("Call failed: %s", err)
-			time.Sleep(SLEEP_DURATION)
-			continue
-		}
-		sklog.Infof("Got %d items.", len(resp.Builds))
-		for _, build := range resp.Builds {
-			sklog.Infof("Branch: %q", build.Branch)
-			// Convert build.BuildId to int64.
-			buildId, err := strconv.ParseInt(build.BuildId, 10, 64)
-			if err != nil {
-				sklog.Errorf("Got an invalid buildid %q: %s ", build.BuildId, err)
-				continue
-			}
-			if prev, ok := collect[buildId]; !ok {
-				collect[buildId] = singleBuild{
-					Timestamp: build.CreationTimestamp / 1000,
-					Branch:    build.Branch,
-				}
-			} else {
-				// Check if timestamp is earlier than ts we've already recorded.
-				if prev.Timestamp < build.CreationTimestamp/1000 {
-					collect[buildId] = singleBuild{
-						Timestamp: build.CreationTimestamp / 1000,
-						Branch:    build.Branch,
-					}
-				}
-			}
-		}
-		return resp.NextPageToken, nil
-	}
-	return "", fmt.Errorf("No valid responses from API after %d requests.", RETRIES)
+	return buildId, timestamp, nil
 }

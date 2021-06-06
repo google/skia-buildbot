@@ -7,7 +7,6 @@ import (
 	"context"
 	"math"
 	"net/http"
-	"sort"
 	"time"
 
 	"go.skia.org/infra/android_ingest/go/buildapi"
@@ -78,6 +77,28 @@ func (p BuildSlice) Len() int           { return len(p) }
 func (p BuildSlice) Less(i, j int) bool { return p[i].BuildId < p[j].BuildId }
 func (p BuildSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
+// buildsFromStartToMostRecent return a slice of builds in the range
+// (startBuildID, mostRecentBuildID], i.e. exclusive of the start, and inclusive
+// of the end.
+func buildsFromStartToMostRecent(startBuildID, startTS, mostRecentBuildID, mostRecentBuildTS int64) []buildapi.Build {
+	builds := []buildapi.Build{}
+	ts := mostRecentBuildTS - (mostRecentBuildID - startBuildID)
+	for i := startBuildID + 1; i <= mostRecentBuildID; i++ {
+		ts += 1
+		// We need to guarantee only one commit per second, and if builds arrive
+		// too quickly we will record only the most recent builds and drop the
+		// earlier builds on the floor. In theory this never happens.
+		if ts <= startTS {
+			continue
+		}
+		builds = append(builds, buildapi.Build{
+			BuildId: i,
+			TS:      ts,
+		})
+	}
+	return builds
+}
+
 // Start a Go routine that does the work.
 func (c *Process) Start(ctx context.Context) {
 	go func() {
@@ -85,30 +106,25 @@ func (c *Process) Start(ctx context.Context) {
 		liveness := metrics2.NewLiveness("last_successful_add")
 		failures := metrics2.GetCounter("process_failures", nil)
 		for range time.Tick(time.Second) {
-			begin := time.Now()
-			sklog.Info("= START")
 			t.Start()
-			buildid, startTS, _, err := c.Repo.GetLast(ctx)
+			startBuildID, startTS, _, err := c.Repo.GetLast(ctx)
 			if err != nil {
 				failures.Inc(1)
 				sklog.Errorf("Failed to get last buildid: %s", err)
 				continue
 			}
-			sklog.Info("= After GetLast")
-			sklog.Info("= Before List")
-			builds, err := c.api.List(buildid)
+			mostRecentBuildID, mostRecentBuildTS, err := c.api.GetMostRecentBuildID()
 			if err != nil {
 				failures.Inc(1)
 				sklog.Errorf("Failed to get buildids from api: %s", err)
 				continue
 			}
-			sklog.Infof("= List Timer: %s", time.Now().Sub(begin).String())
-			begin = time.Now()
-			sklog.Info("= After List")
-			sort.Sort(BuildSlice(builds))
+
+			builds := buildsFromStartToMostRecent(startBuildID, startTS, mostRecentBuildID, mostRecentBuildTS)
+			begin := time.Now()
 			builds = rationalizeTimestamps(builds, startTS)
 			for _, b := range builds {
-				if err := c.Repo.Add(ctx, b.BuildId, b.TS, b.Branch); err != nil {
+				if err := c.Repo.Add(ctx, b.BuildId, b.TS); err != nil {
 					failures.Inc(1)
 					sklog.Errorf("Failed to add new buildid to repo: %s", err)
 					// Break since we don't want to add anymore buildids until this one
@@ -124,7 +140,7 @@ func (c *Process) Start(ctx context.Context) {
 				}
 				c.lookup.Add(buildid, hash)
 			}
-			sklog.Infof("= Gerrit Timer: %s", time.Now().Sub(begin).String())
+			sklog.Infof("Gerrit Timer: %s for %d builds", time.Since(begin).String(), len(builds))
 			liveness.Reset()
 			t.Stop()
 		}

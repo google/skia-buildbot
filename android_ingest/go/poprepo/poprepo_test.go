@@ -58,30 +58,28 @@ func TestAdd(t *testing.T) {
 	assert.Equal(t, int64(0), buildid)
 	assert.Equal(t, int64(0), ts)
 	assert.Len(t, hash, 40)
-	foundBuildID, branch, err := p.LookupBuildID(ctx, hash)
+	foundBuildID, err := p.LookupBuildID(ctx, hash)
 	assert.NoError(t, err)
 	assert.Equal(t, buildid, foundBuildID)
-	assert.Equal(t, "git_master", branch)
 
-	foundBuildID, _, err = p.LookupBuildID(ctx, "notahash")
+	foundBuildID, err = p.LookupBuildID(ctx, "notahash")
 	assert.Error(t, err)
 
 	// Add a couple more commits.
-	err = p.Add(ctx, 3516196, 1479855768, "branch1")
+	err = p.Add(ctx, 3516196, 1479855768)
 	assert.NoError(t, err)
 
 	buildid, ts, hash, err = p.GetLast(ctx)
 
-	err = p.Add(ctx, 3516727, 1479863307, git.MainBranch)
+	err = p.Add(ctx, 3516727, 1479863307)
 	assert.NoError(t, err)
 
-	foundBuildID, branch, err = p.LookupBuildID(ctx, hash)
+	foundBuildID, err = p.LookupBuildID(ctx, hash)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(3516196), foundBuildID)
-	assert.Equal(t, "branch1", branch)
 
 	// Try to add something wrong.
-	err = p.Add(ctx, 3516727-1, 1479863307-1, git.MainBranch)
+	err = p.Add(ctx, 3516727-1, 1479863307-1)
 	assert.Error(t, err)
 
 	// Confirm we get what we added before the error.
@@ -104,5 +102,5 @@ func TestAdd(t *testing.T) {
 	// I.e. the commit subject is the redirector URL.
 	//
 	assert.Len(t, loglines, 4) // 3 commits with newlines gives for strings.
-	assert.Contains(t, loglines[1], "https://android-ingest.skia.org/r/3516196?branch=branch1")
+	assert.Contains(t, loglines[1], "https://android-build.googleplex.com/builds/jump-to-build/3516196")
 }
