@@ -257,31 +257,6 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/branches/%s/grid?head=%s&tail=%s", redirBranch, id, id), http.StatusFound)
 }
 
-// rangeRedirectHandler handles the commit range links that we added to cluster-summary2-sk and redirects
-// them to the android-build dashboard.
-func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	begin := mux.Vars(r)["begin"]
-	end := mux.Vars(r)["end"]
-	if begin == "" || end == "" {
-		http.NotFound(w, r)
-		return
-	}
-	ctx := context.Background()
-	beginID, redirBranch, err := process.Repo.LookupBuildID(ctx, begin)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed looking up Build ID.", http.StatusInternalServerError)
-		return
-	}
-	endID, _, err := process.Repo.LookupBuildID(ctx, end)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed looking up Build ID.", http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/%d/branches/%s/cls?end=%d", beginID, redirBranch, endID), http.StatusFound)
-}
-
 func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*resourcesDir, "templates/index.html"),
@@ -310,7 +285,6 @@ func main() {
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/upload", UploadHandler).Methods("POST")
 	r.HandleFunc("/r/{id:[a-zA-Z0-9]+}", redirectHandler)
-	r.HandleFunc("/rr/{begin:[a-zA-Z0-9]+}/{end:[a-zA-Z0-9]+}", rangeRedirectHandler)
 	r.HandleFunc("/", indexHandler)
 
 	h := httputils.LoggingGzipRequestResponse(r)

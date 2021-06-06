@@ -14,3 +14,10 @@ release:
 .PHONY: push
 push: release
 	pushk androidingest
+
+# Get the exact service account key, so we know that it has access to the API.
+service-account.json:
+	kubectl get secrets skia-android-ingest -o json | jq -r  '.data."key.json"' | base64 -d  > service-account.json
+
+try-api: service-account.json
+	go run ./go/query_buildapi
