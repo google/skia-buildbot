@@ -24,7 +24,9 @@ type Cache struct {
 	// cache because the amount of data we store is so small. Git hashes are 40
 	// chars and int64's are 8, so if we assume 100 commits to the repo per day,
 	// and the application ran without restart for three years straight then this
-	// data structure would grow to 48*100*365*3 bytes, which is ~5MB.
+	// data structure would grow to 48*100*365*3 bytes, which is ~5MB. Even if builds
+	// arrived at the maximum of one build per second for a year we'd only use
+	// 48*86400*365 bytes = 1.5 GB.
 	hashes map[int64]string
 }
 
