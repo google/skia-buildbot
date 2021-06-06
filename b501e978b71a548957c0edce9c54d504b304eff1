@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5a5d7c12_1f5188a5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-06T15:46:32Z",
+      "side": 1,
+      "message": "TBR - Since Android was broken w/o this fix.",
+      "revId": "b501e978b71a548957c0edce9c54d504b304eff1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
