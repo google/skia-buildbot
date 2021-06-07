@@ -55,10 +55,11 @@ func New(ctx context.Context, checkout *git.Checkout) (*Cache, error) {
 func (c *Cache) parseLog(log string) error {
 	// The oneline log format looks like
 	//
-	//   6dab50c23b3927daf7487b4a6f105fc74aff5fa7 https://android-ingest.skia.org/r/3553310
-	//   3133350e05eb07629d681c3bb61a91a51e2ff2ef https://android-ingest.skia.org/r/3553227?branch=foo
+	//   6dab50c23b3927daf7487b4a6f105fc74aff5fa7 https://android-build.googleplex.com/builds/jump-to-build/7432561
+	//   3133350e05eb07629d681c3bb61a91a51e2ff2ef https://android-build.googleplex.com/builds/jump-to-build/7432560
 	//
 	// if you include the commit message that poprepo adds.
+	count := 0
 	lines := strings.Split(log, "\n")
 	for _, line := range lines {
 		if line == "" {
@@ -77,16 +78,25 @@ func (c *Cache) parseLog(log string) error {
 
 		// Split the URL on the slashes.
 		urlParts := strings.Split(u.Path, "/")
-		if len(urlParts) != 3 {
-			return fmt.Errorf("Found invalid url: %q", urlParts)
+
+		buildIDAsString := ""
+		if len(urlParts) == 3 {
+			buildIDAsString = urlParts[2]
+		} else if len(urlParts) == 4 {
+			buildIDAsString = urlParts[3]
+		} else {
+			sklog.Errorf("Found invalid url: %q", urlParts)
+			continue
 		}
-		buildid, err := strconv.ParseInt(urlParts[2], 10, 64)
+		buildid, err := strconv.ParseInt(buildIDAsString, 10, 64)
 		if err != nil {
-			return fmt.Errorf("Found invalid buildid: %q", urlParts[2])
+			sklog.Errorf("Found invalid buildid: %q", urlParts[2])
+			continue
 		}
 		c.hashes[buildid] = hash
+		count++
 	}
-	sklog.Infof("Prepopulated lookup.Cache with %d buildids.", len(c.hashes))
+	sklog.Infof("Prepopulated lookup.Cache with %d buildids.", count)
 	return nil
 }
 
