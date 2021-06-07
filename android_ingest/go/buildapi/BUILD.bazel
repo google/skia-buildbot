@@ -7,7 +7,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/androidbuildinternal/v2beta1",
+        "//go/skerr",
         "//go/sklog",
-        "//go/util",
     ],
 )
