@@ -124,7 +124,8 @@ func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64) error {
 	}
 	output := bytes.Buffer{}
 	cmd := exec.Command{
-		Name:           gitExec,
+		Name: gitExec,
+		// If this commit message changes, also change Cache.parseLog.
 		Args:           []string{"commit", "-m", fmt.Sprintf("https://android-build.googleplex.com/builds/jump-to-build/%d", buildid), fmt.Sprintf("--date=%d", ts)},
 		Env:            []string{fmt.Sprintf("GIT_COMMITTER_DATE=%d", ts)},
 		Dir:            p.checkout.Dir(),
