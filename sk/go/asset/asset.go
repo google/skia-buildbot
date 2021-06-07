@@ -83,6 +83,7 @@ var (
 func Command() *cli.Command {
 	flagIn := "in"
 	flagDryRun := "dry-run"
+	flagTags := "tags"
 	return &cli.Command{
 		Name:        "asset",
 		Description: "Manage assets used by developers and CI.",
@@ -139,13 +140,17 @@ func Command() *cli.Command {
 						Value: false,
 						Usage: "Create the package, including running any automation scripts, but do not upload it.",
 					},
+					&cli.StringSliceFlag{
+						Name:  flagTags,
+						Usage: "Any additional tags to apply to the package, in \"key:value\" format. May be specified multiple times.",
+					},
 				},
 				Action: func(ctx *cli.Context) error {
 					args := ctx.Args().Slice()
 					if len(args) != 1 {
 						return skerr.Fmt("Expected exactly one positional argument.")
 					}
-					return cmdUpload(ctx.Context, args[0], ctx.String(flagIn), ctx.Bool(flagDryRun))
+					return cmdUpload(ctx.Context, args[0], ctx.String(flagIn), ctx.Bool(flagDryRun), ctx.StringSlice(flagTags))
 				},
 			},
 			{
@@ -288,7 +293,13 @@ func cmdDownload(ctx context.Context, name, dest string) error {
 }
 
 // cmdUpload implements the "upload" subcommand.
-func cmdUpload(ctx context.Context, name, src string, dryRun bool) (rvErr error) {
+func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []string) (rvErr error) {
+	// Validate extraTags.
+	for _, tag := range extraTags {
+		if len(strings.Split(tag, ":")) != 2 {
+			return skerr.Fmt("Tags must be in the form \"key:value\", not %q", tag)
+		}
+	}
 	cipdClient, err := getCIPDClient(ctx, ".")
 	if err != nil {
 		return skerr.Wrap(err)
@@ -341,10 +352,10 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool) (rvErr error)
 
 	// Create the new package instance.
 	refs := []string{"latest"}
-	tags := []string{
+	tags := append([]string{
 		fmt.Sprintf(tagVersionTmpl, nextVersion),
 		tagProject,
-	}
+	}, extraTags...)
 	packagePath := fmt.Sprintf(cipdPackageNameTmpl, name)
 	if _, err := cipdClient.Create(ctx, packagePath, src, pkg.InstallModeSymlink, skipFilesRegex, refs, tags, nil); err != nil {
 		return skerr.Wrap(err)
