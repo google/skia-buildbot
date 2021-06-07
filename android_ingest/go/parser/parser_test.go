@@ -86,6 +86,14 @@ func TestConvert_ParseIncoming2_Success(t *testing.T) {
 	assert.Equal(t, "google-angler-angler-O", benchData.Key["branch"])
 }
 
+func TestConvert_NoMetrics_ReturnsErrIgnorable(t *testing.T) {
+	unittest.SmallTest(t)
+	r := bytes.NewBufferString(nometrics)
+	c := New(lookupMockGood{})
+	_, err := c.Convert(r, "")
+	assert.Contains(t, err.Error(), ErrIgnorable.Error())
+}
+
 func TestConvert_HashLookupFails_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	c := New(lookupMockBad{})
@@ -231,6 +239,13 @@ const incoming2 = `{
    "build_flavor" : "angler-userdebug",
    "branch" : "google-angler-angler-O"
 }`
+
+const nometrics = `{
+	"build_id" : "3842951",
+	"results_name" : "coremarkcom.google.android.performance.CoreMarkTest#coremark",
+	"build_flavor" : "angler-userdebug",
+	"branch" : "google-angler-angler-O"
+ }`
 
 // incoming_presubmit is a file with a build_id that begins with "P", which
 // means it is a presubmit result and can be ignored.

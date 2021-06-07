@@ -168,11 +168,12 @@ func (c *Converter) Convert(incoming io.Reader, txLogName string) (*format.Bench
 			benchData.Results[test]["default"][key] = f
 		}
 	}
-	if len(benchData.Results) == 0 {
-		return nil, fmt.Errorf("Failed to extract any data from incoming file: %q", txLogName)
-	}
 	sklog.Infof("Found %d metrics of %d incoming metrics in branch %q buildid %q in file %q", len(benchData.Results), len(in.Metrics), in.Branch, in.BuildId, txLogName)
 	metrics2.GetCounter("androidingest_upload_success", map[string]string{"branch": in.Branch}).Inc(1)
+	if len(benchData.Results) == 0 {
+		sklog.Warningf("Failed to extract any data from incoming file: %q", txLogName)
+		return nil, ErrIgnorable
+	}
 
 	return benchData, nil
 }
