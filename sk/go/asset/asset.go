@@ -82,6 +82,7 @@ var (
 // Command returns a cli.Command instance which represents the "asset" command.
 func Command() *cli.Command {
 	flagIn := "in"
+	flagDryRun := "dry-run"
 	return &cli.Command{
 		Name:        "asset",
 		Description: "Manage assets used by developers and CI.",
@@ -133,13 +134,18 @@ func Command() *cli.Command {
 						Value: "",
 						Usage: "Use the contents of this directory as the package contents. If not provided, expects a creation script to be present within the asset dir.",
 					},
+					&cli.BoolFlag{
+						Name:  flagDryRun,
+						Value: false,
+						Usage: "Create the package, including running any automation scripts, but do not upload it.",
+					},
 				},
 				Action: func(ctx *cli.Context) error {
 					args := ctx.Args().Slice()
 					if len(args) != 1 {
 						return skerr.Fmt("Expected exactly one positional argument.")
 					}
-					return cmdUpload(ctx.Context, args[0], ctx.String(flagIn))
+					return cmdUpload(ctx.Context, args[0], ctx.String(flagIn), ctx.Bool(flagDryRun))
 				},
 			},
 			{
@@ -282,7 +288,7 @@ func cmdDownload(ctx context.Context, name, dest string) error {
 }
 
 // cmdUpload implements the "upload" subcommand.
-func cmdUpload(ctx context.Context, name, src string) (rvErr error) {
+func cmdUpload(ctx context.Context, name, src string, dryRun bool) (rvErr error) {
 	cipdClient, err := getCIPDClient(ctx, ".")
 	if err != nil {
 		return skerr.Wrap(err)
@@ -326,6 +332,12 @@ func cmdUpload(ctx context.Context, name, src string) (rvErr error) {
 		}
 	}
 	nextVersion := highestVersion + 1
+
+	// If --dry-run was provided, quit now.
+	if dryRun {
+		fmt.Println(fmt.Sprintf("--dry-run was specified; not uploading package version %d", nextVersion))
+		return nil
+	}
 
 	// Create the new package instance.
 	refs := []string{"latest"}
