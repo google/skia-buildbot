@@ -1,0 +1,71 @@
+package verifiers
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"strings"
+
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/skcq/go/codereview"
+	"go.skia.org/infra/skcq/go/config"
+	"go.skia.org/infra/skcq/go/types"
+)
+
+func NewSubmittedTogetherVerifier(ctx context.Context, togetherChanges []*gerrit.ChangeInfo, httpClient *http.Client, skCQCfg *config.SkCQCfg, cr codereview.CodeReview, ci *gerrit.ChangeInfo, gitilesRepo *gitiles.Repo, configReader *config.GitilesConfigReader) (Verifier, error) {
+	togetherChangesToVerifiers := map[*gerrit.ChangeInfo][]Verifier{}
+	for _, tc := range togetherChanges {
+		tcVerifiers, _, err := GetVerifiers(ctx, httpClient, skCQCfg, cr, tc, true /* isSubmittedTogetherChange */, gitilesRepo, configReader)
+		if err != nil {
+			return nil, skerr.Fmt("Could not get verifiers for the together change %d: %s", tc.Issue, err)
+		}
+		togetherChangesToVerifiers[tc] = tcVerifiers
+	}
+	return &SubmittedTogetherVerifier{
+		togetherChangesToVerifiers: togetherChangesToVerifiers,
+	}, nil
+}
+
+type SubmittedTogetherVerifier struct {
+	togetherChangesToVerifiers map[*gerrit.ChangeInfo][]Verifier
+}
+
+func (stv *SubmittedTogetherVerifier) Name() string {
+	return "[SubmittedTogetherVerifier]"
+}
+
+func (stv *SubmittedTogetherVerifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, startTime int64) (state types.VerifierState, reason string, err error) {
+	successMsgsAccrossAllChanges := []string{}
+	for ts, tsVerifiers := range stv.togetherChangesToVerifiers {
+		failureMsgs := []string{}
+		waitingMsgs := []string{}
+		verifierStatuses := RunVerifiers(ctx, ts, tsVerifiers, startTime)
+		for _, vs := range verifierStatuses {
+			if vs.State == types.VerifierFailureState {
+				failureMsgs = append(failureMsgs, fmt.Sprintf("[%s]: %s", vs.Name, vs.Reason))
+			} else if vs.State == types.VerifierWaitingState {
+				waitingMsgs = append(waitingMsgs, fmt.Sprintf("[%s]: %s", vs.Name, vs.Reason))
+			} else {
+				successMsgsAccrossAllChanges = append(successMsgsAccrossAllChanges, fmt.Sprintf("[%s for %d]: %s", vs.Name, ts.Issue, vs.Reason))
+			}
+		}
+		if len(failureMsgs) > 0 {
+			return types.VerifierFailureState, fmt.Sprintf("Submitted together change https://skia-review.googlesource.com/c/%d has failed the verifiers:\n%s", ts.Issue, strings.Join(failureMsgs, "\n")), nil
+		} else if len(waitingMsgs) > 0 {
+			return types.VerifierWaitingState, fmt.Sprintf("Submitted together change https://skia-review.googlesource.com/c/%d is waiting for verifiers:\n%s", ts.Issue, strings.Join(waitingMsgs, "\n")), nil
+		}
+	}
+	return types.VerifierSuccessState, fmt.Sprintf("Successfully ran all verifiers of submitted together changes:\n%s", strings.Join(successMsgsAccrossAllChanges, "\n")), nil
+}
+
+func (stv *SubmittedTogetherVerifier) Cleanup(ctx context.Context, ci *gerrit.ChangeInfo) {
+	// Loop through all verifiers of all together changes and run cleanup on them.
+	for ts, tsVerifiers := range stv.togetherChangesToVerifiers {
+		for _, tsVerifier := range tsVerifiers {
+			tsVerifier.Cleanup(ctx, ts)
+		}
+	}
+	return
+}
