@@ -14,6 +14,12 @@
             "project": "google.com:skia-corp",
             "context_name": "gke_google.com:skia-corp_us-central1-a_skia-corp"
         },
+        "skia-switchboard": {
+            "type": "gke",
+            "zone": "us-central1-c",
+            "project": "skia-switchboard",
+            "context_name": "gke_skia-switchboard_us-central1_skia-switchboard"
+        },
         "skolo-rack4": {
             "type": "k3s",
             "context_name": "skolo-rack4",
