@@ -11,3 +11,8 @@ function __skia_corp() {
   gcloud config set project google.com:skia-corp > /dev/null 2>&1
   gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp > /dev/null 2>&1
 }
+
+function __skia_switchboard() {
+  gcloud config set project skia-switchboard > /dev/null 2>&1
+  gcloud container clusters get-credentials skia-switchboard --zone us-central1-c --project skia-switchboard > /dev/null 2>&1
+}
