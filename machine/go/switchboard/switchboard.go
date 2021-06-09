@@ -80,11 +80,15 @@ type Switchboard interface {
 	// AddPod adds a new k8s pod to the list of available pods running in the
 	// switchboard cluster. It is called by the programming that runs on startup
 	// in each switchboard pod.
-	AddPod(ctx context.Context, PodName string) error
+	AddPod(ctx context.Context, podName string) error
+
+	// KeepAlivePod is called by a pod periodically to indicate it
+	// is still a valid connection.
+	KeepAlivePod(ctx context.Context, podName string) error
 
 	// RemovePod removes a k8s pod from the list of available pods. It is called
 	// from each switchboard pod as it shuts down.
-	RemovePod(ctx context.Context, PodName string) error
+	RemovePod(ctx context.Context, podName string) error
 
 	// ListPods returns a list of all the pods availble to accept connections.
 	// This will be used in the machines UI.
