@@ -38,7 +38,7 @@ const (
 
 // This regex is taken from:
 // https://source.chromium.org/chromium/infra/infra/+/master:go/src/go.chromium.org/luci/common/git/footer/footer.go?q=%22%5E%5Cs*(%5B%5Cw-%5D%2B):%20*(.*)$%22&ss=chromium
-var trailerRegex = regexp.MustCompile(`^\s*([\w-]+): *(.*)$`)
+var TrailerRegex = regexp.MustCompile(`^\s*([\w-]+): *(.*)$`)
 
 // Types of git objects.
 const (
@@ -240,7 +240,7 @@ func SplitTrailers(commitMsg string) ([]string, []string) {
 	}
 	trailerLines := paragraphs[len(paragraphs)-1]
 	for _, line := range trailerLines {
-		if !trailerRegex.MatchString(line) {
+		if !TrailerRegex.MatchString(line) {
 			// At least one line in the last paragraph does not fit the trailer
 			// format; assume there are no trailers.
 			return lines, []string{}
@@ -266,7 +266,7 @@ func JoinTrailers(bodyLines, trailers []string) string {
 
 // AddTrailer adds a trailer to the given commit message.
 func AddTrailer(commitMsg, trailer string) (string, error) {
-	if !trailerRegex.MatchString(trailer) {
+	if !TrailerRegex.MatchString(trailer) {
 		return "", skerr.Fmt("%q is not a valid git trailer", trailer)
 	}
 	body, trailers := SplitTrailers(commitMsg)
