@@ -47,17 +47,26 @@ var (
 // GetTrybotsForCLPredicate returns a *buildbucketpb.BuildPredicate which
 // searches for trybots from the given CL.
 func GetTrybotsForCLPredicate(issue, patchset int64, gerritUrl string) (*buildbucketpb.BuildPredicate, error) {
+	return GetTrybotsForMultiplePatchSetsPredicate(issue, []int64{patchset}, gerritUrl)
+}
+
+// GetTrybotsForMultiplePatchSetsPredicate returns a *buildbucketpb.BuildPredicate which
+// searches for trybots from the given CL using the specified patchsets.
+func GetTrybotsForMultiplePatchSetsPredicate(issue int64, patchsets []int64, gerritUrl string) (*buildbucketpb.BuildPredicate, error) {
 	u, err := url.Parse(gerritUrl)
 	if err != nil {
 		return nil, err
 	}
+	gerritChanges := []*buildbucketpb.GerritChange{}
+	for _, p := range patchsets {
+		gc := &buildbucketpb.GerritChange{
+			Host:     u.Host,
+			Change:   issue,
+			Patchset: p,
+		}
+		gerritChanges = append(gerritChanges, gc)
+	}
 	return &buildbucketpb.BuildPredicate{
-		GerritChanges: []*buildbucketpb.GerritChange{
-			{
-				Host:     u.Host,
-				Change:   issue,
-				Patchset: patchset,
-			},
-		},
+		GerritChanges: gerritChanges,
 	}, nil
 }
