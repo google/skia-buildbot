@@ -43,7 +43,7 @@ constructor() {
       .then(jsonOrThrow)
       .then((json: TaskPrioritiesResponse) => {
         // { 'p1' : 'Desc1', ...}  -> [['p1', 'Desc1'], ...]
-        this._priorities = Object.entries<string>(json.task_priorities);
+        this._priorities = Object.entries<string>(json.task_priorities || {});
         this._render();
         this._selector!.selection = 1;
       })
