@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+build --symlink_prefix=_bazel_
+build --experimental_no_product_name_out_symlink
+
 build --workspace_status_command=bazel/get_workspace_status.sh
 
 # Tags such as no-remote and no-cache have no effect without this. See
