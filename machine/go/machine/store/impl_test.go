@@ -271,6 +271,7 @@ func TestList_Success(t *testing.T) {
 		ret.Dimensions["foo"] = []string{"quux"}
 		return ret
 	})
+	require.NoError(t, err)
 
 	// Confirm they both show up in the list.
 	descriptions, err = store.List(ctx)

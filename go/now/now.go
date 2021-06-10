@@ -21,7 +21,7 @@ type ContextKeyType string
 // The value set can also be a function that returns a time.Time.
 //
 //    var monotonicTime int64 = 0
-//    var mockTimeProvider = func() {
+//    var mockTimeProvider = func() time.Time {
 //      monotonicTime += 1
 //	    return time.Unix(monotonicTime, 0).UTC()
 //    }
