@@ -14,13 +14,13 @@ type Switchboard struct {
 	mock.Mock
 }
 
-// AddPod provides a mock function with given fields: ctx, PodName
-func (_m *Switchboard) AddPod(ctx context.Context, PodName string) error {
-	ret := _m.Called(ctx, PodName)
+// AddPod provides a mock function with given fields: ctx, podName
+func (_m *Switchboard) AddPod(ctx context.Context, podName string) error {
+	ret := _m.Called(ctx, podName)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, PodName)
+		r0 = rf(ctx, podName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -77,6 +77,20 @@ func (_m *Switchboard) KeepAliveMeetingPoint(ctx context.Context, meetingPoint s
 	return r0
 }
 
+// KeepAlivePod provides a mock function with given fields: ctx, podName
+func (_m *Switchboard) KeepAlivePod(ctx context.Context, podName string) error {
+	ret := _m.Called(ctx, podName)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, podName)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListMeetingPoints provides a mock function with given fields: ctx
 func (_m *Switchboard) ListMeetingPoints(ctx context.Context) ([]switchboard.MeetingPoint, error) {
 	ret := _m.Called(ctx)
@@ -101,15 +115,15 @@ func (_m *Switchboard) ListMeetingPoints(ctx context.Context) ([]switchboard.Mee
 }
 
 // ListPods provides a mock function with given fields: ctx
-func (_m *Switchboard) ListPods(ctx context.Context) ([]string, error) {
+func (_m *Switchboard) ListPods(ctx context.Context) ([]switchboard.Pod, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(context.Context) []string); ok {
+	var r0 []switchboard.Pod
+	if rf, ok := ret.Get(0).(func(context.Context) []switchboard.Pod); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
+			r0 = ret.Get(0).([]switchboard.Pod)
 		}
 	}
 
@@ -123,13 +137,13 @@ func (_m *Switchboard) ListPods(ctx context.Context) ([]string, error) {
 	return r0, r1
 }
 
-// RemovePod provides a mock function with given fields: ctx, PodName
-func (_m *Switchboard) RemovePod(ctx context.Context, PodName string) error {
-	ret := _m.Called(ctx, PodName)
+// RemovePod provides a mock function with given fields: ctx, podName
+func (_m *Switchboard) RemovePod(ctx context.Context, podName string) error {
+	ret := _m.Called(ctx, podName)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, PodName)
+		r0 = rf(ctx, podName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -137,20 +151,20 @@ func (_m *Switchboard) RemovePod(ctx context.Context, PodName string) error {
 	return r0
 }
 
-// ReserveMeetingPoint provides a mock function with given fields: ctx, machineID, Username
-func (_m *Switchboard) ReserveMeetingPoint(ctx context.Context, machineID string, Username string) (switchboard.MeetingPoint, error) {
-	ret := _m.Called(ctx, machineID, Username)
+// ReserveMeetingPoint provides a mock function with given fields: ctx, machineID, username
+func (_m *Switchboard) ReserveMeetingPoint(ctx context.Context, machineID string, username string) (switchboard.MeetingPoint, error) {
+	ret := _m.Called(ctx, machineID, username)
 
 	var r0 switchboard.MeetingPoint
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) switchboard.MeetingPoint); ok {
-		r0 = rf(ctx, machineID, Username)
+		r0 = rf(ctx, machineID, username)
 	} else {
 		r0 = ret.Get(0).(switchboard.MeetingPoint)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, machineID, Username)
+		r1 = rf(ctx, machineID, username)
 	} else {
 		r1 = ret.Error(1)
 	}
