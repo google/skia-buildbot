@@ -6,10 +6,10 @@
 //
 // Under Bazel, Puppeteer tests save screenshots inside $TEST_UNDECLARED_OUTPUTS_DIR, which is set
 // by the "bazel test" command. Screenshots, and any other undeclared outputs of a test, can be
-// found under //bazel-testlogs bundled as a single .zip file per test target.
+// found under //_bazel_testlogs bundled as a single .zip file per test target.
 //
 // For example, if we run a Puppeteer test with "bazel test //my_app:puppeteer_test", then any
-// screenshots will be found inside //bazel-testlogs/my_app/puppeteer_test/test.outputs/outputs.zip.
+// screenshots will be found inside //_bazel_testlogs/my_app/puppeteer_test/test.outputs/outputs.zip.
 //
 // See https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions to learn
 // more about undeclared test outputs.
@@ -66,13 +66,13 @@ func main() {
 		}
 	}
 
-	// Resolve the //bazel-testlogs symlink. Necessary because filepath.Walk() ignores symlinks.
-	bazelTestlogsDir, err := filepath.EvalSymlinks("bazel-testlogs")
+	// Resolve the //_bazel_testlogs symlink. Necessary because filepath.Walk() ignores symlinks.
+	bazelTestlogsDir, err := filepath.EvalSymlinks("_bazel_testlogs")
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
-	// Find all outputs.zip files under //bazel-testlogs, which contain the undeclared outputs
+	// Find all outputs.zip files under //_bazel_testlogs, which contain the undeclared outputs
 	// produced by all tests.
 	var allOutputsZipPaths []string
 	if err := filepath.Walk(bazelTestlogsDir, func(path string, info os.FileInfo, err error) error {
@@ -118,7 +118,7 @@ func failf(msg string, args ...interface{}) {
 //
 // An alternative approach is to find all Puppeteer tests via a Bazel query (e.g.
 // "bazel query 'attr(generator_function, sk_element_puppeteer_test, //...)'"), but this can be
-// slow. Inspecting all outputs.zip files inside the //bazel-testlogs directory is much faster.
+// slow. Inspecting all outputs.zip files inside the //_bazel_testlogs directory is much faster.
 func extractPuppeteerScreenshotsFromOutputsZip(zipFilePath string) error {
 	// Open the ZIP archive.
 	zipFile, err := zip.OpenReader(zipFilePath)
