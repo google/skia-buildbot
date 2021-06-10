@@ -512,7 +512,7 @@
         "--target",
         "//sk/go/sk:sk",
         "--include_path",
-        "bazel-bin/sk/go/sk/sk_/sk[.exe]",
+        "_bazel-bin/sk/go/sk/sk_/sk[.exe]",
         "--platform",
         "@io_bazel_rules_go//go/toolchain:darwin_amd64=mac-amd64",
         "--platform",

@@ -109,8 +109,8 @@ sh_binary(
 #     $ bazel build //:rbe_container_skia_infra
 #
 #     # Load the container.
-#     $ docker load -i bazel-bin/rbe_container_skia_infra_commit.tar
-#     Loaded image: bazel/default:rbe_container_skia_infra
+#     $ docker load -i _bazel-bin/rbe_container_skia_infra_commit.tar
+#     Loaded image: _bazel/default:rbe_container_skia_infra
 #
 #     # Run the container.
 #     $ docker run -it bazel/default:rbe_container_skia_infra /bin/bash

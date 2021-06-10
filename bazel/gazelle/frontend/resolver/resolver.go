@@ -343,7 +343,7 @@ func setDeps(r *rule.Rule, l label.Label, depsAttr string, deps []label.Label) {
 // resolveDepForSassImport returns the label of the rule that resolves the given Sass import.
 func (rslv *Resolver) resolveDepForSassImport(ruleKind string, ruleLabel label.Label, importPath string) ruleKindAndLabel {
 	// The elements-sk styles are a special case because they come from a genrule that copies them
-	// from //node_modules/elements-sk into //bazel-bin/~elements-sk. These styles can be accessed
+	// from //node_modules/elements-sk into //_bazel-bin/~elements-sk. These styles can be accessed
 	// via the //infra-sk:elements-sk_scss sass_library.
 	if strings.HasPrefix(importPath, "~elements-sk") {
 		return ruleKindAndLabel{
