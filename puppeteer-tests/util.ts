@@ -24,7 +24,7 @@ export type EventName = string;
  *
  * Note: this works for standard DOM events as well, not just custom events.
  */
-export type EventPromiseFactory = <T>(eventName: EventName) => Promise<T>;
+export type EventPromiseFactory = <T>(eventName: EventName)=> Promise<T>;
 
 /**
  * This function allows tests to catch document-level events in a Puppeteer
@@ -120,7 +120,7 @@ export const launchBrowser = () => puppeteer.launch(
 export interface TestBed {
   page: puppeteer.Page;
   baseUrl: string;
-};
+}
 
 /**
  * Starts a web server that serves custom element demo pages. Equivalent to
@@ -174,7 +174,7 @@ export const startWebpackDemoPageServer = async (pathToWebpackConfigTs: string) 
  */
 export const outputDir = () => {
   // When running via "bazel test", screenshots for e.g. //path/to/my:puppeteer_test will be found
-  // at //bazel-testlogs/path/to/my/puppeteer_test/test.outputs/outputs.zip. This is true when
+  // at //_bazel_testlogs/path/to/my/puppeteer_test/test.outputs/outputs.zip. This is true when
   // running on RBE as well (e.g. "bazel test --config=remote").
   //
   // See the following link for more:
@@ -209,10 +209,7 @@ export const outputDir = () => {
  * application name as a prefix prevents name collisions between different apps
  * and increases consistency among test names.
  */
-export const takeScreenshot =
-    (handle: puppeteer.Page | puppeteer.ElementHandle, appName: string, testName: string) =>
-  handle.screenshot({path: path.join(exports.outputDir(), `${appName}_${testName}.png`)});
-
+export const takeScreenshot = (handle: puppeteer.Page | puppeteer.ElementHandle, appName: string, testName: string) => handle.screenshot({ path: path.join(exports.outputDir(), `${appName}_${testName}.png`) });
 
 let browser: puppeteer.Browser;
 let testBed: Partial<TestBed>;
@@ -241,7 +238,7 @@ export async function loadCachedTestBed(pathToWebpackConfigTs: string) {
     const envDir = process.env.ENV_DIR;
     if (!envDir) throw new Error('required environment variable ENV_DIR is unset');
     const port = parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'));
-    newTestBed.baseUrl = `http://localhost:${port}`
+    newTestBed.baseUrl = `http://localhost:${port}`;
   } else {
     // Not in Bazel - Start the Webpack-based demo page server.
     let baseUrl;
@@ -268,7 +265,7 @@ function setBeforeAfterHooks() {
     await testBed.page.setCookie({
       url: testBed.baseUrl,
       name: 'puppeteer',
-      value: 'true'
+      value: 'true',
     });
   });
 
