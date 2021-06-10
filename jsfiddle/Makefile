@@ -17,7 +17,9 @@ wasm_libs:
 	mkdir -p build/canvaskit build/pathkit
 	# Extract them from the most recently built ones. These are built
 	# using cloudbuild.yaml in the Skia repo.
-	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod sh -c "cp -r /tmp/* /OUT/"
+	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
+	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
+	    sh -c "cp -r /tmp/* /OUT/"
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
 .PHONY: testjs
