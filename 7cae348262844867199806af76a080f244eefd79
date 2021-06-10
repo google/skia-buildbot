@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4b7e2af3_066e6f2d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-10T16:42:02Z",
+      "side": 1,
+      "message": "The reason why Infra-PerCommit-Test-Bazel-RBE is red is because //puppeteer-tests/bazel/extract_puppeteer_screenshots/extract_puppeteer_screenshots.go expects a //bazel-testlogs directory to exist.\n\nPlease run \"git grep bazel-testlogs\" from the repo\u0027s root and update all occurrences as needed.",
+      "revId": "7cae348262844867199806af76a080f244eefd79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
