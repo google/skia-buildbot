@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# If we prefix the directories with an underscore then they get ignored by Go tools.
+# We are forced to do this until https://github.com/golang/go/issues/42965 is fixed.
+build --symlink_prefix=_bazel_
+test  --symlink_prefix=_bazel_
+
+# Also suppress the generation of the bazel-out symlink, which always appears,no
+# matter what you set --symlink_prefix to.
+build --experimental_no_product_name_out_symlink
+
 build --workspace_status_command=bazel/get_workspace_status.sh
 
 # Tags such as no-remote and no-cache have no effect without this. See
