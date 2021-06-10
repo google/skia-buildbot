@@ -16,6 +16,24 @@
       "message": "nit: Could have this be a part of meetingPointDescription struct instead?",
       "revId": "48f2841669433782e7b0533cada243e1d168761a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b1bba20c_cdff8597",
+        "filename": "machine/go/switchboard/impl.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-10T20:47:49Z",
+      "side": 1,
+      "message": "It could have been, but I liked the symmetry of the two functions:\n\n  descriptionToMeetingPoint\n  meetingPointToDescription",
+      "parentUuid": "f57000fc_3ba85afd",
+      "revId": "48f2841669433782e7b0533cada243e1d168761a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
