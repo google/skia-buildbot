@@ -84,7 +84,7 @@ export class BugsCentralSk extends ElementSk {
 
   private clients_to_counts: Record<string, IssueCountsData> = {};
 
-  private clients_map: Record<string, Record<string, Record<string, boolean>>> = {};
+  private clients_map: Record<string, Record<string, Record<string, boolean> | null> | null> = {};
 
   private open_chart_data: string = '';
 
@@ -134,7 +134,7 @@ export class BugsCentralSk extends ElementSk {
 
     // Populate map of clients to sources to queries.
     await this.doImpl('/_/get_clients_sources_queries', {}, async (json: GetClientsResponse) => {
-      this.clients_map = json.clients;
+      this.clients_map = json.clients || {};
     });
 
     // From this point on reflect the state to the URL.
@@ -286,11 +286,11 @@ export class BugsCentralSk extends ElementSk {
   private addExtraInformationToState(state: State): boolean {
     let stateUpdated = false;
     if (state.client && !state.source && !state.query) {
-      const sources = Object.keys(this.clients_map[state.client as string]);
+      const sources = Object.keys(this.clients_map[state.client as string] || {});
       if (sources.length === 1) {
         state.source = sources[0];
         stateUpdated = true;
-        const queries = Object.keys(this.clients_map[state.client as string][state.source]);
+        const queries = Object.keys((this.clients_map[state.client as string] || {})[state.source] || {});
         if (queries.length === 1) {
           state.query = queries[0];
           stateUpdated = true;
@@ -383,9 +383,9 @@ export class BugsCentralSk extends ElementSk {
     if (!c) {
       await Promise.all(Object.keys(this.clients_map).map(async (client) => this.clients_to_counts[getClientKey(client, '', '')] = await this.getCounts(client, '', '')));
     } else if (!s) {
-      await Promise.all(Object.keys(this.clients_map[c]).map(async (source) => this.clients_to_counts[getClientKey(c, source, '')] = await this.getCounts(c, source, '')));
+      await Promise.all(Object.keys(this.clients_map[c] || {}).map(async (source) => this.clients_to_counts[getClientKey(c, source, '')] = await this.getCounts(c, source, '')));
     } else if (!q) {
-      await Promise.all(Object.keys(this.clients_map[c][s]).map(async (query) => this.clients_to_counts[getClientKey(c, s, query)] = await this.getCounts(c, s, query)));
+      await Promise.all(Object.keys((this.clients_map[c] || {})[s] || {}).map(async (query) => this.clients_to_counts[getClientKey(c, s, query)] = await this.getCounts(c, s, query)));
     } else {
       this.clients_to_counts[getClientKey(c, s, q)] = await this.getCounts(c, s, q);
     }

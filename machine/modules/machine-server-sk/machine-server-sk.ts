@@ -44,7 +44,7 @@ export const MAX_LAST_UPDATED_ACCEPTABLE_MS = 60 * 1000;
  */
 export const MAX_UPTIME_ACCEPTABLE_S = 60 * 60 * 25;
 
-const temps = (temperatures: { [key: string]: number }): TemplateResult => {
+const temps = (temperatures: { [key: string]: number } | null): TemplateResult => {
   if (!temperatures) {
     return html``;
   }
@@ -120,7 +120,7 @@ const update = (ele: MachineServerSk, machine: Description): TemplateResult => {
     <button
       title="Force the pod to be killed and re-created"
       class="update"
-      @click=${() => ele.toggleUpdate(machine.Dimensions.id![0])}
+      @click=${() => ele.toggleUpdate(machine.Dimensions!.id![0])}
     >
       ${msg}
     </button>
@@ -149,7 +149,7 @@ const powerCycle = (ele: MachineServerSk, machine: Description): TemplateResult 
   return html`
     <power-settings-new-icon-sk
       title="Powercycle the host"
-      @click=${() => ele.togglePowerCycle(machine.Dimensions.id![0])}
+      @click=${() => ele.togglePowerCycle(machine.Dimensions!.id![0])}
     ></power-settings-new-icon-sk>
   `;
 };
@@ -160,7 +160,7 @@ const clearDevice = (ele: MachineServerSk, machine: Description): TemplateResult
   : html`
         <clear-icon-sk
           title="Clear the dimensions for the bot"
-          @click=${() => ele.clearDevice(machine.Dimensions.id![0])}
+          @click=${() => ele.clearDevice(machine.Dimensions!.id![0])}
         ></clear-icon-sk>
       `);
 
@@ -168,7 +168,7 @@ const clearDevice = (ele: MachineServerSk, machine: Description): TemplateResult
 const toggleMode = (ele: MachineServerSk, machine: Description) => html`
     <button
       class="mode"
-      @click=${() => ele.toggleMode(machine.Dimensions.id![0])}
+      @click=${() => ele.toggleMode(machine.Dimensions!.id![0])}
       title="Put the machine in maintenance mode."
     >
       ${machine.Mode}
@@ -177,9 +177,9 @@ const toggleMode = (ele: MachineServerSk, machine: Description) => html`
 
 const machineLink = (machine: Description): TemplateResult => html`
     <a
-      href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions.id}"
+      href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions!.id}"
     >
-      ${machine.Dimensions.id}
+      ${machine.Dimensions!.id}
     </a>
   `;
 
@@ -187,7 +187,7 @@ const machineLink = (machine: Description): TemplateResult => html`
 const deleteMachine = (ele: MachineServerSk, machine: Description): TemplateResult => html`
   <delete-icon-sk
     title="Remove the machine from the database."
-    @click=${() => ele.deleteDevice(machine.Dimensions.id![0])}
+    @click=${() => ele.deleteDevice(machine.Dimensions!.id![0])}
   ></delete-icon-sk>
 `;
 
@@ -207,7 +207,7 @@ export const uptimeOutOfSpecIfTooOld = (uptime: number): string => (uptime > MAX
 
 // eslint-disable-next-line no-use-before-define
 const note = (ele: MachineServerSk, machine: Description): TemplateResult => html`
-  <edit-icon-sk @click=${() => ele.editNote(machine.Dimensions.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
+  <edit-icon-sk @click=${() => ele.editNote(machine.Dimensions!.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
 `;
 
 // Returns the device_type separated with vertical bars and a trailing device
@@ -229,15 +229,15 @@ export const pretty_device_name = (devices: string[] | null): string => {
 // eslint-disable-next-line no-use-before-define
 const rows = (ele: MachineServerSk): TemplateResult[] => ele.filteredMachines().map(
   (machine) => html`
-      <tr id=${machine.Dimensions.id![0]}>
+      <tr id=${machine.Dimensions!.id![0]}>
         <td>${machineLink(machine)}</td>
         <td>${machine.PodName}</td>
-        <td>${pretty_device_name(machine.Dimensions.device_type)}</td>
+        <td>${pretty_device_name(machine.Dimensions!.device_type)}</td>
         <td>${toggleMode(ele, machine)}</td>
         <td>${update(ele, machine)}</td>
         <td class="powercycle">${powerCycle(ele, machine)}</td>
         <td>${clearDevice(ele, machine)}</td>
-        <td>${machine.Dimensions.quarantined}</td>
+        <td>${machine.Dimensions!.quarantined}</td>
         <td>${isRunning(machine)}</td>
         <td>${machine.Battery}</td>
         <td>${temps(machine.Temperature)}</td>
