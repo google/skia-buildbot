@@ -1309,8 +1309,8 @@ def go_repositories():
     go_repository(
         name = "com_github_google_go_licenses",
         importpath = "github.com/google/go-licenses",
-        sum = "h1:JtmsUf+m+KdwCOgLG578T0Mvd0+l+dezPrJh5KYnXZg=",
-        version = "v0.0.0-20210329231322-ce1d9163b77d",
+        sum = "h1:I98OR2rkA0BbILgkFO989xoVZA7nKMgBoDjFbaompSE=",
+        version = "v0.0.0-20210611153034-83e603ed469e",
     )
 
     go_repository(
@@ -2483,8 +2483,8 @@ def go_repositories():
     go_repository(
         name = "com_github_otiai10_copy",
         importpath = "github.com/otiai10/copy",
-        sum = "h1:HvG945u96iNadPoG2/Ja2+AUJeW5YuFQMixq9yirC+k=",
-        version = "v1.2.0",
+        sum = "h1:IinKAryFFuPONZ7cm6T6E2QX/vcJwSnlaA5lfoaXIiQ=",
+        version = "v1.6.0",
     )
 
     go_repository(
@@ -2497,8 +2497,8 @@ def go_repositories():
     go_repository(
         name = "com_github_otiai10_mint",
         importpath = "github.com/otiai10/mint",
-        sum = "h1:BCmzIS3n71sGfHB5NMNDB3lHYPz8fWSkCAErHed//qc=",
-        version = "v1.3.1",
+        sum = "h1:VYWnrP5fXmz1MXvjuUvcBrXSjGE6xjON+axB/UrpO3E=",
+        version = "v1.3.2",
     )
     go_repository(
         name = "com_github_pact_foundation_pact_go",
