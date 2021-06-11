@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1d0d99cb_ed1598ba",
+        "filename": "BUILD.bazel",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-11T01:17:21Z",
+      "side": 1,
+      "message": "This is the correct output - I just tried it on my workstation to be sure.",
+      "range": {
+        "startLine": 113,
+        "startChar": 20,
+        "endLine": 113,
+        "endChar": 30
+      },
+      "revId": "042591352d7e35e1d4382a258d1de42fa898d4c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
