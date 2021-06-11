@@ -16,6 +16,24 @@
       "message": "I think the change should be from bazel-bin -\u003e _bazel_bin, note the second underscore.",
       "revId": "33b3808d1faa11e451c3e7f9be08237756151c99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "86e829a4_083a6469",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-11T01:17:41Z",
+      "side": 1,
+      "message": "You are absolutely right. Addressed in https://skia-review.googlesource.com/c/buildbot/+/417736.",
+      "parentUuid": "f0715b49_99e14f2f",
+      "revId": "33b3808d1faa11e451c3e7f9be08237756151c99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
