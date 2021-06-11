@@ -34,7 +34,7 @@ var (
 	pkgName       = flag.String("package_name", "", "Name of the CIPD package.")
 	targets       = common.NewMultiStringFlag("target", nil, "Bazel build targets.")
 	platformsList = common.NewMultiStringFlag("platform", nil, "Pairs of Bazel build platform and CIPD platform in <bazel platform>=<cipd platform> format.")
-	includePaths  = common.NewMultiStringFlag("include_path", nil, "Paths to include, relative to //_bazel-bin.  Use [.exe] for optional suffix, eg. \"program[.exe]\"")
+	includePaths  = common.NewMultiStringFlag("include_path", nil, "Paths to include, relative to //_bazel_bin.  Use [.exe] for optional suffix, eg. \"program[.exe]\"")
 
 	// Optional flags.
 	buildDir       = flag.String("build_dir", ".", "Directory containing the Bazel workspace to build.")

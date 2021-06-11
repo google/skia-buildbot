@@ -748,7 +748,7 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 }
 
 func buildAndDeploySK(b *specs.TasksCfgBuilder, name string) string {
-	return buildAndDeployCIPD(b, name, "skia/tools/sk", []string{"//sk/go/sk:sk"}, []string{"_bazel-bin/sk/go/sk/sk_/sk[.exe]"})
+	return buildAndDeployCIPD(b, name, "skia/tools/sk", []string{"//sk/go/sk:sk"}, []string{"_bazel_bin/sk/go/sk/sk_/sk[.exe]"})
 }
 
 // process generates Tasks and Jobs for the given Job name.
