@@ -4,7 +4,7 @@ This module will be removed once the migration off Webpack is complete.
 """
 
 def generate_tilde_prefixed_elements_sk_scss_files(name):
-    """Copies @npm//:node_modules/elements-sk/**/*.scss files into //bazel-bin/~elemnts-sk.
+    """Copies @npm//:node_modules/elements-sk/**/*.scss files into //_bazel_bin/~elemnts-sk.
 
     This macro adds support for tilde-prefixed Sass imports of elements-sk styles, e.g.:
 

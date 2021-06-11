@@ -217,10 +217,10 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
     $TEST_UNDECLARED_OUTPUTS_DIR/puppeteer-test-screenshots subdirectory. This convention will
     allow us to recover screenshots from multiple tests in a consistent way.
 
-    Screenshots, and any other undeclared outputs of a test, can be found under //_bazel-testlogs
+    Screenshots, and any other undeclared outputs of a test, can be found under //_bazel_testlogs
     bundled as a single .zip file per test target. For example, if we run a Puppeteer test with e.g.
     "bazel test //path/to/my:puppeteer_test", any screenshots taken by this test will be found
-    inside //_bazel-testlogs/path/to/my/puppeteer_test/test.outputs/outputs.zip.
+    inside //_bazel_testlogs/path/to/my/puppeteer_test/test.outputs/outputs.zip.
 
     To read more about undeclared test outputs, please see the following link:
     https://docs.bazel.build/versions/master/test-encyclopedia.html#test-interaction-with-the-filesystem.

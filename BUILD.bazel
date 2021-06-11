@@ -109,8 +109,8 @@ sh_binary(
 #     $ bazel build //:rbe_container_skia_infra
 #
 #     # Load the container.
-#     $ docker load -i _bazel-bin/rbe_container_skia_infra_commit.tar
-#     Loaded image: _bazel/default:rbe_container_skia_infra
+#     $ docker load -i _bazel_bin/rbe_container_skia_infra_commit.tar
+#     Loaded image: _bazel_bin/default:rbe_container_skia_infra
 #
 #     # Run the container.
 #     $ docker run -it bazel/default:rbe_container_skia_infra /bin/bash
@@ -258,7 +258,7 @@ container_push(
     ],
 )
 
-# Generate a copy of the elements-sk SCSS stylesheets under //bazel-bin/~elements-sk for
+# Generate a copy of the elements-sk SCSS stylesheets under //_bazel_bin/~elements-sk for
 # compatibility with Webpack-style tilde-prefixed SCSS imports. See the macro docstring for details.
 generate_tilde_prefixed_elements_sk_scss_files(
     name = "~elements-sk",
