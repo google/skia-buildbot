@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f0715b49_99e14f2f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-11T00:49:51Z",
+      "side": 1,
+      "message": "I think the change should be from bazel-bin -\u003e _bazel_bin, note the second underscore.",
+      "revId": "33b3808d1faa11e451c3e7f9be08237756151c99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
