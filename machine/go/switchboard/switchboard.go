@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+// PodKeepAliveDuration is how often switch-pod-monitor should call Switchboard.KeepAlivePod.
+const PodKeepAliveDuration = 5 * time.Minute
+
+// PodMaxConsecutiveKeepAliveErrors is how many time a call to
+// Switchboard.KeepAlivePod can fail in a row before switch-pod-monitor should
+// exit.
+const PodMaxConsecutiveKeepAliveErrors = 3
+
 // ErrMachineNotFound is returned when a given machineID is not found.
 var ErrMachineNotFound = errors.New("no such machine")
 
