@@ -153,12 +153,12 @@ func TestPutPatchset_CLExists_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	ps := code_review.Patchset{
-		SystemID:                      unqualifiedPSID,
-		ChangelistID:                  unqualifiedCLID,
-		Order:                         3,
-		GitHash:                       "fedcba98765443321",
-		CommentedOnCL:                 true,
-		LastCheckedIfCommentNecessary: time.Date(2021, time.January, 1, 2, 40, 0, 0, time.UTC),
+		SystemID:      unqualifiedPSID,
+		ChangelistID:  unqualifiedCLID,
+		Order:         3,
+		GitHash:       "fedcba98765443321",
+		CommentedOnCL: true,
+		Created:       time.Date(2021, time.January, 1, 2, 40, 0, 0, time.UTC),
 	}
 
 	err = store.PutPatchset(ctx, ps)
@@ -167,13 +167,13 @@ func TestPutPatchset_CLExists_Success(t *testing.T) {
 	// Check the SQL directly so we can trust GetPatchset* in other tests.
 	psRows := sqltest.GetAllRows(ctx, t, db, "Patchsets", &schema.PatchsetRow{}).([]schema.PatchsetRow)
 	assert.Equal(t, []schema.PatchsetRow{{
-		PatchsetID:                    "gerrit_abcdef",
-		System:                        "gerrit",
-		ChangelistID:                  "gerrit_987654",
-		Order:                         3,
-		GitHash:                       "fedcba98765443321",
-		CommentedOnCL:                 true,
-		LastCheckedIfCommentNecessary: time.Date(2021, time.January, 1, 2, 40, 0, 0, time.UTC),
+		PatchsetID:    "gerrit_abcdef",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_987654",
+		Order:         3,
+		GitHash:       "fedcba98765443321",
+		CommentedOnCL: true,
+		Created:       time.Date(2021, time.January, 1, 2, 40, 0, 0, time.UTC),
 	}}, psRows)
 
 	actual, err := store.GetPatchset(ctx, unqualifiedCLID, unqualifiedPSID)
@@ -210,6 +210,146 @@ func TestPutPatchset_CLDoesNotExists_ReturnsError(t *testing.T) {
 	_, err = store.GetPatchset(ctx, unqualifiedCLID, unqualifiedPSID)
 	require.Error(t, err)
 	assert.Equal(t, err, clstore.ErrNotFound)
+}
+
+func TestGetPatchset_CreatedTimestampNull_TimeZero(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	const unqualifiedCLID = "55555"
+	existingData := schema.Tables{
+		Changelists: []schema.ChangelistRow{{
+			ChangelistID:     "github_55555",
+			System:           "github",
+			Status:           schema.StatusOpen,
+			OwnerEmail:       "foo@example.com",
+			Subject:          "bar",
+			LastIngestedData: time.Date(2021, time.January, 1, 2, 40, 0, 0, time.UTC),
+		}},
+		Patchsets: []schema.PatchsetRow{{
+			PatchsetID:    "github_bbbbbbbbbbbbbbbbbbbbbbbb",
+			System:        "github",
+			ChangelistID:  "github_55555",
+			Order:         6,
+			GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbb",
+			CommentedOnCL: true,
+		}},
+	}
+	err := sqltest.BulkInsertDataTables(ctx, db, existingData)
+	require.NoError(t, err)
+
+	store := New(db, "github")
+
+	ps, err := store.GetPatchset(ctx, unqualifiedCLID, "bbbbbbbbbbbbbbbbbbbbbbbb")
+	require.NoError(t, err)
+	assert.Equal(t, code_review.Patchset{
+		SystemID:      "bbbbbbbbbbbbbbbbbbbbbbbb",
+		ChangelistID:  unqualifiedCLID,
+		Order:         6,
+		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbb",
+		Created:       time.Time{},
+		CommentedOnCL: true,
+	}, ps)
+}
+
+func TestGetPatchsetByOrder_CreatedTimestampNull_TimeZero(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	const unqualifiedCLID = "55555"
+	existingData := schema.Tables{
+		Changelists: []schema.ChangelistRow{{
+			ChangelistID:     "github_55555",
+			System:           "github",
+			Status:           schema.StatusOpen,
+			OwnerEmail:       "foo@example.com",
+			Subject:          "bar",
+			LastIngestedData: time.Date(2021, time.January, 1, 2, 40, 0, 0, time.UTC),
+		}},
+		Patchsets: []schema.PatchsetRow{{
+			PatchsetID:    "github_bbbbbbbbbbbbbbbbbbbbbbbb",
+			System:        "github",
+			ChangelistID:  "github_55555",
+			Order:         6,
+			GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbb",
+			CommentedOnCL: true,
+		}},
+	}
+	err := sqltest.BulkInsertDataTables(ctx, db, existingData)
+	require.NoError(t, err)
+
+	store := New(db, "github")
+
+	ps, err := store.GetPatchsetByOrder(ctx, unqualifiedCLID, 6)
+	require.NoError(t, err)
+	assert.Equal(t, code_review.Patchset{
+		SystemID:      "bbbbbbbbbbbbbbbbbbbbbbbb",
+		ChangelistID:  unqualifiedCLID,
+		Order:         6,
+		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbb",
+		Created:       time.Time{},
+		CommentedOnCL: true,
+	}, ps)
+}
+
+func TestGetPatchsetByOrder_MultiplePSWithSameOrder_CreatedTSWins(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	const unqualifiedCLID = "55555"
+	existingData := schema.Tables{
+		Changelists: []schema.ChangelistRow{{
+			ChangelistID:     "github_55555",
+			System:           "github",
+			Status:           schema.StatusOpen,
+			OwnerEmail:       "foo@example.com",
+			Subject:          "bar",
+			LastIngestedData: time.Date(2021, time.January, 1, 2, 40, 0, 0, time.UTC),
+		}},
+		Patchsets: []schema.PatchsetRow{{
+			PatchsetID:    "github_bbbbbbbbbbbbbbbbbbbbbbbb",
+			System:        "github",
+			ChangelistID:  "github_55555",
+			Order:         1,
+			GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbb",
+			CommentedOnCL: false,
+			Created:       time.Date(2021, time.January, 2, 2, 2, 0, 0, time.UTC),
+		}, {
+			PatchsetID:    "github_ccccccccccccccccccccccc",
+			System:        "github",
+			ChangelistID:  "github_55555",
+			Order:         1,
+			GitHash:       "ccccccccccccccccccccccc",
+			CommentedOnCL: false,
+			Created:       time.Date(2021, time.January, 3, 3, 3, 0, 0, time.UTC),
+		}, {
+			PatchsetID:    "github_dddddddddddddddddddddd",
+			System:        "github",
+			ChangelistID:  "github_55555",
+			Order:         1,
+			GitHash:       "dddddddddddddddddddddd",
+			CommentedOnCL: false,
+			Created:       time.Date(2021, time.January, 1, 1, 1, 0, 0, time.UTC),
+		}},
+	}
+	err := sqltest.BulkInsertDataTables(ctx, db, existingData)
+	require.NoError(t, err)
+
+	store := New(db, "github")
+
+	ps, err := store.GetPatchsetByOrder(ctx, unqualifiedCLID, 1)
+	require.NoError(t, err)
+	assert.Equal(t, code_review.Patchset{
+		SystemID:      "ccccccccccccccccccccccc",
+		ChangelistID:  unqualifiedCLID,
+		Order:         1,
+		GitHash:       "ccccccccccccccccccccccc",
+		Created:       time.Date(2021, time.January, 3, 3, 3, 0, 0, time.UTC),
+		CommentedOnCL: false,
+	}, ps)
 }
 
 func TestGetPatchsets_PatchsetsSavedOutOfOrder_ReturnsPatchsetsInAscendingOrder(t *testing.T) {
