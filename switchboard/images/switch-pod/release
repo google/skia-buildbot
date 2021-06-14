@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -x -e
+
+APPNAME=switch-pod
+
+IMAGE=$(dirname "$0")
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+
+${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile                          ${ROOT}/Dockerfile
+${INSTALL} --mode=644 -T ${IMAGE}/../../../machine/configs/prod.json  ${ROOT}/etc/switch-pod-monitor/config.json
+${INSTALL} --mode=755 -T ${GOPATH}/bin/switch-pod-monitor             ${ROOT}/usr/local/bin/switch-pod-monitor
+${INSTALL} --mode=755 -T ${GOPATH}/bin/ncrev                          ${ROOT}/usr/local/bin/ncrev
+}
+
+source ../bash/docker_build.sh
