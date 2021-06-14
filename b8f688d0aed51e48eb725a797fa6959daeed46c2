@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a5e0bdda_08948aa5",
+        "filename": "jsfiddle/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-14T12:56:47Z",
+      "side": 1,
+      "message": "Is it possible to extract this as a makefile variable?",
+      "range": {
+        "startLine": 20,
+        "startChar": 15,
+        "endLine": 20,
+        "endChar": 32
+      },
+      "revId": "b8f688d0aed51e48eb725a797fa6959daeed46c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
