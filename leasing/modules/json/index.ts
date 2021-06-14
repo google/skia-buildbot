@@ -33,6 +33,6 @@ export interface ExpireTaskRequest {
 }
 
 export interface PoolDetails {
-	os_types: { [key: string]: number };
-	os_to_device_types: { [key: string]: { [key: string]: number } };
+	os_types: { [key: string]: number } | null;
+	os_to_device_types: { [key: string]: { [key: string]: number } | null } | null;
 }
