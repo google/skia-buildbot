@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9dfb885a_03543cd1",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-14T18:38:09Z",
+      "side": 1,
+      "message": "I doubt they are going to change much, if they do I can always move them into config later.",
+      "parentUuid": "1e1413d6_0cc69449",
+      "range": {
+        "startLine": 12,
+        "startChar": 29,
+        "endLine": 12,
+        "endChar": 44
+      },
+      "revId": "97499e60ccf2c94d37436b7bf435ef2322451f32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "929f7b96_67263e6d",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-06-14T17:08:21Z",
       "side": 1,
       "message": "bikeshed: the naming here makes this feel like a one operation step, when it really is a long-livved connection. Maybe connectToSwitchboardAndWait() or something like that?",
+      "range": {
+        "startLine": 59,
+        "startChar": 11,
+        "endLine": 59,
+        "endChar": 37
+      },
+      "revId": "97499e60ccf2c94d37436b7bf435ef2322451f32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0388f1cf_f058cf03",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-14T18:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "929f7b96_67263e6d",
       "range": {
         "startLine": 59,
         "startChar": 11,
@@ -87,6 +135,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "be49be8e_b2cac65f",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-14T18:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c9644feb_f06d6b55",
+      "range": {
+        "startLine": 88,
+        "startChar": 4,
+        "endLine": 88,
+        "endChar": 8
+      },
+      "revId": "97499e60ccf2c94d37436b7bf435ef2322451f32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "39ba14e3_b18edc86",
@@ -100,6 +172,30 @@
       "writtenOn": "2021-06-14T17:08:21Z",
       "side": 1,
       "message": "Should this be a select statement? If we get a SIGTERM, I presume we would want to exit and/or cancel the context to stop the ticking below. If we want to cancel the context and exit \"naturally\", then we may need a child context for the KeepAlivePod.",
+      "range": {
+        "startLine": 91,
+        "startChar": 3,
+        "endLine": 91,
+        "endChar": 9
+      },
+      "revId": "97499e60ccf2c94d37436b7bf435ef2322451f32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "569d01d4_b72783d1",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-14T18:38:09Z",
+      "side": 1,
+      "message": "Good insight, I was able to drop this Go routine and add another case to the switch statement below which vastly simplifies the logic.",
+      "parentUuid": "39ba14e3_b18edc86",
       "range": {
         "startLine": 91,
         "startChar": 3,
@@ -133,6 +229,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "796e35ce_c0161e0c",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-14T18:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "feaf6508_ea906286",
+      "range": {
+        "startLine": 110,
+        "startChar": 42,
+        "endLine": 110,
+        "endChar": 45
+      },
+      "revId": "97499e60ccf2c94d37436b7bf435ef2322451f32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ec59accd_8eec8ce2",
@@ -156,6 +276,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0366bb81_2987354d",
+        "filename": "switchboard/go/switch-pod-monitor/main_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-14T18:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec59accd_8eec8ce2",
+      "range": {
+        "startLine": 35,
+        "startChar": 46,
+        "endLine": 35,
+        "endChar": 47
+      },
+      "revId": "97499e60ccf2c94d37436b7bf435ef2322451f32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "72a70936_5f88c0b4",
@@ -169,6 +313,30 @@
       "writtenOn": "2021-06-14T17:08:21Z",
       "side": 1,
       "message": "I think all of the contexts should be a WithCancel to clean up any goroutines made by the function under test. Same on line 49.",
+      "range": {
+        "startLine": 37,
+        "startChar": 16,
+        "endLine": 37,
+        "endChar": 26
+      },
+      "revId": "97499e60ccf2c94d37436b7bf435ef2322451f32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0dcf010b_2a0f8cd6",
+        "filename": "switchboard/go/switch-pod-monitor/main_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-14T18:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "72a70936_5f88c0b4",
       "range": {
         "startLine": 37,
         "startChar": 16,
