@@ -18,7 +18,7 @@ testOnlySetSettings({
 Date.now = () => fakeNow;
 
 fetchMock.get('/json/v1/trstatus', statusResponse);
-fetchMock.get('/json/v1/paramset', paramSetResponse);
+fetchMock.get('/json/v1/paramset', paramSetResponse!);
 fetchMock.get('/json/v1/changelist/gerrit/123456', changeListSummaryResponse);
 
 // We simulate the search endpoint, but only take into account the negative/positive/untriaged
@@ -68,13 +68,13 @@ fetchMock.post('/json/v1/triage', (_: any, req: any) => {
         });
 
         // Update negative reference image's label if it matches the current digest.
-        const neg = searchResult?.refDiffs['neg'];
+        const neg = searchResult?.refDiffs?.neg;
         if (neg?.digest === digest) {
           neg.status = label;
         }
 
         // Update positive reference image's label if it matches the current digest.
-        const pos =  searchResult?.refDiffs['pos'];
+        const pos =  searchResult?.refDiffs?.pos;
         if (pos?.digest === digest) {
           pos.status = label;
         }
