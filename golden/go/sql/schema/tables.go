@@ -768,30 +768,37 @@ type PatchsetRow struct {
 	// that need human attention (e.g. there are non-flaky, untriaged, and unignored digests).
 	// We should comment on a CL at most once per Patchset.
 	CommentedOnCL bool `sql:"commented_on_cl BOOL NOT NULL"`
-	// LastCheckedIfCommentNecessary remembers when we last queried the data for this PS to see
-	// if it needed a comment. It is used to avoid searching the database if there have been
-	// no updates to the CL since the last time we looked.
-	LastCheckedIfCommentNecessary time.Time `sql:"last_checked_if_comment_necessary TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// Created is the timestamp that this Patchset was created. It is used to determine
+	// "most recent" Patchset and is provided by the CodeReviewSystem. It can be null for data that
+	// was ingested before we decided to add this (skbug.com/12093)
+	Created time.Time `sql:"created_ts TIMESTAMP WITH TIME ZONE"`
 
 	clOrderIndex struct{} `sql:"INDEX cl_order_idx (changelist_id, ps_order)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
 func (r PatchsetRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	var created *time.Time
+	if !r.Created.IsZero() {
+		created = &r.Created
+	}
 	return []string{"patchset_id", "system", "changelist_id", "ps_order", "git_hash",
-			"commented_on_cl", "last_checked_if_comment_necessary"},
+			"commented_on_cl", "created_ts"},
 		[]interface{}{r.PatchsetID, r.System, r.ChangelistID, r.Order, r.GitHash,
-			r.CommentedOnCL, r.LastCheckedIfCommentNecessary}
+			r.CommentedOnCL, created}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *PatchsetRow) ScanFrom(scan func(...interface{}) error) error {
+	var created pgtype.Timestamptz
 	err := scan(&r.PatchsetID, &r.System, &r.ChangelistID, &r.Order, &r.GitHash,
-		&r.CommentedOnCL, &r.LastCheckedIfCommentNecessary)
+		&r.CommentedOnCL, &created)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	r.LastCheckedIfCommentNecessary = r.LastCheckedIfCommentNecessary.UTC()
+	if created.Status == pgtype.Present {
+		r.Created = created.Time.UTC()
+	}
 	return nil
 }
 
