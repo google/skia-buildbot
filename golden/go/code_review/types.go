@@ -94,8 +94,11 @@ type Patchset struct {
 	// index of this Patchset relative to all other Patchsets on this CL.
 	Order   int
 	GitHash string
+	// Created is the timestamp that this Patchset was created. It is used to determine
+	// "most recent" Patchset and is provided by the CodeReviewSystem.
+	Created time.Time
+
 	// CommentedOnCL are used to keep track of "Do we need to notify
 	// the user about UntriagedDigests for this code?" and "Did we notify them?".
-	CommentedOnCL                 bool
-	LastCheckedIfCommentNecessary time.Time
+	CommentedOnCL bool
 }
