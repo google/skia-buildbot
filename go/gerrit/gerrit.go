@@ -166,7 +166,7 @@ const (
 )
 
 var (
-	trivialPatchSetKinds = []string{
+	TrivialPatchSetKinds = []string{
 		patchSetKindTrivialRebase,
 		patchSetKindNoChange,
 		patchSetKindNoCodeChange,
@@ -197,6 +197,7 @@ type ChangeInfo struct {
 	Subject         string              `json:"subject"`
 	Branch          string              `json:"branch"`
 	Committed       bool                `json:"committed"`
+	Topic           string              `json:"topic"`
 	Messages        []ChangeInfoMessage `json:"messages"`
 	Reviewers       struct {
 		CC       []*Person `json:"CC"`
@@ -210,6 +211,7 @@ type ChangeInfo struct {
 	Owner          *Person                `json:"owner"`
 	Status         string                 `json:"status"`
 	WorkInProgress bool                   `json:"work_in_progress"`
+	Mergeable      bool                   `json:"mergeable"`
 }
 
 // GetNonTrivialPatchSets finds the set of non-trivial patchsets. Returns the
@@ -231,7 +233,7 @@ func (ci *ChangeInfo) GetNonTrivialPatchSets() []*Revision {
 		if ci.Status == ChangeStatusMerged && idx == len(allPatchSets)-1 {
 			continue
 		}
-		if !util.In(rev.Kind, trivialPatchSetKinds) {
+		if !util.In(rev.Kind, TrivialPatchSetKinds) {
 			rv = append(rv, rev)
 		}
 	}
@@ -300,10 +302,11 @@ type LabelEntry struct {
 
 // LabelDetail provides details about a label set on a Change in Gerrit.
 type LabelDetail struct {
-	Name  string
-	Email string
-	Date  string
-	Value int
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Date      string `json:"date"`
+	Value     int    `json:"value"`
+	AccountID int    `json:"_account_id"`
 }
 
 // FileInfoStatus is the type of 'Status' in FileInfo.
@@ -366,6 +369,7 @@ type GerritInterface interface {
 	ExtractIssueFromCommit(string) (int64, error)
 	Files(ctx context.Context, issue int64, patch string) (map[string]*FileInfo, error)
 	GetChange(ctx context.Context, id string) (*ChangeInfo, error)
+	GetCommit(ctx context.Context, issue int64, revision string) (*CommitInfo, error)
 	GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error)
 	GetIssueProperties(context.Context, int64) (*ChangeInfo, error)
 	GetPatch(context.Context, int64, string) (string, error)
@@ -385,8 +389,10 @@ type GerritInterface interface {
 	SetCommitMessage(context.Context, *ChangeInfo, string) error
 	SetReadyForReview(context.Context, *ChangeInfo) error
 	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string) error
+	SetReviewWithOptions(ctx context.Context, issue *ChangeInfo, message string, labels map[string]int, reviewers []string, notify string, tag string, onBehalfOf int) error
 	SetTopic(context.Context, string, int64) error
 	Submit(context.Context, *ChangeInfo) error
+	SubmittedTogether(context.Context, *ChangeInfo) ([]*ChangeInfo, int, error)
 	Url(int64) string
 }
 
@@ -640,6 +646,34 @@ func (g *Gerrit) GetCommit(ctx context.Context, issue int64, revision string) (*
 
 type reviewer struct {
 	Reviewer string `json:"reviewer"`
+}
+
+func (g *Gerrit) SetReviewWithOptions(ctx context.Context, issue *ChangeInfo, message string, labels map[string]int, reviewers []string, notify string, tag string, onBehalfOf int) error {
+	postData := map[string]interface{}{
+		"message": message,
+		"labels":  labels,
+	}
+	if notify != "" {
+		postData["notify"] = notify
+	}
+	if tag != "" {
+		postData["tag"] = tag
+	}
+	if onBehalfOf != 0 {
+		postData["on_behalf_of"] = onBehalfOf
+	}
+
+	if len(reviewers) > 0 {
+		revs := make([]*reviewer, 0, len(reviewers))
+		for _, r := range reviewers {
+			revs = append(revs, &reviewer{
+				Reviewer: r,
+			})
+		}
+		postData["reviewers"] = revs
+	}
+	latestPatchset := issue.Patchsets[len(issue.Patchsets)-1]
+	return g.postJson(ctx, fmt.Sprintf("/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
 }
 
 // SetReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
@@ -1083,6 +1117,25 @@ func (g *Gerrit) IsBinaryPatch(ctx context.Context, issue int64, revision string
 // Submit submits the Change.
 func (g *Gerrit) Submit(ctx context.Context, ci *ChangeInfo) error {
 	return g.post(ctx, fmt.Sprintf("/changes/%d/submit", ci.Issue), []byte("{}"))
+}
+
+// The RelatedChangesInfo entity contains information about related changes.
+type SubmittedTogetherInfo struct {
+	Changes           []*ChangeInfo `json:"changes"`
+	NonVisibleChanges int           `json:"non_visible_changes"`
+}
+
+// SubmittedTogether returns list of all changes which are submitted when
+// Submit is called for this change, including the current change itself.
+// If the user calling the API does not have access to some changes then
+// non_visible_changes will be > 0.
+// TODO(rmistry): This needs a test.
+func (g *Gerrit) SubmittedTogether(ctx context.Context, ci *ChangeInfo) ([]*ChangeInfo, int, error) {
+	var submittedTogetherInfo *SubmittedTogetherInfo
+	if err := g.get(ctx, fmt.Sprintf("/changes/%d/submitted_together?o=NON_VISIBLE_CHANGES", ci.Issue), &submittedTogetherInfo, nil); err != nil {
+		return nil, -1, fmt.Errorf("Failed to retrieve submitted_together issues: %s", err)
+	}
+	return submittedTogetherInfo.Changes, submittedTogetherInfo.NonVisibleChanges, nil
 }
 
 // DownloadCommitMsgHook downloads the commit message hook to the specified
