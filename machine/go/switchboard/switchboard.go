@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+// PodKeepAliveDuration is how often switch-pod-monitor should call Switchboard.KeepAlivePod.
+const PodKeepAliveDuration = 5 * time.Minute
+
+// PodMaxConsecutiveKeepAliveErrors is how many time a call to
+// Switchboard.KeepAlivePod can fail in a row before switch-pod-monitor should
+// exit.
+const PodMaxConsecutiveKeepAliveErrors = 3
+
 // ErrMachineNotFound is returned when a given machineID is not found.
 var ErrMachineNotFound = errors.New("no such machine")
 
@@ -104,7 +112,8 @@ type Switchboard interface {
 	KeepAlivePod(ctx context.Context, podName string) error
 
 	// RemovePod removes a k8s pod from the list of available pods. It is called
-	// from each switchboard pod as it shuts down.
+	// from each switchboard pod as it shuts down. It is safe to call multiple
+	// times with the same podName.
 	RemovePod(ctx context.Context, podName string) error
 
 	// ListPods returns a list of all the pods availble to accept connections.
