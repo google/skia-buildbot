@@ -2824,8 +2824,8 @@ def go_repositories():
     go_repository(
         name = "com_github_skia_dev_go2ts",
         importpath = "github.com/skia-dev/go2ts",
-        sum = "h1:kbf9/70IJC+mOlAR4ZdXVzZJdjlJuUGSeqpXtCUDxZA=",
-        version = "v1.4.1",
+        sum = "h1:AHQe+t5W18HFoTuApMeShiVMu2nBMHdHgLWo2b2y7/U=",
+        version = "v1.5.0",
     )
 
     go_repository(

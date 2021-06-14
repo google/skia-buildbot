@@ -46,12 +46,12 @@ export interface GetTasksResponse {
 }
 
 export interface BenchmarksPlatformsResponse {
-	benchmarks: { [key: string]: string };
-	platforms: { [key: string]: string };
+	benchmarks: { [key: string]: string } | null;
+	platforms: { [key: string]: string } | null;
 }
 
 export interface TaskPrioritiesResponse {
-	task_priorities: { [key: number]: string };
+	task_priorities: { [key: number]: string } | null;
 }
 
 export interface PageSet {

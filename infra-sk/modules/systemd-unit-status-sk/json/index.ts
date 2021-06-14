@@ -15,7 +15,7 @@ export interface DBusUnitStatus {
 
 export interface SystemdUnitStatus {
 	status: DBusUnitStatus | null;
-	props: { [key: string]: any };
+	props: { [key: string]: any } | null;
 }
 
 export type ObjectPath = string;

@@ -39,7 +39,7 @@ fetchMock.get('glob:/json/v1/details*', delay({
 fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 const leftDetails = JSON.parse(JSON.stringify(typicalDetails));
-const rightDetails = typicalDetails.refDiffs.neg;
+const rightDetails = typicalDetails.refDiffs!.neg;
 
 // The server doesn't fill these out for the diff endpoint.
 leftDetails.traces = null;

@@ -30,11 +30,11 @@ export class BugsStatusSk extends ElementSk {
 
   displayBugsData(): TemplateResult[] {
     const rows: TemplateResult[] = [];
-    Object.keys(this.resp!.clients_to_status_data).forEach((client: string) =>
+    Object.keys(this.resp!.clients_to_status_data!).forEach((client: string) =>
       rows.push(html`
         <a
           class="tr"
-          href="${this.resp!.clients_to_status_data[client].link}"
+          href="${this.resp!.clients_to_status_data![client].link}"
           target="_blank"
           rel="noopener noreferrer"
           title="Untriaged ${client!} bugs count"
@@ -42,7 +42,7 @@ export class BugsStatusSk extends ElementSk {
           <div class="td">${client!}</div>
           <div class="td number">
             <span class="value"
-              >${this.resp!.clients_to_status_data[client]
+              >${this.resp!.clients_to_status_data![client]
                 .untriaged_count}</span
             >
           </div>

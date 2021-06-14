@@ -51,7 +51,7 @@ fetchMock.get('glob:/json/v1/diff*', (url) => {
   const searchResult = makeTypicalSearchResult(urlParams.test, urlParams.left, urlParams.right);
   const response: DigestComparison = {
     left: searchResult,
-    right: searchResult.refDiffs.pos,
+    right: searchResult.refDiffs!.pos,
   }
   return delay(response);
 })

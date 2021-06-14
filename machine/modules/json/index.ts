@@ -17,7 +17,7 @@ export interface Description {
 	PowerCycle: boolean;
 	LastUpdated: string;
 	Battery: number;
-	Temperature: { [key: string]: number };
+	Temperature: { [key: string]: number } | null;
 	RunningSwarmingTask: boolean;
 	RecoveryStart: string;
 	DeviceUptime: number;
@@ -25,4 +25,4 @@ export interface Description {
 
 export type Mode = "available" | "maintenance" | "recovery";
 
-export type SwarmingDimensions = { [key: string]: string[] | null };
+export type SwarmingDimensions = { [key: string]: string[] | null } | null;

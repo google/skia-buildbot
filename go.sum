@@ -1195,6 +1195,8 @@ github.com/sirupsen/logrus v1.7.0 h1:ShrD1U9pZB12TX0cVy0DtePoCH97K8EtX+mg7ZARUtM
 github.com/sirupsen/logrus v1.7.0/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
 github.com/skia-dev/go2ts v1.4.1 h1:kbf9/70IJC+mOlAR4ZdXVzZJdjlJuUGSeqpXtCUDxZA=
 github.com/skia-dev/go2ts v1.4.1/go.mod h1:pE59J8wf5IHSMtPhH8PmWq5ZTLt6p1Ih+4ODd9fkGXk=
+github.com/skia-dev/go2ts v1.5.0 h1:AHQe+t5W18HFoTuApMeShiVMu2nBMHdHgLWo2b2y7/U=
+github.com/skia-dev/go2ts v1.5.0/go.mod h1:pE59J8wf5IHSMtPhH8PmWq5ZTLt6p1Ih+4ODd9fkGXk=
 github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2 h1:Id5JdSD66PKQQiiVFG1VXDVCT5U3DcDzJSReXRxKRLk=
 github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2/go.mod h1:N0iTzjbw95ZVfOL7wVngmVXE2kG0NP+LYlq3QMwf9Qo=
 github.com/skia-dev/protoc-gen-twirp_typescript v0.0.0-20200902150932-4a52797b9171 h1:aVRC547XgCbd6d5FEu+Dliz0nb+VQADHboBzrVK94FI=

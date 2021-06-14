@@ -285,12 +285,12 @@ export class ChromiumAnalysisSk extends ElementSk {
     super.connectedCallback();
     this._render();
     fetchBenchmarksAndPlatforms((json) => {
-      this._benchmarksToDocs = json.benchmarks;
-      this._benchmarks = Object.keys(json.benchmarks);
+      this._benchmarksToDocs = json.benchmarks || {};
+      this._benchmarks = Object.keys(json.benchmarks || {});
       // { 'p1' : 'p1Desc', ... } -> [[p1, p1Desc], ...]
       // Allows rendering descriptions in the select-sk, and converting the
       // integer selection to platform name easily.
-      this._platforms = Object.entries(json.platforms);
+      this._platforms = Object.entries(json.platforms || {});
       this._render();
       // Do this after the template is rendered, or else it fails, and don't
       // inline a child 'selected' attribute since it won't rationalize in

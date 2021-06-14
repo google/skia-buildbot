@@ -130,7 +130,7 @@ type TriageRequestData map[types.TestName]map[types.Digest]expectations.Label
 type TriageRequest struct {
 	// TestDigestStatus maps status to test name and digests. The strings are
 	// expectation.Label.String() values
-	TestDigestStatus TriageRequestData `json:"testDigestStatus"`
+	TestDigestStatus TriageRequestData `json:"testDigestStatus" go2ts:"ignorenil"`
 
 	// ChangelistID is the id of the Changelist for which we want to change the expectations.
 	ChangelistID string `json:"changelist_id"`
@@ -408,7 +408,7 @@ type SearchResponse struct {
 	// an expectations.Label value giving the label of the closest triaged digest to the key digest
 	// or empty string if there is no "closest digest". Note the similarity to the
 	// frontend.TriageRequest type.
-	BulkTriageData TriageRequestData `json:"bulk_triage_data"`
+	BulkTriageData TriageRequestData `json:"bulk_triage_data" go2ts:"ignorenil"`
 }
 
 // TriageHistory represents who last triaged a certain digest for a certain test.
@@ -602,7 +602,7 @@ type ClusterDiffResult struct {
 	Test types.TestName `json:"test"`
 	// ParamsetByDigest is a mapping of digest to the ParamSet created by combining all Params
 	// for all traces that produce this digest.
-	ParamsetByDigest map[types.Digest]paramtools.ParamSet `json:"paramsetByDigest"`
+	ParamsetByDigest map[types.Digest]paramtools.ParamSet `json:"paramsetByDigest" go2ts:"ignorenil"`
 	// ParamsetsUnion is the union of all Params from all Traces that matched the cluster criteria.
 	// It is also a union of all ParamSet in ParamsetByDigest.
 	ParamsetsUnion paramtools.ParamSet `json:"paramsetsUnion"`

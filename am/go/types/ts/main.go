@@ -24,12 +24,12 @@ func main() {
 	flag.Parse()
 
 	generator := go2ts.New()
+	generator.AddIgnoreNil(paramtools.Params{})
+	generator.AddIgnoreNil(paramtools.ParamSet{})
 	generator.AddMultiple(
 		incident.Incident{},
 		silence.Silence{},
 		note.Note{},
-		paramtools.ParamSet{},
-		paramtools.Params{},
 		types.RecentIncidentsResponse{},
 		types.StatsRequest{},
 		types.StatsResponse{},

@@ -66,7 +66,7 @@ type Incident struct {
 	Active       bool              `json:"active" datastore:"active"`           // Or archived.
 	Start        int64             `json:"start" datastore:"start"`             // Time in seconds since the epoch.
 	LastSeen     int64             `json:"last_seen" datastore:"last_seen"`     // Time in seconds since the epoch.
-	Params       map[string]string `json:"params" datastore:"-"`                // Params
+	Params       paramtools.Params `json:"params" datastore:"-"`                // Params
 	ParamsSerial string            `json:"-" datastore:"params_serial,noindex"` // Params serialized as JSON for easy storing in the datastore.
 	Notes        []note.Note       `json:"notes" datastore:"notes,flatten"`
 }
