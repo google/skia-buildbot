@@ -12,7 +12,7 @@ export interface Incident {
 	active: boolean;
 	start: number;
 	last_seen: number;
-	params: { [key: string]: string };
+	params: Params;
 	notes: Note[] | null;
 }
 
@@ -44,7 +44,7 @@ export interface Stat {
 
 export interface IncidentsResponse {
 	incidents: Incident[] | null;
-	ids_to_recently_expired_silences: { [key: string]: boolean };
+	ids_to_recently_expired_silences: { [key: string]: boolean } | null;
 }
 
 export interface IncidentsInRangeRequest {
@@ -52,8 +52,8 @@ export interface IncidentsInRangeRequest {
 	incident: Incident;
 }
 
-export type ParamSet = { [key: string]: string[] | null };
-
 export type Params = { [key: string]: string };
+
+export type ParamSet = { [key: string]: string[] };
 
 export type StatsResponse = (Stat | null)[] | null;
