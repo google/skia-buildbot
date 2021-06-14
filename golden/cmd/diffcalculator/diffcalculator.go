@@ -46,10 +46,6 @@ const (
 type diffCalculatorConfig struct {
 	config.Common
 
-	// CommitsWithDataToSearch is how many commits we should go back in time through to find
-	// images to diff against.
-	CommitsWithDataToSearch int `json:"commits_with_data_to_search"`
-
 	// DiffCacheNamespace is a namespace for differentiating the DiffCache entities. The instance
 	// name is fine here.
 	DiffCacheNamespace string `json:"diff_cache_namespace" optional:"true"`
@@ -116,7 +112,7 @@ func main() {
 	gis := mustMakeGCSImageSource(ctx, dcc)
 	diffcache := mustMakeDiffCache(ctx, dcc)
 	sqlProcessor := &processor{
-		calculator:  worker.New(db, gis, diffcache, dcc.CommitsWithDataToSearch),
+		calculator:  worker.New(db, gis, diffcache, dcc.WindowSize),
 		ackCounter:  metrics2.GetCounter("diffcalculator_ack"),
 		nackCounter: metrics2.GetCounter("diffcalculator_nack"),
 	}

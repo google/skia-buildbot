@@ -274,10 +274,16 @@ func (w *WorkerImpl) getStartingTile(ctx context.Context) (schema.TileID, error)
 	if w.commitsWithDataToSearch <= 0 {
 		return 0, nil
 	}
-	row := w.db.QueryRow(ctx, `SELECT tile_id FROM CommitsWithData
+	const statement = `WITH
+RecentCommits AS (
+	SELECT tile_id, commit_id FROM CommitsWithData
+	AS OF SYSTEM TIME '-0.1s'
+	ORDER BY commit_id DESC LIMIT $1
+)
+SELECT tile_id FROM RecentCommits
 AS OF SYSTEM TIME '-0.1s'
-ORDER BY commit_id DESC
-LIMIT 1 OFFSET $1`, w.commitsWithDataToSearch-1)
+ORDER BY commit_id ASC LIMIT 1`
+	row := w.db.QueryRow(ctx, statement, w.commitsWithDataToSearch)
 	var lc pgtype.Int4
 	if err := row.Scan(&lc); err != nil {
 		if err == pgx.ErrNoRows {
