@@ -4,8 +4,6 @@ package sqlclstore
 import (
 	"context"
 
-	"github.com/jackc/pgtype"
-
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
@@ -137,8 +135,8 @@ VALUES ($1, $2, $3, $4, $5, $6)`
 func (s *StoreImpl) GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error) {
 	qID := sql.Qualify(s.systemID, clID)
 	rows, err := s.db.Query(ctx, `
-SELECT patchset_id, ps_order, git_hash, commented_on_cl, created_ts
-FROM Patchsets WHERE changelist_id = $1 ORDER BY created_ts DESC, ps_order ASC, git_hash ASC`, qID)
+SELECT patchset_id, ps_order, git_hash, commented_on_cl, last_checked_if_comment_necessary
+FROM Patchsets WHERE changelist_id = $1 ORDER BY ps_order ASC`, qID)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "querying for cl %s", qID)
 	}
@@ -146,22 +144,18 @@ FROM Patchsets WHERE changelist_id = $1 ORDER BY created_ts DESC, ps_order ASC, 
 	var rv []code_review.Patchset
 	for rows.Next() {
 		var r schema.PatchsetRow
-		var created pgtype.Timestamptz
-		err := rows.Scan(&r.PatchsetID, &r.Order, &r.GitHash, &r.CommentedOnCL, &created)
+		err := rows.Scan(&r.PatchsetID, &r.Order, &r.GitHash, &r.CommentedOnCL, &r.LastCheckedIfCommentNecessary)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Scanning data for cl %s", qID)
 		}
-		ps := code_review.Patchset{
-			SystemID:      sql.Unqualify(r.PatchsetID),
-			ChangelistID:  clID,
-			Order:         r.Order,
-			GitHash:       r.GitHash,
-			CommentedOnCL: r.CommentedOnCL,
-		}
-		if created.Status == pgtype.Present {
-			ps.Created = created.Time.UTC()
-		}
-		rv = append(rv, ps)
+		rv = append(rv, code_review.Patchset{
+			SystemID:                      sql.Unqualify(r.PatchsetID),
+			ChangelistID:                  clID,
+			Order:                         r.Order,
+			GitHash:                       r.GitHash,
+			CommentedOnCL:                 r.CommentedOnCL,
+			LastCheckedIfCommentNecessary: r.LastCheckedIfCommentNecessary.UTC(),
+		})
 	}
 	return rv, nil
 }
@@ -170,58 +164,48 @@ FROM Patchsets WHERE changelist_id = $1 ORDER BY created_ts DESC, ps_order ASC, 
 func (s *StoreImpl) GetPatchset(ctx context.Context, _, psID string) (code_review.Patchset, error) {
 	qID := sql.Qualify(s.systemID, psID)
 	row := s.db.QueryRow(ctx, `
-SELECT changelist_id, ps_order, git_hash, commented_on_cl, created_ts
+SELECT changelist_id, ps_order, git_hash, commented_on_cl, last_checked_if_comment_necessary
 FROM Patchsets WHERE patchset_id = $1`, qID)
 	var r schema.PatchsetRow
-	var created pgtype.Timestamptz
-	err := row.Scan(&r.ChangelistID, &r.Order, &r.GitHash, &r.CommentedOnCL, &created)
+	err := row.Scan(&r.ChangelistID, &r.Order, &r.GitHash, &r.CommentedOnCL, &r.LastCheckedIfCommentNecessary)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return code_review.Patchset{}, clstore.ErrNotFound
 		}
 		return code_review.Patchset{}, skerr.Wrapf(err, "querying for id %s", qID)
 	}
-	ps := code_review.Patchset{
-		SystemID:      psID,
-		ChangelistID:  sql.Unqualify(r.ChangelistID),
-		Order:         r.Order,
-		GitHash:       r.GitHash,
-		CommentedOnCL: r.CommentedOnCL,
-	}
-	if created.Status == pgtype.Present {
-		ps.Created = created.Time.UTC()
-	}
-	return ps, nil
+	return code_review.Patchset{
+		SystemID:                      psID,
+		ChangelistID:                  sql.Unqualify(r.ChangelistID),
+		Order:                         r.Order,
+		GitHash:                       r.GitHash,
+		CommentedOnCL:                 r.CommentedOnCL,
+		LastCheckedIfCommentNecessary: r.LastCheckedIfCommentNecessary.UTC(),
+	}, nil
 }
 
 // GetPatchsetByOrder implements clstore.Store.
 func (s *StoreImpl) GetPatchsetByOrder(ctx context.Context, clID string, psOrder int) (code_review.Patchset, error) {
 	qID := sql.Qualify(s.systemID, clID)
-	// Add the limit 1 to work around issues with git force pushing (skbug.com/12093)
 	row := s.db.QueryRow(ctx, `
-SELECT patchset_id, git_hash, commented_on_cl, created_ts
-FROM Patchsets WHERE changelist_id = $1 AND ps_order = $2
-ORDER BY created_ts DESC, ps_order ASC, git_hash ASC LIMIT 1`, qID, psOrder)
+SELECT patchset_id, git_hash, commented_on_cl, last_checked_if_comment_necessary
+FROM Patchsets WHERE changelist_id = $1 AND ps_order = $2`, qID, psOrder)
 	var r schema.PatchsetRow
-	var created pgtype.Timestamptz
-	err := row.Scan(&r.PatchsetID, &r.GitHash, &r.CommentedOnCL, &created)
+	err := row.Scan(&r.PatchsetID, &r.GitHash, &r.CommentedOnCL, &r.LastCheckedIfCommentNecessary)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return code_review.Patchset{}, clstore.ErrNotFound
 		}
 		return code_review.Patchset{}, skerr.Wrapf(err, "querying for order %s-%d", qID, psOrder)
 	}
-	ps := code_review.Patchset{
-		SystemID:      sql.Unqualify(r.PatchsetID),
-		ChangelistID:  clID,
-		Order:         psOrder,
-		GitHash:       r.GitHash,
-		CommentedOnCL: r.CommentedOnCL,
-	}
-	if created.Status == pgtype.Present {
-		ps.Created = created.Time.UTC()
-	}
-	return ps, nil
+	return code_review.Patchset{
+		SystemID:                      sql.Unqualify(r.PatchsetID),
+		ChangelistID:                  clID,
+		Order:                         psOrder,
+		GitHash:                       r.GitHash,
+		CommentedOnCL:                 r.CommentedOnCL,
+		LastCheckedIfCommentNecessary: r.LastCheckedIfCommentNecessary.UTC(),
+	}, nil
 }
 
 // PutPatchset implements clstore.Store. Note that due to foreign key constraints, it will fail
@@ -231,10 +215,10 @@ func (s *StoreImpl) PutPatchset(ctx context.Context, ps code_review.Patchset) er
 	clID := sql.Qualify(s.systemID, ps.ChangelistID)
 	const statement = `
 UPSERT INTO Patchsets (patchset_id, system, changelist_id, ps_order, git_hash,
-  commented_on_cl, created_ts)
+  commented_on_cl, last_checked_if_comment_necessary)
 VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	_, err := s.db.Exec(ctx, statement, psID, s.systemID, clID, ps.Order, ps.GitHash,
-		ps.CommentedOnCL, ps.Created)
+		ps.CommentedOnCL, ps.LastCheckedIfCommentNecessary)
 	if err != nil {
 		return skerr.Wrapf(err, "Inserting PS %#v", ps)
 	}

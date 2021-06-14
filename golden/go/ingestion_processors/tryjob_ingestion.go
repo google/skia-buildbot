@@ -424,12 +424,12 @@ func (g *goldTryjobProcessor) lookupAndCreatePS(ctx context.Context, client code
 	qualifiedPSID := sql.Qualify(crs, ps.SystemID)
 	const statement = `
 INSERT INTO Patchsets (patchset_id, system, changelist_id, ps_order, git_hash,
-  commented_on_cl, created_ts)
+  commented_on_cl, last_checked_if_comment_necessary)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT DO NOTHING`
 	err = crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		_, err := tx.Exec(ctx, statement, qualifiedPSID, crs, qualifiedCLID, ps.Order, ps.GitHash,
-			false, ps.Created)
+			false, time.Time{})
 		return err // Don't wrap - crdbpgx might retry
 	})
 	if err != nil {

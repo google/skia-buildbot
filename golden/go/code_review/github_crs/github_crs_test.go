@@ -125,14 +125,12 @@ func TestGetPatchset_OnePageResults_PatchsetExists_Success(t *testing.T) {
 		ChangelistID: clID,
 		Order:        1,
 		GitHash:      psOneID,
-		Created:      time.Date(2019, time.November, 8, 4, 18, 1, 0, time.UTC),
 	}
 	expectedFifthPS := code_review.Patchset{
 		SystemID:     psFiveID,
 		ChangelistID: clID,
 		Order:        5,
 		GitHash:      psFiveID,
-		Created:      time.Date(2019, time.November, 8, 4, 18, 5, 0, time.UTC),
 	}
 
 	ps, err := c.GetPatchset(context.Background(), clID, psOneID, omitOrder)
@@ -171,14 +169,12 @@ func TestGetPatchset_TwoPageResults_PatchsetsExist_Success(t *testing.T) {
 		ChangelistID: clID,
 		Order:        5,
 		GitHash:      psFiveID,
-		Created:      time.Date(2019, time.November, 8, 4, 18, 5, 0, time.UTC),
 	}
 	expectedSeventhPS := code_review.Patchset{
 		SystemID:     psSevenID,
 		ChangelistID: clID,
 		Order:        7,
 		GitHash:      psSevenID,
-		Created:      time.Date(2019, time.November, 8, 4, 18, 7, 0, time.UTC),
 	}
 
 	ps, err := c.GetPatchset(context.Background(), clID, psSevenID, omitOrder)
@@ -363,77 +359,28 @@ const abandonedPullRequestResponse = `
 const fiveCommitsOnPullRequestResponse = `
 [
   {
-    "sha": "111119f299e91924405cb8bd244efc1a6c28e4fa",
-    "commit": {
-      "committer": {
-        "name": "engine-flutter-autoroll",
-        "email": "engine-flutter-autoroll@skia.org",
-        "date": "2019-11-08T04:18:01Z"
-      }
-    }
+    "sha": "111119f299e91924405cb8bd244efc1a6c28e4fa"
   },
   {
-    "sha": "22222382b7ec0efdb7570c3e6c891cf2a20379a7",
-    "commit": {
-      "committer": {
-        "name": "engine-flutter-autoroll",
-        "email": "engine-flutter-autoroll@skia.org",
-        "date": "2019-11-08T04:18:02Z"
-      }
-    }
+    "sha": "22222382b7ec0efdb7570c3e6c891cf2a20379a7"
   },
   {
-    "sha": "333337085723c13fa96777a1830c7113e7ffba96",
-    "commit": {
-      "committer": {
-        "name": "engine-flutter-autoroll",
-        "email": "engine-flutter-autoroll@skia.org",
-        "date": "2019-11-08T04:18:03Z"
-      }
-    }
+    "sha": "333337085723c13fa96777a1830c7113e7ffba96"
   },
   {
-    "sha": "44444639d8a1cca0929829b04d90f35011b50fbf",
-    "commit": {
-      "committer": {
-        "name": "engine-flutter-autoroll",
-        "email": "engine-flutter-autoroll@skia.org",
-        "date": "2019-11-08T04:18:04Z"
-      }
-    }
+    "sha": "44444639d8a1cca0929829b04d90f35011b50fbf"
   },
   {
-    "sha": "555559b99ee360397a22cede6d9d16aacd245af1",
-    "commit": {
-      "committer": {
-        "name": "engine-flutter-autoroll",
-        "email": "engine-flutter-autoroll@skia.org",
-        "date": "2019-11-08T04:18:05Z"
-      }
-    }
+    "sha": "555559b99ee360397a22cede6d9d16aacd245af1"
   }
 ]`
 
 const twoCommitsOnPullRequestResponse = `
 [
   {
-    "sha": "666667ad358596996cfd8664b66a9087e3d7ee1c",
-    "commit": {
-      "committer": {
-        "name": "engine-flutter-autoroll",
-        "email": "engine-flutter-autoroll@skia.org",
-        "date": "2019-11-08T04:18:06Z"
-      }
-    }
+    "sha": "666667ad358596996cfd8664b66a9087e3d7ee1c"
   },
   {
-    "sha": "77777b5b0a55743c586708a94cbb69feb7bf32cd",
-    "commit": {
-      "committer": {
-        "name": "engine-flutter-autoroll",
-        "email": "engine-flutter-autoroll@skia.org",
-        "date": "2019-11-08T04:18:07Z"
-      }
-    }
+    "sha": "77777b5b0a55743c586708a94cbb69feb7bf32cd"
   }
 ]`
