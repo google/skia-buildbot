@@ -1,5 +1,4 @@
 {
-  commits_with_data_to_search: -1, // TODO(kjlubick) turn back on slowly after re-ingestion
   diff_cache_namespace: "angle",
   diff_work_subscription: "gold-angle-diffcalculator", // includes instance id
   memcached_server: "gold-memcached-0.gold-memcached:11211",

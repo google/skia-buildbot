@@ -1,5 +1,4 @@
 {
-  commits_with_data_to_search: -1, // TODO(kjlubick) turn back on slowly after re-ingestion
   diff_cache_namespace: "pdfium",
   diff_work_subscription: "gold-pdfium-diffcalculator", // includes instance id
   memcached_server: "gold-memcached-0.gold-memcached:11211",
