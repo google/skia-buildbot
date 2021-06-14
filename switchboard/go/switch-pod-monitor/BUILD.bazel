@@ -24,8 +24,7 @@ go_binary(
 
 go_test(
     name = "switch-pod-monitor_test",
-        "main_test.go",
-    ],
+    srcs = ["main_test.go"],
     embed = [":switch-pod-monitor_lib"],
     deps = [
         "//go/testutils",
