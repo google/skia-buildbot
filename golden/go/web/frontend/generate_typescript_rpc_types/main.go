@@ -32,11 +32,7 @@ func main() {
 }
 
 func addTypes(generator *go2ts.Go2TS) {
-	// Ensure go2ts sees the ParamSet type for the first time with the go2ts:"ignorenil" annotation.
-	type ignoreNil struct {
-		ParamSet paramtools.ParamSet `go2ts:"ignorenil"`
-	}
-	generator.AddWithName(ignoreNil{}, "IgnoreNil_DO_NOT_USE")
+	generator.AddIgnoreNil(paramtools.ParamSet{})
 
 	// Response for the /json/v1/changelist/{system}/{id} RPC endpoint.
 	generator.AddWithName(frontend.ChangelistSummary{}, "ChangelistSummaryResponse")
@@ -45,6 +41,11 @@ func addTypes(generator *go2ts.Go2TS) {
 	generator.AddWithName(tiling.Tile{}.ParamSet, "ParamSetResponse")
 
 	// Response for the /json/v1/search RPC endpoint.
+	//
+	// We add frontend.SearchResult first because we want to recursively preserve its nil types. If
+	// we don't add frontend.SearchResult explicitly, it will be discovered by go2ts as a field in
+	// frontend.SearchResponse tagged with `go2ts:"ignorenil"`, which recursively ignores all nils.
+	generator.Add(frontend.SearchResult{})
 	generator.AddWithName(frontend.SearchResponse{}, "SearchResponse")
 
 	// Request for the /json/v1/triage RPC endpoint.
