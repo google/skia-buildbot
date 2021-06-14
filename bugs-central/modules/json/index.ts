@@ -45,11 +45,11 @@ export interface ClientSourceQueryRequest {
 }
 
 export interface IssuesOutsideSLOResponse {
-	pri_to_slo_issues: { [key: string]: (Issue | null)[] | null };
+	pri_to_slo_issues: { [key: string]: (Issue | null)[] | null } | null;
 }
 
 export interface GetClientsResponse {
-	clients: { [key: string]: { [key: string]: { [key: string]: boolean } } };
+	clients: { [key: string]: { [key: string]: { [key: string]: boolean } | null } | null } | null;
 }
 
 export interface StatusData {
@@ -58,7 +58,7 @@ export interface StatusData {
 }
 
 export interface GetClientCountsResponse {
-	clients_to_status_data: { [key: string]: StatusData };
+	clients_to_status_data: { [key: string]: StatusData } | null;
 }
 
 export interface GetChartsDataResponse {
