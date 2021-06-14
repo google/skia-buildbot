@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d4fde5a8_b31327ac",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-14T18:56:10Z",
+      "side": 1,
+      "message": "Does this need to be in a for loop? Otherwise, I think this will only tick once, right?",
+      "range": {
+        "startLine": 94,
+        "startChar": 1,
+        "endLine": 94,
+        "endChar": 7
+      },
+      "revId": "6d7d7eb1eaf1232055ab3381fba3f16e99b75857",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
