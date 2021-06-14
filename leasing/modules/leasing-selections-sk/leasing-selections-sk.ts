@@ -44,7 +44,7 @@ export class LeasingSelectionsSk extends ElementSk {
 
   private selectedOsType: string = '';
 
-  private osToDeviceTypes: { [key: string]: { [key: string]: number; }; } = {};
+  private osToDeviceTypes: { [key: string]: { [key: string]: number } | null } = {};
 
   private loadingDetails: boolean = false;
 
@@ -158,7 +158,7 @@ export class LeasingSelectionsSk extends ElementSk {
     if (!(ele.selectedOsType in ele.osToDeviceTypes)) {
       return [html``];
     }
-    const deviceTypes = ele.osToDeviceTypes[ele.selectedOsType];
+    const deviceTypes = ele.osToDeviceTypes[ele.selectedOsType] || {};
     return Object.keys(deviceTypes).map((d) => html`
     <option
       value=${d}
@@ -195,8 +195,8 @@ export class LeasingSelectionsSk extends ElementSk {
 
   private fetchOsDetails(): void {
     doImpl(`/_/pooldetails?pool=${this.pool}`, {}, (json: PoolDetails) => {
-      this.osTypes = json.os_types;
-      this.osToDeviceTypes = json.os_to_device_types;
+      this.osTypes = json.os_types || {};
+      this.osToDeviceTypes = json.os_to_device_types || {};
       // Select first OsType.
       this.selectedOsType = Object.keys(this.osTypes)[0];
       this._render();

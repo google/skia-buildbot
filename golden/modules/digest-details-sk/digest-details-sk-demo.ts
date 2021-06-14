@@ -45,7 +45,7 @@ $$('#changelist_id')!.appendChild(ele);
 ele = new DigestDetailsSk();
 ele.details = typicalDetails;
 ele.commits = twoHundredCommits;
-ele.right = typicalDetails.refDiffs.neg;
+ele.right = typicalDetails.refDiffs!.neg;
 $$('#right_overridden')!.appendChild(ele);
 
 ele = new DigestDetailsSk();
