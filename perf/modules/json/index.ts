@@ -3,11 +3,6 @@
 export interface Go2TS {
 }
 
-export interface IgnoreNil {
-	ParamSet: ParamSet;
-	ReadOnlyParamSet: ReadOnlyParamSet;
-}
-
 export interface Alert {
 	id_as_string: string;
 	display_name: string;
@@ -276,9 +271,15 @@ export namespace progress {
 	}
 }
 
+export type Params = { [key: string]: string };
+
 export type ParamSet = { [key: string]: string[] };
 
 export type ReadOnlyParamSet = { [key: string]: string[] };
+
+export type Trace = number[];
+
+export type TraceSet = { [key: string]: Trace };
 
 export type ClusterAlgo = "kmeans" | "stepfit";
 
@@ -294,10 +295,6 @@ export type CommitNumber = number;
 
 export type RequestType = 0 | 1;
 
-export type Trace = number[] | null;
-
-export type TraceSet = { [key: string]: Trace };
-
 export type Status = "" | "positive" | "negative" | "untriaged";
 
 export type Subset = "all" | "regressions" | "untriaged";
@@ -305,8 +302,6 @@ export type Subset = "all" | "regressions" | "untriaged";
 export type TryBotRequestKind = "trybot" | "commit";
 
 export type CL = string;
-
-export type Params = { [key: string]: string };
 
 export type ProcessState = "Running" | "Success" | "Error";
 

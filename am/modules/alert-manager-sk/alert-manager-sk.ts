@@ -468,7 +468,7 @@ export class AlertManagerSk extends HTMLElement {
         }
       }
       this.incidents = json.incidents || [];
-      this.incidentsToRecentlyExpired = json.ids_to_recently_expired_silences;
+      this.incidentsToRecentlyExpired = json.ids_to_recently_expired_silences || {};
     });
 
     const silences = fetch('/_/silences', {
