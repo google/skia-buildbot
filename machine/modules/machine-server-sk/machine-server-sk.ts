@@ -350,7 +350,7 @@ export class MachineServerSk extends ElementSk {
     await this.refreshStep();
   }
 
-  /** @prop refreshing {bool} True if the data on the page is periodically refreshed. */
+  /** True if the data on the page is periodically refreshed. */
   get refreshing(): boolean {
     return window.localStorage.getItem(REFRESH_LOCALSTORAGE_KEY) === 'true';
   }
