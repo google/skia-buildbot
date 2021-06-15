@@ -2,8 +2,9 @@ load("//infra-sk:index.bzl", "sk_page")
 
 sk_page(
     name = "index",
+    assets_serving_path = "/dist",
     html_file = "index.html",
-    scss_entry_point = "index.scss",
+    nonce = "{% .Nonce %}",
     sk_element_deps = ["//machine/modules/machine-server-sk"],
     ts_entry_point = "index.ts",
 )
