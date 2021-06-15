@@ -1,10 +1,10 @@
 {
-    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2021-05-17T13_49_01Z-kjlubick-b4b6f10-clean",
-    "DIFFCALCULATOR_IMAGE":  "gcr.io/skia-public/gold-diffcalculator:2021-06-14T18_09_31Z-kjlubick-5c44bf5-clean",
-    "FRONTEND_IMAGE":        "gcr.io/skia-public/gold-frontend:2021-06-03T13_55_23Z-kjlubick-7fc183d-clean",
-    "GITILESFOLLOWER_IMAGE": "gcr.io/skia-public/gold-gitilesfollower:2021-06-14T18_11_13Z-kjlubick-5c44bf5-clean",
-    "INGESTION_IMAGE":       "gcr.io/skia-public/gold-ingestion:2021-06-14T18_11_49Z-kjlubick-5c44bf5-clean",
-    "PERIODICTASKS_IMAGE":   "gcr.io/skia-public/gold-periodictasks:2021-06-03T13_53_16Z-kjlubick-7fc183d-clean",
+    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2021-06-15T13_41_17Z-kjlubick-fef210b-clean",
+    "DIFFCALCULATOR_IMAGE":  "gcr.io/skia-public/gold-diffcalculator:2021-06-15T13_43_32Z-kjlubick-fef210b-clean",
+    "FRONTEND_IMAGE":        "gcr.io/skia-public/gold-frontend:2021-06-15T13_44_28Z-kjlubick-fef210b-clean",
+    "GITILESFOLLOWER_IMAGE": "gcr.io/skia-public/gold-gitilesfollower:2021-06-15T13_41_52Z-kjlubick-fef210b-clean",
+    "INGESTION_IMAGE":       "gcr.io/skia-public/gold-ingestion:2021-06-15T13_42_48Z-kjlubick-fef210b-clean",
+    "PERIODICTASKS_IMAGE":   "gcr.io/skia-public/gold-periodictasks:2021-06-15T13_45_55Z-kjlubick-fef210b-clean",
 
     // Services for testing goldpushk.
     "HEALTHY_SERVER_IMAGE": "gcr.io/skia-public/goldpushk-healthy-server:2019-10-16T18_39_09Z-lovisolo-9b77357-clean",
