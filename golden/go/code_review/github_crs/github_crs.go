@@ -106,7 +106,18 @@ func (c *CRSImpl) GetChangelist(ctx context.Context, id string) (code_review.Cha
 }
 
 type commit struct {
-	Hash string `json:"sha"`
+	Hash   string     `json:"sha"`
+	Commit commitInfo `json:"commit"`
+}
+
+type commitInfo struct {
+	Committer person `json:"committer"`
+}
+
+type person struct {
+	Name          string `json:"name"`
+	Email         string `json:"email"`
+	DateInRFC3339 string `json:"date"`
 }
 
 // https://developer.github.com/v3/pulls/#list-commits-on-a-pull-request
@@ -146,11 +157,16 @@ func (c *CRSImpl) GetPatchset(ctx context.Context, clID, psID string, psOrder in
 		for _, ps := range cprr {
 			order++
 			if psOrder == order || psID == ps.Hash {
+				ts, err := time.Parse(time.RFC3339, ps.Commit.Committer.DateInRFC3339)
+				if err != nil {
+					return code_review.Patchset{}, skerr.Wrapf(err, "parsing date on PR %s commit %s: %#v", clID, psID, ps.Commit)
+				}
 				return code_review.Patchset{
 					SystemID:     ps.Hash,
 					ChangelistID: clID,
 					Order:        order,
 					GitHash:      ps.Hash,
+					Created:      ts,
 				}, nil
 			}
 		}

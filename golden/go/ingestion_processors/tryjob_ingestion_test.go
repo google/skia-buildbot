@@ -134,6 +134,7 @@ func TestTryjobSQL_Process_FirstFileForCL_Success(t *testing.T) {
 		ChangelistID: clID,
 		Order:        expectedPSOrder,
 		GitHash:      "ffff111111111111111111111111111111111111",
+		Created:      time.Date(2020, time.December, 6, 6, 0, 0, 0, time.UTC),
 	}, nil)
 
 	mcis := &mock_cis.Client{}
@@ -187,6 +188,7 @@ func TestTryjobSQL_Process_FirstFileForCL_Success(t *testing.T) {
 		ChangelistID: qualifiedCL,
 		Order:        3,
 		GitHash:      "ffff111111111111111111111111111111111111",
+		Created:      time.Date(2020, time.December, 6, 6, 0, 0, 0, time.UTC),
 	}}, actualPatchsets)
 
 	actualTryjobs := sqltest.GetAllRows(ctx, t, db, "Tryjobs", &schema.TryjobRow{}).([]schema.TryjobRow)
@@ -433,13 +435,13 @@ func TestTryjobSQL_Process_SomeDataExists_Success(t *testing.T) {
 			LastIngestedData: time.Time{}, // should be updated.
 		}},
 		Patchsets: []schema.PatchsetRow{{
-			PatchsetID:                    qualifiedPS,
-			System:                        dks.GerritCRS,
-			ChangelistID:                  qualifiedCL,
-			Order:                         3,
-			GitHash:                       "ffff111111111111111111111111111111111111",
-			CommentedOnCL:                 true, // sentinel values
-			LastCheckedIfCommentNecessary: time.Date(2021, time.March, 26, 13, 6, 3, 0, time.UTC),
+			PatchsetID:    qualifiedPS,
+			System:        dks.GerritCRS,
+			ChangelistID:  qualifiedCL,
+			Order:         3,
+			GitHash:       "ffff111111111111111111111111111111111111",
+			CommentedOnCL: true, // sentinel values
+			Created:       time.Date(2021, time.March, 26, 13, 6, 3, 0, time.UTC),
 		}},
 		Tryjobs: []schema.TryjobRow{{
 			TryjobID:         qualifiedTJ,
@@ -540,13 +542,13 @@ func TestTryjobSQL_Process_SomeDataExists_Success(t *testing.T) {
 
 	actualPatchsets := sqltest.GetAllRows(ctx, t, db, "Patchsets", &schema.PatchsetRow{}).([]schema.PatchsetRow)
 	assert.Equal(t, []schema.PatchsetRow{{
-		PatchsetID:                    qualifiedPS,
-		System:                        dks.GerritCRS,
-		ChangelistID:                  qualifiedCL,
-		Order:                         3,
-		GitHash:                       "ffff111111111111111111111111111111111111",
-		CommentedOnCL:                 true,
-		LastCheckedIfCommentNecessary: time.Date(2021, time.March, 26, 13, 6, 3, 0, time.UTC),
+		PatchsetID:    qualifiedPS,
+		System:        dks.GerritCRS,
+		ChangelistID:  qualifiedCL,
+		Order:         3,
+		GitHash:       "ffff111111111111111111111111111111111111",
+		CommentedOnCL: true,
+		Created:       time.Date(2021, time.March, 26, 13, 6, 3, 0, time.UTC),
 	}}, actualPatchsets)
 
 	actualTryjobs := sqltest.GetAllRows(ctx, t, db, "Tryjobs", &schema.TryjobRow{}).([]schema.TryjobRow)
@@ -699,13 +701,13 @@ func TestTryjobSQL_Process_PatchsetExistsAndSuppliedByOrder_Success(t *testing.T
 			LastIngestedData: time.Time{}, // should be updated.
 		}},
 		Patchsets: []schema.PatchsetRow{{
-			PatchsetID:                    qualifiedPS,
-			System:                        dks.GerritCRS,
-			ChangelistID:                  qualifiedCL,
-			Order:                         3,
-			GitHash:                       "ffff111111111111111111111111111111111111",
-			CommentedOnCL:                 true, // sentinel values
-			LastCheckedIfCommentNecessary: time.Date(2021, time.March, 26, 13, 6, 3, 0, time.UTC),
+			PatchsetID:    qualifiedPS,
+			System:        dks.GerritCRS,
+			ChangelistID:  qualifiedCL,
+			Order:         3,
+			GitHash:       "ffff111111111111111111111111111111111111",
+			CommentedOnCL: true, // sentinel values
+			Created:       time.Date(2021, time.March, 26, 13, 6, 3, 0, time.UTC),
 		}},
 	}
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
@@ -758,13 +760,13 @@ func TestTryjobSQL_Process_PatchsetExistsAndSuppliedByOrder_Success(t *testing.T
 
 	actualPatchsets := sqltest.GetAllRows(ctx, t, db, "Patchsets", &schema.PatchsetRow{}).([]schema.PatchsetRow)
 	assert.Equal(t, []schema.PatchsetRow{{
-		PatchsetID:                    qualifiedPS,
-		System:                        dks.GerritCRS,
-		ChangelistID:                  qualifiedCL,
-		Order:                         3,
-		GitHash:                       "ffff111111111111111111111111111111111111",
-		CommentedOnCL:                 true,
-		LastCheckedIfCommentNecessary: time.Date(2021, time.March, 26, 13, 6, 3, 0, time.UTC),
+		PatchsetID:    qualifiedPS,
+		System:        dks.GerritCRS,
+		ChangelistID:  qualifiedCL,
+		Order:         3,
+		GitHash:       "ffff111111111111111111111111111111111111",
+		CommentedOnCL: true,
+		Created:       time.Date(2021, time.March, 26, 13, 6, 3, 0, time.UTC),
 	}}, actualPatchsets)
 
 	actualTryjobs := sqltest.GetAllRows(ctx, t, db, "Tryjobs", &schema.TryjobRow{}).([]schema.TryjobRow)
