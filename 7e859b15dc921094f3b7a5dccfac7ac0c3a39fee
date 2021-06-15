@@ -34,6 +34,24 @@
       "parentUuid": "ce001f79_aa267f3f",
       "revId": "7e859b15dc921094f3b7a5dccfac7ac0c3a39fee",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b9fa09d9_1c4afa5e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-15T13:33:15Z",
+      "side": 1,
+      "message": "Yes, it takes around 5 minutes for all the alerts to go back to normal.",
+      "parentUuid": "cad6ab02_31022576",
+      "revId": "7e859b15dc921094f3b7a5dccfac7ac0c3a39fee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
