@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5296a3b1_c50930b1",
+        "filename": "switchboard/create-switch-pod-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-15T18:00:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ce8b240_4ab75835",
+      "range": {
+        "startLine": 3,
+        "startChar": 34,
+        "endLine": 3,
+        "endChar": 39
+      },
+      "revId": "e49a1184c5293da86a438474620f2e15c376fa57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ca9a2907_36bd64b0",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c7fc156a_df855d09",
+        "filename": "switchboard/create-switch-pod-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-15T18:00:55Z",
+      "side": 1,
+      "message": "switch-pod is the name of the deployment and also the name I used in the design doc, so I\u0027d like to keep it all consistent.",
+      "parentUuid": "ca9a2907_36bd64b0",
+      "range": {
+        "startLine": 12,
+        "startChar": 64,
+        "endLine": 12,
+        "endChar": 70
+      },
+      "revId": "e49a1184c5293da86a438474620f2e15c376fa57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5d77e7f6_78b4a9b5",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-06-15T17:50:25Z",
       "side": 1,
       "message": "ubernit: Firestore\n\nnit: remind readers that Firestore and Datastore have the same IAM role",
+      "range": {
+        "startLine": 20,
+        "startChar": 18,
+        "endLine": 20,
+        "endChar": 27
+      },
+      "revId": "e49a1184c5293da86a438474620f2e15c376fa57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a6b82e8d_fda794fb",
+        "filename": "switchboard/create-switch-pod-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-15T18:00:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5d77e7f6_78b4a9b5",
       "range": {
         "startLine": 20,
         "startChar": 18,
