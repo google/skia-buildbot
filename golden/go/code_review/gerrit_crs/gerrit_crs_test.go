@@ -135,12 +135,14 @@ func TestGetPatchset_PatchsetExists_Success(t *testing.T) {
 		ChangelistID: clID,
 		Order:        1,
 		GitHash:      psOneID,
+		Created:      time.Date(2019, time.August, 21, 14, 26, 43, 0, time.UTC),
 	}
 	expectedFifthPS := code_review.Patchset{
 		SystemID:     psFourID,
 		ChangelistID: clID,
 		Order:        4,
 		GitHash:      psFourID,
+		Created:      time.Date(2019, time.August, 21, 16, 28, 38, 0, time.UTC),
 	}
 
 	ps, err := c.GetPatchset(context.Background(), clID, psOneID, omitOrder)
