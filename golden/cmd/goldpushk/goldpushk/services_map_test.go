@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -54,17 +53,8 @@ func TestProductionDeployableUnitsAllInstancesHaveCommonServices(t *testing.T) {
 		assertHasService(instance, Frontend)
 		if !isPublicInstance(instance) {
 			assertHasService(instance, DiffCalculator)
-			assertHasService(instance, IngestionBT)
+			assertHasService(instance, Ingestion)
 		}
-	}
-}
-
-func TestProductionDeployableUnitsAllExactlyFuchsiaServicesAreInternal(t *testing.T) {
-	unittest.SmallTest(t)
-	deployableUnitSet := ProductionDeployableUnits()
-	for _, unit := range deployableUnitSet.deployableUnits {
-		// If the unit instance is fuchsia, it should be internal.
-		assert.Equal(t, unit.Instance == Fuchsia, unit.internal, msg(unit.DeployableUnitID))
 	}
 }
 

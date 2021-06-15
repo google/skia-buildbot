@@ -11,8 +11,6 @@ const (
 	ChromiumOSTastDev Instance = "cros-tast-dev"
 	Flutter           Instance = "flutter"
 	FlutterEngine     Instance = "flutter-engine"
-	Fuchsia           Instance = "fuchsia"
-	FuchsiaPublic     Instance = "fuchsia-public"
 	Lottie            Instance = "lottie"
 	Pdfium            Instance = "pdfium"
 	Skia              Instance = "skia"
@@ -61,8 +59,6 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			ChromiumOSTastDev,
 			Flutter,
 			FlutterEngine,
-			Fuchsia,
-			FuchsiaPublic,
 			Lottie,
 			Pdfium,
 			Skia,
@@ -92,32 +88,17 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			s.add(instance, Ingestion)
 			s.add(instance, IngestionBT)
 			s.add(instance, PeriodicTasks)
-			// See http://review.skia.org/376843 for Fuchsia
-			if instance != Fuchsia {
-				s.add(instance, GitilesFollower)
-			}
+			s.add(instance, GitilesFollower)
 		}
 	}
 
 	// Add BaselineServer to the instances that require it.
 	publicInstancesNeedingBaselineServer := []Instance{
-		Angle, Chrome, ChromiumOSTastDev, Flutter, FlutterEngine, FuchsiaPublic, Pdfium, SkiaInfra,
+		Angle, Chrome, ChromiumOSTastDev, Flutter, FlutterEngine, Pdfium, SkiaInfra,
 	}
 	for _, instance := range publicInstancesNeedingBaselineServer {
 		s.add(instance, BaselineServer)
 	}
-
-	// Internal baseline options.
-	s.addWithOptions(Fuchsia, BaselineServer, DeploymentOptions{
-		internal: true,
-	})
-
-	// Overwrite common services for "fuchsia" instance, which need to run on skia-corp.
-	s.addWithOptions(Fuchsia, DiffCalculator, DeploymentOptions{internal: true})
-	s.addWithOptions(Fuchsia, IngestionBT, DeploymentOptions{internal: true})
-	s.addWithOptions(Fuchsia, Ingestion, DeploymentOptions{internal: true})
-	s.addWithOptions(Fuchsia, Frontend, DeploymentOptions{internal: true})
-	s.addWithOptions(Fuchsia, PeriodicTasks, DeploymentOptions{internal: true})
 	return s
 }
 
