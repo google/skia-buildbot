@@ -17,6 +17,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/android_ingest/go/buildapi"
 	"go.skia.org/infra/android_ingest/go/continuous"
 	"go.skia.org/infra/android_ingest/go/lookup"
 	"go.skia.org/infra/android_ingest/go/parser"
@@ -61,6 +62,7 @@ var (
 	converter         *parser.Converter
 	process           *continuous.Process
 	recentRequests    *recent.Recent
+	api               *buildapi.API
 	uploads           metrics2.Counter
 	badFiles          metrics2.Counter
 	txLogWriteFailure metrics2.Counter
@@ -106,6 +108,11 @@ func initialize() {
 	lookupCache, err = lookup.New(ctx, checkout)
 	if err != nil {
 		sklog.Fatalf("Failed to create buildid lookup cache: %s", err)
+	}
+
+	api, err = buildapi.NewAPI(client)
+	if err != nil {
+		sklog.Fatalf("Failed to construct buildapi.API: %s", err)
 	}
 
 	// Start process that adds buildids to the git repo.
@@ -243,6 +250,37 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// rangeRedirectHandler handles the commit range links that we added to cluster-summary2-sk and redirects
+// them to the android-build dashboard.
+func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	begin := mux.Vars(r)["begin"]
+	end := mux.Vars(r)["end"]
+
+	if begin == "" || end == "" {
+		http.NotFound(w, r)
+		return
+	}
+	ctx := context.Background()
+	beginID, err := process.Repo.LookupBuildID(ctx, begin)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed looking up Build ID.", http.StatusInternalServerError)
+		return
+	}
+	endID, err := process.Repo.LookupBuildID(ctx, end)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed looking up Build ID.", http.StatusInternalServerError)
+		return
+	}
+	redirBranch, err := api.GetBranchFromBuildID(beginID)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed looking up Branch.", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/%d/branches/%s/cls?end=%d", beginID, redirBranch, endID), http.StatusFound)
+}
+
 // redirectHandler handles the links that we added to the git repo and redirects
 // them to the source android-build dashboard.
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
@@ -285,6 +323,7 @@ func main() {
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/upload", UploadHandler).Methods("POST")
 	r.HandleFunc("/r/{id:[a-zA-Z0-9]+}", redirectHandler)
+	r.HandleFunc("/rr/{begin:[a-zA-Z0-9]+}/{end:[a-zA-Z0-9]+}", rangeRedirectHandler)
 	r.HandleFunc("/", indexHandler)
 
 	h := httputils.LoggingGzipRequestResponse(r)

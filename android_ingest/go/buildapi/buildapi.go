@@ -69,3 +69,16 @@ func (a *API) GetMostRecentBuildID() (int64, int64, error) {
 
 	return buildId, timestamp, nil
 }
+
+// GetBranchFromBuildID returns the branch name for the given build id.
+func (a *API) GetBranchFromBuildID(buildID int64) (string, error) {
+	request := a.service.Build.List().BuildId(fmt.Sprintf("%d", buildID)).MaxResults(1).Fields("builds/branch")
+	resp, err := request.Do()
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	if len(resp.Builds) < 1 {
+		return "", skerr.Fmt("Did not receive enough results for buildID: %d", buildID)
+	}
+	return resp.Builds[0].Branch, nil
+}

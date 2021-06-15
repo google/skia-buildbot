@@ -30,10 +30,16 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create client: %s", err)
 	}
-	// List all the buildids that come after the given buildid.
+
 	buildid, timestamp, err := api.GetMostRecentBuildID()
 	if err != nil {
 		sklog.Fatalf("Failed to retrieve builds: %s", err)
 	}
-	fmt.Printf("%d %d\n", buildid, timestamp)
+
+	branch, err := api.GetBranchFromBuildID(buildid)
+	if err != nil {
+		sklog.Fatalf("Failed to retrieve branch: %s", err)
+	}
+	fmt.Printf("%d %d %s\n", buildid, timestamp, branch)
+
 }
