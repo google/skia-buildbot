@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "19c37c8b_b4f31cfb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-15T13:19:05Z",
+      "side": 1,
+      "message": "Pushed to the rollers.",
+      "revId": "2888c1fd0eb20555a6f9cfcedb684dd652663d25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
