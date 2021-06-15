@@ -39,9 +39,10 @@ Both sites above to restricted to Googlers only.
 All alert rules are evaluated by [thanos-rule](https://thanos-ruler.skia.org),
 which then sends alerts to `alert-to-pubsub`.
 
-If an alert is changed only `make push_config_thanos` needs to be run.
+**If you add/remove alerts, please run `make update_alerts` to deploy them.**
+am.skia.org will take 5-10 minutes to see these changed alerts.
 
-A Thanos sidecar runs along side each Prometheus instance. For each Prometheus
+A Thanos sidecar runs alongside each Prometheus instance. For each Prometheus
 instance that runs outside of `skia-public` we also run a `thanos-bouncer`
 container that sets up a reverse ssh port-forward that allows `thanos-query` to
 make queries against the Thanos sidecar.
