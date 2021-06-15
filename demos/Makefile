@@ -47,6 +47,9 @@ test_js: npm-ci
 
 test: test_js test_puppeteer
 
+push: release
+	pushk demoserver
+
 .PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs npm-ci
 	npx webpack --mode=production
