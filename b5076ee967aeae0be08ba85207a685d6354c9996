@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "894325f9_b10b37f9",
+        "filename": "machine/modules/machine-server-sk/demo_data.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-15T13:16:06Z",
+      "side": 1,
+      "message": "Maybe just trim this down to 3-5 machines?",
+      "revId": "b5076ee967aeae0be08ba85207a685d6354c9996",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
