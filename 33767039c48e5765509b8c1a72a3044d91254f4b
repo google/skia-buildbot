@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "db8c2403_d2b716cb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-15T12:53:53Z",
+      "side": 1,
+      "message": "LGTM.  In case it matters, you can also list a team email address as a contact.",
+      "revId": "33767039c48e5765509b8c1a72a3044d91254f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
