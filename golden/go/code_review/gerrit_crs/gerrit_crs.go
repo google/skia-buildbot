@@ -81,7 +81,7 @@ func statusToEnum(g string) code_review.CLStatus {
 	return code_review.Open
 }
 
-// GetPatchsets implements the code_review.Client interface.
+// GetPatchset implements the code_review.Client interface.
 func (c *CRSImpl) GetPatchset(ctx context.Context, clID, psID string, psOrder int) (code_review.Patchset, error) {
 	cl, err := c.getGerritCL(ctx, clID)
 	if err != nil {
@@ -94,6 +94,7 @@ func (c *CRSImpl) GetPatchset(ctx context.Context, clID, psID string, psOrder in
 				ChangelistID: clID,
 				Order:        int(p.Number),
 				GitHash:      p.ID,
+				Created:      p.Created,
 			}, nil
 		}
 	}
