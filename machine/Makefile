@@ -7,6 +7,9 @@ web: ./modules/json/index.ts npm-ci
 ./modules/json/index.ts: ./go/machine/machine.go
 	go generate ./go/...
 
+serve: npm-ci
+	npx webpack-dev-server --mode=development
+
 test: npm-ci
 	go test -cover ./go/...
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
