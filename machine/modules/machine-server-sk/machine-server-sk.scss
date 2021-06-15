@@ -52,6 +52,19 @@ machine-server-sk {
   a {
     color: var(--primary);
   }
+
+  // Override the <button> styles from elements-sk to produce more compact buttons.
+  //
+  // This is not necessary under Webpack because this component does not explicitly import the
+  // button.scss stylesheet from elements-sk. The Bazel build, however, automatically imports the
+  // styles of any elements-sk components referenced from TypeScript. Thus, we need to reset the
+  // below styles.
+  button {
+    height: auto !important;
+    margin: 0;
+    padding: 4px;
+    text-transform: capitalize;
+  }
 }
 
 machine-server-sk[waiting] * {
