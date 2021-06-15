@@ -529,58 +529,6 @@
         },
         "name": "gold-flutter-engine-frontend",
         "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "gold-fuchsia-public-baselineserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-fuchsia-public-baselineserver",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-fuchsia-public-baselineserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "gold-fuchsia-public-frontend",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-fuchsia-public-frontend",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-fuchsia-public-frontend",
-        "type": "STRICT_DNS"
       }
     ],
     "listeners": [
@@ -1856,73 +1804,6 @@
                           },
                           "route": {
                             "cluster": "gold-flutter-engine-frontend",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "fuchsia-public-gold.skia.org",
-                      "name": "fuchsia-public-gold.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/json/hashes"
-                          },
-                          "route": {
-                            "cluster": "gold-fuchsia-public-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
-                            "prefix": "/json/expectations"
-                          },
-                          "route": {
-                            "cluster": "gold-fuchsia-public-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
-                            "safe_regex": {
-                              "google_re2": {},
-                              "regex": "/json/v\\d+/hashes"
-                            }
-                          },
-                          "route": {
-                            "cluster": "gold-fuchsia-public-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
-                            "safe_regex": {
-                              "google_re2": {},
-                              "regex": "/json/v\\d+/expectations.*"
-                            }
-                          },
-                          "route": {
-                            "cluster": "gold-fuchsia-public-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "gold-fuchsia-public-frontend",
                             "timeout": {
                               "seconds": 600
                             }

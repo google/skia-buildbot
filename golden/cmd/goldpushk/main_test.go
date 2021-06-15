@@ -139,10 +139,6 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	flutterEngineBaselineServer := makeID(goldpushk.FlutterEngine, goldpushk.BaselineServer)
 	flutterEngineFrontend := makeID(goldpushk.FlutterEngine, goldpushk.Frontend)
 	flutterFrontend := makeID(goldpushk.Flutter, goldpushk.Frontend)
-	fuchsiaBaselineServer := makeID(goldpushk.Fuchsia, goldpushk.BaselineServer)
-	fuchsiaFrontend := makeID(goldpushk.Fuchsia, goldpushk.Frontend)
-	fuchsiaPublicBaselineServer := makeID(goldpushk.FuchsiaPublic, goldpushk.BaselineServer)
-	fuchsiaPublicFrontend := makeID(goldpushk.FuchsiaPublic, goldpushk.Frontend)
 	lottieFrontend := makeID(goldpushk.Lottie, goldpushk.Frontend)
 	pdfiumBaselineServer := makeID(goldpushk.Pdfium, goldpushk.BaselineServer)
 	pdfiumFrontend := makeID(goldpushk.Pdfium, goldpushk.Frontend)
@@ -243,27 +239,27 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	test("All instances, single service, no canary",
 		[]string{"all"}, []string{"frontend"}, nil,
-		[]goldpushk.DeployableUnitID{angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, fuchsiaFrontend, fuchsiaPublicFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend, skiaPublicFrontend},
+		[]goldpushk.DeployableUnitID{angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend, skiaPublicFrontend},
 		nil)
 	test("All instances, single service, one canary",
 		[]string{"all"}, []string{"frontend"}, []string{"skia-public:frontend"},
-		[]goldpushk.DeployableUnitID{angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, fuchsiaFrontend, fuchsiaPublicFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend},
+		[]goldpushk.DeployableUnitID{angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend},
 		[]goldpushk.DeployableUnitID{skiaPublicFrontend})
 	test("All instances, single service, multiple canaries",
 		[]string{"all"}, []string{"frontend"}, []string{"skia-infra:frontend", "skia-public:frontend"},
-		[]goldpushk.DeployableUnitID{angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, fuchsiaFrontend, fuchsiaPublicFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend},
+		[]goldpushk.DeployableUnitID{angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend},
 		[]goldpushk.DeployableUnitID{skiaInfraFrontend, skiaPublicFrontend})
 	test("All instances, multiple services, no canary",
 		[]string{"all"}, []string{"baselineserver", "frontend"}, nil,
 		[]goldpushk.DeployableUnitID{
-			angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, fuchsiaFrontend, fuchsiaPublicFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend, skiaPublicFrontend,
-			angleBaselineServer, chromeBaselineServer, chromiumTastBaselineServer, flutterBaselineServer, flutterEngineBaselineServer, fuchsiaBaselineServer, fuchsiaPublicBaselineServer, pdfiumBaselineServer, skiaInfraBaselineServer},
+			angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend, skiaPublicFrontend,
+			angleBaselineServer, chromeBaselineServer, chromiumTastBaselineServer, flutterBaselineServer, flutterEngineBaselineServer, pdfiumBaselineServer, skiaInfraBaselineServer},
 		nil)
 	test("All instances, multiple services, one canary",
 		[]string{"all"}, []string{"baselineserver", "frontend"}, []string{"skia-public:frontend"},
 		[]goldpushk.DeployableUnitID{
-			angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, fuchsiaFrontend, fuchsiaPublicFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend,
-			angleBaselineServer, chromeBaselineServer, chromiumTastBaselineServer, flutterBaselineServer, flutterEngineBaselineServer, fuchsiaBaselineServer, fuchsiaPublicBaselineServer, pdfiumBaselineServer, skiaInfraBaselineServer},
+			angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend,
+			angleBaselineServer, chromeBaselineServer, chromiumTastBaselineServer, flutterBaselineServer, flutterEngineBaselineServer, pdfiumBaselineServer, skiaInfraBaselineServer},
 		[]goldpushk.DeployableUnitID{skiaPublicFrontend})
 
 	////////////////////////////////////////////////////////////////////////////////////////////////

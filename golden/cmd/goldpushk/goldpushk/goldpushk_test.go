@@ -25,13 +25,10 @@ func TestNew(t *testing.T) {
 	// Gather some DeployableUnits to pass to New() as parameters.
 	s := ProductionDeployableUnits()
 	var deployableUnits []DeployableUnit
-	deployableUnits = appendUnit(t, deployableUnits, s, Skia, DiffCalculator) // Regular deployment.
-	deployableUnits = appendUnit(t, deployableUnits, s, SkiaPublic, Frontend) // Public deployment with non-templated ConfigMap.
+	deployableUnits = appendUnit(t, deployableUnits, s, Skia, DiffCalculator)
+	deployableUnits = appendUnit(t, deployableUnits, s, SkiaPublic, Frontend)
 	var canariedDeployableUnits []DeployableUnit
-	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Skia, IngestionBT)       // Regular deployment with templated ConfigMap.
-	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, DiffCalculator) // Internal deployment.
-	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, IngestionBT)    // Internal deployment with templated ConfigMap.
-
+	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Skia, Ingestion)
 	// Call code under test.
 	g := New(deployableUnits, canariedDeployableUnits, "path/to/buildbot", true /* =dryRun */, true /* =noCommit */, 30 /* =minUptimeSeconds */, 3 /* =uptimePollFrequencySeconds */, "http://k8s-config.com", true /* =verbose */)
 
@@ -103,10 +100,8 @@ func TestGoldpushk_GetDeploymentFilePath_Success(t *testing.T) {
 	// Gather the DeployableUnits we will call Goldpushk.getDeploymentFilePath() with.
 	s := ProductionDeployableUnits()
 	publicUnit, _ := s.Get(makeID(Skia, DiffCalculator))
-	internalUnit, _ := s.Get(makeID(Fuchsia, DiffCalculator))
 
 	require.Equal(t, filepath.Join(g.k8sConfigCheckout.Dir(), "skia-public", "gold-skia-diffcalculator.yaml"), g.getDeploymentFilePath(publicUnit))
-	require.Equal(t, filepath.Join(g.k8sConfigCheckout.Dir(), "skia-corp", "gold-fuchsia-diffcalculator.yaml"), g.getDeploymentFilePath(internalUnit))
 }
 
 func TestGoldpushk_RegenerateConfigFiles_Success(t *testing.T) {
@@ -116,12 +111,10 @@ func TestGoldpushk_RegenerateConfigFiles_Success(t *testing.T) {
 	// Test on a good combination of different types of deployments.
 	s := ProductionDeployableUnits()
 	var deployableUnits []DeployableUnit
-	deployableUnits = appendUnit(t, deployableUnits, s, Skia, DiffCalculator) // Regular deployment.
-	deployableUnits = appendUnit(t, deployableUnits, s, SkiaPublic, Frontend) // Public deployment with non-templated ConfigMap.
+	deployableUnits = appendUnit(t, deployableUnits, s, Skia, DiffCalculator)
+	deployableUnits = appendUnit(t, deployableUnits, s, SkiaPublic, Frontend)
 	var canariedDeployableUnits []DeployableUnit
-	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Skia, IngestionBT)       // Regular deployment with templated ConfigMap.
-	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, DiffCalculator) // Internal deployment.
-	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, IngestionBT)    // Internal deployment with templated ConfigMap.
+	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Skia, Ingestion)
 
 	// Create the goldpushk instance under test.
 	g := Goldpushk{
@@ -144,7 +137,7 @@ func TestGoldpushk_RegenerateConfigFiles_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Expected commands.
-	expected := []string{
+	expectedCommands := []string{
 		// Skia DiffCalculator
 		"kube-conf-gen " +
 			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
@@ -173,42 +166,16 @@ func TestGoldpushk_RegenerateConfigFiles_Success(t *testing.T) {
 		"kube-conf-gen " +
 			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
 			"-c /path/to/buildbot/golden/k8s-instances/skia/skia.json5 " +
-			"-c /path/to/buildbot/golden/k8s-instances/skia/skia-ingestion-bt.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/skia/skia-ingestion.json5 " +
 			"-extra INSTANCE_ID:skia " +
 			"-extra NOW:2020-07-06T05_04_03Z_00 " +
-			"-t /path/to/buildbot/golden/k8s-config-templates/gold-ingestion-bt-template.yaml " +
+			"-t /path/to/buildbot/golden/k8s-config-templates/gold-ingestion-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o " + g.k8sConfigCheckout.Dir() + "/skia-public/gold-skia-ingestion-bt.yaml",
-
-		// Fuchsia DiffCalculator
-		"kube-conf-gen " +
-			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
-			"-c /path/to/buildbot/golden/k8s-instances/fuchsia/fuchsia.json5 " +
-			"-c /path/to/buildbot/golden/k8s-instances/fuchsia/fuchsia-diffcalculator.json5 " +
-			"-extra INSTANCE_ID:fuchsia " +
-			"-extra NOW:2020-07-06T05_04_03Z_00 " +
-			"-t /path/to/buildbot/golden/k8s-config-templates/gold-diffcalculator-template.yaml " +
-			"-parse_conf=false " +
-			"-strict " +
-			"-o " + g.k8sConfigCheckout.Dir() + "/skia-corp/gold-fuchsia-diffcalculator.yaml",
-
-		// Fuchsia IngestionBT
-		"kube-conf-gen " +
-			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
-			"-c /path/to/buildbot/golden/k8s-instances/fuchsia/fuchsia.json5 " +
-			"-c /path/to/buildbot/golden/k8s-instances/fuchsia/fuchsia-ingestion-bt.json5 " +
-			"-extra INSTANCE_ID:fuchsia " +
-			"-extra NOW:2020-07-06T05_04_03Z_00 " +
-			"-t /path/to/buildbot/golden/k8s-config-templates/gold-ingestion-bt-template.yaml " +
-			"-parse_conf=false " +
-			"-strict " +
-			"-o " + g.k8sConfigCheckout.Dir() + "/skia-corp/gold-fuchsia-ingestion-bt.yaml",
+			"-o " + g.k8sConfigCheckout.Dir() + "/skia-public/gold-skia-ingestion.yaml",
 	}
 
-	for i, e := range expected {
-		assert.Equal(t, e, exec.DebugString(commandCollector.Commands()[i]))
-	}
+	assertCommandsMatch(t, &commandCollector, expectedCommands)
 }
 
 func TestGoldpushk_CommitConfigFiles_Success(t *testing.T) {
@@ -418,10 +385,8 @@ func TestGoldpushk_PushCanaries_Success(t *testing.T) {
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
 	var units []DeployableUnit
-	units = appendUnit(t, units, s, Skia, DiffCalculator)    // Public.
-	units = appendUnit(t, units, s, Skia, IngestionBT)       // Public, with config map.
-	units = appendUnit(t, units, s, Fuchsia, DiffCalculator) // Internal.
-	units = appendUnit(t, units, s, Fuchsia, IngestionBT)    // Internal, with config map.
+	units = appendUnit(t, units, s, Skia, DiffCalculator)
+	units = appendUnit(t, units, s, Skia, Ingestion)
 
 	// Create the goldpushk instance under test.
 	g := &Goldpushk{
@@ -448,17 +413,9 @@ func TestGoldpushk_PushCanaries_Success(t *testing.T) {
 		"kubectl delete configmap gold-skia-config",
 		"kubectl create configmap gold-skia-config --from-file /infra/golden/k8s-instances/skia",
 		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-diffcalculator.yaml",
-		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion-bt.yaml",
-		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
-		"kubectl delete configmap gold-fuchsia-config",
-		"kubectl create configmap gold-fuchsia-config --from-file /infra/golden/k8s-instances/fuchsia",
-		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-diffcalculator.yaml",
-		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-bt.yaml",
+		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion.yaml",
 	}
-	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
-	for i, command := range expectedCommands {
-		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
-	}
+	assertCommandsMatch(t, &commandCollector, expectedCommands)
 }
 
 func TestGoldpushk_PushCanaries_FlagDryRunSet_DoesNotPush(t *testing.T) {
@@ -468,10 +425,8 @@ func TestGoldpushk_PushCanaries_FlagDryRunSet_DoesNotPush(t *testing.T) {
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
 	var units []DeployableUnit
-	units = appendUnit(t, units, s, Skia, DiffCalculator)    // Public.
-	units = appendUnit(t, units, s, Skia, IngestionBT)       // Public, with config map.
-	units = appendUnit(t, units, s, Fuchsia, DiffCalculator) // Internal.
-	units = appendUnit(t, units, s, Fuchsia, IngestionBT)    // Internal, with config map.
+	units = appendUnit(t, units, s, Skia, DiffCalculator)
+	units = appendUnit(t, units, s, Skia, Ingestion)
 
 	// Create the goldpushk instance under test.
 	g := &Goldpushk{
@@ -510,10 +465,8 @@ func TestGoldpushk_PushServices_Success(t *testing.T) {
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
 	var units []DeployableUnit
-	units = appendUnit(t, units, s, Skia, DiffCalculator)    // Public.
-	units = appendUnit(t, units, s, Skia, IngestionBT)       // Public, with config map.
-	units = appendUnit(t, units, s, Fuchsia, DiffCalculator) // Internal.
-	units = appendUnit(t, units, s, Fuchsia, IngestionBT)    // Internal, with config map.
+	units = appendUnit(t, units, s, Skia, DiffCalculator)
+	units = appendUnit(t, units, s, Skia, Ingestion)
 
 	// Create the goldpushk instance under test.
 	g := &Goldpushk{
@@ -540,17 +493,17 @@ func TestGoldpushk_PushServices_Success(t *testing.T) {
 		"kubectl delete configmap gold-skia-config",
 		"kubectl create configmap gold-skia-config --from-file /infra/golden/k8s-instances/skia",
 		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-diffcalculator.yaml",
-		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion-bt.yaml",
-		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
-		"kubectl delete configmap gold-fuchsia-config",
-		"kubectl create configmap gold-fuchsia-config --from-file /infra/golden/k8s-instances/fuchsia",
-		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-diffcalculator.yaml",
-		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-bt.yaml",
+		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion.yaml",
 	}
-	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
-	for i, command := range expectedCommands {
-		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
+	assertCommandsMatch(t, &commandCollector, expectedCommands)
+}
+
+func assertCommandsMatch(t *testing.T, commandCollector *exec.CommandCollector, expectedCommands []string) {
+	var actual []string
+	for _, cmd := range commandCollector.Commands() {
+		actual = append(actual, exec.DebugString(cmd))
 	}
+	assert.Equal(t, expectedCommands, actual)
 }
 
 func TestGoldpushk_PushServices_FlagDryRunSet_DoesNotPush(t *testing.T) {
@@ -560,10 +513,8 @@ func TestGoldpushk_PushServices_FlagDryRunSet_DoesNotPush(t *testing.T) {
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
 	var units []DeployableUnit
-	units = appendUnit(t, units, s, Skia, DiffCalculator)    // Public.
-	units = appendUnit(t, units, s, Skia, IngestionBT)       // Public, with config map.
-	units = appendUnit(t, units, s, Fuchsia, DiffCalculator) // Internal.
-	units = appendUnit(t, units, s, Fuchsia, IngestionBT)    // Internal, with config map.
+	units = appendUnit(t, units, s, Skia, DiffCalculator)
+	units = appendUnit(t, units, s, Skia, Ingestion)
 
 	// Create the goldpushk instance under test.
 	g := &Goldpushk{
@@ -645,32 +596,20 @@ func TestGoldpushk_GetUptimes_Success(t *testing.T) {
 	// Gather the DeployableUnits to deploy.
 	s := ProductionDeployableUnits()
 	var units []DeployableUnit
-	units = appendUnit(t, units, s, Chrome, DiffCalculator)  // Public instance (skia-public).
-	units = appendUnit(t, units, s, Fuchsia, DiffCalculator) // Internal instance (skia-corp).
+	units = appendUnit(t, units, s, Chrome, DiffCalculator)
 
 	// Create the goldpushk instance under test.
 	g := &Goldpushk{}
 
 	// Fake kubectl outputs.
 	kubectlPublicOutput := "app:gold-chrome-diffcalculator  podName:gold-chrome-diffcalculator-5ffc99f584-lxw98  ready:True  readyLastTransitionTime:2019-09-24T17:57:02Z"
-	kubectlCorpOutput := "app:gold-fuchsia-diffcalculator  podName:gold-fuchsia-diffcalculator-8647b8f966-v7s2g  ready:True  readyLastTransitionTime:2019-09-24T17:56:32Z"
 
 	// Set up mocks.
-	numTimesKubectlGet := 0
 	commandCollector := exec.CommandCollector{}
 	commandCollector.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if cmd.Name == "kubectl" && cmd.Args[0] == "get" {
-			numTimesKubectlGet++
-
-			// First call corresponds to the skia-public cluster, second call corresponds to skia-corp.
-			output := kubectlPublicOutput
-			if numTimesKubectlGet == 2 {
-				output = kubectlCorpOutput
-			}
-
-			n, err := cmd.CombinedOutput.Write([]byte(output))
+			_, err := cmd.CombinedOutput.Write([]byte(kubectlPublicOutput))
 			require.NoError(t, err)
-			require.Equal(t, len(output), n)
 		}
 		return nil
 	})
@@ -686,18 +625,12 @@ func TestGoldpushk_GetUptimes_Success(t *testing.T) {
 	expectedCommands := []string{
 		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
 		"kubectl get pods -o jsonpath={range .items[*]}{'app:'}{.metadata.labels.app}{'  podName:'}{.metadata.name}{'  ready:'}{.status.conditions[?(@.type == 'Ready')].status}{'  readyLastTransitionTime:'}{.status.conditions[?(@.type == 'Ready')].lastTransitionTime}{'\\n'}{end}",
-		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
-		"kubectl get pods -o jsonpath={range .items[*]}{'app:'}{.metadata.labels.app}{'  podName:'}{.metadata.name}{'  ready:'}{.status.conditions[?(@.type == 'Ready')].status}{'  readyLastTransitionTime:'}{.status.conditions[?(@.type == 'Ready')].lastTransitionTime}{'\\n'}{end}",
 	}
-	require.Len(t, commandCollector.Commands(), len(expectedCommands))
-	for i, command := range expectedCommands {
-		require.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
-	}
+	assertCommandsMatch(t, &commandCollector, expectedCommands)
 
 	// Assert that we get the expected uptimes.
-	require.Len(t, uptime, 2)
-	require.Equal(t, 60*time.Second, uptime[makeID(Chrome, DiffCalculator)])  // 17:58:02 - 17:57:02
-	require.Equal(t, 90*time.Second, uptime[makeID(Fuchsia, DiffCalculator)]) // 17:58:02 - 17:56:32
+	require.Len(t, uptime, 1)
+	require.Equal(t, 60*time.Second, uptime[makeID(Chrome, DiffCalculator)]) // 17:58:02 - 17:57:02
 }
 
 func TestGoldpushk_Monitor_Success(t *testing.T) {
@@ -709,7 +642,7 @@ func TestGoldpushk_Monitor_Success(t *testing.T) {
 	var units []DeployableUnit
 	units = appendUnit(t, units, s, Chrome, BaselineServer)
 	units = appendUnit(t, units, s, Chrome, DiffCalculator)
-	units = appendUnit(t, units, s, Chrome, IngestionBT)
+	units = appendUnit(t, units, s, Chrome, Ingestion)
 
 	// Create the goldpushk instance under test.
 	g := &Goldpushk{
@@ -739,43 +672,43 @@ func TestGoldpushk_Monitor_Success(t *testing.T) {
 		{
 			makeID(Chrome, BaselineServer): 10 * time.Second,
 			makeID(Chrome, DiffCalculator): 7 * time.Second,
-			makeID(Chrome, IngestionBT):    1 * time.Second,
+			makeID(Chrome, Ingestion):      1 * time.Second,
 		},
 		// t=20s.
 		{
 			makeID(Chrome, BaselineServer): 15 * time.Second,
 			makeID(Chrome, DiffCalculator): 12 * time.Second,
-			makeID(Chrome, IngestionBT):    6 * time.Second,
+			makeID(Chrome, Ingestion):      6 * time.Second,
 		},
 		// t=25s.
 		{
 			makeID(Chrome, BaselineServer): 20 * time.Second,
 			makeID(Chrome, DiffCalculator): 17 * time.Second,
-			makeID(Chrome, IngestionBT):    11 * time.Second,
+			makeID(Chrome, Ingestion):      11 * time.Second,
 		},
 		// t=30s.
 		{
 			makeID(Chrome, BaselineServer): 25 * time.Second,
 			makeID(Chrome, DiffCalculator): 22 * time.Second,
-			makeID(Chrome, IngestionBT):    16 * time.Second,
+			makeID(Chrome, Ingestion):      16 * time.Second,
 		},
 		// At t=35s, gold-chrome-baselineserver has been running for at least 30s.
 		{
 			makeID(Chrome, BaselineServer): 30 * time.Second,
 			makeID(Chrome, DiffCalculator): 27 * time.Second,
-			makeID(Chrome, IngestionBT):    21 * time.Second,
+			makeID(Chrome, Ingestion):      21 * time.Second,
 		},
 		// At t=40s, gold-chrome-diffcalculator has been running for at least 30s.
 		{
 			makeID(Chrome, BaselineServer): 35 * time.Second,
 			makeID(Chrome, DiffCalculator): 32 * time.Second,
-			makeID(Chrome, IngestionBT):    26 * time.Second,
+			makeID(Chrome, Ingestion):      26 * time.Second,
 		},
 		// At t=45s, gold-chrome-ingestion-bt has been running for at least 30s. Monitoring should end.
 		{
 			makeID(Chrome, BaselineServer): 40 * time.Second,
 			makeID(Chrome, DiffCalculator): 37 * time.Second,
-			makeID(Chrome, IngestionBT):    31 * time.Second,
+			makeID(Chrome, Ingestion):      31 * time.Second,
 		},
 	}
 
@@ -830,7 +763,7 @@ func TestGoldpushk_Monitor_FlagDryRunSet_DoesNotMonitor(t *testing.T) {
 	var units []DeployableUnit
 	units = appendUnit(t, units, s, Chrome, BaselineServer)
 	units = appendUnit(t, units, s, Chrome, DiffCalculator)
-	units = appendUnit(t, units, s, Chrome, IngestionBT)
+	units = appendUnit(t, units, s, Chrome, Ingestion)
 
 	// Create the goldpushk instance under test.
 	g := &Goldpushk{
@@ -1015,50 +948,50 @@ const expectedMonitorStdout = `
 Monitoring the following services until they all reach 30 seconds of uptime (polling every 5 seconds):
   gold-chrome-baselineserver
   gold-chrome-diffcalculator
-  gold-chrome-ingestion-bt
+  gold-chrome-ingestion
 
 Waiting 10 seconds before starting the monitoring step.
 
 UPTIME    READY     NAME
 <None>    No        gold-chrome-baselineserver
 <None>    No        gold-chrome-diffcalculator
-<None>    No        gold-chrome-ingestion-bt
+<None>    No        gold-chrome-ingestion
 ----------------------------------------------
 0s        No        gold-chrome-baselineserver
 <None>    No        gold-chrome-diffcalculator
-<None>    No        gold-chrome-ingestion-bt
+<None>    No        gold-chrome-ingestion
 ----------------------------------------------
 5s        No        gold-chrome-baselineserver
 2s        No        gold-chrome-diffcalculator
-<None>    No        gold-chrome-ingestion-bt
+<None>    No        gold-chrome-ingestion
 ----------------------------------------------
 10s       No        gold-chrome-baselineserver
 7s        No        gold-chrome-diffcalculator
-1s        No        gold-chrome-ingestion-bt
+1s        No        gold-chrome-ingestion
 ----------------------------------------------
 15s       No        gold-chrome-baselineserver
 12s       No        gold-chrome-diffcalculator
-6s        No        gold-chrome-ingestion-bt
+6s        No        gold-chrome-ingestion
 ----------------------------------------------
 20s       No        gold-chrome-baselineserver
 17s       No        gold-chrome-diffcalculator
-11s       No        gold-chrome-ingestion-bt
+11s       No        gold-chrome-ingestion
 ----------------------------------------------
 25s       No        gold-chrome-baselineserver
 22s       No        gold-chrome-diffcalculator
-16s       No        gold-chrome-ingestion-bt
+16s       No        gold-chrome-ingestion
 ----------------------------------------------
 30s       Yes       gold-chrome-baselineserver
 27s       No        gold-chrome-diffcalculator
-21s       No        gold-chrome-ingestion-bt
+21s       No        gold-chrome-ingestion
 ----------------------------------------------
 35s       Yes       gold-chrome-baselineserver
 32s       Yes       gold-chrome-diffcalculator
-26s       No        gold-chrome-ingestion-bt
+26s       No        gold-chrome-ingestion
 ----------------------------------------------
 40s       Yes       gold-chrome-baselineserver
 37s       Yes       gold-chrome-diffcalculator
-31s       Yes       gold-chrome-ingestion-bt
+31s       Yes       gold-chrome-ingestion
 `
 
 // Generated by printing out the stdout captured in TestMonitorDryRun above.
@@ -1066,7 +999,7 @@ const expectedMonitorDryRunStdout = `
 Monitoring the following services until they all reach 30 seconds of uptime (polling every 5 seconds):
   gold-chrome-baselineserver
   gold-chrome-diffcalculator
-  gold-chrome-ingestion-bt
+  gold-chrome-ingestion
 
 Skipping monitoring step (dry run).
 `

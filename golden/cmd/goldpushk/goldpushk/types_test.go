@@ -161,9 +161,9 @@ func TestDeployableUnitSetGet(t *testing.T) {
 func TestDeployableUnitSetKnownInstances(t *testing.T) {
 	unittest.SmallTest(t)
 	s := DeployableUnitSet{
-		knownInstances: []Instance{Skia, Flutter, Fuchsia},
+		knownInstances: []Instance{Skia, Flutter},
 	}
-	require.Equal(t, []Instance{Skia, Flutter, Fuchsia}, s.KnownInstances())
+	require.Equal(t, []Instance{Skia, Flutter}, s.KnownInstances())
 }
 
 func TestDeployableUnitSetKnownServices(t *testing.T) {
@@ -177,12 +177,11 @@ func TestDeployableUnitSetKnownServices(t *testing.T) {
 func TestDeployableUnitSetIsKnownInstance(t *testing.T) {
 	unittest.SmallTest(t)
 	s := DeployableUnitSet{
-		knownInstances: []Instance{Skia, Flutter, Fuchsia},
+		knownInstances: []Instance{Skia, Flutter},
 	}
 	require.True(t, s.IsKnownInstance(Skia))
 	require.True(t, s.IsKnownInstance(Flutter))
-	require.True(t, s.IsKnownInstance(Fuchsia))
-	require.False(t, s.IsKnownInstance(Instance("foo")))
+	require.False(t, s.IsKnownInstance("foo"))
 }
 
 func TestDeployableUnitSetIsKnownService(t *testing.T) {
@@ -193,7 +192,7 @@ func TestDeployableUnitSetIsKnownService(t *testing.T) {
 	require.True(t, s.IsKnownService(BaselineServer))
 	require.True(t, s.IsKnownService(DiffCalculator))
 	require.True(t, s.IsKnownService(Frontend))
-	require.False(t, s.IsKnownService(Service("foo")))
+	require.False(t, s.IsKnownService("foo"))
 }
 
 // p takes a Unix path and replaces forward slashes with the correct separators
