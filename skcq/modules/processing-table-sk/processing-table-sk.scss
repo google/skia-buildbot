@@ -1,0 +1,32 @@
+@import '~elements-sk/colors';
+@import '../style.scss';
+
+processing-table-sk {
+
+  table.current-changes-table {
+    width: 100%;
+    margin-bottom: 4em;
+  }
+
+  table.current-changes-table th {
+    text-align: left;
+    background-color: var(--primary);
+    border: 0.5px solid var(--on-background);
+    color: var(--on-primary);
+    font-weight: normal;
+    padding: 1em;
+    white-space: nowrap;
+  }
+
+  table.current-changes-table td {
+    padding: 1em;
+    border: 1px solid var(--on-background);
+    white-space: nowrap;
+  }
+
+  a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--on-background);
+  }
+}
