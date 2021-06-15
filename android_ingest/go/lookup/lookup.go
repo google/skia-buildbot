@@ -13,10 +13,9 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-// Cache keeps a cache of recent, at least four weeks, worth of buildids and
-// their associated git hashes. Since this is only used for ingesting test
-// results this window is fine since we can presume the tests successfully
-// finish running in under a month.
+// Cache keeps a cache of recent buildids and their associated git hashes. Since
+// this is only used for ingesting test results this window is fine since we can
+// presume the tests successfully finish running in under a year.
 type Cache struct {
 	mutex sync.Mutex
 
@@ -39,7 +38,7 @@ func New(ctx context.Context, checkout *git.Checkout) (*Cache, error) {
 	//   git log main --format=oneline --since="4 weeks ago"
 	//
 	// to prepopulate hashes.
-	log, err := checkout.Git(ctx, "log", git.MainBranch, "--format=oneline", "--since=\"2 weeks ago\"")
+	log, err := checkout.Git(ctx, "log", git.MainBranch, "--format=oneline", "--since=\"1 year ago\"")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to prime cache from checkout: %s", err)
 	}
