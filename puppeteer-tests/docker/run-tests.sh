@@ -65,6 +65,7 @@ cp -r /src/.mocharc.json                     /tests
 cp -r /src/package.json                      /tests
 cp -r /src/package-lock.json                 /tests
 cp -r /src/tsconfig.json                     /tests
+cp -r /src/modules                           /tests
 
 mkdir /tests/make
 cp -r /src/make/npm.mk                       /tests/make
