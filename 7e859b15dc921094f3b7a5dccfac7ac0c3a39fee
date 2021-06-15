@@ -16,6 +16,24 @@
       "message": "I ran this command - how long until am.skia.org updates? Should I include a rough expectation of time in these docs?",
       "revId": "7e859b15dc921094f3b7a5dccfac7ac0c3a39fee",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cad6ab02_31022576",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-15T13:30:37Z",
+      "side": 1,
+      "message": "I\u0027m not sure how long it takes to update, seems to take 5-10 mins? Joe likely knows more.",
+      "parentUuid": "ce001f79_aa267f3f",
+      "revId": "7e859b15dc921094f3b7a5dccfac7ac0c3a39fee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
