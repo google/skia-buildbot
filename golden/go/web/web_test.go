@@ -1576,7 +1576,7 @@ func TestBaselineHandlerV2_InvalidCRS_ReturnsError(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "Invalid CRS")
 }
 
-func TestBaselineHandlerV2_InvalidCL_ReturnsError(t *testing.T) {
+func TestBaselineHandlerV2_NewCL_ReturnsPrimaryBaseline(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -1594,11 +1594,12 @@ func TestBaselineHandlerV2_InvalidCL_ReturnsError(t *testing.T) {
 		},
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=InvalidCLID&crs=gerrit", nil)
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=NewCLID&crs=gerrit", nil)
+
+	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b01b01b01b01b01b01b01b01b01b01b0":"positive","b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}},"cl_id":"NewCLID","crs":"gerrit"}`
 
 	wh.BaselineHandlerV2(w, r)
-	assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
-	assert.Contains(t, w.Body.String(), "Fetching baseline failed")
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 }
 
 // TestWhoami_NotLoggedIn_Success tests that /json/whoami returns the expected empty response when
