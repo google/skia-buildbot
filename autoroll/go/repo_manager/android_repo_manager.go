@@ -325,7 +325,15 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 		}
 		mergeTarget = "FETCH_HEAD"
 	}
-	if _, err := r.childRepo.Git(ctx, "merge", mergeTarget, "--no-commit"); err != nil {
+
+	_, mergeErr := r.childRepo.Git(ctx, "merge", mergeTarget, "--no-commit")
+
+	// Android does not allow remote dependencies to have submodule directories (b/189557997)
+	// .gitmodules will be removed as part of androidDeleteMergeConflictFiles, so delete the directories here.
+	_, modErr := exec.RunCwd(ctx, r.childDir, "git config --file .gitmodules --get-regexp path | awk '{ system(\"git rm \" $2) }'")
+	util.LogErr(modErr)
+
+	if mergeErr != nil {
 		// Check to see if this was a merge conflict with ignoreMergeConflictFiles and deleteMergeConflictFiles.
 		conflictsOutput, conflictsErr := r.childRepo.Git(ctx, "diff", "--name-only", "--diff-filter=U")
 		if conflictsErr != nil || conflictsOutput == "" {
