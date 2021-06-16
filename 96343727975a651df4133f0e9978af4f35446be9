@@ -22,6 +22,30 @@
       },
       "revId": "96343727975a651df4133f0e9978af4f35446be9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5cbaa8a0_e8834764",
+        "filename": "machine/images/machineserver/release",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-16T20:21:32Z",
+      "side": 1,
+      "message": "The skia_app_container macro in https://skia-review.googlesource.com/c/buildbot/+/419136 offers an alternative that does not require specifying such clunky paths under //_bazel_bin.\n\nIn https://skia-review.googlesource.com/c/buildbot/+/419137, I build this same container using the skia_app_container macro.\n\nI\u0027d like to land the two approaches (Dockerfile + release script vs. skia_app_container) to serve as examples for our team members, and let them choose the approach that works best for them.\n\nWDYT?",
+      "parentUuid": "53e00d9f_2b30973c",
+      "range": {
+        "startLine": 12,
+        "startChar": 25,
+        "endLine": 12,
+        "endChar": 92
+      },
+      "revId": "96343727975a651df4133f0e9978af4f35446be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
