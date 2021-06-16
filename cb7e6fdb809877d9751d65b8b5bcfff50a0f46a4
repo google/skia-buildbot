@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7df5f561_df7edaf2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-16T13:49:16Z",
+      "side": 1,
+      "message": "This CL is obsolete as the ints have been removed.",
+      "revId": "cb7e6fdb809877d9751d65b8b5bcfff50a0f46a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
