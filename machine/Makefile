@@ -7,6 +7,9 @@ web: ./modules/json/index.ts npm-ci
 ./modules/json/index.ts: ./go/machine/machine.go
 	go generate ./go/...
 
+watch: npm-ci
+	npx webpack --mode=development --watch
+
 serve: npm-ci
 	npx webpack-dev-server --mode=development
 
@@ -27,13 +30,17 @@ puppeteer_tests: npm-ci
 testci: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
-release: build npm-ci
+release_legacy: build npm-ci
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/machineserver
-	./images/machineserver/release
+	./images/machineserver/release_legacy
 
-watch: npm-ci
-	npx webpack --mode=development --watch
+push_legacy: release_legacy
+	pushk machineserver
+
+release:
+	bazel build --config=remote //machine/...
+	./images/machineserver/release
 
 push: release
 	pushk machineserver
