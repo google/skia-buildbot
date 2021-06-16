@@ -46,6 +46,30 @@
       },
       "revId": "96343727975a651df4133f0e9978af4f35446be9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "576c956c_4f8493ef",
+        "filename": "machine/images/machineserver/release",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-16T20:49:48Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "5cbaa8a0_e8834764",
+      "range": {
+        "startLine": 12,
+        "startChar": 25,
+        "endLine": 12,
+        "endChar": 92
+      },
+      "revId": "96343727975a651df4133f0e9978af4f35446be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
