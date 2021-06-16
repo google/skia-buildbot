@@ -108,6 +108,29 @@ func (_m *API) GetCluster(ctx context.Context, opts search2.ClusterOptions) (fro
 	return r0, r1
 }
 
+// GetCommitsInWindow provides a mock function with given fields: ctx
+func (_m *API) GetCommitsInWindow(ctx context.Context) ([]frontend.Commit, error) {
+	ret := _m.Called(ctx)
+
+	var r0 []frontend.Commit
+	if rf, ok := ret.Get(0).(func(context.Context) []frontend.Commit); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]frontend.Commit)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPrimaryBranchParamset provides a mock function with given fields: ctx
 func (_m *API) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnlyParamSet, error) {
 	ret := _m.Called(ctx)

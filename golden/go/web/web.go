@@ -1546,6 +1546,23 @@ func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CommitsHandler2 returns the last n commits with data that make up the sliding window.
+func (wh *Handlers) CommitsHandler2(w http.ResponseWriter, r *http.Request) {
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+	ctx, span := trace.StartSpan(r.Context(), "web_CommitsHandler2")
+	defer span.End()
+
+	commits, err := wh.Search2API.GetCommitsInWindow(ctx)
+	if err != nil {
+		httputils.ReportError(w, err, "Could not get commits", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(w, commits)
+}
+
 // TextKnownHashesProxy returns known hashes that have been written to GCS in the background
 // Each line contains a single digest for an image. Bots will then only upload images which
 // have a hash not found on this list, avoiding significant amounts of unnecessary uploads.

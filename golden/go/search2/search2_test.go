@@ -4729,6 +4729,37 @@ func TestClusterDataOfInterestStatement_InvalidInput_ReturnsError(t *testing.T) 
 	require.Error(t, err)
 }
 
+func TestGetCommitsInWindow_GitCommits_ReturnsAllCommitsWithData(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	s := New(db, 100)
+	commits, err := s.GetCommitsInWindow(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, makeKitchenSinkCommits(), commits)
+}
+
+func TestGetCommitsInWindow_RespectsWindow_ReturnsMostRecentCommitsWithData(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	allCommits := makeKitchenSinkCommits()
+	mostRecentCommits := allCommits[len(allCommits)-3:]
+
+	s := New(db, 3)
+	commits, err := s.GetCommitsInWindow(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, mostRecentCommits, commits)
+}
+
 var kitchenSinkCommits = makeKitchenSinkCommits()
 
 func makeKitchenSinkCommits() []frontend.Commit {
