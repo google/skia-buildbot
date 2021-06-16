@@ -51,6 +51,24 @@
       "message": "At this point looks like there is no .gitmodules.\nThere is also no mergeErr. I thought there always would be one due to .gitmodules, but maybe after it was deleted once, it stops appearing in merge conflicts? I\u0027m not sure.\n\nThe merge state on the roller after merge is:\n\"\"\"\nAll conflicts fixed but you are still merging.\n  (use \"git commit\" to conclude merge)\n\nChanges to be committed:\n\tmodified:   src/Reactor/LLVMJIT.cpp\n\nChanges not staged for commit:\n  (use \"git add/rm \u003cfile\u003e...\" to update what will be committed)\n  (use \"git restore \u003cfile\u003e...\" to discard changes in working directory)\n\tdeleted:    third_party/PowerVR_Examples\n\tdeleted:    third_party/angle/angle\n\tdeleted:    third_party/benchmark\n\tdeleted:    third_party/cppdap\n\tdeleted:    third_party/glslang\n\tdeleted:    third_party/json\n\"\"\"\n\nMaybe if third_party/* are removed one time manually, then they will also not appear?",
       "revId": "59f79ba26c85f4fc5f9cc471d5523aaf65e9ca14",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "db2bf54f_34d8f783",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-16T18:35:13Z",
+      "side": 1,
+      "message": "\u003e Maybe if third_party/* are removed one time manually, then they will also not appear?\n\nUploaded this change: https://android-review.googlesource.com/c/platform/external/swiftshader/+/1737541\nafter committing the deletes.\nWe can let that one land and then see what happens on the next roll?",
+      "parentUuid": "38cca512_35656bfa",
+      "revId": "59f79ba26c85f4fc5f9cc471d5523aaf65e9ca14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
