@@ -26,8 +26,8 @@ Install k3s on each jumphost.
 Note that k3s uses a token to bootstrap agents and needs to be supplied when
 setting up the master and agents. We will use the same token for all jumphosts
 so they are hot-swappable. The token will be stored in berglas secrets at
-`etc/k3s-node-token`. To upgrade the kubernetes running on a jumphost just run the
-command line above again.
+`etc/k3s-node-token`. To upgrade the kubernetes running on a jumphost just run
+the command line above again.
 
 Also note that kubernetes logs are available on the jumphost via journalctl:
 
@@ -64,20 +64,20 @@ See [RPI_DESIGN](./RPI_DESIGN.md) and also http://go/skolo-machine-state.
   rack, for example, to back up router configs or switch ports on mPower
   devices.
 
-  - k3s bridges the host network into the kubernetes cluster. All pods run
-    on a 10.0.0.0 network and k3s bridges that to the host network on
-    192.168.1.0, along with DNS. So all the devices on the rack are
-    reachable from within pods running on the jumphost.
+  - k3s bridges the host network into the kubernetes cluster. All pods run on a
+    10.0.0.0 network and k3s bridges that to the host network on 192.168.1.0,
+    along with DNS. So all the devices on the rack are reachable from within
+    pods running on the jumphost.
 
 - Swarming running on devices in the rack need access to the metadata server,
   even if swarming clients are not running under kubernetes.
 
-  - The jumphost k3s cluster will run traefik as an ingress which
-    automatically exports itself on host port 80. So for metadata we just need
-    to make sure DNS points 'metadata' to the jumphost (which is already done
-    for the current 'push' based metadata servers). Additional apps can be
-    added by adding additional aliases to the /etc/hosts file on the rack
-    router for the jumphost, e.g.:
+  - The jumphost k3s cluster will run traefik as an ingress which automatically
+    exports itself on host port 80. So for metadata we just need to make sure
+    DNS points 'metadata' to the jumphost (which is already done for the current
+    'push' based metadata servers). Additional apps can be added by adding
+    additional aliases to the /etc/hosts file on the rack router for the
+    jumphost, e.g.:
 
           127.0.0.1   localhost.localocalhost
           192.168.1.8 jumphost metadata
@@ -87,14 +87,13 @@ See [RPI_DESIGN](./RPI_DESIGN.md) and also http://go/skolo-machine-state.
 - Land new version of metadata that runs under kubernetes, or set up a new
   jumphost at a different IP address and then switch the DNS mapping.
 - Install k3s on each jumphost and push metadata server to each.
-  - Note that this is the only tricky part of the launch, as the legacy
-    metadata server runs on port 80 already, so there will be a small amount
-    of downtime for metadata. This will be mitigated by first deploying on
-    skolo-internal which only has four bots and then deploying to the rest of
-    the jumphosts once that is successful.
+  - Note that this is the only tricky part of the launch, as the legacy metadata
+    server runs on port 80 already, so there will be a small amount of downtime
+    for metadata. This will be mitigated by first deploying on skolo-internal
+    which only has four bots and then deploying to the rest of the jumphosts
+    once that is successful.
 - The legacy metadata server will just be 'sudo systemctl stop metadata', so
-  that we can quickly rollback to using it via 'sudo systemctl start
-  metadata'.
+  that we can quickly rollback to using it via 'sudo systemctl start metadata'.
 - Push new apps
   - prometheus
   - alert-to-pubsub

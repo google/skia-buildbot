@@ -18,7 +18,7 @@ import (
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/source/pubsubsource"
 	"go.skia.org/infra/machine/go/machineserver/config"
-	"go.skia.org/infra/sk8s/go/bot_config/swarming"
+	"go.skia.org/infra/sk8s/go/test_machine_monitor/swarming"
 	"google.golang.org/api/option"
 )
 

@@ -12,18 +12,18 @@ managed by the jumphost.
 This image is the image that runs swarming on the RPi. It contains most of the
 same machinery that the current RPi bots contain.
 
-- `/etc/swarming_config/oauth2_access_token_config.json` tells swarming where
-  to get auth tokens.
-- `/usr/bin/bot_config` is our Go application that handles downloading the
-  `swarming_bot.zip` file from swarming and running it as a sub-process.
+- `/etc/swarming_config/oauth2_access_token_config.json` tells swarming where to
+  get auth tokens.
+- `/usr/bin/test_machine_monitor` is our Go application that handles downloading
+  the `swarming_bot.zip` file from swarming and running it as a sub-process.
 
 For RPis that are running under this system their names begin with "skia-rpi2",
 which causes them to use the `skia_mobile2.py` script. This is a very simple
-script that just bounces all swarming bot_config requests back to the Golang
-bot_config as HTTP requests. That allows bot_config to be a long running process
-that can emit logs and also report metrics.
+script that just bounces all swarming test_machine_monitor requests back to the
+Golang test_machine_monitor as HTTP requests. That allows test_machine_monitor
+to be a long running process that can emit logs and also report metrics.
 
-    bot_config        Swarming Server         python swarming_bot.zip
+    test_machine_monitor        Swarming Server         python swarming_bot.zip
         +                     +                          +
         |                     |                          |
         |                     |                          |
