@@ -438,17 +438,13 @@ func startBackupPolling(ctx context.Context, isc ingestionServerConfig, sourcesT
 	})
 
 	go util.RepeatCtx(ctx, isc.BackupPollInterval.Duration, func(ctx context.Context) {
-		ctx, span := trace.StartSpan(ctx, "ingestion_backupPollingCycle")
+		ctx, span := trace.StartSpan(ctx, "ingestion_backupPollingCycle", trace.WithSampler(trace.AlwaysSample()))
 		defer span.End()
 		startTime, endTime := getTimesToPoll(ctx, isc.BackupPollScope.Duration)
-		processed := int64(0)
-		ignored := int64(0)
-
+		totalIgnored, totalProcessed := 0, 0
+		sklog.Infof("Starting backup polling for %d sources in time range [%s,%s]", len(sourcesToScan), startTime, endTime)
 		for _, src := range sourcesToScan {
-			// Failure to do this can cause a race condition in tests.
-			if stringer, ok := src.(fmt.Stringer); ok {
-				sklog.Infof("Performing backup scan of %s", stringer.String())
-			}
+			ignored, processed := 0, 0
 			files := src.SearchForFiles(ctx, startTime, endTime)
 			for _, f := range files {
 				ok, err := pss.IngestionStore.WasIngested(ctx, f)
@@ -462,9 +458,17 @@ func startBackupPolling(ctx context.Context, isc ingestionServerConfig, sourcesT
 				processed++
 				pss.ingestFile(ctx, f)
 			}
+			srcName := "<unknown>"
+			// Failure to do this can cause a race condition in tests.
+			if stringer, ok := src.(fmt.Stringer); ok {
+				srcName = stringer.String()
+			}
+			sklog.Infof("backup polling for %s processed/ignored: %d/%d", srcName, processed, ignored)
+			totalIgnored += ignored
+			totalProcessed += processed
 		}
 		pollingLiveness.Reset()
-		sklog.Infof("Backup polling received/processed/ignored: %d/%d/%d", ignored+processed, processed, ignored)
+		sklog.Infof("Total backup polling [%s,%s] processed/ignored: %d/%d/%d", startTime, endTime, totalProcessed, totalIgnored)
 	})
 }
 
