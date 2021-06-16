@@ -2823,6 +2823,39 @@ func TestClusterDiffHandler2_ValidInput_CorrectJSONReturned(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
+func TestCommitsHandler2_CorrectJSONReturned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ms := &mock_search2.API{}
+
+	ms.On("GetCommitsInWindow", testutils.AnyContext).Return([]frontend.Commit{{
+		CommitTime: 100000000,
+		ID:         "commit_1",
+		Hash:       "aaaaaaaaaaaaaaaaaaaaaaaaa",
+		Author:     "user@example.com",
+		Subject:    "first commit",
+	}, {
+		CommitTime: 200000000,
+		ID:         "commit_2",
+		Hash:       "bbbbbbbbbbbbbbbbbbbbbbbbb",
+		Author:     "user@example.com",
+		Subject:    "second commit",
+	}}, nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Search2API: ms,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	wh.CommitsHandler2(w, r)
+	const expectedJSON = `[{"commit_time":100000000,"id":"commit_1","hash":"aaaaaaaaaaaaaaaaaaaaaaaaa","author":"user@example.com","message":"first commit","cl_url":""},{"commit_time":200000000,"id":"commit_2","hash":"bbbbbbbbbbbbbbbbbbbbbbbbb","author":"user@example.com","message":"second commit","cl_url":""}]`
+	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"

@@ -69,6 +69,9 @@ type API interface {
 	// all other digests in that set, so they can be drawn as a 2d cluster. This helps visualize
 	// patterns in the images, which can identify errors in triaging, among other things.
 	GetCluster(ctx context.Context, opts ClusterOptions) (frontend.ClusterDiffResult, error)
+
+	// GetCommitsInWindow returns the commits in the configured window.
+	GetCommitsInWindow(ctx context.Context) ([]frontend.Commit, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -3043,6 +3046,39 @@ func (s *Impl) getParamsetsForCluster(ctx context.Context, digests map[schema.MD
 	}
 	combined.Normalize()
 	return byDigest, combined, nil
+}
+
+// GetCommitsInWindow implements the API interface
+func (s *Impl) GetCommitsInWindow(ctx context.Context) ([]frontend.Commit, error) {
+	ctx, span := trace.StartSpan(ctx, "addCommitsData")
+	defer span.End()
+	// TODO(kjlubick) will need to handle non-git repos as well.
+	const statement = `WITH
+RecentCommits AS (
+	SELECT commit_id FROM CommitsWithData
+	AS OF SYSTEM TIME '-0.1s'
+	ORDER BY commit_id DESC LIMIT $1
+)
+SELECT git_hash, GitCommits.commit_id, commit_time, author_email, subject FROM GitCommits
+JOIN RecentCommits ON GitCommits.commit_id = RecentCommits.commit_id
+AS OF SYSTEM TIME '-0.1s'
+ORDER BY commit_id ASC`
+	rows, err := s.db.Query(ctx, statement, s.windowLength)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var rv []frontend.Commit
+	for rows.Next() {
+		var ts time.Time
+		var commit frontend.Commit
+		if err := rows.Scan(&commit.Hash, &commit.ID, &ts, &commit.Author, &commit.Subject); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		commit.CommitTime = ts.UTC().Unix()
+		rv = append(rv, commit)
+	}
+	return rv, nil
 }
 
 // Make sure Impl implements the API interface.
