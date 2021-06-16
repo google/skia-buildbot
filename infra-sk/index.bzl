@@ -249,13 +249,14 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
         test = name + "_test_only",
     )
 
-def copy_file(name, src, dst):
+def copy_file(name, src, dst, visibility = None):
     """Copies a single file to a destination path, making parent directories as needed."""
     native.genrule(
         name = name,
         srcs = [src],
         outs = [dst],
         cmd = "mkdir -p $$(dirname $@) && cp $< $@",
+        visibility = visibility,
     )
 
 def sk_page(
@@ -357,6 +358,7 @@ def sk_page(
         name = "%s_js_dev" % name,
         src = "%s_js_bundle.js" % name,
         dst = "%s/%s.js" % (DEV_OUT_DIR, name),
+        visibility = ["//visibility:public"],
     )
 
     # Generates file production/<name>.js.
@@ -366,6 +368,7 @@ def sk_page(
         # source file, so we use the rule name instead (i.e. we drop the ".js" extension).
         src = "%s_js_bundle_minified" % name,
         dst = "%s/%s.js" % (PROD_OUT_DIR, name),
+        visibility = ["//visibility:public"],
     )
 
     ################
@@ -434,6 +437,7 @@ def sk_page(
         output_style = "expanded",
         sourcemap = True,
         sourcemap_embed_sources = True,
+        visibility = ["//visibility:public"],
     )
 
     # Generates file production/<name>.css.
@@ -445,6 +449,7 @@ def sk_page(
         include_paths = ["//node_modules"],
         output_style = "compressed",
         sourcemap = False,
+        visibility = ["//visibility:public"],
     )
 
     ###############
@@ -495,6 +500,7 @@ def sk_page(
         name = "%s_html_dev" % name,
         src = instrumented_html,
         dst = "%s/%s.html" % (DEV_OUT_DIR, name),
+        visibility = ["//visibility:public"],
     )
 
     # Generates file production/<name>.html.
@@ -502,6 +508,7 @@ def sk_page(
         name = "%s_html_prod" % name,
         src = instrumented_html,
         dst = "%s/%s.html" % (PROD_OUT_DIR, name),
+        visibility = ["//visibility:public"],
     )
 
     ###########################
