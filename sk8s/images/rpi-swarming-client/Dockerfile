@@ -30,4 +30,4 @@ RUN touch /root/.boto
 # https://cs.chromium.org/chromium/infra/luci/appengine/swarming/swarming_bot/api/platforms/linux.py?type=cs&q=get_inside_docker&sq=package:chromium&g=0
 RUN touch /.dockerenv
 
-CMD ["/usr/bin/bot_config"]
+CMD ["/usr/bin/test_machine_monitor"]

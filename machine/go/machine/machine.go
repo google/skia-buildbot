@@ -111,7 +111,8 @@ func (d Description) Copy() Description {
 type EventType string
 
 const (
-	// EventTypeRawState means the raw state from bot_config has been updated.
+	// EventTypeRawState means the raw state from test_machine_monitor has been
+	// updated.
 	EventTypeRawState EventType = "raw_state"
 )
 
@@ -134,7 +135,7 @@ type Host struct {
 	// KubernetesImage is the container image being run.
 	KubernetesImage string `json:"image"`
 
-	// StartTim is when the bot_config started running.
+	// StartTim is when the test_machine_monitor started running.
 	StartTime time.Time `json:"start_time"`
 }
 

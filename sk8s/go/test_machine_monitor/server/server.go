@@ -1,4 +1,4 @@
-// Package server is the core functionality of bot_config.
+// Package server is the core functionality of test_machine_monitor.
 package server
 
 import (
@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/sk8s/go/bot_config/machine"
+	"go.skia.org/infra/sk8s/go/test_machine_monitor/machine"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 	serverWriteTimeout = 5 * time.Minute
 )
 
-// Server is the core functionality of bot_config.
+// Server is the core functionality of test_machine_monitor.
 type Server struct {
 	r       *mux.Router
 	machine *machine.Machine
@@ -64,12 +64,12 @@ func New(m *machine.Machine) (*Server, error) {
 	return ret, nil
 }
 
-// getState implements get_state in bot_config.py.
+// getState implements get_state in test_machine_monitor.py.
 //
 // The input is a JSON dictionary via POST that is returned from os_utilities.get_state(), and will
 // emit an updated JSON dictionary on return.
 //
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/// config/bot_config.py
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/// config/test_machine_monitor.py
 func (s *Server) getState(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s.getStateRequests.Inc(1)
@@ -112,11 +112,11 @@ type settings struct {
 	Caches caches `json:"caches"`
 }
 
-// getSettings implements get_settings for bot_config.py
+// getSettings implements get_settings for test_machine_monitor.py
 //
 // Will emit a JSON dictionary on GET with the settings.
 //
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/// config/bot_config.py
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/// config/test_machine_monitor.py
 func (s *Server) getSettings(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s.getSettingsRequests.Inc(1)
@@ -134,13 +134,13 @@ func (s *Server) getSettings(w http.ResponseWriter, r *http.Request) {
 	s.getSettingsRequestsSuccess.Inc(1)
 }
 
-// getDimensions implements get_dimensions in bot_config.py.
+// getDimensions implements get_dimensions in test_machine_monitor.py.
 //
 // The input is a JSON dictionary via POST  that is returned from
 // os_utilities.get_dimensions(). This command will emit an updated JSON
 // dictionary in the response.
 //
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/config/bot_config.py
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/config/test_machine_monitor.py
 func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s.getDimensionsRequests.Inc(1)
@@ -160,21 +160,21 @@ func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
 	s.getDimensionsRequestsSuccess.Inc(1)
 }
 
-// onBeforeTask is called when bot_config.py calls on_before_task.
+// onBeforeTask is called when test_machine_monitor.py calls on_before_task.
 //
 // No other data is passed with this call.
 //
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/config/bot_config.py
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/config/test_machine_monitor.py
 func (s *Server) onBeforeTask(w http.ResponseWriter, r *http.Request) {
 	s.machine.SetIsRunningSwarmingTask(true)
 	s.onBeforeTaskSuccess.Inc(1)
 }
 
-// onAfterTask is called when bot_config.py calls on_after_task.
+// onAfterTask is called when test_machine_monitor.py calls on_after_task.
 //
 // No other data is passed with this call.
 //
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/config/bot_config.py
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/config/test_machine_monitor.py
 func (s *Server) onAfterTask(w http.ResponseWriter, r *http.Request) {
 	s.machine.SetIsRunningSwarmingTask(false)
 	s.onAfterTaskSuccess.Inc(1)

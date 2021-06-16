@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
-	botmachine "go.skia.org/infra/sk8s/go/bot_config/machine"
+	botmachine "go.skia.org/infra/sk8s/go/test_machine_monitor/machine"
 )
 
 func TestGetSettings_Success(t *testing.T) {
