@@ -16,6 +16,24 @@
       "message": "Maybe just trim this down to 3-5 machines?",
       "revId": "b5076ee967aeae0be08ba85207a685d6354c9996",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8d4fe6b8_1c7e4e44",
+        "filename": "machine/modules/machine-server-sk/demo_data.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-16T00:36:03Z",
+      "side": 1,
+      "message": "I trimmed it down from 60 to 10 machines. Not quite within the range you proposed, but I think this produces a more meaningful screenshot test.",
+      "parentUuid": "894325f9_b10b37f9",
+      "revId": "b5076ee967aeae0be08ba85207a685d6354c9996",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
