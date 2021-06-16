@@ -1,4 +1,4 @@
-// A command-line application where each sub-command implements a get_* call in bot_config.py.
+// A command-line application where each sub-command implements a get_* call in test_machine_monitor.py.
 package main
 
 import (
@@ -13,9 +13,9 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/machineserver/config"
-	"go.skia.org/infra/sk8s/go/bot_config/machine"
-	"go.skia.org/infra/sk8s/go/bot_config/server"
-	"go.skia.org/infra/sk8s/go/bot_config/swarming"
+	"go.skia.org/infra/sk8s/go/test_machine_monitor/machine"
+	"go.skia.org/infra/sk8s/go/test_machine_monitor/server"
+	"go.skia.org/infra/sk8s/go/test_machine_monitor/swarming"
 )
 
 // flags
@@ -32,7 +32,7 @@ var (
 
 func main() {
 	common.InitWithMust(
-		"bot_config",
+		"test_machine_monitor",
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)

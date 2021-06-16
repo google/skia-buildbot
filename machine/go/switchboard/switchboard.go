@@ -64,7 +64,7 @@ type MeetingPoint struct {
 	MachineID string
 
 	// LastUpdated is updated every time Switchboard.KeepAliveMeetingPoint is
-	// called, which will be done by bot_config,since bot_config is in charge of
+	// called, which will be done by test_machine_monitor,since test_machine_monitor is in charge of
 	// initiating and keeping the connection to the switchboard cluster
 	// connected.
 	//
@@ -77,7 +77,7 @@ type MeetingPoint struct {
 //
 // See also http://go/switchboard-interaction-diagram.
 type Switchboard interface {
-	// ReserveMeetingPoint is called by bot_config as it starts up and is trying
+	// ReserveMeetingPoint is called by test_machine_monitor as it starts up and is trying
 	// to initiate a connection to the switchboard. The Username is the account
 	// name to use when ssh'ing into the machine.
 	//
@@ -87,8 +87,8 @@ type Switchboard interface {
 	// to specify the target account name.
 	ReserveMeetingPoint(ctx context.Context, machineID string, username string) (MeetingPoint, error)
 
-	// ClearMeetingPoint is called by bot_config if it failed to connect to the
-	// switchboard or if the machine is shutting down, i.e. bot_config
+	// ClearMeetingPoint is called by test_machine_monitor if it failed to connect to the
+	// switchboard or if the machine is shutting down, i.e. test_machine_monitor
 	// determines it is not able to handle incoming connections.
 	ClearMeetingPoint(ctx context.Context, meeingPoint MeetingPoint) error
 
@@ -98,7 +98,7 @@ type Switchboard interface {
 	// connection for the given machineID.
 	GetMeetingPoint(ctx context.Context, machineID string) (MeetingPoint, error)
 
-	// KeepAliveMeetingPoint is called by bot_config periodically to indicate it
+	// KeepAliveMeetingPoint is called by test_machine_monitor periodically to indicate it
 	// is still a valid connection. This updates MeetingPoint.LastUpdated.
 	KeepAliveMeetingPoint(ctx context.Context, meetingPoint MeetingPoint) error
 

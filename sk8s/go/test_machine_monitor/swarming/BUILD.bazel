@@ -2,27 +2,29 @@ load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "server",
-    srcs = ["server.go"],
-    importpath = "go.skia.org/infra/sk8s/go/bot_config/server",
+    name = "swarming",
+    srcs = ["swarming.go"],
+    importpath = "go.skia.org/infra/sk8s/go/test_machine_monitor/swarming",
     visibility = ["//visibility:public"],
     deps = [
         "//go/httputils",
         "//go/metrics2",
+        "//go/skerr",
         "//go/sklog",
-        "//sk8s/go/bot_config/machine",
-        "@com_github_gorilla_mux//:mux",
+        "//go/util",
     ],
 )
 
 go_test(
-    name = "server_test",
-    srcs = ["server_test.go"],
-    embed = [":server"],
+    name = "swarming_test",
+    srcs = ["swarming_test.go"],
+    embed = [":swarming"],
     deps = [
+        "//go/sklog",
+        "//go/sklog/glog_and_cloud",
         "//go/testutils/unittest",
-        "//machine/go/machine",
-        "//sk8s/go/bot_config/machine",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

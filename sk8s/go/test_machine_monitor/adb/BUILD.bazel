@@ -4,7 +4,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "adb",
     srcs = ["adb.go"],
-    importpath = "go.skia.org/infra/sk8s/go/bot_config/adb",
+    importpath = "go.skia.org/infra/sk8s/go/test_machine_monitor/adb",
     visibility = ["//visibility:public"],
     deps = [
         "//go/executil",

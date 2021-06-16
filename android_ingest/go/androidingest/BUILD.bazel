@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/android_ingest/go/androidingest",
     visibility = ["//visibility:private"],
     deps = [
+        "//android_ingest/go/buildapi",
         "//android_ingest/go/continuous",
         "//android_ingest/go/lookup",
         "//android_ingest/go/parser",

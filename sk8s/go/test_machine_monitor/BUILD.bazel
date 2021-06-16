@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "bot_config_lib",
     srcs = ["main.go"],
-    importpath = "go.skia.org/infra/sk8s/go/bot_config",
+    importpath = "go.skia.org/infra/sk8s/go/test_machine_monitor",
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
@@ -11,14 +11,14 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//machine/go/machineserver/config",
-        "//sk8s/go/bot_config/machine",
-        "//sk8s/go/bot_config/server",
-        "//sk8s/go/bot_config/swarming",
+        "//sk8s/go/test_machine_monitor/machine",
+        "//sk8s/go/test_machine_monitor/server",
+        "//sk8s/go/test_machine_monitor/swarming",
     ],
 )
 
 go_binary(
-    name = "bot_config",
+    name = "test_machine_monitor",
     embed = [":bot_config_lib"],
     visibility = ["//visibility:public"],
 )
