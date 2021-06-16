@@ -70,6 +70,30 @@
       },
       "revId": "96343727975a651df4133f0e9978af4f35446be9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "259de3dc_ae15ed3a",
+        "filename": "machine/images/machineserver/release",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-16T20:58:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "576c956c_4f8493ef",
+      "range": {
+        "startLine": 12,
+        "startChar": 25,
+        "endLine": 12,
+        "endChar": 92
+      },
+      "revId": "96343727975a651df4133f0e9978af4f35446be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
