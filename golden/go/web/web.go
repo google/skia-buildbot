@@ -1637,13 +1637,6 @@ JOIN Groupings ON PrimaryBranchExps.grouping_id = Groupings.grouping_id`
 	} else {
 		span.AddAttributes(trace.StringAttribute("type", "changelist"))
 		qCLID := sql.Qualify(crs, clID)
-		row := wh.DB.QueryRow(ctx, `SELECT changelist_id FROM Changelists WHERE
-changelist_id = $1 AND system = $2`, qCLID, crs)
-		var c string
-		if err := row.Scan(&c); err != nil {
-			return frontend.BaselineV2Response{}, skerr.Wrapf(err, "could not verify CL %q in system %q", crs, clID)
-		}
-
 		statement += `,
 CLExps AS (
 	SELECT grouping_id, digest, label FROM SecondaryBranchExpectations
