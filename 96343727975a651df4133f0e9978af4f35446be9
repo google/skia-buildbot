@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "53e00d9f_2b30973c",
+        "filename": "machine/images/machineserver/release",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-16T16:25:08Z",
+      "side": 1,
+      "message": "Can we create a bazel target that runs images/machineserver/release\nthat can pass in the location of the production and machineserver assets?",
+      "range": {
+        "startLine": 12,
+        "startChar": 25,
+        "endLine": 12,
+        "endChar": 92
+      },
+      "revId": "96343727975a651df4133f0e9978af4f35446be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
