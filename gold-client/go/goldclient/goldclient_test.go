@@ -15,14 +15,14 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/now"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -1342,7 +1342,7 @@ func TestDiffSunnyDay(t *testing.T) {
 	defer dlr.AssertExpectations(t)
 
 	digests := httpResponse(mockDigestsJSON, "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/digests?test=This+IsTheOnly+Test&corpus=This+Has+spaces").Return(digests, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/digests?grouping=name%3DThis%2BIsTheOnly%2BTest%26source_type%3DThis%2BHas%2Bspaces").Return(digests, nil)
 
 	img2 := imageToPngBytes(t, image2)
 	dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", types.Digest(rightHash)).Return(img2, nil)
@@ -1356,7 +1356,11 @@ func TestDiffSunnyDay(t *testing.T) {
 	goldClient, err := NewCloudClient(config)
 	require.NoError(t, err)
 
-	err = goldClient.Diff(ctx, testName, corpus, inputPath, outDir)
+	grouping := paramtools.Params{
+		types.CorpusField:     corpus,
+		types.PrimaryKeyField: string(testName),
+	}
+	err = goldClient.Diff(ctx, grouping, inputPath, outDir)
 	require.NoError(t, err)
 
 	leftImg, err := openNRGBAFromFile(filepath.Join(outDir, "input-"+leftHash+".png"))
@@ -1395,7 +1399,7 @@ func TestDiffCaching(t *testing.T) {
 	defer httpClient.AssertExpectations(t)
 	defer dlr.AssertExpectations(t)
 
-	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/digests?test=ThisIsTheOnlyTest&corpus=whatever").Return(func(_ string) *http.Response {
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/digests?grouping=name%3DThisIsTheOnlyTest%26source_type%3Dwhatever").Return(func(_ string) *http.Response {
 		// return a fresh response each time Diff is called
 		return httpResponse(mockDigestsJSON, "200 OK", http.StatusOK)
 	}, nil).Twice()
@@ -1412,11 +1416,16 @@ func TestDiffCaching(t *testing.T) {
 	goldClient, err := NewCloudClient(config)
 	require.NoError(t, err)
 
-	err = goldClient.Diff(ctx, testName, corpus, inputPath, outDir)
+	grouping := paramtools.Params{
+		types.CorpusField:     corpus,
+		types.PrimaryKeyField: string(testName),
+	}
+
+	err = goldClient.Diff(ctx, grouping, inputPath, outDir)
 	require.NoError(t, err)
 
 	// Call it twice to make sure we only hit GCS once per file
-	err = goldClient.Diff(ctx, testName, corpus, inputPath, outDir)
+	err = goldClient.Diff(ctx, grouping, inputPath, outDir)
 	require.NoError(t, err)
 }
 

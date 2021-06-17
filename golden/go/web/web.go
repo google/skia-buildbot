@@ -1742,6 +1742,48 @@ func (wh *Handlers) getDigestsResponse(test, corpus string) frontend.DigestListR
 	}
 }
 
+// DigestListHandler2 returns a list of digests for a given test. This is used by goldctl's
+// local diff tech.
+func (wh *Handlers) DigestListHandler2(w http.ResponseWriter, r *http.Request) {
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+	ctx, span := trace.StartSpan(r.Context(), "web_DigestListHandler2")
+	defer span.End()
+
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, err, "Failed to parse form values", http.StatusInternalServerError)
+		return
+	}
+
+	encodedGrouping := r.Form.Get("grouping")
+	if encodedGrouping == "" {
+		http.Error(w, "You must include 'grouping'", http.StatusBadRequest)
+		return
+	}
+	groupingSet, err := url.ParseQuery(encodedGrouping)
+	if err != nil {
+		httputils.ReportError(w, skerr.Wrapf(err, "bad grouping %s", encodedGrouping), "Invalid grouping", http.StatusBadRequest)
+		return
+	}
+	grouping := make(paramtools.Params, len(groupingSet))
+	for key, values := range groupingSet {
+		if len(values) == 0 {
+			continue
+		}
+		grouping[key] = values[0]
+	}
+
+	// If needed, we could add a TTL cache here.
+	out, err := wh.Search2API.GetDigestsForGrouping(ctx, grouping)
+	if err != nil {
+		httputils.ReportError(w, err, "Could not retrieve digests", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(w, out)
+}
+
 // Whoami returns the email address of the user or service account used to authenticate the
 // request. For debugging purposes only.
 func (wh *Handlers) Whoami(w http.ResponseWriter, r *http.Request) {

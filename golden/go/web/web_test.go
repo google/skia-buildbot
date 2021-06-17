@@ -2857,6 +2857,47 @@ func TestCommitsHandler2_CorrectJSONReturned(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
+func TestDigestListHandler2_CorrectJSONReturned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ms := &mock_search2.API{}
+
+	expectedGrouping := paramtools.Params{
+		types.PrimaryKeyField: "ThisIsTheOnlyTest",
+		types.CorpusField:     "whatever",
+	}
+
+	ms.On("GetDigestsForGrouping", testutils.AnyContext, expectedGrouping).Return(frontend.DigestListResponse{
+		Digests: []types.Digest{datakitchensink.DigestC01Pos, datakitchensink.DigestC02Pos}}, nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Search2API: ms,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v2/digests?grouping=name%3DThisIsTheOnlyTest%26source_type%3Dwhatever", nil)
+	wh.DigestListHandler2(w, r)
+	const expectedJSON = `{"digests":["c01c01c01c01c01c01c01c01c01c01c0","c02c02c02c02c02c02c02c02c02c02c0"]}`
+	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+}
+
+func TestDigestListHandler2_GroupingOmitted_Error(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wh := Handlers{
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v2/digests", nil)
+	wh.DigestListHandler2(w, r)
+	resp := w.Result()
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"
