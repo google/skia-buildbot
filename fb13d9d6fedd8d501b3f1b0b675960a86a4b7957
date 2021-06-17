@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ec3fbbc0_7ed6ef8e",
+        "filename": "bazel/skia_app_container.bzl",
+        "patchSetId": 10
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-17T12:42:03Z",
+      "side": 1,
+      "message": "Why is this hard-coded to machineserver?",
+      "revId": "fb13d9d6fedd8d501b3f1b0b675960a86a4b7957",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
