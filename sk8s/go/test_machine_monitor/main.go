@@ -6,13 +6,16 @@ import (
 	"encoding/json"
 	"flag"
 	"io"
+	"os"
 	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/emulators"
+	"go.skia.org/infra/go/revportforward"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"go.skia.org/infra/machine/go/switchboard"
 	"go.skia.org/infra/sk8s/go/test_machine_monitor/machine"
 	"go.skia.org/infra/sk8s/go/test_machine_monitor/server"
 	"go.skia.org/infra/sk8s/go/test_machine_monitor/swarming"
@@ -20,11 +23,14 @@ import (
 
 // flags
 var (
-	configFlag     = flag.String("config", "", "The path to the configuration file.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	configFlag = flag.String("config", "", "The path to the configuration file.")
+	kubeConfig = flag.String("kubeconfig", "", "The full name of the kubeconfig file which has info on how to talk to a cluster.")
+	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port       = flag.String("port", ":11000", "HTTP service address (e.g., ':8000')")
+	promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+
+	// The following flags are only for swarming support.
 	metadataURL    = flag.String("metadata_url", "http://metadata:8000/computeMetadata/v1/instance/service-accounts/default/token", "The URL of the metadata server that provides service account tokens.")
-	port           = flag.String("port", ":11000", "HTTP service address (e.g., ':8000')")
-	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	pythonExe      = flag.String("python_exe", "/usr/bin/python2.7", "Absolute path to Python.")
 	startSwarming  = flag.Bool("start_swarming", false, "If true then start swarming_bot.zip.")
 	swarmingBotZip = flag.String("swarming_bot_zip", "/b/s/swarming_bot.zip", "Absolute path to where the swarming_bot.zip code should run from.")
@@ -64,6 +70,35 @@ func main() {
 	go func() {
 		sklog.Fatal(s.Start(*port))
 	}()
+
+	// Start connection to Switchboard.
+	sw, err := switchboard.New(ctx, *local, instanceConfig)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	hostname, err := os.Hostname()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	for {
+		mp, err := sw.ReserveMeetingPoint(ctx, hostname, "chrome-bot")
+		if err != nil {
+			continue
+		}
+		defer sw.ClearMeetingPoint(ctx, mp)
+		rpf, err := revportforward.New(*kubeConfig, mp.PodName, mp.Port, ":22", true)
+		if err != nil {
+			continue
+		}
+		err = sw.KeepAliveMeetingPoint(ctx, mp)
+		if err != nil {
+			sklog.Info(err)
+		}
+
+		// Does not return.
+		err = rpf.Start()
+	}
 
 	if *startSwarming {
 		sklog.Infof("Starting swarming_bot.")
