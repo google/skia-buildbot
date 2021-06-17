@@ -4760,6 +4760,42 @@ func TestGetCommitsInWindow_RespectsWindow_ReturnsMostRecentCommitsWithData(t *t
 	assert.Equal(t, mostRecentCommits, commits)
 }
 
+func TestGetDigestsForGrouping_ValidGrouping_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	digests, err := s.GetDigestsForGrouping(ctx, paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, frontend.DigestListResponse{
+		Digests: []types.Digest{
+			dks.DigestC01Pos, dks.DigestC02Pos, dks.DigestC03Unt, dks.DigestC04Unt, dks.DigestC05Unt,
+		},
+	}, digests)
+}
+
+func TestGetDigestsForGrouping_InvalidGrouping_EmptyResponseReturned(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	digests, err := s.GetDigestsForGrouping(ctx, paramtools.Params{
+		types.PrimaryKeyField: "not a real test",
+		types.CorpusField:     "not a real corpus",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, frontend.DigestListResponse{}, digests)
+}
+
 var kitchenSinkCommits = makeKitchenSinkCommits()
 
 func makeKitchenSinkCommits() []frontend.Commit {
