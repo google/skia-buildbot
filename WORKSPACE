@@ -191,6 +191,22 @@ load(
     "container_pull",
 )
 
+# Provides the pkg_tar rule, needed by the skia_app_container macro.
+#
+# See https://github.com/bazelbuild/rules_pkg/tree/main/pkg.
+http_archive(
+    name = "rules_pkg",
+    sha256 = "038f1caa773a7e35b3663865ffb003169c6a71dc995e39bf4815792f385d837d",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.4.0/rules_pkg-0.4.0.tar.gz",
+        "https://github.com/bazelbuild/rules_pkg/releases/download/0.4.0/rules_pkg-0.4.0.tar.gz",
+    ],
+)
+
+load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+
+rules_pkg_dependencies()
+
 ###########################
 # Remote Build Execution. #
 ###########################
@@ -257,4 +273,12 @@ container_pull(
     # with the latest digest. But this requires setting up an autoroller to update the digest every
     # time a new container image is uploaded to GCR.
     tag = "prod",
+)
+
+# Pulls the gcr.io/skia-public/basealpine container, needed by the skia_app_container macro.
+container_pull(
+    name = "basealpine",
+    digest = "sha256:d58f6c8ced7d5436ce87ed1904340f1d8c6775eb8d891ac768159241a20c1eb4",
+    registry = "gcr.io",
+    repository = "skia-public/basealpine",
 )
