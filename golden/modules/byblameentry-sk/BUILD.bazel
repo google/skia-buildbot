@@ -1,0 +1,71 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_element(
+    name = "byblameentry-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["byblameentry-sk.scss"],
+    ts_deps = [
+        "//golden/modules:rpc_types_ts_lib",
+        "//golden/modules:settings_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "byblameentry-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "byblameentry-sk-demo",
+    html_file = "byblameentry-sk-demo.html",
+    sk_element_deps = [":byblameentry-sk"],
+    ts_deps = [
+        "//golden/modules:settings_ts_lib",
+        ":test_data_ts_lib",
+    ],
+    ts_entry_point = "byblameentry-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "byblameentry-sk_puppeteer_test",
+    src = "byblameentry-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "byblameentry-sk_test",
+    src = "byblameentry-sk_test.ts",
+    deps = [
+        ":byblameentry-sk",
+        ":test_data_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
+        "//golden/modules:settings_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//@types/sinon",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//sinon",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":byblameentry-sk-demo",
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//golden/modules:rpc_types_ts_lib"],
+)
