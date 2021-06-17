@@ -72,13 +72,14 @@ build:remote --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/local/go/bin:/cip
 # For more details please see https://github.com/bazelbuild/rules_sass/issues/96.
 build --strategy=SassCompiler=sandboxed
 
-# Force statically-linked Go binaries.
+# Rough equivalent of CGO_ENABLED=0 under Bazel. Produces statically-linked Go binaries, and
+# filters out cgo code.
 #
 # See https://github.com/bazelbuild/rules_go/blob/master/go/modes.rst#id6.
 #
 # This prevents errors due to missing dynamic libraries, e.g. when running Bazel-built binaries
 # inside Docker containers based on the gcr.io/skia-public/basealpine image.
-build --@io_bazel_rules_go//go/config:static
+build --@io_bazel_rules_go//go/config:pure
 
 # Depending on how many machines are in the remote execution instance, setting
 # this higher can make builds faster by allowing more jobs to run in parallel.
