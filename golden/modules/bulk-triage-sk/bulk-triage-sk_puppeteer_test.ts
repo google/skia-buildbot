@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import { BulkTriageSkPO } from './bulk-triage-sk_po';
 import { ElementHandle } from 'puppeteer';
 import path from "path";
@@ -16,7 +16,8 @@ describe('bulk-triage-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/bulk-triage-sk.html`);
+    await testBed.page.goto(
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/bulk-triage-sk.html`);
 
     bulkTriageSk = (await testBed.page.$('#default'))!;
     bulkTriageSkPO = new BulkTriageSkPO(bulkTriageSk);

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import path from "path";
 
 describe('search-controls-sk', () => {
@@ -10,7 +10,8 @@ describe('search-controls-sk', () => {
     );
   });
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/search-controls-sk.html`);
+    await testBed.page.goto(
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/search-controls-sk.html`);
     await testBed.page.setViewport({width: 1200, height: 800});
   });
 
