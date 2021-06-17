@@ -468,7 +468,7 @@ func startBackupPolling(ctx context.Context, isc ingestionServerConfig, sourcesT
 			totalProcessed += processed
 		}
 		pollingLiveness.Reset()
-		sklog.Infof("Total backup polling [%s,%s] processed/ignored: %d/%d/%d", startTime, endTime, totalProcessed, totalIgnored)
+		sklog.Infof("Total backup polling [%s,%s] processed/ignored: %d/%d", startTime, endTime, totalProcessed, totalIgnored)
 	})
 }
 
