@@ -76,6 +76,10 @@ type API interface {
 	// GetDigestsForGrouping returns all digests that were produced in a given grouping in the most
 	// recent window of data.
 	GetDigestsForGrouping(ctx context.Context, grouping paramtools.Params) (frontend.DigestListResponse, error)
+
+	// GetDigestDetails returns information about the given digest as produced on the given
+	// grouping. If the CL and CRS are provided, it will include information specific to that CL.
+	GetDigestDetails(ctx context.Context, grouping paramtools.Params, digest types.Digest, clID, crs string) (frontend.DigestDetails, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -3118,6 +3122,10 @@ ORDER BY 1`
 		resp.Digests = append(resp.Digests, digest)
 	}
 	return resp, nil
+}
+
+func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params, digest types.Digest, clID, crs string) (frontend.DigestDetails, error) {
+	panic("implement me")
 }
 
 // Make sure Impl implements the API interface.
