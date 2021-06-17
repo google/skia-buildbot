@@ -16,6 +16,24 @@
       "message": "Why is this hard-coded to machineserver?",
       "revId": "fb13d9d6fedd8d501b3f1b0b675960a86a4b7957",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "085b9729_9caa42bb",
+        "filename": "bazel/skia_app_container.bzl",
+        "patchSetId": 10
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-17T18:08:52Z",
+      "side": 1,
+      "message": "Oops, removed.",
+      "parentUuid": "ec3fbbc0_7ed6ef8e",
+      "revId": "fb13d9d6fedd8d501b3f1b0b675960a86a4b7957",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
