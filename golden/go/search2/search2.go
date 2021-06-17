@@ -72,6 +72,10 @@ type API interface {
 
 	// GetCommitsInWindow returns the commits in the configured window.
 	GetCommitsInWindow(ctx context.Context) ([]frontend.Commit, error)
+
+	// GetDigestsForGrouping returns all digests that were produced in a given grouping in the most
+	// recent window of data.
+	GetDigestsForGrouping(ctx context.Context, grouping paramtools.Params) (frontend.DigestListResponse, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -3079,6 +3083,41 @@ ORDER BY commit_id ASC`
 		rv = append(rv, commit)
 	}
 	return rv, nil
+}
+
+// GetDigestsForGrouping implements the API interface.
+func (s *Impl) GetDigestsForGrouping(ctx context.Context, grouping paramtools.Params) (frontend.DigestListResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "search2_GetDigestsForGrouping")
+	defer span.End()
+	_, groupingID := sql.SerializeMap(grouping)
+	const statement = `WITH
+RecentCommits AS (
+	SELECT tile_id FROM CommitsWithData
+	ORDER BY commit_id DESC LIMIT $1
+),
+FirstTileInWindow AS (
+	SELECT tile_id FROM RecentCommits
+	ORDER BY tile_id ASC LIMIT 1
+)
+SELECT DISTINCT encode(digest, 'hex') FROM TiledTraceDigests JOIN
+FirstTileInWindow ON TiledTraceDigests.tile_id >= FirstTileInWindow.tile_id AND
+  TiledTraceDigests.grouping_id = $2
+ORDER BY 1`
+
+	rows, err := s.db.Query(ctx, statement, s.windowLength, groupingID)
+	if err != nil {
+		return frontend.DigestListResponse{}, skerr.Wrapf(err, "getting digests for grouping %x - %#v", groupingID, grouping)
+	}
+	defer rows.Close()
+	var resp frontend.DigestListResponse
+	for rows.Next() {
+		var digest types.Digest
+		if err := rows.Scan(&digest); err != nil {
+			return frontend.DigestListResponse{}, skerr.Wrap(err)
+		}
+		resp.Digests = append(resp.Digests, digest)
+	}
+	return resp, nil
 }
 
 // Make sure Impl implements the API interface.

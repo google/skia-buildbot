@@ -95,7 +95,7 @@ type GoldClient interface {
 
 	// Diff computes a diff of the closest image to the given image file and puts it into outDir,
 	// along with the closest image file itself.
-	Diff(ctx context.Context, name types.TestName, corpus, imgFileName, outDir string) error
+	Diff(ctx context.Context, grouping paramtools.Params, imgFileName, outDir string) error
 
 	// Finalize uploads the JSON file for all Test() calls previously seen.
 	// A no-op if configured for pass/fail mode, since the JSON would have been uploaded
@@ -580,7 +580,7 @@ func (c *CloudClient) downloadHashesAndBaselineFromGold(ctx context.Context) err
 }
 
 // Diff fulfills the GoldClient interface.
-func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, imgFileName, outDir string) error {
+func (c *CloudClient) Diff(ctx context.Context, grouping paramtools.Params, imgFileName, outDir string) error {
 	if err := os.MkdirAll(outDir, os.ModePerm); err != nil {
 		return skerr.Wrapf(err, "creating outdir %s", outDir)
 	}
@@ -602,10 +602,11 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 	}
 
 	// 2) Check JSON endpoint digests to download
-	u := fmt.Sprintf("%s/json/v1/digests?test=%s&corpus=%s", c.resultState.GoldURL, url.QueryEscape(string(name)), url.QueryEscape(corpus))
+	encodedGrouping := urlEncode(grouping)
+	u := fmt.Sprintf("%s/json/v2/digests?grouping=%s", c.resultState.GoldURL, url.QueryEscape(encodedGrouping))
 	jb, err := getWithRetries(ctx, u)
 	if err != nil {
-		return skerr.Wrapf(err, "reading images for test %s, corpus %s from gold (url: %s)", name, corpus, u)
+		return skerr.Wrapf(err, "reading images for grouping %#v from gold (url: %s)", grouping, u)
 	}
 
 	var dlr frontend.DigestListResponse
@@ -613,7 +614,7 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 		return skerr.Wrapf(err, "invalid JSON from digests served from %s: %s", u, string(jb))
 	}
 	if len(dlr.Digests) == 0 {
-		errorf(ctx, "Gold doesn't know of any digests that match %s and corpus %s\n", name, corpus)
+		errorf(ctx, "Gold doesn't know of any digests that grouping %#v\n", grouping)
 		return nil
 	}
 
@@ -664,6 +665,15 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 	}
 
 	return skerr.Wrap(diffFile.Close())
+}
+
+// urlEncode returns the map as a url-encoded string.
+func urlEncode(p map[string]string) string {
+	values := make(url.Values, len(p))
+	for key, value := range p {
+		values[key] = []string{value}
+	}
+	return values.Encode()
 }
 
 // getDigestFromCacheOrGCS downloads from GCS the PNG file corresponding to the given digest, and
