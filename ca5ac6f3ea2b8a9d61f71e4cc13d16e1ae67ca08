@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "faab2311_e6d3eaea",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2885,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-17T19:46:14Z",
+      "side": 1,
+      "message": "Optional: Given that we know the response will be parsed into a frontend.DigestListResponse by the caller, it might be a good idea to test the response against an expectedResponse struct of type frontend.DigestListResponse, instead of testing it against a string with a raw JSON value.\n\nSee TestListIgnoreRules_WithCounts_SunnyDay_Success for an example in this same file.\n\nThis goes slightly against \"avoiding complex calculations\" (http://go/unit-testing-practices#control-structures-examples), but I think the extra confidence this gives us makes the trade-off worth it.",
+      "range": {
+        "startLine": 2883,
+        "startChar": 0,
+        "endLine": 2885,
+        "endChar": 0
+      },
+      "revId": "ca5ac6f3ea2b8a9d61f71e4cc13d16e1ae67ca08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
