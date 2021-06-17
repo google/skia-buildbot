@@ -1,0 +1,39 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "machineserver",
+    dirs = {
+        "/usr/local/bin/machineserver": [
+            [
+                "//machine/go/machineserver:machineserver",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/machineserver": [
+            [
+                "//machine/configs:prod.json",
+                "0644",
+            ],
+            [
+                "//machine/configs:test.json",
+                "0644",
+            ],
+        ],
+        "/usr/local/share/machineserver/dist": [
+            [
+                "//machine/pages:production/index.css",
+                "0644",
+            ],
+            [
+                "//machine/pages:production/index.html",
+                "0644",
+            ],
+            [
+                "//machine/pages:production/index.js",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/machineserver/machineserver",
+    repository = "skia-public/machineserver",
+)
