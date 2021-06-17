@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import {
-  addEventListenersToPuppeteerPage,
+  addEventListenersToPuppeteerPage, inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed
@@ -17,7 +17,8 @@ describe('changelists-page-sk', () => {
   beforeEach(async () => {
     const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['end-task']);
     const loaded = eventPromise('end-task'); // Emitted when page is loaded.
-    await testBed.page.goto(`${testBed.baseUrl}/dist/changelists-page-sk.html`);
+    await testBed.page.goto(
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/changelists-page-sk.html`);
     await loaded;
   });
 
