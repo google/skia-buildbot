@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import path from "path";
 
 describe('dots-legend-sk', () => {
@@ -11,7 +11,8 @@ describe('dots-legend-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/dots-legend-sk.html`);
+    await testBed.page.goto(
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/dots-legend-sk.html`);
   });
 
   it('should render the demo page', async () => {
