@@ -131,6 +131,27 @@ func (_m *API) GetCommitsInWindow(ctx context.Context) ([]frontend.Commit, error
 	return r0, r1
 }
 
+// GetDigestsForGrouping provides a mock function with given fields: ctx, grouping
+func (_m *API) GetDigestsForGrouping(ctx context.Context, grouping paramtools.Params) (frontend.DigestListResponse, error) {
+	ret := _m.Called(ctx, grouping)
+
+	var r0 frontend.DigestListResponse
+	if rf, ok := ret.Get(0).(func(context.Context, paramtools.Params) frontend.DigestListResponse); ok {
+		r0 = rf(ctx, grouping)
+	} else {
+		r0 = ret.Get(0).(frontend.DigestListResponse)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, paramtools.Params) error); ok {
+		r1 = rf(ctx, grouping)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPrimaryBranchParamset provides a mock function with given fields: ctx
 func (_m *API) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnlyParamSet, error) {
 	ret := _m.Called(ctx)
