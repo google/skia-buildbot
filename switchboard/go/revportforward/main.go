@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -86,9 +87,10 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	ctx := context.Background()
 	for {
 		sklog.Info("Starting connection.")
-		if err := r.Start(); err != nil {
+		if err := r.Start(ctx); err != nil {
 			sklog.Error(err)
 		}
 	}
