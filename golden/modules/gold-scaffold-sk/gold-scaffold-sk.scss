@@ -38,6 +38,13 @@ gold-scaffold-sk {
       color: var(--white);
       margin-right: 5px;
     }
+
+    login-sk {
+      margin-left: auto;
+      margin-right: 1em;
+      display: block;
+      color: var(--white);
+    }
   }
 
   nav {
@@ -53,12 +60,5 @@ gold-scaffold-sk {
       padding: 0 0.5em;
       vertical-align: middle;
     }
-  }
-
-  login-sk {
-    margin-left: auto;
-    margin-right: 1em;
-    display: block;
-    color: var(--white);
   }
 }
