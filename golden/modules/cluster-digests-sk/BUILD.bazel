@@ -1,0 +1,66 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_element(
+    name = "cluster-digests-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//golden/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["cluster-digests-sk.scss"],
+    ts_deps = [
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//@types/d3-force",
+        "@npm//@types/d3-selection",
+        "@npm//d3-force",
+        "@npm//d3-selection",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "cluster-digests-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "cluster-digests-sk-demo",
+    html_file = "cluster-digests-sk-demo.html",
+    sk_element_deps = [":cluster-digests-sk"],
+    ts_deps = [
+        "//golden/modules/cluster-page-sk:test_data_ts_lib",
+        "@npm//common-sk",
+    ],
+    ts_entry_point = "cluster-digests-sk-demo.ts",
+)
+
+ts_library(
+    name = "cluster-digests-sk_po_ts_lib",
+    srcs = ["cluster-digests-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+    ],
+)
+
+sk_element_puppeteer_test(
+    name = "cluster-digests-sk_puppeteer_test",
+    src = "cluster-digests-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":cluster-digests-sk_po_ts_lib",
+        "//golden/modules/cluster-page-sk:test_data_ts_lib",
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//puppeteer",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":cluster-digests-sk-demo",
+)
