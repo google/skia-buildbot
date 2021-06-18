@@ -739,6 +739,7 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	add("/json/v1/debug/flakytraces/{minUniqueDigests}", handlers.GetFlakyTracesData, "GET")
 	add("/json/details", handlers.DetailsHandler, "GET")
 	add("/json/v1/details", handlers.DetailsHandler, "GET")
+	add("/json/v2/details", handlers.DetailsHandler2, "GET")
 	add("/json/diff", handlers.DiffHandler, "GET")
 	add("/json/v1/diff", handlers.DiffHandler, "GET")
 	add("/json/digests", handlers.DigestListHandler, "GET")
