@@ -711,6 +711,68 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, ret)
 }
 
+// DetailsHandler2 returns the details about a single digest.
+func (wh *Handlers) DetailsHandler2(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_DetailsHandler2")
+	defer span.End()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	// Extract: test, digest, issue
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, err, "Failed to parse form values", http.StatusInternalServerError)
+		return
+	}
+	test := r.Form.Get("test")
+	digest := r.Form.Get("digest")
+	if test == "" || !validation.IsValidDigest(digest) {
+		http.Error(w, "Some query parameters are wrong or missing", http.StatusBadRequest)
+		return
+	}
+	clID := r.Form.Get("changelist_id")
+	crs := r.Form.Get("crs")
+	if clID != "" {
+		if _, ok := wh.getCodeReviewSystem(crs); !ok {
+			http.Error(w, "Invalid Code Review System; did you include crs?", http.StatusBadRequest)
+			return
+		}
+	} else {
+		crs = ""
+	}
+
+	grouping, err := wh.getGroupingForTest(ctx, test)
+	if err != nil {
+		httputils.ReportError(w, err, "could not get grouping", http.StatusInternalServerError)
+		return
+	}
+	ret, err := wh.Search2API.GetDigestDetails(ctx, grouping, types.Digest(digest), clID, crs)
+	if err != nil {
+		httputils.ReportError(w, err, "Unable to get digest details.", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(w, ret)
+}
+
+// getGroupingForTest acts as a bridge for RPCs that only take in a test name, when they should
+// be taking in a grouping. It looks up the grouping by test name and returns it.
+// TODO(kjlubick) Migrate all RPCs and remove this function.
+func (wh *Handlers) getGroupingForTest(ctx context.Context, testName string) (paramtools.Params, error) {
+	ctx, span := trace.StartSpan(ctx, "getGroupingForTest")
+	defer span.End()
+
+	const statement = `SELECT keys FROM Groupings WHERE keys->'name' = $1 LIMIT 1`
+	// Need to wrap testName with quotes to make it "valid JSON", so we can use the inverted index
+	// on keys.
+	row := wh.DB.QueryRow(ctx, statement, `"`+testName+`"`)
+	var ps paramtools.Params
+	if err := row.Scan(&ps); err != nil {
+		return nil, skerr.Wrapf(err, "looking up grouping for test name %q", testName)
+	}
+	return ps, nil
+}
+
 // DiffHandler returns difference between two digests.
 func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()

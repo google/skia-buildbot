@@ -76,6 +76,10 @@ type API interface {
 	// GetDigestsForGrouping returns all digests that were produced in a given grouping in the most
 	// recent window of data.
 	GetDigestsForGrouping(ctx context.Context, grouping paramtools.Params) (frontend.DigestListResponse, error)
+
+	// GetDigestDetails returns information about the given digest as produced on the given
+	// grouping. If the CL and CRS are provided, it will include information specific to that CL.
+	GetDigestDetails(ctx context.Context, grouping paramtools.Params, digest types.Digest, clID, crs string) (frontend.DigestDetails, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -1592,6 +1596,9 @@ func (s *Impl) expandTraceToParams(ctx context.Context, traceID schema.TraceID) 
 	row := s.db.QueryRow(ctx, statement, traceID)
 	var keys paramtools.Params
 	if err := row.Scan(&keys); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
 		return nil, skerr.Wrap(err)
 	}
 	s.traceCache.Add(string(traceID), keys)
@@ -3118,6 +3125,110 @@ ORDER BY 1`
 		resp.Digests = append(resp.Digests, digest)
 	}
 	return resp, nil
+}
+
+// GetDigestDetails is very similar to the Search() function, but it only has one digest, so
+// there is only one result.
+func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params, digest types.Digest, clID, crs string) (frontend.DigestDetails, error) {
+	ctx, span := trace.StartSpan(ctx, "search2_GetDigestDetails")
+	defer span.End()
+
+	ctx, err := s.addCommitsData(ctx)
+	if err != nil {
+		return frontend.DigestDetails{}, skerr.Wrap(err)
+	}
+	if clID != "" {
+		if crs == "" {
+			return frontend.DigestDetails{}, skerr.Fmt("Code Review System (crs) must be specified")
+		}
+		panic("not impl yet")
+	}
+
+	commits, err := s.getCommits(ctx)
+	if err != nil {
+		return frontend.DigestDetails{}, skerr.Wrap(err)
+	}
+
+	stageOneResults, err := s.getTracesForGroupingAndDigest(ctx, grouping, digest)
+	if err != nil {
+		return frontend.DigestDetails{}, skerr.Wrap(err)
+	}
+	// Lookup the closest diffs to the given digests. This returns a subset according to the
+	// limit and offset in the query, which we don't yet have.
+	ctx = context.WithValue(ctx, queryKey, query.Search{Offset: 0, Limit: 1, RGBAMaxFilter: 255})
+	stageTwoResults, _, err := s.getClosestDiffs(ctx, stageOneResults)
+	if err != nil {
+		return frontend.DigestDetails{}, skerr.Wrap(err)
+	}
+	if len(stageTwoResults) == 0 {
+		return frontend.DigestDetails{}, skerr.Fmt("No results found")
+	}
+	// Go fetch history and paramset (within this grouping, and respecting publiclyAllowedParams).
+	paramsetsByDigest, err := s.getParamsetsForRightSide(ctx, stageTwoResults)
+	if err != nil {
+		return frontend.DigestDetails{}, skerr.Wrap(err)
+	}
+	// Flesh out the trace history with enough data to draw the dots diagram on the frontend.
+	// The returned slice should be length 1 because we had only 1 digest and 1 stageTwo result.
+	resultSlice, err := s.fillOutTraceHistory(ctx, stageTwoResults)
+	if err != nil {
+		return frontend.DigestDetails{}, skerr.Wrap(err)
+	}
+
+	result := *resultSlice[0]
+	// Fill in the paramsets of the reference images.
+	for _, srdd := range result.RefDiffs {
+		if srdd != nil {
+			srdd.ParamSet = paramsetsByDigest[srdd.Digest]
+		}
+	}
+
+	return frontend.DigestDetails{
+		Commits: commits,
+		Result:  result,
+	}, nil
+}
+
+func (s *Impl) getTracesForGroupingAndDigest(ctx context.Context, grouping paramtools.Params, digest types.Digest) ([]stageOneResult, error) {
+	ctx, span := trace.StartSpan(ctx, "getTracesForGroupingAndDigest")
+	defer span.End()
+
+	_, groupingID := sql.SerializeMap(grouping)
+	digestBytes, err := sql.DigestToBytes(digest)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	const statement = `SELECT trace_id FROM TiledTraceDigests WHERE
+tile_id >= $1 AND grouping_id = $2 AND digest = $3
+`
+	rows, err := s.db.Query(ctx, statement, getFirstTileID(ctx), groupingID, digestBytes)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var results []stageOneResult
+	for rows.Next() {
+		var traceID schema.TraceID
+		if err := rows.Scan(&traceID); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		results = append(results, stageOneResult{
+			traceID:    traceID,
+			groupingID: groupingID,
+			digest:     digestBytes,
+		})
+	}
+	if len(results) == 0 {
+		// Add in a result that has at least the digest and groupingID. This can be helpful for
+		// when an image was produced a long time ago, but not in recent traces. It allows the UI
+		// to at least show the image and some diff information.
+		results = append(results, stageOneResult{
+			groupingID: groupingID,
+			digest:     digestBytes,
+		})
+	}
+	return results, nil
 }
 
 // Make sure Impl implements the API interface.
