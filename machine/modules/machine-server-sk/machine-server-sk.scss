@@ -5,6 +5,8 @@
 @import '../theme/theme';
 
 machine-server-sk {
+  --header-height: 40px;
+
   header {
     padding: 8px;
     background: var(--surface-1dp);
@@ -26,8 +28,31 @@ machine-server-sk {
     border-collapse: collapse;
   }
 
+  thead {
+    background: var(--surface-1dp);
+    position: sticky;
+    z-index: 1;
+    top: var(--header-height);
+
+    // If we just put a bottom border on the thead, it scrolls away when you
+    // scroll the table.
+    &:after {
+      bottom: 0;
+      border-bottom: solid 1px var(--on-surface);
+      content: "";
+      position: absolute;
+      width: 100%;
+    }
+  }
+
   tr {
-    border-top: 1px solid var(--on-background);
+    border-bottom: 1px solid var(--on-background);
+  }
+
+  // In both the thead (so it doesn't pile up with the :after border at some
+  // zoom levels) and the tbody:
+  tr:last-child {
+    border-bottom: none;
   }
 
   th {
@@ -45,7 +70,7 @@ machine-server-sk {
   }
 
   main {
-    margin-top: 40px;
+    margin-top: var(--header-height);
   }
 
   a:visited,
