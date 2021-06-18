@@ -33,6 +33,24 @@
       "message": "Please wrap to 80 cols.",
       "revId": "27e41ddfce879d2932381fa356a7b71da31818fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "866c3f17_a4a622fa",
+        "filename": "machine/modules/machine-server-sk/machine-server-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-06-18T22:42:23Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "9984db83_27de20cb",
+      "revId": "27e41ddfce879d2932381fa356a7b71da31818fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

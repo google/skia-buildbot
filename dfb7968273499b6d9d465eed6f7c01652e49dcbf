@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3ade45fd_86d7f48a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-06-18T22:42:23Z",
+      "side": 1,
+      "message": "Done. (FWIW, I was trying to be consistent with the 98-char comments around like 84.)",
+      "revId": "dfb7968273499b6d9d465eed6f7c01652e49dcbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
