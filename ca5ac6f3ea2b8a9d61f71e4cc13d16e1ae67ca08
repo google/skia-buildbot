@@ -22,6 +22,30 @@
       },
       "revId": "ca5ac6f3ea2b8a9d61f71e4cc13d16e1ae67ca08",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8010aee6_b840bf33",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2885,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-18T14:37:36Z",
+      "side": 1,
+      "message": "I prefer the less-complex assertion of a raw string. This way, if there are things that change (e.g. JSON key names), we have a way to catch that that could be masked by a conversion to a struct.",
+      "parentUuid": "faab2311_e6d3eaea",
+      "range": {
+        "startLine": 2883,
+        "startChar": 0,
+        "endLine": 2885,
+        "endChar": 0
+      },
+      "revId": "ca5ac6f3ea2b8a9d61f71e4cc13d16e1ae67ca08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
