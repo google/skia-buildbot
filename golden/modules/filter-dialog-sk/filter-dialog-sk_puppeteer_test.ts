@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import { FilterDialogSkPO, NumericParamPO } from './filter-dialog-sk_po';
 import path from "path";
 
@@ -14,7 +14,8 @@ describe('filter-dialog-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/filter-dialog-sk.html`);
+    await testBed.page.goto(
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/filter-dialog-sk.html`);
     await testBed.page.setViewport({width: 800, height: 800});
     filterDialogSkPO = new FilterDialogSkPO((await testBed.page.$('filter-dialog-sk'))!);
   });
