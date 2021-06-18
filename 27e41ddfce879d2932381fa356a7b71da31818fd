@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "be5a6a5f_73eca1bd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-06-18T22:23:44Z",
+      "side": 1,
+      "message": "This is supposed to be 2 commits, but Gerrit squashes them. Or something? Looking forward to enlightenment.\n",
+      "revId": "27e41ddfce879d2932381fa356a7b71da31818fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
