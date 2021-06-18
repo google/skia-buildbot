@@ -1,0 +1,98 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "by_test_list",
+    html_file = "by_test_list.html",
+    sk_element_deps = [
+        "//golden/modules/gold-scaffold-sk",
+        "//golden/modules/list-page-sk",
+    ],
+    ts_entry_point = "by_test_list.ts",
+)
+
+sk_page(
+    name = "byblame",
+    html_file = "byblame.html",
+    sk_element_deps = [
+        "//golden/modules/byblame-page-sk",
+        "//golden/modules/gold-scaffold-sk",
+    ],
+    ts_entry_point = "byblame.ts",
+)
+
+sk_page(
+    name = "changelists",
+    html_file = "changelists.html",
+    sk_element_deps = [
+        "//golden/modules/changelists-page-sk",
+        "//golden/modules/gold-scaffold-sk",
+    ],
+    ts_entry_point = "changelists.ts",
+)
+
+sk_page(
+    name = "cluster",
+    html_file = "cluster.html",
+    sk_element_deps = [
+        "//golden/modules/cluster-page-sk",
+        "//golden/modules/gold-scaffold-sk",
+    ],
+    ts_entry_point = "cluster.ts",
+)
+
+sk_page(
+    name = "details",
+    html_file = "details.html",
+    sk_element_deps = [
+        "//golden/modules/details-page-sk",
+        "//golden/modules/gold-scaffold-sk",
+    ],
+    ts_entry_point = "details.ts",
+)
+
+sk_page(
+    name = "diff",
+    html_file = "diff.html",
+    sk_element_deps = [
+        "//golden/modules/diff-page-sk",
+        "//golden/modules/gold-scaffold-sk",
+    ],
+    ts_entry_point = "diff.ts",
+)
+
+sk_page(
+    name = "help",
+    html_file = "help.html",
+    sk_element_deps = ["//golden/modules/gold-scaffold-sk"],
+    ts_entry_point = "help.ts",
+)
+
+sk_page(
+    name = "ignorelist",
+    html_file = "ignorelist.html",
+    sk_element_deps = [
+        "//golden/modules/gold-scaffold-sk",
+        "//golden/modules/ignores-page-sk",
+    ],
+    ts_entry_point = "ignorelist.ts",
+)
+
+sk_page(
+    name = "search",
+    html_file = "search.html",
+    sk_element_deps = [
+        "//golden/modules/gold-scaffold-sk",
+        "//golden/modules/search-page-sk",
+    ],
+    ts_entry_point = "search.ts",
+)
+
+sk_page(
+    name = "triagelog",
+    html_file = "triagelog.html",
+    sk_element_deps = [
+        "//golden/modules/gold-scaffold-sk",
+        "//golden/modules/triagelog-page-sk",
+    ],
+    ts_entry_point = "triagelog.ts",
+)

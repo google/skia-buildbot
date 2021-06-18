@@ -5,7 +5,7 @@ ignores-page-sk {
   .controls {
     display: flex;
     padding: 4px 0;
-    * {
+    *, checkbox-sk .box {
       margin: auto 5px;
     }
   }
