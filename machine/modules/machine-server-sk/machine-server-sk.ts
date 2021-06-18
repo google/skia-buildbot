@@ -283,27 +283,31 @@ const template = (ele: MachineServerSk): TemplateResult => html`
   </header>
   <main>
     <table>
-      <tr>
-        <th>Machine</th>
-        <th>Pod</th>
-        <th>Device</th>
-        <th>Mode</th>
-        <th>Update</th>
-        <th>Host</th>
-        <th>Device</th>
-        <th>Quarantined</th>
-        <th>Task</th>
-        <th>Battery</th>
-        <th>Temperature</th>
-        <th>Last Seen</th>
-        <th>Uptime</th>
-        <th>Dimensions</th>
-        <th>Note</th>
-        <th>Annotation</th>
-        <th>Image</th>
-        <th>Delete</th>
-      </tr>
-      ${rows(ele)}
+      <thead>
+        <tr>
+          <th>Machine</th>
+          <th>Pod</th>
+          <th>Device</th>
+          <th>Mode</th>
+          <th>Update</th>
+          <th>Host</th>
+          <th>Device</th>
+          <th>Quarantined</th>
+          <th>Task</th>
+          <th>Battery</th>
+          <th>Temperature</th>
+          <th>Last Seen</th>
+          <th>Uptime</th>
+          <th>Dimensions</th>
+          <th>Note</th>
+          <th>Annotation</th>
+          <th>Image</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows(ele)}
+      </tbody>
     </table>
   </main>
   <note-editor-sk></note-editor-sk>
