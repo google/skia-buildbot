@@ -2898,6 +2898,45 @@ func TestDigestListHandler2_GroupingOmitted_Error(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
+func TestGetGroupingForTest_GroupingExists_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	ps, err := wh.getGroupingForTest(ctx, datakitchensink.CircleTest)
+	require.NoError(t, err)
+	assert.Equal(t, paramtools.Params{
+		types.CorpusField:     datakitchensink.RoundCorpus,
+		types.PrimaryKeyField: datakitchensink.CircleTest,
+	}, ps)
+}
+
+func TestGetGroupingForTest_GroupingDoesNotExist_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	_, err := wh.getGroupingForTest(ctx, "this test does not exist")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "no rows in result")
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"

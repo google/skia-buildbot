@@ -2897,8 +2897,7 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 		IncludeDigestsProducedOnMaster: false,
 	})
 	require.NoError(t, err)
-	var clCommits []frontend.Commit
-	clCommits = append(clCommits, kitchenSinkCommits...)
+	clCommits := append([]frontend.Commit{}, kitchenSinkCommits...)
 	clCommits = append(clCommits, frontend.Commit{
 		// This is the last time we ingested data for this CL.
 		CommitTime:    time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC).Unix(),
@@ -4794,6 +4793,263 @@ func TestGetDigestsForGrouping_InvalidGrouping_EmptyResponseReturned(t *testing.
 	})
 	require.NoError(t, err)
 	assert.Equal(t, frontend.DigestListResponse{}, digests)
+}
+
+func TestGetDigestDetails_ValidDigestAndGroupingOnPrimary_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	}
+
+	s := New(db, 100)
+	details, err := s.GetDigestDetails(ctx, inputGrouping, dks.DigestC02Pos, "", "")
+	require.NoError(t, err)
+	assert.Equal(t, frontend.DigestDetails{
+		Result: frontend.SearchResult{
+			Digest: dks.DigestC02Pos,
+			Test:   dks.CircleTest,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.GreyColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "0b61c8d85467fc95b1306128ceb2ef6d",
+					DigestIndices: []int{-1, 0, -1, -1, 0, -1, -1, 1, -1, -1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.IPhoneDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
+					DigestIndices: []int{0, 0, 0, 0, 0, 0, 0, 1, 1, 1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "9112225e046f90bbedfd9476864b93d3",
+					DigestIndices: []int{-1, -1, -1, -1, -1, 0, 0, -1, 0, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.WalleyeDevice,
+						dks.OSKey:             dks.AndroidOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}, {
+					ID:            "f965800795aeedbe7ed5497a7984ddd1",
+					DigestIndices: []int{0, 0, 0, -1, -1, -1, -1, -1, -1, -1},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.QuadroDevice,
+						dks.OSKey:             dks.Windows10dot2OS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestC02Pos, Status: expectations.Positive},
+					{Digest: dks.DigestC05Unt, Status: expectations.Untriaged},
+				},
+				TotalDigests: 2,
+			},
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
+					CombinedMetric: 6.7015314, QueryMetric: 6.7015314, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{141, 66, 168, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.RoundCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				frontend.NegativeRef: nil,
+			},
+			ClosestRef: frontend.PositiveRef,
+		},
+		Commits: makeKitchenSinkCommits(),
+	}, details)
+}
+
+func TestGetDigestDetails_InvalidDigestAndGroupingOnPrimary_ReturnsPartialResult(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	}
+
+	s := New(db, 100)
+	// This digest is not seen in that grouping on the primary branch.
+	details, err := s.GetDigestDetails(ctx, inputGrouping, dks.DigestE03Unt_CL, "", "")
+	require.NoError(t, err)
+	assert.Equal(t, frontend.DigestDetails{
+		Result: frontend.SearchResult{
+			Digest:   dks.DigestE03Unt_CL,
+			Status:   expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "00000000000000000000000000000000",
+					DigestIndices: []int{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestE03Unt_CL, Status: expectations.Untriaged},
+				},
+				TotalDigests: 1,
+			},
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: nil,
+				frontend.NegativeRef: nil,
+			},
+			ClosestRef: frontend.NoRef,
+		},
+		Commits: makeKitchenSinkCommits(),
+	}, details)
+}
+
+func TestGetDigestDetails_ValidDigestAndGroupingOnCL_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	}
+
+	clCommits := append([]frontend.Commit{}, kitchenSinkCommits...)
+	clCommits = append(clCommits, frontend.Commit{
+		// This is the last time we ingested data for this CL.
+		CommitTime:    time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC).Unix(),
+		Hash:          dks.ChangelistIDThatAttemptsToFixIOS,
+		Author:        dks.UserOne,
+		Subject:       "Fix iOS",
+		ChangelistURL: "http://example.com/public/CL_fix_ios",
+	})
+	s := New(db, 100)
+	s.SetReviewSystemTemplates(map[string]string{
+		dks.GerritCRS:         "http://example.com/public/%s",
+		dks.GerritInternalCRS: "http://example.com/internal/%s",
+	})
+
+	details, err := s.GetDigestDetails(ctx, inputGrouping, dks.DigestC02Pos, dks.ChangelistIDThatAttemptsToFixIOS, dks.GerritCRS)
+	require.NoError(t, err)
+	// The results should be the similar to the the details on the primary branch, except the
+	// traces are only shown that actually drew the provided digest for the CL. As such, there will
+	// be an extra data point for the data produced by this CL and the commits slice is one longer
+	// to account for the CL information.
+	assert.Equal(t, frontend.DigestDetails{
+		Result: frontend.SearchResult{
+			Digest: dks.DigestC02Pos,
+			Test:   dks.CircleTest,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.GreyColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.IPadDevice},
+				dks.OSKey:             []string{dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+			TraceGroup: frontend.TraceGroup{
+				Traces: []frontend.Trace{{
+					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
+					DigestIndices: []int{0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0},
+					Params: paramtools.Params{
+						dks.ColorModeKey:      dks.GreyColorMode,
+						types.CorpusField:     dks.RoundCorpus,
+						dks.DeviceKey:         dks.IPadDevice,
+						dks.OSKey:             dks.IOS,
+						types.PrimaryKeyField: dks.CircleTest,
+						"ext":                 "png",
+					},
+				}},
+				Digests: []frontend.DigestStatus{
+					{Digest: dks.DigestC02Pos, Status: expectations.Positive},
+					{Digest: dks.DigestC05Unt, Status: expectations.Untriaged},
+				},
+				TotalDigests: 2,
+			},
+			RefDiffs: map[frontend.RefClosest]*frontend.SRDiffDigest{
+				frontend.PositiveRef: {
+					CombinedMetric: 6.7015314, QueryMetric: 6.7015314, PixelDiffPercent: 100, NumDiffPixels: 64,
+					MaxRGBADiffs: [4]int{141, 66, 168, 0},
+					DimDiffer:    false,
+					Digest:       dks.DigestC01Pos,
+					Status:       expectations.Positive,
+					ParamSet: paramtools.ParamSet{
+						dks.ColorModeKey:      []string{dks.RGBColorMode},
+						types.CorpusField:     []string{dks.RoundCorpus},
+						dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+						dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+						types.PrimaryKeyField: []string{dks.CircleTest},
+						"ext":                 []string{"png"},
+					},
+				},
+				frontend.NegativeRef: nil,
+			},
+			ClosestRef: frontend.PositiveRef,
+		},
+		Commits: clCommits,
+	}, details)
+}
+
+func TestGetDigestDetails_InvalidDigestAndGroupingOnCL_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	}
+
+	s := New(db, 100)
+	s.SetReviewSystemTemplates(map[string]string{
+		dks.GerritCRS:         "http://example.com/public/%s",
+		dks.GerritInternalCRS: "http://example.com/internal/%s",
+	})
+
+	_, err := s.GetDigestDetails(ctx, inputGrouping, dks.DigestE03Unt_CL, dks.ChangelistIDThatAttemptsToFixIOS, dks.GerritCRS)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "No results found")
 }
 
 var kitchenSinkCommits = makeKitchenSinkCommits()
