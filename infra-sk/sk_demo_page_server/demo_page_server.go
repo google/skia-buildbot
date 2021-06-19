@@ -51,7 +51,16 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("Serving directory %s\n", assetsDirAbs)
-	http.Handle("/", http.FileServer(http.Dir(*assetsDir)))
+	fileServer := http.FileServer(http.Dir(*assetsDir))
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Session cookie used by demo pages to determine whether they are being served by
+		// webpack-dev-server or by an sk_demo_page_server Bazel rule.
+		http.SetCookie(w, &http.Cookie{
+			Name:  "bazel",
+			Value: "true",
+		})
+		fileServer.ServeHTTP(w, r)
+	})
 
 	// Build the demo page URL.
 	hostname, err := os.Hostname()

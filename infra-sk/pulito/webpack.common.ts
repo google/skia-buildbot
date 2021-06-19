@@ -80,7 +80,9 @@ import * as fs from 'fs';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import { Request, Response } from 'http-proxy-middleware/dist/types';
 import 'webpack-dev-server';
+import * as http from 'http';
 
 /** Represents an HTML file and a companion TypeScript or JavaScript file. */
 interface HtmlAndTsOrJsFilePair {
@@ -261,6 +263,12 @@ function buildCommonWebpackConfig(
       // serve from workstation, access from laptop).
       host: '0.0.0.0',
       disableHostCheck: true,
+
+      // Session cookie used by demo pages to determine whether they are being served by
+      // webpack-dev-server or by an sk_demo_page_server Bazel rule.
+      headers: {
+        'Set-Cookie': 'bazel=false',
+      },
     },
 
     devtool: devMode ? 'inline-source-map' : false,
