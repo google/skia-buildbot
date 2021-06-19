@@ -48,6 +48,17 @@ const (
 	PATCH_LIMIT = 1 << 26
 )
 
+var (
+	CIPD_PATHS = []string{
+		"cipd_bin_packages",
+		"cipd_bin_packages/bin",
+		"cipd_bin_packages/cpython",
+		"cipd_bin_packages/cpython/bin",
+		"cipd_bin_packages/cpython3",
+		"cipd_bin_packages/cpython3/bin",
+	}
+)
+
 // CasSpecs for master scripts.
 func CasCreatePagesetsMaster() *CasSpec {
 	return &CasSpec{
@@ -532,7 +543,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, runID, ta
 			cmd := cmd
 			go func() {
 				defer wg.Done()
-				req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, int64(priority), ioTimeout, casClient)
+				req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string][]string{"PATH": CIPD_PATHS}, int64(priority), ioTimeout, casClient)
 				if err != nil {
 					sklog.Errorf("Failed to create Swarming task request for task %q: %s", taskName, err)
 				}
@@ -1080,7 +1091,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		"--target_platform=" + targetPlatform,
 		"--out=${ISOLATED_OUTDIR}",
 	}
-	req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, ioTimeout, casClient)
+	req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string][]string{"PATH": CIPD_PATHS}, swarming.RECOMMENDED_PRIORITY, ioTimeout, casClient)
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to create Swarming task request")
 	}
@@ -1110,7 +1121,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	return strings.Trim(string(contents), "\n"), nil
 }
 
-func MakeSwarmingTaskRequest(ctx context.Context, taskName, casDigest string, cipdPkgs, cmd, tags []string, dims, envPrefixes map[string]string, priority int64, ioTimeoutSecs time.Duration, casClient cas.CAS) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
+func MakeSwarmingTaskRequest(ctx context.Context, taskName, casDigest string, cipdPkgs, cmd, tags []string, dims map[string]string, envPrefixes map[string][]string, priority int64, ioTimeoutSecs time.Duration, casClient cas.CAS) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
 	var cipdInput *swarming_api.SwarmingRpcsCipdInput
 	if len(cipdPkgs) > 0 {
 		cipdInput = &swarming_api.SwarmingRpcsCipdInput{
@@ -1140,7 +1151,7 @@ func MakeSwarmingTaskRequest(ctx context.Context, taskName, casDigest string, ci
 		for k, v := range envPrefixes {
 			swarmingEnvPrefixes = append(swarmingEnvPrefixes, &swarming_api.SwarmingRpcsStringListPair{
 				Key:   k,
-				Value: []string{v},
+				Value: v,
 			})
 		}
 	}
@@ -1197,7 +1208,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName string
 	}
 
 	// Trigger swarming task.
-	req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, GCE_LINUX_MASTER_DIMENSIONS, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, 3*24*time.Hour, casClient)
+	req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, GCE_LINUX_MASTER_DIMENSIONS, map[string][]string{"PATH": CIPD_PATHS}, swarming.RECOMMENDED_PRIORITY, 3*24*time.Hour, casClient)
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to create Swarming task request")
 	}
@@ -1254,7 +1265,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
 
-	req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, ioTimeout, casClient)
+	req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string][]string{"PATH": CIPD_PATHS}, swarming.RECOMMENDED_PRIORITY, ioTimeout, casClient)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create Swarming task request")
 	}
