@@ -859,6 +859,11 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		output, getErr := GetRunBenchmarkOutput(b)
 		util.LogErr(getErr)
 		fmt.Println(output)
+		if targetPlatform == PLATFORM_WINDOWS {
+			fmt.Println("SLEEPING FOR 30 MINS")
+			time.Sleep(30 * time.Minute)
+		}
+		fmt.Println("DONE SLEEPING")
 		return "", fmt.Errorf("Run benchmark command failed with: %s", err)
 	}
 
