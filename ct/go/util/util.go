@@ -520,7 +520,6 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, runID, ta
 	cipdPkgs := []string{}
 	if targetPlatform == PLATFORM_WINDOWS {
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
-		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsPython[cipd.PlatformWindowsAmd64])...)
 	} else {
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsPython[cipd.PlatformLinuxAmd64])...)
@@ -859,6 +858,11 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		output, getErr := GetRunBenchmarkOutput(b)
 		util.LogErr(getErr)
 		fmt.Println(output)
+		if targetPlatform == PLATFORM_WINDOWS {
+			fmt.Println("SLEEPING FOR 30 MINS")
+			time.Sleep(30 * time.Minute)
+		}
+		fmt.Println("DONE SLEEPING")
 		return "", fmt.Errorf("Run benchmark command failed with: %s", err)
 	}
 
