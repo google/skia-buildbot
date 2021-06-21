@@ -2823,7 +2823,7 @@ func TestObservedDigestStatement_ValidInputs_Success(t *testing.T) {
 	assert.Equal(t, `WITH
 ObservedDigestsInTile AS (
 	SELECT DISTINCT digest FROM TiledTraceDigests
-    WHERE grouping_id = $2 and tile_id >= $3
+	WHERE grouping_id = $2 and tile_id >= $3
 ),`, statement)
 
 	statement, err = observedDigestsStatement(paramtools.ParamSet{
@@ -5050,6 +5050,192 @@ func TestGetDigestDetails_InvalidDigestAndGroupingOnCL_ReturnsError(t *testing.T
 	_, err := s.GetDigestDetails(ctx, inputGrouping, dks.DigestE03Unt_CL, dks.ChangelistIDThatAttemptsToFixIOS, dks.GerritCRS)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "No results found")
+}
+
+func TestGetDigestsDiff_TwoKnownDigests_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	}
+
+	s := New(db, 100)
+	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC03Unt, "", "")
+	require.NoError(t, err)
+	assert.Equal(t, frontend.DigestComparison{
+		Left: frontend.LeftDiffInfo{
+			Test:   dks.CircleTest,
+			Digest: dks.DigestC01Pos,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+		},
+		Right: frontend.SRDiffDigest{
+			CombinedMetric: 0.89245414, PixelDiffPercent: 50, NumDiffPixels: 32,
+			MaxRGBADiffs: [4]int{1, 7, 4, 0},
+			DimDiffer:    false,
+			Digest:       dks.DigestC03Unt,
+			Status:       expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+		},
+	}, rv)
+}
+
+func TestGetDigestsDiff_UnknownDigests_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	}
+	const notARealDigest = `ffffffffffffffffffffffffffffffff`
+
+	s := New(db, 100)
+	_, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, notARealDigest, "", "")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "missing")
+
+	_, err = s.GetDigestsDiff(ctx, inputGrouping, notARealDigest, dks.DigestC01Pos, "", "")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "missing")
+
+	_, err = s.GetDigestsDiff(ctx, inputGrouping, notARealDigest, notARealDigest, "", "")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "missing")
+}
+
+func TestGetDigestsDiff_TwoKnownDigestsOnACL_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	}
+
+	s := New(db, 100)
+	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC06Pos_CL, dks.ChangelistIDThatAttemptsToFixIOS, dks.GerritCRS)
+	require.NoError(t, err)
+	assert.Equal(t, frontend.DigestComparison{
+		Left: frontend.LeftDiffInfo{
+			Test:   dks.CircleTest,
+			Digest: dks.DigestC01Pos,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+		},
+		Right: frontend.SRDiffDigest{
+			CombinedMetric: 1.0217842, PixelDiffPercent: 6.25, NumDiffPixels: 4,
+			MaxRGBADiffs: [4]int{15, 12, 83, 0},
+			DimDiffer:    false,
+			Digest:       dks.DigestC06Pos_CL,
+			Status:       expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.IPadDevice},
+				dks.OSKey:             []string{dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+		},
+	}, rv)
+}
+
+func TestGetDigestsDiff_ExistingDigestsUnknownCL_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	}
+
+	s := New(db, 100)
+	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC03Unt, "not a real CL", dks.GerritCRS)
+	require.NoError(t, err)
+	assert.Equal(t, frontend.DigestComparison{
+		Left: frontend.LeftDiffInfo{
+			Test:   dks.CircleTest,
+			Digest: dks.DigestC01Pos,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+		},
+		Right: frontend.SRDiffDigest{
+			CombinedMetric: 0.89245414, PixelDiffPercent: 50, NumDiffPixels: 32,
+			MaxRGBADiffs: [4]int{1, 7, 4, 0},
+			DimDiffer:    false,
+			Digest:       dks.DigestC03Unt,
+			Status:       expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+		},
+	}, rv)
+}
+
+func TestGetDigestsDiff_NewDigestUnknownCL_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	}
+
+	s := New(db, 100)
+	_, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC06Pos_CL, "not a real CL", dks.GerritCRS)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "could not find digest c06c06c06c06c06c06c06c06c06c06c0")
 }
 
 var kitchenSinkCommits = makeKitchenSinkCommits()
