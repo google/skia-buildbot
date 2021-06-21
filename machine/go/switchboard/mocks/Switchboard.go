@@ -137,6 +137,27 @@ func (_m *Switchboard) ListPods(ctx context.Context) ([]switchboard.Pod, error) 
 	return r0, r1
 }
 
+// NumMeetingPointsForPod provides a mock function with given fields: ctx, podName
+func (_m *Switchboard) NumMeetingPointsForPod(ctx context.Context, podName string) (int, error) {
+	ret := _m.Called(ctx, podName)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(context.Context, string) int); ok {
+		r0 = rf(ctx, podName)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, podName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RemovePod provides a mock function with given fields: ctx, podName
 func (_m *Switchboard) RemovePod(ctx context.Context, podName string) error {
 	ret := _m.Called(ctx, podName)

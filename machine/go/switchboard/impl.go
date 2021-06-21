@@ -40,20 +40,23 @@ const (
 type metricName string
 
 const (
-	switchboardReserveMeetingpoint         = "switchboard_reserve_meetingpoint"
-	switchboardReserveMeetingpointErrors   = "switchboard_reserve_meetingpoint_errors"
-	switchboardClearMeetingpoint           = "switchboard_clear_meetingpoint"
-	switchboardGetMeetingpoint             = "switchboard_get_meetingpoint"
-	switchboardGetMeetingpointErrors       = "switchboard_get_meetingpoint_errors"
-	switchboardKeepAliveMeetingpoint       = "switchboard_keepalive_meetingpoint"
-	switchboardKeepAliveMeetingpointErrors = "switchboard_keepalive_meetingpoint_errors"
-	switchboardListMeetingpoint            = "switchboard_list_meetingpoint"
-	switchboardAddPod                      = "switchboard_add_pod"
-	switchboardRemovePod                   = "switchboard_remove_pod"
-	switchboardKeepAlivePod                = "switchboard_keepalive_pod"
-	switchboardKeepAlivePodErrors          = "switchboard_keepalive_pod_errors"
-	switchboardListPod                     = "switchboard_list_pod"
-	switchboardListPodErrors               = "switchboard_list_pod_errors"
+	switchboardReserveMeetingpoint          = "switchboard_reserve_meetingpoint"
+	switchboardReserveMeetingpointErrors    = "switchboard_reserve_meetingpoint_errors"
+	switchboardClearMeetingpoint            = "switchboard_clear_meetingpoint"
+	switchboardGetMeetingpoint              = "switchboard_get_meetingpoint"
+	switchboardGetMeetingpointErrors        = "switchboard_get_meetingpoint_errors"
+	switchboardKeepAliveMeetingpoint        = "switchboard_keepalive_meetingpoint"
+	switchboardKeepAliveMeetingpointErrors  = "switchboard_keepalive_meetingpoint_errors"
+	switchboardListMeetingpoint             = "switchboard_list_meetingpoint"
+	switchboardListMeetingPointErrors       = "switchboard_list_meetingpoint_errors"
+	switchboardNumMeetingpointsForPod       = "switchboard_num_meetingpoints_for_pod"
+	switchboardNumMeetingPointsForPodErrors = "switchboard_num_meetingpoints_for_pod_errors"
+	switchboardAddPod                       = "switchboard_add_pod"
+	switchboardRemovePod                    = "switchboard_remove_pod"
+	switchboardKeepAlivePod                 = "switchboard_keepalive_pod"
+	switchboardKeepAlivePodErrors           = "switchboard_keepalive_pod_errors"
+	switchboardListPod                      = "switchboard_list_pod"
+	switchboardListPodErrors                = "switchboard_list_pod_errors"
 )
 
 var (
@@ -66,6 +69,9 @@ var (
 		switchboardKeepAliveMeetingpoint,
 		switchboardKeepAliveMeetingpointErrors,
 		switchboardListMeetingpoint,
+		switchboardListMeetingPointErrors,
+		switchboardNumMeetingpointsForPod,
+		switchboardNumMeetingPointsForPodErrors,
 		switchboardAddPod,
 		switchboardRemovePod,
 		switchboardKeepAlivePod,
@@ -322,8 +328,51 @@ func (s *switchboardImpl) ListPods(ctx context.Context) ([]Pod, error) {
 
 // ListMeetingPoints implements Switchboard
 func (s *switchboardImpl) ListMeetingPoints(ctx context.Context) ([]MeetingPoint, error) {
-	panic("unimplemented")
+	s.counters[switchboardListMeetingpoint].Inc(1)
+
+	ret := []MeetingPoint{}
+	iter := s.meetingPointsCollection.Documents(ctx)
+	for {
+		snap, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			s.counters[switchboardListMeetingPointErrors].Inc(1)
+			return nil, skerr.Wrapf(err, "failed to iterate")
+		}
+		var meetingPointDescription meetingPointDescription
+		if err := snap.DataTo(&meetingPointDescription); err != nil {
+			s.counters[switchboardListMeetingPointErrors].Inc(1)
+			sklog.Errorf("Failed to read data from snapshot: %s", err)
+			continue
+		}
+
+		ret = append(ret, descriptionToMeetingPoint(meetingPointDescription))
+	}
+	return ret, nil
+
 }
 
-// Assert that switchboardImpl implementst the Switchboard interface.
+// NumMeetingPointsForPod implements Switchboard.
+func (s *switchboardImpl) NumMeetingPointsForPod(ctx context.Context, podName string) (int, error) {
+	s.counters[switchboardNumMeetingpointsForPod].Inc(1)
+
+	count := 0
+	iter := s.meetingPointsCollection.Where("PodName", "==", podName).Documents(ctx)
+	for {
+		_, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			s.counters[switchboardNumMeetingPointsForPodErrors].Inc(1)
+			return 0, skerr.Wrapf(err, "failed to iterate for podName: %q", podName)
+		}
+		count++
+	}
+	return count, nil
+}
+
+// Assert that switchboardImpl implements the Switchboard interface.
 var _ Switchboard = (*switchboardImpl)(nil)
