@@ -166,6 +166,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "704fcbaa_28c79389",
+        "filename": "machine/go/machine/targetconnect/targetconnect_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-21T17:48:49Z",
+      "side": 1,
+      "message": "Good point, updated test to call KeepAliveMeetingPoint multiple times.",
+      "parentUuid": "38ac7402_ab869c77",
+      "range": {
+        "startLine": 61,
+        "startChar": 2,
+        "endLine": 61,
+        "endChar": 10
+      },
+      "revId": "ed5ededc176bbea982d98b8879c4c90c81c9d6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bb6e8318_2e1272b1",
