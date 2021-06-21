@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import path from "path";
 
 describe('changelist-controls-sk', () => {
@@ -11,7 +11,7 @@ describe('changelist-controls-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/changelist-controls-sk.html`);
+    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/changelist-controls-sk.html`);
   });
 
   it('should render the demo page', async () => {

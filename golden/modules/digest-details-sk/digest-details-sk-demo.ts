@@ -8,6 +8,7 @@ import { setImageEndpointsForDemos } from '../common';
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
 import {DigestDetailsSk} from './digest-details-sk';
+import {SearchResult} from '../rpc_types';
 
 Date.now = () => fakeNow;
 testOnlySetSettings({
@@ -54,7 +55,7 @@ ele.commits = twoHundredCommits;
 $$('#no_traces')!.appendChild(ele);
 
 ele = new DigestDetailsSk();
-const noParams = JSON.parse(JSON.stringify(noTraces));
+const noParams = JSON.parse(JSON.stringify(noTraces)) as SearchResult;
 noParams.paramset = {};
 ele.details = noParams;
 ele.commits = twoHundredCommits;
