@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "39e0176f_e20ffaad",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-21T15:21:09Z",
+      "side": 1,
+      "message": "Don\u0027t forget to run `make gazelle` to update/generate the appropriate bazel files",
+      "revId": "f4b824220783b303a86b87e4c34793d71bb127d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dae6a242_b42dc4fd",
+        "filename": "machine/go/machine/store/impl_manual_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-21T15:21:09Z",
+      "side": 1,
+      "message": "Shouldn\u0027t there be go imports/package stuff?",
+      "revId": "f4b824220783b303a86b87e4c34793d71bb127d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
