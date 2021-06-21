@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import {
-  addEventListenersToPuppeteerPage,
+  addEventListenersToPuppeteerPage, inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed
@@ -68,6 +68,7 @@ describe('ignores-page-sk', () => {
 async function navigateTo(page: Page, base: string, queryParams = '') {
   const eventPromise = await addEventListenersToPuppeteerPage(page, ['end-task']);
   const loaded = eventPromise('end-task'); // Emitted when page is loaded.
-  await page.goto(`${base}/dist/ignores-page-sk.html${queryParams}`);
+  await page.goto(
+      inBazel() ? `${base}${queryParams}` : `${base}/dist/ignores-page-sk.html${queryParams}`);
   await loaded;
 }
