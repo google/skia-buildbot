@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fc1c42e4_616558fb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-21T15:32:16Z",
+      "side": 1,
+      "message": "lgtm, assuming `make gazelle` from the root directory doesn\u0027t need to change anything.",
+      "revId": "79fdd57f0532567ce3b85981e74bd2e6bcb3374a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
