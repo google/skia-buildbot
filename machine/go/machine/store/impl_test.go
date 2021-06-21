@@ -147,6 +147,7 @@ func TestUpdate_CanUpdateIfDescriptionExists(t *testing.T) {
 
 func TestWatch_StartWatchBeforeMachineExists(t *testing.T) {
 	unittest.LargeTest(t)
+	t.Skip("Flaky test.")
 	ctx, cfg := setupForFlakyTest(t)
 	store, err := New(ctx, true, cfg)
 	require.NoError(t, err)
