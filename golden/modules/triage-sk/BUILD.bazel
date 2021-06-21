@@ -1,0 +1,71 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":triage-sk-demo",
+)
+
+sk_element(
+    name = "triage-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//golden/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["triage-sk.scss"],
+    ts_deps = [
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "triage-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "triage-sk-demo",
+    html_file = "triage-sk-demo.html",
+    sk_element_deps = [":triage-sk"],
+    ts_deps = ["//golden/modules:demo_util_ts_lib"],
+    ts_entry_point = "triage-sk-demo.ts",
+)
+
+ts_library(
+    name = "triage-sk_po_ts_lib",
+    srcs = ["triage-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":triage-sk",
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+    ],
+)
+
+sk_element_puppeteer_test(
+    name = "triage-sk_puppeteer_test",
+    src = "triage-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":triage-sk_po_ts_lib",
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//puppeteer",
+    ],
+)
+
+karma_test(
+    name = "triage-sk_test",
+    src = "triage-sk_test.ts",
+    deps = [
+        ":triage-sk",
+        ":triage-sk_po_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
