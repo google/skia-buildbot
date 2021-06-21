@@ -19,10 +19,10 @@
 // This also support having ncrev installed on the pod, a safer version of nc in
 // that it checks that there are no other listeners on the given port before
 // starting.
-
 package revportforward
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -74,14 +74,19 @@ func New(kubeconfig, podName string, podPort int, localaddress string, useNcRev 
 // so it should be called from within a loop, e.g.:
 //
 // for {
-//    if err := rpf.Start(); err != nil {
+//    if err := rpf.Start(ctx); err != nil {
 //		sklog.Error(err)
 //	  }
 // }
-func (r *ReversePortForward) Start() error {
+func (r *ReversePortForward) Start(ctx context.Context) error {
 	fmt.Println("Begin")
 	// First start a connection to the localaddress.
-	conn, err := net.Dial("tcp", r.localaddress)
+	var d net.Dialer
+
+	// If the Context is cancelled then this connection should close, which
+	// should cause exec.Stream() below to exit, in theory, but it probably
+	// won't: https://github.com/kubernetes/client-go/issues/554
+	conn, err := d.DialContext(ctx, "tcp", r.localaddress)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to connect to localaddress: %s", r.localaddress)
 	}
@@ -120,6 +125,7 @@ func (r *ReversePortForward) Start() error {
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to run netcat on the pod: %q", r.pod)
 	}
+
 	// exec.Stream will not return until the connection is broken.
 	err = exec.Stream(remotecommand.StreamOptions{
 		Stdin:  conn,
