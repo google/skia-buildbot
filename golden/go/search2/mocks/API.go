@@ -154,6 +154,27 @@ func (_m *API) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 	return r0, r1
 }
 
+// GetDigestsDiff provides a mock function with given fields: ctx, grouping, left, right, clID, crs
+func (_m *API) GetDigestsDiff(ctx context.Context, grouping paramtools.Params, left types.Digest, right types.Digest, clID string, crs string) (frontend.DigestComparison, error) {
+	ret := _m.Called(ctx, grouping, left, right, clID, crs)
+
+	var r0 frontend.DigestComparison
+	if rf, ok := ret.Get(0).(func(context.Context, paramtools.Params, types.Digest, types.Digest, string, string) frontend.DigestComparison); ok {
+		r0 = rf(ctx, grouping, left, right, clID, crs)
+	} else {
+		r0 = ret.Get(0).(frontend.DigestComparison)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, paramtools.Params, types.Digest, types.Digest, string, string) error); ok {
+		r1 = rf(ctx, grouping, left, right, clID, crs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetDigestsForGrouping provides a mock function with given fields: ctx, grouping
 func (_m *API) GetDigestsForGrouping(ctx context.Context, grouping paramtools.Params) (frontend.DigestListResponse, error) {
 	ret := _m.Called(ctx, grouping)
