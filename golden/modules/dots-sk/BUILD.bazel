@@ -1,0 +1,75 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+ts_library(
+    name = "constants_ts_lib",
+    srcs = ["constants.ts"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "demo_data_ts_lib",
+    srcs = ["demo_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//golden/modules:rpc_types_ts_lib"],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":dots-sk-demo",
+)
+
+sk_element(
+    name = "dots-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["dots-sk.scss"],
+    ts_deps = [
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        ":constants_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "dots-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "dots-sk-demo",
+    html_file = "dots-sk-demo.html",
+    sk_element_deps = [":dots-sk"],
+    ts_deps = [
+        "//golden/modules:demo_util_ts_lib",
+        ":demo_data_ts_lib",
+        "@npm//common-sk",
+    ],
+    ts_entry_point = "dots-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "dots-sk_puppeteer_test",
+    src = "dots-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "dots-sk_test",
+    src = "dots-sk_test.ts",
+    deps = [
+        ":constants_ts_lib",
+        ":demo_data_ts_lib",
+        ":dots-sk",
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import {
   addEventListenersToPuppeteerPage,
-  EventName,
+  EventName, inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed
@@ -23,7 +23,10 @@ describe('search-page-sk', () => {
 
   const goToPage = async (queryString = '') => {
     const busyEnd = eventPromiseFactory('busy-end');
-    await testBed.page.goto(`${testBed.baseUrl}/dist/search-page-sk.html${queryString}`);
+    await testBed.page.goto(
+        inBazel()
+            ? `${testBed.baseUrl}${queryString}`
+            : `${testBed.baseUrl}/dist/search-page-sk.html${queryString}`);
     await busyEnd;
 
     await testBed.page.setViewport({width: 1600, height: 1200});
