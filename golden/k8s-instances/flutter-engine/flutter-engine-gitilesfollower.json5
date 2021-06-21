@@ -12,7 +12,6 @@
     initial_commit: "bed3a4a7a016391fce276e71a748eea13b104ca3",
     system_name: "github",
     branch: "master",
-    legacy_updater_in_use: true,
   }],
 
   prom_port: ":20000",
