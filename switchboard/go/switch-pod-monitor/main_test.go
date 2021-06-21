@@ -20,7 +20,7 @@ var errMock = errors.New("test error")
 
 const hostname = "skia-rpi2-rack4-shelf1-002"
 
-func TestRegisterPodWithSwitchboard_ContextCancelled_ReturnsNil(t *testing.T) {
+func TestConnecToSwitchboardAndWait_ContextCancelled_ReturnsNil(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -35,7 +35,7 @@ func TestRegisterPodWithSwitchboard_ContextCancelled_ReturnsNil(t *testing.T) {
 	switchboardMock.AssertExpectations(t)
 }
 
-func TestRegisterPodWithSwitchboard_AddPodFails_ReturnsError(t *testing.T) {
+func TestConnecToSwitchboardAndWait_AddPodFails_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -48,7 +48,7 @@ func TestRegisterPodWithSwitchboard_AddPodFails_ReturnsError(t *testing.T) {
 	cancel()
 }
 
-func TestRegisterPodWithSwitchboard_TooManyKeepAlivePodFailures_ReturnsError(t *testing.T) {
+func TestConnecToSwitchboardAndWait_TooManyKeepAlivePodFailures_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -64,7 +64,7 @@ func TestRegisterPodWithSwitchboard_TooManyKeepAlivePodFailures_ReturnsError(t *
 	cancel()
 }
 
-func TestRegisterPodWithSwitchboard_SIGTERMSent_RemovePodGetsCalled(t *testing.T) {
+func TestConnecToSwitchboardAndWait_SIGTERMSent_RemovePodGetsCalled(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -91,7 +91,76 @@ func TestRegisterPodWithSwitchboard_SIGTERMSent_RemovePodGetsCalled(t *testing.T
 	cancel()
 }
 
-func TestRegisterPodWithSwitchboard_TwoLoops_Success(t *testing.T) {
+func TestConnecToSwitchboardAndWait_SIGTERMSentAndNoMeetingPointsRemain_ReturnsNoError(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	switchboardMock := &mocks.Switchboard{}
+	var addPodCalled sync.WaitGroup
+	addPodCalled.Add(1)
+	switchboardMock.On("AddPod", testutils.AnyContext, hostname).Return(nil).Run(func(args mock.Arguments) {
+		addPodCalled.Done()
+	})
+	switchboardMock.On("RemovePod", testutils.AnyContext, hostname).Return(nil)
+
+	// ListMeetingPoints will only be called once since it returns a nil slice of MeetingPoints.
+	var listPointsCalled sync.WaitGroup
+	listPointsCalled.Add(1)
+	switchboardMock.On("ListMeetingPoints", testutils.AnyContext).Return(nil, nil).Run(func(args mock.Arguments) {
+		listPointsCalled.Done()
+	})
+
+	go func() {
+		err := connectToSwitchboardAndWait(ctx, hostname, switchboardMock, time.Millisecond, switchboard.PodMaxConsecutiveKeepAliveErrors)
+		require.NoError(t, err)
+	}()
+	addPodCalled.Wait()
+	err := syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
+	require.NoError(t, err)
+	listPointsCalled.Wait()
+	switchboardMock.AssertExpectations(t)
+	cancel()
+}
+
+func TestConnecToSwitchboardAndWait_SIGTERMSentAndMeetingPointsRemain_ReturnsWithNoErrorOnceNoMatchingMeetingPointsAreFound(t *testing.T) {
+	unittest.SmallTest(t)
+
+	meetingPoint := switchboard.MeetingPoint{
+		PodName: hostname,
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	switchboardMock := &mocks.Switchboard{}
+	var addPodCalled sync.WaitGroup
+	addPodCalled.Add(1)
+	switchboardMock.On("AddPod", testutils.AnyContext, hostname).Return(nil).Run(func(args mock.Arguments) {
+		addPodCalled.Done()
+	})
+	switchboardMock.On("RemovePod", testutils.AnyContext, hostname).Return(nil)
+
+	// ListMeetingPoints will only be called twice, the firs time it returns a
+	// MeetingPoint that matches the pod, the second time it returns a nil
+	// slice of MeetingPoints.
+	var listPointsCalled sync.WaitGroup
+	listPointsCalled.Add(1)
+	switchboardMock.On("ListMeetingPoints", testutils.AnyContext).Return([]switchboard.MeetingPoint{meetingPoint}, nil).Times(1)
+	switchboardMock.On("ListMeetingPoints", testutils.AnyContext).Return(nil, nil).Run(func(args mock.Arguments) {
+		listPointsCalled.Done()
+	})
+
+	go func() {
+		err := connectToSwitchboardAndWait(ctx, hostname, switchboardMock, time.Millisecond, switchboard.PodMaxConsecutiveKeepAliveErrors)
+		require.NoError(t, err)
+	}()
+	addPodCalled.Wait()
+	err := syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
+	require.NoError(t, err)
+	listPointsCalled.Wait()
+	switchboardMock.AssertExpectations(t)
+	cancel()
+}
+func TestConnecToSwitchboardAndWait_TwoLoops_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 
