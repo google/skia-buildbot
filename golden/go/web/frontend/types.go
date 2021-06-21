@@ -541,8 +541,31 @@ type DigestStatus struct {
 
 // DigestComparison contains the result of comparing two digests.
 type DigestComparison struct {
-	Left  SearchResult  `json:"left"`  // The left hand digest and its params.
-	Right *SRDiffDigest `json:"right"` // The right hand digest, its params and the diff result.
+	Left  LeftDiffInfo `json:"left"`  // The left hand digest and its params.
+	Right SRDiffDigest `json:"right"` // The right hand digest, its params and the diff result.
+}
+
+// LeftDiffInfo describes the left digest in a comparison between two digests. It describes the
+// triage status, history and summarizes how it is drawn on the primary branch.
+type LeftDiffInfo struct {
+	// Test is the name of the test that produced the primary digest. This is needed because
+	// we might have a case where, for example, a blank 100x100 image is correct for one test,
+	// but not for another test and we need to distinguish between the two cases.
+	// TODO(kjlubick) make this be grouping
+	Test types.TestName `json:"test"`
+	// Digest is the primary digest to which the rest of the data in this struct belongs.
+	Digest types.Digest `json:"digest"`
+	// Status is positive, negative, or untriaged. This is also known as the expectation for the
+	// primary digest (for Test).
+	Status expectations.Label `json:"status"`
+	// TriageHistory is a history of all the times the primary digest has been retriaged for the
+	// given Test.
+	TriageHistory []TriageHistory `json:"triage_history"`
+	// ParamSet is all the keys and options of all traces that produce the digest on the primary
+	// branch (disregarding ignore rules, but respecting the public visibility rules, if
+	// applicable). It is for frontend UI presentation only; essentially a word cloud of what drew
+	// the primary digest.
+	ParamSet paramtools.ParamSet `json:"paramset"`
 }
 
 // UntriagedDigestList represents multiple digests that are untriaged for a given query.

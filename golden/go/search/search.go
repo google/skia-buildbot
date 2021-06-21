@@ -622,14 +622,14 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 
 	history := s.makeTriageHistoryGetter(crs, clID)
 	return &frontend.DigestComparison{
-		Left: frontend.SearchResult{
+		Left: frontend.LeftDiffInfo{
 			Test:          test,
 			Digest:        left,
 			Status:        exp.Classification(test, left),
 			TriageHistory: s.getTriageHistory(ctx, history, test, left),
 			ParamSet:      psLeft,
 		},
-		Right: &frontend.SRDiffDigest{
+		Right: frontend.SRDiffDigest{
 			Digest:           right,
 			Status:           exp.Classification(test, right),
 			ParamSet:         psRight,

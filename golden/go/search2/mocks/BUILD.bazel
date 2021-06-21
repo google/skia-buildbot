@@ -12,6 +12,7 @@ go_library(
         "//go/paramtools",
         "//golden/go/search/query",
         "//golden/go/search2",
+        "//golden/go/types",
         "//golden/go/web/frontend",
         "@com_github_stretchr_testify//mock",
     ],

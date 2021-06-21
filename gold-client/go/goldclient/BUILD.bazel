@@ -44,6 +44,7 @@ go_test(
         "//go/deepequal/assertdeep",
         "//go/fileutil",
         "//go/now",
+        "//go/paramtools",
         "//go/skerr",
         "//go/testutils",
         "//go/testutils/unittest",

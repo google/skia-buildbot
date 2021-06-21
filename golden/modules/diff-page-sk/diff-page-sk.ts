@@ -12,7 +12,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../digest-details-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
-import { DigestComparison, SearchResult, SRDiffDigest } from '../rpc_types';
+import {DigestComparison, LeftDiffInfo, SRDiffDigest} from '../rpc_types';
 
 export class DiffPageSk extends ElementSk {
   private static template = (ele: DiffPageSk) => {
@@ -36,7 +36,7 @@ export class DiffPageSk extends ElementSk {
   private rightDigest = '';
   private crs = '';
   private changeListID = '';
-  private leftDetails: SearchResult | null = null;
+  private leftDetails: LeftDiffInfo | null = null;
   private rightDetails: SRDiffDigest | null = null;
   private useSQL = false;
   private didInitialLoad = false;

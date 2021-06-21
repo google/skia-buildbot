@@ -16,6 +16,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/fileutil",
+        "//go/paramtools",
         "//go/skerr",
         "//go/util",
         "//gold-client/go/auth",
