@@ -1312,7 +1312,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 	cd, err := s.DiffDigests(ctx, testWeWantDetailsAbout, leftDigest, rightDigest, "", "")
 	require.NoError(t, err)
 	assert.Equal(t, &frontend.DigestComparison{
-		Left: frontend.SearchResult{
+		Left: frontend.LeftDiffInfo{
 			Test:   testWeWantDetailsAbout,
 			Digest: leftDigest,
 			Status: expectations.Untriaged,
@@ -1323,7 +1323,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 				"ext":                 {data.PNGExtension},
 			},
 		},
-		Right: &frontend.SRDiffDigest{
+		Right: frontend.SRDiffDigest{
 			Digest: rightDigest,
 			Status: expectations.Positive,
 			// Small diff
@@ -1369,7 +1369,7 @@ func TestDiffDigests_UseSQLDiffMetrics_DiffExists_Success(t *testing.T) {
 	cd, err := s.DiffDigests(ctx, testWeWantDetailsAbout, leftDigest, rightDigest, "", "")
 	require.NoError(t, err)
 	assert.Equal(t, &frontend.DigestComparison{
-		Left: frontend.SearchResult{
+		Left: frontend.LeftDiffInfo{
 			Test:   testWeWantDetailsAbout,
 			Digest: leftDigest,
 			Status: expectations.Untriaged,
@@ -1380,7 +1380,7 @@ func TestDiffDigests_UseSQLDiffMetrics_DiffExists_Success(t *testing.T) {
 				"ext":                 {data.PNGExtension},
 			},
 		},
-		Right: &frontend.SRDiffDigest{
+		Right: frontend.SRDiffDigest{
 			Digest: rightDigest,
 			Status: expectations.Positive,
 			// From data injected into SQL data

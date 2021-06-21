@@ -11,7 +11,7 @@ import fetchMock from 'fetch-mock';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 import { DiffPageSk } from './diff-page-sk';
 import { setQueryString } from '../../../infra-sk/modules/test_util';
-import { DigestComparison } from '../rpc_types';
+import { DigestComparison, LeftDiffInfo } from '../rpc_types';
 import { toObject } from 'common-sk/modules/query';
 import { HintableObject } from 'common-sk/modules/hintable';
 
@@ -49,9 +49,16 @@ fetchMock.get('glob:/json/v1/diff*', (url) => {
   const urlParams =
       toObject(url.split('?')[1], hint as unknown as HintableObject) as unknown as UrlParams;
   const searchResult = makeTypicalSearchResult(urlParams.test, urlParams.left, urlParams.right);
+  const leftInfo: LeftDiffInfo = {
+    test: searchResult.test,
+    digest: searchResult.digest,
+    status: searchResult.status,
+    triage_history: searchResult.triage_history,
+    paramset: searchResult.paramset,
+  };
   const response: DigestComparison = {
-    left: searchResult,
-    right: searchResult.refDiffs!.pos,
+    left: leftInfo,
+    right: searchResult.refDiffs!.pos!,
   }
   return delay(response);
 })
