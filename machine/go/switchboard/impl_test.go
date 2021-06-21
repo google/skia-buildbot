@@ -348,3 +348,69 @@ func TestClearMeetingPoint_NoSuchMeetingPoint_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 }
+
+func TestListMeetingPoints_NoMeetingPoints_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, s := setupForTest(t)
+
+	meetingPoints, err := s.ListMeetingPoints(ctx)
+	require.NoError(t, err)
+	require.Empty(t, meetingPoints)
+	require.Equal(t, int64(1), s.counters[switchboardListMeetingpoint].Get())
+	require.Equal(t, int64(0), s.counters[switchboardListMeetingPointErrors].Get())
+}
+
+func TestListMeetingPoints_MeetingPoints_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, s := setupForTest(t)
+
+	// Add a pod.
+	err := s.AddPod(ctx, podName)
+	require.NoError(t, err)
+
+	meetingPoint, err := s.ReserveMeetingPoint(ctx, machineID, userName)
+	require.NoError(t, err)
+
+	meetingPoints, err := s.ListMeetingPoints(ctx)
+	require.NoError(t, err)
+	require.Len(t, meetingPoints, 1)
+	require.Equal(t, meetingPoint, meetingPoints[0])
+	require.Equal(t, int64(1), s.counters[switchboardListMeetingpoint].Get())
+	require.Equal(t, int64(0), s.counters[switchboardListMeetingPointErrors].Get())
+}
+
+func TestNumMeetingPointsForPod_NoMeetingPoints_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, s := setupForTest(t)
+
+	num, err := s.NumMeetingPointsForPod(ctx, podName)
+	require.NoError(t, err)
+	require.Equal(t, 0, num)
+	require.Equal(t, int64(1), s.counters[switchboardNumMeetingpointsForPod].Get())
+	require.Equal(t, int64(0), s.counters[switchboardNumMeetingPointsForPodErrors].Get())
+}
+
+func TestNumMeetingPointsForPod_MeetingPoints_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, s := setupForTest(t)
+
+	// Add a pod.
+	err := s.AddPod(ctx, podName)
+	require.NoError(t, err)
+
+	_, err = s.ReserveMeetingPoint(ctx, machineID, userName)
+	require.NoError(t, err)
+
+	num, err := s.NumMeetingPointsForPod(ctx, podName)
+	require.NoError(t, err)
+	require.Equal(t, num, 1)
+	require.Equal(t, int64(1), s.counters[switchboardNumMeetingpointsForPod].Get())
+	require.Equal(t, int64(0), s.counters[switchboardNumMeetingPointsForPodErrors].Get())
+
+	num, err = s.NumMeetingPointsForPod(ctx, "not a known pod name")
+	require.NoError(t, err)
+	require.Equal(t, num, 0)
+	require.Equal(t, int64(2), s.counters[switchboardNumMeetingpointsForPod].Get())
+	require.Equal(t, int64(0), s.counters[switchboardNumMeetingPointsForPodErrors].Get())
+
+}
