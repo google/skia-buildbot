@@ -80,6 +80,9 @@ type API interface {
 	// GetDigestDetails returns information about the given digest as produced on the given
 	// grouping. If the CL and CRS are provided, it will include information specific to that CL.
 	GetDigestDetails(ctx context.Context, grouping paramtools.Params, digest types.Digest, clID, crs string) (frontend.DigestDetails, error)
+
+	// GetDigestsDiff returns comparison and triage information about the left and right digest.
+	GetDigestsDiff(ctx context.Context, grouping paramtools.Params, left, right types.Digest, clID, crs string) (frontend.DigestComparison, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -3288,6 +3291,157 @@ WHERE branch_name = $1 AND grouping_id = $2 AND digest = $3`
 		})
 	}
 	return results, nil
+}
+
+func (s *Impl) GetDigestsDiff(ctx context.Context, grouping paramtools.Params, left, right types.Digest, clID, crs string) (frontend.DigestComparison, error) {
+	ctx, span := trace.StartSpan(ctx, "web_GetDigestsDiff")
+	defer span.End()
+	_, groupingID := sql.SerializeMap(grouping)
+	leftBytes, err := sql.DigestToBytes(left)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+	rightBytes, err := sql.DigestToBytes(right)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+
+	metrics, err := s.getDiffBetween(ctx, leftBytes, rightBytes)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+
+	leftLabel, err := s.getExpectationsForDigest(ctx, groupingID, leftBytes, crs, clID)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+	rightLabel, err := s.getExpectationsForDigest(ctx, groupingID, rightBytes, crs, clID)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+
+	leftParamset, err := s.getParamsetsForTracesProducing(ctx, groupingID, leftBytes)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+	rightParamset, err := s.getParamsetsForTracesProducing(ctx, groupingID, rightBytes)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+
+	metrics.Digest = right
+	metrics.Status = rightLabel
+	metrics.ParamSet = rightParamset
+	return frontend.DigestComparison{
+		Left: frontend.LeftDiffInfo{
+			Test:          types.TestName(grouping[types.PrimaryKeyField]),
+			Digest:        left,
+			Status:        leftLabel,
+			TriageHistory: nil, // TODO(kjlubick)
+			ParamSet:      leftParamset,
+		},
+		Right: metrics,
+	}, nil
+
+}
+
+// getDiffBetween returns the diff metrics for the given digests.
+func (s *Impl) getDiffBetween(ctx context.Context, left, right schema.DigestBytes) (frontend.SRDiffDigest, error) {
+	ctx, span := trace.StartSpan(ctx, "getDiffBetween")
+	defer span.End()
+	const statement = `SELECT num_pixels_diff, percent_pixels_diff, max_rgba_diffs,
+combined_metric, dimensions_differ
+FROM DiffMetrics WHERE left_digest = $1 and right_digest = $2 LIMIT 1`
+	row := s.db.QueryRow(ctx, statement, left, right)
+	var rv frontend.SRDiffDigest
+	if err := row.Scan(&rv.NumDiffPixels, &rv.PixelDiffPercent, &rv.MaxRGBADiffs,
+		&rv.CombinedMetric, &rv.DimDiffer); err != nil {
+		return frontend.SRDiffDigest{}, skerr.Wrap(err)
+	}
+	return rv, nil
+}
+
+func (s *Impl) getExpectationsForDigest(ctx context.Context, groupingID schema.GroupingID, digest schema.DigestBytes, crs, clID string) (expectations.Label, error) {
+	ctx, span := trace.StartSpan(ctx, "getExpectationsForDigest")
+	defer span.End()
+
+	statement := `SELECT label FROM Expectations WHERE grouping_id = $1 AND digest = $2 LIMIT 1`
+	arguments := []interface{}{groupingID, digest}
+	// TODO(kjlubick) CL logic
+
+	row := s.db.QueryRow(ctx, statement, arguments...)
+	var label schema.ExpectationLabel
+	if err := row.Scan(&label); err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return label.ToExpectation(), nil
+}
+
+func (s *Impl) getParamsetsForTracesProducing(ctx context.Context, groupingID schema.GroupingID, digest schema.DigestBytes) (paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "getParamsetsForTracesProducing")
+	defer span.End()
+
+	const statement = `WITH
+RecentCommits AS (
+	SELECT commit_id, tile_id FROM CommitsWithData
+	ORDER BY commit_id DESC LIMIT $1
+),
+OldestTileInWindow AS (
+	SELECT tile_id FROM RecentCommits
+	ORDER BY commit_id ASC LIMIT 1
+),
+TracesThatProducedDigest AS (
+	SELECT DISTINCT trace_id FROM TiledTraceDigests
+	JOIN OldestTileInWindow ON TiledTraceDigests.tile_id >= OldestTileInWindow.tile_id AND
+	TiledTraceDigests.grouping_id = $2 AND TiledTraceDigests.digest = $3
+)
+SELECT TracesThatProducedDigest.trace_id, ValuesAtHead.options_id
+FROM TracesThatProducedDigest JOIN ValuesAtHead
+  ON TracesThatProducedDigest.trace_id = ValuesAtHead.trace_id
+`
+	rows, err := s.db.Query(ctx, statement, s.windowLength, groupingID, digest)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var traces []schema.TraceID
+	var opts []schema.OptionsID
+
+	for rows.Next() {
+		var trID schema.TraceID
+		var optID schema.OptionsID
+		if err := rows.Scan(&trID, &optID); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		// trace ids should be unique due to the query we made
+		traces = append(traces, trID)
+		// There are generally few options, so a linear search to avoid duplicates is sufficient
+		// to avoid a lot of cache lookups.
+		existsAlready := false
+		for _, o := range opts {
+			if bytes.Equal(o, optID) {
+				existsAlready = true
+				break
+			}
+		}
+		if !existsAlready {
+			opts = append(opts, optID)
+		}
+	}
+
+	paramset, err := s.lookupOrLoadParamSetFromCache(ctx, traces)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	for _, o := range opts {
+		ps, err := s.expandOptionsToParams(ctx, o)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		paramset.AddParams(ps)
+	}
+	paramset.Normalize()
+	return paramset, nil
 }
 
 // Make sure Impl implements the API interface.

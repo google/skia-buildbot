@@ -5052,6 +5052,53 @@ func TestGetDigestDetails_InvalidDigestAndGroupingOnCL_ReturnsError(t *testing.T
 	assert.Contains(t, err.Error(), "No results found")
 }
 
+func TestGetDigestsDiff_TwoKnownDigests_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	inputGrouping := paramtools.Params{
+		types.PrimaryKeyField: dks.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+	}
+
+	s := New(db, 100)
+	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC03Unt, "", "")
+	require.NoError(t, err)
+	assert.Equal(t, frontend.DigestComparison{
+		Left: frontend.LeftDiffInfo{
+			Test:   dks.CircleTest,
+			Digest: dks.DigestC01Pos,
+			Status: expectations.Positive,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+				dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.IOS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+		},
+		Right: frontend.SRDiffDigest{
+			CombinedMetric: 0.89245414, PixelDiffPercent: 50, NumDiffPixels: 32,
+			MaxRGBADiffs: [4]int{1, 7, 4, 0},
+			DimDiffer:    false,
+			Digest:       dks.DigestC03Unt,
+			Status:       expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				dks.ColorModeKey:      []string{dks.RGBColorMode},
+				types.CorpusField:     []string{dks.RoundCorpus},
+				dks.DeviceKey:         []string{dks.QuadroDevice},
+				dks.OSKey:             []string{dks.Windows10dot3OS},
+				types.PrimaryKeyField: []string{dks.CircleTest},
+				"ext":                 []string{"png"},
+			},
+		},
+	}, rv)
+}
+
 var kitchenSinkCommits = makeKitchenSinkCommits()
 
 func makeKitchenSinkCommits() []frontend.Commit {
