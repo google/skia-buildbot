@@ -130,4 +130,8 @@ type Switchboard interface {
 	// ListMeetingPoints returns all the active MeetingPoints. This will be used
 	// in the machines UI.
 	ListMeetingPoints(ctx context.Context) ([]MeetingPoint, error)
+
+	// NumMeetingPointsForPod returns the number of MeetingPoints that exist for
+	// the given Pod.
+	NumMeetingPointsForPod(ctx context.Context, podName string) (int, error)
 }
