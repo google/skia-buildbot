@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import {
-  addEventListenersToPuppeteerPage,
+  addEventListenersToPuppeteerPage, inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed
@@ -83,7 +83,8 @@ describe('diff-page-sk', () => {
 async function navigateTo(page: Page, base: string, queryParams = ''): Promise<DiffPageSkPO> {
   const eventPromise = await addEventListenersToPuppeteerPage(page, ['busy-end']);
   const loaded = eventPromise('busy-end'); // Emitted from gold-scaffold when page is loaded.
-  await page.goto(`${base}/dist/diff-page-sk.html${queryParams}`);
+  await page.goto(
+      inBazel() ? `${base}${queryParams}` : `${base}/dist/diff-page-sk.html${queryParams}`);
   await loaded;
   return new DiffPageSkPO(page.$('diff-page-sk'));
 }
