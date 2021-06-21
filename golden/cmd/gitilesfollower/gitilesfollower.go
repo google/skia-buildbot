@@ -480,6 +480,7 @@ func migrateExpectationsToPrimaryBranch(ctx context.Context, db *pgxpool.Pool, c
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	sklog.Infof("CL %s %s had %d expectations, which will be applied at %s", crs, clID, len(changes), landedTS)
 	err = storeChangesAsRecordDeltasExpectations(ctx, db, changes, landedTS)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -493,6 +494,8 @@ func migrateExpectationsToPrimaryBranch(ctx context.Context, db *pgxpool.Pool, c
 			}
 			return skerr.Wrapf(err, "Updating cl %s to be landed", qID)
 		}
+	} else {
+		sklog.Infof("Not marking CL %s %s as landed [legacy mode in use] ", crs, clID)
 	}
 	return nil
 }
