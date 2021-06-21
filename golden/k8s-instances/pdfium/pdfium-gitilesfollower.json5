@@ -10,7 +10,6 @@
     initial_commit: "bc1290560d96e95edd226460fa5995ab4e5945b8",
     system_name: "gerrit",
     branch: "master",
-    legacy_updater_in_use: true,
   }],
 
   prom_port: ":20000",
