@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7fe2df7a_8c12ac59",
+        "filename": "go/revportforward/revportforward.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-21T17:21:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3e3827c_592d659b",
+      "range": {
+        "startLine": 77,
+        "startChar": 25,
+        "endLine": 77,
+        "endChar": 27
+      },
+      "revId": "ed5ededc176bbea982d98b8879c4c90c81c9d6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e0989b87_854c7d90",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-06-21T17:07:17Z",
       "side": 1,
       "message": "suggestion: add hostname/username as tags to both these metrics?",
+      "range": {
+        "startLine": 44,
+        "startChar": 33,
+        "endLine": 44,
+        "endChar": 44
+      },
+      "revId": "ed5ededc176bbea982d98b8879c4c90c81c9d6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c6cb56e5_bebba16e",
+        "filename": "machine/go/machine/targetconnect/targetconnect.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-21T17:21:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e0989b87_854c7d90",
       "range": {
         "startLine": 44,
         "startChar": 33,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2ba317cf_3c15d914",
+        "filename": "machine/go/machine/targetconnect/targetconnect_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-21T17:21:50Z",
+      "side": 1,
+      "message": "Both Connection.switchboard and Connection.revPortForward are mocks, so there\u0027s no chance of a timeout in this test, either it passes or it fails. Sure, if there\u0027s a bug it will deadlock, and the test will timeout after 60s, but at that point it means there\u0027s a bug in the code that needs to be fixed.",
+      "parentUuid": "43fee3cd_779c2ff1",
+      "range": {
+        "startLine": 61,
+        "startChar": 2,
+        "endLine": 61,
+        "endChar": 10
+      },
+      "revId": "ed5ededc176bbea982d98b8879c4c90c81c9d6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bb6e8318_2e1272b1",
@@ -93,6 +165,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "eeb1bbdf_58eb8b0e",
+        "filename": "machine/go/machine/targetconnect/targetconnect_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-21T17:21:50Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "bb6e8318_2e1272b1",
+      "range": {
+        "startLine": 86,
+        "startChar": 18,
+        "endLine": 86,
+        "endChar": 23
+      },
+      "revId": "ed5ededc176bbea982d98b8879c4c90c81c9d6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4fdf7eda_8e1dc006",
@@ -106,6 +202,30 @@
       "writtenOn": "2021-06-21T17:07:17Z",
       "side": 1,
       "message": "With the above suggestions, I think the wait groups can be removed and make the test less prone to timeouts.",
+      "range": {
+        "startLine": 123,
+        "startChar": 4,
+        "endLine": 123,
+        "endChar": 8
+      },
+      "revId": "ed5ededc176bbea982d98b8879c4c90c81c9d6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a0bdd334_1073a76f",
+        "filename": "machine/go/machine/targetconnect/targetconnect_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-21T17:21:50Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "4fdf7eda_8e1dc006",
       "range": {
         "startLine": 123,
         "startChar": 4,
