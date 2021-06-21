@@ -197,9 +197,17 @@ export interface ListTestsResponse {
 	tests: TestSummary[] | null;
 }
 
+export interface LeftDiffInfo {
+	test: TestName;
+	digest: Digest;
+	status: Label;
+	triage_history: TriageHistory[] | null;
+	paramset: ParamSet;
+}
+
 export interface DigestComparison {
-	left: SearchResult;
-	right: SRDiffDigest | null;
+	left: LeftDiffInfo;
+	right: SRDiffDigest;
 }
 
 export interface DigestDetails {
