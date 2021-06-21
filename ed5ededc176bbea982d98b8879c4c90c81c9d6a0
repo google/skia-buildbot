@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b3e3827c_592d659b",
+        "filename": "go/revportforward/revportforward.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-21T17:07:17Z",
+      "side": 1,
+      "message": "nit: update docs",
+      "range": {
+        "startLine": 77,
+        "startChar": 25,
+        "endLine": 77,
+        "endChar": 27
+      },
+      "revId": "ed5ededc176bbea982d98b8879c4c90c81c9d6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e0989b87_854c7d90",
+        "filename": "machine/go/machine/targetconnect/targetconnect.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-21T17:07:17Z",
+      "side": 1,
+      "message": "suggestion: add hostname/username as tags to both these metrics?",
+      "range": {
+        "startLine": 44,
+        "startChar": 33,
+        "endLine": 44,
+        "endChar": 44
+      },
+      "revId": "ed5ededc176bbea982d98b8879c4c90c81c9d6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "43fee3cd_779c2ff1",
+        "filename": "machine/go/machine/targetconnect/targetconnect_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-21T17:07:17Z",
+      "side": 1,
+      "message": "I worry that if KeepAliveMeetingPoint does not get called, the whole test will not terminate.\n\nWhat about a pattern like this:\n\nctx, cancel :\u003d context.WithCancel(context.Background())\ndefer cancel()\n\nkeepAliveCallCount :\u003d int32(0)\nswitchboardMock.On(\"KeepAliveMeetingPoint\", testutils.AnyContext, meetingPoint).Run(func(args mock.Arguments) { atomic.AddInt32(\u0026keepAliveCallCount, 1)}))\n\n...\n\ngo c.singleStep(ctx, time.NewTicker(time.Microsecond), time.Microsecond)\nassert.Eventually(t, func() bool { return atomic.LoadIn32(\u0026keepAliveCallCount) \u003e\u003d 1 }, time.Second, 10*time.Millisecond)\nswitchboardMock.AssertExpectations(t)\n\nThat way, if the callback does not happen in a reasonable time, we fail the test instead of running forever or timeout.",
+      "range": {
+        "startLine": 61,
+        "startChar": 2,
+        "endLine": 61,
+        "endChar": 10
+      },
+      "revId": "ed5ededc176bbea982d98b8879c4c90c81c9d6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bb6e8318_2e1272b1",
+        "filename": "machine/go/machine/targetconnect/targetconnect_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-21T17:07:17Z",
+      "side": 1,
+      "message": "Similar suggestion to above for waiting until ClearMeetingPoint is cancelled. You would even be able to assert that ClearMeetingPoing has not been called before the cancel() happens.",
+      "range": {
+        "startLine": 86,
+        "startChar": 18,
+        "endLine": 86,
+        "endChar": 23
+      },
+      "revId": "ed5ededc176bbea982d98b8879c4c90c81c9d6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4fdf7eda_8e1dc006",
+        "filename": "machine/go/machine/targetconnect/targetconnect_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-21T17:07:17Z",
+      "side": 1,
+      "message": "With the above suggestions, I think the wait groups can be removed and make the test less prone to timeouts.",
+      "range": {
+        "startLine": 123,
+        "startChar": 4,
+        "endLine": 123,
+        "endChar": 8
+      },
+      "revId": "ed5ededc176bbea982d98b8879c4c90c81c9d6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
