@@ -12,6 +12,10 @@ import (
 // Switchboard.KeepAlivePod.
 const PodKeepAliveDuration = 5 * time.Minute
 
+// MeetingPointKeepAliveDuration is how often test_machine_monitor should call
+// Switchboard.KeepAliveMeetingPoint.
+const MeetingPointKeepAliveDuration = 5 * time.Minute
+
 // PodMaxConsecutiveKeepAliveErrors is how many time a call to
 // Switchboard.KeepAlivePod can fail in a row before switch-pod-monitor should
 // exit.

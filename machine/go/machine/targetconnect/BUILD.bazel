@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "targetconnect",
+    srcs = ["targetconnect.go"],
+    importpath = "go.skia.org/infra/machine/go/machine/targetconnect",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/sklog",
+        "//machine/go/switchboard",
+    ],
+)
+
+go_test(
+    name = "targetconnect_test",
+    srcs = ["targetconnect_test.go"],
+    embed = [":targetconnect"],
+    deps = [
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//machine/go/switchboard",
+        "//machine/go/switchboard/mocks",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)
