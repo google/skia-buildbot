@@ -26,7 +26,10 @@ go_library(
 
 go_test(
     name = "store_test",
-    srcs = ["impl_test.go"],
+    srcs = [
+        "impl_manual_test.go",
+        "impl_test.go",
+    ],
     embed = [":store"],
     deps = [
         "//go/testutils/unittest",
