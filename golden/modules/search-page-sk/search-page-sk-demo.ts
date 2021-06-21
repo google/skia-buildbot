@@ -40,7 +40,7 @@ fetchMock.get('glob:/json/v1/search*', (url: string) => {
 // The simulated triage endpoint will make changes to the results returned by the search endpoint
 // so as to demo the single/bulk triage UI components.
 fetchMock.post('/json/v1/triage', (_: any, req: any) => {
-  const triageRequest: TriageRequest = JSON.parse(req.body as string);
+  const triageRequest = JSON.parse(req.body as string) as TriageRequest;
 
   // Iterate over all digests in the triage request (same for single and bulk triage operations).
   Object.keys(triageRequest.testDigestStatus).forEach((testName) => {
