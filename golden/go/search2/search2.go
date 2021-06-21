@@ -80,6 +80,9 @@ type API interface {
 	// GetDigestDetails returns information about the given digest as produced on the given
 	// grouping. If the CL and CRS are provided, it will include information specific to that CL.
 	GetDigestDetails(ctx context.Context, grouping paramtools.Params, digest types.Digest, clID, crs string) (frontend.DigestDetails, error)
+
+	// GetDigestsDiff returns comparison and triage information about the left and right digest.
+	GetDigestsDiff(ctx context.Context, grouping paramtools.Params, left, right types.Digest, clID, crs string) (frontend.DigestComparison, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -385,9 +388,9 @@ func (s *Impl) createUnignoredRecentTracesView(ctx context.Context, corpus strin
 	statement += `
 AS WITH
 BeginningOfWindow AS (
-    SELECT commit_id FROM CommitsWithData
-    ORDER BY commit_id DESC
-    OFFSET ` + strconv.Itoa(s.windowLength-1) + ` LIMIT 1
+	SELECT commit_id FROM CommitsWithData
+	ORDER BY commit_id DESC
+	OFFSET ` + strconv.Itoa(s.windowLength-1) + ` LIMIT 1
 )
 SELECT trace_id, grouping_id, digest FROM ValuesAtHead
 JOIN BeginningOfWindow ON ValuesAtHead.most_recent_commit_id >= BeginningOfWindow.commit_id
@@ -403,9 +406,9 @@ func (s *Impl) createByBlameView(ctx context.Context, corpus string) (string, er
 	statement += `
 AS WITH
 BeginningOfWindow AS (
-    SELECT commit_id FROM CommitsWithData
-    ORDER BY commit_id DESC
-    OFFSET ` + strconv.Itoa(s.windowLength-1) + ` LIMIT 1
+	SELECT commit_id FROM CommitsWithData
+	ORDER BY commit_id DESC
+	OFFSET ` + strconv.Itoa(s.windowLength-1) + ` LIMIT 1
 ),
 UntriagedDigests AS (
 	SELECT grouping_id, digest FROM Expectations
@@ -560,37 +563,36 @@ FROM Patchsets WHERE changelist_id = $1 ORDER BY ps_order ASC`, qualifiedID)
 func (s *Impl) getSummaryForPS(ctx context.Context, clid, psID string) (PatchsetNewAndUntriagedSummary, error) {
 	ctx, span := trace.StartSpan(ctx, "getSummaryForPS")
 	defer span.End()
-	const statement = `
-WITH
-  CLDigests AS (
-    SELECT secondary_branch_trace_id, digest, grouping_id
-    FROM SecondaryBranchValues
-    WHERE branch_name = $1 and version_name = $2
-  ),
-  NonIgnoredCLDigests AS (
-    -- We only want to count a digest once per grouping, no matter how many times it shows up
-    -- because group those together (by trace) in the frontend UI.
-    SELECT DISTINCT digest, CLDigests.grouping_id
-    FROM CLDigests
-    JOIN Traces
-    ON secondary_branch_trace_id = trace_id
-    WHERE Traces.matches_any_ignore_rule = False
-  ),
-  CLExpectations AS (
-    SELECT grouping_id, digest, label
-    FROM SecondaryBranchExpectations
-    WHERE branch_name = $1
-  ),
-  LabeledDigests AS (
-    SELECT NonIgnoredCLDigests.grouping_id, NonIgnoredCLDigests.digest, COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) as label
-    FROM NonIgnoredCLDigests
-    LEFT JOIN Expectations
-    ON NonIgnoredCLDigests.grouping_id = Expectations.grouping_id AND
-      NonIgnoredCLDigests.digest = Expectations.digest
-    LEFT JOIN CLExpectations
-    ON NonIgnoredCLDigests.grouping_id = CLExpectations.grouping_id AND
-      NonIgnoredCLDigests.digest = CLExpectations.digest
-  )
+	const statement = `WITH
+CLDigests AS (
+	SELECT secondary_branch_trace_id, digest, grouping_id
+	FROM SecondaryBranchValues
+	WHERE branch_name = $1 and version_name = $2
+),
+NonIgnoredCLDigests AS (
+	-- We only want to count a digest once per grouping, no matter how many times it shows up
+	-- because group those together (by trace) in the frontend UI.
+	SELECT DISTINCT digest, CLDigests.grouping_id
+	FROM CLDigests
+	JOIN Traces
+	ON secondary_branch_trace_id = trace_id
+	WHERE Traces.matches_any_ignore_rule = False
+),
+CLExpectations AS (
+	SELECT grouping_id, digest, label
+	FROM SecondaryBranchExpectations
+	WHERE branch_name = $1
+),
+LabeledDigests AS (
+	SELECT NonIgnoredCLDigests.grouping_id, NonIgnoredCLDigests.digest, COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) as label
+	FROM NonIgnoredCLDigests
+	LEFT JOIN Expectations
+	ON NonIgnoredCLDigests.grouping_id = Expectations.grouping_id AND
+		NonIgnoredCLDigests.digest = Expectations.digest
+	LEFT JOIN CLExpectations
+	ON NonIgnoredCLDigests.grouping_id = CLExpectations.grouping_id AND
+		NonIgnoredCLDigests.digest = CLExpectations.digest
+)
 SELECT * FROM LabeledDigests;`
 
 	rows, err := s.db.Query(ctx, statement, clid, psID)
@@ -641,7 +643,7 @@ LastSeenData AS (
 LatestTriageAction AS (
 	SELECT triage_time as ts FROM ExpectationRecords
 	WHERE branch_name = $1
-    ORDER BY triage_time DESC LIMIT 1
+	ORDER BY triage_time DESC LIMIT 1
 )
 SELECT ts FROM LastSeenData
 UNION
@@ -842,8 +844,8 @@ func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context) ([]stageOneResul
 	}
 	statement := `WITH
 MatchingDigests AS (
-    SELECT grouping_id, digest FROM Expectations
-    WHERE label = ANY($1)
+	SELECT grouping_id, digest FROM Expectations
+	WHERE label = ANY($1)
 ),`
 	tracesBlock, args := s.matchingTracesStatement(ctx)
 	statement += tracesBlock
@@ -929,13 +931,13 @@ func (s *Impl) getTracesForBlame(ctx context.Context, corpus string, blameID str
 	const statement = `WITH
 FirstDigestBeforeRange AS (
 	SELECT DISTINCT ON (trace_id)
-       trace_id, grouping_id, digest FROM TraceValues@trace_commit_idx
+		trace_id, grouping_id, digest FROM TraceValues@trace_commit_idx
 	WHERE trace_id = ANY($1) AND commit_id > $2 AND commit_id < $3
 	ORDER BY trace_id, commit_id DESC
 ),
 FirstDigestAfterRange AS (
 	SELECT DISTINCT ON (trace_id)
-       trace_id, grouping_id, digest FROM TraceValues@trace_commit_idx
+		trace_id, grouping_id, digest FROM TraceValues@trace_commit_idx
 	WHERE trace_id = ANY($1) AND commit_id >= $4
 	ORDER BY trace_id, commit_id ASC
 ),
@@ -1009,16 +1011,16 @@ func (s *Impl) matchingTracesStatement(ctx context.Context) (string, []interface
 			args := []interface{}{getFirstCommitID(ctx), ignoreStatuses, corpus}
 			return `
 MatchingTraces AS (
-    SELECT trace_id, grouping_id, digest FROM ValuesAtHead
+	SELECT trace_id, grouping_id, digest FROM ValuesAtHead
 	WHERE most_recent_commit_id >= $2 AND
-    	matches_any_ignore_rule = ANY($3) AND
-    	corpus = $4
+		matches_any_ignore_rule = ANY($3) AND
+		corpus = $4
 )`, args
 		}
 		if materializedView != "" && !q.IncludeIgnoredTraces {
 			return joinedTracesStatement(keyFilters, corpus) + `
 MatchingTraces AS (
-    SELECT JoinedTraces.trace_id, grouping_id, digest FROM ` + materializedView + `
+	SELECT JoinedTraces.trace_id, grouping_id, digest FROM ` + materializedView + `
 	JOIN JoinedTraces ON JoinedTraces.trace_id = ` + materializedView + `.trace_id
 )`, nil
 		}
@@ -1026,10 +1028,10 @@ MatchingTraces AS (
 		args := []interface{}{getFirstCommitID(ctx), ignoreStatuses}
 		return joinedTracesStatement(keyFilters, corpus) + `
 MatchingTraces AS (
-    SELECT ValuesAtHead.trace_id, grouping_id, digest FROM ValuesAtHead
+	SELECT ValuesAtHead.trace_id, grouping_id, digest FROM ValuesAtHead
 	JOIN JoinedTraces ON ValuesAtHead.trace_id = JoinedTraces.trace_id
 	WHERE most_recent_commit_id >= $2 AND
-    	matches_any_ignore_rule = ANY($3)
+		matches_any_ignore_rule = ANY($3)
 )`, args
 	} else {
 		if len(keyFilters) == 0 {
@@ -1046,10 +1048,10 @@ MatchingTraces AS (
 			args := []interface{}{getFirstCommitID(ctx), ignoreStatuses, corpus, getFirstTileID(ctx)}
 			return `
 TracesOfInterest AS (
-    SELECT trace_id, grouping_id FROM ValuesAtHead
+	SELECT trace_id, grouping_id FROM ValuesAtHead
 	WHERE matches_any_ignore_rule = ANY($3) AND
 		most_recent_commit_id >= $2 AND
-    	corpus = $4
+		corpus = $4
 ),
 MatchingTraces AS (
 	SELECT DISTINCT TiledTraceDigests.trace_id, TracesOfInterest.grouping_id, TiledTraceDigests.digest
@@ -1063,7 +1065,7 @@ MatchingTraces AS (
 			args := []interface{}{getFirstTileID(ctx)}
 			return joinedTracesStatement(keyFilters, corpus) + `
 TracesOfInterest AS (
-    SELECT JoinedTraces.trace_id, grouping_id FROM ` + materializedView + `
+	SELECT JoinedTraces.trace_id, grouping_id FROM ` + materializedView + `
 	JOIN JoinedTraces ON JoinedTraces.trace_id = ` + materializedView + `.trace_id
 ),
 MatchingTraces AS (
@@ -1077,7 +1079,7 @@ MatchingTraces AS (
 		args := []interface{}{getFirstTileID(ctx), ignoreStatuses}
 		return joinedTracesStatement(keyFilters, corpus) + `
 TracesOfInterest AS (
-    SELECT Traces.trace_id, grouping_id FROM Traces
+	SELECT Traces.trace_id, grouping_id FROM Traces
 	JOIN JoinedTraces ON Traces.trace_id = JoinedTraces.trace_id
 	WHERE matches_any_ignore_rule = ANY($3)
 ),
@@ -1287,13 +1289,13 @@ func (s *Impl) getDiffsForGrouping(ctx context.Context, groupingID schema.MD5Has
 	}
 	statement += `
 PositiveOrNegativeDigests AS (
-    SELECT digest, label FROM Expectations
-    WHERE grouping_id = $2 AND (label = 'n' OR label = 'p')
+	SELECT digest, label FROM Expectations
+	WHERE grouping_id = $2 AND (label = 'n' OR label = 'p')
 ),
 ComparisonBetweenUntriagedAndObserved AS (
-    SELECT DiffMetrics.* FROM DiffMetrics
-    JOIN ObservedDigestsInTile ON DiffMetrics.right_digest = ObservedDigestsInTile.digest
-    WHERE left_digest = ANY($1)
+	SELECT DiffMetrics.* FROM DiffMetrics
+	JOIN ObservedDigestsInTile ON DiffMetrics.right_digest = ObservedDigestsInTile.digest
+	WHERE left_digest = ANY($1)
 )
 -- This will return the right_digest with the smallest combined_metric for each left_digest + label
 SELECT DISTINCT ON (left_digest, label)
@@ -1348,7 +1350,7 @@ func observedDigestsStatement(ps paramtools.ParamSet) (string, error) {
 		return `WITH
 ObservedDigestsInTile AS (
 	SELECT DISTINCT digest FROM TiledTraceDigests
-    WHERE grouping_id = $2 and tile_id >= $3
+	WHERE grouping_id = $2 and tile_id >= $3
 ),`, nil
 	}
 	statement := "WITH\n"
@@ -1747,7 +1749,7 @@ PrimaryExpectations AS (
 	WHERE grouping_id = $1 AND digest = ANY($2)
 )
 SELECT encode(COALESCE(CLExpectations.digest, PrimaryExpectations.digest), 'hex'),
-       COALESCE(CLExpectations.label, COALESCE(PrimaryExpectations.label, 'u')) FROM
+	COALESCE(CLExpectations.label, COALESCE(PrimaryExpectations.label, 'u')) FROM
 CLExpectations FULL OUTER JOIN PrimaryExpectations ON
 	CLExpectations.digest = PrimaryExpectations.digest`
 		arguments = append(arguments, qCLID)
@@ -3288,6 +3290,187 @@ WHERE branch_name = $1 AND grouping_id = $2 AND digest = $3`
 		})
 	}
 	return results, nil
+}
+
+// GetDigestsDiff implements the API interface.
+func (s *Impl) GetDigestsDiff(ctx context.Context, grouping paramtools.Params, left, right types.Digest, clID, crs string) (frontend.DigestComparison, error) {
+	ctx, span := trace.StartSpan(ctx, "web_GetDigestsDiff")
+	defer span.End()
+	_, groupingID := sql.SerializeMap(grouping)
+	leftBytes, err := sql.DigestToBytes(left)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+	rightBytes, err := sql.DigestToBytes(right)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+
+	metrics, err := s.getDiffBetween(ctx, leftBytes, rightBytes)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrapf(err, "missing diff information for %s-%s", left, right)
+	}
+
+	leftLabel, err := s.getExpectationsForDigest(ctx, groupingID, leftBytes, crs, clID)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+	rightLabel, err := s.getExpectationsForDigest(ctx, groupingID, rightBytes, crs, clID)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+
+	leftParamset, err := s.getParamsetsForTracesProducing(ctx, groupingID, leftBytes, crs, clID)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+	rightParamset, err := s.getParamsetsForTracesProducing(ctx, groupingID, rightBytes, crs, clID)
+	if err != nil {
+		return frontend.DigestComparison{}, skerr.Wrap(err)
+	}
+
+	metrics.Digest = right
+	metrics.Status = rightLabel
+	metrics.ParamSet = rightParamset
+	return frontend.DigestComparison{
+		Left: frontend.LeftDiffInfo{
+			Test:          types.TestName(grouping[types.PrimaryKeyField]),
+			Digest:        left,
+			Status:        leftLabel,
+			TriageHistory: nil, // TODO(kjlubick)
+			ParamSet:      leftParamset,
+		},
+		Right: metrics,
+	}, nil
+
+}
+
+// getDiffBetween returns the diff metrics for the given digests.
+func (s *Impl) getDiffBetween(ctx context.Context, left, right schema.DigestBytes) (frontend.SRDiffDigest, error) {
+	ctx, span := trace.StartSpan(ctx, "getDiffBetween")
+	defer span.End()
+	const statement = `SELECT num_pixels_diff, percent_pixels_diff, max_rgba_diffs,
+combined_metric, dimensions_differ
+FROM DiffMetrics WHERE left_digest = $1 and right_digest = $2 LIMIT 1`
+	row := s.db.QueryRow(ctx, statement, left, right)
+	var rv frontend.SRDiffDigest
+	if err := row.Scan(&rv.NumDiffPixels, &rv.PixelDiffPercent, &rv.MaxRGBADiffs,
+		&rv.CombinedMetric, &rv.DimDiffer); err != nil {
+		return frontend.SRDiffDigest{}, skerr.Wrap(err)
+	}
+	return rv, nil
+}
+
+// getExpectationsForDigest returns the expectations for the given digest and grouping pair.
+// If the provided digest was triaged on the given CL (and the CL is valid), the expectations
+// from that CL will be combined with those on the primary branch. If the digest does not exist
+// on the given CL and does not exist on the primary branch, an error will be returned.
+func (s *Impl) getExpectationsForDigest(ctx context.Context, groupingID schema.GroupingID, digest schema.DigestBytes, crs, clID string) (expectations.Label, error) {
+	ctx, span := trace.StartSpan(ctx, "getExpectationsForDigest")
+	defer span.End()
+
+	const statement = `WITH
+-- If the CRS and CLID are blank here, this will return NULL, but the COALESCE will fix things up.
+ExpectationsFromCL AS (
+	SELECT label, digest FROM SecondaryBranchExpectations
+	WHERE grouping_id = $1 AND digest = $2 AND branch_name = $3 LIMIT 1
+),
+ExpectationsFromPrimary AS (
+	SELECT label, digest FROM Expectations WHERE grouping_id = $1 AND digest = $2 LIMIT 1
+)
+SELECT COALESCE(ExpectationsFromCL.label, ExpectationsFromPrimary.label, 'u') FROM ExpectationsFromCL
+FULL OUTER JOIN ExpectationsFromPrimary ON ExpectationsFromCL.digest = ExpectationsFromPrimary.digest
+`
+	qCLID := sql.Qualify(crs, clID)
+	row := s.db.QueryRow(ctx, statement, groupingID, digest, qCLID)
+	var label schema.ExpectationLabel
+	if err := row.Scan(&label); err != nil {
+		if err == pgx.ErrNoRows {
+			return "", skerr.Wrapf(err, "could not find digest %x on primary branch or cl %s for grouping %x", digest, qCLID, groupingID)
+		}
+		return "", skerr.Wrap(err)
+	}
+	return label.ToExpectation(), nil
+}
+
+// getParamsetsForTracesProducing returns the paramset of the traces on the primary branch which
+// produced the digest at the given grouping. If a valid CRS and CLID are provided, the traces
+// on that will also be included.
+func (s *Impl) getParamsetsForTracesProducing(ctx context.Context, groupingID schema.GroupingID, digest schema.DigestBytes, crs, clID string) (paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "getParamsetsForTracesProducing")
+	defer span.End()
+
+	const statement = `WITH
+RecentCommits AS (
+	SELECT commit_id, tile_id FROM CommitsWithData
+	ORDER BY commit_id DESC LIMIT $1
+),
+OldestTileInWindow AS (
+	SELECT tile_id FROM RecentCommits
+	ORDER BY commit_id ASC LIMIT 1
+),
+TracesThatProducedDigestOnPrimary AS (
+	SELECT DISTINCT trace_id FROM TiledTraceDigests
+	JOIN OldestTileInWindow ON TiledTraceDigests.tile_id >= OldestTileInWindow.tile_id AND
+	TiledTraceDigests.grouping_id = $2 AND TiledTraceDigests.digest = $3
+),
+TracesAndOptionsFromPrimary AS (
+	SELECT TracesThatProducedDigestOnPrimary.trace_id, ValuesAtHead.options_id
+	FROM TracesThatProducedDigestOnPrimary JOIN ValuesAtHead
+		ON TracesThatProducedDigestOnPrimary.trace_id = ValuesAtHead.trace_id
+),
+-- If the crs and clID are empty or do not exist, this will be the empty set.
+TracesAndOptionsThatProducedDigestOnCL AS (
+	SELECT DISTINCT secondary_branch_trace_id AS trace_id, options_id FROM SecondaryBranchValues WHERE
+	grouping_id = $2 AND digest = $3 AND branch_name = $4
+)
+SELECT trace_id, options_id FROM TracesAndOptionsFromPrimary
+UNION
+SELECT trace_id, options_id FROM TracesAndOptionsThatProducedDigestOnCL
+`
+	rows, err := s.db.Query(ctx, statement, s.windowLength, groupingID, digest, sql.Qualify(crs, clID))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var traces []schema.TraceID
+	var opts []schema.OptionsID
+
+	for rows.Next() {
+		var trID schema.TraceID
+		var optID schema.OptionsID
+		if err := rows.Scan(&trID, &optID); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		// trace ids should be unique due to the query we made
+		traces = append(traces, trID)
+		// There are generally few options, so a linear search to avoid duplicates is sufficient
+		// to avoid a lot of cache lookups.
+		existsAlready := false
+		for _, o := range opts {
+			if bytes.Equal(o, optID) {
+				existsAlready = true
+				break
+			}
+		}
+		if !existsAlready {
+			opts = append(opts, optID)
+		}
+	}
+
+	paramset, err := s.lookupOrLoadParamSetFromCache(ctx, traces)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	for _, o := range opts {
+		ps, err := s.expandOptionsToParams(ctx, o)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		paramset.AddParams(ps)
+	}
+	paramset.Normalize()
+	return paramset, nil
 }
 
 // Make sure Impl implements the API interface.
