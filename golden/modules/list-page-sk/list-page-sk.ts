@@ -49,8 +49,6 @@ export class ListPageSk extends ElementSk {
           <tune-icon-sk></tune-icon-sk>
         </button>
         <pre>${searchQuery(ele.currentCorpus, ele.currentQuery)}</pre>
-        <checkbox-sk label="Digests at Head Only" class=head_only
-                 ?checked=${!ele.showAllDigests} @click=${ele.toggleAllDigests}></checkbox-sk>
         <checkbox-sk label="Disregard Ignore Rules" class=ignore_rules
                  ?checked=${ele.disregardIgnoreRules} @click=${ele.toggleIgnoreRules}></checkbox-sk>
       </div>
@@ -96,7 +94,6 @@ export class ListPageSk extends ElementSk {
           includePositiveDigests: opts.positive,
           includeNegativeDigests: opts.negative,
           includeUntriagedDigests: opts.untriaged,
-          includeDigestsNotAtHead: ele.showAllDigests,
           includeIgnoredDigests: ele.disregardIgnoreRules,
         });
 
@@ -166,7 +163,6 @@ export class ListPageSk extends ElementSk {
   private currentQuery = '';
   private currentCorpus = '';
 
-  private showAllDigests = false;
   private disregardIgnoreRules = false;
 
   private byTestCounts: TestSummary[] = [];
@@ -182,7 +178,6 @@ export class ListPageSk extends ElementSk {
     this.stateChanged = stateReflector(
         /* getState */() => ({
           // provide empty values
-          all_digests: this.showAllDigests,
           disregard_ignores: this.disregardIgnoreRules,
           corpus: this.currentCorpus,
           query: this.currentQuery,
@@ -191,7 +186,6 @@ export class ListPageSk extends ElementSk {
             return;
           }
           // default values if not specified.
-          this.showAllDigests = newState.all_digests as boolean || false;
           this.disregardIgnoreRules = newState.disregard_ignores as boolean || false;
           this.currentCorpus = newState.corpus as string || defaultCorpus();
           this.currentQuery = newState.query as string || '';
@@ -239,9 +233,6 @@ export class ListPageSk extends ElementSk {
     sendBeginTask(this);
 
     let url = `/json/v1/list?corpus=${encodeURIComponent(this.currentCorpus)}`;
-    if (!this.showAllDigests) {
-      url += '&at_head_only=true';
-    }
     if (this.disregardIgnoreRules) {
       url += '&include_ignored_traces=true';
     }
@@ -280,14 +271,6 @@ export class ListPageSk extends ElementSk {
 
   private showQueryDialog() {
     $$<QueryDialogSk>('query-dialog-sk')!.open(this.paramset, this.currentQuery);
-  }
-
-  private toggleAllDigests(e: Event) {
-    e.preventDefault();
-    this.showAllDigests = !this.showAllDigests;
-    this.stateChanged();
-    this._render();
-    this.fetch();
   }
 
   private toggleIgnoreRules(e: Event) {
