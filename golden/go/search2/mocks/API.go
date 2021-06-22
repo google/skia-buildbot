@@ -45,6 +45,27 @@ func (_m *API) ChangelistLastUpdated(ctx context.Context, qCLID string) (time.Ti
 	return r0, r1
 }
 
+// CountDigestsByTest provides a mock function with given fields: ctx, q
+func (_m *API) CountDigestsByTest(ctx context.Context, q frontend.ListTestsQuery) (frontend.ListTestsResponse, error) {
+	ret := _m.Called(ctx, q)
+
+	var r0 frontend.ListTestsResponse
+	if rf, ok := ret.Get(0).(func(context.Context, frontend.ListTestsQuery) frontend.ListTestsResponse); ok {
+		r0 = rf(ctx, q)
+	} else {
+		r0 = ret.Get(0).(frontend.ListTestsResponse)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, frontend.ListTestsQuery) error); ok {
+		r1 = rf(ctx, q)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetBlamesForUntriagedDigests provides a mock function with given fields: ctx, corpus
 func (_m *API) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) (search2.BlameSummaryV1, error) {
 	ret := _m.Called(ctx, corpus)
