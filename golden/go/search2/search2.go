@@ -83,6 +83,10 @@ type API interface {
 
 	// GetDigestsDiff returns comparison and triage information about the left and right digest.
 	GetDigestsDiff(ctx context.Context, grouping paramtools.Params, left, right types.Digest, clID, crs string) (frontend.DigestComparison, error)
+
+	// CountDigestsByTest summarizes the counts of digests according to some limited filtering
+	// and breaks it down by test.
+	CountDigestsByTest(ctx context.Context, q frontend.ListTestsQuery) (frontend.ListTestsResponse, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -3471,6 +3475,96 @@ SELECT trace_id, options_id FROM TracesAndOptionsThatProducedDigestOnCL
 	}
 	paramset.Normalize()
 	return paramset, nil
+}
+
+// CountDigestsByTest counts only the digests at head that match the given query.
+func (s *Impl) CountDigestsByTest(ctx context.Context, q frontend.ListTestsQuery) (frontend.ListTestsResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "countDigestsByTest")
+	defer span.End()
+
+	statement := `WITH
+CommitsInWindow AS (
+	SELECT commit_id, tile_id FROM CommitsWithData
+	ORDER BY commit_id DESC LIMIT $1
+),
+OldestCommitInWindow AS (
+	SELECT commit_id, tile_id FROM CommitsInWindow
+	ORDER BY commit_id ASC LIMIT 1
+),`
+	digestsStatement, digestsArgs, err := digestCountTracesStatement(q)
+	if err != nil {
+		return frontend.ListTestsResponse{}, skerr.Wrap(err)
+	}
+	statement += digestsStatement
+	statement += `DigestsWithLabels AS (
+	SELECT test_name, label, DigestsOfInterest.digest
+	FROM DigestsOfInterest JOIN Expectations ON DigestsOfInterest.grouping_id = Expectations.grouping_id
+		AND DigestsOfInterest.digest = Expectations.digest
+)
+SELECT test_name, label, COUNT(digest) FROM DigestsWithLabels
+GROUP BY test_name, label ORDER BY test_name`
+
+	arguments := []interface{}{s.windowLength}
+	arguments = append(arguments, digestsArgs...)
+	rows, err := s.db.Query(ctx, statement, arguments...)
+	if err != nil {
+		return frontend.ListTestsResponse{}, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var currentSummary *frontend.TestSummary
+	var summaries []*frontend.TestSummary
+	for rows.Next() {
+		var name types.TestName
+		var label schema.ExpectationLabel
+		var count int
+		if err := rows.Scan(&name, &label, &count); err != nil {
+			return frontend.ListTestsResponse{}, skerr.Wrap(err)
+		}
+		if currentSummary == nil || currentSummary.Name != name {
+			currentSummary = &frontend.TestSummary{Name: name}
+			summaries = append(summaries, currentSummary)
+		}
+		if label == schema.LabelNegative {
+			currentSummary.NegativeDigests = count
+		} else if label == schema.LabelPositive {
+			currentSummary.PositiveDigests = count
+		} else {
+			currentSummary.UntriagedDigests = count
+		}
+	}
+
+	withTotals := make([]frontend.TestSummary, 0, len(summaries))
+	for _, s := range summaries {
+		s.TotalDigests = s.UntriagedDigests + s.PositiveDigests + s.NegativeDigests
+		withTotals = append(withTotals, *s)
+	}
+	return frontend.ListTestsResponse{Tests: withTotals}, nil
+}
+
+// digestCountTracesStatement returns a statement and arguments that will return all tests,
+// digests and their grouping ids. The results will be in a table called DigestsWithLabels.
+func digestCountTracesStatement(q frontend.ListTestsQuery) (string, []interface{}, error) {
+	arguments := []interface{}{q.Corpus}
+	statement := `DigestsOfInterest AS (
+	SELECT DISTINCT keys->>'name' AS test_name, digest, grouping_id FROM ValuesAtHead
+	JOIN OldestCommitInWindow ON ValuesAtHead.most_recent_commit_id >= OldestCommitInWindow.commit_id
+	WHERE corpus = $2`
+	if q.IgnoreState == types.ExcludeIgnoredTraces {
+		statement += ` AND matches_any_ignore_rule = FALSE`
+	}
+	if len(q.TraceValues) > 0 {
+		jObj := map[string]string{}
+		for key, values := range q.TraceValues {
+			if len(values) != 1 {
+				return "", nil, skerr.Fmt("not implemented: we only support one value per key")
+			}
+			jObj[key] = values[0]
+		}
+		statement += ` AND keys @> $3`
+		arguments = append(arguments, jObj)
+	}
+	statement += "),"
+	return statement, arguments, nil
 }
 
 // Make sure Impl implements the API interface.

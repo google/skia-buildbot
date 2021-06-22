@@ -5238,6 +5238,164 @@ func TestGetDigestsDiff_NewDigestUnknownCL_ReturnsError(t *testing.T) {
 	assert.Contains(t, err.Error(), "could not find digest c06c06c06c06c06c06c06c06c06c06c0")
 }
 
+func TestCountDigestsByTest_AllAtHead_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	resp, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
+		Corpus:      dks.CornersCorpus,
+		IgnoreState: types.ExcludeIgnoredTraces,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, frontend.ListTestsResponse{
+		Tests: []frontend.TestSummary{
+			{
+				Name:             dks.SquareTest,
+				PositiveDigests:  4,
+				NegativeDigests:  0,
+				UntriagedDigests: 0,
+				TotalDigests:     4,
+			},
+			{
+				Name:             dks.TriangleTest,
+				PositiveDigests:  2,
+				NegativeDigests:  0,
+				UntriagedDigests: 0,
+				TotalDigests:     2,
+			},
+		},
+	}, resp)
+
+	resp, err = s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
+		Corpus: dks.RoundCorpus,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, frontend.ListTestsResponse{
+		Tests: []frontend.TestSummary{
+			{
+				Name:             dks.CircleTest,
+				PositiveDigests:  2,
+				NegativeDigests:  0,
+				UntriagedDigests: 3,
+				TotalDigests:     5,
+			},
+		},
+	}, resp)
+}
+
+func TestCountDigestsByTest_WithIgnored_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	resp, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
+		Corpus:      dks.CornersCorpus,
+		IgnoreState: types.IncludeIgnoredTraces,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, frontend.ListTestsResponse{
+		Tests: []frontend.TestSummary{
+			{
+				Name:             dks.SquareTest,
+				PositiveDigests:  4,
+				NegativeDigests:  1, // This was on an ignored trace.
+				UntriagedDigests: 0,
+				TotalDigests:     5,
+			},
+			{
+				Name:             dks.TriangleTest,
+				PositiveDigests:  2,
+				NegativeDigests:  0,
+				UntriagedDigests: 0,
+				TotalDigests:     2,
+			},
+		},
+	}, resp)
+
+	resp, err = s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
+		Corpus:      dks.RoundCorpus,
+		IgnoreState: types.IncludeIgnoredTraces,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, frontend.ListTestsResponse{
+		Tests: []frontend.TestSummary{
+			{
+				Name:            dks.CircleTest,
+				PositiveDigests: 2,
+				NegativeDigests: 0,
+				// The ignored trace produced the same value as another, already counted trace,
+				// so this value does not increase because we are counting distinct digests.
+				UntriagedDigests: 3,
+				TotalDigests:     5,
+			},
+		},
+	}, resp)
+}
+
+func TestCountDigestsByTest_FilteredByParams_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	resp, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
+		Corpus:      dks.CornersCorpus,
+		IgnoreState: types.ExcludeIgnoredTraces,
+		TraceValues: paramtools.ParamSet{
+			dks.DeviceKey: []string{dks.QuadroDevice},
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, frontend.ListTestsResponse{
+		Tests: []frontend.TestSummary{
+			{
+				Name:             dks.SquareTest,
+				PositiveDigests:  3,
+				NegativeDigests:  0,
+				UntriagedDigests: 0,
+				TotalDigests:     3,
+			},
+			{
+				Name:             dks.TriangleTest,
+				PositiveDigests:  2,
+				NegativeDigests:  0,
+				UntriagedDigests: 0,
+				TotalDigests:     2,
+			},
+		},
+	}, resp)
+}
+
+func TestCountDigestsByTest_FilteredByParamset_NotImplemented(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	s := New(db, 100)
+	_, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
+		Corpus:      dks.CornersCorpus,
+		IgnoreState: types.ExcludeIgnoredTraces,
+		TraceValues: paramtools.ParamSet{
+			// This is not implemented currently because the logic of unioning/intersecting
+			// is a lot of effort for a probably unneeded feature. It can be added upon request.
+			dks.DeviceKey: []string{dks.QuadroDevice, dks.WalleyeDevice},
+		},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "not implemented")
+}
+
 var kitchenSinkCommits = makeKitchenSinkCommits()
 
 func makeKitchenSinkCommits() []frontend.Commit {
