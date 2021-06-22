@@ -522,6 +522,7 @@ def sk_page(
             ":%s_dev" % name,
             ":%s_prod" % name,
         ],
+        visibility = ["//visibility:public"],
     )
 
     # Generates the development bundle.
@@ -533,6 +534,7 @@ def sk_page(
             "development/%s.css" % name,
             "development/%s.css.map" % name,
         ],
+        visibility = ["//visibility:public"],
     )
 
     # Generates the production bundle.
@@ -543,6 +545,7 @@ def sk_page(
             "production/%s.js" % name,
             "production/%s.css" % name,
         ],
+        visibility = ["//visibility:public"],
     )
 
 def extract_files_from_skia_wasm_container(name, container_files, outs):
