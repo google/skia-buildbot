@@ -6,7 +6,7 @@ import {
     TestBed
 } from '../../../puppeteer-tests/util';
 import { Page } from 'puppeteer';
-import path from "path";
+import path from 'path';
 
 describe('list-page-sk', () => {
     let testBed: TestBed;
@@ -43,40 +43,24 @@ describe('list-page-sk', () => {
     it('has the checkboxes respond to forward and back browser buttons', async() => {
         await navigateTo(testBed.page, testBed.baseUrl,'?corpus=gm');
 
-        await expectCheckBoxSkToBe('checkbox-sk.head_only', true);
         await expectCheckBoxSkToBe('checkbox-sk.ignore_rules', false);
-
-        // click on head checkbox
-        await testBed.page.click('checkbox-sk.head_only');
-
-        await expectCheckBoxSkToBe('checkbox-sk.head_only', false);
-        await expectCheckBoxSkToBe('checkbox-sk.ignore_rules', false);
-        expect(testBed.page.url()).to.contain('?all_digests=true&corpus=gm');
+        expect(testBed.page.url()).to.contain('?corpus=gm');
 
         // click on ignore rules checkbox
         await testBed.page.click('checkbox-sk.ignore_rules');
 
-        await expectCheckBoxSkToBe('checkbox-sk.head_only', false);
         await expectCheckBoxSkToBe('checkbox-sk.ignore_rules', true);
-        expect(testBed.page.url()).to.contain('?all_digests=true&corpus=gm&disregard_ignores=true');
+        expect(testBed.page.url()).to.contain('?corpus=gm&disregard_ignores=true');
 
         await testBed.page.goBack();
 
-        await expectCheckBoxSkToBe('checkbox-sk.head_only', false);
-        await expectCheckBoxSkToBe('checkbox-sk.ignore_rules', false);
-        expect(testBed.page.url()).to.contain('?all_digests=true&corpus=gm');
-
-        await testBed.page.goBack();
-
-        await expectCheckBoxSkToBe('checkbox-sk.head_only', true);
         await expectCheckBoxSkToBe('checkbox-sk.ignore_rules', false);
         expect(testBed.page.url()).to.contain('?corpus=gm');
 
         await testBed.page.goForward();
 
-        await expectCheckBoxSkToBe('checkbox-sk.head_only', false);
-        await expectCheckBoxSkToBe('checkbox-sk.ignore_rules', false);
-        expect(testBed.page.url()).to.contain('?all_digests=true&corpus=gm');
+        await expectCheckBoxSkToBe('checkbox-sk.ignore_rules', true);
+        expect(testBed.page.url()).to.contain('?corpus=gm&disregard_ignores=true');
     });
 
     it('has the corpus respond to forward and back browser buttons', async() => {

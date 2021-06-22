@@ -1432,7 +1432,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	idx := wh.Indexer.GetIndex()
-	summaries, err := idx.SummarizeByGrouping(r.Context(), q.Corpus, q.TraceValues, q.IgnoreState, q.OnlyIncludeDigestsProducedAtHead)
+	summaries, err := idx.SummarizeByGrouping(r.Context(), q.Corpus, q.TraceValues, q.IgnoreState, true)
 	if err != nil {
 		httputils.ReportError(w, err, "Could not compute query.", http.StatusInternalServerError)
 		return

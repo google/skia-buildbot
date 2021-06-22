@@ -33,7 +33,7 @@ describe('list-page-sk', () => {
     });
 
     // These will get called on page load.
-    fetchMock.get('/json/v1/list?corpus=gm&at_head_only=true', sampleByTestList);
+    fetchMock.get('/json/v1/list?corpus=gm', sampleByTestList);
     // We only need a few params to make sure the edit-ignore-rule-dialog works properly and it
     // does not matter really what they are, so we use a small subset of actual params.
     const someParams = {
@@ -83,7 +83,6 @@ describe('list-page-sk', () => {
           positive: boolean,
           negative: boolean,
           untriaged: boolean,
-          showAllDigests: boolean,
           disregardIgnoreRules: boolean
         }): string => {
       return '/search?' + [
@@ -93,7 +92,7 @@ describe('list-page-sk', () => {
         'max_rgba=0',
         'min_rgba=0',
         `negative=${opts.negative}`,
-        `not_at_head=${opts.showAllDigests}`,
+        `not_at_head=false`,
         `positive=${opts.positive}`,
         'reference_image_required=false',
         'right_filter=',
@@ -103,7 +102,7 @@ describe('list-page-sk', () => {
     };
 
     const expectedClusterPageHref =
-        (opts: {showAllDigests: boolean, disregardIgnoreRules: boolean}): string => {
+        (opts: {disregardIgnoreRules: boolean}): string => {
       return '/cluster?' + [
         'corpus=gm',
         'grouping=this_is_another_test',
@@ -112,7 +111,7 @@ describe('list-page-sk', () => {
         'max_rgba=0',
         'min_rgba=0',
         'negative=true',
-        `not_at_head=${opts.showAllDigests}`,
+        `not_at_head=false`,
         'positive=true',
         'reference_image_required=false',
         'right_filter=',
@@ -131,7 +130,6 @@ describe('list-page-sk', () => {
         positive: true,
         negative: true,
         untriaged: true,
-        showAllDigests: false,
         disregardIgnoreRules: false,
       }));
 
@@ -140,7 +138,6 @@ describe('list-page-sk', () => {
         positive: true,
         negative: false,
         untriaged: false,
-        showAllDigests: false,
         disregardIgnoreRules: false,
       }));
 
@@ -149,7 +146,6 @@ describe('list-page-sk', () => {
         positive: false,
         negative: true,
         untriaged: false,
-        showAllDigests: false,
         disregardIgnoreRules: false,
       }));
 
@@ -158,7 +154,6 @@ describe('list-page-sk', () => {
         positive: false,
         negative: false,
         untriaged: true,
-        showAllDigests: false,
         disregardIgnoreRules: false,
       }));
 
@@ -167,20 +162,17 @@ describe('list-page-sk', () => {
         positive: true,
         negative: true,
         untriaged: true,
-        showAllDigests: false,
         disregardIgnoreRules: false,
       }));
 
       // Sixth link should be to cluster view
       expect(links[5].getAttribute('href')).to.equal(
-        expectedClusterPageHref({showAllDigests: false, disregardIgnoreRules: false}));
+        expectedClusterPageHref({disregardIgnoreRules: false}));
     });
 
     it('updates the links based on toggle positions', async () => {
-      fetchMock.get('/json/v1/list?corpus=gm', sampleByTestList);
       fetchMock.get('/json/v1/list?corpus=gm&include_ignored_traces=true', sampleByTestList);
 
-      await clickDigestsAtHeadOnlyCheckbox(listPageSk)
       await clickDisregardIgnoreRulesCheckbox(listPageSk)
 
       const secondRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(2)', listPageSk)!;
@@ -192,7 +184,6 @@ describe('list-page-sk', () => {
         positive: true,
         negative: true,
         untriaged: true,
-        showAllDigests: true,
         disregardIgnoreRules: true,
       }));
 
@@ -201,7 +192,6 @@ describe('list-page-sk', () => {
         positive: true,
         negative: false,
         untriaged: false,
-        showAllDigests: true,
         disregardIgnoreRules: true,
       }));
 
@@ -210,7 +200,6 @@ describe('list-page-sk', () => {
         positive: false,
         negative: true,
         untriaged: false,
-        showAllDigests: true,
         disregardIgnoreRules: true,
       }));
 
@@ -219,7 +208,6 @@ describe('list-page-sk', () => {
         positive: false,
         negative: false,
         untriaged: true,
-        showAllDigests: true,
         disregardIgnoreRules: true,
       }));
 
@@ -228,13 +216,12 @@ describe('list-page-sk', () => {
         positive: true,
         negative: true,
         untriaged: true,
-        showAllDigests: true,
         disregardIgnoreRules: true,
       }));
 
       // Sixth link should be to cluster view
       expect(links[5].getAttribute('href')).to.equal(
-        expectedClusterPageHref({showAllDigests: true, disregardIgnoreRules: true}));
+        expectedClusterPageHref({disregardIgnoreRules: true}));
     });
 
     it('updates the sort order by clicking on sort-toggle-sk', async () => {
@@ -259,23 +246,16 @@ describe('list-page-sk', () => {
   describe('RPC calls', () => {
     it('has a checkbox to toggle use of ignore rules', async () => {
       fetchMock.get(
-          '/json/v1/list?corpus=gm&at_head_only=true&include_ignored_traces=true',
+          '/json/v1/list?corpus=gm&include_ignored_traces=true',
           sampleByTestList);
 
       await clickDisregardIgnoreRulesCheckbox(listPageSk);
       expectQueryStringToEqual('?corpus=gm&disregard_ignores=true');
     });
 
-    it('has a checkbox to toggle measuring at head', async () => {
-      fetchMock.get('/json/v1/list?corpus=gm', sampleByTestList);
-
-      await clickDigestsAtHeadOnlyCheckbox(listPageSk);
-      expectQueryStringToEqual('?all_digests=true&corpus=gm');
-    });
-
     it('changes the corpus based on an event from corpus-selector-sk', async () => {
       fetchMock.get(
-          '/json/v1/list?corpus=corpus%20with%20spaces&at_head_only=true', sampleByTestList);
+          '/json/v1/list?corpus=corpus%20with%20spaces', sampleByTestList);
 
       const event = eventPromise('end-task');
       await corpusSelectorSkPO.clickCorpus('corpus with spaces');
@@ -287,7 +267,7 @@ describe('list-page-sk', () => {
     it('changes the search params based on an event from query-dialog-sk', async () => {
       fetchMock.get(
         '/json/v1/list?' +
-          'corpus=gm&at_head_only=true&trace_values=alpha_type%3DOpaque%26arch%3Darm64',
+          'corpus=gm&trace_values=alpha_type%3DOpaque%26arch%3Darm64',
         sampleByTestList,
       );
 
@@ -304,13 +284,6 @@ describe('list-page-sk', () => {
 
 function clickOnNegativeHeader(ele: ListPageSk) {
   $$<HTMLTableHeaderCellElement>('table > thead > tr > th:nth-child(3)', ele)!.click();
-}
-
-async function clickDigestsAtHeadOnlyCheckbox(listPageSk: ListPageSk) {
-  const checkbox = $$<HTMLInputElement>('checkbox-sk.head_only input', listPageSk)!;
-  const event = eventPromise('end-task');
-  checkbox.click();
-  await event;
 }
 
 async function clickDisregardIgnoreRulesCheckbox(listPageSk: ListPageSk) {
