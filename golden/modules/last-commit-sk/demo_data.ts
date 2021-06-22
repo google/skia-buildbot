@@ -1,7 +1,6 @@
 import {StatusResponse} from '../rpc_types';
 
 export const exampleStatusData: StatusResponse = {
-  ok: true,
   firstCommit: {
     id: 'alphace63',
     commit_time: 1597819864,
@@ -21,6 +20,6 @@ export const exampleStatusData: StatusResponse = {
   totalCommits: 200,
   filledCommits: 200,
   corpStatus: [{
-    name: 'flutter', ok: true, minCommitHash: '', untriagedCount: 0, negativeCount: 0,
+    name: 'flutter', minCommitHash: '', untriagedCount: 0, negativeCount: 0,
   }],
 };

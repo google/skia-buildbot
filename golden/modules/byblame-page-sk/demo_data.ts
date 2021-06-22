@@ -393,7 +393,6 @@ export const svg: ByBlameResponse = {
 };
 
 export const trstatus: StatusResponse = {
-  ok: false,
   firstCommit: {
     id: 'aliceee08',
     commit_time: 1572357082,
@@ -414,19 +413,16 @@ export const trstatus: StatusResponse = {
   filledCommits: 256,
   corpStatus: [{
     name: 'canvaskit',
-    ok: false,
     minCommitHash: '',
     untriagedCount: 0,
     negativeCount: 0,
   }, {
     name: 'gm',
-    ok: false,
     minCommitHash: '',
     untriagedCount: 114,
     negativeCount: 1494,
   }, {
     name: 'svg',
-    ok: false,
     minCommitHash: '',
     untriagedCount: 18,
     negativeCount: 21,

@@ -47,16 +47,14 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 	commits := data.MakeTestCommits()
 
 	status := watcher.GetStatus()
-	require.Equal(t, &GUIStatus{
-		OK:            false,
+	require.Equal(t, &frontend.GUIStatus{
 		FirstCommit:   frontend.FromTilingCommit(commits[0]),
 		LastCommit:    frontend.FromTilingCommit(commits[2]),
 		TotalCommits:  3,
 		FilledCommits: 3,
-		CorpStatus: []*GUICorpusStatus{
+		CorpStatus: []*frontend.GUICorpusStatus{
 			{
 				Name:           "gm",
-				OK:             false,
 				UntriagedCount: 2, // These are the values at HEAD, i.e. the most recent data
 				NegativeCount:  0,
 			},
@@ -110,16 +108,14 @@ func TestStatusWatcherExpectationsChange(t *testing.T) {
 	commits := data.MakeTestCommits()
 	require.Eventually(t, func() bool {
 		status := watcher.GetStatus()
-		return deepequal.DeepEqual(&GUIStatus{
-			OK:            true,
+		return deepequal.DeepEqual(&frontend.GUIStatus{
 			FirstCommit:   frontend.FromTilingCommit(commits[0]),
 			LastCommit:    frontend.FromTilingCommit(commits[2]),
 			TotalCommits:  3,
 			FilledCommits: 3,
-			CorpStatus: []*GUICorpusStatus{
+			CorpStatus: []*frontend.GUICorpusStatus{
 				{
 					Name:           "gm",
-					OK:             true,
 					UntriagedCount: 0,
 					NegativeCount:  1,
 				},

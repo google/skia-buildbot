@@ -4,7 +4,6 @@ export const fakeNow = Date.parse('2020-07-20T00:00:00Z');
 
 // Taken from https://skia-infra-gold.skia.org/json/v1/trstatus on 2020-07-15.
 export const statusResponse: StatusResponse = {
-  "ok": false,
   "firstCommit": {
     "id": "Alice915a",
     "commit_time": 1592422850,
@@ -25,14 +24,12 @@ export const statusResponse: StatusResponse = {
   "filledCommits": 200,
   "corpStatus": [{
     "name": "infra",
-    "ok": false,
     "minCommitHash": "",
     "untriagedCount": 18,
     "negativeCount": 0
   },
   {
     "name": "my-corpus",
-    "ok": false,
     "minCommitHash": "",
     "untriagedCount": 5,
     "negativeCount": 2
