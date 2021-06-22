@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d250e049_1fd178cd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-22T17:27:42Z",
+      "side": 1,
+      "message": "What\u0027s the new behavior after this CL lands? Default to only showing digests at head? Maybe add it to the CL description for posterity.\n\nLGTM after fixing the failing test case in web_test.go.",
+      "revId": "7ed9497d9a5b603ca0e5fef32533ca3bc3851251",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
