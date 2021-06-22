@@ -346,10 +346,9 @@ type FlakyTracesDataResponse struct {
 
 // ListTestsQuery encapsulates the inputs to ListTestsHandler.
 type ListTestsQuery struct {
-	Corpus                           string
-	TraceValues                      paramtools.ParamSet
-	OnlyIncludeDigestsProducedAtHead bool
-	IgnoreState                      types.IgnoreState
+	Corpus      string
+	TraceValues paramtools.ParamSet
+	IgnoreState types.IgnoreState
 }
 
 // ParseListTestsQuery returns a ListTestsQuery by parsing the given request or error if the
@@ -364,7 +363,6 @@ func ParseListTestsQuery(r *http.Request) (ListTestsQuery, error) {
 	if ltq.Corpus == "" {
 		return ListTestsQuery{}, skerr.Fmt("must include corpus")
 	}
-	ltq.OnlyIncludeDigestsProducedAtHead = r.FormValue("at_head_only") == "true"
 
 	if r.FormValue("include_ignored_traces") == "true" {
 		ltq.IgnoreState = types.IncludeIgnoredTraces
