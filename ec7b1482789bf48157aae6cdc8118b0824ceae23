@@ -22,6 +22,30 @@
       },
       "revId": "ec7b1482789bf48157aae6cdc8118b0824ceae23",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c8f4eca4_75987a17",
+        "filename": "machine/go/switchboard/switchboard.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-22T15:58:55Z",
+      "side": 1,
+      "message": "Added to the design doc interface, and also added a new section explaining pod lifecycle:\n\nhttps://docs.google.com/document/d/1SwB2St6t_dG3iakPlZ1KPYgnQy6Q0p3VIAAB6CAU3Oo/edit?ts\u003d60d1d5ab#heading\u003dh.4agfzcyzhu2y",
+      "parentUuid": "5a65bff0_fe7b5f74",
+      "range": {
+        "startLine": 134,
+        "startChar": 4,
+        "endLine": 134,
+        "endChar": 26
+      },
+      "revId": "ec7b1482789bf48157aae6cdc8118b0824ceae23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
