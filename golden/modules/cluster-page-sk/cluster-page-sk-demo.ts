@@ -10,6 +10,7 @@ import { fakeNow, twoHundredCommits, typicalDetails } from '../digest-details-sk
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 import {ClusterPageSk} from './cluster-page-sk';
+import {DigestComparison, DigestDetails, SearchResult} from '../rpc_types';
 
 testOnlySetSettings({
   title: 'Skia Demo',
@@ -32,23 +33,25 @@ const fakeRpcDelayMillis = isPuppeteerTest() ? 5 : 300;
 
 fetchMock.get('glob:/json/v1/clusterdiff*', delay(clusterDiffJSON, fakeRpcDelayMillis));
 fetchMock.get('/json/v1/paramset', delay(clusterDiffJSON.paramsetsUnion, fakeRpcDelayMillis));
-fetchMock.get('glob:/json/v1/details*', delay({
+const detailsResponse: DigestDetails = {
   digest: typicalDetails,
   commits: twoHundredCommits,
-}, fakeRpcDelayMillis));
+}
+fetchMock.get('glob:/json/v1/details*', delay(detailsResponse, fakeRpcDelayMillis));
 fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
-const leftDetails = JSON.parse(JSON.stringify(typicalDetails));
-const rightDetails = typicalDetails.refDiffs!.neg;
+const leftDetails = JSON.parse(JSON.stringify(typicalDetails)) as SearchResult;
+const rightDetails = typicalDetails.refDiffs!.neg!;
 
 // The server doesn't fill these out for the diff endpoint.
-leftDetails.traces = null;
-leftDetails.refDiffs = null;
+(leftDetails as any).traces = null;
+(leftDetails as any).refDiffs = null;
 
-fetchMock.get('glob:/json/v1/diff*', delay({
+const digestComparison: DigestComparison = {
   left: leftDetails,
   right: rightDetails,
-}, fakeRpcDelayMillis));
+}
+fetchMock.get('glob:/json/v1/diff*', delay(digestComparison, fakeRpcDelayMillis));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = new GoldScaffoldSk();

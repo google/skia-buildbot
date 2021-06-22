@@ -1,0 +1,71 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":gold-scaffold-sk-demo",
+)
+
+sk_element(
+    name = "gold-scaffold-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//golden/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["gold-scaffold-sk.scss"],
+    sk_element_deps = [
+        "//golden/modules/last-commit-sk",
+        "//infra-sk/modules/app-sk",
+        "//infra-sk/modules/login-sk",
+    ],
+    ts_deps = [
+        "//golden/modules:common_ts_lib",
+        "//golden/modules:settings_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "gold-scaffold-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "gold-scaffold-sk-demo",
+    html_file = "gold-scaffold-sk-demo.html",
+    sk_element_deps = [":gold-scaffold-sk"],
+    ts_deps = [
+        "//golden/modules:settings_ts_lib",
+        "@npm//common-sk",
+    ],
+    ts_entry_point = "gold-scaffold-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "gold-scaffold-sk_puppeteer_test",
+    src = "gold-scaffold-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "gold-scaffold-sk_test",
+    src = "gold-scaffold-sk_test.ts",
+    deps = [
+        ":gold-scaffold-sk",
+        "//golden/modules:common_ts_lib",
+        "//golden/modules:settings_ts_lib",
+        "//golden/modules/last-commit-sk:demo_data_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//fetch-mock",
+    ],
+)
