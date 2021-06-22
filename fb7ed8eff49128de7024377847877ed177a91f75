@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7f22d313_18a97b45",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-22T15:57:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc098029_e5d3d8c5",
+      "range": {
+        "startLine": 115,
+        "startChar": 7,
+        "endLine": 115,
+        "endChar": 11
+      },
+      "revId": "fb7ed8eff49128de7024377847877ed177a91f75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "983323ad_ac33e576",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-06-22T12:32:30Z",
       "side": 1,
       "message": "If it\u0027s not too much effort, could we actually log which meeting points are active? That I could imagine this making debugging easier if something gets stuck.",
+      "range": {
+        "startLine": 116,
+        "startChar": 38,
+        "endLine": 116,
+        "endChar": 41
+      },
+      "revId": "fb7ed8eff49128de7024377847877ed177a91f75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "040354cd_295601a9",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-22T15:57:35Z",
+      "side": 1,
+      "message": "machines.skia.org will have a UI that uses Switchboard.ListMeetingPoints and Switchboard.ListPods to help in viewing what\u0027s happening in the system.",
+      "parentUuid": "983323ad_ac33e576",
       "range": {
         "startLine": 116,
         "startChar": 38,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4dacb46b_bd90c212",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-22T15:57:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "522d3943_e5bd4f8d",
+      "range": {
+        "startLine": 121,
+        "startChar": 7,
+        "endLine": 121,
+        "endChar": 12
+      },
+      "revId": "fb7ed8eff49128de7024377847877ed177a91f75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b4ea7ca7_96e5be3f",
@@ -93,6 +165,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9b464f43_7ec935fd",
+        "filename": "switchboard/go/switch-pod-monitor/main_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-22T15:57:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b4ea7ca7_96e5be3f",
+      "range": {
+        "startLine": 23,
+        "startChar": 9,
+        "endLine": 23,
+        "endChar": 17
+      },
+      "revId": "fb7ed8eff49128de7024377847877ed177a91f75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "48884542_4339099b",
@@ -106,6 +202,30 @@
       "writtenOn": "2021-06-22T12:32:30Z",
       "side": 1,
       "message": "Should this be deferred so it can be called if one of the above assertions fail?\n\nSame question below.",
+      "range": {
+        "startLine": 122,
+        "startChar": 1,
+        "endLine": 122,
+        "endChar": 7
+      },
+      "revId": "fb7ed8eff49128de7024377847877ed177a91f75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "322dde86_d9aa2cb5",
+        "filename": "switchboard/go/switch-pod-monitor/main_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-22T15:57:35Z",
+      "side": 1,
+      "message": "If the above assertion fails then the test has failed and all bets are off. I don\u0027t believe it is worth the effort to make sure we clean up all Go routines, channels, etc. if a test fails.",
+      "parentUuid": "48884542_4339099b",
       "range": {
         "startLine": 122,
         "startChar": 1,
