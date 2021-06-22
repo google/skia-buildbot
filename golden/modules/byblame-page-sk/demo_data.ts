@@ -393,15 +393,6 @@ export const svg: ByBlameResponse = {
 };
 
 export const trstatus: StatusResponse = {
-  ok: false,
-  firstCommit: {
-    id: 'aliceee08',
-    commit_time: 1572357082,
-    hash: 'ee08d523f60a04499c9023a349ef8174ab301f8f',
-    author: 'Alice (alice@example.com)',
-    message: 'Update commits to have subject information',
-    cl_url: '',
-  },
   lastCommit: {
     id: 'bob9501',
     commit_time: 1573598625,
@@ -410,25 +401,14 @@ export const trstatus: StatusResponse = {
     message: 'Revert Update commits to have subject information',
     cl_url: '',
   },
-  totalCommits: 256,
-  filledCommits: 256,
   corpStatus: [{
     name: 'canvaskit',
-    ok: false,
-    minCommitHash: '',
     untriagedCount: 0,
-    negativeCount: 0,
   }, {
     name: 'gm',
-    ok: false,
-    minCommitHash: '',
     untriagedCount: 114,
-    negativeCount: 1494,
   }, {
     name: 'svg',
-    ok: false,
-    minCommitHash: '',
     untriagedCount: 18,
-    negativeCount: 21,
   }],
 };
