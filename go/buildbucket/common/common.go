@@ -46,10 +46,18 @@ var (
 
 // GetTrybotsForCLPredicate returns a *buildbucketpb.BuildPredicate which
 // searches for trybots from the given CL.
-func GetTrybotsForCLPredicate(issue, patchset int64, gerritUrl string) (*buildbucketpb.BuildPredicate, error) {
+func GetTrybotsForCLPredicate(issue, patchset int64, gerritUrl string, tags map[string]string) (*buildbucketpb.BuildPredicate, error) {
 	u, err := url.Parse(gerritUrl)
 	if err != nil {
 		return nil, err
+	}
+	tagStringPairs := []*buildbucketpb.StringPair{}
+	for k, v := range tags {
+		stringPair := &buildbucketpb.StringPair{
+			Key:   k,
+			Value: v,
+		}
+		tagStringPairs = append(tagStringPairs, stringPair)
 	}
 	return &buildbucketpb.BuildPredicate{
 		GerritChanges: []*buildbucketpb.GerritChange{
@@ -59,5 +67,6 @@ func GetTrybotsForCLPredicate(issue, patchset int64, gerritUrl string) (*buildbu
 				Patchset: patchset,
 			},
 		},
+		Tags: tagStringPairs,
 	}, nil
 }
