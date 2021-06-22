@@ -324,9 +324,15 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 				rvErr = err
 			}
 		}()
-		cmd := []string{"python", creationScript, "-t", src}
-		fmt.Println(fmt.Sprintf("Running: %s", strings.Join(cmd, " ")))
-		if _, err := exec.RunCwd(ctx, ".", cmd...); err != nil {
+		cmd := &exec.Command{
+			Name:      "python",
+			Args:      []string{"-u", creationScript, "-t", src},
+			Dir:       ".",
+			LogStdout: true,
+			LogStderr: true,
+		}
+		fmt.Println(fmt.Sprintf("Running: %s %s", cmd.Name, strings.Join(cmd.Args, " ")))
+		if _, err := exec.RunCommand(ctx, cmd); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
