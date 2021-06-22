@@ -102,6 +102,7 @@ func TestConnectToSwitchboardAndWait_SIGTERMSentAndNoMeetingPointsRemain_Returns
 		addPodCalled.Done()
 	})
 	switchboardMock.On("RemovePod", testutils.AnyContext, hostname).Return(nil)
+	switchboardMock.On("KeepAlivePod", testutils.AnyContext, hostname).Return(nil).Maybe()
 
 	// ListMeetingPoints will only be called once since it returns 0 matching MeetingPoints.
 	var numMeetingPointsCalled sync.WaitGroup
@@ -143,6 +144,7 @@ func TestConnectToSwitchboardAndWait_SIGTERMSentAndMeetingPointsRemain_ReturnsWi
 	switchboardMock.On("NumMeetingPointsForPod", testutils.AnyContext, hostname).Return(0, nil).Run(func(args mock.Arguments) {
 		numMeetingPointsCalled.Done()
 	})
+	switchboardMock.On("KeepAlivePod", testutils.AnyContext, hostname).Return(nil).Maybe()
 
 	go func() {
 		err := connectToSwitchboardAndWait(ctx, hostname, switchboardMock, time.Millisecond, switchboard.PodMaxConsecutiveKeepAliveErrors)
