@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3b2e8945_f6b14579",
+        "filename": "golden/modules/details-page-sk/details-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-22T17:35:10Z",
+      "side": 1,
+      "message": "Ubernit: ternary operator and single quotes (as opposed to backticks), here and below.\n\n  const urlBase \u003d this.useNewAPI ? \u0027/json/v2/details\u0027 : \u0027/json/v1/details\u0027;",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 0
+      },
+      "revId": "a2e1ef31f8001c05c0f673c5636058d77d2f02c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
