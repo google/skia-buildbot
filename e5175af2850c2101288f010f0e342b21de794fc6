@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "811ad790_dec00bbc",
+        "filename": "golden/go/search2/search2.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 3559,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-22T17:33:05Z",
+      "side": 1,
+      "message": "Is this the simplification mentioned in the CL description? It might be useful to explicitly state the functional difference in the CL description.",
+      "range": {
+        "startLine": 3559,
+        "startChar": 0,
+        "endLine": 3559,
+        "endChar": 83
+      },
+      "revId": "e5175af2850c2101288f010f0e342b21de794fc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
