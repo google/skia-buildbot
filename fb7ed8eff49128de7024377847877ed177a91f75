@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bc098029_e5d3d8c5",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-22T12:32:30Z",
+      "side": 1,
+      "message": "\"pod; that is, if any tasks are using test machines connected to this pod.\"\n\nIt took me a bit to figure out the implication of this w/o a description like the suggested.",
+      "range": {
+        "startLine": 115,
+        "startChar": 7,
+        "endLine": 115,
+        "endChar": 11
+      },
+      "revId": "fb7ed8eff49128de7024377847877ed177a91f75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "983323ad_ac33e576",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-22T12:32:30Z",
+      "side": 1,
+      "message": "If it\u0027s not too much effort, could we actually log which meeting points are active? That I could imagine this making debugging easier if something gets stuck.",
+      "range": {
+        "startLine": 116,
+        "startChar": 38,
+        "endLine": 116,
+        "endChar": 41
+      },
+      "revId": "fb7ed8eff49128de7024377847877ed177a91f75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "522d3943_e5bd4f8d",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-22T12:32:30Z",
+      "side": 1,
+      "message": "suggestion: log the count and the fact that this is in graceful shutdown mode to make this mode more debuggable.",
+      "range": {
+        "startLine": 121,
+        "startChar": 7,
+        "endLine": 121,
+        "endChar": 12
+      },
+      "revId": "fb7ed8eff49128de7024377847877ed177a91f75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b4ea7ca7_96e5be3f",
+        "filename": "switchboard/go/switch-pod-monitor/main_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-22T12:32:30Z",
+      "side": 1,
+      "message": "nit: typo (here and below)",
+      "range": {
+        "startLine": 23,
+        "startChar": 9,
+        "endLine": 23,
+        "endChar": 17
+      },
+      "revId": "fb7ed8eff49128de7024377847877ed177a91f75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "48884542_4339099b",
+        "filename": "switchboard/go/switch-pod-monitor/main_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-22T12:32:30Z",
+      "side": 1,
+      "message": "Should this be deferred so it can be called if one of the above assertions fail?\n\nSame question below.",
+      "range": {
+        "startLine": 122,
+        "startChar": 1,
+        "endLine": 122,
+        "endChar": 7
+      },
+      "revId": "fb7ed8eff49128de7024377847877ed177a91f75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
