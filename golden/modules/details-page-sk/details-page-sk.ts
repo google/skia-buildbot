@@ -44,6 +44,7 @@ export class DetailsPageSk extends ElementSk {
   private commits: Commit[] = [];
   private details: SearchResult | null = null;
   private didInitialLoad = false;
+  private useNewAPI: boolean = false;
 
   private stateChanged?: () => void;
 
@@ -60,6 +61,7 @@ export class DetailsPageSk extends ElementSk {
         digest: this.digest,
         changelist_id: this.changeListID,
         crs: this.crs,
+        use_new_api: this.useNewAPI,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -69,6 +71,7 @@ export class DetailsPageSk extends ElementSk {
         this.digest = newState.digest as string || '';
         this.changeListID = newState.changelist_id as string || '';
         this.crs = newState.crs as string || '';
+        this.useNewAPI = (newState.use_new_api as boolean) || false;
         this.fetch();
         this._render();
       },
@@ -93,8 +96,9 @@ export class DetailsPageSk extends ElementSk {
       signal: this.fetchController.signal,
     };
     sendBeginTask(this);
+    const urlBase = this.useNewAPI ? '/json/v2/details' : '/json/v1/details';
 
-    const url = `/json/v1/details?test=${encodeURIComponent(this.grouping)}`
+    const url = `${urlBase}?test=${encodeURIComponent(this.grouping)}`
       + `&digest=${encodeURIComponent(this.digest)}&changelist_id=${this.changeListID}`
       + `&crs=${this.crs}`;
     fetch(url, extra)

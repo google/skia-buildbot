@@ -38,8 +38,8 @@ export class DiffPageSk extends ElementSk {
   private changeListID = '';
   private leftDetails: LeftDiffInfo | null = null;
   private rightDetails: SRDiffDigest | null = null;
-  private useSQL = false;
   private didInitialLoad = false;
+  private useNewAPI: boolean = false;
 
   private readonly _stateChanged: () => void;
 
@@ -55,9 +55,9 @@ export class DiffPageSk extends ElementSk {
         test: this.grouping, // TODO(kjlubick) rename test -> grouping
         left: this.leftDigest,
         right: this.rightDigest,
-        use_sql: this.useSQL,
         changelist_id: this.changeListID,
         crs: this.crs,
+        use_new_api: this.useNewAPI,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -68,7 +68,7 @@ export class DiffPageSk extends ElementSk {
         this.rightDigest = newState.right as string || '';
         this.changeListID = newState.changelist_id as string || '';
         this.crs = newState.crs as string || '';
-        this.useSQL = newState.use_sql as boolean || false;
+        this.useNewAPI = (newState.use_new_api as boolean) || false;
         this.fetch();
         this._render();
       },
@@ -92,13 +92,12 @@ export class DiffPageSk extends ElementSk {
     };
     sendBeginTask(this);
 
-    let url = `/json/v1/diff?test=${encodeURIComponent(this.grouping)}`
+    const urlBase = this.useNewAPI ? '/json/v2/diff' : '/json/v1/diff';
+
+    const url = `${urlBase}?test=${encodeURIComponent(this.grouping)}`
       + `&left=${encodeURIComponent(this.leftDigest)}`
       + `&right=${encodeURIComponent(this.rightDigest)}`
       + `&changelist_id=${this.changeListID}&crs=${this.crs}`;
-    if (this.useSQL) {
-      url += '&use_sql=true';
-    }
 
     fetch(url, extra)
       .then(jsonOrThrow)
