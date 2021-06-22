@@ -1461,6 +1461,28 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, response)
 }
 
+func (wh *Handlers) ListTestsHandler2(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_ListTestsHandler2")
+	defer span.End()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+	// Inputs: (head, ignored, corpus, keys)
+	q, err := frontend.ParseListTestsQuery(r)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to parse form data.", http.StatusBadRequest)
+		return
+	}
+
+	counts, err := wh.Search2API.CountDigestsByTest(ctx, q)
+	if err != nil {
+		httputils.ReportError(w, err, "Could not compute query.", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(w, counts)
+}
+
 // TriageLogHandler returns the entries in the triagelog paginated
 // in reverse chronological order.
 func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
