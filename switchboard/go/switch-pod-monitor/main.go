@@ -119,7 +119,7 @@ func connectToSwitchboardAndWait(ctx context.Context, hostname string, switchboa
 					sklog.Errorf("switchboard failed to count meeting points: %s", err)
 					continue
 				}
-				sklog.Infof("gradefult shutdown mode for pod: %q num meeting points: %s", hostname, count)
+				sklog.Infof("graceful shutdown mode for pod: %q num meeting points: %s", hostname, count)
 				if count == 0 {
 					return nil
 				}
