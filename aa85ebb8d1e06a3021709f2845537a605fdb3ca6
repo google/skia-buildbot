@@ -22,6 +22,30 @@
       },
       "revId": "aa85ebb8d1e06a3021709f2845537a605fdb3ca6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "21f4088a_0afe1110",
+        "filename": "switchboard/go/switch-pod-monitor/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-22T19:19:50Z",
+      "side": 1,
+      "message": "Sent follow-up CL.",
+      "parentUuid": "4ae2c3b6_761a493d",
+      "range": {
+        "startLine": 122,
+        "startChar": 17,
+        "endLine": 122,
+        "endChar": 26
+      },
+      "revId": "aa85ebb8d1e06a3021709f2845537a605fdb3ca6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
