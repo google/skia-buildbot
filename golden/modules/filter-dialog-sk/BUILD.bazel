@@ -1,0 +1,73 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":filter-dialog-sk-demo",
+)
+
+sk_element(
+    name = "filter-dialog-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["filter-dialog-sk.scss"],
+    sk_element_deps = [
+        "//golden/modules/trace-filter-sk",
+        "//infra-sk/modules/paramset-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//@types/dialog-polyfill",
+        "@npm//common-sk",
+        "@npm//dialog-polyfill",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "filter-dialog-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "filter-dialog-sk-demo",
+    html_file = "filter-dialog-sk-demo.html",
+    sk_element_deps = [":filter-dialog-sk"],
+    ts_deps = ["@npm//common-sk"],
+    ts_entry_point = "filter-dialog-sk-demo.ts",
+)
+
+ts_library(
+    name = "filter-dialog-sk_po_ts_lib",
+    srcs = ["filter-dialog-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":filter-dialog-sk",
+        "//golden/modules/trace-filter-sk:trace-filter-sk_po_ts_lib",
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+        "@npm//elements-sk",
+    ],
+)
+
+sk_element_puppeteer_test(
+    name = "filter-dialog-sk_puppeteer_test",
+    src = "filter-dialog-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":filter-dialog-sk_po_ts_lib",
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "filter-dialog-sk_test",
+    src = "filter-dialog-sk_test.ts",
+    deps = [
+        ":filter-dialog-sk",
+        ":filter-dialog-sk_po_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//common-sk",
+    ],
+)

@@ -7,6 +7,8 @@ package frontend
 //
 // TODO(lovisolo): Delete once we are targeting the entire repository.
 var targetDirectories = map[string]bool{
+	"golden/modules":      true,
+	"golden/pages":        true,
 	"infra-sk/modules":    true,
 	"machine/modules":     true,
 	"machine/pages":       true,

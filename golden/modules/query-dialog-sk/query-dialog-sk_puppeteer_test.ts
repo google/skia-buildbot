@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import { QueryDialogSkPO } from './query-dialog-sk_po';
 import path from "path";
 
@@ -14,7 +14,8 @@ describe('query-dialog-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/query-dialog-sk.html`);
+    await testBed.page.goto(
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/query-dialog-sk.html`);
     queryDialogSkPO = new QueryDialogSkPO((await testBed.page.$('query-dialog-sk'))!);
   });
 

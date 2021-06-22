@@ -1,0 +1,77 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_element(
+    name = "changelist-controls-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["changelist-controls-sk.scss"],
+    ts_deps = [
+        "//golden/modules:common_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "changelist-controls-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "changelist-controls-sk-demo",
+    html_file = "changelist-controls-sk-demo.html",
+    sk_element_deps = [":changelist-controls-sk"],
+    ts_deps = [
+        ":test_data_ts_lib",
+        "@npm//common-sk",
+    ],
+    ts_entry_point = "changelist-controls-sk-demo.ts",
+)
+
+ts_library(
+    name = "changelist-controls-sk_po_ts_lib",
+    srcs = ["changelist-controls-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+        "@npm//elements-sk",
+    ],
+)
+
+sk_element_puppeteer_test(
+    name = "changelist-controls-sk_puppeteer_test",
+    src = "changelist-controls-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "changelist-controls-sk_test",
+    src = "changelist-controls-sk_test.ts",
+    deps = [
+        ":changelist-controls-sk",
+        ":changelist-controls-sk_po_ts_lib",
+        ":test_data_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":changelist-controls-sk-demo",
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//golden/modules:rpc_types_ts_lib"],
+)

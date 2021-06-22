@@ -1,0 +1,81 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_element(
+    name = "byblame-page-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["byblame-page-sk.scss"],
+    sk_element_deps = [
+        "//golden/modules/byblameentry-sk",
+        "//golden/modules/corpus-selector-sk",
+    ],
+    ts_deps = [
+        "//golden/modules:common_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
+        "//golden/modules:settings_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "byblame-page-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "byblame-page-sk-demo",
+    html_file = "byblame-page-sk-demo.html",
+    sk_element_deps = [
+        "//golden/modules/gold-scaffold-sk",
+        ":byblame-page-sk",
+    ],
+    ts_deps = [
+        "//golden/modules:demo_util_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
+        "//golden/modules:settings_ts_lib",
+        ":demo_data_ts_lib",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "byblame-page-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "byblame-page-sk_puppeteer_test",
+    src = "byblame-page-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "byblame-page-sk_test",
+    src = "byblame-page-sk_test.ts",
+    deps = [
+        ":byblame-page-sk",
+        ":demo_data_ts_lib",
+        "//golden/modules:settings_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+)
+
+ts_library(
+    name = "demo_data_ts_lib",
+    srcs = ["demo_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//golden/modules:rpc_types_ts_lib"],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":byblame-page-sk-demo",
+)

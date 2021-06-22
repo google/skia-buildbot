@@ -1,0 +1,104 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+load("//golden/demo-page-assets:index.bzl", "GOLD_DEMO_PAGE_ASSETS")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":digest-details-sk-demo",
+    static_assets = GOLD_DEMO_PAGE_ASSETS,
+)
+
+sk_element(
+    name = "digest-details-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//golden/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["digest-details-sk.scss"],
+    sk_element_deps = [
+        "//golden/modules/blamelist-panel-sk",
+        "//golden/modules/dots-legend-sk",
+        "//golden/modules/dots-sk",
+        "//golden/modules/image-compare-sk",
+        "//golden/modules/search-controls-sk",
+        "//golden/modules/triage-sk",
+        "//infra-sk/modules/paramset-sk",
+    ],
+    ts_deps = [
+        "//golden/modules:common_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//@types/dialog-polyfill",
+        "@npm//common-sk",
+        "@npm//dialog-polyfill",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "digest-details-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "digest-details-sk-demo",
+    html_file = "digest-details-sk-demo.html",
+    sk_element_deps = [":digest-details-sk"],
+    ts_deps = [
+        ":test_data_ts_lib",
+        "//golden/modules:common_ts_lib",
+        "//golden/modules:demo_util_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
+        "//golden/modules:settings_ts_lib",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "digest-details-sk-demo.ts",
+)
+
+ts_library(
+    name = "digest-details-sk_po_ts_lib",
+    srcs = ["digest-details-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//golden/modules/dots-legend-sk:dots-legend-sk_po_ts_lib",
+        "//golden/modules/image-compare-sk:image-compare-sk_po_ts_lib",
+        "//golden/modules/triage-sk:triage-sk_po_ts_lib",
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+    ],
+)
+
+sk_element_puppeteer_test(
+    name = "digest-details-sk_puppeteer_test",
+    src = "digest-details-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "digest-details-sk_test",
+    src = "digest-details-sk_test.ts",
+    deps = [
+        ":digest-details-sk",
+        ":digest-details-sk_po_ts_lib",
+        ":test_data_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
+        "//golden/modules/triage-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//fetch-mock",
+    ],
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//golden/modules:rpc_types_ts_lib"],
+)

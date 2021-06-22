@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import {
-  addEventListenersToPuppeteerPage, EventName, loadCachedTestBed,
+  addEventListenersToPuppeteerPage, EventName, inBazel, loadCachedTestBed,
   takeScreenshot, TestBed
 } from '../../../puppeteer-tests/util';
 import { positiveDigest, negativeDigest, untriagedDigest } from '../cluster-page-sk/test_data';
@@ -30,7 +30,8 @@ describe('cluster-page-sk', () => {
             testBed.page, ['layout-complete', 'selection-changed']);
 
     const loaded = promiseFactory('layout-complete'); // Emitted when layout stabilizes.
-    await testBed.page.goto(`${testBed.baseUrl}/dist/cluster-page-sk.html`);
+    await testBed.page.goto(
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/cluster-page-sk.html`);
     await loaded;
 
     clusterPageSk = (await testBed.page.$('cluster-page-sk'))!;

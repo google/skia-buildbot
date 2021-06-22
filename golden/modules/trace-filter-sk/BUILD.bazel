@@ -1,0 +1,72 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":trace-filter-sk-demo",
+)
+
+sk_element(
+    name = "trace-filter-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["trace-filter-sk.scss"],
+    sk_element_deps = [
+        "//golden/modules/query-dialog-sk",
+        "//infra-sk/modules/paramset-sk",
+        "//infra-sk/modules/query-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "trace-filter-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "trace-filter-sk-demo",
+    html_file = "trace-filter-sk-demo.html",
+    sk_element_deps = [":trace-filter-sk"],
+    ts_deps = ["@npm//common-sk"],
+    ts_entry_point = "trace-filter-sk-demo.ts",
+)
+
+ts_library(
+    name = "trace-filter-sk_po_ts_lib",
+    srcs = ["trace-filter-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//golden/modules/query-dialog-sk:query-dialog-sk_po_ts_lib",
+        "//infra-sk/modules/page_object:page_object_element_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+        "//infra-sk/modules/paramset-sk:paramset-sk_po_ts_lib",
+        "@npm//common-sk",
+    ],
+)
+
+sk_element_puppeteer_test(
+    name = "trace-filter-sk_puppeteer_test",
+    src = "trace-filter-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":trace-filter-sk_po_ts_lib",
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "trace-filter-sk_test",
+    src = "trace-filter-sk_test.ts",
+    deps = [
+        ":trace-filter-sk",
+        ":trace-filter-sk_po_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//common-sk",
+    ],
+)

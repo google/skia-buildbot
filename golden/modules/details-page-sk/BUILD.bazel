@@ -1,0 +1,72 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+load("//golden/demo-page-assets:index.bzl", "GOLD_DEMO_PAGE_ASSETS")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":details-page-sk-demo",
+    static_assets = GOLD_DEMO_PAGE_ASSETS,
+)
+
+sk_element(
+    name = "details-page-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["details-page-sk.scss"],
+    sk_element_deps = ["//golden/modules/digest-details-sk"],
+    ts_deps = [
+        "//golden/modules:common_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "details-page-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "details-page-sk-demo",
+    html_file = "details-page-sk-demo.html",
+    sk_element_deps = [
+        "//golden/modules/gold-scaffold-sk",
+        ":details-page-sk",
+    ],
+    ts_deps = [
+        "//golden/modules:common_ts_lib",
+        "//golden/modules:demo_util_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
+        "//golden/modules:settings_ts_lib",
+        "//golden/modules/digest-details-sk:test_data_ts_lib",
+        "//golden/modules/last-commit-sk:demo_data_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "details-page-sk-demo.ts",
+)
+
+ts_library(
+    name = "details-page-sk_po_ts_lib",
+    srcs = ["details-page-sk_po.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//golden/modules/digest-details-sk:digest-details-sk_po_ts_lib",
+        "//infra-sk/modules/page_object:page_object_ts_lib",
+    ],
+)
+
+sk_element_puppeteer_test(
+    name = "details-page-sk_puppeteer_test",
+    src = "details-page-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":details-page-sk_po_ts_lib",
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//puppeteer",
+    ],
+)

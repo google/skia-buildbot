@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import path from "path";
 
 describe('blamelist-panel-sk', () => {
@@ -10,7 +10,8 @@ describe('blamelist-panel-sk', () => {
     );
   });
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/blamelist-panel-sk.html`);
+    await testBed.page.goto(
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/blamelist-panel-sk.html`);
   });
 
   it('should render the demo page', async () => {

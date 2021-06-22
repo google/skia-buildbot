@@ -34,5 +34,10 @@ export function delay<T>(toReturn: T | (() => T), delayMs = 100): () => Promise<
 
 /** Returns true if the page is running from within a Puppeteer-managed browser. */
 export function isPuppeteerTest(): boolean {
-  return document.cookie.indexOf('puppeteer') !== -1;
+  return document.cookie.includes('puppeteer');
+}
+
+/** Returns true if the page is served under Bazel via an sk_demo_page_server Bazel rule. */
+export function isBazelDemoPage(): boolean {
+  return document.cookie.includes('bazel=true');
 }

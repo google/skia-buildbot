@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import { TraceFilterSkPO } from './trace-filter-sk_po';
 import path from "path";
 
@@ -14,7 +14,8 @@ describe('trace-filter-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/trace-filter-sk.html`);
+    await testBed.page.goto(
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/trace-filter-sk.html`);
     traceFilterSkPO = new TraceFilterSkPO((await testBed.page.$('trace-filter-sk'))!);
   });
 

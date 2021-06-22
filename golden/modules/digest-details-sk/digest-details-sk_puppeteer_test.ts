@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import path from "path";
 
 describe('digest-details-sk', () => {
@@ -11,7 +11,10 @@ describe('digest-details-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/digest-details-sk.html`, { waitUntil: 'networkidle0' });
+    await testBed.page.goto(
+        inBazel()
+            ? testBed.baseUrl
+            : `${testBed.baseUrl}/dist/digest-details-sk.html`, { waitUntil: 'networkidle0' });
   });
 
   it('should render the demo page', async () => {

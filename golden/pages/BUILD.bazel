@@ -1,0 +1,111 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+# Path on which the gold_frontend binary serves static assets (JS/CSS bundles, etc.).
+ASSETS_SERVING_PATH = "/dist"
+
+sk_page(
+    name = "by_test_list",
+    assets_serving_path = ASSETS_SERVING_PATH,
+    html_file = "by_test_list.html",
+    sk_element_deps = [
+        "//golden/modules/gold-scaffold-sk",
+        "//golden/modules/list-page-sk",
+    ],
+    ts_entry_point = "by_test_list.ts",
+)
+
+sk_page(
+    name = "byblame",
+    assets_serving_path = ASSETS_SERVING_PATH,
+    html_file = "byblame.html",
+    sk_element_deps = [
+        "//golden/modules/byblame-page-sk",
+        "//golden/modules/gold-scaffold-sk",
+    ],
+    ts_entry_point = "byblame.ts",
+)
+
+sk_page(
+    name = "changelists",
+    assets_serving_path = ASSETS_SERVING_PATH,
+    html_file = "changelists.html",
+    sk_element_deps = [
+        "//golden/modules/changelists-page-sk",
+        "//golden/modules/gold-scaffold-sk",
+    ],
+    ts_entry_point = "changelists.ts",
+)
+
+sk_page(
+    name = "cluster",
+    assets_serving_path = ASSETS_SERVING_PATH,
+    html_file = "cluster.html",
+    sk_element_deps = [
+        "//golden/modules/cluster-page-sk",
+        "//golden/modules/gold-scaffold-sk",
+    ],
+    ts_entry_point = "cluster.ts",
+)
+
+sk_page(
+    name = "details",
+    assets_serving_path = ASSETS_SERVING_PATH,
+    html_file = "details.html",
+    sk_element_deps = [
+        "//golden/modules/details-page-sk",
+        "//golden/modules/gold-scaffold-sk",
+    ],
+    ts_entry_point = "details.ts",
+)
+
+sk_page(
+    name = "diff",
+    assets_serving_path = ASSETS_SERVING_PATH,
+    html_file = "diff.html",
+    sk_element_deps = [
+        "//golden/modules/diff-page-sk",
+        "//golden/modules/gold-scaffold-sk",
+    ],
+    ts_entry_point = "diff.ts",
+)
+
+sk_page(
+    name = "help",
+    assets_serving_path = ASSETS_SERVING_PATH,
+    html_file = "help.html",
+    sk_element_deps = ["//golden/modules/gold-scaffold-sk"],
+    ts_entry_point = "help.ts",
+)
+
+sk_page(
+    name = "ignorelist",
+    assets_serving_path = ASSETS_SERVING_PATH,
+    html_file = "ignorelist.html",
+    sk_element_deps = [
+        "//golden/modules/gold-scaffold-sk",
+        "//golden/modules/ignores-page-sk",
+    ],
+    ts_entry_point = "ignorelist.ts",
+)
+
+sk_page(
+    name = "search",
+    assets_serving_path = ASSETS_SERVING_PATH,
+    html_file = "search.html",
+    sk_element_deps = [
+        "//golden/modules/gold-scaffold-sk",
+        "//golden/modules/search-page-sk",
+    ],
+    ts_entry_point = "search.ts",
+)
+
+sk_page(
+    name = "triagelog",
+    assets_serving_path = ASSETS_SERVING_PATH,
+    html_file = "triagelog.html",
+    sk_element_deps = [
+        "//golden/modules/gold-scaffold-sk",
+        "//golden/modules/triagelog-page-sk",
+    ],
+    ts_entry_point = "triagelog.ts",
+)
