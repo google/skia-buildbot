@@ -20,14 +20,10 @@ import (
 
 const (
 	DEFAULT_TASK_SPEC_MAX_ATTEMPTS = types.DEFAULT_MAX_TASK_ATTEMPTS
-
 	// The default JobSpec.Priority, when unspecified or invalid.
 	DEFAULT_JOB_SPEC_PRIORITY = 0.5
-
-	TASKS_CFG_FILE = "infra/bots/tasks.json"
-
+	TASKS_CFG_FILE            = "infra/bots/tasks.json"
 	// Triggering configuration for jobs.
-
 	// By default, all jobs trigger on any branch for which they are
 	// defined.
 	TRIGGER_ANY_BRANCH = ""
@@ -40,10 +36,8 @@ const (
 	// explicitly triggered via a try job or a force trigger.
 	TRIGGER_ON_DEMAND = "on demand"
 	// Trigger this job weekly.
-	TRIGGER_WEEKLY = periodic.TRIGGER_WEEKLY
-
-	VARIABLE_SYNTAX = "<(%s)"
-
+	TRIGGER_WEEKLY                = periodic.TRIGGER_WEEKLY
+	VARIABLE_SYNTAX               = "<(%s)"
 	VARIABLE_BUILDBUCKET_BUILD_ID = "BUILDBUCKET_BUILD_ID"
 	VARIABLE_CODEREVIEW_SERVER    = "CODEREVIEW_SERVER"
 	VARIABLE_ISSUE                = "ISSUE"
@@ -79,7 +73,6 @@ var (
 	CIPD_PKGS_PYTHON_MAC_AMD64     []*CipdPackage = cipd.PkgsPython[cipd.PlatformMacAmd64]
 	CIPD_PKGS_PYTHON_WINDOWS_386   []*CipdPackage = cipd.PkgsPython[cipd.PlatformWindows386]
 	CIPD_PKGS_PYTHON_WINDOWS_AMD64 []*CipdPackage = cipd.PkgsPython[cipd.PlatformWindowsAmd64]
-
 	// This package was manually created by running the following commands:
 	//
 	//     $ mkdir skia_infra_rbe_keys
@@ -99,7 +92,6 @@ var (
 			Version: "version:2",
 		},
 	}
-
 	CIPD_PKGS_KITCHEN_LINUX_AMD64 = append([]*CipdPackage{
 		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
 		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
@@ -120,7 +112,6 @@ var (
 		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
 		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
 	}, CIPD_PKGS_PYTHON_WINDOWS_AMD64...)
-
 	// Variable placeholders; these are replaced with the actual value
 	// at task triggering time.
 	PLACEHOLDER_BUILDBUCKET_BUILD_ID = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_BUILDBUCKET_BUILD_ID)
@@ -138,8 +129,7 @@ var (
 	PLACEHOLDER_TASK_ID              = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_TASK_ID)
 	PLACEHOLDER_TASK_NAME            = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_TASK_NAME)
 	PLACEHOLDER_ISOLATED_OUTDIR      = "${ISOLATED_OUTDIR}"
-
-	PERIODIC_TRIGGERS = []string{TRIGGER_NIGHTLY, TRIGGER_WEEKLY}
+	PERIODIC_TRIGGERS                = []string{TRIGGER_NIGHTLY, TRIGGER_WEEKLY}
 )
 
 // ErrorIsPermanent returns true if the given error cannot be recovered by
@@ -168,7 +158,6 @@ func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	if err := rv.Validate(); err != nil {
 		return nil, err
 	}
-
 	return &rv, nil
 }
 
@@ -183,7 +172,6 @@ func EncodeTasksCfg(cfg *TasksCfg) ([]byte, error) {
 	// much less readable. Replace the escape characters with the real
 	// character.
 	enc = bytes.Replace(enc, []byte("\\u003c"), []byte("<"), -1)
-
 	// Add a newline to the end of the file. Most text editors add one, so
 	// adding one here enables manual editing of the file, even though we'd
 	// rather that not happen.
@@ -240,15 +228,12 @@ type TasksCfg struct {
 	// Jobs is a map whose keys are JobSpec names and values are JobSpecs
 	// which describe sets of tasks to run.
 	Jobs map[string]*JobSpec `json:"jobs"`
-
 	// Tasks is a map whose keys are TaskSpec names and values are TaskSpecs
 	// detailing the Swarming tasks which may be run.
 	Tasks map[string]*TaskSpec `json:"tasks"`
-
 	// CasSpecs is a map of named specifications for content-addressed inputs to
 	// tasks.
 	CasSpecs map[string]*CasSpec `json:"casSpecs,omitempty"`
-
 	// CommitQueue is a map whose keys are JobSpec names and values are
 	// CommitQueueJobConfig. All specified jobs will run on the Commit Queue.
 	CommitQueue map[string]*CommitQueueJobConfig `json:"commit_queue,omitempty"`
@@ -293,7 +278,6 @@ func (c *TasksCfg) Validate() error {
 		if err := t.Validate(c); err != nil {
 			return fmt.Errorf("Invalid TasksCfg: %s", err)
 		}
-
 		// Ensure that any CAS inputs to the task exist.
 		if t.CasSpec != "" {
 			if name, ok := c.CasSpecs[t.CasSpec]; !ok {
@@ -301,7 +285,6 @@ func (c *TasksCfg) Validate() error {
 			}
 		}
 	}
-
 	// Validate all jobs.
 	for _, j := range c.Jobs {
 		if err := j.Validate(); err != nil {
@@ -312,14 +295,12 @@ func (c *TasksCfg) Validate() error {
 	if err := findCycles(c.Tasks, c.Jobs); err != nil {
 		return fmt.Errorf("Invalid TasksCfg: %s", err)
 	}
-
 	// Ensure that CQ job names are valid.
 	for cqJob := range c.CommitQueue {
 		if _, ok := c.Jobs[cqJob]; !ok {
 			return fmt.Errorf("Unknown job %q in CQ config", cqJob)
 		}
 	}
-
 	return nil
 }
 
@@ -328,68 +309,51 @@ func (c *TasksCfg) Validate() error {
 type TaskSpec struct {
 	// Caches are named Swarming caches which should be used for this task.
 	Caches []*Cache `json:"caches,omitempty"`
-
 	// CasSpec references a named input to the task from content-addressed
 	// storage.
 	CasSpec string `json:"casSpec,omitempty"`
-
 	// CipdPackages are CIPD packages which should be installed for the task.
 	CipdPackages []*CipdPackage `json:"cipd_packages,omitempty"`
-
 	// Command is the command to run in the Swarming task.
 	Command []string `json:"command,omitempty"`
-
 	// Dependencies are names of other TaskSpecs for tasks which need to run
 	// before this task.
 	Dependencies []string `json:"dependencies,omitempty"`
-
 	// Dimensions are Swarming bot dimensions which describe the type of bot
 	// which may run this task.
 	Dimensions []string `json:"dimensions"`
-
 	// Environment is a set of environment variables needed by the task.
 	Environment map[string]string `json:"environment,omitempty"`
-
 	// EnvPrefixes are prefixes to add to environment variables for the task,
 	// for example, adding directories to PATH. Keys are environment variable
 	// names and values are multiple values to add for the variable.
 	EnvPrefixes map[string][]string `json:"env_prefixes,omitempty"`
-
 	// ExecutionTimeout is the maximum amount of time the task is allowed
 	// to take.
 	ExecutionTimeout time.Duration `json:"execution_timeout_ns,omitempty"`
-
 	// Expiration is how long the task may remain in the pending state
 	// before it is abandoned.
 	Expiration time.Duration `json:"expiration_ns,omitempty"`
-
 	// ExtraArgs are extra command-line arguments to pass to the task.
 	ExtraArgs []string `json:"extra_args,omitempty"`
-
 	// ExtraTags are extra tags to add to the Swarming task.
 	ExtraTags map[string]string `json:"extra_tags,omitempty"`
-
 	// Idempotent indicates that triggering this task with the same
 	// parameters as previously triggered has no side effect and thus the
 	// task may be de-duplicated.
 	Idempotent bool `json:"idempotent,omitempty"`
-
 	// IoTimeout is the maximum amount of time which the task may take to
 	// communicate with the server.
 	IoTimeout time.Duration `json:"io_timeout_ns,omitempty"`
-
 	// MaxAttempts is the maximum number of attempts for this TaskSpec. If
 	// zero, DEFAULT_TASK_SPEC_MAX_ATTEMPTS is used.
 	MaxAttempts int `json:"max_attempts,omitempty"`
-
 	// Outputs are files and/or directories to use as outputs for the task.
 	// Paths are relative to the task workdir. No error occurs if any of
 	// these is missing.
 	Outputs []string `json:"outputs,omitempty"`
-
 	// This field is ignored.
 	Priority float64 `json:"priority,omitempty"`
-
 	// ServiceAccount indicates the Swarming service account to use for the
 	// task. If not specified, we will attempt to choose a suitable default.
 	ServiceAccount string `json:"service_account,omitempty"`
@@ -403,11 +367,9 @@ func (t *TaskSpec) Validate(cfg *TasksCfg) error {
 			return fmt.Errorf("CIPD packages must have a name, path, and version.")
 		}
 	}
-
 	if len(t.Dimensions) == 0 {
 		return fmt.Errorf("Task must have dimensions")
 	}
-
 	// Ensure that the dimensions are specified properly.
 	for _, d := range t.Dimensions {
 		split := strings.SplitN(d, ":", 2)
@@ -415,7 +377,6 @@ func (t *TaskSpec) Validate(cfg *TasksCfg) error {
 			return fmt.Errorf("Dimension %q does not contain a colon!", d)
 		}
 	}
-
 	return nil
 }
 
@@ -513,7 +474,6 @@ type JobSpec struct {
 func (j *JobSpec) Validate() error {
 	// We can't validate j.TaskSpecs here because we don't know which are
 	// defined.  Therefore, that check needs to occur at a higher level.
-
 	switch j.Trigger {
 	case TRIGGER_ANY_BRANCH, TRIGGER_MASTER_ONLY, TRIGGER_MAIN_ONLY,
 		TRIGGER_NIGHTLY, TRIGGER_ON_DEMAND, TRIGGER_WEEKLY:
@@ -564,7 +524,6 @@ func (j *JobSpec) GetTaskSpecDAG(cfg *TasksCfg) (map[string][]string, error) {
 		}
 		return nil
 	}
-
 	for _, t := range j.TaskSpecs {
 		if err := visit(t); err != nil {
 			return nil, err
@@ -593,7 +552,6 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 			visited: false,
 		}
 	}
-
 	// visit performs a depth-first search of the graph, starting at v.
 	var visit func(*vertex) error
 	visit = func(v *vertex) error {
@@ -615,7 +573,6 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 		v.active = false
 		return nil
 	}
-
 	// Perform a DFS, starting at each of the jobs' dependencies.
 	for jobName, j := range jobs {
 		for _, d := range j.TaskSpecs {
@@ -630,7 +587,6 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 			}
 		}
 	}
-
 	// If any vertices have not been visited, then there are tasks which
 	// no job has as a dependency. Report an error.
 	for _, v := range vertices {
