@@ -2136,33 +2136,25 @@ func TestListTestsHandler_ValidQueries_Success(t *testing.T) {
 		})
 	}
 
-	test("all GM tests from all traces", "/json/list?corpus=gm&include_ignored_traces=true",
-		`{"tests":[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1,"total_digests":2},`+
-			`{"name":"test_two","positive_digests":2,"negative_digests":0,"untriaged_digests":2,"total_digests":4}]}`)
-
-	test("all GM tests at head from all traces", "/json/list?corpus=gm&at_head_only=true&include_ignored_traces=true",
+	test("all GM tests at head from all traces", "/json/list?corpus=gm&include_ignored_traces=true",
 		`{"tests":[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":0,"total_digests":1},`+
 			`{"name":"test_two","positive_digests":2,"negative_digests":0,"untriaged_digests":1,"total_digests":3}]}`)
 
-	test("all GM tests for device beta from all traces", "/json/list?corpus=gm&trace_values=device%3Dbeta&include_ignored_traces=true",
-		`{"tests":[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1,"total_digests":2},`+
-			`{"name":"test_two","positive_digests":1,"negative_digests":0,"untriaged_digests":0,"total_digests":1}]}`)
-
-	test("all GM tests for device delta at head from all traces", "/json/list?corpus=gm&trace_values=device%3Ddelta&at_head_only=true&include_ignored_traces=true",
+	test("all GM tests for device delta at head from all traces", "/json/list?corpus=gm&trace_values=device%3Ddelta&include_ignored_traces=true",
 		`{"tests":[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":0,"total_digests":1},`+
 			`{"name":"test_two","positive_digests":0,"negative_digests":0,"untriaged_digests":1,"total_digests":1}]}`)
 
 	// Reminder that device delta and test_two match ignore rules
 	test("all GM tests", "/json/list?corpus=gm",
-		`{"tests":[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1,"total_digests":2}]}`)
+		`{"tests":[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":0,"total_digests":1}]}`)
 
 	test("all GM tests at head", "/json/list?corpus=gm&at_head_only=true",
 		`{"tests":[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":0,"total_digests":1}]}`)
 
 	test("all GM tests for device beta", "/json/list?corpus=gm&trace_values=device%3Dbeta",
-		`{"tests":[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1,"total_digests":2}]}`)
+		`{"tests":[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":0,"total_digests":1}]}`)
 
-	test("all GM tests for device delta at head", "/json/list?corpus=gm&trace_values=device%3Ddelta&at_head_only=true",
+	test("all GM tests for device delta at head", "/json/list?corpus=gm&trace_values=device%3Ddelta",
 		`{"tests":[]}`)
 
 	test("non existent corpus", "/json/list?corpus=notthere", `{"tests":[]}`)
