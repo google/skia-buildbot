@@ -91,6 +91,9 @@ func connectToSwitchboardAndWait(ctx context.Context, hostname string, switchboa
 
 	consecutiveFailures := 0
 
+	// Are we in the graceful shutdown phase of the pod lifecycle?
+	gracefulShutdown := false
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -100,20 +103,37 @@ func connectToSwitchboardAndWait(ctx context.Context, hostname string, switchboa
 			if err := switchboardInstance.RemovePod(ctx, hostname); err != nil {
 				sklog.Error(err)
 			}
+			gracefulShutdown = true
 			if sig == syscall.SIGINT {
 				sklog.Info("Exiting on SIGINT.")
 				os.Exit(0)
 			}
 		// Periodically call KeepAlivePod so we know the pod is still running.
 		case <-time.Tick(keepAliveDuration):
-			if err := switchboardInstance.KeepAlivePod(ctx, hostname); err != nil {
-				consecutiveFailures++
-				sklog.Errorf("Failed to keep pod alive: %s", err)
-				if consecutiveFailures >= maxConsecutiveKeepAliveErrors {
-					if err := switchboardInstance.RemovePod(ctx, hostname); err != nil {
-						sklog.Error(err)
+			if gracefulShutdown {
+				// Check to see if there are any meeting points left in this pod
+				// that is, if any tasks are using test machines connected to
+				// this pod. If there are none then exit.
+				count, err := switchboardInstance.NumMeetingPointsForPod(ctx, hostname)
+				if err != nil {
+					sklog.Errorf("switchboard failed to count meeting points: %s", err)
+					continue
+				}
+				sklog.Infof("gradefult shutdown mode for pod: %q num meeting points: %s", hostname, count)
+				if count == 0 {
+					return nil
+				}
+			} else {
+				err := switchboardInstance.KeepAlivePod(ctx, hostname)
+				if err != nil {
+					consecutiveFailures++
+					sklog.Errorf("Failed to keep pod alive: %s", err)
+					if consecutiveFailures >= maxConsecutiveKeepAliveErrors {
+						if err := switchboardInstance.RemovePod(ctx, hostname); err != nil {
+							sklog.Error(err)
+						}
+						return skerr.Wrapf(err, "Exiting: Switchpod.KeepAlivePod failed %d consecutive times", consecutiveFailures)
 					}
-					return skerr.Wrapf(err, "Exiting: Switchpod.KeepAlivePod failed %d consecutive times", consecutiveFailures)
 				}
 			}
 			consecutiveFailures = 0
