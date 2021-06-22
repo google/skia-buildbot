@@ -803,6 +803,7 @@ func addUnauthenticatedJSONRoutes(router *mux.Router, _ *frontendServerConfig, h
 	add("/json/v1/changelist/{system}/{id}/{patchset}/untriaged", handlers.ChangelistUntriagedHandler)
 	add("/json/trstatus", handlers.StatusHandler)
 	add("/json/v1/trstatus", handlers.StatusHandler)
+	add("/json/v2/trstatus", handlers.StatusHandler2)
 	add("/json/changelist/{system}/{id}", handlers.PatchsetsAndTryjobsForCL)
 	add("/json/v1/changelist/{system}/{id}", handlers.PatchsetsAndTryjobsForCL)
 	add("/json/v1/changelist_summary/{system}/{id}", handlers.ChangelistSummaryHandler)

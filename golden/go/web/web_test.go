@@ -2688,7 +2688,7 @@ func TestChangelistSummaryHandler_SearchReturnsError_InternalServerError(t *test
 	assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-func TestStartCacheWarming_Success(t *testing.T) {
+func TestStartCLCacheProcess_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -2705,12 +2705,44 @@ func TestStartCacheWarming_Success(t *testing.T) {
 
 	// Set the time to be a few days after both CLs in the sample data land.
 	ctx = context.WithValue(ctx, now.ContextKey, time.Date(2020, time.December, 14, 0, 0, 0, 0, time.UTC))
-	wh.StartCacheWarming(ctx)
+	wh.startCLCacheProcess(ctx)
 	require.Eventually(t, func() bool {
 		return wh.clSummaryCache.Len() == 2
 	}, 5*time.Second, 100*time.Millisecond)
 	assert.True(t, wh.clSummaryCache.Contains("gerrit_CL_fix_ios"))
 	assert.True(t, wh.clSummaryCache.Contains("gerrit-internal_CL_new_tests"))
+}
+
+func TestStartStatusCacheProcess_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+
+	wh := initCaches(Handlers{
+		HandlersConfig: HandlersConfig{
+			Search2API: search2.New(db, 10),
+			DB:         db,
+		},
+	})
+
+	// Set the time to be a few days after both CLs in the sample data land.
+	ctx = context.WithValue(ctx, now.ContextKey, time.Date(2020, time.December, 14, 0, 0, 0, 0, time.UTC))
+	wh.startStatusCacheProcess(ctx)
+	require.Eventually(t, func() bool {
+		wh.statusCacheMutex.RLock()
+		defer wh.statusCacheMutex.RUnlock()
+		return len(wh.statusCache.CorpStatus) > 1
+	}, 5*time.Second, 100*time.Millisecond)
+	wh.statusCacheMutex.RLock()
+	defer wh.statusCacheMutex.RUnlock()
+	assert.Equal(t, frontend.GUIStatus{
+		LastCommit: frontend.Commit{},
+		CorpStatus: []*frontend.GUICorpusStatus{},
+		FIXME
+	}, wh.statusCache)
 }
 
 func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.T) {
