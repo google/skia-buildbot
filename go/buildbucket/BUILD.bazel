@@ -8,8 +8,10 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/buildbucket/common",
+        "//go/skerr",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//grpc/prpc",
+        "@org_golang_google_protobuf//types/known/structpb",
     ],
 )
 
