@@ -63,6 +63,20 @@ func (_m *Switchboard) GetMeetingPoint(ctx context.Context, machineID string) (s
 	return r0, r1
 }
 
+// IsValidPod provides a mock function with given fields: ctx, podName
+func (_m *Switchboard) IsValidPod(ctx context.Context, podName string) bool {
+	ret := _m.Called(ctx, podName)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, podName)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // KeepAliveMeetingPoint provides a mock function with given fields: ctx, meetingPoint
 func (_m *Switchboard) KeepAliveMeetingPoint(ctx context.Context, meetingPoint switchboard.MeetingPoint) error {
 	ret := _m.Called(ctx, meetingPoint)

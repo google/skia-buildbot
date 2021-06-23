@@ -64,10 +64,25 @@ func TestSingleStep_KeepAliveMeetingPointGetsCalledMultipleTimes_Returns(t *test
 			cancel()
 		}
 	}).Times(2).Return(nil)
+	switchboardMock.On("IsValidPod", testutils.AnyContext, meetingPoint.PodName).Return(true).Times(2)
 	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Return(nil)
 
 	c := New(switchboardMock, mockRevPortForwardCancellable{}, hostname, username)
 	c.singleStep(ctx, time.NewTicker(time.Millisecond), time.Microsecond)
+	switchboardMock.AssertExpectations(t)
+}
+
+func TestSingleStep_IsValidPodRetunsFalse_Returns(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	switchboardMock := &mocks.Switchboard{}
+	switchboardMock.On("ReserveMeetingPoint", testutils.AnyContext, hostname, username).Return(meetingPoint, nil)
+	switchboardMock.On("IsValidPod", testutils.AnyContext, meetingPoint.PodName).Return(false)
+	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Return(nil)
+
+	c := New(switchboardMock, mockRevPortForwardCancellable{}, hostname, username)
+	c.singleStep(ctx, time.NewTicker(time.Millisecond), time.Nanosecond)
 	switchboardMock.AssertExpectations(t)
 }
 
