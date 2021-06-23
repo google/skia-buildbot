@@ -53,6 +53,7 @@ const (
 	switchboardNumMeetingPointsForPodErrors = "switchboard_num_meetingpoints_for_pod_errors"
 	switchboardAddPod                       = "switchboard_add_pod"
 	switchboardRemovePod                    = "switchboard_remove_pod"
+	switchboardIsValidPod                   = "switchboard_is_valid_pod"
 	switchboardKeepAlivePod                 = "switchboard_keepalive_pod"
 	switchboardKeepAlivePodErrors           = "switchboard_keepalive_pod_errors"
 	switchboardListPod                      = "switchboard_list_pod"
@@ -74,6 +75,7 @@ var (
 		switchboardNumMeetingPointsForPodErrors,
 		switchboardAddPod,
 		switchboardRemovePod,
+		switchboardIsValidPod,
 		switchboardKeepAlivePod,
 		switchboardKeepAlivePodErrors,
 		switchboardListPod,
@@ -297,6 +299,13 @@ func (s *switchboardImpl) RemovePod(ctx context.Context, podName string) error {
 	s.counters[switchboardRemovePod].Inc(1)
 	_, err := s.podsCollection.Doc(podName).Delete(ctx)
 	return err
+}
+
+// IsValidPod implements Switchboard
+func (s *switchboardImpl) IsValidPod(ctx context.Context, podName string) bool {
+	s.counters[switchboardIsValidPod].Inc(1)
+	_, err := s.podsCollection.Doc(podName).Get(ctx)
+	return err == nil
 }
 
 // ListPods implements Switchboard
