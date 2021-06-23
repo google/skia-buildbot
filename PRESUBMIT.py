@@ -10,8 +10,8 @@ import subprocess
 
 
 def _MakeFileFilter(input_api, include_extensions=None,
-                    exclude_extensions=None,
-                    exclude_filenames=None):
+    exclude_extensions=None,
+    exclude_filenames=None):
   """Return a filter to pass to AffectedSourceFiles.
 
   The filter will include all files with a file extension in include_extensions,
@@ -30,7 +30,7 @@ def _MakeFileFilter(input_api, include_extensions=None,
                for ext in exclude_extensions]
   if exclude_filenames:
     exclude += [input_api.re.compile(r'.*%s$' % filename.replace('.', '\.'))
-                   for filename in exclude_filenames]
+                for filename in exclude_filenames]
   if len(exclude) == 0:
     # If exclude is empty, the InputApi default is used, so always include at
     # least one regexp.
@@ -87,33 +87,33 @@ def _CheckBannedGoAPIs(input_api, output_api):
   # A list of tuples of a regex to match an API and a suggested replacement for
   # that API.
   banned_replacements = [
-    (r'\breflect\.DeepEqual\b', 'DeepEqual in go.skia.org/infra/go/testutils'),
-    (r'\bgithub\.com/golang/glog\b', 'go.skia.org/infra/go/sklog'),
-    (r'\bgithub\.com/skia-dev/glog\b', 'go.skia.org/infra/go/sklog'),
-    (r'\bhttp\.Get\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
-    (r'\bhttp\.Head\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
-    (r'\bhttp\.Post\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
-    (r'\bhttp\.PostForm\b',
-        'NewTimeoutClient in go.skia.org/infra/go/httputils'),
-    (r'\bos\.Interrupt\b', 'AtExit in go.skia.org/go/cleanup'),
-    (r'\bsignal\.Notify\b', 'AtExit in go.skia.org/go/cleanup'),
-    (r'\bsyscall.SIGINT\b', 'AtExit in go.skia.org/go/cleanup'),
-    (r'\bsyscall.SIGTERM\b', 'AtExit in go.skia.org/go/cleanup'),
-    (r'\bsyncmap.Map\b', 'sync.Map, added in go 1.9'),
-    (r'assert\s+"github\.com/stretchr/testify/require"',
-     'non-aliased import; this can be confused with package ' +
-         '"github.com/stretchr/testify/assert"'),
-    (r'"git"', 'Executable in go.skia.org/infra/go/git', [
-      # These don't actually shell out to git; the tests look for "git" in the
-      # command line and mock stdout accordingly.
-      r'autoroll/go/repo_manager/.*_test.go',
-      # This doesn't shell out to git; it's referring to a CIPD package with
-      # the same name.
-      r'infra/bots/gen_tasks.go',
-      # This is the one place where we are allowed to shell out to git; all
-      # others should go through here.
-      r'go/git/git_common/.*.go',
-    ]),
+      (r'\breflect\.DeepEqual\b', 'DeepEqual in go.skia.org/infra/go/testutils'),
+      (r'\bgithub\.com/golang/glog\b', 'go.skia.org/infra/go/sklog'),
+      (r'\bgithub\.com/skia-dev/glog\b', 'go.skia.org/infra/go/sklog'),
+      (r'\bhttp\.Get\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
+      (r'\bhttp\.Head\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
+      (r'\bhttp\.Post\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
+      (r'\bhttp\.PostForm\b',
+       'NewTimeoutClient in go.skia.org/infra/go/httputils'),
+      (r'\bos\.Interrupt\b', 'AtExit in go.skia.org/go/cleanup'),
+      (r'\bsignal\.Notify\b', 'AtExit in go.skia.org/go/cleanup'),
+      (r'\bsyscall.SIGINT\b', 'AtExit in go.skia.org/go/cleanup'),
+      (r'\bsyscall.SIGTERM\b', 'AtExit in go.skia.org/go/cleanup'),
+      (r'\bsyncmap.Map\b', 'sync.Map, added in go 1.9'),
+      (r'assert\s+"github\.com/stretchr/testify/require"',
+       'non-aliased import; this can be confused with package ' +
+       '"github.com/stretchr/testify/assert"'),
+      (r'"git"', 'Executable in go.skia.org/infra/go/git', [
+          # These don't actually shell out to git; the tests look for "git" in the
+          # command line and mock stdout accordingly.
+          r'autoroll/go/repo_manager/.*_test.go',
+          # This doesn't shell out to git; it's referring to a CIPD package with
+          # the same name.
+          r'infra/bots/gen_tasks.go',
+          # This is the one place where we are allowed to shell out to git; all
+          # others should go through here.
+          r'go/git/git_common/.*.go',
+      ]),
   ]
 
   compiled_replacements = []
@@ -152,26 +152,45 @@ def _CheckBannedGoAPIs(input_api, output_api):
 def _CheckJSDebugging(input_api, output_api):
   """Check JS source code for left over testing/debugging artifacts."""
   to_warn_regexes = [
-    input_api.re.compile('debugger;'),
-    input_api.re.compile('it\\.only\\('),
-    input_api.re.compile('describe\\.only\\('),
+      input_api.re.compile('debugger;'),
+      input_api.re.compile('it\\.only\\('),
+      input_api.re.compile('describe\\.only\\('),
   ]
   errors = []
   file_filter = _MakeFileFilter(input_api, ['js', 'ts'])
   for affected_file in input_api.AffectedSourceFiles(file_filter):
-      affected_filepath = affected_file.LocalPath()
-      for (line_num, line) in affected_file.ChangedContents():
-          for re in to_warn_regexes:
-              match = re.search(line)
-              if match:
-                  errors.append('%s:%s: JS debugging code found (%s)' % (
-                      affected_filepath, line_num, match.group()))
+    affected_filepath = affected_file.LocalPath()
+    for (line_num, line) in affected_file.ChangedContents():
+      for re in to_warn_regexes:
+        match = re.search(line)
+        if match:
+          errors.append('%s:%s: JS debugging code found (%s)' % (
+              affected_filepath, line_num, match.group()))
 
   if errors:
-      return [output_api.PresubmitPromptWarning('\n'.join(errors))]
+    return [output_api.PresubmitPromptWarning('\n'.join(errors))]
 
   return []
 
+def _CheckGitDiff(input_api, output_api, command_name):
+  git_diff_output = input_api.subprocess.check_output(['git', 'diff'])
+  if git_diff_output:
+    return [output_api.PresubmitError(
+        'Diffs found after running "%s":\n\n%s\n'
+        'Please commit the above changes.' % (command_name, git_diff_output)
+    )]
+  return []
+
+
+def _CheckGazelle(input_api, output_api):
+  print('Running "make gazelle" ...')
+  returncode = input_api.subprocess.call(['make', 'gazelle'])
+  return _CheckGitDiff(input_api, output_api, 'make gazelle')
+
+def _CheckBuildifier(input_api, output_api):
+  print('Running "bazel run //:buildifier" ...')
+  returncode = input_api.subprocess.call(['bazel', 'run', '//:buildifier'])
+  return _CheckGitDiff(input_api, output_api, 'bazel run //:buildifier')
 
 def CheckChange(input_api, output_api):
   """Presubmit checks for the change on upload or commit.
@@ -207,10 +226,10 @@ def CheckChange(input_api, output_api):
       'E1003',  # Using class name in super.
       'W0613',  # Unused argument.
   )
-  results += input_api.canned_checks.RunPylint(
-      input_api, output_api,
-      disabled_warnings=pylint_disabled_warnings,
-      files_to_skip=pylint_skip)
+  # results += input_api.canned_checks.RunPylint(
+  #     input_api, output_api,
+  #     disabled_warnings=pylint_disabled_warnings,
+  #     files_to_skip=pylint_skip)
 
   # Use 100 for max length for files other than python. Python length is
   # already checked during the Pylint above. No max length for Go files.
@@ -220,7 +239,7 @@ def CheckChange(input_api, output_api):
                                 exclude_extensions=IGNORE_LINE_LENGTH_EXTS,
                                 exclude_filenames=IGNORE_LINE_LENGTH_FILENAMES)
   results += input_api.canned_checks.CheckLongLines(input_api, output_api, 100,
-      source_file_filter=file_filter)
+                                                    source_file_filter=file_filter)
 
   file_filter = _MakeFileFilter(input_api)
   results += input_api.canned_checks.CheckChangeTodoHasOwner(
@@ -233,6 +252,8 @@ def CheckChange(input_api, output_api):
 
   results += _CheckBannedGoAPIs(input_api, output_api)
   results += _CheckJSDebugging(input_api, output_api)
+  results += _CheckGazelle(input_api, output_api)
+  results += _CheckBuildifier(input_api, output_api)
 
   if input_api.is_committing:
     results.extend(input_api.canned_checks.CheckDoNotSubmitInDescription(
