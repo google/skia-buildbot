@@ -140,11 +140,11 @@ const (
 	urlCommitMsgHook = "/tools/hooks/commit-msg"
 
 	// Kinds of patchsets.
-	patchSetKindMergeFirstParentUpdate = "MERGE_FIRST_PARENT_UPDATE"
-	patchSetKindNoChange               = "NO_CHANGE"
-	patchSetKindNoCodeChange           = "NO_CODE_CHANGE"
-	patchSetKindRework                 = "REWORK"
-	patchSetKindTrivialRebase          = "TRIVIAL_REBASE"
+	PatchSetKindMergeFirstParentUpdate = "MERGE_FIRST_PARENT_UPDATE"
+	PatchSetKindNoChange               = "NO_CHANGE"
+	PatchSetKindNoCodeChange           = "NO_CODE_CHANGE"
+	PatchSetKindRework                 = "REWORK"
+	PatchSetKindTrivialRebase          = "TRIVIAL_REBASE"
 
 	// authSuffix is added to the Gerrit API URL to force authentication.
 	authSuffix = "/a"
@@ -166,10 +166,10 @@ const (
 )
 
 var (
-	trivialPatchSetKinds = []string{
-		patchSetKindTrivialRebase,
-		patchSetKindNoChange,
-		patchSetKindNoCodeChange,
+	TrivialPatchSetKinds = []string{
+		PatchSetKindTrivialRebase,
+		PatchSetKindNoChange,
+		PatchSetKindNoCodeChange,
 	}
 
 	changeIdRegex = regexp.MustCompile(`\s*Change-Id:\s*(\w+)`)
@@ -241,7 +241,7 @@ func (ci *ChangeInfo) GetNonTrivialPatchSets() []*Revision {
 		if ci.Status == ChangeStatusMerged && idx == len(allPatchSets)-1 {
 			continue
 		}
-		if !util.In(rev.Kind, trivialPatchSetKinds) {
+		if !util.In(rev.Kind, TrivialPatchSetKinds) {
 			rv = append(rv, rev)
 		}
 	}
@@ -310,10 +310,11 @@ type LabelEntry struct {
 
 // LabelDetail provides details about a label set on a Change in Gerrit.
 type LabelDetail struct {
-	Name  string
-	Email string
-	Date  string
-	Value int
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Date      string `json:"date"`
+	Value     int    `json:"value"`
+	AccountID int    `json:"_account_id"`
 }
 
 // FileInfoStatus is the type of 'Status' in FileInfo.
@@ -376,6 +377,7 @@ type GerritInterface interface {
 	ExtractIssueFromCommit(string) (int64, error)
 	Files(ctx context.Context, issue int64, patch string) (map[string]*FileInfo, error)
 	GetChange(ctx context.Context, id string) (*ChangeInfo, error)
+	GetCommit(ctx context.Context, issue int64, revision string) (*CommitInfo, error)
 	GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error)
 	GetIssueProperties(context.Context, int64) (*ChangeInfo, error)
 	GetPatch(context.Context, int64, string) (string, error)

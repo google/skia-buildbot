@@ -249,6 +249,29 @@ func (_m *GerritInterface) GetChange(ctx context.Context, id string) (*gerrit.Ch
 	return r0, r1
 }
 
+// GetCommit provides a mock function with given fields: ctx, issue, revision
+func (_m *GerritInterface) GetCommit(ctx context.Context, issue int64, revision string) (*gerrit.CommitInfo, error) {
+	ret := _m.Called(ctx, issue, revision)
+
+	var r0 *gerrit.CommitInfo
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) *gerrit.CommitInfo); ok {
+		r0 = rf(ctx, issue, revision)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gerrit.CommitInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64, string) error); ok {
+		r1 = rf(ctx, issue, revision)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetFileNames provides a mock function with given fields: ctx, issue, patch
 func (_m *GerritInterface) GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error) {
 	ret := _m.Called(ctx, issue, patch)
