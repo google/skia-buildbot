@@ -1,4 +1,4 @@
-load("//golden/pages:all_pages.bzl", "ALL_PAGES")
+load("//golden/pages:all_gold_pages.bzl", "ALL_GOLD_PAGES")
 
 gold_frontend_local_script = """
 if [[ -z "$$1" ]]; then
@@ -97,7 +97,7 @@ genrule(
     srcs = [
         "//golden/cmd/gold_frontend",
         "//golden/static:favicon.ico",
-    ] + ["//golden/pages:%s_prod" % page for page in ALL_PAGES],
+    ] + ["//golden/pages:%s_prod" % page for page in ALL_GOLD_PAGES],
     outs = ["gold_frontend_local_script.sh"],
     cmd = "echo '%s' > $@" % gold_frontend_local_script,
 )
@@ -108,5 +108,5 @@ sh_binary(
     data = [
         "//golden/cmd/gold_frontend",
         "//golden/static:favicon.ico",
-    ] + ["//golden/pages:%s_prod" % page for page in ALL_PAGES],
+    ] + ["//golden/pages:%s_prod" % page for page in ALL_GOLD_PAGES],
 )
