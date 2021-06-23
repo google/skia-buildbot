@@ -80,6 +80,22 @@ func (c *MockClient) MockScheduleBuilds(b, tagName, tagValue, gerritURL, repo, b
 	call.Return(rv, rvErr)
 }
 
+func (c *MockClient) MockCancelBuilds(buildID int64, summaryMarkdown string, rv *buildbucketpb.BatchResponse, rvErr error) {
+	call := c.mock.EXPECT().Batch(context.TODO(), &buildbucketpb.BatchRequest{
+		Requests: []*buildbucketpb.BatchRequest_Request{
+			{
+				Request: &buildbucketpb.BatchRequest_Request_CancelBuild{
+					CancelBuild: &buildbucketpb.CancelBuildRequest{
+						Id:              buildID,
+						SummaryMarkdown: summaryMarkdown,
+					},
+				},
+			},
+		},
+	})
+	call.Return(rv, rvErr)
+}
+
 func (c *MockClient) MockSearchBuilds(pred *buildbucketpb.BuildPredicate, rv []*buildbucketpb.Build, rvErr error) {
 	call := c.mock.EXPECT().SearchBuilds(context.TODO(), &buildbucketpb.SearchBuildsRequest{
 		Predicate: pred,
