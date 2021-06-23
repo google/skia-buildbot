@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/machine/go/machine"
+	storemock "go.skia.org/infra/machine/go/machine/store/mocks"
 	"go.skia.org/infra/machine/go/switchboard"
 	"go.skia.org/infra/machine/go/switchboard/mocks"
 )
@@ -37,8 +39,10 @@ func TestSingleStep_FirstCallToReserveMeetingPointReturnsError_Returns(t *testin
 	unittest.SmallTest(t)
 	switchboardMock := &mocks.Switchboard{}
 	switchboardMock.On("ReserveMeetingPoint", testutils.AnyContext, hostname, username).Return(meetingPoint, errMyMockError)
+	storeMock := &storemock.Store{}
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
 
-	c := New(switchboardMock, mockRevPortForwardPanics{}, hostname, username)
+	c := New(switchboardMock, mockRevPortForwardPanics{}, storeMock, hostname, username)
 	c.singleStep(context.Background(), time.NewTicker(time.Microsecond), time.Microsecond)
 	switchboardMock.AssertExpectations(t)
 }
@@ -64,10 +68,49 @@ func TestSingleStep_KeepAliveMeetingPointGetsCalledMultipleTimes_Returns(t *test
 			cancel()
 		}
 	}).Times(2).Return(nil)
+	switchboardMock.On("IsValidPod", testutils.AnyContext, meetingPoint.PodName).Return(true).Times(2)
 	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Return(nil)
+	storeMock := &storemock.Store{}
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
 
-	c := New(switchboardMock, mockRevPortForwardCancellable{}, hostname, username)
+	c := New(switchboardMock, mockRevPortForwardCancellable{}, storeMock, hostname, username)
 	c.singleStep(ctx, time.NewTicker(time.Millisecond), time.Microsecond)
+	switchboardMock.AssertExpectations(t)
+}
+
+func TestSingleStep_IsValidPodRetunsFalse_Returns(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	switchboardMock := &mocks.Switchboard{}
+	switchboardMock.On("ReserveMeetingPoint", testutils.AnyContext, hostname, username).Return(meetingPoint, nil)
+	switchboardMock.On("IsValidPod", testutils.AnyContext, meetingPoint.PodName).Return(false)
+	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Return(nil)
+	storeMock := &storemock.Store{}
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
+
+	c := New(switchboardMock, mockRevPortForwardCancellable{}, storeMock, hostname, username)
+	c.singleStep(ctx, time.NewTicker(time.Millisecond), time.Nanosecond)
+	switchboardMock.AssertExpectations(t)
+}
+
+func TestSingleStep_RunningATest_IsValidPodDoesNotGetCalled(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	switchboardMock := &mocks.Switchboard{}
+	switchboardMock.On("ReserveMeetingPoint", testutils.AnyContext, hostname, username).Return(meetingPoint, nil)
+	// Note no mock for "IsValidPod".
+	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Return(nil)
+	storeMock := &storemock.Store{}
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
+	switchboardMock.On("KeepAliveMeetingPoint", testutils.AnyContext, meetingPoint).Return(nil).Run(func(args mock.Arguments) {
+		cancel()
+	})
+
+	c := New(switchboardMock, mockRevPortForwardCancellable{}, storeMock, hostname, username)
+	c.runningTest = true
+	c.singleStep(ctx, time.NewTicker(time.Millisecond), time.Nanosecond)
 	switchboardMock.AssertExpectations(t)
 }
 
@@ -80,8 +123,10 @@ func TestStart_ContextIsCancelled_ReturnsAndMeetingPointIsCleared(t *testing.T) 
 	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Run(func(mock.Arguments) {
 		clearMeetingPointCalledWG.Done()
 	}).Return(nil)
+	storeMock := &storemock.Store{}
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
 
-	c := New(switchboardMock, mockRevPortForwardCancellable{}, hostname, username)
+	c := New(switchboardMock, mockRevPortForwardCancellable{}, storeMock, hostname, username)
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	err := c.Start(ctx)
@@ -117,8 +162,10 @@ func TestStart_FirstCallToRevPortForwardFails_CausesASecondCalltoConnectToPod(t 
 	switchboardMock.On("ReserveMeetingPoint", testutils.AnyContext, hostname, username).Times(2).Run(func(args mock.Arguments) {
 		reserveMeetingPointWG.Done()
 	}).Return(meetingPoint, nil)
+	storeMock := &storemock.Store{}
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
 
-	c := New(switchboardMock, &mockRevPortForwardSuccessOnSecondCallToStart{}, hostname, username)
+	c := New(switchboardMock, &mockRevPortForwardSuccessOnSecondCallToStart{}, storeMock, hostname, username)
 	ctx, cancel := context.WithCancel(context.Background())
 	// Call Start() in a Go routine since we need to cancel the Context after
 	// Start() is called, and Start() doesn't return.
