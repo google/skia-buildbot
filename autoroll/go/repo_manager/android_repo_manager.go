@@ -478,7 +478,7 @@ third_party {
 		labels = r.g.Config().SetDryRunLabels
 	}
 	labels = gerrit.MergeLabels(labels, r.g.Config().SelfApproveLabels)
-	if err = r.g.SetReview(ctx, change, "Roller setting labels to auto-land change.", labels, rollEmails); err != nil {
+	if err = r.g.SetReview(ctx, change, "Roller setting labels to auto-land change.", labels, rollEmails, "", "", 0); err != nil {
 		return 0, err
 	}
 

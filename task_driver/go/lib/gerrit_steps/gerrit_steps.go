@@ -69,7 +69,7 @@ func UploadCL(ctx context.Context, g gerrit.GerritInterface, co *git.Checkout, p
 					gerrit.LabelCommitQueue: gerrit.LabelCommitQueueSubmit,
 				}
 			}
-			if err := g.SetReview(ctx, ci, "Ready for review.", labels, reviewers); err != nil {
+			if err := g.SetReview(ctx, ci, "Ready for review.", labels, reviewers, "", "", 0); err != nil {
 				return err
 			}
 			return nil
