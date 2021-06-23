@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "84e840dd_488acd35",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-23T18:19:12Z",
+      "side": 1,
+      "message": "Thanks, as you found in the comments, this is a known issue.\n\nThe problem is that \u0027fixing\u0027 it would require changing\nall the threshholds of all the alerts in all the installed\ninstances of Perf. Instead I\u0027d like to keep the current calculation\nas is.\n\nA preferred fix would be to add a new stepDetection type that\ndoes the fixed calculation, allowing current users to opt it\nto switching to the new calculation.\n",
+      "revId": "2814a0d91d7f81a0a121a6bd2392d3e244693b67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
