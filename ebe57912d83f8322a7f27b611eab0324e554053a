@@ -22,6 +22,30 @@
       },
       "revId": "ebe57912d83f8322a7f27b611eab0324e554053a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6f85ed98_45bbec19",
+        "filename": "go/buildbucket/buildbucket.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-23T14:52:14Z",
+      "side": 1,
+      "message": "Yes, those are important to document. Done. Did not do the others because they should be hopefully self explanatory.",
+      "parentUuid": "b68964a9_4c5686d6",
+      "range": {
+        "startLine": 35,
+        "startChar": 4,
+        "endLine": 35,
+        "endChar": 18
+      },
+      "revId": "ebe57912d83f8322a7f27b611eab0324e554053a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
