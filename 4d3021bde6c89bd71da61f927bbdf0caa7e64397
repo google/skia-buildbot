@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bba21e89_915f5b53",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-23T17:44:39Z",
+      "side": 1,
+      "message": "It might be useful to leave a comment somewhere with the rationale for caching this query instead of running it on demand on the /json/v2/trstatus handler, e.g. average execution time on our largest Gold instance, why DB indexes aren\u0027t helpful here, etc.",
+      "revId": "4d3021bde6c89bd71da61f927bbdf0caa7e64397",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
