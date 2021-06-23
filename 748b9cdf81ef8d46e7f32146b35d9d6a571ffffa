@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a6aa7150_32b55c68",
+        "filename": "go/buildbucket/buildbucket.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-23T14:34:45Z",
+      "side": 1,
+      "message": "nit: skerr.Wrap",
+      "range": {
+        "startLine": 155,
+        "startChar": 14,
+        "endLine": 155,
+        "endChar": 23
+      },
+      "revId": "748b9cdf81ef8d46e7f32146b35d9d6a571ffffa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
