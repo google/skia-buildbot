@@ -35,6 +35,10 @@ type BuildBucketInterface interface {
 	// ScheduleBuilds schedules the specified builds on the given CL. Builds are
 	// scheduled with one batch request to buildbucket.
 	ScheduleBuilds(ctx context.Context, builds []string, buildsToTags map[string]map[string]string, issue, patchset int64, gerritUrl, repo, bbProject, bbBucket string) ([]*buildbucketpb.Build, error)
+	// CancelBuilds cancels the specified buildIDs with the specified
+	// summaryMarkdown. Builds are cancelled with one batch request
+	// to buildbucket.
+	CancelBuilds(ctx context.Context, buildIDs []int64, summaryMarkdown string) ([]*buildbucketpb.Build, error)
 }
 
 // Client is used for interacting with the BuildBucket API.
@@ -125,6 +129,38 @@ func (c *Client) ScheduleBuilds(ctx context.Context, builds []string, buildsToTa
 	respBuilds := []*buildbucketpb.Build{}
 	for _, r := range resp.Responses {
 		respBuilds = append(respBuilds, r.GetScheduleBuild())
+	}
+	return respBuilds, nil
+}
+
+// CancelBuilds implements the BuildBucketInterface.
+func (c *Client) CancelBuilds(ctx context.Context, buildIDs []int64, summaryMarkdown string) ([]*buildbucketpb.Build, error) {
+	requests := []*buildbucketpb.BatchRequest_Request{}
+	for _, bID := range buildIDs {
+		request := &buildbucketpb.BatchRequest_Request{
+			Request: &buildbucketpb.BatchRequest_Request_CancelBuild{
+				CancelBuild: &buildbucketpb.CancelBuildRequest{
+					Id:              bID,
+					SummaryMarkdown: summaryMarkdown,
+				},
+			},
+		}
+		requests = append(requests, request)
+	}
+
+	resp, err := c.bc.Batch(ctx, &buildbucketpb.BatchRequest{
+		Requests: requests,
+	})
+	if err != nil {
+		return nil, skerr.Fmt("Could not cancel builds on buildbucket: %s", err)
+	}
+	if len(resp.Responses) != len(buildIDs) {
+		return nil, skerr.Fmt("Buildbucket gave %d responses for %d builders", len(resp.Responses), len(buildIDs))
+	}
+
+	respBuilds := []*buildbucketpb.Build{}
+	for _, r := range resp.Responses {
+		respBuilds = append(respBuilds, r.GetCancelBuild())
 	}
 	return respBuilds, nil
 }
