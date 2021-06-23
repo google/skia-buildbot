@@ -213,7 +213,7 @@ func main() {
 
 	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB, publiclyViewableParams, reviewSystems)
 
-	handlers := mustMakeWebHandlers(ctx, sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, s2a, statusWatcher, tileSource, tjs)
+	handlers := mustMakeWebHandlers(ctx, fsc, sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, s2a, statusWatcher, tileSource, tjs)
 
 	rootRouter := mustMakeRootRouter(fsc, handlers)
 
@@ -592,7 +592,7 @@ func mustStartExpectationsCleanupProcess(ctx context.Context, fsc *frontendServe
 }
 
 // mustMakeWebHandlers returns a new web.Handlers.
-func mustMakeWebHandlers(ctx context.Context, db *pgxpool.Pool, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, s2a search2.API, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store) *web.Handlers {
+func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, s2a search2.API, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
 		DB:                db,
 		ExpectationsStore: expStore,
@@ -609,7 +609,7 @@ func mustMakeWebHandlers(ctx context.Context, db *pgxpool.Pool, expStore expecta
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
 	}
-	handlers.StartCacheWarming(ctx)
+	handlers.StartCacheWarming(ctx, fsc.WindowSize)
 	return handlers
 }
 
@@ -803,6 +803,7 @@ func addUnauthenticatedJSONRoutes(router *mux.Router, _ *frontendServerConfig, h
 	add("/json/v1/changelist/{system}/{id}/{patchset}/untriaged", handlers.ChangelistUntriagedHandler)
 	add("/json/trstatus", handlers.StatusHandler)
 	add("/json/v1/trstatus", handlers.StatusHandler)
+	add("/json/v2/trstatus", handlers.StatusHandler2)
 	add("/json/changelist/{system}/{id}", handlers.PatchsetsAndTryjobsForCL)
 	add("/json/v1/changelist/{system}/{id}", handlers.PatchsetsAndTryjobsForCL)
 	add("/json/v1/changelist_summary/{system}/{id}", handlers.ChangelistSummaryHandler)
