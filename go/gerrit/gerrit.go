@@ -397,6 +397,7 @@ type GerritInterface interface {
 	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string, NotifyOption, string, int) error
 	SetTopic(context.Context, string, int64) error
 	Submit(context.Context, *ChangeInfo) error
+	SubmittedTogether(context.Context, *ChangeInfo) ([]*ChangeInfo, int, error)
 	Url(int64) string
 }
 
@@ -1104,6 +1105,25 @@ func (g *Gerrit) IsBinaryPatch(ctx context.Context, issue int64, revision string
 // Submit submits the Change.
 func (g *Gerrit) Submit(ctx context.Context, ci *ChangeInfo) error {
 	return g.post(ctx, fmt.Sprintf("/changes/%d/submit", ci.Issue), []byte("{}"))
+}
+
+// The SubmittedTogetherInfo entity contains information about submitted
+// together changes.
+type SubmittedTogetherInfo struct {
+	Changes           []*ChangeInfo `json:"changes"`
+	NonVisibleChanges int           `json:"non_visible_changes"`
+}
+
+// SubmittedTogether returns list of all changes which are submitted when
+// Submit is called for this change, including the current change itself.
+// If the user calling the API does not have access to some changes then
+// non_visible_changes will be > 0.
+func (g *Gerrit) SubmittedTogether(ctx context.Context, ci *ChangeInfo) ([]*ChangeInfo, int, error) {
+	var submittedTogetherInfo *SubmittedTogetherInfo
+	if err := g.get(ctx, fmt.Sprintf("/changes/%d/submitted_together?o=NON_VISIBLE_CHANGES", ci.Issue), &submittedTogetherInfo, nil); err != nil {
+		return nil, -1, fmt.Errorf("Failed to retrieve submitted_together issues: %s", err)
+	}
+	return submittedTogetherInfo.Changes, submittedTogetherInfo.NonVisibleChanges, nil
 }
 
 // DownloadCommitMsgHook downloads the commit message hook to the specified
