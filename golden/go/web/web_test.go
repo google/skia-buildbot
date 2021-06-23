@@ -2444,7 +2444,7 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 	}, nil)
 	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my-system_my_cl").Return(time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC), nil)
 
-	wh := initCaches(Handlers{
+	wh := initCaches(&Handlers{
 		HandlersConfig: HandlersConfig{
 			Search2API: ms,
 			ReviewSystems: []clstore.ReviewSystem{{
@@ -2502,7 +2502,7 @@ func TestChangelistSummaryHandler_CachedValueStaleButUpdatesQuickly_ReturnsFresh
 	}, nil).Once()
 	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my-system_my_cl").Return(time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC), nil)
 
-	wh := initCaches(Handlers{
+	wh := initCaches(&Handlers{
 		HandlersConfig: HandlersConfig{
 			Search2API: ms,
 			ReviewSystems: []clstore.ReviewSystem{{
@@ -2570,7 +2570,7 @@ func TestChangelistSummaryHandler_CachedValueStaleUpdatesSlowly_ReturnsStaleResu
 	}, nil).Once()
 	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my-system_my_cl").Return(time.Date(2021, time.April, 1, 1, 1, 1, 0, time.UTC), nil)
 
-	wh := initCaches(Handlers{
+	wh := initCaches(&Handlers{
 		HandlersConfig: HandlersConfig{
 			Search2API: ms,
 			ReviewSystems: []clstore.ReviewSystem{{
@@ -2688,7 +2688,7 @@ func TestChangelistSummaryHandler_SearchReturnsError_InternalServerError(t *test
 	assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-func TestStartCacheWarming_Success(t *testing.T) {
+func TestStartCLCacheProcess_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -2696,7 +2696,7 @@ func TestStartCacheWarming_Success(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
 
-	wh := initCaches(Handlers{
+	wh := initCaches(&Handlers{
 		HandlersConfig: HandlersConfig{
 			Search2API: search2.New(db, 10),
 			DB:         db,
@@ -2705,12 +2705,88 @@ func TestStartCacheWarming_Success(t *testing.T) {
 
 	// Set the time to be a few days after both CLs in the sample data land.
 	ctx = context.WithValue(ctx, now.ContextKey, time.Date(2020, time.December, 14, 0, 0, 0, 0, time.UTC))
-	wh.StartCacheWarming(ctx)
+	wh.startCLCacheProcess(ctx)
 	require.Eventually(t, func() bool {
 		return wh.clSummaryCache.Len() == 2
 	}, 5*time.Second, 100*time.Millisecond)
 	assert.True(t, wh.clSummaryCache.Contains("gerrit_CL_fix_ios"))
 	assert.True(t, wh.clSummaryCache.Contains("gerrit-internal_CL_new_tests"))
+}
+
+func TestStartStatusCacheProcess_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	waitForSystemTime()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	wh.startStatusCacheProcess(ctx, 100)
+	// Wait for the cache to be filled
+	require.Eventually(t, func() bool {
+		wh.statusCacheMutex.RLock()
+		defer wh.statusCacheMutex.RUnlock()
+		return len(wh.statusCache.CorpStatus) > 0
+	}, 5*time.Second, 100*time.Millisecond)
+
+	wh.statusCacheMutex.RLock()
+	defer wh.statusCacheMutex.RUnlock()
+	assert.Equal(t, frontend.GUIStatus{
+		LastCommit: frontend.Commit{
+			ID:         "0000000110",
+			Author:     datakitchensink.UserTwo,
+			Subject:    "commit 110",
+			Hash:       "f4412901bfb130a8774c0c719450d1450845f471",
+			CommitTime: 1607644800, // "2020-12-11T00:00:00Z"
+		},
+		CorpStatus: []*frontend.GUICorpusStatus{
+			{
+				Name:           datakitchensink.CornersCorpus,
+				UntriagedCount: 0,
+			},
+			{
+				Name:           datakitchensink.RoundCorpus,
+				UntriagedCount: 3,
+			},
+		},
+	}, wh.statusCache)
+}
+
+func TestStatusHandler2_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wh := Handlers{statusCache: frontend.GUIStatus{
+		LastCommit: frontend.Commit{
+			ID:         "0000000110",
+			Author:     datakitchensink.UserTwo,
+			Subject:    "commit 110",
+			Hash:       "f4412901bfb130a8774c0c719450d1450845f471",
+			CommitTime: 1607644800, // "2020-12-11T00:00:00Z"
+		},
+		CorpStatus: []*frontend.GUICorpusStatus{
+			{
+				Name:           datakitchensink.CornersCorpus,
+				UntriagedCount: 0,
+			},
+			{
+				Name:           datakitchensink.RoundCorpus,
+				UntriagedCount: 3,
+			},
+		},
+	}}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	wh.StatusHandler2(w, r)
+	const expectedJSON = `{"lastCommit":{"commit_time":1607644800,"id":"0000000110","hash":"f4412901bfb130a8774c0c719450d1450845f471","author":"userTwo@example.com","message":"commit 110","cl_url":""},"corpStatus":[{"name":"corners","untriagedCount":0},{"name":"round","untriagedCount":3}]}`
+	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
 func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.T) {
@@ -3024,7 +3100,7 @@ func waitForSystemTime() {
 	time.Sleep(150 * time.Millisecond)
 }
 
-func initCaches(handlers Handlers) Handlers {
+func initCaches(handlers *Handlers) *Handlers {
 	clcache, err := lru.New(changelistSummaryCacheSize)
 	if err != nil {
 		panic(err)
