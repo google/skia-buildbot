@@ -1024,7 +1024,7 @@ func (g *Gerrit) Search(ctx context.Context, limit int, sortResults bool, terms 
 // GetTrybotResults retrieves the trybot results for the given change from
 // BuildBucket.
 func (g *Gerrit) GetTrybotResults(ctx context.Context, issueID int64, patchsetID int64) ([]*buildbucketpb.Build, error) {
-	return g.BuildbucketClient.GetTrybotsForCL(ctx, issueID, patchsetID, g.baseUrl)
+	return g.BuildbucketClient.GetTrybotsForCL(ctx, issueID, patchsetID, g.baseUrl, nil)
 }
 
 // SetReadyForReview marks the change as ready for review (ie, not WIP).

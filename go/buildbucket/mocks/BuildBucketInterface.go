@@ -61,13 +61,13 @@ func (_m *BuildBucketInterface) GetBuild(ctx context.Context, buildId int64) (*b
 	return r0, r1
 }
 
-// GetTrybotsForCL provides a mock function with given fields: ctx, issue, patchset, gerritUrl
-func (_m *BuildBucketInterface) GetTrybotsForCL(ctx context.Context, issue int64, patchset int64, gerritUrl string) ([]*buildbucketpb.Build, error) {
-	ret := _m.Called(ctx, issue, patchset, gerritUrl)
+// GetTrybotsForCL provides a mock function with given fields: ctx, issue, patchset, gerritUrl, tags
+func (_m *BuildBucketInterface) GetTrybotsForCL(ctx context.Context, issue int64, patchset int64, gerritUrl string, tags map[string]string) ([]*buildbucketpb.Build, error) {
+	ret := _m.Called(ctx, issue, patchset, gerritUrl, tags)
 
 	var r0 []*buildbucketpb.Build
-	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, string) []*buildbucketpb.Build); ok {
-		r0 = rf(ctx, issue, patchset, gerritUrl)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, string, map[string]string) []*buildbucketpb.Build); ok {
+		r0 = rf(ctx, issue, patchset, gerritUrl, tags)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*buildbucketpb.Build)
@@ -75,8 +75,8 @@ func (_m *BuildBucketInterface) GetTrybotsForCL(ctx context.Context, issue int64
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, int64, int64, string) error); ok {
-		r1 = rf(ctx, issue, patchset, gerritUrl)
+	if rf, ok := ret.Get(1).(func(context.Context, int64, int64, string, map[string]string) error); ok {
+		r1 = rf(ctx, issue, patchset, gerritUrl, tags)
 	} else {
 		r1 = ret.Error(1)
 	}

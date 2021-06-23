@@ -30,8 +30,9 @@ type BuildBucketInterface interface {
 	GetBuild(ctx context.Context, buildId int64) (*buildbucketpb.Build, error)
 	// Search retrieves Builds which match the given criteria.
 	Search(ctx context.Context, pred *buildbucketpb.BuildPredicate) ([]*buildbucketpb.Build, error)
-	// GetTrybotsForCL retrieves trybot results for the given CL.
-	GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string) ([]*buildbucketpb.Build, error)
+	// GetTrybotsForCL retrieves trybot results for the given CL using the
+	// optional tags.
+	GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string, tags map[string]string) ([]*buildbucketpb.Build, error)
 	// ScheduleBuilds schedules the specified builds on the given CL. Builds are
 	// scheduled with one batch request to buildbucket.
 	// builds is the slice of which builds should be scheduled by buildbucket.
@@ -198,8 +199,8 @@ func (c *Client) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate)
 }
 
 // GetTrybotsForCL implements the BuildBucketInterface.
-func (c *Client) GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string) ([]*buildbucketpb.Build, error) {
-	pred, err := common.GetTrybotsForCLPredicate(issue, patchset, gerritUrl)
+func (c *Client) GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string, tags map[string]string) ([]*buildbucketpb.Build, error) {
+	pred, err := common.GetTrybotsForCLPredicate(issue, patchset, gerritUrl, tags)
 	if err != nil {
 		return nil, err
 	}
