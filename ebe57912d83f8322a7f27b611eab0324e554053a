@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b68964a9_4c5686d6",
+        "filename": "go/buildbucket/buildbucket.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-23T14:08:45Z",
+      "side": 1,
+      "message": "Please document the parameters, at the very least what builds and buildsToTags mean.",
+      "range": {
+        "startLine": 35,
+        "startChar": 4,
+        "endLine": 35,
+        "endChar": 18
+      },
+      "revId": "ebe57912d83f8322a7f27b611eab0324e554053a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
