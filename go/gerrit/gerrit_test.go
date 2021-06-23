@@ -461,6 +461,36 @@ func TestGetFileNames(t *testing.T) {
 	require.Contains(t, files, "tools/gpu/vk/GrVulkanDefines.h")
 }
 
+func TestSubmittedTogether(t *testing.T) {
+	unittest.SmallTest(t)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, err := fmt.Fprintln(w, `)]}'
+{
+	"changes": [
+		{
+			"id": "change1"
+		},
+		{
+			"id": "change2"
+		}
+	],
+	"non_visible_changes": 1
+}`)
+		require.NoError(t, err)
+	}))
+	defer ts.Close()
+
+	api, err := NewGerritWithConfig(ConfigChromium, ts.URL, c)
+	ci := &ChangeInfo{Issue: int64(123)}
+	submittedTogether, nonVisible, err := api.SubmittedTogether(context.Background(), ci)
+	require.NoError(t, err)
+	require.Len(t, submittedTogether, 2)
+	require.Equal(t, "change1", submittedTogether[0].Id)
+	require.Equal(t, "change2", submittedTogether[1].Id)
+	require.Equal(t, 1, nonVisible)
+}
+
 func TestIsBinaryPatch(t *testing.T) {
 	unittest.SmallTest(t)
 
