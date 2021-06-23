@@ -111,7 +111,7 @@ func (c *MockClient) MockSearchBuilds(pred *buildbucketpb.BuildPredicate, rv []*
 }
 
 func (c *MockClient) MockGetTrybotsForCL(issueID, patchsetID int64, gerritUrl string, rv []*buildbucketpb.Build, rvErr error) {
-	pred, err := common.GetTrybotsForCLPredicate(issueID, patchsetID, gerritUrl)
+	pred, err := common.GetTrybotsForCLPredicate(issueID, patchsetID, gerritUrl, nil)
 	require.NoError(c.t, err)
 	c.MockSearchBuilds(pred, rv, rvErr)
 }
