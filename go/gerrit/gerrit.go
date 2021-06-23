@@ -166,7 +166,7 @@ const (
 )
 
 var (
-	trivialPatchSetKinds = []string{
+	TrivialPatchSetKinds = []string{
 		patchSetKindTrivialRebase,
 		patchSetKindNoChange,
 		patchSetKindNoCodeChange,
@@ -174,6 +174,16 @@ var (
 
 	changeIdRegex = regexp.MustCompile(`\s*Change-Id:\s*(\w+)`)
 )
+
+// The different notify options supported by Gerrit. See the notify property
+// in https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#review-input
+type NotifyOption string
+
+const NotifyNone NotifyOption = "NONE"
+const NotifyOwner NotifyOption = "OWNER"
+const NotifyOwnerReviewers NotifyOption = "OWNER_REVIEWERS"
+const NotifyAll NotifyOption = "ALL"
+const NotifyDefault NotifyOption = ""
 
 // ChangeInfoMessage contains information about Gerrit messages.
 type ChangeInfoMessage struct {
@@ -231,7 +241,7 @@ func (ci *ChangeInfo) GetNonTrivialPatchSets() []*Revision {
 		if ci.Status == ChangeStatusMerged && idx == len(allPatchSets)-1 {
 			continue
 		}
-		if !util.In(rev.Kind, trivialPatchSetKinds) {
+		if !util.In(rev.Kind, TrivialPatchSetKinds) {
 			rv = append(rv, rev)
 		}
 	}
@@ -300,10 +310,11 @@ type LabelEntry struct {
 
 // LabelDetail provides details about a label set on a Change in Gerrit.
 type LabelDetail struct {
-	Name  string
-	Email string
-	Date  string
-	Value int
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Date      string `json:"date"`
+	Value     int    `json:"value"`
+	AccountID int    `json:"_account_id"`
 }
 
 // FileInfoStatus is the type of 'Status' in FileInfo.
@@ -366,6 +377,7 @@ type GerritInterface interface {
 	ExtractIssueFromCommit(string) (int64, error)
 	Files(ctx context.Context, issue int64, patch string) (map[string]*FileInfo, error)
 	GetChange(ctx context.Context, id string) (*ChangeInfo, error)
+	GetCommit(ctx context.Context, issue int64, revision string) (*CommitInfo, error)
 	GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error)
 	GetIssueProperties(context.Context, int64) (*ChangeInfo, error)
 	GetPatch(context.Context, int64, string) (string, error)
@@ -384,9 +396,10 @@ type GerritInterface interface {
 	SendToDryRun(context.Context, *ChangeInfo, string) error
 	SetCommitMessage(context.Context, *ChangeInfo, string) error
 	SetReadyForReview(context.Context, *ChangeInfo) error
-	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string) error
+	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string, NotifyOption, string, int) error
 	SetTopic(context.Context, string, int64) error
 	Submit(context.Context, *ChangeInfo) error
+	SubmittedTogether(context.Context, *ChangeInfo) ([]*ChangeInfo, int, error)
 	Url(int64) string
 }
 
@@ -645,10 +658,21 @@ type reviewer struct {
 // SetReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
 // the latest patchset.
 // API documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#set-review
-func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message string, labels map[string]int, reviewers []string) error {
+// onBehalfOf is expected to be the accountId the review should be posted on
+// behalf of. Set to 0 to not use this functionality.
+func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message string, labels map[string]int, reviewers []string, notify NotifyOption, tag string, onBehalfOf int) error {
 	postData := map[string]interface{}{
 		"message": message,
 		"labels":  labels,
+	}
+	if notify != NotifyDefault {
+		postData["notify"] = notify
+	}
+	if tag != "" {
+		postData["tag"] = tag
+	}
+	if onBehalfOf != 0 {
+		postData["on_behalf_of"] = onBehalfOf
 	}
 
 	if len(reviewers) > 0 {
@@ -685,46 +709,46 @@ func (g *Gerrit) AddCC(ctx context.Context, issue *ChangeInfo, ccList []string) 
 
 // AddComment adds a message to the issue.
 func (g *Gerrit) AddComment(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]int{}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{}, nil, "", "", 0)
 }
 
 // Utility methods for interacting with the COMMITQUEUE_LABEL.
 
 // SendToDryRun sets the Commit Queue dry run labels on the Change.
 func (g *Gerrit) SendToDryRun(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, g.cfg.SetDryRunLabels, nil)
+	return g.SetReview(ctx, issue, message, g.cfg.SetDryRunLabels, nil, "", "", 0)
 }
 
 // SendToCQ sets the Commit Queue labels on the Change.
 func (g *Gerrit) SendToCQ(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, g.cfg.SetCqLabels, nil)
+	return g.SetReview(ctx, issue, message, g.cfg.SetCqLabels, nil, "", "", 0)
 }
 
 // RemoveFromCQ unsets the Commit Queue labels on the Change.
 func (g *Gerrit) RemoveFromCQ(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, g.cfg.NoCqLabels, nil)
+	return g.SetReview(ctx, issue, message, g.cfg.NoCqLabels, nil, "", "", 0)
 }
 
 // Utility methods for interacting with the CODEREVIEW_LABEL.
 
 // Approve sets the Code Review label to indicate approval.
 func (g *Gerrit) Approve(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewApprove}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewApprove}, nil, "", "", 0)
 }
 
 // NoScore unsets the Code Review label.
 func (g *Gerrit) NoScore(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewNone}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewNone}, nil, "", "", 0)
 }
 
 // Disapprove sets the Code Review label to indicate disapproval.
 func (g *Gerrit) Disapprove(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewDisapprove}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewDisapprove}, nil, "", "", 0)
 }
 
 // SelfApprove sets the Code Review label to indicate self-approval.
 func (g *Gerrit) SelfApprove(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, g.cfg.SelfApproveLabels, nil)
+	return g.SetReview(ctx, issue, message, g.cfg.SelfApproveLabels, nil, "", "", 0)
 }
 
 // Abandon abandons the issue with the given message.
@@ -1083,6 +1107,25 @@ func (g *Gerrit) IsBinaryPatch(ctx context.Context, issue int64, revision string
 // Submit submits the Change.
 func (g *Gerrit) Submit(ctx context.Context, ci *ChangeInfo) error {
 	return g.post(ctx, fmt.Sprintf("/changes/%d/submit", ci.Issue), []byte("{}"))
+}
+
+// The SubmittedTogetherInfo entity contains information about submitted
+// together changes.
+type SubmittedTogetherInfo struct {
+	Changes           []*ChangeInfo `json:"changes"`
+	NonVisibleChanges int           `json:"non_visible_changes"`
+}
+
+// SubmittedTogether returns list of all changes which are submitted when
+// Submit is called for this change, including the current change itself.
+// If the user calling the API does not have access to some changes then
+// non_visible_changes will be > 0.
+func (g *Gerrit) SubmittedTogether(ctx context.Context, ci *ChangeInfo) ([]*ChangeInfo, int, error) {
+	var submittedTogetherInfo *SubmittedTogetherInfo
+	if err := g.get(ctx, fmt.Sprintf("/changes/%d/submitted_together?o=NON_VISIBLE_CHANGES", ci.Issue), &submittedTogetherInfo, nil); err != nil {
+		return nil, -1, fmt.Errorf("Failed to retrieve submitted_together issues: %s", err)
+	}
+	return submittedTogetherInfo.Changes, submittedTogetherInfo.NonVisibleChanges, nil
 }
 
 // DownloadCommitMsgHook downloads the commit message hook to the specified
