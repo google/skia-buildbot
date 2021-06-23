@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b51487c5_c207e0b9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-23T12:19:11Z",
+      "side": 1,
+      "message": "Can we add this command (and some like it for other containers) to //golden/Makefile? Or do you envision the Makefile going away?\n\nI like a Makefile as a very shorthand way to document commands, especially to maintain consistency across apps. WDYT?",
+      "revId": "db3b4bae5932aebbcab17209720bb3606bfda255",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
