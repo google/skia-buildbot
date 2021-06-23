@@ -6,8 +6,11 @@ import (
 	"net/http"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	structpb "google.golang.org/protobuf/types/known/structpb"
+
 	"go.chromium.org/luci/grpc/prpc"
 	"go.skia.org/infra/go/buildbucket/common"
+	"go.skia.org/infra/go/skerr"
 )
 
 const (
@@ -29,6 +32,15 @@ type BuildBucketInterface interface {
 	Search(ctx context.Context, pred *buildbucketpb.BuildPredicate) ([]*buildbucketpb.Build, error)
 	// GetTrybotsForCL retrieves trybot results for the given CL.
 	GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string) ([]*buildbucketpb.Build, error)
+	// ScheduleBuilds schedules the specified builds on the given CL. Builds are
+	// scheduled with one batch request to buildbucket.
+	// builds is the slice of which builds should be scheduled by buildbucket.
+	// Eg: ["Infra-PerCommit-Race", "Infra-PerCommit-Small"].
+	// buildsToTags is the map of which tags to use when scheduling
+	// some of the builds. Eg: {"Infra-PerCommit-Race": {"triggered_by": "skcq"}}
+	// means that the Infra-PerCommit-Race build should be scheduled with the
+	// "triggered_by: skcq" tag.
+	ScheduleBuilds(ctx context.Context, builds []string, buildsToTags map[string]map[string]string, issue, patchset int64, gerritUrl, repo, bbProject, bbBucket string) ([]*buildbucketpb.Build, error)
 }
 
 // Client is used for interacting with the BuildBucket API.
@@ -66,6 +78,63 @@ func (c *Client) GetBuild(ctx context.Context, buildId int64) (*buildbucketpb.Bu
 	return b, err
 }
 
+// ScheduleBuilds implements the BuildBucketInterface.
+func (c *Client) ScheduleBuilds(ctx context.Context, builds []string, buildsToTags map[string]map[string]string, issue, patchset int64, gerritURL, repo, bbProject, bbBucket string) ([]*buildbucketpb.Build, error) {
+	requests := []*buildbucketpb.BatchRequest_Request{}
+	for _, b := range builds {
+		tagStringPairs := []*buildbucketpb.StringPair{}
+		tags, ok := buildsToTags[b]
+		if ok {
+			for n, v := range tags {
+				stringPair := &buildbucketpb.StringPair{
+					Key:   n,
+					Value: v,
+				}
+				tagStringPairs = append(tagStringPairs, stringPair)
+			}
+		}
+		request := &buildbucketpb.BatchRequest_Request{
+			Request: &buildbucketpb.BatchRequest_Request_ScheduleBuild{
+				ScheduleBuild: &buildbucketpb.ScheduleBuildRequest{
+					Builder: &buildbucketpb.BuilderID{
+						Project: bbProject,
+						Bucket:  bbBucket,
+						Builder: b,
+					},
+					GerritChanges: []*buildbucketpb.GerritChange{
+						{
+							Host:     gerritURL,
+							Project:  repo,
+							Change:   issue,
+							Patchset: patchset,
+						},
+					},
+					Properties: &structpb.Struct{},
+					Tags:       tagStringPairs,
+					Fields:     common.GetBuildFields,
+				},
+			},
+		}
+		requests = append(requests, request)
+	}
+
+	resp, err := c.bc.Batch(ctx, &buildbucketpb.BatchRequest{
+		Requests: requests,
+	})
+	if err != nil {
+		return nil, skerr.Fmt("Could not schedule builds on buildbucket: %s", err)
+	}
+	if len(resp.Responses) != len(builds) {
+		return nil, skerr.Fmt("Buildbucket gave %d responses for %d builders", len(resp.Responses), len(builds))
+	}
+
+	respBuilds := []*buildbucketpb.Build{}
+	for _, r := range resp.Responses {
+		respBuilds = append(respBuilds, r.GetScheduleBuild())
+	}
+	return respBuilds, nil
+}
+
 // GetBuild implements the BuildBucketInterface.
 func (c *Client) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate) ([]*buildbucketpb.Build, error) {
 	rv := []*buildbucketpb.Build{}
@@ -92,7 +161,7 @@ func (c *Client) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate)
 	return rv, nil
 }
 
-// GetBuild implements the BuildBucketInterface.
+// GetTrybotsForCL implements the BuildBucketInterface.
 func (c *Client) GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string) ([]*buildbucketpb.Build, error) {
 	pred, err := common.GetTrybotsForCLPredicate(issue, patchset, gerritUrl)
 	if err != nil {
