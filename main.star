@@ -55,11 +55,9 @@ luci.cq_group(
         ),
         luci.cq_tryjob_verifier(
             builder = "skia:skia.primary/Infra-PerCommit-Build-Bazel-RBE",
-            experiment_percentage = 100,
         ),
         luci.cq_tryjob_verifier(
             builder = "skia:skia.primary/Infra-PerCommit-Test-Bazel-RBE",
-            experiment_percentage = 100
         ),
         luci.cq_tryjob_verifier(
             builder = "skia:skia.primary/Infra-PerCommit-ValidateAutorollConfigs",
