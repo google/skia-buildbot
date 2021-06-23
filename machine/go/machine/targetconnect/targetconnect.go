@@ -116,6 +116,11 @@ func (c *Connection) singleStep(ctx context.Context, ticker *time.Ticker, sleepD
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
+				if !c.switchboard.IsValidPod(ctx, mp.PodName) {
+					sklog.Infof("pod is no longer valid, exiting for force reconnect: %q", mp.PodName)
+					cancel()
+					return
+				}
 				err := c.switchboard.KeepAliveMeetingPoint(ctx, mp)
 				if err != nil {
 					sklog.Errorf("targetconnect KeepAliveMeetingPoint failed: %s", err)

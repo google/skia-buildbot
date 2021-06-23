@@ -428,3 +428,15 @@ func TestNumMeetingPointsForPod_MeetingPointsExistButNoneMatchThePodName_ReturnZ
 	require.Equal(t, int64(0), s.counters[switchboardNumMeetingPointsForPodErrors].Get())
 
 }
+
+func TestIsValidPod(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, s := setupForTest(t)
+
+	// Add a pod.
+	err := s.AddPod(ctx, podName)
+	require.NoError(t, err)
+
+	require.True(t, s.IsValidPod(ctx, podName))
+	require.False(t, s.IsValidPod(ctx, "this is not a valid pod name"))
+}
