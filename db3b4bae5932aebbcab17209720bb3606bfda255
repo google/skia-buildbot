@@ -16,6 +16,24 @@
       "message": "Can we add this command (and some like it for other containers) to //golden/Makefile? Or do you envision the Makefile going away?\n\nI like a Makefile as a very shorthand way to document commands, especially to maintain consistency across apps. WDYT?",
       "revId": "db3b4bae5932aebbcab17209720bb3606bfda255",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e834be70_20de04ea",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-23T18:08:27Z",
+      "side": 1,
+      "message": "Done.\n\nGenerally I think Make targets are a good idea for tasks that require multiple Bazel commands, or Bazel commands with command-line flags (e.g. `make gazelle` from the repo root). I only envision //golden/Makefile going away if we don\u0027t have any such use cases under //golden after we\u0027re fully migrated to Bazel.\n\nThat said, I\u0027m completely open to having Make targets as aliases for simple Bazel commands if you think it\u0027ll make things easier.",
+      "parentUuid": "b51487c5_c207e0b9",
+      "revId": "db3b4bae5932aebbcab17209720bb3606bfda255",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
