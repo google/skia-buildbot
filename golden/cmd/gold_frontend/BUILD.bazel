@@ -1,6 +1,10 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("//bazel/go:go_test.bzl", "go_test")
 
+ asdf asdff asfd
+  fsadf d as asd
+       asdf fdasf asdf asdf
+
 go_library(
     name = "gold_frontend_lib",
     srcs = ["gold_frontend.go"],
