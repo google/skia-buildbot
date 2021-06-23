@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ed253d10_05684093",
+        "filename": "machine/go/machine/targetconnect/targetconnect.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-23T18:33:21Z",
+      "side": 1,
+      "message": "suggestion: use a RWMutex and RLock/RUnlock here",
+      "range": {
+        "startLine": 60,
+        "startChar": 9,
+        "endLine": 60,
+        "endChar": 13
+      },
+      "revId": "8921a3349d4a795aa8fbcd5c82c5344017dfa2b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
