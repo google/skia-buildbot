@@ -45,6 +45,41 @@ func (c *MockClient) MockGetBuild(id int64, rv *buildbucketpb.Build, rvErr error
 	call.Return(rv, rvErr)
 }
 
+func (c *MockClient) MockScheduleBuilds(b, tagName, tagValue, gerritURL, repo, bbProject, bbBucket string, issue, patchset int64, rv *buildbucketpb.BatchResponse, rvErr error) {
+	call := c.mock.EXPECT().Batch(context.TODO(), &buildbucketpb.BatchRequest{
+		Requests: []*buildbucketpb.BatchRequest_Request{
+			{
+				Request: &buildbucketpb.BatchRequest_Request_ScheduleBuild{
+					ScheduleBuild: &buildbucketpb.ScheduleBuildRequest{
+						Builder: &buildbucketpb.BuilderID{
+							Project: bbProject,
+							Bucket:  bbBucket,
+							Builder: b,
+						},
+						GerritChanges: []*buildbucketpb.GerritChange{
+							{
+								Host:     gerritURL,
+								Project:  repo,
+								Change:   issue,
+								Patchset: patchset,
+							},
+						},
+						Properties: &structpb.Struct{},
+						Tags: []*buildbucketpb.StringPair{
+							{
+								Key:   tagName,
+								Value: tagValue,
+							},
+						},
+						Fields: common.GetBuildFields,
+					},
+				},
+			},
+		},
+	})
+	call.Return(rv, rvErr)
+}
+
 func (c *MockClient) MockSearchBuilds(pred *buildbucketpb.BuildPredicate, rv []*buildbucketpb.Build, rvErr error) {
 	call := c.mock.EXPECT().SearchBuilds(context.TODO(), &buildbucketpb.SearchBuildsRequest{
 		Predicate: pred,

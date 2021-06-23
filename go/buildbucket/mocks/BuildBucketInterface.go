@@ -61,6 +61,29 @@ func (_m *BuildBucketInterface) GetTrybotsForCL(ctx context.Context, issue int64
 	return r0, r1
 }
 
+// ScheduleBuilds provides a mock function with given fields: ctx, builds, buildsToTags, issue, patchset, gerritUrl, repo, bbProject, bbBucket
+func (_m *BuildBucketInterface) ScheduleBuilds(ctx context.Context, builds []string, buildsToTags map[string]map[string]string, issue int64, patchset int64, gerritUrl string, repo string, bbProject string, bbBucket string) ([]*buildbucketpb.Build, error) {
+	ret := _m.Called(ctx, builds, buildsToTags, issue, patchset, gerritUrl, repo, bbProject, bbBucket)
+
+	var r0 []*buildbucketpb.Build
+	if rf, ok := ret.Get(0).(func(context.Context, []string, map[string]map[string]string, int64, int64, string, string, string, string) []*buildbucketpb.Build); ok {
+		r0 = rf(ctx, builds, buildsToTags, issue, patchset, gerritUrl, repo, bbProject, bbBucket)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*buildbucketpb.Build)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, []string, map[string]map[string]string, int64, int64, string, string, string, string) error); ok {
+		r1 = rf(ctx, builds, buildsToTags, issue, patchset, gerritUrl, repo, bbProject, bbBucket)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Search provides a mock function with given fields: ctx, pred
 func (_m *BuildBucketInterface) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate) ([]*buildbucketpb.Build, error) {
 	ret := _m.Called(ctx, pred)
