@@ -172,6 +172,41 @@ def _CheckJSDebugging(input_api, output_api):
 
   return []
 
+def _RunCommandAndCheckGitDiff(input_api, output_api, command):
+  command_str = ' '.join(command)
+  results = []
+
+  print('Running "%s" ...' % command_str)
+  try:
+    command_output = input_api.subprocess.check_output(
+        command,
+        stderr=input_api.subprocess.STDOUT,
+    )
+  except input_api.subprocess.CalledProcessError as e:
+    results += [output_api.PresubmitError(
+        'Command "%s" returned non-zero exit code %d. Output: \n\n%s' % (
+            command_str,
+            e.returncode,
+            e.output,
+        )
+    )]
+
+  git_diff_output = input_api.subprocess.check_output(
+      ['git', 'diff', '--no-ext-diff'])
+  if git_diff_output:
+    results += [output_api.PresubmitError(
+        'Diffs found after running "%s":\n\n%s\n'
+        'Please commit the above changes.' % (command_str, git_diff_output)
+    )]
+
+  return results
+
+def _CheckBuildifier(input_api, output_api):
+  return _RunCommandAndCheckGitDiff(
+      input_api, output_api, ['bazel', 'run', '//:buildifier'])
+
+def _CheckGazelle(input_api, output_api):
+  return _RunCommandAndCheckGitDiff(input_api, output_api, ['make', 'gazelle'])
 
 def CheckChange(input_api, output_api):
   """Presubmit checks for the change on upload or commit.
@@ -233,6 +268,8 @@ def CheckChange(input_api, output_api):
 
   results += _CheckBannedGoAPIs(input_api, output_api)
   results += _CheckJSDebugging(input_api, output_api)
+  results += _CheckBuildifier(input_api, output_api)
+  results += _CheckGazelle(input_api, output_api)
 
   if input_api.is_committing:
     results.extend(input_api.canned_checks.CheckDoNotSubmitInDescription(
