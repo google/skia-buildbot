@@ -218,8 +218,9 @@ func TestGetTrybotsForCL(t *testing.T) {
 				Patchset: 1,
 			},
 		},
+		Tags: []*buildbucketpb.StringPair{},
 	}, []*buildbucketpb.Build{expect}, nil)
-	b, err := c.GetTrybotsForCL(context.TODO(), 12345, 1, "https://skia-review.googlesource.com")
+	b, err := c.GetTrybotsForCL(context.TODO(), 12345, 1, "https://skia-review.googlesource.com", nil)
 	require.NoError(t, err)
 	require.NotNil(t, b)
 	require.Equal(t, 1, len(b))
