@@ -1,4 +1,36 @@
 load("//golden/pages:all_gold_pages.bzl", "ALL_GOLD_PAGES")
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "gold_frontend_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//golden/cmd/gold_frontend:gold_frontend",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/frontend/dist": [
+            [
+                "//golden/static:favicon.ico",
+                "0644",
+            ],
+        ] + [
+            [
+                "//golden/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in ALL_GOLD_PAGES
+            for ext in [
+                "html",
+                "js",
+                "css",
+            ]
+        ],
+    },
+    entrypoint = "/usr/local/bin/gold_frontend",
+    repository = "skia-public/gold-frontend",
+)
 
 gold_frontend_local_script = """
 if [[ -z "$$1" ]]; then

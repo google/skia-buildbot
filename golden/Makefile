@@ -141,6 +141,11 @@ build-static-goldpushk-crashing-server:
 	rm -f ./build/goldpushk_crashing_server_k8s
 	$(KGO) -o build/goldpushk_crashing_server_k8s -a ./cmd/goldpushk/testing/crashing_server/...
 
+# Build the gold-frontend container with Bazel and push it to GCR.
+.PHONY: push_gold_frontend_container
+push_gold_frontend_container:
+	bazel run //golden:push_gold_frontend_container
+
 .PHONY: mocks
 mocks:
 	echo "Be sure to have downloaded mockery 2.4.0 from"
