@@ -41,8 +41,6 @@ import (
 type ReversePortForward struct {
 	config       *rest.Config
 	localaddress string
-	pod          string
-	podPort      int
 	useNcRev     bool
 }
 
@@ -53,15 +51,13 @@ type ReversePortForward struct {
 // podPort - The port to forward from within the pod.
 // localaddress - The address we want the incoming connection to be forwarded
 //    to, something like "localhost:22"
-func New(kubeconfig, podName string, podPort int, localaddress string, useNcRev bool) (*ReversePortForward, error) {
+func New(kubeconfig, localaddress string, useNcRev bool) (*ReversePortForward, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to initialize from kubeconfig: %s", kubeconfig)
 	}
 	return &ReversePortForward{
 		config:       config,
-		pod:          podName,
-		podPort:      podPort,
 		localaddress: localaddress,
 		useNcRev:     useNcRev,
 	}, nil
@@ -78,7 +74,7 @@ func New(kubeconfig, podName string, podPort int, localaddress string, useNcRev 
 //		sklog.Error(err)
 //	  }
 // }
-func (r *ReversePortForward) Start(ctx context.Context) error {
+func (r *ReversePortForward) Start(ctx context.Context, podName string, podPort int) error {
 	fmt.Println("Begin")
 	// First start a connection to the localaddress.
 	var d net.Dialer
@@ -99,17 +95,17 @@ func (r *ReversePortForward) Start(ctx context.Context) error {
 	cmd := []string{
 		"sh",
 		"-c",
-		fmt.Sprintf("nc -vv -l -p %d", r.podPort),
+		fmt.Sprintf("nc -vv -l -p %d", podPort),
 	}
 	if r.useNcRev {
 		hostname, _ := os.Hostname() // If hostname errs then use the empty string.
 		cmd = []string{
 			"sh",
 			"-c",
-			fmt.Sprintf("ncrev --port=:%d --machine=%s", r.podPort, hostname),
+			fmt.Sprintf("ncrev --port=:%d --machine=%s", podPort, hostname),
 		}
 	}
-	req := clientset.CoreV1().RESTClient().Post().Resource("pods").Name(r.pod).Namespace("default").SubResource("exec")
+	req := clientset.CoreV1().RESTClient().Post().Resource("pods").Name(podName).Namespace("default").SubResource("exec")
 	option := &v1.PodExecOptions{
 		Command: cmd,
 		Stdin:   true,
@@ -123,7 +119,7 @@ func (r *ReversePortForward) Start(ctx context.Context) error {
 	)
 	exec, err := remotecommand.NewSPDYExecutor(r.config, "POST", req.URL())
 	if err != nil {
-		return skerr.Wrapf(err, "Failed to run netcat on the pod: %q", r.pod)
+		return skerr.Wrapf(err, "Failed to run netcat on the pod: %q", podName)
 	}
 
 	// exec.Stream will not return until the connection is broken.
