@@ -252,6 +252,11 @@
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:7a347df991c1064ac1a2a61e6d0488e17fd74170"
+        },
+        {
+          "name": "skia/bots/bazel",
+          "path": "bazel",
+          "version": "version:3"
         }
       ],
       "command": [
