@@ -120,8 +120,9 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 				stepSize = (y0 - y1)
 			}
 		}
-		// Calculate the Root-Mean-Squared Error to measure fit to step function
-		lse = float32(math.Sqrt(float64(lse) / float64(len(trace)))
+		// The next line of code should actually be math.Sqrt(lse/len(trace))
+		// instead it is math.Sqrt(lse)/len(trace), which does not give the stddev.
+		lse = float32(math.Sqrt(float64(lse))) / float32(len(trace))
 		if lse < stddevThreshold {
 			regression = stepSize / stddevThreshold
 		} else {
