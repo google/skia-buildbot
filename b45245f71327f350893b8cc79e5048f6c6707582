@@ -22,6 +22,30 @@
       },
       "revId": "b45245f71327f350893b8cc79e5048f6c6707582",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "81819ece_b04b0cd7",
+        "filename": "PRESUBMIT.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-24T18:55:23Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s necessary. `make gazelle` exists because it actually calls two `bazel run //:gazelle` commands with different flags.\n\nFrom a usability perspective, devs will know which command to run because the presubmit hook error message includes the exact command, e.g.:\n\n  Diffs found after running \"bazel run //:buildifier\"\n\nIn the future I\u0027d like to replace `make gazelle` with a single `bazel run //:something` command that calls Gazelle with the two sets of command-line flags.",
+      "parentUuid": "786f0767_128bb426",
+      "range": {
+        "startLine": 227,
+        "startChar": 31,
+        "endLine": 227,
+        "endChar": 60
+      },
+      "revId": "b45245f71327f350893b8cc79e5048f6c6707582",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
