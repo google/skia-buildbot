@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	rpfMock "go.skia.org/infra/machine/go/machine/targetconnect/mocks"
 	"go.skia.org/infra/machine/go/switchboard"
 	"go.skia.org/infra/machine/go/switchboard/mocks"
 )
@@ -24,21 +25,19 @@ const (
 
 var (
 	errMyMockError = errors.New("my mock error")
-	meetingPoint   = switchboard.MeetingPoint{}
+	meetingPoint   = switchboard.MeetingPoint{
+		PodName: "switch-pod-0",
+		Port:    123,
+	}
 )
-
-type mockRevPortForwardPanics struct{}
-
-func (mockRevPortForwardPanics) Start(context.Context) error {
-	panic("Start should never get called.")
-}
 
 func TestSingleStep_FirstCallToReserveMeetingPointReturnsError_Returns(t *testing.T) {
 	unittest.SmallTest(t)
 	switchboardMock := &mocks.Switchboard{}
 	switchboardMock.On("ReserveMeetingPoint", testutils.AnyContext, hostname, username).Return(meetingPoint, errMyMockError)
+	rpf := &rpfMock.RevPortForward{}
 
-	c := New(switchboardMock, mockRevPortForwardPanics{}, hostname, username)
+	c := New(switchboardMock, rpf, hostname, username)
 	c.singleStep(context.Background(), time.NewTicker(time.Microsecond), time.Microsecond)
 	switchboardMock.AssertExpectations(t)
 }
@@ -65,14 +64,20 @@ func TestSingleStep_KeepAliveMeetingPointGetsCalledMultipleTimes_Returns(t *test
 		}
 	}).Times(2).Return(nil)
 	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Return(nil)
+	rpf := &rpfMock.RevPortForward{}
+	rpf.On("Start", testutils.AnyContext, meetingPoint.PodName, meetingPoint.Port).Run(func(args mock.Arguments) {
+		<-ctx.Done()
+	}).Return(nil)
 
-	c := New(switchboardMock, mockRevPortForwardCancellable{}, hostname, username)
+	c := New(switchboardMock, rpf, hostname, username)
 	c.singleStep(ctx, time.NewTicker(time.Millisecond), time.Microsecond)
 	switchboardMock.AssertExpectations(t)
 }
 
 func TestStart_ContextIsCancelled_ReturnsAndMeetingPointIsCleared(t *testing.T) {
 	unittest.SmallTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
 	switchboardMock := &mocks.Switchboard{}
 	switchboardMock.On("ReserveMeetingPoint", testutils.AnyContext, hostname, username).Return(meetingPoint, nil)
 	var clearMeetingPointCalledWG sync.WaitGroup
@@ -80,10 +85,12 @@ func TestStart_ContextIsCancelled_ReturnsAndMeetingPointIsCleared(t *testing.T) 
 	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Run(func(mock.Arguments) {
 		clearMeetingPointCalledWG.Done()
 	}).Return(nil)
+	rpf := &rpfMock.RevPortForward{}
+	rpf.On("Start", testutils.AnyContext, meetingPoint.PodName, meetingPoint.Port).Run(func(args mock.Arguments) {
+		<-ctx.Done()
+	}).Return(nil)
 
-	c := New(switchboardMock, mockRevPortForwardCancellable{}, hostname, username)
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
+	c := New(switchboardMock, rpf, hostname, username)
 	err := c.Start(ctx)
 	require.Error(t, err)
 	clearMeetingPointCalledWG.Wait()
@@ -110,6 +117,7 @@ func (m *mockRevPortForwardSuccessOnSecondCallToStart) Start(ctx context.Context
 
 func TestStart_FirstCallToRevPortForwardFails_CausesASecondCalltoConnectToPod(t *testing.T) {
 	unittest.SmallTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
 	switchboardMock := &mocks.Switchboard{}
 	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Times(2).Return(nil)
 	var reserveMeetingPointWG sync.WaitGroup
@@ -117,9 +125,13 @@ func TestStart_FirstCallToRevPortForwardFails_CausesASecondCalltoConnectToPod(t 
 	switchboardMock.On("ReserveMeetingPoint", testutils.AnyContext, hostname, username).Times(2).Run(func(args mock.Arguments) {
 		reserveMeetingPointWG.Done()
 	}).Return(meetingPoint, nil)
+	rpf := &rpfMock.RevPortForward{}
+	rpf.On("Start", testutils.AnyContext, meetingPoint.PodName, meetingPoint.Port).Return(errMyMockError).Times(1)
+	rpf.On("Start", testutils.AnyContext, meetingPoint.PodName, meetingPoint.Port).Run(func(args mock.Arguments) {
+		<-ctx.Done()
+	}).Return(errMyMockError).Times(1)
 
-	c := New(switchboardMock, &mockRevPortForwardSuccessOnSecondCallToStart{}, hostname, username)
-	ctx, cancel := context.WithCancel(context.Background())
+	c := New(switchboardMock, rpf, hostname, username)
 	// Call Start() in a Go routine since we need to cancel the Context after
 	// Start() is called, and Start() doesn't return.
 	var wg sync.WaitGroup
