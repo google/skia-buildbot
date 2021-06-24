@@ -173,7 +173,8 @@ CREATE TABLE IF NOT EXISTS Tryjobs (
   changelist_id STRING NOT NULL REFERENCES Changelists (changelist_id),
   patchset_id STRING NOT NULL REFERENCES Patchsets (patchset_id),
   display_name STRING NOT NULL,
-  last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL
+  last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL,
+  INDEX cl_idx (changelist_id)
 );
 CREATE TABLE IF NOT EXISTS ValuesAtHead (
   trace_id BYTES PRIMARY KEY,

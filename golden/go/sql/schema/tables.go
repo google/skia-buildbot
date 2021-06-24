@@ -817,6 +817,8 @@ type TryjobRow struct {
 	DisplayName string `sql:"display_name STRING NOT NULL"`
 	// LastIngestedData indicates when Gold last saw data from this Tryjob.
 	LastIngestedData time.Time `sql:"last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL"`
+
+	clOrderIndex struct{} `sql:"INDEX cl_idx (changelist_id)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.

@@ -3005,6 +3005,68 @@ func TestGetGroupingForTest_GroupingDoesNotExist_ReturnsError(t *testing.T) {
 	assert.Contains(t, err.Error(), "no rows in result")
 }
 
+func TestPatchsetsAndTryjobsForCL2_ExistingCL_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID:          datakitchensink.GerritInternalCRS,
+					URLTemplate: "www.example.com/gerrit/%s",
+				},
+			},
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelist/gerrit-internal/CL_fix_ios", nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"system": datakitchensink.GerritInternalCRS,
+		"id":     datakitchensink.ChangelistIDThatAddsNewTests,
+	})
+	wh.PatchsetsAndTryjobsForCL2(w, r)
+	const expectedJSON = `{"cl":{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"www.example.com/gerrit/CL_new_tests"},"patch_sets":[{"id":"gerrit-internal_PS_adds_new_corpus_and_test","order":4,"try_jobs":[{"id":"buildbucketInternal_tryjob_05_windows","name":"Test-Windows10.3-ALL","updated":"2020-12-12T09:00:00Z","system":"buildbucketInternal","url":"https://cr-buildbucket.appspot.com/build/buildbucketInternal_tryjob_05_windows"},{"id":"buildbucketInternal_tryjob_06_walleye","name":"Test-Walleye-ALL","updated":"2020-12-12T09:20:33Z","system":"buildbucketInternal","url":"https://cr-buildbucket.appspot.com/build/buildbucketInternal_tryjob_06_walleye"}]},{"id":"gerrit-internal_PS_adds_new_corpus","order":1,"try_jobs":[{"id":"buildbucketInternal_tryjob_04_windows","name":"Test-Windows10.3-ALL","updated":"2020-12-12T08:09:10Z","system":"buildbucketInternal","url":"https://cr-buildbucket.appspot.com/build/buildbucketInternal_tryjob_04_windows"}]}],"num_total_patch_sets":2}`
+	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+}
+
+func TestPatchsetsAndTryjobsForCL2_InvalidCL_ReturnsErrorCode(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID:          datakitchensink.GerritCRS,
+					URLTemplate: "www.example.com/gerrit/%s",
+				},
+			},
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelist/gerrit/not-a-real-cl", nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"system": datakitchensink.GerritCRS,
+		"id":     "not-a-real-cl",
+	})
+	wh.PatchsetsAndTryjobsForCL2(w, r)
+	resp := w.Result()
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"
