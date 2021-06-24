@@ -45,6 +45,7 @@ import (
 	mock_search "go.skia.org/infra/golden/go/search/mocks"
 	"go.skia.org/infra/golden/go/search2"
 	mock_search2 "go.skia.org/infra/golden/go/search2/mocks"
+	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
@@ -1862,159 +1863,80 @@ func TestParamsHandler_NoChangelistIndex_FallBackToMasterBranch(t *testing.T) {
 }
 
 func TestChangelistSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.LargeTest(t)
 
-	mockSearchAPI := &mock_search.SearchAPI{}
-	mockIndexSource := &mock_indexer.IndexSource{}
-
-	const gerritCRS = "gerrit"
-	const clID = "1234"
-
-	combinedID := tjstore.CombinedPSID{
-		CRS: gerritCRS,
-		CL:  clID,
-		PS:  "some patchset",
-	}
-
-	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(&indexer.ChangelistIndex{
-		LatestPatchset: combinedID,
-		// Other fields should be ignored
-	})
-
-	mockSearchAPI.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, combinedID).Return(&frontend.UntriagedDigestList{
-		Corpora: []string{"one_corpus", "two_corpus"},
-	}, nil)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Indexer:   mockIndexSource,
-			SearchAPI: mockSearchAPI,
+			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID: gerritCRS,
+					ID: datakitchensink.GerritCRS,
 				},
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
+	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": gerritCRS,
-		"id":     clID,
+		"system": datakitchensink.GerritCRS,
+		"id":     datakitchensink.ChangelistIDThatAttemptsToFixIOS,
 	})
 	wh.ChangelistSearchRedirect(w, r)
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 	headers := w.Header()
-	assert.Equal(t, []string{"/search?issue=1234&crs=gerrit&corpus=one_corpus"}, headers["Location"])
+	assert.Equal(t, []string{"/search?issue=CL_fix_ios&crs=gerrit&patchsets=3&corpus=corners"}, headers["Location"])
 }
 
-func TestChangelistSearchRedirect_ErrorGettingUntriagedDigests_RedirectsWithoutCorpus(t *testing.T) {
-	unittest.SmallTest(t)
+func TestChangelistSearchRedirect_CLHasNoUntriagedDigests_Success(t *testing.T) {
+	unittest.LargeTest(t)
 
-	mockSearchAPI := &mock_search.SearchAPI{}
-	mockIndexSource := &mock_indexer.IndexSource{}
-	defer mockSearchAPI.AssertExpectations(t) // make sure the error was returned
-
-	const gerritCRS = "gerrit"
-	const clID = "1234"
-
-	combinedID := tjstore.CombinedPSID{
-		CRS: gerritCRS,
-		CL:  clID,
-		PS:  "some patchset",
-	}
-
-	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(&indexer.ChangelistIndex{
-		LatestPatchset: combinedID,
-		// Other fields should be ignored
-	})
-
-	mockSearchAPI.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, combinedID).Return(nil, errors.New("this shouldn't happen"))
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := datakitchensink.Build()
+	existingData.SecondaryBranchValues = nil // remove all ingested data from CLs.
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Indexer:   mockIndexSource,
-			SearchAPI: mockSearchAPI,
+			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID: gerritCRS,
+					ID: datakitchensink.GerritCRS,
 				},
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
+	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": gerritCRS,
-		"id":     clID,
+		"system": datakitchensink.GerritCRS,
+		"id":     datakitchensink.ChangelistIDThatAttemptsToFixIOS,
 	})
 	wh.ChangelistSearchRedirect(w, r)
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 	headers := w.Header()
-	assert.Equal(t, []string{"/search?issue=1234&crs=gerrit"}, headers["Location"])
-}
-
-func TestChangelistSearchRedirect_CLExistsNotIndexed_RedirectsWithoutCorpus(t *testing.T) {
-	unittest.SmallTest(t)
-
-	mockIndexSource := &mock_indexer.IndexSource{}
-	mockCLStore := &mock_clstore.Store{}
-
-	const gerritCRS = "gerrit"
-	const clID = "1234"
-
-	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(nil)
-
-	// all this cares about is a non-error return code
-	mockCLStore.On("GetChangelist", testutils.AnyContext, clID).Return(code_review.Changelist{}, nil)
-
-	wh := Handlers{
-		HandlersConfig: HandlersConfig{
-			Indexer: mockIndexSource,
-			ReviewSystems: []clstore.ReviewSystem{
-				{
-					ID:    gerritCRS,
-					Store: mockCLStore,
-				},
-			},
-		},
-		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
-	}
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
-	r = mux.SetURLVars(r, map[string]string{
-		"system": gerritCRS,
-		"id":     clID,
-	})
-	wh.ChangelistSearchRedirect(w, r)
-	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
-	headers := w.Header()
-	assert.Equal(t, []string{"/search?issue=1234&crs=gerrit"}, headers["Location"])
+	assert.Equal(t, []string{"/search?issue=CL_fix_ios&crs=gerrit&patchsets=3"}, headers["Location"])
 }
 
 func TestChangelistSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.LargeTest(t)
 
-	mockIndexSource := &mock_indexer.IndexSource{}
-	mockCLStore := &mock_clstore.Store{}
-
-	const gerritCRS = "gerrit"
-	const clID = "1234"
-
-	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(nil)
-
-	// all this cares about is a non-error return code
-	mockCLStore.On("GetChangelist", testutils.AnyContext, clID).Return(code_review.Changelist{}, code_review.ErrNotFound)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Indexer: mockIndexSource,
+			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID:    gerritCRS,
-					Store: mockCLStore,
+					ID: datakitchensink.GerritCRS,
 				},
 			},
 		},
@@ -2023,11 +1945,53 @@ func TestChangelistSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": gerritCRS,
-		"id":     clID,
+		"system": datakitchensink.GerritCRS,
+		"id":     "1234",
 	})
 	wh.ChangelistSearchRedirect(w, r)
 	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func TestGetActionableDigests_ReturnsCorrectResults(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	test := func(crs, clID, psID string, expected []corpusAndCount) {
+		qPSID := sql.Qualify(crs, psID)
+		corpora, err := wh.getActionableDigests(ctx, crs, clID, qPSID)
+		require.NoError(t, err)
+		assert.Equal(t, expected, corpora)
+	}
+
+	test(datakitchensink.GerritCRS, datakitchensink.ChangelistIDThatAttemptsToFixIOS, datakitchensink.PatchSetIDFixesIPadButNotIPhone,
+		[]corpusAndCount{
+			// DigestB01Pos has been incorrectly triaged on this CL as untriaged.
+			{Corpus: datakitchensink.CornersCorpus, Count: 1},
+			// DigestC07Unt_CL is produced by the iPad
+			{Corpus: datakitchensink.RoundCorpus, Count: 1},
+		})
+	test(datakitchensink.GerritInternalCRS, datakitchensink.ChangelistIDThatAddsNewTests, datakitchensink.PatchsetIDAddsNewCorpus,
+		[]corpusAndCount{
+			// DigestC04Unt and DigestC03Unt are produced on this PS
+			{Corpus: datakitchensink.RoundCorpus, Count: 2},
+			// DigestBlank is produced by the text test on this PS
+			{Corpus: datakitchensink.TextCorpus, Count: 1},
+		})
+	test(datakitchensink.GerritInternalCRS, datakitchensink.ChangelistIDThatAddsNewTests, datakitchensink.PatchsetIDAddsNewCorpusAndTest,
+		[]corpusAndCount{
+			// DigestC04Unt, DigestC03Unt, and DigestE03Unt_CL are produced on this PS
+			{Corpus: datakitchensink.RoundCorpus, Count: 3},
+			// The Text corpus no longer produces DigestBlank, but DigestD01Pos_CL
+		})
 }
 
 func TestGetFlakyTracesData_ThresholdZero_ReturnAllTraces(t *testing.T) {
