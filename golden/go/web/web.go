@@ -2154,11 +2154,12 @@ func (wh *Handlers) GetFlakyTracesData(w http.ResponseWriter, r *http.Request) {
 }
 
 // ChangelistSearchRedirect redirects the user to a search page showing the search results
-// for a given CL. It will do a quick scan of the untriaged digests - if it finds some, it will
-// include the corpus containing some of those untriaged digests in the search query so the user
-// will see results (instead of getting directed to a corpus with no results).
+// for a given CL. It will do a (hopefully) quick scan of the untriaged digests - if it finds some,
+// it will include the corpus containing some of those untriaged digests in the search query so the
+// user will see results (instead of getting directed to a corpus with no results).
 func (wh *Handlers) ChangelistSearchRedirect(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
+	ctx, span := trace.StartSpan(r.Context(), "web_ChangelistSearchRedirect")
+	defer span.End()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 	}
@@ -2174,39 +2175,114 @@ func (wh *Handlers) ChangelistSearchRedirect(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Must specify 'id' of Changelist.", http.StatusBadRequest)
 		return
 	}
-	system, ok := wh.getCodeReviewSystem(crs)
+	_, ok = wh.getCodeReviewSystem(crs)
 	if !ok {
 		http.Error(w, "Invalid Code Review System", http.StatusBadRequest)
 		return
 	}
 
-	baseURL := fmt.Sprintf("/search?issue=%s&crs=%s", clID, system.ID)
-
-	clIdx := wh.Indexer.GetIndexForCL(system.ID, clID)
-	if clIdx == nil {
-		// Not cached, so we can't cheaply determine the corpus to include
-		if _, err := system.Store.GetChangelist(r.Context(), clID); err != nil {
-			http.NotFound(w, r)
-			return
-		}
-		http.Redirect(w, r, baseURL, http.StatusTemporaryRedirect)
-		return
-	}
-
-	digestList, err := wh.SearchAPI.UntriagedUnignoredTryJobExclusiveDigests(r.Context(), clIdx.LatestPatchset)
+	qualifiedPSID, psOrder, err := wh.getLatestPatchset(ctx, crs, clID)
 	if err != nil {
-		sklog.Errorf("Could not find corpus to redirect to for CL %s: %s", clID, err)
-		http.Redirect(w, r, baseURL, http.StatusTemporaryRedirect)
+		httputils.ReportError(w, err, "Could not find latest patchset", http.StatusNotFound)
 		return
 	}
-	if len(digestList.Corpora) == 0 {
-		http.Redirect(w, r, baseURL, http.StatusTemporaryRedirect)
-		return
-	}
+	// TODO(kjlubick) when we change the patchsets arg to not be a list of orders, we should
+	//   update it here too (probably specify the ps id).
+	baseURL := fmt.Sprintf("/search?issue=%s&crs=%s&patchsets=%d", clID, crs, psOrder)
 
-	withCorpus := baseURL + "&corpus=" + digestList.Corpora[0]
-	sklog.Debugf("Redirecting to %s", withCorpus)
-	http.Redirect(w, r, withCorpus, http.StatusTemporaryRedirect)
+	corporaWithUntriagedUnignoredDigests, err := wh.getActionableDigests(ctx, crs, clID, qualifiedPSID)
+	if err != nil {
+		sklog.Errorf("Error getting digests for CL %s from CRS %s with PS %s: %s", clID, crs, qualifiedPSID, err)
+		http.Redirect(w, r, baseURL, http.StatusTemporaryRedirect)
+		return
+	}
+	if len(corporaWithUntriagedUnignoredDigests) == 0 {
+		http.Redirect(w, r, baseURL, http.StatusTemporaryRedirect)
+		return
+	}
+	http.Redirect(w, r, baseURL+"&corpus="+corporaWithUntriagedUnignoredDigests[0].Corpus, http.StatusTemporaryRedirect)
+}
+
+// getLatestPatchset returns the latest patchset for a given CL. It goes off of created_ts, due
+// to the fact that (for GitHub) rebases can happen and potentially cause ps_order to be off.
+func (wh *Handlers) getLatestPatchset(ctx context.Context, crs, clID string) (string, int, error) {
+	ctx, span := trace.StartSpan(ctx, "getLatestPatchset")
+	defer span.End()
+	const statement = `SELECT patchset_id, ps_order FROM Patchsets
+WHERE changelist_id = $1
+ORDER BY created_ts DESC, ps_order DESC
+LIMIT 1`
+	row := wh.DB.QueryRow(ctx, statement, sql.Qualify(crs, clID))
+	var qualifiedID string
+	var order int
+	if err := row.Scan(&qualifiedID, &order); err != nil {
+		return "", 0, skerr.Wrap(err)
+	}
+	return qualifiedID, order, nil
+}
+
+type corpusAndCount struct {
+	Corpus string
+	Count  int
+}
+
+// getActionableDigests returns a list of corpus and the number of untriaged, not-ignored digests
+// that have been seen in the data for the given PS. We choose *not* to strip out digests that
+// are already on the primary branch because that additional join makes this query too slow.
+// As is, it can take 3-4 seconds on a large instance like Skia. The return value will be sorted
+// by count, with the corpus name being the tie-breaker.
+func (wh *Handlers) getActionableDigests(ctx context.Context, crs, clID, qPSID string) ([]corpusAndCount, error) {
+	ctx, span := trace.StartSpan(ctx, "getActionableDigests")
+	defer span.End()
+
+	const statement = `WITH
+DataFromCL AS (
+    SELECT secondary_branch_trace_id, SecondaryBranchValues.grouping_id, digest
+    FROM SecondaryBranchValues WHERE branch_name = $1 AND version_name = $2
+),
+ExpectationsForCL AS (
+    SELECT grouping_id, digest, label
+    FROM SecondaryBranchExpectations
+    WHERE branch_name = $1
+),
+JoinedExpectations AS (
+    SELECT COALESCE(ExpectationsForCL.grouping_id, Expectations.grouping_id) AS grouping_id,
+        COALESCE(ExpectationsForCL.digest, Expectations.digest) AS digest,
+        COALESCE(ExpectationsForCL.label, Expectations.label, 'u') AS label
+    FROM ExpectationsForCL FULL OUTER JOIN Expectations ON
+    ExpectationsForCL.grouping_id = Expectations.grouping_id
+        AND ExpectationsForCL.digest = Expectations.digest
+),
+UntriagedData AS (
+    SELECT secondary_branch_trace_id, DataFromCL.grouping_id, DataFromCL.digest FROM DataFromCL
+    LEFT JOIN JoinedExpectations ON DataFromCL.grouping_id = JoinedExpectations.grouping_id
+        AND DataFromCL.digest = JoinedExpectations.digest
+    WHERE label = 'u' OR label IS NULL
+),
+UnignoredUntriagedData AS (
+    SELECT DISTINCT UntriagedData.grouping_id, digest FROM UntriagedData
+    JOIN Traces ON UntriagedData.secondary_branch_trace_id = Traces.trace_id
+    AND matches_any_ignore_rule = FALSE
+)
+SELECT keys->>'source_type', COUNT(*) FROM Groupings JOIN UnignoredUntriagedData
+    ON Groupings.grouping_id = UnignoredUntriagedData.grouping_id
+GROUP BY 1
+ORDER BY 2 DESC, 1 ASC`
+
+	rows, err := wh.DB.Query(ctx, statement, sql.Qualify(crs, clID), qPSID)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var rv []corpusAndCount
+	for rows.Next() {
+		var c corpusAndCount
+		if err := rows.Scan(&c.Corpus, &c.Count); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, c)
+	}
+	return rv, nil
 }
 
 func (wh *Handlers) loggedInAs(r *http.Request) string {
