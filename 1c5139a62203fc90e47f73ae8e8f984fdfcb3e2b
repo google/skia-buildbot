@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "43cc48f6_4d884486",
+        "filename": "sk8s/go/test_machine_monitor/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-24T19:18:19Z",
+      "side": 1,
+      "message": "Yes, I\u0027d like the application to fail as fast as possible if any of the setup fails.",
+      "parentUuid": "dbc24afb_1d5fab34",
+      "range": {
+        "startLine": 87,
+        "startChar": 1,
+        "endLine": 87,
+        "endChar": 11
+      },
+      "revId": "1c5139a62203fc90e47f73ae8e8f984fdfcb3e2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1b52c1c9_400f2434",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-06-24T18:54:24Z",
       "side": 1,
       "message": "drive-by comment: ctx",
+      "range": {
+        "startLine": 101,
+        "startChar": 25,
+        "endLine": 101,
+        "endChar": 45
+      },
+      "revId": "1c5139a62203fc90e47f73ae8e8f984fdfcb3e2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ca3b11a6_ffb31e43",
+        "filename": "sk8s/go/test_machine_monitor/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-24T19:18:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b52c1c9_400f2434",
       "range": {
         "startLine": 101,
         "startChar": 25,
