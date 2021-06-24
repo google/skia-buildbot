@@ -516,8 +516,9 @@ func (wh *Handlers) PatchsetsAndTryjobsForCL(w http.ResponseWriter, r *http.Requ
 // A list of CI systems we support. So far, the mapping of task ID to link is project agnostic. If
 // that stops being the case, then we'll need to supply this mapping on a per-instance basis.
 var cisTemplates = map[string]string{
-	"cirrus":      "https://cirrus-ci.com/task/%s",
-	"buildbucket": "https://cr-buildbucket.appspot.com/build/%s",
+	"cirrus":              "https://cirrus-ci.com/task/%s",
+	"buildbucket":         "https://cr-buildbucket.appspot.com/build/%s",
+	"buildbucketInternal": "https://cr-buildbucket.appspot.com/build/%s",
 }
 
 // getCLSummary does a bulk of the work for PatchsetsAndTryjobsForCL, specifically
@@ -570,6 +571,105 @@ func (wh *Handlers) getCLSummary(ctx context.Context, system clstore.ReviewSyste
 		Patchsets:         patchsets,
 		NumTotalPatchsets: maxOrder,
 	}, nil
+}
+
+// PatchsetsAndTryjobsForCL2 returns a summary of the data we have collected
+// for a given Changelist, specifically any TryJobs that have uploaded data
+// to Gold belonging to various patchsets in it.
+func (wh *Handlers) PatchsetsAndTryjobsForCL2(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_PatchsetsAndTryjobsForCL2")
+	defer span.End()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+	clID, ok := mux.Vars(r)["id"]
+	if !ok {
+		http.Error(w, "Must specify 'id' of Changelist.", http.StatusBadRequest)
+		return
+	}
+	crs, ok := mux.Vars(r)["system"]
+	if !ok {
+		http.Error(w, "Must specify 'system' of Changelist.", http.StatusBadRequest)
+		return
+	}
+	rv, err := wh.getPatchsetsAndTryjobs(ctx, crs, clID)
+	if err != nil {
+		httputils.ReportError(w, err, "could not retrieve data for the specified CL.", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(w, rv)
+}
+
+// getPatchsetsAndTryjobs returns a summary of the patchsets and tryjobs that belong to a given
+// CL.
+func (wh *Handlers) getPatchsetsAndTryjobs(ctx context.Context, crs, clID string) (frontend.ChangelistSummary, error) {
+	ctx, span := trace.StartSpan(ctx, "getPatchsetsAndTryjobs")
+	defer span.End()
+
+	system, ok := wh.getCodeReviewSystem(crs)
+	if !ok {
+		return frontend.ChangelistSummary{}, skerr.Fmt("Invalid Code Review System %q", crs)
+	}
+
+	qCLID := sql.Qualify(crs, clID)
+	row := wh.DB.QueryRow(ctx, `SELECT status, owner_email, subject, last_ingested_data FROM Changelists
+WHERE changelist_id = $1`, qCLID)
+	var cl frontend.Changelist
+	if err := row.Scan(&cl.Status, &cl.Owner, &cl.Subject, &cl.Updated); err != nil {
+		return frontend.ChangelistSummary{}, skerr.Wrapf(err, "checking if CL %q exists", qCLID)
+	}
+	cl.Updated = cl.Updated.UTC()
+	cl.SystemID = clID
+	cl.System = crs
+	cl.URL = strings.Replace(system.URLTemplate, "%s", cl.SystemID, 1)
+	rv := frontend.ChangelistSummary{CL: cl}
+
+	const statement = `SELECT Patchsets.patchset_id, Patchsets.ps_order,
+tryjob_id, display_name, Tryjobs.last_ingested_data, Tryjobs.system FROM
+Tryjobs JOIN Patchsets ON Tryjobs.patchset_id = Patchsets.patchset_id
+WHERE Tryjobs.changelist_id = $1
+ORDER BY Patchsets.patchset_id
+`
+	rows, err := wh.DB.Query(ctx, statement, qCLID)
+	if err != nil {
+		return frontend.ChangelistSummary{}, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var patchsets []*frontend.Patchset
+	var currentPS *frontend.Patchset
+	for rows.Next() {
+		var psID string
+		var order int
+		var tj frontend.TryJob
+		if err := rows.Scan(&psID, &order, &tj.SystemID, &tj.DisplayName, &tj.Updated, &tj.System); err != nil {
+			return frontend.ChangelistSummary{}, skerr.Wrap(err)
+		}
+		tj.Updated = tj.Updated.UTC()
+		urlTempl, ok := cisTemplates[tj.System]
+		if !ok {
+			return frontend.ChangelistSummary{}, skerr.Fmt("Unrecognized CIS system: %q", tj.System)
+		}
+		tj.URL = strings.Replace(urlTempl, "%s", tj.SystemID, 1)
+		if currentPS == nil || currentPS.SystemID != psID {
+			currentPS = &frontend.Patchset{
+				SystemID: psID,
+				Order:    order,
+			}
+			patchsets = append(patchsets, currentPS)
+		}
+		currentPS.TryJobs = append(currentPS.TryJobs, tj)
+	}
+
+	for _, ps := range patchsets {
+		rv.Patchsets = append(rv.Patchsets, *ps)
+	}
+	rv.NumTotalPatchsets = len(rv.Patchsets)
+
+	sort.Slice(rv.Patchsets, func(i, j int) bool {
+		return rv.Patchsets[i].Order > rv.Patchsets[j].Order
+	})
+	return rv, nil
 }
 
 // ChangelistUntriagedHandler writes out a list of untriaged digests uploaded by this CL that
