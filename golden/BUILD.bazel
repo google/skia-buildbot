@@ -32,6 +32,76 @@ skia_app_container(
     repository = "skia-public/gold-frontend",
 )
 
+skia_app_container(
+    name = "baseline_server_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//golden/cmd/baseline_server:baseline_server",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/baseline_server",
+    repository = "skia-public/gold-baseline-server",
+)
+
+skia_app_container(
+    name = "diffcalculator_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//golden/cmd/diffcalculator:diffcalculator",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/diffcalculator",
+    repository = "skia-public/gold-diffcalculator",
+)
+
+skia_app_container(
+    name = "gitilesfollower_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//golden/cmd/gitilesfollower:gitilesfollower",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/gitilesfollower",
+    repository = "skia-public/gold-gitilesfollower",
+)
+
+skia_app_container(
+    name = "gold_ingestion_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//golden/cmd/gold_ingestion:gold_ingestion",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/gold_ingestion",
+    repository = "skia-public/gold-ingestion",
+)
+
+skia_app_container(
+    name = "periodictasks_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//golden/cmd/periodictasks:periodictasks",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/periodictasks",
+    repository = "skia-public/gold-periodictasks",
+)
+
 gold_frontend_local_script = """
 if [[ -z "$$1" ]]; then
     echo "Usage: bazel run //golden:gold_frontend_local -- /path/to/client_secret.json"
