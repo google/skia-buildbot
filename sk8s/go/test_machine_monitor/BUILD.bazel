@@ -8,9 +8,12 @@ go_library(
     deps = [
         "//go/common",
         "//go/emulators",
+        "//go/revportforward",
         "//go/sklog",
         "//go/util",
+        "//machine/go/machine/targetconnect",
         "//machine/go/machineserver/config",
+        "//machine/go/switchboard",
         "//sk8s/go/test_machine_monitor/machine",
         "//sk8s/go/test_machine_monitor/server",
         "//sk8s/go/test_machine_monitor/swarming",
