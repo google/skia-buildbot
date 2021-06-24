@@ -163,7 +163,7 @@ func TestGetRevision(t *testing.T) {
 	serialized := []byte(testutils.MarshalJSON(t, ci))
 	// Gerrit API prepends garbage to prevent XSS.
 	serialized = append([]byte("abcd\n"), serialized...)
-	url := fmt.Sprintf("%s/a/changes/%d/detail?o=ALL_REVISIONS", fakeGerritUrl, gerritIssue)
+	url := fmt.Sprintf("%s/a/changes/%d/detail?o=ALL_REVISIONS&o=SUBMITTABLE", fakeGerritUrl, gerritIssue)
 	mock.Mock(url, mockhttpclient.MockGetDialogue(serialized))
 
 	got, err := trybots.getRevision(context.TODO(), r, gerritIssue)

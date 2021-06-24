@@ -248,7 +248,7 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	respBody, err = json.Marshal(ci)
 	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS&o=SUBMITTABLE", mockhttpclient.MockGetDialogue(respBody))
 
 	// Mock the request to set the change as read for review. This is only
 	// done if ChangeInfo.WorkInProgress is true.

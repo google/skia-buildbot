@@ -135,7 +135,7 @@ const (
 	LabelBotCommitApproved = 1
 
 	// URLTmplChange is the template for a change URL.
-	URLTmplChange = "/changes/%s/detail?o=ALL_REVISIONS"
+	URLTmplChange = "/changes/%s/detail?o=ALL_REVISIONS&o=SUBMITTABLE"
 
 	urlCommitMsgHook = "/tools/hooks/commit-msg"
 
@@ -219,6 +219,7 @@ type ChangeInfo struct {
 	Labels         map[string]*LabelEntry `json:"labels"`
 	Owner          *Person                `json:"owner"`
 	Status         string                 `json:"status"`
+	Submittable    bool                   `json:"submittable"`
 	WorkInProgress bool                   `json:"work_in_progress"`
 }
 
