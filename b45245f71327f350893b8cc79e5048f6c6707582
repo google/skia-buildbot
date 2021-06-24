@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "786f0767_128bb426",
+        "filename": "PRESUBMIT.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-24T18:37:35Z",
+      "side": 1,
+      "message": "Should this be in our Makefile? Just like `make gazelle` ?",
+      "range": {
+        "startLine": 227,
+        "startChar": 31,
+        "endLine": 227,
+        "endChar": 60
+      },
+      "revId": "b45245f71327f350893b8cc79e5048f6c6707582",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
