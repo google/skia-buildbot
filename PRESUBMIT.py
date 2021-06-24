@@ -9,7 +9,9 @@
 import subprocess
 
 
-def _MakeFileFilter(input_api, include_extensions=None,
+def _MakeFileFilter(input_api,
+                    include_extensions=None,
+                    include_filenames=None,
                     exclude_extensions=None,
                     exclude_filenames=None):
   """Return a filter to pass to AffectedSourceFiles.
@@ -24,6 +26,10 @@ def _MakeFileFilter(input_api, include_extensions=None,
   if include_extensions:
     include = [input_api.re.compile(r'.+\.%s$' % ext)
                for ext in include_extensions]
+  if include_filenames:
+    include += [input_api.re.compile(r'.*%s$' % filename.replace('.', '\.'))
+                for filename in include_filenames]
+
   exclude = []
   if exclude_extensions:
     exclude = [input_api.re.compile(r'.+\.%s$' % ext)
@@ -172,6 +178,75 @@ def _CheckJSDebugging(input_api, output_api):
 
   return []
 
+def _RunCommandAndCheckGitDiff(input_api, output_api, command):
+  """Run an arbitrary command. Fail if it produces any diffs."""
+  command_str = ' '.join(command)
+  results = []
+
+  print('Running "%s" ...' % command_str)
+  try:
+    command_output = input_api.subprocess.check_output(
+        command,
+        stderr=input_api.subprocess.STDOUT,
+    )
+  except input_api.subprocess.CalledProcessError as e:
+    results += [output_api.PresubmitError(
+        'Command "%s" returned non-zero exit code %d. Output: \n\n%s' % (
+            command_str,
+            e.returncode,
+            e.output,
+        )
+    )]
+
+  git_diff_output = input_api.subprocess.check_output(
+      ['git', 'diff', '--no-ext-diff'])
+  if git_diff_output:
+    results += [output_api.PresubmitError(
+        'Diffs found after running "%s":\n\n%s\n'
+        'Please commit or discard the above changes.' % (
+            command_str,
+            git_diff_output
+        )
+    )]
+
+  return results
+
+def _CheckBuildifier(input_api, output_api):
+  """Runs Buildifier and fails if it produces any diffs.
+
+  This check only runs if the affected files include any WORKSPACE, BUILD,
+  BUILD.bazel or *.bzl files.
+  """
+
+  file_filter = _MakeFileFilter(
+      input_api,
+      include_filenames=['WORKSPACE', 'BUILD', 'BUILD.bazel'],
+      include_extensions=['bzl'])
+  for affected_file in input_api.AffectedSourceFiles(file_filter):
+    print("[BUILDIFIER] AFFECTED FILE: %s" % affected_file.LocalPath())
+
+
+  return _RunCommandAndCheckGitDiff(
+      input_api, output_api, ['bazel', 'run', '//:buildifier'])
+
+def _CheckGazelle(input_api, output_api):
+  """Runs Gazelle and fails if it produces any diffs.
+
+  This check only runs if the affected files include any *.go, *.ts, WORKSPACE,
+  BUILD, BUILD.bazel or *.bzl files.
+
+  WORKSPACE and *.bzl files are included in the above list because some such
+  changes may affect Gazelle's behavior.
+  """
+
+  file_filter = _MakeFileFilter(
+      input_api,
+      include_filenames=['WORKSPACE', 'BUILD', 'BUILD.bazel'],
+      include_extensions=['go', 'ts', 'bzl'])
+  for affected_file in input_api.AffectedSourceFiles(file_filter):
+    print("[GAZELLE] AFFECTED FILE: %s" % affected_file.LocalPath())
+
+  return _RunCommandAndCheckGitDiff(input_api, output_api, ['make', 'gazelle'])
 
 def CheckChange(input_api, output_api):
   """Presubmit checks for the change on upload or commit.
@@ -188,6 +263,8 @@ def CheckChange(input_api, output_api):
   * Checks that there are no tab characters in any of the text files.
   * No banned go apis (suggesting alternatives)
   * No JS debugging artifacts.
+  * No Buildifier diffs.
+  * No Gazelle diffs.
   """
   results = []
 
@@ -207,10 +284,10 @@ def CheckChange(input_api, output_api):
       'E1003',  # Using class name in super.
       'W0613',  # Unused argument.
   )
-  results += input_api.canned_checks.RunPylint(
-      input_api, output_api,
-      disabled_warnings=pylint_disabled_warnings,
-      files_to_skip=pylint_skip)
+  #results += input_api.canned_checks.RunPylint(
+  #    input_api, output_api,
+  #    disabled_warnings=pylint_disabled_warnings,
+  #    files_to_skip=pylint_skip)
 
   # Use 100 for max length for files other than python. Python length is
   # already checked during the Pylint above. No max length for Go files.
@@ -233,6 +310,8 @@ def CheckChange(input_api, output_api):
 
   results += _CheckBannedGoAPIs(input_api, output_api)
   results += _CheckJSDebugging(input_api, output_api)
+  results += _CheckBuildifier(input_api, output_api)
+  results += _CheckGazelle(input_api, output_api)
 
   if input_api.is_committing:
     results.extend(input_api.canned_checks.CheckDoNotSubmitInDescription(
