@@ -370,6 +370,12 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		Version: "git_revision:57b025298deb13e7af1ce0bc07bab76716e076ff",
 	})
 	task.Dependencies = []string{} // No bundled recipes for this one.
+
+	// Bazel and Go are needed for the Gazelle, Buildifier and gofmt presubmit checks.
+	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("bazel"))
+	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
+	task.EnvPrefixes["PATH"] = append(task.EnvPrefixes["PATH"], "bazel/bin", "go/go/bin")
+
 	b.MustAddTask(name, task)
 	return name
 }
