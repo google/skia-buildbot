@@ -83,14 +83,14 @@ func main() {
 		exitWithUsageAndMessage("The --local_address flag is required.")
 	}
 
-	r, err := revportforward.New(*kubeconfig, *podName, *podPort, *localAddress, *useNcRev)
+	r, err := revportforward.New(*kubeconfig, *localAddress, *useNcRev)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	ctx := context.Background()
 	for {
 		sklog.Info("Starting connection.")
-		if err := r.Start(ctx); err != nil {
+		if err := r.Start(ctx, *podName, *podPort); err != nil {
 			sklog.Error(err)
 		}
 	}
