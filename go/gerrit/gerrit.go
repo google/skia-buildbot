@@ -135,7 +135,7 @@ const (
 	LabelBotCommitApproved = 1
 
 	// URLTmplChange is the template for a change URL.
-	URLTmplChange = "/changes/%s/detail?o=ALL_REVISIONS"
+	URLTmplChange = "/changes/%s/detail?o=ALL_REVISIONS&o=SUBMITTABLE"
 
 	urlCommitMsgHook = "/tools/hooks/commit-msg"
 
@@ -219,6 +219,7 @@ type ChangeInfo struct {
 	Labels         map[string]*LabelEntry `json:"labels"`
 	Owner          *Person                `json:"owner"`
 	Status         string                 `json:"status"`
+	Submittable    bool                   `json:"submittable"`
 	WorkInProgress bool                   `json:"work_in_progress"`
 }
 
@@ -371,6 +372,7 @@ type GerritInterface interface {
 	CreateChange(context.Context, string, string, string, string) (*ChangeInfo, error)
 	DeleteChangeEdit(context.Context, *ChangeInfo) error
 	DeleteFile(context.Context, *ChangeInfo, string) error
+	DeleteVote(context.Context, int64, string, int) error
 	Disapprove(context.Context, *ChangeInfo, string) error
 	DownloadCommitMsgHook(ctx context.Context, dest string) error
 	EditFile(context.Context, *ChangeInfo, string, string) error
@@ -1298,6 +1300,11 @@ func (g *Gerrit) MoveFile(ctx context.Context, ci *ChangeInfo, oldPath, newPath 
 // set, otherwise it has no effect.
 func (g *Gerrit) DeleteFile(ctx context.Context, ci *ChangeInfo, filepath string) error {
 	return g.delete(ctx, fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath)))
+}
+
+// DeleteVote deletes a single vote from a change.
+func (g *Gerrit) DeleteVote(ctx context.Context, changeNum int64, labelID string, accountID int) error {
+	return g.delete(ctx, fmt.Sprintf("/changes/%d/reviewers/%d/votes/%s", changeNum, accountID, labelID))
 }
 
 // SetCommitMessage sets the commit message for the ChangeEdit. A ChangeEdit is created, if one is
