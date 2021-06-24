@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b2f828e7_e90c76d4",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2226,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-06-24T17:48:59Z",
+      "side": 1,
+      "message": "IIUC, this field is never read outside of of getActionableDigests. Are you planning on consuming it from other methods in the future?\n\nIf not, it might be simpler for getActionableDigests to return an ordered list of corpus names instead of an ordered list of corpusAndCount structs. In which case you might want to move the corpusAndCount struct definition inside the getActionableDigests method body, so as to limit its scope.",
+      "range": {
+        "startLine": 2226,
+        "startChar": 0,
+        "endLine": 2226,
+        "endChar": 11
+      },
+      "revId": "33934919b4d7fc0b07f64b5840b69e601ead908e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
