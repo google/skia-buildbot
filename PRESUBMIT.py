@@ -242,6 +242,16 @@ def _CheckGazelle(input_api, output_api):
     return []
   return _RunCommandAndCheckGitDiff(input_api, output_api, ['make', 'gazelle'])
 
+def _CheckGoFmt(input_api, output_api):
+  """Runs gofmt and fails if it producess any diffs.
+
+  This check only runs if the affected files include any *.go files.
+  """
+  if not input_api.AffectedSourceFiles(_MakeFileFilter(input_api, ['go'])):
+    return []
+  return _RunCommandAndCheckGitDiff(
+      input_api, output_api, ['gofmt', '-s', '-w', '.'])
+
 def CheckChange(input_api, output_api):
   """Presubmit checks for the change on upload or commit.
 
@@ -259,6 +269,7 @@ def CheckChange(input_api, output_api):
   * No JS debugging artifacts.
   * No Buildifier diffs.
   * No Gazelle diffs.
+  * No gmfmt diffs.
   """
   results = []
 
@@ -306,6 +317,7 @@ def CheckChange(input_api, output_api):
   results += _CheckJSDebugging(input_api, output_api)
   results += _CheckBuildifier(input_api, output_api)
   results += _CheckGazelle(input_api, output_api)
+  results += _CheckGoFmt(input_api, output_api)
 
   if input_api.is_committing:
     results.extend(input_api.canned_checks.CheckDoNotSubmitInDescription(
