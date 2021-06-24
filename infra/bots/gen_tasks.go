@@ -369,6 +369,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		Path:    "recipe_bundle",
 		Version: "git_revision:57b025298deb13e7af1ce0bc07bab76716e076ff",
 	})
+	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("bazel")) // Needed for the Gazelle and Buildifier presubmit checks.
 	task.Dependencies = []string{} // No bundled recipes for this one.
 	b.MustAddTask(name, task)
 	return name
