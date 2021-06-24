@@ -51,13 +51,17 @@ func (s *GCSSource) SearchForFiles(ctx context.Context, start, end time.Time) []
 	var files []string
 	for _, dir := range dirs {
 		err := gcs.AllFilesInDir(s.Client, s.Bucket, dir, func(item *storage.ObjectAttrs) {
-			if strings.HasSuffix(item.Name, ".json") && item.Updated.After(start) {
+			if strings.HasSuffix(item.Name, ".json") {
 				files = append(files, item.Name)
 			}
 		})
 		if err != nil {
 			sklog.Errorf("Error occurred while retrieving files from %s/%s: %s", s.Bucket, dir, err)
 		}
+	}
+	if len(files) > 0 {
+		sklog.Infof("First GCS file in backup range: %s", files[0])
+		sklog.Infof("Last GCS file in backup range: %s", files[len(files)-1])
 	}
 	return files
 }
