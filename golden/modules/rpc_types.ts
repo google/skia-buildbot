@@ -101,18 +101,11 @@ export interface TriageRequest {
 
 export interface GUICorpusStatus {
 	name: string;
-	ok: boolean;
-	minCommitHash: string;
 	untriagedCount: number;
-	negativeCount: number;
 }
 
 export interface StatusResponse {
-	ok: boolean;
-	firstCommit: Commit;
 	lastCommit: Commit;
-	totalCommits: number;
-	filledCommits: number;
 	corpStatus: GUICorpusStatus[];
 }
 

@@ -662,3 +662,19 @@ type BaselineV2Response struct {
 	// (e.g. "gerrit", "github") "" indicates the master branch.
 	CodeReviewSystem string `json:"crs,omitempty"`
 }
+
+// GUIStatus reflects the current triage status of the various corpora at head.
+type GUIStatus struct {
+	// Last commit for which data was ingested..
+	LastCommit Commit `json:"lastCommit"`
+	// Status per corpus.
+	CorpStatus []*GUICorpusStatus `json:"corpStatus" go2ts:"ignorenil"`
+}
+
+type GUICorpusStatus struct {
+	// Name of the corpus.
+	Name string `json:"name"`
+
+	// Number of untriaged digests in HEAD.
+	UntriagedCount int `json:"untriagedCount"`
+}

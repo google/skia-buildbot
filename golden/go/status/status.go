@@ -25,43 +25,7 @@ const (
 	corpusMetric       = "gold_status_by_corpus"
 )
 
-// GUIStatus reflects the current rebaseline status. In particular whether
-// HEAD is baselined and how many untriaged and negative digests there
-// currently are.
-type GUIStatus struct {
-	// Indicates whether current HEAD is ok.
-	OK bool `json:"ok"`
-
-	FirstCommit frontend.Commit `json:"firstCommit"`
-
-	// Last commit currently know.
-	LastCommit frontend.Commit `json:"lastCommit"`
-
-	TotalCommits  int `json:"totalCommits"`
-	FilledCommits int `json:"filledCommits"`
-
-	// Status per corpus.
-	CorpStatus []*GUICorpusStatus `json:"corpStatus" go2ts:"ignorenil"`
-}
-
-type GUICorpusStatus struct {
-	// Name of the corpus.
-	Name string `json:"name"`
-
-	// Indicates whether this status is ok.
-	OK bool `json:"ok"`
-
-	// Earliest commit hash considered HEAD (is not always the last commit).
-	MinCommitHash string `json:"minCommitHash"`
-
-	// Number of untriaged digests in HEAD.
-	UntriagedCount int `json:"untriagedCount"`
-
-	// Number of negative digests in HEAD.
-	NegativeCount int `json:"negativeCount"`
-}
-
-type CorpusStatusSorter []*GUICorpusStatus
+type CorpusStatusSorter []*frontend.GUICorpusStatus
 
 // Implement sort.Interface
 func (c CorpusStatusSorter) Len() int           { return len(c) }
@@ -77,7 +41,7 @@ type StatusWatcherConfig struct {
 
 type StatusWatcher struct {
 	StatusWatcherConfig
-	current *GUIStatus
+	current *frontend.GUIStatus
 	mutex   sync.Mutex
 
 	// Gauges to track overall digests with different labels.
@@ -108,7 +72,7 @@ func New(ctx context.Context, swc StatusWatcherConfig) (*StatusWatcher, error) {
 }
 
 // GetStatus returns the current status, ready to be sent to the frontend.
-func (s *StatusWatcher) GetStatus() *GUIStatus {
+func (s *StatusWatcher) GetStatus() *frontend.GUIStatus {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	return s.current
@@ -208,7 +172,6 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	okByCorpus := map[string]bool{}
 	exp, err := s.ExpectationsStore.Get(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "fetching expectations")
@@ -242,7 +205,6 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 		// If this corpus doesn't exist yet, we initialize it.
 		corpus := tr.Corpus()
 		if _, ok := byCorpus[corpus]; !ok {
-			okByCorpus[corpus] = true
 			byCorpus[corpus] = map[expectations.Label]map[string]bool{
 				expectations.Positive:  {},
 				expectations.Negative:  {},
@@ -263,26 +225,20 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 		testName := tr.TestName()
 		status := exp.Classification(testName, digest)
 
-		okByCorpus[corpus] = okByCorpus[corpus] &&
-			((status == expectations.Positive) || (status == expectations.Negative))
 		byCorpus[corpus][status][string(testName)+string(digest)] = true
 	}
 
-	overallOk := true
 	allUntriagedCount := 0
 	allPositiveCount := 0
 	allNegativeCount := 0
-	corpStatus := make([]*GUICorpusStatus, 0, len(byCorpus))
+	corpStatus := make([]*frontend.GUICorpusStatus, 0, len(byCorpus))
 	for corpus := range byCorpus {
-		overallOk = overallOk && okByCorpus[corpus]
 		untriagedCount := len(byCorpus[corpus][expectations.Untriaged])
 		positiveCount := len(byCorpus[corpus][expectations.Positive])
 		negativeCount := len(byCorpus[corpus][expectations.Negative])
-		corpStatus = append(corpStatus, &GUICorpusStatus{
+		corpStatus = append(corpStatus, &frontend.GUICorpusStatus{
 			Name:           corpus,
-			OK:             okByCorpus[corpus],
 			UntriagedCount: untriagedCount,
-			NegativeCount:  negativeCount,
 		})
 		allUntriagedCount += untriagedCount
 		allNegativeCount += negativeCount
@@ -299,13 +255,9 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 
 	sort.Sort(CorpusStatusSorter(corpStatus))
 	allCommits := cpxTile.AllCommits()
-	result := &GUIStatus{
-		OK:            overallOk,
-		FirstCommit:   frontend.FromTilingCommit(allCommits[0]),
-		LastCommit:    frontend.FromTilingCommit(allCommits[len(allCommits)-1]),
-		TotalCommits:  len(allCommits),
-		FilledCommits: cpxTile.FilledCommits(),
-		CorpStatus:    corpStatus,
+	result := &frontend.GUIStatus{
+		LastCommit: frontend.FromTilingCommit(allCommits[len(allCommits)-1]),
+		CorpStatus: corpStatus,
 	}
 
 	// Swap out the current tile.

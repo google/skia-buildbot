@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/web/frontend"
 )
@@ -52,7 +51,7 @@ func addTypes(generator *go2ts.Go2TS) {
 	generator.Add(frontend.TriageRequest{})
 
 	// Response for the /json/v1/trstatus RPC endpoint.
-	generator.AddWithName(status.GUIStatus{}, "StatusResponse")
+	generator.AddWithName(frontend.GUIStatus{}, "StatusResponse")
 
 	// Response for the /json/v1/byblame RPC endpoint.
 	generator.Add(frontend.ByBlameResponse{})
