@@ -2,6 +2,12 @@ package types
 
 import "time"
 
+const (
+	OpenState    = "open"
+	CautionState = "caution"
+	ClosedState  = "closed"
+)
+
 // AutorollerSnapshot - contains the current state of an autoroller with
 // it's display name (eg: "Chrome") and URL (eg: "https://autoroll.skia.org/r/skia-autoroll").
 type AutorollerSnapshot struct {
