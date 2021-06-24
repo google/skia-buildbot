@@ -38,7 +38,7 @@ if git status > /dev/null 2> /dev/null; then
   fi
 fi
 
-BUILD_DATETIME=`date --utc +%Y-%m-%dT%H_%M_%SZ`
+BUILD_DATETIME=`date -u +%Y-%m-%dT%H_%M_%SZ`
 
 echo "BUILD_DATETIME $BUILD_DATETIME"
 echo "STABLE_GIT_REVISION $STABLE_GIT_REVISION"
