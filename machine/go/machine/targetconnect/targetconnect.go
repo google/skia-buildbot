@@ -14,17 +14,17 @@ import (
 
 const defaultRetryDelay = time.Second
 
-// revPortForward is the interface of an object that initiates a reverse
+// RevPortForward is the interface of an object that initiates a reverse
 // port-forward into a switchboard pod.
-type revPortForward interface {
-	Start(context.Context) error
+type RevPortForward interface {
+	Start(ctx context.Context, podName string, port int) error
 }
 
 // Connection that can initiate and maintain a connection from a target machine
 // into the switchboard cluster.
 type Connection struct {
 	switchboard    switchboard.Switchboard
-	revPortForward revPortForward
+	revPortForward RevPortForward
 
 	hostname string
 	username string
@@ -35,7 +35,7 @@ type Connection struct {
 
 // New return a new *connection that can initiate and maintain a connection from
 // a target machine into the switchboard cluster.
-func New(switchboard switchboard.Switchboard, revportforward revPortForward, hostname, username string) *Connection {
+func New(switchboard switchboard.Switchboard, revportforward RevPortForward, hostname, username string) *Connection {
 	tags := map[string]string{
 		"hostname": hostname,
 		"username": username,
@@ -95,7 +95,7 @@ func (c *Connection) singleStep(ctx context.Context, ticker *time.Ticker, sleepD
 		defer cancel()
 
 		// Only returns on error or if the Context was cancelled.
-		err := c.revPortForward.Start(ctx)
+		err := c.revPortForward.Start(ctx, mp.PodName, mp.Port)
 		if err != nil {
 			sklog.Warningf("targetconnect revportforward error: %s", err)
 		}
