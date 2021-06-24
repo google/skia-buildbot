@@ -1,15 +1,6 @@
 import {StatusResponse} from '../rpc_types';
 
 export const exampleStatusData: StatusResponse = {
-  ok: true,
-  firstCommit: {
-    id: 'alphace63',
-    commit_time: 1597819864,
-    hash: 'ce63f507336fa86278204dfac2b9a9546f81ab96',
-    author: 'Alpha Beta (alphabeta@example.com)',
-    message: "Document how to size IV's child correctly, after seeing confusion in Github issues (#64100)",
-    cl_url: '',
-  },
   lastCommit: {
     id: 'foxtrota828',
     commit_time: 1598983079,
@@ -18,9 +9,7 @@ export const exampleStatusData: StatusResponse = {
     message: 'Mark large_image_changer tests as not flaky (#65033)',
     cl_url: '',
   },
-  totalCommits: 200,
-  filledCommits: 200,
   corpStatus: [{
-    name: 'flutter', ok: true, minCommitHash: '', untriagedCount: 0, negativeCount: 0,
+    name: 'flutter', untriagedCount: 0,
   }],
 };
