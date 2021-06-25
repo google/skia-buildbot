@@ -225,6 +225,7 @@ func StartEmulatorIfNotRunning(emulator Emulator) (bool, error) {
 	if IsRunning(emulator) {
 		return false, nil
 	}
+	fmt.Printf("STARTING EMULATOR: %s\n", emulator)
 	if err := startEmulator(getCachedEmulatorInfo(emulator)); err != nil {
 		return false, skerr.Wrap(err)
 	}
@@ -257,6 +258,14 @@ func StartAdHocEmulatorInstanceAndSetEmulatorHostEnvVarBazelRBEOnly(emulator Emu
 
 // startEmulator starts an emulator using the command in the given struct.
 func startEmulator(emulatorInfo emulatorInfo) error {
+	fmt.Printf("RUNNING ss -tulwp BEFORE EMULATOR: %s\n", fmt.Sprintf(emulatorInfo.cmd, emulatorInfo.port))
+	ssCmd := exec.Command("ss", "-tulwp")
+	ssCmd.Stdout = os.Stdout
+	ssCmd.Stderr = os.Stderr
+	if ssErr := ssCmd.Run(); ssErr != nil {
+		return skerr.Wrap(ssErr)
+	}
+
 	programAndArgs := strings.Split(fmt.Sprintf(emulatorInfo.cmd, emulatorInfo.port), " ")
 	cmd := exec.Command(programAndArgs[0], programAndArgs[1:]...)
 	cmd.Stdout = os.Stdout
