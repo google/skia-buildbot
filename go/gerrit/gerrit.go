@@ -55,6 +55,8 @@ const (
 	ChangeStatusMerged = "MERGED"
 	// ChangeStatusNew indicates the the change is new.
 	ChangeStatusNew = "NEW"
+	// ChangeStatusNew indicates the the change is open.
+	ChangeStatusOpen = "OPEN"
 
 	// LabelCodeReview is the label used for code review.
 	LabelCodeReview = "Code-Review"
