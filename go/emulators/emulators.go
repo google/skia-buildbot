@@ -225,6 +225,7 @@ func StartEmulatorIfNotRunning(emulator Emulator) (bool, error) {
 	if IsRunning(emulator) {
 		return false, nil
 	}
+	fmt.Printf("STARTING EMULATOR: %s\n", emulator)
 	if err := startEmulator(getCachedEmulatorInfo(emulator)); err != nil {
 		return false, skerr.Wrap(err)
 	}
