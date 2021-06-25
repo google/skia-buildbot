@@ -1,0 +1,89 @@
+@import '../colors';
+@import '../style.scss';
+
+verifiers-detail-sk {
+
+  table.verifier-table {
+    width: 100%;
+    border: 1px solid var(--on-background);
+    table-layout: fixed;
+  }
+
+  table.attempt-table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  table.attempt-table th {
+    text-align: left;
+    // background-color: var(--primary);
+    // border: 0.5px solid var(--on-background);
+    // color: var(--on-primary);
+    font-weight: bold;
+    font-size: 1.17em;
+    padding: 5px;
+    // padding: 1em;
+    // white-space: nowrap;
+  }
+
+  table.verifier-table td {
+    padding: 5px;
+    text-align: left;
+  }
+
+  a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--on-background);
+  }
+
+  ul {
+    margin: 0;
+  }
+
+  .attempt-section {
+    display: block;
+    // background-color: var(--attempt-background);
+    padding: 10px;
+    margin: 30px 10px;
+    // border: 1px solid var(--on-background);
+  }
+
+  .attempt-section.failed {
+    box-shadow: 0 0 0 3px var(--failed) inset;
+  }
+
+  .attempt-section.success {
+    box-shadow: 0 0 0 3px var(--success) inset;
+  }
+
+  .attempt-section.waiting {
+    box-shadow: 0 0 0 3px var(--waiting) inset;
+  }
+
+  .attempt-section.aborted {
+    box-shadow: 0 0 0 3px var(--gray) inset;
+  }
+
+  table.verifier-table.failed {
+    background-color: var(--failed);
+    color: var(--on-primary);
+  }
+
+
+  table.verifier-table.failed a {
+    color: var(--on-primary);
+  }
+
+  table.verifier-table.success {
+    background-color: var(--success);
+  }
+
+  table.verifier-table.waiting {
+    background-color: var(--waiting);
+  }
+
+  table.verifier-table.aborted {
+    background-color: var(--gray);
+  }
+}
