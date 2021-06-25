@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -432,11 +431,29 @@ func cmdListVersions(ctx context.Context, name string) error {
 
 // getAssetDir finds the directory for the asset within the current repo.
 func getAssetDir(name string) (string, error) {
-	repoRoot, err := repo_root.GetLocal()
+	// Note: this implementation looks suspiciously like that of
+	// repo_root.GetLocal(). The difference is that this implementation looks
+	// for the infra/bots directory sequence without requiring us to be inside
+	// a Git checkout.
+	cwd, err := os.Getwd()
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
-	return filepath.Join(repoRoot, "infra", "bots", "assets", name), nil
+	assetsDirPath := filepath.Join("infra", "bots", "assets")
+	for {
+		assetsDir := filepath.Join(cwd, assetsDirPath)
+		if st, err := os.Stat(assetsDir); err == nil && st.IsDir() {
+			return filepath.Join(assetsDir, name), nil
+		}
+		newCwd, err := filepath.Abs(filepath.Join(cwd, ".."))
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		if newCwd == cwd {
+			return "", skerr.Fmt("No %s dir found up to %s; are we running inside a checkout?", assetsDirPath, cwd)
+		}
+		cwd = newCwd
+	}
 }
 
 // getVersionFilePath finds the path to the version file for the asset within

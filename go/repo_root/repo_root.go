@@ -1,22 +1,23 @@
 package repo_root
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/bazel/go/bazel"
+	"go.skia.org/infra/go/skerr"
 )
 
 // Get returns the path to the workspace's root directory.
 //
-// Under Bazel, it returns the path to the runfiles directory. Test targets must include any
-// required files under their "data" attribute for said files to be included in the runfiles
-// directory.
+// Under Bazel, it returns the path to the runfiles directory. Test targets must
+// include any required files under their "data" attribute for said files to be
+// included in the runfiles directory.
 //
-// Outside of Bazel, it returns the path to the repo checkout's root directory.  Note that this will
-// return an error if the CWD is not inside a checkout, so this cannot run on production servers.
+// Outside of Bazel, it returns the path to the repo checkout's root directory.
+// Note that this will return an error if the CWD is not inside a checkout, so
+// this cannot run on production servers.
 func Get() (string, error) {
 	if bazel.InBazelTest() {
 		return bazel.RunfilesDir(), nil
@@ -24,7 +25,7 @@ func Get() (string, error) {
 
 	dir, err := os.Getwd()
 	if err != nil {
-		return "", err
+		return "", skerr.Wrap(err)
 	}
 	prefixes := []string{"go.skia.org/infra", "buildbot"}
 	for _, prefix := range prefixes {
@@ -36,7 +37,7 @@ func Get() (string, error) {
 	if d := os.Getenv("WORKSPACE_DIR"); d != "" {
 		return d, nil
 	}
-	return "", fmt.Errorf("No repo root found; are we running inside a checkout?")
+	return "", skerr.Fmt("No repo root found; are we running inside a checkout?")
 }
 
 // GetLocal returns the path to the root of the current Git repo. Only intended
@@ -44,16 +45,20 @@ func Get() (string, error) {
 func GetLocal() (string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return "", err
+		return "", skerr.Wrap(err)
 	}
 	for {
 		gitDir := filepath.Join(cwd, ".git")
 		if _, err := os.Stat(gitDir); err == nil {
 			return cwd, nil
 		}
-		cwd, err = filepath.Abs(filepath.Join(cwd, ".."))
+		newCwd, err := filepath.Abs(filepath.Join(cwd, ".."))
 		if err != nil {
-			return "", err
+			return "", skerr.Wrap(err)
 		}
+		if newCwd == cwd {
+			return "", skerr.Fmt("No repo root found up to %s; are we running inside a checkout?", cwd)
+		}
+		cwd = newCwd
 	}
 }
