@@ -51,12 +51,12 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, roll
 
 		// Make sure the forked repo is at the same hash as the target repo
 		// before creating the pull request.
-		if _, err := co.Git(ctx, "push", "-f", github_common.GithubForkRemoteName, fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
+		if _, err := co.Git(ctx, "push", "-f", "--no-verify", github_common.GithubForkRemoteName, fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
 			return 0, skerr.Wrap(err)
 		}
 
 		// Push the changes to the forked repository.
-		if _, err := co.Git(ctx, "push", "-f", github_common.GithubForkRemoteName, fmt.Sprintf("%s:%s", git_common.RollBranch, forkBranchName)); err != nil {
+		if _, err := co.Git(ctx, "push", "-f", "--no-verify", github_common.GithubForkRemoteName, fmt.Sprintf("%s:%s", git_common.RollBranch, forkBranchName)); err != nil {
 			return 0, skerr.Wrap(err)
 		}
 
