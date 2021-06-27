@@ -295,6 +295,9 @@ func (r *androidRepoManager) getChangeForHash(hash string) (*gerrit.ChangeInfo, 
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if len(issues) == 0 {
+		return nil, fmt.Errorf("Could not find any issues that match the commit hash %s", hash)
+	}
 	return r.g.GetIssueProperties(context.TODO(), issues[0].Issue)
 }
 
@@ -446,9 +449,11 @@ third_party {
 		// prompt which shows up when a merge contains more than 5 commits.
 		Stdin: strings.NewReader("yes"),
 	}
-	if _, uploadErr := exec.RunCommand(ctx, uploadCommand); uploadErr != nil {
+	if uploadOutput, uploadErr := exec.RunCommand(ctx, uploadCommand); uploadErr != nil {
 		util.LogErr(r.abandonRepoBranch(ctx))
 		return 0, fmt.Errorf("Could not upload to Gerrit: %s", uploadErr)
+	} else {
+		sklog.Info(uploadOutput)
 	}
 
 	// Get latest hash to find Gerrit change number with.
