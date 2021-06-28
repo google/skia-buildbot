@@ -22,7 +22,6 @@ ${INSTALL} --mode=755 -T ${IMAGE}/sudo                               ${ROOT}/usr
 ${INSTALL} --mode=755 -T /usr/bin/qemu-arm-static                    ${ROOT}/usr/bin/qemu-arm-static
 ${INSTALL_DIR} --mode=755                                            ${ROOT}/usr/local/share/${APPNAME}/
 ${INSTALL} --mode=644 ../machine/configs/*                           ${ROOT}/usr/local/share/${APPNAME}/
-${INSTALL} --mode=644 ../switchboard/kubeconfig.yaml                 ${ROOT}/usr/local/share/${APPNAME}/kubeconfig.yaml
 }
 
 source ../bash/docker_build.sh

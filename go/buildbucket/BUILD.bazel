@@ -18,7 +18,6 @@ go_library(
 go_test(
     name = "buildbucket_test",
     srcs = ["buildbucket_test.go"],
-    embed = [":buildbucket"],
     deps = [
         "//go/buildbucket/bb_testutils",
         "//go/deepequal/assertdeep",

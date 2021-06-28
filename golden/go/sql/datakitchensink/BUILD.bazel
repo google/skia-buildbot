@@ -20,8 +20,8 @@ go_test(
     name = "datakitchensink_test",
     srcs = ["kitchensink_test.go"],
     data = glob(["img/**"]),
-    embed = [":datakitchensink"],
     deps = [
+        ":datakitchensink",
         "//go/testutils/unittest",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",

@@ -22,8 +22,8 @@ go_library(
 go_test(
     name = "sqltest_test",
     srcs = ["sqltest_test.go"],
-    embed = [":sqltest"],
     deps = [
+        ":sqltest",
         "//go/skerr",
         "//go/testutils/unittest",
         "//golden/go/sql/schema",

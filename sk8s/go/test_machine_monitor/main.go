@@ -20,12 +20,12 @@ import (
 	"go.skia.org/infra/sk8s/go/test_machine_monitor/machine"
 	"go.skia.org/infra/sk8s/go/test_machine_monitor/server"
 	"go.skia.org/infra/sk8s/go/test_machine_monitor/swarming"
+	"go.skia.org/infra/switchboard/go/kubeconfig"
 )
 
 // flags
 var (
 	configFlag     = flag.String("config", "", "The path to the configuration file.")
-	kubeConfig     = flag.String("kube_config", "", "The path to the kubernetes configuration file.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	metadataURL    = flag.String("metadata_url", "http://metadata:8000/computeMetadata/v1/instance/service-accounts/default/token", "The URL of the metadata server that provides service account tokens.")
 	port           = flag.String("port", ":11000", "HTTP service address (e.g., ':8000')")
@@ -76,7 +76,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	rpf, err := revportforward.New(*kubeConfig, ":22", true /*useNcRev */)
+	rpf, err := revportforward.New(kubeconfig.Config, ":22", true /*useNcRev */)
 	if err != nil {
 		sklog.Fatal(err)
 	}
