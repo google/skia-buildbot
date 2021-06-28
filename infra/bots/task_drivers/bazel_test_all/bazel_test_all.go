@@ -208,20 +208,37 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 		ctx = td.WithEnv(ctx, []string{"PATH=%(PATH)s:" + depotToolsDir})
 	}
 
-	// Start the emulators. When running this task driver locally (e.g. with --local), this will kill
-	// any existing emulator instances prior to launching all emulators.
-	if err := emulators.StartAllEmulators(); err != nil {
+	var err error
+
+	err = td.Do(ctx, td.Props("SLEEPING FOR 5 MINUTES"), func(ctx context.Context) error {
+		fmt.Println("************** SLEEPING FOR 5 MINUTES *******************")
+		time.Sleep(5 * time.Minute)
+		return nil
+	})
+	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := emulators.StopAllEmulators(); err != nil {
-			rvErr = err
+
+	// Start the emulators. When running this task driver locally (e.g. with --local), this will kill
+	// any existing emulator instances prior to launching all emulators.
+	err = td.Do(ctx, td.Props("Start all emulators"), func(ctx context.Context) error {
+		if err := emulators.StartAllEmulators(); err != nil {
+			return err
 		}
-	}()
-	time.Sleep(5 * time.Second) // Give emulators time to boot.
+		defer func() {
+			if err := emulators.StopAllEmulators(); err != nil {
+				rvErr = err
+			}
+		}()
+		time.Sleep(5 * time.Second) // Give emulators time to boot.
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 
 	// Set *_EMULATOR_HOST environment variables.
-	emulatorHostEnvVars := []string{}
+	var emulatorHostEnvVars []string
 	for _, emulator := range emulators.AllEmulators {
 		// We need to set the *_EMULATOR_HOST variable for the current emulator before we can retrieve
 		// its value via emulators.GetEmulatorHostEnvVar().
@@ -234,7 +251,29 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 	}
 	ctx = td.WithEnv(ctx, emulatorHostEnvVars)
 
+	err = td.Do(ctx, td.Props("TESTING STEP WITH A GOROUTINE"), func(ctx context.Context) error {
+		go func() {
+			for i := 0; i < 100; i++ {
+				fmt.Printf("SLEEPING FOR 10 SECONDS, ITERATION %d\n", i)
+				time.Sleep(10 * time.Second)
+			}
+		}()
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	err = td.Do(ctx, td.Props("SLEEPING FOR 60 MINUTES"), func(ctx context.Context) error {
+		fmt.Println("************** SLEEPING FOR 60 MINUTES *******************")
+		time.Sleep(1 * time.Hour)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
-	_, err := bzl.Do(ctx, "test", "//...", "--test_output=errors")
+	_, err = bzl.Do(ctx, "test", "//...", "--test_output=errors")
 	return err
 }
