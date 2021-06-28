@@ -19,6 +19,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"syscall"
 
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/skerr"
@@ -140,7 +141,7 @@ func computeCockroachDBCmd() string {
 		}
 	}
 
-	cmd := fmt.Sprintf("cockroach start-single-node --insecure --listen-addr=localhost:%%d --store=%s", cockroachDbStoreDir)
+	cmd := fmt.Sprintf("strace cockroach start-single-node --insecure --listen-addr=localhost:%%d --store=%s", cockroachDbStoreDir)
 
 	// Under RBE, we want the web UI to be served on a random TCP port. This minimizes the chance of
 	// parallel tests from interfering with each other.
@@ -225,6 +226,7 @@ func StartEmulatorIfNotRunning(emulator Emulator) (bool, error) {
 	if IsRunning(emulator) {
 		return false, nil
 	}
+	fmt.Printf("STARTING EMULATOR: %s\n", emulator)
 	if err := startEmulator(getCachedEmulatorInfo(emulator)); err != nil {
 		return false, skerr.Wrap(err)
 	}
@@ -257,10 +259,18 @@ func StartAdHocEmulatorInstanceAndSetEmulatorHostEnvVarBazelRBEOnly(emulator Emu
 
 // startEmulator starts an emulator using the command in the given struct.
 func startEmulator(emulatorInfo emulatorInfo) error {
+	fmt.Printf("RUNNING ss -tulwp BEFORE EMULATOR: %s\n", fmt.Sprintf(emulatorInfo.cmd, emulatorInfo.port))
+	ssCmd := exec.Command("ss", "-tulwp")
+	ssCmd.Stdout = os.Stdout
+	ssCmd.Stderr = os.Stdout
+	if ssErr := ssCmd.Run(); ssErr != nil {
+		return skerr.Wrap(ssErr)
+	}
+
 	programAndArgs := strings.Split(fmt.Sprintf(emulatorInfo.cmd, emulatorInfo.port), " ")
 	cmd := exec.Command(programAndArgs[0], programAndArgs[1:]...)
 	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stderr = os.Stdout
 
 	if bazel.InBazelTestOnRBE() {
 		// Force emulator child processes to die as soon as the parent process (e.g. the Go test runner)
@@ -279,15 +289,30 @@ func startEmulator(emulatorInfo emulatorInfo) error {
 		return skerr.Wrap(err)
 	}
 
+	go func() {
+		err := cmd.Wait()
+		fmt.Printf("EMULATOR %s FINISHED RUNNING\n", emulatorInfo.cmd)
+		if err != nil {
+			fmt.Printf("ERROR WAITING FOR EMULATOR %s: %v\n", emulatorInfo.cmd, err)
+			return
+		}
+		ws := cmd.ProcessState.Sys().(syscall.WaitStatus)
+		exitCode := ws.ExitStatus()
+		fmt.Printf("EMULATOR %s EXIT CODE: %d\n", emulatorInfo.cmd, exitCode)
+	}()
+
 	return nil
 }
 
 // StartAllEmulators starts all known emulators.
 func StartAllEmulators() error {
-	for _, emulator := range AllEmulators {
-		if _, err := StartEmulatorIfNotRunning(emulator); err != nil {
-			return skerr.Wrap(err)
-		}
+	//for _, emulator := range AllEmulators {
+	//	if _, err := StartEmulatorIfNotRunning(emulator); err != nil {
+	//		return skerr.Wrap(err)
+	//	}
+	//}
+	if _, err := StartEmulatorIfNotRunning(CockroachDB); err != nil {
+		return skerr.Wrap(err)
 	}
 	return nil
 }
