@@ -79,7 +79,7 @@ groups:
       description: 'Fiddle is experiencing heavy load and has insufficient idle fiddler pods. https://skia.googlesource.com/buildbot/%2B/main/fiddlek/PROD.md#fiddler_pods'
 
   - alert: NamedFiddlesFailing
-    expr: named_fiddles_total_invalid > 0
+    expr: named_fiddles_examples_total_invalid > 0
     for: 15m
     labels:
       category: infra
