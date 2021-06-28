@@ -32,6 +32,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/clientcmd/api"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/kubectl/pkg/scheme"
 )
@@ -46,15 +47,19 @@ type ReversePortForward struct {
 
 // New returns a new RevPortForward instance.
 //
-// kubeconfig - The full name of the kubeconfig file.
+// kubeconfig - The contents of the kubeconfig file.
 // podName - The name of the pod found in the cluster pointed to by the kubeconfig file.
 // podPort - The port to forward from within the pod.
 // localaddress - The address we want the incoming connection to be forwarded
 //    to, something like "localhost:22"
-func New(kubeconfig, localaddress string, useNcRev bool) (*ReversePortForward, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+func New(kubeconfig []byte, localaddress string, useNcRev bool) (*ReversePortForward, error) {
+	var kubeConfigGetter clientcmd.KubeconfigGetter = func() (*api.Config, error) {
+		return clientcmd.Load(kubeconfig)
+	}
+
+	config, err := clientcmd.BuildConfigFromKubeconfigGetter("", kubeConfigGetter)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to initialize from kubeconfig: %s", kubeconfig)
+		return nil, skerr.Wrapf(err, "Failed to initialize from kubeconfig: %s", string(kubeconfig))
 	}
 	return &ReversePortForward{
 		config:       config,
