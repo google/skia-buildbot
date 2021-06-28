@@ -11,8 +11,8 @@ go_library(
 go_test(
     name = "executil_test",
     srcs = ["executil_test.go"],
-    embed = [":executil"],
     deps = [
+        ":executil",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
