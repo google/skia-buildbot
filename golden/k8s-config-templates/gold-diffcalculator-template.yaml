@@ -73,7 +73,7 @@ spec:
                   fieldPath: metadata.name
           resources:
             requests:
-              memory: "20Gi" # 16 Gig for full cache in diff/worker.go + 25% for burst
+              memory: "20Gi" # A rough estimate based on real-world needs.
               cpu: "4"       # 4 diff goroutines in diff/worker.go
           readinessProbe:
             httpGet:
