@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cadf3923_a89b1c72",
+        "filename": "go.mod",
+        "patchSetId": 5
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-28T15:54:34Z",
+      "side": 1,
+      "message": "Please mention the update to 1.16 in the commit message.",
+      "revId": "69449f69c9370c66c9bab05311f9516db610057d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}

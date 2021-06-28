@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "caa33b13_8d7004b2",
+        "filename": "switchboard/go/kubeconfig/kubeconfig.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-28T15:54:34Z",
+      "side": 1,
+      "message": "I realize this is mentioned in the README, but I\u0027m not sure I understand it. Is it just placeholder data, test data, or something else? AFAIK, our cluster is not called this.\n\nIf some of these are not needed, can we get rid of them to avoid confusion and have *just* the essentials?",
+      "range": {
+        "startLine": 11,
+        "startChar": 10,
+        "endLine": 11,
+        "endChar": 20
+      },
+      "revId": "7e75a45967e4066733b9178ca53ef8a11c397d66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
