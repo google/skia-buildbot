@@ -391,6 +391,7 @@ type GerritInterface interface {
 	MoveFile(context.Context, *ChangeInfo, string, string) error
 	NoScore(context.Context, *ChangeInfo, string) error
 	PublishChangeEdit(context.Context, *ChangeInfo) error
+	Rebase(context.Context, *ChangeInfo, string, bool) error
 	RemoveFromCQ(context.Context, *ChangeInfo, string) error
 	Search(context.Context, int, bool, ...*SearchTerm) ([]*ChangeInfo, error)
 	SelfApprove(context.Context, *ChangeInfo, string) error
@@ -1146,6 +1147,18 @@ func (g *Gerrit) DownloadCommitMsgHook(ctx context.Context, dest string) error {
 		return err
 	}
 	return os.Chmod(dest, 0755)
+}
+
+// Rebase the given change onto the given optional base.  If not provided, the
+// change is rebased onto the target branch.  If allowConflicts is true, the
+// rebase succeeds even if there are conflicts, in which case the patch set will
+// contain git conflict markers.
+func (g *Gerrit) Rebase(ctx context.Context, ci *ChangeInfo, base string, allowConflicts bool) error {
+	postData := map[string]interface{}{
+		"base":            base,
+		"allow_conflicts": allowConflicts,
+	}
+	return g.postJson(ctx, fmt.Sprintf("/changes/%d/rebase", ci.Issue), postData)
 }
 
 // CodeReviewCache is an LRU cache for Gerrit Issues that polls in the background to determine if
