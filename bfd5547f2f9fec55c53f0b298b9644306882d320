@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "01d94696_44642ea3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-06-28T20:47:07Z",
+      "side": 1,
+      "message": "Alright, here\u0027s Step 1. Let me have it! :-)",
+      "revId": "bfd5547f2f9fec55c53f0b298b9644306882d320",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
