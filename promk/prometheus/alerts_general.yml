@@ -559,7 +559,7 @@ groups:
       severity: critical
       owner: rmistry@google.com
     annotations:
-      description: 'k8s_checker has failed to run in the last 5 minutes.'
+      description: 'k8s_checker has failed to run in the last 5 minutes on cluster {{ $labels.cluster }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#K8sCheckerLiveness'
 
   - alert: EvictedPod
     expr: evicted_pod_metric == 1
@@ -569,7 +569,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.pod }}'
-      description: 'Investigate the reason for eviction and then delete pod with "kubectl delete pod {{ $labels.pod }} --grace-period=0 --force"'
+      description: 'A pod has been Evicted. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#EvictedPod'
 
   - alert: DirtyCommittedK8sImage
     expr: dirty_committed_image_metric == 1
@@ -579,7 +579,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.yaml }}'
-      description: 'There is a dirty committed image {{ $labels.committedImage }} in {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }}'
+      description: 'There is a dirty committed image {{ $labels.committedImage }} in {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#DirtyCommittedK8sImage'
 
   - alert: DirtyRunningK8sConfig
     expr: dirty_config_metric == 1
@@ -589,7 +589,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
+      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#DirtyRunningK8sConfig'
 
   - alert: StaleK8sImage
     expr: stale_image_metric > 30
@@ -599,7 +599,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running/committed image {{ $labels.liveImage }} is > 30 days old. Should push to it soon to pick up new changes and ensure things continue to work'
+      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running/committed image {{ $labels.liveImage }} is > 30 days old. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#StaleK8sImage'
 
   - alert: CheckedInK8sAppNotRunning
     expr: app_running_metric{exported_app!~"gold-goldpushk.*test.*"} == 0
@@ -609,7 +609,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_app }}'
-      description: 'The app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
+      description: 'The app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }} but is not running in {{ $labels.project }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#CheckedInK8sAppNotRunning'
 
   - alert: CheckedInK8sContainerNotRunning
     expr: container_running_metric == 0
@@ -619,7 +619,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'The container {{ $labels.container }} of app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
+      description: 'The container {{ $labels.container }} of app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/main/{{ $labels.project }}/{{ $labels.yaml }} but is not running in {{ $labels.project }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#CheckedInK8sContainerNotRunning'
 
   - alert: RunningK8sAppNotCheckedIn
     expr: running_app_has_config_metric == 0
@@ -629,7 +629,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_app }}'
-      description: 'The app {{ $labels.exported_app }} is running in {{ $labels.project }} but is not checked into {{ $labels.repo }}'
+      description: 'The app {{ $labels.exported_app }} is running in {{ $labels.project }} but is not checked into {{ $labels.repo }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#RunningK8sAppNotCheckedIn'
 
   - alert: RunningK8sContainerNotCheckedIn
     expr: running_container_has_config_metric == 0
@@ -639,16 +639,25 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'The app {{ $labels.exported_app }} is running in {{ $labels.project }} but is not checked into {{ $labels.repo }}'
+      description: 'The app {{ $labels.exported_app }} is running in {{ $labels.project }} but is not checked into {{ $labels.repo }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#RunningK8sContainerNotCheckedIn'
 
-  - alert: TooManyPodRestarts
-    expr: rate(pod_restart_count{}[1h]) * 60 *60 > 2
+  - alert: PodRestartingFrequently
+    expr: delta(pod_restart_count{}[1h]) >= 2
     labels:
       category: infra
       severity: critical
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'Container {{ $labels.container }} of app {{ $labels.exported_app }} is restarting too often.'
+      description: 'Container {{ $labels.container }} of app {{ $labels.exported_app }} on cluster {{ $labels.cluster }} has restarted at least twice in the last hour. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#PodRestartingFrequently'
+
+  - alert: TooManyPodRestarts
+    expr: pod_restart_count{} >= 20
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.container }}'
+      description: 'Container {{ $labels.container }} of app {{ $labels.exported_app }} on cluster {{ $labels.cluster }} has restarted at least 20 times since initial deployment. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#TooManyPodRestarts'
 
 # GitSync.
   - alert: GitSyncStalled
