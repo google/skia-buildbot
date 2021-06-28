@@ -17,6 +17,10 @@ import (
 	"go.skia.org/infra/machine/go/machine/targetconnect"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/switchboard"
+<<<<<<< HEAD
+=======
+	"go.skia.org/infra/machine/go/switchboard/go/kubeconfig"
+>>>>>>> 61c1ff25c (git squash commit for fold-into-monitor.)
 	"go.skia.org/infra/sk8s/go/test_machine_monitor/machine"
 	"go.skia.org/infra/sk8s/go/test_machine_monitor/server"
 	"go.skia.org/infra/sk8s/go/test_machine_monitor/swarming"
@@ -76,7 +80,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	rpf, err := revportforward.New(*kubeConfig, ":22", true /*useNcRev */)
+	rpf, err := revportforward.New(kubeconfig.Config, ":22", true /*useNcRev */)
 	if err != nil {
 		sklog.Fatal(err)
 	}
