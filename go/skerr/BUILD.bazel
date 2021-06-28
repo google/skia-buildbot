@@ -11,8 +11,8 @@ go_library(
 go_test(
     name = "skerr_test",
     srcs = ["skerr_test.go"],
-    embed = [":skerr"],
     deps = [
+        ":skerr",
         "//go/skerr/alpha_test",
         "//go/skerr/beta_test",
         "//go/testutils/unittest",

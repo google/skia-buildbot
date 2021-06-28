@@ -17,6 +17,7 @@ go_library(
         "//sk8s/go/test_machine_monitor/machine",
         "//sk8s/go/test_machine_monitor/server",
         "//sk8s/go/test_machine_monitor/swarming",
+        "//switchboard/go/kubeconfig",
     ],
 )
 

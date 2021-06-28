@@ -10,13 +10,13 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/revportforward"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/switchboard/go/kubeconfig"
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 // flags
 var (
-	kubeconfig   = flag.String("kubeconfig", "", "The absolute path to the kubeconfig file.")
 	logging      = flag.Bool("logging", true, "Control logging.")
 	podName      = flag.String("pod_name", "", "Name of the pod to reverse port-forward from.")
 	podPort      = flag.Int("pod_port", -1, "The port on the pod.")
@@ -70,9 +70,6 @@ func main() {
 		"revportforward",
 		common.SLogLoggingOpt(logging),
 	)
-	if *kubeconfig == "" {
-		exitWithUsageAndMessage("The --kubeconfig flag is required.")
-	}
 	if *podName == "" {
 		exitWithUsageAndMessage("The --pod_name flag is required.")
 	}
@@ -83,7 +80,7 @@ func main() {
 		exitWithUsageAndMessage("The --local_address flag is required.")
 	}
 
-	r, err := revportforward.New(*kubeconfig, *localAddress, *useNcRev)
+	r, err := revportforward.New(kubeconfig.Config, *localAddress, *useNcRev)
 	if err != nil {
 		sklog.Fatal(err)
 	}
