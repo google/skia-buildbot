@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a75c9a85_88340dbf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-28T21:35:26Z",
+      "side": 1,
+      "message": "Adding Leandro for the WORKSPACE change and all the subsequent diffs.",
+      "revId": "51e8b7d59c8e5b71e43f1d2bb8b79ae880fe61e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}

@@ -22,6 +22,30 @@
       },
       "revId": "7e75a45967e4066733b9178ca53ef8a11c397d66",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "24817879_bbaf2abd",
+        "filename": "switchboard/go/kubeconfig/kubeconfig.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-28T21:35:26Z",
+      "side": 1,
+      "message": "Fixed names to reflect the actual cluster used.",
+      "parentUuid": "caa33b13_8d7004b2",
+      "range": {
+        "startLine": 11,
+        "startChar": 10,
+        "endLine": 11,
+        "endChar": 20
+      },
+      "revId": "7e75a45967e4066733b9178ca53ef8a11c397d66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
