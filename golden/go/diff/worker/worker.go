@@ -13,9 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"go.skia.org/infra/go/now"
-
-	"github.com/dgraph-io/ristretto"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -24,6 +22,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -35,9 +34,10 @@ import (
 )
 
 const (
-	// Images can vary wildely in size. Thus, we put a limit on the total amount of memory used
-	// for the decoded image cache and let the cache handle that
-	decodedImageCacheSizeGB = 16
+	// Downloading and decoding images appears to be a bottleneck for diffing. We spin up a small
+	// cache for each diff message to help retain those images while we calculate the diffs.
+	// This number was arbitrarily chosen.
+	decodedImageCacheSize = 100
 
 	fetchingRoutines = 4
 
@@ -75,7 +75,6 @@ type WorkerImpl struct {
 	diffCache                DiffCache // should be faster to query than db for a "yes/no" answer.
 	imageSource              ImageSource
 	badDigestsCache          *ttlcache.Cache
-	decodedImageCache        *ristretto.Cache
 	commitsWithDataToSearch  int // negative value means don't use primary branch.
 	metricsCalculatedCounter metrics2.Counter
 	decodedImageBytesSummary metrics2.Float64SummaryMetric
@@ -84,20 +83,11 @@ type WorkerImpl struct {
 
 // New returns a WorkerImpl that is ready to compute diffs.
 func New(db *pgxpool.Pool, src ImageSource, dc DiffCache, commitsWithDataToSearch int) *WorkerImpl {
-	imgCache, err := ristretto.NewCache(&ristretto.Config{
-		NumCounters: 20_000, // we expect a few thousand decoded images to fit.
-		MaxCost:     decodedImageCacheSizeGB * 1024 * 1024 * 1024,
-		BufferItems: 64, // suggested default
-	})
-	if err != nil {
-		panic(err)
-	}
 	return &WorkerImpl{
 		db:                       db,
 		diffCache:                dc,
 		imageSource:              src,
 		badDigestsCache:          ttlcache.New(badImageCooldown, 2*badImageCooldown),
-		decodedImageCache:        imgCache,
 		commitsWithDataToSearch:  commitsWithDataToSearch,
 		metricsCalculatedCounter: metrics2.GetCounter("diffcalculator_metricscalculated"),
 		decodedImageBytesSummary: metrics2.GetFloat64SummaryMetric("diffcalculator_decodedimagebytes"),
@@ -164,6 +154,14 @@ func (w *WorkerImpl) computeAndReportDiffsInParallel(ctx context.Context, groupi
 	// chan to be blocking computation. As such, make the buffer size decently big.
 	newMetrics := make(chan schema.DiffMetricRow, 2*reportingBatchSize)
 	computeGroup, eCtx := errgroup.WithContext(ctx)
+	imgCache, err := lru.New(decodedImageCacheSize)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	eCtx = addImgCache(eCtx, imgCache)
+	defer func() {
+		imgCache.Purge() // Make it easier to GC anything left in the cache.
+	}()
 	for i := 0; i < diffingRoutines; i++ {
 		computeGroup.Go(func() error {
 			// Worker goroutines will run until the channel is empty and closed or the errCtx
@@ -256,6 +254,22 @@ func (w *WorkerImpl) computeAndReportDiffsInParallel(ctx context.Context, groupi
 	}
 	sklog.Infof("Done with those %d new diffs", workAssigned)
 	return nil
+}
+
+type contextType string
+
+const imgCacheContextKey contextType = "imgCache"
+
+func addImgCache(ctx context.Context, cache *lru.Cache) context.Context {
+	return context.WithValue(ctx, imgCacheContextKey, cache)
+}
+
+func getImgCache(ctx context.Context) *lru.Cache {
+	c, ok := ctx.Value(imgCacheContextKey).(*lru.Cache)
+	if !ok {
+		return nil
+	}
+	return c
 }
 
 // addMetadata adds some attributes to the span so we can tell how much work it was supposed to
@@ -503,8 +517,11 @@ func max(diffs [4]int) int {
 func (w *WorkerImpl) getDecodedImage(ctx context.Context, digest types.Digest) (*image.NRGBA, error) {
 	ctx, span := trace.StartSpan(ctx, "getDecodedImage")
 	defer span.End()
-	if cachedImg, ok := w.decodedImageCache.Get(string(digest)); ok {
-		return cachedImg.(*image.NRGBA), nil
+	cache := getImgCache(ctx)
+	if cache != nil {
+		if cachedImg, ok := cache.Get(string(digest)); ok {
+			return cachedImg.(*image.NRGBA), nil
+		}
 	}
 	b, err := w.imageSource.GetImage(ctx, digest)
 	if err != nil {
@@ -519,7 +536,9 @@ func (w *WorkerImpl) getDecodedImage(ctx context.Context, digest types.Digest) (
 	s := img.Bounds().Size()
 	sizeInBytes := s.X * s.Y * 4
 	w.decodedImageBytesSummary.Observe(float64(sizeInBytes))
-	w.decodedImageCache.Set(string(digest), img, int64(sizeInBytes))
+	if cache != nil {
+		cache.Add(string(digest), img)
+	}
 	return img, nil
 }
 
