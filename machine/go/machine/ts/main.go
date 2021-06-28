@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/machine"
+	"go.skia.org/infra/machine/go/switchboard"
 )
 
 func main() {
@@ -21,6 +22,8 @@ func main() {
 	generator := go2ts.New()
 	generator.Add(machine.Description{})
 	generator.AddUnion(machine.AllModes)
+	generator.Add(switchboard.Pod{})
+	generator.Add(switchboard.MeetingPoint{})
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)
