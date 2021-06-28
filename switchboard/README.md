@@ -4,6 +4,8 @@ See the design doc at http://go/skia-switchboard.
 
 ## kubeconfig.yaml
 
+The `kubeconfig.yaml` file is embedded via the go/kubeconfig module.
+
 To regenerate the 'kubeconfig.yaml' file first define:
 
     export GET_CMD="gcloud container clusters describe [CLUSTER] --zone=[ZONE]"
