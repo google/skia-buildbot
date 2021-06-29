@@ -33,6 +33,24 @@
       "message": "WDYT about checking to see if the change should rebase before calling rebase?\n(i.e. use gitiles to find HEAD and compare that with change\u0027s parent)",
       "revId": "77e230f70d3d5380512f546aff761d6875bfe2f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8da9fdba_74de1a30",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-29T14:25:22Z",
+      "side": 1,
+      "message": "We don\u0027t have access to a Gitiles client at the point in the code where we call rebase, so it would require some plumbing.  Is it possible to determine whether a rebase is required based on the ChangeInfo alone?  The \"mergeable\" field seems like it would be the right thing to check, but the docs are unclear: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#change-info",
+      "parentUuid": "121972ba_4129b6d0",
+      "revId": "77e230f70d3d5380512f546aff761d6875bfe2f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
