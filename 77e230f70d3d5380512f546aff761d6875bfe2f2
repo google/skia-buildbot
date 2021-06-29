@@ -51,6 +51,24 @@
       "parentUuid": "121972ba_4129b6d0",
       "revId": "77e230f70d3d5380512f546aff761d6875bfe2f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2a51fea1_e1191585",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-29T14:39:04Z",
+      "side": 1,
+      "message": "About mergeable - I have been tempted in the past to do API_REF_UPDATED_AND_CHANGE_REINDEX in https://gerrit-review.googlesource.com/Documentation/config-gerrit.html#change.mergeabilityComputationBehavior so that we can get mergeability. It would be useful in various places.\nBut I didn\u0027t want to risk slowing anything down, it would have been great if they had listed exactly what quantifies as a large repo or how many open changes are a lot in their docs.\n\nBack to this change-\nAny change to httputils is scary so upto you if it is worth plumbing in gitiles client instead of doing that.\nLGTM for current changes.",
+      "parentUuid": "8da9fdba_74de1a30",
+      "revId": "77e230f70d3d5380512f546aff761d6875bfe2f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
