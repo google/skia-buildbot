@@ -6,4 +6,4 @@ if [ "$#" != "1" ]; then
   exit 1
 fi
 
-ansible-playbook -i "$1," setup-skolo-bot.yml --ask-sudo-pass --extra-vars="swarming_server=https://chromium-swarm.appspot.com home=/home/chrome-bot"
+ansible-playbook -i "$1," setup-skolo-bot.yml --ask-pass --ask-become-pass --extra-vars="swarming_server=https://chromium-swarm.appspot.com home=/home/chrome-bot"
