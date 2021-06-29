@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d7dcf146_2fbf2566",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-29T11:52:20Z",
+      "side": 1,
+      "message": "nit: skerr.Fmt",
+      "range": {
+        "startLine": 299,
+        "startChar": 14,
+        "endLine": 299,
+        "endChar": 24
+      },
+      "revId": "2f7c419f0ffd67a5a9fe256d21833ac6f9d0e336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
