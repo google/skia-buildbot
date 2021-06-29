@@ -11,6 +11,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/switchboard"
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 const defaultRetryDelay = time.Second
@@ -71,6 +73,7 @@ func (c *Connection) Start(ctx context.Context) error {
 
 	// Keep track if this machine is running a test.
 	go func() {
+		// This will fail if machineSwarmingServer.Start() hasn't registered the machine yet.
 		machineCh := c.machineStore.Watch(ctx, c.hostname)
 		for {
 			select {
