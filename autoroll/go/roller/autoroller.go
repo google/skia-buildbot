@@ -106,7 +106,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, 
 	var cr codereview.CodeReview
 	var err error
 	if c.GetGerrit() != nil {
-		cr, err = codereview.NewGerrit(c.GetGerrit(), g)
+		cr, err = codereview.NewGerrit(c.GetGerrit(), g, client)
 	} else if c.GetGithub() != nil {
 		cr, err = codereview.NewGitHub(c.GetGithub(), githubClient)
 	} else {
