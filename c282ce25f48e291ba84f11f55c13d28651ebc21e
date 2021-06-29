@@ -48,6 +48,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "090632bf_766bc21d",
+        "filename": "skcq/go/codereview/codereview.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-29T20:13:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16cf885f_0fbdde74",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 27
+      },
+      "revId": "c282ce25f48e291ba84f11f55c13d28651ebc21e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "684520f1_d8b580e6",
@@ -118,6 +142,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bb7b0a47_0ae96779",
+        "filename": "skcq/go/codereview/codereview.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-29T20:13:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b6dcf5a_55d3cb67",
+      "range": {
+        "startLine": 66,
+        "startChar": 4,
+        "endLine": 66,
+        "endChar": 5
+      },
+      "revId": "c282ce25f48e291ba84f11f55c13d28651ebc21e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "815b8655_eb18fde7",
@@ -131,6 +179,30 @@
       "writtenOn": "2021-06-29T19:41:40Z",
       "side": 1,
       "message": "skerr.Wrapf, here and elsewhere",
+      "range": {
+        "startLine": 175,
+        "startChar": 13,
+        "endLine": 175,
+        "endChar": 24
+      },
+      "revId": "c282ce25f48e291ba84f11f55c13d28651ebc21e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5d1682b9_a1aa9e42",
+        "filename": "skcq/go/codereview/codereview.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-29T20:13:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "815b8655_eb18fde7",
       "range": {
         "startLine": 175,
         "startChar": 13,
