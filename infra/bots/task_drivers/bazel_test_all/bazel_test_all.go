@@ -234,7 +234,15 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 	}
 	ctx = td.WithEnv(ctx, emulatorHostEnvVars)
 
+	err := td.Do(ctx, td.Props("SLEEPING FOR 60 MINUTES"), func(ctx context.Context) error {
+		time.Sleep(60 * time.Minute)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
-	_, err := bzl.Do(ctx, "test", "//...", "--test_output=errors")
+	_, err = bzl.Do(ctx, "test", "//...", "--test_output=errors")
 	return err
 }
