@@ -11,6 +11,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/switchboard"
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // Add support for GCP auth to all kubernetes codepaths.
 )
 
 const defaultRetryDelay = time.Second
