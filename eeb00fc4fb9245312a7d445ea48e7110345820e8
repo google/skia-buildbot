@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "391bab16_beebb9b2",
+        "filename": "sk/go/asset/asset.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-29T14:52:55Z",
+      "side": 1,
+      "message": "Just curious: Is this a better style than fmt.Printf(\"\\nFound...\") ?\nMaybe it is, it feels strange typing newlines.",
+      "range": {
+        "startLine": 346,
+        "startChar": 1,
+        "endLine": 346,
+        "endChar": 24
+      },
+      "revId": "eeb00fc4fb9245312a7d445ea48e7110345820e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
