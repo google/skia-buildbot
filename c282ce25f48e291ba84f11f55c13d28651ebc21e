@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "16cf885f_0fbdde74",
+        "filename": "skcq/go/codereview/codereview.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-29T20:02:20Z",
+      "side": 1,
+      "message": "How about leaving the interface here and making a new codereview_impl.go ?",
+      "parentUuid": "1ddf17f2_a37f3be7",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 27
+      },
+      "revId": "c282ce25f48e291ba84f11f55c13d28651ebc21e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "684520f1_d8b580e6",
         "filename": "skcq/go/codereview/codereview.go",
         "patchSetId": 2
@@ -37,6 +61,30 @@
       "writtenOn": "2021-06-29T19:41:40Z",
       "side": 1,
       "message": "It doesn\u0027t make much sense to me to have an interface but use gerrit.ChangeInfo as a parameter.  Can we use an ID instead?",
+      "range": {
+        "startLine": 31,
+        "startChar": 33,
+        "endLine": 31,
+        "endChar": 55
+      },
+      "revId": "c282ce25f48e291ba84f11f55c13d28651ebc21e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7424fdfe_2baf8251",
+        "filename": "skcq/go/codereview/codereview.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-29T20:02:20Z",
+      "side": 1,
+      "message": "The problem is that gerritClient.SetReview (and many other functions that call go/gerrit here) needs an ChangeInfo (vs ChangeInfo.Issue if that is what you meant via ID).\nCallers of this interface will have ChangeInfo objects (from the search method) available to them and will invoke this impl for various different communications with Gerrit.",
+      "parentUuid": "684520f1_d8b580e6",
       "range": {
         "startLine": 31,
         "startChar": 33,
