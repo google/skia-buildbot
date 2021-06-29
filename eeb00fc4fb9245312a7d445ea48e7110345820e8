@@ -22,6 +22,30 @@
       },
       "revId": "eeb00fc4fb9245312a7d445ea48e7110345820e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a8f8b046_d7151705",
+        "filename": "sk/go/asset/asset.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-29T15:00:35Z",
+      "side": 1,
+      "message": "Maybe it\u0027s better to use Printf, I dunno.  I always forget to add the newline.",
+      "parentUuid": "391bab16_beebb9b2",
+      "range": {
+        "startLine": 346,
+        "startChar": 1,
+        "endLine": 346,
+        "endChar": 24
+      },
+      "revId": "eeb00fc4fb9245312a7d445ea48e7110345820e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
