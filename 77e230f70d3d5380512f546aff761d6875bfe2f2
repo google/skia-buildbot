@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c35df827_2e172cdd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-29T14:16:30Z",
+      "side": 1,
+      "message": "This is a weird solution, but I had a hard time thinking of anything better.  Rebase is failing with \"Change is already up to date\".  The 409 is being retried with backoff, which causes errors to be logged and a bunch of time to be wasted before we finally ignore the error at the end, so I used this context thing to prevent the retries.  Please let me know if you can think of something better.",
+      "revId": "77e230f70d3d5380512f546aff761d6875bfe2f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
