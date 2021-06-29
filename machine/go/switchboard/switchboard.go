@@ -123,6 +123,10 @@ type Switchboard interface {
 	// times with the same podName.
 	RemovePod(ctx context.Context, podName string) error
 
+	// IsValidPod returns true if this is a valid pod name. Pods can become
+	// invalid during graceful shutdown.
+	IsValidPod(ctx context.Context, podName string) bool
+
 	// ListPods returns a list of all the pods availble to accept connections.
 	// This will be used in the machines UI.
 	ListPods(ctx context.Context) ([]Pod, error)

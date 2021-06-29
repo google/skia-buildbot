@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/revportforward"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machine/targetconnect"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/switchboard"
@@ -84,7 +85,12 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	connection := targetconnect.New(switchboardImpl, rpf, hostname, *username)
+	store, err := store.New(ctx, *local, instanceConfig)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	connection := targetconnect.New(switchboardImpl, rpf, store, hostname, *username)
 	go func() {
 		err := connection.Start(ctx)
 		if err != nil {

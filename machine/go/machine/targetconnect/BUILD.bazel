@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/metrics2",
         "//go/sklog",
+        "//machine/go/machine/store",
         "//machine/go/switchboard",
     ],
 )
@@ -20,6 +21,8 @@ go_test(
     deps = [
         "//go/testutils",
         "//go/testutils/unittest",
+        "//machine/go/machine",
+        "//machine/go/machine/store/mocks",
         "//machine/go/machine/targetconnect/mocks",
         "//machine/go/switchboard",
         "//machine/go/switchboard/mocks",
