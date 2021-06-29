@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1ddf17f2_a37f3be7",
+        "filename": "skcq/go/codereview/codereview.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-29T19:41:40Z",
+      "side": 1,
+      "message": "General note: I\u0027d prefer to see the interface and implementation separate, ie. in different files or even packages, to keep implementation details like this from leaking into the interface itself.",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 27
+      },
+      "revId": "c282ce25f48e291ba84f11f55c13d28651ebc21e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "684520f1_d8b580e6",
+        "filename": "skcq/go/codereview/codereview.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-29T19:41:40Z",
+      "side": 1,
+      "message": "It doesn\u0027t make much sense to me to have an interface but use gerrit.ChangeInfo as a parameter.  Can we use an ID instead?",
+      "range": {
+        "startLine": 31,
+        "startChar": 33,
+        "endLine": 31,
+        "endChar": 55
+      },
+      "revId": "c282ce25f48e291ba84f11f55c13d28651ebc21e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8b6dcf5a_55d3cb67",
+        "filename": "skcq/go/codereview/codereview.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-29T19:41:40Z",
+      "side": 1,
+      "message": "Nit: whitespace",
+      "range": {
+        "startLine": 66,
+        "startChar": 4,
+        "endLine": 66,
+        "endChar": 5
+      },
+      "revId": "c282ce25f48e291ba84f11f55c13d28651ebc21e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "815b8655_eb18fde7",
+        "filename": "skcq/go/codereview/codereview.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-29T19:41:40Z",
+      "side": 1,
+      "message": "skerr.Wrapf, here and elsewhere",
+      "range": {
+        "startLine": 175,
+        "startChar": 13,
+        "endLine": 175,
+        "endChar": 24
+      },
+      "revId": "c282ce25f48e291ba84f11f55c13d28651ebc21e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
