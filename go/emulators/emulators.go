@@ -19,6 +19,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"syscall"
 
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/skerr"
@@ -260,7 +261,7 @@ func startEmulator(emulatorInfo emulatorInfo) error {
 	programAndArgs := strings.Split(fmt.Sprintf(emulatorInfo.cmd, emulatorInfo.port), " ")
 	cmd := exec.Command(programAndArgs[0], programAndArgs[1:]...)
 	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stderr = os.Stdout
 
 	if bazel.InBazelTestOnRBE() {
 		// Force emulator child processes to die as soon as the parent process (e.g. the Go test runner)
@@ -275,9 +276,21 @@ func startEmulator(emulatorInfo emulatorInfo) error {
 		cmd.SysProcAttr = makeSysProcAttrWithPdeathsigSIGKILL()
 	}
 
+	emustr := strings.Join(programAndArgs, " ")
+	fmt.Printf("STARTING EMULATOR: %s\n", emustr)
+
 	if err := cmd.Start(); err != nil {
 		return skerr.Wrap(err)
 	}
+
+	go func() {
+		err := cmd.Wait()
+		if err != nil {
+			fmt.Printf("EMULATOR %s FINISHED WITH ERROR: %v\n", emustr, err)
+			return
+		}
+		fmt.Printf("EMULATOR %s FINISHED WITH EXIT CODE: %d\n", emustr, cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
+	}()
 
 	return nil
 }
