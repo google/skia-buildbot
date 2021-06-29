@@ -1158,7 +1158,27 @@ func (g *Gerrit) Rebase(ctx context.Context, ci *ChangeInfo, base string, allowC
 		"base":            base,
 		"allow_conflicts": allowConflicts,
 	}
-	return g.postJson(ctx, fmt.Sprintf("/changes/%d/rebase", ci.Issue), postData)
+	ctx = httputils.WithContext(ctx, httputils.ContextData{
+		RetryFilter: func(resp *http.Response) bool {
+			if resp.StatusCode == 409 {
+				return false
+			} else if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
+				return true
+			} else if resp.StatusCode >= 400 && resp.StatusCode <= 499 {
+				return true
+			} else if resp.StatusCode < 200 || resp.StatusCode > 299 {
+				return false
+			}
+			return false
+		},
+	})
+	if err := g.postJson(ctx, fmt.Sprintf("/changes/%d/rebase", ci.Issue), postData); err != nil {
+		if strings.Contains(err.Error(), "Change is already up to date") {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 // CodeReviewCache is an LRU cache for Gerrit Issues that polls in the background to determine if

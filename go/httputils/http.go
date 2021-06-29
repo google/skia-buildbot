@@ -50,6 +50,8 @@ const (
 var (
 	retryableErr = errors.New("Retryable error")
 	permanentErr = errors.New("Permanent error")
+
+	contextKey = &struct{}{}
 )
 
 // HealthCheckHandler returns 200 OK with an empty body, appropriate
@@ -314,6 +316,7 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 			return nil, fmt.Errorf("Failed to read request body: %v", err)
 		}
 	}
+	contextData := GetContext(req.Context())
 
 	var resp *http.Response
 	var err error
@@ -329,6 +332,16 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 			return err
 		}
 		if resp != nil {
+			if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+				return nil
+			}
+			if contextData != nil && contextData.RetryFilter != nil {
+				if contextData.RetryFilter(resp) {
+					return retryableErr
+				} else {
+					return backoff.Permanent(permanentErr)
+				}
+			}
 			if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
 				// This error will be retried.
 				return retryableErr
@@ -685,4 +698,28 @@ func XFrameOptionsDeny(h http.Handler) http.Handler {
 		w.Header().Set("X-Frame-Options", "DENY")
 		h.ServeHTTP(w, r)
 	})
+}
+
+// ContextData is used for passing additional options to the functions in this
+// package.
+type ContextData struct {
+	// RetryFilter is used to determine whether a request should be retried
+	// based on a response. This takes precedence over other rules.
+	RetryFilter func(*http.Response) bool
+}
+
+// WithContext returns a child context.Context with the given ContextData
+// attached.
+func WithContext(ctx context.Context, c ContextData) context.Context {
+	return context.WithValue(ctx, contextKey, &c)
+}
+
+// GetContext retrieves the ContextData attached to the given context.Context.
+// Returns nil if one is not present.
+func GetContext(ctx context.Context) *ContextData {
+	v := ctx.Value(contextKey)
+	if v == nil {
+		return nil
+	}
+	return v.(*ContextData)
 }
