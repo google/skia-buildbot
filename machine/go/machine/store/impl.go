@@ -143,10 +143,12 @@ func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine
 			if err != nil {
 				if ctx.Err() == context.Canceled {
 					sklog.Warningf("Context canceled; closing channel: %s", err)
-				} else if st, ok := status.FromError(err); ok && st.Code() == codes.Canceled {
+				} else if stErr, ok := status.FromError(err); ok && stErr.Code() == codes.Canceled {
 					sklog.Warningf("Context canceled; closing channel: %s", err)
 				} else {
-					sklog.Errorf("iter returned error; closing channel: %s", err)
+					iter = st.machinesCollection.Doc(machineID).Snapshots(ctx)
+					sklog.Warningf("iter returned error; retrying query: %s", err)
+					continue
 				}
 				iter.Stop()
 				close(ch)

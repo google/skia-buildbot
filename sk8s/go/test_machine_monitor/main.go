@@ -90,6 +90,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	// Don't start this until the machine appears on the machine database.
 	connection := targetconnect.New(switchboardImpl, rpf, store, hostname, *username)
 	go func() {
 		err := connection.Start(ctx)

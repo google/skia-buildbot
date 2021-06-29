@@ -83,6 +83,9 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not determine hostname.")
 	}
+	if machineID == "" {
+		machineID = hostname
+	}
 
 	return &Machine{
 		dimensions:                 machine.SwarmingDimensions{},
