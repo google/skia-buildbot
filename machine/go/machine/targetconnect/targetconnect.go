@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/switchboard"
 )
 
@@ -24,6 +25,7 @@ type RevPortForward interface {
 // into the switchboard cluster.
 type Connection struct {
 	switchboard    switchboard.Switchboard
+	machineStore   store.Store
 	revPortForward RevPortForward
 
 	hostname string
@@ -31,17 +33,21 @@ type Connection struct {
 
 	meetingPointLiveness metrics2.Liveness
 	stepsCounter         metrics2.Counter
+
+	mutex       sync.RWMutex // protects runningTest.
+	runningTest bool
 }
 
 // New return a new *connection that can initiate and maintain a connection from
 // a target machine into the switchboard cluster.
-func New(switchboard switchboard.Switchboard, revportforward RevPortForward, hostname, username string) *Connection {
+func New(switchboard switchboard.Switchboard, revportforward RevPortForward, machineStore store.Store, hostname, username string) *Connection {
 	tags := map[string]string{
 		"hostname": hostname,
 		"username": username,
 	}
 	return &Connection{
 		switchboard:          switchboard,
+		machineStore:         machineStore,
 		revPortForward:       revportforward,
 		hostname:             hostname,
 		username:             username,
@@ -50,12 +56,33 @@ func New(switchboard switchboard.Switchboard, revportforward RevPortForward, hos
 	}
 }
 
+func (c *Connection) isRunningTest() bool {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+	return c.runningTest
+}
+
 // Start a connection to a switchboard pod, while keeping Switchboard up to date
 // on the status of the connetion.
 //
 // Start does not return, unless the passed in Context is cancelled.
 func (c *Connection) Start(ctx context.Context) error {
 	ticker := time.NewTicker(switchboard.MeetingPointKeepAliveDuration)
+
+	// Keep track if this machine is running a test.
+	go func() {
+		machineCh := c.machineStore.Watch(ctx, c.hostname)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case desc := <-machineCh:
+				c.mutex.Lock()
+				c.runningTest = desc.RunningSwarmingTask
+				c.mutex.Unlock()
+			}
+		}
+	}()
 
 	for {
 		c.stepsCounter.Inc(1)
@@ -116,6 +143,11 @@ func (c *Connection) singleStep(ctx context.Context, ticker *time.Ticker, sleepD
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
+				if !c.isRunningTest() && !c.switchboard.IsValidPod(ctx, mp.PodName) {
+					sklog.Infof("pod is no longer valid, exiting for force reconnect: %q", mp.PodName)
+					cancel()
+					return
+				}
 				err := c.switchboard.KeepAliveMeetingPoint(ctx, mp)
 				if err != nil {
 					sklog.Errorf("targetconnect KeepAliveMeetingPoint failed: %s", err)
