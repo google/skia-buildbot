@@ -108,7 +108,7 @@ func main() {
 			if err != nil {
 				log.Fatalf("Failed to create Gerrit client: %s", err)
 			}
-			cr, err = codereview.NewGerrit(gc, gerritClient)
+			cr, err = codereview.NewGerrit(gc, gerritClient, client)
 			if err != nil {
 				log.Fatalf("Failed to create Gerrit code review: %s", err)
 			}

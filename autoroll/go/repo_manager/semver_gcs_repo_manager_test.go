@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"path"
 	"strings"
@@ -81,12 +82,12 @@ func afdoCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 	}
 }
 
-func gerritCR(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview {
+func gerritCR(t *testing.T, g gerrit.GerritInterface, client *http.Client) codereview.CodeReview {
 	rv, err := codereview.NewGerrit(&config.GerritConfig{
 		Url:     "https://skia-review.googlesource.com",
 		Project: "skia",
 		Config:  config.GerritConfig_CHROMIUM,
-	}, g)
+	}, g, client)
 	require.NoError(t, err)
 	return rv
 }
@@ -115,14 +116,14 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerrit(gUrl, urlmock.Client())
+	client := urlmock.Client()
+	g, err := gerrit.NewGerrit(gUrl, client)
 	require.NoError(t, err)
 
 	cfg := afdoCfg(t)
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 	parentCfg.Gitiles.RepoUrl = parent.RepoUrl()
-
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake-recipe-cfg", "fake.server.com", urlmock.Client(), gerritCR(t, g))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake-recipe-cfg", "fake.server.com", client, gerritCR(t, g, client))
 	require.NoError(t, err)
 
 	// Mock requests for Update.
