@@ -33,6 +33,24 @@
       "message": "nit: Since we now have multiple types added, maybe put machine.Description{}, switchboard.Pod{}, and switchboard.MeetingPoint{} in a single generator.AddMultiple()?\n\nSee, for example: https://skia.googlesource.com/buildbot/+/refs/heads/main/bugs-central/go/types/ts/main.go#22",
       "revId": "bfd5547f2f9fec55c53f0b298b9644306882d320",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bc7ce97b_e531c343",
+        "filename": "machine/go/machine/ts/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-06-29T11:24:22Z",
+      "side": 1,
+      "message": "All set. Boy, gofmt gives you a lot more latitude than I expected: I formatted it 3 different ways, and it didn\u0027t perturb any of them!",
+      "parentUuid": "a5e4d58b_80a18cb1",
+      "revId": "bfd5547f2f9fec55c53f0b298b9644306882d320",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
