@@ -1,36 +1,44 @@
 package footers
 
 import (
+	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
+
+type CQSupportedFooter string
 
 const (
 
 	// If this is false and the full CQ is triggered then CQ will fail.
-	CommitFooter string = "Commit"
+	CommitFooter CQSupportedFooter = "Commit"
 
 	// Does not cancel try jobs if new CODE_CHANGE patchsets are uploaded.
-	DoNotCancelTryjobsFooter string = "Cq-Do-Not-Cancel-Tryjobs"
+	DoNotCancelTryjobsFooter CQSupportedFooter = "Cq-Do-Not-Cancel-Tryjobs"
 
 	// Includes the specified tryjobs. The tryjobs will be in this format:
 	// bucket1:bot1,bot2;bucket2:bot3,bot4
-	IncludeTryjobsFooter string = "Cq-Include-Trybots"
+	IncludeTryjobsFooter CQSupportedFooter = "Cq-Include-Trybots"
 
 	// Skips the tree status check if this is true.
-	NoTreeChecksFooter string = "No-Tree-Checks"
+	NoTreeChecksFooter CQSupportedFooter = "No-Tree-Checks"
+
+	// // Do not run the presubmit check if this is true.
+	// NoPresubmitFooter CQSupportedFooter = "No-Presubmit"
 
 	// Triggering and checking for tryjobs will be skipped if this is true.
-	NoTryFooter string = "No-Try"
+	NoTryFooter CQSupportedFooter = "No-Try"
 
 	// If true and the change has other open changes that will be submitted at the
 	// same time then the CQ will return failure. Not applicable for dry-runs.
-	NoDependencyChecksFooter string = "No-Dependency-Checks"
+	NoDependencyChecksFooter CQSupportedFooter = "No-Dependency-Checks"
 
 	// If true then all successful try jobs are rerun regardless of who triggered
 	// them.
-	RerunTryjobsFooter string = "Rerun-Tryjobs"
+	RerunTryjobsFooter CQSupportedFooter = "Rerun-Tryjobs"
 )
 
 // ParseIncludeTryJobsFooter parses the IncludeTryjobsFooter and returns

@@ -123,7 +123,7 @@ func AutorollersInit(ctx context.Context, ts oauth2.TokenSource) (status.DB, err
 				}
 				message := fmt.Sprintf("Open: %s %s landed", rollers, rollerText)
 				sklog.Infof("Sending status notification with message: \"%s\"", message)
-				if err := AddStatus(message, "tree-status@skia.org", OPEN_STATE, ""); err != nil {
+				if err := AddStatus(message, "tree-status@skia.org", types.OpenState, ""); err != nil {
 					sklog.Infof("Failed to add automated message to the datastore: %s", err)
 				}
 			} else {
