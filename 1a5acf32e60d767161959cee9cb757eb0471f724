@@ -1,0 +1,69 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d5ede48f_911c98f5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-30T12:00:00Z",
+      "side": 1,
+      "message": "Looks like a good start!\n\nPlease add tests to stepfit_test.go:\n\n   https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/go/stepfit/stepfit_test.go\n   \nAlso, you will need to add code to use the new algorithm in Tyescript.\n\nSee this CL for an example of all the places that need to be modified:\n\n   https://skia-review.googlesource.com/c/buildbot/+/414456\n   \nNote that perf/modules/json/index.ts doesn\u0027t get modified by hand, you \njust need to run `go generate ./go/...` from within the \u0027perf\u0027 directory.",
+      "revId": "1a5acf32e60d767161959cee9cb757eb0471f724",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "74c43583_adc6cca9",
+        "filename": "perf/go/stepfit/stepfit.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-30T12:00:00Z",
+      "side": 1,
+      "message": "\u003e Please remove the trailing whitespace.\n\nPlease fix.",
+      "parentUuid": "d8821c6e_c5778d42",
+      "range": {
+        "startLine": 178,
+        "startChar": 60,
+        "endLine": 178,
+        "endChar": 61
+      },
+      "revId": "1a5acf32e60d767161959cee9cb757eb0471f724",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7a412a46_301b0e95",
+        "filename": "perf/go/types/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-30T12:00:00Z",
+      "side": 1,
+      "message": "\u003e Please remove the trailing whitespace.\n\nPlease fix.",
+      "parentUuid": "1b9c6f86_b4a40e1c",
+      "range": {
+        "startLine": 99,
+        "startChar": 69,
+        "endLine": 99,
+        "endChar": 70
+      },
+      "revId": "1a5acf32e60d767161959cee9cb757eb0471f724",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
