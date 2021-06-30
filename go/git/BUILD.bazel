@@ -33,6 +33,7 @@ go_test(
     ],
     embed = [":git"],
     deps = [
+        "//go/deepequal",
         "//go/deepequal/assertdeep",
         "//go/exec/testutils",
         "//go/git/testutils",
