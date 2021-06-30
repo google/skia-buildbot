@@ -38,7 +38,7 @@ const (
 
 // This regex is taken from:
 // https://source.chromium.org/chromium/infra/infra/+/master:go/src/go.chromium.org/luci/common/git/footer/footer.go?q=%22%5E%5Cs*(%5B%5Cw-%5D%2B):%20*(.*)$%22&ss=chromium
-var trailerRegex = regexp.MustCompile(`^\s*([\w-]+): *(.*)$`)
+var TrailerRegex = regexp.MustCompile(`^\s*([\w-]+): *(.*)$`)
 
 // Types of git objects.
 const (
@@ -240,7 +240,7 @@ func SplitTrailers(commitMsg string) ([]string, []string) {
 	}
 	trailerLines := paragraphs[len(paragraphs)-1]
 	for _, line := range trailerLines {
-		if !trailerRegex.MatchString(line) {
+		if !TrailerRegex.MatchString(line) {
 			// At least one line in the last paragraph does not fit the trailer
 			// format; assume there are no trailers.
 			return lines, []string{}
@@ -266,7 +266,7 @@ func JoinTrailers(bodyLines, trailers []string) string {
 
 // AddTrailer adds a trailer to the given commit message.
 func AddTrailer(commitMsg, trailer string) (string, error) {
-	if !trailerRegex.MatchString(trailer) {
+	if !TrailerRegex.MatchString(trailer) {
 		return "", skerr.Fmt("%q is not a valid git trailer", trailer)
 	}
 	body, trailers := SplitTrailers(commitMsg)
@@ -285,4 +285,51 @@ func FullyQualifiedBranchName(branch string) string {
 // BranchBaseName ensures that the branch does not have the refs/heads/ prefix.
 func BranchBaseName(branch string) string {
 	return strings.TrimPrefix(branch, git_common.RefsHeadsPrefix)
+}
+
+// GetFootersMap parses the specified commit msg and returns it's footers.
+// Invalid footer formats are logged.
+// Eg: commit msg: "test test\n\nBug: skia:123\nTested: true" will return
+// {"skia": "123", "Tested": "true"}.
+func GetFootersMap(commitMsg string) map[string]string {
+	footersMap := map[string]string{}
+	_, footers := SplitTrailers(commitMsg)
+	for _, f := range footers {
+		rs := TrailerRegex.FindStringSubmatch(f)
+		if len(rs) != 3 {
+			sklog.Errorf("Could not parse footer %s from the commitMsg %s", f, commitMsg)
+			continue
+		}
+		footersMap[rs[1]] = rs[2]
+	}
+
+	return footersMap
+}
+
+// GetBoolFooterVal looks for the specified footer in the footersMap and returns
+// it's boolean value. If the footer is not found then false is returned.
+// If the value is not boolean then false is returned and an error is logged.
+func GetBoolFooterVal(footersMap map[string]string, footer string, issue int64) bool {
+	if val, ok := footersMap[string(footer)]; ok {
+		b, err := strconv.ParseBool(val)
+		if err != nil {
+			sklog.Errorf("Could not parse bool value out of \"%s: %s\" in %d", footer, val, issue)
+			return false
+		} else {
+			if b {
+				return b
+			}
+		}
+	}
+	return false
+}
+
+// GetStringFooterVal looks for the specified footer in the footersMap and returns
+// it's strings value. If the footer is not found then an empty string is
+// returned.
+func GetStringFooterVal(footersMap map[string]string, footer string) string {
+	if val, ok := footersMap[string(footer)]; ok {
+		return val
+	}
+	return ""
 }

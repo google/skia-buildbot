@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -138,4 +139,144 @@ Paragraph 2
 
 K1: V1
 Trailer-Key: trailer-value`, "")
+}
+
+func TestGetFootersMap(t *testing.T) {
+	unittest.SmallTest(t)
+
+	tests := []struct {
+		commitMsg      string
+		expectedOutput map[string]string
+	}{
+		{
+			commitMsg:      "Test test test\n\nfooter: value",
+			expectedOutput: map[string]string{"footer": "value"},
+		},
+		{
+			commitMsg:      "Test test test\n\nfooter-no-space:value",
+			expectedOutput: map[string]string{"footer-no-space": "value"},
+		},
+		{
+			commitMsg:      "Test test test\nfake-footer: value",
+			expectedOutput: map[string]string{},
+		},
+		{
+			commitMsg:      "Test test test\nfake-footer: value\n\nfooter1: value1\nfooter2: value2",
+			expectedOutput: map[string]string{"footer1": "value1", "footer2": "value2"},
+		},
+	}
+
+	for _, test := range tests {
+		require.True(t, deepequal.DeepEqual(test.expectedOutput, GetFootersMap(test.commitMsg)))
+	}
+}
+
+func TestGetBoolFooterVal(t *testing.T) {
+	unittest.SmallTest(t)
+
+	testFooterName := "test-footer-name"
+	tests := []struct {
+		footersMap     map[string]string
+		footer         string
+		expectedOutput bool
+	}{
+		{
+			footersMap: map[string]string{
+				testFooterName: "true",
+			},
+			footer:         testFooterName,
+			expectedOutput: true,
+		},
+		{
+			footersMap: map[string]string{
+				testFooterName: "false",
+			},
+			footer:         testFooterName,
+			expectedOutput: false,
+		},
+		{
+			footersMap: map[string]string{
+				"some-other-footer": "true",
+			},
+			footer:         testFooterName,
+			expectedOutput: false,
+		},
+		{
+			footersMap: map[string]string{
+				"some-other-footer": "true",
+				testFooterName:      "true",
+			},
+			footer:         testFooterName,
+			expectedOutput: true,
+		},
+		{
+			footersMap:     map[string]string{},
+			footer:         testFooterName,
+			expectedOutput: false,
+		},
+		{
+			footersMap:     nil,
+			footer:         testFooterName,
+			expectedOutput: false,
+		},
+		{
+			footersMap: map[string]string{
+				testFooterName: "not-a-bool-val",
+			},
+			footer:         testFooterName,
+			expectedOutput: false,
+		},
+	}
+
+	for _, test := range tests {
+		require.Equal(t, test.expectedOutput, GetBoolFooterVal(test.footersMap, test.footer, 1))
+	}
+}
+
+func TestGetStringFooterVal(t *testing.T) {
+	unittest.SmallTest(t)
+
+	testFooterName := "test-footer-name"
+	tests := []struct {
+		footersMap     map[string]string
+		footer         string
+		expectedOutput string
+	}{
+		{
+			footersMap: map[string]string{
+				testFooterName: "value",
+			},
+			footer:         testFooterName,
+			expectedOutput: "value",
+		},
+		{
+			footersMap: map[string]string{
+				"some-other-footer": "value",
+			},
+			footer:         testFooterName,
+			expectedOutput: "",
+		},
+		{
+			footersMap: map[string]string{
+				"some-other-footer": "value1",
+				testFooterName:      "value2",
+			},
+			footer:         testFooterName,
+			expectedOutput: "value2",
+		},
+		{
+			footersMap:     map[string]string{},
+			footer:         testFooterName,
+			expectedOutput: "",
+		},
+		{
+			footersMap:     nil,
+			footer:         testFooterName,
+			expectedOutput: "",
+		},
+	}
+
+	for _, test := range tests {
+		require.Equal(t, test.expectedOutput, GetStringFooterVal(test.footersMap, test.footer))
+	}
 }
