@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
+	"io/fs"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -23,7 +23,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/machine/go/configs"
 	"go.skia.org/infra/machine/go/machine"
 	machineProcessor "go.skia.org/infra/machine/go/machine/processor"
 	"go.skia.org/infra/machine/go/machine/source/pubsubsource"
@@ -33,7 +33,7 @@ import (
 
 // flags
 var (
-	configFlag = flag.String("config", "./configs/test.json", "The path to the configuration file.")
+	configFlag = flag.String("config", "test.json", "The name to the configuration file, such as prod.json or test.json, as found in machine/go/configs.")
 )
 
 type server struct {
@@ -56,11 +56,13 @@ func new() (baseapp.App, error) {
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
 
 	var instanceConfig config.InstanceConfig
-	err := util.WithReadFile(*configFlag, func(r io.Reader) error {
-		return json.NewDecoder(r).Decode(&instanceConfig)
-	})
+	b, err := fs.ReadFile(configs.Configs, *configFlag)
 	if err != nil {
-		sklog.Fatalf("Failed to open config file: %q: %s", *configFlag, err)
+		sklog.Fatalf("Failed to read config file %q: %s", *configFlag, err)
+	}
+	err = json.Unmarshal(b, &instanceConfig)
+	if err != nil {
+		sklog.Fatal(err)
 	}
 
 	processor := machineProcessor.New(ctx)
