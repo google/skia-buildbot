@@ -4,6 +4,7 @@ load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
 load("//:elements-sk-scss.bzl", "generate_tilde_prefixed_elements_sk_scss_files")
+load("@exec_properties//:constants.bzl", "NETWORK_ON")
 
 # Disable generation of go_proto_library targets. Let Gazelle use checked-in .pb.go files instead.
 #
@@ -70,6 +71,26 @@ buildifier(
         "./**/node_modules/*",
     ],
     lint_mode = "warn",
+)
+
+############################
+# Custom platform for RBE. #
+############################
+
+platform(
+    name = "rbe_custom_platform",
+    # Enable networking. Without this, tests that require network access will fail. Examples include
+    # go_test targets that try to clone the Skia Git repo from https://skia.googlesource.com/skia,
+    # tests that hit GCS, etc.
+    #
+    # See https://github.com/bazelbuild/bazel-toolchains/tree/master/rules/exec_properties.
+    #
+    # Note that depending on network resources breaks test hermeticity.
+    exec_properties = NETWORK_ON,
+    # Extend the platform generated with "rbe_configs_gen".
+    #
+    # See //bazel/rbe/README.md for details.
+    parents = ["//bazel/rbe/config:platform"],
 )
 
 #############################################################################
