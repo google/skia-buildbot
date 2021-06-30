@@ -46,6 +46,30 @@
       },
       "revId": "2164230752ceead93ad432f3b891efe5250233e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6d95385f_c2e902ea",
+        "filename": "skcq/go/config/skcq_cfg.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-30T12:33:54Z",
+      "side": 1,
+      "message": "Our other user facing configs- jobs.json, tasks.json, supported-branches.json are in JSON, which was the primary reason I had chosen JSON for this (to be consistent). One day if we decide to update everything to proto, it should be easy to update this as well.",
+      "parentUuid": "5a2ca8d8_4b2eb542",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 62
+      },
+      "revId": "2164230752ceead93ad432f3b891efe5250233e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
