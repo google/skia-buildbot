@@ -286,3 +286,50 @@ func FullyQualifiedBranchName(branch string) string {
 func BranchBaseName(branch string) string {
 	return strings.TrimPrefix(branch, git_common.RefsHeadsPrefix)
 }
+
+// GetFootersMap parses the specified commit msg and returns it's footers.
+// Invalid footer formats are logged.
+// Eg: commit msg: "test test\n\nBug: skia:123\nTested: true" will return
+// {"skia": "123", "Tested": "true"}.
+func GetFootersMap(commitMsg string) map[string]string {
+	footersMap := map[string]string{}
+	_, footers := SplitTrailers(commitMsg)
+	for _, f := range footers {
+		rs := trailerRegex.FindStringSubmatch(f)
+		if len(rs) != 3 {
+			sklog.Errorf("Could not parse footer %s from the commitMsg %s", f, commitMsg)
+			continue
+		}
+		footersMap[rs[1]] = rs[2]
+	}
+
+	return footersMap
+}
+
+// GetBoolFooterVal looks for the specified footer in the footersMap and returns
+// it's boolean value. If the footer is not found then false is returned.
+// If the value is not boolean then false is returned and an error is logged.
+func GetBoolFooterVal(footersMap map[string]string, footer string, issue int64) bool {
+	if val, ok := footersMap[string(footer)]; ok {
+		b, err := strconv.ParseBool(val)
+		if err != nil {
+			sklog.Errorf("Could not parse bool value out of \"%s: %s\" in %d", footer, val, issue)
+			return false
+		} else {
+			if b {
+				return b
+			}
+		}
+	}
+	return false
+}
+
+// GetStringFooterVal looks for the specified footer in the footersMap and returns
+// it's strings value. If the footer is not found then an empty string is
+// returned.
+func GetStringFooterVal(footersMap map[string]string, footer string) string {
+	if val, ok := footersMap[string(footer)]; ok {
+		return val
+	}
+	return ""
+}
