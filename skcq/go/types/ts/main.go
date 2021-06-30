@@ -11,8 +11,7 @@ import (
 	"github.com/skia-dev/go2ts"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/machine/go/machine"
-	"go.skia.org/infra/machine/go/switchboard"
+	"go.skia.org/infra/skcq/go/types"
 )
 
 func main() {
@@ -21,10 +20,13 @@ func main() {
 
 	generator := go2ts.New()
 	generator.AddMultiple(
-		machine.Description{},
-		switchboard.MeetingPoint{},
-		switchboard.Pod{})
-	generator.AddUnion(machine.AllModes)
+		types.CurrentlyProcessingChange{},
+		types.GetCurrentChangesRequest{},
+		types.GetCurrentChangesResponse{},
+		types.ChangeAttempts{},
+		types.GetChangeAttemptsRequest{},
+		types.GetChangeAttemptsResponse{},
+	)
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)

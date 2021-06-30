@@ -11,6 +11,7 @@ go_library(
         "//go/revportforward",
         "//go/sklog",
         "//go/util",
+        "//machine/go/machine/store",
         "//machine/go/machine/targetconnect",
         "//machine/go/machineserver/config",
         "//machine/go/switchboard",

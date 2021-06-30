@@ -331,16 +331,19 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 			LogStderr: true,
 		}
 		fmt.Println(fmt.Sprintf("Running: %s %s", cmd.Name, strings.Join(cmd.Args, " ")))
-		if _, err := exec.RunCommand(ctx, cmd); err != nil {
+		if err := exec.Run(ctx, cmd); err != nil {
 			return skerr.Wrap(err)
 		}
+		fmt.Println("Finished running asset creation script.")
 	}
 
 	// Find the next version number.
+	fmt.Println("Finding available asset versions...")
 	instances, err := getAvailableVersions(ctx, cipdClient, name)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	fmt.Println(fmt.Sprintf("Found %d package instances.", len(instances)))
 	highestVersion := -1
 	for version := range instances {
 		if version > highestVersion {
@@ -507,6 +510,7 @@ func getAvailableVersions(ctx context.Context, cipdClient cipd.CIPDClient, name 
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	fmt.Println("  Created iterator.")
 
 	// Iterate the package instances.
 	rv := map[int]*cipd_api.InstanceDescription{}
@@ -516,20 +520,26 @@ func getAvailableVersions(ctx context.Context, cipdClient cipd.CIPDClient, name 
 			// TODO(borenet): Why doesn't the code work?
 			if status.Code(err) == codes.NotFound || strings.Contains(err.Error(), "no such package") {
 				// There aren't any instances of this package yet.
+				fmt.Println("  No instances of this package exist yet. Stopping.")
 				break
 			} else {
+				fmt.Println("  Encountered error while iterating. Stopping.")
 				return nil, skerr.Wrap(err)
 			}
 		}
 		if len(infos) == 0 {
+			fmt.Println("  Finished iterating.")
 			break
 		}
+		fmt.Println("  Processing batch of package instances.")
 		for _, info := range infos {
+			fmt.Println(fmt.Sprintf("    Processing: %s", info.Pin.InstanceID))
 			// Retrieve the details for the instance, which include the tags.
 			instance, err := cipdClient.DescribeInstance(ctx, info.Pin, &cipd_api.DescribeInstanceOpts{
 				DescribeTags: true,
 			})
 			if err != nil {
+				fmt.Println("  Encountered error while processing package instance.  Stopping.")
 				return nil, skerr.Wrap(err)
 			}
 			for _, tag := range instance.Tags {

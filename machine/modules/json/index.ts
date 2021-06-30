@@ -23,6 +23,19 @@ export interface Description {
 	DeviceUptime: number;
 }
 
+export interface MeetingPoint {
+	PodName: string;
+	Port: number;
+	Username: string;
+	MachineID: string;
+	LastUpdated: string;
+}
+
+export interface Pod {
+	Name: string;
+	LastUpdated: string;
+}
+
 export type Mode = "available" | "maintenance" | "recovery";
 
 export type SwarmingDimensions = { [key: string]: string[] | null } | null;
