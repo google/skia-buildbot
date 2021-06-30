@@ -29,6 +29,8 @@ import (
 	"go.skia.org/infra/machine/go/machine/source/pubsubsource"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"go.skia.org/infra/machine/go/switchboard"
+	"go.skia.org/infra/machine/go/switchboard/cleanup"
 )
 
 // flags
@@ -79,6 +81,11 @@ func new() (baseapp.App, error) {
 		return nil, skerr.Wrapf(err, "Failed to start pubsubsource.")
 	}
 	storeUpdateFail := metrics2.GetCounter("machineserver_store_update_fail")
+	switchboardImpl, err := switchboard.New(ctx, *baseapp.Local, instanceConfig)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	cleaner := cleanup.New(switchboardImpl)
 
 	// Start our main loop.
 	go func() {
@@ -92,6 +99,10 @@ func new() (baseapp.App, error) {
 			}
 		}
 	}()
+
+	// Start the process to clean up stale MeetingPoints.
+	go cleaner.Start(ctx)
+
 	s := &server{
 		store: store,
 	}
