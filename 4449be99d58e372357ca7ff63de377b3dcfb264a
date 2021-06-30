@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e9d25c85_88d99619",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-30T12:18:23Z",
+      "side": 1,
+      "message": "When I did this for Gold, I stopped the current snapshot [1]. I don\u0027t remember if this was required or just a precaution. You\u0027ll also notice that I add a bit of recovery time in there - you may want to consider a similar approach.\n\n[1] https://github.com/google/skia-buildbot/blob/3c152ec53941f7a45c95376dd4f9937bfa35816a/golden/go/fs_utils/fs_utils.go#L73",
+      "range": {
+        "startLine": 149,
+        "startChar": 5,
+        "endLine": 149,
+        "endChar": 9
+      },
+      "revId": "4449be99d58e372357ca7ff63de377b3dcfb264a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
