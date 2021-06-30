@@ -3,6 +3,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "3c9395d3_d08c4e79",
+        "filename": "skcq/go/config/cfg_reader.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-30T13:54:42Z",
+      "side": 1,
+      "message": "I think we should be able to use GerritInterface.RepoUrl() for this, so that we don\u0027t have to make assumptions about the host.",
+      "range": {
+        "startLine": 68,
+        "startChar": 32,
+        "endLine": 68,
+        "endChar": 69
+      },
+      "revId": "2164230752ceead93ad432f3b891efe5250233e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "b425265e_7d3f099a",
         "filename": "skcq/go/config/skcq_cfg.go",
         "patchSetId": 2
@@ -62,6 +85,30 @@
       "side": 1,
       "message": "Our other user facing configs- jobs.json, tasks.json, supported-branches.json are in JSON, which was the primary reason I had chosen JSON for this (to be consistent). One day if we decide to update everything to proto, it should be easy to update this as well.",
       "parentUuid": "5a2ca8d8_4b2eb542",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 62
+      },
+      "revId": "2164230752ceead93ad432f3b891efe5250233e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1235914a_bbc57a63",
+        "filename": "skcq/go/config/skcq_cfg.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-30T13:54:42Z",
+      "side": 1,
+      "message": "Personally, I really prefer proto for config files.  Validation is easier[1], and I\u0027d argue that the .proto file makes for better documentation than a Go struct.  I\u0027m not familiar with jq, but we have libraries for generating both Go and TypeScript code from proto, so I think we\u0027re on equal footing there.  Plus versioning support is better.\n\nI would love to change tasks.json and its brethren to be in text proto format, but there hasn\u0027t been a strong enough motivation, and the process would be a monumental pain, because we\u0027d have to make the change on every branch of every supported repo, plus leave the old parser in place to handle backfilling of old commits.  So I\u0027d say it\u0027s much better to get it right the first time than to deal with the hassle of fixing it later.\n\n[1] For example, the only way to catch an unused JSON key is to unmarshal twice, once into a map[string]interface{} and once into the actual destination struct, and re-marshal and compare.  And that would have to be done for every nested struct.",
+      "parentUuid": "6d95385f_c2e902ea",
       "range": {
         "startLine": 72,
         "startChar": 0,
