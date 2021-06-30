@@ -16,6 +16,24 @@
       "message": "This will allow sending out the verifiers and all UI pages out for review",
       "revId": "0ab9b68909fff79d5c49dbaf6c588cba97aa263b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9f459ff_a8155536",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-30T21:01:16Z",
+      "side": 1,
+      "message": "Friendly ping.",
+      "parentUuid": "75152566_7dd1a04b",
+      "revId": "0ab9b68909fff79d5c49dbaf6c588cba97aa263b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
