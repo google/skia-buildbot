@@ -22,6 +22,30 @@
       },
       "revId": "2164230752ceead93ad432f3b891efe5250233e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5a2ca8d8_4b2eb542",
+        "filename": "skcq/go/config/skcq_cfg.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-30T12:11:25Z",
+      "side": 1,
+      "message": "Drive-by comment: We have plenty of tools (jq) and libraries (goland json) for processing and generating JSON, and Go supports JSON natively making the Go code a good source of documentation. Text proto has very little of those benefits.",
+      "parentUuid": "b425265e_7d3f099a",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 62
+      },
+      "revId": "2164230752ceead93ad432f3b891efe5250233e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
