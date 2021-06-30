@@ -178,6 +178,42 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 	assert.NoError(t, store.firestoreClient.Close())
 }
 
+func TestWatch_StartWatchBeforeMachineExists_ContinuesToTryUntilMachineExists(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, cfg := setupForTest(t)
+	store, err := New(ctx, true, cfg)
+	require.NoError(t, err)
+
+	// Set this to 0 so we don't have any waiting during tests.
+	watchRecoverBackoff = 0
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	// First add the watch.
+	ch := store.Watch(ctx, "skia-rpi2-rack2-shelf1-001")
+
+	// Then create the document.
+	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		ret.Dimensions[machine.DimOS] = []string{"Android"}
+		ret.Annotation.Message = "Hello World!"
+		return ret
+	})
+	require.NoError(t, err)
+
+	// Wait for first description.
+	m := <-ch
+	assert.Equal(t, machine.ModeMaintenance, m.Mode)
+	assert.Equal(t, machine.SwarmingDimensions{
+		machine.DimID: {"skia-rpi2-rack2-shelf1-001"},
+		machine.DimOS: {"Android"},
+	}, m.Dimensions)
+	assert.Equal(t, "Hello World!", m.Annotation.Message)
+	assert.NoError(t, store.firestoreClient.Close())
+}
+
 func TestWatch_IsCancellable(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
