@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2876b4ab_eb2c110b",
+        "filename": "sk8s/go/test_machine_monitor/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-30T13:48:01Z",
+      "side": 1,
+      "message": "Perhaps include the *configFlag in the error output?",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 49,
+        "endChar": 13
+      },
+      "revId": "fee4b5a7afe450435dc3b0be36127e97315b712f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
