@@ -9,16 +9,6 @@ skia_app_container(
                 "0755",
             ],
         ],
-        "/usr/local/share/machineserver": [
-            [
-                "//machine/configs:prod.json",
-                "0644",
-            ],
-            [
-                "//machine/configs:test.json",
-                "0644",
-            ],
-        ],
         "/usr/local/share/machineserver/dist": [
             [
                 "//machine/pages:production/index.css",

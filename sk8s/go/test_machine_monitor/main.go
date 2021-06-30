@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"io"
+	"io/fs"
 	"os"
 	"time"
 
@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/revportforward"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/machine/go/configs"
 	"go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machine/targetconnect"
 	"go.skia.org/infra/machine/go/machineserver/config"
@@ -26,7 +26,7 @@ import (
 
 // flags
 var (
-	configFlag     = flag.String("config", "", "The path to the configuration file.")
+	configFlag     = flag.String("config", "prod.json", "The name to the configuration file, such as prod.json or test.json, as found in machine/go/configs.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	metadataURL    = flag.String("metadata_url", "http://metadata:8000/computeMetadata/v1/instance/service-accounts/default/token", "The URL of the metadata server that provides service account tokens.")
 	port           = flag.String("port", ":11000", "HTTP service address (e.g., ':8000')")
@@ -44,9 +44,14 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 	var instanceConfig config.InstanceConfig
-	err := util.WithReadFile(*configFlag, func(r io.Reader) error {
-		return json.NewDecoder(r).Decode(&instanceConfig)
-	})
+	b, err := fs.ReadFile(configs.Configs, *configFlag)
+	if err != nil {
+		sklog.Fatalf("Failed to read config file %q: %s", *configFlag, err)
+	}
+	err = json.Unmarshal(b, &instanceConfig)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 	if emulators.GetEmulatorHostEnvVar(emulators.PubSub) != "" {
 		sklog.Fatal("Do not run with the pubsub emulator.")
 	}
