@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dc1f6631_61cb0a75",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-30T14:46:16Z",
+      "side": 1,
+      "message": "Can there be 0 parents? maybe if parents are 0 we should throw an error?",
+      "range": {
+        "startLine": 248,
+        "startChar": 8,
+        "endLine": 248,
+        "endChar": 26
+      },
+      "revId": "2bb940f2cc025f5c8fa62b3e63f1d9d7b8a287e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
