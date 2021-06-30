@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "footers",
+    srcs = ["footers.go"],
+    importpath = "go.skia.org/infra/skcq/go/footers",
+    visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
+)
+
+go_test(
+    name = "footers_test",
+    srcs = ["footers_test.go"],
+    embed = [":footers"],
+    deps = [
+        "//go/deepequal",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
