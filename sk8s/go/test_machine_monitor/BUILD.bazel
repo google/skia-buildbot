@@ -7,7 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
-        "//go/emulators",
+        "//go/pubsub",
         "//go/revportforward",
         "//go/sklog",
         "//machine/go/configs",
