@@ -73,7 +73,7 @@ spec:
                   fieldPath: metadata.name
           resources:
             requests:
-              memory: "20Gi" # A rough estimate based on real-world needs.
+              memory: "4Gi" # A rough estimate based on real-world needs.
               cpu: "4"       # 4 diff goroutines in diff/worker.go
           readinessProbe:
             httpGet:

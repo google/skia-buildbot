@@ -4,10 +4,9 @@
   memcached_server: "gold-memcached-0.gold-memcached:11211",
   prom_port: ":20000",
   ready_port: ":8000",
-  tracing_proportion: 0.05, // A little more tracing until we are happy with ingestion.
 
   // These values affect the k8s deployment; they are not read in by the binary.
-  K8S_REPLICAS: 12,
+  K8S_REPLICAS: 16,
   K8S_NODE_SELECTOR_KEY: "beta.kubernetes.io/instance-type",
   K8S_NODE_SELECTOR_VALUE1: "n1-standard-16",
   K8S_NODE_SELECTOR_VALUE2: "e2-standard-16"
