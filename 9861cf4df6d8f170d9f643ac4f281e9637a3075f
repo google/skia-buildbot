@@ -16,6 +16,24 @@
       "message": "I think we should take a lesson from our go/firestore package in that if we name a package the same as a commonly used package, we\u0027ll forever have to use an import alias (just like is done in machineserver/main.go in this CL).\n\nI\u0027m more inclined to have this be in the emulators package for that reason, but could live with this CL as is.",
       "revId": "9861cf4df6d8f170d9f643ac4f281e9637a3075f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7fc1ff77_4f736245",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-30T17:30:04Z",
+      "side": 1,
+      "message": "True, but I\u0027ve been doing some spelunking in the kubernetes source lately and I see a lot of alias\u0027s, so I\u0027m prone not to think of an alias as something to avoid.\n\nI\u0027m not saying we should go this far, but here is one extreme example:\n\n https://github.com/kubernetes/client-go/blob/v0.21.2/kubernetes/clientset.go#L24",
+      "parentUuid": "4e4778a8_49623472",
+      "revId": "9861cf4df6d8f170d9f643ac4f281e9637a3075f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
