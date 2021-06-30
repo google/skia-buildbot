@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "cleanup",
+    srcs = ["cleanup.go"],
+    importpath = "go.skia.org/infra/machine/go/switchboard/cleanup",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/now",
+        "//go/sklog",
+        "//machine/go/switchboard",
+    ],
+)
+
+go_test(
+    name = "cleanup_test",
+    srcs = ["cleanup_test.go"],
+    embed = [":cleanup"],
+    deps = [
+        "//go/now",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//machine/go/switchboard",
+        "//machine/go/switchboard/mocks",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)
