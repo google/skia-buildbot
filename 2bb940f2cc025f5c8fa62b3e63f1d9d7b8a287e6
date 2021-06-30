@@ -22,6 +22,30 @@
       },
       "revId": "2bb940f2cc025f5c8fa62b3e63f1d9d7b8a287e6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0ce5f436_8c22cc17",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-30T15:03:11Z",
+      "side": 1,
+      "message": "There shouldn\u0027t be zero parents, but it\u0027s possible that the API could return incomplete data.  Unfortunately, returning an error would cause us to get stuck here indefinitely, since we\u0027ll retry the same transition on the next tick.  Changed to log an error.",
+      "parentUuid": "dc1f6631_61cb0a75",
+      "range": {
+        "startLine": 248,
+        "startChar": 8,
+        "endLine": 248,
+        "endChar": 26
+      },
+      "revId": "2bb940f2cc025f5c8fa62b3e63f1d9d7b8a287e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
