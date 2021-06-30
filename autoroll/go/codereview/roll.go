@@ -14,6 +14,8 @@ import (
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/travisci"
 )
@@ -105,6 +107,7 @@ type gerritRoll struct {
 	issueUrl         string
 	finishedCallback func(context.Context, RollImpl) error
 	g                gerrit.GerritInterface
+	gitiles          *gitiles.Repo
 	recent           *recent_rolls.RecentRolls
 	retrieveRoll     func(context.Context) (*gerrit.ChangeInfo, error)
 	result           string
@@ -113,7 +116,7 @@ type gerritRoll struct {
 
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, gitiles *gitiles.Repo, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	ci, err := updateIssueFromGerrit(ctx, cfg, issue, g)
 	if err != nil {
 		return nil, err
@@ -124,6 +127,7 @@ func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autorol
 		issueUrl:         fmt.Sprintf("%s%d", issueUrlBase, issue.Issue),
 		finishedCallback: cb,
 		g:                g,
+		gitiles:          gitiles,
 		recent:           recent,
 		retrieveRoll: func(ctx context.Context) (*gerrit.ChangeInfo, error) {
 			return updateIssueFromGerrit(ctx, cfg, issue, g)
@@ -228,14 +232,33 @@ func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
 	})
 }
 
+// maybeRebaseCL determines whether the CL needs to be rebased and does so if
+// necessary.
+func (r *gerritRoll) maybeRebaseCL(ctx context.Context) error {
+	head, err := r.gitiles.Details(ctx, r.ci.Branch)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	base, err := r.g.GetCommit(ctx, r.ci.Issue, r.ci.Patchsets[len(r.ci.Patchsets)-1].ID)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if head.Hash != base.Commit {
+		if err := r.g.Rebase(ctx, r.ci, "", false); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return nil
+}
+
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RetryCQ(ctx context.Context) error {
 	return r.withModify(ctx, "retry the CQ", func() error {
-		if err := r.g.Rebase(ctx, r.ci, "", false); err != nil {
-			return err
+		if err := r.maybeRebaseCL(ctx); err != nil {
+			return skerr.Wrap(err)
 		}
 		if err := r.g.SendToCQ(ctx, r.ci, "CQ failed but there are no new commits. Retrying..."); err != nil {
-			return err
+			return skerr.Wrap(err)
 		}
 		r.issue.IsDryRun = false
 		return nil
@@ -245,11 +268,11 @@ func (r *gerritRoll) RetryCQ(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "retry the CQ (dry run)", func() error {
-		if err := r.g.Rebase(ctx, r.ci, "", false); err != nil {
-			return err
+		if err := r.maybeRebaseCL(ctx); err != nil {
+			return skerr.Wrap(err)
 		}
 		if err := r.g.SendToDryRun(ctx, r.ci, "Dry run failed but there are no new commits. Retrying..."); err != nil {
-			return err
+			return skerr.Wrap(err)
 		}
 		r.issue.IsDryRun = true
 		return nil

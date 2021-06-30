@@ -116,8 +116,8 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 git interpret-trailers --trailer "Change-Id: %s" >> $1
 `, changeId))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/tools/hooks/commit-msg", mockhttpclient.MockGetDialogue(respBody))
-
-	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, setupRegistry(t), wd, "fake.server.com", urlmock.Client(), androidGerrit(t, g), false)
+	mockGerrit, _ := androidGerrit(t, g)
+	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, setupRegistry(t), wd, "fake.server.com", urlmock.Client(), mockGerrit, false)
 	require.NoError(t, err)
 
 	cleanup := func() {

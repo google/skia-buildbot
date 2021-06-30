@@ -3,6 +3,7 @@ package codereview
 import (
 	"context"
 	"errors"
+	"net/http"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
@@ -11,6 +12,7 @@ import (
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/gitiles"
 )
 
 // CodeReview outlines the autoroller's interaction with a code review system.
@@ -45,13 +47,14 @@ type gerritCodeReview struct {
 	cfg            *config.GerritConfig
 	fullHistoryUrl string
 	gerritClient   gerrit.GerritInterface
+	gitilesClient  *gitiles.Repo
 	issueUrlBase   string
 	userEmail      string
 	userName       string
 }
 
 // NewGerrit returns a gerritCodeReview instance.
-func NewGerrit(cfg *config.GerritConfig, gerritClient gerrit.GerritInterface) (CodeReview, error) {
+func NewGerrit(cfg *config.GerritConfig, gerritClient gerrit.GerritInterface, client *http.Client) (CodeReview, error) {
 	userEmail, err := gerritClient.GetUserEmail(context.TODO())
 	if err != nil {
 		return nil, err
@@ -61,6 +64,7 @@ func NewGerrit(cfg *config.GerritConfig, gerritClient gerrit.GerritInterface) (C
 		cfg:            cfg,
 		fullHistoryUrl: cfg.Url + "/q/owner:" + userEmail,
 		gerritClient:   gerritClient,
+		gitilesClient:  gitiles.NewRepo(gerritClient.GetRepoUrl(), client),
 		issueUrlBase:   cfg.Url + "/c/",
 		userEmail:      userEmail,
 		userName:       userName,
@@ -79,7 +83,7 @@ func (c *gerritCodeReview) GetFullHistoryUrl() string {
 
 // RetrieveRoll implements CodeReview.
 func (c *gerritCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, rollingTo *revision.Revision, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
-	return newGerritRoll(ctx, c.cfg, issue, c.gerritClient, recent, c.issueUrlBase, rollingTo, finishedCallback)
+	return newGerritRoll(ctx, c.cfg, issue, c.gerritClient, c.gitilesClient, recent, c.issueUrlBase, rollingTo, finishedCallback)
 }
 
 // UserEmail implements CodeReview.

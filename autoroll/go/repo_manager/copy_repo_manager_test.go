@@ -123,7 +123,7 @@ func setupCopy(t *testing.T) (context.Context, *config.ParentChildRepoManagerCon
 	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
 
 	// Create the RepoManager.
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", "recipes.cfg", urlmock.Client(), gerritCR(t, g))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", "recipes.cfg", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
 	require.NoError(t, err)
 
 	// Update.

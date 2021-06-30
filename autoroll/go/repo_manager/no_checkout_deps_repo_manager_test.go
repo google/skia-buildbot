@@ -78,7 +78,7 @@ func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (co
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	// Create the RepoManager.
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
 	require.NoError(t, err)
 
 	// Mock requests for Update().

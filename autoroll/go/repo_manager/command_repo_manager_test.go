@@ -147,7 +147,7 @@ func TestCommandRepoManager(t *testing.T) {
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
 	// Create the repo manager.
-	rm, err := NewCommandRepoManager(ctx, cfg, setupRegistry(t), tmp, "fake.server.com", gerritCR(t, g))
+	rm, err := NewCommandRepoManager(ctx, cfg, setupRegistry(t), tmp, "fake.server.com", gerritCR(t, g, urlmock.Client()))
 	require.NoError(t, err)
 	require.Equal(t, 0, getTipRevCount)
 	require.Equal(t, 0, getPinnedRevCount)

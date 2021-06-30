@@ -122,7 +122,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)
 	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevBase, "mac-base")
 
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake-recipes-cfg", "fake.server.com", urlmock.Client(), gerritCR(t, g))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake-recipes-cfg", "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
 	require.NoError(t, err)
 
 	cleanup := func() {

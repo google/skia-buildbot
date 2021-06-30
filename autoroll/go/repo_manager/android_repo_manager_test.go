@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -37,14 +38,15 @@ var (
 		"1234444444444444444444444444444444444444"}
 )
 
-func androidGerrit(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview {
+func androidGerrit(t *testing.T, g gerrit.GerritInterface) (codereview.CodeReview, *mockhttpclient.URLMock) {
+	urlmock := mockhttpclient.NewURLMock()
 	rv, err := codereview.NewGerrit(&config.GerritConfig{
 		Url:     "https://googleplex-android-review.googlesource.com",
 		Project: "platform/external/skia",
 		Config:  config.GerritConfig_ANDROID,
-	}, g)
+	}, g, urlmock.Client())
 	require.NoError(t, err)
-	return rv
+	return rv, urlmock
 }
 
 func androidCfg() *config.AndroidRepoManagerConfig {
@@ -137,7 +139,8 @@ func TestAndroidRepoManager(t *testing.T) {
 	g.On("GetUserEmail", testutils.AnyContext).Return("fake-service-account", nil)
 	g.On("GetRepoUrl").Return(androidCfg().ParentRepoUrl)
 	g.On("Config").Return(gerrit.ConfigAndroid)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
+	mockGerrit, _ := androidGerrit(t, g)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, _, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -161,7 +164,8 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	g.On("GetIssueProperties", testutils.AnyContext, androidIssueNum).Return(&gerrit.ChangeInfo{Issue: androidIssueNum}, nil)
 	g.On("SetTopic", testutils.AnyContext, mock.AnythingOfType("string"), androidIssueNum).Return(nil)
 	g.On("SetReview", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
+	mockGerrit, _ := androidGerrit(t, g)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -185,7 +189,8 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	g.On("GetIssueProperties", testutils.AnyContext, androidIssueNum).Return(&gerrit.ChangeInfo{Issue: androidIssueNum}, nil)
 	g.On("SetTopic", testutils.AnyContext, mock.AnythingOfType("string"), androidIssueNum).Return(nil)
 	g.On("SetReview", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
+	mockGerrit, _ := androidGerrit(t, g)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)

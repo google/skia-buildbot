@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	gerrit_testutils "go.skia.org/infra/go/gerrit/testutils"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -111,7 +112,9 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
-	gr, err := newGerritRoll(ctx, cfg, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
+	urlMock := mockhttpclient.NewURLMock()
+	gitilesClient := gitiles.NewRepo(g.Gerrit.GetRepoUrl(), urlMock.Client())
+	gr, err := newGerritRoll(ctx, cfg, issue, g.Gerrit, gitilesClient, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.False(t, issue.IsDryRun)
 	require.False(t, gr.IsFinished())
@@ -222,7 +225,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 		}
 		g.MockGetTrybotResults(ci, 1, []*buildbucketpb.Build{tryjob})
 	}
-	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
+	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, gitilesClient, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.True(t, issue.IsDryRun)
 	require.False(t, gr.IsFinished())
@@ -276,7 +279,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
-	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
+	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, gitilesClient, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes := g.MakePostRequest(ci, "Mode was changed to dry run", gc.SetDryRunLabels)
@@ -295,7 +298,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
-	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
+	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, gitilesClient, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes = g.MakePostRequest(ci, "Mode was changed to normal", gc.SetCqLabels)
@@ -314,7 +317,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
-	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
+	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, gitilesClient, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FakeGerritURL, ci.Issue)
@@ -338,7 +341,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
-	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
+	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, gitilesClient, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FakeGerritURL, ci.Issue)
