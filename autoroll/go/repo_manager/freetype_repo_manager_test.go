@@ -115,7 +115,7 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 		},
 	}
 
-	rm, err := NewFreeTypeRepoManager(ctx, cfg, setupRegistry(t), wd, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewFreeTypeRepoManager(ctx, cfg, setupRegistry(t), wd, "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()), false)
 	require.NoError(t, err)
 
 	// Mock requests for Update().
