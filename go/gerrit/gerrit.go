@@ -55,6 +55,8 @@ const (
 	ChangeStatusMerged = "MERGED"
 	// ChangeStatusNew indicates the the change is new.
 	ChangeStatusNew = "NEW"
+	// ChangeStatusNew indicates the the change is open.
+	ChangeStatusOpen = "OPEN"
 
 	// LabelCodeReview is the label used for code review.
 	LabelCodeReview = "Code-Review"
@@ -143,6 +145,7 @@ const (
 	PatchSetKindMergeFirstParentUpdate = "MERGE_FIRST_PARENT_UPDATE"
 	PatchSetKindNoChange               = "NO_CHANGE"
 	PatchSetKindNoCodeChange           = "NO_CODE_CHANGE"
+	PatchSetKindCodeChange             = "CODE_CHANGE"
 	PatchSetKindRework                 = "REWORK"
 	PatchSetKindTrivialRebase          = "TRIVIAL_REBASE"
 

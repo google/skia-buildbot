@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "codereview",
+    srcs = [
+        "codereview.go",
+        "codereview_impl.go",
+    ],
+    importpath = "go.skia.org/infra/skcq/go/codereview",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gerrit",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_test(
+    name = "codereview_test",
+    srcs = ["codereview_test.go"],
+    embed = [":codereview"],
+    deps = [
+        "//go/deepequal",
+        "//go/gerrit",
+        "//go/gerrit/mocks",
+        "//go/httputils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
