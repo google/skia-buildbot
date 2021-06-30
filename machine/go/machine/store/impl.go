@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
 	gcfirestore "cloud.google.com/go/firestore"
@@ -25,6 +26,11 @@ const (
 	updateTimeout = 10 * time.Second
 
 	updateRetries = 5
+)
+
+var (
+	// The amount of time, in seconds, at most, before retrying the query in Watch.
+	watchRecoverBackoff int64 = 6
 )
 
 // StoreImpl implements the Store interface.
@@ -143,10 +149,14 @@ func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine
 			if err != nil {
 				if ctx.Err() == context.Canceled {
 					sklog.Warningf("Context canceled; closing channel: %s", err)
-				} else if st, ok := status.FromError(err); ok && st.Code() == codes.Canceled {
+				} else if stErr, ok := status.FromError(err); ok && stErr.Code() == codes.Canceled {
 					sklog.Warningf("Context canceled; closing channel: %s", err)
 				} else {
-					sklog.Errorf("iter returned error; closing channel: %s", err)
+					iter.Stop()
+					time.Sleep(time.Second * time.Duration(rand.Int63n(watchRecoverBackoff)))
+					iter = st.machinesCollection.Doc(machineID).Snapshots(ctx)
+					sklog.Warningf("iter returned error; retrying query: %s", err)
+					continue
 				}
 				iter.Stop()
 				close(ch)
