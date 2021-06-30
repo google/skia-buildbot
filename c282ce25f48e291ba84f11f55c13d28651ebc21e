@@ -143,6 +143,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "42826a00_416c4f60",
+        "filename": "skcq/go/codereview/codereview.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-30T15:17:30Z",
+      "side": 1,
+      "message": "Agreed.",
+      "parentUuid": "f537f51d_2dd3b39d",
+      "range": {
+        "startLine": 31,
+        "startChar": 33,
+        "endLine": 31,
+        "endChar": 55
+      },
+      "revId": "c282ce25f48e291ba84f11f55c13d28651ebc21e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8b6dcf5a_55d3cb67",
