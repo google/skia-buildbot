@@ -9,6 +9,8 @@ workspace(
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+# Read the instructions in //bazel/rbe/README.md before updating this repository.
+#
 # We load bazel-toolchains here, rather than closer where it's first used (RBE container toolchain),
 # because the grpc_deps() macro (invoked below) will pull an old version of bazel-toolchains if it's
 # not already defined.
@@ -207,55 +209,23 @@ load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
 rules_pkg_dependencies()
 
-###########################
-# Remote Build Execution. #
-###########################
-
-load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
-
-# Pulls the base container used to build the Skia Infrastructure custom RBE toolchain container.
-container_pull(
-    name = "rbe_ubuntu1604",
-    digest = "sha256:f6568d8168b14aafd1b707019927a63c2d37113a03bcee188218f99bd0327ea1",
-    registry = "gcr.io",
-    repository = "cloud-marketplace/google/rbe-ubuntu16-04",
-)
+##################
+# Miscellaneous. #
+##################
 
 load("@bazel_toolchains//rules/exec_properties:exec_properties.bzl", "rbe_exec_properties")
 
 # Defines a local repository named "exec_properties" which defines constants such as NETWORK_ON.
+# These constants are used by the //:rbe_custom_platform build rule.
+#
 # See https://github.com/bazelbuild/bazel-toolchains/tree/master/rules/exec_properties.
 rbe_exec_properties(
     name = "exec_properties",
 )
 
-load("@exec_properties//:constants.bzl", "NETWORK_ON")
-
-rbe_autoconfig(
-    name = "rbe_default",
-    # Digest of the rbe-ubuntu16-04 image pulled above.
-    base_container_digest = "sha256:f6568d8168b14aafd1b707019927a63c2d37113a03bcee188218f99bd0327ea1",
-    # Digest of the most recent gcr.io/skia-public/rbe-container-skia-infra image.
-    #
-    # Must be updated manually after a new container image is uploaded to the container registry
-    # via "bazel run //:push_rbe_container_skia_infra".
-    digest = "sha256:5deebf6be17a276a44580301daacdbb580c0b2b25eb4b0dea7e51f8011ec12ff",
-    # Enable networking. Without this, tests that require network access will fail. Examples include
-    # go_test targets that try to clone the Skia Git repo from https://skia.googlesource.com/skia,
-    # tests that hit GCS, etc.
-    #
-    # See https://github.com/bazelbuild/bazel-toolchains/tree/master/rules/exec_properties.
-    #
-    # Note that depending on network resources breaks test hermeticity.
-    exec_properties = NETWORK_ON,
-    registry = "gcr.io",
-    repository = "skia-public/rbe-container-skia-infra",
-    use_legacy_platform_definition = False,  # The exec_properties argument requires this.
-)
-
-##################
-# Miscellaneous. #
-##################
+######################
+# Docker containers. #
+######################
 
 # Pulls the gcr.io/skia-public/skia-wasm-release container with the Skia WASM build.
 container_pull(
