@@ -77,11 +77,16 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
 	}
 
-	machineID := os.Getenv(swarming.SwarmingBotIDEnvVar)
 	kubernetesImage := os.Getenv(swarming.KubernetesImageEnvVar)
 	hostname, err := os.Hostname()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not determine hostname.")
+	}
+	machineID := os.Getenv(swarming.SwarmingBotIDEnvVar)
+	if machineID == "" {
+		// Fall back to hostname so we can track machines that
+		// test_machine_monitor is running on that don't also run Swarming.
+		machineID = hostname
 	}
 
 	return &Machine{
