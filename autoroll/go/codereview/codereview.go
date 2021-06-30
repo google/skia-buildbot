@@ -45,6 +45,7 @@ type CodeReview interface {
 // gerritCodeReview is a CodeReview backed by Gerrit.
 type gerritCodeReview struct {
 	cfg            *config.GerritConfig
+	client         *http.Client
 	fullHistoryUrl string
 	gerritClient   gerrit.GerritInterface
 	gitilesClient  *gitiles.Repo
@@ -62,9 +63,9 @@ func NewGerrit(cfg *config.GerritConfig, gerritClient gerrit.GerritInterface, cl
 	userName := strings.SplitN(userEmail, "@", 2)[0]
 	return &gerritCodeReview{
 		cfg:            cfg,
+		client:         client,
 		fullHistoryUrl: cfg.Url + "/q/owner:" + userEmail,
 		gerritClient:   gerritClient,
-		gitilesClient:  gitiles.NewRepo(gerritClient.GetRepoUrl(), client),
 		issueUrlBase:   cfg.Url + "/c/",
 		userEmail:      userEmail,
 		userName:       userName,
@@ -83,7 +84,7 @@ func (c *gerritCodeReview) GetFullHistoryUrl() string {
 
 // RetrieveRoll implements CodeReview.
 func (c *gerritCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, rollingTo *revision.Revision, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
-	return newGerritRoll(ctx, c.cfg, issue, c.gerritClient, c.gitilesClient, recent, c.issueUrlBase, rollingTo, finishedCallback)
+	return newGerritRoll(ctx, c.cfg, issue, c.gerritClient, c.client, recent, c.issueUrlBase, rollingTo, finishedCallback)
 }
 
 // UserEmail implements CodeReview.
