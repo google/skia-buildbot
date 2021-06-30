@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "pubsub",
+    srcs = ["pubsub.go"],
+    importpath = "go.skia.org/infra/go/pubsub",
+    visibility = ["//visibility:public"],
+    deps = ["//go/emulators"],
+)
+
+go_test(
+    name = "pubsub_test",
+    srcs = ["pubsub_test.go"],
+    embed = [":pubsub"],
+    deps = [
+        "//go/emulators",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

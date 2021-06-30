@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/emulators"
+	pubsubUtils "go.skia.org/infra/go/pubsub"
 	"go.skia.org/infra/go/revportforward"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/configs"
@@ -52,9 +52,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	if emulators.GetEmulatorHostEnvVar(emulators.PubSub) != "" {
-		sklog.Fatal("Do not run with the pubsub emulator.")
-	}
+	pubsubUtils.EnsureNotEmulator()
 	if err != nil {
 		sklog.Fatalf("Failed to open config file: %q: %s", *configFlag, err)
 	}

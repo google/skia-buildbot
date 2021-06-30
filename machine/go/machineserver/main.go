@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	pubsubUtils "go.skia.org/infra/go/pubsub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/configs"
@@ -44,6 +45,8 @@ type server struct {
 
 // See baseapp.Constructor.
 func new() (baseapp.App, error) {
+	pubsubUtils.EnsureNotEmulator()
+
 	ctx := context.Background()
 
 	var allow allowed.Allow

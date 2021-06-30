@@ -13,6 +13,7 @@ go_library(
         "//go/httputils",
         "//go/login",
         "//go/metrics2",
+        "//go/pubsub",
         "//go/skerr",
         "//go/sklog",
         "//machine/go/configs",
