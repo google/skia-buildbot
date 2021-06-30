@@ -15,7 +15,7 @@ go_library(
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
-        "//go/util",
+        "//machine/go/configs",
         "//machine/go/machine",
         "//machine/go/machine/processor",
         "//machine/go/machine/source/pubsubsource",
