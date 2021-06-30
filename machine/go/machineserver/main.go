@@ -48,7 +48,7 @@ func new() (baseapp.App, error) {
 
 	var allow allowed.Allow
 	if !*baseapp.Local {
-		allowed.NewAllowedFromList([]string{"google.com"})
+		allow = allowed.NewAllowedFromList([]string{"google.com"})
 	} else {
 		allow = allowed.NewAllowedFromList([]string{"barney@example.org"})
 	}
