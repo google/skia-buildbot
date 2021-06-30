@@ -22,6 +22,30 @@
       },
       "revId": "384dde1fce549ca82a8ed9270c600c629fed31c1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "763aacfc_0b7d5cb0",
+        "filename": "machine/go/machine/targetconnect/targetconnect_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-30T20:35:15Z",
+      "side": 1,
+      "message": "I just tried that, but then it looks like I merely forgot to add storeMock to AssertExpectationsForObjects(), at least this way the code is explicit that we don\u0027t care how many times Watch is called, and we include it in the assertions.",
+      "parentUuid": "7cb9b192_565bb910",
+      "range": {
+        "startLine": 187,
+        "startChar": 60,
+        "endLine": 187,
+        "endChar": 69
+      },
+      "revId": "384dde1fce549ca82a8ed9270c600c629fed31c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
