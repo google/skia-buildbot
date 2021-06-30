@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a78f945f_01b88211",
+        "filename": "machine/go/switchboard/cleanup/cleanup.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-30T20:26:20Z",
+      "side": 1,
+      "message": "Good catch, done here and below.",
+      "parentUuid": "38dfacd3_d0bda7be",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 57
+      },
+      "revId": "4e35b70d9c828b89fe6de9747750c1cb93e00e87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6cf98cbd_7572ec99",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-06-30T20:22:44Z",
       "side": 1,
       "message": "Same question - I would presume we want liveness to indicate \"time elapsed since everything went smoothly.",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 82
+      },
+      "revId": "4e35b70d9c828b89fe6de9747750c1cb93e00e87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3b066264_6ff6a8eb",
+        "filename": "machine/go/switchboard/cleanup/cleanup.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-30T20:26:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6cf98cbd_7572ec99",
       "range": {
         "startLine": 60,
         "startChar": 0,
