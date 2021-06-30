@@ -1,0 +1,10 @@
+
+export PATH=$PATH:/mnt/pd0/s/w/ir/go/go/bin:/mnt/pd0/s/w/ir/gopath/bin:/mnt/pd0/s/w/ir/gcloud_linux/bin:/mnt/pd0/s/w/ir/protoc/bin:/mnt/pd0/s/w/ir/node/node/bin:/b/s/w/ir/cipd_bin_packages:/b/s/w/ir/cipd_bin_packages/bin:/b/s/w/ir/cipd_bin_packages/cpython:/b/s/w/ir/cipd_bin_packages/cpython/bin:/b/s/w/ir/cipd_bin_packages/cpython3:/b/s/w/ir/cipd_bin_packages/cpython3/bin:/b/s/w/ir/go/go/bin:/b/s/w/ir/bazel/bin:/b/s/w/ir/cockroachdb:/b/s/w/ir/gcloud_linux/bin:/b/s/cipd_cache/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/s/w/ir/depot_tools
+export BIGTABLE_EMULATOR_HOST=localhost:8892
+export COCKROACHDB_EMULATOR_HOST=localhost:8895
+export DATASTORE_EMULATOR_HOST=localhost:8891
+export FIRESTORE_EMULATOR_HOST=localhost:8894
+export PUBSUB_EMULATOR_HOST=localhost:8893
+export TMPDIR=/b/s/w/itCOKJEn
+
+
