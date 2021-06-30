@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "config",
+    srcs = [
+        "cfg_reader.go",
+        "skcq_cfg.go",
+    ],
+    importpath = "go.skia.org/infra/skcq/go/config",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/allowed",
+        "//go/gerrit",
+        "//go/gitiles",
+        "//go/skerr",
+        "//go/sklog",
+        "//skcq/go/codereview",
+        "//task_scheduler/go/specs",
+    ],
+)
+
+go_test(
+    name = "config_test",
+    srcs = ["cfg_reader_test.go"],
+    embed = [":config"],
+    deps = [
+        "//go/allowed",
+        "//go/gerrit",
+        "//go/gitiles/mocks",
+        "//go/mockhttpclient",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//skcq/go/codereview/mocks",
+        "//task_scheduler/go/specs",
+        "@com_github_stretchr_testify//require",
+    ],
+)
