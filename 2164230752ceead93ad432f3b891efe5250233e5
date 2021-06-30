@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cf0b1422_9eb44243",
+        "filename": "skcq/go/config/cfg_reader.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-30T14:44:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3c9395d3_d08c4e79",
+      "range": {
+        "startLine": 68,
+        "startChar": 32,
+        "endLine": 68,
+        "endChar": 69
+      },
+      "revId": "2164230752ceead93ad432f3b891efe5250233e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b425265e_7d3f099a",
@@ -132,6 +156,30 @@
       "writtenOn": "2021-06-30T14:23:54Z",
       "side": 1,
       "message": "I hadn\u0027t thought too much about validation, but we could easily generate jsonschema from the golang struct and use that to validate the inputs:\n\nhttps://github.com/alecthomas/jsonschema\nhttps://github.com/qri-io/jsonschema\n\nI will try that out on the config for Perf and see how it works.",
+      "parentUuid": "1235914a_bbc57a63",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 62
+      },
+      "revId": "2164230752ceead93ad432f3b891efe5250233e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8ca3ebe5_12f35110",
+        "filename": "skcq/go/config/skcq_cfg.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-06-30T14:44:18Z",
+      "side": 1,
+      "message": "I\u0027m still have a hard time convincing myself to change it-\nThe config is so dead simple that it will probably not take advantage of any of those benefits (except comments- comments are always nice).\nI find it strange to have different config file formats in infra/...\nHaving the parsing and handling of tasks.json and skcq.json be similar is nice.",
       "parentUuid": "1235914a_bbc57a63",
       "range": {
         "startLine": 72,
