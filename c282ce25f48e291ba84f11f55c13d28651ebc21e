@@ -119,6 +119,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f537f51d_2dd3b39d",
+        "filename": "skcq/go/codereview/codereview.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-30T15:16:33Z",
+      "side": 1,
+      "message": "It\u0027s out of scope for this CL, but it might be nice to update GerritInterface to accept only the parameters it needs, as opposed to a full ChangeInfo.",
+      "parentUuid": "7424fdfe_2baf8251",
+      "range": {
+        "startLine": 31,
+        "startChar": 33,
+        "endLine": 31,
+        "endChar": 55
+      },
+      "revId": "c282ce25f48e291ba84f11f55c13d28651ebc21e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8b6dcf5a_55d3cb67",
