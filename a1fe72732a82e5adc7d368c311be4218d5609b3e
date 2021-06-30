@@ -22,6 +22,30 @@
       },
       "revId": "a1fe72732a82e5adc7d368c311be4218d5609b3e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1df45f6d_ba2ad8c4",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-30T12:39:40Z",
+      "side": 1,
+      "message": "Whoops, thanks, I forgot this one.",
+      "parentUuid": "b250b060_8819a198",
+      "range": {
+        "startLine": 261,
+        "startChar": 16,
+        "endLine": 261,
+        "endChar": 22
+      },
+      "revId": "a1fe72732a82e5adc7d368c311be4218d5609b3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
