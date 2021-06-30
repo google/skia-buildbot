@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7cb9b192_565bb910",
+        "filename": "machine/go/machine/targetconnect/targetconnect_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-06-30T20:26:00Z",
+      "side": 1,
+      "message": "I don\u0027t think it buys us much to have all of the expected calls on storeMock be Maybe() and then have its expectations be asserted.\n\nIMO, we should only assert the interactions that we are certain we want to happen. I would suggest just removing storeMock from the AssertExpectationsForObjects for all tests (and the Maybe() calls as well).",
+      "range": {
+        "startLine": 187,
+        "startChar": 60,
+        "endLine": 187,
+        "endChar": 69
+      },
+      "revId": "384dde1fce549ca82a8ed9270c600c629fed31c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
