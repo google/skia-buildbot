@@ -10,7 +10,7 @@ go_library(
         "//go/emulators",
         "//go/revportforward",
         "//go/sklog",
-        "//go/util",
+        "//machine/go/configs",
         "//machine/go/machine/store",
         "//machine/go/machine/targetconnect",
         "//machine/go/machineserver/config",
