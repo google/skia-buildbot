@@ -16,6 +16,24 @@
       "message": "Please also update `make run-local-instance`",
       "revId": "43b192763ffbf6a275583b3b3fad44c0d0978b0d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0fdddb8c_58d31376",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-06-30T15:50:29Z",
+      "side": 1,
+      "message": "The default for the --config flag was changed to \"test.json\", so no update to the Makefile is needed.",
+      "parentUuid": "aa2a62be_50e72095",
+      "revId": "43b192763ffbf6a275583b3b3fad44c0d0978b0d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
