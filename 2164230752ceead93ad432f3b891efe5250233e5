@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b425265e_7d3f099a",
+        "filename": "skcq/go/config/skcq_cfg.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-30T12:02:33Z",
+      "side": 1,
+      "message": "Can we consider using text proto format for this?  It\u0027s more human-readable, supports comments, and would make it easier to generate code later.",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 62
+      },
+      "revId": "2164230752ceead93ad432f3b891efe5250233e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
