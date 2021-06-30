@@ -39,11 +39,11 @@ func TestSingleStep_FirstCallToReserveMeetingPointReturnsError_Returns(t *testin
 	switchboardMock.On("ReserveMeetingPoint", testutils.AnyContext, hostname, username).Return(meetingPoint, errMyMockError)
 	rpf := &rpfMock.RevPortForward{}
 	storeMock := &storemock.Store{}
-	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil).Maybe()
 
 	c := New(switchboardMock, rpf, storeMock, hostname, username)
 	c.singleStep(context.Background(), time.NewTicker(time.Microsecond), time.Microsecond)
-	switchboardMock.AssertExpectations(t)
+	mock.AssertExpectationsForObjects(t, switchboardMock, rpf, storeMock)
 }
 
 func TestSingleStep_KeepAliveMeetingPointGetsCalledMultipleTimes_Returns(t *testing.T) {
@@ -66,12 +66,12 @@ func TestSingleStep_KeepAliveMeetingPointGetsCalledMultipleTimes_Returns(t *test
 		<-ctx.Done()
 	}).Return(nil)
 	storeMock := &storemock.Store{}
-	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil).Maybe()
 
 	c := New(switchboardMock, rpf, storeMock, hostname, username)
 	c.singleStep(ctx, time.NewTicker(time.Millisecond), time.Microsecond)
-	switchboardMock.AssertExpectations(t)
 	require.GreaterOrEqual(t, keepAliveCount, 2)
+	mock.AssertExpectationsForObjects(t, switchboardMock, rpf, storeMock)
 }
 
 func TestSingleStep_IsValidPodRetunsFalse_Returns(t *testing.T) {
@@ -83,7 +83,7 @@ func TestSingleStep_IsValidPodRetunsFalse_Returns(t *testing.T) {
 	switchboardMock.On("IsValidPod", testutils.AnyContext, meetingPoint.PodName).Return(false)
 	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Return(nil)
 	storeMock := &storemock.Store{}
-	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil).Maybe()
 	rpf := &rpfMock.RevPortForward{}
 	rpf.On("Start", testutils.AnyContext, meetingPoint.PodName, meetingPoint.Port).Run(func(args mock.Arguments) {
 		<-args.Get(0).(context.Context).Done()
@@ -91,7 +91,7 @@ func TestSingleStep_IsValidPodRetunsFalse_Returns(t *testing.T) {
 
 	c := New(switchboardMock, rpf, storeMock, hostname, username)
 	c.singleStep(ctx, time.NewTicker(time.Millisecond), time.Nanosecond)
-	switchboardMock.AssertExpectations(t)
+	mock.AssertExpectationsForObjects(t, switchboardMock, rpf, storeMock)
 }
 
 func TestSingleStep_RunningATest_IsValidPodDoesNotGetCalled(t *testing.T) {
@@ -103,7 +103,7 @@ func TestSingleStep_RunningATest_IsValidPodDoesNotGetCalled(t *testing.T) {
 	// Note no mock for "IsValidPod".
 	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Return(nil)
 	storeMock := &storemock.Store{}
-	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil).Maybe()
 	switchboardMock.On("KeepAliveMeetingPoint", testutils.AnyContext, meetingPoint).Return(nil).Run(func(args mock.Arguments) {
 		cancel()
 	})
@@ -115,7 +115,7 @@ func TestSingleStep_RunningATest_IsValidPodDoesNotGetCalled(t *testing.T) {
 	c := New(switchboardMock, rpf, storeMock, hostname, username)
 	c.runningTest = true
 	c.singleStep(ctx, time.NewTicker(time.Millisecond), time.Nanosecond)
-	switchboardMock.AssertExpectations(t)
+	mock.AssertExpectationsForObjects(t, switchboardMock, rpf, storeMock)
 }
 
 func TestStart_ContextIsCancelled_ReturnsAndMeetingPointIsCleared(t *testing.T) {
@@ -134,7 +134,7 @@ func TestStart_ContextIsCancelled_ReturnsAndMeetingPointIsCleared(t *testing.T) 
 		<-ctx.Done()
 	}).Return(nil)
 	storeMock := &storemock.Store{}
-	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil).Maybe()
 
 	c := New(switchboardMock, rpf, storeMock, hostname, username)
 	cancel()
@@ -143,7 +143,7 @@ func TestStart_ContextIsCancelled_ReturnsAndMeetingPointIsCleared(t *testing.T) 
 	clearMeetingPointCalledWG.Wait()
 	require.Equal(t, int64(1), c.stepsCounter.Get())
 	c.stepsCounter.Reset()
-	switchboardMock.AssertExpectations(t)
+	mock.AssertExpectationsForObjects(t, switchboardMock, rpf, storeMock)
 }
 
 func TestStart_FirstCallToRevPortForwardFails_CausesASecondCalltoConnectToPod(t *testing.T) {
@@ -163,7 +163,7 @@ func TestStart_FirstCallToRevPortForwardFails_CausesASecondCalltoConnectToPod(t 
 	}).Return(errMyMockError).Times(1)
 
 	storeMock := &storemock.Store{}
-	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil)
+	storeMock.On("Watch", testutils.AnyContext, hostname).Return(make(<-chan machine.Description), nil).Maybe()
 	c := New(switchboardMock, rpf, storeMock, hostname, username)
 
 	// Call Start() in a Go routine since we need to cancel the Context after
@@ -184,5 +184,5 @@ func TestStart_FirstCallToRevPortForwardFails_CausesASecondCalltoConnectToPod(t 
 	wg.Wait()
 	require.Equal(t, int64(2), c.stepsCounter.Get())
 	c.stepsCounter.Reset()
-	switchboardMock.AssertExpectations(t)
+	mock.AssertExpectationsForObjects(t, switchboardMock, rpf, storeMock)
 }
