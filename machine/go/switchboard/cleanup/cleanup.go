@@ -49,24 +49,19 @@ func (c *Cleanup) Start(ctx context.Context) {
 			if err != nil {
 				c.listMeetingPointsFailed.Inc(1)
 				sklog.Errorf("Failed to list MeetingPoints: %s", err)
-				continue
 			}
 			c.totalMeetingPoints.Update(int64(len(mps)))
 			cutoff := now.Now(ctx).Add(-2 * switchboard.MeetingPointKeepAliveDuration)
-			numErrors := 0
 			for _, mp := range mps {
 				if mp.LastUpdated.Before(cutoff) {
 					err := c.switchboard.ClearMeetingPoint(ctx, mp)
 					if err != nil {
 						c.clearMeetingPointsFailed.Inc(1)
 						sklog.Errorf("Failed to delete MeetingPoint that was stale %v: %s", mp, err)
-						numErrors++
 					}
 				}
 			}
-			if numErrors == 0 {
-				c.liveness.Reset()
-			}
+			c.liveness.Reset()
 		}
 	}
 }
