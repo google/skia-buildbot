@@ -46,6 +46,30 @@
       },
       "revId": "0858aa6bbddee315b22de701b49372e84b6c23dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ffb30ea4_9c79d335",
+        "filename": "skcq/go/footers/footers.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-06-30T12:24:31Z",
+      "side": 1,
+      "message": "If you want to move the specific keywords to go/gerrit, that\u0027s fine, but I think GetFootersMap and below belong with the related functions in go/git/util.go.",
+      "parentUuid": "1fc0b5a5_d0285e4f",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 1
+      },
+      "revId": "0858aa6bbddee315b22de701b49372e84b6c23dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
