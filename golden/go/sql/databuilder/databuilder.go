@@ -43,6 +43,7 @@ type TablesBuilder struct {
 	ignoreRules         []schema.IgnoreRuleRow
 	runeToDigest        map[rune]schema.DigestBytes
 	traceBuilders       []*TraceBuilder
+	uuids               map[uuid.UUID]bool
 }
 
 // CommitsWithData returns a new CommitBuilder to which the trace data will be connected.
@@ -130,10 +131,24 @@ func (b *TablesBuilder) AddTriageEvent(user, triageTime string) *ExpectationsBui
 	if err != nil {
 		logAndPanic("Invalid triage time %q: %s", triageTime, err)
 	}
+	// We want to deterministically generate a UUID
+	uuidSeed := md5.Sum([]byte("primary_branch" + triageTime + user))
+	u, err := uuid.FromBytes(uuidSeed[:])
+	if err != nil {
+		// should never happen because an MD5 hash has 16 bytes by definition.
+		logAndPanic("uuidSeed incorrect: %s", err)
+	}
+	if b.uuids == nil {
+		b.uuids = map[uuid.UUID]bool{}
+	}
+	if alreadyExists := b.uuids[u]; alreadyExists {
+		logAndPanic("Created a duplicate UUID - try varying the triageTime")
+	}
+	b.uuids[u] = true
 	eb := &ExpectationsBuilder{
 		groupingKeys: b.groupingKeys,
 		record: &schema.ExpectationRecordRow{
-			ExpectationRecordID: uuid.New(),
+			ExpectationRecordID: u,
 			BranchName:          nil,
 			UserName:            user,
 			TriageTime:          ts,
@@ -353,7 +368,20 @@ func (b *TablesBuilder) AddIgnoreRule(created, updated, updateTS, note string, q
 		logAndPanic("Cannot use empty rule")
 	}
 
-	id := uuid.New()
+	// We want to deterministically generate a UUID
+	uuidSeed := md5.Sum([]byte(created + updated + updateTS + note))
+	id, err := uuid.FromBytes(uuidSeed[:])
+	if err != nil {
+		// should never happen because an MD5 hash has 16 bytes by definition.
+		logAndPanic("uuidSeed incorrect: %s", err)
+	}
+	if b.uuids == nil {
+		b.uuids = map[uuid.UUID]bool{}
+	}
+	if alreadyExists := b.uuids[id]; alreadyExists {
+		logAndPanic("Created a duplicate UUID - try varying the time or note")
+	}
+	b.uuids[id] = true
 	b.ignoreRules = append(b.ignoreRules, schema.IgnoreRuleRow{
 		IgnoreRuleID: id,
 		CreatorEmail: created,
@@ -383,6 +411,7 @@ func (b *TablesBuilder) AddChangelist(id, crs, owner, subject string, status sch
 			Subject:      subject,
 		},
 		groupingKeys: b.groupingKeys,
+		uuids:        map[uuid.UUID]bool{},
 	}
 	b.changelistBuilders = append(b.changelistBuilders, cb)
 	return cb
@@ -1089,6 +1118,9 @@ type ChangelistBuilder struct {
 	expectationBuilders []*ExpectationsBuilder
 	groupingKeys        []string
 	patchsets           []*PatchsetBuilder
+	// We don't randomly generate the uuids, so we want to make sure the deterministic way we
+	// generate them does not create duplicates (e.g. if the same inputs are repeated).
+	uuids map[uuid.UUID]bool
 }
 
 // AddPatchset returns a builder for data associated with the given patchset.
@@ -1117,10 +1149,21 @@ func (b *ChangelistBuilder) AddTriageEvent(user, triageTime string) *Expectation
 	if err != nil {
 		logAndPanic("Invalid triage time %q: %s", triageTime, err)
 	}
+	// We want to deterministically generate a UUID
+	uuidSeed := md5.Sum([]byte(b.changelist.ChangelistID + triageTime + user))
+	u, err := uuid.FromBytes(uuidSeed[:])
+	if err != nil {
+		// should never happen because an MD5 hash has 16 bytes by definition.
+		logAndPanic("uuidSeed incorrect: %s", err)
+	}
+	if alreadyExists := b.uuids[u]; alreadyExists {
+		logAndPanic("Created a duplicate UUID - try varying the triageTime")
+	}
+	b.uuids[u] = true
 	eb := &ExpectationsBuilder{
 		groupingKeys: b.groupingKeys,
 		record: &schema.ExpectationRecordRow{
-			ExpectationRecordID: uuid.New(),
+			ExpectationRecordID: u,
 			BranchName:          &b.changelist.ChangelistID,
 			UserName:            user,
 			TriageTime:          ts,
