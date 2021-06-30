@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	github_api "github.com/google/go-github/v29/github"
@@ -116,11 +117,12 @@ type gerritRoll struct {
 
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, gitiles *gitiles.Repo, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, client *http.Client, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	ci, err := updateIssueFromGerrit(ctx, cfg, issue, g)
 	if err != nil {
 		return nil, err
 	}
+	gitiles := gitiles.NewRepo(g.GetRepoUrl()+"/"+ci.Project, client)
 	return &gerritRoll{
 		ci:               ci,
 		issue:            issue,
@@ -239,11 +241,14 @@ func (r *gerritRoll) maybeRebaseCL(ctx context.Context) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	base, err := r.g.GetCommit(ctx, r.ci.Issue, r.ci.Patchsets[len(r.ci.Patchsets)-1].ID)
+	rollCommit, err := r.g.GetCommit(ctx, r.ci.Issue, r.ci.Patchsets[len(r.ci.Patchsets)-1].ID)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	if head.Hash != base.Commit {
+	if len(rollCommit.Parents) == 0 {
+		sklog.Errorf("Commit %s returned by Gerrit.GetCommit has no parents.", rollCommit.Commit)
+	} else if rollCommit.Parents[0].Commit != head.Hash {
+		sklog.Infof("HEAD is %s and CL is based on %s; attempting rebase.", head.Hash, rollCommit.Parents[0].Commit)
 		if err := r.g.Rebase(ctx, r.ci, "", false); err != nil {
 			return skerr.Wrap(err)
 		}
