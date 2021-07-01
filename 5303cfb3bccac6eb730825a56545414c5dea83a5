@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4e3e1cab_6dd8c019",
+        "filename": "skcq/go/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-01T20:34:51Z",
+      "side": 1,
+      "message": "drive-by fix",
+      "revId": "5303cfb3bccac6eb730825a56545414c5dea83a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
