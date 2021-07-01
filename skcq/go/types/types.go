@@ -47,13 +47,13 @@ type VerifiersManager interface {
 // CurrentlyProcessingChange is the description of an entry that is currently
 // being processed by SkCQ.
 type CurrentlyProcessingChange struct {
-	ChangeID             int64  `json:"change_id"`
-	EquivalentPatchsetID int64  `json:"equivalent_patchset_id"`
-	Repo                 string `json:"repo"`
-	Branch               string `json:"branch"`
-	ChangeSubject        string `json:"change_subject"`
-	ChangeOwner          string `json:"change_owner"`
-	DryRun               bool   `json:"dry_run"`
+	ChangeID         int64  `json:"change_id"`
+	LatestPatchsetID int64  `json:"latest_patchset_id"`
+	Repo             string `json:"repo"`
+	Branch           string `json:"branch"`
+	ChangeSubject    string `json:"change_subject"`
+	ChangeOwner      string `json:"change_owner"`
+	DryRun           bool   `json:"dry_run"`
 
 	// The time the CQ first looked at this change.
 	// Uses unix epoch time.
