@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8e80e211_e9f0d7ca",
+        "filename": "fiddlek/DESIGN.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-01T14:27:43Z",
+      "side": 1,
+      "message": "Request for clarification",
+      "range": {
+        "startLine": 113,
+        "startChar": 34,
+        "endLine": 113,
+        "endChar": 38
+      },
+      "revId": "f1735c2407b1272084d31b4ddc422922ec142e41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
