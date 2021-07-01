@@ -86,7 +86,7 @@ groups:
       severity: warning
       owner: jcgregorio@google.com
     annotations:
-      description: 'Some named fiddles are failing. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/fiddlek/docs/PROD.md#NamedFiddlesFailing'
+      description: 'Some named fiddles are failing. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/fiddlek/PROD.md#NamedFiddlesFailing'
 
   - alert: FiddlerPodCommunicationErrors
     expr: rate(run_exhaustion[20m]) * 20 * 60 > 5
