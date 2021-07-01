@@ -46,6 +46,30 @@
       },
       "revId": "f1735c2407b1272084d31b4ddc422922ec142e41",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "122ea3cd_352af522",
+        "filename": "fiddlek/DESIGN.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-01T14:44:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0368cfcb_06c781bf",
+      "range": {
+        "startLine": 113,
+        "startChar": 34,
+        "endLine": 113,
+        "endChar": 38
+      },
+      "revId": "f1735c2407b1272084d31b4ddc422922ec142e41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
