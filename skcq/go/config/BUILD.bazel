@@ -25,10 +25,8 @@ go_test(
     srcs = ["cfg_reader_test.go"],
     embed = [":config"],
     deps = [
-        "//go/allowed",
         "//go/gerrit",
         "//go/gitiles/mocks",
-        "//go/mockhttpclient",
         "//go/testutils",
         "//go/testutils/unittest",
         "//skcq/go/codereview/mocks",
