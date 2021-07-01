@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2aaa94d2_f8986fe2",
+        "filename": "skcq/go/types/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-01T11:59:34Z",
+      "side": 1,
+      "message": "Please document the return values, it\u0027s not clear what the string slice is.",
+      "range": {
+        "startLine": 32,
+        "startChar": 208,
+        "endLine": 32,
+        "endChar": 218
+      },
+      "revId": "f4ddf81134eb07c7fb93ff45474aa0867266a497",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a8162cd9_cb392875",
+        "filename": "skcq/go/types/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-01T11:59:34Z",
+      "side": 1,
+      "message": "Why don\u0027t we need to return an error here?",
+      "range": {
+        "startLine": 35,
+        "startChar": 97,
+        "endLine": 35,
+        "endChar": 114
+      },
+      "revId": "f4ddf81134eb07c7fb93ff45474aa0867266a497",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2f490e9d_52b50ec4",
+        "filename": "skcq/go/types/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-01T11:59:34Z",
+      "side": 1,
+      "message": "Please document these fields.",
+      "range": {
+        "startLine": 87,
+        "startChar": 5,
+        "endLine": 87,
+        "endChar": 18
+      },
+      "revId": "f4ddf81134eb07c7fb93ff45474aa0867266a497",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8ad15977_bdc1dda7",
+        "filename": "skcq/go/types/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-01T11:59:34Z",
+      "side": 1,
+      "message": "Ditto here.",
+      "range": {
+        "startLine": 112,
+        "startChar": 5,
+        "endLine": 112,
+        "endChar": 19
+      },
+      "revId": "f4ddf81134eb07c7fb93ff45474aa0867266a497",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
