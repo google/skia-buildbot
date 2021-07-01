@@ -7,7 +7,9 @@ go_library(
         "commit_footer_verifier.go",
         "cq_access_list_verifier.go",
         "dryrun_access_list_verifier.go",
+        "submittable_verifier.go",
         "util.go",
+        "wip_verifier.go",
     ],
     importpath = "go.skia.org/infra/skcq/go/verifiers",
     visibility = ["//visibility:public"],
@@ -26,6 +28,8 @@ go_test(
         "commit_footer_verifier_test.go",
         "cq_access_list_verifier_test.go",
         "dryrun_access_list_verifier_test.go",
+        "submittable_verifier_test.go",
+        "wip_verifier_test.go",
     ],
     embed = [":verifiers"],
     deps = [
