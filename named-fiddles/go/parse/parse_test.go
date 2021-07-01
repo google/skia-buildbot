@@ -98,6 +98,68 @@ void draw(SkCanvas* canvas) {
 }
 }  // END FIDDLE`
 
+const animatedSample = `// Copyright 2020 Google LLC.
+// Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+#include "tools/fiddle/examples.h"
+REG_FIDDLE_ANIMATED(pong, 256, 300, false, 0, 10.5) {
+static SkScalar PingPong(double t, SkScalar period, SkScalar phase,
+                         SkScalar ends, SkScalar mid) {
+  double value = ::fmod(t + phase, period);
+  double half = period / 2.0;
+  double diff = ::fabs(value - half);
+  return SkDoubleToScalar(ends + (1.0 - diff / half) * (mid - ends));
+}
+
+void draw(SkCanvas* canvas) {
+  canvas->clear(SK_ColorBLACK);
+  float ballX = PingPong(frame * duration, 2.5f, 0.0f, 0.0f, 1.0f);
+  float ballY = PingPong(frame * duration, 2.0f, 0.4f, 0.0f, 1.0f);
+
+  SkPaint p;
+  p.setColor(SK_ColorWHITE);
+  p.setAntiAlias(true);
+
+  float bX = ballX * 472 + 20;
+  float bY = ballY * 200 + 28;
+
+  if (canvas->recordingContext()) {
+    canvas->drawRect(SkRect::MakeXYWH(236, bY - 15, 10, 30), p);
+    bX -= 256;
+  } else {
+    canvas->drawRect(SkRect::MakeXYWH(10, bY - 15, 10, 30), p);
+  }
+  canvas->drawCircle(bX, bY, 5, p);
+}
+}  // END FIDDLE`
+
+const srgbSample = `// Copyright 2020 Google LLC.
+// Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+#include "tools/fiddle/examples.h"
+REG_FIDDLE_SRGB(50_percent_gray, 530, 150, true, 0, 18.5, true) {
+static sk_sp<SkShader> make_bw_dither() {
+    auto surf = SkSurface::MakeRasterN32Premul(2, 2);
+    surf->getCanvas()->drawColor(SK_ColorWHITE);
+    surf->getCanvas()->drawRect({0, 0, 1, 1}, SkPaint());
+    surf->getCanvas()->drawRect({1, 1, 2, 2}, SkPaint());
+    return surf->makeImageSnapshot()->makeShader(SkTileMode::kRepeat,
+                                                 SkTileMode::kRepeat,
+                                                 SkSamplingOptions(SkFilterMode::kLinear));
+}
+
+void draw(SkCanvas* canvas) {
+    canvas->drawColor(SK_ColorWHITE);
+    SkFont font(nullptr, 12);
+
+    // BW Dither
+    canvas->translate(5, 5);
+    SkPaint p;
+    p.setShader(make_bw_dither());
+    canvas->drawRect({0, 0, 100, 100}, p);
+    SkPaint black;
+    canvas->drawString("BW Dither", 0, 125, font, black);
+}
+}  // END FIDDLE`
+
 func TestParse_ValidSamples_InformationExtracted(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -128,6 +190,33 @@ func TestParse_ValidSamples_InformationExtracted(t *testing.T) {
 	assert.True(t, fc.Options.TextOnly)
 }
 
+func TestParse_AnimatedSample_InformationExtracted(t *testing.T) {
+	unittest.SmallTest(t)
+
+	fc, err := ParseCpp(animatedSample)
+	assert.NoError(t, err)
+	assert.Equal(t, "pong", fc.Name)
+	assert.Equal(t, 256, fc.Options.Width)
+	assert.Equal(t, 300, fc.Options.Height)
+	assert.Equal(t, 0, fc.Options.Source)
+	assert.False(t, fc.Options.TextOnly)
+	assert.Equal(t, 10.5, fc.Options.Duration)
+}
+
+func TestParse_SRGBSample_InformationExtracted(t *testing.T) {
+	unittest.SmallTest(t)
+
+	fc, err := ParseCpp(srgbSample)
+	assert.NoError(t, err)
+	assert.Equal(t, "50_percent_gray", fc.Name)
+	assert.Equal(t, 530, fc.Options.Width)
+	assert.Equal(t, 150, fc.Options.Height)
+	assert.Equal(t, 0, fc.Options.Source)
+	assert.True(t, fc.Options.TextOnly)
+	assert.Equal(t, 18.5, fc.Options.Duration)
+	assert.True(t, fc.Options.F16)
+}
+
 func TestParse_MissingEndFiddle_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	_, err := ParseCpp(missingEndSample)
@@ -145,7 +234,7 @@ func TestParse_MissingRegFiddle_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	_, err := ParseCpp(missingRegSample)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to find REG_FIDDLE")
+	assert.Contains(t, err.Error(), "failed to find any REG_FIDDLE*")
 }
 
 func TestParse_MacroBadWidthParam_ReturnsError(t *testing.T) {
