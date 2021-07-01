@@ -16,6 +16,29 @@
       "message": "This was a very educational patch. Lots of good excuses to read parts of the language ref. Meeting Points CL to come!",
       "revId": "108c6f4b2803225ffc279cbd4bb6d56c57d68c78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "96b04b81_08a19ddd",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-01T20:37:57Z",
+      "side": 1,
+      "message": "nit: You are only using a mock Switchboard and not talking to a real database, so this can be a Small test.",
+      "range": {
+        "startLine": 452,
+        "startChar": 10,
+        "endLine": 452,
+        "endChar": 19
+      },
+      "revId": "108c6f4b2803225ffc279cbd4bb6d56c57d68c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
