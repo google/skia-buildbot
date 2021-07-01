@@ -14,7 +14,9 @@ var (
 	ErrorInactiveExample = errors.New("Inactive example (ifdef'd out)")
 
 	// registerFiddleRegex is used to parse the REG_FIDDLE macro found in the sample code.
-	registerFiddleRegex = regexp.MustCompile(`REG_FIDDLE\((?P<name>\w+),\s+(?P<width>\w+),\s+(?P<height>\w+),\s+(?P<textonly>\w+),\s+(?P<source>\w+)\)`)
+	registerFiddleRegex         = regexp.MustCompile(`REG_FIDDLE\((?P<name>\w+),\s+(?P<width>\w+),\s+(?P<height>\w+),\s+(?P<textonly>\w+),\s+(?P<source>\w+)\)`)
+	registerAnimatedFiddleRegex = regexp.MustCompile(`REG_FIDDLE_ANIMATED\((?P<name>\w+),\s+(?P<width>\w+),\s+(?P<height>\w+),\s+(?P<textonly>\w+),\s+(?P<source>\w+),\s+(?P<duration>\S+)\)`)
+	registerSRGBFiddleRegex     = regexp.MustCompile(`REG_FIDDLE_SRGB\((?P<name>\w+),\s+(?P<width>\w+),\s+(?P<height>\w+),\s+(?P<textonly>\w+),\s+(?P<source>\w+),\s+(?P<duration>\S+),\s+(?P<usefloat16>\w+)\)`)
 )
 
 // ParseCpp parses a Skia example and returns a FiddleContext that's ready to run.
@@ -26,24 +28,19 @@ func ParseCpp(body string) (*types.FiddleContext, error) {
 		return nil, ErrorInactiveExample
 	}
 
-	// Parse up the REG_FIDDLE macro values.
-	match := registerFiddleRegex.FindStringSubmatch(body)
-	if len(match) == 0 {
-		return nil, skerr.Fmt("failed to find REG_FIDDLE macro")
+	fCtx, err := tryParsingAsNormalFiddle(body)
+	if err == failedToMatchErr {
+		fCtx, err = tryParsingAsAnimatedFiddle(body)
+		if err == failedToMatchErr {
+			fCtx, err = tryParsingAsSRGBFiddle(body)
+			if err == failedToMatchErr {
+				return nil, skerr.Fmt("failed to find any REG_FIDDLE* macro")
+			}
+		}
 	}
-	width, err := strconv.Atoi(namedGroup(match, "width"))
 	if err != nil {
-		return nil, skerr.Wrapf(err, "parsing width")
+		return nil, skerr.Wrap(err)
 	}
-	height, err := strconv.Atoi(namedGroup(match, "height"))
-	if err != nil {
-		return nil, skerr.Wrapf(err, "parsing height")
-	}
-	source, err := strconv.Atoi(namedGroup(match, "source"))
-	if err != nil {
-		return nil, skerr.Wrapf(err, "parsing source")
-	}
-	textonly := namedGroup(match, "textonly") == "true"
 
 	// Extract the code.
 	lines := strings.Split(body, "\n")
@@ -53,7 +50,7 @@ func ParseCpp(body string) (*types.FiddleContext, error) {
 	foundEnd := false
 	for _, line := range lines {
 		if !foundREG {
-			if strings.HasPrefix(line, "REG_FIDDLE(") {
+			if strings.HasPrefix(line, "REG_FIDDLE") {
 				foundREG = true
 			}
 			continue
@@ -68,27 +65,135 @@ func ParseCpp(body string) (*types.FiddleContext, error) {
 	if !foundEnd {
 		return nil, skerr.Fmt("failed to find END FIDDLE")
 	}
+	fCtx.Code = strings.Join(code, "\n")
 
-	ret := &types.FiddleContext{
-		Name: namedGroup(match, "name"),
-		Code: strings.Join(code, "\n"),
+	return fCtx, nil
+}
+
+var failedToMatchErr = errors.New("failed to match")
+
+func tryParsingAsNormalFiddle(body string) (*types.FiddleContext, error) {
+	// Parse up the REG_FIDDLE macro values.
+	match := registerFiddleRegex.FindStringSubmatch(body)
+	if len(match) == 0 {
+		return nil, failedToMatchErr
+	}
+	namedGroup := func(name string) string {
+		for i, groupName := range registerFiddleRegex.SubexpNames() {
+			if i != 0 && name == groupName {
+				return match[i]
+			}
+		}
+		panic("Could not find group with name " + name)
+	}
+	width, err := strconv.Atoi(namedGroup("width"))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing width")
+	}
+	height, err := strconv.Atoi(namedGroup("height"))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing height")
+	}
+	source, err := strconv.Atoi(namedGroup("source"))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing source")
+	}
+	textonly := namedGroup("textonly") == "true"
+	return &types.FiddleContext{
+		Name: namedGroup("name"),
 		Options: types.Options{
 			Width:    width,
 			Height:   height,
 			Source:   source,
 			TextOnly: textonly,
 		},
-	}
-	return ret, nil
+	}, nil
 }
 
-// namedGroup returns the match result of the named group. If an invalid group name is passed in,
-// this function panics.
-func namedGroup(match []string, name string) string {
-	for i, groupName := range registerFiddleRegex.SubexpNames() {
-		if i != 0 && name == groupName {
-			return match[i]
-		}
+func tryParsingAsAnimatedFiddle(body string) (*types.FiddleContext, error) {
+	// Parse up the REG_FIDDLE_ANIMATED macro values.
+	match := registerAnimatedFiddleRegex.FindStringSubmatch(body)
+	if len(match) == 0 {
+		return nil, failedToMatchErr
 	}
-	panic("Could not find group with name " + name)
+	namedGroup := func(name string) string {
+		for i, groupName := range registerAnimatedFiddleRegex.SubexpNames() {
+			if i != 0 && name == groupName {
+				return match[i]
+			}
+		}
+		panic("Could not find group with name " + name)
+	}
+	width, err := strconv.Atoi(namedGroup("width"))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing width")
+	}
+	height, err := strconv.Atoi(namedGroup("height"))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing height")
+	}
+	source, err := strconv.Atoi(namedGroup("source"))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing source")
+	}
+	duration, err := strconv.ParseFloat(namedGroup("duration"), 64)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing duration")
+	}
+	textonly := namedGroup("textonly") == "true"
+	return &types.FiddleContext{
+		Name: namedGroup("name"),
+		Options: types.Options{
+			Width:    width,
+			Height:   height,
+			Source:   source,
+			TextOnly: textonly,
+			Duration: duration,
+		},
+	}, nil
+}
+
+func tryParsingAsSRGBFiddle(body string) (*types.FiddleContext, error) {
+	// Parse up the REG_FIDDLE_SRGB macro values.
+	match := registerSRGBFiddleRegex.FindStringSubmatch(body)
+	if len(match) == 0 {
+		return nil, failedToMatchErr
+	}
+	namedGroup := func(name string) string {
+		for i, groupName := range registerSRGBFiddleRegex.SubexpNames() {
+			if i != 0 && name == groupName {
+				return match[i]
+			}
+		}
+		panic("Could not find group with name " + name)
+	}
+	width, err := strconv.Atoi(namedGroup("width"))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing width")
+	}
+	height, err := strconv.Atoi(namedGroup("height"))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing height")
+	}
+	source, err := strconv.Atoi(namedGroup("source"))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing source")
+	}
+	duration, err := strconv.ParseFloat(namedGroup("duration"), 64)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing duration")
+	}
+	textonly := namedGroup("textonly") == "true"
+	useFloat16 := namedGroup("usefloat16") == "true"
+	return &types.FiddleContext{
+		Name: namedGroup("name"),
+		Options: types.Options{
+			Width:    width,
+			Height:   height,
+			Source:   source,
+			TextOnly: textonly,
+			Duration: duration,
+			F16:      useFloat16,
+		},
+	}, nil
 }
