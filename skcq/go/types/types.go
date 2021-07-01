@@ -3,11 +3,28 @@ package types
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/skcq/go/codereview"
 	"go.skia.org/infra/skcq/go/config"
 )
+
+// ThrottlerManager is used to manage the rate of commits.
+type ThrottlerManager interface {
+	// Throttle looks at the specified commit time and determines if the
+	// commit should be blocked because it violates the throttler config.
+	// Eg:
+	//     If the throttler config has MaxBurst=2 and BurstDelaySecs=120
+	//     That means that 2 commits are allowed every 2 mins. Throttle
+	//     will return true if a 3rd commit comes in within that 2 min
+	//     window. Once the window slides Throttle will return false for
+	//     the next commit.
+	Throttle(repoBranch string, commitTime time.Time) bool
+
+	// UpdateThrottler adds the specified commit to the throttler cache.
+	UpdateThrottler(repoBranch string, commitTime time.Time, throttlerCfg *config.ThrottlerCfg)
+}
 
 // Verifier is the interface implemented by all verifiers.
 type Verifier interface {
@@ -47,13 +64,13 @@ type VerifiersManager interface {
 // CurrentlyProcessingChange is the description of an entry that is currently
 // being processed by SkCQ.
 type CurrentlyProcessingChange struct {
-	ChangeID             int64  `json:"change_id"`
-	EquivalentPatchsetID int64  `json:"equivalent_patchset_id"`
-	Repo                 string `json:"repo"`
-	Branch               string `json:"branch"`
-	ChangeSubject        string `json:"change_subject"`
-	ChangeOwner          string `json:"change_owner"`
-	DryRun               bool   `json:"dry_run"`
+	ChangeID         int64  `json:"change_id"`
+	LatestPatchsetID int64  `json:"latest_patchset_id"`
+	Repo             string `json:"repo"`
+	Branch           string `json:"branch"`
+	ChangeSubject    string `json:"change_subject"`
+	ChangeOwner      string `json:"change_owner"`
+	DryRun           bool   `json:"dry_run"`
 
 	// The time the CQ first looked at this change.
 	// Uses unix epoch time.
