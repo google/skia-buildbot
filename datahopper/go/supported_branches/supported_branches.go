@@ -51,7 +51,7 @@ func botCanRunTask(botDims, taskDims map[string][]string) bool {
 func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]struct{}, botDimsList []map[string][]string) error {
 	sbc, err := supported_branches.ReadConfigFromRepo(repo)
 	if err != nil {
-		if strings.Contains(err.Error(), "Not Found") {
+		if strings.Contains(err.Error(), "Not Found") || strings.Contains(err.Error(), "404") {
 			sklog.Infof("Skipping repo %s; no supported branches file found.", repo.URL())
 			return nil
 		}
