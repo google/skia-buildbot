@@ -110,6 +110,12 @@ Where the name of the fiddle is the filename, and the contents of the file is
 the fiddleHash. The id of the person that created the named shortcut is
 attached as metadata to the file.
 
+Named fiddles come exclusively from the Skia repo. They are currently checked in to
+[$SKIA_ROOT/docs/examples](https://skia.googlesource.com/skia/+/refs/heads/main/docs/examples).
+With the help of [make_all_examples_cpp.py](https://skia.googlesource.com/skia/+/refs/heads/main/tools/fiddle/make_all_examples_cpp.py),
+they are compiled regularly to ensure freshness as a part of the
+[fiddle_examples executable](https://skia.googlesource.com/skia/+/569f29da862372ab8faeaf851966c2d620bb696c/BUILD.gn#2726).
+
 # Source
 
 Source images are packaged into each container.

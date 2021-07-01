@@ -76,7 +76,7 @@ groups:
       severity: warning
       owner: jcgregorio@google.com
     annotations:
-      description: 'Fiddle is experiencing heavy load and has insufficient idle fiddler pods. https://skia.googlesource.com/buildbot/%2B/main/fiddlek/PROD.md#fiddler_pods'
+      description: 'Fiddle is experiencing heavy load and has insufficient idle fiddler pods. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/fiddlek/PROD.md#fiddler_pods'
 
   - alert: NamedFiddlesFailing
     expr: named_fiddles_examples_total_invalid > 0
@@ -86,8 +86,7 @@ groups:
       severity: warning
       owner: jcgregorio@google.com
     annotations:
-      description: 'Some named fiddles are failing. Run `kubectl logs -f -lapp=named-fiddles`
- to see which ones.'
+      description: 'Some named fiddles are failing. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/fiddlek/docs/PROD.md#NamedFiddlesFailing'
 
   - alert: FiddlerPodCommunicationErrors
     expr: rate(run_exhaustion[20m]) * 20 * 60 > 5
