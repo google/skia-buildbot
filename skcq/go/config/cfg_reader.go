@@ -58,11 +58,11 @@ type GitilesConfigReader struct {
 	ci                    *gerrit.ChangeInfo
 	cr                    codereview.CodeReview
 	changedFiles          []string
-	canModifyCfgsOnTheFly *allowed.AllowedFromChromeInfraAuth
+	canModifyCfgsOnTheFly allowed.Allow
 }
 
 // NewGitilesConfigReader returns an instance of GitilesConfigReader.
-func NewGitilesConfigReader(ctx context.Context, httpClient *http.Client, ci *gerrit.ChangeInfo, cr codereview.CodeReview, canModifyCfgsOnTheFly *allowed.AllowedFromChromeInfraAuth) (*GitilesConfigReader, error) {
+func NewGitilesConfigReader(ctx context.Context, httpClient *http.Client, ci *gerrit.ChangeInfo, cr codereview.CodeReview, canModifyCfgsOnTheFly allowed.Allow) (*GitilesConfigReader, error) {
 	gitilesRepo := gitiles.NewRepo(cr.GetRepoUrl(ci), httpClient)
 	changedFiles, err := cr.GetFileNames(ctx, ci)
 	if err != nil {
