@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8359b711_748c88f2",
+        "filename": "skcq/go/verifiers/commit_footer_verifier.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-01T15:05:46Z",
+      "side": 1,
+      "message": "Do we only support \"false\"?  I\u0027d imagine someone might use \"Commit: 0\" or \"Commit: no\" or something.",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 29
+      },
+      "revId": "778a152e53628f36e756ef55b8427a8ebb2e686f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
