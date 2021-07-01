@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/machine/go/machine/source/pubsubsource"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	firestoreSwitchboard "go.skia.org/infra/machine/go/switchboard"
 )
 
 // flags
@@ -40,6 +41,7 @@ type server struct {
 	store             machineStore.Store
 	templates         *template.Template
 	loadTemplatesOnce sync.Once
+	switchboard       firestoreSwitchboard.Switchboard
 }
 
 // See baseapp.Constructor.
@@ -72,6 +74,10 @@ func new() (baseapp.App, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	switchboard, err := firestoreSwitchboard.New(ctx, *baseapp.Local, instanceConfig)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	eventCh, err := source.Start(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to start pubsubsource.")
@@ -91,7 +97,8 @@ func new() (baseapp.App, error) {
 		}
 	}()
 	s := &server{
-		store: store,
+		store:       store,
+		switchboard: switchboard,
 	}
 	s.loadTemplates()
 	return s, nil
@@ -341,6 +348,20 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *server) podsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	pods, err := s.switchboard.ListPods(r.Context())
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get list of pods.", http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(pods); err != nil {
+		sklog.Errorf("Failed to write response: %s", err)
+	}
+}
+
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", s.mainHandler).Methods("GET")
@@ -351,6 +372,7 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/machine/remove_device/{id:.+}", s.machineRemoveDeviceHandler).Methods("GET")
 	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("GET")
 	r.HandleFunc("/_/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
+	r.HandleFunc("/_/pods", s.podsHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
 
