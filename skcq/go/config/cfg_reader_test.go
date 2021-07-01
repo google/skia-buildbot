@@ -4,17 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
 
 	"go.skia.org/infra/task_scheduler/go/specs"
 
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/allowed"
+	allowed_mocks "go.skia.org/infra/go/allowed/mocks"
 	"go.skia.org/infra/go/gerrit"
 	gitiles_mocks "go.skia.org/infra/go/gitiles/mocks"
-	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	cr_mocks "go.skia.org/infra/skcq/go/codereview/mocks"
@@ -36,7 +34,6 @@ func setupGetSkCQCfg(t *testing.T, match bool, cfgContents []byte, readFileError
 		Branch:  "test-branch",
 	}
 	ref := "refs/changes/22/401222/140"
-	allowListName := "test-group-name"
 
 	// Setup codereview mock.
 	cr := &cr_mocks.CodeReview{}
@@ -52,18 +49,17 @@ func setupGetSkCQCfg(t *testing.T, match bool, cfgContents []byte, readFileError
 		gitilesRepo.On("ReadFileAtRef", testutils.AnyContext, cfgPath, ci.Branch).Return(cfgContents, readFileError).Once()
 	}
 
-	// Mock httpClient for allowlist.
-	mockClient := mockhttpclient.NewURLMock()
-	mockClient.Mock(fmt.Sprintf(allowed.GROUP_URL_TEMPLATE, allowListName), mockhttpclient.MockGetDialogue([]byte(fmt.Sprintf(`{"group": {"members": ["user:%s"]}}`, matchedUser))))
-	cria, err := allowed.NewAllowedFromChromeInfraAuth(mockClient.Client(), allowListName)
-	require.Nil(t, err)
+	// Mock allow.
+	allow := &allowed_mocks.Allow{}
+	allow.On("Member", matchedUser).Return(true).Once()
+	allow.On("Member", unmatchedUser).Return(false).Once()
 
 	return &GitilesConfigReader{
 		gitilesRepo:           gitilesRepo,
 		cr:                    cr,
 		ci:                    ci,
 		changedFiles:          changedFiles,
-		canModifyCfgsOnTheFly: cria,
+		canModifyCfgsOnTheFly: allow,
 	}
 }
 
