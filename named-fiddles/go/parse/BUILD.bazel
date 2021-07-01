@@ -6,7 +6,10 @@ go_library(
     srcs = ["parse.go"],
     importpath = "go.skia.org/infra/named-fiddles/go/parse",
     visibility = ["//visibility:public"],
-    deps = ["//fiddlek/go/types"],
+    deps = [
+        "//fiddlek/go/types",
+        "//go/skerr",
+    ],
 )
 
 go_test(

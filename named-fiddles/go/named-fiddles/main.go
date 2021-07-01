@@ -19,37 +19,49 @@ import (
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/named-fiddles/go/parse"
-)
-
-// flags
-var (
-	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	period   = flag.Duration("period", time.Hour, "How often to check if the named fiddles are valid.")
-	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	repoURL  = flag.String("repo_url", "https://skia.googlesource.com/skia", "Repo url")
-	repoDir  = flag.String("repo_dir", "/tmp/skia_named_fiddles", "Directory the repo is checked out into.")
 )
 
 // Server is the state of the server.
 type Server struct {
-	store store.Store
-	repo  *gitinfo.GitInfo
+	store   store.Store
+	repo    *gitinfo.GitInfo
+	repoDir string
 
 	livenessExamples    metrics2.Liveness    // liveness of the naming the Skia examples.
 	errorsInExamplesRun metrics2.Counter     // errorsInExamplesRun is the number of errors in a single examples run.
 	numInvalidExamples  metrics2.Int64Metric // numInvalidExamples is the number of examples that are currently invalid.
 }
 
-// New creates a new Server.
-func New() (*Server, error) {
-	st, err := store.New(*local)
+func main() {
+	local := flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort := flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	repoURL := flag.String("repo_url", "https://skia.googlesource.com/skia", "Repo url")
+	repoDir := flag.String("repo_dir", "/tmp/skia_named_fiddles", "Directory the repo is checked out into.")
+
+	common.InitWithMust(
+		"named-fiddles",
+		common.PrometheusOpt(promPort),
+	)
+
+	_, err := startSyncing(context.Background(), *local, *repoURL, *repoDir)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create client for GCS: %s", err)
+		sklog.Fatalf("Failed to create Server: %s", err)
+	}
+	select {}
+}
+
+// startSyncing creates a new Server in a goroutine and returns.
+func startSyncing(ctx context.Context, local bool, repoURL, repoDir string) (*Server, error) {
+	st, err := store.New(local)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "creating fiddle store")
 	}
 
-	if !*local {
+	if !local {
 		ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
 		if err != nil {
 			sklog.Fatalf("Failed authentication: %s", err)
@@ -61,27 +73,28 @@ func New() (*Server, error) {
 		sklog.Infof("Git authentication set up successfully.")
 	}
 
-	repo, err := gitinfo.CloneOrUpdate(context.Background(), *repoURL, *repoDir, false)
+	repo, err := gitinfo.CloneOrUpdate(ctx, repoURL, repoDir, false)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create git repo: %s", err)
+		return nil, skerr.Wrapf(err, "Cloning git repo %s to %s", repoURL, repoDir)
 	}
-
+	sklog.Infof("git clone of %s to %s was successful", repoURL, repoDir)
 	srv := &Server{
-		store: st,
-		repo:  repo,
+		store:   st,
+		repo:    repo,
+		repoDir: repoDir,
 
 		livenessExamples:    metrics2.NewLiveness("named_fiddles_examples"),
-		errorsInExamplesRun: metrics2.GetCounter("named_fiddles_errors_in_examples_run", nil),
+		errorsInExamplesRun: metrics2.GetCounter("named_fiddles_errors_in_examples_run"),
 		numInvalidExamples:  metrics2.GetInt64Metric("named_fiddles_examples_total_invalid"),
 	}
-	go srv.nameExamples()
+	go util.RepeatCtx(ctx, time.Minute, srv.exampleStep)
 	return srv, nil
 }
 
 // errorsInResults returns an empty string if there are no errors, either
 // compile or runtime, found in the results. If there are errors then a string
 // describing the error is returned.
-func errorsInResults(runResults *types.RunResults, success bool) string {
+func errorsInResults(runResults *types.RunResults) string {
 	status := ""
 	if runResults == nil {
 		status = "Failed to run."
@@ -96,20 +109,20 @@ func errorsInResults(runResults *types.RunResults, success bool) string {
 }
 
 // exampleStep is a single run through naming all the examples.
-func (srv *Server) exampleStep() {
+func (srv *Server) exampleStep(ctx context.Context) {
 	srv.errorsInExamplesRun.Reset()
 	sklog.Info("Starting exampleStep")
-	if err := srv.repo.Update(context.Background(), true, false); err != nil {
+	if err := srv.repo.Update(ctx, true, false); err != nil {
 		sklog.Errorf("Failed to sync git repo.")
 		return
 	}
 
 	var numInvalid int64
 	// Get a list of all examples.
-	dir := filepath.Join(*repoDir, "docs", "examples")
+	dir := filepath.Join(srv.repoDir, "docs", "examples")
 	err := filepath.Walk(dir+"/", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return fmt.Errorf("Failed to open %q: %s", path, err)
+			return skerr.Wrapf(err, "opening %q", path)
 		}
 		if info.IsDir() {
 			return nil
@@ -125,8 +138,9 @@ func (srv *Server) exampleStep() {
 			sklog.Infof("Inactive sample: %q", info.Name())
 			return nil
 		} else if err != nil {
-			sklog.Infof("Invalid sample: %q", info.Name())
+			sklog.Infof("Invalid sample: %q\n%s", info.Name(), err)
 			numInvalid += 1
+			srv.numInvalidExamples.Update(numInvalid)
 			return nil
 		}
 		// Now run it.
@@ -140,12 +154,15 @@ func (srv *Server) exampleStep() {
 		runResults, success := client.Do(b, false, "https://fiddle.skia.org", func(*types.RunResults) bool {
 			return true
 		})
+		status := errorsInResults(runResults)
 		if !success {
-			sklog.Errorf("Failed to run")
+			sklog.Errorf("Failed to run: %s", status)
 			srv.errorsInExamplesRun.Inc(1)
 			return nil
 		}
-		status := errorsInResults(runResults, success)
+		if status != "" {
+			sklog.Warningf("Sample %s had a non-empty status: %s", name, status)
+		}
 		if err := srv.store.WriteName(name, runResults.FiddleHash, "Skia example", status); err != nil {
 			sklog.Errorf("Failed to write status for %s: %s", name, err)
 			srv.errorsInExamplesRun.Inc(1)
@@ -159,25 +176,4 @@ func (srv *Server) exampleStep() {
 
 	srv.numInvalidExamples.Update(numInvalid)
 	srv.livenessExamples.Reset()
-}
-
-// nameExamples runs each Skia example and gives it a name.
-func (srv *Server) nameExamples() {
-	srv.exampleStep()
-	for range time.Tick(time.Minute) {
-		srv.exampleStep()
-	}
-}
-
-func main() {
-	common.InitWithMust(
-		"named-fiddles",
-		common.PrometheusOpt(promPort),
-	)
-
-	_, err := New()
-	if err != nil {
-		sklog.Fatalf("Failed to create Server: %s", err)
-	}
-	select {}
 }
