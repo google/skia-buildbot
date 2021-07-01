@@ -141,3 +141,10 @@ build:remote --remote_instance_name projects/skia-infra-rbe/instances/default_in
 #     build:remote --google_credentials=path/to/rbe_developer.json
 #
 # Where path/to/rbe_developer.json is the path to the JSON key created in the previous step.
+#
+# Note: The rbe-developer@skia-public.iam.gserviceaccount.com is set up with read-only access to
+# the RBE remote cache. Only the CI environment (rbe-ci@skia-public.iam.gserviceaccount.com) has
+# write access to the remote cache, per the recommendations at
+# https://cloud.google.com/remote-build-execution/docs/remote-cache-overview. This might cause
+# occasional "Writing to Remote Cache: PERMISSION_DENIED" warnings when building from a developer
+# workstation with `bazel build --config=remote`.
