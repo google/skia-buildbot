@@ -3,7 +3,11 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "verifiers",
-    srcs = ["commit_footer_verifier.go"],
+    srcs = [
+        "commit_footer_verifier.go",
+        "submittable_verifier.go",
+        "wip_verifier.go",
+    ],
     importpath = "go.skia.org/infra/skcq/go/verifiers",
     visibility = ["//visibility:public"],
     deps = [
@@ -16,7 +20,11 @@ go_library(
 
 go_test(
     name = "verifiers_test",
-    srcs = ["commit_footer_verifier_test.go"],
+    srcs = [
+        "commit_footer_verifier_test.go",
+        "submittable_verifier_test.go",
+        "wip_verifier_test.go",
+    ],
     embed = [":verifiers"],
     deps = [
         "//go/gerrit",
