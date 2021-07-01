@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "03be96ed_488643d8",
+        "filename": "skcq/go/verifiers/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-01T16:12:59Z",
+      "side": 1,
+      "message": "Can we just use allowed.Allow?  That would simplify testing.",
+      "range": {
+        "startLine": 11,
+        "startChar": 57,
+        "endLine": 11,
+        "endChar": 92
+      },
+      "revId": "4664274f81e34a48df3426850d58ad003a2f640a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
