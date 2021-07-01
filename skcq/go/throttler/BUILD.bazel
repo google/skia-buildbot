@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "throttler",
+    srcs = ["throttler.go"],
+    importpath = "go.skia.org/infra/skcq/go/throttler",
+    visibility = ["//visibility:public"],
+    deps = ["//skcq/go/config"],
+)
+
+go_test(
+    name = "throttler_test",
+    srcs = ["throttler_test.go"],
+    embed = [":throttler"],
+    deps = [
+        "//go/testutils/unittest",
+        "//skcq/go/config",
+        "@com_github_stretchr_testify//require",
+    ],
+)
