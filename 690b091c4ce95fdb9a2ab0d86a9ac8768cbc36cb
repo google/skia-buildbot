@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "811b9807_a76d05af",
+        "filename": "skcq/go/types/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-01T13:48:14Z",
+      "side": 1,
+      "message": "Seems like a good use case for exponential backoff.",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 22
+      },
+      "revId": "690b091c4ce95fdb9a2ab0d86a9ac8768cbc36cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e40b6a55_3fa3375f",
+        "filename": "skcq/go/types/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-01T13:48:14Z",
+      "side": 1,
+      "message": "Any reason we can\u0027t make this a time.Time?  If not, can we name it PatchStartTs so that it\u0027s clear everywhere it\u0027s used?  Applies to all int64 timestamp fields in this file.",
+      "range": {
+        "startLine": 104,
+        "startChar": 1,
+        "endLine": 104,
+        "endChar": 17
+      },
+      "revId": "690b091c4ce95fdb9a2ab0d86a9ac8768cbc36cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
