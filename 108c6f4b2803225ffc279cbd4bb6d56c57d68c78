@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8a3a79f4_5c868c7a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-01T20:30:54Z",
+      "side": 1,
+      "message": "This was a very educational patch. Lots of good excuses to read parts of the language ref. Meeting Points CL to come!",
+      "revId": "108c6f4b2803225ffc279cbd4bb6d56c57d68c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
