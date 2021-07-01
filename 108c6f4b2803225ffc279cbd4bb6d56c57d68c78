@@ -39,6 +39,30 @@
       },
       "revId": "108c6f4b2803225ffc279cbd4bb6d56c57d68c78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5b04491d_c7ebb147",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-01T20:45:34Z",
+      "side": 1,
+      "message": "Is the dividing line whether it hits the network or not? If it hit, say, a local emulator, would it be a small test?",
+      "parentUuid": "96b04b81_08a19ddd",
+      "range": {
+        "startLine": 452,
+        "startChar": 10,
+        "endLine": 452,
+        "endChar": 19
+      },
+      "revId": "108c6f4b2803225ffc279cbd4bb6d56c57d68c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
