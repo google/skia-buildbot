@@ -2,6 +2,7 @@ package bazel
 
 import (
 	"context"
+	"path/filepath"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
@@ -13,6 +14,64 @@ type Bazel struct {
 	local             bool
 	rbeCredentialFile string
 	workspace         string
+}
+
+func NewWithRamdisk(ctx context.Context, workspace string, rbeCredentialFile string) (*Bazel, func(), error) {
+	// Create and mount ramdisk.
+	ramdiskDir, err := os_steps.TempDir(ctx, "", "ramdisk-*")
+	if err != nil {
+		return nil, nil, err
+	}
+	if _, err := exec.RunCwd(ctx, workspace, "sudo", "mount", "-t", "tmpfs", "-o", "size=32g", "tmpfs", ramdiskDir); err != nil {
+		return nil, nil, err
+	}
+
+	// Create Bazel cache directory inside the ramdisk.
+	cacheDir := filepath.Join(ramdiskDir, "bazel-cache")
+	if err := os_steps.MkdirAll(ctx, cacheDir); err != nil {
+		return nil, nil, err
+	}
+
+	// TODO(lovisolo): Delete before landing.
+	if _, err := exec.RunCwd(ctx, workspace, "touch", filepath.Join(ramdiskDir, "hello-ramdisk.txt")); err != nil {
+		return nil, nil, err
+	}
+	if _, err := exec.RunCwd(ctx, workspace, "touch", filepath.Join(cacheDir, "hello-bazel-cache.txt")); err != nil {
+		return nil, nil, err
+	}
+	if _, err := exec.RunCwd(ctx, workspace, "ls", "-l", filepath.Dir(ramdiskDir)); err != nil {
+		return nil, nil, err
+	}
+	if _, err := exec.RunCwd(ctx, workspace, "ls", "-l", ramdiskDir); err != nil {
+		return nil, nil, err
+	}
+	if _, err := exec.RunCwd(ctx, workspace, "ls", "-l", cacheDir); err != nil {
+		return nil, nil, err
+	}
+
+	absCredentialFile, err := os_steps.Abs(ctx, rbeCredentialFile)
+	if err != nil {
+		return nil, nil, err
+	}
+	cleanup := func() {
+		// Flag --lazy prevents "target is busy" errors.
+		//
+		// Generally, lazy unmounting is not recommended[1], but doing so in a Swarming task should be
+		// OK because the Swarming bot will be rebooted shortly after the task finishes.
+		//
+		// [1] https://unix.stackexchange.com/questions/390056/why-is-lazy-mnt-detach-or-umount-l-unsafe-dangerous
+		if _, err := exec.RunCwd(ctx, workspace, "sudo", "umount", "--lazy", ramdiskDir); err != nil {
+			td.Fatal(ctx, err)
+		}
+		if err := os_steps.RemoveAll(ctx, ramdiskDir); err != nil {
+			td.Fatal(ctx, err)
+		}
+	}
+	return &Bazel{
+		cacheDir:          cacheDir,
+		rbeCredentialFile: absCredentialFile,
+		workspace:         workspace,
+	}, cleanup, nil
 }
 
 func New(ctx context.Context, workspace string, local bool, rbeCredentialFile string) (*Bazel, func(), error) {
