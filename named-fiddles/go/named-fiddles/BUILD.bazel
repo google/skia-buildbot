@@ -14,7 +14,9 @@ go_library(
         "//go/git/gitinfo",
         "//go/gitauth",
         "//go/metrics2",
+        "//go/skerr",
         "//go/sklog",
+        "//go/util",
         "//named-fiddles/go/parse",
     ],
 )

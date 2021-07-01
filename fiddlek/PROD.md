@@ -19,8 +19,9 @@ file.
 
 NamedFiddlesFailing
 -------------------
-Some of the named fiddles checked into the Skia repo have stopped compiling. To see what the errors
-are and to help with fixes, it is probably easiest to reproduce locally using the following steps:
+Some of the named fiddles checked into the Skia repo have stopped compiling or running. To see what
+the compilation errors are and to help with fixes, it is probably easiest to reproduce locally
+using the following steps:
   1) Check out Skia <https://skia.org/docs/user/download/>. All following steps should be executed
      from the Skia root.
   2) Sync third party deps by executing `python2 tools/git-sync-deps`
@@ -30,3 +31,20 @@ are and to help with fixes, it is probably easiest to reproduce locally using th
 
 Once the fixes have been committed to the Skia repo, they should be synced into fiddle and the
 errors should go away.
+
+For runtime errors, it is best to look at the logs of the named-fiddles pod.
+
+Another way to mitigate the alert is to disable the example by putting `#ifdef 0` as the first line
+and `#endif` as the last line, then committing.
+
+Key metrics: named_fiddles_errors_in_examples_run
+
+InvalidNamedFiddles
+-------------------
+Some of the named fiddles cannot be parsed (using //named-fiddles/go/parse). This might mean that
+there is a typo in the macro, or a new macro has been introduced and the parsing code needs
+updating.
+
+For more information, look at the logs of the named-fiddles pod.
+
+Key metrics: named_fiddles_examples_total_invalid
