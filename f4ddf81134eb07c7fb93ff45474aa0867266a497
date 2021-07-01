@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2c03deb5_3ff68e66",
+        "filename": "skcq/go/types/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-01T13:42:46Z",
+      "side": 1,
+      "message": "Done. Also made the return params named.",
+      "parentUuid": "2aaa94d2_f8986fe2",
+      "range": {
+        "startLine": 32,
+        "startChar": 208,
+        "endLine": 32,
+        "endChar": 218
+      },
+      "revId": "f4ddf81134eb07c7fb93ff45474aa0867266a497",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a8162cd9_cb392875",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-07-01T11:59:34Z",
       "side": 1,
       "message": "Why don\u0027t we need to return an error here?",
+      "range": {
+        "startLine": 35,
+        "startChar": 97,
+        "endLine": 35,
+        "endChar": 114
+      },
+      "revId": "f4ddf81134eb07c7fb93ff45474aa0867266a497",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "225cde10_d87f828b",
+        "filename": "skcq/go/types/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-01T13:42:46Z",
+      "side": 1,
+      "message": "Added documentation explaining this (with a TODO because it was on my mind).",
+      "parentUuid": "a8162cd9_cb392875",
       "range": {
         "startLine": 35,
         "startChar": 97,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4823f6d5_ea9d3c57",
+        "filename": "skcq/go/types/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-01T13:42:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f490e9d_52b50ec4",
+      "range": {
+        "startLine": 87,
+        "startChar": 5,
+        "endLine": 87,
+        "endChar": 18
+      },
+      "revId": "f4ddf81134eb07c7fb93ff45474aa0867266a497",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8ad15977_bdc1dda7",
@@ -83,6 +155,30 @@
       "writtenOn": "2021-07-01T11:59:34Z",
       "side": 1,
       "message": "Ditto here.",
+      "range": {
+        "startLine": 112,
+        "startChar": 5,
+        "endLine": 112,
+        "endChar": 19
+      },
+      "revId": "f4ddf81134eb07c7fb93ff45474aa0867266a497",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8277bf5e_b733f689",
+        "filename": "skcq/go/types/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-01T13:42:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ad15977_bdc1dda7",
       "range": {
         "startLine": 112,
         "startChar": 5,
