@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "verifiers",
+    srcs = ["commit_footer_verifier.go"],
+    importpath = "go.skia.org/infra/skcq/go/verifiers",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gerrit",
+        "//go/git",
+        "//skcq/go/footers",
+        "//skcq/go/types",
+    ],
+)
+
+go_test(
+    name = "verifiers_test",
+    srcs = ["commit_footer_verifier_test.go"],
+    embed = [":verifiers"],
+    deps = [
+        "//go/gerrit",
+        "//go/testutils/unittest",
+        "//skcq/go/footers",
+        "//skcq/go/types",
+        "@com_github_stretchr_testify//require",
+    ],
+)
