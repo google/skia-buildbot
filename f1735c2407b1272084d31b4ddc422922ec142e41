@@ -22,6 +22,30 @@
       },
       "revId": "f1735c2407b1272084d31b4ddc422922ec142e41",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0368cfcb_06c781bf",
+        "filename": "fiddlek/DESIGN.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-01T14:30:00Z",
+      "side": 1,
+      "message": "They are now exclusively from the Skia repo.",
+      "parentUuid": "8e80e211_e9f0d7ca",
+      "range": {
+        "startLine": 113,
+        "startChar": 34,
+        "endLine": 113,
+        "endChar": 38
+      },
+      "revId": "f1735c2407b1272084d31b4ddc422922ec142e41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
