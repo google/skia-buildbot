@@ -63,6 +63,30 @@
       },
       "revId": "108c6f4b2803225ffc279cbd4bb6d56c57d68c78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e22a8ec1_6e4890a9",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-01T20:49:58Z",
+      "side": 1,
+      "message": "The running time of the test is really the dividing line for test size, in this case we know that emulators and writing to the local disk can be slow on the bots.\n\nThe good news is that as we transition to Bazel the need to specify test size will go away.",
+      "parentUuid": "5b04491d_c7ebb147",
+      "range": {
+        "startLine": 452,
+        "startChar": 10,
+        "endLine": 452,
+        "endChar": 19
+      },
+      "revId": "108c6f4b2803225ffc279cbd4bb6d56c57d68c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
