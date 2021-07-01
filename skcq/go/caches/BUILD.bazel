@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "caches",
+    srcs = [
+        "current_changes_cache.go",
+        "current_changes_cache_impl.go",
+    ],
+    importpath = "go.skia.org/infra/skcq/go/caches",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//skcq/go/db",
+        "//skcq/go/types",
+    ],
+)
