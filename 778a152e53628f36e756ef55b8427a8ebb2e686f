@@ -22,6 +22,30 @@
       },
       "revId": "778a152e53628f36e756ef55b8427a8ebb2e686f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e53f8b16_546cccdd",
+        "filename": "skcq/go/verifiers/commit_footer_verifier.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-01T15:21:07Z",
+      "side": 1,
+      "message": "We only support false. That\u0027s what is documented https://skia.org/docs/dev/contrib/cqkeywords/#commit\nand that\u0027s what the \"CQ Keywords\" widget on Gerrit puts in the commit message.",
+      "parentUuid": "8359b711_748c88f2",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 29
+      },
+      "revId": "778a152e53628f36e756ef55b8427a8ebb2e686f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
