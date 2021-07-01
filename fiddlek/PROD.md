@@ -30,3 +30,5 @@ are and to help with fixes, it is probably easiest to reproduce locally using th
 
 Once the fixes have been committed to the Skia repo, they should be synced into fiddle and the
 errors should go away.
+
+Key metrics: named_fiddles_examples_total_invalid, named_fiddles_errors_in_examples_run
