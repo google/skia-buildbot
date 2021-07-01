@@ -2,6 +2,7 @@ package bazel
 
 import (
 	"context"
+	"path/filepath"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
@@ -13,6 +14,39 @@ type Bazel struct {
 	local             bool
 	rbeCredentialFile string
 	workspace         string
+}
+
+func NewWithRamdisk(ctx context.Context, workspace string, rbeCredentialFile string) (*Bazel, func(), error) {
+	cacheDir, err := os_steps.TempDir(ctx, "", "bazel-user-cache-*")
+	if err != nil {
+		return nil, nil, err
+	}
+	if _, err := exec.RunCwd(ctx, workspace, "sudo", "mount", "-t", "tmpfs", "-o", "size=32g", "tmpfs", cacheDir); err != nil {
+		return nil, nil, err
+	}
+
+	// TODO: Delete
+	if _, err := exec.RunCwd(ctx, workspace, "touch", filepath.Join(cacheDir, "hello.txt")); err != nil {
+		return nil, nil, err
+	}
+	if _, err := exec.RunCwd(ctx, workspace, "ls", "-l", filepath.Dir(cacheDir)); err != nil {
+		return nil, nil, err
+	}
+
+	absCredentialFile, err := os_steps.Abs(ctx, rbeCredentialFile)
+	if err != nil {
+		return nil, nil, err
+	}
+	cleanup := func() {
+		if _, err := exec.RunCwd(ctx, workspace, "sudo", "umount", cacheDir); err != nil {
+			td.Fatal(ctx, err)
+		}
+	}
+	return &Bazel{
+		cacheDir:          cacheDir,
+		rbeCredentialFile: absCredentialFile,
+		workspace:         workspace,
+	}, cleanup, nil
 }
 
 func New(ctx context.Context, workspace string, local bool, rbeCredentialFile string) (*Bazel, func(), error) {
