@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b3117b33_1af0b40b",
+        "filename": "skcq/go/throttler/throttler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-01T19:55:14Z",
+      "side": 1,
+      "message": "I\u0027d feel slightly happier if we instantiated a ThrottleManager or something rather than having a package-scoped variable.",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 56
+      },
+      "revId": "1b9d35ce18c480b031bb5c34c3b87dd42d77f329",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2678ad44_0d452c85",
+        "filename": "skcq/go/throttler/throttler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-01T19:55:14Z",
+      "side": 1,
+      "message": "Are we guaranteed that this never happens in different threads?",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 3
+      },
+      "revId": "1b9d35ce18c480b031bb5c34c3b87dd42d77f329",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
