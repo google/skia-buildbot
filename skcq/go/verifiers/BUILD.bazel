@@ -3,10 +3,16 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "verifiers",
-    srcs = ["commit_footer_verifier.go"],
+    srcs = [
+        "commit_footer_verifier.go",
+        "cq_access_list_verifier.go",
+        "dryrun_access_list_verifier.go",
+        "util.go",
+    ],
     importpath = "go.skia.org/infra/skcq/go/verifiers",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/allowed",
         "//go/gerrit",
         "//go/git",
         "//skcq/go/footers",
@@ -16,9 +22,14 @@ go_library(
 
 go_test(
     name = "verifiers_test",
-    srcs = ["commit_footer_verifier_test.go"],
+    srcs = [
+        "commit_footer_verifier_test.go",
+        "cq_access_list_verifier_test.go",
+        "dryrun_access_list_verifier_test.go",
+    ],
     embed = [":verifiers"],
     deps = [
+        "//go/allowed/mocks",
         "//go/gerrit",
         "//go/testutils/unittest",
         "//skcq/go/footers",
