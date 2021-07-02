@@ -16,6 +16,167 @@
       "message": "This is by far the most complicated verifier because of everything it has to do. I have tried to test every code path.",
       "revId": "7ba7b7059e95320d970d17f2f9911c2ffa66a7ae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "67023a88_3aae50be",
+        "filename": "skcq/go/verifiers/tryjobs_verifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-02T14:08:49Z",
+      "side": 1,
+      "message": "skerr.Wrapf",
+      "range": {
+        "startLine": 48,
+        "startChar": 14,
+        "endLine": 48,
+        "endChar": 23
+      },
+      "revId": "7ba7b7059e95320d970d17f2f9911c2ffa66a7ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "94d52151_2c411ee3",
+        "filename": "skcq/go/verifiers/tryjobs_verifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-02T14:08:49Z",
+      "side": 1,
+      "message": "skerr.Wrapf",
+      "range": {
+        "startLine": 109,
+        "startChar": 18,
+        "endLine": 109,
+        "endChar": 28
+      },
+      "revId": "7ba7b7059e95320d970d17f2f9911c2ffa66a7ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4ab89166_4ab29f89",
+        "filename": "skcq/go/verifiers/tryjobs_verifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-02T14:08:49Z",
+      "side": 1,
+      "message": "skerr.Wrapf",
+      "range": {
+        "startLine": 256,
+        "startChar": 18,
+        "endLine": 256,
+        "endChar": 27
+      },
+      "revId": "7ba7b7059e95320d970d17f2f9911c2ffa66a7ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d509952e_a16390bc",
+        "filename": "skcq/go/verifiers/tryjobs_verifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-02T14:08:49Z",
+      "side": 1,
+      "message": "skerr.Wrapf",
+      "range": {
+        "startLine": 262,
+        "startChar": 18,
+        "endLine": 262,
+        "endChar": 27
+      },
+      "revId": "7ba7b7059e95320d970d17f2f9911c2ffa66a7ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6df17377_8036a5b2",
+        "filename": "skcq/go/verifiers/tryjobs_verifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-02T14:08:49Z",
+      "side": 1,
+      "message": "Is No-Try the right keyword here?  It appears to apply to the Do-Not-Cancel keyword.",
+      "range": {
+        "startLine": 298,
+        "startChar": 7,
+        "endLine": 298,
+        "endChar": 21
+      },
+      "revId": "7ba7b7059e95320d970d17f2f9911c2ffa66a7ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7e55b143_63ff192b",
+        "filename": "skcq/go/verifiers/tryjobs_verifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-02T14:08:49Z",
+      "side": 1,
+      "message": "skerr.Wrapf",
+      "range": {
+        "startLine": 386,
+        "startChar": 20,
+        "endLine": 386,
+        "endChar": 29
+      },
+      "revId": "7ba7b7059e95320d970d17f2f9911c2ffa66a7ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c3515909_64a67c0a",
+        "filename": "skcq/go/verifiers/tryjobs_verifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-02T14:08:49Z",
+      "side": 1,
+      "message": "skerr.Wrapf",
+      "range": {
+        "startLine": 391,
+        "startChar": 21,
+        "endLine": 391,
+        "endChar": 30
+      },
+      "revId": "7ba7b7059e95320d970d17f2f9911c2ffa66a7ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
