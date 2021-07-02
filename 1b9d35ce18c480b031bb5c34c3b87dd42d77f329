@@ -93,6 +93,30 @@
       },
       "revId": "1b9d35ce18c480b031bb5c34c3b87dd42d77f329",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "740dc154_a2011434",
+        "filename": "skcq/go/throttler/throttler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-02T11:54:44Z",
+      "side": 1,
+      "message": "Ok, it probably merits a note that this function (or maybe the whole package) isn\u0027t thread-safe.",
+      "parentUuid": "bf42c6df_4f543310",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 3
+      },
+      "revId": "1b9d35ce18c480b031bb5c34c3b87dd42d77f329",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

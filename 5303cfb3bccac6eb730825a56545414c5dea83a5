@@ -1,6 +1,52 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "411aac13_608f6da1",
+        "filename": "skcq/go/throttler/throttler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-02T11:54:44Z",
+      "side": 1,
+      "message": "nit: best practice is to return concrete types",
+      "range": {
+        "startLine": 38,
+        "startChar": 20,
+        "endLine": 38,
+        "endChar": 42
+      },
+      "revId": "5303cfb3bccac6eb730825a56545414c5dea83a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "71af1360_e03e143e",
+        "filename": "skcq/go/throttler/throttler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-02T11:54:44Z",
+      "side": 1,
+      "message": "Nit: I\u0027d prefer NewThrottler, to me GetThrottler implies that there is a single ThrottleManager instance and this function retrieves it.",
+      "range": {
+        "startLine": 38,
+        "startChar": 5,
+        "endLine": 38,
+        "endChar": 17
+      },
+      "revId": "5303cfb3bccac6eb730825a56545414c5dea83a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "4e3e1cab_6dd8c019",
