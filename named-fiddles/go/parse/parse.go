@@ -149,6 +149,7 @@ func tryParsingAsAnimatedFiddle(body string) (*types.FiddleContext, error) {
 			Source:   source,
 			TextOnly: textonly,
 			Duration: duration,
+			Animated: true,
 		},
 	}, nil
 }
@@ -192,7 +193,9 @@ func tryParsingAsSRGBFiddle(body string) (*types.FiddleContext, error) {
 			Height:   height,
 			Source:   source,
 			TextOnly: textonly,
+			Animated: duration > 0,
 			Duration: duration,
+			SRGB:     true,
 			F16:      useFloat16,
 		},
 	}, nil

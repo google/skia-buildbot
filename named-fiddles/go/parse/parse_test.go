@@ -200,6 +200,7 @@ func TestParse_AnimatedSample_InformationExtracted(t *testing.T) {
 	assert.Equal(t, 300, fc.Options.Height)
 	assert.Equal(t, 0, fc.Options.Source)
 	assert.False(t, fc.Options.TextOnly)
+	assert.True(t, fc.Options.Animated)
 	assert.Equal(t, 10.5, fc.Options.Duration)
 }
 
@@ -213,8 +214,10 @@ func TestParse_SRGBSample_InformationExtracted(t *testing.T) {
 	assert.Equal(t, 150, fc.Options.Height)
 	assert.Equal(t, 0, fc.Options.Source)
 	assert.True(t, fc.Options.TextOnly)
+	assert.True(t, fc.Options.Animated)
 	assert.Equal(t, 18.5, fc.Options.Duration)
 	assert.True(t, fc.Options.F16)
+	assert.True(t, fc.Options.SRGB)
 }
 
 func TestParse_MissingEndFiddle_ReturnsError(t *testing.T) {
