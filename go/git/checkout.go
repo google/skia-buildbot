@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/sklog"
 )
@@ -130,6 +131,10 @@ func NewTempCheckout(ctx context.Context, repoUrl string) (*TempCheckout, error)
 
 // Delete removes the TempCheckout's working directory.
 func (c *TempCheckout) Delete() {
+	fmt.Printf("********** CHECKOUT: ABOUT TO DELETE %s\n", path.Dir(c.Dir()))
+	fmt.Println("********** SLEEPING FOR 1 HOUR")
+	time.Sleep(1 * time.Hour)
+
 	if err := os.RemoveAll(path.Dir(c.Dir())); err != nil {
 		sklog.Errorf("Failed to remove git.TempCheckout: %s", err)
 	}
