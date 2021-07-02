@@ -59,6 +59,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.6.0
 	github.com/a8m/envsubst v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20190830160640-d16893ddf098
+	github.com/alecthomas/jsonschema v0.0.0-20210526225647-edb03dcab7bc // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/bazelbuild/bazel-gazelle v0.23.0
@@ -122,6 +123,7 @@ require (
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.8.0
+	github.com/qri-io/jsonschema v0.2.1 // indirect
 	github.com/robertkrimen/otto v0.0.0-20200922221731-ef014fd054ac // indirect
 	github.com/rs/cors v1.6.0
 	github.com/sergi/go-diff v1.1.0 // indirect
@@ -143,6 +145,7 @@ require (
 	github.com/unrolled/secure v1.0.8
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/willf/bitset v1.1.11
+	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20201029184154-594d11850ebf
 	go.larrymyers.com/protoc-gen-twirp_typescript v0.0.0-20201012232926-5c91a3223921
