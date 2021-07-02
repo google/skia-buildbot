@@ -16,6 +16,24 @@
       "message": "Gold has that around a lot, especially for cells that are updated frequently.",
       "revId": "7f4ec96568918e2e342dbf43d9c5773581fc1c44",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cba260b3_dd9a12df",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-02T16:58:01Z",
+      "side": 1,
+      "message": "I think the reasoning here was that we only add rows and don\u0027t modify existing cells, but that seems to be wrong.",
+      "parentUuid": "00de7e9f_2a8df98a",
+      "revId": "7f4ec96568918e2e342dbf43d9c5773581fc1c44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
