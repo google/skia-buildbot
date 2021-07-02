@@ -83,7 +83,7 @@ var (
 	}
 )
 
-// For boths Pods and MeetingPoints we will create parallel structs
+// For both Pods and MeetingPoints we will create parallel structs
 // podDesciption and meetingPointDescription that are used to store their values
 // in the datastore. This will make it easier to have them diverge in the future
 // if that's needed.
