@@ -75,13 +75,13 @@ func read(edb events.EventDB, repos repograph.Map, from, to time.Time) (map[stri
 	for repoUrl, repo := range repos {
 		ev, err := edb.Range(fmtStream(repoUrl), from, to)
 		if err != nil {
-			return nil, err
+			return nil, skerr.Wrapf(err, "failed to read range from %q to %q in repo %q", from, to, repoUrl)
 		}
 		rvSub := make(map[*repograph.Commit]*commitData, len(ev))
 		for _, e := range ev {
 			d := new(commitData)
 			if err := gob.NewDecoder(bytes.NewBuffer(e.Data)).Decode(d); err != nil {
-				return nil, err
+				return nil, skerr.Wrapf(err, "failed to decode commit data")
 			}
 			c := repo.Get(d.Hash)
 			if c == nil {
@@ -89,7 +89,7 @@ func read(edb events.EventDB, repos repograph.Map, from, to time.Time) (map[stri
 				if d.Hash == "33de3938b2440af4f41979a6dacbee967d30aa56" {
 					continue
 				}
-				return nil, fmt.Errorf("No such commit %q in %s", d.Hash, repoUrl)
+				return nil, skerr.Fmt("No such commit %q in %s", d.Hash, repoUrl)
 			}
 			rvSub[c] = d
 		}
@@ -203,7 +203,7 @@ func addMetric(s *events.EventStream, repoUrl string, pct float64, period time.D
 // a commit landing and each task finishing for that commit.
 func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time) error {
 	if err := tCache.Update(); err != nil {
-		return skerr.Wrapf(err, "Failed to update task cache")
+		return skerr.Wrapf(err, "failed to update task cache")
 	}
 
 	totalCommits := 0
@@ -226,7 +226,7 @@ func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc
 	// Read cached data.
 	data, err := read(edb, repos, periodStart, now)
 	if err != nil {
-		return fmt.Errorf("Failed to read cached data: %s", err)
+		return skerr.Wrapf(err, "failed to read cached data")
 	}
 
 	for {

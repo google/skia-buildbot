@@ -13,6 +13,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",
+        "//go/skerr",
         "//go/sklog",
         "//go/util",
         "@com_google_cloud_go_bigtable//:bigtable",
