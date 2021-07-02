@@ -1,12 +1,15 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
 	"io"
+	"io/ioutil"
 
 	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/config/validate"
 )
 
 const (
@@ -470,10 +473,20 @@ type InstanceConfig struct {
 
 // InstanceConfigFromFile returns the deserialized JSON of an InstanceConfig found in filename.
 func InstanceConfigFromFile(filename string) (*InstanceConfig, error) {
+	ctx := context.Background()
 	var instanceConfig InstanceConfig
 
+	// Validate config here.
 	err := util.WithReadFile(filename, func(r io.Reader) error {
-		return json.NewDecoder(r).Decode(&instanceConfig)
+		b, err := ioutil.ReadAll(r)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to read bytes")
+		}
+		err = validate.InstanceConfigBytes(ctx, b)
+		if err != nil {
+			return skerr.Wrapf(err, "file does not conform to schema")
+		}
+		return json.Unmarshal(b, &instanceConfig)
 	})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Filename: %s", filename)
