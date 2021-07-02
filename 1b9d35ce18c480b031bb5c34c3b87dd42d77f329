@@ -117,6 +117,30 @@
       },
       "revId": "1b9d35ce18c480b031bb5c34c3b87dd42d77f329",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c1dc999_08b9d24e",
+        "filename": "skcq/go/throttler/throttler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-02T15:43:25Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "740dc154_a2011434",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 3
+      },
+      "revId": "1b9d35ce18c480b031bb5c34c3b87dd42d77f329",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

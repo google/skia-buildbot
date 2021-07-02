@@ -49,6 +49,54 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "e9bc62ba_d5884b3d",
+        "filename": "skcq/go/throttler/throttler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-02T15:43:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "411aac13_608f6da1",
+      "range": {
+        "startLine": 38,
+        "startChar": 20,
+        "endLine": 38,
+        "endChar": 42
+      },
+      "revId": "5303cfb3bccac6eb730825a56545414c5dea83a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "079dd2d1_9fbde84b",
+        "filename": "skcq/go/throttler/throttler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-02T15:43:25Z",
+      "side": 1,
+      "message": "Oops, that was a naming mistake. Done.",
+      "parentUuid": "71af1360_e03e143e",
+      "range": {
+        "startLine": 38,
+        "startChar": 5,
+        "endLine": 38,
+        "endChar": 17
+      },
+      "revId": "5303cfb3bccac6eb730825a56545414c5dea83a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "4e3e1cab_6dd8c019",
         "filename": "skcq/go/types/types.go",
         "patchSetId": 5
