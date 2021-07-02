@@ -22,6 +22,30 @@
       },
       "revId": "5cb6a82c79fd92264534f0c382ee9b9d66abce76",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "549cec07_6a7697db",
+        "filename": "skcq/go/verifiers/verifiers_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-02T19:11:49Z",
+      "side": 1,
+      "message": "The reason these are not in the constructor is because there are not that many non-change specific parameters- httpClient and cr. Everything else is directly tied to the change.\nI can move httpClient and cr into the constructor, WDYT?",
+      "parentUuid": "65594762_c7521fee",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 264
+      },
+      "revId": "5cb6a82c79fd92264534f0c382ee9b9d66abce76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
