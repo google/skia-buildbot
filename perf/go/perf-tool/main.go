@@ -222,6 +222,21 @@ func actualMain(app application.Application) {
 							return app.ConfigCreatePubSubTopics(instanceConfig)
 						},
 					},
+					{
+						Name:  "validate",
+						Usage: "Validate the given config",
+						Flags: []cli.Flag{
+							configFilenameFlag,
+						},
+						Action: func(c *cli.Context) error {
+							_, err := instanceConfigFromFlags(c)
+							if err != nil {
+								fmt.Printf("Validation Failed: %s", err)
+								return skerr.Wrap(err)
+							}
+							return nil
+						},
+					},
 				},
 			},
 			{
