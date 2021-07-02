@@ -8,16 +8,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"go.skia.org/infra/machine/go/switchboard"
+	switchboardMocks "go.skia.org/infra/machine/go/switchboard/mocks"
 )
 
 func setupForTest(t *testing.T) (context.Context, config.InstanceConfig) {
@@ -442,4 +446,33 @@ func TestMachineSetNoteHandler_FailOnInvalidJSON(t *testing.T) {
 	router.ServeHTTP(w, r)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestPodsHandler_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Set up the expected Pod.
+	var podTime time.Time
+	require.NoError(t, podTime.UnmarshalText([]byte("2001-02-03T04:05:06.78901Z")))
+	pod := switchboard.Pod{Name: "switch-pod-3", LastUpdated: podTime}
+
+	// ListPods is already well-tested in switchboard/impl, so we can mock out the whole switchboard.
+	sw := switchboardMocks.Switchboard{}
+	sw.On("ListPods", testutils.AnyContext).Return([]switchboard.Pod{pod}, nil)
+	s := &server{
+		switchboard: &sw,
+	}
+
+	// Serve the request.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+	r := httptest.NewRequest("GET", "/_/pods", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(
+		t,
+		[]byte(`[{"Name":"switch-pod-3","LastUpdated":"2001-02-03T04:05:06.78901Z"}]`+"\n"),
+		w.Body.Bytes())
 }
