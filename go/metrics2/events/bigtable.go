@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
@@ -49,7 +50,7 @@ type btEventDB struct {
 func NewBTEventDB(ctx context.Context, btProject, btInstance string, ts oauth2.TokenSource) (EventDB, error) {
 	client, err := bigtable.NewClient(ctx, btProject, btInstance, option.WithTokenSource(ts))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create BigTable client: %s", err)
+		return nil, skerr.Wrapf(err, "failed to create BigTable client")
 	}
 	table := client.Open(BT_TABLE)
 	return &btEventDB{
@@ -74,15 +75,15 @@ func (db *btEventDB) Close() error {
 // See documentation for EventDB interface.
 func (db *btEventDB) Insert(e *Event) error {
 	if util.TimeIsZero(e.Timestamp) {
-		return fmt.Errorf("Cannot insert an event without a timestamp.")
+		return skerr.Fmt("Cannot insert an event without a timestamp.")
 	}
 	if e.Stream == "" {
-		return fmt.Errorf("Cannot insert an event without a stream.")
+		return skerr.Fmt("Cannot insert an event without a stream.")
 	}
 	rk := btRowKey(e.Stream, e.Timestamp)
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(e); err != nil {
-		return err
+		return skerr.Wrapf(err, "failed to encode event")
 	}
 	mut := bigtable.NewMutation()
 	mut.Set(BT_COLUMN_FAMILY, BT_COLUMN, bigtable.ServerTime, buf.Bytes())
@@ -114,12 +115,12 @@ func (db *btEventDB) Range(stream string, start, end time.Time) ([]*Event, error
 				}
 			}
 			return true
-		}); err != nil {
-			return err
+		}, bigtable.RowFilter(bigtable.LatestNFilter(1))); err != nil {
+			return skerr.Wrapf(err, "failed to ReadRows from BigTable")
 		}
-		return rvErr
+		return skerr.Wrap(rvErr)
 	}); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return rv, nil
 }
