@@ -1,0 +1,25 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "validate",
+    srcs = ["validate.go"],
+    embedsrcs = ["instanceConfigSchema.json"],
+    importpath = "go.skia.org/infra/perf/go/config/validate",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@com_github_xeipuuv_gojsonschema//:gojsonschema",
+    ],
+)
+
+go_test(
+    name = "validate_test",
+    srcs = ["validate_test.go"],
+    embed = [":validate"],
+    deps = [
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_stretchr_testify//require",
+    ],
+)
