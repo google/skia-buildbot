@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "skcq-be_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/skcq/go/skcq-be",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/allowed",
+        "//go/auth",
+        "//go/baseapp",
+        "//go/common",
+        "//go/gerrit",
+        "//go/httputils",
+        "//go/sklog",
+        "//skcq/go/caches",
+        "//skcq/go/codereview",
+        "//skcq/go/db",
+        "//skcq/go/poller",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_binary(
+    name = "skcq-be",
+    embed = [":skcq-be_lib"],
+    visibility = ["//visibility:public"],
+)
