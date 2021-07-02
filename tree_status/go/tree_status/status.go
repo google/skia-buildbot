@@ -21,10 +21,6 @@ import (
 
 const (
 	STATUS_DS_KIND = "Status"
-
-	OPEN_STATE    = "open"
-	CAUTION_STATE = "caution"
-	CLOSED_STATE  = "closed"
 )
 
 var (
@@ -169,30 +165,30 @@ func (srv *Server) addStatusHandler(w http.ResponseWriter, r *http.Request) {
 	rollers := m.Rollers
 
 	// Validate the message.
-	containsOpenState := strings.Contains(strings.ToLower(message), OPEN_STATE)
-	containsCautionState := strings.Contains(strings.ToLower(message), CAUTION_STATE)
-	containsClosedState := strings.Contains(strings.ToLower(message), CLOSED_STATE)
+	containsOpenState := strings.Contains(strings.ToLower(message), types.OpenState)
+	containsCautionState := strings.Contains(strings.ToLower(message), types.CautionState)
+	containsClosedState := strings.Contains(strings.ToLower(message), types.ClosedState)
 	if (containsOpenState && containsCautionState) ||
 		(containsCautionState && containsClosedState) ||
 		(containsClosedState && containsOpenState) {
-		httputils.ReportError(w, nil, fmt.Sprintf("Cannot specify two keywords from (%s, %s, %s) in a status message.", OPEN_STATE, CAUTION_STATE, CLOSED_STATE), http.StatusBadRequest)
+		httputils.ReportError(w, nil, fmt.Sprintf("Cannot specify two keywords from (%s, %s, %s) in a status message.", types.OpenState, types.CautionState, types.ClosedState), http.StatusBadRequest)
 		return
 	} else if !(containsOpenState || containsCautionState || containsClosedState) {
-		httputils.ReportError(w, nil, fmt.Sprintf("Must specify either (%s, %s, %s) somewhere in the status message.", OPEN_STATE, CAUTION_STATE, CLOSED_STATE), http.StatusBadRequest)
+		httputils.ReportError(w, nil, fmt.Sprintf("Must specify either (%s, %s, %s) somewhere in the status message.", types.OpenState, types.CautionState, types.ClosedState), http.StatusBadRequest)
 		return
 	} else if containsOpenState && rollers != "" {
-		httputils.ReportError(w, nil, fmt.Sprintf("Waiting for rollers should only be used with %s or %s states", CAUTION_STATE, CLOSED_STATE), http.StatusBadRequest)
+		httputils.ReportError(w, nil, fmt.Sprintf("Waiting for rollers should only be used with %s or %s states", types.CautionState, types.ClosedState), http.StatusBadRequest)
 		return
 	}
 
 	// Figure out the state.
 	var generalState string
 	if containsClosedState {
-		generalState = CLOSED_STATE
+		generalState = types.ClosedState
 	} else if containsCautionState {
-		generalState = CAUTION_STATE
+		generalState = types.CautionState
 	} else {
-		generalState = OPEN_STATE
+		generalState = types.OpenState
 	}
 
 	statusMtx.Lock()
