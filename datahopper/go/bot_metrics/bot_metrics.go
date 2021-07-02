@@ -106,14 +106,14 @@ func write(edb events.EventDB, data map[string]map[*repograph.Commit]*commitData
 			// TODO(borenet): Only if changed.
 			var buf bytes.Buffer
 			if err := gob.NewEncoder(&buf).Encode(cData); err != nil {
-				return err
+				return skerr.Wrap(err)
 			}
 			if err := edb.Insert(&events.Event{
 				Stream:    s,
 				Timestamp: cData.Timestamp,
 				Data:      buf.Bytes(),
 			}); err != nil {
-				return err
+				return skerr.Wrap(err)
 			}
 		}
 	}
@@ -239,7 +239,7 @@ func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc
 		sklog.Infof("Loading data for %s - %s", periodStart, periodEnd)
 		tasks, err := tCache.GetTasksFromDateRange(periodStart, periodEnd)
 		if err != nil {
-			return fmt.Errorf("Failed to load tasks from %s to %s: %s", periodStart, periodEnd, err)
+			return skerr.Wrapf(err, "failed to load tasks from %s to %s", periodStart, periodEnd)
 		}
 
 		// For each task, find all commits first covered by the task
@@ -263,11 +263,11 @@ func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc
 					sklog.Errorf("Failed to process task %s: %s; did git history change? Ignoring.", t.Id, err)
 					continue
 				} else {
-					return fmt.Errorf("Failed to process task %s: %s", t.Id, err)
+					return skerr.Wrapf(err, "failed to process task %s", err)
 				}
 			}
 			if repoUrl != t.Repo {
-				return fmt.Errorf("Got wrong repo for commit %s in %s (got %s)", t.Revision, t.Repo, repoUrl)
+				return skerr.Fmt("Got wrong repo for commit %s in %s (got %s)", t.Revision, t.Repo, repoUrl)
 			}
 
 			repoData, ok := data[repoUrl]
@@ -343,11 +343,11 @@ func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc
 				// so all previous commits will also be covered.
 				return repograph.ErrStopRecursing
 			}); err != nil {
-				return err
+				return skerr.Wrap(err)
 			}
 		}
 		if err := write(edb, data); err != nil {
-			return fmt.Errorf("Failed to write results: %s", err)
+			return skerr.Wrapf(err, "failed to write results")
 		}
 		if periodEnd.Equal(now) {
 			break
@@ -363,11 +363,11 @@ func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc
 		}
 	}
 	if err := write(edb, data); err != nil {
-		return fmt.Errorf("Failed to write results (2): %s", err)
+		return skerr.Wrapf(err, "failed to write results (2)")
 	}
 
 	if err := em.UpdateMetrics(); err != nil {
-		return fmt.Errorf("Failed to update metrics: %s", err)
+		return skerr.Wrapf(err, "failed to update metrics")
 	}
 	em.LogMetrics()
 	return nil
