@@ -9,6 +9,7 @@ go_library(
         "dryrun_access_list_verifier.go",
         "submittable_verifier.go",
         "submitted_together_verifier.go",
+        "throttler_verifier.go",
         "util.go",
         "wip_verifier.go",
     ],
@@ -22,6 +23,7 @@ go_library(
         "//skcq/go/codereview",
         "//skcq/go/config",
         "//skcq/go/footers",
+        "//skcq/go/throttler",
         "//skcq/go/types",
     ],
 )
