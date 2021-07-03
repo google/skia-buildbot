@@ -29,6 +29,7 @@ var (
 func tempGitRepoSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, string, string) {
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
+	gb.Dir()
 	gb.Add(ctx, "codereview.settings", `CODE_REVIEW_SERVER: codereview.chromium.org
 PROJECT: skia`)
 	c1 := gb.CommitMsg(ctx, "initial commit")
@@ -39,7 +40,12 @@ PROJECT: skia`)
 func tempGitRepoGclientTests(t *testing.T, cases map[types.RepoState]error) {
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
+	defer func() {
+		fmt.Printf("********** SYNCER_TEST: ABOUT TO REMOVE %s\n", tmp)
+		//fmt.Println("********** SLEEPING FOR 1 HOUR")
+		//time.Sleep(1 * time.Hour)
+		testutils.RemoveAll(t, tmp)
+	}()
 	ctx := context.Background()
 	cacheDir := path.Join(tmp, "cache")
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)

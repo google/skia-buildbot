@@ -81,6 +81,10 @@ func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir, defaultBranch s
 
 // Cleanup removes the directory containing the git repo.
 func (g *GitBuilder) Cleanup() {
+	fmt.Printf("********** GITBUILDER: ABOUT TO REMOVE %s\n", g.dir)
+	//fmt.Println("********** SLEEPING FOR 1 HOUR")
+	//time.Sleep(1 * time.Hour)
+
 	testutils.RemoveAll(g.t, g.dir)
 }
 
