@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
@@ -39,7 +40,12 @@ PROJECT: skia`)
 func tempGitRepoGclientTests(t *testing.T, cases map[types.RepoState]error) {
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
+	defer func() {
+		fmt.Printf("********** SYNCER_TEST: ABOUT TO REMOVE %s\n", tmp)
+		fmt.Println("********** SLEEPING FOR 1 HOUR")
+		time.Sleep(1 * time.Hour)
+		testutils.RemoveAll(t, tmp)
+	}()
 	ctx := context.Background()
 	cacheDir := path.Join(tmp, "cache")
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)

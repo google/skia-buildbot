@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "main_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/go/emulators/main",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/emulators",
+        "//task_driver/go/td",
+    ],
+)
+
+go_binary(
+    name = "main",
+    embed = [":main_lib"],
+    visibility = ["//visibility:public"],
+)
