@@ -1,13 +1,29 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
+	"io/ioutil"
 
 	cli "github.com/urfave/cli/v2"
+	"github.com/xeipuuv/gojsonschema"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+
+	_ "embed" // For embed functionality.
 )
+
+var errSchemaViolation = errors.New("schema violation")
+
+// schema is a json schema for InstanceConfig, it is created by
+// running go generate on ./generate/main.go.
+//
+//go:embed instanceConfigSchema.json
+var schema []byte
 
 const (
 	// MaxSampleTracesPerCluster  is the maximum number of traces stored in a
@@ -39,7 +55,7 @@ type AuthConfig struct {
 	//
 	// If supplied, the Regex must have a single subexpression that matches the
 	// email address.
-	EmailRegex string `json:"email_regex"`
+	EmailRegex string `json:"email_regex,omitempty"`
 
 	// LoginURL is the URL to redirect users to when they need to log in.
 	LoginURL string `json:"login_url"`
@@ -97,12 +113,12 @@ type DataStoreConfig struct {
 	TileSize int32 `json:"tile_size"`
 
 	// CacheConfig is the config for LRU caches in the trace store.
-	CacheConfig CacheConfig
+	CacheConfig *CacheConfig `json:"cache,omitempty"`
 
 	// EnableFollowerReads, if true, means older data in the database can be
 	// used to respond to queries, which is faster, but is not appropriate if
 	// data recency is imperative. The age of the data should only be 5s older.
-	EnableFollowerReads bool `json:"enable_follower_reads"`
+	EnableFollowerReads bool `json:"enable_follower_reads,omitempty"`
 }
 
 // SourceType determines what type of file.Source to build from a SourceConfig.
@@ -145,11 +161,11 @@ type SourceConfig struct {
 
 	// RejectIfNameMatches is a regex. If it matches the file.Name then the file
 	// will be ignored. Leave the empty string to disable rejection.
-	RejectIfNameMatches string `json:"reject_if_name_matches"`
+	RejectIfNameMatches string `json:"reject_if_name_matches,omitempty"`
 
 	// AcceptIfNameMatches is a regex. If it matches the file.Name the file will
 	// be processed. Leave the empty string to accept all files.
-	AcceptIfNameMatches string `json:"accept_if_name_matches"`
+	AcceptIfNameMatches string `json:"accept_if_name_matches,omitempty"`
 }
 
 // IngestionConfig is the configuration for how source files are ingested into
@@ -196,8 +212,9 @@ const (
 
 // GitRepoConfig is the config for the git repo.
 type GitRepoConfig struct {
-	// GitAuthType is the type of authentication the repo requires.
-	GitAuthType GitAuthType `json:"git_auth_type"`
+	// GitAuthType is the type of authentication the repo requires. Defaults to
+	// GitAuthNone.
+	GitAuthType GitAuthType `json:"git_auth_type,omitempty"`
 
 	// URL that the Git repo is fetched from.
 	URL string `json:"url"`
@@ -208,21 +225,21 @@ type GitRepoConfig struct {
 	// FileChangeMarker is a path in the git repo to watch for changes. If the
 	// file indicated changes in a commit then a marker will be displayed on the
 	// graph at that commit.
-	FileChangeMarker string `json:"file_change_marker"`
+	FileChangeMarker string `json:"file_change_marker,omitempty"`
 
 	// DebouceCommitURL signals if a link to a Git commit needs to be specially
 	// dereferenced. That is, some repos are synthetic and just contain a single
 	// file that changes, with a commit message that is a URL that points to the
 	// true source of information. If this value is true then links to commits
 	// need to be debounced and use the commit message instead.
-	DebouceCommitURL bool `json:"debounce_commit_url"`
+	DebouceCommitURL bool `json:"debounce_commit_url,omitempty"`
 
 	// CommitURL is a Go format string that joins the GitRepoConfig URL with a
 	// commit hash to produce the URL of a web page that shows that exact
 	// commit. For example "%s/commit/%s" would be a good value for GitHub
 	// repos, while "%s/+show/%s" is a good value for Gerrit repos. Defaults
 	// to "%s/+show/%s" if no value is supplied.
-	CommitURL string `json:"commit_url"`
+	CommitURL string `json:"commit_url,omitempty"`
 }
 
 // FrontendFlags are the command-line flags for the web UI.
@@ -462,23 +479,58 @@ type InstanceConfig struct {
 	// URL is the root URL at which this instance is available, for example: "https://example.com".
 	URL string `json:"URL"`
 
-	AuthConfig      AuthConfig      `json:"auth_config"`
+	AuthConfig      AuthConfig      `json:"auth_config,omitempty"`
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`
 	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`
 }
 
-// InstanceConfigFromFile returns the deserialized JSON of an InstanceConfig found in filename.
-func InstanceConfigFromFile(filename string) (*InstanceConfig, error) {
-	var instanceConfig InstanceConfig
+// validate returns null if the bytes represent a JSON InstanceConfig
+// body that conforms to the schema. If err is not nil then the slice of strings
+// will contain a list of schema violations.
+func validate(ctx context.Context, b []byte) ([]string, error) {
+	schemaLoader := gojsonschema.NewBytesLoader(schema)
+	documentLoader := gojsonschema.NewBytesLoader(b)
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed while validating")
+	}
+	if len(result.Errors()) > 0 {
+		formattedResults := make([]string, len(result.Errors()))
+		for i, e := range result.Errors() {
+			formattedResults[i] = fmt.Sprintf("%d: %s", i, e.String())
+		}
+		return formattedResults, errSchemaViolation
+	}
+	return nil, nil
+}
 
+// InstanceConfigFromFile returns the deserialized JSON of an InstanceConfig
+// found in filename.
+//
+// If there was an error loading the file a list of schema violations may be
+// returned also.
+func InstanceConfigFromFile(filename string) (*InstanceConfig, []string, error) {
+	ctx := context.Background()
+	var instanceConfig InstanceConfig
+	var schemaViolations []string = nil
+
+	// Validate config here.
 	err := util.WithReadFile(filename, func(r io.Reader) error {
-		return json.NewDecoder(r).Decode(&instanceConfig)
+		b, err := ioutil.ReadAll(r)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to read bytes")
+		}
+		schemaViolations, err = validate(ctx, b)
+		if err != nil {
+			return skerr.Wrapf(err, "file does not conform to schema")
+		}
+		return json.Unmarshal(b, &instanceConfig)
 	})
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Filename: %s", filename)
+		return nil, schemaViolations, skerr.Wrapf(err, "Filename: %s", filename)
 	}
-	return &instanceConfig, nil
+	return &instanceConfig, nil, nil
 }
 
 // Config is the currently running config.
@@ -487,8 +539,11 @@ var Config *InstanceConfig
 // Init loads the selected config by name and then populated the Flags from the
 // given flags.
 func Init(filename string) error {
-	cfg, err := InstanceConfigFromFile(filename)
+	cfg, schemaViolations, err := InstanceConfigFromFile(filename)
 	if err != nil {
+		for _, v := range schemaViolations {
+			sklog.Error(v)
+		}
 		return skerr.Wrap(err)
 	}
 	Config = cfg
