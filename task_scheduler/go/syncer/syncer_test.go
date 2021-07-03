@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os/user"
 	"path"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
@@ -29,6 +31,7 @@ var (
 func tempGitRepoSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, string, string) {
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
+	gb.Dir()
 	gb.Add(ctx, "codereview.settings", `CODE_REVIEW_SERVER: codereview.chromium.org
 PROJECT: skia`)
 	c1 := gb.CommitMsg(ctx, "initial commit")
@@ -37,9 +40,19 @@ PROJECT: skia`)
 }
 
 func tempGitRepoGclientTests(t *testing.T, cases map[types.RepoState]error) {
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := ioutil.TempDir("", "syncer_test-tempGitRepoGclientTests-*")
 	require.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
+	defer func() {
+		fmt.Printf("********** SYNCER_TEST: ABOUT TO REMOVE %s\n", tmp)
+		if u, err := user.Current(); err != nil {
+			panic(fmt.Sprintf("Error while retrieving current user: %v", err))
+		} else {
+			fmt.Printf("********** CURRENT USERNAME: %s\n", u)
+		}
+		fmt.Println("********** SLEEPING FOR 1 HOUR")
+		time.Sleep(1 * time.Hour)
+		testutils.RemoveAll(t, tmp)
+	}()
 	ctx := context.Background()
 	cacheDir := path.Join(tmp, "cache")
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)

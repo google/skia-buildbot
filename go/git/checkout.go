@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/sklog"
 )
@@ -117,7 +119,7 @@ type TempCheckout Checkout
 // directory and then clones the repoUrl into a subdirectory, based on default
 // "git clone" behavior.
 func NewTempCheckout(ctx context.Context, repoUrl string) (*TempCheckout, error) {
-	tmpDir, err := ioutil.TempDir("", "")
+	tmpDir, err := ioutil.TempDir("", "checkout_NewTempCheckout-*")
 	if err != nil {
 		return nil, err
 	}
@@ -130,6 +132,15 @@ func NewTempCheckout(ctx context.Context, repoUrl string) (*TempCheckout, error)
 
 // Delete removes the TempCheckout's working directory.
 func (c *TempCheckout) Delete() {
+	fmt.Printf("********** CHECKOUT: ABOUT TO DELETE %s, WHICH IS THE PARENT IR OF %s\n", path.Dir(c.Dir()), c.Dir())
+	if u, err := user.Current(); err != nil {
+		panic(fmt.Sprintf("Error while retrieving current user: %v", err))
+	} else {
+		fmt.Printf("********** CURRENT USERNAME: %s\n", u)
+	}
+	fmt.Println("********** SLEEPING FOR 1 HOUR")
+	time.Sleep(1 * time.Hour)
+
 	if err := os.RemoveAll(path.Dir(c.Dir())); err != nil {
 		sklog.Errorf("Failed to remove git.TempCheckout: %s", err)
 	}
