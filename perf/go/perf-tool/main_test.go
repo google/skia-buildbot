@@ -10,12 +10,20 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/machine/go/machineserver/config"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/perf-tool/application/mocks"
 )
 
 func createInstanceConfigFile(t *testing.T) string {
-	instanceConfig := &config.InstanceConfig{}
+	instanceConfig := &config.InstanceConfig{
+		URL: "http://",
+		IngestionConfig: config.IngestionConfig{
+			Branches: []string{},
+			SourceConfig: config.SourceConfig{
+				Sources: []string{},
+			},
+		},
+	}
 	f, err := ioutil.TempFile("", "perf-tool")
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, os.Remove(f.Name())) })

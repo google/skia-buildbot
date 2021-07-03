@@ -1,22 +1,39 @@
 package config
 
 import (
+	"context"
+	"io"
+	"io/ioutil"
+	"path/filepath"
+
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 )
 
-func TestInstanceConfigFromFile_Success(t *testing.T) {
-	unittest.SmallTest(t)
-	instanceConfig, err := InstanceConfigFromFile("./testdata/good_instance_config.json")
+func TestInstanceConfigBytes_AllExistingConfigs_ShouldBeValid(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx := context.Background()
+
+	allExistingConfigs, err := filepath.Glob("../../../configs/*.json")
 	require.NoError(t, err)
-	assert.Equal(t, int32(256), instanceConfig.DataStoreConfig.TileSize)
+	for _, filename := range allExistingConfigs {
+		err := util.WithReadFile(filename, func(r io.Reader) error {
+			b, err := ioutil.ReadAll(r)
+			require.NoError(t, err)
+			_, err = validate(ctx, b)
+			return err
+		})
+		require.NoError(t, err, filename)
+	}
 }
 
-func TestInstanceConfigFromFile_FailureOnMalformedJSON(t *testing.T) {
-	unittest.SmallTest(t)
-	_, err := InstanceConfigFromFile("./testdata/malformed_instance_config.json")
+func TestInstanceConfigBytes_EmptyJSONObject_ShouldBeInValid(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx := context.Background()
+
+	_, err := validate(ctx, []byte("{}"))
 	require.Error(t, err)
 }
