@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -28,8 +29,11 @@ type GitBuilder struct {
 
 // GitInit calls GitInitWithDefaultBranch with MasterBranch.
 func GitInit(t sktest.TestingT, ctx context.Context) *GitBuilder {
-	tmp, err := ioutil.TempDir("", "")
+	fmt.Println("********** GitInit STACK TRACE:")
+	debug.PrintStack()
+	tmp, err := ioutil.TempDir("", "git_builder-GitInit-*")
 	require.NoError(t, err)
+	fmt.Printf("********** GitInit TEMP DIRECTORY: %s\n", tmp)
 
 	return GitInitWithDir(t, ctx, tmp, git_common.MasterBranch)
 }
@@ -38,8 +42,11 @@ func GitInit(t sktest.TestingT, ctx context.Context) *GitBuilder {
 // specified default branch and returns a GitBuilder to manage it. Call Cleanup to
 // remove the temporary directory. The current branch will be the main branch.
 func GitInitWithDefaultBranch(t sktest.TestingT, ctx context.Context, defaultBranch string) *GitBuilder {
-	tmp, err := ioutil.TempDir("", "")
+	fmt.Println("********** GitInitWithDefaultBranch STACK TRACE:")
+	debug.PrintStack()
+	tmp, err := ioutil.TempDir("", "git_builder-GitInitWithDefaultBranch-*")
 	require.NoError(t, err)
+	fmt.Printf("********** GitInitWithDefaultBranch TEMP DIRECTORY: %s\n", tmp)
 
 	return GitInitWithDir(t, ctx, tmp, defaultBranch)
 }
@@ -81,6 +88,13 @@ func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir, defaultBranch s
 
 // Cleanup removes the directory containing the git repo.
 func (g *GitBuilder) Cleanup() {
+	fmt.Println("********** GitBuilder.Cleanup STACK TRACE:")
+	debug.PrintStack()
+
+	fmt.Printf("********** GITBUILDER: ABOUT TO REMOVE %s\n", g.dir)
+	//fmt.Println("********** SLEEPING FOR 1 HOUR")
+	//time.Sleep(1 * time.Hour)
+
 	testutils.RemoveAll(g.t, g.dir)
 }
 
