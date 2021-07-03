@@ -1,0 +1,195 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$ref": "#/definitions/InstanceConfig",
+  "definitions": {
+    "AuthConfig": {
+      "required": [
+        "header_name",
+        "login_url",
+        "logout_url"
+      ],
+      "properties": {
+        "header_name": {
+          "type": "string"
+        },
+        "email_regex": {
+          "type": "string"
+        },
+        "login_url": {
+          "type": "string"
+        },
+        "logout_url": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CacheConfig": {
+      "required": [
+        "memcached_servers",
+        "namespace"
+      ],
+      "properties": {
+        "memcached_servers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "DataStoreConfig": {
+      "required": [
+        "datastore_type",
+        "connection_string",
+        "tile_size"
+      ],
+      "properties": {
+        "datastore_type": {
+          "type": "string"
+        },
+        "connection_string": {
+          "type": "string"
+        },
+        "tile_size": {
+          "type": "integer"
+        },
+        "cache": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/CacheConfig"
+        },
+        "enable_follower_reads": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "GitRepoConfig": {
+      "required": [
+        "url",
+        "dir"
+      ],
+      "properties": {
+        "git_auth_type": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string"
+        },
+        "file_change_marker": {
+          "type": "string"
+        },
+        "debounce_commit_url": {
+          "type": "boolean"
+        },
+        "commit_url": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "IngestionConfig": {
+      "required": [
+        "source_config",
+        "branches",
+        "file_ingestion_pubsub_topic_name"
+      ],
+      "properties": {
+        "source_config": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/SourceConfig"
+        },
+        "branches": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "file_ingestion_pubsub_topic_name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "InstanceConfig": {
+      "required": [
+        "URL",
+        "data_store_config",
+        "ingestion_config",
+        "git_repo_config"
+      ],
+      "properties": {
+        "URL": {
+          "type": "string"
+        },
+        "auth_config": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/AuthConfig"
+        },
+        "data_store_config": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/DataStoreConfig"
+        },
+        "ingestion_config": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/IngestionConfig"
+        },
+        "git_repo_config": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/GitRepoConfig"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "SourceConfig": {
+      "required": [
+        "source_type",
+        "project",
+        "topic",
+        "subscription",
+        "sources"
+      ],
+      "properties": {
+        "source_type": {
+          "type": "string"
+        },
+        "project": {
+          "type": "string"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "subscription": {
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "reject_if_name_matches": {
+          "type": "string"
+        },
+        "accept_if_name_matches": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}

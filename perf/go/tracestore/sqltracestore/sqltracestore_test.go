@@ -441,6 +441,7 @@ func TestGetParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
 		}, // ParamSet is empty because WriteTraces doesn't use it in this impl.
 		"gs://perf-bucket/2020/02/08/11/testdata.json",
 		time.Time{}) // time is unused in this impl of TraceStore.
+	require.NoError(t, err)
 
 	// The cached version should be returned.
 	ps, err = s.GetParamSet(ctx, tileNumber)

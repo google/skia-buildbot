@@ -12,6 +12,7 @@ import (
 	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/glog_and_cloud"
 	"go.skia.org/infra/go/urfavecli"
 	"go.skia.org/infra/perf/go/config"
@@ -62,8 +63,11 @@ func main() {
 				Flags:       (&ingestFlags).AsCliFlags(),
 				Action: func(c *cli.Context) error {
 					urfavecli.LogFlags(c)
-					instanceConfig, err := config.InstanceConfigFromFile(ingestFlags.ConfigFilename)
+					instanceConfig, schemaViolations, err := config.InstanceConfigFromFile(ingestFlags.ConfigFilename)
 					if err != nil {
+						for _, v := range schemaViolations {
+							sklog.Error(v)
+						}
 						return err
 					}
 					if ingestFlags.ConnectionString != "" {

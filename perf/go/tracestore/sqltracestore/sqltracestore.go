@@ -595,7 +595,7 @@ func New(db *pgxpool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceSto
 
 	var cache cache.Cache
 	var err error
-	if len(datastoreConfig.CacheConfig.MemcachedServers) > 0 {
+	if datastoreConfig.CacheConfig != nil && len(datastoreConfig.CacheConfig.MemcachedServers) > 0 {
 		cache, err = memcached.New(datastoreConfig.CacheConfig.MemcachedServers, datastoreConfig.CacheConfig.Namespace)
 	} else {
 		cache, err = local.New(defaultCacheSize)

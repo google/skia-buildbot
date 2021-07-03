@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/metrics2",
         "//go/skerr",
+        "//go/sklog",
         "//go/sklog/glog_and_cloud",
         "//go/urfavecli",
         "//perf/go/config",

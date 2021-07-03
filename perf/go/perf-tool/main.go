@@ -158,8 +158,11 @@ var loggingFlag = &cli.BoolFlag{
 // instanceConfigFromFlags returns an InstanceConfig based
 // on the flags configFilenameFlag and connectionStringFlag.
 func instanceConfigFromFlags(c *cli.Context) (*config.InstanceConfig, error) {
-	instanceConfig, err := config.InstanceConfigFromFile(c.String(configFilenameFlagName))
+	instanceConfig, schemaViolations, err := config.InstanceConfigFromFile(c.String(configFilenameFlagName))
 	if err != nil {
+		for _, v := range schemaViolations {
+			fmt.Println(v)
+		}
 		return nil, skerr.Wrap(err)
 	}
 
@@ -220,6 +223,21 @@ func actualMain(app application.Application) {
 								return skerr.Wrap(err)
 							}
 							return app.ConfigCreatePubSubTopics(instanceConfig)
+						},
+					},
+					{
+						Name:  "validate",
+						Usage: "Validate the given config",
+						Flags: []cli.Flag{
+							configFilenameFlag,
+						},
+						Action: func(c *cli.Context) error {
+							_, err := instanceConfigFromFlags(c)
+							if err != nil {
+								// Unwrap the error since this gets printed as a user facing error message.
+								return fmt.Errorf("Validation Failed: %s", skerr.Unwrap(err))
+							}
+							return nil
 						},
 					},
 				},

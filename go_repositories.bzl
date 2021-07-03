@@ -78,6 +78,12 @@ def go_repositories():
         sum = "h1:uSoVVbwJiQipAclBbw+8quDsfcvFjOpI5iCf4p/cqCs=",
         version = "v0.0.0-20161220082320-9c5fe88206d7",
     )
+    go_repository(
+        name = "com_github_alecthomas_jsonschema",
+        importpath = "github.com/alecthomas/jsonschema",
+        sum = "h1:mT8qSzuyEAkxbv4GBln7yeuQZpBnfikr3PTuiPs6Z3k=",
+        version = "v0.0.0-20210526225647-edb03dcab7bc",
+    )
 
     go_repository(
         name = "com_github_alecthomas_template",
@@ -1649,6 +1655,12 @@ def go_repositories():
         sum = "h1:0U6+BtN6LhaYuTnIJq4Wyq5cpn6O2kWrxAtcqBmYY6w=",
         version = "v1.3.0",
     )
+    go_repository(
+        name = "com_github_iancoleman_orderedmap",
+        importpath = "github.com/iancoleman/orderedmap",
+        sum = "h1:i462o439ZjprVSFSZLZxcsoAe592sZB1rci2Z8j4wdk=",
+        version = "v0.0.0-20190318233801-ac98e3ecb4b0",
+    )
 
     go_repository(
         name = "com_github_ianlancetaylor_demangle",
@@ -2669,6 +2681,18 @@ def go_repositories():
         sum = "h1:d+Bc7a5rLufV/sSk/8dngufqelfh6jnri85riMAaF/M=",
         version = "v0.0.0-20170810143723-de5bf2ad4578",
     )
+    go_repository(
+        name = "com_github_qri_io_jsonpointer",
+        importpath = "github.com/qri-io/jsonpointer",
+        sum = "h1:prVZBZLL6TW5vsSB9fFHFAMBLI4b0ri5vribQlTJiBA=",
+        version = "v0.1.1",
+    )
+    go_repository(
+        name = "com_github_qri_io_jsonschema",
+        importpath = "github.com/qri-io/jsonschema",
+        sum = "h1:NNFoKms+kut6ABPf6xiKNM5214jzxAhDBrPHCJ97Wg0=",
+        version = "v0.2.1",
+    )
 
     go_repository(
         name = "com_github_rcrowley_go_metrics",
@@ -3134,6 +3158,24 @@ def go_repositories():
         importpath = "github.com/xdg/stringprep",
         sum = "h1:d9X0esnoa3dFsV0FG35rAT0RIhYFlPq7MiP+DW89La0=",
         version = "v1.0.0",
+    )
+    go_repository(
+        name = "com_github_xeipuuv_gojsonpointer",
+        importpath = "github.com/xeipuuv/gojsonpointer",
+        sum = "h1:J9EGpcZtP0E/raorCMxlFGSTBrsSlaDGf3jU/qvAE2c=",
+        version = "v0.0.0-20180127040702-4e3ac2762d5f",
+    )
+    go_repository(
+        name = "com_github_xeipuuv_gojsonreference",
+        importpath = "github.com/xeipuuv/gojsonreference",
+        sum = "h1:EzJWgHovont7NscjpAxXsDA8S8BMYve8Y5+7cuRE7R0=",
+        version = "v0.0.0-20180127040603-bd5ef7bd5415",
+    )
+    go_repository(
+        name = "com_github_xeipuuv_gojsonschema",
+        importpath = "github.com/xeipuuv/gojsonschema",
+        sum = "h1:LhYJRs+L4fBtjZUfuSZIKGeVu0QRy8e5Xi7D17UxZ74=",
+        version = "v1.2.0",
     )
 
     go_repository(
