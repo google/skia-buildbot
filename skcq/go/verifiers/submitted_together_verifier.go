@@ -3,23 +3,21 @@ package verifiers
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/skcq/go/codereview"
 	"go.skia.org/infra/skcq/go/config"
 	"go.skia.org/infra/skcq/go/footers"
 	"go.skia.org/infra/skcq/go/types"
 )
 
 // NewSubmittedTogetherVerifier returns an instance of SubmittedTogetherVerifier.
-func NewSubmittedTogetherVerifier(ctx context.Context, vm types.VerifiersManager, togetherChanges []*gerrit.ChangeInfo, httpClient *http.Client, skCQCfg *config.SkCQCfg, cr codereview.CodeReview, ci *gerrit.ChangeInfo, configReader config.ConfigReader, footersMap map[string]string) (types.Verifier, error) {
+func NewSubmittedTogetherVerifier(ctx context.Context, vm types.VerifiersManager, togetherChanges []*gerrit.ChangeInfo, skCQCfg *config.SkCQCfg, ci *gerrit.ChangeInfo, configReader config.ConfigReader, footersMap map[string]string) (types.Verifier, error) {
 	togetherChangesToVerifiers := map[*gerrit.ChangeInfo][]types.Verifier{}
 	for _, tc := range togetherChanges {
-		tcVerifiers, _, err := vm.GetVerifiers(ctx, httpClient, skCQCfg, cr, tc, true /* isSubmittedTogetherChange */, configReader)
+		tcVerifiers, _, err := vm.GetVerifiers(ctx, skCQCfg, tc, true /* isSubmittedTogetherChange */, configReader)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Could not get verifiers for the together change %d", tc.Issue)
 		}
