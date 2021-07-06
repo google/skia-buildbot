@@ -1,11 +1,27 @@
 package types
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 
+	_ "embed" // For embed functionality.
+
+	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
+
+// schema is a json schema for InstanceConfig, it is created by
+// running go generate on ./generate/main.go.
+//
+//go:embed probesSchema.json
+var schema []byte
 
 // ResponseTester tests the response from a probe and returns true if it passes all tests.
 type ResponseTester func(io.Reader, http.Header) bool
@@ -42,3 +58,27 @@ type Probe struct {
 
 // Probes is all the probes that are to be run.
 type Probes map[string]*Probe
+
+// LoadFromJSONFile loads the configuration of the probers from the given JSON
+// file.
+func LoadFromJSONFile(ctx context.Context, filename string) (Probes, error) {
+	var probes Probes
+	err := util.WithReadFile(filename, func(r io.Reader) error {
+		document, err := ioutil.ReadAll(r)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		validationErrors, err := jsonutils.Validate(ctx, document, schema)
+		if err != nil {
+			for _, v := range validationErrors {
+				sklog.Warning(v)
+			}
+		}
+		err = json.Unmarshal(document, &probes)
+		if err != nil {
+			return fmt.Errorf("failed to decode JSON in config file: %s", err)
+		}
+		return nil
+	})
+	return probes, err
+}
