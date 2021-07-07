@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "30386915_52aea566",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-07T21:14:03Z",
+      "side": 1,
+      "message": "The endpoint is trivial; I\u0027m especially interested in commentary about my refactoring. I went on a bit of an odyssey through type assertions, interface conversions, and the json stdlib and arrived at something that works, though I\u0027m still not entirely satisfied as to why it\u0027s necessary to wrap, say, s.switchboard.ListPods() in another function to satisfy the type system. It seems like it either ought to figure out that []pod conforms to interface{} (and thus can be JSON-serialized) or that it could be done more concisely, to the tune of (func() (interface{}, error))(s.switchboard.ListPods). Enlightenment welcome!\n\nBefore landing, I might want to factor up the repetition in the test as well.",
+      "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
