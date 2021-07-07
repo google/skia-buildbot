@@ -398,7 +398,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
             ?hidden=${!ele._options.animated}
             title="CPU"
             @ended=${ele.playEnded}
-            ?autoplay=${ele._config.play}
+            ?autoplay=${ele._config.play} muted
             ?loop=${ele._config.loop}
             src="${ele._config.domain}/i/${ele._runResults.fiddleHash}_cpu.webm"
             width=${ele._options.width}
@@ -421,7 +421,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
             ?hidden=${!ele._options.animated}
             title="GPU"
             ?loop=${ele._config.loop}
-            ?autoplay=${ele._config.play}
+            ?autoplay=${ele._config.play} muted
             src="${ele._config.domain}/i/${ele._runResults.fiddleHash}_gpu.webm"
             width=${ele._options.width}
             height=${ele._options.height}
