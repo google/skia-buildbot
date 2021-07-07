@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "43953233_90d8b0d7",
+        "filename": "golden/probersk.json5",
+        "patchSetId": 9
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-07T16:57:53Z",
+      "side": 0,
+      "message": "I do miss being able to comment our prober files. What are your thoughts on that? Not worth it? Not feasible to keep it as json5?",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 18
+      },
+      "revId": "dad7ea394fa417f2f9f4e54a9eac99ec189665d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
