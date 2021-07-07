@@ -1,0 +1,5 @@
+filegroup(
+    name = "configs",
+    srcs = glob(["configs/*.json"]),
+    visibility = ["//perf:__subpackages__"],
+)

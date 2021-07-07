@@ -4,12 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 
 	cli "github.com/urfave/cli/v2"
-	"github.com/xeipuuv/gojsonschema"
+	"go.skia.org/infra/go/jsonschema"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -485,26 +484,6 @@ type InstanceConfig struct {
 	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`
 }
 
-// validate returns null if the bytes represent a JSON InstanceConfig
-// body that conforms to the schema. If err is not nil then the slice of strings
-// will contain a list of schema violations.
-func validate(ctx context.Context, b []byte) ([]string, error) {
-	schemaLoader := gojsonschema.NewBytesLoader(schema)
-	documentLoader := gojsonschema.NewBytesLoader(b)
-	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "failed while validating")
-	}
-	if len(result.Errors()) > 0 {
-		formattedResults := make([]string, len(result.Errors()))
-		for i, e := range result.Errors() {
-			formattedResults[i] = fmt.Sprintf("%d: %s", i, e.String())
-		}
-		return formattedResults, errSchemaViolation
-	}
-	return nil, nil
-}
-
 // InstanceConfigFromFile returns the deserialized JSON of an InstanceConfig
 // found in filename.
 //
@@ -521,7 +500,7 @@ func InstanceConfigFromFile(filename string) (*InstanceConfig, []string, error) 
 		if err != nil {
 			return skerr.Wrapf(err, "failed to read bytes")
 		}
-		schemaViolations, err = validate(ctx, b)
+		schemaViolations, err = jsonschema.Validate(ctx, b, schema)
 		if err != nil {
 			return skerr.Wrapf(err, "file does not conform to schema")
 		}
@@ -536,8 +515,7 @@ func InstanceConfigFromFile(filename string) (*InstanceConfig, []string, error) 
 // Config is the currently running config.
 var Config *InstanceConfig
 
-// Init loads the selected config by name and then populated the Flags from the
-// given flags.
+// Init loads the selected config by name.
 func Init(filename string) error {
 	cfg, schemaViolations, err := InstanceConfigFromFile(filename)
 	if err != nil {
