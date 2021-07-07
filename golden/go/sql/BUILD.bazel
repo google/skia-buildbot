@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/sql",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/jsonutils",
         "//go/skerr",
         "//golden/go/sql/schema",
         "//golden/go/types",
