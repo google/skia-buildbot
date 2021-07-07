@@ -1,6 +1,6 @@
 default:
-	go install -v ./go/proberk ./go/build_probersk_json5
-	build_probersk_json5 --dest=allprobersk.json
+	go install -v ./go/proberk ./go/build_probersk_json
+	build_probersk_json --dest=allprobersk.json
 
 .PHONY: validate
 validate: default
