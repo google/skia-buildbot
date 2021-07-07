@@ -1,0 +1,13 @@
+{
+  "hashtag": {
+    "urls": [
+      "https://hashtag.skia.org"
+    ],
+    "method": "GET",
+    "expected": [
+      307
+    ],
+    "body": "",
+    "mimetype": ""
+  }
+}

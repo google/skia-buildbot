@@ -1,9 +1,0 @@
-{
-   "skiapush": {
-     "urls": ["https://push.skia.org"],
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-}

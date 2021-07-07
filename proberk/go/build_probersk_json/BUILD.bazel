@@ -16,6 +16,19 @@ go_library(
 
 go_binary(
     name = "build_probersk_json5",
-    embed = [":build_probersk_json5_lib"],
+    embed = [":build_probersk_json_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "build_probersk_json_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/proberk/go/build_probersk_json",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/sklog",
+        "//go/util",
+        "//proberk/go/types",
+    ],
 )

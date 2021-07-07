@@ -1,0 +1,13 @@
+{
+  "contest": {
+    "urls": [
+      "https://contest.skia.org/"
+    ],
+    "method": "GET",
+    "expected": [
+      200
+    ],
+    "body": "",
+    "mimetype": "text/html"
+  }
+}

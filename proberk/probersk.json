@@ -1,0 +1,13 @@
+{
+  "gobPotentialRepoLeak": {
+    "urls": [
+      "https://skia.googlesource.com/?format=JSON"
+    ],
+    "method": "GET",
+    "expected": [
+      200
+    ],
+    "mimetype": "application/json",
+    "responsetest": "gobPublicReposGood"
+  }
+}

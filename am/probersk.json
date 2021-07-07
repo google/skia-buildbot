@@ -1,0 +1,13 @@
+{
+  "am.skia.org": {
+    "urls": [
+      "https://am.skia.org"
+    ],
+    "method": "GET",
+    "expected": [
+      307
+    ],
+    "body": "",
+    "mimetype": ""
+  }
+}

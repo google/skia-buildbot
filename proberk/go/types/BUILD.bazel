@@ -1,9 +1,28 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "types",
     srcs = ["types.go"],
+    embedsrcs = ["probesSchema.json"],
     importpath = "go.skia.org/infra/proberk/go/types",
     visibility = ["//visibility:public"],
-    deps = ["//go/metrics2"],
+    deps = [
+        "//go/jsonschema",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_test(
+    name = "types_test",
+    srcs = ["types_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":types"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
 )
