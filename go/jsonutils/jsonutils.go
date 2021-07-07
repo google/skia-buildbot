@@ -3,10 +3,15 @@ package jsonutils
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"sort"
 	"strconv"
 	"time"
 )
+
+// ErrSchemaViolation is returned from Validate if the document doesn't conform
+// to the schema.
+var ErrSchemaViolation = errors.New("schema violation")
 
 // Number is an int64 which may be unmarshaled from a JSON string.
 type Number int64
