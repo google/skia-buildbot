@@ -1,3 +1,43 @@
+// Package jsonschema has utility functions for creating JSON Schema files from
+// structs, and also for validating a JSON file against a schema.
+//
+// These can be used together to validate input JSON files. To add validation to
+// an existing type, e.g. `foo.MyConfiguration`, defined in `/foo.go`, the first
+// step is to create sub-directory called `generate`, and in there have a singe
+// appliation, `/foo/generate/main.go`, which uses go:generate to emit a schema
+// file.
+//
+//
+//    //go:generate go run .
+//    package main
+//
+//    import (
+//      "go.skia.org/infra/go/jsonschema"
+//      "go.skia.org/infra/foo"
+//    )
+//
+//    func main() {
+//      jsonschema.GenerateSchema("../schema.json", &foo.MyConfiguration{})
+//    }
+//
+// Note that running "go generate" on that file will drop `schema.json` file in
+// the foo directory. Now add a `Validate` function to `foo.go` that uses the
+// schema file, which we can make accessible by embedding it:
+//
+//    import (
+//
+//      _ "embed" // For embed functionality.
+//
+//    )
+//
+//    //go:embed schema.json
+//    var schema []byte
+//
+//    func ValidateFooFile(ctx context.Context, document []byte) error {
+//      validationErrors, err := jsonschema.Validate(ctx, document, schema)
+//      ...
+//    }
+//
 package jsonschema
 
 import (
