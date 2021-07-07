@@ -6,10 +6,8 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/config/generate",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/sklog",
-        "//go/util",
+        "//go/jsonschema",
         "//perf/go/config",
-        "@com_github_alecthomas_jsonschema//:jsonschema",
     ],
 )
 
