@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "16f89253_fa543b1e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-07T12:48:38Z",
+      "side": 1,
+      "message": "D\u0027oh, I never sent this comment.",
+      "revId": "bf3b5a1f7bcb35995f95afba0dfb67f43ed7cd89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b711c3ca_f1292fe8",
+        "filename": "skcq/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-07T12:48:38Z",
+      "side": 1,
+      "message": "I have been trying to avoid bool in function args and structs, I left a longer comment in the design doc about this:\n\nhttps://docs.google.com/document/d/1x0K09xD_dtQnQ_WCJ3xYsJj64rVqybKAa5VBq-ZRi5E/edit?resourcekey\u003d0-xbkxsZ1l5_XpH0PYIqulcg\u0026disco\u003dAAAANEbEyc8",
+      "range": {
+        "startLine": 43,
+        "startChar": 67,
+        "endLine": 43,
+        "endChar": 81
+      },
+      "revId": "bf3b5a1f7bcb35995f95afba0dfb67f43ed7cd89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
