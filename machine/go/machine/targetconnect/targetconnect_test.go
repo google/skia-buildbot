@@ -59,7 +59,10 @@ func TestSingleStep_KeepAliveMeetingPointGetsCalledMultipleTimes_Returns(t *test
 			cancel()
 		}
 	}).Maybe().Return(nil)
-	switchboardMock.On("IsValidPod", testutils.AnyContext, meetingPoint.PodName).Return(true).Times(2)
+	isValidPodCalled := 0
+	switchboardMock.On("IsValidPod", testutils.AnyContext, meetingPoint.PodName).Return(true).Run(func(args mock.Arguments) {
+		isValidPodCalled++
+	})
 	switchboardMock.On("ClearMeetingPoint", testutils.AnyContext, meetingPoint).Return(nil)
 	rpf := &rpfMock.RevPortForward{}
 	rpf.On("Start", testutils.AnyContext, meetingPoint.PodName, meetingPoint.Port).Run(func(args mock.Arguments) {
@@ -71,6 +74,7 @@ func TestSingleStep_KeepAliveMeetingPointGetsCalledMultipleTimes_Returns(t *test
 	c := New(switchboardMock, rpf, storeMock, hostname, username)
 	c.singleStep(ctx, time.NewTicker(time.Millisecond), time.Microsecond)
 	require.GreaterOrEqual(t, keepAliveCount, 2)
+	require.GreaterOrEqual(t, isValidPodCalled, 2)
 	mock.AssertExpectationsForObjects(t, switchboardMock, rpf, storeMock)
 }
 
