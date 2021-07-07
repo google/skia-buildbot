@@ -81,6 +81,24 @@
       "parentUuid": "b676745b_db0503c2",
       "revId": "7ef0f9ef2c10a496cc25e1a26f26e51f4b6b8833",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f2ed5f80_2c5ffcf1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 15
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-07T12:55:20Z",
+      "side": 1,
+      "message": "\u003e How would you distinguish between that extra info and a mistake in writing the JSON file?\n\nIn the case of mistyping a field, that is a runtime error when the config is read in and there is a non-optional field missing.\n\nThose \"extra\" fields [1] are used by the templating logic, so if those are mistyped, that will be an error on deployment.\n\nI\u0027ve found it useful to intentionally keep around old fields to make it easier to roll back. For example, if I am renaming a configuration field, I have both the old and new way in the config file and then can just update the image or roll it back w/o having to touch the configs. Since perf uses embedded configs, that benefit isn\u0027t really relevant.\n\n[1] https://github.com/google/skia-buildbot/blob/main/golden/k8s-instances/skia/skia-diffcalculator.json5#L9\n[2] https://github.com/google/skia-buildbot/blob/main/golden/k8s-config-templates/gold-diffcalculator-template.yaml#L43",
+      "parentUuid": "2409fa61_64bdd156",
+      "revId": "7ef0f9ef2c10a496cc25e1a26f26e51f4b6b8833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
