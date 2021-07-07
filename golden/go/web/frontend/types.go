@@ -190,6 +190,29 @@ func ConvertLogEntry(entry expectations.TriageLogEntry) TriageLogEntry {
 	return tle
 }
 
+// TriageDelta2 represents one changed digest and the label that was
+// assigned as part of the triage operation.
+type TriageDelta2 struct {
+	Grouping    paramtools.Params  `json:"grouping"`
+	Digest      types.Digest       `json:"digest"`
+	LabelBefore expectations.Label `json:"label_before"`
+	LabelAfter  expectations.Label `json:"label_after"`
+}
+
+// TriageLogEntry2 represents a set of changes by a single person.
+type TriageLogEntry2 struct {
+	ID      string         `json:"id"`
+	User    string         `json:"name"`
+	TS      int64          `json:"ts"` // is milliseconds since the epoch
+	Details []TriageDelta2 `json:"details" go2ts:"ignorenil"`
+}
+
+// TriageLogResponse2 is the response for /json/v2/triagelog.
+type TriageLogResponse2 struct {
+	httputils.ResponsePagination
+	Entries []TriageLogEntry2 `json:"entries" go2ts:"ignorenil"`
+}
+
 // DigestListResponse is the response for "what digests belong to..."
 type DigestListResponse struct {
 	Digests []types.Digest `json:"digests"`

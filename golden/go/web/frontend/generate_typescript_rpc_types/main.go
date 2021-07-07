@@ -59,6 +59,9 @@ func addTypes(generator *go2ts.Go2TS) {
 	// Response for the /json/v1/triagelog RPC endpoint.
 	generator.Add(frontend.TriageLogResponse{})
 
+	// Response for the /json/v2/triagelog RPC endpoint.
+	generator.Add(frontend.TriageLogResponse2{})
+
 	// Response for the /json/v1/changelists RPC endpoint.
 	generator.Add(frontend.ChangelistsResponse{})
 

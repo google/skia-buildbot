@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -1661,6 +1662,146 @@ func (wh *Handlers) getTriageLog(ctx context.Context, crs, changelistID string, 
 		logEntries = append(logEntries, frontend.ConvertLogEntry(e))
 	}
 	return logEntries, total, nil
+}
+
+// TriageLogHandler2 returns what has been triaged recently.
+func (wh *Handlers) TriageLogHandler2(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_TriageLogHandler2")
+	defer span.End()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	// Get the pagination params.
+	q := r.URL.Query()
+	offset, size, err := httputils.PaginationParams(q, 0, pageSize, maxPageSize)
+	if err != nil {
+		httputils.ReportError(w, err, "Invalid Pagination params", http.StatusBadRequest)
+		return
+	}
+
+	clID := q.Get("changelist_id")
+	crs := q.Get("crs")
+	if clID != "" {
+		if _, ok := wh.getCodeReviewSystem(crs); !ok {
+			http.Error(w, "Invalid Code Review System; did you include crs?", http.StatusBadRequest)
+			return
+		}
+	} else {
+		crs = ""
+	}
+
+	logEntries, total, err := wh.getTriageLog2(ctx, crs, clID, offset, size)
+	if err != nil {
+		httputils.ReportError(w, err, "Unable to retrieve triage logs", http.StatusInternalServerError)
+		return
+	}
+
+	response := frontend.TriageLogResponse2{
+		Entries: logEntries,
+		ResponsePagination: httputils.ResponsePagination{
+			Offset: offset,
+			Size:   size,
+			Total:  total,
+		},
+	}
+
+	sendJSONResponse(w, response)
+}
+
+// getTriageLog2 returns the specified entries and the total count of expectation records.
+func (wh *Handlers) getTriageLog2(ctx context.Context, crs, clid string, offset, size int) ([]frontend.TriageLogEntry2, int, error) {
+	ctx, span := trace.StartSpan(ctx, "getTriageLog2")
+	defer span.End()
+
+	total, err := wh.getTotalTriageRecords(ctx, crs, clid)
+	if err != nil {
+		return nil, 0, skerr.Wrap(err)
+	}
+	if total == 0 {
+		return []frontend.TriageLogEntry2{}, 0, nil // We don't want null in our JSON response.
+	}
+
+	// Default to the primary branch, which is associated with branch_name (i.e. CL) as NULL.
+	branchStatement := "WHERE branch_name IS NULL"
+	if crs != "" {
+		branchStatement = "WHERE branch_name = $3"
+	}
+
+	statement := `WITH
+RecentRecords AS (
+	SELECT expectation_record_id, user_name, triage_time
+	FROM ExpectationRecords ` + branchStatement + `
+	ORDER BY triage_time DESC, expectation_record_id
+	OFFSET $1 LIMIT $2
+)
+SELECT RecentRecords.*, Groupings.keys, digest, label_before, label_after
+FROM RecentRecords
+	JOIN ExpectationDeltas ON RecentRecords.expectation_record_id = ExpectationDeltas.expectation_record_id
+JOIN Groupings ON ExpectationDeltas.grouping_id = Groupings.grouping_id
+ORDER BY triage_time DESC, expectation_record_id, digest
+`
+	args := []interface{}{offset, size}
+	if crs != "" {
+		args = append(args, sql.Qualify(crs, clid))
+	}
+	rows, err := wh.DB.Query(ctx, statement, args...)
+	if err != nil {
+		return nil, 0, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var currentEntry *frontend.TriageLogEntry2
+	var rv []frontend.TriageLogEntry2
+	for rows.Next() {
+		var record schema.ExpectationRecordRow
+		var delta schema.ExpectationDeltaRow
+		var grouping paramtools.Params
+		if err := rows.Scan(&record.ExpectationRecordID, &record.UserName, &record.TriageTime,
+			&grouping, &delta.Digest, &delta.LabelBefore, &delta.LabelAfter); err != nil {
+			return nil, 0, skerr.Wrap(err)
+		}
+		if currentEntry == nil || currentEntry.ID != record.ExpectationRecordID.String() {
+			rv = append(rv, frontend.TriageLogEntry2{
+				ID:   record.ExpectationRecordID.String(),
+				User: record.UserName,
+				// Multiply by 1000 to convert seconds to milliseconds
+				TS: record.TriageTime.UTC().Unix() * 1000,
+			})
+			currentEntry = &rv[len(rv)-1]
+		}
+		currentEntry.Details = append(currentEntry.Details, frontend.TriageDelta2{
+			Grouping:    grouping,
+			Digest:      types.Digest(hex.EncodeToString(delta.Digest)),
+			LabelBefore: delta.LabelBefore.ToExpectation(),
+			LabelAfter:  delta.LabelAfter.ToExpectation(),
+		})
+	}
+	return rv, total, nil
+}
+
+// getTotalTriageRecords returns the total number of triage records for the CL (or the primary
+// branch)
+func (wh *Handlers) getTotalTriageRecords(ctx context.Context, crs, clid string) (int, error) {
+	ctx, span := trace.StartSpan(ctx, "getTotalTriageRecords")
+	defer span.End()
+
+	branchStatement := "WHERE branch_name IS NULL"
+	if crs != "" {
+		branchStatement = "WHERE branch_name = $1"
+	}
+
+	statement := `SELECT COUNT(*) FROM ExpectationRecords ` + branchStatement
+	var args []interface{}
+	if crs != "" {
+		args = append(args, sql.Qualify(crs, clid))
+	}
+	row := wh.DB.QueryRow(ctx, statement, args...)
+	var count int
+	if err := row.Scan(&count); err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	return count, nil
 }
 
 // TriageUndoHandler performs an "undo" for a given change id.
