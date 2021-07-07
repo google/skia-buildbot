@@ -141,6 +141,21 @@ func (s *server) loadTemplates() {
 	s.loadTemplatesOnce.Do(s.loadTemplatesImpl)
 }
 
+// serveJSON sends a JSON representation of any data structure as an HTTP
+// response. The result of function source is serialized into JSON and written
+// to w. If the provided function fails, a 500 error is raised saying errMsg.
+func serveJSON(source func() (interface{}, error), w http.ResponseWriter, errMsg string) {
+	pods, err := source()
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		httputils.ReportError(w, err, errMsg, http.StatusInternalServerError)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(pods); err != nil {
+		sklog.Errorf("Failed to write response: %s", err)
+	}
+}
+
 func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	s.loadTemplates()
@@ -153,16 +168,10 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	descriptions, err := s.store.List(r.Context())
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(descriptions); err != nil {
-		sklog.Errorf("Failed to write response: %s", err)
-	}
+	serveJSON(
+		func() (interface{}, error) { return s.store.List(r.Context()) },
+		w,
+		"Failed to read from datastore")
 }
 
 func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request) {
@@ -364,17 +373,17 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) podsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	serveJSON(
+		func() (interface{}, error) { return s.switchboard.ListPods(r.Context()) },
+		w,
+		"Failed to get list of pods.")
+}
 
-	pods, err := s.switchboard.ListPods(r.Context())
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to get list of pods.", http.StatusInternalServerError)
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(pods); err != nil {
-		sklog.Errorf("Failed to write response: %s", err)
-	}
+func (s *server) meetingPointsHandler(w http.ResponseWriter, r *http.Request) {
+	serveJSON(
+		func() (interface{}, error) { return s.switchboard.ListMeetingPoints(r.Context()) },
+		w,
+		"Failed to get list of meeting points")
 }
 
 // See baseapp.App.
@@ -387,6 +396,7 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/machine/remove_device/{id:.+}", s.machineRemoveDeviceHandler).Methods("GET")
 	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("GET")
 	r.HandleFunc("/_/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
+	r.HandleFunc("/_/meeting_points", s.meetingPointsHandler).Methods("GET")
 	r.HandleFunc("/_/pods", s.podsHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }

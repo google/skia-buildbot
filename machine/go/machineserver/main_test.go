@@ -452,9 +452,9 @@ func TestPodsHandler_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Set up the expected Pod.
-	var podTime time.Time
-	require.NoError(t, podTime.UnmarshalText([]byte("2001-02-03T04:05:06.78901Z")))
-	pod := switchboard.Pod{Name: "switch-pod-3", LastUpdated: podTime}
+	var lastUpdated time.Time
+	require.NoError(t, lastUpdated.UnmarshalText([]byte("2001-02-03T04:05:06.78901Z")))
+	pod := switchboard.Pod{Name: "switch-pod-3", LastUpdated: lastUpdated}
 
 	// ListPods is already well-tested in switchboard/impl, so we can mock out the whole switchboard.
 	sw := switchboardMocks.Switchboard{}
@@ -474,5 +474,34 @@ func TestPodsHandler_Success(t *testing.T) {
 	assert.Equal(
 		t,
 		[]byte(`[{"Name":"switch-pod-3","LastUpdated":"2001-02-03T04:05:06.78901Z"}]`+"\n"),
+		w.Body.Bytes())
+}
+
+func TestMeetingPointsHandler_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Set up the expected MeetingPoint.
+	var lastUpdated time.Time
+	require.NoError(t, lastUpdated.UnmarshalText([]byte("2001-02-03T04:05:06.78901Z")))
+	meetingPoint := switchboard.MeetingPoint{PodName: "somePod", Port: 33, Username: "someUser", MachineID: "someMachine", LastUpdated: lastUpdated}
+
+	// ListPods is already well-tested in switchboard/impl, so we can mock out the whole switchboard.
+	sw := switchboardMocks.Switchboard{}
+	sw.On("ListMeetingPoints", testutils.AnyContext).Return([]switchboard.MeetingPoint{meetingPoint}, nil)
+	s := &server{
+		switchboard: &sw,
+	}
+
+	// Serve the request.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+	r := httptest.NewRequest("GET", "/_/meeting_points", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(
+		t,
+		[]byte(`[{"PodName":"somePod","Port":33,"Username":"someUser","MachineID":"someMachine","LastUpdated":"2001-02-03T04:05:06.78901Z"}]`+"\n"),
 		w.Body.Bytes())
 }
