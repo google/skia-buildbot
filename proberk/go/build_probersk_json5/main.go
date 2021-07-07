@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,7 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/flynn/json5"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -26,6 +26,7 @@ var (
 )
 
 func main() {
+	ctx := context.Background()
 	common.Init()
 	// Collect all files named probersk.json5.
 	files := []string{}
@@ -52,7 +53,7 @@ func main() {
 	allProbeSources := map[string]string{}
 	// Read each collected file, adding elements to allProbes.
 	for _, filename := range files {
-		if err := add(filename, allProbes, allProbeSources); err != nil {
+		if err := add(ctx, filename, allProbes, allProbeSources); err != nil {
 			sklog.Fatalf("Failed to import probes: %s", err)
 		}
 	}
@@ -71,20 +72,14 @@ func main() {
 }
 
 // add the contents of filename to allProbes and allProbeSources.
-func add(filename string, allProbes types.Probes, allProbeSources map[string]string) error {
-	file, err := os.Open(filename)
+func add(ctx context.Context, filename string, allProbes types.Probes, allProbeSources map[string]string) error {
+	probes, err := types.LoadFromJSONFile(ctx, filename)
 	if err != nil {
-		return fmt.Errorf("Failed to open file %q: %s", filename, err)
+		return fmt.Errorf("failed to decode JSON in file %q: %s", filename, err)
 	}
-	defer util.Close(file)
-	d := json5.NewDecoder(file)
-	probes := &types.Probes{}
-	if err := d.Decode(probes); err != nil {
-		return fmt.Errorf("Failed to decode JSON in file %q: %s", filename, err)
-	}
-	for k, v := range *probes {
+	for k, v := range probes {
 		if _, ok := allProbes[k]; ok {
-			return fmt.Errorf("Found duplicate probe name: %q appears in %q and %q", k, filename, allProbeSources[k])
+			return fmt.Errorf("found duplicate probe name: %q appears in %q and %q", k, filename, allProbeSources[k])
 		}
 		allProbeSources[k] = filename
 		allProbes[k] = v
