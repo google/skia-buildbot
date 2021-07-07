@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1035e786_bce2c991",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-07T19:59:14Z",
+      "side": 1,
+      "message": "I think I\u0027ve got the json validation down to something very simple, let me know if the documentation makes sense.",
+      "revId": "6c02656b173934cabe544288be9c8e4957646812",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
