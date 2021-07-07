@@ -22,6 +22,30 @@
       },
       "revId": "dad7ea394fa417f2f9f4e54a9eac99ec189665d0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4af60683_6c243bab",
+        "filename": "golden/probersk.json5",
+        "patchSetId": 9
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-07T17:18:09Z",
+      "side": 0,
+      "message": "I don\u0027t believe the ability to add comments anywhere in the file was worth it, as there were only 2 comments across all the prober files, of which this was one.\n \nThe other comment was in probersk/probersk.json and that comment just restated something that is already stated in the README.md.\n\nI have added a Notes field to the Prober definition and moved the comment there.",
+      "parentUuid": "43953233_90d8b0d7",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 18
+      },
+      "revId": "dad7ea394fa417f2f9f4e54a9eac99ec189665d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
