@@ -847,10 +847,6 @@ func TestPrimarySQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
-	totalMetricBefore := metrics2.GetCounter("gold_primarysqlingestion_files_processed").Get()
-	successMetricBefore := metrics2.GetCounter("gold_primarysqlingestion_files_success").Get()
-	resultsMetricBefore := metrics2.GetCounter("gold_primarysqlingestion_results_ingested").Get()
-
 	wg := sync.WaitGroup{}
 	for i := 0; i < 4; i++ {
 		wg.Add(1)
@@ -900,11 +896,6 @@ func TestPrimarySQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T
 		Digest:     d(dks.DigestBlank),
 		Label:      schema.LabelUntriaged,
 	})
-
-	// We ingested a total of 40 files, each with 12 results
-	assert.Equal(t, totalMetricBefore+40, metrics2.GetCounter("gold_primarysqlingestion_files_processed").Get())
-	assert.Equal(t, successMetricBefore+40, metrics2.GetCounter("gold_primarysqlingestion_files_success").Get())
-	assert.Equal(t, resultsMetricBefore+480, metrics2.GetCounter("gold_primarysqlingestion_results_ingested").Get())
 }
 
 func TestPrimarySQL_Process_UnknownGitHash_ReturnsError(t *testing.T) {
