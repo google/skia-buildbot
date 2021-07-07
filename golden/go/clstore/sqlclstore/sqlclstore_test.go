@@ -376,6 +376,7 @@ func TestGetPatchsets_PatchsetsSavedOutOfOrder_ReturnsPatchsetsInAscendingOrder(
 		SystemID:     unqualifiedPSID4,
 		ChangelistID: unqualifiedCLID,
 		Order:        4,
+		Created:      time.Date(2021, time.January, 2, 2, 2, 2, 0, time.UTC),
 		GitHash:      "444444444444444444",
 	}
 	err = store.PutPatchset(ctx, ps4)
@@ -384,6 +385,7 @@ func TestGetPatchsets_PatchsetsSavedOutOfOrder_ReturnsPatchsetsInAscendingOrder(
 		SystemID:     unqualifiedPSID1,
 		ChangelistID: unqualifiedCLID,
 		Order:        1,
+		Created:      time.Date(2021, time.January, 1, 1, 1, 1, 0, time.UTC),
 		GitHash:      "1111111111111111111",
 	}
 	err = store.PutPatchset(ctx, ps1)
