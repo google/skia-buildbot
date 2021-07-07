@@ -262,7 +262,7 @@ func RawBuilder() databuilder.TablesBuilder {
 	b.AddTriageEvent(UserThree, "2020-06-11T12:13:14Z").
 		ExpectationsForGrouping(map[string]string{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest}).
 		Positive(DigestA03Pos)
-	b.AddTriageEvent(UserThree, "2020-06-11T12:13:14Z").
+	b.AddTriageEvent(UserThree, "2020-06-11T12:13:15Z").
 		ExpectationsForGrouping(map[string]string{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest}).
 		Negative(DigestBlank)
 

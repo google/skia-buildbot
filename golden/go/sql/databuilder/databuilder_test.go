@@ -88,11 +88,13 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		paramtools.ParamSet{
 			"does not": []string{"apply", "to any trace"},
 		})
+	assert.Equal(t, "9929afba-47c6-da4d-3770-aec6161f7cb9", firstIgnoreRuleID.String()) // deterministic, not random
 	secondIgnoreRuleID := b.AddIgnoreRule("ignore_author_two", "ignore_author_one", "2021-06-28T03:18:53Z", "note 2",
 		paramtools.ParamSet{
 			"os":     []string{"Windows10.7", "Windows10.8"},
 			"device": []string{"NUC1234"},
 		})
+	assert.Equal(t, "31a0acd7-a2eb-7672-a6aa-f5a057bd08e9", secondIgnoreRuleID.String()) // deterministic, not random
 
 	dir := testutils.TestDataDir(t)
 	b.ComputeDiffMetricsFromImages(dir, "2020-12-14T14:14:14Z")
@@ -1403,7 +1405,9 @@ func TestTriage_ReplacingPreviousExpectations_LabelAndRecordOverwritten(t *testi
 	data := b.Build()
 	require.Len(t, data.ExpectationRecords, 2)
 	firstID := data.ExpectationRecords[0].ExpectationRecordID
+	assert.Equal(t, "c3bf5ce9-9c81-ff0b-5561-41f5f6cb24ee", firstID.String()) // deterministic, not random
 	secondID := data.ExpectationRecords[1].ExpectationRecordID
+	assert.Equal(t, "04b44c2d-f38f-e26e-1619-2f6557a5be23", secondID.String()) // deterministic, not random
 	assert.Equal(t, []schema.ExpectationRow{{
 		GroupingID:          h(`{"test":"one"}`),
 		Digest:              d(t, digestA),
@@ -1647,6 +1651,58 @@ func TestPatchsetBuilder_TriageSameDigest_FinalLabelCorrect(t *testing.T) {
 		Label:               schema.LabelUntriaged,
 		ExpectationRecordID: nil,
 	}}, data.Expectations)
+}
+
+func TestTablesBuilder_AddTriageEvent_PanicsIfSameUUIDGenerated(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := TablesBuilder{}
+	b.SetGroupingKeys("test")
+	b.AddTriageEvent("user", "2020-12-12T09:31:32Z")
+	assert.Panics(t, func() {
+		b.AddTriageEvent("user", "2020-12-12T09:31:32Z")
+	})
+}
+
+func TestChangelistBuilder_AddTriageEvent_PanicsIfSameUUIDGenerated(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := TablesBuilder{}
+	b.SetGroupingKeys("test")
+
+	cl := b.AddChangelist("cl1", "gerrit", "user1", "whatever", schema.StatusOpen)
+	cl.AddTriageEvent("user", "2020-12-12T09:31:32Z")
+	assert.Panics(t, func() {
+		cl.AddTriageEvent("user", "2020-12-12T09:31:32Z")
+	})
+}
+
+func TestChangelistBuilder_AddTriageEvent_InvalidTriageTime_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := TablesBuilder{}
+	b.SetGroupingKeys("test")
+
+	cl := b.AddChangelist("cl1", "gerrit", "user1", "whatever", schema.StatusOpen)
+	assert.Panics(t, func() {
+		cl.AddTriageEvent("user", "bad time")
+	})
+}
+
+func TestTablesBuilder_AddIgnoreRule_PanicsIfSameUUIDGenerated(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := TablesBuilder{}
+	b.AddIgnoreRule("ignore_author", "ignore_author", "2021-03-14T15:09:27Z", "note 1",
+		paramtools.ParamSet{
+			types.PrimaryKeyField: []string{"test_two"},
+		})
+	assert.Panics(t, func() {
+		b.AddIgnoreRule("ignore_author", "ignore_author", "2021-03-14T15:09:27Z", "note 1",
+			paramtools.ParamSet{
+				types.PrimaryKeyField: []string{"test_one"},
+			})
+	})
 }
 
 // h returns the MD5 hash of the provided string.

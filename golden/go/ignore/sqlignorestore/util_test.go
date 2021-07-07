@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/md5"
 	"crypto/rand"
+	"strconv"
 	"testing"
 	"time"
 
@@ -298,8 +299,10 @@ func TestUpdateIgnoredTraces_NullableRules_SetToCorrectValue(t *testing.T) {
 		OptionsAll(paramtools.Params{"alpha_type": "Premul", "color_depth": "8888", "color_type": "RGBA_8888", "ext": "png", "gamut": "untagged", "transfer_fn": "untagged"}).
 		IngestedFrom([]string{"whatever"}, []string{whateverTS})
 
+	i := 0
 	addIgnoreRule := func(ps paramtools.ParamSet) {
-		b.AddIgnoreRule("whatever", "whatever", whateverTS, "whatever", ps)
+		b.AddIgnoreRule("whatever", "whatever", whateverTS, "whatever "+strconv.Itoa(i), ps)
+		i++
 	}
 
 	// Was evaluating to NULL in prod for some traces.
