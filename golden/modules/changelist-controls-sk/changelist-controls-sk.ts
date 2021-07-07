@@ -138,7 +138,8 @@ export class ChangelistControlsSk extends ElementSk {
 
   /**
    * Returns the Patchset object which matches _psOrder. if _psOrder is 0 (match latest), _psOrder
-   * will be updated to whatever the latest order is.
+   * will be updated to whatever the latest order is. It assumes patch_sets are sorted oldest
+   * to newest.
    */
   _getSelectedPatchset() {
     if (!this._summary?.patch_sets?.length) {

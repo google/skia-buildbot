@@ -132,12 +132,12 @@ VALUES ($1, $2, $3, $4, $5, $6)`
 	return nil
 }
 
-// GetPatchsets implements clstore.Store.
+// GetPatchsets implements clstore.Store. It serves the Patchsets in order of oldest to newest.
 func (s *StoreImpl) GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error) {
 	qID := sql.Qualify(s.systemID, clID)
 	rows, err := s.db.Query(ctx, `
 SELECT patchset_id, ps_order, git_hash, commented_on_cl, created_ts
-FROM Patchsets WHERE changelist_id = $1 ORDER BY created_ts DESC, ps_order ASC, git_hash ASC`, qID)
+FROM Patchsets WHERE changelist_id = $1 ORDER BY created_ts ASC, ps_order ASC, git_hash ASC`, qID)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "querying for cl %s", qID)
 	}
