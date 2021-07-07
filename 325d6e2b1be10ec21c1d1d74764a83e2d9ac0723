@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "59f5ec74_a01e2103",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-07T13:23:02Z",
+      "side": 1,
+      "message": "I think we should actually get rid of our jsonutils package - the existing members are all used by exactly one app and should probably be refactored into their existing apps.\n\nIf you want to put this in a common package, maybe make a new one called jsonschema or something like that.",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "325d6e2b1be10ec21c1d1d74764a83e2d9ac0723",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a615b325_b6511660",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-07T13:23:02Z",
+      "side": 1,
+      "message": "Please don\u0027t add a third party dep to an existing common package unless it is actually used by multiple apps.",
+      "range": {
+        "startLine": 14,
+        "startChar": 24,
+        "endLine": 14,
+        "endChar": 34
+      },
+      "revId": "325d6e2b1be10ec21c1d1d74764a83e2d9ac0723",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
