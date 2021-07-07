@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f059adcd_ef8d1619",
+        "filename": "go/jsonschema/jsonschmea.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-07T14:22:35Z",
+      "side": 1,
+      "message": "Check filename spelling",
+      "revId": "1af0a665608c2bd1b4d0b4d17bdd0749cb005a95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
