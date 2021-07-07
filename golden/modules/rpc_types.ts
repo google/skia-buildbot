@@ -148,6 +148,27 @@ export interface TriageLogResponse {
 	total: number;
 }
 
+export interface TriageDelta2 {
+	grouping: Params;
+	digest: Digest;
+	label_before: Label;
+	label_after: Label;
+}
+
+export interface TriageLogEntry2 {
+	id: string;
+	name: string;
+	ts: number;
+	details: TriageDelta2[];
+}
+
+export interface TriageLogResponse2 {
+	entries: TriageLogEntry2[];
+	offset: number;
+	size: number;
+	total: number;
+}
+
 export interface ChangelistsResponse {
 	changelists: Changelist[] | null;
 	offset: number;
@@ -242,3 +263,5 @@ export type TraceID = string;
 export type RefClosest = "pos" | "neg" | "";
 
 export type TriageRequestData = { [key: string]: { [key: string]: Label } };
+
+export type Params = { [key: string]: string };
