@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "af5e8001_179bea5a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 15
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-07T12:47:21Z",
+      "side": 1,
+      "message": "That seems to make an assumption that JSONSchema is about a particular direction, i.e. importing vs exporting, when instead JSONSchema is about the defining the format of a JSON file. The fact that the jsonschema library relied upon the json: tags in the struct is something I consider a feature, not a bug.",
+      "parentUuid": "d4c17cce_257e26b3",
+      "range": {
+        "startLine": 16,
+        "startChar": 9,
+        "endLine": 16,
+        "endChar": 18
+      },
+      "revId": "7ef0f9ef2c10a496cc25e1a26f26e51f4b6b8833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "b676745b_db0503c2",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 15
@@ -37,6 +61,24 @@
       "writtenOn": "2021-07-07T12:12:41Z",
       "side": 1,
       "message": "Some observations and questions:\n - Another version of validating JSON config files is this one in Gold https://github.com/google/skia-buildbot/blob/main/golden/go/config/config.go#L141 It uses custom JSON tags to indicate optional fields and doesn\u0027t require embedding a schema, nor an additional third-party dependency.\n - Does this validation system error on fields that included but not a part of the schema? For Gold, it has been useful to include extra fields, e.g. for specifying k8s-specific options in the same JSON file as the runtime configs.\n - Does perf embed its config files? If so, is there a way to validate the configs before the embedding process happens?",
+      "revId": "7ef0f9ef2c10a496cc25e1a26f26e51f4b6b8833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2409fa61_64bdd156",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 15
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-07T12:47:21Z",
+      "side": 1,
+      "message": "\"Does this validation system error on fields that included but not a part of the schema?\"\n\nYes.\n\n\"For Gold, it has been useful to include extra fields, e.g. for specifying k8s-specific options in the same JSON file as the runtime configs.\"\n\nShouldn\u0027t that also be part of the schema? How would you distinguish between\nthat extra info and a mistake in writing the JSON file?\n\n\"Does perf embed its config files? If so, is there a way to validate the configs before the embedding process happens?\"\n\nThat is part of this CL and happens now every time you run \"go test\":\n\nhttps://skia.googlesource.com/buildbot/+/refs/changes/60/424060/15/perf/go/config/config_test.go#20",
+      "parentUuid": "b676745b_db0503c2",
       "revId": "7ef0f9ef2c10a496cc25e1a26f26e51f4b6b8833",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
