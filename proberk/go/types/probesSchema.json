@@ -1,0 +1,53 @@
+{
+  "patternProperties": {
+    ".*": {
+      "$schema": "http://json-schema.org/draft-04/schema#",
+      "$ref": "#/definitions/Probe"
+    }
+  },
+  "type": "object",
+  "definitions": {
+    "Probe": {
+      "required": [
+        "urls",
+        "method",
+        "expected",
+        "mimetype"
+      ],
+      "properties": {
+        "urls": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "method": {
+          "type": "string"
+        },
+        "expected": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "body": {
+          "type": "string"
+        },
+        "mimetype": {
+          "type": "string"
+        },
+        "responsetest": {
+          "type": "string"
+        },
+        "authenticated": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}

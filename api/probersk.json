@@ -1,0 +1,13 @@
+{
+  "api": {
+    "urls": [
+      "https://api.skia.org/"
+    ],
+    "method": "GET",
+    "expected": [
+      200
+    ],
+    "body": "",
+    "mimetype": ""
+  }
+}

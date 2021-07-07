@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"crypto/md5"
 	"crypto/tls"
 	"flag"
@@ -61,19 +62,15 @@ const (
 	DEFAULT_SSL_VALID_DURATION = 10 * 24 * time.Hour // cert should be valid for at least 10 days
 )
 
-func readConfigFile(filename string) (types.Probes, error) {
+func readConfigFile(ctx context.Context, filename string) (types.Probes, error) {
+	p, err := types.LoadFromJSONFile(ctx, filename)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read config file: %s", err)
+	}
+
 	allProbes := types.Probes{}
 	errs := []string{}
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to open config file: %s", err)
-	}
-	d := json5.NewDecoder(file)
-	p := &types.Probes{}
-	if err := d.Decode(p); err != nil {
-		return nil, fmt.Errorf("Failed to decode JSON in config file: %s", err)
-	}
-	for k, v := range *p {
+	for k, v := range p {
 		v.Failure = map[string]metrics2.Int64Metric{}
 		v.Latency = map[string]metrics2.Int64Metric{}
 		if v.ResponseTestName != "" {
@@ -347,6 +344,7 @@ func getHash() (string, error) {
 }
 
 func main() {
+	ctx := context.Background()
 	common.InitWithMust(
 		"probeserver",
 		common.PrometheusOpt(promPort),
@@ -357,7 +355,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal("Failed to calculate hash of config file: ", err)
 	}
-	cfg, err := readConfigFile(*config)
+	cfg, err := readConfigFile(ctx, *config)
 	if *validate {
 		if err != nil {
 			fmt.Printf("Validation Failed:\n  %s\n", err)

@@ -44,7 +44,8 @@
       "https://task-scheduler-internal.skia.org",
       "https://webrtc-chromium-roll.skia.org",
       "https://www.skia.org"
-    ]
+    ],
+    "mimetype": ""
   },
   "wildcard-cert": {
     "expected": [
@@ -55,6 +56,7 @@
       "https://skia.org",
       "https://gold.skia.org",
       "https://35.201.76.220"
-    ]
+    ],
+    "mimetype": ""
   }
 }
