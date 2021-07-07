@@ -1,6 +1,29 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "d4c17cce_257e26b3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 15
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-07T12:13:45Z",
+      "side": 1,
+      "message": "I would have preferred a new, explicit json tag, e.g. optional:true\n\nIn my view, \"omitempty\" is a tag used for exporting to JSON, not importing from it.",
+      "range": {
+        "startLine": 16,
+        "startChar": 9,
+        "endLine": 16,
+        "endChar": 18
+      },
+      "revId": "7ef0f9ef2c10a496cc25e1a26f26e51f4b6b8833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "b676745b_db0503c2",
