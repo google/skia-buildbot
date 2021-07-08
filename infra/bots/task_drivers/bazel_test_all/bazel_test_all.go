@@ -65,7 +65,17 @@ func main() {
 	}
 
 	// Set up Bazel.
-	bzl, bzlCleanup, err := bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+	var (
+		bzl        *bazel.Bazel
+		bzlCleanup func()
+	)
+	if *rbe {
+		bzl, bzlCleanup, err = bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+	} else {
+		// Infra-PerCommit-Test-Bazel-Local uses a ramdisk as the Bazel cache in order to prevent "disk
+		// stall detected" errors on GCE VMs due to slow I/O.
+		bzl, bzlCleanup, err = bazel.NewWithRamdisk(ctx, gitDir.Dir(), *rbeKey)
+	}
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
@@ -176,6 +186,7 @@ func uploadPuppeteerScreenshotsToGold(ctx context.Context, bzl *bazel.Bazel) err
 	return goldctl(ctx, bzl, "imgtest", "finalize", "--work-dir", goldctlWorkDir)
 }
 
+// testOnRBE is only called for the Infra-PerCommit-Test-Bazel-RBE task.
 func testOnRBE(ctx context.Context, bzl *bazel.Bazel) error {
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
 	if _, err := bzl.DoOnRBE(ctx, "test", "//...", "--test_output=errors"); err != nil {
@@ -186,6 +197,7 @@ func testOnRBE(ctx context.Context, bzl *bazel.Bazel) error {
 	return uploadPuppeteerScreenshotsToGold(ctx, bzl)
 }
 
+// testLocally is only called for the Infra-PerCommit-Test-Bazel-Local task.
 func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 	// We skip the following steps when running on a developer's workstation because we assume that
 	// the environment already has everything we need to run this task driver (the repository checkout
@@ -206,10 +218,34 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 			return err
 		}
 		ctx = td.WithEnv(ctx, []string{"PATH=%(PATH)s:" + depotToolsDir})
+
+		// Specify an explicit location for the vpython VirtualEnv root directory.
+		//
+		// Some of our Go tests perform steps such as the following:
+		//
+		//   1. Create a temporary directory.
+		//   2. Invoke a Python script, with $HOME pointing to said temporary directory.
+		//   3. Delete the temporary directory before exiting.
+		//
+		// vpython creates its VirtualEnv root at the path specified by the VPYTHON_VIRTUALENV_ROOT
+		// environment variable, defaulting to $HOME/.vpython-root if unset, and populates this
+		// directory with read-only files. If we leave VPYTHON_VIRTUALENV_ROOT unset, step 3 above
+		// will try to delete said read-only files and fail with "permission denied".
+		//
+		// Note that this isn't necessary in Infra-PerCommit-Test-Bazel-RBE because the "python" binary
+		// is provided by the RBE toolchain container image, and not by the vpython CIPD package, as is
+		// the case with Infra-PerCommit-Test-Bazel-Local.
+		ctx = td.WithEnv(ctx, []string{"VPYTHON_VIRTUALENV_ROOT=" + filepath.Join(workDir, "vpython-root")})
+
+		// If the emulators are already running for any reason, kill them first. This prevents "Address
+		// already in use" errors on GCE bots.
+		if err = emulators.StopAllEmulators(); err != nil {
+			return err
+		}
+		time.Sleep(5 * time.Second) // Give emulators time to shut down gracefully.
 	}
 
-	// Start the emulators. When running this task driver locally (e.g. with --local), this will kill
-	// any existing emulator instances prior to launching all emulators.
+	// Start the emulators.
 	if err := emulators.StartAllEmulators(); err != nil {
 		return err
 	}
@@ -221,7 +257,7 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 	time.Sleep(5 * time.Second) // Give emulators time to boot.
 
 	// Set *_EMULATOR_HOST environment variables.
-	emulatorHostEnvVars := []string{}
+	var emulatorHostEnvVars []string
 	for _, emulator := range emulators.AllEmulators {
 		// We need to set the *_EMULATOR_HOST variable for the current emulator before we can retrieve
 		// its value via emulators.GetEmulatorHostEnvVar().
@@ -235,6 +271,8 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 	ctx = td.WithEnv(ctx, emulatorHostEnvVars)
 
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
-	_, err := bzl.Do(ctx, "test", "//...", "--test_output=errors")
+	//
+	// Pipe through the host's VPYTHON_VIRTUALENV_ROOT environment variable to the tests.
+	_, err := bzl.Do(ctx, "test", "//...", "--test_output=errors", "--test_env=VPYTHON_VIRTUALENV_ROOT")
 	return err
 }
