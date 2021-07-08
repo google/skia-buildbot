@@ -14,7 +14,9 @@ import { stateReflector } from 'common-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../pagination-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
-import { TriageDelta, TriageLogEntry, TriageLogResponse } from '../rpc_types';
+import {
+  TriageDelta, TriageDelta2, TriageLogEntry, TriageLogEntry2, TriageLogResponse, TriageLogResponse2,
+} from '../rpc_types';
 import { PaginationSkPageChangedEventDetail } from '../pagination-sk/pagination-sk';
 
 export class TriagelogPageSk extends ElementSk {
@@ -29,7 +31,8 @@ export class TriagelogPageSk extends ElementSk {
         </tr>
       </thead>
       <tbody>
-        ${el.entries.map((entry) => TriagelogPageSk.logEntryTemplate(el, entry))}
+        ${el.entriesV1.map((entry) => TriagelogPageSk.logEntryTemplate(el, entry))}
+        ${el.entriesV2.map((entry) => TriagelogPageSk.logEntryTemplate2(el, entry))}
       </tbody>
     </table>
 
@@ -42,7 +45,7 @@ export class TriagelogPageSk extends ElementSk {
 
   private static logEntryTemplate = (el: TriagelogPageSk, entry: TriageLogEntry) => html`
     <tr>
-      <td class=timestamp>${el.toLocalDate(entry.ts)}</td>
+      <td class=timestamp>${TriagelogPageSk.toLocalDate(entry.ts)}</td>
       <td class=author>${entry.name}</td>
       <td class=num-changes>${entry.changeCount}</td>
       <td class=actions>
@@ -56,6 +59,22 @@ export class TriagelogPageSk extends ElementSk {
     ${entry.details ? TriagelogPageSk.detailsTemplate(el, entry) : html``}
   `;
 
+  private static logEntryTemplate2 = (el: TriagelogPageSk, entry: TriageLogEntry2) => html`
+    <tr>
+      <td class=timestamp>${TriagelogPageSk.toLocalDate(entry.ts)}</td>
+      <td class=author>${entry.name}</td>
+      <td class=num-changes>${entry.details.length}</td>
+      <td class=actions>
+        <button @click=${() => el.undoEntry(entry.id)}
+                class=undo>
+          Undo
+        </button>
+      </td>
+    </tr>
+
+    ${entry.details ? TriagelogPageSk.detailsTemplate2(el, entry) : html``}
+  `;
+
   private static detailsTemplate = (el: TriagelogPageSk, entry: TriageLogEntry) => html`
     <tr class=details>
       <td></td>
@@ -65,6 +84,19 @@ export class TriagelogPageSk extends ElementSk {
     </tr>
 
     ${entry.details?.map((e) => TriagelogPageSk.detailsEntryTemplate(el, e))}
+
+    <tr class="details details-separator"><td colspan="4"></td></tr>
+  `;
+
+  private static detailsTemplate2 = (el: TriagelogPageSk, entry: TriageLogEntry2) => html`
+    <tr class=details>
+      <td></td>
+      <td><strong>Test name</strong></td>
+      <td><strong>Digest</strong></td>
+      <td><strong>Label</strong></td>
+    </tr>
+
+    ${entry.details?.map((e) => TriagelogPageSk.detailsEntryTemplate2(el, e))}
 
     <tr class="details details-separator"><td colspan="4"></td></tr>
   `;
@@ -88,14 +120,45 @@ export class TriagelogPageSk extends ElementSk {
     `;
   };
 
-  private entries: TriageLogEntry[] = []; // Log entries fetched from the server.
+  private static detailsEntryTemplate2 = (el: TriagelogPageSk, delta: TriageDelta2) => {
+    let detailHref = `/detail?test=${delta.grouping.name}&digest=${delta.digest}`;
+    if (el.changelistID) {
+      detailHref += `&changelist_id=${el.changelistID}&crs=${el.crs}`;
+    }
+    return html`
+      <tr class=details>
+        <td></td>
+        <td class=test-name title="Grouping ${JSON.stringify(delta.grouping)}">${delta.grouping.name}</td>
+        <td class=digest>
+          <a href=${detailHref} target=_blank rel=noopener>
+            ${delta.digest}
+          </a>
+        </td>
+        <td class=label title="${delta.label_before} => ${delta.label_after}">
+          ${delta.label_after}
+        </td>
+      </tr>
+    `;
+  };
+
+  private entriesV1: TriageLogEntry[] = []; // Log entries fetched from the server.
+
+  private entriesV2: TriageLogEntry2[] = []; // Log entries fetched from the server.
+
   private pageOffset = 0; // Reflected in the URL.
+
   private pageSize = 0; // Reflected in the URL.
+
   private changelistID = ''; // Reflected in the URL.
+
   private crs = ''; // Code Review System (e.g. 'gerrit', 'github')
+
   private totalEntries = 0; // Total number of entries in the server.
 
-  private readonly stateChanged: () => void;
+  private useNewAPI = false;
+
+  private readonly stateChanged: ()=> void;
+
   private fetchController?: AbortController;
 
   constructor() {
@@ -108,6 +171,7 @@ export class TriagelogPageSk extends ElementSk {
         page_size: this.pageSize,
         changelist_id: this.changelistID,
         crs: this.crs,
+        use_new_api: this.useNewAPI,
       }),
       /* setState */ (newState) => {
         // The stateReflector's lingering popstate event handler will continue
@@ -121,13 +185,14 @@ export class TriagelogPageSk extends ElementSk {
         this.pageSize = newState.page_size as number || 20;
         this.changelistID = newState.changelist_id as string || '';
         this.crs = newState.crs as string || '';
+        this.useNewAPI = (newState.use_new_api as boolean) || false;
         this._render();
         this.fetchEntries();
       },
     );
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
@@ -141,7 +206,7 @@ export class TriagelogPageSk extends ElementSk {
 
   private undoEntry(entryId: string) {
     sendBeginTask(this);
-    this.fetch(`/json/v1/triagelog/undo?id=${entryId}`, 'POST')
+    this.fetchV1(`/json/v1/triagelog/undo?id=${entryId}`, 'POST')
     // The undo RPC returns the first page of results with details hidden.
     // But we always show details, so we need to make another request to
     // fetch the triage log with details from /json/v1/triagelog.
@@ -152,15 +217,32 @@ export class TriagelogPageSk extends ElementSk {
   }
 
   private fetchEntries(sendBusyDoneEvents = true): Promise<void> {
-    let url = `/json/v1/triagelog?details=true&offset=${this.pageOffset}`
-        + `&size=${this.pageSize}`;
+    if (!this.useNewAPI) {
+      let url = `/json/v1/triagelog?details=true&offset=${this.pageOffset}`
+          + `&size=${this.pageSize}`;
+      if (this.changelistID) {
+        url += `&changelist_id=${this.changelistID}&crs=${this.crs}`;
+      }
+      if (sendBusyDoneEvents) {
+        sendBeginTask(this);
+      }
+      return this.fetchV1(url, 'GET')
+        .then(() => {
+          this._render();
+          if (sendBusyDoneEvents) {
+            sendEndTask(this);
+          }
+        })
+        .catch((e) => sendFetchError(this, e, 'triagelog'));
+    }
+    let url = `/json/v2/triagelog?offset=${this.pageOffset}&size=${this.pageSize}`;
     if (this.changelistID) {
       url += `&changelist_id=${this.changelistID}&crs=${this.crs}`;
     }
     if (sendBusyDoneEvents) {
       sendBeginTask(this);
     }
-    return this.fetch(url, 'GET')
+    return this.fetchV2(url, 'GET')
       .then(() => {
         this._render();
         if (sendBusyDoneEvents) {
@@ -174,7 +256,7 @@ export class TriagelogPageSk extends ElementSk {
   // response, which is a page with triage log entries. Therefore this method is
   // called by both fetchEntries and undoEntry to carry out their
   // corresponding RPCs and handle the server response.
-  private fetch(url: string, method: 'GET' | 'POST'): Promise<void> {
+  private fetchV1(url: string, method: 'GET' | 'POST'): Promise<void> {
     // Force only one fetch at a time. Abort any outstanding requests.
     if (this.fetchController) {
       this.fetchController.abort();
@@ -189,14 +271,36 @@ export class TriagelogPageSk extends ElementSk {
     return fetch(url, options)
       .then(jsonOrThrow)
       .then((response: TriageLogResponse) => {
-        this.entries = response.entries || [];
+        this.entriesV1 = response.entries || [];
         this.pageOffset = response.offset || 0;
         this.pageSize = response.size || 0;
         this.totalEntries = response.total || 0;
       });
   }
 
-  private toLocalDate(timeStampMS: number): string {
+  private fetchV2(url: string, method: 'GET' | 'POST'): Promise<void> {
+    // Force only one fetch at a time. Abort any outstanding requests.
+    if (this.fetchController) {
+      this.fetchController.abort();
+    }
+    this.fetchController = new AbortController();
+
+    const options: RequestInit = {
+      method: method,
+      signal: this.fetchController.signal,
+    };
+
+    return fetch(url, options)
+      .then(jsonOrThrow)
+      .then((response: TriageLogResponse2) => {
+        this.entriesV2 = response.entries || [];
+        this.pageOffset = response.offset || 0;
+        this.pageSize = response.size || 0;
+        this.totalEntries = response.total || 0;
+      });
+  }
+
+  private static toLocalDate(timeStampMS: number): string {
     return new Date(timeStampMS).toLocaleString();
   }
 }
