@@ -152,12 +152,16 @@ func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table refl
 // easier to debug tests).
 // The returned value is a slice of the provided row type (without a pointer) and can be converted
 // to a normal slice via a type assertion. If anything goes wrong, the function will panic.
-func GetAllRows(ctx context.Context, t *testing.T, db *pgxpool.Pool, table string, row interface{}) interface{} {
+func GetAllRows(ctx context.Context, t *testing.T, db *pgxpool.Pool, table string, row interface{}, whereClauses ...string) interface{} {
 	if _, ok := row.(SQLScanner); !ok {
 		require.Fail(t, "Row does not implement SQLScanner. Need pointer type.", "%#v", row)
 	}
 
-	statement := `SELECT * FROM ` + table
+	whereClause := ""
+	if len(whereClauses) > 0 {
+		whereClause = whereClauses[0]
+	}
+	statement := `SELECT * FROM ` + table + " " + whereClause
 	if ro, ok := row.(RowsOrder); ok {
 		statement += " " + ro.RowsOrderBy()
 	}
