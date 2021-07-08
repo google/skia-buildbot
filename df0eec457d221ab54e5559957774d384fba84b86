@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fc19459a_8dd13cda",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk-demo.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-08T18:13:22Z",
+      "side": 1,
+      "message": "Please annotate this object literal with the RPC response type.",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 16
+      },
+      "revId": "df0eec457d221ab54e5559957774d384fba84b86",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
