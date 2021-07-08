@@ -62,11 +62,7 @@ sk_element_puppeteer_test(
     name = "triagelog-page-sk_puppeteer_test",
     src = "triagelog-page-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
-    deps = [
-        "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
-    ],
+    deps = ["//puppeteer-tests:util_ts_lib"],
 )
 
 karma_test(
