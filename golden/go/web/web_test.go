@@ -48,7 +48,7 @@ import (
 	"go.skia.org/infra/golden/go/search2"
 	mock_search2 "go.skia.org/infra/golden/go/search2/mocks"
 	"go.skia.org/infra/golden/go/sql"
-	"go.skia.org/infra/golden/go/sql/datakitchensink"
+	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
@@ -1481,7 +1481,7 @@ func TestBaselineHandlerV2_PrimaryBranch_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -1502,14 +1502,14 @@ func TestBaselineHandlerV2_ValidChangelist_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID: datakitchensink.GerritCRS,
+					ID: dks.GerritCRS,
 				},
 			},
 		},
@@ -1530,17 +1530,17 @@ func TestBaselineHandlerV2_ValidChangelistWithNewTests_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID: datakitchensink.GerritCRS,
+					ID: dks.GerritCRS,
 				},
 				{
-					ID: datakitchensink.GerritInternalCRS,
+					ID: dks.GerritInternalCRS,
 				},
 			},
 		},
@@ -1560,14 +1560,14 @@ func TestBaselineHandlerV2_InvalidCRS_ReturnsError(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID: datakitchensink.GerritCRS,
+					ID: dks.GerritCRS,
 				},
 			},
 		},
@@ -1585,14 +1585,14 @@ func TestBaselineHandlerV2_NewCL_ReturnsPrimaryBaseline(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID: datakitchensink.GerritCRS,
+					ID: dks.GerritCRS,
 				},
 			},
 		},
@@ -1870,14 +1870,14 @@ func TestChangelistSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID: datakitchensink.GerritCRS,
+					ID: dks.GerritCRS,
 				},
 			},
 		},
@@ -1886,8 +1886,8 @@ func TestChangelistSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": datakitchensink.GerritCRS,
-		"id":     datakitchensink.ChangelistIDThatAttemptsToFixIOS,
+		"system": dks.GerritCRS,
+		"id":     dks.ChangelistIDThatAttemptsToFixIOS,
 	})
 	wh.ChangelistSearchRedirect(w, r)
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
@@ -1900,7 +1900,7 @@ func TestChangelistSearchRedirect_CLHasNoUntriagedDigests_Success(t *testing.T) 
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	existingData := datakitchensink.Build()
+	existingData := dks.Build()
 	existingData.SecondaryBranchValues = nil // remove all ingested data from CLs.
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 
@@ -1909,7 +1909,7 @@ func TestChangelistSearchRedirect_CLHasNoUntriagedDigests_Success(t *testing.T) 
 			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID: datakitchensink.GerritCRS,
+					ID: dks.GerritCRS,
 				},
 			},
 		},
@@ -1918,8 +1918,8 @@ func TestChangelistSearchRedirect_CLHasNoUntriagedDigests_Success(t *testing.T) 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": datakitchensink.GerritCRS,
-		"id":     datakitchensink.ChangelistIDThatAttemptsToFixIOS,
+		"system": dks.GerritCRS,
+		"id":     dks.ChangelistIDThatAttemptsToFixIOS,
 	})
 	wh.ChangelistSearchRedirect(w, r)
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
@@ -1932,14 +1932,14 @@ func TestChangelistSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID: datakitchensink.GerritCRS,
+					ID: dks.GerritCRS,
 				},
 			},
 		},
@@ -1948,7 +1948,7 @@ func TestChangelistSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": datakitchensink.GerritCRS,
+		"system": dks.GerritCRS,
 		"id":     "1234",
 	})
 	wh.ChangelistSearchRedirect(w, r)
@@ -1960,7 +1960,7 @@ func TestGetActionableDigests_ReturnsCorrectResults(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -1975,24 +1975,24 @@ func TestGetActionableDigests_ReturnsCorrectResults(t *testing.T) {
 		assert.Equal(t, expected, corpora)
 	}
 
-	test(datakitchensink.GerritCRS, datakitchensink.ChangelistIDThatAttemptsToFixIOS, datakitchensink.PatchSetIDFixesIPadButNotIPhone,
+	test(dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS, dks.PatchSetIDFixesIPadButNotIPhone,
 		[]corpusAndCount{
 			// DigestB01Pos has been incorrectly triaged on this CL as untriaged.
-			{Corpus: datakitchensink.CornersCorpus, Count: 1},
+			{Corpus: dks.CornersCorpus, Count: 1},
 			// DigestC07Unt_CL is produced by the iPad
-			{Corpus: datakitchensink.RoundCorpus, Count: 1},
+			{Corpus: dks.RoundCorpus, Count: 1},
 		})
-	test(datakitchensink.GerritInternalCRS, datakitchensink.ChangelistIDThatAddsNewTests, datakitchensink.PatchsetIDAddsNewCorpus,
+	test(dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests, dks.PatchsetIDAddsNewCorpus,
 		[]corpusAndCount{
 			// DigestC04Unt and DigestC03Unt are produced on this PS
-			{Corpus: datakitchensink.RoundCorpus, Count: 2},
+			{Corpus: dks.RoundCorpus, Count: 2},
 			// DigestBlank is produced by the text test on this PS
-			{Corpus: datakitchensink.TextCorpus, Count: 1},
+			{Corpus: dks.TextCorpus, Count: 1},
 		})
-	test(datakitchensink.GerritInternalCRS, datakitchensink.ChangelistIDThatAddsNewTests, datakitchensink.PatchsetIDAddsNewCorpusAndTest,
+	test(dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests, dks.PatchsetIDAddsNewCorpusAndTest,
 		[]corpusAndCount{
 			// DigestC04Unt, DigestC03Unt, and DigestE03Unt_CL are produced on this PS
-			{Corpus: datakitchensink.RoundCorpus, Count: 3},
+			{Corpus: dks.RoundCorpus, Count: 3},
 			// The Text corpus no longer produces DigestBlank, but DigestD01Pos_CL
 		})
 }
@@ -2348,7 +2348,7 @@ func TestGetLinksBetween_SomeDiffMetricsExist_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 	waitForSystemTime()
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -2356,15 +2356,15 @@ func TestGetLinksBetween_SomeDiffMetricsExist_Success(t *testing.T) {
 		},
 	}
 
-	links, err := wh.getLinksBetween(ctx, datakitchensink.DigestA01Pos, []types.Digest{
-		datakitchensink.DigestA02Pos, datakitchensink.DigestA03Pos, datakitchensink.DigestA05Unt,
+	links, err := wh.getLinksBetween(ctx, dks.DigestA01Pos, []types.Digest{
+		dks.DigestA02Pos, dks.DigestA03Pos, dks.DigestA05Unt,
 		"0123456789abcdef0123456789abcdef", // not a real digest
 	})
 	require.NoError(t, err)
 	assert.Equal(t, map[types.Digest]float32{
-		datakitchensink.DigestA02Pos: 56.25,
-		datakitchensink.DigestA03Pos: 56.25,
-		datakitchensink.DigestA05Unt: 3.125,
+		dks.DigestA02Pos: 56.25,
+		dks.DigestA03Pos: 56.25,
+		dks.DigestA05Unt: 3.125,
 	}, links)
 }
 
@@ -2373,7 +2373,7 @@ func TestGetLinksBetween_NoDiffMetricsExist_EmptyMapReturned(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 	waitForSystemTime()
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -2381,7 +2381,7 @@ func TestGetLinksBetween_NoDiffMetricsExist_EmptyMapReturned(t *testing.T) {
 		},
 	}
 
-	links, err := wh.getLinksBetween(ctx, datakitchensink.DigestA01Pos, []types.Digest{
+	links, err := wh.getLinksBetween(ctx, dks.DigestA01Pos, []types.Digest{
 		"0123456789abcdef0123456789abcdef", // not a real digest
 	})
 	require.NoError(t, err)
@@ -2661,7 +2661,7 @@ func TestStartCLCacheProcess_Success(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := initCaches(&Handlers{
 		HandlersConfig: HandlersConfig{
@@ -2686,7 +2686,7 @@ func TestStartStatusCacheProcess_Success(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 	waitForSystemTime()
 
 	wh := Handlers{
@@ -2708,18 +2708,18 @@ func TestStartStatusCacheProcess_Success(t *testing.T) {
 	assert.Equal(t, frontend.GUIStatus{
 		LastCommit: frontend.Commit{
 			ID:         "0000000110",
-			Author:     datakitchensink.UserTwo,
+			Author:     dks.UserTwo,
 			Subject:    "commit 110",
 			Hash:       "f4412901bfb130a8774c0c719450d1450845f471",
 			CommitTime: 1607644800, // "2020-12-11T00:00:00Z"
 		},
 		CorpStatus: []*frontend.GUICorpusStatus{
 			{
-				Name:           datakitchensink.CornersCorpus,
+				Name:           dks.CornersCorpus,
 				UntriagedCount: 0,
 			},
 			{
-				Name:           datakitchensink.RoundCorpus,
+				Name:           dks.RoundCorpus,
 				UntriagedCount: 3,
 			},
 		},
@@ -2732,18 +2732,18 @@ func TestStatusHandler2_Success(t *testing.T) {
 	wh := Handlers{statusCache: frontend.GUIStatus{
 		LastCommit: frontend.Commit{
 			ID:         "0000000110",
-			Author:     datakitchensink.UserTwo,
+			Author:     dks.UserTwo,
 			Subject:    "commit 110",
 			Hash:       "f4412901bfb130a8774c0c719450d1450845f471",
 			CommitTime: 1607644800, // "2020-12-11T00:00:00Z"
 		},
 		CorpStatus: []*frontend.GUICorpusStatus{
 			{
-				Name:           datakitchensink.CornersCorpus,
+				Name:           dks.CornersCorpus,
 				UntriagedCount: 0,
 			},
 			{
-				Name:           datakitchensink.RoundCorpus,
+				Name:           dks.RoundCorpus,
 				UntriagedCount: 3,
 			},
 		},
@@ -2829,12 +2829,12 @@ func TestClusterDiffHandler2_ValidInput_CorrectJSONReturned(t *testing.T) {
 
 	ms.On("GetCluster", testutils.AnyContext, expectedOptions).Return(frontend.ClusterDiffResult{
 		Nodes: []frontend.Node{
-			{Digest: datakitchensink.DigestB01Pos, Status: expectations.Positive},
+			{Digest: dks.DigestB01Pos, Status: expectations.Positive},
 		},
 		Links: []frontend.Link{},
 		Test:  "my_test",
 		ParamsetByDigest: map[types.Digest]paramtools.ParamSet{
-			datakitchensink.DigestB01Pos: {
+			dks.DigestB01Pos: {
 				"key1": []string{"value1", "value2"},
 			},
 		},
@@ -2903,7 +2903,7 @@ func TestDigestListHandler2_CorrectJSONReturned(t *testing.T) {
 	}
 
 	ms.On("GetDigestsForGrouping", testutils.AnyContext, expectedGrouping).Return(frontend.DigestListResponse{
-		Digests: []types.Digest{datakitchensink.DigestC01Pos, datakitchensink.DigestC02Pos}}, nil)
+		Digests: []types.Digest{dks.DigestC01Pos, dks.DigestC02Pos}}, nil)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -2938,7 +2938,7 @@ func TestGetGroupingForTest_GroupingExists_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -2946,11 +2946,11 @@ func TestGetGroupingForTest_GroupingExists_Success(t *testing.T) {
 		},
 	}
 
-	ps, err := wh.getGroupingForTest(ctx, datakitchensink.CircleTest)
+	ps, err := wh.getGroupingForTest(ctx, dks.CircleTest)
 	require.NoError(t, err)
 	assert.Equal(t, paramtools.Params{
-		types.CorpusField:     datakitchensink.RoundCorpus,
-		types.PrimaryKeyField: datakitchensink.CircleTest,
+		types.CorpusField:     dks.RoundCorpus,
+		types.PrimaryKeyField: dks.CircleTest,
 	}, ps)
 }
 
@@ -2959,7 +2959,7 @@ func TestGetGroupingForTest_GroupingDoesNotExist_ReturnsError(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -2977,14 +2977,14 @@ func TestPatchsetsAndTryjobsForCL2_ExistingCL_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID:          datakitchensink.GerritInternalCRS,
+					ID:          dks.GerritInternalCRS,
 					URLTemplate: "www.example.com/gerrit/%s",
 				},
 			},
@@ -2995,8 +2995,8 @@ func TestPatchsetsAndTryjobsForCL2_ExistingCL_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelist/gerrit-internal/CL_fix_ios", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": datakitchensink.GerritInternalCRS,
-		"id":     datakitchensink.ChangelistIDThatAddsNewTests,
+		"system": dks.GerritInternalCRS,
+		"id":     dks.ChangelistIDThatAddsNewTests,
 	})
 	wh.PatchsetsAndTryjobsForCL2(w, r)
 	const expectedJSON = `{"cl":{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"www.example.com/gerrit/CL_new_tests"},"patch_sets":[{"id":"gerrit-internal_PS_adds_new_corpus_and_test","order":4,"try_jobs":[{"id":"buildbucketInternal_tryjob_05_windows","name":"Test-Windows10.3-ALL","updated":"2020-12-12T09:00:00Z","system":"buildbucketInternal","url":"https://cr-buildbucket.appspot.com/build/buildbucketInternal_tryjob_05_windows"},{"id":"buildbucketInternal_tryjob_06_walleye","name":"Test-Walleye-ALL","updated":"2020-12-12T09:20:33Z","system":"buildbucketInternal","url":"https://cr-buildbucket.appspot.com/build/buildbucketInternal_tryjob_06_walleye"}]},{"id":"gerrit-internal_PS_adds_new_corpus","order":1,"try_jobs":[{"id":"buildbucketInternal_tryjob_04_windows","name":"Test-Windows10.3-ALL","updated":"2020-12-12T08:09:10Z","system":"buildbucketInternal","url":"https://cr-buildbucket.appspot.com/build/buildbucketInternal_tryjob_04_windows"}]}],"num_total_patch_sets":2}`
@@ -3008,14 +3008,14 @@ func TestPatchsetsAndTryjobsForCL2_InvalidCL_ReturnsErrorCode(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{
-					ID:          datakitchensink.GerritCRS,
+					ID:          dks.GerritCRS,
 					URLTemplate: "www.example.com/gerrit/%s",
 				},
 			},
@@ -3026,7 +3026,7 @@ func TestPatchsetsAndTryjobsForCL2_InvalidCL_ReturnsErrorCode(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelist/gerrit/not-a-real-cl", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": datakitchensink.GerritCRS,
+		"system": dks.GerritCRS,
 		"id":     "not-a-real-cl",
 	})
 	wh.PatchsetsAndTryjobsForCL2(w, r)
@@ -3039,7 +3039,7 @@ func TestTriageLogHandler2_PrimaryBranch_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -3071,7 +3071,7 @@ func TestTriageLogHandler2_RespectsPagination_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -3094,13 +3094,13 @@ func TestTriageLogHandler2_ValidChangelist_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
-				{ID: datakitchensink.GerritCRS},
+				{ID: dks.GerritCRS},
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
@@ -3120,13 +3120,13 @@ func TestTriageLogHandler2_InvalidChangelist_ReturnsEmptyEntries(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
-				{ID: datakitchensink.GerritCRS},
+				{ID: dks.GerritCRS},
 			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
@@ -3144,7 +3144,7 @@ func TestUndoExpectationChanges_ExistingRecordOnPrimaryBranch_Success(t *testing
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	existingData := datakitchensink.Build()
+	existingData := dks.Build()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 
 	// Find the record that triages DigestA01Pos and DigestA02Pos positive for the square test
@@ -3160,8 +3160,8 @@ func TestUndoExpectationChanges_ExistingRecordOnPrimaryBranch_Success(t *testing
 	undoTime := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
 	const undoUser = "undo_user@example.com"
 	_, squareGroupingID := sql.SerializeMap(paramtools.Params{
-		types.CorpusField:     datakitchensink.CornersCorpus,
-		types.PrimaryKeyField: datakitchensink.SquareTest,
+		types.CorpusField:     dks.CornersCorpus,
+		types.PrimaryKeyField: dks.SquareTest,
 	})
 
 	wh := Handlers{
@@ -3189,14 +3189,14 @@ func TestUndoExpectationChanges_ExistingRecordOnPrimaryBranch_Success(t *testing
 	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
 		ExpectationRecordID: newRecordID,
 		GroupingID:          squareGroupingID,
-		Digest:              d(datakitchensink.DigestA01Pos),
+		Digest:              d(dks.DigestA01Pos),
 		LabelBefore:         schema.LabelPositive,
 		LabelAfter:          schema.LabelUntriaged,
 	})
 	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
 		ExpectationRecordID: newRecordID,
 		GroupingID:          squareGroupingID,
-		Digest:              d(datakitchensink.DigestA02Pos),
+		Digest:              d(dks.DigestA02Pos),
 		LabelBefore:         schema.LabelPositive,
 		LabelAfter:          schema.LabelUntriaged,
 	})
@@ -3204,13 +3204,13 @@ func TestUndoExpectationChanges_ExistingRecordOnPrimaryBranch_Success(t *testing
 	exps := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{})
 	assert.Contains(t, exps, schema.ExpectationRow{
 		GroupingID:          squareGroupingID,
-		Digest:              d(datakitchensink.DigestA01Pos),
+		Digest:              d(dks.DigestA01Pos),
 		Label:               schema.LabelUntriaged,
 		ExpectationRecordID: &newRecordID,
 	})
 	assert.Contains(t, exps, schema.ExpectationRow{
 		GroupingID:          squareGroupingID,
-		Digest:              d(datakitchensink.DigestA02Pos),
+		Digest:              d(dks.DigestA02Pos),
 		Label:               schema.LabelUntriaged,
 		ExpectationRecordID: &newRecordID,
 	})
@@ -3221,7 +3221,7 @@ func TestUndoExpectationChanges_ExistingRecordOnCL_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	existingData := datakitchensink.Build()
+	existingData := dks.Build()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 
 	// Find the record that incorrectly triages DigestB01Pos on the CL CL_fix_ios
@@ -3239,8 +3239,8 @@ func TestUndoExpectationChanges_ExistingRecordOnCL_Success(t *testing.T) {
 	undoTime := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
 	const undoUser = "undo_user@example.com"
 	_, triangleGroupingID := sql.SerializeMap(paramtools.Params{
-		types.CorpusField:     datakitchensink.CornersCorpus,
-		types.PrimaryKeyField: datakitchensink.TriangleTest,
+		types.CorpusField:     dks.CornersCorpus,
+		types.PrimaryKeyField: dks.TriangleTest,
 	})
 
 	wh := Handlers{
@@ -3269,7 +3269,7 @@ func TestUndoExpectationChanges_ExistingRecordOnCL_Success(t *testing.T) {
 	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
 		ExpectationRecordID: newRecordID,
 		GroupingID:          triangleGroupingID,
-		Digest:              d(datakitchensink.DigestB01Pos),
+		Digest:              d(dks.DigestB01Pos),
 		LabelBefore:         schema.LabelUntriaged,
 		LabelAfter:          schema.LabelPositive,
 	})
@@ -3278,7 +3278,7 @@ func TestUndoExpectationChanges_ExistingRecordOnCL_Success(t *testing.T) {
 	assert.Contains(t, exps, schema.SecondaryBranchExpectationRow{
 		BranchName:          expectedBranchName,
 		GroupingID:          triangleGroupingID,
-		Digest:              d(datakitchensink.DigestB01Pos),
+		Digest:              d(dks.DigestB01Pos),
 		Label:               schema.LabelPositive,
 		ExpectationRecordID: newRecordID,
 	})
@@ -3289,7 +3289,7 @@ func TestUndoExpectationChanges_UnknownID_ReturnsError(t *testing.T) {
 
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -3306,6 +3306,317 @@ func TestUndoExpectationChanges_UnknownID_ReturnsError(t *testing.T) {
 	err = row.Scan(&notUsed)
 	require.Error(t, err)
 	assert.Equal(t, pgx.ErrNoRows, err)
+}
+
+func TestTriage2_SingleDigestOnPrimaryBranch_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "single_triage@example.com"
+	fakeNow := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
+
+	_, circleGroupingID := sql.SerializeMap(paramtools.Params{
+		types.CorpusField:     dks.RoundCorpus,
+		types.PrimaryKeyField: dks.CircleTest,
+	})
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	tr := frontend.TriageRequest{
+		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
+			dks.CircleTest: {
+				dks.DigestC03Unt: expectations.Positive,
+			},
+		},
+	}
+	ctx = context.WithValue(ctx, now.ContextKey, fakeNow)
+	require.NoError(t, wh.triage2(ctx, user, tr))
+
+	latestRecord := sqltest.GetAllRows(ctx, t, db, "ExpectationRecords", &schema.ExpectationRecordRow{}).([]schema.ExpectationRecordRow)[0]
+	newRecordID := latestRecord.ExpectationRecordID // randomly generated
+	assert.Equal(t, schema.ExpectationRecordRow{
+		ExpectationRecordID: newRecordID,
+		UserName:            user,
+		TriageTime:          fakeNow,
+		NumChanges:          1,
+	}, latestRecord)
+
+	whereClause := `WHERE expectation_record_id = '` + newRecordID.String() + `'`
+	newDeltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{}, whereClause)
+	assert.ElementsMatch(t, []schema.ExpectationDeltaRow{{
+		ExpectationRecordID: newRecordID,
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}}, newDeltas)
+
+	exps := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{})
+	assert.Contains(t, exps, schema.ExpectationRow{
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &newRecordID,
+	})
+}
+
+func TestTriage2_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAuthor(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "not_me@example.com"
+	const algorithmName = "fuzzy"
+	fakeNow := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
+
+	_, circleGroupingID := sql.SerializeMap(paramtools.Params{
+		types.CorpusField:     dks.RoundCorpus,
+		types.PrimaryKeyField: dks.CircleTest,
+	})
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	tr := frontend.TriageRequest{
+		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
+			dks.CircleTest: {
+				dks.DigestC03Unt: expectations.Positive,
+			},
+		},
+		ImageMatchingAlgorithm: algorithmName,
+	}
+	ctx = context.WithValue(ctx, now.ContextKey, fakeNow)
+	require.NoError(t, wh.triage2(ctx, user, tr))
+
+	latestRecord := sqltest.GetAllRows(ctx, t, db, "ExpectationRecords", &schema.ExpectationRecordRow{}).([]schema.ExpectationRecordRow)[0]
+	newRecordID := latestRecord.ExpectationRecordID // randomly generated
+	assert.Equal(t, schema.ExpectationRecordRow{
+		ExpectationRecordID: newRecordID,
+		UserName:            algorithmName,
+		TriageTime:          fakeNow,
+		NumChanges:          1,
+	}, latestRecord)
+
+	whereClause := `WHERE expectation_record_id = '` + newRecordID.String() + `'`
+	newDeltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{}, whereClause)
+	assert.ElementsMatch(t, []schema.ExpectationDeltaRow{{
+		ExpectationRecordID: newRecordID,
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}}, newDeltas)
+
+	exps := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{})
+	assert.Contains(t, exps, schema.ExpectationRow{
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &newRecordID,
+	})
+}
+
+func TestTriage2_BulkTriage_PrimaryBranch_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "bulk_triage@example.com"
+	fakeNow := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
+	// This recordID is what has DigestBlank triaged as negative. It should still be in place
+	// after the bulk triage operation.
+	existingRecordID, err := uuid.Parse("65693cef-0220-f0aa-3503-1d5df6548ac9")
+	require.NoError(t, err)
+	_, triangleGroupingID := sql.SerializeMap(paramtools.Params{
+		types.CorpusField:     dks.CornersCorpus,
+		types.PrimaryKeyField: dks.TriangleTest,
+	})
+	_, circleGroupingID := sql.SerializeMap(paramtools.Params{
+		types.CorpusField:     dks.RoundCorpus,
+		types.PrimaryKeyField: dks.CircleTest,
+	})
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	tr := frontend.TriageRequest{
+		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
+			dks.TriangleTest: {
+				dks.DigestB01Pos: expectations.Untriaged,
+				dks.DigestB02Pos: expectations.Negative,
+			},
+			dks.CircleTest: {
+				dks.DigestC03Unt: expectations.Positive,
+				dks.DigestBlank:  "", // pretend this has no closest, i.e. leave it unchanged.
+			},
+		},
+	}
+	ctx = context.WithValue(ctx, now.ContextKey, fakeNow)
+	require.NoError(t, wh.triage2(ctx, user, tr))
+
+	latestRecord := sqltest.GetAllRows(ctx, t, db, "ExpectationRecords", &schema.ExpectationRecordRow{}).([]schema.ExpectationRecordRow)[0]
+	newRecordID := latestRecord.ExpectationRecordID // randomly generated
+	assert.Equal(t, schema.ExpectationRecordRow{
+		ExpectationRecordID: newRecordID,
+		UserName:            user,
+		TriageTime:          fakeNow,
+		NumChanges:          3, // Only 3 deltas were applied
+	}, latestRecord)
+
+	whereClause := `WHERE expectation_record_id = '` + newRecordID.String() + `'`
+	newDeltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{}, whereClause)
+	assert.ElementsMatch(t, []schema.ExpectationDeltaRow{{
+		ExpectationRecordID: newRecordID,
+		GroupingID:          triangleGroupingID,
+		Digest:              d(dks.DigestB01Pos),
+		LabelBefore:         schema.LabelPositive,
+		LabelAfter:          schema.LabelUntriaged,
+	}, {
+		ExpectationRecordID: newRecordID,
+		GroupingID:          triangleGroupingID,
+		Digest:              d(dks.DigestB02Pos),
+		LabelBefore:         schema.LabelPositive,
+		LabelAfter:          schema.LabelNegative,
+	}, {
+		ExpectationRecordID: newRecordID,
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}}, newDeltas)
+
+	exps := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{})
+	assert.Contains(t, exps, schema.ExpectationRow{
+		GroupingID:          triangleGroupingID,
+		Digest:              d(dks.DigestB01Pos),
+		Label:               schema.LabelUntriaged,
+		ExpectationRecordID: &newRecordID,
+	})
+	assert.Contains(t, exps, schema.ExpectationRow{
+		GroupingID:          triangleGroupingID,
+		Digest:              d(dks.DigestB02Pos),
+		Label:               schema.LabelNegative,
+		ExpectationRecordID: &newRecordID,
+	})
+	assert.Contains(t, exps, schema.ExpectationRow{
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestC03Unt),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &newRecordID,
+	})
+	assert.Contains(t, exps, schema.ExpectationRow{
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestBlank),
+		Label:               schema.LabelNegative, // unchanged
+		ExpectationRecordID: &existingRecordID,    // unchanged
+	})
+}
+
+func TestTriage2_BulkTriage_OnCL_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const user = "single_triage@example.com"
+	fakeNow := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
+	expectedBranch := "gerrit_CL_fix_ios"
+	// This is the ID associated with triaging DigestC01Pos as positive on the primary branch.
+	existingID, err := uuid.Parse("94a63df2-33d3-97ad-f4d7-341f76ff8cb6")
+	require.NoError(t, err)
+
+	_, circleGroupingID := sql.SerializeMap(paramtools.Params{
+		types.CorpusField:     dks.RoundCorpus,
+		types.PrimaryKeyField: dks.CircleTest,
+	})
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	tr := frontend.TriageRequest{
+		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
+			dks.CircleTest: {
+				dks.DigestC06Pos_CL: expectations.Negative,
+				dks.DigestC01Pos:    expectations.Negative,
+			},
+		},
+		CodeReviewSystem: dks.GerritCRS,
+		ChangelistID:     dks.ChangelistIDThatAttemptsToFixIOS,
+	}
+	ctx = context.WithValue(ctx, now.ContextKey, fakeNow)
+	require.NoError(t, wh.triage2(ctx, user, tr))
+
+	latestRecord := sqltest.GetAllRows(ctx, t, db, "ExpectationRecords", &schema.ExpectationRecordRow{}).([]schema.ExpectationRecordRow)[0]
+	newRecordID := latestRecord.ExpectationRecordID // randomly generated
+	assert.Equal(t, schema.ExpectationRecordRow{
+		ExpectationRecordID: newRecordID,
+		BranchName:          &expectedBranch,
+		UserName:            user,
+		TriageTime:          fakeNow,
+		NumChanges:          2,
+	}, latestRecord)
+
+	whereClause := `WHERE expectation_record_id = '` + newRecordID.String() + `'`
+	newDeltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{}, whereClause)
+	assert.ElementsMatch(t, []schema.ExpectationDeltaRow{{
+		ExpectationRecordID: newRecordID,
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestC06Pos_CL),
+		LabelBefore:         schema.LabelUntriaged, // This state is pulled from the primary branch
+		LabelAfter:          schema.LabelNegative,
+	}, {
+		ExpectationRecordID: newRecordID,
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestC01Pos),
+		LabelBefore:         schema.LabelPositive,
+		LabelAfter:          schema.LabelNegative,
+	}}, newDeltas)
+
+	clExps := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchExpectations", &schema.SecondaryBranchExpectationRow{})
+	assert.Contains(t, clExps, schema.SecondaryBranchExpectationRow{
+		BranchName:          expectedBranch,
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestC06Pos_CL),
+		Label:               schema.LabelNegative,
+		ExpectationRecordID: newRecordID,
+	})
+	assert.Contains(t, clExps, schema.SecondaryBranchExpectationRow{
+		BranchName:          expectedBranch,
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestC01Pos),
+		Label:               schema.LabelNegative,
+		ExpectationRecordID: newRecordID,
+	})
+
+	// Primary branch expectations stay the same
+	exps := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{})
+	assert.Contains(t, exps, schema.ExpectationRow{
+		GroupingID:          circleGroupingID,
+		Digest:              d(dks.DigestC01Pos),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &existingID,
+	})
 }
 
 // d converts the given digest to its corresponding DigestBytes types. It panics on a failure.

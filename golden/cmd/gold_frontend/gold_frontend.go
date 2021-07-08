@@ -759,6 +759,7 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	add("/json/v2/search", handlers.SearchHandler2, "GET")
 	add("/json/triage", handlers.TriageHandler, "POST")
 	add("/json/v1/triage", handlers.TriageHandler, "POST")
+	add("/json/v2/triage", handlers.TriageHandler2, "POST")
 	add("/json/triagelog", handlers.TriageLogHandler, "GET")
 	add("/json/v1/triagelog", handlers.TriageLogHandler, "GET")
 	add("/json/v2/triagelog", handlers.TriageLogHandler2, "GET")
