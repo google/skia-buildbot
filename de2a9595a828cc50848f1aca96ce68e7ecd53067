@@ -16,6 +16,24 @@
       "message": "Of note, the bazel gold image is the wrong data set - do you have any idea why?",
       "revId": "de2a9595a828cc50848f1aca96ce68e7ecd53067",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "32a1b9a4_b67a725b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-08T12:49:38Z",
+      "side": 1,
+      "message": "Nevermind - needed to append query params to the bazel base url.",
+      "parentUuid": "908b037b_6a7f1663",
+      "revId": "de2a9595a828cc50848f1aca96ce68e7ecd53067",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
