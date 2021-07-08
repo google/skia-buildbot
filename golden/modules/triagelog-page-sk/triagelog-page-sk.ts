@@ -206,14 +206,23 @@ export class TriagelogPageSk extends ElementSk {
 
   private undoEntry(entryId: string) {
     sendBeginTask(this);
-    this.fetchV1(`/json/v1/triagelog/undo?id=${entryId}`, 'POST')
-    // The undo RPC returns the first page of results with details hidden.
-    // But we always show details, so we need to make another request to
-    // fetch the triage log with details from /json/v1/triagelog.
-    // TODO(lovisolo): Rethink this after we delete the old triage log page.
-      .then(() => this.fetchEntries(/* sendBusyDoneEvents= */ false))
-      .then(() => sendEndTask(this))
-      .catch((e) => sendFetchError(this, e, 'undo'));
+    if (!this.useNewAPI) {
+      this.fetchV1(`/json/v1/triagelog/undo?id=${entryId}`, 'POST')
+      // The undo RPC returns the first page of results with details hidden.
+      // But we always show details, so we need to make another request to
+      // fetch the triage log with details from /json/v1/triagelog.
+      // TODO(lovisolo): Rethink this after we delete the old triage log page.
+        .then(() => this.fetchEntries(/* sendBusyDoneEvents= */ false))
+        .then(() => sendEndTask(this))
+        .catch((e) => sendFetchError(this, e, 'undo'));
+    } else {
+      this.fetchV2(`/json/v2/triagelog/undo?id=${entryId}`, 'POST')
+        .then(() => {
+          this._render();
+          sendEndTask(this);
+        })
+        .catch((e) => sendFetchError(this, e, 'undo'));
+    }
   }
 
   private fetchEntries(sendBusyDoneEvents = true): Promise<void> {
