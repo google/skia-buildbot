@@ -22,6 +22,30 @@
       },
       "revId": "df0eec457d221ab54e5559957774d384fba84b86",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "49ec6947_c25724a4",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk-demo.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-08T19:21:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc19459a_8dd13cda",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 16
+      },
+      "revId": "df0eec457d221ab54e5559957774d384fba84b86",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
