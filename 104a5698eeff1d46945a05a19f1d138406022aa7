@@ -16,6 +16,23 @@
       "message": "+Joe as backup for Ravi.",
       "revId": "104a5698eeff1d46945a05a19f1d138406022aa7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8fa1bd75_bf4af17b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-08T12:16:36Z",
+      "side": 1,
+      "message": "TBR",
+      "revId": "104a5698eeff1d46945a05a19f1d138406022aa7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
