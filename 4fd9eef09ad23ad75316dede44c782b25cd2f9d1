@@ -67,6 +67,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "7454491c_9661b2aa",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-08T17:15:54Z",
+      "side": 1,
+      "message": "One suggestion, rather one suggestion, with several bonus suggestions:\n\"Clear is better than clever\"\nhttps://go-proverbs.github.io/\nhttps://www.youtube.com/watch?v\u003dPAAkCSZUG1c",
+      "parentUuid": "47f1f093_8b7faf0e",
+      "range": {
+        "startLine": 147,
+        "startChar": 74,
+        "endLine": 147,
+        "endChar": 80
+      },
+      "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "952bb3dc_46e30f52",
         "filename": "machine/go/machineserver/main.go",
         "patchSetId": 2
@@ -125,6 +149,30 @@
       "side": 1,
       "message": "The anonymous func was pretty long and full of delimiters (and an additional comma); my intent was to make it easy to see where that ended. What if I had put `w` and \"Failed to read from datastore\" on the same line, separated by a comma? Would that be both idiomatic and readable?",
       "parentUuid": "f2d72076_916b4e84",
+      "range": {
+        "startLine": 173,
+        "startChar": 2,
+        "endLine": 173,
+        "endChar": 3
+      },
+      "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8bdab2b7_41039b45",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-08T17:15:54Z",
+      "side": 1,
+      "message": "opinion: I think wrapping a function in another function and passing it in as parameter to a function call all at once is un-idiomatic (but I understand why you had to do it). I think if I was doing something like that, I would probably have broke it out as a local variable before the function call.\n\nTo answer your question about line breaks, the following\n\n   myFunc(\"A really long argument or constant or something\",\n      w, \"an error message\")\n      \nfeels more idiomatic to me than \n\n   myFunc(\n      \"A really long argument or constant or something\",\n      w,\n      \"an error message\")\n\nThe latter feels very Pythony, FWIW.",
+      "parentUuid": "defd860b_a544d0c4",
       "range": {
         "startLine": 173,
         "startChar": 2,
