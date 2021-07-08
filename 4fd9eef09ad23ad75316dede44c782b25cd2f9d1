@@ -43,6 +43,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "47f1f093_8b7faf0e",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-08T16:52:21Z",
+      "side": 1,
+      "message": "Let me have a swing at it that way and see if I can avoid accumulating too much more repetition. I accept that the error boilerplate is something I\u0027m going to have to get used to (at least until they hopefully do something about it in the language), but there are other, less idiom-dominated bits that I would love to not say thrice (httputils.ReportError, http.StatusInternalServerError, etc.). I\u0027ll see what I can do. Thanks for the good critique!",
+      "parentUuid": "9841ff3d_d973a93b",
+      "range": {
+        "startLine": 147,
+        "startChar": 74,
+        "endLine": 147,
+        "endChar": 80
+      },
+      "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "952bb3dc_46e30f52",
         "filename": "machine/go/machineserver/main.go",
         "patchSetId": 2
@@ -77,6 +101,30 @@
       "writtenOn": "2021-07-08T12:04:27Z",
       "side": 1,
       "message": "nit: In golang style, one is permitted to use line breaks to aid readability, but it\u0027s generally not done for each param to a function.",
+      "range": {
+        "startLine": 173,
+        "startChar": 2,
+        "endLine": 173,
+        "endChar": 3
+      },
+      "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "defd860b_a544d0c4",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-08T16:52:21Z",
+      "side": 1,
+      "message": "The anonymous func was pretty long and full of delimiters (and an additional comma); my intent was to make it easy to see where that ended. What if I had put `w` and \"Failed to read from datastore\" on the same line, separated by a comma? Would that be both idiomatic and readable?",
+      "parentUuid": "f2d72076_916b4e84",
       "range": {
         "startLine": 173,
         "startChar": 2,
