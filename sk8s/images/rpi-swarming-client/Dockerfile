@@ -1,11 +1,12 @@
-FROM raspbian/stretch:latest
+FROM docker.io/arm32v7/debian:testing-slim
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt update \
     && apt upgrade -y \
     && apt install -y \
     python2.7 \
-    python-certifi \
+    python3 \
+    python3-certifi \
     ca-certificates \
     curl \
     libusb-1.0-0 \
