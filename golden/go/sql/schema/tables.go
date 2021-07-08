@@ -93,6 +93,18 @@ func (e ExpectationLabel) ToExpectation() expectations.Label {
 	return expectations.Untriaged
 }
 
+func FromExpectationLabel(label expectations.Label) ExpectationLabel {
+	switch label {
+	case expectations.Positive:
+		return LabelPositive
+	case expectations.Negative:
+		return LabelNegative
+	case expectations.Untriaged:
+		return LabelUntriaged
+	}
+	return LabelUntriaged
+}
+
 type ChangelistStatus string
 
 const (

@@ -1301,6 +1301,175 @@ func (wh *Handlers) triage(ctx context.Context, user string, req frontend.Triage
 	return nil
 }
 
+// TriageHandler2 handles a request to change the triage status of one or more
+// digests of one test.
+//
+// It accepts a POST'd JSON serialization of TriageRequest and updates
+// the expectations.
+// TODO(kjlubick) In V3, this should take groupings, not test names. Additionally, to avoid race
+//   conditions where users triage the same thing at the same time, the request should include
+//   before and after. Finally, to avoid confusion on CLs, we should fail to apply changes
+//   on closed CLs (skbug.com/12122)
+func (wh *Handlers) TriageHandler2(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_TriageHandler2")
+	defer span.End()
+	user := login.LoggedInAs(r)
+	if user == "" {
+		http.Error(w, "You must be logged in to triage.", http.StatusUnauthorized)
+		return
+	}
+
+	req := frontend.TriageRequest{}
+	if err := parseJSON(r, &req); err != nil {
+		httputils.ReportError(w, err, "Failed to parse JSON request.", http.StatusBadRequest)
+		return
+	}
+	sklog.Infof("Triage v2 request: %#v", req)
+
+	if err := wh.triage2(ctx, user, req); err != nil {
+		httputils.ReportError(w, err, "Could not triage", http.StatusInternalServerError)
+		return
+	}
+	// Nothing to return, so just set 200
+	w.WriteHeader(http.StatusOK)
+}
+
+func (wh *Handlers) triage2(ctx context.Context, userID string, req frontend.TriageRequest) error {
+	ctx, span := trace.StartSpan(ctx, "triage2", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
+	branch := ""
+	if req.ChangelistID != "" && req.CodeReviewSystem != "" {
+		branch = sql.Qualify(req.CodeReviewSystem, req.ChangelistID)
+	}
+	// If set, use the image matching algorithm's name as the author of this change.
+	if req.ImageMatchingAlgorithm != "" {
+		userID = req.ImageMatchingAlgorithm
+	}
+
+	deltas, err := wh.convertToDeltas(ctx, req)
+	if err != nil {
+		return skerr.Wrapf(err, "getting groupings")
+	}
+	if len(deltas) == 0 {
+		return nil
+	}
+	span.AddAttributes(trace.Int64Attribute("num_changes", int64(len(deltas))))
+
+	err = crdbpgx.ExecuteTx(ctx, wh.DB, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		newRecordID, err := writeRecord(ctx, tx, userID, len(deltas), branch)
+		if err != nil {
+			return err
+		}
+		err = fillPreviousLabel(ctx, tx, deltas, newRecordID)
+		if err != nil {
+			return err
+		}
+		err = writeDeltas(ctx, tx, deltas)
+		if err != nil {
+			return err
+		}
+		if branch == "" {
+			return applyDeltasToPrimary(ctx, tx, deltas)
+		}
+		return applyDeltasToBranch(ctx, tx, deltas, branch)
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "writing %d expectations from %s to branch %q", len(deltas), userID, branch)
+	}
+	return nil
+}
+
+// convertToDeltas converts in triage request (a map) into a slice of deltas. These deltas are
+// partially filled out, with only the
+func (wh *Handlers) convertToDeltas(ctx context.Context, req frontend.TriageRequest) ([]schema.ExpectationDeltaRow, error) {
+	rv := make([]schema.ExpectationDeltaRow, 0, len(req.TestDigestStatus))
+	for test, digests := range req.TestDigestStatus {
+		for d, label := range digests {
+			if label == "" {
+				// Empty string means the frontend didn't have a closest digest to use when making a
+				// "bulk triage to the closest digest" request. It's easier to catch this on the
+				// server side than make the JS check for empty string and mutate the POST body.
+				continue
+			}
+			if !expectations.ValidLabel(label) {
+				return nil, skerr.Fmt("invalid label %q in triage request", label)
+			}
+			labelAfter := schema.FromExpectationLabel(label)
+			grouping, err := wh.getGroupingForTest(ctx, string(test))
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			_, groupingID := sql.SerializeMap(grouping)
+			digestBytes, err := sql.DigestToBytes(d)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			rv = append(rv, schema.ExpectationDeltaRow{
+				GroupingID: groupingID,
+				Digest:     digestBytes,
+				LabelAfter: labelAfter,
+			})
+		}
+	}
+	return rv, nil
+}
+
+// fillPreviousLabel looks up all the expectations for the partially filled-out deltas passed in
+// and updates those in-place. It only pulls labels from the primary branch, as this is not meant
+// for long term use (see notes for getting to V3 triage).
+func fillPreviousLabel(ctx context.Context, tx pgx.Tx, deltas []schema.ExpectationDeltaRow, newRecordID uuid.UUID) error {
+	ctx, span := trace.StartSpan(ctx, "fillPreviousLabel")
+	defer span.End()
+	type expectationKey struct {
+		groupingID schema.MD5Hash
+		digest     schema.MD5Hash
+	}
+	toUpdate := map[expectationKey]*schema.ExpectationDeltaRow{}
+	for i := range deltas {
+		deltas[i].ExpectationRecordID = newRecordID
+		deltas[i].LabelBefore = schema.LabelUntriaged
+		toUpdate[expectationKey{
+			groupingID: sql.AsMD5Hash(deltas[i].GroupingID),
+			digest:     sql.AsMD5Hash(deltas[i].Digest),
+		}] = &deltas[i]
+	}
+
+	statement := `SELECT grouping_id, digest, label FROM Expectations WHERE `
+	// We should be safe from injection attacks because we are hex encoding known valid byte arrays.
+	// I couldn't find a better way to match multiple composite keys using our usual techniques
+	// involving placeholders.
+	for i, d := range deltas {
+		if i != 0 {
+			statement += " OR "
+		}
+		statement += fmt.Sprintf(`(grouping_id = x'%x' AND digest = x'%x')`, d.GroupingID, d.Digest)
+	}
+	rows, err := tx.Query(ctx, statement)
+	if err != nil {
+		return err // don't wrap, could be retried
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var gID schema.GroupingID
+		var d schema.DigestBytes
+		var label schema.ExpectationLabel
+		if err := rows.Scan(&gID, &d, &label); err != nil {
+			return skerr.Wrap(err) // probably not retryable
+		}
+		ek := expectationKey{
+			groupingID: sql.AsMD5Hash(gID),
+			digest:     sql.AsMD5Hash(d),
+		}
+		row := toUpdate[ek]
+		if row == nil {
+			sklog.Warningf("Unmatched row with grouping %x and digest %x", gID, d)
+			continue // should never happen
+		}
+		row.LabelBefore = label
+	}
+	return nil
+}
+
 // StatusHandler returns the current status of with respect to HEAD.
 func (wh *Handlers) StatusHandler(w http.ResponseWriter, _ *http.Request) {
 	defer metrics2.FuncTimer().Stop()
@@ -1883,22 +2052,20 @@ func (wh *Handlers) undoExpectationChanges(ctx context.Context, recordID, userID
 			return err
 		}
 
-		newIDRow := tx.QueryRow(ctx, `INSERT INTO ExpectationRecords
-(user_name, triage_time, num_changes, branch_name) VALUES ($1, $2, $3, $4) RETURNING expectation_record_id`,
-			userID, now.Now(ctx), len(deltas), branchOfOriginal)
-		var newRecordID uuid.UUID
-		if err := newIDRow.Scan(&newRecordID); err != nil {
+		newRecordID, err := writeRecord(ctx, tx, userID, len(deltas), branchOfOriginal.String)
+		if err != nil {
 			return err
 		}
 
-		if err := writeInvertedDeltas(ctx, tx, newRecordID, deltas); err != nil {
+		invertedDeltas := invertDeltas(deltas, newRecordID)
+		if err := writeDeltas(ctx, tx, invertedDeltas); err != nil {
 			return err
 		}
 
 		if branchOfOriginal.Status != pgtype.Present {
-			err = applyInvertedDeltasToPrimary(ctx, tx, newRecordID, deltas)
+			err = applyDeltasToPrimary(ctx, tx, invertedDeltas)
 		} else {
-			err = applyInvertedDeltasToBranch(ctx, tx, newRecordID, branchOfOriginal.String, deltas)
+			err = applyDeltasToBranch(ctx, tx, invertedDeltas, branchOfOriginal.String)
 		}
 		return err
 	})
@@ -1906,6 +2073,42 @@ func (wh *Handlers) undoExpectationChanges(ctx context.Context, recordID, userID
 		return skerr.Wrap(err)
 	}
 	return nil
+}
+
+// writeRecord writes a new ExpectationRecord to the DB.
+func writeRecord(ctx context.Context, tx pgx.Tx, userID string, numChanges int, branch string) (uuid.UUID, error) {
+	ctx, span := trace.StartSpan(ctx, "writeRecord")
+	defer span.End()
+
+	var br *string
+	if branch != "" {
+		br = &branch
+	}
+	const statement = `INSERT INTO ExpectationRecords
+(user_name, triage_time, num_changes, branch_name) VALUES ($1, $2, $3, $4) RETURNING expectation_record_id`
+	row := tx.QueryRow(ctx, statement, userID, now.Now(ctx), numChanges, br)
+	var recordUUID uuid.UUID
+	err := row.Scan(&recordUUID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return recordUUID, nil
+}
+
+// invertDeltas returns a slice of deltas corresponding to the same grouping+digest pairs as the
+// original slice, but with inverted before/after labels and a new record ID.
+func invertDeltas(deltas []schema.ExpectationDeltaRow, newRecordID uuid.UUID) []schema.ExpectationDeltaRow {
+	var rv []schema.ExpectationDeltaRow
+	for _, d := range deltas {
+		rv = append(rv, schema.ExpectationDeltaRow{
+			ExpectationRecordID: newRecordID,
+			GroupingID:          d.GroupingID,
+			Digest:              d.Digest,
+			LabelBefore:         d.LabelAfter, // Intentionally flipped around
+			LabelAfter:          d.LabelBefore,
+		})
+	}
+	return rv
 }
 
 // getDeltasForRecord returns all ExpectationDeltaRows for the given record ID.
@@ -1930,10 +2133,9 @@ FROM ExpectationDeltas WHERE expectation_record_id = $1`
 	return deltas, nil
 }
 
-// writeInvertedDeltas stores the given deltas with flipped LabelAfter and LabelBefore, belonging
-// to the provided record ID.
-func writeInvertedDeltas(ctx context.Context, tx pgx.Tx, newRecordID uuid.UUID, deltas []schema.ExpectationDeltaRow) error {
-	ctx, span := trace.StartSpan(ctx, "writeInvertedDeltas")
+// writeDeltas writes the given rows to the SQL DB.
+func writeDeltas(ctx context.Context, tx pgx.Tx, deltas []schema.ExpectationDeltaRow) error {
+	ctx, span := trace.StartSpan(ctx, "writeDeltas")
 	defer span.End()
 
 	const statement = `INSERT INTO ExpectationDeltas
@@ -1942,17 +2144,15 @@ func writeInvertedDeltas(ctx context.Context, tx pgx.Tx, newRecordID uuid.UUID, 
 	vp := sql.ValuesPlaceholders(valuesPerRow, len(deltas))
 	arguments := make([]interface{}, 0, len(deltas)*valuesPerRow)
 	for _, d := range deltas {
-		arguments = append(arguments, newRecordID, d.GroupingID, d.Digest,
-			d.LabelAfter, d.LabelBefore) // inverted, that is, undone.
+		arguments = append(arguments, d.ExpectationRecordID, d.GroupingID, d.Digest, d.LabelBefore, d.LabelAfter)
 	}
 	_, err := tx.Exec(ctx, statement+vp, arguments...)
 	return err // don't wrap, could be retryable
 }
 
-// applyInvertedDeltasToPrimary applies the LabelBefore for all grouping+digest pairs in the
-// provided deltas slice to the primary branch expectations.
-func applyInvertedDeltasToPrimary(ctx context.Context, tx pgx.Tx, newRecordID uuid.UUID, deltas []schema.ExpectationDeltaRow) error {
-	ctx, span := trace.StartSpan(ctx, "applyInvertedDeltasToPrimary")
+// applyDeltasToPrimary applies the given deltas to the primary branch expectations.
+func applyDeltasToPrimary(ctx context.Context, tx pgx.Tx, deltas []schema.ExpectationDeltaRow) error {
+	ctx, span := trace.StartSpan(ctx, "applyDeltasToPrimary")
 	defer span.End()
 
 	const statement = `UPSERT INTO Expectations
@@ -1961,18 +2161,14 @@ func applyInvertedDeltasToPrimary(ctx context.Context, tx pgx.Tx, newRecordID uu
 	vp := sql.ValuesPlaceholders(valuesPerRow, len(deltas))
 	arguments := make([]interface{}, 0, len(deltas)*valuesPerRow)
 	for _, d := range deltas {
-		arguments = append(arguments, d.GroupingID, d.Digest,
-			d.LabelBefore, // Write the before value, so we can undo the change.
-			newRecordID)
+		arguments = append(arguments, d.GroupingID, d.Digest, d.LabelAfter, d.ExpectationRecordID)
 	}
 	_, err := tx.Exec(ctx, statement+vp, arguments...)
 	return err // don't wrap, could be retryable
 }
 
-// applyInvertedDeltasToBranch applies the LabelBefore for all grouping+digest pairs in the
-// provided deltas slice to the secondary branch expectations associated with the given branch
-// (aka, the CL ID).
-func applyInvertedDeltasToBranch(ctx context.Context, tx pgx.Tx, newRecordID uuid.UUID, branch string, deltas []schema.ExpectationDeltaRow) error {
+// applyDeltasToBranch applies the given deltas to the given branch (i.e. CL).
+func applyDeltasToBranch(ctx context.Context, tx pgx.Tx, deltas []schema.ExpectationDeltaRow, branch string) error {
 	ctx, span := trace.StartSpan(ctx, "applyInvertedDeltasToBranch")
 	defer span.End()
 
@@ -1982,9 +2178,7 @@ func applyInvertedDeltasToBranch(ctx context.Context, tx pgx.Tx, newRecordID uui
 	vp := sql.ValuesPlaceholders(valuesPerRow, len(deltas))
 	arguments := make([]interface{}, 0, len(deltas)*valuesPerRow)
 	for _, d := range deltas {
-		arguments = append(arguments, branch, d.GroupingID, d.Digest,
-			d.LabelBefore, // Write the before value, so we can undo the change.
-			newRecordID)
+		arguments = append(arguments, branch, d.GroupingID, d.Digest, d.LabelAfter, d.ExpectationRecordID)
 	}
 	_, err := tx.Exec(ctx, statement+vp, arguments...)
 	return err // don't wrap, could be retryable
