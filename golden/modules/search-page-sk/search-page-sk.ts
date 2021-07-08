@@ -60,7 +60,6 @@ export interface SearchRequest {
   blame?: string;
   crs?: string;
   issue?: string;
-  use_sql?: boolean;
 
   // Fields populated via the changelist-controls-sk.
   master?: boolean; // Show all results if true, or exclude results from the master branch if false.
