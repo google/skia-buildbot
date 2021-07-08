@@ -13,8 +13,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -47,6 +49,7 @@ import (
 	mock_search2 "go.skia.org/infra/golden/go/search2/mocks"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/datakitchensink"
+	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
@@ -3134,6 +3137,184 @@ func TestTriageLogHandler2_InvalidChangelist_ReturnsEmptyEntries(t *testing.T) {
 	wh.TriageLogHandler2(w, r)
 	const expectedJSON = `{"offset":0,"size":20,"total":0,"entries":[]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+}
+
+func TestUndoExpectationChanges_ExistingRecordOnPrimaryBranch_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := datakitchensink.Build()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	// Find the record that triages DigestA01Pos and DigestA02Pos positive for the square test
+	// on the primary branch. This record ID should be constant, but we look it up to avoid
+	// test brittleness.
+	var recordID uuid.UUID
+	for _, record := range existingData.ExpectationRecords {
+		if record.TriageTime.Format(time.RFC3339) == "2020-06-07T08:23:08Z" {
+			recordID = record.ExpectationRecordID
+		}
+	}
+	require.NotZero(t, recordID)
+	undoTime := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
+	const undoUser = "undo_user@example.com"
+	_, squareGroupingID := sql.SerializeMap(paramtools.Params{
+		types.CorpusField:     datakitchensink.CornersCorpus,
+		types.PrimaryKeyField: datakitchensink.SquareTest,
+	})
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+	ctx = context.WithValue(ctx, now.ContextKey, undoTime)
+	err := wh.undoExpectationChanges(ctx, recordID.String(), undoUser)
+	require.NoError(t, err)
+
+	row := db.QueryRow(ctx, `SELECT expectation_record_id FROM ExpectationRecords WHERE user_name = $1`, undoUser)
+	var newRecordID uuid.UUID
+	require.NoError(t, row.Scan(&newRecordID))
+
+	records := sqltest.GetAllRows(ctx, t, db, "ExpectationRecords", &schema.ExpectationRecordRow{})
+	assert.Contains(t, records, schema.ExpectationRecordRow{
+		ExpectationRecordID: newRecordID,
+		UserName:            undoUser,
+		TriageTime:          undoTime,
+		NumChanges:          2,
+	})
+
+	deltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{})
+	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
+		ExpectationRecordID: newRecordID,
+		GroupingID:          squareGroupingID,
+		Digest:              d(datakitchensink.DigestA01Pos),
+		LabelBefore:         schema.LabelPositive,
+		LabelAfter:          schema.LabelUntriaged,
+	})
+	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
+		ExpectationRecordID: newRecordID,
+		GroupingID:          squareGroupingID,
+		Digest:              d(datakitchensink.DigestA02Pos),
+		LabelBefore:         schema.LabelPositive,
+		LabelAfter:          schema.LabelUntriaged,
+	})
+
+	exps := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{})
+	assert.Contains(t, exps, schema.ExpectationRow{
+		GroupingID:          squareGroupingID,
+		Digest:              d(datakitchensink.DigestA01Pos),
+		Label:               schema.LabelUntriaged,
+		ExpectationRecordID: &newRecordID,
+	})
+	assert.Contains(t, exps, schema.ExpectationRow{
+		GroupingID:          squareGroupingID,
+		Digest:              d(datakitchensink.DigestA02Pos),
+		Label:               schema.LabelUntriaged,
+		ExpectationRecordID: &newRecordID,
+	})
+}
+
+func TestUndoExpectationChanges_ExistingRecordOnCL_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := datakitchensink.Build()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	// Find the record that incorrectly triages DigestB01Pos on the CL CL_fix_ios
+	var recordID uuid.UUID
+	var expectedBranchName = "gerrit_CL_fix_ios"
+	for _, record := range existingData.ExpectationRecords {
+		if record.BranchName == nil || *record.BranchName != expectedBranchName {
+			continue
+		}
+		if record.TriageTime.Format(time.RFC3339) == "2020-12-10T05:00:00Z" {
+			recordID = record.ExpectationRecordID
+		}
+	}
+	require.NotZero(t, recordID)
+	undoTime := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
+	const undoUser = "undo_user@example.com"
+	_, triangleGroupingID := sql.SerializeMap(paramtools.Params{
+		types.CorpusField:     datakitchensink.CornersCorpus,
+		types.PrimaryKeyField: datakitchensink.TriangleTest,
+	})
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+	ctx = context.WithValue(ctx, now.ContextKey, undoTime)
+	err := wh.undoExpectationChanges(ctx, recordID.String(), undoUser)
+	require.NoError(t, err)
+
+	row := db.QueryRow(ctx, `SELECT expectation_record_id FROM ExpectationRecords WHERE user_name = $1`, undoUser)
+	var newRecordID uuid.UUID
+	require.NoError(t, row.Scan(&newRecordID))
+
+	records := sqltest.GetAllRows(ctx, t, db, "ExpectationRecords", &schema.ExpectationRecordRow{})
+	assert.Contains(t, records, schema.ExpectationRecordRow{
+		ExpectationRecordID: newRecordID,
+		UserName:            undoUser,
+		TriageTime:          undoTime,
+		BranchName:          &expectedBranchName,
+		NumChanges:          1,
+	})
+
+	deltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{})
+	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
+		ExpectationRecordID: newRecordID,
+		GroupingID:          triangleGroupingID,
+		Digest:              d(datakitchensink.DigestB01Pos),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	})
+
+	exps := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchExpectations", &schema.SecondaryBranchExpectationRow{})
+	assert.Contains(t, exps, schema.SecondaryBranchExpectationRow{
+		BranchName:          expectedBranchName,
+		GroupingID:          triangleGroupingID,
+		Digest:              d(datakitchensink.DigestB01Pos),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: newRecordID,
+	})
+}
+
+func TestUndoExpectationChanges_UnknownID_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+	const undoUser = "undo_user@example.com"
+	err := wh.undoExpectationChanges(ctx, "Not a valid ID", undoUser)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "no expectation deltas")
+
+	row := db.QueryRow(ctx, `SELECT expectation_record_id FROM ExpectationRecords WHERE user_name = $1`, undoUser)
+	var notUsed uuid.UUID
+	err = row.Scan(&notUsed)
+	require.Error(t, err)
+	assert.Equal(t, pgx.ErrNoRows, err)
+}
+
+// d converts the given digest to its corresponding DigestBytes types. It panics on a failure.
+func d(d types.Digest) schema.DigestBytes {
+	b, err := sql.DigestToBytes(d)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
