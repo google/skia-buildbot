@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0b23d973_e1e7e1f6",
+        "filename": "skcq/go/verifiers/verifiers_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-08T16:33:01Z",
+      "side": 1,
+      "message": "Any reason this can\u0027t be part of SkCQVerifiersManager?",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 44
+      },
+      "revId": "13f603372035f493f194412e9bcfa1f3c0a78424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6a1b5092_065bc318",
+        "filename": "skcq/go/verifiers/verifiers_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-08T16:33:01Z",
+      "side": 1,
+      "message": "Can configReader become a member of SkCQVerifiersManager?",
+      "range": {
+        "startLine": 45,
+        "startChar": 142,
+        "endLine": 45,
+        "endChar": 174
+      },
+      "revId": "13f603372035f493f194412e9bcfa1f3c0a78424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f4f55cb0_68fddd9b",
+        "filename": "skcq/go/verifiers/verifiers_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-08T16:33:01Z",
+      "side": 1,
+      "message": "I\u0027m a little confused, does this mean that, for example, a failed try job will be retried indefinitely?",
+      "range": {
+        "startLine": 190,
+        "startChar": 0,
+        "endLine": 190,
+        "endChar": 44
+      },
+      "revId": "13f603372035f493f194412e9bcfa1f3c0a78424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
