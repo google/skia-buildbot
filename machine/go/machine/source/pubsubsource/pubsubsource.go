@@ -97,9 +97,6 @@ func (s *Source) Start(ctx context.Context) (<-chan machine.Event, error) {
 			}
 			err := s.sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 				s.eventsReceivedCounter.Inc(1)
-				// Log to stdout as raw JSON in a single line for StackDriver
-				// structured logging.
-				fmt.Println(string(msg.Data))
 				msg.Ack()
 				var event machine.Event
 				if err := json.Unmarshal(msg.Data, &event); err != nil {
