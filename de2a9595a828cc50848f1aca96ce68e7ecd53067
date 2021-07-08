@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "908b037b_6a7f1663",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-08T12:44:55Z",
+      "side": 1,
+      "message": "Of note, the bazel gold image is the wrong data set - do you have any idea why?",
+      "revId": "de2a9595a828cc50848f1aca96ce68e7ecd53067",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
