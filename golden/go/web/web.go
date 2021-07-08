@@ -18,8 +18,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
@@ -1831,6 +1834,160 @@ func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Send the same response as a query for the first page.
 	wh.TriageLogHandler(w, r)
+}
+
+// TriageUndoHandler2 performs an "undo" for a given id. This id corresponds to the record id of the
+// set of changes in the DB.
+// If successful it returns the same result as a call to TriageLogHandler2 to reflect the changes.
+func (wh *Handlers) TriageUndoHandler2(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_TriageUndoHandler2")
+	defer span.End()
+	// Get the user and make sure they are logged in.
+	user := login.LoggedInAs(r)
+	if user == "" {
+		http.Error(w, "You must be logged in to change expectations", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract the id to undo.
+	changeID := r.URL.Query().Get("id")
+
+	// Do the undo procedure.
+	if err := wh.undoExpectationChanges(ctx, changeID, user); err != nil {
+		httputils.ReportError(w, err, "Unable to undo.", http.StatusInternalServerError)
+		return
+	}
+
+	// Send the same response as a query for the first page.
+	wh.TriageLogHandler2(w, r)
+}
+
+// undoExpectationChanges will look up all ExpectationDeltas associated with the record that has
+// the given ID. It will set the current expectations for those digests/groupings to be the
+// label_before value. This will all be done in a transaction.
+func (wh *Handlers) undoExpectationChanges(ctx context.Context, recordID, userID string) error {
+	ctx, span := trace.StartSpan(ctx, "undoExpectationChanges")
+	defer span.End()
+
+	err := crdbpgx.ExecuteTx(ctx, wh.DB, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		deltas, err := getDeltasForRecord(ctx, tx, recordID)
+		if err != nil {
+			return err // Don't wrap - crdbpgx might retry
+		}
+		if len(deltas) == 0 {
+			return skerr.Fmt("no expectation deltas found for record %s", recordID)
+		}
+		branchNameRow := tx.QueryRow(ctx, `SELECT branch_name FROM ExpectationRecords WHERE expectation_record_id = $1`, recordID)
+		var branchOfOriginal pgtype.Text
+		if err := branchNameRow.Scan(&branchOfOriginal); err != nil {
+			return err
+		}
+
+		newIDRow := tx.QueryRow(ctx, `INSERT INTO ExpectationRecords
+(user_name, triage_time, num_changes, branch_name) VALUES ($1, $2, $3, $4) RETURNING expectation_record_id`,
+			userID, now.Now(ctx), len(deltas), branchOfOriginal)
+		var newRecordID uuid.UUID
+		if err := newIDRow.Scan(&newRecordID); err != nil {
+			return err
+		}
+
+		if err := writeInvertedDeltas(ctx, tx, newRecordID, deltas); err != nil {
+			return err
+		}
+
+		if branchOfOriginal.Status != pgtype.Present {
+			err = applyInvertedDeltasToPrimary(ctx, tx, newRecordID, deltas)
+		} else {
+			err = applyInvertedDeltasToBranch(ctx, tx, newRecordID, branchOfOriginal.String, deltas)
+		}
+		return err
+	})
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// getDeltasForRecord returns all ExpectationDeltaRows for the given record ID.
+func getDeltasForRecord(ctx context.Context, tx pgx.Tx, recordID string) ([]schema.ExpectationDeltaRow, error) {
+	ctx, span := trace.StartSpan(ctx, "getDeltasForRecord")
+	defer span.End()
+	const statement = `SELECT grouping_id, digest, label_before, label_after
+FROM ExpectationDeltas WHERE expectation_record_id = $1`
+	rows, err := tx.Query(ctx, statement, recordID)
+	if err != nil {
+		return nil, err // Don't wrap - crdbpgx might retry
+	}
+	defer rows.Close()
+	var deltas []schema.ExpectationDeltaRow
+	for rows.Next() {
+		var row schema.ExpectationDeltaRow
+		if err := rows.Scan(&row.GroupingID, &row.Digest, &row.LabelBefore, &row.LabelAfter); err != nil {
+			return nil, skerr.Wrap(err) // probably not retriable
+		}
+		deltas = append(deltas, row)
+	}
+	return deltas, nil
+}
+
+// writeInvertedDeltas stores the given deltas with flipped LabelAfter and LabelBefore, belonging
+// to the provided record ID.
+func writeInvertedDeltas(ctx context.Context, tx pgx.Tx, newRecordID uuid.UUID, deltas []schema.ExpectationDeltaRow) error {
+	ctx, span := trace.StartSpan(ctx, "writeInvertedDeltas")
+	defer span.End()
+
+	const statement = `INSERT INTO ExpectationDeltas
+(expectation_record_id, grouping_id, digest, label_before, label_after) VALUES `
+	const valuesPerRow = 5
+	vp := sql.ValuesPlaceholders(valuesPerRow, len(deltas))
+	arguments := make([]interface{}, 0, len(deltas)*valuesPerRow)
+	for _, d := range deltas {
+		arguments = append(arguments, newRecordID, d.GroupingID, d.Digest,
+			d.LabelAfter, d.LabelBefore) // inverted, that is, undone.
+	}
+	_, err := tx.Exec(ctx, statement+vp, arguments...)
+	return err // don't wrap, could be retryable
+}
+
+// applyInvertedDeltasToPrimary applies the LabelBefore for all grouping+digest pairs in the
+// provided deltas slice to the primary branch expectations.
+func applyInvertedDeltasToPrimary(ctx context.Context, tx pgx.Tx, newRecordID uuid.UUID, deltas []schema.ExpectationDeltaRow) error {
+	ctx, span := trace.StartSpan(ctx, "applyInvertedDeltasToPrimary")
+	defer span.End()
+
+	const statement = `UPSERT INTO Expectations
+(grouping_id, digest, label, expectation_record_id) VALUES `
+	const valuesPerRow = 4
+	vp := sql.ValuesPlaceholders(valuesPerRow, len(deltas))
+	arguments := make([]interface{}, 0, len(deltas)*valuesPerRow)
+	for _, d := range deltas {
+		arguments = append(arguments, d.GroupingID, d.Digest,
+			d.LabelBefore, // Write the before value, so we can undo the change.
+			newRecordID)
+	}
+	_, err := tx.Exec(ctx, statement+vp, arguments...)
+	return err // don't wrap, could be retryable
+}
+
+// applyInvertedDeltasToBranch applies the LabelBefore for all grouping+digest pairs in the
+// provided deltas slice to the secondary branch expectations associated with the given branch
+// (aka, the CL ID).
+func applyInvertedDeltasToBranch(ctx context.Context, tx pgx.Tx, newRecordID uuid.UUID, branch string, deltas []schema.ExpectationDeltaRow) error {
+	ctx, span := trace.StartSpan(ctx, "applyInvertedDeltasToBranch")
+	defer span.End()
+
+	const statement = `UPSERT INTO SecondaryBranchExpectations
+(branch_name, grouping_id, digest, label, expectation_record_id) VALUES `
+	const valuesPerRow = 5
+	vp := sql.ValuesPlaceholders(valuesPerRow, len(deltas))
+	arguments := make([]interface{}, 0, len(deltas)*valuesPerRow)
+	for _, d := range deltas {
+		arguments = append(arguments, branch, d.GroupingID, d.Digest,
+			d.LabelBefore, // Write the before value, so we can undo the change.
+			newRecordID)
+	}
+	_, err := tx.Exec(ctx, statement+vp, arguments...)
+	return err // don't wrap, could be retryable
 }
 
 // ParamsHandler returns the union of all parameters.
