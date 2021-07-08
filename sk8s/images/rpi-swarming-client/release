@@ -6,6 +6,8 @@ APPNAME=rpi-swarming-client
 
 IMAGE=$(dirname "$0")
 
+TARGET_PLATFORM=linux/arm
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

@@ -80,8 +80,12 @@ fi
 
 copy_release_files
 
+if [ -z "$TARGET_PLATFORM" ]; then
+TARGET_PLATFORM=linux/amd64
+fi
+
 if [ -z "$SKIP_BUILD" ]; then
-docker build -t ${APPNAME} ${ROOT}
+docker build --platform ${TARGET_PLATFORM}  -t ${APPNAME} ${ROOT}
 
   if [ -z "$SKIP_UPLOAD" ]; then
     docker tag ${APPNAME} gcr.io/${PROJECT}/${APPNAME}:${TAG}
