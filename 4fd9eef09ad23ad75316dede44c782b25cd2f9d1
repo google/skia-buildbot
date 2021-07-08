@@ -16,6 +16,75 @@
       "message": "The endpoint is trivial; I\u0027m especially interested in commentary about my refactoring. I went on a bit of an odyssey through type assertions, interface conversions, and the json stdlib and arrived at something that works, though I\u0027m still not entirely satisfied as to why it\u0027s necessary to wrap, say, s.switchboard.ListPods() in another function to satisfy the type system. It seems like it either ought to figure out that []pod conforms to interface{} (and thus can be JSON-serialized) or that it could be done more concisely, to the tune of (func() (interface{}, error))(s.switchboard.ListPods). Enlightenment welcome!\n\nBefore landing, I might want to factor up the repetition in the test as well.",
       "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9841ff3d_d973a93b",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-08T12:04:27Z",
+      "side": 1,
+      "message": "code smell: passing in an error message feels wrong to me. It probably indicates that this function should return an error so the caller can apply the extra error context.",
+      "range": {
+        "startLine": 147,
+        "startChar": 74,
+        "endLine": 147,
+        "endChar": 80
+      },
+      "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "952bb3dc_46e30f52",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-08T12:04:27Z",
+      "side": 1,
+      "message": "I think this approach is very DRY, but has gone a bit too far in that readability has been hampered. serveJSON tries to do too much, I think.\n\nLet\u0027s look at how this code might look using something similar to sendJSONResponse used by Gold [1]\n\n    func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {\n      descriptions, err :\u003d s.store.List(r.Context())\n      if err !\u003d nil {\n        httputils.ReportError(w, err, \"Failed to read descriptions\", http.StatusInternalServerError)\n        return\n      }\n      sendJSONResponse(w, descriptions)\n    }\n\nBecause sendJSONResponse is assumed to be the last function call in a handler, it doesn\u0027t need to return an error for us to process and bail out early.\n\nThe `if err !\u003d nil ... httputils.ReportError` is repeated for each function call, but it\u0027s pretty standard Go code to do that sort of error checking as needed.\n\nI imagine y\u0027all will want to add tracing [2] [3] to the endpoints here to keep an eye on latency and bottlenecks. IMO, that should be added like:\n\n    func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {\n      ctx, span :\u003d trace.StartSpan(r.Context(), \"machinesHandler\")\n      defer span.End()\n      descriptions, err :\u003d s.store.List(ctx)\n      if err !\u003d nil {\n        httputils.ReportError(w, err, \"Failed to read descriptions\", http.StatusInternalServerError)\n        return\n      }\n      sendJSONResponse(w, descriptions)\n    }\n\nAgain, this is slightly duplicated for all handlers, but is very readable. I can\u0027t think of any ways to remove the duplication w/o dramatically hindering readability.\n\n[1] https://github.com/google/skia-buildbot/blob/a8b946c90d67aba23e1d11aa7e23ba3106b4d42b/golden/go/web/helpers.go#L36\n[2] https://cloud.google.com/trace\n[3] https://github.com/google/skia-buildbot/blob/a8b946c90d67aba23e1d11aa7e23ba3106b4d42b/golden/go/web/web.go#L580",
+      "range": {
+        "startLine": 171,
+        "startChar": 1,
+        "endLine": 171,
+        "endChar": 10
+      },
+      "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f2d72076_916b4e84",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-08T12:04:27Z",
+      "side": 1,
+      "message": "nit: In golang style, one is permitted to use line breaks to aid readability, but it\u0027s generally not done for each param to a function.",
+      "range": {
+        "startLine": 173,
+        "startChar": 2,
+        "endLine": 173,
+        "endChar": 3
+      },
+      "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
