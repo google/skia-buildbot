@@ -2,11 +2,12 @@ import './index';
 
 import { $, $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { expect } from 'chai';
 import {
   firstPage,
-  firstPageAfterUndoingFirstEntry,
+  firstPageAfterUndoingFirstEntry, firstPageV2,
   firstPageWithoutDetailsAfterUndoingFirstEntry,
-  secondPage,
+  secondPage, secondPageV2,
   thirdPage,
 } from './test_data';
 import {
@@ -16,9 +17,8 @@ import {
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
 import { TriagelogPageSk } from './triagelog-page-sk';
-import { expect } from 'chai';
 
-describe('triagelog-page-sk', () => {
+describe('triagelog-page-sk v1', () => {
   const newInstance = setUpElementUnderTest<TriagelogPageSk>('triagelog-page-sk');
 
   // Instantiate page; wait for RPCs to complete and for the page to render.
@@ -178,6 +178,72 @@ describe('triagelog-page-sk', () => {
 
       expectEmptyPage(triagelogPageSk);
     });
+  });
+});
+
+describe('triagelog-page-sk v2', () => {
+  const newInstance = setUpElementUnderTest<TriagelogPageSk>('triagelog-page-sk');
+
+  // Instantiate page; wait for RPCs to complete and for the page to render.
+  const loadTriagelogPageSk = async () => {
+    const event = eventPromise('end-task');
+    const triagelogPageSk = newInstance();
+    await event;
+    return triagelogPageSk;
+  };
+
+  beforeEach(async () => {
+    // Set the query string so we use the new API
+    setQueryString('?use_new_api=true');
+  });
+
+  afterEach(() => {
+    expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
+    // Remove fetch mocking to prevent test cases interfering with each other.
+    fetchMock.reset();
+  });
+
+  after(async () => {
+    setQueryString('');
+  });
+
+  it('shows the right initial entries', async () => {
+    fetchMock.get(
+      '/json/v2/triagelog?offset=0&size=20', firstPageV2,
+    );
+    const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
+    expectQueryStringToEqual('?use_new_api=true');
+    expectFirstPageOfResults(triagelogPageSk);
+  });
+
+  it('advances to the second page of results', async () => {
+    fetchMock.get(
+      '/json/v2/triagelog?offset=0&size=20', firstPageV2,
+    );
+    fetchMock.get(
+      '/json/v2/triagelog?offset=3&size=3', secondPageV2,
+    );
+
+    const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
+    await goToNextPageOfResults(triagelogPageSk); // Load second page.
+    expectQueryStringToEqual('?offset=3&page_size=3&use_new_api=true');
+    expectSecondPageOfResults(triagelogPageSk);
+  });
+
+  it('undoes an entry', async () => {
+    fetchMock.get(
+      '/json/v2/triagelog?offset=0&size=20', firstPageV2,
+    );
+    fetchMock.post(
+      '/json/v2/triagelog/undo?id=aaa',
+      secondPageV2, // We use the second page results as sentinel values for "did the page load
+      // the results returned by undo?"
+    );
+
+    const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
+    expectFirstPageOfResults(triagelogPageSk);
+    await undoFirstEntry(triagelogPageSk);
+    expectSecondPageOfResults(triagelogPageSk);
   });
 });
 
@@ -386,30 +452,22 @@ function expectThirdPageOfResults(triagelogPageSk: TriagelogPageSk) {
 }
 
 const toLocalDateStr = (timestampMS: number) => new Date(timestampMS).toLocaleString();
-const digestDetailsHref = (test: string, digest: string) =>
-    `${window.location.origin}/detail?test=${encodeURIComponent(test)}` +
-    `&digest=${encodeURIComponent(digest)}`;
+const digestDetailsHref = (test: string, digest: string) => `${window.location.origin}/detail?test=${encodeURIComponent(test)}`
+    + `&digest=${encodeURIComponent(digest)}`;
 
-const nthEntryTimestamp = (triagelogPageSk: TriagelogPageSk, n: number) =>
-    $<HTMLElement>('.timestamp', triagelogPageSk)[n].innerText;
-const nthEntryAuthor = (triagelogPageSk: TriagelogPageSk, n: number) =>
-    $<HTMLElement>('.author', triagelogPageSk)[n].innerText;
-const nthEntryNumChanges = (triagelogPageSk: TriagelogPageSk, n: number) =>
-    +$<HTMLElement>('.num-changes', triagelogPageSk)[n].innerText;
+const nthEntryTimestamp = (triagelogPageSk: TriagelogPageSk, n: number) => $<HTMLElement>('.timestamp', triagelogPageSk)[n].innerText;
+const nthEntryAuthor = (triagelogPageSk: TriagelogPageSk, n: number) => $<HTMLElement>('.author', triagelogPageSk)[n].innerText;
+const nthEntryNumChanges = (triagelogPageSk: TriagelogPageSk, n: number) => +$<HTMLElement>('.num-changes', triagelogPageSk)[n].innerText;
 const nthEntry = (triagelogPageSk: TriagelogPageSk, n: number) => [
   nthEntryTimestamp(triagelogPageSk, n),
   nthEntryAuthor(triagelogPageSk, n),
   nthEntryNumChanges(triagelogPageSk, n),
 ];
 
-const nthDetailsRowTestName = (triagelogPageSk: TriagelogPageSk, n: number) =>
-    $<HTMLElement>('.details .test-name', triagelogPageSk)[n].innerText;
-const nthDetailsRowDigest = (triagelogPageSk: TriagelogPageSk, n: number) =>
-    $<HTMLElement>('.details .digest', triagelogPageSk)[n].innerText;
-const nthDetailsRowDigestHref = (triagelogPageSk: TriagelogPageSk, n: number) =>
-    $<HTMLAnchorElement>('.details .digest a', triagelogPageSk)[n].href;
-const nthDetailsRowLabel = (triagelogPageSk: TriagelogPageSk, n: number) =>
-    $<HTMLElement>('.details .label', triagelogPageSk)[n].innerText;
+const nthDetailsRowTestName = (triagelogPageSk: TriagelogPageSk, n: number) => $<HTMLElement>('.details .test-name', triagelogPageSk)[n].innerText;
+const nthDetailsRowDigest = (triagelogPageSk: TriagelogPageSk, n: number) => $<HTMLElement>('.details .digest', triagelogPageSk)[n].innerText;
+const nthDetailsRowDigestHref = (triagelogPageSk: TriagelogPageSk, n: number) => $<HTMLAnchorElement>('.details .digest a', triagelogPageSk)[n].href;
+const nthDetailsRowLabel = (triagelogPageSk: TriagelogPageSk, n: number) => $<HTMLElement>('.details .label', triagelogPageSk)[n].innerText;
 const nthDetailsRow = (triagelogPageSk: TriagelogPageSk, n: number) => [
   nthDetailsRowTestName(triagelogPageSk, n),
   nthDetailsRowDigest(triagelogPageSk, n),
