@@ -354,16 +354,13 @@ type cloudLogsWriter struct {
 // See documentation for io.Writer.
 func (w *cloudLogsWriter) Write(b []byte) (int, error) {
 	// TODO(borenet): Should we buffer until we see a newline?
+	// TODO(borenet): When should we LogSync, or Flush? If the program
+	// crashes or is killed, we'll want to have already flushed the logs.
 	w.logger.Log(logging.Entry{
 		Labels:   w.labels,
 		Payload:  string(b),
 		Severity: w.severity,
 	})
-	go func() {
-		// Ignore errors; we capture log output and write it to Cloud Logging,
-		// so logging more errors here would likely cause infinite recursion.
-		_ = w.logger.Flush()
-	}()
 	return len(b), nil
 }
 
