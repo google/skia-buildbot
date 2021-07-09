@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "37606f58_21ac0a5a",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk.scss",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T18:06:27Z",
+      "side": 1,
+      "message": "I\u0027d recommend changing the mouse cursor to indicate that the element is clickable:\n\n  auto-refresh-sk {\n    span {\n      cursor: pointer;\n    }\n  }",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 0
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "97e784d3_97c0cc27",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T18:06:27Z",
+      "side": 1,
+      "message": "Nit: private",
+      "range": {
+        "startLine": 26,
+        "startChar": 2,
+        "endLine": 26,
+        "endChar": 9
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "763d9207_4cc5ba23",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T18:06:27Z",
+      "side": 1,
+      "message": "Would this.refreshStep() work here?",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 38
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e4cb341b_a82c9589",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T18:06:27Z",
+      "side": 1,
+      "message": "Nit: Vestigial async?",
+      "range": {
+        "startLine": 65,
+        "startChar": 10,
+        "endLine": 65,
+        "endChar": 15
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d7b36470_478e44bf",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T18:06:27Z",
+      "side": 1,
+      "message": "Should we cancel the current timeout with clearTimeout(this.timeout) if this.refreshing is false? This would make clicking the pause button take effect immediately, rather than on the next refresh tick.\n\nIf so, the event should probably be dispatched from within the timeout handler.",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 75
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "36f22ce0_d3c7d88a",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T18:06:27Z",
+      "side": 1,
+      "message": "Ubernit: limit the selector to the element under test?",
+      "range": {
+        "startLine": 20,
+        "startChar": 21,
+        "endLine": 20,
+        "endChar": 54
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "622ba5ff_b4036a3e",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T18:06:27Z",
+      "side": 1,
+      "message": "Consider checking that the refresh-page event is dispatched. Function eventPromise() (defined in //infra-sk/modules/test_util.ts) might come in handy.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 21
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
