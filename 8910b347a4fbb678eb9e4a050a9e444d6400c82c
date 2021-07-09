@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "65797ef2_f254fd32",
+        "filename": "infra/bots/task_drivers/bazel_test_all/bazel_test_all.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-09T12:40:29Z",
+      "side": 1,
+      "message": "We might want to make this:\n\n} else if !*local {",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 9
+      },
+      "revId": "8910b347a4fbb678eb9e4a050a9e444d6400c82c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4713d742_f4a8f76a",
+        "filename": "task_driver/go/lib/bazel/bazel.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-09T12:40:29Z",
+      "side": 1,
+      "message": "Note: Swarming bots reboot both on a timer (at least every 24 hours) and whenever a task fails.  AFAIK they do not reboot after every task, so depending on how lazy the unmount is, it seems possible that a second task could start running before the ramdisk has been unmounted, which could lead to OOM or other issues.",
+      "range": {
+        "startLine": 54,
+        "startChar": 31,
+        "endLine": 54,
+        "endChar": 78
+      },
+      "revId": "8910b347a4fbb678eb9e4a050a9e444d6400c82c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
