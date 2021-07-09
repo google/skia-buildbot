@@ -932,7 +932,7 @@ func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 		if err != nil {
 			panic(err)
 		}
-		url := r.urlBase + "/json/v1/latestpositivedigest/" + string(traceID)
+		url := r.urlBase + "/json/v2/latestpositivedigest/" + string(traceID)
 		mh.On("Get", url).Return(
 			httpResponse(string(j), "200 OK", http.StatusOK), nil)
 	}
@@ -962,7 +962,7 @@ func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 		if err != nil {
 			panic(err)
 		}
-		url := r.urlBase + "/json/v1/latestpositivedigest/" + string(traceID)
+		url := r.urlBase + "/json/v2/latestpositivedigest/" + string(traceID)
 		mh.On("Get", url).Return(
 			httpResponse(string(j), "200 OK", http.StatusOK), nil)
 	}
@@ -1014,7 +1014,7 @@ fifth_digest`, string(b))
 	require.NoError(t, err)
 	assert.Equal(t, `{"primary":{"alpha test":{"fourth_digest":"negative","second_digest":"positive"},"beta test":{"third_digest":"positive"}}}`, string(b))
 
-	resp, err = mh.Get("http://my-custom-url.example.com/json/v1/latestpositivedigest/,alpha=beta,gamma=delta epsilon,")
+	resp, err = mh.Get("http://my-custom-url.example.com/json/v2/latestpositivedigest/,alpha=beta,gamma=delta epsilon,")
 	require.NoError(t, err)
 	b, err = ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
