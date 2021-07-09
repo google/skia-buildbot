@@ -294,6 +294,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1feef9dd_55bd2f3a",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T19:01:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a33f6364_07b2fdf7",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 10
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "09c306bb_2ef361f6",
@@ -331,6 +355,30 @@
       "side": 1,
       "message": "Thank goodness. I was looking around for a better way but didn\u0027t find time.Date().",
       "parentUuid": "09c306bb_2ef361f6",
+      "range": {
+        "startLine": 467,
+        "startChar": 32,
+        "endLine": 467,
+        "endChar": 45
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d7151d09_4d24ff7f",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T19:01:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8fb97417_45bd953f",
       "range": {
         "startLine": 467,
         "startChar": 32,
@@ -523,6 +571,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "25d01796_95e7464c",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 502,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T19:01:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ccbbf2a_fc174e7b",
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "81c31a07_5cc55921",
@@ -536,6 +602,30 @@
       "writtenOn": "2021-07-09T12:24:52Z",
       "side": 1,
       "message": "This could be combined into something like assertJSONResponseWas(), especially the sneaky addition of the newline at the end.\n\nhttps://github.com/google/skia-buildbot/blob/9b3f4fb533b9ab914c6730dc664d9caf59e36c01/golden/go/web/web_test.go#L2080",
+      "range": {
+        "startLine": 501,
+        "startChar": 1,
+        "endLine": 505,
+        "endChar": 17
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "30cb4cc8_6fdb0905",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T19:01:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81c31a07_5cc55921",
       "range": {
         "startLine": 501,
         "startChar": 1,

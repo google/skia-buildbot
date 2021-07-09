@@ -22,6 +22,30 @@
       },
       "revId": "338fdbe56e0e82eb3a5e611a46dffe15f5eab624",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c18c6f8a_c9b83dc7",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T19:01:52Z",
+      "side": 1,
+      "message": "Hold on, why am I rewriting https://github.com/google/skia-buildbot/blob/9b3f4fb533b9ab914c6730dc664d9caf59e36c01/golden/go/web/web_test.go#L3687 ? Shouldn\u0027t we factor those up to someplace like buildbot/go/testutils/testutils.go?",
+      "parentUuid": "e5a4e25a_223695c3",
+      "range": {
+        "startLine": 57,
+        "startChar": 8,
+        "endLine": 57,
+        "endChar": 13
+      },
+      "revId": "338fdbe56e0e82eb3a5e611a46dffe15f5eab624",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
