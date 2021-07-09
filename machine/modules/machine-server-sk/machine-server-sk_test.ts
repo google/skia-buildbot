@@ -199,8 +199,6 @@ describe('machine-server-sk', () => {
     // Wait for all requests to finish.
     await fetchMock.flush(true);
 
-    // Confirm that setTimeout is in progress.
-    assert.notEqual(0, s.timeout);
     // Confirm we are displaying the right icon.
     assert.isNotNull($$('pause-icon-sk', s));
   }));
