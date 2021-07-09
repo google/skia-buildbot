@@ -204,9 +204,27 @@ func TestTraceIDFromParams_MaliciousKeysAndValues_Success(t *testing.T) {
 		types.CorpusField:     "dm!",
 	}
 
-	expected := TraceID(`,c_p_u="x86",gpu=nVi___dia,name=test_alpha,source_type=dm!,`)
+	expected := TraceID(`,c_p%2Cu="x86",gpu=nVi%2C%2C_dia,name=test_alpha,source_type=dm!,`)
 
 	require.Equal(t, expected, TraceIDFromParams(input))
+}
+
+func TestParseTraceID_RoundTripSuccess(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ipadGreyTriangle := paramtools.Params{
+		"color mode":  "GREY",
+		"device":      "iPad6,3",
+		"name":        "triangle",
+		"os":          "iOS",
+		"source_type": "corners",
+	}
+	id := string(TraceIDFromParams(ipadGreyTriangle))
+	require.Equal(t, ",color mode=GREY,device=iPad6%2C3,name=triangle,os=iOS,source_type=corners,", id)
+
+	output, err := ParseTraceID(id)
+	require.NoError(t, err)
+	assert.Equal(t, ipadGreyTriangle, output)
 }
 
 const (

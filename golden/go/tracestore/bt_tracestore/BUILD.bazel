@@ -14,7 +14,6 @@ go_library(
         "//go/bt",
         "//go/metrics2",
         "//go/paramtools",
-        "//go/query",
         "//go/skerr",
         "//go/sklog",
         "//go/util",

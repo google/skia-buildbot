@@ -44,7 +44,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
-	"go.skia.org/infra/golden/go/search/query"
+	search_query "go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search2"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -771,9 +771,9 @@ func (wh *Handlers) SearchHandler2(w http.ResponseWriter, r *http.Request) {
 }
 
 // parseSearchQuery extracts the search query from request.
-func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*query.Search, bool) {
-	q := query.Search{Limit: 50}
-	if err := query.ParseSearch(r, &q); err != nil {
+func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*search_query.Search, bool) {
+	q := search_query.Search{Limit: 50}
+	if err := search_query.ParseSearch(r, &q); err != nil {
 		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return nil, false
 	}
@@ -1500,8 +1500,8 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Extract the test name as we only allow clustering within a test.
-	q := query.Search{Limit: 50}
-	if err := query.ParseSearch(r, &q); err != nil {
+	q := search_query.Search{Limit: 50}
+	if err := search_query.ParseSearch(r, &q); err != nil {
 		httputils.ReportError(w, err, "Unable to parse query parameter.", http.StatusBadRequest)
 		return
 	}
@@ -2551,6 +2551,64 @@ func (wh *Handlers) LatestPositiveDigestHandler(w http.ResponseWriter, r *http.R
 	}
 
 	sendJSONResponse(w, frontend.MostRecentPositiveDigestResponse{Digest: digest})
+}
+
+// LatestPositiveDigestHandler2 returns the most recent positive digest for the given trace.
+// Starting at the tip of tree, it will skip over any missing data, untriaged digests or digests
+// triaged negative until it finds a positive digest.
+func (wh *Handlers) LatestPositiveDigestHandler2(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_LatestPositiveDigestHandler2")
+	defer span.End()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	tID, ok := mux.Vars(r)["traceID"]
+	if !ok {
+		http.Error(w, "Must specify traceID.", http.StatusBadRequest)
+		return
+	}
+
+	traceKeys, err := tiling.ParseTraceID(tID)
+	if err != nil || len(traceKeys) == 0 {
+		httputils.ReportError(w, err, "Invalid traceID.", http.StatusBadRequest)
+		return
+	}
+
+	_, traceID := sql.SerializeMap(traceKeys)
+	digest, err := wh.getLatestPositiveDigest(ctx, traceID)
+	if err != nil {
+		httputils.ReportError(w, err, "Could not complete query.", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(w, frontend.MostRecentPositiveDigestResponse{Digest: digest})
+}
+
+func (wh *Handlers) getLatestPositiveDigest(ctx context.Context, traceID schema.TraceID) (types.Digest, error) {
+	ctx, span := trace.StartSpan(ctx, "getLatestPositiveDigest")
+	defer span.End()
+
+	const statement = `WITH
+RecentDigests AS (
+	SELECT digest, commit_id, grouping_id FROM TraceValues WHERE trace_id = $1
+	ORDER BY commit_id DESC LIMIT 1000 -- arbitrary limit
+)
+SELECT encode(RecentDigests.digest, 'hex') FROM RecentDigests
+JOIN Expectations ON Expectations.grouping_id = RecentDigests.grouping_id AND
+	Expectations.digest = RecentDigests.digest
+WHERE label = 'p'
+ORDER BY commit_id DESC LIMIT 1
+`
+	row := wh.DB.QueryRow(ctx, statement, traceID)
+	var digest types.Digest
+	if err := row.Scan(&digest); err != nil {
+		if err == pgx.ErrNoRows {
+			return "", nil
+		}
+		return "", skerr.Wrap(err)
+	}
+	return digest, nil
 }
 
 // GetPerTraceDigestsByTestName returns the digests in the current trace for the given test name

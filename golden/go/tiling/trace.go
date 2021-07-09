@@ -6,6 +6,7 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -235,6 +236,23 @@ func TraceIDFromParams(params paramtools.Params) TraceID {
 	return TraceID(s)
 }
 
+// ParseTraceID parses the output of TraceIDFromParams into Params
+func ParseTraceID(id string) (paramtools.Params, error) {
+	prelimKeys, err := query.ParseKeyFast(id)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	traceKeys := make(map[string]string, len(prelimKeys))
+	for k, v := range prelimKeys {
+		k = strings.ReplaceAll(k, urlEncodedComma, ",")
+		v = strings.ReplaceAll(v, urlEncodedComma, ",")
+		traceKeys[k] = v
+	}
+	return traceKeys, nil
+}
+
+const urlEncodedComma = "%2C"
+
 // clean replaces any special runes (',', '=') in a string such that
 // they can be turned into a trace id, which uses those special runes
 // as dividers.
@@ -257,7 +275,10 @@ func clean(s string) string {
 	// Regexp doesn't handle being run from a large number of go routines
 	// very well. See https://github.com/golang/go/issues/8232.
 	for _, c := range s {
-		if c == ',' || c == '=' {
+		if c == ',' {
+			// Some valid trace keys or values have commas, so we use a url-encoded special value.
+			sb.WriteString(urlEncodedComma)
+		} else if c == '=' {
 			sb.WriteRune('_')
 		} else {
 			sb.WriteRune(c)
