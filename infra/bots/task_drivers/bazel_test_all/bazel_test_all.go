@@ -65,7 +65,17 @@ func main() {
 	}
 
 	// Set up Bazel.
-	bzl, bzlCleanup, err := bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+	var (
+		bzl        *bazel.Bazel
+		bzlCleanup func()
+	)
+	if !*rbe && !*local {
+		// Infra-PerCommit-Test-Bazel-Local uses a ramdisk as the Bazel cache in order to prevent
+		// CockroachDB "disk stall detected" errors on GCE VMs due to slow I/O.
+		bzl, bzlCleanup, err = bazel.NewWithRamdisk(ctx, gitDir.Dir(), *rbeKey)
+	} else {
+		bzl, bzlCleanup, err = bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+	}
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
