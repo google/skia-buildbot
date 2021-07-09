@@ -30,7 +30,6 @@ import { Label, TriageRequest, TriageRequestData } from '../rpc_types';
 export type BulkTriageLabel = Label | 'closest';
 
 export class BulkTriageSk extends ElementSk {
-
   private static template = (el: BulkTriageSk) => html`
     <h2>Bulk Triage</h2>
     <p>Assign the status to all images on this page at once.</p>
@@ -71,14 +70,22 @@ export class BulkTriageSk extends ElementSk {
   `;
 
   private _changeListID = '';
+
   private _crs = '';
+
   private _value: BulkTriageLabel = 'closest';
+
   private _triageAll = false;
 
   private _pageDigests: TriageRequestData = {};
+
   private _pageDigestCount = 0;
+
   private _allDigests: TriageRequestData = {};
+
   private _allDigestCount = 0;
+
+  private _useNewAPI = false;
 
   constructor() {
     super(BulkTriageSk.template);
@@ -208,6 +215,12 @@ export class BulkTriageSk extends ElementSk {
     this._render();
   }
 
+  get useNewAPI() { return this._useNewAPI; }
+
+  set useNewAPI(b: boolean) {
+    this._useNewAPI = b;
+  }
+
   private _countDigests(testDigestLabelMap: TriageRequestData) {
     let count = 0;
     for (const testName of Object.keys(testDigestLabelMap)) {
@@ -251,13 +264,14 @@ export class BulkTriageSk extends ElementSk {
       testDigestStatus: this._getTriageStatuses(),
       changelist_id: this.changeListID,
       crs: this.crs,
-    }
+    };
 
     sendBeginTask(this);
     this.dispatchEvent(new CustomEvent('bulk_triage_invoked', { bubbles: true }));
-    fetch('/json/v1/triage', {
+    const url = this._useNewAPI ? '/json/v2/triage' : '/json/v1/triage';
+    fetch(url, {
       method: 'POST',
-      body: JSON.stringify(triageRequest)
+      body: JSON.stringify(triageRequest),
     }).then(() => {
       // Even if we get back a non-200 code, we want to say we finished.
       this.dispatchEvent(new CustomEvent('bulk_triage_finished', { bubbles: true }));
@@ -270,6 +284,6 @@ export class BulkTriageSk extends ElementSk {
     this._triageAll = !this._triageAll;
     this._render();
   }
-};
+}
 
 define('bulk-triage-sk', BulkTriageSk);

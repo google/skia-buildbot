@@ -15,7 +15,9 @@ import '../byblameentry-sk';
 import '../corpus-selector-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
-import { ByBlameEntry, ByBlameResponse, GUICorpusStatus, StatusResponse } from '../rpc_types';
+import {
+  ByBlameEntry, ByBlameResponse, GUICorpusStatus, StatusResponse,
+} from '../rpc_types';
 
 const corpusRendererFn = (corpus: GUICorpusStatus): string => {
   if (corpus.untriagedCount) {
@@ -37,8 +39,8 @@ export class ByBlamePageSk extends ElementSk {
 
     <div class=entries>
       ${(!ele.entries || ele.entries.length === 0)
-          ? ByBlamePageSk.noEntries(ele)
-          : ele.entries.map((entry) => ByBlamePageSk.entryTemplate(ele, entry))}
+    ? ByBlamePageSk.noEntries(ele)
+    : ele.entries.map((entry) => ByBlamePageSk.entryTemplate(ele, entry))}
     </div>
   `;
 
@@ -57,12 +59,17 @@ export class ByBlamePageSk extends ElementSk {
   };
 
   private corpora: GUICorpusStatus[] = [];
+
   private corpus = '';
+
   private entries: ByBlameEntry[] = [];
+
   private loaded = false;
+
   private useNewAPI = false;
 
-  private readonly stateChanged: () => void;
+  private readonly stateChanged: ()=> void;
+
   private fetchController: AbortController | null = null;
 
   constructor() {
@@ -133,7 +140,8 @@ export class ByBlamePageSk extends ElementSk {
       .catch((e) => sendFetchError(this, e, 'byblamepage_entries'));
 
     sendBeginTask(this);
-    fetch('/json/v1/trstatus', options)
+    const url = this.useNewAPI ? '/json/v2/trstatus' : '/json/v1/trstatus';
+    fetch(url, options)
       .then(jsonOrThrow)
       .then((res: StatusResponse) => {
         this.corpora = res.corpStatus;

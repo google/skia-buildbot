@@ -1,10 +1,12 @@
 import './index';
 import fetchMock from 'fetch-mock';
+import { expect } from 'chai';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { BulkTriageSk } from './bulk-triage-sk';
 import { BulkTriageSkPO } from './bulk-triage-sk_po';
-import { examplePageData, exampleAllData, expectedPageDataTriageRequest, expectedAllDataTriageRequest } from './test_data';
-import { expect } from 'chai';
+import {
+  examplePageData, exampleAllData, expectedPageDataTriageRequest, expectedAllDataTriageRequest,
+} from './test_data';
 
 describe('bulk-triage-sk', () => {
   const newInstance = setUpElementUnderTest<BulkTriageSk>('bulk-triage-sk');
@@ -63,14 +65,14 @@ describe('bulk-triage-sk', () => {
     await cancelEvent;
   });
 
-  describe('RPC requests', () => {
+  describe('RPC requests v1', () => {
     afterEach(() => {
       expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
       fetchMock.reset();
     });
 
     it('POSTs for just this page of results', async () => {
-      fetchMock.post('/json/v1/triage', 200, {body: expectedPageDataTriageRequest});
+      fetchMock.post('/json/v1/triage', 200, { body: expectedPageDataTriageRequest });
 
       const finishedPromise = eventPromise('bulk_triage_finished');
       await bulkTriageSkPO.clickTriageBtn();
@@ -81,11 +83,41 @@ describe('bulk-triage-sk', () => {
       bulkTriageSk.changeListID = 'someCL';
       bulkTriageSk.crs = 'gerrit';
 
-      fetchMock.post('/json/v1/triage', 200, {body: expectedAllDataTriageRequest});
+      fetchMock.post('/json/v1/triage', 200, { body: expectedAllDataTriageRequest });
 
       await bulkTriageSkPO.clickTriageAllCheckbox();
 
       const finishedPromise = eventPromise('bulk_triage_finished');
+      await bulkTriageSkPO.clickTriageBtn();
+      await finishedPromise;
+    });
+  });
+
+  describe('RPC requests v2', () => {
+    afterEach(() => {
+      expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
+      fetchMock.reset();
+    });
+
+    it('POSTs for just this page of results', async () => {
+      fetchMock.post('/json/v2/triage', 200, { body: expectedPageDataTriageRequest });
+
+      const finishedPromise = eventPromise('bulk_triage_finished');
+      bulkTriageSk.useNewAPI = true;
+      await bulkTriageSkPO.clickTriageBtn();
+      await finishedPromise;
+    });
+
+    it('POSTs for all results', async () => {
+      bulkTriageSk.changeListID = 'someCL';
+      bulkTriageSk.crs = 'gerrit';
+
+      fetchMock.post('/json/v2/triage', 200, { body: expectedAllDataTriageRequest });
+
+      await bulkTriageSkPO.clickTriageAllCheckbox();
+
+      const finishedPromise = eventPromise('bulk_triage_finished');
+      bulkTriageSk.useNewAPI = true;
       await bulkTriageSkPO.clickTriageBtn();
       await finishedPromise;
     });

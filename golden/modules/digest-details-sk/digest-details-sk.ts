@@ -21,6 +21,8 @@ import { html } from 'lit-html';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { fromObject } from 'common-sk/modules/query';
 import dialogPolyfill from 'dialog-polyfill';
+import { HintableObject } from 'common-sk/modules/hintable';
+import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   truncateWithEllipses, detailHref, diffPageHref, sendBeginTask, sendEndTask, sendFetchError,
@@ -34,16 +36,14 @@ import '../image-compare-sk';
 import '../blamelist-panel-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import { SearchCriteriaToHintableObject } from '../search-controls-sk';
-import {Commit, Digest, Label, ParamSet, SearchResult, SRDiffDigest, TestName, TraceGroup, TraceID, TriageHistory, TriageRequest} from '../rpc_types';
-import {SearchCriteria, SearchCriteriaHintableObject} from '../search-controls-sk/search-controls-sk';
-import {HintableObject} from 'common-sk/modules/hintable';
-import {DotsSk} from '../dots-sk/dots-sk';
-import {BlamelistPanelSk} from '../blamelist-panel-sk/blamelist-panel-sk';
-import {LabelOrEmpty, TriageSk} from '../triage-sk/triage-sk';
-import {ImageComparisonData} from '../image-compare-sk/image-compare-sk';
-import {diffDate} from 'common-sk/modules/human';
-
-
+import {
+  Commit, Digest, Label, ParamSet, SearchResult, SRDiffDigest, TestName, TraceGroup, TraceID, TriageHistory, TriageRequest,
+} from '../rpc_types';
+import { SearchCriteria, SearchCriteriaHintableObject } from '../search-controls-sk/search-controls-sk';
+import { DotsSk } from '../dots-sk/dots-sk';
+import { BlamelistPanelSk } from '../blamelist-panel-sk/blamelist-panel-sk';
+import { LabelOrEmpty, TriageSk } from '../triage-sk/triage-sk';
+import { ImageComparisonData } from '../image-compare-sk/image-compare-sk';
 
 function toggleButtonMouseover(canToggle: boolean) {
   if (canToggle) {
@@ -120,11 +120,12 @@ export class DigestDetailsSk extends ElementSk {
       <div class=metrics_and_triage>
         <div>
           <a href=${diffPageHref(
-                        ele.grouping,
-                        ele.digest,
-                        ele.right.digest,
-                        ele.changeListID,
-                        ele.crs)}
+      ele.grouping,
+      ele.digest,
+      ele.right.digest,
+      ele.changeListID,
+      ele.crs,
+    )}
              target=_blank rel=noopener class=diffpage_link>
             Diff Details
           </a>
@@ -160,8 +161,8 @@ export class DigestDetailsSk extends ElementSk {
       <div class=triage-history title="Last triaged on ${mostRecent.ts} by ${mostRecent.user}">
         ${diffDate(mostRecent.ts)} ago by
         ${mostRecent.user.includes('@')
-            ? mostRecent.user.substring(0, mostRecent.user.indexOf('@') + 1)
-            : mostRecent.user}
+      ? mostRecent.user.substring(0, mostRecent.user.indexOf('@') + 1)
+      : mostRecent.user}
       </div>
     `;
   }
@@ -236,19 +237,31 @@ export class DigestDetailsSk extends ElementSk {
   };
 
   private grouping: TestName = '';
+
   private digest: Digest = '';
+
   private status: Label = 'untriaged';
+
   private triageHistory: TriageHistory[] = [];
+
   private params: ParamSet | null = null;
+
   private traces: TraceGroup | null = null;
+
   private refDiffs: { [key: string]: SRDiffDigest | null } = {};
+
   private _changeListID = '';
+
   private _crs = '';
 
+  private _useNewAPI = false;
+
   private _commits: Commit[] = [];
+
   // This tracks which ref we are showing on the right. It will default to the closest one, but
   // can be changed with the toggle.
   private _rightRef = '';
+
   private _overrideRight: SRDiffDigest | null= null;
 
   private _highlightedParams: { [key: string]: string } = {};
@@ -317,6 +330,14 @@ export class DigestDetailsSk extends ElementSk {
     this._render();
   }
 
+  get useNewAPI(): boolean {
+    return this._useNewAPI;
+  }
+
+  set useNewAPI(b: boolean) {
+    this._useNewAPI = b;
+  }
+
   private canToggle(): boolean {
     let totalRefs = 0;
     for (const ref of validRefs) {
@@ -337,20 +358,19 @@ export class DigestDetailsSk extends ElementSk {
   }
 
   private clusterHref() {
-    if (!this.grouping || !this.params || !this.params['source_type'] ||
-        this.params['source_type'].length === 0) {
+    if (!this.grouping || !this.params || !this.params.source_type
+        || this.params.source_type.length === 0) {
       return '';
     }
 
     const searchCriteria: Partial<SearchCriteria> = {
-      corpus: this.params['source_type'][0],
+      corpus: this.params.source_type[0],
       includePositiveDigests: true,
       includeNegativeDigests: true,
       includeUntriagedDigests: true,
       includeDigestsNotAtHead: true,
     };
-    const clusterState: SearchCriteriaHintableObject & {grouping?: TestName} =
-        SearchCriteriaToHintableObject(searchCriteria);
+    const clusterState: SearchCriteriaHintableObject & {grouping?: TestName} = SearchCriteriaToHintableObject(searchCriteria);
     clusterState.grouping = this.grouping;
     return `/cluster?${fromObject(clusterState as HintableObject)}`;
   }
@@ -358,7 +378,7 @@ export class DigestDetailsSk extends ElementSk {
   private hoverOverTrace(e: CustomEvent<TraceID>) {
     // Find the matching trace in details.traces.
     const trace = this.traces?.traces?.find((trace) => trace.label === e.detail);
-    this._highlightedParams = trace?.params || {}
+    this._highlightedParams = trace?.params || {};
     this._render();
   }
 
@@ -396,13 +416,14 @@ export class DigestDetailsSk extends ElementSk {
     e.stopPropagation();
     const newStatus = e.detail as Label;
     this.dispatchEvent(
-        new CustomEvent<LabelOrEmpty>('triage', { bubbles: true, detail: newStatus }));
+      new CustomEvent<LabelOrEmpty>('triage', { bubbles: true, detail: newStatus }),
+    );
 
     const triageRequest: TriageRequest = {
       testDigestStatus: {
         [this.grouping]: {
-          [this.digest]: newStatus
-        }
+          [this.digest]: newStatus,
+        },
       },
       changelist_id: this.changeListID,
       crs: this.crs,
@@ -410,7 +431,8 @@ export class DigestDetailsSk extends ElementSk {
 
     sendBeginTask(this);
 
-    fetch('/json/v1/triage', {
+    const url = this._useNewAPI ? '/json/v2/triage' : '/json/v1/triage';
+    fetch(url, {
       method: 'POST',
       body: JSON.stringify(triageRequest),
       headers: {
@@ -432,14 +454,15 @@ export class DigestDetailsSk extends ElementSk {
         // go through. Additionally, toast error message should catch the user's attention.
         console.error(resp);
         errorMessage(
-            `Unexpected error triaging: ${resp.status} ${resp.statusText} ` +
-            '(Are you logged in with the right account?)', 8000);
+          `Unexpected error triaging: ${resp.status} ${resp.statusText} `
+            + '(Are you logged in with the right account?)', 8000,
+        );
         this.querySelector<TriageSk>('triage-sk')!.value = this.status;
         this._render();
         sendEndTask(this);
       }
     }).catch((e) => {
-      sendFetchError(this, e, 'triaging')
+      sendFetchError(this, e, 'triaging');
     });
   }
 }
