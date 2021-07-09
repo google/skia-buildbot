@@ -25,7 +25,7 @@ func TestOptions(t *testing.T) {
 	}
 	hash, err := o.ComputeHash(code)
 	assert.NoError(t, err)
-	assert.Equal(t, "cbb8dee39e9f1576cd97c2d504db8eee", hash)
+	assert.Equal(t, "163b9c435a7fbf1367ed9ee71839a4cc", hash)
 
 	code = `void draw(SkCanvas* canvas) {
     SkPaint p;
@@ -45,13 +45,13 @@ func TestOptions(t *testing.T) {
 	}
 	hash, err = o.ComputeHash(code)
 	assert.NoError(t, err)
-	assert.Equal(t, "fddc0a319e575c79a97ff535b455dc5d", hash)
+	assert.Equal(t, "f54b0278c8d075817fa590056437bab3", hash)
 
 	o.Animated = true
 	o.Duration = 1.5
 	hash, err = o.ComputeHash(code)
 	assert.NoError(t, err)
-	assert.Equal(t, "92c7b15afd12fd711ce65ba412574e3d", hash)
+	assert.Equal(t, "baa851459d5f03fc7422c1cce7bb8a74", hash)
 
 	o.OffScreen = true
 	o.OffScreenWidth = 256
@@ -59,20 +59,20 @@ func TestOptions(t *testing.T) {
 	o.OffScreenSampleCount = 1
 	hash, err = o.ComputeHash(code)
 	assert.NoError(t, err)
-	assert.Equal(t, "a76b7ac7fa98c75e09e32e704adeedc3", hash)
+	assert.Equal(t, "cb94299a913c6ac9053e46b685971aca", hash)
 
 	o.OffScreenTexturable = true
 	hash, err = o.ComputeHash(code)
 	assert.NoError(t, err)
-	assert.Equal(t, "03cd8e8e9858add8008e262f63925d7c", hash)
+	assert.Equal(t, "ee4bc8e0f854533af31e19cc2650f14f", hash)
 
 	o.OffScreenMipMap = true
 	hash, err = o.ComputeHash(code)
 	assert.NoError(t, err)
-	assert.Equal(t, "052b394aa3078ac12f9a8ee7dde8ee65", hash)
+	assert.Equal(t, "78a8c62fbd8170ae082c0efb6c0e3bde", hash)
 
 	o.SourceMipMap = true
 	hash, err = o.ComputeHash(code)
 	assert.NoError(t, err)
-	assert.Equal(t, "ccc4f49c7d91f444ba4d9cbc431e2822", hash)
+	assert.Equal(t, "a325ad1b372655bb1cb1fc195310e878", hash)
 }
