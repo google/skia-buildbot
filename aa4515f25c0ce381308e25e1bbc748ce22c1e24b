@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c63e1abb_20ea5a45",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk.scss",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-09T19:28:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37606f58_21ac0a5a",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 0
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "97e784d3_97c0cc27",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-07-09T18:06:27Z",
       "side": 1,
       "message": "Nit: private",
+      "range": {
+        "startLine": 26,
+        "startChar": 2,
+        "endLine": 26,
+        "endChar": 9
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a4d81b56_4ac5e285",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-09T19:28:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97e784d3_97c0cc27",
       "range": {
         "startLine": 26,
         "startChar": 2,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c6757df_5685916b",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-09T19:28:58Z",
+      "side": 1,
+      "message": "No, that wouldn\u0027t call _render(), so the icon could end up being wrong.",
+      "parentUuid": "763d9207_4cc5ba23",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 38
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e4cb341b_a82c9589",
@@ -83,6 +155,30 @@
       "writtenOn": "2021-07-09T18:06:27Z",
       "side": 1,
       "message": "Nit: Vestigial async?",
+      "range": {
+        "startLine": 65,
+        "startChar": 10,
+        "endLine": 65,
+        "endChar": 15
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cb1207a1_51907bd4",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-09T19:28:58Z",
+      "side": 1,
+      "message": "Good catch, removed.",
+      "parentUuid": "e4cb341b_a82c9589",
       "range": {
         "startLine": 65,
         "startChar": 10,
@@ -116,6 +212,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "42e4937f_7439b60c",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-09T19:28:58Z",
+      "side": 1,
+      "message": "I added a guard of \"if (this.refreshing) {\" to the dispatchEvent to avoid the spurious event.",
+      "parentUuid": "d7b36470_478e44bf",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 75
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "36f22ce0_d3c7d88a",
@@ -139,6 +259,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "988a063c_d065c8b9",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-09T19:28:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "36f22ce0_d3c7d88a",
+      "range": {
+        "startLine": 20,
+        "startChar": 21,
+        "endLine": 20,
+        "endChar": 54
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "622ba5ff_b4036a3e",
@@ -152,6 +296,30 @@
       "writtenOn": "2021-07-09T18:06:27Z",
       "side": 1,
       "message": "Consider checking that the refresh-page event is dispatched. Function eventPromise() (defined in //infra-sk/modules/test_util.ts) might come in handy.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 21
+      },
+      "revId": "aa4515f25c0ce381308e25e1bbc748ce22c1e24b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9f79bcd1_51d27744",
+        "filename": "machine/modules/auto-refresh-sk/auto-refresh-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-09T19:28:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "622ba5ff_b4036a3e",
       "range": {
         "startLine": 25,
         "startChar": 0,
