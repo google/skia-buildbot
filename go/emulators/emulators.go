@@ -19,9 +19,11 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"syscall"
 
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Emulator represents a Google Cloud emulator, a test-only CockroachDB server, etc.
@@ -257,10 +259,10 @@ func StartAdHocEmulatorInstanceAndSetEmulatorHostEnvVarBazelRBEOnly(emulator Emu
 
 // startEmulator starts an emulator using the command in the given struct.
 func startEmulator(emulatorInfo emulatorInfo) error {
-	programAndArgs := strings.Split(fmt.Sprintf(emulatorInfo.cmd, emulatorInfo.port), " ")
+	programAndArgsStr := fmt.Sprintf(emulatorInfo.cmd, emulatorInfo.port)
+	programAndArgs := strings.Split(programAndArgsStr, " ")
 	cmd := exec.Command(programAndArgs[0], programAndArgs[1:]...)
 	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 
 	if bazel.InBazelTestOnRBE() {
 		// Force emulator child processes to die as soon as the parent process (e.g. the Go test runner)
@@ -275,9 +277,21 @@ func startEmulator(emulatorInfo emulatorInfo) error {
 		cmd.SysProcAttr = makeSysProcAttrWithPdeathsigSIGKILL()
 	}
 
+	// Start the emulator.
+	sklog.Infof("Starting emulator: %s\n", programAndArgsStr)
 	if err := cmd.Start(); err != nil {
 		return skerr.Wrap(err)
 	}
+
+	// Log the emulator's exit status.
+	go func() {
+		err := cmd.Wait()
+		if err != nil {
+			sklog.Errorf("Emulator %s finished with error: %v\n", programAndArgsStr, err)
+			return
+		}
+		sklog.Errorf("Emulator %s finished with exit status: %d\n", programAndArgsStr, cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
+	}()
 
 	return nil
 }
