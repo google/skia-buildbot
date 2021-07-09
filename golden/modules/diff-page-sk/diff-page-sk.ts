@@ -12,7 +12,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../digest-details-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
-import {DigestComparison, LeftDiffInfo, SRDiffDigest} from '../rpc_types';
+import { DigestComparison, LeftDiffInfo, SRDiffDigest } from '../rpc_types';
 
 export class DiffPageSk extends ElementSk {
   private static template = (ele: DiffPageSk) => {
@@ -26,22 +26,31 @@ export class DiffPageSk extends ElementSk {
       <digest-details-sk .details=${ele.leftDetails}
                          .right=${ele.rightDetails}
                          .changeListID=${ele.changeListID}
-                         .crs=${ele.crs}>
+                         .crs=${ele.crs}
+                         .useNewAPI=${ele.useNewAPI}>
       </digest-details-sk>
     `;
   };
 
   private grouping = '';
+
   private leftDigest = '';
+
   private rightDigest = '';
+
   private crs = '';
+
   private changeListID = '';
+
   private leftDetails: LeftDiffInfo | null = null;
+
   private rightDetails: SRDiffDigest | null = null;
+
   private didInitialLoad = false;
+
   private useNewAPI: boolean = false;
 
-  private readonly _stateChanged: () => void;
+  private readonly _stateChanged: ()=> void;
 
   // Allows us to abort fetches if we fetch again.
   private _fetchController?: AbortController;
