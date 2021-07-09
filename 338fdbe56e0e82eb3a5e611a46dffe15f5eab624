@@ -70,6 +70,30 @@
       },
       "revId": "338fdbe56e0e82eb3a5e611a46dffe15f5eab624",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1dbd6016_c8205315",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-09T19:37:22Z",
+      "side": 1,
+      "message": "Could be done in this CL, or with a follow-on CL.",
+      "parentUuid": "e2a51709_1901c75e",
+      "range": {
+        "startLine": 57,
+        "startChar": 8,
+        "endLine": 57,
+        "endChar": 13
+      },
+      "revId": "338fdbe56e0e82eb3a5e611a46dffe15f5eab624",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
