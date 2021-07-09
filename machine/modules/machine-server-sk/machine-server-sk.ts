@@ -22,15 +22,12 @@ import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/clear-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/edit-icon-sk';
-import 'elements-sk/icon/pause-icon-sk';
-import 'elements-sk/icon/play-arrow-icon-sk';
 import 'elements-sk/icon/power-settings-new-icon-sk';
 import 'elements-sk/styles/buttons/index';
 import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
+import '../auto-refresh-sk';
 import '../note-editor-sk';
 import { DEVICE_ALIASES } from '../../../modules/devices/devices';
-
-const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
 
 /**
  * Updates should arrive every 30 seconds, so we allow up to 2x that for lag
@@ -253,27 +250,9 @@ const rows = (ele: MachineServerSk): TemplateResult[] => ele.filteredMachines().
 );
 
 // eslint-disable-next-line no-use-before-define
-const refreshButtonDisplayValue = (ele: MachineServerSk): TemplateResult => {
-  if (ele.refreshing) {
-    return html`
-      <pause-icon-sk></pause-icon-sk>
-    `;
-  }
-  return html`
-    <play-arrow-icon-sk></play-arrow-icon-sk>
-  `;
-};
-
-// eslint-disable-next-line no-use-before-define
 const template = (ele: MachineServerSk): TemplateResult => html`
   <header>
-    <span
-      id="refresh"
-      @click=${() => ele.toggleRefresh()}
-      title="Start/Stop the automatic refreshing of data on the page."
-    >
-      ${refreshButtonDisplayValue(ele)}
-    </span>
+    <auto-refresh-sk @refresh-page=${ele.update}></auto-refresh-sk>
     <span id=header-rhs>
       <input type="text" placeholder="Filter" @input=${ele.filterInput}>
       <theme-chooser-sk
@@ -351,16 +330,7 @@ export class MachineServerSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this.noteEditor = $$<NoteEditorSk>('note-editor-sk', this)!;
-    await this.refreshStep();
-  }
-
-  /** True if the data on the page is periodically refreshed. */
-  get refreshing(): boolean {
-    return window.localStorage.getItem(REFRESH_LOCALSTORAGE_KEY) === 'true';
-  }
-
-  set refreshing(val: boolean) {
-    window.localStorage.setItem(REFRESH_LOCALSTORAGE_KEY, `${!!val}`);
+    await this.update();
   }
 
   async toggleUpdate(id: string): Promise<void> {
@@ -442,32 +412,7 @@ export class MachineServerSk extends ElementSk {
     }
   }
 
-  toggleRefresh(): void {
-    this.refreshing = !this.refreshing;
-    this.refreshStep();
-  }
-
-  private async refreshStep(): Promise<void> {
-    // Wait for _update to finish so we don't pile up requests if server latency
-    // rises.
-    await this.update();
-    if (this.refreshing && this.timeout === 0) {
-      this.timeout = window.setTimeout(() => {
-        // Only done here, so multiple calls to _refreshStep() won't start
-        // parallel setTimeout chains.
-        this.timeout = 0;
-
-        this.refreshStep();
-      }, 2000);
-    }
-  }
-
-  private onError(msg: any) {
-    this.removeAttribute('waiting');
-    errorMessage(msg);
-  }
-
-  private async update(changeCursor = false) {
+  async update(changeCursor = false): Promise<void> {
     if (changeCursor) {
       this.setAttribute('waiting', '');
     }
@@ -484,6 +429,11 @@ export class MachineServerSk extends ElementSk {
     } catch (error) {
       this.onError(error);
     }
+  }
+
+  private onError(msg: any) {
+    this.removeAttribute('waiting');
+    errorMessage(msg);
   }
 }
 
