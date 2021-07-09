@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c0deda59_f0129cf0",
+        "filename": "infra/bots/task_drivers/bazel_test_all/bazel_test_all.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-09T12:20:28Z",
+      "side": 1,
+      "message": "The Swarming task workdir is also a temporary directory; are we sure that the Swarming bot code won\u0027t run into the same problem when it tries to clean up after the task?  FTR, tasks which include the vpython CIPD packages should already have the vpython cache in cache/vpython, which might be what we really want here.  The cleanest way is probably to either add a --vpython-cache-dir flag or check the environment in case the variable is already set.",
+      "range": {
+        "startLine": 225,
+        "startChar": 0,
+        "endLine": 227,
+        "endChar": 25
+      },
+      "revId": "5fb85b71e40d89045000fe4e70ee6ea763f0c1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bb05a16b_2d8d4de1",
+        "filename": "infra/bots/task_drivers/bazel_test_all/bazel_test_all.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-09T12:20:28Z",
+      "side": 1,
+      "message": "Is it feasible to check whether the emulators are still running?  If so, maybe StopAllEmulators could block until the emulators have all exited, or we could add a new function, something like StopAllEmulatorsAndWait, which does so.",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 239,
+        "endChar": 77
+      },
+      "revId": "5fb85b71e40d89045000fe4e70ee6ea763f0c1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
