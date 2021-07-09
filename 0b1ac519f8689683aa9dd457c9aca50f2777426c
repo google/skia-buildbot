@@ -16,6 +16,213 @@
       "message": "Hey all. I\u0027ve switched to a less aggressive factoring in the endpoints. Also, I\u0027ve factored out a request/response-serving pattern between my 2 tests. If the latter passes muster with you, I intend for it to be expanded to other tests in the file in a future CL. I think it clarifies the intent at the call sites, and it removes 2 pieces of uninteresting state from each test function.\n\nAlong with whatever else you see, I\u0027m interested in opinions on my passing the server and ResponseRecorder around by value in responseOf(). I went back and forth but finally decided to come down on the side of conveying \"I\u0027m not going to mutate this\" for the server (though we could of course stomp all over the copied switchboard ptr inside it). The by-value return of the ResponseRecorder was a total coin flip. It\u0027s big, so I could see a by-ref in production code, but it\u0027s nice to convey that nobody else is holding onto it (not that one would expect a test helper procedure to). Input welcome. Thanks for the review!",
       "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a5dec1f8_9a2fd9d8",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T12:24:52Z",
+      "side": 1,
+      "message": "nit: We can omit the parameter type if we have repeated params with the same type:\nresponseOf(s server, method, path string)",
+      "range": {
+        "startLine": 44,
+        "startChar": 33,
+        "endLine": 44,
+        "endChar": 39
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "92f46a41_1cfd6040",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T12:24:52Z",
+      "side": 1,
+      "message": "The `go vet` static analyzer throws warnings about this, for good reason. It results in copying a mutex that is internal to the server struct (a sync.Once).\n\nYou\u0027ll want to pass it in as a pointer.",
+      "range": {
+        "startLine": 44,
+        "startChar": 18,
+        "endLine": 44,
+        "endChar": 24
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4b3060a6_483f3301",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T12:24:52Z",
+      "side": 1,
+      "message": "suggestion: Add a context.Context [1] as the first param to this function and add it to this request via WithContext [2]. This allows us to more easily inject test-related things. For example, we have this nice now package [3] which allows us to fake the time using contexts. I\u0027ve also used it for faking login status. It might be overkill for now, so it\u0027s fine to omit.\n\n[1] https://blog.golang.org/context#TOC_3.2.\n[2] https://golang.org/pkg/net/http/#Request.WithContext\n[3] https://github.com/google/skia-buildbot/blob/9b3f4fb533b9ab914c6730dc664d9caf59e36c01/go/now/now.go#L15",
+      "range": {
+        "startLine": 47,
+        "startChar": 1,
+        "endLine": 47,
+        "endChar": 2
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "16f794c4_0497db8b",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T12:24:52Z",
+      "side": 1,
+      "message": "This feels a bit unusual to me. Generally, it\u0027s fine and encouraged to return pointers to structs, especially to avoid unintentional copies of internal state (see above comment).\n\nWas there a specific behavior you were seeking by returning it as a dereferenced struct?",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 10
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "09c306bb_2ef361f6",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T12:24:52Z",
+      "side": 1,
+      "message": "drive-by comment: I prefer the time.Date() constructor for creating times, with time.Parse() as a backup. With the time.Date constructor, there is no need to check for an error. With time.Parse, the format is made explicit and directly interacts with a string (no need to convert to []byte).",
+      "range": {
+        "startLine": 467,
+        "startChar": 32,
+        "endLine": 467,
+        "endChar": 45
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9a18f5c8_9254b2a2",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T12:24:52Z",
+      "side": 1,
+      "message": "In a follow-up CL, it would be nice to check that we return the right error code when the mock returns an error.",
+      "range": {
+        "startLine": 485,
+        "startChar": 30,
+        "endLine": 485,
+        "endChar": 37
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a6bc94aa_2d572fa3",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T12:24:52Z",
+      "side": 1,
+      "message": "nit: I prefer struct initialization (especially for structs with many fields) to be broken up on multiple lines, similar to a pretty-printed JSON object.",
+      "range": {
+        "startLine": 491,
+        "startChar": 42,
+        "endLine": 491,
+        "endChar": 49
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f2eafaaf_6623f731",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T12:24:52Z",
+      "side": 1,
+      "message": "nit: As a team-style rule, we wrap comments to 100 cols (which happens to be the default width in Gerrit)",
+      "range": {
+        "startLine": 493,
+        "startChar": 89,
+        "endLine": 493,
+        "endChar": 94
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "81c31a07_5cc55921",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T12:24:52Z",
+      "side": 1,
+      "message": "This could be combined into something like assertJSONResponseWas(), especially the sneaky addition of the newline at the end.\n\nhttps://github.com/google/skia-buildbot/blob/9b3f4fb533b9ab914c6730dc664d9caf59e36c01/golden/go/web/web_test.go#L2080",
+      "range": {
+        "startLine": 501,
+        "startChar": 1,
+        "endLine": 505,
+        "endChar": 17
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
