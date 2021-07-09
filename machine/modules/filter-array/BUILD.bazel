@@ -1,0 +1,17 @@
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
+
+karma_test(
+    name = "index_test",
+    src = "index_test.ts",
+    deps = [
+        ":index_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+ts_library(
+    name = "index_ts_lib",
+    srcs = ["index.ts"],
+    visibility = ["//visibility:public"],
+)
