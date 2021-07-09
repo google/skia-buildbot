@@ -107,12 +107,12 @@ type GoldClient interface {
 	Whoami(ctx context.Context) (string, error)
 
 	// TriageAsPositive triages the given digest for the given test as positive by making a request
-	// to Gold's /json/v1/triage endpoint. The image matching algorithm name will be used as the author
+	// to Gold's /json/v2/triage endpoint. The image matching algorithm name will be used as the author
 	// of the triage operation.
 	TriageAsPositive(ctx context.Context, testName types.TestName, digest types.Digest, algorithmName string) error
 
 	// MostRecentPositiveDigest retrieves the most recent positive digest for the given trace via
-	// Gold's /json/v1/latestpositivedigest/{traceId} endpoint.
+	// Gold's /json/v2/latestpositivedigest/{traceId} endpoint.
 	MostRecentPositiveDigest(ctx context.Context, traceId tiling.TraceID) (types.Digest, error)
 }
 
@@ -758,9 +758,9 @@ func (c *CloudClient) TriageAsPositive(ctx context.Context, testName types.TestN
 	}
 
 	// Make /json/v1/triage request. Response is always empty.
-	_, err = post(ctx, c.resultState.GoldURL+"/json/v1/triage", "application/json", bytes.NewReader(jsonTriageRequest))
+	_, err = post(ctx, c.resultState.GoldURL+"/json/v2/triage", "application/json", bytes.NewReader(jsonTriageRequest))
 	if err != nil {
-		return skerr.Wrapf(err, `making POST request to %s/json/v1/triage for test %q, digest %q, algorithm %q and CL %q`, c.resultState.GoldURL, testName, digest, algorithmName, c.resultState.SharedConfig.ChangelistID)
+		return skerr.Wrapf(err, `making POST request to %s/json/v2/triage for test %q, digest %q, algorithm %q and CL %q`, c.resultState.GoldURL, testName, digest, algorithmName, c.resultState.SharedConfig.ChangelistID)
 	}
 
 	return nil
@@ -768,7 +768,7 @@ func (c *CloudClient) TriageAsPositive(ctx context.Context, testName types.TestN
 
 // MostRecentPositiveDigest fulfills the GoldClient interface.
 func (c *CloudClient) MostRecentPositiveDigest(ctx context.Context, traceId tiling.TraceID) (types.Digest, error) {
-	endpointUrl := c.resultState.GoldURL + "/json/v1/latestpositivedigest/" + string(traceId)
+	endpointUrl := c.resultState.GoldURL + "/json/v2/latestpositivedigest/" + string(traceId)
 
 	jsonBytes, err := getWithRetries(ctx, endpointUrl)
 	if err != nil {
