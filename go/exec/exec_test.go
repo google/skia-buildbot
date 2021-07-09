@@ -165,7 +165,7 @@ func TestInheritEnv(t *testing.T) {
 		Args: []string{"-c", `
 import os
 with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
-  for var in ('PATH', 'USER', 'PWD', 'HOME', 'GOPATH'):
+  for var in ('PATH', 'USER', 'PWD', 'HOME'):
     f.write('%s\n' % os.environ.get(var, ''))
 `},
 		Env: []string{
@@ -178,13 +178,12 @@ with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
 	contents, err := ioutil.ReadFile(file)
 	require.NoError(t, err)
 	lines := strings.Split(strings.TrimSpace(string(contents)), "\n")
-	require.Equal(t, 5, len(lines))
+	require.Equal(t, 4, len(lines))
 	// Python may add to PATH.
 	expect.True(t, strings.Contains(lines[0], os.Getenv("PATH")))
 	expect.Equal(t, os.Getenv("USER"), lines[1])
 	expect.Equal(t, os.Getenv("PWD"), lines[2])
 	expect.Equal(t, dir, lines[3])
-	expect.Equal(t, os.Getenv("GOPATH"), lines[4])
 }
 
 func TestDir(t *testing.T) {
