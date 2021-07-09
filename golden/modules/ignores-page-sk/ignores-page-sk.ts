@@ -18,7 +18,9 @@ import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 import {
   humanReadableQuery, sendBeginTask, sendEndTask, sendFetchError,
 } from '../common';
-import { IgnoreRule, IgnoreRuleBody, IgnoresResponse, ParamSet } from '../rpc_types';
+import {
+  IgnoreRule, IgnoreRuleBody, IgnoresResponse, ParamSet,
+} from '../rpc_types';
 import { EditIgnoreRuleSk } from '../edit-ignore-rule-sk/edit-ignore-rule-sk';
 import { ConfirmDialogSk } from '../../../infra-sk/modules/confirm-dialog-sk/confirm-dialog-sk';
 
@@ -108,15 +110,23 @@ export class IgnoresPageSk extends ElementSk {
   };
 
   private rules: IgnoreRule[] = [];
+
   private paramset: ParamSet = {};
+
   private countAllTraces = false;
+
+  private useNewAPI = false;
+
   private ruleID = '';
 
   private editIgnoreRuleDialog?: HTMLDialogElement; // Dialog for creating or editing rules.
+
   private editIgnoreRuleSk?: EditIgnoreRuleSk;
+
   private confirmDialogSk?: ConfirmDialogSk;
 
-  private readonly stateChanged: () => void;
+  private readonly stateChanged: ()=> void;
+
   private fetchController?: AbortController; // Allows us to abort fetches if we fetch again.
 
   constructor() {
@@ -126,6 +136,7 @@ export class IgnoresPageSk extends ElementSk {
       /* getState */() => ({
         // provide empty values
         count_all: this.countAllTraces,
+        use_new_api: this.useNewAPI,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -133,6 +144,7 @@ export class IgnoresPageSk extends ElementSk {
 
         // default values if not specified.
         this.countAllTraces = newState.count_all as boolean || false;
+        this.useNewAPI = (newState.use_new_api as boolean) || false;
         this.fetch();
         this._render();
       },
@@ -197,7 +209,8 @@ export class IgnoresPageSk extends ElementSk {
       })
       .catch((e) => sendFetchError(this, e, 'ignores'));
 
-    fetch('/json/v1/paramset', extra)
+    const url = this.useNewAPI ? '/json/v2/paramset' : '/json/v1/paramset';
+    fetch(url, extra)
       .then(jsonOrThrow)
       .then((paramset: ParamSet) => {
         this.paramset = paramset;

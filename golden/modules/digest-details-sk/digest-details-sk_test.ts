@@ -1,12 +1,12 @@
 import './index';
 import fetchMock from 'fetch-mock';
+import { expect } from 'chai';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { twoHundredCommits, typicalDetails } from './test_data';
 import { DigestDetailsSk } from './digest-details-sk';
 import { LabelOrEmpty } from '../triage-sk/triage-sk';
 import { DigestDetailsSkPO } from './digest-details-sk_po';
 import { TriageRequest } from '../rpc_types';
-import { expect } from 'chai';
 
 describe('digest-details-sk', () => {
   const newInstance = setUpElementUnderTest<DigestDetailsSk>('digest-details-sk');
@@ -35,27 +35,29 @@ describe('digest-details-sk', () => {
 
     it('shows the test name', async () => {
       expect(await digestDetailsSkPO.getTestName())
-          .to.equal('Test: dots-legend-sk_too-many-digests');
+        .to.equal('Test: dots-legend-sk_too-many-digests');
     });
 
     it('has a link to the cluster view', async () => {
       expect(await digestDetailsSkPO.getClusterHref()).to.equal(
         '/cluster?corpus=infra&grouping=dots-legend-sk_too-many-digests&include_ignored=false'
         + '&left_filter=&max_rgba=0&min_rgba=0&negative=true&not_at_head=true&positive=true'
-        + '&reference_image_required=false&right_filter=&sort=descending&untriaged=true');
+        + '&reference_image_required=false&right_filter=&sort=descending&untriaged=true',
+      );
     });
 
     it('shows shows both digests', async () => {
       expect(await digestDetailsSkPO.getLeftDigest())
-          .to.equal('Left: 6246b773851984c726cb2e1cb13510c2');
+        .to.equal('Left: 6246b773851984c726cb2e1cb13510c2');
       expect(await digestDetailsSkPO.getRightDigest())
-          .to.equal('Right: 99c58c7002073346ff55f446d47d6311');
+        .to.equal('Right: 99c58c7002073346ff55f446d47d6311');
     });
 
     it('shows the metrics and the link to the diff page', async () => {
       expect(await digestDetailsSkPO.getDiffPageLink()).to.equal(
         '/diff?test=dots-legend-sk_too-many-digests'
-            + '&left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311');
+            + '&left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311',
+      );
 
       expect(await digestDetailsSkPO.getMetrics()).to.deep.equal([
         'Diff metric: 0.083',
@@ -105,7 +107,7 @@ describe('digest-details-sk', () => {
       expect((await triageEventPromise).detail).to.equal('negative');
 
       // Triage as positive.
-       triageEventPromise = eventPromise('triage');
+      triageEventPromise = eventPromise('triage');
       await digestDetailsSkPO.triageSkPO.clickButton('positive');
       expect((await triageEventPromise).detail).to.equal('positive');
 
@@ -121,7 +123,7 @@ describe('digest-details-sk', () => {
         fetchMock.reset();
       });
 
-      it('POSTs to an RPC endpoint when triage button clicked', async () => {
+      it('POSTs to the v1 RPC endpoint when triage button clicked', async () => {
         const triageRequest: TriageRequest = {
           testDigestStatus: {
             'dots-legend-sk_too-many-digests': {
@@ -131,9 +133,27 @@ describe('digest-details-sk', () => {
           changelist_id: '',
           crs: '',
         };
-        fetchMock.post({url: '/json/v1/triage', body: triageRequest}, 200);
+        fetchMock.post({ url: '/json/v1/triage', body: triageRequest }, 200);
 
         const endPromise = eventPromise('end-task');
+        await digestDetailsSkPO.triageSkPO.clickButton('negative');
+        await endPromise;
+      });
+
+      it('POSTs to the v2 RPC endpoint when triage button clicked', async () => {
+        const triageRequest: TriageRequest = {
+          testDigestStatus: {
+            'dots-legend-sk_too-many-digests': {
+              '6246b773851984c726cb2e1cb13510c2': 'negative',
+            },
+          },
+          changelist_id: '',
+          crs: '',
+        };
+        fetchMock.post({ url: '/json/v2/triage', body: triageRequest }, 200);
+
+        const endPromise = eventPromise('end-task');
+        digestDetailsSk.useNewAPI = true;
         await digestDetailsSkPO.triageSkPO.clickButton('negative');
         await endPromise;
       });
@@ -161,7 +181,8 @@ describe('digest-details-sk', () => {
 
       expect(await digestDetailsSkPO.getDiffPageLink()).to.equal(
         '/diff?test=dots-legend-sk_too-many-digests&left=6246b773851984c726cb2e1cb13510c2'
-            + '&right=99c58c7002073346ff55f446d47d6311&changelist_id=12345&crs=github');
+            + '&right=99c58c7002073346ff55f446d47d6311&changelist_id=12345&crs=github',
+      );
     });
 
     it('passes changeListID and crs to appropriate subelements', async () => {
@@ -191,7 +212,7 @@ describe('digest-details-sk', () => {
           changelist_id: '12345',
           crs: 'github',
         };
-        fetchMock.post({url: '/json/v1/triage', body: triageRequest}, 200);
+        fetchMock.post({ url: '/json/v1/triage', body: triageRequest }, 200);
 
         const endPromise = eventPromise('end-task');
         await digestDetailsSkPO.triageSkPO.clickButton('negative');

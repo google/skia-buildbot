@@ -32,21 +32,29 @@ export class DetailsPageSk extends ElementSk {
       <digest-details-sk .commits=${ele.commits}
                          .changeListID=${ele.changeListID}
                          .crs=${ele.crs}
-                         .details=${ele.details}>
+                         .details=${ele.details}
+                         .useNewAPI=${ele.useNewAPI}>
       </digest-details-sk>
     `;
   };
 
   private grouping = '';
+
   private digest = '';
+
   private crs = '';
+
   private changeListID = '';
+
   private commits: Commit[] = [];
+
   private details: SearchResult | null = null;
+
   private didInitialLoad = false;
+
   private useNewAPI: boolean = false;
 
-  private stateChanged?: () => void;
+  private stateChanged?: ()=> void;
 
   // Allows us to abort fetches if we fetch again.
   private fetchController?: AbortController;

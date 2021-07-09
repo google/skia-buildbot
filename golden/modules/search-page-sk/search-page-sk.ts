@@ -3,23 +3,23 @@
  * @description <h2><code>search-page-sk</code></h2>
  *
  */
-import {html} from 'lit-html';
-import {define} from 'elements-sk/define';
-import {jsonOrThrow} from 'common-sk/modules/jsonOrThrow';
-import {deepCopy} from 'common-sk/modules/object';
-import {stateReflector} from 'common-sk/modules/stateReflector';
-import {fromObject, fromParamSet, ParamSet} from 'common-sk/modules/query';
+import { html } from 'lit-html';
+import { define } from 'elements-sk/define';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { deepCopy } from 'common-sk/modules/object';
+import { stateReflector } from 'common-sk/modules/stateReflector';
+import { fromObject, fromParamSet, ParamSet } from 'common-sk/modules/query';
 import dialogPolyfill from 'dialog-polyfill';
-import {HintableObject} from 'common-sk/modules/hintable';
-import {ElementSk} from '../../../infra-sk/modules/ElementSk';
-import {ChangelistControlsSkChangeEventDetail} from '../changelist-controls-sk/changelist-controls-sk';
+import { HintableObject } from 'common-sk/modules/hintable';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ChangelistControlsSkChangeEventDetail } from '../changelist-controls-sk/changelist-controls-sk';
 import {
   SearchCriteria,
   SearchCriteriaFromHintableObject,
-  SearchCriteriaToHintableObject
+  SearchCriteriaToHintableObject,
 } from '../search-controls-sk/search-controls-sk';
-import {sendBeginTask, sendEndTask, sendFetchError} from '../common';
-import {defaultCorpus} from '../settings';
+import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
+import { defaultCorpus } from '../settings';
 import {
   ChangelistSummaryResponse,
   Label,
@@ -27,7 +27,7 @@ import {
   SearchResponse,
   SearchResult,
   StatusResponse,
-  TriageRequestData
+  TriageRequestData,
 } from '../rpc_types';
 
 import 'elements-sk/checkbox-sk';
@@ -71,8 +71,8 @@ export interface SearchRequest {
   pos: boolean;
   neg: boolean;
   unt: boolean;
-  head: boolean;  // At head only.
-  include: boolean;  // Include ignored.
+  head: boolean; // At head only.
+  include: boolean; // Include ignored.
   frgbamin: number;
   frgbamax: number;
   fref: boolean;
@@ -108,9 +108,10 @@ export class SearchPageSk extends ElementSk {
 
     <div class="results">
       ${el._searchResponse?.digests?.map(
-        (result, idx) =>
-          SearchPageSk._resultTemplate(
-            el, result!, /* selected= */ idx === el._selectedSearchResultIdx))}
+    (result, idx) => SearchPageSk._resultTemplate(
+      el, result!, /* selected= */ idx === el._selectedSearchResultIdx,
+    ),
+  )}
     </div>
 
     <dialog class="bulk-triage">
@@ -118,6 +119,7 @@ export class SearchPageSk extends ElementSk {
                       .allDigests=${el._searchResponse?.bulk_triage_data || {}}
                       .crs=${el._crs || ''}
                       .changeListID=${el._changelistId || ''}
+                      .useNewAPI=${el._useNewAPI}
                       @bulk_triage_invoked=${() => el._bulkTriageDialog?.close()}
                       @bulk_triage_finished=${() => el._fetchSearchResults()}
                       @bulk_triage_cancelled=${() => el._bulkTriageDialog?.close()}>
@@ -165,6 +167,7 @@ export class SearchPageSk extends ElementSk {
                          .details=${result}
                          .changeListID=${el._changelistId}
                          .crs=${el._crs}
+                         .useNewAPI=${el._useNewAPI}
                          @triage=${(e: CustomEvent<Label>) => el._onTriage(result, e.detail)}
                          class="${selected ? 'selected' : ''}">
       </digest-details-sk>
@@ -183,34 +186,42 @@ export class SearchPageSk extends ElementSk {
     minRGBADelta: 0,
     maxRGBADelta: 255,
     mustHaveReferenceImage: false,
-    sortOrder: 'descending'
+    sortOrder: 'descending',
   };
 
   // Fields reflected to/from the URL and modified by the changelist-controls-sk.
   private _includeDigestsFromPrimary: boolean | null = null;
+
   private _patchset: number | null = null;
 
   // Other fields reflected from the URL.
   private _blame: string | null = null;
+
   private _crs: string | null = null;
+
   private _changelistId: string | null = null;
+
   private _useNewAPI: boolean = false;
 
   // stateReflector update function.
-  private _stateChanged: (() => void) | null = null;
+  private _stateChanged: (()=> void) | null = null;
 
   // Fields populated from JSON RPCs.
   private _corpora: string[] = [];
+
   private _paramSet: ParamSet = {};
+
   private _changeListSummaryResponse: ChangelistSummaryResponse | null = null;
+
   private _searchResponse: SearchResponse | null = null;
 
   private _searchResultsFetchController: AbortController | null = null;
 
   private _bulkTriageDialog: HTMLDialogElement | null = null;
+
   private _helpDialog: HTMLDialogElement | null = null;
 
-  private _keyDownEventHandlerFn: ((event: KeyboardEvent) => void) | null = null;
+  private _keyDownEventHandlerFn: ((event: KeyboardEvent)=> void) | null = null;
 
   // Search result currently selected (e.g. via the J and K keyboard shortcuts). A negative value
   // represents an empty selection.
@@ -241,7 +252,6 @@ export class SearchPageSk extends ElementSk {
         this._useNewAPI = (newState.use_new_api as boolean) || false;
         this._includeDigestsFromPrimary = (newState.master as boolean) || null;
         this._patchset = (newState.patchsets as number) || null;
-
 
         // These RPCs are only called once during the page's lifetime.
         this._fetchCorporaOnce();
@@ -281,12 +291,12 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      const statusResponse: StatusResponse =
-        await fetch('/json/v1/trstatus', {method: 'GET'}).then(jsonOrThrow);
+      const url = this._useNewAPI ? '/json/v2/trstatus' : '/json/v1/trstatus';
+      const statusResponse: StatusResponse = await fetch(url, { method: 'GET' }).then(jsonOrThrow);
       this._corpora = statusResponse.corpStatus.map((corpus) => corpus.name);
       this._render();
       sendEndTask(this);
-    } catch(e) {
+    } catch (e) {
       sendFetchError(this, e, 'fetching the available corpora');
     }
   }
@@ -297,15 +307,12 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      let url = '/json/v1/paramset';
-      if (this._useNewAPI) {
-        url = '/json/v2/paramset';
-      }
-      const paramSetResponse: ParamSetResponse =
-        await fetch(
-            url + (changeListId ? '?changelist_id='+  changeListId : ''),
-            {method: 'GET'})
-          .then(jsonOrThrow);
+      const url = this._useNewAPI ? '/json/v2/paramset' : '/json/v1/paramset';
+      const paramSetResponse: ParamSetResponse = await fetch(
+        url + (changeListId ? `?changelist_id=${changeListId}` : ''),
+        { method: 'GET' },
+      )
+        .then(jsonOrThrow);
 
       // TODO(lovisolo): Type ParamSetResponse is generated by go2ts as
       //                 { [key: string]: string[] | null }, but the real ParamSet type used here is
@@ -320,7 +327,7 @@ export class SearchPageSk extends ElementSk {
 
       this._render();
       sendEndTask(this);
-    } catch(e) {
+    } catch (e) {
       sendFetchError(this, e, 'fetching the available digest parameters');
     }
   }
@@ -334,12 +341,12 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      this._changeListSummaryResponse =
-        await fetch(`/json/v1/changelist/${this._crs}/${this._changelistId}`, {method: 'GET'})
-          .then(jsonOrThrow);
+      const base = this._useNewAPI ? '/json/v2/changelist' : '/json/v1/changelist';
+      this._changeListSummaryResponse = await fetch(`${base}/${this._crs}/${this._changelistId}`, { method: 'GET' })
+        .then(jsonOrThrow);
       this._render();
       sendEndTask(this);
-    } catch(e) {
+    } catch (e) {
       sendFetchError(this, e, 'fetching the changelist summary');
     }
   }
@@ -351,7 +358,7 @@ export class SearchPageSk extends ElementSk {
       const copy = deepCopy(paramSet);
       copy[CORPUS_KEY] = [this._searchCriteria.corpus];
       return copy;
-    }
+    };
 
     // Populate a SearchRequest object, which we'll use to generate the query string for the
     // /json/v1/search RPC.
@@ -392,21 +399,23 @@ export class SearchPageSk extends ElementSk {
       sendBeginTask(this);
       if (!this._useNewAPI) {
         this._searchResponse = await fetch(
-            '/json/v1/search?' + fromObject(searchRequest as any),
-            {method: 'GET', signal: this._searchResultsFetchController.signal})
-            .then(jsonOrThrow);
+          `/json/v1/search?${fromObject(searchRequest as any)}`,
+          { method: 'GET', signal: this._searchResultsFetchController.signal },
+        )
+          .then(jsonOrThrow);
       } else {
         this._searchResponse = await fetch(
-            '/json/v2/search?' + fromObject(searchRequest as any),
-            {method: 'GET', signal: this._searchResultsFetchController.signal})
-            .then(jsonOrThrow);
+          `/json/v2/search?${fromObject(searchRequest as any)}`,
+          { method: 'GET', signal: this._searchResultsFetchController.signal },
+        )
+          .then(jsonOrThrow);
       }
 
       // Reset UI and render.
       this._selectedSearchResultIdx = -1;
       this._render();
       sendEndTask(this);
-    } catch(e) {
+    } catch (e) {
       sendFetchError(this, e, 'fetching the available digest parameters');
     }
   }
@@ -476,7 +485,7 @@ export class SearchPageSk extends ElementSk {
     // Ignore all keyboard shortcuts if there are any open modals.
     if (document.querySelectorAll('dialog[open]').length > 0) return;
 
-    switch(event.key) {
+    switch (event.key) {
       // Next.
       case 'j':
         this._selectSearchResult(this._selectedSearchResultIdx + 1);
@@ -573,7 +582,8 @@ export class SearchPageSk extends ElementSk {
 
     if (this._selectedSearchResultIdx < 0) return null;
     return this.querySelector<HTMLElement>(
-      `digest-details-sk:nth-child(${this._selectedSearchResultIdx + 1})`);
+      `digest-details-sk:nth-child(${this._selectedSearchResultIdx + 1})`,
+    );
   }
 }
 

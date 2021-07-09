@@ -12,6 +12,7 @@ import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { fromParamSet, fromObject, ParamSet } from 'common-sk/modules/query';
+import { HintableObject } from 'common-sk/modules/hintable';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SearchCriteriaToHintableObject, SearchCriteriaFromHintableObject } from '../search-controls-sk';
@@ -19,11 +20,12 @@ import { SearchCriteriaToHintableObject, SearchCriteriaFromHintableObject } from
 import '../cluster-digests-sk';
 import '../digest-details-sk';
 import '../../../infra-sk/modules/paramset-sk';
-import {SearchCriteria} from '../search-controls-sk/search-controls-sk';
-import {ClusterDiffLink, ClusterDiffResult, Digest, DigestComparison, DigestDetails, TestName} from '../rpc_types';
-import {ClusterDiffNodeWithLabel, ClusterDigestsSk} from '../cluster-digests-sk/cluster-digests-sk';
-import {HintableObject} from 'common-sk/modules/hintable';
-import {ParamSetSkClickEventDetail} from '../../../infra-sk/modules/paramset-sk/paramset-sk';
+import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
+import {
+  ClusterDiffLink, ClusterDiffResult, Digest, DigestComparison, DigestDetails, TestName,
+} from '../rpc_types';
+import { ClusterDiffNodeWithLabel, ClusterDigestsSk } from '../cluster-digests-sk/cluster-digests-sk';
+import { ParamSetSkClickEventDetail } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 
 function mergeParamsets(base: ParamSet, extra: ParamSet) {
   for (const key in extra) {
@@ -82,7 +84,8 @@ export class ClusterPageSk extends ElementSk {
       if (ele.digestDetails) {
         return html`
           <digest-details-sk .details=${ele.digestDetails.digest}
-                             .commits=${ele.digestDetails.commits}>
+                             .commits=${ele.digestDetails.commits}
+                             .useNewAPI=${ele.useNewAPI}>
           </digest-details-sk>
         `;
       }
@@ -92,7 +95,8 @@ export class ClusterPageSk extends ElementSk {
       if (ele.diffDetails) {
         return html`
           <digest-details-sk .details=${ele.diffDetails.left}
-                             .right=${ele.diffDetails.right}>
+                             .right=${ele.diffDetails.right}
+                             .useNewAPI=${ele.useNewAPI}>
           </digest-details-sk>`;
       }
       return html`<h2>Loading diff details</h2>`;
@@ -116,6 +120,7 @@ export class ClusterPageSk extends ElementSk {
   };
 
   private corpora: string[] = [];
+
   private paramset: ParamSet = {};
 
   // TODO(kjlubick): Add a specific type for cluster requests.
@@ -133,9 +138,14 @@ export class ClusterPageSk extends ElementSk {
     mustHaveReferenceImage: false,
     sortOrder: 'descending',
   };
+
   private grouping: TestName = '';
-  private changeListID = '';
-  private crs = '';
+
+  private changeListID: string = '';
+
+  private crs: string = '';
+
+  private useNewAPI: boolean = false;
 
   // Keeps track of the digests the user has selected.
   private selectedDigests: Digest[] = [];
@@ -149,16 +159,19 @@ export class ClusterPageSk extends ElementSk {
   // These are the nodes and links that are drawn in the cluster-digests-sk. Holding onto them
   // lets us update them (e.g. their labels) and easily re-layout the diagram.
   private renderedNodes: ClusterDiffNodeWithLabel[] = [];
+
   private renderedLinks: ClusterDiffLink[] = [];
 
   private digestDetails: DigestDetails | null = null;
+
   private diffDetails: DigestComparison | null = null;
 
   // Allows us to abort fetches if we fetch again.
   private fetchController?: AbortController;
 
-  private readonly stateChanged: () => void;
-  private readonly keyEventHandler: (e: KeyboardEvent) => void;
+  private readonly stateChanged: ()=> void;
+
+  private readonly keyEventHandler: (e: KeyboardEvent)=> void;
 
   constructor() {
     super(ClusterPageSk.template);
@@ -169,6 +182,7 @@ export class ClusterPageSk extends ElementSk {
         state.grouping = this.grouping;
         state.changeListID = this.changeListID;
         state.crs = this.crs;
+        state.use_new_api = this.useNewAPI || '';
         return state;
       },
       /* setState */(newState) => {
@@ -179,6 +193,7 @@ export class ClusterPageSk extends ElementSk {
         this.grouping = newState.grouping as string;
         this.changeListID = newState.changeListID as string;
         this.crs = newState.crs as string;
+        this.useNewAPI = (newState.use_new_api as boolean) || false;
         this.fetchClusterData();
         this._render();
       },
@@ -221,7 +236,8 @@ export class ClusterPageSk extends ElementSk {
       head: !sc.includeDigestsNotAtHead,
       include: sc.includeIgnoredDigests,
     };
-    return `/json/v1/clusterdiff?${fromObject(queryObj)}`;
+    const url = this.useNewAPI ? '/json/v2/clusterdiff' : '/json/v1/clusterdiff';
+    return `${url}?${fromObject(queryObj)}`;
   }
 
   private fetchClusterData() {
@@ -249,7 +265,8 @@ export class ClusterPageSk extends ElementSk {
       })
       .catch((e) => sendFetchError(this, e, 'clusterdiff'));
 
-    fetch('/json/v1/paramset', extra)
+    const paramsetURL = this.useNewAPI ? '/json/v2/paramset' : '/json/v1/paramset';
+    fetch(paramsetURL, extra)
       .then(jsonOrThrow)
       .then((paramset: ParamSet) => {
         // We split the paramset into a list of corpora...
@@ -282,7 +299,8 @@ export class ClusterPageSk extends ElementSk {
       urlObj.changelist_id = [this.changeListID];
       urlObj.crs = [this.crs];
     }
-    const url = `/json/v1/details?${fromObject(urlObj)}`;
+    const base = this.useNewAPI ? '/json/v2/details' : '/json/v1/details';
+    const url = `${base}?${fromObject(urlObj)}`;
 
     fetch(url, extra)
       .then(jsonOrThrow)
@@ -308,7 +326,8 @@ export class ClusterPageSk extends ElementSk {
       urlObj.changelist_id = [this.changeListID];
       urlObj.crs = [this.crs];
     }
-    const url = `/json/v1/diff?${fromObject(urlObj)}`;
+    const base = this.useNewAPI ? '/json/v2/diff' : '/json/v1/diff';
+    const url = `${base}?${fromObject(urlObj)}`;
 
     fetch(url, extra)
       .then(jsonOrThrow)
@@ -349,7 +368,7 @@ export class ClusterPageSk extends ElementSk {
 
   private layoutCluster() {
     this.querySelector<ClusterDigestsSk>('cluster-digests-sk')
-        ?.setData(this.renderedNodes, this.renderedLinks);
+      ?.setData(this.renderedNodes, this.renderedLinks);
   }
 
   private paramKeyClicked(e: CustomEvent<ParamSetSkClickEventDetail>) {
