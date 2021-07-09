@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "82c14f54_ae842191",
+        "filename": "infra/bots/task_drivers/bazel_test_all/bazel_test_all.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T22:01:31Z",
+      "side": 1,
+      "message": "I took your suggestion, but I modified it slightly to cover the case when --rbe is unset and --local is set.",
+      "parentUuid": "65797ef2_f254fd32",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 9
+      },
+      "revId": "8910b347a4fbb678eb9e4a050a9e444d6400c82c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4713d742_f4a8f76a",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-07-09T12:40:29Z",
       "side": 1,
       "message": "Note: Swarming bots reboot both on a timer (at least every 24 hours) and whenever a task fails.  AFAIK they do not reboot after every task, so depending on how lazy the unmount is, it seems possible that a second task could start running before the ramdisk has been unmounted, which could lead to OOM or other issues.",
+      "range": {
+        "startLine": 54,
+        "startChar": 31,
+        "endLine": 54,
+        "endChar": 78
+      },
+      "revId": "8910b347a4fbb678eb9e4a050a9e444d6400c82c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3b93f1a3_069ea6d7",
+        "filename": "task_driver/go/lib/bazel/bazel.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T22:01:31Z",
+      "side": 1,
+      "message": "As an experiment, I just launched Infra-PerCommit-Test-Bazel-Local, then SSH\u0027d into the GCE VM and ran the following commands:\n\n  $ sudo df -h\n  Filesystem      Size  Used Avail Use% Mounted on\n  tmpfs            32G  1.1G   31G   4% /mnt/pd0/s/w/it2qdOvb/ramdisk-665146690\n  \u003crest of the output omitted for brevity\u003e\n  \n  $ free -h\n  total        used        free      shared  buff/cache   available\n  Mem:           56Gi       3.2Gi        33Gi       1.0Gi        19Gi        51Gi\n  Swap:            0B          0B          0B\n  \n  $ sudo umount /mnt/pd0/s/w/it2qdOvb/ramdisk-665146690\n  umount: /mnt/pd0/s/w/it2qdOvb/ramdisk-665146690: target is busy.\n  \n  $ sudo umount /mnt/pd0/s/w/it2qdOvb/ramdisk-665146690 --lazy\n  \n  $ df -h\n  Filesystem      Size  Used Avail Use% Mounted on\n  \u003cpartition /mnt/pd0/s/w/it2qdOvb/ramdisk-665146690 no longer shows up\u003e\n  \n  $ free -h\n  total        used        free      shared  buff/cache   available\n  Mem:           56Gi       1.5Gi        35Gi       1.0Gi        19Gi        53Gi\n  Swap:            0B          0B          0B\n\nNote that the RAM memory used by the ramdisk was freed immediately.\n\nThe Bazel process seemed to die almost instantly:\n\n  Server terminated abruptly (error code: 14, error message: \u0027Socket closed\u0027, log file: \u0027/mnt/pd0/s/w/it2qdOvb/ramdisk-665146690/bazel-cache/336ea3039fed6f3e5316998662c62b7f/server/jvm.out\u0027)\n\nYou can see the full task driver output here: https://task-driver.skia.org/td/2j6rHgqb1ihqlBtVARoH?ifNotFound\u003dhttps%3A%2F%2Fchromium-swarm.appspot.com%2Ftask%3Fid%3D54a601699dfd1910\n\nI know this isn\u0027t a definitive answer, but the experiment suggests that the RAM memory taken by the ramdisk should be freed by the time a new task arrives on the Swarming bot.\n\nOne option is to leave the code as is, update the highlighted comment to include the above findings, and remove the part that says the Swarming bot will reboot shortly after the task finishes.\n\nWDYT?",
+      "parentUuid": "4713d742_f4a8f76a",
       "range": {
         "startLine": 54,
         "startChar": 31,
