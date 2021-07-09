@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "000b0224_75d62a27",
+        "filename": "machine/modules/filter-array/index.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T22:34:27Z",
+      "side": 1,
+      "message": "It\u0027s fine to use the () \u003d\u003e void type directly. See the nits below for some examples.\n\nIf you must declare a new type, a more idiomatic way would be:\n\n  export type Callback \u003d () \u003d\u003e void;",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 0
+      },
+      "revId": "9c7d606932b055b77b860a744a17d003f9e17523",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cce925a5_07e68b7a",
+        "filename": "machine/modules/filter-array/index.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T22:34:27Z",
+      "side": 1,
+      "message": "Nit:\n\n  private newFilterVallueCallback?: () \u003d\u003e void;",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 49
+      },
+      "revId": "9c7d606932b055b77b860a744a17d003f9e17523",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7c11fa82_c8b5b9fe",
+        "filename": "machine/modules/filter-array/index.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T22:34:27Z",
+      "side": 1,
+      "message": "Nit:\n  newFilterValueCallback?: () \u003d\u003e void",
+      "range": {
+        "startLine": 43,
+        "startChar": 46,
+        "endLine": 43,
+        "endChar": 92
+      },
+      "revId": "9c7d606932b055b77b860a744a17d003f9e17523",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3f54d061_cc78e04f",
+        "filename": "machine/modules/filter-array/index.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T22:34:27Z",
+      "side": 1,
+      "message": "Nit:\n  this.newFilterValueCallback?.();",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 5
+      },
+      "revId": "9c7d606932b055b77b860a744a17d003f9e17523",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
