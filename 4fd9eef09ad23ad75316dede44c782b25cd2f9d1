@@ -89,6 +89,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1d116c41_eb83f96c",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T01:37:45Z",
+      "side": 1,
+      "message": "I went with your suggested factoring. There\u0027s still some nontrivial repetition which bothers me (and we can philosophize over lunch someday; text makes this sort of debate come off louder than it\u0027s meant :-)), but I like the compactness of your sendJSONResponse() concept.",
+      "parentUuid": "7454491c_9661b2aa",
+      "range": {
+        "startLine": 147,
+        "startChar": 74,
+        "endLine": 147,
+        "endChar": 80
+      },
+      "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "952bb3dc_46e30f52",
@@ -102,6 +126,30 @@
       "writtenOn": "2021-07-08T12:04:27Z",
       "side": 1,
       "message": "I think this approach is very DRY, but has gone a bit too far in that readability has been hampered. serveJSON tries to do too much, I think.\n\nLet\u0027s look at how this code might look using something similar to sendJSONResponse used by Gold [1]\n\n    func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {\n      descriptions, err :\u003d s.store.List(r.Context())\n      if err !\u003d nil {\n        httputils.ReportError(w, err, \"Failed to read descriptions\", http.StatusInternalServerError)\n        return\n      }\n      sendJSONResponse(w, descriptions)\n    }\n\nBecause sendJSONResponse is assumed to be the last function call in a handler, it doesn\u0027t need to return an error for us to process and bail out early.\n\nThe `if err !\u003d nil ... httputils.ReportError` is repeated for each function call, but it\u0027s pretty standard Go code to do that sort of error checking as needed.\n\nI imagine y\u0027all will want to add tracing [2] [3] to the endpoints here to keep an eye on latency and bottlenecks. IMO, that should be added like:\n\n    func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {\n      ctx, span :\u003d trace.StartSpan(r.Context(), \"machinesHandler\")\n      defer span.End()\n      descriptions, err :\u003d s.store.List(ctx)\n      if err !\u003d nil {\n        httputils.ReportError(w, err, \"Failed to read descriptions\", http.StatusInternalServerError)\n        return\n      }\n      sendJSONResponse(w, descriptions)\n    }\n\nAgain, this is slightly duplicated for all handlers, but is very readable. I can\u0027t think of any ways to remove the duplication w/o dramatically hindering readability.\n\n[1] https://github.com/google/skia-buildbot/blob/a8b946c90d67aba23e1d11aa7e23ba3106b4d42b/golden/go/web/helpers.go#L36\n[2] https://cloud.google.com/trace\n[3] https://github.com/google/skia-buildbot/blob/a8b946c90d67aba23e1d11aa7e23ba3106b4d42b/golden/go/web/web.go#L580",
+      "range": {
+        "startLine": 171,
+        "startChar": 1,
+        "endLine": 171,
+        "endChar": 10
+      },
+      "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ff521f72_4ba60ce5",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T01:37:45Z",
+      "side": 1,
+      "message": "FWIW, as a newbie in this codebase, I find the repetition hinders my ability to read and comprehend, since I have to read it over and over, divide it into concepts myself (rather than having a function name and docs as expert guidance), and try to figure out if there are any subtle differences. But I\u0027ll get a dozen CLs under my belt before I start philosophizing too hard! :-)",
+      "parentUuid": "952bb3dc_46e30f52",
       "range": {
         "startLine": 171,
         "startChar": 1,
@@ -173,6 +221,30 @@
       "side": 1,
       "message": "opinion: I think wrapping a function in another function and passing it in as parameter to a function call all at once is un-idiomatic (but I understand why you had to do it). I think if I was doing something like that, I would probably have broke it out as a local variable before the function call.\n\nTo answer your question about line breaks, the following\n\n   myFunc(\"A really long argument or constant or something\",\n      w, \"an error message\")\n      \nfeels more idiomatic to me than \n\n   myFunc(\n      \"A really long argument or constant or something\",\n      w,\n      \"an error message\")\n\nThe latter feels very Pythony, FWIW.",
       "parentUuid": "defd860b_a544d0c4",
+      "range": {
+        "startLine": 173,
+        "startChar": 2,
+        "endLine": 173,
+        "endChar": 3
+      },
+      "revId": "4fd9eef09ad23ad75316dede44c782b25cd2f9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1756cb2f_47918d58",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T01:37:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bdab2b7_41039b45",
       "range": {
         "startLine": 173,
         "startChar": 2,
