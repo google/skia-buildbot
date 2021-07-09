@@ -112,6 +112,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a33f6364_07b2fdf7",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T12:26:21Z",
+      "side": 1,
+      "message": "Ah, I see that you are on the fence about it. I would say go ahead and just return it as a pointer. That\u0027s the way NewRecorder() returns it, so we\u0027ll pass it along the same way. The maxim of \"least surprise\", as it were.",
+      "parentUuid": "16f794c4_0497db8b",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 10
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "09c306bb_2ef361f6",
         "filename": "machine/go/machineserver/main_test.go",
         "patchSetId": 3
