@@ -18,6 +18,23 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d4d101a7_5fd1fe01",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T16:39:23Z",
+      "side": 1,
+      "message": "Alright, address most of the review comments. Still to come is use of time.Date() to replace the painful unmarshalling.",
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a5dec1f8_9a2fd9d8",
@@ -66,6 +83,54 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a30fa79e_80e58613",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T16:39:23Z",
+      "side": 1,
+      "message": "Excellent; thanks. Is there a reason we don\u0027t run `go vet` as part of our pre-submit checks? (I now see in its docs that it isn\u0027t always right.)",
+      "parentUuid": "92f46a41_1cfd6040",
+      "range": {
+        "startLine": 44,
+        "startChar": 18,
+        "endLine": 44,
+        "endChar": 24
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "af1b0d25_5f83b3d0",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T16:39:23Z",
+      "side": 1,
+      "message": "Ah yes, I saw that in the docs. Will do. (That is a really weird piece of sugar to put into a language so short on it in general! I can\u0027t imagine it gets much use.)",
+      "parentUuid": "a5dec1f8_9a2fd9d8",
+      "range": {
+        "startLine": 44,
+        "startChar": 33,
+        "endLine": 44,
+        "endChar": 39
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4b3060a6_483f3301",
         "filename": "machine/go/machineserver/main_test.go",
         "patchSetId": 3
@@ -77,6 +142,30 @@
       "writtenOn": "2021-07-09T12:24:52Z",
       "side": 1,
       "message": "suggestion: Add a context.Context [1] as the first param to this function and add it to this request via WithContext [2]. This allows us to more easily inject test-related things. For example, we have this nice now package [3] which allows us to fake the time using contexts. I\u0027ve also used it for faking login status. It might be overkill for now, so it\u0027s fine to omit.\n\n[1] https://blog.golang.org/context#TOC_3.2.\n[2] https://golang.org/pkg/net/http/#Request.WithContext\n[3] https://github.com/google/skia-buildbot/blob/9b3f4fb533b9ab914c6730dc664d9caf59e36c01/go/now/now.go#L15",
+      "range": {
+        "startLine": 47,
+        "startChar": 1,
+        "endLine": 47,
+        "endChar": 2
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6e5e94f6_24e53c0c",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T16:39:23Z",
+      "side": 1,
+      "message": "I\u0027ll hold off for now, just in the spirit of YAGNI, but thanks for reminding me of contexts.",
+      "parentUuid": "4b3060a6_483f3301",
       "range": {
         "startLine": 47,
         "startChar": 1,
@@ -157,6 +246,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b78622db_695ca15b",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T16:39:23Z",
+      "side": 1,
+      "message": "Thanks: just the kind of feedback I was hoping for!",
+      "parentUuid": "cce10729_8c05aa04",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 10
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "09c306bb_2ef361f6",
@@ -170,6 +283,30 @@
       "writtenOn": "2021-07-09T12:24:52Z",
       "side": 1,
       "message": "drive-by comment: I prefer the time.Date() constructor for creating times, with time.Parse() as a backup. With the time.Date constructor, there is no need to check for an error. With time.Parse, the format is made explicit and directly interacts with a string (no need to convert to []byte).",
+      "range": {
+        "startLine": 467,
+        "startChar": 32,
+        "endLine": 467,
+        "endChar": 45
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8fb97417_45bd953f",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T16:39:23Z",
+      "side": 1,
+      "message": "Thank goodness. I was looking around for a better way but didn\u0027t find time.Date().",
+      "parentUuid": "09c306bb_2ef361f6",
       "range": {
         "startLine": 467,
         "startChar": 32,
@@ -228,6 +365,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "7e16b88a_34b72fa7",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T16:39:23Z",
+      "side": 1,
+      "message": "Me too! Still trying to figure out style. Long function args don\u0027t get their own lines but struct members do?",
+      "parentUuid": "a6bc94aa_2d572fa3",
+      "range": {
+        "startLine": 491,
+        "startChar": 42,
+        "endLine": 491,
+        "endChar": 49
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "f2eafaaf_6623f731",
         "filename": "machine/go/machineserver/main_test.go",
         "patchSetId": 3
@@ -239,6 +400,30 @@
       "writtenOn": "2021-07-09T12:24:52Z",
       "side": 1,
       "message": "nit: As a team-style rule, we wrap comments to 100 cols (which happens to be the default width in Gerrit)",
+      "range": {
+        "startLine": 493,
+        "startChar": 89,
+        "endLine": 493,
+        "endChar": 94
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c9e5453d_0e1aeed5",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 17959
+      },
+      "writtenOn": "2021-07-09T16:39:23Z",
+      "side": 1,
+      "message": "Great; I\u0027ll reconfigure my editor. Any line-length limit for other code? I know there\u0027s none in Go\u0027s global style guide, but...",
+      "parentUuid": "f2eafaaf_6623f731",
       "range": {
         "startLine": 493,
         "startChar": 89,
