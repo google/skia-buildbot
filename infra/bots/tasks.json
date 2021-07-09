@@ -2015,6 +2015,10 @@
         {
           "name": "gopath",
           "path": "cache/gopath"
+        },
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
         }
       ],
       "casSpec": "empty",
@@ -2137,6 +2141,9 @@
           "bazel/bin",
           "cockroachdb",
           "gcloud_linux/bin"
+        ],
+        "VPYTHON_VIRTUALENV_ROOT": [
+          "cache/vpython"
         ]
       },
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
@@ -2150,6 +2157,10 @@
         {
           "name": "gopath",
           "path": "cache/gopath"
+        },
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
         }
       ],
       "casSpec": "empty",
@@ -2280,6 +2291,9 @@
           "bazel/bin",
           "cockroachdb",
           "gcloud_linux/bin"
+        ],
+        "VPYTHON_VIRTUALENV_ROOT": [
+          "cache/vpython"
         ]
       },
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"

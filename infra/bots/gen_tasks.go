@@ -676,7 +676,12 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	}
 
 	t := &specs.TaskSpec{
-		Caches:       CACHES_GO,
+		Caches: append([]*specs.Cache{
+			{
+				Name: "vpython",
+				Path: "cache/vpython",
+			},
+		}, CACHES_GO...),
 		CasSpec:      CAS_EMPTY,
 		CipdPackages: cipd,
 		Command:      cmd,
@@ -695,6 +700,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 				"cockroachdb",
 				"gcloud_linux/bin",
 			},
+			"VPYTHON_VIRTUALENV_ROOT": {"cache/vpython"},
 		},
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
