@@ -136,6 +136,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "cce10729_8c05aa04",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-09T12:26:52Z",
+      "side": 1,
+      "message": "This is kind of odd, as http.Response and its analogues are normally passed around by reference.",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 10
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "09c306bb_2ef361f6",
         "filename": "machine/go/machineserver/main_test.go",
         "patchSetId": 3
@@ -222,6 +245,23 @@
         "endLine": 493,
         "endChar": 94
       },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8ccbbf2a_fc174e7b",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 502,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-09T12:26:52Z",
+      "side": 1,
+      "message": "One way to break this up is:\n\nexpected :\u003d []byte(`[{\"PodName\":\"somePod\",\"Port\":33,\"Username\":\"someUser\",\"MachineID\":\"someMachine\",\"LastUpdated\":\"2001-02-03T04:05:06.78901Z\"}]`+\"\\n\")\nassert.Equal(t, expected, w.Body.Bytes())",
       "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
