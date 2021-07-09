@@ -141,6 +141,15 @@ func (s *server) loadTemplates() {
 	s.loadTemplatesOnce.Do(s.loadTemplatesImpl)
 }
 
+// sendJSONResponse sends a JSON representation of any data structure as an
+// HTTP response. If the conversion to JSON has an error, the error is logged.
+func sendJSONResponse(data interface{}, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		sklog.Errorf("Failed to write response: %s", err)
+	}
+}
+
 func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	s.loadTemplates()
@@ -153,16 +162,12 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	descriptions, err := s.store.List(r.Context())
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
 		return
 	}
-
-	if err := json.NewEncoder(w).Encode(descriptions); err != nil {
-		sklog.Errorf("Failed to write response: %s", err)
-	}
+	sendJSONResponse(descriptions, w)
 }
 
 func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request) {
@@ -364,17 +369,21 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) podsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	pods, err := s.switchboard.ListPods(r.Context())
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get list of pods.", http.StatusInternalServerError)
 		return
 	}
+	sendJSONResponse(pods, w)
+}
 
-	if err := json.NewEncoder(w).Encode(pods); err != nil {
-		sklog.Errorf("Failed to write response: %s", err)
+func (s *server) meetingPointsHandler(w http.ResponseWriter, r *http.Request) {
+	meeting_points, err := s.switchboard.ListMeetingPoints(r.Context())
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get list of meeting points", http.StatusInternalServerError)
+		return
 	}
+	sendJSONResponse(meeting_points, w)
 }
 
 // See baseapp.App.
@@ -387,6 +396,7 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/machine/remove_device/{id:.+}", s.machineRemoveDeviceHandler).Methods("GET")
 	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("GET")
 	r.HandleFunc("/_/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
+	r.HandleFunc("/_/meeting_points", s.meetingPointsHandler).Methods("GET")
 	r.HandleFunc("/_/pods", s.podsHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
