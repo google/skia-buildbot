@@ -3619,6 +3619,92 @@ func TestTriage2_BulkTriage_OnCL_Success(t *testing.T) {
 	})
 }
 
+func TestLatestPositiveDigest2_TracesExist_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	windows10dot2RGBSquare := ",color mode=RGB,device=QuadroP400,name=square,os=Windows10.2,source_type=corners,"
+	ipadGreyTriangle := ",color mode=GREY,device=iPad6%2C3,name=triangle,os=iOS,source_type=corners,"
+	iphoneRGBCircle := ",color mode=RGB,device=iPhone12%2C1,name=circle,os=iOS,source_type=round,"
+	windows10dot3RGBCircle := ",color mode=RGB,device=QuadroP400,name=circle,os=Windows10.3,source_type=round,"
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	test := func(name, traceID string, expectedDigest types.Digest) {
+		t.Run(name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+			r = mux.SetURLVars(r, map[string]string{"traceID": traceID})
+
+			wh.LatestPositiveDigestHandler2(w, r)
+			expectedJSONResponse := `{"digest":"` + string(expectedDigest) + `"}`
+			assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+		})
+
+	}
+
+	test("positive at head", ipadGreyTriangle, dks.DigestB02Pos)
+	test("positive then empty", windows10dot2RGBSquare, dks.DigestA01Pos)
+	test("positive then negative", iphoneRGBCircle, dks.DigestC01Pos)
+
+	// This trace exists, but has nothing positively triaged. So we return an empty digest.
+	test("no positive digests", windows10dot3RGBCircle, "")
+}
+
+func TestLatestPositiveDigest2_InvalidTraceFormat_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{"traceID": "this is formatted incorrectly"})
+
+	wh.LatestPositiveDigestHandler2(w, r)
+	resp := w.Result()
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestLatestPositiveDigest2_TraceDoesNotExist_ReturnsEmptyDigest(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{"traceID": ",foo=bar,"})
+
+	wh.LatestPositiveDigestHandler2(w, r)
+	expectedJSONResponse := `{"digest":""}`
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
+}
+
 // d converts the given digest to its corresponding DigestBytes types. It panics on a failure.
 func d(d types.Digest) schema.DigestBytes {
 	b, err := sql.DigestToBytes(d)

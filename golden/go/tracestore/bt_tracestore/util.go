@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/tiling"
@@ -94,7 +93,7 @@ func decodeParams(k string) paramtools.Params {
 	if len(k) == 0 {
 		return paramtools.Params{}
 	}
-	p, err := query.ParseKeyFast(k)
+	p, err := tiling.ParseTraceID(k)
 	if err != nil {
 		sklog.Errorf("Invalid params %s: %s", k, err)
 		return paramtools.Params{}
