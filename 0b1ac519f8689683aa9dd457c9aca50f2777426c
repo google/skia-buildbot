@@ -129,6 +129,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d6172c66_5a972d1c",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T17:02:53Z",
+      "side": 1,
+      "message": "We run it as part of our small unit tests, but I\u0027m not sure if there\u0027s a good reason for it to not be in our PRESUBMIT.py",
+      "parentUuid": "a30fa79e_80e58613",
+      "range": {
+        "startLine": 44,
+        "startChar": 18,
+        "endLine": 44,
+        "endChar": 24
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4b3060a6_483f3301",
@@ -387,6 +411,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d0af9873_7485463f",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T17:02:53Z",
+      "side": 1,
+      "message": "Yes, struct members can be split up, static maps and slices can be as well.",
+      "parentUuid": "7e16b88a_34b72fa7",
+      "range": {
+        "startLine": 491,
+        "startChar": 42,
+        "endLine": 491,
+        "endChar": 49
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f2eafaaf_6623f731",
@@ -424,6 +472,30 @@
       "side": 1,
       "message": "Great; I\u0027ll reconfigure my editor. Any line-length limit for other code? I know there\u0027s none in Go\u0027s global style guide, but...",
       "parentUuid": "f2eafaaf_6623f731",
+      "range": {
+        "startLine": 493,
+        "startChar": 89,
+        "endLine": 493,
+        "endChar": 94
+      },
+      "revId": "0b1ac519f8689683aa9dd457c9aca50f2777426c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5e210d34_f05f8a9c",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-07-09T17:02:53Z",
+      "side": 1,
+      "message": "If code gets above 140, I\u0027ll consider splitting it or introducing local variables, but really it\u0027s not much to fret about.  \"Keep it readable\" is the general advice I\u0027ve gotten.",
+      "parentUuid": "c9e5453d_0e1aeed5",
       "range": {
         "startLine": 493,
         "startChar": 89,
