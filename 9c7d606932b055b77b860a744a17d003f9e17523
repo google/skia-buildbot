@@ -49,6 +49,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "8489f102_9547355a",
+        "filename": "machine/modules/filter-array/index.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-09T22:39:14Z",
+      "side": 1,
+      "message": "Ubernit: JSDoc comment format:\n\n  /**\n   *\n\nas opposed to\n\n  /**\n    *\n\n(Here and below)",
+      "range": {
+        "startLine": 34,
+        "startChar": 2,
+        "endLine": 35,
+        "endChar": 5
+      },
+      "revId": "9c7d606932b055b77b860a744a17d003f9e17523",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "7c11fa82_c8b5b9fe",
         "filename": "machine/modules/filter-array/index.ts",
         "patchSetId": 5
