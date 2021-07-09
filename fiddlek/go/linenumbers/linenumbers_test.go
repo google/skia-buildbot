@@ -14,9 +14,7 @@ b
 c`
 	want := `#line 1
 a
-#line 2
 b
-#line 3
 c`
 	assert.Equal(t, want, LineNumbers(code))
 

@@ -31,7 +31,6 @@ DrawOptions GetDrawOptions() {
 
 #line 1
 void draw(SkCanvas* canvas) {
-#line 2
 }
 `
 	got := r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
@@ -50,7 +49,6 @@ DrawOptions GetDrawOptions() {
 
 #line 1
 void draw(SkCanvas* canvas) {
-#line 2
 }
 `
 	got = r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
@@ -73,7 +71,6 @@ DrawOptions GetDrawOptions() {
 
 #line 1
 void draw(SkCanvas* canvas) {
-#line 2
 }
 `
 	got = r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
@@ -100,7 +97,6 @@ DrawOptions GetDrawOptions() {
 
 #line 1
 void draw(SkCanvas* canvas) {
-#line 2
 }
 `
 	got = r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
