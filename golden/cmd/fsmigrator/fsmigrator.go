@@ -8,7 +8,6 @@ import (
 	"crypto/md5"
 	"flag"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -16,7 +15,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/iterator"
 
 	ifirestore "go.skia.org/infra/go/firestore"
@@ -74,26 +72,6 @@ func main() {
 	}
 	sklog.Infof("Fetched %d groupings from SQL DB", len(nameToGroupings))
 
-	records, err := oldNamespace.fetchTriageRecords(ctx)
-	if err != nil {
-		sklog.Fatalf("Fetching triage records: %s", err)
-	}
-	sklog.Infof("Should migrate %d records", len(records))
-
-	if err := storeAndCombineTriageRecords(ctx, db, records); err != nil {
-		sklog.Fatalf("storing triage records %s", err)
-	}
-
-	sklog.Infof("Fetching deltas")
-	deltas, err := oldNamespace.fetchExpectationDeltas(ctx)
-	if err != nil {
-		sklog.Fatalf("Fetching expectation deltas: %s", err)
-	}
-
-	if err := storeExpectationDeltas(ctx, db, deltas, nameToGroupings); err != nil {
-		sklog.Fatalf("storing expectation deltas: %s", err)
-	}
-
 	sklog.Infof("Fetching expectations")
 	exp, err := oldNamespace.fetchExpectations(ctx)
 	if err != nil {
@@ -101,19 +79,19 @@ func main() {
 	}
 
 	// pass in deltas so we can link in the triage record to the expectations.
-	unowned, err := storeExpectations(ctx, db, exp, nameToGroupings, deltas)
+	err = storeExpectations(ctx, db, exp, nameToGroupings)
 	if err != nil {
 		sklog.Fatalf("storing expectation deltas: %s", err)
 	}
-
-	// Write the catchall expectation record. If somehow an expectation exists, but wasn't covered
-	// by a delta (e.g. broken old data), we assign it to this catchall record.
-	_, err = db.Exec(ctx, `UPSERT INTO ExpectationRecords
-(expectation_record_id, user_name, triage_time, num_changes) VALUES ($1, $2, $3, $4)`,
-		catchAllUUID, "sql_migrator", time.Now(), unowned)
-	if err != nil {
-		sklog.Fatalf("creating catch-all record: %s", err)
-	}
+	//
+	//	// Write the catchall expectation record. If somehow an expectation exists, but wasn't covered
+	//	// by a delta (e.g. broken old data), we assign it to this catchall record.
+	//	_, err = db.Exec(ctx, `UPSERT INTO ExpectationRecords
+	//(expectation_record_id, user_name, triage_time, num_changes) VALUES ($1, $2, $3, $4)`,
+	//		catchAllUUID, "sql_migrator", time.Now(), unowned)
+	//	if err != nil {
+	//		sklog.Fatalf("creating catch-all record: %s", err)
+	//	}
 
 	sklog.Info("done")
 }
@@ -143,147 +121,23 @@ func fetchGroupings(ctx context.Context, db *pgxpool.Pool) (map[types.TestName][
 	return rv, nil
 }
 
-func storeAndCombineTriageRecords(ctx context.Context, db *pgxpool.Pool, toStore map[string][]v3TriageRecord) error {
-	sklog.Infof("have %d partitions", len(toStore))
-	const batchSize = 1000
-	eg, ctx := errgroup.WithContext(ctx)
-	for b, r := range toStore {
-		branchName, records := b, r
-		sklog.Infof("Writing records from partition %s", branchName)
-		eg.Go(func() error {
-			return util.ChunkIter(len(records), batchSize, func(startIdx int, endIdx int) error {
-				if err := ctx.Err(); err != nil {
-					return skerr.Wrap(err)
-				}
-				batch := records[startIdx:endIdx]
-				statement := `INSERT INTO ExpectationRecords
-(expectation_record_id, user_name, triage_time, num_changes, branch_name) VALUES `
-				const valuesPerRow = 5
-				arguments := make([]interface{}, 0, valuesPerRow*len(batch))
-				for _, record := range batch {
-					// We can turn the old IDs into a UUID by hashing the bytes. This is faster than
-					// having to return the new random UUIDs.
-					newID := uuid.Must(uuid.FromBytes(hash(record.ID)))
-					arguments = append(arguments, newID, record.UserName, record.TS, record.Changes)
-					if branchName == v3PrimaryPartition {
-						arguments = append(arguments, nil)
-					} else {
-						arguments = append(arguments, branchName)
-					}
-				}
-				statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
-				statement += `ON CONFLICT DO NOTHING`
-				err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-					_, err := tx.Exec(ctx, statement, arguments...)
-					return err // don't wrap - might get retried
-				})
-				return skerr.Wrap(err)
-			})
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		return skerr.Wrapf(err, "writing records to SQL")
-	}
-	return nil
-}
-
-func storeExpectationDeltas(ctx context.Context, db *pgxpool.Pool, toStore map[string][]v3ExpectationChange, nameToGroupings map[types.TestName][]schema.GroupingID) error {
-	sklog.Infof("have %d partitions", len(toStore))
-	const batchSize = 1000
-	eg, ctx := errgroup.WithContext(ctx)
-	for b, d := range toStore {
-		branchName, deltas := b, d
-		sklog.Infof("Writing deltas from partition %s", branchName)
-		eg.Go(func() error {
-			return util.ChunkIter(len(deltas), batchSize, func(startIdx int, endIdx int) error {
-				if err := ctx.Err(); err != nil {
-					return skerr.Wrap(err)
-				}
-				batch := deltas[startIdx:endIdx]
-				statement := `INSERT INTO ExpectationDeltas
-(expectation_record_id, grouping_id, digest, label_before, label_after) VALUES `
-				const valuesPerRow = 5
-				arguments := make([]interface{}, 0, valuesPerRow*len(batch))
-				for _, delta := range batch {
-					newID := uuid.Must(uuid.FromBytes(hash(delta.RecordID)))
-					groupings, ok := nameToGroupings[delta.Grouping]
-					if !ok {
-						sklog.Warningf("Unknown grouping for name %s on branch %s", delta.Grouping, branchName)
-						continue
-					}
-					dBytes, err := sql.DigestToBytes(delta.Digest)
-					if err != nil {
-						sklog.Warningf("Corrupt digest %q on branch %s", delta.Digest, branchName)
-						continue
-					}
-					// Some groupings were on multiple corpora, so we need to store the record for
-					// all of them.
-					for _, gID := range groupings {
-						arguments = append(arguments,
-							newID, gID, dBytes, convertLabel(delta.LabelBefore), convertLabel(delta.AffectedRange.Label))
-					}
-				}
-				if len(arguments) == 0 {
-					return nil
-				}
-				// Need to divide here to account for skipped rows.
-				statement += sql.ValuesPlaceholders(valuesPerRow, len(arguments)/valuesPerRow)
-				statement += `ON CONFLICT DO NOTHING`
-				err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-					_, err := tx.Exec(ctx, statement, arguments...)
-					return err // don't wrap - might get retried
-				})
-				return skerr.Wrap(err)
-			})
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		return skerr.Wrapf(err, "writing expectations to SQL")
-	}
-	return nil
-}
-
 var (
 	catchAllUUID = uuid.MustParse("00000000-0000-0000-0000-000000000000")
 )
 
-func storeExpectations(ctx context.Context, db *pgxpool.Pool, toStore map[string][]v3ExpectationEntry, nameToGroupings map[types.TestName][]schema.GroupingID, deltas map[string][]v3ExpectationChange) (int, error) {
+func storeExpectations(ctx context.Context, db *pgxpool.Pool, toStore map[string][]v3ExpectationEntry, nameToGroupings map[types.TestName][]schema.GroupingID) error {
 	sklog.Infof("have %d partitions", len(toStore))
-	extraExpectations := int32(0)
-	eg, ctx := errgroup.WithContext(ctx)
-	eg.Go(func() error {
-		extra, err := storePrimaryBranchExpectations(ctx, db, toStore[v3PrimaryPartition], nameToGroupings, deltas[v3PrimaryPartition])
-		atomic.AddInt32(&extraExpectations, int32(extra))
-		return skerr.Wrap(err)
-	})
-
-	for b, e := range toStore {
-		branchName, exps := b, e
-		if branchName == v3PrimaryPartition {
-			continue
-		}
-		sklog.Infof("Writing expectations from partition %s", branchName)
-		eg.Go(func() error {
-			extra, err := storeSecondaryBranchExpectations(ctx, db, branchName, exps, nameToGroupings, deltas[branchName])
-			atomic.AddInt32(&extraExpectations, int32(extra))
-			return skerr.Wrap(err)
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		return 0, skerr.Wrapf(err, "writing deltas to SQL")
-	}
-	return int(extraExpectations), nil
+	return skerr.Wrap(storePrimaryBranchExpectations(ctx, db, toStore[v3PrimaryPartition], nameToGroupings))
 }
 
-func storePrimaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, exps []v3ExpectationEntry, nameToGroupings map[types.TestName][]schema.GroupingID, deltas []v3ExpectationChange) (int, error) {
+func storePrimaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, exps []v3ExpectationEntry, nameToGroupings map[types.TestName][]schema.GroupingID) error {
 	const batchSize = 1000
-	extra := 0
-	return extra, util.ChunkIter(len(exps), batchSize, func(startIdx int, endIdx int) error {
+	return util.ChunkIter(len(exps), batchSize, func(startIdx int, endIdx int) error {
 		if err := ctx.Err(); err != nil {
 			return skerr.Wrap(err)
 		}
 		batch := exps[startIdx:endIdx]
-		statement := `UPSERT INTO Expectations
+		statement := `INSERT INTO Expectations
 (grouping_id, digest, label, expectation_record_id) VALUES `
 		const valuesPerRow = 4
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
@@ -298,14 +152,10 @@ func storePrimaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, exps 
 				continue
 			}
 			label := exp.Ranges[0].Label
-			recordID, ok := find(exp.Grouping, exp.Digest, label, deltas)
 			// some test names correspond to more than one grouping. We need to write the
 			// expectations for both.
 			for _, gID := range groupings {
-				if !ok {
-					extra++
-				}
-				arguments = append(arguments, gID, dBytes, convertLabel(label), recordID)
+				arguments = append(arguments, gID, dBytes, convertLabel(label), catchAllUUID)
 			}
 		}
 		if len(arguments) == 0 {
@@ -313,67 +163,19 @@ func storePrimaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, exps 
 		}
 		// Need to divide here to account for skipped rows.
 		statement += sql.ValuesPlaceholders(valuesPerRow, len(arguments)/valuesPerRow)
+		statement += `
+ON CONFLICT (grouping_id, digest)
+DO UPDATE SET (label, expectation_record_id) =
+  (excluded.label, excluded.expectation_record_id)
+WHERE Expectations.label = 'u' AND excluded.label != 'u'
+`
+
 		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
 			return err // don't wrap - might get retried
 		})
 		return skerr.Wrap(err)
 	})
-}
-
-func storeSecondaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, branchName string, exps []v3ExpectationEntry, nameToGroupings map[types.TestName][]schema.GroupingID, deltas []v3ExpectationChange) (int, error) {
-	const batchSize = 1000
-	extra := 0
-	return extra, util.ChunkIter(len(exps), batchSize, func(startIdx int, endIdx int) error {
-		if err := ctx.Err(); err != nil {
-			return skerr.Wrap(err)
-		}
-		batch := exps[startIdx:endIdx]
-		statement := `UPSERT INTO SecondaryBranchExpectations
-(branch_name, grouping_id, digest, label, expectation_record_id) VALUES `
-		const valuesPerRow = 5
-		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
-		for _, exp := range batch {
-			groupings, ok := nameToGroupings[exp.Grouping]
-			if !ok {
-				continue
-			}
-			dBytes, err := sql.DigestToBytes(exp.Digest)
-			if err != nil {
-				sklog.Warningf("Corrupt digest %q on branch %s", exp.Digest, branchName)
-				continue
-			}
-			label := exp.Ranges[0].Label
-			recordID, ok := find(exp.Grouping, exp.Digest, label, deltas)
-			// account for test names that belong to multiple corpora.
-			for _, gID := range groupings {
-				if !ok {
-					extra++
-				}
-				arguments = append(arguments, branchName, gID, dBytes, convertLabel(label), recordID)
-			}
-		}
-		if len(arguments) == 0 {
-			return nil
-		}
-		// Need to divide here to account for skipped rows.
-		statement += sql.ValuesPlaceholders(valuesPerRow, len(arguments)/valuesPerRow)
-		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-			_, err := tx.Exec(ctx, statement, arguments...)
-			return err // don't wrap - might get retried
-		})
-		return skerr.Wrap(err)
-	})
-}
-
-// find returns a matching record id for the given change and true or the catch-all UUID and false.
-func find(grouping types.TestName, digest types.Digest, label labelInt, deltas []v3ExpectationChange) (uuid.UUID, bool) {
-	for _, delta := range deltas {
-		if delta.Grouping == grouping && delta.Digest == digest && delta.AffectedRange.Label == label {
-			return uuid.Must(uuid.FromBytes(hash(delta.RecordID))), true
-		}
-	}
-	return catchAllUUID, false
 }
 
 // labelInt is the integer version of Label, used as the storage format in firestore
@@ -540,6 +342,9 @@ func (v v3Impl) fetchExpectations(ctx context.Context) (map[string][]v3Expectati
 	p, err := partitionIterator.Next()
 	for ; err == nil; p, err = partitionIterator.Next() {
 		partition := p.ID
+		if partition != v3PrimaryPartition {
+			continue
+		}
 
 		const numShards = 16
 		base := v.client.Collection(v3Partitions).Doc(partition).Collection(v3ExpectationEntries)
