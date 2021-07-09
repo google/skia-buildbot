@@ -39,6 +39,17 @@ func setupForTest(t *testing.T) (context.Context, config.InstanceConfig) {
 	return ctx, cfg
 }
 
+// responseOf tries an HTTP request of the given method and path against a server and returns the
+// response.
+func responseOf(s *server, method, path string) *httptest.ResponseRecorder {
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+	r := httptest.NewRequest(method, path, nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, r)
+	return w
+}
+
 func TestMachineToggleModeHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -448,31 +459,56 @@ func TestMachineSetNoteHandler_FailOnInvalidJSON(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
+// assertJSONResponseWas asserts that the HTTP response w was a success (code 200) and has a body
+// matching the expected string. Since JSON encoding adds a trailing newline, we expect it as well,
+// though the caller should not include it in the expected string.
+func assertJSONResponseWas(t *testing.T, expected string, w *httptest.ResponseRecorder) {
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, []byte(expected+"\n"), w.Body.Bytes())
+}
+
 func TestPodsHandler_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Set up the expected Pod.
-	var podTime time.Time
-	require.NoError(t, podTime.UnmarshalText([]byte("2001-02-03T04:05:06.78901Z")))
-	pod := switchboard.Pod{Name: "switch-pod-3", LastUpdated: podTime}
+	var lastUpdated time.Time
+	require.NoError(t, lastUpdated.UnmarshalText([]byte("2001-02-03T04:05:06.78901Z")))
+	pod := switchboard.Pod{Name: "switch-pod-3", LastUpdated: lastUpdated}
 
-	// ListPods is already well-tested in switchboard/impl, so we can mock out the whole switchboard.
+	// ListPods is already well-tested in switchboard/impl, so we can mock out the whole
+	// switchboard.
 	sw := switchboardMocks.Switchboard{}
 	sw.On("ListPods", testutils.AnyContext).Return([]switchboard.Pod{pod}, nil)
-	s := &server{
+	s := server{
 		switchboard: &sw,
 	}
 
-	// Serve the request.
-	router := mux.NewRouter()
-	s.AddHandlers(router)
-	r := httptest.NewRequest("GET", "/_/pods", nil)
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, r)
+	w := responseOf(&s, "GET", "/_/pods")
+	assertJSONResponseWas(t, `[{"Name":"switch-pod-3","LastUpdated":"2001-02-03T04:05:06.78901Z"}]`, w)
+}
 
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(
-		t,
-		[]byte(`[{"Name":"switch-pod-3","LastUpdated":"2001-02-03T04:05:06.78901Z"}]`+"\n"),
-		w.Body.Bytes())
+func TestMeetingPointsHandler_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Set up the expected MeetingPoint.
+	var lastUpdated time.Time
+	require.NoError(t, lastUpdated.UnmarshalText([]byte("2001-02-03T04:05:06.78901Z")))
+	meetingPoint := switchboard.MeetingPoint{
+		PodName:     "somePod",
+		Port:        33,
+		Username:    "someUser",
+		MachineID:   "someMachine",
+		LastUpdated: lastUpdated,
+	}
+
+	// ListMeetingPoints is already well-tested in switchboard/impl, so we can mock out the whole
+	// switchboard.
+	sw := switchboardMocks.Switchboard{}
+	sw.On("ListMeetingPoints", testutils.AnyContext).Return([]switchboard.MeetingPoint{meetingPoint}, nil)
+	s := server{
+		switchboard: &sw,
+	}
+
+	w := responseOf(&s, "GET", "/_/meeting_points")
+	assertJSONResponseWas(t, `[{"PodName":"somePod","Port":33,"Username":"someUser","MachineID":"someMachine","LastUpdated":"2001-02-03T04:05:06.78901Z"}]`, w)
 }
