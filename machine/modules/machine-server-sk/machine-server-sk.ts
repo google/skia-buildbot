@@ -28,6 +28,7 @@ import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
 import '../auto-refresh-sk';
 import '../note-editor-sk';
 import { DEVICE_ALIASES } from '../../../modules/devices/devices';
+import { FilterArray } from '../filter-array';
 
 /**
  * Updates should arrive every 30 seconds, so we allow up to 2x that for lag
@@ -254,7 +255,7 @@ const template = (ele: MachineServerSk): TemplateResult => html`
   <header>
     <auto-refresh-sk @refresh-page=${ele.update}></auto-refresh-sk>
     <span id=header-rhs>
-      <input type="text" placeholder="Filter" @input=${ele.filterInput}>
+      <input id=filter-input type="text" placeholder="Filter">
       <theme-chooser-sk
         title="Toggle between light and dark mode."
       ></theme-chooser-sk>
@@ -296,40 +297,27 @@ const template = (ele: MachineServerSk): TemplateResult => html`
 export class MachineServerSk extends ElementSk {
   machines: Description[] = [];
 
-  machinesAsString: string[] = [];
-
-  timeout: number;
-
-  filter: string = ''
-
   private noteEditor: NoteEditorSk | null = null;
+
+  private filterArray: FilterArray | null = null;
 
   constructor() {
     super(template);
-
-    // The id of the running setTimeout, if any, otherwise 0.
-    this.timeout = 0;
-  }
-
-  filterInput(e: InputEvent): void {
-    this.filter = (e.target as HTMLInputElement).value.toLowerCase();
-    this._render();
   }
 
   filteredMachines(): Description[] {
-    const ret: Description[] = [];
-    this.machinesAsString.forEach((machineAsString, index) => {
-      if (machineAsString.includes(this.filter)) {
-        ret.push(this.machines[index]);
-      }
-    });
-    return ret;
+    if (this.filterArray === null) {
+      return this.machines;
+    }
+    return this.filterArray.matchingIndices().map((index) => this.machines[index]);
   }
 
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
     this._render();
     this.noteEditor = $$<NoteEditorSk>('note-editor-sk', this)!;
+    const filterInput = $$<HTMLInputElement>('#filter-input', this)!;
+    this.filterArray = new FilterArray(filterInput, () => this._render());
     await this.update();
   }
 
@@ -424,7 +412,7 @@ export class MachineServerSk extends ElementSk {
         this.removeAttribute('waiting');
       }
       this.machines = json;
-      this.machinesAsString = this.machines.map((machine) => JSON.stringify(machine).toLowerCase());
+      this.filterArray!.updateArray(json);
       this._render();
     } catch (error) {
       this.onError(error);

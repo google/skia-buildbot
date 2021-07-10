@@ -67,9 +67,9 @@ describe('machine-server-sk', () => {
 
     assert.isNotNull($$('#skia-rpi2-rack4-shelf1-002', s));
 
-    s.filter = 'this string does not appear in any machine';
-    // eslint-disable-next-line dot-notation
-    s['_render']();
+    const filterElement = $$<HTMLInputElement>('#filter-input', s)!;
+    filterElement.value = 'this string does not appear in any machine';
+    filterElement.dispatchEvent(new InputEvent('input'));
 
     // Each row has an id set to the machine id.
     assert.isNull($$('#skia-rpi2-rack4-shelf1-002', s));

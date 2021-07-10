@@ -19,6 +19,7 @@ sk_element(
         "@npm//elements-sk",
         "@npm//lit-html",
         "//modules/devices:devices_ts_lib",
+        "//machine/modules/filter-array:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
