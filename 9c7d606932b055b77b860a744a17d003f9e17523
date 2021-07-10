@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "53b44621_7d149472",
+        "filename": "machine/modules/filter-array/index.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-10T03:40:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "000b0224_75d62a27",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 0
+      },
+      "revId": "9c7d606932b055b77b860a744a17d003f9e17523",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "cce925a5_07e68b7a",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-07-09T22:34:27Z",
       "side": 1,
       "message": "Nit:\n\n  private newFilterVallueCallback?: () \u003d\u003e void;",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 49
+      },
+      "revId": "9c7d606932b055b77b860a744a17d003f9e17523",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5a6cd5e4_a8c06cbc",
+        "filename": "machine/modules/filter-array/index.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-10T03:40:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cce925a5_07e68b7a",
       "range": {
         "startLine": 27,
         "startChar": 0,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "644b1ff4_62a3612c",
+        "filename": "machine/modules/filter-array/index.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-10T03:40:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8489f102_9547355a",
+      "range": {
+        "startLine": 34,
+        "startChar": 2,
+        "endLine": 35,
+        "endChar": 5
+      },
+      "revId": "9c7d606932b055b77b860a744a17d003f9e17523",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7c11fa82_c8b5b9fe",
@@ -93,6 +165,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e8dd2a21_b11f119c",
+        "filename": "machine/modules/filter-array/index.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-10T03:40:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7c11fa82_c8b5b9fe",
+      "range": {
+        "startLine": 43,
+        "startChar": 46,
+        "endLine": 43,
+        "endChar": 92
+      },
+      "revId": "9c7d606932b055b77b860a744a17d003f9e17523",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3f54d061_cc78e04f",
@@ -106,6 +202,30 @@
       "writtenOn": "2021-07-09T22:34:27Z",
       "side": 1,
       "message": "Nit:\n  this.newFilterValueCallback?.();",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 5
+      },
+      "revId": "9c7d606932b055b77b860a744a17d003f9e17523",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "504b5590_94145a3a",
+        "filename": "machine/modules/filter-array/index.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-10T03:40:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3f54d061_cc78e04f",
       "range": {
         "startLine": 74,
         "startChar": 0,
