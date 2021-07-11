@@ -3,14 +3,11 @@
 package mocks
 
 import (
-	codereview "go.skia.org/infra/skcq/go/codereview"
-	config "go.skia.org/infra/skcq/go/config"
-
 	context "context"
 
-	gerrit "go.skia.org/infra/go/gerrit"
+	config "go.skia.org/infra/skcq/go/config"
 
-	http "net/http"
+	gerrit "go.skia.org/infra/go/gerrit"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -22,13 +19,13 @@ type VerifiersManager struct {
 	mock.Mock
 }
 
-// GetVerifiers provides a mock function with given fields: ctx, httpClient, cfg, cr, ci, isSubmittedTogetherChange, configReader
-func (_m *VerifiersManager) GetVerifiers(ctx context.Context, httpClient *http.Client, cfg *config.SkCQCfg, cr codereview.CodeReview, ci *gerrit.ChangeInfo, isSubmittedTogetherChange bool, configReader config.ConfigReader) ([]types.Verifier, []string, error) {
-	ret := _m.Called(ctx, httpClient, cfg, cr, ci, isSubmittedTogetherChange, configReader)
+// GetVerifiers provides a mock function with given fields: ctx, cfg, ci, isSubmittedTogetherChange, configReader
+func (_m *VerifiersManager) GetVerifiers(ctx context.Context, cfg *config.SkCQCfg, ci *gerrit.ChangeInfo, isSubmittedTogetherChange bool, configReader config.ConfigReader) ([]types.Verifier, []string, error) {
+	ret := _m.Called(ctx, cfg, ci, isSubmittedTogetherChange, configReader)
 
 	var r0 []types.Verifier
-	if rf, ok := ret.Get(0).(func(context.Context, *http.Client, *config.SkCQCfg, codereview.CodeReview, *gerrit.ChangeInfo, bool, config.ConfigReader) []types.Verifier); ok {
-		r0 = rf(ctx, httpClient, cfg, cr, ci, isSubmittedTogetherChange, configReader)
+	if rf, ok := ret.Get(0).(func(context.Context, *config.SkCQCfg, *gerrit.ChangeInfo, bool, config.ConfigReader) []types.Verifier); ok {
+		r0 = rf(ctx, cfg, ci, isSubmittedTogetherChange, configReader)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]types.Verifier)
@@ -36,8 +33,8 @@ func (_m *VerifiersManager) GetVerifiers(ctx context.Context, httpClient *http.C
 	}
 
 	var r1 []string
-	if rf, ok := ret.Get(1).(func(context.Context, *http.Client, *config.SkCQCfg, codereview.CodeReview, *gerrit.ChangeInfo, bool, config.ConfigReader) []string); ok {
-		r1 = rf(ctx, httpClient, cfg, cr, ci, isSubmittedTogetherChange, configReader)
+	if rf, ok := ret.Get(1).(func(context.Context, *config.SkCQCfg, *gerrit.ChangeInfo, bool, config.ConfigReader) []string); ok {
+		r1 = rf(ctx, cfg, ci, isSubmittedTogetherChange, configReader)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).([]string)
@@ -45,8 +42,8 @@ func (_m *VerifiersManager) GetVerifiers(ctx context.Context, httpClient *http.C
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, *http.Client, *config.SkCQCfg, codereview.CodeReview, *gerrit.ChangeInfo, bool, config.ConfigReader) error); ok {
-		r2 = rf(ctx, httpClient, cfg, cr, ci, isSubmittedTogetherChange, configReader)
+	if rf, ok := ret.Get(2).(func(context.Context, *config.SkCQCfg, *gerrit.ChangeInfo, bool, config.ConfigReader) error); ok {
+		r2 = rf(ctx, cfg, ci, isSubmittedTogetherChange, configReader)
 	} else {
 		r2 = ret.Error(2)
 	}

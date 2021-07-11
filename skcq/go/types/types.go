@@ -2,11 +2,9 @@ package types
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/skcq/go/codereview"
 	"go.skia.org/infra/skcq/go/config"
 )
 
@@ -48,7 +46,7 @@ type VerifiersManager interface {
 	// GetVerifiers returns all verifiers that need to be run on the specified
 	// change. Returns a slice of verifiers and a slice of all changes that
 	// will be submitted together with this change.
-	GetVerifiers(ctx context.Context, httpClient *http.Client, cfg *config.SkCQCfg, cr codereview.CodeReview, ci *gerrit.ChangeInfo, isSubmittedTogetherChange bool, configReader config.ConfigReader) (verifiers []Verifier, togetherChanges []string, err error)
+	GetVerifiers(ctx context.Context, cfg *config.SkCQCfg, ci *gerrit.ChangeInfo, isSubmittedTogetherChange bool, configReader config.ConfigReader) (verifiers []Verifier, togetherChanges []string, err error)
 
 	// RunVerifiers runs all the specified verifiers and returns their statuses.
 	// Does not return an error because errors during verification of individual
