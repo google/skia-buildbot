@@ -12,7 +12,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/gerrit",
-        "//skcq/go/codereview",
         "//skcq/go/config",
         "//skcq/go/types",
         "@com_github_stretchr_testify//mock",
