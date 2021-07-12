@@ -16,6 +16,29 @@
       "message": "Future CLs will add modules and pages.",
       "revId": "2c44af024132b84120ae44043bf22baefd6ff659",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "11805172_ccba69f5",
+        "filename": "skcq/webpack.config.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-12T16:50:57Z",
+      "side": 1,
+      "message": "I think /dist/ is the value you want. I updated baseapp to serve static files on /dist/.",
+      "range": {
+        "startLine": 13,
+        "startChar": 32,
+        "endLine": 13,
+        "endChar": 38
+      },
+      "revId": "2c44af024132b84120ae44043bf22baefd6ff659",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
