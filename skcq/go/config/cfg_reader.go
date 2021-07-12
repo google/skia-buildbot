@@ -30,6 +30,11 @@ func (e *ConfigNotFoundError) Error() string {
 	return fmt.Sprintf("Config %s not found in %s/%s", e.configPath, e.repo, e.branch)
 }
 
+func IsNotFound(err error) bool {
+	_, ok := err.(*ConfigNotFoundError)
+	return ok
+}
+
 // CannotModifyCfgsOnTheFlyError is returned when the owner of the change does
 // not have permission to modify the cfg.
 type CannotModifyCfgsOnTheFlyError struct {
@@ -39,6 +44,11 @@ type CannotModifyCfgsOnTheFlyError struct {
 
 func (e *CannotModifyCfgsOnTheFlyError) Error() string {
 	return fmt.Sprintf("Config was modified in %d but the owner %s does not have permission to run it", e.issueID, e.issueOwner)
+}
+
+func IsCannotModifyCfgsOnTheFly(err error) bool {
+	_, ok := err.(*CannotModifyCfgsOnTheFlyError)
+	return ok
 }
 
 // ConfigReader is an interface to read configs for SkCQ. Useful for testing.

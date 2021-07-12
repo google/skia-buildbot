@@ -1,0 +1,47 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "poller",
+    srcs = ["poller.go"],
+    importpath = "go.skia.org/infra/skcq/go/poller",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/allowed",
+        "//go/cleanup",
+        "//go/gerrit",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//skcq/go/caches",
+        "//skcq/go/codereview",
+        "//skcq/go/config",
+        "//skcq/go/db",
+        "//skcq/go/throttler",
+        "//skcq/go/types",
+        "//skcq/go/verifiers",
+    ],
+)
+
+go_test(
+    name = "poller_test",
+    srcs = ["poller_test.go"],
+    embed = [":poller"],
+    deps = [
+        "//go/gerrit",
+        "//go/httputils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//skcq/go/caches/mocks",
+        "//skcq/go/codereview/mocks",
+        "//skcq/go/config",
+        "//skcq/go/config/mocks",
+        "//skcq/go/db",
+        "//skcq/go/db/mocks",
+        "//skcq/go/types",
+        "//skcq/go/types/mocks",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)
