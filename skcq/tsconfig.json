@@ -2,6 +2,6 @@
   "extends": "../tsconfig",
   "include": [
     "./modules/**/*.ts",
-    "./pages/**/*.ts",
-  ],
+    "./pages/**/*.ts"
+  ]
 }
