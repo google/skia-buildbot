@@ -260,6 +260,7 @@ type FrontendFlags struct {
 	NumContinuous                  int
 	NumContinuousParallel          int
 	NumShift                       int
+	NumParamSetsForQueries         int
 	Port                           string
 	PromPort                       string
 	ResourcesDir                   string
@@ -376,6 +377,12 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Name:        "num_shift",
 			Value:       10,
 			Usage:       "The number of commits the shift navigation buttons should jump.",
+		},
+		&cli.IntFlag{
+			Destination: &flags.NumParamSetsForQueries,
+			Name:        "num_paramsets_for_queries",
+			Value:       2,
+			Usage:       "The number of paramsets we gather to populate the query dialog.",
 		},
 		&cli.StringFlag{
 			Destination: &flags.Port,

@@ -329,7 +329,7 @@ func (f *Frontend) initialize() {
 
 	sklog.Info("About to build paramset refresher.")
 
-	f.paramsetRefresher = psrefresh.NewParamSetRefresher(f.traceStore)
+	f.paramsetRefresher = psrefresh.NewParamSetRefresher(f.traceStore, f.flags.NumParamSetsForQueries)
 	if err := f.paramsetRefresher.Start(paramsetRefresherPeriod); err != nil {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
