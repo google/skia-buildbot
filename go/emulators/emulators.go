@@ -316,8 +316,23 @@ var emulatorProcsToKill = []*regexp.Regexp{
 	regexp.MustCompile("[c]ockroach"),
 }
 
-// StopAllEmulators stops all known emulators.
+// StopAllEmulators gracefully terminates all known emulators.
 func StopAllEmulators() error {
+	signal := "SIGTERM"
+	if bazel.InBazelTestOnRBE() {
+		// Under Bazel and RBE, we don't need graceful termination because the RBE containers are
+		// ephemeral. Killing the emulators with SIGKILL is faster and simpler.
+		signal = "SIGKILL"
+	}
+	return stopAllEmulators(signal)
+}
+
+// ForceStopAllEmulators immediately terminates all known emulators with SIGKILL.
+func ForceStopAllEmulators() error {
+	return stopAllEmulators("SIGKILL")
+}
+
+func stopAllEmulators(signal string) error {
 	// List all processes.
 	psCmd := exec.Command("ps", "aux")
 	var psOut bytes.Buffer
@@ -335,13 +350,6 @@ func StopAllEmulators() error {
 			continue
 		}
 		procs[line] = fields[1]
-	}
-
-	signal := "SIGTERM"
-	if bazel.InBazelTestOnRBE() {
-		// Under Bazel and RBE, we don't need graceful termination because the RBE containers are
-		// ephemeral. Killing the emulators with SIGKILL is faster and simpler.
-		signal = "SIGKILL"
 	}
 
 	// Kill each matching process.
