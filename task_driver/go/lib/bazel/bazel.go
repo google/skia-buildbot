@@ -2,12 +2,14 @@ package bazel
 
 import (
 	"context"
+	"path/filepath"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
+// Bazel provides a Task Driver API for working with Bazel.
 type Bazel struct {
 	cacheDir          string
 	local             bool
@@ -15,6 +17,60 @@ type Bazel struct {
 	workspace         string
 }
 
+// NewWithRamdisk returns a new Bazel instance which uses a ramdisk as the Bazel cache.
+//
+// Using a ramdisk as the Bazel cache prevents CockroachDB "disk stall detected" errors on GCE VMs
+// due to slow I/O.
+func NewWithRamdisk(ctx context.Context, workspace string, rbeCredentialFile string) (*Bazel, func(), error) {
+	// Create and mount ramdisk.
+	//
+	// At the time of writing, a full build of the Buildbot repository on an empty Bazel cache takes
+	// ~20GB on cache space. Infra-PerCommit-Test-Bazel-Local runs on GCE VMs with 64GB of RAM.
+	ramdiskDir, err := os_steps.TempDir(ctx, "", "ramdisk-*")
+	if err != nil {
+		return nil, nil, err
+	}
+	if _, err := exec.RunCwd(ctx, workspace, "sudo", "mount", "-t", "tmpfs", "-o", "size=32g", "tmpfs", ramdiskDir); err != nil {
+		return nil, nil, err
+	}
+
+	// Create Bazel cache directory inside the ramdisk.
+	//
+	// Using the ramdisk's mount point directly as the Bazel cache causes Bazel to fail with a file
+	// permission error. Using a directory within the ramdisk as the Bazel cache prevents this error.
+	cacheDir := filepath.Join(ramdiskDir, "bazel-cache")
+	if err := os_steps.MkdirAll(ctx, cacheDir); err != nil {
+		return nil, nil, err
+	}
+
+	absCredentialFile, err := os_steps.Abs(ctx, rbeCredentialFile)
+	if err != nil {
+		return nil, nil, err
+	}
+	bzl := &Bazel{
+		cacheDir:          cacheDir,
+		rbeCredentialFile: absCredentialFile,
+		workspace:         workspace,
+	}
+
+	cleanup := func() {
+		// Shut down the Bazel server. This ensures that there are no processes with open files under
+		// the ramdisk, which would otherwise cause a "target is busy" when we unmount the ramdisk.
+		if _, err := bzl.Do(ctx, "shutdown"); err != nil {
+			td.Fatal(ctx, err)
+		}
+
+		if _, err := exec.RunCwd(ctx, workspace, "sudo", "umount", ramdiskDir); err != nil {
+			td.Fatal(ctx, err)
+		}
+		if err := os_steps.RemoveAll(ctx, ramdiskDir); err != nil {
+			td.Fatal(ctx, err)
+		}
+	}
+	return bzl, cleanup, nil
+}
+
+// New returns a new Bazel instance.
 func New(ctx context.Context, workspace string, local bool, rbeCredentialFile string) (*Bazel, func(), error) {
 	// cacheDir is a temporary directory for the Bazel cache.
 	//
@@ -64,12 +120,14 @@ func New(ctx context.Context, workspace string, local bool, rbeCredentialFile st
 	}, cleanup, nil
 }
 
+// Do executes a Bazel subcommand.
 func (b *Bazel) Do(ctx context.Context, subCmd string, args ...string) (string, error) {
 	cmd := []string{"bazel", "--output_user_root=" + b.cacheDir, subCmd}
 	cmd = append(cmd, args...)
 	return exec.RunCwd(ctx, b.workspace, cmd...)
 }
 
+// DoOnRBE executes a Bazel subcommand on RBE.
 func (b *Bazel) DoOnRBE(ctx context.Context, subCmd string, args ...string) (string, error) {
 	cmd := []string{"--config=remote"}
 	if b.rbeCredentialFile != "" {
