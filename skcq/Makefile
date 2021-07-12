@@ -1,8 +1,24 @@
+default: build web
+
 web: ./modules/json/index.ts npm-ci
 	npx webpack --mode=development
 
 ./modules/json/index.ts: ./go/types/types.go
 	go generate ./go/types/ts
+
+build-fe: web
+	go install -v ./go/skcq-fe
+
+build-be:
+	go install -v ./go/skcq-be
+
+release-be: build-be npm-ci
+	npx webpack --mode=production
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/skcq-be
+	./images/skcq-be/build_release
+
+push-be: release-be
+	pushk --use-temp-checkout skcq-be
 
 debug: npm-ci
 	npx webpack --mode=development
@@ -27,5 +43,9 @@ test_js: npm-ci
 
 # Increase Node's heap size to accommodate for ts-node's higher memory usage.
 NODE_MEMORY_LIMIT=4096
+
+.PHONY: puppeteer-tests
+puppeteer-tests: npm-ci
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 include ../make/npm.mk

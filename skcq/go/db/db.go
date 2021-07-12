@@ -88,6 +88,8 @@ func (f *FirestoreDB) GetCurrentChanges(ctx context.Context) (map[string]*types.
 	}
 	snapshot, err := docRef.Get(ctx)
 	if err != nil {
+		fmt.Println("THIS IS THE ERROR!")
+		fmt.Println(err)
 		if status.Code(err) == codes.NotFound {
 			return currentChanges, nil
 		}
@@ -146,9 +148,6 @@ func (f *FirestoreDB) GetChangeAttempts(ctx context.Context, changeID, patchsetI
 
 // UpdateChangeAttemptAsAbandoned implements the DB interface.
 func (f *FirestoreDB) UpdateChangeAttemptAsAbandoned(ctx context.Context, changeID, patchsetID int64, changesCol ChangesCol, patchStart int64) error {
-	f.mtx.Lock()
-	defer f.mtx.Unlock()
-
 	changeAttempts, err := f.GetChangeAttempts(ctx, changeID, patchsetID, changesCol)
 	if err != nil {
 		return skerr.Fmt("Error getting change attempts of %d/%d from DB: %s", changeID, patchsetID, err)
@@ -156,6 +155,10 @@ func (f *FirestoreDB) UpdateChangeAttemptAsAbandoned(ctx context.Context, change
 	if changeAttempts == nil || len(changeAttempts.Attempts) == 0 {
 		return nil
 	}
+
+	f.mtx.Lock()
+	defer f.mtx.Unlock()
+
 	for _, ca := range changeAttempts.Attempts {
 		if ca.PatchStartTs == patchStart {
 			ca.PatchStopTs = time.Now().Unix()
@@ -173,13 +176,13 @@ func (f *FirestoreDB) UpdateChangeAttemptAsAbandoned(ctx context.Context, change
 
 // PutChangeAttempt implements the DB interface.
 func (f *FirestoreDB) PutChangeAttempt(ctx context.Context, newChangeAttempt *types.ChangeAttempt, changesCol ChangesCol) error {
-	f.mtx.Lock()
-	defer f.mtx.Unlock()
-
 	changeAttempts, err := f.GetChangeAttempts(ctx, newChangeAttempt.ChangeID, newChangeAttempt.PatchsetID, changesCol)
 	if err != nil {
 		return skerr.Fmt("Error getting change attempts of %d/%d from DB: %s", newChangeAttempt.ChangeID, newChangeAttempt.PatchsetID, err)
 	}
+
+	f.mtx.Lock()
+	defer f.mtx.Unlock()
 
 	if changeAttempts == nil || len(changeAttempts.Attempts) == 0 {
 		changeAttempts = &types.ChangeAttempts{}
