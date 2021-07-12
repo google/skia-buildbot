@@ -35,6 +35,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b776825_604215fc",
+        "filename": "skcq/go/caches/current_changes_cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T14:32:21Z",
+      "side": 1,
+      "message": "I did not know that existed, thanks!",
+      "parentUuid": "463513a6_22072c9b",
+      "revId": "416cd02d2f32acb1e446a5a641b0989fe47f9927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c932992f_35a15013",
@@ -48,6 +66,24 @@
       "writtenOn": "2021-07-12T14:14:10Z",
       "side": 1,
       "message": "Why not have this interface exactly match db.DB? This impl could add caching but use db.DB to back the cache.\n\nIt would also allow you to re-use the db.DB mock.",
+      "revId": "416cd02d2f32acb1e446a5a641b0989fe47f9927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4102aecd_ce77ddc9",
+        "filename": "skcq/go/caches/current_changes_cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T14:32:21Z",
+      "side": 1,
+      "message": "That\u0027s an interesting idea. I started breaking up the DB interface into DBCurrentChanges interface and DBChangeAttempt interface, so that we could do-\n\ntype DB interface {\n  DBCurrentChanges\n  DBChangeAttempt\n}\n\nBut there is a little difference between CurrentChangesCache and DBCurrentChanges-\nDBCurrentChanges has no need to Remove() but CurrentChangesCache interface requires it.",
+      "parentUuid": "c932992f_35a15013",
       "revId": "416cd02d2f32acb1e446a5a641b0989fe47f9927",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
