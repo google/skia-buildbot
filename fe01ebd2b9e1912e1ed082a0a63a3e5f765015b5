@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "61ff035a_202e9337",
+        "filename": "skcq/go/poller/poller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T20:54:08Z",
+      "side": 1,
+      "message": "I remember copying this style from somewhere but now when I grep the codebase I see it only used in my apps :/\nRemoving this because I dont have a good reason to keep it.",
+      "parentUuid": "4fdd12ed_c193f493",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 29
+      },
+      "revId": "fe01ebd2b9e1912e1ed082a0a63a3e5f765015b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d9b956f6_deefd4a6",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-07-12T19:57:19Z",
       "side": 1,
       "message": "It still seems weird to me to be constantly creating new configReaders, but maybe I\u0027m just not understanding something.",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 101
+      },
+      "revId": "fe01ebd2b9e1912e1ed082a0a63a3e5f765015b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ac06ddb7_49ae766b",
+        "filename": "skcq/go/poller/poller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T20:54:08Z",
+      "side": 1,
+      "message": "It\u0027s creating new configReaders because they are per-repo. But (I had a comment about this in the design doc) this can be optimized to cache configReaders so that we do not have to keep creating new ones. I put a TODO here now.",
+      "parentUuid": "d9b956f6_deefd4a6",
       "range": {
         "startLine": 83,
         "startChar": 0,
@@ -87,6 +135,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "26f1dc2e_a3e5ab8b",
+        "filename": "skcq/go/poller/poller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T20:54:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bf5493d_e70e58af",
+      "range": {
+        "startLine": 143,
+        "startChar": 14,
+        "endLine": 143,
+        "endChar": 47
+      },
+      "revId": "fe01ebd2b9e1912e1ed082a0a63a3e5f765015b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "29d14a56_c82e2848",
@@ -100,6 +172,30 @@
       "writtenOn": "2021-07-12T19:57:19Z",
       "side": 1,
       "message": "Is it possible for this to return an error?",
+      "range": {
+        "startLine": 199,
+        "startChar": 0,
+        "endLine": 199,
+        "endChar": 41
+      },
+      "revId": "fe01ebd2b9e1912e1ed082a0a63a3e5f765015b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd8e9d37_0d2a91ab",
+        "filename": "skcq/go/poller/poller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T20:54:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "29d14a56_c82e2848",
       "range": {
         "startLine": 199,
         "startChar": 0,
@@ -133,6 +229,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "80071b7f_6f18e31e",
+        "filename": "skcq/go/poller/poller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T20:54:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bc920ce_31c4d645",
+      "range": {
+        "startLine": 224,
+        "startChar": 3,
+        "endLine": 236,
+        "endChar": 4
+      },
+      "revId": "fe01ebd2b9e1912e1ed082a0a63a3e5f765015b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3637912f_cf56f5e9",
@@ -146,6 +266,30 @@
       "writtenOn": "2021-07-12T19:57:19Z",
       "side": 1,
       "message": "I don\u0027t see this check actually getting performed.",
+      "range": {
+        "startLine": 240,
+        "startChar": 0,
+        "endLine": 240,
+        "endChar": 93
+      },
+      "revId": "fe01ebd2b9e1912e1ed082a0a63a3e5f765015b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "20282dc4_f6f50aec",
+        "filename": "skcq/go/poller/poller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T20:54:08Z",
+      "side": 1,
+      "message": "Oh, old no longer valid comment. This instead became a verifier called commit_footer_verifier. Removed.",
+      "parentUuid": "3637912f_cf56f5e9",
       "range": {
         "startLine": 240,
         "startChar": 0,
