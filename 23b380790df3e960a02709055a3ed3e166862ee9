@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3f3a38be_bff67ef5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7837
+      },
+      "writtenOn": "2021-07-12T16:05:03Z",
+      "side": 1,
+      "message": "PTAL Eric. Seems like I don\u0027t have dry-run access with the recent change.",
+      "revId": "23b380790df3e960a02709055a3ed3e166862ee9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
