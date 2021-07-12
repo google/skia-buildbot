@@ -36,9 +36,10 @@ const (
 
 // builder implements DataFrameBuilder using TraceStore.
 type builder struct {
-	git      *perfgit.Git
-	store    tracestore.TraceStore
-	tileSize int32
+	git               *perfgit.Git
+	store             tracestore.TraceStore
+	tileSize          int32
+	numPreflightTiles int
 
 	newTimer                      metrics2.Float64SummaryMetric
 	newByTileTimer                metrics2.Float64SummaryMetric
@@ -51,10 +52,11 @@ type builder struct {
 }
 
 // NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
-func NewDataFrameBuilderFromTraceStore(git *perfgit.Git, store tracestore.TraceStore) dataframe.DataFrameBuilder {
+func NewDataFrameBuilderFromTraceStore(git *perfgit.Git, store tracestore.TraceStore, numPreflightTiles int) dataframe.DataFrameBuilder {
 	return &builder{
 		git:                           git,
 		store:                         store,
+		numPreflightTiles:             numPreflightTiles,
 		tileSize:                      store.TileSize(),
 		newTimer:                      metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_new"),
 		newByTileTimer:                metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newByTile"),
@@ -535,34 +537,24 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 	// to build the ParamSet. Do so over the two most recent tiles.
 	ps := paramtools.NewParamSet()
 
-	// Count the matches and sum the params in the first tile.
-	out, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
-	if err != nil {
-		return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
-	}
-	var tileOneCount int64
-	for p := range out {
-		tileOneCount++
-		ps.AddParams(p)
-	}
-	count = tileOneCount
-
-	// Now move to the previous tile.
-	tileNumber = tileNumber.Prev()
-	if tileNumber != types.BadTileNumber {
-		// Count the matches and sum the params in the second tile.
-		out, err = b.store.QueryTracesIDOnly(ctx, tileNumber, q)
+	for i := 0; i < b.numPreflightTiles; i++ {
+		// Count the matches and sum the params in the tile.
+		out, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
 		if err != nil {
-			return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
+			return -1, nil, fmt.Errorf("failed to query traces: %s", err)
 		}
-		var tileTwoCount int64
+		var tileOneCount int64
 		for p := range out {
-			tileTwoCount++
+			tileOneCount++
 			ps.AddParams(p)
 		}
-		// Use the larger of the two counts as our result.
-		if tileTwoCount > count {
-			count = tileTwoCount
+		if tileOneCount > count {
+			count = tileOneCount
+		}
+		// Now move to the previous tile.
+		tileNumber = tileNumber.Prev()
+		if tileNumber == types.BadTileNumber {
+			break
 		}
 	}
 

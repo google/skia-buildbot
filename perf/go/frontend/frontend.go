@@ -342,7 +342,7 @@ func (f *Frontend) initialize() {
 	}
 
 	sklog.Info("About to build dfbuilder.")
-	f.dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(f.perfGit, f.traceStore)
+	f.dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(f.perfGit, f.traceStore, f.flags.NumParamSetsForQueries)
 
 	// TODO(jcgregorio) Implement store.TryBotStore and add a reference to it here.
 	f.trybotResultsLoader = dfloader.New(f.dfBuilder, nil, f.perfGit)
