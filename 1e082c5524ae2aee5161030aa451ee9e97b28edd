@@ -22,6 +22,30 @@
       },
       "revId": "1e082c5524ae2aee5161030aa451ee9e97b28edd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e2bc68b4_fc5df835",
+        "filename": "skcq/modules/skcq-sk/skcq-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T18:31:20Z",
+      "side": 1,
+      "message": "I don\u0027t know why I had this here. Removed.\n(but I addressed this comment in skcq-scaffold which is coming for review soon)",
+      "parentUuid": "21bbddd7_2b85a49d",
+      "range": {
+        "startLine": 24,
+        "startChar": 2,
+        "endLine": 24,
+        "endChar": 22
+      },
+      "revId": "1e082c5524ae2aee5161030aa451ee9e97b28edd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
