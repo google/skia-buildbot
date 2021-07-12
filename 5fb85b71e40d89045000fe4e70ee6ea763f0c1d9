@@ -117,6 +117,30 @@
       },
       "revId": "5fb85b71e40d89045000fe4e70ee6ea763f0c1d9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "873f915c_3effb633",
+        "filename": "infra/bots/task_drivers/bazel_test_all/bazel_test_all.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-12T21:46:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "932d9450_36a3045c",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 239,
+        "endChar": 77
+      },
+      "revId": "5fb85b71e40d89045000fe4e70ee6ea763f0c1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

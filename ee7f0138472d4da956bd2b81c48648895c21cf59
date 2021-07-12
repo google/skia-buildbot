@@ -22,6 +22,30 @@
       },
       "revId": "ee7f0138472d4da956bd2b81c48648895c21cf59",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5afee262_d394ea17",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 683,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-12T21:46:46Z",
+      "side": 1,
+      "message": "Added a CACHES_VPYTHON global. I will address task_builder.go (skia repo) in a separate CL.",
+      "parentUuid": "d7896c4d_9153fc63",
+      "range": {
+        "startLine": 680,
+        "startChar": 3,
+        "endLine": 683,
+        "endChar": 5
+      },
+      "revId": "ee7f0138472d4da956bd2b81c48648895c21cf59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
