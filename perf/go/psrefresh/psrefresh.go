@@ -21,18 +21,20 @@ type OPSProvider interface {
 // ParamSetRefresher keeps a fresh paramtools.ParamSet that represents all the
 // traces stored in the two most recent tiles in the trace store.
 type ParamSetRefresher struct {
-	traceStore OPSProvider
-	period     time.Duration
+	traceStore   OPSProvider
+	period       time.Duration
+	numParamSets int
 
 	mutex sync.Mutex // protects ps.
 	ps    paramtools.ReadOnlyParamSet
 }
 
 // NewParamSetRefresher builds a new *ParamSetRefresher.
-func NewParamSetRefresher(traceStore OPSProvider) *ParamSetRefresher {
+func NewParamSetRefresher(traceStore OPSProvider, numParamSets int) *ParamSetRefresher {
 	return &ParamSetRefresher{
-		traceStore: traceStore,
-		ps:         paramtools.ReadOnlyParamSet{},
+		traceStore:   traceStore,
+		numParamSets: numParamSets,
+		ps:           paramtools.ReadOnlyParamSet{},
 	}
 }
 
@@ -58,18 +60,22 @@ func (pf *ParamSetRefresher) oneStep() error {
 		return skerr.Wrapf(err, "Failed to get starting tile.")
 	}
 	ps := paramtools.NewParamSet()
-	ps1, err := pf.traceStore.GetParamSet(ctx, tileKey)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to paramset from latest tile.")
+	first := true
+	for i := 0; i < pf.numParamSets; i++ {
+		ps1, err := pf.traceStore.GetParamSet(ctx, tileKey)
+		if err != nil {
+			if first {
+				// Only the failing on the first tile should be an error,
+				// previous tiles may be empty, or invalid.
+				return skerr.Wrapf(err, "Failed to get paramset from first tile.")
+			}
+			sklog.Warningf("Failed to get paramset from %d most recent tile: %s", i, err)
+		}
+		first = false
+		ps.AddParamSet(ps1)
+		tileKey = tileKey.Prev()
 	}
-	ps.AddParamSet(ps1)
 
-	tileKey = tileKey.Prev()
-	ps2, err := pf.traceStore.GetParamSet(ctx, tileKey)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to paramset from second to latest tile.")
-	}
-	ps.AddParamSet(ps2)
 	ps.Normalize()
 
 	pf.mutex.Lock()
