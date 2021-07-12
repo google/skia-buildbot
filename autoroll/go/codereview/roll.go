@@ -252,6 +252,7 @@ func (r *gerritRoll) maybeRebaseCL(ctx context.Context) error {
 		if err := r.g.Rebase(ctx, r.ci, "", false); err != nil {
 			return skerr.Wrap(err)
 		}
+		return r.Update(ctx)
 	}
 	return nil
 }
