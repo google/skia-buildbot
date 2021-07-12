@@ -1,0 +1,12 @@
+- hosts: '{{ variable_hosts }}'
+  user: root
+  gather_facts: False
+  tasks:
+    - name: Install applications.
+      apt:
+        pkg:
+          - adb
+          - libimobiledevice-utils
+          - sudo
+          - rsync
+#    - name: Create chrome-bot user.
