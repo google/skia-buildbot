@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f53f7ba4_84443452",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-12T17:33:39Z",
+      "side": 1,
+      "message": "It looks like the demo pages need to have their mocked RPC endpoint URLs updated as well.",
+      "revId": "f77784af7c7c824fbaf10619de3a20f015c2e879",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
