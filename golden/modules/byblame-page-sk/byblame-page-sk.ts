@@ -47,7 +47,8 @@ export class ByBlamePageSk extends ElementSk {
   private static entryTemplate = (ele: ByBlamePageSk, entry: ByBlameEntry) => html`
     <byblameentry-sk
         .byBlameEntry=${entry}
-        .corpus=${ele.corpus}>
+        .corpus=${ele.corpus}
+        .useNewAPI=${ele.useNewAPI}>
     </byblameentry-sk>
   `;
 
