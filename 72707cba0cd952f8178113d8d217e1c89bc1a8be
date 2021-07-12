@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "316d2051_907da313",
+        "filename": "skcq/modules/processing-table-sk/processing-table-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T19:09:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a8b22fe6_d3bc82cc",
+      "range": {
+        "startLine": 5,
+        "startChar": 31,
+        "endLine": 5,
+        "endChar": 35
+      },
+      "revId": "72707cba0cd952f8178113d8d217e1c89bc1a8be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7eca6d5b_f159bc69",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-07-12T18:53:22Z",
       "side": 1,
       "message": "Technically not needed since you only defined a getter for the dryrun property.",
+      "range": {
+        "startLine": 58,
+        "startChar": 3,
+        "endLine": 58,
+        "endChar": 36
+      },
+      "revId": "72707cba0cd952f8178113d8d217e1c89bc1a8be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "671333c2_44365d59",
+        "filename": "skcq/modules/processing-table-sk/processing-table-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T19:09:45Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "7eca6d5b_f159bc69",
       "range": {
         "startLine": 58,
         "startChar": 3,
