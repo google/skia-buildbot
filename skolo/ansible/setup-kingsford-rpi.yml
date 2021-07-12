@@ -1,0 +1,19 @@
+- hosts: '{{ variable_hosts }}'
+  user: root
+  gather_facts: False
+  tasks:
+    - name: Install applications.
+      apt:
+        pkg:
+          - adb
+          - libimobiledevice-utils
+          - sudo
+          - rsync
+          - collectd
+          - collectd-core
+          - collectd-utils
+    - name: Create chrome-bot user.
+      user:
+        name: chrome-bot
+        groups: plugdev
+# TODO copy over collectd config file.

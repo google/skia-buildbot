@@ -1,0 +1,9 @@
+[Unit]
+Description=Minimal Skolo Configuration
+
+[Service]
+Type=oneshot
+ExecStart=/opt/skolo/setup.sh
+
+[Install]
+RequiredBy=basic.target

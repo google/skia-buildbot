@@ -1,4 +1,5 @@
 - hosts: '{{ variable_hosts }}'
+  user: root
   gather_facts: False
   vars:
     sudoers:
