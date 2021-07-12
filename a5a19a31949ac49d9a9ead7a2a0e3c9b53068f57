@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e47f230d_a260d64a",
+        "filename": "skcq/modules/skcq-scaffold/skcq-scaffold.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-12T20:45:13Z",
+      "side": 1,
+      "message": "You will need \n\n@import url(\u0027https://fonts.googleapis.com/css?family\u003dRoboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons\u0027);\n\nsomewhere to load the Roboto font.",
+      "revId": "a5a19a31949ac49d9a9ead7a2a0e3c9b53068f57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "42345132_0c7cdb71",
+        "filename": "skcq/modules/skcq-scaffold/skcq-scaffold.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-12T20:45:13Z",
+      "side": 1,
+      "message": "I think you\u0027ll need upgradeProperty() for each of these properties.",
+      "revId": "a5a19a31949ac49d9a9ead7a2a0e3c9b53068f57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
