@@ -1,0 +1,28 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "caches",
+    srcs = ["current_changes_cache.go"],
+    importpath = "go.skia.org/infra/skcq/go/caches",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/now",
+        "//go/skerr",
+        "//skcq/go/db",
+        "//skcq/go/types",
+    ],
+)
+
+go_test(
+    name = "caches_test",
+    srcs = ["current_changes_cache_test.go"],
+    embed = [":caches"],
+    deps = [
+        "//go/now",
+        "//go/testutils/unittest",
+        "//skcq/go/db/mocks",
+        "//skcq/go/types",
+        "@com_github_stretchr_testify//require",
+    ],
+)
