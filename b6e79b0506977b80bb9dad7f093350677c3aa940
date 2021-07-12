@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2595cc99_1fa7df7c",
+        "filename": "skcq/modules/processing-table-sk/processing-table-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T18:21:40Z",
+      "side": 1,
+      "message": "Deleted code around this.",
+      "parentUuid": "1d3d0e82_5d412021",
+      "range": {
+        "startLine": 62,
+        "startChar": 12,
+        "endLine": 62,
+        "endChar": 22
+      },
+      "revId": "b6e79b0506977b80bb9dad7f093350677c3aa940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9a42fb86_b46b93aa",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "864793eb_5fe00d57",
+        "filename": "skcq/modules/processing-table-sk/processing-table-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T18:21:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a42fb86_b46b93aa",
+      "range": {
+        "startLine": 74,
+        "startChar": 13,
+        "endLine": 74,
+        "endChar": 23
+      },
+      "revId": "b6e79b0506977b80bb9dad7f093350677c3aa940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "99dafba9_592868dd",
@@ -60,6 +108,24 @@
       "writtenOn": "2021-07-12T16:56:51Z",
       "side": 1,
       "message": "Make the property mirror the attribute:\n\nget dryrun(): boolean { return hasAttribute(\u0027dryrun\u0027) }",
+      "revId": "b6e79b0506977b80bb9dad7f093350677c3aa940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ebff53a3_4fdac5dd",
+        "filename": "skcq/modules/processing-table-sk/processing-table-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T18:21:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99dafba9_592868dd",
       "revId": "b6e79b0506977b80bb9dad7f093350677c3aa940",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
