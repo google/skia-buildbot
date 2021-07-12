@@ -156,6 +156,11 @@ cp -r /src/machine/webpack.config.ts         /tests/machine
 cp -r /src/machine/tsconfig.json             /tests/machine
 cp -r /src/machine/modules                   /tests/machine
 
+mkdir /tests/skcq
+cp -r /src/skcq/webpack.config.ts         /tests/skcq
+cp -r /src/skcq/tsconfig.json             /tests/skcq
+cp -r /src/skcq/modules                   /tests/skcq
+
 ################################################################################
 # Install node modules and WASM dependencies.                                  #
 ################################################################################
@@ -225,4 +230,7 @@ cd /tests/shaders
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/machine
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/skcq
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
