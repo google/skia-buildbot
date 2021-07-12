@@ -100,7 +100,7 @@ describe('search-page-sk', () => {
     // Override defaults with the given options, if any.
     opts = { ...defaults, ...opts };
 
-    fetchMock.getOnce('/json/v1/trstatus', () => statusResponse);
+    fetchMock.getOnce('/json/v2/trstatus', () => statusResponse);
     fetchMock.getOnce('/json/v1/paramset', () => paramSetResponse);
     fetchMock.get(
       `/json/v1/search?${fromObject(opts.expectedInitialSearchRequest as any)}`,
