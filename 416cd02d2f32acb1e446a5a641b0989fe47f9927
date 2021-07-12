@@ -16,6 +16,40 @@
       "message": "Added a test",
       "revId": "416cd02d2f32acb1e446a5a641b0989fe47f9927",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "463513a6_22072c9b",
+        "filename": "skcq/go/caches/current_changes_cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-12T14:14:10Z",
+      "side": 1,
+      "message": "Use https://pkg.go.dev/go.skia.org/infra/go/now",
+      "revId": "416cd02d2f32acb1e446a5a641b0989fe47f9927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c932992f_35a15013",
+        "filename": "skcq/go/caches/current_changes_cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-12T14:14:10Z",
+      "side": 1,
+      "message": "Why not have this interface exactly match db.DB? This impl could add caching but use db.DB to back the cache.\n\nIt would also allow you to re-use the db.DB mock.",
+      "revId": "416cd02d2f32acb1e446a5a641b0989fe47f9927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
