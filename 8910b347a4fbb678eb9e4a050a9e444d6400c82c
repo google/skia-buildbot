@@ -93,6 +93,30 @@
       },
       "revId": "8910b347a4fbb678eb9e4a050a9e444d6400c82c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "03b01049_074ba87e",
+        "filename": "task_driver/go/lib/bazel/bazel.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-12T12:12:36Z",
+      "side": 1,
+      "message": "Based on my reading of the page you linked, I don\u0027t think there\u0027s any guarantee that we\u0027ll see this behavior every time, for example, what happens if the Bazel process misbehaves?  I think we can leave this as-is and hope we don\u0027t run into problems, but we should make the risk a little more clear in the comment.\n\nDo we know why we get \"target is busy\" without --lazy but with --lazy it manages to clean up immediately?  That seems odd to me.  It seems like we should be able to ensure that all processes using the mount get cleaned up (eg. with lsof and kill) and then umount without --lazy.",
+      "parentUuid": "3b93f1a3_069ea6d7",
+      "range": {
+        "startLine": 54,
+        "startChar": 31,
+        "endLine": 54,
+        "endChar": 78
+      },
+      "revId": "8910b347a4fbb678eb9e4a050a9e444d6400c82c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
