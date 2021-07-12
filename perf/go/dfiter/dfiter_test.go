@@ -77,7 +77,7 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *per
 	instanceConfig.DataStoreConfig.TileSize = testTileSize
 	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
-	dfb := dfbuilder.NewDataFrameBuilderFromTraceStore(g, store)
+	dfb := dfbuilder.NewDataFrameBuilderFromTraceStore(g, store, 2)
 	cleanup := func() {
 		gitCleanup()
 		dbCleanup()
