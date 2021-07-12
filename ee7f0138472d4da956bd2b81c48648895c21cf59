@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d7896c4d_9153fc63",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 683,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-12T12:16:55Z",
+      "side": 1,
+      "message": "Nit: let\u0027s add a global CACHE_VPYTHON and update this and usesPython() in task_builder.go to use it.",
+      "range": {
+        "startLine": 680,
+        "startChar": 3,
+        "endLine": 683,
+        "endChar": 5
+      },
+      "revId": "ee7f0138472d4da956bd2b81c48648895c21cf59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
