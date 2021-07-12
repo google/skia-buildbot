@@ -101,6 +101,13 @@ var (
 		},
 	}
 
+	CACHES_VPYTHON = []*specs.Cache{
+		{
+			Name: "vpython",
+			Path: "cache/vpython",
+		},
+	}
+
 	// These properties are required by some tasks, eg. for running
 	// bot_update, but they prevent de-duplication, so they should only be
 	// used where necessary.
@@ -258,12 +265,7 @@ func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []stri
 	}
 	python := "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}"
 	return &specs.TaskSpec{
-		Caches: []*specs.Cache{
-			{
-				Name: "vpython",
-				Path: "cache/vpython",
-			},
-		},
+		Caches:       CACHES_VPYTHON,
 		CasSpec:      casSpec,
 		CipdPackages: cipd,
 		Command:      []string{python, "-u", "buildbot/infra/bots/run_recipe.py", "${ISOLATED_OUTDIR}", recipe, props(properties), "skia"},
@@ -676,7 +678,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	}
 
 	t := &specs.TaskSpec{
-		Caches:       CACHES_GO,
+		Caches:       append(CACHES_VPYTHON, CACHES_GO...),
 		CasSpec:      CAS_EMPTY,
 		CipdPackages: cipd,
 		Command:      cmd,
@@ -695,6 +697,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 				"cockroachdb",
 				"gcloud_linux/bin",
 			},
+			"VPYTHON_VIRTUALENV_ROOT": {"cache/vpython"},
 		},
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
