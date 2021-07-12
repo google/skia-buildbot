@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -13,7 +14,7 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-func TestRefresher(t *testing.T) {
+func TestRefresher_TwoTiles_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	op := &mocks.OPSProvider{}
@@ -30,20 +31,41 @@ func TestRefresher(t *testing.T) {
 	op.On("GetParamSet", testutils.AnyContext, tileNumber).Return(ps1, nil)
 	op.On("GetParamSet", testutils.AnyContext, tileNumber2).Return(ps2, nil)
 
-	pf := NewParamSetRefresher(op)
+	pf := NewParamSetRefresher(op, 2)
 	err := pf.Start(time.Minute)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"565", "8888", "gles"}, pf.Get()["config"])
+	op.AssertExpectations(t)
 }
 
-func TestRefresherFailure(t *testing.T) {
+func TestRefresher_GetLatestTileReturnsError_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	op := &mocks.OPSProvider{}
 	tileNumber := types.TileNumber(100)
 	op.On("GetLatestTile", testutils.AnyContext).Return(tileNumber, fmt.Errorf("Something happened"))
 
-	pf := NewParamSetRefresher(op)
+	pf := NewParamSetRefresher(op, 2)
 	err := pf.Start(time.Minute)
 	assert.Error(t, err)
+	op.AssertExpectations(t)
+}
+
+func TestRefresher_MulitpleTiles_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	op := &mocks.OPSProvider{}
+	tileNumber := types.TileNumber(100)
+	op.On("GetLatestTile", testutils.AnyContext).Return(tileNumber, nil)
+
+	ps1 := paramtools.ReadOnlyParamSet{
+		"config": []string{"8888", "565"},
+	}
+	op.On("GetParamSet", testutils.AnyContext, mock.Anything).Return(ps1, nil).Times(3)
+
+	pf := NewParamSetRefresher(op, 3)
+	err := pf.Start(time.Minute)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"565", "8888"}, pf.Get()["config"])
+	op.AssertExpectations(t)
 }
