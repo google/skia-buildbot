@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "21bbddd7_2b85a49d",
+        "filename": "skcq/modules/skcq-sk/skcq-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-12T17:35:09Z",
+      "side": 1,
+      "message": "private main?: HTMLElement;",
+      "range": {
+        "startLine": 24,
+        "startChar": 2,
+        "endLine": 24,
+        "endChar": 22
+      },
+      "revId": "1e082c5524ae2aee5161030aa451ee9e97b28edd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
