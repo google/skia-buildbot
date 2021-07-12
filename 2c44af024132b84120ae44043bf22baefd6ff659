@@ -39,6 +39,30 @@
       },
       "revId": "2c44af024132b84120ae44043bf22baefd6ff659",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c22611ac_7a269f44",
+        "filename": "skcq/webpack.config.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-12T18:15:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "11805172_ccba69f5",
+      "range": {
+        "startLine": 13,
+        "startChar": 32,
+        "endLine": 13,
+        "endChar": 38
+      },
+      "revId": "2c44af024132b84120ae44043bf22baefd6ff659",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
