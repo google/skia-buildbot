@@ -43,6 +43,7 @@ go_test(
         "task_scheduler_test.go",
     ],
     embed = [":scheduling"],
+    flaky = True,
     deps = [
         "//go/cas/mocks",
         "//go/deepequal",
