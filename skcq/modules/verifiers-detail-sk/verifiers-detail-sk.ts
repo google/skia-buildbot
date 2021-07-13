@@ -40,6 +40,7 @@ const VerifierStateToClassName: Record<VerifierState, string> = {
   FAILURE: 'failed',
 };
 
+>>>>>>> 9e0b611a5eee09be68462388234cb10d8fbecaad
 export class VerifiersDetailSk extends ElementSk {
   noData: boolean = true;
 
