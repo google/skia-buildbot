@@ -88,6 +88,8 @@ func (f *FirestoreDB) GetCurrentChanges(ctx context.Context) (map[string]*types.
 	}
 	snapshot, err := docRef.Get(ctx)
 	if err != nil {
+		fmt.Println("THIS IS THE ERROR!")
+		fmt.Println(err)
 		if status.Code(err) == codes.NotFound {
 			return currentChanges, nil
 		}
