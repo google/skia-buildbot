@@ -1042,6 +1042,10 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 				"image_matching_algorithm":   []string{"fuzzy"},
 				"fuzzy_max_different_pixels": []string{"2"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.AutoTriageUser,
+				TS:   ts("2020-12-11T11:11:00Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "4686a4134535ad178b67325f5f2f613a",
@@ -1116,6 +1120,10 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 				types.PrimaryKeyField: []string{dks.TriangleTest},
 				"ext":                 []string{"png"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserOne,
+				TS:   ts("2020-06-07T08:09:43Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "1a16cbc8805378f0a6ef654a035d86c4",
@@ -1475,6 +1483,10 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 				types.PrimaryKeyField: []string{dks.TriangleTest},
 				"ext":                 []string{"png"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserOne,
+				TS:   ts("2020-06-07T08:09:43Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "555f149dfe944816076a57c633578dbc",
@@ -1563,6 +1575,10 @@ func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 				types.PrimaryKeyField: []string{dks.TriangleTest},
 				"ext":                 []string{"png"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserOne,
+				TS:   ts("2020-06-07T08:09:43Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "9a42e1337f848e4dbfa9688dda60fe7b",
@@ -1939,6 +1955,10 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 				types.PrimaryKeyField: []string{dks.TriangleTest},
 				"ext":                 []string{"png"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserTwo,
+				TS:   ts("2020-06-07T08:15:08Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "47109b059f45e4f9d5ab61dd0199e2c9",
@@ -2015,6 +2035,10 @@ func assertFilteredAcrossAllHistory(t *testing.T, res *frontend.SearchResponse) 
 				types.PrimaryKeyField: []string{dks.TriangleTest},
 				"ext":                 []string{"png"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserTwo,
+				TS:   ts("2020-06-07T08:15:04Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "760c2db998331eafd3023f4b6d135b06",
@@ -2971,6 +2995,10 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 				types.PrimaryKeyField: []string{dks.CircleTest},
 				"ext":                 []string{"png"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserOne,
+				TS:   ts("2020-12-10T05:00:02Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "273119ca291863331e906fe71bde0e7d",
@@ -3161,6 +3189,10 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 				types.PrimaryKeyField: []string{dks.TriangleTest},
 				"ext":                 []string{"png"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserOne,
+				TS:   ts("2020-12-10T05:00:00Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "1a16cbc8805378f0a6ef654a035d86c4",
@@ -3249,6 +3281,10 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 				types.PrimaryKeyField: []string{dks.SquareTest},
 				"ext":                 []string{"png"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserOne,
+				TS:   ts("2020-06-07T08:23:08Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "a95ccd579ee7c4771019a3374753db36",
@@ -3382,6 +3418,10 @@ func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T)
 				types.PrimaryKeyField: []string{dks.SevenTest},
 				"ext":                 []string{"png"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserFour,
+				TS:   ts("2020-12-12T09:30:12Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "03fd07d9277767cd5461069ceb0a93ba",
@@ -4992,6 +5032,10 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnPrimary_Success(t *testing.T) 
 				types.PrimaryKeyField: []string{dks.CircleTest},
 				"ext":                 []string{"png"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserOne,
+				TS:   ts("2020-06-07T08:09:10Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "0b61c8d85467fc95b1306128ceb2ef6d",
@@ -5155,6 +5199,10 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnCL_Success(t *testing.T) {
 				types.PrimaryKeyField: []string{dks.CircleTest},
 				"ext":                 []string{"png"},
 			},
+			TriageHistory: []frontend.TriageHistory{{
+				User: dks.UserOne,
+				TS:   ts("2020-06-07T08:09:10Z"),
+			}},
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
@@ -5596,4 +5644,13 @@ func makeKitchenSinkCommits() []frontend.Commit {
 // clauses in queries. This way, the queries will be accurate.
 func waitForSystemTime() {
 	time.Sleep(150 * time.Millisecond)
+}
+
+// ts returns the time.Time from the given string in RFC3339. It panics if that is malformed.
+func ts(ts string) time.Time {
+	t, err := time.Parse(time.RFC3339, ts)
+	if err != nil {
+		panic(err)
+	}
+	return t
 }
