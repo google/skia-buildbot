@@ -31,6 +31,7 @@ import logging
 import os
 import subprocess
 import sys
+import time
 
 from collections import namedtuple
 
@@ -258,6 +259,10 @@ def main():
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
     return _subprocess_call(argv)
   else:
+    print os.getcwd()
+    print(' '.join(argv))
+    print('waiting in python')
+    time.sleep(60*60)
     os.execvp(argv[0], argv)
 
 
