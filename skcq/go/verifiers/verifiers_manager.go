@@ -25,6 +25,7 @@ var (
 type SkCQVerifiersManager struct {
 	throttlerManager types.ThrottlerManager
 	httpClient       *http.Client
+	criaClient       *http.Client
 	cr               codereview.CodeReview
 	// Allow lists will be cached here so that they are not continuously
 	// newly instantiated.
@@ -32,10 +33,11 @@ type SkCQVerifiersManager struct {
 }
 
 // NewSkCQVerifiersManager returns an instance of SkCQVerifiersManager.
-func NewSkCQVerifiersManager(throttlerManager types.ThrottlerManager, httpClient *http.Client, cr codereview.CodeReview) *SkCQVerifiersManager {
+func NewSkCQVerifiersManager(throttlerManager types.ThrottlerManager, httpClient, criaClient *http.Client, cr codereview.CodeReview) *SkCQVerifiersManager {
 	return &SkCQVerifiersManager{
 		throttlerManager: throttlerManager,
 		httpClient:       httpClient,
+		criaClient:       criaClient,
 		cr:               cr,
 		allowlistCache:   map[string]allowed.Allow{},
 	}
@@ -68,7 +70,7 @@ func (vm *SkCQVerifiersManager) GetVerifiers(ctx context.Context, cfg *config.Sk
 			// Get committer list from the cache, or set it if it does not exist.
 			committerList, ok := vm.allowlistCache[cfg.CommitterList]
 			if !ok {
-				committerList, err = allowed.NewAllowedFromChromeInfraAuth(vm.httpClient, cfg.CommitterList)
+				committerList, err = allowed.NewAllowedFromChromeInfraAuth(vm.criaClient, cfg.CommitterList)
 				if err != nil {
 					return nil, nil, skerr.Wrapf(err, "Could not create an allowed from %s", cfg.CommitterList)
 				}
@@ -136,7 +138,7 @@ func (vm *SkCQVerifiersManager) GetVerifiers(ctx context.Context, cfg *config.Sk
 		// Get dry-run list from the cache or set it if it does not exist.
 		dryRunList, ok := vm.allowlistCache[cfg.DryRunAccessList]
 		if !ok {
-			dryRunList, err = allowed.NewAllowedFromChromeInfraAuth(vm.httpClient, cfg.DryRunAccessList)
+			dryRunList, err = allowed.NewAllowedFromChromeInfraAuth(vm.criaClient, cfg.DryRunAccessList)
 			if err != nil {
 				return nil, nil, skerr.Wrapf(err, "Could not create an allowed from %s", cfg.DryRunAccessList)
 			}

@@ -67,6 +67,7 @@ func testGetVerifier(t *testing.T, isCQ, isDryRun bool, submittedTogetherChange 
 
 	vm := &SkCQVerifiersManager{
 		httpClient:     mockClient.Client(),
+		criaClient:     mockClient.Client(),
 		cr:             cr,
 		allowlistCache: map[string]allowed.Allow{},
 	}
