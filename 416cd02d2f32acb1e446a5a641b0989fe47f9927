@@ -86,6 +86,24 @@
       "parentUuid": "c932992f_35a15013",
       "revId": "416cd02d2f32acb1e446a5a641b0989fe47f9927",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8c58d8ad_bebc828a",
+        "filename": "skcq/go/caches/current_changes_cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-13T02:55:53Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4102aecd_ce77ddc9",
+      "revId": "416cd02d2f32acb1e446a5a641b0989fe47f9927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
