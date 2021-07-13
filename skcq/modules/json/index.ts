@@ -56,4 +56,4 @@ export interface GetChangeAttemptsResponse {
 	change_attempts: ChangeAttempts | null;
 }
 
-export type VerifierState = string;
+export type VerifierState = "SUCCESSFUL" | "WAITING" | "FAILURE" | "ABORTED";

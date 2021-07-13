@@ -148,6 +148,13 @@ const VerifierWaitingState VerifierState = "WAITING"
 const VerifierFailureState VerifierState = "FAILURE"
 const VerifierAbortedState VerifierState = "ABORTED"
 
+var AllVerifierStates = []VerifierState{
+	VerifierSuccessState,
+	VerifierWaitingState,
+	VerifierFailureState,
+	VerifierAbortedState,
+}
+
 // VerifierStates contains the status of the verify. Includes the name,
 // timestamps and the state.
 type VerifierStatus struct {

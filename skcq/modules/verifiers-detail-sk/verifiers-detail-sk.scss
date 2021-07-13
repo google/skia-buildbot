@@ -1,0 +1,80 @@
+@import '../colors';
+@import '../style.scss';
+
+verifiers-detail-sk {
+  table.verifier-table {
+    width: 100%;
+    border: 1px solid var(--on-background);
+    table-layout: fixed;
+
+    td {
+      padding: 5px;
+      text-align: left;
+    }
+  }
+
+  .verifier-table.failed {
+    background-color: var(--failed);
+    color: var(--on-primary);
+
+    a {
+      color: var(--on-primary);
+    }
+  }
+
+  .verifier-table.success {
+    background-color: var(--success);
+  }
+
+  .verifier-table.waiting {
+    background-color: var(--waiting);
+  }
+
+  .verifier-table.aborted {
+    background-color: var(--gray);
+  }
+
+  table.attempt-table {
+    width: 100%;
+    table-layout: fixed;
+
+    th {
+      text-align: left;
+      font-weight: bold;
+      font-size: 1.17em;
+      padding: 5px;
+    }
+  }
+
+  a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--on-background);
+  }
+
+  ul {
+    margin: 0;
+  }
+
+  .attempt-section {
+    display: block;
+    padding: 10px;
+    margin: 30px 10px;
+  }
+
+  .attempt-section.failed {
+    box-shadow: 0 0 0 3px var(--failed) inset;
+  }
+
+  .attempt-section.success {
+    box-shadow: 0 0 0 3px var(--success) inset;
+  }
+
+  .attempt-section.waiting {
+    box-shadow: 0 0 0 3px var(--waiting) inset;
+  }
+
+  .attempt-section.aborted {
+    box-shadow: 0 0 0 3px var(--gray) inset;
+  }
+}

@@ -27,6 +27,7 @@ func main() {
 		types.GetChangeAttemptsRequest{},
 		types.GetChangeAttemptsResponse{},
 	)
+	generator.AddUnionWithName(types.AllVerifierStates, "VerifierState")
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)
