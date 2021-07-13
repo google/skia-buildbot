@@ -117,6 +117,30 @@
       },
       "revId": "8910b347a4fbb678eb9e4a050a9e444d6400c82c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c3840347_fbbd013e",
+        "filename": "task_driver/go/lib/bazel/bazel.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-13T00:39:32Z",
+      "side": 1,
+      "message": "Ok, turns out there was an easy fix for the \"target is busy\" error: just shut down the Bazel server with \"bazel shutdown\".\n\nI removed the --lazy flag and now things seem to work.",
+      "parentUuid": "03b01049_074ba87e",
+      "range": {
+        "startLine": 54,
+        "startChar": 31,
+        "endLine": 54,
+        "endChar": 78
+      },
+      "revId": "8910b347a4fbb678eb9e4a050a9e444d6400c82c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
