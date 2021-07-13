@@ -5,7 +5,7 @@ set -e
 # Install packages.
 
 sudo apt-get --assume-yes install build-essential mercurial libosmesa-dev libexpat1-dev clang llvm \
-  poppler-utils netpbm gcc-multilib g++-multilib libxi-dev python-django \
+  poppler-utils netpbm gcc-multilib g++-multilib libxi-dev python-django python3-distutils \
   libc++-dev libc++abi-dev gperf bison usbutils libncurses5 locales
 
 # Catapult requires a lsb-release file even if it's empty.
@@ -114,7 +114,7 @@ Type=simple
 User=chrome-bot
 Restart=on-failure
 RestartSec=10
-ExecStart=/usr/bin/env python /b/s/swarming_bot.zip start_bot
+ExecStart=/usr/bin/env python3 /b/s/swarming_bot.zip start_bot
 
 [Install]
 WantedBy=default.target
