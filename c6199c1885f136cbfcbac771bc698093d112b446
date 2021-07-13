@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3a11eb19_a46223bd",
+        "filename": "skcq/modules/verifiers-detail-sk/verifiers-detail-sk-demo.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-13T18:24:41Z",
+      "side": 1,
+      "message": "I had kept both start_ts and stop_ts to be the same to get 0s duration. But changing it now to be safe.",
+      "parentUuid": "3d3b842e_1201ba2a",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 63,
+        "endChar": 39
+      },
+      "revId": "c6199c1885f136cbfcbac771bc698093d112b446",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1b309f98_64c7abd8",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "df260c32_f94f4f6e",
+        "filename": "skcq/modules/verifiers-detail-sk/verifiers-detail-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-13T18:24:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b309f98_64c7abd8",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 40
+      },
+      "revId": "c6199c1885f136cbfcbac771bc698093d112b446",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7fdf011f_a8d28bdf",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-07-13T18:10:45Z",
       "side": 1,
       "message": "nit: The captured image is kind of small, maybe increase the size.",
+      "range": {
+        "startLine": 18,
+        "startChar": 43,
+        "endLine": 18,
+        "endChar": 60
+      },
+      "revId": "c6199c1885f136cbfcbac771bc698093d112b446",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ce7e1c8d_fe27423b",
+        "filename": "skcq/modules/verifiers-detail-sk/verifiers-detail-sk_puppeteer_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-13T18:24:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7fdf011f_a8d28bdf",
       "range": {
         "startLine": 18,
         "startChar": 43,
