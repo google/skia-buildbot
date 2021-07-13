@@ -1542,6 +1542,7 @@ func TestPatchsetBuilder_DataWithCommonKeysChained_Success(t *testing.T) {
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys("test")
+	b.NoIgnoredTraces()
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.CommitsWithData().Insert("123", "author_one", "subject_one", "2020-12-05T16:00:00Z")
 	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
@@ -1567,13 +1568,13 @@ func TestPatchsetBuilder_DataWithCommonKeysChained_Success(t *testing.T) {
 		Corpus:               "",
 		GroupingID:           h(`{"test":"one"}`),
 		Keys:                 paramtools.Params{"os": "Android", "test": "one"},
-		MatchesAnyIgnoreRule: schema.NBNull,
+		MatchesAnyIgnoreRule: schema.NBFalse,
 	}, {
 		TraceID:              h(`{"os":"Mac","test":"one"}`),
 		Corpus:               "",
 		GroupingID:           h(`{"test":"one"}`),
 		Keys:                 paramtools.Params{"os": "Mac", "test": "one"},
-		MatchesAnyIgnoreRule: schema.NBNull,
+		MatchesAnyIgnoreRule: schema.NBFalse,
 	}}, data.Traces)
 	assert.Equal(t, []schema.SecondaryBranchValueRow{{
 		BranchName:   "gerrit_cl1",
