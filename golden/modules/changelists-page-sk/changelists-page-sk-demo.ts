@@ -36,11 +36,13 @@ const fakeRpcDelayMillis = 300;
 
 fetchMock.get('/json/v1/changelists?offset=0&size=10', delay(ten, fakeRpcDelayMillis));
 fetchMock.get(
-    '/json/v1/changelists?offset=0&size=10&active=true', delay(open, fakeRpcDelayMillis));
+  '/json/v1/changelists?offset=0&size=10&active=true', delay(open, fakeRpcDelayMillis),
+);
 fetchMock.get(
-    '/json/v1/changelists?offset=10&size=10', delay(changelistSummaries_5, fakeRpcDelayMillis));
+  '/json/v1/changelists?offset=10&size=10', delay(changelistSummaries_5, fakeRpcDelayMillis),
+);
 fetchMock.get('glob:/json/v1/changelists*', delay(empty(), fakeRpcDelayMillis));
-fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
+fetchMock.get('/json/v2/trstatus', JSON.stringify(exampleStatusData));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = new GoldScaffoldSk();

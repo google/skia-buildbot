@@ -25,7 +25,12 @@ const commitHref = (hash: string) => {
   return `${repo}/${path}/${hash}`;
 };
 
-const detailHref = (test: TestRollup) => `/detail?test=${test.test}&digest=${test.sample_digest}`;
+const detailHref = (test: TestRollup, useNewAPI: boolean) => {
+  if (useNewAPI) {
+    return `/detail?test=${test.test}&digest=${test.sample_digest}&use_new_api=true`;
+  }
+  return `/detail?test=${test.test}&digest=${test.sample_digest}`;
+};
 
 export class ByBlameEntrySk extends ElementSk {
   private static template = (el: ByBlameEntrySk) => html`
@@ -33,8 +38,8 @@ export class ByBlameEntrySk extends ElementSk {
       <p>
         <a href=${el.blameHref()} class=triage target=_blank rel=noopener>
           ${el.byBlameEntry!.nDigests === 1
-          ? '1 untriaged digest'
-          : `${el.byBlameEntry!.nDigests} untriaged digests`}
+    ? '1 untriaged digest'
+    : `${el.byBlameEntry!.nDigests} untriaged digests`}
         </a>
       </p>
 
@@ -43,11 +48,11 @@ export class ByBlameEntrySk extends ElementSk {
       <h3>Tests affected</h3>
       <p class=num-tests-affected>
         ${el.byBlameEntry!.nTests === 1
-          ? '1 test affected.'
-          : `${el.byBlameEntry!.nTests} tests affected.`}
+      ? '1 test affected.'
+      : `${el.byBlameEntry!.nTests} tests affected.`}
       </p>
 
-      ${ByBlameEntrySk.affectedTestsTemplate(el.byBlameEntry?.affectedTests)}
+      ${ByBlameEntrySk.affectedTestsTemplate(el.byBlameEntry?.affectedTests, el.useNewAPI)}
     </div>
   `;
 
@@ -81,9 +86,9 @@ export class ByBlameEntrySk extends ElementSk {
           </li>`)}
           ${andNMore > 0 ? html`<li>And ${andNMore} other commit(s)</li>` : ''}
       </ul>`;
-    };
+  };
 
-  private static affectedTestsTemplate = (affectedTests?: TestRollup[] | null) => {
+  private static affectedTestsTemplate = (affectedTests: TestRollup[] | undefined | null, useNewAPI: boolean) => {
     if (!affectedTests || affectedTests.length === 0) return '';
     return html`
       <table class=affected-tests>
@@ -96,12 +101,12 @@ export class ByBlameEntrySk extends ElementSk {
         </thead>
         <tbody>
           ${affectedTests.map(
-                  (test) => html`
+      (test) => html`
                   <tr>
                     <td class=test>${test.test}</td>
                     <td class=num-digests>${test.num}</td>
                     <td>
-                      <a href=${detailHref(test)}
+                      <a href=${detailHref(test, useNewAPI)}
                          class=example-link
                          target=_blank
                          rel=noopener>
@@ -109,14 +114,17 @@ export class ByBlameEntrySk extends ElementSk {
                       </a>
                     </td>
                   </tr>`,
-              )}
+    )}
         </tbody>
       </table>
     `;
   }
 
   private _byBlameEntry: ByBlameEntry | null = null;
+
   private _corpus = '';
+
+  private _useNewAPI = false;
 
   constructor() {
     super(ByBlameEntrySk.template);
@@ -143,14 +151,19 @@ export class ByBlameEntrySk extends ElementSk {
     this._render();
   }
 
+  get useNewAPI(): boolean { return this._useNewAPI; }
+
+  set useNewAPI(b: boolean) {
+    this._useNewAPI = b;
+    this._render();
+  }
+
   private blameHref() {
-    const groupID = this.byBlameEntry!.groupID;
+    const blameID = this.byBlameEntry!.groupID;
 
-    // TODO(lovisolo): Delete after the legacy search page has been removed.
-    const query = encodeURIComponent(`source_type=${this.corpus}`);
-    const legacySearchPageParams = `query=${query}`;
+    const newAPI = this.useNewAPI ? '&use_new_api=true' : '';
 
-    return `/search?blame=${groupID}&corpus=${this.corpus}&${legacySearchPageParams}`;
+    return `/search?blame=${blameID}&corpus=${this.corpus}${newAPI}`;
   }
 }
 

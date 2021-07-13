@@ -2,7 +2,7 @@
  * @module module/last-commit-sk
  * @description <h2><code>last-commit-sk</code></h2>
  *
- * This element polls /json/v1/trstatus every 3 seconds and displays the last commit that had data
+ * This element polls /json/v2/trstatus every 3 seconds and displays the last commit that had data
  * ingested for it. If there are any network errors, it will log them and retry.
  *
  */
@@ -11,7 +11,7 @@ import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { baseRepoURL } from '../settings';
-import {StatusResponse} from '../rpc_types';
+import { StatusResponse } from '../rpc_types';
 
 const reloadInterval = 3000;
 
@@ -65,7 +65,7 @@ export class LastCommitSk extends ElementSk {
       if (!this._connected) {
         return;
       }
-      fetch('/json/v1/trstatus')
+      fetch('/json/v2/trstatus')
         .then(jsonOrThrow)
         .then((json) => {
           this.status = json as StatusResponse;

@@ -47,7 +47,8 @@ export class ByBlamePageSk extends ElementSk {
   private static entryTemplate = (ele: ByBlamePageSk, entry: ByBlameEntry) => html`
     <byblameentry-sk
         .byBlameEntry=${entry}
-        .corpus=${ele.corpus}>
+        .corpus=${ele.corpus}
+        .useNewAPI=${ele.useNewAPI}>
     </byblameentry-sk>
   `;
 
@@ -140,8 +141,7 @@ export class ByBlamePageSk extends ElementSk {
       .catch((e) => sendFetchError(this, e, 'byblamepage_entries'));
 
     sendBeginTask(this);
-    const url = this.useNewAPI ? '/json/v2/trstatus' : '/json/v1/trstatus';
-    fetch(url, options)
+    fetch('/json/v2/trstatus', options)
       .then(jsonOrThrow)
       .then((res: StatusResponse) => {
         this.corpora = res.corpStatus;
