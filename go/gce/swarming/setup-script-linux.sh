@@ -114,7 +114,7 @@ Type=simple
 User=chrome-bot
 Restart=on-failure
 RestartSec=10
-ExecStart=/usr/bin/env python /b/s/swarming_bot.zip start_bot
+ExecStart=/usr/bin/env python3 /b/s/swarming_bot.zip start_bot
 
 [Install]
 WantedBy=default.target
