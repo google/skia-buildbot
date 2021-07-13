@@ -46,6 +46,30 @@
       },
       "revId": "ee7f0138472d4da956bd2b81c48648895c21cf59",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9febf4cb_930b5fe0",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 683,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-13T11:56:02Z",
+      "side": 1,
+      "message": "Sorry, I was mixed up.",
+      "parentUuid": "5afee262_d394ea17",
+      "range": {
+        "startLine": 680,
+        "startChar": 3,
+        "endLine": 683,
+        "endChar": 5
+      },
+      "revId": "ee7f0138472d4da956bd2b81c48648895c21cf59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
