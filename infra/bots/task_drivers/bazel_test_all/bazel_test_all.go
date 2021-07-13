@@ -269,6 +269,6 @@ func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
 	// Note that this isn't necessary in Infra-PerCommit-Test-Bazel-RBE because the "python" binary
 	// is provided by the RBE toolchain container image, and not by the vpython CIPD package, as is
 	// the case with Infra-PerCommit-Test-Bazel-Local.
-	_, err := bzl.Do(ctx, "test", "//...", "--test_output=errors", "--test_env=VPYTHON_VIRTUALENV_ROOT")
+	_, err := bzl.Do(ctx, "test", "//machine/go/machine/store:store_test", "--test_output=errors", "--test_env=VPYTHON_VIRTUALENV_ROOT") // DO NOT SUBMIT!!!
 	return err
 }
