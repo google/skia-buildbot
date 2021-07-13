@@ -18,9 +18,9 @@ import (
 	"go.skia.org/infra/machine/go/machine/targetconnect"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/switchboard"
-	"go.skia.org/infra/sk8s/go/test_machine_monitor/machine"
-	"go.skia.org/infra/sk8s/go/test_machine_monitor/server"
-	"go.skia.org/infra/sk8s/go/test_machine_monitor/swarming"
+	"go.skia.org/infra/machine/go/test_machine_monitor/machine"
+	"go.skia.org/infra/machine/go/test_machine_monitor/server"
+	"go.skia.org/infra/machine/go/test_machine_monitor/swarming"
 	"go.skia.org/infra/switchboard/go/kubeconfig"
 )
 
