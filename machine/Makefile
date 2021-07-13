@@ -75,4 +75,21 @@ build-remote:
 run-local-instance:
 	machineserver --local --logtostderr
 
+build_test_machine_monitor_rpi:
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=arm64 \
+	go build -o ./build/linux/arm64/test_machine_monitor ./go/test_machine_monitor
+
+# Run the following command prefixed with the the IP address of the local machine
+# to be updated, for example:
+#
+#    $ TARGET=192.168.1.158 make push_test_machine_monitor_rpi_local
+#
+push_test_machine_monitor_rpi_local: build_test_machine_monitor_rpi
+	ANSIBLE_CONFIG=../skolo/ansible/ansible.cfg \
+	ANSIBLE_SSH_ARGS="-F ${HOME}/.ssh/config" \
+	ansible-playbook ../skolo/ansible/switchboard/install-test-machine-monitor.yml \
+	--extra-vars variable_hosts=${TARGET}
+
 include ../make/npm.mk

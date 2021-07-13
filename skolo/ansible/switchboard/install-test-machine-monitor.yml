@@ -1,0 +1,23 @@
+- hosts: '{{ variable_hosts }}'
+  user: root
+  gather_facts: False
+  tasks:
+    - name: Copy over service file.
+      copy:
+        src: test_machine_monitor.service
+        dest: /etc/systemd/system/test_machine_monitor.service
+        owner: root
+        group: root
+        mode: '0644'
+    - name: Copy over executable.
+      copy:
+        src: ../../../machine/build/linux/arm64/test_machine_monitor
+        dest: /usr/local/bin/test_machine_monitor
+        owner: root
+        group: root
+        mode: '0755'
+    - name: Start systemd servce.
+      systemd:
+        state: started
+        name: test_machine_monitor
+        daemon_reload: yes
