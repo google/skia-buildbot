@@ -43,6 +43,11 @@
     "clone_url": "https://skia.googlesource.com/external/github.com/google/wuffs",
     "mirrored_from_url": "https://github.com/google/wuffs.git"
   },
+  "external/github.com/google/wuffs-mirror-release-c": {
+    "name": "external/github.com/google/wuffs-mirror-release-c",
+    "clone_url": "https://skia.googlesource.com/external/github.com/google/wuffs-mirror-release-c",
+    "mirrored_from_url": "https://github.com/google/wuffs-mirror-release-c.git"
+  },
   "external/github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator": {
     "name": "external/github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator",
     "clone_url": "https://skia.googlesource.com/external/github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator",
