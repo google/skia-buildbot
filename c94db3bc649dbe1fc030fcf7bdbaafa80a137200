@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2e2ecb9f_d12eb97b",
+        "filename": "skcq/modules/verifiers-detail-sk/verifiers-detail-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-13T17:55:56Z",
+      "side": 1,
+      "message": "Done.\nI could not nest things like .attempt-section.failed into-\n.attempt-section {\n  .failed {..}\n}",
+      "parentUuid": "5e4f2312_c05ace2d",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 3
+      },
+      "revId": "c94db3bc649dbe1fc030fcf7bdbaafa80a137200",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "64c35c48_d81b0c40",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-07-13T13:58:32Z",
       "side": 1,
       "message": "I expected this to be a union type, since it is a specific type in the Go code.\n\nLook at Perf for example:\n\n   https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/go/ts/main.go#92\n   \nWhere AllStepDetection is defined as:\n\nhttps://skia.googlesource.com/buildbot/+/refs/heads/main/perf/go/types/types.go#126\n\nAnd that appears as a union type in json/index.ts:\n\nhttps://skia.googlesource.com/buildbot/+/refs/heads/main/perf/modules/json/index.ts#286\n\nThen, I created a Record\u003c\u003e that maps those types to the display values:\n\nhttps://skia.googlesource.com/buildbot/+/refs/heads/main/perf/modules/cluster-summary2-sk/cluster-summary2-sk.ts#94\n\nThe nice part is when I add a new type of StepDetection the TS will fail to compile until I add the new value to the Record\u003c\u003e, so I know they are always in sync.",
+      "range": {
+        "startLine": 148,
+        "startChar": 31,
+        "endLine": 148,
+        "endChar": 37
+      },
+      "revId": "c94db3bc649dbe1fc030fcf7bdbaafa80a137200",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cbef74af_fc11643c",
+        "filename": "skcq/modules/verifiers-detail-sk/verifiers-detail-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-13T17:55:56Z",
+      "side": 1,
+      "message": "Thanks! PTAL.",
+      "parentUuid": "64c35c48_d81b0c40",
       "range": {
         "startLine": 148,
         "startChar": 31,
