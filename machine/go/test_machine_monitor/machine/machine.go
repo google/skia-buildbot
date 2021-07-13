@@ -16,8 +16,8 @@ import (
 	"go.skia.org/infra/machine/go/machine/sink"
 	"go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machineserver/config"
-	"go.skia.org/infra/sk8s/go/test_machine_monitor/adb"
-	"go.skia.org/infra/sk8s/go/test_machine_monitor/swarming"
+	"go.skia.org/infra/machine/go/test_machine_monitor/adb"
+	"go.skia.org/infra/machine/go/test_machine_monitor/swarming"
 )
 
 const (

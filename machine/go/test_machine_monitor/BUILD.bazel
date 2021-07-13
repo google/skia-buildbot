@@ -1,0 +1,51 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "bot_config_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/pubsub",
+        "//go/revportforward",
+        "//go/sklog",
+        "//machine/go/configs",
+        "//machine/go/machine/store",
+        "//machine/go/machine/targetconnect",
+        "//machine/go/machineserver/config",
+        "//machine/go/switchboard",
+        "//machine/go/test_machine_monitor/machine",
+        "//machine/go/test_machine_monitor/server",
+        "//machine/go/test_machine_monitor/swarming",
+        "//switchboard/go/kubeconfig",
+    ],
+)
+
+go_binary(
+    name = "test_machine_monitor",
+    embed = [":test_machine_monitor_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "test_machine_monitor_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/pubsub",
+        "//go/revportforward",
+        "//go/sklog",
+        "//machine/go/configs",
+        "//machine/go/machine/store",
+        "//machine/go/machine/targetconnect",
+        "//machine/go/machineserver/config",
+        "//machine/go/switchboard",
+        "//machine/go/test_machine_monitor/machine",
+        "//machine/go/test_machine_monitor/server",
+        "//machine/go/test_machine_monitor/swarming",
+        "//switchboard/go/kubeconfig",
+    ],
+)

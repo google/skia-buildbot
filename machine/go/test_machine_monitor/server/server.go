@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/sk8s/go/test_machine_monitor/machine"
+	"go.skia.org/infra/machine/go/test_machine_monitor/machine"
 )
 
 const (
