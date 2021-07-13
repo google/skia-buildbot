@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "70768cdc_a35fa673",
+        "filename": "skcq/modules/skcq-scaffold/skcq-scaffold.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-13T13:08:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e47f230d_a260d64a",
+      "revId": "a5a19a31949ac49d9a9ead7a2a0e3c9b53068f57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "42345132_0c7cdb71",
@@ -31,6 +49,24 @@
       "writtenOn": "2021-07-12T20:45:13Z",
       "side": 1,
       "message": "I think you\u0027ll need upgradeProperty() for each of these properties.",
+      "revId": "a5a19a31949ac49d9a9ead7a2a0e3c9b53068f57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6965d445_c715a6a1",
+        "filename": "skcq/modules/skcq-scaffold/skcq-scaffold.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-13T13:08:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "42345132_0c7cdb71",
       "revId": "a5a19a31949ac49d9a9ead7a2a0e3c9b53068f57",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
