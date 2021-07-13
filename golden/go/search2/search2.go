@@ -1645,6 +1645,11 @@ func (s *Impl) fillOutTraceHistory(ctx context.Context, inputs []stageTwoResult)
 			if err := s.fillInExpectations(eCtx, &tg, input.groupingID); err != nil {
 				return skerr.Wrap(err)
 			}
+			th, err := s.getTriageHistory(eCtx, input.groupingID, input.leftDigest)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			sr.TriageHistory = th
 			if err := s.fillInTraceParams(eCtx, &tg); err != nil {
 				return skerr.Wrap(err)
 			}
@@ -1778,6 +1783,44 @@ CLExpectations FULL OUTER JOIN PrimaryExpectations ON
 		}
 	}
 	return nil
+}
+
+func (s *Impl) getTriageHistory(ctx context.Context, groupingID schema.GroupingID, digest schema.DigestBytes) ([]frontend.TriageHistory, error) {
+	ctx, span := trace.StartSpan(ctx, "getTriageHistory")
+	defer span.End()
+
+	qCLID := getQualifiedCL(ctx)
+	const statement = `WITH
+PrimaryRecord AS (
+	SELECT expectation_record_id FROM Expectations
+	WHERE grouping_id = $1 AND digest = $2
+),
+SecondaryRecord AS (
+	SELECT expectation_record_id FROM SecondaryBranchExpectations
+	WHERE grouping_id = $1 AND digest = $2 AND branch_name = $3
+),
+CombinedRecords AS (
+	SELECT expectation_record_id FROM PrimaryRecord
+	UNION
+	SELECT expectation_record_id FROM SecondaryRecord
+)
+SELECT user_name, triage_time FROM ExpectationRecords
+JOIN CombinedRecords ON ExpectationRecords.expectation_record_id = CombinedRecords.expectation_record_id
+ORDER BY triage_time DESC LIMIT 1`
+
+	row := s.db.QueryRow(ctx, statement, groupingID, digest, qCLID)
+	var user string
+	var ts time.Time
+	if err := row.Scan(&user, &ts); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, skerr.Wrap(err)
+	}
+	return []frontend.TriageHistory{{
+		User: user,
+		TS:   ts.UTC(),
+	}}, nil
 }
 
 // fillInTraceParams looks up the keys (params) for each trace and fills them in on the passed in
