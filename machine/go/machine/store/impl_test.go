@@ -82,6 +82,11 @@ func setupForFlakyTest(t *testing.T) (context.Context, config.InstanceConfig) {
 	return ctx, cfg
 }
 
+func TestThatFails(t *testing.T) {
+	unittest.SmallTest(t)
+	require.Equal(t, true, false)
+}
+
 func TestNew(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
