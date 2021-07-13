@@ -44,6 +44,7 @@ type TablesBuilder struct {
 	runeToDigest        map[rune]schema.DigestBytes
 	traceBuilders       []*TraceBuilder
 	uuids               map[uuid.UUID]bool
+	nothingIgnored      bool
 }
 
 // CommitsWithData returns a new CommitBuilder to which the trace data will be connected.
@@ -360,6 +361,9 @@ func openNRGBAFromDisk(basePath string, digest types.Digest) *image.NRGBA {
 // AddIgnoreRule adds an ignore rule with the given information. It will be applied to traces during
 // the generation of structs.
 func (b *TablesBuilder) AddIgnoreRule(created, updated, updateTS, note string, query paramtools.ParamSet) uuid.UUID {
+	if b.nothingIgnored {
+		logAndPanic("Cannot define ignore rules and say NoIgnoredTraces")
+	}
 	ts, err := time.Parse(time.RFC3339, updateTS)
 	if err != nil {
 		logAndPanic("invalid time %q: %s", updateTS, err)
@@ -391,6 +395,14 @@ func (b *TablesBuilder) AddIgnoreRule(created, updated, updateTS, note string, q
 		Query:        query.FrozenCopy(), // make a copy to ensure immutability
 	})
 	return id
+}
+
+// NoIgnoredTraces marks all traces as not ignored.
+func (b *TablesBuilder) NoIgnoredTraces() {
+	if len(b.ignoreRules) > 0 {
+		logAndPanic("Cannot define ignore rules and say NoIgnoredTraces")
+	}
+	b.nothingIgnored = true
 }
 
 func qualify(system, id string) string {
@@ -646,6 +658,8 @@ func (b *TablesBuilder) addTrace(existing []schema.TraceRow, t schema.TraceRow, 
 		} else {
 			matches = schema.NBFalse
 		}
+	} else if b.nothingIgnored {
+		matches = schema.NBFalse
 	}
 	t.MatchesAnyIgnoreRule = matches
 	return append(existing, t), matches

@@ -3828,6 +3828,135 @@ func assertSearchBlameCommitResponse(t *testing.T, res *frontend.SearchResponse)
 	}, res)
 }
 
+func TestSearch_IncludesBlameCommit_MultipleNewTraces_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := buildMultipleNewTraces()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	s := New(db, 100)
+
+	// We want to assert that searching with the given blameID, we return exactly one result
+	// corresponding to the given digest. This makes sure we can take the results of
+	// GetBlamesForUntriagedDigests and correctly map them to results.
+	test := func(name, blameID string, expectedDigest types.Digest) {
+		t.Run(name, func(t *testing.T) {
+			res, err := s.Search(ctx, &query.Search{
+				BlameGroupID: blameID,
+				Sort:         query.SortDescending,
+				TraceValues: paramtools.ParamSet{
+					types.CorpusField: []string{"test_corpus"},
+				},
+				RGBAMinFilter: 0,
+				RGBAMaxFilter: 255,
+			})
+			require.NoError(t, err)
+			require.Len(t, res.Results, 1)
+			assert.Equal(t, expectedDigest, res.Results[0].Digest)
+		})
+	}
+
+	test("new trace", "07", dks.DigestA04Unt)
+	test("new trace with missing data", "04", dks.DigestA05Unt)
+	test("new trace with recent regression", "08", dks.DigestA06Unt)
+}
+
+func TestGetBlamesForUntriagedDigests_MultipleNewTraces_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := buildMultipleNewTraces()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	alphaGrouping := paramtools.Params{types.PrimaryKeyField: "alpha", types.CorpusField: "test_corpus"}
+	betaGrouping := paramtools.Params{types.PrimaryKeyField: "beta", types.CorpusField: "test_corpus"}
+	gammaGrouping := paramtools.Params{types.PrimaryKeyField: "gamma", types.CorpusField: "test_corpus"}
+
+	s := New(db, 100)
+
+	res, err := s.GetBlamesForUntriagedDigests(ctx, "test_corpus")
+	require.NoError(t, err)
+	for i := range res.Ranges {
+		res.Ranges[i].Commits = nil // Leave this out of the assertion
+	}
+
+	assert.Equal(t, BlameSummaryV1{Ranges: []BlameEntry{{
+		CommitRange:           "04",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         betaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     dks.DigestA05Unt,
+		}},
+	}, {
+		CommitRange:           "07",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         alphaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     dks.DigestA04Unt,
+		}},
+	}, {
+		CommitRange:           "08",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         gammaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     dks.DigestA06Unt,
+		}},
+	}}}, res)
+}
+
+func buildMultipleNewTraces() schema.Tables {
+	b := databuilder.TablesBuilder{}
+	// This data set has data on 10 commits and no data on 3 commits in the middle.
+	// Intentionally put these commits such that they straddle a tile.
+	// Commits with ids 103-105 have no data to help test sparse data.
+	b.CommitsWithData().
+		Insert("01", "user", "commit 1", "2020-12-01T00:00:01Z").
+		Insert("02", "user", "commit 2", "2020-12-01T00:00:02Z").
+		Insert("03", "user", "commit 3", "2020-12-01T00:00:03Z").
+		Insert("04", "user", "commit 4", "2020-12-01T00:00:04Z").
+		Insert("05", "user", "commit 5", "2020-12-01T00:00:05Z").
+		Insert("06", "user", "commit 6", "2020-12-01T00:00:06Z").
+		Insert("07", "user", "commit 7", "2020-12-01T00:00:07Z").
+		Insert("08", "user", "commit 8", "2020-12-01T00:00:08Z").
+		Insert("09", "user", "commit 9", "2020-12-01T00:00:09Z")
+
+	b.SetDigests(map[rune]types.Digest{
+		'A': dks.DigestA01Pos,
+		'b': dks.DigestA04Unt,
+		'c': dks.DigestA05Unt,
+		'd': dks.DigestA06Unt,
+	})
+	b.SetGroupingKeys(types.CorpusField, types.PrimaryKeyField)
+
+	b.AddTracesWithCommonKeys(paramtools.Params{
+		types.CorpusField: "test_corpus",
+	}).History(
+		"------bbb",
+		"---c-ccc-",
+		"-d-ddAAdd",
+	).Keys([]paramtools.Params{
+		{types.PrimaryKeyField: "alpha"},
+		{types.PrimaryKeyField: "beta"},
+		{types.PrimaryKeyField: "gamma"}}).
+		OptionsAll(paramtools.Params{}).
+		IngestedFrom([]string{"x", "x", "x", "x", "x", "x", "x", "x", "x"},
+			[]string{"2020-12-12T12:12:12Z", "2020-12-12T12:12:12Z", "2020-12-12T12:12:12Z", "2020-12-12T12:12:12Z",
+				"2020-12-12T12:12:12Z", "2020-12-12T12:12:12Z", "2020-12-12T12:12:12Z", "2020-12-12T12:12:12Z", "2020-12-12T12:12:12Z"})
+
+	b.AddTriageEvent("user", "2020-06-07T08:09:10Z").
+		ExpectationsForGrouping(map[string]string{types.CorpusField: "test_corpus", types.PrimaryKeyField: "gamma"}).
+		Positive(dks.DigestA01Pos)
+
+	b.NoIgnoredTraces()
+	return b.Build()
+}
+
 func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -4142,9 +4271,11 @@ func TestCombineIntoRanges_Success(t *testing.T) {
 
 	alphaGrouping := paramtools.Params{types.PrimaryKeyField: "alpha", types.CorpusField: "the_corpus"}
 	betaGrouping := paramtools.Params{types.PrimaryKeyField: "beta", types.CorpusField: "the_corpus"}
+	gammaGrouping := paramtools.Params{types.PrimaryKeyField: "gamma", types.CorpusField: "the_corpus"}
 	groupings := map[schema.MD5Hash]paramtools.Params{
 		mustHash(alphaGrouping): alphaGrouping,
 		mustHash(betaGrouping):  betaGrouping,
+		mustHash(gammaGrouping): gammaGrouping,
 	}
 	simpleCommits := []frontend.Commit{
 		{ID: "commit01"},
@@ -4301,6 +4432,44 @@ c:beta
 			SampleDigest:     "cccccccccccccccccccccccccccccccc",
 		}},
 		Commits: []frontend.Commit{simpleCommits[7]},
+	}})
+	test("new traces at different commits are distinct", `
+b:alpha
+	-------bbb
+c:beta
+	----c-ccc-
+d:gamma
+	--d-ddAAdd
+`, []BlameEntry{{
+		CommitRange:           "commit05",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         betaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "cccccccccccccccccccccccccccccccc",
+		}},
+		Commits: []frontend.Commit{simpleCommits[4]},
+	}, {
+		CommitRange:           "commit08",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         alphaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		}},
+		Commits: []frontend.Commit{simpleCommits[7]},
+	}, {
+		// Even though the d digest was first seen at commit03, the trace was then "fixed"
+		// at commit07 when it started to draw A. Then it regressed at commit09, so that is what
+		// we want to have as our blame range.
+		CommitRange:           "commit09",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         gammaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "dddddddddddddddddddddddddddddddd",
+		}},
+		Commits: []frontend.Commit{simpleCommits[8]},
 	}})
 	// This might happen if a digest was triaged after we made our initial query.
 	// If so, it shouldn't show up in any BlameEntries

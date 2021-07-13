@@ -941,7 +941,7 @@ FirstDigestBeforeRange AS (
 ),
 FirstDigestAfterRange AS (
 	SELECT DISTINCT ON (trace_id)
-		trace_id, grouping_id, digest FROM TraceValues@trace_commit_idx
+		trace_id, grouping_id, digest, commit_id FROM TraceValues@trace_commit_idx
 	WHERE trace_id = ANY($1) AND commit_id >= $4
 	ORDER BY trace_id, commit_id ASC
 ),
@@ -956,10 +956,12 @@ UntriagedAfterRange AS (
 	FirstDigestAfterRange.digest = Expectations.digest
 	WHERE label = 'u'
 )
-SELECT UntriagedAfterRange.* FROM
+SELECT UntriagedAfterRange.trace_id, UntriagedAfterRange.grouping_id, UntriagedAfterRange.digest FROM
 	UntriagedAfterRange LEFT JOIN
 	TriagedBeforeRange ON UntriagedAfterRange.trace_id = TriagedBeforeRange.trace_id
-	WHERE TriagedBeforeRange.label IS NULL -- no digests before range (e.g. new trace)
+	-- If before is null, then the trace just started. We only want to show traces that started
+	-- at the end of our range.
+	WHERE (TriagedBeforeRange.label IS NULL AND UntriagedAfterRange.commit_id = $4)
 		OR TriagedBeforeRange.label = 'n' OR TriagedBeforeRange.label = 'p'
 `
 	rows, err := s.db.Query(ctx, statement, traces, getFirstCommitID(ctx), startCommit, endCommit)
