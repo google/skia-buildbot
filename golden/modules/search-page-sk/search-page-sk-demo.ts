@@ -2,10 +2,12 @@ import './index';
 import '../gold-scaffold-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
+import fetchMock from 'fetch-mock';
 import { testOnlySetSettings } from '../settings';
 import { SearchPageSk } from './search-page-sk';
-import { searchResponse, statusResponse, paramSetResponse, fakeNow, changeListSummaryResponse } from './demo_data';
-import fetchMock from 'fetch-mock';
+import {
+  searchResponse, statusResponse, paramSetResponse, fakeNow, changeListSummaryResponse,
+} from './demo_data';
 import { setImageEndpointsForDemos } from '../common';
 import { TriageRequest } from '../rpc_types';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
@@ -17,7 +19,7 @@ testOnlySetSettings({
 });
 Date.now = () => fakeNow;
 
-fetchMock.get('/json/v1/trstatus', statusResponse);
+fetchMock.get('/json/v2/trstatus', statusResponse);
 fetchMock.get('/json/v1/paramset', paramSetResponse!);
 fetchMock.get('/json/v1/changelist/gerrit/123456', changeListSummaryResponse);
 
@@ -28,13 +30,13 @@ fetchMock.get('glob:/json/v1/search*', (url: string) => {
 
   // Filter only by untriaged/positive/negative.
   filteredSearchResponse.digests = filteredSearchResponse.digests.filter(
-    (digest) =>
-      (digest!.status === 'untriaged' && url.includes('unt=true')) ||
-      (digest!.status === 'positive' && url.includes('pos=true')) ||
-      (digest!.status === 'negative' && url.includes('neg=true')));
+    (digest) => (digest!.status === 'untriaged' && url.includes('unt=true'))
+      || (digest!.status === 'positive' && url.includes('pos=true'))
+      || (digest!.status === 'negative' && url.includes('neg=true')),
+  );
   filteredSearchResponse.size = filteredSearchResponse.digests.length;
 
-  return filteredSearchResponse
+  return filteredSearchResponse;
 });
 
 // The simulated triage endpoint will make changes to the results returned by the search endpoint
@@ -74,12 +76,12 @@ fetchMock.post('/json/v1/triage', (_: any, req: any) => {
         }
 
         // Update positive reference image's label if it matches the current digest.
-        const pos =  searchResult?.refDiffs?.pos;
+        const pos = searchResult?.refDiffs?.pos;
         if (pos?.digest === digest) {
           pos.status = label;
         }
       });
-    })
+    });
   });
 
   return 200;

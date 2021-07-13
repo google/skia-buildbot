@@ -1,12 +1,12 @@
 import './index';
 import '../gold-scaffold-sk';
 
+import fetchMock from 'fetch-mock';
 import { delay } from '../demo_util';
 import { ignoreRules_10, fakeNow } from './test_data';
 import { manyParams } from '../shared_demo_data';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
-import fetchMock from 'fetch-mock';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 
 Date.now = () => fakeNow;
@@ -20,7 +20,7 @@ fetchMock.get('/json/v1/ignores?counts=1', delay(ignoreRules_10, 300));
 fetchMock.post('glob:/json/v1/ignores/del/*', delay({}, 600));
 fetchMock.post('glob:/json/v1/ignores/add/', delay({}, 600));
 fetchMock.post('glob:/json/v1/ignores/save/*', delay({}, 600));
-fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
+fetchMock.get('/json/v2/trstatus', JSON.stringify(exampleStatusData));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = new GoldScaffoldSk();

@@ -2,6 +2,7 @@ import './index';
 
 import { $, $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { expect } from 'chai';
 import {
   canvaskit, gm, svg, trstatus,
 } from './demo_data';
@@ -13,13 +14,11 @@ import {
 } from '../../../infra-sk/modules/test_util';
 import { testOnlySetSettings } from '../settings';
 import { ByBlamePageSk } from './byblame-page-sk';
-import { expect } from 'chai';
 
 describe('byblame-page-sk', () => {
   const newInstance = setUpElementUnderTest<ByBlamePageSk>('byblame-page-sk');
 
-  const loadedByblamePageSk =
-      (opts: {defaultCorpus?: string, baseRepoUrl?: string} = {}): Promise<ByBlamePageSk> => {
+  const loadedByblamePageSk = (opts: {defaultCorpus?: string, baseRepoUrl?: string} = {}): Promise<ByBlamePageSk> => {
     testOnlySetSettings({
       defaultCorpus: opts.defaultCorpus || 'gm',
       baseRepoURL: opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git',
@@ -50,7 +49,7 @@ describe('byblame-page-sk', () => {
   });
 
   it('shows loading indicator', async () => {
-    fetchMock.get('/json/v1/trstatus', trstatus);
+    fetchMock.get('/json/v2/trstatus', trstatus);
 
     // We'll resolve this RPC later to give the "loading" text a chance to show.
     let resolveByBlameRpc = (_: {}) => {};
@@ -67,7 +66,7 @@ describe('byblame-page-sk', () => {
 
     // Make these assertions immediately, i.e. do not wait for the page to load.
     expect($$<HTMLElement>('.entries', byblamePageSk)!.innerText)
-        .to.equal('Loading untriaged digests...');
+      .to.equal('Loading untriaged digests...');
     expectHasEmptyBlames(byblamePageSk);
 
     // Resolve RPC. This allows the page to finish loading.
@@ -78,7 +77,7 @@ describe('byblame-page-sk', () => {
   });
 
   it('correctly renders a page with empty results', async () => {
-    fetchMock.get('/json/v1/trstatus', trstatus);
+    fetchMock.get('/json/v2/trstatus', trstatus);
     fetchMock.get('/json/v1/byblame?query=source_type%3Dcanvaskit', canvaskit);
 
     const byblamePageSk = await loadedByblamePageSk({ defaultCorpus: 'canvaskit' });
@@ -93,7 +92,7 @@ describe('byblame-page-sk', () => {
 
   it('renders blames for default corpus if URL does not include a corpus',
     async () => {
-      fetchMock.get('/json/v1/trstatus', trstatus);
+      fetchMock.get('/json/v2/trstatus', trstatus);
       fetchMock.get('/json/v1/byblame?query=source_type%3Dgm', gm);
 
       const byblamePageSk = await loadedByblamePageSk({ defaultCorpus: 'gm' });
@@ -104,7 +103,7 @@ describe('byblame-page-sk', () => {
     });
 
   it('renders blames for corpus specified in URL', async () => {
-    fetchMock.get('/json/v1/trstatus', trstatus);
+    fetchMock.get('/json/v2/trstatus', trstatus);
     fetchMock.get('/json/v1/byblame?query=source_type%3Dsvg', svg);
     setQueryString('?corpus=svg');
 
@@ -115,7 +114,7 @@ describe('byblame-page-sk', () => {
   });
 
   it('switches corpora when corpus-selector-sk is clicked', async () => {
-    fetchMock.get('/json/v1/trstatus', trstatus);
+    fetchMock.get('/json/v2/trstatus', trstatus);
     fetchMock.get('/json/v1/byblame?query=source_type%3Dgm', gm);
     fetchMock.get('/json/v1/byblame?query=source_type%3Dsvg', svg);
 
@@ -134,7 +133,7 @@ describe('byblame-page-sk', () => {
 
   describe('Base repository URL', () => {
     beforeEach(() => {
-      fetchMock.get('/json/v1/trstatus', trstatus);
+      fetchMock.get('/json/v2/trstatus', trstatus);
       fetchMock.get('/json/v1/byblame?query=source_type%3Dgm', gm);
     });
 
@@ -195,11 +194,11 @@ function expectHasGmBlames(byblamePageSk: ByBlamePageSk) {
   expectBlames(
     byblamePageSk,
     6,
-    '/search?blame=' +
-      '4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:' +
-      'a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:' +
-      '05f6a01bf9fd25be9e5fff4af5505c3945058b1d&corpus=gm&query=source_type%3Dgm',
-    '/search?blame=342fbc54844d0d3fc9d20e20b45115db1e33395b&corpus=gm&query=source_type%3Dgm',
+    '/search?blame='
+      + '4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:'
+      + 'a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:'
+      + '05f6a01bf9fd25be9e5fff4af5505c3945058b1d&corpus=gm',
+    '/search?blame=342fbc54844d0d3fc9d20e20b45115db1e33395b&corpus=gm',
   );
 }
 
@@ -208,8 +207,8 @@ function expectHasSvgBlames(byblamePageSk: ByBlamePageSk) {
   expectBlames(
     byblamePageSk,
     5,
-    '/search?blame=d2c67f44f8c2351e60e6ee224a060e916cd44f34&corpus=svg&query=source_type%3Dsvg',
-    '/search?blame=e1e197186238d8d304a39db9f94258d9584a8973&corpus=svg&query=source_type%3Dsvg',
+    '/search?blame=d2c67f44f8c2351e60e6ee224a060e916cd44f34&corpus=svg',
+    '/search?blame=e1e197186238d8d304a39db9f94258d9584a8973&corpus=svg',
   );
 }
 

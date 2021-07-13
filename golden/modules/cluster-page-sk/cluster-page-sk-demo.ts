@@ -9,8 +9,8 @@ import { clusterDiffJSON } from './test_data';
 import { fakeNow, twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
-import {ClusterPageSk} from './cluster-page-sk';
-import {DigestComparison, DigestDetails, SearchResult} from '../rpc_types';
+import { ClusterPageSk } from './cluster-page-sk';
+import { DigestComparison, DigestDetails, SearchResult } from '../rpc_types';
 
 testOnlySetSettings({
   title: 'Skia Demo',
@@ -36,9 +36,9 @@ fetchMock.get('/json/v1/paramset', delay(clusterDiffJSON.paramsetsUnion, fakeRpc
 const detailsResponse: DigestDetails = {
   digest: typicalDetails,
   commits: twoHundredCommits,
-}
+};
 fetchMock.get('glob:/json/v1/details*', delay(detailsResponse, fakeRpcDelayMillis));
-fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
+fetchMock.get('/json/v2/trstatus', JSON.stringify(exampleStatusData));
 
 const leftDetails = JSON.parse(JSON.stringify(typicalDetails)) as SearchResult;
 const rightDetails = typicalDetails.refDiffs!.neg!;
@@ -50,7 +50,7 @@ const rightDetails = typicalDetails.refDiffs!.neg!;
 const digestComparison: DigestComparison = {
   left: leftDetails,
   right: rightDetails,
-}
+};
 fetchMock.get('glob:/json/v1/diff*', delay(digestComparison, fakeRpcDelayMillis));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.

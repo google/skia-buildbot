@@ -21,10 +21,8 @@ testOnlySetSettings({
 });
 
 // Set up RPC failure simulation.
-const getSimulateRpcFailure = (): boolean =>
-    sessionStorage.getItem('simulateRpcFailure') === 'true';
-const setSimulateRpcFailure = (val: boolean) =>
-    sessionStorage.setItem('simulateRpcFailure', val.toString());
+const getSimulateRpcFailure = (): boolean => sessionStorage.getItem('simulateRpcFailure') === 'true';
+const setSimulateRpcFailure = (val: boolean) => sessionStorage.setItem('simulateRpcFailure', val.toString());
 $$<HTMLInputElement>('#simulate-rpc-failure')!.checked = getSimulateRpcFailure();
 $$<HTMLInputElement>('#simulate-rpc-failure')!.addEventListener('change', (e: Event) => {
   setSimulateRpcFailure((e.target as HTMLInputElement).checked);
@@ -44,7 +42,7 @@ Date.now = () => fakeNow;
 fetchMock.get('/json/v1/byblame?query=source_type%3Dcanvaskit', () => byBlame(canvaskit));
 fetchMock.get('/json/v1/byblame?query=source_type%3Dgm', () => byBlame(gm));
 fetchMock.get('/json/v1/byblame?query=source_type%3Dsvg', () => byBlame(svg));
-fetchMock.get('/json/v1/trstatus', () => {
+fetchMock.get('/json/v2/trstatus', () => {
   if ($$<HTMLInputElement>('#simulate-rpc-failure')!.checked) {
     return 500; // Fake an internal server error.
   }

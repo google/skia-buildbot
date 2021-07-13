@@ -1,13 +1,13 @@
 import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
+import sinon from 'sinon';
+import { expect } from 'chai';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { entry } from './test_data';
 import { testOnlySetSettings } from '../settings';
 import { ByBlameEntrySk } from './byblameentry-sk';
 import { ByBlameEntry } from '../rpc_types';
-import sinon from 'sinon';
-import { expect } from 'chai';
 
 describe('byblameentry-sk', () => {
   const newInstance = setUpElementUnderTest<ByBlameEntrySk>('byblameentry-sk');
@@ -47,7 +47,7 @@ describe('byblameentry-sk', () => {
         '112 untriaged digests',
         // This server-generated blame ID is a colon-separated list of the
         // commit hashes blamed for these untriaged digests.
-        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=gm&query=source_type%3Dgm',
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=gm',
       );
       expectBlamesListEquals(
         byBlameEntrySk,
@@ -116,7 +116,7 @@ describe('byblameentry-sk', () => {
       expectTriageLinkEquals(
         byBlameEntrySk,
         '1 untriaged digest',
-        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=gm&query=source_type%3Dgm',
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=gm',
       );
     });
 
@@ -125,7 +125,7 @@ describe('byblameentry-sk', () => {
       expectTriageLinkEquals(
         byBlameEntrySk,
         '112 untriaged digests',
-        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=svg&query=source_type%3Dsvg',
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=svg',
       );
     });
   });
@@ -275,9 +275,8 @@ const expectBlamesListEquals = (byBlameEntrySk: ByBlameEntrySk, expectedBlames: 
   }
 };
 
-const expectNumTestsAffectedEquals = (byBlameEntrySk: ByBlameEntrySk, numTestsAffected: string) =>
-    expect($$<HTMLElement>('.num-tests-affected', byBlameEntrySk)!.innerText)
-        .to.contain(numTestsAffected);
+const expectNumTestsAffectedEquals = (byBlameEntrySk: ByBlameEntrySk, numTestsAffected: string) => expect($$<HTMLElement>('.num-tests-affected', byBlameEntrySk)!.innerText)
+  .to.contain(numTestsAffected);
 
 interface ExpectedRow {
   test: string;
@@ -286,8 +285,7 @@ interface ExpectedRow {
   exampleLinkHref: string;
 }
 
-const expectAffectedTestsTableEquals =
-    (byBlameEntrySk: ByBlameEntrySk, expectedRows: ExpectedRow[]) => {
+const expectAffectedTestsTableEquals = (byBlameEntrySk: ByBlameEntrySk, expectedRows: ExpectedRow[]) => {
   const actualRows = $('.affected-tests tbody tr');
   expect(actualRows.length).to.equal(expectedRows.length);
 

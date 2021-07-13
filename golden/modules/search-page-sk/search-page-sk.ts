@@ -291,8 +291,7 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      const url = this._useNewAPI ? '/json/v2/trstatus' : '/json/v1/trstatus';
-      const statusResponse: StatusResponse = await fetch(url, { method: 'GET' }).then(jsonOrThrow);
+      const statusResponse: StatusResponse = await fetch('/json/v2/trstatus', { method: 'GET' }).then(jsonOrThrow);
       this._corpora = statusResponse.corpStatus.map((corpus) => corpus.name);
       this._render();
       sendEndTask(this);

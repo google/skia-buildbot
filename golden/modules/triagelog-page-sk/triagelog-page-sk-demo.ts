@@ -9,7 +9,7 @@ import { triageLogs, triageLogsV2 } from './demo_data';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import {
-  TriageLogEntry, TriageLogEntry2, TriageLogResponse, TriageLogResponse2,
+  TriageLogEntry, TriageLogResponse, TriageLogResponse2,
 } from '../rpc_types';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 
@@ -95,7 +95,7 @@ fetchMock.get('glob:/json/v2/triagelog*', () => {
   return delay(response, fakeRpcDelayMillis);
 });
 
-fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
+fetchMock.get('/json/v2/trstatus', JSON.stringify(exampleStatusData));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = new GoldScaffoldSk();
