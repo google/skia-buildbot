@@ -4,7 +4,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "swarming",
     srcs = ["swarming.go"],
-    importpath = "go.skia.org/infra/sk8s/go/test_machine_monitor/swarming",
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor/swarming",
     visibility = ["//visibility:public"],
     deps = [
         "//go/httputils",

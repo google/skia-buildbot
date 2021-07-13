@@ -4,13 +4,13 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "server",
     srcs = ["server.go"],
-    importpath = "go.skia.org/infra/sk8s/go/test_machine_monitor/server",
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor/server",
     visibility = ["//visibility:public"],
     deps = [
         "//go/httputils",
         "//go/metrics2",
         "//go/sklog",
-        "//sk8s/go/test_machine_monitor/machine",
+        "//machine/go/test_machine_monitor/machine",
         "@com_github_gorilla_mux//:mux",
     ],
 )
@@ -22,7 +22,7 @@ go_test(
     deps = [
         "//go/testutils/unittest",
         "//machine/go/machine",
-        "//sk8s/go/test_machine_monitor/machine",
+        "//machine/go/test_machine_monitor/machine",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

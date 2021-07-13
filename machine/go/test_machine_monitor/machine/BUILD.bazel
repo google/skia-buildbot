@@ -4,7 +4,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "machine",
     srcs = ["machine.go"],
-    importpath = "go.skia.org/infra/sk8s/go/test_machine_monitor/machine",
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor/machine",
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",
@@ -16,8 +16,8 @@ go_library(
         "//machine/go/machine/sink",
         "//machine/go/machine/store",
         "//machine/go/machineserver/config",
-        "//sk8s/go/test_machine_monitor/adb",
-        "//sk8s/go/test_machine_monitor/swarming",
+        "//machine/go/test_machine_monitor/adb",
+        "//machine/go/test_machine_monitor/swarming",
     ],
 )
 
@@ -33,7 +33,7 @@ go_test(
         "//machine/go/machine",
         "//machine/go/machine/source/pubsubsource",
         "//machine/go/machineserver/config",
-        "//sk8s/go/test_machine_monitor/swarming",
+        "//machine/go/test_machine_monitor/swarming",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
         "@com_google_cloud_go_pubsub//:pubsub",
