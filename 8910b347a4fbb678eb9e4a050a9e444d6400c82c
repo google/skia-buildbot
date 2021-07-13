@@ -141,6 +141,30 @@
       },
       "revId": "8910b347a4fbb678eb9e4a050a9e444d6400c82c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "96c006c6_438000f8",
+        "filename": "task_driver/go/lib/bazel/bazel.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-13T11:47:46Z",
+      "side": 1,
+      "message": "Awesome!",
+      "parentUuid": "c3840347_fbbd013e",
+      "range": {
+        "startLine": 54,
+        "startChar": 31,
+        "endLine": 54,
+        "endChar": 78
+      },
+      "revId": "8910b347a4fbb678eb9e4a050a9e444d6400c82c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
