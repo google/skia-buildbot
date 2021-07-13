@@ -83,6 +83,7 @@ func Command() *cli.Command {
 	flagIn := "in"
 	flagDryRun := "dry-run"
 	flagTags := "tags"
+	flagCI := "ci"
 	return &cli.Command{
 		Name:        "asset",
 		Description: "Manage assets used by developers and CI.",
@@ -116,12 +117,19 @@ func Command() *cli.Command {
 				Name:        "download",
 				Description: "Download an asset.",
 				Usage:       "download <asset name> <target directory>",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:  flagCI,
+						Value: false,
+						Usage: "Indicates that we're running in CI, as opposed to a developer machine.",
+					},
+				},
 				Action: func(ctx *cli.Context) error {
 					args := ctx.Args().Slice()
 					if len(args) != 2 {
 						return skerr.Fmt("Expected exactly two positional arguments.")
 					}
-					return cmdDownload(ctx.Context, args[0], args[1])
+					return cmdDownload(ctx.Context, args[0], args[1], !ctx.Bool(flagCI))
 				},
 			},
 			{
@@ -143,13 +151,18 @@ func Command() *cli.Command {
 						Name:  flagTags,
 						Usage: "Any additional tags to apply to the package, in \"key:value\" format. May be specified multiple times.",
 					},
+					&cli.BoolFlag{
+						Name:  flagCI,
+						Value: false,
+						Usage: "Indicates that we're running in CI, as opposed to a developer machine.",
+					},
 				},
 				Action: func(ctx *cli.Context) error {
 					args := ctx.Args().Slice()
 					if len(args) != 1 {
 						return skerr.Fmt("Expected exactly one positional argument.")
 					}
-					return cmdUpload(ctx.Context, args[0], ctx.String(flagIn), ctx.Bool(flagDryRun), ctx.StringSlice(flagTags))
+					return cmdUpload(ctx.Context, args[0], ctx.String(flagIn), ctx.Bool(flagDryRun), ctx.StringSlice(flagTags), !ctx.Bool(flagCI))
 				},
 			},
 			{
@@ -173,6 +186,13 @@ func Command() *cli.Command {
 				Name:        "set-version",
 				Description: "Manually set the asset to an already-uploaded version.",
 				Usage:       "set-version <asset name> <version>",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:  flagCI,
+						Value: false,
+						Usage: "Indicates that we're running in CI, as opposed to a developer machine.",
+					},
+				},
 				Action: func(ctx *cli.Context) error {
 					args := ctx.Args().Slice()
 					if len(args) != 2 {
@@ -182,19 +202,26 @@ func Command() *cli.Command {
 					if err != nil {
 						return skerr.Wrapf(err, "invalid version number")
 					}
-					return cmdSetVersion(ctx.Context, args[0], version)
+					return cmdSetVersion(ctx.Context, args[0], version, !ctx.Bool(flagCI))
 				},
 			},
 			{
 				Name:        "list-versions",
 				Description: "List the uploaded versions of the asset.",
 				Usage:       "list-versions <asset name>",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:  flagCI,
+						Value: false,
+						Usage: "Indicates that we're running in CI, as opposed to a developer machine.",
+					},
+				},
 				Action: func(ctx *cli.Context) error {
 					args := ctx.Args().Slice()
 					if len(args) != 1 {
 						return skerr.Fmt("Expected exactly one positional argument.")
 					}
-					return cmdListVersions(ctx.Context, args[0])
+					return cmdListVersions(ctx.Context, args[0], !ctx.Bool(flagCI))
 				},
 			},
 		},
@@ -256,8 +283,8 @@ func cmdRemove(ctx context.Context, name string) error {
 }
 
 // getCIPDClient creates and returns a cipd.CIPDClient.
-func getCIPDClient(ctx context.Context, rootDir string) (cipd.CIPDClient, error) {
-	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_USERINFO_EMAIL)
+func getCIPDClient(ctx context.Context, rootDir string, local bool) (cipd.CIPDClient, error) {
+	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_USERINFO_EMAIL)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -270,8 +297,8 @@ func getCIPDClient(ctx context.Context, rootDir string) (cipd.CIPDClient, error)
 }
 
 // cmdDownload implements the "download" subcommand.
-func cmdDownload(ctx context.Context, name, dest string) error {
-	cipdClient, err := getCIPDClient(ctx, dest)
+func cmdDownload(ctx context.Context, name, dest string, local bool) error {
+	cipdClient, err := getCIPDClient(ctx, dest, local)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -292,14 +319,14 @@ func cmdDownload(ctx context.Context, name, dest string) error {
 }
 
 // cmdUpload implements the "upload" subcommand.
-func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []string) (rvErr error) {
+func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []string, local bool) (rvErr error) {
 	// Validate extraTags.
 	for _, tag := range extraTags {
 		if len(strings.Split(tag, ":")) != 2 {
 			return skerr.Fmt("Tags must be in the form \"key:value\", not %q", tag)
 		}
 	}
-	cipdClient, err := getCIPDClient(ctx, ".")
+	cipdClient, err := getCIPDClient(ctx, ".", local)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -378,8 +405,8 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 }
 
 // cmdSetVersion implements the "set-version" sub-command.
-func cmdSetVersion(ctx context.Context, name string, version int) error {
-	cipdClient, err := getCIPDClient(ctx, ".")
+func cmdSetVersion(ctx context.Context, name string, version int, local bool) error {
+	cipdClient, err := getCIPDClient(ctx, ".", local)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -419,8 +446,8 @@ func cmdSetVersion(ctx context.Context, name string, version int) error {
 }
 
 // cmdListVersions implements the "list-versions" subcommand.
-func cmdListVersions(ctx context.Context, name string) error {
-	cipdClient, err := getCIPDClient(ctx, ".")
+func cmdListVersions(ctx context.Context, name string, local bool) error {
+	cipdClient, err := getCIPDClient(ctx, ".", local)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
