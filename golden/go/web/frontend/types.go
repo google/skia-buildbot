@@ -451,6 +451,8 @@ type SearchResult struct {
 	Status expectations.Label `json:"status"`
 	// TriageHistory is a history of all the times the primary digest has been retriaged for the
 	// given Test.
+	// TODO(kjlubick) make this be just the most recent event and add the history for
+	//   the right digests.
 	TriageHistory []TriageHistory `json:"triage_history"`
 	// ParamSet is all the keys and options of all traces that produce the primary digest and
 	// match the given search constraints. It is for frontend UI presentation only; essentially a
