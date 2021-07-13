@@ -1,6 +1,6 @@
 {
   authorized_users: [
-    "google.com", "mtklein@chromium.org", "skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com",
+    "google.com", "skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com",
   ],
   client_secret_file: "/etc/skia.org/login.json",
   disable_sql_exp_cl: true,
