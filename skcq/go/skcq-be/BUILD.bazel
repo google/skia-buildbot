@@ -17,6 +17,7 @@ go_library(
         "//skcq/go/codereview",
         "//skcq/go/db",
         "//skcq/go/poller",
+        "@com_github_gorilla_mux//:mux",
         "@com_google_cloud_go_datastore//:datastore",
     ],
 )
