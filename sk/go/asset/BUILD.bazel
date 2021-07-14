@@ -11,11 +11,13 @@ go_library(
         "//go/exec",
         "//go/git",
         "//go/httputils",
+        "//go/luciauth",
         "//go/skerr",
         "@com_github_urfave_cli_v2//:cli",
         "@org_chromium_go_luci//cipd/client/cipd",
         "@org_chromium_go_luci//cipd/client/cipd/pkg",
         "@org_golang_google_grpc//codes",
         "@org_golang_google_grpc//status",
+        "@org_golang_x_oauth2//:oauth2",
     ],
 )
