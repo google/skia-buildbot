@@ -33,6 +33,24 @@
       "message": "Does this disable the recipe roller?",
       "revId": "029bb441a74982c760a75d187f96b42b9246290f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c669d040_b9402e07",
+        "filename": "infra/config/recipes.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-14T14:36:57Z",
+      "side": 1,
+      "message": "IIUC, yes",
+      "parentUuid": "023a4ad1_95ef41ce",
+      "revId": "029bb441a74982c760a75d187f96b42b9246290f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
