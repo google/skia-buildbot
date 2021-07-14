@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c954fcc2_03da1bcf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-14T14:09:03Z",
+      "side": 1,
+      "message": "Infra-PerCommit-Medium no longer looks flaky with this rollback (see try results on PS1).",
+      "revId": "029bb441a74982c760a75d187f96b42b9246290f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
