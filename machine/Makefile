@@ -84,9 +84,9 @@ build_test_machine_monitor_rpi:
 # Run the following command prefixed with the the IP address of the local machine
 # to be updated, for example:
 #
-#    $ TARGET=192.168.1.158 make push_test_machine_monitor_rpi_local
+#    $ TARGET=192.168.1.158 make push_test_machine_monitor_rpi
 #
-push_test_machine_monitor_rpi_local: build_test_machine_monitor_rpi
+push_test_machine_monitor_rpi: build_test_machine_monitor_rpi
 	ANSIBLE_CONFIG=../skolo/ansible/ansible.cfg \
 	ANSIBLE_SSH_ARGS="-F ${HOME}/.ssh/config" \
 	ansible-playbook ../skolo/ansible/switchboard/install-test-machine-monitor.yml \
