@@ -15,6 +15,7 @@ import (
 	"github.com/urfave/cli/v2"
 	cipd_api "go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/client/cipd/pkg"
+	"golang.org/x/oauth2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -23,6 +24,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -284,7 +286,13 @@ func cmdRemove(ctx context.Context, name string) error {
 
 // getCIPDClient creates and returns a cipd.CIPDClient.
 func getCIPDClient(ctx context.Context, rootDir string, local bool) (cipd.CIPDClient, error) {
-	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_USERINFO_EMAIL)
+	var ts oauth2.TokenSource
+	var err error
+	if local {
+		ts, err = auth.NewDefaultTokenSource(local, auth.SCOPE_USERINFO_EMAIL)
+	} else {
+		ts, err = luciauth.NewLUCIContextTokenSource(auth.SCOPE_USERINFO_EMAIL)
+	}
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
