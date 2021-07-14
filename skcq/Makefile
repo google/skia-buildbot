@@ -1,10 +1,20 @@
-default: build-be web
+default: build-all web
 
 web: ./modules/json/index.ts npm-ci
 	npx webpack --mode=development
 
 ./modules/json/index.ts: ./go/types/types.go
 	go generate ./go/types/ts
+
+build-fe: web
+	go install -v ./go/skcq-fe
+
+release-fe: build-fe npm-ci
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/skcq-fe
+	./images/skcq-fe/build_release
+
+push-fe: release-fe
+	pushk --use-temp-checkout skcq-fe
 
 build-be:
 	go install -v ./go/skcq-be
@@ -15,6 +25,12 @@ release-be: build-be
 
 push-be: release-be
 	pushk --use-temp-checkout skcq-be
+
+build-all: build-fe build-be
+
+release-all: release-fe release-be
+
+push-all: push-fe push-be
 
 debug: npm-ci
 	npx webpack --mode=development
