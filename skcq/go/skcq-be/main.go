@@ -7,9 +7,12 @@ package main
 import (
 	"context"
 	"flag"
+	"net/http"
+	"net/http/pprof"
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"github.com/gorilla/mux"
 
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
@@ -38,12 +41,40 @@ var (
 
 	reposAllowList = common.NewMultiStringFlag("allowed_repo", nil, "Which repos should be processed by SkCQ. If not specified then all repos will be processed.")
 	reposBlockList = common.NewMultiStringFlag("blocked_repo", nil, "Which repos should not be processed by SkCQ. If not specified then no repos will be skipped.")
+
+	debugPort = flag.String("debug_port", "", "Port for debugging pprof (e.g., ':10110')")
 )
+
+// maybeStartDebugServer starts an internal HTTP server for debugging purposes
+// if requested.
+func maybeStartDebugServer() {
+	// Start the internal server on the internal port if requested.
+	if *debugPort != "" {
+		// Add the profiling endpoints to the internal router.
+		internalRouter := mux.NewRouter()
+
+		// Set up the health check endpoint.
+		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+
+		// Register pprof handlers
+		internalRouter.HandleFunc("/debug/pprof/", pprof.Index)
+		internalRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		internalRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		internalRouter.HandleFunc("/debug/pprof/{profile}", pprof.Index)
+
+		go func() {
+			sklog.Infof("Internal server on http://127.0.0.1" + *debugPort)
+			sklog.Fatal(http.ListenAndServe(*debugPort, internalRouter))
+		}()
+	}
+}
 
 func main() {
 	common.InitWithMust("skcq-be", common.PrometheusOpt(baseapp.PromPort), common.MetricsLoggingOpt())
 	defer sklog.Flush()
 	ctx := context.Background()
+
+	maybeStartDebugServer()
 
 	// Create the token source to use for DB client and HTTP client.
 	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, datastore.ScopeDatastore, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
