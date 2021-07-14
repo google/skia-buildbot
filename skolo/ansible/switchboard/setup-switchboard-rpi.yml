@@ -2,6 +2,8 @@
   user: root
   gather_facts: False
   tasks:
+    - name: install python3
+      raw: 'apt update && apt -y install python3'
     - name: Install applications.
       apt:
         pkg:
@@ -43,7 +45,7 @@
 
     - name: Configure collectd
       copy:
-        src: ../raspberry-pi/collectd.conf
+        src: ../../raspberry-pi/collectd.conf
         dest: /etc/collectd/collectd.conf
         owner: root
         group: root
@@ -51,8 +53,11 @@
 
     - name: Copy authorized_keys with owner and permissions
       ansible.builtin.copy:
-        src: ../authorized_keys
+        src: ../../authorized_keys
         dest: /home/chrome-bot/.ssh/authorized_keys
         owner: chrome-bot
         group: chrome-bot
         mode: '0644'
+
+    - name: Reboot so chrome-bot is a member of plugdev
+      reboot:
