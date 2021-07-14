@@ -16,6 +16,23 @@
       "message": "Infra-PerCommit-Medium no longer looks flaky with this rollback (see try results on PS1).",
       "revId": "029bb441a74982c760a75d187f96b42b9246290f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "023a4ad1_95ef41ce",
+        "filename": "infra/config/recipes.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-14T14:12:13Z",
+      "side": 1,
+      "message": "Does this disable the recipe roller?",
+      "revId": "029bb441a74982c760a75d187f96b42b9246290f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
