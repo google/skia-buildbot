@@ -22,6 +22,30 @@
       },
       "revId": "86eb366ac0523e1aef434a9e9f55873aea8de6fe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "13d99ef7_b9ef4f8e",
+        "filename": "skolo/ansible/switchboard/setup-switchboard-rpi.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-14T13:55:42Z",
+      "side": 1,
+      "message": "We only need Python here for Ansible to work, so that shouldn\u0027t be an issue.",
+      "parentUuid": "49b4bf0e_4985fcdd",
+      "range": {
+        "startLine": 6,
+        "startChar": 41,
+        "endLine": 6,
+        "endChar": 48
+      },
+      "revId": "86eb366ac0523e1aef434a9e9f55873aea8de6fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
