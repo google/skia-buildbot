@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f43dd48e_44f64bbd",
+        "filename": "skcq/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-14T12:05:56Z",
+      "side": 1,
+      "message": "Do we need a frontend build for the backend?",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 30
+      },
+      "revId": "ac18e5638aa16cf0b876f168fa9db07a6b67d19f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cd9377d8_872d26ed",
+        "filename": "skcq/bin/create-skcq-be-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-14T12:05:56Z",
+      "side": 1,
+      "message": "Probably also need:\n\ngcloud projects add-iam-policy-binding skia-firestore --member serviceAccount:${SA_EMAIL} --role roles/datastore.user",
+      "revId": "ac18e5638aa16cf0b876f168fa9db07a6b67d19f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ecd1a035_799812f4",
+        "filename": "skcq/images/skcq-be/build_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-14T12:05:56Z",
+      "side": 1,
+      "message": "dist/ normally contains generated frontend files, does the backend need these?",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 84
+      },
+      "revId": "ac18e5638aa16cf0b876f168fa9db07a6b67d19f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
