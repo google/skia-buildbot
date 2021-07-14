@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "skcq-fe_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/skcq/go/skcq-fe",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/baseapp",
+        "//go/httputils",
+        "//go/login",
+        "//go/sklog",
+        "//skcq/go/db",
+        "//skcq/go/types",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_unrolled_secure//:secure",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_binary(
+    name = "skcq-fe",
+    embed = [":skcq-fe_lib"],
+    visibility = ["//visibility:public"],
+)
