@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b77438f8_8d87bfc1",
+        "filename": "skcq/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-14T12:44:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f43dd48e_44f64bbd",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 30
+      },
+      "revId": "ac18e5638aa16cf0b876f168fa9db07a6b67d19f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "cd9377d8_872d26ed",
@@ -41,6 +65,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "613696b4_2c4b6a9b",
+        "filename": "skcq/bin/create-skcq-be-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-14T12:44:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd9377d8_872d26ed",
+      "revId": "ac18e5638aa16cf0b876f168fa9db07a6b67d19f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ecd1a035_799812f4",
@@ -54,6 +96,30 @@
       "writtenOn": "2021-07-14T12:05:56Z",
       "side": 1,
       "message": "dist/ normally contains generated frontend files, does the backend need these?",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 84
+      },
+      "revId": "ac18e5638aa16cf0b876f168fa9db07a6b67d19f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5837f0b3_75d22d31",
+        "filename": "skcq/images/skcq-be/build_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-14T12:44:32Z",
+      "side": 1,
+      "message": "Oops. Removed.",
+      "parentUuid": "ecd1a035_799812f4",
       "range": {
         "startLine": 13,
         "startChar": 0,
