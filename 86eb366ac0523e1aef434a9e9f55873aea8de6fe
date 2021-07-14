@@ -46,6 +46,30 @@
       },
       "revId": "86eb366ac0523e1aef434a9e9f55873aea8de6fe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fa1c0a6a_3a7b7aff",
+        "filename": "skolo/ansible/switchboard/setup-switchboard-rpi.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-14T13:57:08Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "13d99ef7_b9ef4f8e",
+      "range": {
+        "startLine": 6,
+        "startChar": 41,
+        "endLine": 6,
+        "endChar": 48
+      },
+      "revId": "86eb366ac0523e1aef434a9e9f55873aea8de6fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
