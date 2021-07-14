@@ -1185,6 +1185,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "skcq-fe",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "skcq-fe",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "skcq-fe",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "skiaperf",
           "endpoints": [
             {
@@ -3385,6 +3411,23 @@
                           },
                           "route": {
                             "cluster": "shaders",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "skcq.skia.org",
+                      "name": "skcq.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "skcq-fe",
                             "timeout": {
                               "seconds": 600
                             }
