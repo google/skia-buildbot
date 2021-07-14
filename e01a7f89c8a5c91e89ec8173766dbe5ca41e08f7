@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf4c1903_cc93f9db",
+        "filename": "skcq/go/skcq-be/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-14T14:05:46Z",
+      "side": 1,
+      "message": "Nit: typically \"must\" implies that it could fail and we\u0027d panic if it does.  While there is a potential to fail early here, it\u0027s pretty unlikely, and the name feels a little misleading because we only start the server if --debug_port was provided.  I think maybeStartDebugServer() might be a better name.",
+      "range": {
+        "startLine": 50,
+        "startChar": 5,
+        "endLine": 50,
+        "endChar": 25
+      },
+      "revId": "e01a7f89c8a5c91e89ec8173766dbe5ca41e08f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
