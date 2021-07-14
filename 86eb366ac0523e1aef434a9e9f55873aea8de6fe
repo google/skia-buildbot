@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "49b4bf0e_4985fcdd",
+        "filename": "skolo/ansible/switchboard/setup-switchboard-rpi.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-14T13:53:13Z",
+      "side": 1,
+      "message": "I wonder if there is value in installing a specific version of python3. We have seen some things fail between 3.7/3.8/3.9, but that was chromium code so maybe it will not be an issue for us.",
+      "range": {
+        "startLine": 6,
+        "startChar": 41,
+        "endLine": 6,
+        "endChar": 48
+      },
+      "revId": "86eb366ac0523e1aef434a9e9f55873aea8de6fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
