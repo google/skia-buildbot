@@ -26,8 +26,9 @@ Once the SD card has been placed in an RPi and is running in the lab:
      $ ansible-playbook ./switchboard/setup-switchboard-rpi.yml \
          --extra-vars variable_hosts=<machine-name>
 
-     $ ansible-playbook ./switchboard/install-test-machine-monitor.yml \
-         --extra-vars variable_hosts=<machine-name>
+     $ cd //machine
+     $ make build_test_machine_monitor_rpi
+     $ TARGET=<machine-name> make push_test_machine_monitor_rpi
 ```
 
 Now the RPi should be fully setup with adb, idevice-\*, a recent copy of
