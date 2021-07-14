@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	probersFilename = "probersk.json5"
+	probersFilename = "probersk.json"
 
 	envoyFilename = "envoy-starter.json"
 )
