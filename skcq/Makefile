@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+default: build web
+=======
 default: build-be web
+>>>>>>> 460d9a575528be0b530063dd490ed633fa217ccb
 
 web: ./modules/json/index.ts npm-ci
 	npx webpack --mode=development
@@ -6,10 +10,21 @@ web: ./modules/json/index.ts npm-ci
 ./modules/json/index.ts: ./go/types/types.go
 	go generate ./go/types/ts
 
+<<<<<<< HEAD
+build-fe: web
+	go install -v ./go/skcq-fe
+
+build-be:
+	go install -v ./go/skcq-be
+
+release-be: build-be npm-ci
+	npx webpack --mode=production
+=======
 build-be:
 	go install -v ./go/skcq-be
 
 release-be: build-be
+>>>>>>> 460d9a575528be0b530063dd490ed633fa217ccb
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skcq-be
 	./images/skcq-be/build_release
 
