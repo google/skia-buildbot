@@ -146,7 +146,7 @@ func (c *Connection) singleStep(ctx context.Context, ticker *time.Ticker, sleepD
 				return
 			case <-ticker.C:
 				if !c.isRunningTest() && !c.switchboard.IsValidPod(ctx, mp.PodName) {
-					sklog.Infof("pod is no longer valid, exiting for force reconnect: %q", mp.PodName)
+					sklog.Infof("pod is no longer valid, exiting to force reconnect: %q", mp.PodName)
 					cancel()
 					return
 				}

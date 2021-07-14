@@ -56,6 +56,7 @@ func (c *Cleanup) Start(ctx context.Context) {
 			numErrors := 0
 			for _, mp := range mps {
 				if mp.LastUpdated.Before(cutoff) {
+					sklog.Infof("Cleaning up %s, %s < %s", mp.MachineID, mp.LastUpdated.String(), cutoff.String())
 					err := c.switchboard.ClearMeetingPoint(ctx, mp)
 					if err != nil {
 						c.clearMeetingPointsFailed.Inc(1)
