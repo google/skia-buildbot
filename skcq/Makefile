@@ -1,8 +1,20 @@
+default: build-be web
+
 web: ./modules/json/index.ts npm-ci
 	npx webpack --mode=development
 
 ./modules/json/index.ts: ./go/types/types.go
 	go generate ./go/types/ts
+
+build-be:
+	go install -v ./go/skcq-be
+
+release-be: build-be
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/skcq-be
+	./images/skcq-be/build_release
+
+push-be: release-be
+	pushk --use-temp-checkout skcq-be
 
 debug: npm-ci
 	npx webpack --mode=development
