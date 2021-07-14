@@ -6,9 +6,18 @@ import (
 	"go.skia.org/infra/go/skerr"
 )
 
+type VisibilityType string
+
+const PublicVisibility VisibilityType = "public"
+const InternalVisibility VisibilityType = "internal"
+
 // SkCQCfg is a struct which describes the SkCQ config for a repo+branch at a
 // particular commit.
 type SkCQCfg struct {
+
+	// Determines where changes from this repo will be stored in Firestore and
+	// which frontend instance will be used to display results.
+	VisibilityType VisibilityType `json:"VisibilityType"`
 
 	// Will use the internal skcq-fe instance to display results if true and
 	// will use the skia.internal buildbucket. Cannot have both Internal and
