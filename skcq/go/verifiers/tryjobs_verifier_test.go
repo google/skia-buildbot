@@ -3,6 +3,7 @@ package verifiers
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -303,7 +304,229 @@ func TestVerify_IncludeTryjobsFooter(t *testing.T) {
 	require.Equal(t, types.VerifierFailureState, vs)
 }
 
-func TestVerify_FailureTryJob_CurrentCQAttempt(t *testing.T) {
+func TestVerify_FailureTryJob_CurrentCQAttempt_WithinQuota(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ci, gerritURL, tasksCfg := setupTest()
+	latestPatchsetID := int64(5)
+	tryJobName1 := "try_job1"
+	tryJobName2 := "try_job2"
+
+	// Setup codereview mock.
+	cr := &cr_mocks.CodeReview{}
+	cr.On("GetLatestPatchSetID", ci).Return(latestPatchsetID).Once()
+	cr.On("GetEquivalentPatchSetIDs", ci, latestPatchsetID).Return([]int64{latestPatchsetID}).Once()
+
+	// Setup buildbucket mock.
+	bb := &bb_mocks.BuildBucketInterface{}
+	bbBuilds := []*buildbucketpb.Build{
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName1},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			Status:     buildbucketpb.Status_SUCCESS,
+		},
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName2},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			// Set end time to after this CQ attempt start time.
+			EndTime: &timestamppb.Timestamp{Seconds: currentTime.Unix() + 1000},
+			Status:  buildbucketpb.Status_FAILURE,
+		},
+	}
+	bb.On("GetTrybotsForCL", testutils.AnyContext, ci.Issue, latestPatchsetID, "https://"+gerritURL, map[string]string(nil)).Return(bbBuilds, nil).Twice()
+	tagsWithRetry := map[string]string{
+		"triggered_by":    "skcq",
+		"cq_experimental": "false",
+		RetryTagName:      strconv.FormatInt(currentTime.Unix(), 10),
+	}
+	botsToTags := map[string]map[string]string{
+		tryJobName2: tagsWithRetry,
+	}
+	bb.On("ScheduleBuilds", testutils.AnyContext, mock.Anything, botsToTags, ci.Issue, latestPatchsetID, gerritURL, ci.Project, BuildBucketDefaultSkiaProject, BuildBucketDefaultSkiaBucket).Return(bbBuilds, nil).Once()
+
+	// Test verify.
+	tv := &TryJobsVerifier{
+		bb2:       bb,
+		cr:        cr,
+		tasksCfg:  tasksCfg,
+		gerritURL: gerritURL,
+	}
+	vs, _, err := tv.Verify(context.Background(), ci, timeNowFunc().Unix())
+	require.NoError(t, err)
+	require.Equal(t, types.VerifierWaitingState, vs)
+}
+
+func TestVerify_FailureTwoTryJobs_CurrentCQAttempt_WithinQuota(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ci, gerritURL, tasksCfg := setupTest()
+	latestPatchsetID := int64(5)
+	tryJobName1 := "try_job1"
+	tryJobName2 := "try_job2"
+
+	// Setup codereview mock.
+	cr := &cr_mocks.CodeReview{}
+	cr.On("GetLatestPatchSetID", ci).Return(latestPatchsetID).Once()
+	cr.On("GetEquivalentPatchSetIDs", ci, latestPatchsetID).Return([]int64{latestPatchsetID}).Once()
+
+	// Setup buildbucket mock.
+	bb := &bb_mocks.BuildBucketInterface{}
+	bbBuilds := []*buildbucketpb.Build{
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName1},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			// Set end time to after this CQ attempt start time.
+			EndTime: &timestamppb.Timestamp{Seconds: currentTime.Unix() + 1000},
+			Status:  buildbucketpb.Status_FAILURE,
+		},
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName2},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			// Set end time to after this CQ attempt start time.
+			EndTime: &timestamppb.Timestamp{Seconds: currentTime.Unix() + 1000},
+			Status:  buildbucketpb.Status_FAILURE,
+		},
+	}
+	bb.On("GetTrybotsForCL", testutils.AnyContext, ci.Issue, latestPatchsetID, "https://"+gerritURL, map[string]string(nil)).Return(bbBuilds, nil).Twice()
+	tagsWithRetry := map[string]string{
+		"triggered_by":    "skcq",
+		"cq_experimental": "false",
+		RetryTagName:      strconv.FormatInt(currentTime.Unix(), 10),
+	}
+	botsToTags := map[string]map[string]string{
+		tryJobName1: tagsWithRetry,
+		tryJobName2: tagsWithRetry,
+	}
+	bb.On("ScheduleBuilds", testutils.AnyContext, mock.Anything, botsToTags, ci.Issue, latestPatchsetID, gerritURL, ci.Project, BuildBucketDefaultSkiaProject, BuildBucketDefaultSkiaBucket).Return(bbBuilds, nil).Once()
+
+	// Test verify.
+	tv := &TryJobsVerifier{
+		bb2:       bb,
+		cr:        cr,
+		tasksCfg:  tasksCfg,
+		gerritURL: gerritURL,
+	}
+	vs, _, err := tv.Verify(context.Background(), ci, timeNowFunc().Unix())
+	require.NoError(t, err)
+	require.Equal(t, types.VerifierWaitingState, vs)
+}
+
+func TestVerify_FailureThreeTryJobs_CurrentCQAttempt_OutsideQuota(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ci, gerritURL, tasksCfg := setupTest()
+	latestPatchsetID := int64(5)
+	tryJobName1 := "try_job1"
+	tryJobName2 := "try_job2"
+	tryJobName3 := "try_job3"
+	tasksCfg.CommitQueue[tryJobName3] = &specs.CommitQueueJobConfig{}
+
+	// Setup codereview mock.
+	cr := &cr_mocks.CodeReview{}
+	cr.On("GetLatestPatchSetID", ci).Return(latestPatchsetID).Once()
+	cr.On("GetEquivalentPatchSetIDs", ci, latestPatchsetID).Return([]int64{latestPatchsetID}).Once()
+
+	// Setup buildbucket mock.
+	bb := &bb_mocks.BuildBucketInterface{}
+	bbBuilds := []*buildbucketpb.Build{
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName1},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			// Set end time to after this CQ attempt start time.
+			EndTime: &timestamppb.Timestamp{Seconds: currentTime.Unix() + 1000},
+			Status:  buildbucketpb.Status_FAILURE,
+		},
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName2},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			// Set end time to after this CQ attempt start time.
+			EndTime: &timestamppb.Timestamp{Seconds: currentTime.Unix() + 1000},
+			Status:  buildbucketpb.Status_FAILURE,
+		},
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName3},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			// Set end time to after this CQ attempt start time.
+			EndTime: &timestamppb.Timestamp{Seconds: currentTime.Unix() + 1000},
+			Status:  buildbucketpb.Status_FAILURE,
+		},
+	}
+	bb.On("GetTrybotsForCL", testutils.AnyContext, ci.Issue, latestPatchsetID, "https://"+gerritURL, map[string]string(nil)).Return(bbBuilds, nil).Twice()
+
+	// Test verify.
+	tv := &TryJobsVerifier{
+		bb2:       bb,
+		cr:        cr,
+		tasksCfg:  tasksCfg,
+		gerritURL: gerritURL,
+	}
+	vs, _, err := tv.Verify(context.Background(), ci, timeNowFunc().Unix())
+	require.NoError(t, err)
+	require.Equal(t, types.VerifierFailureState, vs)
+}
+
+func TestVerify_FailureTryJob_CurrentCQAttempt_OutsideQuotaWithTwoRetries(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ci, gerritURL, tasksCfg := setupTest()
+	latestPatchsetID := int64(5)
+	tryJobName1 := "try_job1"
+	tryJobName2 := "try_job2"
+	tryJobName3 := "try_job3"
+	tasksCfg.CommitQueue[tryJobName3] = &specs.CommitQueueJobConfig{}
+
+	// Setup codereview mock.
+	cr := &cr_mocks.CodeReview{}
+	cr.On("GetLatestPatchSetID", ci).Return(latestPatchsetID).Once()
+	cr.On("GetEquivalentPatchSetIDs", ci, latestPatchsetID).Return([]int64{latestPatchsetID}).Once()
+
+	// Setup buildbucket mock.
+	bb := &bb_mocks.BuildBucketInterface{}
+	retryTags := []*buildbucketpb.StringPair{
+		{
+			Key:   RetryTagName,
+			Value: strconv.FormatInt(timeNowFunc().Unix(), 10),
+		},
+	}
+	bbBuilds := []*buildbucketpb.Build{
+		{
+			Id:         int64(111),
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName1},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			Status:     buildbucketpb.Status_SCHEDULED,
+			Tags:       retryTags,
+		},
+		{
+			Id:         int64(222),
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName2},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			Status:     buildbucketpb.Status_SUCCESS,
+			Tags:       retryTags,
+		},
+		{
+			Id:         int64(333),
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName3},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			// Set end time to after this CQ attempt start time.
+			EndTime: &timestamppb.Timestamp{Seconds: currentTime.Unix() + 1000},
+			Status:  buildbucketpb.Status_FAILURE,
+		},
+	}
+	bb.On("GetTrybotsForCL", testutils.AnyContext, ci.Issue, latestPatchsetID, "https://"+gerritURL, map[string]string(nil)).Return(bbBuilds, nil).Twice()
+
+	// Test verify.
+	tv := &TryJobsVerifier{
+		bb2:       bb,
+		cr:        cr,
+		tasksCfg:  tasksCfg,
+		gerritURL: gerritURL,
+	}
+	vs, _, err := tv.Verify(context.Background(), ci, timeNowFunc().Unix())
+	require.NoError(t, err)
+	require.Equal(t, types.VerifierFailureState, vs)
+}
+
+func TestVerify_FailureTryJob_CurrentCQAttempt_AlreadyRetried(t *testing.T) {
 	unittest.SmallTest(t)
 
 	ci, gerritURL, tasksCfg := setupTest()
@@ -328,6 +551,12 @@ func TestVerify_FailureTryJob_CurrentCQAttempt(t *testing.T) {
 			// Set end time to after this CQ attempt start time.
 			EndTime: &timestamppb.Timestamp{Seconds: currentTime.Unix() + 1000},
 			Status:  buildbucketpb.Status_FAILURE,
+			Tags: []*buildbucketpb.StringPair{
+				{
+					Key:   RetryTagName,
+					Value: strconv.FormatInt(currentTime.Unix(), 10),
+				},
+			},
 		},
 	}
 	bb.On("GetTrybotsForCL", testutils.AnyContext, ci.Issue, latestPatchsetID, "https://"+gerritURL, map[string]string(nil)).Return(bbBuilds, nil).Once()
@@ -342,6 +571,64 @@ func TestVerify_FailureTryJob_CurrentCQAttempt(t *testing.T) {
 	vs, _, err := tv.Verify(context.Background(), ci, timeNowFunc().Unix())
 	require.NoError(t, err)
 	require.Equal(t, types.VerifierFailureState, vs)
+}
+
+func TestVerify_FailureTryJob_CurrentCQAttempt_RetryFromDifferentAttempt(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ci, gerritURL, tasksCfg := setupTest()
+	latestPatchsetID := int64(5)
+	tryJobName1 := "try_job1"
+	tryJobName2 := "try_job2"
+
+	// Setup codereview mock.
+	cr := &cr_mocks.CodeReview{}
+	cr.On("GetLatestPatchSetID", ci).Return(latestPatchsetID).Once()
+	cr.On("GetEquivalentPatchSetIDs", ci, latestPatchsetID).Return([]int64{latestPatchsetID}).Once()
+
+	// Setup buildbucket mock.
+	bb := &bb_mocks.BuildBucketInterface{}
+	bbBuilds := []*buildbucketpb.Build{
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName1},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			Status:     buildbucketpb.Status_SUCCESS,
+		},
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName2},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			// Set end time to after this CQ attempt start time.
+			EndTime: &timestamppb.Timestamp{Seconds: currentTime.Unix() + 1000},
+			Status:  buildbucketpb.Status_FAILURE,
+			Tags: []*buildbucketpb.StringPair{
+				{
+					Key:   RetryTagName,
+					Value: strconv.FormatInt(currentTime.Unix()-100, 10), // Different attempt.
+				},
+			},
+		},
+	}
+	bb.On("GetTrybotsForCL", testutils.AnyContext, ci.Issue, latestPatchsetID, "https://"+gerritURL, map[string]string(nil)).Return(bbBuilds, nil).Twice()
+	retryTags := map[string]string{
+		"triggered_by":    "skcq",
+		"cq_experimental": "false",
+		RetryTagName:      strconv.FormatInt(currentTime.Unix(), 10),
+	}
+	botsToTags := map[string]map[string]string{
+		tryJobName2: retryTags,
+	}
+	bb.On("ScheduleBuilds", testutils.AnyContext, mock.Anything, botsToTags, ci.Issue, latestPatchsetID, gerritURL, ci.Project, BuildBucketDefaultSkiaProject, BuildBucketDefaultSkiaBucket).Return(bbBuilds, nil).Once()
+
+	// Test verify.
+	tv := &TryJobsVerifier{
+		bb2:       bb,
+		cr:        cr,
+		tasksCfg:  tasksCfg,
+		gerritURL: gerritURL,
+	}
+	vs, _, err := tv.Verify(context.Background(), ci, timeNowFunc().Unix())
+	require.NoError(t, err)
+	require.Equal(t, types.VerifierWaitingState, vs)
 }
 
 func TestVerify_FailureTryJob_NotCurrentCQAttempt(t *testing.T) {
@@ -472,6 +759,13 @@ func TestVerify_LocationRegex(t *testing.T) {
 			// Set end time to after this CQ attempt start time.
 			EndTime: &timestamppb.Timestamp{Seconds: currentTime.Unix() + 1000},
 			Status:  buildbucketpb.Status_FAILURE,
+			// Already retried.
+			Tags: []*buildbucketpb.StringPair{
+				{
+					Key:   RetryTagName,
+					Value: strconv.FormatInt(currentTime.Unix(), 10),
+				},
+			},
 		},
 	}
 	bb.On("GetTrybotsForCL", testutils.AnyContext, ci.Issue, latestPatchsetID, "https://"+gerritURL, map[string]string(nil)).Return(bbBuilds, nil).Twice()
