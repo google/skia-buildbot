@@ -22,6 +22,69 @@
       },
       "revId": "ff518b742317771203c3c2640d5765f1cfa11d84",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e94de88d_d0f6010c",
+        "filename": "BAZEL_CHEATSHEET.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-15T13:20:18Z",
+      "side": 1,
+      "message": "Tip 2: Set the full path to bazel to be the full path to bazelisk in your IDE of choice.\n\nThis fixed the Bazel VS Code extension for me.",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 4
+      },
+      "revId": "ff518b742317771203c3c2640d5765f1cfa11d84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "54cd17b5_85e07c79",
+        "filename": "BAZEL_CHEATSHEET.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-15T13:20:18Z",
+      "side": 1,
+      "message": "I still think this should be a different account for each user to aid in debugging.\n\nAlso, there is a limit of 10 active keys per service account: https://cloud.google.com/iam/docs/service-accounts#:~:text\u003dUser%2Dmanaged%20keys%20can%20be,account%20to%20facilitate%20key%20rotation.",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 69
+      },
+      "revId": "ff518b742317771203c3c2640d5765f1cfa11d84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4aa06d03_9f74f77e",
+        "filename": "BAZEL_CHEATSHEET.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-07-15T13:20:18Z",
+      "side": 1,
+      "message": "Doesn\u0027t need to be covered in this CL, but I think the RBE cache still needs some configuration.\n\nIf I come in in the morning, before any new code lands on the tree, checkout the buildbot repo to \u0027main\u0027, and then run:\n\n   $ bazel test //... --config\u003dremote\n   \nI would expect it to return immediately with all tests passed as (cached). Instead it takes around 8 minutes of building and finally returns with:\n\nExecuted 29 out of 451 tests: 451 tests pass.\nINFO: Build completed successfully, 6778 total actions\n\nI think the 29 tests are tests that include a manual test, but the 8 minutes of building includes sending lots of runs off to RBE.",
+      "revId": "ff518b742317771203c3c2640d5765f1cfa11d84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
