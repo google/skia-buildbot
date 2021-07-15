@@ -47,7 +47,7 @@ func TestCopyRepoState(t *testing.T) {
 // c0--c1------c3--c4--
 //       \-c2-----/
 func repoMapSetup(t *testing.T) (map[string][]string, repograph.Map, func()) {
-	unittest.MediumTest(t)
+	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	gb1 := git_testutils.GitInit(t, ctx)
