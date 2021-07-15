@@ -68,6 +68,7 @@ func TestGetSkCQCfg_UpdatedInChange(t *testing.T) {
 
 	treeStatusURL := "http://tree-status-url"
 	skCfg := &SkCQCfg{
+		VisibilityType:   InternalVisibility,
 		TreeStatusURL:    treeStatusURL,
 		CommitterList:    "test-list",
 		DryRunAccessList: "test-list",
@@ -79,6 +80,7 @@ func TestGetSkCQCfg_UpdatedInChange(t *testing.T) {
 	cfg, err := configReader.GetSkCQCfg(context.Background())
 	require.Nil(t, err)
 	require.Equal(t, treeStatusURL, cfg.TreeStatusURL)
+	require.Equal(t, InternalVisibility, cfg.VisibilityType)
 }
 
 func TestGetSkCQCfg_UpdatedInChange_NotAllowed(t *testing.T) {
@@ -97,6 +99,7 @@ func TestGetSkCQCfg_NotUpdatedInChange(t *testing.T) {
 
 	treeStatusURL := "http://tree-status-url"
 	skCfg := &SkCQCfg{
+		VisibilityType:   PublicVisibility,
 		TreeStatusURL:    treeStatusURL,
 		CommitterList:    "test-list",
 		DryRunAccessList: "test-list",
@@ -108,6 +111,7 @@ func TestGetSkCQCfg_NotUpdatedInChange(t *testing.T) {
 	cfg, err := configReader.GetSkCQCfg(context.Background())
 	require.Nil(t, err)
 	require.Equal(t, treeStatusURL, cfg.TreeStatusURL)
+	require.Equal(t, PublicVisibility, cfg.VisibilityType)
 }
 
 func TestGetSkCQCfg_NotFound(t *testing.T) {

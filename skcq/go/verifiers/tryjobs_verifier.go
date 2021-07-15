@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/skcq/go/codereview"
+	"go.skia.org/infra/skcq/go/config"
 	"go.skia.org/infra/skcq/go/footers"
 	"go.skia.org/infra/skcq/go/types"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -40,7 +41,7 @@ const (
 var timeNowFunc = time.Now
 
 // NewTryJobsVerifier returns an instance of TryJobsVerifier.
-func NewTryJobsVerifier(httpClient *http.Client, cr codereview.CodeReview, tasksCfg *specs.TasksCfg, footersMap map[string]string, internal, staging bool) (types.Verifier, error) {
+func NewTryJobsVerifier(httpClient *http.Client, cr codereview.CodeReview, tasksCfg *specs.TasksCfg, footersMap map[string]string, visibilityType config.VisibilityType) (types.Verifier, error) {
 	// Find gerritURL (eg: skia-review.googlesource.com).
 	issueURL := cr.Url(0)
 	u, err := url.Parse(issueURL)
@@ -49,25 +50,23 @@ func NewTryJobsVerifier(httpClient *http.Client, cr codereview.CodeReview, tasks
 	}
 
 	return &TryJobsVerifier{
-		bb2:        buildbucket.NewClient(httpClient),
-		cr:         cr,
-		gerritURL:  u.Host,
-		tasksCfg:   tasksCfg,
-		footersMap: footersMap,
-		internal:   internal,
-		staging:    staging,
+		bb2:            buildbucket.NewClient(httpClient),
+		cr:             cr,
+		gerritURL:      u.Host,
+		tasksCfg:       tasksCfg,
+		footersMap:     footersMap,
+		visibilityType: visibilityType,
 	}, nil
 }
 
 // TryJobsVerifier implements the types.Verifier interface.
 type TryJobsVerifier struct {
-	bb2        buildbucket.BuildBucketInterface
-	cr         codereview.CodeReview
-	tasksCfg   *specs.TasksCfg
-	gerritURL  string
-	footersMap map[string]string
-	internal   bool
-	staging    bool
+	bb2            buildbucket.BuildBucketInterface
+	cr             codereview.CodeReview
+	tasksCfg       *specs.TasksCfg
+	gerritURL      string
+	footersMap     map[string]string
+	visibilityType config.VisibilityType
 }
 
 // Name implements the types.Verifier interface.
@@ -89,11 +88,14 @@ func (tv *TryJobsVerifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, st
 	}
 
 	// Figure out which BB bucket should be used for this change.
-	bbBucket := BuildBucketDefaultSkiaBucket
-	if tv.internal {
+	var bbBucket string
+	switch tv.visibilityType {
+	case config.InternalVisibility:
 		bbBucket = BuildBucketInternalSkiaBucket
-	} else if tv.staging {
+	case config.StagingVisibility:
 		bbBucket = BuildBucketStagingSkiaBucket
+	default:
+		bbBucket = BuildBucketDefaultSkiaBucket
 	}
 
 	// Search for all try jobs that have been triggered on all equivalent

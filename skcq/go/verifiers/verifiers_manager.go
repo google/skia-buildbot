@@ -160,7 +160,7 @@ func (vm *SkCQVerifiersManager) GetVerifiers(ctx context.Context, cfg *config.Sk
 		if err != nil {
 			return nil, nil, skerr.Wrapf(err, "Error getting tasks cfg")
 		}
-		tryJobsVerifier, err := NewTryJobsVerifier(vm.httpClient, vm.cr, tasksCfg, footersMap, cfg.Internal, cfg.Staging)
+		tryJobsVerifier, err := NewTryJobsVerifier(vm.httpClient, vm.cr, tasksCfg, footersMap, cfg.VisibilityType)
 		if err != nil {
 			return nil, nil, skerr.Wrapf(err, "Error when creating TryJobsVerifier")
 		}
