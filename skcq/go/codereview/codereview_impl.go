@@ -148,7 +148,7 @@ func (gc *gerritCodeReview) RemoveFromCQ(ctx context.Context, ci *gerrit.ChangeI
 	}
 	// Update the change with a comment.
 	if err := gc.AddComment(ctx, ci, reason, gerrit.NotifyOwner); err != nil {
-		sklog.Errorf("Could not add a comment \"%s\" to %d: %s", reason, ci.Issue, err)
+		sklog.Errorf("[%d] Could not add a comment \"%s\": %s", ci.Issue, reason, err)
 		return
 	}
 }
