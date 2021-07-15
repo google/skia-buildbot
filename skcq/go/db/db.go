@@ -161,6 +161,16 @@ func (f *FirestoreDB) UpdateChangeAttemptAsAbandoned(ctx context.Context, change
 		if ca.PatchStartTs == patchStart {
 			ca.PatchStopTs = time.Now().Unix()
 			ca.CQAbandoned = true
+			// Do a pass through of all verifiers and update any states that are in
+			// VerifierWatitingState to VerifierAbortedState because we are no longer
+			// waiting for this verifier.
+			for _, v := range ca.VerifiersStatuses {
+				if v.State == types.VerifierWaitingState {
+					v.State = types.VerifierAbortedState
+					v.StopTs = time.Now().Unix()
+				}
+			}
+
 			col := f.client.Collection(string(changesCol))
 			docName := getChangeAttemptsDocName(changeID, patchsetID)
 			if _, err := f.client.Set(ctx, col.Doc(docName), changeAttempts, defaultAttempts, putSingleTimeout); err != nil {
