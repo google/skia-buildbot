@@ -86,3 +86,12 @@ push_authorized_keys_to_all:
 	-${SSH_WRAP} ansible-playbook push_authorized_keys_to_router.yml --extra-vars variable_hosts=routers
 	-${SSH_WRAP} ansible-playbook push_authorized_keys_to_mac.yml --extra-vars variable_hosts=all_mac
 	-${SSH_WRAP} ansible-playbook push_authorized_keys_to_win.yml --extra-vars variable_hosts=all_win
+
+install_test_machine_monitor_to_linux_incremental:
+	${SSH_WRAP} ansible-playbook ./switchboard/install_test_machine_monitor_linux.yml --extra-vars variable_hosts=rack2_linux -l skia-e-linux-207 --ask-pass
+
+# yq needs to be installed to run this command, i.e. go get github.com/mikefarah/yq/v4
+push_skolo_bot_service_account_to_linux_incremental:
+	../../kube/secrets/get-secret.sh skolo-rack4 skolo-bot-service-account | yq e '.data."key.json"' - | base64 -d > /tmp/key.json
+	${SSH_WRAP} ansible-playbook ./switchboard/push_skolo_bot_service_account_to_linux.yml --extra-vars variable_hosts=rack2_linux -l skia-e-linux-207 --ask-pass
+	rm /tmp/key.json

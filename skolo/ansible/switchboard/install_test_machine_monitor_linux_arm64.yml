@@ -18,6 +18,6 @@
         mode: '0755'
     - name: Start systemd servce.
       systemd:
-        state: started
+        state: restarted
         name: test_machine_monitor
         daemon_reload: yes

@@ -26,7 +26,7 @@ Once the SD card has been placed in an RPi and is running in the lab:
      $ ansible-playbook ./switchboard/setup-switchboard-rpi.yml \
          --extra-vars variable_hosts=<machine-name>
 
-     $ ansible-playbook ./switchboard/install-test-machine-monitor.yml \
+     $ ansible-playbook ./switchboard/install_test_machine_monitor_linux.yml \
          --extra-vars variable_hosts=<machine-name>
 ```
 

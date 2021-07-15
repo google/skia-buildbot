@@ -81,6 +81,13 @@ build_test_machine_monitor_rpi:
 	GOARCH=arm64 \
 	go build -o ./build/linux/arm64/test_machine_monitor ./go/test_machine_monitor
 
+build_test_machine_monitor_linux_amd64:
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=amd64 \
+	go build -o ./build/linux/amd64/test_machine_monitor ./go/test_machine_monitor
+
+
 # Run the following command prefixed with the the IP address of the local machine
 # to be updated, for example:
 #
@@ -89,7 +96,13 @@ build_test_machine_monitor_rpi:
 push_test_machine_monitor_rpi_local: build_test_machine_monitor_rpi
 	ANSIBLE_CONFIG=../skolo/ansible/ansible.cfg \
 	ANSIBLE_SSH_ARGS="-F ${HOME}/.ssh/config" \
-	ansible-playbook ../skolo/ansible/switchboard/install-test-machine-monitor.yml \
+	ansible-playbook ../skolo/ansible/switchboard/install_test_machine_monitor_linux_arm64.yml \
+	--extra-vars variable_hosts=${TARGET}
+
+push_test_machine_monitor_linux_amd64_local: build_test_machine_monitor_linux_amd64
+	ANSIBLE_CONFIG=../skolo/ansible/ansible.cfg \
+	ANSIBLE_SSH_ARGS="-F ${HOME}/.ssh/config" \
+	ansible-playbook ../skolo/ansible/switchboard/install_test_machine_monitor_linux_amd64.yml \
 	--extra-vars variable_hosts=${TARGET}
 
 include ../make/npm.mk

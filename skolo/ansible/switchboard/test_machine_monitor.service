@@ -5,8 +5,10 @@ After=syslog.target network.target
 [Service]
 Type=simple
 User=chrome-bot
+Environment=GCE_METADATA_HOST=true
 ExecStart=/usr/local/bin/test_machine_monitor \
    --config=prod.json \
+   --start_switchboard \
    --username=chrome-bot
 Restart=always
 
