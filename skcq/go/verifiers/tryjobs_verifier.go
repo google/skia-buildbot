@@ -35,6 +35,13 @@ const (
 	BuildBucketStagingSkiaBucket  = "skia.testing"
 
 	CancelBuildsMsg = "SkCQ is cleaning up try jobs from older patchsets"
+
+	// The maximum number of different try jobs that will be retried before the
+	// verifier retries failure.
+	MaxFailedTryJobsToRetry = 2
+
+	// When SkCQ retries try jobs it uses the following tag name.
+	RetryTagName = "skcq_retry"
 )
 
 // timeNowFunc allows tests to mock out time.Now() for testing.
@@ -150,9 +157,13 @@ func (tv *TryJobsVerifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, st
 		sklog.Infof("[%d] \"%s: %t\" has been specified. All successful try jobs that completed before this cq attempt will not be reused.", ci.Issue, footers.RerunTryjobsFooter, rerunTryJobs)
 	}
 
+	// Keeps track of how many failed try jobs should be retried.
+	retryQuota := MaxFailedTryJobsToRetry
+
 	// Loop through the CQ try jobs and populate these slices.
 	extraInfoForUIMsgs := []string{}
 	botsToExperimental := map[string]bool{}
+	botsToRetry := map[string]bool{}
 	skippedTryJobs := []string{}
 	staleTryJobs := []string{}
 	reuseSuccessTryJobs := []string{}
@@ -220,8 +231,26 @@ func (tv *TryJobsVerifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, st
 					reuseSuccessTryJobs = append(reuseSuccessTryJobs, cqJobName)
 				} else {
 					// If a job failed after the current cq attempt started then the verifier has failed.
-					sklog.Infof("[%d] The try job %s has failed", ci.Issue, cqJobName)
-					return types.VerifierFailureState, fmt.Sprintf("%s has failed", cqJobName), nil
+
+					// Check to see if we have already retried this try job before.
+					tags := build.GetTags()
+					for _, t := range tags {
+						if t.GetKey() == RetryTagName && t.GetValue() == "true" {
+							sklog.Infof("[%d] The failed try job %s has already been retried once. Returning failure.", ci.Issue, cqJobName)
+							return types.VerifierFailureState, fmt.Sprintf("%s has failed twice in a row", cqJobName), nil
+						}
+					}
+
+					// Check retry quota to see if we should retry this try job.
+					if retryQuota > 0 {
+						sklog.Infof("[%d] The try job %s has failed but retry quota %d>0 so retrying it", ci.Issue, cqJobName, retryQuota)
+						botsToRetry[cqJobName] = true
+						notFoundTryJobs = append(notFoundTryJobs, cqJobName)
+						retryQuota -= 1
+					} else {
+						sklog.Infof("[%d] The try job %s has failed and retry quota==0", ci.Issue, cqJobName)
+						return types.VerifierFailureState, fmt.Sprintf("%s has failed", cqJobName), nil
+					}
 				}
 
 			} else {
@@ -250,6 +279,9 @@ func (tv *TryJobsVerifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, st
 			}
 			if experimental, ok := botsToExperimental[t]; ok {
 				tags["cq_experimental"] = strconv.FormatBool(experimental)
+			}
+			if retry, ok := botsToRetry[t]; ok {
+				tags[RetryTagName] = strconv.FormatBool(retry)
 			}
 			botsToTags[t] = tags
 		}
