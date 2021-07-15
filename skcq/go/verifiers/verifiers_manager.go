@@ -188,7 +188,7 @@ func (vm *SkCQVerifiersManager) RunVerifiers(ctx context.Context, ci *gerrit.Cha
 			// are retried by SkCQ. Always log them so that alerts appear due to
 			// error rate alerts.
 			errMsg := fmt.Sprintf("%s: Hopefully a transient error: %s", v.Name(), err)
-			sklog.Errorf(errMsg)
+			sklog.Errorf("[%d] %s", ci.Issue, errMsg)
 			status.State = types.VerifierWaitingState
 			status.Reason = errMsg
 		} else {
