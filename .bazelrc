@@ -129,22 +129,5 @@ build:remote --remote_timeout=3600
 # Use the RBE instance on the skia-infra-rbe GCP project.
 build:remote --remote_instance_name projects/skia-infra-rbe/instances/default_instance
 
-# To authenticate against the RBE instance from a developer workstation, first create a JSON service
-# account key for rbe-developer@skia-public.iam.gserviceaccount.com:
-#
-#     $ gcloud iam service-accounts keys create rbe-developer.json \
-#           --project skia-infra \
-#           --iam-account rbe-developer@skia-public.iam.gserviceaccount.com
-#
-# Then create a .bazelrc file in your home directory with the following contents:
-#
-#     build:remote --google_credentials=path/to/rbe_developer.json
-#
-# Where path/to/rbe_developer.json is the path to the JSON key created in the previous step.
-#
-# Note: The rbe-developer@skia-public.iam.gserviceaccount.com is set up with read-only access to
-# the RBE remote cache. Only the CI environment (rbe-ci@skia-public.iam.gserviceaccount.com) has
-# write access to the remote cache, per the recommendations at
-# https://cloud.google.com/remote-build-execution/docs/remote-cache-overview. This might cause
-# occasional "Writing to Remote Cache: PERMISSION_DENIED" warnings when building from a developer
-# workstation with `bazel build --config=remote`.
+# Note that running remote builds requires a service account key with the correct permissions. See
+# instructions in //BAZEL_CHEATSHEET.md.
