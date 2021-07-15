@@ -39,7 +39,7 @@ func Start(ctx context.Context, pollInterval time.Duration, cr codereview.CodeRe
 	tm := throttler.NewThrottler()
 	vm := verifiers.NewSkCQVerifiersManager(tm, httpClient, criaClient, cr)
 	cleanup.Repeat(pollInterval, func(ctx context.Context) {
-		sklog.Info("----------------Poll--------------")
+		sklog.Info("----------------New Poll Iteration--------------")
 		cls, err := cr.Search(ctx)
 		if err != nil {
 			sklog.Errorf("Error when searching for issues: %s", err)
@@ -58,17 +58,17 @@ func Start(ctx context.Context, pollInterval time.Duration, cr codereview.CodeRe
 			// about to process a change we want the latest data available.
 			ci, err := cr.GetIssueProperties(ctx, incompleteCI.Issue)
 			if err != nil {
-				sklog.Errorf("Could not get full issue properties of %d", incompleteCI.Issue)
+				sklog.Errorf("[%d] Could not get full issue properties: %s", incompleteCI.Issue, err)
 				continue
 			}
 
 			// Skip changes with repos not in allow list or in block list.
 			if len(reposAllowList) > 0 && !util.In(ci.Project, reposAllowList) {
-				sklog.Infof("The repo %s is not in the repos allowlist: %s. Ignoring %d.", ci.Project, reposAllowList, ci.Issue)
+				sklog.Infof("[%d] Ignoring change because the repo %s is not in the repos allowlist: %s.", ci.Issue, ci.Project, reposAllowList)
 				continue
 			}
 			if len(reposBlockList) > 0 && util.In(ci.Project, reposBlockList) {
-				sklog.Infof("The repo %s is in the repos blocklist: %s. Ignoring %d.", ci.Project, reposBlockList, ci.Issue)
+				sklog.Infof("[%d] Ignoring change because the repo %s is in the repos blocklist: %s.", ci.Issue, ci.Project, reposBlockList)
 				continue
 			}
 
@@ -93,18 +93,18 @@ func Start(ctx context.Context, pollInterval time.Duration, cr codereview.CodeRe
 
 				ci, err := cr.GetIssueProperties(ctx, cqRecord.ChangeID)
 				if err != nil {
-					sklog.Errorf("Could not get change for %d: %s", ci.Issue, err)
+					sklog.Errorf("[%d] Could not get issue properties during cleanup: %s", cqRecord.ChangeID, err)
 					continue
 				}
 
 				configReader, err := config.NewGitilesConfigReader(ctx, httpClient, ci, cr, canModifyCfgsOnTheFly)
 				if err != nil {
-					sklog.Errorf("Could not get config reader for %d: %s", ci.Issue, err)
+					sklog.Errorf("[%d] Could not get config reader during cleanup: %s", ci.Issue, err)
 					continue
 				}
 
 				if err := cleanupCL(ctx, changeEquivalentPatchset, currentChangesCache, dbClient, cqRecord, ci, configReader, cr, httpClient, vm); err != nil {
-					sklog.Errorf("Error when cleaning up %s: %s", changeEquivalentPatchset, err)
+					sklog.Errorf("[%d] Error when cleaning up %s: %s", ci.Issue, changeEquivalentPatchset, err)
 					continue
 				}
 			}
@@ -119,7 +119,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 
 	// Make sure the change is still open and has either CQ+1 and CQ+2.
 	if ci.IsClosed() || !(cr.IsDryRun(ctx, ci) || cr.IsCQ(ctx, ci)) {
-		sklog.Infof("[%d] is no longer open or does not have the CQ+1/CQ+2 votes.", ci.Issue)
+		sklog.Infof("[%d] Ignoring change because it is no longer open or does not have the CQ+1/CQ+2 votes.", ci.Issue)
 		return
 	}
 
@@ -196,7 +196,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 		}
 		comment = fmt.Sprintf("%s\n\nFollow status at: %s/%d/%d", comment, feURL, ci.Issue, cr.GetLatestPatchSetID(ci))
 		if err := cr.AddComment(ctx, ci, comment, notify); err != nil {
-			sklog.Errorf("Could not add comment to %d: %s", ci.Issue, err)
+			sklog.Errorf("[%d] Could not add started processing comment: %s", ci.Issue, err)
 		}
 	}
 
@@ -230,7 +230,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 					if r.AccountID != ci.Owner.AccountID {
 						// Publish and break out.
 						if err := cr.SetReadyForReview(ctx, ci); err != nil {
-							sklog.Errorf("Could not set for review %d: %s", ci.Issue, err)
+							sklog.Errorf("[%d] Could not set ready for review: %s", ci.Issue, err)
 						}
 						removeFromCQMsg += "\nAutomatically published the CL because it was WIP with reviewers specified."
 						break
@@ -283,40 +283,40 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 		OverallState:       attemptOverallState,
 	}
 	if err := dbClient.PutChangeAttempt(ctx, attempt, db.GetChangesCol(internalRepo)); err != nil {
-		sklog.Errorf("Could not persist change %d: %s", ci.Issue, err)
+		sklog.Errorf("[%d] Could not persist change attempt: %s", ci.Issue, err)
 		return
 	}
 }
 
 func cleanupCL(ctx context.Context, changeEquivalentPatchset string, currentChangesCache caches.CurrentChangesCache, dbClient db.DB, cqRecord *types.CurrentlyProcessingChange, ci *gerrit.ChangeInfo, configReader config.ConfigReader, cr codereview.CodeReview, httpClient *http.Client, vm types.VerifiersManager) error {
-	sklog.Infof("%s is no longer processed by SkCQ. It was processed in the last cycle and was still running. Going to mark it as abandoned and cleanup it's verifiers.", changeEquivalentPatchset)
+	sklog.Infof("[%d] %s is no longer processed by SkCQ. It was processed in the last cycle and was still running. Going to mark it as abandoned and cleanup it's verifiers.", cqRecord.ChangeID, changeEquivalentPatchset)
 
 	// Remove the change from the changes cache.
 	if err := currentChangesCache.Remove(ctx, changeEquivalentPatchset); err != nil {
-		return skerr.Wrapf(err, "[%d] could not update the currentChangesCache", cqRecord.ChangeID)
+		return skerr.Wrapf(err, "[%d] could not update the currentChangesCache during cleanup", cqRecord.ChangeID)
 	}
 
 	// Update the attempt as being abandoned so that the UI accurately reflects what happened to
 	// the change.
 	if err := dbClient.UpdateChangeAttemptAsAbandoned(ctx, cqRecord.ChangeID, cqRecord.LatestPatchsetID, db.GetChangesCol(cqRecord.Internal), cqRecord.StartTs); err != nil {
-		return skerr.Wrapf(err, "Could not mark change %s as abandoned", changeEquivalentPatchset)
+		return skerr.Wrapf(err, "[%d] Could not mark change %s as abandoned during cleanup", cqRecord.ChangeID, changeEquivalentPatchset)
 	}
 
 	// Instantiate all objs needed to get verifiers.
 	skCQCfg, err := configReader.GetSkCQCfg(ctx)
 	if err != nil {
-		return skerr.Wrapf(err, "Could not get skcq.cfg for %d", ci.Issue)
+		return skerr.Wrapf(err, "[%d] Could not get skcq.cfg during cleanup: %s", ci.Issue, err)
 	}
 	// Get all verifiers.
 	verifiers, _, err := vm.GetVerifiers(ctx, skCQCfg, ci, false, configReader)
 	if err != nil {
-		return skerr.Wrapf(err, "Could not get verifiers to cleanup for %d", ci.Issue)
+		return skerr.Wrapf(err, "[%d] Could not get verifiers to cleanup", ci.Issue)
 	}
 	// Parse out the previous patchset from the changeEquivalentPatchset.
 	tokens := strings.Split(changeEquivalentPatchset, "/")
 	previousPatchsetID, err := strconv.ParseInt(tokens[1], 10, 64)
 	if err != nil {
-		return skerr.Wrapf(err, "Could not parse patchsetID from %s", tokens[1])
+		return skerr.Wrapf(err, "[%d] Could not parse patchsetID from %s", ci.Issue, tokens[1])
 	}
 	// Run cleanup on all verifiers.
 	for _, v := range verifiers {

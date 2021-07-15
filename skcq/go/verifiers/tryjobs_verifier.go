@@ -255,13 +255,13 @@ func (tv *TryJobsVerifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, st
 		}
 		respBuilds, err := tv.bb2.ScheduleBuilds(ctx, triggerTryJobs, botsToTags, ci.Issue, latestPatchSetID, tv.gerritURL, ci.Project, BuildBucketDefaultSkiaProject, bbBucket)
 		if err != nil {
-			return "", "", skerr.Wrapf(err, "Could not trigger %+v tryjobs for %d", triggerTryJobs, ci.Issue)
+			return "", "", skerr.Wrapf(err, "[%d] Could not trigger %+v tryjobs", ci.Issue, triggerTryJobs)
 		}
 		// Make sure the try jobs were succesfully triggered. This step should not be necessary but if we
 		// specify a repo/bucket that does not exist the ScheduleBuilds silently succeeds.
 		newTryJobsOnChange, err := tv.bb2.GetTrybotsForCL(ctx, ci.Issue, latestPatchSetID, "https://"+tv.gerritURL, map[string]string(nil))
 		if err != nil {
-			return "", "", skerr.Wrapf(err, "Could not get tryjobs for %d", ci.Issue)
+			return "", "", skerr.Wrapf(err, "[%d] Could not get tryjobs", ci.Issue)
 		}
 		for _, b := range respBuilds {
 			found := false
@@ -300,14 +300,14 @@ func (tv *TryJobsVerifier) Cleanup(ctx context.Context, ci *gerrit.ChangeInfo, c
 	// If "Cq-Do-Not-Cancel-Tryjobs: true" has been specified then immediately return success.
 	noCancelTryJobs := git.GetBoolFooterVal(tv.footersMap, footers.DoNotCancelTryjobsFooter, ci.Issue)
 	if noCancelTryJobs {
-		sklog.Infof("Not checking for and not cancelling try jobs for %d/%d because %s id specified in footers", ci.Issue, cleanupPatchsetID, footers.DoNotCancelTryjobsFooter)
+		sklog.Infof("[%d] Not checking for and not cancelling try jobs for %d/%d because %s id specified in footers", ci.Issue, ci.Issue, cleanupPatchsetID, footers.DoNotCancelTryjobsFooter)
 		return
 	}
 
 	//Refresh the change to get the latest patchset ID.
 	refreshedChange, err := tv.cr.GetIssueProperties(ctx, ci.Issue)
 	if err != nil {
-		sklog.Errorf("Could not get refreshed change for %d in cleanup of %s", ci.Issue, tv.Name())
+		sklog.Errorf("[%d] Could not get refreshed change in cleanup of %s", ci.Issue, tv.Name())
 		return
 	}
 	refreshedPSID := tv.cr.GetEarliestEquivalentPatchSetID(refreshedChange)
@@ -316,18 +316,18 @@ func (tv *TryJobsVerifier) Cleanup(ctx context.Context, ci *gerrit.ChangeInfo, c
 		// Find all the builds triggered by CQ and then cancel them.
 		builds, err := tv.bb2.GetTrybotsForCL(ctx, refreshedChange.Issue, cleanupPatchsetID, "https://"+tv.gerritURL, map[string]string{"triggered_by": "skcq"})
 		if err != nil {
-			sklog.Errorf("Could not search for trybots for CL %d in cleanup of %s: %s", ci.Issue, tv.Name(), err)
+			sklog.Errorf("[%d] Could not search for trybots in cleanup of patchset %d: %s", ci.Issue, cleanupPatchsetID, err)
 			return
 		}
 		for _, b := range builds {
 			buildIDsToCancel := []int64{}
 			if b.GetStatus() == buildbucketpb.Status_STARTED || b.GetStatus() == buildbucketpb.Status_SCHEDULED {
-				sklog.Infof("[%d] old patchset %d has a still running try jobs: %s. It will be canceled.", refreshedChange.Issue, cleanupPatchsetID, b.GetBuilder().Builder)
+				sklog.Infof("[%d] old patchset %d has a still running try job: %s. It will be canceled.", refreshedChange.Issue, cleanupPatchsetID, b.GetBuilder().Builder)
 				buildIDsToCancel = append(buildIDsToCancel, b.GetId())
 			}
 			if len(buildIDsToCancel) > 0 {
 				if _, err := tv.bb2.CancelBuilds(ctx, buildIDsToCancel, CancelBuildsMsg); err != nil {
-					sklog.Errorf("Could not cleanup buildbucket builds of IDs %+v: %s", buildIDsToCancel, err)
+					sklog.Errorf("[%d] Could not cleanup buildbucket builds of IDs %+v: %s", refreshedChange.Issue, buildIDsToCancel, err)
 					return
 				}
 			}
