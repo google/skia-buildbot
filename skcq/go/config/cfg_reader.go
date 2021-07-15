@@ -105,7 +105,7 @@ func (gc *GitilesConfigReader) GetSkCQCfg(ctx context.Context) (*SkCQCfg, error)
 		return nil, skerr.Fmt("Error when parsing SkCQ cfg: %s", err)
 	}
 	if err := cfg.Validate(); err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "Error validating SkCQ cfg")
 	}
 	return cfg, nil
 }
