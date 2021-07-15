@@ -17,8 +17,8 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { Pod } from '../json';
 import { FilterArray } from '../filter-array';
 
-const rows = (ele: PodsPageSk): TemplateResult[] => ele.filteredPods().map(
-  (pod) => html`
+const rows = (ele: PodsPageSk): TemplateResult[] => ele.filterArray.matchingValues().map(
+  pod => html`
       <tr>
         <td>${pod.Name}</td>
         <td>${pod.LastUpdated}</td>
@@ -52,30 +52,23 @@ const template = (ele: PodsPageSk): TemplateResult => html`
 `;
 
 export class PodsPageSk extends ElementSk {
-  pods: Pod[] = [];
+  filterArray: FilterArray<Pod> = new FilterArray();
 
-  private filterArray: FilterArray | null = null;
+  private pods: Pod[] = [];
 
   constructor() {
     super(template);
-  }
-
-  // TODO: Genericize and move to FilterArray.
-  filteredPods(): Pod[] {
-    if (this.filterArray === null) {
-      return this.pods;
-    }
-    return this.filterArray.matchingIndices().map((index) => this.pods[index]);
   }
 
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
     this._render();
     const filterInput = $$<HTMLInputElement>('#filter-input', this)!;
-    this.filterArray = new FilterArray(filterInput, () => this._render());
+    this.filterArray.connect(filterInput, () => this._render());
     await this.update();
   }
 
+  // TODO: Factor this out to a superclass. And onError and maybe more.
   async update(changeCursor = false): Promise<void> {
     if (changeCursor) {
       this.setAttribute('waiting', '');
@@ -88,7 +81,7 @@ export class PodsPageSk extends ElementSk {
         this.removeAttribute('waiting');
       }
       this.pods = json;
-      this.filterArray!.updateArray(json);
+      this.filterArray.updateArray(json);
       this._render();
     } catch (error) {
       this.onError(error);
