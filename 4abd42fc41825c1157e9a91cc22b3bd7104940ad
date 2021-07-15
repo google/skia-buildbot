@@ -16,6 +16,24 @@
       "message": "Could a test be added for this?",
       "revId": "4abd42fc41825c1157e9a91cc22b3bd7104940ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8989c72e_159e9bc9",
+        "filename": "skcq/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-15T18:26:52Z",
+      "side": 1,
+      "message": "go/db is the only component in skcq that does not have a test because go/firestore does not have an interface and mock.",
+      "parentUuid": "1958e46b_b3840caf",
+      "revId": "4abd42fc41825c1157e9a91cc22b3bd7104940ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
