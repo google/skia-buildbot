@@ -15,6 +15,7 @@ The following licenses are used in dependent packages.
 | contrib.go.opencensus.io/exporter/stackdriver                     | Apache-2.0    |
 | github.com/a8m/envsubst                                           | MIT           |
 | github.com/aclements/go-moremath                                  | BSD-3-Clause  |
+| github.com/alecthomas/jsonschema                                  | MIT           |
 | github.com/andybalholm/cascadia                                   | BSD-2-Clause  |
 | github.com/aws/aws-sdk-go                                         | Apache-2.0    |
 | github.com/aws/aws-sdk-go/internal/sync/singleflight              | BSD-3-Clause  |
@@ -26,7 +27,6 @@ The following licenses are used in dependent packages.
 | github.com/bradfitz/gomemcache/memcache                           | Apache-2.0    |
 | github.com/cenkalti/backoff                                       | MIT           |
 | github.com/census-instrumentation/opencensus-proto/gen-go         | Apache-2.0    |
-| github.com/cespare/xxhash                                         | MIT           |
 | github.com/cespare/xxhash/v2                                      | MIT           |
 | github.com/cockroachdb/cockroach-go/crdb                          | Apache-2.0    |
 | github.com/cockroachdb/cockroach-go/v2/crdb                       | Apache-2.0    |
@@ -34,8 +34,6 @@ The following licenses are used in dependent packages.
 | github.com/cpuguy83/go-md2man/v2/md2man                           | MIT           |
 | github.com/danjacques/gofslock/fslock                             | BSD-3-Clause  |
 | github.com/davecgh/go-spew/spew                                   | ISC           |
-| github.com/dgraph-io/ristretto                                    | Apache-2.0    |
-| github.com/dgraph-io/ristretto/z                                  | MIT           |
 | github.com/fiorix/go-web/autogzip                                 | BSD-3-Clause  |
 | github.com/flynn/json5                                            | MIT           |
 | github.com/fsnotify/fsnotify                                      | BSD-3-Clause  |
@@ -64,6 +62,7 @@ The following licenses are used in dependent packages.
 | github.com/hashicorp/go-multierror                                | MPL-2.0       |
 | github.com/hashicorp/hcl                                          | MPL-2.0       |
 | github.com/huandu/xstrings                                        | MIT           |
+| github.com/iancoleman/orderedmap                                  | MIT           |
 | github.com/imdario/mergo                                          | BSD-3-Clause  |
 | github.com/jackc/chunkreader/v2                                   | MIT           |
 | github.com/jackc/pgconn                                           | MIT           |
@@ -124,6 +123,9 @@ The following licenses are used in dependent packages.
 | github.com/unrolled/secure                                        | MIT           |
 | github.com/urfave/cli/v2                                          | MIT           |
 | github.com/willf/bitset                                           | BSD-3-Clause  |
+| github.com/xeipuuv/gojsonpointer                                  | Unknown       |
+| github.com/xeipuuv/gojsonreference                                | Unknown       |
+| github.com/xeipuuv/gojsonschema                                   | Unknown       |
 | github.com/zeebo/bencode                                          | MIT           |
 | go.chromium.org/luci                                              | Apache-2.0    |
 | go.chromium.org/luci/common/api/internal/gensupport               | BSD-3-Clause  |

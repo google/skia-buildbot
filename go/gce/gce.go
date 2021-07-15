@@ -790,6 +790,7 @@ func sshArgs() ([]string, error) {
 		"-q", "-i", keyFile,
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "StrictHostKeyChecking=no",
+		"-o", "ProxyCommand=corp-ssh-helper %h %p",
 	}, nil
 }
 

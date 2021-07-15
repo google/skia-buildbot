@@ -133,7 +133,7 @@ with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
 }
 
 func TestInheritPath(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
