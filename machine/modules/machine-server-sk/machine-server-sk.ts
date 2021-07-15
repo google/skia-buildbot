@@ -225,7 +225,7 @@ export const pretty_device_name = (devices: string[] | null): string => {
 };
 
 // eslint-disable-next-line no-use-before-define
-const rows = (ele: MachineServerSk): TemplateResult[] => ele.filteredMachines().map(
+const rows = (ele: MachineServerSk): TemplateResult[] => ele.filterArray.matchingValues().map(
   (machine) => html`
       <tr id=${machine.Dimensions!.id![0]}>
         <td>${machineLink(machine)}</td>
@@ -295,21 +295,14 @@ const template = (ele: MachineServerSk): TemplateResult => html`
 `;
 
 export class MachineServerSk extends ElementSk {
-  machines: Description[] = [];
+  filterArray: FilterArray<Description> = new FilterArray();
+
+  private machines: Description[] = [];
 
   private noteEditor: NoteEditorSk | null = null;
 
-  private filterArray: FilterArray | null = null;
-
   constructor() {
     super(template);
-  }
-
-  filteredMachines(): Description[] {
-    if (this.filterArray === null) {
-      return this.machines;
-    }
-    return this.filterArray.matchingIndices().map((index) => this.machines[index]);
   }
 
   async connectedCallback(): Promise<void> {
@@ -317,7 +310,7 @@ export class MachineServerSk extends ElementSk {
     this._render();
     this.noteEditor = $$<NoteEditorSk>('note-editor-sk', this)!;
     const filterInput = $$<HTMLInputElement>('#filter-input', this)!;
-    this.filterArray = new FilterArray(filterInput, () => this._render());
+    this.filterArray.connect(filterInput, () => this._render());
     await this.update();
   }
 
@@ -412,7 +405,7 @@ export class MachineServerSk extends ElementSk {
         this.removeAttribute('waiting');
       }
       this.machines = json;
-      this.filterArray!.updateArray(json);
+      this.filterArray.updateArray(json);
       this._render();
     } catch (error) {
       this.onError(error);
