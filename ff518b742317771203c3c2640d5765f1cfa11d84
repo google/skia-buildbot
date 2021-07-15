@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c9aa6b00_50f04152",
+        "filename": "BAZEL_CHEATSHEET.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-15T12:51:27Z",
+      "side": 1,
+      "message": "bazel -\u003e backend",
+      "range": {
+        "startLine": 12,
+        "startChar": 60,
+        "endLine": 12,
+        "endChar": 65
+      },
+      "revId": "ff518b742317771203c3c2640d5765f1cfa11d84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
