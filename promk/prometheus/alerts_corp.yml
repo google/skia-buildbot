@@ -31,3 +31,14 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'The error rate on {{ $labels.app }} is too high.
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+
+  - alert: SkCQBackendErrorRate
+    expr: rate(num_log_lines{level="ERROR",app=~"skcq-be"}[1h]) > 0.001
+    labels:
+      category: infra
+      severity: critical
+      owner: rmistry@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'The error rate on {{ $labels.app }} is too high.
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
