@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "784e0ab2_bb7de1f1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5670
+      },
+      "writtenOn": "2021-07-15T12:36:20Z",
+      "side": 1,
+      "message": "this is invalid issue?",
+      "range": {
+        "startLine": 9,
+        "startChar": 5,
+        "endLine": 9,
+        "endChar": 17
+      },
+      "revId": "69f5ae7b53cd576f934dffa0e39862bdb7ad09be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
