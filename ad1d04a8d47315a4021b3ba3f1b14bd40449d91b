@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6893b934_05022c44",
+        "filename": "skcq/go/verifiers/tryjobs_verifier.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-15T18:35:16Z",
+      "side": 1,
+      "message": "Should this be configurable?",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 28
+      },
+      "revId": "ad1d04a8d47315a4021b3ba3f1b14bd40449d91b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "42cb66b8_6734c04b",
+        "filename": "skcq/go/verifiers/tryjobs_verifier.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-07-15T18:35:16Z",
+      "side": 1,
+      "message": "Can we use \"jobs\" instead?",
+      "range": {
+        "startLine": 176,
+        "startChar": 1,
+        "endLine": 176,
+        "endChar": 12
+      },
+      "revId": "ad1d04a8d47315a4021b3ba3f1b14bd40449d91b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
