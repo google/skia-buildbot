@@ -147,6 +147,9 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 		}
 	}
 
+	// Is this a change from an internal repo?
+	internalRepo := skCQCfg.VisibilityType == config.InternalVisibility
+
 	// Gather all verifiers that will be used and all changes that will be
 	// submitted at the same time as this change.
 	clVerifiers, togetherChanges, err := vm.GetVerifiers(ctx, skCQCfg, ci, false /* isSubmittedTogetherChange */, configReader)
@@ -163,7 +166,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 	sklog.Infof("[%d] uses verifiers: %s", ci.Issue, strings.Join(verifierNames, ", "))
 
 	// Update the cache if it is not already in there.
-	cqStartTime, newCQRun, err := currentChangesCache.Add(ctx, changeEquivalentPatchset, ci.Subject, ci.Owner.Email, ci.Project, ci.Branch, cr.IsDryRun(ctx, ci), skCQCfg.Internal, ci.Issue, cr.GetLatestPatchSetID(ci))
+	cqStartTime, newCQRun, err := currentChangesCache.Add(ctx, changeEquivalentPatchset, ci.Subject, ci.Owner.Email, ci.Project, ci.Branch, cr.IsDryRun(ctx, ci), internalRepo, ci.Issue, cr.GetLatestPatchSetID(ci))
 	if err != nil {
 		sklog.Errorf("[%d] could not update the currentChangesCache: %s", ci.Issue, err)
 	}
@@ -174,7 +177,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 		// If this is a new CQ run then before running the verifiers update the
 		// CL with an auto-generated comment saying we are processing this patch.
 		feURL := publicFEInstanceURL
-		if skCQCfg.Internal {
+		if internalRepo {
 			feURL = corpFEInstanceURL
 		}
 		notify := gerrit.NotifyNone
@@ -278,7 +281,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 		VerifiersStatuses:  verifierStatuses,
 		OverallState:       attemptOverallState,
 	}
-	if err := dbClient.PutChangeAttempt(ctx, attempt, db.GetChangesCol(skCQCfg.Internal)); err != nil {
+	if err := dbClient.PutChangeAttempt(ctx, attempt, db.GetChangesCol(internalRepo)); err != nil {
 		sklog.Errorf("Could not persist change %d: %s", ci.Issue, err)
 		return
 	}
