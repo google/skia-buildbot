@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fc107ece_8fa74a8d",
+        "filename": "BAZEL_CHEATSHEET.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-15T23:45:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c9aa6b00_50f04152",
+      "range": {
+        "startLine": 12,
+        "startChar": 60,
+        "endLine": 12,
+        "endChar": 65
+      },
+      "revId": "ff518b742317771203c3c2640d5765f1cfa11d84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e94de88d_d0f6010c",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-07-15T13:20:18Z",
       "side": 1,
       "message": "Tip 2: Set the full path to bazel to be the full path to bazelisk in your IDE of choice.\n\nThis fixed the Bazel VS Code extension for me.",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 4
+      },
+      "revId": "ff518b742317771203c3c2640d5765f1cfa11d84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ce5349d6_cff12804",
+        "filename": "BAZEL_CHEATSHEET.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-15T23:45:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e94de88d_d0f6010c",
       "range": {
         "startLine": 34,
         "startChar": 0,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c98934e7_e1920287",
+        "filename": "BAZEL_CHEATSHEET.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-15T23:45:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "54cd17b5_85e07c79",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 69
+      },
+      "revId": "ff518b742317771203c3c2640d5765f1cfa11d84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4aa06d03_9f74f77e",
@@ -83,6 +155,24 @@
       "writtenOn": "2021-07-15T13:20:18Z",
       "side": 1,
       "message": "Doesn\u0027t need to be covered in this CL, but I think the RBE cache still needs some configuration.\n\nIf I come in in the morning, before any new code lands on the tree, checkout the buildbot repo to \u0027main\u0027, and then run:\n\n   $ bazel test //... --config\u003dremote\n   \nI would expect it to return immediately with all tests passed as (cached). Instead it takes around 8 minutes of building and finally returns with:\n\nExecuted 29 out of 451 tests: 451 tests pass.\nINFO: Build completed successfully, 6778 total actions\n\nI think the 29 tests are tests that include a manual test, but the 8 minutes of building includes sending lots of runs off to RBE.",
+      "revId": "ff518b742317771203c3c2640d5765f1cfa11d84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6fee84f0_fb3b5d53",
+        "filename": "BAZEL_CHEATSHEET.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-07-15T23:45:11Z",
+      "side": 1,
+      "message": "Discussed offline.",
+      "parentUuid": "4aa06d03_9f74f77e",
       "revId": "ff518b742317771203c3c2640d5765f1cfa11d84",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
