@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "02fbead7_7c15eec6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-16T14:45:11Z",
+      "side": 1,
+      "message": "I think this is safe to submit now even though there is no SkCQ looking at it. It should not impact the existing Chrome CQ.",
+      "revId": "0aeda46c35555ca9b6e7c767a18546bec8bc18dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
