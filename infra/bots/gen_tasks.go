@@ -60,27 +60,29 @@ const (
 var (
 	// "Constants"
 
-	// Top-level list of all Jobs to run at each commit.
-	JOBS = []string{
-		"Housekeeper-Nightly-UpdateGoDeps",
-		"Housekeeper-Weekly-UpdateCIPDPackages",
-		"Housekeeper-OnDemand-Presubmit",
-		"Housekeeper-PerCommit-CIPD-SK",
-		"Infra-PerCommit-Build",
-		"Infra-PerCommit-Small",
-		"Infra-PerCommit-Medium",
-		"Infra-PerCommit-Large",
-		"Infra-PerCommit-Race",
-		"Infra-PerCommit-CreateDockerImage",
-		"Infra-PerCommit-Puppeteer",
-		"Infra-PerCommit-PushAppsFromInfraDockerImage",
-		"Infra-PerCommit-ValidateAutorollConfigs",
-		"Infra-PerCommit-Build-Bazel-Local",
-		"Infra-PerCommit-Build-Bazel-RBE",
-		"Infra-PerCommit-Test-Bazel-Local",
-		"Infra-PerCommit-Test-Bazel-RBE",
-		"Infra-Experimental-Small-Linux",
-		"Infra-Experimental-Small-Win",
+	// Top-level list of all Jobs and their CQ config to run at each commit.
+	// If CQ config is nil then the job will not be put on the CQ.
+	JOBS_TO_CQ = map[string]*specs.CommitQueueJobConfig{
+		"Housekeeper-OnDemand-Presubmit":          {},
+		"Infra-PerCommit-Small":                   {},
+		"Infra-PerCommit-Medium":                  {},
+		"Infra-PerCommit-Large":                   {},
+		"Infra-PerCommit-Puppeteer":               {},
+		"Infra-PerCommit-ValidateAutorollConfigs": {},
+		"Infra-PerCommit-Build-Bazel-RBE":         {},
+		"Infra-PerCommit-Test-Bazel-RBE":          {},
+
+		"Housekeeper-Nightly-UpdateGoDeps":             nil,
+		"Housekeeper-Weekly-UpdateCIPDPackages":        nil,
+		"Housekeeper-PerCommit-CIPD-SK":                nil,
+		"Infra-PerCommit-Build":                        nil,
+		"Infra-PerCommit-Race":                         nil,
+		"Infra-PerCommit-CreateDockerImage":            nil,
+		"Infra-PerCommit-PushAppsFromInfraDockerImage": nil,
+		"Infra-PerCommit-Build-Bazel-Local":            nil,
+		"Infra-PerCommit-Test-Bazel-Local":             nil,
+		"Infra-Experimental-Small-Linux":               nil,
+		"Infra-Experimental-Small-Win":                 nil,
 	}
 
 	CACHES_GO = []*specs.Cache{
@@ -761,7 +763,7 @@ func buildAndDeploySK(b *specs.TasksCfgBuilder, name string) string {
 }
 
 // process generates Tasks and Jobs for the given Job name.
-func process(b *specs.TasksCfgBuilder, name string) {
+func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJobConfig) {
 	var priority float64 // Leave as default for most jobs.
 	deps := []string{}
 
@@ -817,6 +819,11 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		TaskSpecs: deps,
 		Trigger:   trigger,
 	})
+
+	// Add the CQ spec if it is a CQ job.
+	if cqConfig != nil {
+		b.MustAddCQJob(name, cqConfig)
+	}
 }
 
 // Regenerate the tasks.json file.
@@ -825,8 +832,8 @@ func main() {
 
 	// Create Tasks and Jobs.
 	bundleRecipes(b)
-	for _, name := range JOBS {
-		process(b, name)
+	for name, cq := range JOBS_TO_CQ {
+		process(b, name, cq)
 	}
 
 	// CasSpecs.
