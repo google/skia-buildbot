@@ -5,4 +5,4 @@ import { $$ } from 'common-sk/modules/dom';
 import { twoPatchsets } from './test_data';
 
 const ele = $$<ChangelistControlsSk>('changelist-controls-sk');
-ele!.setSummary(twoPatchsets);
+ele!.summary = twoPatchsets;

@@ -11,7 +11,7 @@ import { ChangelistSummaryResponse, TryJob } from '../rpc_types';
 export interface ChangelistControlsSkChangeEventDetail {
   readonly include_master: boolean;
   readonly ps_order: number;
-};
+}
 
 export class ChangelistControlsSk extends ElementSk {
 
@@ -20,7 +20,7 @@ export class ChangelistControlsSk extends ElementSk {
       return '';
     }
     const cl = ele._summary.cl;
-    const ps = ele._getSelectedPatchset();
+    const ps = ele.getSelectedPatchset();
     return html`
       <div class=info>
         <span class=title>${cl.system} changelist:</span>
@@ -36,7 +36,7 @@ export class ChangelistControlsSk extends ElementSk {
       </div>
 
       <div class=inputs>
-        <select @input=${ele._onSelectPS}>
+        <select @input=${ele.onSelectPS}>
           ${ele._summary.patch_sets.map(
             (ps) => html`<option ?selected=${ele.ps_order === ps.order}>PS ${ps.order}</option>`)}
         </select>
@@ -46,13 +46,13 @@ export class ChangelistControlsSk extends ElementSk {
                     class="exclude-master"
                     name=include_master
                     ?checked=${!ele.include_master}
-                    @change=${() => ele._onIncludeDigestsFromPrimaryChange(false)}>
+                    @change=${() => ele.onIncludeDigestsFromPrimaryChange(false)}>
           </radio-sk>
           <radio-sk label="show all results"
                     class="include-master"
                     name=include_master
                     ?checked=${ele.include_master}
-                    @change=${() => ele._onIncludeDigestsFromPrimaryChange(true)}>
+                    @change=${() => ele.onIncludeDigestsFromPrimaryChange(true)}>
           </radio-sk>
         </div>
       </div>
@@ -71,8 +71,8 @@ export class ChangelistControlsSk extends ElementSk {
     </div>
   `;
 
-  private _psOrder = 0; // Default to use the last patchset.
-  private _includeDigestsFromPrimary = false;
+  private psOrder = 0; // Default to use the last patchset.
+  private includeDigestsFromPrimary = false;
   private _summary: ChangelistSummaryResponse | null = null;
 
   constructor() {
@@ -93,22 +93,12 @@ export class ChangelistControlsSk extends ElementSk {
   }
 
   /**
-   * Deprecated. Equivalent to the summary property setter.
-   *
-   * TODO(lovisolo): Remove after the legacy search page is deleted.
-   */
-  setSummary(summary: ChangelistSummaryResponse) {
-    this._summary = summary;
-    this._render();
-  }
-
-  /**
    * The order of the patchset currently being shown. If set to 0, the latest patchset will be used.
    */
-  get ps_order() { return this._psOrder; }
+  get ps_order() { return this.psOrder; }
 
   set ps_order(val) {
-    this._psOrder = +val;
+    this.psOrder = +val;
     this._render();
   }
 
@@ -116,50 +106,50 @@ export class ChangelistControlsSk extends ElementSk {
    * Whether to show results that are also on the primary branch, as opposed to those that are
    * exclusive.
    */
-  get include_master() { return this._includeDigestsFromPrimary; }
+  get include_master() { return this.includeDigestsFromPrimary; }
 
   set include_master(val) {
-    this._includeDigestsFromPrimary = (val as unknown as string) !== 'false' && !!val;
+    this.includeDigestsFromPrimary = (val as unknown as string) !== 'false' && !!val;
     this._render();
   }
 
-  _onIncludeDigestsFromPrimaryChange(newVal: boolean) {
+  private onIncludeDigestsFromPrimaryChange(newVal: boolean) {
     this.include_master = newVal; // calls _render()
-    this._sendUpdateEvent();
+    this.sendUpdateEvent();
   }
 
-  _onSelectPS(e: InputEvent) {
+  private onSelectPS(e: InputEvent) {
     const selectedIndex = (e.target! as HTMLSelectElement).selectedIndex;
     const xps = this._summary!.patch_sets;
     const ps = xps[selectedIndex];
     this.ps_order = ps.order; // calls _render()
-    this._sendUpdateEvent();
+    this.sendUpdateEvent();
   }
 
   /**
-   * Returns the Patchset object which matches _psOrder. if _psOrder is 0 (match latest), _psOrder
+   * Returns the Patchset object which matches psOrder. if psOrder is 0 (match latest), psOrder
    * will be updated to whatever the latest order is. It assumes patch_sets are sorted oldest
    * to newest.
    */
-  _getSelectedPatchset() {
+  private getSelectedPatchset() {
     if (!this._summary?.patch_sets?.length) {
       return null;
     }
     const xps = this._summary.patch_sets;
-    if (!this._psOrder) {
+    if (!this.psOrder) {
       const o = xps[xps.length - 1];
-      this._psOrder = o.order;
+      this.psOrder = o.order;
       return o;
     }
     for (let i = 0; i < xps.length; i++) {
-      if (xps[i].order === this._psOrder) {
+      if (xps[i].order === this.psOrder) {
         return xps[i];
       }
     }
     return null;
   }
 
-  _sendUpdateEvent() {
+  private sendUpdateEvent() {
     this.dispatchEvent(new CustomEvent<ChangelistControlsSkChangeEventDetail>('cl-control-change', {
       detail: {
         include_master: this.include_master,
@@ -168,6 +158,6 @@ export class ChangelistControlsSk extends ElementSk {
       bubbles: true,
     }));
   }
-};
+}
 
 define('changelist-controls-sk', ChangelistControlsSk);
