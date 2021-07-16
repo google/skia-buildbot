@@ -16,6 +16,24 @@
       "message": "Looks like this CL will not work as is. This will need a modification to gen_tasks.go instead.",
       "revId": "4ac5cafc2a4a84296fb9bf84b9598e6b48f31cf2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1921b566_b80b0f56",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-07-16T14:22:08Z",
+      "side": 1,
+      "message": "PTAL.",
+      "parentUuid": "b79b5c43_795c3a50",
+      "revId": "4ac5cafc2a4a84296fb9bf84b9598e6b48f31cf2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
