@@ -2362,5 +2362,15 @@
         "^(.*\\/)*\\.git(\\/.*)*$"
       ]
     }
+  },
+  "commit_queue": {
+    "Housekeeper-OnDemand-Presubmit": {},
+    "Infra-PerCommit-Build-Bazel-RBE": {},
+    "Infra-PerCommit-Large": {},
+    "Infra-PerCommit-Medium": {},
+    "Infra-PerCommit-Puppeteer": {},
+    "Infra-PerCommit-Small": {},
+    "Infra-PerCommit-Test-Bazel-RBE": {},
+    "Infra-PerCommit-ValidateAutorollConfigs": {}
   }
 }

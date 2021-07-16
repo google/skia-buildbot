@@ -81,9 +81,10 @@ func NewTasksCfgBuilder() (*TasksCfgBuilder, error) {
 
 	// Create the config.
 	cfg := &TasksCfg{
-		CasSpecs: map[string]*CasSpec{},
-		Jobs:     map[string]*JobSpec{},
-		Tasks:    map[string]*TaskSpec{},
+		CasSpecs:    map[string]*CasSpec{},
+		Jobs:        map[string]*JobSpec{},
+		Tasks:       map[string]*TaskSpec{},
+		CommitQueue: map[string]*CommitQueueJobConfig{},
 	}
 
 	root, err := GetCheckoutRoot()
@@ -161,6 +162,23 @@ func (b *TasksCfgBuilder) AddJob(name string, j *JobSpec) error {
 // MustAddJob adds a JobSpec to the TasksCfgBuilder and panics on failure.
 func (b *TasksCfgBuilder) MustAddJob(name string, j *JobSpec) {
 	if err := b.AddJob(name, j); err != nil {
+		sklog.Fatal(err)
+	}
+}
+
+// AddCQJob adds a CommitQueueJobConfig to the TasksCfgBuilder.
+func (b *TasksCfgBuilder) AddCQJob(name string, c *CommitQueueJobConfig) error {
+	if _, ok := b.cfg.CommitQueue[name]; ok {
+		return fmt.Errorf("CommitQueue already contains a CQJob named %q", name)
+	}
+	b.cfg.CommitQueue[name] = c
+	return nil
+}
+
+// MustAddCQJob adds a CommitQueueJobConfig to the TasksCfgBuilder and panics
+// on failure.
+func (b *TasksCfgBuilder) MustAddCQJob(name string, c *CommitQueueJobConfig) {
+	if err := b.AddCQJob(name, c); err != nil {
 		sklog.Fatal(err)
 	}
 }

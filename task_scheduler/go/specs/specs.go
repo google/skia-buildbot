@@ -217,12 +217,12 @@ func WriteTasksCfg(cfg *TasksCfg, repoDir string) error {
 type CommitQueueJobConfig struct {
 	// Run on the Commit Queue only if the change contains modifications to the
 	// following location regexes.
-	LocationRegexes []string `json:"location_regexes"`
+	LocationRegexes []string `json:"location_regexes,omitempty"`
 	// If this flag is true then the job is marked as being experimental. It will
 	// be triggered on all CLs but their outcome will not affect the Commit Queue.
 	// i.e. the experimental job could fail but if all other non-experimental job
 	// have succeeded then the Commit Queue will succeed.
-	Experimental bool `json:"experimental"`
+	Experimental bool `json:"experimental,omitempty"`
 }
 
 // Copy returns a deep copy of the CommitQueueJobConfig.
