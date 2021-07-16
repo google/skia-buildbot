@@ -6,7 +6,7 @@ set -e
 
 sudo apt-get --assume-yes install build-essential mercurial libosmesa-dev libexpat1-dev clang llvm \
   poppler-utils netpbm gcc-multilib g++-multilib libxi-dev python-django python3-distutils \
-  libc++-dev libc++abi-dev gperf bison usbutils libncurses5 locales
+  libc++-dev libc++abi-dev gperf bison usbutils libncurses5 locales libxss1
 
 # Catapult requires a lsb-release file even if it's empty.
 # TODO(rmistry): Remove this after https://github.com/catapult-project/catapult/issues/3705
