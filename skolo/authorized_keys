@@ -4,6 +4,7 @@
 #    $ cd skolo/ansible
 #    $ make push_authorized_keys_to_jumphosts
 #
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFBusE64Ssm52M+qV/e3GS+G0Z6EJGaXmVPevh9KV0sg jcgregorio@jcgregorio.c.googlers.com
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE0S4oXR4Cx3gPN2JGeMcmGZNYjHvgyX5HyUvwgO4wy2 erikrose@erikrose-macbookpro.roam.corp.google.com
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyk7mbU2Bev1HYzvY2w087Y6mrUxfM7+Wp1PVTxsOtI johnstiles@google.com
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINA5Xe8LJDQw7Wi3kBjXOqy3nkjQsRohNV9rKLaHkHOB jcgregorio@google.com
