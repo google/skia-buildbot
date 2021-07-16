@@ -26,6 +26,7 @@ const (
 	WIN_SOURCE_IMAGE             = "projects/windows-cloud/global/images/windows-server-2019-dc-v20200114"
 
 	INSTANCE_TYPE_CT            = "ct"
+	INSTANCE_TYPE_LINUX_MICRO   = "linux-micro"
 	INSTANCE_TYPE_LINUX_SMALL   = "linux-small"
 	INSTANCE_TYPE_LINUX_MEDIUM  = "linux-medium"
 	INSTANCE_TYPE_LINUX_LARGE   = "linux-large"
