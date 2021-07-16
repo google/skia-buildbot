@@ -80,49 +80,49 @@ export interface SearchRequest {
 }
 
 export class SearchPageSk extends ElementSk {
-  private static _template = (el: SearchPageSk) => html`
+  private static template = (el: SearchPageSk) => html`
     <div class="top-controls">
-      <search-controls-sk .corpora=${el._corpora}
-                          .searchCriteria=${el._searchCriteria}
-                          .paramSet=${el._paramSet}
-                          @search-controls-sk-change=${el._onSearchControlsChange}>
+      <search-controls-sk .corpora=${el.corpora}
+                          .searchCriteria=${el.searchCriteria}
+                          .paramSet=${el.paramSet}
+                          @search-controls-sk-change=${el.onSearchControlsChange}>
       </search-controls-sk>
       <div class="buttons">
-        <button class="bulk-triage" @click=${() => el._bulkTriageDialog?.showModal()}>
+        <button class="bulk-triage" @click=${() => el.bulkTriageDialog?.showModal()}>
           Bulk Triage
         </button>
-        <button class="help" @click=${() => el._helpDialog?.showModal()}>
+        <button class="help" @click=${() => el.helpDialog?.showModal()}>
           Help
         </button>
       </div>
     </div>
 
     <!-- This is only visible when the summary property is not null. -->
-    <changelist-controls-sk .ps_order=${el._patchset}
-                            .include_master=${el._includeDigestsFromPrimary}
-                            .summary=${el._changeListSummaryResponse}
-                            @cl-control-change=${el._onChangelistControlsChange}>
+    <changelist-controls-sk .ps_order=${el.patchset}
+                            .include_master=${el.includeDigestsFromPrimary}
+                            .summary=${el.changeListSummaryResponse}
+                            @cl-control-change=${el.onChangelistControlsChange}>
     </changelist-controls-sk>
 
-    <p class=summary>${SearchPageSk._summary(el)}</p>
+    <p class=summary>${SearchPageSk.summary(el)}</p>
 
     <div class="results">
-      ${el._searchResponse?.digests?.map(
-    (result, idx) => SearchPageSk._resultTemplate(
-      el, result!, /* selected= */ idx === el._selectedSearchResultIdx,
+      ${el.searchResponse?.digests?.map(
+    (result, idx) => SearchPageSk.resultTemplate(
+      el, result!, /* selected= */ idx === el.selectedSearchResultIdx,
     ),
   )}
     </div>
 
     <dialog class="bulk-triage">
-      <bulk-triage-sk .currentPageDigests=${el._getCurrentPageDigestsTriageRequestData()}
-                      .allDigests=${el._searchResponse?.bulk_triage_data || {}}
-                      .crs=${el._crs || ''}
-                      .changeListID=${el._changelistId || ''}
-                      .useNewAPI=${el._useNewAPI}
-                      @bulk_triage_invoked=${() => el._bulkTriageDialog?.close()}
-                      @bulk_triage_finished=${() => el._fetchSearchResults()}
-                      @bulk_triage_cancelled=${() => el._bulkTriageDialog?.close()}>
+      <bulk-triage-sk .currentPageDigests=${el.getCurrentPageDigestsTriageRequestData()}
+                      .allDigests=${el.searchResponse?.bulk_triage_data || {}}
+                      .crs=${el.crs || ''}
+                      .changeListID=${el.changelistId || ''}
+                      .useNewAPI=${el.useNewAPI}
+                      @bulk_triage_invoked=${() => el.bulkTriageDialog?.close()}
+                      @bulk_triage_finished=${() => el.fetchSearchResults()}
+                      @bulk_triage_cancelled=${() => el.bulkTriageDialog?.close()}>
       </bulk-triage-sk>
     </dialog>
 
@@ -138,22 +138,22 @@ export class SearchPageSk extends ElementSk {
         <dt>?</dt> <dd>Show help dialog</dd>
       </dl>
       <div class="buttons">
-        <button class="cancel action" @click=${() => el._helpDialog?.close()}>Close</button>
+        <button class="cancel action" @click=${() => el.helpDialog?.close()}>Close</button>
       </div>
     </dialog>`;
 
-  private static _summary = (el: SearchPageSk) => {
-    if (!el._searchResponse) {
+  private static summary = (el: SearchPageSk) => {
+    if (!el.searchResponse) {
       return ''; // No results have been loaded yet. It's OK not to show anything at this point.
     }
 
-    if (el._searchResponse.size === 0) {
+    if (el.searchResponse.size === 0) {
       return 'No results matched your search criteria.';
     }
 
-    const first = el._searchResponse.offset + 1;
-    const last = el._searchResponse.offset + el._searchResponse.digests!.length;
-    const total = el._searchResponse.size;
+    const first = el.searchResponse.offset + 1;
+    const last = el.searchResponse.offset + el.searchResponse.digests!.length;
+    const total = el.searchResponse.size;
     return `Showing results ${first} to ${last} (out of ${total}).`;
   }
 
@@ -161,20 +161,20 @@ export class SearchPageSk extends ElementSk {
   // performance reasons when navigating search results via the "J" and "K" keyboard shortcuts.
   // This is because re-rendering the search page can be very slow when displaying a large number of
   // search results.
-  private static _resultTemplate =
+  private static resultTemplate =
     (el: SearchPageSk, result: SearchResult, selected: boolean) => html`
-      <digest-details-sk .commits=${el._searchResponse?.commits}
+      <digest-details-sk .commits=${el.searchResponse?.commits}
                          .details=${result}
-                         .changeListID=${el._changelistId}
-                         .crs=${el._crs}
-                         .useNewAPI=${el._useNewAPI}
-                         @triage=${(e: CustomEvent<Label>) => el._onTriage(result, e.detail)}
+                         .changeListID=${el.changelistId}
+                         .crs=${el.crs}
+                         .useNewAPI=${el.useNewAPI}
+                         @triage=${(e: CustomEvent<Label>) => el.onTriage(result, e.detail)}
                          class="${selected ? 'selected' : ''}">
       </digest-details-sk>
     `;
 
   // Reflected to/from the URL and modified by the search-controls-sk.
-  private _searchCriteria: SearchCriteria = {
+  private searchCriteria: SearchCriteria = {
     corpus: defaultCorpus(),
     leftHandTraceFilter: {},
     rightHandTraceFilter: {},
@@ -190,76 +190,76 @@ export class SearchPageSk extends ElementSk {
   };
 
   // Fields reflected to/from the URL and modified by the changelist-controls-sk.
-  private _includeDigestsFromPrimary: boolean | null = null;
+  private includeDigestsFromPrimary: boolean | null = null;
 
-  private _patchset: number | null = null;
+  private patchset: number | null = null;
 
   // Other fields reflected from the URL.
-  private _blame: string | null = null;
+  private blame: string | null = null;
 
-  private _crs: string | null = null;
+  private crs: string | null = null;
 
-  private _changelistId: string | null = null;
+  private changelistId: string | null = null;
 
-  private _useNewAPI: boolean = false;
+  private useNewAPI: boolean = false;
 
   // stateReflector update function.
-  private _stateChanged: (()=> void) | null = null;
+  private readonly stateChanged: (()=> void) | null;
 
   // Fields populated from JSON RPCs.
-  private _corpora: string[] = [];
+  private corpora: string[] = [];
 
-  private _paramSet: ParamSet = {};
+  private paramSet: ParamSet = {};
 
-  private _changeListSummaryResponse: ChangelistSummaryResponse | null = null;
+  private changeListSummaryResponse: ChangelistSummaryResponse | null = null;
 
-  private _searchResponse: SearchResponse | null = null;
+  private searchResponse: SearchResponse | null = null;
 
-  private _searchResultsFetchController: AbortController | null = null;
+  private searchResultsFetchController: AbortController | null = null;
 
-  private _bulkTriageDialog: HTMLDialogElement | null = null;
+  private bulkTriageDialog: HTMLDialogElement | null = null;
 
-  private _helpDialog: HTMLDialogElement | null = null;
+  private helpDialog: HTMLDialogElement | null = null;
 
-  private _keyDownEventHandlerFn: ((event: KeyboardEvent)=> void) | null = null;
+  private keyDownEventHandlerFn: ((event: KeyboardEvent)=> void) | null = null;
 
   // Search result currently selected (e.g. via the J and K keyboard shortcuts). A negative value
   // represents an empty selection.
-  private _selectedSearchResultIdx: number = -1;
+  private selectedSearchResultIdx: number = -1;
 
   constructor() {
-    super(SearchPageSk._template);
+    super(SearchPageSk.template);
 
-    this._stateChanged = stateReflector(
+    this.stateChanged = stateReflector(
       /* getState */ () => {
-        const state = SearchCriteriaToHintableObject(this._searchCriteria) as HintableObject;
-        state.blame = this._blame || '';
-        state.crs = this._crs || '';
-        state.issue = this._changelistId || '';
-        state.use_new_api = this._useNewAPI || '';
-        state.master = this._includeDigestsFromPrimary || '';
-        state.patchsets = this._patchset || '';
+        const state = SearchCriteriaToHintableObject(this.searchCriteria) as HintableObject;
+        state.blame = this.blame || '';
+        state.crs = this.crs || '';
+        state.issue = this.changelistId || '';
+        state.use_new_api = this.useNewAPI || '';
+        state.master = this.includeDigestsFromPrimary || '';
+        state.patchsets = this.patchset || '';
         return state;
       },
       /* setState */ (newState) => {
         if (!this._connected) {
           return;
         }
-        this._searchCriteria = SearchCriteriaFromHintableObject(newState);
-        this._blame = (newState.blame as string) || null;
-        this._crs = (newState.crs as string) || null;
-        this._changelistId = (newState.issue as string) || null;
-        this._useNewAPI = (newState.use_new_api as boolean) || false;
-        this._includeDigestsFromPrimary = (newState.master as boolean) || null;
-        this._patchset = (newState.patchsets as number) || null;
+        this.searchCriteria = SearchCriteriaFromHintableObject(newState);
+        this.blame = (newState.blame as string) || null;
+        this.crs = (newState.crs as string) || null;
+        this.changelistId = (newState.issue as string) || null;
+        this.useNewAPI = (newState.use_new_api as boolean) || false;
+        this.includeDigestsFromPrimary = (newState.master as boolean) || null;
+        this.patchset = (newState.patchsets as number) || null;
 
         // These RPCs are only called once during the page's lifetime.
-        this._fetchCorporaOnce();
-        this._fetchParamSetOnce();
-        this._maybeFetchChangelistSummaryOnce(); // Only called if the CL/CRS URL params are set.
+        this.fetchCorporaOnce();
+        this.fetchParamSetOnce();
+        this.maybeFetchChangelistSummaryOnce(); // Only called if the CL/CRS URL params are set.
 
         // Called every time the state changes.
-        this._fetchSearchResults();
+        this.fetchSearchResults();
 
         this._render();
       },
@@ -270,29 +270,29 @@ export class SearchPageSk extends ElementSk {
     super.connectedCallback();
     this._render();
 
-    this._keyDownEventHandlerFn = (event: KeyboardEvent) => this._onKeyDown(event);
-    document.addEventListener('keydown', this._keyDownEventHandlerFn);
+    this.keyDownEventHandlerFn = (event: KeyboardEvent) => this.onKeyDown(event);
+    document.addEventListener('keydown', this.keyDownEventHandlerFn);
 
-    this._bulkTriageDialog = this.querySelector('dialog.bulk-triage');
-    dialogPolyfill.registerDialog(this._bulkTriageDialog!);
+    this.bulkTriageDialog = this.querySelector('dialog.bulk-triage');
+    dialogPolyfill.registerDialog(this.bulkTriageDialog!);
 
-    this._helpDialog = this.querySelector('dialog.help');
-    dialogPolyfill.registerDialog(this._helpDialog!);
+    this.helpDialog = this.querySelector('dialog.help');
+    dialogPolyfill.registerDialog(this.helpDialog!);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    document.removeEventListener('keydown', this._keyDownEventHandlerFn!);
+    document.removeEventListener('keydown', this.keyDownEventHandlerFn!);
   }
 
-  private async _fetchCorporaOnce() {
+  private async fetchCorporaOnce() {
     // Only fetch once. We assume this doesn't change during the page's lifetime.
-    if (this._corpora.length > 0) return;
+    if (this.corpora.length > 0) return;
 
     try {
       sendBeginTask(this);
       const statusResponse: StatusResponse = await fetch('/json/v2/trstatus', { method: 'GET' }).then(jsonOrThrow);
-      this._corpora = statusResponse.corpStatus.map((corpus) => corpus.name);
+      this.corpora = statusResponse.corpStatus.map((corpus) => corpus.name);
       this._render();
       sendEndTask(this);
     } catch (e) {
@@ -300,13 +300,13 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private async _fetchParamSetOnce(changeListId?: number) {
+  private async fetchParamSetOnce(changeListId?: number) {
     // Only fetch once. We assume this doesn't change during the page's lifetime.
-    if (Object.keys(this._paramSet).length > 0) return;
+    if (Object.keys(this.paramSet).length > 0) return;
 
     try {
       sendBeginTask(this);
-      const url = this._useNewAPI ? '/json/v2/paramset' : '/json/v1/paramset';
+      const url = this.useNewAPI ? '/json/v2/paramset' : '/json/v1/paramset';
       const paramSetResponse: ParamSetResponse = await fetch(
         url + (changeListId ? `?changelist_id=${changeListId}` : ''),
         { method: 'GET' },
@@ -318,11 +318,11 @@ export class SearchPageSk extends ElementSk {
       //                 { [key: string]: string[] }. Instead of blindly typecasing, perform an
       //                 explicit check that no values are null, then convert to ParamSet.
       //                 Alternatively, add support for overriding a type definition in go2ts.
-      this._paramSet = paramSetResponse as ParamSet;
+      this.paramSet = paramSetResponse as ParamSet;
 
       // Remove the corpus to prevent it from showing up in the search controls left- and right-hand
       // trace filter selectors.
-      delete this._paramSet[CORPUS_KEY];
+      delete this.paramSet[CORPUS_KEY];
 
       this._render();
       sendEndTask(this);
@@ -331,17 +331,17 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private async _maybeFetchChangelistSummaryOnce() {
+  private async maybeFetchChangelistSummaryOnce() {
     // We can skip this RPC if no CL information has been provided via URL parameters.
-    if (!this._crs || !this._changelistId) return;
+    if (!this.crs || !this.changelistId) return;
 
     // Only fetch once. This is OK because the changelist cannot be changed via the UI.
-    if (this._changeListSummaryResponse) return;
+    if (this.changeListSummaryResponse) return;
 
     try {
       sendBeginTask(this);
-      const base = this._useNewAPI ? '/json/v2/changelist' : '/json/v1/changelist';
-      this._changeListSummaryResponse = await fetch(`${base}/${this._crs}/${this._changelistId}`, { method: 'GET' })
+      const base = this.useNewAPI ? '/json/v2/changelist' : '/json/v1/changelist';
+      this.changeListSummaryResponse = await fetch(`${base}/${this.crs}/${this.changelistId}`, { method: 'GET' })
         .then(jsonOrThrow);
       this._render();
       sendEndTask(this);
@@ -350,68 +350,68 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private _makeSearchRequest(): SearchRequest {
+  private makeSearchRequest(): SearchRequest {
     // Utility function to insert the selected corpus into the left- and right-hand trace filters,
     // as required by the /json/v1/search RPC.
     const insertCorpus = (paramSet: ParamSet) => {
       const copy = deepCopy(paramSet);
-      copy[CORPUS_KEY] = [this._searchCriteria.corpus];
+      copy[CORPUS_KEY] = [this.searchCriteria.corpus];
       return copy;
     };
 
     // Populate a SearchRequest object, which we'll use to generate the query string for the
     // /json/v1/search RPC.
     const searchRequest: SearchRequest = {
-      query: fromParamSet(insertCorpus(this._searchCriteria.leftHandTraceFilter)),
-      rquery: fromParamSet(insertCorpus(this._searchCriteria.rightHandTraceFilter)),
-      pos: this._searchCriteria.includePositiveDigests,
-      neg: this._searchCriteria.includeNegativeDigests,
-      unt: this._searchCriteria.includeUntriagedDigests,
-      head: !this._searchCriteria.includeDigestsNotAtHead, // Inverted because head = at head only.
-      include: this._searchCriteria.includeIgnoredDigests,
-      frgbamin: this._searchCriteria.minRGBADelta,
-      frgbamax: this._searchCriteria.maxRGBADelta,
-      fref: this._searchCriteria.mustHaveReferenceImage,
-      sort: this._searchCriteria.sortOrder === 'ascending' ? 'asc' : 'desc',
+      query: fromParamSet(insertCorpus(this.searchCriteria.leftHandTraceFilter)),
+      rquery: fromParamSet(insertCorpus(this.searchCriteria.rightHandTraceFilter)),
+      pos: this.searchCriteria.includePositiveDigests,
+      neg: this.searchCriteria.includeNegativeDigests,
+      unt: this.searchCriteria.includeUntriagedDigests,
+      head: !this.searchCriteria.includeDigestsNotAtHead, // Inverted because head = at head only.
+      include: this.searchCriteria.includeIgnoredDigests,
+      frgbamin: this.searchCriteria.minRGBADelta,
+      frgbamax: this.searchCriteria.maxRGBADelta,
+      fref: this.searchCriteria.mustHaveReferenceImage,
+      sort: this.searchCriteria.sortOrder === 'ascending' ? 'asc' : 'desc',
     };
 
     // Populate optional query parameters.
-    if (this._blame) searchRequest.blame = this._blame;
-    if (this._crs) searchRequest.crs = this._crs;
-    if (this._changelistId) searchRequest.issue = this._changelistId;
-    if (this._includeDigestsFromPrimary) searchRequest.master = this._includeDigestsFromPrimary;
-    if (this._patchset) searchRequest.patchsets = this._patchset;
+    if (this.blame) searchRequest.blame = this.blame;
+    if (this.crs) searchRequest.crs = this.crs;
+    if (this.changelistId) searchRequest.issue = this.changelistId;
+    if (this.includeDigestsFromPrimary) searchRequest.master = this.includeDigestsFromPrimary;
+    if (this.patchset) searchRequest.patchsets = this.patchset;
 
     return searchRequest;
   }
 
-  private async _fetchSearchResults() {
+  private async fetchSearchResults() {
     // Force only one fetch at a time. Abort any outstanding requests.
-    if (this._searchResultsFetchController) {
-      this._searchResultsFetchController.abort();
+    if (this.searchResultsFetchController) {
+      this.searchResultsFetchController.abort();
     }
-    this._searchResultsFetchController = new AbortController();
+    this.searchResultsFetchController = new AbortController();
 
-    const searchRequest = this._makeSearchRequest();
+    const searchRequest = this.makeSearchRequest();
 
     try {
       sendBeginTask(this);
-      if (!this._useNewAPI) {
-        this._searchResponse = await fetch(
+      if (!this.useNewAPI) {
+        this.searchResponse = await fetch(
           `/json/v1/search?${fromObject(searchRequest as any)}`,
-          { method: 'GET', signal: this._searchResultsFetchController.signal },
+          { method: 'GET', signal: this.searchResultsFetchController.signal },
         )
           .then(jsonOrThrow);
       } else {
-        this._searchResponse = await fetch(
+        this.searchResponse = await fetch(
           `/json/v2/search?${fromObject(searchRequest as any)}`,
-          { method: 'GET', signal: this._searchResultsFetchController.signal },
+          { method: 'GET', signal: this.searchResultsFetchController.signal },
         )
           .then(jsonOrThrow);
       }
 
       // Reset UI and render.
-      this._selectedSearchResultIdx = -1;
+      this.clearSelectedSearchResult();
       this._render();
       sendEndTask(this);
     } catch (e) {
@@ -419,12 +419,12 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private _getCurrentPageDigestsTriageRequestData() {
+  private getCurrentPageDigestsTriageRequestData() {
     const triageRequestData: TriageRequestData = {};
 
-    if (!this._searchResponse) return triageRequestData;
+    if (!this.searchResponse) return triageRequestData;
 
-    for (const result of this._searchResponse.digests!) {
+    for (const result of this.searchResponse.digests!) {
       let byTest = triageRequestData[result!.test];
       if (!byTest) {
         byTest = {};
@@ -446,78 +446,65 @@ export class SearchPageSk extends ElementSk {
     return triageRequestData;
   }
 
-  private _onSearchControlsChange(event: CustomEvent<SearchCriteria>) {
-    this._searchCriteria = event.detail;
-    this._stateChanged!();
-    this._fetchSearchResults();
+  private onSearchControlsChange(event: CustomEvent<SearchCriteria>) {
+    this.searchCriteria = event.detail;
+    this.stateChanged!();
+    this.fetchSearchResults();
+  }
 
-    // Re-render the page immediately so that the link to the legacy search page is updated with the
-    // new query parameters. If we don't re-render immediately, said link will briefly fall out of
-    // sync until the /json/search RPC resolves and the page is re-rendered with new search results.
-    //
-    // TODO(lovisolo): Remove after the legacy search page is deleted.
+  private onChangelistControlsChange(event: CustomEvent<ChangelistControlsSkChangeEventDetail>) {
+    this.includeDigestsFromPrimary = event.detail.include_master;
+    this.patchset = event.detail.ps_order;
+    this.stateChanged!();
+    this.fetchSearchResults();
     this._render();
   }
 
-  private _onChangelistControlsChange(event: CustomEvent<ChangelistControlsSkChangeEventDetail>) {
-    this._includeDigestsFromPrimary = event.detail.include_master;
-    this._patchset = event.detail.ps_order;
-    this._stateChanged!();
-    this._fetchSearchResults();
-
-    // Re-render the page immediately so that the link to the legacy search page is updated with the
-    // new query parameters. If we don't re-render immediately, said link will briefly fall out of
-    // sync until the /json/search RPC resolves and the page is re-rendered with new search results.
-    //
-    // TODO(lovisolo): Remove after the legacy search page is deleted.
-    this._render();
-  }
-
-  private _onTriage(result: SearchResult, label: Label) {
+  private onTriage(result: SearchResult, label: Label) {
     // When the user triages a digest, we patch the corresponding cached SearchResult with the new
     // label. This prevents the digest-details-sk component from reverting to the original label
     // when the search-page-sk is re-rendered with the same cached SearchResults.
     result.status = label;
   }
 
-  private _onKeyDown(event: KeyboardEvent) {
+  private onKeyDown(event: KeyboardEvent) {
     // Ignore all keyboard shortcuts if there are any open modals.
     if (document.querySelectorAll('dialog[open]').length > 0) return;
 
     switch (event.key) {
       // Next.
       case 'j':
-        this._selectSearchResult(this._selectedSearchResultIdx + 1);
+        this.selectSearchResult(this.selectedSearchResultIdx + 1);
         break;
 
       // Previous.
       case 'k':
-        this._selectSearchResult(this._selectedSearchResultIdx - 1);
+        this.selectSearchResult(this.selectedSearchResultIdx - 1);
         break;
 
       // Zoom in.
       case 'w':
-        this._openZoomDialogForSelectedSearchResult();
+        this.openZoomDialogForSelectedSearchResult();
         break;
 
       // Mark as positive.
       case 'a':
-        this._triageSelectedSearchResult('positive');
+        this.triageSelectedSearchResult('positive');
         break;
 
       // Mark as negative.
       case 's':
-        this._triageSelectedSearchResult('negative');
+        this.triageSelectedSearchResult('negative');
         break;
 
       // Mark as untriaged.
       case 'd':
-        this._triageSelectedSearchResult('untriaged');
+        this.triageSelectedSearchResult('untriaged');
         break;
 
       // Show help dialog.
       case '?':
-        this._helpDialog?.showModal();
+        this.helpDialog?.showModal();
         break;
 
       default:
@@ -531,8 +518,8 @@ export class SearchPageSk extends ElementSk {
    * Selects the search result with the given index, i.e. it draws a box around its corresponding
    * digest-details-sk element to indicate focus and scrolls it into view.
    */
-  private _selectSearchResult(index: number) {
-    const searchResults = this._searchResponse?.digests || [];
+  private selectSearchResult(index: number) {
+    const searchResults = this.searchResponse?.digests || [];
     if (index < 0 || index >= searchResults.length) return;
 
     // We update the selected search result by hand to avoid re-rendering the entire page, which can
@@ -543,18 +530,24 @@ export class SearchPageSk extends ElementSk {
 
     // We also keep track of the selected result so we can correctly add the "selected" CSS class
     // in the lit-html template in case we re-render the page with the cached search results.
-    this._selectedSearchResultIdx = index;
+    this.selectedSearchResultIdx = index;
 
-    this._getSelectedDigestDetailsSk()!.scrollIntoView();
+    this.getSelectedDigestDetailsSk()!.scrollIntoView();
+  }
+
+  /** Clears the selected search result without re-rendering the entire page. */
+  private clearSelectedSearchResult() {
+    this.selectedSearchResultIdx = -1;
+    this.querySelector<HTMLElement>('digest-details-sk.selected')?.classList.remove('selected');
   }
 
   /**
    * Applies the given label to the currently selected search result.
    */
-  private _triageSelectedSearchResult(label: Label) {
+  private triageSelectedSearchResult(label: Label) {
     // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
 
-    const digestDetailsSk = this._getSelectedDigestDetailsSk();
+    const digestDetailsSk = this.getSelectedDigestDetailsSk();
     if (!digestDetailsSk) return;
 
     digestDetailsSk.querySelector<HTMLButtonElement>(`triage-sk button.${label}`)!.click();
@@ -564,10 +557,10 @@ export class SearchPageSk extends ElementSk {
    * Opens the zoom dialog of the details-digest-sk element corresponding to the currently selected
    * search result.
    */
-  private _openZoomDialogForSelectedSearchResult() {
+  private openZoomDialogForSelectedSearchResult() {
     // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
 
-    const digestDetailsSk = this._getSelectedDigestDetailsSk();
+    const digestDetailsSk = this.getSelectedDigestDetailsSk();
     if (!digestDetailsSk) return;
 
     digestDetailsSk.querySelector<HTMLButtonElement>('button.zoom_btn')!.click();
@@ -576,12 +569,12 @@ export class SearchPageSk extends ElementSk {
   /**
    * Returns the digest-details-sk element corresponding to the currently selected search result.
    */
-  private _getSelectedDigestDetailsSk() {
+  private getSelectedDigestDetailsSk() {
     // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
 
-    if (this._selectedSearchResultIdx < 0) return null;
+    if (this.selectedSearchResultIdx < 0) return null;
     return this.querySelector<HTMLElement>(
-      `digest-details-sk:nth-child(${this._selectedSearchResultIdx + 1})`,
+      `digest-details-sk:nth-child(${this.selectedSearchResultIdx + 1})`,
     );
   }
 }

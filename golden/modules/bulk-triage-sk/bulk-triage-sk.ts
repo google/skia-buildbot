@@ -178,16 +178,6 @@ export class BulkTriageSk extends ElementSk {
   // TODO(lovisolo): Execute the above plan after the legacy search page is deleted.
 
   /**
-   * Deprecated. Use the currentPageDigests and allDigests property setters instead.
-   *
-   * TODO(lovisolo): Delete after the legacy search-page-sk is removed.
-   */
-  setDigests(pageDigests: TriageRequestData, allDigests: TriageRequestData) {
-    this.currentPageDigests = pageDigests;
-    this.allDigests = allDigests;
-  }
-
-  /**
    * The digests in the current page of search results, mapped to the labels of their closest
    * triaged reference digests.
    *
