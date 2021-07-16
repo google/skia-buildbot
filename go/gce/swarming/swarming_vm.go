@@ -37,6 +37,7 @@ import (
 var (
 	VALID_INSTANCE_TYPES = []string{
 		instance_types.INSTANCE_TYPE_CT,
+		instance_types.INSTANCE_TYPE_LINUX_MICRO,
 		instance_types.INSTANCE_TYPE_LINUX_SMALL,
 		instance_types.INSTANCE_TYPE_LINUX_MEDIUM,
 		instance_types.INSTANCE_TYPE_LINUX_LARGE,
@@ -110,6 +111,8 @@ func main() {
 	switch *instanceType {
 	case instance_types.INSTANCE_TYPE_CT:
 		getInstance = func(num int) *gce.Instance { return instance_types.SkiaCT(num, setupScript) }
+	case instance_types.INSTANCE_TYPE_LINUX_MICRO:
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMicro(num, setupScript) }
 	case instance_types.INSTANCE_TYPE_LINUX_SMALL:
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSmall(num, setupScript) }
 	case instance_types.INSTANCE_TYPE_LINUX_MEDIUM:
