@@ -30,28 +30,28 @@ import 'elements-sk/styles/buttons'
 export class QueryDialogSk extends ElementSk {
 
   private static _template = (el: QueryDialogSk) => html`
-    <dialog @click=${el._dialogClick}>
+    <dialog>
       <div class=content>
-        <query-sk @query-change=${el._queryChange}
+        <query-sk @query-change=${el.queryChange}
                   hide_invert
                   hide_regex></query-sk>
         <div class=selection-summary>
-          ${el._isSelectionEmpty()
+          ${el.isSelectionEmpty()
             ? html`<p class=empty-selection>No items selected.</p>`
-            : html`<paramset-sk .paramsets=${[el._currentSelection]}></paramset-sk>`}
+            : html`<paramset-sk .paramsets=${[el.currentSelection]}></paramset-sk>`}
         </div>
       </div>
 
       <div class=buttons>
-        <button class="show-matches action" @click=${el._showMatches}>
+        <button class="show-matches action" @click=${el.showMatches}>
           ${el._submitButtonLabel}
         </button>
-        <button class=cancel @click=${el._close}>Cancel</button>
+        <button class=cancel @click=${el.close}>Cancel</button>
       </div>
     </dialog>`;
 
-  private _dialog: HTMLDialogElement | null = null;
-  private _querySk: QuerySk | null = null;
+  private dialog: HTMLDialogElement | null = null;
+  private querySk: QuerySk | null = null;
   private _submitButtonLabel: string = 'Show Matches';
 
   constructor() {
@@ -61,17 +61,17 @@ export class QueryDialogSk extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
-    this._dialog = $$('dialog', this);
-    this._querySk = $$('query-sk', this);
-    dialogPolyfill.registerDialog(this._dialog!);
+    this.dialog = $$('dialog', this);
+    this.querySk = $$('query-sk', this);
+    dialogPolyfill.registerDialog(this.dialog!);
   }
 
   open(paramSet: ParamSet, selection: string) {
-    this._querySk!.paramset = paramSet;
-    this._querySk!.current_query = selection;
+    this.querySk!.paramset = paramSet;
+    this.querySk!.current_query = selection;
 
     this._render();
-    this._dialog!.showModal();
+    this.dialog!.showModal();
     this.dispatchEvent(new CustomEvent('query-dialog-open', {bubbles: true}));
   }
 
@@ -83,39 +83,31 @@ export class QueryDialogSk extends ElementSk {
     this._render();
   }
 
-  private _queryChange(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
+  private queryChange(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
     // This updates the paramset-sk with the new selection from the query-sk component.
     this._render();
   }
 
-  private _showMatches() {
-    this._dialog!.close();
+  private showMatches() {
+    this.dialog!.close();
     this.dispatchEvent(new CustomEvent<string>('edit', {
       bubbles: true,
-      detail: this._querySk!.current_query
+      detail: this.querySk!.current_query
     }));
     this.dispatchEvent(new CustomEvent('query-dialog-close', {bubbles: true}));
   }
 
-  private _close() {
-    this._dialog!.close();
+  private close() {
+    this.dialog!.close();
     this.dispatchEvent(new CustomEvent('query-dialog-close', {bubbles: true}));
   }
 
-  // This prevents the Polymer filter-dialog-sk component from closing when its nested
-  // query-dialog-sk receives a click.
-  //
-  // TODO(lovisolo): Delete after filter-dialog-sk is ported to lit-html.
-  private _dialogClick(e: Event) {
-    e.stopPropagation();
+  private get currentSelection() {
+    return this.querySk ? toParamSet(this.querySk.current_query) : {};
   }
 
-  private get _currentSelection() {
-    return this._querySk ? toParamSet(this._querySk.current_query) : {};
-  }
-
-  private _isSelectionEmpty() {
-    return Object.keys(this._currentSelection).length === 0;
+  private isSelectionEmpty() {
+    return Object.keys(this.currentSelection).length === 0;
   }
 }
 

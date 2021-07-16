@@ -647,7 +647,7 @@ describe('search-page-sk', () => {
         expect(await searchPageSkPO.getSelectedDigest()).to.equal(firstDigest);
       });
 
-      it('resets the selection when the search results change', async () => {
+      it.only('resets the selection when the search results change', async () => {
         await instantiate();
 
         // Select the first search result.
