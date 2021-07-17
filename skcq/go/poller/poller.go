@@ -135,9 +135,9 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 	// Get the SkCQ cfg that will be used for this change.
 	skCQCfg, err := configReader.GetSkCQCfg(ctx)
 	if err != nil {
-		sklog.Infof("[%d] Error when reading skcq.cfg: %s", ci.Issue, err)
+		sklog.Infof("[%d] Error when reading %s: %s", ci.Issue, config.SkCQCfgPath, err)
 		if config.IsNotFound(err) {
-			cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("%s. Removing from CQ.\nPlease add a infra/skcq.cfg file if this repo+branch requires CQ.", err.Error()))
+			cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("%s. Removing from CQ.\nPlease add a %s file if this repo+branch requires CQ.", err.Error(), config.SkCQCfgPath))
 			return
 		} else if config.IsCannotModifyCfgsOnTheFly(err) {
 			cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("CL owner %s does not have permission to modify %s", ci.Owner.Email, config.SkCQCfgPath))
@@ -305,7 +305,7 @@ func cleanupCL(ctx context.Context, changeEquivalentPatchset string, currentChan
 	// Instantiate all objs needed to get verifiers.
 	skCQCfg, err := configReader.GetSkCQCfg(ctx)
 	if err != nil {
-		return skerr.Wrapf(err, "[%d] Could not get skcq.cfg during cleanup: %s", ci.Issue, err)
+		return skerr.Wrapf(err, "[%d] Could not get %s during cleanup: %s", ci.Issue, config.SkCQCfgPath, err)
 	}
 	// Get all verifiers.
 	verifiers, _, err := vm.GetVerifiers(ctx, skCQCfg, ci, false, configReader)
