@@ -28,7 +28,7 @@ infra/tools/luci/lucicfg/${platform}             git_revision:cadd7dad6e9466c998
 infra/tools/luci/swarming/${platform}            git_revision:cadd7dad6e9466c9988ec9eaed70210f2aa1ca86
 infra/tools/luci/vpython/${platform}             git_revision:cadd7dad6e9466c9988ec9eaed70210f2aa1ca86
 infra/tools/luci/vpython-native/${platform}      git_revision:cadd7dad6e9466c9988ec9eaed70210f2aa1ca86
-skia/tools/goldctl/${platform}                   git_revision:cadd7dad6e9466c9988ec9eaed70210f2aa1ca86
+skia/tools/goldctl/${platform}                   git_revision:5e07361d1d22bf0a7b2944f04cb45636c90bfa45
 
 @subdir cipd_bin_packages/cpython
 infra/3pp/tools/cpython/linux-amd64              version:2@2.7.18.chromium.39
