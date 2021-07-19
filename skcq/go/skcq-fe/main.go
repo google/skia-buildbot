@@ -131,8 +131,8 @@ func (srv *Server) getChangeAttemptsHandler(w http.ResponseWriter, r *http.Reque
 func (srv *Server) getCurrentChangesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	currentChangesRquest := types.GetCurrentChangesRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&currentChangesRquest); err != nil {
+	currentChangesRequest := types.GetCurrentChangesRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&currentChangesRequest); err != nil {
 		httputils.ReportError(w, err, "Failed to decode current changes request", http.StatusBadRequest)
 		return
 	}
@@ -145,7 +145,7 @@ func (srv *Server) getCurrentChangesHandler(w http.ResponseWriter, r *http.Reque
 
 	respChanges := []*types.CurrentlyProcessingChange{}
 	for _, ch := range changes {
-		if ch.DryRun == currentChangesRquest.IsDryRun {
+		if ch.Internal == *internal && ch.DryRun == currentChangesRequest.IsDryRun {
 			respChanges = append(respChanges, ch)
 		}
 	}
