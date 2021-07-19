@@ -361,6 +361,16 @@ func actualMain(app application.Application) {
 								c.Bool(dryrunFlagName))
 						},
 					},
+					{
+						Name:        "validate",
+						Description: "Validate an ingestion file",
+						Flags: []cli.Flag{
+							inputFilenameFlag,
+						},
+						Action: func(c *cli.Context) error {
+							return app.IngestValidate(c.String(inputFilenameFlag.Name))
+						},
+					},
 				},
 			},
 			{

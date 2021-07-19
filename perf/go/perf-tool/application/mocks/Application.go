@@ -142,6 +142,20 @@ func (_m *Application) IngestForceReingest(local bool, instanceConfig *config.In
 	return r0
 }
 
+// IngestValidate provides a mock function with given fields: inputFile
+func (_m *Application) IngestValidate(inputFile string) error {
+	ret := _m.Called(inputFile)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(inputFile)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // TilesLast provides a mock function with given fields: store
 func (_m *Application) TilesLast(store tracestore.TraceStore) error {
 	ret := _m.Called(store)

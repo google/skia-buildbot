@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "generate_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/ingest/format/generate",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/jsonschema",
+        "//perf/go/ingest/format",
+    ],
+)
+
+go_binary(
+    name = "generate",
+    embed = [":generate_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -7,9 +7,11 @@ go_library(
         "format.go",
         "leagacyformat.go",
     ],
+    embedsrcs = ["formatSchema.json"],
     importpath = "go.skia.org/infra/perf/go/ingest/format",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/jsonschema",
         "//go/skerr",
         "//perf/go/types",
     ],
@@ -22,5 +24,6 @@ go_test(
     deps = [
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )

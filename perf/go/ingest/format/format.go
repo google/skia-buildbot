@@ -2,13 +2,25 @@
 package format
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 
+	"go.skia.org/infra/go/jsonschema"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/types"
+
+	_ "embed" // For embed functionality.
 )
+
+// schema is a json schema for InstanceConfig, it is created by
+// running go generate on ./generate/main.go.
+//
+//go:embed formatSchema.json
+var schema []byte
 
 // FileFormatVersion is the version of this ingestion format.
 const FileFormatVersion = 1
@@ -61,11 +73,11 @@ type Result struct {
 	Key map[string]string `json:"key"`
 
 	// Measurement is a single measurement from a test run.
-	Measurement float32 `json:"measurement"`
+	Measurement float32 `json:"measurement,omitempty"`
 
 	// Measurements maps from a key to a list of values for that key with
 	// associated measurements. Each key=value pair will be part of the trace id.
-	Measurements map[string][]SingleMeasurement `json:"measurements"`
+	Measurements map[string][]SingleMeasurement `json:"measurements,omitempty"`
 }
 
 // Format is the struct for decoding ingestion files for all cases that aren't
@@ -73,37 +85,37 @@ type Result struct {
 //
 // For example, a file that looks like this:
 //
-//   {
-//     "version": 1,
-//     "git_hash": "cd5...663",
-//     "key": {
-//         "config": "8888",
-//         "arch": "x86",
-//     },
-//     "results": [
-//       {
-//         "measurements": {
-//           "key": {
-//             "test": "some_test_name"
-//           }
-//           "ms": [
-//             {
-//               "value": "min",
-//               "measurement": 1.2,
-//             },
-//             {
-//               "value": "max"
-//               "measurement": 2.4,
-//             },
-//             {
-//               "value": "median",
-//               "measurement": 1.5,
-//             }
-//           ]
-//         }
-//       }
-//     ]
-//   }
+//    {
+//        "version": 1,
+//        "git_hash": "cd5...663",
+//        "key": {
+//            "config": "8888",
+//            "arch": "x86"
+//        },
+//        "results": [
+//            {
+//                "key": {
+//                    "test": "some_test_name"
+//                },
+//                "measurements": {
+//                    "ms": [
+//                        {
+//                            "value": "min",
+//                            "measurement": 1.2
+//                        },
+//                        {
+//                            "value": "max",
+//                            "measurement": 2.4
+//                        },
+//                        {
+//                            "value": "median",
+//                            "measurement": 1.5
+//                        }
+//                    ]
+//                }
+//            }
+//        ]
+//    }
 //
 // Will produce this set of trace ids and values:
 //
@@ -121,21 +133,21 @@ type Format struct {
 	GitHash string `json:"git_hash"`
 
 	// Issue is the Changelist ID.
-	Issue types.CL `json:"issue"`
+	Issue types.CL `json:"issue,omitempty"`
 
 	// Patchset is the tryjob patch identifier. For Gerrit this is an integer
 	// serialized as a string.
-	Patchset string `json:"patchset"`
+	Patchset string `json:"patchset,omitempty"`
 
 	// Key contains key=value pairs that are part of all trace ids.
-	Key map[string]string `json:"key"`
+	Key map[string]string `json:"key,omitempty"`
 
 	// Results are all the test results.
 	Results []Result `json:"results"`
 
 	// Links are any URLs to further information about this run, e.g. link to a
 	// CI run.
-	Links map[string]string `json:"links"`
+	Links map[string]string `json:"links,omitempty"`
 }
 
 // Parse parses the stream out of the io.Reader into FileFormat. The caller is
@@ -149,4 +161,21 @@ func Parse(r io.Reader) (Format, error) {
 		return Format{}, ErrFileWrongVersion
 	}
 	return fileFormat, nil
+}
+
+// Validate the body of an ingested file against the schema for Format.
+//
+// If there was an error loading the file a list of schema violations may be
+// returned also.
+func Validate(ctx context.Context, r io.Reader) ([]string, error) {
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to read bytes")
+	}
+	_, err = Parse(bytes.NewReader(b))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to parse")
+	}
+
+	return jsonschema.Validate(ctx, b, schema)
 }

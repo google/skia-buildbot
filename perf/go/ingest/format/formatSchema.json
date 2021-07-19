@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$ref": "#/definitions/Format",
+  "definitions": {
+    "Format": {
+      "required": [
+        "version",
+        "git_hash",
+        "results"
+      ],
+      "properties": {
+        "version": {
+          "type": "integer"
+        },
+        "git_hash": {
+          "type": "string"
+        },
+        "issue": {
+          "type": "string"
+        },
+        "patchset": {
+          "type": "string"
+        },
+        "key": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "results": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/Result"
+          },
+          "type": "array"
+        },
+        "links": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Result": {
+      "required": [
+        "key"
+      ],
+      "properties": {
+        "key": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "measurement": {
+          "type": "number"
+        },
+        "measurements": {
+          "patternProperties": {
+            ".*": {
+              "items": {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "$ref": "#/definitions/SingleMeasurement"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "SingleMeasurement": {
+      "required": [
+        "value",
+        "measurement"
+      ],
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "measurement": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}

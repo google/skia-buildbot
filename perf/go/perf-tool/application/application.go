@@ -54,6 +54,7 @@ type Application interface {
 	TracesList(store tracestore.TraceStore, queryString string, tileNumber types.TileNumber) error
 	TracesExport(store tracestore.TraceStore, queryString string, begin, end types.CommitNumber, outputFile string) error
 	IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool) error
+	IngestValidate(inputFile string) error
 	TrybotReference(local bool, store tracestore.TraceStore, instanceConfig *config.InstanceConfig, trybotFilename string, outputFilename string, numCommits int) error
 }
 
@@ -731,6 +732,21 @@ func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig
 		}
 	}
 	return nil
+}
+
+func (app) IngestValidate(inputFile string) error {
+	ctx := context.Background()
+	return util.WithReadFile(inputFile, func(r io.Reader) error {
+		schemaViolations, err := format.Validate(ctx, r)
+		for i, violation := range schemaViolations {
+			fmt.Printf("%d - %s\n", i, violation)
+		}
+		if err != nil {
+			// Unwrap the error since this gets printed as a user facing error message.
+			return fmt.Errorf("Validation Failed: %s", skerr.Unwrap(err))
+		}
+		return nil
+	})
 }
 
 // TrybotReference implements the Application interface.
