@@ -182,5 +182,7 @@ func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
 }
 
 func main() {
+	// Parse flags to be able to send *host to baseapp.Serve
+	flag.Parse()
 	baseapp.Serve(New, []string{*host})
 }
