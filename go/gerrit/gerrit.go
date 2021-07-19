@@ -375,7 +375,7 @@ type GerritInterface interface {
 	CreateChange(context.Context, string, string, string, string) (*ChangeInfo, error)
 	DeleteChangeEdit(context.Context, *ChangeInfo) error
 	DeleteFile(context.Context, *ChangeInfo, string) error
-	DeleteVote(context.Context, int64, string, int) error
+	DeleteVote(context.Context, int64, string, int, NotifyOption) error
 	Disapprove(context.Context, *ChangeInfo, string) error
 	DownloadCommitMsgHook(ctx context.Context, dest string) error
 	EditFile(context.Context, *ChangeInfo, string, string) error
@@ -1319,8 +1319,14 @@ func (g *Gerrit) DeleteFile(ctx context.Context, ci *ChangeInfo, filepath string
 }
 
 // DeleteVote deletes a single vote from a change.
-func (g *Gerrit) DeleteVote(ctx context.Context, changeNum int64, labelID string, accountID int) error {
-	return g.delete(ctx, fmt.Sprintf("/changes/%d/reviewers/%d/votes/%s", changeNum, accountID, labelID))
+func (g *Gerrit) DeleteVote(ctx context.Context, changeNum int64, labelID string, accountID int, notify NotifyOption) error {
+	msg := struct {
+		Notify NotifyOption `json:"notify,omitempty"`
+	}{
+		Notify: notify,
+	}
+	u := fmt.Sprintf("/changes/%d/reviewers/%d/votes/%s/delete", changeNum, accountID, labelID)
+	return g.postJson(ctx, u, msg)
 }
 
 // SetCommitMessage sets the commit message for the ChangeEdit. A ChangeEdit is created, if one is
