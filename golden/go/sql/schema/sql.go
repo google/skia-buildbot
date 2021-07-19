@@ -10,7 +10,8 @@ const Schema = `CREATE TABLE IF NOT EXISTS Changelists (
   owner_email STRING NOT NULL,
   subject STRING NOT NULL,
   last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL,
-  INDEX system_status_ingested_idx (system, status, last_ingested_data)
+  INDEX system_status_ingested_idx (system, status, last_ingested_data),
+  INDEX status_ingested_idx (status, last_ingested_data DESC)
 );
 CREATE TABLE IF NOT EXISTS CommitsWithData (
   commit_id STRING PRIMARY KEY,

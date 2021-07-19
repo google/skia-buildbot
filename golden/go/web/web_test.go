@@ -3705,13 +3705,93 @@ func TestLatestPositiveDigest2_TraceDoesNotExist_ReturnsEmptyDigest(t *testing.T
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 }
 
-// d converts the given digest to its corresponding DigestBytes types. It panics on a failure.
-func d(d types.Digest) schema.DigestBytes {
-	b, err := sql.DigestToBytes(d)
-	if err != nil {
-		panic(err)
+func TestGetChangelistsHandler2_AllChangelists_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{{
+				ID:          dks.GerritCRS,
+				URLTemplate: "example.com/%s/gerrit",
+			}, {
+				ID:          dks.GerritInternalCRS,
+				URLTemplate: "example.com/%s/gerrit-internal",
+			}},
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 	}
-	return b
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?size=50", nil)
+	wh.ChangelistsHandler2(w, r)
+	const expectedResponse = `{"changelists":[{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"example.com/CL_new_tests/gerrit-internal"},` +
+		`{"system":"gerrit","id":"CL_fix_ios","owner":"userOne@example.com","status":"open","subject":"Fix iOS","updated":"2020-12-10T04:05:06Z","url":"example.com/CL_fix_ios/gerrit"},` +
+		`{"system":"gerrit","id":"CLisabandoned","owner":"userOne@example.com","status":"abandoned","subject":"was abandoned","updated":"2020-06-06T06:06:00Z","url":"example.com/CLisabandoned/gerrit"},` +
+		`{"system":"gerrit","id":"CLhaslanded","owner":"userTwo@example.com","status":"landed","subject":"was landed","updated":"2020-05-05T05:05:00Z","url":"example.com/CLhaslanded/gerrit"}],"offset":0,"size":50,"total":2147483647}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
+func TestGetChangelistsHandler2_RespectsPagination_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{{
+				ID:          dks.GerritCRS,
+				URLTemplate: "example.com/%s/gerrit",
+			}, {
+				ID:          dks.GerritInternalCRS,
+				URLTemplate: "example.com/%s/gerrit-internal",
+			}},
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?size=2&offset=1", nil)
+	wh.ChangelistsHandler2(w, r)
+	const expectedResponse = `{"changelists":[{"system":"gerrit","id":"CL_fix_ios","owner":"userOne@example.com","status":"open","subject":"Fix iOS","updated":"2020-12-10T04:05:06Z","url":"example.com/CL_fix_ios/gerrit"},` +
+		`{"system":"gerrit","id":"CLisabandoned","owner":"userOne@example.com","status":"abandoned","subject":"was abandoned","updated":"2020-06-06T06:06:00Z","url":"example.com/CLisabandoned/gerrit"}],"offset":1,"size":2,"total":2147483647}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
+func TestGetChangelistsHandler2_ActiveChangelists_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{{
+				ID:          dks.GerritCRS,
+				URLTemplate: "example.com/%s/gerrit",
+			}, {
+				ID:          dks.GerritInternalCRS,
+				URLTemplate: "example.com/%s/gerrit-internal",
+			}},
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?active=true", nil)
+	wh.ChangelistsHandler2(w, r)
+	const expectedResponse = `{"changelists":[{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"example.com/CL_new_tests/gerrit-internal"},` +
+		`{"system":"gerrit","id":"CL_fix_ios","owner":"userOne@example.com","status":"open","subject":"Fix iOS","updated":"2020-12-10T04:05:06Z","url":"example.com/CL_fix_ios/gerrit"}],"offset":0,"size":20,"total":2147483647}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
@@ -3725,6 +3805,15 @@ var (
 	secondRuleExpire = time.Date(2020, time.November, 30, 3, 4, 5, 0, time.UTC)
 	thirdRuleExpire  = time.Date(2020, time.November, 27, 3, 4, 5, 0, time.UTC)
 )
+
+// d converts the given digest to its corresponding DigestBytes types. It panics on a failure.
+func d(d types.Digest) schema.DigestBytes {
+	b, err := sql.DigestToBytes(d)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
 
 func makeIgnoreRules() []ignore.Rule {
 	return []ignore.Rule{

@@ -84,6 +84,20 @@ func TestCommentOnCLs_MultiplePatchsetsNeedComments_CommentsMade(t *testing.T) {
 		Order:         3,
 		GitHash:       "ffff111111111111111111111111111111111111",
 		CommentedOnCL: true,
+	}, {
+		PatchsetID:    "gerrit_PShaslanded",
+		System:        dks.GerritCRS,
+		ChangelistID:  "gerrit_CLhaslanded",
+		Order:         1,
+		GitHash:       "aaaaa11111111111111111111111111111111111",
+		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSisabandoned",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLisabandoned",
+		Order:         1,
+		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
+		CommentedOnCL: false,
 	}}, actualPatchsets)
 
 	actualChangelists := sqltest.GetAllRows(ctx, t, db, "Changelists", &schema.ChangelistRow{}).([]schema.ChangelistRow)
@@ -101,6 +115,20 @@ func TestCommentOnCLs_MultiplePatchsetsNeedComments_CommentsMade(t *testing.T) {
 		OwnerEmail:       dks.UserOne,
 		Subject:          "Fix iOS",
 		LastIngestedData: time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLhaslanded",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusLanded,
+		OwnerEmail:       dks.UserTwo,
+		Subject:          "was landed",
+		LastIngestedData: time.Date(2020, time.May, 5, 5, 5, 0, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLisabandoned",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusAbandoned,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "was abandoned",
+		LastIngestedData: time.Date(2020, time.June, 6, 6, 6, 0, 0, time.UTC),
 	}}, actualChangelists)
 
 	assert.Equal(t, c.lastCheck, afterCLs)
@@ -151,6 +179,20 @@ func TestCommentOnCLs_NoPatchsetsNeedComments_Success(t *testing.T) {
 		ChangelistID:  "gerrit_CL_fix_ios",
 		Order:         3,
 		GitHash:       "ffff111111111111111111111111111111111111",
+		CommentedOnCL: true,
+	}, {
+		PatchsetID:    "gerrit_PShaslanded",
+		System:        dks.GerritCRS,
+		ChangelistID:  "gerrit_CLhaslanded",
+		Order:         1,
+		GitHash:       "aaaaa11111111111111111111111111111111111",
+		CommentedOnCL: true,
+	}, {
+		PatchsetID:    "gerrit_PSisabandoned",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLisabandoned",
+		Order:         1,
+		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
 		CommentedOnCL: true,
 	}}, actualPatchsets)
 }
@@ -212,6 +254,20 @@ func TestCommentOnCLs_OnePatchsetNeedsComment_Success(t *testing.T) {
 		Order:         3,
 		GitHash:       "ffff111111111111111111111111111111111111",
 		CommentedOnCL: true,
+	}, {
+		PatchsetID:    "gerrit_PShaslanded",
+		System:        dks.GerritCRS,
+		ChangelistID:  "gerrit_CLhaslanded",
+		Order:         1,
+		GitHash:       "aaaaa11111111111111111111111111111111111",
+		CommentedOnCL: true,
+	}, {
+		PatchsetID:    "gerrit_PSisabandoned",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLisabandoned",
+		Order:         1,
+		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
+		CommentedOnCL: true,
 	}}, actualPatchsets)
 }
 
@@ -255,6 +311,20 @@ func TestCommentOnCLs_NoCLsInWindow_NothingUpdated(t *testing.T) {
 		ChangelistID:  "gerrit_CL_fix_ios",
 		Order:         3,
 		GitHash:       "ffff111111111111111111111111111111111111",
+		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PShaslanded",
+		System:        dks.GerritCRS,
+		ChangelistID:  "gerrit_CLhaslanded",
+		Order:         1,
+		GitHash:       "aaaaa11111111111111111111111111111111111",
+		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSisabandoned",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLisabandoned",
+		Order:         1,
+		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
 		CommentedOnCL: false,
 	}}, actualPatchsets)
 }
@@ -306,6 +376,20 @@ func TestCommentOnCLs_CLWasAbandoned_DBNotUpdated(t *testing.T) {
 		Order:         3,
 		GitHash:       "ffff111111111111111111111111111111111111",
 		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PShaslanded",
+		System:        dks.GerritCRS,
+		ChangelistID:  "gerrit_CLhaslanded",
+		Order:         1,
+		GitHash:       "aaaaa11111111111111111111111111111111111",
+		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSisabandoned",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLisabandoned",
+		Order:         1,
+		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
+		CommentedOnCL: false,
 	}}, actualPatchsets)
 
 	// The changelists records should not be altered here - that will be taken care of by
@@ -326,6 +410,20 @@ func TestCommentOnCLs_CLWasAbandoned_DBNotUpdated(t *testing.T) {
 		OwnerEmail:       dks.UserOne,
 		Subject:          "Fix iOS",
 		LastIngestedData: time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLhaslanded",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusLanded,
+		OwnerEmail:       dks.UserTwo,
+		Subject:          "was landed",
+		LastIngestedData: time.Date(2020, time.May, 5, 5, 5, 0, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLisabandoned",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusAbandoned,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "was abandoned",
+		LastIngestedData: time.Date(2020, time.June, 6, 6, 6, 0, 0, time.UTC),
 	}}, actualChangelists)
 }
 
@@ -379,6 +477,20 @@ func TestCommentOnCLs_CommentingResultsInError_ErrorLoggedNotReturned(t *testing
 		Order:         3,
 		GitHash:       "ffff111111111111111111111111111111111111",
 		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PShaslanded",
+		System:        dks.GerritCRS,
+		ChangelistID:  "gerrit_CLhaslanded",
+		Order:         1,
+		GitHash:       "aaaaa11111111111111111111111111111111111",
+		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSisabandoned",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLisabandoned",
+		Order:         1,
+		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
+		CommentedOnCL: false,
 	}}, actualPatchsets)
 }
 
@@ -430,6 +542,20 @@ func TestCommentOnCLs_CLNotFound_NoError(t *testing.T) {
 		ChangelistID:  "gerrit_CL_fix_ios",
 		Order:         3,
 		GitHash:       "ffff111111111111111111111111111111111111",
+		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PShaslanded",
+		System:        dks.GerritCRS,
+		ChangelistID:  "gerrit_CLhaslanded",
+		Order:         1,
+		GitHash:       "aaaaa11111111111111111111111111111111111",
+		CommentedOnCL: false,
+	}, {
+		PatchsetID:    "gerrit_PSisabandoned",
+		System:        "gerrit",
+		ChangelistID:  "gerrit_CLisabandoned",
+		Order:         1,
+		GitHash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555",
 		CommentedOnCL: false,
 	}}, actualPatchsets)
 }

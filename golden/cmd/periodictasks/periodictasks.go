@@ -459,6 +459,9 @@ ORDER BY 1, 3
 			newDigests = append(newDigests[:0], digest)
 		}
 	}
+	if currentGroupingID == nil {
+		return nil // nothing to report
+	}
 	// Publish the last set
 	if err := g.publisher.PublishWork(ctx, currentGrouping, newDigests); err != nil {
 		return skerr.Wrap(err)

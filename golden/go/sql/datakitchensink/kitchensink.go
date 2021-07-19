@@ -435,6 +435,29 @@ func RawBuilder() databuilder.TablesBuilder {
 			types.CorpusField: RoundCorpus, types.PrimaryKeyField: RoundRectTest,
 		}).Triage(DigestE03Unt_CL, schema.LabelNegative, schema.LabelUntriaged)
 
+	// Add two CLs that have a small amount of data, but are landed and/or abandoned
+	cl = b.AddChangelist(ChangelistIDThatHasLanded, GerritCRS, UserTwo, "was landed", schema.StatusLanded)
+	ps = cl.AddPatchset(PatchsetIDIsLanded, "aaaaa11111111111111111111111111111111111", 1)
+	ps.DataWithCommonKeys(paramtools.Params{
+		OSKey:     Windows10dot3OS,
+		DeviceKey: QuadroDevice,
+	}).Digests(DigestA01Pos).
+		Keys([]paramtools.Params{
+			{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest}}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob07Windows, BuildBucketCIS, "Test-Windows10.3-Some", Tryjob07FileWindows, "2020-05-05T05:05:00Z")
+
+	cl = b.AddChangelist(ChangelistIDThatIsAbandoned, GerritCRS, UserOne, "was abandoned", schema.StatusAbandoned)
+	ps = cl.AddPatchset(PatchsetIDIsAbandoned, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555", 1)
+	ps.DataWithCommonKeys(paramtools.Params{
+		OSKey:     Windows10dot3OS,
+		DeviceKey: QuadroDevice,
+	}).Digests(DigestA04Unt).
+		Keys([]paramtools.Params{
+			{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest}}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob08Windows, BuildBucketCIS, "Test-Windows10.3-Some", Tryjob08FileWindows, "2020-06-06T06:06:00Z")
+
 	b.ComputeDiffMetricsFromImages(GetImgDirectory(), "2020-12-12T12:12:12Z")
 	return b
 }
@@ -541,12 +564,20 @@ const (
 	PatchsetIDAddsNewCorpus        = "PS_adds_new_corpus"
 	PatchsetIDAddsNewCorpusAndTest = "PS_adds_new_corpus_and_test"
 
+	ChangelistIDThatHasLanded = "CLhaslanded"
+	PatchsetIDIsLanded        = "PShaslanded"
+
+	ChangelistIDThatIsAbandoned = "CLisabandoned"
+	PatchsetIDIsAbandoned       = "PSisabandoned"
+
 	Tryjob01IPhoneRGB = "tryjob_01_iphonergb"
 	Tryjob02IPad      = "tryjob_02_ipad"
 	Tryjob03TaimenRGB = "tryjob_03_taimenrgb"
 	Tryjob04Windows   = "tryjob_04_windows"
 	Tryjob05Windows   = "tryjob_05_windows"
 	Tryjob06Walleye   = "tryjob_06_walleye"
+	Tryjob07Windows   = "tryjob_07_windows"
+	Tryjob08Windows   = "tryjob_08_windows"
 )
 
 const (
@@ -598,6 +629,8 @@ const (
 	Tryjob04FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/12/08/PS_adds_new_corpus/windows.json"
 	Tryjob05FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/windows.json"
 	Tryjob06FileWalleye   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/walleye.json"
+	Tryjob07FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/05/05/05/PShaslanded/windows.json"
+	Tryjob08FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/06/06/06/PSisabandoned/windows.json"
 )
 
 const (

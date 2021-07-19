@@ -484,6 +484,85 @@ func (wh *Handlers) getIngestedChangelists(ctx context.Context, offset, size int
 	return retCls, pagination, nil
 }
 
+// ChangelistsHandler2 returns the list of code_review.Changelists that have
+// uploaded results to Gold (via TryJobs).
+func (wh *Handlers) ChangelistsHandler2(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_ChangelistsHandler2")
+	defer span.End()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	values := r.URL.Query()
+	offset, size, err := httputils.PaginationParams(values, 0, pageSize, maxPageSize)
+	if err != nil {
+		httputils.ReportError(w, err, "Invalid pagination params.", http.StatusInternalServerError)
+		return
+	}
+
+	_, activeOnly := values["active"]
+	cls, pagination, err := wh.getIngestedChangelists2(ctx, offset, size, activeOnly)
+
+	if err != nil {
+		httputils.ReportError(w, err, "Retrieving changelists results failed.", http.StatusInternalServerError)
+		return
+	}
+
+	response := frontend.ChangelistsResponse{
+		Changelists:        cls,
+		ResponsePagination: pagination,
+	}
+
+	sendJSONResponse(w, response)
+}
+
+func (wh *Handlers) getIngestedChangelists2(ctx context.Context, offset, size int, activeOnly bool) ([]frontend.Changelist, httputils.ResponsePagination, error) {
+	ctx, span := trace.StartSpan(ctx, "web_getIngestedChangelists2")
+	defer span.End()
+
+	statement := `SELECT changelist_id, system, status, owner_email, subject, last_ingested_data
+FROM Changelists AS OF SYSTEM TIME '-0.1s'`
+	if activeOnly {
+		statement += " WHERE status = 'open'"
+	} else {
+		// This lets us use the same statusIngestedIndex
+		statement += " WHERE status = ANY('open', 'landed', 'abandoned')"
+	}
+	statement += ` ORDER BY last_ingested_data DESC OFFSET $1 LIMIT $2`
+	rows, err := wh.DB.Query(ctx, statement, offset, size)
+	if err != nil {
+		return nil, httputils.ResponsePagination{}, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var rv []frontend.Changelist
+	for rows.Next() {
+		var cl frontend.Changelist
+		var qCLID string
+		if err := rows.Scan(&qCLID, &cl.System, &cl.Status, &cl.Owner, &cl.Subject, &cl.Updated); err != nil {
+			return nil, httputils.ResponsePagination{}, skerr.Wrap(err)
+		}
+		cl.Updated = cl.Updated.UTC()
+		cl.SystemID = sql.Unqualify(qCLID)
+		urlTempl := ""
+		for _, system := range wh.ReviewSystems {
+			if system.ID == cl.System {
+				urlTempl = system.URLTemplate
+				break
+			}
+		}
+		cl.URL = strings.Replace(urlTempl, "%s", cl.SystemID, 1)
+		rv = append(rv, cl)
+	}
+
+	pagination := httputils.ResponsePagination{
+		Offset: offset,
+		Size:   size,
+		Total:  clstore.CountMany, // exact count not important for most day-to-day work.
+	}
+	return rv, pagination, nil
+}
+
 // PatchsetsAndTryjobsForCL returns a summary of the data we have collected
 // for a given Changelist, specifically any TryJobs that have uploaded data
 // to Gold belonging to various patchsets in it.

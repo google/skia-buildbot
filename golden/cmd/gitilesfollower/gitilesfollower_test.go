@@ -606,6 +606,20 @@ func TestCheckForLandedCycle_CLExpectations_MergedIntoPrimaryBranch(t *testing.T
 		OwnerEmail:       dks.UserOne,
 		Subject:          "Fix iOS",
 		LastIngestedData: time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLhaslanded",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusLanded,
+		OwnerEmail:       dks.UserTwo,
+		Subject:          "was landed",
+		LastIngestedData: time.Date(2020, time.May, 5, 5, 5, 0, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLisabandoned",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusAbandoned,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "was abandoned",
+		LastIngestedData: time.Date(2020, time.June, 6, 6, 6, 0, 0, time.UTC),
 	}}, cls)
 
 	records := sqltest.GetAllRows(ctx, t, db, "ExpectationRecords", &schema.ExpectationRecordRow{}).([]schema.ExpectationRecordRow)
@@ -936,6 +950,20 @@ func TestCheckForLandedCycle_TriageExistingData_Success(t *testing.T) {
 		OwnerEmail:       dks.UserOne,
 		Subject:          "Fix iOS",
 		LastIngestedData: time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLhaslanded",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusLanded,
+		OwnerEmail:       dks.UserTwo,
+		Subject:          "was landed",
+		LastIngestedData: time.Date(2020, time.May, 5, 5, 5, 0, 0, time.UTC),
+	}, {
+		ChangelistID:     "gerrit_CLisabandoned",
+		System:           dks.GerritCRS,
+		Status:           schema.StatusAbandoned,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "was abandoned",
+		LastIngestedData: time.Date(2020, time.June, 6, 6, 6, 0, 0, time.UTC),
 	}}, cls)
 
 	records := sqltest.GetAllRows(ctx, t, db, "ExpectationRecords", &schema.ExpectationRecordRow{}).([]schema.ExpectationRecordRow)

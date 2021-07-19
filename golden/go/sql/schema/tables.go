@@ -745,6 +745,8 @@ type ChangelistRow struct {
 	// This index helps query for recently updated, open CLs. Keep an eye on this index, as it could
 	// lead to hotspotting: https://www.cockroachlabs.com/docs/v20.2/indexes.html#indexing-columns
 	systemStatusIngestedIndex struct{} `sql:"INDEX system_status_ingested_idx (system, status, last_ingested_data)"`
+	// This index helps with listing CLs.
+	statusIngestedIndex struct{} `sql:"INDEX status_ingested_idx (status, last_ingested_data DESC)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
