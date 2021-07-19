@@ -15,7 +15,7 @@ describe('processing-table-sk', () => {
   });
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/processing-table-sk.html`);
-    await testBed.page.setViewport({ width: 400, height: 500 });
+    await testBed.page.setViewport({ width: 1300, height: 1300 });
   });
 
   it('should render the demo page', async () => {
