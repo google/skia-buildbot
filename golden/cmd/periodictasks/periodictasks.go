@@ -43,6 +43,8 @@ const (
 	maxSQLConnections = 4
 )
 
+// TODO(kjlubick) Add a task to check for abandoned CLs.
+
 type periodicTasksConfig struct {
 	config.Common
 

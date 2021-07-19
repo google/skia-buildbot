@@ -67,9 +67,10 @@ export class ChangelistsPageSk extends ElementSk {
   `;
 
   private static statusIcon = (cl: Changelist) => {
-    if (cl.status === 'Open') {
+    const st = cl.status.toLowerCase();
+    if (st === 'open') {
       return html`<cached-icon-sk title="ChangeList is open"></cached-icon-sk>`;
-    } if (cl.status === 'Landed') {
+    } if (st === 'landed') {
       return html`<done-icon-sk title="ChangeList was landed"></done-icon-sk>`;
     }
     return html`<block-icon-sk title="ChangeList was abandoned"></block-icon-sk>`;
@@ -79,12 +80,18 @@ export class ChangelistsPageSk extends ElementSk {
   // stateReflector (which triggers on DomReady). Additionally, these values
   // help stateReflector with types.
   private cls: Changelist[] = [];
+
   private offset = 0;
+
   private pageSize = 0;
+
   private total = 0;
+
   private showAll = false;
 
-  private readonly stateChanged: () => void;
+  private useNewAPI = false;
+
+  private readonly stateChanged: ()=> void;
 
   // Allows us to abort fetches if a user pages.
   private fetchController?: AbortController;
@@ -97,6 +104,7 @@ export class ChangelistsPageSk extends ElementSk {
         offset: this.offset,
         page_size: this.pageSize,
         show_all: this.showAll,
+        use_new_api: this.useNewAPI,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -104,9 +112,9 @@ export class ChangelistsPageSk extends ElementSk {
 
         // default values if not specified.
         this.offset = newState.offset as number || 0;
-        this.pageSize =
-            newState.page_size as number || +this.getAttribute('page_size')! || 50;
+        this.pageSize = newState.page_size as number || +this.getAttribute('page_size')! || 50;
         this.showAll = newState.show_all as boolean || false;
+        this.useNewAPI = (newState.use_new_api as boolean) || false;
         this.fetch();
         this._render();
       },
@@ -134,7 +142,8 @@ export class ChangelistsPageSk extends ElementSk {
     };
 
     sendBeginTask(this);
-    let u = `/json/v1/changelists?offset=${this.offset}&size=${this.pageSize}`;
+    const base = this.useNewAPI ? '/json/v2/changelists' : '/json/v1/changelists';
+    let u = `${base}?offset=${this.offset}&size=${this.pageSize}`;
     if (!this.showAll) {
       u += '&active=true';
     }
