@@ -3,6 +3,8 @@ package web
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -3626,10 +3628,16 @@ func TestLatestPositiveDigest2_TracesExist_Success(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
-	windows10dot2RGBSquare := ",color mode=RGB,device=QuadroP400,name=square,os=Windows10.2,source_type=corners,"
-	ipadGreyTriangle := ",color mode=GREY,device=iPad6%2C3,name=triangle,os=iOS,source_type=corners,"
-	iphoneRGBCircle := ",color mode=RGB,device=iPhone12%2C1,name=circle,os=iOS,source_type=round,"
-	windows10dot3RGBCircle := ",color mode=RGB,device=QuadroP400,name=circle,os=Windows10.3,source_type=round,"
+	// Turn a JSON string into a tiling.TraceIDV2 by hashing and hex encoding it.
+	tID := func(j string) tiling.TraceIDV2 {
+		h := md5.Sum([]byte(j))
+		return tiling.TraceIDV2(hex.EncodeToString(h[:]))
+	}
+
+	windows10dot2RGBSquare := tID(`{"color mode":"RGB","device":"QuadroP400","name":"square","os":"Windows10.2","source_type":"corners"}`)
+	ipadGreyTriangle := tID(`{"color mode":"GREY","device":"iPad6,3","name":"triangle","os":"iOS","source_type":"corners"}`)
+	iphoneRGBCircle := tID(`{"color mode":"RGB","device":"iPhone12,1","name":"circle","os":"iOS","source_type":"round"}`)
+	windows10dot3RGBCircle := tID(`{"color mode":"RGB","device":"QuadroP400","name":"circle","os":"Windows10.3","source_type":"round"}`)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -3638,11 +3646,11 @@ func TestLatestPositiveDigest2_TracesExist_Success(t *testing.T) {
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 	}
 
-	test := func(name, traceID string, expectedDigest types.Digest) {
+	test := func(name string, traceID tiling.TraceIDV2, expectedDigest types.Digest) {
 		t.Run(name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-			r = mux.SetURLVars(r, map[string]string{"traceID": traceID})
+			r = mux.SetURLVars(r, map[string]string{"traceID": string(traceID)})
 
 			wh.LatestPositiveDigestHandler2(w, r)
 			expectedJSONResponse := `{"digest":"` + string(expectedDigest) + `"}`
@@ -3698,7 +3706,7 @@ func TestLatestPositiveDigest2_TraceDoesNotExist_ReturnsEmptyDigest(t *testing.T
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-	r = mux.SetURLVars(r, map[string]string{"traceID": ",foo=bar,"})
+	r = mux.SetURLVars(r, map[string]string{"traceID": "1234567890abcdef1234567890abcdef"})
 
 	wh.LatestPositiveDigestHandler2(w, r)
 	expectedJSONResponse := `{"digest":""}`

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,12 +14,11 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/now"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/gold-client/go/mocks"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/jsonio"
+	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/web/frontend"
@@ -876,7 +877,7 @@ func (t *threadSafeBuffer) String() string {
 type rpcResponsesBuilder struct {
 	knownDigests    []string
 	exp             *expectations.Expectations
-	latestPositives map[tiling.TraceID]types.Digest
+	latestPositives map[tiling.TraceIDV2]types.Digest
 	urlBase         string
 }
 
@@ -906,9 +907,10 @@ func (r *rpcResponsesBuilder) Known(digest types.Digest) *rpcResponsesBuilder {
 
 func (r *rpcResponsesBuilder) LatestPositive(digest types.Digest, traceKeys paramtools.Params) *rpcResponsesBuilder {
 	if len(r.latestPositives) == 0 {
-		r.latestPositives = map[tiling.TraceID]types.Digest{}
+		r.latestPositives = map[tiling.TraceIDV2]types.Digest{}
 	}
-	traceID := tiling.TraceIDFromParams(traceKeys)
+	_, traceIDBytes := sql.SerializeMap(traceKeys)
+	traceID := tiling.TraceIDV2(hex.EncodeToString(traceIDBytes))
 	r.latestPositives[traceID] = digest
 	return r
 }
@@ -1014,7 +1016,10 @@ fifth_digest`, string(b))
 	require.NoError(t, err)
 	assert.Equal(t, `{"primary":{"alpha test":{"fourth_digest":"negative","second_digest":"positive"},"beta test":{"third_digest":"positive"}}}`, string(b))
 
-	resp, err = mh.Get("http://my-custom-url.example.com/json/v2/latestpositivedigest/,alpha=beta,gamma=delta epsilon,")
+	const expectedTraceID = "fad8dda3d6600fde059cb81f4ec64059"
+	_, tb := sql.SerializeMap(map[string]string{"alpha": "beta", "gamma": "delta epsilon"})
+	require.Equal(t, expectedTraceID, hex.EncodeToString(tb))
+	resp, err = mh.Get("http://my-custom-url.example.com/json/v2/latestpositivedigest/" + expectedTraceID)
 	require.NoError(t, err)
 	b, err = ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)

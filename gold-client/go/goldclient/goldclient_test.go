@@ -3,6 +3,7 @@ package goldclient
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"image"
@@ -33,6 +34,7 @@ import (
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/image/text"
 	"go.skia.org/infra/golden/go/jsonio"
+	"go.skia.org/infra/golden/go/sql"
 	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
@@ -250,6 +252,10 @@ func TestInitUploadOnly(t *testing.T) {
 func TestAddResult_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const expectedTraceID = "673031cf116813b91be9c4ac14d62412"
+	_, tb := sql.SerializeMap(map[string]string{"alpha": "beta", "gamma": "delta", "name": "my_test", "source_type": "my_corpus"})
+	require.Equal(t, expectedTraceID, hex.EncodeToString(tb))
+
 	goldClient := CloudClient{
 		resultState: &resultState{
 			InstanceID: "my_instance", // Should be ignored.
@@ -276,11 +282,15 @@ func TestAddResult_Success(t *testing.T) {
 			},
 		},
 	}, goldClient.resultState.SharedConfig.Results)
-	assert.Equal(t, tiling.TraceID(",alpha=beta,gamma=delta,name=my_test,source_type=my_corpus,"), traceId)
+	assert.Equal(t, tiling.TraceIDV2(expectedTraceID), traceId)
 }
 
 func TestAddResult_NoCorpusSpecified_UsesInstanceIdAsCorpus_Success(t *testing.T) {
 	unittest.SmallTest(t)
+
+	const expectedTraceID = "b8bb20640d45f2fa4f2b52d1acb11abd"
+	_, tb := sql.SerializeMap(map[string]string{"alpha": "beta", "gamma": "delta", "name": "my_test", "source_type": "my_instance"})
+	require.Equal(t, expectedTraceID, hex.EncodeToString(tb))
 
 	goldClient := CloudClient{
 		resultState: &resultState{
@@ -309,7 +319,7 @@ func TestAddResult_NoCorpusSpecified_UsesInstanceIdAsCorpus_Success(t *testing.T
 			},
 		},
 	}, goldClient.resultState.SharedConfig.Results)
-	assert.Equal(t, tiling.TraceID(",alpha=beta,gamma=delta,name=my_test,source_type=my_instance,"), traceId)
+	assert.Equal(t, tiling.TraceIDV2(expectedTraceID), traceId)
 }
 
 // Report an image that does not match any previous digests.
@@ -922,7 +932,8 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// Mock out retrieving the latest positive image hash for ThisIsTheOnlyTest.
-	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/,another_notch=emeril,gpu=GPUTest,name=ThisIsTheOnlyTest,os=WinTest,source_type=gtest-pixeltests,"
+	// This hash comes from an MD5 hash of the key/values in the trace
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/84c1168e85de827b0b958c8994485e83"
 	const latestPositiveDigestResponse = `{"digest":"` + string(latestPositiveImageHash) + `"}`
 	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse(latestPositiveDigestResponse, "200 OK", http.StatusOK), nil)
 
@@ -1440,7 +1451,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 		sharedConfig      jsonio.GoldResults
 		additionalKeys    map[string]string
 		expectedResultKey map[string]string
-		expectedTraceId   tiling.TraceID
+		expectedTrace     paramtools.Params
 	}{
 		{
 			name: "no additional keys, nil shared config, corpus set to instance ID",
@@ -1448,7 +1459,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 				types.PrimaryKeyField: "my_test",
 				types.CorpusField:     instanceId,
 			},
-			expectedTraceId: tiling.TraceID(",name=my_test,source_type=my_instance,"),
+			expectedTrace: paramtools.Params{"name": "my_test", "source_type": instanceId},
 		},
 		{
 			name:         "no additional keys, empty shared config, corpus set to instance ID",
@@ -1457,7 +1468,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 				types.PrimaryKeyField: "my_test",
 				types.CorpusField:     instanceId,
 			},
-			expectedTraceId: tiling.TraceID(",name=my_test,source_type=my_instance,"),
+			expectedTrace: paramtools.Params{"name": "my_test", "source_type": instanceId},
 		},
 		{
 			name: "no additional keys, shared config with corpus, uses corpus from shared config",
@@ -1467,7 +1478,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 			expectedResultKey: map[string]string{
 				types.PrimaryKeyField: "my_test",
 			},
-			expectedTraceId: tiling.TraceID(",name=my_test,source_type=my_corpus,"),
+			expectedTrace: paramtools.Params{"name": "my_test", "source_type": "my_corpus"},
 		},
 		{
 			name:           "additional keys with corpus, empty shared config, uses corpus from additional keys",
@@ -1477,7 +1488,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 				types.PrimaryKeyField: "my_test",
 				types.CorpusField:     "my_corpus",
 			},
-			expectedTraceId: tiling.TraceID(",name=my_test,source_type=my_corpus,"),
+			expectedTrace: paramtools.Params{"name": "my_test", "source_type": "my_corpus"},
 		},
 		{
 			name: "additional keys with corpus, shared config with corpus, uses corpus from additional keys",
@@ -1489,7 +1500,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 				types.PrimaryKeyField: "my_test",
 				types.CorpusField:     "my_corpus",
 			},
-			expectedTraceId: tiling.TraceID(",name=my_test,source_type=my_corpus,"),
+			expectedTrace: paramtools.Params{"name": "my_test", "source_type": "my_corpus"},
 		},
 		{
 			name: "overlapping shared and additional keys, additional keys take precedence",
@@ -1511,7 +1522,13 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 				"overlapping_key":     "beta",
 				"additional_key":      "bar",
 			},
-			expectedTraceId: tiling.TraceID(",additional_key=bar,name=my_test,overlapping_key=beta,shared_key=foo,source_type=my_corpus,"),
+			expectedTrace: paramtools.Params{
+				types.PrimaryKeyField: "my_test",
+				types.CorpusField:     "my_corpus",
+				"shared_key":          "foo",
+				"overlapping_key":     "beta",
+				"additional_key":      "bar",
+			},
 		},
 	}
 
@@ -1523,9 +1540,11 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 				}),
 			}
 
-			resultKey, traceId := goldClient.makeResultKeyAndTraceId(testName, tc.additionalKeys)
+			resultKey, traceID := goldClient.makeResultKeyAndTraceId(testName, tc.additionalKeys)
 			assert.Equal(t, tc.expectedResultKey, resultKey)
-			assert.Equal(t, tc.expectedTraceId, traceId)
+			_, tb := sql.SerializeMap(tc.expectedTrace)
+			expectedTraceID := tiling.TraceIDV2(hex.EncodeToString(tb))
+			assert.Equal(t, expectedTraceID, traceID)
 		})
 	}
 }
@@ -1639,10 +1658,10 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	const testName = types.TestName("my_test")
-	const traceId = tiling.TraceID(",name=my_test,")
+	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
 	const digest = types.Digest("11111111111111111111111111111111")
 
-	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/,name=my_test,"
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/1234567890abcdef1234567890abcdef"
 	const latestPositiveDigestResponse = `{"digest":"22222222222222222222222222222222"}`
 	const latestPositiveDigest = types.Digest("22222222222222222222222222222222")
 	latestPositiveImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -1757,13 +1776,13 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	const testName = types.TestName("my_test")
-	const traceId = tiling.TraceID(",name=my_test,")
+	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
 	const digest = types.Digest("11111111111111111111111111111111")
 	imageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
 	1 1
 	0x00000000`))
 
-	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/,name=my_test,"
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/1234567890abcdef1234567890abcdef"
 	const latestPositiveDigestResponse = `{"digest":""}`
 
 	goldClient, ctx, httpClient, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
@@ -1821,7 +1840,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	const testName = types.TestName("my_test")
-	const traceId = tiling.TraceID(",name=my_test,")
+	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
 	const digest = types.Digest("11111111111111111111111111111111")
 	testImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
 	8 8
@@ -1834,7 +1853,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 	0x49 0x83 0x88 0x88 0x88 0x88 0x88 0x88
 	0x83 0x88 0x88 0x88 0x88 0x88 0x88 0x88`))
 
-	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/,name=my_test,"
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v2/latestpositivedigest/1234567890abcdef1234567890abcdef"
 	const latestPositiveDigestResponse = `{"digest":"22222222222222222222222222222222"}`
 	const latestPositiveDigest = types.Digest("22222222222222222222222222222222")
 	latestPositiveImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -2250,8 +2269,8 @@ func TestCloudClient_MostRecentPositiveDigest_Success(t *testing.T) {
 	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
-	const traceId = tiling.TraceID(",foo=bar,")
-	const url = "https://testing-gold.skia.org/json/v2/latestpositivedigest/,foo=bar,"
+	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
+	const url = "https://testing-gold.skia.org/json/v2/latestpositivedigest/1234567890abcdef1234567890abcdef"
 	const response = `{"digest":"deadbeefcafefe771d61bf0ed3d84bc2"}`
 	const expectedDigest = types.Digest("deadbeefcafefe771d61bf0ed3d84bc2")
 
@@ -2278,8 +2297,8 @@ func TestCloudClient_MostRecentPositiveDigest_NonJSONResponse_Failure(t *testing
 	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
-	const traceId = tiling.TraceID(",foo=bar,")
-	const url = "https://testing-gold.skia.org/json/v2/latestpositivedigest/,foo=bar,"
+	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
+	const url = "https://testing-gold.skia.org/json/v2/latestpositivedigest/1234567890abcdef1234567890abcdef"
 	const response = "Not JSON"
 
 	httpClient.On("Get", url).Return(httpResponse(response, "200 OK", http.StatusOK), nil)
@@ -2305,8 +2324,8 @@ func TestCloudClient_MostRecentPositiveDigest_InternalServerError_Failure(t *tes
 	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
-	const traceId = tiling.TraceID(",foo=bar,")
-	const url = "https://testing-gold.skia.org/json/v2/latestpositivedigest/,foo=bar,"
+	const traceId = tiling.TraceIDV2("1234567890abcdef1234567890abcdef")
+	const url = "https://testing-gold.skia.org/json/v2/latestpositivedigest/1234567890abcdef1234567890abcdef"
 
 	httpClient.On("Get", url).Return(httpResponse("", "500 Internal Server Error", http.StatusInternalServerError), nil)
 

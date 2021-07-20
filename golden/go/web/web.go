@@ -2648,14 +2648,11 @@ func (wh *Handlers) LatestPositiveDigestHandler2(w http.ResponseWriter, r *http.
 		http.Error(w, "Must specify traceID.", http.StatusBadRequest)
 		return
 	}
-
-	traceKeys, err := tiling.ParseTraceID(tID)
-	if err != nil || len(traceKeys) == 0 {
-		httputils.ReportError(w, err, "Invalid traceID.", http.StatusBadRequest)
+	traceID, err := hex.DecodeString(tID)
+	if err != nil {
+		httputils.ReportError(w, err, "Invalid traceID - must be an MD5 hash", http.StatusBadRequest)
 		return
 	}
-
-	_, traceID := sql.SerializeMap(traceKeys)
 	digest, err := wh.getLatestPositiveDigest(ctx, traceID)
 	if err != nil {
 		httputils.ReportError(w, err, "Could not complete query.", http.StatusInternalServerError)

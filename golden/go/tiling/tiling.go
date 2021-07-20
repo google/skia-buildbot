@@ -7,7 +7,12 @@ import (
 )
 
 // TraceID helps document when strings should represent ids of traces
+// This form of id is a comma separated listed of key-value pairs.
 type TraceID string
+
+// TraceIDV2 helps document when strings should represent ids of traces
+// This form of is is a hex-encoded MD5 hash. The hash is of a JSON representation of the keys.
+type TraceIDV2 string
 
 // Commit is information about each Git commit.
 // TODO(kjlubick) Why does this need to have its own type? Can't it use one of the other Commit

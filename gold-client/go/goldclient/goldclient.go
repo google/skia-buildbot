@@ -18,16 +18,17 @@ import (
 	"sort"
 	"strings"
 
-	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/gold-client/go/imgmatching"
-	"go.skia.org/infra/golden/go/tiling"
 	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/jsonutils"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/jsonio"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/web/frontend"
 )
@@ -113,7 +114,7 @@ type GoldClient interface {
 
 	// MostRecentPositiveDigest retrieves the most recent positive digest for the given trace via
 	// Gold's /json/v2/latestpositivedigest/{traceId} endpoint.
-	MostRecentPositiveDigest(ctx context.Context, traceId tiling.TraceID) (types.Digest, error)
+	MostRecentPositiveDigest(ctx context.Context, traceId tiling.TraceIDV2) (types.Digest, error)
 }
 
 // GoldClientDebug contains some "optional" methods that can assist
@@ -307,7 +308,7 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 	}
 
 	// Add the result of this test.
-	traceId := c.addResult(name, imgDigest, additionalKeys, optionalKeys)
+	traceID := c.addResult(name, imgDigest, additionalKeys, optionalKeys)
 
 	// At this point the result should be correct for uploading.
 	if err := c.resultState.SharedConfig.Validate(); err != nil {
@@ -339,7 +340,7 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 		})
 
 		egroup.Go(func() error {
-			match, algorithmName, err := c.matchImageAgainstBaseline(ctx, name, traceId, imgBytes, imgDigest, optionalKeys)
+			match, algorithmName, err := c.matchImageAgainstBaseline(ctx, name, traceID, imgBytes, imgDigest, optionalKeys)
 			if err != nil {
 				return skerr.Wrapf(err, "matching image against baseline")
 			}
@@ -430,7 +431,7 @@ func (c *CloudClient) Check(ctx context.Context, name types.TestName, imgFileNam
 //
 // A non-nil error is returned if there are any problems parsing or instantiating the specified
 // image matching algorithm, for example if there are any missing parameters.
-func (c *CloudClient) matchImageAgainstBaseline(ctx context.Context, testName types.TestName, traceId tiling.TraceID, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (bool, imgmatching.AlgorithmName, error) {
+func (c *CloudClient) matchImageAgainstBaseline(ctx context.Context, testName types.TestName, traceId tiling.TraceIDV2, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (bool, imgmatching.AlgorithmName, error) {
 	// First we check whether the digest is a known positive or negative, regardless of the specified
 	// image matching algorithm.
 	if c.resultState.Expectations[testName][imageHash] == expectations.Positive {
@@ -510,7 +511,7 @@ func (c *CloudClient) getResultStatePath() string {
 }
 
 // addResult adds the given test to the overall results and returns the ID of the affected trace.
-func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys, optionalKeys map[string]string) tiling.TraceID {
+func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys, optionalKeys map[string]string) tiling.TraceIDV2 {
 	key, traceID := c.makeResultKeyAndTraceId(name, additionalKeys)
 
 	newResult := jsonio.Result{
@@ -531,7 +532,7 @@ func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, addit
 }
 
 // makeResultKeyAndTraceId computes the key for a jsonio.Result and its corresponding trace ID.
-func (c *CloudClient) makeResultKeyAndTraceId(name types.TestName, additionalKeys map[string]string) (map[string]string, tiling.TraceID) {
+func (c *CloudClient) makeResultKeyAndTraceId(name types.TestName, additionalKeys map[string]string) (map[string]string, tiling.TraceIDV2) {
 	// Retrieve the shared keys given the via the "imgtest init" command with the --keys-file flag.
 	// If said command was not previously invoked (e.g. when calling "imgtest check") the shared
 	// config will be nil, in which case we initialize the shared keys as an empty map.
@@ -557,7 +558,15 @@ func (c *CloudClient) makeResultKeyAndTraceId(name types.TestName, additionalKey
 	traceParams := paramtools.Params{}
 	traceParams.Add(sharedKeys, resultKey)
 
-	return resultKey, tiling.TraceIDFromParams(traceParams)
+	return resultKey, createTraceIDV2(traceParams)
+}
+
+// createTraceIDV2 encodes the params to JSON and then hex encodes it to create a traceIDV2.
+// We do not use the code in the sql package to avoid bringing a lot of extra dependencies into this
+// executable (but the fact that they match is covered by unit tests).
+func createTraceIDV2(keys paramtools.Params) tiling.TraceIDV2 {
+	h := md5.Sum(jsonutils.MarshalStringMap(keys))
+	return tiling.TraceIDV2(hex.EncodeToString(h[:]))
 }
 
 // downloadHashesAndBaselineFromGold downloads the hashes and baselines
@@ -767,8 +776,8 @@ func (c *CloudClient) TriageAsPositive(ctx context.Context, testName types.TestN
 }
 
 // MostRecentPositiveDigest fulfills the GoldClient interface.
-func (c *CloudClient) MostRecentPositiveDigest(ctx context.Context, traceId tiling.TraceID) (types.Digest, error) {
-	endpointUrl := c.resultState.GoldURL + "/json/v2/latestpositivedigest/" + string(traceId)
+func (c *CloudClient) MostRecentPositiveDigest(ctx context.Context, id tiling.TraceIDV2) (types.Digest, error) {
+	endpointUrl := c.resultState.GoldURL + "/json/v2/latestpositivedigest/" + string(id)
 
 	jsonBytes, err := getWithRetries(ctx, endpointUrl)
 	if err != nil {

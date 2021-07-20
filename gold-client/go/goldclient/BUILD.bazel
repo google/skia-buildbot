@@ -13,6 +13,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/fileutil",
+        "//go/jsonutils",
         "//go/now",
         "//go/paramtools",
         "//go/skerr",
@@ -56,6 +57,7 @@ go_test(
         "//golden/go/expectations",
         "//golden/go/image/text",
         "//golden/go/jsonio",
+        "//golden/go/sql",
         "//golden/go/testutils/data_one_by_five",
         "//golden/go/tiling",
         "//golden/go/types",
