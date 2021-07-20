@@ -1,7 +1,7 @@
 KGO := CGO_ENABLED=0 GOOS=linux go build
 
 .PHONY: default
-default: frontend allgo
+default: allgo
 
 .PHONY: packages
 packages:
@@ -17,53 +17,16 @@ bench:
 	go test ./go/... -bench=. -run=NONE
 
 .PHONY: test
-test: go-test js-test puppeteer-test
+test: go-test
 	true
 
 .PHONY: go-test
 go-test:
 	go test ./go/...
 
-.PHONY: js-test
-js-test: npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
-
-.PHONY: js-test-debug
-js-test-debug: npm-ci
-	npx karma start --no-single-run
-
-# Increase Node's heap size to accommodate for ts-node's higher memory usage.
-NODE_MEMORY_LIMIT=4096
-
-.PHONY: puppeteer-test
-puppeteer-test: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
-	echo "results are found in ../puppeteer-tests/output"
-
-.PHONY: puppeteer-test-debug
-puppeteer-test-debug: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
-	echo "results are found in ../puppeteer-tests/output"
-
-.PHONY: frontend
-frontend: npm-ci
-	npx webpack-cli --mode=production
-
-.PHONY: frontend-debug
-frontend-debug: npm-ci
-	npx webpack-cli --mode=development
-
-.PHONY: serve
-serve: npm-ci
-	npx webpack-dev-server --watch-poll --mode=development
-
 .PHONY: allgo
 allgo:
 	go install -v ./cmd/...
-
-.PHONY: k8s-release-frontend
-k8s-release-frontend: build-static-frontend frontend
-	./k8s_release_frontend
 
 .PHONY: k8s-release-baseline-server
 k8s-release-baseline-server: build-static-baseline-server
@@ -177,13 +140,3 @@ mocks:
 	echo "https://github.com/vektra/mockery/releases"
 	echo "and put it on your PATH"
 	go generate ./...
-
-.PHONY: build-frontend-ci
-build-frontend-ci: npm-ci
-	npx webpack --mode=production
-
-.PHONY: test-frontend-ci
-test-frontend-ci: npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
-
-include ../make/npm.mk

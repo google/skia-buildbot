@@ -101,7 +101,6 @@ build-frontend-ci: npm-ci
 	cd debugger-app && $(MAKE) build-frontend-ci
 	cd demos && $(MAKE) build-frontend-ci
 	cd fiddlek && $(MAKE) build-frontend-ci
-	cd golden && $(MAKE) build-frontend-ci
 	cd hashtag && $(MAKE) build-frontend-ci
 	cd infra-sk && $(MAKE) build-frontend-ci
 	cd jsfiddle && $(MAKE) build-frontend-ci
@@ -130,7 +129,6 @@ test-frontend-ci: npm-ci
 	cd debugger-app && $(MAKE) test-frontend-ci
 	cd demos && $(MAKE) test-frontend-ci
 	cd fiddlek && $(MAKE) test-frontend-ci
-	cd golden && $(MAKE) test-frontend-ci
 	cd infra-sk && $(MAKE) test-frontend-ci
 	cd machine && $(MAKE) test-frontend-ci
 	cd new_element && $(MAKE) test-frontend-ci
