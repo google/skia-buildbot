@@ -10,6 +10,7 @@ RUN groupadd -g 2000 skia \
   git \
   curl \
   clang \
+  nodejs \
   wget
 
 USER skia
@@ -56,9 +57,6 @@ RUN cd $GOPATH/src/go.skia.org/infra/fiddlek \
   && make fiddle_secwrap
 
 USER root
-
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
-  && apt-get install -y nodejs
 
 # USER skia
 #
