@@ -326,7 +326,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		return nil
 	})
 	f(F_CLOSE_DRY_RUN_FAILED, func(ctx context.Context, roll RollCLImpl) error {
-		if err := roll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll.")); err != nil {
+		if err := roll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_FAILURE, fmt.Sprintf("Dry run failed; closing this roll.")); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue dry run failed and there are new commits to try.")
@@ -377,9 +377,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		return nil
 	})
 	f(F_RETRY_FAILED_NORMAL, func(ctx context.Context, roll RollCLImpl) error {
-		// TODO(borenet): The CQ will fail forever in the case of a
-		// merge conflict; we should really patch in the CL, rebase and
-		// upload again.
+		sklog.Infof("CQ failed but no new commits; retrying CQ.")
 		if err := roll.RetryCQ(ctx); err != nil {
 			return err
 		}
@@ -388,9 +386,6 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	})
 	f(F_RETRY_FAILED_DRY_RUN, func(ctx context.Context, roll RollCLImpl) error {
 		sklog.Infof("Dry run failed but no new commits; retrying CQ.")
-		// TODO(borenet): The CQ will fail forever in the case of a
-		// merge conflict; we should really patch in the CL, rebase and
-		// upload again.
 		if err := roll.RetryDryRun(ctx); err != nil {
 			return err
 		}

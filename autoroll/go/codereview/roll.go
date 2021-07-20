@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	github_api "github.com/google/go-github/v29/github"
@@ -25,6 +26,10 @@ const (
 	// GitHubPRDurationForChecks is the duration after a PR is created that
 	// checks should be looked at.
 	GitHubPRDurationForChecks = time.Minute * 15
+
+	// ErrMergeConflict as a substring of an error message indicates that a
+	// merge conflict occurred.
+	ErrMergeConflict = "conflict during merge"
 )
 
 // RollImpl describes the behavior of an autoroll CL.
@@ -250,6 +255,11 @@ func (r *gerritRoll) maybeRebaseCL(ctx context.Context) error {
 	} else if rollCommit.Parents[0].Commit != head.Hash {
 		sklog.Infof("HEAD is %s and CL is based on %s; attempting rebase.", head.Hash, rollCommit.Parents[0].Commit)
 		if err := r.g.Rebase(ctx, r.ci, "", false); err != nil {
+			if strings.Contains(err.Error(), ErrMergeConflict) {
+				if err2 := r.g.Abandon(ctx, r.ci, "Failed to rebase due to merge conflict; closing CL."); err2 != nil {
+					return skerr.Wrapf(err, "failed to rebase due to merge conflict and failed to abandon CL with: %s", err2)
+				}
+			}
 			return skerr.Wrap(err)
 		}
 		return r.Update(ctx)
