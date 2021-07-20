@@ -5613,6 +5613,81 @@ func TestCountDigestsByTest_FilteredByParamset_NotImplemented(t *testing.T) {
 	assert.Contains(t, err.Error(), "not implemented")
 }
 
+func TestComputeGUIStatus_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	s := New(db, 100)
+
+	res, err := s.ComputeGUIStatus(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, frontend.GUIStatus{
+		LastCommit: frontend.Commit{
+			ID:         "0000000110",
+			Author:     dks.UserTwo,
+			Subject:    "commit 110",
+			Hash:       "f4412901bfb130a8774c0c719450d1450845f471",
+			CommitTime: 1607644800, // "2020-12-11T00:00:00Z"
+		},
+		CorpStatus: []frontend.GUICorpusStatus{
+			{
+				Name:           dks.CornersCorpus,
+				UntriagedCount: 0,
+			},
+			{
+				Name:           dks.RoundCorpus,
+				UntriagedCount: 3,
+			},
+		},
+	}, res)
+}
+
+func TestComputeGUIStatus_RespectsPublicParams_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
+		dks.RoundCorpus: {
+			dks.DeviceKey: {dks.QuadroDevice},
+		},
+	})
+	require.NoError(t, err)
+
+	s := New(db, 100)
+	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
+
+	res, err := s.ComputeGUIStatus(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, frontend.GUIStatus{
+		LastCommit: frontend.Commit{
+			ID:         "0000000110",
+			Author:     dks.UserTwo,
+			Subject:    "commit 110",
+			Hash:       "f4412901bfb130a8774c0c719450d1450845f471",
+			CommitTime: 1607644800, // "2020-12-11T00:00:00Z"
+		},
+		CorpStatus: []frontend.GUICorpusStatus{
+			// We should not acknowledge that the corners corpus even exists because
+			// it's not in the matcher
+			{
+				Name:           dks.RoundCorpus,
+				UntriagedCount: 2,
+			},
+		},
+	}, res)
+}
+
 var kitchenSinkCommits = makeKitchenSinkCommits()
 
 func makeKitchenSinkCommits() []frontend.Commit {

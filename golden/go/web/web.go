@@ -3180,9 +3180,9 @@ func convertChangelistSummaryResponseV1(summary search2.NewAndUntriagedSummary) 
 
 // StartCacheWarming starts warming the caches for data we want to serve quickly. It starts
 // goroutines that will run in the background (until the provided context is cancelled).
-func (wh *Handlers) StartCacheWarming(ctx context.Context, windowSize int) {
+func (wh *Handlers) StartCacheWarming(ctx context.Context) {
 	wh.startCLCacheProcess(ctx)
-	wh.startStatusCacheProcess(ctx, windowSize)
+	wh.startStatusCacheProcess(ctx)
 }
 
 // startCLCacheProcess starts a go routine to warm the CL Summary cache. This way, most
@@ -3247,74 +3247,16 @@ SELECT changelist_id FROM ChangelistsWithTriageActivity
 }
 
 // startStatusCacheProcess
-func (wh *Handlers) startStatusCacheProcess(ctx context.Context, windowSize int) {
+func (wh *Handlers) startStatusCacheProcess(ctx context.Context) {
 	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
 		ctx, span := trace.StartSpan(ctx, "web_warmStatusCacheCycle", trace.WithSampler(trace.AlwaysSample()))
 		defer span.End()
 
-		var gs frontend.GUIStatus
-		row := wh.DB.QueryRow(ctx, `SELECT git_hash, GitCommits.commit_id, commit_time, author_email, subject
-FROM GitCommits JOIN CommitsWithData ON GitCommits.commit_id = CommitsWithData.commit_id
-AS OF SYSTEM TIME '-0.1s'
-ORDER BY CommitsWithData.commit_id DESC LIMIT 1`)
-		var ts time.Time
-		if err := row.Scan(&gs.LastCommit.Hash, &gs.LastCommit.ID, &ts,
-			&gs.LastCommit.Author, &gs.LastCommit.Subject); err != nil {
-			sklog.Errorf("Could not get most recent commit with data: %s", err)
-			return
-		}
-		gs.LastCommit.CommitTime = ts.UTC().Unix()
-
-		const statement = `WITH
-CommitsInWindow AS (
-	SELECT commit_id FROM CommitsWithData
-	ORDER BY commit_id DESC LIMIT $1
-),
-OldestCommitInWindow AS (
-	SELECT commit_id FROM CommitsInWindow
-	ORDER BY commit_id ASC LIMIT 1
-),
-DistinctNotIgnoredDigests AS (
-	SELECT DISTINCT corpus, digest, grouping_id FROM ValuesAtHead
-	JOIN OldestCommitInWindow ON ValuesAtHead.most_recent_commit_id >= OldestCommitInWindow.commit_id
-	WHERE matches_any_ignore_rule = FALSE
-),
-CorporaWithAtLeastOneTriaged AS (
-    SELECT corpus, COUNT(DistinctNotIgnoredDigests.digest) AS num_untriaged FROM DistinctNotIgnoredDigests
-    JOIN Expectations ON DistinctNotIgnoredDigests.grouping_id = Expectations.grouping_id AND
-        DistinctNotIgnoredDigests.digest = Expectations.digest AND label = 'u'
-    GROUP BY corpus
-),
-AllCorpora AS (
-    -- Corpora with no untriaged digests will not show up in CorporaWithAtLeastOneTriaged.
-    -- We still want to include them in our status, so we do a separate query and union it in.
-    SELECT DISTINCT corpus, 0 AS num_untriaged FROM ValuesAtHead
-    JOIN OldestCommitInWindow ON ValuesAtHead.most_recent_commit_id >= OldestCommitInWindow.commit_id
-)
-SELECT corpus, max(num_untriaged) FROM (
-    SELECT corpus, num_untriaged FROM AllCorpora
-    UNION
-    SELECT corpus, num_untriaged FROM CorporaWithAtLeastOneTriaged
-) GROUP BY corpus`
-
-		rows, err := wh.DB.Query(ctx, statement, windowSize)
+		gs, err := wh.Search2API.ComputeGUIStatus(ctx)
 		if err != nil {
-			sklog.Errorf("Could not update status cache: %s", err)
+			sklog.Errorf("Could not compute GUI Status: %s", err)
 			return
 		}
-		defer rows.Close()
-		for rows.Next() {
-			var cs frontend.GUICorpusStatus
-			if err := rows.Scan(&cs.Name, &cs.UntriagedCount); err != nil {
-				sklog.Errorf("Could not scan status cache: %s", err)
-				return
-			}
-			gs.CorpStatus = append(gs.CorpStatus, &cs)
-		}
-
-		sort.Slice(gs.CorpStatus, func(i, j int) bool {
-			return gs.CorpStatus[i].Name < gs.CorpStatus[j].Name
-		})
 
 		wh.statusCacheMutex.Lock()
 		defer wh.statusCacheMutex.Unlock()

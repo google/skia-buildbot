@@ -693,7 +693,7 @@ type GUIStatus struct {
 	// Last commit for which data was ingested..
 	LastCommit Commit `json:"lastCommit"`
 	// Status per corpus.
-	CorpStatus []*GUICorpusStatus `json:"corpStatus" go2ts:"ignorenil"`
+	CorpStatus []GUICorpusStatus `json:"corpStatus" go2ts:"ignorenil"`
 }
 
 type GUICorpusStatus struct {

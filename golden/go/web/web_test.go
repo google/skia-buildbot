@@ -2682,52 +2682,6 @@ func TestStartCLCacheProcess_Success(t *testing.T) {
 	assert.True(t, wh.clSummaryCache.Contains("gerrit-internal_CL_new_tests"))
 }
 
-func TestStartStatusCacheProcess_Success(t *testing.T) {
-	unittest.LargeTest(t)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
-
-	wh := Handlers{
-		HandlersConfig: HandlersConfig{
-			DB: db,
-		},
-	}
-
-	wh.startStatusCacheProcess(ctx, 100)
-	// Wait for the cache to be filled
-	require.Eventually(t, func() bool {
-		wh.statusCacheMutex.RLock()
-		defer wh.statusCacheMutex.RUnlock()
-		return len(wh.statusCache.CorpStatus) > 0
-	}, 5*time.Second, 100*time.Millisecond)
-
-	wh.statusCacheMutex.RLock()
-	defer wh.statusCacheMutex.RUnlock()
-	assert.Equal(t, frontend.GUIStatus{
-		LastCommit: frontend.Commit{
-			ID:         "0000000110",
-			Author:     dks.UserTwo,
-			Subject:    "commit 110",
-			Hash:       "f4412901bfb130a8774c0c719450d1450845f471",
-			CommitTime: 1607644800, // "2020-12-11T00:00:00Z"
-		},
-		CorpStatus: []*frontend.GUICorpusStatus{
-			{
-				Name:           dks.CornersCorpus,
-				UntriagedCount: 0,
-			},
-			{
-				Name:           dks.RoundCorpus,
-				UntriagedCount: 3,
-			},
-		},
-	}, wh.statusCache)
-}
-
 func TestStatusHandler2_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -2739,7 +2693,7 @@ func TestStatusHandler2_Success(t *testing.T) {
 			Hash:       "f4412901bfb130a8774c0c719450d1450845f471",
 			CommitTime: 1607644800, // "2020-12-11T00:00:00Z"
 		},
-		CorpStatus: []*frontend.GUICorpusStatus{
+		CorpStatus: []frontend.GUICorpusStatus{
 			{
 				Name:           dks.CornersCorpus,
 				UntriagedCount: 0,

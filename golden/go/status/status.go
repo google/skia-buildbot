@@ -25,7 +25,7 @@ const (
 	corpusMetric       = "gold_status_by_corpus"
 )
 
-type CorpusStatusSorter []*frontend.GUICorpusStatus
+type CorpusStatusSorter []frontend.GUICorpusStatus
 
 // Implement sort.Interface
 func (c CorpusStatusSorter) Len() int           { return len(c) }
@@ -231,12 +231,12 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 	allUntriagedCount := 0
 	allPositiveCount := 0
 	allNegativeCount := 0
-	corpStatus := make([]*frontend.GUICorpusStatus, 0, len(byCorpus))
+	corpStatus := make([]frontend.GUICorpusStatus, 0, len(byCorpus))
 	for corpus := range byCorpus {
 		untriagedCount := len(byCorpus[corpus][expectations.Untriaged])
 		positiveCount := len(byCorpus[corpus][expectations.Positive])
 		negativeCount := len(byCorpus[corpus][expectations.Negative])
-		corpStatus = append(corpStatus, &frontend.GUICorpusStatus{
+		corpStatus = append(corpStatus, frontend.GUICorpusStatus{
 			Name:           corpus,
 			UntriagedCount: untriagedCount,
 		})

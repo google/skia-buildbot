@@ -45,6 +45,27 @@ func (_m *API) ChangelistLastUpdated(ctx context.Context, qCLID string) (time.Ti
 	return r0, r1
 }
 
+// ComputeGUIStatus provides a mock function with given fields: ctx
+func (_m *API) ComputeGUIStatus(ctx context.Context) (frontend.GUIStatus, error) {
+	ret := _m.Called(ctx)
+
+	var r0 frontend.GUIStatus
+	if rf, ok := ret.Get(0).(func(context.Context) frontend.GUIStatus); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Get(0).(frontend.GUIStatus)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CountDigestsByTest provides a mock function with given fields: ctx, q
 func (_m *API) CountDigestsByTest(ctx context.Context, q frontend.ListTestsQuery) (frontend.ListTestsResponse, error) {
 	ret := _m.Called(ctx, q)

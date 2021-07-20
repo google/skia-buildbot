@@ -87,6 +87,10 @@ type API interface {
 	// CountDigestsByTest summarizes the counts of digests according to some limited filtering
 	// and breaks it down by test.
 	CountDigestsByTest(ctx context.Context, q frontend.ListTestsQuery) (frontend.ListTestsResponse, error)
+
+	// ComputeGUIStatus looks at all visible traces at head and returns a summary of how many are
+	// untriaged for each corpus, as well as the most recent commit for which we have data.
+	ComputeGUIStatus(ctx context.Context) (frontend.GUIStatus, error)
 }
 
 // NewAndUntriagedSummary is a summary of the results associated with a given CL. It focuses on
@@ -183,7 +187,9 @@ type Impl struct {
 	digestsOnPrimary map[groupingDigestKey]struct{}
 	// This caches the trace ids that are publicly visible.
 	publiclyVisibleTraces map[schema.MD5Hash]struct{}
-	isPublicView          bool
+	// This caches the corpora names that are publicly visible.
+	publiclyVisibleCorpora map[string]struct{}
+	isPublicView           bool
 
 	commitCache          *lru.Cache
 	optionsGroupingCache *lru.Cache
@@ -457,6 +463,7 @@ func (s *Impl) StartApplyingPublicParams(ctx context.Context, matcher publicpara
 		if err != nil {
 			return skerr.Wrap(err)
 		}
+		publiclyVisibleCorpora := map[string]struct{}{}
 		publiclyVisibleTraces := map[schema.MD5Hash]struct{}{}
 		var yes struct{}
 		var traceKey schema.MD5Hash
@@ -470,11 +477,13 @@ func (s *Impl) StartApplyingPublicParams(ctx context.Context, matcher publicpara
 			if matcher.Matches(keys) {
 				copy(traceKey[:], traceID)
 				publiclyVisibleTraces[traceKey] = yes
+				publiclyVisibleCorpora[keys[types.CorpusField]] = yes
 			}
 		}
 		s.mutex.Lock()
 		defer s.mutex.Unlock()
 		s.publiclyVisibleTraces = publiclyVisibleTraces
+		s.publiclyVisibleCorpora = publiclyVisibleCorpora
 		return nil
 	}
 	if err := cycle(ctx); err != nil {
@@ -3610,6 +3619,163 @@ func digestCountTracesStatement(q frontend.ListTestsQuery) (string, []interface{
 	}
 	statement += "),"
 	return statement, arguments, nil
+}
+
+// ComputeGUIStatus implements the API interface. It has special logic for public views vs the
+// normal views to avoid leaking.
+func (s *Impl) ComputeGUIStatus(ctx context.Context) (frontend.GUIStatus, error) {
+	ctx, span := trace.StartSpan(ctx, "search2_ComputeGUIStatus")
+	defer span.End()
+
+	var gs frontend.GUIStatus
+	row := s.db.QueryRow(ctx, `SELECT git_hash, GitCommits.commit_id, commit_time, author_email, subject
+FROM GitCommits JOIN CommitsWithData ON GitCommits.commit_id = CommitsWithData.commit_id
+AS OF SYSTEM TIME '-0.1s'
+ORDER BY CommitsWithData.commit_id DESC LIMIT 1`)
+	var ts time.Time
+	if err := row.Scan(&gs.LastCommit.Hash, &gs.LastCommit.ID, &ts,
+		&gs.LastCommit.Author, &gs.LastCommit.Subject); err != nil {
+		return frontend.GUIStatus{}, skerr.Wrap(err)
+	}
+	gs.LastCommit.CommitTime = ts.UTC().Unix()
+
+	if s.isPublicView {
+		xcs, err := s.getPublicViewCorporaStatuses(ctx)
+		if err != nil {
+			return frontend.GUIStatus{}, skerr.Wrap(err)
+		}
+		gs.CorpStatus = xcs
+		return gs, nil
+	}
+	xcs, err := s.getCorporaStatuses(ctx)
+	if err != nil {
+		return frontend.GUIStatus{}, skerr.Wrap(err)
+	}
+	gs.CorpStatus = xcs
+	return gs, nil
+}
+
+// getCorporaStatuses counts the untriaged digests for all corpora.
+func (s *Impl) getCorporaStatuses(ctx context.Context) ([]frontend.GUICorpusStatus, error) {
+	ctx, span := trace.StartSpan(ctx, "getCorporaStatuses")
+	defer span.End()
+	const statement = `WITH
+CommitsInWindow AS (
+	SELECT commit_id FROM CommitsWithData
+	ORDER BY commit_id DESC LIMIT $1
+),
+OldestCommitInWindow AS (
+	SELECT commit_id FROM CommitsInWindow
+	ORDER BY commit_id ASC LIMIT 1
+),
+DistinctNotIgnoredDigests AS (
+	SELECT DISTINCT corpus, digest, grouping_id FROM ValuesAtHead
+	JOIN OldestCommitInWindow ON ValuesAtHead.most_recent_commit_id >= OldestCommitInWindow.commit_id
+	WHERE matches_any_ignore_rule = FALSE
+),
+CorporaWithAtLeastOneTriaged AS (
+    SELECT corpus, COUNT(DistinctNotIgnoredDigests.digest) AS num_untriaged FROM DistinctNotIgnoredDigests
+    JOIN Expectations ON DistinctNotIgnoredDigests.grouping_id = Expectations.grouping_id AND
+        DistinctNotIgnoredDigests.digest = Expectations.digest AND label = 'u'
+    GROUP BY corpus
+),
+AllCorpora AS (
+    -- Corpora with no untriaged digests will not show up in CorporaWithAtLeastOneTriaged.
+    -- We still want to include them in our status, so we do a separate query and union it in.
+    SELECT DISTINCT corpus, 0 AS num_untriaged FROM ValuesAtHead
+    JOIN OldestCommitInWindow ON ValuesAtHead.most_recent_commit_id >= OldestCommitInWindow.commit_id
+)
+SELECT corpus, max(num_untriaged) FROM (
+    SELECT corpus, num_untriaged FROM AllCorpora
+    UNION
+    SELECT corpus, num_untriaged FROM CorporaWithAtLeastOneTriaged
+) GROUP BY corpus`
+
+	rows, err := s.db.Query(ctx, statement, s.windowLength)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var rv []frontend.GUICorpusStatus
+	for rows.Next() {
+		var cs frontend.GUICorpusStatus
+		if err := rows.Scan(&cs.Name, &cs.UntriagedCount); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, cs)
+	}
+
+	sort.Slice(rv, func(i, j int) bool {
+		return rv[i].Name < rv[j].Name
+	})
+	return rv, nil
+}
+
+// getPublicViewCorporaStatuses counts the untriaged digests belonging to only those traces which
+// match the public view matcher. It filters the traces using the cached publiclyVisibleTraces.
+func (s *Impl) getPublicViewCorporaStatuses(ctx context.Context) ([]frontend.GUICorpusStatus, error) {
+	ctx, span := trace.StartSpan(ctx, "getCorporaStatuses")
+	defer span.End()
+	const statement = `WITH
+CommitsInWindow AS (
+	SELECT commit_id FROM CommitsWithData
+	ORDER BY commit_id DESC LIMIT $1
+),
+OldestCommitInWindow AS (
+	SELECT commit_id FROM CommitsInWindow
+	ORDER BY commit_id ASC LIMIT 1
+),
+NotIgnoredDigests AS (
+	SELECT trace_id, corpus, digest, grouping_id FROM ValuesAtHead
+	JOIN OldestCommitInWindow ON ValuesAtHead.most_recent_commit_id >= OldestCommitInWindow.commit_id
+	WHERE matches_any_ignore_rule = FALSE AND corpus = ANY($2)
+)
+SELECT trace_id, corpus FROM NotIgnoredDigests
+JOIN Expectations ON NotIgnoredDigests.grouping_id = Expectations.grouping_id AND
+	NotIgnoredDigests.digest = Expectations.digest AND label = 'u'
+`
+
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	corpusCount := map[string]int{}
+	var corporaArgs []string
+	for corpus := range s.publiclyVisibleCorpora {
+		corpusCount[corpus] = 0 // make sure we include all corpora, even those with 0 untriaged.
+		corporaArgs = append(corporaArgs, corpus)
+	}
+
+	rows, err := s.db.Query(ctx, statement, s.windowLength, corporaArgs)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+
+	var traceKey schema.MD5Hash
+	for rows.Next() {
+		var tr schema.TraceID
+		var corpus string
+		if err := rows.Scan(&tr, &corpus); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		copy(traceKey[:], tr)
+		if _, ok := s.publiclyVisibleTraces[traceKey]; ok {
+			corpusCount[corpus]++
+		}
+	}
+
+	var rv []frontend.GUICorpusStatus
+	for corpus, count := range corpusCount {
+		rv = append(rv, frontend.GUICorpusStatus{
+			Name:           corpus,
+			UntriagedCount: count,
+		})
+	}
+
+	sort.Slice(rv, func(i, j int) bool {
+		return rv[i].Name < rv[j].Name
+	})
+
+	return rv, nil
 }
 
 // Make sure Impl implements the API interface.
