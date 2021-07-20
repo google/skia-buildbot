@@ -86,7 +86,8 @@ try
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
 banner "Add to registry PATH"
-addToRegistryPath "C:\Python27"
+# If this path changes, be sure to update chromebot-schtask.ps1 to match.
+addToRegistryPath "C:\Python38"
 addToRegistryPath "$userDir\depot_tools"
 addToRegistryPath "C:\Program` Files` (x86)\CMake\bin"
 

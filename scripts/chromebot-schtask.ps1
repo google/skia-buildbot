@@ -120,52 +120,27 @@ log $gitstatus
 Set-Location -Path $userDir
 
 banner "Ensure Python installed"
-$pythonPath = "C:\Python27"
+# If this path changes, be sure to update win_startup.ps1 to match.
+$pythonPath = "C:\Python38"
 if (!(Test-Path ($pythonPath))) {
   log "Install Python"
-  $gsurl = "gs://skia-buildbots/skolo/win/win_package_src/python-2.7.14.amd64.msi"
-  $fileName = "$tmp\python.msi"
+  $gsurl = "gs://skia-buildbots/skolo/win/win_package_src/python-3.8.10-amd64.exe"
+  $fileName = "$tmp\python-install.exe"
   & "gsutil" cp $gsurl $fileName
-  $pylogFile = "python-install.log"
-  $MSIArguments = @(
-    "/i"
-    $fileName
-    "/qn"
-    "/norestart"
-    "/L*v"
-    $pylogFile
-  )
-  Start-Process "msiexec.exe" -ArgumentList $MSIArguments -Wait -NoNewWindow
-  $pylog = Get-Content $pylogFile | Out-String
+  $pylog = & $fileName /quiet Include_test=0 Include_pip=1 Include_doc=0 TargetDir=$pythonPath | Out-String
   log $pylog
 }
-banner "Ensure Python in Path"
-if (!($env:Path -like "*$pythonPath*")) {
-  log "Add $pythonPath to Path"
-  [Environment]::SetEnvironmentVariable("Path",$pythonPath + ";" + $env:Path,"Machine")
-}
+
 banner "Ensure pywin32 installed"
-if (!(Test-Path "C:\Windows\System32\pywintypes27.dll")) {
+$pipList = & $pythonPath\Scripts\pip list | Out-String
+if (!($pipList -like '*pywin32*')) {
   log "Install pywin32"
-  $zipfileName = "$tmp\pywin32.zip"
-  $gsurl = "gs://skia-buildbots/skolo/win/win_package_src/pywin32-221.win-amd64-py2.7.zip"
-  log "download $gsurl to $zipfileName"
-  & "gsutil" cp $gsurl $zipfileName
-  $pywin32dest = "$pythonPath\Lib\site-packages\"
-  log "unzip $zipfileName to $pywin32dest"
-  unzip $zipfileName $pywin32dest
-  $gsurl = "gs://skia-buildbots/skolo/win/win_package_src/pywin32-221.win-amd64-py2.7_postinstall.py"
-  $pyfileName = "$tmp\pywin32_postinstall.py"
-  log "download $gsurl to $pyfileName"
-  & "gsutil" cp $gsurl $pyfileName
-  log "CD to $pywin32dest"
-  Set-Location -Path $pywin32dest
-  log "Running $pyfileName from $pywin32dest"
-  $pywin32logFile = "python-install.log"
-  & "python" -u $pyfileName -silent -install 2>&1 > $pywin32logFile
-  $pywin32log = Get-Content $pywin32logFile | Out-String
+  $pipLog = & $pythonPath\Scripts\pip install pywin32 | Out-String
+  log $pipLog
+  $pyfileName = "$pythonPath\Scripts\pywin32_postinstall.py"
+  log "Running $pyfileName"
+  $pywin32log = & "python" -u $pyfileName -silent -install | Out-String
   log $pywin32log
-  Set-Location -Path $userDir
 }
 
 banner "Copy .boto file"
@@ -178,11 +153,11 @@ $shell.NameSpace($depotToolsPath).copyhere("c:\_netrc", 0x14)
 $hostname =(cmd /c "hostname") | Out-String
 if ($hostname.StartsWith("ct-")) {
   banner "Installing psutil using pip. Required for CT win bots (skbug/9720)."
-  cmd /c "C:\Python27\Scripts\pip.exe install -U psutil"
+  cmd /c "$pythonPath\Scripts\pip.exe install -U psutil"
   banner "Installing requests using pip. Required for CT win bots (skbug/10960)."
-  cmd /c "C:\Python27\Scripts\pip.exe install -U requests"
+  cmd /c "$pythonPath\Scripts\pip.exe install -U requests"
   banner "Installing six using pip. Required for CT win bots (skbug/11888)."
-  cmd /c "C:\Python27\Scripts\pip.exe install -U six"
+  cmd /c "$pythonPath\Scripts\pip.exe install -U six"
 }
 if ($hostname.StartsWith("ct-windows-builder")) {
   banner "Check out Chromium repository"
