@@ -11,6 +11,7 @@ RUN groupadd -g 2000 skia \
   curl \
   clang \
   nodejs \
+  npm \
   wget
 
 USER skia
