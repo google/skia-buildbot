@@ -41,6 +41,7 @@ import (
 	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/ignore"
 	mock_ignore "go.skia.org/infra/golden/go/ignore/mocks"
+	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
 	"go.skia.org/infra/golden/go/image/text"
 	"go.skia.org/infra/golden/go/indexer"
 	mock_indexer "go.skia.org/infra/golden/go/indexer/mocks"
@@ -3753,6 +3754,30 @@ func TestGetChangelistsHandler2_ActiveChangelists_Success(t *testing.T) {
 	wh.ChangelistsHandler2(w, r)
 	const expectedResponse = `{"changelists":[{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"example.com/CL_new_tests/gerrit-internal"},` +
 		`{"system":"gerrit","id":"CL_fix_ios","owner":"userOne@example.com","status":"open","subject":"Fix iOS","updated":"2020-12-10T04:05:06Z","url":"example.com/CL_fix_ios/gerrit"}],"offset":0,"size":20,"total":2147483647}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
+func TestListIgnoreRules2_WithCounts_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	wh := Handlers{
+		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
+		HandlersConfig: HandlersConfig{
+			DB:          db,
+			IgnoreStore: sqlignorestore.New(db),
+			WindowSize:  100,
+		},
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v2/ignores?counts=true", nil)
+	wh.ListIgnoreRules2(w, r)
+	const expectedResponse = `{"rules":[{"id":"b75cc985-efbd-9973-fa1a-05787f04f237","name":"userTwo@example.com","updatedBy":"userOne@example.com","expires":"2020-02-14T13:12:11Z","query":"device=Nokia4\u0026source_type=corners","note":"This rule has expired (and does not apply to anything)","countAll":0,"exclusiveCountAll":0,"count":0,"exclusiveCount":0},` +
+		`{"id":"a210f5da-a114-0799-e102-870edaf5570e","name":"userTwo@example.com","updatedBy":"userOne@example.com","expires":"2030-12-30T15:16:17Z","query":"device=taimen\u0026name=square\u0026name=circle","note":"Taimen isn't drawing correctly enough yet","countAll":2,"exclusiveCountAll":2,"count":1,"exclusiveCount":1}]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 

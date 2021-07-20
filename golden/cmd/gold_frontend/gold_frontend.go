@@ -213,7 +213,7 @@ func main() {
 
 	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB, publiclyViewableParams, reviewSystems)
 
-	handlers := mustMakeWebHandlers(ctx, sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, s2a, statusWatcher, tileSource, tjs)
+	handlers := mustMakeWebHandlers(ctx, fsc, sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, s2a, statusWatcher, tileSource, tjs)
 
 	rootRouter := mustMakeRootRouter(fsc, handlers)
 
@@ -592,7 +592,7 @@ func mustStartExpectationsCleanupProcess(ctx context.Context, fsc *frontendServe
 }
 
 // mustMakeWebHandlers returns a new web.Handlers.
-func mustMakeWebHandlers(ctx context.Context, db *pgxpool.Pool, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, s2a search2.API, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store) *web.Handlers {
+func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, s2a search2.API, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
 		DB:                db,
 		ExpectationsStore: expStore,
@@ -605,6 +605,7 @@ func mustMakeWebHandlers(ctx context.Context, db *pgxpool.Pool, expStore expecta
 		StatusWatcher:     statusWatcher,
 		TileSource:        tileSource,
 		TryJobStore:       tjs,
+		WindowSize:        fsc.WindowSize,
 	}, web.FullFrontEnd)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
@@ -784,6 +785,7 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	if !fsc.IsPublicView {
 		add("/json/ignores", handlers.ListIgnoreRules, "GET")
 		add("/json/v1/ignores", handlers.ListIgnoreRules, "GET")
+		add("/json/v2/ignores", handlers.ListIgnoreRules2, "GET")
 		add("/json/ignores/add/", handlers.AddIgnoreRule, "POST")
 		add("/json/v1/ignores/add/", handlers.AddIgnoreRule, "POST")
 		add("/json/ignores/del/{id}", handlers.DeleteIgnoreRule, "POST")

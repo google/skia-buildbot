@@ -200,7 +200,9 @@ export class IgnoresPageSk extends ElementSk {
     sendBeginTask(this);
 
     // We always want the counts of the ignore rules, thus the parameter counts=1.
-    fetch('/json/v1/ignores?counts=1', extra)
+    // The v2 API does this by default
+    const url = this.useNewAPI ? '/json/v2/ignores' : '/json/v1/ignores?counts=1';
+    fetch(url, extra)
       .then(jsonOrThrow)
       .then((response: IgnoresResponse) => {
         this.rules = response.rules || [];
@@ -209,8 +211,8 @@ export class IgnoresPageSk extends ElementSk {
       })
       .catch((e) => sendFetchError(this, e, 'ignores'));
 
-    const url = this.useNewAPI ? '/json/v2/paramset' : '/json/v1/paramset';
-    fetch(url, extra)
+    const paramsUrl = this.useNewAPI ? '/json/v2/paramset' : '/json/v1/paramset';
+    fetch(paramsUrl, extra)
       .then(jsonOrThrow)
       .then((paramset: ParamSet) => {
         this.paramset = paramset;

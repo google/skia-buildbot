@@ -106,6 +106,7 @@ type HandlersConfig struct {
 	StatusWatcher     *status.StatusWatcher
 	TileSource        tilesource.TileSource
 	TryJobStore       tjstore.Store
+	WindowSize        int
 }
 
 // Handlers represents all the handlers (e.g. JSON endpoints) of Gold.
@@ -1193,6 +1194,134 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []frontend.Ignore
 		return nil
 	})
 	return skerr.Wrap(err)
+}
+
+// ListIgnoreRules2 returns the current ignore rules in JSON format and the counts of
+// how many traces they affect.
+func (wh *Handlers) ListIgnoreRules2(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_ListIgnoreRules2")
+	defer span.End()
+
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	ignores, err := wh.getIgnores2(ctx)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to retrieve ignore rules, there may be none.", http.StatusInternalServerError)
+		return
+	}
+
+	response := frontend.IgnoresResponse{
+		Rules: ignores,
+	}
+
+	sendJSONResponse(w, response)
+}
+
+// getIgnores2 fetches all ignore rules and converts them into the frontend format. It will add the
+// trace counts for each rule.
+func (wh *Handlers) getIgnores2(ctx context.Context) ([]frontend.IgnoreRule, error) {
+	ctx, span := trace.StartSpan(ctx, "getIgnores2")
+	defer span.End()
+	rules, err := wh.IgnoreStore.List(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching ignores from store")
+	}
+
+	ret := make([]frontend.IgnoreRule, 0, len(rules))
+	for _, r := range rules {
+		fr, err := frontend.ConvertIgnoreRule(r)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		ret = append(ret, fr)
+	}
+	// addIgnoreCounts updates the values of ret directly
+	if err := wh.addIgnoreCounts2(ctx, ret); err != nil {
+		return nil, skerr.Wrapf(err, "adding ignore counts to %d rules", len(ret))
+	}
+	return ret, nil
+}
+
+// addIgnoreCounts2 fetches all ignored traces from the SQL DB and then goes through all the ignore
+// rules and figures out which rules applied to each of those traces. This allows us to count how
+// many traces each rule affects and how many are exclusively impacted by a given rule.
+func (wh *Handlers) addIgnoreCounts2(ctx context.Context, rules []frontend.IgnoreRule) error {
+	ctx, span := trace.StartSpan(ctx, "addIgnoreCounts2")
+	defer span.End()
+
+	// Fetch all traces that are ignored
+	const statement = `WITH
+CommitsInWindow AS (
+	SELECT commit_id FROM CommitsWithData
+	ORDER BY commit_id DESC LIMIT $1
+),
+OldestCommitInWindow AS (
+	SELECT commit_id FROM CommitsInWindow
+	ORDER BY commit_id ASC LIMIT 1
+),
+IgnoredTraces AS (
+	SELECT keys, grouping_id, digest FROM ValuesAtHead
+	JOIN OldestCommitInWindow ON most_recent_commit_id >= OldestCommitInWindow.commit_id
+	WHERE matches_any_ignore_rule = TRUE
+)
+SELECT keys, label FROM IgnoredTraces
+JOIN Expectations ON IgnoredTraces.grouping_id = Expectations.grouping_id
+	AND IgnoredTraces.digest = Expectations.digest`
+
+	rows, err := wh.DB.Query(ctx, statement, wh.WindowSize)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	defer rows.Close()
+
+	type counts struct {
+		Count                   int
+		UntriagedCount          int
+		ExclusiveCount          int
+		ExclusiveUntriagedCount int
+	}
+
+	ruleCounts := make([]counts, len(rules))
+	for rows.Next() {
+		var keys paramtools.Params
+		var label schema.ExpectationLabel
+		if err := rows.Scan(&keys, &label); err != nil {
+			return skerr.Wrap(err)
+		}
+		idxMatched, untIdxMatched := -1, -1
+		numMatched, untMatched := 0, 0
+		for i, r := range rules {
+			if paramtools.ParamSet(r.ParsedQuery).MatchesParams(keys) {
+				numMatched++
+				ruleCounts[i].Count++
+				idxMatched = i
+
+				// Check to see if the digest is untriaged at head
+				if label == schema.LabelUntriaged {
+					ruleCounts[i].UntriagedCount++
+					untMatched++
+					untIdxMatched = i
+				}
+			}
+		}
+		// Check for any exclusive matches
+		if numMatched == 1 {
+			ruleCounts[idxMatched].ExclusiveCount++
+		}
+		if untMatched == 1 {
+			ruleCounts[untIdxMatched].ExclusiveUntriagedCount++
+		}
+	}
+	for i := range rules {
+		(&rules[i]).Count += ruleCounts[i].Count
+		(&rules[i]).UntriagedCount += ruleCounts[i].UntriagedCount
+		(&rules[i]).ExclusiveCount += ruleCounts[i].ExclusiveCount
+		(&rules[i]).ExclusiveUntriagedCount += ruleCounts[i].ExclusiveUntriagedCount
+	}
+	return nil
 }
 
 // UpdateIgnoreRule updates an existing ignores rule.

@@ -71,6 +71,7 @@ go_test(
         "//golden/go/expectations/mocks",
         "//golden/go/ignore",
         "//golden/go/ignore/mocks",
+        "//golden/go/ignore/sqlignorestore",
         "//golden/go/image/text",
         "//golden/go/indexer",
         "//golden/go/indexer/mocks",
