@@ -178,12 +178,26 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	}
 
 	// Run repo init and sync commands.
-	if _, err := exec.RunCwd(ctx, r.workdir, r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.parentRepoURL), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch.String()); err != nil {
+	initCmd := []string{r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.parentRepoURL), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch.String()}
+	if _, err := exec.RunCwd(ctx, r.workdir, initCmd...); err != nil {
 		return err
 	}
 	// Sync only the child path and the repohooks directory (needed to upload changes).
-	if _, err := exec.RunCwd(ctx, r.workdir, r.repoToolPath, "sync", "--force-sync", r.childPath, "tools/repohooks", "-j32"); err != nil {
-		return err
+	syncCmd := []string{r.repoToolPath, "sync", "--force-sync", r.childPath, "tools/repohooks", "-j32"}
+	if _, err := exec.RunCwd(ctx, r.workdir, syncCmd...); err != nil {
+		sklog.Warningf("repo sync error: %s", err)
+		// Try deleting .repo in the workdir and re-initing and re-syncing (skbug.com/12146).
+		repoDirPath := path.Join(r.workdir, ".repo")
+		if err := os.RemoveAll(repoDirPath); err != nil {
+			return skerr.Wrapf(err, "Could not delete %s before attempting a resync", repoDirPath)
+		}
+		if _, err := exec.RunCwd(ctx, r.workdir, initCmd...); err != nil {
+			return err
+		}
+		sklog.Info("Retrying sync after deleting %s", repoDirPath)
+		if _, err := exec.RunCwd(ctx, r.workdir, syncCmd...); err != nil {
+			return err
+		}
 	}
 
 	// Set color.ui=true so that the repo tool does not prompt during upload.
