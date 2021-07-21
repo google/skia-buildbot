@@ -1,11 +1,8 @@
-Skia-Buildbot Repository
-========================
+# Skia-Buildbot Repository
 
 This repo contains infrastructure code for Skia.
 
-
-Getting the Source Code
-=======================
+# Getting the Source Code
 
 The main source code repository is a Git repository hosted at
 [https://skia.googlesource.com/buildbot.git](https://skia.googlesource.com/buildbot.git).
@@ -44,10 +41,14 @@ dir to your path. Optionally run `npm install npm -g`, as suggested by the
 Install other dependencies:
 
 ```
-$ sudo apt-get install python-django
-$ go get -u github.com/kisielk/errcheck \
-  golang.org/x/tools/cmd/goimports \
-  go.chromium.org/luci/client/cmd/isolate
+$ sudo apt-get install \
+    jq \
+    python-django
+$ go get -u \
+    github.com/kisielk/errcheck \
+    golang.org/x/tools/cmd/goimports \
+    go.chromium.org/luci/client/cmd/isolate \
+    go get github.com/mikefarah/yq/v4
 ```
 
 Build ~everything:
@@ -56,15 +57,15 @@ Build ~everything:
 $ make all
 ```
 
-Generated Code
-==============
+# Generated Code
 
 Some code is generated using `go generate` with external binaries. First,
-install the version of protoc referenced in the [asset creation
-script](https://skia.googlesource.com/skia/+show/master/infra/bots/assets/protoc/create.py)
+install the version of protoc referenced in the
+[asset creation script](https://skia.googlesource.com/skia/+show/master/infra/bots/assets/protoc/create.py)
 and ensure it is on your PATH before other versions of protoc.
 
 Install the necessary go packages:
+
 ```
 $ go get -u \
   github.com/golang/protobuf/protoc-gen-go \
@@ -72,7 +73,8 @@ $ go get -u \
   google.golang.org/grpc \
 ```
 
-Get [mockery](https://github.com/vektra/mockery/releases/tag/v2.4.0) and add it to your PATH.
+Get [mockery](https://github.com/vektra/mockery/releases/tag/v2.4.0) and add it
+to your PATH.
 
 To generate code run in this directory:
 
@@ -80,9 +82,7 @@ To generate code run in this directory:
 $ go generate ./...
 ```
 
-
-Running unit tests
-==================
+# Running unit tests
 
 Install [Cloud SDK](https://cloud.google.com/sdk/).
 
