@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	cr_mocks "go.skia.org/infra/skcq/go/codereview/mocks"
+	"go.skia.org/infra/skcq/go/config"
 	"go.skia.org/infra/skcq/go/footers"
 	"go.skia.org/infra/skcq/go/types"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -223,6 +224,60 @@ func TestVerify_AllSuccessfulTryJobs_RetriggerFooter(t *testing.T) {
 		footersMap: map[string]string{
 			string(footers.RerunTryjobsFooter): "true",
 		},
+	}
+	vs, _, err := tv.Verify(context.Background(), ci, timeNowFunc().Unix())
+	require.NoError(t, err)
+	require.Equal(t, types.VerifierWaitingState, vs)
+}
+
+func TestVerify_AllSuccessfulTryJobs_RetriggerFooter_Internal(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ci, gerritURL, tasksCfg := setupTest()
+	latestPatchsetID := int64(5)
+	tryJobName1 := "try_job1"
+	tryJobName2 := "try_job2"
+
+	// Setup codereview mock.
+	cr := &cr_mocks.CodeReview{}
+	cr.On("GetLatestPatchSetID", ci).Return(latestPatchsetID).Once()
+	cr.On("GetEquivalentPatchSetIDs", ci, latestPatchsetID).Return([]int64{latestPatchsetID}).Once()
+
+	// Setup buildbucket mock.
+	bb := &bb_mocks.BuildBucketInterface{}
+	bbBuilds := []*buildbucketpb.Build{
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName1},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			Status:     buildbucketpb.Status_SUCCESS,
+		},
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName2},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			Status:     buildbucketpb.Status_SUCCESS,
+		},
+	}
+	bb.On("GetTrybotsForCL", testutils.AnyContext, ci.Issue, latestPatchsetID, "https://"+gerritURL, map[string]string(nil)).Return(bbBuilds, nil).Twice()
+	defaultTags := map[string]string{
+		"triggered_by":    "skcq",
+		"cq_experimental": "false",
+	}
+	botsToTags := map[string]map[string]string{
+		tryJobName2: defaultTags,
+		tryJobName1: defaultTags,
+	}
+	bb.On("ScheduleBuilds", testutils.AnyContext, mock.Anything, botsToTags, ci.Issue, latestPatchsetID, gerritURL, ci.Project, BuildBucketInternalSkiaProject, BuildBucketInternalSkiaBucket).Return(bbBuilds, nil).Once()
+
+	// Test verify.
+	tv := &TryJobsVerifier{
+		bb2:       bb,
+		cr:        cr,
+		tasksCfg:  tasksCfg,
+		gerritURL: gerritURL,
+		footersMap: map[string]string{
+			string(footers.RerunTryjobsFooter): "true",
+		},
+		visibilityType: config.InternalVisibility,
 	}
 	vs, _, err := tv.Verify(context.Background(), ci, timeNowFunc().Unix())
 	require.NoError(t, err)

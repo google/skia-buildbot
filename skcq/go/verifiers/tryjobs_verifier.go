@@ -28,7 +28,8 @@ const (
 	// Time to wait before re-running old jobs for fresh results.
 	TryJobStaleTimeoutSecs = 24 * 60 * 60
 
-	BuildBucketDefaultSkiaProject = "skia"
+	BuildBucketDefaultSkiaProject  = "skia"
+	BuildBucketInternalSkiaProject = "skia-internal"
 
 	BuildBucketDefaultSkiaBucket  = "skia.primary"
 	BuildBucketInternalSkiaBucket = "skia.internal"
@@ -95,13 +96,17 @@ func (tv *TryJobsVerifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, st
 	}
 
 	// Figure out which BB bucket should be used for this change.
+	var bbProject string
 	var bbBucket string
 	switch tv.visibilityType {
 	case config.InternalVisibility:
+		bbProject = BuildBucketInternalSkiaProject
 		bbBucket = BuildBucketInternalSkiaBucket
 	case config.StagingVisibility:
+		bbProject = BuildBucketDefaultSkiaProject
 		bbBucket = BuildBucketStagingSkiaBucket
 	default:
+		bbProject = BuildBucketDefaultSkiaProject
 		bbBucket = BuildBucketDefaultSkiaBucket
 	}
 
@@ -150,7 +155,7 @@ func (tv *TryJobsVerifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, st
 	cqTryjobsToConfigs := tv.tasksCfg.CommitQueue
 
 	// Check, parse, and add the try jobs in IncludeTryjobsFooter if specified.
-	includeTryJobs, err := tv.getIncludeFooterTryJobs(ci.Issue, bbBucket)
+	includeTryJobs, err := tv.getIncludeFooterTryJobs(ci.Issue, bbProject, bbBucket)
 	if err != nil {
 		return types.VerifierFailureState, err.Error(), nil
 	}
@@ -293,7 +298,7 @@ func (tv *TryJobsVerifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, st
 			}
 			botsToTags[t] = tags
 		}
-		respBuilds, err := tv.bb2.ScheduleBuilds(ctx, triggerTryJobs, botsToTags, ci.Issue, latestPatchSetID, tv.gerritURL, ci.Project, BuildBucketDefaultSkiaProject, bbBucket)
+		respBuilds, err := tv.bb2.ScheduleBuilds(ctx, triggerTryJobs, botsToTags, ci.Issue, latestPatchSetID, tv.gerritURL, ci.Project, bbProject, bbBucket)
 		if err != nil {
 			return "", "", skerr.Wrapf(err, "[%d] Could not trigger %+v tryjobs", ci.Issue, triggerTryJobs)
 		}
@@ -380,7 +385,7 @@ func (tv *TryJobsVerifier) Cleanup(ctx context.Context, ci *gerrit.ChangeInfo, c
 // getIncludeFooterTryJobs parses footers for the footers.IncludeTryjobsFooter
 // and returns try jobs from it. If the specified project or bucket does not
 // match it is expected, then an error is returned.
-func (tv *TryJobsVerifier) getIncludeFooterTryJobs(issue int64, bbBucket string) ([]string, error) {
+func (tv *TryJobsVerifier) getIncludeFooterTryJobs(issue int64, bbProject, bbBucket string) ([]string, error) {
 	// Check, parse, and get the try jobs in IncludeTryjobsFooter if specified.
 	includeTryjobsFooter := git.GetStringFooterVal(tv.footersMap, footers.IncludeTryjobsFooter)
 	if includeTryjobsFooter == "" {
@@ -408,7 +413,7 @@ func (tv *TryJobsVerifier) getIncludeFooterTryJobs(issue int64, bbBucket string)
 			p = projectAndBucket[1]
 			b = fmt.Sprintf("%s.%s", projectAndBucket[2], projectAndBucket[3])
 		}
-		if p != BuildBucketDefaultSkiaProject {
+		if p != bbProject {
 			return nil, skerr.Fmt("Could not recognize bb project \"%s\" in %+v", p, includeTryJobsMap)
 		}
 		if b != bbBucket {
