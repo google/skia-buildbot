@@ -659,6 +659,7 @@ message BuildbucketRevisionFilterConfig {
     string project = 1;
     string bucket = 2;
     string buildset_commit_tmpl = 3;
+    repeated string builder = 4;
 }
 
 // PreUploadConfig describes additional steps to run after updating the

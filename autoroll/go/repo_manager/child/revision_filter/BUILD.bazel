@@ -14,6 +14,7 @@ go_library(
         "//go/buildbucket",
         "//go/skerr",
         "//go/sklog",
+        "//go/util",
         "@org_chromium_go_luci//buildbucket/proto",
     ],
 )

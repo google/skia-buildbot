@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 // BuildbucketRevisionFilter is a RevisionFilter which uses results from
@@ -45,6 +46,12 @@ func (f BuildbucketRevisionFilter) Skip(ctx context.Context, r *revision.Revisio
 	// This has been brought up with the flutter team.
 	statuses := map[string]buildbucketpb.Status{}
 	for _, build := range builds {
+		if len(f.bbConfig.Builder) > 0 {
+			if !util.In(build.Builder.Builder, f.bbConfig.Builder) {
+				sklog.Infof("[bbFilter] Ignoring %s because it is not in the list of specified builders: %+v", build.Builder.Builder, f.bbConfig.Builder)
+				continue
+			}
+		}
 		prev, ok := statuses[build.Builder.Builder]
 		if !ok || prev != buildbucketpb.Status_SUCCESS {
 			statuses[build.Builder.Builder] = build.Status
