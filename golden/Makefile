@@ -105,8 +105,8 @@ build-static-goldpushk-crashing-server:
 	$(KGO) -o build/goldpushk_crashing_server_k8s -a ./cmd/goldpushk/testing/crashing_server/...
 
 # Build the gold-frontend container with Bazel and push it to GCR.
-.PHONY: push_gold_frontend_container
-push_gold_frontend_container:
+.PHONY: push_frontend_container
+push_frontend_container:
 	bazel run //golden:push_gold_frontend_container
 
 # Build the gold-baseline-server container with Bazel and push it to GCR.
@@ -125,8 +125,8 @@ push_gitilesfollower_container:
 	bazel run //golden:push_gitilesfollower_container
 
 # Build the gold-ingestion container with Bazel and push it to GCR.
-.PHONY: push_gold_ingestion_container
-push_gold_ingestion_container:
+.PHONY: push_ingestion_container
+push_ingestion_container:
 	bazel run //golden:push_gold_ingestion_container
 
 # Build the gold-periodictasks container with Bazel and push it to GCR.
