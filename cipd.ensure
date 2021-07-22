@@ -39,12 +39,12 @@ infra/3pp/tools/cpython/windows-386              version:2@2.7.18.chromium.39
 infra/3pp/tools/cpython/windows-amd64            version:2@2.7.18.chromium.39
 
 @subdir cipd_bin_packages/cpython3
-infra/3pp/tools/cpython3/linux-amd64             version:2@3.9.6.chromium.19
-infra/3pp/tools/cpython3/linux-arm64             version:2@3.9.6.chromium.19
-infra/3pp/tools/cpython3/linux-armv6l            version:2@3.9.6.chromium.19
-infra/3pp/tools/cpython3/mac-amd64               version:2@3.9.6.chromium.19
-infra/3pp/tools/cpython3/windows-386             version:2@3.9.6.chromium.19
-infra/3pp/tools/cpython3/windows-amd64           version:2@3.9.6.chromium.19
+infra/3pp/tools/cpython3/linux-amd64             version:2@3.8.10.chromium.19
+infra/3pp/tools/cpython3/linux-arm64             version:2@3.8.10.chromium.19
+infra/3pp/tools/cpython3/linux-armv6l            version:2@3.8.10.chromium.19
+infra/3pp/tools/cpython3/mac-amd64               version:2@3.8.10.chromium.19
+infra/3pp/tools/cpython3/windows-386             version:2@3.8.10.chromium.19
+infra/3pp/tools/cpython3/windows-amd64           version:2@3.8.10.chromium.19
 
 @Subdir
 infra/tools/luci/kitchen/${platform}    git_revision:cadd7dad6e9466c9988ec9eaed70210f2aa1ca86

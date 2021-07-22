@@ -577,6 +577,7 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 			"--patch_set", specs.PLACEHOLDER_PATCHSET,
 			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 			"--alsologtostderr",
+			"--skip", "cpython3",
 		},
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(machineType),

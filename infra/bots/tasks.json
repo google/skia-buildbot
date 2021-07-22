@@ -211,7 +211,7 @@
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -432,7 +432,7 @@
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -623,7 +623,9 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
-        "--alsologtostderr"
+        "--alsologtostderr",
+        "--skip",
+        "cpython3"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -667,7 +669,7 @@
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -767,7 +769,7 @@
         {
           "name": "infra/3pp/tools/cpython3/windows-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/windows-amd64",
@@ -870,7 +872,7 @@
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1287,7 +1289,7 @@
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1440,7 +1442,7 @@
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1557,7 +1559,7 @@
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1771,7 +1773,7 @@
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1914,7 +1916,7 @@
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -2031,7 +2033,7 @@
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -2173,7 +2175,7 @@
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
-          "version": "version:2@3.9.6.chromium.19"
+          "version": "version:2@3.8.10.chromium.19"
         },
         {
           "name": "infra/3pp/tools/git/linux-amd64",

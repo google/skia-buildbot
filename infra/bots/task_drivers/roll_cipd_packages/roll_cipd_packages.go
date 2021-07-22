@@ -7,12 +7,14 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/sklog"
@@ -49,8 +51,9 @@ var (
 	checkoutFlags = checkout.SetupFlags(nil)
 
 	// Optional flags.
-	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
-	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
+	skipPackages = common.NewMultiStringFlag("skip", nil, "List of regular expressions matching package names which should not be rolled.")
+	local        = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
+	output       = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
 )
 
 func main() {
@@ -74,6 +77,23 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
+	skipRegexes := make([]*regexp.Regexp, 0, len(*skipPackages))
+	if len(*skipPackages) > 0 {
+		if err := td.Do(ctx, td.Props("Compile skipped package regexes"),
+			func(ctx context.Context) error {
+				for _, pattern := range *skipPackages {
+					regex, err := regexp.Compile(pattern)
+					if err != nil {
+						return err
+					}
+					skipRegexes = append(skipRegexes, regex)
+				}
+				return nil
+			}); err != nil {
+			td.Fatal(ctx, err)
+		}
+	}
+
 	// Check out the code.
 	co, err := checkout.EnsureGitCheckout(ctx, path.Join(wd, "repo"), rs)
 	if err != nil {
@@ -85,15 +105,28 @@ func main() {
 
 	// Read packages from cipd.ensure.
 	ensureFile := filepath.Join(co.Dir(), "cipd.ensure")
-	var pkgs []*cipd.Package
+	var allPkgs []*cipd.Package
 	if err := td.Do(ctx, td.Props("Read cipd.ensure").Infra(), func(ctx context.Context) error {
-		pkgs, err = cipd.ParseEnsureFile(ensureFile)
+		allPkgs, err = cipd.ParseEnsureFile(ensureFile)
 		if err != nil {
 			return err
 		}
 		return nil
 	}); err != nil {
 		td.Fatal(ctx, err)
+	}
+	pkgs := make([]*cipd.Package, 0, len(allPkgs))
+	for _, pkg := range allPkgs {
+		skip := false
+		for _, regex := range skipRegexes {
+			if regex.MatchString(pkg.Name) {
+				skip = true
+				break
+			}
+		}
+		if !skip {
+			pkgs = append(pkgs, pkg)
+		}
 	}
 	sort.Sort(cipd.PackageSlice(pkgs))
 
