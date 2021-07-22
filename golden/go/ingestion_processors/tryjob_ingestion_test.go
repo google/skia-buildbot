@@ -273,7 +273,6 @@ func TestTryjobSQL_Process_FirstFileForCL_Success(t *testing.T) {
 	assert.Equal(t, []schema.SecondaryBranchParamRow{
 		{Key: dks.ColorModeKey, Value: dks.RGBColorMode, BranchName: qualifiedCL, VersionName: qualifiedPS},
 		{Key: dks.DeviceKey, Value: dks.IPhoneDevice, BranchName: qualifiedCL, VersionName: qualifiedPS},
-		{Key: "ext", Value: "png", BranchName: qualifiedCL, VersionName: qualifiedPS},
 		{Key: types.PrimaryKeyField, Value: dks.CircleTest, BranchName: qualifiedCL, VersionName: qualifiedPS},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, BranchName: qualifiedCL, VersionName: qualifiedPS},
 		{Key: types.PrimaryKeyField, Value: dks.TriangleTest, BranchName: qualifiedCL, VersionName: qualifiedPS},
@@ -633,7 +632,6 @@ func TestTryjobSQL_Process_SomeDataExists_Success(t *testing.T) {
 	assert.Equal(t, []schema.SecondaryBranchParamRow{
 		{Key: dks.ColorModeKey, Value: dks.RGBColorMode, BranchName: qualifiedCL, VersionName: qualifiedPS},
 		{Key: dks.DeviceKey, Value: dks.IPhoneDevice, BranchName: qualifiedCL, VersionName: qualifiedPS},
-		{Key: "ext", Value: "png", BranchName: qualifiedCL, VersionName: qualifiedPS},
 		{Key: types.PrimaryKeyField, Value: dks.CircleTest, BranchName: qualifiedCL, VersionName: qualifiedPS},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, BranchName: qualifiedCL, VersionName: qualifiedPS},
 		{Key: types.PrimaryKeyField, Value: dks.TriangleTest, BranchName: qualifiedCL, VersionName: qualifiedPS},

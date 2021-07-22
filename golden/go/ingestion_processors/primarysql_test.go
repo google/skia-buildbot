@@ -223,7 +223,6 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 	assert.Equal(t, []schema.PrimaryBranchParamRow{
 		{Key: dks.ColorModeKey, Value: dks.RGBColorMode, TileID: 0},
 		{Key: dks.DeviceKey, Value: dks.QuadroDevice, TileID: 0},
-		{Key: "ext", Value: "png", TileID: 0},
 		{Key: types.PrimaryKeyField, Value: dks.CircleTest, TileID: 0},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
 		{Key: types.PrimaryKeyField, Value: dks.TriangleTest, TileID: 0},
@@ -445,7 +444,6 @@ func TestPrimarySQL_Process_CommitIDSpecified_Success(t *testing.T) {
 	assert.Equal(t, []schema.PrimaryBranchParamRow{
 		{Key: dks.ColorModeKey, Value: dks.RGBColorMode, TileID: 0},
 		{Key: dks.DeviceKey, Value: dks.QuadroDevice, TileID: 0},
-		{Key: "ext", Value: "png", TileID: 0},
 		{Key: types.PrimaryKeyField, Value: dks.CircleTest, TileID: 0},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
 		{Key: types.PrimaryKeyField, Value: dks.TriangleTest, TileID: 0},
@@ -507,12 +505,6 @@ func TestPrimarySQL_Process_TileAlreadyComputed_Success(t *testing.T) {
 
 	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
 	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
-		{Key: "ext", Value: "png", TileID: 0},
-		{Key: "ext", Value: "png", TileID: 1},
-		{Key: "fuzzy_ignored_border_thickness", Value: "0", TileID: 1},
-		{Key: "fuzzy_max_different_pixels", Value: "10", TileID: 1},
-		{Key: "fuzzy_pixel_delta_threshold", Value: "20", TileID: 1},
-		{Key: "image_matching_algorithm", Value: "fuzzy", TileID: 1},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 1},
 		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 0},
@@ -614,13 +606,6 @@ func TestPrimarySQL_Process_PreviousTilesAreFull_NewTileCreated(t *testing.T) {
 
 	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
 	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
-		{Key: "ext", Value: "png", TileID: 0},
-		{Key: "ext", Value: "png", TileID: 1},
-		{Key: "ext", Value: "png", TileID: 2},
-		{Key: "fuzzy_ignored_border_thickness", Value: "0", TileID: 2},
-		{Key: "fuzzy_max_different_pixels", Value: "10", TileID: 2},
-		{Key: "fuzzy_pixel_delta_threshold", Value: "20", TileID: 2},
-		{Key: "image_matching_algorithm", Value: "fuzzy", TileID: 2},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 1},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 2},
@@ -723,8 +708,6 @@ func TestPrimarySQL_Process_BetweenTwoTiles_UseHigherTile(t *testing.T) {
 
 	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
 	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
-		{Key: "ext", Value: "png", TileID: 0},
-		{Key: "ext", Value: "png", TileID: 1},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 1},
 		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 0},
@@ -776,8 +759,6 @@ func TestPrimarySQL_Process_SurroundingCommitsHaveSameTile_UseThatTile(t *testin
 
 	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
 	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
-		{Key: "ext", Value: "png", TileID: 0},
-		{Key: "ext", Value: "png", TileID: 1},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 1},
 		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 0},
@@ -828,8 +809,6 @@ func TestPrimarySQL_Process_AtEndTileNotFull_UseThatTile(t *testing.T) {
 
 	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
 	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
-		{Key: "ext", Value: "png", TileID: 0},
-		{Key: "ext", Value: "png", TileID: 1},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
 		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 1},
 		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 0},

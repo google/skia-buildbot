@@ -620,8 +620,9 @@ func (r *ValueAtHeadRow) ScanFrom(scan func(...interface{}) error) error {
 // of commits. Originally, we had done a join between Traces and TraceValues to find the params
 // where commit_id was in a given range. However, this took several minutes when there were 1M+
 // traces per commit. This table is effectively an index for getting just that data. Note, this
-// contains Keys *and* Options because users can search/filter/query by both of those and this table
-// is used to fill in the UI widgets with the available search options.
+// contains Keys.
+// TODO(kjlubick) Add another table to hold Options, so we can distinguish between the two
+//   and properly search by them.
 type PrimaryBranchParamRow struct {
 	// TileID indicates which tile the given Key and Value were seen on in the primary branch.
 	// This is a foreign key into the Commits table.

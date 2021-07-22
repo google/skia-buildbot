@@ -423,7 +423,6 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		{Key: "os", Value: "Windows10.7", TileID: 0},
 		{Key: "color_mode", Value: "rgb", TileID: 0},
 		{Key: "source_type", Value: "corpus_one", TileID: 0},
-		{Key: "ext", Value: "png", TileID: 0},
 		// Note there's no Windows 10.7 or NUC1234 key because that hasn't been generated in
 		// the second tile (starting at commit 4).
 		{Key: "name", Value: "test_one", TileID: 1},
@@ -432,7 +431,7 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		{Key: "os", Value: "Android", TileID: 1},
 		{Key: "color_mode", Value: "rgb", TileID: 1},
 		{Key: "source_type", Value: "corpus_one", TileID: 1},
-		{Key: "ext", Value: "png", TileID: 1},
+		// Note that "ext" : "png" is not here because that is an option.
 	}, tables.PrimaryBranchParams)
 	assert.ElementsMatch(t, []schema.ValueAtHeadRow{{
 		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
@@ -642,7 +641,7 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		{Key: "os", Value: "Android", TileID: 0},
 		{Key: "color_mode", Value: "rgb", TileID: 0},
 		{Key: "source_type", Value: "corpus_one", TileID: 0},
-		{Key: "ext", Value: "png", TileID: 0},
+		// No "ext": "png" because that is an option
 	}, tables.PrimaryBranchParams)
 	qualifiedCLID := "gerrit_changelist_one"
 	assert.Equal(t, []schema.ChangelistRow{{
@@ -689,7 +688,6 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		{Key: "os", Value: "Android", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
 		{Key: "color_mode", Value: "rgb", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
 		{Key: "source_type", Value: "corpus_one", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
-		{Key: "ext", Value: "png", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
 
 		{Key: "name", Value: "test_one", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
 		{Key: "name", Value: "test_two", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
@@ -698,9 +696,6 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		{Key: "os", Value: "Android", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
 		{Key: "color_mode", Value: "rgb", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
 		{Key: "source_type", Value: "corpus_one", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
-		{Key: "ext", Value: "png", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
-		{Key: "matcher", Value: "fuzzy", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
-		{Key: "threshold", Value: "2", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
 	}, tables.SecondaryBranchParams)
 	assert.Equal(t, []schema.SecondaryBranchValueRow{{
 		BranchName:   qualifiedCLID,

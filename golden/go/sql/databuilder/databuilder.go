@@ -731,15 +731,6 @@ func (b *TablesBuilder) computePrimaryBranchParams(commits []schema.CommitWithDa
 			logAndPanic("missing trace id %x", traceID)
 			return nil
 		}
-		findOptions := func(optID schema.OptionsID) paramtools.Params {
-			for _, opt := range builder.options {
-				if bytes.Equal(opt.OptionsID, optID) {
-					return opt.Keys.Copy() // Copy to ensure immutability
-				}
-			}
-			logAndPanic("missing options id %x", optID)
-			return nil
-		}
 		for _, xtv := range builder.traceValues {
 			for _, tv := range xtv {
 				if tv == nil {
@@ -748,14 +739,6 @@ func (b *TablesBuilder) computePrimaryBranchParams(commits []schema.CommitWithDa
 				tiledID := getTileID(tv.CommitID, commits)
 				keys := findTraceKeys(tv.TraceID)
 				for k, v := range keys {
-					seenRows[schema.PrimaryBranchParamRow{
-						TileID: tiledID,
-						Key:    k,
-						Value:  v,
-					}] = true
-				}
-				options := findOptions(tv.OptionsID)
-				for k, v := range options {
 					seenRows[schema.PrimaryBranchParamRow{
 						TileID: tiledID,
 						Key:    k,
@@ -782,16 +765,6 @@ func (b *TablesBuilder) computeSecondaryBranchParams() []schema.SecondaryBranchP
 		for _, ps := range cl.patchsets {
 			for _, tr := range ps.traces {
 				for k, v := range tr.Keys {
-					seenRows[schema.SecondaryBranchParamRow{
-						BranchName:  ps.patchset.ChangelistID,
-						VersionName: ps.patchset.PatchsetID,
-						Key:         k,
-						Value:       v,
-					}] = true
-				}
-			}
-			for _, opt := range ps.options {
-				for k, v := range opt.Keys {
 					seenRows[schema.SecondaryBranchParamRow{
 						BranchName:  ps.patchset.ChangelistID,
 						VersionName: ps.patchset.PatchsetID,

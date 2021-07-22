@@ -3501,14 +3501,11 @@ func TestGetPrimaryBranchParamset_Success(t *testing.T) {
 	ps, err := s.GetPrimaryBranchParamset(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, paramtools.ReadOnlyParamSet{
-		dks.ColorModeKey:             []string{dks.GreyColorMode, dks.RGBColorMode},
-		dks.DeviceKey:                []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice, dks.WalleyeDevice},
-		types.PrimaryKeyField:        []string{dks.CircleTest, dks.SquareTest, dks.TriangleTest},
-		dks.OSKey:                    []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
-		types.CorpusField:            []string{dks.CornersCorpus, dks.RoundCorpus},
-		"ext":                        []string{"png"},
-		"fuzzy_max_different_pixels": []string{"2"},
-		"image_matching_algorithm":   []string{"fuzzy"},
+		dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+		dks.DeviceKey:         []string{dks.QuadroDevice, dks.IPadDevice, dks.IPhoneDevice, dks.TaimenDevice, dks.WalleyeDevice},
+		types.PrimaryKeyField: []string{dks.CircleTest, dks.SquareTest, dks.TriangleTest},
+		dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot2OS, dks.Windows10dot3OS, dks.IOS},
+		types.CorpusField:     []string{dks.CornersCorpus, dks.RoundCorpus},
 	}, ps)
 }
 
@@ -3537,14 +3534,11 @@ func TestGetPrimaryBranchParamset_RespectsPublicParams_Success(t *testing.T) {
 	ps, err := s.GetPrimaryBranchParamset(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, paramtools.ReadOnlyParamSet{
-		dks.ColorModeKey:             []string{dks.GreyColorMode, dks.RGBColorMode},
-		dks.DeviceKey:                []string{dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
-		types.PrimaryKeyField:        []string{dks.CircleTest, dks.SquareTest, dks.TriangleTest},
-		dks.OSKey:                    []string{dks.AndroidOS, dks.IOS},
-		types.CorpusField:            []string{dks.CornersCorpus, dks.RoundCorpus},
-		"ext":                        []string{"png"},
-		"fuzzy_max_different_pixels": []string{"2"},
-		"image_matching_algorithm":   []string{"fuzzy"},
+		dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+		dks.DeviceKey:         []string{dks.IPadDevice, dks.IPhoneDevice, dks.WalleyeDevice},
+		types.PrimaryKeyField: []string{dks.CircleTest, dks.SquareTest, dks.TriangleTest},
+		dks.OSKey:             []string{dks.AndroidOS, dks.IOS},
+		types.CorpusField:     []string{dks.CornersCorpus, dks.RoundCorpus},
 	}, ps)
 }
 
@@ -3564,20 +3558,16 @@ func TestGetChangelistParamset_ValidCLs_Success(t *testing.T) {
 		types.PrimaryKeyField: []string{dks.CircleTest, dks.SquareTest, dks.TriangleTest},
 		dks.OSKey:             []string{dks.AndroidOS, dks.IOS},
 		types.CorpusField:     []string{dks.CornersCorpus, dks.RoundCorpus},
-		"ext":                 []string{"png"},
 	}, ps)
 
 	ps, err = s.GetChangelistParamset(ctx, dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests)
 	require.NoError(t, err)
 	assert.Equal(t, paramtools.ReadOnlyParamSet{
-		dks.ColorModeKey:             []string{dks.GreyColorMode, dks.RGBColorMode},
-		dks.DeviceKey:                []string{dks.QuadroDevice, dks.WalleyeDevice},
-		types.PrimaryKeyField:        []string{dks.CircleTest, dks.RoundRectTest, dks.SevenTest, dks.SquareTest, dks.TriangleTest},
-		dks.OSKey:                    []string{dks.AndroidOS, dks.Windows10dot3OS},
-		types.CorpusField:            []string{dks.CornersCorpus, dks.RoundCorpus, dks.TextCorpus},
-		"ext":                        []string{"png"},
-		"fuzzy_max_different_pixels": []string{"2"},
-		"image_matching_algorithm":   []string{"fuzzy"},
+		dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+		dks.DeviceKey:         []string{dks.QuadroDevice, dks.WalleyeDevice},
+		types.PrimaryKeyField: []string{dks.CircleTest, dks.RoundRectTest, dks.SevenTest, dks.SquareTest, dks.TriangleTest},
+		dks.OSKey:             []string{dks.AndroidOS, dks.Windows10dot3OS},
+		types.CorpusField:     []string{dks.CornersCorpus, dks.RoundCorpus, dks.TextCorpus},
 	}, ps)
 }
 
@@ -3625,20 +3615,16 @@ func TestGetChangelistParamset_RespectsPublicView_Success(t *testing.T) {
 		types.PrimaryKeyField: []string{dks.CircleTest, dks.SquareTest, dks.TriangleTest},
 		dks.OSKey:             []string{dks.IOS},
 		types.CorpusField:     []string{dks.CornersCorpus, dks.RoundCorpus},
-		"ext":                 []string{"png"},
 	}, ps)
 
 	ps, err = s.GetChangelistParamset(ctx, dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests)
 	require.NoError(t, err)
 	assert.Equal(t, paramtools.ReadOnlyParamSet{
-		dks.ColorModeKey:             []string{dks.GreyColorMode, dks.RGBColorMode},
-		dks.DeviceKey:                []string{dks.WalleyeDevice},
-		types.PrimaryKeyField:        []string{dks.CircleTest, dks.RoundRectTest, dks.SevenTest, dks.SquareTest, dks.TriangleTest},
-		dks.OSKey:                    []string{dks.AndroidOS},
-		types.CorpusField:            []string{dks.CornersCorpus, dks.RoundCorpus, dks.TextCorpus},
-		"ext":                        []string{"png"},
-		"fuzzy_max_different_pixels": []string{"2"},
-		"image_matching_algorithm":   []string{"fuzzy"},
+		dks.ColorModeKey:      []string{dks.GreyColorMode, dks.RGBColorMode},
+		dks.DeviceKey:         []string{dks.WalleyeDevice},
+		types.PrimaryKeyField: []string{dks.CircleTest, dks.RoundRectTest, dks.SevenTest, dks.SquareTest, dks.TriangleTest},
+		dks.OSKey:             []string{dks.AndroidOS},
+		types.CorpusField:     []string{dks.CornersCorpus, dks.RoundCorpus, dks.TextCorpus},
 	}, ps)
 }
 

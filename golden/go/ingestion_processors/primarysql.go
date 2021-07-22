@@ -343,7 +343,8 @@ func (s *sqlPrimaryIngester) writeData(ctx context.Context, gr *jsonio.GoldResul
 		paramset.AddParams(keys)
 
 		_, optionsID := sql.SerializeMap(options)
-		paramset.AddParams(options)
+		// We explicitly do not add options to paramset, but may store them to a different
+		// table in the future.
 
 		grouping := groupingFor(keys)
 		_, groupingID := sql.SerializeMap(grouping)

@@ -1957,7 +1957,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wh *Handlers) ListTestsHandler2(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_ListTestsHandler2")
+	ctx, span := trace.StartSpan(r.Context(), "web_ListTestsHandler2", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
@@ -2432,7 +2432,8 @@ func (wh *Handlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, tile.ParamSet)
 }
 
-// ParamsHandler2 returns all Params that could be searched over. It uses the SQL Backend
+// ParamsHandler2 returns all Params that could be searched over. It uses the SQL Backend and
+// returns *only* the keys, not the options.
 func (wh *Handlers) ParamsHandler2(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {

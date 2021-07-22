@@ -2324,7 +2324,7 @@ func (s *Impl) getPublicParamsetForPrimaryBranch(ctx context.Context) (paramtool
 	ctx, span := trace.StartSpan(ctx, "getPublicParamsetForPrimaryBranch")
 	defer span.End()
 
-	const statement = `SELECT trace_id, keys, options_id FROM ValuesAtHead WHERE most_recent_commit_id >= $1`
+	const statement = `SELECT trace_id, keys FROM ValuesAtHead WHERE most_recent_commit_id >= $1`
 	rows, err := s.db.Query(ctx, statement, getFirstCommitID(ctx))
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -2334,33 +2334,19 @@ func (s *Impl) getPublicParamsetForPrimaryBranch(ctx context.Context) (paramtool
 	var ps paramtools.Params
 	var traceID schema.TraceID
 	var traceKey schema.MD5Hash
-	var optionsID schema.OptionsID
-	var optionsKey schema.MD5Hash
-	uniqueOptions := map[schema.MD5Hash]bool{}
 
 	s.mutex.RLock()
 	for rows.Next() {
-		if err := rows.Scan(&traceID, &ps, &optionsID); err != nil {
+		if err := rows.Scan(&traceID, &ps); err != nil {
 			s.mutex.RUnlock()
 			return nil, skerr.Wrap(err)
 		}
 		copy(traceKey[:], traceID)
 		if _, ok := s.publiclyVisibleTraces[traceKey]; ok {
 			combinedParamset.AddParams(ps)
-			copy(optionsKey[:], optionsID)
-			uniqueOptions[optionsKey] = true
 		}
 	}
 	s.mutex.RUnlock()
-	rows.Close()
-	for optID := range uniqueOptions {
-		opts, err := s.expandOptionsToParams(ctx, optID[:])
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		combinedParamset.AddParams(opts)
-	}
-
 	combinedParamset.Normalize()
 	return paramtools.ReadOnlyParamSet(combinedParamset), nil
 }
@@ -2412,7 +2398,7 @@ func (s *Impl) getPublicParamsetForCL(ctx context.Context, qualifiedCLID string)
 	ctx, span := trace.StartSpan(ctx, "getPublicParamsetForCL")
 	defer span.End()
 
-	const statement = `SELECT secondary_branch_trace_id, options_id FROM SecondaryBranchValues
+	const statement = `SELECT secondary_branch_trace_id FROM SecondaryBranchValues
 WHERE branch_name = $1
 `
 	rows, err := s.db.Query(ctx, statement, qualifiedCLID)
@@ -2422,34 +2408,22 @@ WHERE branch_name = $1
 	defer rows.Close()
 	var traceID schema.TraceID
 	var traceKey schema.MD5Hash
-	var optionsID schema.OptionsID
-	var optionsKey schema.MD5Hash
-	uniqueOptions := map[schema.MD5Hash]bool{}
 	var traceIDsToExpand []schema.TraceID
 	s.mutex.RLock()
 	for rows.Next() {
-		if err := rows.Scan(&traceID, &optionsID); err != nil {
+		if err := rows.Scan(&traceID); err != nil {
 			s.mutex.RUnlock()
 			return nil, skerr.Wrap(err)
 		}
 		copy(traceKey[:], traceID)
 		if _, ok := s.publiclyVisibleTraces[traceKey]; ok {
 			traceIDsToExpand = append(traceIDsToExpand, traceID)
-			copy(optionsKey[:], optionsID)
-			uniqueOptions[optionsKey] = true
 		}
 	}
 	s.mutex.RUnlock()
 	rows.Close()
 
 	combinedParamset := paramtools.ParamSet{}
-	for optID := range uniqueOptions {
-		opts, err := s.expandOptionsToParams(ctx, optID[:])
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		combinedParamset.AddParams(opts)
-	}
 	for _, traceID := range traceIDsToExpand {
 		ps, err := s.expandTraceToParams(ctx, traceID)
 		if err != nil {
@@ -3560,6 +3534,9 @@ GROUP BY test_name, label ORDER BY test_name`
 
 	arguments := []interface{}{s.windowLength}
 	arguments = append(arguments, digestsArgs...)
+	sklog.Infof("query: %#v", q)
+	sklog.Infof("statement: %s", statement)
+	sklog.Infof("arguments: %s", arguments)
 	rows, err := s.db.Query(ctx, statement, arguments...)
 	if err != nil {
 		return frontend.ListTestsResponse{}, skerr.Wrap(err)
