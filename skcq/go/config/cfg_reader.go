@@ -113,15 +113,9 @@ func (gc *GitilesConfigReader) GetSkCQCfg(ctx context.Context) (*SkCQCfg, error)
 // GetTasksCfg implements the ConfigReader interface.
 func (gc *GitilesConfigReader) GetTasksCfg(ctx context.Context, tasksJSONPath string) (*specs.TasksCfg, error) {
 	// If tasks.json is in list of changed files then use that. Else use from HEAD.
-	contents, modifiedInCL, err := gc.getFileContents(ctx, tasksJSONPath)
+	contents, _, err := gc.getFileContents(ctx, tasksJSONPath)
 	if err != nil {
 		return nil, err
-	}
-	if modifiedInCL && !gc.canModifyCfgsOnTheFly.Member(gc.ci.Owner.Email) {
-		return nil, &CannotModifyCfgsOnTheFlyError{
-			issueID:    gc.ci.Issue,
-			issueOwner: gc.ci.Owner.Email,
-		}
 	}
 	cfg, err := specs.ParseTasksCfg(contents)
 	if err != nil {
