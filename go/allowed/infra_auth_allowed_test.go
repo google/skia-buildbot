@@ -39,6 +39,9 @@ const JSON = `{
     ],
     "nested": [
       "nested_group"
+    ],
+    "globs": [
+      "user:*@gotham.org"
     ]
   }
 }`
@@ -61,6 +64,7 @@ func TestWithClientMock(t *testing.T) {
 	assert.True(t, i.Member("foo@chromium.org"))
 	assert.True(t, i.Member("test@example.org"))
 	assert.True(t, i.Member("nested-user@example.org"))
+	assert.True(t, i.Member("batman@gotham.org"))
 	assert.False(t, i.Member("example.org"))
 	assert.False(t, i.Member("bar@example.org"))
 }

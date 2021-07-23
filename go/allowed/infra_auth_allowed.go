@@ -25,6 +25,7 @@ const (
 type Group struct {
 	Members []string `json:"members"`
 	Nested  []string `json:"nested"`
+	Globs   []string `json:"globs"`
 }
 
 // Response represents the format returned from GROUP_URL_TEMPLATE.
@@ -113,6 +114,10 @@ func (a *AllowedFromChromeInfraAuth) getMembers(group string) ([]string, error) 
 			return nil, err
 		}
 		members = append(members, indirectMembers...)
+	}
+	// Get all globs.
+	for _, glob := range r.Group.Globs {
+		members = append(members, glob)
 	}
 	return members, nil
 }
