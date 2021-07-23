@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -130,7 +131,18 @@ func NewTempCheckout(ctx context.Context, repoUrl string) (*TempCheckout, error)
 
 // Delete removes the TempCheckout's working directory.
 func (c *TempCheckout) Delete() {
-	if err := os.RemoveAll(path.Dir(c.Dir())); err != nil {
-		sklog.Errorf("Failed to remove git.TempCheckout: %s", err)
+	deleteDir := filepath.Dir(c.Dir())
+	if err := os.RemoveAll(deleteDir); err != nil {
+		// Some processes (eg. gclient) leave files that are owned by us but not
+		// writeable. Make everything writeable before attempting to delete. We
+		// do this only after the first RemoveAll attempt, in case there are a
+		// large number of files.
+		if _, err2 := exec.RunCwd(context.TODO(), ".", "chmod", "-R", "+w", deleteDir); err2 != nil {
+			sklog.Errorf("Failed to remove git.TempCheckout with: %s; and failed to make writeable with: %s", err, err2)
+			return
+		}
+		if err := os.RemoveAll(deleteDir); err != nil {
+			sklog.Errorf("Failed to remove git.TempCheckout despite making writeable: %s", err)
+		}
 	}
 }
