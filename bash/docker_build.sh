@@ -36,11 +36,12 @@
 # If ROOT is not set then it will be set to a temp directory that is created,
 # otherewise ROOT is presumed to exist.
 
-set -x -e
+set -e
 
 # Useful variables used by build_* scripts.
 INSTALL="install -D --verbose --backup=none"
 INSTALL_DIR="install -d --verbose --backup=none"
+REL=$(dirname "$BASH_SOURCE")
 
 if [ -z "$ROOT" ]; then
   ROOT=`mktemp -d`
@@ -50,25 +51,10 @@ PROJECT="${PROJECT:-skia-public}"
 DATETIME=`date --utc "+%Y-%m-%dT%H_%M_%SZ"`
 HASH=`git rev-parse HEAD`
 
+GITSTATE=`${REL}/gitstate.sh`
 # Determine repo state.
 REPO_STATE=clean
-# Detect if we have unchecked in local changes, or if we're not on the main
-# branch (possibly at an older revision).
-git fetch
-# diff-index requires update-index --refresh; see:
-# https://stackoverflow.com/questions/36367190/git-diff-files-output-changes-after-git-status/36439778#36439778
-if git update-index --refresh ; then
-  if ! git diff-index --quiet HEAD -- ; then
-    REPO_STATE=dirty
-    echo "Setting DIRTY=true due to modified files:"
-    echo "$(git diff-index --name-status HEAD --)"
-  elif ! git merge-base --is-ancestor HEAD origin/main ; then
-    REPO_STATE=dirty
-    echo "Setting DIRTY=true due to current branch: " \
-      "$(git rev-parse --abbrev-ref HEAD)"
-  fi
-else
-  echo "Setting DIRTY=true due to checked out files."
+if [ "$GITSTATE" = "dirty" ]; then
   REPO_STATE=dirty
 fi
 

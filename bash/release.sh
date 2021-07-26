@@ -62,6 +62,7 @@ set -x
 
 ROOT=`mktemp -d`
 OUT=`mktemp -d`
+REL=$(dirname "$BASH_SOURCE")
 
 if [ "$#" -ne 1 ]
 then
@@ -171,22 +172,10 @@ then
   DATETIME=`date --utc "+%Y-%m-%dT%H:%M:%SZ"`
   HASH=`git rev-parse HEAD`
   USERID=${USER}@${HOSTNAME}
-  # Detect if we have unchecked in local changes, or if we're not on the main
-  # branch (possibly at an older revision).
-  git fetch
-  # diff-index requires update-index --refresh; see:
-  # https://stackoverflow.com/questions/36367190/git-diff-files-output-changes-after-git-status/36439778#36439778
-  git update-index --refresh
-  if ! git diff-index --quiet HEAD -- ; then
+  DIRTY=false
+  GITSTATE=`${REL}/gitstate.sh`
+  if [ "$GITSTATE" = "dirty" ]; then
     DIRTY=true
-    echo "Setting DIRTY=true due to modified files:"
-    echo "$(git diff-index --name-status HEAD --)"
-  elif ! git merge-base --is-ancestor HEAD origin/main ; then
-    DIRTY=true
-    echo "Setting DIRTY=true due to current branch: " \
-      "$(git rev-parse --abbrev-ref HEAD)"
-  else
-    DIRTY=false
   fi
   gsutil \
     -h x-goog-meta-appname:${APPNAME} \
