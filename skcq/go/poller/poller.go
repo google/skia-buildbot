@@ -167,7 +167,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 	sklog.Infof("[%d] uses verifiers: %s", ci.Issue, strings.Join(verifierNames, ", "))
 
 	// Update the cache if it is not already in there.
-	cqStartTime, newCQRun, err := currentChangesCache.Add(ctx, changeEquivalentPatchset, ci.Subject, ci.Owner.Email, ci.Project, ci.Branch, cr.IsDryRun(ctx, ci), internalRepo, ci.Issue, cr.GetLatestPatchSetID(ci))
+	cqStartTime, newCQRun, err := currentChangesCache.Add(ctx, changeEquivalentPatchset, ci.Subject, ci.Owner.Email, ci.Project, ci.Branch, !cr.IsCQ(ctx, ci), internalRepo, ci.Issue, cr.GetLatestPatchSetID(ci))
 	if err != nil {
 		sklog.Errorf("[%d] could not update the currentChangesCache: %s", ci.Issue, err)
 	}
@@ -183,7 +183,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 		}
 		notify := gerrit.NotifyNone
 		comment := "SkCQ is trying the patch."
-		if cr.IsDryRun(ctx, ci) {
+		if !cr.IsCQ(ctx, ci) {
 			comment = fmt.Sprintf("Dry run: %s", comment)
 		} else if len(togetherChanges) > 0 {
 			togetherChangesLinks := []string{}
@@ -220,7 +220,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 	} else {
 		// There were no failed verifiers or verifiers that we need to wait for
 		sklog.Infof("[%d] from %s successfully ran verifiers: %s", ci.Issue, repoBranch, strings.Join(successMsgsFromVerifiers, ", "))
-		if cr.IsDryRun(ctx, ci) {
+		if !cr.IsCQ(ctx, ci) {
 			removeFromCQMsg := "Dry run: This CL passed the SkCQ dry run."
 			if ci.WorkInProgress {
 				// If the change is WIP and a reviewer has been added, then
@@ -272,7 +272,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 	attempt := &types.ChangeAttempt{
 		ChangeID:           ci.Issue,
 		PatchsetID:         cr.GetLatestPatchSetID(ci),
-		DryRun:             cr.IsDryRun(ctx, ci),
+		DryRun:             !cr.IsCQ(ctx, ci),
 		Repo:               ci.Project,
 		Branch:             ci.Branch,
 		PatchStartTs:       cqStartTime,

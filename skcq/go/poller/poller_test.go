@@ -58,8 +58,8 @@ func testProcessCL(t *testing.T, testVerifierStatuses []*types.VerifierStatus, e
 
 	// Mock codereview.
 	cr := &cr_mocks.CodeReview{}
-	cr.On("IsDryRun", testutils.AnyContext, ci).Return(dryRun)
-	cr.On("IsCQ", testutils.AnyContext, ci).Return(!dryRun).Once()
+	cr.On("IsDryRun", testutils.AnyContext, ci).Return(dryRun).Once()
+	cr.On("IsCQ", testutils.AnyContext, ci).Return(!dryRun)
 	cr.On("GetEarliestEquivalentPatchSetID", ci).Return(int64(5)).Once()
 	cr.On("GetLatestPatchSetID", ci).Return(int64(5)).Twice()
 	if expectedOverallState != types.VerifierWaitingState {

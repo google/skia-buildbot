@@ -27,8 +27,8 @@ func TestCurrentChangesCache(t *testing.T) {
 
 	// Mock db.
 	dbClient := &db_mocks.DB{}
-	dbClient.On("GetCurrentChanges", ctx).Return(cacheMap, nil).Once()
-	dbClient.On("PutCurrentChanges", ctx, cacheMap).Return(nil).Twice()
+	dbClient.On("GetCurrentChanges", ctx).Return(cacheMap, nil).Twice()
+	dbClient.On("PutCurrentChanges", ctx, cacheMap).Return(nil).Times(3)
 
 	// Test GetCurrentChangesCache.
 	ccCache, err := GetCurrentChangesCache(ctx, dbClient)
@@ -36,12 +36,21 @@ func TestCurrentChangesCache(t *testing.T) {
 	require.NotNil(t, ccCache)
 	require.Len(t, ccCache.Get(), 0)
 
-	// Test Add.
-	startTime, newEntry, err := ccCache.Add(ctx, changeEquivalentPatchset, "subject", "owner", "repo", "branch", false, false, int64(123), int64(5))
+	// Test Add with dry-run.
+	startTime, newEntry, err := ccCache.Add(ctx, changeEquivalentPatchset, "subject", "owner", "repo", "branch", true, false, int64(123), int64(5))
 	require.NoError(t, err)
 	require.Equal(t, unixTime, startTime)
 	require.True(t, newEntry)
 	require.Len(t, ccCache.Get(), 1)
+	require.True(t, ccCache.Get()[changeEquivalentPatchset].DryRun)
+
+	// Test Add with the same attempt in CQ-run now to replace the previous run.
+	startTime, newEntry, err = ccCache.Add(ctx, changeEquivalentPatchset, "subject", "owner", "repo", "branch", false, false, int64(123), int64(5))
+	require.NoError(t, err)
+	require.Equal(t, unixTime, startTime)
+	require.True(t, newEntry)
+	require.Len(t, ccCache.Get(), 1)
+	require.False(t, ccCache.Get()[changeEquivalentPatchset].DryRun)
 
 	// Test Remove.
 	err = ccCache.Remove(ctx, changeEquivalentPatchset)

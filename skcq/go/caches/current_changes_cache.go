@@ -49,7 +49,7 @@ func (c *CurrentChangesCacheImpl) Add(ctx context.Context, changeEquivalentPatch
 	cqStartTime := now.Now(ctx).Unix()
 	// Add to the changes cache if it is already not there.
 	cqRecord, ok := c.currentChangesCache[changeEquivalentPatchset]
-	if !ok {
+	if !ok || cqRecord.DryRun != dryRun {
 		cqRecord = &types.CurrentlyProcessingChange{
 			ChangeID:         changeID,
 			LatestPatchsetID: latestPatchsetID,
