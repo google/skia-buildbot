@@ -49,7 +49,14 @@ func (c *CurrentChangesCacheImpl) Add(ctx context.Context, changeEquivalentPatch
 	cqStartTime := now.Now(ctx).Unix()
 	// Add to the changes cache if it is already not there.
 	cqRecord, ok := c.currentChangesCache[changeEquivalentPatchset]
-	if !ok || cqRecord.DryRun != dryRun {
+	if ok && cqRecord.DryRun != dryRun {
+		// Abandon the previous attempt before we put the new one in.
+		if err := c.dbClient.UpdateChangeAttemptAsAbandoned(ctx, cqRecord.ChangeID, cqRecord.LatestPatchsetID, db.GetChangesCol(internal), cqRecord.StartTs); err != nil {
+			return -1, false, skerr.Wrapf(err, "Error abandoning change attempt")
+		}
+		ok = false
+	}
+	if !ok {
 		cqRecord = &types.CurrentlyProcessingChange{
 			ChangeID:         changeID,
 			LatestPatchsetID: latestPatchsetID,

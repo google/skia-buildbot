@@ -21,6 +21,7 @@ go_test(
     deps = [
         "//go/now",
         "//go/testutils/unittest",
+        "//skcq/go/db",
         "//skcq/go/db/mocks",
         "//skcq/go/types",
         "@com_github_stretchr_testify//require",

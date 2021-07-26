@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/skcq/go/db"
 	db_mocks "go.skia.org/infra/skcq/go/db/mocks"
 	"go.skia.org/infra/skcq/go/types"
 )
@@ -29,6 +30,7 @@ func TestCurrentChangesCache(t *testing.T) {
 	dbClient := &db_mocks.DB{}
 	dbClient.On("GetCurrentChanges", ctx).Return(cacheMap, nil).Twice()
 	dbClient.On("PutCurrentChanges", ctx, cacheMap).Return(nil).Times(3)
+	dbClient.On("UpdateChangeAttemptAsAbandoned", ctx, int64(123), int64(5), db.GetChangesCol(false), now.Now(ctx).Unix()).Return(nil).Times(3)
 
 	// Test GetCurrentChangesCache.
 	ccCache, err := GetCurrentChangesCache(ctx, dbClient)
