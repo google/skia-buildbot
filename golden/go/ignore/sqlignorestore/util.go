@@ -2,11 +2,13 @@ package sqlignorestore
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
@@ -14,8 +16,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
 )
 
@@ -72,149 +72,38 @@ func convertIgnoreRules(rules []paramtools.ParamSet, startIndex int) (string, []
 	return combined, arguments
 }
 
-// UpdateIgnoredTraces applies all the given ignore rules to any Traces and ValuesAtHead which
-// have matches_any_ignore_rule = NULL (typically newly ingested traces).
+// UpdateIgnoredTraces applies all the given ignore rules to all Traces and ValuesAtHead.
 func UpdateIgnoredTraces(ctx context.Context, db *pgxpool.Pool) error {
 	ctx, span := trace.StartSpan(ctx, "UpdateIgnoredTraces")
 	defer span.End()
-	// We can handle these tables separately. If they get out of sync due to a new ignore rule
-	// or trace being created between the two transactions,
-	err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		ignoreRules, err := getAllIgnoreRules(ctx, tx)
-		if err != nil {
-			return err
-		}
-		sklog.Infof("Applying %d rules to traces", len(ignoreRules))
-		span.AddAttributes(trace.Int64Attribute("num_rules", int64(len(ignoreRules))))
-		if err := updateTraces(ctx, tx, ignoreRules); err != nil {
-			return err
-		}
-		// Any remaining traces with a null matches_any_ignore_rule don't match any of the rules.
-		if err := updateNullTraces(ctx, tx); err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	err = crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		ignoreRules, err := getAllIgnoreRules(ctx, tx)
-		if err != nil {
-			return err
-		}
-		sklog.Infof("Applying %d rules to values at head", len(ignoreRules))
-		span.AddAttributes(trace.Int64Attribute("num_rules", int64(len(ignoreRules))))
-		if err := updateValuesAtHead(ctx, tx, ignoreRules); err != nil {
-			return err
-		}
-		// Any remaining values at head with a null matches_any_ignore_rule don't match any
-		// of the rules.
-		if err := updateNullValuesAtHead(ctx, tx); err != nil {
-			return err
-		}
-		return nil
-	})
-	return skerr.Wrap(err)
-}
 
-// updateTraces applies ignore rules to all traces in batches of 1000.
-func updateTraces(ctx context.Context, tx pgx.Tx, rules []paramtools.ParamSet) error {
-	ctx, span := trace.StartSpan(ctx, "updateTraces")
-	defer span.End()
-	const batchSize = 1000
-
-	for _, rule := range rules {
-		// This follows the bulk update recommendation from
-		// https://www.cockroachlabs.com/docs/v20.2/bulk-update-data
-		traceIDs, err := getNotIgnoredTraceIDs(ctx, tx, rule, "Traces")
+	const batchSize = 100000
+	offset := 0
+	for {
+		// Get the ignore rules each time to limit the impact of a rule changing in the middle
+		// of those operation.
+		ignoreRules, err := getAllIgnoreRules(ctx, db)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		if len(traceIDs) == 0 {
-			continue
-		}
-		err = util.ChunkIter(len(traceIDs), batchSize, func(startIdx int, endIdx int) error {
-			_, err := tx.Exec(ctx, `UPDATE Traces SET matches_any_ignore_rule = TRUE
-WHERE trace_id = ANY $1`, traceIDs[startIdx:endIdx])
-			return err // don't wrap, might be retried
-		})
-		if err != nil {
-			return err // don't wrap, might be retried
-		}
-		err = util.ChunkIter(len(traceIDs), batchSize, func(startIdx int, endIdx int) error {
-			_, err := tx.Exec(ctx, `UPDATE ValuesAtHead SET matches_any_ignore_rule = TRUE
-WHERE trace_id = ANY $1`, traceIDs[startIdx:endIdx])
-			return err
-		})
-		if err != nil {
-			return err // don't wrap, might be retried
-		}
-		sklog.Infof("Updated %d traces for rule %v", len(traceIDs), rule)
-	}
-	return nil
-}
-
-// updateValuesAtHead applies ignore rules to all traces in batches of 1000.
-func updateValuesAtHead(ctx context.Context, tx pgx.Tx, rules []paramtools.ParamSet) error {
-	ctx, span := trace.StartSpan(ctx, "updateValuesAtHead")
-	defer span.End()
-	const batchSize = 1000
-
-	for _, rule := range rules {
-		// This follows the bulk update recommendation from
-		// https://www.cockroachlabs.com/docs/v20.2/bulk-update-data
-		traceIDs, err := getNotIgnoredTraceIDs(ctx, tx, rule, "ValuesAtHead")
-		if err != nil {
+		if ok, err := updateBatch(ctx, db, ignoreRules, offset, batchSize); err != nil {
 			return skerr.Wrap(err)
+		} else if !ok {
+			break
 		}
-		if len(traceIDs) == 0 {
-			continue
-		}
-		err = util.ChunkIter(len(traceIDs), batchSize, func(startIdx int, endIdx int) error {
-			_, err := tx.Exec(ctx, `UPDATE ValuesAtHead SET matches_any_ignore_rule = TRUE
-WHERE trace_id = ANY $1`, traceIDs[startIdx:endIdx])
-			return err
-		})
-		if err != nil {
-			return err // don't wrap, might be retried
-		}
-		sklog.Infof("Updated %d values at head for rule %v", len(traceIDs), rule)
+		offset += batchSize
+		sklog.Debugf("Updated one batch of Traces/ValuesAtHead")
 	}
+	sklog.Infof("Updated about %d traces", offset)
 	return nil
-}
-
-// getNotIgnoredTraceIDs returns a slice of trace IDs that correspond to traces that match the
-// rule, are currently not ignored, and are in the given table. They are returned as []interface{}
-// so it is easier to pass into the next database call.
-func getNotIgnoredTraceIDs(ctx context.Context, tx pgx.Tx, rule paramtools.ParamSet, table string) ([]interface{}, error) {
-	ctx, span := trace.StartSpan(ctx, "getNotIgnoredTraceIDs")
-	span.AddAttributes(trace.StringAttribute("table", table))
-	defer span.End()
-	statement := statementForNotIgnoredTraceIDs(rule, table)
-	rows, err := tx.Query(ctx, statement)
-	if err != nil {
-		return nil, err // don't wrap, might be retried
-	}
-	defer rows.Close()
-	// This type is more convenient for passing into an Exec call.
-	var rv []interface{}
-	for rows.Next() {
-		var t schema.TraceID
-		if err := rows.Scan(&t); err != nil {
-			return nil, skerr.Wrap(err) // this is likely our fault, so wrapping helps debugging.
-		}
-		rv = append(rv, t)
-	}
-	return rv, nil
 }
 
 // getAllIgnoreRulesreturns all the ParamSet associated with all current ignore rules.
-func getAllIgnoreRules(ctx context.Context, tx pgx.Tx) ([]paramtools.ParamSet, error) {
+func getAllIgnoreRules(ctx context.Context, db *pgxpool.Pool) ([]paramtools.ParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "getAllIgnoreRules")
 	defer span.End()
 	var ignoreRules []paramtools.ParamSet
-	rows, err := tx.Query(ctx, "SELECT query FROM IgnoreRules")
+	rows, err := db.Query(ctx, "SELECT query FROM IgnoreRules")
 	if err != nil {
 		return nil, err // don't wrap, it might be retried
 	}
@@ -230,85 +119,128 @@ func getAllIgnoreRules(ctx context.Context, tx pgx.Tx) ([]paramtools.ParamSet, e
 	return ignoreRules, nil
 }
 
-// statementForNotIgnoredTraceIDs returns a SQL Statement as a string that returns all traces
-// matching the rule and are not already ignored. It is built as a string because kjlubick@ was not
-// able to use the placeholder values to compare JSONB types removed from a JSONB object to
-// a string while still using the indexes.
-func statementForNotIgnoredTraceIDs(rule paramtools.ParamSet, table string) string {
-	rule.Normalize()
-	keys := make([]string, 0, len(rule))
-	for key := range rule {
-		if key != sql.Sanitize(key) {
-			sklog.Infof("key %q did not pass sanitization", key)
-			continue
-		}
-		keys = append(keys, key)
-	}
-	statement := "WITH\n"
-	sort.Strings(keys) // sort the keys for determinism
-	for i, key := range keys {
-		statement += fmt.Sprintf("U%d AS (\n", i)
-		for j, value := range rule[key] {
-			if j != 0 {
-				statement += "\tUNION\n"
-			}
-			statement += fmt.Sprintf("\tSELECT trace_id FROM %s WHERE keys -> '%s' = '%q'\n", table, key, sql.Sanitize(value))
-		}
-		if i == len(keys)-1 {
-			statement += ")\n"
-		} else {
-			statement += "),\n"
-		}
-	}
-	statement += "SELECT trace_id FROM " + table + " WHERE trace_id IN (\n"
-	for i := range keys {
-		if i != 0 {
-			statement += "INTERSECT\n"
-		}
-		statement += fmt.Sprintf("SELECT trace_id FROM U%d\n", i)
-	}
-	statement += ") AND (matches_any_ignore_rule = FALSE OR matches_any_ignore_rule is NULL)"
-	return statement
+type idAndIgnored struct {
+	traceID   schema.TraceID
+	isIgnored bool
 }
 
-// updateNullTraces updates all traces where matches_any_ignore_rule is NULL to be false, since
-// we have not matched any other ignore rules. There is a limit to how many rows will be updated
-// with this to avoid transactions from being too big.
-func updateNullTraces(ctx context.Context, tx pgx.Tx) error {
-	ctx, span := trace.StartSpan(ctx, "updateNullTraces")
+// updateBatch applies ignore rules to the batch of traces given by offset and batch to both
+// the Traces and ValuesAtHead table. It applies updates individually, in case either table has
+// gotten out of sync with the other. It returns true if it processed at least one trace in
+// either table (and thus the process should continue).
+func updateBatch(ctx context.Context, db *pgxpool.Pool, rules []paramtools.ParamSet, offset, batch int) (bool, error) {
+	ctx, span := trace.StartSpan(ctx, "updateBatch")
 	defer span.End()
-	statement := `UPDATE Traces SET matches_any_ignore_rule = FALSE WHERE matches_any_ignore_rule is NULL LIMIT 1000 RETURNING 1;`
-	// To avoid making this transaction too big, we'll stop after 10 batches. We can get the rest
-	// of the traces in the next update call.
-	for i := 0; i < 10; i++ {
-		row := tx.QueryRow(ctx, statement)
-		var count int
-		if err := row.Scan(&count); err != nil {
-			if err == pgx.ErrNoRows {
-				break
-			}
-			return err // Don't wrap, it may be retried
-		}
+
+	traceUpdates, haveMore1, err := fetchUpdates(ctx, db, rules, fetchTracesStatement, offset, batch)
+	if err != nil {
+		return false, skerr.Wrap(err)
 	}
-	return nil
+	if err := applyUpdates(ctx, db, traceUpdates, updateTracesStatement); err != nil {
+		return false, skerr.Wrap(err)
+	}
+	vahUpdates, haveMore2, err := fetchUpdates(ctx, db, rules, fetchValuesAtHeadStatement, offset, batch)
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	if err := applyUpdates(ctx, db, vahUpdates, updateValuesAtHeadStatement); err != nil {
+		return false, skerr.Wrap(err)
+	}
+	return haveMore1 || haveMore2, nil
 }
 
-// updateNullValuesAtHead updates all ValuesAtHead where matches_any_ignore_rule is NULL to be
-// false, since we have not matched any other ignore rules. There is a limit to how many rows
-// will be updated with this to avoid transactions from being too big.
-func updateNullValuesAtHead(ctx context.Context, tx pgx.Tx) error {
-	ctx, span := trace.StartSpan(ctx, "updateNullValuesAtHead")
+const fetchTracesStatement = `SELECT trace_id, keys, matches_any_ignore_rule FROM Traces OFFSET $1 LIMIT $2`
+const fetchValuesAtHeadStatement = `SELECT trace_id, keys, matches_any_ignore_rule FROM ValuesAtHead OFFSET $1 LIMIT $2`
+
+// fetchUpdates returns the trace ids and the new ignore status for any traces whose current
+// value does not match what it is supposed to be.
+func fetchUpdates(ctx context.Context, db *pgxpool.Pool, rules []paramtools.ParamSet, statement string, offset, batch int) ([]idAndIgnored, bool, error) {
+	ctx, span := trace.StartSpan(ctx, "fetchUpdates")
 	defer span.End()
-	statement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = FALSE WHERE matches_any_ignore_rule is NULL LIMIT 1000 RETURNING 1;`
-	for i := 0; i < 10; i++ {
-		row := tx.QueryRow(ctx, statement)
-		var count int
-		if err := row.Scan(&count); err != nil {
-			if err == pgx.ErrNoRows {
+	// We choose to get all the trace values and figure out the new "matches_any_ignore_rule" in
+	// software instead of SQL statements because the latter makes for very complex queries that
+	// are error-prone and hard to debug.
+	rows, err := db.Query(ctx, statement, offset, batch)
+	if err != nil {
+		return nil, false, skerr.Wrap(err)
+	}
+	defer rows.Close()
+
+	shouldContinue := false
+	var updates []idAndIgnored
+	for rows.Next() {
+		shouldContinue = true
+		var tID schema.TraceID
+		var traceKeys paramtools.Params
+		var matches pgtype.Bool
+		if err := rows.Scan(&tID, &traceKeys, &matches); err != nil {
+			return nil, false, skerr.Wrap(err)
+		}
+		newStatus := false
+		for _, rule := range rules {
+			if rule.MatchesParams(traceKeys) {
+				newStatus = true
 				break
 			}
-			return err // Don't wrap, it may be retried
+		}
+		if matches.Status == pgtype.Null || newStatus != matches.Bool {
+			updates = append(updates, idAndIgnored{
+				traceID:   tID,
+				isIgnored: newStatus,
+			})
 		}
 	}
-	return nil
+	return updates, shouldContinue, nil
+}
+
+// This approach is inspired by https://stackoverflow.com/a/28723617 as a way to perform
+// multiple updates based on tuples of data. The JSON that is argument 1 has as the key a
+// trace_id (as a hex encoded string) and the new value for "matches_any_ignore_rule" as the
+// value. This could be done perhaps with a temporary table, when those leave experimental
+// support. This approach is so that we do not have to make n individual UPDATE/SET calls where
+// n is the number of items in the file we are ingesting. This allows us to batch the updates.
+const updateTracesStatement = `WITH ToUpdate AS (
+  SELECT decode(key, 'hex') AS trace_id, value LIKE 'TRUE' AS new_matches
+  FROM json_each_text($1)
+)
+UPDATE Traces
+SET
+  matches_any_ignore_rule = new_matches
+FROM ToUpdate
+WHERE Traces.trace_id = ToUpdate.trace_id
+RETURNING NOTHING`
+const updateValuesAtHeadStatement = `WITH ToUpdate AS (
+  SELECT decode(key, 'hex') AS trace_id, value LIKE 'TRUE' AS new_matches
+  FROM json_each_text($1)
+)
+UPDATE ValuesAtHead
+SET
+  matches_any_ignore_rule = new_matches
+FROM ToUpdate
+WHERE ValuesAtHead.trace_id = ToUpdate.trace_id
+RETURNING NOTHING`
+
+// applyUpdates applies the given batch of updates to the Traces table.
+func applyUpdates(ctx context.Context, db *pgxpool.Pool, updates []idAndIgnored, statement string) error {
+	if len(updates) == 0 {
+		return nil
+	}
+	ctx, span := trace.StartSpan(ctx, "applyUpdates")
+	span.AddAttributes(trace.Int64Attribute("num_updates", int64(len(updates))))
+	defer span.End()
+
+	arg := map[string]string{}
+	for _, u := range updates {
+		key := hex.EncodeToString(u.traceID)
+		value := "FALSE"
+		if u.isIgnored {
+			value = "TRUE"
+		}
+		arg[key] = value
+	}
+	err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, statement, arg)
+		return err // Don't wrap - crdbpgx might retry
+	})
+	return skerr.Wrap(err)
 }
