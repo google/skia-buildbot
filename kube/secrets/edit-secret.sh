@@ -13,7 +13,7 @@ source ${REL}/config.sh
 CLUSTER=$1
 SECRET_NAME=$2
 
-source ../../bash/ramdisk.sh
+source ${REL}/../../bash/ramdisk.sh
 
 FILES=$(${REL}/get-secret.sh ${CLUSTER} ${SECRET_NAME} \
   | kubectl apply -f - --dry-run -o json \
