@@ -13,6 +13,10 @@ import (
 	"go.skia.org/infra/machine/go/machine"
 )
 
+const (
+	myTestVersion = "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4"
+)
+
 func TestParseAndroidProperties_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -154,6 +158,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 			Name:            "skia-rpi2-0001",
 			PodName:         "rpi-swarming-12345-987",
 			KubernetesImage: "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean",
+			Version:         myTestVersion,
 		},
 	}
 
@@ -178,6 +183,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 	assert.Equal(t, event.Host.PodName, next.PodName)
 	assert.Equal(t, event.Host.KubernetesImage, next.KubernetesImage)
 	assert.Equal(t, uptime, next.DeviceUptime)
+	assert.Equal(t, myTestVersion, next.Version)
 }
 
 func TestProcess_DetectInsideDocker(t *testing.T) {
@@ -241,7 +247,7 @@ func TestProcess_DetectNotInsideDocker(t *testing.T) {
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
 }
 
-func TestProcess_ClearScheduledForDelectionOnPodNameChange(t *testing.T) {
+func TestProcess_ClearScheduledForDeletionOnPodNameChange(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
 

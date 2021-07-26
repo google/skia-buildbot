@@ -1,8 +1,8 @@
 import './index';
 
 import fetchMock from 'fetch-mock';
-import {descriptions, fakeNow} from './demo_data';
-import {MachineServerSk} from './machine-server-sk';
+import { descriptions, fakeNow } from './demo_data';
+import { MachineServerSk } from './machine-server-sk';
 
 Date.now = () => fakeNow;
 

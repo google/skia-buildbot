@@ -67,6 +67,9 @@ type Description struct {
 	// KubernetesImage is the kubernetes image name.
 	KubernetesImage string
 
+	// Version of test_machine_monitor being run.
+	Version string
+
 	// ScheduledForDeletion will be a non-empty string and equal to PodName if
 	// the pod should be deleted.
 	ScheduledForDeletion string
@@ -134,6 +137,9 @@ type Host struct {
 
 	// KubernetesImage is the container image being run.
 	KubernetesImage string `json:"image"`
+
+	// Version of test_machine_monitor being run.
+	Version string `json:"version"`
 
 	// StartTim is when the test_machine_monitor started running.
 	StartTime time.Time `json:"start_time"`

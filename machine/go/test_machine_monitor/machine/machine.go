@@ -44,6 +44,9 @@ type Machine struct {
 	// KubernetesImage is the container image being run.
 	KubernetesImage string
 
+	// Version of test_machine_monitor being run.
+	Version string
+
 	// startTime is the time when this machine started running.
 	startTime time.Time
 
@@ -67,7 +70,7 @@ type Machine struct {
 }
 
 // New return an instance of *Machine.
-func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, startTime time.Time) (*Machine, error) {
+func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, startTime time.Time, version string) (*Machine, error) {
 	store, err := store.New(ctx, false, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to build store instance.")
@@ -97,6 +100,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		MachineID:                  machineID,
 		Hostname:                   hostname,
 		KubernetesImage:            kubernetesImage,
+		Version:                    version,
 		startTime:                  startTime,
 		interrogateTimer:           metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
 		interrogateAndSendFailures: metrics2.GetCounter("bot_config_machine_interrogate_and_send_errors", map[string]string{"machine": machineID}),
@@ -112,6 +116,7 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 	ret.Host.Name = m.MachineID
 	ret.Host.PodName = m.Hostname
 	ret.Host.KubernetesImage = m.KubernetesImage
+	ret.Host.Version = m.Version
 
 	if props, err := m.adb.RawProperties(ctx); err != nil {
 		sklog.Infof("Failed to read android properties: %s", err)

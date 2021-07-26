@@ -13,6 +13,7 @@ export interface Description {
 	Dimensions: SwarmingDimensions;
 	PodName: string;
 	KubernetesImage: string;
+	Version: string;
 	ScheduledForDeletion: string;
 	PowerCycle: boolean;
 	LastUpdated: string;

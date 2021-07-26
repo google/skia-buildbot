@@ -38,12 +38,18 @@ var (
 	swarmingBotZip   = flag.String("swarming_bot_zip", "/b/s/swarming_bot.zip", "Absolute path to where the swarming_bot.zip code should run from.")
 )
 
+var (
+	// Version can be changed via -ldflags.
+	Version = "development"
+)
+
 func main() {
 	common.InitWithMust(
 		"test_machine_monitor",
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
+	sklog.Infof("Version: %s", Version)
 	var instanceConfig config.InstanceConfig
 	b, err := fs.ReadFile(configs.Configs, *configFlag)
 	if err != nil {
@@ -59,7 +65,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	machineState, err := machine.New(ctx, *local, instanceConfig, time.Now())
+	machineState, err := machine.New(ctx, *local, instanceConfig, time.Now(), Version)
 	if err != nil {
 		sklog.Fatal("Failed to create machine: %s", err)
 	}

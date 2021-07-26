@@ -171,6 +171,8 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	ret.DeviceUptime = int32(event.Android.Uptime.Seconds())
 
 	ret.KubernetesImage = sanitizeKubernetesImageName(event.Host.KubernetesImage)
+	ret.Version = event.Host.Version
+
 	for k, values := range dimensions {
 		ret.Dimensions[k] = values
 	}

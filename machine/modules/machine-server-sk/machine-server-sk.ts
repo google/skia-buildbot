@@ -126,6 +126,10 @@ const update = (ele: MachineServerSk, machine: Description): TemplateResult => {
 };
 
 const imageName = (machine: Description): string => {
+  // Prefer displaying the Version over the KubernetesImage.
+  if (machine.Version) {
+    return machine.Version;
+  }
   // KubernetesImage looks like:
   // "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean".
   // We just need to display everything after the ":".

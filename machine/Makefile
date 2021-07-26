@@ -75,21 +75,28 @@ build-remote:
 run-local-instance:
 	machineserver --local --logtostderr
 
-build_test_machine_monitor_rpi:
+export HASH=$(shell git rev-parse HEAD)
+export DATETIME=$(date --utc "+%Y-%m-%dT%H:%M:%SZ")
+export GIT_STATE=$(shell ../bash/gitstate.sh)
+export VERSION=$(DATETIME)-${USER}-${HASH}-${GIT_STATE}
+
+# The names of these targets can't change, as their form is dictated by ansible playbooks in //skolo/ansible/switchboard.
+build_test_machine_monitor_aarch64_Linux:
 	CGO_ENABLED=0 \
 	GOOS=linux \
 	GOARCH=arm64 \
-	go build -o ./build/linux/arm64/test_machine_monitor ./go/test_machine_monitor
+	go build \
+	  -o ./build/Linux/aarch64/test_machine_monitor \
+	  -ldflags="-X 'main.Version=${VERSION}'" \
+	  ./go/test_machine_monitor
 
-# Run the following command prefixed with the the IP address of the local machine
-# to be updated, for example:
-#
-#    $ TARGET=192.168.1.158 make push_test_machine_monitor_rpi
-#
-push_test_machine_monitor_rpi: build_test_machine_monitor_rpi
-	ANSIBLE_CONFIG=../skolo/ansible/ansible.cfg \
-	ANSIBLE_SSH_ARGS="-F ${HOME}/.ssh/config" \
-	ansible-playbook ../skolo/ansible/switchboard/install-test-machine-monitor.yml \
-	--extra-vars variable_hosts=${TARGET}
+build_test_machine_monitor_x86_64_Linux:
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=amd64 \
+	go build \
+	 -o ./build/Linux/x86_64/test_machine_monitor \
+	  -ldflags="-X 'main.Version=${VERSION}'" \
+	 ./go/test_machine_monitor
 
 include ../make/npm.mk
