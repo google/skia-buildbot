@@ -15,4 +15,4 @@ MOUNT=$2
 
 echo ${HOSTNAME} > ${MOUNT}/etc/hostname
 install -D --mode=600 ${REL}/../../authorized_keys ${MOUNT}/root/.ssh/authorized_keys
-
+sync --file-system ${MOUNT}/root/.ssh/authorized_keys
