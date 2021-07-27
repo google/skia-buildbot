@@ -115,6 +115,12 @@ func Start(ctx context.Context, pollInterval time.Duration, cr codereview.CodeRe
 	return nil
 }
 
+// stripNewLinesFromLog replaces new lines with spaces in the specified log
+// because new lines show up as errors in cloud logs. See skbug.com/12280.
+func stripNewLinesFromLog(log string) string {
+	return strings.ReplaceAll(log, "\n", " ")
+}
+
 func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.ChangeInfo, configReader config.ConfigReader, clsInThisRound map[string]bool, cr codereview.CodeReview, currentChangesCache caches.CurrentChangesCache, httpClient *http.Client, dbClient db.DB, canModifyCfgsOnTheFly allowed.Allow, publicFEInstanceURL, corpFEInstanceURL string, tm types.ThrottlerManager) {
 
 	// Make sure the change is still open and has either CQ+1 and CQ+2.
@@ -206,7 +212,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 	var attemptOverallState types.VerifierState
 	if len(rejectMsgsFromVerifiers) > 0 {
 		// There were failed verifiers.
-		sklog.Infof("[%d] from %s has failed verifiers: %+v", ci.Issue, repoBranch, rejectMsgsFromVerifiers)
+		sklog.Infof("[%d] from %s has failed verifiers: %s", ci.Issue, repoBranch, stripNewLinesFromLog(strings.Join(rejectMsgsFromVerifiers, ", ")))
 		cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Removing from SkCQ because verifiers have failed:\n\n%s", strings.Join(rejectMsgsFromVerifiers, "\n")))
 		if err := currentChangesCache.Remove(ctx, changeEquivalentPatchset); err != nil {
 			sklog.Errorf("[%d] could not update the currentChangesCache: %s", ci.Issue, err)
@@ -215,11 +221,11 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 		cqEndTime = time.Now().Unix()
 	} else if len(waitMsgsFromVerifiers) > 0 {
 		// There are verifiers we need to wait for.
-		sklog.Infof("[%d] from %s is waiting for verifiers: %s", ci.Issue, repoBranch, strings.Join(waitMsgsFromVerifiers, ", "))
+		sklog.Infof("[%d] from %s is waiting for verifiers: %s", ci.Issue, repoBranch, stripNewLinesFromLog(strings.Join(waitMsgsFromVerifiers, ", ")))
 		attemptOverallState = types.VerifierWaitingState
 	} else {
 		// There were no failed verifiers or verifiers that we need to wait for
-		sklog.Infof("[%d] from %s successfully ran verifiers: %s", ci.Issue, repoBranch, strings.Join(successMsgsFromVerifiers, ", "))
+		sklog.Infof("[%d] from %s successfully ran verifiers: %s", ci.Issue, repoBranch, stripNewLinesFromLog(strings.Join(successMsgsFromVerifiers, ", ")))
 		if !cr.IsCQ(ctx, ci) {
 			removeFromCQMsg := "Dry run: This CL passed the SkCQ dry run."
 			if ci.WorkInProgress {
