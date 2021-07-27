@@ -162,7 +162,9 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 	clVerifiers, togetherChanges, err := vm.GetVerifiers(ctx, skCQCfg, ci, false /* isSubmittedTogetherChange */, configReader)
 	if err != nil {
 		sklog.Errorf("[%d] Error when getting verifiers: %s", ci.Issue, err)
-		cr.RemoveFromCQ(ctx, ci, "Error when getting verifiers. Removing from CQ. Please ask Infra Gardener to investigate.")
+		// Stop processing the change due to the likely transient error. It will be
+		// retried at the next poll iteration. If the error keeps happening then
+		// the infra gardener will see an alert.
 		return
 	}
 	// Log verifiers.
