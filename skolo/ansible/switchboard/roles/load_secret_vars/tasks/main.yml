@@ -1,0 +1,23 @@
+---
+# tasks file for load-secret-vars
+- name: mktemp
+  delegate_to: 127.0.0.1
+  tempfile:
+    state: directory
+  register: secrets_dir
+
+- name: Extract secrets and trigger `clean_up_tempfile` handler for cleanup.
+  delegate_to: 127.0.0.1
+  command:
+    argv:
+      - '{{ role_path }}/../../../../../kube/secrets/get-secret-at-path.sh'
+      - etc
+      - ansible-secret-vars
+      - '.data."secrets.yml"'
+      - '{{ secrets_dir.path }}/secrets.yml'
+    creates: '{{ secrets_dir.path }}/secrets.yml'
+  notify: clean_up_tempfile
+
+- name: Import secrets as vars
+  include_vars:
+    file: '{{ secrets_dir.path }}/secrets.yml'
