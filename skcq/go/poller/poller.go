@@ -241,8 +241,13 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 			cr.RemoveFromCQ(ctx, ci, removeFromCQMsg)
 		} else {
 			if err := cr.Submit(ctx, ci); err != nil {
-				sklog.Errorf("[%d] Error when submitting: %s", ci.Issue, err)
-				cr.RemoveFromCQ(ctx, ci, "Error when submitting. Removing from SkCQ. Please ask Infra Gardener to investigate.")
+				if strings.Contains(err.Error(), gerrit.ErrMergeConflict) {
+					sklog.Infof("[%d] Gerrit rejected submission due to merge conflict: %s", ci.Issue, err.Error())
+					cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Gerrit rejected submission due to merge conflict.\n\nHint: Rebasing CL in Gerrit UI and re-submitting through SkCQ usually works."))
+				} else {
+					sklog.Errorf("[%d] Error when submitting: %s", ci.Issue, err)
+					cr.RemoveFromCQ(ctx, ci, "Error when submitting. Removing from SkCQ. Please ask Infra Gardener to investigate.")
+				}
 			} else {
 				cqSubmittedTime = time.Now().Unix()
 				tm.UpdateThrottler(repoBranch, time.Now(), skCQCfg.ThrottlerCfg)

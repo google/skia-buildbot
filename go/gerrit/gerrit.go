@@ -166,6 +166,10 @@ const (
 	//                |
 	//                +-> Last two digits of Issue ID.
 	ChangeRefPrefix = "refs/changes/"
+
+	// ErrMergeConflict as a substring of an error message indicates that a
+	// merge conflict occurred.
+	ErrMergeConflict = "conflict during merge"
 )
 
 var (
