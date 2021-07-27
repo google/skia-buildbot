@@ -143,6 +143,9 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 }
 
 func (w *WorkerImpl) computeAndReportDiffsInParallel(ctx context.Context, grouping paramtools.Params, leftDigests []types.Digest, rightDigests []types.Digest) error {
+	ctx, cancel := context.WithCancel(ctx)
+	// This will make sure we stop any goroutines spawned when we return, even due to an error.
+	defer cancel()
 	ctx, span := trace.StartSpan(ctx, "computeAndReportDiffsInParallel")
 	defer span.End()
 	// Compute diffs in parallel. To do this, we spin up an error group that uses a channel to
@@ -188,6 +191,11 @@ func (w *WorkerImpl) computeAndReportDiffsInParallel(ctx context.Context, groupi
 				// If there is an error diffing, it is because we couldn't download or decode
 				// one of the images. If so, we skip that entry and report it, before moving on.
 				if iErr != nil {
+					if err := ctx.Err(); err != nil {
+						// If the image download failed due to a cancelled context, it's not
+						// a problem image
+						return err
+					}
 					// Add the bad image to the ttlcache so we skip it for a short while.
 					w.badDigestsCache.Set(string(iErr.digest), true, ttlcache.DefaultExpiration)
 					if err := w.reportProblemImage(eCtx, iErr); err != nil {
@@ -235,15 +243,12 @@ func (w *WorkerImpl) computeAndReportDiffsInParallel(ctx context.Context, groupi
 	// Now that the goroutines are started, fill up the availableWork channel and close it.
 	workAssigned, err := w.calculateWorkNeeded(ctx, availableWork, leftDigests, rightDigests)
 	if err != nil {
-		close(availableWork) // kill outstanding goroutines
-		close(newMetrics)
 		return skerr.Wrapf(err, "calculating work needed and using existing metrics")
 	}
 	close(availableWork)
 	sklog.Infof("Computing %d new diffs for grouping %v (%d diffs total)", workAssigned, grouping, len(leftDigests)*len(rightDigests))
 	// Wait for computation to complete.
 	if err := computeGroup.Wait(); err != nil {
-		close(newMetrics) // shut down the reporting go routine as well.
 		return skerr.Wrap(err)
 	}
 	// We know computation is complete, so close the reporting channel and wait for it to be done
