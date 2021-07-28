@@ -1,0 +1,19 @@
+- name: Create .ssh directory if it doesn't exist.
+  ansible.windows.win_file:
+    path: "C:\\Users\\{{ skolo_account }}\\.ssh"
+    state: directory
+
+- name: Copy sshd_config
+  ansible.builtin.copy:
+    src: ./templates/win_sshd_config
+    dest: C:\ProgramData\ssh\sshd_config
+
+- name: Copy authorized_keys
+  ansible.builtin.copy:
+    src: '{{ role_path }}/../../../../authorized_keys'
+    dest: "C:\\Users\\{{ skolo_account }}\\.ssh\\authorized_keys"
+
+- name: Restart sshd
+  ansible.windows.win_service:
+    state: restarted
+    name: sshd
