@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/time/rate"
 )
 
 var (
@@ -170,6 +171,12 @@ const (
 	// ErrMergeConflict as a substring of an error message indicates that a
 	// merge conflict occurred.
 	ErrMergeConflict = "conflict during merge"
+
+	// These were copied from the defaults used by gitfs:
+	// https://gerrit.googlesource.com/gitfs/+show/59c1163fd1737445281f2339399b2b986b0d30fe/gitiles/client.go#102
+	// Hopefully they apply to Gerrit as well.
+	defaultMaxQPS   = 4.0
+	defaultMaxBurst = 40
 )
 
 var (
@@ -422,6 +429,7 @@ type Gerrit struct {
 	baseUrl           string
 	repoUrl           string
 	extractRegEx      *regexp.Regexp
+	rl                *rate.Limiter
 }
 
 // NewGerrit returns a new Gerrit instance.
@@ -432,6 +440,12 @@ func NewGerrit(gerritUrl string, client *http.Client) (*Gerrit, error) {
 // NewGerritWithConfig returns a new Gerrit instance which uses the given
 // Config.
 func NewGerritWithConfig(cfg *Config, gerritUrl string, client *http.Client) (*Gerrit, error) {
+	return NewGerritWithConfigAndRateLimits(cfg, gerritUrl, client, defaultMaxQPS, defaultMaxBurst)
+}
+
+// NewGerritWithConfigAndRateLimits returns a new Gerrit instance which uses the given
+// Config and rate limit options.
+func NewGerritWithConfigAndRateLimits(cfg *Config, gerritUrl string, client *http.Client, maxQPS float64, maxBurst int) (*Gerrit, error) {
 	parsedUrl, err := url.Parse(gerritUrl)
 	if err != nil {
 		return nil, skerr.Fmt("Unable to parse gerrit URL: %s", err)
@@ -455,6 +469,7 @@ func NewGerritWithConfig(cfg *Config, gerritUrl string, client *http.Client) (*G
 		client:            client,
 		BuildbucketClient: buildbucket.NewClient(client),
 		extractRegEx:      extractRegEx,
+		rl:                rate.NewLimiter(rate.Limit(maxQPS), maxBurst),
 	}, nil
 }
 
@@ -609,6 +624,11 @@ func (ci *ChangeInfo) GetPatchsetIDs() []int64 {
 // GetPatch returns the formatted patch for one revision. Documentation is here:
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-patch
 func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision string) (string, error) {
+	// Respect the rate limit.
+	if err := g.rl.Wait(ctx); err != nil {
+		return "", err
+	}
+
 	u := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.apiUrl, issue, revision)
 	resp, err := httputils.GetWithContext(ctx, g.client, u)
 	if err != nil {
@@ -773,6 +793,11 @@ func (g *Gerrit) Abandon(ctx context.Context, issue *ChangeInfo, message string)
 // If notFoundError is not nil it will be returned if the requested item doesn't
 // exist.
 func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoundError error) error {
+	// Respect the rate limit.
+	if err := g.rl.Wait(ctx); err != nil {
+		return err
+	}
+
 	getURL := g.apiUrl + suburl
 	resp, err := httputils.GetWithContext(ctx, g.client, getURL)
 	if err != nil {
@@ -807,6 +832,11 @@ func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoun
 }
 
 func (g *Gerrit) post(ctx context.Context, suburl string, b []byte) error {
+	// Respect the rate limit.
+	if err := g.rl.Wait(ctx); err != nil {
+		return err
+	}
+
 	resp, err := httputils.PostWithContext(ctx, g.client, g.apiUrl+suburl, "application/json", bytes.NewReader(b))
 	if err != nil {
 		return err
@@ -832,6 +862,11 @@ func (g *Gerrit) postJson(ctx context.Context, suburl string, postData interface
 }
 
 func (g *Gerrit) put(ctx context.Context, suburl string, b []byte) error {
+	// Respect the rate limit.
+	if err := g.rl.Wait(ctx); err != nil {
+		return err
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, g.apiUrl+suburl, bytes.NewReader(b))
 	if err != nil {
 		return err
@@ -856,6 +891,11 @@ func (g *Gerrit) putJson(ctx context.Context, suburl string, data interface{}) e
 }
 
 func (g *Gerrit) delete(ctx context.Context, suburl string) error {
+	// Respect the rate limit.
+	if err := g.rl.Wait(ctx); err != nil {
+		return err
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, g.apiUrl+suburl, nil)
 	if err != nil {
 		return err
@@ -961,6 +1001,11 @@ func queryString(terms []*SearchTerm) string {
 
 // SetTopic sets a topic on the Gerrit change with the provided id.
 func (g *Gerrit) SetTopic(ctx context.Context, topic string, changeNum int64) error {
+	// Respect the rate limit.
+	if err := g.rl.Wait(ctx); err != nil {
+		return err
+	}
+
 	putData := map[string]interface{}{
 		"topic": topic,
 	}
@@ -1141,6 +1186,11 @@ func (g *Gerrit) SubmittedTogether(ctx context.Context, ci *ChangeInfo) ([]*Chan
 // DownloadCommitMsgHook downloads the commit message hook to the specified
 // location.
 func (g *Gerrit) DownloadCommitMsgHook(ctx context.Context, dest string) error {
+	// Respect the rate limit.
+	if err := g.rl.Wait(ctx); err != nil {
+		return err
+	}
+
 	url := g.apiUrl + urlCommitMsgHook
 	resp, err := httputils.GetWithContext(ctx, g.client, url)
 	if err != nil {
@@ -1240,6 +1290,11 @@ func ContainsAny(id int64, changes []*ChangeInfo) bool {
 // CreateChange creates a new Change in the given project, based on the given branch, and with
 // the given subject line.
 func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, baseCommit string) (*ChangeInfo, error) {
+	// Respect the rate limit.
+	if err := g.rl.Wait(ctx); err != nil {
+		return nil, err
+	}
+
 	c := struct {
 		Project    string `json:"project"`
 		Subject    string `json:"subject"`
@@ -1281,6 +1336,11 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 // one is not already active. You must call PublishChangeEdit in order for the
 // change to become a new patch set, otherwise it has no effect.
 func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content string) error {
+	// Respect the rate limit.
+	if err := g.rl.Wait(ctx); err != nil {
+		return err
+	}
+
 	u := g.apiUrl + fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u, strings.NewReader(content))
 	if err != nil {
