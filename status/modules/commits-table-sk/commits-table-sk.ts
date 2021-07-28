@@ -48,10 +48,10 @@ import {
 } from '../rpc/status';
 import { DetailsDialogSk } from '../details-dialog-sk/details-dialog-sk';
 import { errorMessage } from 'elements-sk/errorMessage';
-import { truncateWithEllipses } from '../../../golden/modules/common';
 import { GetStatusService } from '../rpc';
 import { BranchesSk } from '../branches-sk/branches-sk';
 import { defaultRepo, repos, taskSchedulerUrl } from '../settings';
+import {truncate} from '../../../infra-sk/modules/string';
 
 const CONTROL_START_ROW = 1;
 const CATEGORY_START_ROW = CONTROL_START_ROW + 1;
@@ -1326,7 +1326,7 @@ function shortAuthor(author: string): string {
 // If the text was shortened, the last three characters are replaced by
 // ellipsis.
 function shortSubject(subject: string): string {
-  return truncateWithEllipses(subject, 72);
+  return truncate(subject, 72);
 }
 
 // findIssueAndReviewTool returns [issue, patchStorage]. patchStorage will
