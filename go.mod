@@ -87,7 +87,7 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/go-github/v29 v29.0.3
-	github.com/google/go-licenses v0.0.0-20210715153004-8751804a5b80
+	github.com/google/go-licenses v0.0.0-20210727195037-24e2421190d8
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/martian/v3 v3.1.0 // indirect
 	github.com/google/uuid v1.1.2
@@ -125,7 +125,6 @@ require (
 	github.com/prometheus/client_golang v1.8.0
 	github.com/robertkrimen/otto v0.0.0-20200922221731-ef014fd054ac // indirect
 	github.com/rs/cors v1.6.0
-	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	github.com/skia-dev/go2ts v1.5.0
