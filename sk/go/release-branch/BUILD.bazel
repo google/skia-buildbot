@@ -8,12 +8,16 @@ go_library(
     deps = [
         "//go/auth",
         "//go/common",
+        "//go/cq",
+        "//go/exec",
         "//go/gerrit",
         "//go/git",
         "//go/gitiles",
         "//go/httputils",
         "//go/skerr",
-        "//go/supported_branches/cmd/new-branch/helper",
+        "//go/supported_branches",
+        "//go/util",
+        "//task_scheduler/go/specs",
         "@com_github_urfave_cli_v2//:cli",
     ],
 )

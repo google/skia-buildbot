@@ -2,6 +2,9 @@ package gerrit
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -86,13 +89,22 @@ func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch
 
 // CreateCLWithChanges is a helper which creates a new Change in the given
 // project based on the given branch with the given commit message and the given
-// map of filepath to new file contents. If submit is true, the change is marked
-// with the self-approval label(s) and submitted.
+// map of filepath to new file contents. Empty file contents indicate deletion
+// of the file. If submit is true, the change is marked with the self-approval
+// label(s) and submitted.
 func CreateCLWithChanges(ctx context.Context, g GerritInterface, project, branch, commitMsg, baseCommit string, changes map[string]string, submit bool) (*ChangeInfo, error) {
 	ci, err := CreateAndEditChange(ctx, g, project, branch, commitMsg, baseCommit, func(ctx context.Context, g GerritInterface, ci *ChangeInfo) error {
 		for filepath, contents := range changes {
-			if err := g.EditFile(ctx, ci, filepath, contents); err != nil {
-				return skerr.Wrap(err)
+			if contents == "" {
+				if err := g.DeleteFile(ctx, ci, filepath); err != nil {
+					return skerr.Wrap(err)
+				}
+			} else {
+				if err := g.EditFile(ctx, ci, filepath, contents); err != nil {
+					if !strings.Contains(err.Error(), ErrNoChanges) {
+						return skerr.Wrap(err)
+					}
+				}
 			}
 		}
 		return nil
@@ -114,4 +126,31 @@ func CreateCLWithChanges(ctx context.Context, g GerritInterface, project, branch
 		}
 	}
 	return ci, nil
+}
+
+// CreateCLFromLocalDiffs is a helper which creates a Change based on the
+// diffs from the provided branch in a local checkout. Note that the diff is
+// performed against the given branch on "origin", and not any local version.
+func CreateCLFromLocalDiffs(ctx context.Context, g GerritInterface, project, branch, commitMsg string, submit bool, co *git.Checkout) (*ChangeInfo, error) {
+	baseCommit, err := co.Git(ctx, "rev-parse", fmt.Sprintf("origin/%s", branch))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	baseCommit = strings.TrimSpace(baseCommit)
+	diff, err := co.Git(ctx, "diff", "--name-only", baseCommit)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	diffSplit := strings.Split(diff, "\n")
+	changes := make(map[string]string, len(diffSplit))
+	for _, diffLine := range diffSplit {
+		if diffLine != "" {
+			contents, err := ioutil.ReadFile(filepath.Join(co.Dir(), diffLine))
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			changes[diffLine] = string(contents)
+		}
+	}
+	return CreateCLWithChanges(ctx, g, project, branch, commitMsg, baseCommit, changes, submit)
 }

@@ -172,6 +172,10 @@ const (
 	// merge conflict occurred.
 	ErrMergeConflict = "conflict during merge"
 
+	// ErrNoChanges as a substring of an error message indicates that there were
+	// no changes to apply. Generally we can ignore this error.
+	ErrNoChanges = "no changes were made"
+
 	// These were copied from the defaults used by gitfs:
 	// https://gerrit.googlesource.com/gitfs/+show/59c1163fd1737445281f2339399b2b986b0d30fe/gitiles/client.go#102
 	// Hopefully they apply to Gerrit as well.
