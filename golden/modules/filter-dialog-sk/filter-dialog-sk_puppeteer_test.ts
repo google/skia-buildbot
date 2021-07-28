@@ -1,21 +1,18 @@
 import { expect } from 'chai';
-import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import { FilterDialogSkPO, NumericParamPO } from './filter-dialog-sk_po';
-import path from "path";
 
 describe('filter-dialog-sk', () => {
   let filterDialogSkPO: FilterDialogSkPO;
 
   let testBed: TestBed;
+
   before(async () => {
-    testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
-    );
+    testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(
-        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/filter-dialog-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({width: 800, height: 800});
     filterDialogSkPO = new FilterDialogSkPO((await testBed.page.$('filter-dialog-sk'))!);
   });

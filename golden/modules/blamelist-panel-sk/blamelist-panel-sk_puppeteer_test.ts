@@ -1,19 +1,15 @@
 import { expect } from 'chai';
-import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
-import path from "path";
+import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 
 describe('blamelist-panel-sk', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
-    );
-  });
-  beforeEach(async () => {
-    await testBed.page.goto(
-        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/blamelist-panel-sk.html`);
+    testBed = await loadCachedTestBed();
   });
 
+  beforeEach(async () => {
+    await testBed.page.goto(testBed.baseUrl);
+  });
   it('should render the demo page', async () => {
     expect(await testBed.page.$$('blamelist-panel-sk')).to.have.length(4); // Smoke test.
   });

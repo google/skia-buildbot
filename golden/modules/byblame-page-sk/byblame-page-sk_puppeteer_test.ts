@@ -1,25 +1,22 @@
 import { expect } from 'chai';
 import {
-  addEventListenersToPuppeteerPage, inBazel,
+  addEventListenersToPuppeteerPage,
   loadCachedTestBed,
   takeScreenshot,
   TestBed
 } from '../../../puppeteer-tests/util';
-import path from "path";
 
 describe('byblame-page-sk', () => {
   let testBed: TestBed;
+
   before(async () => {
-    testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
-    );
+    testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {
     const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['end-task']);
     const loaded = eventPromise('end-task'); // Emitted when page is loaded.
-    await testBed.page.goto(
-        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/byblame-page-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await loaded;
   });
 

@@ -1,21 +1,18 @@
 import { expect } from 'chai';
-import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import { TraceFilterSkPO } from './trace-filter-sk_po';
-import path from "path";
 
 describe('trace-filter-sk', () => {
   let traceFilterSkPO: TraceFilterSkPO;
 
   let testBed: TestBed;
+
   before(async () => {
-    testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
-    );
+    testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(
-        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/trace-filter-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     traceFilterSkPO = new TraceFilterSkPO((await testBed.page.$('trace-filter-sk'))!);
   });
 

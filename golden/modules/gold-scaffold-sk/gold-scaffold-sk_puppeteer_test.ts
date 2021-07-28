@@ -1,17 +1,15 @@
 import { expect } from 'chai';
-import {inBazel, loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
-import path from "path";
+import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 
 describe('gold-scaffold-sk', () => {
   let testBed: TestBed;
+
   before(async () => {
-    testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
-    );
+    testBed = await loadCachedTestBed();
   });
+
   beforeEach(async () => {
-    await testBed.page.goto(
-        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/gold-scaffold-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
   });
 
   it('should render the demo page', async () => {

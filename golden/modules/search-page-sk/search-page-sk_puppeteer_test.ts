@@ -1,13 +1,12 @@
 import { expect } from 'chai';
 import {
   addEventListenersToPuppeteerPage,
-  EventName, inBazel,
+  EventName,
   loadCachedTestBed,
   takeScreenshot,
   TestBed
 } from '../../../puppeteer-tests/util';
 import { SearchPageSkPO } from './search-page-sk_po';
-import path from "path";
 
 describe('search-page-sk', () => {
   let eventPromiseFactory:  <T>(eventName: EventName) => Promise<T>;
@@ -15,18 +14,14 @@ describe('search-page-sk', () => {
   let searchPageSkPO: SearchPageSkPO;
 
   let testBed: TestBed;
+
   before(async () => {
-    testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
-    );
+    testBed = await loadCachedTestBed();
   });
 
   const goToPage = async (queryString = '') => {
     const busyEnd = eventPromiseFactory('busy-end');
-    await testBed.page.goto(
-        inBazel()
-            ? `${testBed.baseUrl}${queryString}`
-            : `${testBed.baseUrl}/dist/search-page-sk.html${queryString}`);
+    await testBed.page.goto(`${testBed.baseUrl}${queryString}`);
     await busyEnd;
 
     await testBed.page.setViewport({width: 1600, height: 1200});

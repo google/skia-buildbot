@@ -227,13 +227,13 @@ let testBed: Partial<TestBed>;
  * value: "true") to give demo pages a means to detect whether they are running within Puppeteer or
  * not.
  */
-export async function loadCachedTestBed(pathToWebpackConfigTs: string) {
+export async function loadCachedTestBed(pathToWebpackConfigTs?: string) {
   if (testBed) {
     return testBed as TestBed;
   }
   const newTestBed: Partial<TestBed> = {};
 
-  if (inBazel()) {
+  if (inBazel() || !pathToWebpackConfigTs) {
     // Read the demo page server's TCP port.
     const envDir = process.env.ENV_DIR;
     if (!envDir) throw new Error('required environment variable ENV_DIR is unset');

@@ -1,19 +1,17 @@
 import { expect } from 'chai';
 import {
-    addEventListenersToPuppeteerPage, inBazel,
+    addEventListenersToPuppeteerPage,
     loadCachedTestBed,
     takeScreenshot,
     TestBed
 } from '../../../puppeteer-tests/util';
 import { Page } from 'puppeteer';
-import path from 'path';
 
 describe('list-page-sk', () => {
     let testBed: TestBed;
+
     before(async () => {
-        testBed = await loadCachedTestBed(
-            path.join(__dirname, '..', '..', 'webpack.config.ts')
-        );
+        testBed = await loadCachedTestBed();
     });
 
     it('should render the demo page', async () => {
@@ -136,7 +134,6 @@ describe('list-page-sk', () => {
 async function navigateTo(page: Page, base: string, queryParams = '') {
     const eventPromise = await addEventListenersToPuppeteerPage(page, ['busy-end']);
     const loaded = eventPromise('busy-end'); // Emitted when page is loaded.
-    await page.goto(
-        inBazel() ? `${base}${queryParams}` : `${base}/dist/list-page-sk.html${queryParams}`);
+    await page.goto(`${base}${queryParams}`);
     await loaded;
 }

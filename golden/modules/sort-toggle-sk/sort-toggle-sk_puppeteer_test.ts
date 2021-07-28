@@ -1,17 +1,15 @@
 import { expect } from 'chai';
 import {
-    addEventListenersToPuppeteerPage, EventName, inBazel, loadCachedTestBed,
+    addEventListenersToPuppeteerPage, EventName, loadCachedTestBed,
     takeScreenshot, TestBed
 } from '../../../puppeteer-tests/util';
 import { ElementHandle } from 'puppeteer';
-import path from "path";
 
 describe('sort-toggle-sk', () => {
     let testBed: TestBed;
+
     before(async () => {
-        testBed = await loadCachedTestBed(
-            path.join(__dirname, '..', '..', 'webpack.config.ts')
-        );
+        testBed = await loadCachedTestBed();
     });
 
     let promiseFactory: <T>(eventName: EventName) => Promise<T>;
@@ -21,8 +19,7 @@ describe('sort-toggle-sk', () => {
         promiseFactory = await addEventListenersToPuppeteerPage(testBed.page,
             ['sort-changed']);
         const loaded = promiseFactory('sort-changed'); // Emitted when sorted.
-        await testBed.page.goto(
-            inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/sort-toggle-sk.html`);
+        await testBed.page.goto(testBed.baseUrl);
         await loaded;
         sortToggleSk = (await testBed.page.$('#container sort-toggle-sk'))!;
     });

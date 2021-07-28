@@ -1,6 +1,5 @@
-import path from 'path';
 import {
-  addEventListenersToPuppeteerPage, inBazel,
+  addEventListenersToPuppeteerPage,
   loadCachedTestBed,
   takeScreenshot,
   TestBed,
@@ -9,18 +8,14 @@ import {
 describe('triagelog-page-sk', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(
-      path.join(__dirname, '..', '..', 'webpack.config.ts'),
-    );
+    testBed = await loadCachedTestBed();
   });
 
   describe('v1 APIs', () => {
     beforeEach(async () => {
       const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['end-task']);
       const loaded = eventPromise('end-task'); // Emitted when page is loaded.
-      await testBed.page.goto(
-        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/triagelog-page-sk.html`,
-      );
+      await testBed.page.goto(testBed.baseUrl);
       await loaded;
     });
 
@@ -34,10 +29,7 @@ describe('triagelog-page-sk', () => {
     beforeEach(async () => {
       const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['end-task']);
       const loaded = eventPromise('end-task'); // Emitted when page is loaded.
-      await testBed.page.goto(
-        inBazel() ? `${testBed.baseUrl}?use_new_api=true`
-          : `${testBed.baseUrl}/dist/triagelog-page-sk.html?use_new_api=true`,
-      );
+      await testBed.page.goto(`${testBed.baseUrl}?use_new_api=true`);
       await loaded;
     });
 

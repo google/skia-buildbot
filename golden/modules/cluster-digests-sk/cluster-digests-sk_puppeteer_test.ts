@@ -1,20 +1,17 @@
 import { expect } from 'chai';
 import {
-  addEventListenersToPuppeteerPage, EventName, inBazel, loadCachedTestBed,
+  addEventListenersToPuppeteerPage, EventName, loadCachedTestBed,
   takeScreenshot, TestBed
 } from '../../../puppeteer-tests/util';
 import { ElementHandle } from 'puppeteer';
 import { positiveDigest, negativeDigest, untriagedDigest } from '../cluster-page-sk/test_data';
-import path from "path";
 import {ClusterDigestsSkPO} from './cluster-digests-sk_po';
 
 describe('cluster-digests-sk', () => {
   let testBed: TestBed;
 
   before(async () => {
-    testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
-    );
+    testBed = await loadCachedTestBed();
   });
 
   let promiseFactory: <T>(eventName: EventName) => Promise<T>;
@@ -29,8 +26,7 @@ describe('cluster-digests-sk', () => {
             ['layout-complete', 'selection-changed']);
 
     const loaded = promiseFactory('layout-complete'); // Emitted when layout stabilizes.
-    await testBed.page.goto(
-        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/cluster-digests-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await loaded;
 
     clusterDigestsSk = (await testBed.page.$('cluster-digests-sk'))!;

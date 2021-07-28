@@ -1,21 +1,18 @@
 import { expect } from 'chai';
 import {
-  addEventListenersToPuppeteerPage, inBazel,
+  addEventListenersToPuppeteerPage,
   loadCachedTestBed,
   takeScreenshot,
   TestBed
 } from '../../../puppeteer-tests/util';
 import { Page } from 'puppeteer';
-import path from "path";
 import { DiffPageSkPO } from './diff-page-sk_po';
 
 describe('diff-page-sk', () => {
   let testBed: TestBed;
 
   before(async () => {
-    testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
-    );
+    testBed = await loadCachedTestBed();
   });
 
   // The demo page pushes a "default" query string to the URL when no query string is provided. All
@@ -83,8 +80,7 @@ describe('diff-page-sk', () => {
 async function navigateTo(page: Page, base: string, queryParams = ''): Promise<DiffPageSkPO> {
   const eventPromise = await addEventListenersToPuppeteerPage(page, ['busy-end']);
   const loaded = eventPromise('busy-end'); // Emitted from gold-scaffold when page is loaded.
-  await page.goto(
-      inBazel() ? `${base}${queryParams}` : `${base}/dist/diff-page-sk.html${queryParams}`);
+  await page.goto(`${base}${queryParams}`);
   await loaded;
   return new DiffPageSkPO(page.$('diff-page-sk'));
 }

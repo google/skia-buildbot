@@ -81,12 +81,6 @@ mkdir /tests/puppeteer-tests
 cp -r /src/puppeteer-tests/*.ts              /tests/puppeteer-tests
 cp -r /src/puppeteer-tests/tsconfig.json     /tests/puppeteer-tests
 
-mkdir /tests/golden
-cp -r /src/golden/webpack.config.ts          /tests/golden
-cp -r /src/golden/tsconfig.json              /tests/golden
-cp -r /src/golden/modules                    /tests/golden
-cp -r /src/golden/demo-page-assets           /tests/golden
-
 mkdir /tests/perf
 cp -r /src/perf/webpack.config.ts            /tests/perf
 cp -r /src/perf/tsconfig.json                /tests/perf
@@ -188,9 +182,6 @@ npx mocha -r ts-node/register ./**/*_test.ts
 # The ./**/*_puppeteer_test.ts glob patterns below exclude the Karma tests.
 
 cd /tests/infra-sk
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
-
-cd /tests/golden
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/perf
