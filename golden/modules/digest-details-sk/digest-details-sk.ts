@@ -24,9 +24,11 @@ import dialogPolyfill from 'dialog-polyfill';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { truncate } from '../../../infra-sk/modules/string';
 import {
-  truncateWithEllipses, detailHref, diffPageHref, sendBeginTask, sendEndTask, sendFetchError,
+  detailHref, diffPageHref, sendBeginTask, sendEndTask, sendFetchError,
 } from '../common';
+
 
 import 'elements-sk/icon/group-work-icon-sk';
 import '../dots-sk';
@@ -170,7 +172,7 @@ export class DigestDetailsSk extends ElementSk {
   private static imageComparisonTemplate = (ele: DigestDetailsSk) => {
     const left: ImageComparisonData = {
       digest: ele.digest,
-      title: truncateWithEllipses(ele.digest),
+      title: truncate(ele.digest, 15),
       detail: detailHref(ele.grouping, ele.digest, ele.changeListID, ele.crs),
     };
     if (!ele.right) {
@@ -185,7 +187,7 @@ export class DigestDetailsSk extends ElementSk {
       detail: detailHref(ele.grouping, ele.right.digest, ele.changeListID, ele.crs),
     };
     if (ele._overrideRight) {
-      right.title = truncateWithEllipses(ele.right.digest);
+      right.title = truncate(ele.right.digest, 15);
     }
 
     return html`<image-compare-sk .left=${left} .right=${right}></image-compare-sk>`;
@@ -220,11 +222,11 @@ export class DigestDetailsSk extends ElementSk {
       return ''; // details might not be loaded yet.
     }
 
-    const titles = [truncateWithEllipses(ele.digest)];
+    const titles = [truncate(ele.digest, 15)];
     const paramsets = [ele.params];
 
     if (ele.right && ele.right.paramset) {
-      titles.push(truncateWithEllipses(ele.right.digest));
+      titles.push(truncate(ele.right.digest, 15));
       paramsets.push(ele.right.paramset);
     }
 

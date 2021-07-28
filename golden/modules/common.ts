@@ -13,21 +13,6 @@ export function humanReadableQuery(queryStr: string): string {
   return queryStr.split('&').map(decodeURIComponent).join('\n');
 }
 
-/**
- * Takes a string and trims it to be no longer than maxLength. If the string needs to be trimmed,
- * an ellipsis (...) will be added as a suffix, but the total string length (with ellipsis) will
- * stay under maxLength.
- */
-export function truncateWithEllipses(str: string, maxLength = 15): string {
-  if (maxLength < 3) {
-    throw 'maxLength must be greater than the length of the ellipsis.';
-  }
-  if (str.length <= maxLength) {
-    return str;
-  }
-  return `${str.substr(0, maxLength - 3)}...`;
-}
-
 let imagePrefix = '/img/images';
 let diffPrefix = '/img/diffs';
 

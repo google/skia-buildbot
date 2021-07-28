@@ -5,11 +5,11 @@ sk_element(
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["changelist-controls-sk.scss"],
     ts_deps = [
-        "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//infra-sk/modules:string_ts_lib",
     ],
     ts_srcs = [
         "changelist-controls-sk.ts",

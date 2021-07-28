@@ -32,6 +32,7 @@ sk_element(
         "@npm//dialog-polyfill",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//infra-sk/modules:string_ts_lib",
     ],
     ts_srcs = [
         "digest-details-sk.ts",

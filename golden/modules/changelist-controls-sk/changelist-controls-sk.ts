@@ -1,7 +1,7 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { truncateWithEllipses } from '../common';
+import { truncate } from '../../../infra-sk/modules/string';
 
 import 'elements-sk/radio-sk';
 import 'elements-sk/styles/select';
@@ -25,10 +25,10 @@ export class ChangelistControlsSk extends ElementSk {
       <div class=info>
         <span class=title>${cl.system} changelist:</span>
         <a href=${cl.url} target=_blank rel=noopener>
-          ${truncateWithEllipses(cl.subject, 48)}
+          ${truncate(cl.subject, 48)}
         </a>
 
-        <span>${truncateWithEllipses(cl.owner, 32)}</span>
+        <span>${truncate(cl.owner, 32)}</span>
 
         <a href="/triagelog?changelist_id=${cl.id}&crs=${cl.system}">
           <find-in-page-icon-sk></find-in-page-icon-sk>Triagelog
@@ -66,7 +66,7 @@ export class ChangelistControlsSk extends ElementSk {
   private static tryJobTemplate = (tj: TryJob) => html`
     <div class=tryjob title=${tj.name}>
       <a href=${tj.url} target=_blank rel=noopener>
-        ${truncateWithEllipses(tj.name, 60)}
+        ${truncate(tj.name, 60)}
       </a>
     </div>
   `;

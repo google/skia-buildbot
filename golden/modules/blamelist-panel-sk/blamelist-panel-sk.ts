@@ -12,14 +12,14 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { truncateWithEllipses } from '../common';
+import { truncate } from '../../../infra-sk/modules/string';
 import { baseRepoURL } from '../settings';
 
 const maxCommitsToDisplay = 15;
 
 const commitRow = (c: Commit) => html`
 <tr>
-  <td title=${c.author}>${truncateWithEllipses(c.author, 20)}</td>
+  <td title=${c.author}>${truncate(c.author, 20)}</td>
   <td title=${new Date(c.commit_time * 1000)}>
    ${diffDate(c.commit_time * 1000)}
   </td>
@@ -28,7 +28,7 @@ const commitRow = (c: Commit) => html`
       ${c.hash?.substring(0, 8)}
     </a>
   </td>
-  <td title=${c.message}>${truncateWithEllipses(c.message || '', 80)}</td>
+  <td title=${c.message}>${truncate(c.message || '', 80)}</td>
 </tr>
 `;
 

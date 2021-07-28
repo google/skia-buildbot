@@ -5,7 +5,6 @@ import {
   digestDiffImagePath,
   detailHref,
   diffPageHref,
-  truncateWithEllipses,
   sendBeginTask,
   sendEndTask,
   sendFetchError,
@@ -22,25 +21,6 @@ describe('humanReadableQuery', () => {
     expect(humanReadableQuery(inputWithSpaces)).to.equal(
       "mind the gap=tube\nwoody=There's a space in my boot",
     );
-  });
-});
-
-describe('shorten', () => {
-  it('shortens long strings into possibly ellipsed versions', () => {
-    expect(truncateWithEllipses('')).to.equal('');
-    expect(truncateWithEllipses('too short')).to.equal('too short');
-    expect(truncateWithEllipses('should be ellipsed because it is too long')).to.equal('should be el...');
-    expect(truncateWithEllipses('should be ellipsed because it is too long', 20)).to.equal('should be ellipse...');
-    expect(truncateWithEllipses('should be ellipsed because it is too long', 5)).to.equal('sh...');
-  });
-  it('throws an exception if maxLength is too short', () => {
-    try {
-      truncateWithEllipses('foo bar', 2);
-    } catch (e) {
-      expect(e).to.contain('length of the ellipsis');
-      return;
-    }
-    expect.fail('There should have been an exception.');
   });
 });
 
