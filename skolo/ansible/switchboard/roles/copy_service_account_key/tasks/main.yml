@@ -1,0 +1,27 @@
+---
+- name: mktemp
+  delegate_to: 127.0.0.1
+  tempfile:
+    state: directory
+  register: service_account_key
+
+- name: Extract service account key
+  delegate_to: 127.0.0.1
+  command:
+    argv:
+      - '{{ role_path }}/../../../../../kube/secrets/get-secret-at-path.sh'
+      - etc
+      - skolo-bot-service-account
+      - '.data."key.json"'
+      - '{{ service_account_key.path }}/application_default_credentials.json'
+    creates:
+      '{{ service_account_key.path }}/application_default_credentials.json'
+  notify: clean_up_tempfile
+
+- name: Copy service account key
+  copy:
+    src: '{{ service_account_key.path }}/application_default_credentials.json'
+    dest: /home/{{ skolo_account }}/.config/gcloud/
+    owner: '{{ skolo_account }}'
+    group: '{{ skolo_account }}'
+    mode: '0644'
