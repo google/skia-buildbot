@@ -1,0 +1,38 @@
+---
+- name: mktemp
+  delegate_to: 127.0.0.1
+  tempfile:
+    state: directory
+  register: adbkey
+
+- name: Extract adbkey
+  delegate_to: 127.0.0.1
+  command:
+    argv:
+      - '{{ role_path }}/../../../../../kube/secrets/get-secret-at-path.sh'
+      - etc
+      - skia-rpi-adb-key
+      - '.data."adbkey"'
+      - '{{ adbkey.path }}/adbkey'
+    creates: '{{ adbkey.path }}/adbkey'
+  notify: clean_up_tempfile
+
+- name: Extract adbkey.pub
+  delegate_to: 127.0.0.1
+  command:
+    argv:
+      - '{{ role_path }}/../../../../../kube/secrets/get-secret-at-path.sh'
+      - etc
+      - skia-rpi-adb-key
+      - '.data."adbkey.pub"'
+      - '{{ adbkey.path }}/adbkey.pub'
+    creates: '{{ adbkey.path }}/adbkey.pub'
+  notify: clean_up_tempfile
+
+- name: Copy adbkey files
+  copy:
+    src: '{{ adbkey.path }}/'
+    dest: /home/{{ skolo_account }}/.android/
+    owner: '{{ skolo_account }}'
+    group: '{{ skolo_account }}'
+    mode: '0644'
