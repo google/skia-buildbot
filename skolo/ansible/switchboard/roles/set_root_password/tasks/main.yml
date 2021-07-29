@@ -1,0 +1,7 @@
+---
+# tasks file for set_root_password
+- name: Root password
+  user:
+    name: root
+    shell: /bin/bash
+    password: "{{ secrets.skolo_password | password_hash('sha256') }}"
