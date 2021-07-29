@@ -82,7 +82,7 @@ func TestGetState_MaintenanceAppearsInStateResponse(t *testing.T) {
 	var dict map[string]interface{}
 	err = json.NewDecoder(res.Body).Decode(&dict)
 	require.NoError(t, err)
-	assert.True(t, dict["maintenance"].(bool))
+	assert.NotEmpty(t, dict["maintenance"].(string))
 }
 
 func TestGetState_ErrOnInvalidJSON(t *testing.T) {

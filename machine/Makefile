@@ -78,7 +78,7 @@ run-local-instance:
 export HASH=$(shell git rev-parse HEAD)
 export DATETIME=$(date --utc "+%Y-%m-%dT%H:%M:%SZ")
 export GIT_STATE=$(shell ../bash/gitstate.sh)
-export VERSION=$(DATETIME)-${USER}-${HASH}-${GIT_STATE}
+export VERSION=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
 
 # The names of these targets can't change, as their form is dictated by ansible playbooks in //skolo/ansible/switchboard.
 build_test_machine_monitor_aarch64_Linux:

@@ -87,7 +87,7 @@ func (s *Server) getState(w http.ResponseWriter, r *http.Request) {
 	delete(dict, "maintenance")
 
 	if s.machine.GetMaintenanceMode() {
-		dict["maintenance"] = true
+		dict["maintenance"] = "Maintenance Mode"
 	}
 
 	// TODO(jcgregorio) Also gather/report device temp to Machine State.
@@ -151,7 +151,11 @@ func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for key, values := range s.machine.DimensionsForSwarming() {
-		dim[key] = values
+		if values != nil {
+			dim[key] = values
+		} else {
+			sklog.Errorf("Found bad value: %v for key: %q", values, key)
+		}
 	}
 	if err := json.NewEncoder(w).Encode(dim); err != nil {
 		sklog.Errorf("Failed to encode JSON output: %s", err)
