@@ -375,8 +375,17 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to retrieve build %q: %s", buildId, err))
 	}
 	if build.Status != buildbucketpb.Status_SCHEDULED {
-		sklog.Warningf("Skipping build %d with status: %s", build.Id, build.Status)
-		return nil
+		sklog.Warningf("Found build %d with status: %s; attempting to lease anyway, to trigger the fix in Buildbucket.", build.Id, build.Status)
+		_, err := t.tryLeaseBuild(buildId)
+		if err != nil {
+			// This is expected.
+			return nil
+		}
+		sklog.Warningf("Unexpectedly able to lease build %d with status %s; canceling it.", buildId, build.Status)
+		if err := t.remoteCancelBuild(buildId, fmt.Sprintf("Unexpected status %s", build.Status)); err != nil {
+			sklog.Warningf("Failed to cancel errant build %d", buildId)
+			return nil
+		}
 	}
 
 	// Obtain and validate the RepoState.
