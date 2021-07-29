@@ -172,6 +172,8 @@ func TestCommandRepoManager(t *testing.T) {
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
+		Project:  "test-project",
+		Branch:   "test-branch",
 		Issue:    123,
 		Revisions: map[string]*gerrit.Revision{
 			"ps1": {
@@ -197,7 +199,7 @@ func TestCommandRepoManager(t *testing.T) {
 
 	// Mock the request to set the CQ.
 	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@google.com"}]}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/test-project~test-branch~123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"reviewer@google.com"}, false, "fake-commit-msg")
 	require.NoError(t, err)

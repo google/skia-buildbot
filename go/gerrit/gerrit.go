@@ -719,7 +719,7 @@ func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message strin
 		postData["reviewers"] = revs
 	}
 	latestPatchset := issue.Patchsets[len(issue.Patchsets)-1]
-	return g.postJson(ctx, fmt.Sprintf("/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
+	return g.postJson(ctx, fmt.Sprintf("/changes/%s/revisions/%s/review", FullChangeId(issue), latestPatchset.ID), postData)
 }
 
 type reviewerWithState struct {
@@ -1478,4 +1478,11 @@ func ParseChangeId(msg string) (string, error) {
 		}
 	}
 	return "", skerr.Fmt("Failed to parse Change-Id from commit message.")
+}
+
+// FullChangeId returns the most specific representation of the specified
+// change. See
+// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#change-id
+func FullChangeId(ci *ChangeInfo) string {
+	return fmt.Sprintf("%s~%s~%s", ci.Project, ci.Branch, ci.ChangeId)
 }

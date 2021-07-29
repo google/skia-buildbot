@@ -231,6 +231,8 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.MasterBranch, parentHead))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
+		Project:  "test-project",
+		Branch:   "test-branch",
 		Id:       "123",
 		Issue:    123,
 		Revisions: map[string]*gerrit.Revision{
@@ -294,7 +296,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	} else {
 		reqBody = []byte(`{"labels":{"Code-Review":1},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	}
-	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/test-project~test-branch~123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 	if !gerritCfg.HasCq {
 		urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/submit", mockhttpclient.MockPostDialogue("application/json", []byte("{}"), []byte("")))
 	}

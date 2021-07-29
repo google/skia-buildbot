@@ -71,7 +71,7 @@ func (g *MockGerrit) MockGetTrybotResults(ci *gerrit.ChangeInfo, patchset int, r
 
 // MakePostRequest creates a POST request to Gerrit for mocking.
 func (g *MockGerrit) MakePostRequest(ci *gerrit.ChangeInfo, msg string, labels map[string]int) (string, []byte) {
-	url := fmt.Sprintf("%s/a/changes/%d/revisions/%d/review", FakeGerritURL, ci.Issue, len(ci.Revisions))
+	url := fmt.Sprintf("%s/a/changes/%s~%s~%d/revisions/%d/review", FakeGerritURL, ci.Project, ci.Branch, ci.Issue, len(ci.Revisions))
 	if labels == nil {
 		labels = map[string]int{}
 	}

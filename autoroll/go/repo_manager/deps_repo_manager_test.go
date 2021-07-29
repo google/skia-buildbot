@@ -208,6 +208,8 @@ func mockGerritGetAndPublishChange(t *testing.T, urlmock *mockhttpclient.URLMock
 	// Mock the request to load the change.
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
+		Project:  "test-project",
+		Branch:   "test-branch",
 		Id:       "123",
 		Issue:    123,
 		Revisions: map[string]*gerrit.Revision{
@@ -240,7 +242,7 @@ func mockGerritGetAndPublishChange(t *testing.T, urlmock *mockhttpclient.URLMock
 	} else {
 		reqBody = []byte(`{"labels":{"Code-Review":1},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
 	}
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/test-project~test-branch~123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 	if !gerritCfg.HasCq {
 		urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/submit", mockhttpclient.MockPostDialogue("application/json", []byte("{}"), []byte("")))
 	}
