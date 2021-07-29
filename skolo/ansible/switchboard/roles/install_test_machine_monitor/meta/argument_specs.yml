@@ -1,0 +1,12 @@
+---
+argument_specs:
+  main:
+    short_description:
+      Arguments that can be passed to the install_test_machine_monitor role.
+    options:
+      start_swarming:
+        type: 'boolean'
+        required: false
+        default: false
+        description:
+          'If true then test_machine_monitor will also spawn swarming.'
