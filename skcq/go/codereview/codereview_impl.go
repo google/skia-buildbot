@@ -45,12 +45,20 @@ func NewGerrit(httpClient *http.Client, cfg *gerrit.Config, gerritURL string) (C
 func (gc *gerritCodeReview) AddComment(ctx context.Context, ci *gerrit.ChangeInfo, comment string, notify gerrit.NotifyOption) error {
 	// SetReview sometimes returns 404s from Gerrit and retries seems to
 	// resolve it. Maybe happens when a Gerrit frontend index is stale.
+	//
+	// Example flow with the used backoff values and assuming we go over
+	// MaxElapsedTime on the 4th try:
+	//  request#     retry_interval     randomized_interval
+	//  1             1                  [0.5,   1.5]
+	//  2             1.5                [0.75,  2.25]
+	//  3             2.25               [1.125, 3.375]
+	//  4             3.375              backoff.Stop
 	exp := &backoff.ExponentialBackOff{
 		InitialInterval:     time.Second,
 		RandomizationFactor: 0.5,
-		Multiplier:          2,
+		Multiplier:          1.5,
 		MaxInterval:         2 * time.Second,
-		MaxElapsedTime:      2 * time.Second,
+		MaxElapsedTime:      5 * time.Second,
 		Clock:               backoff.SystemClock,
 	}
 	addCommentFunc := func() error {
