@@ -36,18 +36,19 @@ import (
 const (
 	// Downloading and decoding images appears to be a bottleneck for diffing. We spin up a small
 	// cache for each diff message to help retain those images while we calculate the diffs.
-	// This number was arbitrarily chosen.
-	decodedImageCacheSize = 100
+	// This number was chosen to be above the number of digests returned by
+	// getCommonAndRecentDigests, because downloading and decoding images is the most
+	// computationally expensive of the whole process.
+	decodedImageCacheSize = 1000
 
 	fetchingRoutines = 4
 
 	diffingRoutines = 4
 
-	// This batch size is picked arbitrarily.
-	reportingBatchSize = 100
-)
+	// This batch size corresponds to tens of seconds worth of computation. If we are
+	// interrupted, we hope not to lose more than this amount of work.
+	reportingBatchSize = 25
 
-var (
 	// In an effort to prevent spamming the ProblemImages database, we skip known bad images for
 	// a period of time. This time is controlled by badImageCooldown and a TTL cache.
 	badImageCooldown = time.Minute
@@ -191,7 +192,7 @@ func (w *WorkerImpl) computeAndReportDiffsInParallel(ctx context.Context, groupi
 				// If there is an error diffing, it is because we couldn't download or decode
 				// one of the images. If so, we skip that entry and report it, before moving on.
 				if iErr != nil {
-					if err := ctx.Err(); err != nil {
+					if err := eCtx.Err(); err != nil {
 						// If the image download failed due to a cancelled context, it's not
 						// a problem image
 						return err

@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "worker",
-    srcs = ["worker.go"],
+    srcs = [
+        "worker.go",
+        "worker2.go",
+    ],
     importpath = "go.skia.org/infra/golden/go/diff/worker",
     visibility = ["//visibility:public"],
     deps = [
@@ -29,7 +32,10 @@ go_library(
 
 go_test(
     name = "worker_test",
-    srcs = ["worker_test.go"],
+    srcs = [
+        "worker2_test.go",
+        "worker_test.go",
+    ],
     embed = [":worker"],
     deps = [
         "//go/metrics2",

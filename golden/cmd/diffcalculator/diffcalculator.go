@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"flag"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"path"
 	"sync"
@@ -82,7 +81,6 @@ func main() {
 		sklog.Info("Hanging")
 		select {}
 	}
-	rand.Seed(time.Now().UnixNano())
 
 	var dcc diffCalculatorConfig
 	if err := config.LoadFromJSON5(&dcc, commonInstanceConfig, thisConfig); err != nil {
