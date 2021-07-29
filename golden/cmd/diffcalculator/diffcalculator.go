@@ -15,14 +15,12 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	gstorage "cloud.google.com/go/storage"
-	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/reconnectingmemcached"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -108,9 +106,8 @@ func main() {
 
 	db := mustInitSQLDatabase(ctx, dcc)
 	gis := mustMakeGCSImageSource(ctx, dcc)
-	diffcache := mustMakeDiffCache(ctx, dcc)
 	sqlProcessor := &processor{
-		calculator:  worker.New(db, gis, diffcache, dcc.WindowSize),
+		calculator:  worker.NewV2(db, gis, dcc.WindowSize),
 		ackCounter:  metrics2.GetCounter("diffcalculator_ack"),
 		nackCounter: metrics2.GetCounter("diffcalculator_nack"),
 	}
@@ -177,95 +174,6 @@ func (g *gcsImageDownloader) GetImage(ctx context.Context, digest types.Digest) 
 	defer util.Close(r)
 	b, err := ioutil.ReadAll(r)
 	return b, skerr.Wrap(err)
-}
-
-const failureReconnectLimit = 100
-
-type memcachedDiffCache struct {
-	client reconnectingmemcached.Client
-
-	// namespace is the string to add to each key to avoid conflicts with more than one
-	// gold instance.
-	namespace string
-}
-
-func newMemcacheDiffCache(server, namespace string) (*memcachedDiffCache, error) {
-	m := &memcachedDiffCache{
-		client: reconnectingmemcached.NewClient(reconnectingmemcached.Options{
-			Servers:                      []string{server},
-			Timeout:                      time.Second,
-			MaxIdleConnections:           4,
-			AllowedFailuresBeforeHealing: failureReconnectLimit,
-		}),
-		namespace: namespace,
-	}
-	return m, m.client.Ping()
-}
-
-func key(namespace string, left, right types.Digest) string {
-	return namespace + string(left+"_"+right)
-}
-
-// RemoveAlreadyComputedDiffs implements the DiffCache interface.
-func (m *memcachedDiffCache) RemoveAlreadyComputedDiffs(ctx context.Context, left types.Digest, rightDigests []types.Digest) []types.Digest {
-	ctx, span := trace.StartSpan(ctx, "memcached_removeDiffs")
-	defer span.End()
-	keys := make([]string, 0, len(rightDigests))
-	for _, right := range rightDigests {
-		if left == right {
-			continue // this is never computed
-		}
-		keys = append(keys, key(m.namespace, left, right))
-	}
-	alreadyCalculated, ok := m.client.GetMulti(keys)
-	if !ok {
-		return rightDigests // on an error, assume all need to be queried from DB.
-	}
-	if len(alreadyCalculated) == len(keys) {
-		return nil // common case, everything has been computed already.
-	}
-	// Go through all the inputs. For each one that is not in the returned value of "already been
-	// calculated", add it to return value of "needs lookup/calculation".
-	rv := make([]types.Digest, 0, len(rightDigests)-len(alreadyCalculated))
-	for _, right := range rightDigests {
-		if left == right {
-			continue // this is never computed
-		}
-		if _, ok := alreadyCalculated[key(m.namespace, left, right)]; !ok {
-			rv = append(rv, right)
-		}
-	}
-	return rv
-}
-
-// StoreDiffComputed implements the DiffCache interface.
-func (m *memcachedDiffCache) StoreDiffComputed(_ context.Context, left, right types.Digest) {
-	m.client.Set(&memcache.Item{
-		Key:   key(m.namespace, left, right),
-		Value: []byte{0x01},
-	})
-}
-
-// noopDiffCache pretends the memcached instance always does not have what we are looking up.
-// It is useful for corp-instances where we do not have memcached setup.
-type noopDiffCache struct{}
-
-func (n noopDiffCache) RemoveAlreadyComputedDiffs(_ context.Context, _ types.Digest, right []types.Digest) []types.Digest {
-	return right
-}
-
-func (n noopDiffCache) StoreDiffComputed(_ context.Context, _, _ types.Digest) {}
-
-func mustMakeDiffCache(_ context.Context, dcc diffCalculatorConfig) worker.DiffCache {
-	if dcc.MemcachedServer == "" || dcc.DiffCacheNamespace == "" {
-		sklog.Infof("not using memcached")
-		return noopDiffCache{}
-	}
-	dc, err := newMemcacheDiffCache(dcc.MemcachedServer, dcc.DiffCacheNamespace)
-	if err != nil {
-		sklog.Fatalf("Could not ping memcached server %s: %s", dcc.MemcachedServer, err)
-	}
-	return dc
 }
 
 func listen(ctx context.Context, dcc diffCalculatorConfig, p *processor) error {

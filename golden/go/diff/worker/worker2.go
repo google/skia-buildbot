@@ -28,11 +28,9 @@ const (
 	// For tests with fewer than the computeTotalGridCutoff number of digests, we calculate all
 	// diffs for the test. Above this number, we try to be more clever about calculating a subset
 	// of useful diffs w/o doing too much work for very tests with very flaky traces.
-	// This number was chosen because if there are 100 images, we would need to calculate
-	// 100*99/2 = ~5k diffs; It can take up to .5 seconds to compute a diff (most of the time spent
-	// decoding) and there are 4 worker goroutines. As such, we expect it to take 5k*.5/4 seconds
-	// or about 600 seconds, which is the 10 minute timeout we use.
-	computeTotalGridCutoff = 100
+	// This number was chosen based on experimentation with the Skia instance (see also
+	// getCommonAndRecentDigests
+	computeTotalGridCutoff = 300
 )
 
 type WorkerImpl2 struct {
