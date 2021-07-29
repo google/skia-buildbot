@@ -1,0 +1,3 @@
+---
+dependencies:
+  - role: load_secret_vars
