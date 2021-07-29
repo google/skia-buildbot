@@ -53,6 +53,10 @@ export class FilterArray {
   /**
    * Returns an array of indices into the array passed in via updateArray() that
    * match the current filter.
+   *
+   * Note that this currently searches each JSONified array element as a single
+   * string, so JSON delimiters like { and " do get matched, and matches can
+   * span fields.
    */
   matchingIndices(): number[] {
     const ret: number[] = [];

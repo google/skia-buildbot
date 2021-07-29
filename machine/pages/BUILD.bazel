@@ -8,3 +8,10 @@ sk_page(
     sk_element_deps = ["//machine/modules/machine-server-sk"],
     ts_entry_point = "index.ts",
 )
+
+sk_page(
+    name = "pods",
+    html_file = "pods.html",
+    sk_element_deps = ["//machine/modules/pods-page-sk"],
+    ts_entry_point = "pods.ts",
+)

@@ -129,8 +129,8 @@ func user(r *http.Request) string {
 }
 
 func (s *server) loadTemplatesImpl() {
-	s.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
-		filepath.Join(*baseapp.ResourcesDir, "index.html"),
+	s.templates = template.Must(template.New("").Delims("{%", "%}").ParseGlob(
+		filepath.Join(*baseapp.ResourcesDir, "*.html"),
 	))
 }
 
@@ -150,7 +150,7 @@ func sendJSONResponse(data interface{}, w http.ResponseWriter) {
 	}
 }
 
-func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) machinesPageHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	s.loadTemplates()
 	if err := s.templates.ExecuteTemplate(w, "index.html", map[string]string{
@@ -368,6 +368,17 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *server) podsPageHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	s.loadTemplates()
+	if err := s.templates.ExecuteTemplate(w, "pods.html", map[string]string{
+		// Look in webpack.config.js for where the nonce templates are injected.
+		"Nonce": secure.CSPNonce(r.Context()),
+	}); err != nil {
+		sklog.Errorf("Failed to expand template: %s", err)
+	}
+}
+
 func (s *server) podsHandler(w http.ResponseWriter, r *http.Request) {
 	pods, err := s.switchboard.ListPods(r.Context())
 	if err != nil {
@@ -388,7 +399,7 @@ func (s *server) meetingPointsHandler(w http.ResponseWriter, r *http.Request) {
 
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
-	r.HandleFunc("/", s.mainHandler).Methods("GET")
+	r.HandleFunc("/", s.machinesPageHandler).Methods("GET")
 	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
 	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("GET")
 	r.HandleFunc("/_/machine/toggle_update/{id:.+}", s.machineToggleUpdateHandler).Methods("GET")
@@ -397,6 +408,7 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("GET")
 	r.HandleFunc("/_/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
 	r.HandleFunc("/_/meeting_points", s.meetingPointsHandler).Methods("GET")
+	r.HandleFunc("/pods", s.podsPageHandler).Methods("GET")
 	r.HandleFunc("/_/pods", s.podsHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }

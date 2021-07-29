@@ -1,0 +1,45 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":pods-page-sk-demo",
+)
+
+sk_element(
+    name = "pods-page-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["pods-page-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+        "//machine/modules/filter-array:index_ts_lib",
+        "//machine/modules/json:index_ts_lib",
+        "@npm//common-sk",
+    ],
+    ts_srcs = [
+        "pods-page-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "pods-page-sk-demo",
+    html_file = "pods-page-sk-demo.html",
+    scss_entry_point = "pods-page-sk-demo.scss",
+    sk_element_deps = [":pods-page-sk"],
+    ts_deps = ["@npm//fetch-mock"],
+    ts_entry_point = "pods-page-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "pods-page-sk_puppeteer_test",
+    src = "pods-page-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
