@@ -1,0 +1,61 @@
+---
+# Still need .boto.
+- name: touch .boto
+  file:
+    state: touch
+    path: /home/chrome-bot/.boto
+    owner: chrome-bot
+    mode: 0644
+
+# Our recipes hard code a specific adb.
+- name: link adb to /usr/bin/adb.1.0.35
+  become: yes
+  file:
+    src: /usr/bin/adb
+    dest: /usr/bin/adb.1.0.35
+    owner: root
+    group: root
+    state: link
+
+- name: Install applications.
+  become: yes
+  apt:
+    pkg:
+      - python3-distutils
+      - python3-certifi
+
+# Recipes need a /usr/bin/python.
+- name: link /usr/bin/python to /usr/bin/python3
+  become: yes
+  file:
+    src: /usr/bin/python3
+    dest: /usr/bin/python
+    owner: root
+    group: root
+    state: link
+
+- name: Create /b/s directory
+  become: yes
+  file:
+    path: /b/s
+    state: directory
+    recurse: yes
+    owner: chrome-bot
+    mode: 0755
+
+- name: Create /etc/swarming_config directory
+  become: yes
+  file:
+    path: /etc/swarming_config
+    state: directory
+    recurse: yes
+    owner: chrome-bot
+    mode: 0755
+
+- name: Copy oauth2 config file
+  become: yes
+  copy:
+    src: files/oauth2_access_token_config.json
+    dest: /etc/swarming_config/oauth2_access_token_config.json
+    owner: chrome-bot
+    mode: 0644
