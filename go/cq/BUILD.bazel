@@ -20,11 +20,10 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "//task_scheduler/go/specs",
         "@com_github_bazelbuild_buildtools//build:go_default_library",
-        "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@org_chromium_go_luci//buildbucket/proto",
-        "@org_chromium_go_luci//cv/api/config/v2:config",
     ],
 )
 

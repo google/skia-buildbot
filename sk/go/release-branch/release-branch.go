@@ -16,7 +16,6 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -184,7 +183,7 @@ func updateSupportedBranches(ctx context.Context, g gerrit.GerritInterface, repo
 	newRef := git.FullyQualifiedBranchName(newBranch)
 
 	// Setup.
-	baseCommitInfo, err := repo.Details(ctx, cq.CQ_CFG_REF)
+	baseCommitInfo, err := repo.Details(ctx, supported_branches.SUPPORTED_BRANCHES_REF)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -241,7 +240,7 @@ func updateSupportedBranches(ctx context.Context, g gerrit.GerritInterface, repo
 	changes := map[string]string{
 		supported_branches.SUPPORTED_BRANCHES_FILE: buf.String(),
 	}
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, cq.CQ_CFG_REF, commitMsg, baseCommit, changes, !dryRun)
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, supported_branches.SUPPORTED_BRANCHES_REF, commitMsg, baseCommit, changes, !dryRun)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}

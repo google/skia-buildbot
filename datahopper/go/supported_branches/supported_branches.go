@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/supported_branches"
 	"go.skia.org/infra/go/swarming"
@@ -57,32 +58,21 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 		}
 		return fmt.Errorf("Failed to get supported branches for %s: %s", repo.URL(), err)
 	}
-	cqCfg, err := cq.GetCQConfig(repo)
-	if err != nil {
-		return fmt.Errorf("Failed to get CQ config for %s: %s", repo.URL(), err)
-	}
 	for _, branch := range sbc.Branches {
 		// Find the CQ trybots for this branch.
-		configGroup, _, _, err := cq.MatchConfigGroup(cqCfg, branch.Ref)
+		cqJobsToCfg, err := cq.GetCQJobsToConfig(repo, branch.Ref)
 		if err != nil {
-			return err
-		}
-		branchExists := int64(0)
-		if configGroup != nil {
-			branchExists = 1
+			return skerr.Wrapf(err, "Failed to get CQ config for %s and %s", repo.URL(), branch.Ref)
 		}
 		branchExistsMetric := metrics2.GetInt64Metric(METRIC_BRANCH_EXISTS, map[string]string{
 			"repo":   repo.URL(),
 			"branch": branch.Ref,
 		})
-		branchExistsMetric.Update(branchExists)
+		branchExistsMetric.Update(1)
 		newMetrics[branchExistsMetric] = struct{}{}
-		if configGroup == nil {
-			continue
-		}
 		cqTrybots := []string{}
-		for _, builder := range configGroup.GetVerifiers().GetTryjob().GetBuilders() {
-			name := builder.GetName()
+		for builder := range cqJobsToCfg {
+			name := builder
 			split := strings.Split(name, "/")
 			if len(split) != 3 {
 				sklog.Errorf("Invalid builder name %q; skipping.", name)

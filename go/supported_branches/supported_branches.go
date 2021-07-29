@@ -20,6 +20,8 @@ import (
 const (
 	// Path to the encoded SupportedBranchesConfig file.
 	SUPPORTED_BRANCHES_FILE = "supported-branches.json"
+	// The ref where the SupportedBranchesConfig file is stored.
+	SUPPORTED_BRANCHES_REF = "infra/config"
 )
 
 // SupportedBranchesConfig lists which branches the infrastructure team supports

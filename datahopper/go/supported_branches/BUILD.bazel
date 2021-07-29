@@ -9,6 +9,7 @@ go_library(
         "//go/cq",
         "//go/gitiles",
         "//go/metrics2",
+        "//go/skerr",
         "//go/sklog",
         "//go/supported_branches",
         "//go/swarming",

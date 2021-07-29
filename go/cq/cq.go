@@ -4,29 +4,25 @@ package cq
 import (
 	"context"
 	"fmt"
-	"path/filepath"
-	"regexp"
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	"go.chromium.org/luci/cv/api/config/v2"
+
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 const (
-	CQ_CFG_FILE = "generated/commit-queue.cfg"
-	CQ_CFG_REF  = "infra/config"
-
 	MAIN_REF = git_common.RefsHeadsPrefix + git.MainBranch
 
 	// Constants for in-flight metrics.
@@ -70,88 +66,47 @@ type Client struct {
 
 // GetSkiaCQTryBots is a Skia implementation of GetCQTryBotsFn.
 func GetSkiaCQTryBots() ([]string, error) {
-	cfg, err := GetCQConfig(gitiles.NewRepo(common.REPO_SKIA, nil))
+	cfg, err := GetCQJobsToConfig(gitiles.NewRepo(common.REPO_SKIA, nil), MAIN_REF)
 	if err != nil {
 		return nil, err
 	}
-	return GetCQTryBots(cfg, MAIN_REF)
+	return GetCQTryBots(cfg)
 }
 
 // GetSkiaInfraCQTryBots is a Skia Infra implementation of GetCQTryBotsFn.
 func GetSkiaInfraCQTryBots() ([]string, error) {
-	cfg, err := GetCQConfig(gitiles.NewRepo(common.REPO_SKIA_INFRA, nil))
+	cfg, err := GetCQJobsToConfig(gitiles.NewRepo(common.REPO_SKIA_INFRA, nil), MAIN_REF)
 	if err != nil {
 		return nil, err
 	}
-	return GetCQTryBots(cfg, MAIN_REF)
+	return GetCQTryBots(cfg)
 }
 
-// MatchConfigGroup returns the ConfigGroup, ConfigGroup_Gerrit, and
-// ConfigGroup_Gerrit_Project which match the given full ref name, or nil if
-// there is no matching ConfigGroup.
-func MatchConfigGroup(cqCfg *config.Config, ref string) (*config.ConfigGroup, *config.ConfigGroup_Gerrit, *config.ConfigGroup_Gerrit_Project, error) {
-	for _, configGroup := range cqCfg.GetConfigGroups() {
-		for _, g := range configGroup.GetGerrit() {
-			for _, p := range g.GetProjects() {
-				for _, r := range p.GetRefRegexp() {
-					m, err := regexp.MatchString(r, ref)
-					if err != nil {
-						return nil, nil, nil, fmt.Errorf("Error when compiling %s: %s", r, err)
-					}
-					if m {
-						// Found the ref we were looking for.
-						return configGroup, g, p, nil
-					}
-				}
-			}
-		}
-	}
-	return nil, nil, nil, nil
-}
-
-// GetCQConfig returns the Config for the given repo.
-func GetCQConfig(repo *gitiles.Repo) (*config.Config, error) {
-	contents, err := repo.ReadFileAtRef(context.Background(), CQ_CFG_FILE, CQ_CFG_REF)
+// GetCQJobsToConfig returns the Config for the given repo.
+func GetCQJobsToConfig(repo *gitiles.Repo, ref string) (map[string]*specs.CommitQueueJobConfig, error) {
+	contents, err := repo.ReadFileAtRef(context.Background(), specs.TASKS_CFG_FILE, ref)
 	if err != nil {
 		return nil, err
 	}
-	var cqCfg config.Config
-	if err := proto.UnmarshalText(string(contents), &cqCfg); err != nil {
-		return nil, err
+	tasksCfg, err := specs.ParseTasksCfg(string(contents))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Error when parsing tasks.json cfg")
 	}
-	return &cqCfg, nil
+	return tasksCfg.CommitQueue, nil
 }
 
 // GetCQTryBots is a convenience method for retrieving the list of CQ trybots
 // from a Config.
-func GetCQTryBots(cqCfg *config.Config, ref string) ([]string, error) {
+func GetCQTryBots(cqJobsToConfig map[string]*specs.CommitQueueJobConfig) ([]string, error) {
 	tryJobs := []string{}
-	configGroup, _, _, err := MatchConfigGroup(cqCfg, ref)
-	if err != nil {
-		return nil, err
-	}
-	if configGroup != nil {
-		// Found the ref we were looking for.
-		for _, builder := range configGroup.GetVerifiers().GetTryjob().GetBuilders() {
-			if builder.GetExperimentPercentage() > 0 && builder.GetExperimentPercentage() < 100 {
-				// Exclude experimental builders, unless running for all CLs.
-				continue
-			}
-			if builder.IncludableOnly {
-				// Exclude builders which have been specified only for "Cq-Include-Trybots".
-				continue
-			}
-			if util.ContainsAny(builder.GetName(), PRESUBMIT_BOTS) {
-				// Exclude presubmit bots because they could fail or be delayed
-				// due to factors such as owners approval and other project
-				// specific checks.
-				continue
-			}
-			// Strip out the bucket and use only the builder name.
-			// Eg: chromium/try/mac_chromium_compile_dbg_ng -> mac_chromium_compile_dbg_ng
-			builderName := filepath.Base(builder.GetName())
-			tryJobs = append(tryJobs, builderName)
+	for tryJob := range cqJobsToConfig {
+		if util.ContainsAny(tryJob, PRESUBMIT_BOTS) {
+			// Exclude presubmit bots because they could fail or be delayed
+			// due to factors such as owners approval and other project
+			// specific checks.
+			continue
 		}
+		tryJobs = append(tryJobs, tryJob)
 	}
 
 	sklog.Infof("The list of CQ trybots is: %s", tryJobs)
