@@ -518,7 +518,7 @@ func getVersion(name string) (int, error) {
 		}
 		return -1, skerr.Wrap(err)
 	}
-	version, err := strconv.Atoi(string(b))
+	version, err := strconv.Atoi(strings.TrimSpace(string(b)))
 	if err != nil {
 		return -1, skerr.Wrap(err)
 	}
