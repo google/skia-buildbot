@@ -15,38 +15,93 @@ import (
 
 const (
 	fakeData = `[
-  {
-    "os": "linux",
-    "versions": [
-      {
-        "channel": "beta",
-        "current_version": "81.0.4044.17"
-      },
-      {
-        "channel": "stable",
-        "current_version": "80.0.3987.100"
-      }
-    ]
-  }
+	{
+		"angle_branch": "4577",
+		"bling_ldap": "govind",
+		"bling_owner": "Krishna Govind",
+		"chromium_branch": "4577",
+		"chromium_main_branch_hash": "761ddde228655e313424edec06497d0c56b0f3c4",
+		"chromium_main_branch_position": 902210,
+		"clank_ldap": "benmason",
+		"clank_owner": "Ben Mason",
+		"cros_ldap": "geohsu",
+		"cros_owner": "Geo Hsu",
+		"dawn_branch": "4577",
+		"desktop_ldap": "pbommana",
+		"desktop_owner": "Prudhvi Bommana",
+		"devtools_branch": "4577",
+		"milestone": 93,
+		"pdfium_branch": "4577",
+		"schedule_active": true,
+		"schedule_phase": "beta",
+		"skia_branch": "m93",
+		"v8_branch": "9.3-lkgr",
+		"webrtc_branch": "4577"
+	},
+	{
+		"angle_branch": "4515",
+		"bling_ldap": "benmason",
+		"bling_owner": "Ben Mason",
+		"chromium_branch": "4515",
+		"chromium_main_branch_hash": "488fc70865ddaa05324ac00a54a6eb783b4bc41c",
+		"chromium_main_branch_position": 885287,
+		"clank_ldap": "govind",
+		"clank_owner": "Krishna Govind",
+		"cros_ldap": "dgagnon",
+		"cros_owner": "Daniel Gagnon",
+		"dawn_branch": "4515",
+		"desktop_ldap": "srinivassista",
+		"desktop_owner": "Srinivas Sista",
+		"devtools_branch": "4515",
+		"milestone": 92,
+		"pdfium_branch": "4515",
+		"schedule_active": true,
+		"schedule_phase": "stable",
+		"skia_branch": "m92",
+		"v8_branch": "9.2-lkgr",
+		"webrtc_branch": "4515"
+	},
+	{
+		"angle_branch": "4472",
+		"bling_ldap": "bindusuvarna",
+		"bling_owner": "Bindu Suvarna",
+		"chromium_branch": "4472",
+		"chromium_main_branch_hash": "3d60439cfb36485e76a1c5bb7f513d3721b20da1",
+		"chromium_main_branch_position": 870763,
+		"clank_ldap": "benmason",
+		"clank_owner": "Ben Mason",
+		"cros_ldap": "marinakz",
+		"cros_owner": "Marina Kazatcker",
+		"dawn_branch": null,
+		"desktop_ldap": "pbommana",
+		"desktop_owner": "Prudhvi Bommana",
+		"devtools_branch": "4472",
+		"milestone": 91,
+		"pdfium_branch": "4472",
+		"schedule_active": false,
+		"skia_branch": "m91",
+		"v8_branch": "9.1-lkgr",
+		"webrtc_branch": "4472"
+	}
 ]`
 )
 
 func dummyBranches() *Branches {
 	return &Branches{
 		Main: &Branch{
-			Milestone: 82,
+			Milestone: 94,
 			Number:    0,
 			Ref:       RefMain,
 		},
 		Beta: &Branch{
-			Milestone: 81,
-			Number:    4044,
-			Ref:       fmt.Sprintf(refTmplRelease, 4044),
+			Milestone: 93,
+			Number:    4577,
+			Ref:       fmt.Sprintf(refTmplRelease, 4577),
 		},
 		Stable: &Branch{
-			Milestone: 80,
-			Number:    3987,
-			Ref:       fmt.Sprintf(refTmplRelease, 3987),
+			Milestone: 92,
+			Number:    4515,
+			Ref:       fmt.Sprintf(refTmplRelease, 4515),
 		},
 	}
 }
@@ -153,13 +208,6 @@ func TestGet(t *testing.T) {
 	require.NoError(t, err)
 	assertdeep.Equal(t, dummyBranches(), b)
 
-	// OS missing altogether.
-	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte("[]")))
-	b, err = Get(ctx, c)
-	require.Nil(t, b)
-	require.NotNil(t, err)
-	require.True(t, strings.Contains(err.Error(), "No branches found for OS"))
-
 	// Beta channel is missing.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, branchBeta, "dev"))))
 	b, err = Get(ctx, c)
@@ -167,18 +215,25 @@ func TestGet(t *testing.T) {
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "Beta branch is missing"), err)
 
+	// Stable channel is missing.
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, branchStable, "dev"))))
+	b, err = Get(ctx, c)
+	require.Nil(t, b)
+	require.NotNil(t, err)
+	require.True(t, strings.Contains(err.Error(), "Stable branch is missing"), err)
+
 	// Invalid branch number.
-	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, "4044", "nope"))))
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, "4577", "nope"))))
 	b, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
 	sklog.Errorf("Err: %s", err)
-	require.True(t, strings.Contains(err.Error(), "invalid current_version \"81.0.nope.17\""), err)
+	require.True(t, strings.Contains(err.Error(), "invalid branch number \"nope\" for channel \"beta\""), err)
 
 	// Missing milestone.
-	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, "81", "nope"))))
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, "93", "null"))))
 	b, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
-	require.True(t, strings.Contains(err.Error(), "invalid current_version \"nope.0.4044.17\""), err)
+	require.True(t, strings.Contains(err.Error(), "Beta branch is invalid: Milestone is required"), err)
 }

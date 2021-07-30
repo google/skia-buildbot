@@ -24,7 +24,7 @@ const (
 
 	branchBeta     = "beta"
 	branchStable   = "stable"
-	jsonURL        = "https://omahaproxy.appspot.com/all.json"
+	jsonURL        = "https://chromiumdash.appspot.com/fetch_milestones"
 	os             = "linux"
 	refTmplRelease = "refs/branch-heads/%d"
 )
@@ -136,67 +136,48 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 	}
 	defer util.Close(resp.Body)
 
-	// TODO(borenet): It seems like we could just parse the branch number
-	// out of current_version as well. Alternatively, we could load data
-	// from chromiumdash.appspot.com which is roughly half the size and has
-	// milestone and chrome_branch fields, without needing to choose an OS.
-	type osVersion struct {
-		Os       string `json:"os"`
-		Versions []struct {
-			Channel        string `json:"channel"`
-			CurrentVersion string `json:"current_version"`
-		}
+	type milestone struct {
+		Milestone      int    `json:"milestone"`
+		ChromiumBranch string `json:"chromium_branch"`
+		SchedulePhase  string `json:"schedule_phase"`
 	}
-	var osVersions []osVersion
-	if err := json.NewDecoder(resp.Body).Decode(&osVersions); err != nil {
+	var milestones []milestone
+	if err := json.NewDecoder(resp.Body).Decode(&milestones); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	for _, osv := range osVersions {
-		if osv.Os == os {
-			rv := &Branches{}
-			for _, v := range osv.Versions {
-				var branch *Branch
-				if v.Channel == branchBeta {
-					branch = &Branch{}
-					rv.Beta = branch
-				} else if v.Channel == branchStable {
-					branch = &Branch{}
-					rv.Stable = branch
-				} else {
-					continue
-				}
-				matches := versionRegex.FindStringSubmatch(v.CurrentVersion)
-				if len(matches) != 3 {
-					return nil, skerr.Fmt("invalid current_version %q for channel %s on os %s", v.CurrentVersion, v.Channel, osv.Os)
-				}
-				milestone, err := strconv.Atoi(matches[1])
-				if err != nil {
-					return nil, skerr.Wrapf(err, "invalid milestone number %q for channel %s on os %s", v.CurrentVersion, v.Channel, osv.Os)
-				}
-				branch.Milestone = milestone
-				number, err := strconv.Atoi(matches[2])
-				if err != nil {
-					return nil, skerr.Wrapf(err, "invalid branch number %q for channel %s on os %s", v.CurrentVersion, v.Channel, osv.Os)
-				}
-				branch.Number = number
-				branch.Ref = ReleaseBranchRef(number)
-			}
-			if rv.Beta != nil {
-				rv.Main = &Branch{
-					// TODO(borenet): Is this reliable? Is
-					// there a better way to find it?
-					Milestone: rv.Beta.Milestone + 1,
-					Number:    0,
-					Ref:       RefMain,
-				}
-			}
-			if err := rv.Validate(); err != nil {
-				return nil, err
-			}
-			return rv, nil
+	rv := &Branches{}
+	for _, milestone := range milestones {
+		var branch *Branch
+		if milestone.SchedulePhase == branchBeta {
+			branch = &Branch{}
+			rv.Beta = branch
+		} else if milestone.SchedulePhase == branchStable {
+			branch = &Branch{}
+			rv.Stable = branch
+		} else {
+			continue
+		}
+		branch.Milestone = milestone.Milestone
+		number, err := strconv.Atoi(milestone.ChromiumBranch)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "invalid branch number %q for channel %q", milestone.ChromiumBranch, milestone.SchedulePhase)
+		}
+		branch.Number = number
+		branch.Ref = ReleaseBranchRef(number)
+	}
+	if rv.Beta != nil {
+		rv.Main = &Branch{
+			// TODO(borenet): Is this reliable? Is
+			// there a better way to find it?
+			Milestone: rv.Beta.Milestone + 1,
+			Number:    0,
+			Ref:       RefMain,
 		}
 	}
-	return nil, skerr.Fmt("No branches found for OS %q", os)
+	if err := rv.Validate(); err != nil {
+		return nil, err
+	}
+	return rv, nil
 }
 
 // Client is a wrapper for Get which facilitates testing.
