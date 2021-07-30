@@ -1,0 +1,21 @@
+# Configures an RPi with everything it needs to run under switchboard.
+- hosts: "{{ variable_hosts | default('rpis') }}"
+  user: chrome-bot
+  gather_facts: yes
+
+  pre_tasks:
+    - name: Install applications.
+      become: yes
+      apt:
+        pkg:
+          - adb
+          - libimobiledevice-utils
+          - rsync
+
+  roles:
+    - copy_authorized_keys
+    - copy_adbkey
+    - copy_service_account_key
+    - install_collectd
+    - swarming_needs
+    - { role: install_test_machine_monitor, start_swarming: true }

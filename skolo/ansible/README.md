@@ -11,6 +11,17 @@ to set up to run these commands.
 Runs might fail for a small number of hosts, you can re-run a script for a
 specific host by passing `-l (hostname)` to the `ansible-playbook` command.
 
-You can target a server not in hosts by appending a comma to the name:
+You can target a machine not in the skolo by referring to it by IP address,
+presuming the IP address is in the range 192.168.0.0/16. This is defined in
+`hosts.ini` as the `[local]` group of machines.
 
-    $ ansible-playbook ./add-chrome-bot-to-sudoers.yaml --extra-vars variable_hosts=192.168.1.157,
+    $ ansible-playbook ./switchboard/rpi.yml --extra-vars variable_hosts=192.168.1.157
+
+## Notes
+
+See `./group_vars/all.yml` for variables that are defined everywhere.
+
+See `hosts.ini` for all the hosts and groups of hosts you can target when
+running an Ansible script.
+
+See `ssh.cfg` for the SSH configuration that Ansible uses when running.

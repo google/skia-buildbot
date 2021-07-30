@@ -1,0 +1,18 @@
+# Configures a Linux machine with everything it needs to run under switchboard.
+- hosts: "{{ variable_hosts | default('linux') }}"
+  user: root
+  gather_facts: yes
+
+  pre_tasks:
+    - name: Install applications.
+      become: yes
+      apt:
+        pkg:
+          - rsync
+
+  roles:
+    - copy_authorized_keys
+    - copy_service_account_key
+    - install_collectd
+    - swarming_needs
+    - { role: install_test_machine_monitor, start_swarming: false }

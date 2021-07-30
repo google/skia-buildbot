@@ -1,0 +1,5 @@
+# Distributes authorized_keys to the hosts.
+- hosts: "{{ variable_hosts | default('all') }}"
+  gather_facts: yes
+  roles:
+    - copy_authorized_keys

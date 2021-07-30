@@ -1,0 +1,7 @@
+# Installs test_machine_monitor.
+- hosts: "{{ variable_hosts | default('rpis') }}"
+  user: chrome-bot
+  gather_facts: true
+
+  roles:
+    - { role: install_test_machine_monitor, start_swarming: true }
