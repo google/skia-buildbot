@@ -60,10 +60,10 @@ func NewV2(db *pgxpool.Pool, src ImageSource, windowSize int) *WorkerImpl2 {
 // CalculateDiffs calculates the diffs for the given grouping. It either computes all of the diffs
 // if there are only "a few" digests, otherwise it computes a subset of them, taking into account
 // recency and triage status.
-func (w *WorkerImpl2) CalculateDiffs(ctx context.Context, grouping paramtools.Params, addLeft, addRight []types.Digest) error {
+func (w *WorkerImpl2) CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
 	ctx, span := trace.StartSpan(ctx, "worker2_CalculateDiffs")
 	if span.IsRecordingEvents() {
-		addMetadata(span, grouping, len(addLeft), len(addRight))
+		addMetadata(span, grouping, len(additional))
 	}
 	defer span.End()
 	startingTile, err := w.getStartingTile(ctx)
@@ -75,9 +75,9 @@ func (w *WorkerImpl2) CalculateDiffs(ctx context.Context, grouping paramtools.Pa
 		return skerr.Wrap(err)
 	}
 
-	total := len(allDigests) + len(addLeft) + len(addRight)
+	total := len(allDigests) + len(additional)
 	w.inputDigestsSummary.Observe(float64(total))
-	inputDigests := convertToDigestBytes(append(addLeft, addRight...))
+	inputDigests := convertToDigestBytes(additional)
 	if total > computeTotalGridCutoff {
 		// If there are too many digests, we perform a somewhat expensive operation of looking at
 		// the digests produced by all traces to find a smaller subset of images that we should
@@ -85,8 +85,7 @@ func (w *WorkerImpl2) CalculateDiffs(ctx context.Context, grouping paramtools.Pa
 		// a small percentage of groupings (i.e. tests) to have many digests.
 		return skerr.Wrap(w.calculateDiffSubset(ctx, grouping, inputDigests, startingTile))
 	}
-	allDigests = addDigests(allDigests, addLeft)
-	allDigests = addDigests(allDigests, addRight)
+	allDigests = append(allDigests, inputDigests...)
 	return skerr.Wrap(w.calculateAllDiffs(ctx, allDigests))
 }
 
@@ -103,22 +102,6 @@ func convertToDigestBytes(digests []types.Digest) []schema.DigestBytes {
 		rv = append(rv, b)
 	}
 	return rv
-}
-
-// addDigests adds the given hex-encoded digests to the slice of bytes.
-func addDigests(digests []schema.DigestBytes, additional []types.Digest) []schema.DigestBytes {
-	if len(additional) == 0 {
-		return digests
-	}
-	for _, d := range additional {
-		b, err := sql.DigestToBytes(d)
-		if err != nil {
-			sklog.Warningf("Invalid digest seen %q: %s", d, err)
-			continue
-		}
-		digests = append(digests, b)
-	}
-	return digests
 }
 
 // getStartingTile returns the commit ID which is the beginning of the tile of interest (so we

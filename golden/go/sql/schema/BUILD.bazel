@@ -13,6 +13,7 @@ go_library(
         "//go/paramtools",
         "//go/skerr",
         "//golden/go/expectations",
+        "//golden/go/types",
         "@com_github_google_uuid//:uuid",
         "@com_github_jackc_pgtype//:pgtype",
     ],

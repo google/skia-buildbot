@@ -37,7 +37,7 @@ func TestWorkerImpl2_CalculateDiffs_NoExistingData_Success(t *testing.T) {
 		types.PrimaryKeyField: "not used",
 	}
 	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt, dks.DigestA05Unt}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor, imagesToCalculateDiffsFor))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
@@ -77,7 +77,7 @@ func TestWorkerImpl2_CalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) 
 		types.CorpusField:     dks.CornersCorpus,
 		types.PrimaryKeyField: dks.TriangleTest,
 	}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, nil, nil))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, nil))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
@@ -131,7 +131,7 @@ func TestWorkerImpl2_CalculateDiffs_DiffSubset_Success(t *testing.T) {
 	for i := 0; i < computeTotalGridCutoff+1; i++ {
 		extraDigests = append(extraDigests, dks.DigestBlank)
 	}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, extraDigests, nil))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, extraDigests))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
@@ -179,7 +179,7 @@ func TestWorkerImpl2_CalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *
 		types.CorpusField:     dks.RoundCorpus,
 		types.PrimaryKeyField: dks.CircleTest,
 	}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, []types.Digest{dks.DigestC06Pos_CL}, []types.Digest{dks.DigestC06Pos_CL}))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, []types.Digest{dks.DigestC06Pos_CL}))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
@@ -226,7 +226,7 @@ func TestWorkerImpl2_CalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 		types.PrimaryKeyField: "not used",
 	}
 	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor, imagesToCalculateDiffsFor))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	// We should see partial success
@@ -278,7 +278,7 @@ func TestWorkerImpl2_CalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 		types.PrimaryKeyField: "not used",
 	}
 	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor, imagesToCalculateDiffsFor))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	// We should see partial success

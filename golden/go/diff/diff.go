@@ -281,19 +281,10 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 
 type Calculator interface {
 	// CalculateDiffs recomputes all diffs for the current grouping, including any digests provided.
-	// Images (digests) will be sorted into two buckets, the left and right bucket. The left bucket
-	// is a superset of the right bucket. The right bucket consists of all triaged images
-	// for this grouping. The left bucket consists of *all* digests seen for this grouping.
-	// During search, a user will want to see the closest positive and negative image for a given
-	// image. By splitting the images into two different buckets, we do less precomputation. For
-	// example, if there are several flaky traces in a grouping, it can be that 10% of the overall
-	// images for a grouping are triaged and 90% are *not* (these typically come from ignored traces
-	// because they produce something different during most commits). In such a case, computing a
-	// given untriaged digest from a trace against a different untriaged digest is a waste since it
-	// won't show up in the search results. By splitting the images into two buckets, we can
-	// dramatically reduce the computation done over a naive N x N comparison scheme.
-	CalculateDiffs(ctx context.Context, grouping paramtools.Params, additionalLeft, additionalRight []types.Digest) error
+	CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error
 }
+
+// TODO(kjlubick) remove WorkerMesssage and WorkerMessageVersion
 
 // WorkerMessageVersion is the current version of the WorkerMessage JSON.
 const WorkerMessageVersion = 3

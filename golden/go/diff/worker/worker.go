@@ -117,7 +117,7 @@ func newDigestPair(one, two types.Digest) digestPair {
 func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Params, addLeft, addRight []types.Digest) error {
 	ctx, span := trace.StartSpan(ctx, "CalculateDiffs")
 	if span.IsRecordingEvents() {
-		addMetadata(span, grouping, len(addLeft), len(addRight))
+		addMetadata(span, grouping, len(addLeft))
 	}
 	defer span.End()
 	startingTile, err := w.getStartingTile(ctx)
@@ -280,12 +280,11 @@ func getImgCache(ctx context.Context) *lru.Cache {
 
 // addMetadata adds some attributes to the span so we can tell how much work it was supposed to
 // be doing when we are looking at the traces and the performance.
-func addMetadata(span *trace.Span, grouping paramtools.Params, leftDigestCount, rightDigestCount int) {
+func addMetadata(span *trace.Span, grouping paramtools.Params, leftDigestCount int) {
 	groupingStr, _ := json.Marshal(grouping)
 	span.AddAttributes(
 		trace.StringAttribute("grouping", string(groupingStr)),
-		trace.Int64Attribute("left_digests", int64(leftDigestCount)),
-		trace.Int64Attribute("right_digests", int64(rightDigestCount)))
+		trace.Int64Attribute("additional_digests", int64(leftDigestCount)))
 }
 
 // getStartingTile returns the commit ID which is the beginning of the tile of interest (so we
@@ -609,6 +608,3 @@ func decode(ctx context.Context, b []byte) (*image.NRGBA, error) {
 	}
 	return diff.GetNRGBA(im), nil
 }
-
-// Make sure WorkerImpl fulfills the diff.Calculator interface.
-var _ diff.Calculator = (*WorkerImpl)(nil)

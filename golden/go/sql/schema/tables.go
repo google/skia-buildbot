@@ -4,6 +4,8 @@ import (
 	"crypto/md5"
 	"time"
 
+	"go.skia.org/infra/golden/go/types"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 
@@ -118,30 +120,32 @@ const (
 // is turned into an actual SQL statement.
 //go:generate go run ../exporter/tosql --output_file sql.go --logtostderr --output_pkg schema
 type Tables struct {
-	Changelists                 []ChangelistRow                 `sql_backup:"weekly"`
-	CommitsWithData             []CommitWithDataRow             `sql_backup:"daily"`
-	DiffMetrics                 []DiffMetricRow                 `sql_backup:"monthly"`
-	ExpectationDeltas           []ExpectationDeltaRow           `sql_backup:"daily"`
-	ExpectationRecords          []ExpectationRecordRow          `sql_backup:"daily"`
-	Expectations                []ExpectationRow                `sql_backup:"daily"`
-	GitCommits                  []GitCommitRow                  `sql_backup:"daily"`
-	Groupings                   []GroupingRow                   `sql_backup:"monthly"`
-	IgnoreRules                 []IgnoreRuleRow                 `sql_backup:"daily"`
-	MetadataCommits             []MetadataCommitRow             `sql_backup:"daily"`
-	Options                     []OptionsRow                    `sql_backup:"monthly"`
-	Patchsets                   []PatchsetRow                   `sql_backup:"weekly"`
-	PrimaryBranchParams         []PrimaryBranchParamRow         `sql_backup:"monthly"`
-	ProblemImages               []ProblemImageRow               `sql_backup:"none"`
-	SecondaryBranchExpectations []SecondaryBranchExpectationRow `sql_backup:"daily"`
-	SecondaryBranchParams       []SecondaryBranchParamRow       `sql_backup:"monthly"`
-	SecondaryBranchValues       []SecondaryBranchValueRow       `sql_backup:"monthly"`
-	SourceFiles                 []SourceFileRow                 `sql_backup:"monthly"`
-	TiledTraceDigests           []TiledTraceDigestRow           `sql_backup:"monthly"`
-	TrackingCommits             []TrackingCommitRow             `sql_backup:"daily"`
-	TraceValues                 []TraceValueRow                 `sql_backup:"monthly"`
-	Traces                      []TraceRow                      `sql_backup:"monthly"`
-	Tryjobs                     []TryjobRow                     `sql_backup:"weekly"`
-	ValuesAtHead                []ValueAtHeadRow                `sql_backup:"monthly"`
+	Changelists                        []ChangelistRow                     `sql_backup:"weekly"`
+	CommitsWithData                    []CommitWithDataRow                 `sql_backup:"daily"`
+	DiffMetrics                        []DiffMetricRow                     `sql_backup:"monthly"`
+	ExpectationDeltas                  []ExpectationDeltaRow               `sql_backup:"daily"`
+	ExpectationRecords                 []ExpectationRecordRow              `sql_backup:"daily"`
+	Expectations                       []ExpectationRow                    `sql_backup:"daily"`
+	GitCommits                         []GitCommitRow                      `sql_backup:"daily"`
+	Groupings                          []GroupingRow                       `sql_backup:"monthly"`
+	IgnoreRules                        []IgnoreRuleRow                     `sql_backup:"daily"`
+	MetadataCommits                    []MetadataCommitRow                 `sql_backup:"daily"`
+	Options                            []OptionsRow                        `sql_backup:"monthly"`
+	Patchsets                          []PatchsetRow                       `sql_backup:"weekly"`
+	PrimaryBranchDiffCalculationWork   []PrimaryBranchDiffCalculationRow   `sql_backup:"none"`
+	PrimaryBranchParams                []PrimaryBranchParamRow             `sql_backup:"monthly"`
+	ProblemImages                      []ProblemImageRow                   `sql_backup:"none"`
+	SecondaryBranchDiffCalculationWork []SecondaryBranchDiffCalculationRow `sql_backup:"none"`
+	SecondaryBranchExpectations        []SecondaryBranchExpectationRow     `sql_backup:"daily"`
+	SecondaryBranchParams              []SecondaryBranchParamRow           `sql_backup:"monthly"`
+	SecondaryBranchValues              []SecondaryBranchValueRow           `sql_backup:"monthly"`
+	SourceFiles                        []SourceFileRow                     `sql_backup:"monthly"`
+	TiledTraceDigests                  []TiledTraceDigestRow               `sql_backup:"monthly"`
+	TraceValues                        []TraceValueRow                     `sql_backup:"monthly"`
+	Traces                             []TraceRow                          `sql_backup:"monthly"`
+	TrackingCommits                    []TrackingCommitRow                 `sql_backup:"daily"`
+	Tryjobs                            []TryjobRow                         `sql_backup:"weekly"`
+	ValuesAtHead                       []ValueAtHeadRow                    `sql_backup:"monthly"`
 
 	// DeprecatedIngestedFiles allows us to keep track of files ingested with the old FS/BT ways
 	// until all the SQL ingestion is ready.
@@ -1045,4 +1049,68 @@ func (r MetadataCommitRow) ToSQLRow() (colNames []string, colData []interface{})
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *MetadataCommitRow) ScanFrom(scan func(...interface{}) error) error {
 	return scan(&r.CommitID, &r.CommitMetadata)
+}
+
+// PrimaryBranchDiffCalculationRow represents a grouping for which we need to compute diffs using
+// digests seen on the primary branch. There are intentionally no indexes here for two reasons
+// 1) indexing monotonically increasing columns can cause issues, especially with changing data.
+// 2) for a typical instance, we don't expect there to be that many rows (thousands), so a full
+//    table scan shouldn't be too expensive.
+type PrimaryBranchDiffCalculationRow struct {
+	// GroupingID is the grouping for which we should compute diffs.
+	GroupingID GroupingID `sql:"grouping_id BYTES PRIMARY KEY"`
+	// LastCalculated is the timestamp at which we last calculated diffs for the grouping.
+	LastCalculated time.Time `sql:"last_calculated_ts TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// CalculationLeaseEnds is set to a future time when a worker starts computing diffs on this
+	// grouping. It allows workers to not do the same computation at the same time.
+	CalculationLeaseEnds time.Time `sql:"calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r PrimaryBranchDiffCalculationRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"grouping_id", "last_calculated_ts", "calculation_lease_ends"},
+		[]interface{}{r.GroupingID, r.LastCalculated, r.CalculationLeaseEnds}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *PrimaryBranchDiffCalculationRow) ScanFrom(scan func(...interface{}) error) error {
+	err := scan(&r.GroupingID, &r.LastCalculated, &r.CalculationLeaseEnds)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	r.LastCalculated = r.LastCalculated.UTC()
+	r.CalculationLeaseEnds = r.CalculationLeaseEnds.UTC()
+	return nil
+}
+
+// SecondaryBranchDiffCalculationRow represents a grouping for a CL for which wee need to compute
+// diffs for using digests from that CL as well as the digests on the primary branch.
+type SecondaryBranchDiffCalculationRow struct {
+	BranchName string `sql:"branch_name STRING"`
+
+	GroupingID GroupingID `sql:"grouping_id BYTES"`
+
+	LastUpdated time.Time `sql:"last_updated_ts TIMESTAMP WITH TIME ZONE NOT NULL"`
+
+	DigestsNotOnPrimary []types.Digest `sql:"digests STRING[] NOT NULL"`
+
+	LastCalculated time.Time `sql:"last_calculated_ts TIMESTAMP WITH TIME ZONE NOT NULL"`
+
+	CalculationLeaseEnds time.Time `sql:"calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL"`
+
+	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, grouping_id)"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r SecondaryBranchDiffCalculationRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"branch_name", "grouping_id", "last_updated_ts", "digests",
+			"last_calculated_ts", "calculation_lease_ends"},
+		[]interface{}{r.BranchName, r.GroupingID, r.LastUpdated, r.DigestsNotOnPrimary,
+			r.LastCalculated, r.CalculationLeaseEnds}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *SecondaryBranchDiffCalculationRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.BranchName, &r.GroupingID, &r.LastUpdated, &r.DigestsNotOnPrimary,
+		&r.LastCalculated, &r.CalculationLeaseEnds)
 }

@@ -91,6 +91,11 @@ CREATE TABLE IF NOT EXISTS Patchsets (
   created_ts TIMESTAMP WITH TIME ZONE,
   INDEX cl_order_idx (changelist_id, ps_order)
 );
+CREATE TABLE IF NOT EXISTS PrimaryBranchDiffCalculationWork (
+  grouping_id BYTES PRIMARY KEY,
+  last_calculated_ts TIMESTAMP WITH TIME ZONE NOT NULL,
+  calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL
+);
 CREATE TABLE IF NOT EXISTS PrimaryBranchParams (
   tile_id INT4,
   key STRING,
@@ -102,6 +107,15 @@ CREATE TABLE IF NOT EXISTS ProblemImages (
   num_errors INT2 NOT NULL,
   latest_error STRING NOT NULL,
   error_ts TIMESTAMP WITH TIME ZONE NOT NULL
+);
+CREATE TABLE IF NOT EXISTS SecondaryBranchDiffCalculationWork (
+  branch_name STRING,
+  grouping_id BYTES,
+  last_updated_ts TIMESTAMP WITH TIME ZONE NOT NULL,
+  digests STRING[] NOT NULL,
+  last_calculated_ts TIMESTAMP WITH TIME ZONE NOT NULL,
+  calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (branch_name, grouping_id)
 );
 CREATE TABLE IF NOT EXISTS SecondaryBranchExpectations (
   branch_name STRING,
@@ -143,10 +157,6 @@ CREATE TABLE IF NOT EXISTS TiledTraceDigests (
   INDEX grouping_digest_idx (grouping_id, digest),
   INDEX tile_trace_idx (tile_id, trace_id)
 );
-CREATE TABLE IF NOT EXISTS TrackingCommits (
-  repo STRING PRIMARY KEY,
-  last_git_hash STRING NOT NULL
-);
 CREATE TABLE IF NOT EXISTS TraceValues (
   shard INT2,
   trace_id BYTES,
@@ -167,6 +177,10 @@ CREATE TABLE IF NOT EXISTS Traces (
   INDEX grouping_ignored_idx (grouping_id, matches_any_ignore_rule),
   INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id),
   INVERTED INDEX keys_idx (keys)
+);
+CREATE TABLE IF NOT EXISTS TrackingCommits (
+  repo STRING PRIMARY KEY,
+  last_git_hash STRING NOT NULL
 );
 CREATE TABLE IF NOT EXISTS Tryjobs (
   tryjob_id STRING PRIMARY KEY,
