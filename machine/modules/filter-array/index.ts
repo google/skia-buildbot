@@ -1,39 +1,49 @@
 /**
- * FilterArray is a class for filtering an array of objects based on matching a
+ * FilterArray is a class for filtering an array of things based on matching a
  * filter string.
  *
- * Pass it an input element that holds the text filter.
+ * Once your page is drawn, call connect() to hook me up to an input element
+ * (where the user types the filtration string) and a callback which draws the
+ * filtered list.
  *
- * The passed in newFilterValueCallback will be called every time the filter
- * value has changed.
- *
- * The array being monitored need to be passed to updateArray() every time it
+ * The array being monitored needs to be passed to updateArray() every time it
  * changes.
  *
- * The matchingIndices() function is expected to be used in a lit-html template
- * and returns all the matches for the filter as an array of indices.
+ * The matchingValues() function is expected to be used in a lit-html template
+ * and returns all the matches for the filter.
  */
-export class FilterArray {
-  private inputElement: HTMLInputElement;
+export class FilterArray<T> {
+  private inputElement: HTMLInputElement | null = null;
 
-  private newFilterValueCallback?: ()=> void;
+  private newFilterValueCallback?: () => void;
 
-  private filter: string;
+  private filter: string = '';
 
-  private arrayAsStrings: string[] = [];
+  private elements: T[] = [];
+
+  /** Lowercase-folded JSON representations of my elements, good for searching */
+  private jsonifiedElements: string[] = [];
 
   /**
-   * FilterArray is a class for filtering an array of objects based on
-   * matching a  filter string.
+   * Initially, the element will represent an empty list. If updateArray() is
+   * called before the element is connect()ed, it will represent an unfiltered
+   * view of the list. Then, once connect()ed to a filtration UI, filtration
+   * will begin.
+   */
+  constructor() {
+  }
+
+  /**
+   * Hook me up to a page, once it's drawn.
    *
    * @param inputElement The text input that contains the text to filter the
-   * array with.
+   *   array with.
    * @param newFilterValueCallback - Callback that is triggered on every
-   * inputElement input event.
+   *   inputElement input event. Typically redraws the filtered list.
    */
-  constructor(
+  connect(
     inputElement: HTMLInputElement,
-    newFilterValueCallback?: ()=> void,
+    newFilterValueCallback?: () => void,
   ) {
     this.inputElement = inputElement;
     this.newFilterValueCallback = newFilterValueCallback;
@@ -46,30 +56,35 @@ export class FilterArray {
    *
    * @param arr - The array to be filtered.
    */
-  updateArray<T>(arr: T[]): void {
-    this.arrayAsStrings = arr.map((e) => JSON.stringify(e).toLowerCase());
+  updateArray(arr: T[]): void {
+    this.elements = arr;
+    this.jsonifiedElements = arr.map((e) => JSON.stringify(e).toLowerCase());
+;
   }
 
   /**
-   * Returns an array of indices into the array passed in via updateArray() that
-   * match the current filter.
+   * Returns the elements of the array passed in via updateArray() that match
+   * the current filter.
+   *
+   * If updateArray() hasn't yet been called, return an empty array. If no
+   * filter has been set (via connect()), return unfiltered results.
    *
    * Note that this currently searches each JSONified array element as a single
    * string, so JSON delimiters like { and " do get matched, and matches can
-   * span fields.
+   * span properties.
    */
-  matchingIndices(): number[] {
-    const ret: number[] = [];
-    this.arrayAsStrings.forEach((s, i) => {
-      if (s.includes(this.filter)) {
-        ret.push(i);
+  matchingValues(): T[] {
+    const ret: T[] = [];
+    this.jsonifiedElements.forEach((v, i) => {
+      if (v.includes(this.filter)) {
+        ret.push(this.elements[i]);
       }
     });
     return ret;
   }
 
   private filterChanged(): void {
-    this.filter = this.inputElement.value.toLowerCase();
+    this.filter = this.inputElement!.value.toLowerCase();
     this.newFilterValueCallback?.();
   }
 }
