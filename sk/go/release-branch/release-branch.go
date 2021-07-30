@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -28,12 +29,15 @@ import (
 )
 
 const (
-	chromeBranchTmpl             = "chrome/m%s"
+	chromeBranchTmpl  = "chrome/m%s"
+	flutterBranchTmpl = "flutter/%s.%s"
+
 	flagDryRun                   = "dry-run"
 	gerritProject                = "skia"
 	milestoneFile                = "include/core/SkMilestone.h"
 	milestoneTmpl                = "#define SK_MILESTONE %s"
 	supportedChromeBranches      = 4
+	supportedFlutterBranches     = 2
 	updateMilestoneCommitMsgTmpl = "Update Skia milestone to %d"
 	jobsJSONFile                 = "infra/bots/jobs.json"
 	tasksJSONFile                = "infra/bots/tasks.json"
@@ -42,6 +46,7 @@ const (
 
 var (
 	chromeBranchMilestoneRegex = regexp.MustCompile(fmt.Sprintf(chromeBranchTmpl, `(\d+)`))
+	flutterBranchVersionRegex  = regexp.MustCompile(fmt.Sprintf(flutterBranchTmpl, `(\d+)`, `(\d+)`))
 	milestoneRegex             = regexp.MustCompile(fmt.Sprintf(milestoneTmpl, `(\d+)`))
 
 	excludeTrybotsOnReleaseBranches = []*regexp.Regexp{
@@ -80,19 +85,6 @@ func Command() *cli.Command {
 // releaseBranch performs the actions necessary to create a new Skia release
 // branch.
 func releaseBranch(ctx context.Context, newBranch string, dryRun bool) error {
-	// Derive the new milestone number and the newly-expired branch name from
-	// the new branch name.
-	m := chromeBranchMilestoneRegex.FindStringSubmatch(newBranch)
-	if len(m) != 2 {
-		return skerr.Fmt("Invalid branch name %q; expected format: %s", newBranch, chromeBranchMilestoneRegex.String())
-	}
-	currentMilestone, err := strconv.Atoi(m[1])
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	newMilestone := currentMilestone + 1
-	removeBranch := fmt.Sprintf(chromeBranchTmpl, strconv.Itoa(currentMilestone-supportedChromeBranches))
-
 	// Setup.
 	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_GERRIT)
 	if err != nil {
@@ -105,25 +97,53 @@ func releaseBranch(ctx context.Context, newBranch string, dryRun bool) error {
 		return skerr.Wrap(err)
 	}
 
-	// Retrieve the current milestone.
-	baseCommit, err := repo.ResolveRef(ctx, git.MainBranch)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	haveMilestone, milestoneFileContents, err := getCurrentMilestone(ctx, repo, baseCommit)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	fmt.Println(fmt.Sprintf("Adding support for branch %s and removing support for %s", newBranch, removeBranch))
-
-	if haveMilestone == newMilestone {
-		fmt.Println(fmt.Sprintf("Milestone is up to date at %d; not updating.", newMilestone))
-	} else {
-		fmt.Println(fmt.Sprintf("Creating CL to update milestone from %d to %d...", haveMilestone, newMilestone))
-		if err := updateMilestone(ctx, g, baseCommit, newMilestone, milestoneFileContents, dryRun); err != nil {
+	// Derive the newly-expired branch name and, in the case of Chrome branches,
+	// the milestone number, from the new branch name.
+	var removeBranch string
+	if m := chromeBranchMilestoneRegex.FindStringSubmatch(newBranch); len(m) == 2 {
+		// This is a Chrome branch. Parse the current milestone from the branch
+		// name.
+		currentMilestone, err := strconv.Atoi(m[1])
+		if err != nil {
 			return skerr.Wrap(err)
 		}
+		removeBranch = fmt.Sprintf(chromeBranchTmpl, strconv.Itoa(currentMilestone-supportedChromeBranches))
+		if err := updateMilestone(ctx, g, repo, currentMilestone, dryRun); err != nil {
+			return skerr.Wrap(err)
+		}
+	} else if flutterVersion, err := parseFlutterVersion(newBranch); err == nil {
+		// This is a Flutter branch. Find all Flutter branches and determine
+		// which one has scrolled out of the support window.
+		branches, err := repo.Branches(ctx)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		flutterVersions := make([]semanticVersion, 0, len(branches))
+		for _, branch := range branches {
+			if version, err := parseFlutterVersion(branch.Name); err == nil {
+				flutterVersions = append(flutterVersions, version)
+			}
+		}
+		sort.Sort(sort.Reverse(semanticVersionSlice(flutterVersions)))
+		flutterVersionIdx := -1
+		for idx, version := range flutterVersions {
+			if version == flutterVersion {
+				flutterVersionIdx = idx
+				break
+			}
+		}
+		if flutterVersionIdx < 0 {
+			return skerr.Fmt("Unable to find %s in available branches; has it been created?", newBranch)
+		}
+		deleteVersionIdx := flutterVersionIdx + supportedFlutterBranches
+		if deleteVersionIdx < len(flutterVersions) {
+			deleteVersion := flutterVersions[deleteVersionIdx]
+			removeBranch = fmt.Sprintf(flutterBranchTmpl, strconv.Itoa(deleteVersion.major), strconv.Itoa(deleteVersion.minor))
+		}
+	} else {
+		return skerr.Fmt("%q is not a recognized branch name format for Chrome or Flutter; wanted %q or %q", newBranch, chromeBranchTmpl, flutterBranchTmpl)
 	}
+
 	fmt.Println("Creating CL to update supported branches...")
 	if err := updateSupportedBranches(ctx, g, repo, removeBranch, newBranch, dryRun); err != nil {
 		return skerr.Wrap(err)
@@ -132,16 +152,18 @@ func releaseBranch(ctx context.Context, newBranch string, dryRun bool) error {
 	if err := updateTryjobs(ctx, g, repo, newBranch, dryRun); err != nil {
 		return skerr.Wrap(err)
 	}
-	fmt.Println(fmt.Sprintf("Creating CL to remove CQ on %s", removeBranch))
-	if err := removeCQ(ctx, g, repo, removeBranch, dryRun); err != nil {
-		return skerr.Wrap(err)
+	if removeBranch != "" {
+		fmt.Println(fmt.Sprintf("Creating CL to remove CQ on %s", removeBranch))
+		if err := removeCQ(ctx, g, repo, removeBranch, dryRun); err != nil {
+			return skerr.Wrap(err)
+		}
 	}
 	return nil
 }
 
 // getCurrentMilestone retrieves the current milestone value.
-func getCurrentMilestone(ctx context.Context, repo gitiles.GitilesRepo, baseCommit string) (int, string, error) {
-	contents, err := repo.ReadFileAtRef(ctx, milestoneFile, baseCommit)
+func getCurrentMilestone(ctx context.Context, repo gitiles.GitilesRepo) (int, string, error) {
+	contents, err := repo.ReadFileAtRef(ctx, milestoneFile, git.MainBranch)
 	if err != nil {
 		return 0, "", skerr.Wrap(err)
 	}
@@ -160,11 +182,29 @@ func getCurrentMilestone(ctx context.Context, repo gitiles.GitilesRepo, baseComm
 }
 
 // updateMilestone creates a CL to update the Skia milestone.
-func updateMilestone(ctx context.Context, g gerrit.GerritInterface, baseCommit string, milestone int, oldMilestoneContents string, dryRun bool) error {
-	commitMsg := fmt.Sprintf(updateMilestoneCommitMsgTmpl, milestone)
-	newContents := milestoneRegex.ReplaceAllString(oldMilestoneContents, fmt.Sprintf(milestoneTmpl, strconv.Itoa(milestone)))
+func updateMilestone(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, currentMilestone int, dryRun bool) error {
+	newMilestone := currentMilestone + 1
+
+	// Retrieve the current milestone.
+	haveMilestone, oldMilestoneContents, err := getCurrentMilestone(ctx, repo)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	if haveMilestone == newMilestone {
+		fmt.Println(fmt.Sprintf("Milestone is up to date at %d; not updating.", newMilestone))
+		return nil
+	}
+
+	fmt.Println(fmt.Sprintf("Creating CL to update milestone to %d...", newMilestone))
+	commitMsg := fmt.Sprintf(updateMilestoneCommitMsgTmpl, newMilestone)
+	newContents := milestoneRegex.ReplaceAllString(oldMilestoneContents, fmt.Sprintf(milestoneTmpl, strconv.Itoa(newMilestone)))
 	changes := map[string]string{
 		milestoneFile: newContents,
+	}
+	baseCommit, err := repo.ResolveRef(ctx, git.MainBranch)
+	if err != nil {
+		return skerr.Wrap(err)
 	}
 	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, git.MainBranch, commitMsg, baseCommit, changes, !dryRun)
 	if ci != nil {
@@ -198,7 +238,10 @@ func updateSupportedBranches(ctx context.Context, g gerrit.GerritInterface, repo
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	deleteRef := git.FullyQualifiedBranchName(removeBranch)
+	deleteRef := ""
+	if removeBranch != "" {
+		deleteRef = git.FullyQualifiedBranchName(removeBranch)
+	}
 	foundNewRef := false
 	deletedRef := false
 	newBranches := make([]*supported_branches.SupportedBranch, 0, len(sbc.Branches)+1)
@@ -344,4 +387,44 @@ func removeCQ(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo,
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}
 	return skerr.Wrap(err)
+}
+
+func parseFlutterVersion(branchName string) (semanticVersion, error) {
+	var rv semanticVersion
+	m := flutterBranchVersionRegex.FindStringSubmatch(branchName)
+	if len(m) != 3 {
+		return rv, skerr.Fmt("invalid branch name %q; expected format %q", branchName, flutterBranchTmpl)
+	}
+	var err error
+	rv.major, err = strconv.Atoi(m[1])
+	if err != nil {
+		return rv, skerr.Wrap(err)
+	}
+	rv.minor, err = strconv.Atoi(m[2])
+	if err != nil {
+		return rv, skerr.Wrap(err)
+	}
+	return rv, nil
+}
+
+type semanticVersion struct {
+	major int
+	minor int
+}
+
+type semanticVersionSlice []semanticVersion
+
+func (s semanticVersionSlice) Len() int {
+	return len(s)
+}
+
+func (s semanticVersionSlice) Less(i, j int) bool {
+	if s[i].major == s[j].major {
+		return s[i].minor < s[j].minor
+	}
+	return s[i].major < s[j].major
+}
+
+func (s semanticVersionSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }
