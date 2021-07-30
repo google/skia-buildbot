@@ -76,7 +76,7 @@ run-local-instance:
 	machineserver --local --logtostderr
 
 export HASH=$(shell git rev-parse HEAD)
-export DATETIME=$(date --utc "+%Y-%m-%dT%H:%M:%SZ")
+export DATETIME=$(shell date --utc "+%Y-%m-%dT%H:%M:%SZ")
 export GIT_STATE=$(shell ../bash/gitstate.sh)
 export VERSION=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
 
