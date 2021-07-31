@@ -5,7 +5,8 @@
  * The majority of the Status page.
  */
 import { define } from 'elements-sk/define';
-import { html, TemplateResult } from 'lit-html';
+import { html } from 'lit-html';
+import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/theme-chooser-sk';
@@ -23,26 +24,35 @@ import 'elements-sk/collapse-sk';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/expand-less-icon-sk';
 import 'elements-sk/icon/expand-more-icon-sk';
-import { defaultRepo, repos, repoUrl } from '../settings';
+import { defaultRepo, repoUrl } from '../settings';
 import { TreeStatus } from '../tree-status-sk/tree-status-sk';
-import { $$ } from 'common-sk/modules/dom';
 import { RotationsSk } from '../rotations-sk/rotations-sk';
-import { AutorollerStatus, Branch } from '../rpc';
+import { AutorollerStatus } from '../rpc';
 import { BranchesSk } from '../branches-sk/branches-sk';
 
 export class StatusSk extends ElementSk {
   private repo: string = defaultRepo();
+
   private autorollersOpen: boolean = true;
+
   private bugsOpen: boolean = true;
+
   private perfOpen: boolean = true;
+
   private goldOpen: boolean = true;
+
   private navOpen: boolean = true;
+
   private rotationsOpen: boolean = true;
-  private static template = (el: StatusSk) =>
-    html`
+
+  constructor() {
+    super(StatusSk.template);
+  }
+
+  private static template = (el: StatusSk) => html`
       <app-sk>
         <header>
-          <h1>Status: ${el.repo}</h1>
+          <h1><a href="/">Status</a>: ${el.repo}</h1>
           <div class="spacer">
             <tree-status-sk
               @tree-status-update=${(e: CustomEvent<TreeStatus>) => el.updateTreeStatus(e.detail)}
@@ -56,13 +66,13 @@ export class StatusSk extends ElementSk {
             <button
               class="collapser"
               @click=${(e: Event) => {
-                el.navOpen = !el.navOpen;
-                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-              }}
+    el.navOpen = !el.navOpen;
+    el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+  }}
             >
               ${el.navOpen
-                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+    ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+    : html`<expand-more-icon-sk></expand-more-icon-sk>`}
               Navigation
             </button>
             <collapse-sk>
@@ -73,13 +83,13 @@ export class StatusSk extends ElementSk {
             <button
               class="collapser"
               @click=${(e: Event) => {
-                el.autorollersOpen = !el.autorollersOpen;
-                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-              }}
+      el.autorollersOpen = !el.autorollersOpen;
+      el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+    }}
             >
               ${el.autorollersOpen
-                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+      ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+      : html`<expand-more-icon-sk></expand-more-icon-sk>`}
               AutoRollers
             </button>
             <collapse-sk>
@@ -92,13 +102,13 @@ export class StatusSk extends ElementSk {
             <button
               class="collapser"
               @click=${(e: Event) => {
-                el.perfOpen = !el.perfOpen;
-                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-              }}
+        el.perfOpen = !el.perfOpen;
+        el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+      }}
             >
               ${el.perfOpen
-                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+        ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+        : html`<expand-more-icon-sk></expand-more-icon-sk>`}
               Perf
             </button>
             <collapse-sk>
@@ -109,13 +119,13 @@ export class StatusSk extends ElementSk {
             <button
               class="collapser"
               @click=${(e: Event) => {
-                el.goldOpen = !el.goldOpen;
-                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-              }}
+          el.goldOpen = !el.goldOpen;
+          el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+        }}
             >
               ${el.goldOpen
-                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+          ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+          : html`<expand-more-icon-sk></expand-more-icon-sk>`}
               Gold
             </button>
             <collapse-sk>
@@ -126,13 +136,13 @@ export class StatusSk extends ElementSk {
             <button
               class="collapser"
               @click=${(e: Event) => {
-                el.bugsOpen = !el.bugsOpen;
-                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-              }}
+            el.bugsOpen = !el.bugsOpen;
+            el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+          }}
             >
               ${el.bugsOpen
-                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+            ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+            : html`<expand-more-icon-sk></expand-more-icon-sk>`}
               Untriaged Bugs
             </button>
             <collapse-sk>
@@ -143,13 +153,13 @@ export class StatusSk extends ElementSk {
             <button
               class="collapser"
               @click=${(e: Event) => {
-                el.rotationsOpen = !el.rotationsOpen;
-                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-              }}
+              el.rotationsOpen = !el.rotationsOpen;
+              el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+            }}
             >
               ${el.rotationsOpen
-                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+              ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+              : html`<expand-more-icon-sk></expand-more-icon-sk>`}
               Gardeners
             </button>
             <collapse-sk>
@@ -169,11 +179,7 @@ export class StatusSk extends ElementSk {
       </app-sk>
     `;
 
-  constructor() {
-    super(StatusSk.template);
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this.updateRepo(defaultRepo());
   }

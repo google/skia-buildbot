@@ -14,9 +14,13 @@ html {
   --unexpected-alpha: rgba(117, 112, 179, 1);
   --disabled: var(--grey-500);
   --disabled-alpha: rgba(117, 117, 117, 1);
-}
 
-.darkmode {
-  --warning-alpha: rgb(255, 171, 64, 0.5);
-  --failure-alpha: rgba(217, 95, 2, 0.5);
+  .darkmode {
+    --on-success: var(--on-secondary);
+    --on-failure: var(--on-secondary);
+    --on-warning: var(--on-secondary);
+
+    --warning-alpha: rgb(255, 171, 64, 0.5);
+    --failure-alpha: rgba(217, 95, 2, 0.5);
+  }
 }
