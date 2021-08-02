@@ -94,5 +94,28 @@
         "skia-rpi2-rack4-shelf2-040": 40,
       },
     },
+    "rack4-shelf3-poe-switch": {
+      "address: "rack4-shelf3-poe-switch",
+      "user": "ubnt",
+      "password": "", // Supplied by env variable.
+      "ports": {
+        "skia-rpi2-rack4-shelf3-001": 1,
+        "skia-rpi2-rack4-shelf3-002": 2,
+        "skia-rpi2-rack4-shelf3-003": 3,
+        "skia-rpi2-rack4-shelf3-004": 4,
+        "skia-rpi2-rack4-shelf3-005": 5,
+        "skia-rpi2-rack4-shelf3-006": 6,
+        "skia-rpi2-rack4-shelf3-007": 7,
+        "skia-rpi2-rack4-shelf3-008": 8,
+        "skia-rpi2-rack4-shelf3-009": 9,
+        "skia-rpi2-rack4-shelf3-010": 10,
+        "skia-rpi2-rack4-shelf3-011": 11,
+        "skia-rpi2-rack4-shelf3-012": 12,
+        "skia-rpi2-rack4-shelf3-013": 13,
+        "skia-rpi2-rack4-shelf3-014": 14,
+        "skia-rpi2-rack4-shelf3-015": 15,
+        "skia-rpi2-rack4-shelf3-016": 16,
+      },
+    },
   },
 }
