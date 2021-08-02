@@ -596,3 +596,22 @@ Date:   Mon Mar 2 14:53:04 2020 -0500
 	require.NoError(t, err)
 	require.Equal(t, expect, actual)
 }
+
+func TestFullChangeId(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ci := &ChangeInfo{
+		Project:  "skia",
+		Branch:   "main",
+		ChangeId: "abc",
+	}
+	require.Equal(t, "skia~main~abc", FullChangeId(ci))
+
+	// Test branch with "/" in the name.
+	ci.Branch = "chrome/m90"
+	require.Equal(t, "skia~chrome%2Fm90~abc", FullChangeId(ci))
+
+	// Test branch with "refs/heads/" prefix.
+	ci.Branch = "refs/heads/chrome/m90"
+	require.Equal(t, "skia~chrome%2Fm90~abc", FullChangeId(ci))
+}

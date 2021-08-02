@@ -1484,7 +1484,10 @@ func ParseChangeId(msg string) (string, error) {
 // change. See
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#change-id
 func FullChangeId(ci *ChangeInfo) string {
+	branch := ci.Branch
+	// Do not include refs/heads/ when constructing the full change Id.
+	branch = strings.TrimPrefix(branch, "refs/heads/")
 	// Encode the branch to convert names like chrome/m90 into chrome%2Fm90.
-	encodedBranch := url.QueryEscape(ci.Branch)
-	return fmt.Sprintf("%s~%s~%s", ci.Project, encodedBranch, ci.ChangeId)
+	branch = url.QueryEscape(branch)
+	return fmt.Sprintf("%s~%s~%s", ci.Project, branch, ci.ChangeId)
 }
