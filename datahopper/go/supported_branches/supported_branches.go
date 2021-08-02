@@ -72,17 +72,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 		newMetrics[branchExistsMetric] = struct{}{}
 		cqTrybots := []string{}
 		for builder := range cqJobsToCfg {
-			name := builder
-			split := strings.Split(name, "/")
-			if len(split) != 3 {
-				sklog.Errorf("Invalid builder name %q; skipping.", name)
-				continue
-			}
-			// Skip non-Skia trybots.
-			if !strings.Contains(split[0], "skia") && !strings.Contains(split[1], "skia") {
-				continue
-			}
-			cqTrybots = append(cqTrybots, split[2])
+			cqTrybots = append(cqTrybots, builder)
 		}
 
 		// Obtain the tasks cfg for this branch.
