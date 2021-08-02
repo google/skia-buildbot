@@ -607,11 +607,15 @@ func TestFullChangeId(t *testing.T) {
 	}
 	require.Equal(t, "skia~main~abc", FullChangeId(ci))
 
+	// Test project with "/" in the name.
+	ci.Project = "chromium/src"
+	require.Equal(t, "chromium%2Fsrc~main~abc", FullChangeId(ci))
+
 	// Test branch with "/" in the name.
 	ci.Branch = "chrome/m90"
-	require.Equal(t, "skia~chrome%2Fm90~abc", FullChangeId(ci))
+	require.Equal(t, "chromium%2Fsrc~chrome%2Fm90~abc", FullChangeId(ci))
 
 	// Test branch with "refs/heads/" prefix.
 	ci.Branch = "refs/heads/chrome/m90"
-	require.Equal(t, "skia~chrome%2Fm90~abc", FullChangeId(ci))
+	require.Equal(t, "chromium%2Fsrc~chrome%2Fm90~abc", FullChangeId(ci))
 }
