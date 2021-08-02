@@ -48,6 +48,7 @@ go_test(
         "//go/testutils/unittest",
         "//golden/go/diff",
         "//golden/go/diff/mocks",
+        "//golden/go/sql/datakitchensink",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",
         "//golden/go/types",

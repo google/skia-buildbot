@@ -1085,17 +1085,27 @@ func (r *PrimaryBranchDiffCalculationRow) ScanFrom(scan func(...interface{}) err
 
 // SecondaryBranchDiffCalculationRow represents a grouping for a CL for which wee need to compute
 // diffs for using digests from that CL as well as the digests on the primary branch.
+// There are intentionally no indexes here for two reasons
+// 1) indexing monotonically increasing columns can cause issues, especially with changing data.
+// 2) for a typical instance, we don't expect there to be that many rows per CL (tens), so a full
+//    table scan shouldn't be too expensive, especially as we will cleanup data from the table
+//    regularly.
 type SecondaryBranchDiffCalculationRow struct {
+	// BranchName is a something like "gerrit_12345" or "chrome_m86" to identify the branch.
 	BranchName string `sql:"branch_name STRING"`
-
+	// GroupingID identifies the grouping to which the triaged digest belongs. This is a foreign key
+	// into the Groupings table.
 	GroupingID GroupingID `sql:"grouping_id BYTES"`
-
+	// LastUpdated is the timestamp for which the most recent data was uploaded to the branch.
 	LastUpdated time.Time `sql:"last_updated_ts TIMESTAMP WITH TIME ZONE NOT NULL"`
-
+	// DigestsNotOnPrimary is a list of extra digests that do not appear on the primary branch but
+	// do appear on the secondary branch. It should not be empty - if it were to be empty, the
+	// normal diff computation on the primary branch would be sufficient to handle all diffs.
 	DigestsNotOnPrimary []types.Digest `sql:"digests STRING[] NOT NULL"`
-
+	// LastCalculated is the timestamp at which we last calculated diffs for the grouping.
 	LastCalculated time.Time `sql:"last_calculated_ts TIMESTAMP WITH TIME ZONE NOT NULL"`
-
+	// CalculationLeaseEnds is set to a future time when a worker starts computing diffs on this
+	// grouping. It allows workers to not do the same computation at the same time.
 	CalculationLeaseEnds time.Time `sql:"calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL"`
 
 	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, grouping_id)"`
@@ -1111,6 +1121,18 @@ func (r SecondaryBranchDiffCalculationRow) ToSQLRow() (colNames []string, colDat
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *SecondaryBranchDiffCalculationRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.BranchName, &r.GroupingID, &r.LastUpdated, &r.DigestsNotOnPrimary,
+	var digests []string
+	err := scan(&r.BranchName, &r.GroupingID, &r.LastUpdated, &digests,
 		&r.LastCalculated, &r.CalculationLeaseEnds)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	r.DigestsNotOnPrimary = make([]types.Digest, 0, len(digests))
+	for _, d := range digests {
+		r.DigestsNotOnPrimary = append(r.DigestsNotOnPrimary, types.Digest(d))
+	}
+	r.LastUpdated = r.LastUpdated.UTC()
+	r.LastCalculated = r.LastCalculated.UTC()
+	r.CalculationLeaseEnds = r.CalculationLeaseEnds.UTC()
+	return nil
 }
