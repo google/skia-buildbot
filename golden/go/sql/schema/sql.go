@@ -94,7 +94,8 @@ CREATE TABLE IF NOT EXISTS Patchsets (
 CREATE TABLE IF NOT EXISTS PrimaryBranchDiffCalculationWork (
   grouping_id BYTES PRIMARY KEY,
   last_calculated_ts TIMESTAMP WITH TIME ZONE NOT NULL,
-  calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL
+  calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL,
+  INDEX calculated_idx (last_calculated_ts)
 );
 CREATE TABLE IF NOT EXISTS PrimaryBranchParams (
   tile_id INT4,
@@ -115,7 +116,8 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchDiffCalculationWork (
   digests STRING[] NOT NULL,
   last_calculated_ts TIMESTAMP WITH TIME ZONE NOT NULL,
   calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (branch_name, grouping_id)
+  PRIMARY KEY (branch_name, grouping_id),
+  INDEX calculated_idx (last_calculated_ts)
 );
 CREATE TABLE IF NOT EXISTS SecondaryBranchExpectations (
   branch_name STRING,

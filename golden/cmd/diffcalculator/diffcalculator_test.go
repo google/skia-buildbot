@@ -419,8 +419,8 @@ func ps(s string) paramtools.Params {
 
 type fakeCounter struct{}
 
-func (_ fakeCounter) Dec(_ int64)   {}
-func (_ fakeCounter) Delete() error { return nil }
-func (_ fakeCounter) Get() int64    { return 0 }
-func (_ fakeCounter) Inc(i int64)   {}
-func (_ fakeCounter) Reset()        {}
+func (fakeCounter) Dec(_ int64)   {}
+func (fakeCounter) Delete() error { return nil }
+func (fakeCounter) Get() int64    { return 0 }
+func (fakeCounter) Inc(_ int64)   {}
+func (fakeCounter) Reset()        {}

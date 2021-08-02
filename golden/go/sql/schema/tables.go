@@ -1052,10 +1052,7 @@ func (r *MetadataCommitRow) ScanFrom(scan func(...interface{}) error) error {
 }
 
 // PrimaryBranchDiffCalculationRow represents a grouping for which we need to compute diffs using
-// digests seen on the primary branch. There are intentionally no indexes here for two reasons
-// 1) indexing monotonically increasing columns can cause issues, especially with changing data.
-// 2) for a typical instance, we don't expect there to be that many rows (thousands), so a full
-//    table scan shouldn't be too expensive.
+// digests seen on the primary branch.
 type PrimaryBranchDiffCalculationRow struct {
 	// GroupingID is the grouping for which we should compute diffs.
 	GroupingID GroupingID `sql:"grouping_id BYTES PRIMARY KEY"`
@@ -1064,6 +1061,8 @@ type PrimaryBranchDiffCalculationRow struct {
 	// CalculationLeaseEnds is set to a future time when a worker starts computing diffs on this
 	// grouping. It allows workers to not do the same computation at the same time.
 	CalculationLeaseEnds time.Time `sql:"calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL"`
+
+	calculatedIndex struct{} `sql:"INDEX calculated_idx (last_calculated_ts)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -1085,11 +1084,6 @@ func (r *PrimaryBranchDiffCalculationRow) ScanFrom(scan func(...interface{}) err
 
 // SecondaryBranchDiffCalculationRow represents a grouping for a CL for which wee need to compute
 // diffs for using digests from that CL as well as the digests on the primary branch.
-// There are intentionally no indexes here for two reasons
-// 1) indexing monotonically increasing columns can cause issues, especially with changing data.
-// 2) for a typical instance, we don't expect there to be that many rows per CL (tens), so a full
-//    table scan shouldn't be too expensive, especially as we will cleanup data from the table
-//    regularly.
 type SecondaryBranchDiffCalculationRow struct {
 	// BranchName is a something like "gerrit_12345" or "chrome_m86" to identify the branch.
 	BranchName string `sql:"branch_name STRING"`
@@ -1109,6 +1103,8 @@ type SecondaryBranchDiffCalculationRow struct {
 	CalculationLeaseEnds time.Time `sql:"calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL"`
 
 	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, grouping_id)"`
+
+	calculatedIndex struct{} `sql:"INDEX calculated_idx (last_calculated_ts)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.

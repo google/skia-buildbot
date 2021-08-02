@@ -283,27 +283,3 @@ type Calculator interface {
 	// CalculateDiffs recomputes all diffs for the current grouping, including any digests provided.
 	CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error
 }
-
-// TODO(kjlubick) remove WorkerMesssage and WorkerMessageVersion
-
-// WorkerMessageVersion is the current version of the WorkerMessage JSON.
-const WorkerMessageVersion = 3
-
-type WorkerMessage struct {
-	// Version lets us avoid/skip older messages when updating.
-	Version int `json:"version"`
-	// Grouping corresponds to the test that produced the images we should include in our diff
-	// calculation.
-	Grouping paramtools.Params `json:"grouping"`
-
-	// AdditionalLeft are digests beyond those that have been seen on the primary branch that
-	// should be included in the "left bucket" of diff calculations. It expected that tryjob results
-	// should set these to be non-empty, as well as when running in compatibility mode with the
-	// previous system. The digests in this bucket should be everything.
-	AdditionalLeft []types.Digest `json:"additional_left,omitempty"`
-	// AdditionalRight are digests beyond those that have been seen on the primary branch that
-	// should be included in the "right bucket" of diff calculations. It expected that tryjob results
-	// should set these to be non-empty, as well as when running in compatibility mode with the
-	//previous system. The digests in this bucket should be triaged on the primary branch.
-	AdditionalRight []types.Digest `json:"additional_right,omitempty"`
-}
