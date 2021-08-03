@@ -150,15 +150,21 @@ func sendJSONResponse(data interface{}, w http.ResponseWriter) {
 	}
 }
 
-func (s *server) machinesPageHandler(w http.ResponseWriter, r *http.Request) {
+// sendHTMLResponse renders the given template, passing it the current
+// context's CSP nonce. If template rendering fails, it logs an error.
+func (s *server) sendHTMLResponse(templateName string, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	s.loadTemplates()
-	if err := s.templates.ExecuteTemplate(w, "index.html", map[string]string{
+	s.loadTemplates() // just to support template changes during dev
+	if err := s.templates.ExecuteTemplate(w, templateName, map[string]string{
 		// Look in webpack.config.js for where the nonce templates are injected.
 		"Nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
+}
+
+func (s *server) machinesPageHandler(w http.ResponseWriter, r *http.Request) {
+	s.sendHTMLResponse("index.html", w, r)
 }
 
 func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
@@ -368,24 +374,8 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *server) podsPageHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	s.loadTemplates()
-	if err := s.templates.ExecuteTemplate(w, "pods.html", map[string]string{
-		// Look in webpack.config.js for where the nonce templates are injected.
-		"Nonce": secure.CSPNonce(r.Context()),
-	}); err != nil {
-		sklog.Errorf("Failed to expand template: %s", err)
-	}
-}
-
-func (s *server) podsHandler(w http.ResponseWriter, r *http.Request) {
-	pods, err := s.switchboard.ListPods(r.Context())
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to get list of pods.", http.StatusInternalServerError)
-		return
-	}
-	sendJSONResponse(pods, w)
+func (s *server) meetingPointsPageHandler(w http.ResponseWriter, r *http.Request) {
+	s.sendHTMLResponse("meeting_points.html", w, r)
 }
 
 func (s *server) meetingPointsHandler(w http.ResponseWriter, r *http.Request) {
@@ -395,6 +385,19 @@ func (s *server) meetingPointsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sendJSONResponse(meeting_points, w)
+}
+
+func (s *server) podsPageHandler(w http.ResponseWriter, r *http.Request) {
+	s.sendHTMLResponse("pods.html", w, r)
+}
+
+func (s *server) podsHandler(w http.ResponseWriter, r *http.Request) {
+	pods, err := s.switchboard.ListPods(r.Context())
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get list of pods.", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(pods, w)
 }
 
 // See baseapp.App.
@@ -408,8 +411,9 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("GET")
 	r.HandleFunc("/_/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
 	r.HandleFunc("/_/meeting_points", s.meetingPointsHandler).Methods("GET")
-	r.HandleFunc("/pods", s.podsPageHandler).Methods("GET")
 	r.HandleFunc("/_/pods", s.podsHandler).Methods("GET")
+	r.HandleFunc("/meeting_points", s.meetingPointsPageHandler).Methods("GET")
+	r.HandleFunc("/pods", s.podsPageHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
 
