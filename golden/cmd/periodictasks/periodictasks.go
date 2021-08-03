@@ -512,7 +512,7 @@ WHERE (now() - last_calculated_ts) > '1m' AND (now() - calculation_lease_ends) >
 			metrics2.GetInt64Metric(queueSize, map[string]string{"branch": "primary"}).Update(primarySize)
 
 			const secondaryBranchStatement = `SELECT COUNT(*) FROM SecondaryBranchDiffCalculationWork
-WHERE last_updated_ts > last_calculated_ts;`
+WHERE last_updated_ts > last_calculated_ts AND (now() - calculation_lease_ends) > '10m'`
 			row = db.QueryRow(ctx, secondaryBranchStatement)
 			var secondarySize int64
 			if err := row.Scan(&secondarySize); err != nil {

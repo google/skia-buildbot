@@ -1,9 +1,6 @@
 {
-  diff_cache_namespace: "chrome",
-  diff_work_subscription: "gold-chrome-diffcalculator", // includes instance id
-  memcached_server: "gold-memcached-0.gold-memcached:11211",
+  high_contention_mode: true,
   prom_port: ":20000",
-  pubsub_fetch_size: 100,
   ready_port: ":8000",
 
   // These values affect the k8s deployment; they are not read in by the binary.

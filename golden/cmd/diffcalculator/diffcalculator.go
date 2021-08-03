@@ -54,6 +54,10 @@ const (
 
 type diffCalculatorConfig struct {
 	config.Common
+
+	// HighContentionMode indicates to use fewer transactions when getting diff work. This can help
+	// for instances with high amounts of secondary branches.
+	HighContentionMode bool `json:"high_contention_mode"`
 }
 
 func main() {
@@ -104,11 +108,12 @@ func main() {
 	}
 
 	sqlProcessor := &processor{
-		calculator:     worker.NewV2(db, gis, dcc.WindowSize),
-		db:             db,
-		groupingCache:  gc,
-		primaryCounter: metrics2.GetCounter("diffcalculator_primarybranch_processed"),
-		clsCounter:     metrics2.GetCounter("diffcalculator_cls_processed"),
+		calculator:         worker.NewV2(db, gis, dcc.WindowSize),
+		db:                 db,
+		groupingCache:      gc,
+		primaryCounter:     metrics2.GetCounter("diffcalculator_primarybranch_processed"),
+		clsCounter:         metrics2.GetCounter("diffcalculator_cls_processed"),
+		highContentionMode: dcc.HighContentionMode,
 	}
 	sqlProcessor.startMetrics(ctx)
 
@@ -247,7 +252,8 @@ type processor struct {
 
 	// busy is either 1 or 0 depending on if this processor is working or not. This allows us
 	// to gather data on wall-clock utilization.
-	busy int64
+	busy               int64
+	highContentionMode bool
 }
 
 // computeDiffsForPrimaryBranch fetches the grouping which has not had diff computation happen
@@ -345,12 +351,101 @@ func (p *processor) computeDiffsForSecondaryBranch(ctx context.Context) (bool, e
 	defer cancel()
 	ctx, span := trace.StartSpan(ctx, "diffcalculator_computeDiffsForSecondaryBranch")
 	defer span.End()
+	if p.highContentionMode {
+		return p.highContentionSecondaryBranch(ctx)
+	}
+	return p.lowContentionSecondaryBranch(ctx)
+}
 
-	hasWork := false
+// highContentionSecondaryBranch finds a grouping for a branch to compute that is probabilistically
+// not being worked on by another process and computes the diffs for it.
+func (p *processor) highContentionSecondaryBranch(ctx context.Context) (bool, error) {
+	ctx, span := trace.StartSpan(ctx, "highContentionSecondaryBranch")
+	defer span.End()
 	var groupingID schema.GroupingID
 	var additionalDigests []types.Digest
 	var branchName string
 
+	ts := now.Now(ctx)
+	// By not doing the select and update below in the same transaction, we work around cases where
+	// there are many rows in SecondaryBranchDiffCalculationWork, causing the queries to take a
+	// long time and causing many retries. At the same time, we want to limit the number of workers
+	// who are wasting time by computing diffs for the same branch+grouping, so we select one of
+	// the top candidates randomly.
+	const selectStatement = `WITH
+PossibleWork AS (
+	SELECT branch_name, grouping_id, digests
+	FROM SecondaryBranchDiffCalculationWork
+	AS OF SYSTEM TIME '-0.1s'
+	WHERE calculation_lease_ends < $1 AND last_calculated_ts < last_updated_ts
+	ORDER BY last_calculated_ts ASC
+	LIMIT 50 -- We choose 50 to reduce the chance of multiple workers picking the same one.
+)
+SELECT * FROM PossibleWork
+AS OF SYSTEM TIME '-0.1s'
+ORDER BY random() LIMIT 1
+`
+	row := p.db.QueryRow(ctx, selectStatement, ts)
+	var digests []string
+	if err := row.Scan(&branchName, &groupingID, &digests); err != nil {
+		if err == pgx.ErrNoRows {
+			// We've calculated data for every CL past the "last_updated_ts" time.
+			return true, nil
+		}
+		return false, skerr.Wrap(err)
+	}
+	additionalDigests = convertType(digests)
+	if len(additionalDigests) == 0 {
+		return true, nil
+	}
+
+	err := crdbpgx.ExecuteTx(ctx, p.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		const updateStatement = `UPDATE SecondaryBranchDiffCalculationWork
+SET calculation_lease_ends = $3 WHERE branch_name = $1 AND grouping_id = $2`
+		if _, err := tx.Exec(ctx, updateStatement, branchName, groupingID, ts.Add(diffCalculationTimeout)); err != nil {
+			return err // don't wrap, might be retried
+		}
+		return nil
+	})
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+
+	grouping, err := p.expandGrouping(ctx, groupingID)
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	if err := p.calculator.CalculateDiffs(ctx, grouping, additionalDigests); err != nil {
+		return false, skerr.Wrap(err)
+	}
+	err = crdbpgx.ExecuteTx(ctx, p.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		const doneStatement = `UPDATE SecondaryBranchDiffCalculationWork
+SET last_calculated_ts = $3 WHERE branch_name = $1 AND grouping_id = $2`
+		if _, err := tx.Exec(ctx, doneStatement, branchName, groupingID, now.Now(ctx)); err != nil {
+			return err // don't wrap, might be retried
+		}
+		return nil
+	})
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	p.clsCounter.Inc(1)
+	return false, nil
+}
+
+// lowContentionSecondaryBranch finds a grouping for a branch to compute that is guaranteed not
+// to be worked on by another process and computes the diffs for it.
+func (p *processor) lowContentionSecondaryBranch(ctx context.Context) (bool, error) {
+	ctx, span := trace.StartSpan(ctx, "lowContentionSecondaryBranch")
+	defer span.End()
+	var groupingID schema.GroupingID
+	var additionalDigests []types.Digest
+	var branchName string
+
+	// By finding the best work candidate and setting the lease time in the same transaction, we
+	// are confident that no other worker will be computing the same diffs at the same time.
+	// This does not work well if SecondaryBranchDiffCalculationWork has too many rows in it;
+	// see highContentionSecondaryBranch for an alternative.
 	err := crdbpgx.ExecuteTx(ctx, p.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		ts := now.Now(ctx)
 		const selectStatement = `SELECT branch_name, grouping_id, digests
@@ -374,13 +469,12 @@ SET calculation_lease_ends = $3 WHERE branch_name = $1 AND grouping_id = $2`
 		if _, err := tx.Exec(ctx, updateStatement, branchName, groupingID, ts.Add(diffCalculationTimeout)); err != nil {
 			return err // don't wrap, might be retried
 		}
-		hasWork = true
 		return nil
 	})
 	if err != nil {
 		return false, skerr.Wrap(err)
 	}
-	if !hasWork {
+	if len(additionalDigests) == 0 {
 		return true, nil
 	}
 	grouping, err := p.expandGrouping(ctx, groupingID)

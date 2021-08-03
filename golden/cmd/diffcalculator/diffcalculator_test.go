@@ -11,6 +11,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/now"
@@ -230,8 +231,8 @@ func TestComputeDiffsForSecondaryBranch_WorkAvailable_Success(t *testing.T) {
 	assert.Contains(t, actualWork, schema.SecondaryBranchDiffCalculationRow{
 		BranchName:           "gerrit_anything",
 		GroupingID:           h(deltaGrouping),
-		LastUpdated:          ts("2021-02-02T02:16:00Z"), // unchanged
 		LastCalculated:       ts("2021-02-02T02:30:00Z"), // Diff calculated time (fakeNow)
+		LastUpdated:          ts("2021-02-02T02:16:00Z"), // unchanged
 		CalculationLeaseEnds: ts("2021-02-02T02:40:00Z"), // This is the timeout + fakeNow
 		DigestsNotOnPrimary:  expectedDigests,
 	})
@@ -352,10 +353,223 @@ func TestComputeDiffsForSecondaryBranch_DiffComputationFails_ReturnsError(t *tes
 	assert.Contains(t, actualWork, schema.SecondaryBranchDiffCalculationRow{
 		BranchName:           "gerrit_anything",
 		GroupingID:           h(deltaGrouping),
-		LastUpdated:          ts("2021-02-02T02:16:00Z"), // unchanged
 		LastCalculated:       ts("2021-02-02T02:12:00Z"), // unchanged
+		LastUpdated:          ts("2021-02-02T02:16:00Z"), // unchanged
 		CalculationLeaseEnds: ts("2021-02-02T02:40:00Z"), // This is the timeout + fakeNow
 		DigestsNotOnPrimary:  expectedDigests,
+	})
+}
+
+func TestHighContentionSecondaryBranch_WorkAvailable_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	fakeNow := ts("2021-02-02T02:30:00Z")
+	alphaDigests := []types.Digest{dks.DigestC06Pos_CL}
+	deltaDigests := []types.Digest{dks.DigestE02Pos_CL, dks.DigestE03Unt_CL}
+	existingData := schema.Tables{SecondaryBranchDiffCalculationWork: []schema.SecondaryBranchDiffCalculationRow{
+		{
+			BranchName:           "gerrit_whatever",
+			GroupingID:           h(alphaGrouping), // available for work
+			LastCalculated:       ts("2021-02-02T02:15:00Z"),
+			LastUpdated:          ts("2021-02-02T02:20:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:14:00Z"),
+			DigestsNotOnPrimary:  alphaDigests,
+		},
+		{
+			BranchName:           "gerrit_whatever",
+			GroupingID:           h(betaGrouping), // no updates since last calculation
+			LastCalculated:       ts("2021-02-02T02:26:00Z"),
+			LastUpdated:          ts("2021-02-02T02:20:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:14:00Z"),
+			DigestsNotOnPrimary:  []types.Digest{dks.DigestE03Unt_CL},
+		},
+		{
+			BranchName:           "gerrit_anything",
+			GroupingID:           h(gammaGrouping), // another worker has it "leased"
+			LastCalculated:       ts("2021-02-02T02:20:00Z"),
+			LastUpdated:          ts("2021-02-02T02:25:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:37:00Z"),
+			DigestsNotOnPrimary:  []types.Digest{dks.DigestD01Pos_CL},
+		},
+		{
+			BranchName:           "gerrit_anything",
+			GroupingID:           h(deltaGrouping), // available for work (oldest)
+			LastCalculated:       ts("2021-02-02T02:12:00Z"),
+			LastUpdated:          ts("2021-02-02T02:16:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:14:00Z"),
+			DigestsNotOnPrimary:  deltaDigests,
+		},
+	}, Groupings: makeGroupingRows(alphaGrouping, betaGrouping, gammaGrouping, deltaGrouping)}
+
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
+
+	// The diffs to calculate will be randomly picked from the available work.
+	mc := &mocks.Calculator{}
+	called := ""
+	mc.On("CalculateDiffs", testutils.AnyContext, ps(alphaGrouping), alphaDigests).Return(nil).Run(func(_ mock.Arguments) {
+		called = "alpha"
+	}).Maybe()
+	mc.On("CalculateDiffs", testutils.AnyContext, ps(deltaGrouping), deltaDigests).Return(nil).Run(func(_ mock.Arguments) {
+		called = "delta"
+	}).Maybe()
+
+	s := processorForTest(mc, db)
+
+	shouldSleep, err := s.highContentionSecondaryBranch(ctx)
+	require.NoError(t, err)
+	assert.False(t, shouldSleep)
+
+	mc.AssertExpectations(t)
+	assert.NotEmpty(t, called)
+
+	actualWork := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchDiffCalculationWork", &schema.SecondaryBranchDiffCalculationRow{})
+	if called == "alpha" {
+		assert.Contains(t, actualWork, schema.SecondaryBranchDiffCalculationRow{
+			BranchName:           "gerrit_whatever",
+			GroupingID:           h(alphaGrouping),
+			LastCalculated:       ts("2021-02-02T02:30:00Z"), // Diff calculated time (fakeNow)
+			LastUpdated:          ts("2021-02-02T02:20:00Z"), // unchanged
+			CalculationLeaseEnds: ts("2021-02-02T02:40:00Z"), // This is the timeout + fakeNow
+			DigestsNotOnPrimary:  alphaDigests,
+		})
+	} else {
+		assert.Contains(t, actualWork, schema.SecondaryBranchDiffCalculationRow{
+			BranchName:           "gerrit_anything",
+			GroupingID:           h(deltaGrouping),
+			LastCalculated:       ts("2021-02-02T02:30:00Z"), // Diff calculated time (fakeNow)
+			LastUpdated:          ts("2021-02-02T02:16:00Z"), // unchanged
+			CalculationLeaseEnds: ts("2021-02-02T02:40:00Z"), // This is the timeout + fakeNow
+			DigestsNotOnPrimary:  deltaDigests,
+		})
+	}
+}
+
+func TestHighContentionSecondaryBranch_NoWorkAvailable_ShouldSleep(t *testing.T) {
+	unittest.LargeTest(t)
+
+	fakeNow := ts("2021-02-02T02:30:00Z")
+	rowsThatShouldBeUnchanged := []schema.SecondaryBranchDiffCalculationRow{
+		{
+			BranchName:           "gerrit_whatever",
+			GroupingID:           h(alphaGrouping), // no updates since last calculation
+			LastCalculated:       ts("2021-02-02T02:25:00Z"),
+			LastUpdated:          ts("2021-02-02T02:20:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:14:00Z"),
+			DigestsNotOnPrimary:  []types.Digest{dks.DigestC06Pos_CL},
+		},
+		{
+			BranchName:           "gerrit_whatever",
+			GroupingID:           h(betaGrouping), // no updates since last calculation
+			LastCalculated:       ts("2021-02-02T02:26:00Z"),
+			LastUpdated:          ts("2021-02-02T02:20:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:14:00Z"),
+			DigestsNotOnPrimary:  []types.Digest{dks.DigestE03Unt_CL},
+		},
+		{
+			BranchName:           "gerrit_anything",
+			GroupingID:           h(gammaGrouping), // another worker has it "leased"
+			LastCalculated:       ts("2021-02-02T02:20:00Z"),
+			LastUpdated:          ts("2021-02-02T02:25:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:37:00Z"),
+			DigestsNotOnPrimary:  []types.Digest{dks.DigestD01Pos_CL},
+		},
+		{
+			BranchName:           "gerrit_anything",
+			GroupingID:           h(deltaGrouping), // another worker has it "leased"
+			LastCalculated:       ts("2021-02-02T02:12:00Z"),
+			LastUpdated:          ts("2021-02-02T02:16:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:34:00Z"),
+			DigestsNotOnPrimary:  []types.Digest{dks.DigestE02Pos_CL, dks.DigestE03Unt_CL},
+		},
+	}
+
+	existingData := schema.Tables{SecondaryBranchDiffCalculationWork: rowsThatShouldBeUnchanged, Groupings: makeGroupingRows(alphaGrouping, betaGrouping, gammaGrouping, deltaGrouping)}
+
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
+
+	s := processorForTest(nil, db)
+
+	shouldSleep, err := s.highContentionSecondaryBranch(ctx)
+	require.NoError(t, err)
+	assert.True(t, shouldSleep)
+
+	// We shouldn't have leased any work
+	actualWork := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchDiffCalculationWork", &schema.SecondaryBranchDiffCalculationRow{})
+	assert.ElementsMatch(t, rowsThatShouldBeUnchanged, actualWork)
+}
+
+func TestHighContentionSecondaryBranch_DiffComputationFails_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	fakeNow := ts("2021-02-02T02:30:00Z")
+	alphaDigests := []types.Digest{dks.DigestC06Pos_CL}
+	deltaDigests := []types.Digest{dks.DigestE02Pos_CL, dks.DigestE03Unt_CL}
+	existingData := schema.Tables{SecondaryBranchDiffCalculationWork: []schema.SecondaryBranchDiffCalculationRow{
+		{
+			BranchName:           "gerrit_whatever",
+			GroupingID:           h(alphaGrouping), // available for work
+			LastCalculated:       ts("2021-02-02T02:15:00Z"),
+			LastUpdated:          ts("2021-02-02T02:20:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:14:00Z"),
+			DigestsNotOnPrimary:  alphaDigests,
+		},
+		{
+			BranchName:           "gerrit_whatever",
+			GroupingID:           h(betaGrouping), // no updates since last calculation
+			LastCalculated:       ts("2021-02-02T02:26:00Z"),
+			LastUpdated:          ts("2021-02-02T02:20:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:14:00Z"),
+			DigestsNotOnPrimary:  []types.Digest{dks.DigestE03Unt_CL},
+		},
+		{
+			BranchName:           "gerrit_anything",
+			GroupingID:           h(gammaGrouping), // another worker has it "leased"
+			LastCalculated:       ts("2021-02-02T02:20:00Z"),
+			LastUpdated:          ts("2021-02-02T02:25:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:37:00Z"),
+			DigestsNotOnPrimary:  []types.Digest{dks.DigestD01Pos_CL},
+		},
+		{
+			BranchName:           "gerrit_anything",
+			GroupingID:           h(deltaGrouping), // another worker has it "leased"
+			LastCalculated:       ts("2021-02-02T02:12:00Z"),
+			LastUpdated:          ts("2021-02-02T02:16:00Z"),
+			CalculationLeaseEnds: ts("2021-02-02T02:34:00Z"),
+			DigestsNotOnPrimary:  deltaDigests,
+		},
+	}, Groupings: makeGroupingRows(alphaGrouping, betaGrouping, gammaGrouping, deltaGrouping)}
+
+	ctx := context.WithValue(context.Background(), now.ContextKey, fakeNow)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
+
+	mc := &mocks.Calculator{}
+	mc.On("CalculateDiffs", testutils.AnyContext, ps(alphaGrouping), alphaDigests).Return(errors.New("timeout")).Maybe()
+	mc.On("CalculateDiffs", testutils.AnyContext, ps(deltaGrouping), deltaDigests).Return(errors.New("timeout")).Maybe()
+
+	s := processorForTest(mc, db)
+
+	shouldSleep, err := s.highContentionSecondaryBranch(ctx)
+	require.Error(t, err)
+	assert.False(t, shouldSleep)
+
+	mc.AssertExpectations(t)
+
+	actualWork := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchDiffCalculationWork", &schema.SecondaryBranchDiffCalculationRow{})
+	assert.Contains(t, actualWork, schema.SecondaryBranchDiffCalculationRow{
+		BranchName:           "gerrit_whatever",
+		GroupingID:           h(alphaGrouping),
+		LastCalculated:       ts("2021-02-02T02:15:00Z"), // unchanged
+		LastUpdated:          ts("2021-02-02T02:20:00Z"), // unchanged
+		CalculationLeaseEnds: ts("2021-02-02T02:40:00Z"), // This is the timeout + fakeNow
+		DigestsNotOnPrimary:  alphaDigests,
 	})
 }
 
@@ -424,3 +638,9 @@ func (fakeCounter) Delete() error { return nil }
 func (fakeCounter) Get() int64    { return 0 }
 func (fakeCounter) Inc(_ int64)   {}
 func (fakeCounter) Reset()        {}
+
+// waitForSystemTime waits for a time greater than the duration mentioned in "AS OF SYSTEM TIME"
+// clauses in queries. This way, the queries will be accurate.
+func waitForSystemTime() {
+	time.Sleep(150 * time.Millisecond)
+}
