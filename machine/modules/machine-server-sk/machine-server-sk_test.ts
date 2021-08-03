@@ -7,17 +7,9 @@ import {
 } from './machine-server-sk';
 import { Annotation } from '../json';
 
-fetchMock.config.overwriteRoutes = true;
-
-const container = document.createElement('div');
-document.body.appendChild(container);
-
-afterEach(() => {
-  container.innerHTML = '';
-});
-
 const setUpElement = async (): Promise<MachineServerSk> => {
   fetchMock.reset();
+  fetchMock.config.overwriteRoutes = true;
   fetchMock.get('/_/machines', [
     {
       Mode: 'available',
@@ -45,34 +37,17 @@ const setUpElement = async (): Promise<MachineServerSk> => {
     },
   ]);
 
-  container.innerHTML = '<machine-server-sk></machine-server-sk>';
-  const s = container.firstElementChild as MachineServerSk;
+  document.body.innerHTML = '<machine-server-sk></machine-server-sk>';
 
   // Wait for the initial fetch to finish.
   await fetchMock.flush(true);
 
-  return s;
+  return document.body.firstElementChild as MachineServerSk;
 };
 
 describe('machine-server-sk', () => {
-  it('loads data by fetch on connectedCallback', async () => {
-    const s = await setUpElement();
-
-    // Each row has an id set to the machine id.
-    assert.isNotNull($$('#skia-rpi2-rack4-shelf1-002', s));
-  });
-
-  it('filters out elements that do not match', async () => {
-    const s = await setUpElement();
-
-    assert.isNotNull($$('#skia-rpi2-rack4-shelf1-002', s));
-
-    const filterElement = $$<HTMLInputElement>('#filter-input', s)!;
-    filterElement.value = 'this string does not appear in any machine';
-    filterElement.dispatchEvent(new InputEvent('input'));
-
-    // Each row has an id set to the machine id.
-    assert.isNull($$('#skia-rpi2-rack4-shelf1-002', s));
+  afterEach(() => {
+    document.body.innerHTML = '';
   });
 
   it('updates the mode when you click on the mode button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {

@@ -8,14 +8,11 @@ sk_demo_page_server(
 sk_element(
     name = "pods-page-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
-    sass_srcs = ["pods-page-sk.scss"],
+    sk_element_deps = ["//machine/modules/list-page-sk"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//elements-sk",
         "@npm//lit-html",
-        "//machine/modules/filter-array:index_ts_lib",
         "//machine/modules/json:index_ts_lib",
-        "@npm//common-sk",
     ],
     ts_srcs = [
         "pods-page-sk.ts",
@@ -27,7 +24,6 @@ sk_element(
 sk_page(
     name = "pods-page-sk-demo",
     html_file = "pods-page-sk-demo.html",
-    scss_entry_point = "pods-page-sk-demo.scss",
     sk_element_deps = [":pods-page-sk"],
     ts_deps = ["@npm//fetch-mock"],
     ts_entry_point = "pods-page-sk-demo.ts",

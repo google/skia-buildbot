@@ -10,12 +10,10 @@
  */
 import { html, TemplateResult } from 'lit-html';
 
-import { errorMessage } from 'elements-sk/errorMessage';
 import { diffDate, strDuration } from 'common-sk/modules/human';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { $$ } from 'common-sk/modules/dom';
 import { Annotation, Description } from '../json';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ListPageSk } from '../list-page-sk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import 'elements-sk/error-toast-sk/index';
 import 'elements-sk/icon/cached-icon-sk';
@@ -28,7 +26,6 @@ import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
 import '../auto-refresh-sk';
 import '../note-editor-sk';
 import { DEVICE_ALIASES } from '../../../modules/devices/devices';
-import { FilterArray } from '../filter-array';
 
 /**
  * Updates should arrive every 30 seconds, so we allow up to 2x that for lag
@@ -228,17 +225,43 @@ export const pretty_device_name = (devices: string[] | null): string => {
   return `${devices.join(' | ')} ${alias}`;
 };
 
-// eslint-disable-next-line no-use-before-define
-const rows = (ele: MachineServerSk): TemplateResult[] => ele.filterArray.matchingValues().map(
-  (machine) => html`
+export class MachineServerSk extends ListPageSk<Description> {
+  private noteEditor: NoteEditorSk | null = null;
+  _fetchPath = '/_/machines';
+
+  tableHeaders() {
+    return html`
+      <th>Machine</th>
+      <th>Pod</th>
+      <th>Device</th>
+      <th>Mode</th>
+      <th>Update</th>
+      <th>Host</th>
+      <th>Device</th>
+      <th>Quarantined</th>
+      <th>Task</th>
+      <th>Battery</th>
+      <th>Temperature</th>
+      <th>Last Seen</th>
+      <th>Uptime</th>
+      <th>Dimensions</th>
+      <th>Note</th>
+      <th>Annotation</th>
+      <th>Image</th>
+      <th>Delete</th>
+    `;
+  }
+
+  tableRow(machine: Description) {
+    return html`
       <tr id=${machine.Dimensions!.id![0]}>
         <td>${machineLink(machine)}</td>
         <td>${machine.PodName}</td>
         <td>${pretty_device_name(machine.Dimensions!.device_type)}</td>
-        <td>${toggleMode(ele, machine)}</td>
-        <td>${update(ele, machine)}</td>
-        <td class="powercycle">${powerCycle(ele, machine)}</td>
-        <td>${clearDevice(ele, machine)}</td>
+        <td>${toggleMode(this, machine)}</td>
+        <td>${update(this, machine)}</td>
+        <td class="powercycle">${powerCycle(this, machine)}</td>
+        <td>${clearDevice(this, machine)}</td>
         <td>${machine.Dimensions!.quarantined}</td>
         <td>${isRunning(machine)}</td>
         <td>${machine.Battery}</td>
@@ -246,76 +269,17 @@ const rows = (ele: MachineServerSk): TemplateResult[] => ele.filterArray.matchin
         <td class="${outOfSpecIfTooOld(machine.LastUpdated)}">${diffDate(machine.LastUpdated)}</td>
         <td class="${uptimeOutOfSpecIfTooOld(machine.DeviceUptime)}">${deviceUptime(machine)}</td>
         <td>${dimensions(machine)}</td>
-        <td>${note(ele, machine)}</td>
+        <td>${note(this, machine)}</td>
         <td>${annotation(machine.Annotation)}</td>
         <td>${imageName(machine)}</td>
-        <td>${deleteMachine(ele, machine)}</td>
+        <td>${deleteMachine(this, machine)}</td>
       </tr>
-    `,
-);
-
-// eslint-disable-next-line no-use-before-define
-const template = (ele: MachineServerSk): TemplateResult => html`
-  <header>
-    <auto-refresh-sk @refresh-page=${ele.update}></auto-refresh-sk>
-    <span id=header-rhs>
-      <input id=filter-input type="text" placeholder="Filter">
-      <theme-chooser-sk
-        title="Toggle between light and dark mode."
-      ></theme-chooser-sk>
-    </span>
-  </header>
-  <main>
-    <table>
-      <thead>
-        <tr>
-          <th>Machine</th>
-          <th>Pod</th>
-          <th>Device</th>
-          <th>Mode</th>
-          <th>Update</th>
-          <th>Host</th>
-          <th>Device</th>
-          <th>Quarantined</th>
-          <th>Task</th>
-          <th>Battery</th>
-          <th>Temperature</th>
-          <th>Last Seen</th>
-          <th>Uptime</th>
-          <th>Dimensions</th>
-          <th>Note</th>
-          <th>Annotation</th>
-          <th>Image</th>
-          <th>Delete</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows(ele)}
-      </tbody>
-    </table>
-  </main>
-  <note-editor-sk></note-editor-sk>
-  <error-toast-sk></error-toast-sk>
-`;
-
-export class MachineServerSk extends ElementSk {
-  filterArray: FilterArray<Description> = new FilterArray();
-
-  private machines: Description[] = [];
-
-  private noteEditor: NoteEditorSk | null = null;
-
-  constructor() {
-    super(template);
+    `;
   }
 
   async connectedCallback(): Promise<void> {
-    super.connectedCallback();
-    this._render();
+    await super.connectedCallback();
     this.noteEditor = $$<NoteEditorSk>('note-editor-sk', this)!;
-    const filterInput = $$<HTMLInputElement>('#filter-input', this)!;
-    this.filterArray.connect(filterInput, () => this._render());
-    await this.update();
   }
 
   async toggleUpdate(id: string): Promise<void> {
@@ -395,30 +359,6 @@ export class MachineServerSk extends ElementSk {
     } catch (error) {
       this.onError(error);
     }
-  }
-
-  async update(changeCursor = false): Promise<void> {
-    if (changeCursor) {
-      this.setAttribute('waiting', '');
-    }
-
-    try {
-      const resp = await fetch('/_/machines');
-      const json = await jsonOrThrow(resp);
-      if (changeCursor) {
-        this.removeAttribute('waiting');
-      }
-      this.machines = json;
-      this.filterArray.updateArray(json);
-      this._render();
-    } catch (error) {
-      this.onError(error);
-    }
-  }
-
-  private onError(msg: any) {
-    this.removeAttribute('waiting');
-    errorMessage(msg);
   }
 }
 

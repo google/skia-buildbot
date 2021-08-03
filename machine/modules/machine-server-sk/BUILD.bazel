@@ -2,24 +2,19 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_element(
     name = "machine-server-sk",
-    sass_deps = [
-        "//infra-sk:elements-sk_scss",
-        "//machine/modules/theme:theme_sass_lib",
-    ],
-    sass_srcs = ["machine-server-sk.scss"],
+    sass_deps = ["//infra-sk:elements-sk_scss"],
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         "//machine/modules/note-editor-sk",
         "//machine/modules/auto-refresh-sk",
+        "//machine/modules/list-page-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//machine/modules/json:index_ts_lib",
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
         "//modules/devices:devices_ts_lib",
-        "//machine/modules/filter-array:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

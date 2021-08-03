@@ -4,7 +4,9 @@
 @import '~elements-sk/themes/themes';
 @import '../theme/theme';
 
-machine-server-sk {
+// .defaultListPageSkStyling is applied by default to any element that is a
+// subclass of list-page-sk. ListPageSk's constructor arranges this.
+.defaultListPageSkStyling {
   --header-height: 40px;
 
   header {
@@ -92,6 +94,6 @@ machine-server-sk {
   }
 }
 
-machine-server-sk[waiting] * {
+.defaultListPageSkStyling[waiting] * {
   cursor: wait;
 }
