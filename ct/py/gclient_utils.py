@@ -54,7 +54,7 @@ def _GetLocalConfig():
     checkout_root = os.path.abspath(os.path.join(checkout_root, os.pardir))
     depth -= 1
   config_vars = {}
-  with open(os.path.join(checkout_root, GCLIENT_FILE), 'rb') as f:
+  with open(os.path.join(checkout_root, GCLIENT_FILE), 'r') as f:
     exec(f.read(), config_vars)
   return checkout_root, config_vars['solutions']
 
@@ -143,7 +143,7 @@ def GetCheckedOutHash():
     try:
       shell_utils.run(cmd)
     except shell_utils.CommandFailedException as e:
-      print e
+      print(e)
 
     # "git rev-parse HEAD" returns the commit hash for HEAD.
     return shell_utils.run([GIT, 'rev-parse', 'HEAD'],
@@ -169,7 +169,7 @@ def GetGitNumber(commit_hash):
         print_timestamps=False)
     return int(git_number)
   except shell_utils.CommandFailedException:
-    print 'GetGitNumber: Unable to get git number, returning -1'
+    print('GetGitNumber: Unable to get git number, returning -1')
     return -1
 
 
@@ -187,9 +187,9 @@ def RunHooks(gyp_defines=None, gyp_generators=None):
   """
   if gyp_defines:
     os.environ['GYP_DEFINES'] = gyp_defines
-    print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
+    print('GYP_DEFINES="%s"' % os.environ['GYP_DEFINES'])
   if gyp_generators:
     os.environ['GYP_GENERATORS'] = gyp_generators
-    print 'GYP_GENERATORS="%s"' % os.environ['GYP_GENERATORS']
+    print('GYP_GENERATORS="%s"' % os.environ['GYP_GENERATORS'])
 
   _RunCmd(['runhooks'])

@@ -227,7 +227,7 @@ func runMetricsAnalysisBenchmark(ctx context.Context, outputCSVDir, downloadedTr
 	if _, err := b.WriteString(fmt.Sprintf("========== Stdout and stderr for %s ==========\n", downloadedTrace)); err != nil {
 		return fmt.Errorf("Error writing to output buffer: %s", err)
 	}
-	if err := util.ExecuteCmdWithConfigurableLogging(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
+	if err := util.ExecuteCmdWithConfigurableLogging(ctx, util.BINARY_PYTHON, args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
 		output, getErr := util.GetRunBenchmarkOutput(b)
 		skutil.LogErr(getErr)
 		fmt.Println(output)

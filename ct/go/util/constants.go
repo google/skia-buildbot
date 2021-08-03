@@ -55,6 +55,8 @@ const (
 	BINARY_NINJA           = "ninja"
 	BINARY_ADB             = "adb"
 	BINARY_MAIL            = "mail"
+	BINARY_PYTHON          = "python3"
+	BINARY_VPYTHON         = "vpython"
 
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
