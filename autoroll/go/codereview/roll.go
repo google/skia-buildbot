@@ -273,6 +273,7 @@ func (r *gerritRoll) RetryCQ(ctx context.Context) error {
 			return skerr.Wrap(err)
 		}
 		r.issue.IsDryRun = false
+		r.issue.Attempt++
 		return nil
 	})
 }
@@ -287,13 +288,14 @@ func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
 			return skerr.Wrap(err)
 		}
 		r.issue.IsDryRun = true
+		r.issue.Attempt++
 		return nil
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) Update(ctx context.Context) error {
-	alreadyFinished := r.IsFinished()
+	alreadyClosed := r.IsClosed()
 	ci, err := r.retrieveRoll(ctx)
 	if err != nil {
 		return err
@@ -305,10 +307,15 @@ func (r *gerritRoll) Update(ctx context.Context) error {
 	if err := r.recent.Update(ctx, r.issue); err != nil {
 		return err
 	}
-	if r.IsFinished() && !alreadyFinished && r.finishedCallback != nil {
+	if r.IsClosed() && !alreadyClosed && r.finishedCallback != nil {
 		return r.finishedCallback(ctx, r)
 	}
 	return nil
+}
+
+// See documentation for state_machine.RollClImpl interface.
+func (r *gerritRoll) Attempt() int {
+	return r.issue.Attempt
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -488,7 +495,7 @@ func (r *githubRoll) withModify(ctx context.Context, action string, fn func() er
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) Update(ctx context.Context) error {
-	alreadyFinished := r.IsFinished()
+	alreadyClosed := r.IsClosed()
 	pullRequest, err := r.retrieveRoll(ctx)
 	if err != nil {
 		return err
@@ -500,7 +507,7 @@ func (r *githubRoll) Update(ctx context.Context) error {
 	if err := r.recent.Update(ctx, r.issue); err != nil {
 		return err
 	}
-	if r.IsFinished() && !alreadyFinished && r.finishedCallback != nil {
+	if r.IsClosed() && !alreadyClosed && r.finishedCallback != nil {
 		return r.finishedCallback(ctx, r)
 	}
 	return nil
@@ -573,6 +580,7 @@ func (r *githubRoll) RetryCQ(ctx context.Context) error {
 			return err
 		}
 		r.issue.IsDryRun = false
+		r.issue.Attempt++
 		return nil
 	})
 }
@@ -584,8 +592,14 @@ func (r *githubRoll) RetryDryRun(ctx context.Context) error {
 			return err
 		}
 		r.issue.IsDryRun = true
+		r.issue.Attempt++
 		return nil
 	})
+}
+
+// See documentation for state_machine.RollClImpl interface.
+func (r *githubRoll) Attempt() int {
+	return r.issue.Attempt
 }
 
 // See documentation for state_machine.RollCLImpl interface.

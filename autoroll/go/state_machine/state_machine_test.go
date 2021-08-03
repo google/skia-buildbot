@@ -23,6 +23,7 @@ const (
 // A completely mocked implementation of RollCLImpl.
 type TestRollCLImpl struct {
 	t            *testing.T
+	attempt      int
 	closedStatus string
 	closedMsg    string
 	isDryRun     bool
@@ -44,6 +45,11 @@ func NewTestRollCLImpl(t *testing.T, rollingTo *revision.Revision, isDryRun bool
 // See documentation for RollCLImpl.
 func (r *TestRollCLImpl) AddComment(context.Context, string) error {
 	return nil
+}
+
+// See documentation for RollCLImpl.
+func (r *TestRollCLImpl) Attempt() int {
+	return r.attempt
 }
 
 // See documentation for RollCLImpl.
@@ -147,6 +153,7 @@ func (r *TestRollCLImpl) SwitchToNormal(ctx context.Context) error {
 func (r *TestRollCLImpl) RetryDryRun(ctx context.Context) error {
 	r.isDryRun = true
 	r.dryRunResult = ""
+	r.attempt++
 	return nil
 }
 
@@ -154,6 +161,7 @@ func (r *TestRollCLImpl) RetryDryRun(ctx context.Context) error {
 func (r *TestRollCLImpl) RetryCQ(ctx context.Context) error {
 	r.isDryRun = false
 	r.normalResult = ""
+	r.attempt++
 	return nil
 }
 
@@ -851,4 +859,70 @@ func TestNilCurrentRoll(t *testing.T) {
 		require.True(t, r.GetActiveRoll() == nil) // As opposed to typed nil.
 		require.NoError(t, sm.NextTransition(ctx))
 	}
+}
+
+func TestAbandonAfterTooManyAttempts(t *testing.T) {
+	ctx, sm, r, gcsClient, cleanup := setup(t)
+	defer cleanup()
+
+	counterFile := "fail_counter"
+	failureThrottle, err := NewThrottler(ctx, gcsClient, counterFile, time.Hour, 1)
+	require.NoError(t, err)
+	r.failureThrottle = failureThrottle
+
+	r.SetNextRollRev("HEAD+1")
+
+	failCL := func(expectedState string) {
+		checkNextState(t, sm, S_NORMAL_ACTIVE)
+		roll := r.GetActiveRoll().(*TestRollCLImpl)
+		roll.SetFailed()
+		checkNextState(t, sm, S_NORMAL_FAILURE)
+		checkNextState(t, sm, expectedState)
+	}
+
+	for i := 0; i < maxRollCQAttempts-1; i++ {
+		failCL(S_NORMAL_FAILURE_THROTTLED)
+
+		// Hack the timer to fake that the throttling has expired, then ensure
+		// that we end up at the expected state.
+		require.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
+		failureThrottle, err = NewThrottler(ctx, gcsClient, counterFile, time.Minute, 1)
+		require.NoError(t, err)
+		r.failureThrottle = failureThrottle
+	}
+	failCL(S_NORMAL_IDLE)
+}
+
+func TestAbandonAfterTooManyAttemptsDryRun(t *testing.T) {
+	ctx, sm, r, gcsClient, cleanup := setup(t)
+	defer cleanup()
+
+	counterFile := "fail_counter"
+	failureThrottle, err := NewThrottler(ctx, gcsClient, counterFile, time.Hour, 1)
+	require.NoError(t, err)
+	r.failureThrottle = failureThrottle
+
+	r.SetMode(ctx, modes.ModeDryRun)
+	checkNextState(t, sm, S_DRY_RUN_IDLE)
+	r.SetNextRollRev("HEAD+1")
+
+	failCL := func(expectedState string) {
+		checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+		roll := r.GetActiveRoll().(*TestRollCLImpl)
+		roll.SetDryRunFailed()
+		checkNextState(t, sm, S_DRY_RUN_FAILURE)
+		checkNextState(t, sm, expectedState)
+	}
+
+	for i := 0; i < maxRollCQAttempts-1; i++ {
+		failCL(S_DRY_RUN_FAILURE_THROTTLED)
+
+		// Hack the timer to fake that the throttling has expired, then ensure
+		// that we end up at the expected state.
+		require.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
+		failureThrottle, err = NewThrottler(ctx, gcsClient, counterFile, time.Minute, 1)
+		require.NoError(t, err)
+		r.failureThrottle = failureThrottle
+	}
+	failCL(S_DRY_RUN_IDLE)
 }

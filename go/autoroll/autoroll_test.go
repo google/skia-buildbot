@@ -17,7 +17,8 @@ import (
 func TestAutoRollIssueCopy(t *testing.T) {
 	unittest.SmallTest(t)
 	roll := &AutoRollIssue{
-		Closed: true,
+		Attempt: 2,
+		Closed:  true,
 		Comments: []*comment.Comment{
 			{
 				Id:        "123",

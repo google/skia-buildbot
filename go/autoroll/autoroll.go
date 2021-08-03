@@ -75,6 +75,7 @@ var (
 // AutoRollIssue is a struct containing the information we care about for
 // AutoRoll CLs.
 type AutoRollIssue struct {
+	Attempt        int                `json:"attempts"`
 	Closed         bool               `json:"closed"`
 	Comments       []*comment.Comment `json:"comments"`
 	Committed      bool               `json:"committed"`
@@ -139,6 +140,7 @@ func (i *AutoRollIssue) Copy() *AutoRollIssue {
 		}
 	}
 	return &AutoRollIssue{
+		Attempt:        i.Attempt,
 		Closed:         i.Closed,
 		Comments:       commentsCpy,
 		Committed:      i.Committed,

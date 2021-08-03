@@ -65,12 +65,19 @@ const (
 	// arbitrary limit just to keep us from performing an unbounded number
 	// of transitions at a time.
 	MAX_NOOP_TRANSITIONS = 10
+
+	// maxRollCQAttempts is the maximum number of CQ attempts per roll.
+	maxRollCQAttempts = 3
 )
 
 // Interface for interacting with a single autoroll CL.
 type RollCLImpl interface {
 	// Add a comment to the CL.
 	AddComment(context.Context, string) error
+
+	// Attempt returns the number of the current attempt for this roll, starting
+	// at zero for the first attempt.
+	Attempt() int
 
 	// Close the CL. The first string argument is the result of the roll,
 	// and the second is the message to add to the CL on closing.
@@ -598,15 +605,17 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll.IsClosed() {
 			return S_NORMAL_IDLE, nil
 		}
-		throttle := s.a.FailureThrottle()
-		if err := throttle.Inc(ctx); err != nil {
-			return "", err
-		}
-		if s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
-			// Rather than upload the same CL again, we'll try
-			// running the CQ again after a period of throttling.
-			if throttle.IsThrottled() {
-				return S_NORMAL_FAILURE_THROTTLED, nil
+		if currentRoll.Attempt() < maxRollCQAttempts-1 {
+			throttle := s.a.FailureThrottle()
+			if err := throttle.Inc(ctx); err != nil {
+				return "", err
+			}
+			if s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
+				// Rather than upload the same CL again, we'll try
+				// running the CQ again after a period of throttling.
+				if throttle.IsThrottled() {
+					return S_NORMAL_FAILURE_THROTTLED, nil
+				}
 			}
 		}
 		return S_NORMAL_IDLE, nil
@@ -727,13 +736,15 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
 		}
-		if err := s.a.FailureThrottle().Inc(ctx); err != nil {
-			return "", err
-		}
-		if s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
-			// Rather than upload the same CL again, we'll try
-			// running the CQ again after a period of throttling.
-			return S_DRY_RUN_FAILURE_THROTTLED, nil
+		if currentRoll.Attempt() < maxRollCQAttempts-1 {
+			if err := s.a.FailureThrottle().Inc(ctx); err != nil {
+				return "", err
+			}
+			if s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
+				// Rather than upload the same CL again, we'll try
+				// running the CQ again after a period of throttling.
+				return S_DRY_RUN_FAILURE_THROTTLED, nil
+			}
 		}
 		return S_DRY_RUN_IDLE, nil
 	case S_DRY_RUN_FAILURE_THROTTLED:
