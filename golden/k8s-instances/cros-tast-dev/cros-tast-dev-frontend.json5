@@ -6,6 +6,7 @@
   client_secret_file: "/etc/skia.org/login.json",
   disable_sql_exp_cl: true,
   flaky_trace_threshold: 10000, // no trace is flaky
+  force_login: true, // This instance requires authentication. No public view requested.
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
     defaultCorpus: "cros-tast-dev",
