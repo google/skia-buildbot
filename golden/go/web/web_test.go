@@ -3772,6 +3772,7 @@ func TestListIgnoreRules2_WithCounts_Success(t *testing.T) {
 			WindowSize:  100,
 		},
 	}
+	require.NoError(t, wh.updateIgnoredTracesCache(ctx))
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/ignores?counts=true", nil)
@@ -3779,6 +3780,52 @@ func TestListIgnoreRules2_WithCounts_Success(t *testing.T) {
 	const expectedResponse = `{"rules":[{"id":"b75cc985-efbd-9973-fa1a-05787f04f237","name":"userTwo@example.com","updatedBy":"userOne@example.com","expires":"2020-02-14T13:12:11Z","query":"device=Nokia4\u0026source_type=corners","note":"This rule has expired (and does not apply to anything)","countAll":0,"exclusiveCountAll":0,"count":0,"exclusiveCount":0},` +
 		`{"id":"a210f5da-a114-0799-e102-870edaf5570e","name":"userTwo@example.com","updatedBy":"userOne@example.com","expires":"2030-12-30T15:16:17Z","query":"device=taimen\u0026name=square\u0026name=circle","note":"Taimen isn't drawing correctly enough yet","countAll":2,"exclusiveCountAll":2,"count":1,"exclusiveCount":1}]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
+func TestStartIgnoredTraceCacheProcess(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	wh := &Handlers{
+		HandlersConfig: HandlersConfig{
+			DB:         db,
+			WindowSize: 100,
+		},
+	}
+
+	wh.startIgnoredTraceCacheProcess(ctx)
+	require.Eventually(t, func() bool {
+		wh.ignoredTracesCacheMutex.RLock()
+		defer wh.ignoredTracesCacheMutex.RUnlock()
+		return len(wh.ignoredTracesCache) == 2
+	}, 5*time.Second, 100*time.Millisecond)
+	wh.ignoredTracesCacheMutex.RLock()
+	defer wh.ignoredTracesCacheMutex.RUnlock()
+	// These match one of the two ignore rules in the sample data. The other ignore rule matches
+	// nothing.
+	assert.ElementsMatch(t, []ignoredTrace{{
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			types.PrimaryKeyField: dks.SquareTest,
+			dks.OSKey:             dks.AndroidOS,
+			types.CorpusField:     dks.CornersCorpus,
+		},
+		Label: expectations.Negative,
+	}, {
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			types.PrimaryKeyField: dks.CircleTest,
+			dks.OSKey:             dks.AndroidOS,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		Label: expectations.Untriaged,
+	}}, wh.ignoredTracesCache)
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL

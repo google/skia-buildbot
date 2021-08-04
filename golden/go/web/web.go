@@ -123,6 +123,9 @@ type Handlers struct {
 	statusCache      frontend.GUIStatus
 	statusCacheMutex sync.RWMutex
 
+	ignoredTracesCache      []ignoredTrace
+	ignoredTracesCacheMutex sync.RWMutex
+
 	// These can be set for unit tests to simplify the testing.
 	testingAuthAs string
 }
@@ -1252,31 +1255,6 @@ func (wh *Handlers) addIgnoreCounts2(ctx context.Context, rules []frontend.Ignor
 	ctx, span := trace.StartSpan(ctx, "addIgnoreCounts2")
 	defer span.End()
 
-	// Fetch all traces that are ignored
-	const statement = `WITH
-CommitsInWindow AS (
-	SELECT commit_id FROM CommitsWithData
-	ORDER BY commit_id DESC LIMIT $1
-),
-OldestCommitInWindow AS (
-	SELECT commit_id FROM CommitsInWindow
-	ORDER BY commit_id ASC LIMIT 1
-),
-IgnoredTraces AS (
-	SELECT keys, grouping_id, digest FROM ValuesAtHead
-	JOIN OldestCommitInWindow ON most_recent_commit_id >= OldestCommitInWindow.commit_id
-	WHERE matches_any_ignore_rule = TRUE
-)
-SELECT keys, label FROM IgnoredTraces
-JOIN Expectations ON IgnoredTraces.grouping_id = Expectations.grouping_id
-	AND IgnoredTraces.digest = Expectations.digest`
-
-	rows, err := wh.DB.Query(ctx, statement, wh.WindowSize)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	defer rows.Close()
-
 	type counts struct {
 		Count                   int
 		UntriagedCount          int
@@ -1285,22 +1263,19 @@ JOIN Expectations ON IgnoredTraces.grouping_id = Expectations.grouping_id
 	}
 
 	ruleCounts := make([]counts, len(rules))
-	for rows.Next() {
-		var keys paramtools.Params
-		var label schema.ExpectationLabel
-		if err := rows.Scan(&keys, &label); err != nil {
-			return skerr.Wrap(err)
-		}
+	wh.ignoredTracesCacheMutex.RLock()
+	defer wh.ignoredTracesCacheMutex.RUnlock()
+	for _, tr := range wh.ignoredTracesCache {
 		idxMatched, untIdxMatched := -1, -1
 		numMatched, untMatched := 0, 0
 		for i, r := range rules {
-			if paramtools.ParamSet(r.ParsedQuery).MatchesParams(keys) {
+			if paramtools.ParamSet(r.ParsedQuery).MatchesParams(tr.Keys) {
 				numMatched++
 				ruleCounts[i].Count++
 				idxMatched = i
 
 				// Check to see if the digest is untriaged at head
-				if label == schema.LabelUntriaged {
+				if tr.Label == expectations.Untriaged {
 					ruleCounts[i].UntriagedCount++
 					untMatched++
 					untIdxMatched = i
@@ -3313,6 +3288,7 @@ func convertChangelistSummaryResponseV1(summary search2.NewAndUntriagedSummary) 
 func (wh *Handlers) StartCacheWarming(ctx context.Context) {
 	wh.startCLCacheProcess(ctx)
 	wh.startStatusCacheProcess(ctx)
+	wh.startIgnoredTraceCacheProcess(ctx)
 }
 
 // startCLCacheProcess starts a go routine to warm the CL Summary cache. This way, most
@@ -3376,7 +3352,7 @@ SELECT changelist_id FROM ChangelistsWithTriageActivity
 	})
 }
 
-// startStatusCacheProcess
+// startStatusCacheProcess will compute the GUI Status on a timer and save it to the cache.
 func (wh *Handlers) startStatusCacheProcess(ctx context.Context) {
 	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
 		ctx, span := trace.StartSpan(ctx, "web_warmStatusCacheCycle", trace.WithSampler(trace.AlwaysSample()))
@@ -3392,4 +3368,68 @@ func (wh *Handlers) startStatusCacheProcess(ctx context.Context) {
 		defer wh.statusCacheMutex.Unlock()
 		wh.statusCache = gs
 	})
+}
+
+type ignoredTrace struct {
+	Keys  paramtools.Params
+	Label expectations.Label
+}
+
+//startIgnoredTraceCacheProcess will periodically update the cache of ignored traces.
+func (wh *Handlers) startIgnoredTraceCacheProcess(ctx context.Context) {
+	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
+		ctx, span := trace.StartSpan(ctx, "web_warmIgnoredTraceCacheCycle", trace.WithSampler(trace.AlwaysSample()))
+		defer span.End()
+
+		if err := wh.updateIgnoredTracesCache(ctx); err != nil {
+			sklog.Errorf("Could not get all ignored traces: %s", err)
+		}
+	})
+}
+
+// updateIgnoredTracesCache fetches all ignored traces that have recent data and returns both
+// the trace keys and the triage status of the digest at ToT.
+func (wh *Handlers) updateIgnoredTracesCache(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "updateIgnoredTracesCache")
+	defer span.End()
+
+	const statement = `WITH
+RecentCommits AS (
+	SELECT commit_id FROM CommitsWithData
+	ORDER BY commit_id DESC LIMIT $1
+),
+OldestCommitInWindow AS (
+	SELECT commit_id FROM RecentCommits
+	ORDER BY commit_id ASC LIMIT 1
+)
+SELECT keys, label FROM ValuesAtHead
+JOIN OldestCommitInWindow ON ValuesAtHead.most_recent_commit_id >= OldestCommitInWindow.commit_id
+	AND matches_any_ignore_rule = TRUE
+JOIN Expectations ON ValuesAtHead.grouping_id = Expectations.grouping_id
+	AND ValuesAtHead.digest = Expectations.digest
+`
+
+	rows, err := wh.DB.Query(ctx, statement, wh.WindowSize)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	defer rows.Close()
+
+	var ignoredTraces []ignoredTrace
+	for rows.Next() {
+		var ps paramtools.Params
+		var label schema.ExpectationLabel
+		if err := rows.Scan(&ps, &label); err != nil {
+			return skerr.Wrap(err)
+		}
+		ignoredTraces = append(ignoredTraces, ignoredTrace{
+			Keys:  ps,
+			Label: label.ToExpectation(),
+		})
+	}
+
+	wh.ignoredTracesCacheMutex.Lock()
+	defer wh.ignoredTracesCacheMutex.Unlock()
+	wh.ignoredTracesCache = ignoredTraces
+	return nil
 }
