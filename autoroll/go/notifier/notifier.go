@@ -27,6 +27,7 @@ const (
 	MSG_TYPE_SAFETY_THROTTLE      = "safety throttle"
 	MSG_TYPE_STRATEGY_CHANGE      = "strategy change"
 	MSG_TYPE_SUCCESS_THROTTLE     = "success throttle"
+	MSG_TYPE_TOO_MANY_CLS         = "too many CLs"
 
 	// Templates for messages sent by the roller.
 	subjectIssueUpdate = "The {{.ChildName}} into {{.ParentName}} AutoRoller has uploaded issue {{.IssueID}}"
@@ -52,6 +53,9 @@ const (
 	subjectThrottled     = "The {{.ChildName}} into {{.ParentName}} AutoRoller is throttled"
 	bodySafetyThrottled  = "The roller is throttled because it attempted to upload too many CLs in too short a time.  The roller will unthrottle at {{.ThrottledUntil}}."
 	bodySuccessThrottled = "The roller is throttled because it is configured not to land too many rolls within a time period. The roller will unthrottle at {{.ThrottledUntil}}."
+
+	subjectTooManyCLs = "The {{.ChildName}} into {{.ParentName}} has uploaded too many CLs to the same revision"
+	bodyTooManyCLs    = "The roller has uploaded {{.N}} CLs to roll to revision {{.Revision}}.  It will not upload any more CLs until a new revision is available to roll."
 
 	footer = "\n\nThe AutoRoll server is located here: {{.ServerURL}}"
 )
@@ -80,6 +84,9 @@ var (
 	subjectTmplThrottled     = template.Must(template.New("subjectThrottled").Parse(subjectThrottled))
 	bodyTmplSafetyThrottled  = template.Must(template.New("bodySafetyThrottled").Parse(bodySafetyThrottled))
 	bodyTmplSuccessThrottled = template.Must(template.New("bodySuccessThrottled").Parse(bodySuccessThrottled))
+
+	subjectTmplTooManyCLs = template.Must(template.New("subjectTooManyCLs").Parse(subjectTooManyCLs))
+	bodyTmplTooManyCLs    = template.Must(template.New("bodyTooManyCLs").Parse(bodyTooManyCLs))
 
 	footerTmpl = template.Must(template.New("footer").Parse(footer))
 
@@ -135,6 +142,7 @@ type tmplVars struct {
 	Message        string
 	N              int
 	ParentName     string
+	Revision       string
 	ServerURL      string
 	Strategy       string
 	ThrottledUntil string
@@ -292,6 +300,15 @@ func (a *AutoRollNotifier) SendLastNFailed(ctx context.Context, n int, url strin
 		IssueURL: url,
 		N:        n,
 	}, subjectTmplLastNFailed, bodyTmplLastNFailed, notifier.SEVERITY_ERROR, MSG_TYPE_LAST_N_FAILED)
+}
+
+// Send a notification that too many CLs have been created to roll to the same
+// revision.
+func (a *AutoRollNotifier) SendTooManyCLs(ctx context.Context, numCLs int, rev string) {
+	a.send(ctx, &tmplVars{
+		N:        numCLs,
+		Revision: rev,
+	}, subjectTmplTooManyCLs, bodyTmplTooManyCLs, notifier.SEVERITY_ERROR, MSG_TYPE_TOO_MANY_CLS)
 }
 
 // ConfigToProto converts a notifier.Config to a config.NotifierConfig.

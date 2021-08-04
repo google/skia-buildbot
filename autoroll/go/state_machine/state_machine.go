@@ -32,6 +32,7 @@ const (
 	S_NORMAL_FAILURE_THROTTLED     = "failure throttled"
 	S_NORMAL_SAFETY_THROTTLED      = "safety throttled"
 	S_NORMAL_WAIT_FOR_WINDOW       = "waiting for roll window"
+	S_TOO_MANY_CLS                 = "too many CLs to same revision"
 	S_DRY_RUN_IDLE                 = "dry run idle"
 	S_DRY_RUN_ACTIVE               = "dry run active"
 	S_DRY_RUN_SUCCESS              = "dry run success"
@@ -59,6 +60,7 @@ const (
 	F_RETRY_FAILED_DRY_RUN       = "retry failed dry run"
 	F_NOTIFY_FAILURE_THROTTLE    = "notify failure throttled"
 	F_NOTIFY_SAFETY_THROTTLE     = "notify safety throttled"
+	F_NOTIFY_TOO_MANY_CLS        = "notify too many CLs"
 	F_ERROR_CURRENT_ROLL_MISSING = "error: current roll missing"
 
 	// Maximum number of no-op transitions to perform at once. This is an
@@ -68,6 +70,9 @@ const (
 
 	// maxRollCQAttempts is the maximum number of CQ attempts per roll.
 	maxRollCQAttempts = 3
+	// maxRollCLsToSameRevision is the maximum number of CLs to upload to roll
+	// to the same revision.
+	maxRollCLsToSameRevision = 3
 )
 
 // Interface for interacting with a single autoroll CL.
@@ -143,6 +148,10 @@ type AutoRollerImpl interface {
 	// Return the next revision of the sub-project which we want to roll.
 	// This is the same as GetCurrentRev when the sub-project is up-to-date.
 	GetNextRollRev() *revision.Revision
+
+	// GetLastNRollRevs returns the revision IDs for up to N most recent rolls,
+	// sorted most recent first.
+	GetLastNRollRevs(int) []string
 
 	// Return the current mode of the AutoRoller.
 	GetMode() string
@@ -412,6 +421,13 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		sklog.Error("State machine could not obtain current roll; transitioning back to idle state. Was the roller interrupted?")
 		return nil
 	})
+	b.F(F_NOTIFY_TOO_MANY_CLS, func(ctx context.Context) error {
+		revs := s.a.GetLastNRollRevs(1)
+		if len(revs) == 1 {
+			n.SendTooManyCLs(ctx, maxRollCLsToSameRevision, revs[0])
+		}
+		return nil
+	})
 
 	// States and transitions.
 
@@ -428,6 +444,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_NORMAL_IDLE, S_NORMAL_SUCCESS_THROTTLED, F_NOOP)
 	b.T(S_NORMAL_IDLE, S_NORMAL_ACTIVE, F_UPLOAD_ROLL)
 	b.T(S_NORMAL_IDLE, S_NORMAL_WAIT_FOR_WINDOW, F_NOOP)
+	b.T(S_NORMAL_IDLE, S_TOO_MANY_CLS, F_NOTIFY_TOO_MANY_CLS)
 	b.T(S_NORMAL_ACTIVE, S_NORMAL_ACTIVE, F_UPDATE_ROLL)
 	b.T(S_NORMAL_ACTIVE, S_DRY_RUN_ACTIVE, F_SWITCH_TO_DRY_RUN)
 	b.T(S_NORMAL_ACTIVE, S_NORMAL_SUCCESS, F_NOOP)
@@ -464,6 +481,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_DRY_RUN_IDLE, S_NORMAL_SUCCESS_THROTTLED, F_NOOP)
 	b.T(S_DRY_RUN_IDLE, S_DRY_RUN_SAFETY_THROTTLED, F_NOTIFY_SAFETY_THROTTLE)
 	b.T(S_DRY_RUN_IDLE, S_DRY_RUN_ACTIVE, F_UPLOAD_DRY_RUN)
+	b.T(S_DRY_RUN_IDLE, S_TOO_MANY_CLS, F_NOTIFY_TOO_MANY_CLS)
 	b.T(S_DRY_RUN_ACTIVE, S_DRY_RUN_ACTIVE, F_UPDATE_ROLL)
 	b.T(S_DRY_RUN_ACTIVE, S_NORMAL_ACTIVE, F_SWITCH_TO_NORMAL)
 	b.T(S_DRY_RUN_ACTIVE, S_DRY_RUN_SUCCESS, F_NOOP)
@@ -495,6 +513,12 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 
 	// Error; current roll is missing.
 	b.T(S_CURRENT_ROLL_MISSING, S_NORMAL_IDLE, F_ERROR_CURRENT_ROLL_MISSING)
+
+	// Error; uploaded too many CLs to the same revision.
+	b.T(S_TOO_MANY_CLS, S_NORMAL_IDLE, F_NOOP)
+	b.T(S_TOO_MANY_CLS, S_DRY_RUN_IDLE, F_NOOP)
+	b.T(S_TOO_MANY_CLS, S_STOPPED, F_NOOP)
+	b.T(S_TOO_MANY_CLS, S_TOO_MANY_CLS, F_NOOP)
 
 	// Build the state machine.
 	b.SetInitial(S_NORMAL_IDLE)
@@ -551,9 +575,17 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_NORMAL_SAFETY_THROTTLED, nil
 		} else if s.a.SuccessThrottle().IsThrottled() {
 			return S_NORMAL_SUCCESS_THROTTLED, nil
-		} else {
-			return S_NORMAL_ACTIVE, nil
 		}
+		lastNRevs := s.a.GetLastNRollRevs(maxRollCLsToSameRevision)
+		if len(lastNRevs) == maxRollCLsToSameRevision {
+			for _, rev := range lastNRevs {
+				if rev != next.Id {
+					return S_NORMAL_ACTIVE, nil
+				}
+			}
+			return S_TOO_MANY_CLS, nil
+		}
+		return S_NORMAL_ACTIVE, nil
 	case S_NORMAL_ACTIVE:
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
@@ -668,9 +700,17 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_DRY_RUN_IDLE, nil
 		} else if s.a.SafetyThrottle().IsThrottled() {
 			return S_DRY_RUN_SAFETY_THROTTLED, nil
-		} else {
-			return S_DRY_RUN_ACTIVE, nil
 		}
+		lastNRevs := s.a.GetLastNRollRevs(maxRollCLsToSameRevision)
+		if len(lastNRevs) == maxRollCLsToSameRevision {
+			for _, rev := range lastNRevs {
+				if rev != next.Id {
+					return S_DRY_RUN_ACTIVE, nil
+				}
+			}
+			return S_TOO_MANY_CLS, nil
+		}
+		return S_DRY_RUN_ACTIVE, nil
 	case S_DRY_RUN_ACTIVE:
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
@@ -772,6 +812,18 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		return S_DRY_RUN_IDLE, nil
 	case S_CURRENT_ROLL_MISSING:
 		return S_NORMAL_IDLE, nil
+	case S_TOO_MANY_CLS:
+		lastNRevs := s.a.GetLastNRollRevs(1)
+		if len(lastNRevs) > 0 && s.a.GetNextRollRev().Id == lastNRevs[0] {
+			return S_TOO_MANY_CLS, nil
+		} else if s.a.GetMode() == modes.ModeDryRun {
+			return S_DRY_RUN_IDLE, nil
+		} else if s.a.GetMode() == modes.ModeStopped {
+			return S_STOPPED, nil
+		} else {
+			// Default case.
+			return S_NORMAL_IDLE, nil
+		}
 	default:
 		return "", fmt.Errorf("Invalid state %q", state)
 	}

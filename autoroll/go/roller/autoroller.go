@@ -519,6 +519,20 @@ func (r *AutoRoller) GetNextRollRev() *revision.Revision {
 	return r.nextRollRev
 }
 
+// GetLastNRollRevs returns the revision IDs for up to N most recent rolls,
+// sorted most recent first.
+func (r *AutoRoller) GetLastNRollRevs(n int) []string {
+	rolls := r.recent.GetRecentRolls()
+	if len(rolls) > n {
+		rolls = rolls[:n]
+	}
+	revs := make([]string, 0, n)
+	for _, roll := range rolls {
+		revs = append(revs, roll.RollingTo)
+	}
+	return revs
+}
+
 // InRollWindow implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) InRollWindow(t time.Time) bool {
 	return r.timeWindow.Test(t)
