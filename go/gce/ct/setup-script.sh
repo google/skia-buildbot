@@ -9,7 +9,7 @@ set -e
 echo "Installing packages..."
 sudo apt-get update
 sudo apt-get -y install libosmesa-dev clang-3.6 poppler-utils netpbm \
-    python-django libgif-dev lua5.2 libnss3 python-setuptools python-pip \
+    python3-django libgif-dev lua5.2 libnss3 python-setuptools python-pip \
     libglu1 libgtk3.0 xvfb gperf bison libglu1-mesa-dev libgbm-dev
 sudo pip install -U crcmod mock psutil httplib2 numpy pandas
 
@@ -23,7 +23,7 @@ sudo apt-get -y install autotools-dev blt-dev bzip2 dpkg-dev g++-multilib \
     libffi6-dbg libgdbm-dev libgpm2 libncursesw5-dev libreadline-dev \
     libsqlite3-dev libssl-dev libtinfo-dev mime-support net-tools netbase \
     python-crypto python-mox3 python-pil python-ply quilt tk-dev zlib1g-dev \
-    mesa-utils android-tools-adb
+    mesa-utils android-tools-adb python3-distutils
 
 # Install python3.8 (skbug.com/12021). This will not be needed when all of CT
 # uses python3 and we can use it via CIPD instead.
@@ -87,12 +87,15 @@ EOF
 fi
 
 # Get access token from metadata.
-TOKEN=`curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google" | python -c "import sys, json; print json.load(sys.stdin)['access_token']"`
+TOKEN_URL="http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
+TOKEN="$(curl "${TOKEN_URL}" --header "Metadata-Flavor: Google" | \
+  python -c "import sys, json; print json.load(sys.stdin)['access_token']")"
 # Bootstrap Swarming.
 mkdir -p /b/s
 SWARMING=https://chrome-swarming.appspot.com
 HOSTNAME=`hostname`
-curl ${SWARMING}/bot_code?bot_id=$HOSTNAME -H "Authorization":"Bearer $TOKEN" -o /b/s/swarming_bot.zip
+curl "${SWARMING}/bot_code?bot_id=${HOSTNAME}" --header "Authorization":"Bearer $TOKEN" \
+  --location --output /b/s/swarming_bot.zip
 
 # See skbug.com/9425 for why LimitNOFILE is set.
 cat <<EOF | sudo tee /etc/systemd/system/swarming_bot.service
@@ -106,7 +109,7 @@ LimitNOFILE=50000
 User=chrome-bot
 Restart=on-failure
 RestartSec=10
-ExecStart=/usr/bin/env python /b/s/swarming_bot.zip start_bot
+ExecStart=/usr/bin/env python3 /b/s/swarming_bot.zip start_bot
 
 [Install]
 WantedBy=default.target
