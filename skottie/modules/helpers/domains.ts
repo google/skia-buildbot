@@ -1,6 +1,6 @@
 // Helper to identify domain and enable or disable features based on them
 
-const currentDomaint = window.location.hostname;
+const currentDomain = window.location.hostname;
 
 const supportedDomains = {
   SKOTTIE_INTERNAL: 'skottie-internal.skia.org',
@@ -9,9 +9,9 @@ const supportedDomains = {
   LOCALHOST: 'localhost',
 };
 
-const isDomain = (domain) => domain === currentDomaint;
+const isDomain = (domain: string): boolean => domain === currentDomain;
 
-const isOneOfDomains = (domains) => domains.includes(currentDomaint);
+const isOneOfDomains = (domains: string): boolean => domains.includes(currentDomain);
 
 export {
   isDomain,

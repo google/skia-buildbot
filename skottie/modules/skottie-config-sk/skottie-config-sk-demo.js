@@ -1,9 +1,9 @@
-import './index.js'
-import { $$ } from 'common-sk/modules/dom'
+import './index';
+import { $$ } from 'common-sk/modules/dom';
 
-(function () {
-  let ele = $$('#given');
-  let msg = $$('#msg');
+(function() {
+  const ele = $$('#given');
+  const msg = $$('#msg');
   ele.state = {
     filename: 'foo.json',
     lottie: {},
@@ -15,8 +15,9 @@ import { $$ } from 'common-sk/modules/dom'
   const display = (e) => {
     msg.innerHTML = `${e.type}
 ${JSON.stringify(e.detail)}
-`};
+`;
+  };
 
   document.addEventListener('skottie-selected', display);
   document.addEventListener('cancelled', display);
-})();
+}());

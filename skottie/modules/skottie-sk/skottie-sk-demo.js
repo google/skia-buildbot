@@ -1,17 +1,17 @@
-import './index.js'
-import './skottie-sk-demo.css'
+import './index';
+import './skottie-sk-demo.css';
 
-import { gear, webfont, moving_image } from './test_gear.js'
-const fetchMock = require('fetch-mock');
+import fetchMock from 'fetch-mock';
+import { gear } from './test_gear';
 
-let state = {
+const state = {
   filename: 'moving_image.json',
   lottie: gear,
-}
+};
 fetchMock.get('glob:/_/j/*', {
   status: 200,
   body: JSON.stringify(state),
-  headers: {'Content-Type':'application/json'},
+  headers: { 'Content-Type': 'application/json' },
 });
 
 fetchMock.post('glob:/_/upload', {
@@ -20,12 +20,10 @@ fetchMock.post('glob:/_/upload', {
     hash: 'MOCK_UPLOADED',
     lottie: gear,
   }),
-  headers: {'Content-Type':'application/json'},
+  headers: { 'Content-Type': 'application/json' },
 });
 
-document.getElementsByTagName('skottie-sk')[0]._assetsPath =
-    'https://storage.googleapis.com/skia-cdn/test_external_assets';
-
+document.getElementsByTagName('skottie-sk')[0]._assetsPath = 'https://storage.googleapis.com/skia-cdn/test_external_assets';
 
 // Pass-through CanvasKit.
 fetchMock.get('glob:*.wasm', fetchMock.realFetch.bind(window));

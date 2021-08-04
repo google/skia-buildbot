@@ -1,27 +1,26 @@
+import './index';
 
-import './index.js'
+import fetchMock from 'fetch-mock';
+import { gear } from './test_gear';
 
-import { gear } from './test_gear.js'
-const fetchMock = require('fetch-mock');
-
-let state = {
+const state = {
   filename: 'gear.json',
   lottie: gear,
   width: 200,
   height: 200,
   fps: 30,
-}
+};
 fetchMock.get('glob:/_/j/*', {
   status: 200,
   body: JSON.stringify(state),
-  headers: {'Content-Type':'application/json'},
+  headers: { 'Content-Type': 'application/json' },
 });
 fetchMock.post('glob:/_/upload', {
   status: 200,
   body: JSON.stringify({
-    hash: 'MOCK_UPLOADED'
+    hash: 'MOCK_UPLOADED',
   }),
-  headers: {'Content-Type':'application/json'},
+  headers: { 'Content-Type': 'application/json' },
 });
 
 // Pass-through CanvasKit.

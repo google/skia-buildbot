@@ -7,19 +7,23 @@
 const localStorage = window.localStorage || {};
 
 const _localStorage = {
-  get: (key) => localStorage.getItem(key),
-  set: (key, value) => localStorage.setItem(key, value),
+  get: (key: string): string|null => localStorage.getItem(key),
+  set: (key: string, value: string): void => localStorage.setItem(key, value),
   // Gets a serialized object from localStorage and parses it
-  getObject: (key) => {
+  getObject: (key: string): Record<string, unknown> => {
     try {
-      return JSON.parse(_localStorage.get(key)) || {};
+      const v = _localStorage.get(key);
+      if (!v) {
+        return {};
+      }
+      return JSON.parse(v);
     } catch (err) {
-      console.log('err', err);
+      console.error('err', err);
       return {};
     }
   },
   // Serializes and object and stores it on localStorage
-  setObject: (key, object) => {
+  setObject: (key: string, object: Record<string, unknown>): void => {
     try {
       const serializedData = JSON.stringify(object);
       _localStorage.set(key, serializedData);
@@ -29,12 +33,12 @@ const _localStorage = {
   },
   // Gets a value from a serialized object.
   // If the attribute does not exist, it returns the defaultValue passed as argument.
-  getValueFromObject: (objectKey, key, defaultValue) => {
+  getValueFromObject: (objectKey: string, key: string, defaultValue: unknown) => {
     const object = _localStorage.getObject(objectKey);
     return object[key] !== undefined ? object[key] : defaultValue;
   },
   // Sets a value on an object and serializes it to save it on the localStorage.
-  setValueInObject: (objectKey, key, value) => {
+  setValueInObject: (objectKey: string, key: string, value: unknown): void => {
     const gifData = _localStorage.getObject(objectKey);
     gifData[key] = value;
     _localStorage.setObject(objectKey, gifData);
