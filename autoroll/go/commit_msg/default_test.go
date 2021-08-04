@@ -37,7 +37,7 @@ https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot
+Cq-Include-Trybots: some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com
@@ -74,7 +74,7 @@ https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot
+Cq-Include-Trybots: some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com
@@ -114,7 +114,7 @@ https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot
+Cq-Include-Trybots: some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Tbr: reviewer@google.com
 Test: some-test
@@ -158,7 +158,7 @@ https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Cq-Include-Trybots: some-trybot
+Cq-Include-Trybots: some-trybot-on-m92
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: None
 Tbr: reviewer@google.com
@@ -207,6 +207,8 @@ func TestTotalOverride(t *testing.T) {
 		Custom: `{{ define "commitMsg" }}Completely custom commit message.
 
 Seriously, this can be anything at all.
+
+Variables from config_vars should work, eg. m{{.Branches.Chromium.Beta.Milestone}}
 {{end}}`,
 	}
 	result, err := b.Build(FakeCommitMsgInputs())
@@ -214,5 +216,7 @@ Seriously, this can be anything at all.
 	require.Equal(t, `Completely custom commit message.
 
 Seriously, this can be anything at all.
+
+Variables from config_vars should work, eg. m92
 `, result)
 }

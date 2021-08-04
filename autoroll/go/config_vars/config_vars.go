@@ -39,6 +39,16 @@ func (v *Vars) Validate() error {
 	return nil
 }
 
+// Copy returns a deep copy of the Vars.
+func (v *Vars) Copy() *Vars {
+	if v == nil {
+		return nil
+	}
+	return &Vars{
+		Branches: v.Branches.Copy(),
+	}
+}
+
 // DummyVars returns an instance of Vars with arbitrary contents which may be
 // used during validation and testing.
 func DummyVars() *Vars {
@@ -80,6 +90,20 @@ func (b *Branches) Validate() error {
 		return skerr.Wrap(err)
 	}
 	return nil
+}
+
+// Copy returns a deep copy of the Branches.
+func (b *Branches) Copy() *Branches {
+	if b == nil {
+		return nil
+	}
+	var chromium *chrome_branch.Branches
+	if b.Chromium != nil {
+		chromium = b.Chromium.Copy()
+	}
+	return &Branches{
+		Chromium: chromium,
+	}
 }
 
 // Template is a text template which uses the contents of Vars. It is
@@ -263,4 +287,11 @@ func (r *Registry) Update(ctx context.Context) error {
 		},
 	}
 	return skerr.Wrap(r.updateFrom(vars))
+}
+
+// Vars returns a copy of the current value of the stored Vars.
+func (r *Registry) Vars() *Vars {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	return r.vars.Copy()
 }

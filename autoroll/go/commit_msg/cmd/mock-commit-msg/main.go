@@ -48,6 +48,14 @@ func main() {
 		log.Fatal("--config is required.")
 	}
 
+	ctx := context.Background()
+
+	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
+	if err != nil {
+		log.Fatal(err)
+	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+
 	// Read the roller config file.
 	cfgBytes, err := ioutil.ReadFile(*configFile)
 	if err != nil {
@@ -81,12 +89,6 @@ func main() {
 		}
 
 		// Create the RepoManager.
-		ctx := context.Background()
-		ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
-		if err != nil {
-			log.Fatal(err)
-		}
-		client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 		namespace := ds.AUTOROLL_NS
 		if cfg.IsInternal {
 			namespace = ds.AUTOROLL_INTERNAL_NS
@@ -232,7 +234,11 @@ func main() {
 	}
 
 	// Create the commit message builder.
-	b, err := commit_msg.NewBuilder(cfg.CommitMsg, cfg.ChildDisplayName, *serverURL, cfg.TransitiveDeps)
+	reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
+	if err != nil {
+		log.Fatalf("Failed to create config var registry: %s", err)
+	}
+	b, err := commit_msg.NewBuilder(cfg.CommitMsg, reg, cfg.ChildDisplayName, *serverURL, cfg.TransitiveDeps)
 	if err != nil {
 		log.Fatalf("Failed to create commit message builder: %s", err)
 	}

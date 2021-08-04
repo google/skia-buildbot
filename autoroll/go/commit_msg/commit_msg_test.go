@@ -1,11 +1,16 @@
 package commit_msg
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/go/chrome_branch"
+	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -14,7 +19,7 @@ func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
 	c := &config.CommitMsgConfig{
 		BugProject:           fakeBugProject,
 		ChildLogUrlTmpl:      "https://fake-child-log/{{.RollingFrom}}..{{.RollingTo}}",
-		CqExtraTrybots:       []string{"some-trybot"},
+		CqExtraTrybots:       []string{"some-trybot-on-m{{.Branches.Chromium.Beta.Milestone}}"},
 		CqDoNotCancelTrybots: true,
 		ExtraFooters:         []string{"My-Footer: BlahBlah", "My-Other-Footer: Blah"},
 		IncludeLog:           true,
@@ -30,9 +35,35 @@ func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
 	return c
 }
 
+// fakeRegistry returns a config_vars.Registry instance.
+func fakeRegistry(t *testing.T) *config_vars.Registry {
+	cbc := &mocks.Client{}
+	cbc.On("Get", testutils.AnyContext).Return(&chrome_branch.Branches{
+		Main: &chrome_branch.Branch{
+			Milestone: 93,
+			Number:    4577,
+			Ref:       "refs/branch-heads/4577",
+		},
+		Beta: &chrome_branch.Branch{
+			Milestone: 92,
+			Number:    4515,
+			Ref:       "refs/branch-heads/4515",
+		},
+		Stable: &chrome_branch.Branch{
+			Milestone: 91,
+			Number:    4472,
+			Ref:       "refs/branch-heads/4472",
+		},
+	}, nil)
+	reg, err := config_vars.NewRegistry(context.Background(), cbc)
+	require.NoError(t, err)
+	return reg
+}
+
 // fakeBuilder returns a Builder instance.
 func fakeBuilder(t *testing.T) *Builder {
-	b, err := NewBuilder(fakeCommitMsgConfig(t), fakeChildName, fakeServerURL, fakeTransitiveDeps)
+	reg := fakeRegistry(t)
+	b, err := NewBuilder(fakeCommitMsgConfig(t), reg, fakeChildName, fakeServerURL, fakeTransitiveDeps)
 	require.NoError(t, err)
 	return b
 }
@@ -40,13 +71,15 @@ func fakeBuilder(t *testing.T) *Builder {
 func TestMakeVars(t *testing.T) {
 	unittest.SmallTest(t)
 
+	reg := fakeRegistry(t)
+
 	check := func(fn func(*Builder)) {
 		c := fakeCommitMsgConfig(t)
-		b, err := NewBuilder(c, fakeChildName, fakeServerURL, fakeTransitiveDeps)
+		b, err := NewBuilder(c, reg, fakeChildName, fakeServerURL, fakeTransitiveDeps)
 		require.NoError(t, err)
 		fn(b)
 		from, to, revs, reviewers := FakeCommitMsgInputs()
-		vars, err := makeVars(c, b.childName, b.serverURL, b.transitiveDeps, from, to, revs, reviewers)
+		vars, err := makeVars(c, reg.Vars(), b.childName, b.serverURL, b.transitiveDeps, from, to, revs, reviewers)
 		require.NoError(t, err)
 
 		// Bugs.
@@ -59,6 +92,10 @@ func TestMakeVars(t *testing.T) {
 			expectBugs = 2 // From fakeCommitMsgInputs.
 		}
 		require.Len(t, vars.Bugs, expectBugs)
+
+		// CqExtratrybots.
+		require.Len(t, vars.CqExtraTrybots, 1)
+		require.Equal(t, "some-trybot-on-m92", vars.CqExtraTrybots[0])
 
 		// Log URL.
 		if c.ChildLogUrlTmpl == "" {
