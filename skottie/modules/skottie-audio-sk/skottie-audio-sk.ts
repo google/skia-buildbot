@@ -30,60 +30,33 @@
  *
  */
 import { define } from 'elements-sk/define';
-import { html, render } from 'lit-html';
+import { html } from 'lit-html';
 import { Howl } from 'howler';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 const INPUT_FILE_ID = 'fileInput';
 const BPM_ID = 'bpm';
 const BEAT_DURATION_ID = 'beatDuration';
 const START_BUTTON_ID = 'startButton';
 
-const LOADING_STATES = {
-  IDLE: 'idle',
-  LOADING: 'loading',
-  LOADED: 'loaded',
-  SUBMITTED: 'submitted',
-};
+type LoadingState = 'idle' | 'loading' | 'loaded' | 'submitted';
 
-const startButtonTemplate = (ele) => {
-  if (ele._state.loadingState === LOADING_STATES.IDLE
-    || ele._state.loadingState === LOADING_STATES.SUBMITTED
-  ) {
-    return null;
-  }
-  if (ele._state.loadingState === LOADING_STATES.LOADING
-    || ele._state.bpmCalculationState === LOADING_STATES.LOADING) {
-    return html`<div>Loading...</div>`;
-  }
-  return html`
-    <button
-    class=start
-    id=${START_BUTTON_ID}
-    @click=${ele._start}
-    >Start</button>
-  `;
-};
+interface animationMarker {
+  cm: string;
+}
 
-const bpmListOptionTemplate = (option, onClick) => html`
-  <li class=bpm-options-item>
-    <button class=bpm-options-item-button
-      @click=${() => onClick(option.tempo)}
-    >
-      ${option.tempo}
-    </button>
-  </li>
-`;
+interface tempoInterval {
+  count: number;
+  tempo: number;
+}
 
-const bpmListTemplate = (ele) => html`
-  <ul class=bpm-options>
-    ${ele._state.bmpList.map(((bpmOption) => bpmListOptionTemplate(
-    bpmOption,
-    (option) => ele._onBpmSelected(option),
-  )))}
-  </ul>
-`;
+interface tempoPeak {
+  volume: number;
+  position: number;
+}
 
-const template = (ele) => html`
+export class SkottieAudioSk extends ElementSk {
+  private static template = (ele: SkottieAudioSk) => html`
   <div>
     <header class="header">
       Audio
@@ -98,59 +71,100 @@ const template = (ele) => html`
             /> Choose audio file
           </label>
           <checkbox-sk label="Loop"
-            ?checked=${ele._state.loop}
-            @click=${ele._toggleLoop}>
+            ?checked=${ele.shouldLoop}
+            @click=${ele.toggleLoop}>
           </checkbox-sk>
           <label class=input-label>
             <input
               type=number
               id=${BPM_ID}
-              .value=${ele._state.bpm}
+              .value=${ele.bpm}
               required
             /> BPM
           </label>
-          ${bpmListTemplate(ele)}
+          ${ele.bpmListTemplate()}
           <label class=input-label>
             <input
               type=number
               id=${BEAT_DURATION_ID}
-              .value=${ele._state.beatDuration}
+              .value=${ele.beatDuration}
               required
             /> Beat Duration (in frames)
           </label>
         </div>
-        ${startButtonTemplate(ele)}
+        ${ele.startButtonTemplate()}
     <section>
   </div>
 `;
 
-class SkottieAudioSk extends HTMLElement {
+  private startButtonTemplate = () => {
+    if (this.loadingState === 'idle' || this.loadingState === 'submitted'
+    ) {
+      return null;
+    }
+    if (this.loadingState === 'loading' || this.bpmCalculationState === 'loading') {
+      return html`<div>Loading...</div>`;
+    }
+    return html`
+    <button
+    class=start
+    id=${START_BUTTON_ID}
+    @click=${this.start}
+    >Start</button>
+  `;
+  };
+
+  private static bpmListOptionTemplate = (option: tempoInterval, onClick: (t: number)=> void) => html`
+  <li class=bpm-options-item>
+    <button class=bpm-options-item-button
+      @click=${() => onClick(option.tempo)}
+    >
+      ${option.tempo}
+    </button>
+  </li>
+`;
+
+  private bpmListTemplate = () => html`
+  <ul class=bpm-options>
+    ${this.bmpList.map(((b: tempoInterval) => SkottieAudioSk.bpmListOptionTemplate(
+    b,
+    (option: number) => this.onBpmSelected(option),
+  )))}
+  </ul>
+`;
+
+  private _animation: Record<string, unknown> | null = null;
+
+  private beatDuration: number = 0;
+
+  private bmpList: tempoInterval[] = [];
+
+  private bpm: number = 0;
+
+  private bpmCalculationState: LoadingState = 'idle';
+
+  private file: File | null = null;
+
+  private loadingState: LoadingState = 'idle';
+
+  private shouldLoop: boolean = true;
+
+  private sound: Howl | null = null;
+
   constructor() {
-    super();
-    this._state = {
-      bpm: 0,
-      beatDuration: 0,
-      loop: true,
-      loadingState: LOADING_STATES.IDLE,
-      bpmCalculationState: LOADING_STATES.IDLE,
-      bmpList: [],
-    };
-    this._sound = null;
-    this._file = null;
-    this._animation = null;
+    super(SkottieAudioSk.template);
   }
 
-  /** @prop animation {Object} new animation to traverse. */
-  set animation(val) {
+  set animation(val: Record<string, unknown>) {
     if (this._animation !== val) {
       this._animation = val;
-      this._updateAnimation(val);
+      this.updateAnimation(val);
     }
   }
 
-  _updateAnimation(animation) {
-    const markers = animation.markers || [];
-    const marker = markers.find((markerItem) => {
+  private updateAnimation(animation: Record<string, unknown>): void {
+    const markers = (animation.markers || []) as animationMarker[];
+    const marker = markers.find((markerItem: animationMarker) => {
       try {
         const markerData = JSON.parse(markerItem.cm);
         if (markerData.type === 'beat') {
@@ -167,13 +181,13 @@ class SkottieAudioSk extends HTMLElement {
         payload: JSON.parse(marker.cm),
       };
       if (beatData.payload.beat) {
-        this._state.beatDuration = beatData.payload.beat;
+        this.beatDuration = beatData.payload.beat;
         this._render();
       }
     }
   }
 
-  _getPeaks(data) {
+  private static getPeaks(data: Float32Array[]): tempoPeak[] {
     // What we're going to do here, is to divide up our audio into parts.
 
     // We will then identify, for each part, what the loudest sample is in that
@@ -192,10 +206,10 @@ class SkottieAudioSk extends HTMLElement {
 
     const partSize = 22050;
     const parts = data[0].length / partSize;
-    let peaks = [];
+    let peaks: tempoPeak[] = [];
 
     for (let i = 0; i < parts; i++) {
-      let max = 0;
+      let max: tempoPeak | null = null;
       for (let j = i * partSize; j < (i + 1) * partSize; j++) {
         const volume = Math.max(Math.abs(data[0][j]), Math.abs(data[1][j]));
         if (!max || (volume > max.volume)) {
@@ -205,27 +219,27 @@ class SkottieAudioSk extends HTMLElement {
           };
         }
       }
-      peaks.push(max);
+      peaks.push(max!);
     }
     // We then sort the peaks according to volume...
-    peaks.sort((a, b) => b.volume - a.volume);
+    peaks.sort((a: tempoPeak, b: tempoPeak) => b.volume - a.volume);
     // ...take the loundest half of those...
     peaks = peaks.splice(0, peaks.length * 0.5);
     // ...and re-sort it back based on position.
-    peaks.sort((a, b) => a.position - b.position);
+    peaks.sort((a: tempoPeak, b: tempoPeak) => a.position - b.position);
     return peaks;
   }
 
-  _getIntervals(peaks) {
+  private getIntervals(peaks: tempoPeak[]) {
     // What we now do is get all of our peaks, and then measure the distance to
     // other peaks, to create intervals.  Then based on the distance between
     // those peaks (the distance of the intervals) we can calculate the BPM of
     // that particular interval.
     // The interval that is seen the most should have the BPM that corresponds
     // to the track itself.
-    const groups = [];
+    const groups: tempoInterval[] = [];
 
-    peaks.forEach((peak, index) => {
+    peaks.forEach((peak: tempoPeak, index: number) => {
       for (let i = 1; (index + i) < peaks.length && i < 10; i++) {
         const group = {
           tempo: (60 * 44100) / (peaks[index + i].position - peak.position),
@@ -242,7 +256,7 @@ class SkottieAudioSk extends HTMLElement {
 
         group.tempo = Math.round(group.tempo);
 
-        const groupTempo = groups.find((interval) => interval.tempo === group.tempo);
+        const groupTempo = groups.find((interval: tempoInterval) => interval.tempo === group.tempo);
         if (!groupTempo) {
           groups.push(group);
         } else {
@@ -253,30 +267,29 @@ class SkottieAudioSk extends HTMLElement {
     return groups;
   }
 
-  _onOfflineRenderComplete(e) {
+  private onOfflineRenderComplete(e: OfflineAudioCompletionEvent): void {
     const buffer = e.renderedBuffer;
-    const peaks = this._getPeaks([buffer.getChannelData(0), buffer.getChannelData(1)]);
-    const groups = this._getIntervals(peaks);
+    const peaks = SkottieAudioSk.getPeaks([buffer.getChannelData(0), buffer.getChannelData(1)]);
+    const groups = this.getIntervals(peaks);
 
-    const top = groups.sort((intA, intB) => intB.count - intA.count).splice(0, 5);
-    this._state.bmpList = top;
-    if (!this._state.bpm) {
-      this._state.bpm = top[0].tempo;
+    const top = groups.sort((intA: tempoInterval, intB: tempoInterval) => intB.count - intA.count).splice(0, 5);
+    this.bmpList = top;
+    if (!this.bpm) {
+      this.bpm = top[0].tempo;
     }
-    this._state.bpmCalculationState = LOADING_STATES.LOADED;
+    this.bpmCalculationState = 'loaded';
     this._render();
   }
 
   // It looks for peaks on the audio to estimate best guesses of the bpm
   // more info about it https://jmperezperez.com/bpm-detection-javascript/
-  _detectBPMs(ev) {
-    const track = ev.target.result;
+  private detectBPMs(ev: ProgressEvent<FileReader>): void {
+    const track = ev.target!.result as ArrayBuffer;
 
     // Create offline context
-    const OfflineContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-    const offlineContext = new OfflineContext(2, 30 * 44100, 44100);
+    const offlineContext = new OfflineAudioContext(2, 30 * 44100, 44100);
 
-    offlineContext.decodeAudioData(track, (buffer) => {
+    offlineContext.decodeAudioData(track, (buffer: AudioBuffer) => {
       // Create buffer source
       const source = offlineContext.createBufferSource();
       source.buffer = buffer;
@@ -316,81 +329,81 @@ class SkottieAudioSk extends HTMLElement {
       offlineContext.startRendering();
     });
 
-    offlineContext.oncomplete = (evt) => this._onOfflineRenderComplete(evt);
+    offlineContext.oncomplete = (e: OfflineAudioCompletionEvent) => this.onOfflineRenderComplete(e);
   }
 
-  _onBpmSelected(option) {
-    this._state.bpm = option;
-    if (this._state.loadingState === LOADING_STATES.SUBMITTED) {
-      this._start();
+  private onBpmSelected(option: number): void {
+    this.bpm = option;
+    if (this.loadingState === 'submitted') {
+      this.start();
     } else {
       this._render();
     }
   }
 
-  _onFileDataLoaded(ev) {
-    const result = ev.target.result;
-    if (this._sound) {
-      this._sound.unload();
+  private onFileDataLoaded(ev: ProgressEvent<FileReader>): void {
+    const result = ev.target!.result as string;
+    if (this.sound) {
+      this.sound.unload();
     }
-    this._sound = new Howl({
+    this.sound = new Howl({
       src: [result],
-      loop: this._state.loop,
+      loop: this.shouldLoop,
     });
-    this._sound.on('load', () => this._onAudioLoaded());
+    this.sound.on('load', () => this.onAudioLoaded());
   }
 
-  _onBpmChange(ev) {
+  private onBpmChange(ev: Event): void {
     ev.preventDefault();
-    const value = parseInt(ev.target.value, 10);
-    if (this._state.bpm !== value) {
-      this._state.bpm = value;
-      if (this._state.loadingState === LOADING_STATES.SUBMITTED) {
-        this._start();
+    const value = parseInt((ev.target as HTMLInputElement).value, 10);
+    if (this.bpm !== value) {
+      this.bpm = value;
+      if (this.loadingState === 'submitted') {
+        this.start();
       } else {
         this._render();
       }
     }
   }
 
-  _onBeatDurationChange(ev) {
+  private onBeatDurationChange(ev: Event): void {
     ev.preventDefault();
-    const value = Number(ev.target.value);
-    if (this._state.beatDuration !== value) {
-      this._state.beatDuration = value;
+    const value = +(ev.target as HTMLInputElement).value;
+    if (this.beatDuration !== value) {
+      this.beatDuration = value;
     }
     this._render();
   }
 
-  _toggleLoop(ev) {
+  private toggleLoop(ev: Event): void {
     ev.preventDefault();
-    this._state.loop = !this._state.loop;
-    if (this._sound) {
-      this._sound.loop(this._state.loop);
+    this.shouldLoop = !this.shouldLoop;
+    if (this.sound) {
+      this.sound.loop(this.shouldLoop);
     }
     this._render();
   }
 
-  _onAudioLoaded() {
-    this._state.loadingState = LOADING_STATES.LOADED;
+  private onAudioLoaded(): void {
+    this.loadingState = 'loaded';
     this._render();
   }
 
   // It looks for a bpm as part of the file name.
   // The format of the name should be [name]bpm_[number]
-  _searchBpmOnName(name) {
+  private static searchBpmOnName(name: string): number {
     const regex = /bpm_([0-9]*)/i;
     const found = name.match(regex);
     if (found) {
-      return found[1];
+      return +found[1];
     }
     return 0;
   }
 
-  _start() {
-    const animBeat = this._state.beatDuration;
-    const animFps = this._animation.fr;
-    const songBpm = this._state.bpm;
+  private start(): void {
+    const animBeat = this.beatDuration;
+    const animFps = this.animation.fr as number;
+    const songBpm = this.bpm;
     const songBps = songBpm / 60;
     const animBps = animFps / animBeat;
     let animSpeed = songBps / animBps;
@@ -402,64 +415,63 @@ class SkottieAudioSk extends HTMLElement {
         speed: animSpeed,
       },
     }));
-    this._sound.seek(0);
-    if (!this._sound.playing()) {
-      this._sound.play();
+    if (this.sound) {
+      this.sound.seek(0);
+      if (!this.sound.playing()) {
+        this.sound.play();
+      }
     }
-    this._state.loadingState = LOADING_STATES.SUBMITTED;
+    this.loadingState = 'submitted';
     this._render();
   }
 
-  pause() {
-    if (this._sound) {
-      this._sound.pause();
+  pause(): void {
+    if (this.sound) {
+      this.sound.pause();
     }
   }
 
-  resume() {
-    if (this._sound) {
-      this._sound.play();
+  resume(): void {
+    if (this.sound) {
+      this.sound.play();
     }
   }
 
-  rewind() {
-    if (this._sound) {
-      this._sound.seek(0);
+  rewind(): void {
+    if (this.sound) {
+      this.sound.seek(0);
     }
   }
 
-  _onFileChange(event) {
-    this._file = event.target.files[0];
-    this._state.bpm = this._searchBpmOnName(this._file.name);
-    this._state.loadingState = LOADING_STATES.LOADING;
-    this._state.bpmCalculationState = LOADING_STATES.LOADING;
+  private onFileChange(ev: Event): void {
+    this.file = (ev.target as HTMLInputElement).files![0];
+    this.bpm = SkottieAudioSk.searchBpmOnName(this.file.name);
+    this.loadingState = 'loading';
+    this.bpmCalculationState = 'loading';
     const reader = new FileReader();
-    reader.readAsDataURL(this._file);
-    reader.addEventListener('load', (ev) => this._onFileDataLoaded(ev), false);
+    reader.readAsDataURL(this.file);
+    reader.addEventListener('load', (e: ProgressEvent<FileReader>) => this.onFileDataLoaded(e), false);
     const arrayBufferReader = new FileReader();
-    arrayBufferReader.readAsArrayBuffer(this._file);
-    arrayBufferReader.addEventListener('load', (ev) => this._detectBPMs(ev), false);
+    arrayBufferReader.readAsArrayBuffer(this.file);
+    arrayBufferReader.addEventListener('load', (e: ProgressEvent<FileReader>) => this.detectBPMs(e), false);
     this._render();
   }
 
-  async _inputEvent(ev) {
-    if (ev.target.id === INPUT_FILE_ID) {
-      this._onFileChange(ev);
-    } else if (ev.target.id === BPM_ID) {
-      this._onBpmChange(ev);
-    } else if (ev.target.id === BEAT_DURATION_ID) {
-      this._onBeatDurationChange(ev);
+  async inputEvent(ev: Event): Promise<void> {
+    const target = ev.target as HTMLInputElement;
+    if (target.id === INPUT_FILE_ID) {
+      this.onFileChange(ev);
+    } else if (target.id === BPM_ID) {
+      this.onBpmChange(ev);
+    } else if (target.id === BEAT_DURATION_ID) {
+      this.onBeatDurationChange(ev);
     }
     this._render();
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     this._render();
-    this.addEventListener('input', this._inputEvent);
-  }
-
-  _render() {
-    render(template(this), this, { eventContext: this });
+    this.addEventListener('input', this.inputEvent);
   }
 }
 
