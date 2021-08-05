@@ -858,13 +858,18 @@ func (s *AutoRollStateMachine) NextTransitionSequence(ctx context.Context) error
 	if err := s.NextTransition(ctx); err != nil {
 		return err
 	}
-	// Greedily perform transitions until we reach a transition which is not
-	// a no-op, or until we've performed a maximum number of transitions, to
-	// keep us from accidentally looping extremely quickly.
+	// Greedily perform transitions until we either reach a transition which is
+	// not a no-op or we find a self-cycle, or until we've performed a maximum
+	// number of transitions, to keep us from accidentally looping extremely
+	// quickly.
+	currentState := s.Current()
 	for i := 0; i < MAX_NOOP_TRANSITIONS; i++ {
 		next, err := s.GetNext(ctx)
 		if err != nil {
 			return err
+		}
+		if next == currentState {
+			return nil
 		}
 		fName, err := s.s.GetTransitionName(next)
 		if err != nil {
