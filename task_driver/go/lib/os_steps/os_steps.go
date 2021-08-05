@@ -33,7 +33,8 @@ func MkdirAll(ctx context.Context, path string) (err error) {
 	})
 }
 
-// TempDir is a wrapper for ioutil.TempDir.
+// TempDir is a wrapper for ioutil.TempDir. In swarming, this file might not be in /tmp, but in a
+// subdirectory of the swarming task work directory.
 func TempDir(ctx context.Context, dir, pattern string) (string, error) {
 	var tempDir string
 	err := td.Do(ctx, td.Props("Creating TempDir").Infra(), func(context.Context) error {

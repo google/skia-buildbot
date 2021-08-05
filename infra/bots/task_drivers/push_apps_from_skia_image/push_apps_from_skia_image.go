@@ -65,7 +65,14 @@ func buildPushFiddlerImage(ctx context.Context, tag, repo, configDir string, top
 	image := fmt.Sprintf("gcr.io/skia-public/%s", fiddlerImageName)
 	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/fiddlek && ./build_fiddler_release"}
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
-	return docker.BuildPushImageFromInfraImage(ctx, "Fiddler", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, infraCommonBuildArgs)
+	err = docker.BuildPushImageFromInfraImage(ctx, "Fiddler", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, infraCommonBuildArgs)
+	if err != nil {
+		return err
+	}
+	// Remove all temporary files from the host machine. Swarming gets upset if there are root-owned
+	// files it cannot clean up.
+	cleanupCmd := []string{"/bin/sh", "-c", "rm -rf /OUT/*"}
+	return docker.Run(ctx, image, configDir, cleanupCmd, volumes, nil)
 }
 
 func buildPushApiImage(ctx context.Context, tag, repo, configDir, checkoutDir string, topic *pubsub.Topic) error {
@@ -95,7 +102,14 @@ func buildPushApiImage(ctx context.Context, tag, repo, configDir, checkoutDir st
 	infraEnv := util.CopyStringSlice(infraCommonEnv)
 	infraEnv = append(infraEnv, "DOXYGEN_HTML=/OUT/html")
 	infraVolumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
-	return docker.BuildPushImageFromInfraImage(ctx, "Api", image, tag, repo, configDir, tempDir, "prod", topic, cmd, infraVolumes, infraEnv, infraCommonBuildArgs)
+	err = docker.BuildPushImageFromInfraImage(ctx, "Api", image, tag, repo, configDir, tempDir, "prod", topic, cmd, infraVolumes, infraEnv, infraCommonBuildArgs)
+	if err != nil {
+		return err
+	}
+	// Remove all temporary files from the host machine. Swarming gets upset if there are root-owned
+	// files it cannot clean up.
+	cleanupCmd := []string{"/bin/sh", "-c", "rm -rf /OUT/*"}
+	return docker.Run(ctx, image, configDir, cleanupCmd, volumes, nil)
 }
 
 func main() {

@@ -186,7 +186,8 @@ func main() {
 		fmt.Sprintf("%s:/OUT", wasmProductsDir),
 	}
 	wasmCopyCmd := []string{"/bin/sh", "-c", "cp -r /tmp/* /OUT"}
-	if err := docker.Run(ctx, fmt.Sprintf("gcr.io/skia-public/skia-wasm-release:%s", tag), configDir, wasmCopyCmd, volumes, nil); err != nil {
+	releaseImg := fmt.Sprintf("gcr.io/skia-public/skia-wasm-release:%s", tag)
+	if err := docker.Run(ctx, releaseImg, configDir, wasmCopyCmd, volumes, nil); err != nil {
 		td.Fatal(ctx, err)
 	}
 
@@ -201,6 +202,13 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	if err := buildPushDebuggerImage(ctx, tag, rs.Repo, wasmProductsDir, configDir, topic); err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	// Remove all temporary files from the host machine. Swarming gets upset if there are root-owned
+	// files it cannot clean up.
+	cleanupCmd := []string{"/bin/sh", "-c", "rm -rf /OUT/*"}
+	if err := docker.Run(ctx, releaseImg, configDir, cleanupCmd, volumes, nil); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
