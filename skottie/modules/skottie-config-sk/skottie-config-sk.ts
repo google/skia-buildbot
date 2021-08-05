@@ -25,11 +25,12 @@
  * @evt cancelled - This event is generated when the user presses Cancel.
  *
  */
-import 'elements-sk/styles/buttons'
-import { define } from 'elements-sk/define'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { html, render } from 'lit-html'
-import { $$ } from 'common-sk/modules/dom'
+import 'elements-sk/styles/buttons';
+import { define } from 'elements-sk/define';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { html } from 'lit-html';
+import { $$ } from 'common-sk/modules/dom';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 const DEFAULT_SIZE = 128;
 
@@ -39,12 +40,29 @@ const BACKGROUND_VALUES = {
   DARK: '#000000',
 };
 
-const allowZips = window.location.hostname === "skottie-internal.skia.org" ||
-                  window.location.hostname === "localhost";
+const allowZips = window.location.hostname === 'skottie-internal.skia.org'
+                  || window.location.hostname === 'localhost';
 
-const cancelButton = (ele) => ele._hasCancel() ? html`<button id=cancel @click=${ele._cancel}>Cancel</button>` : '';
+export interface SkottieConfigState {
+  filename: string,
+  lottie: Record<string, unknown> | null,
+  assetsZip: string,
+  assetsFilename: string,
+  w?: number,
+  h?: number,
+}
 
-const template = (ele) => html`
+export interface SkottieConfigDetail {
+  state: SkottieConfigState,
+  fileChanged: boolean,
+  width: number,
+  height: number,
+  fps: number,
+  backgroundColor: string,
+}
+
+export class SkottieConfigSk extends ElementSk {
+  private static template = (ele: SkottieConfigSk) => html`
   <div ?hidden=${!allowZips}>
     We support 3 types of uploads:
     <ul>
@@ -58,13 +76,13 @@ const template = (ele) => html`
     </ul>
   </div>
   <label class=file>Lottie file to upload
-    <input type=file name=file id=file @change=${ele._onFileChange}/>
+    <input type=file name=file id=file @change=${ele.onFileChange}/>
   </label>
   <div class="filename ${ele._state.filename ? '' : 'empty'}">
     ${ele._state.filename ? ele._state.filename : 'No file selected.'}
   </div>
   <label class=file ?hidden=${!allowZips}>Optional Asset Folder (.zip)
-    <input type=file name=folder id=folder @change=${ele._onFolderChange}/>
+    <input type=file name=folder id=folder @change=${ele.onFolderChange}/>
   </label>
   <div class="filename ${ele._state.assetsFilename ? '' : 'empty'}" ?hidden=${!allowZips}>
     ${ele._state.assetsFilename ? ele._state.assetsFilename : 'No asset folder selected.'}
@@ -82,7 +100,6 @@ const template = (ele) => html`
       >Light</option>
       <option
         value=${BACKGROUND_VALUES.DARK}
-        test=${ele._backgroundColor}
         ?selected=${ele._backgroundColor === BACKGROUND_VALUES.DARK}
        >Dark</option>
     </select>
@@ -100,104 +117,114 @@ const template = (ele) => html`
     0 for width/height means use the default from the animation. For FPS, 0 means "as smooth as possible"
     and -1 means "use what the animation says".
   </div>
-  <div class=warning ?hidden=${ele._warningHidden()}>
+  <div class=warning ?hidden=${ele.warningHidden()}>
     <p>
     The width or height of your file exceeds 1024, which may not fit on the screen.
     Press a 'Rescale' button to fix the dimensions while preserving the aspect ratio.
     </p>
     <div>
-      <button @click=${(e) => ele._rescale(1024)}>Rescale to 1024</button>
-      <button @click=${(e) => ele._rescale(512)}>Rescale to 512</button>
-      <button @click=${(e) => ele._rescale(128)}>Rescale to 128</button>
+      <button @click=${() => ele.rescale(1024)}>Rescale to 1024</button>
+      <button @click=${() => ele.rescale(512)}>Rescale to 512</button>
+      <button @click=${() => ele.rescale(128)}>Rescale to 128</button>
     </div>
   </div>
   <div id=dialog-buttons>
-    ${cancelButton(ele)}
-    <button class=action ?disabled=${ele._readyToGo()} @click=${ele._go}>Go</button>
+    ${ele.cancelButton()}
+    <button class=action ?disabled=${ele.readyToGo()} @click=${ele.go}>Go</button>
   </div>
 `;
 
-class SkottieConfigSk extends HTMLElement {
+  private cancelButton = () => {
+    if (this.hasCancel()) {
+      return html`<button id=cancel @click=${this.cancel}>Cancel</button>`;
+    }
+    return html``;
+  };
+
+  private _state: SkottieConfigState = {
+    filename: '',
+    lottie: null,
+    assetsZip: '',
+    assetsFilename: '',
+  };
+
+  private _width: number = DEFAULT_SIZE;
+
+  private _height: number = DEFAULT_SIZE;
+
+  private _fps: number = 0;
+
+  private _backgroundColor: string = BACKGROUND_VALUES.TRANSPARENT;
+
+  private _fileChanged: boolean = false;
+
   constructor() {
-    super();
-    this._state = {
-      filename: '',
-      lottie: null,
-      assetsZip: '',
-      assetsFileName: '',
-    };
-    this._width = DEFAULT_SIZE;
-    this._height = DEFAULT_SIZE;
-    this._fps = 0;
-    this._backgroundColor = BACKGROUND_VALUES.TRANSPARENT;
-    this._fileChanged = false;
-    this._starting_state = Object.assign({}, this._state);
+    super(SkottieConfigSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     this._render();
-    this.addEventListener('input', this._inputEvent);
+    this.addEventListener('input', this.inputEvent);
   }
 
-  disconnectedCallback() {
-    this.removeEventListener('input', this._inputEvent);
+  disconnectedCallback(): void {
+    this.removeEventListener('input', this.inputEvent);
   }
 
-  /** @prop height {Number} Selected height for animation. */
-  get height() { return this._height; }
-  set height(val) {
-    this._height= +val;
+  get height(): number { return this._height; }
+
+  set height(val: number) {
+    this._height = val;
     this._render();
   }
 
-  /** @prop state {string} Object that describes the state of the config dialog. */
-  get state() { return this._state; }
-  set state(val) {
-    this._state = Object.assign({}, val);
-    this._starting_state = Object.assign({}, this._state);
+  get state(): SkottieConfigState { return this._state; }
+
+  set state(val: SkottieConfigState) {
+    this._state = Object.assign({}, val); // make a copy of passed in state.
     this._render();
   }
 
-  /** @prop fps {Number} Selected FPS for animation. */
-  get fps() { return this._fps; }
-  set fps(val) {
+  get fps(): number { return this._fps; }
+
+  set fps(val: number) {
     this._fps = +val;
     this._render();
   }
 
-  /** @prop width {Number} Selected width for animation. */
-  get width() { return this._width; }
-  set width(val) {
+  get width(): number { return this._width; }
+
+  set width(val: number) {
     this._width = +val;
     this._render();
   }
 
-  /** @prop backgroundColor {string} Selected background color for animation. */
-  get backgroundColor() { return this._backgroundColor; }
-  set backgroundColor(val) {
+  get backgroundColor(): string { return this._backgroundColor; }
+
+  set backgroundColor(val: string) {
     this._backgroundColor = val;
     this._render();
   }
 
-  _hasCancel() {
-     return !!this._starting_state.lottie;
+  private hasCancel(): boolean {
+    return !!this._state.lottie;
   }
 
-  _readyToGo() {
-    return !this._state.filename && (this._state.lottie || this._state.assetsZip);
+  private readyToGo(): boolean {
+    return !this._state.filename && (!!this._state.lottie || !!this._state.assetsZip);
   }
 
-  _onFileChange(e) {
+  private onFileChange(e: Event): void {
+    const files = (e.target as HTMLInputElement).files!;
     this._fileChanged = true;
-    const toLoad = e.target.files[0];
+    const toLoad = files[0];
     const reader = new FileReader();
     if (toLoad.name.endsWith('.json')) {
       reader.addEventListener('load', () => {
-        let parsed = {};
+        let parsed: Partial<SkottieConfigState> = {};
         try {
-          parsed = JSON.parse(reader.result);
-        }
-        catch(error) {
+          parsed = JSON.parse(reader.result as string);
+        } catch (error) {
           errorMessage(`Not a valid JSON file: ${error}`);
           return;
         }
@@ -213,8 +240,8 @@ class SkottieConfigSk extends HTMLElement {
       reader.readAsText(toLoad);
     } else if (allowZips && toLoad.name.endsWith('.zip')) {
       reader.addEventListener('load', () => {
-        this._state.lottie = '';
-        this._state.assetsZip = reader.result;
+        this._state.lottie = null;
+        this._state.assetsZip = reader.result as string;
         this._state.filename = toLoad.name;
 
         this._width = DEFAULT_SIZE;
@@ -222,7 +249,7 @@ class SkottieConfigSk extends HTMLElement {
         this._render();
       });
       reader.addEventListener('error', () => {
-        errorMessage('Failed to load '+ toLoad.name);
+        errorMessage(`Failed to load ${toLoad.name}`);
       });
       reader.readAsDataURL(toLoad);
     } else {
@@ -232,70 +259,71 @@ class SkottieConfigSk extends HTMLElement {
       }
       errorMessage(msg);
       this._state.filename = '';
-      this._state.lottie = '';
+      this._state.lottie = null;
     }
   }
 
-  _onFolderChange(e) {
+  private onFolderChange(e: Event): void {
+    const files = (e.target as HTMLInputElement).files!;
     this._fileChanged = true;
-    const toLoad = e.target.files[0];
+    const toLoad = files[0];
     const reader = new FileReader();
     reader.addEventListener('load', () => {
-      this._state.assetsZip = reader.result;
+      this._state.assetsZip = reader.result as string;
       this._state.assetsFilename = toLoad.name;
       this._render();
     });
     reader.addEventListener('error', () => {
-      errorMessage('Failed to load '+ toLoad.name);
+      errorMessage(`Failed to load ${toLoad.name}`);
     });
     reader.readAsDataURL(toLoad);
   }
 
-  _rescale(n) {
-    let max = Math.max(this._width, this._height);
+  private rescale(n: number): void {
+    const max = Math.max(this._width, this._height);
     if (max <= n) {
-      return
+      return;
     }
-    this._width = Math.floor(this._width * n / max);
-    this._height = Math.floor(this._height * n / max);
+    this._width = Math.floor((this._width * n) / max);
+    this._height = Math.floor((this._height * n) / max);
     this._render();
   }
 
-  _warningHidden() {
+  private warningHidden(): boolean {
     return this._width <= 1024 && this._width <= 1024;
   }
 
-  _updateState() {
-    this._width = +$$('#width', this).value;
-    this._height = +$$('#height', this).value;
-    this._fps = +$$('#fps', this).value;
-    this._backgroundColor = $$('#backgroundColor', this).value;
+  private updateState(): void {
+    this._width = +$$<HTMLInputElement>('#width', this)!.value;
+    this._height = +$$<HTMLInputElement>('#height', this)!.value;
+    this._fps = +$$<HTMLInputElement>('#fps', this)!.value;
+    this._backgroundColor = $$<HTMLInputElement>('#backgroundColor', this)!.value;
   }
 
-  _go() {
-    this._updateState();
-    this.dispatchEvent(new CustomEvent('skottie-selected', { detail: {
-      'state' : this._state,
-      'fileChanged': this._fileChanged,
-      'width' : this._width,
-      'height': this._height,
-      'fps': this._fps,
-      'backgroundColor': this._backgroundColor,
-    }, bubbles: true }));
+  private go(): void {
+    this.updateState();
+    const detail: SkottieConfigDetail = {
+      state: this._state,
+      fileChanged: this._fileChanged,
+      width: this._width,
+      height: this._height,
+      fps: this._fps,
+      backgroundColor: this._backgroundColor,
+    };
+    this.dispatchEvent(new CustomEvent('skottie-selected', {
+      detail: detail,
+      bubbles: true,
+    }));
   }
 
-  _cancel() {
+  private cancel(): void {
     this.dispatchEvent(new CustomEvent('cancelled', { bubbles: true }));
   }
 
-  _inputEvent() {
-    this._updateState();
+  private inputEvent(): void {
+    this.updateState();
     this._render();
   }
-
-  _render() {
-    render(template(this), this, {eventContext: this});
-  }
-};
+}
 
 define('skottie-config-sk', SkottieConfigSk);

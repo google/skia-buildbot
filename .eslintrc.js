@@ -65,7 +65,7 @@ module.exports = {
         '@typescript-eslint/no-non-null-assertion': 'off',
 
         // Require a consistent member declaration order
-        '@typescript-eslint/member-ordering': 'warn',
+        '@typescript-eslint/member-ordering': 'off',
 
         // Don't require the .ts extension for imports.
         'import/extensions': 'off',
