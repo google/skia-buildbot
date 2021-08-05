@@ -7,28 +7,27 @@
  * </p>
  *
  */
-import '../skottie-config-sk'
-import '../skottie-player-sk'
-import 'elements-sk/checkbox-sk'
-import 'elements-sk/collapse-sk'
-import 'elements-sk/error-toast-sk'
-import { $$ } from 'common-sk/modules/dom'
-import { SKIA_VERSION } from '../../build/version.js'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
-import { stateReflector } from 'common-sk/modules/stateReflector'
-import '../skottie-gif-exporter'
-import '../skottie-text-editor'
-import { replaceTexts } from '../skottie-text-editor/text-replace'
-import '../skottie-library-sk'
-import { SoundMap, AudioPlayer } from '../audio'
-import '../skottie-performance-sk'
-import { renderByDomain } from '../helpers/templates'
-import { supportedDomains } from '../helpers/domains'
-import '../skottie-audio-sk'
+import '../skottie-config-sk';
+import '../skottie-player-sk';
+import 'elements-sk/checkbox-sk';
+import 'elements-sk/collapse-sk';
+import 'elements-sk/error-toast-sk';
+import { $$ } from 'common-sk/modules/dom';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { define } from 'elements-sk/define';
+import { html, render } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { stateReflector } from 'common-sk/modules/stateReflector';
+import { SKIA_VERSION } from '../../build/version';
+import '../skottie-gif-exporter';
+import '../skottie-text-editor';
+import { replaceTexts } from '../skottie-text-editor/text-replace';
+import '../skottie-library-sk';
+import { SoundMap, AudioPlayer } from '../audio';
+import '../skottie-performance-sk';
+import { renderByDomain } from '../helpers/templates';
+import { supportedDomains } from '../helpers/domains';
+import '../skottie-audio-sk';
 import viewModes from '../helpers/viewModes';
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
@@ -96,15 +95,11 @@ const livePreview = (ele) => {
   <figcaption>Preview [lottie-web]</figcaption>
 </figure>`;
   }
-}
+};
 
-const iframeDirections = (ele) => {
-  return `<iframe width="${ele._width}" height="${ele._height}" src="${window.location.origin}/e/${ele._hash}?w=${ele._width}&h=${ele._height}" scrolling=no>`;
-}
+const iframeDirections = (ele) => `<iframe width="${ele._width}" height="${ele._height}" src="${window.location.origin}/e/${ele._hash}?w=${ele._width}&h=${ele._height}" scrolling=no>`;
 
-const inlineDirections = (ele) => {
-  return `<skottie-inline-sk width="${ele._width}" height="${ele._height}" src="${window.location.origin}/_/j/${ele._hash}"></skottie-inline-sk>`;
-}
+const inlineDirections = (ele) => `<skottie-inline-sk width="${ele._width}" height="${ele._height}" src="${window.location.origin}/_/j/${ele._hash}"></skottie-inline-sk>`;
 
 const jsonEditor = (ele) => {
   if (!ele._showEditor) {
@@ -114,7 +109,7 @@ const jsonEditor = (ele) => {
 <section class=editor>
   <div id=json_editor></div>
 </section>`;
-}
+};
 
 const gifExporter = (ele) => {
   if (!ele._showGifExporter) {
@@ -127,7 +122,7 @@ const gifExporter = (ele) => {
   >
   </skottie-gif-exporter>
 </section>`;
-}
+};
 
 const jsonTextEditor = (ele) => {
   if (!ele._showTextEditor) {
@@ -205,7 +200,7 @@ const controls = (ele) => {
   if (ele._viewMode === viewModes.PRESENTATION) {
     return null;
   } return html`
-  <button class=edit-config @click=${ ele._startEdit}>
+  <button class=edit-config @click=${ele._startEdit}>
   ${ele._state.filename} ${ele._width}x${ele._height} ...
   </button>
   <div class=controls>
@@ -216,7 +211,7 @@ const controls = (ele) => {
       <a target=_blank download=${ele._state.filename} href=${ele._downloadUrl}>
         JSON
       </a>
-      ${ele._hasEdits? '(without edits)': ''}
+      ${ele._hasEdits ? '(without edits)' : ''}
     </div>
     <checkbox-sk label="Show lottie-web"
                 ?checked=${ele._showLottie}
@@ -242,7 +237,7 @@ const controls = (ele) => {
     ${audioButton(ele)}
     <button @click=${ele._toggleEmbed}>Embed</button>
     <div class=scrub>
-      <input id=scrub type=range min=0 max=${SCRUBBER_RANGE+1} step=0.1
+      <input id=scrub type=range min=0 max=${SCRUBBER_RANGE + 1} step=0.1
           @input=${ele._onScrub} @change=${ele._onScrubEnd}>
     </div>
     <collapse-sk id=volume closed>
@@ -253,8 +248,8 @@ const controls = (ele) => {
         @input=${ele._onVolumeChange}>
     </collapse-sk>
   </div>
-  `
-}
+  `;
+};
 
 const displayLoaded = (ele) => html`
 ${controls(ele)}
@@ -370,57 +365,56 @@ define('skottie-sk', class extends HTMLElement {
     this._viewMode = viewModes.DEFAULT;
 
     this._stateChanged = stateReflector(
-      /*getState*/() => {
-        return {
-          // provide empty values
-          'l' : this._showLottie,
-          'e' : this._showEditor,
-          'g' : this._showGifExporter,
-          't' : this._showTextEditor,
-          'p' : this._showPerformanceChart,
-          'i' : this._showLibrary,
-          'a' : this._showAudio,
-          'w' : this._width,
-          'h' : this._height,
-          'f' : this._fps,
-          'bg': this._backgroundColor,
-          'mode': this._viewMode,
-        }
-    }, /*setState*/(newState) => {
-      this._showLottie = newState.l;
-      this._showEditor = newState.e;
-      this._showGifExporter = newState.g;
-      this._showTextEditor = newState.t;
-      this._showPerformanceChart = newState.p;
-      this._showLibrary = newState.i;
-      this._showAudio = newState.a;
-      this._width = newState.w;
-      this._height = newState.h;
-      this._fps = newState.f;
-      this._viewMode = Object.values(viewModes).includes(newState.mode)
-        ? newState.mode
-        : viewModes.DEFAULT;
-      this._backgroundColor = newState.bg;
-      this._applyTextEdits = this._applyTextEdits.bind(this);
-      this._applyAudioSync = this._applyAudioSync.bind(this);
-      this._onGifExportStart = this._onGifExportStart.bind(this);
-      this.render();
-    });
+      /* getState */() => ({
+        // provide empty values
+        l: this._showLottie,
+        e: this._showEditor,
+        g: this._showGifExporter,
+        t: this._showTextEditor,
+        p: this._showPerformanceChart,
+        i: this._showLibrary,
+        a: this._showAudio,
+        w: this._width,
+        h: this._height,
+        f: this._fps,
+        bg: this._backgroundColor,
+        mode: this._viewMode,
+      }), /* setState */(newState) => {
+        this._showLottie = newState.l;
+        this._showEditor = newState.e;
+        this._showGifExporter = newState.g;
+        this._showTextEditor = newState.t;
+        this._showPerformanceChart = newState.p;
+        this._showLibrary = newState.i;
+        this._showAudio = newState.a;
+        this._width = newState.w;
+        this._height = newState.h;
+        this._fps = newState.f;
+        this._viewMode = Object.values(viewModes).includes(newState.mode)
+          ? newState.mode
+          : viewModes.DEFAULT;
+        this._backgroundColor = newState.bg;
+        this._applyTextEdits = this._applyTextEdits.bind(this);
+        this._applyAudioSync = this._applyAudioSync.bind(this);
+        this._onGifExportStart = this._onGifExportStart.bind(this);
+        this.render();
+      },
+    );
 
     this._duration = 0; // _duration = 0 is a sentinel value for "player not loaded yet"
 
     // The wasm animation computes how long it has been since the previous rendered time and
     // uses arithmetic to figure out where to seek (i.e. which frame to draw).
     this._previousFrameTime = null;
-     // used for remembering the time elapsed while the animation is playing.
+    // used for remembering the time elapsed while the animation is playing.
     this._elapsedTime = 0;
   }
 
   connectedCallback() {
     this._reflectFromURL();
-    this.addEventListener('skottie-selected', this)
-    this.addEventListener('cancelled', this)
-    window.addEventListener('popstate', this)
+    this.addEventListener('skottie-selected', this);
+    this.addEventListener('cancelled', this);
+    window.addEventListener('popstate', this);
     this.render();
 
     // Start a continous animation loop.
@@ -440,16 +434,16 @@ define('skottie-sk', class extends HTMLElement {
         const _currentTime = Date.now();
         this._elapsedTime += (_currentTime - this._previousFrameTime) * this._speed;
         this._previousFrameTime = _currentTime;
-        let progress = this._elapsedTime % this._duration;
+        const progress = this._elapsedTime % this._duration;
 
         // If we want to have synchronized playing, it's best to force
         // all players to draw the same frame rather than letting them play
         // on their own timeline.
         const normalizedProgress = progress / this._duration;
-        this._skottiePerformanceChart&& this._skottiePerformanceChart.start(
+        this._skottiePerformanceChart && this._skottiePerformanceChart.start(
           progress,
           this._duration,
-          this._state.lottie.fr
+          this._state.lottie.fr,
         );
         this._skottiePlayer && this._skottiePlayer.seek(normalizedProgress);
         this._skottiePerformanceChart && this._skottiePerformanceChart.end();
@@ -464,14 +458,14 @@ define('skottie-sk', class extends HTMLElement {
           scrubber.value = SCRUBBER_RANGE * progress / this._duration;
         }
       }
-    }
+    };
 
     window.requestAnimationFrame(drawFrame);
   }
 
   disconnectedCallback() {
-    this.removeEventListener('skottie-selected', this)
-    this.removeEventListener('cancelled', this)
+    this.removeEventListener('skottie-selected', this);
+    this.removeEventListener('cancelled', this);
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -568,25 +562,24 @@ define('skottie-sk', class extends HTMLElement {
 
   _initializePlayer() {
     this._skottiePlayer.initialize({
-      width:    this._width,
-      height:   this._height,
-      lottie:   this._state.lottie,
-      assets:   this._state.assets,
+      width: this._width,
+      height: this._height,
+      lottie: this._state.lottie,
+      assets: this._state.assets,
       soundMap: this._state.soundMap,
-      fps:      this._fps,
+      fps: this._fps,
     }).then(() => {
       this._skottiePerformanceChart && this._skottiePerformanceChart.reset();
       this._duration = this._skottiePlayer.duration();
       // If the user has specified a value for FPS, we want to lock the
       // size of the scrubber so it is as discrete as the frame rate.
       if (this._fps) {
-        const scrubber = $$("#scrub", this);
+        const scrubber = $$('#scrub', this);
         if (scrubber) {
           // calculate a scaled version of ms per frame as the step size.
           scrubber.step = (1000 / this._fps * SCRUBBER_RANGE / this._duration);
         }
       }
-
     });
   }
 
@@ -594,7 +587,7 @@ define('skottie-sk', class extends HTMLElement {
     const toLoad = [];
 
     const lottie = this._state.lottie;
-    let fonts  = [];
+    let fonts = [];
     let assets = [];
     if (lottie.fonts && lottie.fonts.list) {
       fonts = lottie.fonts.list;
@@ -618,7 +611,7 @@ define('skottie-sk', class extends HTMLElement {
       }
 
       // check fonts
-      fonts.forEach(font => {
+      fonts.forEach((font) => {
         if (!assets[font.fName]) {
           console.error(`Could not load font '${font.fName}'.`);
         }
@@ -631,13 +624,12 @@ define('skottie-sk', class extends HTMLElement {
       // Re-sync all players
       this._rewind();
     })
-    .catch(() => {
-      this.render();
-      this._initializePlayer();
-      // Re-sync all players
-      this._rewind();
-    });
-
+      .catch(() => {
+        this.render();
+        this._initializePlayer();
+        // Re-sync all players
+        this._rewind();
+      });
   }
 
   _loadFonts(fonts) {
@@ -654,12 +646,10 @@ define('skottie-sk', class extends HTMLElement {
             if (!resp.ok) {
               return null;
             }
-            return resp.arrayBuffer().then((buffer) => {
-              return {
-                'name': font.fName,
-                'bytes': buffer
-              };
-            });
+            return resp.arrayBuffer().then((buffer) => ({
+              name: font.fName,
+              bytes: buffer,
+            }));
           }));
       };
 
@@ -689,17 +679,16 @@ define('skottie-sk', class extends HTMLElement {
         const inline = asset.p && asset.p.startsWith && asset.p.startsWith('data:');
         if (inline) {
           promises.push({
-            'name': asset.id,
-            'player': new AudioPlayer(asset.p)
+            name: asset.id,
+            player: new AudioPlayer(asset.p),
           });
         } else {
           promises.push({
-            'name': asset.id,
-            'player': new AudioPlayer(`${this._assetsPath}/${this._hash}/${asset.p}`)
+            name: asset.id,
+            player: new AudioPlayer(`${this._assetsPath}/${this._hash}/${asset.p}`),
           });
         }
-      }
-      else {
+      } else {
         // asset.p is the filename, if it's an image.
         // Don't try to load inline/dataURI images.
         const should_load = asset.p && asset.p.startsWith && !asset.p.startsWith('data:');
@@ -708,17 +697,14 @@ define('skottie-sk', class extends HTMLElement {
             .then((resp) => {
               // fetch does not reject on 404
               if (!resp.ok) {
-                console.error(`Could not load ${asset.p}: status ${resp.status}`)
+                console.error(`Could not load ${asset.p}: status ${resp.status}`);
                 return null;
               }
-              return resp.arrayBuffer().then((buffer) => {
-                return {
-                  'name': asset.p,
-                  'bytes': buffer
-                };
-              });
-            })
-          );
+              return resp.arrayBuffer().then((buffer) => ({
+                name: asset.p,
+                bytes: buffer,
+              }));
+            }));
         }
       }
     }
@@ -746,16 +732,16 @@ define('skottie-sk', class extends HTMLElement {
   }
 
   _recoverFromError(msg) {
-      errorMessage(msg);
-      console.error(msg);
-      window.history.pushState(null, '', '/');
-      this._ui = DIALOG_MODE;
-      this.render();
+    errorMessage(msg);
+    console.error(msg);
+    window.history.pushState(null, '', '/');
+    this._ui = DIALOG_MODE;
+    this.render();
   }
 
   _reflectFromURL() {
     // Check URL.
-    let match = window.location.pathname.match(/\/([a-zA-Z0-9]+)/);
+    const match = window.location.pathname.match(/\/([a-zA-Z0-9]+)/);
     if (!match) {
       // Make this the hash of the lottie file you want to play on startup.
       this._hash = '1112d01d28a776d777cebcd0632da15b'; // gear.json
@@ -768,7 +754,7 @@ define('skottie-sk', class extends HTMLElement {
     setTimeout(() => {
       fetch(`/_/j/${this._hash}`, {
         credentials: 'include',
-      }).then(jsonOrThrow).then(json => {
+      }).then(jsonOrThrow).then((json) => {
         this._state = json;
         // remove legacy fields from state, if they are there.
         delete this._state.width;
@@ -785,11 +771,11 @@ define('skottie-sk', class extends HTMLElement {
   }
 
   render() {
-    if (this._downloadUrl)  {
+    if (this._downloadUrl) {
       URL.revokeObjectURL(this._downloadUrl);
     }
     this._downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(this._state.lottie)]));
-    render(template(this), this, {eventContext: this});
+    render(template(this), this, { eventContext: this });
 
     this._skottiePlayer = $$('skottie-player-sk', this);
     this._skottiePerformanceChart = $$('skottie-performance-sk', this);
@@ -818,7 +804,7 @@ define('skottie-sk', class extends HTMLElement {
         this._renderJSONEditor();
         this._renderTextEditor();
         this._renderAudioManager();
-      } catch(e) {
+      } catch (e) {
         console.warn('caught error while rendering third party code', e);
       }
     }
@@ -848,10 +834,10 @@ define('skottie-sk', class extends HTMLElement {
       this._editor = null;
       return;
     }
-    let editorContainer = $$('#json_editor');
+    const editorContainer = $$('#json_editor');
     // See https://github.com/josdejong/jsoneditor/blob/master/docs/api.md
     // for documentation on this editor.
-    let editorOptions = {
+    const editorOptions = {
       // Use original key order (this preserves related fields locality).
       sortObjectKeys: false,
       // There are sometimes a few onChange events that happen
@@ -862,16 +848,14 @@ define('skottie-sk', class extends HTMLElement {
           return;
         }
         this._hasEdits = true;
-        onUserEdit(editorContainer, this._editor.get());
         this.render();
-      }
+      },
     };
 
     if (!this._editor) {
       this._editorLoaded = false;
       editorContainer.innerHTML = '';
       this._editor = new JSONEditor(editorContainer, editorOptions);
-      setupListeners(editorContainer);
     }
     if (!this._hasEdits) {
       this._editorLoaded = false;
@@ -880,7 +864,6 @@ define('skottie-sk', class extends HTMLElement {
       // hit applyEdits.
       this._editor.set(this._state.lottie);
     }
-    reannotate(editorContainer, this._state.lottie);
     // We are now pretty confident that the onChange events will only be
     // when the user modifies the JSON.
     this._editorLoaded = true;
@@ -902,7 +885,7 @@ define('skottie-sk', class extends HTMLElement {
         // Apparently the lottie player modifies the data as it runs?
         animationData: JSON.parse(JSON.stringify(this._state.lottie)),
         rendererSettings: {
-          preserveAspectRatio:'xMidYMid meet'
+          preserveAspectRatio: 'xMidYMid meet',
         },
       });
       this._live = null;
@@ -920,7 +903,7 @@ define('skottie-sk', class extends HTMLElement {
         // Apparently the lottie player modifies the data as it runs?
         animationData: JSON.parse(JSON.stringify(this._editor.get())),
         rendererSettings: {
-          preserveAspectRatio:'xMidYMid meet'
+          preserveAspectRatio: 'xMidYMid meet',
         },
       });
     }
@@ -932,12 +915,12 @@ define('skottie-sk', class extends HTMLElement {
       // Pause the animation while dragging the slider.
       this._playingOnStartOfScrub = this._playing;
       if (this._playing) {
-        this._playpause()
+        this._playpause();
       }
       this._scrubbing = true;
     }
 
-    let seek = (e.currentTarget.value / SCRUBBER_RANGE);
+    const seek = (e.currentTarget.value / SCRUBBER_RANGE);
     this._elapsedTime = seek * this._duration;
     this._live && this._live.goToAndStop(seek);
     this._lottie && this._lottie.goToAndStop(seek * this._duration);
@@ -948,7 +931,7 @@ define('skottie-sk', class extends HTMLElement {
   // This fires when the user releases the scrub slider.
   _onScrubEnd(e) {
     if (this._playingOnStartOfScrub) {
-      this._playpause()
+      this._playpause();
     }
     this._scrubbing = false;
   }
@@ -969,7 +952,6 @@ define('skottie-sk', class extends HTMLElement {
       if (scrubber) {
         scrubber.value = 0;
       }
-
     } else {
       this._live && this._live.goToAndPlay(0);
       this._lottie && this._lottie.goToAndPlay(0);
@@ -1065,7 +1047,7 @@ define('skottie-sk', class extends HTMLElement {
       credentials: 'include',
       body: JSON.stringify(this._state),
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       method: 'POST',
     }).then(jsonOrThrow).then((json) => {
@@ -1073,7 +1055,7 @@ define('skottie-sk', class extends HTMLElement {
       this._ui = LOADED_MODE;
       this._hash = json.hash;
       this._state.lottie = json.lottie;
-      window.history.pushState(null, '', '/' + this._hash);
+      window.history.pushState(null, '', `/${this._hash}`);
       this._stateChanged();
       if (this._state.assetsZip) {
         this._loadAssetsAndRender();
@@ -1094,7 +1076,5 @@ define('skottie-sk', class extends HTMLElement {
       this._ui = LOADING_MODE;
       this.render();
     }
-
   }
-
 });
