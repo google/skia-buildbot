@@ -69,10 +69,15 @@ func buildPushFiddlerImage(ctx context.Context, tag, repo, configDir string, top
 	if err != nil {
 		return err
 	}
+	return cleanupTempFiles(ctx, configDir, volumes)
+}
+
+func cleanupTempFiles(ctx context.Context, configDir string, volumes []string) error {
 	// Remove all temporary files from the host machine. Swarming gets upset if there are root-owned
 	// files it cannot clean up.
+	const infraImageWithTag = "gcr.io/skia-public/infra:prod"
 	cleanupCmd := []string{"/bin/sh", "-c", "rm -rf /OUT/*"}
-	return docker.Run(ctx, image, configDir, cleanupCmd, volumes, nil)
+	return docker.Run(ctx, infraImageWithTag, configDir, cleanupCmd, volumes, nil)
 }
 
 func buildPushApiImage(ctx context.Context, tag, repo, configDir, checkoutDir string, topic *pubsub.Topic) error {
@@ -106,10 +111,7 @@ func buildPushApiImage(ctx context.Context, tag, repo, configDir, checkoutDir st
 	if err != nil {
 		return err
 	}
-	// Remove all temporary files from the host machine. Swarming gets upset if there are root-owned
-	// files it cannot clean up.
-	cleanupCmd := []string{"/bin/sh", "-c", "rm -rf /OUT/*"}
-	return docker.Run(ctx, image, configDir, cleanupCmd, volumes, nil)
+	return cleanupTempFiles(ctx, configDir, volumes)
 }
 
 func main() {
