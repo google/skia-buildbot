@@ -31,6 +31,7 @@ import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { SoundMap } from '../audio';
 
 const DEFAULT_SIZE = 128;
 
@@ -50,7 +51,7 @@ export interface SkottieConfigState {
   assetsFilename: string,
   w?: number,
   h?: number,
-  soundMap?: unknown, // TODO(kjlubick) Fix after audio.js is ported
+  soundMap?: SoundMap,
 }
 
 export interface SkottieConfigDetail {
@@ -147,7 +148,6 @@ export class SkottieConfigSk extends ElementSk {
     lottie: null,
     assetsZip: '',
     assetsFilename: '',
-    soundMap: null,
   };
 
   private _width: number = DEFAULT_SIZE;
