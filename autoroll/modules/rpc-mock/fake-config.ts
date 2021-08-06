@@ -10,7 +10,9 @@ export function GetFakeConfig(): Config {
     return {
         rollerName: "skia-skiabot-test-autoroll",
         childDisplayName: "Skia",
+        childBugLink: "https://child-bug",
         parentDisplayName: "Skiabot Test",
+        parentBugLink: "https://parent-bug",
         parentWaterfall: "https://status-staging.skia.org/repo/skiabot-test",
         ownerPrimary: "borenet",
         ownerSecondary: "rmistry",
