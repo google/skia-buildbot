@@ -518,7 +518,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_TOO_MANY_CLS, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_TOO_MANY_CLS, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_TOO_MANY_CLS, S_STOPPED, F_NOOP)
-	b.T(S_TOO_MANY_CLS, S_TOO_MANY_CLS, F_NOOP)
+	b.T(S_TOO_MANY_CLS, S_TOO_MANY_CLS, F_UPDATE_REPOS)
 
 	// Build the state machine.
 	b.SetInitial(S_NORMAL_IDLE)
