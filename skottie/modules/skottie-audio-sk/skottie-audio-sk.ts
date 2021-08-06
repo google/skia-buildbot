@@ -470,8 +470,14 @@ export class SkottieAudioSk extends ElementSk {
   }
 
   connectedCallback(): void {
+    super.connectedCallback();
     this._render();
     this.addEventListener('input', this.inputEvent);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.removeEventListener('input', this.inputEvent);
   }
 }
 

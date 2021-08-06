@@ -50,6 +50,7 @@ export interface SkottieConfigState {
   assetsFilename: string,
   w?: number,
   h?: number,
+  soundMap?: unknown, // TODO(kjlubick) Fix after audio.js is ported
 }
 
 export interface SkottieConfigDetail {
@@ -146,6 +147,7 @@ export class SkottieConfigSk extends ElementSk {
     lottie: null,
     assetsZip: '',
     assetsFilename: '',
+    soundMap: null,
   };
 
   private _width: number = DEFAULT_SIZE;
@@ -163,11 +165,13 @@ export class SkottieConfigSk extends ElementSk {
   }
 
   connectedCallback(): void {
+    super.connectedCallback();
     this._render();
     this.addEventListener('input', this.inputEvent);
   }
 
   disconnectedCallback(): void {
+    super.disconnectedCallback();
     this.removeEventListener('input', this.inputEvent);
   }
 
@@ -181,6 +185,7 @@ export class SkottieConfigSk extends ElementSk {
   get state(): SkottieConfigState { return this._state; }
 
   set state(val: SkottieConfigState) {
+    console.log('set state', val);
     this._state = Object.assign({}, val); // make a copy of passed in state.
     this._render();
   }
