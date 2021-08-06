@@ -1,20 +1,12 @@
 default: app npm-ci
 	npx webpack --mode=development
 
-release: wasm_libs_fixed npm-ci
+release: get_latest_skia wasm_libs_tot npm-ci
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skottie
 	npx webpack --mode=production
 	./build_release
 
-release_tot: get_latest_skia wasm_libs_tot npm-ci
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/skottie
-	npx webpack --mode=production
-	./build_release
-
-release_ci: release_ci_tot
-	echo "using canvaskit at tot"
-
-release_ci_tot: app npm-ci
+release_ci: app npm-ci
 	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
 	rm -rf build
 	mkdir -p build/canvaskit
@@ -25,15 +17,11 @@ release_ci_tot: app npm-ci
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skottie
 	./build_release
 
-release_ci_fixed: app wasm_libs_fixed npm-ci
-	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/skottie
-	./build_release
-
 serve: app npm-ci
 	npx webpack-dev-server --mode=development --watch --watch-poll 100
 
-watch: app npm-ci
+watch:
+	echo "Assuming npm ci has been run in the root recently"
 	npx webpack --mode=development --watch
 
 app:
@@ -54,15 +42,8 @@ wasm_libs_tot: get_latest_skia
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
-wasm_libs_fixed: npm-ci
-	rm -rf build
-	mkdir -p build/canvaskit
-	cp ../node_modules/canvaskit-wasm/bin/* build/canvaskit
-	echo "export const SKIA_VERSION = '0.5.0';" > build/version.js
+.PHONY: serve watch app release wasm_libs_tot get_latest_skia push build-frontend-ci
 
-.PHONY: serve watch app release release_tot wasm_libs_fixed wasm_libs_tot get_latest_skia push
-
-.PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs_tot npm-ci
 	npx webpack --mode=production
 
