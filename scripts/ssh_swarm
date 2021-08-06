@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 #
 # This script creates an SSH connection to a swarming machine. Firewall rules
 # are in place to prevent SSH access except from corp/prod. go/gce-enforcer
@@ -26,7 +26,7 @@
 #      supplying a user here may require an additional upload of SSH metadata.
 
 USER=$2
-USER=${USER+"chrome-bot"}
+USER=${USER:-"chrome-bot"}
 
 # See https://cloud.google.com/compute/docs/troubleshooting/troubleshooting-ssh#test_network
 IP=`gcloud compute instances describe $1 --format='get(networkInterfaces[0].accessConfigs[0].natIP)' --project skia-swarming-bots`
