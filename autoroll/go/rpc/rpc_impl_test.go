@@ -171,7 +171,9 @@ func makeFakeStatus(cfg *config.Config) *status.AutoRollStatus {
 
 func makeRoller(ctx context.Context, t *testing.T, name string, mdb *manual_mocks.DB) *AutoRoller {
 	cfg := &config.Config{
+		ChildBugLink:      "https://child-bug.com",
 		ChildDisplayName:  name + "_child",
+		ParentBugLink:     "https://parent-bug.com",
 		ParentDisplayName: name + "_parent",
 		ParentWaterfall:   "https://parent",
 		RollerName:        name,
@@ -691,6 +693,8 @@ func TestConvertConfig(t *testing.T) {
 	// Use Copy to ensure that the test checks all of the fields. Note that it
 	// only checks top-level fields and does not dig into member structs.
 	assertdeep.Copy(t, &AutoRollConfig{
+		ChildBugLink:        cfg.ChildBugLink,
+		ParentBugLink:       cfg.ParentBugLink,
 		ParentWaterfall:     cfg.ParentWaterfall,
 		RollerId:            cfg.RollerName,
 		SupportsManualRolls: cfg.SupportsManualRolls,

@@ -169,6 +169,8 @@ const JSONToRevision = (m: RevisionJSON): Revision => {
 };
 
 export interface AutoRollConfig {
+  childBugLink: string;
+  parentBugLink: string;
   parentWaterfall: string;
   rollerId: string;
   supportsManualRolls: boolean;
@@ -176,6 +178,8 @@ export interface AutoRollConfig {
 }
 
 interface AutoRollConfigJSON {
+  child_bug_link?: string;
+  parent_bug_link?: string;
   parent_waterfall?: string;
   roller_id?: string;
   supports_manual_rolls?: boolean;
@@ -184,6 +188,8 @@ interface AutoRollConfigJSON {
 
 const JSONToAutoRollConfig = (m: AutoRollConfigJSON): AutoRollConfig => {
   return {
+    childBugLink: m.child_bug_link || "",
+    parentBugLink: m.parent_bug_link || "",
     parentWaterfall: m.parent_waterfall || "",
     rollerId: m.roller_id || "",
     supportsManualRolls: m.supports_manual_rolls || false,

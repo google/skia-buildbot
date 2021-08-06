@@ -220,3 +220,47 @@ Seriously, this can be anything at all.
 Variables from config_vars should work, eg. m92
 `, result)
 }
+
+func TestNamedTemplateDefault_BugLinks(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := fakeBuilder(t)
+	b.childBugLink = fakeChildBugLink
+	b.parentBugLink = fakeParentBugLink
+	result, err := b.Build(FakeCommitMsgInputs())
+	require.NoError(t, err)
+	require.Equal(t, `Roll fake/child/src from aaaaaaaaaaaa to cccccccccccc (2 revisions)
+
+https://fake-child-log/aaaaaaaaaaaa..cccccccccccc
+
+2020-04-17 c@google.com Commit C
+2020-04-16 b@google.com Commit B
+
+Also rolling transitive DEPS:
+  parent/dep1 from dddddddddddd to eeeeeeeeeeee
+  parent/dep3 from aaaaaaaaaaaa to cccccccccccc
+
+If this roll has caused a breakage, revert this CL and stop the roller
+using the controls here:
+https://fake.server.com/r/fake-autoroll
+Please CC reviewer@google.com on the revert to ensure that a human
+is aware of the problem.
+
+To file a bug in fake/child/src: https://file-a-child-bug.com
+To file a bug in fake/parent: https://file-a-parent-bug.com
+
+To report a problem with the AutoRoller itself, please file a bug:
+https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
+
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
+
+Cq-Include-Trybots: some-trybot-on-m92
+Cq-Do-Not-Cancel-Tryjobs: true
+Bug: fakebugproject:1234,fakebugproject:5678
+Tbr: reviewer@google.com
+Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
+`, result)
+}

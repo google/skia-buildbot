@@ -63,6 +63,9 @@ using the controls here:
 Please CC {{stringsJoin .Reviewers ","}} on the revert to ensure that a human
 is aware of the problem.
 
+{{ if .ChildBugLink -}}To file a bug in {{ .ChildName }}: {{ .ChildBugLink }}{{ end }}
+{{ if .ParentBugLink -}}To file a bug in {{ .ParentName }}: {{ .ParentBugLink }}{{ end }}
+
 To report a problem with the AutoRoller itself, please file a bug:
 https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 

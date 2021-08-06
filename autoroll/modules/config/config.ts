@@ -54,7 +54,9 @@ export enum NotifierConfig_MsgType {
 
 export interface Config {
   rollerName: string;
+  childBugLink: string;
   childDisplayName: string;
+  parentBugLink: string;
   parentDisplayName: string;
   parentWaterfall: string;
   ownerPrimary: string;
@@ -85,7 +87,9 @@ export interface Config {
 
 interface ConfigJSON {
   roller_name?: string;
+  child_bug_link?: string;
   child_display_name?: string;
+  parent_bug_link?: string;
   parent_display_name?: string;
   parent_waterfall?: string;
   owner_primary?: string;

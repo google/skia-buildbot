@@ -14,6 +14,12 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+const (
+	fakeChildBugLink  = "https://file-a-child-bug.com"
+	fakeParentBugLink = "https://file-a-parent-bug.com"
+	fakeParentName    = "fake/parent"
+)
+
 // fakeCommitMsgConfig returns a valid CommitMsgConfig instance.
 func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
 	c := &config.CommitMsgConfig{
@@ -63,7 +69,7 @@ func fakeRegistry(t *testing.T) *config_vars.Registry {
 // fakeBuilder returns a Builder instance.
 func fakeBuilder(t *testing.T) *Builder {
 	reg := fakeRegistry(t)
-	b, err := NewBuilder(fakeCommitMsgConfig(t), reg, fakeChildName, fakeServerURL, fakeTransitiveDeps)
+	b, err := NewBuilder(fakeCommitMsgConfig(t), reg, fakeChildName, fakeParentName, fakeServerURL, "", "", fakeTransitiveDeps)
 	require.NoError(t, err)
 	return b
 }
@@ -75,11 +81,11 @@ func TestMakeVars(t *testing.T) {
 
 	check := func(fn func(*Builder)) {
 		c := fakeCommitMsgConfig(t)
-		b, err := NewBuilder(c, reg, fakeChildName, fakeServerURL, fakeTransitiveDeps)
+		b, err := NewBuilder(c, reg, fakeChildName, fakeParentName, fakeServerURL, fakeChildBugLink, fakeParentBugLink, fakeTransitiveDeps)
 		require.NoError(t, err)
 		fn(b)
 		from, to, revs, reviewers := FakeCommitMsgInputs()
-		vars, err := makeVars(c, reg.Vars(), b.childName, b.serverURL, b.transitiveDeps, from, to, revs, reviewers)
+		vars, err := makeVars(c, reg.Vars(), b.childName, b.parentName, b.serverURL, fakeChildBugLink, fakeParentBugLink, b.transitiveDeps, from, to, revs, reviewers)
 		require.NoError(t, err)
 
 		// Bugs.

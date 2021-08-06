@@ -238,7 +238,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create config var registry: %s", err)
 	}
-	b, err := commit_msg.NewBuilder(cfg.CommitMsg, reg, cfg.ChildDisplayName, *serverURL, cfg.TransitiveDeps)
+	b, err := commit_msg.NewBuilder(cfg.CommitMsg, reg, cfg.ChildDisplayName, cfg.ParentDisplayName, *serverURL, cfg.ChildBugLink, cfg.ParentBugLink, cfg.TransitiveDeps)
 	if err != nil {
 		log.Fatalf("Failed to create commit message builder: %s", err)
 	}

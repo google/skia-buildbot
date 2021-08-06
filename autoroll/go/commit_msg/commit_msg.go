@@ -38,14 +38,17 @@ type transitiveDepUpdate struct {
 // Builder is a helper used to build commit messages.
 type Builder struct {
 	cfg            *config.CommitMsgConfig
+	childBugLink   string
 	childName      string
+	parentBugLink  string
+	parentName     string
 	reg            *config_vars.Registry
 	serverURL      string
 	transitiveDeps []*config.TransitiveDepConfig
 }
 
 // NewBuilder returns a Builder instance.
-func NewBuilder(c *config.CommitMsgConfig, reg *config_vars.Registry, childName, serverURL string, transitiveDeps []*config.TransitiveDepConfig) (*Builder, error) {
+func NewBuilder(c *config.CommitMsgConfig, reg *config_vars.Registry, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig) (*Builder, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -63,6 +66,9 @@ func NewBuilder(c *config.CommitMsgConfig, reg *config_vars.Registry, childName,
 	return &Builder{
 		cfg:            c,
 		childName:      childName,
+		childBugLink:   childBugLink,
+		parentBugLink:  parentBugLink,
+		parentName:     parentName,
 		reg:            reg,
 		serverURL:      serverURL,
 		transitiveDeps: transitiveDeps,
@@ -71,12 +77,12 @@ func NewBuilder(c *config.CommitMsgConfig, reg *config_vars.Registry, childName,
 
 // Build a commit message for the given roll.
 func (b *Builder) Build(from, to *revision.Revision, rolling []*revision.Revision, reviewers []string) (string, error) {
-	return buildCommitMsg(b.cfg, b.reg.Vars(), b.childName, b.serverURL, b.transitiveDeps, from, to, rolling, reviewers)
+	return buildCommitMsg(b.cfg, b.reg.Vars(), b.childName, b.parentName, b.serverURL, b.childBugLink, b.parentBugLink, b.transitiveDeps, from, to, rolling, reviewers)
 }
 
 // buildCommitMsg builds a commit message for the given roll.
-func buildCommitMsg(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, serverURL string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers []string) (string, error) {
-	vars, err := makeVars(c, cv, childName, serverURL, transitiveDeps, from, to, rolling, reviewers)
+func buildCommitMsg(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers []string) (string, error) {
+	vars, err := makeVars(c, cv, childName, parentName, serverURL, childBugLink, parentBugLink, transitiveDeps, from, to, rolling, reviewers)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
@@ -115,7 +121,7 @@ func fixupRevision(rev *revision.Revision) *revision.Revision {
 }
 
 // makeVars derives commitMsgVars from the CommitMsgConfig for the given roll.
-func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, serverURL string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, revisions []*revision.Revision, reviewers []string) (*commitMsgVars, error) {
+func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, revisions []*revision.Revision, reviewers []string) (*commitMsgVars, error) {
 	// Create the commitMsgVars object to be used as input to the template.
 	revsCopy := make([]*revision.Revision, 0, len(revisions))
 	for _, rev := range revisions {
@@ -125,6 +131,9 @@ func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, server
 		CommitMsgConfig: c,
 		Vars:            cv,
 		ChildName:       childName,
+		ChildBugLink:    childBugLink,
+		ParentName:      parentName,
+		ParentBugLink:   parentBugLink,
 		Reviewers:       reviewers,
 		Revisions:       revsCopy,
 		RollingFrom:     fixupRevision(from),
@@ -235,9 +244,12 @@ type commitMsgVars struct {
 	*config.CommitMsgConfig
 	*config_vars.Vars
 	Bugs           []string
+	ChildBugLink   string
 	ChildLogURL    string
 	ChildName      string
 	CqExtraTrybots []string
+	ParentBugLink  string
+	ParentName     string
 	Reviewers      []string
 	Revisions      []*revision.Revision
 	RollingFrom    *revision.Revision

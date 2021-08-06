@@ -482,6 +482,8 @@ func convertRevisions(inp []*revision.Revision) []*Revision {
 
 func convertConfig(inp *config.Config) *AutoRollConfig {
 	return &AutoRollConfig{
+		ChildBugLink:        inp.ChildBugLink,
+		ParentBugLink:       inp.ParentBugLink,
 		ParentWaterfall:     inp.ParentWaterfall,
 		RollerId:            inp.RollerName,
 		SupportsManualRolls: inp.SupportsManualRolls,

@@ -168,6 +168,10 @@ message Revision {
 
 // AutoRollConfig describes the configuration for a roller.
 message AutoRollConfig {
+  // child_bug_link is a link to file a bug for the child project.
+  string child_bug_link = 5;
+  // parent_bug_link is a link to file a bug for the parent project.
+  string parent_bug_link = 6;
   // parent_waterfall is the URL of the CI display for the parent repo.
   string parent_waterfall = 1;
   // roller_id is the unique identifier for the roller.

@@ -8,8 +8,12 @@ message Config {
     // the roller.
     // TODO(borenet): Use an actual DB-generated ID for the roller.
     string roller_name = 1;
+    // child_bug_link is a link to file a bug for the child project.
+    string child_bug_link = 29;
     // child_display_name is the human-readable display name of the child.
     string child_display_name = 2;
+    // parent_bug_link is a link to file a bug for the parent project.
+    string parent_bug_link = 30;
     // parent_display_name is the human-readable display name of the parent.
     string parent_display_name = 3;
     // parent_waterfall is the URL of the waterfall display of the parent repo.

@@ -23,6 +23,8 @@ export function GetFakeStatus(): AutoRollStatus {
     },
     status: 'waiting for roll window',
     config: {
+      childBugLink: 'https://fake-child-bug',
+      parentBugLink: 'https://fake-parent-bug',
       parentWaterfall: 'https://status-staging.skia.org/repo/skiabot-test',
       rollerId: 'skia-skiabot-test',
       supportsManualRolls: true,
