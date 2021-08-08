@@ -54,6 +54,25 @@ const displayDialog = (ele) => html`
     .height=${ele._height} .fps=${ele._fps} .backgroundColor=${ele._backgroundColor}></skottie-config-sk>
 `;
 
+const filename = (ele) => {
+  const lottie = ele._state.lottie;
+  if (lottie && lottie.metadata && lottie.metadata.filename) {
+    return html`<div title='${lottie.metadata.filename}'>${lottie.metadata.filename}</div>`;
+  };
+  return null;
+}
+
+const wasmCaption = (ele) => {
+  if (ele._viewMode === viewModes.PRESENTATION) {
+    return null;
+  }
+  return html`
+  <figcaption style='max-width: ${ele._width}px;'>
+    <div>skottie-wasm</div>
+    ${filename(ele)}
+  </figcaption>`;
+};
+
 const caption = (text, mode) => {
   if (mode === viewModes.PRESENTATION) {
     return null;
@@ -68,7 +87,7 @@ const caption = (text, mode) => {
 const skottiePlayer = (ele) => html`
 <skottie-player-sk paused width=${ele._width} height=${ele._height}>
 </skottie-player-sk>
-${caption('skottie-wasm', ele._viewMode)}`;
+${wasmCaption(ele)}`;
 
 const lottiePlayer = (ele) => {
   if (!ele._showLottie) {

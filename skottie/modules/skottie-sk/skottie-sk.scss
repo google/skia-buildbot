@@ -68,6 +68,14 @@ skottie-sk {
     font-weight: bold;
     font-size: 18px;
     margin: 0.6em;
+    text-align: center;
+
+    div {
+      border: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 
   button.edit-config {
