@@ -226,7 +226,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, 
 			return nil, skerr.Wrapf(err, "Failed to create TimeWindow")
 		}
 	}
-	commitMsgBuilder, err := commit_msg.NewBuilder(c.CommitMsg, reg, c.ChildDisplayName, c.ParentDisplayName, c.ChildBugLink, c.ParentBugLink, serverURL, c.TransitiveDeps)
+	commitMsgBuilder, err := commit_msg.NewBuilder(c.CommitMsg, reg, c.ChildDisplayName, c.ParentDisplayName, serverURL, c.ChildBugLink, c.ParentBugLink, c.TransitiveDeps)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
