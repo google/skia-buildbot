@@ -48,7 +48,7 @@ go_test(
         "//go/cas/mocks",
         "//go/deepequal",
         "//go/deepequal/assertdeep",
-        "//go/firestore",
+        "//go/firestore/testutils",
         "//go/gcs/mem_gcsclient",
         "//go/git",
         "//go/git/repograph",

@@ -21,7 +21,7 @@ go_test(
     srcs = ["hiddenstore_test.go"],
     embed = [":hiddenstore"],
     deps = [
-        "//go/firestore",
+        "//go/firestore/testutils",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
     ],

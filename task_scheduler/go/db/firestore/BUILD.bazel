@@ -35,7 +35,7 @@ go_test(
     embed = [":firestore"],
     deps = [
         "//go/deepequal/assertdeep",
-        "//go/firestore",
+        "//go/firestore/testutils",
         "//go/testutils/unittest",
         "//task_scheduler/go/db",
         "@com_github_stretchr_testify//require",

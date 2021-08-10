@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	ifirestore "go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expectations"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
@@ -1583,7 +1584,7 @@ func makeBigExpectations(start, end int) (*expectations.Expectations, []expectat
 // value is called, the Context will be cancelled and the Client will be cleaned up.
 func makeTestFirestoreClient(t *testing.T) (*ifirestore.Client, context.Context, func()) {
 	ctx, cancel := context.WithCancel(context.Background())
-	c, cleanup := ifirestore.NewClientForTesting(ctx, t)
+	c, cleanup := testutils.NewClientForTesting(ctx, t)
 	return c, ctx, func() {
 		cancel()
 		cleanup()

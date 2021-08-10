@@ -38,7 +38,7 @@ go_test(
     deps = [
         "//go/allowed",
         "//go/deepequal/assertdeep",
-        "//go/firestore",
+        "//go/firestore/testutils",
         "//go/git",
         "//go/git/repograph",
         "//go/git/testutils/mem_git",

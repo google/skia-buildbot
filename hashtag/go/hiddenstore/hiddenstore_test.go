@@ -6,13 +6,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	skfirestore "go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestHiddenStore_SetHidden(t *testing.T) {
 	unittest.LargeTest(t)
-	client, cleanup := skfirestore.NewClientForTesting(context.Background(), t)
+	client, cleanup := testutils.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	h := HiddenStore{

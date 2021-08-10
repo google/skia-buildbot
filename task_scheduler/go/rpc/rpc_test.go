@@ -9,7 +9,7 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/git/testutils/mem_git"
@@ -59,7 +59,7 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 	}
 
 	// Skip tasks DB.
-	fsClient, cleanupFS := firestore.NewClientForTesting(context.Background(), t)
+	fsClient, cleanupFS := testutils.NewClientForTesting(context.Background(), t)
 	skipDB, err := skip_tasks.New(context.Background(), fsClient)
 	require.NoError(t, err)
 	skipRule := &skip_tasks.Rule{

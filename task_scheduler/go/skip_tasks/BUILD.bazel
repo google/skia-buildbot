@@ -22,7 +22,7 @@ go_test(
     embed = [":skip_tasks"],
     deps = [
         "//go/deepequal/assertdeep",
-        "//go/firestore",
+        "//go/firestore/testutils",
         "//go/git",
         "//go/git/repograph",
         "//go/git/testutils",

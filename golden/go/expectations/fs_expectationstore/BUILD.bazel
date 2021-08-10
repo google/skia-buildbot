@@ -27,6 +27,7 @@ go_test(
     deps = [
         "//go/deepequal",
         "//go/firestore",
+        "//go/firestore/testutils",
         "//go/testutils/unittest",
         "//golden/go/expectations",
         "//golden/go/testutils/data_three_devices",

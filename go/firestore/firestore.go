@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/iterator"
@@ -209,9 +208,10 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 // Firestore emulator. The Client's instance name will be randomized to ensure
 // concurrent tests don't interfere with each other. It also returns a
 // CleanupFunc that closes the Client.
+//
+// This function doesn't call unittest.RequiresFirestoreEmulator(t). See
+// //go/firestore/testutils for a version of NewClientForTesting that does.
 func NewClientForTesting(ctx context.Context, t sktest.TestingT) (*Client, util.CleanupFunc) {
-	unittest.RequiresFirestoreEmulator(t)
-
 	project := "test-project"
 	app := "NewClientForTesting"
 	instance := fmt.Sprintf("test-%s", uuid.New())

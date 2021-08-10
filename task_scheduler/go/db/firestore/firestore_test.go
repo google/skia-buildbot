@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -20,7 +20,7 @@ func TestMain(m *testing.M) {
 func setup(t *testing.T) (db.DBCloser, func()) {
 	unittest.LargeTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
-	c, cleanup := firestore.NewClientForTesting(ctx, t)
+	c, cleanup := testutils.NewClientForTesting(ctx, t)
 	d, err := NewDB(ctx, c)
 	require.NoError(t, err)
 	return d, func() {

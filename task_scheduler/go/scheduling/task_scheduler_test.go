@@ -20,7 +20,7 @@ import (
 	"go.skia.org/infra/go/cas/mocks"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	skfs "go.skia.org/infra/go/firestore"
+	ftestutils "go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -2649,7 +2649,7 @@ func TestSkipTasks(t *testing.T) {
 	// actually integrated into the scheduler.
 	ctx, _, _, swarmingClient, s, _, _, cleanup := setup(t)
 	defer cleanup()
-	c, cleanupfs := skfs.NewClientForTesting(context.Background(), t)
+	c, cleanupfs := ftestutils.NewClientForTesting(context.Background(), t)
 	defer cleanupfs()
 	bl, err := skip_tasks.New(context.Background(), c)
 	require.NoError(t, err)

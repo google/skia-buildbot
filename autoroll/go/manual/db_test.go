@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
@@ -228,7 +229,7 @@ func TestMemoryDB(t *testing.T) {
 
 func TestFirestoreDB(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
+	c, cleanup := testutils.NewClientForTesting(context.Background(), t)
 	defer cleanup()
 	db, err := NewDB(context.Background(), c)
 	require.NoError(t, err)

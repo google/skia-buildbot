@@ -13,10 +13,21 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+// newClientForTesting returns a Client and ensures that it will connect to the
+// Firestore emulator. The Client's instance name will be randomized to ensure
+// concurrent tests don't interfere with each other. It also returns a
+// CleanupFunc that closes the Client.
+func newClientForTesting(ctx context.Context, t sktest.TestingT) (*Client, util.CleanupFunc) {
+	unittest.RequiresFirestoreEmulator(t)
+	return NewClientForTesting(ctx, t)
+}
 
 func TestAlphaNumID(t *testing.T) {
 	unittest.SmallTest(t)
@@ -53,7 +64,7 @@ func TestWithTimeout(t *testing.T) {
 
 func TestWithTimeoutAndRetries(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(context.Background(), t)
+	c, cleanup := newClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	maxAttempts := 3
@@ -90,7 +101,7 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 
 func TestWithCancelledContext(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(context.Background(), t)
+	c, cleanup := newClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	maxAttempts := 3
@@ -128,7 +139,7 @@ func (s testEntrySlice) Swap(i, j int) {
 
 func TestIterDocs(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(context.Background(), t)
+	c, cleanup := newClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	attempts := 3
@@ -250,7 +261,7 @@ func TestIterDocs(t *testing.T) {
 
 func TestWriteBatch_SmallBatches_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(context.Background(), t)
+	c, cleanup := newClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -281,7 +292,7 @@ func TestWriteBatch_SmallBatches_Success(t *testing.T) {
 
 func TestWriteBatch_SmallBatchesWithProvidedBatch_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(context.Background(), t)
+	c, cleanup := newClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -326,7 +337,7 @@ func TestWriteBatch_SmallBatchesWithProvidedBatch_Success(t *testing.T) {
 
 func TestWriteBatch_BigSingleBatch_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(context.Background(), t)
+	c, cleanup := newClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -357,7 +368,7 @@ func TestWriteBatch_BigSingleBatch_Success(t *testing.T) {
 
 func TestWriteBatch_BigBatches_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(context.Background(), t)
+	c, cleanup := newClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -388,7 +399,7 @@ func TestWriteBatch_BigBatches_Success(t *testing.T) {
 
 func TestWriteBatch_ExpiredContex_Error(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(context.Background(), t)
+	c, cleanup := newClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	// These inputs don't really matter
@@ -408,7 +419,7 @@ func TestWriteBatch_ExpiredContex_Error(t *testing.T) {
 
 func TestWriteBatch_BackoffRespectsExpiredContex_Error(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := NewClientForTesting(context.Background(), t)
+	c, cleanup := newClientForTesting(context.Background(), t)
 	defer cleanup()
 
 	// With a batchSize of 1, we force a context to be not canceled on the batch loop, and yet

@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/firestore"
+	ftestutils "go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -19,7 +19,7 @@ import (
 
 func setup(t *testing.T) (*DB, func()) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
+	c, cleanup := ftestutils.NewClientForTesting(context.Background(), t)
 	b, err := New(context.Background(), c)
 	require.NoError(t, err)
 	return b, cleanup
