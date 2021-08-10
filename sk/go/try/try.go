@@ -12,6 +12,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
@@ -171,7 +172,12 @@ func fixupIssue(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	g, err := gerrit.NewGerrit(gerrit.GerritSkiaURL, httputils.DefaultClientConfig().Client())
+	ts, err := auth.NewDefaultTokenSource(true, gerrit.AuthScope)
+	if err != nil {
+		return err
+	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	g, err := gerrit.NewGerrit(gerrit.GerritSkiaURL, client)
 	if err != nil {
 		return err
 	}
