@@ -163,7 +163,7 @@ func fixupIssue(ctx context.Context) error {
 	// If the above failed, it's probably because the CL was not uploaded
 	// using Depot Tools.  Find the Change-Id line in the most recent commit
 	// and obtain the issue number using that.
-	output, err = exec.RunCwd(ctx, ".", "git", "log", "n1", branch)
+	output, err = exec.RunCwd(ctx, ".", "git", "log", "-n1", branch)
 	if err != nil {
 		return err
 	}
