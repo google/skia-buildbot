@@ -1,9 +1,0 @@
-- name: get rpi k3s version
-  hosts: '{{ variable_hosts }}'
-  gather_facts: False
-  tasks:
-    - name: get k3s version
-      become: yes
-      command: k3s -version
-      register: version
-    - debug: msg="{{ version.stdout }}"

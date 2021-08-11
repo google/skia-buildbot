@@ -1,0 +1,9 @@
+# Configures a jumphost with everything it needs.
+- hosts: "{{ variable_hosts | default('jumphosts') }}"
+  user: chrome-bot
+  gather_facts: yes
+
+  roles:
+    - copy_authorized_keys
+    - install_collectd
+# TODO(jcgregorio) Add roles that install the metadata and powercycler servers.
