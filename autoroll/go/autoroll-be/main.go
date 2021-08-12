@@ -118,7 +118,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().WithRetry4XX().Client()
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	namespace := ds.AUTOROLL_NS
 	if cfg.IsInternal {
 		namespace = ds.AUTOROLL_INTERNAL_NS
@@ -215,7 +215,11 @@ func main() {
 			sklog.Fatal("Gerrit config doesn't exist.")
 		}
 		gerritConfig := codereview.GerritConfigs[gc.Config]
-		g, err = gerrit.NewGerritWithConfig(gerritConfig, gc.Url, client)
+		// Gerrit sometimes throws 404s for CLs that we've just uploaded, likely
+		// due to eventual consistency. Rather than error out, use an HTTP
+		// client which retries 4XX errors.
+		clientForGerrit := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().WithRetry4XX().Client()
+		g, err = gerrit.NewGerritWithConfig(gerritConfig, gc.Url, clientForGerrit)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
