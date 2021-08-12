@@ -48,7 +48,6 @@ spec:
             - "/var/secrets/google/key.json"
             - "--"
             - "/usr/local/bin/autoroll-be"
-            - "--logtostderr"
             - "--config={{.configBase64}}"
             - "--email_creds=/var/secrets/autoroll-email-creds"
             - "--firestore_instance=production"
