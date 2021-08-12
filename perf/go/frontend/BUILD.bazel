@@ -18,7 +18,7 @@ go_library(
         "//go/query",
         "//go/skerr",
         "//go/sklog",
-        "//go/sklog/sklog_impl",
+        "//go/sklog/sklogimpl",
         "//go/util",
         "//perf/go/alertfilter",
         "//perf/go/alerts",

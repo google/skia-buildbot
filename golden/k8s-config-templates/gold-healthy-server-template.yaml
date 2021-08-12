@@ -28,7 +28,6 @@ spec:
             - "--config_filename=/etc/gold-healthy-server-config/gold-{{.INSTANCE_ID}}-healthy-server-config.json5"
             - "--min_delay=60s"
             - "--max_delay=120s"
-            - "--logtostderr"
           ports:
             - containerPort: 8000
               name: http

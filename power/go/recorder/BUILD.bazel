@@ -9,7 +9,7 @@ go_library(
     importpath = "go.skia.org/infra/power/go/recorder",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/sklog/glog_and_cloud",
+        "//go/sklog",
         "@com_github_stretchr_testify//mock",
     ],
 )

@@ -46,7 +46,6 @@ spec:
           image: {{.image}}
           command: ["/usr/local/bin/autoroll-fe"]
           args:
-            - "--logtostderr"
             - "--firestore_instance=production"
             - "--host={{.hostName}}"
             - "--port=:8000"

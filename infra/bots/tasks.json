@@ -163,8 +163,7 @@
         "--patch_set",
         "<(PATCHSET)",
         "--patch_server",
-        "<(CODEREVIEW_SERVER)",
-        "--alsologtostderr"
+        "<(CODEREVIEW_SERVER)"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -507,7 +506,6 @@
         "<(TASK_ID)",
         "--task_name",
         "Housekeeper-PerCommit-CIPD-SK",
-        "--alsologtostderr",
         "--build_dir",
         "buildbot",
         "--package_name",
@@ -623,7 +621,6 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
-        "--alsologtostderr",
         "--skip",
         "cpython3"
       ],
@@ -721,8 +718,7 @@
         "--task_name",
         "Infra-Experimental-Small-Linux",
         "--workdir",
-        ".",
-        "--alsologtostderr"
+        "."
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -821,8 +817,7 @@
         "--task_name",
         "Infra-Experimental-Small-Win",
         "--workdir",
-        ".",
-        "--alsologtostderr"
+        "."
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64"
@@ -1043,8 +1038,7 @@
         "--patch_set",
         "<(PATCHSET)",
         "--patch_server",
-        "<(CODEREVIEW_SERVER)",
-        "--alsologtostderr"
+        "<(CODEREVIEW_SERVER)"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -1142,7 +1136,6 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
-        "--alsologtostderr",
         "--rbe",
         "--rbe_key",
         "./skia_infra_rbe_key/rbe-ci.json"
@@ -1241,8 +1234,7 @@
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
         "--swarm_out_dir",
-        "${ISOLATED_OUTDIR}",
-        "--alsologtostderr"
+        "${ISOLATED_OUTDIR}"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -1724,8 +1716,7 @@
         "--patch_set",
         "<(PATCHSET)",
         "--patch_server",
-        "<(CODEREVIEW_SERVER)",
-        "--alsologtostderr"
+        "<(CODEREVIEW_SERVER)"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64",
@@ -2117,8 +2108,7 @@
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
         "--buildbucket_build_id",
-        "<(BUILDBUCKET_BUILD_ID)",
-        "--alsologtostderr"
+        "<(BUILDBUCKET_BUILD_ID)"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -2265,7 +2255,6 @@
         "<(CODEREVIEW_SERVER)",
         "--buildbucket_build_id",
         "<(BUILDBUCKET_BUILD_ID)",
-        "--alsologtostderr",
         "--rbe",
         "--rbe_key",
         "./skia_infra_rbe_key/rbe-ci.json"
@@ -2313,8 +2302,7 @@
         "--workdir",
         ".",
         "--config",
-        "./autoroll/config",
-        "--alsologtostderr"
+        "./autoroll/config"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"

@@ -8,4 +8,4 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/jsdoc"]
-CMD ["--logtostderr", "--port=:8000", "--prom_port=:20000", "--local"]
+CMD ["--port=:8000", "--prom_port=:20000", "--local"]

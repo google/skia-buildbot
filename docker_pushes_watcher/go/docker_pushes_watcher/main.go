@@ -244,7 +244,7 @@ func deployImage(ctx context.Context, fullyQualifiedImageName string) error {
 	if !*local {
 		runningInK8sArg = " --running-in-k8s"
 	}
-	pushCmd := fmt.Sprintf("%s --do-not-override-dirty-image --logtostderr%s%s %s", pushk, cfgFile, runningInK8sArg, fullyQualifiedImageName)
+	pushCmd := fmt.Sprintf("%s --do-not-override-dirty-image%s%s %s", pushk, cfgFile, runningInK8sArg, fullyQualifiedImageName)
 	sklog.Infof("About to execute: %q", pushCmd)
 
 	// Retry pushk command if there is an error due to concurrent pushes (skbug.com/10261).

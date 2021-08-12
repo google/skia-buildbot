@@ -7,4 +7,4 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/usr/local/bin/api"]
-CMD ["--logtostderr", "--resources_dir=/usr/local/share/api/docs/"]
+CMD ["--resources_dir=/usr/local/share/api/docs/"]

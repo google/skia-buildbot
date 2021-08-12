@@ -1,12 +1,12 @@
-import '../../../infra-sk/modules/app-sk'
-import 'elements-sk/error-toast-sk'
-import { errorMessage } from 'elements-sk/errorMessage'
+import '../../../infra-sk/modules/app-sk';
+import 'elements-sk/error-toast-sk';
+import { errorMessage } from 'elements-sk/errorMessage';
 
-import { diffDate } from 'common-sk/modules/human'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
+import { diffDate } from 'common-sk/modules/human';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
+import { define } from 'elements-sk/define';
+import { html, render } from 'lit-html';
 
 // How often to update the data.
 const UPDATE_INTERVAL_MS = 60000;
@@ -45,22 +45,18 @@ const downBotsTable = (bots, hosts) => html`
 <h2>Powercycle Commands</h2>
 ${listHosts(hosts, bots)}`;
 
-const listBots = (bots) => bots.map(bot => {
-  return html`
+const listBots = (bots) => bots.map((bot) => html`
 <tr>
   <td>${bot.bot_id}</td>
   <td>${_keyDimension(bot)}</td>
   <td>${bot.status}</td>
   <td>${diffDate(bot.since)} ago</td>
   <td>${bot.silenced}</td>
-</tr>`
-});
+</tr>`);
 
-const listHosts = (hosts, bots) => hosts.map(host => {
-  return html`
-<h3>On ${ host }</h3>
-<div class=code>${_command(host, bots)}</div>`
-});
+const listHosts = (hosts, bots) => hosts.map((host) => html`
+<h3>On ${host}</h3>
+<div class=code>${_command(host, bots)}</div>`);
 
 // Helpers for templating
 function _keyDimension(bot) {
@@ -70,7 +66,7 @@ function _keyDimension(bot) {
     return '';
   }
   let os = '';
-  bot.dimensions.forEach(function(d){
+  bot.dimensions.forEach((d) => {
     if (d.key === 'os') {
       os = d.value[d.value.length - 1];
     }
@@ -80,8 +76,8 @@ function _keyDimension(bot) {
 
 function _command(host, bots) {
   let hasBots = false;
-  let cmd = 'powercycle --logtostderr ';
-  for (let bot of bots) {
+  let cmd = 'powercycle ';
+  for (const bot of bots) {
     if (bot.host_id === host && !bot.silenced) {
       hasBots = true;
       cmd += bot.bot_id;
@@ -90,9 +86,9 @@ function _command(host, bots) {
       }
       cmd += ' ';
     }
-  };
+  }
   if (!hasBots) {
-    return 'No unsilenced bots down :)'
+    return 'No unsilenced bots down :)';
   }
   return cmd;
 }
@@ -114,7 +110,6 @@ function _command(host, bots) {
 //    None
 //
 define('power-index-sk', class extends HTMLElement {
-
   constructor() {
     super();
     this._hosts = [];
@@ -132,15 +127,13 @@ define('power-index-sk', class extends HTMLElement {
       .then(jsonOrThrow)
       .then((json) => {
         json.list = json.list || [];
-        let byHost = {};
-        json.list.forEach(function(b){
-          var host_arr = byHost[b.host_id] || [];
+        const byHost = {};
+        json.list.forEach((b) => {
+          const host_arr = byHost[b.host_id] || [];
           host_arr.push(b.bot_id);
           byHost[b.host_id] = host_arr;
         });
-        json.list.sort(function(a,b){
-          return a.bot_id.localeCompare(b.bot_id);
-        });
+        json.list.sort((a, b) => a.bot_id.localeCompare(b.bot_id));
         this._bots = json.list;
         this._hosts = Object.keys(byHost);
         this._render();
@@ -153,7 +146,6 @@ define('power-index-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this, {eventContext: this});
+    render(template(this), this, { eventContext: this });
   }
-
 });

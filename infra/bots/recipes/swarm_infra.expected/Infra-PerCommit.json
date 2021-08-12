@@ -210,7 +210,6 @@
       "go",
       "run",
       "./run_unittests.go",
-      "--alsologtostderr",
       "--small"
     ],
     "cwd": "[START_DIR]/buildbot",

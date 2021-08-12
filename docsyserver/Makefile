@@ -33,5 +33,4 @@ run-local-instance:
         --doc_repo=https://skia.googlesource.com/skia \
         --docsy_dir=/home/skia/docsy \
         --hugo=/home/skia/go/bin/hugo \
-        --do_login=false \
-        --logtostderr
+        --do_login=false

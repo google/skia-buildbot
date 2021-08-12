@@ -756,7 +756,7 @@ func (g *Goldpushk) getUptimesSingleCluster(ctx context.Context, units []Deploya
 	// are coming from, try running e.g. "kubectl get pod gold-skia-diffcalculator-0 -o json".
 	//
 	// Note: Field podName is not used, and is only included for debugging purposes. It will be
-	// printed out to stdout if flag --logtostderr is passed.
+	// printed out to stdout.
 	jsonPathExpr := `
 {range .items[*]}
 {'app:'}

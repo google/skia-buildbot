@@ -539,7 +539,6 @@ func main() {
 	common.InitWithMust(
 		"push",
 		common.PrometheusOpt(promPort),
-		common.SLogLoggingOpt(logging),
 	)
 	if !*local {
 		login.SimpleInitWithAllow(*port, *local, allowed.Googlers(), allowed.Googlers(), allowed.Googlers())

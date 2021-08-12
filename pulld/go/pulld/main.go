@@ -276,7 +276,7 @@ func main() {
 	common.InitWithMust(
 		"pulld",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingDefaultAuthOpt(local),
+		common.CloudLogging(local, "google.com:skia-buildbots"),
 	)
 	tokenSource, err := auth.NewDefaultTokenSource(*local)
 	if err != nil {

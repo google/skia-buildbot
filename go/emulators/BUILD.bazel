@@ -12,6 +12,5 @@ go_library(
     deps = [
         "//bazel/go/bazel",
         "//go/skerr",
-        "//go/sklog",
     ],
 )

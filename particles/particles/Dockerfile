@@ -5,4 +5,4 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/usr/local/bin/particles"]
-CMD ["--logtostderr", "--resources_dir=/usr/local/share/particles"]
+CMD ["--resources_dir=/usr/local/share/particles"]

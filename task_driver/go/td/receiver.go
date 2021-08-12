@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"cloud.google.com/go/logging"
-	"github.com/golang/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -103,21 +103,21 @@ type DebugReceiver struct{}
 func (r *DebugReceiver) HandleMessage(m *Message) error {
 	switch m.Type {
 	case MSG_TYPE_RUN_STARTED:
-		glog.Infof("RUN_STARTED: %+v", m.Run)
+		sklog.Infof("RUN_STARTED: %+v", m.Run)
 	case MSG_TYPE_STEP_STARTED:
-		glog.Infof("STEP_STARTED: %s", m.StepId)
+		sklog.Infof("STEP_STARTED: %s", m.StepId)
 	case MSG_TYPE_STEP_FINISHED:
-		glog.Infof("STEP_FINISHED: %s", m.StepId)
+		sklog.Infof("STEP_FINISHED: %s", m.StepId)
 	case MSG_TYPE_STEP_EXCEPTION:
-		glog.Infof("STEP_EXCEPTION: %s", m.StepId)
+		sklog.Infof("STEP_EXCEPTION: %s", m.StepId)
 	case MSG_TYPE_STEP_FAILED:
-		glog.Infof("STEP_FAILED: %s", m.StepId)
+		sklog.Infof("STEP_FAILED: %s", m.StepId)
 	case MSG_TYPE_STEP_DATA:
 		b, err := json.MarshalIndent(m.Data, "", " ")
 		if err != nil {
 			return err
 		}
-		glog.Infof("STEP_DATA: %s: %s", m.StepId, string(b))
+		sklog.Infof("STEP_DATA: %s: %s", m.StepId, string(b))
 	default:
 		return fmt.Errorf("Invalid message type %s", m.Type)
 	}
@@ -134,7 +134,7 @@ func (r *DebugReceiver) LogStream(stepId, logId string, severity Severity) (io.W
 
 // Close implements Receiver.
 func (r *DebugReceiver) Close() error {
-	glog.Info("Run finished.")
+	sklog.Info("Run finished.")
 	return nil
 }
 

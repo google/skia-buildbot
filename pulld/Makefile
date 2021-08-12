@@ -25,7 +25,7 @@ release_arm: default
 # You should run make release first
 push_everywhere:
 	cd ../push; make build
-	pushcli --alsologtostderr --config_filename=../push/allskiapush.json5 pulld "*"
+	pushcli --config_filename=../push/allskiapush.json5 pulld "*"
 
 .PHONY: build-frontend-ci
 build-frontend-ci: npm-ci

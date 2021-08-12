@@ -11,4 +11,4 @@ test:
 	go test ./go/...
 
 run-local-instance: build
-	switch-pod-monitor --alsologtostderr
+	switch-pod-monitor

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Timer is a struct used for measuring elapsed time. Unlike the other metrics
@@ -138,6 +138,6 @@ func InitPrometheus(port string) {
 	r := mux.NewRouter()
 	r.Handle("/metrics", promhttp.Handler())
 	go func() {
-		glog.Fatal(http.ListenAndServe(port, r))
+		sklog.Fatal(http.ListenAndServe(port, r))
 	}()
 }

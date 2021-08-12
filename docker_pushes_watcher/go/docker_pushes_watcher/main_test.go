@@ -92,7 +92,7 @@ func TestDeployImage(t *testing.T) {
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		assert.Equal(t, "pushk", cmd.Name)
-		assert.Equal(t, []string{"--do-not-override-dirty-image", "--logtostderr", "--running-in-k8s", "test-app"}, cmd.Args)
+		assert.Equal(t, []string{"--do-not-override-dirty-image", "--running-in-k8s", "test-app"}, cmd.Args)
 		pushkCalled = true
 		return nil
 	})

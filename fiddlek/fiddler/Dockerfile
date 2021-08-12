@@ -20,5 +20,5 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/usr/local/bin/fiddler"]
-CMD ["--logtostderr", "--checkout=/tmp/skia/skia/", "--fiddle_root=/tmp", "--port=:8000", "--local"]
+CMD ["--checkout=/tmp/skia/skia/", "--fiddle_root=/tmp", "--port=:8000", "--local"]
 

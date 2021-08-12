@@ -52,7 +52,6 @@ To start a local server, run:
 
 ```
 make ctfe_debug && ctfe --local=true \
-  --logtostderr \
   --port=:8000 \
   --host=<your hostname>.cnc.corp.google.com \
   --namespace=cluster-telemetry-staging
@@ -66,8 +65,7 @@ server. Initially you will get an error when logging in; follow the instructions
 on the error page. The `host` argument will also be included in metrics names.
 
 To test prober config changes, edit the config in probers.json5 to
-point to localhost:8000, then run `make && prober --alsologtostderr
---use_metadata=false` from ../prober/.
+point to localhost:8000, then run `make && prober --use_metadata=false` from ../prober/.
 
 To check metrics from a locally running server or prober, use Prometheus.
 
@@ -82,9 +80,7 @@ To run the master poller in dry-run mode (not very useful), run
 
 ```
 make poller && poller --local=true \
-  --alsologtostderr \
-  --dry_run \
-  --logtostderr
+  --dry_run
 ```
 
 To run master scripts locally, you may want to modify the code to skip steps or
@@ -114,9 +110,7 @@ index 1c5c273..34ceb3a 100644
 You can run the poller as:
 
 ```
-make poller && poller --local=true \
-  --alsologtostderr \
-  --logtostderr
+make poller && poller --local=true
 ```
 
 ### Workers

@@ -5,4 +5,4 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/usr/local/bin/push"]
-CMD ["--logtostderr", "--local", "--config_filename=/etc/push/skiapush.json5", "--resources_dir=/usr/local/share/push"]
+CMD ["--local", "--config_filename=/etc/push/skiapush.json5", "--resources_dir=/usr/local/share/push"]

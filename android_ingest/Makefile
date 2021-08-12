@@ -23,4 +23,4 @@ try-api: service-account.json
 	go run ./go/query_buildapi
 
 run-local-instance: build
-	androidingest --logtostderr --repo_url=https://skia.googlesource.com/perf-buildid/android-master --storage_url=gs://skia-perf/android-master-ingest --work_root=/tmp
+	androidingest --repo_url=https://skia.googlesource.com/perf-buildid/android-master --storage_url=gs://skia-perf/android-master-ingest --work_root=/tmp

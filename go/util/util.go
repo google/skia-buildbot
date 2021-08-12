@@ -22,7 +22,6 @@ import (
 	"github.com/zeebo/bencode"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/sklog/sklog_impl"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -36,7 +35,7 @@ const (
 	// represent the time, which makes it unsuitable for sorting. This
 	// format ensures that all 9 nanosecond digits are used, padding with
 	// zeroes if necessary.
-	RFC3339NanoZeroPad = sklog_impl.RFC3339NanoZeroPad
+	RFC3339NanoZeroPad = "2006-01-02T15:04:05.000000000Z07:00"
 
 	// SAFE_TIMESTAMP_FORMAT is time format which is similar to
 	// RFC3339NanoZeroPad, but with most of the punctuation omitted. This

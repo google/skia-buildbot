@@ -6,7 +6,6 @@ After=network-online.target
 [Service]
 Environment=GCE_METADATA_HOST=metadata
 ExecStart=/usr/local/bin/rpi-backup \
-  --logtostderr \
   --prom_port=:20001 \
   --gce_bucket skia-backups\
   --gce_folder rpi_image \

@@ -188,7 +188,6 @@
       "go",
       "run",
       "./run_unittests.go",
-      "--alsologtostderr",
       "--medium"
     ],
     "cwd": "[START_DIR]/buildbot",

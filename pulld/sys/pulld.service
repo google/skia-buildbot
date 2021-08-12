@@ -7,7 +7,6 @@ After=network-online.target
 ExecStart=/usr/local/bin/pulld \
     --port=:10000 \
     --prom_port=:11000 \
-    --logtostderr \
     --resources_dir=/usr/local/share/pulld/ \
     --installed_packages_file=/var/pulld/installed_packages.json
 Restart=always

@@ -111,7 +111,7 @@ func main() {
 	common.InitWithMust(
 		"file-backup",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingDefaultAuthOpt(local),
+		common.CloudLogging(local, "google.com:skia-buildbots"),
 	)
 	ctx := context.Background()
 	if *localFilePath == "" && *remoteFilePath == "" {

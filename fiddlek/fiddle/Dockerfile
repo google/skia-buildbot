@@ -5,5 +5,5 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/usr/local/bin/fiddle"]
-CMD ["--logtostderr", "--port=:8000", "--prom_port=:20000", "--resources_dir=/usr/local/share/fiddle/", "--source_image_dir=/etc/fiddle/source"]
+CMD ["--port=:8000", "--prom_port=:20000", "--resources_dir=/usr/local/share/fiddle/", "--source_image_dir=/etc/fiddle/source"]
 

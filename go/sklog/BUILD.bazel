@@ -6,7 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/go/sklog",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/sklog/glog_and_cloud",
-        "//go/sklog/sklog_impl",
+        "//go/sklog/sklogimpl",
+        "//go/sklog/stdlogging",
     ],
 )

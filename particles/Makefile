@@ -67,6 +67,6 @@ build-frontend-ci: wasm_libs_tot npm-ci
 #
 #   kubectl port-forward service/scrapexchange 9000
 run-local-instance:
-	particles --local --logtostderr --scrapexchange=http://localhost:9000
+	particles --local --scrapexchange=http://localhost:9000
 
 include ../make/npm.mk

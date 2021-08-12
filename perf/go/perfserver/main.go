@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jcgregorio/logger"
 	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/sklog/sklogimpl"
+	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/urfavecli"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/frontend"
@@ -32,11 +32,7 @@ func main() {
 		Usage: "Command line tool that runs the various components of Perf.",
 		Before: func(c *cli.Context) error {
 			// Log to stdout.
-			glog_and_cloud.SetLogger(
-				glog_and_cloud.NewSLogCloudLogger(logger.NewFromOptions(&logger.Options{
-					SyncWriter: os.Stdout,
-				})),
-			)
+			sklogimpl.SetLogger(stdlogging.New(os.Stdout))
 
 			return nil
 		},

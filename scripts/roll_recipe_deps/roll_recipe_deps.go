@@ -11,14 +11,14 @@ package main
 	For example:
 
         // Upload recipe roll CLs for infra and skia-recipes repos:
-	$ go run scripts/roll_recipe_deps/roll_recipe_deps.go --alsologtostderr
+	$ go run scripts/roll_recipe_deps/roll_recipe_deps.go
 
 	// After the skia-recipes roll above lands, the following will upload
 	// a roll CL for the skia repo:
-	$ go run scripts/roll_recipe_deps/roll_recipe_deps.go --alsologtostderr
+	$ go run scripts/roll_recipe_deps/roll_recipe_deps.go
 
 	// After the skia roll above lands, the following is a no-op:
-        $ go run scripts/roll_recipe_deps/roll_recipe_deps.go --alsologtostderr
+        $ go run scripts/roll_recipe_deps/roll_recipe_deps.go
 
 	Note that if you run this script again before an uploaded roll lands,
 	the script will upload another roll.

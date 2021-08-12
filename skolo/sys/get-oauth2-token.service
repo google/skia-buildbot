@@ -5,8 +5,7 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/get-oauth2-token \
-  --logtostderr
+ExecStart=/usr/local/bin/get-oauth2-token
 User=root
 Group=root
 LimitNOFILE=10000

@@ -45,7 +45,6 @@ spec:
           args:
             - "--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5"
             - "--config=/etc/gold-config/{{.INSTANCE_ID}}-frontend.json5"
-            - "--logtostderr"
           ports:
             - containerPort: 8000
               name: http

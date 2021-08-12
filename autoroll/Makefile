@@ -130,7 +130,7 @@ validate:
 # Run the autoroll-fe locally. This is just for convenience in testing.
 .PHONY: run-fe
 run-fe: autoroll-fe
-	autoroll-fe --local --logtostderr --firestore_instance=staging --config_file=./config/skia-skiabot-test.json
+	autoroll-fe --local --firestore_instance=staging --config_file=./config/skia-skiabot-test.json
 
 .PHONY: build-frontend-ci
 build-frontend-ci: npm-ci

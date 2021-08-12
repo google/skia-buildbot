@@ -1,9 +1,7 @@
 package recorder
 
 import (
-	"time"
-
-	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Recorder records which bots the power-controller has noticed are down and
@@ -20,8 +18,6 @@ type Recorder interface {
 	PowercycledBots(user string, bots []string)
 }
 
-const CLOUD_LOGGING_GROUPING = "history"
-
 // gclRecorder implements the Recorder interface by storing the results
 // to cloud logging.
 // TODO(kjlubick): when we want longer term storage, or to reason about
@@ -32,47 +28,28 @@ type gclRecorder struct {
 }
 
 func NewCloudLoggingRecorder() *gclRecorder {
-	glog_and_cloud.CustomLog(CLOUD_LOGGING_GROUPING, &glog_and_cloud.LogPayload{
-		Time:     time.Now(),
-		Severity: glog_and_cloud.INFO,
-		Payload:  "Initializing after boot.  Next down bots may have already been failing.",
-	})
+	sklog.Info("Initializing after boot.  Next down bots may have already been failing.")
 	return &gclRecorder{}
 }
 
 // NewlyDownBots fulfills the Recorder interface
 func (r *gclRecorder) NewlyDownBots(bots []string) {
-	now := time.Now()
 	for _, bot := range bots {
-		glog_and_cloud.CustomLog(CLOUD_LOGGING_GROUPING, &glog_and_cloud.LogPayload{
-			Time:     now,
-			Severity: glog_and_cloud.INFO,
-			Payload:  "New Down Bot: " + bot,
-		})
+		sklog.Infof("New Down Bot: %q ", bot)
 	}
 
 }
 
 // NewlyFixedBots fulfills the Recorder interface
 func (r *gclRecorder) NewlyFixedBots(bots []string) {
-	now := time.Now()
 	for _, bot := range bots {
-		glog_and_cloud.CustomLog(CLOUD_LOGGING_GROUPING, &glog_and_cloud.LogPayload{
-			Time:     now,
-			Severity: glog_and_cloud.INFO,
-			Payload:  "New Fixed Bot: " + bot,
-		})
+		sklog.Infof("New Fixed Bot: %q ", bot)
 	}
 }
 
 // PowercycledBots fulfills the Recorder interface
 func (r *gclRecorder) PowercycledBots(user string, bots []string) {
-	now := time.Now()
 	for _, bot := range bots {
-		glog_and_cloud.CustomLog(CLOUD_LOGGING_GROUPING, &glog_and_cloud.LogPayload{
-			Time:     now,
-			Severity: glog_and_cloud.INFO,
-			Payload:  user + " powercycled Bot: " + bot,
-		})
+		sklog.Infof("%s powercycled Bot: %q ", user, bot)
 	}
 }

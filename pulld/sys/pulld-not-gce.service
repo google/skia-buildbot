@@ -9,7 +9,6 @@ ExecStart=/usr/local/bin/pulld-not-gce \
   --port=:10114 \
   --on_gce=false \
   --resources_dir=/usr/local/share/pulld-not-gce/ \
-  --logtostderr \
   --installed_packages_file=/var/pulld-not-gce/installed_packages.json \
   --pull_period 1m
 Restart=always

@@ -107,7 +107,7 @@ Putting all the above together, a bare-bones Dockerfile would look something lik
     USER skia
 
     ENTRYPOINT ["/usr/local/bin/my_app_name"]
-    CMD ["--logtostderr", "--port=:8000", "--resources_dir=/usr/local/share/my_app_name/"]
+    CMD ["--port=:8000", "--resources_dir=/usr/local/share/my_app_name/"]
 
 ## Secrets and Service Accounts
 

@@ -4,19 +4,13 @@ package common
 
 import (
 	"flag"
-	"net/http"
 	"os"
 	"runtime"
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
-	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/sklog/glog_and_cloud"
-	"go.skia.org/infra/go/sklog/sklog_impl"
 )
 
 const (
@@ -94,46 +88,6 @@ func Init() {
 
 	// Record UID and GID.
 	sklog.Infof("Running as %d:%d", os.Getuid(), os.Getgid())
-}
-
-// StartCloudLogging initializes cloud logging. It is assumed to be running in GCE where the
-// project metadata has the glog_and_cloud.CLOUD_LOGGING_WRITE_SCOPE set. It exits fatally if anything
-// goes wrong. InitWithCloudLogging should be called before the program creates any go routines
-// such that all subsequent logs are properly sent to the Cloud.
-func StartCloudLogging(logName string) {
-	ts, err := auth.NewJWTServiceAccountTokenSource("", "", glog_and_cloud.CLOUD_LOGGING_WRITE_SCOPE)
-	if err != nil {
-		sklog.Fatalf("Problem getting authenticated token source: %s", err)
-	}
-	c := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().WithDialTimeout(500 * time.Millisecond).Client()
-	hostname, err := os.Hostname()
-	if err != nil {
-		sklog.Fatalf("Could not get hostname: %s", err)
-	}
-
-	startCloudLoggingWithClient(c, hostname, logName)
-}
-
-// startCloudLoggingWithClient initializes cloud logging with the passed in params.
-// It is recommended clients only call this if they need to specially configure the params,
-// otherwise use StartCloudLogging or, better, InitWithCloudLogging.
-// startCloudLoggingWithClient should be called before the program creates any go routines
-// such that all subsequent logs are properly sent to the Cloud.
-func startCloudLoggingWithClient(authClient *http.Client, logGrouping, defaultReport string) {
-	// Initialize all severity counters to 0, otherwise uncommon logs (like Error), won't
-	// be in metrics at all.
-	initSeverities := []sklog_impl.Severity{sklog_impl.Info, sklog_impl.Warning, sklog_impl.Error}
-	for _, severity := range initSeverities {
-		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity.String(), "log_group": logGrouping, "log_source": defaultReport}).Reset()
-	}
-
-	metricsCallback := func(severity sklog_impl.Severity) {
-		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity.String(), "log_group": logGrouping, "log_source": defaultReport}).Inc(1)
-	}
-	sklog_impl.SetMetricsCallback(metricsCallback)
-	if err := glog_and_cloud.InitCloudLogging(authClient, logGrouping, defaultReport); err != nil {
-		sklog.Fatal(err)
-	}
 }
 
 // Any programs which use a variant of common.Init should do `defer common.Defer()` in main.

@@ -13,7 +13,7 @@ number of runs stored on GCS.
 
 By default this will run over all JSON files from yesterday:
 
-    $ bazel run :samplevariance -- --logtostderr > top100.csv
+    $ bazel run :samplevariance -- > top100.csv
 
 If you want to specify the files, then pass in a GCS path via the --prefix flag:
 

@@ -16,7 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/sklog/sklogimpl"
+	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
@@ -270,7 +271,7 @@ func TestRunSwarmingCommand_ReturnsNilOnExitCodeZero(t *testing.T) {
 	}()
 
 	// Now tell sklog to emit to stderr.
-	glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(glog_and_cloud.SLogStderr))
+	sklogimpl.SetLogger(stdlogging.New(os.Stderr))
 	ctx := context.Background()
 
 	// Run bootstrap so everything is in place for calling runSwarmingCommand.

@@ -59,11 +59,11 @@ require (
 	github.com/PuerkitoBio/goquery v1.6.0
 	github.com/a8m/envsubst v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20190830160640-d16893ddf098
-	github.com/alecthomas/jsonschema v0.0.0-20210526225647-edb03dcab7bc // indirect
+	github.com/alecthomas/jsonschema v0.0.0-20210526225647-edb03dcab7bc
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/bazelbuild/bazel-gazelle v0.23.0
-	github.com/bazelbuild/buildtools v0.0.0-20201102150426-f0f162f0456b // indirect
+	github.com/bazelbuild/buildtools v0.0.0-20201102150426-f0f162f0456b
 	github.com/bazelbuild/remote-apis v0.0.0-20201209220655-9e72daff42c9
 	github.com/bazelbuild/remote-apis-sdks v0.0.0-20201110004117-e776219c9bb7
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
@@ -74,14 +74,11 @@ require (
 	github.com/coreos/go-systemd/v22 v22.1.0
 	github.com/danjacques/gofslock v0.0.0-20200623023034-5d0bd0fa6ef0 // indirect
 	github.com/davecgh/go-spew v1.1.1
-	github.com/dgraph-io/ristretto v0.0.3
-	github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96 // indirect
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/go-python/gpython v0.0.3
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/golang-migrate/migrate/v4 v4.13.0
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
@@ -104,9 +101,8 @@ require (
 	github.com/jackc/pgtype v1.6.1
 	github.com/jackc/pgx/v4 v4.9.2
 	github.com/jcgregorio/logger v0.1.2
-	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
+	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900 // indirect
 	github.com/kisielk/errcheck v1.5.0
-	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.8.0 // indirect
 	github.com/luci/gtreap v0.0.0-20161228054646-35df89791e8f // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
@@ -114,11 +110,9 @@ require (
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/nxadm/tail v1.4.5 // indirect
 	github.com/onsi/ginkgo v1.14.2 // indirect
 	github.com/onsi/gomega v1.10.3 // indirect
-	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0

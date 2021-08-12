@@ -5,7 +5,6 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/metadata-server \
-  --logtostderr \
   --port=:80 \
   --prom_port=:20003
 

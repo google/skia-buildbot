@@ -11,7 +11,7 @@ import (
 
    Run like this:
 
-   $ go run ./panic.go --logtostderr --project_id=skia-swarming-bots --task_name=basic_example -o - --local
+   $ go run ./panic.go --project_id=skia-swarming-bots --task_name=basic_example -o - --local
 */
 
 var (

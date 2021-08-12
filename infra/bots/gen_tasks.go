@@ -420,7 +420,6 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 			"--task_id", specs.PLACEHOLDER_TASK_ID,
 			"--task_name", name,
 			"--workdir", ".",
-			"--alsologtostderr",
 		},
 		Dependencies: deps,
 		Dimensions:   dims,
@@ -464,7 +463,6 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 			"--patch_issue", specs.PLACEHOLDER_ISSUE,
 			"--patch_set", specs.PLACEHOLDER_PATCHSET,
 			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
-			"--alsologtostderr",
 		},
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(machineType),
@@ -503,7 +501,6 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 			"--patch_set", specs.PLACEHOLDER_PATCHSET,
 			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 			"--swarm_out_dir", specs.PLACEHOLDER_ISOLATED_OUTDIR,
-			"--alsologtostderr",
 		},
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(machineType),
@@ -539,7 +536,6 @@ func createPushAppsFromInfraDockerImage(b *specs.TasksCfgBuilder, name string) s
 			"--patch_issue", specs.PLACEHOLDER_ISSUE,
 			"--patch_set", specs.PLACEHOLDER_PATCHSET,
 			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
-			"--alsologtostderr",
 		},
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64"), createDockerImage(b, "Infra-PerCommit-CreateDockerImage")},
 		Dimensions:   linuxGceDimensions(machineType),
@@ -576,7 +572,6 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 			"--patch_issue", specs.PLACEHOLDER_ISSUE,
 			"--patch_set", specs.PLACEHOLDER_PATCHSET,
 			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
-			"--alsologtostderr",
 			"--skip", "cpython3",
 		},
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
@@ -600,7 +595,6 @@ func validateAutorollConfigs(b *specs.TasksCfgBuilder, name string) string {
 			"--task_name", name,
 			"--workdir", ".",
 			"--config", "./autoroll/config",
-			"--alsologtostderr",
 		},
 		Dependencies:   []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:     linuxGceDimensions(MACHINE_TYPE_SMALL),
@@ -628,7 +622,6 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		"--patch_issue", specs.PLACEHOLDER_ISSUE,
 		"--patch_set", specs.PLACEHOLDER_PATCHSET,
 		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
-		"--alsologtostderr",
 	}
 	if rbe {
 		cipd = append(cipd, specs.CIPD_PKGS_SKIA_INFRA_RBE_KEY...)
@@ -673,7 +666,6 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		"--patch_set", specs.PLACEHOLDER_PATCHSET,
 		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 		"--buildbucket_build_id", specs.PLACEHOLDER_BUILDBUCKET_BUILD_ID,
-		"--alsologtostderr",
 	}
 	if rbe {
 		cipd = append(cipd, specs.CIPD_PKGS_SKIA_INFRA_RBE_KEY...)
@@ -718,7 +710,6 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 		"--project_id", "skia-swarming-bots",
 		"--task_id", specs.PLACEHOLDER_TASK_ID,
 		"--task_name", name,
-		"--alsologtostderr",
 		"--build_dir", "buildbot",
 		"--package_name", packageName,
 		"--tag", "git_repo:" + specs.PLACEHOLDER_REPO,

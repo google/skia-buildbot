@@ -23,7 +23,6 @@ import (
 
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 )
 
 // Emulator represents a Google Cloud emulator, a test-only CockroachDB server, etc.
@@ -278,7 +277,7 @@ func startEmulator(emulatorInfo emulatorInfo) error {
 	}
 
 	// Start the emulator.
-	sklog.Infof("Starting emulator: %s\n", programAndArgsStr)
+	fmt.Printf("Starting emulator: %s\n", programAndArgsStr)
 	if err := cmd.Start(); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -287,10 +286,10 @@ func startEmulator(emulatorInfo emulatorInfo) error {
 	go func() {
 		err := cmd.Wait()
 		if err != nil {
-			sklog.Errorf("Emulator %s finished with error: %v\n", programAndArgsStr, err)
+			fmt.Printf("Emulator %s finished with error: %v\n", programAndArgsStr, err)
 			return
 		}
-		sklog.Errorf("Emulator %s finished with exit status: %d\n", programAndArgsStr, cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
+		fmt.Printf("Emulator %s finished with exit status: %d\n", programAndArgsStr, cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
 	}()
 
 	return nil

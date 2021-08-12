@@ -15,7 +15,6 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/sklog",
-        "//go/sklog/sklog_impl",
         "@com_github_hashicorp_go_multierror//:go-multierror",
         "@com_github_zeebo_bencode//:bencode",
         "@org_golang_x_sync//errgroup",

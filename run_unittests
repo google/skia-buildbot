@@ -11,4 +11,4 @@ import sys
 # TODO(borenet): This file has been re-implemented in Go. Remove it and have
 # the infrastructure just call run_unittests.go directly.
 subprocess.check_call(
-    ['go', 'run', 'run_unittests.go', '-alsologtostderr'] + sys.argv[1:])
+    ['go', 'run', 'run_unittests.go'] + sys.argv[1:])

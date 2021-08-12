@@ -9,7 +9,9 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/sklog",
-        "//go/sklog/glog_and_cloud",
+        "//go/sklog/nooplogging",
+        "//go/sklog/sklogimpl",
+        "//go/sklog/stdlogging",
         "//go/util",
         "//golden/cmd/goldpushk/goldpushk",
         "@com_github_spf13_cobra//:cobra",

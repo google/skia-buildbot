@@ -179,7 +179,7 @@ func hasAllowAnyImageOption(options []Option) bool {
 func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 	// Do common init.
 	common.InitWithMust(
-		"generic-k8s-app", // The app name is only used by ../go/sklog/cloud_logging, and we don't use that on k8s.
+		"generic-k8s-app",
 		common.PrometheusOpt(PromPort),
 		common.MetricsLoggingOpt(),
 	)

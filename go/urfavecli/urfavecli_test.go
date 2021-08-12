@@ -1,39 +1,17 @@
 package urfavecli
 
 import (
-	"bytes"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/jcgregorio/logger"
 	"github.com/stretchr/testify/require"
 	cli "github.com/urfave/cli/v2"
-	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/loggingsyncbuffer"
+	"go.skia.org/infra/go/sklog/sklogimpl"
+	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/testutils/unittest"
 )
-
-type fauxSyncWriter struct {
-	b *bytes.Buffer
-}
-
-func new() fauxSyncWriter {
-	return fauxSyncWriter{
-		b: &bytes.Buffer{},
-	}
-}
-
-func (f *fauxSyncWriter) Write(p []byte) (n int, err error) {
-	return f.b.Write(p)
-}
-
-func (f *fauxSyncWriter) Sync() error {
-	return nil
-}
-
-func (f *fauxSyncWriter) String() string {
-	return f.b.String()
-}
 
 type myGeneric struct {
 	value string
@@ -51,14 +29,10 @@ func (m *myGeneric) String() string {
 func TestLogFlags(t *testing.T) {
 	unittest.SmallTest(t)
 
-	logsBuffer := new()
+	logsBuffer := loggingsyncbuffer.New()
 
 	// Send logs to a buffer.
-	glog_and_cloud.SetLogger(
-		glog_and_cloud.NewSLogCloudLogger(logger.NewFromOptions(&logger.Options{
-			SyncWriter: &logsBuffer,
-		})),
-	)
+	sklogimpl.SetLogger(stdlogging.New(logsBuffer))
 
 	commandFlags := []cli.Flag{
 		&cli.BoolFlag{

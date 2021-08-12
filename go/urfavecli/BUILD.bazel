@@ -17,9 +17,10 @@ go_test(
     srcs = ["urfavecli_test.go"],
     embed = [":urfavecli"],
     deps = [
-        "//go/sklog/glog_and_cloud",
+        "//go/loggingsyncbuffer",
+        "//go/sklog/sklogimpl",
+        "//go/sklog/stdlogging",
         "//go/testutils/unittest",
-        "@com_github_jcgregorio_logger//:logger",
         "@com_github_stretchr_testify//require",
         "@com_github_urfave_cli_v2//:cli",
     ],

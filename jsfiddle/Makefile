@@ -55,6 +55,6 @@ build-frontend-ci: wasm_libs npm-ci
 	npx webpack --mode=production
 
 run-local-instance:
-	jsfiddle --local --logtostderr
+	jsfiddle --local
 
 include ../make/npm.mk

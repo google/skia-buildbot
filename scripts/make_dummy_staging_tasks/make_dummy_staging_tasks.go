@@ -288,5 +288,5 @@ func main() {
 	if err := ioutil.WriteFile(*botsCfg, []byte(botCfgData), os.ModePerm); err != nil {
 		sklog.Fatal(err)
 	}
-	sklog.Infof("Create bots with:\n$ go run ./go/gce/swarming/swarming_vm.go --logtostderr --dev --create --type=linux-micro --instances=%d-%d", botIdStart, rangeStart-1)
+	sklog.Infof("Create bots with:\n$ go run ./go/gce/swarming/swarming_vm.go --dev --create --type=linux-micro --instances=%d-%d", botIdStart, rangeStart-1)
 }

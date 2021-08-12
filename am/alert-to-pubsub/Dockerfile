@@ -5,4 +5,4 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/usr/local/bin/alert-to-pubsub"]
-CMD ["--logtostderr", "--prom_port=:20000", "--port=:8000"]
+CMD ["--prom_port=:20000", "--port=:8000"]

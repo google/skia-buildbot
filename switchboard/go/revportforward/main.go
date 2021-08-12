@@ -68,7 +68,6 @@ func exitWithUsageAndMessage(msg string) {
 func main() {
 	common.InitWithMust(
 		"revportforward",
-		common.SLogLoggingOpt(logging),
 	)
 	if *podName == "" {
 		exitWithUsageAndMessage("The --pod_name flag is required.")

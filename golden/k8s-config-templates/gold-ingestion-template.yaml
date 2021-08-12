@@ -55,7 +55,6 @@ spec:
           args:
             - "--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5"
             - "--config=/etc/gold-config/{{.INSTANCE_ID}}-ingestion.json5"
-            - "--logtostderr"
           ports:
             - containerPort: 9091
               name: http-health

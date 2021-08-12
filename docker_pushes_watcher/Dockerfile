@@ -21,4 +21,4 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/usr/local/bin/docker_pushes_watcher"]
-CMD ["--logtostderr"]
+CMD []

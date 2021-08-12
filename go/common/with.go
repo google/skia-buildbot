@@ -1,22 +1,20 @@
 package common
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"runtime"
 	"sort"
-	"time"
 
-	"github.com/golang/glog"
+	"cloud.google.com/go/logging"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/sklog/glog_and_cloud"
-	"go.skia.org/infra/go/sklog/sklog_impl"
-	"golang.org/x/oauth2"
+	"go.skia.org/infra/go/sklog/cloudlogging"
+	"go.skia.org/infra/go/sklog/sklogimpl"
 )
 
 // Opt represents the initialization parameters for a single init service, where
@@ -68,12 +66,10 @@ type baseInitOpt struct{}
 
 func (b *baseInitOpt) preinit(appName string) error {
 	flag.Parse()
-	glog.Info("base preinit")
 	return nil
 }
 
 func (b *baseInitOpt) init(appName string) error {
-	glog.Info("base init")
 	flag.VisitAll(func(f *flag.Flag) {
 		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
 	})
@@ -94,112 +90,43 @@ func (b *baseInitOpt) order() int {
 	return 0
 }
 
-// slogLoggingInitOpt implements Opt for slog logging.
-type slogLoggingInitOpt struct {
-	enabled *bool
-}
-
-// SLogLoggingOpt creates an Opt to initialize logging when passed to InitWith().
-//
-// Uses logger.Logger for logging to stderr.
-//
-// No logging is done if enabled is false.
-func SLogLoggingOpt(enabled *bool) Opt {
-	return &slogLoggingInitOpt{
-		enabled: enabled,
-	}
-}
-
-// See Opt.
-func (o *slogLoggingInitOpt) preinit(appName string) error {
-	return nil
-}
-
-// See Opt.
-func (o *slogLoggingInitOpt) init(appName string) error {
-	logMode := glog_and_cloud.SLogNone
-	if *o.enabled {
-		logMode = glog_and_cloud.SLogStderr
-	}
-	glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(logMode))
-	return nil
-}
-
-// See Opt.
-func (o *slogLoggingInitOpt) order() int {
-	return 4
-}
-
 // cloudLoggingInitOpt implements Opt for cloud logging.
 type cloudLoggingInitOpt struct {
-	logGrouping        string
-	serviceAccountPath *string
-	local              *bool
-	useDefaultAuth     bool // If true then use the instance service account.
+	projectID string
+	local     *bool
 }
 
-// CloudLoggingOpt creates an Opt to initialize cloud logging when passed to InitWith().
-//
-// Uses metadata to configure the auth.
-func CloudLoggingOpt() Opt {
-	return &cloudLoggingInitOpt{}
-}
-
-// CloudLoggingDefaultAuthOpt creates an Opt to initialize cloud logging when passed to InitWith().
+// CloudLogging creates an Opt to initialize cloud logging when passed to InitWith().
 //
 // Uses the instance service account for auth.
 // No cloud logging is done if local is true.
-func CloudLoggingDefaultAuthOpt(local *bool) Opt {
+func CloudLogging(local *bool, projectID string) Opt {
 	return &cloudLoggingInitOpt{
-		useDefaultAuth: true,
-		local:          local,
+		projectID: projectID,
+		local:     local,
 	}
 }
 
 func (o *cloudLoggingInitOpt) preinit(appName string) error {
-	glog.Info("cloudlogging preinit")
-	if o.local != nil && *o.local {
-		return nil
+	ctx := context.Background()
+	ts, err := auth.NewDefaultTokenSource(*o.local, logging.WriteScope)
+	if err != nil {
+		return fmt.Errorf("problem getting authenticated token source: %s", err)
 	}
 	hostname, err := os.Hostname()
 	if err != nil {
-		return fmt.Errorf("Could not get hostname: %s", err)
+		return err
 	}
-	o.logGrouping = hostname
-	return glog_and_cloud.PreInitCloudLogging(hostname, appName)
+	l, err := cloudlogging.New(ctx, o.projectID, appName, ts, map[string]string{"hostname": hostname})
+	if err != nil {
+		return err
+	}
+	sklogimpl.SetLogger(l)
+	return nil
 }
 
 func (o *cloudLoggingInitOpt) init(appName string) error {
-	glog.Info("cloudlogging init")
-	var err error
-	var ts oauth2.TokenSource
-	if !o.useDefaultAuth {
-		path := ""
-		if o.serviceAccountPath != nil {
-			path = *(o.serviceAccountPath)
-		}
-		ts, err = auth.NewJWTServiceAccountTokenSource("", path, glog_and_cloud.CLOUD_LOGGING_WRITE_SCOPE)
-	} else {
-		if o.local != nil && *o.local {
-			return nil
-		}
-		ts, err = auth.NewDefaultLegacyTokenSource(*o.local, glog_and_cloud.CLOUD_LOGGING_WRITE_SCOPE)
-	}
-	if err != nil {
-		return fmt.Errorf("Problem getting authenticated token source: %s", err)
-	}
-	c := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().WithDialTimeout(500 * time.Millisecond).Client()
-
-	severities := sklog_impl.AllSeverities()
-	metricLookup := make([]metrics2.Counter, len(severities))
-	for _, sev := range severities {
-		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev.String(), "log_group": o.logGrouping, "log_source": appName})
-	}
-	metricsCallback := func(severity sklog_impl.Severity) {
-		metricLookup[severity].Inc(1)
-	}
-	sklog_impl.SetMetricsCallback(metricsCallback)
-	return glog_and_cloud.PostInitCloudLogging(c)
+	return nil
 }
 
 func (o *cloudLoggingInitOpt) order() int {
@@ -217,26 +144,24 @@ func MetricsLoggingOpt() Opt {
 }
 
 func (o *metricsLoggingInitOpt) preinit(appName string) error {
-	glog.Info("metricslogging preinit")
 	return nil
 }
 
 func (o *metricsLoggingInitOpt) init(appName string) error {
-	glog.Info("metricslogging init")
-	severities := sklog_impl.AllSeverities()
+	severities := sklogimpl.AllSeverities()
 	metricLookup := make([]metrics2.Counter, len(severities))
 	for _, sev := range severities {
 		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev.String()})
 	}
-	metricsCallback := func(severity sklog_impl.Severity) {
+	metricsCallback := func(severity sklogimpl.Severity) {
 		metricLookup[severity].Inc(1)
 	}
-	sklog_impl.SetMetricsCallback(metricsCallback)
+	sklogimpl.SetMetricsCallback(metricsCallback)
 	return nil
 }
 
 func (o *metricsLoggingInitOpt) order() int {
-	return 1
+	return 2
 }
 
 // promInitOpt implments Opt for Prometheus.
@@ -252,14 +177,11 @@ func PrometheusOpt(port *string) Opt {
 }
 
 func (o *promInitOpt) preinit(appName string) error {
-	glog.Info("prom preinit")
 	metrics2.InitPrometheus(*o.port)
 	return nil
 }
 
 func (o *promInitOpt) init(appName string) error {
-	glog.Info("prom init")
-
 	// App uptime.
 	_ = metrics2.NewLiveness("uptime", nil)
 	return nil
@@ -281,7 +203,7 @@ func InitWith(appName string, opts ...Opt) error {
 	// Check for duplicate Opts.
 	for i := 0; i < len(opts)-1; i++ {
 		if opts[i].order() == opts[i+1].order() {
-			return fmt.Errorf("Only one of each type of Opt can be used.")
+			return fmt.Errorf("only one of each type of Opt can be used")
 		}
 	}
 

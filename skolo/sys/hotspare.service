@@ -6,7 +6,6 @@ After=network-online.target
 [Service]
 Environment=GCE_METADATA_HOST=metadata
 ExecStart=/usr/local/bin/hotspare \
-  --logtostderr \
   --prom_port=:20003 \
   --virtual_interface "eno1:0" \
   --sync_period "10m" \

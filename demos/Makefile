@@ -23,7 +23,6 @@ build_resources: wasm_libs npm-ci
 run: build_resources core
 	demoserver \
 	--local \
-	--alsologtostderr \
 	--port=:8000 \
 	--resources_dir="dist"
 

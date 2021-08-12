@@ -189,7 +189,6 @@ BIGTABLE_EMULATOR_HOST=
 
 # Launch the gold_frontend binary.
 $(rootpath //golden/cmd/gold_frontend:gold_frontend) \
-    --logtostderr \
     --config=config.json5 \
     --common_instance_config=common_instance_config.json5
 """

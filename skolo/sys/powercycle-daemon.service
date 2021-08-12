@@ -5,8 +5,7 @@ After=network-online.target
 
 [Service]
 Environment=GCE_METADATA_HOST=metadata
-ExecStart=/usr/local/bin/powercycle-daemon \
-  --logtostderr
+ExecStart=/usr/local/bin/powercycle-daemon
 
 Restart=always
 User=chrome-bot

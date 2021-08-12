@@ -35,7 +35,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/sklog/sklog_impl"
+	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
@@ -265,15 +265,15 @@ func (f *Frontend) initialize() {
 	f.progressTracker.Start(context.Background())
 
 	// Keep HTTP request metrics.
-	severities := sklog_impl.AllSeverities()
+	severities := sklogimpl.AllSeverities()
 	metricLookup := make([]metrics2.Counter, len(severities))
 	for _, sev := range severities {
 		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev.String()})
 	}
-	metricsCallback := func(severity sklog_impl.Severity) {
+	metricsCallback := func(severity sklogimpl.Severity) {
 		metricLookup[severity].Inc(1)
 	}
-	sklog_impl.SetMetricsCallback(metricsCallback)
+	sklogimpl.SetMetricsCallback(metricsCallback)
 
 	// Load the config file.
 	if err := config.Init(f.flags.ConfigFilename); err != nil {

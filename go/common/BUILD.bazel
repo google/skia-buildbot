@@ -12,13 +12,11 @@ go_library(
     deps = [
         "//go/auth",
         "//go/cleanup",
-        "//go/httputils",
         "//go/metrics2",
         "//go/sklog",
-        "//go/sklog/glog_and_cloud",
-        "//go/sklog/sklog_impl",
-        "@com_github_golang_glog//:glog",
-        "@org_golang_x_oauth2//:oauth2",
+        "//go/sklog/cloudlogging",
+        "//go/sklog/sklogimpl",
+        "@com_google_cloud_go_logging//:logging",
     ],
 )
 

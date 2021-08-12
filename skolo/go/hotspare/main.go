@@ -216,7 +216,7 @@ func main() {
 	common.InitWithMust(
 		"hotspare",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingDefaultAuthOpt(local),
+		common.CloudLogging(local, "google.com:skia-buildbots"),
 	)
 	ctx := context.Background()
 	lt := NewVirtualIPManager(*livenessAddr, *livenessPeriod, *livenessTimeout, *livenessThreshold)

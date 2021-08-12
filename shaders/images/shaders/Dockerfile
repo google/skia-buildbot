@@ -5,4 +5,4 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/usr/local/bin/shaders"]
-CMD ["--logtostderr", "--resources_dir=/usr/local/share/shaders"]
+CMD ["--resources_dir=/usr/local/share/shaders"]

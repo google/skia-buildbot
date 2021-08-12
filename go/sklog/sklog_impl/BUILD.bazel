@@ -1,8 +1,0 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
-
-go_library(
-    name = "sklog_impl",
-    srcs = ["sklog_impl.go"],
-    importpath = "go.skia.org/infra/go/sklog/sklog_impl",
-    visibility = ["//visibility:public"],
-)

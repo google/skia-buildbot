@@ -43,7 +43,6 @@ spec:
           args:
             - "--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5"
             - "--config=/etc/gold-config/{{.INSTANCE_ID}}-periodictasks.json5"
-            - "--logtostderr"
           ports:
             - containerPort: 20000
               name: prom

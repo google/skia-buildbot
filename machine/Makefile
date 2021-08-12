@@ -73,7 +73,7 @@ build-remote:
 	bazel build //machine/go/machineserver:machineserver --config=remote --remote_instance_name=projects/skia-public/instances/default_instance
 
 run-local-instance:
-	machineserver --local --logtostderr
+	machineserver --local
 
 export HASH=$(shell git rev-parse HEAD)
 export DATETIME=$(shell date --utc "+%Y-%m-%dT%H:%M:%SZ")

@@ -7,7 +7,6 @@ USER skia
 ENTRYPOINT ["/usr/local/bin/power-controller"]
 CMD [\
 	"--authorized_email=jumphost@skia-buildbots.google.com.iam.gserviceaccount.com", \
-	"--logtostderr", \
 	"--port=:8000", \
 	"--powercycle_config=/etc/powercycle/powercycle-internal-01.json5", \
 	"--powercycle_config=/etc/powercycle/powercycle-rack-01.json5", \

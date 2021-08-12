@@ -60,7 +60,7 @@ func main() {
 		common.InitWithMust(
 			"powercycle-daemon",
 			common.PrometheusOpt(promPort),
-			common.CloudLoggingDefaultAuthOpt(local),
+			common.CloudLogging(local, "google.com:skia-buildbots"),
 		)
 	}
 

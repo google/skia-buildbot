@@ -5,7 +5,7 @@ package main
 
 	Run like this:
 
-	$ go run ./file_stream.go --logtostderr --project_id=skia-swarming-bots --task_name=filestream_example -o - --local
+	$ go run ./file_stream.go --project_id=skia-swarming-bots --task_name=filestream_example -o - --local
 */
 
 import (

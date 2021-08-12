@@ -8,7 +8,9 @@ import (
 
 	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/sklog/nooplogging"
+	"go.skia.org/infra/go/sklog/sklogimpl"
+	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/urfavecli"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
@@ -200,9 +202,9 @@ func actualMain(app application.Application) {
 		},
 		Before: func(c *cli.Context) error {
 			if c.Bool(loggingFlagName) {
-				glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(glog_and_cloud.SLogStderr))
+				sklogimpl.SetLogger(stdlogging.New(os.Stderr))
 			} else {
-				glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(glog_and_cloud.SLogNone))
+				sklogimpl.SetLogger(nooplogging.New())
 			}
 			return nil
 		},

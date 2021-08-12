@@ -1,0 +1,25 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "stdlogging",
+    srcs = ["stdlogging.go"],
+    importpath = "go.skia.org/infra/go/sklog/stdlogging",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog/sklogimpl",
+        "@com_github_jcgregorio_logger//:logger",
+    ],
+)
+
+go_test(
+    name = "stdlogging_test",
+    srcs = ["stdlogging_test.go"],
+    embed = [":stdlogging"],
+    deps = [
+        "//go/loggingsyncbuffer",
+        "//go/sklog/sklogimpl",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

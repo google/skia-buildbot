@@ -101,7 +101,6 @@ func main() {
 	common.InitWithMust(
 		"android_stats",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
 
 	ctx := context.Background()

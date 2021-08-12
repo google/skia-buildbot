@@ -104,7 +104,7 @@ testcpp: build
 # This presumes a fiddler is available at port :8000 and scrapexchange is available at port :9000.
 .PHONY: run_local_fiddle
 run_local_fiddle:
-	fiddle --local --logtostderr --port=:8080 --source_image_dir=/etc/fiddle/source --scrapexchange=localhost:9000
+	fiddle --local --port=:8080 --source_image_dir=/etc/fiddle/source --scrapexchange=localhost:9000
 
 # Runs a local fiddler.
 .PHONY: run_local_fiddler

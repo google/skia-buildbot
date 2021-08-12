@@ -7,4 +7,4 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/usr/local/bin/androidingest"]
-CMD ["--logtostderr"]
+CMD []

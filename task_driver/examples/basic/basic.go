@@ -5,7 +5,7 @@ package main
 
    Run like this:
 
-   $ go run ./basic.go --logtostderr --project_id=skia-swarming-bots --task_name=basic_example -o - --local
+   $ go run ./basic.go --project_id=skia-swarming-bots --task_name=basic_example -o - --local
 */
 
 import (

@@ -1,13 +1,13 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "cloud_logging",
-    srcs = ["cloud_logging.go"],
-    importpath = "go.skia.org/infra/go/sklog/cloud_logging",
+    name = "cloudlogging",
+    srcs = ["cloudlogging.go"],
+    importpath = "go.skia.org/infra/go/sklog/cloudlogging",
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
-        "//go/sklog/sklog_impl",
+        "//go/sklog/sklogimpl",
         "@com_google_cloud_go_logging//:logging",
         "@org_golang_google_api//option",
         "@org_golang_x_oauth2//:oauth2",

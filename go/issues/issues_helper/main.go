@@ -1,8 +1,8 @@
 // issues_helper is a simple command-line application for the monorail issue tracker.
 //
 // It can be used in a few modes, for example:
-// issues_helper --alsologtostderr comment 5255 "Spectacular flooring"
-// issues_helper --alsologtostderr query "is:open label:FromSkiaPerf"
+// issues_helper comment 5255 "Spectacular flooring"
+// issues_helper query "is:open label:FromSkiaPerf"
 package main
 
 import (

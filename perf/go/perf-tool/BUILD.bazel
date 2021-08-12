@@ -8,7 +8,9 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/skerr",
-        "//go/sklog/glog_and_cloud",
+        "//go/sklog/nooplogging",
+        "//go/sklog/sklogimpl",
+        "//go/sklog/stdlogging",
         "//go/urfavecli",
         "//perf/go/builders",
         "//perf/go/config",

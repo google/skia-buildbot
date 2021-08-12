@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "loggingsyncbuffer",
+    srcs = ["loggingsyncbuffer.go"],
+    importpath = "go.skia.org/infra/go/loggingsyncbuffer",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_jcgregorio_logger//:logger"],
+)
+
+go_test(
+    name = "loggingsyncbuffer_test",
+    srcs = ["loggingsyncbuffer_test.go"],
+    embed = [":loggingsyncbuffer"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)
