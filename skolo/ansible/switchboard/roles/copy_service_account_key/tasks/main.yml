@@ -13,7 +13,7 @@
     argv:
       - '{{ role_path }}/../../../../../kube/secrets/get-secret-at-path.sh'
       - etc
-      - skolo-bot-service-account
+      - '{{ service_account_name }}'
       - '.data."key.json"'
       - '{{ service_account_key.path }}/application_default_credentials.json'
     creates:

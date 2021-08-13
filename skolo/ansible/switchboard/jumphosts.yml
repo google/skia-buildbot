@@ -5,7 +5,8 @@
 
   roles:
     - copy_authorized_keys
-    - copy_service_account_key
+    - role: copy_service_account_key
+      service_account_name: 'skolo-jumphost'
     - install_collectd
     - install_metadata_server
 # TODO(jcgregorio) Add role to install powercycler server.

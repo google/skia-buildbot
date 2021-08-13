@@ -16,9 +16,10 @@ to the target machine. See
 for more details on berglas and Skia secrets.
 
 The key is stored as a kubernetes secret in berglas secrets for the cluster
-`etc` and the secret name `skolo-bot-service-account`.
+`etc` and the secret name is passed in via the `service_account_name` argument
+to the role.
 
-You can see this secret in the list of all secrets for the `etc` cluster:
+You can see all secrets for the `etc` cluster by running:
 
         $ ../../kube/secrets/list-secrets-by-cluster.sh etc
         skolo-service-accounts
@@ -48,4 +49,4 @@ handler.
     - hosts: '{{ variable_hosts }}'
 
       roles:
-        - copy_adbkey
+        - { role: copy_service_account_key, service_account_name: 'skolo-jumphost' }
