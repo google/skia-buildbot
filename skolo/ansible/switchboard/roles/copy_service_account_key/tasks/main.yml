@@ -1,9 +1,11 @@
 ---
-- name: mktemp
+- name:
+    make temp directory for service account key and trigger `clean_up_tempfile`.
   delegate_to: 127.0.0.1
   tempfile:
     state: directory
   register: service_account_key
+  notify: clean_up_tempfile
 
 - name: Extract service account key
   delegate_to: 127.0.0.1
@@ -16,7 +18,6 @@
       - '{{ service_account_key.path }}/application_default_credentials.json'
     creates:
       '{{ service_account_key.path }}/application_default_credentials.json'
-  notify: clean_up_tempfile
 
 - name: Copy service account key
   copy:

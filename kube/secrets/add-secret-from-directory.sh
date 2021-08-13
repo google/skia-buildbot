@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -o pipefail
 
 # Add a secret to berglas from all the files in the given directory, replaces
 # secret if it already exists.

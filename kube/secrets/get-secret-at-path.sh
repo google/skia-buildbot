@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -o pipefail
 
 # Retrieve a secret from berglas, decode it, extract part of the YAML that is
 # then further base64 decoded and written to an output file.

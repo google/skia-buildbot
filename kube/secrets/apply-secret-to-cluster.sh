@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -o pipefail
 
 # Push secrets from one cluster to kuberenetes.
 

@@ -5,5 +5,7 @@
 
   roles:
     - copy_authorized_keys
+    - copy_service_account_key
     - install_collectd
-# TODO(jcgregorio) Add roles that install the metadata and powercycler servers.
+    - install_metadata_server
+# TODO(jcgregorio) Add role to install powercycler server.

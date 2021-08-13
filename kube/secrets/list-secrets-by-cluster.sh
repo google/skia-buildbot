@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -o pipefail
 
 # List all secrets available.
 REL=$(dirname "$0")

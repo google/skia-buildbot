@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "metadata_server_ansible_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/skolo/go/metadata_server_ansible",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_gorilla_mux//:mux",
+        "@org_golang_x_oauth2//:oauth2",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_binary(
+    name = "metadata_server_ansible",
+    embed = [":metadata_server_ansible_lib"],
+    visibility = ["//visibility:public"],
+)

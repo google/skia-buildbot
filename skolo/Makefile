@@ -106,3 +106,18 @@ k8s-skolo-binaries:
  k8s-push-skolo-containers: k8s-skolo-binaries
 	./k8s_release_metadata_server
 	./k8s_release_router_backup
+
+export HASH=$(shell git rev-parse HEAD)
+export DATETIME=$(shell date --utc "+%Y-%m-%dT%H:%M:%SZ")
+export GIT_STATE=$(shell ../bash/gitstate.sh)
+export VERSION=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
+
+# The names of this target can't change, as the form is dictated by ansible playbooks in //skolo/ansible/switchboard.
+build_metadata_server_ansible_x86_64_Linux:
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=amd64 \
+	go build \
+	 -o ./build/Linux/x86_64/metadata_server_ansible \
+	 -ldflags="-X 'main.Version=${VERSION}' -X 'main.Key=${SERVICE_ACCOUNT_KEY}' " \
+	 ./go/metadata_server_ansible

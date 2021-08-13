@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -o pipefail
 
 # Retrieve a secret from berglas, edit, then write back to berglas.
 

@@ -1,0 +1,14 @@
+[Unit]
+Description=metadata_server_ansible
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=chrome-bot
+ExecStart=/usr/local/bin/metadata_server_ansible \
+  --port=:9000 \
+  --prom_port=:30000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

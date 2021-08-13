@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Delete a secret from berglas.
 

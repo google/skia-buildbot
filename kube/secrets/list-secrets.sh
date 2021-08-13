@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # List all secrets available.
 
 REL=$(dirname "$0")

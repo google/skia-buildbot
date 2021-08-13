@@ -1,10 +1,11 @@
 ---
 # tasks file for load-secret-vars
-- name: mktemp
+- name: make temp directory for secrets and trigger `clean_up_tempfile` handler.
   delegate_to: 127.0.0.1
   tempfile:
     state: directory
   register: secrets_dir
+  notify: clean_up_tempfile
 
 - name: Extract secrets and trigger `clean_up_tempfile` handler for cleanup.
   delegate_to: 127.0.0.1
@@ -17,7 +18,6 @@
       - '.data."secrets.yml"'
       - '{{ secrets_dir.path }}/secrets.yml'
     creates: '{{ secrets_dir.path }}/secrets.yml'
-  notify: clean_up_tempfile
 
 - name: Import secrets as vars
   include_vars:
