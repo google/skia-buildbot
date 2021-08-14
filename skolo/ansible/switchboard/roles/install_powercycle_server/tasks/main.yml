@@ -1,0 +1,36 @@
+# tasks file for install_powercycle_server
+- name: Build powercycle_server_ansible for the target machine.
+  delegate_to: 127.0.0.1
+  make:
+    chdir: '{{ role_path }}/../../../../../skolo/'
+    target:
+      "build_powercycle_server_ansible_{{ ansible_facts['architecture'] }}_{{
+      ansible_facts['system'] }}"
+
+- name: Copy over service file.
+  become: yes
+  template:
+    src: templates/powercycle_server_ansible.service
+    dest: /etc/systemd/system/powercycle_server_ansible.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy over executable.
+  become: yes
+  copy:
+    src:
+      "{{ role_path }}/../../../../../skolo/build/{{ ansible_facts['system']
+      }}/{{ ansible_facts['architecture'] }}/powercycle_server_ansible"
+    dest: /usr/local/bin/powercycle_server_ansible
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Start systemd servce.
+  become: yes
+  systemd:
+    enabled: yes
+    state: restarted
+    name: powercycle_server_ansible
+    daemon_reload: yes

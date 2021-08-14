@@ -18,10 +18,11 @@ ${INSTALL_DIR} --mode=755                                              ${ROOT}/u
 ${INSTALL}     --mode=644 ./dist/*                                     ${ROOT}/usr/local/share/${APPNAME}/
 ${INSTALL}     --mode=644 -T ./res/img/favicon.ico                     ${ROOT}/usr/local/share/${APPNAME}/favicon.ico
 ${INSTALL_DIR} --mode=755                                              ${ROOT}/etc/powercycle/
-${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-internal-01.json5 ${ROOT}/etc/powercycle/powercycle-internal-01.json5
-${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rack-01.json5     ${ROOT}/etc/powercycle/powercycle-rack-01.json5
-${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rack-02.json5     ${ROOT}/etc/powercycle/powercycle-rack-02.json5
-${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rack-03.json5     ${ROOT}/etc/powercycle/powercycle-rack-03.json5
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rack1.json5     ${ROOT}/etc/powercycle/powercycle-rack1.json5
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rack2.json5     ${ROOT}/etc/powercycle/powercycle-rack2.json5
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rack3.json5     ${ROOT}/etc/powercycle/powercycle-rack3.json5
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rack4.json5     ${ROOT}/etc/powercycle/powercycle-rack4.json5
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rack5.json5     ${ROOT}/etc/powercycle/powercycle-rack5.json5
 }
 
 source ../bash/docker_build.sh

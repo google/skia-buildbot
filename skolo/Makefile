@@ -121,3 +121,20 @@ build_metadata_server_ansible_x86_64_Linux:
 	 -o ./build/Linux/x86_64/metadata_server_ansible \
 	 -ldflags="-X 'main.Version=${VERSION}' -X 'main.Key=${SERVICE_ACCOUNT_KEY}' " \
 	 ./go/metadata_server_ansible
+
+
+# The names of this target can't change, as the form is dictated by ansible playbooks in //skolo/ansible/switchboard.
+build_powercycle_server_ansible_x86_64_Linux:
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=amd64 \
+	go build \
+	 -o ./build/Linux/x86_64/powercycle_server_ansible \
+	 -ldflags="-X 'main.Version=${VERSION}' " \
+	 ./go/powercycle_server_ansible
+
+
+# The POWERCYCLE_PASSWORD must be set in the environment for this to work correctly.
+run-local-instance-powercycle_server_ansible:
+	go install ./go/powercycle_server_ansible
+	powercycle_server_ansible --local --powercycle_config=powercycle-rack4.json5 --config=prod.json

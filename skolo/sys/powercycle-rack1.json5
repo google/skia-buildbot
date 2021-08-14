@@ -3,7 +3,7 @@
   edgeswitch: {
     "rack01-shelf1-poe-switch": {
       "address": "192.168.1.38",
-      "user": "power",
+      "user": "ubnt",
       "password": "", // we don't check this into the repo
       "ports": {
         "skia-rpi-001": 1,
@@ -54,7 +54,7 @@
     },
     "rack01-shelf2-poe-switch": {
       "address": "192.168.1.39",
-      "user": "power",
+      "user": "ubnt",
       "password": "", // we don't check this into the repo
       "ports": {
         "skia-rpi-045": 2,

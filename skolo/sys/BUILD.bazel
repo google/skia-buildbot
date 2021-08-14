@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "sys",
+    srcs = ["sys.go"],
+    embedsrcs = [
+        "metadata-linux.json5",
+        "metadata-rpi-internal.json5",
+        "metadata-rpi.json5",
+        "metadata-win.json5",
+        "powercycle-rack1.json5",
+        "powercycle-rack2.json5",
+        "powercycle-rack3.json5",
+        "powercycle-rack4.json5",
+        "powercycle-rack5.json5",
+    ],
+    importpath = "go.skia.org/infra/skolo/sys",
+    visibility = ["//visibility:public"],
+)

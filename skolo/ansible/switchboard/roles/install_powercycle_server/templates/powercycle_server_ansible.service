@@ -1,0 +1,16 @@
+[Unit]
+Description=powercycle_server_ansible
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=chrome-bot
+Environment=POWERCYCLE_PASSWORD={{ secrets.skolo_password }}
+ExecStart=/usr/local/bin/powercycle_server_ansible \
+   --config=prod.json \
+   --powercycle_config=powercycle-{{ inventory_hostname }}.json5 \
+   --prom_port=:30001
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

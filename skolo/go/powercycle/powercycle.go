@@ -89,15 +89,10 @@ func (a *multiController) PowerCycle(ctx context.Context, id DeviceID, delayOver
 	return ctrl.PowerCycle(ctx, id, delayOverride)
 }
 
-// ControllerFromJSON5 parses a JSON5 file and instantiates the defined devices. If connect is true, an
-// attempt will be made to connect to the subclients and errors will be returned if they are not
-// accessible.
-func ControllerFromJSON5(ctx context.Context, path string, connect bool) (Controller, error) {
-	conf, err := readConfig(path)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
+// controllerFromConfig creates a Controll from the given config. If connect is
+// true, an attempt will be made to connect to the subclients and errors will be
+// returned if they are not accessible.
+func controllerFromConfig(ctx context.Context, conf config, connect bool) (Controller, error) {
 	ret := &multiController{
 		controllerForID: map[DeviceID]Controller{},
 	}
@@ -127,6 +122,28 @@ func ControllerFromJSON5(ctx context.Context, path string, connect bool) (Contro
 	}
 
 	return ret, nil
+}
+
+// ControllerFromJSON5 parses a JSON5 file and instantiates the defined devices. If connect is true, an
+// attempt will be made to connect to the subclients and errors will be returned if they are not
+// accessible.
+func ControllerFromJSON5(ctx context.Context, path string, connect bool) (Controller, error) {
+	conf, err := readConfig(path)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return controllerFromConfig(ctx, conf, connect)
+}
+
+// ControllerFromJSON5Bytes parses a JSON5 file and instantiates the defined devices. If connect is true, an
+// attempt will be made to connect to the subclients and errors will be returned if they are not
+// accessible.
+func ControllerFromJSON5Bytes(ctx context.Context, configFileBytes []byte, connect bool) (Controller, error) {
+	var conf config
+	if err := json5.Unmarshal(configFileBytes, &conf); err != nil {
+		return nil, skerr.Wrapf(err, "reading JSON5 bytes")
+	}
+	return controllerFromConfig(ctx, conf, connect)
 }
 
 func readConfig(path string) (config, error) {

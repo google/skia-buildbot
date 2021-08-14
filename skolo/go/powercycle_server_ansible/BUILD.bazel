@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_binary(
+    name = "podwatcher",
+    embed = [":powercycle_server_ansible_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "powercycle_server_ansible_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/skolo/go/powercycle_server_ansible",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/sklog",
+        "//machine/go/configs",
+        "//machine/go/machine/store",
+        "//machine/go/machineserver/config",
+        "//skolo/go/powercycle",
+        "//skolo/sys",
+    ],
+)
