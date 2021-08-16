@@ -10,7 +10,8 @@ Environment=SWARMING_BOT_ID={{ ansible_facts['hostname'] }}
 {% endif %}
 ExecStart=/usr/local/bin/test_machine_monitor \
    --config=prod.json \
-   --metadata_url=http://metadata/computeMetadata/v1/instance/service-accounts/default/token \
+   --prom_port=:{{ prometheus.monitoring.ports.test_machine_monitor }} \
+   --metadata_url=http://metadata:{{ metadata_server_port }}/computeMetadata/v1/instance/service-accounts/default/token \
    {% if start_swarming is true %}
    --python_exe=/usr/bin/python3 \
    --start_swarming \

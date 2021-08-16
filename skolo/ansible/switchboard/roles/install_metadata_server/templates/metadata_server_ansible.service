@@ -5,9 +5,10 @@ After=syslog.target network.target
 [Service]
 Type=simple
 User=chrome-bot
+
 ExecStart=/usr/local/bin/metadata_server_ansible \
-  --port=:9000 \
-  --prom_port=:30000
+  --port=:{{ metadata_server_port }} \
+  --prom_port=:{{ prometheus.monitoring.ports.metadata_server_ansible }}
 Restart=always
 
 [Install]

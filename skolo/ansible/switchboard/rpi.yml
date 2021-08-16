@@ -1,5 +1,5 @@
 # Configures an RPi with everything it needs to run under switchboard.
-- hosts: "{{ variable_hosts | default('rpis') }}"
+- hosts: "{{ variable_hosts | default('switchboard_rpis') }}"
   user: chrome-bot
   gather_facts: yes
 
@@ -15,7 +15,7 @@
   roles:
     - copy_authorized_keys
     - copy_adbkey
-    - role: copy_service_account_key,
+    - role: copy_service_account_key
       service_account_name: 'skolo-bot-service-account'
     - install_collectd
     - swarming_needs

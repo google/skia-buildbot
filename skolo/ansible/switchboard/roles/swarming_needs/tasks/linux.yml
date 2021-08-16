@@ -54,8 +54,8 @@
 
 - name: Copy oauth2 config file
   become: yes
-  copy:
-    src: files/oauth2_access_token_config.json
+  template:
+    src: templates/oauth2_access_token_config.json
     dest: /etc/swarming_config/oauth2_access_token_config.json
     owner: chrome-bot
     mode: 0644
