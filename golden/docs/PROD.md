@@ -280,16 +280,27 @@ and <https://skbug.com/10768> for more context on these.
 This is potentially problematic in that the excess load could be causing Gold to act slowly
 or even affect other tenants of the k8s pod. The cause of this load should be identified.
 
-GoldDiffCalcFailures
+GoldDiffCalcBehind
 --------------------
-Gold is failing to compute diffs for a high percentage the work it was sent.
+Gold has fallen behind calculating diffs.
 
-It is best to look at the logs for the app (e.g. gold-skia-diffcalculator) to see the
+It is best to look at the logs for the app (e.g. gold-skia-diffcalculator) to see any
+error messages. It might mean that there is too much work and we need to scale up the
+number of workers.
+
+`kubebectl scale deployment/gold-FOO-diffcalculator --replicas 8`
+
+Key metrics: diffcalculator_workqueuesize
+
+GoldDiffCalcStale
+--------------------
+Gold's diffs are getting too old. If this continues, CLs and recent images on the primary
+branch will not have any diff metrics to search by.
+
+It is best to look at the logs for the app (e.g. gold-skia-diffcalculator) to see any
 error messages.
 
-The alert is set up to look at the percentage of failures over the last 10 minutes.
-
-Key metrics: diffcalculator_nack, diffcalculator_ack
+Key metrics: diffcalculator_workqueuefreshness
 
 GoldIngestionFailures
 ---------------------

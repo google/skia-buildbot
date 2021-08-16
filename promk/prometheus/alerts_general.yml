@@ -782,15 +782,25 @@ groups:
       abbr: '{{ $labels.app }}'
       description: '{{ $labels.app }} is experiencing high traffic on {{ $labels.route }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldheavytraffic'
 
-  - alert: GoldDiffCalcFailures
-    expr: delta(diffcalculator_nack{}[30m])/(delta(diffcalculator_ack{}[30m])+delta(diffcalculator_nack{}[30m])) > .01
+  - alert: GoldDiffCalcBehind
+    expr: diffcalculator_workqueuesize > 1000
     labels:
       category: infra
       severity: critical
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} is failing to calculate diffs for more than 1 percent of requests https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#golddiffcalcfailures'
+      description: '{{ $labels.app }} has too many diffs piled up for calculation https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#golddiffcalcbehind'
+
+  - alert: GoldDiffCalcStale
+    expr: diffcalculator_workqueuefreshness{stat="max"} > 1800
+    labels:
+      category: infra
+      severity: critical
+      owner: kjlubick@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: '{{ $labels.app }} has some diffs that have not been updated in over 30 minutes https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#golddiffcalcstale'
 
   - alert: GoldIngestionFailures
     expr: delta(gold_ingestion_failure{}[10m])/(delta(gold_ingestion_success{}[10m])+delta(gold_ingestion_failure{}[10m])) > .1
