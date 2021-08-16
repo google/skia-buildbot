@@ -32,6 +32,7 @@ import { html } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SoundMap } from '../audio';
+import { LottieAnimation } from '../types';
 
 const DEFAULT_SIZE = 128;
 
@@ -46,7 +47,7 @@ const allowZips = window.location.hostname === 'skottie-internal.skia.org'
 
 export interface SkottieConfigState {
   filename: string,
-  lottie: Record<string, unknown> | null,
+  lottie: LottieAnimation | null,
   assetsZip: string,
   assetsFilename: string,
   w?: number,
@@ -54,7 +55,7 @@ export interface SkottieConfigState {
   soundMap?: SoundMap,
 }
 
-export interface SkottieConfigDetail {
+export interface SkottieConfigEventDetail {
   state: SkottieConfigState,
   fileChanged: boolean,
   width: number,
@@ -226,7 +227,7 @@ export class SkottieConfigSk extends ElementSk {
     const reader = new FileReader();
     if (toLoad.name.endsWith('.json')) {
       reader.addEventListener('load', () => {
-        let parsed: Partial<SkottieConfigState> = {};
+        let parsed: LottieAnimation;
         try {
           parsed = JSON.parse(reader.result as string);
         } catch (error) {
@@ -307,16 +308,15 @@ export class SkottieConfigSk extends ElementSk {
 
   private go(): void {
     this.updateState();
-    const detail: SkottieConfigDetail = {
-      state: this._state,
-      fileChanged: this._fileChanged,
-      width: this._width,
-      height: this._height,
-      fps: this._fps,
-      backgroundColor: this._backgroundColor,
-    };
-    this.dispatchEvent(new CustomEvent('skottie-selected', {
-      detail: detail,
+    this.dispatchEvent(new CustomEvent<SkottieConfigEventDetail>('skottie-selected', {
+      detail: {
+        state: this._state,
+        fileChanged: this._fileChanged,
+        width: this._width,
+        height: this._height,
+        fps: this._fps,
+        backgroundColor: this._backgroundColor,
+      },
       bubbles: true,
     }));
   }

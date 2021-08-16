@@ -34,6 +34,7 @@ import { until } from 'lit-html/directives/until.js';
 import { SKIA_VERSION } from '../../build/version';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SkottiePlayerConfig, SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
+import { LottieAnimation } from '../types';
 
 // See https://stackoverflow.com/a/45352250
 interface WindowWithGAPILoaded extends Window {
@@ -58,18 +59,14 @@ const gapiLoaded = new Promise<void>((resolve) => {
 interface ErrorResponse {
   result: {
     error: {
-      message: string
+      message: string;
     }
   }
 }
 
 interface DriveGetResponse {
-  headers: Record<string, string>
-  result: {
-    name: string;
-    w: number;
-    h: number;
-  }
+  headers: Record<string, string>;
+  result: LottieAnimation;
 }
 
 export class SkottieDriveSk extends ElementSk {

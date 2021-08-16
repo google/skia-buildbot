@@ -20,6 +20,7 @@ import {
   CanvasKit, CanvasKitInitOptions, ColorProperty, ManagedSkottieAnimation, OpacityProperty, SoundMap, Surface,
 } from 'canvaskit-wasm';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { LottieAnimation } from '../types';
 
 // This is how we can bundle in our CanvasKit build at TOT, not the one from npm.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -70,7 +71,7 @@ export interface SkottiePlayerConfig {
   assets?: Record<string, ArrayBuffer>;
   fps: number;
   height: number;
-  lottie: Record<string, unknown>;
+  lottie: LottieAnimation;
   soundMap?: SoundMap;
   width: number;
 }
@@ -296,7 +297,7 @@ export class SkottiePlayerSk extends ElementSk {
     }
   }
 
-  initializeSkottie(lottieJSON: unknown, assets?: Record<string, ArrayBuffer>, soundMap?: SoundMap): void {
+  initializeSkottie(lottieJSON: LottieAnimation, assets?: Record<string, ArrayBuffer>, soundMap?: SoundMap): void {
     if (!this.kit) {
       console.error('Could not load CanvasKit');
       return;

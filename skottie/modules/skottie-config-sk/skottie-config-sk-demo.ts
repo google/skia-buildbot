@@ -9,7 +9,12 @@ import { SkottieConfigSk } from './skottie-config-sk';
     assetsFilename: '',
     assetsZip: '',
     filename: 'foo.json',
-    lottie: {},
+    lottie: {
+      assets: [],
+      layers: [],
+      w: 128,
+      h: 128,
+    },
     w: 128,
     h: 128,
   };

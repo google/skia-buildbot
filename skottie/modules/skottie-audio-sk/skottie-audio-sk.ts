@@ -33,6 +33,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { Howl } from 'howler';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { LottieAnimation } from '../types';
 
 const INPUT_FILE_ID = 'fileInput';
 const BPM_ID = 'bpm';
@@ -40,6 +41,10 @@ const BEAT_DURATION_ID = 'beatDuration';
 const START_BUTTON_ID = 'startButton';
 
 type LoadingState = 'idle' | 'loading' | 'loaded' | 'submitted';
+
+export interface AudioStartEventDetail {
+  speed: number;
+}
 
 interface animationMarker {
   cm: string;
@@ -133,7 +138,7 @@ export class SkottieAudioSk extends ElementSk {
   </ul>
 `;
 
-  private _animation: Record<string, unknown> | null = null;
+  private _animation: LottieAnimation | null = null;
 
   private beatDuration: number = 0;
 
@@ -155,14 +160,14 @@ export class SkottieAudioSk extends ElementSk {
     super(SkottieAudioSk.template);
   }
 
-  set animation(val: Record<string, unknown>) {
+  set animation(val: LottieAnimation) {
     if (this._animation !== val) {
       this._animation = val;
       this.updateAnimation(val);
     }
   }
 
-  private updateAnimation(animation: Record<string, unknown>): void {
+  private updateAnimation(animation: LottieAnimation): void {
     const markers = (animation.markers || []) as animationMarker[];
     const marker = markers.find((markerItem: animationMarker) => {
       try {
@@ -410,7 +415,7 @@ export class SkottieAudioSk extends ElementSk {
     if (animSpeed > 1.5) {
       animSpeed /= 2;
     }
-    this.dispatchEvent(new CustomEvent('apply', {
+    this.dispatchEvent(new CustomEvent<AudioStartEventDetail>('apply', {
       detail: {
         speed: animSpeed,
       },
