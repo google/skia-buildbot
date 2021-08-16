@@ -5,8 +5,8 @@ import localStorage from './localStorage';
 const storageKey = 'skottie-gif-storage';
 
 const gifStorage = {
-  set: (key: string, value: unknown): void => localStorage.setValueInObject(storageKey, key, value),
-  get: (key: string, defaultValue: unknown): unknown => localStorage.getValueFromObject(storageKey, key, defaultValue),
+  set: <T>(key: string, value: T): void => localStorage.setValueInObject(storageKey, key, value),
+  get: <T>(key: string, defaultValue: T): T => localStorage.getValueFromObject(storageKey, key, defaultValue),
 };
 
 export default gifStorage;

@@ -19,7 +19,7 @@ import { html, render } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { SKIA_VERSION } from '../../build/version';
-import '../skottie-gif-exporter';
+import '../skottie-gif-exporter-sk';
 import '../skottie-text-editor';
 import { replaceTexts } from '../skottie-text-editor/text-replace';
 import '../skottie-library-sk';
@@ -58,9 +58,9 @@ const filename = (ele) => {
   const lottie = ele._state.lottie;
   if (lottie && lottie.metadata && lottie.metadata.filename) {
     return html`<div title='${lottie.metadata.filename}'>${lottie.metadata.filename}</div>`;
-  };
+  }
   return null;
-}
+};
 
 const wasmCaption = (ele) => {
   if (ele._viewMode === viewModes.PRESENTATION) {
@@ -136,10 +136,10 @@ const gifExporter = (ele) => {
   }
   return html`
 <section class=editor>
-  <skottie-gif-exporter
+  <skottie-gif-exporter-sk
     @start=${ele._onGifExportStart}
   >
-  </skottie-gif-exporter>
+  </skottie-gif-exporter-sk>
 </section>`;
 };
 
@@ -800,7 +800,7 @@ define('skottie-sk', class extends HTMLElement {
     this._skottiePerformanceChart = $$('skottie-performance-sk', this);
     this._skottieLibrary = $$('skottie-library-sk', this);
 
-    const skottieGifExporter = $$('skottie-gif-exporter', this);
+    const skottieGifExporter = $$('skottie-gif-exporter-sk', this);
     if (skottieGifExporter) {
       skottieGifExporter.player = this._skottiePlayer;
     }

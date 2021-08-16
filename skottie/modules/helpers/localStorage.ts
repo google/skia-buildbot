@@ -33,9 +33,9 @@ const _localStorage = {
   },
   // Gets a value from a serialized object.
   // If the attribute does not exist, it returns the defaultValue passed as argument.
-  getValueFromObject: (objectKey: string, key: string, defaultValue: unknown) => {
+  getValueFromObject: <T>(objectKey: string, key: string, defaultValue: T): T => {
     const object = _localStorage.getObject(objectKey);
-    return object[key] !== undefined ? object[key] : defaultValue;
+    return object[key] !== undefined ? (object[key] as T) : defaultValue;
   },
   // Sets a value on an object and serializes it to save it on the localStorage.
   setValueInObject: (objectKey: string, key: string, value: unknown): void => {
