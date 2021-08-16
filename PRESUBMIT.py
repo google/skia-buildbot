@@ -1,12 +1,10 @@
+#!/usr/bin/env python3
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 
 """Presubmit checks for the buildbot code."""
-
-
-import subprocess
 
 
 def _MakeFileFilter(input_api,
@@ -276,7 +274,7 @@ def CheckChange(input_api, output_api):
   pylint_skip = [
       r'infra[\\\/]bots[\\\/]recipes.py',
       r'.*[\\\/]\.recipe_deps[\\\/].*',
-      r'.*[\\\/]node_modules[\\\/].*',
+      r'.*[\\\/]?node_modules[\\\/].*',
   ]
   pylint_skip.extend(input_api.DEFAULT_FILES_TO_SKIP)
   pylint_disabled_warnings = (
