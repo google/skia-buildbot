@@ -254,6 +254,7 @@ export class SkottieTextEditorSk extends ElementSk {
   }
 
   connectedCallback(): void {
+    super.connectedCallback();
     this.updateAnimation(this.animation);
     this._render();
   }

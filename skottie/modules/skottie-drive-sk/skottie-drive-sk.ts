@@ -106,6 +106,7 @@ export class SkottieDriveSk extends ElementSk {
   }
 
   connectedCallback(): void {
+    super.connectedCallback();
     this._render();
     gapiLoaded.then(() => {
       // Load both the JS Apiary client library and OAuth 2 client library.
