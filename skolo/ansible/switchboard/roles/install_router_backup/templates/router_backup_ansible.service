@@ -1,0 +1,19 @@
+[Unit]
+Description=Backs up the router config to Google Storage
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/router_backup_ansible \
+  --prom_port=:{{ prometheus.monitoring.ports.router_backup_ansible }} \
+  --gce_bucket skia-backups\
+  --gce_folder router_config \
+  --add_hostname \
+  --remote_file_path "admin@192.168.1.1:/config/config.boot"
+
+Restart=always
+User=chrome-bot
+Group=chrome-bot
+
+[Install]
+WantedBy=multi-user.target

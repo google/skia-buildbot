@@ -10,3 +10,4 @@
     - install_collectd
     - install_metadata_server
     - install_powercycle_server
+    - install_router_backup
