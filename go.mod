@@ -84,7 +84,7 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/go-github/v29 v29.0.3
-	github.com/google/go-licenses v0.0.0-20210727195037-24e2421190d8
+	github.com/google/go-licenses v0.0.0-20210816172045-3099c18c36e1
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/martian/v3 v3.1.0 // indirect
 	github.com/google/uuid v1.1.2

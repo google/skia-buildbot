@@ -237,7 +237,7 @@ def _CheckGazelle(input_api, output_api):
   file_filter = _MakeFileFilter(
       input_api,
       include_filenames=['WORKSPACE', 'BUILD', 'BUILD.bazel'],
-      include_extensions=['go', 'ts', 'bzl'])
+      include_extensions=['go', 'ts', 'bzl', 'mod', 'sum'])
   if not input_api.AffectedSourceFiles(file_filter):
     return []
   return _RunCommandAndCheckGitDiff(input_api, output_api, ['make', 'gazelle'])

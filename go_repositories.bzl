@@ -1315,8 +1315,8 @@ def go_repositories():
     go_repository(
         name = "com_github_google_go_licenses",
         importpath = "github.com/google/go-licenses",
-        sum = "h1:witO2HVN17VLN3zqEkHqvgzUyz/G9nGDMGJccZBXPhA=",
-        version = "v0.0.0-20210727195037-24e2421190d8",
+        sum = "h1:ZK63Yns/0Y8hE5y50WuSsfFWNPmpYDQ9tzh/J2vWV8c=",
+        version = "v0.0.0-20210816172045-3099c18c36e1",
     )
 
     go_repository(
