@@ -83,6 +83,7 @@ export interface Config {
   notifiers?: NotifierConfig[];
   safetyThrottle?: ThrottleConfig;
   transitiveDeps?: TransitiveDepConfig[];
+  useWorkloadIdentity: boolean;
 }
 
 interface ConfigJSON {
@@ -116,6 +117,7 @@ interface ConfigJSON {
   notifiers?: NotifierConfigJSON[];
   safety_throttle?: ThrottleConfigJSON;
   transitive_deps?: TransitiveDepConfigJSON[];
+  use_workload_identity?: boolean;
 }
 
 export interface CommitMsgConfig {

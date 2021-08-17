@@ -81,6 +81,9 @@ message Config {
     // TODO(borenet): Where is this used? Why isn't it nested within the repo
     // manager config?
     repeated TransitiveDepConfig transitive_deps = 28;
+    // use_workload_identity indicates whether the roller uses workload
+    // identity. See skbug.com/12323
+    bool use_workload_identity = 31;
 }
 
 // CommitMsgConfig provides configuration for commit messages.

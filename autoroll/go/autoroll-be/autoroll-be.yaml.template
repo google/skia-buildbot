@@ -1,4 +1,14 @@
 {{$svcAcctSplit := .serviceAccount | split "@"}}{{$svcAcct := $svcAcctSplit._0}}
+{{- if eq .useWorkloadIdentity "true" -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    iam.gke.io/gcp-service-account: {{.serviceAccount}}
+  name: {{$svcAcct}}
+  namespace: default
+---
+{{- end}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -26,6 +36,9 @@ spec:
       securityContext:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
+{{- if eq .useWorkloadIdentity "true"}}
+      serviceAccountName: {{$svcAcct}}
+{{- end}}
 {{if .kubernetes.disk}}
       initContainers:
         - name: init-autoroll-be-{{.rollerName}}
@@ -45,7 +58,11 @@ spec:
           args:
             - "context"
             - "-service-account-json"
+{{- if eq .useWorkloadIdentity "true"}}
+            - ":gce"
+{{- else}}
             - "/var/secrets/google/key.json"
+{{- end}}
             - "--"
             - "/usr/local/bin/autoroll-be"
             - "--config={{.configBase64}}"
@@ -62,8 +79,10 @@ spec:
           volumeMounts:{{if .kubernetes.disk}}
             - name: autoroll-be-{{.rollerName}}-storage
               mountPath: /data{{end}}
+{{- if eq .useWorkloadIdentity "false"}}
             - name: autoroll-be-{{$svcAcct}}-sa
               mountPath: /var/secrets/google
+{{- end}}
             - name: autoroll-email-creds
               mountPath: /var/secrets/autoroll-email-creds
             - name: notifier-chat-config
@@ -73,8 +92,10 @@ spec:
               mountPath: {{$secret.mountPath}}
             {{- end}}
           env:
+{{- if eq .useWorkloadIdentity "false"}}
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
+{{- end}}
             - name: TMPDIR
               value: {{if .kubernetes.disk}}/data{{end}}/tmp
           resources:
@@ -89,9 +110,11 @@ spec:
             periodSeconds: {{.kubernetes.readinessPeriodSeconds}}
             failureThreshold: {{.kubernetes.readinessFailureThreshold}}
       volumes:
+{{- if eq .useWorkloadIdentity "false"}}
         - name: autoroll-be-{{$svcAcct}}-sa
           secret:
             secretName: {{$svcAcct}}
+{{- end}}
         - name: autoroll-email-creds
           secret:
             secretName: autoroll-email-creds
