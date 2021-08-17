@@ -1,5 +1,5 @@
 go-licenses:
-	go get github.com/google/go-licenses
+	go install github.com/google/go-licenses
 
 check: go-licenses
 	./check.sh
