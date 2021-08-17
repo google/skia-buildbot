@@ -188,8 +188,8 @@ export class SkottieTextEditorSk extends ElementSk {
             items: [],
             // this property is the text string of a text layer.
             // It's read as: Text Element > Text document > First Keyframe > Start Value > Text
-            text: item.layer.t.d.k[0].s.t,
-            maxChars: item.layer.t.d.k[0].s.mc, // Max characters text document attribute
+            text: item.layer.t?.d.k[0].s.t || 'unnamed layer',
+            maxChars: item.layer.t?.d.k[0].s.mc || 0, // Max characters text document attribute
             precompName: item.precompName,
           };
         }
@@ -235,7 +235,9 @@ export class SkottieTextEditorSk extends ElementSk {
     textData.items.forEach((item: ExtraLayerData) => {
       // this property is the text string of a text layer.
       // It's read as: Text Element > Text document > First Keyframe > Start Value > Text
-      item.layer.t.d.k[0].s.t = text;
+      if (item.layer.t) {
+        item.layer.t.d.k[0].s.t = text;
+      }
     });
   }
 

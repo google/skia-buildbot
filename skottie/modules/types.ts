@@ -8,9 +8,9 @@ export interface KeyFrame {
 export interface LottieLayer extends Record<string, unknown> {
     ty: number; // Type
     nm: string; // Name
-    refId: string;
+    refId?: string;
     ind: number;
-    t: {
+    t?: {
         d: {
             k: KeyFrame[];
         }
