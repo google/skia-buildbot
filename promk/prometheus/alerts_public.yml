@@ -22,7 +22,7 @@ groups:
 
           kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
 
-          https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=logName%3D"projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.job }}"
+          https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22k8s_container%22%0Aresource.labels.pod_name%3D%22{{ $labels.kubernetes_pod_name }}%22"
         '
 
   # Docker Pushes Watcher
@@ -36,7 +36,7 @@ groups:
     annotations:
       description: 'Docker pushes watcher has failed to recieve a pubsub event in the last 48 hours.
 
-          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fdocker-pushes-watcher&minLogLevel=400
+          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=k8s_container%2Fcluster_name%2Fskia-public%2Fnamespace_name%2Fdefault%2Fcontainer_name%2Fdocker-pushes-watcher
         '
 
   - alert: DockerPushesWatcherTagFailures
@@ -50,7 +50,7 @@ groups:
       abbr: '{{ $labels.image }}'
       description: 'Docker pushes watcher has failed to successfully add "prod" tag to the docker image of {{ $labels.image }} in the repo {{ $labels.repo }}
 
-          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fdocker-pushes-watcher&minLogLevel=400
+          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=k8s_container%2Fcluster_name%2Fskia-public%2Fnamespace_name%2Fdefault%2Fcontainer_name%2Fdocker-pushes-watcher
         '
 
   - alert: DockerPushesWatcherPushFailures
@@ -64,7 +64,7 @@ groups:
       abbr: '{{ $labels.image }}'
       description: 'Docker pushes watcher has failed to successfully pushk the docker image of {{ $labels.image }} in the repo {{ $labels.repo }}
 
-          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fdocker-pushes-watcher&minLogLevel=400
+          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=k8s_container%2Fcluster_name%2Fskia-public%2Fnamespace_name%2Fdefault%2Fcontainer_name%2Fdocker-pushes-watcher
         '
 
   # Fiddle
@@ -197,7 +197,7 @@ groups:
       owner: rmistry@google.com
     annotations:
       description: 'The License scripts in the Skia->Flutter roller have failed.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2Fskia-public%2Flogs%2F{{ $labels.app }}
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
       https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#flutter_license_script_failure'
 
 # skia-flutter-autoroll takes a long time to transition because its pre-upload
@@ -211,7 +211,7 @@ groups:
     annotations:
       abbr: 'skia-flutter-autoroll'
       description: 'Autoroll on {{ $labels.app }} has failed to transition for more than 50 minutes.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2Fskia-public%2Flogs%2F{{ $labels.app }}
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
       '
 
 # Perf

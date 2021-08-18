@@ -62,7 +62,7 @@ groups:
       abbr: '{{ $labels.kubernetes_pod_name }}'
       description: 'Pod {{ $labels.kubernetes_pod_name }} for app {{ $labels.app }} is crashing on
         startup. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
-        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22container%22%0Aresource.labels.pod_id%3D%22{{ $labels.kubernetes_pod_name }}%22'
+        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
   - alert: TooManyGoRoutines
     expr: go_goroutines{app=~".+"} > 3000
@@ -74,7 +74,7 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'Too many Go routines in {{ $labels.kubernetes_pod_name }} for app
         {{ $labels.app }}. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
-        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22container%22%0Aresource.labels.pod_id%3D%22{{ $labels.kubernetes_pod_name }}%22'
+        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
   - alert: TooManyOpenFDs
     expr: process_open_fds{app=~".+"} > 30000
@@ -85,7 +85,7 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'Too many open file handles on {{ $labels.kubernetes_pod_name }} for app
         {{ $labels.app }}. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
-        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22container%22%0Aresource.labels.pod_id%3D%22{{ $labels.kubernetes_pod_name }}%22'
+        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
   - alert: PersistentVolumeLowSpace
     expr: (kubelet_volume_stats_used_bytes /kubelet_volume_stats_capacity_bytes) > 0.9
@@ -114,7 +114,7 @@ groups:
     annotations:
       abbr: '{{ $labels.app }}'
       description: 'The error rate for autoroll on {{ $labels.app }} is too high.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
       https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#error_rate'
 
   - alert: AutoRollFrontendErrorRate
@@ -126,7 +126,7 @@ groups:
     annotations:
       abbr: '{{ $labels.app }}'
       description: 'The error rate for autoroll on {{ $labels.app }} is too high.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2Fskia-public%2Flogs%2F{{ $labels.app }}
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
       https://skia.googlesource.com/buildbot/%2B/main/autoroll/PROD.md#error_rate'
 
   - alert: AutoRollLastTransition
@@ -138,7 +138,7 @@ groups:
     annotations:
       abbr: '{{ $labels.roller }}'
       description: 'Autoroll on {{ $labels.app }} has failed to transition for more than 20 minutes.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
   - alert: AutoRollCLUploadFailure
     expr: autoroll_cl_upload_failures{} > 2
@@ -149,7 +149,7 @@ groups:
     annotations:
       abbr: '{{ $labels.roller }}'
       description: '{{ $labels.app }} is failing to upload CLs.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
   - alert: HighOutgoingQPS
     expr: sum(rate(http_request_metrics{host!~".*googleapis.*"}[30m])) by (host) > 25
@@ -222,7 +222,7 @@ groups:
     annotations:
       abbr: '{{ $labels.roller }}'
       description: 'Autoroll on {{ $labels.app }} has failed to obtain the current sheriff for more than 2 hours. Please verify that the sheriff endpoint is working and that the rotation schedule is not empty.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
       '
 
 # Skia Status
@@ -409,7 +409,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'The error rate for datahopper is too high. https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: 'The error rate for datahopper is too high. https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
   - alert: JobMetricsLiveness
     expr: liveness_last_successful_job_metrics_update_s/60 > 30
@@ -419,7 +419,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update job metrics for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#job_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update job metrics for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#job_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
   - alert: BotCoverageMetricsLiveness
     expr: liveness_last_successful_bot_coverage_metrics_s/60 > 60
@@ -429,7 +429,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update bot coverage metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#bot_coverage_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update bot coverage metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#bot_coverage_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
   - alert: SwarmingTaskMetricsLiveness
     expr: liveness_last_successful_swarming_task_metrics_s/60 > 60
@@ -439,7 +439,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update swarming task metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#swarming_task_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update swarming task metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#swarming_task_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
   - alert: EventMetricsLiveness
     expr: liveness_last_successful_event_metrics_update_s/60 > 30
@@ -449,7 +449,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update event metrics for {{ $labels.measurement }} for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#event_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update event metrics for {{ $labels.measurement }} for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#event_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
   - alert: SwarmingBotMetricsLiveness
     expr: liveness_last_successful_report_bot_metrics_s/60 > 10
@@ -459,7 +459,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.pool }}'
-      description: '{{ $labels.app }} has failed to update swarming task metrics for pool {{ $labels.pool }} on {{ $labels.server }} for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#swarming_bot_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update swarming task metrics for pool {{ $labels.pool }} on {{ $labels.server }} for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#swarming_bot_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
   - alert: FirestoreBackupMetricsLiveness
     expr: liveness_last_successful_firestore_backup_metrics_update_s/60 > 15
@@ -469,7 +469,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has failed to update Firestore backup metrics for the last 15 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#firestore_backup_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update Firestore backup metrics for the last 15 minutes. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#firestore_backup_metrics https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
 # Swarming
 
@@ -549,7 +549,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.branch }}'
-      description: 'There are no bots which can run the tasks for {{ $labels.tryjob }} on supported branch {{ $labels.branch }} in {{ $labels.repo }}.  Either the dimensions for the tasks used by the job need to be updated in {{ $labels.repo }}/+show/{{ $labels.branch}}/infra/bots/tasks.json or bots need to be added which can run the tasks. See the logs for details: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: 'There are no bots which can run the tasks for {{ $labels.tryjob }} on supported branch {{ $labels.branch }} in {{ $labels.repo }}.  Either the dimensions for the tasks used by the job need to be updated in {{ $labels.repo }}/+show/{{ $labels.branch}}/infra/bots/tasks.json or bots need to be added which can run the tasks. See the logs for details: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}'
 
 # K8s Checker
   - alert: K8sCheckerLiveness
@@ -668,7 +668,10 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.repo }}'
-      description: 'gitsync has failed to update {{ $labels.repo }} for the last 5 minutes. Check out pod {{ $labels.statefulset_kubernetes_io_pod_name }} in project {{ $labels.project }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/gitsync/PROD.md#GitSyncStalled'
+      description: 'gitsync has failed to update {{ $labels.repo }} for the last 5 minutes. Check out pod {{ $labels.statefulset_kubernetes_io_pod_name }} in project {{ $labels.project }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/gitsync/PROD.md#GitSyncStalled
+      
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
+      '
 
   - alert: GitSyncErrorRate
     expr: rate(num_log_lines{level="ERROR",app=~"gitsync.*"}[5m]) > 0.005
@@ -679,7 +682,7 @@ groups:
     annotations:
       abbr: '{{ $labels.app }}'
       description: 'The error rate for {{ $labels.app }} is too high.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/gitsync/PROD.md#GitSyncErrorRate'
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }} https://skia.googlesource.com/buildbot/+doc/refs/heads/main/gitsync/PROD.md#GitSyncErrorRate'
 
 # Gold Alerts
   - alert: GoldIgnoreMonitoring
