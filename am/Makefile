@@ -56,4 +56,20 @@ build-frontend-ci: npm-ci
 test-frontend-ci: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
+export HASH=$(shell git rev-parse HEAD)
+export DATETIME=$(shell date --utc "+%Y-%m-%dT%H:%M:%SZ")
+export GIT_STATE=$(shell ../bash/gitstate.sh)
+export VERSION=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
+
+# The name of this target can't change, as the form is dictated by ansible
+# playbooks in //skolo/ansible/switchboard.
+build_alert_to_pubsub_ansible_x86_64_Linux:
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=amd64 \
+	go build \
+	 -o ./build/Linux/x86_64/alert_to_pubsub_ansible \
+	 -ldflags="-X 'main.Version=${VERSION}' " \
+	 ./go/alert-to-pubsub
+
 include ../make/npm.mk

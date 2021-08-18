@@ -5,6 +5,9 @@ skolo_account: 'chrome-bot'
 
 # The port on which each app publishes Prometheus metrics.
 prometheus:
+  web_server_port: 8000
+  alert_to_pubsub_port: 8001
+  version: '2.29.1'
   monitoring:
     ports:
       metadata_server_ansible: 20010
@@ -12,6 +15,7 @@ prometheus:
       powercycle_server_ansible: 20012
       alert_to_pubsub_ansible: 20013
       test_machine_monitor: 20014
+      collectd: 20015
 
 # The port that the metadata server is serving on.
 metadata_server_port: 9000

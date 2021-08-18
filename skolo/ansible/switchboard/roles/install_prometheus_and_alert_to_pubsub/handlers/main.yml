@@ -1,0 +1,15 @@
+- name: restart_prometheus
+  become: yes
+  systemd:
+    enabled: yes
+    state: restarted
+    name: prometheus
+    daemon_reload: yes
+
+- name: restart_alert_to_pubsub
+  become: yes
+  systemd:
+    enabled: yes
+    state: restarted
+    name: alert_to_pubsub
+    daemon_reload: yes

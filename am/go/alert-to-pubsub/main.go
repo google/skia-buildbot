@@ -40,6 +40,11 @@ var (
 )
 
 var (
+	// Version can be changed via -ldflags.
+	Version = "kubernetes"
+)
+
+var (
 	sim1 = map[string]string{
 		"__name__":   "ALERTS",
 		"alertname":  "BotUnemployed",
@@ -192,7 +197,11 @@ func main() {
 		"alert-to-pubsub",
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
+		common.CloudLogging(local, "skia-public"),
 	)
+
+	sklog.Infof("Version: %s", Version)
+
 	ctx := context.Background()
 	ts, err := auth.NewDefaultTokenSource(*local, pubsub.ScopePubSub)
 	if err != nil {

@@ -11,3 +11,4 @@
     - install_metadata_server
     - install_powercycle_server
     - install_router_backup
+    - install_prometheus_and_alert_to_pubsub

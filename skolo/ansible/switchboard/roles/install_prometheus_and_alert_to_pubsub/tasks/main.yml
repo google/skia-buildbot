@@ -1,0 +1,125 @@
+- name: Check if Prometheus binary needs to be downloaded.
+  stat:
+    path:
+      "{{ role_path }}/../../../../../skolo/build/{{ ansible_facts['system']
+      }}/{{ ansible_facts['architecture'] }}/prometheus-{{ prometheus.version
+      }}.linux-amd64/prometheus"
+  register: prometheus_binary
+
+- name: Download Prometheus binary.
+  delegate_to: 127.0.0.1
+  throttle: 1
+  make:
+    chdir: '{{ role_path }}/../../../../../skolo/'
+    target:
+      "download_prometheus_{{ ansible_facts['architecture'] }}_{{
+      ansible_facts['system'] }}"
+    params:
+      PROMETHEUS_VERSION: '{{ prometheus.version }}'
+  when: not prometheus_binary.stat.exists
+
+- name: Copy over service file.
+  become: yes
+  template:
+    src: templates/prometheus.service
+    dest: /etc/systemd/system/prometheus.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy over prometheus executable.
+  become: yes
+  copy:
+    src:
+      "{{ role_path }}/../../../../../skolo/build/{{ ansible_facts['system']
+      }}/{{ ansible_facts['architecture'] }}/prometheus-{{ prometheus.version
+      }}.linux-amd64/prometheus"
+    dest: /usr/local/bin/prometheus
+    owner: root
+    group: root
+    mode: '0755'
+  notify: restart_prometheus
+
+- name: Copy over promtool executable.
+  become: yes
+  copy:
+    src:
+      "{{ role_path }}/../../../../../skolo/build/{{ ansible_facts['system']
+      }}/{{ ansible_facts['architecture'] }}/prometheus-{{ prometheus.version
+      }}.linux-amd64/promtool"
+    dest: /usr/local/bin/promtool
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Ensure /etc/prometheus directory exists.
+  become: yes
+  file:
+    path: /etc/prometheus
+    state: directory
+    owner: chrome-bot
+    group: chrome-bot
+    mode: '0755'
+
+- name: Copy over prometheus config file.
+  template:
+    src: templates/prometheus.yml
+    dest: /etc/prometheus/prometheus.yml
+    owner: chrome-bot
+    group: chrome-bot
+    mode: '0644'
+  notify: restart_prometheus
+
+- name: Copy over alerts file.
+  copy:
+    src: files/alerts.yml
+    dest: /etc/prometheus/alerts.yml
+    owner: chrome-bot
+    group: chrome-bot
+    mode: '0644'
+  notify: restart_prometheus
+
+- name: Validate prometheus config.
+  command: /usr/local/bin/promtool check config /etc/prometheus/prometheus.yml
+
+- name: Validate prometheus rules.
+  command: /usr/local/bin/promtool check rules /etc/prometheus/alerts.yml
+
+- name: Ensure tsdb directory exists.
+  become: yes
+  file:
+    path: /var/lib/prometheus/tsdb
+    state: directory
+    owner: chrome-bot
+    group: chrome-bot
+    mode: '0755'
+
+- name: Build alert_to_pubsub_ansible for the target machine.
+  delegate_to: 127.0.0.1
+  make:
+    chdir: '{{ role_path }}/../../../../../am/'
+    target:
+      "build_alert_to_pubsub_ansible_{{ ansible_facts['architecture'] }}_{{
+      ansible_facts['system'] }}"
+
+- name: Copy over alert_to_pubsub service file.
+  become: yes
+  template:
+    src: templates/alert_to_pubsub.service
+    dest: /etc/systemd/system/alert_to_pubsub.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart_alert_to_pubsub
+
+- name: Copy over alert_to_pubsub_ansible executable.
+  become: yes
+  copy:
+    src:
+      "{{ role_path }}/../../../../../am/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/alert_to_pubsub_ansible"
+    dest: /usr/local/bin/alert_to_pubsub_ansible
+    owner: root
+    group: root
+    mode: '0755'
+  notify: restart_alert_to_pubsub

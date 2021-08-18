@@ -1,0 +1,11 @@
+# Configures metrics and alerting on each jumphost.
+#
+# A slimmed down playbook that just deals with Prometheus and alert_to_pubsub.
+#
+# The primary jumphost playbook is jumphosts.yaml.
+- hosts: "{{ variable_hosts | default('jumphosts') }}"
+  user: chrome-bot
+  gather_facts: yes
+
+  roles:
+    - install_prometheus_and_alert_to_pubsub

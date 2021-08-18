@@ -44,9 +44,15 @@ The `secrets.yml` is only put in a temp file long enough to be copied to the
 target machine, then the temp file is removed by the `clean_up_tempfile`
 handler.
 
+## Arguments
+
+The `service_account_name` is the name of the berglas secret that contains the
+service account key to use.
+
 ## Example Playbook
 
     - hosts: '{{ variable_hosts }}'
 
       roles:
-        - { role: copy_service_account_key, service_account_name: 'skolo-jumphost' }
+        - role: copy_service_account_key
+          service_account_name: 'skolo-jumphost'

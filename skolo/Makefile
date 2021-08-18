@@ -154,3 +154,11 @@ run-local-instance-router_backup_ansible:
 	  --gce_bucket skia-backups \
       --gce_folder router_config_test_backups \
       --remote_file_path "admin@router-rack1:/config/config.boot"
+
+# The PROMETHEUS_VERSION env variable must also be set.
+download_prometheus_x86_64_Linux:
+ifeq ("$(wildcard ./build/Linux/x86_64/prometheus-$(PROMETHEUS_VERSION).linux-amd64/prometheus)", "")
+	mkdir -p ./build/Linux/x86_64
+	wget https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz -O - | tar -xz --directory=./build/Linux/x86_64
+endif
+	-echo Download complete.
