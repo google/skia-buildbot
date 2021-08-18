@@ -8,7 +8,7 @@
 # fail with a higher number of parallel forks.
 
 install_test_machine_monitor_to_linux_incremental:
-	${SSH_WRAP} ansible-playbook ./switchboard/install_test_machine_monitor_linux.yml --extra-vars variable_hosts=rack2_linux -l skia-e-linux-207 --ask-pass
+	${SSH_WRAP} ansible-playbook ./switchboard/install_test_machine_monitor.yml --extra-vars variable_hosts=rack2_linux -l skia-e-linux-207 --ask-pass
 
-distrubute_authorized_keys_to_rpis:
+distribute_authorized_keys_to_rpis:
 	${SSH_WRAP} ansible-playbook ./switchboard/update-authorized-keys.yml --extra-vars variable_hosts=rpi
