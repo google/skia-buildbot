@@ -18,6 +18,7 @@ export function GetFakeConfig(): Config {
         ownerSecondary: "rmistry",
         contacts: ["borenet@google.com"],
         serviceAccount: "skia-autoroll@skia-public.iam.gserviceaccount.com",
+        useWorkloadIdentity: false,
         isInternal: false,
         reviewer: ["borenet@google.com"],
         rollCooldown: "",
