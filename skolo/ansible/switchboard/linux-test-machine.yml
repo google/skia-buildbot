@@ -15,4 +15,5 @@
     - copy_service_account_key
     - install_collectd
     - swarming_needs
-    - { role: install_test_machine_monitor, start_swarming: false }
+    - role: install_test_machine_monitor
+      start_swarming: false
