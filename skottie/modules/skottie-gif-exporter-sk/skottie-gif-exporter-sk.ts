@@ -86,7 +86,7 @@ const renderRepeatsLabel = (val: number) => {
   }
 };
 
-class SkottieGifExporterSk extends ElementSk {
+export class SkottieGifExporterSk extends ElementSk {
   private static template = (ele: SkottieGifExporterSk) => html`
   <div>
     <header class="editor-header">

@@ -46,6 +46,7 @@ const allowZips = window.location.hostname === 'skottie-internal.skia.org'
                   || window.location.hostname === 'localhost';
 
 export interface SkottieConfigState {
+  assets?: Record<string, ArrayBuffer>;
   filename: string,
   lottie: LottieAnimation | null,
   assetsZip: string,

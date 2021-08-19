@@ -40,7 +40,7 @@ interface FrameMetric {
   average: number;
 }
 
-class SkottiePerformanceSk extends ElementSk {
+export class SkottiePerformanceSk extends ElementSk {
   private static template = () => html`
   <div>
     <div class="chart">

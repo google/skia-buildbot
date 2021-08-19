@@ -20,9 +20,10 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ifDefined } from 'lit-html/directives/if-defined';
-import viewModes, { ViewMode } from '../helpers/viewModes';
 import { ExtraLayerData, TextData } from './text-replace';
-import { LottieAnimation, LottieAsset, LottieLayer } from '../types';
+import {
+  LottieAnimation, LottieAsset, LottieLayer, ViewMode,
+} from '../types';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 export interface TextEditApplyEventDetail {
@@ -52,7 +53,7 @@ export class SkottieTextEditorSk extends ElementSk {
 `;
 
   private ungroupButton = () => {
-    if (this.mode === viewModes.PRESENTATION) {
+    if (this.mode === 'presentation') {
       return null;
     }
     return html`
@@ -86,7 +87,7 @@ export class SkottieTextEditorSk extends ElementSk {
 `;
 
   private textElementTitle = (name: string) => {
-    if (this.mode === viewModes.PRESENTATION) {
+    if (this.mode === 'presentation') {
       return null;
     }
     return html`
@@ -102,7 +103,7 @@ export class SkottieTextEditorSk extends ElementSk {
   };
 
   private originTemplate = (group: TextData) => {
-    if (this.mode === viewModes.PRESENTATION) {
+    if (this.mode === 'presentation') {
       return null;
     }
     return html`

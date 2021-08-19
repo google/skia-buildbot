@@ -166,7 +166,7 @@ If not selected, the animations will be paused and not respond to scrubbing of t
   }
 
   private onThumbSelected(index: number): void {
-    this.dispatchEvent(new CustomEvent('select', {
+    this.dispatchEvent(new CustomEvent<LottieAnimation>('select', {
       detail: this.animations[index],
     }));
     this._render();

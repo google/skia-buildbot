@@ -1,7 +1,7 @@
 import './index';
 
 import fetchMock from 'fetch-mock';
-import { gear } from './test_gear';
+import { gear } from '../skottie-sk/test_gear';
 
 const state = {
   filename: 'gear.json',

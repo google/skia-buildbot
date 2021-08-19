@@ -1,8 +1,6 @@
 import { TemplateResult } from 'lit-html';
 import { isOneOfDomains } from './domains';
 
-const renderByDomain = (template: TemplateResult, domains: string): TemplateResult | null => (isOneOfDomains(domains) ? template : null);
-
-export {
-  renderByDomain,
-};
+export function renderByDomain(template: TemplateResult, domains: string[]): TemplateResult | null {
+  return isOneOfDomains(domains) ? template : null;
+}
