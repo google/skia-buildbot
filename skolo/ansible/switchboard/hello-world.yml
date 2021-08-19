@@ -1,0 +1,11 @@
+# Tests ansible connection to variable_hosts or the jumphosts
+- hosts: "{{ variable_hosts | default('jumphosts') }}"
+  user: chrome-bot
+  gather_facts: no
+
+  tasks:
+    - name: Print out hostname
+      command: hostname
+
+    - name: Print out current user (chrome-bot)
+      command: whoami
