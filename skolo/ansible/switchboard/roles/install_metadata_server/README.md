@@ -18,9 +18,10 @@ Ansible variable. See
 for more details on berglas and Skia secrets.
 
 The key is stored as a kubernetes secret in berglas secrets for the cluster
-`etc` and the secret name `skolo-service-accounts`.
+`etc` and the secret name is determined by the `metadata_service_account_name`
+variable, which is set per host in the `hosts.ini` file.
 
-You can see this secret in the list of all secrets for the `etc` cluster:
+You can see all the secrets for the `etc` cluster by running:
 
         $ ../../kube/secrets/list-secrets-by-cluster.sh etc
         skolo-service-accounts
@@ -32,8 +33,8 @@ You can see this secret in the list of all secrets for the `etc` cluster:
 
 ## Requirements
 
-The default service account key installed for 'chrome-bot' must have
-the ability to write logs to `skia-public`.
+The default service account key installed for 'chrome-bot' must have the ability
+to write logs to `skia-public`.
 
 ## Security
 

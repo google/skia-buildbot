@@ -113,12 +113,21 @@ export GIT_STATE=$(shell ../bash/gitstate.sh)
 export VERSION=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
 
 # The names of this target can't change, as the form is dictated by ansible playbooks in //skolo/ansible/switchboard.
-build_metadata_server_ansible_x86_64_Linux:
+build_metadata_server_ansible_x86_64_Linux_skolo-service-accounts:
 	CGO_ENABLED=0 \
 	GOOS=linux \
 	GOARCH=amd64 \
 	go build \
-	 -o ./build/Linux/x86_64/metadata_server_ansible \
+	 -o ./build/Linux/x86_64/skolo-service-accounts/metadata_server_ansible \
+	 -ldflags="-X 'main.Version=${VERSION}' -X 'main.Key=${SERVICE_ACCOUNT_KEY}' " \
+	 ./go/metadata_server_ansible
+
+build_metadata_server_ansible_x86_64_Linux_skolo-internal-service-account:
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=amd64 \
+	go build \
+	 -o ./build/Linux/x86_64/skolo-internal-service-account/metadata_server_ansible \
 	 -ldflags="-X 'main.Version=${VERSION}' -X 'main.Key=${SERVICE_ACCOUNT_KEY}' " \
 	 ./go/metadata_server_ansible
 

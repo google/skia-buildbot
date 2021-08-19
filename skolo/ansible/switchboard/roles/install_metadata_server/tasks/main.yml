@@ -19,7 +19,7 @@
       # Use role_path variable to get to the root of the buildbot repo.
       - '{{ role_path }}/../../../../../kube/secrets/get-secret-at-path.sh'
       - etc
-      - skolo-service-accounts
+      - '{{ metadata_service_account_name }}'
       - '.data."key.json"'
       - '{{ service_account_key_filename }}'
     creates: '{{ service_account_key_filename }}'
@@ -32,7 +32,7 @@
     chdir: '{{ role_path }}/../../../../../skolo/'
     target:
       "build_metadata_server_ansible_{{ ansible_facts['architecture'] }}_{{
-      ansible_facts['system'] }}"
+      ansible_facts['system'] }}_{{ metadata_service_account_name }}"
     params:
       # Pass the service account key base64 encoded so it doesn't mess up the Go compile command line.
       SERVICE_ACCOUNT_KEY:
@@ -52,7 +52,8 @@
   copy:
     src:
       "{{ role_path }}/../../../../../skolo/build/{{ ansible_facts['system']
-      }}/{{ ansible_facts['architecture'] }}/metadata_server_ansible"
+      }}/{{ ansible_facts['architecture'] }}/{{ metadata_service_account_name
+      }}/metadata_server_ansible"
     dest: /usr/local/bin/metadata_server_ansible
     owner: root
     group: root
