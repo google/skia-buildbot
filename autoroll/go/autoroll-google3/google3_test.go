@@ -87,6 +87,8 @@ func closeIssue(issue *autoroll.AutoRollIssue, result string) {
 }
 
 func TestStatus(t *testing.T) {
+	t.Skip("skbug.com/12357")
+
 	ctx, a, gb, mockChild, cleanup := setup(t)
 	defer cleanup()
 
@@ -174,6 +176,8 @@ func TestStatus(t *testing.T) {
 }
 
 func TestAddOrUpdateIssue(t *testing.T) {
+	t.Skip("skbug.com/12357")
+
 	ctx, a, gb, mockChild, cleanup := setup(t)
 	defer cleanup()
 

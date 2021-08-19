@@ -84,6 +84,8 @@ Tbr: some-reviewer
 }
 
 func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
+	t.Skip("skbug.com/12357")
+
 	unittest.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
