@@ -10,9 +10,6 @@ Compiles and installs `test_machine_monitor` to the machine.
 
 Requires `gather_facts` to detect the target operating system.
 
-This role uses the `skolo_account` variable defined in
-`//skolo/ansible/group_vars/all.yml` and potentially overridden in `hosts.ini`.
-
 ## Arguments
 
 Takes a single boolean argument `start_swarming` that controls whether or not

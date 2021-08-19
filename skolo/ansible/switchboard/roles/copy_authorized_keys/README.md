@@ -11,8 +11,8 @@ Platforms specific tasks are in their own files, e.g. `linux.yml`.
 
 # Variables Required
 
-This role uses the `skolo_account` variable defined in
-`//skolo/ansible/group_vars/all.yml` and potentially overridden in `hosts.ini`.
+This role uses the `skolo_account` variable defined in `defaults/main.yml` and
+potentially overridden in `hosts.ini`.
 
 Also requires `gather_facts` to detect the target operating system.
 

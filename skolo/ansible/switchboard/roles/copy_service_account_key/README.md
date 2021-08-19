@@ -35,8 +35,8 @@ libraries can find and use this by default.
 
 ## Variables
 
-This role uses the `skolo_account` variable defined in
-`//skolo/ansible/group_vars/all.yml` and potentially overridden in `hosts.ini`.
+This role uses the `skolo_account` variable defined in `defaults/main.yml` and
+potentially overridden in `hosts.ini`.
 
 ## Security
 
