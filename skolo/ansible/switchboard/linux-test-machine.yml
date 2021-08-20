@@ -12,7 +12,8 @@
 
   roles:
     - copy_authorized_keys
-    - copy_service_account_key
+    - role: copy_service_account_key
+      service_account_name: 'skolo-bot-service-account'
     - install_collectd
     - swarming_needs
     - role: install_test_machine_monitor
