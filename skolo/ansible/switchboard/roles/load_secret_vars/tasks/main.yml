@@ -11,8 +11,7 @@
   delegate_to: 127.0.0.1
   command:
     argv:
-      # Use role_path variable to get to the root of the buildbot repo.
-      - '{{ role_path }}/../../../../../kube/secrets/get-secret-at-path.sh'
+      - '{{ repo_root }}/kube/secrets/get-secret-at-path.sh'
       - etc
       - ansible-secret-vars
       - '.data."secrets.yml"'

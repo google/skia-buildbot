@@ -1,6 +1,6 @@
 - name: Copy authorized_keys.
   copy:
-    src: '{{ role_path }}/../../../../authorized_keys'
+    src: '{{ repo_root }}/skolo/authorized_keys'
     dest: '/home/{{ skolo_account }}/.ssh/authorized_keys'
     owner: '{{ skolo_account }}'
     mode: 0644

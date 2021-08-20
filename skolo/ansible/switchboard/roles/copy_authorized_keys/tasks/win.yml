@@ -10,7 +10,7 @@
 
 - name: Copy authorized_keys
   ansible.builtin.copy:
-    src: '{{ role_path }}/../../../../authorized_keys'
+    src: '{{ repo_root }}/authorized_keys'
     dest: "C:\\Users\\{{ skolo_account }}\\.ssh\\authorized_keys"
 
 - name: Restart sshd

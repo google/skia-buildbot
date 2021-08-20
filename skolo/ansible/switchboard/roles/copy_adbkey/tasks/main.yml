@@ -1,5 +1,7 @@
 ---
-- name: make temporary directory for adb files and trigger `clean_up_tempfile` handler for cleanup.
+- name:
+    make temporary directory for adb files and trigger `clean_up_tempfile`
+    handler for cleanup.
   delegate_to: 127.0.0.1
   tempfile:
     state: directory
@@ -10,7 +12,7 @@
   delegate_to: 127.0.0.1
   command:
     argv:
-      - '{{ role_path }}/../../../../../kube/secrets/get-secret-at-path.sh'
+      - '{{ repo_root }}/kube/secrets/get-secret-at-path.sh'
       - etc
       - skia-rpi-adb-key
       - '.data."adbkey"'
@@ -21,7 +23,7 @@
   delegate_to: 127.0.0.1
   command:
     argv:
-      - '{{ role_path }}/../../../../../kube/secrets/get-secret-at-path.sh'
+      - '{{ repo_root }}/kube/secrets/get-secret-at-path.sh'
       - etc
       - skia-rpi-adb-key
       - '.data."adbkey.pub"'

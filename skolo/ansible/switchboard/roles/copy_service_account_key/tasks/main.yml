@@ -11,7 +11,7 @@
   delegate_to: 127.0.0.1
   command:
     argv:
-      - '{{ role_path }}/../../../../../kube/secrets/get-secret-at-path.sh'
+      - '{{ repo_root }}/kube/secrets/get-secret-at-path.sh'
       - etc
       - '{{ service_account_name }}'
       - '.data."key.json"'

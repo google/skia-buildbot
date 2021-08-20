@@ -16,8 +16,7 @@
   delegate_to: 127.0.0.1
   command:
     argv:
-      # Use role_path variable to get to the root of the buildbot repo.
-      - '{{ role_path }}/../../../../../kube/secrets/get-secret-at-path.sh'
+      - '{{ repo_root }}/kube/secrets/get-secret-at-path.sh'
       - etc
       - '{{ metadata_service_account_name }}'
       - '.data."key.json"'
@@ -29,7 +28,7 @@
     account key embedded.
   delegate_to: 127.0.0.1
   make:
-    chdir: '{{ role_path }}/../../../../../skolo/'
+    chdir: '{{ repo_root }}/skolo/'
     target:
       "build_metadata_server_ansible_{{ ansible_facts['architecture'] }}_{{
       ansible_facts['system'] }}_{{ metadata_service_account_name }}"
@@ -51,8 +50,8 @@
   become: yes
   copy:
     src:
-      "{{ role_path }}/../../../../../skolo/build/{{ ansible_facts['system']
-      }}/{{ ansible_facts['architecture'] }}/{{ metadata_service_account_name
+      "{{ repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/{{ metadata_service_account_name
       }}/metadata_server_ansible"
     dest: /usr/local/bin/metadata_server_ansible
     owner: root

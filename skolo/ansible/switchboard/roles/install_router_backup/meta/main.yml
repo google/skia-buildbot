@@ -1,3 +1,2 @@
 dependencies:
-  - role: load_secret_vars
   - role: find_repo_root

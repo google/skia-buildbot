@@ -2,7 +2,7 @@
 - name: Build powercycle_server_ansible for the target machine.
   delegate_to: 127.0.0.1
   make:
-    chdir: '{{ role_path }}/../../../../../skolo/'
+    chdir: '{{ repo_root }}/skolo/'
     target:
       "build_powercycle_server_ansible_{{ ansible_facts['architecture'] }}_{{
       ansible_facts['system'] }}"
@@ -20,8 +20,8 @@
   become: yes
   copy:
     src:
-      "{{ role_path }}/../../../../../skolo/build/{{ ansible_facts['system']
-      }}/{{ ansible_facts['architecture'] }}/powercycle_server_ansible"
+      "{{ repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/powercycle_server_ansible"
     dest: /usr/local/bin/powercycle_server_ansible
     owner: root
     group: root
