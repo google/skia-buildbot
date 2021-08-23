@@ -1,3 +1,5 @@
+include ../make/bazel.mk
+
 build: web
 	go install -v ./go/...
 
@@ -39,14 +41,14 @@ push_legacy: release_legacy
 	pushk machineserver
 
 release:
-	bazel build --config=remote //machine/...
+	$(BAZEL) build --config=remote //machine/...
 	./images/machineserver/release
 
 push: release
 	pushk machineserver
 
 push_bazel:
-	bazel run //machine:push_machineserver
+	$(BAZEL) run //machine:push_machineserver
 	pushk machineserver
 
 # Make our own firestore emulator image.
@@ -70,7 +72,7 @@ test-frontend-ci: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 build-remote:
-	bazel build //machine/go/machineserver:machineserver --config=remote --remote_instance_name=projects/skia-public/instances/default_instance
+	$(BAZEL) build //machine/go/machineserver:machineserver --config=remote --remote_instance_name=projects/skia-public/instances/default_instance
 
 run-local-instance:
 	machineserver --local

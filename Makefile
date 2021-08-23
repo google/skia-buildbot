@@ -1,3 +1,5 @@
+include make/bazel.mk
+
 testgo:
 	go test -test.short ./go/...
 
@@ -142,37 +144,37 @@ test-frontend-ci: npm-ci
 
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
-	bazel run //:gazelle -- update ./
+	$(BAZEL) run //:gazelle -- update ./
 
 .PHONY: update-go-bazel-deps
 update-go-bazel-deps:
-	bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories
+	$(BAZEL) run //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories
 
 .PHONY: gazelle
 gazelle: update-go-bazel-deps update-go-bazel-files
 
 .PHONY: bazel-build
 bazel-build:
-	bazel build //...
+	$(BAZEL) build //...
 
 .PHONY: bazel-test
 bazel-test:
-	bazel test //...
+	$(BAZEL) test //...
 
 .PHONY: bazel-test-nocache
 bazel-test-nocache:
-	bazel test --cache_test_results=no //...
+	$(BAZEL) test --cache_test_results=no //...
 
 .PHONY: bazel-build-rbe
 bazel-build-rbe:
-	bazel build --config=remote //...
+	$(BAZEL) build --config=remote //...
 
 .PHONY: bazel-test-rbe
 bazel-test-rbe:
-	bazel test --config=remote //...
+	$(BAZEL) test --config=remote //...
 
 .PHONY: bazel-test-rbe-nocache
 bazel-test-rbe-nocache:
-	bazel test --config=remote --cache_test_results=no //...
+	$(BAZEL) test --config=remote --cache_test_results=no //...
 
 include make/npm.mk
