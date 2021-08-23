@@ -78,7 +78,7 @@ const DEFAULT_LOTTIE_FILE = '1112d01d28a776d777cebcd0632da15b'; // gear.json
 // This is an arbitrary value, and is treated as a re-scaled duration.
 const SCRUBBER_RANGE = 1000;
 
-const LIBRARY_SUPPORTED_DOMAINS = [
+const AUDIO_SUPPORTED_DOMAINS = [
   supportedDomains.SKOTTIE_INTERNAL,
   supportedDomains.SKOTTIE_TENOR,
   supportedDomains.LOCALHOST,
@@ -224,7 +224,10 @@ ${this.jsonTextEditor()}
                 ?checked=${this.showPerformanceChart}
                 @click=${this.togglePerformanceChart}>
     </checkbox-sk>
-    ${this.libraryButton()}
+    <checkbox-sk label="Show library"
+                ?checked=${this.showLibrary}
+                @click=${this.toggleLibrary}>
+    </checkbox-sk>
     ${this.audioButton()}
     <button @click=${this.toggleEmbed}>Embed</button>
     <div class=scrub>
@@ -242,20 +245,12 @@ ${this.jsonTextEditor()}
   `;
   };
 
-  private libraryButton = () => renderByDomain(
-    html`<checkbox-sk label="Show library"
-     ?checked=${this.showLibrary}
-     @click=${this.toggleLibrary}>
-  </checkbox-sk>`,
-    LIBRARY_SUPPORTED_DOMAINS,
-  );
-
   private audioButton = () => renderByDomain(
     html`<checkbox-sk label="Show audio"
      ?checked=${this.showAudio}
      @click=${this.toggleAudio}>
   </checkbox-sk>`,
-    LIBRARY_SUPPORTED_DOMAINS,
+    AUDIO_SUPPORTED_DOMAINS,
   );
 
   private iframeDirections = () => `<iframe width="${this.width}" height="${this.height}" src="${window.location.origin}/e/${this.hash}?w=${this.width}&h=${this.height}" scrolling=no>`;
@@ -292,7 +287,7 @@ ${this.wasmCaption()}`;
       >
       </skottie-audio-sk>
     </section>`,
-      LIBRARY_SUPPORTED_DOMAINS,
+      AUDIO_SUPPORTED_DOMAINS,
     );
   };
 
@@ -300,16 +295,13 @@ ${this.wasmCaption()}`;
     if (!this.showLibrary) {
       return '';
     }
-    return renderByDomain(
-      html`
-    <section class=library>
-      <skottie-library-sk
-        @select=${this.updateAnimation}
-      >
-      </skottie-library-sk>
-    </section>`,
-      LIBRARY_SUPPORTED_DOMAINS,
-    );
+    return html`
+<section class=library>
+  <skottie-library-sk
+    @select=${this.updateAnimation}
+  >
+  </skottie-library-sk>
+</section>`;
   };
 
   // TODO(kjlubick): Make the live preview use skottie
