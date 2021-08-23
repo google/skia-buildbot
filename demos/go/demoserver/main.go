@@ -15,6 +15,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+
+	demos "go.skia.org/infra/demos/go/common"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
@@ -67,20 +69,6 @@ func newSyncedDemos(ctx context.Context, repoURL, checkoutDir, demoPath string) 
 	return s
 }
 
-// Revision represents repo HEAD info for storage as json.
-type Revision struct {
-	Hash string `json:"hash"`
-	URL  string `json:"url"`
-}
-
-// Metadata represents repo metadata and list of demos, for storage as json.
-type Metadata struct {
-	Rev Revision `json:"revision"`
-	// In the future we may include actual author information etc, but for now we just list the
-	// available demos.
-	DemoList []string `json:"demos"`
-}
-
 // writeMetadata writes a json file containing the list of subdirectories in s.demoPath as well as
 // the hash and URL of the current s.repo revision.
 //
@@ -91,8 +79,8 @@ func (s *syncedDemos) writeMetadata(ctx context.Context, rev string) error {
 		return skerr.Wrapf(err, "Failed to Open '%s'.", s.demoPath)
 	}
 	defer file.Close()
-	metadata := Metadata{
-		Rev: Revision{
+	metadata := demos.Metadata{
+		Rev: demos.Revision{
 			Hash: rev,
 			URL:  fmt.Sprintf("%s/+/%s", s.repoURL, rev),
 		},
