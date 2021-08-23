@@ -1,7 +1,16 @@
-export interface KeyFrame {
-    s: {
-        t: string; // text
-        mc: number; // max characters
+export interface TextInfo extends Record<string, unknown> {
+    t: string; // text
+    mc?: number; // max characters
+}
+
+export interface TextKeyFrame {
+    s: TextInfo;
+    t: number;
+}
+
+export interface EditableText extends Record<string, unknown> {
+    d: {
+        k: TextKeyFrame[];
     }
 }
 
@@ -10,11 +19,7 @@ export interface LottieLayer extends Record<string, unknown> {
     nm: string; // Name
     refId?: string;
     ind: number;
-    t?: {
-        d: {
-            k: KeyFrame[];
-        }
-    }
+    t?: EditableText;
 }
 
 export interface LottieAsset {
@@ -26,8 +31,9 @@ export interface LottieAsset {
     h: number;
 }
 
-export interface FontAsset {
+export interface FontAsset extends Record<string, unknown> {
     fName: string;
+    fFamily: string;
 }
 
 export interface LottieAnimation extends Record<string, unknown> {

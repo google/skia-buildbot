@@ -190,7 +190,7 @@ export class SkottieTextEditorSk extends ElementSk {
             // this property is the text string of a text layer.
             // It's read as: Text Element > Text document > First Keyframe > Start Value > Text
             text: item.layer.t?.d.k[0].s.t || 'unnamed layer',
-            maxChars: item.layer.t?.d.k[0].s.mc || 0, // Max characters text document attribute
+            maxChars: item.layer.t?.d.k[0].s.mc, // Max characters text document attribute
             precompName: item.precompName,
           };
         }

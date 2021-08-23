@@ -10,7 +10,7 @@ export interface TextData {
   id: string;
   name: string;
   text: string;
-  maxChars: number;
+  maxChars?: number; // If not defined, we don't constrain the <textarea>
   precompName: string;
   items: ExtraLayerData[];
 }

@@ -3,14 +3,19 @@ import './skottie-sk-demo.css';
 
 import fetchMock from 'fetch-mock';
 import { $$ } from 'common-sk/modules/dom';
-import { gear } from './test_gear';
+import { gear, withText } from './test_gear';
 import { SkottieSk } from './skottie-sk';
 
-// TODO(kjlubick) for puppeteer tests, make this read in the hash and serve the appropriate JSON.
+let lottieToServe = gear;
+const params = new URLSearchParams(window.location.search);
+if (params.get('test') === 'withText') {
+  lottieToServe = withText;
+}
 const state = {
   filename: 'moving_image.json',
-  lottie: gear,
+  lottie: lottieToServe,
 };
+fetchMock.config.fallbackToNetwork = true;
 fetchMock.get('glob:/_/j/*', {
   status: 200,
   body: JSON.stringify(state),
@@ -21,7 +26,7 @@ fetchMock.post('glob:/_/upload', {
   status: 200,
   body: JSON.stringify({
     hash: 'MOCK_UPLOADED',
-    lottie: gear,
+    lottie: lottieToServe,
   }),
   headers: { 'Content-Type': 'application/json' },
 });
