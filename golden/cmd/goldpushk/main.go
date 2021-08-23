@@ -102,7 +102,6 @@ func main() {
 	rootCmd.Flags().IntVar(&flagUptimePollFrequencySeconds, "poll-freq", 3, "How often to poll Kubernetes for service uptimes, in seconds.")
 	rootCmd.Flags().BoolVar(&flagLogToStdErr, "logtostderr", false, "Log debug information to stderr. No logs will be produced if this flag is not set.")
 	rootCmd.Flags().BoolVar(&flagVerbose, "verbose", false, "Verbose logs. This will log the commands executed and their command-line parameters.")
-	rootCmd.Flags().BoolVar(&flagTesting, "testing", false, "Do not deploy any production services; use testing services instead.")
 
 	// Fail with exit code 1 in the presence of invalid flags.
 	if _, err := rootCmd.ExecuteC(); err != nil {
@@ -113,12 +112,7 @@ func main() {
 
 func run(cmd *cobra.Command) {
 	// Get set of deployable units. Used as the source of truth across goldpushk.
-	var deployableUnitSet goldpushk.DeployableUnitSet
-	if flagTesting {
-		deployableUnitSet = goldpushk.TestingDeployableUnits()
-	} else {
-		deployableUnitSet = goldpushk.ProductionDeployableUnits()
-	}
+	deployableUnitSet := goldpushk.ProductionDeployableUnits()
 
 	// If --list is passed, print known services and exit. This takes into account flag --testing.
 	if flagList {

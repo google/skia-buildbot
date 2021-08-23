@@ -1,3 +1,0 @@
-{
-  Salutation: "Hello from gold-{{.INSTANCE_ID}}-healthy-server!",
-}

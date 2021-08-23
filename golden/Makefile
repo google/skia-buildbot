@@ -4,18 +4,6 @@ KGO := CGO_ENABLED=0 GOOS=linux go build
 default:
 	bazel build cmd/...
 
-.PHONY: build-static-goldpushk-healthy-server
-build-static-goldpushk-healthy-server:
-	mkdir -p ./build
-	rm -f ./build/goldpushk_healthy_server_k8s
-	$(KGO) -o build/goldpushk_healthy_server_k8s -a ./cmd/goldpushk/testing/healthy_server/...
-
-.PHONY: build-static-goldpushk-crashing-server
-build-static-goldpushk-crashing-server:
-	mkdir -p ./build
-	rm -f ./build/goldpushk_crashing_server_k8s
-	$(KGO) -o build/goldpushk_crashing_server_k8s -a ./cmd/goldpushk/testing/crashing_server/...
-
 # Build the gold-frontend container with Bazel and push it to GCR.
 .PHONY: push_frontend_container
 push_frontend_container:

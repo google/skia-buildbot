@@ -31,10 +31,6 @@ const (
 	TestInstance2     Instance = "goldpushk-test2"
 	TestCorpInstance1 Instance = "goldpushk-corp-test1"
 	TestCorpInstance2 Instance = "goldpushk-corp-test2"
-
-	// Testing Gold services.
-	HealthyTestServer  Service = "healthy-server"
-	CrashingTestServer Service = "crashing-server"
 )
 
 var (
@@ -110,38 +106,4 @@ func isPublicInstance(instance Instance) bool {
 		}
 	}
 	return false
-}
-
-// TestingDeployableUnits returns a DeployableUnitSet comprised of test services that can be
-// deployed without disrupting any production services for the purpose of testing goldpushk.
-func TestingDeployableUnits() DeployableUnitSet {
-	s := DeployableUnitSet{
-		knownInstances: []Instance{
-			TestInstance1,
-			TestInstance2,
-			TestCorpInstance1,
-			TestCorpInstance2,
-		},
-		knownServices: []Service{
-			HealthyTestServer,
-			CrashingTestServer,
-		},
-	}
-
-	addHealthyServerInstance := func(instance Instance, service Service, internal bool) {
-		s.addWithOptions(instance, service, DeploymentOptions{
-			internal: internal,
-		})
-	}
-
-	addHealthyServerInstance(TestInstance1, HealthyTestServer, false)
-	s.add(TestInstance1, CrashingTestServer)
-	addHealthyServerInstance(TestInstance2, HealthyTestServer, false)
-	s.add(TestInstance2, CrashingTestServer)
-	addHealthyServerInstance(TestCorpInstance1, HealthyTestServer, true)
-	s.addWithOptions(TestCorpInstance1, CrashingTestServer, DeploymentOptions{internal: true})
-	addHealthyServerInstance(TestCorpInstance2, HealthyTestServer, true)
-	s.addWithOptions(TestCorpInstance2, CrashingTestServer, DeploymentOptions{internal: true})
-
-	return s
 }
