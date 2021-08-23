@@ -37,7 +37,7 @@ push: release
 	pushk demoserver
 
 .PHONY: build-frontend-ci
-build-frontend-ci: wasm_libs npm-ci
+build-frontend-ci: npm-ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
