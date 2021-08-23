@@ -2,7 +2,7 @@ core:
 	go install -v ./go/demoserver
 
 serve: npm-ci
-	npx webpack-dev-server --watch-poll --mode-development
+	npx webpack-dev-server --watch-poll --mode=development
 
 build_resources: npm-ci
 	npx webpack --mode=production
