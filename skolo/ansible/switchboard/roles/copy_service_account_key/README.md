@@ -16,8 +16,8 @@ to the target machine. See
 for more details on berglas and Skia secrets.
 
 The key is stored as a kubernetes secret in berglas secrets for the cluster
-`etc` and the secret name is passed in via the `service_account_name` argument
-to the role.
+`etc` and the secret name is passed in via the `copy_service_account_key.name`
+variable.
 
 You can see all secrets for the `etc` cluster by running:
 
@@ -35,8 +35,10 @@ libraries can find and use this by default.
 
 ## Variables
 
-This role uses the `skolo_account` variable defined in `defaults/main.yml` and
-potentially overridden in `hosts.ini`.
+This role uses the `skolo_account` variable defined in `hosts.ini`.
+
+The `copy_service_account_key.name` is the name of the berglas secret that
+contains the service account key to use.
 
 ## Security
 
@@ -44,15 +46,9 @@ The `secrets.yml` is only put in a temp file long enough to be copied to the
 target machine, then the temp file is removed by the `clean_up_tempfile`
 handler.
 
-## Arguments
-
-The `service_account_name` is the name of the berglas secret that contains the
-service account key to use.
-
 ## Example Playbook
 
     - hosts: '{{ variable_hosts }}'
 
       roles:
-        - role: copy_service_account_key
-          service_account_name: 'skolo-jumphost'
+        - copy_service_account_key

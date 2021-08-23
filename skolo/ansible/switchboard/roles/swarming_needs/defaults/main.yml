@@ -1,0 +1,3 @@
+# If true then install and configure adb and idevice* tools.
+swarming_needs:
+  needs_mobile_tools: False

@@ -1,12 +1,11 @@
 # Configures a jumphost with everything it needs.
-- hosts: "{{ variable_hosts | default('jumphosts') }}"
+- hosts: jumphosts
   user: chrome-bot
   gather_facts: yes
 
   roles:
     - copy_authorized_keys
-    - role: copy_service_account_key
-      service_account_name: 'skolo-jumphost'
+    - copy_service_account_key
     - install_collectd
     - install_metadata_server
     - install_powercycle_server

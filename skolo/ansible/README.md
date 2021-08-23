@@ -9,7 +9,7 @@ to set up to run these commands.
 ## Tips
 
 Runs might fail for a small number of hosts, you can re-run a script for a
-specific host by passing `-l (hostname)` to the `ansible-playbook` command.
+specific host by passing `--limit (hostname)` to the `ansible-playbook` command.
 
 You can target a machine not in the skolo by referring to it by IP address,
 presuming the IP address is in the range 192.168.0.0/16. This is defined in

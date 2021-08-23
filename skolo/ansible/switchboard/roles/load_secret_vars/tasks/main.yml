@@ -11,7 +11,7 @@
   delegate_to: 127.0.0.1
   command:
     argv:
-      - '{{ repo_root }}/kube/secrets/get-secret-at-path.sh'
+      - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
       - etc
       - ansible-secret-vars
       - '.data."secrets.yml"'

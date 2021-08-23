@@ -17,7 +17,7 @@ Also requires `gather_facts` to detect the target operating system.
 
 ```
 # Create the chrome-bit user on all the RPis.
-- hosts: "{{ variable_hosts | default('rpis') }}"
+- hosts: rpis
   user: chrome-bot
   gather_facts: yes
 

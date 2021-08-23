@@ -5,7 +5,7 @@ ExecStart=/usr/local/bin/prometheus \
   --config.file=/etc/prometheus/prometheus.yml \
   --storage.tsdb.path=/var/lib/prometheus/data \
   --storage.tsdb.retention.time=60d \
-  --web.listen-address=:{{ prometheus.web_server_port }}
+  --web.listen-address=:{{ all.prometheus.web_server_port }}
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]

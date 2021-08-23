@@ -1,4 +1,0 @@
-- name: Find the root of the skiabot repo and register it as a variable.
-  delegate_to: 127.0.0.1
-  set_fact:
-    repo_root: '{{ role_path }}/../../../../../'

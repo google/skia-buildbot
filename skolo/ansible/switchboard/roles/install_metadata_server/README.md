@@ -18,8 +18,9 @@ Ansible variable. See
 for more details on berglas and Skia secrets.
 
 The key is stored as a kubernetes secret in berglas secrets for the cluster
-`etc` and the secret name is determined by the `metadata_service_account_name`
-variable, which is set per host in the `hosts.ini` file.
+`etc` and the secret name is determined by the
+`install_metadata_server.service_account_name` variable, which is set per host
+in the `hosts.ini` file.
 
 You can see all the secrets for the `etc` cluster by running:
 

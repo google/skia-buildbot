@@ -1,0 +1,3 @@
+# If True then test_machine_monitor will also spawn swarming.
+install_test_machine_monitor:
+  start_swarming: False

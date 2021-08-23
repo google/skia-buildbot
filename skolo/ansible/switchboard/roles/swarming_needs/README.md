@@ -10,15 +10,16 @@ Right now this only works for linux machines, it will need to evolve to support
 all the platforms, at which point the platforms specific tasks should go in
 their own files, e.g. `linux.yml`.
 
-# Variables Required
+# Variables
 
-None.
+`swarming_needs.needs_mobile_tools` controls the installation of `adb` and the
+`idevice*` applications.
 
 # Example Playbook
 
 ```
 # Copy the authorized_keys files to all the RPis.
-- hosts: "{{ variable_hosts | default('rpis') }}"
+- hosts: rpis
   user: chrome-bot
 
   roles:

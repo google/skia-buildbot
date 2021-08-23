@@ -3,8 +3,8 @@ User=chrome-bot
 Group=chrome-bot
 ExecStart=/usr/local/bin/alert_to_pubsub_ansible \
   --location={{ inventory_hostname }} \
-  --port=:{{ prometheus.alert_to_pubsub_port }} \
-  --prom_port=:{{ prometheus.monitoring.ports.alert_to_pubsub_ansible }}
+  --port=:{{ all.prometheus.alert_to_pubsub_port }} \
+  --prom_port=:{{ all.prometheus.monitoring.ports.alert_to_pubsub_ansible }}
 
 [Install]
 WantedBy=multi-user.target

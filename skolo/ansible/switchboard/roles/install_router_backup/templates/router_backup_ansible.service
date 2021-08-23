@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/router_backup_ansible \
-  --prom_port=:{{ prometheus.monitoring.ports.router_backup_ansible }} \
+  --prom_port=:{{ all.prometheus.monitoring.ports.router_backup_ansible }} \
   --gce_bucket skia-backups\
   --gce_folder router_config \
   --add_hostname \

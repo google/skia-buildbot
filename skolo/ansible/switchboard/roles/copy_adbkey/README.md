@@ -34,8 +34,7 @@ You can see this secret in the list of all secrets for the `etc` cluster:
 
 ## Variables
 
-This role uses the `skolo_account` variable defined in `defaults/main.yml` and
-potentially overridden in `hosts.ini`.
+This role uses the `skolo_account` variable defined in `hosts.ini`.
 
 ## Security
 

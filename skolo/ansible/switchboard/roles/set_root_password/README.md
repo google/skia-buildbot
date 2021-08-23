@@ -15,7 +15,7 @@ required role `load_secret_vars`.
 
 ```
 # Set root password on rpis,
-- hosts: "{{ variable_hosts | default('rpis') }}"
+- hosts: rpis
   user: root
 
   roles:

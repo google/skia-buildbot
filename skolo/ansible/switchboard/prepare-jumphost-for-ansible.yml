@@ -2,7 +2,7 @@
 #
 # Once this is run then the 'jumphost.yml' playbook can be run to finish/update the
 # machine.
-- hosts: "{{ variable_hosts | default('jumphosts') }}"
+- hosts: jumphosts
   user: root
   gather_facts: no
 

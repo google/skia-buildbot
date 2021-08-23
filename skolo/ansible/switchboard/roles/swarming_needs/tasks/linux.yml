@@ -7,6 +7,21 @@
     owner: chrome-bot
     mode: 0644
 
+- name: Install mobile device applications.
+  become: yes
+  apt:
+    pkg:
+      - adb
+      - libimobiledevice-utils
+  when: swarming_needs.needs_mobile_tools
+
+- name: Install python3 modules.
+  become: yes
+  apt:
+    pkg:
+      - python3-distutils
+      - python3-certifi
+
 # Our recipes hard code a specific adb.
 - name: link adb to /usr/bin/adb.1.0.35
   become: yes
@@ -16,13 +31,7 @@
     owner: root
     group: root
     state: link
-
-- name: Install applications.
-  become: yes
-  apt:
-    pkg:
-      - python3-distutils
-      - python3-certifi
+  when: swarming_needs.needs_mobile_tools
 
 # Recipes need a /usr/bin/python.
 - name: link /usr/bin/python to /usr/bin/python3

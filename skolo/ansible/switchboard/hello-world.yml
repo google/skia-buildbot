@@ -1,5 +1,5 @@
 # Tests ansible connection to variable_hosts or the jumphosts
-- hosts: "{{ variable_hosts | default('jumphosts') }}"
+- hosts: jumphosts
   user: chrome-bot
   gather_facts: no
 

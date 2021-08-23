@@ -12,7 +12,7 @@
   delegate_to: 127.0.0.1
   command:
     argv:
-      - '{{ repo_root }}/kube/secrets/get-secret-at-path.sh'
+      - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
       - etc
       - skia-rpi-adb-key
       - '.data."adbkey"'
@@ -23,7 +23,7 @@
   delegate_to: 127.0.0.1
   command:
     argv:
-      - '{{ repo_root }}/kube/secrets/get-secret-at-path.sh'
+      - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
       - etc
       - skia-rpi-adb-key
       - '.data."adbkey.pub"'

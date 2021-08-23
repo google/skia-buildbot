@@ -2,7 +2,7 @@
 - name: Build test_machine_monitor for the target machine.
   delegate_to: 127.0.0.1
   make:
-    chdir: '{{ repo_root }}/machine/'
+    chdir: '{{ all.repo_root }}/machine/'
     target:
       "build_test_machine_monitor_{{ ansible_facts['architecture'] }}_{{
       ansible_facts['system'] }}"
@@ -20,7 +20,7 @@
   become: yes
   copy:
     src:
-      "{{ repo_root }}/machine/build/{{ ansible_facts['system'] }}/{{
+      "{{ all.repo_root }}/machine/build/{{ ansible_facts['system'] }}/{{
       ansible_facts['architecture'] }}/test_machine_monitor"
     dest: /usr/local/bin/test_machine_monitor
     owner: root

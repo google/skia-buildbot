@@ -1,8 +1,8 @@
 - name: Check if Prometheus binary needs to be downloaded.
   stat:
     path:
-      "{{ repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
-      ansible_facts['architecture'] }}/prometheus-{{ prometheus.version
+      "{{ all.repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/prometheus-{{ all.prometheus.version
       }}.linux-amd64/prometheus"
   register: prometheus_binary
 
@@ -10,12 +10,12 @@
   delegate_to: 127.0.0.1
   throttle: 1
   make:
-    chdir: '{{ repo_root }}/skolo/'
+    chdir: '{{ all.repo_root }}/skolo/'
     target:
       "download_prometheus_{{ ansible_facts['architecture'] }}_{{
       ansible_facts['system'] }}"
     params:
-      PROMETHEUS_VERSION: '{{ prometheus.version }}'
+      PROMETHEUS_VERSION: '{{ all.prometheus.version }}'
   when: not prometheus_binary.stat.exists
 
 - name: Copy over service file.
@@ -31,8 +31,8 @@
   become: yes
   copy:
     src:
-      "{{ repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
-      ansible_facts['architecture'] }}/prometheus-{{ prometheus.version
+      "{{ all.repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/prometheus-{{ all.prometheus.version
       }}.linux-amd64/prometheus"
     dest: /usr/local/bin/prometheus
     owner: root
@@ -44,8 +44,8 @@
   become: yes
   copy:
     src:
-      "{{ repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
-      ansible_facts['architecture'] }}/prometheus-{{ prometheus.version
+      "{{ all.repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/prometheus-{{ all.prometheus.version
       }}.linux-amd64/promtool"
     dest: /usr/local/bin/promtool
     owner: root
@@ -97,7 +97,7 @@
 - name: Build alert_to_pubsub_ansible for the target machine.
   delegate_to: 127.0.0.1
   make:
-    chdir: '{{ repo_root }}/am/'
+    chdir: '{{ all.repo_root }}/am/'
     target:
       "build_alert_to_pubsub_ansible_{{ ansible_facts['architecture'] }}_{{
       ansible_facts['system'] }}"
@@ -116,7 +116,7 @@
   become: yes
   copy:
     src:
-      "{{ repo_root }}/am/build/{{ ansible_facts['system'] }}/{{
+      "{{ all.repo_root }}/am/build/{{ ansible_facts['system'] }}/{{
       ansible_facts['architecture'] }}/alert_to_pubsub_ansible"
     dest: /usr/local/bin/alert_to_pubsub_ansible
     owner: root

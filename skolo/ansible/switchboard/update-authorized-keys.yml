@@ -1,5 +1,5 @@
 # Distributes authorized_keys to the hosts.
-- hosts: "{{ variable_hosts | default('all') }}"
+- hosts: all
   user: chrome-bot
   gather_facts: yes
   roles:

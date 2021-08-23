@@ -1,11 +1,10 @@
-# Configures an RPi with everything it needs to run under switchboard.
-- hosts: switchboard_rpis
+# Configures a gapid/AGI test machine with everything it needs to run under switchboard.
+- hosts: gapid_test_machines
   user: chrome-bot
   gather_facts: yes
 
   roles:
     - copy_authorized_keys
-    - copy_adbkey
     - copy_service_account_key
     - install_collectd
     - swarming_needs

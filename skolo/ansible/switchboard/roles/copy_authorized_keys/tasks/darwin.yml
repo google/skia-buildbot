@@ -1,6 +1,6 @@
 - name: Copy authorized_keys to Darwin
   copy:
-    src: '{{ repo_root }}/skolo/authorized_keys'
+    src: '{{ all.repo_root }}/skolo/authorized_keys'
     dest: '/Users/{{ skolo_account }}/.ssh/authorized_keys'
     owner: '{{ skolo_account }}'
     mode: 0644

@@ -11,8 +11,7 @@ Platforms specific tasks are in their own files, e.g. `linux.yml`.
 
 # Variables Required
 
-This role uses the `skolo_account` variable defined in `defaults/main.yml` and
-potentially overridden in `hosts.ini`.
+This role uses the `skolo_account` variable defined in `hosts.ini`.
 
 Also requires `gather_facts` to detect the target operating system.
 
@@ -20,7 +19,7 @@ Also requires `gather_facts` to detect the target operating system.
 
 ```
 # Copy the authorized_keys files to all the RPis.
-- hosts: "{{ variable_hosts | default('rpis') }}"
+- hosts: rpis
   user: chrome-bot
   gather_facts: yes
 
