@@ -52,7 +52,7 @@ func commandsEqual(a, b *exec.Command) bool {
 }
 
 func TestCommandRepoManager(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t) // Uses the filesystem
 
 	const tipRev0 = "tipRev0"
 	const pinnedRev0 = "pinnedRev0"
