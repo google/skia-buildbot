@@ -1,6 +1,27 @@
-- name: Copy authorized_keys.
-  copy:
-    src: '{{ all.repo_root }}/skolo/authorized_keys'
-    dest: '/home/{{ skolo_account }}/.ssh/authorized_keys'
-    owner: '{{ skolo_account }}'
-    mode: 0644
+# Copy the first set of keys exclusively, which will remove keys that have been removed from the local `authorized_keys`.
+- name: Copy master list authorized_keys file exclusively.
+  ansible.posix.authorized_key:
+    user: '{{ skolo_account }}'
+    state: present
+    key: "{{ lookup('file', '{{ all.repo_root }}/skolo/authorized_keys') }}"
+    exclusive: yes
+
+- name: Grab the 'chrome-bot' public key from the jumphost.
+  become: yes
+  become_user: 'chrome-bot'
+  delegate_to: '{{ copy_authorized_keys__jumphost }}'
+  ansible.builtin.fetch:
+    src: '~chrome-bot/.ssh/id_ed25519.pub'
+    dest: '/tmp/copy_authorized_keys-from-jumphost-to-{{ inventory_hostname }}'
+    flat: yes
+  when: copy_authorized_keys__jumphost
+
+- name: Add the jumphost public key.
+  ansible.posix.authorized_key:
+    user: '{{ skolo_account }}'
+    state: present
+    key:
+      "{{ lookup('file', '/tmp/copy_authorized_keys-from-jumphost-to-{{
+      inventory_hostname }}') }}"
+    exclusive: no
+  when: copy_authorized_keys__jumphost

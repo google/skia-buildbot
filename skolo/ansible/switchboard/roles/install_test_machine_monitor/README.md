@@ -12,7 +12,7 @@ Requires `gather_facts` to detect the target operating system.
 
 ## Optional Variables
 
-The `install_test_machine_monitor.start_swarming` variable controls whether or
+The `install_test_machine_monitor__start_swarming` variable controls whether or
 not `test_machine_monitor` should be passed the `--start_swarming` flag.
 
 ## Example Playbook

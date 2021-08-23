@@ -35,7 +35,7 @@ handler.
 
 ## Example Playbook
 
-    - hosts: '{{ variable_hosts }}'
+    - hosts: jumphosts
       gather_facts: False
 
       roles:

@@ -13,7 +13,7 @@
     pkg:
       - adb
       - libimobiledevice-utils
-  when: swarming_needs.needs_mobile_tools
+  when: swarming_needs__needs_mobile_tools
 
 - name: Install python3 modules.
   become: yes
@@ -31,7 +31,7 @@
     owner: root
     group: root
     state: link
-  when: swarming_needs.needs_mobile_tools
+  when: swarming_needs__needs_mobile_tools
 
 # Recipes need a /usr/bin/python.
 - name: link /usr/bin/python to /usr/bin/python3

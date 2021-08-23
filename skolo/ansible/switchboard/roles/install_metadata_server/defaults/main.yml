@@ -1,2 +1,1 @@
-install_metadata_server:
-  service_account_name: skolo-service-accounts
+install_metadata_server__service_account_name: skolo-service-accounts

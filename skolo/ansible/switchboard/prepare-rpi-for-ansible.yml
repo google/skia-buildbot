@@ -3,7 +3,7 @@
 #
 # Once this is run then the 'rpi.yml' playbook can be run to finish/update the
 # machine.
-- hosts: '{{ variable_hosts }}'
+- hosts: switchboard_rpis
   user: root
   gather_facts: no
 

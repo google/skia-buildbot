@@ -12,7 +12,7 @@ their own files, e.g. `linux.yml`.
 
 # Variables
 
-`swarming_needs.needs_mobile_tools` controls the installation of `adb` and the
+`swarming_needs__needs_mobile_tools` controls the installation of `adb` and the
 `idevice*` applications.
 
 # Example Playbook

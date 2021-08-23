@@ -13,7 +13,7 @@
     argv:
       - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
       - etc
-      - '{{ copy_service_account_key.name }}'
+      - '{{ copy_service_account_key__name }}'
       - '.data."key.json"'
       - '{{ service_account_key.path }}/application_default_credentials.json'
     creates:

@@ -9,7 +9,7 @@ Prometheus.
 
 ## Example Playbook
 
-    - hosts: '{{ variable_hosts }}'
+    - hosts: rpis
 
       roles:
         - install_collectd

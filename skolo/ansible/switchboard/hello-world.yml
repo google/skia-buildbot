@@ -1,4 +1,3 @@
-# Tests ansible connection to variable_hosts or the jumphosts
 - hosts: jumphosts
   user: chrome-bot
   gather_facts: no

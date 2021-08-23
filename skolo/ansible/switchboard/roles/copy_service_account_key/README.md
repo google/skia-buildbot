@@ -16,7 +16,7 @@ to the target machine. See
 for more details on berglas and Skia secrets.
 
 The key is stored as a kubernetes secret in berglas secrets for the cluster
-`etc` and the secret name is passed in via the `copy_service_account_key.name`
+`etc` and the secret name is passed in via the `copy_service_account_key_name`
 variable.
 
 You can see all secrets for the `etc` cluster by running:
@@ -37,6 +37,9 @@ libraries can find and use this by default.
 
 This role uses the `skolo_account` variable defined in `hosts.ini`.
 
+The `copy_service_account_key__name` is the name of the berglas secret that
+contains the service account key to use.
+
 The `copy_service_account_key.name` is the name of the berglas secret that
 contains the service account key to use.
 
@@ -48,7 +51,7 @@ handler.
 
 ## Example Playbook
 
-    - hosts: '{{ variable_hosts }}'
+    - hosts: rpis
 
       roles:
         - copy_service_account_key

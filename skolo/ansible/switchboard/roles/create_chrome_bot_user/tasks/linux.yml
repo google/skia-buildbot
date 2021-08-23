@@ -25,6 +25,7 @@
     name: chrome-bot
     groups: plugdev,sudo
     generate_ssh_key: yes
+    ssh_key_type: ed25519
     shell: /bin/bash
     password: "{{ secrets.skolo_password | password_hash('sha256') }}"
 

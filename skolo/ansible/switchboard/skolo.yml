@@ -1,0 +1,14 @@
+# This playbook runs all the other playbooks needed for the skolo.
+- hosts: 127.0.0.1
+  gather_facts: false
+
+- name: rpis
+  import_playbook: rpi.yml
+- name: jumphosts
+  import_playbook: jumphosts.yml
+- name: routers
+  import_playbook: routers.yml
+- name: gapid
+  import_playbook: gapid.yml
+- name: linux
+  import_playbook: linux.yml

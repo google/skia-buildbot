@@ -44,7 +44,7 @@ handler.
 
 ## Example Playbook
 
-    - hosts: '{{ variable_hosts }}'
+    - hosts: rpis
 
       roles:
         - copy_adbkey

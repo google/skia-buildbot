@@ -1,2 +1,1 @@
-copy_service_account_key:
-  name: skolo-bot-service-account
+copy_service_account_key__name: skolo-bot-service-account
