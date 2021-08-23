@@ -1,4 +1,6 @@
-export const singleDemoEntry = {
+import { Metadata } from '../rpc_types';
+
+export const singleDemoEntry: Metadata = {
   revision: {
     url: 'example.com',
     hash: '123',
@@ -6,7 +8,7 @@ export const singleDemoEntry = {
   demos: ['demo0'],
 };
 
-export const twoDemoEntries = {
+export const twoDemoEntries: Metadata = {
   revision: {
     url: 'example.com',
     hash: '123',

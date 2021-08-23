@@ -7,4 +7,4 @@ import {
 
 fetchMock.getOnce('/demo/metadata.json', twoDemoEntries);
 const dl = document.createElement('demo-list-sk');
-$$('#main').appendChild(dl);
+$$('#main')!.appendChild(dl);
