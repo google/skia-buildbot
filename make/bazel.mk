@@ -2,5 +2,12 @@
 
 # BAZEL defines which executable to run.
 #
-# If BAZEL isn't defined then define it as bazelisk.
-BAZEL := $(or $(BAZEL),bazelisk)
+# If BAZEL isn't defined then try to define it as bazelisk (if the executable exists).
+# Otherwise, define it as bazel.
+ifeq ($(BAZEL),)
+	ifneq ($(which bazelisk),)
+		BAZEL := bazelisk
+	else
+		BAZEL := bazel
+	endif
+endif
