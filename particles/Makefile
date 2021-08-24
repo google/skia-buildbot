@@ -45,7 +45,7 @@ wasm_libs_tot: get_latest_skia
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.ts
 
-wasm_libs_fixed: npm-ci
+wasm_libs_fixed:
 	rm -rf build
 	mkdir -p build/canvaskit
 	curl https://particles.skia.org/dist/canvaskit.js --output build/canvaskit/canvaskit.js

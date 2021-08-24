@@ -46,8 +46,11 @@ trap cleanup EXIT
 ################################################################################
 
 # Install Node.js and build-essential, which is needed by some NPM packages.
-curl -fsSL https://deb.nodesource.com/setup_15.x | bash
+curl -fsSL https://deb.nodesource.com/setup_14.x | bash
+# Now when we install nodejs, it will use the v14 linked above.
 apt-get install -y nodejs build-essential
+
+npm install -g npm@7.21.0
 
 # Input/output directories.
 mkdir -p /tests
@@ -163,7 +166,8 @@ cp -r /src/skcq/modules                   /tests/skcq
 ################################################################################
 
 cd /tests
-npm ci
+# https://docs.npmjs.com/cli/v7/using-npm/config
+npm ci --fetch-retry-maxtimeout 300000 --fetch-timeout 600000
 
 cd /tests/particles
 make wasm_libs_fixed

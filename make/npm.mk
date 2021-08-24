@@ -11,7 +11,8 @@ _npm_mk_repo_root_dir := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST))
 npm-ci: $(_npm_mk_repo_root_dir)/node_modules/lastupdate
 
 $(_npm_mk_repo_root_dir)/node_modules/lastupdate: $(_npm_mk_repo_root_dir)/package-lock.json
-	cd $(_npm_mk_repo_root_dir) && npm ci
+	# https://docs.npmjs.com/cli/v7/using-npm/config
+	cd $(_npm_mk_repo_root_dir) && npm ci --fetch-retry-maxtimeout 300000 --fetch-timeout 600000
 	touch $(_npm_mk_repo_root_dir)/node_modules/lastupdate
 
 $(_npm_mk_repo_root_dir)/package-lock.json: $(_npm_mk_repo_root_dir)/package.json
