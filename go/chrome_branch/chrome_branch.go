@@ -22,11 +22,12 @@ const (
 	// RefMain is the ref name for the main branch.
 	RefMain = git.DefaultRef
 
-	branchBeta     = "beta"
-	branchStable   = "stable"
-	jsonURL        = "https://chromiumdash.appspot.com/fetch_milestones"
-	os             = "linux"
-	refTmplRelease = "refs/branch-heads/%d"
+	branchBeta      = "beta"
+	branchStable    = "stable"
+	branchStableCut = "stable_cut"
+	jsonURL         = "https://chromiumdash.appspot.com/fetch_milestones"
+	os              = "linux"
+	refTmplRelease  = "refs/branch-heads/%d"
 )
 
 var versionRegex = regexp.MustCompile(`(\d+)\.\d+\.(\d+)\.\d+`)
@@ -145,18 +146,10 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&milestones); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	rv := &Branches{}
+	byPhase := map[string]*Branch{}
+	byMilestone := map[int]*Branch{}
 	for _, milestone := range milestones {
-		var branch *Branch
-		if milestone.SchedulePhase == branchBeta {
-			branch = &Branch{}
-			rv.Beta = branch
-		} else if milestone.SchedulePhase == branchStable {
-			branch = &Branch{}
-			rv.Stable = branch
-		} else {
-			continue
-		}
+		branch := &Branch{}
 		branch.Milestone = milestone.Milestone
 		number, err := strconv.Atoi(milestone.ChromiumBranch)
 		if err != nil {
@@ -164,6 +157,17 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 		}
 		branch.Number = number
 		branch.Ref = ReleaseBranchRef(number)
+		byPhase[milestone.SchedulePhase] = branch
+		byMilestone[milestone.Milestone] = branch
+	}
+	rv := &Branches{}
+	rv.Beta = byPhase[branchBeta]
+	rv.Stable = byPhase[branchStable]
+	if rv.Beta == nil {
+		rv.Beta = byPhase[branchStableCut]
+	}
+	if rv.Beta == nil && rv.Stable != nil {
+		rv.Beta = byMilestone[rv.Stable.Milestone+1]
 	}
 	if rv.Beta != nil {
 		rv.Main = &Branch{
