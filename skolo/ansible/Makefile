@@ -13,5 +13,6 @@ install_test_machine_monitor_to_linux_incremental:
 distribute_authorized_keys_to_rpis:
 	${SSH_WRAP} ansible-playbook ./switchboard/update-authorized-keys.yml --limit rpis
 
+# Ignore "[701] No 'galaxy_info' found" linter warnings.
 validate:
-	ansible-playbook --syntax-check switchboard/*.yml
+	ansible-lint -x 701
