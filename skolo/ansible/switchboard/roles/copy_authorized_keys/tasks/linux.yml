@@ -3,8 +3,13 @@
   ansible.posix.authorized_key:
     user: '{{ skolo_account }}'
     state: present
-    key: "{{ lookup('file', '{{ all.repo_root }}/skolo/authorized_keys') }}"
+    key: "{{ lookup('file', all.repo_root + '/skolo/authorized_keys') }}"
     exclusive: yes
+
+- name: set authorized_keys_filename fact.
+  set_fact:
+    authorized_keys_filename:
+      '/tmp/copy_authorized_keys-from-jumphost-to-{{ inventory_hostname }}'
 
 - name: Grab the 'chrome-bot' public key from the jumphost.
   become: yes
@@ -12,7 +17,7 @@
   delegate_to: '{{ copy_authorized_keys__jumphost }}'
   ansible.builtin.fetch:
     src: '~chrome-bot/.ssh/id_ed25519.pub'
-    dest: '/tmp/copy_authorized_keys-from-jumphost-to-{{ inventory_hostname }}'
+    dest: '{{ authorized_keys_filename }}'
     flat: yes
   when: copy_authorized_keys__jumphost
 
@@ -20,8 +25,6 @@
   ansible.posix.authorized_key:
     user: '{{ skolo_account }}'
     state: present
-    key:
-      "{{ lookup('file', '/tmp/copy_authorized_keys-from-jumphost-to-{{
-      inventory_hostname }}') }}"
+    key: "{{ lookup('file', authorized_keys_filename) }}"
     exclusive: no
   when: copy_authorized_keys__jumphost
