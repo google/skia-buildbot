@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
 import * as net from 'net';
-import puppeteer from 'puppeteer';
+import puppeteer, { Browser } from 'puppeteer';
 import webpack from 'webpack';
 import webpackDevMiddleware from 'webpack-dev-middleware';
 
@@ -93,9 +93,10 @@ export const inDocker = () => fs.existsSync('/.dockerenv');
 export const inBazel = () => !!process.env.BAZEL_WORKSPACE;
 
 /**
- * Launches a Puppeteer browser.
+ * Launches a Puppeteer browser. Set showBrowser to true to see the browser as it executes tests.
+ * This can be handy for debugging.
  */
-export const launchBrowser = () => puppeteer.launch(
+export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => puppeteer.launch(
   // These options are required to run Puppeteer from within a Docker container, as is the case
   // under Bazel and RBE. See
   // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.
@@ -107,7 +108,7 @@ export const launchBrowser = () => puppeteer.launch(
   //     https://chromium.googlesource.com/chromium/src/+/master/docs/linux/suid_sandbox_development.md
   //     for more information on developing with the SUID sandbox. If you want to live dangerously
   //     and need an immediate workaround, you can try using --no-sandbox.
-  { args: ['--disable-dev-shm-usage', '--no-sandbox'] },
+  { args: ['--disable-dev-shm-usage', '--no-sandbox'], headless: !showBrowser },
 );
 
 /**
@@ -226,8 +227,10 @@ let testBed: Partial<TestBed>;
  * expose the Browser instance to tests). The page is set up with a cookie (name: "puppeteer",
  * value: "true") to give demo pages a means to detect whether they are running within Puppeteer or
  * not.
+ *
+ * When debugging, it can be handy to set showBrowser to true.
  */
-export async function loadCachedTestBed(pathToWebpackConfigTs?: string) {
+export async function loadCachedTestBed(pathToWebpackConfigTs?: string, showBrowser?: boolean) {
   if (testBed) {
     return testBed as TestBed;
   }
@@ -246,7 +249,7 @@ export async function loadCachedTestBed(pathToWebpackConfigTs?: string) {
     newTestBed.baseUrl = baseUrl; // Make baseUrl available to tests.
   }
 
-  browser = await launchBrowser();
+  browser = await launchBrowser(!!showBrowser);
   testBed = newTestBed;
   setBeforeAfterHooks();
   return testBed as TestBed;

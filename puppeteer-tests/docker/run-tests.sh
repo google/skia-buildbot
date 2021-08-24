@@ -161,6 +161,12 @@ cp -r /src/skcq/webpack.config.ts         /tests/skcq
 cp -r /src/skcq/tsconfig.json             /tests/skcq
 cp -r /src/skcq/modules                   /tests/skcq
 
+mkdir /tests/skottie
+cp -r /src/skottie/webpack.config.ts         /tests/skottie
+cp -r /src/skottie/tsconfig.json             /tests/skottie
+cp -r /src/skottie/modules                   /tests/skottie
+cp -r /src/skottie/Makefile                  /tests/skottie
+
 ################################################################################
 # Install node modules and WASM dependencies.                                  #
 ################################################################################
@@ -173,6 +179,9 @@ cd /tests/particles
 make wasm_libs_fixed
 
 cd /tests/shaders
+make wasm_libs_fixed
+
+cd /tests/skottie
 make wasm_libs_fixed
 
 ################################################################################
@@ -231,4 +240,7 @@ cd /tests/machine
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/skcq
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/skottie
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts

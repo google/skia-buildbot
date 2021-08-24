@@ -195,7 +195,7 @@ ${this.jsonTextEditor()}
   ${this.state.filename} ${this.width}x${this.height} ...
   </button>
   <div class=controls>
-    <button @click=${this.rewind}>Rewind</button>
+    <button id=rewind @click=${this.rewind}>Rewind</button>
     <button id=playpause @click=${this.playpause}>Pause</button>
     <button ?hidden=${!this.hasEdits} @click=${this.applyEdits}>Apply Edits</button>
     <div class=download>
@@ -229,7 +229,7 @@ ${this.jsonTextEditor()}
                 @click=${this.toggleLibrary}>
     </checkbox-sk>
     ${this.audioButton()}
-    <button @click=${this.toggleEmbed}>Embed</button>
+    <button id=embed-btn @click=${this.toggleEmbed}>Embed</button>
     <div class=scrub>
       <input id=scrub type=range min=0 max=${SCRUBBER_RANGE + 1} step=0.1
           @input=${this.onScrub} @change=${this.onScrubEnd}>
@@ -630,8 +630,8 @@ ${this.wasmCaption()}`;
     this.initializePlayer();
   }
 
-  private initializePlayer(): void {
-    this.skottiePlayer?.initialize({
+  private initializePlayer(): Promise<void> {
+    return this.skottiePlayer!.initialize({
       width: this.width,
       height: this.height,
       lottie: this.state.lottie!,
@@ -653,7 +653,7 @@ ${this.wasmCaption()}`;
     });
   }
 
-  private loadAssetsAndRender(): void {
+  private loadAssetsAndRender(): Promise<void> {
     const toLoad: Promise<(LoadedAsset | null)>[] = [];
 
     const lottie = this.state.lottie!;
@@ -669,7 +669,7 @@ ${this.wasmCaption()}`;
     toLoad.push(...this.loadFonts(fonts));
     toLoad.push(...this.loadAssets(assets));
 
-    Promise.all(toLoad).then((externalAssets: (LoadedAsset | null)[]) => {
+    return Promise.all(toLoad).then((externalAssets: (LoadedAsset | null)[]) => {
       const loadedAssets: Record<string, ArrayBuffer> = {};
       const sounds = new SoundMap();
       for (const asset of externalAssets) {
@@ -690,15 +690,17 @@ ${this.wasmCaption()}`;
       this.state.assets = loadedAssets;
       this.state.soundMap = sounds;
       this.render();
-      this.initializePlayer();
-      // Re-sync all players
-      this.rewind();
+      return this.initializePlayer().then(() => {
+        // Re-sync all players
+        this.rewind();
+      });
     })
       .catch(() => {
         this.render();
-        this.initializePlayer();
-        // Re-sync all players
-        this.rewind();
+        return this.initializePlayer().then(() => {
+          // Re-sync all players
+          this.rewind();
+        });
       });
   }
 
@@ -833,7 +835,10 @@ ${this.wasmCaption()}`;
           this.stateChanged();
         }
         this.ui = 'loaded';
-        this.loadAssetsAndRender();
+        this.loadAssetsAndRender().then(() => {
+          console.log('loaded');
+          this.dispatchEvent(new CustomEvent('initial-animation-loaded', { bubbles: true }));
+        });
       }).catch((msg) => this.recoverFromError(msg));
     });
   }

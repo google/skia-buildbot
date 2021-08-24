@@ -42,9 +42,22 @@ wasm_libs_tot: get_latest_skia
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
+wasm_libs_fixed: # Used for puppeteer tests because we can't download the canvaskit from docker.
+	rm -rf build
+	mkdir -p build/canvaskit
+	curl https://particles.skia.org/dist/canvaskit.js --output build/canvaskit/canvaskit.js
+	curl https://particles.skia.org/dist/canvaskit.d.ts --output build/canvaskit/canvaskit.d.ts
+	curl https://particles.skia.org/dist/canvaskit.wasm --output build/canvaskit/canvaskit.wasm
+	echo "Latest" >> build/VERSION
+	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.ts
+
 .PHONY: serve watch app release wasm_libs_tot get_latest_skia push build-frontend-ci
 
 build-frontend-ci: wasm_libs_tot npm-ci
 	npx webpack --mode=production
+
+.PHONY: puppeteer_tests
+puppeteer_tests:
+	npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 include ../make/npm.mk
