@@ -38,7 +38,9 @@
     owner: root
     group: root
     mode: '0755'
-  notify: restart_prometheus
+  notify:
+    - validate_prometheus_config
+    - restart_prometheus
 
 - name: Copy over promtool executable.
   become: yes
@@ -51,6 +53,9 @@
     owner: root
     group: root
     mode: '0755'
+  notify:
+    - validate_prometheus_config
+    - validate_prometheus_rules
 
 - name: Ensure /etc/prometheus directory exists.
   become: yes
@@ -68,7 +73,9 @@
     owner: chrome-bot
     group: chrome-bot
     mode: '0644'
-  notify: restart_prometheus
+  notify:
+    - validate_prometheus_config
+    - restart_prometheus
 
 - name: Copy over alerts file.
   copy:
@@ -77,13 +84,9 @@
     owner: chrome-bot
     group: chrome-bot
     mode: '0644'
-  notify: restart_prometheus
-
-- name: Validate prometheus config.
-  command: /usr/local/bin/promtool check config /etc/prometheus/prometheus.yml
-
-- name: Validate prometheus rules.
-  command: /usr/local/bin/promtool check rules /etc/prometheus/alerts.yml
+  notify:
+    - validate_prometheus_rules
+    - restart_prometheus
 
 - name: Ensure tsdb directory exists.
   become: yes

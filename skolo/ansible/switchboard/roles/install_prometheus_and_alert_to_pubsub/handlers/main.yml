@@ -13,3 +13,9 @@
     state: restarted
     name: alert_to_pubsub
     daemon_reload: yes
+
+- name: validate_prometheus_config
+  command: /usr/local/bin/promtool check config /etc/prometheus/prometheus.yml
+
+- name: validate_prometheus_rules
+  command: /usr/local/bin/promtool check rules /etc/prometheus/alerts.yml
