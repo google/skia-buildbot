@@ -741,7 +741,7 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 
 	// Update the config vars.
 	if err := r.reg.Update(ctx); err != nil {
-		return skerr.Wrapf(err, "Failed to update config registry.")
+		sklog.Errorf("Failed to update config registry; continuing, but config may be out of date: %s", err)
 	}
 
 	// Determine if we should unthrottle.
