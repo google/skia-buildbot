@@ -24,10 +24,12 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -36,6 +38,10 @@ const (
 	androidUpstreamRemoteName = "remote"
 	// androidRepoBranchName is the name of the branch used for Android rollers.
 	androidRepoBranchName = "merge"
+
+	// Android does not allow self+2. As a workaround, we use a second account
+	// to approve our CLs.
+	autoApproverKeyPath = "/var/secrets/auto-approver-sa/key.json"
 )
 
 var (
@@ -50,6 +56,7 @@ var (
 // checkouts.
 type androidRepoManager struct {
 	androidRemoteName         string
+	autoApproverGerrit        gerrit.GerritInterface
 	childRepoURL              string
 	parentRepoURL             string
 	repoToolPath              string
@@ -135,8 +142,30 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 	if !ok {
 		return nil, skerr.Fmt("AndroidRepoManager must use Gerrit for code review.")
 	}
+
+	var autoApproverGerrit gerrit.GerritInterface
+	if !local {
+		autoApproverKey, err := ioutil.ReadFile(autoApproverKeyPath)
+		if err != nil {
+			sklog.Warningf("No auto-approver service account key found in %s; continuing anyway.", autoApproverKeyPath)
+		} else {
+			autoApproverCreds, err := google.CredentialsFromJSON(ctx, autoApproverKey, gerrit.AuthScope)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			autoApproverClient := httputils.DefaultClientConfig().WithTokenSource(autoApproverCreds.TokenSource).With2xxOnly().WithRetry4XX().Client()
+			autoApproverGerritConfig := cr.Client().(*gerrit.Gerrit).Config()
+			autoApproverGerritURL := cr.Client().(*gerrit.Gerrit).Url(0)
+			autoApproverGerrit, err = gerrit.NewGerritWithConfig(autoApproverGerritConfig, autoApproverGerritURL, autoApproverClient)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+		}
+	}
+
 	r := &androidRepoManager{
 		androidRemoteName:         androidRemoteName,
+		autoApproverGerrit:        autoApproverGerrit,
 		parentRepoURL:             g.GetRepoUrl(),
 		repoToolPath:              repoToolPath,
 		projectMetadataFileConfig: c.Metadata,
@@ -506,6 +535,12 @@ third_party {
 		return 0, err
 	}
 
+	// Use the second account to auto-approve the CL from the first account.
+	if r.autoApproverGerrit != nil {
+		if err := r.autoApproverGerrit.SetReview(ctx, change, "Auto-approving AutoRoll CL", r.g.Config().SelfApproveLabels, nil, "", "", 0); err != nil {
+			return 0, skerr.Wrap(err)
+		}
+	}
 	return change.Issue, nil
 }
 

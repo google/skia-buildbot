@@ -27,10 +27,12 @@ go_library(
         "//go/exec",
         "//go/gerrit",
         "//go/git",
+        "//go/httputils",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
         "//go/vcsinfo",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
