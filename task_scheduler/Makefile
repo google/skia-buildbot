@@ -42,7 +42,7 @@ NODE_MEMORY_LIMIT=4096
 
 .PHONY: puppeteer-test
 puppeteer-test: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -v -r ts-node/register ./modules/**/*_puppeteer_test.ts
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -v --require ts-node/register ./modules/**/*_puppeteer_test.ts
 
 .PHONY: all
 all: task-scheduler-be task-scheduler-fe task-scheduler-jc validate_db

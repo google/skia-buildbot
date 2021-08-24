@@ -27,7 +27,7 @@ debugjs: npm-ci
 
 .PHONY: puppeteer_tests
 puppeteer_tests: npm-ci
-	npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+	npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 testci: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run

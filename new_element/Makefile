@@ -22,6 +22,6 @@ build-frontend-ci: npm-ci
 
 .PHONY: testpptr
 testpptr: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./modules/**/*_puppeteer_test.ts
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./modules/**/*_puppeteer_test.ts
 
 include ../make/npm.mk

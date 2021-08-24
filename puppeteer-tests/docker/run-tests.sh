@@ -76,6 +76,9 @@ cp -r /src/infra-sk/*.scss                   /tests/infra-sk
 cp -r /src/infra-sk/tsconfig.json            /tests/infra-sk
 cp -r /src/infra-sk/modules                  /tests/infra-sk
 cp -r /src/infra-sk/pulito                   /tests/infra-sk
+# Depended upon by infra-sk/modules/task-driver-sk
+mkdir -p /tests/task_driver/modules
+cp -r /src/task_driver/modules/              /tests/task_driver/modules
 
 mkdir /tests/puppeteer-tests
 cp -r /src/puppeteer-tests/*.ts              /tests/puppeteer-tests
@@ -177,51 +180,51 @@ make wasm_libs_fixed
 export NODE_OPTIONS="--max-old-space-size=8192"
 
 cd /tests/puppeteer-tests
-npx mocha -r ts-node/register ./**/*_test.ts
+npx mocha --require ts-node/register ./**/*_test.ts
 
 # The ./**/*_puppeteer_test.ts glob patterns below exclude the Karma tests.
 
 cd /tests/infra-sk
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/perf
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/am
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/bugs-central
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/ct
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/new_element
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/fiddlek
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/status
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/task_scheduler
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/debugger-app
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/scrap
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/particles
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/shaders
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/machine
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/skcq
-npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+npx mocha --require ts-node/register ./**/*_puppeteer_test.ts

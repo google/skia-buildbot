@@ -19,12 +19,12 @@ NODE_MEMORY_LIMIT=4096
 
 .PHONY: puppeteer-test
 puppeteer-test: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 	echo "results are found in ../puppeteer-tests/output"
 
 .PHONY: puppeteer-test-debug
 puppeteer-test-debug: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
 	echo "results are found in ../puppeteer-tests/output"
 
 status: build-frontend-ci

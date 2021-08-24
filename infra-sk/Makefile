@@ -38,7 +38,7 @@ test-frontend-ci: npm-ci
 
 .PHONY: puppeteer_tests
 puppeteer_tests: npm-ci
-	npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+	npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 test: test-js puppeteer_tests
 

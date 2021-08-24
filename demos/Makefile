@@ -25,7 +25,7 @@ local_image: build_resources
 NODE_MEMORY_LIMIT=4096
 
 test_puppeteer: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 test_js: npm-ci
 	npx webpack --mode=development

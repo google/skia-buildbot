@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page", "ts_library")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -36,4 +36,11 @@ ts_library(
     srcs = ["test_data.ts"],
     visibility = ["//visibility:public"],
     deps = ["//task_driver/modules/json:index_ts_lib"],
+)
+
+sk_element_puppeteer_test(
+    name = "task-driver-sk_puppeteer_test",
+    src = "task-driver-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = ["//puppeteer-tests:util_ts_lib"],
 )
