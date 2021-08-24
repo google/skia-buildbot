@@ -81,6 +81,7 @@ type Description struct {
 	Battery             int                // Charge as an integer percent, e.g. 50% = 50.
 	Temperature         map[string]float64 // In Celsius.
 	RunningSwarmingTask bool
+	LaunchedSwarming    bool      // True if test_machine_monitor launched Swarming.
 	RecoveryStart       time.Time // When did the machine start being in recovery mode.
 	DeviceUptime        int32     // Seconds
 }
@@ -152,6 +153,9 @@ type Event struct {
 	Android             Android   `json:"android"`
 	Host                Host      `json:"host"`
 	RunningSwarmingTask bool      `json:"running_swarming_task"`
+
+	// LaunchedSwarming is true if test_machine_monitor launched Swarming.
+	LaunchedSwarming bool `json:"launched_swarming"`
 }
 
 // NewEvent returns a new Event instance.

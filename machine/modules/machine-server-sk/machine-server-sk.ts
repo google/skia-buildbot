@@ -20,6 +20,7 @@ import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/clear-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/edit-icon-sk';
+import 'elements-sk/icon/launch-icon-sk';
 import 'elements-sk/icon/power-settings-new-icon-sk';
 import 'elements-sk/styles/buttons/index';
 import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
@@ -95,6 +96,15 @@ const dimensions = (machine: Description): TemplateResult => {
   )}
       </table>
     </details>
+  `;
+};
+
+const launchedSwarming = (machine: Description): TemplateResult => {
+  if (!machine.LaunchedSwarming) {
+    return html``;
+  }
+  return html`
+    <launch-icon-sk title="Swarming was launched by test_machine_monitor."></launch-icon-sk>
   `;
 };
 
@@ -227,6 +237,7 @@ export const pretty_device_name = (devices: string[] | null): string => {
 
 export class MachineServerSk extends ListPageSk<Description> {
   private noteEditor: NoteEditorSk | null = null;
+
   _fetchPath = '/_/machines';
 
   tableHeaders() {
@@ -245,6 +256,7 @@ export class MachineServerSk extends ListPageSk<Description> {
       <th>Last Seen</th>
       <th>Uptime</th>
       <th>Dimensions</th>
+      <th>Launched Swarming</th>
       <th>Note</th>
       <th>Annotation</th>
       <th>Image</th>
@@ -269,6 +281,7 @@ export class MachineServerSk extends ListPageSk<Description> {
         <td class="${outOfSpecIfTooOld(machine.LastUpdated)}">${diffDate(machine.LastUpdated)}</td>
         <td class="${uptimeOutOfSpecIfTooOld(machine.DeviceUptime)}">${deviceUptime(machine)}</td>
         <td>${dimensions(machine)}</td>
+        <td class="center">${launchedSwarming(machine)}</td>
         <td>${note(this, machine)}</td>
         <td>${annotation(machine.Annotation)}</td>
         <td>${imageName(machine)}</td>

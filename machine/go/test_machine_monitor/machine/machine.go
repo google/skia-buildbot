@@ -65,12 +65,15 @@ type Machine struct {
 	// maintenanceMode is true if the machine should be put into maintenance mode.
 	maintenanceMode bool
 
+	// startSwarming is true if test_machine_monitor was used to launch Swarming.
+	startSwarming bool
+
 	// runningTask is true if the machine is currently running a swarming task.
 	runningTask bool
 }
 
 // New return an instance of *Machine.
-func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, startTime time.Time, version string) (*Machine, error) {
+func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, startTime time.Time, version string, startSwarming bool) (*Machine, error) {
 	store, err := store.New(ctx, false, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to build store instance.")
@@ -102,6 +105,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		KubernetesImage:            kubernetesImage,
 		Version:                    version,
 		startTime:                  startTime,
+		startSwarming:              startSwarming,
 		interrogateTimer:           metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
 		interrogateAndSendFailures: metrics2.GetCounter("bot_config_machine_interrogate_and_send_errors", map[string]string{"machine": machineID}),
 		storeWatchArrivalCounter:   metrics2.GetCounter("bot_config_machine_store_watch_arrival", map[string]string{"machine": machineID}),
@@ -145,6 +149,8 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 	ret.RunningSwarmingTask = m.runningTask
 
 	ret.Host.StartTime = m.startTime
+
+	ret.LaunchedSwarming = m.startSwarming
 
 	return ret
 }

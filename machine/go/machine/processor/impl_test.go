@@ -131,6 +131,21 @@ func TestProcess_SwarmingTaskIsRunning(t *testing.T) {
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 }
 
+func TestProcess_LaunchedSwarmingIsTrueInEvent_LaunchedSwarmingIsTrueInDescription(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+	event := machine.Event{
+		EventType:        machine.EventTypeRawState,
+		LaunchedSwarming: true,
+	}
+	previous := machine.Description{}
+	p := newProcessorForTest(t)
+	next := p.Process(ctx, previous, event)
+	assert.True(t, next.LaunchedSwarming)
+	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
+	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
+}
+
 func TestProcess_NewDeviceAttached(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()

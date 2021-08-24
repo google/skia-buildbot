@@ -166,6 +166,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	ret.Battery = battery
 	ret.Temperature = temperatures
 	ret.RunningSwarmingTask = event.RunningSwarmingTask
+	ret.LaunchedSwarming = event.LaunchedSwarming
 	ret.PodName = event.Host.PodName
 	ret.LastUpdated = time.Now()
 	ret.DeviceUptime = int32(event.Android.Uptime.Seconds())

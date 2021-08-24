@@ -95,7 +95,7 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
-	m, err := New(ctx, true, instanceConfig, start, versionForTest)
+	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
 	require.NoError(t, err)
 	assert.Equal(t, "my-test-bot-001", m.MachineID)
 
@@ -197,7 +197,7 @@ func TestStart_FirestoreWritesGetReflectedToMachine(t *testing.T) {
 
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
-	m, err := New(ctx, true, instanceConfig, start, versionForTest)
+	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
 	require.NoError(t, err)
 	assert.Equal(t, "my-test-bot-001", m.MachineID)
 
@@ -280,7 +280,7 @@ func TestStart_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *testing.T) {
 
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
-	m, err := New(ctx, true, instanceConfig, start, versionForTest)
+	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
 	require.NoError(t, err)
 
 	// Set up fakes for adb. We have two sets of 3 since Start calls
@@ -366,7 +366,7 @@ func TestStart_RunningSwarmingTaskInMachineIsSentInEvent(t *testing.T) {
 
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
-	m, err := New(ctx, true, instanceConfig, start, versionForTest)
+	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
 	// We are running a task.
 	m.runningTask = true
 	require.NoError(t, err)
@@ -409,6 +409,7 @@ func TestStart_RunningSwarmingTaskInMachineIsSentInEvent(t *testing.T) {
 				StartTime: start,
 			},
 			RunningSwarmingTask: true,
+			LaunchedSwarming:    true,
 		},
 		event)
 
@@ -441,7 +442,7 @@ func TestRebootDevice_Success(t *testing.T) {
 
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
-	m, err := New(ctx, true, instanceConfig, start, versionForTest)
+	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
 	m.SetDimensionsForSwarming(machine.SwarmingDimensions{
 		machine.DimAndroidDevices: {"1"},
 	})
@@ -484,7 +485,7 @@ func TestRebootDevice_ErrOnNonZeroExitCode(t *testing.T) {
 
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
-	m, err := New(ctx, true, instanceConfig, start, versionForTest)
+	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
 
 	m.SetDimensionsForSwarming(machine.SwarmingDimensions{
 		machine.DimAndroidDevices: {"1"},
@@ -514,7 +515,7 @@ func TestRebootDevice_NoErrorIfNoAndroidDeviceAttached(t *testing.T) {
 
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
-	m, err := New(ctx, true, instanceConfig, start, versionForTest)
+	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
 
 	m.SetDimensionsForSwarming(machine.SwarmingDimensions{
 		machine.DimAndroidDevices: {},

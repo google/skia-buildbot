@@ -40,6 +40,7 @@ export const descriptions: Description[] = [{
     dumpsys_battery: 24.3,
   },
   RunningSwarmingTask: true,
+  LaunchedSwarming: false,
   RecoveryStart: '2021-06-03T18:20:09.386312Z',
   DeviceUptime: 167,
 }, {
@@ -75,6 +76,7 @@ export const descriptions: Description[] = [{
     dumpsys_battery: 23,
   },
   RunningSwarmingTask: true,
+  LaunchedSwarming: true,
   RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 266,
 }, {
@@ -110,6 +112,7 @@ export const descriptions: Description[] = [{
     dumpsys_battery: 22,
   },
   RunningSwarmingTask: true,
+  LaunchedSwarming: true,
   RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 183,
 }, {
@@ -145,6 +148,7 @@ export const descriptions: Description[] = [{
     dumpsys_battery: 22,
   },
   RunningSwarmingTask: true,
+  LaunchedSwarming: true,
   RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 167,
 }, {
@@ -180,6 +184,7 @@ export const descriptions: Description[] = [{
     dumpsys_battery: 23,
   },
   RunningSwarmingTask: true,
+  LaunchedSwarming: true,
   RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 234,
 }, {
@@ -219,6 +224,7 @@ export const descriptions: Description[] = [{
     dumpsys_battery: 24.9,
   },
   RunningSwarmingTask: true,
+  LaunchedSwarming: true,
   RecoveryStart: '2021-06-03T18:19:19.268204Z',
   DeviceUptime: 343,
 }, {
@@ -254,6 +260,7 @@ export const descriptions: Description[] = [{
     dumpsys_battery: 24.9,
   },
   RunningSwarmingTask: true,
+  LaunchedSwarming: true,
   RecoveryStart: '2021-01-12T18:33:24.063867Z',
   DeviceUptime: 657,
 }, {
@@ -293,6 +300,7 @@ export const descriptions: Description[] = [{
     dumpsys_battery: 24.2,
   },
   RunningSwarmingTask: true,
+  LaunchedSwarming: true,
   RecoveryStart: '2021-06-03T18:12:59.603173Z',
   DeviceUptime: 660,
 }, {
@@ -332,6 +340,7 @@ export const descriptions: Description[] = [{
     dumpsys_battery: 28.8,
   },
   RunningSwarmingTask: true,
+  LaunchedSwarming: true,
   RecoveryStart: '2021-06-03T18:20:05.427785Z',
   DeviceUptime: 891,
 }, {
@@ -371,6 +380,7 @@ export const descriptions: Description[] = [{
     dumpsys_battery: 25,
   },
   RunningSwarmingTask: true,
+  LaunchedSwarming: true,
   RecoveryStart: '2021-06-03T18:15:16.668578Z',
   DeviceUptime: 899,
 }];

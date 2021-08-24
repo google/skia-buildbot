@@ -20,6 +20,7 @@ export interface Description {
 	Battery: number;
 	Temperature: { [key: string]: number } | null;
 	RunningSwarmingTask: boolean;
+	LaunchedSwarming: boolean;
 	RecoveryStart: string;
 	DeviceUptime: number;
 }

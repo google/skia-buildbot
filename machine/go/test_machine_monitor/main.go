@@ -66,7 +66,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	machineState, err := machine.New(ctx, *local, instanceConfig, time.Now(), Version)
+	machineState, err := machine.New(ctx, *local, instanceConfig, time.Now(), Version, *startSwarming)
 	if err != nil {
 		sklog.Fatal("Failed to create machine: %s", err)
 	}
