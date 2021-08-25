@@ -1,18 +1,18 @@
 import './index';
+import { expect } from 'chai';
+import fetchMock from 'fetch-mock';
+import { $, $$ } from 'common-sk/modules/dom';
 import { GoldStatusSk } from './gold-status-sk';
 import { StatusResponse } from '../../../golden/modules/rpc_types';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
-import fetchMock from 'fetch-mock';
-import { $, $$ } from 'common-sk/modules/dom';
 
 describe('gold-status-sk', () => {
   const newInstance = setUpElementUnderTest<GoldStatusSk>('gold-status-sk');
 
   let element: GoldStatusSk;
   beforeEach(async () => {
-    fetchMock.getOnce('https://gold.skia.org/json/v1/trstatus', <StatusResponse>{
+    fetchMock.getOnce('https://gold.skia.org/json/v2/trstatus', <StatusResponse>{
       corpStatus: [
         { name: 'canvaskit', untriagedCount: 0 },
         { name: 'colorImage', untriagedCount: 0 },

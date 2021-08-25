@@ -7,19 +7,20 @@
 import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { StatusResponse } from '../../../golden/modules/rpc_types';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { GUICorpusStatus, StatusResponse } from '../../../golden/modules/rpc_types';
 
 const goldUrl = 'https://gold.skia.org';
 
 export class GoldStatusSk extends ElementSk {
   private resp?: StatusResponse;
+
   private static template = (el: GoldStatusSk) => html`
     <div class="table">
       ${el.resp && el.resp.corpStatus
-        ? el.resp!.corpStatus!.map(
-            (c) => html`
+    ? el.resp!.corpStatus!.map(
+      (c) => html`
               <a
                 class="tr"
                 href="${goldUrl}${`/?corpus=${c!.name}`}"
@@ -32,9 +33,9 @@ export class GoldStatusSk extends ElementSk {
                   <span class="value">${c!.untriagedCount}</span>
                 </div>
               </a>
-            `
-          )
-        : html``}
+            `,
+    )
+    : html``}
     </div>
   `;
 
@@ -42,19 +43,19 @@ export class GoldStatusSk extends ElementSk {
     super(GoldStatusSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this.refresh();
   }
 
   private refresh() {
-    fetch(`${goldUrl}/json/v1/trstatus`, { method: 'GET' })
+    fetch(`${goldUrl}/json/v2/trstatus`, { method: 'GET' })
       .then(jsonOrThrow)
       .then((json: StatusResponse) => {
         this.resp = json;
         this.resp.corpStatus?.sort(
-          (a, b) => b!.untriagedCount - a!.untriagedCount
+          (a: GUICorpusStatus, b: GUICorpusStatus) => b!.untriagedCount - a!.untriagedCount,
         );
         this._render();
       })
