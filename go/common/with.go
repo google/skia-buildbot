@@ -70,9 +70,15 @@ func (b *baseInitOpt) preinit(appName string) error {
 }
 
 func (b *baseInitOpt) init(appName string) error {
+	// Log all flags and their values.
 	flag.VisitAll(func(f *flag.Flag) {
 		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
 	})
+
+	// Log all environment variables.
+	for _, env := range os.Environ() {
+		sklog.Infof("Env: %s", env)
+	}
 
 	// Use all cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
