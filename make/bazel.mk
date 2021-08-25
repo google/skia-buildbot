@@ -5,7 +5,7 @@
 # If BAZEL isn't defined then try to define it as bazelisk (if the executable exists).
 # Otherwise, define it as bazel.
 ifeq ($(BAZEL),)
-	ifneq ($(which bazelisk),)
+	ifneq ($(strip $(shell which bazelisk)),)
 		BAZEL := bazelisk
 	else
 		BAZEL := bazel
