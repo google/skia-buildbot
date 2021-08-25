@@ -18,6 +18,8 @@
     <dict>
       <key>SWARMING_BOT_ID</key>
       <string>{{ ansible_facts['hostname'] }}</string>
+      <key>SWARMING_EXTERNAL_BOT_SETUP</key>
+      <string>1</string>
     </dict>
     {% endif %}
     <key>SoftResourceLimits</key>
