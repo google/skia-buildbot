@@ -23,10 +23,6 @@ let offset = 0;
 let X = 250;
 let Y = 250;
 
-// If there are multiple contexts on the screen, we need to make sure
-// we switch to this one before we draw.
-const context = CanvasKit.currentContext();
-
 // Set a default color
 color0.value="#4746cd";
 
@@ -44,7 +40,6 @@ function getWidth() {
 function drawFrame() {
   benchmarkFPS();
   const path = starPath(CanvasKit, X, Y);
-  CanvasKit.setCurrentContext(context);
   const dpe = CanvasKit.SkPathEffect.MakeDash([15, 5, 5, 10], offset/5);
   offset++;
 

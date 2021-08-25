@@ -77,8 +77,6 @@ export class ParticlesPlayerSk extends ElementSk {
 
   private kit: CanvasKit | null = null; // CanvasKit instance
 
-  private context: number = -1; // CanvasKit context.
-
   private animation: Particles | null = null; // Particles instance
 
   private surface: Surface | null = null; // Surface
@@ -109,7 +107,6 @@ export class ParticlesPlayerSk extends ElementSk {
         Your browser does not support the canvas tag.
       </canvas>
     </div>`;
-
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -213,7 +210,6 @@ export class ParticlesPlayerSk extends ElementSk {
     }
     this.lastTime = Date.now();
 
-    this.kit!.setCurrentContext(this.context);
     this.canvas.clear(this.kit!.BLACK);
     this.animation.update(this.time / 1000.0);
     this.animation.draw(this.canvas);
@@ -239,7 +235,6 @@ export class ParticlesPlayerSk extends ElementSk {
       // We don't need to call .delete() on the canvas because
       // the parent surface will do that for us.
       this.canvas = this.surface.getCanvas();
-      this.context = this.kit!.currentContext();
     }
 
     // eslint-disable-next-line no-unused-expressions

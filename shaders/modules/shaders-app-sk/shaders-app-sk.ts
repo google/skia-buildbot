@@ -129,7 +129,6 @@ CodeMirror.defineMIME('x-shader/x-sksl', {
   modeProps: { fold: ['brace', 'include'] },
 });
 
-
 /** requestAnimationFrame id if requestAnimationFrame is not running. */
 const RAF_NOT_RUNNING = -1;
 
@@ -143,8 +142,6 @@ export class ShadersAppSk extends ElementSk {
   private canvasEle: HTMLCanvasElement | null = null;
 
   private kit: CanvasKit | null = null;
-
-  private canvasKitContext: number = -1;
 
   private surface: Surface | null = null;
 
@@ -211,7 +208,6 @@ export class ShadersAppSk extends ElementSk {
       </button>
     `;
   }
-
 
   private static displayShaderTreeImpl = (ele: ShadersAppSk, parentNode: ShaderNode | null, node: ShaderNode, depth: number = 0, name: string = '/', childIndex: number = 0): TemplateResult[] => {
     let ret: TemplateResult[] = [];
@@ -522,7 +518,6 @@ export class ShadersAppSk extends ElementSk {
     // We don't need to call .delete() on the canvas because
     // the parent surface will do that for us.
     this.canvas = this.surface.getCanvas();
-    this.canvasKitContext = this.kit!.currentContext();
     this.clearAllEditorErrorAnnotations();
 
     this.rootShaderNode!.compile();
@@ -537,7 +532,7 @@ export class ShadersAppSk extends ElementSk {
     this.drawFrame();
   }
 
-  private clearAllEditorErrorAnnotations(): void{
+  private clearAllEditorErrorAnnotations(): void {
     // eslint-disable-next-line no-unused-expressions
     this.compileErrorLines?.forEach((textMarker) => {
       textMarker.clear();
@@ -598,7 +593,6 @@ export class ShadersAppSk extends ElementSk {
   }
 
   private drawFrame() {
-    this.kit!.setCurrentContext(this.canvasKitContext);
     const shader = this.currentNode!.getShader(this.getPredefinedUniformValuesFromControls());
     if (!shader) {
       return;

@@ -179,8 +179,6 @@ export class SkottiePlayerSk extends ElementSk {
 
   private colorProps: PropList<ColorProperty> = new PropList([], { key: '', value: 0 });
 
-  private context: number = 0; // CK context.
-
   private currentSegment: AnimationSegment = { name: '', t0: 0, t1: 1 };
 
   private height: number = 0;
@@ -321,8 +319,6 @@ export class SkottiePlayerSk extends ElementSk {
       // We don't need to call .delete() on the canvas because
       // the parent surface will do that for us.
       this.skcanvas = this.surface.getCanvas();
-
-      this.context = this.kit.currentContext();
     }
 
     if (this.animation) {
@@ -386,7 +382,6 @@ export class SkottiePlayerSk extends ElementSk {
       frame = Math.trunc(frame * fpsScale) / fpsScale;
     }
 
-    this.kit.setCurrentContext(this.context);
     const damage = this.animation.seekFrame(frame);
     // Only draw frames when the content changes.
     if (forceRender || !skRectIsEmpty(damage)) {
