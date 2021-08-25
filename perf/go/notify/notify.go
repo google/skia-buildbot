@@ -37,6 +37,9 @@ const (
 <p>
    And direction {{.Cluster.StepFit.Status}}.
 </p>
+<p>
+	From Alert <a href="{{.URL}}/a/?{{ .Alert.IDAsString }}">{{ .Alert.DisplayName }}</a>
+</p>
 `
 )
 
