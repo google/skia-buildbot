@@ -1,4 +1,3 @@
----
 # Ensure Swarming has been bootstrapped.
 - hosts: all
   vars:

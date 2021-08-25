@@ -1,6 +1,5 @@
 # This playbook is used to move an image from staging to prod or vice-versa.
 
----
 - hosts: 127.0.0.1
   connection: local
   remote_user: chrome-bot

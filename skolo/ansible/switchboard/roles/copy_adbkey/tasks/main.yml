@@ -1,4 +1,3 @@
----
 - name:
     make temporary directory for adb files and trigger `clean_up_tempfile`
     handler for cleanup.

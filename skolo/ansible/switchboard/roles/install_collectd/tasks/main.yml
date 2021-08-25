@@ -1,4 +1,3 @@
----
 # tasks file for collectd
 - name: Install applications.
   become: yes

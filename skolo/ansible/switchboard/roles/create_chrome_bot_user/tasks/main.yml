@@ -1,4 +1,3 @@
----
 - name: Create chrome-bot user for linux
   import_tasks: linux.yml
   when: ansible_facts['system']|lower == "linux"

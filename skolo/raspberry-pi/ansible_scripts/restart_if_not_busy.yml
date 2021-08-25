@@ -1,5 +1,4 @@
 # This ansible script will restart a bot if it is not currently running a swarming task.
----
 - hosts: all
   remote_user: chrome-bot
   become_user: root

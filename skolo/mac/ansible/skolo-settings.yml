@@ -1,4 +1,3 @@
----
 # Set up the machine to run our tests.
 - hosts: all
   remote_user: chrome-bot

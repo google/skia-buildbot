@@ -1,7 +1,6 @@
 # During upgrades, can be run modified then run via:
 # ansible-playbook -i "host1,host2," upgrade.yml -K
 # successively on each phase of rollout.
----
 - hosts: all
   remote_user: chrome-bot
   become_user: root

@@ -1,4 +1,3 @@
----
 # tasks file for install_metadata_server
 
 - name: make temporary directory for secrets and trigger `clean_up_tempfile`

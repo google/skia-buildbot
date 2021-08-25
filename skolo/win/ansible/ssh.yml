@@ -1,4 +1,3 @@
----
 # Ensure an SSH server is installed.
 - hosts: all
   become: yes

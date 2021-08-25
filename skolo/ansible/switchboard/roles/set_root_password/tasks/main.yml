@@ -1,4 +1,3 @@
----
 # tasks file for set_root_password
 - name: Root password
   become: yes

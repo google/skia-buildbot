@@ -1,4 +1,3 @@
----
 # Adjust time, power management, and auto-login settings.
 - hosts: all
   vars:

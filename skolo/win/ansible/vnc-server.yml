@@ -1,4 +1,3 @@
----
 # Install TightVNC server.
 - hosts: all
   tasks:

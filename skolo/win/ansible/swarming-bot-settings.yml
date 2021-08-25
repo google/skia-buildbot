@@ -1,4 +1,3 @@
----
 # Disable Windows Update feature updates, Windows Defender, and disk indexing.
 - hosts: all
   tasks:

@@ -1,4 +1,3 @@
----
 # Install NVIDIA Graphics Driver; applies only to group "nvidia".
 - hosts: nvidia
   tasks:

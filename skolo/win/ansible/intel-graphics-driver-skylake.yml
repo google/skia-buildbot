@@ -1,4 +1,3 @@
----
 # Install Intel Graphics Driver for Skylake and later GPUs; applies only to group "skylake".
 - hosts: skylake
   tasks:

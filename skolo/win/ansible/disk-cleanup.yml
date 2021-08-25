@@ -1,4 +1,3 @@
----
 # Run disk cleanup on C.
 # Requires Ansible 2.7.
 - hosts: all

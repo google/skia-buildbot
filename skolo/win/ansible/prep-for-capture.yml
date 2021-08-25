@@ -1,4 +1,3 @@
----
 # Prepare the host for capturing a disk image. See "Windows new bot setup" doc for full
 # instructions.
 - import_playbook: windows-update.yml

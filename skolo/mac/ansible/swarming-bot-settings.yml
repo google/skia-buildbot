@@ -1,4 +1,3 @@
----
 # Ensure Swarming can reboot the host.
 - hosts: all
   remote_user: chrome-bot

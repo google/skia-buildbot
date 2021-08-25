@@ -1,4 +1,3 @@
----
 # tasks file for load-secret-vars
 - name: make temp directory for secrets and trigger `clean_up_tempfile` handler.
   delegate_to: 127.0.0.1

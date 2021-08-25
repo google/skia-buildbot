@@ -1,4 +1,3 @@
----
 # Install Intel Graphics Driver for Broadwell and earlier GPUs; applies only to group "broadwell".
 - hosts: broadwell
   tasks:

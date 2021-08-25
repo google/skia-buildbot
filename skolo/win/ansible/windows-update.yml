@@ -1,4 +1,3 @@
----
 # Install all available updates from Windows Update. See "Windows new bot setup" doc for full
 # instructions.
 # Requires Ansible 2.5.

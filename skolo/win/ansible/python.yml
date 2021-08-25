@@ -1,4 +1,3 @@
----
 # Ensure Python 2.7 and PyWin32 are installed.
 - hosts: all
   vars:
