@@ -40,9 +40,6 @@ This role uses the `skolo_account` variable defined in `hosts.ini`.
 The `copy_service_account_key__name` is the name of the berglas secret that
 contains the service account key to use.
 
-The `copy_service_account_key.name` is the name of the berglas secret that
-contains the service account key to use.
-
 ## Security
 
 The `secrets.yml` is only put in a temp file long enough to be copied to the

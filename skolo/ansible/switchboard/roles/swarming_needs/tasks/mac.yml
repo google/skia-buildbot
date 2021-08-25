@@ -1,0 +1,85 @@
+- name: Remove any freestanding Swarming install.
+  vars:
+    swarming_launch_plist: ~{{ skolo_account }}/Library/LaunchAgents/org.swarm.bot.plist
+  block:
+    - name: Stop freestanding startup job.
+      # This is idempotent and returns 0, even though it prints an error
+      # message if the job was already unloaded or the file was absent.
+      command: launchctl unload {{ swarming_launch_plist }}
+
+    - name: Remove freestanding startup job.
+      # We'll have TMM start Swarming instead.
+      become: yes
+      file:
+        path: '{{ swarming_launch_plist }}'
+        state: absent
+
+- name: Remove any legacy install of Swarming.
+  # Swarming's dir used to live here before macOS 10.15, at which point it
+  # became an unwriteable location.
+  become: yes
+  file:
+    path: /b/s
+    state: absent
+
+- name: Make Swarming dir.
+  # test_machine_monitor's swarming/bootstrap() would do it, but it does it
+  # with 0777 because that dir is being mounted inside a Docker container on
+  # Linux. We can be a little tighter here.
+  become: yes
+  file:
+    path: /opt/s
+    state: directory
+    recurse: yes
+    owner: '{{ skolo_account }}'
+    mode: 0755
+
+- name: Install Python 3.
+  vars:
+    # Contains universal binaries. Happily runs on macOS 10.9+, despite name.
+    python_pkg: python-3.9.6-macos11.pkg
+  block:
+    - name: Download Python installer.
+      get_url:
+        url: https://www.python.org/ftp/python/3.9.6/{{ python_pkg }}
+        dest: ~{{ skolo_account }}/Downloads
+        checksum: 'sha256:634b77de7d2ef77710950a84bd18d2adae9d252ae204934168c9eecb0c38ea29'
+
+    - name: Run installer.
+      become: yes
+      command:
+        cmd: /usr/sbin/installer -verboseR -package ~{{ skolo_account }}/Downloads/{{ python_pkg }} -target /
+        creates: /usr/local/bin/python3
+
+- name: Install pyobjc.
+  block:
+    - name: Pick temp filename to hold requirements.
+      tempfile:
+      register: requirements
+    - name: Overwrite temp file with requirments.
+      copy:
+        src: files/pyobjc_requirements.txt
+        dest: '{{ requirements.path }}'
+        mode: 0600
+        force: yes
+    - name: Run pip against requirements.
+      # The Python 3.9 and above versions of pyobjc ship as universal binaries.
+      # The pyobjc distro is a stub which depends on packages like
+      # https://pypi.org/project/pyobjc-core/#files, where the actual binaries
+      # live. Version is pinned just for uniformity.
+      pip:
+        # Dodge /usr/bin/pip3, which triggers an xcode-select interruption.
+        executable: /usr/local/bin/pip3
+        requirements: '{{ requirements.path }}'
+
+- name: Allow chrome-bot to sudo shutdown.
+  become: yes
+  lineinfile:
+    path: /private/etc/sudoers.d/swarming
+    state: present
+    create: yes
+    line: '{{ skolo_account }} ALL=NOPASSWD:/sbin/shutdown -r now'
+    validate: /usr/sbin/visudo -cf %s
+    mode: 0644
+    owner: root
+    group: wheel

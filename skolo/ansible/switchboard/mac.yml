@@ -1,0 +1,11 @@
+- hosts: all_mac
+  user: chrome-bot
+  gather_facts: yes
+
+  roles:
+    - copy_authorized_keys
+    - copy_service_account_key
+    - stop_sleeping
+    - swarming_needs
+    - switchboard_needs
+    - install_test_machine_monitor

@@ -1,9 +1,20 @@
----
-- name: Swarming needs for Linux
+- name: Fail if platform unsupported.
+  fail:
+    msg: This system isn't supported, please add support.
+  when: ansible_facts['system']|lower not in ['linux', 'darwin']
+
+- name: Copy empty .boto file.
+  copy:
+    src: files/.boto
+    dest: ~chrome-bot/.boto
+    owner: 'chrome-bot'
+    group: '{{ skolo_group }}'
+    mode: 0644
+
+- name: Install Swarming prereqs for Linux.
   import_tasks: linux.yml
   when: ansible_facts['system']|lower == "linux"
 
-- name: Other platforms
-  fail:
-    msg: This system isn't supported, please add support.
-  when: ansible_facts['system']|lower != "linux"
+- name: Install Swarming prereqs for Mac.
+  import_tasks: mac.yml
+  when: ansible_facts['system']|lower == "darwin"

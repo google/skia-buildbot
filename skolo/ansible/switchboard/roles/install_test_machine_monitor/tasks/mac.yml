@@ -1,0 +1,19 @@
+- name: Install test_machine_monitor.
+  vars:
+    tmm_launch_plist: ~{{ skolo_account }}/Library/LaunchAgents/com.google.skia.test_machine_monitor.plist
+  block:
+    - name: Install startup job.
+      template:
+        src: templates/com.google.skia.test_machine_monitor.plist
+        dest: '{{ tmm_launch_plist }}'
+        owner: '{{ skolo_account }}'
+        group: '{{ skolo_group }}'
+        # 0660 required according to https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html:
+        mode: 0600
+
+    - name: Have launchd start test_machine_monitor.
+      # This is idempotent and returns 0, even though it prints an error message if
+      # the job was already loaded. If this gets more complex, we can go to
+      # the trouble of using community.general.launchd. We would pass it
+      # "state: reloaded" in this case.
+      command: launchctl load {{ tmm_launch_plist }}

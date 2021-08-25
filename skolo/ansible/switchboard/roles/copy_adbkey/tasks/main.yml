@@ -35,5 +35,5 @@
     src: '{{ adbkey.path }}/'
     dest: /home/{{ skolo_account }}/.android/
     owner: '{{ skolo_account }}'
-    group: '{{ skolo_account }}'
+    group: '{{ skolo_group }}'
     mode: '0644'

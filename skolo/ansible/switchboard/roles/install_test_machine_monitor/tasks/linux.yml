@@ -1,0 +1,17 @@
+- name: Copy over service file.
+  become: yes
+  template:
+    src: templates/test_machine_monitor.service
+    dest: /etc/systemd/system/test_machine_monitor.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Start systemd servce.
+  become: yes
+  systemd:
+    enabled: yes
+    # Do not force a restart, we'll just pick up the new version on reboot.
+    state: started
+    name: test_machine_monitor
+    daemon_reload: yes

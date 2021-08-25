@@ -12,3 +12,5 @@
   import_playbook: gapid.yml
 - name: linux
   import_playbook: linux.yml
+- name: mac
+  import_playbook: mac.yml

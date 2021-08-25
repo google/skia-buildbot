@@ -1,4 +1,8 @@
----
+- name: Fail if platform unsupported.
+  fail:
+    msg: This platform is not yet supported.
+  when: "ansible_facts['system']|lower not in ['darwin', 'linux']"
+
 - name: Build test_machine_monitor for the target machine.
   delegate_to: 127.0.0.1
   make:
@@ -6,15 +10,6 @@
     target:
       "build_test_machine_monitor_{{ ansible_facts['architecture'] }}_{{
       ansible_facts['system'] }}"
-
-- name: Copy over service file.
-  become: yes
-  template:
-    src: templates/test_machine_monitor.service
-    dest: /etc/systemd/system/test_machine_monitor.service
-    owner: root
-    group: root
-    mode: '0644'
 
 - name: Copy over executable.
   become: yes
@@ -24,14 +19,13 @@
       ansible_facts['architecture'] }}/test_machine_monitor"
     dest: /usr/local/bin/test_machine_monitor
     owner: root
-    group: root
-    mode: '0755'
+    group: "{{ (ansible_facts['system']|lower == 'darwin') | ternary('wheel', 'root') }}"
+    mode: 0755
 
-- name: Start systemd servce.
-  become: yes
-  systemd:
-    enabled: yes
-    # Do not force a restart, we'll just pick up the new version on reboot.
-    state: started
-    name: test_machine_monitor
-    daemon_reload: yes
+- name: Install startup job for Linux.
+  import_tasks: linux.yml
+  when: ansible_facts['system']|lower == 'linux'
+
+- name: Install startup job for Mac.
+  import_tasks: mac.yml
+  when: ansible_facts['system']|lower == 'darwin'

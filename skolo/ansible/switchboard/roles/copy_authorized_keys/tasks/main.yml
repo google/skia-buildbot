@@ -1,13 +1,7 @@
----
-# Each system is a different task, and only one task will run per system.
-- name: Copy authorized_keys to Linux
-  import_tasks: linux.yml
-  when: ansible_facts['system']|lower == "linux"
+- name: Copy authorized_keys to Linux or Mac.
+  import_tasks: posix.yml
+  when: ansible_facts['system']|lower in ['darwin', 'linux']
 
-- name: Copy authorized_keys to Darwin
-  import_tasks: darwin.yml
-  when: ansible_facts['system']|lower == "darwin"
-
-- name: Copy authorized_keys to Win
+- name: Copy authorized_keys to Win.
   import_tasks: win.yml
-  when: ansible_facts['system']|lower == "win"
+  when: ansible_facts['system']|lower == 'win'

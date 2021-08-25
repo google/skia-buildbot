@@ -1,12 +1,3 @@
-# Still need .boto.
-- name: Copy empty .boto file.
-  copy:
-    src: files/.boto
-    dest: ~chrome-bot/.boto
-    owner: chrome-bot
-    group: chrome-bot
-    mode: 0644
-
 - name: Install mobile device applications.
   become: yes
   apt:

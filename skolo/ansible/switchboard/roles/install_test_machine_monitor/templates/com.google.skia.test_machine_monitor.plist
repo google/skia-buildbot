@@ -1,0 +1,47 @@
+#jinja2: lstrip_blocks: "True"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.google.skia.test_machine_monitor</string>
+    <key>LimitLoadToSessionType</key>
+    <array><string>Aqua</string></array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>Umask</key>
+    <integer>18</integer>
+    <key>EnableTransactions</key>
+    <false/>
+    {% if install_test_machine_monitor__start_swarming is true %}
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>SWARMING_BOT_ID</key>
+      <string>{{ ansible_facts['hostname'] }}</string>
+    </dict>
+    {% endif %}
+    <key>SoftResourceLimits</key>
+    <dict>
+      <key>NumberOfFiles</key>
+      <integer>8000</integer>
+    </dict>
+    <key>KeepAlive</key>
+    <dict>
+      <key>SuccessfulExit</key>
+      <false/>
+    </dict>
+    <key>ProgramArguments</key>
+    <array>
+      <string>/usr/local/bin/test_machine_monitor</string>
+      <string>--config=prod.json</string>
+      <string>--prom_port=:{{ all.prometheus.monitoring.ports.test_machine_monitor }}</string>
+      <string>--metadata_url=http://metadata:{{ all.metadata_server_port }}/computeMetadata/v1/instance/service-accounts/default/token</string>
+      {% if install_test_machine_monitor__start_swarming is true %}
+      <string>--python_exe=/usr/local/bin/python3</string>
+      <string>--start_swarming</string>
+      <string>--swarming_bot_zip=/opt/s/swarming_bot.zip</string>
+      {% endif %}
+      <string>--username=chrome-bot</string>
+    </array>
+  </dict>
+</plist>

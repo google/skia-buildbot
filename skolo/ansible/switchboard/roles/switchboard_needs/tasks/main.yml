@@ -1,5 +1,10 @@
-- name: Install applications.
-  become: yes
-  apt:
-    pkg:
-      - rsync
+- name: Fail if platform unsupported.
+  fail:
+    msg: This system isn't supported, please add support.
+  when: ansible_facts['system']|lower not in ['linux', 'darwin']
+
+- name: Install Switchboard prereqs for Linux.
+  import_tasks: linux.yml
+  when: ansible_facts['system']|lower == "linux"
+
+# Macs ship with rsync, so there's nothing to do so far.

@@ -22,7 +22,7 @@
 - name: Copy service account key
   copy:
     src: '{{ service_account_key.path }}/application_default_credentials.json'
-    dest: /home/{{ skolo_account }}/.config/gcloud/
+    dest: ~{{ skolo_account }}/.config/gcloud/
     owner: '{{ skolo_account }}'
-    group: '{{ skolo_account }}'
+    group: '{{ skolo_group }}'
     mode: '0644'

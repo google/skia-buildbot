@@ -1,0 +1,14 @@
+- name: Fail if platform unsupported.
+  fail:
+    msg: This system isn't supported, please add support.
+  when: ansible_facts['system']|lower != 'darwin'
+
+- name: Run caffeinate at startup to prevent sleep.
+  become: yes
+  copy:
+    src: files/org.skia.caffeinated.plist
+    dest: /Library/LaunchAgents/
+    owner: root
+    group: wheel
+    mode: 0644
+  when: ansible_facts['system']|lower == 'darwin'

@@ -78,7 +78,7 @@ run-local-instance:
 	machineserver --local
 
 export HASH=$(shell git rev-parse HEAD)
-export DATETIME=$(shell date --utc "+%Y-%m-%dT%H:%M:%SZ")
+export DATETIME=$(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
 export GIT_STATE=$(shell ../bash/gitstate.sh)
 export VERSION=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
 
@@ -98,6 +98,24 @@ build_test_machine_monitor_x86_64_Linux:
 	GOARCH=amd64 \
 	go build \
 	 -o ./build/Linux/x86_64/test_machine_monitor \
+	  -ldflags="-X 'main.Version=${VERSION}'" \
+	 ./go/test_machine_monitor
+
+build_test_machine_monitor_x86_64_Darwin:
+	CGO_ENABLED=0 \
+	GOOS=darwin \
+	GOARCH=amd64 \
+	go build \
+	 -o ./build/Darwin/x86_64/test_machine_monitor \
+	  -ldflags="-X 'main.Version=${VERSION}'" \
+	 ./go/test_machine_monitor
+
+build_test_machine_monitor_arm64_Darwin:
+	CGO_ENABLED=0 \
+	GOOS=darwin \
+	GOARCH=arm64 \
+	go build \
+	 -o ./build/Darwin/arm64/test_machine_monitor \
 	  -ldflags="-X 'main.Version=${VERSION}'" \
 	 ./go/test_machine_monitor
 
