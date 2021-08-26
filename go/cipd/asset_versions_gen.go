@@ -146,12 +146,12 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/luci/vpython-native/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/vpython-native/${platform}",
-		Version: "git_revision:7cd120a5d0da5892216fe478f880e9b672428697",
+		Version: "git_revision:cadd7dad6e9466c9988ec9eaed70210f2aa1ca86",
 	},
 	"infra/tools/luci/vpython/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/vpython/${platform}",
-		Version: "git_revision:7cd120a5d0da5892216fe478f880e9b672428697",
+		Version: "git_revision:cadd7dad6e9466c9988ec9eaed70210f2aa1ca86",
 	},
 	"skia/bots/bazel": {
 		Path:    "bazel",
