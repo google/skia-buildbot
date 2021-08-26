@@ -16,9 +16,6 @@
  * To change the color themes override the css variables in a ':root' selector.
  * </p>
  *
- * @attr dark - If this attribute is set during connectedCallback then the
- *   default mode will be dark.
- *
  * @evt theme-chooser-toggle Sent when the theme has changed. The detail
  *   contains the darkmode value:
  *
@@ -34,10 +31,11 @@ import { html } from 'lit-html';
 import { ElementSk } from '../ElementSk';
 import 'elements-sk/icon/invert-colors-icon-sk';
 
-const DARKMODE_DEFAULT_ATTRIBUTE = 'dark';
-
-/** Class applied to <body> to enable darkmode, and the key in localstorage to persist it. */
+/** Class applied to <body> to enable darkmode. */
 export const DARKMODE_CLASS = 'darkmode';
+
+/** The key in localstorage to persist the choice of dark/light mode. */
+export const DARKMODE_LOCALSTORAGE_KEY = 'theme-chooser-sk-darkmode';
 
 /** Describes the "theme-chooser-toggle" event detail. */
 export interface ThemeChooserSkEventDetail {
@@ -67,18 +65,16 @@ export class ThemeChooserSk extends ElementSk {
   }
 
   get darkmode(): boolean {
-    // If localstore has never been set then return the default, which depends
-    // on the 'dark' attribute.
-    if (window.localStorage.getItem(DARKMODE_CLASS) === null) {
-      return this.hasAttribute(DARKMODE_DEFAULT_ATTRIBUTE);
+    if (window.localStorage.getItem(DARKMODE_LOCALSTORAGE_KEY) === null) {
+      return true; // Defaults to darkmode.
     }
-    return window.localStorage.getItem(DARKMODE_CLASS) === 'true';
+    return window.localStorage.getItem(DARKMODE_LOCALSTORAGE_KEY) === 'true';
   }
 
   set darkmode(val: boolean) {
     // Force to be a bool.
     val = !!val;
-    window.localStorage.setItem(DARKMODE_CLASS, val.toString());
+    window.localStorage.setItem(DARKMODE_LOCALSTORAGE_KEY, val.toString());
     document.body.classList.toggle(DARKMODE_CLASS, this.darkmode);
     this.dispatchEvent(
       new CustomEvent<ThemeChooserSkEventDetail>('theme-chooser-toggle', {
@@ -93,6 +89,6 @@ export class ThemeChooserSk extends ElementSk {
 //
 // Note that this function is only valid after the theme-chooser-sk element has
 // finished connectedCallback().
-export const isDarkMode = (): boolean => window.localStorage.getItem(DARKMODE_CLASS) === 'true';
+export const isDarkMode = (): boolean => window.localStorage.getItem(DARKMODE_LOCALSTORAGE_KEY) === 'true';
 
 define('theme-chooser-sk', ThemeChooserSk);

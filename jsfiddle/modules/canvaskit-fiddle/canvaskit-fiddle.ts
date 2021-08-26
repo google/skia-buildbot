@@ -19,7 +19,7 @@ const template = (ele: WasmFiddle) => html` <header>
         >${SKIA_VERSION.substring(0, 10)}</a
       >
     </div>
-    <theme-chooser-sk dark></theme-chooser-sk>
+    <theme-chooser-sk></theme-chooser-sk>
   </header>
 
   <main>

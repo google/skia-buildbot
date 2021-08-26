@@ -128,7 +128,7 @@ export class ParticlesSk extends ElementSk {
       >
         ${SKIA_VERSION.slice(0, 7)}
       </a>
-      <theme-chooser-sk dark></theme-chooser-sk>
+      <theme-chooser-sk></theme-chooser-sk>
     </span>
   </header>
   <main>
