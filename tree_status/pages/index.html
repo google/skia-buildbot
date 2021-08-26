@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Skia Tree Status</title>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link id=favicon rel="icon" type="image/png" href="static/favicon.ico">
+  <title>Tree Status for {% .Repo %} repo</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link id=favicon rel="icon" type="image/png" href="static/favicon.ico">
 </head>
+
 <body class="body-sk">
-  <tree-scaffold-sk app_title="Skia Tree Status">
-    <tree-status-sk></tree-status-sk>
+  <tree-scaffold-sk app_title="Tree Status for {% .Repo %} repo">
+    <tree-status-sk repo="{% .Repo %}"></tree-status-sk>
   </tree-scaffold-sk>
 </body>
+
 </html>

@@ -46,6 +46,10 @@ var (
 
 func getAutorollersSnapshot(ctx context.Context, db status.DB) ([]*types.AutorollerSnapshot, error) {
 	autorollersSnapshot := []*types.AutorollerSnapshot{}
+	if db == nil {
+		// Return an empty slice if there is no db specified.
+		return autorollersSnapshot, nil
+	}
 	for name, autoroller := range nameToAutoroller {
 		s, err := db.Get(ctx, autoroller.ID)
 		if err != nil {
@@ -80,7 +84,7 @@ L:
 	}
 }
 
-func AutorollersInit(ctx context.Context, ts oauth2.TokenSource) (status.DB, error) {
+func AutorollersInit(ctx context.Context, repo string, ts oauth2.TokenSource) (status.DB, error) {
 	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to initialize Cloud Datastore for autorollers")
 	}
@@ -123,7 +127,7 @@ func AutorollersInit(ctx context.Context, ts oauth2.TokenSource) (status.DB, err
 				}
 				message := fmt.Sprintf("Open: %s %s landed", rollers, rollerText)
 				sklog.Infof("Sending status notification with message: \"%s\"", message)
-				if err := AddStatus(message, "tree-status@skia.org", types.OpenState, ""); err != nil {
+				if err := AddStatus(repo, message, "tree-status@skia.org", types.OpenState, ""); err != nil {
 					sklog.Infof("Failed to add automated message to the datastore: %s", err)
 				}
 			} else {

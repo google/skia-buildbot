@@ -16,24 +16,36 @@ import (
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
+
+// defaultSkiaRepo is the repo to default to when no repos have been specified.
+// It is the main "skia.git" repo.
+const defaultSkiaRepo = "skia"
 
 // Flags
 var (
+	host               = flag.String("host", "tree-status.skia.org", "HTTP service host")
 	modifyGroup        = flag.String("modify_group", "project-skia-committers", "The chrome infra auth group to use for who is allowed to change tree status.")
 	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
 	namespace          = flag.String("namespace", "tree-status-staging", "The Cloud Datastore namespace.")
 	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
+	repos              = common.NewMultiStringFlag("repo", nil, "These repos will have tree status endpoints.")
+	internalPort       = flag.String("internal_port", "", "HTTP internal service address (eg: ':8001' for unauthenticated in-cluster requests.")
 )
 
 var (
 	// dsClient is the Cloud Datastore client to access tree statuses.
 	dsClient *datastore.Client
+
+	// repoNameRegex matches the format of supported repo names.
+	repoNameRegex = "{repo:[0-9a-zA-Z._-]+}"
 )
 
 // Server is the state of the server.
@@ -41,6 +53,12 @@ type Server struct {
 	templates  *template.Template
 	modify     allowed.Allow // Who is allowed to modify tree status.
 	autorollDB status.DB
+
+	// skiaRepoSpecified is set to true when the main skia has been specified.
+	// This boolean is used because the main skia repo requires support for
+	// non-repo specified URLs (for backwards compatibility) and for watching
+	// autorollers.
+	skiaRepoSpecified bool
 }
 
 // See baseapp.Constructor.
@@ -56,20 +74,28 @@ func New() (baseapp.App, error) {
 		return nil, skerr.Wrapf(err, "Failed to initialize Cloud Datastore for tree status")
 	}
 
-	// Start watching for statuses with autorollers specified.
-	autorollDB, err := AutorollersInit(ctx, ts)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Could not init autorollers")
-	}
+	// Check to see if the main skia repo has been specified. If it has been
+	// specified then it will require special handling.
+	skiaRepoSpecified := IsRepoSupported(defaultSkiaRepo)
 
-	// Load the last status and whether autorollers need to be watched.
-	s, err := GetLatestStatus()
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Could not find latest status")
-	}
-	if s.Rollers != "" {
-		sklog.Infof("Last status has rollers that need to be watched: %s", s.Rollers)
-		StartWatchingAutorollers(s.Rollers)
+	var autorollDB status.DB
+	if skiaRepoSpecified {
+		// Start watching for statuses with autorollers specified. Only supported for
+		// the default repo (skia).
+		autorollDB, err = AutorollersInit(ctx, defaultSkiaRepo, ts)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Could not init autorollers")
+		}
+
+		// Load the last status and whether autorollers need to be watched.
+		s, err := GetLatestStatus(defaultSkiaRepo)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Could not find latest status")
+		}
+		if s.Rollers != "" {
+			sklog.Infof("Last status has rollers that need to be watched: %s", s.Rollers)
+			StartWatchingAutorollers(s.Rollers)
+		}
 	}
 
 	var modify allowed.Allow
@@ -90,8 +116,9 @@ func New() (baseapp.App, error) {
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil /* Admins not needed */, modify, nil /* Everyone is allowed to access */)
 
 	srv := &Server{
-		modify:     modify,
-		autorollDB: autorollDB,
+		modify:            modify,
+		autorollDB:        autorollDB,
+		skiaRepoSpecified: skiaRepoSpecified,
 	}
 	srv.loadTemplates()
 	liveness := metrics2.NewLiveness("alive", map[string]string{})
@@ -128,12 +155,30 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	// places like: Skia infra apps, Gerrit plugin, Chrome extensions, presubmits, etc.
 	appRouter := mux.NewRouter()
 
-	// For tree status.
-	appRouter.HandleFunc("/", srv.treeStateHandler).Methods("GET")
-	appRouter.HandleFunc("/_/add_tree_status", srv.addStatusHandler).Methods("POST")
+	if srv.skiaRepoSpecified {
+		// If the main skia repo has been specified then leave default repo
+		// handlers around for backwards compatibility.
+		appRouter.HandleFunc("/", srv.treeStateDefaultRepoHandler).Methods("GET")
+		r.HandleFunc("/current", httputils.CorsHandler(srv.bannerStatusHandler)).Methods("GET")
+	}
 	appRouter.HandleFunc("/_/get_autorollers", srv.autorollersHandler).Methods("POST")
-	appRouter.HandleFunc("/_/recent_statuses", srv.recentStatusesHandler).Methods("POST")
-	r.HandleFunc("/current", httputils.CorsHandler(srv.bannerStatusHandler)).Methods("GET")
+
+	// Add repo-specific endpoints.
+	appRouter.HandleFunc(fmt.Sprintf("/%s", repoNameRegex), srv.treeStateDefaultRepoHandler).Methods("GET")
+	appRouter.HandleFunc(fmt.Sprintf("/%s/_/add_tree_status", repoNameRegex), srv.addStatusHandler).Methods("POST")
+	appRouter.HandleFunc(fmt.Sprintf("/%s/_/recent_statuses", repoNameRegex), srv.recentStatusesHandler).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/current", repoNameRegex), httputils.CorsHandler(srv.bannerStatusHandler)).Methods("GET")
+
+	if *internalPort != "" {
+		internalRouter := mux.NewRouter()
+		internalRouter.HandleFunc(fmt.Sprintf("/%s/current", repoNameRegex), httputils.CorsHandler(srv.bannerStatusHandler)).Methods("GET")
+		internalRouter.HandleFunc("/current", srv.bannerStatusHandler).Methods("GET")
+
+		go func() {
+			sklog.Infof("Internal server on %q", *internalPort)
+			sklog.Fatal(http.ListenAndServe(*internalPort, internalRouter))
+		}()
+	}
 
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
@@ -149,6 +194,14 @@ func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
 	return []mux.MiddlewareFunc{}
 }
 
+// IsRepoSupported is a utility function that returns true if the specified
+// repo is a supported repo (i.e. has been specified in the repos flag).
+func IsRepoSupported(repo string) bool {
+	return util.In(repo, *repos)
+}
+
 func main() {
-	baseapp.Serve(New, []string{"tree-status.skia.org"})
+	// Parse flags to be able to send *host to baseapp.Serve
+	flag.Parse()
+	baseapp.Serve(New, []string{*host})
 }

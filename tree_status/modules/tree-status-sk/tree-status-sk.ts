@@ -48,6 +48,11 @@ export class TreeStatusSk extends ElementSk {
     this._render();
   }
 
+  /** @prop repo {string} Reflects the repo attribute for ease of use. */
+  get repo(): string { return this.getAttribute('repo') || ''; }
+
+  set repo(val: string) { this.setAttribute('repo', val); }
+
   private poll() {
     this.getStatuses();
     this.getAutorollers();
@@ -70,11 +75,11 @@ export class TreeStatusSk extends ElementSk {
   }
 
   private saveStatus(e: Event) {
-    this.doImpl('/_/add_tree_status', (e as CustomEvent).detail, (json: Status[]) => { this.statuses = json; });
+    this.doImpl(`/${this.repo}/_/add_tree_status`, (e as CustomEvent).detail, (json: Status[]) => { this.statuses = json; });
   }
 
   private getStatuses() {
-    this.doImpl('/_/recent_statuses', {}, (json: Status[]) => { this.statuses = json; });
+    this.doImpl(`/${this.repo}/_/recent_statuses`, {}, (json: Status[]) => { this.statuses = json; });
   }
 
   private getAutorollers() {

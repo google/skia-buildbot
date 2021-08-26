@@ -18,6 +18,9 @@ debug: npm-ci
 push: release
 	pushk tree_status
 
+push_internal: release
+	pushk --only-cluster skia-corp tree_status
+
 serve: npm-ci
 	npx webpack-dev-server --mode=development --watch-poll
 

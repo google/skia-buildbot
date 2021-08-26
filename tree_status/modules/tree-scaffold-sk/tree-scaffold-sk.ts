@@ -39,7 +39,6 @@ export class TreeScaffoldSk extends ElementSk {
     super(TreeScaffoldSk.template);
   }
 
-
   private static template = (ele: TreeScaffoldSk) => html`
   <app-sk>
     <header class="primary-container-themes-sk">
@@ -51,7 +50,7 @@ export class TreeScaffoldSk extends ElementSk {
 
     <aside class="surface-themes-sk">
       <nav>
-        <a href="/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Skia Tree Status</span></a>
+        <a href="https://tree-status.skia.org/skia" tab-index=0 ><home-icon-sk></home-icon-sk><span>Skia Tree Status</span></a>
         <a href="http://go/skia-tree-status-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a>
         <a href="https://github.com/google/skia-buildbot/tree/master/tree_status" tab-index=0 ><folder-icon-sk></folder-icon-sk><span>Code</span></a>
       </nav>

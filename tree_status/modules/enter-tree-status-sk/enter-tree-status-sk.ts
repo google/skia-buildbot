@@ -46,9 +46,11 @@ export class EnterTreeStatus extends ElementSk {
 <button @click=${ele.addTreeStatus}>Submit</button>
 <br/>
 <br/>
-<button id='display_autorollers' @click=${ele.toggleAutorollers}>Caution/Close till Roll Lands</button>
-<br/>
-<br/>
+${ele.autorollersSpecified() ? html`
+  <button id='display_autorollers' @click=${ele.toggleAutorollers}>Caution/Close till Roll Lands</button>
+  <br/>
+  <br/>`
+    : html``}
 <list-autorollers-sk .autorollers=${ele.autorollers} collapsable collapsed></list-autorollers-sk>
 `;
 
@@ -86,6 +88,10 @@ export class EnterTreeStatus extends ElementSk {
     ($$('#tree_status', this) as HTMLInputElement).value = val;
     this.statusValue = val;
     this._render();
+  }
+
+  private autorollersSpecified(): boolean {
+    return this.autorollersData.length !== 0;
   }
 
   // Toggles the autorollers element. The status field is cleared and enabled

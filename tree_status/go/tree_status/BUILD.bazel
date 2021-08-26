@@ -21,6 +21,7 @@ go_library(
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
+        "//go/util",
         "//tree_status/go/types",
         "@com_github_gorilla_mux//:mux",
         "@com_github_unrolled_secure//:secure",

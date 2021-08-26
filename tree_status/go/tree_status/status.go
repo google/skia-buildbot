@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
 	"google.golang.org/api/iterator"
 
@@ -28,7 +29,19 @@ var (
 	statusMtx sync.RWMutex
 )
 
-func AddStatus(message, username, generalState, rollers string) error {
+// getRepoNamespace returns which DB namespace to use for the specified repo.
+// All repos except the main skia repo uses "tree-status-${repo}" namespace.
+// The main skia repo uses "tree-status" (without the repo specified) for
+// backwards compatibility.
+func getRepoNamespace(repo string) string {
+	repoNamespace := *namespace
+	if repo != defaultSkiaRepo {
+		repoNamespace = fmt.Sprintf("%s_%s", *namespace, repo)
+	}
+	return repoNamespace
+}
+
+func AddStatus(repo, message, username, generalState, rollers string) error {
 	s := &types.Status{
 		Date:         time.Now(),
 		Message:      message,
@@ -39,7 +52,7 @@ func AddStatus(message, username, generalState, rollers string) error {
 
 	key := &datastore.Key{
 		Kind:      STATUS_DS_KIND,
-		Namespace: *namespace,
+		Namespace: getRepoNamespace(repo),
 	}
 	if _, err := dsClient.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
 		var err error
@@ -53,17 +66,17 @@ func AddStatus(message, username, generalState, rollers string) error {
 	return nil
 }
 
-func GetLatestStatus() (*types.Status, error) {
-	statuses, err := GetStatuses(1)
+func GetLatestStatus(repo string) (*types.Status, error) {
+	statuses, err := GetStatuses(repo, 1)
 	if err != nil {
 		return nil, err
 	}
 	return statuses[0], nil
 }
 
-func GetStatuses(num int) ([]*types.Status, error) {
+func GetStatuses(repo string, num int) ([]*types.Status, error) {
 	statuses := []*types.Status{}
-	q := datastore.NewQuery("Status").Namespace(*namespace).Order("-date").Limit(num)
+	q := datastore.NewQuery("Status").Namespace(getRepoNamespace(repo)).Order("-date").Limit(num)
 	it := dsClient.Run(context.TODO(), q)
 	for {
 		s := &types.Status{}
@@ -80,14 +93,27 @@ func GetStatuses(num int) ([]*types.Status, error) {
 
 // HTTP Handlers
 
-func (srv *Server) treeStateHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *Server) treeStateDefaultRepoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
+
+	repo := mux.Vars(r)["repo"]
+	if !IsRepoSupported(repo) {
+		// Use the default repo if it is specified else throw an error.
+		if srv.skiaRepoSpecified {
+			repo = defaultSkiaRepo
+		} else {
+			httputils.ReportError(w, nil, fmt.Sprintf("The repo %s is not supported", repo), http.StatusBadRequest)
+			return
+		}
+	}
+
 	if *baseapp.Local {
 		srv.loadTemplates()
 	}
 	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
 		// Look in webpack.config.js for where the nonce templates are injected.
 		"Nonce": secure.CSPNonce(r.Context()),
+		"Repo":  repo,
 	}); err != nil {
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
 		return
@@ -96,10 +122,22 @@ func (srv *Server) treeStateHandler(w http.ResponseWriter, r *http.Request) {
 
 func (srv *Server) bannerStatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	repo := mux.Vars(r)["repo"]
+	if !IsRepoSupported(repo) {
+		// Use the default repo if it is specified else throw an error.
+		if srv.skiaRepoSpecified {
+			repo = defaultSkiaRepo
+		} else {
+			httputils.ReportError(w, nil, fmt.Sprintf("The repo %s is not supported", repo), http.StatusBadRequest)
+			return
+		}
+	}
+
 	statusMtx.RLock()
 	defer statusMtx.RUnlock()
 
-	statuses, err := GetStatuses(1)
+	statuses, err := GetStatuses(repo, 1)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to query for recent statuses.", http.StatusInternalServerError)
 		return
@@ -130,10 +168,16 @@ func (srv *Server) bannerStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 func (srv *Server) recentStatusesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	repo := mux.Vars(r)["repo"]
+	if !IsRepoSupported(repo) {
+		httputils.ReportError(w, nil, fmt.Sprintf("The repo %s is not supported", repo), http.StatusBadRequest)
+		return
+	}
+
 	statusMtx.RLock()
 	defer statusMtx.RUnlock()
 
-	statuses, err := GetStatuses(25)
+	statuses, err := GetStatuses(repo, 25)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to query for recent statuses.", http.StatusInternalServerError)
 		return
@@ -145,6 +189,11 @@ func (srv *Server) recentStatusesHandler(w http.ResponseWriter, r *http.Request)
 
 func (srv *Server) addStatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	repo := mux.Vars(r)["repo"]
+	if !IsRepoSupported(repo) {
+		httputils.ReportError(w, nil, fmt.Sprintf("The repo %s is not supported", repo), http.StatusBadRequest)
+		return
+	}
 
 	user := srv.user(r)
 	if !srv.modify.Member(user) {
@@ -197,7 +246,7 @@ func (srv *Server) addStatusHandler(w http.ResponseWriter, r *http.Request) {
 	// Stop watching any previously defined autorollers.
 	StopWatchingAutorollers()
 	// Add status to datastore.
-	if err := AddStatus(message, user, generalState, rollers); err != nil {
+	if err := AddStatus(repo, message, user, generalState, rollers); err != nil {
 		httputils.ReportError(w, err, "Failed to add message to the datastore", http.StatusInternalServerError)
 		return
 	}
@@ -205,7 +254,7 @@ func (srv *Server) addStatusHandler(w http.ResponseWriter, r *http.Request) {
 	StartWatchingAutorollers(rollers)
 
 	// Return updated list of the most recent tree statuses.
-	statuses, err := GetStatuses(25)
+	statuses, err := GetStatuses(repo, 25)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to query for recent statuses.", http.StatusInternalServerError)
 		return
