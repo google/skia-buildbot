@@ -1,3 +1,9 @@
+- name: Clean up old way of launching swarming
+  file:
+    path: ~chrome-bot/.config/autostart/swarming.desktop
+    state: absent
+  when: install_test_machine_monitor__start_swarming
+
 - name: Copy over service file.
   become: yes
   template:
