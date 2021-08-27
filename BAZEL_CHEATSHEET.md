@@ -31,6 +31,16 @@ The easiest way to install Bazelisk is via `npm`, e.g.:
 npm install -g @bazel/bazelisk
 ```
 
+An alternate method is to install bazelisk to a temporary directory and then copy the correct binary
+to the PATH. For example:
+
+```
+mkdir /tmp/bazelisk && cd /tmp/bazelisk
+npm install @bazel/bazelisk
+cp node_modules/@bazel/bazelisk/bazelisk-linux_amd64 ~/bin/bazelisk
+ln ~/bin/bazelisk ~/bin/bazel
+```
+
 Tips:
 
  - Make a Bash alias with `alias bazel="bazelisk"` and add it to your `~/.bash_aliases` file.
