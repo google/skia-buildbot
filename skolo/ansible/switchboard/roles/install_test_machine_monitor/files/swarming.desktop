@@ -1,0 +1,4 @@
+# An empty file used to overwrite the existing swarming.desktop that Swarming
+# writes. This is used to stop legacy install of Swarming from running on
+# startup, because it has been replaced with Swarming launched from
+# `test_machine_monitor`.

@@ -9,6 +9,12 @@ User=chrome-bot
 Environment=SWARMING_BOT_ID={{ ansible_facts['hostname'] }}
 Environment=SWARMING_EXTERNAL_BOT_SETUP=1
 {% endif %}
+{% if install_test_machine_monitor__linux_run_under_desktop is true %}
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/chrome-bot/.Xauthority
+{% endif %}
+
+
 ExecStart=/usr/local/bin/test_machine_monitor \
    --config=prod.json \
    --prom_port=:{{ all.prometheus.monitoring.ports.test_machine_monitor }} \
@@ -21,4 +27,8 @@ ExecStart=/usr/local/bin/test_machine_monitor \
 Restart=always
 
 [Install]
+{% if install_test_machine_monitor__linux_run_under_desktop is true %}
+WantedBy=graphical.target
+{% else %}
 WantedBy=multi-user.target
+{% endif %}

@@ -1,5 +1,5 @@
 # Installs test_machine_monitor.
-- hosts: switchboard_rpis,gapid_test_machines
+- hosts: switchboard_rpis,gapid_test_machines,linux
   user: chrome-bot
   gather_facts: true
 

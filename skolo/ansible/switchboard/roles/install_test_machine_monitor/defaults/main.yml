@@ -1,2 +1,6 @@
 # If True then test_machine_monitor will also spawn swarming.
 install_test_machine_monitor__start_swarming: False
+
+# If True then test_machine_monitor needs access to a graphical display, such as
+# X Windows. Only applies to linux machines.
+install_test_machine_monitor__linux_run_under_desktop: True
