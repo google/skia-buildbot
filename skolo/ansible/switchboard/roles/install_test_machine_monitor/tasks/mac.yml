@@ -1,3 +1,20 @@
+- name: Remove any freestanding Swarming install.
+  when: install_test_machine_monitor__start_swarming
+  vars:
+    swarming_launch_plist: ~{{ skolo_account }}/Library/LaunchAgents/org.swarm.bot.plist
+  block:
+    - name: Stop freestanding startup job.
+      # This is idempotent and returns 0, even though it prints an error
+      # message if the job was already unloaded or the file was absent.
+      command: launchctl unload {{ swarming_launch_plist }}
+
+    - name: Remove freestanding startup job.
+      # We'll have TMM start Swarming instead.
+      become: yes
+      file:
+        path: '{{ swarming_launch_plist }}'
+        state: absent
+
 - name: Install test_machine_monitor.
   vars:
     tmm_launch_plist: ~{{ skolo_account }}/Library/LaunchAgents/com.google.skia.test_machine_monitor.plist
