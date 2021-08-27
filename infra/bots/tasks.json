@@ -622,7 +622,9 @@
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
         "--skip",
-        "cpython3"
+        "cpython3",
+        "--skip",
+        "vpython"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
