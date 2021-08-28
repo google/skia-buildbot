@@ -27,7 +27,7 @@ After it has been burned, reload the SD card and run:
 
 Once the SD card has been placed in an RPi and is running in the lab:
 
-1. Add the hostname to //skolo/ansible/hosts.ini, making sure it ends up as part
+1. Add the hostname to //skolo/ansible/hosts.yml, making sure it ends up as part
    of `switchboard_rpis`.
 2. Then run the ansible scripts to configure the running RPi:
 

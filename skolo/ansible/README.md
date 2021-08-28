@@ -15,7 +15,7 @@ specific host by passing `--limit (hostname)` to the `ansible-playbook` command.
 
 See `./group_vars/all.yml` for variables that are defined everywhere.
 
-See `hosts.ini` for all the hosts and groups of hosts you can target when
+See `hosts.yml` for all the hosts and groups of hosts you can target when
 running an Ansible script.
 
 See `ssh.cfg` for the SSH configuration that Ansible uses when running.

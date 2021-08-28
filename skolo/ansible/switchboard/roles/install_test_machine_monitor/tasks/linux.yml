@@ -2,6 +2,9 @@
   copy:
     src: files/swarming.desktop
     dest: ~chrome-bot/.config/autostart/swarming.desktop
+    owner: chrome-bot
+    group: chrome-bot
+    mode: 0644
   when: install_test_machine_monitor__start_swarming
 
 - name: Copy over service file.
