@@ -271,7 +271,7 @@ groups:
       description: 'android_ingest failing to record incoming data to transaction log. See https://github.com/google/skia-buildbot/blob/main/android_ingest/PROD.md#tx_log'
 
   - alert: PerfIngestionSuccessRateTooLow
-    expr: perfserver_ingest_successful_write/perfserver_ingest_files_received  < 0.98
+    expr: rate(perfserver_ingest_successful_write[1h]) / rate(perfserver_ingest_files_received[1h])  < 0.95
     for: 10m
     labels:
       category: infra
