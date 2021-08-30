@@ -65,7 +65,7 @@ func UploadCL(ctx context.Context, g gerrit.GerritInterface, co *git.Checkout, p
 			var labels map[string]int
 			if !isTryJob {
 				labels = map[string]int{
-					gerrit.LabelCodeReview:  gerrit.LabelCodeReviewApprove,
+					gerrit.LabelBotCommit:   gerrit.LabelBotCommitApproved,
 					gerrit.LabelCommitQueue: gerrit.LabelCommitQueueSubmit,
 				}
 			}
