@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcr"
+	"go.skia.org/infra/go/gerrit/rubberstamper"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/kube/clusterconfig"
 	"go.skia.org/infra/go/sklog"
@@ -47,7 +48,7 @@ The command:
   1. Searches through the checked in kubernetes yaml files to determine which use the image(s).
   2. Modifies the kubernetes yaml files with the new version of the image(s).
   3. Applies the changes with kubectl.
-  4. Commits the changes to the config repo.
+  4. Commits the changes to the config repo via AutoSubmit, with approval by Rubber Stamper.
 
 The config is stored in a separate repo that will automaticaly be checked out
 under /tmp by default, or the value of the PUSHK_GITDIR environment variable if set.
@@ -385,11 +386,14 @@ func main() {
 			sklog.Infof("Not pushing since no files changed.")
 			return
 		}
-		msg, err = checkout.Git(ctx, "commit", "-m", *message)
+
+		messageWithBody := *message + "\n\n" + rubberstamper.RandomChangeID()
+		msg, err = checkout.Git(ctx, "commit", "-m", messageWithBody)
 		if err != nil {
 			sklog.Fatalf("Failed to commit to the config repo: %s: %q", err, msg)
 		}
-		msg, err = checkout.Git(ctx, "push", git.DefaultRemote, git.MainBranch)
+
+		msg, err = checkout.Git(ctx, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit)
 		if err != nil {
 			sklog.Fatalf("Failed to push the config repo: %s: %q", err, msg)
 		}
