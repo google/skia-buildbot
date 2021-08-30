@@ -13,6 +13,12 @@ install_test_machine_monitor_to_linux_incremental:
 distribute_authorized_keys_to_rpis:
 	${SSH_WRAP} ansible-playbook ./switchboard/update-authorized-keys.yml --limit rpis
 
-# Ignore "[701] No 'galaxy_info' found" linter warnings.
+# Ignore "[E701] No 'galaxy_info' found" linter warnings."
+# Ignore "[E301] Commands should not change things if nothing needs doing"
+#    301 is ignored on playbook validation because there are known
+#    cases where we need to do that.
 validate:
-	ansible-lint -x 701
+	# Validate playbooks.
+	ansible-lint  -x 701,301 -p switchboard/*.yml
+	# Validate roles.
+	ansible-lint  -x 701     -p switchboard/roles/
