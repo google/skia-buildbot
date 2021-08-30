@@ -2,6 +2,7 @@ package vfs
 
 import (
 	"context"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -38,7 +39,7 @@ func (fs *localFS) Open(_ context.Context, name string) (File, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return &localFile{file: f}, nil // TODO
+	return &localFile{file: f}, nil
 }
 
 // Close implements FS.
@@ -52,7 +53,7 @@ type localFile struct {
 }
 
 // Stat implements File.
-func (f *localFile) Stat(_ context.Context) (os.FileInfo, error) {
+func (f *localFile) Stat(_ context.Context) (fs.FileInfo, error) {
 	return f.file.Stat()
 }
 
@@ -62,7 +63,7 @@ func (f *localFile) Read(_ context.Context, buf []byte) (int, error) {
 }
 
 // ReadDir implements File.
-func (f *localFile) ReadDir(ctx context.Context, n int) ([]os.FileInfo, error) {
+func (f *localFile) ReadDir(_ context.Context, n int) ([]fs.FileInfo, error) {
 	return f.file.Readdir(n)
 }
 
@@ -96,7 +97,7 @@ func (fs *TempDirFS) Dir() string {
 
 // TempDir returns a FS which is rooted in a temporary directory. Calling Close
 // causes the directory to be deleted.
-func TempDir(ctx context.Context, dir, prefix string) (*TempDirFS, error) {
+func TempDir(_ context.Context, dir, prefix string) (*TempDirFS, error) {
 	tmp, err := ioutil.TempDir(dir, prefix)
 	if err != nil {
 		return nil, skerr.Wrap(err)

@@ -77,7 +77,7 @@ func TestReadDir(t *testing.T) {
 	ctx := context.Background()
 	name := "mydir"
 	fs := &mocks.FS{}
-	dir := &mocks.ReadDirFile{}
+	dir := &mocks.File{}
 	contents := []os.FileInfo{
 		vfs.FileInfo{
 			Name:    "myfile.txt",
@@ -166,7 +166,7 @@ func mockStat(ctx context.Context, fs *mocks.FS, fullPath string, isDir bool) (*
 	var m *mock.Mock
 	if isDir {
 		fi.FileInfo.Mode = fi.FileInfo.Mode | os.ModeDir
-		dir := &mocks.ReadDirFile{}
+		dir := &mocks.File{}
 		m = &dir.Mock
 		file = dir
 	} else {

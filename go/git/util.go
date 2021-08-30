@@ -3,6 +3,7 @@ package git
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"net/url"
 	"os"
 	"path"
@@ -155,8 +156,8 @@ func DeleteLockFiles(ctx context.Context, workdir string) error {
 //
 // mode tree|blob hash name
 //
-func ParseDir(contents []byte) ([]os.FileInfo, error) {
-	rv := []os.FileInfo{}
+func ParseDir(contents []byte) ([]fs.FileInfo, error) {
+	rv := []fs.FileInfo{}
 	for _, line := range strings.Split(strings.TrimSpace(string(contents)), "\n") {
 		if line == "" {
 			continue
@@ -179,8 +180,8 @@ func ParseDir(contents []byte) ([]os.FileInfo, error) {
 	return rv, nil
 }
 
-// MakeFileInfo returns an os.FileInfo with the given information.
-func MakeFileInfo(name, mode string, typ ObjectType, size int) (os.FileInfo, error) {
+// MakeFileInfo returns an fs.FileInfo with the given information.
+func MakeFileInfo(name, mode string, typ ObjectType, size int) (fs.FileInfo, error) {
 	modeInt, err := strconv.ParseUint(mode, 8, 32)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "invalid file mode %q", mode)

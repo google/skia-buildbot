@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,7 +15,7 @@ import (
 )
 
 // VFS returns a vfs.FS using Git for the given revision.
-func (g GitDir) VFS(ctx context.Context, ref string) (vfs.FS, error) {
+func (g GitDir) VFS(ctx context.Context, ref string) (*FS, error) {
 	hash, err := g.RevParse(ctx, "--verify", ref+"^{commit}")
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -32,7 +33,7 @@ type FS struct {
 }
 
 // Open implements vfs.FS.
-func (fs *FS) Open(ctx context.Context, name string) (vfs.File, error) {
+func (fs *FS) Open(_ context.Context, name string) (vfs.File, error) {
 	repoRoot, err := filepath.Abs(string(fs.g))
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -65,7 +66,7 @@ type File struct {
 	path   string
 
 	// These are cached to avoid repeated calls to Git.
-	cachedFileInfo os.FileInfo
+	cachedFileInfo fs.FileInfo
 	cachedContents []byte
 
 	// reader is used for repeated calls to Read().
@@ -111,7 +112,7 @@ func (f *File) Read(ctx context.Context, buf []byte) (int, error) {
 }
 
 // Stat implements vfs.File.
-func (f *File) Stat(ctx context.Context) (os.FileInfo, error) {
+func (f *File) Stat(ctx context.Context) (fs.FileInfo, error) {
 	// Special case for the repo root.
 	if f.isRoot {
 		return vfs.FileInfo{
@@ -140,7 +141,7 @@ func (f *File) Stat(ctx context.Context) (os.FileInfo, error) {
 }
 
 // ReadDir implements vfs.File.
-func (f *File) ReadDir(ctx context.Context, n int) ([]os.FileInfo, error) {
+func (f *File) ReadDir(ctx context.Context, n int) ([]fs.FileInfo, error) {
 	contents, err := f.get(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)

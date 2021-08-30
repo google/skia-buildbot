@@ -3,15 +3,13 @@ package vfs
 /*
 Package vfs provides interfaces for dealing with virtual file systems.
 
-The interfaces here are taken from this proposal and may therefore be removed
-if/when it is implemented:
-https://go.googlesource.com/proposal/+/master/design/draft-iofs.md
-
-The interfaces add a Context, which may be used for things like HTTP requests.
+The interfaces here are taken io/fs, except they include a Context, which may be
+used for things like HTTP requests.
 */
 
 import (
 	"context"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path"
@@ -39,11 +37,11 @@ type File interface {
 	// directory.
 	Read(ctx context.Context, buf []byte) (int, error)
 	// Stat returns FileInfo associated with the File.
-	Stat(ctx context.Context) (os.FileInfo, error)
+	Stat(ctx context.Context) (fs.FileInfo, error)
 
 	// ReadDir returns the contents of the File if it is a directory, and
 	// returns an error otherwise. Shouold behave the same as os.File.Readdir.
-	ReadDir(ctx context.Context, n int) ([]os.FileInfo, error)
+	ReadDir(ctx context.Context, n int) ([]fs.FileInfo, error)
 }
 
 // ReuseContextFile is a File which reuses the same Context for all calls. This
@@ -64,8 +62,8 @@ func (f *ReuseContextFile) Read(buf []byte) (int, error) {
 	return f.File.Read(f.ctx, buf)
 }
 
-// Stat returns the os.FileInfo describing the ReuseContextFile.
-func (f *ReuseContextFile) Stat() (os.FileInfo, error) {
+// Stat returns the fs.FileInfo describing the ReuseContextFile.
+func (f *ReuseContextFile) Stat() (fs.FileInfo, error) {
 	return f.File.Stat(f.ctx)
 }
 
@@ -94,7 +92,7 @@ func ReadFile(ctx context.Context, fs FS, path string) (rv []byte, rvErr error) 
 }
 
 // ReadDir is analogous to ioutil.ReadDir.
-func ReadDir(ctx context.Context, fs FS, path string) (rv []os.FileInfo, rvErr error) {
+func ReadDir(ctx context.Context, fs FS, path string) (rv []fs.FileInfo, rvErr error) {
 	f, err := fs.Open(ctx, path)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -109,7 +107,7 @@ func ReadDir(ctx context.Context, fs FS, path string) (rv []os.FileInfo, rvErr e
 }
 
 // Stat is analogous to os.Stat.
-func Stat(ctx context.Context, fs FS, path string) (rv os.FileInfo, rvErr error) {
+func Stat(ctx context.Context, fs FS, path string) (rv fs.FileInfo, rvErr error) {
 	f, err := fs.Open(ctx, path)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -139,7 +137,7 @@ func Walk(ctx context.Context, fs FS, root string, walkFn filepath.WalkFunc) err
 }
 
 // walk is analogous to filepath.walk.
-func walk(ctx context.Context, fs FS, fp string, info os.FileInfo, walkFn filepath.WalkFunc) error {
+func walk(ctx context.Context, fs FS, fp string, info fs.FileInfo, walkFn filepath.WalkFunc) error {
 	// This implementation is basically copied from filepath.walk.
 	if !info.IsDir() {
 		return walkFn(fp, info, nil)
@@ -184,7 +182,7 @@ func walk(ctx context.Context, fs FS, fp string, info os.FileInfo, walkFn filepa
 	return nil
 }
 
-// FileInfo implements os.FileInfo by simply filling out the return values for
+// FileInfo implements fs.FileInfo by simply filling out the return values for
 // all of the methods.
 type FileInfo struct {
 	Name    string
@@ -195,45 +193,45 @@ type FileInfo struct {
 	Sys     interface{}
 }
 
-// Get returns an os.FileInfo backed by this FileInfo.
+// Get returns an fs.FileInfo backed by this FileInfo.
 func (fi FileInfo) Get() *FileInfoImpl {
 	return &FileInfoImpl{fi}
 }
 
-// FileInfoImpl implements os.FileInfo.
+// FileInfoImpl implements fs.FileInfo.
 type FileInfoImpl struct {
 	FileInfo
 }
 
-// Name implements os.FileInfo.
+// Name implements fs.FileInfo.
 func (fi *FileInfoImpl) Name() string {
 	return fi.FileInfo.Name
 }
 
-// Size implements os.FileInfo.
+// Size implements fs.FileInfo.
 func (fi *FileInfoImpl) Size() int64 {
 	return fi.FileInfo.Size
 }
 
-// Mode implements os.FileInfo.
+// Mode implements fs.FileInfo.
 func (fi *FileInfoImpl) Mode() os.FileMode {
 	return fi.FileInfo.Mode
 }
 
-// ModTime implements os.FileInfo.
+// ModTime implements fs.FileInfo.
 func (fi *FileInfoImpl) ModTime() time.Time {
 	return fi.FileInfo.ModTime
 }
 
-// IsDir implements os.FileInfo.
+// IsDir implements fs.FileInfo.
 func (fi *FileInfoImpl) IsDir() bool {
 	return fi.FileInfo.IsDir
 }
 
-// Sys implements os.FileInfo.
+// Sys implements fs.FileInfo.
 func (fi *FileInfoImpl) Sys() interface{} {
 	return fi.FileInfo.Sys
 }
 
-// Ensure that FileInfoImpl implements os.FileInfo.
-var _ os.FileInfo = &FileInfoImpl{}
+// Ensure that FileInfoImpl implements fs.FileInfo.
+var _ fs.FileInfo = &FileInfoImpl{}
