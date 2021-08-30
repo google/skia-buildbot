@@ -19,16 +19,18 @@ import (
 	"strings"
 
 	"github.com/flynn/json5"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/encoding/prototext"
+
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcr"
+	"go.skia.org/infra/go/gerrit/rubberstamper"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/encoding/prototext"
 )
 
 const (
@@ -582,10 +584,11 @@ func main() {
 			if _, err := co.Git(ctx, cmd...); err != nil {
 				log.Fatalf("Failed to 'git add' k8s config file(s): %s", err)
 			}
-			if _, err := co.Git(ctx, "commit", "-m", *commitMsg); err != nil {
+			msg := *commitMsg + "\n\n" + rubberstamper.RandomChangeID()
+			if _, err := co.Git(ctx, "commit", "-m", msg); err != nil {
 				log.Fatalf("Failed to 'git commit' k8s config file(s): %s", err)
 			}
-			if _, err := co.Git(ctx, "push", git.DefaultRemote, "HEAD:"+git.MainBranch); err != nil {
+			if _, err := co.Git(ctx, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit); err != nil {
 				// The upstream might have changed while we were
 				// working. Rebase and try again.
 				if err2 := co.Fetch(ctx); err2 != nil {

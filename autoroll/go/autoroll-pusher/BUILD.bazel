@@ -11,6 +11,7 @@ go_library(
         "//go/common",
         "//go/exec",
         "//go/gcr",
+        "//go/gerrit/rubberstamper",
         "//go/git",
         "//go/skerr",
         "//go/util",
