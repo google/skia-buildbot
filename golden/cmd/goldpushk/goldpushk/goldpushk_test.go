@@ -217,10 +217,6 @@ func TestGoldpushk_CommitConfigFiles_Success(t *testing.T) {
 
 	// Assert that the user confirmed the commit step.
 	require.True(t, ok)
-
-	// Assert that the changes were pushed to the fake k8s-config repository.
-	assertNumCommits(t, ctx, fakeK8sConfig, 2)
-	assertRepositoryContainsFileWithContents(t, ctx, fakeK8sConfig, "foo.yaml", "I'm a change in k8s-config.")
 }
 
 func TestGoldpushk_CommitConfigFiles_UserAborts_DoesNotCommit(t *testing.T) {
@@ -905,7 +901,7 @@ func assertNumCommits(t *testing.T, ctx context.Context, repo *testutils.GitBuil
 	defer clone.Delete()
 	actualN, err := clone.NumCommits(ctx)
 	require.NoError(t, err)
-	require.Equal(t, n, actualN)
+	assert.Equal(t, n, actualN)
 }
 
 // assertRepositoryContainsFileWithContents asserts the presence of a file with the given contents
@@ -918,7 +914,7 @@ func assertRepositoryContainsFileWithContents(t *testing.T, ctx context.Context,
 	lastCommit := commits[0]
 	actualContents, err := clone.GetFile(ctx, filename, lastCommit)
 	require.NoError(t, err)
-	require.Equal(t, expectedContents, actualContents)
+	assert.Equal(t, expectedContents, actualContents)
 }
 
 // This fake kubectl output simulates the following situation:

@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gerrit/rubberstamper"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
@@ -396,10 +397,11 @@ func (g *Goldpushk) commitConfigFiles(ctx context.Context) (bool, error) {
 	if _, err := g.k8sConfigCheckout.Git(ctx, "add", "."); err != nil {
 		return false, skerr.Wrap(err)
 	}
-	if _, err := g.k8sConfigCheckout.Git(ctx, "commit", "-m", "Push"); err != nil {
+	message := "Push\n\n" + rubberstamper.RandomChangeID()
+	if _, err := g.k8sConfigCheckout.Git(ctx, "commit", "-m", message); err != nil {
 		return false, skerr.Wrap(err)
 	}
-	if _, err := g.k8sConfigCheckout.Git(ctx, "push", git.DefaultRemote, git.MainBranch); err != nil {
+	if _, err := g.k8sConfigCheckout.Git(ctx, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit); err != nil {
 		return false, skerr.Wrap(err)
 	}
 

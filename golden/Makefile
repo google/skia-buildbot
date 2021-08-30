@@ -6,6 +6,10 @@ KGO := CGO_ENABLED=0 GOOS=linux go build
 default:
 	bazel build cmd/...
 
+.PHONY: goldpushk
+goldpushk:
+	go install ./cmd/goldpushk/...
+
 # Build the gold-frontend container with Bazel and push it to GCR.
 .PHONY: push_frontend_container
 push_frontend_container:

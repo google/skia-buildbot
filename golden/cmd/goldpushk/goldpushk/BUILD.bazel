@@ -12,6 +12,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/exec",
+        "//go/gerrit/rubberstamper",
         "//go/git",
         "//go/now",
         "//go/skerr",
