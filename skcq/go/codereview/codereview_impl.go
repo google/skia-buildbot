@@ -69,7 +69,7 @@ func (gc *gerritCodeReview) AddComment(ctx context.Context, ci *gerrit.ChangeInf
 
 // GetChangeRef implements the CodeReview interface.
 func (gc *gerritCodeReview) GetChangeRef(ci *gerrit.ChangeInfo) string {
-	return fmt.Sprintf("%s%d/%d/%d", gerrit.ChangeRefPrefix, ci.Issue%100, ci.Issue, gc.GetLatestPatchSetID(ci))
+	return fmt.Sprintf("%s%02d/%d/%d", gerrit.ChangeRefPrefix, ci.Issue%100, ci.Issue, gc.GetLatestPatchSetID(ci))
 }
 
 // GetCommitMessage implements the CodeReview interface.

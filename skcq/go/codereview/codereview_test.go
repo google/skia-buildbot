@@ -220,3 +220,25 @@ func TestGetEquivalentPatchSetIDs(t *testing.T) {
 	patchsetIDs = cr.GetEquivalentPatchSetIDs(changeInfo, 6)
 	require.Len(t, patchsetIDs, 0)
 }
+
+func TestGetChangeRef(t *testing.T) {
+	unittest.SmallTest(t)
+
+	changeInfo := &gerrit.ChangeInfo{
+		Issue: 443102,
+		// Most recent revisions are first.
+		Patchsets: []*gerrit.Revision{
+			{
+				Number: 1,
+				Kind:   gerrit.PatchSetKindCodeChange,
+			},
+			{
+				Number: 2,
+				Kind:   gerrit.PatchSetKindTrivialRebase,
+			},
+		},
+	}
+	cr := gerritCodeReview{}
+
+	require.Equal(t, "refs/changes/02/443102/2", cr.GetChangeRef(changeInfo))
+}

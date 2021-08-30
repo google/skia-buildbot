@@ -131,8 +131,8 @@ func (gc *GitilesConfigReader) getFileContents(ctx context.Context, cfgPath stri
 	modifiedInCL := false
 	for _, f := range gc.changedFiles {
 		if f == cfgPath {
-			sklog.Infof("[%d] Has modified %s. Using the modified version.", gc.ci.Issue, cfgPath)
 			ref = gc.cr.GetChangeRef(gc.ci)
+			sklog.Infof("[%d] Has modified %s. Using the modified version from %s.", gc.ci.Issue, cfgPath, ref)
 			modifiedInCL = true
 			break
 		}
