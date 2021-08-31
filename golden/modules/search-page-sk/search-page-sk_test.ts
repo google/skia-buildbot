@@ -45,7 +45,7 @@ describe('search-page-sk', () => {
     sortOrder: 'descending',
   };
 
-  // Default request to the /json/v1/search RPC when the page is loaded with an empty query string.
+  // Default request to the /json/v2/search RPC when the page is loaded with an empty query string.
   const defaultSearchRequest: SearchRequest = {
     fref: false,
     frgbamax: 255,
@@ -63,7 +63,7 @@ describe('search-page-sk', () => {
   // Query string that will produce the searchRequestWithCL defined below upon page load.
   const queryStringWithCL = '?crs=gerrit&issue=123456';
 
-  // Request to the /json/v1/search RPC when URL parameters crs=gerrit and issue=123456 are present.
+  // Request to the /json/v2/search RPC when URL parameters crs=gerrit and issue=123456 are present.
   const searchRequestWithCL: SearchRequest = deepCopy(defaultSearchRequest);
   searchRequestWithCL.crs = 'gerrit';
   searchRequestWithCL.issue = '123456';
@@ -101,9 +101,9 @@ describe('search-page-sk', () => {
     opts = { ...defaults, ...opts };
 
     fetchMock.getOnce('/json/v2/trstatus', () => statusResponse);
-    fetchMock.getOnce('/json/v1/paramset', () => paramSetResponse);
+    fetchMock.getOnce('/json/v2/paramset', () => paramSetResponse);
     fetchMock.get(
-      `/json/v1/search?${fromObject(opts.expectedInitialSearchRequest as any)}`,
+      `/json/v2/search?${fromObject(opts.expectedInitialSearchRequest as any)}`,
       () => opts.initialSearchResponse,
     );
 
@@ -113,7 +113,7 @@ describe('search-page-sk', () => {
     // This mocked RPC corresponds to the queryStringWithCL and searchRequestWithCL constants
     // defined above.
     if (opts.mockAndWaitForChangelistSummaryRPC) {
-      fetchMock.getOnce('/json/v1/changelist/gerrit/123456', () => changeListSummaryResponse);
+      fetchMock.getOnce('/json/v2/changelist/gerrit/123456', () => changeListSummaryResponse);
       eventsToWaitFor.push('end-task');
     }
 
@@ -179,7 +179,7 @@ describe('search-page-sk', () => {
       // If the RPC is not called with the expected SearchRequest, the top-level afterEach() hook
       // will fail.
       fetchMock.get(
-        `/json/v1/search?${fromObject(expectedSearchRequest as any)}`, () => searchResponse,
+        `/json/v2/search?${fromObject(expectedSearchRequest as any)}`, () => searchResponse,
       );
 
       // Set the search field under test via the UI and wait for the above RPC to complete.
@@ -320,18 +320,18 @@ describe('search-page-sk', () => {
   describe('changelist-controls-sk', () => {
     it('is hidden if no CL is provided in the query string', async () => {
       // When instantiated without URL parameters "crs" and "issue", the search page does not make
-      // an RPC to /json/v1/changelist, therefore there is no changelist summary for the
+      // an RPC to /json/v2/changelist, therefore there is no changelist summary for the
       // changelist-controls-sk component to display.
       await instantiate();
       expect(await changelistControlsSkPO.isVisible()).to.be.false;
     });
 
     it(
-      'is visible if a CL is provided in the query string and /json/v1/changelist returns a '
+      'is visible if a CL is provided in the query string and /json/v2/changelist returns a '
         + 'non-empty response',
       async () => {
       // We instantiate the serach page with URL parameters "crs" and "issue", which causes it to
-      // make an RPC to /json/v1/changelist. The returned changelist summary is passed to the
+      // make an RPC to /json/v2/changelist. The returned changelist summary is passed to the
       // changelist-controls-sk component, which then makes itself visible.
         await instantiate(instantiationOptionsWithCL);
         expect(await changelistControlsSkPO.isVisible()).to.be.true;
@@ -475,7 +475,7 @@ describe('search-page-sk', () => {
       });
 
       it('closes when the "Triage ..." button is clicked', async () => {
-        fetchMock.post('/json/v1/triage', 200); // We ignore the TriageRequest in this test.
+        fetchMock.post('/json/v2/triage', 200); // We ignore the TriageRequest in this test.
 
         await instantiate();
         await searchPageSkPO.clickBulkTriageBtn();
@@ -518,7 +518,7 @@ describe('search-page-sk', () => {
         };
 
         it('can bulk-triage without a CL', async () => {
-          fetchMock.post('/json/v1/triage', 200, { body: expectedTriageRequest });
+          fetchMock.post('/json/v2/triage', 200, { body: expectedTriageRequest });
 
           await instantiate();
           await searchPageSkPO.clickBulkTriageBtn();
@@ -527,7 +527,7 @@ describe('search-page-sk', () => {
         });
 
         it('can bulk-triage with a CL', async () => {
-          fetchMock.post('/json/v1/triage', 200, {
+          fetchMock.post('/json/v2/triage', 200, {
             body: {
               ...expectedTriageRequest,
               changelist_id: '123456',
@@ -566,7 +566,7 @@ describe('search-page-sk', () => {
         };
 
         it('can bulk-triage without a CL', async () => {
-          fetchMock.post('/json/v1/triage', 200, { body: expectedTriageRequest });
+          fetchMock.post('/json/v2/triage', 200, { body: expectedTriageRequest });
 
           await instantiate();
           await searchPageSkPO.clickBulkTriageBtn();
@@ -576,7 +576,7 @@ describe('search-page-sk', () => {
         });
 
         it('can bulk-triage with a CL', async () => {
-          fetchMock.post('/json/v1/triage', 200, {
+          fetchMock.post('/json/v2/triage', 200, {
             body: {
               ...expectedTriageRequest,
               changelist_id: '123456',
@@ -654,7 +654,7 @@ describe('search-page-sk', () => {
         await searchPageSkPO.typeKey('j');
 
         // Refresh the results by changing a search parameter.
-        fetchMock.get('glob:/json/v1/search?*', searchResponse);
+        fetchMock.get('glob:/json/v2/search?*', searchResponse);
         const event = eventPromise('end-task');
         await searchControlsSkPO.clickIncludePositiveDigestsCheckbox();
         await event;
@@ -686,7 +686,7 @@ describe('search-page-sk', () => {
       });
 
       it('can triage the selected digest with keys "A", "S" and "D"', async () => {
-        fetchMock.post('/json/v1/triage', 200); // We ignore the TriageRequest in this test.
+        fetchMock.post('/json/v2/triage', 200); // We ignore the TriageRequest in this test.
 
         await instantiate();
 
@@ -699,7 +699,7 @@ describe('search-page-sk', () => {
 
         // We will also test that, when the user triages a digest, the new label remains in place
         // even after the search-page-sk component is re-rendered with the same (now stale)
-        // cached SearchResults from an earlier RPC to /json/v1/search. The SearchResults are now
+        // cached SearchResults from an earlier RPC to /json/v2/search. The SearchResults are now
         // stale because they reflect the RPC response prior to the user's triage action.
         //
         // This behavior is important to test because it exercises logic in search-page-sk that

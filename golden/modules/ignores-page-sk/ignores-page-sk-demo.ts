@@ -15,8 +15,8 @@ testOnlySetSettings({
   baseRepoURL: 'https://skia.googlesource.com/skia.git',
 });
 
-fetchMock.get('/json/v1/paramset', delay(manyParams, 100));
-fetchMock.get('/json/v1/ignores?counts=1', delay(ignoreRules_10, 300));
+fetchMock.get('/json/v2/paramset', delay(manyParams, 100));
+fetchMock.get('/json/v2/ignores', delay(ignoreRules_10, 300));
 fetchMock.post('glob:/json/v1/ignores/del/*', delay({}, 600));
 fetchMock.post('glob:/json/v1/ignores/add/', delay({}, 600));
 fetchMock.post('glob:/json/v1/ignores/save/*', delay({}, 600));

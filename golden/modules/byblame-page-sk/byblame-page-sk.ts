@@ -48,7 +48,7 @@ export class ByBlamePageSk extends ElementSk {
     <byblameentry-sk
         .byBlameEntry=${entry}
         .corpus=${ele.corpus}
-        .useNewAPI=${ele.useNewAPI}>
+        .useOldAPI=${ele.useOldAPI}>
     </byblameentry-sk>
   `;
 
@@ -67,7 +67,7 @@ export class ByBlamePageSk extends ElementSk {
 
   private loaded = false;
 
-  private useNewAPI = false;
+  private useOldAPI = false;
 
   private readonly stateChanged: ()=> void;
 
@@ -81,7 +81,7 @@ export class ByBlamePageSk extends ElementSk {
       /* getState */ () => ({
         // Provide empty values.
         corpus: this.corpus,
-        use_new_api: this.useNewAPI || '',
+        use_old_api: this.useOldAPI || '',
       }),
       /* setState */ (newState) => {
         // The stateReflector's lingering popstate event handler will continue
@@ -92,7 +92,7 @@ export class ByBlamePageSk extends ElementSk {
         }
 
         this.corpus = newState.corpus as string || defaultCorpus();
-        this.useNewAPI = (newState.use_new_api as boolean) || false;
+        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this._render(); // Update corpus selector immediately.
         this.fetch();
       },
@@ -124,9 +124,9 @@ export class ByBlamePageSk extends ElementSk {
     };
 
     const query = encodeURIComponent(`source_type=${this.corpus}`);
-    let byBlameURL = `/json/v1/byblame?query=${query}`;
-    if (this.useNewAPI) {
-      byBlameURL = `/json/v2/byblame?query=${query}`;
+    let byBlameURL = `/json/v2/byblame?query=${query}`;
+    if (this.useOldAPI) {
+      byBlameURL = `/json/v1/byblame?query=${query}`;
     }
 
     sendBeginTask(this);

@@ -1,7 +1,5 @@
 include ../make/bazel.mk
 
-KGO := CGO_ENABLED=0 GOOS=linux go build
-
 .PHONY: default
 default:
 	bazel build cmd/...

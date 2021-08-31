@@ -25,9 +25,9 @@ const commitHref = (hash: string) => {
   return `${repo}/${path}/${hash}`;
 };
 
-const detailHref = (test: TestRollup, useNewAPI: boolean) => {
-  if (useNewAPI) {
-    return `/detail?test=${test.test}&digest=${test.sample_digest}&use_new_api=true`;
+const detailHref = (test: TestRollup, useOldAPI: boolean) => {
+  if (useOldAPI) {
+    return `/detail?test=${test.test}&digest=${test.sample_digest}&use_old_api=true`;
   }
   return `/detail?test=${test.test}&digest=${test.sample_digest}`;
 };
@@ -52,7 +52,7 @@ export class ByBlameEntrySk extends ElementSk {
       : `${el.byBlameEntry!.nTests} tests affected.`}
       </p>
 
-      ${ByBlameEntrySk.affectedTestsTemplate(el.byBlameEntry?.affectedTests, el.useNewAPI)}
+      ${ByBlameEntrySk.affectedTestsTemplate(el.byBlameEntry?.affectedTests, el.useOldAPI)}
     </div>
   `;
 
@@ -88,7 +88,7 @@ export class ByBlameEntrySk extends ElementSk {
       </ul>`;
   };
 
-  private static affectedTestsTemplate = (affectedTests: TestRollup[] | undefined | null, useNewAPI: boolean) => {
+  private static affectedTestsTemplate = (affectedTests: TestRollup[] | undefined | null, useOldAPI: boolean) => {
     if (!affectedTests || affectedTests.length === 0) return '';
     return html`
       <table class=affected-tests>
@@ -106,7 +106,7 @@ export class ByBlameEntrySk extends ElementSk {
                     <td class=test>${test.test}</td>
                     <td class=num-digests>${test.num}</td>
                     <td>
-                      <a href=${detailHref(test, useNewAPI)}
+                      <a href=${detailHref(test, useOldAPI)}
                          class=example-link
                          target=_blank
                          rel=noopener>
@@ -124,7 +124,7 @@ export class ByBlameEntrySk extends ElementSk {
 
   private _corpus = '';
 
-  private _useNewAPI = false;
+  private _useOldAPI = false;
 
   constructor() {
     super(ByBlameEntrySk.template);
@@ -151,19 +151,19 @@ export class ByBlameEntrySk extends ElementSk {
     this._render();
   }
 
-  get useNewAPI(): boolean { return this._useNewAPI; }
+  get useOldAPI(): boolean { return this._useOldAPI; }
 
-  set useNewAPI(b: boolean) {
-    this._useNewAPI = b;
+  set useOldAPI(b: boolean) {
+    this._useOldAPI = b;
     this._render();
   }
 
   private blameHref() {
     const blameID = this.byBlameEntry!.groupID;
 
-    const newAPI = this.useNewAPI ? '&use_new_api=true' : '';
+    const oldAPI = this.useOldAPI ? '&use_old_api=true' : '';
 
-    return `/search?blame=${blameID}&corpus=${this.corpus}${newAPI}`;
+    return `/search?blame=${blameID}&corpus=${this.corpus}${oldAPI}`;
   }
 }
 

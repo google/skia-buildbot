@@ -2,17 +2,17 @@ import './index';
 
 import fetchMock from 'fetch-mock';
 
+import { expect } from 'chai';
 import {
   eventPromise,
   setQueryString,
   expectQueryStringToEqual,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
-import {clusterDiffJSON, negativeDigest, positiveDigest} from './test_data';
+import { clusterDiffJSON, negativeDigest, positiveDigest } from './test_data';
 import { testOnlySetSettings } from '../settings';
-import {ClusterPageSk} from './cluster-page-sk';
-import { expect } from 'chai';
-import {ClusterPageSkPO} from './cluster-page-sk_po';
+import { ClusterPageSk } from './cluster-page-sk';
+import { ClusterPageSkPO } from './cluster-page-sk_po';
 
 describe('cluster-page-sk', () => {
   const newInstance = setUpElementUnderTest<ClusterPageSk>('cluster-page-sk');
@@ -30,11 +30,12 @@ describe('cluster-page-sk', () => {
 
     // These are the default RPC calls when the page loads.
     fetchMock.get(
-        '/json/v1/clusterdiff?head=true'
+      '/json/v2/clusterdiff?head=true'
         + '&include=false&neg=false&pos=false&query=name%3Dsome-test'
         + '&source_type=infra&unt=false',
-        clusterDiffJSON);
-    fetchMock.get('/json/v1/paramset', clusterDiffJSON.paramsetsUnion);
+      clusterDiffJSON,
+    );
+    fetchMock.get('/json/v2/paramset', clusterDiffJSON.paramsetsUnion);
 
     // Instantiate page; wait for RPCs to complete and for the page to render.
     const endTask = eventPromise('end-task');
@@ -65,17 +66,16 @@ describe('cluster-page-sk', () => {
       name: ['dots-legend-sk_too-many-digests'],
       source_type: ['infra', 'some-other-corpus'],
     }]);
-  })
+  });
 
   it('removes corpus and test name from the paramset passed to the search controls', async () => {
     await clusterPageSkPO.searchControlsSkPO.traceFilterSkPO.clickEditBtn();
-    const paramset =
-        await clusterPageSkPO
-            .searchControlsSkPO
-            .traceFilterSkPO
-            .queryDialogSkPO
-            .querySkPO
-            .getParamSet();
+    const paramset = await clusterPageSkPO
+      .searchControlsSkPO
+      .traceFilterSkPO
+      .queryDialogSkPO
+      .querySkPO
+      .getParamSet();
     expect(paramset).to.deep.equal({
       ext: ['png'],
       gpu: ['AMD', 'nVidia'],
@@ -88,16 +88,16 @@ describe('cluster-page-sk', () => {
     // The behaviors spanning across SearchControlsSk, SearchCriteria and SearchResponse are
     // thoroughly tested in search-page-sk_tests.ts. There is no need to repeat those tests here.
 
-    fetchMock.get('/json/v1/clusterdiff?head=false'
+    fetchMock.get('/json/v2/clusterdiff?head=false'
         + '&include=false&neg=false&pos=false&query=name%3Dsome-test'
         + '&source_type=infra&unt=false',
-        clusterDiffJSON);
+    clusterDiffJSON);
     await clusterPageSkPO.searchControlsSkPO.clickIncludeDigestsNotAtHeadCheckbox();
-    expectQueryStringToEqual("?corpus=infra&grouping=some-test&max_rgba=255&not_at_head=true");
+    expectQueryStringToEqual('?corpus=infra&grouping=some-test&max_rgba=255&not_at_head=true');
   });
 
   it('makes an RPC for details when the selection is changed to one digest', async () => {
-    fetchMock.get('/json/v1/details?corpus=infra'
+    fetchMock.get('/json/v2/details?corpus=infra'
       + `&digest=${positiveDigest}&test=some-test`, {
       'these-details': 'do not matter for this test',
     });
@@ -106,14 +106,14 @@ describe('cluster-page-sk', () => {
   });
 
   it('makes an RPC for a diff when the selection is changed to two digests', async () => {
-    fetchMock.get('/json/v1/details?corpus=infra'
+    fetchMock.get('/json/v2/details?corpus=infra'
         + `&digest=${positiveDigest}&test=some-test`, {
       'these-details': 'do not matter for this test',
     });
 
     await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
 
-    fetchMock.get('/json/v1/diff?corpus=infra'
+    fetchMock.get('/json/v2/diff?corpus=infra'
         + `&left=${positiveDigest}`
         + `&right=${negativeDigest}&test=some-test`, {
       'these-details': 'do not matter for this test',

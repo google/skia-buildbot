@@ -39,9 +39,9 @@ function byBlame(response: ByBlameResponse) {
 
 Date.now = () => fakeNow;
 
-fetchMock.get('/json/v1/byblame?query=source_type%3Dcanvaskit', () => byBlame(canvaskit));
-fetchMock.get('/json/v1/byblame?query=source_type%3Dgm', () => byBlame(gm));
-fetchMock.get('/json/v1/byblame?query=source_type%3Dsvg', () => byBlame(svg));
+fetchMock.get('/json/v2/byblame?query=source_type%3Dcanvaskit', () => byBlame(canvaskit));
+fetchMock.get('/json/v2/byblame?query=source_type%3Dgm', () => byBlame(gm));
+fetchMock.get('/json/v2/byblame?query=source_type%3Dsvg', () => byBlame(svg));
 fetchMock.get('/json/v2/trstatus', () => {
   if ($$<HTMLInputElement>('#simulate-rpc-failure')!.checked) {
     return 500; // Fake an internal server error.

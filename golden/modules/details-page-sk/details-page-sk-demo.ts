@@ -39,7 +39,7 @@ interface UrlParams {
   test: string;
 }
 
-fetchMock.get('glob:/json/v1/details*', (url) => {
+fetchMock.get('glob:/json/v2/details*', (url) => {
   if ($$<HTMLInputElement>('#simulate-rpc-error')!.checked) {
     return 500;
   }

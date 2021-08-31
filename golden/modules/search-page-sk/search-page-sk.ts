@@ -108,7 +108,7 @@ export class SearchPageSk extends ElementSk {
 
     <div class="results">
       ${el.searchResponse?.digests?.map(
-    (result, idx) => SearchPageSk.resultTemplate(
+    (result: SearchResult, idx: number) => SearchPageSk.resultTemplate(
       el, result!, /* selected= */ idx === el.selectedSearchResultIdx,
     ),
   )}
@@ -119,7 +119,7 @@ export class SearchPageSk extends ElementSk {
                       .allDigests=${el.searchResponse?.bulk_triage_data || {}}
                       .crs=${el.crs || ''}
                       .changeListID=${el.changelistId || ''}
-                      .useNewAPI=${el.useNewAPI}
+                      .useOldAPI=${el.useOldAPI}
                       @bulk_triage_invoked=${() => el.bulkTriageDialog?.close()}
                       @bulk_triage_finished=${() => el.fetchSearchResults()}
                       @bulk_triage_cancelled=${() => el.bulkTriageDialog?.close()}>
@@ -167,7 +167,7 @@ export class SearchPageSk extends ElementSk {
                          .details=${result}
                          .changeListID=${el.changelistId}
                          .crs=${el.crs}
-                         .useNewAPI=${el.useNewAPI}
+                         .useOldAPI=${el.useOldAPI}
                          @triage=${(e: CustomEvent<Label>) => el.onTriage(result, e.detail)}
                          class="${selected ? 'selected' : ''}">
       </digest-details-sk>
@@ -201,7 +201,7 @@ export class SearchPageSk extends ElementSk {
 
   private changelistId: string | null = null;
 
-  private useNewAPI: boolean = false;
+  private useOldAPI: boolean = false;
 
   // stateReflector update function.
   private readonly stateChanged: (()=> void) | null;
@@ -236,7 +236,7 @@ export class SearchPageSk extends ElementSk {
         state.blame = this.blame || '';
         state.crs = this.crs || '';
         state.issue = this.changelistId || '';
-        state.use_new_api = this.useNewAPI || '';
+        state.use_old_api = this.useOldAPI || '';
         state.master = this.includeDigestsFromPrimary || '';
         state.patchsets = this.patchset || '';
         return state;
@@ -249,7 +249,7 @@ export class SearchPageSk extends ElementSk {
         this.blame = (newState.blame as string) || null;
         this.crs = (newState.crs as string) || null;
         this.changelistId = (newState.issue as string) || null;
-        this.useNewAPI = (newState.use_new_api as boolean) || false;
+        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this.includeDigestsFromPrimary = (newState.master as boolean) || null;
         this.patchset = (newState.patchsets as number) || null;
 
@@ -306,7 +306,7 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      const url = this.useNewAPI ? '/json/v2/paramset' : '/json/v1/paramset';
+      const url = this.useOldAPI ? '/json/v1/paramset' : '/json/v2/paramset';
       const paramSetResponse: ParamSetResponse = await fetch(
         url + (changeListId ? `?changelist_id=${changeListId}` : ''),
         { method: 'GET' },
@@ -340,7 +340,7 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      const base = this.useNewAPI ? '/json/v2/changelist' : '/json/v1/changelist';
+      const base = this.useOldAPI ? '/json/v1/changelist' : '/json/v2/changelist';
       this.changeListSummaryResponse = await fetch(`${base}/${this.crs}/${this.changelistId}`, { method: 'GET' })
         .then(jsonOrThrow);
       this._render();
@@ -396,7 +396,7 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      if (!this.useNewAPI) {
+      if (this.useOldAPI) {
         this.searchResponse = await fetch(
           `/json/v1/search?${fromObject(searchRequest as any)}`,
           { method: 'GET', signal: this.searchResultsFetchController.signal },

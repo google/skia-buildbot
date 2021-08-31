@@ -15,7 +15,7 @@ describe('triagelog-page-sk', () => {
     beforeEach(async () => {
       const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['end-task']);
       const loaded = eventPromise('end-task'); // Emitted when page is loaded.
-      await testBed.page.goto(testBed.baseUrl);
+      await testBed.page.goto(`${testBed.baseUrl}?use_old_api=true`);
       await loaded;
     });
 
@@ -29,7 +29,7 @@ describe('triagelog-page-sk', () => {
     beforeEach(async () => {
       const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['end-task']);
       const loaded = eventPromise('end-task'); // Emitted when page is loaded.
-      await testBed.page.goto(`${testBed.baseUrl}?use_new_api=true`);
+      await testBed.page.goto(testBed.baseUrl);
       await loaded;
     });
 

@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 ts_library(
     name = "demo_data_ts_lib",
@@ -63,18 +63,4 @@ sk_element_puppeteer_test(
     src = "triagelog-page-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = ["//puppeteer-tests:util_ts_lib"],
-)
-
-karma_test(
-    name = "triagelog-page-sk_test",
-    src = "triagelog-page-sk_test.ts",
-    deps = [
-        ":test_data_ts_lib",
-        ":triagelog-page-sk",
-        "//infra-sk/modules:test_util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
-        "@npm//common-sk",
-        "@npm//fetch-mock",
-    ],
 )

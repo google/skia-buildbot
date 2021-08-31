@@ -20,12 +20,12 @@ testOnlySetSettings({
 Date.now = () => fakeNow;
 
 fetchMock.get('/json/v2/trstatus', statusResponse);
-fetchMock.get('/json/v1/paramset', paramSetResponse!);
-fetchMock.get('/json/v1/changelist/gerrit/123456', changeListSummaryResponse);
+fetchMock.get('/json/v2/paramset', paramSetResponse!);
+fetchMock.get('/json/v2/changelist/gerrit/123456', changeListSummaryResponse);
 
 // We simulate the search endpoint, but only take into account the negative/positive/untriaged
 // search fields to keep things simple. This is enough to demo the single/bulk triage UI components.
-fetchMock.get('glob:/json/v1/search*', (url: string) => {
+fetchMock.get('glob:/json/v2/search*', (url: string) => {
   const filteredSearchResponse = deepCopy(searchResponse);
 
   // Filter only by untriaged/positive/negative.
@@ -41,7 +41,7 @@ fetchMock.get('glob:/json/v1/search*', (url: string) => {
 
 // The simulated triage endpoint will make changes to the results returned by the search endpoint
 // so as to demo the single/bulk triage UI components.
-fetchMock.post('/json/v1/triage', (_: any, req: any) => {
+fetchMock.post('/json/v2/triage', (_: any, req: any) => {
   const triageRequest = JSON.parse(req.body as string) as TriageRequest;
 
   // Iterate over all digests in the triage request (same for single and bulk triage operations).

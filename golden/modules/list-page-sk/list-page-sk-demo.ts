@@ -15,8 +15,8 @@ testOnlySetSettings({
   baseRepoURL: 'https://github.com/flutter/flutter',
 });
 
-fetchMock.get('/json/v1/paramset', delay(manyParams, 100));
-fetchMock.get('glob:/json/v1/list*', delay(sampleByTestList, 100));
+fetchMock.get('/json/v2/paramset', delay(manyParams, 100));
+fetchMock.get('glob:/json/v2/list*', delay(sampleByTestList, 100));
 fetchMock.get('/json/v2/trstatus', JSON.stringify(exampleStatusData));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.

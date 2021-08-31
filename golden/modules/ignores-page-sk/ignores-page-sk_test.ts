@@ -2,6 +2,8 @@ import './index';
 
 import { $, $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { expect } from 'chai';
 import {
   eventPromise,
   eventSequencePromise,
@@ -12,9 +14,7 @@ import {
 import { IgnoresPageSk } from './ignores-page-sk';
 import { ParamSet } from '../rpc_types';
 import { fakeNow, ignoreRules_10 } from './test_data';
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { EditIgnoreRuleSk } from '../edit-ignore-rule-sk/edit-ignore-rule-sk';
-import { expect } from 'chai';
 
 describe('ignores-page-sk', () => {
   const newInstance = setUpElementUnderTest<IgnoresPageSk>('ignores-page-sk');
@@ -26,14 +26,14 @@ describe('ignores-page-sk', () => {
     // Clear out any query params we might have to not mess with our current state.
     setQueryString('');
     // These will get called on page load.
-    fetchMock.get('/json/v1/ignores?counts=1', ignoreRules_10);
+    fetchMock.get('/json/v2/ignores', ignoreRules_10);
     // We only need a few params to make sure the edit-ignore-rule-dialog works properly and it
     // does not matter really what they are, so we use a small subset of actual params.
     const someParams: ParamSet = {
       alpha_type: ['Opaque', 'Premul'],
       arch: ['arm', 'arm64', 'x86', 'x86_64'],
     };
-    fetchMock.get('/json/v1/paramset', someParams);
+    fetchMock.get('/json/v2/paramset', someParams);
     // set the time to our mocked Now
     Date.now = () => fakeNow;
 
@@ -264,14 +264,14 @@ function setIgnoreRuleProperties(ele: IgnoresPageSk, query: string, expires: str
 }
 
 async function goBack() {
-  // Wait for /json/v1/ignores and /json/v1/paramset RPCs to complete.
+  // Wait for /json/v1/ignores and /json/v2/paramset RPCs to complete.
   const events = eventSequencePromise(['end-task', 'end-task']);
   history.back();
   await events;
 }
 
 async function goForward() {
-  // Wait for /json/v1/ignores and /json/v1/paramset RPCs to complete.
+  // Wait for /json/v1/ignores and /json/v2/paramset RPCs to complete.
   const events = eventSequencePromise(['end-task', 'end-task']);
   history.forward();
   await events;

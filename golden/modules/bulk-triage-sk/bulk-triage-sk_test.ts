@@ -75,6 +75,7 @@ describe('bulk-triage-sk', () => {
       fetchMock.post('/json/v1/triage', 200, { body: expectedPageDataTriageRequest });
 
       const finishedPromise = eventPromise('bulk_triage_finished');
+      bulkTriageSk.useOldAPI = true;
       await bulkTriageSkPO.clickTriageBtn();
       await finishedPromise;
     });
@@ -88,6 +89,7 @@ describe('bulk-triage-sk', () => {
       await bulkTriageSkPO.clickTriageAllCheckbox();
 
       const finishedPromise = eventPromise('bulk_triage_finished');
+      bulkTriageSk.useOldAPI = true;
       await bulkTriageSkPO.clickTriageBtn();
       await finishedPromise;
     });
@@ -103,7 +105,7 @@ describe('bulk-triage-sk', () => {
       fetchMock.post('/json/v2/triage', 200, { body: expectedPageDataTriageRequest });
 
       const finishedPromise = eventPromise('bulk_triage_finished');
-      bulkTriageSk.useNewAPI = true;
+
       await bulkTriageSkPO.clickTriageBtn();
       await finishedPromise;
     });
@@ -117,7 +119,6 @@ describe('bulk-triage-sk', () => {
       await bulkTriageSkPO.clickTriageAllCheckbox();
 
       const finishedPromise = eventPromise('bulk_triage_finished');
-      bulkTriageSk.useNewAPI = true;
       await bulkTriageSkPO.clickTriageBtn();
       await finishedPromise;
     });

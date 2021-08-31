@@ -7,8 +7,8 @@ import {
 import { setImageEndpointsForDemos } from '../common';
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
-import {DigestDetailsSk} from './digest-details-sk';
-import {SearchResult} from '../rpc_types';
+import { DigestDetailsSk } from './digest-details-sk';
+import { SearchResult } from '../rpc_types';
 
 Date.now = () => fakeNow;
 testOnlySetSettings({
@@ -77,7 +77,7 @@ document.addEventListener('fetch-error', (e) => {
   $$('#event')!.textContent = `fetch-error: ${JSON.stringify((e as CustomEvent).detail)}`;
 });
 
-fetchMock.post('/json/v1/triage', delay(() => {
+fetchMock.post('/json/v2/triage', delay(() => {
   if ($$<HTMLInputElement>('#simulate-not-logged-in')!.checked) {
     return 403;
   }

@@ -115,7 +115,7 @@ export class IgnoresPageSk extends ElementSk {
 
   private countAllTraces = false;
 
-  private useNewAPI = false;
+  private useOldAPI = false;
 
   private ruleID = '';
 
@@ -136,7 +136,7 @@ export class IgnoresPageSk extends ElementSk {
       /* getState */() => ({
         // provide empty values
         count_all: this.countAllTraces,
-        use_new_api: this.useNewAPI,
+        use_old_api: this.useOldAPI,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -144,14 +144,14 @@ export class IgnoresPageSk extends ElementSk {
 
         // default values if not specified.
         this.countAllTraces = newState.count_all as boolean || false;
-        this.useNewAPI = (newState.use_new_api as boolean) || false;
+        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this.fetch();
         this._render();
       },
     );
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this.editIgnoreRuleDialog = this.querySelector<HTMLDialogElement>('#edit-ignore-rule-dialog')!;
@@ -201,7 +201,7 @@ export class IgnoresPageSk extends ElementSk {
 
     // We always want the counts of the ignore rules, thus the parameter counts=1.
     // The v2 API does this by default
-    const url = this.useNewAPI ? '/json/v2/ignores' : '/json/v1/ignores?counts=1';
+    const url = this.useOldAPI ? '/json/v1/ignores?counts=1' : '/json/v2/ignores';
     fetch(url, extra)
       .then(jsonOrThrow)
       .then((response: IgnoresResponse) => {
@@ -211,7 +211,7 @@ export class IgnoresPageSk extends ElementSk {
       })
       .catch((e) => sendFetchError(this, e, 'ignores'));
 
-    const paramsUrl = this.useNewAPI ? '/json/v2/paramset' : '/json/v1/paramset';
+    const paramsUrl = this.useOldAPI ? '/json/v1/paramset' : '/json/v2/paramset';
     fetch(paramsUrl, extra)
       .then(jsonOrThrow)
       .then((paramset: ParamSet) => {

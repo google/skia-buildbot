@@ -2,6 +2,7 @@ import './index';
 
 import { $, $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { expect } from 'chai';
 import {
   changelistSummaries_5,
   changelistSummaries_5_offset5,
@@ -15,7 +16,6 @@ import {
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
 import { ChangelistsPageSk } from './changelists-page-sk';
-import { expect } from 'chai';
 
 describe('changelists-page-sk', () => {
   const newInstance = setUpElementUnderTest<ChangelistsPageSk>('changelists-page-sk');
@@ -41,11 +41,11 @@ describe('changelists-page-sk', () => {
   });
 
   describe('html layout', () => {
-    let changelistsPageSk: ChangelistsPageSk
+    let changelistsPageSk: ChangelistsPageSk;
 
     beforeEach(async () => {
       // These are the default offset/page_size params
-      fetchMock.get('/json/v1/changelists?offset=0&size=50&active=true', changelistSummaries_5);
+      fetchMock.get('/json/v2/changelists?offset=0&size=50&active=true', changelistSummaries_5);
 
       changelistsPageSk = await loadChangelistsPageSk();
     });
@@ -74,14 +74,14 @@ describe('changelists-page-sk', () => {
   describe('api calls', () => {
     it('includes pagination params in request to changelists', async () => {
       setQueryString('?offset=100&page_size=10');
-      fetchMock.get('/json/v1/changelists?offset=100&size=10&active=true', empty);
-      await loadChangelistsPageSk()
+      fetchMock.get('/json/v2/changelists?offset=100&size=10&active=true', empty);
+      await loadChangelistsPageSk();
     });
 
     it('includes the active params unless show_all is set', async () => {
       setQueryString('?offset=100&page_size=10&show_all=true');
-      fetchMock.get('/json/v1/changelists?offset=100&size=10', empty);
-      await loadChangelistsPageSk()
+      fetchMock.get('/json/v2/changelists?offset=100&size=10', empty);
+      await loadChangelistsPageSk();
     });
   }); // end describe('api calls')
 
@@ -89,23 +89,23 @@ describe('changelists-page-sk', () => {
     it('responds to the browser back/forward buttons', async () => {
       // These are the default offset/page_size params. This request will be made when we test the
       // ?hello=world query string.
-      fetchMock.get('/json/v1/changelists?offset=0&size=50&active=true', changelistSummaries_5);
+      fetchMock.get('/json/v2/changelists?offset=0&size=50&active=true', changelistSummaries_5);
 
       // First page of results.
       fetchMock.get(
-        '/json/v1/changelists?offset=0&size=5&active=true',
+        '/json/v2/changelists?offset=0&size=5&active=true',
         changelistSummaries_5,
       );
 
       // Second page of results.
       fetchMock.get(
-        '/json/v1/changelists?offset=5&size=5&active=true',
+        '/json/v2/changelists?offset=5&size=5&active=true',
         changelistSummaries_5_offset5,
       );
 
       // Third page of results.
       fetchMock.get(
-        '/json/v1/changelists?offset=10&size=5&active=true',
+        '/json/v2/changelists?offset=10&size=5&active=true',
         changelistSummaries_5_offset10,
       );
 
@@ -160,8 +160,8 @@ describe('changelists-page-sk', () => {
 
   describe('dynamic content', () => {
     it('responds to clicking the show all checkbox', async () => {
-      fetchMock.get('/json/v1/changelists?offset=0&size=5&active=true', empty);
-      fetchMock.get('/json/v1/changelists?offset=0&size=5', empty);
+      fetchMock.get('/json/v2/changelists?offset=0&size=5&active=true', empty);
+      fetchMock.get('/json/v2/changelists?offset=0&size=5', empty);
 
       setQueryString('?page_size=5');
       const changelistsPageSk = await loadChangelistsPageSk();
@@ -201,15 +201,15 @@ function goForward() {
 
 function expectFirstPage(changelistsPageSk: ChangelistsPageSk) {
   expect($<HTMLTableDataCellElement>('td.owner', changelistsPageSk)[0].innerText)
-      .to.contain('alpha');
+    .to.contain('alpha');
 }
 
 function expectSecondPage(changelistsPageSk: ChangelistsPageSk) {
   expect($<HTMLTableDataCellElement>('td.owner', changelistsPageSk)[0].innerText)
-      .to.contain('zeta');
+    .to.contain('zeta');
 }
 
 function expectThirdPage(changelistsPageSk: ChangelistsPageSk) {
   expect($<HTMLTableDataCellElement>('td.owner', changelistsPageSk)[0].innerText)
-      .to.contain('lambda');
+    .to.contain('lambda');
 }

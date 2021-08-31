@@ -27,7 +27,7 @@ export class DiffPageSk extends ElementSk {
                          .right=${ele.rightDetails}
                          .changeListID=${ele.changeListID}
                          .crs=${ele.crs}
-                         .useNewAPI=${ele.useNewAPI}>
+                         .useOldAPI=${ele.useOldAPI}>
       </digest-details-sk>
     `;
   };
@@ -48,7 +48,7 @@ export class DiffPageSk extends ElementSk {
 
   private didInitialLoad = false;
 
-  private useNewAPI: boolean = false;
+  private useOldAPI: boolean = false;
 
   private readonly _stateChanged: ()=> void;
 
@@ -66,7 +66,7 @@ export class DiffPageSk extends ElementSk {
         right: this.rightDigest,
         changelist_id: this.changeListID,
         crs: this.crs,
-        use_new_api: this.useNewAPI,
+        use_old_api: this.useOldAPI,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -77,14 +77,14 @@ export class DiffPageSk extends ElementSk {
         this.rightDigest = newState.right as string || '';
         this.changeListID = newState.changelist_id as string || '';
         this.crs = newState.crs as string || '';
-        this.useNewAPI = (newState.use_new_api as boolean) || false;
+        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this.fetch();
         this._render();
       },
     );
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
@@ -101,7 +101,7 @@ export class DiffPageSk extends ElementSk {
     };
     sendBeginTask(this);
 
-    const urlBase = this.useNewAPI ? '/json/v2/diff' : '/json/v1/diff';
+    const urlBase = this.useOldAPI ? '/json/v1/diff' : '/json/v2/diff';
 
     const url = `${urlBase}?test=${encodeURIComponent(this.grouping)}`
       + `&left=${encodeURIComponent(this.leftDigest)}`

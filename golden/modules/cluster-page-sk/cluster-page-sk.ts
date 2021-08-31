@@ -85,7 +85,7 @@ export class ClusterPageSk extends ElementSk {
         return html`
           <digest-details-sk .details=${ele.digestDetails.digest}
                              .commits=${ele.digestDetails.commits}
-                             .useNewAPI=${ele.useNewAPI}>
+                             .useOldAPI=${ele.useOldAPI}>
           </digest-details-sk>
         `;
       }
@@ -96,7 +96,7 @@ export class ClusterPageSk extends ElementSk {
         return html`
           <digest-details-sk .details=${ele.diffDetails.left}
                              .right=${ele.diffDetails.right}
-                             .useNewAPI=${ele.useNewAPI}>
+                             .useOldAPI=${ele.useOldAPI}>
           </digest-details-sk>`;
       }
       return html`<h2>Loading diff details</h2>`;
@@ -145,7 +145,7 @@ export class ClusterPageSk extends ElementSk {
 
   private crs: string = '';
 
-  private useNewAPI: boolean = false;
+  private useOldAPI: boolean = false;
 
   // Keeps track of the digests the user has selected.
   private selectedDigests: Digest[] = [];
@@ -182,7 +182,7 @@ export class ClusterPageSk extends ElementSk {
         state.grouping = this.grouping;
         state.changeListID = this.changeListID;
         state.crs = this.crs;
-        state.use_new_api = this.useNewAPI || '';
+        state.use_old_api = this.useOldAPI || '';
         return state;
       },
       /* setState */(newState) => {
@@ -193,7 +193,7 @@ export class ClusterPageSk extends ElementSk {
         this.grouping = newState.grouping as string;
         this.changeListID = newState.changeListID as string;
         this.crs = newState.crs as string;
-        this.useNewAPI = (newState.use_new_api as boolean) || false;
+        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this.fetchClusterData();
         this._render();
       },
@@ -236,7 +236,7 @@ export class ClusterPageSk extends ElementSk {
       head: !sc.includeDigestsNotAtHead,
       include: sc.includeIgnoredDigests,
     };
-    const url = this.useNewAPI ? '/json/v2/clusterdiff' : '/json/v1/clusterdiff';
+    const url = this.useOldAPI ? '/json/v1/clusterdiff' : '/json/v2/clusterdiff';
     return `${url}?${fromObject(queryObj)}`;
   }
 
@@ -265,7 +265,7 @@ export class ClusterPageSk extends ElementSk {
       })
       .catch((e) => sendFetchError(this, e, 'clusterdiff'));
 
-    const paramsetURL = this.useNewAPI ? '/json/v2/paramset' : '/json/v1/paramset';
+    const paramsetURL = this.useOldAPI ? '/json/v1/paramset' : '/json/v2/paramset';
     fetch(paramsetURL, extra)
       .then(jsonOrThrow)
       .then((paramset: ParamSet) => {
@@ -299,7 +299,7 @@ export class ClusterPageSk extends ElementSk {
       urlObj.changelist_id = [this.changeListID];
       urlObj.crs = [this.crs];
     }
-    const base = this.useNewAPI ? '/json/v2/details' : '/json/v1/details';
+    const base = this.useOldAPI ? '/json/v1/details' : '/json/v2/details';
     const url = `${base}?${fromObject(urlObj)}`;
 
     fetch(url, extra)
@@ -326,7 +326,7 @@ export class ClusterPageSk extends ElementSk {
       urlObj.changelist_id = [this.changeListID];
       urlObj.crs = [this.crs];
     }
-    const base = this.useNewAPI ? '/json/v2/diff' : '/json/v1/diff';
+    const base = this.useOldAPI ? '/json/v1/diff' : '/json/v2/diff';
     const url = `${base}?${fromObject(urlObj)}`;
 
     fetch(url, extra)

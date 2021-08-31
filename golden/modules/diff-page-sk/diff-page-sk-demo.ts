@@ -40,7 +40,7 @@ interface UrlParams {
   crs?: string;
 }
 
-fetchMock.get('glob:/json/v1/diff*', (url) => {
+fetchMock.get('glob:/json/v2/diff*', (url) => {
   if ($$<HTMLInputElement>('#simulate-rpc-error')!.checked) {
     return delay(500);
   }

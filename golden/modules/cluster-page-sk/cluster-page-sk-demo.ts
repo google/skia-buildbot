@@ -31,13 +31,13 @@ Date.now = () => fakeNow;
 
 const fakeRpcDelayMillis = isPuppeteerTest() ? 5 : 300;
 
-fetchMock.get('glob:/json/v1/clusterdiff*', delay(clusterDiffJSON, fakeRpcDelayMillis));
-fetchMock.get('/json/v1/paramset', delay(clusterDiffJSON.paramsetsUnion, fakeRpcDelayMillis));
+fetchMock.get('glob:/json/v2/clusterdiff*', delay(clusterDiffJSON, fakeRpcDelayMillis));
+fetchMock.get('/json/v2/paramset', delay(clusterDiffJSON.paramsetsUnion, fakeRpcDelayMillis));
 const detailsResponse: DigestDetails = {
   digest: typicalDetails,
   commits: twoHundredCommits,
 };
-fetchMock.get('glob:/json/v1/details*', delay(detailsResponse, fakeRpcDelayMillis));
+fetchMock.get('glob:/json/v2/details*', delay(detailsResponse, fakeRpcDelayMillis));
 fetchMock.get('/json/v2/trstatus', JSON.stringify(exampleStatusData));
 
 const leftDetails = JSON.parse(JSON.stringify(typicalDetails)) as SearchResult;
@@ -51,7 +51,7 @@ const digestComparison: DigestComparison = {
   left: leftDetails,
   right: rightDetails,
 };
-fetchMock.get('glob:/json/v1/diff*', delay(digestComparison, fakeRpcDelayMillis));
+fetchMock.get('glob:/json/v2/diff*', delay(digestComparison, fakeRpcDelayMillis));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = new GoldScaffoldSk();

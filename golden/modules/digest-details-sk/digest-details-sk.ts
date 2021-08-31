@@ -29,7 +29,6 @@ import {
   detailHref, diffPageHref, sendBeginTask, sendEndTask, sendFetchError,
 } from '../common';
 
-
 import 'elements-sk/icon/group-work-icon-sk';
 import '../dots-sk';
 import '../dots-legend-sk';
@@ -256,7 +255,7 @@ export class DigestDetailsSk extends ElementSk {
 
   private _crs = '';
 
-  private _useNewAPI = false;
+  private _useOldAPI = false;
 
   private _commits: Commit[] = [];
 
@@ -332,12 +331,12 @@ export class DigestDetailsSk extends ElementSk {
     this._render();
   }
 
-  get useNewAPI(): boolean {
-    return this._useNewAPI;
+  get useOldAPI(): boolean {
+    return this._useOldAPI;
   }
 
-  set useNewAPI(b: boolean) {
-    this._useNewAPI = b;
+  set useOldAPI(b: boolean) {
+    this._useOldAPI = b;
   }
 
   private canToggle(): boolean {
@@ -433,14 +432,14 @@ export class DigestDetailsSk extends ElementSk {
 
     sendBeginTask(this);
 
-    const url = this._useNewAPI ? '/json/v2/triage' : '/json/v1/triage';
+    const url = this._useOldAPI ? '/json/v1/triage' : '/json/v2/triage';
     fetch(url, {
       method: 'POST',
       body: JSON.stringify(triageRequest),
       headers: {
         'Content-Type': 'application/json',
       },
-    }).then((resp) => {
+    }).then((resp: Response) => {
       if (resp.ok) {
         // Triaging was successful.
         this.status = newStatus;

@@ -155,7 +155,7 @@ export class TriagelogPageSk extends ElementSk {
 
   private totalEntries = 0; // Total number of entries in the server.
 
-  private useNewAPI = false;
+  private useOldAPI = false;
 
   private readonly stateChanged: ()=> void;
 
@@ -171,7 +171,7 @@ export class TriagelogPageSk extends ElementSk {
         page_size: this.pageSize,
         changelist_id: this.changelistID,
         crs: this.crs,
-        use_new_api: this.useNewAPI,
+        use_old_api: this.useOldAPI,
       }),
       /* setState */ (newState) => {
         // The stateReflector's lingering popstate event handler will continue
@@ -185,7 +185,7 @@ export class TriagelogPageSk extends ElementSk {
         this.pageSize = newState.page_size as number || 20;
         this.changelistID = newState.changelist_id as string || '';
         this.crs = newState.crs as string || '';
-        this.useNewAPI = (newState.use_new_api as boolean) || false;
+        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this._render();
         this.fetchEntries();
       },
@@ -206,7 +206,7 @@ export class TriagelogPageSk extends ElementSk {
 
   private undoEntry(entryId: string) {
     sendBeginTask(this);
-    if (!this.useNewAPI) {
+    if (this.useOldAPI) {
       this.fetchV1(`/json/v1/triagelog/undo?id=${entryId}`, 'POST')
       // The undo RPC returns the first page of results with details hidden.
       // But we always show details, so we need to make another request to
@@ -226,7 +226,7 @@ export class TriagelogPageSk extends ElementSk {
   }
 
   private fetchEntries(sendBusyDoneEvents = true): Promise<void> {
-    if (!this.useNewAPI) {
+    if (this.useOldAPI) {
       let url = `/json/v1/triagelog?details=true&offset=${this.pageOffset}`
           + `&size=${this.pageSize}`;
       if (this.changelistID) {

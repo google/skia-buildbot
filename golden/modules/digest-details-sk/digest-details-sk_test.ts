@@ -136,6 +136,7 @@ describe('digest-details-sk', () => {
         fetchMock.post({ url: '/json/v1/triage', body: triageRequest }, 200);
 
         const endPromise = eventPromise('end-task');
+        digestDetailsSk.useOldAPI = true;
         await digestDetailsSkPO.triageSkPO.clickButton('negative');
         await endPromise;
       });
@@ -153,7 +154,6 @@ describe('digest-details-sk', () => {
         fetchMock.post({ url: '/json/v2/triage', body: triageRequest }, 200);
 
         const endPromise = eventPromise('end-task');
-        digestDetailsSk.useNewAPI = true;
         await digestDetailsSkPO.triageSkPO.clickButton('negative');
         await endPromise;
       });
@@ -212,7 +212,7 @@ describe('digest-details-sk', () => {
           changelist_id: '12345',
           crs: 'github',
         };
-        fetchMock.post({ url: '/json/v1/triage', body: triageRequest }, 200);
+        fetchMock.post({ url: '/json/v2/triage', body: triageRequest }, 200);
 
         const endPromise = eventPromise('end-task');
         await digestDetailsSkPO.triageSkPO.clickButton('negative');

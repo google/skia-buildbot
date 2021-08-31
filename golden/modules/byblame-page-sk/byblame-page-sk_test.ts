@@ -54,7 +54,7 @@ describe('byblame-page-sk', () => {
     // We'll resolve this RPC later to give the "loading" text a chance to show.
     let resolveByBlameRpc = (_: {}) => {};
     fetchMock.get(
-      '/json/v1/byblame?query=source_type%3Dgm',
+      '/json/v2/byblame?query=source_type%3Dgm',
       new Promise((resolve) => resolveByBlameRpc = resolve),
     );
 
@@ -78,7 +78,7 @@ describe('byblame-page-sk', () => {
 
   it('correctly renders a page with empty results', async () => {
     fetchMock.get('/json/v2/trstatus', trstatus);
-    fetchMock.get('/json/v1/byblame?query=source_type%3Dcanvaskit', canvaskit);
+    fetchMock.get('/json/v2/byblame?query=source_type%3Dcanvaskit', canvaskit);
 
     const byblamePageSk = await loadedByblamePageSk({ defaultCorpus: 'canvaskit' });
 
@@ -93,7 +93,7 @@ describe('byblame-page-sk', () => {
   it('renders blames for default corpus if URL does not include a corpus',
     async () => {
       fetchMock.get('/json/v2/trstatus', trstatus);
-      fetchMock.get('/json/v1/byblame?query=source_type%3Dgm', gm);
+      fetchMock.get('/json/v2/byblame?query=source_type%3Dgm', gm);
 
       const byblamePageSk = await loadedByblamePageSk({ defaultCorpus: 'gm' });
 
@@ -104,7 +104,7 @@ describe('byblame-page-sk', () => {
 
   it('renders blames for corpus specified in URL', async () => {
     fetchMock.get('/json/v2/trstatus', trstatus);
-    fetchMock.get('/json/v1/byblame?query=source_type%3Dsvg', svg);
+    fetchMock.get('/json/v2/byblame?query=source_type%3Dsvg', svg);
     setQueryString('?corpus=svg');
 
     const byblamePageSk = await loadedByblamePageSk({ defaultCorpus: 'gm' });
@@ -115,8 +115,8 @@ describe('byblame-page-sk', () => {
 
   it('switches corpora when corpus-selector-sk is clicked', async () => {
     fetchMock.get('/json/v2/trstatus', trstatus);
-    fetchMock.get('/json/v1/byblame?query=source_type%3Dgm', gm);
-    fetchMock.get('/json/v1/byblame?query=source_type%3Dsvg', svg);
+    fetchMock.get('/json/v2/byblame?query=source_type%3Dgm', gm);
+    fetchMock.get('/json/v2/byblame?query=source_type%3Dsvg', svg);
 
     const byblamePageSk = await loadedByblamePageSk({ defaultCorpus: 'gm' });
 
@@ -134,7 +134,7 @@ describe('byblame-page-sk', () => {
   describe('Base repository URL', () => {
     beforeEach(() => {
       fetchMock.get('/json/v2/trstatus', trstatus);
-      fetchMock.get('/json/v1/byblame?query=source_type%3Dgm', gm);
+      fetchMock.get('/json/v2/byblame?query=source_type%3Dgm', gm);
     });
 
     it('renders commit links correctly with repo hosted on googlesource',
