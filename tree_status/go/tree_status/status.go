@@ -122,6 +122,15 @@ func (srv *Server) treeStateDefaultRepoHandler(w http.ResponseWriter, r *http.Re
 
 func (srv *Server) bannerStatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	// Setting allow-origin and allow-credentials to make it possible to access
+	// the private uberproxy URL from javascript using fetch from status-internal
+	// and from Gerrit plugins. This is safe to do because:
+	// * For the public instance this endpoint is available without
+	//   authentication anyway.
+	// * The private instance is protected via uberproxy so only Googlers
+	//   will be able to access it.
+	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	repo := mux.Vars(r)["repo"]
 	if !IsRepoSupported(repo) {
