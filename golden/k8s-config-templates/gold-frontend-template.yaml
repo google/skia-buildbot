@@ -39,6 +39,7 @@ spec:
       securityContext:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
+      serviceAccountName: gold
       containers:
         - name: gold-{{.INSTANCE_ID}}-frontend
           image: {{.FRONTEND_IMAGE}}
@@ -53,8 +54,6 @@ spec:
           volumeMounts:
             - name: gold-{{.INSTANCE_ID}}-config-volume
               mountPath: /etc/gold-config/
-            - name: gold-service-account-secrets
-              mountPath: /var/secrets/google/
             - name: {{.K8S_LOGIN_SECRETS}}
               mountPath: /etc/skia.org/
             {{if .INCLUDE_GITHUB_CREDS}}
@@ -62,8 +61,6 @@ spec:
               mountPath: /var/secrets/github/
             {{end}}
           env:
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /var/secrets/google/service-account.json
             - name: K8S_POD_NAME
               valueFrom:
                 fieldRef:
@@ -84,9 +81,6 @@ spec:
           configMap:
             defaultMode: 400
             name: gold-{{.INSTANCE_ID}}-config
-        - name: gold-service-account-secrets
-          secret:
-            secretName: gold-service-account-secrets
         - name: {{.K8S_LOGIN_SECRETS}}
           secret:
             secretName: {{.K8S_LOGIN_SECRETS}}

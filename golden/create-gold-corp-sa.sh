@@ -8,7 +8,7 @@ source ../kube/corp-config.sh
 source ../bash/ramdisk.sh
 
 # New service account we will create.
-SA_NAME="gold-service-account-secrets"
+SA_NAME="skia-gold"
 SA_EMAIL="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
 
 # Not only do we need to give permission to this gold service account to access
