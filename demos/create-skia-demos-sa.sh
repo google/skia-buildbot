@@ -1,6 +1,7 @@
 #/bin/bash
 
 # Creates the service account for skia-demos in skia-corp.
+# We cannot yet use workload identity in the corp cluster: b/171523347
 
 set -e -x
 source ../kube/corp-config.sh
