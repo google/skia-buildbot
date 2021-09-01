@@ -11,17 +11,19 @@ skia_app_container(
         ],
         "/usr/local/share/machineserver/dist": [
             [
-                "//machine/pages:production/index.css",
+                "//machine/pages:production/{}.{}".format(base, extension),
                 "0644",
-            ],
-            [
-                "//machine/pages:production/index.html",
-                "0644",
-            ],
-            [
-                "//machine/pages:production/index.js",
-                "0644",
-            ],
+            ]
+            for base in [
+                "index",
+                "meeting_points",
+                "pods",
+            ]
+            for extension in [
+                "css",
+                "html",
+                "js",
+            ]
         ],
     },
     entrypoint = "/usr/local/bin/machineserver/machineserver",
