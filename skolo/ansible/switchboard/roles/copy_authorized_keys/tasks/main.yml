@@ -4,4 +4,4 @@
 
 - name: Copy authorized_keys to Win.
   import_tasks: win.yml
-  when: ansible_facts['system']|lower == 'win'
+  when: ansible_facts['system']|lower == 'win32nt'
