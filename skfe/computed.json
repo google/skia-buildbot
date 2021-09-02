@@ -795,6 +795,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "debuggerlegacy",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "debuggerlegacy",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "debuggerlegacy",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "demoserver",
           "endpoints": [
             {
@@ -3156,6 +3182,23 @@
                           },
                           "route": {
                             "cluster": "debugger",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "debuggerlegacy.skia.org",
+                      "name": "debuggerlegacy.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "debuggerlegacy",
                             "timeout": {
                               "seconds": 600
                             }
