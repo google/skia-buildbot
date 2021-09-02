@@ -86,7 +86,8 @@ type Description struct {
 	DeviceUptime        int32     // Seconds
 }
 
-// NewDescription returns a new Description instance.
+// NewDescription returns a new Description instance. It describes an available machine with no
+// known dimensions.
 func NewDescription() Description {
 	return Description{
 		Mode:        ModeAvailable,

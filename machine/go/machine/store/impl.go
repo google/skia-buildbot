@@ -86,7 +86,7 @@ type storeDescription struct {
 	MachineDescription machine.Description
 }
 
-// New returns a new instance of StoreImpl.
+// New returns a new instance of StoreImpl that is backed by Firestore.
 func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) (*StoreImpl, error) {
 	ts, err := auth.NewDefaultTokenSource(local, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
@@ -115,7 +115,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 }
 
 // Update implements the Store interface.
-func (st *StoreImpl) Update(ctx context.Context, machineID string, txCallback TxCallback) error {
+func (st *StoreImpl) Update(ctx context.Context, machineID string, updateCallback UpdateCallback) error {
 	st.updateCounter.Inc(1)
 	docRef := st.machinesCollection.Doc(machineID)
 	return st.firestoreClient.RunTransaction(ctx, "store", "update", updateRetries, updateTimeout, func(ctx context.Context, tx *gcfirestore.Transaction) error {
@@ -132,7 +132,7 @@ func (st *StoreImpl) Update(ctx context.Context, machineID string, txCallback Tx
 			return skerr.Wrapf(err, "Failed querying firestore for %q", machineID)
 		}
 
-		updatedMachineDescription := txCallback(machineDescription)
+		updatedMachineDescription := updateCallback(machineDescription)
 		updatedStoreDescription := machineDescriptionToStoreDescription(updatedMachineDescription)
 
 		return tx.Set(docRef, &updatedStoreDescription)
@@ -300,6 +300,7 @@ func machineDescriptionToStoreDescription(m machine.Description) storeDescriptio
 	}
 }
 
+// storeToMachineDescription converts the firestore version of the description to the common format.
 func storeToMachineDescription(s storeDescription) machine.Description {
 	return s.MachineDescription
 }

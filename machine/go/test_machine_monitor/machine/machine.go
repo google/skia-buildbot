@@ -112,7 +112,8 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 	}, nil
 }
 
-// interrogate the machine we are running on and return all that info in a machine.Event.
+// interrogate the machine we are running on for state-related information. It compiles that into
+// a machine.Event and returns it.
 func (m *Machine) interrogate(ctx context.Context) machine.Event {
 	defer timer.NewWithSummary("interrogate", m.interrogateTimer).Stop()
 
@@ -155,6 +156,10 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 	return ret
 }
 
+// interrogateAndSend gathers the state for this machine and sends it to the sink. Of note, this
+// does not directly determine what dimensions this machine should have. The machine server that
+// listens to the events will determine the dimensions based on the reported state and any
+// information it has from other sources (e.g. human-supplied details, previously attached devices)
 func (m *Machine) interrogateAndSend(ctx context.Context) error {
 	event := m.interrogate(ctx)
 	if err := m.sink.Send(ctx, event); err != nil {
@@ -170,7 +175,8 @@ func (m *Machine) Start(ctx context.Context) error {
 		return skerr.Wrap(err)
 	}
 
-	// Start a loop that scans for local devices and sends pubsub events with all the data every 30s.
+	// Start a loop that scans for local devices and sends pubsub events with all the
+	// data every 30s.
 	go util.RepeatCtx(ctx, interrogateDuration, func(ctx context.Context) {
 		if err := m.interrogateAndSend(ctx); err != nil {
 			m.interrogateAndSendFailures.Inc(1)

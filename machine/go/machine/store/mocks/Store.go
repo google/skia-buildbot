@@ -53,13 +53,13 @@ func (_m *Store) List(ctx context.Context) ([]machine.Description, error) {
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: ctx, machineID, txCallback
-func (_m *Store) Update(ctx context.Context, machineID string, txCallback store.TxCallback) error {
-	ret := _m.Called(ctx, machineID, txCallback)
+// Update provides a mock function with given fields: ctx, machineID, updateCallback
+func (_m *Store) Update(ctx context.Context, machineID string, updateCallback store.UpdateCallback) error {
+	ret := _m.Called(ctx, machineID, updateCallback)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, store.TxCallback) error); ok {
-		r0 = rf(ctx, machineID, txCallback)
+	if rf, ok := ret.Get(0).(func(context.Context, string, store.UpdateCallback) error); ok {
+		r0 = rf(ctx, machineID, updateCallback)
 	} else {
 		r0 = ret.Error(0)
 	}
