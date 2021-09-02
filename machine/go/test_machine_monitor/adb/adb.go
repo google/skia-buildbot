@@ -4,7 +4,6 @@ package adb
 import (
 	"context"
 	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -15,16 +14,6 @@ import (
 
 const (
 	commandTimeout = 5 * time.Second
-)
-
-var (
-	// proplines is a regex that matches the output of `adb shell getprop`. Which
-	// has output that looks like:
-	//
-	// [ro.product.manufacturer]: [asus]
-	// [ro.product.model]: [Nexus 7]
-	// [ro.product.name]: [razor]
-	proplines = regexp.MustCompile(`(?m)^\[(?P<key>.+)\]:\s*\[(?P<value>.*)\].*$`)
 )
 
 // AdbImpl handles talking to the adb process.
@@ -46,7 +35,7 @@ type Adb interface {
 	// Reboot the device.
 	Reboot(ctx context.Context) error
 
-	// Uptime
+	// Uptime returns how long the device has been awake since its last reboot.
 	Uptime(ctx context.Context) (time.Duration, error)
 }
 
@@ -109,7 +98,7 @@ func (a AdbImpl) Uptime(ctx context.Context) (time.Duration, error) {
 		if ee, ok := err.(*exec.ExitError); ok {
 			err = skerr.Wrapf(err, "adb failed with stderr: %q", ee.Stderr)
 		}
-		return time.Duration(0), err
+		return 0, err
 	}
 	// The contents of /proc/uptime are the uptime in seconds, followed by the
 	// idle time of all the cores.
@@ -117,9 +106,12 @@ func (a AdbImpl) Uptime(ctx context.Context) (time.Duration, error) {
 	uptimeAsString := string(b)
 	parts := strings.Split(uptimeAsString, " ")
 	if len(parts) != 2 {
-		return time.Duration(0), skerr.Fmt("Found invalid format for /proc/uptime: %q", uptimeAsString)
+		return 0, skerr.Fmt("Found invalid format for /proc/uptime: %q", uptimeAsString)
 	}
 	uptime, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
 	return time.Duration(int64(uptime) * int64(time.Second)), nil
 }
 

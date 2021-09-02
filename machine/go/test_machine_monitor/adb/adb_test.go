@@ -13,8 +13,6 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-type cleanupFunc func()
-
 const (
 	adbShellGetPropSuccess = `[ro.product.manufacturer]: [asus]
 [ro.product.model]: [Nexus 7]

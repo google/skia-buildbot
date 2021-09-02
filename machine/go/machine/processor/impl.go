@@ -107,10 +107,7 @@ func New(ctx context.Context) *ProcessorImpl {
 // sanitizeKubernetesImageName strip off any whitespace and the image: prefix if
 // present.
 func sanitizeKubernetesImageName(in string) string {
-	if strings.HasPrefix(in, "image:") {
-		in = in[6:]
-	}
-	return strings.TrimSpace(in)
+	return strings.TrimSpace(strings.TrimPrefix(in, "image:"))
 }
 
 // Process implements the Processor interface.
@@ -179,7 +176,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	}
 
 	// If the pod gets too old we schedule it for deletion.
-	if time.Now().Sub(event.Host.StartTime) > maxPodLifetime && ret.ScheduledForDeletion == "" {
+	if time.Since(event.Host.StartTime) > maxPodLifetime && ret.ScheduledForDeletion == "" {
 		ret.ScheduledForDeletion = ret.PodName
 		ret.Annotation.Timestamp = time.Now()
 		ret.Annotation.Message = fmt.Sprintf("Pod too old, requested update for %q", ret.PodName)

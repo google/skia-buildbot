@@ -113,6 +113,9 @@ func (b *Bot) bootstrap(ctx context.Context) error {
 		return skerr.Fmt("Metadata bad status code: %d - %s", resp.StatusCode, resp.Status)
 	}
 	tokenBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return skerr.Wrapf(err, "reading body of %s", b.metadataURL)
+	}
 	if err := resp.Body.Close(); err != nil {
 		return skerr.Wrapf(err, "Failed to close metadata response.")
 	}

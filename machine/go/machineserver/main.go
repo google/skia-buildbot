@@ -305,7 +305,7 @@ func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Reque
 
 		ret.Annotation = machine.Annotation{
 			User:      user(r),
-			Message:   fmt.Sprintf("Requested device removal"),
+			Message:   fmt.Sprintf("Requested device removal of %s", id),
 			Timestamp: time.Now(),
 		}
 		return ret

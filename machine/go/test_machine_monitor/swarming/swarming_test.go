@@ -104,6 +104,7 @@ func newBotForTest(t *testing.T, metadataHander, botCodeHandler http.HandlerFunc
 	// Create a temp file to stand in for the python executable.
 	pythonPath := filepath.Join(dir, "python2.7")
 	f, err := os.Create(pythonPath)
+	require.NoError(t, err)
 	_, err = f.WriteString("A stand-in for Python.")
 	require.NoError(t, err)
 	require.NoError(t, f.Close())
@@ -310,7 +311,8 @@ func TestFakeSwarmingExecutable_ExitCodeZero(t *testing.T) {
 		sklog.Fatal("Missing start_bot in os.Args.")
 	}
 	// Printf on stderr, which should appear in the callers logs.
-	fmt.Fprintf(os.Stderr, swarmingbotFakeStderrOutput)
+	_, err := fmt.Fprint(os.Stderr, swarmingbotFakeStderrOutput)
+	require.NoError(t, err)
 	os.Exit(0)
 }
 
