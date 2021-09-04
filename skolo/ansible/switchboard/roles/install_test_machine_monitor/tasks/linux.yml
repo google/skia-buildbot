@@ -1,3 +1,8 @@
+- name: Check that ~chrome-bot/.config/autostart/swarming.desktop exists
+  stat:
+    path: ~chrome-bot/.config/autostart/swarming.desktop
+  register: swarming_desktop_stat
+
 - name: Clean up old way of launching swarming
   copy:
     src: files/swarming.desktop
@@ -5,7 +10,9 @@
     owner: chrome-bot
     group: chrome-bot
     mode: 0644
-  when: install_test_machine_monitor__start_swarming
+  when:
+    install_test_machine_monitor__start_swarming and
+    swarming_desktop_stat.stat.exists
 
 - name: Copy over service file.
   become: yes
