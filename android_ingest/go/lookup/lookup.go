@@ -67,7 +67,8 @@ func (c *Cache) parseLog(log string) error {
 		// Split at the space between hash and url.
 		parts := strings.Split(line, " ")
 		if len(parts) != 2 {
-			return fmt.Errorf("Found invalid line: %q", line)
+			sklog.Warningf("Found invalid line: %q", line)
+			continue
 		}
 		hash := parts[0]
 		u, err := url.Parse(parts[1])
