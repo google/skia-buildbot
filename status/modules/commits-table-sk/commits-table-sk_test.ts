@@ -1,6 +1,7 @@
 import './index';
 
 import { $, $$ } from 'common-sk/modules/dom';
+import { expect } from 'chai';
 import {
   setUpElementUnderTest,
   eventPromise,
@@ -20,7 +21,6 @@ import {
   resetResponse0,
 } from '../rpc-mock/test_data';
 import { GetIncrementalCommitsRequest, GetIncrementalCommitsResponse } from '../rpc';
-import { expect } from 'chai';
 import { CommitsTableSk } from './commits-table-sk';
 import { MockStatusService, SetupMocks } from '../rpc-mock';
 import { SetTestSettings } from '../settings';
@@ -29,6 +29,7 @@ describe('commits-table-sk', () => {
   const newTableInstance = setUpElementUnderTest('commits-table-sk');
   SetTestSettings({
     swarmingUrl: 'example.com/swarming',
+    treeStatusBaseUrl: 'example.com/treestatus',
     logsUrlTemplate:
       'https://ci.chromium.org/raw/build/logs.chromium.org/skia/{{TaskID}}/+/annotations',
     taskSchedulerUrl: 'example.com/ts',
@@ -51,9 +52,9 @@ describe('commits-table-sk', () => {
     expect(mocks.exhausted()).to.be.true;
   });
 
-  let setupWithResponse = async (
+  const setupWithResponse = async (
     resp: GetIncrementalCommitsResponse,
-    validator?: (req: GetIncrementalCommitsRequest) => void
+    validator?: (req: GetIncrementalCommitsRequest)=> void,
   ) => {
     mocks.expectGetIncrementalCommits(resp, validator);
     const ep = eventPromise('end-task');
@@ -88,7 +89,7 @@ describe('commits-table-sk', () => {
       commitDivs
         .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
         // Get hash from class list.
-        .map((el) => el.classList.item(1))
+        .map((el) => el.classList.item(1)),
     ).to.deep.equal(incrementalResponse0.update!.commits!.map((c) => `commit-${c.hash}`));
   });
 
@@ -173,7 +174,7 @@ describe('commits-table-sk', () => {
     expect(commitDivs).to.have.length(5);
     expect($('.task[title="Test-Some-Stuff @ parentofabc123"]', table)).to.have.length(1);
     expect(
-      $$('.task[title="Test-Some-Stuff @ parentofabc123"]', table)?.classList.value
+      $$('.task[title="Test-Some-Stuff @ parentofabc123"]', table)?.classList.value,
     ).to.contain('bg-failure');
     // Mock an incremental update, and change the reload interval to trigger it.
     mocker.expectGetIncrementalCommits(incrementalResponse1);
@@ -190,18 +191,18 @@ describe('commits-table-sk', () => {
       commitDivs
         .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
         // Get hash from class list.
-        .map((el) => el.classList.item(1))
+        .map((el) => el.classList.item(1)),
     ).to.deep.equal(
       incrementalResponse1
         .update!.commits!.map((c) => `commit-${c.hash}`)
-        .concat(incrementalResponse0.update!.commits!.map((c) => `commit-${c.hash}`))
+        .concat(incrementalResponse0.update!.commits!.map((c) => `commit-${c.hash}`)),
     );
 
     // New task is present.
     expect($('.task[title="Build-Some-Stuff @ childofabc123"]', table)).to.have.length(1);
     // Old task is updated.
     expect(
-      $$('.task[title="Test-Some-Stuff @ parentofabc123"]', table)?.classList.value
+      $$('.task[title="Test-Some-Stuff @ parentofabc123"]', table)?.classList.value,
     ).to.contain('bg-success');
   });
 
@@ -232,7 +233,7 @@ describe('commits-table-sk', () => {
       responseMultiCommitTask,
       (req: GetIncrementalCommitsRequest) => {
         expect(req.repoPath).to.equal('infra');
-      }
+      },
     );
   });
 
@@ -256,7 +257,7 @@ describe('commits-table-sk', () => {
       (<HTMLDivElement>$$('[data-task-id="99999"]', table)).click();
       expect($$('details-dialog-sk .dialog h3', table)).to.have.property(
         'innerText',
-        'Build-Some-Stuff'
+        'Build-Some-Stuff',
       );
       expect($('details-dialog-sk .dialog table.blamelist tr', table)).to.have.length(1);
       expect($('details-dialog-sk .dialog table.comments tr.comment', table)).to.have.length(1);
@@ -268,7 +269,7 @@ describe('commits-table-sk', () => {
       (<HTMLDivElement>$$('[title="Build-Some-Stuff"]', table)).click();
       expect($$('details-dialog-sk .dialog h3', table)).to.have.property(
         'innerText',
-        'Build-Some-Stuff'
+        'Build-Some-Stuff',
       );
       expect($('details-dialog-sk .dialog table.comments tr.comment', table)).to.have.length(1);
     });
@@ -279,7 +280,7 @@ describe('commits-table-sk', () => {
       (<HTMLDivElement>$$('[data-commit-index="1"]', table)).click();
       expect($$('details-dialog-sk .dialog h3', table)).to.have.property(
         'innerText',
-        '2nd from HEAD'
+        '2nd from HEAD',
       );
       expect($('details-dialog-sk .dialog table.comments tr.comment', table)).to.have.length(1);
     });
@@ -345,12 +346,12 @@ describe('commits-table-sk', () => {
       expect(commitsData.tasksByCommit).to.have.keys(
         'abc123',
         'parentofabc123',
-        'acommitthatisnotlisted'
+        'acommitthatisnotlisted',
       );
       expect(commitsData.tasksByCommit.get('abc123')).to.have.keys('Build-Some-Stuff');
       // Task by Commit/TaskSpec reference same underlying object as task by id.
       expect(commitsData.tasksByCommit.get('abc123')!.get('Build-Some-Stuff')).equal(
-        commitsData.tasks.get('99999')
+        commitsData.tasks.get('99999'),
       );
     });
 
@@ -371,7 +372,7 @@ describe('commits-table-sk', () => {
       // Task comment.
       expect(commitsData.comments.get(commentTask.commit)).to.have.keys(commentTask.taskSpecName);
       expect(
-        commitsData.comments.get(commentTask.commit)!.get(commentTask.taskSpecName)![0]
+        commitsData.comments.get(commentTask.commit)!.get(commentTask.taskSpecName)![0],
       ).to.deep.include({ message: commentTask.message });
     });
   });

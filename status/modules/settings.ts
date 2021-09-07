@@ -7,6 +7,7 @@
 
 class StatusSettings {
   public swarmingUrl: string = '';
+  public treeStatusBaseUrl: string = '';
   // Url with '{{TaskID}}' as a placeholder.
   public logsUrlTemplate: string = '';
   public taskSchedulerUrl: string = '';
@@ -21,6 +22,11 @@ function settings(): StatusSettings | undefined {
 // swarmingUrl: Base URL for linking to swarming task data.
 export function swarmingUrl() {
   return settings()?.swarmingUrl;
+}
+
+// treeStatusBaseUrl: Base URL for getting tree status of specific repos.
+export function treeStatusBaseUrl() {
+  return settings()?.treeStatusBaseUrl;
 }
 
 // taskSchedulerUrl: Base URL for linking to Task Scheduler data.

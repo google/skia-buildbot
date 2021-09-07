@@ -6,7 +6,9 @@
  * @evt tree-status-update - Periodic event for updated tree-status and rotation information.
  *                           detail is of type TreeStatus.
  *
- */
+ * @property baseURL: string - The base URL for getting tree status of specific repos.
+ * @property repo: string - The repository we are currently looking at.
+*/
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { diffDate } from 'common-sk/modules/human';
@@ -36,7 +38,6 @@ declare global {
   }
 }
 
-const treeStatusUrl = 'https://tree-status.skia.org/';
 const chopsRotationProxyUrl = 'https://chrome-ops-rotation-proxy.appspot.com/current/';
 
 // This response structure comes from chrome-ops-rotation-proxy.appspot.com.
@@ -54,6 +55,10 @@ export interface TreeStatusResp {
 }
 
 export class TreeStatusSk extends ElementSk {
+  private _baseURL: string = '';
+
+  private _repo: string = '';
+
   private treeStatus: TreeStatus = {
     status: { message: 'Open', general_state: 'open' },
     rotations: [
@@ -91,7 +96,7 @@ export class TreeStatusSk extends ElementSk {
   private static template = (el: TreeStatusSk) => html`
     <div>
       <span>
-        <a href="https://tree-status.skia.org" target="_blank" rel="noopener noreferrer"
+        <a href="${el.baseURL}/${el.repo}" target="_blank" rel="noopener noreferrer"
           >${el.treeStatus.status.message ? el.treeStatus.status.message : '(loading)'}</a
         >
       </span>
@@ -106,8 +111,10 @@ export class TreeStatusSk extends ElementSk {
     super(TreeStatusSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
+    this._upgradeProperty('baseURL');
+    this._upgradeProperty('repo');
 
     this.requestDesktopNotificationPermission();
     this._render();
@@ -143,6 +150,10 @@ export class TreeStatusSk extends ElementSk {
   }
 
   private refresh() {
+    if (!this.baseURL || !this.repo) {
+      // Cannot refresh with baseURL or repo missing.
+      return;
+    }
     const fetches = (this.treeStatus.rotations.map((role) => fetch(role.currentUrl, { method: 'GET' })
       .then(jsonOrThrow)
       .then((json: RoleResp) => {
@@ -150,7 +161,7 @@ export class TreeStatusSk extends ElementSk {
         role.name = shortName(json.emails[0]);
       })
       .catch(errorMessage)) as Array<Promise<any>>).concat(
-      fetch(`${treeStatusUrl}current`, { method: 'GET' })
+      fetch(`${this.baseURL}/${this.repo}/current`, { method: 'GET', credentials: 'include' })
         .then(jsonOrThrow)
         .then((json: TreeStatusResp) => {
           if (Notification.permission === 'granted' && json.message !== this.treeStatus.status.message) {
@@ -172,6 +183,31 @@ export class TreeStatusSk extends ElementSk {
       );
       window.setTimeout(() => this.refresh(), 60 * 1000);
     });
+  }
+
+  get baseURL(): string {
+    return this._baseURL;
+  }
+
+  set baseURL(v: string) {
+    this._baseURL = v;
+    this._render();
+    this.refresh();
+  }
+
+  get repo(): string {
+    return this._repo;
+  }
+
+  set repo(v: string) {
+    this._repo = v.toLowerCase();
+    if (this._repo === 'infra') {
+      // Special case: Status uses "infra" instead of "buildbot", but we need
+      // the real repo name to fetch it's tree status.
+      this._repo = 'buildbot';
+    }
+    this._render();
+    this.refresh();
   }
 }
 

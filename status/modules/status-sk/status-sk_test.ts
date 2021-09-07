@@ -25,6 +25,7 @@ describe('status-sk', () => {
   beforeEach(async () => {
     SetTestSettings({
       swarmingUrl: 'example.com/swarming',
+      treeStatusBaseUrl: 'https://example.com/treestatus',
       logsUrlTemplate:
         'https://ci.chromium.org/raw/build/logs.chromium.org/skia/TASKID/+/annotations',
       taskSchedulerUrl: 'example.com/ts',
@@ -64,11 +65,12 @@ describe('status-sk', () => {
         },
       },
     });
-    fetchMock.getOnce('https://tree-status.skia.org/current', treeStatusResp);
-    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
-    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
-    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
-    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', infraRoleResp);
+    fetchMock.get('https://example.com/treestatus/skia/current', treeStatusResp);
+    fetchMock.get('https://example.com/treestatus/buildbot/current', treeStatusResp);
+    fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
+    fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
+    fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
+    fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', infraRoleResp);
     Date.now = () => 1600883976659;
     SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
     const ep = eventPromise('end-task');

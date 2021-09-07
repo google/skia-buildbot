@@ -1,6 +1,7 @@
 import './index';
 import { $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { TreeStatusSk } from './tree-status-sk';
 import {
   androidRoleResp,
   generalRoleResp,
@@ -9,7 +10,7 @@ import {
   treeStatusResp, treeStatusResp2, treeStatusResp3,
 } from './test_data';
 
-fetchMock.get('https://tree-status.skia.org/current', () => getTreeStatusResp());
+fetchMock.get('https://test-tree-status/test-repo/current', () => getTreeStatusResp());
 fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
 fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
 fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
@@ -28,7 +29,9 @@ function getTreeStatusResp(): fetchMock.MockResponse {
   return treeStatusResp3;
 }
 
-const el = document.createElement('tree-status-sk');
+const el = document.createElement('tree-status-sk') as TreeStatusSk;
+el.baseURL = 'https://test-tree-status';
+el.repo = 'test-repo';
 ($$('#container') as HTMLElement).appendChild(el);
 el.addEventListener('some-event-name', (e) => {
   document.querySelector('#events')!.textContent = JSON.stringify(e, null, '  ');

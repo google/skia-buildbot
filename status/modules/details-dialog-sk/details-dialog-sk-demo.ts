@@ -1,10 +1,12 @@
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { DetailsDialogSk } from './details-dialog-sk';
-import { comment, commit, commitsByHash, task } from './test_data';
 import { $$ } from 'common-sk/modules/dom';
-import { SetTestSettings } from '../settings';
 import fetchMock from 'fetch-mock';
+import { DetailsDialogSk } from './details-dialog-sk';
+import {
+  comment, commit, commitsByHash, task,
+} from './test_data';
+import { SetTestSettings } from '../settings';
 import { taskDriverData } from '../../../infra-sk/modules/task-driver-sk/test_data';
 
 document.querySelector('details-dialog-sk')!.addEventListener('some-event-name', (e) => {
@@ -12,6 +14,7 @@ document.querySelector('details-dialog-sk')!.addEventListener('some-event-name',
 });
 SetTestSettings({
   swarmingUrl: 'example.com/swarming',
+  treeStatusBaseUrl: 'example.com/treestatus',
   logsUrlTemplate:
     'https://ci.chromium.org/raw/build/logs.chromium.org/skia/{{TaskID}}/+/annotations',
   taskSchedulerUrl: 'example.com/ts',

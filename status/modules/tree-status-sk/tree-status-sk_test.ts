@@ -1,6 +1,5 @@
 import './index';
 
-
 import sinon from 'sinon';
 import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
@@ -21,13 +20,16 @@ describe('tree-status-sk', () => {
   let element: TreeStatusSk;
   const createElement = async () => {
     sinon.stub(Notification, 'permission').value('denied');
-    fetchMock.get('https://tree-status.skia.org/current', treeStatusResp);
+    fetchMock.get('https://test-tree-status/test-repo/current', treeStatusResp);
     fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
     fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
     fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
     fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', infraRoleResp);
     Date.now = () => 1600883976659;
-    element = newInstance();
+    element = newInstance((el) => {
+      el.baseURL = 'https://test-tree-status';
+      el.repo = 'test-repo';
+    });
     await fetchMock.flush(true);
   };
 

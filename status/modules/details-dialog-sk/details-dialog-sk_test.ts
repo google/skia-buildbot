@@ -1,12 +1,14 @@
 import './index';
+import { expect } from 'chai';
+import fetchMock from 'fetch-mock';
+import { $, $$ } from 'common-sk/modules/dom';
 import { DetailsDialogSk } from './details-dialog-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
-import { comment, commit, commitsByHash, task } from './test_data';
-import fetchMock from 'fetch-mock';
+import {
+  comment, commit, commitsByHash, task,
+} from './test_data';
 import { SetTestSettings } from '../settings';
-import { $, $$ } from 'common-sk/modules/dom';
 import { taskDriverData } from '../../../infra-sk/modules/task-driver-sk/test_data';
 
 describe('details-dialog-sk', () => {
@@ -16,6 +18,7 @@ describe('details-dialog-sk', () => {
   beforeEach(() => {
     SetTestSettings({
       swarmingUrl: 'example.com/swarming',
+      treeStatusBaseUrl: 'example.com/treestatus',
       logsUrlTemplate:
         'https://ci.chromium.org/raw/build/logs.chromium.org/skia/{{TaskID}}/+/annotations',
       taskSchedulerUrl: 'example.com/ts',
@@ -30,7 +33,7 @@ describe('details-dialog-sk', () => {
   it('displays tasks', () => {
     element.displayTask(task, [comment], commitsByHash);
     expect($$<HTMLAnchorElement>('a', element)!.href).to.equal(
-      'https://ci.chromium.org/raw/build/logs.chromium.org/skia/1234561/+/annotations'
+      'https://ci.chromium.org/raw/build/logs.chromium.org/skia/1234561/+/annotations',
     );
     expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
     expect($('.task-failure', element)).to.have.length(1);

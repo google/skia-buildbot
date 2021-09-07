@@ -21,6 +21,7 @@ SetupMocks()
   .expectGetAutorollerStatuses(getAutorollerStatusesResponse);
 SetTestSettings({
   swarmingUrl: 'example.com/swarming',
+  treeStatusBaseUrl: 'https://example.com/treestatus',
   logsUrlTemplate:
     'https://ci.chromium.org/raw/build/logs.chromium.org/skia/{{TaskID}}/+/annotations',
   taskSchedulerUrl: 'example.com/ts',
@@ -60,13 +61,14 @@ fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <GetClientC
     },
   },
 });
-fetchMock.getOnce('https://tree-status.skia.org/current', treeStatusResp);
+fetchMock.getOnce('https://example.com/treestatus/skia/current', treeStatusResp);
 fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
 fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
 fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
 fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', infraRoleResp);
 const data = document.createElement('status-sk');
 ($$('#container') as HTMLElement).appendChild(data);
+
 (document.querySelector('#AllFilter') as HTMLElement).click();
 
 document.querySelector('status-sk')!.addEventListener('some-event-name', (e) => {

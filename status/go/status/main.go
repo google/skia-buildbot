@@ -121,6 +121,7 @@ var (
 	taskLogsUrlTemplate         = flag.String("task_logs_url_template", "https://ci.chromium.org/raw/build/logs.chromium.org/skia/{{TaskID}}/+/annotations", "Template URL for direct link to logs, with {{TaskID}} as placeholder.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
+	treeStatusBaseUrl           = flag.String("tree_status_base_url", "https://tree-status.skia.org", "Repo specific tree status URLs will be created using this base url. Eg: https://tree-status.skia.org or https://skia-tree-status.corp.goog")
 
 	podId string
 	repos repograph.Map
@@ -550,20 +551,22 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d := struct {
-		Title            string
-		SwarmingURL      string
-		LogsURLTemplate  string
-		TaskSchedulerURL string
-		DefaultRepo      string
+		Title             string
+		SwarmingURL       string
+		TreeStatusBaseURL string
+		LogsURLTemplate   string
+		TaskSchedulerURL  string
+		DefaultRepo       string
 		// Repo name to repo URL.
 		Repos map[string]string
 	}{
-		Title:            fmt.Sprintf("Status: %s", defaultRepo),
-		SwarmingURL:      *swarmingUrl,
-		LogsURLTemplate:  *taskLogsUrlTemplate,
-		TaskSchedulerURL: *taskSchedulerUrl,
-		DefaultRepo:      defaultRepo,
-		Repos:            repoURLsByName,
+		Title:             fmt.Sprintf("Status: %s", defaultRepo),
+		SwarmingURL:       *swarmingUrl,
+		TreeStatusBaseURL: *treeStatusBaseUrl,
+		LogsURLTemplate:   *taskLogsUrlTemplate,
+		TaskSchedulerURL:  *taskSchedulerUrl,
+		DefaultRepo:       defaultRepo,
+		Repos:             repoURLsByName,
 	}
 
 	if err := commitsTemplate.Execute(w, d); err != nil {

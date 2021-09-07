@@ -24,7 +24,7 @@ import 'elements-sk/collapse-sk';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/expand-less-icon-sk';
 import 'elements-sk/icon/expand-more-icon-sk';
-import { defaultRepo, repoUrl } from '../settings';
+import { defaultRepo, repoUrl, treeStatusBaseUrl } from '../settings';
 import { TreeStatus } from '../tree-status-sk/tree-status-sk';
 import { RotationsSk } from '../rotations-sk/rotations-sk';
 import { AutorollerStatus } from '../rpc';
@@ -55,6 +55,8 @@ export class StatusSk extends ElementSk {
           <h1><a href="/">Status</a>: ${el.repo}</h1>
           <div class="spacer">
             <tree-status-sk
+              .baseURL=${treeStatusBaseUrl()}
+              .repo=${el.repo}
               @tree-status-update=${(e: CustomEvent<TreeStatus>) => el.updateTreeStatus(e.detail)}
             ></tree-status-sk>
           </div>
