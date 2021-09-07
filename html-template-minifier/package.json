@@ -8,6 +8,11 @@
   "dependencies": {
     "uglify-es": "^3.3.9"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/google/skia-buildbot.git",
+    "directory": "html-template-minifier"
+  },
   "devDependencies": {
     "jasmine-node": "^2.0.0"
   }
