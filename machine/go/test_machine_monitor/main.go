@@ -40,6 +40,7 @@ var (
 
 var (
 	// Version can be changed via -ldflags.
+	// This should be reverted
 	Version = "development"
 )
 
