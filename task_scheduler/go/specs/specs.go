@@ -82,8 +82,7 @@ var (
 
 	// This package was manually created by running the following commands:
 	//
-	//     $ mkdir skia_infra_rbe_keys
-	//     $ gcloud iam service-accounts keys create ./skia_infra_rbe_key rbe-ci.json \
+	//     $ gcloud iam service-accounts keys create ./skia_infra_rbe_key/rbe-ci.json \
 	//           --iam-account rbe-ci@skia-public.iam.gserviceaccount.com
 	//     $ cipd create -name skia/internal/skia_infra_rbe_key -in ./skia_infra_rbe_key/ \
 	//           -tag version:2
@@ -96,7 +95,7 @@ var (
 		{
 			Path:    "skia_infra_rbe_key",
 			Name:    "skia/internal/skia_infra_rbe_key",
-			Version: "version:2",
+			Version: "version:3",
 		},
 	}
 

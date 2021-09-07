@@ -495,7 +495,7 @@
         {
           "name": "skia/internal/skia_infra_rbe_key",
           "path": "skia_infra_rbe_key",
-          "version": "version:2"
+          "version": "version:3"
         }
       ],
       "command": [
@@ -1115,7 +1115,7 @@
         {
           "name": "skia/internal/skia_infra_rbe_key",
           "path": "skia_infra_rbe_key",
-          "version": "version:2"
+          "version": "version:3"
         }
       ],
       "command": [
@@ -2232,7 +2232,7 @@
         {
           "name": "skia/internal/skia_infra_rbe_key",
           "path": "skia_infra_rbe_key",
-          "version": "version:2"
+          "version": "version:3"
         }
       ],
       "command": [
