@@ -15,7 +15,7 @@ release_ci: app npm-ci
 	# Now that we have the canvaskit.wasm etc, we can bundle it in with webpack.
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/shaders
-	./build_release
+	./images/shaders/release
 
 sources/mandrill.png:
 	mkdir -p sources
