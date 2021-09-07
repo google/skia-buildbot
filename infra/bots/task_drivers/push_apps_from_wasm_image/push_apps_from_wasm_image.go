@@ -42,10 +42,11 @@ var (
 )
 
 const (
-	jsfiddleImageName  = "jsfiddle"
-	skottieImageName   = "skottie"
-	particlesImageName = "particles"
 	debuggerImageName  = "debugger-app"
+	jsfiddleImageName  = "jsfiddle"
+	particlesImageName = "particles"
+	shaderImageName    = "shaders"
+	skottieImageName   = "skottie"
 )
 
 var (
@@ -109,6 +110,20 @@ func buildPushDebuggerImage(ctx context.Context, tag, repo, wasmProductsDir, con
 		fmt.Sprintf("%s:/WORKSPACE", tempDir),
 	}
 	return docker.BuildPushImageFromInfraImage(ctx, "Debugger-App", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, nil)
+}
+
+func buildPushShadersImage(ctx context.Context, tag, repo, wasmProductsDir, configDir string, topic *pubsub.Topic) error {
+	tempDir, err := os_steps.TempDir(ctx, "", "")
+	if err != nil {
+		return err
+	}
+	image := fmt.Sprintf("gcr.io/skia-public/%s", shaderImageName)
+	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/shaders && make release_ci"}
+	volumes := []string{
+		fmt.Sprintf("%s:/OUT", wasmProductsDir),
+		fmt.Sprintf("%s:/WORKSPACE", tempDir),
+	}
+	return docker.BuildPushImageFromInfraImage(ctx, "JsFiddle", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, nil)
 }
 
 func main() {
@@ -192,6 +207,9 @@ func main() {
 	}
 
 	// Build and push all apps of interest below.
+	if err := buildPushShadersImage(ctx, tag, rs.Repo, wasmProductsDir, configDir, topic); err != nil {
+		td.Fatal(ctx, err)
+	}
 	if err := buildPushJsFiddleImage(ctx, tag, rs.Repo, wasmProductsDir, configDir, topic); err != nil {
 		td.Fatal(ctx, err)
 	}
