@@ -63,7 +63,7 @@ $ gcloud iam service-accounts create somegoogler-rbe \
 Next, grant your service account the
 [Remote Build Execution Artifact Creator](https://cloud.google.com/remote-build-execution/docs/access-control#granting_the_ability_to_run_builds_remotely)
 role under the `skia-infra-rbe` GCP project, which is where our
-[RBE instance](https://pantheon.corp.google.com/apis/api/remotebuildexecution.googleapis.com/overview?project=skia-infra-rbe)
+[RBE instance](https://console.cloud.google.com/apis/api/remotebuildexecution.googleapis.com/overview?project=skia-infra-rbe)
 lives:
 
 ```
