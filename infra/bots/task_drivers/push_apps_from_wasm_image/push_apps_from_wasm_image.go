@@ -123,7 +123,7 @@ func buildPushShadersImage(ctx context.Context, tag, repo, wasmProductsDir, conf
 		fmt.Sprintf("%s:/OUT", wasmProductsDir),
 		fmt.Sprintf("%s:/WORKSPACE", tempDir),
 	}
-	return docker.BuildPushImageFromInfraImage(ctx, "JsFiddle", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, nil)
+	return docker.BuildPushImageFromInfraImage(ctx, "Shaders", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, nil)
 }
 
 func main() {
@@ -207,9 +207,6 @@ func main() {
 	}
 
 	// Build and push all apps of interest below.
-	if err := buildPushShadersImage(ctx, tag, rs.Repo, wasmProductsDir, configDir, topic); err != nil {
-		td.Fatal(ctx, err)
-	}
 	if err := buildPushJsFiddleImage(ctx, tag, rs.Repo, wasmProductsDir, configDir, topic); err != nil {
 		td.Fatal(ctx, err)
 	}
@@ -220,6 +217,9 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	if err := buildPushDebuggerImage(ctx, tag, rs.Repo, wasmProductsDir, configDir, topic); err != nil {
+		td.Fatal(ctx, err)
+	}
+	if err := buildPushShadersImage(ctx, tag, rs.Repo, wasmProductsDir, configDir, topic); err != nil {
 		td.Fatal(ctx, err)
 	}
 
