@@ -80,25 +80,6 @@ var (
 	CIPD_PKGS_PYTHON_WINDOWS_386   []*CipdPackage = cipd.PkgsPython[cipd.PlatformWindows386]
 	CIPD_PKGS_PYTHON_WINDOWS_AMD64 []*CipdPackage = cipd.PkgsPython[cipd.PlatformWindowsAmd64]
 
-	// This package was manually created by running the following commands:
-	//
-	//     $ gcloud iam service-accounts keys create ./skia_infra_rbe_key/rbe-ci.json \
-	//           --iam-account rbe-ci@skia-public.iam.gserviceaccount.com
-	//     $ cipd create -name skia/internal/skia_infra_rbe_key -in ./skia_infra_rbe_key/ \
-	//           -tag version:2
-	//     $ cipd acl-edit skia/internal/skia_infra_rbe_key  \
-	//           -reader user:pool-skia@chromium-swarm.iam.gserviceaccount.com
-	//
-	// To update this package (e.g. due to the service account key expiring soon), execute all of the
-	// above commands except "cipd acl-edit", and increase the "version" tag by one.
-	CIPD_PKGS_SKIA_INFRA_RBE_KEY = []*CipdPackage{
-		{
-			Path:    "skia_infra_rbe_key",
-			Name:    "skia/internal/skia_infra_rbe_key",
-			Version: "version:3",
-		},
-	}
-
 	CIPD_PKGS_KITCHEN_LINUX_AMD64 = append([]*CipdPackage{
 		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
 		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),

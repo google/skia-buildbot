@@ -12,16 +12,18 @@ import (
 
 	cloud_metadata "cloud.google.com/go/compute/metadata"
 	"cloud.google.com/go/pubsub"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/iam/v1"
+	"google.golang.org/api/storage/v1"
+
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	compute "google.golang.org/api/compute/v1"
-	storage "google.golang.org/api/storage/v1"
 )
 
 const (
@@ -219,6 +221,7 @@ const (
 	SCOPE_PUBSUB            = pubsub.ScopePubSub
 	SCOPE_USERINFO_EMAIL    = "https://www.googleapis.com/auth/userinfo.email"
 	SCOPE_USERINFO_PROFILE  = "https://www.googleapis.com/auth/userinfo.profile"
+	ScopeAllCloudAPIs       = iam.CloudPlatformScope
 )
 
 // skoloTokenSource implements the oauth2.TokenSource interface using tokens

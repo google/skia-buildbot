@@ -70,13 +70,9 @@ func Swarming20180406(name string, machineType, serviceAccount, setupScriptPath,
 		Os:                gce.OS_LINUX,
 		ServiceAccount:    serviceAccount,
 		SetupScript:       setupScriptPath,
-		Scopes: []string{
-			auth.SCOPE_FULL_CONTROL,
-			auth.SCOPE_USERINFO_EMAIL,
-			auth.SCOPE_PUBSUB,
-		},
-		Tags: []string{"use-swarming-auth"},
-		User: USER_CHROME_BOT,
+		Scopes:            []string{auth.ScopeAllCloudAPIs},
+		Tags:              []string{"use-swarming-auth"},
+		User:              USER_CHROME_BOT,
 	}
 }
 

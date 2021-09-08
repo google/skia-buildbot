@@ -491,11 +491,6 @@
           "name": "skia/bots/bazel",
           "path": "bazel",
           "version": "version:3"
-        },
-        {
-          "name": "skia/internal/skia_infra_rbe_key",
-          "path": "skia_infra_rbe_key",
-          "version": "version:3"
         }
       ],
       "command": [
@@ -517,8 +512,6 @@
         "--ref",
         "latest",
         "--rbe",
-        "--rbe_key",
-        "./skia_infra_rbe_key/rbe-ci.json",
         "--target",
         "//sk/go/sk:sk",
         "--include_path",
@@ -1111,11 +1104,6 @@
           "name": "skia/bots/protoc",
           "path": "protoc",
           "version": "version:0"
-        },
-        {
-          "name": "skia/internal/skia_infra_rbe_key",
-          "path": "skia_infra_rbe_key",
-          "version": "version:3"
         }
       ],
       "command": [
@@ -1138,9 +1126,7 @@
         "<(PATCHSET)",
         "--patch_server",
         "<(CODEREVIEW_SERVER)",
-        "--rbe",
-        "--rbe_key",
-        "./skia_infra_rbe_key/rbe-ci.json"
+        "--rbe"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -2228,11 +2214,6 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:14"
-        },
-        {
-          "name": "skia/internal/skia_infra_rbe_key",
-          "path": "skia_infra_rbe_key",
-          "version": "version:3"
         }
       ],
       "command": [
@@ -2257,9 +2238,7 @@
         "<(CODEREVIEW_SERVER)",
         "--buildbucket_build_id",
         "<(BUILDBUCKET_BUILD_ID)",
-        "--rbe",
-        "--rbe_key",
-        "./skia_infra_rbe_key/rbe-ci.json"
+        "--rbe"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"

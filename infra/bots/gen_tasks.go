@@ -625,8 +625,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 	}
 	if rbe {
-		cipd = append(cipd, specs.CIPD_PKGS_SKIA_INFRA_RBE_KEY...)
-		cmd = append(cmd, "--rbe", "--rbe_key", "./skia_infra_rbe_key/rbe-ci.json")
+		cmd = append(cmd, "--rbe")
 	}
 
 	t := &specs.TaskSpec{
@@ -669,8 +668,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		"--buildbucket_build_id", specs.PLACEHOLDER_BUILDBUCKET_BUILD_ID,
 	}
 	if rbe {
-		cipd = append(cipd, specs.CIPD_PKGS_SKIA_INFRA_RBE_KEY...)
-		cmd = append(cmd, "--rbe", "--rbe_key", "./skia_infra_rbe_key/rbe-ci.json")
+		cmd = append(cmd, "--rbe")
 	}
 
 	t := &specs.TaskSpec{
@@ -705,7 +703,7 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 	cipd := []*specs.CipdPackage{
 		b.MustGetCipdPackageFromAsset("bazel"),
 	}
-	cipd = append(cipd, specs.CIPD_PKGS_SKIA_INFRA_RBE_KEY...)
+
 	cmd := []string{
 		"./build_and_deploy_cipd",
 		"--project_id", "skia-swarming-bots",
@@ -716,7 +714,7 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 		"--tag", "git_repo:" + specs.PLACEHOLDER_REPO,
 		"--tag", "git_revision:" + specs.PLACEHOLDER_REVISION,
 		"--ref", "latest",
-		"--rbe", "--rbe_key", "./skia_infra_rbe_key/rbe-ci.json",
+		"--rbe",
 	}
 	for _, target := range targets {
 		cmd = append(cmd, "--target", target)

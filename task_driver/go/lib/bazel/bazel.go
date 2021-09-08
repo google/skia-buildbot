@@ -96,10 +96,14 @@ func New(ctx context.Context, workspace string, local bool, rbeCredentialFile st
 	if err != nil {
 		return nil, nil, err
 	}
-	absCredentialFile, err := os_steps.Abs(ctx, rbeCredentialFile)
-	if err != nil {
-		return nil, nil, err
+	absCredentialFile := ""
+	if rbeCredentialFile != "" {
+		absCredentialFile, err = os_steps.Abs(ctx, rbeCredentialFile)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
+
 	cleanup := func() {
 		// Clean up the temporary Bazel cache directory when running locally,
 		// because during development, we do not want to leave behind a ~10GB Bazel
@@ -132,6 +136,8 @@ func (b *Bazel) DoOnRBE(ctx context.Context, subCmd string, args ...string) (str
 	cmd := []string{"--config=remote"}
 	if b.rbeCredentialFile != "" {
 		cmd = append(cmd, "--google_credentials="+b.rbeCredentialFile)
+	} else {
+		cmd = append(cmd, "--google_default_credentials")
 	}
 	cmd = append(cmd, args...)
 	return b.Do(ctx, subCmd, cmd...)

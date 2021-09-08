@@ -6,6 +6,7 @@ import (
 	"path"
 	"runtime"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/sklog"
@@ -33,12 +34,10 @@ func BaseConfig(serviceAccount string) *gce.Instance {
 			SourceImage: "projects/debian-cloud/global/images/debian-10-buster-v20200309",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		MachineType: gce.MACHINE_TYPE_STANDARD_4,
-		Name:        INSTANCE_NAME,
-		Os:          gce.OS_LINUX,
-		Scopes: []string{
-			"https://www.googleapis.com/auth/cloud-platform",
-		},
+		MachineType:    gce.MACHINE_TYPE_STANDARD_4,
+		Name:           INSTANCE_NAME,
+		Os:             gce.OS_LINUX,
+		Scopes:         []string{auth.ScopeAllCloudAPIs},
 		ServiceAccount: serviceAccount,
 		SetupScript:    path.Join(dir, "setup-script.sh"),
 		User:           gce.USER_CHROME_BOT,

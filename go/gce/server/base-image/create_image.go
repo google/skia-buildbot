@@ -5,6 +5,7 @@ import (
 	"path"
 	"runtime"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/sklog"
@@ -32,9 +33,7 @@ func BaseConfig() *gce.Instance {
 		MachineType: gce.MACHINE_TYPE_STANDARD_4,
 		Name:        INSTANCE_NAME,
 		Os:          gce.OS_LINUX,
-		Scopes: []string{
-			"https://www.googleapis.com/auth/cloud-platform",
-		},
+		Scopes:      []string{auth.ScopeAllCloudAPIs},
 		SetupScript: path.Join(dir, "setup-script.sh"),
 		User:        gce.USER_DEFAULT,
 	}

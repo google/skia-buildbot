@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/go/gce/server/base-image",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/auth",
         "//go/common",
         "//go/gce",
         "//go/sklog",
