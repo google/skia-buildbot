@@ -90,7 +90,7 @@ func Sync(ctx context.Context, workdir, recipesCfgFile string) (string, error) {
 	if err := co.Fetch(ctx); err != nil {
 		return "", fmt.Errorf("Failed to fetch repo in %s: %s", co.Dir(), err)
 	}
-	if err := co.Cleanup(ctx); err != nil {
+	if err := co.CleanupBranch(ctx, git.MainBranch); err != nil {
 		return "", fmt.Errorf("Failed to cleanup repo in %s: %s", co.Dir(), err)
 	}
 	if _, err := co.Git(ctx, "reset", "--hard", version); err != nil {
