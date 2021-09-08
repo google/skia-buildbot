@@ -541,7 +541,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 				}
 				casSpec, ok := taskCfg.CasSpecs[spec.CasSpec]
 				if !ok {
-					sklog.Errorf("Task %s depends on non-existent CasSpec %s", tsName, spec.CasSpec)
+					sklog.Errorf("Task %s at %+v depends on non-existent CasSpec %q; wanted by job %s", tsName, j.RepoState, spec.CasSpec, j.Id)
 					continue
 				}
 				c = &taskCandidate{

@@ -288,16 +288,17 @@ func (c *TasksCfg) Copy() *TasksCfg {
 // Validate returns an error if the TasksCfg is not valid.
 func (c *TasksCfg) Validate() error {
 	// Validate all tasks.
-	for _, t := range c.Tasks {
+	for name, t := range c.Tasks {
 		if err := t.Validate(c); err != nil {
 			return fmt.Errorf("Invalid TasksCfg: %s", err)
 		}
 
-		// Ensure that any CAS inputs to the task exist.
-		if t.CasSpec != "" {
-			if name, ok := c.CasSpecs[t.CasSpec]; !ok {
-				return fmt.Errorf("Invalid TasksCfg: Task %q references non-existent CasSpec %q", name, t.CasSpec)
-			}
+		// Ensure that the CAS inputs to the task exist.
+		if t.CasSpec == "" {
+			return fmt.Errorf("Invalid TasksCfg: Task %q has no CasSpec.", name)
+		}
+		if _, ok := c.CasSpecs[t.CasSpec]; !ok {
+			return fmt.Errorf("Invalid TasksCfg: Task %q references non-existent CasSpec %q", name, t.CasSpec)
 		}
 	}
 
