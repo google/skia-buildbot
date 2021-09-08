@@ -1,11 +1,27 @@
 package machine
 
-import "time"
+import (
+	"context"
+	"time"
+
+	"go.skia.org/infra/go/now"
+)
 
 // SwarmingDimensions is for de/serializing swarming dimensions:
 //
 // https://chromium.googlesource.com/infra/luci/luci-py.git/+doc/master/appengine/swarming/doc/Magic-Values.md#bot-dimensions
 type SwarmingDimensions map[string][]string
+
+// Copy returns a deep copy of the dimensions map.
+func (s SwarmingDimensions) Copy() SwarmingDimensions {
+	n := make(SwarmingDimensions, len(s))
+	for k, v := range s {
+		copyValues := make([]string, len(v))
+		copy(copyValues, v)
+		n[k] = copyValues
+	}
+	return n
+}
 
 // Well known swarming dimensions.
 const (
@@ -88,23 +104,18 @@ type Description struct {
 
 // NewDescription returns a new Description instance. It describes an available machine with no
 // known dimensions.
-func NewDescription() Description {
+func NewDescription(ctx context.Context) Description {
 	return Description{
 		Mode:        ModeAvailable,
 		Dimensions:  SwarmingDimensions{},
-		LastUpdated: time.Now(),
+		LastUpdated: now.Now(ctx),
 	}
 }
 
 // Copy returns a deep copy of Description.
 func (d Description) Copy() Description {
 	ret := d
-	ret.Dimensions = SwarmingDimensions{}
-	for k, values := range d.Dimensions {
-		newValues := make([]string, len(values))
-		copy(newValues, values)
-		ret.Dimensions[k] = newValues
-	}
+	ret.Dimensions = d.Dimensions.Copy()
 	ret.Temperature = map[string]float64{}
 	for k, v := range d.Temperature {
 		ret.Temperature[k] = v

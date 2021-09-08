@@ -102,7 +102,7 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 	// Write a description into firestore. We expect the dimensions here to
 	// bubble down to the machine
 	err = m.store.Update(ctx, "my-test-bot-001", func(machine.Description) machine.Description {
-		ret := machine.NewDescription()
+		ret := machine.NewDescription(ctx)
 		ret.Mode = machine.ModeMaintenance
 		ret.Dimensions["foo"] = []string{"bar"}
 		return ret
@@ -209,7 +209,7 @@ func TestStart_FirestoreWritesGetReflectedToMachine(t *testing.T) {
 	// Write a description into firestore. We expect the dimensions and mode to
 	// bubble down to the machine
 	err = m.store.Update(ctx, "my-test-bot-001", func(machine.Description) machine.Description {
-		ret := machine.NewDescription()
+		ret := machine.NewDescription(ctx)
 		ret.Mode = machine.ModeMaintenance
 		ret.Dimensions["foo"] = []string{"bar"}
 		return ret
@@ -221,7 +221,7 @@ func TestStart_FirestoreWritesGetReflectedToMachine(t *testing.T) {
 
 	// Now change the mode.
 	err = m.store.Update(ctx, "my-test-bot-001", func(machine.Description) machine.Description {
-		ret := machine.NewDescription()
+		ret := machine.NewDescription(ctx)
 		ret.Mode = machine.ModeAvailable
 		return ret
 	})

@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/machine"
@@ -165,7 +166,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	ret.RunningSwarmingTask = event.RunningSwarmingTask
 	ret.LaunchedSwarming = event.LaunchedSwarming
 	ret.PodName = event.Host.PodName
-	ret.LastUpdated = time.Now()
+	ret.LastUpdated = now.Now(ctx)
 	ret.DeviceUptime = int32(event.Android.Uptime.Seconds())
 
 	ret.KubernetesImage = sanitizeKubernetesImageName(event.Host.KubernetesImage)
@@ -176,9 +177,9 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	}
 
 	// If the pod gets too old we schedule it for deletion.
-	if time.Since(event.Host.StartTime) > maxPodLifetime && ret.ScheduledForDeletion == "" {
+	if now.Now(ctx).Sub(event.Host.StartTime) > maxPodLifetime && ret.ScheduledForDeletion == "" {
 		ret.ScheduledForDeletion = ret.PodName
-		ret.Annotation.Timestamp = time.Now()
+		ret.Annotation.Timestamp = now.Now(ctx)
 		ret.Annotation.Message = fmt.Sprintf("Pod too old, requested update for %q", ret.PodName)
 		ret.Annotation.User = machineUserName
 	}
@@ -190,8 +191,8 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	// starts before we set maintenance mode.
 	if inMaintenanceMode && previous.Mode != machine.ModeRecovery {
 		ret.Mode = machine.ModeRecovery
-		ret.RecoveryStart = time.Now()
-		ret.Annotation.Timestamp = time.Now()
+		ret.RecoveryStart = now.Now(ctx)
+		ret.Annotation.Timestamp = now.Now(ctx)
 		ret.Annotation.Message = maintenanceMessage
 		ret.Annotation.User = machineUserName
 	}
@@ -200,7 +201,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	// available.
 	if !inMaintenanceMode && previous.Mode == machine.ModeRecovery {
 		ret.Mode = machine.ModeAvailable
-		ret.Annotation.Timestamp = time.Now()
+		ret.Annotation.Timestamp = now.Now(ctx)
 		ret.Annotation.Message = "Leaving recovery mode."
 		ret.Annotation.User = machineUserName
 	}

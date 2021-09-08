@@ -4,57 +4,82 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/config"
 )
 
-func TestMachineToStoreDescription_NoDimensions(t *testing.T) {
+func TestConvertDescription_NoDimensions(t *testing.T) {
 	unittest.SmallTest(t)
-	d := machine.NewDescription()
-	m := machineDescriptionToStoreDescription(d)
+	ctx := contextWithFakeTime()
+	d := machine.NewDescription(ctx)
+	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
-		Mode:               d.Mode,
-		LastUpdated:        d.LastUpdated,
-		MachineDescription: d,
+		Mode:        d.Mode,
+		LastUpdated: d.LastUpdated,
+		MachineDescription: fsMachineDescription{
+			Mode:        machine.ModeAvailable,
+			Dimensions:  machine.SwarmingDimensions{},
+			LastUpdated: fakeTime,
+		},
 	}, m)
 }
 
-func TestMachineToStoreDescription_WithDimensions(t *testing.T) {
+func TestConvertDescription_WithDimensions(t *testing.T) {
 	unittest.SmallTest(t)
-	d := machine.NewDescription()
+	ctx := contextWithFakeTime()
+	d := machine.NewDescription(ctx)
 	d.Dimensions[machine.DimOS] = []string{"Android"}
 	d.Dimensions[machine.DimDeviceType] = []string{"sailfish"}
 	d.Dimensions[machine.DimQuarantined] = []string{"Device sailfish too hot."}
 
-	m := machineDescriptionToStoreDescription(d)
+	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
-		OS:                 []string{"Android"},
-		DeviceType:         []string{"sailfish"},
-		Quarantined:        []string{"Device sailfish too hot."},
-		Mode:               d.Mode,
-		LastUpdated:        d.LastUpdated,
-		MachineDescription: d,
+		OS:          []string{"Android"},
+		DeviceType:  []string{"sailfish"},
+		Quarantined: []string{"Device sailfish too hot."},
+		Mode:        machine.ModeAvailable,
+		LastUpdated: fakeTime,
+		MachineDescription: fsMachineDescription{
+			Mode:        machine.ModeAvailable,
+			LastUpdated: fakeTime,
+			Dimensions: machine.SwarmingDimensions{
+				machine.DimOS:          []string{"Android"},
+				machine.DimDeviceType:  []string{"sailfish"},
+				machine.DimQuarantined: []string{"Device sailfish too hot."},
+			},
+		},
 	}, m)
 }
 
-func TestMachineToStoreDescription_WithPowerCycle(t *testing.T) {
+func TestConvertDescription_WithPowerCycle(t *testing.T) {
 	unittest.SmallTest(t)
-	d := machine.NewDescription()
+	ctx := contextWithFakeTime()
+	d := machine.NewDescription(ctx)
 	d.Dimensions[machine.DimOS] = []string{"Android"}
 	d.PowerCycle = true
 
-	m := machineDescriptionToStoreDescription(d)
+	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
-		OS:                 []string{"Android"},
-		Mode:               d.Mode,
-		LastUpdated:        d.LastUpdated,
-		MachineDescription: d,
-		PowerCycle:         true,
+		OS:          []string{"Android"},
+		Mode:        machine.ModeAvailable,
+		LastUpdated: fakeTime,
+		PowerCycle:  true,
+		MachineDescription: fsMachineDescription{
+			Mode:        machine.ModeAvailable,
+			LastUpdated: fakeTime,
+			Dimensions: machine.SwarmingDimensions{
+				machine.DimOS: []string{"Android"},
+			},
+			PowerCycle: true,
+		},
 	}, m)
 }
 
@@ -66,8 +91,7 @@ func setupForTest(t *testing.T) (context.Context, config.InstanceConfig) {
 			Instance: fmt.Sprintf("test-%s", uuid.New()),
 		},
 	}
-	ctx := context.Background()
-	return ctx, cfg
+	return contextWithFakeTime(), cfg
 }
 
 func setupForFlakyTest(t *testing.T) (context.Context, config.InstanceConfig) {
@@ -78,8 +102,7 @@ func setupForFlakyTest(t *testing.T) (context.Context, config.InstanceConfig) {
 			Instance: fmt.Sprintf("test-%s", uuid.New()),
 		},
 	}
-	ctx := context.Background()
-	return ctx, cfg
+	return contextWithFakeTime(), cfg
 }
 
 func TestNew(t *testing.T) {
@@ -585,4 +608,10 @@ func TestDelete_NoErrorIfMachineDoesntExist(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, int64(1), store.deleteCounter.Get())
+}
+
+var fakeTime = time.Date(2021, time.September, 1, 0, 0, 0, 0, time.UTC)
+
+func contextWithFakeTime() context.Context {
+	return context.WithValue(context.Background(), now.ContextKey, fakeTime)
 }

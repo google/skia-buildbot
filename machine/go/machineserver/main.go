@@ -300,7 +300,7 @@ func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Reque
 	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
 		ret = in.Copy()
 
-		newDescription := machine.NewDescription()
+		newDescription := machine.NewDescription(r.Context())
 		ret.Dimensions = newDescription.Dimensions
 
 		ret.Annotation = machine.Annotation{

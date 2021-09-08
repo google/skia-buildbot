@@ -33,6 +33,7 @@ go_test(
     embed = [":store"],
     flaky = True,
     deps = [
+        "//go/now",
         "//go/testutils/unittest",
         "//machine/go/machine",
         "//machine/go/machineserver/config",

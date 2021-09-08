@@ -8,7 +8,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 )
@@ -96,7 +98,7 @@ func TestDimensionsFromAndroidProperties_EmptyFromEmpty(t *testing.T) {
 	assert.Empty(t, dimensionsFromAndroidProperties(dimensions))
 }
 
-func newProcessorForTest(t *testing.T) *ProcessorImpl {
+func newProcessorForTest() *ProcessorImpl {
 	p := New(context.Background())
 	p.eventsProcessedCount.Reset()
 	p.unknownEventTypeCount.Reset()
@@ -110,7 +112,7 @@ func TestProcess_DetectBadEventType(t *testing.T) {
 		EventType: machine.EventType(""),
 	}
 	previous := machine.Description{}
-	p := newProcessorForTest(t)
+	p := newProcessorForTest()
 	_ = p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
 	require.Equal(t, int64(1), p.unknownEventTypeCount.Get())
@@ -124,7 +126,7 @@ func TestProcess_SwarmingTaskIsRunning(t *testing.T) {
 		RunningSwarmingTask: true,
 	}
 	previous := machine.Description{}
-	p := newProcessorForTest(t)
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.True(t, next.RunningSwarmingTask)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
@@ -139,7 +141,7 @@ func TestProcess_LaunchedSwarmingIsTrueInEvent_LaunchedSwarmingIsTrueInDescripti
 		LaunchedSwarming: true,
 	}
 	previous := machine.Description{}
-	p := newProcessorForTest(t)
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.True(t, next.LaunchedSwarming)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
@@ -148,12 +150,20 @@ func TestProcess_LaunchedSwarmingIsTrueInEvent_LaunchedSwarmingIsTrueInDescripti
 
 func TestProcess_NewDeviceAttached(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.Background()
+
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	fakeTime := stateTime
+	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
+		return fakeTime
+	}))
 
 	// The current machine has nothing attached.
-	previous := machine.NewDescription()
+	previous := machine.NewDescription(ctx)
 	require.Empty(t, previous.Dimensions)
-	uptime := int32(5)
+	const uptime = int32(5)
 
 	// An event arrives with the attachment of an Android device.
 	props := strings.Join([]string{
@@ -174,31 +184,36 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 			PodName:         "rpi-swarming-12345-987",
 			KubernetesImage: "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean",
 			Version:         myTestVersion,
+			StartTime:       bootUpTime,
 		},
 	}
 
-	p := newProcessorForTest(t)
+	fakeTime = serverTime
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
 	// The Android device should be reflected in the returned Dimensions.
-	expected := machine.SwarmingDimensions{
-		"android_devices":     []string{"1"},
-		"device_os":           []string{"Q", "QQ2A.200305.002"},
-		"device_os_flavor":    []string{"google", "android"},
-		"device_os_type":      []string{"user"},
-		machine.DimDeviceType: []string{"sargo"},
-		machine.DimOS:         []string{"Android"},
-		machine.DimID:         []string{"skia-rpi2-0001"},
-		"inside_docker":       []string{"1", "containerd"},
-	}
-	assert.Equal(t, expected, next.Dimensions)
-	assert.Equal(t, machine.ModeAvailable, next.Mode)
-	assert.Equal(t, event.Host.PodName, next.PodName)
-	assert.Equal(t, event.Host.KubernetesImage, next.KubernetesImage)
-	assert.Equal(t, uptime, next.DeviceUptime)
-	assert.Equal(t, myTestVersion, next.Version)
+	assert.Equal(t, machine.Description{
+		Mode:        machine.ModeAvailable,
+		LastUpdated: serverTime,
+		Dimensions: machine.SwarmingDimensions{
+			"android_devices":     []string{"1"},
+			"device_os":           []string{"Q", "QQ2A.200305.002"},
+			"device_os_flavor":    []string{"google", "android"},
+			"device_os_type":      []string{"user"},
+			machine.DimDeviceType: []string{"sargo"},
+			machine.DimOS:         []string{"Android"},
+			machine.DimID:         []string{"skia-rpi2-0001"},
+			"inside_docker":       []string{"1", "containerd"},
+		},
+		Battery:         badBatteryLevel,
+		PodName:         event.Host.PodName,
+		KubernetesImage: event.Host.KubernetesImage,
+		Version:         myTestVersion,
+		DeviceUptime:    5,
+	}, next)
 }
 
 func TestProcess_DetectInsideDocker(t *testing.T) {
@@ -206,7 +221,7 @@ func TestProcess_DetectInsideDocker(t *testing.T) {
 	ctx := context.Background()
 
 	// The current machine has nothing attached.
-	previous := machine.NewDescription()
+	previous := machine.NewDescription(ctx)
 	require.Empty(t, previous.Dimensions)
 
 	// An event arrives with the attachment of an Android device.
@@ -218,7 +233,7 @@ func TestProcess_DetectInsideDocker(t *testing.T) {
 		},
 	}
 
-	p := newProcessorForTest(t)
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
@@ -237,7 +252,7 @@ func TestProcess_DetectNotInsideDocker(t *testing.T) {
 	ctx := context.Background()
 
 	// The current machine has nothing attached.
-	previous := machine.NewDescription()
+	previous := machine.NewDescription(ctx)
 	require.Empty(t, previous.Dimensions)
 
 	// An event arrives with the attachment of an Android device.
@@ -249,7 +264,7 @@ func TestProcess_DetectNotInsideDocker(t *testing.T) {
 		},
 	}
 
-	p := newProcessorForTest(t)
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
@@ -264,10 +279,18 @@ func TestProcess_DetectNotInsideDocker(t *testing.T) {
 
 func TestProcess_ClearScheduledForDeletionOnPodNameChange(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.Background()
+
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	fakeTime := stateTime
+	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
+		return fakeTime
+	}))
 
 	// The current machine has nothing attached.
-	previous := machine.NewDescription()
+	previous := machine.NewDescription(ctx)
 	require.Empty(t, previous.Dimensions)
 	previous.ScheduledForDeletion = "foo"
 	previous.PodName = "foo"
@@ -277,12 +300,14 @@ func TestProcess_ClearScheduledForDeletionOnPodNameChange(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Android:   machine.Android{},
 		Host: machine.Host{
-			Name:    "skia-rpi-0001",
-			PodName: "bar",
+			Name:      "skia-rpi-0001",
+			PodName:   "bar",
+			StartTime: bootUpTime,
 		},
 	}
 
-	p := newProcessorForTest(t)
+	fakeTime = serverTime
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
@@ -293,10 +318,18 @@ func TestProcess_ClearScheduledForDeletionOnPodNameChange(t *testing.T) {
 
 func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.Background()
+
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	fakeTime := stateTime
+	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
+		return fakeTime
+	}))
 
 	// The current machine has a device attached.
-	previous := machine.NewDescription()
+	previous := machine.NewDescription(ctx)
 	previous.Dimensions = machine.SwarmingDimensions{
 		"android_devices":     []string{"1"},
 		"device_os":           []string{"Q", "QQ2A.200305.002"},
@@ -315,29 +348,46 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 			GetProp: "",
 		},
 		Host: machine.Host{
-			Name: "skia-rpi2-0001",
+			Name:      "skia-rpi2-0001",
+			PodName:   "some-pod",
+			StartTime: bootUpTime,
 		},
 	}
 
-	p := newProcessorForTest(t)
+	// The dimensions should not change, except for the addition of the
+	// quarantine message, which tells swarming to quarantine this machine.
+	expectedDims := previous.Dimensions.Copy()
+	expectedDims[machine.DimQuarantined] = []string{`Device ["sargo"] has gone missing`}
+
+	fakeTime = serverTime
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
-	// The dimensions should not change, except for the addition of the
-	// quarantine message, which tells swarming to quarantine this machine.
-	expected := previous.Dimensions
-	expected[machine.DimQuarantined] = []string{"Device [\"sargo\"] has gone missing"}
-	assert.Equal(t, expected, next.Dimensions)
-	assert.Equal(t, machine.ModeAvailable, next.Mode)
+	assert.Equal(t, machine.Description{
+		Mode:        machine.ModeAvailable,
+		Dimensions:  expectedDims,
+		PodName:     "some-pod",
+		LastUpdated: serverTime,
+		Battery:     badBatteryLevel,
+	}, next)
 }
 
 func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.Background()
+
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	fakeTime := stateTime
+	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
+		return fakeTime
+	}))
 
 	// The current machine has a device attached.
-	previous := machine.NewDescription()
+	previous := machine.NewDescription(ctx)
 	previous.Dimensions = machine.SwarmingDimensions{
 		"android_devices":     []string{"1"},
 		"device_os":           []string{"Q", "QQ2A.200305.002"},
@@ -362,20 +412,22 @@ func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
-			Name: "skia-rpi2-0001",
+			Name:      "skia-rpi2-0001",
+			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
 			GetProp: props,
 		},
 	}
+	// The dimensions should not change.
+	expected := previous.Dimensions.Copy()
 
-	p := newProcessorForTest(t)
+	fakeTime = serverTime
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
-	// The dimensions should not change.
-	expected := previous.Dimensions
 	assert.Equal(t, expected, next.Dimensions)
 	assert.Equal(t, machine.ModeMaintenance, next.Mode)
 	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": "skia-rpi2-0001"}).Get())
@@ -383,10 +435,18 @@ func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 
 func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.Background()
+
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	fakeTime := stateTime
+	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
+		return fakeTime
+	}))
 
 	// The current machine has been quarantined because the device went missing.
-	previous := machine.NewDescription()
+	previous := machine.NewDescription(ctx)
 	previous.Dimensions = machine.SwarmingDimensions{
 		"android_devices":      []string{"1"},
 		"device_os":            []string{"Q", "QQ2A.200305.002"},
@@ -399,7 +459,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		"inside_docker":        []string{"1", "containerd"},
 	}
 
-	// An event arrives tith the device restored.
+	// An event arrives with the device restored.
 	props := strings.Join([]string{
 		"[ro.build.id]: [QQ2A.200305.002]",  // device_os
 		"[ro.product.brand]: [google]",      // device_os_flavor
@@ -413,39 +473,49 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 			GetProp: props,
 		},
 		Host: machine.Host{
-			Name: "skia-rpi2-0001",
+			StartTime: bootUpTime,
+			Name:      "skia-rpi2-0001",
 		},
 	}
 
-	p := newProcessorForTest(t)
+	expectedDims := previous.Dimensions.Copy()
+	// The machine should no longer be quarantined via dimensions.
+	delete(expectedDims, machine.DimQuarantined)
+
+	fakeTime = serverTime
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
-	// The machine should no longer be quarantined.
-	expected := machine.SwarmingDimensions{
-		"android_devices":     []string{"1"},
-		"device_os":           []string{"Q", "QQ2A.200305.002"},
-		"device_os_flavor":    []string{"google", "android"},
-		"device_os_type":      []string{"user"},
-		machine.DimDeviceType: []string{"sargo"},
-		machine.DimOS:         []string{"Android"},
-		machine.DimID:         []string{"skia-rpi2-0001"},
-		"inside_docker":       []string{"1", "containerd"},
-	}
-	assert.Equal(t, expected, next.Dimensions)
+	assert.Equal(t, machine.Description{
+		Mode:        machine.ModeAvailable,
+		Dimensions:  expectedDims,
+		LastUpdated: serverTime,
+		Battery:     badBatteryLevel,
+	}, next)
+
 	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 }
 
 func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.Background()
 
-	previous := machine.NewDescription()
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	fakeTime := stateTime
+	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
+		return fakeTime
+	}))
+
+	previous := machine.NewDescription(ctx)
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
-			Name: "skia-rpi2-0001",
+			Name:      "skia-rpi2-0001",
+			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
 			DumpsysBattery: `Current Battery Service state:
@@ -464,70 +534,92 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 		},
 	}
 
-	p := newProcessorForTest(t)
+	fakeTime = serverTime
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
-	assert.Equal(t, "Battery low. ", next.Annotation.Message)
-	assert.Equal(t, machineUserName, next.Annotation.User)
-	assert.Equal(t, 9, next.Battery)
-	assert.Equal(t, machine.ModeRecovery, next.Mode)
-	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
+	assert.Equal(t, machine.Description{
+		Mode: machine.ModeRecovery,
+		Annotation: machine.Annotation{
+			Message:   "Battery low. ",
+			User:      machineUserName,
+			Timestamp: serverTime,
+		},
+		Dimensions: machine.SwarmingDimensions{
+			machine.DimID:   []string{"skia-rpi2-0001"},
+			"inside_docker": []string{"1", "containerd"},
+		},
+		Battery:       9,
+		RecoveryStart: serverTime,
+		LastUpdated:   serverTime,
+	}, next)
+
 	assert.Equal(t, int64(9), metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 }
 
 func TestProcess_ScheduleForDeletionIfPodIsTooOld(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.Background()
 
-	previous := machine.NewDescription()
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	// This is well passed the maximum allowable age.
+	bootUpTime := time.Date(2021, time.June, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	fakeTime := stateTime
+	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
+		return fakeTime
+	}))
+
+	previous := machine.NewDescription(ctx)
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
-			StartTime: time.Now().Add(-2 * maxPodLifetime),
+			StartTime: bootUpTime,
 			PodName:   "rpi-swarming-123",
 		},
 		Android: machine.Android{},
 	}
 
-	p := newProcessorForTest(t)
+	fakeTime = serverTime
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
-	assert.Equal(t, next.ScheduledForDeletion, next.PodName)
-	assert.NotEmpty(t, next.PodName)
-	assert.Equal(t, next.Annotation.User, machineUserName)
-	assert.Equal(t, next.Annotation.Message, "Pod too old, requested update for \"rpi-swarming-123\"")
-}
-
-func TestProcess_DoNoScheduleForDeletionIfPodIsntTooOld(t *testing.T) {
-	unittest.SmallTest(t)
-	ctx := context.Background()
-
-	previous := machine.NewDescription()
-	event := machine.Event{
-		EventType: machine.EventTypeRawState,
-		Host: machine.Host{
-			Name:      "skia-rpi2-0001",
-			StartTime: time.Now().Add(-1 * maxPodLifetime / 2),
-			PodName:   "rpi-swarming-123",
+	assert.Equal(t, machine.Description{
+		Mode: machine.ModeAvailable,
+		Annotation: machine.Annotation{
+			Message:   `Pod too old, requested update for "rpi-swarming-123"`,
+			User:      machineUserName,
+			Timestamp: serverTime,
 		},
-		Android: machine.Android{},
-	}
-
-	p := newProcessorForTest(t)
-	next := p.Process(ctx, previous, event)
-	assert.Empty(t, next.ScheduledForDeletion)
-	assert.NotEmpty(t, next.PodName)
+		Dimensions: machine.SwarmingDimensions{
+			machine.DimID:   []string{"skia-rpi2-0001"},
+			"inside_docker": []string{"1", "containerd"},
+		},
+		PodName:              "rpi-swarming-123",
+		ScheduledForDeletion: "rpi-swarming-123",
+		LastUpdated:          serverTime,
+		Battery:              badBatteryLevel,
+	}, next)
 }
 
 func TestProcess_RecoveryModeIfDeviceTooHot(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.Background()
 
-	previous := machine.NewDescription()
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	fakeTime := stateTime
+	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
+		return fakeTime
+	}))
+
+	previous := machine.NewDescription(ctx)
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
-			Name: "skia-rpi2-0001",
+			Name:      "skia-rpi2-0001",
+			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
 			DumpsysThermalService: `IsStatusOverride: false
@@ -579,7 +671,8 @@ Current cooling devices from HAL:
 		},
 	}
 
-	p := newProcessorForTest(t)
+	fakeTime = serverTime
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, "Too hot. ", next.Annotation.Message)
 	assert.Equal(t, machineUserName, next.Annotation.User)
@@ -590,15 +683,24 @@ Current cooling devices from HAL:
 	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 }
 
-func TestProcess_RecoveryModeIfDeviceTooHotAndBatterIsTooLow(t *testing.T) {
+func TestProcess_RecoveryModeIfDeviceTooHotAndBatteryIsTooLow(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.Background()
 
-	previous := machine.NewDescription()
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	fakeTime := stateTime
+	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
+		return fakeTime
+	}))
+
+	previous := machine.NewDescription(ctx)
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
-			Name: "skia-rpi2-0001",
+			Name:      "skia-rpi2-0001",
+			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
 			DumpsysBattery: `Current Battery Service state:
@@ -663,7 +765,8 @@ Current cooling devices from HAL:
 		},
 	}
 
-	p := newProcessorForTest(t)
+	fakeTime = serverTime
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, "Battery low. Too hot. ", next.Annotation.Message)
 	assert.Equal(t, machineUserName, next.Annotation.User)
@@ -676,13 +779,22 @@ Current cooling devices from HAL:
 
 func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.Background()
 
-	previous := machine.NewDescription()
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	fakeTime := stateTime
+	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
+		return fakeTime
+	}))
+
+	previous := machine.NewDescription(ctx)
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
-			Name: "skia-rpi2-0001",
+			Name:      "skia-rpi2-0001",
+			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
 			DumpsysBattery: `Current Battery Service state:
@@ -701,7 +813,8 @@ func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *tes
 		},
 	}
 
-	p := newProcessorForTest(t)
+	fakeTime = serverTime
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
@@ -710,14 +823,23 @@ func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *tes
 
 func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.Background()
 
-	previous := machine.NewDescription()
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	fakeTime := stateTime
+	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
+		return fakeTime
+	}))
+
+	previous := machine.NewDescription(ctx)
 	previous.Mode = machine.ModeRecovery
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
-			Name: "skia-rpi2-0001",
+			Name:      "skia-rpi2-0001",
+			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
 			DumpsysBattery: `Current Battery Service state:
@@ -736,32 +858,12 @@ func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 		},
 	}
 
-	p := newProcessorForTest(t)
+	fakeTime = serverTime
+	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
 	assert.Equal(t, 95, next.Battery)
-}
-
-func TestProcess_ReportBadBatteryIfDumpsysBatteryIsMissing(t *testing.T) {
-	unittest.SmallTest(t)
-	ctx := context.Background()
-
-	previous := machine.NewDescription()
-	event := machine.Event{
-		EventType: machine.EventTypeRawState,
-		Host: machine.Host{
-			Name: "skia-rpi2-0001",
-		},
-		Android: machine.Android{
-			DumpsysBattery: "",
-		},
-	}
-
-	p := newProcessorForTest(t)
-	next := p.Process(ctx, previous, event)
-	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
-	assert.Equal(t, badBatteryLevel, next.Battery)
 }
 
 func TestBatteryFromAndroidDumpSys_Success(t *testing.T) {

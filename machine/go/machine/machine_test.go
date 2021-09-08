@@ -28,7 +28,8 @@ func TestCopy(t *testing.T) {
 			Timestamp: testTime,
 		},
 		Dimensions: SwarmingDimensions{
-			"foo": []string{"bar"},
+			"foo":   []string{"bar"},
+			"alpha": []string{"beta", "gamma"},
 		},
 		PodName:              "rpi-swarming-1235-987",
 		KubernetesImage:      "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean",
@@ -49,5 +50,6 @@ func TestCopy(t *testing.T) {
 
 	// Confirm that the two Dimensions are separate.
 	in.Dimensions["baz"] = []string{"quux"}
+	in.Dimensions["alpha"][0] = "zeta"
 	require.NotEqual(t, in, out)
 }

@@ -6,6 +6,7 @@ go_library(
     srcs = ["machine.go"],
     importpath = "go.skia.org/infra/machine/go/machine",
     visibility = ["//visibility:public"],
+    deps = ["//go/now"],
 )
 
 go_test(
