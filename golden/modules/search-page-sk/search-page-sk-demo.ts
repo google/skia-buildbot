@@ -9,7 +9,7 @@ import {
   searchResponse, statusResponse, paramSetResponse, fakeNow, changeListSummaryResponse,
 } from './demo_data';
 import { setImageEndpointsForDemos } from '../common';
-import { TriageRequest } from '../rpc_types';
+import { DigestStatus, SearchResult, TriageRequest } from '../rpc_types';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 
 testOnlySetSettings({
@@ -29,7 +29,7 @@ fetchMock.get('glob:/json/v2/search*', (url: string) => {
   const filteredSearchResponse = deepCopy(searchResponse);
 
   // Filter only by untriaged/positive/negative.
-  filteredSearchResponse.digests = filteredSearchResponse.digests.filter(
+  filteredSearchResponse.digests = filteredSearchResponse.digests!.filter(
     (digest) => (digest!.status === 'untriaged' && url.includes('unt=true'))
       || (digest!.status === 'positive' && url.includes('pos=true'))
       || (digest!.status === 'negative' && url.includes('neg=true')),
@@ -45,9 +45,9 @@ fetchMock.post('/json/v2/triage', (_: any, req: any) => {
   const triageRequest = JSON.parse(req.body as string) as TriageRequest;
 
   // Iterate over all digests in the triage request (same for single and bulk triage operations).
-  Object.keys(triageRequest.testDigestStatus).forEach((testName) => {
-    Object.keys(triageRequest.testDigestStatus[testName]).forEach((digest) => {
-      const label = triageRequest.testDigestStatus[testName][digest];
+  Object.keys(triageRequest.testDigestStatus!).forEach((testName) => {
+    Object.keys(triageRequest.testDigestStatus![testName]!).forEach((digest) => {
+      const label = triageRequest.testDigestStatus![testName]![digest];
 
       // Empty means "closest", which we ignore for simplicity. For more details, please see
       // https://github.com/google/skia-buildbot/blob/6dd58fac8d1eac7bbf4e737110605dcdf1b20a56/golden/modules/bulk-triage-sk/bulk-triage-sk.ts#L134
@@ -56,14 +56,14 @@ fetchMock.post('/json/v2/triage', (_: any, req: any) => {
       if (label as string === '') return;
 
       // Iterate over all search results.
-      searchResponse.digests.forEach((searchResult) => {
+      searchResponse.digests!.forEach((searchResult: SearchResult | null) => {
         // Update the search result if it matches the current digest.
         if (searchResult?.digest === digest && searchResult.test === testName) {
           searchResult.status = label;
         }
 
         // Update the label of the current digest if it appears in this search result's traces.
-        searchResult?.traces.digests?.forEach((traceDigest) => {
+        searchResult?.traces.digests?.forEach((traceDigest: DigestStatus) => {
           if (traceDigest.digest === digest) {
             traceDigest.status = label;
           }

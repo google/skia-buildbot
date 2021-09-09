@@ -85,7 +85,7 @@ export interface Commit {
 }
 
 export interface SearchResponse {
-	digests: SearchResult[];
+	digests: (SearchResult | null)[] | null;
 	offset: number;
 	size: number;
 	commits: Commit[] | null;
@@ -262,6 +262,6 @@ export type TraceID = string;
 
 export type RefClosest = "pos" | "neg" | "";
 
-export type TriageRequestData = { [key: string]: { [key: string]: Label } };
+export type TriageRequestData = { [key: string]: { [key: string]: Label } | null } | null;
 
 export type Params = { [key: string]: string };

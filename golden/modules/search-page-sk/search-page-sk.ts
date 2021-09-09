@@ -36,6 +36,7 @@ import '../bulk-triage-sk';
 import '../search-controls-sk';
 import '../changelist-controls-sk';
 import '../digest-details-sk';
+import { DigestDetailsSk } from '../digest-details-sk/digest-details-sk';
 
 // Used to include/exclude the corpus field from the various ParamSets being passed around.
 const CORPUS_KEY = 'source_type';
@@ -108,8 +109,8 @@ export class SearchPageSk extends ElementSk {
 
     <div class="results">
       ${el.searchResponse?.digests?.map(
-    (result: SearchResult, idx: number) => SearchPageSk.resultTemplate(
-      el, result!, /* selected= */ idx === el.selectedSearchResultIdx,
+    (result: SearchResult | null, idx: number) => SearchPageSk.resultTemplate(
+      el, result, /* selected= */ idx === el.selectedSearchResultIdx,
     ),
   )}
     </div>
@@ -147,12 +148,12 @@ export class SearchPageSk extends ElementSk {
       return ''; // No results have been loaded yet. It's OK not to show anything at this point.
     }
 
-    if (el.searchResponse.size === 0) {
+    if (!el.searchResponse.size || !el.searchResponse.digests?.length) {
       return 'No results matched your search criteria.';
     }
 
     const first = el.searchResponse.offset + 1;
-    const last = el.searchResponse.offset + el.searchResponse.digests!.length;
+    const last = el.searchResponse.offset + el.searchResponse.digests.length;
     const total = el.searchResponse.size;
     return `Showing results ${first} to ${last} (out of ${total}).`;
   }
@@ -162,7 +163,11 @@ export class SearchPageSk extends ElementSk {
   // This is because re-rendering the search page can be very slow when displaying a large number of
   // search results.
   private static resultTemplate =
-    (el: SearchPageSk, result: SearchResult, selected: boolean) => html`
+    (el: SearchPageSk, result: SearchResult | null, selected: boolean) => {
+      if (!result) {
+        return html``;
+      }
+      return html`
       <digest-details-sk .commits=${el.searchResponse?.commits}
                          .details=${result}
                          .changeListID=${el.changelistId}
@@ -172,6 +177,7 @@ export class SearchPageSk extends ElementSk {
                          class="${selected ? 'selected' : ''}">
       </digest-details-sk>
     `;
+    }
 
   // Reflected to/from the URL and modified by the search-controls-sk.
   private searchCriteria: SearchCriteria = {
@@ -266,7 +272,7 @@ export class SearchPageSk extends ElementSk {
     );
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
 
@@ -280,7 +286,7 @@ export class SearchPageSk extends ElementSk {
     dialogPolyfill.registerDialog(this.helpDialog!);
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     super.disconnectedCallback();
     document.removeEventListener('keydown', this.keyDownEventHandlerFn!);
   }
@@ -300,7 +306,7 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private async fetchParamSetOnce(changeListId?: number) {
+  private async fetchParamSetOnce(changeListId?: number): Promise<void> {
     // Only fetch once. We assume this doesn't change during the page's lifetime.
     if (Object.keys(this.paramSet).length > 0) return;
 
@@ -331,7 +337,7 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private async maybeFetchChangelistSummaryOnce() {
+  private async maybeFetchChangelistSummaryOnce(): Promise<void> {
     // We can skip this RPC if no CL information has been provided via URL parameters.
     if (!this.crs || !this.changelistId) return;
 
@@ -385,7 +391,7 @@ export class SearchPageSk extends ElementSk {
     return searchRequest;
   }
 
-  private async fetchSearchResults() {
+  private async fetchSearchResults(): Promise<void> {
     // Force only one fetch at a time. Abort any outstanding requests.
     if (this.searchResultsFetchController) {
       this.searchResultsFetchController.abort();
@@ -419,40 +425,45 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private getCurrentPageDigestsTriageRequestData() {
+  private getCurrentPageDigestsTriageRequestData(): TriageRequestData {
     const triageRequestData: TriageRequestData = {};
 
-    if (!this.searchResponse) return triageRequestData;
+    if (!this.searchResponse?.digests) {
+      return triageRequestData;
+    }
 
-    for (const result of this.searchResponse.digests!) {
-      let byTest = triageRequestData[result!.test];
+    for (const result of this.searchResponse.digests) {
+      if (!result) {
+        continue;
+      }
+      let byTest = triageRequestData[result.test];
       if (!byTest) {
         byTest = {};
-        triageRequestData[result!.test] = byTest;
+        triageRequestData[result.test] = byTest;
       }
       let valueToSet: Label | '' = '';
-      if (result!.closestRef === 'pos') {
+      if (result.closestRef === 'pos') {
         valueToSet = 'positive';
-      } else if (result!.closestRef === 'neg') {
+      } else if (result.closestRef === 'neg') {
         valueToSet = 'negative';
       }
       // Note: We cast this potentially empty string as a Label due to the legacy behaviors
       // documented here:
       // https://github.com/google/skia-buildbot/blob/6dd58fac8d1eac7bbf4e737110605dcdf1b20a56/golden/modules/bulk-triage-sk/bulk-triage-sk.ts#L134
       // TODO(lovisolo): Clean this up after the legacy search-page-sk is removed.
-      byTest[result!.digest] = valueToSet as Label;
+      byTest[result.digest] = valueToSet as Label;
     }
 
     return triageRequestData;
   }
 
-  private onSearchControlsChange(event: CustomEvent<SearchCriteria>) {
+  private onSearchControlsChange(event: CustomEvent<SearchCriteria>): void {
     this.searchCriteria = event.detail;
     this.stateChanged!();
     this.fetchSearchResults();
   }
 
-  private onChangelistControlsChange(event: CustomEvent<ChangelistControlsSkChangeEventDetail>) {
+  private onChangelistControlsChange(event: CustomEvent<ChangelistControlsSkChangeEventDetail>): void {
     this.includeDigestsFromPrimary = event.detail.include_master;
     this.patchset = event.detail.ps_order;
     this.stateChanged!();
@@ -460,14 +471,14 @@ export class SearchPageSk extends ElementSk {
     this._render();
   }
 
-  private onTriage(result: SearchResult, label: Label) {
+  private onTriage(result: SearchResult, label: Label): void {
     // When the user triages a digest, we patch the corresponding cached SearchResult with the new
     // label. This prevents the digest-details-sk component from reverting to the original label
     // when the search-page-sk is re-rendered with the same cached SearchResults.
     result.status = label;
   }
 
-  private onKeyDown(event: KeyboardEvent) {
+  private onKeyDown(event: KeyboardEvent): void {
     // Ignore all keyboard shortcuts if there are any open modals.
     if (document.querySelectorAll('dialog[open]').length > 0) return;
 
@@ -518,7 +529,7 @@ export class SearchPageSk extends ElementSk {
    * Selects the search result with the given index, i.e. it draws a box around its corresponding
    * digest-details-sk element to indicate focus and scrolls it into view.
    */
-  private selectSearchResult(index: number) {
+  private selectSearchResult(index: number): void {
     const searchResults = this.searchResponse?.digests || [];
     if (index < 0 || index >= searchResults.length) return;
 
@@ -536,7 +547,7 @@ export class SearchPageSk extends ElementSk {
   }
 
   /** Clears the selected search result without re-rendering the entire page. */
-  private clearSelectedSearchResult() {
+  private clearSelectedSearchResult(): void {
     this.selectedSearchResultIdx = -1;
     this.querySelector<HTMLElement>('digest-details-sk.selected')?.classList.remove('selected');
   }
@@ -544,7 +555,7 @@ export class SearchPageSk extends ElementSk {
   /**
    * Applies the given label to the currently selected search result.
    */
-  private triageSelectedSearchResult(label: Label) {
+  private triageSelectedSearchResult(label: Label): void {
     // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
 
     const digestDetailsSk = this.getSelectedDigestDetailsSk();
@@ -557,7 +568,7 @@ export class SearchPageSk extends ElementSk {
    * Opens the zoom dialog of the details-digest-sk element corresponding to the currently selected
    * search result.
    */
-  private openZoomDialogForSelectedSearchResult() {
+  private openZoomDialogForSelectedSearchResult(): void {
     // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
 
     const digestDetailsSk = this.getSelectedDigestDetailsSk();
@@ -569,11 +580,11 @@ export class SearchPageSk extends ElementSk {
   /**
    * Returns the digest-details-sk element corresponding to the currently selected search result.
    */
-  private getSelectedDigestDetailsSk() {
+  private getSelectedDigestDetailsSk(): DigestDetailsSk | null {
     // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
 
     if (this.selectedSearchResultIdx < 0) return null;
-    return this.querySelector<HTMLElement>(
+    return this.querySelector<DigestDetailsSk>(
       `digest-details-sk:nth-child(${this.selectedSearchResultIdx + 1})`,
     );
   }

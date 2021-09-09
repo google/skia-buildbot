@@ -187,7 +187,7 @@ export class BulkTriageSk extends ElementSk {
 
   set currentPageDigests(digests: TriageRequestData) {
     this._pageDigests = digests;
-    this._pageDigestCount = this._countDigests(digests);
+    this._pageDigestCount = this.countDigests(digests);
     this._render();
   }
 
@@ -201,7 +201,7 @@ export class BulkTriageSk extends ElementSk {
 
   set allDigests(digests: TriageRequestData) {
     this._allDigests = digests;
-    this._allDigestCount = this._countDigests(digests);
+    this._allDigestCount = this.countDigests(digests);
     this._render();
   }
 
@@ -211,10 +211,17 @@ export class BulkTriageSk extends ElementSk {
     this._useOldAPI = b;
   }
 
-  private _countDigests(testDigestLabelMap: TriageRequestData) {
+  private countDigests(testDigestLabelMap: TriageRequestData): number {
     let count = 0;
+    if (!testDigestLabelMap) {
+      return 0;
+    }
     for (const testName of Object.keys(testDigestLabelMap)) {
-      count += Object.keys(testDigestLabelMap[testName]).length;
+      const digests = testDigestLabelMap[testName];
+      if (!digests) {
+        continue;
+      }
+      count += Object.keys(digests).length;
     }
     return count;
   }
@@ -231,19 +238,19 @@ export class BulkTriageSk extends ElementSk {
    * This creates an object that can be sent to the triage RPC on the Gold server. The labels
    * will be set to match the current value. See frontend.TriageRequest for more.
    */
-  private _getTriageStatuses() {
+  private _getTriageStatuses(): TriageRequestData {
     let baseDigests = this._pageDigests;
     if (this._triageAll) {
       baseDigests = this._allDigests;
     }
-    if (this.value === 'closest') {
-      return baseDigests;
+    if (this.value === 'closest' || !baseDigests) {
+      return baseDigests || {};
     }
     const copyWithSameValue: TriageRequestData = {};
     for (const testName of Object.keys(baseDigests)) {
       copyWithSameValue[testName] = {};
-      for (const digest of Object.keys(baseDigests[testName])) {
-        copyWithSameValue[testName][digest] = this.value;
+      for (const digest of Object.keys(baseDigests[testName] || [])) {
+        copyWithSameValue[testName]![digest] = this.value;
       }
     }
     return copyWithSameValue;
