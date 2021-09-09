@@ -32,7 +32,7 @@ const (
 	chromeBranchTmpl  = "chrome/m%s"
 	flutterBranchTmpl = "flutter/%s.%s"
 
-	flagDryRun                   = "dry-run"
+	flagReviewers                = "reviewer"
 	gerritProject                = "skia"
 	milestoneFile                = "include/core/SkMilestone.h"
 	milestoneTmpl                = "#define SK_MILESTONE %s"
@@ -66,10 +66,10 @@ func Command() *cli.Command {
 		Usage:       "release-branch [options] <newly-created branch name>",
 		Description: "Perform the necessary updates after creating a new release branch. The new branch must already exist.",
 		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:  flagDryRun,
-				Value: false,
-				Usage: "Create the CLs but do not submit them.",
+			&cli.StringSliceFlag{
+				Name:  flagReviewers,
+				Value: &cli.StringSlice{},
+				Usage: "Reviewers for the uploaded CLs. If not provided, the CLs are not sent for review.",
 			},
 		},
 		Action: func(ctx *cli.Context) error {
@@ -77,14 +77,14 @@ func Command() *cli.Command {
 			if len(args) != 1 {
 				return skerr.Fmt("Exactly one positional argument is expected.")
 			}
-			return releaseBranch(ctx.Context, args[0], ctx.Bool(flagDryRun))
+			return releaseBranch(ctx.Context, args[0], ctx.StringSlice(flagReviewers))
 		},
 	}
 }
 
 // releaseBranch performs the actions necessary to create a new Skia release
 // branch.
-func releaseBranch(ctx context.Context, newBranch string, dryRun bool) error {
+func releaseBranch(ctx context.Context, newBranch string, reviewers []string) error {
 	// Setup.
 	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_GERRIT)
 	if err != nil {
@@ -108,7 +108,7 @@ func releaseBranch(ctx context.Context, newBranch string, dryRun bool) error {
 			return skerr.Wrap(err)
 		}
 		removeBranch = fmt.Sprintf(chromeBranchTmpl, strconv.Itoa(currentMilestone-supportedChromeBranches))
-		if err := updateMilestone(ctx, g, repo, currentMilestone, dryRun); err != nil {
+		if err := updateMilestone(ctx, g, repo, currentMilestone, reviewers); err != nil {
 			return skerr.Wrap(err)
 		}
 	} else if flutterVersion, err := parseFlutterVersion(newBranch); err == nil {
@@ -145,16 +145,16 @@ func releaseBranch(ctx context.Context, newBranch string, dryRun bool) error {
 	}
 
 	fmt.Println("Creating CL to update supported branches...")
-	if err := updateSupportedBranches(ctx, g, repo, removeBranch, newBranch, dryRun); err != nil {
+	if err := updateSupportedBranches(ctx, g, repo, removeBranch, newBranch, reviewers); err != nil {
 		return skerr.Wrap(err)
 	}
 	fmt.Println(fmt.Sprintf("Creating CL to filter out unsupported CQ try jobs on %s...", newBranch))
-	if err := updateTryjobs(ctx, g, repo, newBranch, dryRun); err != nil {
+	if err := updateTryjobs(ctx, g, repo, newBranch, reviewers); err != nil {
 		return skerr.Wrap(err)
 	}
 	if removeBranch != "" {
 		fmt.Println(fmt.Sprintf("Creating CL to remove CQ on %s", removeBranch))
-		if err := removeCQ(ctx, g, repo, removeBranch, dryRun); err != nil {
+		if err := removeCQ(ctx, g, repo, removeBranch, reviewers); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
@@ -182,7 +182,7 @@ func getCurrentMilestone(ctx context.Context, repo gitiles.GitilesRepo) (int, st
 }
 
 // updateMilestone creates a CL to update the Skia milestone.
-func updateMilestone(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, currentMilestone int, dryRun bool) error {
+func updateMilestone(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, currentMilestone int, reviewers []string) error {
 	newMilestone := currentMilestone + 1
 
 	// Retrieve the current milestone.
@@ -206,7 +206,7 @@ func updateMilestone(ctx context.Context, g gerrit.GerritInterface, repo *gitile
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, git.MainBranch, commitMsg, baseCommit, changes, !dryRun)
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, git.MainBranch, commitMsg, baseCommit, changes, reviewers)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}
@@ -215,7 +215,7 @@ func updateMilestone(ctx context.Context, g gerrit.GerritInterface, repo *gitile
 
 // updateSupportedBranches updates the infra/config branch to edit the supported
 // branches and commit queue config to add the new branch and remove the old.
-func updateSupportedBranches(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, removeBranch string, newBranch string, dryRun bool) error {
+func updateSupportedBranches(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, removeBranch string, newBranch string, reviewers []string) error {
 	owner, err := g.GetUserEmail(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -283,14 +283,14 @@ func updateSupportedBranches(ctx context.Context, g gerrit.GerritInterface, repo
 	changes := map[string]string{
 		supported_branches.SUPPORTED_BRANCHES_FILE: buf.String(),
 	}
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, supported_branches.SUPPORTED_BRANCHES_REF, commitMsg, baseCommit, changes, !dryRun)
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, supported_branches.SUPPORTED_BRANCHES_REF, commitMsg, baseCommit, changes, reviewers)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}
 	return skerr.Wrap(err)
 }
 
-func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, newBranch string, dryRun bool) error {
+func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, newBranch string, reviewers []string) error {
 	// Setup.
 	newRef := git.FullyQualifiedBranchName(newBranch)
 	baseCommitInfo, err := repo.Details(ctx, newRef)
@@ -354,7 +354,7 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 	commitMsg := fmt.Sprintf("Filter unsupported CQ try jobs on %s", newBranch)
 	repoSplit := strings.Split(repo.URL(), "/")
 	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
-	ci, err := gerrit.CreateCLFromLocalDiffs(ctx, g, project, newBranch, commitMsg, !dryRun, co)
+	ci, err := gerrit.CreateCLFromLocalDiffs(ctx, g, project, newBranch, commitMsg, reviewers, co)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -362,7 +362,7 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 	return nil
 }
 
-func removeCQ(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, oldBranch string, dryRun bool) error {
+func removeCQ(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, oldBranch string, reviewers []string) error {
 	// Setup.
 	oldRef := git.FullyQualifiedBranchName(oldBranch)
 	baseCommitInfo, err := repo.Details(ctx, oldRef)
@@ -382,7 +382,7 @@ func removeCQ(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo,
 	changes := map[string]string{
 		cqJSONFile: "",
 	}
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, oldRef, commitMsg, baseCommit, changes, !dryRun)
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, oldRef, commitMsg, baseCommit, changes, reviewers)
 	if ci != nil {
 		fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
 	}

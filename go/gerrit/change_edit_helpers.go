@@ -90,9 +90,8 @@ func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch
 // CreateCLWithChanges is a helper which creates a new Change in the given
 // project based on the given branch with the given commit message and the given
 // map of filepath to new file contents. Empty file contents indicate deletion
-// of the file. If submit is true, the change is marked with the self-approval
-// label(s) and submitted.
-func CreateCLWithChanges(ctx context.Context, g GerritInterface, project, branch, commitMsg, baseCommit string, changes map[string]string, submit bool) (*ChangeInfo, error) {
+// of the file. If reviewers are provided, the change is sent for review.
+func CreateCLWithChanges(ctx context.Context, g GerritInterface, project, branch, commitMsg, baseCommit string, changes map[string]string, reviewers []string) (*ChangeInfo, error) {
 	ci, err := CreateAndEditChange(ctx, g, project, branch, commitMsg, baseCommit, func(ctx context.Context, g GerritInterface, ci *ChangeInfo) error {
 		for filepath, contents := range changes {
 			if contents == "" {
@@ -112,17 +111,14 @@ func CreateCLWithChanges(ctx context.Context, g GerritInterface, project, branch
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if submit {
+	if len(reviewers) > 0 {
 		if ci.WorkInProgress {
 			if err := g.SetReadyForReview(ctx, ci); err != nil {
 				return ci, skerr.Wrapf(err, "failed to set ready for review")
 			}
 		}
-		if err := g.SetReview(ctx, ci, "", g.Config().SelfApproveLabels, nil, "", "", 0); err != nil {
+		if err := g.SetReview(ctx, ci, "", nil, reviewers, "", "", 0); err != nil {
 			return ci, skerr.Wrapf(err, "failed to set review")
-		}
-		if err := g.Submit(ctx, ci); err != nil {
-			return ci, skerr.Wrapf(err, "failed to submit CL")
 		}
 	}
 	return ci, nil
@@ -131,7 +127,7 @@ func CreateCLWithChanges(ctx context.Context, g GerritInterface, project, branch
 // CreateCLFromLocalDiffs is a helper which creates a Change based on the
 // diffs from the provided branch in a local checkout. Note that the diff is
 // performed against the given branch on "origin", and not any local version.
-func CreateCLFromLocalDiffs(ctx context.Context, g GerritInterface, project, branch, commitMsg string, submit bool, co *git.Checkout) (*ChangeInfo, error) {
+func CreateCLFromLocalDiffs(ctx context.Context, g GerritInterface, project, branch, commitMsg string, reviewers []string, co *git.Checkout) (*ChangeInfo, error) {
 	baseCommit, err := co.Git(ctx, "rev-parse", fmt.Sprintf("origin/%s", branch))
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -152,5 +148,5 @@ func CreateCLFromLocalDiffs(ctx context.Context, g GerritInterface, project, bra
 			changes[diffLine] = string(contents)
 		}
 	}
-	return CreateCLWithChanges(ctx, g, project, branch, commitMsg, baseCommit, changes, submit)
+	return CreateCLWithChanges(ctx, g, project, branch, commitMsg, baseCommit, changes, reviewers)
 }
