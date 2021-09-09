@@ -10,8 +10,6 @@ export interface Description {
 	Mode: Mode;
 	Annotation: Annotation;
 	Note: Annotation;
-	Dimensions: SwarmingDimensions;
-	PodName: string;
 	KubernetesImage: string;
 	Version: string;
 	ScheduledForDeletion: string;
@@ -24,6 +22,8 @@ export interface Description {
 	RecoveryStart: string;
 	DeviceUptime: number;
 	SSHUserIP: string;
+	Dimensions: SwarmingDimensions;
+	PodName: string;
 }
 
 export interface MeetingPoint {

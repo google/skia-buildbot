@@ -22,8 +22,9 @@ func TestConvertDescription_NoDimensions(t *testing.T) {
 	d := machine.NewDescription(ctx)
 	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
-		Mode:        d.Mode,
-		LastUpdated: d.LastUpdated,
+		Mode:        machine.ModeAvailable,
+		LastUpdated: fakeTime,
+		Dimensions:  machine.SwarmingDimensions{},
 		MachineDescription: fsMachineDescription{
 			Mode:        machine.ModeAvailable,
 			Dimensions:  machine.SwarmingDimensions{},
@@ -36,25 +37,25 @@ func TestConvertDescription_WithDimensions(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := contextWithFakeTime()
 	d := machine.NewDescription(ctx)
-	d.Dimensions[machine.DimOS] = []string{"Android"}
-	d.Dimensions[machine.DimDeviceType] = []string{"sailfish"}
-	d.Dimensions[machine.DimQuarantined] = []string{"Device sailfish too hot."}
+	d.Dimensions = machine.SwarmingDimensions{
+		machine.DimOS:          []string{"Android"},
+		machine.DimDeviceType:  []string{"sailfish"},
+		machine.DimQuarantined: []string{"Device sailfish too hot."},
+	}
+	expectedDims := d.Dimensions.Copy()
 
 	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
 		OS:          []string{"Android"},
 		DeviceType:  []string{"sailfish"},
 		Quarantined: []string{"Device sailfish too hot."},
+		Dimensions:  expectedDims,
 		Mode:        machine.ModeAvailable,
 		LastUpdated: fakeTime,
 		MachineDescription: fsMachineDescription{
 			Mode:        machine.ModeAvailable,
 			LastUpdated: fakeTime,
-			Dimensions: machine.SwarmingDimensions{
-				machine.DimOS:          []string{"Android"},
-				machine.DimDeviceType:  []string{"sailfish"},
-				machine.DimQuarantined: []string{"Device sailfish too hot."},
-			},
+			Dimensions:  expectedDims,
 		},
 	}, m)
 }
@@ -63,22 +64,25 @@ func TestConvertDescription_WithPowerCycle(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := contextWithFakeTime()
 	d := machine.NewDescription(ctx)
-	d.Dimensions[machine.DimOS] = []string{"Android"}
+	d.Dimensions = machine.SwarmingDimensions{
+		machine.DimOS: []string{"Android"},
+	}
 	d.PowerCycle = true
+
+	expectedDims := d.Dimensions.Copy()
 
 	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
 		OS:          []string{"Android"},
 		Mode:        machine.ModeAvailable,
+		Dimensions:  expectedDims,
 		LastUpdated: fakeTime,
 		PowerCycle:  true,
 		MachineDescription: fsMachineDescription{
 			Mode:        machine.ModeAvailable,
 			LastUpdated: fakeTime,
-			Dimensions: machine.SwarmingDimensions{
-				machine.DimOS: []string{"Android"},
-			},
-			PowerCycle: true,
+			Dimensions:  expectedDims,
+			PowerCycle:  true,
 		},
 	}, m)
 }
@@ -540,7 +544,7 @@ func TestWatchForPowerCycle_OnlyMatchesTheRightMachines(t *testing.T) {
 	assert.NoError(t, store.firestoreClient.Close())
 }
 
-func TestWatchForPowerCycle_ISCancellable(t *testing.T) {
+func TestWatchForPowerCycle_IsCancellable(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
 	store, err := NewFirestoreImpl(ctx, true, cfg)

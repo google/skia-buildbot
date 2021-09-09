@@ -52,38 +52,56 @@ type FirestoreImpl struct {
 }
 
 // storeDescription is how machine.Description is mapped into firestore.
-//
-// Some fields from machine.Description are mirrored to top level
-// storeDescription fields so we can query on them.
 type storeDescription struct {
-	// OS is a mirror of MachineDescription.Dimensions["os"].
-	OS []string
-
-	// OS is a mirror of MachineDescription.Dimensions["device_type"].
-	DeviceType []string
-
-	// OS is a mirror of MachineDescription.Dimensions["quarantined"].
-	Quarantined []string
-
-	// Mode is a mirror of MachineDescription.Mode.
+	// Mode describes if the machine is capable of running tasks or is otherwise not ready.
 	Mode machine.Mode
 
-	// LastUpdated is a mirror of MachineDescription.LastUpdated.
-	LastUpdated time.Time
+	// Annotation is used to record the most recent non-user change to Description.
+	Annotation fsAnnotation
 
-	// ScheduledForDeletion is a mirror of MachineDescription.ScheduledForDeletion.
+	// Note is a user authored message on the state of a machine.
+	Note fsAnnotation
+
+	// Version of test_machine_monitor being run.
+	Version string
+
+	// ScheduledForDeletion will be a non-empty string and equal to PodName if
+	// the pod should be deleted.
 	ScheduledForDeletion string
 
-	// RunningSwarmingTask is a mirror of MachineDescription.RunningSwarmingTask.
-	RunningSwarmingTask bool
-
-	// PowerCycle is a mirror of MachineDescription.PowerCycle.
+	// PowerCycle is true if the machine needs to be power-cycled.
 	PowerCycle bool
 
-	// MachineDescription is the full machine.Description. The values that are
-	// mirrored to fields of storeDescription are still fully stored here and
-	// are considered the source of truth.
+	// LastUpdated is the timestamp that the machine last checked in.
+	LastUpdated         time.Time
+	RunningSwarmingTask bool
+	LaunchedSwarming    bool      // True if test_machine_monitor launched Swarming.
+	RecoveryStart       time.Time // When did the machine start being in recovery mode.
+
+	// Battery, Temperature, DeviceUptime refer to the attached Android device, if any.
+	Battery      int                // Charge as an integer percent, e.g. 50% = 50.
+	Temperature  map[string]float64 // In Celsius.
+	DeviceUptime int32              // Seconds
+
+	// SSHUserIP, for example, "root@skia-sparky360-03" indicates we should connect to the
+	// given ChromeOS device at that username and ip/hostname.
+	SSHUserIP string
+
+	// Dimensions describe the machine and what tasks it is capable of running.
+	Dimensions machine.SwarmingDimensions
+
+	// OS, DeviceType, and Quarantined are mirrored out of Dimensions, so we can query them.
+	OS          []string
+	DeviceType  []string
+	Quarantined []string
+
+	// MachineDescription is the full machine.Description.
+	// TODO(kjlubick) Remove this field after the production version has been flattened.
 	MachineDescription fsMachineDescription
+
+	// PodName and KubernetesImage are deprecated as we do not intend to run on k8s any more.
+	PodName         string
+	KubernetesImage string
 }
 
 // fsMachineDescription models how machine.Description is stored in Firestore. This serves to
@@ -334,14 +352,27 @@ func (st *FirestoreImpl) Delete(ctx context.Context, machineID string) error {
 
 func convertDescription(m machine.Description) storeDescription {
 	return storeDescription{
-		OS:                   m.Dimensions[machine.DimOS],
+		Annotation:           convertAnnotation(m.Annotation),
+		Battery:              m.Battery,
 		DeviceType:           m.Dimensions[machine.DimDeviceType],
-		Quarantined:          m.Dimensions[machine.DimQuarantined],
-		Mode:                 m.Mode,
+		DeviceUptime:         m.DeviceUptime,
+		Dimensions:           m.Dimensions,
+		KubernetesImage:      m.KubernetesImage,
 		LastUpdated:          m.LastUpdated,
-		ScheduledForDeletion: m.ScheduledForDeletion,
-		RunningSwarmingTask:  m.RunningSwarmingTask,
+		LaunchedSwarming:     m.LaunchedSwarming,
+		Mode:                 m.Mode,
+		Note:                 convertAnnotation(m.Note),
+		OS:                   m.Dimensions[machine.DimOS],
+		PodName:              m.PodName,
 		PowerCycle:           m.PowerCycle,
+		Quarantined:          m.Dimensions[machine.DimQuarantined],
+		RecoveryStart:        m.RecoveryStart,
+		RunningSwarmingTask:  m.RunningSwarmingTask,
+		SSHUserIP:            m.SSHUserIP,
+		ScheduledForDeletion: m.ScheduledForDeletion,
+		Temperature:          m.Temperature,
+		Version:              m.Version,
+		// TODO(kjlubick) Stop writing to MachineDescription
 		MachineDescription: fsMachineDescription{
 			Mode:                 m.Mode,
 			Annotation:           convertAnnotation(m.Annotation),
@@ -381,6 +412,7 @@ func convertFSAnnotation(a fsAnnotation) machine.Annotation {
 
 // convertFSDescription converts the firestore version of the description to the common format.
 func convertFSDescription(s storeDescription) machine.Description {
+	// TODO(kjlubick) when the unflattening has landed, read from the unflattened struct directly.
 	m := s.MachineDescription
 	return machine.Description{
 		Mode:                 m.Mode,

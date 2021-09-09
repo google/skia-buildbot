@@ -69,16 +69,14 @@ type Annotation struct {
 type Description struct {
 	Mode Mode
 
-	// Annotation is used to record the most recent user change to Description.
+	// Annotation is used to record the most recent non-user change to Description.
+	// For example, if the device battery is too low, this will be set automatically.
 	// This will be in addition to the normal auditlog of user actions:
 	// https://pkg.go.dev/go.skia.org/infra/go/auditlog?tab=doc
 	Annotation Annotation
 
 	// Note is a user authored message on the state of a machine.
 	Note Annotation
-
-	Dimensions SwarmingDimensions
-	PodName    string
 
 	// KubernetesImage is the kubernetes image name.
 	KubernetesImage string
@@ -103,6 +101,10 @@ type Description struct {
 	// SSHUserIP, for example, "root@skia-sparky360-03" indicates we should connect to the
 	// given ChromeOS device at that username and ip/hostname.
 	SSHUserIP string
+
+	// PodName and KubernetesImage are deprecated as we do not intend to run on k8s any more.
+	Dimensions SwarmingDimensions
+	PodName    string
 }
 
 // NewDescription returns a new Description instance. It describes an available machine with no
