@@ -43,6 +43,7 @@ export const descriptions: Description[] = [{
   LaunchedSwarming: false,
   RecoveryStart: '2021-06-03T18:20:09.386312Z',
   DeviceUptime: 167,
+  SSHUserIP: '',
 }, {
   Mode: 'available',
   Annotation: {
@@ -79,6 +80,7 @@ export const descriptions: Description[] = [{
   LaunchedSwarming: true,
   RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 266,
+  SSHUserIP: '',
 }, {
   Mode: 'available',
   Annotation: {
@@ -115,6 +117,7 @@ export const descriptions: Description[] = [{
   LaunchedSwarming: true,
   RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 183,
+  SSHUserIP: '',
 }, {
   Mode: 'available',
   Annotation: {
@@ -151,6 +154,7 @@ export const descriptions: Description[] = [{
   LaunchedSwarming: true,
   RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 167,
+  SSHUserIP: '',
 }, {
   Mode: 'available',
   Annotation: {
@@ -187,6 +191,7 @@ export const descriptions: Description[] = [{
   LaunchedSwarming: true,
   RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 234,
+  SSHUserIP: '',
 }, {
   Mode: 'recovery',
   Annotation: {
@@ -227,6 +232,7 @@ export const descriptions: Description[] = [{
   LaunchedSwarming: true,
   RecoveryStart: '2021-06-03T18:19:19.268204Z',
   DeviceUptime: 343,
+  SSHUserIP: '',
 }, {
   Mode: 'available',
   Annotation: {
@@ -263,6 +269,7 @@ export const descriptions: Description[] = [{
   LaunchedSwarming: true,
   RecoveryStart: '2021-01-12T18:33:24.063867Z',
   DeviceUptime: 657,
+  SSHUserIP: '',
 }, {
   Mode: 'available',
   Annotation: {
@@ -303,6 +310,7 @@ export const descriptions: Description[] = [{
   LaunchedSwarming: true,
   RecoveryStart: '2021-06-03T18:12:59.603173Z',
   DeviceUptime: 660,
+  SSHUserIP: '',
 }, {
   Mode: 'recovery',
   Annotation: {
@@ -343,6 +351,7 @@ export const descriptions: Description[] = [{
   LaunchedSwarming: true,
   RecoveryStart: '2021-06-03T18:20:05.427785Z',
   DeviceUptime: 891,
+  SSHUserIP: '',
 }, {
   Mode: 'available',
   Annotation: {
@@ -383,4 +392,5 @@ export const descriptions: Description[] = [{
   LaunchedSwarming: true,
   RecoveryStart: '2021-06-03T18:15:16.668578Z',
   DeviceUptime: 899,
+  SSHUserIP: '',
 }];

@@ -70,7 +70,9 @@ func TestGetState_MaintenanceAppearsInStateResponse(t *testing.T) {
 	r := httptest.NewRequest("POST", "/get_state", strings.NewReader("{\"foo\":\"bar\"}"))
 
 	m := &botmachine.Machine{}
-	m.SetMaintenanceMode(true)
+	m.UpdateDescription(machine.Description{
+		Mode: machine.ModeMaintenance,
+	})
 	s, err := New(m)
 	require.NoError(t, err)
 	w := httptest.NewRecorder()
@@ -107,7 +109,9 @@ func TestGetDimensions_Success(t *testing.T) {
 
 	s, err := New(&botmachine.Machine{})
 	require.NoError(t, err)
-	s.machine.SetDimensionsForSwarming(machine.SwarmingDimensions{"foo": {"baz", "quux"}})
+	s.machine.UpdateDescription(machine.Description{
+		Dimensions: machine.SwarmingDimensions{"foo": {"baz", "quux"}},
+	})
 
 	w := httptest.NewRecorder()
 

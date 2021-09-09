@@ -23,6 +23,7 @@ export interface Description {
 	LaunchedSwarming: boolean;
 	RecoveryStart: string;
 	DeviceUptime: number;
+	SSHUserIP: string;
 }
 
 export interface MeetingPoint {

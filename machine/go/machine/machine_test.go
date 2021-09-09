@@ -43,6 +43,7 @@ func TestCopy(t *testing.T) {
 		PowerCycle:           true,
 		RecoveryStart:        testTime,
 		DeviceUptime:         testDuration,
+		SSHUserIP:            "root@skia-sparky360-03",
 	}
 	out := in.Copy()
 	require.Equal(t, in, out)

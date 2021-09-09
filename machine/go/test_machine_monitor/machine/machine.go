@@ -26,8 +26,8 @@ const (
 
 // Machine is the interface to the machine state server. See //machine.
 type Machine struct {
-	// store is the firestore backend store for machine state.
-	store *store.StoreImpl
+	// store is how we get our dimensions and status updates from the machine state server.
+	store store.Store
 
 	// sink is how we send machine.Events to the the machine state server.
 	sink sink.Sink
@@ -55,21 +55,19 @@ type Machine struct {
 	interrogateAndSendFailures metrics2.Counter
 	storeWatchArrivalCounter   metrics2.Counter
 
-	// mutex protects dimensions and runningTask.
-	mutex sync.Mutex
-
-	// dimensions are the dimensions the machine state server wants us to report
-	// to swarming.
-	dimensions machine.SwarmingDimensions
-
-	// maintenanceMode is true if the machine should be put into maintenance mode.
-	maintenanceMode bool
-
 	// startSwarming is true if test_machine_monitor was used to launch Swarming.
 	startSwarming bool
 
 	// runningTask is true if the machine is currently running a swarming task.
 	runningTask bool
+
+	// mutex protects the description due to the fact it will be updated asynchronously via
+	// the firestore snapshot query.
+	mutex sync.Mutex
+
+	// description is provided by the machine state server. This tells us what
+	// to tell swarming, what our current mode is, etc.
+	description machine.Description
 }
 
 // New return an instance of *Machine.
@@ -96,7 +94,6 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 	}
 
 	return &Machine{
-		dimensions:                 machine.SwarmingDimensions{},
 		store:                      store,
 		sink:                       sink,
 		adb:                        adb.New(),
@@ -122,36 +119,22 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 	ret.Host.PodName = m.Hostname
 	ret.Host.KubernetesImage = m.KubernetesImage
 	ret.Host.Version = m.Version
-
-	if props, err := m.adb.RawProperties(ctx); err != nil {
-		sklog.Infof("Failed to read android properties: %s", err)
-	} else {
-		ret.Android.GetProp = props
-	}
-
-	if battery, err := m.adb.RawDumpSys(ctx, "battery"); err != nil {
-		sklog.Infof("Failed to read android battery status: %s", err)
-	} else {
-		ret.Android.DumpsysBattery = battery
-	}
-
-	if thermal, err := m.adb.RawDumpSys(ctx, "thermalservice"); err != nil {
-		sklog.Infof("Failed to read android thermal status: %s", err)
-	} else {
-		ret.Android.DumpsysThermalService = thermal
-	}
-
-	if uptime, err := m.adb.Uptime(ctx); err != nil {
-		sklog.Infof("Failed to read uptime: %s", err)
-	} else {
-		ret.Android.Uptime = uptime
-	}
-
-	ret.RunningSwarmingTask = m.runningTask
-
 	ret.Host.StartTime = m.startTime
-
+	ret.RunningSwarmingTask = m.runningTask
 	ret.LaunchedSwarming = m.startSwarming
+
+	if ce, ok := m.tryInterrogatingChromeOSDevice(ctx); ok {
+		sklog.Infof("Successful communication with ChromeOS device: %#v", ce)
+		ret.ChromeOS = ce
+	} else if ae, ok := m.tryInterrogatingAndroidDevice(ctx); ok {
+		sklog.Infof("Successful communication with Android device: %#v", ae)
+		ret.Android = ae
+	} else if ie, ok := m.tryInterrogatingIOSDevice(ctx); ok {
+		sklog.Infof("Successful communication with iOS device: %#v", ie)
+		ret.IOS = ie
+	} else {
+		sklog.Infof("No attached device found")
+	}
 
 	return ret
 }
@@ -194,39 +177,33 @@ func (m *Machine) startStoreWatch(ctx context.Context) {
 	go func() {
 		for desc := range m.store.Watch(ctx, m.MachineID) {
 			m.storeWatchArrivalCounter.Inc(1)
-			m.SetDimensionsForSwarming(desc.Dimensions)
-			m.SetMaintenanceMode(desc.Mode == machine.ModeRecovery || desc.Mode == machine.ModeMaintenance)
+			m.UpdateDescription(desc)
 		}
 	}()
 }
 
-// SetDimensionsForSwarming sets the dimensions that should be reported to swarming. Should only
-// be called by tests.
-func (m *Machine) SetDimensionsForSwarming(dims machine.SwarmingDimensions) {
+// UpdateDescription applies any change in behavior based on the new given description. This
+// impacts what we tell Swarming, what mode we are in, if we should communicate with a device
+// via SSH, etc.
+func (m *Machine) UpdateDescription(desc machine.Description) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	m.dimensions = dims
+	m.description = desc
 }
 
 // DimensionsForSwarming returns the dimensions that should be reported to swarming.
 func (m *Machine) DimensionsForSwarming() machine.SwarmingDimensions {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	return m.dimensions
+	return m.description.Dimensions
 }
 
-// SetMaintenanceMode sets if the machine should be in maintenance mode.
-func (m *Machine) SetMaintenanceMode(value bool) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	m.maintenanceMode = value
-}
-
-// GetMaintenanceMode returns true if the machine should be in maintenance mode.
+// GetMaintenanceMode returns true if the machine should report to Swarming that it is
+// in maintenance mode. Swarming does not have a "recovery" mode, so we group that in.
 func (m *Machine) GetMaintenanceMode() bool {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	return m.maintenanceMode
+	return m.description.Mode == machine.ModeRecovery || m.description.Mode == machine.ModeMaintenance
 }
 
 // SetIsRunningSwarmingTask records if a swarming task is being run.
@@ -245,9 +222,55 @@ func (m *Machine) IsRunningSwarmingTask() bool {
 
 // RebootDevice reboots the attached device.
 func (m *Machine) RebootDevice(ctx context.Context) error {
-	if len(m.dimensions[machine.DimAndroidDevices]) > 0 {
+	m.mutex.Lock()
+	shouldReboot := len(m.description.Dimensions[machine.DimAndroidDevices]) > 0
+	m.mutex.Unlock()
+
+	if shouldReboot {
 		return m.adb.Reboot(ctx)
 	}
 	sklog.Info("No attached device to reboot.")
 	return nil
+}
+
+// tryInterrogatingAndroidDevice attempts to communicate with an Android device using the
+// adb interface. If there is one attached, this function returns true and the information gathered
+// (which can be partially filled out). If there is not a device attached, false is returned.
+func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.Android, bool) {
+	var ret machine.Android
+	if uptime, err := m.adb.Uptime(ctx); err != nil {
+		sklog.Warningf("Failed to read uptime - assuming there is no device attached: %s", err)
+		return ret, false // Assume there is no Android device attached.
+	} else {
+		ret.Uptime = uptime
+	}
+
+	if props, err := m.adb.RawProperties(ctx); err != nil {
+		sklog.Warningf("Failed to read android properties: %s", err)
+	} else {
+		ret.GetProp = props
+	}
+
+	if battery, err := m.adb.RawDumpSys(ctx, "battery"); err != nil {
+		sklog.Warningf("Failed to read android battery status: %s", err)
+	} else {
+		ret.DumpsysBattery = battery
+	}
+
+	if thermal, err := m.adb.RawDumpSys(ctx, "thermalservice"); err != nil {
+		sklog.Warningf("Failed to read android thermal status: %s", err)
+	} else {
+		ret.DumpsysThermalService = thermal
+	}
+	return ret, true
+}
+
+func (m *Machine) tryInterrogatingIOSDevice(_ context.Context) (machine.IOS, bool) {
+	// TODO(erikrose)
+	return machine.IOS{}, false
+}
+
+func (m *Machine) tryInterrogatingChromeOSDevice(_ context.Context) (machine.ChromeOS, bool) {
+	// TODO(kjlubick)
+	return machine.ChromeOS{}, false
 }

@@ -23,16 +23,21 @@ go_library(
 
 go_test(
     name = "machine_test",
-    srcs = ["machine_manual_test.go"],
+    srcs = [
+        "machine_manual_test.go",
+        "machine_test.go",
+    ],
     data = glob(["testdata/**"]),
     embed = [":machine"],
     deps = [
         "//go/auth",
         "//go/executil",
+        "//go/testutils/noop",
         "//go/testutils/unittest",
         "//machine/go/machine",
         "//machine/go/machine/source/pubsubsource",
         "//machine/go/machineserver/config",
+        "//machine/go/test_machine_monitor/adb",
         "//machine/go/test_machine_monitor/swarming",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

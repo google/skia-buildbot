@@ -58,7 +58,7 @@ const (
 // definitions.
 var AllModes = []Mode{ModeAvailable, ModeMaintenance, ModeRecovery}
 
-// Annotations are timestamped messages.
+// Annotation represents a timestamped message.
 type Annotation struct {
 	Message   string
 	User      string
@@ -100,6 +100,9 @@ type Description struct {
 	LaunchedSwarming    bool      // True if test_machine_monitor launched Swarming.
 	RecoveryStart       time.Time // When did the machine start being in recovery mode.
 	DeviceUptime        int32     // Seconds
+	// SSHUserIP, for example, "root@skia-sparky360-03" indicates we should connect to the
+	// given ChromeOS device at that username and ip/hostname.
+	SSHUserIP string
 }
 
 // NewDescription returns a new Description instance. It describes an available machine with no
@@ -158,11 +161,24 @@ type Host struct {
 	StartTime time.Time `json:"start_time"`
 }
 
+// ChromeOS encapsulates the information reported by a ChromeOS machine.
+type ChromeOS struct {
+	Channel        string        `json:"channel"`
+	Milestone      string        `json:"milestone"`
+	ReleaseVersion string        `json:"release_version"`
+	Uptime         time.Duration `json:"uptime"`
+}
+
+type IOS struct {
+}
+
 // Event is the information a machine should send via Source when
 // its local state has changed.
 type Event struct {
 	EventType           EventType `json:"type"`
 	Android             Android   `json:"android"`
+	ChromeOS            ChromeOS  `json:"chromeos"`
+	IOS                 IOS       `json:"ios"`
 	Host                Host      `json:"host"`
 	RunningSwarmingTask bool      `json:"running_swarming_task"`
 

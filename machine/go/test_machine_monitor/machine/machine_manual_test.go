@@ -56,6 +56,7 @@ func setupConfig(t *testing.T) (context.Context, *pubsub.Topic, config.InstanceC
 	require.NoError(t, err)
 	if !ok {
 		topic, err = pubsubClient.CreateTopic(ctx, instanceConfig.Source.Topic)
+		require.NoError(t, err)
 	}
 	topic.Stop()
 	assert.NoError(t, err)
@@ -367,6 +368,7 @@ func TestStart_RunningSwarmingTaskInMachineIsSentInEvent(t *testing.T) {
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
 	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
+	require.NoError(t, err)
 	// We are running a task.
 	m.runningTask = true
 	require.NoError(t, err)
@@ -443,8 +445,11 @@ func TestRebootDevice_Success(t *testing.T) {
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
 	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
-	m.SetDimensionsForSwarming(machine.SwarmingDimensions{
-		machine.DimAndroidDevices: {"1"},
+	require.NoError(t, err)
+	m.UpdateDescription(machine.Description{
+		Dimensions: machine.SwarmingDimensions{
+			machine.DimAndroidDevices: {"1"},
+		},
 	})
 
 	ctx = executil.WithFakeTests(ctx,
@@ -486,9 +491,11 @@ func TestRebootDevice_ErrOnNonZeroExitCode(t *testing.T) {
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
 	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
-
-	m.SetDimensionsForSwarming(machine.SwarmingDimensions{
-		machine.DimAndroidDevices: {"1"},
+	require.NoError(t, err)
+	m.UpdateDescription(machine.Description{
+		Dimensions: machine.SwarmingDimensions{
+			machine.DimAndroidDevices: {"1"},
+		},
 	})
 
 	ctx = executil.WithFakeTests(ctx,
@@ -516,9 +523,10 @@ func TestRebootDevice_NoErrorIfNoAndroidDeviceAttached(t *testing.T) {
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
 	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
+	require.NoError(t, err)
 
-	m.SetDimensionsForSwarming(machine.SwarmingDimensions{
-		machine.DimAndroidDevices: {},
+	m.UpdateDescription(machine.Description{
+		Dimensions: machine.SwarmingDimensions{},
 	})
 
 	// If adb reboot gets called it will return an error.
@@ -539,7 +547,7 @@ func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
 		return
 	}
 
-	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
+	_, _ = fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
 
 	os.Exit(127)
 }
