@@ -21,10 +21,7 @@ go_library(
 
 go_test(
     name = "ds_test",
-    srcs = [
-        "ds_manual_test.go",
-        "ds_test.go",
-    ],
+    srcs = ["ds_test.go"],
     embed = [":ds"],
     # Datastore tests fail intermittently when running locally (i.e. not on RBE) due to tests
     # running in parallel against the same Datastore emulator instance:

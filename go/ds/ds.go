@@ -232,32 +232,6 @@ func DeleteAll(client *datastore.Client, kind Kind, wait bool) (int, error) {
 	return totalKeyCount, nil
 }
 
-// MigrateData copies all entries of the specified kind from the source datastore client
-// to the destination datastore client.
-func MigrateData(ctx context.Context, srcClient, dstClient *datastore.Client, kind Kind, createNewKey bool) error {
-	q := NewQuery(kind)
-	for t := srcClient.Run(ctx, q); ; {
-		pl := &datastore.PropertyList{}
-		key, err := t.Next(pl)
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return fmt.Errorf("Error getting the next entry from the source client: %s", err)
-		}
-
-		if createNewKey {
-			key = NewKey(kind)
-		}
-		_, err = dstClient.Put(ctx, key, pl)
-		sklog.Debugf("%s: %s", kind, key)
-		if err != nil {
-			return fmt.Errorf("Error putting %s into the destination client: %s", key, err)
-		}
-	}
-	return nil
-}
-
 // NewKey creates a new indeterminate key of the given kind.
 func NewKey(kind Kind) *datastore.Key {
 	return &datastore.Key{
