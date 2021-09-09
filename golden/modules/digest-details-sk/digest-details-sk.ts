@@ -445,7 +445,7 @@ export class DigestDetailsSk extends ElementSk {
         this.status = newStatus;
         this.triageHistory.unshift({
           user: 'me',
-          ts: Date.now().toString(),
+          ts: new Date(Date.now()).toISOString(),
         });
         this._render();
         sendEndTask(this);

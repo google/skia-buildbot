@@ -169,9 +169,6 @@ describe('digest-details-sk', () => {
     });
 
     it('includes changelist id on the appropriate links', async () => {
-      // (Cluster doesn't have changelist id for now, since that was the way it was done before).
-      // TODO(kjlubick) the new cluster page takes changelist_id and crs.
-
       expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()).to.deep.equal([
         '/detail?test=dots-legend-sk_too-many-digests'
             + '&digest=6246b773851984c726cb2e1cb13510c2&changelist_id=12345&crs=github',
