@@ -711,7 +711,7 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 		"--task_name", name,
 		"--build_dir", "buildbot",
 		"--package_name", packageName,
-		"--tag", "git_repo:" + specs.PLACEHOLDER_REPO,
+		"--metadata", "git_repo:" + specs.PLACEHOLDER_REPO,
 		"--tag", "git_revision:" + specs.PLACEHOLDER_REVISION,
 		"--ref", "latest",
 		"--rbe",
@@ -804,6 +804,8 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 		trigger = specs.TRIGGER_NIGHTLY
 	} else if strings.Contains(name, "Weekly") {
 		trigger = specs.TRIGGER_WEEKLY
+	} else if strings.Contains(name, "PerCommit-CIPD") {
+		trigger = specs.TRIGGER_MAIN_ONLY
 	}
 	b.MustAddJob(name, &specs.JobSpec{
 		Priority:  priority,

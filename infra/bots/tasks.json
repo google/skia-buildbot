@@ -16,7 +16,8 @@
     "Housekeeper-PerCommit-CIPD-SK": {
       "tasks": [
         "Housekeeper-PerCommit-CIPD-SK"
-      ]
+      ],
+      "trigger": "main"
     },
     "Housekeeper-Weekly-UpdateCIPDPackages": {
       "tasks": [
@@ -505,7 +506,7 @@
         "buildbot",
         "--package_name",
         "skia/tools/sk",
-        "--tag",
+        "--metadata",
         "git_repo:<(REPO)",
         "--tag",
         "git_revision:<(REVISION)",

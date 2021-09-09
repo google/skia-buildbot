@@ -10,6 +10,7 @@ go_library(
         "//go/cipd",
         "//go/common",
         "//go/httputils",
+        "//go/skerr",
         "//task_driver/go/lib/auth_steps",
         "//task_driver/go/lib/bazel",
         "//task_driver/go/lib/os_steps",

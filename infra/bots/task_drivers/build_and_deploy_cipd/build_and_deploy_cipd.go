@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"go.skia.org/infra/task_driver/go/lib/bazel"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
@@ -214,6 +215,20 @@ func main() {
 		// platforms to be missing when querying by ref or tag.
 		for _, pkg := range pkgs {
 			if err := td.Do(ctx, td.Props(fmt.Sprintf("Attach %s", pkg.cipdPlatform)), func(ctx context.Context) error {
+				// If any of the provided tags is already attached to a
+				// different instance, stop and return an error.
+				for _, tag := range *tags {
+					found, err := cipdClient.SearchInstances(ctx, pkg.cipdPkgPath, []string{tag})
+					if err != nil {
+						return err
+					}
+					if len(found) == 1 && found[0].InstanceID != pkg.pin.InstanceID {
+						return skerr.Fmt("Found existing instance %s of package %s with tag %s", found[0].InstanceID, pkg.cipdPkgPath, tag)
+					}
+					if len(found) > 1 {
+						return skerr.Fmt("Found more than one instance of package %s with tag %s. This may result in failure to retrieve the package by tag due to ambiguity. Please contact the current infra gardener to investigate. To detach tags, see https://g3doc.corp.google.com/company/teams/chrome/ops/luci/cipd.md#detachtags", pkg.cipdPkgPath, tag)
+					}
+				}
 				return cipdClient.Attach(ctx, pkg.pin, *refs, *tags, metadataMap)
 			}); err != nil {
 				return err
