@@ -95,51 +95,9 @@ type storeDescription struct {
 	DeviceType  []string
 	Quarantined []string
 
-	// MachineDescription is the full machine.Description.
-	// TODO(kjlubick) Remove this field after the production version has been flattened.
-	MachineDescription fsMachineDescription
-
 	// PodName and KubernetesImage are deprecated as we do not intend to run on k8s any more.
 	PodName         string
 	KubernetesImage string
-}
-
-// fsMachineDescription models how machine.Description is stored in Firestore. This serves to
-// decouple the schema stored in FS from the schema used elsewhere.
-type fsMachineDescription struct {
-	Mode machine.Mode
-
-	// Annotation is used to record the most recent user change to Description.
-	// This will be in addition to the normal auditlog of user actions:
-	// https://pkg.go.dev/go.skia.org/infra/go/auditlog?tab=doc
-	Annotation fsAnnotation
-
-	// Note is a user authored message on the state of a machine.
-	Note fsAnnotation
-
-	Dimensions machine.SwarmingDimensions
-	PodName    string
-
-	// KubernetesImage is the kubernetes image name.
-	KubernetesImage string
-
-	// Version of test_machine_monitor being run.
-	Version string
-
-	// ScheduledForDeletion will be a non-empty string and equal to PodName if
-	// the pod should be deleted.
-	ScheduledForDeletion string
-
-	// PowerCycle is true if the machine needs to be power-cycled.
-	PowerCycle bool
-
-	LastUpdated         time.Time
-	Battery             int                // Charge as an integer percent, e.g. 50% = 50.
-	Temperature         map[string]float64 // In Celsius.
-	RunningSwarmingTask bool
-	LaunchedSwarming    bool      // True if test_machine_monitor launched Swarming.
-	RecoveryStart       time.Time // When did the machine start being in recovery mode.
-	DeviceUptime        int32     // Seconds
 }
 
 // fsAnnotation models how machine.Annotation is stored in Firestore. This serves to
@@ -372,25 +330,6 @@ func convertDescription(m machine.Description) storeDescription {
 		ScheduledForDeletion: m.ScheduledForDeletion,
 		Temperature:          m.Temperature,
 		Version:              m.Version,
-		// TODO(kjlubick) Stop writing to MachineDescription
-		MachineDescription: fsMachineDescription{
-			Mode:                 m.Mode,
-			Annotation:           convertAnnotation(m.Annotation),
-			Note:                 convertAnnotation(m.Note),
-			Dimensions:           m.Dimensions,
-			PodName:              m.PodName,
-			KubernetesImage:      m.KubernetesImage,
-			Version:              m.Version,
-			ScheduledForDeletion: m.ScheduledForDeletion,
-			PowerCycle:           m.PowerCycle,
-			LastUpdated:          m.LastUpdated,
-			Battery:              m.Battery,
-			Temperature:          m.Temperature,
-			RunningSwarmingTask:  m.RunningSwarmingTask,
-			LaunchedSwarming:     m.LaunchedSwarming,
-			RecoveryStart:        m.RecoveryStart,
-			DeviceUptime:         m.DeviceUptime,
-		},
 	}
 }
 
@@ -412,25 +351,24 @@ func convertFSAnnotation(a fsAnnotation) machine.Annotation {
 
 // convertFSDescription converts the firestore version of the description to the common format.
 func convertFSDescription(s storeDescription) machine.Description {
-	// TODO(kjlubick) when the unflattening has landed, read from the unflattened struct directly.
-	m := s.MachineDescription
 	return machine.Description{
-		Mode:                 m.Mode,
-		Annotation:           convertFSAnnotation(m.Annotation),
-		Note:                 convertFSAnnotation(m.Note),
-		Dimensions:           m.Dimensions,
-		PodName:              m.PodName,
-		KubernetesImage:      m.KubernetesImage,
-		Version:              m.Version,
-		ScheduledForDeletion: m.ScheduledForDeletion,
-		PowerCycle:           m.PowerCycle,
-		LastUpdated:          m.LastUpdated,
-		Battery:              m.Battery,
-		Temperature:          m.Temperature,
-		RunningSwarmingTask:  m.RunningSwarmingTask,
-		LaunchedSwarming:     m.LaunchedSwarming,
-		RecoveryStart:        m.RecoveryStart,
-		DeviceUptime:         m.DeviceUptime,
+		Annotation:           convertFSAnnotation(s.Annotation),
+		Battery:              s.Battery,
+		DeviceUptime:         s.DeviceUptime,
+		Dimensions:           s.Dimensions,
+		KubernetesImage:      s.KubernetesImage,
+		LastUpdated:          s.LastUpdated,
+		LaunchedSwarming:     s.LaunchedSwarming,
+		Mode:                 s.Mode,
+		SSHUserIP:            s.SSHUserIP,
+		Note:                 convertFSAnnotation(s.Note),
+		PodName:              s.PodName,
+		PowerCycle:           s.PowerCycle,
+		RecoveryStart:        s.RecoveryStart,
+		RunningSwarmingTask:  s.RunningSwarmingTask,
+		ScheduledForDeletion: s.ScheduledForDeletion,
+		Temperature:          s.Temperature,
+		Version:              s.Version,
 	}
 }
 

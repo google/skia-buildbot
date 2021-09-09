@@ -25,11 +25,6 @@ func TestConvertDescription_NoDimensions(t *testing.T) {
 		Mode:        machine.ModeAvailable,
 		LastUpdated: fakeTime,
 		Dimensions:  machine.SwarmingDimensions{},
-		MachineDescription: fsMachineDescription{
-			Mode:        machine.ModeAvailable,
-			Dimensions:  machine.SwarmingDimensions{},
-			LastUpdated: fakeTime,
-		},
 	}, m)
 }
 
@@ -52,11 +47,6 @@ func TestConvertDescription_WithDimensions(t *testing.T) {
 		Dimensions:  expectedDims,
 		Mode:        machine.ModeAvailable,
 		LastUpdated: fakeTime,
-		MachineDescription: fsMachineDescription{
-			Mode:        machine.ModeAvailable,
-			LastUpdated: fakeTime,
-			Dimensions:  expectedDims,
-		},
 	}, m)
 }
 
@@ -78,12 +68,6 @@ func TestConvertDescription_WithPowerCycle(t *testing.T) {
 		Dimensions:  expectedDims,
 		LastUpdated: fakeTime,
 		PowerCycle:  true,
-		MachineDescription: fsMachineDescription{
-			Mode:        machine.ModeAvailable,
-			LastUpdated: fakeTime,
-			Dimensions:  expectedDims,
-			PowerCycle:  true,
-		},
 	}, m)
 }
 
