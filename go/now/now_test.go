@@ -5,7 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -53,4 +55,45 @@ func TestNow_InvalidValue_Panics(t *testing.T) {
 	require.Panics(t, func() {
 		Now(ctx)
 	})
+}
+
+func TestTimeTravelingContext_SetTime_ChangesWhenNowIs(t *testing.T) {
+	unittest.SmallTest(t)
+
+	firstTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	secondTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	thirdTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	ctx := TimeTravelingContext(firstTime)
+
+	assert.Equal(t, firstTime, Now(ctx))
+	time.Sleep(100 * time.Millisecond)
+	assert.Equal(t, firstTime, Now(ctx)) // Not impacted by wall clock
+
+	ctx.SetTime(secondTime)
+
+	assert.Equal(t, secondTime, Now(ctx))
+	time.Sleep(100 * time.Millisecond)
+	assert.Equal(t, secondTime, Now(ctx)) // Not impacted by wall clock
+
+	ctx.SetTime(thirdTime)
+
+	assert.Equal(t, thirdTime, Now(ctx))
+}
+
+func TestTimeTravelingContext_WithContext_AllowsWrappingContext(t *testing.T) {
+	unittest.SmallTest(t)
+
+	firstTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	secondTime := time.Date(2021, time.August, 20, 4, 0, 0, 0, time.UTC)
+
+	baseCtx := context.WithValue(context.Background(), "foo", "bar")
+
+	ctx := TimeTravelingContext(firstTime).WithContext(baseCtx)
+
+	assert.Equal(t, firstTime, Now(ctx))
+	ctx.SetTime(secondTime)
+	assert.Equal(t, secondTime, Now(ctx))
+
+	assert.Equal(t, "bar", ctx.Value("foo"))
 }

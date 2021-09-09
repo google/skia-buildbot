@@ -5,6 +5,7 @@ package now
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -48,4 +49,53 @@ func Now(ctx context.Context) time.Time {
 		}
 	}
 	return time.Now()
+}
+
+// TimeTravelCtx is a test utility that makes it easy to change the apparent time. It embeds a
+// context that contains a NowProvider to overwrite the time returned by now.Now(ctx). As an
+// example of how this might be used in a test:
+//     ctx := now.TimeTravelingContext(tsOne)
+//     result1 := myTestFunction(ctx, "param one")
+//     // simulate fast forwarding 2 minutes
+//     ctx.SetTime(tsOne.Add(2 * time.Minute))
+//     result2 := myTestFunction(ctx, "another param")
+//     // do assertions on result1 and result2
+type TimeTravelCtx struct {
+	context.Context
+
+	mutex sync.RWMutex
+	ts    time.Time
+}
+
+// TimeTravelingContext returns a *TimeTravelCtx, using the given time and the background context.
+func TimeTravelingContext(start time.Time) *TimeTravelCtx {
+	t := &TimeTravelCtx{
+		ts: start,
+	}
+	t.Context = context.WithValue(context.Background(), ContextKey, NowProvider(t.now))
+	return t
+}
+
+// now() is a thread-safe NowProvider.
+func (t *TimeTravelCtx) now() time.Time {
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
+	return t.ts
+}
+
+// SetTime updates the underlying time that will be returned by the embedded context's NowProvider.
+// It is thread-safe.
+func (t *TimeTravelCtx) SetTime(newTime time.Time) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	t.ts = newTime
+}
+
+// WithContext replaces the embedded context with one derived from the passed in context.
+// It is thread-safe, but tests should strive to use it in a non-threaded way for simplicity.
+func (t *TimeTravelCtx) WithContext(ctx context.Context) *TimeTravelCtx {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	t.Context = context.WithValue(ctx, ContextKey, NowProvider(t.now))
+	return t
 }
