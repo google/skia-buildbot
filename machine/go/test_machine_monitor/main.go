@@ -96,7 +96,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	store, err := store.New(ctx, *local, instanceConfig)
+	store, err := store.NewFirestoreImpl(ctx, *local, instanceConfig)
 	if err != nil {
 		sklog.Fatal(err)
 	}

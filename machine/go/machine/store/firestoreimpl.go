@@ -33,8 +33,8 @@ var (
 	watchRecoverBackoff int64 = 6
 )
 
-// StoreImpl implements the Store interface.
-type StoreImpl struct {
+// FirestoreImpl implements the Store interface.
+type FirestoreImpl struct {
 	firestoreClient    *firestore.Client
 	machinesCollection *gcfirestore.CollectionRef
 
@@ -132,8 +132,8 @@ type fsAnnotation struct {
 	Timestamp time.Time
 }
 
-// New returns a new instance of StoreImpl that is backed by Firestore.
-func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) (*StoreImpl, error) {
+// NewFirestoreImpl returns a new instance of FirestoreImpl that is backed by Firestore.
+func NewFirestoreImpl(ctx context.Context, local bool, instanceConfig config.InstanceConfig) (*FirestoreImpl, error) {
 	ts, err := auth.NewDefaultTokenSource(local, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create tokensource.")
@@ -143,7 +143,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create firestore client for app: %q instance: %q", appName, instanceConfig.Store.Instance)
 	}
-	return &StoreImpl{
+	return &FirestoreImpl{
 		firestoreClient:                             firestoreClient,
 		machinesCollection:                          firestoreClient.Collection(machinesCollectionName),
 		updateCounter:                               metrics2.GetCounter("machine_store_update"),
@@ -161,7 +161,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 }
 
 // Update implements the Store interface.
-func (st *StoreImpl) Update(ctx context.Context, machineID string, updateCallback UpdateCallback) error {
+func (st *FirestoreImpl) Update(ctx context.Context, machineID string, updateCallback UpdateCallback) error {
 	st.updateCounter.Inc(1)
 	docRef := st.machinesCollection.Doc(machineID)
 	return st.firestoreClient.RunTransaction(ctx, "store", "update", updateRetries, updateTimeout, func(ctx context.Context, tx *gcfirestore.Transaction) error {
@@ -186,7 +186,7 @@ func (st *StoreImpl) Update(ctx context.Context, machineID string, updateCallbac
 }
 
 // Watch implements the Store interface.
-func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine.Description {
+func (st *FirestoreImpl) Watch(ctx context.Context, machineID string) <-chan machine.Description {
 	iter := st.machinesCollection.Doc(machineID).Snapshots(ctx)
 	ch := make(chan machine.Description)
 	go func() {
@@ -226,7 +226,7 @@ func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine
 }
 
 // WatchForDeletablePods implements the Store interface.
-func (st *StoreImpl) WatchForDeletablePods(ctx context.Context) <-chan string {
+func (st *FirestoreImpl) WatchForDeletablePods(ctx context.Context) <-chan string {
 	q := st.machinesCollection.Where("ScheduledForDeletion", ">", "").Where("RunningSwarmingTask", "==", false)
 	ch := make(chan string)
 	go func() {
@@ -257,7 +257,7 @@ func (st *StoreImpl) WatchForDeletablePods(ctx context.Context) <-chan string {
 }
 
 // WatchForPowerCycle implements the Store interface.
-func (st *StoreImpl) WatchForPowerCycle(ctx context.Context) <-chan string {
+func (st *FirestoreImpl) WatchForPowerCycle(ctx context.Context) <-chan string {
 	q := st.machinesCollection.Where("PowerCycle", "==", true).Where("RunningSwarmingTask", "==", false)
 	ch := make(chan string)
 	go func() {
@@ -298,7 +298,7 @@ func (st *StoreImpl) WatchForPowerCycle(ctx context.Context) <-chan string {
 }
 
 // List implements the Store interface.
-func (st *StoreImpl) List(ctx context.Context) ([]machine.Description, error) {
+func (st *FirestoreImpl) List(ctx context.Context) ([]machine.Description, error) {
 	st.listCounter.Inc(1)
 	ret := []machine.Description{}
 	iter := st.machinesCollection.Documents(ctx)
@@ -325,7 +325,7 @@ func (st *StoreImpl) List(ctx context.Context) ([]machine.Description, error) {
 }
 
 // Delete implements the Store interface.
-func (st *StoreImpl) Delete(ctx context.Context, machineID string) error {
+func (st *FirestoreImpl) Delete(ctx context.Context, machineID string) error {
 	st.deleteCounter.Inc(1)
 
 	_, err := st.machinesCollection.Doc(machineID).Delete(ctx)
@@ -402,5 +402,5 @@ func convertFSDescription(s storeDescription) machine.Description {
 	}
 }
 
-// Affirm that StoreImpl implements the Store interface.
-var _ Store = (*StoreImpl)(nil)
+// Affirm that FirestoreImpl implements the Store interface.
+var _ Store = (*FirestoreImpl)(nil)

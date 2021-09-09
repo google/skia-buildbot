@@ -52,7 +52,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	store, err := store.New(ctx, *local, instanceConfig)
+	store, err := store.NewFirestoreImpl(ctx, *local, instanceConfig)
 	if err != nil {
 		sklog.Fatalf("Failed to build store instance: %s", err)
 	}

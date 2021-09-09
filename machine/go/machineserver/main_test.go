@@ -62,7 +62,7 @@ func TestMachineToggleModeHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx, cfg := setupForTest(t)
-	store, err := store.New(ctx, true, cfg)
+	store, err := store.NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	// Create our server.
@@ -113,7 +113,7 @@ func TestMachineToggleUpdateHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx, cfg := setupForTest(t)
-	store, err := store.New(ctx, true, cfg)
+	store, err := store.NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	const podName = "rpi-swarming-123456"
@@ -191,7 +191,7 @@ func TestMachineTogglePowerCycleHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx, cfg := setupForTest(t)
-	store, err := store.New(ctx, true, cfg)
+	store, err := store.NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	const podName = "rpi-swarming-123456"
@@ -269,7 +269,7 @@ func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx, cfg := setupForTest(t)
-	store, err := store.New(ctx, true, cfg)
+	store, err := store.NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	const podName = "rpi-swarming-123456"
@@ -335,7 +335,7 @@ func TestMachineDeleteMachineHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx, cfg := setupForTest(t)
-	store, err := store.New(ctx, true, cfg)
+	store, err := store.NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	const podName = "rpi-swarming-123456"
@@ -391,7 +391,7 @@ func TestMachineSetNoteHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx, cfg := setupForTest(t)
-	store, err := store.New(ctx, true, cfg)
+	store, err := store.NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	const podName = "rpi-swarming-123456"

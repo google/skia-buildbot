@@ -4,7 +4,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "store",
     srcs = [
-        "impl.go",
+        "firestoreimpl.go",
         "store.go",
     ],
     importpath = "go.skia.org/infra/machine/go/machine/store",
@@ -27,8 +27,8 @@ go_library(
 go_test(
     name = "store_test",
     srcs = [
-        "impl_manual_test.go",
-        "impl_test.go",
+        "firestoreimpl_manual_test.go",
+        "firestoreimpl_test.go",
     ],
     embed = [":store"],
     flaky = True,

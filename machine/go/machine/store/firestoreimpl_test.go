@@ -108,14 +108,14 @@ func setupForFlakyTest(t *testing.T) (context.Context, config.InstanceConfig) {
 func TestNew(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	_, err := New(ctx, true, cfg)
+	_, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 }
 
 func TestUpdate_CanUpdateEvenIfDescriptionDoesntExist(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	called := false
@@ -143,7 +143,7 @@ func TestUpdate_CanUpdateEvenIfDescriptionDoesntExist(t *testing.T) {
 func TestUpdate_CanUpdateIfDescriptionExists(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	// First write a Description.
@@ -171,7 +171,7 @@ func TestUpdate_CanUpdateIfDescriptionExists(t *testing.T) {
 func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -204,7 +204,7 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 func TestWatch_StartWatchBeforeMachineExists_ContinuesToTryUntilMachineExists(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	// Set this to 0 so we don't have any waiting during tests.
@@ -240,7 +240,7 @@ func TestWatch_StartWatchBeforeMachineExists_ContinuesToTryUntilMachineExists(t 
 func TestWatch_IsCancellable(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -267,7 +267,7 @@ func TestWatch_IsCancellable(t *testing.T) {
 func TestList_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	// List on an empty collection is OK.
@@ -313,7 +313,7 @@ func TestList_Success(t *testing.T) {
 func TestWatchForDeletablePods_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForFlakyTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -350,7 +350,7 @@ func TestWatchForDeletablePods_Success(t *testing.T) {
 func TestWatchForDeletablePods_OnlyMatchesTheRightMachines(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForFlakyTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -408,7 +408,7 @@ func TestWatchForDeletablePods_OnlyMatchesTheRightMachines(t *testing.T) {
 func TestWatchForDeletablePods_IsCancellable(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -443,7 +443,7 @@ func TestWatchForDeletablePods_IsCancellable(t *testing.T) {
 func TestWatchForPowerCycle_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -487,7 +487,7 @@ func TestWatchForPowerCycle_Success(t *testing.T) {
 func TestWatchForPowerCycle_OnlyMatchesTheRightMachines(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -543,7 +543,7 @@ func TestWatchForPowerCycle_OnlyMatchesTheRightMachines(t *testing.T) {
 func TestWatchForPowerCycle_ISCancellable(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -575,7 +575,7 @@ func TestDelete_Success(t *testing.T) {
 	const machineName = "skia-rpi2-rack2-shelf1-001"
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 	store.deleteCounter.Reset()
 
@@ -600,7 +600,7 @@ func TestDelete_NoErrorIfMachineDoesntExist(t *testing.T) {
 	const machineName = "skia-rpi2-rack2-shelf1-001"
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 	store.deleteCounter.Reset()
 

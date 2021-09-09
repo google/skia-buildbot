@@ -72,7 +72,7 @@ type Machine struct {
 
 // New return an instance of *Machine.
 func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, startTime time.Time, version string, startSwarming bool) (*Machine, error) {
-	store, err := store.New(ctx, false, instanceConfig)
+	store, err := store.NewFirestoreImpl(ctx, false, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to build store instance.")
 	}

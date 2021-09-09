@@ -76,7 +76,7 @@ func new() (baseapp.App, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	store, err := machineStore.New(ctx, *baseapp.Local, instanceConfig)
+	store, err := machineStore.NewFirestoreImpl(ctx, *baseapp.Local, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

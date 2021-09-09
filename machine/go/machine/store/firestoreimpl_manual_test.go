@@ -13,7 +13,7 @@ import (
 func TestWatch_StartWatchBeforeMachineExists(t *testing.T) {
 	unittest.ManualTest(t)
 	ctx, cfg := setupForFlakyTest(t)
-	store, err := New(ctx, true, cfg)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(ctx)
