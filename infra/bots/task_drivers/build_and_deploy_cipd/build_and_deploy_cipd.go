@@ -226,7 +226,7 @@ func main() {
 						return skerr.Fmt("Found existing instance %s of package %s with tag %s", found[0].InstanceID, pkg.cipdPkgPath, tag)
 					}
 					if len(found) > 1 {
-						return skerr.Fmt("Found more than one instance of package %s with tag %s. This may result in failure to retrieve the package by tag due to ambiguity. Please contact the current infra gardener to investigate. To detach tags, see https://g3doc.corp.google.com/company/teams/chrome/ops/luci/cipd.md#detachtags", pkg.cipdPkgPath, tag)
+						return skerr.Fmt("Found more than one instance of package %s with tag %s. This may result in failure to retrieve the package by tag due to ambiguity. Please contact the current infra gardener to investigate. To detach tags, see http://go/luci-cipd#detachtags", pkg.cipdPkgPath, tag)
 					}
 				}
 				return cipdClient.Attach(ctx, pkg.pin, *refs, *tags, metadataMap)
