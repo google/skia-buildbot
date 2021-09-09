@@ -72,13 +72,13 @@ func (a *authOpt) GetHTTPClient() (httpclient.HTTPClient, error) {
 	var tokenSrc oauth2.TokenSource
 	if a.Luci {
 		var err error
-		tokenSrc, err = luciauth.NewLUCIContextTokenSource(gstorage.ScopeFullControl, auth.SCOPE_USERINFO_EMAIL)
+		tokenSrc, err = luciauth.NewLUCIContextTokenSource(gstorage.ScopeFullControl, auth.ScopeUserinfoEmail)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "instantiating LUCI auth token source")
 		}
 	} else {
 		var err error
-		tokenSrc, err = auth.NewJWTServiceAccountTokenSource("", a.ServiceAccount, gstorage.ScopeFullControl, auth.SCOPE_USERINFO_EMAIL)
+		tokenSrc, err = auth.NewJWTServiceAccountTokenSource("", a.ServiceAccount, gstorage.ScopeFullControl, auth.ScopeUserinfoEmail)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "instantiating JWT auth token source")
 		}

@@ -50,7 +50,7 @@ func main() {
 
 	ctx := context.Background()
 
-	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
+	ts, err := auth.NewDefaultTokenSource(true, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
 	if err != nil {
 		log.Fatal(err)
 	}

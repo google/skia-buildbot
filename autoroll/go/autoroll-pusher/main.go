@@ -187,7 +187,7 @@ func getActiveImage(ctx context.Context, k8sCfg string) (string, error) {
 
 // getLatestImage returns the most recently uploaded image.
 func getLatestImage(image string) (string, error) {
-	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_USERINFO_EMAIL)
+	ts, err := auth.NewDefaultTokenSource(true, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to get latest image for %s; failed to get token source", image)
 	}

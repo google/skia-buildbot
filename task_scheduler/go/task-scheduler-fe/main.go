@@ -352,7 +352,7 @@ func main() {
 	// Set up token source and authenticated API clients.
 	// TODO(borenet): Should we create a new service account with fewer
 	// permissions?
-	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE)
+	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Failed to create token source: %s", err)
 	}

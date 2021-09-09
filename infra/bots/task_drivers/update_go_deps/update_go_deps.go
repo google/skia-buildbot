@@ -230,7 +230,7 @@ func main() {
 	}
 
 	// If we changed anything, upload a CL.
-	c, err := auth_steps.InitHttpClient(ctx, *local, auth.SCOPE_USERINFO_EMAIL)
+	c, err := auth_steps.InitHttpClient(ctx, *local, auth.ScopeUserinfoEmail)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}

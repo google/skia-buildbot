@@ -15,5 +15,5 @@ import (
 // Init initializes git auth for a Task Driver. Returns a TokenSource or any
 // error which occurred.
 func Init(ctx context.Context, local bool) (oauth2.TokenSource, error) {
-	return auth_steps.Init(ctx, local, auth.SCOPE_GERRIT, auth.SCOPE_USERINFO_EMAIL)
+	return auth_steps.Init(ctx, local, auth.ScopeGerrit, auth.ScopeUserinfoEmail)
 }

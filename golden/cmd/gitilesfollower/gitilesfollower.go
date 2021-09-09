@@ -134,7 +134,7 @@ func main() {
 	ctx := context.Background()
 	db := mustInitSQLDatabase(ctx, rfc)
 
-	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(false, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}

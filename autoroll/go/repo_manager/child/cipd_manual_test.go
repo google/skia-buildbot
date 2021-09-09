@@ -36,7 +36,7 @@ func TestCIPDChild_VCS(t *testing.T) {
 		Name: pkgName,
 		Tag:  pkgTag,
 	}
-	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_USERINFO_EMAIL)
+	ts, err := auth.NewDefaultTokenSource(true, auth.ScopeUserinfoEmail)
 	require.NoError(t, err)
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	wd := t.TempDir()

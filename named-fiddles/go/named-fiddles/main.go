@@ -62,7 +62,7 @@ func startSyncing(ctx context.Context, local bool, repoURL, repoDir string) (*Se
 	}
 
 	if !local {
-		ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+		ts, err := auth.NewDefaultTokenSource(false, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 		if err != nil {
 			sklog.Fatalf("Failed authentication: %s", err)
 		}

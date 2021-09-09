@@ -141,7 +141,7 @@ func (s *syncedDemos) demoHandler() func(http.ResponseWriter, *http.Request) {
 // setupGit acquires necessary credentials to clone the repo.
 func setupGit() error {
 	// Start the gitauth package because we will need to read from infra-internal.
-	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		return err
 	}

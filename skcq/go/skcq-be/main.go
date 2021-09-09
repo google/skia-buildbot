@@ -77,7 +77,7 @@ func main() {
 	maybeStartDebugServer()
 
 	// Create the token source to use for DB client and HTTP client.
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, datastore.ScopeDatastore, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, datastore.ScopeDatastore, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal("Could not create token source: %s", err)
 	}
@@ -105,7 +105,7 @@ func main() {
 	sklog.Infof("CurrentChangesCache: %+v", currentChangesCache.Get())
 
 	// Instantiate client for go/cria.
-	criaTs, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
+	criaTs, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
 	if err != nil {
 		sklog.Fatal(err)
 	}

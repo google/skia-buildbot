@@ -49,7 +49,7 @@ func step(storageClient *storage.Client) error {
 func main() {
 	common.InitWithMust("backup-to-gcs", common.PrometheusOpt(promPort))
 
-	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_FULL_CONTROL)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeFullControl)
 	if err != nil {
 		sklog.Fatalf("Problem setting up client OAuth: %s", err)
 	}

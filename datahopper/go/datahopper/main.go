@@ -63,7 +63,7 @@ func main() {
 	ctx := context.Background()
 
 	// OAuth2.0 TokenSource.
-	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, pubsub.ScopePubSub, bigtable.Scope, datastore.ScopeDatastore, swarming.AUTH_SCOPE, auth.SCOPE_READ_WRITE, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, pubsub.ScopePubSub, bigtable.Scope, datastore.ScopeDatastore, swarming.AUTH_SCOPE, auth.ScopeReadWrite, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

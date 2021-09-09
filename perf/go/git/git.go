@@ -202,7 +202,7 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 	// Do git authentication if required.
 	if instanceConfig.GitRepoConfig.GitAuthType == config.GitAuthGerrit {
 		sklog.Info("Authenticating to Gerrit.")
-		ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_GERRIT)
+		ts, err := auth.NewDefaultTokenSource(local, auth.ScopeGerrit)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to get tokensource perfgit.Git for config %v", *instanceConfig)
 		}

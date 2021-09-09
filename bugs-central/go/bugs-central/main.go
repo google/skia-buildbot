@@ -69,7 +69,7 @@ func New() (baseapp.App, error) {
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_FULL_CONTROL, datastore.ScopeDatastore)
+	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, auth.ScopeUserinfoEmail, auth.ScopeFullControl, datastore.ScopeDatastore)
 	dbClient, err := db.New(ctx, ts, *fsNamespace, *fsProjectID)
 	if err != nil {
 		sklog.Fatalf("Could not init DB: %s", err)

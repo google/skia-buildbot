@@ -86,7 +86,7 @@ func Command() *cli.Command {
 // branch.
 func releaseBranch(ctx context.Context, newBranch string, reviewers []string) error {
 	// Setup.
-	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(true, auth.ScopeGerrit)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

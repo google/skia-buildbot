@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -13,55 +15,39 @@ const (
 	tokenUrl = "http://metadata/computeMetadata/v1/instance/service-accounts/default/token"
 )
 
-func TestSkolo(t *testing.T) {
+func TestSkoloToken_ValidToken_Success(t *testing.T) {
 	unittest.SmallTest(t)
-	m := mockhttpclient.NewURLMock()
-	src := `{"access_token":"ya29.c.El...zwJOP","expires_in":900,"token_type":"Bearer"}`
-	m.Mock(tokenUrl, mockhttpclient.MockGetDialogue([]byte(src)))
 
+	const fakeToken = `{"access_token":"ya29.c.El...zwJOP","expires_in":900,"token_type":"Bearer"}`
+
+	m := mockhttpclient.NewURLMock()
+	m.Mock(tokenUrl, mockhttpclient.MockGetDialogue([]byte(fakeToken)))
 	s := skoloTokenSource{
 		client: m.Client(),
 	}
 	token, err := s.Token()
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, token)
 	assert.True(t, token.Valid())
 	assert.Equal(t, "Bearer", token.TokenType)
 	assert.True(t, time.Now().Before(token.Expiry))
 }
 
-func TestSkoloFail(t *testing.T) {
+func TestSkoloToken_InvalidToken_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
-	testCases := []struct {
-		value    string
-		hasError bool
-		message  string
-	}{
-		{
-			value:    `{"access_token":"ya29.c.El...zwJOP","expires_in":900,"token_type":"Bearer"}`,
-			hasError: false,
-			message:  "Good",
-		},
-		{
-			value:    `{"access_token":"ya29.c.El...zwJOP","token_type":"Bearer"}`,
-			hasError: true,
-			message:  "Missing expires_in.",
-		},
-		{
-			value:    `{"expires_in":900,"token_type":"Bearer"}`,
-			hasError: true,
-			message:  "Missing access_token.",
-		},
+
+	test := func(name, token string) {
+		t.Run(name, func(t *testing.T) {
+			m := mockhttpclient.NewURLMock()
+			m.Mock(tokenUrl, mockhttpclient.MockGetDialogue([]byte(token)))
+			s := skoloTokenSource{
+				client: m.Client(),
+			}
+			_, err := s.Token()
+			require.Error(t, err)
+		})
 	}
 
-	for _, tc := range testCases {
-		m := mockhttpclient.NewURLMock()
-		m.Mock(tokenUrl, mockhttpclient.MockGetDialogue([]byte(tc.value)))
-		s := skoloTokenSource{
-			client: m.Client(),
-		}
-		_, err := s.Token()
-		if got, want := (err != nil), tc.hasError; got != want {
-			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
-		}
-	}
+	test("Missing expires_in", `{"access_token":"ya29.c.El...zwJOP","token_type":"Bearer"}`)
+	test("Missing access_token", `{"expires_in":900,"token_type":"Bearer"}`)
 }

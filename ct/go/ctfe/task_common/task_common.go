@@ -809,7 +809,7 @@ func Init(ctx context.Context, local, enableAutoscaler bool, ctfeURL, serviceAcc
 	ServiceAccountFile = serviceAccountFileFlagVal
 	swarm = swarmingClient
 	casClient = cas
-	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(local, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

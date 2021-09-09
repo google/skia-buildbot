@@ -149,7 +149,7 @@ func main() {
 	common.InitWithMust(METRIC_NAME, common.PrometheusOpt(promPort))
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(*testing, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

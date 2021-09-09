@@ -57,7 +57,7 @@ type server struct {
 func getTokenSource() (oauth2.TokenSource, error) {
 	ctx := context.Background()
 	if *local {
-		return auth.NewDefaultTokenSource(true, auth.SCOPE_USERINFO_EMAIL)
+		return auth.NewDefaultTokenSource(true, auth.ScopeUserinfoEmail)
 	}
 
 	decodedKey, err := base64.StdEncoding.DecodeString(Key)
@@ -65,7 +65,7 @@ func getTokenSource() (oauth2.TokenSource, error) {
 		return nil, skerr.Wrapf(err, "failed to base64 decode key.json")
 	}
 
-	cred, err := google.CredentialsFromJSON(ctx, []byte(decodedKey), auth.SCOPE_USERINFO_EMAIL)
+	cred, err := google.CredentialsFromJSON(ctx, []byte(decodedKey), auth.ScopeUserinfoEmail)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create token source")
 	}

@@ -46,7 +46,7 @@ const (
 	maxSearchResultLimit = 500
 
 	// AuthScope is the auth scope needed to use the Gerrit API.
-	AuthScope = auth.SCOPE_GERRIT
+	AuthScope = auth.ScopeGerrit
 
 	// ChangeStatusAbandoned indicates the the change is abandoned.
 	ChangeStatusAbandoned = "ABANDONED"

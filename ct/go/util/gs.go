@@ -47,13 +47,13 @@ func NewGcsUtil(client *http.Client) (*GcsUtil, error) {
 		clientConfig := httputils.DefaultClientConfig().With2xxOnly()
 		// If ClientSecretPath exists then assume that we do not use the default token source.
 		if _, err := os.Stat(ClientSecretPath); err == nil {
-			ts, err := auth.NewLegacyTokenSource(true, GCSTokenPath, ClientSecretPath, auth.SCOPE_FULL_CONTROL)
+			ts, err := auth.NewLegacyTokenSource(true, GCSTokenPath, ClientSecretPath, auth.ScopeFullControl)
 			if err != nil {
 				return nil, err
 			}
 			clientConfig = clientConfig.WithTokenSource(ts)
 		} else {
-			ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_FULL_CONTROL)
+			ts, err := auth.NewDefaultTokenSource(false, auth.ScopeFullControl)
 			if err != nil {
 				return nil, fmt.Errorf("Problem setting up default token source: %s", err)
 			}

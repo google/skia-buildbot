@@ -56,7 +56,7 @@ func processServiceAccount(nickname string) error {
 		sklog.Fatalf("--dest is required.")
 	}
 
-	src, err := auth.NewJWTServiceAccountTokenSource("#bogus", serviceAccountFile, compute.CloudPlatformScope, auth.SCOPE_USERINFO_EMAIL)
+	src, err := auth.NewJWTServiceAccountTokenSource("#bogus", serviceAccountFile, compute.CloudPlatformScope, auth.ScopeUserinfoEmail)
 	if err != nil {
 		sklog.Fatal(err)
 	}

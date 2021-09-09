@@ -64,7 +64,7 @@ func main() {
 		)
 	}
 
-	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL)
+	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail)
 	if err != nil {
 		sklog.Fatal(err)
 	}

@@ -46,7 +46,7 @@ func main() {
 	var w io.WriteCloser = os.Stdout
 	if *dest != "" {
 		if strings.HasPrefix(*dest, "gs://") {
-			ts, err := auth.NewDefaultJWTServiceAccountTokenSource(auth.SCOPE_READ_WRITE)
+			ts, err := auth.NewDefaultJWTServiceAccountTokenSource(auth.ScopeReadWrite)
 			if err != nil {
 				sklog.Fatalf("Problem setting up client OAuth: %s", err)
 			}

@@ -35,7 +35,7 @@ type gerritSource struct {
 
 // New returns a new Source.
 func New(local bool, st SearchType) (source.Source, error) {
-	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(local, auth.ScopeGerrit)
 	if err != nil {
 		return nil, err
 	}

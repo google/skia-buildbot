@@ -157,7 +157,7 @@ func main() {
 	ctx = golang.WithEnv(ctx, wd)
 
 	// Create token source with scope for cloud registry (storage) and pubsub.
-	ts, err := auth_steps.Init(ctx, *local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_FULL_CONTROL, pubsub.ScopePubSub)
+	ts, err := auth_steps.Init(ctx, *local, auth.ScopeUserinfoEmail, auth.ScopeFullControl, pubsub.ScopePubSub)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}

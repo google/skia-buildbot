@@ -33,7 +33,7 @@ func Init(appName string) (swarming.ApiClient, cas.CAS, error) {
 	initRest()
 
 	// Use task based authentication and Luci context.
-	ts, err := luciauth.NewLUCIContextTokenSource(auth.SCOPE_FULL_CONTROL, compute.CloudPlatformScope)
+	ts, err := luciauth.NewLUCIContextTokenSource(auth.ScopeFullControl, compute.CloudPlatformScope)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not get token source: %s", err)
 	}

@@ -37,7 +37,7 @@ var (
 func New() (baseapp.App, error) {
 	ctx := context.Background()
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, nil)
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, auth.SCOPE_USERINFO_EMAIL, datastore.ScopeDatastore)
+	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, auth.ScopeUserinfoEmail, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal("Could not create token source: %s", err)
 	}

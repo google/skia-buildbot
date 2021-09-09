@@ -86,7 +86,7 @@ func main() {
 	var ts oauth2.TokenSource
 	if err := td.Do(ctx, td.Props("Setup").Infra(), func(ctx context.Context) error {
 		var err error
-		ts, err = auth_steps.Init(ctx, *local, auth.SCOPE_USERINFO_EMAIL)
+		ts, err = auth_steps.Init(ctx, *local, auth.ScopeUserinfoEmail)
 		if err != nil {
 			return err
 		}

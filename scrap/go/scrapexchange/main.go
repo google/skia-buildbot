@@ -45,7 +45,7 @@ func New() (baseapp.App, error) {
 		return nil, skerr.Fmt("--bucket is a required flag.")
 	}
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, storage.ScopeFullControl, auth.SCOPE_USERINFO_EMAIL)
+	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, storage.ScopeFullControl, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

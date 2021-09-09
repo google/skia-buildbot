@@ -193,7 +193,7 @@ func startCommentOnCLs(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksC
 // mustInitializeSystems creates code_review.Clients and returns them wrapped as a ReviewSystem.
 // It panics if any part of configuration fails.
 func mustInitializeSystems(ptc periodicTasksConfig) []commenter.ReviewSystem {
-	tokenSource, err := auth.NewDefaultTokenSource(ptc.Local, auth.SCOPE_GERRIT)
+	tokenSource, err := auth.NewDefaultTokenSource(ptc.Local, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}

@@ -48,7 +48,7 @@ func main() {
 		sklog.Fatal("--gerrit_instance is required.")
 	}
 
-	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(true, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

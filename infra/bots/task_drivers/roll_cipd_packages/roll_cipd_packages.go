@@ -131,7 +131,7 @@ func main() {
 	sort.Sort(cipd.PackageSlice(pkgs))
 
 	// Find the latest versions of the desired packages.
-	c, err := auth_steps.InitHttpClient(ctx, *local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	c, err := auth_steps.InitHttpClient(ctx, *local, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}

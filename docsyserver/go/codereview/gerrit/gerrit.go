@@ -31,7 +31,7 @@ type gerritCodeReview struct {
 //
 // The gerritURL value would probably be gerrit.GerritSkiaURL.
 func New(local bool, gerritURL, gitilesURL string) (*gerritCodeReview, error) {
-	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(local, auth.ScopeGerrit)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

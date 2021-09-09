@@ -65,7 +65,7 @@ func Init(ctx context.Context, useDepotTools bool) (*http.Client, error) {
 		}
 	}
 	// Use task based authentication and Luci context.
-	ts, err := luciauth.NewLUCIContextTokenSource(auth.SCOPE_FULL_CONTROL)
+	ts, err := luciauth.NewLUCIContextTokenSource(auth.ScopeFullControl)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get token source: %s", err)
 	}

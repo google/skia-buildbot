@@ -47,7 +47,7 @@ type server struct {
 
 // newServer creates a new *server with a running Go routine that refreshes the token.
 func newServer() (*server, error) {
-	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL)
+	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create token source.")
 	}
@@ -97,7 +97,7 @@ func (s *server) step() error {
 
 	// We need to re-create the tokenSource to force it to fetch a fresh token.
 	// See https://github.com/golang/oauth2/pull/396.
-	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL)
+	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create token source.")
 	}

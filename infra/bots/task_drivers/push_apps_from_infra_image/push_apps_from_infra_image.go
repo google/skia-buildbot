@@ -123,7 +123,7 @@ func main() {
 	ctx = golang.WithEnv(ctx, wd)
 
 	// Create token source with scope for cloud registry (storage), pubsub and gerrit.
-	ts, err := auth_steps.Init(ctx, *local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_FULL_CONTROL, pubsub.ScopePubSub, auth.SCOPE_GERRIT)
+	ts, err := auth_steps.Init(ctx, *local, auth.ScopeUserinfoEmail, auth.ScopeFullControl, pubsub.ScopePubSub, auth.ScopeGerrit)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}

@@ -103,7 +103,7 @@ func newServer() *Server {
 
 	serverNames := config.AllServerNames()
 
-	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeFullControl, auth.ScopeCompute)
 	if err != nil {
 		sklog.Fatalf("Failed to create authenticated HTTP client token source: %s", err)
 	}

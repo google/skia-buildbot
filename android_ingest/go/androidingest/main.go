@@ -78,7 +78,7 @@ func initialize() {
 	uploads = metrics2.GetCounter("uploads", nil)
 	badFiles = metrics2.GetCounter("bad_files", nil)
 	// Create a new auth'd client for androidbuildinternal.
-	ts, err := auth.NewDefaultTokenSource(*local, androidbuildinternal.AndroidbuildInternalScope, storage.ScopeReadWrite, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(*local, androidbuildinternal.AndroidbuildInternalScope, storage.ScopeReadWrite, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatalf("Unable to create authenticated token source: %s", err)
 	}

@@ -27,9 +27,9 @@ import (
 )
 
 const (
-	DEFAULT_JWT_FILENAME           = "service-account.json"
-	DEFAULT_CLIENT_SECRET_FILENAME = "client_secret.json"
-	DEFAULT_TOKEN_STORE_FILENAME   = "google_storage_token.data"
+	defaultJwtFilename          = "service-account.json"
+	defaultClientSecretFilename = "client_secret.json"
+	defaultTokenStoreFilename   = "google_storage_token.data"
 )
 
 // NewDefaultTokenSource creates a new OAuth 2.0 token source. If local is true
@@ -90,6 +90,7 @@ func NewGCloudTokenSource(projectId string) oauth2.TokenSource {
 	return oauth2.ReuseTokenSource(nil, ts)
 }
 
+// Token implements oauth2.TokenSource by returning a local user's token via gcloud.
 func (g *gcloudTokenSource) Token() (*oauth2.Token, error) {
 	buf := bytes.Buffer{}
 	errBuf := bytes.Buffer{}
@@ -108,7 +109,7 @@ func (g *gcloudTokenSource) Token() (*oauth2.Token, error) {
 	if err := exec.Run(context.Background(), gcloudCmd); err != nil {
 		return nil, fmt.Errorf("Failed fetching access token: %s - %s", err, errBuf.String())
 	}
-	type TokenResponse struct {
+	type tokenResponse struct {
 		AccessToken  string `json:"access_token"`
 		ExpiresInSec int    `json:"expires_in"`
 		TokenType    string `json:"token_type"`
@@ -120,7 +121,7 @@ func (g *gcloudTokenSource) Token() (*oauth2.Token, error) {
 	// new version of gcloud then the res struct can be simplified to struct {
 	// Token string `json:"token"`}.
 	var res struct {
-		TokenResponse TokenResponse `json:"token_response"`
+		TokenResponse tokenResponse `json:"token_response"`
 		Token         string        `json:"token"`
 	}
 	if err := json.NewDecoder(&buf).Decode(&res); err != nil {
@@ -172,7 +173,7 @@ func NewLegacyTokenSource(local bool, oauthCacheFile string, oauthConfigFile str
 	var config *oauth2.Config = nil
 	if local {
 		if oauthConfigFile == "" {
-			oauthConfigFile = DEFAULT_CLIENT_SECRET_FILENAME
+			oauthConfigFile = defaultClientSecretFilename
 		}
 		body, err := ioutil.ReadFile(oauthConfigFile)
 		if err != nil {
@@ -193,7 +194,7 @@ func NewLegacyTokenSource(local bool, oauthCacheFile string, oauthConfigFile str
 // running in GCE, and the Skolo access token provider is used if running in Skolo.
 func newLegacyTokenSourceFromConfig(local bool, config *oauth2.Config, oauthCacheFile string) (oauth2.TokenSource, error) {
 	if oauthCacheFile == "" {
-		oauthCacheFile = DEFAULT_TOKEN_STORE_FILENAME
+		oauthCacheFile = defaultTokenStoreFilename
 	}
 
 	if local {
@@ -210,18 +211,15 @@ func newLegacyTokenSourceFromConfig(local bool, config *oauth2.Config, oauthCach
 }
 
 const (
-	// Supported Cloud storage API OAuth scopes.
-	SCOPE_READ_ONLY         = storage.DevstorageReadOnlyScope
-	SCOPE_READ_WRITE        = storage.DevstorageReadWriteScope
-	SCOPE_FULL_CONTROL      = storage.DevstorageFullControlScope
-	SCOPE_COMPUTE_READ_ONLY = compute.ComputeReadonlyScope
-	SCOPE_GCE               = compute.ComputeScope
-	SCOPE_GERRIT            = "https://www.googleapis.com/auth/gerritcodereview"
-	SCOPE_PLUS_ME           = "https://www.googleapis.com/auth/plus.me"
-	SCOPE_PUBSUB            = pubsub.ScopePubSub
-	SCOPE_USERINFO_EMAIL    = "https://www.googleapis.com/auth/userinfo.email"
-	SCOPE_USERINFO_PROFILE  = "https://www.googleapis.com/auth/userinfo.profile"
-	ScopeAllCloudAPIs       = iam.CloudPlatformScope
+	ScopeReadOnly        = storage.DevstorageReadOnlyScope
+	ScopeReadWrite       = storage.DevstorageReadWriteScope
+	ScopeFullControl     = storage.DevstorageFullControlScope
+	ScopeCompute         = compute.ComputeScope
+	ScopeGerrit          = "https://www.googleapis.com/auth/gerritcodereview"
+	ScopePubsub          = pubsub.ScopePubSub
+	ScopeUserinfoEmail   = "https://www.googleapis.com/auth/userinfo.email"
+	ScopeUserinfoProfile = "https://www.googleapis.com/auth/userinfo.profile"
+	ScopeAllCloudAPIs    = iam.CloudPlatformScope
 )
 
 // skoloTokenSource implements the oauth2.TokenSource interface using tokens
@@ -243,12 +241,12 @@ func (s *skoloTokenSource) Token() (*oauth2.Token, error) {
 		return nil, fmt.Errorf("Failed to retrieve token: %s", err)
 	}
 	defer util.Close(resp.Body)
-	type TokenResponse struct {
+	type tokenResponse struct {
 		AccessToken  string `json:"access_token"`
 		ExpiresInSec int    `json:"expires_in"`
 		TokenType    string `json:"token_type"`
 	}
-	var res TokenResponse
+	var res tokenResponse
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return nil, fmt.Errorf("Invalid token JSON from metadata: %v", err)
 	}
@@ -373,7 +371,7 @@ func NewJWTServiceAccountTokenSource(metadataname, filename string, scopes ...st
 		metadataname = metadata.JWT_SERVICE_ACCOUNT
 	}
 	if filename == "" {
-		filename = DEFAULT_JWT_FILENAME
+		filename = defaultJwtFilename
 	}
 	var body []byte
 	jwt, err := metadata.ProjectGet(metadataname)
@@ -404,15 +402,3 @@ func NewJWTServiceAccountTokenSource(metadataname, filename string, scopes ...st
 func NewDefaultJWTServiceAccountTokenSource(scopes ...string) (oauth2.TokenSource, error) {
 	return NewJWTServiceAccountTokenSource("", "", scopes...)
 }
-
-// SimpleTokenSrc implements the oauth2.TokenSource interface and wraps around a token
-// that has been retrieved by other means
-func SimpleTokenSrc(token *oauth2.Token) oauth2.TokenSource {
-	return &simpleTokenSrc{token: token}
-}
-
-type simpleTokenSrc struct {
-	token *oauth2.Token
-}
-
-func (s *simpleTokenSrc) Token() (*oauth2.Token, error) { return s.token, nil }

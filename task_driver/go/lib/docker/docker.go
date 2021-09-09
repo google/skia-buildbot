@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	AUTH_SCOPES = []string{auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_FULL_CONTROL}
+	AUTH_SCOPES = []string{auth.ScopeUserinfoEmail, auth.ScopeFullControl}
 
 	REPOSITORY_HOST = "gcr.io"
 

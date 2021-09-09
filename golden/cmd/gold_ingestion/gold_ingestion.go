@@ -139,7 +139,7 @@ func main() {
 	ctx := context.Background()
 
 	// Initialize oauth client and start the ingesters.
-	tokenSrc, err := auth.NewDefaultTokenSource(isc.Local, auth.SCOPE_USERINFO_EMAIL, storage.ScopeFullControl, pubsub.ScopePubSub, pubsub.ScopeCloudPlatform, swarming.AUTH_SCOPE, auth.SCOPE_GERRIT)
+	tokenSrc, err := auth.NewDefaultTokenSource(isc.Local, auth.ScopeUserinfoEmail, storage.ScopeFullControl, pubsub.ScopePubSub, pubsub.ScopeCloudPlatform, swarming.AUTH_SCOPE, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}

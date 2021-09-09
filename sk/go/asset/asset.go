@@ -289,9 +289,9 @@ func getCIPDClient(ctx context.Context, rootDir string, local bool) (cipd.CIPDCl
 	var ts oauth2.TokenSource
 	var err error
 	if local {
-		ts, err = auth.NewDefaultTokenSource(local, auth.SCOPE_USERINFO_EMAIL)
+		ts, err = auth.NewDefaultTokenSource(local, auth.ScopeUserinfoEmail)
 	} else {
-		ts, err = luciauth.NewLUCIContextTokenSource(auth.SCOPE_USERINFO_EMAIL)
+		ts, err = luciauth.NewLUCIContextTokenSource(auth.ScopeUserinfoEmail)
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)

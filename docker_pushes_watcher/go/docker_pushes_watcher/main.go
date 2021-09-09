@@ -304,7 +304,7 @@ func main() {
 	dummyPushFailure.Reset()
 
 	// Create token source.
-	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GERRIT, pubsub.ScopePubSub, datastore.ScopeDatastore)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, auth.ScopeFullControl, auth.ScopeGerrit, pubsub.ScopePubSub, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}

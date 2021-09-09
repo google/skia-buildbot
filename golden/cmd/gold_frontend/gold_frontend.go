@@ -299,7 +299,7 @@ func mustSetUpOAuth2Login(fsc *frontendServerConfig) {
 func mustMakeAuthenticatedHTTPClient(local bool) *http.Client {
 	// Get the token source for the service account with access to the services
 	// we need to operate.
-	tokenSource, err := auth.NewDefaultTokenSource(local, auth.SCOPE_USERINFO_EMAIL, gstorage.CloudPlatformScope, auth.SCOPE_GERRIT)
+	tokenSource, err := auth.NewDefaultTokenSource(local, auth.ScopeUserinfoEmail, gstorage.CloudPlatformScope, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}

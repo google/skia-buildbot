@@ -100,7 +100,7 @@ func New() (baseapp.App, error) {
 
 	var modify allowed.Allow
 	if !*baseapp.Local {
-		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
+		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
 		if err != nil {
 			return nil, err
 		}

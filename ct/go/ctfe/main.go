@@ -368,7 +368,7 @@ func main() {
 	}
 
 	// Create authenticated HTTP client.
-	httpClientTokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_ONLY, swarming.AUTH_SCOPE)
+	httpClientTokenSource, err := auth.NewDefaultTokenSource(*local, auth.ScopeReadOnly, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}

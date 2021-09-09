@@ -261,7 +261,7 @@ func runChromiumAnalysisOnWorkers() error {
 
 	if *groupName != "" {
 		// Start the gitauth package because we will need to commit to CT Perf's synthetic repo.
-		ts, err := auth.NewDefaultTokenSource(*master_common.Local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+		ts, err := auth.NewDefaultTokenSource(*master_common.Local, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 		if err != nil {
 			return err
 		}
