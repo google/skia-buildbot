@@ -36,19 +36,23 @@ export class BulkTriageSk extends ElementSk {
     ${el.changeListID ? html`<p class=cl>This affects Changelist ${el.changeListID}.</p>` : ''}
     <div class=status>
       <button class="positive ${el.value === 'positive' ? 'selected' : ''}"
-              @click=${() => el._setDesiredLabel('positive')}>
+              @click=${() => el._setDesiredLabel('positive')}
+              title="Triage all the left-hand images as positive."  >
         <check-circle-icon-sk></check-circle-icon-sk>
       </button>
       <button class="negative ${el.value === 'negative' ? 'selected' : ''}"
-              @click=${() => el._setDesiredLabel('negative')}>
+              @click=${() => el._setDesiredLabel('negative')}
+              title="Triage all the left-hand images as negative.">
         <cancel-icon-sk></cancel-icon-sk>
       </button>
       <button class="untriaged ${el.value === 'untriaged' ? 'selected' : ''}"
-              @click=${() => el._setDesiredLabel('untriaged')}>
+              @click=${() => el._setDesiredLabel('untriaged')}
+              title="Unset the triage status of all left-hand images.">
         <help-icon-sk></help-icon-sk>
       </button>
       <button class="closest ${el.value === 'closest' ? 'selected' : ''}"
-              @click=${() => el._setDesiredLabel('closest')}>
+              @click=${() => el._setDesiredLabel('closest')}
+              title="Triage all the left-hand images the same as the closest image.">
         <view-agenda-icon-sk></view-agenda-icon-sk>
       </button>
     </div>
@@ -91,7 +95,7 @@ export class BulkTriageSk extends ElementSk {
     super(BulkTriageSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
@@ -100,11 +104,11 @@ export class BulkTriageSk extends ElementSk {
    * The label to apply ("positive", "negative", "untriaged"), or "closest" to apply the label of
    * of the closest triaged reference digest in each case.
    */
-  get value() {
+  get value(): BulkTriageLabel {
     return this._value;
   }
 
-  set value(newValue) {
+  set value(newValue: BulkTriageLabel) {
     if (!['positive', 'negative', 'untriaged', 'closest'].includes(newValue)) {
       throw new RangeError(`Invalid bulk-triage-sk value: "${newValue}".`);
     }
@@ -116,11 +120,11 @@ export class BulkTriageSk extends ElementSk {
    * The ID of the changelist to which these expectations should belong, or the empty string if
    * none.
    */
-  get changeListID() {
+  get changeListID(): string {
     return this._changeListID;
   }
 
-  set changeListID(newValue) {
+  set changeListID(newValue: string) {
     this._changeListID = newValue;
     this._render();
   }
@@ -129,11 +133,11 @@ export class BulkTriageSk extends ElementSk {
    * The Code Review System (e.g. "gerrit") associated with the provided changelist ID, or the empty
    * string if none.
    */
-  get crs() {
+  get crs(): string {
     return this._crs;
   }
 
-  set crs(c) {
+  set crs(c: string) {
     this._crs = c;
     this._render();
   }
@@ -183,11 +187,11 @@ export class BulkTriageSk extends ElementSk {
    *
    * The labels will be applied when using the "closest" bulk triage option.
    */
-  get currentPageDigests() { return this._pageDigests; }
+  get currentPageDigests(): TriageRequestData { return this._pageDigests; }
 
   set currentPageDigests(digests: TriageRequestData) {
     this._pageDigests = digests;
-    this._pageDigestCount = this.countDigests(digests);
+    this._pageDigestCount = BulkTriageSk.countDigests(digests);
     this._render();
   }
 
@@ -197,21 +201,21 @@ export class BulkTriageSk extends ElementSk {
    *
    * The labels will be applied when using the "closest" bulk triage option.
    */
-  get allDigests() { return this._allDigests; }
+  get allDigests(): TriageRequestData { return this._allDigests; }
 
   set allDigests(digests: TriageRequestData) {
     this._allDigests = digests;
-    this._allDigestCount = this.countDigests(digests);
+    this._allDigestCount = BulkTriageSk.countDigests(digests);
     this._render();
   }
 
-  get useOldAPI() { return this._useOldAPI; }
+  get useOldAPI(): boolean { return this._useOldAPI; }
 
   set useOldAPI(b: boolean) {
     this._useOldAPI = b;
   }
 
-  private countDigests(testDigestLabelMap: TriageRequestData): number {
+  private static countDigests(testDigestLabelMap: TriageRequestData): number {
     let count = 0;
     if (!testDigestLabelMap) {
       return 0;
