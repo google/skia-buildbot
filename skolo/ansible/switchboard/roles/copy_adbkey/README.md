@@ -28,7 +28,6 @@ You can see this secret in the list of all secrets for the `etc` cluster:
         skolo-service-accounts
         skolo-bot-service-account
         skia-rpi-adb-key
-        k3s-node-token
         authorized_keys
         ansible-secret-vars
 

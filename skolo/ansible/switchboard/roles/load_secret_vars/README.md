@@ -11,7 +11,6 @@ the cluster `etc` and the secret name `ansible-secret-vars`.
 You can see this secret in the list of all secrets for the `etc` cluster:
 
     $ ./kube/secrets/list-secrets-by-cluster.sh etc
-    k3s-node-token
     authorized_keys
     ansible-secret-vars
 

@@ -17,13 +17,13 @@ import (
 
 // Cluster is detailed info on a particular cluster in a ClusterConfig.
 type Cluster struct {
-	// Type is the type of cluster, either "gke", or "k3s".
+	// Type is the type of cluster: always "gke", previously could be "k3s".
 	Type string `json:"type"`
 
-	// Zone is the GCE zone. Not supplied for clusters of type "k3s".
+	// Zone is the GCE zone.
 	Zone string `json:"zone"`
 
-	// Project is the GCE project name, e.g. google.com:skia-corp. Not supplied for clusters of type "k3s".
+	// Project is the GCE project name, e.g. google.com:skia-corp.
 	Project string `json:"project"`
 
 	// ContextName is the name of the context the cluster should have e.g. gke_skia-public_us-central1-a_skia-public

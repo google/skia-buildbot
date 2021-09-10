@@ -37,38 +37,12 @@ mkdir -p ${DIR}
 # Make kubectl use that config.
 export KUBECONFIG=${DIR}/config
 
-if [ "${TYPE}" == "gke" ]; then
-    # Since we've set KUBECONFIG at this point the following commands will
-    # change that file, not the default one at ~/.kube/config.
-    PROJECT=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".project")
-    ZONE=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".zone")
-    gcloud container clusters get-credentials ${CLUSTER} --zone ${ZONE} --project ${PROJECT}
-    gcloud config set project ${PROJECT}
-else # Type == "k3s".
-    JUMPHOST=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".jumphost")
-    PORT=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".port")
-
-    # Grab config from the kubernetes cluster and store in the config file.
-    ssh ${JUMPHOST} "sudo kubectl config view --raw" > ${DIR}/config
-
-    # Set up port-forward to the k83 control endpoint and record the PID of the
-    # background task.
-    ssh -N -L ${PORT}:localhost:6443 ${JUMPHOST} &
-    PID=$!
-
-    # Wait until the port is available.
-    until nc -z localhost ${PORT}
-    do
-        sleep 1
-        echo "Waiting for port-forward to come up."
-    done
-
-    # Change the name so we can track which cluster we are talking to.
-    kubectl config rename-context default ${CLUSTER}
-    kubectl config set-cluster default --server=https://127.0.0.1:${PORT}
-
-    echo ${PID} > ${DIR}/pid
-fi
+# Since we've set KUBECONFIG at this point the following commands will
+# change that file, not the default one at ~/.kube/config.
+PROJECT=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".project")
+ZONE=$(cat ${REL}/../kube/clusters/config.json | jq -r ".clusters.\"${CLUSTER}\".zone")
+gcloud container clusters get-credentials ${CLUSTER} --zone ${ZONE} --project ${PROJECT}
+gcloud config set project ${PROJECT}
 
 # Protect the config file.
 chmod 600 ${DIR}/config

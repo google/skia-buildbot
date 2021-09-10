@@ -19,12 +19,6 @@
             "zone": "us-central1-c",
             "project": "skia-switchboard",
             "context_name": "gke_skia-switchboard_us-central1_skia-switchboard"
-        },
-        "skolo-rack4": {
-            "type": "k3s",
-            "context_name": "skolo-rack4",
-            "jumphost": "rack4",
-            "port": "6442"
         }
     }
 }

@@ -25,7 +25,6 @@ You can see all secrets for the `etc` cluster by running:
         skolo-service-accounts
         skolo-bot-service-account
         skia-rpi-adb-key
-        k3s-node-token
         authorized_keys
         ansible-secret-vars
 
