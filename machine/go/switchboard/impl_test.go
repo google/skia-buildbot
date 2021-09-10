@@ -1,7 +1,6 @@
 package switchboard
 
 import (
-	"context"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -27,7 +26,7 @@ var (
 	userName = "chrome-bot"
 )
 
-func setupForTest(t *testing.T) (context.Context, *switchboardImpl) {
+func setupForTest(t *testing.T) (*now.TimeTravelCtx, *switchboardImpl) {
 	unittest.RequiresFirestoreEmulator(t)
 	cfg := config.InstanceConfig{
 		Store: config.Store{
@@ -35,13 +34,12 @@ func setupForTest(t *testing.T) (context.Context, *switchboardImpl) {
 			Instance: fmt.Sprintf("test-%s", uuid.New()),
 		},
 	}
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, now.ContextKey, mockTime)
+	ctx := now.TimeTravelingContext(mockTime)
 	s, err := New(ctx, true, cfg)
+	require.NoError(t, err)
 	for _, c := range s.counters {
 		c.Reset()
 	}
-	require.NoError(t, err)
 	return ctx, s
 }
 
@@ -122,7 +120,7 @@ func TestKeepAlivePod_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	newMockTime := mockTime.Add(time.Hour)
-	ctx = context.WithValue(ctx, now.ContextKey, newMockTime)
+	ctx.SetTime(newMockTime)
 
 	// Call KeepAlivePod so the time gets updated.
 	err = s.KeepAlivePod(ctx, podName)
@@ -277,7 +275,7 @@ func TestKeepAliveMeetingPoint_Success(t *testing.T) {
 
 	// Advance the mock time.
 	newMockTime := mockTime.Add(time.Hour)
-	ctx = context.WithValue(ctx, now.ContextKey, newMockTime)
+	ctx.SetTime(newMockTime)
 
 	// newMockTime should be used for LastUpdated.
 	err = s.KeepAliveMeetingPoint(ctx, meetingPoint)

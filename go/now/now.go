@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type ContextKeyType string
+type contextKeyType string
 
 // ContextKey is used by tests to make the time deterministic.
 //
@@ -28,12 +28,13 @@ type ContextKeyType string
 //    }
 //    ctx = context.WithValue(ctx, now.ContextKey, now.NowProvider(mockTimeProvider))
 //
-const ContextKey ContextKeyType = "overwriteNow"
+const ContextKey contextKeyType = "overwriteNow"
 
 // NowProvider is the type of function that can also be passed as a context
 // value. The function will be evaluated every time Now() is called with that
 // context. NowProvider should be threadsafe if the context is used across
 // threads.
+// Clients that need the time to vary throughout tests should probably use TimeTravelCtx
 type NowProvider func() time.Time
 
 // Now returns the current time or the time from the context.

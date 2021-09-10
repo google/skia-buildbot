@@ -18,8 +18,7 @@ import (
 
 func TestConvertDescription_NoDimensions(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := contextWithFakeTime()
-	d := machine.NewDescription(ctx)
+	d := machine.NewDescription(now.TimeTravelingContext(fakeTime))
 	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
 		Mode:        machine.ModeAvailable,
@@ -30,8 +29,7 @@ func TestConvertDescription_NoDimensions(t *testing.T) {
 
 func TestConvertDescription_WithDimensions(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := contextWithFakeTime()
-	d := machine.NewDescription(ctx)
+	d := machine.NewDescription(now.TimeTravelingContext(fakeTime))
 	d.Dimensions = machine.SwarmingDimensions{
 		machine.DimOS:          []string{"Android"},
 		machine.DimDeviceType:  []string{"sailfish"},
@@ -52,8 +50,7 @@ func TestConvertDescription_WithDimensions(t *testing.T) {
 
 func TestConvertDescription_WithPowerCycle(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := contextWithFakeTime()
-	d := machine.NewDescription(ctx)
+	d := machine.NewDescription(now.TimeTravelingContext(fakeTime))
 	d.Dimensions = machine.SwarmingDimensions{
 		machine.DimOS: []string{"Android"},
 	}
@@ -79,7 +76,7 @@ func setupForTest(t *testing.T) (context.Context, config.InstanceConfig) {
 			Instance: fmt.Sprintf("test-%s", uuid.New()),
 		},
 	}
-	return contextWithFakeTime(), cfg
+	return now.TimeTravelingContext(fakeTime), cfg
 }
 
 func setupForFlakyTest(t *testing.T) (context.Context, config.InstanceConfig) {
@@ -90,7 +87,7 @@ func setupForFlakyTest(t *testing.T) (context.Context, config.InstanceConfig) {
 			Instance: fmt.Sprintf("test-%s", uuid.New()),
 		},
 	}
-	return contextWithFakeTime(), cfg
+	return now.TimeTravelingContext(fakeTime), cfg
 }
 
 func TestNew(t *testing.T) {
@@ -599,7 +596,3 @@ func TestDelete_NoErrorIfMachineDoesntExist(t *testing.T) {
 }
 
 var fakeTime = time.Date(2021, time.September, 1, 0, 0, 0, 0, time.UTC)
-
-func contextWithFakeTime() context.Context {
-	return context.WithValue(context.Background(), now.ContextKey, fakeTime)
-}

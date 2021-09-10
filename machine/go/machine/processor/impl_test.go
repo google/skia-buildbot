@@ -155,10 +155,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	fakeTime := stateTime
-	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
-		return fakeTime
-	}))
+	ctx := now.TimeTravelingContext(stateTime)
 
 	// The current machine has nothing attached.
 	previous := machine.NewDescription(ctx)
@@ -188,7 +185,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		},
 	}
 
-	fakeTime = serverTime
+	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
@@ -284,10 +281,7 @@ func TestProcess_ClearScheduledForDeletionOnPodNameChange(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	fakeTime := stateTime
-	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
-		return fakeTime
-	}))
+	ctx := now.TimeTravelingContext(stateTime)
 
 	// The current machine has nothing attached.
 	previous := machine.NewDescription(ctx)
@@ -306,7 +300,7 @@ func TestProcess_ClearScheduledForDeletionOnPodNameChange(t *testing.T) {
 		},
 	}
 
-	fakeTime = serverTime
+	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
@@ -323,10 +317,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	fakeTime := stateTime
-	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
-		return fakeTime
-	}))
+	ctx := now.TimeTravelingContext(stateTime)
 
 	// The current machine has a device attached.
 	previous := machine.NewDescription(ctx)
@@ -359,7 +350,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	expectedDims := previous.Dimensions.Copy()
 	expectedDims[machine.DimQuarantined] = []string{`Device ["sargo"] has gone missing`}
 
-	fakeTime = serverTime
+	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
@@ -381,10 +372,7 @@ func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	fakeTime := stateTime
-	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
-		return fakeTime
-	}))
+	ctx := now.TimeTravelingContext(stateTime)
 
 	// The current machine has a device attached.
 	previous := machine.NewDescription(ctx)
@@ -422,7 +410,7 @@ func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 	// The dimensions should not change.
 	expected := previous.Dimensions.Copy()
 
-	fakeTime = serverTime
+	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
@@ -440,10 +428,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	fakeTime := stateTime
-	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
-		return fakeTime
-	}))
+	ctx := now.TimeTravelingContext(stateTime)
 
 	// The current machine has been quarantined because the device went missing.
 	previous := machine.NewDescription(ctx)
@@ -482,7 +467,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 	// The machine should no longer be quarantined via dimensions.
 	delete(expectedDims, machine.DimQuarantined)
 
-	fakeTime = serverTime
+	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
@@ -505,10 +490,7 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	fakeTime := stateTime
-	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
-		return fakeTime
-	}))
+	ctx := now.TimeTravelingContext(stateTime)
 
 	previous := machine.NewDescription(ctx)
 	event := machine.Event{
@@ -534,7 +516,7 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 		},
 	}
 
-	fakeTime = serverTime
+	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, machine.Description{
@@ -565,10 +547,7 @@ func TestProcess_ScheduleForDeletionIfPodIsTooOld(t *testing.T) {
 	bootUpTime := time.Date(2021, time.June, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	fakeTime := stateTime
-	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
-		return fakeTime
-	}))
+	ctx := now.TimeTravelingContext(stateTime)
 
 	previous := machine.NewDescription(ctx)
 	event := machine.Event{
@@ -581,7 +560,7 @@ func TestProcess_ScheduleForDeletionIfPodIsTooOld(t *testing.T) {
 		Android: machine.Android{},
 	}
 
-	fakeTime = serverTime
+	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, machine.Description{
@@ -609,10 +588,7 @@ func TestProcess_RecoveryModeIfDeviceTooHot(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	fakeTime := stateTime
-	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
-		return fakeTime
-	}))
+	ctx := now.TimeTravelingContext(stateTime)
 
 	previous := machine.NewDescription(ctx)
 	event := machine.Event{
@@ -671,7 +647,7 @@ Current cooling devices from HAL:
 		},
 	}
 
-	fakeTime = serverTime
+	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, "Too hot. ", next.Annotation.Message)
@@ -690,10 +666,7 @@ func TestProcess_RecoveryModeIfDeviceTooHotAndBatteryIsTooLow(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	fakeTime := stateTime
-	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
-		return fakeTime
-	}))
+	ctx := now.TimeTravelingContext(stateTime)
 
 	previous := machine.NewDescription(ctx)
 	event := machine.Event{
@@ -765,7 +738,7 @@ Current cooling devices from HAL:
 		},
 	}
 
-	fakeTime = serverTime
+	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, "Battery low. Too hot. ", next.Annotation.Message)
@@ -784,10 +757,7 @@ func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *tes
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	fakeTime := stateTime
-	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
-		return fakeTime
-	}))
+	ctx := now.TimeTravelingContext(stateTime)
 
 	previous := machine.NewDescription(ctx)
 	event := machine.Event{
@@ -813,7 +783,7 @@ func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *tes
 		},
 	}
 
-	fakeTime = serverTime
+	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
@@ -828,10 +798,7 @@ func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
 	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
 
-	fakeTime := stateTime
-	ctx := context.WithValue(context.Background(), now.ContextKey, now.NowProvider(func() time.Time {
-		return fakeTime
-	}))
+	ctx := now.TimeTravelingContext(stateTime)
 
 	previous := machine.NewDescription(ctx)
 	previous.Mode = machine.ModeRecovery
@@ -858,7 +825,7 @@ func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 		},
 	}
 
-	fakeTime = serverTime
+	ctx.SetTime(serverTime)
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Empty(t, next.Dimensions[machine.DimQuarantined])

@@ -55,8 +55,7 @@ func TestCleanup_ListMeetingPointsFails_ErrorReflectedInMetrics(t *testing.T) {
 
 func TestCleanup_ClearMeetingPointsFails_ErrorReflectedInMetrics(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := context.WithValue(context.Background(), now.ContextKey, mockTime)
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(now.TimeTravelingContext(mockTime))
 
 	s := &mocks.Switchboard{}
 	// Set the MeetingPoint.LastUpdated back in time long enough to be considered stale.
