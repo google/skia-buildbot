@@ -80,7 +80,7 @@ const asList = (arr: string[]) => arr.join(' | ');
 
 const dimensions = (machine: Description): TemplateResult => {
   if (!machine.Dimensions) {
-    return html``;
+    return html`<div>Unknown</div>`;
   }
   return html`
     <details class="dimensions">
@@ -240,7 +240,7 @@ export class MachineServerSk extends ListPageSk<Description> {
 
   _fetchPath = '/_/machines';
 
-  tableHeaders() {
+  tableHeaders(): TemplateResult {
     return html`
       <th>Machine</th>
       <th>Pod</th>
@@ -264,17 +264,20 @@ export class MachineServerSk extends ListPageSk<Description> {
     `;
   }
 
-  tableRow(machine: Description) {
+  tableRow(machine: Description): TemplateResult {
+    if (!machine.Dimensions || !machine.Dimensions.id) {
+      return html``;
+    }
     return html`
-      <tr id=${machine.Dimensions!.id![0]}>
+      <tr id=${machine.Dimensions.id[0]}>
         <td>${machineLink(machine)}</td>
         <td>${machine.PodName}</td>
-        <td>${pretty_device_name(machine.Dimensions!.device_type)}</td>
+        <td>${pretty_device_name(machine.Dimensions.device_type)}</td>
         <td>${toggleMode(this, machine)}</td>
         <td>${update(this, machine)}</td>
         <td class="powercycle">${powerCycle(this, machine)}</td>
         <td>${clearDevice(this, machine)}</td>
-        <td>${machine.Dimensions!.quarantined}</td>
+        <td>${machine.Dimensions.quarantined}</td>
         <td>${isRunning(machine)}</td>
         <td>${machine.Battery}</td>
         <td>${temps(machine.Temperature)}</td>

@@ -15,7 +15,7 @@
 export class FilterArray<T> {
   private inputElement: HTMLInputElement | null = null;
 
-  private newFilterValueCallback?: () => void;
+  private newFilterValueCallback?: ()=> void;
 
   private filter: string = '';
 
@@ -43,7 +43,7 @@ export class FilterArray<T> {
    */
   connect(
     inputElement: HTMLInputElement,
-    newFilterValueCallback?: () => void,
+    newFilterValueCallback?: ()=> void,
   ) {
     this.inputElement = inputElement;
     this.newFilterValueCallback = newFilterValueCallback;
@@ -59,7 +59,6 @@ export class FilterArray<T> {
   updateArray(arr: T[]): void {
     this.elements = arr;
     this.jsonifiedElements = arr.map((e) => JSON.stringify(e).toLowerCase());
-;
   }
 
   /**
