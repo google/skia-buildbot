@@ -26,8 +26,8 @@ infra/tools/luci/isolate/${platform}             git_revision:904674219c73c0a69c
 infra/tools/luci/isolated/${platform}            git_revision:904674219c73c0a69c9c4838f1bc378fe90fb9c8
 infra/tools/luci/lucicfg/${platform}             git_revision:904674219c73c0a69c9c4838f1bc378fe90fb9c8
 infra/tools/luci/swarming/${platform}            git_revision:904674219c73c0a69c9c4838f1bc378fe90fb9c8
-infra/tools/luci/vpython/${platform}             git_revision:cadd7dad6e9466c9988ec9eaed70210f2aa1ca86
-infra/tools/luci/vpython-native/${platform}      git_revision:cadd7dad6e9466c9988ec9eaed70210f2aa1ca86
+infra/tools/luci/vpython/${platform}             git_revision:7cd120a5d0da5892216fe478f880e9b672428697
+infra/tools/luci/vpython-native/${platform}      git_revision:7cd120a5d0da5892216fe478f880e9b672428697
 skia/tools/goldctl/${platform}                   git_revision:904674219c73c0a69c9c4838f1bc378fe90fb9c8
 
 @subdir cipd_bin_packages/cpython
