@@ -358,10 +358,10 @@ ${this.wasmCaption()}`;
 </section>`;
   };
 
-  private filename = () => {
-    const lottie = this.state.lottie;
-    if (lottie && lottie.metadata && lottie.metadata.filename) {
-      return html`<div title='${lottie.metadata.filename}'>${lottie.metadata.filename}</div>`;
+  private buildFileName = () => {
+    const fileName = this.state.filename || this.state.lottie?.metadata?.filename;
+    if (fileName) {
+      return html`<div title='${fileName}'>${fileName}</div>`;
     }
     return null;
   };
@@ -373,7 +373,7 @@ ${this.wasmCaption()}`;
     return html`
   <figcaption style='max-width: ${this.width}px;'>
     <div>skottie-wasm</div>
-    ${this.filename()}
+    ${this.buildFileName()}
   </figcaption>`;
   };
 
@@ -549,6 +549,7 @@ ${this.wasmCaption()}`;
 
   private updateAnimation(e: CustomEvent<LottieAnimation>): void {
     this.state.lottie = e.detail;
+    this.state.filename = e.detail.metadata?.filename || this.state.filename;
     this.upload();
   }
 

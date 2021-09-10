@@ -279,6 +279,10 @@ If not selected, the animations will be paused and not respond to scrubbing of t
           // eslint-disable-next-line no-await-in-loop
           const animation = await animationFile.async('text');
           const animationData = replaceTextsByLayerName(texts, JSON.parse(animation));
+          animationData.metadata = {
+            ...animationData.metadata,
+            filename: animationFile.name,
+          };
           this.animations[i] = animationData;
           const skottiePlayerContainer = $$<HTMLLIElement>(`#skottie_preview_container_${i}`, this)!;
           const skottiePlayer = $$<SkottiePlayerSk>(`#skottie_preview_${i}`, this)!;
