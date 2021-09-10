@@ -5,10 +5,6 @@
  * Shows a side by side comparison of two images. If there's nothing to compare against, it will
  * only display one.
  *
- * @event zoom-dialog-opened when the user opens the multi-zoom-sk dialog.
- *
- * @event zoom-dialog-closed when the user closes the multi-zoom-sk dialog.
- *
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
@@ -44,14 +40,14 @@ export class ImageCompareSk extends ElementSk {
       ${ImageCompareSk.comparison(ele)}
     </div>
 
-    <button class=zoom_btn ?hidden=${!ele.right} @click=${ele.handleZoomClicked}>Zoom</button>
+    <button class=zoom_btn ?hidden=${!ele.right} @click=${ele.openZoomWindow}>Zoom</button>
     <dialog class=zoom_dialog @close=${ele.closeEvent}))}>
       <button class=close_btn @click=${ele.closeDialog}>Close</button>
     </dialog>
   `;
 
   private static comparison = (ele: ImageCompareSk) => {
-    if (!ele.right ) {
+    if (!ele.right) {
       if (ele.isComputingDiffs) {
         return html`<div class=computing title="Check back later">
             Computing closest positive and negative image. Check back later.</div>`;
@@ -84,20 +80,22 @@ export class ImageCompareSk extends ElementSk {
     // the caller compute those URLs and pass them into this element.
     detail: '',
   }
+
   private _right: ImageComparisonData | null = null;
+
   private computingDiffs = false;
 
   constructor() {
     super(ImageCompareSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     dialogPolyfill.registerDialog(this.querySelector('dialog.zoom_dialog')!);
   }
 
-  get isComputingDiffs(): boolean {return this.computingDiffs; }
+  get isComputingDiffs(): boolean { return this.computingDiffs; }
 
   set isComputingDiffs(b: boolean) {
     this.computingDiffs = b;
@@ -133,10 +131,9 @@ export class ImageCompareSk extends ElementSk {
       // free up the image resources.
       dialog.removeChild(zoom);
     }
-    this.dispatchEvent(new CustomEvent('zoom-dialog-closed', { bubbles: true }));
   }
 
-  private handleZoomClicked() {
+  openZoomWindow(): void {
     const ele = new MultiZoomSk();
     ele.details = {
       leftImageSrc: digestImagePath(this.left.digest),
@@ -149,7 +146,6 @@ export class ImageCompareSk extends ElementSk {
     // put the dialog before the button
     dialog.insertBefore(ele, dialog.childNodes[0]);
     dialog.showModal();
-    this.dispatchEvent(new CustomEvent('zoom-dialog-opened', { bubbles: true }));
   }
 }
 

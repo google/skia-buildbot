@@ -43,8 +43,8 @@ import {
 import { SearchCriteria, SearchCriteriaHintableObject } from '../search-controls-sk/search-controls-sk';
 import { DotsSk } from '../dots-sk/dots-sk';
 import { BlamelistPanelSk } from '../blamelist-panel-sk/blamelist-panel-sk';
-import { LabelOrEmpty, TriageSk } from '../triage-sk/triage-sk';
-import { ImageComparisonData } from '../image-compare-sk/image-compare-sk';
+import { TriageSk } from '../triage-sk/triage-sk';
+import { ImageCompareSk, ImageComparisonData } from '../image-compare-sk/image-compare-sk';
 
 function toggleButtonMouseover(canToggle: boolean) {
   if (canToggle) {
@@ -271,7 +271,7 @@ export class DigestDetailsSk extends ElementSk {
     super(DigestDetailsSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     dialogPolyfill.registerDialog(this.querySelector('dialog.blamelist_dialog')!);
@@ -413,17 +413,21 @@ export class DigestDetailsSk extends ElementSk {
     this._render();
   }
 
-  private triageChangeHandler(e: CustomEvent<LabelOrEmpty>) {
+  private triageChangeHandler(e: CustomEvent<Label>) {
     e.stopPropagation();
-    const newStatus = e.detail as Label;
+    const newLabel = e.detail;
+    this.setTriaged(newLabel);
+  }
+
+  setTriaged(label: Label): void {
     this.dispatchEvent(
-      new CustomEvent<LabelOrEmpty>('triage', { bubbles: true, detail: newStatus }),
+      new CustomEvent<Label>('triage', { bubbles: true, detail: label }),
     );
 
     const triageRequest: TriageRequest = {
       testDigestStatus: {
         [this.grouping]: {
-          [this.digest]: newStatus,
+          [this.digest]: label,
         },
       },
       changelist_id: this.changeListID,
@@ -442,7 +446,7 @@ export class DigestDetailsSk extends ElementSk {
     }).then((resp: Response) => {
       if (resp.ok) {
         // Triaging was successful.
-        this.status = newStatus;
+        this.status = label;
         this.triageHistory.unshift({
           user: 'me',
           ts: new Date(Date.now()).toISOString(),
@@ -465,6 +469,14 @@ export class DigestDetailsSk extends ElementSk {
     }).catch((e) => {
       sendFetchError(this, e, 'triaging');
     });
+  }
+
+  openZoom(): void {
+    const compare = this.querySelector<ImageCompareSk>('image-compare-sk');
+    if (!compare) {
+      return;
+    }
+    compare.openZoomWindow();
   }
 }
 

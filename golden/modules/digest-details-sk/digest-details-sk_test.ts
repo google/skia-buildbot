@@ -4,9 +4,8 @@ import { expect } from 'chai';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { twoHundredCommits, typicalDetails } from './test_data';
 import { DigestDetailsSk } from './digest-details-sk';
-import { LabelOrEmpty } from '../triage-sk/triage-sk';
 import { DigestDetailsSkPO } from './digest-details-sk_po';
-import { TriageRequest } from '../rpc_types';
+import { Label, TriageRequest } from '../rpc_types';
 
 describe('digest-details-sk', () => {
   const newInstance = setUpElementUnderTest<DigestDetailsSk>('digest-details-sk');
@@ -70,7 +69,7 @@ describe('digest-details-sk', () => {
     });
 
     it('has a triage button and shows the triage history', async () => {
-      expect(await digestDetailsSkPO.triageSkPO.getLabelOrEmpty()).to.equal('positive');
+      expect(await digestDetailsSkPO.triageSkPO.getLabel()).to.equal('positive');
       expect(await digestDetailsSkPO.getTriageHistory()).to.equal('8w ago by user1@');
     });
 
@@ -102,7 +101,7 @@ describe('digest-details-sk', () => {
 
     it('emits a "triage" event when a triage button is clicked', async () => {
       // Triage as negative.
-      let triageEventPromise = eventPromise<CustomEvent<LabelOrEmpty>>('triage');
+      let triageEventPromise = eventPromise<CustomEvent<Label>>('triage');
       await digestDetailsSkPO.triageSkPO.clickButton('negative');
       expect((await triageEventPromise).detail).to.equal('negative');
 

@@ -556,12 +556,11 @@ export class SearchPageSk extends ElementSk {
    * Applies the given label to the currently selected search result.
    */
   private triageSelectedSearchResult(label: Label): void {
-    // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
-
     const digestDetailsSk = this.getSelectedDigestDetailsSk();
-    if (!digestDetailsSk) return;
-
-    digestDetailsSk.querySelector<HTMLButtonElement>(`triage-sk button.${label}`)!.click();
+    if (!digestDetailsSk) {
+      return;
+    }
+    digestDetailsSk.setTriaged(label);
   }
 
   /**
@@ -569,20 +568,17 @@ export class SearchPageSk extends ElementSk {
    * search result.
    */
   private openZoomDialogForSelectedSearchResult(): void {
-    // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
-
     const digestDetailsSk = this.getSelectedDigestDetailsSk();
-    if (!digestDetailsSk) return;
-
-    digestDetailsSk.querySelector<HTMLButtonElement>('button.zoom_btn')!.click();
+    if (!digestDetailsSk) {
+      return;
+    }
+    digestDetailsSk.openZoom();
   }
 
   /**
    * Returns the digest-details-sk element corresponding to the currently selected search result.
    */
   private getSelectedDigestDetailsSk(): DigestDetailsSk | null {
-    // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
-
     if (this.selectedSearchResultIdx < 0) return null;
     return this.querySelector<DigestDetailsSk>(
       `digest-details-sk:nth-child(${this.selectedSearchResultIdx + 1})`,

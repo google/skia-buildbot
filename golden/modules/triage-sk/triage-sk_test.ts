@@ -1,12 +1,13 @@
 import './index';
+import { expect } from 'chai';
 import {
   eventPromise,
   noEventPromise,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
-import { LabelOrEmpty, TriageSk } from './triage-sk';
+import { TriageSk } from './triage-sk';
 import { TriageSkPO } from './triage-sk_po';
+import { Label } from '../rpc_types';
 
 describe('triage-sk', () => {
   const newInstance = setUpElementUnderTest<TriageSk>('triage-sk');
@@ -25,9 +26,6 @@ describe('triage-sk', () => {
 
   describe('"value" property setter/getter', () => {
     it('sets and gets value via property', async () => {
-      triageSk.value = '';
-      await expectValueAndToggledButtonToBe(triageSk, triageSkPO, '');
-
       triageSk.value = 'positive';
       await expectValueAndToggledButtonToBe(triageSk, triageSkPO, 'positive');
 
@@ -44,30 +42,25 @@ describe('triage-sk', () => {
         triageSk.value = 'positive';
         await noTriageEvent;
       });
-
-    it('throws an exception upon an invalid value', () => {
-      expect(() => triageSk.value = 'hello world' as LabelOrEmpty)
-        .to.throw(RangeError, 'Invalid triage-sk value: "hello world".');
-    });
   });
 
   describe('buttons', () => {
     it('sets value to positive when clicking positive button', async () => {
-      const changeEvent = eventPromise<CustomEvent<LabelOrEmpty>>('change', 100);
+      const changeEvent = eventPromise<CustomEvent<Label>>('change', 100);
       await triageSkPO.clickButton('positive');
       await expectValueAndToggledButtonToBe(triageSk, triageSkPO, 'positive');
       expect((await changeEvent).detail).to.equal('positive');
     });
 
     it('sets value to negative when clicking negative button', async () => {
-      const changeEvent = eventPromise<CustomEvent<LabelOrEmpty>>('change', 100);
+      const changeEvent = eventPromise<CustomEvent<Label>>('change', 100);
       await triageSkPO.clickButton('negative');
       await expectValueAndToggledButtonToBe(triageSk, triageSkPO, 'negative');
       expect((await changeEvent).detail).to.equal('negative');
     });
 
     it('sets value to untriaged when clicking untriaged button', async () => {
-      const changeEvent = eventPromise<CustomEvent<LabelOrEmpty>>('change', 100);
+      const changeEvent = eventPromise<CustomEvent<Label>>('change', 100);
       triageSk.value = 'positive'; // Untriaged by default; change value first.
       await triageSkPO.clickButton('untriaged');
       await expectValueAndToggledButtonToBe(triageSk, triageSkPO, 'untriaged');
@@ -83,8 +76,7 @@ describe('triage-sk', () => {
   });
 });
 
-const expectValueAndToggledButtonToBe =
-    async (triageSk: TriageSk, triageSkPO: TriageSkPO, value: LabelOrEmpty) => {
+const expectValueAndToggledButtonToBe = async (triageSk: TriageSk, triageSkPO: TriageSkPO, value: Label) => {
   expect(triageSk.value).to.equal(value);
-  expect(await triageSkPO.getLabelOrEmpty()).to.equal(value);
+  expect(await triageSkPO.getLabel()).to.equal(value);
 };

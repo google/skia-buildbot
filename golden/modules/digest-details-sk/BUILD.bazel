@@ -89,7 +89,6 @@ karma_test(
         ":digest-details-sk_po_ts_lib",
         ":test_data_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
-        "//golden/modules/triage-sk",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",

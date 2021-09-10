@@ -1,7 +1,6 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 import { Label } from '../rpc_types';
-import { LabelOrEmpty } from './triage-sk';
 
 /** A page object for the TriageSk component. */
 export class TriageSkPO extends PageObject {
@@ -16,14 +15,15 @@ export class TriageSkPO extends PageObject {
   private get untriagedBtn(): PageObjectElement {
     return this.bySelector('button.untriaged');
   }
-  async getLabelOrEmpty(): Promise<LabelOrEmpty> {
+
+  async getLabel(): Promise<Label> {
     const labels: Label[] = ['positive', 'negative', 'untriaged'];
     for (const label of labels) {
       if (await this.isButtonSelected(label)) {
         return label;
       }
     }
-    return '';
+    throw new Error('No label selected');
   }
 
   async isButtonSelected(label: Label) {
@@ -33,7 +33,7 @@ export class TriageSkPO extends PageObject {
   async clickButton(label: Label) { await this.getButtonForLabel(label).click(); }
 
   private getButtonForLabel(label: Label) {
-    switch(label) {
+    switch (label) {
       case 'positive':
         return this.positiveBtn;
       case 'negative':

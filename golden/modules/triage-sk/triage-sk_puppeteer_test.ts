@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
-import {TriageSkPO} from './triage-sk_po';
-import {ElementHandle} from 'puppeteer';
+import { ElementHandle } from 'puppeteer';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import { TriageSkPO } from './triage-sk_po';
 
 describe('triage-sk', () => {
   let testBed: TestBed;
@@ -25,7 +25,7 @@ describe('triage-sk', () => {
     beforeEach(async () => {
       triageSk = (await testBed.page.$('triage-sk'))!;
       triageSkPO = new TriageSkPO(triageSk);
-    })
+    });
 
     it('should be untriaged by default', async () => {
       await takeScreenshot(triageSk, 'gold', 'triage-sk_untriaged');
@@ -46,11 +46,6 @@ describe('triage-sk', () => {
     it('should be positive, with button focused', async () => {
       await triageSkPO.clickButton('positive');
       await takeScreenshot(triageSk, 'gold', 'triage-sk_positive-button-focused');
-    });
-
-    it('should be empty', async () => {
-      await testBed.page.click('#clear-selection');
-      await takeScreenshot(triageSk, 'gold', 'triage-sk_empty');
     });
   });
 });

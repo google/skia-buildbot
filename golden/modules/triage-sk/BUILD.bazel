@@ -29,7 +29,10 @@ sk_page(
     name = "triage-sk-demo",
     html_file = "triage-sk-demo.html",
     sk_element_deps = [":triage-sk"],
-    ts_deps = ["//golden/modules:demo_util_ts_lib"],
+    ts_deps = [
+        "//golden/modules:demo_util_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
+    ],
     ts_entry_point = "triage-sk-demo.ts",
 )
 
@@ -38,7 +41,6 @@ ts_library(
     srcs = ["triage-sk_po.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        ":triage-sk",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
@@ -64,6 +66,7 @@ karma_test(
     deps = [
         ":triage-sk",
         ":triage-sk_po_ts_lib",
+        "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",

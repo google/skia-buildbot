@@ -4,6 +4,11 @@ include ../make/bazel.mk
 default:
 	bazel build cmd/...
 
+.PHONY: frontend
+frontend:
+	# Makes sure all the frontend pages and tests compile.
+	bazel build modules/...
+
 .PHONY: goldpushk
 goldpushk:
 	go install ./cmd/goldpushk/...

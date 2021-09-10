@@ -1,10 +1,10 @@
-import {PageObject, PageObjectList} from '../../../infra-sk/modules/page_object/page_object';
-import {PageObjectElement} from '../../../infra-sk/modules/page_object/page_object_element';
-import {SearchControlsSkPO} from '../search-controls-sk/search-controls-sk_po';
-import {ChangelistControlsSkPO} from '../changelist-controls-sk/changelist-controls-sk_po';
-import {BulkTriageSkPO} from '../bulk-triage-sk/bulk-triage-sk_po';
-import {Label} from '../rpc_types';
-import {DigestDetailsSkPO} from '../digest-details-sk/digest-details-sk_po';
+import { PageObject, PageObjectList } from '../../../infra-sk/modules/page_object/page_object';
+import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
+import { SearchControlsSkPO } from '../search-controls-sk/search-controls-sk_po';
+import { ChangelistControlsSkPO } from '../changelist-controls-sk/changelist-controls-sk_po';
+import { BulkTriageSkPO } from '../bulk-triage-sk/bulk-triage-sk_po';
+import { Label } from '../rpc_types';
+import { DigestDetailsSkPO } from '../digest-details-sk/digest-details-sk_po';
 
 /** A page object for the SearchPageSk component. */
 export class SearchPageSkPO extends PageObject {
@@ -61,12 +61,12 @@ export class SearchPageSkPO extends PageObject {
   async getSummary() { return this.summary.innerText; }
 
   async getSelectedDigest() {
-    const selectedDigests =
-        await this.digestDetailsSkPOs.filter((digestDetailsSkPO) => digestDetailsSkPO.isSelected());
+    const selectedDigests = await this.digestDetailsSkPOs.filter((digestDetailsSkPO) => digestDetailsSkPO.isSelected());
 
     if (selectedDigests.length > 1) {
       throw new Error(
-          `found ${selectedDigests.length} selected digests, but at most 1 digest can be selected`);
+        `found ${selectedDigests.length} selected digests, but at most 1 digest can be selected`,
+      );
     }
 
     return selectedDigests.length === 1 ? selectedDigests[0].getLeftDigest() : null;
@@ -85,25 +85,26 @@ export class SearchPageSkPO extends PageObject {
       const leftDigest = await digestDetailsSkPO.getLeftDigest();
       const rightDigest = await digestDetailsSkPO.getRightDigest();
       return leftDigest === digest || rightDigest === digest;
-    })
+    });
     if (!digestDetailsSkPO) return null;
 
-    return await digestDetailsSkPO.triageSkPO.getLabelOrEmpty() as Label;
+    return await digestDetailsSkPO.triageSkPO.getLabel() as Label;
   }
 
   async getDigestWithOpenZoomDialog() {
-    const digestDetailsSkPOsWithOpenDialogs =
-        await this.digestDetailsSkPOs.filter(
-            (digestDetailsSkPO) => digestDetailsSkPO.isZoomDialogOpen());
+    const digestDetailsSkPOsWithOpenDialogs = await this.digestDetailsSkPOs.filter(
+      (digestDetailsSkPO) => digestDetailsSkPO.isZoomDialogOpen(),
+    );
 
     if (digestDetailsSkPOsWithOpenDialogs.length > 1) {
       throw new Error(
-        'at most 1 digest can have its zoom dialog open, ' +
-        `but found ${digestDetailsSkPOsWithOpenDialogs.length} such digests`);
+        'at most 1 digest can have its zoom dialog open, '
+        + `but found ${digestDetailsSkPOsWithOpenDialogs.length} such digests`,
+      );
     }
 
     return digestDetailsSkPOsWithOpenDialogs.length === 1
-        ? digestDetailsSkPOsWithOpenDialogs[0].getLeftDigest() : null;
+      ? digestDetailsSkPOsWithOpenDialogs[0].getLeftDigest() : null;
   }
 
   typeKey(key: string) {
