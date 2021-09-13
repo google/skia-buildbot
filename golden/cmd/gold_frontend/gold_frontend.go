@@ -24,41 +24,24 @@ import (
 	"google.golang.org/grpc"
 
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/clstore/sqlclstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	"go.skia.org/infra/golden/go/code_review/github_crs"
-	"go.skia.org/infra/golden/go/code_review/updater"
 	"go.skia.org/infra/golden/go/config"
-	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/expectations/cleanup"
-	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
-	"go.skia.org/infra/golden/go/expectations/sqlwrapped"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
-	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/publicparams"
-	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/search2"
 	"go.skia.org/infra/golden/go/sql"
-	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/tilesource"
-	"go.skia.org/infra/golden/go/tjstore"
-	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
-	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/tracing"
 	"go.skia.org/infra/golden/go/web"
 	"go.skia.org/infra/golden/go/web/frontend"
@@ -81,14 +64,6 @@ type frontendServerConfig struct {
 	// Client secret file for OAuth2 authentication.
 	ClientSecretFile string `json:"client_secret_file"`
 
-	// If the frontend shouldn't track any CLs. For example, if we are tracking a repo that doesn't
-	// have a CQ.
-	DisableCLTracking bool `json:"disable_changelist_tracking"`
-
-	// If a trace has more unique digests than this, it will be considered flaky. If this number is
-	// greater than WindowSize, then no trace can ever be flaky.
-	FlakyTraceThreshold int `json:"flaky_trace_threshold"`
-
 	// Force the user to be authenticated for all requests.
 	ForceLogin bool `json:"force_login"`
 
@@ -102,24 +77,12 @@ type frontendServerConfig struct {
 	// view created and refreshed to speed up search results.
 	MaterializedViewCorpora []string `json:"materialized_view_corpora" optional:"true"`
 
-	// The longest time negative expectations can go unused before being purged. (0 means infinity)
-	NegativesMaxAge config.Duration `json:"negatives_max_age" optional:"true"`
-
-	// The longest time positive expectations can go unused before being purged. (0 means infinity)
-	PositivesMaxAge config.Duration `json:"positives_max_age" optional:"true"`
-
 	// If non empty, this map of rules will be applied to traces to see if they can be showed on
 	// this instance.
 	PubliclyAllowableParams publicparams.MatchingRules `json:"publicly_allowed_params" optional:"true"`
 
 	// Path to a directory with static assets that should be served to the frontend (JS, CSS, etc.).
 	ResourcesPath string `json:"resources_path"`
-
-	// How often to re-fetch the tile, compute the index, and report metrics about the index.
-	TileFreshness config.Duration `json:"tile_freshness"`
-
-	// BigTable table ID for the traces.
-	TraceBTTable string `json:"trace_bt_table"`
 }
 
 // IsAuthoritative indicates that this instance can write to known_hashes, update CL statuses, etc.
@@ -162,10 +125,6 @@ func main() {
 
 	// Needed to use TimeSortableKey(...) which relies on an RNG. See docs there.
 	rand.Seed(time.Now().UnixNano())
-
-	// If we are running this, we really don't want to talk to the emulator.
-	firestore.EnsureNotEmulator()
-
 	// Initialize service.
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, common.PrometheusOpt(&fsc.PromPort))
@@ -180,40 +139,17 @@ func main() {
 
 	sqlDB := mustInitSQLDatabase(ctx, fsc)
 
-	gitStore := mustMakeGitStore(ctx, fsc, "gold-skiacorrectness") // Historical name
-
-	vcs := mustMakeVCS(ctx, fsc, gitStore)
-
-	traceStore := mustMakeTraceStore(ctx, fsc, vcs)
-
 	gsClient := mustMakeGCSClient(ctx, fsc, client)
-
-	fsClient := mustMakeFirestoreClient(ctx, fsc)
-
-	expStore, cleaner, expChangeHandler := mustMakeExpectationsStore(ctx, fsc, fsClient, sqlDB)
 
 	publiclyViewableParams := mustMakePubliclyViewableParams(fsc)
 
-	ignoreStore := mustMakeIgnoreStore(ctx, fsc, sqlDB)
-
-	tjs := mustMakeTryJobStore(sqlDB)
+	ignoreStore := mustMakeIgnoreStore(ctx, sqlDB)
 
 	reviewSystems := mustInitializeReviewSystems(fsc, client, sqlDB)
 
-	tileSource := mustMakeTileSource(ctx, fsc, expStore, ignoreStore, traceStore, vcs, publiclyViewableParams, reviewSystems)
-
-	ixr := mustMakeIndexer(ctx, fsc, expStore, expChangeHandler, gsClient, reviewSystems, tileSource, tjs)
-
-	searchAPI := search.New(expStore, expChangeHandler, ixr, reviewSystems, tjs, publiclyViewableParams, fsc.FlakyTraceThreshold, sqlDB)
-	sklog.Infof("Search API created")
-
-	statusWatcher := mustMakeStatusWatcher(ctx, vcs, expStore, expChangeHandler, tileSource)
-
-	mustStartExpectationsCleanupProcess(ctx, fsc, cleaner, ixr)
-
 	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB, publiclyViewableParams, reviewSystems)
 
-	handlers := mustMakeWebHandlers(ctx, fsc, sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, s2a, statusWatcher, tileSource, tjs)
+	handlers := mustMakeWebHandlers(ctx, fsc, sqlDB, gsClient, ignoreStore, reviewSystems, s2a)
 
 	rootRouter := mustMakeRootRouter(fsc, handlers)
 
@@ -327,57 +263,6 @@ func mustInitSQLDatabase(ctx context.Context, fsc *frontendServerConfig) *pgxpoo
 	return db
 }
 
-// mustMakeGitStore instantiates a BigTable-backed gitstore.GitStore using the BigTable specified
-// via the JSON configuration files.
-func mustMakeGitStore(ctx context.Context, fsc *frontendServerConfig, appName string) *bt_gitstore.BigTableGitStore {
-	if fsc.Local {
-		appName = bt.TestingAppProfile
-	}
-	btConf := &bt_gitstore.BTConfig{
-		InstanceID: fsc.BTInstance,
-		ProjectID:  fsc.BTProjectID,
-		TableID:    fsc.GitBTTable,
-		AppProfile: appName,
-	}
-
-	gitStore, err := bt_gitstore.New(ctx, btConf, fsc.GitRepoURL)
-	if err != nil {
-		sklog.Fatalf("Error instantiating gitstore: %s", err)
-	}
-
-	return gitStore
-}
-
-// mustMakeVCS returns a vcsinfo.VCS that wraps the given BigTable-backed GitStore.
-func mustMakeVCS(ctx context.Context, fsc *frontendServerConfig, gitStore *bt_gitstore.BigTableGitStore) *bt_vcs.BigTableVCS {
-	vcs, err := bt_vcs.New(ctx, gitStore, fsc.GitRepoBranch)
-	if err != nil {
-		sklog.Fatalf("Error creating BT-backed VCS instance: %s", err)
-	}
-	return vcs
-}
-
-// mustMakeTraceStore returns a BigTable-backed tracestore.TraceStore.
-func mustMakeTraceStore(ctx context.Context, fsc *frontendServerConfig, vcs *bt_vcs.BigTableVCS) *bt_tracestore.BTTraceStore {
-	btc := bt_tracestore.BTConfig{
-		InstanceID: fsc.BTInstance,
-		ProjectID:  fsc.BTProjectID,
-		TableID:    fsc.TraceBTTable,
-		VCS:        vcs,
-	}
-
-	if err := bt_tracestore.InitBT(ctx, btc); err != nil {
-		sklog.Fatalf("Could not initialize BigTable tracestore with config %#v: %s", btc, err)
-	}
-
-	traceStore, err := bt_tracestore.New(ctx, btc, false)
-	if err != nil {
-		sklog.Fatalf("Could not instantiate BT tracestore: %s", err)
-	}
-
-	return traceStore
-}
-
 // mustMakeGCSClient returns a storage.GCSClient that uses the given http.Client. If the Gold
 // instance is not authoritative (e.g. when running locally) the client won't actually write any
 // files.
@@ -394,31 +279,6 @@ func mustMakeGCSClient(ctx context.Context, fsc *frontendServerConfig, client *h
 	}
 
 	return gsClient
-}
-
-// mustMakeFirestoreClient returns a firestore.Client using the settings from the JSON configuration
-// files.
-func mustMakeFirestoreClient(ctx context.Context, fsc *frontendServerConfig) *firestore.Client {
-	// Auth note: the underlying firestore.NewClient looks at the
-	// GOOGLE_APPLICATION_CREDENTIALS env variable, so we don't need to supply
-	// a token source.
-	fsClient, err := firestore.NewClient(ctx, fsc.FirestoreProjectID, "gold", fsc.FirestoreNamespace, nil)
-	if err != nil {
-		sklog.Fatalf("Unable to configure Firestore: %s", err)
-	}
-	return fsClient
-}
-
-// mustMakeExpectationsStore returns a Firestore-backed expectations.Store and a corresponding
-// change event dispatcher.
-func mustMakeExpectationsStore(ctx context.Context, _ *frontendServerConfig, fsClient *firestore.Client, db *pgxpool.Pool) (expectations.Store, *fs_expectationstore.Store, *expectations.ChangeEventDispatcher) {
-	expChangeHandler := expectations.NewEventDispatcher()
-	expStore := fs_expectationstore.New(fsClient, expChangeHandler, fs_expectationstore.ReadWrite)
-	if err := expStore.Initialize(ctx); err != nil {
-		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
-	}
-	sklog.Infof("Writing expectations to SQL as well as Firestore")
-	return sqlwrapped.New(expStore, db), expStore, expChangeHandler
 }
 
 // mustMakePubliclyViewableParams validates and computes a publicparams.Matcher from the publicly
@@ -444,18 +304,13 @@ func mustMakePubliclyViewableParams(fsc *frontendServerConfig) publicparams.Matc
 
 // mustMakeIgnoreStore returns a new ignore.Store and starts a monitoring routine that counts the
 // the number of expired ignore rules and exposes this as a metric.
-func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool) ignore.Store {
+func mustMakeIgnoreStore(ctx context.Context, db *pgxpool.Pool) ignore.Store {
 	ignoreStore := sqlignorestore.New(db)
 
-	if err := ignore.StartMetrics(ctx, ignoreStore, fsc.TileFreshness.Duration); err != nil {
+	if err := ignore.StartMetrics(ctx, ignoreStore, 5*time.Minute); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
 	return ignoreStore
-}
-
-// mustMakeTryJobStore returns a new tjstore.Store
-func mustMakeTryJobStore(db *pgxpool.Pool) tjstore.Store {
-	return sqltjstore.New(db)
 }
 
 // mustInitializeReviewSystems validates and instantiates one clstore.ReviewSystem for each CRS
@@ -504,108 +359,15 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client, sql
 	return rs
 }
 
-// mustMakeTileSource returns a new tilesource.TileSource.
-func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, ignoreStore ignore.Store, traceStore *bt_tracestore.BTTraceStore, vcs vcsinfo.VCS, publiclyViewableParams publicparams.Matcher, reviewSystems []clstore.ReviewSystem) tilesource.TileSource {
-	var clUpdater code_review.ChangelistLandedUpdater
-	if fsc.IsAuthoritative() && !fsc.DisableCLTracking {
-		sklog.Infof("CL updater writing expectations to Firestore only")
-		sqlw := expStore.(*sqlwrapped.Impl)
-		clUpdater = updater.New(sqlw.LegacyStore, reviewSystems)
-	}
-
-	ctc := tilesource.CachedTileSourceConfig{
-		CLUpdater:              clUpdater,
-		IgnoreStore:            ignoreStore,
-		NCommits:               fsc.WindowSize,
-		PubliclyViewableParams: publiclyViewableParams,
-		TraceStore:             traceStore,
-		VCS:                    vcs,
-	}
-
-	tileSource := tilesource.New(ctc)
-	sklog.Infof("Fetching tile")
-	// Blocks until tile is fetched
-	if err := tileSource.StartUpdater(ctx, 2*time.Minute); err != nil {
-		sklog.Fatalf("Could not fetch initial tile: %s", err)
-	}
-
-	return tileSource
-}
-
-// mustMakeIndexer makes a new indexer.Indexer.
-func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, gsClient storage.GCSClient, reviewSystems []clstore.ReviewSystem, tileSource tilesource.TileSource, tjs tjstore.Store) *indexer.Indexer {
-	ic := indexer.IndexerConfig{
-		ExpChangeListener: expChangeHandler,
-		ExpectationsStore: expStore,
-		GCSClient:         gsClient,
-		ReviewSystems:     reviewSystems,
-		TileSource:        tileSource,
-		TryJobStore:       tjs,
-	}
-
-	// Rebuild the index every few minutes.
-	sklog.Infof("Starting indexer to run every %s", fsc.TileFreshness)
-	ixr, err := indexer.New(ctx, ic, fsc.TileFreshness.Duration)
-	if err != nil {
-		sklog.Fatalf("Failed to create indexer: %s", err)
-	}
-	sklog.Infof("Indexer created.")
-	return ixr
-}
-
-// mustMakeStatusWatcher returns a new status.StatusWatcher.
-func mustMakeStatusWatcher(ctx context.Context, vcs vcsinfo.VCS, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, tileSource tilesource.TileSource) *status.StatusWatcher {
-	swc := status.StatusWatcherConfig{
-		ExpChangeListener: expChangeHandler,
-		ExpectationsStore: expStore,
-		TileSource:        tileSource,
-		VCS:               vcs,
-	}
-
-	statusWatcher, err := status.New(ctx, swc)
-	if err != nil {
-		sklog.Fatalf("Failed to initialize status watcher: %s", err)
-	}
-	sklog.Infof("statusWatcher created")
-
-	return statusWatcher
-}
-
-// mustStartExpectationsCleanupProcess starts a process that will garbage-collect any stale
-// expectations, unless the Gold instance is not authoritative (e.g. when running locally).
-func mustStartExpectationsCleanupProcess(ctx context.Context, fsc *frontendServerConfig, expStore *fs_expectationstore.Store, ixr *indexer.Indexer) {
-	// reminder: this exp will be updated whenever expectations change.
-	exp, err := expStore.Get(ctx)
-	if err != nil {
-		sklog.Fatalf("Failed to get master-branch expectations: %s", err)
-	}
-
-	if fsc.IsAuthoritative() {
-		policy := cleanup.Policy{
-			PositiveMaxLastUsed: fsc.PositivesMaxAge.Duration,
-			NegativeMaxLastUsed: fsc.NegativesMaxAge.Duration,
-		}
-		if err := cleanup.Start(ctx, ixr, expStore, exp, policy); err != nil {
-			sklog.Fatalf("Could not start expectation cleaning process %s", err)
-		}
-	}
-}
-
 // mustMakeWebHandlers returns a new web.Handlers.
-func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, s2a search2.API, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store) *web.Handlers {
+func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool, gsClient storage.GCSClient, ignoreStore ignore.Store, reviewSystems []clstore.ReviewSystem, s2a search2.API) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
-		DB:                db,
-		ExpectationsStore: expStore,
-		GCSClient:         gsClient,
-		IgnoreStore:       ignoreStore,
-		Indexer:           ixr,
-		ReviewSystems:     reviewSystems,
-		SearchAPI:         searchAPI,
-		Search2API:        s2a,
-		StatusWatcher:     statusWatcher,
-		TileSource:        tileSource,
-		TryJobStore:       tjs,
-		WindowSize:        fsc.WindowSize,
+		DB:            db,
+		GCSClient:     gsClient,
+		IgnoreStore:   ignoreStore,
+		ReviewSystems: reviewSystems,
+		Search2API:    s2a,
+		WindowSize:    fsc.WindowSize,
 	}, web.FullFrontEnd)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
@@ -665,7 +427,7 @@ func addUIRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Ha
 	// placeholders such as {{.Title}}. These aren't used directly by client code. We should probably
 	// unexpose them and only serve the JS/CSS Webpack bundles from this route (and any other static
 	// assets such as the favicon).
-	router.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(web.MakeResourceHandler(fsc.ResourcesPath))))
+	router.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(makeResourceHandler(fsc.ResourcesPath))))
 
 	var templates *template.Template
 
@@ -723,51 +485,19 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 		addJSONRoute(jsonRoute, handlerFunc, jsonRouter, pathPrefix).Methods(method)
 	}
 
-	add("/json/byblame", handlers.ByBlameHandler, "GET")
-	add("/json/v1/byblame", handlers.ByBlameHandler, "GET")
 	add("/json/v2/byblame", handlers.ByBlameHandler2, "GET")
-	add("/json/changelists", handlers.ChangelistsHandler, "GET")
-	add("/json/v1/changelists", handlers.ChangelistsHandler, "GET")
 	add("/json/v2/changelists", handlers.ChangelistsHandler2, "GET")
-	add("/json/clusterdiff", handlers.ClusterDiffHandler, "GET")
-	add("/json/v1/clusterdiff", handlers.ClusterDiffHandler, "GET")
 	add("/json/v2/clusterdiff", handlers.ClusterDiffHandler2, "GET")
-	add("/json/commits", handlers.CommitsHandler, "GET")
-	add("/json/v1/commits", handlers.CommitsHandler, "GET")
 	add("/json/v2/commits", handlers.CommitsHandler2, "GET")
-	add("/json/debug/digestsbytestname/{corpus}/{testName}", handlers.GetPerTraceDigestsByTestName, "GET")
-	add("/json/v1/debug/digestsbytestname/{corpus}/{testName}", handlers.GetPerTraceDigestsByTestName, "GET")
-	add("/json/debug/flakytraces/{minUniqueDigests}", handlers.GetFlakyTracesData, "GET")
-	add("/json/v1/debug/flakytraces/{minUniqueDigests}", handlers.GetFlakyTracesData, "GET")
-	add("/json/details", handlers.DetailsHandler, "GET")
-	add("/json/v1/details", handlers.DetailsHandler, "GET")
 	add("/json/v2/details", handlers.DetailsHandler2, "GET")
-	add("/json/diff", handlers.DiffHandler, "GET")
-	add("/json/v1/diff", handlers.DiffHandler, "GET")
 	add("/json/v2/diff", handlers.DiffHandler2, "GET")
-	add("/json/digests", handlers.DigestListHandler, "GET")
-	add("/json/v1/digests", handlers.DigestListHandler, "GET")
 	add("/json/v2/digests", handlers.DigestListHandler2, "GET")
-	add("/json/latestpositivedigest/{traceId}", handlers.LatestPositiveDigestHandler, "GET")
-	add("/json/v1/latestpositivedigest/{traceId}", handlers.LatestPositiveDigestHandler, "GET")
 	add("/json/v2/latestpositivedigest/{traceID}", handlers.LatestPositiveDigestHandler2, "GET")
-	add("/json/list", handlers.ListTestsHandler, "GET")
-	add("/json/v1/list", handlers.ListTestsHandler, "GET")
 	add("/json/v2/list", handlers.ListTestsHandler2, "GET")
-	add("/json/paramset", handlers.ParamsHandler, "GET")
-	add("/json/v1/paramset", handlers.ParamsHandler, "GET")
 	add("/json/v2/paramset", handlers.ParamsHandler2, "GET")
-	add("/json/search", handlers.SearchHandler, "GET")
-	add("/json/v1/search", handlers.SearchHandler, "GET")
 	add("/json/v2/search", handlers.SearchHandler2, "GET")
-	add("/json/triage", handlers.TriageHandler, "POST")
-	add("/json/v1/triage", handlers.TriageHandler, "POST")
 	add("/json/v2/triage", handlers.TriageHandler2, "POST")
-	add("/json/triagelog", handlers.TriageLogHandler, "GET")
-	add("/json/v1/triagelog", handlers.TriageLogHandler, "GET")
 	add("/json/v2/triagelog", handlers.TriageLogHandler2, "GET")
-	add("/json/triagelog/undo", handlers.TriageUndoHandler, "POST")
-	add("/json/v1/triagelog/undo", handlers.TriageUndoHandler, "POST")
 	add("/json/v2/triagelog/undo", handlers.TriageUndoHandler2, "POST")
 	add("/json/whoami", handlers.Whoami, "GET")
 	add("/json/v1/whoami", handlers.Whoami, "GET")
@@ -783,8 +513,6 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	// Only expose these endpoints if this instance is not a public view. The reason we want to hide
 	// ignore rules is so that we don't leak params that might be in them.
 	if !fsc.IsPublicView {
-		add("/json/ignores", handlers.ListIgnoreRules, "GET")
-		add("/json/v1/ignores", handlers.ListIgnoreRules, "GET")
 		add("/json/v2/ignores", handlers.ListIgnoreRules2, "GET")
 		add("/json/ignores/add/", handlers.AddIgnoreRule, "POST")
 		add("/json/v1/ignores/add/", handlers.AddIgnoreRule, "POST")
@@ -806,13 +534,7 @@ func addUnauthenticatedJSONRoutes(router *mux.Router, _ *frontendServerConfig, h
 		addJSONRoute(jsonRoute, httputils.CorsHandler(handlerFunc), router, "").Methods("GET")
 	}
 
-	add("/json/changelist/{system}/{id}/{patchset}/untriaged", handlers.ChangelistUntriagedHandler)
-	add("/json/v1/changelist/{system}/{id}/{patchset}/untriaged", handlers.ChangelistUntriagedHandler)
-	add("/json/trstatus", handlers.StatusHandler)
-	add("/json/v1/trstatus", handlers.StatusHandler)
 	add("/json/v2/trstatus", handlers.StatusHandler2)
-	add("/json/changelist/{system}/{id}", handlers.PatchsetsAndTryjobsForCL)
-	add("/json/v1/changelist/{system}/{id}", handlers.PatchsetsAndTryjobsForCL)
 	add("/json/v2/changelist/{system}/{id}", handlers.PatchsetsAndTryjobsForCL2)
 	add("/json/v1/changelist_summary/{system}/{id}", handlers.ChangelistSummaryHandler)
 }
@@ -875,4 +597,14 @@ func addJSONRoute(jsonRoute string, handlerFunc http.HandlerFunc, router *mux.Ro
 		counter.Inc(1)
 		handlerFunc(w, r)
 	})
+}
+
+// makeResourceHandler creates a static file handler that sets a caching policy.
+func makeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(resourceDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		// No limit for anon users - this should be fast enough to handle a large load.
+		w.Header().Add("Cache-Control", "max-age=300")
+		fileServer.ServeHTTP(w, r)
+	}
 }
