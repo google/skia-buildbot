@@ -22,15 +22,8 @@ const (
 	DiffCalculator  Service = "diffcalculator"
 	Frontend        Service = "frontend"
 	GitilesFollower Service = "gitilesfollower"
-	Ingestion       Service = "ingestion"    // New, SQL based ingestion
-	IngestionBT     Service = "ingestion-bt" // Deprecated, BigTable based ingestion
+	Ingestion       Service = "ingestion"
 	PeriodicTasks   Service = "periodictasks"
-
-	// Testing Gold instances.
-	TestInstance1     Instance = "goldpushk-test1"
-	TestInstance2     Instance = "goldpushk-test2"
-	TestCorpInstance1 Instance = "goldpushk-corp-test1"
-	TestCorpInstance2 Instance = "goldpushk-corp-test2"
 )
 
 var (
@@ -67,7 +60,6 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			Frontend,
 			GitilesFollower,
 			Ingestion,
-			IngestionBT,
 			PeriodicTasks,
 		},
 	}
@@ -82,7 +74,6 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			s.add(instance, DiffCalculator)
 			s.add(instance, Frontend)
 			s.add(instance, Ingestion)
-			s.add(instance, IngestionBT)
 			s.add(instance, PeriodicTasks)
 			s.add(instance, GitilesFollower)
 		}

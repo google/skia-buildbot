@@ -1,9 +1,13 @@
 package ingestion_processors
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"io"
+	"io/ioutil"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -14,6 +18,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql/databuilder"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
@@ -1545,4 +1550,23 @@ func addToCommitCache(s *sqlPrimaryIngester, gitHash string, commitID schema.Com
 		commitID: commitID,
 		tileID:   tileID,
 	})
+}
+
+type fakeGCSSource struct {
+	content []byte
+}
+
+func fakeGCSSourceFromFile(t *testing.T, file string) *fakeGCSSource {
+	fp := filepath.Join(testutils.TestDataDir(t), file)
+	b, err := ioutil.ReadFile(fp)
+	require.NoError(t, err)
+	return &fakeGCSSource{content: b}
+}
+
+func (f *fakeGCSSource) GetReader(_ context.Context, _ string) (io.ReadCloser, error) {
+	return ioutil.NopCloser(bytes.NewReader(f.content)), nil
+}
+
+func (f *fakeGCSSource) HandlesFile(_ string) bool {
+	return true
 }

@@ -16,21 +16,21 @@
       TileWidth: "100"
     }
   },
-// TODO(kjlubick) enable the below once ingestion-bt is removed
-//  secondary_branch_config: {
-//    type: "sql_secondary",
-//    gcs_source: {
-//      bucket: "skia-gold-flutter",
-//      prefix: "trybot/dm-json-v1"
-//    },
-//    extra_configuration: {
-//      CodeReviewSystems:     "github",
-//      GitHubCredentialsPath: "/var/secrets/github/github_token",
-//      GitHubRepo:            "flutter/flutter",
-//
-//      ContinuousIntegrationSystems: "cirrus,buildbucket",
-//    }
-//  },
+
+  secondary_branch_config: {
+    type: "sql_secondary",
+    gcs_source: {
+      bucket: "skia-gold-flutter",
+      prefix: "trybot/dm-json-v1"
+    },
+    extra_configuration: {
+      CodeReviewSystems:     "github",
+      GitHubCredentialsPath: "/var/secrets/github/github_token",
+      GitHubRepo:            "flutter/flutter",
+
+      ContinuousIntegrationSystems: "cirrus,buildbucket",
+    }
+  },
 
   // These values affect the k8s deployment; they are not read in by the binary.
   K8S_NODE_SELECTOR_KEY: "beta.kubernetes.io/instance-type",

@@ -18,22 +18,21 @@
       TileWidth: "100"
     }
   },
-// TODO(kjlubick) enable the below once ingestion-bt is removed
-//  secondary_branch_config: {
-//    type: "sql_secondary",
-//    gcs_source: {
-//      bucket: "skia-gold-chrome",
-//      prefix: "trybot/dm-json-v1"
-//    },
-//    extra_configuration: {
-//      // TODO(kjlubick) this is clunky; it would be preferable to use CodeReviewSystems
-//      CodeReviewSystems:  "gerrit,gerrit-internal",
-//      GerritURL:          "https://chromium-review.googlesource.com",
-//      GerritInternalURL:  "https://chrome-internal-review.googlesource.com",
-//
-//      ContinuousIntegrationSystems: "buildbucket",
-//    }
-//  },
+  secondary_branch_config: {
+    type: "sql_secondary",
+    gcs_source: {
+      bucket: "skia-gold-chrome",
+      prefix: "trybot/dm-json-v1"
+    },
+    extra_configuration: {
+      // TODO(kjlubick) this is clunky; it would be preferable to use CodeReviewSystems
+      CodeReviewSystems:  "gerrit,gerrit-internal",
+      GerritURL:          "https://chromium-review.googlesource.com",
+      GerritInternalURL:  "https://chrome-internal-review.googlesource.com",
+
+      ContinuousIntegrationSystems: "buildbucket",
+    }
+  },
 
   // These values affect the k8s deployment; they are not read in by the binary.
   K8S_NODE_SELECTOR_KEY: "beta.kubernetes.io/instance-type",

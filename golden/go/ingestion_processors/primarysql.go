@@ -3,6 +3,7 @@ package ingestion_processors
 import (
 	"context"
 	"crypto/md5"
+	"errors"
 	"strconv"
 	"time"
 
@@ -855,6 +856,45 @@ func groupingFor(keys map[string]string) map[string]string {
 		types.CorpusField:     keys[types.CorpusField],
 		types.PrimaryKeyField: keys[types.PrimaryKeyField],
 	}
+}
+
+// paramsAndOptions creates the params and options maps from a given file and entry.
+func paramsAndOptions(gr *jsonio.GoldResults, r jsonio.Result) (map[string]string, map[string]string) {
+	params := make(map[string]string, len(gr.Key)+len(r.Key))
+	for k, v := range gr.Key {
+		params[k] = v
+	}
+	for k, v := range r.Key {
+		params[k] = v
+	}
+	return params, r.Options
+}
+
+// shouldIngest returns a descriptive error if we should ignore an entry
+// with these params/options.
+func shouldIngest(params, options map[string]string) error {
+	// Ignore anything that is not a png. In the early days (pre-2015), ext was omitted
+	// but implied to be "png". Thus if ext is not provided, it will be ingested.
+	// New entries (created by goldctl) will always have ext set.
+	if ext, ok := options["ext"]; ok && (ext != "png") {
+		return errors.New("ignoring non-png entry")
+	}
+
+	// Make sure the test name meets basic requirements.
+	testName := params[types.PrimaryKeyField]
+
+	// Ignore results that don't have a test given and log an error since that
+	// should not happen. But we want to keep other results in the same input file.
+	if testName == "" {
+		return errors.New("missing test name")
+	}
+
+	// Make sure the test name does not exceed the allowed length.
+	if len(testName) > types.MaximumNameLength {
+		return skerr.Fmt("received test name which is longer than the allowed %d bytes: %s", types.MaximumNameLength, testName)
+	}
+
+	return nil
 }
 
 // Make sure sqlPrimaryIngester implements the ingestion.Processor interface.
