@@ -25,12 +25,7 @@ const commitHref = (hash: string) => {
   return `${repo}/${path}/${hash}`;
 };
 
-const detailHref = (test: TestRollup, useOldAPI: boolean) => {
-  if (useOldAPI) {
-    return `/detail?test=${test.test}&digest=${test.sample_digest}&use_old_api=true`;
-  }
-  return `/detail?test=${test.test}&digest=${test.sample_digest}`;
-};
+const detailHref = (test: TestRollup) => `/detail?test=${test.test}&digest=${test.sample_digest}`;
 
 export class ByBlameEntrySk extends ElementSk {
   private static template = (el: ByBlameEntrySk) => html`
@@ -52,7 +47,7 @@ export class ByBlameEntrySk extends ElementSk {
       : `${el.byBlameEntry!.nTests} tests affected.`}
       </p>
 
-      ${ByBlameEntrySk.affectedTestsTemplate(el.byBlameEntry?.affectedTests, el.useOldAPI)}
+      ${ByBlameEntrySk.affectedTestsTemplate(el.byBlameEntry?.affectedTests)}
     </div>
   `;
 
@@ -68,7 +63,7 @@ export class ByBlameEntrySk extends ElementSk {
       <h3>Blame</h3>
 
       <ul class=blames>
-        ${commits.map((commit) => html`
+        ${commits.map((commit: Commit) => html`
           <li>
             <a href=${commitHref(commit.hash)} target=_blank rel=noopener>
               ${commit.hash.slice(0, 7)}
@@ -88,7 +83,7 @@ export class ByBlameEntrySk extends ElementSk {
       </ul>`;
   };
 
-  private static affectedTestsTemplate = (affectedTests: TestRollup[] | undefined | null, useOldAPI: boolean) => {
+  private static affectedTestsTemplate = (affectedTests: TestRollup[] | undefined | null) => {
     if (!affectedTests || affectedTests.length === 0) return '';
     return html`
       <table class=affected-tests>
@@ -101,12 +96,12 @@ export class ByBlameEntrySk extends ElementSk {
         </thead>
         <tbody>
           ${affectedTests.map(
-      (test) => html`
+      (test: TestRollup) => html`
                   <tr>
                     <td class=test>${test.test}</td>
                     <td class=num-digests>${test.num}</td>
                     <td>
-                      <a href=${detailHref(test, useOldAPI)}
+                      <a href=${detailHref(test)}
                          class=example-link
                          target=_blank
                          rel=noopener>
@@ -124,13 +119,11 @@ export class ByBlameEntrySk extends ElementSk {
 
   private _corpus = '';
 
-  private _useOldAPI = false;
-
   constructor() {
     super(ByBlameEntrySk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
@@ -151,19 +144,10 @@ export class ByBlameEntrySk extends ElementSk {
     this._render();
   }
 
-  get useOldAPI(): boolean { return this._useOldAPI; }
-
-  set useOldAPI(b: boolean) {
-    this._useOldAPI = b;
-    this._render();
-  }
-
   private blameHref() {
     const blameID = this.byBlameEntry!.groupID;
 
-    const oldAPI = this.useOldAPI ? '&use_old_api=true' : '';
-
-    return `/search?blame=${blameID}&corpus=${this.corpus}${oldAPI}`;
+    return `/search?blame=${blameID}&corpus=${this.corpus}`;
   }
 }
 

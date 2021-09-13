@@ -255,8 +255,6 @@ export class DigestDetailsSk extends ElementSk {
 
   private _crs = '';
 
-  private _useOldAPI = false;
-
   private _commits: Commit[] = [];
 
   // This tracks which ref we are showing on the right. It will default to the closest one, but
@@ -329,14 +327,6 @@ export class DigestDetailsSk extends ElementSk {
   set right(override: SRDiffDigest | null) {
     this._overrideRight = override;
     this._render();
-  }
-
-  get useOldAPI(): boolean {
-    return this._useOldAPI;
-  }
-
-  set useOldAPI(b: boolean) {
-    this._useOldAPI = b;
   }
 
   private canToggle(): boolean {
@@ -436,7 +426,7 @@ export class DigestDetailsSk extends ElementSk {
 
     sendBeginTask(this);
 
-    const url = this._useOldAPI ? '/json/v1/triage' : '/json/v2/triage';
+    const url = '/json/v2/triage';
     fetch(url, {
       method: 'POST',
       body: JSON.stringify(triageRequest),

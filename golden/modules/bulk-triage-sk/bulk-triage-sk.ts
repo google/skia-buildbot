@@ -89,8 +89,6 @@ export class BulkTriageSk extends ElementSk {
 
   private _allDigestCount = 0;
 
-  private _useOldAPI = false;
-
   constructor() {
     super(BulkTriageSk.template);
   }
@@ -209,12 +207,6 @@ export class BulkTriageSk extends ElementSk {
     this._render();
   }
 
-  get useOldAPI(): boolean { return this._useOldAPI; }
-
-  set useOldAPI(b: boolean) {
-    this._useOldAPI = b;
-  }
-
   private static countDigests(testDigestLabelMap: TriageRequestData): number {
     let count = 0;
     if (!testDigestLabelMap) {
@@ -269,7 +261,7 @@ export class BulkTriageSk extends ElementSk {
 
     sendBeginTask(this);
     this.dispatchEvent(new CustomEvent('bulk_triage_invoked', { bubbles: true }));
-    const url = this._useOldAPI ? '/json/v1/triage' : '/json/v2/triage';
+    const url = '/json/v2/triage';
     fetch(url, {
       method: 'POST',
       body: JSON.stringify(triageRequest),

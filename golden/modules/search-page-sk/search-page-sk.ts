@@ -120,7 +120,6 @@ export class SearchPageSk extends ElementSk {
                       .allDigests=${el.searchResponse?.bulk_triage_data || {}}
                       .crs=${el.crs || ''}
                       .changeListID=${el.changelistId || ''}
-                      .useOldAPI=${el.useOldAPI}
                       @bulk_triage_invoked=${() => el.bulkTriageDialog?.close()}
                       @bulk_triage_finished=${() => el.fetchSearchResults()}
                       @bulk_triage_cancelled=${() => el.bulkTriageDialog?.close()}>
@@ -172,7 +171,6 @@ export class SearchPageSk extends ElementSk {
                          .details=${result}
                          .changeListID=${el.changelistId}
                          .crs=${el.crs}
-                         .useOldAPI=${el.useOldAPI}
                          @triage=${(e: CustomEvent<Label>) => el.onTriage(result, e.detail)}
                          class="${selected ? 'selected' : ''}">
       </digest-details-sk>
@@ -207,8 +205,6 @@ export class SearchPageSk extends ElementSk {
 
   private changelistId: string | null = null;
 
-  private useOldAPI: boolean = false;
-
   // stateReflector update function.
   private readonly stateChanged: (()=> void) | null;
 
@@ -242,7 +238,6 @@ export class SearchPageSk extends ElementSk {
         state.blame = this.blame || '';
         state.crs = this.crs || '';
         state.issue = this.changelistId || '';
-        state.use_old_api = this.useOldAPI || '';
         state.master = this.includeDigestsFromPrimary || '';
         state.patchsets = this.patchset || '';
         return state;
@@ -255,7 +250,6 @@ export class SearchPageSk extends ElementSk {
         this.blame = (newState.blame as string) || null;
         this.crs = (newState.crs as string) || null;
         this.changelistId = (newState.issue as string) || null;
-        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this.includeDigestsFromPrimary = (newState.master as boolean) || null;
         this.patchset = (newState.patchsets as number) || null;
 
@@ -312,7 +306,7 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      const url = this.useOldAPI ? '/json/v1/paramset' : '/json/v2/paramset';
+      const url = '/json/v2/paramset';
       const paramSetResponse: ParamSetResponse = await fetch(
         url + (changeListId ? `?changelist_id=${changeListId}` : ''),
         { method: 'GET' },
@@ -346,7 +340,7 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      const base = this.useOldAPI ? '/json/v1/changelist' : '/json/v2/changelist';
+      const base = '/json/v2/changelist';
       this.changeListSummaryResponse = await fetch(`${base}/${this.crs}/${this.changelistId}`, { method: 'GET' })
         .then(jsonOrThrow);
       this._render();
@@ -402,19 +396,11 @@ export class SearchPageSk extends ElementSk {
 
     try {
       sendBeginTask(this);
-      if (this.useOldAPI) {
-        this.searchResponse = await fetch(
-          `/json/v1/search?${fromObject(searchRequest as any)}`,
-          { method: 'GET', signal: this.searchResultsFetchController.signal },
-        )
-          .then(jsonOrThrow);
-      } else {
-        this.searchResponse = await fetch(
-          `/json/v2/search?${fromObject(searchRequest as any)}`,
-          { method: 'GET', signal: this.searchResultsFetchController.signal },
-        )
-          .then(jsonOrThrow);
-      }
+      this.searchResponse = await fetch(
+        `/json/v2/search?${fromObject(searchRequest as any)}`,
+        { method: 'GET', signal: this.searchResultsFetchController.signal },
+      )
+        .then(jsonOrThrow);
 
       // Reset UI and render.
       this.clearSelectedSearchResult();

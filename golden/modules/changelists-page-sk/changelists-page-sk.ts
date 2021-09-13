@@ -89,8 +89,6 @@ export class ChangelistsPageSk extends ElementSk {
 
   private showAll = false;
 
-  private useOldAPI = false;
-
   private readonly stateChanged: ()=> void;
 
   // Allows us to abort fetches if a user pages.
@@ -104,7 +102,6 @@ export class ChangelistsPageSk extends ElementSk {
         offset: this.offset,
         page_size: this.pageSize,
         show_all: this.showAll,
-        use_old_api: this.useOldAPI,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -114,14 +111,13 @@ export class ChangelistsPageSk extends ElementSk {
         this.offset = newState.offset as number || 0;
         this.pageSize = newState.page_size as number || +this.getAttribute('page_size')! || 50;
         this.showAll = newState.show_all as boolean || false;
-        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this.fetch();
         this._render();
       },
     );
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
@@ -142,7 +138,7 @@ export class ChangelistsPageSk extends ElementSk {
     };
 
     sendBeginTask(this);
-    const base = this.useOldAPI ? '/json/v1/changelists' : '/json/v2/changelists';
+    const base = '/json/v2/changelists';
     let u = `${base}?offset=${this.offset}&size=${this.pageSize}`;
     if (!this.showAll) {
       u += '&active=true';

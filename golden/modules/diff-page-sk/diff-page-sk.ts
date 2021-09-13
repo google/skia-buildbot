@@ -26,8 +26,7 @@ export class DiffPageSk extends ElementSk {
       <digest-details-sk .details=${ele.leftDetails}
                          .right=${ele.rightDetails}
                          .changeListID=${ele.changeListID}
-                         .crs=${ele.crs}
-                         .useOldAPI=${ele.useOldAPI}>
+                         .crs=${ele.crs}>
       </digest-details-sk>
     `;
   };
@@ -48,8 +47,6 @@ export class DiffPageSk extends ElementSk {
 
   private didInitialLoad = false;
 
-  private useOldAPI: boolean = false;
-
   private readonly _stateChanged: ()=> void;
 
   // Allows us to abort fetches if we fetch again.
@@ -66,7 +63,6 @@ export class DiffPageSk extends ElementSk {
         right: this.rightDigest,
         changelist_id: this.changeListID,
         crs: this.crs,
-        use_old_api: this.useOldAPI,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -77,7 +73,6 @@ export class DiffPageSk extends ElementSk {
         this.rightDigest = newState.right as string || '';
         this.changeListID = newState.changelist_id as string || '';
         this.crs = newState.crs as string || '';
-        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this.fetch();
         this._render();
       },
@@ -101,7 +96,7 @@ export class DiffPageSk extends ElementSk {
     };
     sendBeginTask(this);
 
-    const urlBase = this.useOldAPI ? '/json/v1/diff' : '/json/v2/diff';
+    const urlBase = '/json/v2/diff';
 
     const url = `${urlBase}?test=${encodeURIComponent(this.grouping)}`
       + `&left=${encodeURIComponent(this.leftDigest)}`

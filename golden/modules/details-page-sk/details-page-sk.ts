@@ -32,8 +32,7 @@ export class DetailsPageSk extends ElementSk {
       <digest-details-sk .commits=${ele.commits}
                          .changeListID=${ele.changeListID}
                          .crs=${ele.crs}
-                         .details=${ele.details}
-                         .useOldAPI=${ele.useOldAPI}>
+                         .details=${ele.details}>
       </digest-details-sk>
     `;
   };
@@ -52,8 +51,6 @@ export class DetailsPageSk extends ElementSk {
 
   private didInitialLoad = false;
 
-  private useOldAPI: boolean = false;
-
   private stateChanged?: ()=> void;
 
   // Allows us to abort fetches if we fetch again.
@@ -69,7 +66,6 @@ export class DetailsPageSk extends ElementSk {
         digest: this.digest,
         changelist_id: this.changeListID,
         crs: this.crs,
-        use_old_api: this.useOldAPI,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -79,7 +75,6 @@ export class DetailsPageSk extends ElementSk {
         this.digest = newState.digest as string || '';
         this.changeListID = newState.changelist_id as string || '';
         this.crs = newState.crs as string || '';
-        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this.fetch();
         this._render();
       },
@@ -104,7 +99,7 @@ export class DetailsPageSk extends ElementSk {
       signal: this.fetchController.signal,
     };
     sendBeginTask(this);
-    const urlBase = this.useOldAPI ? '/json/v1/details' : '/json/v2/details';
+    const urlBase = '/json/v2/details';
 
     const url = `${urlBase}?test=${encodeURIComponent(this.grouping)}`
       + `&digest=${encodeURIComponent(this.digest)}&changelist_id=${this.changeListID}`

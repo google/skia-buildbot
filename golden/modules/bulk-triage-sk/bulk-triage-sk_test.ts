@@ -65,36 +65,6 @@ describe('bulk-triage-sk', () => {
     await cancelEvent;
   });
 
-  describe('RPC requests v1', () => {
-    afterEach(() => {
-      expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
-      fetchMock.reset();
-    });
-
-    it('POSTs for just this page of results', async () => {
-      fetchMock.post('/json/v1/triage', 200, { body: expectedPageDataTriageRequest });
-
-      const finishedPromise = eventPromise('bulk_triage_finished');
-      bulkTriageSk.useOldAPI = true;
-      await bulkTriageSkPO.clickTriageBtn();
-      await finishedPromise;
-    });
-
-    it('POSTs for all results', async () => {
-      bulkTriageSk.changeListID = 'someCL';
-      bulkTriageSk.crs = 'gerrit';
-
-      fetchMock.post('/json/v1/triage', 200, { body: expectedAllDataTriageRequest });
-
-      await bulkTriageSkPO.clickTriageAllCheckbox();
-
-      const finishedPromise = eventPromise('bulk_triage_finished');
-      bulkTriageSk.useOldAPI = true;
-      await bulkTriageSkPO.clickTriageBtn();
-      await finishedPromise;
-    });
-  });
-
   describe('RPC requests v2', () => {
     afterEach(() => {
       expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.

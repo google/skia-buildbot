@@ -155,8 +155,6 @@ export class TriagelogPageSk extends ElementSk {
 
   private totalEntries = 0; // Total number of entries in the server.
 
-  private useOldAPI = false;
-
   private readonly stateChanged: ()=> void;
 
   private fetchController?: AbortController;
@@ -171,7 +169,6 @@ export class TriagelogPageSk extends ElementSk {
         page_size: this.pageSize,
         changelist_id: this.changelistID,
         crs: this.crs,
-        use_old_api: this.useOldAPI,
       }),
       /* setState */ (newState) => {
         // The stateReflector's lingering popstate event handler will continue
@@ -185,7 +182,6 @@ export class TriagelogPageSk extends ElementSk {
         this.pageSize = newState.page_size as number || 20;
         this.changelistID = newState.changelist_id as string || '';
         this.crs = newState.crs as string || '';
-        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this._render();
         this.fetchEntries();
       },
@@ -206,44 +202,15 @@ export class TriagelogPageSk extends ElementSk {
 
   private undoEntry(entryId: string) {
     sendBeginTask(this);
-    if (this.useOldAPI) {
-      this.fetchV1(`/json/v1/triagelog/undo?id=${entryId}`, 'POST')
-      // The undo RPC returns the first page of results with details hidden.
-      // But we always show details, so we need to make another request to
-      // fetch the triage log with details from /json/v1/triagelog.
-      // TODO(lovisolo): Rethink this after we delete the old triage log page.
-        .then(() => this.fetchEntries(/* sendBusyDoneEvents= */ false))
-        .then(() => sendEndTask(this))
-        .catch((e) => sendFetchError(this, e, 'undo'));
-    } else {
-      this.fetchV2(`/json/v2/triagelog/undo?id=${entryId}`, 'POST')
-        .then(() => {
-          this._render();
-          sendEndTask(this);
-        })
-        .catch((e) => sendFetchError(this, e, 'undo'));
-    }
+    this.fetchV2(`/json/v2/triagelog/undo?id=${entryId}`, 'POST')
+      .then(() => {
+        this._render();
+        sendEndTask(this);
+      })
+      .catch((e) => sendFetchError(this, e, 'undo'));
   }
 
   private fetchEntries(sendBusyDoneEvents = true): Promise<void> {
-    if (this.useOldAPI) {
-      let url = `/json/v1/triagelog?details=true&offset=${this.pageOffset}`
-          + `&size=${this.pageSize}`;
-      if (this.changelistID) {
-        url += `&changelist_id=${this.changelistID}&crs=${this.crs}`;
-      }
-      if (sendBusyDoneEvents) {
-        sendBeginTask(this);
-      }
-      return this.fetchV1(url, 'GET')
-        .then(() => {
-          this._render();
-          if (sendBusyDoneEvents) {
-            sendEndTask(this);
-          }
-        })
-        .catch((e) => sendFetchError(this, e, 'triagelog'));
-    }
     let url = `/json/v2/triagelog?offset=${this.pageOffset}&size=${this.pageSize}`;
     if (this.changelistID) {
       url += `&changelist_id=${this.changelistID}&crs=${this.crs}`;
@@ -259,32 +226,6 @@ export class TriagelogPageSk extends ElementSk {
         }
       })
       .catch((e) => sendFetchError(this, e, 'triagelog'));
-  }
-
-  // Both /json/v1/triagelog and /json/v1/triagelog/undo RPCs return the same kind of
-  // response, which is a page with triage log entries. Therefore this method is
-  // called by both fetchEntries and undoEntry to carry out their
-  // corresponding RPCs and handle the server response.
-  private fetchV1(url: string, method: 'GET' | 'POST'): Promise<void> {
-    // Force only one fetch at a time. Abort any outstanding requests.
-    if (this.fetchController) {
-      this.fetchController.abort();
-    }
-    this.fetchController = new AbortController();
-
-    const options: RequestInit = {
-      method: method,
-      signal: this.fetchController.signal,
-    };
-
-    return fetch(url, options)
-      .then(jsonOrThrow)
-      .then((response: TriageLogResponse) => {
-        this.entriesV1 = response.entries || [];
-        this.pageOffset = response.offset || 0;
-        this.pageSize = response.size || 0;
-        this.totalEntries = response.total || 0;
-      });
   }
 
   private fetchV2(url: string, method: 'GET' | 'POST'): Promise<void> {

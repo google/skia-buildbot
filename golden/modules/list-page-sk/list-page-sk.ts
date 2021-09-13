@@ -166,8 +166,6 @@ export class ListPageSk extends ElementSk {
 
   private currentCorpus = '';
 
-  private useOldAPI = false;
-
   private disregardIgnoreRules = false;
 
   private byTestCounts: TestSummary[] = [];
@@ -186,7 +184,6 @@ export class ListPageSk extends ElementSk {
         disregard_ignores: this.disregardIgnoreRules,
         corpus: this.currentCorpus,
         query: this.currentQuery,
-        use_old_api: this.useOldAPI,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -195,7 +192,6 @@ export class ListPageSk extends ElementSk {
         this.disregardIgnoreRules = newState.disregard_ignores as boolean || false;
         this.currentCorpus = newState.corpus as string || defaultCorpus();
         this.currentQuery = newState.query as string || '';
-        this.useOldAPI = (newState.use_old_api === 'true') || false;
         this.fetch();
         this._render();
       },
@@ -239,7 +235,7 @@ export class ListPageSk extends ElementSk {
     sendBeginTask(this);
     sendBeginTask(this);
 
-    const base = this.useOldAPI ? '/json/v1/list' : '/json/v2/list';
+    const base = '/json/v2/list';
     let url = `${base}?corpus=${encodeURIComponent(this.currentCorpus)}`;
     if (this.disregardIgnoreRules) {
       url += '&include_ignored_traces=true';
@@ -262,7 +258,7 @@ export class ListPageSk extends ElementSk {
     // TODO(kjlubick) when the search page gets a makeover to have just the params for the given
     //   corpus show up, we should do the same here. First idea is to have a separate corpora
     //   endpoint and then make paramset take a corpus.
-    const paramsURL = this.useOldAPI ? '/json/v1/paramset' : '/json/v2/paramset';
+    const paramsURL = '/json/v2/paramset';
     fetch(paramsURL, extra)
       .then(jsonOrThrow)
       .then((paramset: ParamSet) => {

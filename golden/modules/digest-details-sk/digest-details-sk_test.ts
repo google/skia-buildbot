@@ -122,24 +122,6 @@ describe('digest-details-sk', () => {
         fetchMock.reset();
       });
 
-      it('POSTs to the v1 RPC endpoint when triage button clicked', async () => {
-        const triageRequest: TriageRequest = {
-          testDigestStatus: {
-            'dots-legend-sk_too-many-digests': {
-              '6246b773851984c726cb2e1cb13510c2': 'negative',
-            },
-          },
-          changelist_id: '',
-          crs: '',
-        };
-        fetchMock.post({ url: '/json/v1/triage', body: triageRequest }, 200);
-
-        const endPromise = eventPromise('end-task');
-        digestDetailsSk.useOldAPI = true;
-        await digestDetailsSkPO.triageSkPO.clickButton('negative');
-        await endPromise;
-      });
-
       it('POSTs to the v2 RPC endpoint when triage button clicked', async () => {
         const triageRequest: TriageRequest = {
           testDigestStatus: {
