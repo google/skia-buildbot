@@ -204,7 +204,7 @@ export class DetailsDialogSk extends ElementSk {
           return html`
             <tr>
               <td>
-                <a href="${revisionUrlTemplate(this.repo)}${hash}}">${commit?.shortHash || ''}</a>
+                <a href="${revisionUrlTemplate(this.repo)}${hash}">${commit?.shortHash || ''}</a>
               </td>
               <td>${commit?.shortAuthor || ''}</td>
               <td>${commit?.shortSubject || ''}</td>
