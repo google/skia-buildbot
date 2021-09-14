@@ -141,32 +141,6 @@ Alerts
 
 Items below here should include target links from alerts.
 
-GoldStreamingIngestionStalled
---------------------
-Gold has a pubsub subscription for events created in its bucket.
-This alert means we haven't successfully ingested a file in over 24 hours.
-This could mean that ingestion is throwing errors on every file or
-the repo isn't very busy.
-
-This has happened before because gitsync stopped, so check that out too.
-
-Key metrics: liveness_gold_ingestion_s{metric="since_last_successful_streaming_result"},
-    liveness_last_successful_git_sync_s
-
-
-GoldPollingIngestionStalled
---------------------
-Gold regularly polls its GCS buckets for any files that were not
-successfully ingested via PubSub event when the file was created (aka "streaming").
-This alert means it has been at least 10 minutes since this happened;
-this should happen every 5 minutes or so, even in not-busy repos.
-
-This has happened before because gitsync stopped, so check that out too.
-
-Key metrics: liveness_gold_ingestion_s{metric="since_last_successful_poll"},
-    liveness_last_successful_git_sync_s
-
-
 GoldIgnoreMonitoring
 --------------------
 This alert means gold was unable to calculate which ignore rules were expired.
@@ -177,37 +151,6 @@ so maybe check out the raw data
 <https://console.cloud.google.com/firestore/data/gold/skia/ignorestore_rules?project=skia-firestore>
 
 Key metrics: gold_expired_ignore_rules_monitoring
-
-GoldCommitTooOldWallTime
-----------------------
-Too much time has elapsed since Gold noticed a commit. This occasionally is a false positive
-if a commit simply hasn't landed in the repo we are tracking.
-
-In the past, this has indicated git-sync might have had problems, so check out
-the logs of the relevant git-sync instance.
-
-Key metrics: gold_last_commit_age_s
-
-GoldCommitTooOldNewerCommit
-----------------------
-Gold has noticed there is a newer commit available for processing, but hasn't
-succeeded on moving forward.
-
-This would usually indicate an issue with Gold itself, so check
-the logs of the Gold instance.
-
-Key metrics: gold_last_commit_age_s
-
-GoldStatusStalled
-----------------------
-The underlying metric here is reset when the frontend status is recomputed. This
-normally gets recomputed when the Gold sliding window of N commits (aka "tile")
-is updated or when expectations are changed (e.g. something gets triaged).
-
-This could fire because of a problem in golden/go/status.go or computing the current
-tile takes longer than the minimum for the alert.
-
-Key metrics: liveness_gold_status_monitoring_s
 
 GoldIngestionErrorRate
 ----------------------
@@ -220,28 +163,6 @@ The recent rate of errors for the main gold instance is high, it is
 typically well below 0.1.
 See the error logs for the given instance for more.
 
-GoldExpectationsStale
-----------------------
-Currently, our baseline servers use QuerySnapshotIterators when fetching expectations out of
-Firestore. Those run on goroutines. This alert will be active if any of those sharded
-iterators are down, thus yielding stale results.
-
-To fix, delete one baseliner pod of the affected instance at a time until all of them
-have restarted and are healthy.
-
-If this alert fires, it probably means the related logic in fs_expstore needs to be rethought.
-
-GoldNoDataAtHead
-----------------
-The last 20 commits (100 for Chrome, since their tests are slower) have seen 0 data. This probably
-means something is wrong with goldctl or whatever means is getting data into gold.
-
-Check out the bucket for the instance to confirm nothing is being uploaded. Then check the logs
-of the ingester to see if newer stuff is in the bucket, but hasn't been processed already. (If it's
-an issue with ingestion, expect other alerts to be firing)
-
-Key metrics: gold_empty_commits_at_head
-
 GoldCommentingStalled
 ---------------------
 Gold hasn't been able to go through all the open CLs that have produced data and decide whether
@@ -253,23 +174,6 @@ This might mean we are doing too much and running out of quota to talk to the CR
 out of quota messages will be in the error messages or the bodies of the failing requests.
 
 Key metrics: liveness_periodic_tasks_s{task="commentOnCLs"}
-
-
-HighFirestoreUsageBurst or HighFirestoreUsageSustainedGold
-----------------------------------------------------------
-This type of alert means that Gold is probably using more Firestore quota than expected. In an
-extreme case, this can exhaust our project's entire Firestore quota (it's shared, unfortunately)
-causing wider outages.
-
-In addition to the advice of identifying QPS above, it can be helpful to identify which collections
-are receiving a lot of reads/writes. For this, a query like:
-
-```
-    rate(firestore_ops_count{app=~"gold.+"}[10m]) > 100
-```
-
-can help identify those and possibly narrow in on the cause. `rate(gold_rpc_call_counter[1m]) > 1`
-is also a good query to cross-reference this with.
 
 GoldHeavyTraffic
 ----------------

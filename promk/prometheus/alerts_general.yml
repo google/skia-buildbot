@@ -194,15 +194,6 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'Firestore usage from {{ $labels.app }} over the last 24h is high. Verify that this is expected, and adjust the alert threshold if it is. Dashboard: https://grafana2.skia.org/d/H4cyODhZz/firestore-read-write-rate?orgId=1&from=now-24h&to=now'
 
-  - alert: HighFirestoreUsageSustainedGold
-    expr: sum(rate(firestore_ops_count{count="rows", app=~"gold.+"}[2h])) by (app) > 300
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'Firestore usage from {{ $labels.app }} over the last 2h is high. This sometimes happens when an instance restarts. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md'
-
   - alert: HighFirestoreUsageBurst
     expr: sum(rate(firestore_ops_count{count="rows"}[30m])) by (app) > 1000
     labels:
@@ -714,56 +705,6 @@ groups:
     annotations:
       abbr: '{{ $labels.app }}'
       description: '{{ $labels.app }} has not successfully ingested files via streaming in a long time. See https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldstreamingingestionstalled'
-
-  - alert: GoldCommitTooOldWallTime
-    expr: gold_last_commit_age_s{type="wall_time"} > 24*60*60
-    labels:
-      category: infra
-      severity: critical
-      owner: kjlubick@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'It has been at least 24 hours since the last commit made it into Gold for {{ $labels.app }}. Some process might have hung, or perhaps that repo simply has not seen a commit in that period. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldcommittoooldwalltime'
-
-  - alert: GoldCommitTooOldNewerCommit
-    expr: gold_last_commit_age_s{type="with_new_commit"} > 60*60
-    labels:
-      category: infra
-      severity: critical
-      owner: kjlubick@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'It has been at least 1 hour since a new commit landed in {{ $labels.app }}, and Gold still has not picked it up. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldcommittoooldnewercommit'
-
-  - alert: GoldStatusStalled
-    expr: liveness_gold_status_monitoring_s > 20*60
-    labels:
-      category: infra
-      severity: warning
-      owner: kjlubick@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'It has been at least 20 minutes since the Gold status was re-computed for {{ $labels.app }}. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldstatusstalled'
-
-  - alert: GoldExpectationsStale
-    expr: stopped_expstore_shards > 0
-    labels:
-      category: infra
-      severity: critical
-      owner: kjlubick@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'Shards of QuerySnapshotIterators have stopped. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldexpectationsstale'
-
-  - alert: GoldNoDataAtHead
-    expr: gold_empty_commits_at_head{appgroup!~"gold-chrome.*"} >= 20
-    labels:
-      category: infra
-      severity: critical
-      owner: kjlubick@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'The most recent 20 commits for {{ $labels.app }} have no data. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldnodataathead'
 
   - alert: GoldCommentingStalled
     expr: liveness_periodic_tasks_s{task="commentOnCLs"} > 20*60
