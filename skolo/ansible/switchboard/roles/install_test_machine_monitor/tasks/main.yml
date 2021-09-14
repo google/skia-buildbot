@@ -1,7 +1,7 @@
 - name: Fail if platform unsupported.
   fail:
     msg: This platform is not yet supported.
-  when: "ansible_facts['system']|lower not in ['darwin', 'linux']"
+  when: "ansible_facts['system']|lower not in ['darwin', 'linux', 'win32nt']"
 
 - name: Build test_machine_monitor for the target machine.
   delegate_to: 127.0.0.1
@@ -11,17 +11,6 @@
       "build_test_machine_monitor_{{ ansible_facts['architecture'] }}_{{
       ansible_facts['system'] }}"
 
-- name: Copy over executable.
-  become: yes
-  copy:
-    src:
-      "{{ all.repo_root }}/machine/build/{{ ansible_facts['system'] }}/{{
-      ansible_facts['architecture'] }}/test_machine_monitor"
-    dest: /usr/local/bin/test_machine_monitor
-    owner: root
-    group: "{{ (ansible_facts['system']|lower == 'darwin') | ternary('wheel', 'root') }}"
-    mode: 0755
-
 - name: Install startup job for Linux.
   import_tasks: linux.yml
   when: ansible_facts['system']|lower == 'linux'
@@ -29,3 +18,7 @@
 - name: Install startup job for Mac.
   import_tasks: mac.yml
   when: ansible_facts['system']|lower == 'darwin'
+
+- name: Install startup job for Win.
+  import_tasks: win.yml
+  when: ansible_facts['system']|lower == 'win32nt'

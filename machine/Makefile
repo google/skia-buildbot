@@ -119,4 +119,13 @@ build_test_machine_monitor_arm64_Darwin:
 	  -ldflags="-X 'main.Version=${VERSION}'" \
 	 ./go/test_machine_monitor
 
+build_test_machine_monitor_64-bit_Win32NT:
+	CGO_ENABLED=0 \
+	GOOS=windows \
+	GOARCH=amd64 \
+	go build \
+	 -o ./build/Win32NT/64-bit/test_machine_monitor \
+	  -ldflags="-X 'main.Version=${VERSION}'" \
+	 ./go/test_machine_monitor
+
 include ../make/npm.mk

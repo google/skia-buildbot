@@ -1,7 +1,19 @@
+- name: Copy over executable.
+  become: yes
+  copy:
+    src:
+      "{{ all.repo_root }}/machine/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/test_machine_monitor"
+    dest: /usr/local/bin/test_machine_monitor
+    owner: root
+    group: wheel
+    mode: 0755
+
 - name: Remove any freestanding Swarming install.
   when: install_test_machine_monitor__start_swarming
   vars:
-    swarming_launch_plist: ~{{ skolo_account }}/Library/LaunchAgents/org.swarm.bot.plist
+    swarming_launch_plist:
+      ~{{ skolo_account }}/Library/LaunchAgents/org.swarm.bot.plist
   block:
     - name: Stop freestanding startup job.
       # This is idempotent and returns 0, even though it prints an error
@@ -17,7 +29,9 @@
 
 - name: Install test_machine_monitor.
   vars:
-    tmm_launch_plist: ~{{ skolo_account }}/Library/LaunchAgents/com.google.skia.test_machine_monitor.plist
+    tmm_launch_plist:
+      ~{{ skolo_account
+      }}/Library/LaunchAgents/com.google.skia.test_machine_monitor.plist
   block:
     - name: Install startup job.
       template:

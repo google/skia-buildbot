@@ -18,10 +18,10 @@
     creates:
       '{{ service_account_key.path }}/application_default_credentials.json'
 
-- name: Copy service account key
-  copy:
-    src: '{{ service_account_key.path }}/application_default_credentials.json'
-    dest: ~{{ skolo_account }}/.config/gcloud/
-    owner: '{{ skolo_account }}'
-    group: '{{ skolo_group }}'
-    mode: '0644'
+- name: Copy service account key posix.
+  import_tasks: posix.yml
+  when: ansible_facts['system']|lower in ['linux', 'darwin']
+
+- name: Copy service account key win.
+  import_tasks: win.yml
+  when: ansible_facts['system']|lower == 'win32nt'

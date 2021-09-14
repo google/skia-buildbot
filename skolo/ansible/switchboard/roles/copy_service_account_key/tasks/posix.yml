@@ -1,0 +1,17 @@
+- name: Ensure directory for default credentials exists on posix machine.
+  file:
+    path: ~{{ skolo_account }}/.config/gcloud/
+    state: directory
+    owner: '{{ skolo_account }}'
+    group: '{{ skolo_group }}'
+    mode: '0755'
+
+# See https://pkg.go.dev/golang.org/x/oauth2/google#FindDefaultCredentialsWithParams for
+# more details on the default locations that the golang library looks for credentials.
+- name: Copy service account key to posix machine.
+  copy:
+    src: '{{ service_account_key.path }}/application_default_credentials.json'
+    dest: ~{{ skolo_account }}/.config/gcloud/
+    owner: '{{ skolo_account }}'
+    group: '{{ skolo_group }}'
+    mode: '0644'

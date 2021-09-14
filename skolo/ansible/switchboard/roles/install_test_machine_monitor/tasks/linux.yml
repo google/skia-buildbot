@@ -1,3 +1,14 @@
+- name: Copy over executable.
+  become: yes
+  copy:
+    src:
+      "{{ all.repo_root }}/machine/build/{{ ansible_facts['system'] }}/{{
+      ansible_facts['architecture'] }}/test_machine_monitor"
+    dest: /usr/local/bin/test_machine_monitor
+    owner: root
+    group: root
+    mode: 0755
+
 - name: Check that ~chrome-bot/.config/autostart/swarming.desktop exists
   stat:
     path: ~chrome-bot/.config/autostart/swarming.desktop

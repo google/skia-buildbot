@@ -1,0 +1,13 @@
+# We store the credentials file at ${APPDATA}\gcloud\application_default_credentials.json
+#
+# See https://pkg.go.dev/golang.org/x/oauth2/google#FindDefaultCredentialsWithParams for
+# more details.
+- name: Ensure directory for default credentials exists on Windows machine.
+  win_file:
+    path: "{{ ansible_env.APPDATA }}\\gcloud\\"
+    state: directory
+
+- name: Copy service account key to Windows machine.
+  win_copy:
+    src: '{{ service_account_key.path }}/application_default_credentials.json'
+    dest: "{{ ansible_env.APPDATA }}\\gcloud\\"

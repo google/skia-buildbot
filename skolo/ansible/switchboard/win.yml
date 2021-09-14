@@ -1,0 +1,8 @@
+- hosts: all_win
+  user: chrome-bot
+  gather_facts: yes
+
+  roles:
+    - copy_authorized_keys
+    - copy_service_account_key
+    - install_test_machine_monitor
