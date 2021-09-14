@@ -52,6 +52,7 @@ GOOGLE_RELEASE=13729.56.0`
 func TestTryInterrogatingAndroidDevice_DeviceAttached_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_AdbGetState_Success",
 		"Test_FakeExe_ADBUptime_ReturnsPlaceholder",
 		"Test_FakeExe_AdbShellGetProp_ReturnsPlaceholder",
 		"Test_FakeExe_RawDumpSysBattery_ReturnsPlaceholder",
@@ -83,6 +84,7 @@ func TestTryInterrogatingAndroidDevice_UptimeFails_DeviceConsideredNotAttached(t
 func TestTryInterrogatingAndroidDevice_ThermalFails_PartialSuccess(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_AdbGetState_Success",
 		"Test_FakeExe_ADBUptime_ReturnsPlaceholder",
 		"Test_FakeExe_AdbShellGetProp_ReturnsPlaceholder",
 		"Test_FakeExe_RawDumpSysBattery_ReturnsPlaceholder",
@@ -201,6 +203,7 @@ func TestInterrogate_NoDeviceAttached_Success(t *testing.T) {
 func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_AdbGetState_Success",
 		"Test_FakeExe_ADBUptime_ReturnsPlaceholder",
 		"Test_FakeExe_AdbShellGetProp_ReturnsPlaceholder",
 		"Test_FakeExe_RawDumpSysBattery_ReturnsPlaceholder",
@@ -388,4 +391,19 @@ func Test_FakeExe_ExitCodeOne(t *testing.T) {
 	}
 
 	os.Exit(1)
+}
+
+func Test_FakeExe_AdbGetState_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "get-state"}, args)
+	fmt.Fprintf(os.Stderr, "device")
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
 }

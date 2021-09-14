@@ -245,6 +245,11 @@ func (m *Machine) RebootDevice(ctx context.Context) error {
 // (which can be partially filled out). If there is not a device attached, false is returned.
 func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.Android, bool) {
 	var ret machine.Android
+
+	if err := m.adb.EnsureOnline(ctx); err != nil {
+		sklog.Warningf("No Android device is available: %s", err)
+		return ret, false
+	}
 	if uptime, err := m.adb.Uptime(ctx); err != nil {
 		sklog.Warningf("Failed to read uptime - assuming there is no Android device attached: %s", err)
 		return ret, false // Assume there is no Android device attached.

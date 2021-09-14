@@ -202,6 +202,87 @@ func TestRawDumpSys_ErrOnNonZeroExitCode(t *testing.T) {
 	assert.Contains(t, err.Error(), "error: no devices/emulators found")
 }
 
+func TestGetState_HappyPath_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_AdbGetState_Success")
+
+	a := New()
+	state, err := a.getState(ctx)
+	require.NoError(t, err)
+	assert.Empty(t, state)
+}
+
+func TestGetState_Offline_ErrOnOffline(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_AdbGetState_Offline")
+
+	a := New()
+	state, err := a.getState(ctx)
+	require.Error(t, err)
+	assert.Contains(t, state, "offline")
+}
+
+func TestGetState_Offline_ErrOnNoDeviceWithNoEmptyReturned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_AdbGetState_NoDevice")
+
+	a := New()
+	state, err := a.getState(ctx)
+	require.Error(t, err)
+	assert.Contains(t, state, "no devices/emulators found")
+}
+
+func TestEnsureOnline_HappyPath_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_AdbGetState_Success")
+
+	a := New()
+	err := a.EnsureOnline(ctx)
+	require.NoError(t, err)
+}
+
+func TestEnsureOnline_Unauthorized_ErrOnUnauthorized(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_AdbGetState_NoDevice")
+
+	a := New()
+	err := a.EnsureOnline(ctx)
+	require.Contains(t, err.Error(), "adb returned an error state we can't do anything about:")
+}
+
+func TestEnsureOnline_OfflineAndReconnectWorks_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_AdbGetState_Success",
+		"Test_FakeExe_AdbGetState_Offline",
+		"Test_FakeExe_ReconnectOffline_Success",
+	)
+
+	a := New()
+	err := a.EnsureOnline(ctx)
+	require.NoError(t, err)
+}
+
+func TestEnsureOnline_OfflineAndReconnectFails_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_AdbGetState_Offline",
+		"Test_FakeExe_ReconnectOffline_NoDevice",
+		"Test_FakeExe_AdbGetState_Offline",
+	)
+
+	a := New()
+	err := a.EnsureOnline(ctx)
+	require.Contains(t, err.Error(), "adb get-state: failed with stderr")
+}
+
 func Test_FakeExe_RawDumpSys_NonZeroExitCode(t *testing.T) {
 	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
@@ -279,4 +360,74 @@ func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
 	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
 
 	os.Exit(nonZeroExitCode)
+}
+
+func Test_FakeExe_AdbGetState_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "get-state"}, args)
+	fmt.Fprintf(os.Stderr, "device")
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
+}
+
+func Test_FakeExe_AdbGetState_Offline(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "get-state"}, args)
+	fmt.Fprintf(os.Stderr, "error: device offline")
+	os.Exit(1)
+}
+
+func Test_FakeExe_AdbGetState_NoDevice(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "get-state"}, args)
+	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
+
+	os.Exit(1)
+}
+
+func Test_FakeExe_ReconnectOffline_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "reconnect", "offline"}, args)
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
+}
+
+func Test_FakeExe_ReconnectOffline_NoDevice(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "reconnect", "offline"}, args)
+	// adb reconnect always exits with status code 0, even if it failed to
+	// reconnect.
+	os.Exit(0)
 }
