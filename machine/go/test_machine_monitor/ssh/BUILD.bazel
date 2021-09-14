@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "ssh",
+    srcs = ["ssh.go"],
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor/ssh",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/executil",
+        "//go/skerr",
+    ],
+)

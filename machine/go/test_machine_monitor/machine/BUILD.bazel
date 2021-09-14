@@ -17,6 +17,7 @@ go_library(
         "//machine/go/machine/store",
         "//machine/go/machineserver/config",
         "//machine/go/test_machine_monitor/adb",
+        "//machine/go/test_machine_monitor/ssh",
         "//machine/go/test_machine_monitor/swarming",
     ],
 )
@@ -38,6 +39,7 @@ go_test(
         "//machine/go/machine/source/pubsubsource",
         "//machine/go/machineserver/config",
         "//machine/go/test_machine_monitor/adb",
+        "//machine/go/test_machine_monitor/ssh",
         "//machine/go/test_machine_monitor/swarming",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

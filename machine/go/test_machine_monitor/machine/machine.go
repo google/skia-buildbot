@@ -4,6 +4,9 @@ package machine
 import (
 	"context"
 	"os"
+	"regexp"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,6 +20,7 @@ import (
 	"go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/test_machine_monitor/adb"
+	"go.skia.org/infra/machine/go/test_machine_monitor/ssh"
 	"go.skia.org/infra/machine/go/test_machine_monitor/swarming"
 )
 
@@ -34,6 +38,9 @@ type Machine struct {
 
 	// adb makes calls to the adb server.
 	adb adb.Adb
+
+	// ssh is an abstraction around an ssh executor
+	ssh ssh.SSH
 
 	// MachineID is the swarming id of the machine.
 	MachineID string
@@ -239,7 +246,7 @@ func (m *Machine) RebootDevice(ctx context.Context) error {
 func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.Android, bool) {
 	var ret machine.Android
 	if uptime, err := m.adb.Uptime(ctx); err != nil {
-		sklog.Warningf("Failed to read uptime - assuming there is no device attached: %s", err)
+		sklog.Warningf("Failed to read uptime - assuming there is no Android device attached: %s", err)
 		return ret, false // Assume there is no Android device attached.
 	} else {
 		ret.Uptime = uptime
@@ -270,7 +277,46 @@ func (m *Machine) tryInterrogatingIOSDevice(_ context.Context) (machine.IOS, boo
 	return machine.IOS{}, false
 }
 
-func (m *Machine) tryInterrogatingChromeOSDevice(_ context.Context) (machine.ChromeOS, bool) {
-	// TODO(kjlubick)
-	return machine.ChromeOS{}, false
+var (
+	chromeOSReleaseRegex   = regexp.MustCompile(`CHROMEOS_RELEASE_VERSION=(\S+)`)
+	chromeOSMilestoneRegex = regexp.MustCompile(`CHROMEOS_RELEASE_CHROME_MILESTONE=(\S+)`)
+	chromeOSTrackRegex     = regexp.MustCompile(`CHROMEOS_RELEASE_TRACK=(\S+)`)
+)
+
+func (m *Machine) tryInterrogatingChromeOSDevice(ctx context.Context) (machine.ChromeOS, bool) {
+	if m.description.SSHUserIP == "" {
+		return machine.ChromeOS{}, false
+	}
+	lsbReleaseContents, err := m.ssh.Run(ctx, m.description.SSHUserIP, "cat", "/etc/lsb-release")
+	if err != nil {
+		sklog.Warningf("Failed to read lsb-release - assuming there is no ChromeOS device attached: %s", err)
+		return machine.ChromeOS{}, false
+	}
+	rv := machine.ChromeOS{}
+	if match := chromeOSReleaseRegex.FindStringSubmatch(lsbReleaseContents); match != nil {
+		rv.ReleaseVersion = match[1]
+	}
+	if match := chromeOSMilestoneRegex.FindStringSubmatch(lsbReleaseContents); match != nil {
+		rv.Milestone = match[1]
+	}
+	if match := chromeOSTrackRegex.FindStringSubmatch(lsbReleaseContents); match != nil {
+		rv.Channel = match[1]
+	}
+	if rv.ReleaseVersion == "" && rv.Milestone == "" && rv.Channel == "" {
+		sklog.Errorf("Could not find ChromeOS data in /etc/lsb-release. Are we sure this is the right IP?\n%s", lsbReleaseContents)
+		return machine.ChromeOS{}, false
+	}
+
+	uptime, err := m.ssh.Run(ctx, m.description.SSHUserIP, "cat", "/proc/uptime")
+	if err != nil {
+		sklog.Warningf("Could not read ChromeOS uptime %s", err)
+	} else {
+		u := strings.Split(uptime, " ")[0]
+		if f, err := strconv.ParseFloat(u, 64); err != nil {
+			sklog.Warningf("Invalid /proc/uptime format: %q", uptime)
+		} else {
+			rv.Uptime = time.Duration(f * float64(time.Second))
+		}
+	}
+	return rv, true
 }
