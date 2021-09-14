@@ -176,14 +176,6 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		ret.Dimensions[k] = values
 	}
 
-	// If the pod gets too old we schedule it for deletion.
-	if now.Now(ctx).Sub(event.Host.StartTime) > maxPodLifetime && ret.ScheduledForDeletion == "" {
-		ret.ScheduledForDeletion = ret.PodName
-		ret.Annotation.Timestamp = now.Now(ctx)
-		ret.Annotation.Message = fmt.Sprintf("Pod too old, requested update for %q", ret.PodName)
-		ret.Annotation.User = machineUserName
-	}
-
 	// If the machine just started in Recovery mode then record the start time.
 	// Note that if the machine is currently running a test then the amount of
 	// time in recovery will also include some of the test time, but that's the
@@ -211,11 +203,6 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		maintenanceModeMetric.Update(1)
 	} else {
 		maintenanceModeMetric.Update(0)
-	}
-
-	// Once a pod has restarted it will have a new podname so clear the deletion.
-	if ret.ScheduledForDeletion != "" && ret.PodName != ret.ScheduledForDeletion {
-		ret.ScheduledForDeletion = ""
 	}
 
 	// If the machine was quarantined, but hasn't been quarantined this trip

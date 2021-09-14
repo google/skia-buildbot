@@ -118,20 +118,6 @@ const annotation = (ann: Annotation | null): TemplateResult => {
   `;
 };
 
-// eslint-disable-next-line no-use-before-define
-const update = (ele: MachineServerSk, machine: Description): TemplateResult => {
-  const msg = machine.ScheduledForDeletion ? 'Waiting for update.' : 'Update';
-  return html`
-    <button
-      title="Force the pod to be killed and re-created"
-      class="update"
-      @click=${() => ele.toggleUpdate(machine.Dimensions!.id![0])}
-    >
-      ${msg}
-    </button>
-  `;
-};
-
 const imageName = (machine: Description): string => {
   // Prefer displaying the Version over the KubernetesImage.
   if (machine.Version) {
@@ -246,7 +232,6 @@ export class MachineServerSk extends ListPageSk<Description> {
       <th>Pod</th>
       <th>Device</th>
       <th>Mode</th>
-      <th>Update</th>
       <th>Host</th>
       <th>Device</th>
       <th>Quarantined</th>
@@ -274,7 +259,6 @@ export class MachineServerSk extends ListPageSk<Description> {
         <td>${machine.PodName}</td>
         <td>${pretty_device_name(machine.Dimensions.device_type)}</td>
         <td>${toggleMode(this, machine)}</td>
-        <td>${update(this, machine)}</td>
         <td class="powercycle">${powerCycle(this, machine)}</td>
         <td>${clearDevice(this, machine)}</td>
         <td>${machine.Dimensions.quarantined}</td>

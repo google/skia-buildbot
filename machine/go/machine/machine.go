@@ -84,10 +84,6 @@ type Description struct {
 	// Version of test_machine_monitor being run.
 	Version string
 
-	// ScheduledForDeletion will be a non-empty string and equal to PodName if
-	// the pod should be deleted.
-	ScheduledForDeletion string
-
 	// PowerCycle is true if the machine needs to be power-cycled.
 	PowerCycle bool
 

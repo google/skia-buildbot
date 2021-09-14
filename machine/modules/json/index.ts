@@ -12,7 +12,6 @@ export interface Description {
 	Note: Annotation;
 	KubernetesImage: string;
 	Version: string;
-	ScheduledForDeletion: string;
 	PowerCycle: boolean;
 	LastUpdated: string;
 	Battery: number;

@@ -38,17 +38,15 @@ type FirestoreImpl struct {
 	firestoreClient    *firestore.Client
 	machinesCollection *gcfirestore.CollectionRef
 
-	updateCounter                               metrics2.Counter
-	updateDataToErrorCounter                    metrics2.Counter
-	watchReceiveSnapshotCounter                 metrics2.Counter
-	watchDataToErrorCounter                     metrics2.Counter
-	listCounter                                 metrics2.Counter
-	deleteCounter                               metrics2.Counter
-	listIterFailureCounter                      metrics2.Counter
-	watchForDeletablePodsReceiveSnapshotCounter metrics2.Counter
-	watchForDeletablePodsDataToErrorCounter     metrics2.Counter
-	watchForPowerCycleReceiveSnapshotCounter    metrics2.Counter
-	watchForPowerCycleDataToErrorCounter        metrics2.Counter
+	updateCounter                            metrics2.Counter
+	updateDataToErrorCounter                 metrics2.Counter
+	watchReceiveSnapshotCounter              metrics2.Counter
+	watchDataToErrorCounter                  metrics2.Counter
+	listCounter                              metrics2.Counter
+	deleteCounter                            metrics2.Counter
+	listIterFailureCounter                   metrics2.Counter
+	watchForPowerCycleReceiveSnapshotCounter metrics2.Counter
+	watchForPowerCycleDataToErrorCounter     metrics2.Counter
 }
 
 // storeDescription is how machine.Description is mapped into firestore.
@@ -64,10 +62,6 @@ type storeDescription struct {
 
 	// Version of test_machine_monitor being run.
 	Version string
-
-	// ScheduledForDeletion will be a non-empty string and equal to PodName if
-	// the pod should be deleted.
-	ScheduledForDeletion string
 
 	// PowerCycle is true if the machine needs to be power-cycled.
 	PowerCycle bool
@@ -120,19 +114,17 @@ func NewFirestoreImpl(ctx context.Context, local bool, instanceConfig config.Ins
 		return nil, skerr.Wrapf(err, "Failed to create firestore client for app: %q instance: %q", appName, instanceConfig.Store.Instance)
 	}
 	return &FirestoreImpl{
-		firestoreClient:                             firestoreClient,
-		machinesCollection:                          firestoreClient.Collection(machinesCollectionName),
-		updateCounter:                               metrics2.GetCounter("machine_store_update"),
-		updateDataToErrorCounter:                    metrics2.GetCounter("machine_store_update_datato_error"),
-		watchReceiveSnapshotCounter:                 metrics2.GetCounter("machine_store_watch_receive_snapshot"),
-		watchDataToErrorCounter:                     metrics2.GetCounter("machine_store_watch_datato_error"),
-		listCounter:                                 metrics2.GetCounter("machine_store_list"),
-		deleteCounter:                               metrics2.GetCounter("machine_store_delete"),
-		listIterFailureCounter:                      metrics2.GetCounter("machine_store_list_iter_error"),
-		watchForDeletablePodsReceiveSnapshotCounter: metrics2.GetCounter("machine_store_watch_for_deletable_pods_receive_snapshot"),
-		watchForDeletablePodsDataToErrorCounter:     metrics2.GetCounter("machine_store_watch_for_deletable_pods_datato_error"),
-		watchForPowerCycleReceiveSnapshotCounter:    metrics2.GetCounter("machine_store_watch_for_power_cycle_receive_snapshot"),
-		watchForPowerCycleDataToErrorCounter:        metrics2.GetCounter("machine_store_watch_for_power_cycle_datato_error"),
+		firestoreClient:                          firestoreClient,
+		machinesCollection:                       firestoreClient.Collection(machinesCollectionName),
+		updateCounter:                            metrics2.GetCounter("machine_store_update"),
+		updateDataToErrorCounter:                 metrics2.GetCounter("machine_store_update_datato_error"),
+		watchReceiveSnapshotCounter:              metrics2.GetCounter("machine_store_watch_receive_snapshot"),
+		watchDataToErrorCounter:                  metrics2.GetCounter("machine_store_watch_datato_error"),
+		listCounter:                              metrics2.GetCounter("machine_store_list"),
+		deleteCounter:                            metrics2.GetCounter("machine_store_delete"),
+		listIterFailureCounter:                   metrics2.GetCounter("machine_store_list_iter_error"),
+		watchForPowerCycleReceiveSnapshotCounter: metrics2.GetCounter("machine_store_watch_for_power_cycle_receive_snapshot"),
+		watchForPowerCycleDataToErrorCounter:     metrics2.GetCounter("machine_store_watch_for_power_cycle_datato_error"),
 	}, nil
 }
 
@@ -196,37 +188,6 @@ func (st *FirestoreImpl) Watch(ctx context.Context, machineID string) <-chan mac
 			machineDescription := convertFSDescription(storeDescription)
 			st.watchReceiveSnapshotCounter.Inc(1)
 			ch <- machineDescription
-		}
-	}()
-	return ch
-}
-
-// WatchForDeletablePods implements the Store interface.
-func (st *FirestoreImpl) WatchForDeletablePods(ctx context.Context) <-chan string {
-	q := st.machinesCollection.Where("ScheduledForDeletion", ">", "").Where("RunningSwarmingTask", "==", false)
-	ch := make(chan string)
-	go func() {
-		defer close(ch)
-		for qsnap := range firestore.QuerySnapshotChannel(ctx, q) {
-			for {
-				snap, err := qsnap.Documents.Next()
-				if err == iterator.Done {
-					break
-				}
-				if err != nil {
-					sklog.Errorf("Failed to read document snapshot: %s", err)
-					continue
-				}
-				var storeDescription storeDescription
-				if err := snap.DataTo(&storeDescription); err != nil {
-					sklog.Errorf("Failed to read data from snapshot: %s", err)
-					st.watchForDeletablePodsDataToErrorCounter.Inc(1)
-					continue
-				}
-				machineDescription := convertFSDescription(storeDescription)
-				st.watchForDeletablePodsReceiveSnapshotCounter.Inc(1)
-				ch <- machineDescription.PodName
-			}
 		}
 	}()
 	return ch
@@ -310,26 +271,25 @@ func (st *FirestoreImpl) Delete(ctx context.Context, machineID string) error {
 
 func convertDescription(m machine.Description) storeDescription {
 	return storeDescription{
-		Annotation:           convertAnnotation(m.Annotation),
-		Battery:              m.Battery,
-		DeviceType:           m.Dimensions[machine.DimDeviceType],
-		DeviceUptime:         m.DeviceUptime,
-		Dimensions:           m.Dimensions,
-		KubernetesImage:      m.KubernetesImage,
-		LastUpdated:          m.LastUpdated,
-		LaunchedSwarming:     m.LaunchedSwarming,
-		Mode:                 m.Mode,
-		Note:                 convertAnnotation(m.Note),
-		OS:                   m.Dimensions[machine.DimOS],
-		PodName:              m.PodName,
-		PowerCycle:           m.PowerCycle,
-		Quarantined:          m.Dimensions[machine.DimQuarantined],
-		RecoveryStart:        m.RecoveryStart,
-		RunningSwarmingTask:  m.RunningSwarmingTask,
-		SSHUserIP:            m.SSHUserIP,
-		ScheduledForDeletion: m.ScheduledForDeletion,
-		Temperature:          m.Temperature,
-		Version:              m.Version,
+		Annotation:          convertAnnotation(m.Annotation),
+		Battery:             m.Battery,
+		DeviceType:          m.Dimensions[machine.DimDeviceType],
+		DeviceUptime:        m.DeviceUptime,
+		Dimensions:          m.Dimensions,
+		KubernetesImage:     m.KubernetesImage,
+		LastUpdated:         m.LastUpdated,
+		LaunchedSwarming:    m.LaunchedSwarming,
+		Mode:                m.Mode,
+		Note:                convertAnnotation(m.Note),
+		OS:                  m.Dimensions[machine.DimOS],
+		PodName:             m.PodName,
+		PowerCycle:          m.PowerCycle,
+		Quarantined:         m.Dimensions[machine.DimQuarantined],
+		RecoveryStart:       m.RecoveryStart,
+		RunningSwarmingTask: m.RunningSwarmingTask,
+		SSHUserIP:           m.SSHUserIP,
+		Temperature:         m.Temperature,
+		Version:             m.Version,
 	}
 }
 
@@ -352,23 +312,22 @@ func convertFSAnnotation(a fsAnnotation) machine.Annotation {
 // convertFSDescription converts the firestore version of the description to the common format.
 func convertFSDescription(s storeDescription) machine.Description {
 	return machine.Description{
-		Annotation:           convertFSAnnotation(s.Annotation),
-		Battery:              s.Battery,
-		DeviceUptime:         s.DeviceUptime,
-		Dimensions:           s.Dimensions,
-		KubernetesImage:      s.KubernetesImage,
-		LastUpdated:          s.LastUpdated,
-		LaunchedSwarming:     s.LaunchedSwarming,
-		Mode:                 s.Mode,
-		SSHUserIP:            s.SSHUserIP,
-		Note:                 convertFSAnnotation(s.Note),
-		PodName:              s.PodName,
-		PowerCycle:           s.PowerCycle,
-		RecoveryStart:        s.RecoveryStart,
-		RunningSwarmingTask:  s.RunningSwarmingTask,
-		ScheduledForDeletion: s.ScheduledForDeletion,
-		Temperature:          s.Temperature,
-		Version:              s.Version,
+		Annotation:          convertFSAnnotation(s.Annotation),
+		Battery:             s.Battery,
+		DeviceUptime:        s.DeviceUptime,
+		Dimensions:          s.Dimensions,
+		KubernetesImage:     s.KubernetesImage,
+		LastUpdated:         s.LastUpdated,
+		LaunchedSwarming:    s.LaunchedSwarming,
+		Mode:                s.Mode,
+		SSHUserIP:           s.SSHUserIP,
+		Note:                convertFSAnnotation(s.Note),
+		PodName:             s.PodName,
+		PowerCycle:          s.PowerCycle,
+		RecoveryStart:       s.RecoveryStart,
+		RunningSwarmingTask: s.RunningSwarmingTask,
+		Temperature:         s.Temperature,
+		Version:             s.Version,
 	}
 }
 

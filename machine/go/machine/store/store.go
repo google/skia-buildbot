@@ -25,12 +25,6 @@ type Store interface {
 	// the description for machineID changes.
 	Watch(ctx context.Context, machineID string) <-chan machine.Description
 
-	// WatchForDeletablePods returns a channel that will produce the name of a
-	// k8s pod for every pod that becomes eligible for deletion. Note that since
-	// these k8s pods are from a daemonset the pod will automatically be
-	// restarted, but with the latest image.
-	WatchForDeletablePods(ctx context.Context) <-chan string
-
 	// WatchForPowerCycle returns a channel that will produce the name of a
 	// machine that needs to be power-cycled. Before a machineID is sent on the
 	// channel the PowerCycle value is set back to false.

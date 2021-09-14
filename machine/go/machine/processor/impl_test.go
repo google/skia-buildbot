@@ -274,42 +274,6 @@ func TestProcess_DetectNotInsideDocker(t *testing.T) {
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
 }
 
-func TestProcess_ClearScheduledForDeletionOnPodNameChange(t *testing.T) {
-	unittest.SmallTest(t)
-
-	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
-	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
-	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
-
-	ctx := now.TimeTravelingContext(stateTime)
-
-	// The current machine has nothing attached.
-	previous := machine.NewDescription(ctx)
-	require.Empty(t, previous.Dimensions)
-	previous.ScheduledForDeletion = "foo"
-	previous.PodName = "foo"
-
-	// An event arrives with the attachment of an Android device.
-	event := machine.Event{
-		EventType: machine.EventTypeRawState,
-		Android:   machine.Android{},
-		Host: machine.Host{
-			Name:      "skia-rpi-0001",
-			PodName:   "bar",
-			StartTime: bootUpTime,
-		},
-	}
-
-	ctx.SetTime(serverTime)
-	p := newProcessorForTest()
-	next := p.Process(ctx, previous, event)
-	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
-	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
-
-	// The Android should no longer be scheduled for deletion.
-	assert.Equal(t, "", next.ScheduledForDeletion)
-}
-
 func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -537,48 +501,6 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 
 	assert.Equal(t, int64(9), metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": "skia-rpi2-0001"}).Get())
-}
-
-func TestProcess_ScheduleForDeletionIfPodIsTooOld(t *testing.T) {
-	unittest.SmallTest(t)
-
-	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
-	// This is well passed the maximum allowable age.
-	bootUpTime := time.Date(2021, time.June, 1, 10, 1, 0, 0, time.UTC)
-	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
-
-	ctx := now.TimeTravelingContext(stateTime)
-
-	previous := machine.NewDescription(ctx)
-	event := machine.Event{
-		EventType: machine.EventTypeRawState,
-		Host: machine.Host{
-			Name:      "skia-rpi2-0001",
-			StartTime: bootUpTime,
-			PodName:   "rpi-swarming-123",
-		},
-		Android: machine.Android{},
-	}
-
-	ctx.SetTime(serverTime)
-	p := newProcessorForTest()
-	next := p.Process(ctx, previous, event)
-	assert.Equal(t, machine.Description{
-		Mode: machine.ModeAvailable,
-		Annotation: machine.Annotation{
-			Message:   `Pod too old, requested update for "rpi-swarming-123"`,
-			User:      machineUserName,
-			Timestamp: serverTime,
-		},
-		Dimensions: machine.SwarmingDimensions{
-			machine.DimID:   []string{"skia-rpi2-0001"},
-			"inside_docker": []string{"1", "containerd"},
-		},
-		PodName:              "rpi-swarming-123",
-		ScheduledForDeletion: "rpi-swarming-123",
-		LastUpdated:          serverTime,
-		Battery:              badBatteryLevel,
-	}, next)
 }
 
 func TestProcess_RecoveryModeIfDeviceTooHot(t *testing.T) {

@@ -15,7 +15,6 @@ const setUpElement = async (): Promise<MachineServerSk> => {
       Mode: 'available',
       Battery: 100,
       PodName: 'rpi-swarming-123456-987',
-      ScheduledForDeletion: '',
       Dimensions: {
         id: ['skia-rpi2-rack4-shelf1-002'],
         android_devices: ['1'],
@@ -91,52 +90,6 @@ describe('machine-server-sk', () => {
     assert.equal('maintenance', button.textContent?.trim());
   }));
 
-  it('updates ScheduledForDeletion when you click on the update button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
-    const s = await setUpElement();
-
-    // Now set up fetchMock for the requests that happen when the button is clicked.
-    fetchMock.reset();
-    fetchMock.get(
-      '/_/machine/toggle_update/skia-rpi2-rack4-shelf1-002',
-      200,
-    );
-    fetchMock.get('/_/machines', [
-      {
-        Mode: 'maintenance',
-        Battery: 100,
-        PodName: 'rpi-swarming-123456-987',
-        ScheduledForDeletion: 'rpi-swarming-123456-987',
-        Dimensions: {
-          id: ['skia-rpi2-rack4-shelf1-002'],
-          android_devices: ['1'],
-          device_os: ['H', 'HUAWEIELE-L29'],
-        },
-        Note: {
-          User: '',
-          Message: '',
-          Timestamp: '2020-04-21T17:33:09.638275Z',
-        },
-        Annotation: {
-          User: '',
-          Message: '',
-          LastUpdated: '2020-04-21T17:33:09.638275Z',
-        },
-        LastUpdated: '2020-04-21T17:33:09.638275Z',
-        Temperature: { dumpsys_battery: 26 },
-      },
-    ]);
-
-    // Click the button.
-    const button = $$<HTMLButtonElement>('button.update', s)!;
-    button.click();
-
-    // Wait for all requests to finish.
-    await fetchMock.flush(true);
-
-    // Confirm the button text has been updated.
-    assert.equal('Waiting for update.', button.textContent?.trim());
-  }));
-
   it('starts requesting updates when you click on the refresh button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
     const s = await setUpElement();
 
@@ -147,7 +100,6 @@ describe('machine-server-sk', () => {
         Mode: 'maintenance',
         Battery: 100,
         PodName: 'rpi-swarming-123456-987',
-        ScheduledForDeletion: 'rpi-swarming-123456-987',
         Dimensions: {
           id: ['skia-rpi2-rack4-shelf1-002'],
           android_devices: ['1'],
@@ -192,7 +144,6 @@ describe('machine-server-sk', () => {
         Mode: 'maintenance',
         Battery: 100,
         PodName: 'rpi-swarming-123456-987',
-        ScheduledForDeletion: 'rpi-swarming-123456-987',
         Dimensions: {
           id: ['skia-rpi2-rack4-shelf1-002'],
           android_devices: ['1'],
@@ -243,7 +194,6 @@ describe('machine-server-sk', () => {
         Mode: 'maintenance',
         Battery: 100,
         PodName: 'rpi-swarming-123456-987',
-        ScheduledForDeletion: 'rpi-swarming-123456-987',
         Dimensions: {},
         Note: {
           User: '',
@@ -314,7 +264,6 @@ describe('machine-server-sk', () => {
         Mode: 'available',
         Battery: 100,
         PodName: 'rpi-swarming-123456-987',
-        ScheduledForDeletion: '',
         Dimensions: {
           id: ['skia-rpi2-rack4-shelf1-002'],
           android_devices: ['1'],
