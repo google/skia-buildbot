@@ -5,15 +5,21 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+	"google.golang.org/api/option"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/sklogimpl"
+	"go.skia.org/infra/go/sklog/stdlogging"
 )
 
 func main() {
@@ -24,39 +30,50 @@ func main() {
 	subscriptionName := flag.String("subscription_name", "", "The subscription to create if it does not exist")
 	jsonMessageFile := flag.String("json_message_file", "", "A file that contains the JSON contents to send as the body of a pubsub message.")
 
+	sklogimpl.SetLogger(stdlogging.New(os.Stderr))
 	flag.Parse()
 	task := strings.ToLower(flag.Arg(0))
 
 	ctx := context.Background()
-	psc, err := pubsub.NewClient(ctx, *projectID)
+	ts, err := auth.NewDefaultTokenSource(true)
 	if err != nil {
-		sklog.Fatalf("Initializing pubsub client for project %s: %s", *projectID, err)
+		exitWithError("getting auth token: %s", err)
+	}
+	psc, err := pubsub.NewClient(ctx, *projectID, option.WithTokenSource(ts))
+	if err != nil {
+		exitWithError("Initializing pubsub client for project %s: %s", *projectID, err)
 	}
 
-	gsc, err := storage.NewClient(ctx)
+	gsc, err := storage.NewClient(ctx, option.WithTokenSource(ts))
 	if err != nil {
-		sklog.Fatalf("Initializing GCS Client: %s", err)
+		exitWithError("Initializing GCS Client: %s", err)
 	}
 
 	if task == "create" {
 		if err := createTopicAndSubscription(ctx, psc, *topicName, *subscriptionName); err != nil {
-			sklog.Fatalf("Making topic %s and subscription %s: %s", *topicName, *subscriptionName, err)
+			exitWithError("Making topic %s and subscription %s: %s", *topicName, *subscriptionName, err)
 		}
 	} else if task == "publish" {
 		if err := publishMessage(ctx, psc, *topicName, *jsonMessageFile); err != nil {
-			sklog.Fatalf("Sending contents of %s to topic %s: %S", *jsonMessageFile)
+			exitWithError("Sending contents of %s to topic %s: %S", *jsonMessageFile)
 		}
 	} else if task == "bucket_notifications" {
 		if err := listBucketNotifications(ctx, gsc, *bucketName); err != nil {
-			sklog.Fatalf("Listing bucket notifications on GCS bucket %s: %s", *bucketName, err)
+			exitWithError("Listing bucket notifications on GCS bucket %q: %s", *bucketName, err)
 		}
 	} else if task == "subscribe_to_bucket" {
 		if err := subscribeToBucket(ctx, psc, *projectID, *topicName, *subscriptionName, gsc, *bucketName, *prefix); err != nil {
-			sklog.Fatalf("Creating new bucket notification: %s", err)
+			exitWithError("Creating new bucket notification: %s", err)
 		}
 	} else {
-		sklog.Fatalf(`Invalid command: %q. Try "create".`, task)
+		exitWithError(`Invalid command: %q. Try "create".`, task)
 	}
+}
+
+func exitWithError(msg string, args ...interface{}) {
+	msg = strings.TrimSuffix(msg, "\n") + "\n"
+	fmt.Printf(msg, args...)
+	os.Exit(1)
 }
 
 func publishMessage(ctx context.Context, psc *pubsub.Client, topic, jsonMessageFile string) error {
@@ -125,6 +142,9 @@ func createTopicIfNotExists(ctx context.Context, psc *pubsub.Client, topic strin
 }
 
 func listBucketNotifications(ctx context.Context, gsc *storage.Client, bucketName string) error {
+	if bucketName == "" {
+		return skerr.Fmt("Must specify bucket")
+	}
 	bucket := gsc.Bucket(bucketName)
 	notifications, err := bucket.Notifications(ctx)
 	if err != nil {
@@ -138,8 +158,8 @@ func listBucketNotifications(ctx context.Context, gsc *storage.Client, bucketNam
 }
 
 func subscribeToBucket(ctx context.Context, psc *pubsub.Client, project, topic, subscription string, gsc *storage.Client, bucket, prefix string) error {
-	if prefix == "" {
-		return skerr.Fmt("Must specify prefix")
+	if bucket == "" || prefix == "" {
+		return skerr.Fmt("Must specify bucket and prefix")
 	}
 	t, err := createTopicIfNotExists(ctx, psc, topic)
 	if err != nil {

@@ -157,6 +157,9 @@ GoldIngestionErrorRate
 The recent rate of errors for ingestion is high, it is typically well below 0.1.
 See the error logs for the given instance for more.
 
+A common scenario that triggers this is cherry-picks onto non-primary branches that upload to Gold.
+When Gold ingests a file and it can't tie it to the primary branch, that is an error.
+
 GoldErrorRate
 ----------------------
 The recent rate of errors for the main gold instance is high, it is
@@ -217,6 +220,29 @@ It is best to look at the logs for the app (e.g. gold-skia-ingestion) to see the
 The alert is set up to look at the percentage of failures over the last 10 minutes.
 
 Key metrics: gold_ingestion_failure, gold_ingestion_success
+
+GoldPollingIngestionStalled
+---------------------------
+As a backup to the Pub/Sub polling, Gold will scan all the ingested files produced over the last
+two hours. It does so every hour, so files shouldn't be missed. If this alert is firing, something
+is causing the polling to take too long (or the backup has stopped).
+
+A cause of this in the past was a lack of Pub/Sub events being fired when objects landed in the
+bucket for Tryjob data. As a result, the only way tryjobs were being ingested was via the backup.
+The backup took too long to do this and the alert fired.
+
+Check the ingestion logs to see if there are a lot of files that are not being ignored on the
+backup polling (and thus, are actually being ingested). Use //golden/cmd/pubsubtool to list or
+create new bucket subscriptions as necessary. (See go/setup-gold-instance for details).
+
+Key metrics: liveness_gold_ingestion_s{metric="since_last_successful_poll"}
+
+GoldStreamingIngestionStalled
+-----------------------------
+Gold hasn't ingested a file via Pub/Sub in a while. This commonly happens when there is no data
+(e.g. a weekend).
+
+Key metrics: liveness_gold_ingestion_s{metric="since_last_successful_streaming_result"}
 
 Backups
 =======
