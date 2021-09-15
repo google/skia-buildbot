@@ -261,10 +261,45 @@ func startPrimaryBranchDiffWork(ctx context.Context, gatherer *diffWorkGatherer,
 
 // gatherFromPrimaryBranch finds all groupings that have recent data on the primary branch and
 // makes sure a row exists in the SQL DB for each of them.
-// TODO(kjlubick) periodically remove groupings that are not at HEAD anymore.
 func (g *diffWorkGatherer) gatherFromPrimaryBranch(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "gatherFromPrimaryBranch")
 	defer span.End()
+	// Doing the get/join/insert all in 1 transaction did not work when there are many groupings
+	// and many diffcalculator processes - too much contention.
+	groupingsInWindow, err := g.getDistinctGroupingsInWindow(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	alreadyProcessedGroupings, err := g.getGroupingsBeingProcessed(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	apg := map[string]bool{}
+	for _, g := range alreadyProcessedGroupings {
+		apg[string(g)] = true
+	}
+	// TODO(kjlubick) periodically remove groupings that are not at HEAD anymore.
+	var newGroupings []schema.GroupingID
+	for _, g := range groupingsInWindow {
+		if !apg[string(g)] {
+			newGroupings = append(newGroupings, g)
+		}
+	}
+	sklog.Infof("There are currently %d groupings in the window and %d groupings being processed for diffs. This cycle, there were %d new groupings detected.",
+		len(groupingsInWindow), len(alreadyProcessedGroupings), len(newGroupings))
+
+	if len(newGroupings) == 0 {
+		return nil
+	}
+
+	return skerr.Wrap(g.addNewGroupingsForProcessing(ctx, newGroupings))
+}
+
+// getDistinctGroupingsInWindow returns the distinct grouping ids seen within the current window.
+func (g *diffWorkGatherer) getDistinctGroupingsInWindow(ctx context.Context) ([]schema.GroupingID, error) {
+	ctx, span := trace.StartSpan(ctx, "getDistinctGroupingsInWindow")
+	defer span.End()
+
 	const statement = `WITH
 RecentCommits AS (
 	SELECT commit_id FROM CommitsWithData
@@ -274,13 +309,70 @@ FirstCommitInWindow AS (
 	SELECT commit_id FROM RecentCommits
 	ORDER BY commit_id ASC LIMIT 1
 )
-INSERT INTO PrimaryBranchDiffCalculationWork (grouping_id, last_calculated_ts, calculation_lease_ends)
-SELECT DISTINCT grouping_id, '1970-01-01', '1970-01-01' FROM ValuesAtHead
-JOIN FirstCommitInWindow ON ValuesAtHead.most_recent_commit_id >= FirstCommitInWindow.commit_id
-ON CONFLICT DO NOTHING
-`
+SELECT DISTINCT grouping_id FROM ValuesAtHead
+JOIN FirstCommitInWindow ON ValuesAtHead.most_recent_commit_id >= FirstCommitInWindow.commit_id`
+
+	rows, err := g.db.Query(ctx, statement, g.windowSize)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var rv []schema.GroupingID
+	for rows.Next() {
+		var id schema.GroupingID
+		if err := rows.Scan(&id); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, id)
+	}
+	return rv, nil
+}
+
+// getGroupingsBeingProcessed returns all groupings that we are currently computing diffs for.
+func (g *diffWorkGatherer) getGroupingsBeingProcessed(ctx context.Context) ([]schema.GroupingID, error) {
+	ctx, span := trace.StartSpan(ctx, "getGroupingsBeingProcessed")
+	defer span.End()
+
+	const statement = `SELECT DISTINCT grouping_id FROM PrimaryBranchDiffCalculationWork
+AS OF SYSTEM TIME '-0.1s'`
+
+	rows, err := g.db.Query(ctx, statement)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	var rv []schema.GroupingID
+	for rows.Next() {
+		var id schema.GroupingID
+		if err := rows.Scan(&id); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, id)
+	}
+	return rv, nil
+}
+
+// addNewGroupingsForProcessing updates the PrimaryBranchDiffCalculationWork table with the newly
+// provided groupings, such that we will start computing diffs for them. This table is potentially
+// under a lot of contention. We try to write some sentinel values, but if there are already values
+// there, we will bail out.
+func (g *diffWorkGatherer) addNewGroupingsForProcessing(ctx context.Context, groupings []schema.GroupingID) error {
+	ctx, span := trace.StartSpan(ctx, "addNewGroupingsForProcessing")
+	defer span.End()
+	span.AddAttributes(trace.Int64Attribute("num_groupings", int64(len(groupings))))
+	statement := `INSERT INTO PrimaryBranchDiffCalculationWork (grouping_id, last_calculated_ts, calculation_lease_ends) VALUES`
+	const valuesPerRow = 3
+	vp := sql.ValuesPlaceholders(valuesPerRow, len(groupings))
+	statement = statement + vp + ` ON CONFLICT DO NOTHING`
+	args := make([]interface{}, 0, valuesPerRow*len(groupings))
+	// This time will make sure we compute diffs for this soon.
+	beginningOfTime := time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC)
+	for _, g := range groupings {
+		args = append(args, g, beginningOfTime, beginningOfTime)
+	}
+
 	err := crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		_, err := g.db.Exec(ctx, statement, g.windowSize)
+		_, err := g.db.Exec(ctx, statement, args...)
 		return err // may be retried
 	})
 	return skerr.Wrap(err)

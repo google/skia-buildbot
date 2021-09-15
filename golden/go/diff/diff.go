@@ -181,8 +181,7 @@ func GetNRGBA(img image.Image) *image.NRGBA {
 			Rect:   t.Rect,
 		}
 	default:
-		// TODO(kjlubick): does it make sense we're getting other types, or a DM bug?
-		sklog.Errorf("Unexpected image type %T", img)
+		// Some of our tests produce more than 8 bit per channel color.
 		return recode(img)
 	}
 }

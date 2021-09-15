@@ -22,6 +22,7 @@ func TestGatherFromPrimaryBranch_NoExistingWork_AllWorkAdded(t *testing.T) {
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
 	g := diffWorkGatherer{
 		windowSize: 100,
 		db:         db,
@@ -66,6 +67,7 @@ func TestGatherFromPrimaryBranch_SomeExistingWork_AllWorkAdded(t *testing.T) {
 		},
 	}
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
 
 	g := diffWorkGatherer{
 		windowSize: 100,
@@ -88,6 +90,57 @@ func TestGatherFromPrimaryBranch_SomeExistingWork_AllWorkAdded(t *testing.T) {
 			GroupingID:           h(circleGrouping),
 			LastCalculated:       beginningOfTime,
 			CalculationLeaseEnds: beginningOfTime,
+		},
+	}, actualWork)
+}
+
+func TestGatherFromPrimaryBranch_NoNewWork_NothingChanged(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	sentinelTime := ts("2021-02-02T02:15:00Z")
+	existingData := dks.Build()
+	existingData.PrimaryBranchDiffCalculationWork = []schema.PrimaryBranchDiffCalculationRow{
+		{
+			GroupingID:           h(squareGrouping),
+			LastCalculated:       sentinelTime,
+			CalculationLeaseEnds: sentinelTime,
+		},
+		{
+			GroupingID:           h(triangleGrouping),
+			LastCalculated:       sentinelTime,
+			CalculationLeaseEnds: sentinelTime,
+		},
+		{
+			GroupingID:           h(circleGrouping),
+			LastCalculated:       sentinelTime,
+			CalculationLeaseEnds: sentinelTime,
+		},
+	}
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
+
+	g := diffWorkGatherer{
+		windowSize: 100,
+		db:         db,
+	}
+	require.NoError(t, g.gatherFromPrimaryBranch(ctx))
+	actualWork := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchDiffCalculationWork", &schema.PrimaryBranchDiffCalculationRow{})
+	assert.ElementsMatch(t, []schema.PrimaryBranchDiffCalculationRow{
+		{
+			GroupingID:           h(squareGrouping),
+			LastCalculated:       sentinelTime,
+			CalculationLeaseEnds: sentinelTime,
+		},
+		{
+			GroupingID:           h(triangleGrouping),
+			LastCalculated:       sentinelTime,
+			CalculationLeaseEnds: sentinelTime,
+		},
+		{
+			GroupingID:           h(circleGrouping),
+			LastCalculated:       sentinelTime,
+			CalculationLeaseEnds: sentinelTime,
 		},
 	}, actualWork)
 }
@@ -284,4 +337,8 @@ func ts(s string) time.Time {
 func h(s string) []byte {
 	hash := md5.Sum([]byte(s))
 	return hash[:]
+}
+
+func waitForSystemTime() {
+	time.Sleep(150 * time.Millisecond)
 }
