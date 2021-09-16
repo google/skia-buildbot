@@ -10,13 +10,14 @@
 import { html, TemplateResult } from 'lit-html';
 
 import { $$ } from 'common-sk/modules/dom';
-import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
-import 'elements-sk/error-toast-sk/index';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import 'elements-sk/error-toast-sk';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { FilterArray } from '../filter-array';
 import '../auto-refresh-sk';
+import '../device-editor-sk';
+import '../note-editor-sk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 export abstract class ListPageSk<ItemType> extends ElementSk {
@@ -34,7 +35,7 @@ export abstract class ListPageSk<ItemType> extends ElementSk {
   /** Return a <tr> displaying a single item. */
   abstract tableRow(item: ItemType): TemplateResult;
 
-  protected _template = (ele: ListPageSk<ItemType>) => html`
+  protected _template = (ele: ListPageSk<ItemType>): TemplateResult => html`
     <header>
       <auto-refresh-sk @refresh-page=${ele.update}></auto-refresh-sk>
       <span id=header-rhs>
@@ -54,7 +55,9 @@ export abstract class ListPageSk<ItemType> extends ElementSk {
         </tbody>
       </table>
     </main>
+    <!-- TODO(kjlubick) These should not go here, but only in the subclass -->
     <note-editor-sk></note-editor-sk>
+    <device-editor-sk></device-editor-sk>
     <error-toast-sk></error-toast-sk>
   `;
 
@@ -102,8 +105,8 @@ export abstract class ListPageSk<ItemType> extends ElementSk {
     }
   }
 
-  onError(msg: { message: string; } | string) {
+  onError(msg: { message: string; } | string): void {
     this.removeAttribute('waiting');
     errorMessage(msg);
   }
-};
+}

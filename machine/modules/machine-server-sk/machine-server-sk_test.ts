@@ -211,8 +211,10 @@ describe('machine-server-sk', () => {
       },
     ]);
 
-    // Click the button.
-    $$<HTMLElement>('clear-icon-sk', s)!.click();
+    // Click the button to show the dialog
+    $$<HTMLElement>('edit-icon-sk.edit_device', s)!.click();
+    // Now clear the dimensions
+    $$<HTMLElement>('device-editor-sk button.clear', s)!.click();
 
     // Wait for all requests to finish.
     await fetchMock.flush(true);
@@ -286,7 +288,7 @@ describe('machine-server-sk', () => {
     ]);
 
     // Open the editor dialog.
-    $$<HTMLElement>('edit-icon-sk', s)!.click();
+    $$<HTMLElement>('edit-icon-sk.edit_note', s)!.click();
     // Change the message.
     $$<HTMLInputElement>('note-editor-sk #note', s)!.value = updatedMessage;
     // Press OK.

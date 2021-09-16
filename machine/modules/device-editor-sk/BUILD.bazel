@@ -1,0 +1,54 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":device-editor-sk-demo",
+)
+
+sk_element(
+    name = "device-editor-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//machine/modules/theme:theme_sass_lib",
+    ],
+    sass_srcs = ["device-editor-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//@types/dialog-polyfill",
+        "@npm//dialog-polyfill",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "device-editor-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "device-editor-sk-demo",
+    html_file = "device-editor-sk-demo.html",
+    sk_element_deps = [":device-editor-sk"],
+    ts_deps = ["@npm//common-sk"],
+    ts_entry_point = "device-editor-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "device-editor-sk_puppeteer_test",
+    src = "device-editor-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = ["//puppeteer-tests:util_ts_lib"],
+)
+
+karma_test(
+    name = "device-editor-sk_test",
+    src = "device-editor-sk_test.ts",
+    deps = [
+        ":device-editor-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+    ],
+)

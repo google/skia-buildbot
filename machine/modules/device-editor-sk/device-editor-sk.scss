@@ -1,0 +1,14 @@
+@import '../theme/theme';
+
+device-editor-sk {
+  dialog {
+    padding: 8px;
+    border: solid 1px var(--on-surface);
+    color: var(--on-background);
+    background: var(--background);
+  }
+
+  button {
+    margin: 0 8px 0 0;
+  }
+}

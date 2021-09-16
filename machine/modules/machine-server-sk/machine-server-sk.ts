@@ -17,7 +17,6 @@ import { ListPageSk } from '../list-page-sk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import 'elements-sk/error-toast-sk/index';
 import 'elements-sk/icon/cached-icon-sk';
-import 'elements-sk/icon/clear-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/edit-icon-sk';
 import 'elements-sk/icon/launch-icon-sk';
@@ -25,8 +24,8 @@ import 'elements-sk/icon/power-settings-new-icon-sk';
 import 'elements-sk/styles/buttons/index';
 import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
 import '../auto-refresh-sk';
-import '../note-editor-sk';
 import { DEVICE_ALIASES } from '../../../modules/devices/devices';
+import { ClearDeviceEvent, DeviceEditorSk } from '../device-editor-sk/device-editor-sk';
 
 /**
  * Updates should arrive every 30 seconds, so we allow up to 2x that for lag
@@ -150,16 +149,6 @@ const powerCycle = (ele: MachineServerSk, machine: Description): TemplateResult 
 };
 
 // eslint-disable-next-line no-use-before-define
-const clearDevice = (ele: MachineServerSk, machine: Description): TemplateResult => (machine.RunningSwarmingTask
-  ? html``
-  : html`
-        <clear-icon-sk
-          title="Clear the dimensions for the bot"
-          @click=${() => ele.clearDevice(machine.Dimensions!.id![0])}
-        ></clear-icon-sk>
-      `);
-
-// eslint-disable-next-line no-use-before-define
 const toggleMode = (ele: MachineServerSk, machine: Description) => html`
     <button
       class="mode"
@@ -202,7 +191,8 @@ export const uptimeOutOfSpecIfTooOld = (uptime: number): string => (uptime > MAX
 
 // eslint-disable-next-line no-use-before-define
 const note = (ele: MachineServerSk, machine: Description): TemplateResult => html`
-  <edit-icon-sk @click=${() => ele.editNote(machine.Dimensions!.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
+  <edit-icon-sk class="edit_note"
+      @click=${() => ele.editNote(machine.Dimensions!.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
 `;
 
 // Returns the device_type separated with vertical bars and a trailing device
@@ -223,6 +213,8 @@ export const pretty_device_name = (devices: string[] | null): string => {
 
 export class MachineServerSk extends ListPageSk<Description> {
   private noteEditor: NoteEditorSk | null = null;
+
+  private deviceEditor: DeviceEditorSk | null = null;
 
   _fetchPath = '/_/machines';
 
@@ -260,7 +252,7 @@ export class MachineServerSk extends ListPageSk<Description> {
         <td>${pretty_device_name(machine.Dimensions.device_type)}</td>
         <td>${toggleMode(this, machine)}</td>
         <td class="powercycle">${powerCycle(this, machine)}</td>
-        <td>${clearDevice(this, machine)}</td>
+        <td>${this.editDeviceIcon(machine)}</td>
         <td>${machine.Dimensions.quarantined}</td>
         <td>${isRunning(machine)}</td>
         <td>${machine.Battery}</td>
@@ -277,9 +269,28 @@ export class MachineServerSk extends ListPageSk<Description> {
     `;
   }
 
+  private editDeviceIcon = (machine: Description): TemplateResult => (machine.RunningSwarmingTask
+    ? html``
+    : html`
+        <edit-icon-sk
+          title="Edit/clear the dimensions for the bot"
+          class="edit_device"
+          @click=${() => this.deviceEditor?.show(machine.Dimensions!.id![0])}
+        ></edit-icon-sk>
+      `);
+
   async connectedCallback(): Promise<void> {
     await super.connectedCallback();
-    this.noteEditor = $$<NoteEditorSk>('note-editor-sk', this)!;
+    this.noteEditor = $$<NoteEditorSk>('note-editor-sk', this);
+    this.deviceEditor = $$<DeviceEditorSk>('device-editor-sk', this);
+
+    this.addEventListener(ClearDeviceEvent, this.clearDevice);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+
+    this.removeEventListener(ClearDeviceEvent, this.clearDevice);
   }
 
   async toggleUpdate(id: string): Promise<void> {
@@ -339,7 +350,8 @@ export class MachineServerSk extends ListPageSk<Description> {
     }
   }
 
-  async clearDevice(id: string): Promise<void> {
+  private async clearDevice(e: Event): Promise<void> {
+    const id = (e as CustomEvent<string>).detail;
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/remove_device/${id}`);

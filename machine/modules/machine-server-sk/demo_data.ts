@@ -378,7 +378,7 @@ export const descriptions: Description[] = [{
     TYPE_USB_PORT: 25,
     dumpsys_battery: 25,
   },
-  RunningSwarmingTask: true,
+  RunningSwarmingTask: false,
   LaunchedSwarming: true,
   RecoveryStart: '2021-06-03T18:15:16.668578Z',
   DeviceUptime: 899,
