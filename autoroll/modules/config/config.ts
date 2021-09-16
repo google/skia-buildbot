@@ -238,6 +238,7 @@ export interface AndroidRepoManagerConfig {
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfig;
   includeAuthorsAsReviewers: boolean;
   preUploadCommands?: PreUploadConfig;
+  removeOwners: boolean;
 }
 
 interface AndroidRepoManagerConfigJSON {
@@ -252,6 +253,7 @@ interface AndroidRepoManagerConfigJSON {
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfigJSON;
   include_authors_as_reviewers?: boolean;
   pre_upload_commands?: PreUploadConfigJSON;
+  remove_owners?: boolean;
 }
 
 export interface CommandRepoManagerConfig_CommandConfig {
