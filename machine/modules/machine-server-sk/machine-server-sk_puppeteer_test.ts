@@ -23,5 +23,16 @@ describe('machine-server-sk', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'machine', 'machine-server-sk');
     });
+
+    it('shows an device-editor-sk dialog', async () => {
+      await testBed.page.click('edit-icon-sk.edit_device');
+      await takeScreenshot(testBed.page, 'machine', 'machine-server-sk_edit_dialog');
+    });
+
+    it('shows a confirm dialog when clearing dimensions', async () => {
+      await testBed.page.click('edit-icon-sk.edit_device');
+      await testBed.page.click('device-editor-sk .info button.clear');
+      await takeScreenshot(testBed.page, 'machine', 'machine-server-sk_confirm_edit_dialog');
+    });
   });
 });

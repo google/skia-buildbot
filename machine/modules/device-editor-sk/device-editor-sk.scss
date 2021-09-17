@@ -8,7 +8,30 @@ device-editor-sk {
     background: var(--background);
   }
 
-  button {
-    margin: 0 8px 0 0;
+  .buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+
+    button {
+      margin: auto 10px;
+    }
   }
+
+  .center {
+    text-align: center;
+  }
+
+  table {
+    td:first-child {
+      text-align: right;
+    }
+  }
+
+  .confirm {
+    .warning {
+      font-size: 2em;
+    }
+  }
+
 }

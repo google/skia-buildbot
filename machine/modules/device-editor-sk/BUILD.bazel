@@ -18,6 +18,8 @@ sk_element(
         "@npm//dialog-polyfill",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "//machine/modules/json:index_ts_lib",
+        "@npm//common-sk",
     ],
     ts_srcs = [
         "device-editor-sk.ts",

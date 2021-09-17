@@ -275,7 +275,7 @@ export class MachineServerSk extends ListPageSk<Description> {
         <edit-icon-sk
           title="Edit/clear the dimensions for the bot"
           class="edit_device"
-          @click=${() => this.deviceEditor?.show(machine.Dimensions!.id![0])}
+          @click=${() => this.deviceEditor?.show(machine.Dimensions, machine.SSHUserIP)}
         ></edit-icon-sk>
       `);
 
