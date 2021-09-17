@@ -1,4 +1,4 @@
-import { Commit } from './blamelist-panel-sk';
+import { Commit } from '../rpc_types';
 
 export const fakeNow = Date.parse('2020-03-22T00:00:00.000Z');
 
@@ -9,6 +9,7 @@ export const blamelist19: Commit[] = [
     author: 'Alfa (alfa@example.com)',
     message: 'Update provisioning_profile to unbreak iOS since cert refresh',
     cl_url: '',
+    id: '001000001600',
   },
   {
     commit_time: 1584834200,
@@ -16,6 +17,7 @@ export const blamelist19: Commit[] = [
     author: 'Bravo (bravo@example.com)',
     message: 'Add BGR_10A2 support to Ganesh',
     cl_url: '',
+    id: '001000001601',
   },
   {
     commit_time: 1584834100,
@@ -23,6 +25,7 @@ export const blamelist19: Commit[] = [
     author: 'Charlie (charlie@example.com)',
     message: 'Simplify GrTextBlob::flush',
     cl_url: '',
+    id: '001000001602',
   },
   {
     commit_time: 1584834000,
@@ -30,6 +33,7 @@ export const blamelist19: Commit[] = [
     author: 'Delta (deltadelta@example.com)',
     message: 'Implement D3D copySurface.',
     cl_url: '',
+    id: '001000001603',
   },
   {
     commit_time: 1584824000,
@@ -37,6 +41,7 @@ export const blamelist19: Commit[] = [
     author: 'Echo Foxtrot (ef@example.com)',
     message: 'Rename flush -> addOp',
     cl_url: '',
+    id: '001000001604',
   },
   {
     commit_time: 1584814000,
@@ -44,6 +49,7 @@ export const blamelist19: Commit[] = [
     author: 'Golf Golf Golf Golf Golf Golf Golf(golf@example.com)',
     message: 'Turn on Vulkan bots for Galaxy S20.',
     cl_url: '',
+    id: '001000001605',
   },
   {
     commit_time: 1584804000,
@@ -51,6 +57,7 @@ export const blamelist19: Commit[] = [
     author: 'Hotel India (hotel.ind@example.com)',
     message: 'Compare all fields in SkSL::Layout::operator==',
     cl_url: '',
+    id: '001000001606',
   },
   {
     commit_time: 1584800000,
@@ -58,6 +65,7 @@ export const blamelist19: Commit[] = [
     author: 'Hotel India (hotel.ind@example.com)',
     message: 'Use constant swizzle syntax in GrDrawVerticesOp',
     cl_url: '',
+    id: '001000001607',
   },
   {
     commit_time: 1584780000,
@@ -65,6 +73,7 @@ export const blamelist19: Commit[] = [
     author: 'Juliett Kilo (julia.kilo@example.com)',
     message: '[skottie] Brightness and Contrast effect',
     cl_url: '',
+    id: '001000001608',
   },
   {
     commit_time: 1584760000,
@@ -72,6 +81,7 @@ export const blamelist19: Commit[] = [
     author: 'Mike Lima (lima@example.com)',
     message: 'detect failed matrix update in SkDraw::drawAtlas()',
     cl_url: '',
+    id: '001000001609',
   },
   {
     commit_time: 1584760000,
@@ -79,6 +89,7 @@ export const blamelist19: Commit[] = [
     author: 'Hotel India (hotel.ind@example.com)',
     message: 'Change Marker IDs to be strings',
     cl_url: '',
+    id: '001000001610',
   },
   {
     commit_time: 1584740000,
@@ -86,6 +97,7 @@ export const blamelist19: Commit[] = [
     author: 'Zulu (zulu@example.com)',
     message: 'Remove SkFrontBufferedStream',
     cl_url: '',
+    id: '001000001611',
   },
   {
     commit_time: 1584720000,
@@ -93,6 +105,7 @@ export const blamelist19: Commit[] = [
     author: 'Papa November (pnov@example.com)',
     message: '[infra] Add POC task driver',
     cl_url: '',
+    id: '001000001612',
   },
   {
     commit_time: 1584700000,
@@ -100,6 +113,7 @@ export const blamelist19: Commit[] = [
     author: 'Quebec (quebec@example.com)',
     message: "Reland \"Optimize GrTessellatePathOp's code to emit inner tri",
     cl_url: '',
+    id: '001000001613',
   },
   {
     commit_time: 1584600005,
@@ -107,6 +121,7 @@ export const blamelist19: Commit[] = [
     author: 'skia-recreate-skps (skia-recreate-skps@example.com)',
     message: 'Update Go Deps',
     cl_url: '',
+    id: '001000001614',
   },
   {
     commit_time: 1584600005,
@@ -114,6 +129,7 @@ export const blamelist19: Commit[] = [
     author: 'skia-autoroll (skia-autoroll@example.com)',
     message: 'Roll third_party/externals/angle2 3cb9c4bee9b3..4395170e6091',
     cl_url: '',
+    id: '001000001618',
   },
   {
     commit_time: 1584600003,
@@ -121,6 +137,7 @@ export const blamelist19: Commit[] = [
     author: 'skia-autoroll (skia-autoroll@example.com)',
     message: 'Roll ../src 9781ff27c9e9..78824aa9d99f (468 commits)',
     cl_url: '',
+    id: '001000001619',
   },
   {
     commit_time: 1584600002,
@@ -128,6 +145,7 @@ export const blamelist19: Commit[] = [
     author: 'skia-autoroll (skia-autoroll@example.com)',
     message: 'Roll third_party/externals/swiftshader 60aa34a990fa..2717702',
     cl_url: '',
+    id: '001000001620',
   },
   {
     commit_time: 1584600001,
@@ -135,6 +153,7 @@ export const blamelist19: Commit[] = [
     author: 'skia-autoroll (skia-autoroll@example.com)',
     message: 'Roll third_party/externals/dawn 00b90ea83262..88f2ec853f80 (',
     cl_url: '',
+    id: '001000001621',
   },
 ];
 
@@ -145,6 +164,7 @@ export const clBlamelist: Commit[] = [
     author: 'skia-autoroll (skia-autoroll@example.com)',
     message: 'Roll third_party/externals/dawn 00b90ea83262..88f2ec853f80 (',
     cl_url: 'https://skia-review.googlesource.com/12345',
+    id: '001000001684',
   },
   {
     commit_time: 1584835000,
@@ -152,5 +172,33 @@ export const clBlamelist: Commit[] = [
     author: 'Alfa (alfa@example.com)',
     message: 'Update provisioning_profile to unbreak iOS since cert refresh',
     cl_url: '',
+    id: '',
+  },
+];
+
+export const nonStandardCommits: Commit[] = [
+  {
+    id: 'R92-13954.0.0', // These are the ids ChromeOS uses
+    hash: '',
+    commit_time: 0,
+    cl_url: '',
+    message: '',
+    author: '',
+  },
+  {
+    id: 'R92-13958.0.0',
+    hash: '',
+    commit_time: 0,
+    cl_url: '',
+    message: '',
+    author: '',
+  },
+  {
+    id: 'R92-13959.0.0',
+    hash: '',
+    commit_time: 0,
+    cl_url: '',
+    message: '',
+    author: '',
   },
 ];

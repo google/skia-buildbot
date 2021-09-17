@@ -5675,6 +5675,127 @@ func TestComputeGUIStatus_RespectsPublicParams_Success(t *testing.T) {
 	}, res)
 }
 
+func TestGetCommits_StandardGitIDs_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	var timeOne = time.Date(2021, time.September, 10, 10, 10, 10, 0, time.UTC)
+	var timeTwo = time.Date(2021, time.September, 11, 11, 11, 11, 0, time.UTC)
+	var timeThree = time.Date(2021, time.September, 12, 12, 12, 12, 0, time.UTC)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := schema.Tables{
+		CommitsWithData: []schema.CommitWithDataRow{
+			{
+				CommitID: "001000000061",
+				TileID:   3,
+			},
+			{
+				CommitID: "001000001209",
+				TileID:   4,
+			},
+			{
+				CommitID: "001000000060",
+				TileID:   3,
+			},
+		},
+		GitCommits: []schema.GitCommitRow{
+			{
+				GitHash:     "cccccccccccccccccccccccccccccccccccccccc",
+				CommitID:    "001000001209",
+				CommitTime:  timeThree,
+				AuthorEmail: "author1@example.com",
+				Subject:     "gamma",
+			}, {
+				GitHash:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+				CommitID:    "001000000060",
+				CommitTime:  timeOne,
+				AuthorEmail: "author2@example.com",
+				Subject:     "alpha",
+			}, {
+				GitHash:     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+				CommitID:    "001000000061",
+				CommitTime:  timeTwo,
+				AuthorEmail: "author3@example.com",
+				Subject:     "beta",
+			},
+		},
+	}
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
+
+	s := New(db, 100)
+	ctx, err := s.addCommitsData(ctx)
+	require.NoError(t, err)
+	fec, err := s.getCommits(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, []frontend.Commit{
+		{
+			CommitTime: timeOne.UTC().Unix(),
+			ID:         "001000000060",
+			Hash:       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			Author:     "author2@example.com",
+			Subject:    "alpha",
+		}, {
+			CommitTime: timeTwo.UTC().Unix(),
+			ID:         "001000000061",
+			Hash:       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			Author:     "author3@example.com",
+			Subject:    "beta",
+		}, {
+			CommitTime: timeThree.UTC().Unix(),
+			ID:         "001000001209",
+			Hash:       "cccccccccccccccccccccccccccccccccccccccc",
+			Author:     "author1@example.com",
+			Subject:    "gamma",
+		},
+	}, fec)
+}
+
+func TestGetCommits_NonStandardGitIDs_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := schema.Tables{
+		CommitsWithData: []schema.CommitWithDataRow{
+			{
+				CommitID: "R92-13954.0.0",
+				TileID:   3,
+			},
+			{
+				CommitID: "R92-13959.0.0",
+				TileID:   4,
+			},
+			{
+				CommitID: "R92-13958.0.0",
+				TileID:   3,
+			},
+		},
+	}
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
+
+	s := New(db, 100)
+	ctx, err := s.addCommitsData(ctx)
+	require.NoError(t, err)
+	fec, err := s.getCommits(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, []frontend.Commit{
+		{
+			ID: "R92-13954.0.0",
+		}, {
+			ID: "R92-13958.0.0",
+		}, {
+			ID: "R92-13959.0.0",
+		},
+	}, fec)
+}
+
 var kitchenSinkCommits = makeKitchenSinkCommits()
 
 func makeKitchenSinkCommits() []frontend.Commit {

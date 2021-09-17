@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('blamelist-panel-sk', () => {
   let testBed: TestBed;
@@ -9,9 +9,6 @@ describe('blamelist-panel-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
-  });
-  it('should render the demo page', async () => {
-    expect(await testBed.page.$$('blamelist-panel-sk')).to.have.length(4); // Smoke test.
   });
 
   describe('screenshots', async () => {
@@ -39,38 +36,46 @@ describe('blamelist-panel-sk', () => {
       expect(await testBed.page.$$('#many_commits tr')).to.have.length(15); // maxCommitsToDisplay
     });
 
+    it('should show non-standard commits', async () => {
+      const blamelistPanelSk = await testBed.page.$('#non_standard_commits');
+      await takeScreenshot(blamelistPanelSk!, 'gold', 'blamelist-panel-sk_non-standard-commits');
+      expect(await testBed.page.$$('#non_standard_commits tr')).to.have.length(2);
+    });
   });
 
-  describe('urls', async() => {
+  describe('urls', async () => {
     it('should have a different URL for CL commits', async () => {
       const masterBranchURL = await testBed.page.$eval(
-          '#single_commit table a',
-          (e: Element) => (e as HTMLAnchorElement).href);
+        '#single_commit table a',
+        (e: Element) => (e as HTMLAnchorElement).href,
+      );
       expect(masterBranchURL).to.equal(
-          'https://github.com/example/example/commit/dded3c7506efc5635e60ffb7a908cbe8f1f028f1');
+        'https://github.com/example/example/commit/dded3c7506efc5635e60ffb7a908cbe8f1f028f1',
+      );
 
       const changeListURL = await testBed.page.$eval(
-          '#single_cl_commit table a',
-          (e: Element) => (e as HTMLAnchorElement).href);
+        '#single_cl_commit table a',
+        (e: Element) => (e as HTMLAnchorElement).href,
+      );
       expect(changeListURL).to.equal('https://skia-review.googlesource.com/12345');
     });
 
-    it('should have a link to the full source blamelist', async() => {
+    it('should have a link to the full source blamelist', async () => {
       const manyCommitsURL = await testBed.page.$eval(
-          '#many_commits .full_range a',
-          (e: Element) => (e as HTMLAnchorElement).href);
+        '#many_commits .full_range a',
+        (e: Element) => (e as HTMLAnchorElement).href,
+      );
       expect(manyCommitsURL).to.equal(
-          'https://github.com/example/example/compare/667edf14ad72966ec36aa6cd705b98cb7d7eee28...dded3c7506efc5635e60ffb7a908cbe8f1f028f1');
+        'https://github.com/example/example/compare/667edf14ad72966ec36aa6cd705b98cb7d7eee28...dded3c7506efc5635e60ffb7a908cbe8f1f028f1',
+      );
 
       const someCommitsURL = await testBed.page.$eval(
-          '#some_commits .full_range a',
-          (e: Element) => (e as HTMLAnchorElement).href);
+        '#some_commits .full_range a',
+        (e: Element) => (e as HTMLAnchorElement).href,
+      );
       expect(someCommitsURL).to.equal(
-          'https://github.com/example/example/compare/9145f784f3261f227846e5b08dc2691a888b113c...dded3c7506efc5635e60ffb7a908cbe8f1f028f1');
-
-
+        'https://github.com/example/example/compare/9145f784f3261f227846e5b08dc2691a888b113c...dded3c7506efc5635e60ffb7a908cbe8f1f028f1',
+      );
     });
   });
-
-
 });

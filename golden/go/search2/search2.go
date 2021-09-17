@@ -1908,26 +1908,40 @@ func (s *Impl) getCommits(ctx context.Context) ([]frontend.Commit, error) {
 		if c, ok := s.commitCache.Get(commitID); ok {
 			commit = c.(frontend.Commit)
 		} else {
-			// TODO(kjlubick) will need to handle non-git repos too
-			const statement = `SELECT git_hash, commit_time, author_email, subject
+			if isStandardGitCommitID(commitID) {
+				const statement = `SELECT git_hash, commit_time, author_email, subject
 FROM GitCommits WHERE commit_id = $1`
-			row := s.db.QueryRow(ctx, statement, commitID)
-			var dbRow schema.GitCommitRow
-			if err := row.Scan(&dbRow.GitHash, &dbRow.CommitTime, &dbRow.AuthorEmail, &dbRow.Subject); err != nil {
-				return nil, skerr.Wrap(err)
+				row := s.db.QueryRow(ctx, statement, commitID)
+				var dbRow schema.GitCommitRow
+				if err := row.Scan(&dbRow.GitHash, &dbRow.CommitTime, &dbRow.AuthorEmail, &dbRow.Subject); err != nil {
+					return nil, skerr.Wrap(err)
+				}
+				commit = frontend.Commit{
+					CommitTime: dbRow.CommitTime.UTC().Unix(),
+					ID:         string(commitID),
+					Hash:       dbRow.GitHash,
+					Author:     dbRow.AuthorEmail,
+					Subject:    dbRow.Subject,
+				}
+				s.commitCache.Add(commitID, commit)
+			} else {
+				commit = frontend.Commit{
+					ID: string(commitID),
+				}
+				s.commitCache.Add(commitID, commit)
 			}
-			commit = frontend.Commit{
-				CommitTime: dbRow.CommitTime.UTC().Unix(),
-				ID:         string(commitID),
-				Hash:       dbRow.GitHash,
-				Author:     dbRow.AuthorEmail,
-				Subject:    dbRow.Subject,
-			}
-			s.commitCache.Add(commitID, commit)
 		}
 		rv[idx] = commit
 	}
 	return rv, nil
+}
+
+// isStandardGitCommitID detects our standard commit ids for git repos (monotonically increasing
+// integers). It returns false if that is not being used (e.g. for instances that don't use that
+// as their ID)
+func isStandardGitCommitID(id schema.CommitID) bool {
+	_, err := strconv.ParseInt(string(id), 10, 64)
+	return err == nil
 }
 
 // searchCLData returns the search response for the given CL's data (or an error if no such data

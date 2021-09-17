@@ -9,34 +9,47 @@
  * This should typically go into some sort of dialog to show the user.
  */
 import { define } from 'elements-sk/define';
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncate } from '../../../infra-sk/modules/string';
 import { baseRepoURL } from '../settings';
+import { Commit } from '../rpc_types';
 
 const maxCommitsToDisplay = 15;
 
-const commitRow = (c: Commit) => html`
-<tr>
-  <td title=${c.author}>${truncate(c.author, 20)}</td>
-  <td title=${new Date(c.commit_time * 1000)}>
-   ${diffDate(c.commit_time * 1000)}
-  </td>
-  <td>
-    <a href=${commitHref(c)} target=_blank rel=noopener>
-      ${c.hash?.substring(0, 8)}
-    </a>
-  </td>
-  <td title=${c.message}>${truncate(c.message || '', 80)}</td>
-</tr>
-`;
+const commitRow = (c: Commit): TemplateResult => {
+  if (c.hash) {
+    // Assume this is a standard git commit
+    return html`
+      <tr>
+        <td title=${c.author}>${truncate(c.author, 20)}</td>
+        <td title=${new Date(c.commit_time * 1000)}>
+          ${diffDate(c.commit_time * 1000)}
+        </td>
+        <td>
+          <a href=${commitHref(c)} target=_blank rel=noopener>
+            ${c.hash?.substring(0, 8)}
+          </a>
+        </td>
+        <td title=${c.message}>${truncate(c.message || '', 80)}</td>
+      </tr>
+    `;
+  }
+  // This is an instance using non-standard ids
+  // TODO(kjlubick) make this link to something useful
+  return html`
+      <tr>
+        <td>${c.id}</td>
+      </tr>
+    `;
+};
 
 // lastGoodCommit is the last commit that Gold had data before newest commit. When we create the
 // range below, the next commit in the repo's history after the oldest commit will be the first to
 // show up. We need to do this because Gold removes commits that have no data (to make the data
 // "dense") and we don't want to construct a blamelist that is missing commits.
-const commitRange = (commits: Commit[], lastGoodCommit: Commit) => {
+const commitRange = (commits: Commit[], lastGoodCommit: Commit): string => {
   if (!commits.length) {
     return '';
   }
@@ -79,22 +92,9 @@ const commitHref = (commit: Commit) => {
   return `${repo}/+show/${commit.hash}`;
 };
 
-/**
- * Represents a Git commit.
- *
- * Client-side equivalent of frontend.Commit Go type.
- */
-export interface Commit {
-  readonly hash: string; // For CLs, this is the CL ID.
-  readonly author: string;
-  readonly message: string;
-  readonly commit_time: number;
-  readonly cl_url: string;
-}
-
 export class BlamelistPanelSk extends ElementSk {
-  static template = (ele: BlamelistPanelSk) => {
-    const commitRangeHref = commitRange(ele.commits, ele._lastGoodCommit);
+  static template = (ele: BlamelistPanelSk): TemplateResult => {
+    const commitRangeHref = commitRange(ele.commits, ele.lastGoodCommit);
     return html`
 <h2 ?hidden=${!commitRangeHref} class=full_range>
     <a href=${commitRangeHref} target=_blank rel=noopener>View Full Range</a>
@@ -110,15 +110,16 @@ export class BlamelistPanelSk extends ElementSk {
   };
 
   private _commits: Commit[] = [];
-  private _lastGoodCommit: Commit = {
-    hash: '', author: '', message: '', commit_time: 0, cl_url: ''
+
+  private lastGoodCommit: Commit = {
+    hash: '', author: '', message: '', commit_time: 0, cl_url: '', id: '',
   };
 
   constructor() {
     super(BlamelistPanelSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
@@ -129,10 +130,10 @@ export class BlamelistPanelSk extends ElementSk {
     // This can happen if clicking on the oldest commit.
     if (commits.length === 1) {
       this._commits = commits;
-      this._lastGoodCommit = commits[0];
+      this.lastGoodCommit = commits[0];
     } else {
       // Slice off the last good commit.
-      this._lastGoodCommit = commits.pop() || this._lastGoodCommit;
+      this.lastGoodCommit = commits.pop() || this.lastGoodCommit;
       this._commits = commits;
     }
 
