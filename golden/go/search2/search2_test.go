@@ -5117,6 +5117,7 @@ func TestGetDigestDetails_InvalidDigestAndGroupingOnPrimary_ReturnsPartialResult
 	assert.Equal(t, frontend.DigestDetails{
 		Result: frontend.SearchResult{
 			Digest:   dks.DigestE03Unt_CL,
+			Test:     dks.CircleTest,
 			Status:   expectations.Untriaged,
 			ParamSet: paramtools.ParamSet{},
 			TraceGroup: frontend.TraceGroup{
