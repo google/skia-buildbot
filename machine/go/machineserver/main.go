@@ -15,12 +15,14 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
+
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	pubsubUtils "go.skia.org/infra/go/pubsub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -30,6 +32,7 @@ import (
 	"go.skia.org/infra/machine/go/machine/source/pubsubsource"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"go.skia.org/infra/machine/go/machineserver/rpc"
 	firestoreSwitchboard "go.skia.org/infra/machine/go/switchboard"
 	"go.skia.org/infra/machine/go/switchboard/cleanup"
 )
@@ -258,17 +261,19 @@ func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	var ret machine.Description
-	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
+	ctx := r.Context()
+	err := s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		ret = in.Copy()
 
-		newDescription := machine.NewDescription(r.Context())
-		ret.Dimensions = newDescription.Dimensions
-
+		ret.Dimensions = machine.SwarmingDimensions{}
 		ret.Annotation = machine.Annotation{
 			User:      user(r),
 			Message:   fmt.Sprintf("Requested device removal of %s", id),
-			Timestamp: time.Now(),
+			Timestamp: now.Now(ctx),
 		}
+		ret.Temperature = nil
+		ret.SuppliedDimensions = nil
+		ret.SSHUserIP = ""
 		return ret
 	})
 	auditlog.Log(r, "remove-device", struct {
@@ -318,11 +323,12 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to parse incoming note.", http.StatusBadRequest)
 		return
 	}
+	ctx := r.Context()
 	note.User = user(r)
-	note.Timestamp = time.Now()
+	note.Timestamp = now.Now(ctx)
 
 	var ret machine.Description
-	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
+	err := s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		ret = in.Copy()
 		ret.Note = note
 		return ret
@@ -330,6 +336,41 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 	auditlog.Log(r, "set-note", note)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// machineSupplyChromeOSInfoHandler takes in the information needed to connect a given machine with
+// a ChromeOS device (via SSH).
+func (s *server) machineSupplyChromeOSInfoHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := strings.TrimSpace(vars["id"])
+	if id == "" {
+		http.Error(w, "Machine ID must be supplied.", http.StatusBadRequest)
+		return
+	}
+	var req rpc.SupplyChromeOSRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, err, "Failed to parse request.", http.StatusBadRequest)
+		return
+	}
+	if req.SSHUserIP == "" || len(req.SuppliedDimensions) == 0 {
+		http.Error(w, "Missing fields.", http.StatusBadRequest)
+		return
+	}
+	var ret machine.Description
+	ctx := r.Context()
+	err := s.store.Update(ctx, id, func(in machine.Description) machine.Description {
+		ret = in.Copy()
+		ret.SSHUserIP = req.SSHUserIP
+		ret.SuppliedDimensions = req.SuppliedDimensions
+		ret.LastUpdated = now.Now(ctx)
+		return ret
+	})
+	auditlog.Log(r, "supply-dimensions", req)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to process dimensions.", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -365,11 +406,13 @@ func (s *server) podsHandler(w http.ResponseWriter, r *http.Request) {
 func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", s.machinesPageHandler).Methods("GET")
 	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
+	// TODO(kjlubick) These mutating RPCs should be POST not GET
 	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("GET")
 	r.HandleFunc("/_/machine/toggle_powercycle/{id:.+}", s.machineTogglePowerCycleHandler).Methods("GET")
 	r.HandleFunc("/_/machine/remove_device/{id:.+}", s.machineRemoveDeviceHandler).Methods("GET")
 	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("GET")
 	r.HandleFunc("/_/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
+	r.HandleFunc("/_/machine/supply_chromeos/{id:.+}", s.machineSupplyChromeOSInfoHandler).Methods("POST")
 	r.HandleFunc("/_/meeting_points", s.meetingPointsHandler).Methods("GET")
 	r.HandleFunc("/_/pods", s.podsHandler).Methods("GET")
 	r.HandleFunc("/meeting_points", s.meetingPointsPageHandler).Methods("GET")

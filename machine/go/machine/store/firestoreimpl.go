@@ -81,6 +81,11 @@ type storeDescription struct {
 	// given ChromeOS device at that username and ip/hostname.
 	SSHUserIP string
 
+	// SuppliedDimensions are any dimensions supplied by a human that should be merged with
+	// the existing dimensions. These are useful for ChromeOS devices, where gathering things
+	// like GPU and CPU can be tough from the CLI.
+	SuppliedDimensions machine.SwarmingDimensions
+
 	// Dimensions describe the machine and what tasks it is capable of running.
 	Dimensions machine.SwarmingDimensions
 
@@ -288,6 +293,7 @@ func convertDescription(m machine.Description) storeDescription {
 		RecoveryStart:       m.RecoveryStart,
 		RunningSwarmingTask: m.RunningSwarmingTask,
 		SSHUserIP:           m.SSHUserIP,
+		SuppliedDimensions:  m.SuppliedDimensions,
 		Temperature:         m.Temperature,
 		Version:             m.Version,
 	}
@@ -320,12 +326,13 @@ func convertFSDescription(s storeDescription) machine.Description {
 		LastUpdated:         s.LastUpdated,
 		LaunchedSwarming:    s.LaunchedSwarming,
 		Mode:                s.Mode,
-		SSHUserIP:           s.SSHUserIP,
 		Note:                convertFSAnnotation(s.Note),
 		PodName:             s.PodName,
 		PowerCycle:          s.PowerCycle,
 		RecoveryStart:       s.RecoveryStart,
 		RunningSwarmingTask: s.RunningSwarmingTask,
+		SSHUserIP:           s.SSHUserIP,
+		SuppliedDimensions:  s.SuppliedDimensions,
 		Temperature:         s.Temperature,
 		Version:             s.Version,
 	}

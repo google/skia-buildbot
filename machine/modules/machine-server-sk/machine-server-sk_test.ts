@@ -185,9 +185,15 @@ describe('machine-server-sk', () => {
 
     // Now set up fetchMock for the requests that happen when the button is clicked.
     fetchMock.reset();
+    let called = false;
     fetchMock.get(
-      '/_/machine/remove_device/skia-rpi2-rack4-shelf1-002',
-      200,
+      (url: string): boolean => {
+        if (url !== '/_/machine/remove_device/skia-rpi2-rack4-shelf1-002') {
+          return false;
+        }
+        called = true;
+        return true;
+      }, 200,
     );
     fetchMock.get('/_/machines', [
       {
@@ -215,9 +221,45 @@ describe('machine-server-sk', () => {
     $$<HTMLElement>('edit-icon-sk.edit_device', s)!.click();
     // Now clear the dimensions
     $$<HTMLElement>('device-editor-sk button.clear', s)!.click();
+    $$<HTMLElement>('device-editor-sk button.clear_yes_im_sure', s)!.click();
 
     // Wait for all requests to finish.
     await fetchMock.flush(true);
+    assert.isTrue(called);
+  }));
+
+  it('supplies chrome os data via RPC', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
+    const s = await setUpElement();
+    // Confirm there are row in the dimensions.
+    assert.isNotNull($$('details.dimensions table tr', s));
+
+    // Now set up fetchMock for the requests that happen when the button is clicked.
+    fetchMock.reset();
+    let called = false;
+    fetchMock.post(
+      (url: string, opts: MockRequest): boolean => {
+        if (url !== '/_/machine/supply_chromeos/skia-rpi2-rack4-shelf1-002') {
+          return false;
+        }
+        assert.equal(opts.body, '{"SSHUserIP":"root@test-chrome-os","SuppliedDimensions":{"gpu":["Mali999"],"cpu":["arm","arm64"]}}');
+        called = true;
+        return true;
+      },
+      200,
+    );
+    fetchMock.get('/_/machines', [{}]);
+
+    // Click the button to show the dialog
+    $$<HTMLElement>('edit-icon-sk.edit_device', s)!.click();
+    $$<HTMLInputElement>('device-editor-sk input#user_ip', s)!.value = 'root@test-chrome-os';
+    $$<HTMLInputElement>('device-editor-sk input#chromeos_gpu', s)!.value = 'Mali999';
+    $$<HTMLInputElement>('device-editor-sk input#chromeos_cpu', s)!.value = 'arm,arm64';
+    // Now apply those dimensions
+    $$<HTMLElement>('device-editor-sk button.apply', s)!.click();
+
+    // Wait for all requests to finish.
+    await fetchMock.flush(true);
+    assert.isTrue(called);
   }));
 
   it('deletes the Machine when you click on the button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {

@@ -21,6 +21,7 @@ export interface Description {
 	RecoveryStart: string;
 	DeviceUptime: number;
 	SSHUserIP: string;
+	SuppliedDimensions: SwarmingDimensions;
 	Dimensions: SwarmingDimensions;
 	PodName: string;
 }
@@ -36,6 +37,11 @@ export interface MeetingPoint {
 export interface Pod {
 	Name: string;
 	LastUpdated: string;
+}
+
+export interface SupplyChromeOSRequest {
+	SSHUserIP: string;
+	SuppliedDimensions: SwarmingDimensions;
 }
 
 export type Mode = "available" | "maintenance" | "recovery";

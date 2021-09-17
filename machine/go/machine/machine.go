@@ -94,9 +94,14 @@ type Description struct {
 	LaunchedSwarming    bool      // True if test_machine_monitor launched Swarming.
 	RecoveryStart       time.Time // When did the machine start being in recovery mode.
 	DeviceUptime        int32     // Seconds
+
 	// SSHUserIP, for example, "root@skia-sparky360-03" indicates we should connect to the
 	// given ChromeOS device at that username and ip/hostname.
 	SSHUserIP string
+
+	// SuppliedDimensions are dimensions that we, the humans, supply because they are difficult
+	// for the automated system to gather.
+	SuppliedDimensions SwarmingDimensions
 
 	// PodName and KubernetesImage are deprecated as we do not intend to run on k8s any more.
 	Dimensions SwarmingDimensions
@@ -117,6 +122,7 @@ func NewDescription(ctx context.Context) Description {
 func (d Description) Copy() Description {
 	ret := d
 	ret.Dimensions = d.Dimensions.Copy()
+	ret.SuppliedDimensions = d.SuppliedDimensions.Copy()
 	ret.Temperature = map[string]float64{}
 	for k, v := range d.Temperature {
 		ret.Temperature[k] = v

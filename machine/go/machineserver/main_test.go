@@ -14,12 +14,15 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/machine/go/switchboard"
 	switchboardMocks "go.skia.org/infra/machine/go/switchboard/mocks"
 )
@@ -187,7 +190,7 @@ func TestMachineTogglePowerCycleHandler_FailOnMissingID(t *testing.T) {
 	assert.Equal(t, 404, w.Code)
 }
 
-func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
+func TestMachineRemoveDeviceHandler_AndroidDevice_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx, cfg := setupForTest(t)
@@ -232,6 +235,64 @@ func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
 	assert.Empty(t, machines[0].Dimensions)
 	assert.Contains(t, machines[0].Annotation.Message, "Requested device removal")
 	assert.Equal(t, machines[0].Annotation.User, "barney@example.org")
+}
+
+func TestMachineRemoveDeviceHandler_ChromeOSDevice_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, cfg := setupForTest(t)
+	ctx := now.TimeTravelingContext(fakeTime).WithContext(c)
+	store, err := store.NewFirestoreImpl(ctx, true, cfg)
+	require.NoError(t, err)
+
+	err = store.Update(ctx, "skia-rpi-002", func(in machine.Description) machine.Description {
+		ret := in.Copy()
+		ret.SSHUserIP = "root@chrome-os"
+		ret.SuppliedDimensions = machine.SwarmingDimensions{
+			"gpu": {"IntelUHDGraphics605"},
+			"os":  {"ChromeOS"},
+			"cpu": {"x86", "x86_64"},
+		}
+		ret.Dimensions = machine.SwarmingDimensions{
+			"gpu":              {"IntelUHDGraphics605"},
+			"os":               {"ChromeOS"},
+			"cpu":              {"x86", "x86_64"},
+			"chromeos_channel": {"stable-channel"}, // supplied via device interrogation
+		}
+		return ret
+	})
+	require.NoError(t, err)
+
+	// Create our server.
+	s := &server{
+		store: store,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("GET", "/_/machine/remove_device/skia-rpi-002", nil).WithContext(ctx)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	// Confirm the request was successful.
+	require.Equal(t, 200, w.Code)
+	machines, err := store.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, machines, 1)
+	assert.Equal(t, machine.Description{
+		Mode: machine.ModeAvailable,
+		Annotation: machine.Annotation{
+			Message:   "Requested device removal of skia-rpi-002",
+			User:      "barney@example.org",
+			Timestamp: fakeTime,
+		},
+		Dimensions:  machine.SwarmingDimensions{},
+		LastUpdated: fakeTime,
+	}, machines[0])
 }
 
 func TestMachineRemoveDeviceHandler_FailOnMissingID(t *testing.T) {
@@ -429,3 +490,161 @@ func TestMeetingPointsHandler_Success(t *testing.T) {
 	w := responseTo(s, "GET", "/_/meeting_points")
 	assertJSONResponseWas(t, `[{"PodName":"somePod","Port":33,"Username":"someUser","MachineID":"someMachine","LastUpdated":"2001-02-03T04:05:06.789012345Z"}]`, w)
 }
+
+func TestMachineSupplyChromeOSInfoHandler_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	existingTime := time.Date(2021, time.September, 3, 3, 3, 3, 0, time.UTC)
+	updatedTime := time.Date(2021, time.September, 3, 3, 7, 0, 0, time.UTC)
+
+	c, cfg := setupForTest(t)
+	ctx := now.TimeTravelingContext(existingTime).WithContext(c)
+	store, err := store.NewFirestoreImpl(ctx, true, cfg)
+	require.NoError(t, err)
+
+	err = store.Update(ctx, "someid", func(_ machine.Description) machine.Description {
+		return machine.Description{
+			Mode: machine.ModeAvailable,
+			Dimensions: machine.SwarmingDimensions{
+				"cpu": {"x86"},
+				"os":  {"Linux"},
+			},
+			LastUpdated: existingTime,
+		}
+	})
+	require.NoError(t, err)
+
+	// Create our server.
+	s := &server{
+		store: store,
+	}
+
+	ctx.SetTime(updatedTime)
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	body := rpc.SupplyChromeOSRequest{
+		SSHUserIP: "root@my-chromebook-001",
+		SuppliedDimensions: map[string][]string{
+			"gpu": {"some-gpu"},
+			"cpu": {"some-cpu", "some-other-cpu"},
+		},
+	}
+	b, err := json.Marshal(body)
+	require.NoError(t, err)
+	r := httptest.NewRequest("POST", "/_/machine/supply_chromeos/someid", bytes.NewReader(b))
+	r = r.WithContext(ctx)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, 200, w.Code)
+	machines, err := store.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, machines, 1)
+	assert.Equal(t, machine.Description{
+		Mode: machine.ModeAvailable,
+		Dimensions: machine.SwarmingDimensions{ // These dimensions remain unchanged
+			"cpu": {"x86"},
+			"os":  {"Linux"},
+		},
+		Temperature: map[string]float64{},
+		LastUpdated: updatedTime,
+
+		// These should be set from the POST value
+		SSHUserIP: "root@my-chromebook-001",
+		SuppliedDimensions: map[string][]string{
+			"gpu": {"some-gpu"},
+			"cpu": {"some-cpu", "some-other-cpu"},
+		},
+	}, machines[0])
+}
+
+func TestMachineSupplyChromeOSInfoHandler_FailOnMissingField(t *testing.T) {
+	unittest.LargeTest(t)
+
+	c, cfg := setupForTest(t)
+	ctx := now.TimeTravelingContext(fakeTime).WithContext(c)
+	store, err := store.NewFirestoreImpl(ctx, true, cfg)
+	require.NoError(t, err)
+
+	err = store.Update(ctx, "someid", func(_ machine.Description) machine.Description {
+		return machine.Description{
+			Mode: machine.ModeAvailable,
+			Dimensions: machine.SwarmingDimensions{
+				"cpu": {"x86"},
+				"os":  {"Linux"},
+			},
+			LastUpdated: fakeTime,
+		}
+	})
+	require.NoError(t, err)
+
+	// Create our server.
+	s := &server{
+		store: store,
+	}
+
+	test := func(name string, request rpc.SupplyChromeOSRequest) {
+		t.Run(name, func(t *testing.T) {
+			// Put a mux.Router in place so the request path gets parsed.
+			router := mux.NewRouter()
+			s.AddHandlers(router)
+
+			b, err := json.Marshal(request)
+			require.NoError(t, err)
+			r := httptest.NewRequest("POST", "/_/machine/supply_chromeos/someid", bytes.NewReader(b))
+			w := httptest.NewRecorder()
+
+			// Make the request.
+			router.ServeHTTP(w, r)
+
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+			machines, err := store.List(ctx)
+			require.NoError(t, err)
+			require.Len(t, machines, 1)
+			assert.Equal(t, machine.Description{
+				// This all remains unchanged
+				Mode: machine.ModeAvailable,
+				Dimensions: machine.SwarmingDimensions{
+					"cpu": {"x86"},
+					"os":  {"Linux"},
+				},
+				LastUpdated: fakeTime,
+			}, machines[0])
+		})
+	}
+
+	test("missing dimensions", rpc.SupplyChromeOSRequest{
+		SSHUserIP: "root@my-chromebook-001",
+	})
+	test("missing ssh ip", rpc.SupplyChromeOSRequest{
+		SuppliedDimensions: map[string][]string{
+			"something": {"something", "else"},
+		},
+	})
+}
+
+func TestMachineSupplyChromeOSInfoHandler_FailOnMissingID(t *testing.T) {
+	unittest.LargeTest(t)
+
+	// Create our server.
+	s := &server{}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("GET", "/_/machine/supply_chromeos/", nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+var fakeTime = time.Date(2021, time.September, 1, 2, 3, 4, 0, time.UTC)

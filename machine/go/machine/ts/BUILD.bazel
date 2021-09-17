@@ -9,6 +9,7 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//machine/go/machine",
+        "//machine/go/machineserver/rpc",
         "//machine/go/switchboard",
         "@com_github_skia_dev_go2ts//:go2ts",
     ],

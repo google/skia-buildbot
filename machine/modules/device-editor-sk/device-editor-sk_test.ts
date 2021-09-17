@@ -41,6 +41,7 @@ describe('device-editor-sk', () => {
     $$<HTMLButtonElement>('button.apply', element)!.click();
 
     assert.deepEqual((await updateEvent).detail, {
+      machineID: testID,
       sshUserIP: 'root@new-device',
       specifiedDimensions: {
         gpu: ['my-gpu', 'my-other-gpu'],

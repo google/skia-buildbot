@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "rpc",
+    srcs = ["rpc.go"],
+    importpath = "go.skia.org/infra/machine/go/machineserver/rpc",
+    visibility = ["//visibility:public"],
+    deps = ["//machine/go/machine"],
+)

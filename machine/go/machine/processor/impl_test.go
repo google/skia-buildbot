@@ -205,11 +205,12 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 			machine.DimID:         []string{"skia-rpi2-0001"},
 			"inside_docker":       []string{"1", "containerd"},
 		},
-		Battery:         badBatteryLevel,
-		PodName:         event.Host.PodName,
-		KubernetesImage: event.Host.KubernetesImage,
-		Version:         myTestVersion,
-		DeviceUptime:    5,
+		SuppliedDimensions: machine.SwarmingDimensions{},
+		Battery:            badBatteryLevel,
+		PodName:            event.Host.PodName,
+		KubernetesImage:    event.Host.KubernetesImage,
+		Version:            myTestVersion,
+		DeviceUptime:       5,
 	}, next)
 }
 
@@ -321,11 +322,12 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
 	assert.Equal(t, machine.Description{
-		Mode:        machine.ModeAvailable,
-		Dimensions:  expectedDims,
-		PodName:     "some-pod",
-		LastUpdated: serverTime,
-		Battery:     badBatteryLevel,
+		Mode:               machine.ModeAvailable,
+		Dimensions:         expectedDims,
+		SuppliedDimensions: machine.SwarmingDimensions{},
+		PodName:            "some-pod",
+		LastUpdated:        serverTime,
+		Battery:            badBatteryLevel,
 	}, next)
 }
 
@@ -438,10 +440,11 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
 	assert.Equal(t, machine.Description{
-		Mode:        machine.ModeAvailable,
-		Dimensions:  expectedDims,
-		LastUpdated: serverTime,
-		Battery:     badBatteryLevel,
+		Mode:               machine.ModeAvailable,
+		Dimensions:         expectedDims,
+		SuppliedDimensions: machine.SwarmingDimensions{},
+		LastUpdated:        serverTime,
+		Battery:            badBatteryLevel,
 	}, next)
 
 	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": "skia-rpi2-0001"}).Get())
@@ -494,9 +497,10 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 			machine.DimID:   []string{"skia-rpi2-0001"},
 			"inside_docker": []string{"1", "containerd"},
 		},
-		Battery:       9,
-		RecoveryStart: serverTime,
-		LastUpdated:   serverTime,
+		SuppliedDimensions: machine.SwarmingDimensions{},
+		Battery:            9,
+		RecoveryStart:      serverTime,
+		LastUpdated:        serverTime,
 	}, next)
 
 	assert.Equal(t, int64(9), metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": "skia-rpi2-0001"}).Get())

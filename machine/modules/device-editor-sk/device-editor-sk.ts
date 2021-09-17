@@ -22,6 +22,7 @@ export const ClearDeviceEvent = 'clear_device';
 export const UpdateDimensionsEvent = 'update_dimensions';
 
 export interface UpdateDimensionsDetails {
+  machineID: string;
   sshUserIP: string;
   specifiedDimensions: {
     gpu: string[];
@@ -109,6 +110,7 @@ export class DeviceEditorSk extends ElementSk {
     this.dispatchEvent(new CustomEvent<UpdateDimensionsDetails>(UpdateDimensionsEvent, {
       bubbles: true,
       detail: {
+        machineID: this.machineID,
         sshUserIP: $$<HTMLInputElement>('input#user_ip', this)!.value,
         specifiedDimensions: {
           gpu: gpus,

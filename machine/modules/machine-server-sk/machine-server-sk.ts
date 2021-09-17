@@ -12,7 +12,7 @@ import { html, TemplateResult } from 'lit-html';
 
 import { diffDate, strDuration } from 'common-sk/modules/human';
 import { $$ } from 'common-sk/modules/dom';
-import { Annotation, Description } from '../json';
+import { Annotation, Description, SupplyChromeOSRequest } from '../json';
 import { ListPageSk } from '../list-page-sk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import 'elements-sk/error-toast-sk/index';
@@ -25,7 +25,12 @@ import 'elements-sk/styles/buttons/index';
 import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
 import '../auto-refresh-sk';
 import { DEVICE_ALIASES } from '../../../modules/devices/devices';
-import { ClearDeviceEvent, DeviceEditorSk } from '../device-editor-sk/device-editor-sk';
+import {
+  ClearDeviceEvent,
+  DeviceEditorSk,
+  UpdateDimensionsDetails,
+  UpdateDimensionsEvent,
+} from '../device-editor-sk/device-editor-sk';
 
 /**
  * Updates should arrive every 30 seconds, so we allow up to 2x that for lag
@@ -285,12 +290,14 @@ export class MachineServerSk extends ListPageSk<Description> {
     this.deviceEditor = $$<DeviceEditorSk>('device-editor-sk', this);
 
     this.addEventListener(ClearDeviceEvent, this.clearDevice);
+    this.addEventListener(UpdateDimensionsEvent, this.updateDimensions);
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
 
     this.removeEventListener(ClearDeviceEvent, this.clearDevice);
+    this.removeEventListener(UpdateDimensionsEvent, this.updateDimensions);
   }
 
   async toggleUpdate(id: string): Promise<void> {
@@ -329,13 +336,14 @@ export class MachineServerSk extends ListPageSk<Description> {
         },
         body: JSON.stringify(editedAnnotation),
       });
-      this.removeAttribute('waiting');
       if (!resp.ok) {
         this.onError(resp.statusText);
       }
       await this.update(true);
     } catch (error) {
       this.onError(error);
+    } finally {
+      this.removeAttribute('waiting');
     }
   }
 
@@ -343,10 +351,11 @@ export class MachineServerSk extends ListPageSk<Description> {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_powercycle/${id}`);
-      this.removeAttribute('waiting');
       await this.update(true);
     } catch (error) {
       this.onError(error);
+    } finally {
+      this.removeAttribute('waiting');
     }
   }
 
@@ -355,10 +364,12 @@ export class MachineServerSk extends ListPageSk<Description> {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/remove_device/${id}`);
-      this.removeAttribute('waiting');
+
       await this.update(true);
     } catch (error) {
       this.onError(error);
+    } finally {
+      this.removeAttribute('waiting');
     }
   }
 
@@ -366,10 +377,32 @@ export class MachineServerSk extends ListPageSk<Description> {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/delete_machine/${id}`);
-      this.removeAttribute('waiting');
       await this.update(true);
     } catch (error) {
       this.onError(error);
+    } finally {
+      this.removeAttribute('waiting');
+    }
+  }
+
+  private async updateDimensions(e: Event): Promise<void> {
+    const info = (e as CustomEvent<UpdateDimensionsDetails>).detail;
+    const postBody: SupplyChromeOSRequest = {
+      SSHUserIP: info.sshUserIP,
+      SuppliedDimensions: info.specifiedDimensions,
+    };
+    try {
+      this.setAttribute('waiting', '');
+
+      await fetch(`/_/machine/supply_chromeos/${info.machineID}`, {
+        method: 'POST',
+        body: JSON.stringify(postBody),
+      });
+      await this.update(true);
+    } catch (error) {
+      this.onError(error);
+    } finally {
+      this.removeAttribute('waiting');
     }
   }
 }

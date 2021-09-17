@@ -9,9 +9,11 @@ import (
 	"io"
 
 	"github.com/skia-dev/go2ts"
+
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/machine"
+	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/machine/go/switchboard"
 )
 
@@ -23,7 +25,8 @@ func main() {
 	generator.AddMultiple(
 		machine.Description{},
 		switchboard.MeetingPoint{},
-		switchboard.Pod{})
+		switchboard.Pod{},
+		rpc.SupplyChromeOSRequest{})
 	generator.AddUnion(machine.AllModes)
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
