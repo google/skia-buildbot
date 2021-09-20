@@ -194,6 +194,7 @@ func (d *docSet) FileSystem(ctx context.Context, issue codereview.Issue) (http.F
 
 // refresh updates the files for the given issue at the given patchset.
 func (d *docSet) refresh(ctx context.Context, issue codereview.Issue, patchsetRef string) (http.FileSystem, error) {
+	sklog.Infof("Refreshing isue: %q patchset: %q", issue, patchsetRef)
 	// First either clone the repo, in the case of issue == MainIssue, or copy
 	// the docPath from MainIssue into /content/{issue}/ and then patch using
 	// CodeReview.
@@ -373,7 +374,7 @@ func (d *docSet) Start(ctx context.Context) error {
 			case <-done:
 				sklog.Warning("Context cancelled")
 				return
-			case _ = <-ticker.C:
+			case <-ticker.C:
 				if err := d.singleStep(ctx); err != nil {
 					sklog.Errorf("Failed single step in docSet background process: %s", err)
 				}

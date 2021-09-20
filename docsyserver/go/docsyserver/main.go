@@ -94,6 +94,7 @@ func main() {
 		"docsyserver",
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
+		common.CloudLogging(local, "skia-public"),
 	)
 
 	server, err := new()
