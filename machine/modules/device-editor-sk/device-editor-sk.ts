@@ -137,7 +137,7 @@ export class DeviceEditorSk extends ElementSk {
 
   private confirmClearClick(): void {
     this.infoDialog?.close();
-    this.confirmDialog?.show();
+    this.confirmDialog?.showModal();
   }
 
   private displayDimensions(key: string): string {
@@ -158,7 +158,7 @@ export class DeviceEditorSk extends ElementSk {
     this.dimensions = dims;
     this.sshUserIP = sshUserIP;
     this._render();
-    this.infoDialog?.show();
+    this.infoDialog?.showModal();
   }
 }
 
