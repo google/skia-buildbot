@@ -10,7 +10,6 @@ export interface Description {
 	Mode: Mode;
 	Annotation: Annotation;
 	Note: Annotation;
-	KubernetesImage: string;
 	Version: string;
 	PowerCycle: boolean;
 	LastUpdated: string;
@@ -23,7 +22,6 @@ export interface Description {
 	SSHUserIP: string;
 	SuppliedDimensions: SwarmingDimensions;
 	Dimensions: SwarmingDimensions;
-	PodName: string;
 }
 
 export interface MeetingPoint {

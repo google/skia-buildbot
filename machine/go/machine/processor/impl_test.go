@@ -177,11 +177,9 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 			Uptime:  time.Duration(int64(uptime) * int64(time.Second)),
 		},
 		Host: machine.Host{
-			Name:            "skia-rpi2-0001",
-			PodName:         "rpi-swarming-12345-987",
-			KubernetesImage: "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean",
-			Version:         myTestVersion,
-			StartTime:       bootUpTime,
+			Name:      "skia-rpi2-0001",
+			Version:   myTestVersion,
+			StartTime: bootUpTime,
 		},
 	}
 
@@ -207,8 +205,6 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		},
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Battery:            badBatteryLevel,
-		PodName:            event.Host.PodName,
-		KubernetesImage:    event.Host.KubernetesImage,
 		Version:            myTestVersion,
 		DeviceUptime:       5,
 	}, next)
@@ -305,7 +301,6 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		},
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
-			PodName:   "some-pod",
 			StartTime: bootUpTime,
 		},
 	}
@@ -325,7 +320,6 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		Mode:               machine.ModeAvailable,
 		Dimensions:         expectedDims,
 		SuppliedDimensions: machine.SwarmingDimensions{},
-		PodName:            "some-pod",
 		LastUpdated:        serverTime,
 		Battery:            badBatteryLevel,
 	}, next)
@@ -875,23 +869,4 @@ func TestTemperatureFromAndroid_FindTempInBatteryServiceOutput(t *testing.T) {
 	temp, ok := temperatureFromAndroid(a)
 	assert.True(t, ok)
 	assert.Equal(t, map[string]float64{batteryTemperatureKey: 28.1}, temp)
-}
-
-func TestSanitizeKubernetesImageName_SuccessForExpectedValue(t *testing.T) {
-	unittest.SmallTest(t)
-	assert.Equal(t,
-		"gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean",
-		sanitizeKubernetesImageName("image: gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean\n"),
-	)
-}
-
-func TestSanitizeKubernetesImageName_PassesEmptyStringThrough(t *testing.T) {
-	unittest.SmallTest(t)
-	assert.Equal(t, "", sanitizeKubernetesImageName(""))
-}
-
-func TestSanitizeKubernetesImageName_PassesStringWithoutImagePrefix(t *testing.T) {
-	unittest.SmallTest(t)
-	const imageName = "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean"
-	assert.Equal(t, imageName, sanitizeKubernetesImageName(imageName))
 }

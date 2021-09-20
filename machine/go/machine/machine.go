@@ -78,9 +78,6 @@ type Description struct {
 	// Note is a user authored message on the state of a machine.
 	Note Annotation
 
-	// KubernetesImage is the kubernetes image name.
-	KubernetesImage string
-
 	// Version of test_machine_monitor being run.
 	Version string
 
@@ -103,9 +100,9 @@ type Description struct {
 	// for the automated system to gather.
 	SuppliedDimensions SwarmingDimensions
 
-	// PodName and KubernetesImage are deprecated as we do not intend to run on k8s any more.
+	// Dimensions describe what hardware/software this machine has and informs what tasks
+	// it can run.
 	Dimensions SwarmingDimensions
-	PodName    string
 }
 
 // NewDescription returns a new Description instance. It describes an available machine with no
@@ -151,12 +148,6 @@ type Android struct {
 type Host struct {
 	// Name is the machine id, from SWARMING_BOT_ID environment variable or hostname().
 	Name string `json:"name"`
-
-	// PodName is the kubernetes pod name.
-	PodName string `json:"pod_name"`
-
-	// KubernetesImage is the container image being run.
-	KubernetesImage string `json:"image"`
 
 	// Version of test_machine_monitor being run.
 	Version string `json:"version"`

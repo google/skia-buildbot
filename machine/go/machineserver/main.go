@@ -231,18 +231,16 @@ func (s *server) machineTogglePowerCycleHandler(w http.ResponseWriter, r *http.R
 		ret.PowerCycle = !ret.PowerCycle
 		ret.Annotation = machine.Annotation{
 			User:      user(r),
-			Message:   fmt.Sprintf("Requested powercycle for %q", ret.PodName),
+			Message:   fmt.Sprintf("Requested powercycle for %q", id),
 			Timestamp: time.Now(),
 		}
 		return ret
 	})
 	auditlog.Log(r, "toggle-powercycle", struct {
 		MachineID  string
-		PodName    string
 		PowerCycle bool
 	}{
 		MachineID:  id,
-		PodName:    ret.PodName,
 		PowerCycle: ret.PowerCycle,
 	})
 	if err != nil {
@@ -278,10 +276,8 @@ func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Reque
 	})
 	auditlog.Log(r, "remove-device", struct {
 		MachineID string
-		PodName   string
 	}{
 		MachineID: id,
-		PodName:   ret.PodName,
 	})
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)

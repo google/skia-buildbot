@@ -83,17 +83,6 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	const imageName = "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean"
-
-	// Set the IMAGE_NAME env variable.
-	oldImageVar := os.Getenv(swarming.KubernetesImageEnvVar)
-	err = os.Setenv(swarming.KubernetesImageEnvVar, imageName)
-	require.NoError(t, err)
-	defer func() {
-		err = os.Setenv(swarming.KubernetesImageEnvVar, oldImageVar)
-		require.NoError(t, err)
-	}()
-
 	// Create a Machine instance.
 	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
 	m, err := New(ctx, true, instanceConfig, start, versionForTest, true)
@@ -132,9 +121,6 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 	require.NoError(t, err)
 	event := <-ch
 
-	hostname, err := os.Hostname()
-	require.NoError(t, err)
-
 	assert.Equal(t,
 		machine.Event{
 			EventType: "raw_state",
@@ -144,10 +130,8 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 				DumpsysThermalService: adbShellDumpSysBattery,
 			},
 			Host: machine.Host{
-				Name:            "my-test-bot-001",
-				PodName:         hostname,
-				KubernetesImage: imageName,
-				StartTime:       start,
+				Name:      "my-test-bot-001",
+				StartTime: start,
 			},
 		},
 		event)
@@ -182,17 +166,6 @@ func TestStart_FirestoreWritesGetReflectedToMachine(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		err = os.Setenv(swarming.SwarmingBotIDEnvVar, oldVar)
-		require.NoError(t, err)
-	}()
-
-	const imageName = "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean"
-
-	// Set the IMAGE_NAME env variable.
-	oldImageVar := os.Getenv(swarming.KubernetesImageEnvVar)
-	err = os.Setenv(swarming.KubernetesImageEnvVar, imageName)
-	require.NoError(t, err)
-	defer func() {
-		err = os.Setenv(swarming.KubernetesImageEnvVar, oldImageVar)
 		require.NoError(t, err)
 	}()
 
@@ -306,8 +279,6 @@ func TestStart_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *testing.T) {
 	require.NoError(t, err)
 	event := <-ch
 
-	hostname, err := os.Hostname()
-	require.NoError(t, err)
 	assert.Equal(t,
 		machine.Event{
 			EventType: "raw_state",
@@ -318,7 +289,6 @@ func TestStart_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *testing.T) {
 			},
 			Host: machine.Host{
 				Name:      "my-test-bot-001",
-				PodName:   hostname,
 				StartTime: start,
 			},
 		},
@@ -395,8 +365,6 @@ func TestStart_RunningSwarmingTaskInMachineIsSentInEvent(t *testing.T) {
 	require.NoError(t, err)
 	event := <-ch
 
-	hostname, err := os.Hostname()
-	require.NoError(t, err)
 	assert.Equal(t,
 		machine.Event{
 			EventType: "raw_state",
@@ -407,7 +375,6 @@ func TestStart_RunningSwarmingTaskInMachineIsSentInEvent(t *testing.T) {
 			},
 			Host: machine.Host{
 				Name:      "my-test-bot-001",
-				PodName:   hostname,
 				StartTime: start,
 			},
 			RunningSwarmingTask: true,

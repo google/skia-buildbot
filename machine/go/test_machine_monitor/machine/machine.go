@@ -45,12 +45,6 @@ type Machine struct {
 	// MachineID is the swarming id of the machine.
 	MachineID string
 
-	// Hostname is the hostname(), which is the pod name under k8s.
-	Hostname string
-
-	// KubernetesImage is the container image being run.
-	KubernetesImage string
-
 	// Version of test_machine_monitor being run.
 	Version string
 
@@ -88,7 +82,6 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
 	}
 
-	kubernetesImage := os.Getenv(swarming.KubernetesImageEnvVar)
 	hostname, err := os.Hostname()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not determine hostname.")
@@ -105,8 +98,6 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		sink:                       sink,
 		adb:                        adb.New(),
 		MachineID:                  machineID,
-		Hostname:                   hostname,
-		KubernetesImage:            kubernetesImage,
 		Version:                    version,
 		startTime:                  startTime,
 		startSwarming:              startSwarming,
@@ -123,8 +114,6 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 
 	ret := machine.NewEvent()
 	ret.Host.Name = m.MachineID
-	ret.Host.PodName = m.Hostname
-	ret.Host.KubernetesImage = m.KubernetesImage
 	ret.Host.Version = m.Version
 	ret.Host.StartTime = m.startTime
 	ret.RunningSwarmingTask = m.runningTask

@@ -119,10 +119,8 @@ func TestMachineTogglePowerCycleHandler_Success(t *testing.T) {
 	store, err := store.NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
-	const podName = "rpi-swarming-123456"
 	err = store.Update(ctx, "someid", func(in machine.Description) machine.Description {
 		ret := in.Copy()
-		ret.PodName = podName
 		return ret
 	})
 	require.NoError(t, err)
@@ -147,7 +145,6 @@ func TestMachineTogglePowerCycleHandler_Success(t *testing.T) {
 	machines, err := store.List(ctx)
 	require.NoError(t, err)
 	require.Len(t, machines, 1)
-	assert.Equal(t, podName, machines[0].PodName)
 	assert.True(t, machines[0].PowerCycle)
 	assert.Contains(t, machines[0].Annotation.Message, "Requested powercycle for")
 	assert.Equal(t, machines[0].Annotation.User, "barney@example.org")
@@ -164,7 +161,6 @@ func TestMachineTogglePowerCycleHandler_Success(t *testing.T) {
 	machines, err = store.List(ctx)
 	require.NoError(t, err)
 	require.Len(t, machines, 1)
-	assert.Equal(t, podName, machines[0].PodName)
 	assert.False(t, machines[0].PowerCycle)
 	assert.Contains(t, machines[0].Annotation.Message, "Requested powercycle for")
 	assert.Equal(t, machines[0].Annotation.User, "barney@example.org")
@@ -197,10 +193,8 @@ func TestMachineRemoveDeviceHandler_AndroidDevice_Success(t *testing.T) {
 	store, err := store.NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
-	const podName = "rpi-swarming-123456"
 	err = store.Update(ctx, "someid", func(in machine.Description) machine.Description {
 		ret := in.Copy()
-		ret.PodName = podName
 		ret.Dimensions = machine.SwarmingDimensions{
 			"android_devices":  {"1"},
 			"device_os":        {"Q", " QP1A.190711.020", "QP1A.190711.020_G980FXXU1ATB3"},
@@ -230,7 +224,6 @@ func TestMachineRemoveDeviceHandler_AndroidDevice_Success(t *testing.T) {
 	machines, err := store.List(ctx)
 	require.NoError(t, err)
 	require.Len(t, machines, 1)
-	assert.Equal(t, podName, machines[0].PodName)
 	// Confirm the dimensions were cleared.
 	assert.Empty(t, machines[0].Dimensions)
 	assert.Contains(t, machines[0].Annotation.Message, "Requested device removal")
@@ -321,10 +314,8 @@ func TestMachineDeleteMachineHandler_Success(t *testing.T) {
 	store, err := store.NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
-	const podName = "rpi-swarming-123456"
 	err = store.Update(ctx, "someid", func(in machine.Description) machine.Description {
 		ret := in.Copy()
-		ret.PodName = podName
 		return ret
 	})
 	require.NoError(t, err)
@@ -377,10 +368,8 @@ func TestMachineSetNoteHandler_Success(t *testing.T) {
 	store, err := store.NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
-	const podName = "rpi-swarming-123456"
 	err = store.Update(ctx, "someid", func(in machine.Description) machine.Description {
 		ret := in.Copy()
-		ret.PodName = podName
 		return ret
 	})
 	require.NoError(t, err)

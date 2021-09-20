@@ -93,10 +93,6 @@ type storeDescription struct {
 	OS          []string
 	DeviceType  []string
 	Quarantined []string
-
-	// PodName and KubernetesImage are deprecated as we do not intend to run on k8s any more.
-	PodName         string
-	KubernetesImage string
 }
 
 // fsAnnotation models how machine.Annotation is stored in Firestore. This serves to
@@ -281,13 +277,11 @@ func convertDescription(m machine.Description) storeDescription {
 		DeviceType:          m.Dimensions[machine.DimDeviceType],
 		DeviceUptime:        m.DeviceUptime,
 		Dimensions:          m.Dimensions,
-		KubernetesImage:     m.KubernetesImage,
 		LastUpdated:         m.LastUpdated,
 		LaunchedSwarming:    m.LaunchedSwarming,
 		Mode:                m.Mode,
 		Note:                convertAnnotation(m.Note),
 		OS:                  m.Dimensions[machine.DimOS],
-		PodName:             m.PodName,
 		PowerCycle:          m.PowerCycle,
 		Quarantined:         m.Dimensions[machine.DimQuarantined],
 		RecoveryStart:       m.RecoveryStart,
@@ -322,12 +316,10 @@ func convertFSDescription(s storeDescription) machine.Description {
 		Battery:             s.Battery,
 		DeviceUptime:        s.DeviceUptime,
 		Dimensions:          s.Dimensions,
-		KubernetesImage:     s.KubernetesImage,
 		LastUpdated:         s.LastUpdated,
 		LaunchedSwarming:    s.LaunchedSwarming,
 		Mode:                s.Mode,
 		Note:                convertFSAnnotation(s.Note),
-		PodName:             s.PodName,
 		PowerCycle:          s.PowerCycle,
 		RecoveryStart:       s.RecoveryStart,
 		RunningSwarmingTask: s.RunningSwarmingTask,

@@ -34,8 +34,6 @@ func TestCopy(t *testing.T) {
 		SuppliedDimensions: SwarmingDimensions{
 			"gpu": []string{"some-gpu"},
 		},
-		PodName:             "rpi-swarming-1235-987",
-		KubernetesImage:     "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean",
 		Version:             "v1.2",
 		LastUpdated:         testTime,
 		Battery:             91,

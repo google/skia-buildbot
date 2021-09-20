@@ -14,7 +14,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
@@ -38,8 +37,6 @@ const (
 	maxTemperatureC float64 = 35
 
 	batteryTemperatureKey = "dumpsys_battery"
-
-	maxPodLifetime = 24 * time.Hour
 
 	// The username for annotations made by the machine server.
 	machineUserName = "machines.skia.org"
@@ -105,12 +102,6 @@ func New(ctx context.Context) *ProcessorImpl {
 	}
 }
 
-// sanitizeKubernetesImageName strip off any whitespace and the image: prefix if
-// present.
-func sanitizeKubernetesImageName(in string) string {
-	return strings.TrimSpace(strings.TrimPrefix(in, "image:"))
-}
-
 // Process implements the Processor interface.
 func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
 	p.eventsProcessedCount.Inc(1)
@@ -165,11 +156,9 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	ret.Temperature = temperatures
 	ret.RunningSwarmingTask = event.RunningSwarmingTask
 	ret.LaunchedSwarming = event.LaunchedSwarming
-	ret.PodName = event.Host.PodName
 	ret.LastUpdated = now.Now(ctx)
 	ret.DeviceUptime = int32(event.Android.Uptime.Seconds())
 
-	ret.KubernetesImage = sanitizeKubernetesImageName(event.Host.KubernetesImage)
 	ret.Version = event.Host.Version
 
 	for k, values := range dimensions {

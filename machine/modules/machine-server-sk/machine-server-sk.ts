@@ -127,17 +127,7 @@ const imageName = (machine: Description): string => {
   if (machine.Version) {
     return machine.Version;
   }
-  // KubernetesImage looks like:
-  // "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean".
-  // We just need to display everything after the ":".
-  if (!machine.KubernetesImage) {
-    return '(missing)';
-  }
-  const parts = machine.KubernetesImage.split(':');
-  if (parts.length < 2) {
-    return '(missing)';
-  }
-  return parts[1];
+  return '(missing)';
 };
 
 // eslint-disable-next-line no-use-before-define
@@ -226,7 +216,6 @@ export class MachineServerSk extends ListPageSk<Description> {
   tableHeaders(): TemplateResult {
     return html`
       <th>Machine</th>
-      <th>Pod</th>
       <th>Device</th>
       <th>Mode</th>
       <th>Host</th>
@@ -253,7 +242,6 @@ export class MachineServerSk extends ListPageSk<Description> {
     return html`
       <tr id=${machine.Dimensions.id[0]}>
         <td>${machineLink(machine)}</td>
-        <td>${machine.PodName}</td>
         <td>${pretty_device_name(machine.Dimensions.device_type)}</td>
         <td>${toggleMode(this, machine)}</td>
         <td class="powercycle">${powerCycle(this, machine)}</td>
@@ -268,7 +256,6 @@ export class MachineServerSk extends ListPageSk<Description> {
         <td class="center">${launchedSwarming(machine)}</td>
         <td>${note(this, machine)}</td>
         <td>${annotation(machine.Annotation)}</td>
-        <td>${imageName(machine)}</td>
         <td>${deleteMachine(this, machine)}</td>
       </tr>
     `;

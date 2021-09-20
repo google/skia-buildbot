@@ -177,8 +177,6 @@ func TestInterrogate_NoDeviceAttached_Success(t *testing.T) {
 	m := &Machine{
 		adb:              adb.New(),
 		MachineID:        "some-machine",
-		Hostname:         "some-hostname",
-		KubernetesImage:  "deprecated",
 		Version:          "some-version",
 		runningTask:      true,
 		startSwarming:    true,
@@ -191,11 +189,9 @@ func TestInterrogate_NoDeviceAttached_Success(t *testing.T) {
 		LaunchedSwarming:    true,
 		RunningSwarmingTask: true,
 		Host: machine.Host{
-			Name:            "some-machine",
-			PodName:         "some-hostname",
-			KubernetesImage: "deprecated",
-			Version:         "some-version",
-			StartTime:       time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC),
+			Name:      "some-machine",
+			Version:   "some-version",
+			StartTime: time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC),
 		},
 	}, actual)
 }
@@ -213,8 +209,6 @@ func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 	m := &Machine{
 		adb:              adb.New(),
 		MachineID:        "some-machine",
-		Hostname:         "some-hostname",
-		KubernetesImage:  "deprecated",
 		Version:          "some-version",
 		runningTask:      true,
 		startSwarming:    true,
@@ -227,11 +221,9 @@ func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 		LaunchedSwarming:    true,
 		RunningSwarmingTask: true,
 		Host: machine.Host{
-			Name:            "some-machine",
-			PodName:         "some-hostname",
-			KubernetesImage: "deprecated",
-			Version:         "some-version",
-			StartTime:       time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC),
+			Name:      "some-machine",
+			Version:   "some-version",
+			StartTime: time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC),
 		},
 		Android: machine.Android{
 			GetProp:               getPropPlaceholder,
@@ -253,11 +245,9 @@ func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 	m := &Machine{
 		ssh:       ssh.ExeImpl{},
 		MachineID: "some-machine",
-		Hostname:  "some-hostname",
 		description: machine.Description{
 			SSHUserIP: testUserIP,
 		},
-		KubernetesImage:  "deprecated",
 		Version:          "some-version",
 		runningTask:      true,
 		startSwarming:    true,
@@ -270,11 +260,9 @@ func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 		LaunchedSwarming:    true,
 		RunningSwarmingTask: true,
 		Host: machine.Host{
-			Name:            "some-machine",
-			PodName:         "some-hostname",
-			KubernetesImage: "deprecated",
-			Version:         "some-version",
-			StartTime:       time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC),
+			Name:      "some-machine",
+			Version:   "some-version",
+			StartTime: time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC),
 		},
 		ChromeOS: machine.ChromeOS{
 			Channel:        "stable-channel",
@@ -402,7 +390,7 @@ func Test_FakeExe_AdbGetState_Success(t *testing.T) {
 	// Check the input arguments to make sure they were as expected.
 	args := executil.OriginalArgs()
 	require.Equal(t, []string{"adb", "get-state"}, args)
-	fmt.Fprintf(os.Stderr, "device")
+	_, _ = fmt.Fprintf(os.Stderr, "device")
 
 	// Force exit so we don't get PASS in the output.
 	os.Exit(0)
