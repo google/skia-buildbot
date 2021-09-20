@@ -17,12 +17,6 @@ import (
 // If a field is defined in both Common and a given specific config, there will be problems, so
 // don't do that.
 type Common struct {
-	// The BigTable instance that should be targeted. E.g. "production", "internal".
-	BTInstance string `json:"bt_instance"`
-
-	// GCP project ID that houses the BigTable Instance.
-	BTProjectID string `json:"bt_project_id"`
-
 	// One or more code review systems that we support linking to / commenting on, etc. Used also to
 	// identify valid CLs when ingesting data.
 	CodeReviewSystems []CodeReviewSystem `json:"code_review_systems"`
@@ -33,22 +27,11 @@ type Common struct {
 	// Google Cloud Storage bucket name.
 	GCSBucket string `json:"gcs_bucket"`
 
-	// ID of the BigTable table that contains Git metadata.
-	GitBTTable string `json:"git_bt_table"`
-
 	// The primary branch of the git repo to track, e.g. "main".
 	GitRepoBranch string `json:"git_repo_branch"`
 
-	// The URL to the git repo that this instance tracks. Note that Gold doesn't sync this repo
-	// itself, it pulls the data from BigTable, which is put there via gitsync.
+	// The URL to the git repo that this instance tracks.
 	GitRepoURL string `json:"git_repo_url"`
-
-	// Firestore Namespace; typically the instance id. e.g. 'flutter', 'skia', etc
-	FirestoreNamespace string `json:"fs_namespace"`
-
-	// The project with the Firestore instance. Datastore and Firestore can't be enabled the same
-	// project.
-	FirestoreProjectID string `json:"fs_project_id"`
 
 	// GCS path, where the known hashes file should be stored. Format: <bucket>/<path>.
 	KnownHashesGCSPath string `json:"known_hashes_gcs_path"`

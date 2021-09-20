@@ -1,6 +1,4 @@
 {
-  bt_instance: "production",
-  bt_project_id: "skia-public",
   code_review_systems: [
     {
       id: "gerrit",
@@ -10,12 +8,9 @@
     },
   ],
   gcs_bucket: "skia-gold-chrome",
-  git_bt_table: "git-repos2",
   git_repo_branch: "master",
   git_repo_url: "https://chromium.googlesource.com/chromium/src",
   fs_namespace: "chrome",
-  fs_project_id: "skia-firestore",
-  pubsub_project_id: "skia-public",
   site_url: "https://chrome-public-gold.skia.org",
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "chrome",

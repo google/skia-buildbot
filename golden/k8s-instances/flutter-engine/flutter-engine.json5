@@ -1,6 +1,4 @@
 {
-  bt_instance: "production",
-  bt_project_id: "skia-public",
   code_review_systems: [
     {
       id: "github",
@@ -12,11 +10,8 @@
   ],
   diff_work_topic: "gold-flutter-engine-diffmetrics", // includes instance id
   gcs_bucket: "skia-gold-flutter-engine",
-  git_bt_table: "git-repos2",
   git_repo_branch: "master",
   git_repo_url: "https://github.com/flutter/engine",
-  fs_namespace: "flutter-engine",
-  fs_project_id: "skia-firestore",
   pubsub_project_id: "skia-public",
   site_url: "https://flutter-engine-gold.skia.org",
   sql_connection: "root@gold-cockroachdb-public:26234",

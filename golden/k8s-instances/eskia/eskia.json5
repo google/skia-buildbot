@@ -1,10 +1,4 @@
 {
-  bt_instance: "deprecated",
-  bt_project_id: "deprecated",
-  git_bt_table: "deprecated",
-  fs_namespace: "deprecated",
-  fs_project_id: "deprecated",
-
   code_review_systems: [
     {
       id: "gerrit",
