@@ -18,7 +18,6 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
@@ -26,7 +25,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/ingestion/sqlingestionstore"
@@ -162,25 +160,6 @@ func main() {
 	ingestionStore := sqlingestionstore.New(sqlDB)
 	sklog.Infof("Using new SQL ingestion store")
 
-	// Set up the gitstore
-	btConf := &bt_gitstore.BTConfig{
-		InstanceID: isc.BTInstance,
-		ProjectID:  isc.BTProjectID,
-		TableID:    isc.GitBTTable,
-		AppProfile: "gold-ingestion",
-	}
-
-	gitStore, err := bt_gitstore.New(ctx, btConf, isc.GitRepoURL)
-	if err != nil {
-		sklog.Fatalf("could not instantiate gitstore for %s: %s", isc.GitRepoURL, err)
-	}
-
-	// Set up VCS instance to track primary branch.
-	vcs, err := bt_vcs.New(ctx, gitStore, isc.GitRepoBranch)
-	if err != nil {
-		sklog.Fatalf("could not instantiate BT VCS for %s", isc.GitRepoURL)
-	}
-	sklog.Infof("Created vcs client based on BigTable.")
 	// Instantiate the secondary repo if one was specified.
 	// TODO(kjlubick): skbug.com/9553
 	if isc.SecondaryRepoURL != "" {
@@ -191,7 +170,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Could not create GCS Client")
 	}
-	primaryBranchProcessor, src, err := getPrimaryBranchIngester(ctx, isc.PrimaryBranchConfig, gcsClient, vcs, sqlDB)
+	primaryBranchProcessor, src, err := getPrimaryBranchIngester(ctx, isc.PrimaryBranchConfig, gcsClient, sqlDB)
 	if err != nil {
 		sklog.Fatalf("Setting up primary branch ingestion: %s", err)
 	}
@@ -237,7 +216,7 @@ func main() {
 	sklog.Fatalf("Listening for files to ingest %s", listen(ctx, isc, pss))
 }
 
-func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClient *storage.Client, vcs *bt_vcs.BigTableVCS, db *pgxpool.Pool) (ingestion.Processor, ingestion.FileSearcher, error) {
+func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClient *storage.Client, db *pgxpool.Pool) (ingestion.Processor, ingestion.FileSearcher, error) {
 	src := &ingestion.GCSSource{
 		Client: gcsClient,
 		Bucket: conf.Source.Bucket,

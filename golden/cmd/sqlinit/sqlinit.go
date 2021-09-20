@@ -10,11 +10,15 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"os"
 	"os/exec"
 	"reflect"
 	"strings"
 	"text/template"
 	"time"
+
+	"go.skia.org/infra/go/sklog/sklogimpl"
+	"go.skia.org/infra/go/sklog/stdlogging"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -25,6 +29,7 @@ func main() {
 	dbCluster := flag.String("db_cluster", "gold-cockroachdb:26234", "The name of the cluster")
 	dbName := flag.String("db_name", "", "name of database to init")
 
+	sklogimpl.SetLogger(stdlogging.New(os.Stderr))
 	flag.Parse()
 	if *dbName == "" {
 		sklog.Fatalf("Must supply db_name")

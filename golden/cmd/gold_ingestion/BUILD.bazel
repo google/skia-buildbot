@@ -9,7 +9,6 @@ go_library(
     deps = [
         "//go/auth",
         "//go/common",
-        "//go/gitstore/bt_gitstore",
         "//go/httputils",
         "//go/metrics2",
         "//go/now",
@@ -17,7 +16,6 @@ go_library(
         "//go/sklog",
         "//go/swarming",
         "//go/util",
-        "//go/vcsinfo/bt_vcs",
         "//golden/go/config",
         "//golden/go/ingestion",
         "//golden/go/ingestion/sqlingestionstore",

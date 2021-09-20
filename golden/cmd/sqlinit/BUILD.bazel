@@ -8,6 +8,8 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/sklog",
+        "//go/sklog/sklogimpl",
+        "//go/sklog/stdlogging",
         "//golden/go/sql/schema",
     ],
 )

@@ -249,6 +249,58 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "gold-eskia-baselineserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-eskia-baselineserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-eskia-baselineserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-eskia-frontend",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-eskia-frontend",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-eskia-frontend",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "gold-flutter-baselineserver",
           "endpoints": [
             {
@@ -2619,6 +2671,51 @@
                           },
                           "route": {
                             "cluster": "gold-pdfium-frontend",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "eskia-gold.skia.org",
+                      "name": "eskia-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/hashes"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-eskia-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/expectations.*"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-eskia-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-eskia-frontend",
                             "timeout": {
                               "seconds": 600
                             }

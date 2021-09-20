@@ -5,6 +5,7 @@
       "https://angle-gold.skia.org/healthz",
       "https://chrome-gold.skia.org/healthz",
       "https://chrome-public-gold.skia.org/healthz",
+      "https://eskia-gold.skia.org/healthz",
       "https://flutter-engine-gold.skia.org/healthz",
       "https://flutter-gold.skia.org/healthz",
       "https://gold.skia.org/healthz",
@@ -22,6 +23,7 @@
   },
   "gold_frontend_protected": {
     "urls": [
+      "https://eskia-gold.skia.org/",
       "https://gold.skia.org/"
     ],
     "method": "GET",
@@ -35,6 +37,7 @@
     "urls": [
       "https://angle-gold.skia.org/json/v2/expectations",
       "https://chrome-gold.skia.org/json/v2/expectations",
+      "https://eskia-gold.skia.org/json/v2/expectations",
       "https://flutter-engine-gold.skia.org/json/v2/expectations",
       "https://flutter-gold.skia.org/json/v2/expectations",
       "https://skia-infra-gold.skia.org/json/v2/expectations"

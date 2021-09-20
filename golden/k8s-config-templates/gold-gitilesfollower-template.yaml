@@ -12,6 +12,14 @@ spec:
     app: gold-{{.INSTANCE_ID}}-gitilesfollower
   type: NodePort
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    iam.gke.io/gcp-service-account: gold-gitiles-follower@skia-public.iam.gserviceaccount.com
+  name: gold-gitilesfollower
+  namespace: default
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -37,7 +45,7 @@ spec:
       securityContext:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
-      serviceAccountName: gold
+      serviceAccountName: gold-gitilesfollower
       containers:
         - name: gold-{{.INSTANCE_ID}}-gitilesfollower
           image: {{.GITILESFOLLOWER_IMAGE}}
