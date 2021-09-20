@@ -1,0 +1,5 @@
+package: skia/internal/test_machine_monitor
+description: Builds of test_machine_monitor for all os/arch combinations.
+install_mode: copy
+data:
+  - dir: build/

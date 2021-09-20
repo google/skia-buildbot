@@ -2,8 +2,8 @@
   become: yes
   copy:
     src:
-      "{{ all.repo_root }}/machine/build/{{ ansible_facts['system'] }}/{{
-      ansible_facts['architecture'] }}/test_machine_monitor"
+      "{{ test_machine_monitor_binaries.path }}/build/{{ ansible_facts['system']
+      }}/{{ ansible_facts['architecture'] }}/test_machine_monitor"
     dest: /usr/local/bin/test_machine_monitor
     owner: root
     group: root

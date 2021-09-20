@@ -1,0 +1,5 @@
+- name: clean_up_tempfile
+  delegate_to: 127.0.0.1
+  file:
+    path: '{{ test_machine_monitor_binaries.path }}'
+    state: absent

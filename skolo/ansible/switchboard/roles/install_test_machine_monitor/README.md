@@ -33,3 +33,24 @@ interface such as X Windows.
     - install_test_machine_monitor
 
 ```
+
+## Pushing a test/debug binary:
+
+To deploy a test/debug binary to a machine first upload the cipd package via the
+//machine Makefile:
+
+```
+$ cd machine
+$ make build_test_machine_monitor
+```
+
+Then visit http://go/cipd/p/skia/internal/test_machine_monitor/+/ to find the
+version for that build and pass is to this playbook via --extra-vars.
+
+For example:
+
+```
+$ ansible-playbook ./switchboard/install_test_machine_monitor.yml \
+  -l skia-rpi2-rack4-shelf4-006 \
+  --extra-vars test_machine_monitor_version_override=2021-09-19T15:36:31Z-jcgregorio-ba7510fdcda7d3979cc2c0df21fee100e3ba4075-dirty
+```

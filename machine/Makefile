@@ -82,8 +82,9 @@ export DATETIME=$(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
 export GIT_STATE=$(shell ../bash/gitstate.sh)
 export VERSION=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
 
-# The names of these targets can't change, as their form is dictated by ansible playbooks in //skolo/ansible/switchboard.
-build_test_machine_monitor_aarch64_Linux:
+build_test_machine_monitor_for_all_archs:
+	rm -rf ./build
+
 	CGO_ENABLED=0 \
 	GOOS=linux \
 	GOARCH=arm64 \
@@ -92,7 +93,6 @@ build_test_machine_monitor_aarch64_Linux:
 	  -ldflags="-X 'main.Version=${VERSION}'" \
 	  ./go/test_machine_monitor
 
-build_test_machine_monitor_x86_64_Linux:
 	CGO_ENABLED=0 \
 	GOOS=linux \
 	GOARCH=amd64 \
@@ -101,7 +101,6 @@ build_test_machine_monitor_x86_64_Linux:
 	  -ldflags="-X 'main.Version=${VERSION}'" \
 	 ./go/test_machine_monitor
 
-build_test_machine_monitor_x86_64_Darwin:
 	CGO_ENABLED=0 \
 	GOOS=darwin \
 	GOARCH=amd64 \
@@ -110,7 +109,6 @@ build_test_machine_monitor_x86_64_Darwin:
 	  -ldflags="-X 'main.Version=${VERSION}'" \
 	 ./go/test_machine_monitor
 
-build_test_machine_monitor_arm64_Darwin:
 	CGO_ENABLED=0 \
 	GOOS=darwin \
 	GOARCH=arm64 \
@@ -119,7 +117,6 @@ build_test_machine_monitor_arm64_Darwin:
 	  -ldflags="-X 'main.Version=${VERSION}'" \
 	 ./go/test_machine_monitor
 
-build_test_machine_monitor_64-bit_Win32NT:
 	CGO_ENABLED=0 \
 	GOOS=windows \
 	GOARCH=amd64 \
@@ -127,5 +124,16 @@ build_test_machine_monitor_64-bit_Win32NT:
 	 -o ./build/Win32NT/64-bit/test_machine_monitor \
 	  -ldflags="-X 'main.Version=${VERSION}'" \
 	 ./go/test_machine_monitor
+
+build_and_upload_test_machine_monitor: build_test_machine_monitor_for_all_archs
+	cipd create -pkg-def=test_machine_monitor_cipd.yml --tag version:${VERSION}
+
+	#
+	# The instance can be retrieved using the version tag:
+	#
+	#   cipd install --root=/tmp/sometempdir skia/internal/test_machine_monitor version:${VERSION}
+
+release_test_machine_monitor: build_and_upload_test_machine_monitor
+	../bash/ansible-release.sh test_machine_monitor ${VERSION}
 
 include ../make/npm.mk

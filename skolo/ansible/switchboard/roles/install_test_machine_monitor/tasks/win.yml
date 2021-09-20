@@ -6,8 +6,8 @@
 - name: Copy over executable.
   copy:
     src:
-      "{{ all.repo_root }}/machine/build/{{ ansible_facts['system'] }}/{{
-      ansible_facts['architecture'] }}/test_machine_monitor"
+      "{{ test_machine_monitor_binaries.path }}/build/{{ ansible_facts['system']
+      }}/{{ ansible_facts['architecture'] }}/test_machine_monitor"
     # Note we copy it to "...2.exe" which is then moved to "test_machine_monitor.exe"
     # by the PowerShell script.
     dest: "C:\\Users\\{{ skolo_account }}\\bin\\test_machine_monitor2.exe"
