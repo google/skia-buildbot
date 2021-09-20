@@ -107,7 +107,6 @@ build-frontend-ci: npm-ci
 	cd infra-sk && $(MAKE) build-frontend-ci
 	cd jsfiddle && $(MAKE) build-frontend-ci
 	cd leasing && $(MAKE) build-frontend-ci
-	cd machine && $(MAKE) build-frontend-ci
 	cd new_element && $(MAKE) build-frontend-ci
 	cd particles && $(MAKE) build-frontend-ci
 	cd perf && $(MAKE) build-frontend-ci
@@ -132,7 +131,6 @@ test-frontend-ci: npm-ci
 	cd demos && $(MAKE) test-frontend-ci
 	cd fiddlek && $(MAKE) test-frontend-ci
 	cd infra-sk && $(MAKE) test-frontend-ci
-	cd machine && $(MAKE) test-frontend-ci
 	cd new_element && $(MAKE) test-frontend-ci
 	cd perf && $(MAKE) test-frontend-ci
 	cd puppeteer-tests && $(MAKE) test-frontend-ci

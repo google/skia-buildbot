@@ -151,11 +151,6 @@ cp -r /src/shaders/tsconfig.json             /tests/shaders
 cp -r /src/shaders/modules                   /tests/shaders
 cp -r /src/shaders/Makefile                  /tests/shaders
 
-mkdir /tests/machine
-cp -r /src/machine/webpack.config.ts         /tests/machine
-cp -r /src/machine/tsconfig.json             /tests/machine
-cp -r /src/machine/modules                   /tests/machine
-
 mkdir /tests/skcq
 cp -r /src/skcq/webpack.config.ts         /tests/skcq
 cp -r /src/skcq/tsconfig.json             /tests/skcq
@@ -234,9 +229,6 @@ cd /tests/particles
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/shaders
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
-cd /tests/machine
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/skcq
