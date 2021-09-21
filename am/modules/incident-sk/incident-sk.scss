@@ -1,4 +1,4 @@
-@import '~elements-sk/colors';
+@import '../themes/themes.scss';
 
 incident-sk {
   display: block;
@@ -86,6 +86,36 @@ incident-sk {
 
   delete-icon-sk:hover {
     border: solid var(--on-background) 1px;
+  }
+
+  .small-icon svg {
+    width: 0.9em;
+    height: auto;
+    padding-right: 0.9em;
+  }
+
+  .tooltip {
+    position: relative;
+    display: inline-block;
+
+    .tooltiptext {
+      visibility: hidden;
+      white-space: nowrap;
+      background-color: var(--minimized);
+      color: var(--on-background);
+      text-align: center;
+      border-radius: 0.5em;
+      padding: 0.5em;
+
+      /* Position the tooltip */
+      position: relative;
+      margin-top: 1em;
+      z-index: 1;
+    }
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
   }
 
   .meta {

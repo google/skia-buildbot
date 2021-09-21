@@ -53,6 +53,7 @@
  */
 import { define } from 'elements-sk/define';
 import 'elements-sk/icon/alarm-off-icon-sk';
+import 'elements-sk/icon/content-copy-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/thumbs-up-down-icon-sk';
 import '../silence-sk';
@@ -71,6 +72,8 @@ import {
 
 const MAX_MATCHING_SILENCES_TO_DISPLAY = 50;
 
+const PARAMS_TO_DISPLAY_COPY_ICON = ['abbr', 'alertname', 'app', 'bot'];
+
 class State {
   key: string = '';
 
@@ -86,7 +89,6 @@ class State {
 
   notes: Note[] = [];
 }
-
 
 export class IncidentSk extends HTMLElement {
   private silences: Silence[] = [];
@@ -199,7 +201,36 @@ export class IncidentSk extends HTMLElement {
     const params = this.state.params;
     const keys = Object.keys(params);
     keys.sort();
-    return keys.filter((k) => !k.startsWith('__')).map((k) => html`<tr><th>${k}</th><td>${linkify(params[k])}</td></tr>`);
+    return keys.filter((k) => !k.startsWith('__')).map((k) => html`
+      <tr>
+        <th>${k}</th>
+        <td>
+          ${linkify(params[k])}
+          ${this.maybeDisplayCopyIcon(k)}
+        </td>
+      </tr>
+    `);
+  }
+
+  private maybeDisplayCopyIcon(k: string): TemplateResult {
+    if (PARAMS_TO_DISPLAY_COPY_ICON.includes(k)) {
+      return html`
+      <div class="tooltip">
+        <content-copy-icon-sk
+          class="small-icon clickable"
+          @click=${() => {
+    $$<HTMLElement>(`#tooltiptext-${k}`, this)!.textContent = 'Copied!';
+    navigator.clipboard.writeText(this.state.params[k]);
+  }}
+          @mouseleave=${() => {
+    $$<HTMLElement>(`#tooltiptext-${k}`, this)!.textContent = 'Copy to Clipboard';
+  }}
+        ></content-copy-icon-sk>
+        <span class="tooltiptext" id="tooltiptext-${k}">Copy to Clipboard</span>
+      </div>
+    `;
+    }
+    return html``;
   }
 
   private actionButtons(): TemplateResult {
