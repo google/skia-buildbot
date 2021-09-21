@@ -30,7 +30,7 @@ export class EmailChooserSk extends HTMLElement {
 
   private static template = (ele: EmailChooserSk) => html`<dialog>
   <h2>Assign</h2>
-  <select size=10 @input=${ele.input}>
+  <select size=10 @input=${ele.input} @keyup=${ele.keyup}>
     <option value='' ?selected=${!ele.owner}>(un-assign)</option>
     ${ele.emails.map((email: string) => ele.displayEmail(email))}
   </select>
@@ -85,6 +85,12 @@ export class EmailChooserSk extends HTMLElement {
   private confirm(): void {
     this.dialog!.close();
     this.resolve!(this.selected);
+  }
+
+  private keyup(e: KeyboardEvent): void {
+    if (e.key === 'Enter') {
+      this.confirm();
+    }
   }
 
   private _render(): void {

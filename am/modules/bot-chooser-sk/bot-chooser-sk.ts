@@ -90,7 +90,7 @@ export class BotChooserSk extends HTMLElement {
     }
     return html`
         <h2>Bots with active alerts</h2>
-        <select size=10 @input=${this.input}>
+        <select size=10 @input=${this.input} @keyup=${this.keyup}>
           ${this.displayBotOptions()}
         </select>
         <div class=buttons>
@@ -112,6 +112,12 @@ export class BotChooserSk extends HTMLElement {
   private confirm(): void {
     this.dialog!.close();
     this.resolve!(this.selected);
+  }
+
+  private keyup(e: KeyboardEvent): void {
+    if (e.key === 'Enter') {
+      this.confirm();
+    }
   }
 
   private _render(): void {
