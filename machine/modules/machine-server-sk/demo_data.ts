@@ -1,9 +1,9 @@
-import { Description } from '../json';
+import { ListMachinesResponse } from '../json';
 
 export const fakeNow = Date.parse('2021-06-03T18:20:30.00000Z');
 
 // Based on a production response on 2021-06-03.
-export const descriptions: Description[] = [{
+export const descriptions: ListMachinesResponse = [{
   Mode: 'available',
   Annotation: {
     Message: 'Leaving recovery mode.',
@@ -25,7 +25,6 @@ export const descriptions: Description[] = [{
     inside_docker: ['1', 'containerd'],
     os: ['Android'],
   },
-  SuppliedDimensions: null,
   Version: 'v1.2',
   PowerCycle: false,
   LastUpdated: '2021-06-03T18:20:24.974527Z',
@@ -39,7 +38,6 @@ export const descriptions: Description[] = [{
   },
   RunningSwarmingTask: true,
   LaunchedSwarming: false,
-  RecoveryStart: '2021-06-03T18:20:09.386312Z',
   DeviceUptime: 167,
   SSHUserIP: '',
 }, {
@@ -64,7 +62,6 @@ export const descriptions: Description[] = [{
     inside_docker: ['1', 'containerd'],
     os: ['Android'],
   },
-  SuppliedDimensions: null,
   Version: 'v1.3',
   PowerCycle: false,
   LastUpdated: '2021-06-03T18:20:18.710416Z',
@@ -74,7 +71,6 @@ export const descriptions: Description[] = [{
   },
   RunningSwarmingTask: true,
   LaunchedSwarming: true,
-  RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 266,
   SSHUserIP: '',
 }, {
@@ -99,7 +95,6 @@ export const descriptions: Description[] = [{
     inside_docker: ['1', 'containerd'],
     os: ['Android'],
   },
-  SuppliedDimensions: null,
   Version: 'v1.4',
   PowerCycle: false,
   LastUpdated: '2021-06-03T18:20:20.87764Z',
@@ -109,7 +104,6 @@ export const descriptions: Description[] = [{
   },
   RunningSwarmingTask: true,
   LaunchedSwarming: true,
-  RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 183,
   SSHUserIP: '',
 }, {
@@ -134,7 +128,6 @@ export const descriptions: Description[] = [{
     inside_docker: ['1', 'containerd'],
     os: ['Android'],
   },
-  SuppliedDimensions: null,
   Version: 'v1.2',
   PowerCycle: false,
   LastUpdated: '2021-06-03T18:20:02.034149Z',
@@ -144,7 +137,6 @@ export const descriptions: Description[] = [{
   },
   RunningSwarmingTask: true,
   LaunchedSwarming: true,
-  RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 167,
   SSHUserIP: '',
 }, {
@@ -169,7 +161,6 @@ export const descriptions: Description[] = [{
     inside_docker: ['1', 'containerd'],
     os: ['Android'],
   },
-  SuppliedDimensions: null,
   Version: 'v1.2',
   PowerCycle: false,
   LastUpdated: '2021-06-03T18:20:21.471856Z',
@@ -179,7 +170,6 @@ export const descriptions: Description[] = [{
   },
   RunningSwarmingTask: true,
   LaunchedSwarming: true,
-  RecoveryStart: '0001-01-01T00:00:00Z',
   DeviceUptime: 234,
   SSHUserIP: '',
 }, {
@@ -204,7 +194,6 @@ export const descriptions: Description[] = [{
     inside_docker: ['1', 'containerd'],
     os: ['Android'],
   },
-  SuppliedDimensions: null,
   Version: 'v1.2',
   PowerCycle: false,
   LastUpdated: '2021-06-03T18:20:33.121421Z',
@@ -218,7 +207,6 @@ export const descriptions: Description[] = [{
   },
   RunningSwarmingTask: true,
   LaunchedSwarming: true,
-  RecoveryStart: '2021-06-03T18:19:19.268204Z',
   DeviceUptime: 343,
   SSHUserIP: '',
 }, {
@@ -243,7 +231,6 @@ export const descriptions: Description[] = [{
     inside_docker: ['1', 'containerd'],
     os: ['Android'],
   },
-  SuppliedDimensions: null,
   Version: 'v1.2',
   PowerCycle: false,
   LastUpdated: '2021-06-03T18:20:09.386348Z',
@@ -253,7 +240,6 @@ export const descriptions: Description[] = [{
   },
   RunningSwarmingTask: true,
   LaunchedSwarming: true,
-  RecoveryStart: '2021-01-12T18:33:24.063867Z',
   DeviceUptime: 657,
   SSHUserIP: '',
 }, {
@@ -278,7 +264,6 @@ export const descriptions: Description[] = [{
     inside_docker: ['1', 'containerd'],
     os: ['Android'],
   },
-  SuppliedDimensions: null,
   Version: 'v1.2',
   PowerCycle: false,
   LastUpdated: '2021-06-03T18:20:35.74389Z',
@@ -292,7 +277,6 @@ export const descriptions: Description[] = [{
   },
   RunningSwarmingTask: true,
   LaunchedSwarming: true,
-  RecoveryStart: '2021-06-03T18:12:59.603173Z',
   DeviceUptime: 660,
   SSHUserIP: '',
 }, {
@@ -317,7 +301,6 @@ export const descriptions: Description[] = [{
     inside_docker: ['1', 'containerd'],
     os: ['Android'],
   },
-  SuppliedDimensions: null,
   Version: 'v1.2',
   PowerCycle: false,
   LastUpdated: '2021-06-03T18:20:35.282608Z',
@@ -331,7 +314,6 @@ export const descriptions: Description[] = [{
   },
   RunningSwarmingTask: true,
   LaunchedSwarming: true,
-  RecoveryStart: '2021-06-03T18:20:05.427785Z',
   DeviceUptime: 891,
   SSHUserIP: '',
 }, {
@@ -356,7 +338,6 @@ export const descriptions: Description[] = [{
     inside_docker: ['1', 'containerd'],
     os: ['Android'],
   },
-  SuppliedDimensions: null,
   Version: 'v1.2',
   PowerCycle: false,
   LastUpdated: '2021-06-03T18:20:23.312632Z',
@@ -370,7 +351,6 @@ export const descriptions: Description[] = [{
   },
   RunningSwarmingTask: false,
   LaunchedSwarming: true,
-  RecoveryStart: '2021-06-03T18:15:16.668578Z',
   DeviceUptime: 899,
   SSHUserIP: '',
 }];

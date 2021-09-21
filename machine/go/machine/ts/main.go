@@ -23,10 +23,11 @@ func main() {
 
 	generator := go2ts.New()
 	generator.AddMultiple(
-		machine.Description{},
 		switchboard.MeetingPoint{},
 		switchboard.Pod{},
+		rpc.SetNoteRequest{},
 		rpc.SupplyChromeOSRequest{})
+	generator.AddIgnoreNil(rpc.ListMachinesResponse{})
 	generator.AddUnion(machine.AllModes)
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {

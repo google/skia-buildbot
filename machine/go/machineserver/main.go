@@ -176,7 +176,7 @@ func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
 		return
 	}
-	sendJSONResponse(descriptions, w)
+	sendJSONResponse(rpc.ToListMachinesResponse(descriptions), w)
 }
 
 func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request) {
@@ -314,19 +314,22 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "ID must be supplied.", http.StatusBadRequest)
 		return
 	}
-	var note machine.Annotation
+	var note rpc.SetNoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
 		httputils.ReportError(w, err, "Failed to parse incoming note.", http.StatusBadRequest)
 		return
 	}
 	ctx := r.Context()
-	note.User = user(r)
-	note.Timestamp = now.Now(ctx)
+	newNote := machine.Annotation{
+		Message:   note.Message,
+		User:      user(r),
+		Timestamp: now.Now(ctx),
+	}
 
 	var ret machine.Description
 	err := s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		ret = in.Copy()
-		ret.Note = note
+		ret.Note = newNote
 		return ret
 	})
 	auditlog.Log(r, "set-note", note)
@@ -377,12 +380,12 @@ func (s *server) meetingPointsPageHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (s *server) meetingPointsHandler(w http.ResponseWriter, r *http.Request) {
-	meeting_points, err := s.switchboard.ListMeetingPoints(r.Context())
+	meetingPoints, err := s.switchboard.ListMeetingPoints(r.Context())
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get list of meeting points", http.StatusInternalServerError)
 		return
 	}
-	sendJSONResponse(meeting_points, w)
+	sendJSONResponse(meetingPoints, w)
 }
 
 func (s *server) podsPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -402,11 +405,10 @@ func (s *server) podsHandler(w http.ResponseWriter, r *http.Request) {
 func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", s.machinesPageHandler).Methods("GET")
 	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
-	// TODO(kjlubick) These mutating RPCs should be POST not GET
-	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("GET")
-	r.HandleFunc("/_/machine/toggle_powercycle/{id:.+}", s.machineTogglePowerCycleHandler).Methods("GET")
-	r.HandleFunc("/_/machine/remove_device/{id:.+}", s.machineRemoveDeviceHandler).Methods("GET")
-	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("GET")
+	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("POST")
+	r.HandleFunc("/_/machine/toggle_powercycle/{id:.+}", s.machineTogglePowerCycleHandler).Methods("POST")
+	r.HandleFunc("/_/machine/remove_device/{id:.+}", s.machineRemoveDeviceHandler).Methods("POST")
+	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("POST")
 	r.HandleFunc("/_/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
 	r.HandleFunc("/_/machine/supply_chromeos/{id:.+}", s.machineSupplyChromeOSInfoHandler).Methods("POST")
 	r.HandleFunc("/_/meeting_points", s.meetingPointsHandler).Methods("GET")

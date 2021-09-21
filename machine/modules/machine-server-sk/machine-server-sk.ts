@@ -12,7 +12,9 @@ import { html, TemplateResult } from 'lit-html';
 
 import { diffDate, strDuration } from 'common-sk/modules/human';
 import { $$ } from 'common-sk/modules/dom';
-import { Annotation, Description, SupplyChromeOSRequest } from '../json';
+import {
+  Annotation, FrontendDescription, SetNoteRequest, SupplyChromeOSRequest,
+} from '../json';
 import { ListPageSk } from '../list-page-sk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import 'elements-sk/error-toast-sk/index';
@@ -74,7 +76,7 @@ const temps = (temperatures: { [key: string]: number } | null): TemplateResult =
   `;
 };
 
-const isRunning = (machine: Description): TemplateResult => (machine.RunningSwarmingTask
+const isRunning = (machine: FrontendDescription): TemplateResult => (machine.RunningSwarmingTask
   ? html`
         <cached-icon-sk title="Running"></cached-icon-sk>
       `
@@ -82,7 +84,7 @@ const isRunning = (machine: Description): TemplateResult => (machine.RunningSwar
 
 const asList = (arr: string[]) => arr.join(' | ');
 
-const dimensions = (machine: Description): TemplateResult => {
+const dimensions = (machine: FrontendDescription): TemplateResult => {
   if (!machine.Dimensions) {
     return html`<div>Unknown</div>`;
   }
@@ -103,7 +105,7 @@ const dimensions = (machine: Description): TemplateResult => {
   `;
 };
 
-const launchedSwarming = (machine: Description): TemplateResult => {
+const launchedSwarming = (machine: FrontendDescription): TemplateResult => {
   if (!machine.LaunchedSwarming) {
     return html``;
   }
@@ -122,7 +124,7 @@ const annotation = (ann: Annotation | null): TemplateResult => {
   `;
 };
 
-const imageVersion = (machine: Description): string => {
+const imageVersion = (machine: FrontendDescription): string => {
   if (machine.Version) {
     return machine.Version;
   }
@@ -130,7 +132,7 @@ const imageVersion = (machine: Description): string => {
 };
 
 // eslint-disable-next-line no-use-before-define
-const powerCycle = (ele: MachineServerSk, machine: Description): TemplateResult => {
+const powerCycle = (ele: MachineServerSk, machine: FrontendDescription): TemplateResult => {
   if (machine.PowerCycle) {
     return html`Waiting for Power Cycle`;
   }
@@ -143,7 +145,7 @@ const powerCycle = (ele: MachineServerSk, machine: Description): TemplateResult 
 };
 
 // eslint-disable-next-line no-use-before-define
-const toggleMode = (ele: MachineServerSk, machine: Description) => html`
+const toggleMode = (ele: MachineServerSk, machine: FrontendDescription) => html`
     <button
       class="mode"
       @click=${() => ele.toggleMode(machine.Dimensions!.id![0])}
@@ -153,7 +155,7 @@ const toggleMode = (ele: MachineServerSk, machine: Description) => html`
     </button>
   `;
 
-const machineLink = (machine: Description): TemplateResult => html`
+const machineLink = (machine: FrontendDescription): TemplateResult => html`
     <a
       href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions!.id}"
     >
@@ -162,7 +164,7 @@ const machineLink = (machine: Description): TemplateResult => html`
   `;
 
 // eslint-disable-next-line no-use-before-define
-const deleteMachine = (ele: MachineServerSk, machine: Description): TemplateResult => html`
+const deleteMachine = (ele: MachineServerSk, machine: FrontendDescription): TemplateResult => html`
   <delete-icon-sk
     title="Remove the machine from the database."
     @click=${() => ele.deleteDevice(machine.Dimensions!.id![0])}
@@ -170,7 +172,7 @@ const deleteMachine = (ele: MachineServerSk, machine: Description): TemplateResu
 `;
 
 /** Displays the device uptime, truncated to the minute. */
-const deviceUptime = (machine: Description): TemplateResult => html`
+const deviceUptime = (machine: FrontendDescription): TemplateResult => html`
   ${strDuration(machine.DeviceUptime - (machine.DeviceUptime % 60))}
 `;
 
@@ -184,7 +186,7 @@ export const outOfSpecIfTooOld = (lastUpdated: string): string => {
 export const uptimeOutOfSpecIfTooOld = (uptime: number): string => (uptime > MAX_UPTIME_ACCEPTABLE_S ? 'outOfSpec' : '');
 
 // eslint-disable-next-line no-use-before-define
-const note = (ele: MachineServerSk, machine: Description): TemplateResult => html`
+const note = (ele: MachineServerSk, machine: FrontendDescription): TemplateResult => html`
   <edit-icon-sk class="edit_note"
       @click=${() => ele.editNote(machine.Dimensions!.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
 `;
@@ -205,7 +207,7 @@ export const pretty_device_name = (devices: string[] | null): string => {
   return `${devices.join(' | ')} ${alias}`;
 };
 
-export class MachineServerSk extends ListPageSk<Description> {
+export class MachineServerSk extends ListPageSk<FrontendDescription> {
   private noteEditor: NoteEditorSk | null = null;
 
   private deviceEditor: DeviceEditorSk | null = null;
@@ -234,7 +236,7 @@ export class MachineServerSk extends ListPageSk<Description> {
     `;
   }
 
-  tableRow(machine: Description): TemplateResult {
+  tableRow(machine: FrontendDescription): TemplateResult {
     if (!machine.Dimensions || !machine.Dimensions.id) {
       return html``;
     }
@@ -261,7 +263,7 @@ export class MachineServerSk extends ListPageSk<Description> {
     `;
   }
 
-  private editDeviceIcon = (machine: Description): TemplateResult => (machine.RunningSwarmingTask
+  private editDeviceIcon = (machine: FrontendDescription): TemplateResult => (machine.RunningSwarmingTask
     ? html``
     : html`
         <edit-icon-sk
@@ -301,7 +303,7 @@ export class MachineServerSk extends ListPageSk<Description> {
   async toggleMode(id: string): Promise<void> {
     try {
       this.setAttribute('waiting', '');
-      await fetch(`/_/machine/toggle_mode/${id}`);
+      await fetch(`/_/machine/toggle_mode/${id}`, { method: 'POST' });
       this.removeAttribute('waiting');
       await this.update(true);
     } catch (error) {
@@ -309,19 +311,20 @@ export class MachineServerSk extends ListPageSk<Description> {
     }
   }
 
-  async editNote(id: string, machine: Description): Promise<void> {
+  async editNote(id: string, machine: FrontendDescription): Promise<void> {
     try {
       const editedAnnotation = await this.noteEditor!.edit(machine.Note);
       if (!editedAnnotation) {
         return;
       }
+      const request: SetNoteRequest = editedAnnotation;
       this.setAttribute('waiting', '');
       const resp = await fetch(`/_/machine/set_note/${id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(editedAnnotation),
+        body: JSON.stringify(request),
       });
       if (!resp.ok) {
         this.onError(resp.statusText);
@@ -337,7 +340,7 @@ export class MachineServerSk extends ListPageSk<Description> {
   async togglePowerCycle(id: string): Promise<void> {
     try {
       this.setAttribute('waiting', '');
-      await fetch(`/_/machine/toggle_powercycle/${id}`);
+      await fetch(`/_/machine/toggle_powercycle/${id}`, { method: 'POST' });
       await this.update(true);
     } catch (error) {
       this.onError(error);
@@ -350,7 +353,7 @@ export class MachineServerSk extends ListPageSk<Description> {
     const id = (e as CustomEvent<string>).detail;
     try {
       this.setAttribute('waiting', '');
-      await fetch(`/_/machine/remove_device/${id}`);
+      await fetch(`/_/machine/remove_device/${id}`, { method: 'POST' });
 
       await this.update(true);
     } catch (error) {
@@ -363,7 +366,7 @@ export class MachineServerSk extends ListPageSk<Description> {
   async deleteDevice(id: string): Promise<void> {
     try {
       this.setAttribute('waiting', '');
-      await fetch(`/_/machine/delete_machine/${id}`);
+      await fetch(`/_/machine/delete_machine/${id}`, { method: 'POST' });
       await this.update(true);
     } catch (error) {
       this.onError(error);

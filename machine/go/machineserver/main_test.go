@@ -77,7 +77,7 @@ func TestMachineToggleModeHandler_Success(t *testing.T) {
 	router := mux.NewRouter()
 	s.AddHandlers(router)
 
-	r := httptest.NewRequest("GET", "/_/machine/toggle_mode/someid", nil)
+	r := httptest.NewRequest("POST", "/_/machine/toggle_mode/someid", nil)
 	w := httptest.NewRecorder()
 
 	// Make the request.
@@ -103,7 +103,7 @@ func TestMachineToggleModeHandler_FailOnMissingID(t *testing.T) {
 	router := mux.NewRouter()
 	s.AddHandlers(router)
 
-	r := httptest.NewRequest("GET", "/_/machine/toggle_mode/", nil)
+	r := httptest.NewRequest("POST", "/_/machine/toggle_mode/", nil)
 	w := httptest.NewRecorder()
 
 	// Make the request.
@@ -134,7 +134,7 @@ func TestMachineTogglePowerCycleHandler_Success(t *testing.T) {
 	router := mux.NewRouter()
 	s.AddHandlers(router)
 
-	r := httptest.NewRequest("GET", "/_/machine/toggle_powercycle/someid", nil)
+	r := httptest.NewRequest("POST", "/_/machine/toggle_powercycle/someid", nil)
 	w := httptest.NewRecorder()
 
 	// Make the request.
@@ -150,7 +150,7 @@ func TestMachineTogglePowerCycleHandler_Success(t *testing.T) {
 	assert.Equal(t, machines[0].Annotation.User, "barney@example.org")
 
 	// Now confirm we toggle back.
-	r = httptest.NewRequest("GET", "/_/machine/toggle_powercycle/someid", nil)
+	r = httptest.NewRequest("POST", "/_/machine/toggle_powercycle/someid", nil)
 	w = httptest.NewRecorder()
 
 	// Make the request.
@@ -177,7 +177,7 @@ func TestMachineTogglePowerCycleHandler_FailOnMissingID(t *testing.T) {
 	router := mux.NewRouter()
 	s.AddHandlers(router)
 
-	r := httptest.NewRequest("GET", "/_/machine/toggle_powercycle/", nil)
+	r := httptest.NewRequest("POST", "/_/machine/toggle_powercycle/", nil)
 	w := httptest.NewRecorder()
 
 	// Make the request.
@@ -213,7 +213,7 @@ func TestMachineRemoveDeviceHandler_AndroidDevice_Success(t *testing.T) {
 	router := mux.NewRouter()
 	s.AddHandlers(router)
 
-	r := httptest.NewRequest("GET", "/_/machine/remove_device/someid", nil)
+	r := httptest.NewRequest("POST", "/_/machine/remove_device/someid", nil)
 	w := httptest.NewRecorder()
 
 	// Make the request.
@@ -265,7 +265,7 @@ func TestMachineRemoveDeviceHandler_ChromeOSDevice_Success(t *testing.T) {
 	router := mux.NewRouter()
 	s.AddHandlers(router)
 
-	r := httptest.NewRequest("GET", "/_/machine/remove_device/skia-rpi-002", nil).WithContext(ctx)
+	r := httptest.NewRequest("POST", "/_/machine/remove_device/skia-rpi-002", nil).WithContext(ctx)
 	w := httptest.NewRecorder()
 
 	// Make the request.
@@ -298,7 +298,7 @@ func TestMachineRemoveDeviceHandler_FailOnMissingID(t *testing.T) {
 	router := mux.NewRouter()
 	s.AddHandlers(router)
 
-	r := httptest.NewRequest("GET", "/_/machine/remove_device/", nil)
+	r := httptest.NewRequest("POST", "/_/machine/remove_device/", nil)
 	w := httptest.NewRecorder()
 
 	// Make the request.
@@ -329,7 +329,7 @@ func TestMachineDeleteMachineHandler_Success(t *testing.T) {
 	router := mux.NewRouter()
 	s.AddHandlers(router)
 
-	r := httptest.NewRequest("GET", "/_/machine/delete_machine/someid", nil)
+	r := httptest.NewRequest("POST", "/_/machine/delete_machine/someid", nil)
 	w := httptest.NewRecorder()
 
 	// Make the request.
@@ -352,7 +352,7 @@ func TestMachineDeleteMachineHandler_FailOnMissingID(t *testing.T) {
 	router := mux.NewRouter()
 	s.AddHandlers(router)
 
-	r := httptest.NewRequest("GET", "/_/machine/delete_machine/", nil)
+	r := httptest.NewRequest("POST", "/_/machine/delete_machine/", nil)
 	w := httptest.NewRecorder()
 
 	// Make the request.
@@ -383,7 +383,7 @@ func TestMachineSetNoteHandler_Success(t *testing.T) {
 	router := mux.NewRouter()
 	s.AddHandlers(router)
 
-	note := machine.Annotation{
+	note := rpc.SetNoteRequest{
 		Message: "Hello World",
 	}
 	b, err := json.Marshal(note)

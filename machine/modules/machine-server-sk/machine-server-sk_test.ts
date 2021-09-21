@@ -5,16 +5,21 @@ import { $$ } from 'common-sk/modules/dom';
 import {
   MachineServerSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name,
 } from './machine-server-sk';
-import { Annotation } from '../json';
+import {
+  FrontendDescription, ListMachinesResponse, SetNoteRequest,
+} from '../json';
+
+function mockMachinesResponse(param: ListMachinesResponse | Partial<FrontendDescription>[]): void {
+  fetchMock.get('/_/machines', param);
+}
 
 const setUpElement = async (): Promise<MachineServerSk> => {
   fetchMock.reset();
   fetchMock.config.overwriteRoutes = true;
-  fetchMock.get('/_/machines', [
+  mockMachinesResponse([
     {
       Mode: 'available',
       Battery: 100,
-      PodName: 'rpi-swarming-123456-987',
       Dimensions: {
         id: ['skia-rpi2-rack4-shelf1-002'],
         android_devices: ['1'],
@@ -28,7 +33,7 @@ const setUpElement = async (): Promise<MachineServerSk> => {
       Annotation: {
         User: '',
         Message: '',
-        LastUpdated: '2020-04-21T17:33:09.638275Z',
+        Timestamp: '2020-04-21T17:33:09.638275Z',
       },
       PowerCycle: false,
       LastUpdated: '2020-04-21T17:33:09.638275Z',
@@ -54,8 +59,8 @@ describe('machine-server-sk', () => {
 
     // Now set up fetchMock for the requests that happen when the button is clicked.
     fetchMock.reset();
-    fetchMock.get('/_/machine/toggle_mode/skia-rpi2-rack4-shelf1-002', 200);
-    fetchMock.get('/_/machines', [
+    fetchMock.post('/_/machine/toggle_mode/skia-rpi2-rack4-shelf1-002', 200);
+    mockMachinesResponse([
       {
         Mode: 'maintenance',
         Battery: 100,
@@ -72,7 +77,7 @@ describe('machine-server-sk', () => {
         Annotation: {
           User: '',
           Message: '',
-          LastUpdated: '2020-04-21T17:33:09.638275Z',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
         },
         LastUpdated: '2020-04-21T17:33:09.638275Z',
         Temperature: { dumpsys_battery: 26 },
@@ -95,11 +100,10 @@ describe('machine-server-sk', () => {
 
     // Now set up fetchMock for the requests that happen when the button is clicked.
     fetchMock.reset();
-    fetchMock.get('/_/machines', [
+    mockMachinesResponse([
       {
         Mode: 'maintenance',
         Battery: 100,
-        PodName: 'rpi-swarming-123456-987',
         Dimensions: {
           id: ['skia-rpi2-rack4-shelf1-002'],
           android_devices: ['1'],
@@ -113,7 +117,7 @@ describe('machine-server-sk', () => {
         Annotation: {
           User: '',
           Message: '',
-          LastUpdated: '2020-04-21T17:33:09.638275Z',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
         },
         LastUpdated: '2020-04-21T17:33:09.638275Z',
         Temperature: { dumpsys_battery: 26 },
@@ -135,15 +139,14 @@ describe('machine-server-sk', () => {
 
     // Now set up fetchMock for the requests that happen when the button is clicked.
     fetchMock.reset();
-    fetchMock.get(
+    fetchMock.post(
       '/_/machine/toggle_powercycle/skia-rpi2-rack4-shelf1-002',
       200,
     );
-    fetchMock.get('/_/machines', [
+    mockMachinesResponse([
       {
         Mode: 'maintenance',
         Battery: 100,
-        PodName: 'rpi-swarming-123456-987',
         Dimensions: {
           id: ['skia-rpi2-rack4-shelf1-002'],
           android_devices: ['1'],
@@ -157,7 +160,7 @@ describe('machine-server-sk', () => {
         Annotation: {
           User: '',
           Message: '',
-          LastUpdated: '2020-04-21T17:33:09.638275Z',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
         },
         PowerCycle: true,
         LastUpdated: '2020-04-21T17:33:09.638275Z',
@@ -186,7 +189,7 @@ describe('machine-server-sk', () => {
     // Now set up fetchMock for the requests that happen when the button is clicked.
     fetchMock.reset();
     let called = false;
-    fetchMock.get(
+    fetchMock.post(
       (url: string): boolean => {
         if (url !== '/_/machine/remove_device/skia-rpi2-rack4-shelf1-002') {
           return false;
@@ -195,11 +198,10 @@ describe('machine-server-sk', () => {
         return true;
       }, 200,
     );
-    fetchMock.get('/_/machines', [
+    mockMachinesResponse([
       {
         Mode: 'maintenance',
         Battery: 100,
-        PodName: 'rpi-swarming-123456-987',
         Dimensions: {},
         Note: {
           User: '',
@@ -209,7 +211,7 @@ describe('machine-server-sk', () => {
         Annotation: {
           User: '',
           Message: '',
-          LastUpdated: '2020-04-21T17:33:09.638275Z',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
         },
         PowerCycle: true,
         LastUpdated: '2020-04-21T17:33:09.638275Z',
@@ -247,7 +249,7 @@ describe('machine-server-sk', () => {
       },
       200,
     );
-    fetchMock.get('/_/machines', [{}]);
+    mockMachinesResponse([]);
 
     // Click the button to show the dialog
     $$<HTMLElement>('edit-icon-sk.edit_device', s)!.click();
@@ -270,11 +272,11 @@ describe('machine-server-sk', () => {
 
     // Now set up fetchMock for the requests that happen when the button is clicked.
     fetchMock.reset();
-    fetchMock.get(
+    fetchMock.post(
       '/_/machine/delete_machine/skia-rpi2-rack4-shelf1-002',
       200,
     );
-    fetchMock.get('/_/machines', []);
+    mockMachinesResponse([]);
 
     // Click the button.
     $$<HTMLElement>('delete-icon-sk')!.click();
@@ -295,7 +297,7 @@ describe('machine-server-sk', () => {
     fetchMock.post(
       '/_/machine/set_note/skia-rpi2-rack4-shelf1-002',
       (url: string, opts: MockRequest): MockResponse => {
-        const body = JSON.parse(opts.body as string) as Annotation;
+        const body = JSON.parse(opts.body as string) as SetNoteRequest;
         assert.equal(body.Message, updatedMessage);
         called = true;
         return {};
@@ -303,11 +305,10 @@ describe('machine-server-sk', () => {
         sendAsJson: true,
       },
     );
-    fetchMock.get('/_/machines', [
+    mockMachinesResponse([
       {
         Mode: 'available',
         Battery: 100,
-        PodName: 'rpi-swarming-123456-987',
         Dimensions: {
           id: ['skia-rpi2-rack4-shelf1-002'],
           android_devices: ['1'],
@@ -321,7 +322,7 @@ describe('machine-server-sk', () => {
         Annotation: {
           User: '',
           Message: '',
-          LastUpdated: '2020-04-21T17:33:09.638275Z',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
         },
         PowerCycle: false,
         LastUpdated: '2020-04-21T17:33:09.638275Z',
