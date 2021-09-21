@@ -227,6 +227,15 @@ rbe_exec_properties(
 # Docker containers. #
 ######################
 
+# Pulls the gcr.io/google/rbe-ubuntu16-04 container, used as the base container for our custom RBE
+# toolchain container.
+container_pull(
+    name = "rbe_ubuntu1604",
+    digest = "sha256:f6568d8168b14aafd1b707019927a63c2d37113a03bcee188218f99bd0327ea1",
+    registry = "gcr.io",
+    repository = "cloud-marketplace/google/rbe-ubuntu16-04",
+)
+
 # Pulls the gcr.io/skia-public/skia-wasm-release container with the Skia WASM build.
 container_pull(
     name = "container_pull_skia_wasm",
