@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
@@ -216,8 +217,25 @@ func handleMaintenanceMode(ctx context.Context, previous, current machine.Descri
 }
 
 func processChromeOSEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
-	// TODO(kjlubick)
-	return machine.Description{}
+	ret := previous.Copy()
+	ret.Battery = 0
+	ret.Temperature = nil
+	ret.DeviceUptime = int32(event.ChromeOS.Uptime / time.Second)
+	// SuppliedDimensions overwrite the existing ones now.
+	for k, values := range previous.SuppliedDimensions {
+		ret.Dimensions[k] = values
+	}
+	// Set the ones we know about
+	ret.Dimensions[machine.DimOS] = []string{"ChromeOS"}
+	ret.Dimensions[machine.DimChromeOSChannel] = []string{event.ChromeOS.Channel}
+	ret.Dimensions[machine.DimChromeOSMilestone] = []string{event.ChromeOS.Milestone}
+	ret.Dimensions[machine.DimChromeOSReleaseVersion] = []string{event.ChromeOS.ReleaseVersion}
+	// The device was attached, so it will no longer be quarantined.
+	delete(ret.Dimensions, machine.DimQuarantined)
+
+	ret = handleGeneralFields(ctx, ret, event)
+	ret = handleMaintenanceMode(ctx, previous, ret, false, "")
+	return ret
 }
 
 func processIOSEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
@@ -234,10 +252,12 @@ func processNonDeviceEvent(ctx context.Context, previous machine.Description, ev
 	// If this machine previously had a connected device and it's no longer present then
 	// quarantine the machine.
 	//
-	// We use the device_type dimension because it is reported for Android, iOS devices, and
-	// ChromeOS devices.
+	// We use the device_type dimension because it is reported for Android and iOS devices
 	if len(previous.Dimensions[machine.DimDeviceType]) > 0 && previous.Mode != machine.ModeMaintenance {
 		dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Device %q has gone missing", previous.Dimensions[machine.DimDeviceType])}
+	}
+	if previous.SSHUserIP != "" && previous.Mode != machine.ModeMaintenance {
+		dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Device %s has gone missing", previous.SSHUserIP)}
 	}
 	ret := previous.Copy()
 	ret.Battery = 0

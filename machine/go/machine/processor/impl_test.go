@@ -719,6 +719,182 @@ func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 	assert.Equal(t, 95, next.Battery)
 }
 
+func TestProcess_ChromeOSDeviceAttached_UnquarantineAndMergeDimensions(t *testing.T) {
+	unittest.SmallTest(t)
+
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	previous := machine.Description{
+		Mode:                machine.ModeAvailable,
+		LastUpdated:         stateTime,
+		RunningSwarmingTask: false,
+		LaunchedSwarming:    true,
+		DeviceUptime:        0,
+		SSHUserIP:           "root@my-chromebook",
+		SuppliedDimensions: machine.SwarmingDimensions{
+			"cpu": []string{"arm"},
+			"gpu": []string{"MaliT654"},
+		},
+		Dimensions: machine.SwarmingDimensions{
+			"id":                   []string{"skia-rpi2-0001"},
+			"os":                   []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			"cpu":                  []string{"x86", "x86_64"},
+			"gpu":                  []string{"none"},
+			machine.DimQuarantined: []string{"Device root@my-chromebook has gone missing"},
+		},
+	}
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-rpi2-0001",
+			StartTime: eventTime,
+		},
+		LaunchedSwarming: true,
+		ChromeOS: machine.ChromeOS{
+			Channel:        "stable-channel",
+			Milestone:      "89",
+			ReleaseVersion: "13729.56.0",
+			Uptime:         123 * time.Second,
+		},
+	}
+
+	ctx := now.TimeTravelingContext(serverTime)
+	p := newProcessorForTest()
+	next := p.Process(ctx, previous, event)
+	assert.Equal(t, machine.Description{
+		Mode:                machine.ModeAvailable,
+		LastUpdated:         serverTime,
+		RunningSwarmingTask: false,
+		LaunchedSwarming:    true,
+		DeviceUptime:        123,
+		SSHUserIP:           "root@my-chromebook",
+		SuppliedDimensions: machine.SwarmingDimensions{
+			"cpu": []string{"arm"},
+			"gpu": []string{"MaliT654"},
+		},
+		Dimensions: machine.SwarmingDimensions{
+			"id":                 []string{"skia-rpi2-0001"},
+			machine.DimOS:        []string{"ChromeOS"},       // overwritten
+			"cpu":                []string{"arm"},            // overwritten
+			"gpu":                []string{"MaliT654"},       // overwritten
+			"chromeos_channel":   []string{"stable-channel"}, // added
+			"chromeos_milestone": []string{"89"},             // added
+			"release_version":    []string{"13729.56.0"},     // added
+			// quarantined was removed.
+		},
+	}, next)
+}
+
+func TestProcess_ChromeOSDeviceSpecifiedButNotAttached_Quarantined(t *testing.T) {
+	unittest.SmallTest(t)
+
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	previous := machine.Description{
+		Mode:        machine.ModeAvailable,
+		LastUpdated: stateTime,
+		SSHUserIP:   "root@my-chromebook",
+		SuppliedDimensions: machine.SwarmingDimensions{
+			"cpu": []string{"arm"},
+			"gpu": []string{"MaliT654"},
+		},
+		Dimensions: machine.SwarmingDimensions{
+			"id":  []string{"skia-rpi2-0001"},
+			"os":  []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			"cpu": []string{"x86", "x86_64"},
+			"gpu": []string{"none"},
+		},
+	}
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-rpi2-0001",
+			StartTime: eventTime,
+		},
+	}
+
+	ctx := now.TimeTravelingContext(serverTime)
+	p := newProcessorForTest()
+	next := p.Process(ctx, previous, event)
+	assert.Equal(t, machine.Description{
+		Mode:        machine.ModeAvailable,
+		LastUpdated: serverTime,
+		SSHUserIP:   "root@my-chromebook",
+		SuppliedDimensions: machine.SwarmingDimensions{
+			"cpu": []string{"arm"},
+			"gpu": []string{"MaliT654"},
+		},
+		Dimensions: machine.SwarmingDimensions{
+			"id":                   []string{"skia-rpi2-0001"},
+			"os":                   []string{"Debian", "Debian-11", "Debian-11.0", "Linux"},
+			"cpu":                  []string{"x86", "x86_64"},
+			"gpu":                  []string{"none"},
+			machine.DimQuarantined: []string{"Device root@my-chromebook has gone missing"},
+		},
+	}, next)
+}
+
+func TestProcess_ChromeOSDeviceDisconnected_QuarantinedSet(t *testing.T) {
+	unittest.SmallTest(t)
+
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	eventTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	previous := machine.Description{
+		Mode:        machine.ModeAvailable,
+		LastUpdated: stateTime,
+		SSHUserIP:   "root@my-chromebook",
+		SuppliedDimensions: machine.SwarmingDimensions{
+			"cpu": []string{"arm"},
+			"gpu": []string{"MaliT654"},
+		},
+		Dimensions: machine.SwarmingDimensions{
+			"id":                 []string{"skia-rpi2-0001"},
+			machine.DimOS:        []string{"ChromeOS"},
+			"cpu":                []string{"arm"},
+			"gpu":                []string{"MaliT654"},
+			"chromeos_channel":   []string{"stable-channel"},
+			"chromeos_milestone": []string{"89"},
+			"release_version":    []string{"13729.56.0"},
+		},
+	}
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-rpi2-0001",
+			StartTime: eventTime,
+		},
+	}
+
+	ctx := now.TimeTravelingContext(serverTime)
+	p := newProcessorForTest()
+	next := p.Process(ctx, previous, event)
+	assert.Equal(t, machine.Description{
+		Mode:        machine.ModeAvailable,
+		LastUpdated: serverTime,
+		SSHUserIP:   "root@my-chromebook",
+		SuppliedDimensions: machine.SwarmingDimensions{
+			"cpu": []string{"arm"},
+			"gpu": []string{"MaliT654"},
+		},
+		Dimensions: machine.SwarmingDimensions{
+			"id":                   []string{"skia-rpi2-0001"},
+			machine.DimOS:          []string{"ChromeOS"},
+			"cpu":                  []string{"arm"},
+			"gpu":                  []string{"MaliT654"},
+			"chromeos_channel":     []string{"stable-channel"},
+			"chromeos_milestone":   []string{"89"},
+			"release_version":      []string{"13729.56.0"},
+			machine.DimQuarantined: []string{"Device root@my-chromebook has gone missing"},
+		},
+	}, next)
+}
+
 func TestBatteryFromAndroidDumpSys_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	battery, ok := batteryFromAndroidDumpSys(`Current Battery Service state:

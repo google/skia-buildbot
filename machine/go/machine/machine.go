@@ -25,11 +25,14 @@ func (s SwarmingDimensions) Copy() SwarmingDimensions {
 
 // Well known swarming dimensions.
 const (
-	DimID             = "id"
-	DimOS             = "os"
-	DimQuarantined    = "quarantined"
-	DimDeviceType     = "device_type"
-	DimAndroidDevices = "android_devices"
+	DimID                     = "id"
+	DimOS                     = "os"
+	DimQuarantined            = "quarantined"
+	DimDeviceType             = "device_type"
+	DimAndroidDevices         = "android_devices"
+	DimChromeOSChannel        = "chromeos_channel"
+	DimChromeOSMilestone      = "chromeos_milestone"
+	DimChromeOSReleaseVersion = "release_version"
 )
 
 // Mode is the mode we want the machine to be in. Note that this is the desired
