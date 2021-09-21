@@ -110,17 +110,22 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		sklog.Errorf("Unknown event type: %q", event.EventType)
 		return previous
 	}
+	if event.Android.Uptime > 0 {
+		return processAndroidEvent(ctx, previous, event)
+	} else if event.ChromeOS.Uptime > 0 {
+		return processChromeOSEvent(ctx, previous, event)
+	} else if event.IOS.Uptime > 0 {
+		return processIOSEvent(ctx, previous, event)
+	}
+	return processNonDeviceEvent(ctx, previous, event)
+}
+
+func processAndroidEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
 	machineID := event.Host.Name
 	dimensions := dimensionsFromAndroidProperties(parseAndroidProperties(event.Android.GetProp))
 	dimensions[machine.DimID] = []string{machineID}
 	inMaintenanceMode := false
 	maintenanceMessage := ""
-
-	// TODO(jcgregorio) Come up with a better test than this, maybe send info
-	// from back in machine.Event?
-	if strings.HasPrefix(dimensions[machine.DimID][0], "skia-rpi2-") {
-		dimensions["inside_docker"] = []string{"1", "containerd"}
-	}
 
 	battery, ok := batteryFromAndroidDumpSys(event.Android.DumpsysBattery)
 	if ok {
@@ -142,28 +147,33 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 			metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": machineID, "sensor": sensor}).Update(temp)
 		}
 	}
-	// If this machine previously had a connected device and it's no longer
-	// present then quarantine the machine.
-	//
-	// We use the device_type dimension because it is reported for both Android
-	// and iOS devices.
-	if len(previous.Dimensions[machine.DimDeviceType]) > 0 && len(dimensions[machine.DimDeviceType]) == 0 {
-		dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Device %q has gone missing", previous.Dimensions[machine.DimDeviceType])}
-	}
 
 	ret := previous.Copy()
 	ret.Battery = battery
 	ret.Temperature = temperatures
-	ret.RunningSwarmingTask = event.RunningSwarmingTask
-	ret.LaunchedSwarming = event.LaunchedSwarming
-	ret.LastUpdated = now.Now(ctx)
 	ret.DeviceUptime = int32(event.Android.Uptime.Seconds())
-
-	ret.Version = event.Host.Version
-
 	for k, values := range dimensions {
 		ret.Dimensions[k] = values
 	}
+	// The device was attached, so it will no longer be quarantined.
+	delete(ret.Dimensions, machine.DimQuarantined)
+
+	ret = handleGeneralFields(ctx, ret, event)
+	ret = handleMaintenanceMode(ctx, previous, ret, inMaintenanceMode, maintenanceMessage)
+	return ret
+}
+
+// handleGeneralFields extracts general information from the event.
+func handleGeneralFields(ctx context.Context, current machine.Description, event machine.Event) machine.Description {
+	current.LastUpdated = now.Now(ctx)
+	current.RunningSwarmingTask = event.RunningSwarmingTask
+	current.LaunchedSwarming = event.LaunchedSwarming
+	current.Version = event.Host.Version
+	return current
+}
+
+// handleMaintenanceMode determines if the machine should enter or leave maintenance mode.
+func handleMaintenanceMode(ctx context.Context, previous, current machine.Description, inMaintenanceMode bool, msg string) machine.Description {
 
 	// If the machine just started in Recovery mode then record the start time.
 	// Note that if the machine is currently running a test then the amount of
@@ -171,22 +181,23 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	// price we pay to avoid a race condition where a test ends and a new test
 	// starts before we set maintenance mode.
 	if inMaintenanceMode && previous.Mode != machine.ModeRecovery {
-		ret.Mode = machine.ModeRecovery
-		ret.RecoveryStart = now.Now(ctx)
-		ret.Annotation.Timestamp = now.Now(ctx)
-		ret.Annotation.Message = maintenanceMessage
-		ret.Annotation.User = machineUserName
+		current.Mode = machine.ModeRecovery
+		current.RecoveryStart = now.Now(ctx)
+		current.Annotation.Timestamp = now.Now(ctx)
+		current.Annotation.Message = msg
+		current.Annotation.User = machineUserName
 	}
 
 	// If nothing put the device in maintenance this cycle then move back being
 	// available.
 	if !inMaintenanceMode && previous.Mode == machine.ModeRecovery {
-		ret.Mode = machine.ModeAvailable
-		ret.Annotation.Timestamp = now.Now(ctx)
-		ret.Annotation.Message = "Leaving recovery mode."
-		ret.Annotation.User = machineUserName
+		current.Mode = machine.ModeAvailable
+		current.Annotation.Timestamp = now.Now(ctx)
+		current.Annotation.Message = "Leaving recovery mode."
+		current.Annotation.User = machineUserName
 	}
 
+	machineID := current.Dimensions[machine.DimID][0]
 	maintenanceModeMetric := metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": machineID})
 	if inMaintenanceMode {
 		maintenanceModeMetric.Update(1)
@@ -194,20 +205,49 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		maintenanceModeMetric.Update(0)
 	}
 
-	// If the machine was quarantined, but hasn't been quarantined this trip
-	// through Process then take the machine out of quarantine.
-	if previous.Mode == machine.ModeAvailable && len(previous.Dimensions[machine.DimQuarantined]) != 0 && len(dimensions[machine.DimQuarantined]) == 0 {
-		delete(ret.Dimensions, machine.DimQuarantined)
-	}
-
 	// Record the quarantined state in a metric.
 	quarantinedMetric := metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": machineID})
-	if len(ret.Dimensions[machine.DimQuarantined]) > 0 {
+	if len(current.Dimensions[machine.DimQuarantined]) > 0 {
 		quarantinedMetric.Update(1)
 	} else {
 		quarantinedMetric.Update(0)
 	}
+	return current
+}
 
+func processChromeOSEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
+	// TODO(kjlubick)
+	return machine.Description{}
+}
+
+func processIOSEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
+	// TODO(erikrose)
+	return machine.Description{}
+}
+
+func processNonDeviceEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
+	machineID := event.Host.Name
+	dimensions := machine.SwarmingDimensions{
+		machine.DimID: []string{machineID},
+	}
+	dimensions[machine.DimID] = []string{machineID}
+	// If this machine previously had a connected device and it's no longer present then
+	// quarantine the machine.
+	//
+	// We use the device_type dimension because it is reported for Android, iOS devices, and
+	// ChromeOS devices.
+	if len(previous.Dimensions[machine.DimDeviceType]) > 0 && previous.Mode != machine.ModeMaintenance {
+		dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Device %q has gone missing", previous.Dimensions[machine.DimDeviceType])}
+	}
+	ret := previous.Copy()
+	ret.Battery = 0
+	ret.Temperature = nil
+	for k, values := range dimensions {
+		ret.Dimensions[k] = values
+	}
+
+	ret = handleGeneralFields(ctx, ret, event)
+	ret = handleMaintenanceMode(ctx, previous, ret, false, "")
 	return ret
 }
 

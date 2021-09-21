@@ -104,8 +104,8 @@ func TestTryInterrogatingAndroidDevice_ThermalFails_PartialSuccess(t *testing.T)
 func TestTryInterrogatingChromeOS_DeviceReachable_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext(
-		"Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder",
 		"Test_FakeExe_SSHUptime_ReturnsPlaceholder",
+		"Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder",
 	)
 
 	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
@@ -122,7 +122,8 @@ func TestTryInterrogatingChromeOS_DeviceReachable_Success(t *testing.T) {
 func TestTryInterrogatingChromeOS_CatLSBReleaseFails_DeviceConsideredUnattached(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext(
-		"Test_FakeExe_ExitCodeOne",
+		"Test_FakeExe_SSHUptime_ReturnsPlaceholder",
+		"Test_FakeExe_ExitCodeOne", // pretend LSBRelease failed
 	)
 
 	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
@@ -139,22 +140,15 @@ func TestTryInterrogatingChromeOS_NoSSHUserIP_ReturnFalse(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestTryInterrogatingChromeOS_PartialData_PartialSuccess(t *testing.T) {
+func TestTryInterrogatingChromeOS_UptimeFails_ReturnFalse(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext(
-		"Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder",
 		"Test_FakeExe_ExitCodeOne", // pretend uptime fails
 	)
 
 	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
-	actual, ok := m.tryInterrogatingChromeOSDevice(ctx)
-	assert.True(t, ok)
-	assert.Equal(t, machine.ChromeOS{
-		Channel:        "stable-channel",
-		Milestone:      "89",
-		ReleaseVersion: "13729.56.0",
-		// No uptime reported
-	}, actual)
+	_, ok := m.tryInterrogatingChromeOSDevice(ctx)
+	assert.False(t, ok)
 }
 
 func TestTryInterrogatingChromeOS_NoChromeOSData_AssumesNotAttached(t *testing.T) {
@@ -237,8 +231,8 @@ func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext(
-		"Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder",
 		"Test_FakeExe_SSHUptime_ReturnsPlaceholder",
+		"Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder",
 		// We found a device, no need to check for adb
 	)
 

@@ -201,44 +201,12 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 			machine.DimDeviceType: []string{"sargo"},
 			machine.DimOS:         []string{"Android"},
 			machine.DimID:         []string{"skia-rpi2-0001"},
-			"inside_docker":       []string{"1", "containerd"},
 		},
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Battery:            badBatteryLevel,
 		Version:            myTestVersion,
 		DeviceUptime:       5,
 	}, next)
-}
-
-func TestProcess_DetectInsideDocker(t *testing.T) {
-	unittest.SmallTest(t)
-	ctx := context.Background()
-
-	// The current machine has nothing attached.
-	previous := machine.NewDescription(ctx)
-	require.Empty(t, previous.Dimensions)
-
-	// An event arrives with the attachment of an Android device.
-	event := machine.Event{
-		EventType: machine.EventTypeRawState,
-		Android:   machine.Android{},
-		Host: machine.Host{
-			Name: "skia-rpi2-0001",
-		},
-	}
-
-	p := newProcessorForTest()
-	next := p.Process(ctx, previous, event)
-	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
-	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
-
-	// The Android device should be reflected in the returned Dimensions.
-	expected := machine.SwarmingDimensions{
-		machine.DimID:   []string{"skia-rpi2-0001"},
-		"inside_docker": []string{"1", "containerd"},
-	}
-	assert.Equal(t, expected, next.Dimensions)
-	assert.Equal(t, machine.ModeAvailable, next.Mode)
 }
 
 func TestProcess_DetectNotInsideDocker(t *testing.T) {
@@ -290,15 +258,11 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		machine.DimDeviceType: []string{"sargo"},
 		machine.DimOS:         []string{"Android"},
 		machine.DimID:         []string{"skia-rpi2-0001"},
-		"inside_docker":       []string{"1", "containerd"},
 	}
 
 	// An event arrives without any device info.
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
-		Android: machine.Android{
-			GetProp: "",
-		},
 		Host: machine.Host{
 			Name:      "skia-rpi2-0001",
 			StartTime: bootUpTime,
@@ -321,7 +285,6 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		Dimensions:         expectedDims,
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		LastUpdated:        serverTime,
-		Battery:            badBatteryLevel,
 	}, next)
 }
 
@@ -344,7 +307,6 @@ func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 		machine.DimDeviceType: []string{"sargo"},
 		machine.DimOS:         []string{"Android"},
 		machine.DimID:         []string{"skia-rpi2-0001"},
-		"inside_docker":       []string{"1", "containerd"},
 	}
 	previous.Mode = machine.ModeMaintenance
 
@@ -401,7 +363,6 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		machine.DimOS:          []string{"Android"},
 		machine.DimQuarantined: []string{"Device [\"sargo\"] has gone missing"},
 		machine.DimID:          []string{"skia-rpi2-0001"},
-		"inside_docker":        []string{"1", "containerd"},
 	}
 
 	// An event arrives with the device restored.
@@ -416,6 +377,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Android: machine.Android{
 			GetProp: props,
+			Uptime:  10,
 		},
 		Host: machine.Host{
 			StartTime: bootUpTime,
@@ -461,6 +423,7 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
+			Uptime: 10,
 			DumpsysBattery: `Current Battery Service state:
   AC powered: true
   USB powered: false
@@ -488,8 +451,7 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 			Timestamp: serverTime,
 		},
 		Dimensions: machine.SwarmingDimensions{
-			machine.DimID:   []string{"skia-rpi2-0001"},
-			"inside_docker": []string{"1", "containerd"},
+			machine.DimID: []string{"skia-rpi2-0001"},
 		},
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		Battery:            9,
@@ -518,6 +480,7 @@ func TestProcess_RecoveryModeIfDeviceTooHot(t *testing.T) {
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
+			Uptime: 10,
 			DumpsysThermalService: `IsStatusOverride: false
 ThermalEventListeners:
 	callbacks: 3
@@ -596,6 +559,7 @@ func TestProcess_RecoveryModeIfDeviceTooHotAndBatteryIsTooLow(t *testing.T) {
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
+			Uptime: 10,
 			DumpsysBattery: `Current Battery Service state:
   AC powered: true
   USB powered: false
@@ -687,6 +651,7 @@ func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *tes
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
+			Uptime: 10,
 			DumpsysBattery: `Current Battery Service state:
   AC powered: true
   USB powered: false
@@ -729,6 +694,7 @@ func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 			StartTime: bootUpTime,
 		},
 		Android: machine.Android{
+			Uptime: 10,
 			DumpsysBattery: `Current Battery Service state:
   AC powered: true
   USB powered: false

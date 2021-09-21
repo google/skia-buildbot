@@ -281,12 +281,25 @@ func (m *Machine) tryInterrogatingChromeOSDevice(ctx context.Context) (machine.C
 	if m.description.SSHUserIP == "" {
 		return machine.ChromeOS{}, false
 	}
+	rv := machine.ChromeOS{}
+	uptime, err := m.ssh.Run(ctx, m.description.SSHUserIP, "cat", "/proc/uptime")
+	if err != nil {
+		sklog.Warningf("Could not read ChromeOS uptime %s - assuming there is no ChromeOS device attached", err)
+		return machine.ChromeOS{}, false
+	} else {
+		u := strings.Split(uptime, " ")[0]
+		if f, err := strconv.ParseFloat(u, 64); err != nil {
+			sklog.Warningf("Invalid /proc/uptime format: %q", uptime)
+		} else {
+			rv.Uptime = time.Duration(f * float64(time.Second))
+		}
+	}
+
 	lsbReleaseContents, err := m.ssh.Run(ctx, m.description.SSHUserIP, "cat", "/etc/lsb-release")
 	if err != nil {
 		sklog.Warningf("Failed to read lsb-release - assuming there is no ChromeOS device attached: %s", err)
 		return machine.ChromeOS{}, false
 	}
-	rv := machine.ChromeOS{}
 	if match := chromeOSReleaseRegex.FindStringSubmatch(lsbReleaseContents); match != nil {
 		rv.ReleaseVersion = match[1]
 	}
@@ -299,18 +312,6 @@ func (m *Machine) tryInterrogatingChromeOSDevice(ctx context.Context) (machine.C
 	if rv.ReleaseVersion == "" && rv.Milestone == "" && rv.Channel == "" {
 		sklog.Errorf("Could not find ChromeOS data in /etc/lsb-release. Are we sure this is the right IP?\n%s", lsbReleaseContents)
 		return machine.ChromeOS{}, false
-	}
-
-	uptime, err := m.ssh.Run(ctx, m.description.SSHUserIP, "cat", "/proc/uptime")
-	if err != nil {
-		sklog.Warningf("Could not read ChromeOS uptime %s", err)
-	} else {
-		u := strings.Split(uptime, " ")[0]
-		if f, err := strconv.ParseFloat(u, 64); err != nil {
-			sklog.Warningf("Invalid /proc/uptime format: %q", uptime)
-		} else {
-			rv.Uptime = time.Duration(f * float64(time.Second))
-		}
 	}
 	return rv, true
 }

@@ -90,7 +90,8 @@ type Description struct {
 	RunningSwarmingTask bool
 	LaunchedSwarming    bool      // True if test_machine_monitor launched Swarming.
 	RecoveryStart       time.Time // When did the machine start being in recovery mode.
-	DeviceUptime        int32     // Seconds
+	// DeviceUptime is how long the attached device has been up. It is measured in seconds.
+	DeviceUptime int32
 
 	// SSHUserIP, for example, "root@skia-sparky360-03" indicates we should connect to the
 	// given ChromeOS device at that username and ip/hostname.
@@ -138,10 +139,11 @@ const (
 
 // Android contains the raw results from interrogating an Android device.
 type Android struct {
-	GetProp               string        `json:"getprop"`
-	DumpsysBattery        string        `json:"dumpsys_battery"`
-	DumpsysThermalService string        `json:"dumpsys_thermal_service"`
-	Uptime                time.Duration `json:"uptime"`
+	GetProp               string `json:"getprop"`
+	DumpsysBattery        string `json:"dumpsys_battery"`
+	DumpsysThermalService string `json:"dumpsys_thermal_service"`
+	// A positive Uptime indicates there is an Android device attached to the host.
+	Uptime time.Duration `json:"uptime"`
 }
 
 // Host is information about the host machine.
@@ -158,13 +160,16 @@ type Host struct {
 
 // ChromeOS encapsulates the information reported by a ChromeOS machine.
 type ChromeOS struct {
-	Channel        string        `json:"channel"`
-	Milestone      string        `json:"milestone"`
-	ReleaseVersion string        `json:"release_version"`
-	Uptime         time.Duration `json:"uptime"`
+	Channel        string `json:"channel"`
+	Milestone      string `json:"milestone"`
+	ReleaseVersion string `json:"release_version"`
+	// A positive Uptime indicates there is an ChromeOS device attached to the host.
+	Uptime time.Duration `json:"uptime"`
 }
 
 type IOS struct {
+	// A positive Uptime indicates there is an iOS device attached to the host.
+	Uptime time.Duration `json:"uptime"`
 }
 
 // Event is the information a machine should send via Source when
