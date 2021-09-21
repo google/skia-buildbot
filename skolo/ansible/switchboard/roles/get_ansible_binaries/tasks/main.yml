@@ -1,0 +1,24 @@
+- name: Make temp directory for binaries and trigger `clean_up_tempfile`.
+  delegate_to: 127.0.0.1
+  tempfile:
+    state: directory
+  register: get_ansible_binaries_directory
+  notify: clean_up_tempfile
+
+  # The k8s-config repo is protected, so use .gitcookies to get access to the URL.
+  # The response is base64 encoded, so decode while we are here.
+- name: Get the version of the app to deploy from the k8s-config repo.
+  delegate_to: 127.0.0.1
+  register: get_ansibile_binaries_head_version
+  shell:
+    'curl --silent --cookie ~/.gitcookies
+    https://skia.googlesource.com/a/k8s-config/+/refs/heads/main/ansible-tags/{{
+    get_ansible_binaries_application }}/version.txt?format=TEXT | base64 -d'
+
+- name: Download to the temp dir the specified version of the binaries.
+  delegate_to: 127.0.0.1
+  shell:
+    'cipd install --root={{ get_ansible_binaries_directory.path }}
+    skia/internal/{{ get_ansible_binaries_application }} version:{{
+    get_ansible_binaries_version |
+    default(get_ansibile_binaries_head_version.stdout, true) }}'

@@ -3,31 +3,13 @@
     msg: This platform is not yet supported.
   when: "ansible_facts['system']|lower not in ['darwin', 'linux', 'win32nt']"
 
-- name: Make temp directory for binaries and trigger `clean_up_tempfile`.
-  delegate_to: 127.0.0.1
-  tempfile:
-    state: directory
-  register: test_machine_monitor_binaries
-  notify: clean_up_tempfile
-
-  # The k8s-config repo is protected, so use .gitcookies to get access to the URL.
-  # The response is base64 encoded, so decode while we are here.
-- name:
-    Get the version of test_machine_monitor to deploy from the k8s-config repo.
-  delegate_to: 127.0.0.1
-  register: version
-  shell:
-    curl --silent --cookie ~/.gitcookies
-    https://skia.googlesource.com/a/k8s-config/+/refs/heads/main/ansible-tags/test_machine_monitor/version.txt?format=TEXT
-    | base64 -d
-
-- name: Grab the specified version of the binaries.
-  delegate_to: 127.0.0.1
-  register: version
-  shell:
-    'cipd install --root={{ test_machine_monitor_binaries.path }}
-    skia/internal/test_machine_monitor version:{{ test_machine_monitor_version |
-    default(version.stdout, true) }}'
+- name: Load test_machine_monitor executables.
+  run_once: yes
+  import_role:
+    name: get_ansible_binaries
+  vars:
+    get_ansible_binaries_application: test_machine_monitor
+    get_ansible_binaries_version: '{{ test_machine_monitor_version }}'
 
 - name: Install startup job for Linux.
   import_tasks: linux.yml

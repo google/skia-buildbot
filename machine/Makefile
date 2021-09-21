@@ -43,10 +43,10 @@ build-remote:
 run-local-instance:
 	machineserver --local
 
-export HASH=$(shell git rev-parse HEAD)
-export DATETIME=$(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
-export GIT_STATE=$(shell ../bash/gitstate.sh)
-export VERSION=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
+export HASH:=$(shell git rev-parse HEAD)
+export DATETIME:=$(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
+export GIT_STATE:=$(shell ../bash/gitstate.sh)
+export VERSION:=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
 
 build_test_machine_monitor_for_all_archs:
 	rm -rf ./build

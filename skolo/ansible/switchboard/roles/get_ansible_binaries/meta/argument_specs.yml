@@ -1,0 +1,16 @@
+argument_specs:
+  main:
+    short_description: The main entry point for the get_ansible_binaries role.
+    options:
+      get_ansible_binaries_application:
+        type: 'string'
+        required: true
+        description: 'The name of the binary, such as test_machine_monitor.'
+
+      get_ansible_binaries_version:
+        type: 'string'
+        required: false
+        default: ''
+        description:
+          'The version of test_machine_monitor to deploy, e.g.
+          2021-09-17T22:47:32Z-jcgregorio-77033a142afc2ebf670339c958cbb4eb738c88ee-dirty'
