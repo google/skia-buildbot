@@ -122,8 +122,7 @@ const annotation = (ann: Annotation | null): TemplateResult => {
   `;
 };
 
-const imageName = (machine: Description): string => {
-  // Prefer displaying the Version over the KubernetesImage.
+const imageVersion = (machine: Description): string => {
   if (machine.Version) {
     return machine.Version;
   }
@@ -230,7 +229,7 @@ export class MachineServerSk extends ListPageSk<Description> {
       <th>Launched Swarming</th>
       <th>Note</th>
       <th>Annotation</th>
-      <th>Image</th>
+      <th>Version</th>
       <th>Delete</th>
     `;
   }
@@ -256,6 +255,7 @@ export class MachineServerSk extends ListPageSk<Description> {
         <td class="center">${launchedSwarming(machine)}</td>
         <td>${note(this, machine)}</td>
         <td>${annotation(machine.Annotation)}</td>
+        <td>${imageVersion(machine)}</td>
         <td>${deleteMachine(this, machine)}</td>
       </tr>
     `;
