@@ -245,6 +245,34 @@ alert-manager-sk {
     }
   }
 
+  dialog {
+    padding: 16px;
+    border: solid var(--on-background) 1px;
+    color: var(--on-background);
+    background: var(--background);
+  }
+
+  #help table * {
+    border: 0;
+  }
+
+  #help table {
+    border-spacing: 0.6em;
+  }
+
+  #help table td.mono {
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  #help h2 {
+    margin-top: 0;
+  }
+
+  #help .footnote {
+    font-size: 80%;
+    padding: 1em;
+  }
+
   error-toast-sk toast-sk {
     background-color: var(--error);
     color: var(--on-error);

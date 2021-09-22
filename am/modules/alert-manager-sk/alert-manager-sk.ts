@@ -23,9 +23,10 @@ import '../bot-chooser-sk';
 import '../email-chooser-sk';
 import '../silence-sk';
 
+import dialogPolyfill from 'dialog-polyfill';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { HintableObject } from 'common-sk/modules/hintable';
-import { $$ } from 'common-sk/modules/dom';
+import { $, $$ } from 'common-sk/modules/dom';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html, render, TemplateResult } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
@@ -119,6 +120,8 @@ export class AlertManagerSk extends HTMLElement {
 
   private emails: string[] = [];
 
+  private helpDialog: HTMLDialogElement | null = null;
+
   constructor() {
     super();
 
@@ -137,6 +140,26 @@ export class AlertManagerSk extends HTMLElement {
   ${ele.infraGardener()}
   <theme-chooser-sk></theme-chooser-sk>
 </header>
+<dialog id=help>
+  <h2>Keyboard Controls</h2>
+  <table>
+    <tr><td class=mono>'ArrowDown'</td><td>Move down the list of incidents.</td></tr>
+    <tr><td class=mono>'ArrowUp'</td><td>Move up the list of incidents.</td></tr>
+    <tr><td class=mono>'Space'</td><td>Check the incident to create a silence or to assign.</td></tr>
+    <tr><td class=mono>'Shift+ArrowDown'</td><td>Check the below incident to create a silence (only if the current incident is checked).</td></tr>
+    <tr><td class=mono>'Shift+ArrowUp'</td><td>Check the above incident to create a silence (only if the current incident is checked).</td></tr>
+    <tr><td class=mono>'ArrowRight'</td><td>Move to the first textarea in RHS.</td></tr>
+    <tr><td class=mono>'a'</td><td>Assign selected alert(s).</td></tr>
+    <tr><td class=mono>'b'</td><td>Switches view from normal to bot-centric view.</td></tr>
+    <tr><td class=mono>'1'</td><td>Switches to the "Mine" tab.</td></tr>
+    <tr><td class=mono>'2'</td><td>Switches to the "Alerts" tab.</td></tr>
+    <tr><td class=mono>'?'</td><td>Show help.</td></tr>
+    <tr><td class=mono>'Esc'</td><td>Stop showing help.</td></tr>
+  </table>
+  <div class=footnote>
+    Note: Keyboard controls only work in the 'Mine' and 'Alerts' tabs. 'Bot-centric view' is also not supported.
+  </div>
+</dialog>
 <section class=nav>
   <tabs-sk @tab-selected-sk=${ele.tabSwitch} selected=${ele.state.tab}>
     <button>Mine</button>
@@ -150,7 +173,7 @@ export class AlertManagerSk extends HTMLElement {
         ${ele.displayAssignMultiple()}
         ${ele.displayClearSelections()}
       </span>
-      ${ele.incidentList(ele.incidents.filter((i: Incident) => i.active && i.params.__silence_state !== 'silenced' && (ele.user === ele.infra_gardener || (i.params.assigned_to === ele.user) || (i.params.owner === ele.user && !i.params.assigned_to))), false)}
+      ${ele.incidentList(ele.getMyIncidents(), false)}
     </section>
     <section class=incidents>
       ${ele.botCentricBtn()}
@@ -209,6 +232,8 @@ export class AlertManagerSk extends HTMLElement {
     this.addEventListener('bot-chooser', () => this.botChooser());
     this.addEventListener('assign', (e) => this.assign(e as CustomEvent));
     this.addEventListener('assign-to-owner', (e) => this.assignToOwner(e as CustomEvent));
+    // For keyboard navigation.
+    document.addEventListener('keydown', (e) => this.keyDown(e));
 
     this.stateHasChanged = stateReflector(
       /* getState */ () => (this.state as unknown) as HintableObject,
@@ -219,11 +244,162 @@ export class AlertManagerSk extends HTMLElement {
     );
 
     this._render();
+
+    this.helpDialog = $$('#help', this);
+    dialogPolyfill.registerDialog(this.helpDialog!);
+
     this.spinner = $$('#busy', this) as SpinnerSk;
     this.favicon = $$('#favicon');
 
     this.spinner.active = true;
     this.poll(true);
+  }
+
+  private getMyIncidents(): Incident[] {
+    return this.incidents.filter((i: Incident) => i.active
+          && i.params.__silence_state !== 'silenced'
+          && (this.user === this.infra_gardener
+            || i.params.assigned_to === this.user
+            || (i.params.owner === this.user && !i.params.assigned_to)));
+  }
+
+  private keyDown(e: KeyboardEvent) {
+    // Ignore all tabs other than the mine and incident tabs.
+    if (this.state.tab !== 0 && this.state.tab !== 1) {
+      return;
+    }
+
+    // Too complicated to navigate through issues in bot centric view
+    // because the layout of incidents is completely different than
+    // the standard view.
+    if (this.isBotCentricView) {
+      return;
+    }
+
+    // Ignore IME composition events.
+    if (e.isComposing || e.keyCode === 229) {
+      return;
+    }
+
+    // Do not perform keyboard navigation if input/textarea/select are
+    // selected.
+    const focusedElem: Element | null = document.activeElement;
+    const ignoreKeyboardNavigationInTags = ['input', 'textarea', 'select'];
+    if (focusedElem && ignoreKeyboardNavigationInTags.includes(focusedElem.tagName.toLowerCase())) {
+      return;
+    }
+
+    switch (e.key) {
+      case '?':
+        (this.helpDialog! as any).showModal();
+        break;
+      case 'ArrowUp':
+        this.keyboardNavigateIncidents(e, true);
+        break;
+      case 'ArrowDown':
+        this.keyboardNavigateIncidents(e, false);
+        break;
+      case 'ArrowRight':
+        // Put focus on the 1st textarea on the page (if one exists).
+        if ($('textarea') && $('textarea').length > 0) {
+          ($('textarea')[0] as HTMLElement).focus();
+        }
+        break;
+      case ' ':
+        if (this.selected) {
+          $$<HTMLElement>(`#${this.selected!.key}`, this)!.click();
+        } else if (this.checked.size > 0) {
+          // No incident was selected. Clear all the checked incidents and
+          // start from the first incident.
+          this.checked.clear();
+          this.last_checked_incident = null;
+          if (this.incidents.length > 0) {
+            this.selected = this.incidents[0];
+          }
+          this._render();
+        }
+        e.preventDefault();
+        break;
+      case 'b':
+        this.flipBotCentricView();
+        break;
+      case 'a':
+        // If an alert is selected and nothing is checked then
+        // check the selected alert before assigning it.
+        if (this.selected && this.checked.size === 0) {
+          $$<HTMLElement>(`#${this.selected!.key}`, this)!.click();
+        }
+        this.assignMultiple();
+        break;
+      case '1':
+        this.keyboardNavigateTabs(0);
+        break;
+      case '2':
+        this.keyboardNavigateTabs(1);
+        break;
+      default:
+        break;
+    }
+  }
+
+  private keyboardNavigateTabs(tabIndex: number) {
+    this.state.tab = tabIndex;
+    this.state.alert_id = '';
+    this.selected = null;
+    this.checked.clear();
+    this.rhs_state = START;
+    this.stateHasChanged();
+    this._render();
+  }
+
+  private keyboardNavigateIncidents(e: KeyboardEvent, reverseDirection: boolean) {
+    // If an alert is not selected or checked then the first incident in the
+    // incidents array can be starting point.
+    let foundStartingPoint = (this.selected === null) && (this.checked.size === 0);
+
+    // Figure out which incidents we are looking at.
+    let incidentsArray = this.incidents;
+    if (this.state.tab === 0) {
+      // Use "my" incidents if we are on the "Mine" tab.
+      incidentsArray = this.getMyIncidents();
+    }
+    if (reverseDirection && !foundStartingPoint) {
+      // We only want to reverse incidents if we have not yet
+      // found a starting point else we will start with the
+      // last alert.
+      incidentsArray = incidentsArray.reverse();
+    }
+
+    for (const incident of incidentsArray) {
+      if (foundStartingPoint) {
+        const k = incident.key;
+        // If shift key is pressed then check the incident if it is not already
+        // checked.
+        if (e.shiftKey && this.last_checked_incident) {
+          if (this.checked.has(k)) {
+            // This incident is already checked. Set it as the
+            // last_checked_incident so we can proceed from here the next time.
+            this.last_checked_incident = k;
+          } else {
+            // Check the incident.
+            $$<HTMLElement>(`#${k}`, this)!.click();
+          }
+        } else {
+          $$<HTMLElement>(`#container-${k}`, this)!.click();
+        }
+        break;
+      }
+
+      if (this.selected && this.selected.key === incident.key) {
+        // We found the selected incident, the next incident in the iteration
+        // is the one we need to process.
+        foundStartingPoint = true;
+      } else if (this.checked.size > 0 && this.last_checked_incident === incident.key) {
+        // We found the last checked incident, the next incident in the
+        // iteration is the one we need to process.
+        foundStartingPoint = true;
+      }
+    }
   }
 
   // Call this anytime something in private state is changed. Will be replaced
@@ -389,7 +565,7 @@ export class AlertManagerSk extends HTMLElement {
       return this.botCentricView();
     }
     return incidents.map((i) => html`
-        <h2 class=${this.classOfH2(i)} @click=${() => this.select(i)}>
+        <h2 class=${this.classOfH2(i)} @click=${() => this.select(i)} id=container-${i.key}>
         <span class=noselect>
           <checkbox-sk ?checked=${this.checked.has(i.key)} @change=${this.check_selected} @click=${this.clickHandler} id=${i.key}></checkbox-sk>
           ${this.assignedTo(i)}
