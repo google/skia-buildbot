@@ -111,6 +111,7 @@ alert-manager-sk {
     }
   }
 
+  .auditlogs,
   .stats,
   .incidents,
   .mine,
@@ -123,11 +124,13 @@ alert-manager-sk {
     display: grid;
   }
 
+  .auditlogs.selected,
   .stats.selected,
   .silences.selected {
     display: block;
   }
 
+  .auditlogs,
   .stats,
   .mine,
   .incidents {
@@ -146,6 +149,7 @@ alert-manager-sk {
     }
   }
 
+  .auditlogs,
   .stats,
   .silences {
     padding: 1em;
@@ -157,7 +161,7 @@ alert-manager-sk {
     }
   }
 
-  .silences-filter {
+  .silences-filter, .auditlogs-filter {
     width: 100%;
   }
 
@@ -271,6 +275,18 @@ alert-manager-sk {
   #help .footnote {
     font-size: 80%;
     padding: 1em;
+  }
+
+  table#audit-logs-table {
+    border-collapse: collapse;
+    margin: 2em 1em;
+  }
+
+  table#audit-logs-table td {
+    padding: 0.3em;
+    border: solid 1px var(--gray);
+    text-align: left;
+    white-space: nowrap;
   }
 
   error-toast-sk toast-sk {

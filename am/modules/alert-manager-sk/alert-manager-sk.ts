@@ -24,6 +24,7 @@ import '../email-chooser-sk';
 import '../silence-sk';
 
 import dialogPolyfill from 'dialog-polyfill';
+import { diffDate } from 'common-sk/modules/human';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { $, $$ } from 'common-sk/modules/dom';
@@ -41,7 +42,7 @@ import * as paramset from '../paramset';
 import { displaySilence, expiresIn, getSilenceFullName } from '../am';
 
 import {
-  Silence, Incident, StatsRequest, Stat, IncidentsResponse, ParamSet, Params, IncidentsInRangeRequest,
+  Silence, Incident, StatsRequest, Stat, IncidentsResponse, ParamSet, Params, IncidentsInRangeRequest, AuditLog,
 } from '../json';
 
 // Legal states.
@@ -49,6 +50,7 @@ const START = 'start';
 const INCIDENT = 'incident';
 const EDIT_SILENCE = 'edit_silence';
 const VIEW_STATS = 'view_stats';
+const VIEW_AUDITLOG = 'view_auditlog';
 
 const MAX_SILENCES_TO_DISPLAY_IN_TAB = 50;
 
@@ -71,9 +73,13 @@ export class AlertManagerSk extends HTMLElement {
 
   private filterSilencesVal: string = '';
 
+  private filterAuditLogsVal: string = '';
+
   private silences: Silence[] = []; // All active silences.
 
   private stats: Stat[] = []; // Last requested stats.
+
+  private audit_logs: AuditLog[] = [];
 
   private stats_range = '1w';
 
@@ -166,6 +172,7 @@ export class AlertManagerSk extends HTMLElement {
     <button>Alerts</button>
     <button>Silences</button>
     <button>Stats</button>
+    <button>Audit</button>
   </tabs-sk>
   <tabs-panel-sk>
     <section class=mine>
@@ -200,6 +207,9 @@ export class AlertManagerSk extends HTMLElement {
     </section>
     <section class=stats>
       ${ele.statsList()}
+    </section>
+    <section class=auditlogs>
+      <input class=auditlogs-filter placeholder="Filter audit logs" .value="${ele.filterAuditLogsVal}" @input=${(e: Event) => ele.filterAuditLogsEvent(e)}></input>
     </section>
   </tabs-panel-sk>
 </section>
@@ -239,6 +249,11 @@ export class AlertManagerSk extends HTMLElement {
       /* getState */ () => (this.state as unknown) as HintableObject,
       /* setState */ (newState) => {
         this.state = (newState as unknown) as State;
+        // Set rhs_side to AUDIT_LOG if tab is on Audit.
+        if (this.state.tab === 4) {
+          this.getAuditLogs();
+          this.rhs_state = VIEW_AUDITLOG;
+        }
         this._render();
       },
     );
@@ -460,6 +475,8 @@ export class AlertManagerSk extends HTMLElement {
         return this.editSilence();
       case VIEW_STATS:
         return this.viewStats();
+      case VIEW_AUDITLOG:
+        return this.viewAuditLogsTable();
       default:
         return [];
     }
@@ -583,6 +600,34 @@ export class AlertManagerSk extends HTMLElement {
     return this.stats.map((stat: Stat) => html`<h2 @click=${() => this.statsClick(stat.incident)}>${this.displayIncident(stat.incident)} <span>${stat.num}</span></h2>`);
   }
 
+  private viewAuditLogsTable(): TemplateResult {
+    return html`
+      <table id=audit-logs-table>
+        ${this.getAuditLogsRows()}
+      </table>
+    `;
+  }
+
+  private getAuditLogsRows(): TemplateResult[] {
+    const filtered_audit_logs = this.audit_logs.filter((a) => a.body.includes(this.filterAuditLogsVal));
+    return filtered_audit_logs.map((a) => html`
+      <tr>
+        <td>
+          ${diffDate(a.timestamp * 1000)} ago
+        </td>
+        <td>
+          ${a.action}
+        </td>
+        <td>
+          ${a.user}
+        </td>
+        <td>
+          ${a.body}
+        </td>
+      </tr>
+    `);
+  }
+
   private numMatchSilence(s: Silence): number {
     if (!this.incidents) {
       return 0;
@@ -598,6 +643,11 @@ export class AlertManagerSk extends HTMLElement {
 
   private filterSilencesEvent(e: Event): void {
     this.filterSilencesVal = (e.target as HTMLInputElement).value;
+    this._render();
+  }
+
+  private filterAuditLogsEvent(e: Event): void {
+    this.filterAuditLogsVal = (e.target as HTMLInputElement).value;
     this._render();
   }
 
@@ -678,8 +728,9 @@ export class AlertManagerSk extends HTMLElement {
     // Unset alert_id when switching tabs.
     this.state.alert_id = '';
     this.stateHasChanged();
-    // Unset silences filter when switching tabs.
+    // Unset filters when switching tabs.
     this.filterSilencesVal = '';
+    this.filterAuditLogsVal = '';
 
     // If tab is stats then load stats.
     if (e.detail.index === 3) {
@@ -696,6 +747,11 @@ export class AlertManagerSk extends HTMLElement {
         this.rhs_state = EDIT_SILENCE;
         this._render();
       }).catch(errorMessage);
+    } else if (e.detail.index === 4) {
+      // If tab is audit logs then load them.
+      this.getAuditLogs();
+      this.rhs_state = VIEW_AUDITLOG;
+      this._render();
     } else {
       this.rhs_state = START;
       this._render();
@@ -1009,6 +1065,10 @@ export class AlertManagerSk extends HTMLElement {
     this.doImpl('/_/stats', detail, (json: Stat[]) => this.statsAction(json));
   }
 
+  private getAuditLogs(): void {
+    this.doImpl('/_/audit_logs', {}, (json: AuditLog[]) => this.auditLogsAction(json));
+  }
+
   private incidentStats(): void {
     const detail: IncidentsInRangeRequest = {
       incident: this.selected as Incident,
@@ -1025,6 +1085,11 @@ export class AlertManagerSk extends HTMLElement {
   // Actions to take after updating Stats.
   private statsAction(json: Stat[]): void {
     this.stats = json;
+  }
+
+  // Actions to take after updating Audit Logs.
+  private auditLogsAction(json: AuditLog[]): void {
+    this.audit_logs = json;
   }
 
   // Actions to take after updating an Incident.
