@@ -46,7 +46,7 @@ func main() {
 	sklog.Infof("Creating database %s", normalizedDB)
 	out, err := exec.Command("kubectl", "run",
 		"gold-cockroachdb-init-"+normalizedDB,
-		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.3",
+		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.7",
 		"--rm", "-it", // -it forces this command to wait until it completes.
 		"--", "sql",
 		"--insecure", "--host="+*dbCluster,
@@ -59,7 +59,7 @@ func main() {
 	sklog.Infof("Creating tables")
 	out, err = exec.Command("kubectl", "run",
 		"gold-cockroachdb-init-"+normalizedDB,
-		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.3",
+		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.7",
 		"--rm", "-it", // -it forces this command to wait until it completes.
 		"--", "sql",
 		"--insecure", "--host="+*dbCluster, "--database="+normalizedDB,
@@ -69,12 +69,28 @@ func main() {
 		sklog.Fatalf("Error while creating tables: %s %s", err, out)
 	}
 
+	sklog.Infof("Deleting existing schedules, if any")
+	out, err = exec.Command("kubectl", "run",
+		"gold-cockroachdb-init-"+normalizedDB,
+		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.7",
+		"--rm", "-it", // -it forces this command to wait until it completes.
+		"--", "sql",
+		"--insecure", "--host="+*dbCluster, "--database="+normalizedDB,
+		"--execute="+dropExistingSchedules(normalizedDB),
+	).CombinedOutput()
+	if err != nil {
+		sklog.Fatalf("Error while creating tables: %s %s", err, out)
+	}
+	sklog.Infof("Output: %s", out)
+	// Make sure the drop commands really finish before creating new things.
+	time.Sleep(2 * time.Second)
+
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	sklog.Infof("Creating automatic backup schedules")
 	out, err = exec.Command("kubectl", "run",
 		"gold-cockroachdb-init-"+normalizedDB,
-		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.3",
+		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.7",
 		"--rm", "-it", // -it forces this command to wait until it completes.
 		"--", "sql",
 		"--insecure", "--host="+*dbCluster,
@@ -84,6 +100,14 @@ func main() {
 		sklog.Fatalf("Error while creating schedules: %s %s", err, out)
 	}
 	sklog.Info("Done")
+}
+
+func dropExistingSchedules(db string) string {
+	// https://www.cockroachlabs.com/docs/stable/drop-schedules.html#drop-multiple-schedules
+	// Note that we have to escape the underscore because in a LIKE query, underscore represents
+	// any single character. We don't want skia_ to match skiainfra_weekly, only things like
+	// skia_weekly.
+	return `DROP SCHEDULES SELECT id FROM [SHOW SCHEDULES] WHERE label LIKE '` + db + `\_%';`
 }
 
 type backupCadence struct {
@@ -186,7 +210,7 @@ type scheduleContext struct {
 
 const scheduleTemplate = `CREATE SCHEDULE {{.DBName}}_{{.Cadence}}
 FOR BACKUP TABLE {{.Tables}}
-INTO 'gs://{{.GCSBucket}}/{{.DBName}}/{{.Cadence}}'
+INTO 'gs://{{.GCSBucket}}/{{.DBName}}/{{.Cadence}}?AUTH=implicit'
   RECURRING '{{.CadenceWithJitter}}'
   FULL BACKUP ALWAYS WITH SCHEDULE OPTIONS ignore_existing_backups;
 `

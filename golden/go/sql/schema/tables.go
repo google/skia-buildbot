@@ -118,6 +118,9 @@ const (
 // Tables represents all SQL tables used by Gold. We define them as Go structs so that we can
 // more easily generate test data (see sql/databuilder). With the following command, the struct
 // is turned into an actual SQL statement.
+// Note: If a table is added/removed/renamed, it is important to re-run //golden/cmd/sqlinit
+// for all instances to make sure the backup schedules continue to work (they will fail if a table
+// is missing or silently not backup new tables).
 //go:generate go run ../exporter/tosql --output_file sql.go --output_pkg schema
 type Tables struct {
 	Changelists                        []ChangelistRow                     `sql_backup:"weekly"`
