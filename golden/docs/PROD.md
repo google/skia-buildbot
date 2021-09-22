@@ -244,11 +244,32 @@ Gold hasn't ingested a file via Pub/Sub in a while. This commonly happens when t
 
 Key metrics: liveness_gold_ingestion_s{metric="since_last_successful_streaming_result"}
 
+GoldSQLBackupError
+------------------
+The automatic SQL backups (see below) are not running as expected for the given instance. Check the
+logs of the periodictasks service for the given instance, or run the `SHOW SCHEDULES` command
+outlined below for the exact details of the failure.
+
+In the past, this has failed due to auth issues (should be alleviated due to using Workload
+Identity) or tables missing. If the latter, we can recreate the schedules using `sqlinit`
+(see below).
+
+Once all three schedules (daily, weekly, monthly) are working, the metric will go back to 0
+(aka, error-free).
+
+Key metrics: periodictasks_backup_error
+
 Backups
 =======
 We use CockroachDB's [automated backup system](https://www.cockroachlabs.com/docs/stable/create-schedule-for-backup.html)
 to automatically backup tables. These scheduled activities are stored cluster-wide and can be seen
-by running `SHOW SCHEDULES;`
+by running `SHOW SCHEDULES;`.
+
+A quick summary can be listed with `SELECT id, label, state FROM [SHOW SCHEDULES] ORDER BY 2;`
+In that view, "state" would contain any errors of the last cycle.
+
+The backup schedule needs to be re-created if we ever add/remove/rename a table. This can be
+achieved by running `go run ./cmd/sqlinit --db_name <instance>` for all instances.
 
 Restoring from automatic backups
 --------------------------------

@@ -27,6 +27,7 @@ go_library(
         "//golden/go/tracing",
         "//golden/go/types",
         "@com_github_cockroachdb_cockroach_go_v2//crdb/crdbpgx",
+        "@com_github_jackc_pgtype//:pgtype",
         "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",
         "@io_opencensus_go//trace",

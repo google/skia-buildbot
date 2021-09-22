@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
@@ -122,6 +123,7 @@ func main() {
 	startPrimaryBranchDiffWork(ctx, gatherer, ptc)
 	startChangelistsDiffWork(ctx, gatherer, ptc)
 	startDiffWorkMetrics(ctx, db)
+	startBackupStatusCheck(ctx, db, ptc)
 
 	sklog.Infof("periodic tasks have been started")
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
@@ -628,6 +630,66 @@ FROM PrimaryBranchDiffCalculationWork`
 			metrics2.GetInt64Metric(queueFreshness, map[string]string{"branch": "primary", "stat": "max"}).
 				Update(int64(primaryMaxFreshness / time.Second))
 
+		}
+	}()
+}
+
+// startBackupStatusCheck repeatedly scans the Backup Schedules to see their status. If there are
+// not 3 schedules, each with a success, this raises an error. The schedules are created via
+// //golden/cmd/sqlinit. If the tables change, those will need to be re-created.
+// https://www.cockroachlabs.com/docs/stable/create-schedule-for-backup.html
+func startBackupStatusCheck(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksConfig) {
+	go func() {
+		const backupError = "periodictasks_backup_error"
+		backupMetric := metrics2.GetInt64Metric(backupError, map[string]string{"database": ptc.SQLDatabaseName})
+		backupMetric.Update(0)
+
+		for range time.Tick(time.Hour) {
+			if err := ctx.Err(); err != nil {
+				return
+			}
+			statement := `SELECT id, label, state FROM [SHOW SCHEDULES] WHERE label LIKE '` +
+				ptc.SQLDatabaseName + `\_%'`
+			rows, err := db.Query(ctx, statement)
+			if err != nil {
+				sklog.Errorf("Could not check backup schedules: %s", err)
+				backupMetric.Update(1)
+				return
+			}
+
+			hadFailure := false
+			totalBackups := 0
+			for rows.Next() {
+				var id int64
+				var label string
+				var state pgtype.Text
+				if err := rows.Scan(&id, &label, &state); err != nil {
+					sklog.Errorf("Could not scan backup results: %s", err)
+					backupMetric.Update(1)
+					return
+				}
+				totalBackups++
+				// Example errors:
+				// reschedule: failed to create job for schedule 623934079889145857: err=executing schedule 623934079889145857: failed to resolve targets specified in the BACKUP stmt: table "crostastdev.commits" does not exist
+				// reschedule: failed to create job for schedule 623934084168056833: err=executing schedule 623934084168056833: Get https://storage.googleapis.com/skia-gold-sql-backups/crostastdev/monthly/2021/09/07-042100.00/BACKUP_MANIFEST: oauth2: cannot fetch token: 400 Bad Request
+				if strings.Contains(state.String, "reschedule") ||
+					strings.Contains(state.String, "failed") ||
+					strings.Contains(state.String, "err") {
+					hadFailure = true
+					sklog.Errorf("Backup Error for %s (%d) - %s", label, id, state.String)
+				}
+			}
+			rows.Close()
+			if totalBackups != 3 {
+				sklog.Errorf("Expected to see 3 backup schedules (daily, weekly, monthly), but instead saw %d", hadFailure)
+				hadFailure = true
+			}
+			if hadFailure {
+				backupMetric.Update(1)
+			} else {
+				backupMetric.Update(0)
+				sklog.Infof("All backups are performing as expected")
+			}
 		}
 	}()
 }
