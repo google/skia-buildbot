@@ -97,6 +97,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		store:                      store,
 		sink:                       sink,
 		adb:                        adb.New(),
+		ssh:                        ssh.ExeImpl{},
 		MachineID:                  machineID,
 		Version:                    version,
 		startTime:                  startTime,
@@ -150,6 +151,8 @@ func (m *Machine) interrogateAndSend(ctx context.Context) error {
 // Start the background processes that send events to the sink and watch for
 // firestore changes.
 func (m *Machine) Start(ctx context.Context) error {
+	m.startStoreWatch(ctx)
+
 	if err := m.interrogateAndSend(ctx); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -163,15 +166,19 @@ func (m *Machine) Start(ctx context.Context) error {
 		}
 	})
 
-	m.startStoreWatch(ctx)
 	return nil
 }
 
-// startStoreWatch starts a loop that does a firestore onsnapshot watcher
-// that gets the dims and state we should be reporting to swarming.
+// startStoreWatch starts a loop that does a firestore onsnapshot watcher that gets the dims
+// and state we should be reporting to swarming. It blocks until the first description is loaded.
 func (m *Machine) startStoreWatch(ctx context.Context) {
+	c := m.store.Watch(ctx, m.MachineID)
+	desc := <-c
+	m.storeWatchArrivalCounter.Inc(1)
+	sklog.Infof("Loaded existing description from FS: %#v", desc)
+	m.UpdateDescription(desc)
 	go func() {
-		for desc := range m.store.Watch(ctx, m.MachineID) {
+		for desc := range c {
 			m.storeWatchArrivalCounter.Inc(1)
 			m.UpdateDescription(desc)
 		}

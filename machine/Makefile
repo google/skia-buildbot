@@ -99,6 +99,8 @@ build_and_upload_test_machine_monitor: build_test_machine_monitor_for_all_archs
 	#
 	#   cipd install --root=/tmp/sometempdir skia/internal/test_machine_monitor version:${VERSION}
 
+# After running this, you may want to deploy install the tmm executable. To do so, see
+# //skolo/ansible/switchboard/roles/install_test_machine_monitor/README.md
 release_test_machine_monitor: build_and_upload_test_machine_monitor
 	../bash/ansible-release.sh test_machine_monitor ${VERSION}
 

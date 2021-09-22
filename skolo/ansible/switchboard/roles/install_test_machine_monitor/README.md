@@ -41,11 +41,12 @@ To deploy a test/debug binary to a machine first upload the cipd package via the
 
 ```
 $ cd machine
-$ make build_test_machine_monitor
+$ make build_and_upload_test_machine_monitor
 ```
 
-Then visit http://go/cipd/p/skia/internal/test_machine_monitor/+/ to find the
-version for that build and pass is to this playbook via --extra-vars.
+Then visit http://go/cipd/p/skia/internal/test_machine_monitor/+/ (or look
+in the logs) to find the version for that build and pass is to this
+playbook via --extra-vars.
 
 For example:
 
