@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/am/go/alert-manager",
     visibility = ["//visibility:private"],
     deps = [
+        "//am/go/audit",
         "//am/go/incident",
         "//am/go/note",
         "//am/go/reminder",
@@ -13,7 +14,6 @@ go_library(
         "//am/go/types",
         "//go/alerts",
         "//go/allowed",
-        "//go/auditlog",
         "//go/auth",
         "//go/baseapp",
         "//go/ds",

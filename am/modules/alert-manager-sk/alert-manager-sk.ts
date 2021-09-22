@@ -307,7 +307,7 @@ export class AlertManagerSk extends HTMLElement {
         break;
       case ' ':
         if (this.selected) {
-          $$<HTMLElement>(`#${this.selected!.key}`, this)!.click();
+          ($$(`#${this.selected!.key}`)! as HTMLElement).click();
         } else if (this.checked.size > 0) {
           // No incident was selected. Clear all the checked incidents and
           // start from the first incident.
@@ -327,7 +327,7 @@ export class AlertManagerSk extends HTMLElement {
         // If an alert is selected and nothing is checked then
         // check the selected alert before assigning it.
         if (this.selected && this.checked.size === 0) {
-          $$<HTMLElement>(`#${this.selected!.key}`, this)!.click();
+          ($$(`#${this.selected!.key}`)! as HTMLElement).click();
         }
         this.assignMultiple();
         break;
@@ -382,10 +382,10 @@ export class AlertManagerSk extends HTMLElement {
             this.last_checked_incident = k;
           } else {
             // Check the incident.
-            $$<HTMLElement>(`#${k}`, this)!.click();
+            ($$(`#${k}`)! as HTMLElement).click();
           }
         } else {
-          $$<HTMLElement>(`#container-${k}`, this)!.click();
+          ($$(`#container-${k}`)! as HTMLElement).click();
         }
         break;
       }

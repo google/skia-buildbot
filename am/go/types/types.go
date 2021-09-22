@@ -34,3 +34,12 @@ type IncidentsInRangeRequest struct {
 	Range    string            `json:"range"`
 	Incident incident.Incident `json:"incident"`
 }
+
+// AuditLog - contains information about action taken by a user on am.
+type AuditLog struct {
+	ID        string `json:"id" datastore:"id"`
+	Action    string `json:"action"`
+	User      string `json:"user"`
+	Body      string `json:"body" datastore:"body,noindex"`
+	Timestamp int64  `json:"timestamp" datastore:"timestamp"`
+}

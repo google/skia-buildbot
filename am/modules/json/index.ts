@@ -52,6 +52,14 @@ export interface IncidentsInRangeRequest {
 	incident: Incident;
 }
 
+export interface AuditLog {
+	id: string;
+	action: string;
+	user: string;
+	body: string;
+	timestamp: number;
+}
+
 export type Params = { [key: string]: string };
 
 export type ParamSet = { [key: string]: string[] };

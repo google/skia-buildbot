@@ -35,6 +35,7 @@ func main() {
 		types.StatsResponse{},
 		types.IncidentsResponse{},
 		types.IncidentsInRangeRequest{},
+		types.AuditLog{},
 	)
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {

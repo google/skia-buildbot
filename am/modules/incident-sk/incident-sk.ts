@@ -219,11 +219,11 @@ export class IncidentSk extends HTMLElement {
         <content-copy-icon-sk
           class="small-icon clickable"
           @click=${() => {
-    $$<HTMLElement>(`#tooltiptext-${k}`, this)!.textContent = 'Copied!';
+    ($$(`#tooltiptext-${k}`) as HTMLElement).textContent = 'Copied!';
     navigator.clipboard.writeText(this.state.params[k]);
   }}
           @mouseleave=${() => {
-    $$<HTMLElement>(`#tooltiptext-${k}`, this)!.textContent = 'Copy to Clipboard';
+    ($$(`#tooltiptext-${k}`) as HTMLElement).textContent = 'Copy to Clipboard';
   }}
         ></content-copy-icon-sk>
         <span class="tooltiptext" id="tooltiptext-${k}">Copy to Clipboard</span>

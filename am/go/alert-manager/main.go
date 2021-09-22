@@ -15,6 +15,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
+	"go.skia.org/infra/am/go/audit"
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/note"
 	"go.skia.org/infra/am/go/reminder"
@@ -22,7 +23,6 @@ import (
 	"go.skia.org/infra/am/go/types"
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/allowed"
-	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/ds"
@@ -256,7 +256,7 @@ func (srv *server) addNoteHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "add-note", req)
+	audit.Log(r, "add-note", req)
 
 	note := note.Note{
 		Text:   req.Text,
@@ -280,7 +280,7 @@ func (srv *server) addSilenceNoteHandler(w http.ResponseWriter, r *http.Request)
 		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "add-silence-note", req)
+	audit.Log(r, "add-silence-note", req)
 
 	note := note.Note{
 		Text:   req.Text,
@@ -309,7 +309,7 @@ func (srv *server) delNoteHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "del-note", req)
+	audit.Log(r, "del-note", req)
 	in, err := srv.incidentStore.DeleteNote(req.Key, req.Index)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to add note.", http.StatusInternalServerError)
@@ -327,7 +327,7 @@ func (srv *server) delSilenceNoteHandler(w http.ResponseWriter, r *http.Request)
 		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "del-silence-note", req)
+	audit.Log(r, "del-silence-note", req)
 	in, err := srv.silenceStore.DeleteNote(req.Key, req.Index)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to add note.", http.StatusInternalServerError)
@@ -349,7 +349,7 @@ func (srv *server) takeHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode take request.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "take", req)
+	audit.Log(r, "take", req)
 
 	in, err := srv.incidentStore.Assign(req.Key, srv.user(r))
 	if err != nil {
@@ -429,7 +429,7 @@ func (srv *server) assignHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode take request.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "assign", req)
+	audit.Log(r, "assign", req)
 	in, err := srv.incidentStore.Assign(req.Key, req.Email)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to assign.", http.StatusInternalServerError)
@@ -452,7 +452,7 @@ func (srv *server) assignMultipleHandler(w http.ResponseWriter, r *http.Request)
 		httputils.ReportError(w, err, "Failed to decode assign multiple request.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "assign multiple", req)
+	audit.Log(r, "assign multiple", req)
 
 	for _, k := range req.Keys {
 		if _, err := srv.incidentStore.Assign(k, req.Email); err != nil {
@@ -510,6 +510,18 @@ func (srv *server) silencesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	silences = append(silences, recents...)
 	if err := json.NewEncoder(w).Encode(silences); err != nil {
+		sklog.Errorf("Failed to send response: %s", err)
+	}
+}
+
+func (srv *server) auditLogsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	logs, err := audit.GetLogs(r.Context())
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to load audit logs.", http.StatusInternalServerError)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(logs); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
 	}
 }
@@ -584,7 +596,7 @@ func (srv *server) saveSilenceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditlog.Log(r, "create-silence", req)
+	audit.Log(r, "create-silence", req)
 	silence, err := srv.silenceStore.Put(&req)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to create silence.", http.StatusInternalServerError)
@@ -607,7 +619,7 @@ func (srv *server) archiveSilenceHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	auditlog.Log(r, "archive-silence", req)
+	audit.Log(r, "archive-silence", req)
 	silence, err := srv.silenceStore.Archive(req.Key)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to archive silence.", http.StatusInternalServerError)
@@ -630,7 +642,7 @@ func (srv *server) reactivateSilenceHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	auditlog.Log(r, "reactivate-silence", req)
+	audit.Log(r, "reactivate-silence", req)
 	silence, err := srv.silenceStore.Reactivate(req.Key, req.Duration, srv.user(r))
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to reactivate silence.", http.StatusInternalServerError)
@@ -648,7 +660,7 @@ func (srv *server) deleteSilenceHandler(w http.ResponseWriter, r *http.Request) 
 		httputils.ReportError(w, err, "Failed to decode silence deletion request.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.Log(r, "delete-silence", sil)
+	audit.Log(r, "delete-silence", sil)
 	if err := srv.silenceStore.Delete(sil.Key); err != nil {
 		httputils.ReportError(w, err, "Failed to delete silence.", http.StatusInternalServerError)
 		return
@@ -685,6 +697,7 @@ func (srv *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/archive_silence", srv.archiveSilenceHandler).Methods("POST")
 	r.HandleFunc("/_/assign", srv.assignHandler).Methods("POST")
 	r.HandleFunc("/_/assign_multiple", srv.assignMultipleHandler).Methods("POST")
+	r.HandleFunc("/_/audit_logs", srv.auditLogsHandler).Methods("POST")
 	r.HandleFunc("/_/del_note", srv.delNoteHandler).Methods("POST")
 	r.HandleFunc("/_/del_silence_note", srv.delSilenceNoteHandler).Methods("POST")
 	r.HandleFunc("/_/del_silence", srv.deleteSilenceHandler).Methods("POST")
