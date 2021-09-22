@@ -53,8 +53,8 @@ build_powercycle_server_ansible_x86_64_Linux:
 	 -ldflags="-X 'main.Version=${VERSION}' " \
 	 ./go/powercycle_server_ansible
 
-# The names of this target can't change, as the form is dictated by ansible playbooks in //skolo/ansible/switchboard.
-build_router_backup_ansible_x86_64_Linux:
+build_router_backup_ansible:
+	rm -rf ./build
 	CGO_ENABLED=0 \
 	GOOS=linux \
 	GOARCH=amd64 \
@@ -62,6 +62,12 @@ build_router_backup_ansible_x86_64_Linux:
 	 -o ./build/Linux/x86_64/router_backup_ansible \
 	 -ldflags="-X 'main.Version=${VERSION}' " \
 	 ./go/router_backup_ansible
+
+build_and_upload_router_backup_ansible: build_router_backup_ansible
+	cipd create -pkg-def=router_backup_ansible_cipd.yml --tag version:${VERSION}
+
+release_router_backup_ansible: build_and_upload_router_backup_ansible
+	../bash/ansible-release.sh router_backup_ansible ${VERSION}
 
 # The POWERCYCLE_PASSWORD must be set in the environment for this to work correctly.
 run-local-instance-powercycle_server_ansible:

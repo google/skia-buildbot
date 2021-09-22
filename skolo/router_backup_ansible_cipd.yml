@@ -1,0 +1,5 @@
+package: skia/internal/router_backup_ansible
+description: Builds of router_backup_ansible for all os/arch combinations.
+install_mode: copy
+data:
+  - dir: build/

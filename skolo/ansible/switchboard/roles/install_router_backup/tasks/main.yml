@@ -1,10 +1,10 @@
-- name: Build router_backup_ansible for the target machine.
-  delegate_to: 127.0.0.1
-  make:
-    chdir: '{{ all.repo_root }}/skolo/'
-    target:
-      "build_router_backup_ansible_{{ ansible_facts['architecture'] }}_{{
-      ansible_facts['system'] }}"
+- name: Load router_backup_ansible executables.
+  run_once: yes
+  import_role:
+    name: get_ansible_binaries
+  vars:
+    get_ansible_binaries_application: router_backup_ansible
+    get_ansible_binaries_version: '{{ router_backup_ansible_version }}'
 
 - name: Copy over service file.
   become: yes
@@ -19,8 +19,9 @@
   become: yes
   copy:
     src:
-      "{{ all.repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
-      ansible_facts['architecture'] }}/router_backup_ansible"
+      "{{ get_ansible_binaries_directory.path }}/build/{{
+      ansible_facts['system'] }}/{{ ansible_facts['architecture']
+      }}/router_backup_ansible"
     dest: /usr/local/bin/router_backup_ansible
     owner: root
     group: root

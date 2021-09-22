@@ -1,0 +1,15 @@
+# Installs router_backup_ansible.
+#
+# To push a test/debug version of router_backup_ansible to a machine you can
+# provide a value for the router_backup_ansible_version_override via the
+# --extra-vars command line parameter.
+- hosts: jumphosts
+  user: chrome-bot
+  gather_facts: true
+  vars:
+    router_backup_ansible_version_override: ''
+
+  roles:
+    - role: install_router_backup
+      router_backup_ansible_version:
+        '{{ router_backup_ansible_version_override }}'

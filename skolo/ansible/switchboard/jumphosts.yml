@@ -2,6 +2,8 @@
 - hosts: jumphosts
   user: chrome-bot
   gather_facts: yes
+  vars:
+    router_backup_ansible_version_override: ''
 
   roles:
     - copy_authorized_keys
@@ -9,5 +11,7 @@
     - install_collectd
     - install_metadata_server
     - install_powercycle_server
-    - install_router_backup
+    - role: install_router_backup
+      router_backup_ansible_version:
+        '{{ router_backup_ansible_version_override }}'
     - install_prometheus_and_alert_to_pubsub
