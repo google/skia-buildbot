@@ -4,5 +4,5 @@
     "FRONTEND_IMAGE":        "gcr.io/skia-public/gold-frontend:2021-09-21T14_08_21Z-kjlubick-3a230a0-clean",
     "GITILESFOLLOWER_IMAGE": "gcr.io/skia-public/gold-gitilesfollower:2021-09-21T14_09_01Z-kjlubick-3a230a0-clean",
     "INGESTION_IMAGE":       "gcr.io/skia-public/gold-ingestion:2021-09-21T14_10_15Z-kjlubick-3a230a0-clean",
-    "PERIODICTASKS_IMAGE":   "gcr.io/skia-public/gold-periodictasks:2021-09-21T14_11_05Z-kjlubick-3a230a0-clean",
+    "PERIODICTASKS_IMAGE":   "gcr.io/skia-public/gold-periodictasks:2021-09-22T19_13_03Z-kjlubick-740f7db-clean",
 }
