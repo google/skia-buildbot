@@ -312,8 +312,18 @@ func main() {
 				issues = append(issues, issues2...)
 				for _, ci := range issues {
 					if ci.Updated.Before(time.Now().Add(-168 * time.Hour)) {
-						if err := g.Abandon(ctx, ci, "Abandoning new/draft issues older than a week."); err != nil && !strings.Contains(err.Error(), "change is abandoned") {
-							sklog.Errorf("Failed to abandon old issue %s: %s", g.Url(ci.Issue), err)
+						// Gerrit search sometimes returns incorrect statuses.
+						// Reload the ChangeInfo and verify that we actually
+						// need to abandon the CL.
+						ci, err := g.GetChange(ctx, ci.Id)
+						if err != nil {
+							sklog.Errorf("Failed to retrieve change details: %s", err)
+							continue
+						}
+						if ci.Status == gerrit.ChangeStatusDraft || ci.Status == gerrit.ChangeStatusNew {
+							if err := g.Abandon(ctx, ci, "Abandoning new/draft issues older than a week."); err != nil && !strings.Contains(err.Error(), "change is abandoned") {
+								sklog.Errorf("Failed to abandon old issue %s: %s", g.Url(ci.Issue), err)
+							}
 						}
 					}
 				}
