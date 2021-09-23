@@ -64,7 +64,6 @@ type androidRepoManager struct {
 	parentRepoURL             string
 	repoToolPath              string
 	includeAuthorsAsReviewers bool
-	removeOwners              bool
 
 	projectMetadataFileConfig *config.AndroidRepoManagerConfig_ProjectMetadataFileConfig
 
@@ -175,7 +174,6 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		projectMetadataFileConfig: c.Metadata,
 		childRepoURL:              c.ChildRepoUrl,
 		includeAuthorsAsReviewers: c.IncludeAuthorsAsReviewers,
-		removeOwners:              c.RemoveOwners,
 
 		childBranch:      childBranch,
 		childDir:         childDir,
@@ -436,19 +434,6 @@ third_party {
 		}
 		if _, addGifErr := r.childRepo.Git(ctx, "add", metadataFilePath); addGifErr != nil {
 			return 0, addGifErr
-		}
-	}
-
-	if r.removeOwners {
-		out, lsErr := r.childRepo.Git(ctx, "ls-files", "OWNERS", "**/OWNERS")
-		if lsErr != nil {
-			return 0, skerr.Wrapf(lsErr, "Could not ls-files OWNERS files in %s", r.childDir)
-		}
-		ownerFiles := strings.Fields(out)
-		for _, o := range ownerFiles {
-			if _, rmErr := r.childRepo.Git(ctx, "rm", o); rmErr != nil {
-				return 0, skerr.Wrapf(rmErr, "Could not rm %s in %s", o, r.childDir)
-			}
 		}
 	}
 

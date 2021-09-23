@@ -257,9 +257,6 @@ message AndroidRepoManagerConfig {
     bool include_authors_as_reviewers = 10;
     // pre_upload describes command(s) to run before uploading roll CLs.
     PreUploadConfig pre_upload_commands = 11;
-    // remove_owners determines whether the roller will remove all OWNERS files
-    // after the merge of child_repo into parent_repo.
-    bool remove_owners = 12;
 }
 
 // CommandRepoManagerConfig provides configuration for a roller which runs
