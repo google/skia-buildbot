@@ -78,8 +78,7 @@ func Start(ctx context.Context, pollInterval time.Duration, cr codereview.CodeRe
 			configReader, err := config.NewGitilesConfigReader(ctx, httpClient, ci, cr, canModifyCfgsOnTheFly)
 			if err != nil {
 				sklog.Errorf("[%d] Error when instantiating config reader: %s", ci.Issue, err)
-				cr.RemoveFromCQ(ctx, ci, "Error when reading configs. Removing from CQ. Please ask Infra Gardener to investigate.")
-				return
+				continue
 			}
 
 			processCL(ctx, vm, ci, configReader, clsInThisRound, cr, currentChangesCache, httpClient, dbClient, canModifyCfgsOnTheFly, publicFEInstanceURL, corpFEInstanceURL, tm)
@@ -149,7 +148,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 			cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("CL owner %s does not have permission to modify %s", ci.Owner.Email, config.SkCQCfgPath))
 			return
 		} else {
-			cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Error reading %s for %d. Removing from CQ. Please ask Infra Gardener to investigate.", config.SkCQCfgPath, ci.Issue))
+			sklog.Errorf("[%d] Error reading %s: %s", ci.Issue, config.SkCQCfgPath, err)
 			return
 		}
 	}
@@ -254,7 +253,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 					cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Gerrit rejected submission due to merge conflict.\n\nHint: Rebasing CL in Gerrit UI and re-submitting through SkCQ usually works."))
 				} else {
 					sklog.Errorf("[%d] Error when submitting: %s", ci.Issue, err)
-					cr.RemoveFromCQ(ctx, ci, "Error when submitting. Removing from SkCQ. Please ask Infra Gardener to investigate.")
+					return
 				}
 			} else {
 				cqSubmittedTime = time.Now().Unix()
