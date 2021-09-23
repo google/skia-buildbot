@@ -446,7 +446,7 @@ third_party {
 		}
 		ownerFiles := strings.Fields(out)
 		for _, o := range ownerFiles {
-			if _, rmErr := r.childRepo.Git(ctx, "rm", o, "--force"); rmErr != nil {
+			if _, rmErr := r.childRepo.Git(ctx, "rm", o); rmErr != nil {
 				return 0, skerr.Wrapf(rmErr, "Could not rm %s in %s", o, r.childDir)
 			}
 		}
