@@ -40,8 +40,8 @@ start_pubsub_emulator:
 build-remote:
 	$(BAZEL) build //machine/go/machineserver:machineserver --config=remote --remote_instance_name=projects/skia-public/instances/default_instance
 
-run-local-instance:
-	machineserver --local
+run-local-instance: build
+	../_bazel_bin/machine/go/machineserver/machineserver_/machineserver --local --resources_dir ../_bazel_bin/machine/pages/development
 
 export HASH:=$(shell git rev-parse HEAD)
 export DATETIME:=$(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
