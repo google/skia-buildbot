@@ -13,38 +13,53 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
-	_ "net/http/pprof"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
+	"runtime"
+	"runtime/pprof"
 	"time"
 
 	"cloud.google.com/go/datastore"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/google/uuid"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
+	"go.skia.org/infra/task_scheduler/go/job_creation"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
+	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
+const (
+	rbeInstance = "projects/chromium-swarm-dev/instances/default_instance"
+)
+
 var (
-	fsInstance  = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"testing\"")
-	rbeInstance = flag.String("rbe_instance", "projects/chromium-swarm-dev/instances/default_instance", "CAS instance to use")
+	cpuprofile     = flag.String("cpuprofile", "", "write cpu profile to file")
+	tasksPerCommit = flag.Int("tasks_per_commit", 300, "Number of tasks defined per commit.")
+	numCommits     = flag.Int("num_commits", 200, "Number of commits.")
+	maxRounds      = flag.Int("max_cycles", 0, "Stop after this many scheduling cycles.")
+	recipesCfgFile = flag.String("recipes_cfg_file", "", "Path to the recipes.cfg file. If not provided, attempt to find it automatically.")
 )
 
 func assertNoError(err error) {
@@ -95,18 +110,18 @@ func commit(ctx context.Context, repoDir, message string) {
 	commitDate = commitDate.Add(10 * time.Second)
 }
 
-func makeDummyCommits(ctx context.Context, repoDir string, numCommits int) {
+func makeCommits(ctx context.Context, repoDir string, numCommits int) {
 	gd := git.GitDir(repoDir)
-	_, err := gd.Git(ctx, "checkout", git.MasterBranch)
+	_, err := gd.Git(ctx, "checkout", git.MainBranch)
 	assertNoError(err)
-	dummyFile := path.Join(repoDir, "dummyfile.txt")
+	fakeFile := path.Join(repoDir, "fakefile.txt")
 	for i := 0; i < numCommits; i++ {
-		title := fmt.Sprintf("Dummy #%d", i)
-		assertNoError(ioutil.WriteFile(dummyFile, []byte(title), os.ModePerm))
-		_, err = gd.Git(ctx, "add", dummyFile)
+		title := fmt.Sprintf("Fake #%d", i)
+		assertNoError(ioutil.WriteFile(fakeFile, []byte(title), os.ModePerm))
+		_, err = gd.Git(ctx, "add", fakeFile)
 		assertNoError(err)
 		commit(ctx, repoDir, title)
-		_, err = gd.Git(ctx, "push", git.DefaultRemote, git.MasterBranch)
+		_, err = gd.Git(ctx, "push", git.DefaultRemote, git.MainBranch)
 		assertNoError(err)
 	}
 }
@@ -123,10 +138,29 @@ func addFile(ctx context.Context, repoDir, subPath, contents string) {
 	assertNoError(err)
 }
 
+// waitForNewJobs waits for new jobs to appear in the DB and cache after new
+// commits have landed.
+func waitForNewJobs(ctx context.Context, repos repograph.Map, jc *job_creation.JobCreator, jCache cache.JobCache, expectJobs int) {
+	for repoDir, repo := range repos {
+		assertNoError(repo.Update(ctx))
+		assertNoError(jc.HandleRepoUpdate(ctx, repoDir, repo, func() {}, func() {}))
+	}
+	sklog.Infof("Waiting for QuerySnapshotIterator...")
+	for {
+		time.Sleep(500 * time.Millisecond)
+		assertNoError(jCache.Update())
+		unfinished, err := jCache.UnfinishedJobs()
+		assertNoError(err)
+		if len(unfinished) == expectJobs {
+			break
+		}
+	}
+}
+
 func main() {
 	common.Init()
 
-	// Create a repo with lots of commits.
+	// Create a repo with one commit.
 	workdir, err := ioutil.TempDir("", "")
 	assertNoError(err)
 	defer func() {
@@ -136,11 +170,14 @@ func main() {
 	}()
 	ctx := context.Background()
 	repoName := "skia.git"
-	repoDir := path.Join(workdir, repoName)
-	assertNoError(os.Mkdir(path.Join(workdir, repoName), os.ModePerm))
+	repoDir := filepath.Join(workdir, repoName)
+	assertNoError(os.Mkdir(repoDir, os.ModePerm))
 	gd := git.GitDir(repoDir)
 	_, err = gd.Git(ctx, "init")
 	assertNoError(err)
+	// This sets the remote repo to be the repo itself, which prevents us
+	// needing to have a separate remote repo, either locally or on a server
+	// somewhere.
 	_, err = gd.Git(ctx, "remote", "add", git.DefaultRemote, ".")
 	assertNoError(err)
 
@@ -169,50 +206,62 @@ func main() {
 	}
 
 	// Add tasks to the repo.
-	var tasks = map[string]*specs.TaskSpec{
-		"Build-Ubuntu-GCC-Arm7-Release-Android": {
+	taskNames := []string{
+		tcc_testutils.BuildTaskName,
+		tcc_testutils.TestTaskName,
+		tcc_testutils.PerfTaskName,
+	}
+	taskTypes := []*specs.TaskSpec{
+		{
 			CasSpec:      "compile",
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{},
 			Dimensions:   []string{"pool:Skia", "os:Ubuntu"},
 			Priority:     0.9,
 		},
-		"Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
+		{
 			CasSpec:      "test",
 			CipdPackages: []*specs.CipdPackage{},
-			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
+			Dependencies: []string{tcc_testutils.BuildTaskName},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
 			Priority:     0.9,
 		},
-		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
+		{
 			CasSpec:      "perf",
 			CipdPackages: []*specs.CipdPackage{},
-			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
+			Dependencies: []string{tcc_testutils.BuildTaskName},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
 			Priority:     0.9,
 		},
 	}
+	// Add the requested number of tasks to the TasksCfg, cycling through Build,
+	// Test, and Perf tasks to keep things interesting.
 	moarTasks := map[string]*specs.TaskSpec{}
 	jobs := map[string]*specs.JobSpec{}
-	for name, task := range tasks {
-		for i := 0; i < 100; i++ {
-			newName := fmt.Sprintf("%s%d", name, i)
-			deps := make([]string, 0, len(task.Dependencies))
-			for _, d := range task.Dependencies {
-				deps = append(deps, fmt.Sprintf("%s%d", d, i))
-			}
-			newTask := &specs.TaskSpec{
-				CasSpec:      task.CasSpec,
-				CipdPackages: task.CipdPackages,
-				Dependencies: deps,
-				Dimensions:   task.Dimensions,
-				Priority:     task.Priority,
-			}
-			moarTasks[newName] = newTask
-			jobs[newName] = &specs.JobSpec{
-				Priority:  task.Priority,
-				TaskSpecs: []string{newName},
-			}
+	taskCycleIndex := -1
+	for numTasks := 0; numTasks < *tasksPerCommit; numTasks++ {
+		taskType := numTasks % 3
+		if taskType == 0 {
+			taskCycleIndex++
+		}
+		name := taskNames[taskType]
+		task := taskTypes[taskType]
+		newName := fmt.Sprintf("%s%d", name, taskCycleIndex)
+		deps := make([]string, 0, len(task.Dependencies))
+		for _, d := range task.Dependencies {
+			deps = append(deps, fmt.Sprintf("%s%d", d, taskCycleIndex))
+		}
+		newTask := &specs.TaskSpec{
+			CasSpec:      task.CasSpec,
+			CipdPackages: task.CipdPackages,
+			Dependencies: deps,
+			Dimensions:   task.Dimensions,
+			Priority:     task.Priority,
+		}
+		moarTasks[newName] = newTask
+		jobs[newName] = &specs.JobSpec{
+			Priority:  task.Priority,
+			TaskSpecs: []string{newName},
 		}
 	}
 	cfg := specs.TasksCfg{
@@ -226,9 +275,9 @@ func main() {
 	_, err = gd.Git(ctx, "add", specs.TASKS_CFG_FILE)
 	assertNoError(err)
 	commit(ctx, repoDir, "Add more tasks!")
-	_, err = gd.Git(ctx, "push", git.DefaultRemote, git.MasterBranch)
+	_, err = gd.Git(ctx, "push", git.DefaultRemote, git.MainBranch)
 	assertNoError(err)
-	_, err = gd.Git(ctx, "branch", "-u", git.DefaultRemoteBranch)
+	_, err = gd.Git(ctx, "branch", "-u", git.DefaultRemote+"/"+git.MainBranch)
 	assertNoError(err)
 
 	// Create a bunch of bots.
@@ -247,12 +296,12 @@ func main() {
 	}
 
 	// Create the task scheduler.
-	repo, err := repograph.NewLocalGraph(ctx, repoName, workdir)
+	repo, err := repograph.NewLocalGraph(ctx, repoDir, workdir)
 	assertNoError(err)
 	assertNoError(repo.Update(ctx))
-	headCommit := repo.Get(git.MasterBranch)
+	headCommit := repo.Get(git.MainBranch)
 	if headCommit == nil {
-		sklog.Fatalf("Could not find HEAD of %s.", git.MasterBranch)
+		sklog.Fatalf("Could not find HEAD of %s.", git.MainBranch)
 	}
 	head := headCommit.Hash
 
@@ -261,9 +310,11 @@ func main() {
 	assertDeepEqual([]string{head}, commits)
 
 	ts, err := auth.NewDefaultTokenSource(true, datastore.ScopeDatastore)
-	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts)
+	fsInstance := uuid.New().String()
+	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, fsInstance, ts)
 	assertNoError(err)
-	w, err := window.New(time.Hour, 0, nil)
+	windowPeriod := time.Duration(math.MaxInt64)
+	w, err := window.New(windowPeriod, 0, nil)
 	assertNoError(err)
 	tCache, err := cache.NewTaskCache(ctx, d, w, nil)
 	assertNoError(err)
@@ -272,23 +323,44 @@ func main() {
 
 	swarmingClient := testutils.NewTestClient()
 
-	repos := repograph.Map{repoName: repo}
-	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, "test-project", "test-instance", nil)
+	repos := repograph.Map{repoDir: repo}
+
+	btProject := "test-project"
+	btInstance := "test-instance"
+	assertNoError(bt.InitBigtable(btProject, btInstance, task_cfg_cache.BT_TABLE, []string{task_cfg_cache.BT_COLUMN_FAMILY}))
+	defer func() {
+		assertNoError(bt.DeleteTables(btProject, btInstance, task_cfg_cache.BT_TABLE))
+	}()
+	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	if err != nil {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
-	cas, err := rbe.NewClient(ctx, *rbeInstance, ts)
+	cas, err := rbe.NewClient(ctx, rbeInstance, ts)
 	assertNoError(err)
-	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, *rbeInstance, "")
-	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, *rbeInstance, taskExec, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, nil, "")
+	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, rbeInstance, "")
+	s, err := scheduling.NewTaskScheduler(ctx, d, nil, windowPeriod, 0, repos, cas, rbeInstance, taskExec, http.DefaultClient, 0.99999, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, nil, "")
 	assertNoError(err)
+
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+
+	if *recipesCfgFile == "" {
+		_, filename, _, _ := runtime.Caller(0)
+		*recipesCfgFile = filepath.Join(filepath.Dir(filename), "..", "..", "..", "..", "infra", "config", "recipes.cfg")
+	}
+	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, *recipesCfgFile)
+	assertNoError(err)
+	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "", "", nil, depotTools, nil, taskCfgCache, ts)
+	assertNoError(err)
+
+	// Wait for job-creator to process the jobs from the repo.
+	waitForNewJobs(ctx, repos, jc, jCache, *tasksPerCommit)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {
 		swarmingClient.MockBots(bots)
 		assertNoError(s.MainLoop(ctx))
 		assertNoError(w.Update())
 		assertNoError(tCache.Update())
-		tasks, err := tCache.GetTasksForCommits(repoName, commits)
+		tasks, err := tCache.GetTasksForCommits(repoDir, commits)
 		assertNoError(err)
 		newTasks := map[string]*types.Task{}
 		for _, v := range tasks {
@@ -304,7 +376,7 @@ func main() {
 		for _, task := range newTasks {
 			task.Status = types.TASK_STATUS_SUCCESS
 			task.Finished = time.Now()
-			task.IsolatedOutput = "abc123"
+			task.IsolatedOutput = rbe.EmptyDigest
 			insert = append(insert, task)
 		}
 		assertNoError(d.PutTasks(insert))
@@ -312,38 +384,51 @@ func main() {
 		assertNoError(jCache.Update())
 	}
 
+	assertNoError(jCache.Update())
+	allJobs, err := jCache.GetJobsFromDateRange(time.Time{}, time.Now())
+	assertNoError(err)
+	sklog.Infof("Found %d total jobs", len(allJobs))
+	assertEqual(*tasksPerCommit, len(allJobs))
+
 	// Consume all tasks.
 	for {
+		sklog.Infof("Running all tasks...")
 		runTasks(bots)
 		unfinished, err := jCache.UnfinishedJobs()
 		assertNoError(err)
 		sklog.Infof("Found %d unfinished jobs.", len(unfinished))
 		if len(unfinished) == 0 {
-			tasks, err := tCache.GetTasksForCommits(repoName, commits)
+			tasks, err := tCache.GetTasksForCommits(repoDir, commits)
 			assertNoError(err)
 			assertEqual(s.QueueLen(), 0)
 			assertEqual(len(moarTasks), len(tasks[head]))
 			break
 		}
 	}
+	sklog.Infof("Done consuming initial set of jobs.")
 
 	// Add more commits to the repo.
-	makeDummyCommits(ctx, repoDir, 200)
-	commits, err = repo.RevList(head, git.MasterBranch)
+	makeCommits(ctx, repoDir, *numCommits)
+	waitForNewJobs(ctx, repos, jc, jCache, (*numCommits)*(*tasksPerCommit))
+	commits, err = repo.RevList(head, git.MainBranch)
 	assertNoError(err)
 
-	// Start the profiler.
-	go func() {
-		sklog.Fatal(http.ListenAndServe("localhost:6060", nil))
-	}()
-
 	// Actually run the test.
-	i := 0
-	for ; ; i++ {
+	sklog.Infof("Starting test...")
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		assertNoError(err)
+		assertNoError(pprof.StartCPUProfile(f))
+		defer pprof.StopCPUProfile()
+	}
+	schedulingRounds := 1
+	started := time.Now()
+	for ; *maxRounds > 0 && schedulingRounds <= *maxRounds; schedulingRounds++ {
 		runTasks(bots)
 		if s.QueueLen() == 0 {
 			break
 		}
 	}
-	sklog.Infof("Finished in %d iterations.", i)
+	elapsed := time.Now().Sub(started)
+	sklog.Infof("Finished %d scheduling cycles in %s.", schedulingRounds, elapsed)
 }

@@ -1017,7 +1017,7 @@ func getCandidatesToSchedule(bots []*types.Machine, tasks []*taskCandidate) []*t
 		if c.Score <= 0.0 {
 			// This normally shouldn't happen, but it can happen if there is both a
 			// forced task and an unused retry for the same repo state.
-			sklog.Debugf("candidate %s @ %s has a score of %2f; skipping (%d commits).", c.Name, c.Revision, c.Score, len(c.Commits))
+			sklog.Debugf("candidate %s @ %s has a score of %2f; skipping (%d commits). %+v", c.Name, c.Revision, c.Score, len(c.Commits), c.Diagnostics.Scoring)
 			diag.ScoreBelowThreshold = true
 			continue
 		}

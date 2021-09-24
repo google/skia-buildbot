@@ -170,8 +170,8 @@ func SetupTestRepo(t sktest.TestingT) (context.Context, *git_testutils.GitBuilde
 // BigTable instance name which should be used to instantiate TaskCfgCache and a
 // cleanup function which should be deferred.
 func SetupBigTable(t sktest.TestingT) (string, string, func()) {
-	// The table and column family names are specs.BT_TABLE and
-	// specs.BT_COLUMN_FAMILY, but are hard-coded here to avoid a dependency
-	// cycle.
+	// The table and column family names are task_cfg_cache.BT_TABLE and
+	// task_cfg_cache.BT_COLUMN_FAMILY, but are hard-coded here to avoid a
+	// dependency cycle.
 	return bt_testutil.SetupBigTable(t, "tasks-cfg", "CFGS")
 }
