@@ -652,6 +652,9 @@ func Truncate(s string, length int) string {
 // temporary intermediate file for more atomicity in case a long-running write
 // gets interrupted.
 func WithWriteFile(file string, writeFn func(io.Writer) error) error {
+	if file == "" {
+		return skerr.Fmt("file must not be empty")
+	}
 	dir := filepath.Dir(file)
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return skerr.Wrapf(err, "calling MkdirAll(%s, 0700)", dir)

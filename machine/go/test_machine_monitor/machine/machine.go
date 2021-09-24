@@ -3,6 +3,8 @@ package machine
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"os"
 	"regexp"
 	"strconv"
@@ -26,6 +28,12 @@ import (
 
 const (
 	interrogateDuration = 30 * time.Second
+
+	// Recipes require some way to know what the user and ip address are of the device they are
+	// talking to. The existing (and easiest) way is to write a file that they know to read.
+	// That file is /tmp/ssh_machine.json. The file must be valid JSON and have a key called
+	// user_ip that is a string (see //infra/bots/recipe_modules/flavor/ssh.py in the skia repo)
+	defaultSSHMachineFileLocation = "/tmp/ssh_machine.json"
 )
 
 // Machine is the interface to the machine state server. See //machine.
@@ -69,6 +77,10 @@ type Machine struct {
 	// description is provided by the machine state server. This tells us what
 	// to tell swarming, what our current mode is, etc.
 	description machine.Description
+
+	// sshMachineLocation is the name and path of the file to write the JSON data that specifies
+	// to recipes how to communicate with the device under test.
+	sshMachineLocation string
 }
 
 // New return an instance of *Machine.
@@ -98,6 +110,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		sink:                       sink,
 		adb:                        adb.New(),
 		ssh:                        ssh.ExeImpl{},
+		sshMachineLocation:         defaultSSHMachineFileLocation,
 		MachineID:                  machineID,
 		Version:                    version,
 		startTime:                  startTime,
@@ -318,6 +331,24 @@ func (m *Machine) tryInterrogatingChromeOSDevice(ctx context.Context) (machine.C
 	}
 	if rv.ReleaseVersion == "" && rv.Milestone == "" && rv.Channel == "" {
 		sklog.Errorf("Could not find ChromeOS data in /etc/lsb-release. Are we sure this is the right IP?\n%s", lsbReleaseContents)
+		return machine.ChromeOS{}, false
+	}
+	// Now that we know we can connect to the SSH machine, make sure recipes can as well.
+	err = util.WithWriteFile(m.sshMachineLocation, func(w io.Writer) error {
+		type sshMachineInfo struct {
+			Comment string
+			UserIP  string `json:"user_ip"`
+		}
+		toWrite := sshMachineInfo{
+			Comment: "This file is written to by test_machine_monitor. Do not edit by hand.",
+			UserIP:  m.description.SSHUserIP,
+		}
+		e := json.NewEncoder(w)
+		e.SetIndent("", "  ")
+		return e.Encode(toWrite)
+	})
+	if err != nil {
+		sklog.Errorf("Could not write SSH info to %s: %s", m.sshMachineLocation, err)
 		return machine.ChromeOS{}, false
 	}
 	return rv, true

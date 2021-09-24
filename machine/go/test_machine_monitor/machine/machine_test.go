@@ -3,6 +3,7 @@ package machine
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -107,8 +108,12 @@ func TestTryInterrogatingChromeOS_DeviceReachable_Success(t *testing.T) {
 		"Test_FakeExe_SSHUptime_ReturnsPlaceholder",
 		"Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder",
 	)
-
-	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
+	sshFile := filepath.Join(t.TempDir(), "test.json")
+	m := &Machine{
+		ssh:                ssh.ExeImpl{},
+		sshMachineLocation: sshFile,
+		description:        machine.Description{SSHUserIP: testUserIP},
+	}
 	actual, ok := m.tryInterrogatingChromeOSDevice(ctx)
 	assert.True(t, ok)
 	assert.Equal(t, machine.ChromeOS{
@@ -117,6 +122,16 @@ func TestTryInterrogatingChromeOS_DeviceReachable_Success(t *testing.T) {
 		ReleaseVersion: "13729.56.0",
 		Uptime:         1234500 * time.Millisecond,
 	}, actual)
+
+	require.FileExists(t, sshFile)
+	b, err := os.ReadFile(sshFile)
+	require.NoError(t, err)
+	const expected = `{
+  "Comment": "This file is written to by test_machine_monitor. Do not edit by hand.",
+  "user_ip": "root@skia-foobar-01"
+}
+`
+	assert.Equal(t, expected, string(b))
 }
 
 func TestTryInterrogatingChromeOS_CatLSBReleaseFails_DeviceConsideredUnattached(t *testing.T) {
@@ -235,10 +250,11 @@ func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 		"Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder",
 		// We found a device, no need to check for adb
 	)
-
+	sshFile := filepath.Join(t.TempDir(), "test.json")
 	m := &Machine{
-		ssh:       ssh.ExeImpl{},
-		MachineID: "some-machine",
+		ssh:                ssh.ExeImpl{},
+		sshMachineLocation: sshFile,
+		MachineID:          "some-machine",
 		description: machine.Description{
 			SSHUserIP: testUserIP,
 		},
@@ -265,6 +281,16 @@ func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 			Uptime:         1234500 * time.Millisecond,
 		},
 	}, actual)
+
+	require.FileExists(t, sshFile)
+	b, err := os.ReadFile(sshFile)
+	require.NoError(t, err)
+	const expected = `{
+  "Comment": "This file is written to by test_machine_monitor. Do not edit by hand.",
+  "user_ip": "root@skia-foobar-01"
+}
+`
+	assert.Equal(t, expected, string(b))
 }
 
 func Test_FakeExe_ADBUptime_ReturnsPlaceholder(t *testing.T) {
