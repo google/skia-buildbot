@@ -66,11 +66,11 @@ func (w *WorkerImpl2) CalculateDiffs(ctx context.Context, grouping paramtools.Pa
 		addMetadata(span, grouping, len(additional))
 	}
 	defer span.End()
-	startingTile, err := w.getStartingTile(ctx)
+	startingTile, endingTile, err := w.getTileBounds(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "get starting tile")
 	}
-	allDigests, err := w.getAllExisting(ctx, startingTile, grouping)
+	allDigests, err := w.getAllExisting(ctx, startingTile, endingTile, grouping)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -104,11 +104,11 @@ func convertToDigestBytes(digests []types.Digest) []schema.DigestBytes {
 	return rv
 }
 
-// getStartingTile returns the commit ID which is the beginning of the tile of interest (so we
-// get enough data to do our comparisons).
-func (w *WorkerImpl2) getStartingTile(ctx context.Context) (schema.TileID, error) {
+// getTileBounds returns the tile id corresponding to the commit of the beginning of the window,
+// as well as the most recent tile id (so we get enough data to do our comparisons).
+func (w *WorkerImpl2) getTileBounds(ctx context.Context) (schema.TileID, schema.TileID, error) {
 	if w.windowSize <= 0 {
-		return 0, nil
+		return 0, 0, nil
 	}
 	const statement = `WITH
 RecentCommits AS (
@@ -116,43 +116,58 @@ RecentCommits AS (
 	AS OF SYSTEM TIME '-0.1s'
 	ORDER BY commit_id DESC LIMIT $1
 )
-SELECT tile_id FROM RecentCommits
+SELECT MIN(tile_id), MAX(tile_id) FROM RecentCommits
 AS OF SYSTEM TIME '-0.1s'
-ORDER BY commit_id ASC LIMIT 1`
+`
 	row := w.db.QueryRow(ctx, statement, w.windowSize)
 	var lc pgtype.Int4
-	if err := row.Scan(&lc); err != nil {
+	var mc pgtype.Int4
+	if err := row.Scan(&lc, &mc); err != nil {
 		if err == pgx.ErrNoRows {
-			return 0, nil // not enough commits seen, so start at tile 0.
+			return 0, 0, nil // not enough commits seen, so start at tile 0.
 		}
-		return 0, skerr.Wrapf(err, "getting latest commit")
+		return 0, 0, skerr.Wrapf(err, "getting latest commit")
 	}
-	if lc.Status == pgtype.Null {
+	if lc.Status == pgtype.Null || mc.Status == pgtype.Null {
 		// There are no commits with data, so start at tile 0.
-		return 0, nil
+		return 0, 0, nil
 	}
-	return schema.TileID(lc.Int), nil
+	return schema.TileID(lc.Int), schema.TileID(mc.Int), nil
 }
 
 // getAllExisting returns the unique digests that were seen on the primary branch for a given
 // grouping starting at the given commit.
-func (w *WorkerImpl2) getAllExisting(ctx context.Context, beginTileStart schema.TileID, grouping paramtools.Params) ([]schema.DigestBytes, error) {
+func (w *WorkerImpl2) getAllExisting(ctx context.Context, beginTile, endTile schema.TileID, grouping paramtools.Params) ([]schema.DigestBytes, error) {
 	if w.windowSize <= 0 {
 		return nil, nil
 	}
 	ctx, span := trace.StartSpan(ctx, "getAllExisting")
 	defer span.End()
-	const statement = `
-WITH
-TracesMatchingGrouping AS (
-  SELECT trace_id FROM Traces WHERE grouping_id = $1
-)
-SELECT DISTINCT digest FROM TiledTraceDigests
-JOIN TracesMatchingGrouping on TiledTraceDigests.trace_id = TracesMatchingGrouping.trace_id
-WHERE TiledTraceDigests.tile_id >= $2`
 
 	_, groupingID := sql.SerializeMap(grouping)
-	rows, err := w.db.Query(ctx, statement, groupingID, beginTileStart)
+	tracesForGroup, err := w.getTracesForGroup(ctx, groupingID)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	tilesInRange := make([]schema.TileID, 0, endTile-beginTile+1)
+	for i := beginTile; i <= endTile; i++ {
+		tilesInRange = append(tilesInRange, i)
+	}
+	// We tried doing "fetch traces for group" and "fetch TiledTraceDigests" all in one query.
+	// However, that took a long while in the large Skia repo. The reason being that the index
+	// was not used effectively. Our index is on tile_id + trace_id, however CockroachDB was
+	// having to effectively fetch all rows that came after the starting tile id, even though it
+	// only needed < 0.1% of them (assuming 1000 groupings). The to do this smarter is to specify
+	// exactly what tiles we need (not just "greater than this tile") and exactly what traces we
+	// need. This lets CockroachDB only fetch the portions of the index it needs to. We saw this
+	// be 10x more effective than the previous query with a join.
+	const statement = `
+SELECT DISTINCT digest FROM TiledTraceDigests
+AS OF SYSTEM TIME '-0.1s'
+WHERE tile_id = ANY($1) AND trace_id = ANY($2)`
+
+	rows, err := w.db.Query(ctx, statement, tilesInRange, tracesForGroup)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "fetching digests")
 	}
@@ -164,6 +179,29 @@ WHERE TiledTraceDigests.tile_id >= $2`
 			return nil, skerr.Wrap(err)
 		}
 		rv = append(rv, d)
+	}
+	return rv, nil
+}
+
+// getTracesForGroup returns all the traces that are a part of the specified grouping.
+func (w *WorkerImpl2) getTracesForGroup(ctx context.Context, id schema.GroupingID) ([]schema.TraceID, error) {
+	ctx, span := trace.StartSpan(ctx, "getTracesForGroup")
+	defer span.End()
+	const statement = `SELECT trace_id FROM Traces
+AS OF SYSTEM TIME '-0.1s'
+WHERE grouping_id = $1`
+	rows, err := w.db.Query(ctx, statement, id)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching trace ids")
+	}
+	defer rows.Close()
+	var rv []schema.TraceID
+	for rows.Next() {
+		var t schema.TraceID
+		if err := rows.Scan(&t); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, t)
 	}
 	return rv, nil
 }
