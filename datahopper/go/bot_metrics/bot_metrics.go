@@ -202,7 +202,7 @@ func addMetric(s *events.EventStream, repoUrl string, pct float64, period time.D
 // before any other task, and inserts event data based on the lag time between
 // a commit landing and each task finishing for that commit.
 func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time) error {
-	if err := tCache.Update(); err != nil {
+	if err := tCache.Update(ctx); err != nil {
 		return skerr.Wrapf(err, "failed to update task cache")
 	}
 

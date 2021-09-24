@@ -11,6 +11,7 @@ go_library(
         "//task_scheduler/go/db",
         "//task_scheduler/go/types",
         "//task_scheduler/go/window",
+        "@io_opencensus_go//trace",
     ],
 )
 

@@ -13,6 +13,7 @@ go_library(
         "//go/timeout",
         "//go/util",
         "//task_scheduler/go/types",
+        "@io_opencensus_go//trace",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )

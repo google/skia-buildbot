@@ -1,6 +1,7 @@
 package scheduling
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -76,7 +77,7 @@ func (c *cacheWrapper) UnfinishedTasks() ([]*types.Task, error) {
 }
 
 // See documentation for TaskCache interface.
-func (c *cacheWrapper) Update() error {
+func (c *cacheWrapper) Update(context.Context) error {
 	return fmt.Errorf("cacheWrapper.Update not implemented.")
 }
 

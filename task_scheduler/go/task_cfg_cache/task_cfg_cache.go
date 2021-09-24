@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/atomic_miss_cache"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
@@ -161,6 +162,8 @@ func (c *TaskCfgCache) Close() error {
 // non-recoverable error for this RepoState) error, it is returned as the second
 // return value.
 func (c *TaskCfgCache) Get(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error, error) {
+	ctx, span := trace.StartSpan(ctx, "taskcfgcache_Get")
+	defer span.End()
 	val, err := c.cache.Get(ctx, rs.RowKey())
 	if err != nil {
 		return nil, nil, err

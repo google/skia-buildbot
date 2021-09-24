@@ -12,6 +12,7 @@ go_library(
         "//go/sklog",
         "//go/util",
         "@com_google_cloud_go_firestore//:firestore",
+        "@io_opencensus_go//trace",
         "@org_golang_x_oauth2//:oauth2",
     ],
 )

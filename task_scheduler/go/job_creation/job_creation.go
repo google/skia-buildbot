@@ -332,7 +332,7 @@ func (jc *JobCreator) initCaches(ctx context.Context) error {
 	// Some existing jobs may not have been cached by Cacher already, eg.
 	// because of poorly-timed process restarts. Go through the unfinished
 	// jobs and cache them if necessary.
-	if err := jc.jCache.Update(); err != nil {
+	if err := jc.jCache.Update(ctx); err != nil {
 		return fmt.Errorf("Failed to update job cache: %s", err)
 	}
 	unfinishedJobs, err := jc.jCache.UnfinishedJobs()

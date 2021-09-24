@@ -151,7 +151,7 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 // getActiveTryJobs returns the active (not yet marked as finished in
 // Buildbucket) tryjobs.
 func (t *TryJobIntegrator) getActiveTryJobs() ([]*types.Job, error) {
-	if err := t.jCache.Update(); err != nil {
+	if err := t.jCache.Update(context.TODO()); err != nil {
 		return nil, err
 	}
 	jobs := t.jCache.GetAllCachedJobs()
@@ -482,7 +482,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 }
 
 func (t *TryJobIntegrator) Poll(ctx context.Context) error {
-	if err := t.jCache.Update(); err != nil {
+	if err := t.jCache.Update(ctx); err != nil {
 		return err
 	}
 

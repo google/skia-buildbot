@@ -36,13 +36,14 @@ func TestAddRemove(t *testing.T) {
 		Name:             "My Rule",
 	}
 	require.NoError(t, b1.addRule(r1))
+	ctx := context.Background()
 	// The Firestore emulator doesn't seem to allow different clients to see each
 	// other's data, so we use the same client as b1.
-	b2, err := New(context.Background(), b1.client)
+	b2, err := New(ctx, b1.client)
 	require.NoError(t, err)
 	assertEqual := func() {
 		require.NoError(t, testutils.EventuallyConsistent(30*time.Second, func() error {
-			require.NoError(t, b2.Update())
+			require.NoError(t, b2.Update(ctx))
 			if len(b1.rules) == len(b2.rules) {
 				assertdeep.Equal(t, b1.rules, b2.rules)
 				return nil

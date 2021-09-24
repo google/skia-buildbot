@@ -10,6 +10,7 @@ import (
 	"time"
 
 	fs "cloud.google.com/go/firestore"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
@@ -59,7 +60,7 @@ func New(ctx context.Context, client *firestore.Client) (*DB, error) {
 		client: client,
 		coll:   client.Collection(collection),
 	}
-	if err := b.Update(); err != nil {
+	if err := b.Update(ctx); err != nil {
 		util.LogErr(b.Close())
 		return nil, err
 	}
@@ -75,13 +76,15 @@ func (b *DB) Close() error {
 }
 
 // Update updates the local view of the skip rules to match the remote DB.
-func (b *DB) Update() error {
+func (b *DB) Update(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "skiptasks_Update")
+	defer span.End()
 	if b == nil {
 		return nil
 	}
 	rules := map[string]*Rule{}
 	q := b.coll.Query
-	if err := b.client.IterDocs(context.TODO(), "GetSkipTasksEntries", "", q, defaultAttempts, timeoutGet, func(doc *fs.DocumentSnapshot) error {
+	if err := b.client.IterDocs(ctx, "GetSkipTasksEntries", "", q, defaultAttempts, timeoutGet, func(doc *fs.DocumentSnapshot) error {
 		var r Rule
 		if err := doc.DataTo(&r); err != nil {
 			return err

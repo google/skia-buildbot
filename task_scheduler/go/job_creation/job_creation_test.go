@@ -223,7 +223,7 @@ func TestPeriodicJobs(t *testing.T) {
 
 	// Trigger the periodic jobs. Make sure that we inserted the new Job.
 	require.NoError(t, jc.MaybeTriggerPeriodicJobs(ctx, specs.TRIGGER_NIGHTLY))
-	require.NoError(t, jc.jCache.Update())
+	require.NoError(t, jc.jCache.Update(ctx))
 	start := time.Now().Add(-10 * time.Minute)
 	end := time.Now().Add(10 * time.Minute)
 	jobs, err := jc.jCache.GetMatchingJobsFromDateRange(names, start, end)
@@ -234,7 +234,7 @@ func TestPeriodicJobs(t *testing.T) {
 
 	// Ensure that we don't trigger another.
 	require.NoError(t, jc.MaybeTriggerPeriodicJobs(ctx, specs.TRIGGER_NIGHTLY))
-	require.NoError(t, jc.jCache.Update())
+	require.NoError(t, jc.jCache.Update(ctx))
 	jobs, err = jc.jCache.GetMatchingJobsFromDateRange(names, start, end)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(jobs[nightlyName]))
@@ -246,13 +246,13 @@ func TestPeriodicJobs(t *testing.T) {
 	oldJob.Created = start.Add(-23 * time.Hour)
 	require.NoError(t, jc.db.PutJob(oldJob))
 	jc.jCache.AddJobs([]*types.Job{oldJob})
-	require.NoError(t, jc.jCache.Update())
+	require.NoError(t, jc.jCache.Update(ctx))
 	jobs, err = jc.jCache.GetMatchingJobsFromDateRange(names, start, end)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(jobs[nightlyName]))
 	require.Equal(t, 0, len(jobs[weeklyName]))
 	require.NoError(t, jc.MaybeTriggerPeriodicJobs(ctx, specs.TRIGGER_NIGHTLY))
-	require.NoError(t, jc.jCache.Update())
+	require.NoError(t, jc.jCache.Update(ctx))
 	jobs, err = jc.jCache.GetMatchingJobsFromDateRange(names, start, end)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(jobs[nightlyName]))
@@ -261,7 +261,7 @@ func TestPeriodicJobs(t *testing.T) {
 
 	// Make sure we don't confuse different triggers.
 	require.NoError(t, jc.MaybeTriggerPeriodicJobs(ctx, specs.TRIGGER_WEEKLY))
-	require.NoError(t, jc.jCache.Update())
+	require.NoError(t, jc.jCache.Update(ctx))
 	jobs, err = jc.jCache.GetMatchingJobsFromDateRange(names, start, end)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(jobs[nightlyName]))

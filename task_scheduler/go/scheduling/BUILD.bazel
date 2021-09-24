@@ -31,6 +31,7 @@ go_library(
         "//task_scheduler/go/types",
         "//task_scheduler/go/window",
         "@com_github_hashicorp_go_multierror//:go-multierror",
+        "@io_opencensus_go//trace",
         "@org_golang_x_oauth2//:oauth2",
     ],
 )

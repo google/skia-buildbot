@@ -7,6 +7,7 @@ import (
 	"time"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/skerr"
@@ -41,6 +42,8 @@ func NewSwarmingTaskExecutor(s swarming.ApiClient, casInstance, pubSubTopic stri
 
 // GetFreeMachines implements types.TaskExecutor.
 func (s *SwarmingTaskExecutor) GetFreeMachines(ctx context.Context, pool string) ([]*types.Machine, error) {
+	ctx, span := trace.StartSpan(ctx, "swarming_GetFreeMachines")
+	defer span.End()
 	free, err := s.swarming.ListFreeBots(pool)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -54,6 +57,8 @@ func (s *SwarmingTaskExecutor) GetFreeMachines(ctx context.Context, pool string)
 
 // GetPendingTasks implements types.TaskExecutor.
 func (s *SwarmingTaskExecutor) GetPendingTasks(ctx context.Context, pool string) ([]*types.TaskResult, error) {
+	ctx, span := trace.StartSpan(ctx, "swarming_GetPendingTasks")
+	defer span.End()
 	tasks, err := s.swarming.ListTaskResults(time.Time{}, time.Time{}, []string{fmt.Sprintf("pool:%s", pool)}, "PENDING", false)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -71,6 +76,8 @@ func (s *SwarmingTaskExecutor) GetPendingTasks(ctx context.Context, pool string)
 
 // GetTaskResult implements types.TaskExecutor.
 func (s *SwarmingTaskExecutor) GetTaskResult(ctx context.Context, taskID string) (*types.TaskResult, error) {
+	ctx, span := trace.StartSpan(ctx, "swarming_GetTaskResult")
+	defer span.End()
 	swarmTask, err := s.swarming.GetTask(taskID, false)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -84,6 +91,8 @@ func (s *SwarmingTaskExecutor) GetTaskResult(ctx context.Context, taskID string)
 
 // GetTaskCompletionStatuses implements types.TaskExecutor.
 func (s *SwarmingTaskExecutor) GetTaskCompletionStatuses(ctx context.Context, taskIDs []string) ([]bool, error) {
+	ctx, span := trace.StartSpan(ctx, "swarming_GetTaskCompletionStatuses")
+	defer span.End()
 	states, err := s.swarming.GetStates(taskIDs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -105,6 +114,8 @@ func (s *SwarmingTaskExecutor) GetTaskCompletionStatuses(ctx context.Context, ta
 
 // TriggerTask implements types.TaskExecutor.
 func (s *SwarmingTaskExecutor) TriggerTask(ctx context.Context, req *types.TaskRequest) (*types.TaskResult, error) {
+	ctx, span := trace.StartSpan(ctx, "swarming_TriggerTask")
+	defer span.End()
 	sReq, err := s.convertTaskRequest(req)
 	if err != nil {
 		return nil, skerr.Wrap(err)

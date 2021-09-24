@@ -82,7 +82,7 @@ func (t *taskEventDB) Range(stream string, start, end time.Time) ([]*events.Even
 // call this method, but it can be called concurrently with other methods.
 func (t *taskEventDB) update() error {
 	defer metrics2.FuncTimer().Stop()
-	if err := t.tCache.Update(); err != nil {
+	if err := t.tCache.Update(context.TODO()); err != nil {
 		return skerr.Wrapf(err, "Failed to update cache")
 	}
 	now := time.Now()

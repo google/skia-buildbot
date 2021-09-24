@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tracing",
+    srcs = ["tracing.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/tracing",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@io_opencensus_go//trace",
+        "@io_opencensus_go_contrib_exporter_stackdriver//:stackdriver",
+    ],
+)

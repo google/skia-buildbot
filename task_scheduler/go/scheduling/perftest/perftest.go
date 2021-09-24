@@ -126,12 +126,6 @@ func makeCommits(ctx context.Context, repoDir string, numCommits int) {
 	}
 }
 
-func run(ctx context.Context, dir string, cmd ...string) {
-	if _, err := exec.RunCwd(ctx, dir, cmd...); err != nil {
-		sklog.Fatal(err)
-	}
-}
-
 func addFile(ctx context.Context, repoDir, subPath, contents string) {
 	assertNoError(ioutil.WriteFile(path.Join(repoDir, subPath), []byte(contents), os.ModePerm))
 	_, err := git.GitDir(repoDir).Git(ctx, "add", subPath)
@@ -148,7 +142,7 @@ func waitForNewJobs(ctx context.Context, repos repograph.Map, jc *job_creation.J
 	sklog.Infof("Waiting for QuerySnapshotIterator...")
 	for {
 		time.Sleep(500 * time.Millisecond)
-		assertNoError(jCache.Update())
+		assertNoError(jCache.Update(ctx))
 		unfinished, err := jCache.UnfinishedJobs()
 		assertNoError(err)
 		if len(unfinished) == expectJobs {
@@ -359,7 +353,7 @@ func main() {
 		swarmingClient.MockBots(bots)
 		assertNoError(s.MainLoop(ctx))
 		assertNoError(w.Update())
-		assertNoError(tCache.Update())
+		assertNoError(tCache.Update(ctx))
 		tasks, err := tCache.GetTasksForCommits(repoDir, commits)
 		assertNoError(err)
 		newTasks := map[string]*types.Task{}
@@ -380,11 +374,11 @@ func main() {
 			insert = append(insert, task)
 		}
 		assertNoError(d.PutTasks(insert))
-		assertNoError(tCache.Update())
-		assertNoError(jCache.Update())
+		assertNoError(tCache.Update(ctx))
+		assertNoError(jCache.Update(ctx))
 	}
 
-	assertNoError(jCache.Update())
+	assertNoError(jCache.Update(ctx))
 	allJobs, err := jCache.GetJobsFromDateRange(time.Time{}, time.Now())
 	assertNoError(err)
 	sklog.Infof("Found %d total jobs", len(allJobs))

@@ -15,6 +15,8 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/trace"
+
 	multierror "github.com/hashicorp/go-multierror"
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/cleanup"
@@ -203,7 +205,7 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 	}, nil)
 	lvUpdateUnfinishedTasks := metrics2.NewLiveness("last_successful_tasks_update")
 	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
-		if err := s.updateUnfinishedTasks(); err != nil {
+		if err := s.updateUnfinishedTasks(ctx); err != nil {
 			sklog.Errorf("Failed to run periodic tasks update: %s", err)
 		} else {
 			lvUpdateUnfinishedTasks.Reset()
@@ -360,6 +362,8 @@ func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*taskCandidat
 //   - revision:   Revision at which the task would run.
 //   - commitsBuf: Buffer for use as scratch space.
 func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, tcc *task_cfg_cache.TaskCfgCache, w *window.Window) ([]string, *types.Task, error) {
+	ctx, span := trace.StartSpan(ctx, "taskscheduler_ComputeBlamelist")
+	defer span.End()
 	commitsBuf = commitsBuf[:0]
 	var stealFrom *types.Task
 
@@ -475,6 +479,8 @@ type taskSchedulerMainLoopDiagnostics struct {
 // writeMainLoopDiagnosticsToGCS writes JSON containing allCandidates and
 // freeBots to GCS. If called in a goroutine, the arguments may not be modified.
 func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end time.Time, diagClient gcs.GCSClient, diagInstance string, allCandidates map[types.TaskKey]*taskCandidate, freeBots []*types.Machine, scheduleErr error) error {
+	ctx, span := trace.StartSpan(ctx, "writeMainLoopDiagnosticsToGCS")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 	candidateSlice := make([]*taskCandidate, 0, len(allCandidates))
 	for _, c := range allCandidates {
@@ -504,6 +510,8 @@ func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end tim
 // findTaskCandidatesForJobs returns the set of all taskCandidates needed by all
 // currently-unfinished jobs.
 func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishedJobs []*types.Job) (map[types.TaskKey]*taskCandidate, error) {
+	ctx, span := trace.StartSpan(ctx, "findTaskCandidatesForJobs")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	// Get the repo+commit+taskspecs for each job.
@@ -565,7 +573,9 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 
 // filterTaskCandidates reduces the set of taskCandidates to the ones we might
 // actually want to run and organizes them by repo and TaskSpec name.
-func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskKey]*taskCandidate) (map[string]map[string][]*taskCandidate, error) {
+func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandidates map[types.TaskKey]*taskCandidate) (map[string]map[string][]*taskCandidate, error) {
+	ctx, span := trace.StartSpan(ctx, "filterTaskCandidates")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	candidatesBySpec := map[string]map[string][]*taskCandidate{}
@@ -674,6 +684,8 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
 func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit, diag *taskCandidateScoringDiagnostics) error {
+	ctx, span := trace.StartSpan(ctx, "processTaskCandidate")
+	defer span.End()
 	if len(c.Jobs) == 0 {
 		// Log an error and return to allow scheduling other tasks.
 		sklog.Errorf("taskCandidate has no Jobs: %#v", c)
@@ -776,6 +788,8 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 
 // Process the task candidates.
 func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates map[string]map[string][]*taskCandidate, now time.Time) ([]*taskCandidate, error) {
+	ctx, span := trace.StartSpan(ctx, "processTaskCandidates")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	processed := make(chan *taskCandidate)
@@ -890,7 +904,9 @@ func flatten(dims map[string]string) map[string]string {
 }
 
 // recordCandidateMetrics generates metrics for candidates by dimension sets.
-func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string][]*taskCandidate) {
+func (s *TaskScheduler) recordCandidateMetrics(ctx context.Context, candidates map[string]map[string][]*taskCandidate) {
+	ctx, span := trace.StartSpan(ctx, "recordCandidateMetrics")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	// Generate counts. These maps are keyed by the MD5 hash of the
@@ -944,6 +960,8 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 // them, and prepares them to be triggered. The second return value contains
 // all candidates.
 func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) ([]*taskCandidate, map[types.TaskKey]*taskCandidate, error) {
+	ctx, span := trace.StartSpan(ctx, "regenerateTaskQueue")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	// Find the unfinished Jobs.
@@ -959,13 +977,13 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) 
 	}
 
 	// Filter task candidates.
-	candidates, err := s.filterTaskCandidates(preFilterCandidates)
+	candidates, err := s.filterTaskCandidates(ctx, preFilterCandidates)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Record the number of task candidates per dimension set.
-	s.recordCandidateMetrics(candidates)
+	s.recordCandidateMetrics(ctx, candidates)
 
 	// Process the remaining task candidates.
 	queue, err := s.processTaskCandidates(ctx, candidates, now)
@@ -979,7 +997,9 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) 
 // getCandidatesToSchedule matches the list of free Swarming bots to task
 // candidates in the queue and returns the candidates which should be run.
 // Assumes that the tasks are sorted in decreasing order by score.
-func getCandidatesToSchedule(bots []*types.Machine, tasks []*taskCandidate) []*taskCandidate {
+func getCandidatesToSchedule(ctx context.Context, bots []*types.Machine, tasks []*taskCandidate) []*taskCandidate {
+	ctx, span := trace.StartSpan(ctx, "getCandidatesToSchedule")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 	// Create a bots-by-swarming-dimension mapping.
 	botsByDim := map[string]util.StringSet{}
@@ -1093,6 +1113,8 @@ func getCandidatesToSchedule(bots []*types.Machine, tasks []*taskCandidate) []*t
 // candidates AND an error may both be returned if some were successfully merged
 // but others failed.
 func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*taskCandidate) ([]*taskCandidate, error) {
+	ctx, span := trace.StartSpan(ctx, "mergeCASInputs")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	mergedCandidates := make([]*taskCandidate, 0, len(candidates))
@@ -1115,7 +1137,9 @@ func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*taskCa
 // triggerTasks triggers the given slice of tasks to run on Swarming and returns
 // a channel of the successfully-triggered tasks which is closed after all tasks
 // have been triggered or failed. Each failure is sent to errCh.
-func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- error) <-chan *types.Task {
+func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*taskCandidate, errCh chan<- error) <-chan *types.Task {
+	ctx, span := trace.StartSpan(ctx, "triggerTasks")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 	triggered := make(chan *types.Task)
 	var wg sync.WaitGroup
@@ -1144,7 +1168,7 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 			s.pendingInsertMtx.Lock()
 			s.pendingInsert[t.Id] = true
 			s.pendingInsertMtx.Unlock()
-			resp, err := s.taskExecutor.TriggerTask(context.TODO(), req)
+			resp, err := s.taskExecutor.TriggerTask(ctx, req)
 			if err != nil {
 				s.pendingInsertMtx.Lock()
 				delete(s.pendingInsert, t.Id)
@@ -1180,9 +1204,11 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 // scheduleTasks queries for free Swarming bots and triggers tasks according
 // to relative priorities in the queue.
 func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine, queue []*taskCandidate) error {
+	ctx, span := trace.StartSpan(ctx, "scheduleTasks")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 	// Match free bots with tasks.
-	candidates := getCandidatesToSchedule(bots, queue)
+	candidates := getCandidatesToSchedule(ctx, bots, queue)
 
 	// Merge CAS inputs for the tasks.
 	merged, mergeErr := s.mergeCASInputs(ctx, candidates)
@@ -1206,7 +1232,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine
 	}()
 
 	// Trigger Swarming tasks.
-	triggered := s.triggerTasks(merged, errCh)
+	triggered := s.triggerTasks(ctx, merged, errCh)
 
 	// Collect the tasks we triggered.
 	numTriggered := 0
@@ -1296,41 +1322,36 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine
 
 // MainLoop runs a single end-to-end task scheduling loop.
 func (s *TaskScheduler) MainLoop(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "taskscheduler_MainLoop")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	sklog.Infof("Task Scheduler MainLoop starting...")
 	start := time.Now()
 
-	var getSwarmingBotsErr error
 	var wg sync.WaitGroup
 
 	var bots []*types.Machine
+	var getSwarmingBotsErr error
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		var err error
-		bots, err = getFreeMachines(s.taskExecutor, s.busyBots, s.pools)
-		if err != nil {
-			getSwarmingBotsErr = err
-			return
-		}
-
+		bots, getSwarmingBotsErr = getFreeMachines(ctx, s.taskExecutor, s.busyBots, s.pools)
 	}()
 
-	if err := s.tCache.Update(); err != nil {
+	if err := s.tCache.Update(ctx); err != nil {
 		return fmt.Errorf("Failed to update task cache: %s", err)
 	}
 
-	if err := s.jCache.Update(); err != nil {
+	if err := s.jCache.Update(ctx); err != nil {
 		return fmt.Errorf("Failed to update job cache: %s", err)
 	}
 
-	if err := s.updateUnfinishedJobs(); err != nil {
+	if err := s.updateUnfinishedJobs(ctx); err != nil {
 		return fmt.Errorf("Failed to update unfinished jobs: %s", err)
 	}
 
-	if err := s.skipTasks.Update(); err != nil {
+	if err := s.skipTasks.Update(ctx); err != nil {
 		return fmt.Errorf("Failed to update skip_tasks: %s", err)
 	}
 
@@ -1398,8 +1419,8 @@ func (s *TaskScheduler) timeDecayForCommit(now time.Time, commit *repograph.Comm
 	return rv, nil
 }
 
-func (ts *TaskScheduler) GetSkipTasks() *skip_tasks.DB {
-	return ts.skipTasks
+func (s *TaskScheduler) GetSkipTasks() *skip_tasks.DB {
+	return s.skipTasks
 }
 
 // testedness computes the total "testedness" of a set of commits covered by a
@@ -1459,7 +1480,9 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 }
 
 // getFreeMachines returns a slice of free machines.
-func getFreeMachines(taskExec types.TaskExecutor, busy *busyBots, pools []string) ([]*types.Machine, error) {
+func getFreeMachines(ctx context.Context, taskExec types.TaskExecutor, busy *busyBots, pools []string) ([]*types.Machine, error) {
+	ctx, span := trace.StartSpan(ctx, "getFreeMachines")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	// Query for free machines and pending tasks in all pools.
@@ -1473,7 +1496,7 @@ func getFreeMachines(taskExec types.TaskExecutor, busy *busyBots, pools []string
 		wg.Add(1)
 		go func(pool string) {
 			defer wg.Done()
-			b, err := taskExec.GetFreeMachines(context.TODO(), pool)
+			b, err := taskExec.GetFreeMachines(ctx, pool)
 			mtx.Lock()
 			defer mtx.Unlock()
 			if err != nil {
@@ -1487,7 +1510,7 @@ func getFreeMachines(taskExec types.TaskExecutor, busy *busyBots, pools []string
 		wg.Add(1)
 		go func(pool string) {
 			defer wg.Done()
-			pendingTasks, err := taskExec.GetPendingTasks(context.TODO(), pool)
+			pendingTasks, err := taskExec.GetPendingTasks(ctx, pool)
 			mtx.Lock()
 			defer mtx.Unlock()
 			if err != nil {
@@ -1522,10 +1545,12 @@ func getFreeMachines(taskExec types.TaskExecutor, busy *busyBots, pools []string
 
 // updateUnfinishedTasks queries Swarming for all unfinished tasks and updates
 // their status in the DB.
-func (s *TaskScheduler) updateUnfinishedTasks() error {
+func (s *TaskScheduler) updateUnfinishedTasks(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "updateUnfinishedTasks")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 	// Update the TaskCache.
-	if err := s.tCache.Update(); err != nil {
+	if err := s.tCache.Update(ctx); err != nil {
 		return err
 	}
 
@@ -1541,7 +1566,7 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 	for _, t := range tasks {
 		ids = append(ids, t.SwarmingTaskId)
 	}
-	finishedStates, err := s.taskExecutor.GetTaskCompletionStatuses(context.TODO(), ids)
+	finishedStates, err := s.taskExecutor.GetTaskCompletionStatuses(ctx, ids)
 	if err != nil {
 		return err
 	}
@@ -1561,12 +1586,12 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 			wg.Add(1)
 			go func(idx int, t *types.Task) {
 				defer wg.Done()
-				taskResult, err := s.taskExecutor.GetTaskResult(context.TODO(), t.SwarmingTaskId)
+				taskResult, err := s.taskExecutor.GetTaskResult(ctx, t.SwarmingTaskId)
 				if err != nil {
 					errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
 					return
 				}
-				modified, err := db.UpdateDBFromTaskResult(s.db, taskResult)
+				modified, err := db.UpdateDBFromTaskResult(ctx, s.db, taskResult)
 				if err != nil {
 					errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
 					return
@@ -1583,12 +1608,14 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 		}
 	}
 
-	return s.tCache.Update()
+	return s.tCache.Update(ctx)
 }
 
 // updateUnfinishedJobs updates all not-yet-finished Jobs to determine if their
 // state has changed.
-func (s *TaskScheduler) updateUnfinishedJobs() error {
+func (s *TaskScheduler) updateUnfinishedJobs(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "updateUnfinishedJobs")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 	jobs, err := s.jCache.UnfinishedJobs()
 	if err != nil {
@@ -1740,6 +1767,8 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*typ
 // groups Tasks by repo and TaskSpec name. May return error on partial success.
 // May modify Commits and Id of argument tasks on error.
 func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[string][]*types.Task) error {
+	ctx, span := trace.StartSpan(ctx, "addTasks")
+	defer span.End()
 	type queueItem struct {
 		Repo string
 		Name string
@@ -1761,7 +1790,7 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 		if len(queue) == 0 {
 			return nil
 		}
-		if err := s.tCache.Update(); err != nil {
+		if err := s.tCache.Update(ctx); err != nil {
 			return err
 		}
 
@@ -1809,6 +1838,8 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 // updates the associated types.Task in the database. Returns a bool indicating
 // whether the pubsub message should be acknowledged.
 func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bool {
+	ctx, span := trace.StartSpan(context.Background(), "taskscheduler_HandleSwarmingPubSub")
+	defer span.End()
 	s.pubsubCount.Inc(1)
 	if msg.UserData == "" {
 		// This message is invalid. ACK it to make it go away.
@@ -1826,7 +1857,7 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 	}
 
 	// Obtain the Swarming task data.
-	res, err := s.taskExecutor.GetTaskResult(context.TODO(), msg.SwarmingTaskId)
+	res, err := s.taskExecutor.GetTaskResult(ctx, msg.SwarmingTaskId)
 	if err != nil {
 		sklog.Errorf("pubsub: Failed to retrieve task from Swarming: %s", err)
 		return true
@@ -1836,7 +1867,7 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 		return true
 	}
 	// Update the task in the DB.
-	if _, err := db.UpdateDBFromTaskResult(s.db, res); err != nil {
+	if _, err := db.UpdateDBFromTaskResult(ctx, s.db, res); err != nil {
 		// TODO(borenet): Some of these cases should never be hit, after all tasks
 		// start supplying the ID in msg.UserData. We should be able to remove the logic.
 		id := "<MISSING ID TAG>"

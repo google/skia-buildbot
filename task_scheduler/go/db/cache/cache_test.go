@@ -58,7 +58,7 @@ func TestTaskCache(t *testing.T) {
 	require.NoError(t, d.PutTasks([]*types.Task{t2, t1}))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 
 	// Ensure that t2 (and not t1) shows up for commits "c" and "d".
 	testGetTasksForCommits(t, c, t1)
@@ -70,7 +70,7 @@ func TestTaskCache(t *testing.T) {
 	require.NoError(t, d.PutTask(t3))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	tasks, err := c.GetTasksForCommits(types.DEFAULT_TEST_REPO, []string{"b"})
 	require.NoError(t, err)
 	assertdeep.Equal(t, map[string]map[string]*types.Task{
@@ -86,7 +86,7 @@ func TestTaskCache(t *testing.T) {
 	old.Name = "outdated"
 	old.DbModified = old.DbModified.Add(-time.Hour)
 	c.(*taskCache).modified[old.Id] = old
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	got, err := c.GetTask(old.Id)
 	require.NoError(t, err)
 	assertdeep.Equal(t, got, t1)
@@ -115,7 +115,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	require.NoError(t, d.PutTask(t1))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	require.False(t, c.KnownTaskName(t1.Repo, t1.Name))
 
 	// Forced jobs don't count toward KnownTaskName.
@@ -124,7 +124,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	require.NoError(t, d.PutTask(t2))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	require.False(t, c.KnownTaskName(t2.Repo, t2.Name))
 
 	// Normal task.
@@ -132,7 +132,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	require.NoError(t, d.PutTask(t3))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	require.True(t, c.KnownTaskName(t3.Repo, t3.Name))
 }
 
@@ -165,7 +165,7 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	require.NoError(t, d.PutTasks([]*types.Task{t2, t3}))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 
 	// Ensure that all tasks show up in the correct time ranges, in sorted order.
 	t1Before := t1.Created
@@ -337,7 +337,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	require.NoError(t, d.PutTask(t1))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	tasks, err = c.UnfinishedTasks()
 	require.NoError(t, err)
 	assertdeep.Equal(t, []*types.Task{}, tasks)
@@ -349,7 +349,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	require.NoError(t, d.PutTask(t2))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	tasks, err = c.UnfinishedTasks()
 	require.NoError(t, err)
 	assertdeep.Equal(t, []*types.Task{}, tasks)
@@ -360,7 +360,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	require.NoError(t, d.PutTask(t3))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	tasks, err = c.UnfinishedTasks()
 	require.NoError(t, err)
 	assertdeep.Equal(t, []*types.Task{t3}, tasks)
@@ -371,7 +371,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	require.NoError(t, d.PutTask(t3))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	tasks, err = c.UnfinishedTasks()
 	require.NoError(t, err)
 	assertdeep.Equal(t, []*types.Task{t3}, tasks)
@@ -491,7 +491,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 
 	// update, expiring tasks[0] and tasks[1].
 	require.NoError(t, w.UpdateWithTime(tasks[0].Created.Add(period).Add(time.Nanosecond)))
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 
 	{
 		// Check that tasks[0] and tasks[1] are no longer in the cache.
@@ -540,7 +540,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 	d.Wait()
 	<-wait
 	require.NoError(t, w.UpdateWithTime(newTasks[0].Created.Add(period)))
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 
 	{
 		// Check that only new task is in the cache.
@@ -605,7 +605,7 @@ func TestJobCache(t *testing.T) {
 	<-wait
 	test, err = c.GetJob(j2.Id)
 	require.Error(t, err)
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	test, err = c.GetJob(j2.Id)
 	require.NoError(t, err)
 	assertdeep.Equal(t, j2, test)
@@ -620,7 +620,7 @@ func TestJobCache(t *testing.T) {
 	old.Name = "outdated"
 	old.DbModified = old.DbModified.Add(-time.Hour)
 	c.(*jobCache).modified[old.Id] = old
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	got, err := c.GetJob(old.Id)
 	require.NoError(t, err)
 	assertdeep.Equal(t, got, j1)
@@ -664,7 +664,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	require.NoError(t, d.PutJob(j1))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	testGetUnfinished(t, []*types.Job{}, c)
 
 	// Already-finished job.
@@ -674,7 +674,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	require.NoError(t, d.PutJob(j2))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	testGetUnfinished(t, []*types.Job{}, c)
 
 	// An unfinished job, created after the cache was created.
@@ -683,7 +683,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	require.NoError(t, d.PutJob(j3))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	testGetUnfinished(t, []*types.Job{j3}, c)
 
 	// Update the job.
@@ -692,7 +692,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	require.NoError(t, d.PutJob(j3))
 	d.Wait()
 	<-wait
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 	testGetUnfinished(t, []*types.Job{j3}, c)
 }
 
@@ -836,7 +836,7 @@ func TestJobCacheExpiration(t *testing.T) {
 
 	// update, expiring jobs[0] and jobs[1].
 	require.NoError(t, w.UpdateWithTime(timeStart.Add(time.Minute).Add(period).Add(time.Nanosecond)))
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 
 	// Check that jobs[0] and jobs[1] are no longer in the cache.
 	assertJobsNotCached(t, c, jobs[:2])
@@ -852,7 +852,7 @@ func TestJobCacheExpiration(t *testing.T) {
 	d.Wait()
 	<-wait
 	require.NoError(t, w.UpdateWithTime(timeStart.Add(5*time.Minute).Add(period).Add(-time.Nanosecond)))
-	require.NoError(t, c.Update())
+	require.NoError(t, c.Update(ctx))
 
 	// Check that only new job is in the cache.
 	assertJobsNotCached(t, c, jobs)

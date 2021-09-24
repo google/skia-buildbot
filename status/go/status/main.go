@@ -822,7 +822,7 @@ func main() {
 	}
 	lvTaskCache := metrics2.NewLiveness("status_task_cache")
 	go util.RepeatCtx(ctx, 60*time.Second, func(ctx context.Context) {
-		if err := tCache.Update(); err != nil {
+		if err := tCache.Update(ctx); err != nil {
 			sklog.Errorf("Failed to update TaskCache: %s", err)
 		} else {
 			lvTaskCache.Reset()

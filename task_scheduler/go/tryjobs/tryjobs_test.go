@@ -414,7 +414,7 @@ func TestRetry(t *testing.T) {
 	require.False(t, j1.IsForce)
 	require.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
-	require.NoError(t, trybots.jCache.Update())
+	require.NoError(t, trybots.jCache.Update(ctx))
 
 	// Obtain a second try job, ensure that it gets IsForce = true.
 	b2 := Build(t, now)

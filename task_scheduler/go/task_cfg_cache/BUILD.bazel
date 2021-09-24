@@ -13,6 +13,7 @@ go_library(
         "//task_scheduler/go/specs",
         "//task_scheduler/go/types",
         "@com_google_cloud_go_bigtable//:bigtable",
+        "@io_opencensus_go//trace",
         "@org_golang_google_api//option",
         "@org_golang_x_oauth2//:oauth2",
     ],

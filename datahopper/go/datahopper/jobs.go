@@ -122,7 +122,7 @@ func (j *jobEventDB) Range(stream string, start, end time.Time) ([]*events.Event
 // call this method, but it can be called concurrently with other methods.
 func (j *jobEventDB) update() error {
 	defer metrics2.FuncTimer().Stop()
-	if err := j.jCache.Update(); err != nil {
+	if err := j.jCache.Update(context.TODO()); err != nil {
 		return err
 	}
 	now := time.Now()
@@ -502,7 +502,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 	if err := m.window.Update(); err != nil {
 		return err
 	}
-	if err := m.jCache.Update(); err != nil {
+	if err := m.jCache.Update(ctx); err != nil {
 		return err
 	}
 

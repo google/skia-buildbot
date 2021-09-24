@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -75,7 +76,7 @@ type TaskCache interface {
 	UnfinishedTasks() ([]*types.Task, error)
 
 	// Update loads new tasks from the database.
-	Update() error
+	Update(ctx context.Context) error
 
 	// AddTasks adds tasks directly to the TaskCache.
 	AddTasks([]*types.Task)
@@ -382,7 +383,9 @@ func (c *taskCache) insertOrUpdateTask(task *types.Task) {
 }
 
 // See documentation for TaskCache interface.
-func (c *taskCache) Update() error {
+func (c *taskCache) Update(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "taskcache_Update")
+	defer span.End()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	c.modMtx.Lock()
@@ -481,7 +484,7 @@ type JobCache interface {
 	UnfinishedJobs() ([]*types.Job, error)
 
 	// Update loads new jobs from the database.
-	Update() error
+	Update(ctx context.Context) error
 
 	// AddJobs adds jobs directly to the JobCache.
 	AddJobs([]*types.Job)
@@ -731,7 +734,9 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 }
 
 // See documentation for JobCache interface.
-func (c *jobCache) Update() error {
+func (c *jobCache) Update(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "jobcache_Update")
+	defer span.End()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	c.modMtx.Lock()

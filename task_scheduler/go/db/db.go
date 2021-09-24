@@ -7,6 +7,7 @@ import (
 	"sort"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -460,7 +461,9 @@ func GetJobsFromWindow(db JobReader, w *window.Window, now time.Time) ([]*types.
 var errNotModified = errors.New("Task not modified")
 
 // UpdateDBFromTaskResult updates a task in db from data in s.
-func UpdateDBFromTaskResult(db TaskDB, res *types.TaskResult) (bool, error) {
+func UpdateDBFromTaskResult(ctx context.Context, db TaskDB, res *types.TaskResult) (bool, error) {
+	ctx, span := trace.StartSpan(ctx, "db_UpdateDBFromTaskResult")
+	defer span.End()
 	id, ok := res.Tags[types.SWARMING_TAG_ID]
 	if !ok || len(id) == 0 {
 		return false, skerr.Fmt("missing %s tag", types.SWARMING_TAG_ID)

@@ -5,6 +5,8 @@ import (
 	"flag"
 	"time"
 
+	"go.skia.org/infra/task_scheduler/go/tracing"
+
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
@@ -75,6 +77,9 @@ func main() {
 	)
 	defer common.Defer()
 
+	if err := tracing.Initialize(0.1); err != nil {
+		sklog.Fatalf("Could not set up tracing: %s", err)
+	}
 	ctx, cancelFn := context.WithCancel(context.Background())
 	cleanup.AtExit(cancelFn)
 

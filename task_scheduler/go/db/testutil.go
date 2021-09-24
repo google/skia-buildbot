@@ -1546,7 +1546,7 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 	s.CasOutput = "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32"
 	s.MachineID = "H"
 
-	modified, err = UpdateDBFromTaskResult(db, s)
+	modified, err = UpdateDBFromTaskResult(context.TODO(), db, s)
 	require.NoError(t, err)
 	require.True(t, modified)
 
@@ -1575,7 +1575,7 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 		DbModified: updatedTask.DbModified,
 	})
 
-	modified, err = UpdateDBFromTaskResult(db, s)
+	modified, err = UpdateDBFromTaskResult(context.TODO(), db, s)
 	require.NoError(t, err)
 	require.False(t, modified)
 }
