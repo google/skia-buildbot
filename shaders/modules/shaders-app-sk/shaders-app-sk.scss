@@ -193,15 +193,8 @@
     }
 
     summary {
-      display: initial;
-      margin: initial;
-      padding: initial;
-      list-style: initial;
-      box-shadow: initial;
-      outline: initial;
-      outline-offset: initial;
-      border: none;
-      background: var(--surface);
+      background-color: var(--surface);
+      border-color: var(--on-surface);
       color: var(--on-surface);
     }
 
