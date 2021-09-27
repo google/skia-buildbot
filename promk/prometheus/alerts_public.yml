@@ -408,17 +408,6 @@ groups:
       abbr: '{{ $labels.exported_instance }}'
       description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
 
-# Internal RPis.
-  - alert: DiskSpaceLow
-    expr: collectd_df_df_complex{df=~"var|tmp",exported_instance=~"skia-i-rpi-.+",type="free"} < 1e8
-    for: 5m
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.exported_instance }}'
-      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
-
 # Internal bots except RPis.
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df="root",exported_instance=~"skia-i-[^r].+",type="free"} < 1e9
