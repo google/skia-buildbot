@@ -51,7 +51,7 @@ GOOGLE_RELEASE=13729.56.0`
 )
 
 func TestTryInterrogatingAndroidDevice_DeviceAttached_Success(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_AdbGetState_Success",
 		"Test_FakeExe_ADBUptime_ReturnsPlaceholder",
@@ -72,7 +72,7 @@ func TestTryInterrogatingAndroidDevice_DeviceAttached_Success(t *testing.T) {
 }
 
 func TestTryInterrogatingAndroidDevice_UptimeFails_DeviceConsideredNotAttached(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_ExitCodeOne",
 	)
@@ -83,7 +83,7 @@ func TestTryInterrogatingAndroidDevice_UptimeFails_DeviceConsideredNotAttached(t
 }
 
 func TestTryInterrogatingAndroidDevice_ThermalFails_PartialSuccess(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_AdbGetState_Success",
 		"Test_FakeExe_ADBUptime_ReturnsPlaceholder",
@@ -103,7 +103,7 @@ func TestTryInterrogatingAndroidDevice_ThermalFails_PartialSuccess(t *testing.T)
 }
 
 func TestTryInterrogatingChromeOS_DeviceReachable_Success(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_SSHUptime_ReturnsPlaceholder",
 		"Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder",
@@ -135,7 +135,7 @@ func TestTryInterrogatingChromeOS_DeviceReachable_Success(t *testing.T) {
 }
 
 func TestTryInterrogatingChromeOS_CatLSBReleaseFails_DeviceConsideredUnattached(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_SSHUptime_ReturnsPlaceholder",
 		"Test_FakeExe_ExitCodeOne", // pretend LSBRelease failed
@@ -147,7 +147,7 @@ func TestTryInterrogatingChromeOS_CatLSBReleaseFails_DeviceConsideredUnattached(
 }
 
 func TestTryInterrogatingChromeOS_NoSSHUserIP_ReturnFalse(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext() // Any exe call will panic
 
 	m := &Machine{ssh: ssh.ExeImpl{}}
@@ -156,7 +156,7 @@ func TestTryInterrogatingChromeOS_NoSSHUserIP_ReturnFalse(t *testing.T) {
 }
 
 func TestTryInterrogatingChromeOS_UptimeFails_ReturnFalse(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_ExitCodeOne", // pretend uptime fails
 	)
@@ -167,7 +167,7 @@ func TestTryInterrogatingChromeOS_UptimeFails_ReturnFalse(t *testing.T) {
 }
 
 func TestTryInterrogatingChromeOS_NoChromeOSData_AssumesNotAttached(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_SSHLSBRelease_ReturnsNonChromeOS",
 	)
@@ -178,7 +178,7 @@ func TestTryInterrogatingChromeOS_NoChromeOSData_AssumesNotAttached(t *testing.T
 }
 
 func TestInterrogate_NoDeviceAttached_Success(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_ExitCodeOne", // No Android device
 	)
@@ -206,7 +206,7 @@ func TestInterrogate_NoDeviceAttached_Success(t *testing.T) {
 }
 
 func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_AdbGetState_Success",
 		"Test_FakeExe_ADBUptime_ReturnsPlaceholder",
@@ -244,7 +244,7 @@ func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 }
 
 func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_SSHUptime_ReturnsPlaceholder",
 		"Test_FakeExe_SSHLSBRelease_ReturnsPlaceholder",
@@ -291,6 +291,59 @@ func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 }
 `
 	assert.Equal(t, expected, string(b))
+}
+
+func TestRebootDevice_Success(t *testing.T) {
+	unittest.MediumTest(t)
+
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_AdbReboot_Success",
+	)
+
+	m := &Machine{
+		adb: adb.New(),
+		description: machine.Description{
+			Dimensions: machine.SwarmingDimensions{
+				machine.DimAndroidDevices: []string{"sprout"},
+			},
+		},
+	}
+
+	require.NoError(t, m.RebootDevice(ctx))
+	assert.Equal(t, 1, executil.FakeCommandsReturned(ctx))
+}
+
+func TestRebootDevice_ErrOnNonZeroExitCode(t *testing.T) {
+	unittest.MediumTest(t)
+
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_Reboot_NonZeroExitCode",
+	)
+
+	m := &Machine{
+		adb: adb.New(),
+		description: machine.Description{
+			Dimensions: machine.SwarmingDimensions{
+				machine.DimAndroidDevices: []string{"sprout"},
+			},
+		},
+	}
+
+	require.Error(t, m.RebootDevice(ctx))
+	assert.Equal(t, 1, executil.FakeCommandsReturned(ctx))
+}
+
+func TestRebootDevice_NoErrorIfNoDevicesAttached(t *testing.T) {
+	unittest.MediumTest(t)
+
+	ctx := executil.FakeTestsContext() // Any exe call will panic
+
+	m := &Machine{
+		adb:         adb.New(),
+		description: machine.Description{},
+	}
+
+	require.NoError(t, m.RebootDevice(ctx))
 }
 
 func Test_FakeExe_ADBUptime_ReturnsPlaceholder(t *testing.T) {
@@ -414,4 +467,29 @@ func Test_FakeExe_AdbGetState_Success(t *testing.T) {
 
 	// Force exit so we don't get PASS in the output.
 	os.Exit(0)
+}
+
+func Test_FakeExe_AdbReboot_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "reboot"}, args)
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
+}
+
+func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	_, _ = fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
+
+	os.Exit(127)
 }

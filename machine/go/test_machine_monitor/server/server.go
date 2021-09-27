@@ -117,7 +117,7 @@ type settings struct {
 // Will emit a JSON dictionary on GET with the settings.
 //
 // https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/// config/test_machine_monitor.py
-func (s *Server) getSettings(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getSettings(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s.getSettingsRequests.Inc(1)
 	dict := settings{
@@ -169,7 +169,7 @@ func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
 // No other data is passed with this call.
 //
 // https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/config/test_machine_monitor.py
-func (s *Server) onBeforeTask(w http.ResponseWriter, r *http.Request) {
+func (s *Server) onBeforeTask(http.ResponseWriter, *http.Request) {
 	s.machine.SetIsRunningSwarmingTask(true)
 	s.onBeforeTaskSuccess.Inc(1)
 }
@@ -179,7 +179,7 @@ func (s *Server) onBeforeTask(w http.ResponseWriter, r *http.Request) {
 // No other data is passed with this call.
 //
 // https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/config/test_machine_monitor.py
-func (s *Server) onAfterTask(w http.ResponseWriter, r *http.Request) {
+func (s *Server) onAfterTask(_ http.ResponseWriter, r *http.Request) {
 	s.machine.SetIsRunningSwarmingTask(false)
 	s.onAfterTaskSuccess.Inc(1)
 	if err := s.machine.RebootDevice(r.Context()); err != nil {
