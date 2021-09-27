@@ -239,11 +239,14 @@ func (m *Machine) IsRunningSwarmingTask() bool {
 // RebootDevice reboots the attached device.
 func (m *Machine) RebootDevice(ctx context.Context) error {
 	m.mutex.Lock()
-	shouldReboot := len(m.description.Dimensions[machine.DimAndroidDevices]) > 0
+	shouldRebootAndroid := len(m.description.Dimensions[machine.DimAndroidDevices]) > 0
+	sshUserIP := m.description.SSHUserIP
 	m.mutex.Unlock()
 
-	if shouldReboot {
+	if shouldRebootAndroid {
 		return m.adb.Reboot(ctx)
+	} else if sshUserIP != "" {
+		return m.rebootChromeOS(ctx, sshUserIP)
 	}
 	sklog.Info("No attached device to reboot.")
 	return nil
@@ -352,4 +355,14 @@ func (m *Machine) tryInterrogatingChromeOSDevice(ctx context.Context) (machine.C
 		return machine.ChromeOS{}, false
 	}
 	return rv, true
+}
+
+// rebootChromeOS reboots the ChromeOS device attached via SSH.
+func (m *Machine) rebootChromeOS(ctx context.Context, userIP string) error {
+	out, err := m.ssh.Run(ctx, userIP, "reboot")
+	if err != nil {
+		sklog.Warningf("Could not reboot ChromeOS device %s: %s", m.description.SSHUserIP, out)
+		return skerr.Wrap(err)
+	}
+	return nil
 }

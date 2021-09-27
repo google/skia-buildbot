@@ -293,7 +293,7 @@ func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 	assert.Equal(t, expected, string(b))
 }
 
-func TestRebootDevice_Success(t *testing.T) {
+func TestRebootDevice_AndroidDeviceAttached_Success(t *testing.T) {
 	unittest.MediumTest(t)
 
 	ctx := executil.FakeTestsContext(
@@ -313,7 +313,7 @@ func TestRebootDevice_Success(t *testing.T) {
 	assert.Equal(t, 1, executil.FakeCommandsReturned(ctx))
 }
 
-func TestRebootDevice_ErrOnNonZeroExitCode(t *testing.T) {
+func TestRebootDevice_AndroidDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) {
 	unittest.MediumTest(t)
 
 	ctx := executil.FakeTestsContext(
@@ -339,11 +339,46 @@ func TestRebootDevice_NoErrorIfNoDevicesAttached(t *testing.T) {
 	ctx := executil.FakeTestsContext() // Any exe call will panic
 
 	m := &Machine{
-		adb:         adb.New(),
 		description: machine.Description{},
 	}
 
 	require.NoError(t, m.RebootDevice(ctx))
+}
+
+func TestRebootDevice_ChromeOSDeviceAttached_Success(t *testing.T) {
+	unittest.MediumTest(t)
+
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_SSHReboot_Success",
+	)
+
+	m := &Machine{
+		ssh: ssh.ExeImpl{},
+		description: machine.Description{
+			SSHUserIP: testUserIP,
+		},
+	}
+
+	require.NoError(t, m.RebootDevice(ctx))
+	assert.Equal(t, 1, executil.FakeCommandsReturned(ctx))
+}
+
+func TestRebootDevice_ChromeOSDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) {
+	unittest.MediumTest(t)
+
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_ExitCodeOne",
+	)
+
+	m := &Machine{
+		ssh: ssh.ExeImpl{},
+		description: machine.Description{
+			SSHUserIP: testUserIP,
+		},
+	}
+
+	require.Error(t, m.RebootDevice(ctx))
+	assert.Equal(t, 1, executil.FakeCommandsReturned(ctx))
 }
 
 func Test_FakeExe_ADBUptime_ReturnsPlaceholder(t *testing.T) {
@@ -492,4 +527,20 @@ func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
 	_, _ = fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
 
 	os.Exit(127)
+}
+
+func Test_FakeExe_SSHReboot_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Contains(t, args, "ssh")
+	require.Contains(t, args, testUserIP)
+	require.Contains(t, args, "reboot")
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
 }
