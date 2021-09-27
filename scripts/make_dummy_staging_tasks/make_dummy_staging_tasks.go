@@ -79,7 +79,7 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		tasks, err := db.GetTasksFromDateRange(nowTs.Add(-5*24*time.Hour), nowTs, common.REPO_SKIA)
+		tasks, err := db.GetTasksFromDateRange(ctx, nowTs.Add(-5*24*time.Hour), nowTs, common.REPO_SKIA)
 		if err != nil {
 			sklog.Fatal(err)
 		}

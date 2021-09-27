@@ -157,13 +157,13 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 
 	// AssignId should fill in t1.Id.
 	require.Equal(t, "", t1.Id)
-	require.NoError(t, db.AssignId(t1))
+	require.NoError(t, db.AssignId(ctx, t1))
 	require.NotEqual(t, "", t1.Id)
 	// Ids must be URL-safe.
 	require.Equal(t, url.QueryEscape(t1.Id), t1.Id)
 
 	// Task doesn't exist in DB yet.
-	noTask, err := db.GetTaskById(t1.Id)
+	noTask, err := db.GetTaskById(ctx, t1.Id)
 	require.NoError(t, err)
 	require.Nil(t, noTask)
 
@@ -174,14 +174,14 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	t1.Created = now
 
 	// Insert the task.
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 
 	// Check that DbModified was set.
 	require.False(t, util.TimeIsZero(t1.DbModified))
 	t1LastModified := t1.DbModified
 
 	// Task can now be retrieved by Id.
-	t1Again, err := db.GetTaskById(t1.Id)
+	t1Again, err := db.GetTaskById(ctx, t1.Id)
 	require.NoError(t, err)
 	AssertDeepEqual(t, t1, t1Again)
 
@@ -192,13 +192,13 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	t1Before := t1.Created
 	t1After := t1Before.Add(1 * TS_RESOLUTION)
 	timeEnd := now.Add(2 * TS_RESOLUTION)
-	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, timeStart, t1Before, "")
 	require.NoError(t, err)
 	require.Equal(t, 0, len(tasks))
-	tasks, err = db.GetTasksFromDateRange(t1Before, t1After, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, t1Before, t1After, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1}, tasks)
-	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, t1After, timeEnd, "")
 	require.NoError(t, err)
 	require.Equal(t, 0, len(tasks))
 
@@ -206,7 +206,7 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	// times so that t1After != t2Before and t2After != t3Before.
 	t2 := types.MakeTestTask(now.Add(TS_RESOLUTION), []string{"e", "f"})
 	t3 := types.MakeTestTask(now.Add(2*TS_RESOLUTION), []string{"g", "h"})
-	require.NoError(t, db.PutTasks([]*types.Task{t2, t3}))
+	require.NoError(t, db.PutTasks(ctx, []*types.Task{t2, t3}))
 
 	// Check that PutTasks assigned Ids.
 	require.NotEqual(t, "", t2.Id)
@@ -222,7 +222,7 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	t2LastModified := t2.DbModified
 	t1.Status = types.TASK_STATUS_RUNNING
 	t2.Status = types.TASK_STATUS_SUCCESS
-	require.NoError(t, db.PutTasks([]*types.Task{t1, t2}))
+	require.NoError(t, db.PutTasks(ctx, []*types.Task{t1, t2}))
 	require.False(t, t1.DbModified.Equal(t1LastModified))
 	require.False(t, t2.DbModified.Equal(t2LastModified))
 
@@ -238,55 +238,55 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 
 	timeEnd = now.Add(3 * TS_RESOLUTION)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, timeStart, t1Before, "")
 	require.NoError(t, err)
 	require.Equal(t, 0, len(tasks))
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t1After, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, timeStart, t1After, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t2Before, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, timeStart, t2Before, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t2After, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, timeStart, t2After, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t3Before, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, timeStart, t3Before, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t3After, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, timeStart, t3After, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, timeEnd, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, timeStart, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t1Before, timeEnd, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, t1Before, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, t1After, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t2Before, timeEnd, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, t2Before, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t2After, timeEnd, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, t2After, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t3Before, timeEnd, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, t3Before, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t3After, timeEnd, "")
+	tasks, err = db.GetTasksFromDateRange(ctx, t3After, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{}, tasks)
 }
@@ -294,48 +294,50 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 // Test that PutTask and PutTasks return ErrConcurrentUpdate when a cached Task
 // has been updated in the DB.
 func TestTaskDBConcurrentUpdate(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
+
 	// Insert a task.
 	t1 := types.MakeTestTask(time.Now(), []string{"a", "b", "c", "d"})
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 
 	// Retrieve a copy of the task.
-	t1Cached, err := db.GetTaskById(t1.Id)
+	t1Cached, err := db.GetTaskById(ctx, t1.Id)
 	require.NoError(t, err)
 	AssertDeepEqual(t, t1, t1Cached)
 
 	// Update the original task.
 	t1.Commits = []string{"a", "b"}
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 
 	// Update the cached copy; should get concurrent update error.
 	t1Cached.Status = types.TASK_STATUS_RUNNING
-	err = db.PutTask(t1Cached)
+	err = db.PutTask(ctx, t1Cached)
 	require.True(t, IsConcurrentUpdate(err))
 
 	{
 		// DB should still have the old value of t1.
-		t1Again, err := db.GetTaskById(t1.Id)
+		t1Again, err := db.GetTaskById(ctx, t1.Id)
 		require.NoError(t, err)
 		AssertDeepEqual(t, t1, t1Again)
 	}
 
 	// Insert a second task.
 	t2 := types.MakeTestTask(time.Now(), []string{"e", "f"})
-	require.NoError(t, db.PutTask(t2))
+	require.NoError(t, db.PutTask(ctx, t2))
 
 	// Update t2 at the same time as t1Cached; should still get an error.
 	t2Before := t2.Copy()
 	t2.Status = types.TASK_STATUS_MISHAP
-	err = db.PutTasks([]*types.Task{t2, t1Cached})
+	err = db.PutTasks(ctx, []*types.Task{t2, t1Cached})
 	require.True(t, IsConcurrentUpdate(err))
 
 	{
 		// DB should still have the old value of t1 and t2.
-		t1Again, err := db.GetTaskById(t1.Id)
+		t1Again, err := db.GetTaskById(ctx, t1.Id)
 		require.NoError(t, err)
 		AssertDeepEqual(t, t1, t1Again)
 
-		t2Again, err := db.GetTaskById(t2.Id)
+		t2Again, err := db.GetTaskById(ctx, t2.Id)
 		require.NoError(t, err)
 		AssertDeepEqual(t, t2Before, t2Again)
 	}
@@ -343,19 +345,20 @@ func TestTaskDBConcurrentUpdate(t sktest.TestingT, db TaskDB) {
 
 // Test UpdateTasksWithRetries when no errors or retries.
 func testUpdateTasksWithRetriesSimple(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	begin := time.Now()
 
 	// Test no-op.
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
+	tasks, err := UpdateTasksWithRetries(ctx, db, func() ([]*types.Task, error) {
 		return nil, nil
 	})
 	require.NoError(t, err)
 	require.Equal(t, 0, len(tasks))
 
 	// Create new task t1. (UpdateTasksWithRetries isn't actually useful in this case.)
-	tasks, err = UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
+	tasks, err = UpdateTasksWithRetries(ctx, db, func() ([]*types.Task, error) {
 		t1 := types.MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
-		require.NoError(t, db.AssignId(t1))
+		require.NoError(t, db.AssignId(ctx, t1))
 		t1.Created = time.Now().Add(TS_RESOLUTION)
 		return []*types.Task{t1}, nil
 	})
@@ -364,8 +367,8 @@ func testUpdateTasksWithRetriesSimple(t sktest.TestingT, db TaskDB) {
 	t1 := tasks[0]
 
 	// Update t1 and create t2.
-	tasks, err = UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
-		t1, err := db.GetTaskById(t1.Id)
+	tasks, err = UpdateTasksWithRetries(ctx, db, func() ([]*types.Task, error) {
+		t1, err := db.GetTaskById(ctx, t1.Id)
 		require.NoError(t, err)
 		t1.Status = types.TASK_STATUS_RUNNING
 		t2 := types.MakeTestTask(t1.Created.Add(TS_RESOLUTION), []string{"e", "f"})
@@ -378,15 +381,15 @@ func testUpdateTasksWithRetriesSimple(t sktest.TestingT, db TaskDB) {
 	require.Equal(t, []string{"e", "f"}, tasks[1].Commits)
 
 	// Check that return value matches what's in the DB.
-	t1, err = db.GetTaskById(t1.Id)
+	t1, err = db.GetTaskById(ctx, t1.Id)
 	require.NoError(t, err)
-	t2, err := db.GetTaskById(tasks[1].Id)
+	t2, err := db.GetTaskById(ctx, tasks[1].Id)
 	require.NoError(t, err)
 	AssertDeepEqual(t, tasks[0], t1)
 	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION), "")
+	tasks, err = db.GetTasksFromDateRange(ctx, begin, time.Now().Add(3*TS_RESOLUTION), "")
 	require.NoError(t, err)
 	require.Equal(t, 2, len(tasks))
 	require.Equal(t, t1.Id, tasks[0].Id)
@@ -395,23 +398,24 @@ func testUpdateTasksWithRetriesSimple(t sktest.TestingT, db TaskDB) {
 
 // Test UpdateTasksWithRetries when there are some retries, but eventual success.
 func testUpdateTasksWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	begin := time.Now()
 
 	// Create and cache.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 	t1Cached := t1.Copy()
 
 	// Update original.
 	t1.Status = types.TASK_STATUS_RUNNING
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 
 	// Attempt update.
 	callCount := 0
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
+	tasks, err := UpdateTasksWithRetries(ctx, db, func() ([]*types.Task, error) {
 		callCount++
 		if callCount >= 3 {
-			if task, err := db.GetTaskById(t1.Id); err != nil {
+			if task, err := db.GetTaskById(ctx, t1.Id); err != nil {
 				return nil, err
 			} else {
 				t1Cached = task
@@ -429,15 +433,15 @@ func testUpdateTasksWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 	require.Equal(t, []string{"e", "f"}, tasks[1].Commits)
 
 	// Check that return value matches what's in the DB.
-	t1, err = db.GetTaskById(t1.Id)
+	t1, err = db.GetTaskById(ctx, t1.Id)
 	require.NoError(t, err)
-	t2, err := db.GetTaskById(tasks[1].Id)
+	t2, err := db.GetTaskById(ctx, tasks[1].Id)
 	require.NoError(t, err)
 	AssertDeepEqual(t, tasks[0], t1)
 	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION), "")
+	tasks, err = db.GetTasksFromDateRange(ctx, begin, time.Now().Add(3*TS_RESOLUTION), "")
 	require.NoError(t, err)
 	require.Equal(t, 2, len(tasks))
 	require.Equal(t, t1.Id, tasks[0].Id)
@@ -446,11 +450,12 @@ func testUpdateTasksWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 
 // Test UpdateTasksWithRetries when f returns an error.
 func testUpdateTasksWithRetriesErrorInFunc(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	begin := time.Now()
 
 	myErr := fmt.Errorf("NO! Bad dog!")
 	callCount := 0
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
+	tasks, err := UpdateTasksWithRetries(ctx, db, func() ([]*types.Task, error) {
 		callCount++
 		// Return a task just for fun.
 		return []*types.Task{
@@ -463,17 +468,18 @@ func testUpdateTasksWithRetriesErrorInFunc(t sktest.TestingT, db TaskDB) {
 	require.Equal(t, 1, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
+	tasks, err = db.GetTasksFromDateRange(ctx, begin, time.Now().Add(2*TS_RESOLUTION), "")
 	require.NoError(t, err)
 	require.Equal(t, 0, len(tasks))
 }
 
 // Test UpdateTasksWithRetries when PutTasks returns an error.
 func testUpdateTasksWithRetriesErrorInPutTasks(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	begin := time.Now()
 
 	callCount := 0
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
+	tasks, err := UpdateTasksWithRetries(ctx, db, func() ([]*types.Task, error) {
 		callCount++
 		// Task has zero Created time.
 		return []*types.Task{
@@ -486,27 +492,28 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t sktest.TestingT, db TaskDB) {
 	require.Equal(t, 1, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(TS_RESOLUTION), "")
+	tasks, err = db.GetTasksFromDateRange(ctx, begin, time.Now().Add(TS_RESOLUTION), "")
 	require.NoError(t, err)
 	require.Equal(t, 0, len(tasks))
 }
 
 // Test UpdateTasksWithRetries when retries are exhausted.
 func testUpdateTasksWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	begin := time.Now()
 
 	// Create and cache.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 	t1Cached := t1.Copy()
 
 	// Update original.
 	t1.Status = types.TASK_STATUS_RUNNING
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 
 	// Attempt update.
 	callCount := 0
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
+	tasks, err := UpdateTasksWithRetries(ctx, db, func() ([]*types.Task, error) {
 		callCount++
 		t1Cached.Status = types.TASK_STATUS_SUCCESS
 		t2 := types.MakeTestTask(begin.Add(2*TS_RESOLUTION), []string{"e", "f"})
@@ -517,7 +524,7 @@ func testUpdateTasksWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 	require.Equal(t, 0, len(tasks))
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION), "")
+	tasks, err = db.GetTasksFromDateRange(ctx, begin, time.Now().Add(3*TS_RESOLUTION), "")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tasks))
 	require.Equal(t, t1.Id, tasks[0].Id)
@@ -526,16 +533,17 @@ func testUpdateTasksWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 
 // Test UpdateTaskWithRetries when no errors or retries.
 func testUpdateTaskWithRetriesSimple(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	begin := time.Now()
 
 	// Create new task t1.
 	t1 := types.MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
-	require.NoError(t, db.AssignId(t1))
+	require.NoError(t, db.AssignId(ctx, t1))
 	t1.Created = time.Now().Add(TS_RESOLUTION)
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 
 	// Update t1.
-	t1Updated, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
+	t1Updated, err := UpdateTaskWithRetries(ctx, db, t1.Id, func(task *types.Task) error {
 		task.Status = types.TASK_STATUS_RUNNING
 		return nil
 	})
@@ -545,12 +553,12 @@ func testUpdateTaskWithRetriesSimple(t sktest.TestingT, db TaskDB) {
 	require.NotEqual(t, t1.DbModified, t1Updated.DbModified)
 
 	// Check that return value matches what's in the DB.
-	t1Again, err := db.GetTaskById(t1.Id)
+	t1Again, err := db.GetTaskById(ctx, t1.Id)
 	require.NoError(t, err)
 	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the TaskDB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
+	tasks, err := db.GetTasksFromDateRange(ctx, begin, time.Now().Add(2*TS_RESOLUTION), "")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tasks))
 	require.Equal(t, t1.Id, tasks[0].Id)
@@ -558,20 +566,21 @@ func testUpdateTaskWithRetriesSimple(t sktest.TestingT, db TaskDB) {
 
 // Test UpdateTaskWithRetries when there are some retries, but eventual success.
 func testUpdateTaskWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	begin := time.Now()
 
 	// Create new task t1.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 
 	// Attempt update.
 	callCount := 0
-	t1Updated, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
+	t1Updated, err := UpdateTaskWithRetries(ctx, db, t1.Id, func(task *types.Task) error {
 		callCount++
 		if callCount < 3 {
 			// Sneakily make an update in the background.
 			t1.Commits = append(t1.Commits, fmt.Sprintf("z%d", callCount))
-			require.NoError(t, db.PutTask(t1))
+			require.NoError(t, db.PutTask(ctx, t1))
 		}
 		task.Status = types.TASK_STATUS_SUCCESS
 		return nil
@@ -582,12 +591,12 @@ func testUpdateTaskWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 	require.Equal(t, types.TASK_STATUS_SUCCESS, t1Updated.Status)
 
 	// Check that return value matches what's in the DB.
-	t1Again, err := db.GetTaskById(t1.Id)
+	t1Again, err := db.GetTaskById(ctx, t1.Id)
 	require.NoError(t, err)
 	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
+	tasks, err := db.GetTasksFromDateRange(ctx, begin, time.Now().Add(2*TS_RESOLUTION), "")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tasks))
 	require.Equal(t, t1.Id, tasks[0].Id)
@@ -595,16 +604,17 @@ func testUpdateTaskWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 
 // Test UpdateTaskWithRetries when f returns an error.
 func testUpdateTaskWithRetriesErrorInFunc(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	begin := time.Now()
 
 	// Create new task t1.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 
 	// Update and return an error.
 	myErr := fmt.Errorf("Um, actually, I didn't want to update that task.")
 	callCount := 0
-	noTask, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
+	noTask, err := UpdateTaskWithRetries(ctx, db, t1.Id, func(task *types.Task) error {
 		callCount++
 		// Update task to test nothing changes in DB.
 		task.Status = types.TASK_STATUS_RUNNING
@@ -616,12 +626,12 @@ func testUpdateTaskWithRetriesErrorInFunc(t sktest.TestingT, db TaskDB) {
 	require.Equal(t, 1, callCount)
 
 	// Check task did not change in the DB.
-	t1Again, err := db.GetTaskById(t1.Id)
+	t1Again, err := db.GetTaskById(ctx, t1.Id)
 	require.NoError(t, err)
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
+	tasks, err := db.GetTasksFromDateRange(ctx, begin, time.Now().Add(2*TS_RESOLUTION), "")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tasks))
 	require.Equal(t, t1.Id, tasks[0].Id)
@@ -629,23 +639,24 @@ func testUpdateTaskWithRetriesErrorInFunc(t sktest.TestingT, db TaskDB) {
 
 // Test UpdateTaskWithRetries when retries are exhausted.
 func testUpdateTaskWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	begin := time.Now()
 
 	// Create new task t1.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 
 	// Update original.
 	t1.Status = types.TASK_STATUS_RUNNING
-	require.NoError(t, db.PutTask(t1))
+	require.NoError(t, db.PutTask(ctx, t1))
 
 	// Attempt update.
 	callCount := 0
-	noTask, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
+	noTask, err := UpdateTaskWithRetries(ctx, db, t1.Id, func(task *types.Task) error {
 		callCount++
 		// Sneakily make an update in the background.
 		t1.Commits = append(t1.Commits, fmt.Sprintf("z%d", callCount))
-		require.NoError(t, db.PutTask(t1))
+		require.NoError(t, db.PutTask(ctx, t1))
 
 		task.Status = types.TASK_STATUS_SUCCESS
 		return nil
@@ -655,12 +666,12 @@ func testUpdateTaskWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 	require.Nil(t, noTask)
 
 	// Check task did not change in the DB.
-	t1Again, err := db.GetTaskById(t1.Id)
+	t1Again, err := db.GetTaskById(ctx, t1.Id)
 	require.NoError(t, err)
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
+	tasks, err := db.GetTasksFromDateRange(ctx, begin, time.Now().Add(2*TS_RESOLUTION), "")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tasks))
 	require.Equal(t, t1.Id, tasks[0].Id)
@@ -668,15 +679,16 @@ func testUpdateTaskWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 
 // Test UpdateTaskWithRetries when the given ID is not found in the DB.
 func testUpdateTaskWithRetriesTaskNotFound(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	begin := time.Now()
 
 	// Assign ID for a task, but don't put it in the DB.
 	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
-	require.NoError(t, db.AssignId(t1))
+	require.NoError(t, db.AssignId(ctx, t1))
 
 	// Attempt to update non-existent task. Function shouldn't be called.
 	callCount := 0
-	noTask, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
+	noTask, err := UpdateTaskWithRetries(ctx, db, t1.Id, func(task *types.Task) error {
 		callCount++
 		task.Status = types.TASK_STATUS_RUNNING
 		return nil
@@ -686,7 +698,7 @@ func testUpdateTaskWithRetriesTaskNotFound(t sktest.TestingT, db TaskDB) {
 	require.Equal(t, 0, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
+	tasks, err := db.GetTasksFromDateRange(ctx, begin, time.Now().Add(2*TS_RESOLUTION), "")
 	require.NoError(t, err)
 	require.Equal(t, 0, len(tasks))
 }
@@ -716,6 +728,7 @@ func TestUpdateTasksWithRetries(t sktest.TestingT, db TaskDB) {
 
 // TestTaskDBSearch tests TaskReader.SearchTasks.
 func TestTaskDBSearch(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	tStart := time.Unix(1614172856, 0)
 	tCurrent := tStart
 	makeTask := func() *types.Task {
@@ -759,10 +772,10 @@ func TestTaskDBSearch(t sktest.TestingT, db TaskDB) {
 	t6 := makeTask()
 	t6.Attempt = 2
 
-	require.NoError(t, db.PutTasks([]*types.Task{t1, t2, t3, t4, t5, t6}))
+	require.NoError(t, db.PutTasks(ctx, []*types.Task{t1, t2, t3, t4, t5, t6}))
 
 	test := func(params *TaskSearchParams, expect ...*types.Task) {
-		actual, err := SearchTasks(db, params)
+		actual, err := SearchTasks(ctx, db, params)
 		require.NoError(t, err)
 		sort.Sort(types.TaskSlice(expect))
 		sort.Sort(types.TaskSlice(actual))
@@ -858,7 +871,7 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	j1 := types.MakeTestJob(now)
 
 	// Insert the job.
-	require.NoError(t, db.PutJob(j1))
+	require.NoError(t, db.PutJob(ctx, j1))
 
 	// Ids must be URL-safe.
 	require.NotEqual(t, "", j1.Id)
@@ -869,7 +882,7 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	j1LastModified := j1.DbModified
 
 	// Job can now be retrieved by Id.
-	j1Again, err := db.GetJobById(j1.Id)
+	j1Again, err := db.GetJobById(ctx, j1.Id)
 	require.NoError(t, err)
 	AssertDeepEqual(t, j1, j1Again)
 
@@ -881,19 +894,19 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	j1Before := j1.Created
 	j1After := j1Before.Add(1 * TS_RESOLUTION)
 	timeEnd := now.Add(2 * TS_RESOLUTION)
-	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, timeStart, j1Before, "")
 	require.NoError(t, err)
 	require.Equal(t, 0, len(jobs))
-	jobs, err = db.GetJobsFromDateRange(j1Before, j1After, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, j1Before, j1After, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1}, jobs)
-	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, j1After, timeEnd, "")
 	require.NoError(t, err)
 	require.Equal(t, 0, len(jobs))
-	jobs, err = db.GetJobsFromDateRange(j1Before, j1After, "bogusRepo")
+	jobs, err = db.GetJobsFromDateRange(ctx, j1Before, j1After, "bogusRepo")
 	require.NoError(t, err)
 	require.Equal(t, 0, len(jobs))
-	jobs, err = db.GetJobsFromDateRange(j1Before, j1After, j1.Repo)
+	jobs, err = db.GetJobsFromDateRange(ctx, j1Before, j1After, j1.Repo)
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 	require.NotEqual(t, "", j1.Repo)
@@ -902,7 +915,7 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	// times so that j1After != j2Before and j2After != j3Before.
 	j2 := types.MakeTestJob(now.Add(TS_RESOLUTION))
 	j3 := types.MakeTestJob(now.Add(2 * TS_RESOLUTION))
-	require.NoError(t, db.PutJobs([]*types.Job{j2, j3}))
+	require.NoError(t, db.PutJobs(ctx, []*types.Job{j2, j3}))
 
 	// Check that PutJobs assigned Ids.
 	require.NotEqual(t, "", j2.Id)
@@ -918,7 +931,7 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	j2LastModified := j2.DbModified
 	j1.Status = types.JOB_STATUS_IN_PROGRESS
 	j2.Status = types.JOB_STATUS_SUCCESS
-	require.NoError(t, db.PutJobs([]*types.Job{j1, j2}))
+	require.NoError(t, db.PutJobs(ctx, []*types.Job{j1, j2}))
 	require.False(t, j1.DbModified.Equal(j1LastModified))
 	require.False(t, j2.DbModified.Equal(j2LastModified))
 
@@ -934,55 +947,55 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 
 	timeEnd = now.Add(3 * TS_RESOLUTION)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, timeStart, j1Before, "")
 	require.NoError(t, err)
 	require.Equal(t, 0, len(jobs))
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j1After, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, timeStart, j1After, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j2Before, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, timeStart, j2Before, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j2After, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, timeStart, j2After, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j3Before, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, timeStart, j3Before, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j3After, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, timeStart, j3After, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, timeEnd, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, timeStart, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j1Before, timeEnd, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, j1Before, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, j1After, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j2, j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j2Before, timeEnd, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, j2Before, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j2, j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j2After, timeEnd, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, j2After, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j3Before, timeEnd, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, j3Before, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j3After, timeEnd, "")
+	jobs, err = db.GetJobsFromDateRange(ctx, j3After, timeEnd, "")
 	require.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{}, jobs)
 }
@@ -990,48 +1003,49 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 // Test that PutJob and PutJobs return ErrConcurrentUpdate when a cached Job
 // has been updated in the DB.
 func TestJobDBConcurrentUpdate(t sktest.TestingT, db JobDB) {
+	ctx := context.Background()
 	// Insert a job.
 	j1 := types.MakeTestJob(time.Now())
-	require.NoError(t, db.PutJob(j1))
+	require.NoError(t, db.PutJob(ctx, j1))
 
 	// Retrieve a copy of the job.
-	j1Cached, err := db.GetJobById(j1.Id)
+	j1Cached, err := db.GetJobById(ctx, j1.Id)
 	require.NoError(t, err)
 	AssertDeepEqual(t, j1, j1Cached)
 
 	// Update the original job.
 	j1.Repo = "another-repo"
-	require.NoError(t, db.PutJob(j1))
+	require.NoError(t, db.PutJob(ctx, j1))
 
 	// Update the cached copy; should get concurrent update error.
 	j1Cached.Status = types.JOB_STATUS_IN_PROGRESS
-	err = db.PutJob(j1Cached)
+	err = db.PutJob(ctx, j1Cached)
 	require.True(t, IsConcurrentUpdate(err))
 
 	{
 		// DB should still have the old value of j1.
-		j1Again, err := db.GetJobById(j1.Id)
+		j1Again, err := db.GetJobById(ctx, j1.Id)
 		require.NoError(t, err)
 		AssertDeepEqual(t, j1, j1Again)
 	}
 
 	// Insert a second job.
 	j2 := types.MakeTestJob(time.Now())
-	require.NoError(t, db.PutJob(j2))
+	require.NoError(t, db.PutJob(ctx, j2))
 
 	// Update j2 at the same time as j1Cached; should still get an error.
 	j2Before := j2.Copy()
 	j2.Status = types.JOB_STATUS_MISHAP
-	err = db.PutJobs([]*types.Job{j2, j1Cached})
+	err = db.PutJobs(ctx, []*types.Job{j2, j1Cached})
 	require.True(t, IsConcurrentUpdate(err))
 
 	{
 		// DB should still have the old value of j1 and j2.
-		j1Again, err := db.GetJobById(j1.Id)
+		j1Again, err := db.GetJobById(ctx, j1.Id)
 		require.NoError(t, err)
 		AssertDeepEqual(t, j1, j1Again)
 
-		j2Again, err := db.GetJobById(j2.Id)
+		j2Again, err := db.GetJobById(ctx, j2.Id)
 		require.NoError(t, err)
 		AssertDeepEqual(t, j2Before, j2Again)
 	}
@@ -1039,6 +1053,7 @@ func TestJobDBConcurrentUpdate(t sktest.TestingT, db JobDB) {
 
 // TestJobDBSearch tests JobReader.SearchJobs.
 func TestJobDBSearch(t sktest.TestingT, db JobDB) {
+	ctx := context.Background()
 	tStart := time.Unix(1614172856, 0)
 	tCurrent := tStart
 	makeJob := func() *types.Job {
@@ -1081,10 +1096,10 @@ func TestJobDBSearch(t sktest.TestingT, db JobDB) {
 	j5.Revision = "bbad"
 	j5.Status = types.JOB_STATUS_FAILURE
 
-	require.NoError(t, db.PutJobs([]*types.Job{j1, j2, j3, j4, j5}))
+	require.NoError(t, db.PutJobs(ctx, []*types.Job{j1, j2, j3, j4, j5}))
 
 	test := func(params *JobSearchParams, expect ...*types.Job) {
-		actual, err := SearchJobs(db, params)
+		actual, err := SearchJobs(ctx, db, params)
 		require.NoError(t, err)
 		sort.Sort(types.JobSlice(expect))
 		sort.Sort(types.JobSlice(actual))
@@ -1184,7 +1199,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	r1 := fmt.Sprintf("%s%d", common.REPO_SKIA, 1)
 	r2 := fmt.Sprintf("%s%d", common.REPO_SKIA, 2)
 	{
-		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos(ctx, []string{r0, r1, r2}, now.Add(-10000*time.Hour))
 		require.NoError(t, err)
 		require.Equal(t, 3, len(actual))
 		require.Equal(t, r0, actual[0].Repo)
@@ -1205,7 +1220,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	tc5 := types.MakeTaskComment(5, 1, 2, 2, now.Add(-2*time.Second+2*time.Millisecond))
 	tc6 := types.MakeTaskComment(6, 2, 3, 3, now.Add(-2*time.Second+3*time.Millisecond))
 	for _, c := range []*types.TaskComment{tc1, tc2, tc3, tc4, tc5, tc6} {
-		require.NoError(t, db.PutTaskComment(c))
+		require.NoError(t, db.PutTaskComment(ctx, c))
 	}
 	tc6copy := tc6.Copy()
 	tc6.Message = "modifying after Put shouldn't affect stored comment"
@@ -1216,7 +1231,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	sc4 := types.MakeTaskSpecComment(4, 1, 2, now.Add(-2*time.Second+time.Millisecond))
 	sc5 := types.MakeTaskSpecComment(5, 2, 3, now.Add(-2*time.Second+2*time.Millisecond))
 	for _, c := range []*types.TaskSpecComment{sc1, sc2, sc3, sc4, sc5} {
-		require.NoError(t, db.PutTaskSpecComment(c))
+		require.NoError(t, db.PutTaskSpecComment(ctx, c))
 	}
 	sc5copy := sc5.Copy()
 	sc5.Message = "modifying after Put shouldn't affect stored comment"
@@ -1227,7 +1242,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	cc4 := types.MakeCommitComment(4, 1, 2, now.Add(-2*time.Second+time.Millisecond))
 	cc5 := types.MakeCommitComment(5, 2, 3, now.Add(-2*time.Second+2*time.Millisecond))
 	for _, c := range []*types.CommitComment{cc1, cc2, cc3, cc4, cc5} {
-		require.NoError(t, db.PutCommitComment(c))
+		require.NoError(t, db.PutCommitComment(ctx, c))
 	}
 	cc5copy := cc5.Copy()
 	cc5.Message = "modifying after Put shouldn't affect stored comment"
@@ -1238,13 +1253,13 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	// Check that adding duplicate non-identical comment gives an error.
 	tc1different := tc1.Copy()
 	tc1different.Message = "not the same"
-	require.True(t, IsAlreadyExists(db.PutTaskComment(tc1different)))
+	require.True(t, IsAlreadyExists(db.PutTaskComment(ctx, tc1different)))
 	sc1different := sc1.Copy()
 	sc1different.Message = "not the same"
-	require.True(t, IsAlreadyExists(db.PutTaskSpecComment(sc1different)))
+	require.True(t, IsAlreadyExists(db.PutTaskSpecComment(ctx, sc1different)))
 	cc1different := cc1.Copy()
 	cc1different.Message = "not the same"
-	require.True(t, IsAlreadyExists(db.PutCommitComment(cc1different)))
+	require.True(t, IsAlreadyExists(db.PutCommitComment(ctx, cc1different)))
 
 	expected := []*types.RepoComments{
 		{Repo: r0},
@@ -1284,14 +1299,14 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 		},
 	}
 	{
-		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos(ctx, []string{r0, r1, r2}, now.Add(-10000*time.Hour))
 		require.NoError(t, err)
 		AssertDeepEqual(t, expected, actual)
 	}
 
 	// Specifying a cutoff time shouldn't drop required comments.
 	{
-		actual, err := db.GetCommentsForRepos([]string{r1}, now.Add(-time.Second))
+		actual, err := db.GetCommentsForRepos(ctx, []string{r1}, now.Add(-time.Second))
 		require.NoError(t, err)
 		require.Equal(t, 1, len(actual))
 		{
@@ -1327,30 +1342,30 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	}
 
 	// Delete some comments.
-	require.NoError(t, db.DeleteTaskComment(tc3))
-	require.NoError(t, db.DeleteTaskSpecComment(sc3))
-	require.NoError(t, db.DeleteCommitComment(cc3))
+	require.NoError(t, db.DeleteTaskComment(ctx, tc3))
+	require.NoError(t, db.DeleteTaskSpecComment(ctx, sc3))
+	require.NoError(t, db.DeleteCommitComment(ctx, cc3))
 	// Delete should only look at the ID fields.
-	require.NoError(t, db.DeleteTaskComment(tc1different))
-	require.NoError(t, db.DeleteTaskSpecComment(sc1different))
-	require.NoError(t, db.DeleteCommitComment(cc1different))
+	require.NoError(t, db.DeleteTaskComment(ctx, tc1different))
+	require.NoError(t, db.DeleteTaskSpecComment(ctx, sc1different))
+	require.NoError(t, db.DeleteCommitComment(ctx, cc1different))
 	// Delete of nonexistent task should succeed.
-	require.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 1, 1, now.Add(99*time.Second))))
-	require.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 1, 99, now)))
-	require.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 99, 1, now)))
-	require.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 99, 1, 1, now)))
-	require.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 1, 1, now.Add(99*time.Second))))
-	require.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 1, 99, now)))
-	require.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 99, 1, now)))
-	require.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 1, 1, now.Add(99*time.Second))))
-	require.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 1, 99, now)))
-	require.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 99, 1, now)))
+	require.NoError(t, db.DeleteTaskComment(ctx, types.MakeTaskComment(99, 1, 1, 1, now.Add(99*time.Second))))
+	require.NoError(t, db.DeleteTaskComment(ctx, types.MakeTaskComment(99, 1, 1, 99, now)))
+	require.NoError(t, db.DeleteTaskComment(ctx, types.MakeTaskComment(99, 1, 99, 1, now)))
+	require.NoError(t, db.DeleteTaskComment(ctx, types.MakeTaskComment(99, 99, 1, 1, now)))
+	require.NoError(t, db.DeleteTaskSpecComment(ctx, types.MakeTaskSpecComment(99, 1, 1, now.Add(99*time.Second))))
+	require.NoError(t, db.DeleteTaskSpecComment(ctx, types.MakeTaskSpecComment(99, 1, 99, now)))
+	require.NoError(t, db.DeleteTaskSpecComment(ctx, types.MakeTaskSpecComment(99, 99, 1, now)))
+	require.NoError(t, db.DeleteCommitComment(ctx, types.MakeCommitComment(99, 1, 1, now.Add(99*time.Second))))
+	require.NoError(t, db.DeleteCommitComment(ctx, types.MakeCommitComment(99, 1, 99, now)))
+	require.NoError(t, db.DeleteCommitComment(ctx, types.MakeCommitComment(99, 99, 1, now)))
 
 	expected[1].TaskComments["c1"]["n1"] = []*types.TaskComment{tc2}
 	expected[1].TaskSpecComments["n1"] = []*types.TaskSpecComment{sc2}
 	expected[1].CommitComments["c1"] = []*types.CommitComment{cc2}
 	{
-		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos(ctx, []string{r0, r1, r2}, now.Add(-10000*time.Hour))
 		require.NoError(t, err)
 		AssertDeepEqual(t, expected, actual)
 		deleted := true
@@ -1365,16 +1380,16 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 
 	// Delete all the comments.
 	for _, c := range []*types.TaskComment{tc2, tc4, tc5, tc6} {
-		require.NoError(t, db.DeleteTaskComment(c))
+		require.NoError(t, db.DeleteTaskComment(ctx, c))
 	}
 	for _, c := range []*types.TaskSpecComment{sc2, sc4, sc5} {
-		require.NoError(t, db.DeleteTaskSpecComment(c))
+		require.NoError(t, db.DeleteTaskSpecComment(ctx, c))
 	}
 	for _, c := range []*types.CommitComment{cc2, cc4, cc5} {
-		require.NoError(t, db.DeleteCommitComment(c))
+		require.NoError(t, db.DeleteCommitComment(ctx, c))
 	}
 	{
-		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos(ctx, []string{r0, r1, r2}, now.Add(-10000*time.Hour))
 		require.NoError(t, err)
 		require.Equal(t, 3, len(actual))
 		require.Equal(t, r0, actual[0].Repo)
@@ -1389,6 +1404,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 }
 
 func TestTaskDBGetTasksFromDateRangeByRepo(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	r1 := common.REPO_SKIA
 	r2 := common.REPO_SKIA_INFRA
 	r3 := common.REPO_CHROMIUM
@@ -1399,16 +1415,16 @@ func TestTaskDBGetTasksFromDateRangeByRepo(t sktest.TestingT, db TaskDB) {
 		for i := 0; i < 10; i++ {
 			task := types.MakeTestTask(end, []string{"c"})
 			task.Repo = repo
-			require.NoError(t, db.PutTask(task))
+			require.NoError(t, db.PutTask(ctx, task))
 			end = end.Add(TS_RESOLUTION)
 		}
 	}
-	tasks, err := db.GetTasksFromDateRange(start, end, "")
+	tasks, err := db.GetTasksFromDateRange(ctx, start, end, "")
 	require.NoError(t, err)
 	require.Equal(t, 30, len(tasks))
 	require.True(t, sort.IsSorted(types.TaskSlice(tasks)))
 	for _, repo := range repos {
-		tasks, err := db.GetTasksFromDateRange(start, end, repo)
+		tasks, err := db.GetTasksFromDateRange(ctx, start, end, repo)
 		require.NoError(t, err)
 		require.Equal(t, 10, len(tasks))
 		require.True(t, sort.IsSorted(types.TaskSlice(tasks)))
@@ -1419,6 +1435,7 @@ func TestTaskDBGetTasksFromDateRangeByRepo(t sktest.TestingT, db TaskDB) {
 }
 
 func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	now := time.Now()
 	timeWindow := 24 * time.Hour
 	// Offset commit timestamps for different repos to ensure that we get
@@ -1437,7 +1454,7 @@ func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
 			hash := gb.CommitMsgAt(ctx, fmt.Sprintf("Commit %d", i), ts)
 			task := types.MakeTestTask(ts, []string{hash})
 			task.Repo = repoUrl
-			require.NoError(t, db.PutTask(task))
+			require.NoError(t, db.PutTask(ctx, task))
 		}
 		tmp, err := ioutil.TempDir("", "")
 		require.NoError(t, err)
@@ -1460,7 +1477,7 @@ func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
 	test := func(windowSize time.Duration, numCommits int, repos repograph.Map, expectTasks int) {
 		w, err := window.New(windowSize, numCommits, repos)
 		require.NoError(t, err)
-		tasks, err := GetTasksFromWindow(db, w, now)
+		tasks, err := GetTasksFromWindow(ctx, db, w, now)
 		require.NoError(t, err)
 		require.Equal(t, expectTasks, len(tasks))
 		require.True(t, sort.IsSorted(types.TaskSlice(tasks)))
@@ -1503,6 +1520,7 @@ func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
 }
 
 func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	// Create task, initialize from swarming, and save.
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &types.Task{
@@ -1519,7 +1537,7 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 		ParentTaskIds:  []string{"E", "F"},
 		SwarmingTaskId: "E",
 	}
-	require.NoError(t, db.AssignId(task))
+	require.NoError(t, db.AssignId(ctx, task))
 
 	s := &types.TaskResult{
 		ID:      "E", // This is the Swarming TaskId.
@@ -1537,7 +1555,7 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 	modified, err := task.UpdateFromTaskResult(s)
 	require.NoError(t, err)
 	require.True(t, modified)
-	require.NoError(t, db.PutTask(task))
+	require.NoError(t, db.PutTask(ctx, task))
 
 	// Get update from Swarming.
 	s.Started = now.Add(time.Minute)
@@ -1546,11 +1564,11 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 	s.CasOutput = "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32"
 	s.MachineID = "H"
 
-	modified, err = UpdateDBFromTaskResult(context.TODO(), db, s)
+	modified, err = UpdateDBFromTaskResult(ctx, db, s)
 	require.NoError(t, err)
 	require.True(t, modified)
 
-	updatedTask, err := db.GetTaskById(task.Id)
+	updatedTask, err := db.GetTaskById(ctx, task.Id)
 	require.NoError(t, err)
 	assertdeep.Equal(t, updatedTask, &types.Task{
 		Id: task.Id,
@@ -1575,12 +1593,13 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 		DbModified: updatedTask.DbModified,
 	})
 
-	modified, err = UpdateDBFromTaskResult(context.TODO(), db, s)
+	modified, err = UpdateDBFromTaskResult(ctx, db, s)
 	require.NoError(t, err)
 	require.False(t, modified)
 }
 
 func TestUpdateDBFromSwarmingTaskTryJob(t sktest.TestingT, db TaskDB) {
+	ctx := context.Background()
 	// Create task, initialize from swarming, and save.
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &types.Task{
@@ -1602,7 +1621,7 @@ func TestUpdateDBFromSwarmingTaskTryJob(t sktest.TestingT, db TaskDB) {
 		ParentTaskIds:  []string{"E", "F"},
 		SwarmingTaskId: "E",
 	}
-	require.NoError(t, db.AssignId(task))
+	require.NoError(t, db.AssignId(ctx, task))
 
 	s := &types.TaskResult{
 		ID:      "E", // This is the Swarming TaskId.

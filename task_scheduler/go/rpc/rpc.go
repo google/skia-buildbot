@@ -85,7 +85,7 @@ func (s *taskSchedulerServiceImpl) TriggerJobs(ctx context.Context, req *Trigger
 		}
 		jobs = append(jobs, job)
 	}
-	if err := s.db.PutJobsInChunks(jobs); err != nil {
+	if err := s.db.PutJobsInChunks(ctx, jobs); err != nil {
 		sklog.Error(err)
 		return nil, twirp.InternalError("Failed to insert jobs into DB.")
 	}
@@ -103,7 +103,7 @@ func (s *taskSchedulerServiceImpl) getJob(ctx context.Context, id string) (*Job,
 	if _, err := s.GetViewer(ctx); err != nil {
 		return nil, nil, err
 	}
-	dbJob, err := s.db.GetJobById(id)
+	dbJob, err := s.db.GetJobById(ctx, id)
 	if err == db.ErrNotFound || dbJob == nil {
 		sklog.Errorf("Unable to find job %q", id)
 		return nil, nil, twirp.NotFoundError("Unknown job")
@@ -171,7 +171,7 @@ func (s *taskSchedulerServiceImpl) CancelJob(ctx context.Context, req *CancelJob
 	}
 	job.Finished = time.Now()
 	job.Status = types.JOB_STATUS_CANCELED
-	if err := s.db.PutJob(job); err != nil {
+	if err := s.db.PutJob(ctx, job); err != nil {
 		sklog.Error(err)
 		return nil, twirp.InternalError("Failed to update job")
 	}
@@ -234,7 +234,7 @@ func (s *taskSchedulerServiceImpl) SearchJobs(ctx context.Context, req *SearchJo
 	if req.HasTimeStart {
 		params.TimeStart = timePtr(req.TimeStart.AsTime())
 	}
-	results, err := db.SearchJobs(s.db, params)
+	results, err := db.SearchJobs(ctx, s.db, params)
 	if err != nil {
 		sklog.Error(err)
 		return nil, twirp.InternalError("Failed to search jobs")
@@ -253,7 +253,7 @@ func (s *taskSchedulerServiceImpl) getTask(ctx context.Context, id string) (*Tas
 	if _, err := s.GetViewer(ctx); err != nil {
 		return nil, nil, err
 	}
-	dbTask, err := s.db.GetTaskById(id)
+	dbTask, err := s.db.GetTaskById(ctx, id)
 	if err == db.ErrNotFound || dbTask == nil {
 		return nil, nil, twirp.NotFoundError("Unknown task")
 	} else if err != nil {
@@ -340,7 +340,7 @@ func (s *taskSchedulerServiceImpl) SearchTasks(ctx context.Context, req *SearchT
 		params.TimeStart = timePtr(req.TimeStart.AsTime())
 	}
 
-	results, err := db.SearchTasks(s.db, params)
+	results, err := db.SearchTasks(ctx, s.db, params)
 	if err != nil {
 		sklog.Error(err)
 		return nil, twirp.InternalError("Failed to search jobs")
@@ -400,7 +400,7 @@ func (s *taskSchedulerServiceImpl) AddSkipTaskRule(ctx context.Context, req *Add
 		}
 		rule = rangeRule
 	}
-	if err := s.skipTasks.AddRule(rule, s.repos); err != nil {
+	if err := s.skipTasks.AddRule(ctx, rule, s.repos); err != nil {
 		sklog.Error(err)
 		return nil, twirp.InternalError("Failed to add skip task rule")
 	}
@@ -414,7 +414,7 @@ func (s *taskSchedulerServiceImpl) DeleteSkipTaskRule(ctx context.Context, req *
 	if _, err := s.GetEditor(ctx); err != nil {
 		return nil, err
 	}
-	if err := s.skipTasks.RemoveRule(req.Id); err != nil {
+	if err := s.skipTasks.RemoveRule(ctx, req.Id); err != nil {
 		sklog.Error(err)
 		return nil, twirp.InternalError("Failed to remove rule")
 	}

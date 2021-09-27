@@ -209,7 +209,7 @@ func (c *IncrementalCacheImpl) Update(ctx context.Context, reset bool) error {
 	if reset {
 		c.comments.Reset()
 	}
-	comments, err := c.comments.Update(c.w)
+	comments, err := c.comments.Update(ctx, c.w)
 	if err != nil {
 		return err
 	}
@@ -217,9 +217,9 @@ func (c *IncrementalCacheImpl) Update(ctx context.Context, reset bool) error {
 	var startOver bool
 	if reset {
 		// Reset() always returns true for startOver.
-		newTasks, startOver, err = c.tasks.Reset(c.w)
+		newTasks, startOver, err = c.tasks.Reset(ctx, c.w)
 	} else {
-		newTasks, startOver, err = c.tasks.Update(c.w)
+		newTasks, startOver, err = c.tasks.Update(ctx, c.w)
 	}
 	if err != nil {
 		return err
@@ -240,7 +240,7 @@ func (c *IncrementalCacheImpl) Update(ctx context.Context, reset bool) error {
 	}
 	if startOver && !reset {
 		c.comments.Reset()
-		comments, err = c.comments.Update(c.w)
+		comments, err = c.comments.Update(ctx, c.w)
 		if err != nil {
 			return onError(err)
 		}

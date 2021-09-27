@@ -35,8 +35,8 @@ func (d *firestoreDB) jobs() *fs.CollectionRef {
 }
 
 // See documentation for types.JobReader interface.
-func (d *firestoreDB) GetJobById(id string) (*types.Job, error) {
-	doc, err := d.client.Get(context.TODO(), d.jobs().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
+func (d *firestoreDB) GetJobById(ctx context.Context, id string) (*types.Job, error) {
+	doc, err := d.client.Get(ctx, d.jobs().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 		return nil, nil
 	} else if err != nil {
@@ -50,7 +50,7 @@ func (d *firestoreDB) GetJobById(id string) (*types.Job, error) {
 }
 
 // See documentation for types.JobReader interface.
-func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time, repo string) ([]*types.Job, error) {
+func (d *firestoreDB) GetJobsFromDateRange(ctx context.Context, start, end time.Time, repo string) ([]*types.Job, error) {
 	var jobs [][]*types.Job
 	init := func(numGoroutines int) {
 		jobs = make([][]*types.Job, numGoroutines)
@@ -81,7 +81,7 @@ func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time, repo string) ([
 	if repo != "" {
 		q = q.Where(KEY_REPO, "==", repo)
 	}
-	if err := d.dateRangeHelper("GetJobsFromDateRange", q, start, end, init, elem); err != nil {
+	if err := d.dateRangeHelper(ctx, "GetJobsFromDateRange", q, start, end, init, elem); err != nil {
 		return nil, err
 	}
 	totalResults := 0
@@ -154,13 +154,13 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 	return nil
 }
 
-// See documentation for types.JobDB interface.
-func (d *firestoreDB) PutJob(job *types.Job) error {
-	return d.PutJobs([]*types.Job{job})
+// PutJob implements types.JobDB.
+func (d *firestoreDB) PutJob(ctx context.Context, job *types.Job) error {
+	return d.PutJobs(ctx, []*types.Job{job})
 }
 
-// See documentation for types.JobDB interface.
-func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
+// PutJobs implements types.JobDB.
+func (d *firestoreDB) PutJobs(ctx context.Context, jobs []*types.Job) (rvErr error) {
 	if len(jobs) == 0 {
 		return nil
 	}
@@ -219,7 +219,7 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 	}
 
 	// Insert the jobs into the DB.
-	if err := d.client.RunTransaction(context.TODO(), "PutJobs", fmt.Sprintf("%d jobs", len(jobs)), DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
+	if err := d.client.RunTransaction(ctx, "PutJobs", fmt.Sprintf("%d jobs", len(jobs)), DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
 		return d.putJobs(jobs, isNew, prevModified, tx)
 	}); err != nil {
 		return err
@@ -228,10 +228,10 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 	return nil
 }
 
-// See documentation for types.JobDB interface.
-func (d *firestoreDB) PutJobsInChunks(jobs []*types.Job) error {
+// PutJobsInChunks implements types.JobDB.
+func (d *firestoreDB) PutJobsInChunks(ctx context.Context, jobs []*types.Job) error {
 	return util.ChunkIter(len(jobs), MAX_TRANSACTION_DOCS, func(i, j int) error {
-		return d.PutJobs(jobs[i:j])
+		return d.PutJobs(ctx, jobs[i:j])
 	})
 }
 

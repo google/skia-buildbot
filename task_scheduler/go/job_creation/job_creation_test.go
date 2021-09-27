@@ -244,7 +244,7 @@ func TestPeriodicJobs(t *testing.T) {
 	// window.
 	oldJob := jobs[nightlyName][0]
 	oldJob.Created = start.Add(-23 * time.Hour)
-	require.NoError(t, jc.db.PutJob(oldJob))
+	require.NoError(t, jc.db.PutJob(ctx, oldJob))
 	jc.jCache.AddJobs([]*types.Job{oldJob})
 	require.NoError(t, jc.jCache.Update(ctx))
 	jobs, err = jc.jCache.GetMatchingJobsFromDateRange(names, start, end)
@@ -312,7 +312,7 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 
 	require.NoError(t, testutils.EventuallyConsistent(2*time.Minute, func() error {
-		tasks, err := d.GetTasksFromDateRange(vcsinfo.MinTime, vcsinfo.MaxTime, "")
+		tasks, err := d.GetTasksFromDateRange(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, "")
 		require.NoError(t, err)
 		if len(tasks) > 0 {
 			sklog.Errorf("Triggered tasks!")

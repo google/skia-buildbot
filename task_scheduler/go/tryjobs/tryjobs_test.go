@@ -24,13 +24,13 @@ import (
 // Verify that updateJobs sends heartbeats for unfinished try Jobs and
 // success/failure for finished Jobs.
 func TestUpdateJobs(t *testing.T) {
-	_, trybots, gb, mock, _, cleanup := setup(t)
+	ctx, trybots, gb, mock, _, cleanup := setup(t)
 	defer cleanup()
 
 	now := time.Now()
 
 	assertActiveTryJob := func(j *types.Job) {
-		active, err := trybots.getActiveTryJobs()
+		active, err := trybots.getActiveTryJobs(ctx)
 		require.NoError(t, err)
 		expect := []*types.Job{}
 		if j != nil {
@@ -44,37 +44,37 @@ func TestUpdateJobs(t *testing.T) {
 
 	// No jobs.
 	assertNoActiveTryJobs()
-	require.NoError(t, trybots.updateJobs(now))
+	require.NoError(t, trybots.updateJobs(ctx, now))
 	require.True(t, mock.Empty())
 
 	// One unfinished try job.
 	j1 := tryjob(gb.RepoUrl())
 	MockHeartbeats(t, mock, now, []*types.Job{j1}, nil)
-	require.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
+	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
-	require.NoError(t, trybots.updateJobs(now))
+	require.NoError(t, trybots.updateJobs(ctx, now))
 	require.True(t, mock.Empty())
 	assertActiveTryJob(j1)
 
 	// Send success/failure for finished jobs, not heartbeats.
 	j1.Status = types.JOB_STATUS_SUCCESS
 	j1.Finished = now
-	require.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
+	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
 	MockJobSuccess(mock, j1, now, nil, false)
-	require.NoError(t, trybots.updateJobs(now))
+	require.NoError(t, trybots.updateJobs(ctx, now))
 	require.True(t, mock.Empty())
 	assertNoActiveTryJobs()
 
 	// Failure.
-	j1, err := trybots.db.GetJobById(j1.Id)
+	j1, err := trybots.db.GetJobById(ctx, j1.Id)
 	require.NoError(t, err)
 	j1.BuildbucketLeaseKey = 12345
 	j1.Status = types.JOB_STATUS_FAILURE
-	require.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
+	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
 	MockJobFailure(mock, j1, now, nil)
-	require.NoError(t, trybots.updateJobs(now))
+	require.NoError(t, trybots.updateJobs(ctx, now))
 	require.True(t, mock.Empty())
 	assertNoActiveTryJobs()
 
@@ -86,9 +86,9 @@ func TestUpdateJobs(t *testing.T) {
 	sort.Sort(types.JobSlice(jobs))
 	MockHeartbeats(t, mock, now, jobs[:LEASE_BATCH_SIZE], nil)
 	MockHeartbeats(t, mock, now, jobs[LEASE_BATCH_SIZE:], nil)
-	require.NoError(t, trybots.db.PutJobs(jobs))
+	require.NoError(t, trybots.db.PutJobs(ctx, jobs))
 	trybots.jCache.AddJobs(jobs)
-	require.NoError(t, trybots.updateJobs(now))
+	require.NoError(t, trybots.updateJobs(ctx, now))
 	require.True(t, mock.Empty())
 
 	// Test heartbeat failure for one job, ensure that it gets canceled.
@@ -97,7 +97,7 @@ func TestUpdateJobs(t *testing.T) {
 		j.Status = types.JOB_STATUS_SUCCESS
 		j.Finished = time.Now()
 	}
-	require.NoError(t, trybots.db.PutJobs(jobs[2:]))
+	require.NoError(t, trybots.db.PutJobs(ctx, jobs[2:]))
 	trybots.jCache.AddJobs(jobs[2:])
 	for _, j := range jobs[2:] {
 		MockJobSuccess(mock, j, now, nil, false)
@@ -110,12 +110,12 @@ func TestUpdateJobs(t *testing.T) {
 			},
 		},
 	})
-	require.NoError(t, trybots.updateJobs(now))
+	require.NoError(t, trybots.updateJobs(ctx, now))
 	require.True(t, mock.Empty())
-	active, err := trybots.getActiveTryJobs()
+	active, err := trybots.getActiveTryJobs(ctx)
 	require.NoError(t, err)
 	assertdeep.Equal(t, []*types.Job{j2}, active)
-	canceled, err := trybots.db.GetJobById(j1.Id)
+	canceled, err := trybots.db.GetJobById(ctx, j1.Id)
 	require.NoError(t, err)
 	require.True(t, canceled.Done())
 	require.Equal(t, types.JOB_STATUS_CANCELED, canceled.Status)
@@ -148,7 +148,7 @@ func TestGetRepo(t *testing.T) {
 }
 
 func TestGetRevision(t *testing.T) {
-	_, trybots, _, mock, _, cleanup := setup(t)
+	ctx, trybots, _, mock, _, cleanup := setup(t)
 	defer cleanup()
 
 	// Get the (only) commit from the repo.
@@ -166,7 +166,7 @@ func TestGetRevision(t *testing.T) {
 	url := fmt.Sprintf("%s/a/changes/%d/detail?o=ALL_REVISIONS&o=SUBMITTABLE", fakeGerritUrl, gerritIssue)
 	mock.Mock(url, mockhttpclient.MockGetDialogue(serialized))
 
-	got, err := trybots.getRevision(context.TODO(), r, gerritIssue)
+	got, err := trybots.getRevision(ctx, r, gerritIssue)
 	require.NoError(t, err)
 	require.Equal(t, c, got)
 }
@@ -228,7 +228,7 @@ func TestJobStarted(t *testing.T) {
 }
 
 func TestJobFinished(t *testing.T) {
-	_, trybots, gb, mock, _, cleanup := setup(t)
+	ctx, trybots, gb, mock, _, cleanup := setup(t)
 	defer cleanup()
 
 	j := tryjob(gb.RepoUrl())
@@ -240,7 +240,7 @@ func TestJobFinished(t *testing.T) {
 	// Successful job.
 	j.Status = types.JOB_STATUS_SUCCESS
 	j.Finished = now
-	require.NoError(t, trybots.db.PutJobs([]*types.Job{j}))
+	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
 	MockJobSuccess(mock, j, now, nil, false)
 	require.NoError(t, trybots.jobFinished(j))
@@ -254,7 +254,7 @@ func TestJobFinished(t *testing.T) {
 
 	// Failed job.
 	j.Status = types.JOB_STATUS_FAILURE
-	require.NoError(t, trybots.db.PutJobs([]*types.Job{j}))
+	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
 	MockJobFailure(mock, j, now, nil)
 	require.NoError(t, trybots.jobFinished(j))
@@ -267,7 +267,7 @@ func TestJobFinished(t *testing.T) {
 
 	// Mishap.
 	j.Status = types.JOB_STATUS_MISHAP
-	require.NoError(t, trybots.db.PutJobs([]*types.Job{j}))
+	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
 	MockJobMishap(mock, j, now, nil)
 	require.NoError(t, trybots.jobFinished(j))
@@ -281,8 +281,8 @@ func TestJobFinished(t *testing.T) {
 
 type addedJobs map[string]*types.Job
 
-func (aj addedJobs) getAddedJob(t *testing.T, d db.JobReader) *types.Job {
-	allJobs, err := d.GetJobsFromDateRange(time.Time{}, time.Now(), "")
+func (aj addedJobs) getAddedJob(ctx context.Context, t *testing.T, d db.JobReader) *types.Job {
+	allJobs, err := d.GetJobsFromDateRange(ctx, time.Time{}, time.Now(), "")
 	require.NoError(t, err)
 	for _, job := range allJobs {
 		if _, ok := aj[job.Id]; !ok {
@@ -311,7 +311,7 @@ func TestInsertNewJob(t *testing.T) {
 	err := trybots.insertNewJob(ctx, b1.Id)
 	require.NoError(t, err)
 	require.True(t, mock.Empty())
-	result := aj.getAddedJob(t, trybots.db)
+	result := aj.getAddedJob(ctx, t, trybots.db)
 	require.Equal(t, result.BuildbucketBuildId, b1.Id)
 	require.NotEqual(t, "", result.BuildbucketLeaseKey)
 	require.True(t, result.Valid())
@@ -322,7 +322,7 @@ func TestInsertNewJob(t *testing.T) {
 	mockBB.On("GetBuild", ctx, b1.Id).Return(b1, nil)
 	err = trybots.insertNewJob(ctx, b1.Id)
 	require.Contains(t, err.Error(), expectErr.Error())
-	result = aj.getAddedJob(t, trybots.db)
+	result = aj.getAddedJob(ctx, t, trybots.db)
 	require.Nil(t, result)
 	require.True(t, mock.Empty())
 
@@ -333,7 +333,7 @@ func TestInsertNewJob(t *testing.T) {
 	mockBB.On("GetBuild", ctx, b2.Id).Return(b2, nil)
 	err = trybots.insertNewJob(ctx, b2.Id)
 	require.NoError(t, err) // We don't report errors for bad data from buildbucket.
-	result = aj.getAddedJob(t, trybots.db)
+	result = aj.getAddedJob(ctx, t, trybots.db)
 	require.Nil(t, result)
 	require.True(t, mock.Empty())
 
@@ -344,7 +344,7 @@ func TestInsertNewJob(t *testing.T) {
 	mockBB.On("GetBuild", ctx, b3.Id).Return(b3, nil)
 	err = trybots.insertNewJob(ctx, b3.Id)
 	require.NoError(t, err) // We don't report errors for bad data from buildbucket.
-	result = aj.getAddedJob(t, trybots.db)
+	result = aj.getAddedJob(ctx, t, trybots.db)
 	require.Nil(t, result)
 	require.True(t, mock.Empty())
 
@@ -361,7 +361,7 @@ func TestInsertNewJob(t *testing.T) {
 	mockBB.On("GetBuild", ctx, b8.Id).Return(b8, nil)
 	err = trybots.insertNewJob(ctx, b8.Id)
 	require.NoError(t, err) // We don't report errors for bad data from buildbucket.
-	result = aj.getAddedJob(t, trybots.db)
+	result = aj.getAddedJob(ctx, t, trybots.db)
 	require.Nil(t, result)
 	require.True(t, mock.Empty())
 
@@ -373,7 +373,7 @@ func TestInsertNewJob(t *testing.T) {
 	mockBB.On("GetBuild", ctx, b9.Id).Return(b9, nil)
 	err = trybots.insertNewJob(ctx, b9.Id)
 	require.EqualError(t, err, expect.Error())
-	result = aj.getAddedJob(t, trybots.db)
+	result = aj.getAddedJob(ctx, t, trybots.db)
 	require.Nil(t, result)
 	require.True(t, mock.Empty())
 }
@@ -406,13 +406,13 @@ func TestRetry(t *testing.T) {
 	mockBB.On("GetBuild", ctx, b1.Id).Return(b1, nil)
 	err := trybots.insertNewJob(ctx, b1.Id)
 	require.NoError(t, err)
-	j1 := aj.getAddedJob(t, trybots.db)
+	j1 := aj.getAddedJob(ctx, t, trybots.db)
 	require.True(t, mock.Empty())
 	require.Equal(t, j1.BuildbucketBuildId, b1.Id)
 	require.NotEqual(t, "", j1.BuildbucketLeaseKey)
 	require.True(t, j1.Valid())
 	require.False(t, j1.IsForce)
-	require.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
+	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
 	require.NoError(t, trybots.jCache.Update(ctx))
 
@@ -424,7 +424,7 @@ func TestRetry(t *testing.T) {
 	err = trybots.insertNewJob(ctx, b2.Id)
 	require.NoError(t, err)
 	require.True(t, mock.Empty())
-	j2 := aj.getAddedJob(t, trybots.db)
+	j2 := aj.getAddedJob(ctx, t, trybots.db)
 	require.Equal(t, j2.BuildbucketBuildId, b2.Id)
 	require.NotEqual(t, "", j2.BuildbucketLeaseKey)
 	require.True(t, j2.Valid())
@@ -440,7 +440,7 @@ func TestPoll(t *testing.T) {
 	now := time.Now()
 
 	assertAdded := func(builds []*buildbucketpb.Build) {
-		jobs, err := trybots.getActiveTryJobs()
+		jobs, err := trybots.getActiveTryJobs(ctx)
 		require.NoError(t, err)
 		byId := make(map[int64]*types.Job, len(jobs))
 		for _, j := range jobs {
@@ -454,7 +454,7 @@ func TestPoll(t *testing.T) {
 			_, ok := byId[b.Id]
 			require.True(t, ok)
 		}
-		require.NoError(t, trybots.db.PutJobs(jobs))
+		require.NoError(t, trybots.db.PutJobs(ctx, jobs))
 		trybots.jCache.AddJobs(jobs)
 	}
 

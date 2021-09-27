@@ -126,7 +126,7 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 		// DB even if the context is canceled, which helps to prevent
 		// inconsistencies between Buildbucket and the Task Scheduler
 		// DB.
-		if err := t.updateJobs(time.Now()); err != nil {
+		if err := t.updateJobs(ctx, time.Now()); err != nil {
 			sklog.Error(err)
 		} else {
 			lvUpdate.Reset()
@@ -150,8 +150,8 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 
 // getActiveTryJobs returns the active (not yet marked as finished in
 // Buildbucket) tryjobs.
-func (t *TryJobIntegrator) getActiveTryJobs() ([]*types.Job, error) {
-	if err := t.jCache.Update(context.TODO()); err != nil {
+func (t *TryJobIntegrator) getActiveTryJobs(ctx context.Context) ([]*types.Job, error) {
+	if err := t.jCache.Update(ctx); err != nil {
 		return nil, err
 	}
 	jobs := t.jCache.GetAllCachedJobs()
@@ -165,9 +165,9 @@ func (t *TryJobIntegrator) getActiveTryJobs() ([]*types.Job, error) {
 }
 
 // updateJobs sends updates to Buildbucket for all active try Jobs.
-func (t *TryJobIntegrator) updateJobs(now time.Time) error {
+func (t *TryJobIntegrator) updateJobs(ctx context.Context, now time.Time) error {
 	// Get all Jobs associated with in-progress Buildbucket builds.
-	jobs, err := t.getActiveTryJobs()
+	jobs, err := t.getActiveTryJobs(ctx)
 	if err != nil {
 		return err
 	}
@@ -189,7 +189,7 @@ func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		heartbeatErr = t.sendHeartbeats(now, unfinished)
+		heartbeatErr = t.sendHeartbeats(ctx, now, unfinished)
 	}()
 
 	// Send updates for finished Jobs, empty the lease keys to mark them
@@ -204,7 +204,7 @@ func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 			insert = append(insert, j)
 		}
 	}
-	if err := t.db.PutJobsInChunks(insert); err != nil {
+	if err := t.db.PutJobsInChunks(ctx, insert); err != nil {
 		errs = append(errs, err)
 	}
 	t.jCache.AddJobs(insert)
@@ -222,7 +222,7 @@ func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 
 // sendHeartbeats sends heartbeats to Buildbucket for all of the unfinished try
 // Jobs.
-func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*types.Job) error {
+func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, now time.Time, jobs []*types.Job) error {
 	defer metrics2.FuncTimer().Stop()
 
 	expiration := now.Add(LEASE_DURATION).Unix() * secondsToMicros
@@ -268,7 +268,7 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*types.Job) erro
 		}
 		if len(cancelJobs) > 0 {
 			sklog.Infof("Canceling %d jobs", len(cancelJobs))
-			if err := t.localCancelJobs(cancelJobs); err != nil {
+			if err := t.localCancelJobs(ctx, cancelJobs); err != nil {
 				errs = append(errs, err)
 			}
 		}
@@ -317,13 +317,13 @@ func (t *TryJobIntegrator) getRevision(ctx context.Context, repo *repograph.Grap
 	return c.Hash, nil
 }
 
-func (t *TryJobIntegrator) localCancelJobs(jobs []*types.Job) error {
+func (t *TryJobIntegrator) localCancelJobs(ctx context.Context, jobs []*types.Job) error {
 	for _, j := range jobs {
 		j.BuildbucketLeaseKey = 0
 		j.Status = types.JOB_STATUS_CANCELED
 		j.Finished = time.Now()
 	}
-	if err := t.db.PutJobsInChunks(jobs); err != nil {
+	if err := t.db.PutJobsInChunks(ctx, jobs); err != nil {
 		return err
 	}
 	t.jCache.AddJobs(jobs)
@@ -460,7 +460,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 	// Update the job and insert into the DB.
 	j.BuildbucketBuildId = buildId
 	j.BuildbucketLeaseKey = leaseKey
-	if err := t.db.PutJob(j); err != nil {
+	if err := t.db.PutJob(ctx, j); err != nil {
 		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to insert Job into the DB: %s", err))
 	}
 	t.jCache.AddJobs([]*types.Job{j})
@@ -473,7 +473,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 	// include the Job ID with the notification, so we have to insert the
 	// Job into the DB first.
 	if err := t.jobStarted(j); err != nil {
-		if cancelErr := t.localCancelJobs([]*types.Job{j}); cancelErr != nil {
+		if cancelErr := t.localCancelJobs(ctx, []*types.Job{j}); cancelErr != nil {
 			return fmt.Errorf("Failed to send job-started notification with: %s\nAnd failed to cancel the job with: %s", err, cancelErr)
 		}
 		return fmt.Errorf("Failed to send job-started notification with: %s", err)

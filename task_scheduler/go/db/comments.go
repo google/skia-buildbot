@@ -16,31 +16,31 @@ type CommentDB interface {
 	//
 	// If from is specified, it is a hint that TaskComments and CommitComments
 	// before this time will be ignored by the caller, thus they may be ommitted.
-	GetCommentsForRepos(repos []string, from time.Time) ([]*types.RepoComments, error)
+	GetCommentsForRepos(ctx context.Context, repos []string, from time.Time) ([]*types.RepoComments, error)
 
 	// PutTaskComment inserts the TaskComment into the database. May return
 	// ErrAlreadyExists.
-	PutTaskComment(*types.TaskComment) error
+	PutTaskComment(context.Context, *types.TaskComment) error
 
 	// DeleteTaskComment deletes the matching TaskComment from the database.
 	// Non-ID fields of the argument are ignored.
-	DeleteTaskComment(*types.TaskComment) error
+	DeleteTaskComment(context.Context, *types.TaskComment) error
 
 	// PutTaskSpecComment inserts the TaskSpecComment into the database. May
 	// return ErrAlreadyExists.
-	PutTaskSpecComment(*types.TaskSpecComment) error
+	PutTaskSpecComment(context.Context, *types.TaskSpecComment) error
 
 	// DeleteTaskSpecComment deletes the matching TaskSpecComment from the
 	// database. Non-ID fields of the argument are ignored.
-	DeleteTaskSpecComment(*types.TaskSpecComment) error
+	DeleteTaskSpecComment(context.Context, *types.TaskSpecComment) error
 
 	// PutCommitComment inserts the CommitComment into the database. May return
 	// ErrAlreadyExists.
-	PutCommitComment(*types.CommitComment) error
+	PutCommitComment(context.Context, *types.CommitComment) error
 
 	// DeleteCommitComment deletes the matching CommitComment from the database.
 	// Non-ID fields of the argument are ignored.
-	DeleteCommitComment(*types.CommitComment) error
+	DeleteCommitComment(context.Context, *types.CommitComment) error
 
 	// ModifiedTaskCommentsCh returns a channel which produces TaskComments
 	// as they are modified in the DB. The channel is closed when the given

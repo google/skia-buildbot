@@ -1,6 +1,7 @@
 package incremental
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"sync"
@@ -137,11 +138,11 @@ func (c *commentsCache) Reset() {
 
 // Update returns any sets of comments which have changed since the last call
 // to Update.
-func (c *commentsCache) Update(w *window.Window) (map[string]RepoComments, error) {
+func (c *commentsCache) Update(ctx context.Context, w *window.Window) (map[string]RepoComments, error) {
 	defer metrics2.FuncTimer().Stop()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	repoComments, err := c.db.GetCommentsForRepos(c.repos, w.EarliestStart())
+	repoComments, err := c.db.GetCommentsForRepos(ctx, c.repos, w.EarliestStart())
 	if err != nil {
 		return nil, err
 	}

@@ -35,8 +35,8 @@ func TestAddRemove(t *testing.T) {
 		TaskSpecPatterns: []string{".*"},
 		Name:             "My Rule",
 	}
-	require.NoError(t, b1.addRule(r1))
 	ctx := context.Background()
+	require.NoError(t, b1.addRule(ctx, r1))
 	// The Firestore emulator doesn't seem to allow different clients to see each
 	// other's data, so we use the same client as b1.
 	b2, err := New(ctx, b1.client)
@@ -54,7 +54,7 @@ func TestAddRemove(t *testing.T) {
 	}
 	assertEqual()
 
-	require.NoError(t, b1.RemoveRule(r1.Name))
+	require.NoError(t, b1.RemoveRule(ctx, r1.Name))
 	assertEqual()
 }
 
@@ -412,7 +412,7 @@ func TestCommitRange(t *testing.T) {
 	endCommit := commits[6]
 	rule, err := NewCommitRangeRule(ctx, "commit range", "test@google.com", "...", []string{}, startCommit, endCommit, repos)
 	require.NoError(t, err)
-	err = b.AddRule(rule, repos)
+	err = b.AddRule(ctx, rule, repos)
 	require.NoError(t, err)
 
 	// Ensure that we got the expected list of commits.

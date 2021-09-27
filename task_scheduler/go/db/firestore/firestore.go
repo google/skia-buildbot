@@ -99,7 +99,7 @@ func estResultSize(chunkSize time.Duration) int {
 //    will be provided as the first argument to this function so that the caller
 //    can distinguish results from different goroutines, thus avoiding the need
 //    for a mutex.
-func (d *firestoreDB) dateRangeHelper(name string, baseQuery fs.Query, start, end time.Time, init func(int), elem func(int, *fs.DocumentSnapshot) error) error {
+func (d *firestoreDB) dateRangeHelper(ctx context.Context, name string, baseQuery fs.Query, start, end time.Time, init func(int), elem func(int, *fs.DocumentSnapshot) error) error {
 	// Adjust start and end times for Firestore resolution.
 	start = firestore.FixTimestamp(start)
 	end = firestore.FixTimestamp(end.Add(firestore.TS_RESOLUTION - time.Nanosecond))
@@ -124,5 +124,5 @@ func (d *firestoreDB) dateRangeHelper(name string, baseQuery fs.Query, start, en
 	init(len(queries))
 
 	// Run the queries.
-	return d.client.IterDocsInParallel(context.TODO(), name, fmt.Sprintf("%s - %s", start, end), queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
+	return d.client.IterDocsInParallel(ctx, name, fmt.Sprintf("%s - %s", start, end), queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
 }

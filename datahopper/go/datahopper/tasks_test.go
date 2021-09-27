@@ -85,7 +85,7 @@ func TestTaskUpdate(t *testing.T) {
 		makeTask(start.Add(6*time.Minute), "B", types.TASK_STATUS_SUCCESS),
 		makeTask(start.Add(7*time.Minute), "A", types.TASK_STATUS_SUCCESS),
 	}
-	require.NoError(t, tdb.PutTasks(tasks))
+	require.NoError(t, tdb.PutTasks(context.Background(), tasks))
 	<-wait
 	require.NoError(t, edb.update())
 	evs, err := edb.Range(TASK_STREAM, start.Add(-time.Hour), start.Add(time.Hour))
@@ -111,7 +111,7 @@ func TestTaskRange(t *testing.T) {
 		makeTask(base.Add(time.Nanosecond), "A", types.TASK_STATUS_SUCCESS),
 		makeTask(base.Add(time.Minute), "A", types.TASK_STATUS_SUCCESS),
 	}
-	require.NoError(t, tdb.PutTasks(tasks))
+	require.NoError(t, tdb.PutTasks(context.Background(), tasks))
 	<-wait
 	require.NoError(t, edb.update())
 
@@ -170,7 +170,7 @@ func TestComputeTaskFlakeRate(t *testing.T) {
 		taskCount++
 		task := makeTask(created, name, status)
 		task.Revision = commit
-		require.NoError(t, tdb.PutTask(task))
+		require.NoError(t, tdb.PutTask(context.Background(), task))
 		<-wait
 	}
 	{

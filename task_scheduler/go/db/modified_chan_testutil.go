@@ -27,7 +27,7 @@ func TestModifiedTasksCh(t sktest.TestingT, db DB) {
 			Created: time.Now(),
 		},
 	}
-	require.NoError(t, db.PutTasks(expect))
+	require.NoError(t, db.PutTasks(ctx, expect))
 	got := <-taskCh
 	assertdeep.Equal(t, expect, got)
 
@@ -42,13 +42,13 @@ func TestModifiedTasksCh(t sktest.TestingT, db DB) {
 			Created: time.Now(),
 		},
 	}
-	require.NoError(t, db.PutTasks(expect))
+	require.NoError(t, db.PutTasks(ctx, expect))
 	got = <-taskCh
 	assertdeep.Equal(t, expect, got)
 
 	// Modify a task.
 	expect[0].Name = "my-task"
-	require.NoError(t, db.PutTasks(expect[:1]))
+	require.NoError(t, db.PutTasks(ctx, expect[:1]))
 	got = <-taskCh
 	assertdeep.Equal(t, expect[:1], got)
 
@@ -57,7 +57,7 @@ func TestModifiedTasksCh(t sktest.TestingT, db DB) {
 	dupCh := db.ModifiedTasksCh(ctx)
 	<-dupCh // Ignore first snapshot.
 	expect[0].Name = "renamed again"
-	require.NoError(t, db.PutTasks(expect[:1]))
+	require.NoError(t, db.PutTasks(ctx, expect[:1]))
 	expect[0].Name = "changed my mind"
 	got1 := <-taskCh
 	got2 := <-dupCh
@@ -87,7 +87,7 @@ func TestModifiedJobsCh(t sktest.TestingT, db DB) {
 			Created: time.Now(),
 		},
 	}
-	require.NoError(t, db.PutJobs(expect))
+	require.NoError(t, db.PutJobs(ctx, expect))
 	got := <-jobCh
 	assertdeep.Equal(t, expect, got)
 
@@ -102,13 +102,13 @@ func TestModifiedJobsCh(t sktest.TestingT, db DB) {
 			Created: time.Now(),
 		},
 	}
-	require.NoError(t, db.PutJobs(expect))
+	require.NoError(t, db.PutJobs(ctx, expect))
 	got = <-jobCh
 	assertdeep.Equal(t, expect, got)
 
 	// Modify a job.
 	expect[0].Name = "my-job"
-	require.NoError(t, db.PutJobs(expect[:1]))
+	require.NoError(t, db.PutJobs(ctx, expect[:1]))
 	got = <-jobCh
 	assertdeep.Equal(t, expect[:1], got)
 
@@ -117,7 +117,7 @@ func TestModifiedJobsCh(t sktest.TestingT, db DB) {
 	dupCh := db.ModifiedJobsCh(ctx)
 	<-dupCh // Ignore first snapshot.
 	expect[0].Name = "renamed again"
-	require.NoError(t, db.PutJobs(expect[:1]))
+	require.NoError(t, db.PutJobs(ctx, expect[:1]))
 	expect[0].Name = "changed my mind"
 	got1 := <-jobCh
 	got2 := <-dupCh
@@ -149,7 +149,7 @@ func TestModifiedTaskCommentsCh(t sktest.TestingT, db DB) {
 			Timestamp: time.Now(),
 		},
 	}
-	require.NoError(t, db.PutTaskComment(expect[0]))
+	require.NoError(t, db.PutTaskComment(ctx, expect[0]))
 	got := <-taskCommentCh
 	assertdeep.Equal(t, expect, got)
 
@@ -168,17 +168,17 @@ func TestModifiedTaskCommentsCh(t sktest.TestingT, db DB) {
 			Timestamp: time.Now(),
 		},
 	}
-	require.NoError(t, db.PutTaskComment(expect[0]))
+	require.NoError(t, db.PutTaskComment(ctx, expect[0]))
 	got = <-taskCommentCh
 	assertdeep.Equal(t, expect[:1], got)
-	require.NoError(t, db.PutTaskComment(expect[1]))
+	require.NoError(t, db.PutTaskComment(ctx, expect[1]))
 	got = <-taskCommentCh
 	assertdeep.Equal(t, expect[1:], got)
 
 	// We can't modify TaskComments.
 
 	// Delete a taskComment.
-	require.NoError(t, db.DeleteTaskComment(expect[1]))
+	require.NoError(t, db.DeleteTaskComment(ctx, expect[1]))
 	got = <-taskCommentCh
 	require.Equal(t, expect[1].Deleted, &deleted)
 	assertdeep.Equal(t, expect[1:], got)
@@ -188,7 +188,7 @@ func TestModifiedTaskCommentsCh(t sktest.TestingT, db DB) {
 	dupCh := db.ModifiedTaskCommentsCh(ctx)
 	<-dupCh // Ignore first snapshot.
 	expect[0].Name = "renamed again"
-	require.NoError(t, db.PutTaskComment(expect[0]))
+	require.NoError(t, db.PutTaskComment(ctx, expect[0]))
 	expect[0].Name = "changed my mind"
 	got1 := <-taskCommentCh
 	got2 := <-dupCh
@@ -219,7 +219,7 @@ func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db DB) {
 			Timestamp: time.Now(),
 		},
 	}
-	require.NoError(t, db.PutTaskSpecComment(expect[0]))
+	require.NoError(t, db.PutTaskSpecComment(ctx, expect[0]))
 	got := <-taskSpecCommentCh
 	assertdeep.Equal(t, expect, got)
 
@@ -236,17 +236,17 @@ func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db DB) {
 			Timestamp: time.Now(),
 		},
 	}
-	require.NoError(t, db.PutTaskSpecComment(expect[0]))
+	require.NoError(t, db.PutTaskSpecComment(ctx, expect[0]))
 	got = <-taskSpecCommentCh
 	assertdeep.Equal(t, expect[:1], got)
-	require.NoError(t, db.PutTaskSpecComment(expect[1]))
+	require.NoError(t, db.PutTaskSpecComment(ctx, expect[1]))
 	got = <-taskSpecCommentCh
 	assertdeep.Equal(t, expect[1:], got)
 
 	// We can't modify TaskSpecComments.
 
 	// Delete a taskSpecComment.
-	require.NoError(t, db.DeleteTaskSpecComment(expect[1]))
+	require.NoError(t, db.DeleteTaskSpecComment(ctx, expect[1]))
 	got = <-taskSpecCommentCh
 	require.Equal(t, expect[1].Deleted, &deleted)
 	assertdeep.Equal(t, expect[1:], got)
@@ -256,7 +256,7 @@ func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db DB) {
 	dupCh := db.ModifiedTaskSpecCommentsCh(ctx)
 	<-dupCh // Ignore first snapshot.
 	expect[0].Name = "renamed again"
-	require.NoError(t, db.PutTaskSpecComment(expect[0]))
+	require.NoError(t, db.PutTaskSpecComment(ctx, expect[0]))
 	expect[0].Name = "changed my mind"
 	got1 := <-taskSpecCommentCh
 	got2 := <-dupCh
@@ -287,7 +287,7 @@ func TestModifiedCommitCommentsCh(t sktest.TestingT, db DB) {
 			Timestamp: time.Now(),
 		},
 	}
-	require.NoError(t, db.PutCommitComment(expect[0]))
+	require.NoError(t, db.PutCommitComment(ctx, expect[0]))
 	got := <-commitCommentCh
 	assertdeep.Equal(t, expect, got)
 
@@ -304,17 +304,17 @@ func TestModifiedCommitCommentsCh(t sktest.TestingT, db DB) {
 			Timestamp: time.Now(),
 		},
 	}
-	require.NoError(t, db.PutCommitComment(expect[0]))
+	require.NoError(t, db.PutCommitComment(ctx, expect[0]))
 	got = <-commitCommentCh
 	assertdeep.Equal(t, expect[:1], got)
-	require.NoError(t, db.PutCommitComment(expect[1]))
+	require.NoError(t, db.PutCommitComment(ctx, expect[1]))
 	got = <-commitCommentCh
 	assertdeep.Equal(t, expect[1:], got)
 
 	// We can't modify CommitComments.
 
 	// Delete a commitComment.
-	require.NoError(t, db.DeleteCommitComment(expect[1]))
+	require.NoError(t, db.DeleteCommitComment(ctx, expect[1]))
 	got = <-commitCommentCh
 	require.Equal(t, expect[1].Deleted, &deleted)
 	assertdeep.Equal(t, expect[1:], got)
@@ -324,7 +324,7 @@ func TestModifiedCommitCommentsCh(t sktest.TestingT, db DB) {
 	dupCh := db.ModifiedCommitCommentsCh(ctx)
 	<-dupCh // Ignore first snapshot.
 	expect[0].Revision = "renamed again"
-	require.NoError(t, db.PutCommitComment(expect[0]))
+	require.NoError(t, db.PutCommitComment(ctx, expect[0]))
 	expect[0].Revision = "changed my mind"
 	got1 := <-commitCommentCh
 	got2 := <-dupCh

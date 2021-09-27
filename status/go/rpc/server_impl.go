@@ -82,7 +82,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 	now := time.Now().UTC()
 
 	if req.GetTaskId() != "" {
-		task, err := s.taskDb.GetTaskById(req.GetTaskId())
+		task, err := s.taskDb.GetTaskById(ctx, req.GetTaskId())
 		if err != nil {
 			return nil, fmt.Errorf("failed to obtain task details: %v", err)
 		}
@@ -95,7 +95,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 			User:      login.AuthorizedEmail(ctx),
 			Message:   message,
 		}
-		if err := s.taskDb.PutTaskComment(&c); err != nil {
+		if err := s.taskDb.PutTaskComment(ctx, &c); err != nil {
 			return nil, fmt.Errorf("failed to add task comment: %v", err)
 		}
 	} else if req.GetTaskSpec() != "" {
@@ -108,7 +108,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 			IgnoreFailure: req.IgnoreFailure,
 			Message:       req.Message,
 		}
-		if err := s.taskDb.PutTaskSpecComment(&c); err != nil {
+		if err := s.taskDb.PutTaskSpecComment(ctx, &c); err != nil {
 			return nil, fmt.Errorf("failed to add task spec  comment: %v", err)
 		}
 	} else if req.GetCommit() != "" {
@@ -120,7 +120,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 			IgnoreFailure: req.IgnoreFailure,
 			Message:       req.Message,
 		}
-		if err := s.taskDb.PutCommitComment(&c); err != nil {
+		if err := s.taskDb.PutCommitComment(ctx, &c); err != nil {
 			return nil, fmt.Errorf("failed to add commit comment: %v", err)
 		}
 	} else {
@@ -149,7 +149,7 @@ func (s *statusServerImpl) DeleteComment(ctx context.Context,
 
 	if taskID != "" {
 		// This references a comment on an individual task.
-		task, err := s.taskDb.GetTaskById(taskID)
+		task, err := s.taskDb.GetTaskById(ctx, taskID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to obtain task details: %v", err)
 		}
@@ -161,7 +161,7 @@ func (s *statusServerImpl) DeleteComment(ctx context.Context,
 			TaskId:    task.Id,
 		}
 
-		if err := s.taskDb.DeleteTaskComment(c); err != nil {
+		if err := s.taskDb.DeleteTaskComment(ctx, c); err != nil {
 			return nil, fmt.Errorf("failed to delete comment: %v", err)
 		}
 	} else if taskSpec != "" {
@@ -171,7 +171,7 @@ func (s *statusServerImpl) DeleteComment(ctx context.Context,
 			Name:      taskSpec,
 			Timestamp: timestamp,
 		}
-		if err := s.taskDb.DeleteTaskSpecComment(&c); err != nil {
+		if err := s.taskDb.DeleteTaskSpecComment(ctx, &c); err != nil {
 			return nil, fmt.Errorf("failed to delete comment: %v", err)
 		}
 	} else if commit != "" {
@@ -181,7 +181,7 @@ func (s *statusServerImpl) DeleteComment(ctx context.Context,
 			Revision:  commit,
 			Timestamp: timestamp,
 		}
-		if err := s.taskDb.DeleteCommitComment(&c); err != nil {
+		if err := s.taskDb.DeleteCommitComment(ctx, &c); err != nil {
 			return nil, fmt.Errorf("failed to delete comment: %v", err)
 		}
 

@@ -155,20 +155,20 @@ func (b *DB) MatchRule(taskSpec, commit string) string {
 }
 
 // Add adds a new Rule to the DB.
-func (b *DB) AddRule(r *Rule, repos repograph.Map) error {
+func (b *DB) AddRule(ctx context.Context, r *Rule, repos repograph.Map) error {
 	if b == nil {
 		return errors.New("DB is nil; cannot add rules.")
 	}
 	if err := ValidateRule(r, repos); err != nil {
 		return err
 	}
-	return b.addRule(r)
+	return b.addRule(ctx, r)
 }
 
 // addRule adds a new Rule to the DB.
-func (b *DB) addRule(r *Rule) (rvErr error) {
+func (b *DB) addRule(ctx context.Context, r *Rule) (rvErr error) {
 	ref := b.coll.Doc(r.Name)
-	if _, err := b.client.Create(context.TODO(), ref, r, defaultAttempts, timeoutPut); err != nil {
+	if _, err := b.client.Create(ctx, ref, r, defaultAttempts, timeoutPut); err != nil {
 		return err
 	}
 	b.mtx.Lock()
@@ -230,12 +230,12 @@ func NewCommitRangeRule(ctx context.Context, name, user, description string, tas
 }
 
 // RemoveRule removes the Rule from the DB.
-func (b *DB) RemoveRule(id string) error {
+func (b *DB) RemoveRule(ctx context.Context, id string) error {
 	if b == nil {
 		return errors.New("DB is nil; cannot remove rules.")
 	}
 	ref := b.coll.Doc(id)
-	if _, err := b.client.Delete(context.TODO(), ref, defaultAttempts, timeoutPut); err != nil {
+	if _, err := b.client.Delete(ctx, ref, defaultAttempts, timeoutPut); err != nil {
 		return err
 	}
 	b.mtx.Lock()

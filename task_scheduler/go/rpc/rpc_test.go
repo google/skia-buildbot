@@ -69,7 +69,7 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 		Description:      "Skip this!",
 		Name:             "Skipper",
 	}
-	require.NoError(t, skipDB.AddRule(skipRule, repos))
+	require.NoError(t, skipDB.AddRule(ctx, skipRule, repos))
 
 	// Task config cache.
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
@@ -109,7 +109,7 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 			Revision: hashes[1],
 		},
 	}
-	require.NoError(t, d.PutJob(job))
+	require.NoError(t, d.PutJob(ctx, job))
 
 	task := &types.Task{
 		Commits: hashes,
@@ -122,7 +122,7 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 			},
 		},
 	}
-	require.NoError(t, d.PutTask(task))
+	require.NoError(t, d.PutTask(ctx, task))
 
 	swarm := swarming.NewMockApiClient()
 

@@ -25,7 +25,7 @@ type InMemoryTaskDB struct {
 }
 
 // See docs for TaskDB interface. Does not take any locks.
-func (d *InMemoryTaskDB) AssignId(t *types.Task) error {
+func (d *InMemoryTaskDB) AssignId(_ context.Context, t *types.Task) error {
 	if t.Id != "" {
 		return fmt.Errorf("Task Id already assigned: %v", t.Id)
 	}
@@ -34,7 +34,7 @@ func (d *InMemoryTaskDB) AssignId(t *types.Task) error {
 }
 
 // See docs for TaskDB interface.
-func (d *InMemoryTaskDB) GetTaskById(id string) (*types.Task, error) {
+func (d *InMemoryTaskDB) GetTaskById(_ context.Context, id string) (*types.Task, error) {
 	d.tasksMtx.RLock()
 	defer d.tasksMtx.RUnlock()
 	if task := d.tasks[id]; task != nil {
@@ -44,7 +44,7 @@ func (d *InMemoryTaskDB) GetTaskById(id string) (*types.Task, error) {
 }
 
 // See docs for TaskDB interface.
-func (d *InMemoryTaskDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*types.Task, error) {
+func (d *InMemoryTaskDB) GetTasksFromDateRange(_ context.Context, start, end time.Time, repo string) ([]*types.Task, error) {
 	d.tasksMtx.RLock()
 	defer d.tasksMtx.RUnlock()
 
@@ -62,12 +62,12 @@ func (d *InMemoryTaskDB) GetTasksFromDateRange(start, end time.Time, repo string
 }
 
 // See docs for TaskDB interface.
-func (d *InMemoryTaskDB) PutTask(task *types.Task) error {
-	return d.PutTasks([]*types.Task{task})
+func (d *InMemoryTaskDB) PutTask(ctx context.Context, task *types.Task) error {
+	return d.PutTasks(ctx, []*types.Task{task})
 }
 
 // See docs for TaskDB interface.
-func (d *InMemoryTaskDB) PutTasks(tasks []*types.Task) error {
+func (d *InMemoryTaskDB) PutTasks(ctx context.Context, tasks []*types.Task) error {
 	if len(tasks) > firestore.MAX_TRANSACTION_DOCS {
 		sklog.Errorf("Inserting %d tasks, which is more than the Firestore maximum of %d; consider switching to PutTasksInChunks.", len(tasks), firestore.MAX_TRANSACTION_DOCS)
 	}
@@ -93,7 +93,7 @@ func (d *InMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 	added := make([]*types.Task, 0, len(tasks))
 	for _, task := range tasks {
 		if task.Id == "" {
-			if err := d.AssignId(task); err != nil {
+			if err := d.AssignId(ctx, task); err != nil {
 				// Should never happen.
 				return err
 			}
@@ -120,9 +120,9 @@ func (d *InMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 }
 
 // See docs for TaskDB interface.
-func (d *InMemoryTaskDB) PutTasksInChunks(tasks []*types.Task) error {
+func (d *InMemoryTaskDB) PutTasksInChunks(ctx context.Context, tasks []*types.Task) error {
 	return util.ChunkIter(len(tasks), firestore.MAX_TRANSACTION_DOCS, func(i, j int) error {
-		return d.PutTasks(tasks[i:j])
+		return d.PutTasks(ctx, tasks[i:j])
 	})
 }
 
@@ -236,7 +236,7 @@ func (d *InMemoryJobDB) assignId(j *types.Job) error {
 }
 
 // See docs for JobDB interface.
-func (d *InMemoryJobDB) GetJobById(id string) (*types.Job, error) {
+func (d *InMemoryJobDB) GetJobById(_ context.Context, id string) (*types.Job, error) {
 	d.jobsMtx.RLock()
 	defer d.jobsMtx.RUnlock()
 	if job := d.jobs[id]; job != nil {
@@ -246,7 +246,7 @@ func (d *InMemoryJobDB) GetJobById(id string) (*types.Job, error) {
 }
 
 // See docs for JobDB interface.
-func (d *InMemoryJobDB) GetJobsFromDateRange(start, end time.Time, repo string) ([]*types.Job, error) {
+func (d *InMemoryJobDB) GetJobsFromDateRange(_ context.Context, start, end time.Time, repo string) ([]*types.Job, error) {
 	d.jobsMtx.RLock()
 	defer d.jobsMtx.RUnlock()
 
@@ -265,12 +265,12 @@ func (d *InMemoryJobDB) GetJobsFromDateRange(start, end time.Time, repo string) 
 }
 
 // See docs for JobDB interface.
-func (d *InMemoryJobDB) PutJob(job *types.Job) error {
-	return d.PutJobs([]*types.Job{job})
+func (d *InMemoryJobDB) PutJob(ctx context.Context, job *types.Job) error {
+	return d.PutJobs(ctx, []*types.Job{job})
 }
 
 // See docs for JobDB interface.
-func (d *InMemoryJobDB) PutJobs(jobs []*types.Job) error {
+func (d *InMemoryJobDB) PutJobs(_ context.Context, jobs []*types.Job) error {
 	if len(jobs) > firestore.MAX_TRANSACTION_DOCS {
 		sklog.Errorf("Inserting %d jobs, which is more than the Firestore maximum of %d; consider switching to PutJobsInChunks.", len(jobs), firestore.MAX_TRANSACTION_DOCS)
 	}
@@ -322,9 +322,9 @@ func (d *InMemoryJobDB) PutJobs(jobs []*types.Job) error {
 }
 
 // See docs for JobDB interface.
-func (d *InMemoryJobDB) PutJobsInChunks(jobs []*types.Job) error {
+func (d *InMemoryJobDB) PutJobsInChunks(ctx context.Context, jobs []*types.Job) error {
 	return util.ChunkIter(len(jobs), firestore.MAX_TRANSACTION_DOCS, func(i, j int) error {
-		return d.PutJobs(jobs[i:j])
+		return d.PutJobs(ctx, jobs[i:j])
 	})
 }
 

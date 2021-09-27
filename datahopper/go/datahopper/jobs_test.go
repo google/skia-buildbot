@@ -108,7 +108,7 @@ func TestJobUpdate(t *testing.T) {
 		makeJob(start.Add(6*time.Minute), "B", types.JOB_STATUS_SUCCESS, TRYJOB, time.Minute),
 		makeJob(start.Add(7*time.Minute), "A", types.JOB_STATUS_SUCCESS, NORMAL, time.Hour),
 	}
-	require.NoError(t, jdb.PutJobs(jobs))
+	require.NoError(t, jdb.PutJobs(context.Background(), jobs))
 	<-wait
 	require.NoError(t, edb.update())
 	evs, err := edb.Range(JOB_STREAM, start.Add(-time.Hour), start.Add(time.Hour))
@@ -134,7 +134,7 @@ func TestJobRange(t *testing.T) {
 		makeJob(base.Add(time.Nanosecond), "A", types.JOB_STATUS_SUCCESS, NORMAL, time.Minute),
 		makeJob(base.Add(time.Minute), "A", types.JOB_STATUS_SUCCESS, NORMAL, time.Minute),
 	}
-	require.NoError(t, jdb.PutJobs(jobs))
+	require.NoError(t, jdb.PutJobs(context.Background(), jobs))
 	<-wait
 	require.NoError(t, edb.update())
 
@@ -245,7 +245,7 @@ func TestComputeAvgJobDuration(t *testing.T) {
 		makeJob(created, "IgnoredStatus", types.JOB_STATUS_CANCELED, NORMAL, time.Minute),
 		makeJob(created, "IgnoredStatus", types.JOB_STATUS_MISHAP, NORMAL, time.Minute),
 	}
-	require.NoError(t, jdb.PutJobs(jobsStatus))
+	require.NoError(t, jdb.PutJobs(context.Background(), jobsStatus))
 	<-wait
 
 	expect("AllStatus", NORMAL, jobsStatus[0:3])
@@ -261,7 +261,7 @@ func TestComputeAvgJobDuration(t *testing.T) {
 		makeJob(created, "AllTypes", types.JOB_STATUS_SUCCESS, TRYJOB, 11*time.Minute),
 		makeJob(created, "AllTypes", types.JOB_STATUS_SUCCESS, FORCED, 12*time.Minute),
 	}
-	require.NoError(t, jdb.PutJobs(jobsType))
+	require.NoError(t, jdb.PutJobs(context.Background(), jobsType))
 	<-wait
 
 	expect("OnlyForced", FORCED, jobsType[0:2])
@@ -298,7 +298,7 @@ func TestComputeJobFailureMishapRate(t *testing.T) {
 	jobCount := 0
 	addJob := func(name string, status types.JobStatus, jobType jobTypeString) {
 		jobCount++
-		require.NoError(t, jdb.PutJob(makeJob(created, name, status, jobType, time.Minute)))
+		require.NoError(t, jdb.PutJob(context.Background(), makeJob(created, name, status, jobType, time.Minute)))
 		<-wait
 	}
 
@@ -504,7 +504,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		},
 		Created: c2time,
 	}
-	require.NoError(t, d.PutJobs([]*types.Job{j1, j2, j3, j4, j5}))
+	require.NoError(t, d.PutJobs(ctx, []*types.Job{j1, j2, j3, j4, j5}))
 
 	// Jobs have not completed, so same as above.
 	check(c1age, c1age, c2age)
@@ -512,7 +512,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	// One job is complete.
 	j2.Status = types.JOB_STATUS_SUCCESS
 	j2.Finished = time.Now()
-	require.NoError(t, d.PutJob(j2))
+	require.NoError(t, d.PutJob(ctx, j2))
 
 	// Expect Build to be up-to-date.
 	check("0", c1age, c2age)
@@ -535,7 +535,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		},
 		Created: c3time,
 	}
-	require.NoError(t, d.PutJob(j6))
+	require.NoError(t, d.PutJob(ctx, j6))
 
 	check(c3age, c1age, fmt.Sprintf("Could not find anything for overdue_job_specs_s{job_name=\"%s\",job_trigger=\"\",repo=\"%s\"}", tcc_testutils.PerfTaskName, gb.RepoUrl()))
 }

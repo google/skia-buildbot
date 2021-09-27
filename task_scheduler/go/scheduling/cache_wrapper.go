@@ -36,7 +36,7 @@ func (c *cacheWrapper) GetTask(id string) (*types.Task, error) {
 }
 
 // See documentation for TaskCache interface.
-func (c *cacheWrapper) GetTaskMaybeExpired(string) (*types.Task, error) {
+func (c *cacheWrapper) GetTaskMaybeExpired(context.Context, string) (*types.Task, error) {
 	return nil, fmt.Errorf("cacheWrapper.GetTaskMaybeExpired not implemented.")
 }
 

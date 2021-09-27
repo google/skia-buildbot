@@ -373,7 +373,7 @@ func main() {
 			task.IsolatedOutput = rbe.EmptyDigest
 			insert = append(insert, task)
 		}
-		assertNoError(d.PutTasks(insert))
+		assertNoError(d.PutTasks(ctx, insert))
 		assertNoError(tCache.Update(ctx))
 		assertNoError(jCache.Update(ctx))
 	}

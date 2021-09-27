@@ -126,8 +126,8 @@ func (jc *JobCreator) Start(ctx context.Context, enableTryjobs bool) {
 
 // putJobsInChunks is a wrapper around DB.PutJobsInChunks which adds the jobs
 // to the cache.
-func (jc *JobCreator) putJobsInChunks(j []*types.Job) error {
-	if err := jc.db.PutJobsInChunks(j); err != nil {
+func (jc *JobCreator) putJobsInChunks(ctx context.Context, j []*types.Job) error {
+	if err := jc.db.PutJobsInChunks(ctx, j); err != nil {
 		return err
 	}
 	jc.jCache.AddJobs(j)
@@ -300,7 +300,7 @@ func (jc *JobCreator) HandleRepoUpdate(ctx context.Context, repoUrl string, g *r
 		nack()
 		return skerr.Wrapf(err, "gatherNewJobs returned transient error")
 	}
-	if err := jc.putJobsInChunks(newJobs); err != nil {
+	if err := jc.putJobsInChunks(ctx, newJobs); err != nil {
 		// nack the pubsub message so that we'll have
 		// another chance to add these jobs.
 		nack()
@@ -472,7 +472,7 @@ func (jc *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName 
 	}
 
 	// Insert the new jobs into the DB.
-	if err := jc.putJobsInChunks(jobsToInsert); err != nil {
+	if err := jc.putJobsInChunks(ctx, jobsToInsert); err != nil {
 		return fmt.Errorf("Failed to add periodic jobs: %s", err)
 	}
 	sklog.Infof("Created %d periodic jobs for trigger %q", len(jobs), triggerName)

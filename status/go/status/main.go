@@ -242,7 +242,7 @@ func commentsForRepoHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	comments, err := taskDb.GetCommentsForRepos([]string{repoUrl}, time.Now().Add(-10000*time.Hour))
+	comments, err := taskDb.GetCommentsForRepos(r.Context(), []string{repoUrl}, time.Now().Add(-10000*time.Hour))
 	if err != nil {
 		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
@@ -320,7 +320,7 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, fmt.Errorf("No task ID given!"), "No task ID given!", http.StatusInternalServerError)
 		return
 	}
-	task, err := taskDb.GetTaskById(id)
+	task, err := taskDb.GetTaskById(r.Context(), id)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to obtain task details.", http.StatusInternalServerError)
 		return
@@ -342,11 +342,11 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		User:      login.LoggedInAs(r),
 		Message:   comment.Comment,
 	}
-	if err := taskDb.PutTaskComment(&c); err != nil {
+	if err := taskDb.PutTaskComment(r.Context(), &c); err != nil {
 		httputils.ReportError(w, nil, fmt.Sprintf("Failed to add comment: %s", err), http.StatusInternalServerError)
 		return
 	}
-	if err := iCache.Update(context.Background(), false); err != nil {
+	if err := iCache.Update(r.Context(), false); err != nil {
 		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
@@ -361,7 +361,7 @@ func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, fmt.Errorf("No task ID given!"), "No task ID given!", http.StatusInternalServerError)
 		return
 	}
-	task, err := taskDb.GetTaskById(id)
+	task, err := taskDb.GetTaskById(r.Context(), id)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to obtain task details.", http.StatusInternalServerError)
 		return
@@ -379,11 +379,11 @@ func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		TaskId:    task.Id,
 	}
 
-	if err := taskDb.DeleteTaskComment(c); err != nil {
+	if err := taskDb.DeleteTaskComment(r.Context(), c); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete comment: %v", err), http.StatusInternalServerError)
 		return
 	}
-	if err := iCache.Update(context.Background(), false); err != nil {
+	if err := iCache.Update(r.Context(), false); err != nil {
 		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
@@ -423,11 +423,11 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,
 	}
-	if err := taskDb.PutTaskSpecComment(&c); err != nil {
+	if err := taskDb.PutTaskSpecComment(r.Context(), &c); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to add task spec comment: %v", err), http.StatusInternalServerError)
 		return
 	}
-	if err := iCache.Update(context.Background(), false); err != nil {
+	if err := iCache.Update(r.Context(), false); err != nil {
 		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
@@ -456,11 +456,11 @@ func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Name:      taskSpec,
 		Timestamp: time.Unix(0, timestamp),
 	}
-	if err := taskDb.DeleteTaskSpecComment(&c); err != nil {
+	if err := taskDb.DeleteTaskSpecComment(r.Context(), &c); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete comment: %v", err), http.StatusInternalServerError)
 		return
 	}
-	if err := iCache.Update(context.Background(), false); err != nil {
+	if err := iCache.Update(r.Context(), false); err != nil {
 		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
@@ -493,11 +493,11 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,
 	}
-	if err := taskDb.PutCommitComment(&c); err != nil {
+	if err := taskDb.PutCommitComment(r.Context(), &c); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to add commit comment: %s", err), http.StatusInternalServerError)
 		return
 	}
-	if err := iCache.Update(context.Background(), false); err != nil {
+	if err := iCache.Update(r.Context(), false); err != nil {
 		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
@@ -522,11 +522,11 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Revision:  commit,
 		Timestamp: time.Unix(0, timestamp),
 	}
-	if err := taskDb.DeleteCommitComment(&c); err != nil {
+	if err := taskDb.DeleteCommitComment(r.Context(), &c); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete commit comment: %s", err), http.StatusInternalServerError)
 		return
 	}
-	if err := iCache.Update(context.Background(), false); err != nil {
+	if err := iCache.Update(r.Context(), false); err != nil {
 		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
@@ -638,7 +638,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	tasksForCommit, err := tasksPerCommit.Get(context.Background(), types.RepoState{
+	tasksForCommit, err := tasksPerCommit.Get(r.Context(), types.RepoState{
 		Repo:     repoUrl,
 		Revision: hash,
 	})

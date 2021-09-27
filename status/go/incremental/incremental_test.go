@@ -46,7 +46,7 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCacheImpl, repogr
 			Name: "PlaceholderTask",
 		},
 	}
-	require.NoError(t, d.PutTask(initialTask))
+	require.NoError(t, d.PutTask(ctx, initialTask))
 
 	w, err := window.New(24*time.Hour, 100, repos)
 	require.NoError(t, err)
@@ -104,10 +104,10 @@ func TestIncrementalCacheImpl(t *testing.T) {
 	cache.tasks.setTasksCallback(func() {
 		wait <- struct{}{}
 	})
-	t0, err := taskDb.GetTaskById(u.Tasks[0].Id)
+	t0, err := taskDb.GetTaskById(ctx, u.Tasks[0].Id)
 	require.NoError(t, err)
 	t0.Status = types.TASK_STATUS_SUCCESS
-	require.NoError(t, taskDb.PutTask(t0))
+	require.NoError(t, taskDb.PutTask(ctx, t0))
 	taskDb.Wait()
 	<-wait
 	u, ts = update(t, ctx, repoUrl, cache, ts)
@@ -132,7 +132,7 @@ func TestIncrementalCacheImpl(t *testing.T) {
 		User:      "me",
 		Message:   "here's a task comment.",
 	}
-	require.NoError(t, taskDb.PutTaskComment(&tc))
+	require.NoError(t, taskDb.PutTaskComment(ctx, &tc))
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new TaskComment.
 	require.Equal(t, []*git.Branch(nil), u.BranchHeads)
@@ -167,7 +167,7 @@ func TestIncrementalCacheImpl(t *testing.T) {
 		IgnoreFailure: true,
 		Message:       "here's a commit comment",
 	}
-	require.NoError(t, taskDb.PutCommitComment(&cc))
+	require.NoError(t, taskDb.PutCommitComment(ctx, &cc))
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new CommitComment.
 	require.Equal(t, []*git.Branch(nil), u.BranchHeads)
@@ -190,7 +190,7 @@ func TestIncrementalCacheImpl(t *testing.T) {
 		IgnoreFailure: true,
 		Message:       "here's a task spec comment",
 	}
-	require.NoError(t, taskDb.PutTaskSpecComment(&tsc))
+	require.NoError(t, taskDb.PutTaskSpecComment(ctx, &tsc))
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new TaskSpecComment.
 	require.Equal(t, []*git.Branch(nil), u.BranchHeads)

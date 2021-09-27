@@ -246,7 +246,7 @@ func insertJobs(t sktest.TestingT, ctx context.Context, s *TaskScheduler, rss ..
 			jobs = append(jobs, j)
 		}
 	}
-	require.NoError(t, s.putJobsInChunks(jobs))
+	require.NoError(t, s.putJobsInChunks(ctx, jobs))
 }
 
 // Common setup for TaskScheduler tests.
@@ -564,7 +564,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		clearDiagnostics(candidates)
 
 		t1.Status = status
-		require.NoError(t, s.putTask(t1))
+		require.NoError(t, s.putTask(ctx, t1))
 
 		c, err = s.filterTaskCandidates(ctx, candidates)
 		require.NoError(t, err)
@@ -595,7 +595,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 	// the task itself is back in the list of candidates, in case we want
 	// to retry.
 	t1.Status = types.TASK_STATUS_FAILURE
-	require.NoError(t, s.putTask(t1))
+	require.NoError(t, s.putTask(ctx, t1))
 
 	c, err = s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
@@ -623,7 +623,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 	// the task itself is not.
 	t1.Status = types.TASK_STATUS_SUCCESS
 	t1.IsolatedOutput = "fake isolated hash"
-	require.NoError(t, s.putTask(t1))
+	require.NoError(t, s.putTask(ctx, t1))
 
 	c, err = s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
@@ -656,7 +656,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 	require.NotNil(t, t2)
 	t2.Status = types.TASK_STATUS_SUCCESS
 	t2.IsolatedOutput = "fake isolated hash"
-	require.NoError(t, s.putTask(t2))
+	require.NoError(t, s.putTask(ctx, t2))
 
 	// All test and perf tasks are now candidates, no build tasks.
 	c, err = s.filterTaskCandidates(ctx, candidates)
@@ -899,7 +899,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	t2 := makeTask(c2.Name, c2.Repo, c2.Revision)
 	t2.Status = types.TASK_STATUS_FAILURE
 	t2.Commits = util.CopyStringSlice(c2.Commits)
-	require.NoError(t, s.putTask(t2))
+	require.NoError(t, s.putTask(ctx, t2))
 
 	// Update Attempt and RetryOf before calling processTaskCandidate.
 	c2.Attempt = 1
@@ -926,7 +926,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 
 	// Actually, the task at rs2 had a mishap.
 	t2.Status = types.TASK_STATUS_MISHAP
-	require.NoError(t, s.putTask(t2))
+	require.NoError(t, s.putTask(ctx, t2))
 
 	// Scores should be same as for FAILURE.
 	diag = &taskCandidateScoringDiagnostics{}
@@ -1384,10 +1384,10 @@ func TestComputeBlamelist(t *testing.T) {
 				}
 			}
 			stoleFrom.Commits = stoleFromCommits
-			require.NoError(t, d.PutTasks([]*types.Task{task, stoleFrom}))
+			require.NoError(t, d.PutTasks(ctx, []*types.Task{task, stoleFrom}))
 			cache.AddTasks([]*types.Task{task, stoleFrom})
 		} else {
-			require.NoError(t, d.PutTask(task))
+			require.NoError(t, d.PutTask(ctx, task))
 			cache.AddTasks([]*types.Task{task})
 		}
 		ids = append(ids, task.Id)
@@ -1653,7 +1653,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.NotNil(t, t1)
 	t1.Status = types.TASK_STATUS_SUCCESS
 	t1.IsolatedOutput = "fake isolated hash"
-	require.NoError(t, s.putTask(t1))
+	require.NoError(t, s.putTask(ctx, t1))
 
 	// Regenerate the task queue.
 	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
@@ -1689,7 +1689,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	t2 := makeTask(queue[buildIdx].Name, queue[buildIdx].Repo, queue[buildIdx].Revision)
 	t2.Status = types.TASK_STATUS_SUCCESS
 	t2.IsolatedOutput = "fake isolated hash"
-	require.NoError(t, s.putTask(t2))
+	require.NoError(t, s.putTask(ctx, t2))
 
 	// Regenerate the task queue.
 	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
@@ -1721,7 +1721,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	t3.Commits = []string{c2, c1}
 	t3.Status = types.TASK_STATUS_SUCCESS
 	t3.IsolatedOutput = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff/256"
-	require.NoError(t, s.putTask(t3))
+	require.NoError(t, s.putTask(ctx, t3))
 
 	// Regenerate the task queue.
 	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
@@ -2012,7 +2012,7 @@ func TestSchedulingE2E(t *testing.T) {
 	t1.Status = types.TASK_STATUS_SUCCESS
 	t1.Finished = time.Now()
 	t1.IsolatedOutput = "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/86"
-	require.NoError(t, s.putTask(t1))
+	require.NoError(t, s.putTask(ctx, t1))
 	swarmingClient.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{
 		makeSwarmingRpcsTaskRequestMetadata(t, t1, linuxTaskDims),
 	})
@@ -2090,7 +2090,7 @@ func TestSchedulingE2E(t *testing.T) {
 	t4.Status = types.TASK_STATUS_SUCCESS
 	t4.Finished = time.Now()
 	t4.IsolatedOutput = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee/99"
-	require.NoError(t, s.putTask(t4))
+	require.NoError(t, s.putTask(ctx, t4))
 
 	// No new bots free; only the remaining test task should be in the queue.
 	mockBots(t, swarmingClient)
@@ -2183,7 +2183,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	t2.Commits = []string{c1}
 	tasksList = append(tasksList, t2)
 
-	require.NoError(t, s.putTasks(tasksList))
+	require.NoError(t, s.putTasks(ctx, tasksList))
 
 	// Add some commits.
 	commits := gb.CommitN(ctx, 10)
@@ -2215,7 +2215,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	task.Status = types.TASK_STATUS_SUCCESS
 	task.Finished = time.Now()
 	task.IsolatedOutput = "abc123"
-	require.NoError(t, s.putTask(task))
+	require.NoError(t, s.putTask(ctx, task))
 
 	oldTasksByCommit := tasks
 
@@ -2259,7 +2259,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 		newTask.Status = types.TASK_STATUS_SUCCESS
 		newTask.Finished = time.Now()
 		newTask.IsolatedOutput = "abc123"
-		require.NoError(t, s.putTask(newTask))
+		require.NoError(t, s.putTask(ctx, newTask))
 		oldTasksByCommit = tasks
 	}
 
@@ -2287,14 +2287,14 @@ type spyDB struct {
 	onPutTasks func([]*types.Task)
 }
 
-func (s *spyDB) PutTask(task *types.Task) error {
+func (s *spyDB) PutTask(ctx context.Context, task *types.Task) error {
 	s.onPutTasks([]*types.Task{task})
-	return s.DB.PutTask(task)
+	return s.DB.PutTask(ctx, task)
 }
 
-func (s *spyDB) PutTasks(tasks []*types.Task) error {
+func (s *spyDB) PutTasks(ctx context.Context, tasks []*types.Task) error {
 	s.onPutTasks(tasks)
-	return s.DB.PutTasks(tasks)
+	return s.DB.PutTasks(ctx, tasks)
 }
 
 func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Context, *mem_git.MemGit, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*types.Task), *specs.TasksCfg, func()) {
@@ -2489,10 +2489,10 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 		if retryCount < 3 {
 			taskToUpdate := []*types.Task{t1, t2, t3}[retryCount]
 			retryCount++
-			taskInDb, err := d.GetTaskById(taskToUpdate.Id)
+			taskInDb, err := d.GetTaskById(ctx, taskToUpdate.Id)
 			require.NoError(t, err)
 			taskInDb.Status = types.TASK_STATUS_SUCCESS
-			require.NoError(t, d.PutTask(taskInDb))
+			require.NoError(t, d.PutTask(ctx, taskInDb))
 			s.tCache.AddTasks([]*types.Task{taskInDb})
 		}
 	}
@@ -2559,7 +2559,7 @@ func TestSchedulingRetry(t *testing.T) {
 	t2.Finished = time.Now()
 	t2.IsolatedOutput = "abc123"
 
-	require.NoError(t, s.putTasks([]*types.Task{t1, t2}))
+	require.NoError(t, s.putTasks(ctx, []*types.Task{t1, t2}))
 
 	// Cycle. Ensure that we schedule a retry of t1.
 	prev := t1
@@ -2580,7 +2580,7 @@ func TestSchedulingRetry(t *testing.T) {
 		require.Equal(t, c2, retry.Revision)
 		retry.Status = types.TASK_STATUS_FAILURE
 		retry.Finished = time.Now()
-		require.NoError(t, s.putTask(retry))
+		require.NoError(t, s.putTask(ctx, retry))
 
 		prev = retry
 		i++
@@ -2605,7 +2605,7 @@ func TestParentTaskId(t *testing.T) {
 	t1.Finished = time.Now()
 	t1.IsolatedOutput = "abc123/45"
 	require.Equal(t, 0, len(t1.ParentTaskIds))
-	require.NoError(t, s.putTasks([]*types.Task{t1}))
+	require.NoError(t, s.putTasks(ctx, []*types.Task{t1}))
 
 	// Run the dependent tasks. Ensure that their parent IDs are correct.
 	bot3 := makeBot("bot3", androidTaskDims)
@@ -2662,7 +2662,7 @@ func TestSkipTasks(t *testing.T) {
 	bot1 := makeBot("bot1", linuxTaskDims)
 	bot2 := makeBot("bot2", linuxTaskDims)
 	mockBots(t, swarmingClient, bot1, bot2)
-	require.NoError(t, s.GetSkipTasks().AddRule(&skip_tasks.Rule{
+	require.NoError(t, s.GetSkipTasks().AddRule(ctx, &skip_tasks.Rule{
 		AddedBy:          "Tests",
 		TaskSpecPatterns: []string{".*"},
 		Commits:          []string{c1},
@@ -2777,7 +2777,7 @@ func TestGetTasksForJob(t *testing.T) {
 	// Mark the task as failed.
 	t1.Status = types.TASK_STATUS_FAILURE
 	t1.Finished = time.Now()
-	require.NoError(t, s.putTasks([]*types.Task{t1}))
+	require.NoError(t, s.putTasks(ctx, []*types.Task{t1}))
 
 	// Test that the results propagated through.
 	for _, j := range jobs {
@@ -2827,7 +2827,7 @@ func TestGetTasksForJob(t *testing.T) {
 	// The Build at c1 failed.
 	t3.Status = types.TASK_STATUS_FAILURE
 	t3.Finished = time.Now()
-	require.NoError(t, s.putTasks([]*types.Task{t2, t3}))
+	require.NoError(t, s.putTasks(ctx, []*types.Task{t2, t3}))
 	mockBots(t, swarmingClient)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update(ctx))
@@ -2896,7 +2896,7 @@ func TestTaskTimeouts(t *testing.T) {
 	require.Equal(t, int64(4*60*60), swarmingTask.Request.TaskSlices[0].ExpirationSecs)
 	// Fail the task to get it out of the unfinished list.
 	task.Status = types.TASK_STATUS_FAILURE
-	require.NoError(t, s.putTask(task))
+	require.NoError(t, s.putTask(ctx, task))
 
 	// Rewrite tasks.json with some timeouts.
 	name := "Timeout-Task"
@@ -2989,7 +2989,7 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 
 	// Insert the tasks into the DB.
 	tasks := []*types.Task{t1, t2, t3, t4}
-	require.NoError(t, s.putTasks(tasks))
+	require.NoError(t, s.putTasks(ctx, tasks))
 
 	// Update the tasks, mock in Swarming.
 	t1.Status = types.TASK_STATUS_SUCCESS
@@ -3011,7 +3011,7 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 	// Ensure that we update the tasks as expected.
 	require.NoError(t, s.updateUnfinishedTasks(ctx))
 	for _, task := range tasks {
-		got, err := s.db.GetTaskById(task.Id)
+		got, err := s.db.GetTaskById(ctx, task.Id)
 		require.NoError(t, err)
 		// Ignore DbModified when comparing.
 		task.DbModified = got.DbModified
@@ -3097,7 +3097,7 @@ func TestAddTasksSingleTaskSpecSimple(t *testing.T) {
 	defer cleanup()
 
 	t1 := makeTask("toil", rs1.Repo, hashes[6])
-	require.NoError(t, s.putTask(t1))
+	require.NoError(t, s.putTask(ctx, t1))
 
 	mod := d.ModifiedTasksCh(ctx)
 	<-mod // The first batch is unused.
@@ -3132,7 +3132,7 @@ func TestAddTasksSingleTaskSpecBisectNew(t *testing.T) {
 	defer cleanup()
 
 	t1 := makeTask("toil", rs1.Repo, hashes[6])
-	require.NoError(t, s.putTask(t1))
+	require.NoError(t, s.putTask(ctx, t1))
 
 	mod := d.ModifiedTasksCh(ctx)
 	<-mod // The first batch is unused.
@@ -3159,7 +3159,7 @@ func TestAddTasksSingleTaskSpecBisectNew(t *testing.T) {
 
 	// Assign Ids.
 	for _, task := range tasks {
-		require.NoError(t, d.AssignId(task))
+		require.NoError(t, d.AssignId(ctx, task))
 	}
 
 	require.NoError(t, s.addTasksSingleTaskSpec(ctx, tasks))
@@ -3185,7 +3185,7 @@ func TestAddTasksSingleTaskSpecBisectOld(t *testing.T) {
 	t2 := makeTask("toil", rs1.Repo, hashes[1])
 	t2.Commits = []string{hashes[1], hashes[2], hashes[3], hashes[4], hashes[5]}
 	sort.Strings(t2.Commits)
-	require.NoError(t, s.putTasks([]*types.Task{t1, t2}))
+	require.NoError(t, s.putTasks(ctx, []*types.Task{t1, t2}))
 
 	mod := d.ModifiedTasksCh(ctx)
 	<-mod // The first batch is unused.
@@ -3206,7 +3206,7 @@ func TestAddTasksSingleTaskSpecBisectOld(t *testing.T) {
 	// Specify tasks in wrong order to ensure results are deterministic.
 	require.NoError(t, s.addTasksSingleTaskSpec(ctx, []*types.Task{t5, t3, t6, t4}))
 
-	t2Updated, err := d.GetTaskById(t2.Id)
+	t2Updated, err := d.GetTaskById(ctx, t2.Id)
 	require.NoError(t, err)
 	assertBlamelist(t, hashes, t2Updated, []int{1})
 	assertBlamelist(t, hashes, t3, []int{3})
@@ -3238,7 +3238,7 @@ func TestAddTasksSingleTaskSpecUpdate(t *testing.T) {
 	sort.Strings(t5.Commits)
 
 	tasks := []*types.Task{t1, t2, t3, t4, t5}
-	require.NoError(t, s.putTasks(tasks))
+	require.NoError(t, s.putTasks(ctx, tasks))
 
 	mod := d.ModifiedTasksCh(ctx)
 	<-mod // The first batch is unused.
@@ -3277,7 +3277,7 @@ func TestAddTasks(t *testing.T) {
 	onus2 := makeTask("onus", rs1.Repo, hashes[3])
 	onus2.Commits = []string{hashes[3], hashes[4], hashes[5]}
 	sort.Strings(onus2.Commits)
-	require.NoError(t, s.putTasks([]*types.Task{toil1, duty1, work1, work2, onus1, onus2}))
+	require.NoError(t, s.putTasks(ctx, []*types.Task{toil1, duty1, work1, work2, onus1, onus2}))
 
 	mod := d.ModifiedTasksCh(ctx)
 	<-mod // The first batch is unused.
@@ -3323,7 +3323,7 @@ func TestAddTasks(t *testing.T) {
 	assertBlamelist(t, hashes, duty2, []int{1, 2})
 	assertBlamelist(t, hashes, duty3, []int{3, 4, 5})
 
-	work2Updated, err := d.GetTaskById(work2.Id)
+	work2Updated, err := d.GetTaskById(ctx, work2.Id)
 	require.NoError(t, err)
 	assertBlamelist(t, hashes, work2Updated, []int{1})
 	assertBlamelist(t, hashes, work3, []int{3, 4, 5})
@@ -3347,13 +3347,13 @@ func TestAddTasksFailure(t *testing.T) {
 	toil1 := makeTask("toil", rs1.Repo, hashes[6])
 	duty1 := makeTask("duty", rs1.Repo, hashes[6])
 	duty2 := makeTask("duty", rs1.Repo, hashes[5])
-	require.NoError(t, s.putTasks([]*types.Task{toil1, duty1, duty2}))
+	require.NoError(t, s.putTasks(ctx, []*types.Task{toil1, duty1, duty2}))
 	d.Wait()
 
 	// Cause ErrConcurrentUpdate in AddTasks.
 	cachedDuty2 := duty2.Copy()
 	duty2.Status = types.TASK_STATUS_MISHAP
-	require.NoError(t, d.PutTask(duty2))
+	require.NoError(t, d.PutTask(ctx, duty2))
 	d.Wait()
 
 	mod := d.ModifiedTasksCh(ctx)
@@ -3414,7 +3414,7 @@ func TestAddTasksRetries(t *testing.T) {
 	duty2.Commits = util.CopyStringSlice(toil2.Commits)
 	work2 := makeTask("work", rs1.Repo, hashes[1])
 	work2.Commits = util.CopyStringSlice(toil2.Commits)
-	require.NoError(t, s.putTasks([]*types.Task{toil1, toil2, duty1, duty2, work1, work2}))
+	require.NoError(t, s.putTasks(ctx, []*types.Task{toil1, toil2, duty1, duty2, work1, work2}))
 
 	mod := d.ModifiedTasksCh(ctx)
 	<-mod // The first batch is unused.
@@ -3446,17 +3446,17 @@ func TestAddTasksRetries(t *testing.T) {
 		retryCount[tasks[0].Name]++
 		if tasks[0].Name == "toil" && retryCount["toil"] < 2 {
 			toil2.Started = time.Now().UTC()
-			require.NoError(t, d.PutTasks([]*types.Task{toil2}))
+			require.NoError(t, d.PutTasks(ctx, []*types.Task{toil2}))
 			s.tCache.AddTasks([]*types.Task{toil2})
 		}
 		if tasks[0].Name == "duty" && retryCount["duty"] < 3 {
 			duty2.Started = time.Now().UTC()
-			require.NoError(t, d.PutTasks([]*types.Task{duty2}))
+			require.NoError(t, d.PutTasks(ctx, []*types.Task{duty2}))
 			s.tCache.AddTasks([]*types.Task{duty2})
 		}
 		if tasks[0].Name == "work" && retryCount["work"] < 4 {
 			work2.Started = time.Now().UTC()
-			require.NoError(t, d.PutTasks([]*types.Task{work2}))
+			require.NoError(t, d.PutTasks(ctx, []*types.Task{work2}))
 			s.tCache.AddTasks([]*types.Task{work2})
 		}
 	}
@@ -3475,16 +3475,16 @@ func TestAddTasksRetries(t *testing.T) {
 
 	modified := []*types.Task{}
 	check := func(t2, t3, t4 *types.Task) {
-		t2InDB, err := d.GetTaskById(t2.Id)
+		t2InDB, err := d.GetTaskById(ctx, t2.Id)
 		require.NoError(t, err)
 		assertBlamelist(t, hashes, t2InDB, []int{1})
 		t3Arg := tasks[t3.Repo][t3.Name][0]
-		t3InDB, err := d.GetTaskById(t3Arg.Id)
+		t3InDB, err := d.GetTaskById(ctx, t3Arg.Id)
 		require.NoError(t, err)
 		assertdeep.Equal(t, t3Arg, t3InDB)
 		assertBlamelist(t, hashes, t3InDB, []int{3, 4, 5})
 		t4Arg := tasks[t4.Repo][t4.Name][1]
-		t4InDB, err := d.GetTaskById(t4Arg.Id)
+		t4InDB, err := d.GetTaskById(ctx, t4Arg.Id)
 		require.NoError(t, err)
 		assertdeep.Equal(t, t4Arg, t4InDB)
 		assertBlamelist(t, hashes, t4InDB, []int{2})
@@ -3609,20 +3609,20 @@ type mockDB struct {
 	failPutTasks bool
 }
 
-func (d *mockDB) AssignId(t *types.Task) error {
+func (d *mockDB) AssignId(ctx context.Context, t *types.Task) error {
 	if t.Name == badTaskName && d.failAssignId {
 		return errors.New(badTaskName)
 	}
-	return d.DB.AssignId(t)
+	return d.DB.AssignId(ctx, t)
 }
 
-func (d *mockDB) PutTasks(tasks []*types.Task) error {
+func (d *mockDB) PutTasks(ctx context.Context, tasks []*types.Task) error {
 	for _, t := range tasks {
 		if t.Name == badTaskName && d.failPutTasks {
 			return errors.New(badTaskName)
 		}
 	}
-	return d.DB.PutTasks(tasks)
+	return d.DB.PutTasks(ctx, tasks)
 }
 
 func TestContinueOnTriggerTaskFailure(t *testing.T) {
@@ -3668,7 +3668,7 @@ func TestContinueOnTriggerTaskFailure(t *testing.T) {
 			task.Finished = time.Now()
 			task.Status = types.TASK_STATUS_SUCCESS
 		}
-		require.NoError(t, s.db.PutTasks(tasks))
+		require.NoError(t, s.db.PutTasks(ctx, tasks))
 	}
 	finishAll() // The setup func triggers a task.
 

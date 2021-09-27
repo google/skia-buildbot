@@ -34,8 +34,8 @@ func (d *firestoreDB) tasks() *fs.CollectionRef {
 }
 
 // See documentation for types.TaskReader interface.
-func (d *firestoreDB) GetTaskById(id string) (*types.Task, error) {
-	doc, err := d.client.Get(context.TODO(), d.tasks().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
+func (d *firestoreDB) GetTaskById(ctx context.Context, id string) (*types.Task, error) {
+	doc, err := d.client.Get(ctx, d.tasks().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 		return nil, nil
 	} else if err != nil {
@@ -49,7 +49,7 @@ func (d *firestoreDB) GetTaskById(id string) (*types.Task, error) {
 }
 
 // See documentation for types.TaskReader interface.
-func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*types.Task, error) {
+func (d *firestoreDB) GetTasksFromDateRange(ctx context.Context, start, end time.Time, repo string) ([]*types.Task, error) {
 	var tasks [][]*types.Task
 	init := func(numGoroutines int) {
 		tasks = make([][]*types.Task, numGoroutines)
@@ -80,7 +80,7 @@ func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) (
 	if repo != "" {
 		q = q.Where(KEY_REPO, "==", repo)
 	}
-	if err := d.dateRangeHelper("GetTasksFromDateRange", q, start, end, init, elem); err != nil {
+	if err := d.dateRangeHelper(ctx, "GetTasksFromDateRange", q, start, end, init, elem); err != nil {
 		return nil, err
 	}
 	totalResults := 0
@@ -96,7 +96,7 @@ func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) (
 }
 
 // See documentation for types.TaskDB interface.
-func (d *firestoreDB) AssignId(task *types.Task) error {
+func (d *firestoreDB) AssignId(ctx context.Context, task *types.Task) error {
 	task.Id = firestore.AlphaNumID()
 	return nil
 }
@@ -160,12 +160,12 @@ func (d *firestoreDB) putTasks(tasks []*types.Task, isNew []bool, prevModified [
 }
 
 // See documentation for types.TaskDB interface.
-func (d *firestoreDB) PutTask(task *types.Task) error {
-	return d.PutTasks([]*types.Task{task})
+func (d *firestoreDB) PutTask(ctx context.Context, task *types.Task) error {
+	return d.PutTasks(ctx, []*types.Task{task})
 }
 
 // See documentation for types.TaskDB interface.
-func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
+func (d *firestoreDB) PutTasks(ctx context.Context, tasks []*types.Task) (rvErr error) {
 	if len(tasks) == 0 {
 		return nil
 	}
@@ -199,7 +199,7 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 	// Assign new IDs (where needed) and DbModified timestamps.
 	for _, task := range tasks {
 		if task.Id == "" {
-			if err := d.AssignId(task); err != nil {
+			if err := d.AssignId(ctx, task); err != nil {
 				return err
 			}
 		}
@@ -215,7 +215,7 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 	}
 
 	// Insert the tasks into the DB.
-	if err := d.client.RunTransaction(context.TODO(), "PutTasks", fmt.Sprintf("%d tasks", len(tasks)), DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
+	if err := d.client.RunTransaction(ctx, "PutTasks", fmt.Sprintf("%d tasks", len(tasks)), DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
 		return d.putTasks(tasks, isNew, prevModified, tx)
 	}); err != nil {
 		return err
@@ -224,9 +224,9 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 }
 
 // See documentation for types.TaskDB interface.
-func (d *firestoreDB) PutTasksInChunks(tasks []*types.Task) error {
+func (d *firestoreDB) PutTasksInChunks(ctx context.Context, tasks []*types.Task) error {
 	return util.ChunkIter(len(tasks), MAX_TRANSACTION_DOCS, func(i, j int) error {
-		return d.PutTasks(tasks[i:j])
+		return d.PutTasks(ctx, tasks[i:j])
 	})
 }
 

@@ -364,7 +364,7 @@ func TestAddComment_TaskSpecComment_Added(t *testing.T) {
 		assert.Equal(t, "Adding a comment", c.Message)
 		return true
 	})
-	mocks.remoteDB.On("PutTaskSpecComment", matchComment).Return(nil).Once()
+	mocks.remoteDB.On("PutTaskSpecComment", testutils.AnyContext, matchComment).Return(nil).Once()
 	mocks.incrementalCache.On("Update", testutils.AnyContext, false).Return(nil).Once()
 
 	req := &AddCommentRequest{
@@ -383,7 +383,7 @@ func TestAddComment_TaskComment_Added(t *testing.T) {
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	mocks.remoteDB.
-		On("GetTaskById", "abcdefg").Return(&types.Task{
+		On("GetTaskById", testutils.AnyContext, "abcdefg").Return(&types.Task{
 		TaskKey: types.TaskKey{
 			RepoState: types.RepoState{
 				Repo:     "taskRepo",
@@ -402,7 +402,7 @@ func TestAddComment_TaskComment_Added(t *testing.T) {
 		assert.Equal(t, "Adding a comment", c.Message)
 		return true
 	})
-	mocks.remoteDB.On("PutTaskComment", matchComment).Return(nil).Once()
+	mocks.remoteDB.On("PutTaskComment", testutils.AnyContext, matchComment).Return(nil).Once()
 	mocks.incrementalCache.On("Update", testutils.AnyContext, false).Return(nil).Once()
 
 	req := &AddCommentRequest{
@@ -428,7 +428,7 @@ func TestAddComment_CommitComment_Added(t *testing.T) {
 		assert.Equal(t, "Adding a comment", c.Message)
 		return true
 	})
-	mocks.remoteDB.On("PutCommitComment", matchComment).Return(nil).Once()
+	mocks.remoteDB.On("PutCommitComment", testutils.AnyContext, matchComment).Return(nil).Once()
 	mocks.incrementalCache.On("Update", testutils.AnyContext, false).Return(nil).Once()
 
 	req := &AddCommentRequest{
@@ -447,7 +447,7 @@ func TestDeleteComment_TaskSpecComment_Deleted(t *testing.T) {
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	ts := time.Now().UTC()
-	mocks.remoteDB.On("DeleteTaskSpecComment", &types.TaskSpecComment{
+	mocks.remoteDB.On("DeleteTaskSpecComment", testutils.AnyContext, &types.TaskSpecComment{
 		Repo:      "skia",
 		Name:      "Build-A-Thing",
 		Timestamp: ts,
@@ -468,7 +468,7 @@ func TestDeleteComment_TaskComment_Deleted(t *testing.T) {
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	ts := time.Now().UTC()
-	mocks.remoteDB.On("GetTaskById", "abcdefg").Return(&types.Task{
+	mocks.remoteDB.On("GetTaskById", testutils.AnyContext, "abcdefg").Return(&types.Task{
 		TaskKey: types.TaskKey{
 			RepoState: types.RepoState{
 				Repo:     "taskRepo",
@@ -478,7 +478,7 @@ func TestDeleteComment_TaskComment_Deleted(t *testing.T) {
 		},
 		Id: "abcdefg",
 	}, nil).Once()
-	mocks.remoteDB.On("DeleteTaskComment", &types.TaskComment{
+	mocks.remoteDB.On("DeleteTaskComment", testutils.AnyContext, &types.TaskComment{
 		// Note: values are taken from the returned task, not the request.
 		Repo:      "taskRepo",
 		Name:      "Test-Something",
@@ -502,7 +502,7 @@ func TestDeleteComment_CommitComment_Deleted(t *testing.T) {
 	ctx, mocks, server := setupServerWithMockCapacityClient()
 	defer mocks.AssertExpectations(t)
 	ts := time.Now().UTC()
-	mocks.remoteDB.On("DeleteCommitComment", &types.CommitComment{
+	mocks.remoteDB.On("DeleteCommitComment", testutils.AnyContext, &types.CommitComment{
 		Repo:      "skia",
 		Revision:  "abc",
 		Timestamp: ts,

@@ -29,7 +29,7 @@ type TaskCache interface {
 	// GetTaskMaybeExpired does the same as GetTask but tries to dig into
 	// the DB in case the Task is old enough to have scrolled out of the
 	// cache window.
-	GetTaskMaybeExpired(string) (*types.Task, error)
+	GetTaskMaybeExpired(context.Context, string) (*types.Task, error)
 
 	// GetTaskForCommit retrieves the task with the given name which ran at the
 	// given commit, or nil if no such task exists.
@@ -115,7 +115,7 @@ func (c *taskCache) GetTask(id string) (*types.Task, error) {
 }
 
 // See documentation for TaskCache interface.
-func (c *taskCache) GetTaskMaybeExpired(id string) (*types.Task, error) {
+func (c *taskCache) GetTaskMaybeExpired(ctx context.Context, id string) (*types.Task, error) {
 	t, err := c.GetTask(id)
 	if err == nil {
 		return t, nil
@@ -123,7 +123,7 @@ func (c *taskCache) GetTaskMaybeExpired(id string) (*types.Task, error) {
 		return nil, err
 	}
 	// Fall back to searching the DB.
-	t, err = c.db.GetTaskById(id)
+	t, err = c.db.GetTaskById(ctx, id)
 	if err != nil {
 		return nil, err
 	} else if t == nil {
@@ -417,7 +417,7 @@ func (c *taskCache) AddTasks(tasks []*types.Task) {
 // is used for testing.
 func NewTaskCache(ctx context.Context, d db.TaskReader, timeWindow *window.Window, onModifiedTasks func()) (TaskCache, error) {
 	mod := d.ModifiedTasksCh(ctx)
-	tasks, err := db.GetTasksFromWindow(d, timeWindow, time.Now())
+	tasks, err := db.GetTasksFromWindow(ctx, d, timeWindow, time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -465,7 +465,7 @@ type JobCache interface {
 	// GetJobMaybeExpired does the same as GetJob but tries to dig into the
 	// DB in case the Job is old enough to have scrolled out of the cache
 	// window.
-	GetJobMaybeExpired(string) (*types.Job, error)
+	GetJobMaybeExpired(context.Context, string) (*types.Job, error)
 
 	// GetJobsByRepoState retrieves all known jobs with the given name at
 	// the given RepoState. Does not search the underlying DB.
@@ -529,7 +529,7 @@ func (c *jobCache) GetJob(id string) (*types.Job, error) {
 }
 
 // See documentation for JobCache interface.
-func (c *jobCache) GetJobMaybeExpired(id string) (*types.Job, error) {
+func (c *jobCache) GetJobMaybeExpired(ctx context.Context, id string) (*types.Job, error) {
 	j, err := c.GetJob(id)
 	if err == nil {
 		return j, nil
@@ -537,7 +537,7 @@ func (c *jobCache) GetJobMaybeExpired(id string) (*types.Job, error) {
 	if err != db.ErrNotFound {
 		return nil, err
 	}
-	return c.db.GetJobById(id)
+	return c.db.GetJobById(ctx, id)
 }
 
 // See documentation for JobCache interface.
@@ -776,7 +776,7 @@ func (c *jobCache) AddJobs(jobs []*types.Job) {
 // is used for testing.
 func NewJobCache(ctx context.Context, d db.JobReader, timeWindow *window.Window, onModifiedJobs func()) (JobCache, error) {
 	mod := d.ModifiedJobsCh(ctx)
-	jobs, err := db.GetJobsFromWindow(d, timeWindow, time.Now())
+	jobs, err := db.GetJobsFromWindow(ctx, d, timeWindow, time.Now())
 	if err != nil {
 		return nil, err
 	}

@@ -214,8 +214,8 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 }
 
 // putTask is a wrapper around DB.PutTask which adds the task to the cache.
-func (s *TaskScheduler) putTask(t *types.Task) error {
-	if err := s.db.PutTask(t); err != nil {
+func (s *TaskScheduler) putTask(ctx context.Context, t *types.Task) error {
+	if err := s.db.PutTask(ctx, t); err != nil {
 		return err
 	}
 	s.tCache.AddTasks([]*types.Task{t})
@@ -223,8 +223,8 @@ func (s *TaskScheduler) putTask(t *types.Task) error {
 }
 
 // putTasks is a wrapper around DB.PutTasks which adds the tasks to the cache.
-func (s *TaskScheduler) putTasks(t []*types.Task) error {
-	if err := s.db.PutTasks(t); err != nil {
+func (s *TaskScheduler) putTasks(ctx context.Context, t []*types.Task) error {
+	if err := s.db.PutTasks(ctx, t); err != nil {
 		return err
 	}
 	s.tCache.AddTasks(t)
@@ -233,8 +233,8 @@ func (s *TaskScheduler) putTasks(t []*types.Task) error {
 
 // putTasksInChunks is a wrapper around DB.PutTasksInChunks which adds the tasks
 // to the cache.
-func (s *TaskScheduler) putTasksInChunks(t []*types.Task) error {
-	if err := s.db.PutTasksInChunks(t); err != nil {
+func (s *TaskScheduler) putTasksInChunks(ctx context.Context, t []*types.Task) error {
+	if err := s.db.PutTasksInChunks(ctx, t); err != nil {
 		return err
 	}
 	s.tCache.AddTasks(t)
@@ -242,8 +242,8 @@ func (s *TaskScheduler) putTasksInChunks(t []*types.Task) error {
 }
 
 // putJob is a wrapper around DB.PutJob which adds the job to the cache.
-func (s *TaskScheduler) putJob(j *types.Job) error {
-	if err := s.db.PutJob(j); err != nil {
+func (s *TaskScheduler) putJob(ctx context.Context, j *types.Job) error {
+	if err := s.db.PutJob(ctx, j); err != nil {
 		return err
 	}
 	s.jCache.AddJobs([]*types.Job{j})
@@ -252,8 +252,8 @@ func (s *TaskScheduler) putJob(j *types.Job) error {
 
 // putJobsInChunks is a wrapper around DB.PutJobsInChunks which adds the jobs
 // to the cache.
-func (s *TaskScheduler) putJobsInChunks(j []*types.Job) error {
-	if err := s.db.PutJobsInChunks(j); err != nil {
+func (s *TaskScheduler) putJobsInChunks(ctx context.Context, j []*types.Job) error {
+	if err := s.db.PutJobsInChunks(ctx, j); err != nil {
 		return err
 	}
 	s.jCache.AddJobs(j)
@@ -1155,7 +1155,7 @@ func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*taskCand
 				diag.TriggerError = err.Error()
 				errCh <- err
 			}
-			if err := s.db.AssignId(t); err != nil {
+			if err := s.db.AssignId(ctx, t); err != nil {
 				recordErr("Failed to assign id", err)
 				return
 			}
@@ -1660,12 +1660,12 @@ func (s *TaskScheduler) updateUnfinishedJobs(ctx context.Context) error {
 		for _, t := range modifiedTasks {
 			tasks = append(tasks, t)
 		}
-		if err := s.putTasksInChunks(tasks); err != nil {
+		if err := s.putTasksInChunks(ctx, tasks); err != nil {
 			return err
 		}
 	}
 	if len(modifiedJobs) > 0 {
-		if err := s.putJobsInChunks(modifiedJobs); err != nil {
+		if err := s.putJobsInChunks(ctx, modifiedJobs); err != nil {
 			return err
 		}
 	}
@@ -1707,7 +1707,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*typ
 			return fmt.Errorf("Mismatched Repo or Name: %v", tasks)
 		}
 		if task.Id == "" {
-			if err := s.db.AssignId(task); err != nil {
+			if err := s.db.AssignId(ctx, task); err != nil {
 				return err
 			}
 		}
@@ -1754,7 +1754,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*typ
 	for _, task := range updatedTasks {
 		putTasks = append(putTasks, task)
 	}
-	if err := s.putTasks(putTasks); err != nil {
+	if err := s.putTasks(ctx, putTasks); err != nil {
 		return err
 	}
 	return nil
@@ -1887,7 +1887,7 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 			ids, ok := res.Tags[types.SWARMING_TAG_ID]
 			if ok {
 				id = ids[0]
-				t, err := s.db.GetTaskById(id)
+				t, err := s.db.GetTaskById(ctx, id)
 				if err != nil {
 					sklog.Errorf("Failed to update task %q; mismatched ID and failed to retrieve task from DB: %s", msg.SwarmingTaskId, err)
 					return true

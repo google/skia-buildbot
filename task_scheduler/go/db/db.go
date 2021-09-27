@@ -58,13 +58,13 @@ func IsUnknownId(e error) bool {
 type TaskReader interface {
 	// GetTaskById returns the task with the given Id field. Returns nil, nil if
 	// task is not found.
-	GetTaskById(string) (*types.Task, error)
+	GetTaskById(context.Context, string) (*types.Task, error)
 
 	// GetTasksFromDateRange retrieves all tasks with Created in the given range.
 	// The returned tasks are sorted by Created timestamp. The string field is
 	// an optional repository; if provided, only return tasks associated with
 	// that repo.
-	GetTasksFromDateRange(time.Time, time.Time, string) ([]*types.Task, error)
+	GetTasksFromDateRange(context.Context, time.Time, time.Time, string) ([]*types.Task, error)
 
 	// ModifiedTasksCh returns a channel which produces Tasks as they are
 	// modified in the DB. The channel is closed when the given Context is
@@ -84,11 +84,11 @@ type TaskDB interface {
 
 	// AssignId sets the given task's Id field. Does not insert the task into the
 	// database.
-	AssignId(*types.Task) error
+	AssignId(context.Context, *types.Task) error
 
 	// PutTask inserts or updates the Task in the database. Task's Id field must
 	// be empty or set with AssignId. PutTask will set Task.DbModified.
-	PutTask(*types.Task) error
+	PutTask(context.Context, *types.Task) error
 
 	// PutTasks inserts or updates the Tasks in the database. Each Task's Id field
 	// must be empty or set with AssignId. Each Task's DbModified field will be
@@ -97,12 +97,12 @@ type TaskDB interface {
 	// inserted at once for a given TaskDB implementation. Use only when
 	// consistency is important; otherwise, callers should use
 	// PutTasksInChunks.
-	PutTasks([]*types.Task) error
+	PutTasks(context.Context, []*types.Task) error
 
 	// PutTasksInChunks is like PutTasks but inserts Tasks in multiple
 	// transactions. Not appropriate for updates in which consistency is
 	// important.
-	PutTasksInChunks([]*types.Task) error
+	PutTasksInChunks(context.Context, []*types.Task) error
 }
 
 // UpdateTasksWithRetries wraps a call to db.PutTasks with retries. It calls
@@ -116,14 +116,14 @@ type TaskDB interface {
 //
 // Within f, tasks should be refreshed from the DB, e.g. with
 // db.GetModifiedTasks or db.GetTaskById.
-func UpdateTasksWithRetries(db TaskDB, f func() ([]*types.Task, error)) ([]*types.Task, error) {
+func UpdateTasksWithRetries(ctx context.Context, db TaskDB, f func() ([]*types.Task, error)) ([]*types.Task, error) {
 	var lastErr error
 	for i := 0; i < NUM_RETRIES; i++ {
 		t, err := f()
 		if err != nil {
 			return nil, err
 		}
-		lastErr = db.PutTasks(t)
+		lastErr = db.PutTasks(ctx, t)
 		if lastErr == nil {
 			return t, nil
 		} else if !IsConcurrentUpdate(lastErr) {
@@ -144,9 +144,9 @@ func UpdateTasksWithRetries(db TaskDB, f func() ([]*types.Task, error)) ([]*type
 // Immediately returns ErrNotFound if db.GetTaskById(id) returns nil.
 // Immediately returns any error returned from f or from PutTasks (except
 // ErrConcurrentUpdate). Returns ErrConcurrentUpdate if retries are exhausted.
-func UpdateTaskWithRetries(db TaskDB, id string, f func(*types.Task) error) (*types.Task, error) {
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
-		t, err := db.GetTaskById(id)
+func UpdateTaskWithRetries(ctx context.Context, db TaskDB, id string, f func(*types.Task) error) (*types.Task, error) {
+	tasks, err := UpdateTasksWithRetries(ctx, db, func() ([]*types.Task, error) {
+		t, err := db.GetTaskById(ctx, id)
 		if err != nil {
 			return nil, err
 		}
@@ -170,13 +170,13 @@ func UpdateTaskWithRetries(db TaskDB, id string, f func(*types.Task) error) (*ty
 type JobReader interface {
 	// GetJobById returns the job with the given Id field. Returns nil, nil if
 	// job is not found.
-	GetJobById(string) (*types.Job, error)
+	GetJobById(context.Context, string) (*types.Job, error)
 
 	// GetJobsFromDateRange retrieves all jobs with Created in the given
 	// range. The returned jobs are sorted by Created timestamp. The string
 	// field is an optional repository; if provided, only return tasks
 	// associated with that repo.
-	GetJobsFromDateRange(time.Time, time.Time, string) ([]*types.Job, error)
+	GetJobsFromDateRange(context.Context, time.Time, time.Time, string) ([]*types.Job, error)
 
 	// ModifiedJobsCh returns a channel which produces Jobs as they are
 	// modified in the DB. The channel is closed when the given Context is
@@ -196,7 +196,7 @@ type JobDB interface {
 
 	// PutJob inserts or updates the Job in the database. Job's Id field
 	// must be empty if it is a new Job. PutJob will set Job.DbModified.
-	PutJob(*types.Job) error
+	PutJob(context.Context, *types.Job) error
 
 	// PutJobs inserts or updates the Jobs in the database. Each Jobs' Id
 	// field must be empty if it is a new Job. Each Jobs' DbModified field
@@ -205,12 +205,12 @@ type JobDB interface {
 	// be inserted at once for a given JobDB implementation. Use only when
 	// consistency is important; otherwise, callers should use
 	// PutJobsInChunks.
-	PutJobs([]*types.Job) error
+	PutJobs(context.Context, []*types.Job) error
 
 	// PutJobsInChunks is like PutJobs but inserts Jobs in multiple
 	// transactions. Not appropriate for updates in which consistency is
 	// important.
-	PutJobsInChunks([]*types.Job) error
+	PutJobsInChunks(context.Context, []*types.Job) error
 }
 
 // JobSearchParams are parameters on which Jobs may be searched. All fields
@@ -297,7 +297,7 @@ func FilterJobs(jobs []*types.Job, p *JobSearchParams) []*types.Job {
 
 // SearchJobs returns Jobs in the given time range which match the given search
 // parameters.
-func SearchJobs(db JobReader, p *JobSearchParams) ([]*types.Job, error) {
+func SearchJobs(ctx context.Context, db JobReader, p *JobSearchParams) ([]*types.Job, error) {
 	if p.TimeEnd == nil || util.TimeIsZero(*p.TimeEnd) {
 		end := time.Now()
 		p.TimeEnd = &end
@@ -306,7 +306,7 @@ func SearchJobs(db JobReader, p *JobSearchParams) ([]*types.Job, error) {
 		start := (*p.TimeEnd).Add(-24 * time.Hour)
 		p.TimeStart = &start
 	}
-	return db.SearchJobs(context.TODO(), p)
+	return db.SearchJobs(ctx, p)
 }
 
 // MatchTask returns true if the given Task matches the given search parameters.
@@ -357,7 +357,7 @@ type TaskSearchParams struct {
 
 // SearchTasks returns Tasks in the given time range which match the given search
 // parameters.
-func SearchTasks(db TaskReader, p *TaskSearchParams) ([]*types.Task, error) {
+func SearchTasks(ctx context.Context, db TaskReader, p *TaskSearchParams) ([]*types.Task, error) {
 	if p.TimeEnd == nil || util.TimeIsZero(*p.TimeEnd) {
 		end := time.Now()
 		p.TimeEnd = &end
@@ -366,7 +366,7 @@ func SearchTasks(db TaskReader, p *TaskSearchParams) ([]*types.Task, error) {
 		start := (*p.TimeEnd).Add(-24 * time.Hour)
 		p.TimeStart = &start
 	}
-	return db.SearchTasks(context.TODO(), p)
+	return db.SearchTasks(ctx, p)
 }
 
 // RemoteDB allows retrieving tasks and jobs and full access to comments.
@@ -408,7 +408,7 @@ func NewDB(tdb TaskDB, jdb JobDB, cdb CommentDB) DB {
 
 // GetTasksFromWindow returns all tasks matching the given Window from the
 // TaskReader.
-func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*types.Task, error) {
+func GetTasksFromWindow(ctx context.Context, db TaskReader, w *window.Window, now time.Time) ([]*types.Task, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	startTimesByRepo := w.StartTimesByRepo()
@@ -421,7 +421,7 @@ func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*type
 	for repo, start := range startTimesByRepo {
 		sklog.Infof("Reading Tasks in %s from %s to %s.", repo, start, now)
 		t0 := time.Now()
-		t, err := db.GetTasksFromDateRange(start, now, repo)
+		t, err := db.GetTasksFromDateRange(ctx, start, now, repo)
 		if err != nil {
 			return nil, err
 		}
@@ -434,7 +434,7 @@ func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*type
 
 // GetJobsFromWindow returns all jobs matching the given Window from the
 // JobReader.
-func GetJobsFromWindow(db JobReader, w *window.Window, now time.Time) ([]*types.Job, error) {
+func GetJobsFromWindow(ctx context.Context, db JobReader, w *window.Window, now time.Time) ([]*types.Job, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	startTimesByRepo := w.StartTimesByRepo()
@@ -447,7 +447,7 @@ func GetJobsFromWindow(db JobReader, w *window.Window, now time.Time) ([]*types.
 	for repo, start := range startTimesByRepo {
 		sklog.Infof("Reading Jobs in %s from %s to %s.", repo, start, now)
 		t0 := time.Now()
-		j, err := db.GetJobsFromDateRange(start, now, repo)
+		j, err := db.GetJobsFromDateRange(ctx, start, now, repo)
 		if err != nil {
 			return nil, err
 		}
@@ -468,7 +468,7 @@ func UpdateDBFromTaskResult(ctx context.Context, db TaskDB, res *types.TaskResul
 	if !ok || len(id) == 0 {
 		return false, skerr.Fmt("missing %s tag", types.SWARMING_TAG_ID)
 	}
-	_, err := UpdateTaskWithRetries(db, id[0], func(task *types.Task) error {
+	_, err := UpdateTaskWithRetries(ctx, db, id[0], func(task *types.Task) error {
 		modified, err := task.UpdateFromTaskResult(res)
 		if err != nil {
 			return err

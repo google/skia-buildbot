@@ -117,7 +117,7 @@ func NewCommentBox() *CommentBox {
 }
 
 // See documentation for CommentDB.GetCommentsForRepos.
-func (b *CommentBox) GetCommentsForRepos(repos []string, from time.Time) ([]*types.RepoComments, error) {
+func (b *CommentBox) GetCommentsForRepos(_ context.Context, repos []string, from time.Time) ([]*types.RepoComments, error) {
 	b.mtx.RLock()
 	defer b.mtx.RUnlock()
 	rv := make([]*types.RepoComments, len(repos))
@@ -220,7 +220,7 @@ func (b *CommentBox) deleteTaskComment(c *types.TaskComment) (*types.TaskComment
 }
 
 // See documentation for CommentDB.PutTaskComment.
-func (b *CommentBox) PutTaskComment(c *types.TaskComment) error {
+func (b *CommentBox) PutTaskComment(_ context.Context, c *types.TaskComment) error {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
 	if err := b.putTaskComment(c); err != nil {
@@ -231,7 +231,7 @@ func (b *CommentBox) PutTaskComment(c *types.TaskComment) error {
 }
 
 // See documentation for CommentDB.DeleteTaskComment.
-func (b *CommentBox) DeleteTaskComment(c *types.TaskComment) error {
+func (b *CommentBox) DeleteTaskComment(_ context.Context, c *types.TaskComment) error {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
 	existing, err := b.deleteTaskComment(c)
@@ -339,7 +339,7 @@ func (b *CommentBox) deleteTaskSpecComment(c *types.TaskSpecComment) (*types.Tas
 }
 
 // See documentation for CommentDB.PutTaskSpecComment.
-func (b *CommentBox) PutTaskSpecComment(c *types.TaskSpecComment) error {
+func (b *CommentBox) PutTaskSpecComment(_ context.Context, c *types.TaskSpecComment) error {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
 	if err := b.putTaskSpecComment(c); err != nil {
@@ -350,7 +350,7 @@ func (b *CommentBox) PutTaskSpecComment(c *types.TaskSpecComment) error {
 }
 
 // See documentation for CommentDB.DeleteTaskSpecComment.
-func (b *CommentBox) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
+func (b *CommentBox) DeleteTaskSpecComment(_ context.Context, c *types.TaskSpecComment) error {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
 	existing, err := b.deleteTaskSpecComment(c)
@@ -458,7 +458,7 @@ func (b *CommentBox) deleteCommitComment(c *types.CommitComment) (*types.CommitC
 }
 
 // See documentation for CommentDB.PutCommitComment.
-func (b *CommentBox) PutCommitComment(c *types.CommitComment) error {
+func (b *CommentBox) PutCommitComment(_ context.Context, c *types.CommitComment) error {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
 	if err := b.putCommitComment(c); err != nil {
@@ -469,7 +469,7 @@ func (b *CommentBox) PutCommitComment(c *types.CommitComment) error {
 }
 
 // See documentation for CommentDB.DeleteCommitComment.
-func (b *CommentBox) DeleteCommitComment(c *types.CommitComment) error {
+func (b *CommentBox) DeleteCommitComment(_ context.Context, c *types.CommitComment) error {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
 	existing, err := b.deleteCommitComment(c)

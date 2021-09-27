@@ -38,7 +38,7 @@ func TestTaskCache(t *testing.T) {
 	// Pre-load a task into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	t1 := types.MakeTestTask(startTime, []string{"a", "b", "c", "d"})
-	require.NoError(t, d.PutTask(t1))
+	require.NoError(t, d.PutTask(ctx, t1))
 	d.Wait()
 
 	// Create the cache. Ensure that the existing task is present.
@@ -55,7 +55,7 @@ func TestTaskCache(t *testing.T) {
 	// Bisect the first task.
 	t2 := types.MakeTestTask(startTime.Add(time.Minute), []string{"c", "d"})
 	t1.Commits = []string{"a", "b"}
-	require.NoError(t, d.PutTasks([]*types.Task{t2, t1}))
+	require.NoError(t, d.PutTasks(ctx, []*types.Task{t2, t1}))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -67,7 +67,7 @@ func TestTaskCache(t *testing.T) {
 	// Insert a task on a second bot.
 	t3 := types.MakeTestTask(startTime.Add(2*time.Minute), []string{"a", "b"})
 	t3.Name = "Another-Task"
-	require.NoError(t, d.PutTask(t3))
+	require.NoError(t, d.PutTask(ctx, t3))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -112,7 +112,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	t1.Server = "fake-server"
 	t1.Issue = "fake-issue"
 	t1.Patchset = "fake-patchset"
-	require.NoError(t, d.PutTask(t1))
+	require.NoError(t, d.PutTask(ctx, t1))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -121,7 +121,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	// Forced jobs don't count toward KnownTaskName.
 	t2 := types.MakeTestTask(startTime, []string{"a", "b", "c", "d"})
 	t2.ForcedJobId = "job-id"
-	require.NoError(t, d.PutTask(t2))
+	require.NoError(t, d.PutTask(ctx, t2))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -129,7 +129,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 
 	// Normal task.
 	t3 := types.MakeTestTask(startTime, []string{"a", "b", "c", "d"})
-	require.NoError(t, d.PutTask(t3))
+	require.NoError(t, d.PutTask(ctx, t3))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -145,7 +145,7 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	// Pre-load a task into the DB.
 	timeStart := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	t1 := types.MakeTestTask(timeStart.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
-	require.NoError(t, d.PutTask(t1))
+	require.NoError(t, d.PutTask(ctx, t1))
 	d.Wait()
 
 	// Create the cache.
@@ -162,7 +162,7 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	// times so that t1After != t2Before and t2After != t3Before.
 	t2 := types.MakeTestTask(timeStart.Add(2*time.Nanosecond), []string{"e", "f"})
 	t3 := types.MakeTestTask(timeStart.Add(3*time.Nanosecond), []string{"g", "h"})
-	require.NoError(t, d.PutTasks([]*types.Task{t2, t3}))
+	require.NoError(t, d.PutTasks(ctx, []*types.Task{t2, t3}))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -245,7 +245,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	t2.Repo = "thats-what-you.git"
 	t3 := types.MakeTestTask(startTime, []string{"b", "c"})
 	t3.Repo = "never-for.git"
-	require.NoError(t, d.PutTasks([]*types.Task{t1, t2, t3}))
+	require.NoError(t, d.PutTasks(ctx, []*types.Task{t1, t2, t3}))
 	d.Wait()
 
 	// Create the cache.
@@ -308,14 +308,14 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	startTime := time.Now().Add(-30 * time.Minute)
 	t1 := types.MakeTestTask(startTime, []string{"a"})
 	require.False(t, t1.Done())
-	require.NoError(t, d.PutTask(t1))
+	require.NoError(t, d.PutTask(ctx, t1))
 	d.Wait()
 
 	// Add a pending task with no swarming ID to test that it won't appear
 	// in UnfinishedTasks.
 	fakeTask := types.MakeTestTask(startTime, []string{"b"})
 	fakeTask.SwarmingTaskId = ""
-	require.NoError(t, d.PutTask(fakeTask))
+	require.NoError(t, d.PutTask(ctx, fakeTask))
 	d.Wait()
 
 	// Create the cache. Ensure that the existing task is present.
@@ -334,7 +334,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	// Finish the task. Insert it, ensure that it's not unfinished.
 	t1.Status = types.TASK_STATUS_SUCCESS
 	require.True(t, t1.Done())
-	require.NoError(t, d.PutTask(t1))
+	require.NoError(t, d.PutTask(ctx, t1))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -346,7 +346,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	t2 := types.MakeTestTask(time.Now(), []string{"a"})
 	t2.Status = types.TASK_STATUS_MISHAP
 	require.True(t, t2.Done())
-	require.NoError(t, d.PutTask(t2))
+	require.NoError(t, d.PutTask(ctx, t2))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -357,7 +357,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	// An unfinished task, created after the cache was created.
 	t3 := types.MakeTestTask(time.Now(), []string{"b"})
 	require.False(t, t3.Done())
-	require.NoError(t, d.PutTask(t3))
+	require.NoError(t, d.PutTask(ctx, t3))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -368,7 +368,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	// Update the task.
 	t3.Commits = []string{"c", "d", "f"}
 	require.False(t, t3.Done())
-	require.NoError(t, d.PutTask(t3))
+	require.NoError(t, d.PutTask(ctx, t3))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -449,7 +449,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 		mk(4, "Build2", []string{"d"}),                // 5
 		mk(5, "Build3", []string{"a", "b", "c", "d"}), // 6
 	}
-	require.NoError(t, d.PutTasks(tasks))
+	require.NoError(t, d.PutTasks(ctx, tasks))
 	d.Wait()
 
 	// Create the cache.
@@ -485,7 +485,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 		mk(7, "Build3", []string{"a", "b"}),           // 7
 		mk(4, "Build4", []string{"a", "b", "c", "d"})) // 8
 	// Out of order to test TaskDB.GetModifiedTasks.
-	require.NoError(t, d.PutTasks([]*types.Task{tasks[6], tasks[8], tasks[1], tasks[7]}))
+	require.NoError(t, d.PutTasks(ctx, []*types.Task{tasks[6], tasks[8], tasks[1], tasks[7]}))
 	d.Wait()
 	<-wait
 
@@ -536,7 +536,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 	newTasks := []*types.Task{
 		mk(11, "Build3", []string{"e"}),
 	}
-	require.NoError(t, d.PutTasks(newTasks))
+	require.NoError(t, d.PutTasks(ctx, newTasks))
 	d.Wait()
 	<-wait
 	require.NoError(t, w.UpdateWithTime(newTasks[0].Created.Add(period)))
@@ -578,7 +578,7 @@ func TestJobCache(t *testing.T) {
 	// Pre-load a job into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	j1 := types.MakeTestJob(startTime)
-	require.NoError(t, d.PutJob(j1))
+	require.NoError(t, d.PutJob(ctx, j1))
 	d.Wait()
 
 	// Create the cache. Ensure that the existing job is present.
@@ -600,7 +600,7 @@ func TestJobCache(t *testing.T) {
 
 	// Create another job. Ensure that it gets picked up.
 	j2 := types.MakeTestJob(startTime.Add(time.Nanosecond))
-	require.NoError(t, d.PutJob(j2))
+	require.NoError(t, d.PutJob(ctx, j2))
 	d.Wait()
 	<-wait
 	test, err = c.GetJob(j2.Id)
@@ -644,7 +644,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	startTime := time.Now().Add(-30 * time.Minute)
 	j1 := types.MakeTestJob(startTime)
 	require.False(t, j1.Done())
-	require.NoError(t, d.PutJob(j1))
+	require.NoError(t, d.PutJob(ctx, j1))
 	d.Wait()
 
 	// Create the cache. Ensure that the existing job is present.
@@ -661,7 +661,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	// Finish the job. Insert it, ensure that it's not unfinished.
 	j1.Status = types.JOB_STATUS_SUCCESS
 	require.True(t, j1.Done())
-	require.NoError(t, d.PutJob(j1))
+	require.NoError(t, d.PutJob(ctx, j1))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -671,7 +671,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	j2 := types.MakeTestJob(time.Now())
 	j2.Status = types.JOB_STATUS_MISHAP
 	require.True(t, j2.Done())
-	require.NoError(t, d.PutJob(j2))
+	require.NoError(t, d.PutJob(ctx, j2))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -680,7 +680,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	// An unfinished job, created after the cache was created.
 	j3 := types.MakeTestJob(time.Now())
 	require.False(t, j3.Done())
-	require.NoError(t, d.PutJob(j3))
+	require.NoError(t, d.PutJob(ctx, j3))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -689,7 +689,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	// Update the job.
 	j3.Dependencies = map[string][]string{"a": {}, "b": {}, "c": {}}
 	require.False(t, j3.Done())
-	require.NoError(t, d.PutJob(j3))
+	require.NoError(t, d.PutJob(ctx, j3))
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
@@ -812,7 +812,7 @@ func TestJobCacheExpiration(t *testing.T) {
 		mk(timeStart.Add(4*time.Minute), true),  // 6
 		mk(timeStart.Add(3*time.Minute), false), // 7
 	}
-	require.NoError(t, d.PutJobs(jobs))
+	require.NoError(t, d.PutJobs(ctx, jobs))
 	d.Wait()
 
 	// Create the cache.
@@ -830,7 +830,7 @@ func TestJobCacheExpiration(t *testing.T) {
 	// Add and update jobs.
 	jobs[1].Status = types.JOB_STATUS_SUCCESS
 	jobs = append(jobs, mk(timeStart.Add(3*time.Minute), false)) // 8
-	require.NoError(t, d.PutJobs([]*types.Job{jobs[1], jobs[8]}))
+	require.NoError(t, d.PutJobs(ctx, []*types.Job{jobs[1], jobs[8]}))
 	d.Wait()
 	<-wait
 
@@ -848,7 +848,7 @@ func TestJobCacheExpiration(t *testing.T) {
 	newJobs := []*types.Job{
 		mk(timeStart.Add(5*time.Minute), false),
 	}
-	require.NoError(t, d.PutJobs(newJobs))
+	require.NoError(t, d.PutJobs(ctx, newJobs))
 	d.Wait()
 	<-wait
 	require.NoError(t, w.UpdateWithTime(timeStart.Add(5*time.Minute).Add(period).Add(-time.Nanosecond)))
@@ -871,7 +871,7 @@ func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
 	j1 := types.MakeTestJob(startTime)
 	j2 := types.MakeTestJob(startTime)
 	j2.Name = "job2"
-	require.NoError(t, d.PutJobs([]*types.Job{j1, j2}))
+	require.NoError(t, d.PutJobs(ctx, []*types.Job{j1, j2}))
 	d.Wait()
 
 	// Create the cache. Ensure that the existing job is present.

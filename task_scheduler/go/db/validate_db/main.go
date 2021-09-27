@@ -49,11 +49,11 @@ func validateTask(task *types.Task) error {
 	return task.Validate()
 }
 
-func validateTasks(d db.TaskReader, chunks []*timeChunk) ([]string, error) {
+func validateTasks(ctx context.Context, d db.TaskReader, chunks []*timeChunk) ([]string, error) {
 	invalidIds := []string{}
 	for _, chunk := range chunks {
 		sklog.Infof("Validating tasks in %s - %s", chunk.start, chunk.end)
-		tasks, err := d.GetTasksFromDateRange(chunk.start, chunk.end, "")
+		tasks, err := d.GetTasksFromDateRange(ctx, chunk.start, chunk.end, "")
 		if err != nil {
 			return nil, err
 		}
@@ -87,11 +87,11 @@ func validateJob(job *types.Job) error {
 	return nil
 }
 
-func validateJobs(d db.JobReader, chunks []*timeChunk) ([]string, error) {
+func validateJobs(ctx context.Context, d db.JobReader, chunks []*timeChunk) ([]string, error) {
 	invalidIds := []string{}
 	for _, chunk := range chunks {
 		sklog.Infof("Validating jobs in %s - %s", chunk.start, chunk.end)
-		jobs, err := d.GetJobsFromDateRange(chunk.start, chunk.end, "")
+		jobs, err := d.GetJobsFromDateRange(ctx, chunk.start, chunk.end, "")
 		if err != nil {
 			return nil, err
 		}
@@ -105,7 +105,7 @@ func validateJobs(d db.JobReader, chunks []*timeChunk) ([]string, error) {
 	return invalidIds, nil
 }
 
-func validate(d db.DB) error {
+func validate(ctx context.Context, d db.DB) error {
 	chunks := make([]*timeChunk, 0, 1000)
 	if err := util.IterTimeChunks(BEGINNING_OF_TIME, NOW, TIME_CHUNK, func(start, end time.Time) error {
 		chunks = append(chunks, &timeChunk{
@@ -121,11 +121,11 @@ func validate(d db.DB) error {
 		chunks[i], chunks[j] = chunks[j], chunks[i]
 	}
 
-	invalidTasks, err := validateTasks(d, chunks)
+	invalidTasks, err := validateTasks(ctx, d, chunks)
 	if err != nil {
 		return err
 	}
-	invalidJobs, err := validateJobs(d, chunks)
+	invalidJobs, err := validateJobs(ctx, d, chunks)
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func main() {
 	}
 	defer util.Close(d)
 
-	if err := validate(d); err != nil {
+	if err := validate(ctx, d); err != nil {
 		sklog.Fatal(err)
 	}
 }
