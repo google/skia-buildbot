@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/web/frontend"
 )
 
@@ -37,7 +36,7 @@ func addTypes(generator *go2ts.Go2TS) {
 	generator.AddWithName(frontend.ChangelistSummary{}, "ChangelistSummaryResponse")
 
 	// Response for the /json/v1/paramset RPC endpoint.
-	generator.AddWithName(tiling.Tile{}.ParamSet, "ParamSetResponse")
+	generator.AddWithName(paramtools.ReadOnlyParamSet{}, "ParamSetResponse")
 
 	// Response for the /json/v1/search RPC endpoint.
 	//
@@ -55,9 +54,6 @@ func addTypes(generator *go2ts.Go2TS) {
 
 	// Response for the /json/v1/byblame RPC endpoint.
 	generator.Add(frontend.ByBlameResponse{})
-
-	// Response for the /json/v1/triagelog RPC endpoint.
-	generator.Add(frontend.TriageLogResponse{})
 
 	// Response for the /json/v2/triagelog RPC endpoint.
 	generator.Add(frontend.TriageLogResponse2{})

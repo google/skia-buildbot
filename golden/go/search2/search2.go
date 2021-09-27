@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/publicparams"
-	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -2246,7 +2245,7 @@ func makeTraceGroup(ctx context.Context, data map[schema.MD5Hash][]traceDigestCo
 
 	// Find the most recent / important digests and assign them an index. Everything else will
 	// be given the sentinel value.
-	digestIndices, totalDigests := search.ComputeDigestIndices(&tg, primary)
+	digestIndices, totalDigests := computeDigestIndices(&tg, primary)
 	tg.TotalDigests = totalDigests
 
 	tg.Digests = make([]frontend.DigestStatus, len(digestIndices))
@@ -2273,7 +2272,7 @@ func makeTraceGroup(ctx context.Context, data map[schema.MD5Hash][]traceDigestCo
 				tr.DigestIndices[j] = idx
 			} else {
 				// Fold everything else into the last digest index (grey on the frontend).
-				tr.DigestIndices[j] = search.MaxDistinctDigestsToPresent - 1
+				tr.DigestIndices[j] = maxDistinctDigestsToPresent - 1
 			}
 		}
 	}
@@ -2284,7 +2283,7 @@ func makeTraceGroup(ctx context.Context, data map[schema.MD5Hash][]traceDigestCo
 func emptyIndices(length int) []int {
 	rv := make([]int, length)
 	for i := range rv {
-		rv[i] = search.MissingDigestIndex
+		rv[i] = missingDigestIndex
 	}
 	return rv
 }
@@ -3770,6 +3769,140 @@ JOIN Expectations ON NotIgnoredDigests.grouping_id = Expectations.grouping_id AN
 	})
 
 	return rv, nil
+}
+
+type digestCountAndLastSeen struct {
+	digest types.Digest
+	// count is how many times a digest has been seen in a TraceGroup.
+	count int
+	// lastSeenIndex refers to the commit index that this digest was most recently seen. That is,
+	// a higher number means it was seen more recently. This digest might have seen much much earlier
+	// than this index, but only the latest occurrence affects this value.
+	lastSeenIndex int
+}
+
+const (
+	// maxDistinctDigestsToPresent is the maximum number of digests we want to show
+	// in a dotted line of traces. We assume that showing more digests yields
+	// no additional information, because the trace is likely to be flaky.
+	maxDistinctDigestsToPresent = 9
+
+	// 0 is always the primary digest, no matter where (or if) it appears in the trace.
+	primaryDigestIndex = 0
+
+	// The frontend knows to handle -1 specially and show no dot.
+	missingDigestIndex = -1
+
+	mostRecentNDigests = 3
+)
+
+// ComputeDigestIndices assigns distinct digests an index ( up to MaxDistinctDigestsToPresent).
+// This index
+// maps to a color of dot on the frontend when representing traces. The indices are assigned to
+// some of the most recent digests and some of the most common digests. All digests not in this
+// map will be grouped under the highest index (represented by a grey color on the frontend).
+// This hybrid approach was adapted in an effort to minimize the "interesting" digests that are
+// globbed together under the grey color, which is harder to inspect from the frontend.
+// See skbug.com/10387 for more context.
+func computeDigestIndices(traceGroup *frontend.TraceGroup, primary types.Digest) (map[types.Digest]int, int) {
+	// digestStats is a slice that has one entry per unique digest. This could be a map, but
+	// we are going to sort it later, so it's cleaner to just use a slice initially especially
+	// when the vast vast majority (99.9% of Skia's data) of our traces have fewer than 30 unique
+	// digests. The worst case would be a few hundred unique digests, for which Ω(n) lookup isn't
+	// terrible.
+	digestStats := make([]digestCountAndLastSeen, 0, 5)
+	// Populate digestStats, iterating over the digests from all traces from oldest to newest.
+	// By construction, all traces in the TraceGroup will have the same length.
+	traceLength := len(traceGroup.Traces[0].RawTrace.Digests)
+	sawPrimary := false
+	for idx := 0; idx < traceLength; idx++ {
+		for _, tr := range traceGroup.Traces {
+			digest := tr.RawTrace.Digests[idx]
+			// Don't bother counting up data for missing digests.
+			if digest == tiling.MissingDigest {
+				continue
+			}
+			if digest == primary {
+				sawPrimary = true
+			}
+			// Go look up the entry for this digest. The sentinel value -1 will tell us if we haven't
+			// seen one and need to add one.
+			dsIdxToUpdate := -1
+			for i, ds := range digestStats {
+				if ds.digest == digest {
+					dsIdxToUpdate = i
+					break
+				}
+			}
+			if dsIdxToUpdate == -1 {
+				dsIdxToUpdate = len(digestStats)
+				digestStats = append(digestStats, digestCountAndLastSeen{
+					digest: digest,
+				})
+			}
+			digestStats[dsIdxToUpdate].count++
+			digestStats[dsIdxToUpdate].lastSeenIndex = idx
+		}
+	}
+
+	// Sort in order of highest last seen index, with tiebreaks being higher count and then
+	// lexicographically by digest.
+	sort.Slice(digestStats, func(i, j int) bool {
+		statsA, statsB := digestStats[i], digestStats[j]
+		if statsA.lastSeenIndex != statsB.lastSeenIndex {
+			return statsA.lastSeenIndex > statsB.lastSeenIndex
+		}
+		if statsA.count != statsB.count {
+			return statsA.count > statsB.count
+		}
+		return statsA.digest < statsB.digest
+	})
+
+	// Assign the primary digest the primaryDigestIndex.
+	digestIndices := make(map[types.Digest]int, maxDistinctDigestsToPresent)
+	digestIndices[primary] = primaryDigestIndex
+	// Go through the slice until we have either added the n most recent digests or have run out
+	// of unique digests. We are careful not to add a digest we've already added (e.g. the primary
+	// digest). We start with the most recent digests to preserve a little bit of backwards
+	// compatibility with the assigned colors (e.g. developers are used to green and orange being the
+	// more recent digests).
+	digestIndex := 1
+	for i := 0; i < len(digestStats) && len(digestIndices) < 1+mostRecentNDigests; i++ {
+		ds := digestStats[i]
+		if _, ok := digestIndices[ds.digest]; ok {
+			continue
+		}
+		digestIndices[ds.digest] = digestIndex
+		digestIndex++
+	}
+
+	// Re-sort the slice in order of highest count, with tiebreaks being a higher last seen index
+	// and then lexicographically by digest.
+	sort.Slice(digestStats, func(i, j int) bool {
+		statsA, statsB := digestStats[i], digestStats[j]
+		if statsA.count != statsB.count {
+			return statsA.count > statsB.count
+		}
+		if statsA.lastSeenIndex != statsB.lastSeenIndex {
+			return statsA.lastSeenIndex > statsB.lastSeenIndex
+		}
+		return statsA.digest < statsB.digest
+	})
+
+	// Assign the rest of the indices in order of most common digests.
+	for i := 0; i < len(digestStats) && len(digestIndices) < maxDistinctDigestsToPresent; i++ {
+		ds := digestStats[i]
+		if _, ok := digestIndices[ds.digest]; ok {
+			continue
+		}
+		digestIndices[ds.digest] = digestIndex
+		digestIndex++
+	}
+	totalDigests := len(digestStats)
+	if !sawPrimary {
+		totalDigests++
+	}
+	return digestIndices, totalDigests
 }
 
 // Make sure Impl implements the API interface.

@@ -13,7 +13,6 @@ go_library(
         "//go/util",
         "//golden/go/expectations",
         "//golden/go/publicparams",
-        "//golden/go/search",
         "//golden/go/search/query",
         "//golden/go/sql",
         "//golden/go/sql/schema",

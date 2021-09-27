@@ -10,7 +10,6 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//golden/go/expectations",
-        "//golden/go/tiling",
         "//golden/go/web/frontend",
         "@com_github_skia_dev_go2ts//:go2ts",
     ],

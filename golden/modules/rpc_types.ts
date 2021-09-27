@@ -127,27 +127,6 @@ export interface ByBlameResponse {
 	data: ByBlameEntry[] | null;
 }
 
-export interface TriageDelta {
-	test_name: TestName;
-	digest: Digest;
-	label: Label;
-}
-
-export interface TriageLogEntry {
-	id: string;
-	name: string;
-	ts: number;
-	changeCount: number;
-	details: TriageDelta[] | null;
-}
-
-export interface TriageLogResponse {
-	entries: TriageLogEntry[] | null;
-	offset: number;
-	size: number;
-	total: number;
-}
-
 export interface TriageDelta2 {
 	grouping: Params;
 	digest: Digest;

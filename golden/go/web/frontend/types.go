@@ -6,7 +6,6 @@ package frontend
 import (
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"go.skia.org/infra/golden/go/validation"
@@ -14,9 +13,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/golden/go/blame"
-	"go.skia.org/infra/golden/go/code_review"
-	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/tiling"
@@ -35,8 +31,6 @@ const (
 
 	// NoRef indicates no other digests match.
 	NoRef = RefClosest("")
-
-	urlPlaceholder = "%s"
 )
 
 // Define common routes used by multiple servers and goldctl
@@ -72,19 +66,6 @@ type ChangelistsResponse struct {
 	httputils.ResponsePagination
 }
 
-// ConvertChangelist turns a code_review.Changelist into a Changelist for the frontend.
-func ConvertChangelist(cl code_review.Changelist, system, urlTempl string) Changelist {
-	return Changelist{
-		System:   system,
-		SystemID: cl.SystemID,
-		Owner:    cl.Owner,
-		Status:   cl.Status.String(),
-		Subject:  cl.Subject,
-		Updated:  cl.Updated,
-		URL:      strings.Replace(urlTempl, urlPlaceholder, cl.SystemID, 1),
-	}
-}
-
 // ChangelistSummary encapsulates how the frontend expects to get a summary of
 // the TryJob information we have associated with a given Changelist. These
 // TryJobs are those we've noticed that uploaded results to Gold.
@@ -109,17 +90,6 @@ type TryJob struct {
 	Updated     time.Time `json:"updated"`
 	System      string    `json:"system"`
 	URL         string    `json:"url"`
-}
-
-// ConvertTryJob turns a ci.TryJob into a TryJob for the frontend.
-func ConvertTryJob(tj ci.TryJob, urlTempl string) TryJob {
-	return TryJob{
-		System:      tj.System,
-		SystemID:    tj.SystemID,
-		DisplayName: tj.DisplayName,
-		Updated:     tj.Updated,
-		URL:         strings.Replace(urlTempl, urlPlaceholder, tj.SystemID, 1),
-	}
 }
 
 // TriageRequestData contains the digests in a TriageRequest and their desired labels.
@@ -147,47 +117,6 @@ type TriageRequest struct {
 	// the username that initiated the triage operation via Gold's UI will be used as the author of
 	// the operation.
 	ImageMatchingAlgorithm string `json:"imageMatchingAlgorithm,omitempty"`
-}
-
-// TriageDelta represents one changed digest and the label that was
-// assigned as part of the triage operation.
-type TriageDelta struct {
-	TestName types.TestName     `json:"test_name"`
-	Digest   types.Digest       `json:"digest"`
-	Label    expectations.Label `json:"label"`
-}
-
-// TriageLogEntry represents a set of changes by a single person.
-type TriageLogEntry struct {
-	ID          string        `json:"id"`
-	User        string        `json:"name"`
-	TS          int64         `json:"ts"` // is milliseconds since the epoch
-	ChangeCount int           `json:"changeCount"`
-	Details     []TriageDelta `json:"details"`
-}
-
-// TriageLogResponse is the response for /json/v1/triagelog.
-type TriageLogResponse struct {
-	httputils.ResponsePagination
-	Entries []TriageLogEntry `json:"entries"`
-}
-
-// ConvertLogEntry turns an expectations.TriageLogEntry into its frontend representation.
-func ConvertLogEntry(entry expectations.TriageLogEntry) TriageLogEntry {
-	tle := TriageLogEntry{
-		ID:          entry.ID,
-		User:        entry.User,
-		TS:          entry.TS.Unix() * 1000,
-		ChangeCount: entry.ChangeCount,
-	}
-	for _, d := range entry.Details {
-		tle.Details = append(tle.Details, TriageDelta{
-			TestName: d.Grouping,
-			Digest:   d.Digest,
-			Label:    d.Label,
-		})
-	}
-	return tle
 }
 
 // TriageDelta2 represents one changed digest and the label that was
@@ -282,9 +211,6 @@ type MostRecentPositiveDigestResponse struct {
 	Digest types.Digest `json:"digest"`
 }
 
-// GetPerTraceDigestsByTestNameResponse is the response for /json/digestsbytestname.
-type GetPerTraceDigestsByTestNameResponse map[tiling.TraceID][]types.Digest
-
 // Commit represents a git Commit for use on the frontend.
 type Commit struct {
 	// CommitTime is in seconds since the epoch
@@ -296,25 +222,6 @@ type Commit struct {
 	Author        string `json:"author"`
 	Subject       string `json:"message"`
 	ChangelistURL string `json:"cl_url"`
-}
-
-// FromTilingCommit converts a tiling.Commit into a frontend.Commit.
-func FromTilingCommit(tc tiling.Commit) Commit {
-	return Commit{
-		CommitTime: tc.CommitTime.Unix(),
-		Hash:       tc.Hash,
-		Author:     tc.Author,
-		Subject:    tc.Subject,
-	}
-}
-
-// FromTilingCommits converts a slice of tiling.Commit into a slice of frontend.Commit.
-func FromTilingCommits(xtc []tiling.Commit) []Commit {
-	rv := make([]Commit, len(xtc))
-	for i, tc := range xtc {
-		rv[i] = FromTilingCommit(tc)
-	}
-	return rv
 }
 
 // ByBlameResponse is the response for /json/v1/byblame.
@@ -332,39 +239,10 @@ type ByBlameEntry struct {
 	Commits       []Commit     `json:"commits"`
 }
 
-// ByBlame describes a single digest and its blames.
-type ByBlame struct {
-	Test          types.TestName          `json:"test"`
-	Digest        types.Digest            `json:"digest"`
-	Blame         blame.BlameDistribution `json:"blame"`
-	CommitIndices []int                   `json:"commit_indices"`
-	Key           string
-}
-
 type TestRollup struct {
 	Test         types.TestName `json:"test"`
 	Num          int            `json:"num"`
 	SampleDigest types.Digest   `json:"sample_digest"`
-}
-
-type FlakyTrace struct {
-	ID            tiling.TraceID `json:"trace_id"`
-	UniqueDigests int            `json:"unique_digests_count"`
-}
-
-// FlakyTracesDataResponse represents the data needed to identify flaky traces. This data is
-// based on the current sliding window of commits.
-type FlakyTracesDataResponse struct {
-	// Traces represents all traces that are flaky given the input parameters. This slice will be
-	// limited to the first 10k results and sorted high to low by UniqueDigests.
-	Traces []FlakyTrace `json:"traces"`
-	// TileSize is the number of commits in the sliding window.
-	TileSize int `json:"tile_size"`
-	// TotalFlakyTraces is the number of traces that are flaky given the input parameters. This
-	// number may be greater than the length of Traces, if the total was greater than 10k.
-	TotalFlakyTraces int `json:"num_flaky"`
-	// TotalTraces is the total number of traces in the current sliding window.
-	TotalTraces int `json:"num_traces"`
 }
 
 // ListTestsQuery encapsulates the inputs to ListTestsHandler.
