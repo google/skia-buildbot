@@ -20,8 +20,9 @@ var (
 	// namedCommitMsgTemplates contains pre-defined commit message templates
 	// which may be referenced by name in config files.
 	namedCommitMsgTemplates = map[config.CommitMsgConfig_BuiltIn]*template.Template{
-		config.CommitMsgConfig_ANDROID: tmplAndroid,
-		config.CommitMsgConfig_DEFAULT: tmplCommitMsg,
+		config.CommitMsgConfig_ANDROID:       tmplAndroid,
+		config.CommitMsgConfig_ANDROID_NO_CR: tmplAndroidNoCR,
+		config.CommitMsgConfig_DEFAULT:       tmplCommitMsg,
 	}
 
 	limitEmptyLinesRegex = regexp.MustCompile(`\n\n\n+`)

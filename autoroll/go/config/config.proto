@@ -125,6 +125,9 @@ message CommitMsgConfig {
         DEFAULT = 0;
         // ANDROID is the commit message template used for Android rollers.
         ANDROID = 1;
+        // ANDROID_NO_CR is the commit message template used for Android rollers
+        // where the service account does not have CR+2 access.
+        ANDROID_NO_CR = 2;
     }
 
     // template specifies exactly how the commit message should be structured.

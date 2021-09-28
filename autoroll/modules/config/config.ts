@@ -19,6 +19,7 @@ export enum PreUploadStep {
 export enum CommitMsgConfig_BuiltIn {
   DEFAULT = "DEFAULT",
   ANDROID = "ANDROID",
+  ANDROID_NO_CR = "ANDROID_NO_CR",
 }
 
 export enum GerritConfig_Config {
