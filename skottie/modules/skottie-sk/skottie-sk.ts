@@ -233,6 +233,10 @@ ${this.jsonTextEditor()}
     <div class=scrub>
       <input id=scrub type=range min=0 max=${SCRUBBER_RANGE} step=0.1
           @input=${this.onScrub} @change=${this.onScrubEnd}>
+      <label class=number>
+       Go to frame: <input type=number id=frameInput
+       @focus=${this.onFrameFocus} @change=${this.onFrameChange}/>
+      </label>
     </div>
   </div>
   <collapse-sk id=volume closed>
@@ -527,11 +531,7 @@ ${this.wasmCaption()}`;
         // lottie player takes the milliseconds from the beginning of the animation.
         this.lottiePlayer?.goToAndStop(progress);
         this.live?.goToAndStop(progress);
-        const scrubber = $$<HTMLInputElement>('#scrub', this);
-        if (scrubber) {
-          // Scale from time to the arbitrary scrubber range.
-          scrubber.value = String((SCRUBBER_RANGE * progress) / this.duration);
-        }
+        this.updateScrubber();
       }
     };
 
@@ -983,7 +983,7 @@ ${this.wasmCaption()}`;
     }
   }
 
-  // This fires every time the user moves the scrub slider.
+   // This fires every time the user moves the scrub slider.
   private onScrub(e: Event): void {
     if (!this.scrubbing) {
       // Pause the animation while dragging the slider.
@@ -995,11 +995,7 @@ ${this.wasmCaption()}`;
     }
     const scrubber = (e.target as HTMLInputElement)!;
     const seek = (+scrubber.value / SCRUBBER_RANGE);
-    this.elapsedTime = seek * this.duration;
-    this.live?.goToAndStop(seek);
-    this.lottiePlayer?.goToAndStop(seek * this.duration);
-    this.skottiePlayer?.seek(seek);
-    this.skottieLibrary?.seek(seek);
+    this.seek(seek);
   }
 
   // This fires when the user releases the scrub slider.
@@ -1008,6 +1004,50 @@ ${this.wasmCaption()}`;
       this.playpause();
     }
     this.scrubbing = false;
+  }
+
+  private onFrameFocus(): void {
+    if (this.playing) {
+      this.playpause();
+    }
+  }
+  private onFrameChange(e: Event): void {
+    if (this.playing) {
+      this.playpause();
+    }
+    const frameInput = $$<HTMLInputElement>('#frameInput', this);
+    if (frameInput) {
+      const frame = +frameInput.value;
+      if (frame > 0 && frame < this.duration) {
+        let seek = 0;
+        if (this.state.lottie?.fr) {
+          seek = ((frame / this.state.lottie.fr) * 1000) / this.duration;
+        }
+        this.seek(seek);
+        this.updateScrubber();
+      }
+    }
+  }
+
+  private updateScrubber(): void {
+    const scrubber = $$<HTMLInputElement>('#scrub', this);
+    const frameLabel = $$<HTMLInputElement>('#frameInput', this)
+    if (scrubber && frameLabel) {
+      // Scale from time to the arbitrary scrubber range.
+      let progress = this.elapsedTime % this.duration;
+      scrubber.value = String((SCRUBBER_RANGE * progress) / this.duration);
+      if (this.state.lottie!.fr) {
+        frameLabel.value  = String(Math.round(progress * (this.state.lottie!.fr / 1000)))
+      }
+    }
+  }
+
+  private seek(t: number) : void {
+    this.elapsedTime = t * this.duration;
+    this.live?.goToAndStop(t);
+    this.lottiePlayer?.goToAndStop(t * this.duration);
+    this.skottiePlayer?.seek(t);
+    this.skottieLibrary?.seek(t);
   }
 
   private onVolumeChange(e: Event): void {
