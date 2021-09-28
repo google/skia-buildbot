@@ -3,6 +3,7 @@ package main
 // Gracefully shuts down groups of bots via the poorly named "terminate" api
 
 import (
+	"context"
 	"flag"
 	"path/filepath"
 	"regexp"
@@ -33,6 +34,8 @@ var (
 func main() {
 	// Setup, parse args.
 	common.Init()
+
+	ctx := context.Background()
 
 	if *pool == "" {
 		sklog.Fatal("--pool is required.")
@@ -75,7 +78,7 @@ func main() {
 	}
 
 	// Obtain the list of bots in this pool.
-	bots, err := swarmApi.ListBots(map[string]string{
+	bots, err := swarmApi.ListBots(ctx, map[string]string{
 		"pool": *pool,
 	})
 	if err != nil {
@@ -136,7 +139,7 @@ func main() {
 	}
 
 	for _, m := range matched {
-		if r, err := swarmApi.GracefullyShutdownBot(m); err != nil {
+		if r, err := swarmApi.GracefullyShutdownBot(ctx, m); err != nil {
 			sklog.Errorf("Problem shutting down %s: %s", m, err)
 		} else {
 			logIfVerbose("Response from shutting down %s: %#v", m, r)

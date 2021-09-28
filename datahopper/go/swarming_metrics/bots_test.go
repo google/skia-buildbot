@@ -1,6 +1,7 @@
 package swarming_metrics
 
 import (
+	"context"
 	"strconv"
 	"testing"
 	"time"
@@ -12,6 +13,8 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	metrics_util "go.skia.org/infra/go/metrics2/testutils"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/swarming/mocks"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -30,7 +33,8 @@ func getPromClient() metrics2.Client {
 func TestDeadQuarantinedBotMetrics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := swarming.NewMockApiClient()
+	ctx := context.Background()
+	ms := &mocks.ApiClient{}
 	defer ms.AssertExpectations(t)
 
 	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
@@ -94,12 +98,12 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 		})
 	}
 
-	ms.On("ListBotsForPool", MOCK_POOL).Return(b, nil)
-	ms.On("ListBotTasks", mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{}, nil)
+	ms.On("ListBotsForPool", testutils.AnyContext, MOCK_POOL).Return(b, nil)
+	ms.On("ListBotTasks", testutils.AnyContext, mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{}, nil)
 
 	pc := getPromClient()
 
-	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
+	newMetrics, err := reportBotMetrics(ctx, now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	require.NoError(t, err)
 	require.Len(t, newMetrics, 21, "3 bots * 7 metrics each = 21 expected metrics")
 
@@ -146,12 +150,13 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 func TestLastTaskBotMetrics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := swarming.NewMockApiClient()
+	ctx := context.Background()
+	ms := &mocks.ApiClient{}
 	defer ms.AssertExpectations(t)
 
 	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
 
-	ms.On("ListBotsForPool", MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
+	ms.On("ListBotsForPool", testutils.AnyContext, MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
 		{
 			BotId:       "my-bot",
 			LastSeenTs:  now.Add(-time.Minute).Format("2006-01-02T15:04:05"),
@@ -178,7 +183,7 @@ func TestLastTaskBotMetrics(t *testing.T) {
 		},
 	}, nil)
 
-	ms.On("ListBotTasks", "my-bot", 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
+	ms.On("ListBotTasks", testutils.AnyContext, "my-bot", 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
 		{
 			ModifiedTs: now.Add(-31 * time.Minute).Format("2006-01-02T15:04:05"),
 		},
@@ -186,7 +191,7 @@ func TestLastTaskBotMetrics(t *testing.T) {
 
 	pc := getPromClient()
 
-	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
+	newMetrics, err := reportBotMetrics(ctx, now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	require.NoError(t, err)
 	require.Len(t, newMetrics, 7, "1 bot * 7 metrics = 7 expected metrics")
 
@@ -211,12 +216,13 @@ func TestLastTaskBotMetrics(t *testing.T) {
 func TestBotTemperatureMetrics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := swarming.NewMockApiClient()
+	ctx := context.Background()
+	ms := &mocks.ApiClient{}
 	defer ms.AssertExpectations(t)
 
 	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
 
-	ms.On("ListBotsForPool", MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
+	ms.On("ListBotsForPool", testutils.AnyContext, MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
 		{
 			BotId:      "my-bot-no-temp",
 			LastSeenTs: now.Add(-3 * time.Minute).Format("2006-01-02T15:04:05"),
@@ -254,7 +260,7 @@ func TestBotTemperatureMetrics(t *testing.T) {
 		},
 	}, nil)
 
-	ms.On("ListBotTasks", mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
+	ms.On("ListBotTasks", testutils.AnyContext, mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
 		{
 			ModifiedTs: now.Add(-31 * time.Minute).Format("2006-01-02T15:04:05"),
 		},
@@ -262,7 +268,7 @@ func TestBotTemperatureMetrics(t *testing.T) {
 
 	pc := getPromClient()
 
-	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
+	newMetrics, err := reportBotMetrics(ctx, now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	require.NoError(t, err)
 	require.Len(t, newMetrics, 34, "24 bot metrics + 10 temp metrics = 31 expected metrics")
 
@@ -316,12 +322,13 @@ func TestBotTemperatureMetrics(t *testing.T) {
 func TestBotUptimeMetrics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := swarming.NewMockApiClient()
+	ctx := context.Background()
+	ms := &mocks.ApiClient{}
 	defer ms.AssertExpectations(t)
 
 	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
 
-	ms.On("ListBotsForPool", MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
+	ms.On("ListBotsForPool", testutils.AnyContext, MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
 		{
 			BotId:      "my-bot",
 			LastSeenTs: now.Add(-2 * time.Minute).Format("2006-01-02T15:04:05"),
@@ -329,7 +336,7 @@ func TestBotUptimeMetrics(t *testing.T) {
 		},
 	}, nil)
 
-	ms.On("ListBotTasks", mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
+	ms.On("ListBotTasks", testutils.AnyContext, mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
 		{
 			ModifiedTs: now.Add(-31 * time.Minute).Format("2006-01-02T15:04:05"),
 		},
@@ -337,7 +344,7 @@ func TestBotUptimeMetrics(t *testing.T) {
 
 	pc := getPromClient()
 
-	_, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
+	_, err := reportBotMetrics(ctx, now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	require.NoError(t, err)
 
 	tags := map[string]string{}

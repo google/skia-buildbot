@@ -32,8 +32,8 @@ var (
 	removeAll         = regexp.MustCompile("-All")
 )
 
-func failingTasksAtACommit(swarmApi swarming.ApiClient, hash string) map[string]bool {
-	resp, err := swarmApi.ListTasks(time.Time{}, time.Time{}, []string{fmt.Sprintf("source_revision:%s", hash)}, "completed_failure")
+func failingTasksAtACommit(ctx context.Context, swarmApi swarming.ApiClient, hash string) map[string]bool {
+	resp, err := swarmApi.ListTasks(ctx, time.Time{}, time.Time{}, []string{fmt.Sprintf("source_revision:%s", hash)}, "completed_failure")
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -91,9 +91,9 @@ func main() {
 				badHash := match[1]
 				sklog.Infof("%s was reverted by %s", badHash, line)
 				sklog.Info("Which tasks failed?")
-				failed := failingTasksAtACommit(swarmApi, badHash)
+				failed := failingTasksAtACommit(ctx, swarmApi, badHash)
 				sklog.Info("Which tasks were still failing upon revert?")
-				failingEvenAfterRevert := failingTasksAtACommit(swarmApi, revertHash)
+				failingEvenAfterRevert := failingTasksAtACommit(ctx, swarmApi, revertHash)
 				// Only count bots that appear in failed and not in failingEvenAfterRevert.
 				for k := range failed {
 					if failingEvenAfterRevert[k] {

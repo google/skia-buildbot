@@ -103,12 +103,12 @@ func main() {
 
 	// Are we re-running a previous set of tasks?
 	if *rerun != "" {
-		rerunPrevious(swarmingServer, swarmApi, *rerun)
+		rerunPrevious(ctx, swarmingServer, swarmApi, *rerun)
 		return
 	}
 
 	// Obtain the list of bots.
-	bots, err := swarmApi.ListBots(dims)
+	bots, err := swarmApi.ListBots(ctx, dims)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -220,7 +220,7 @@ func main() {
 				},
 				Tags: tags,
 			}
-			if _, err := swarmApi.TriggerTask(req); err != nil {
+			if _, err := swarmApi.TriggerTask(ctx, req); err != nil {
 				sklog.Fatal(err)
 			}
 		}(bot.BotId)
@@ -315,8 +315,8 @@ func getPythonCIPDPackages(bot *swarming_api.SwarmingRpcsBotInfo) *swarming_api.
 	return cipdInput
 }
 
-func rerunPrevious(swarmingServer string, swarmApi swarming.ApiClient, rerun string) {
-	results, err := swarmApi.ListTaskResults(time.Time{}, time.Time{}, []string{rerun}, "", false)
+func rerunPrevious(ctx context.Context, swarmingServer string, swarmApi swarming.ApiClient, rerun string) {
+	results, err := swarmApi.ListTaskResults(ctx, time.Time{}, time.Time{}, []string{rerun}, "", false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -328,12 +328,12 @@ func rerunPrevious(swarmingServer string, swarmApi swarming.ApiClient, rerun str
 		}
 		id := result.TaskId
 		g.Go(func() error {
-			taskMeta, err := swarmApi.GetTaskMetadata(id)
+			taskMeta, err := swarmApi.GetTaskMetadata(ctx, id)
 			if err != nil {
 				return err
 			}
 			taskMeta.Request.Tags = append(taskMeta.Request.Tags, newTag)
-			_, err = swarmApi.RetryTask(taskMeta)
+			_, err = swarmApi.RetryTask(ctx, taskMeta)
 			return err
 		})
 	}

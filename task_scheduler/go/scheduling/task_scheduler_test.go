@@ -2887,7 +2887,7 @@ func TestTaskTimeouts(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(unfinished))
 	task := unfinished[0]
-	swarmingTask, err := swarmingClient.GetTaskMetadata(task.SwarmingTaskId)
+	swarmingTask, err := swarmingClient.GetTaskMetadata(ctx, task.SwarmingTaskId)
 	require.NoError(t, err)
 	// These are the defaults in go/swarming/swarming.go.
 	require.Equal(t, 1, len(swarmingTask.Request.TaskSlices))
@@ -2948,7 +2948,7 @@ func TestTaskTimeouts(t *testing.T) {
 	require.Equal(t, 1, len(unfinished))
 	task = unfinished[0]
 	require.Equal(t, name, task.Name)
-	swarmingTask, err = swarmingClient.GetTaskMetadata(task.SwarmingTaskId)
+	swarmingTask, err = swarmingClient.GetTaskMetadata(ctx, task.SwarmingTaskId)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(swarmingTask.Request.TaskSlices))
 	require.Equal(t, int64(40*60), swarmingTask.Request.TaskSlices[0].Properties.ExecutionTimeoutSecs)
@@ -3004,7 +3004,7 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 	swarmingClient.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{m1, m2, m3})
 
 	// Assert that the third task doesn't show up in the time range query.
-	got, err := swarmingClient.ListTasks(now.Add(-4*time.Hour), now, []string{"pool:Skia"}, "")
+	got, err := swarmingClient.ListTasks(ctx, now.Add(-4*time.Hour), now, []string{"pool:Skia"}, "")
 	require.NoError(t, err)
 	assertdeep.Equal(t, []*swarming_api.SwarmingRpcsTaskRequestMetadata{m1, m2}, got)
 

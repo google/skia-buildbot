@@ -4,7 +4,6 @@ go_library(
     name = "swarming",
     srcs = [
         "apiclient.go",
-        "mock_apiclient.go",
         "pubsub.go",
         "swarming.go",
     ],
@@ -17,7 +16,6 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "@com_github_stretchr_testify//mock",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],

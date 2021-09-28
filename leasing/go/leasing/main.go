@@ -88,6 +88,8 @@ type ClientSecretJSON struct {
 
 // New implements baseapp.Constructor.
 func New() (baseapp.App, error) {
+	ctx := context.Background()
+
 	// Create workdir if it does not exist.
 	if err := os.MkdirAll(*workdir, 0755); err != nil {
 		sklog.Fatalf("Could not create %s: %s", *workdir, err)
@@ -142,14 +144,14 @@ func New() (baseapp.App, error) {
 		sklog.Fatalf("Failed to init cloud datastore: %s", err)
 	}
 
-	poolToDetails, err = GetDetailsOfAllPools()
+	poolToDetails, err = GetDetailsOfAllPools(ctx)
 	if err != nil {
 		sklog.Fatalf("Could not get details of all pools: %s", err)
 	}
 	go func() {
 		for range time.Tick(*poolDetailsUpdateFrequency) {
 			poolToDetailsMutex.Lock()
-			poolToDetails, err = GetDetailsOfAllPools()
+			poolToDetails, err = GetDetailsOfAllPools(ctx)
 			poolToDetailsMutex.Unlock()
 			if err != nil {
 				sklog.Errorf("Could not get details of all pools: %s", err)
@@ -161,7 +163,7 @@ func New() (baseapp.App, error) {
 	go func() {
 		for range time.Tick(*pollInterval) {
 			healthyGauge.Update(1)
-			if err := pollSwarmingTasks(); err != nil {
+			if err := pollSwarmingTasks(ctx); err != nil {
 				sklog.Errorf("Error when checking for expired tasks: %v", err)
 			}
 		}
@@ -475,7 +477,7 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if task.SwarmingBotId != "" {
 		// If BotId is specified then validate it so that we can fail fast if
 		// necessary.
-		validBotID, err := IsBotIDValid(task.SwarmingPool, task.SwarmingBotId)
+		validBotID, err := IsBotIDValid(r.Context(), task.SwarmingPool, task.SwarmingBotId)
 		if err != nil {
 			httputils.ReportError(w, err, fmt.Sprintf("Error querying swarming for botId %s in pool %s", task.SwarmingBotId, task.SwarmingPool), http.StatusInternalServerError)
 			return
@@ -499,7 +501,7 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// Upload artifacts.
 	var swarmingProps *swarming_api.SwarmingRpcsTaskProperties
 	if task.TaskIdForIsolates != "" {
-		t, err := GetSwarmingTaskMetadata(task.SwarmingPool, task.TaskIdForIsolates)
+		t, err := GetSwarmingTaskMetadata(r.Context(), task.SwarmingPool, task.TaskIdForIsolates)
 		if err != nil {
 			httputils.ReportError(w, err, fmt.Sprintf("Could not find taskId %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool), http.StatusInternalServerError)
 			return
@@ -521,7 +523,7 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Trigger the swarming task.
-	swarmingTaskID, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, *host, casDigest, swarmingProps.RelativeCwd, swarmingProps.CipdInput, swarmingProps.Command)
+	swarmingTaskID, err := TriggerSwarmingTask(r.Context(), task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, *host, casDigest, swarmingProps.RelativeCwd, swarmingProps.CipdInput, swarmingProps.Command)
 	if err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Error when triggering swarming task: %v", err), http.StatusInternalServerError)
 		return

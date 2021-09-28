@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
@@ -130,7 +131,7 @@ func checkForUnexpectedStates(newState string, failure bool, k *datastore.Key, t
 
 // pollSwarmingTasks gets all running tasks from the Datastore, polls the equivalent
 // tasks in swarming, and updates the tasks in the Datastore accordingly.
-func pollSwarmingTasks() error {
+func pollSwarmingTasks(ctx context.Context) error {
 
 	it := GetRunningDSTasks()
 	for {
@@ -148,7 +149,7 @@ func pollSwarmingTasks() error {
 		}
 
 		// Get the swarming task from swarming server.
-		swarmingTask, err := GetSwarmingTask(t.SwarmingPool, t.SwarmingTaskId)
+		swarmingTask, err := GetSwarmingTask(ctx, t.SwarmingPool, t.SwarmingTaskId)
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve swarming task %s: %s", t.SwarmingTaskId, err)
 		}

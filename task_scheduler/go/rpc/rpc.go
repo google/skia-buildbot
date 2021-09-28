@@ -274,7 +274,7 @@ func (s *taskSchedulerServiceImpl) GetTask(ctx context.Context, req *GetTaskRequ
 		return nil, err
 	}
 	if req.IncludeStats {
-		swarmingTask, err := s.swarming.GetTask(task.SwarmingTaskId, true)
+		swarmingTask, err := s.swarming.GetTask(ctx, task.SwarmingTaskId, true)
 		if err != nil {
 			sklog.Error(err)
 			return nil, twirp.InternalError("Failed to retrieve Swarming task")

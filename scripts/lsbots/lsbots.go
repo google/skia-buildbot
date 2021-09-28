@@ -9,6 +9,7 @@ package main
 //     $ for bot in $bots; do gcloud compute ssh --zone us-central1-c --project skia-swarming-bots $bot -- sudo reboot; done
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -32,6 +33,8 @@ func main() {
 
 	// Setup, parse args.
 	common.Init()
+
+	ctx := context.Background()
 
 	if *internal && *dev {
 		sklog.Fatal("Both --internal and --dev cannot be specified.")
@@ -77,7 +80,7 @@ func main() {
 	}
 
 	// Obtain the list of bots.
-	bots, err := swarmAPI.ListBots(dims)
+	bots, err := swarmAPI.ListBots(ctx, dims)
 	if err != nil {
 		sklog.Fatal(err)
 	}

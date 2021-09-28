@@ -9,13 +9,14 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/firestore/testutils"
+	fs_testutils "go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/git/testutils/mem_git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
-	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/swarming/mocks"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
@@ -42,7 +43,7 @@ var (
 	admins  = allowed.NewAllowedFromList([]string{admin})
 )
 
-func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Task, *types.Job, *skip_tasks.Rule, *swarming.MockApiClient, func()) {
+func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Task, *types.Job, *skip_tasks.Rule, *mocks.ApiClient, func()) {
 	ctx := context.Background()
 
 	// Git repo.
@@ -59,7 +60,7 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 	}
 
 	// Skip tasks DB.
-	fsClient, cleanupFS := testutils.NewClientForTesting(context.Background(), t)
+	fsClient, cleanupFS := fs_testutils.NewClientForTesting(context.Background(), t)
 	skipDB, err := skip_tasks.New(context.Background(), fsClient)
 	require.NoError(t, err)
 	skipRule := &skip_tasks.Rule{
@@ -124,7 +125,7 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 	}
 	require.NoError(t, d.PutTask(ctx, task))
 
-	swarm := swarming.NewMockApiClient()
+	swarm := &mocks.ApiClient{}
 
 	// Create the service.
 	srv := newTaskSchedulerServiceImpl(ctx, d, repos, skipDB, tcc, swarm, viewers, editors, admins)
@@ -300,7 +301,7 @@ func TestGetTask(t *testing.T) {
 	// convertTask.
 
 	// Now, verify that we retrieve task stats when requested.
-	swarm.On("GetTask", task.SwarmingTaskId, true).Return(&swarming_api.SwarmingRpcsTaskResult{
+	swarm.On("GetTask", testutils.AnyContext, task.SwarmingTaskId, true).Return(&swarming_api.SwarmingRpcsTaskResult{
 		PerformanceStats: &swarming_api.SwarmingRpcsPerformanceStats{
 			BotOverhead: 10.0,
 			IsolatedDownload: &swarming_api.SwarmingRpcsOperationStats{

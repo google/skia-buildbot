@@ -44,7 +44,7 @@ func NewSwarmingTaskExecutor(s swarming.ApiClient, casInstance, pubSubTopic stri
 func (s *SwarmingTaskExecutor) GetFreeMachines(ctx context.Context, pool string) ([]*types.Machine, error) {
 	ctx, span := trace.StartSpan(ctx, "swarming_GetFreeMachines")
 	defer span.End()
-	free, err := s.swarming.ListFreeBots(pool)
+	free, err := s.swarming.ListFreeBots(ctx, pool)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -59,7 +59,7 @@ func (s *SwarmingTaskExecutor) GetFreeMachines(ctx context.Context, pool string)
 func (s *SwarmingTaskExecutor) GetPendingTasks(ctx context.Context, pool string) ([]*types.TaskResult, error) {
 	ctx, span := trace.StartSpan(ctx, "swarming_GetPendingTasks")
 	defer span.End()
-	tasks, err := s.swarming.ListTaskResults(time.Time{}, time.Time{}, []string{fmt.Sprintf("pool:%s", pool)}, "PENDING", false)
+	tasks, err := s.swarming.ListTaskResults(ctx, time.Time{}, time.Time{}, []string{fmt.Sprintf("pool:%s", pool)}, "PENDING", false)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -78,7 +78,7 @@ func (s *SwarmingTaskExecutor) GetPendingTasks(ctx context.Context, pool string)
 func (s *SwarmingTaskExecutor) GetTaskResult(ctx context.Context, taskID string) (*types.TaskResult, error) {
 	ctx, span := trace.StartSpan(ctx, "swarming_GetTaskResult")
 	defer span.End()
-	swarmTask, err := s.swarming.GetTask(taskID, false)
+	swarmTask, err := s.swarming.GetTask(ctx, taskID, false)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -93,7 +93,7 @@ func (s *SwarmingTaskExecutor) GetTaskResult(ctx context.Context, taskID string)
 func (s *SwarmingTaskExecutor) GetTaskCompletionStatuses(ctx context.Context, taskIDs []string) ([]bool, error) {
 	ctx, span := trace.StartSpan(ctx, "swarming_GetTaskCompletionStatuses")
 	defer span.End()
-	states, err := s.swarming.GetStates(taskIDs)
+	states, err := s.swarming.GetStates(ctx, taskIDs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -123,7 +123,7 @@ func (s *SwarmingTaskExecutor) TriggerTask(ctx context.Context, req *types.TaskR
 	var resp *swarming_api.SwarmingRpcsTaskRequestMetadata
 	if err := timeout.Run(func() error {
 		var err error
-		resp, err = s.swarming.TriggerTask(sReq)
+		resp, err = s.swarming.TriggerTask(ctx, sReq)
 		return err
 	}, time.Minute); err != nil {
 		return nil, skerr.Wrap(err)

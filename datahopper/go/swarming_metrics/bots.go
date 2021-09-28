@@ -49,9 +49,9 @@ func cleanupOldMetrics(oldMetrics []metrics2.Int64Metric) []metrics2.Int64Metric
 // reportBotMetrics reports information about the bots in the given pool
 // to the metrics client. This includes if the bot is quarantined and
 // how long ago we saw the bot.
-func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient metrics2.Client, pool, server string) ([]metrics2.Int64Metric, error) {
+func reportBotMetrics(ctx context.Context, now time.Time, client swarming.ApiClient, metricsClient metrics2.Client, pool, server string) ([]metrics2.Int64Metric, error) {
 	sklog.Infof("Loading Swarming bot data for pool %s", pool)
-	bots, err := client.ListBotsForPool(pool)
+	bots, err := client.ListBotsForPool(ctx, pool)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get list of bots for pool %s: %s", pool, err)
 	}
@@ -133,7 +133,7 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 		}
 
 		// Last task performed <duration> ago
-		lastTasks, err := client.ListBotTasks(bot.BotId, 1)
+		lastTasks, err := client.ListBotTasks(ctx, bot.BotId, 1)
 		if err != nil {
 			sklog.Errorf("Problem getting tasks that bot %s has run: %s", bot.BotId, err)
 			continue
@@ -255,7 +255,7 @@ func StartSwarmingBotMetrics(ctx context.Context, swarmingServer string, swarmin
 		})
 		oldMetrics := map[metrics2.Int64Metric]struct{}{}
 		go util.RepeatCtx(ctx, 2*time.Minute, func(ctx context.Context) {
-			newMetrics, err := reportBotMetrics(time.Now(), client, metricsClient, pool, swarmingServer)
+			newMetrics, err := reportBotMetrics(ctx, time.Now(), client, metricsClient, pool, swarmingServer)
 			if err != nil {
 				sklog.Error(err)
 				return

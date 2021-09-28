@@ -167,7 +167,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	bots, err := swarm.ListBotsForPool("Skia")
+	bots, err := swarm.ListBotsForPool(ctx, "Skia")
 	if err != nil {
 		sklog.Fatal(err)
 	}

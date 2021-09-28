@@ -125,9 +125,9 @@ func GetCASClient(pool string) *cas.CAS {
 	return GetSwarmingInstance(pool).CasClient
 }
 
-func getPoolDetails(pool string) (*types.PoolDetails, error) {
+func getPoolDetails(ctx context.Context, pool string) (*types.PoolDetails, error) {
 	swarmingClient := *GetSwarmingClient(pool)
-	bots, err := swarmingClient.ListBotsForPool(pool)
+	bots, err := swarmingClient.ListBotsForPool(ctx, pool)
 	if err != nil {
 		return nil, fmt.Errorf("Could not list bots in pool: %s", err)
 	}
@@ -172,10 +172,10 @@ func getPoolDetails(pool string) (*types.PoolDetails, error) {
 }
 
 // GetDetailsOfAllPools returns details for each of the known Swarming pools.
-func GetDetailsOfAllPools() (map[string]*types.PoolDetails, error) {
+func GetDetailsOfAllPools(ctx context.Context) (map[string]*types.PoolDetails, error) {
 	poolToDetails := map[string]*types.PoolDetails{}
 	for pool := range PoolsToSwarmingInstance {
-		details, err := getPoolDetails(pool)
+		details, err := getPoolDetails(ctx, pool)
 		if err != nil {
 			return nil, err
 		}
@@ -203,25 +203,25 @@ func AddLeasingArtifactsToCAS(ctx context.Context, pool string, casInput *swarmi
 }
 
 // GetSwarmingTask retrieves the given Swarming task.
-func GetSwarmingTask(pool, taskID string) (*swarming_api.SwarmingRpcsTaskResult, error) {
+func GetSwarmingTask(ctx context.Context, pool, taskID string) (*swarming_api.SwarmingRpcsTaskResult, error) {
 	swarmingClient := *GetSwarmingClient(pool)
-	return swarmingClient.GetTask(taskID, false)
+	return swarmingClient.GetTask(ctx, taskID, false)
 }
 
 // GetSwarmingTaskMetadata returns the metadata for the given Swarming task.
-func GetSwarmingTaskMetadata(pool, taskID string) (*swarming_api.SwarmingRpcsTaskRequestMetadata, error) {
+func GetSwarmingTaskMetadata(ctx context.Context, pool, taskID string) (*swarming_api.SwarmingRpcsTaskRequestMetadata, error) {
 	swarmingClient := *GetSwarmingClient(pool)
-	return swarmingClient.GetTaskMetadata(taskID)
+	return swarmingClient.GetTaskMetadata(ctx, taskID)
 }
 
 // IsBotIDValid returns true iff the given bot exists in the given pool.
-func IsBotIDValid(pool, botID string) (bool, error) {
+func IsBotIDValid(ctx context.Context, pool, botID string) (bool, error) {
 	swarmingClient := *GetSwarmingClient(pool)
 	dims := map[string]string{
 		"pool": pool,
 		"id":   botID,
 	}
-	bots, err := swarmingClient.ListBots(dims)
+	bots, err := swarmingClient.ListBots(ctx, dims)
 	if err != nil {
 		return false, fmt.Errorf("Could not query swarming bots with %s: %s", dims, err)
 	}
@@ -239,7 +239,7 @@ func IsBotIDValid(pool, botID string) (bool, error) {
 }
 
 // TriggerSwarmingTask triggers the given Swarming task.
-func TriggerSwarmingTask(pool, requester, datastoreID, osType, deviceType, botID, serverURL, casDigest, relativeCwd string, cipdInput *swarming_api.SwarmingRpcsCipdInput, cmd []string) (string, error) {
+func TriggerSwarmingTask(ctx context.Context, pool, requester, datastoreID, osType, deviceType, botID, serverURL, casDigest, relativeCwd string, cipdInput *swarming_api.SwarmingRpcsCipdInput, cmd []string) (string, error) {
 	dimsMap := map[string]string{
 		"pool": pool,
 	}
@@ -318,7 +318,7 @@ func TriggerSwarmingTask(pool, requester, datastoreID, osType, deviceType, botID
 	taskRequest.TaskSlices[0].Properties.CasInputRoot = casInput
 
 	swarmingClient := *GetSwarmingClient(pool)
-	resp, err := swarmingClient.TriggerTask(taskRequest)
+	resp, err := swarmingClient.TriggerTask(ctx, taskRequest)
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task %s", err)
 	}

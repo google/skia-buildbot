@@ -546,7 +546,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, runID, ta
 				if err != nil {
 					sklog.Errorf("Failed to create Swarming task request for task %q: %s", taskName, err)
 				}
-				resp, err := swarmingClient.TriggerTask(req)
+				resp, err := swarmingClient.TriggerTask(ctx, req)
 				if err != nil {
 					sklog.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 					return
@@ -561,7 +561,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, runID, ta
 					}
 					sklog.Infof("Retrying task %s with high priority %d", taskName, TASKS_PRIORITY_HIGH)
 					req.Priority = TASKS_PRIORITY_HIGH
-					retryResp, err := swarmingClient.TriggerTask(req)
+					retryResp, err := swarmingClient.TriggerTask(ctx, req)
 					if err != nil {
 						sklog.Errorf("Could not trigger swarming retry task %s: %s", taskName, err)
 						return
@@ -1023,7 +1023,7 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 // TODO(rmistry): Use pubsub instead.
 func pollSwarmingTaskToCompletion(ctx context.Context, taskId string, swarmingClient swarming.ApiClient) (string, string, error) {
 	for range time.Tick(2 * time.Minute) {
-		swarmingTask, err := swarmingClient.GetTask(taskId, false)
+		swarmingTask, err := swarmingClient.GetTask(ctx, taskId, false)
 		if err != nil {
 			return "", "", fmt.Errorf("Could not get task %s: %s", taskId, err)
 		}
@@ -1094,7 +1094,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to create Swarming task request")
 	}
-	resp, err := swarmingClient.TriggerTask(req)
+	resp, err := swarmingClient.TriggerTask(ctx, req)
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 	}
@@ -1211,7 +1211,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName string
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to create Swarming task request")
 	}
-	resp, err := swarmingClient.TriggerTask(req)
+	resp, err := swarmingClient.TriggerTask(ctx, req)
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 	}
@@ -1268,7 +1268,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create Swarming task request")
 	}
-	resp, err := swarmingClient.TriggerTask(req)
+	resp, err := swarmingClient.TriggerTask(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 	}

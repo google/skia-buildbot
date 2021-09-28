@@ -5,6 +5,7 @@ package gatherer
 // See the Gatherer interface for more details.
 
 import (
+	"context"
 	"sort"
 	"sync"
 	"time"
@@ -64,7 +65,7 @@ type gatherer struct {
 
 // NewPollingGatherer returns a Gatherer created with the given utilities. all the passed in
 // clients should be properly authenticated.
-func NewPollingGatherer(external, internal skswarming.ApiClient, alerts alertclient.APIClient, decider decider.Decider, recorder recorder.Recorder, hostMap map[powercycle.DeviceID]string, period time.Duration) Gatherer {
+func NewPollingGatherer(ctx context.Context, external, internal skswarming.ApiClient, alerts alertclient.APIClient, decider decider.Decider, recorder recorder.Recorder, hostMap map[powercycle.DeviceID]string, period time.Duration) Gatherer {
 	g := &gatherer{
 		iSwarming: internal,
 		eSwarming: external,
@@ -75,10 +76,10 @@ func NewPollingGatherer(external, internal skswarming.ApiClient, alerts alertcli
 	}
 	if period > 0 {
 		go func() {
-			g.update()
+			g.update(ctx)
 			for {
 				<-time.Tick(period)
-				g.update()
+				g.update(ctx)
 			}
 		}()
 	}
@@ -115,12 +116,12 @@ func filterDownBots(alerts []incident.Incident) []incident.Incident {
 // update is the "inner loop" of the gatherer. It polls swarming for a list of
 // down bots. It then polls alerts for a list of down bots. It constructs the
 // intersect of those lists and sets the result in g.downBots.
-func (g *gatherer) update() {
+func (g *gatherer) update(ctx context.Context) {
 	// Ask Swarming API for list of bots down in the pools we care about
 	sklog.Info("Polling PromAlerts and Swarming API for down bots")
 	bots := []*swarming.SwarmingRpcsBotInfo{}
 	for _, pool := range skswarming.POOLS_PRIVATE {
-		xb, err := g.iSwarming.ListDownBots(pool)
+		xb, err := g.iSwarming.ListDownBots(ctx, pool)
 		if err != nil {
 			sklog.Warningf("Could not get down bots from internal pool %s: %s", pool, err)
 		}
@@ -128,7 +129,7 @@ func (g *gatherer) update() {
 	}
 
 	for _, pool := range skswarming.POOLS_PUBLIC {
-		xb, err := g.eSwarming.ListDownBots(pool)
+		xb, err := g.eSwarming.ListDownBots(ctx, pool)
 		if err != nil {
 			sklog.Warningf("Could not get down bots from external pool %s: %s", pool, err)
 		}

@@ -190,7 +190,7 @@ func pollMasterScriptSwarmingTasks(ctx context.Context) {
 					sklog.Infof("The task %v has not been triggered yet", task)
 					continue
 				}
-				swarmingTask, err := swarm.GetTask(swarmingTaskID, false)
+				swarmingTask, err := swarm.GetTask(ctx, swarmingTaskID, false)
 				if err != nil {
 					sklog.Errorf("Failed to get task %s for %s: %s", swarmingTaskID, prototype.GetTaskName(), err)
 					continue

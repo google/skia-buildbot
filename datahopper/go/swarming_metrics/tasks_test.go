@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/swarming/mocks"
 	"go.skia.org/infra/go/taskname"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -80,12 +81,13 @@ func makeTask(id, name string, created, started, completed time.Time, dims map[s
 func TestLoadSwarmingTasks(t *testing.T) {
 	unittest.LargeTest(t)
 
+	ctx := context.Background()
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
 	// Fake some tasks in Swarming.
-	swarm := swarming.NewMockApiClient()
+	swarm := &mocks.ApiClient{}
 	defer swarm.AssertExpectations(t)
 	pc := perfclient.NewMockPerfClient()
 	defer pc.AssertExpectations(t)
@@ -106,7 +108,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	t1 := makeTask("1", "my-task", cr, st, co, d, nil, 0.0, 0.0, 0.0)
 	t2 := makeTask("2", "my-task", cr.Add(time.Second), st, time.Time{}, d, nil, 0.0, 0.0, 0.0)
 	t2.TaskResult.State = swarming.TASK_STATE_RUNNING
-	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2}, nil)
+	swarm.On("ListTasks", testutils.AnyContext, lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2}, nil)
 
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
 	defer cleanup()
@@ -115,7 +117,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 
 	// Load Swarming tasks.
 	revisit := []string{}
-	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(ctx, swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	require.NoError(t, err)
 
 	// Ensure that we inserted the expected task and added the other to
@@ -134,7 +136,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	assertCount(lastLoad, now, 1)
 
 	// datahopper will follow up on the revisit list (which is t2's id)
-	swarm.On("GetTaskMetadata", "2").Return(t2, nil)
+	swarm.On("GetTaskMetadata", testutils.AnyContext, "2").Return(t2, nil)
 
 	// The second task is finished.
 	t2.TaskResult.State = swarming.TASK_STATE_COMPLETED
@@ -144,10 +146,10 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	now = now.Add(10 * time.Minute)
 
 	// This is empty because datahopper will pull in the task data from revisit
-	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{}, nil)
+	swarm.On("ListTasks", testutils.AnyContext, lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{}, nil)
 
 	// Load Swarming tasks again.
-	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(ctx, swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	require.NoError(t, err)
 
 	// Ensure that we loaded details for the unfinished task from the last
@@ -159,12 +161,13 @@ func TestLoadSwarmingTasks(t *testing.T) {
 func TestMetrics(t *testing.T) {
 	unittest.LargeTest(t)
 
+	ctx := context.Background()
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
 	// Fake a task in Swarming.
-	swarm := swarming.NewMockApiClient()
+	swarm := &mocks.ApiClient{}
 	defer swarm.AssertExpectations(t)
 	pc := perfclient.NewMockPerfClient()
 	defer pc.AssertExpectations(t)
@@ -188,7 +191,7 @@ func TestMetrics(t *testing.T) {
 	t1.TaskResult.PerformanceStats.BotOverhead = 21
 	t1.TaskResult.PerformanceStats.IsolatedUpload.Duration = 13
 	t1.TaskResult.PerformanceStats.IsolatedDownload.Duration = 7
-	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1}, nil)
+	swarm.On("ListTasks", testutils.AnyContext, lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1}, nil)
 
 	// Setup the metrics.
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
@@ -198,7 +201,7 @@ func TestMetrics(t *testing.T) {
 
 	// Load the Swarming task, ensure that it got inserted.
 	revisit := []string{}
-	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(ctx, swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(revisit))
 	ev, err := edb.Range(streamForPool("Skia"), lastLoad, now)
@@ -242,12 +245,13 @@ func TestMetrics(t *testing.T) {
 func TestPerfUpload(t *testing.T) {
 	unittest.LargeTest(t)
 
+	ctx := context.Background()
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
 	// Fake some tasks in Swarming.
-	swarm := swarming.NewMockApiClient()
+	swarm := &mocks.ApiClient{}
 	defer swarm.AssertExpectations(t)
 	pc := perfclient.NewMockPerfClient()
 	defer pc.AssertExpectations(t)
@@ -287,7 +291,7 @@ func TestPerfUpload(t *testing.T) {
 		"sk_issue_server": "https://skia-review.googlesource.com",
 	}, 31*time.Second, 7*time.Second, 3*time.Second)
 
-	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3, t4}, nil)
+	swarm.On("ListTasks", testutils.AnyContext, lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3, t4}, nil)
 
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
 	defer cleanup()
@@ -343,7 +347,7 @@ func TestPerfUpload(t *testing.T) {
 
 	// Load Swarming tasks.
 	revisit := []string{}
-	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(ctx, swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	require.NoError(t, err)
 
 	pc.AssertNumberOfCalls(t, "PushToPerf", 2)
@@ -357,10 +361,10 @@ func TestPerfUpload(t *testing.T) {
 	lastLoad = now
 	now = now.Add(10 * time.Minute)
 	// This is empty because datahopper will pull in the task data from revisit
-	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{}, nil)
+	swarm.On("ListTasks", testutils.AnyContext, lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{}, nil)
 
 	// datahopper will follow up on the revisit list (which is t2's id)
-	swarm.On("GetTaskMetadata", "2").Return(t2, nil)
+	swarm.On("GetTaskMetadata", testutils.AnyContext, "2").Return(t2, nil)
 
 	mp.On("ParseTaskName", "Perf-MyOS").Return(map[string]string{
 		"os":   "MyOS",
@@ -389,7 +393,7 @@ func TestPerfUpload(t *testing.T) {
 
 	// Load Swarming tasks again.
 
-	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(ctx, swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	require.NoError(t, err)
 	pc.AssertNumberOfCalls(t, "PushToPerf", 3)
 

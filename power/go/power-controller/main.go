@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -41,6 +42,8 @@ var (
 func main() {
 	flag.Parse()
 
+	ctx := context.Background()
+
 	if *local {
 		common.InitWithMust(
 			"power-controller",
@@ -54,7 +57,7 @@ func main() {
 		)
 	}
 
-	if err := setupGatherer(); err != nil {
+	if err := setupGatherer(ctx); err != nil {
 		sklog.Fatalf("Could not set up down bot gatherer: %s", err)
 	}
 
@@ -107,7 +110,7 @@ func powercycledBotsHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func setupGatherer() error {
+func setupGatherer(ctx context.Context) error {
 	ts, err := auth.NewDefaultTokenSource(*local, skswarming.AUTH_SCOPE)
 	if err != nil {
 		return fmt.Errorf("Problem setting up default token source: %s", err)
@@ -130,7 +133,7 @@ func setupGatherer() error {
 	}
 
 	fixRecorder = recorder.NewCloudLoggingRecorder()
-	downBots = gatherer.NewPollingGatherer(es, is, ac, d, fixRecorder, hostMap, *updatePeriod)
+	downBots = gatherer.NewPollingGatherer(ctx, es, is, ac, d, fixRecorder, hostMap, *updatePeriod)
 
 	return nil
 }

@@ -1,6 +1,7 @@
 package swarming
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -72,42 +73,42 @@ type ApiClient interface {
 
 	// ListBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 	// corresponding to the Swarming bots matching the requested dimensions.
-	ListBots(dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error)
+	ListBots(ctx context.Context, dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
 	// ListFreeBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 	// corresponding to the free, alive, and not-quarantined bots in the
 	// given pool.
-	ListFreeBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
+	ListFreeBots(ctx context.Context, pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
 	// ListDownBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 	// corresponding to the dead or quarantined bots in the given pool.
-	ListDownBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
+	ListDownBots(ctx context.Context, pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
 	// ListBotsForPool returns a slice of swarming.SwarmingRpcsBotInfo
 	// instances corresponding to the Swarming bots in the given pool.
-	ListBotsForPool(pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
+	ListBotsForPool(ctx context.Context, pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
 	// GetStates returns a slice of states corresponding to the given task
 	// IDs.
-	GetStates(ids []string) ([]string, error)
+	GetStates(ctx context.Context, ids []string) ([]string, error)
 
-	GetStdoutOfTask(id string) (*swarming.SwarmingRpcsTaskOutput, error)
+	GetStdoutOfTask(ctx context.Context, id string) (*swarming.SwarmingRpcsTaskOutput, error)
 
-	GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error)
+	GracefullyShutdownBot(ctx context.Context, id string) (*swarming.SwarmingRpcsTerminateResponse, error)
 
 	// ListBotTasks returns a slice of SwarmingRpcsTaskResult that are the last
 	// N tasks done by a bot. When limit is big (>100), this call is very expensive.
-	ListBotTasks(botID string, limit int) ([]*swarming.SwarmingRpcsTaskResult, error)
+	ListBotTasks(ctx context.Context, botID string, limit int) ([]*swarming.SwarmingRpcsTaskResult, error)
 
 	// ListTasks returns a slice of swarming.SwarmingRpcsTaskRequestMetadata
 	// instances corresponding to the specified tags and within given time window.
 	// The results will have TaskId, TaskResult, and Request fields populated.
 	// Specify time.Time{} for start and end if you do not want to restrict on
 	// time. Specify "" for state if you do not want to restrict on state.
-	ListTasks(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
+	ListTasks(ctx context.Context, start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
 
 	// ListSkiaTasks is ListTasks limited to pool:Skia.
-	ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
+	ListSkiaTasks(ctx context.Context, start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
 
 	// ListTaskResults returns a slice of swarming.SwarmingRpcsTaskResult
 	// instances corresponding to the specified tags and within given time window.
@@ -115,26 +116,26 @@ type ApiClient interface {
 	// time. Specify "" for state if you do not want to restrict on state.
 	// includePerformanceStats indicates whether or not to load performance
 	// information (eg. overhead) in addition to the normal task data.
-	ListTaskResults(start, end time.Time, tags []string, state string, includePerformanceStats bool) ([]*swarming.SwarmingRpcsTaskResult, error)
+	ListTaskResults(ctx context.Context, start, end time.Time, tags []string, state string, includePerformanceStats bool) ([]*swarming.SwarmingRpcsTaskResult, error)
 
 	// CancelTask cancels the task with the given ID.
-	CancelTask(id string, killRunning bool) error
+	CancelTask(ctx context.Context, id string, killRunning bool) error
 
 	// TriggerTask triggers a task with the given request.
-	TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
+	TriggerTask(ctx context.Context, t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
 
 	// RetryTask triggers a retry of the given task.
-	RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
+	RetryTask(ctx context.Context, t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
 
 	// GetTask returns a swarming.SwarmingRpcsTaskResult instance
 	// corresponding to the given Swarming task.
-	GetTask(id string, includePerformanceStats bool) (*swarming.SwarmingRpcsTaskResult, error)
+	GetTask(ctx context.Context, id string, includePerformanceStats bool) (*swarming.SwarmingRpcsTaskResult, error)
 
 	// GetTaskMetadata returns a swarming.SwarmingRpcsTaskRequestMetadata instance
 	// corresponding to the given Swarming task.
-	GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
+	GetTaskMetadata(ctx context.Context, id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
 
-	DeleteBots(bots []string) error
+	DeleteBots(ctx context.Context, bots []string) error
 }
 
 type apiClient struct {
@@ -143,7 +144,7 @@ type apiClient struct {
 
 // NewApiClient returns an ApiClient instance which uses the given authenticated
 // http.Client.
-func NewApiClient(c *http.Client, server string) (ApiClient, error) {
+func NewApiClient(c *http.Client, server string) (*apiClient, error) {
 	s, err := swarming.New(c)
 	if err != nil {
 		return nil, err
@@ -156,52 +157,53 @@ func (c *apiClient) SwarmingService() *swarming.Service {
 	return c.s
 }
 
-func (c *apiClient) ListBotsForPool(pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
-	return c.ListBots(map[string]string{
+func (c *apiClient) ListBotsForPool(ctx context.Context, pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+	return c.ListBots(ctx, map[string]string{
 		DIMENSION_POOL_KEY: pool,
 	})
 }
 
-func (c *apiClient) ListFreeBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *apiClient) ListFreeBots(ctx context.Context, pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	call := c.s.Bots.List()
 	call.Dimensions(fmt.Sprintf("%s:%s", DIMENSION_POOL_KEY, pool))
 	call.IsBusy("FALSE")
 	call.IsDead("FALSE")
 	call.Quarantined("FALSE")
-	return ProcessBotsListCall(call)
+	return ProcessBotsListCall(ctx, call)
 }
 
-func (c *apiClient) ListDownBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *apiClient) ListDownBots(ctx context.Context, pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	call := c.s.Bots.List()
 	call.Dimensions(fmt.Sprintf("%s:%s", DIMENSION_POOL_KEY, pool))
 	call.IsDead("TRUE")
-	dead, err := ProcessBotsListCall(call)
+	dead, err := ProcessBotsListCall(ctx, call)
 	if err != nil {
 		return nil, err
 	}
 	call = c.s.Bots.List()
 	call.Dimensions(fmt.Sprintf("%s:%s", DIMENSION_POOL_KEY, pool))
 	call.Quarantined("TRUE")
-	qBots, err := ProcessBotsListCall(call)
+	qBots, err := ProcessBotsListCall(ctx, call)
 	if err != nil {
 		return nil, err
 	}
 	return append(dead, qBots...), nil
 }
 
-func (c *apiClient) ListBots(dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *apiClient) ListBots(ctx context.Context, dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	call := c.s.Bots.List()
 	dimensionStrs := make([]string, 0, len(dimensions))
 	for k, v := range dimensions {
 		dimensionStrs = append(dimensionStrs, fmt.Sprintf("%s:%s", k, v))
 	}
 	call.Dimensions(dimensionStrs...)
-	return ProcessBotsListCall(call)
+	return ProcessBotsListCall(ctx, call)
 }
 
-func ProcessBotsListCall(call *swarming.BotsListCall) ([]*swarming.SwarmingRpcsBotInfo, error) {
+func ProcessBotsListCall(ctx context.Context, call *swarming.BotsListCall) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	bots := []*swarming.SwarmingRpcsBotInfo{}
 	cursor := ""
+	call.Context(ctx)
 	for {
 		if cursor != "" {
 			call.Cursor(cursor)
@@ -220,20 +222,20 @@ func ProcessBotsListCall(call *swarming.BotsListCall) ([]*swarming.SwarmingRpcsB
 	return bots, nil
 }
 
-func (c *apiClient) GetStates(ids []string) ([]string, error) {
-	resp, err := c.s.Tasks.GetStates().TaskId(ids...).Do()
+func (c *apiClient) GetStates(ctx context.Context, ids []string) ([]string, error) {
+	resp, err := c.s.Tasks.GetStates().TaskId(ids...).Context(ctx).Do()
 	if err != nil {
 		return nil, err
 	}
 	return resp.States, nil
 }
 
-func (c *apiClient) GetStdoutOfTask(id string) (*swarming.SwarmingRpcsTaskOutput, error) {
-	return c.s.Task.Stdout(id).Do()
+func (c *apiClient) GetStdoutOfTask(ctx context.Context, id string) (*swarming.SwarmingRpcsTaskOutput, error) {
+	return c.s.Task.Stdout(id).Context(ctx).Do()
 }
 
-func (c *apiClient) GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error) {
-	return c.s.Bot.Terminate(id).Do()
+func (c *apiClient) GracefullyShutdownBot(ctx context.Context, id string) (*swarming.SwarmingRpcsTerminateResponse, error) {
+	return c.s.Bot.Terminate(id).Context(ctx).Do()
 }
 
 type limitOption struct {
@@ -244,22 +246,22 @@ func (l *limitOption) Get() (string, string) {
 	return "limit", strconv.Itoa(l.limit)
 }
 
-func (c *apiClient) ListBotTasks(botID string, limit int) ([]*swarming.SwarmingRpcsTaskResult, error) {
+func (c *apiClient) ListBotTasks(ctx context.Context, botID string, limit int) ([]*swarming.SwarmingRpcsTaskResult, error) {
 	// The paramaters for Do() are a list of things that implement the Get() method
 	// which returns a key and a value. This gets turned into key=value on the url
 	// request, which works, even though Limit is not part of the client library.
-	res, err := c.s.Bot.Tasks(botID).Do(&limitOption{limit: 1})
+	res, err := c.s.Bot.Tasks(botID).Context(ctx).Do(&limitOption{limit: 1})
 	if err != nil {
 		return nil, err
 	}
 	return res.Items, nil
 }
 
-func (c *apiClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
-	return c.ListTasks(start, end, []string{"pool:Skia"}, "")
+func (c *apiClient) ListSkiaTasks(ctx context.Context, start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+	return c.ListTasks(ctx, start, end, []string{"pool:Skia"}, "")
 }
 
-func (c *apiClient) ListTaskResults(start, end time.Time, tags []string, state string, includePerformanceStats bool) ([]*swarming.SwarmingRpcsTaskResult, error) {
+func (c *apiClient) ListTaskResults(ctx context.Context, start, end time.Time, tags []string, state string, includePerformanceStats bool) ([]*swarming.SwarmingRpcsTaskResult, error) {
 	tasks := []*swarming.SwarmingRpcsTaskResult{}
 	cursor := ""
 	for {
@@ -267,6 +269,7 @@ func (c *apiClient) ListTaskResults(start, end time.Time, tags []string, state s
 		if state != "" {
 			list.State(state)
 		}
+		list.Context(ctx)
 		list.Limit(100)
 		list.Tags(tags...)
 		list.IncludePerformanceStats(includePerformanceStats)
@@ -293,7 +296,7 @@ func (c *apiClient) ListTaskResults(start, end time.Time, tags []string, state s
 }
 
 // listTaskRequests is a helper for ListTasks.
-func (c *apiClient) listTaskRequests(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequest, error) {
+func (c *apiClient) listTaskRequests(ctx context.Context, start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequest, error) {
 	reqs := []*swarming.SwarmingRpcsTaskRequest{}
 	cursor := ""
 	for {
@@ -301,6 +304,7 @@ func (c *apiClient) listTaskRequests(start, end time.Time, tags []string, state 
 		if state != "" {
 			list.State(state)
 		}
+		list.Context(ctx)
 		list.Limit(100)
 		list.Tags(tags...)
 		if !start.IsZero() {
@@ -325,14 +329,14 @@ func (c *apiClient) listTaskRequests(start, end time.Time, tags []string, state 
 	return reqs, nil
 }
 
-func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *apiClient) ListTasks(ctx context.Context, start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	var wg sync.WaitGroup
 	var tasks []*swarming.SwarmingRpcsTaskResult
 	var tasksErr error
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		tasks, tasksErr = c.ListTaskResults(start, end, tags, state, true)
+		tasks, tasksErr = c.ListTaskResults(ctx, start, end, tags, state, true)
 	}()
 
 	var reqs []*swarming.SwarmingRpcsTaskRequest
@@ -340,7 +344,7 @@ func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		reqs, reqsErr = c.listTaskRequests(start, end, tags, state)
+		reqs, reqsErr = c.listTaskRequests(ctx, start, end, tags, state)
 	}()
 
 	wg.Wait()
@@ -381,10 +385,10 @@ func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string)
 	return rv, nil
 }
 
-func (c *apiClient) CancelTask(id string, killRunning bool) error {
+func (c *apiClient) CancelTask(ctx context.Context, id string, killRunning bool) error {
 	req, reqErr := c.s.Task.Cancel(id, &swarming.SwarmingRpcsTaskCancelRequest{
 		KillRunning: killRunning,
-	}).Do()
+	}).Context(ctx).Do()
 	if reqErr != nil {
 		return reqErr
 	}
@@ -394,11 +398,11 @@ func (c *apiClient) CancelTask(id string, killRunning bool) error {
 	return nil
 }
 
-func (c *apiClient) TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
-	return c.s.Tasks.New(t).Do()
+func (c *apiClient) TriggerTask(ctx context.Context, t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+	return c.s.Tasks.New(t).Context(ctx).Do()
 }
 
-func (c *apiClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *apiClient) RetryTask(ctx context.Context, t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	// Swarming API does not have a way to Retry commands. This was done
 	// intentionally by swarming-eng to reduce API surface.
 	newReq := &swarming.SwarmingRpcsNewTaskRequest{}
@@ -433,16 +437,16 @@ func (c *apiClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swa
 		newReq.Tags = append(newReq.Tags, "retries:1")
 	}
 
-	return c.TriggerTask(newReq)
+	return c.TriggerTask(ctx, newReq)
 }
 
-func (c *apiClient) GetTask(id string, includePerformanceStats bool) (*swarming.SwarmingRpcsTaskResult, error) {
-	call := c.s.Task.Result(id)
+func (c *apiClient) GetTask(ctx context.Context, id string, includePerformanceStats bool) (*swarming.SwarmingRpcsTaskResult, error) {
+	call := c.s.Task.Result(id).Context(ctx)
 	call.IncludePerformanceStats(includePerformanceStats)
 	return call.Do()
 }
 
-func (c *apiClient) GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *apiClient) GetTaskMetadata(ctx context.Context, id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	var wg sync.WaitGroup
 
 	// Get the task result.
@@ -451,7 +455,7 @@ func (c *apiClient) GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskReques
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		task, taskErr = c.GetTask(id, true)
+		task, taskErr = c.GetTask(ctx, id, true)
 	}()
 
 	// Get the task request.
@@ -460,7 +464,7 @@ func (c *apiClient) GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskReques
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		req, reqErr = c.s.Task.Request(id).Do()
+		req, reqErr = c.s.Task.Request(id).Context(ctx).Do()
 	}()
 
 	wg.Wait()
@@ -478,13 +482,13 @@ func (c *apiClient) GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskReques
 	}, nil
 }
 
-func (c *apiClient) DeleteBots(bots []string) error {
+func (c *apiClient) DeleteBots(ctx context.Context, bots []string) error {
 	// Perform the requested operation.
 	group := util.NewNamedErrGroup()
 	for _, b := range bots {
 		b := b // https://golang.org/doc/faq#closures_and_goroutines
 		group.Go(b, func() error {
-			r, err := c.s.Bot.Delete(b).Do()
+			r, err := c.s.Bot.Delete(b).Context(ctx).Do()
 			if err != nil {
 				return err
 			}
@@ -688,3 +692,5 @@ func MakeCASReference(digest, casInstance string) (*swarming.SwarmingRpcsCASRefe
 		},
 	}, nil
 }
+
+var _ ApiClient = &apiClient{}

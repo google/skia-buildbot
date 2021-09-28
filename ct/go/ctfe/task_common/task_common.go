@@ -498,7 +498,7 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	// If the task is currently running then will have to cancel all of its swarming tasks as well.
 	if task.GetCommonCols().TsStarted != 0 && task.GetCommonCols().TsCompleted == 0 {
 		runID := GetRunID(task)
-		tasks, err := swarm.ListTasks(time.Time{}, time.Time{}, []string{fmt.Sprintf("runid:%s", runID)}, "")
+		tasks, err := swarm.ListTasks(r.Context(), time.Time{}, time.Time{}, []string{fmt.Sprintf("runid:%s", runID)}, "")
 		if err != nil {
 			httputils.ReportError(w, err, fmt.Sprintf("Could not list tasks for %s", runID), http.StatusInternalServerError)
 		}
@@ -515,7 +515,7 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 				defer wg.Done()
 
 				for t := range tasksChannel {
-					if err := swarm.CancelTask(t.TaskId, true /* killRunning */); err != nil {
+					if err := swarm.CancelTask(r.Context(), t.TaskId, true /* killRunning */); err != nil {
 						sklog.Errorf("Could not cancel %s: %s", t.TaskId, err)
 						continue
 					}

@@ -84,7 +84,7 @@ func NewCTAutoscaler(ctx context.Context, local bool, getGCETasksCount func(ctx 
 	// Start a goroutine that watches to see if the number of running GCE tasks
 	// goes to 0 and bots should be autoscaled down.
 	cleanup.Repeat(2*time.Minute, func(ctx context.Context) {
-		if err := c.maybeScaleDown(); err != nil {
+		if err := c.maybeScaleDown(ctx); err != nil {
 			sklog.Error(err)
 		}
 	}, nil)
@@ -92,7 +92,7 @@ func NewCTAutoscaler(ctx context.Context, local bool, getGCETasksCount func(ctx 
 	return c, nil
 }
 
-func (c *CTAutoscaler) maybeScaleDown() error {
+func (c *CTAutoscaler) maybeScaleDown(ctx context.Context) error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
@@ -111,7 +111,7 @@ func (c *CTAutoscaler) maybeScaleDown() error {
 			sklog.Errorf("Could not log running instances: %s", err)
 		}
 
-		if err := c.s.DeleteBots(c.a.GetNamesOfManagedInstances()); err != nil {
+		if err := c.s.DeleteBots(ctx, c.a.GetNamesOfManagedInstances()); err != nil {
 			sklog.Errorf("Could not delete all bots: %s", err)
 		}
 		c.botsUp = false

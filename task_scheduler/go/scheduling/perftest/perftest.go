@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -151,6 +152,32 @@ func waitForNewJobs(ctx context.Context, repos repograph.Map, jc *job_creation.J
 	}
 }
 
+// jobSlice implements sort.Interface to sort Jobs by name.
+type jobSlice []*types.Job
+
+func (s jobSlice) Len() int { return len(s) }
+
+func (s jobSlice) Less(i, j int) bool {
+	return s[i].Name < s[j].Name
+}
+
+func (s jobSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+// taskSummarySlice implements sort.Interface to sort TaskSummary by name.
+type taskSummarySlice []*types.TaskSummary
+
+func (s taskSummarySlice) Len() int { return len(s) }
+
+func (s taskSummarySlice) Less(i, j int) bool {
+	return s[i].Attempt < s[j].Attempt
+}
+
+func (s taskSummarySlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
 func main() {
 	common.Init()
 
@@ -162,7 +189,7 @@ func main() {
 			sklog.Fatal(err)
 		}
 	}()
-	ctx := context.Background()
+	ctx := now.TimeTravelingContext(commitDate.Add(24 * time.Hour))
 	repoName := "skia.git"
 	repoDir := filepath.Join(workdir, repoName)
 	assertNoError(os.Mkdir(repoDir, os.ModePerm))
@@ -211,21 +238,21 @@ func main() {
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{},
 			Dimensions:   []string{"pool:Skia", "os:Ubuntu"},
-			Priority:     0.9,
+			Priority:     1.0,
 		},
 		{
 			CasSpec:      "test",
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{tcc_testutils.BuildTaskName},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
-			Priority:     0.9,
+			Priority:     0.7,
 		},
 		{
 			CasSpec:      "perf",
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{tcc_testutils.BuildTaskName},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
-			Priority:     0.9,
+			Priority:     0.5,
 		},
 	}
 	// Add the requested number of tasks to the TasksCfg, cycling through Build,
@@ -245,16 +272,17 @@ func main() {
 		for _, d := range task.Dependencies {
 			deps = append(deps, fmt.Sprintf("%s%d", d, taskCycleIndex))
 		}
+		priority := task.Priority * math.Pow(0.99999999, float64(numTasks))
 		newTask := &specs.TaskSpec{
 			CasSpec:      task.CasSpec,
 			CipdPackages: task.CipdPackages,
 			Dependencies: deps,
 			Dimensions:   task.Dimensions,
-			Priority:     task.Priority,
+			Priority:     priority,
 		}
 		moarTasks[newName] = newTask
 		jobs[newName] = &specs.JobSpec{
-			Priority:  task.Priority,
+			Priority:  priority,
 			TaskSpecs: []string{newName},
 		}
 	}

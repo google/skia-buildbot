@@ -151,7 +151,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 }
 
 // Perform one iteration of supported branch metrics.
-func cycle(repos []*gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}, swarm swarming.ApiClient, pools []string) (map[metrics2.Int64Metric]struct{}, error) {
+func cycle(ctx context.Context, repos []*gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}, swarm swarming.ApiClient, pools []string) (map[metrics2.Int64Metric]struct{}, error) {
 	// Get all of the Swarming bots.
 	bots := []*swarming_api.SwarmingRpcsBotInfo{}
 	for _, pool := range pools {
@@ -162,7 +162,7 @@ func cycle(repos []*gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}, 
 		call.Dimensions(fmt.Sprintf("%s:%s", swarming.DIMENSION_POOL_KEY, pool))
 		call.IsDead("FALSE")
 		call.Quarantined("FALSE")
-		b, err := swarming.ProcessBotsListCall(call)
+		b, err := swarming.ProcessBotsListCall(ctx, call)
 		if err != nil {
 			return nil, err
 		}
@@ -208,7 +208,7 @@ func Start(ctx context.Context, repoUrls []string, client *http.Client, swarm sw
 	lv := metrics2.NewLiveness("last_successful_supported_branches_update")
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
-		newMetrics, err := cycle(repos, oldMetrics, swarm, pools)
+		newMetrics, err := cycle(ctx, repos, oldMetrics, swarm, pools)
 		if err == nil {
 			lv.Reset()
 			oldMetrics = newMetrics

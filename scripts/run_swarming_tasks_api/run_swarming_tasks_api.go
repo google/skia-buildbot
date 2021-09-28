@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -53,6 +54,8 @@ func main() {
 	// Setup, parse args.
 	common.Init()
 
+	ctx := context.Background()
+
 	if _, ok := supportedCmds[*cmd]; !ok {
 		sklog.Fatalf("--cmd must be one of %v", supportedCmds)
 	}
@@ -91,7 +94,7 @@ func main() {
 	for _, t := range *tags {
 		tagsWithPool = append(tagsWithPool, t)
 	}
-	tasks, err := swarmApi.ListTasks(time.Time{}, time.Time{}, tagsWithPool, *state)
+	tasks, err := swarmApi.ListTasks(ctx, time.Time{}, time.Time{}, tagsWithPool, *state)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -126,7 +129,7 @@ func main() {
 					defer wg.Done()
 
 					for t := range tasksChannel {
-						if err := swarmApi.CancelTask(t.TaskId, false /* killRunning */); err != nil {
+						if err := swarmApi.CancelTask(ctx, t.TaskId, false /* killRunning */); err != nil {
 							sklog.Errorf("Could not delete %s: %s", getTaskStr(t), err)
 							continue
 						}
@@ -160,7 +163,7 @@ func main() {
 					defer wg.Done()
 
 					for t := range tasksChannel {
-						if _, err := swarmApi.RetryTask(t); err != nil {
+						if _, err := swarmApi.RetryTask(ctx, t); err != nil {
 							sklog.Errorf("Could not retry %s: %s", getTaskStr(t), err)
 							continue
 						}
@@ -197,7 +200,7 @@ func main() {
 					defer wg.Done()
 
 					for t := range tasksChannel {
-						stdout, err := swarmApi.GetStdoutOfTask(t.TaskId)
+						stdout, err := swarmApi.GetStdoutOfTask(ctx, t.TaskId)
 						if err != nil {
 							sklog.Errorf("Could not download from %s: %s", getTaskStr(t), err)
 							continue

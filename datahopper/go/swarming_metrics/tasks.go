@@ -51,15 +51,15 @@ func streamForPool(pool string) string {
 // given time range, plus any tasks we're explicitly told to load. Inserts all
 // completed tasks into the EventDB and perf. Then, it returns any unfinished
 // tasks so that they can be revisited later.
-func loadSwarmingTasks(s swarming.ApiClient, pool string, edb events.EventDB, perfClient perfclient.ClientInterface, tnp taskname.TaskNameParser, lastLoad, now time.Time, revisit []string) ([]string, error) {
+func loadSwarmingTasks(ctx context.Context, s swarming.ApiClient, pool string, edb events.EventDB, perfClient perfclient.ClientInterface, tnp taskname.TaskNameParser, lastLoad, now time.Time, revisit []string) ([]string, error) {
 	sklog.Info("Loading swarming tasks.")
 
-	tasks, err := s.ListTasks(lastLoad, now, []string{fmt.Sprintf("pool:%s", pool)}, "")
+	tasks, err := s.ListTasks(ctx, lastLoad, now, []string{fmt.Sprintf("pool:%s", pool)}, "")
 	if err != nil {
 		return nil, err
 	}
 	for _, id := range revisit {
-		task, err := s.GetTaskMetadata(id)
+		task, err := s.GetTaskMetadata(ctx, id)
 		if err != nil {
 			return nil, err
 		}
@@ -492,7 +492,7 @@ func startLoadingTasks(swarm swarming.ApiClient, pool string, ctx context.Contex
 	revisitTasks := []string{}
 	go util.RepeatCtx(ctx, 10*time.Minute, func(ctx context.Context) {
 		now := time.Now()
-		revisit, err := loadSwarmingTasks(swarm, pool, edb, perfClient, tnp, lastLoad, now, revisitTasks)
+		revisit, err := loadSwarmingTasks(ctx, swarm, pool, edb, perfClient, tnp, lastLoad, now, revisitTasks)
 		if err != nil {
 			sklog.Errorf("Failed to load swarming tasks into metrics: %s", err)
 		} else {
