@@ -108,11 +108,17 @@ export class SkottieConfigSk extends ElementSk {
        >Dark</option>
     </select>
   </label>
+  <checkbox-sk label="Lock aspect ratio"
+                ?checked=${ele._isRatioLocked}
+                @click=${ele.toggleRatioLock}>
+    </checkbox-sk>
   <label class=number>
-    <input type=number id=width .value=${ele._width} required /> Width (px)
+    <input type=number id=width @change=${ele.onWidthInput}
+                       .value=${ele._width} required /> Width (px)
   </label>
   <label class=number>
-    <input type=number id=height .value=${ele._height} required /> Height (px)
+    <input type=number id=height @change=${ele.onHeightInput}
+                       .value=${ele._height} required /> Height (px)
   </label>
   <label class=number>
     <input type=number id=fps .value=${ele._fps} required /> FPS
@@ -152,14 +158,12 @@ export class SkottieConfigSk extends ElementSk {
     assetsFilename: '',
   };
 
+  private _isRatioLocked: boolean = false;
+  private _ratio: number = 0;
   private _width: number = DEFAULT_SIZE;
-
   private _height: number = DEFAULT_SIZE;
-
   private _fps: number = 0;
-
   private _backgroundColor: string = BACKGROUND_VALUES.TRANSPARENT;
-
   private _fileChanged: boolean = false;
 
   constructor() {
@@ -284,6 +288,27 @@ export class SkottieConfigSk extends ElementSk {
       errorMessage(`Failed to load ${toLoad.name}`);
     });
     reader.readAsDataURL(toLoad);
+  }
+
+  private toggleRatioLock(e: Event): void {
+    e.preventDefault();
+    this._isRatioLocked = !this._isRatioLocked;
+    this._ratio = this._isRatioLocked ? (this._width / this._height) : 0;
+    this._render();
+  }
+
+  private onWidthInput(): void {
+    if (this._isRatioLocked) {
+      this._height = Math.floor(this._width / this._ratio);
+      this._render();
+    }
+  }
+
+  private onHeightInput(): void {
+    if (this._isRatioLocked) {
+      this._width = Math.floor(this._height * this._ratio);
+      this._render();
+    }
   }
 
   private rescale(n: number): void {
