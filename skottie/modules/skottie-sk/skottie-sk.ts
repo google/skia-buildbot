@@ -231,7 +231,7 @@ ${this.jsonTextEditor()}
     ${this.audioButton()}
     <button id=embed-btn @click=${this.toggleEmbed}>Embed</button>
     <div class=scrub>
-      <input id=scrub type=range min=0 max=${SCRUBBER_RANGE + 1} step=0.1
+      <input id=scrub type=range min=0 max=${SCRUBBER_RANGE} step=0.1
           @input=${this.onScrub} @change=${this.onScrubEnd}>
     </div>
   </div>
