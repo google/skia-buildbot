@@ -9,6 +9,7 @@ import (
 
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -408,7 +409,7 @@ func NewDB(tdb TaskDB, jdb JobDB, cdb CommentDB) DB {
 
 // GetTasksFromWindow returns all tasks matching the given Window from the
 // TaskReader.
-func GetTasksFromWindow(ctx context.Context, db TaskReader, w *window.Window, now time.Time) ([]*types.Task, error) {
+func GetTasksFromWindow(ctx context.Context, db TaskReader, w *window.Window) ([]*types.Task, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	startTimesByRepo := w.StartTimesByRepo()
@@ -417,11 +418,12 @@ func GetTasksFromWindow(ctx context.Context, db TaskReader, w *window.Window, no
 		// tasks for all repos from the beginning of the timeWindow.
 		startTimesByRepo[""] = w.EarliestStart()
 	}
+	currentTime := now.Now(ctx)
 	tasks := make([]*types.Task, 0, 1024)
 	for repo, start := range startTimesByRepo {
-		sklog.Infof("Reading Tasks in %s from %s to %s.", repo, start, now)
+		sklog.Infof("Reading Tasks in %s from %s to %s.", repo, start, currentTime)
 		t0 := time.Now()
-		t, err := db.GetTasksFromDateRange(ctx, start, now, repo)
+		t, err := db.GetTasksFromDateRange(ctx, start, currentTime, repo)
 		if err != nil {
 			return nil, err
 		}
@@ -434,7 +436,7 @@ func GetTasksFromWindow(ctx context.Context, db TaskReader, w *window.Window, no
 
 // GetJobsFromWindow returns all jobs matching the given Window from the
 // JobReader.
-func GetJobsFromWindow(ctx context.Context, db JobReader, w *window.Window, now time.Time) ([]*types.Job, error) {
+func GetJobsFromWindow(ctx context.Context, db JobReader, w *window.Window) ([]*types.Job, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	startTimesByRepo := w.StartTimesByRepo()
@@ -443,11 +445,12 @@ func GetJobsFromWindow(ctx context.Context, db JobReader, w *window.Window, now 
 		// tasks for all repos from the beginning of the timeWindow.
 		startTimesByRepo[""] = w.EarliestStart()
 	}
+	currentTime := now.Now(ctx)
 	jobs := make([]*types.Job, 0, 1024)
 	for repo, start := range startTimesByRepo {
-		sklog.Infof("Reading Jobs in %s from %s to %s.", repo, start, now)
+		sklog.Infof("Reading Jobs in %s from %s to %s.", repo, start, currentTime)
 		t0 := time.Now()
-		j, err := db.GetJobsFromDateRange(ctx, start, now, repo)
+		j, err := db.GetJobsFromDateRange(ctx, start, currentTime, repo)
 		if err != nil {
 			return nil, err
 		}

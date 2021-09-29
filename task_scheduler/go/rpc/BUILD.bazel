@@ -13,6 +13,7 @@ go_library(
     deps = [
         "//go/allowed",
         "//go/git/repograph",
+        "//go/now",
         "//go/sklog",
         "//go/swarming",
         "//go/twirp_auth",

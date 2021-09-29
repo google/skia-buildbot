@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +25,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
@@ -123,7 +125,7 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	require.NoError(t, rm.Update(ctx))
 
 	// Set up other TryJobIntegrator inputs.
-	window, err := window.New(time.Hour, 100, rm)
+	window, err := window.New(ctx, time.Hour, 100, rm)
 	require.NoError(t, err)
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, rm, btProject, btInstance, nil)
@@ -191,11 +193,11 @@ func Build(t sktest.TestingT, now time.Time) *buildbucketpb.Build {
 	}
 }
 
-func tryjob(repoName string) *types.Job {
+func tryjob(ctx context.Context, repoName string) *types.Job {
 	return &types.Job{
 		BuildbucketBuildId:  rand.Int63(),
 		BuildbucketLeaseKey: rand.Int63(),
-		Created:             time.Now(),
+		Created:             now.Now(ctx),
 		Name:                "fake-name",
 		RepoState: types.RepoState{
 			Patch: types.Patch{
@@ -226,6 +228,7 @@ type heartbeatResp struct {
 
 func MockHeartbeats(t sktest.TestingT, mock *mockhttpclient.URLMock, now time.Time, jobs []*types.Job, resps map[string]*heartbeatResp) {
 	// Create the request data.
+	sort.Sort(heartbeatJobSlice(jobs))
 	expiry := fmt.Sprintf("%d", now.Add(LEASE_DURATION).Unix()*secondsToMicros)
 	heartbeats := make([]*heartbeat, 0, len(jobs))
 	for _, j := range jobs {

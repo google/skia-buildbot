@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -127,7 +128,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 			return nil, fmt.Errorf("Failed initial repo sync: %s", err)
 		}
 	}
-	w, err := window.New(period, numCommits, repos)
+	w, err := window.New(ctx, period, numCommits, repos)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create window: %s", err)
 	}
@@ -787,11 +788,12 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 }
 
 // Process the task candidates.
-func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates map[string]map[string][]*taskCandidate, now time.Time) ([]*taskCandidate, error) {
+func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates map[string]map[string][]*taskCandidate) ([]*taskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "processTaskCandidates")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
+	currentTime := now.Now(ctx)
 	processed := make(chan *taskCandidate)
 	errs := make(chan error)
 	wg := sync.WaitGroup{}
@@ -811,7 +813,7 @@ func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates ma
 					for i, candidate := range candidates {
 						c := candidate.CopyNoDiagnostics()
 						diag := &taskCandidateScoringDiagnostics{}
-						if err := s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag); err != nil {
+						if err := s.processTaskCandidate(ctx, c, currentTime, cache, commitsBuf, diag); err != nil {
 							errs <- err
 							return
 						}
@@ -959,7 +961,7 @@ func (s *TaskScheduler) recordCandidateMetrics(ctx context.Context, candidates m
 // regenerateTaskQueue obtains the set of all eligible task candidates, scores
 // them, and prepares them to be triggered. The second return value contains
 // all candidates.
-func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) ([]*taskCandidate, map[types.TaskKey]*taskCandidate, error) {
+func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context) ([]*taskCandidate, map[types.TaskKey]*taskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "regenerateTaskQueue")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
@@ -986,7 +988,7 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) 
 	s.recordCandidateMetrics(ctx, candidates)
 
 	// Process the remaining task candidates.
-	queue, err := s.processTaskCandidates(ctx, candidates, now)
+	queue, err := s.processTaskCandidates(ctx, candidates)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1308,7 +1310,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine
 	s.queueMtx.Lock()
 	defer s.queueMtx.Unlock()
 	s.queue = queue
-	s.lastScheduled = time.Now()
+	s.lastScheduled = now.Now(ctx)
 
 	if len(errs) > 0 {
 		rvErr := "Got failures: "
@@ -1327,7 +1329,7 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 
 	sklog.Infof("Task Scheduler MainLoop starting...")
-	start := time.Now()
+	diagStart := now.Now(ctx)
 
 	var wg sync.WaitGroup
 
@@ -1357,7 +1359,7 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 
 	// Regenerate the queue.
 	sklog.Infof("Task Scheduler regenerating the queue...")
-	queue, allCandidates, err := s.regenerateTaskQueue(ctx, start)
+	queue, allCandidates, err := s.regenerateTaskQueue(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to regenerate task queue: %s", err)
 	}
@@ -1373,11 +1375,11 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	// An error from scheduleTasks can indicate a partial error; write diagnostics
 	// in either case.
 	if s.diagClient != nil {
-		end := time.Now()
+		diagEnd := now.Now(ctx)
 		s.testWaitGroup.Add(1)
 		go func() {
 			defer s.testWaitGroup.Done()
-			util.LogErr(writeMainLoopDiagnosticsToGCS(ctx, start, end, s.diagClient, s.diagInstance, allCandidates, bots, err))
+			util.LogErr(writeMainLoopDiagnosticsToGCS(ctx, diagStart, diagEnd, s.diagClient, s.diagInstance, allCandidates, bots, err))
 		}()
 	}
 
@@ -1650,7 +1652,7 @@ func (s *TaskScheduler) updateUnfinishedJobs(ctx context.Context) error {
 			j.Tasks = summaries
 			j.Status = j.DeriveStatus()
 			if j.Done() {
-				j.Finished = time.Now()
+				j.Finished = now.Now(ctx)
 			}
 			modifiedJobs = append(modifiedJobs, j)
 		}
@@ -1876,7 +1878,7 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 			if ok {
 				id = ids[0]
 			}
-			if time.Now().Sub(res.Created) < 2*time.Minute {
+			if now.Now(ctx).Sub(res.Created) < 2*time.Minute {
 				sklog.Infof("Failed to update task %q: No such task ID: %q. Less than two minutes old; try again later.", msg.SwarmingTaskId, id)
 				return false
 			}

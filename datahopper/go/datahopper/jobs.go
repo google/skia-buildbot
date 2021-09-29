@@ -499,7 +499,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 	defer metrics2.FuncTimer().Stop()
 
 	// Update the window and cache.
-	if err := m.window.Update(); err != nil {
+	if err := m.window.Update(ctx); err != nil {
 		return err
 	}
 	if err := m.jCache.Update(ctx); err != nil {

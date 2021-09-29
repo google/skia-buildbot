@@ -1475,9 +1475,9 @@ func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
 	defer cleanup3()
 
 	test := func(windowSize time.Duration, numCommits int, repos repograph.Map, expectTasks int) {
-		w, err := window.New(windowSize, numCommits, repos)
+		w, err := window.New(ctx, windowSize, numCommits, repos)
 		require.NoError(t, err)
-		tasks, err := GetTasksFromWindow(ctx, db, w, now)
+		tasks, err := GetTasksFromWindow(ctx, db, w)
 		require.NoError(t, err)
 		require.Equal(t, expectTasks, len(tasks))
 		require.True(t, sort.IsSorted(types.TaskSlice(tasks)))

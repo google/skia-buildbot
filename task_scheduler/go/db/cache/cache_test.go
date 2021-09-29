@@ -42,7 +42,7 @@ func TestTaskCache(t *testing.T) {
 	d.Wait()
 
 	// Create the cache. Ensure that the existing task is present.
-	w, err := window.New(time.Hour, 0, nil)
+	w, err := window.New(ctx, time.Hour, 0, nil)
 	require.NoError(t, err)
 	wait := make(chan struct{})
 	c, err := NewTaskCache(ctx, d, w, func() {
@@ -97,7 +97,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	d := memory.NewInMemoryTaskDB()
-	w, err := window.New(time.Hour, 0, nil)
+	w, err := window.New(ctx, time.Hour, 0, nil)
 	require.NoError(t, err)
 	wait := make(chan struct{})
 	c, err := NewTaskCache(ctx, d, w, func() {
@@ -149,7 +149,7 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	d.Wait()
 
 	// Create the cache.
-	w, err := window.New(time.Hour, 0, nil)
+	w, err := window.New(ctx, time.Hour, 0, nil)
 	require.NoError(t, err)
 	wait := make(chan struct{})
 	c, err := NewTaskCache(ctx, d, w, func() {
@@ -249,7 +249,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	d.Wait()
 
 	// Create the cache.
-	w, err := window.New(time.Hour, 0, nil)
+	w, err := window.New(ctx, time.Hour, 0, nil)
 	require.NoError(t, err)
 	c, err := NewTaskCache(ctx, d, w, nil)
 	require.NoError(t, err)
@@ -319,7 +319,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	d.Wait()
 
 	// Create the cache. Ensure that the existing task is present.
-	w, err := window.New(time.Hour, 0, nil)
+	w, err := window.New(ctx, time.Hour, 0, nil)
 	require.NoError(t, err)
 	wait := make(chan struct{})
 	c, err := NewTaskCache(ctx, d, w, func() {
@@ -429,7 +429,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 	d := memory.NewInMemoryTaskDB()
 
 	period := 10 * time.Minute
-	w, err := window.New(period, 0, nil)
+	w, err := window.New(ctx, period, 0, nil)
 	require.NoError(t, err)
 	timeStart := w.EarliestStart()
 
@@ -582,7 +582,7 @@ func TestJobCache(t *testing.T) {
 	d.Wait()
 
 	// Create the cache. Ensure that the existing job is present.
-	w, err := window.New(time.Hour, 0, nil)
+	w, err := window.New(ctx, time.Hour, 0, nil)
 	require.NoError(t, err)
 	wait := make(chan struct{})
 	c, err := NewJobCache(ctx, d, w, func() {
@@ -648,7 +648,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	d.Wait()
 
 	// Create the cache. Ensure that the existing job is present.
-	w, err := window.New(time.Hour, 0, nil)
+	w, err := window.New(ctx, time.Hour, 0, nil)
 	require.NoError(t, err)
 	wait := make(chan struct{})
 	c, err := NewJobCache(ctx, d, w, func() {
@@ -791,7 +791,7 @@ func TestJobCacheExpiration(t *testing.T) {
 	d := memory.NewInMemoryJobDB()
 
 	period := 10 * time.Minute
-	w, err := window.New(period, 0, nil)
+	w, err := window.New(ctx, period, 0, nil)
 	require.NoError(t, err)
 	timeStart := w.EarliestStart()
 
@@ -875,7 +875,7 @@ func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
 	d.Wait()
 
 	// Create the cache. Ensure that the existing job is present.
-	w, err := window.New(time.Hour, 0, nil)
+	w, err := window.New(ctx, time.Hour, 0, nil)
 	require.NoError(t, err)
 	c, err := NewJobCache(ctx, d, w, nil)
 	require.NoError(t, err)

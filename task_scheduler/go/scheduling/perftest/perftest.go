@@ -336,7 +336,7 @@ func main() {
 	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, fsInstance, ts)
 	assertNoError(err)
 	windowPeriod := time.Duration(math.MaxInt64)
-	w, err := window.New(windowPeriod, 0, nil)
+	w, err := window.New(ctx, windowPeriod, 0, nil)
 	assertNoError(err)
 	tCache, err := cache.NewTaskCache(ctx, d, w, nil)
 	assertNoError(err)
@@ -380,7 +380,7 @@ func main() {
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {
 		swarmingClient.MockBots(bots)
 		assertNoError(s.MainLoop(ctx))
-		assertNoError(w.Update())
+		assertNoError(w.Update(ctx))
 		assertNoError(tCache.Update(ctx))
 		tasks, err := tCache.GetTasksForCommits(repoDir, commits)
 		assertNoError(err)
@@ -397,7 +397,7 @@ func main() {
 		insert := make([]*types.Task, 0, len(newTasks))
 		for _, task := range newTasks {
 			task.Status = types.TASK_STATUS_SUCCESS
-			task.Finished = time.Now()
+			task.Finished = now.Now(ctx)
 			task.IsolatedOutput = rbe.EmptyDigest
 			insert = append(insert, task)
 		}

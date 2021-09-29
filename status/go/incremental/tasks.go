@@ -3,7 +3,6 @@ package incremental
 import (
 	"context"
 	"sync"
-	"time"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -78,7 +77,7 @@ func mapTasks(tasks map[string]*types.Task) map[string][]*Task {
 // just "return c.Reset(...)".
 func (c *taskCache) Reset(ctx context.Context, w *window.Window) (map[string][]*Task, bool, error) {
 	sklog.Infof("Resetting DB connection.")
-	tasks, err := db.GetTasksFromWindow(ctx, c.db, w, time.Now())
+	tasks, err := db.GetTasksFromWindow(ctx, c.db, w)
 	if err != nil {
 		return nil, false, err
 	}

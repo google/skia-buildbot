@@ -7,6 +7,7 @@ import (
 	fs "cloud.google.com/go/firestore"
 	"github.com/cenkalti/backoff"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -28,7 +29,7 @@ func modifiedCh(ctx context.Context, coll *fs.CollectionRef, field string) <-cha
 	outCh := make(chan *fs.QuerySnapshot)
 	go func() {
 		defer close(outCh)
-		lastSnapTime := time.Now()
+		lastSnapTime := now.Now(ctx)
 
 		// Loop and resume watching if the input channel is closed.
 		for {

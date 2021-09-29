@@ -203,7 +203,7 @@ func (c *IncrementalCacheImpl) Update(ctx context.Context, reset bool) error {
 	defer metrics2.FuncTimer().Stop()
 	c.updateMtx.Lock()
 	defer c.updateMtx.Unlock()
-	if err := c.w.Update(); err != nil {
+	if err := c.w.Update(ctx); err != nil {
 		return err
 	}
 	if reset {

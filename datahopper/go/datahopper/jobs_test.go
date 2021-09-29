@@ -39,7 +39,7 @@ func setupJobs(t *testing.T, now time.Time) (*jobEventDB, db.JobDB, <-chan struc
 	if OVERDUE_JOB_METRICS_PERIOD > period {
 		period = OVERDUE_JOB_METRICS_PERIOD
 	}
-	w, err := window.New(period, 0, nil)
+	w, err := window.New(ctx, period, 0, nil)
 	if err != nil {
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}
@@ -393,7 +393,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	if OVERDUE_JOB_METRICS_PERIOD > period {
 		period = OVERDUE_JOB_METRICS_PERIOD
 	}
-	w, err := window.New(period, OVERDUE_JOB_METRICS_NUM_COMMITS, repos)
+	w, err := window.New(ctx, period, OVERDUE_JOB_METRICS_NUM_COMMITS, repos)
 	if err != nil {
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}

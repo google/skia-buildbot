@@ -9,6 +9,7 @@ import (
 
 	fs "cloud.google.com/go/firestore"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -170,7 +171,7 @@ func (d *firestoreDB) PutJobs(ctx context.Context, jobs []*types.Job) (rvErr err
 
 	// Record the previous ID and DbModified timestamp. We'll reset these
 	// if we fail to insert the jobs into the DB.
-	now := firestore.FixTimestamp(time.Now())
+	currentTime := firestore.FixTimestamp(now.Now(ctx))
 	isNew := make([]bool, len(jobs))
 	prevId := make([]string, len(jobs))
 	prevModified := make([]time.Time, len(jobs))
@@ -193,7 +194,7 @@ func (d *firestoreDB) PutJobs(ctx context.Context, jobs []*types.Job) (rvErr err
 
 	// logmsg builds a log message to debug skia:9444.
 	var logmsg strings.Builder
-	if _, err := fmt.Fprintf(&logmsg, "Added/updated Jobs with DbModified %s:", now.Format(time.RFC3339Nano)); err != nil {
+	if _, err := fmt.Fprintf(&logmsg, "Added/updated Jobs with DbModified %s:", currentTime.Format(time.RFC3339Nano)); err != nil {
 		sklog.Warningf("Error building log message: %s", err)
 	}
 	// Assign new IDs (where needed) and DbModified timestamps.
@@ -204,7 +205,7 @@ func (d *firestoreDB) PutJobs(ctx context.Context, jobs []*types.Job) (rvErr err
 			logmsg.WriteRune('+')
 		}
 		logmsg.WriteString(job.Id)
-		if !now.After(job.DbModified) {
+		if !currentTime.After(job.DbModified) {
 			// We can't use the same DbModified timestamp for two updates,
 			// or we risk losing updates. Increment the timestamp if
 			// necessary.
@@ -213,7 +214,7 @@ func (d *firestoreDB) PutJobs(ctx context.Context, jobs []*types.Job) (rvErr err
 				sklog.Warningf("Error building log message: %s", err)
 			}
 		} else {
-			job.DbModified = now
+			job.DbModified = currentTime
 		}
 		fixJobTimestamps(job)
 	}

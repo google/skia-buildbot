@@ -1,11 +1,13 @@
 package window
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
 
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/util"
 )
 
@@ -21,22 +23,22 @@ type Window struct {
 }
 
 // New returns a Window instance.
-func New(duration time.Duration, numCommits int, repos repograph.Map) (*Window, error) {
+func New(ctx context.Context, duration time.Duration, numCommits int, repos repograph.Map) (*Window, error) {
 	w := &Window{
 		duration:   duration,
 		numCommits: numCommits,
 		repos:      repos,
 		start:      map[string]time.Time{},
 	}
-	if err := w.Update(); err != nil {
+	if err := w.Update(ctx); err != nil {
 		return nil, err
 	}
 	return w, nil
 }
 
 // Update updates the start time of the Window.
-func (w *Window) Update() error {
-	return w.UpdateWithTime(time.Now())
+func (w *Window) Update(ctx context.Context) error {
+	return w.UpdateWithTime(now.Now(ctx))
 }
 
 // UpdateWithTime updates the start time of the Window, using the given current time.

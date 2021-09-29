@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -89,7 +90,7 @@ func (d *InMemoryTaskDB) PutTasks(ctx context.Context, tasks []*types.Task) erro
 	}
 
 	// Insert.
-	now := time.Now()
+	currentTime := now.Now(ctx)
 	added := make([]*types.Task, 0, len(tasks))
 	for _, task := range tasks {
 		if task.Id == "" {
@@ -102,10 +103,10 @@ func (d *InMemoryTaskDB) PutTasks(ctx context.Context, tasks []*types.Task) erro
 		// We can't use the same DbModified timestamp for two updates,
 		// or we risk losing updates. Increment the timestamp if
 		// necessary.
-		if !now.After(task.DbModified) {
+		if !currentTime.After(task.DbModified) {
 			task.DbModified = task.DbModified.Add(time.Nanosecond)
 		} else {
-			task.DbModified = now
+			task.DbModified = currentTime
 		}
 
 		// TODO(borenet): Keep tasks in a sorted slice.
@@ -270,7 +271,7 @@ func (d *InMemoryJobDB) PutJob(ctx context.Context, job *types.Job) error {
 }
 
 // See docs for JobDB interface.
-func (d *InMemoryJobDB) PutJobs(_ context.Context, jobs []*types.Job) error {
+func (d *InMemoryJobDB) PutJobs(ctx context.Context, jobs []*types.Job) error {
 	if len(jobs) > firestore.MAX_TRANSACTION_DOCS {
 		sklog.Errorf("Inserting %d jobs, which is more than the Firestore maximum of %d; consider switching to PutJobsInChunks.", len(jobs), firestore.MAX_TRANSACTION_DOCS)
 	}
@@ -292,7 +293,7 @@ func (d *InMemoryJobDB) PutJobs(_ context.Context, jobs []*types.Job) error {
 	}
 
 	// Insert.
-	now := time.Now()
+	currentTime := now.Now(ctx)
 	added := make([]*types.Job, 0, len(jobs))
 	for _, job := range jobs {
 		if job.Id == "" {
@@ -305,10 +306,10 @@ func (d *InMemoryJobDB) PutJobs(_ context.Context, jobs []*types.Job) error {
 		// We can't use the same DbModified timestamp for two updates,
 		// or we risk losing updates. Increment the timestamp if
 		// necessary.
-		if job.DbModified == now {
+		if !currentTime.After(job.DbModified) {
 			job.DbModified = job.DbModified.Add(time.Nanosecond)
 		} else {
-			job.DbModified = now
+			job.DbModified = currentTime
 		}
 
 		// TODO(borenet): Keep jobs in a sorted slice.

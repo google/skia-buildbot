@@ -11,6 +11,7 @@ import (
 	twirp "github.com/twitchtv/twirp"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/twirp_auth"
@@ -169,7 +170,7 @@ func (s *taskSchedulerServiceImpl) CancelJob(ctx context.Context, req *CancelJob
 		err := fmt.Errorf("Job %s is already finished with status %s", req.Id, job.Status)
 		return nil, twirp.InvalidArgumentError("id", err.Error())
 	}
-	job.Finished = time.Now()
+	job.Finished = now.Now(ctx)
 	job.Status = types.JOB_STATUS_CANCELED
 	if err := s.db.PutJob(ctx, job); err != nil {
 		sklog.Error(err)

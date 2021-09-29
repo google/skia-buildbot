@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
@@ -818,7 +819,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	// at a commit outside the window. Ensure that it gets the correct
 	// blamelist.
 	var err error
-	s.window, err = window.New(time.Nanosecond, 0, nil)
+	s.window, err = window.New(ctx, time.Nanosecond, 0, nil)
 	require.NoError(t, err)
 	c = &taskCandidate{
 		Jobs: []*types.Job{regularJob},
@@ -1093,7 +1094,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 		},
 	}
 
-	processed, err := s.processTaskCandidates(ctx, candidates, time.Now())
+	processed, err := s.processTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
 	require.Equal(t, 7, len(processed))
 	for _, c := range processed {
@@ -1246,7 +1247,8 @@ func TestComputeBlamelist(t *testing.T) {
 	unittest.LargeTest(t)
 
 	// Setup.
-	ctx, cancel := context.WithCancel(context.Background())
+	nowCtx := now.TimeTravelingContext(mem_git.BaseTime.Add(time.Hour))
+	ctx, cancel := context.WithCancel(nowCtx)
 	defer cancel()
 
 	gs := mem_gitstore.New()
@@ -1260,7 +1262,7 @@ func TestComputeBlamelist(t *testing.T) {
 	}
 
 	d := memory.NewInMemoryTaskDB()
-	w, err := window.New(time.Now().Sub(mem_git.BaseTime.Add(-time.Hour)), 0, nil)
+	w, err := window.New(ctx, 2*time.Hour, 0, nil)
 	cache, err := cache.NewTaskCache(ctx, d, w, nil)
 	require.NoError(t, err)
 
@@ -1616,7 +1618,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	c2 := rs2.Revision
 
 	// Regenerate the task queue.
-	queue, _, err := s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err := s.regenerateTaskQueue(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(queue)) // Two Build tasks.
 
@@ -1656,7 +1658,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.NoError(t, s.putTask(ctx, t1))
 
 	// Regenerate the task queue.
-	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err = s.regenerateTaskQueue(ctx)
 	require.NoError(t, err)
 
 	// Now we expect the queue to contain the other Build task and the one
@@ -1692,7 +1694,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.NoError(t, s.putTask(ctx, t2))
 
 	// Regenerate the task queue.
-	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err = s.regenerateTaskQueue(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(queue))
 	testSort()
@@ -1724,7 +1726,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.NoError(t, s.putTask(ctx, t3))
 
 	// Regenerate the task queue.
-	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err = s.regenerateTaskQueue(ctx)
 	require.NoError(t, err)
 
 	// Now we expect the queue to contain one Test and one Perf task. The

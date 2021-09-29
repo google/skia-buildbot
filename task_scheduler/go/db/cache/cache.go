@@ -417,7 +417,7 @@ func (c *taskCache) AddTasks(tasks []*types.Task) {
 // is used for testing.
 func NewTaskCache(ctx context.Context, d db.TaskReader, timeWindow *window.Window, onModifiedTasks func()) (TaskCache, error) {
 	mod := d.ModifiedTasksCh(ctx)
-	tasks, err := db.GetTasksFromWindow(ctx, d, timeWindow, time.Now())
+	tasks, err := db.GetTasksFromWindow(ctx, d, timeWindow)
 	if err != nil {
 		return nil, err
 	}
@@ -513,7 +513,6 @@ func (c *jobCache) GetAllCachedJobs() []*types.Job {
 	for _, j := range c.jobs {
 		rv = append(rv, j.Copy())
 	}
-	sort.Sort(types.JobSlice(rv))
 	return rv
 }
 
@@ -776,7 +775,7 @@ func (c *jobCache) AddJobs(jobs []*types.Job) {
 // is used for testing.
 func NewJobCache(ctx context.Context, d db.JobReader, timeWindow *window.Window, onModifiedJobs func()) (JobCache, error) {
 	mod := d.ModifiedJobsCh(ctx)
-	jobs, err := db.GetJobsFromWindow(ctx, d, timeWindow, time.Now())
+	jobs, err := db.GetJobsFromWindow(ctx, d, timeWindow)
 	if err != nil {
 		return nil, err
 	}

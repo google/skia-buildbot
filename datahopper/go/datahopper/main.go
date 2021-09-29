@@ -155,7 +155,7 @@ func main() {
 	if bot_metrics.MAX_TIME_PERIOD > period {
 		period = bot_metrics.MAX_TIME_PERIOD
 	}
-	w, err := window.New(period, OVERDUE_JOB_METRICS_NUM_COMMITS, repos)
+	w, err := window.New(ctx, period, OVERDUE_JOB_METRICS_NUM_COMMITS, repos)
 	if err != nil {
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}

@@ -48,7 +48,7 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCacheImpl, repogr
 	}
 	require.NoError(t, d.PutTask(ctx, initialTask))
 
-	w, err := window.New(24*time.Hour, 100, repos)
+	w, err := window.New(ctx, 24*time.Hour, 100, repos)
 	require.NoError(t, err)
 
 	cache, err := NewIncrementalCacheImpl(ctx, d, w, repos, 100, "https://swarming", "https://task-scheduler")

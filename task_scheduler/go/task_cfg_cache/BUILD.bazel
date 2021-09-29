@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/atomic_miss_cache",
         "//go/git/repograph",
+        "//go/now",
         "//go/sklog",
         "//task_scheduler/go/specs",
         "//task_scheduler/go/types",

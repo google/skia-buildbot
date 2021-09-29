@@ -12,6 +12,7 @@ import (
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/atomic_miss_cache"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -267,7 +268,7 @@ func (c *TaskCfgCache) MakeJob(ctx context.Context, rs types.RepoState, name str
 	}
 
 	return &types.Job{
-		Created:      time.Now(),
+		Created:      now.Now(ctx),
 		Dependencies: deps,
 		Name:         name,
 		Priority:     spec.Priority,
@@ -278,7 +279,7 @@ func (c *TaskCfgCache) MakeJob(ctx context.Context, rs types.RepoState, name str
 
 // Cleanup removes cache entries which are outside of our scheduling window.
 func (c *TaskCfgCache) Cleanup(ctx context.Context, period time.Duration) error {
-	periodStart := time.Now().Add(-period)
+	periodStart := now.Now(ctx).Add(-period)
 	if err := c.cache.Cleanup(ctx, func(ctx context.Context, key string, val atomic_miss_cache.Value) bool {
 		cv := val.(*CachedValue)
 		details, err := cv.RepoState.GetCommit(c.repos)

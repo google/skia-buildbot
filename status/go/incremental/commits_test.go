@@ -48,7 +48,7 @@ func TestIncrementalCommits(t *testing.T) {
 		gb.RepoUrl(): repo,
 	}
 	N := 100
-	w, err := window.New(24*time.Hour, N, repos)
+	w, err := window.New(ctx, 24*time.Hour, N, repos)
 	require.NoError(t, err)
 	cc := newCommitsCache(repos)
 

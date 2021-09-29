@@ -14,6 +14,7 @@ go_library(
         "//go/git",
         "//go/git/repograph",
         "//go/metrics2",
+        "//go/now",
         "//go/skerr",
         "//go/sklog",
         "//go/util",

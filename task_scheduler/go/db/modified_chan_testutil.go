@@ -2,10 +2,10 @@ package db
 
 import (
 	"context"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -24,7 +24,7 @@ func TestModifiedTasksCh(t sktest.TestingT, db DB) {
 	expect := []*types.Task{
 		{
 			Id:      "0",
-			Created: time.Now(),
+			Created: now.Now(ctx),
 		},
 	}
 	require.NoError(t, db.PutTasks(ctx, expect))
@@ -35,11 +35,11 @@ func TestModifiedTasksCh(t sktest.TestingT, db DB) {
 	expect = []*types.Task{
 		{
 			Id:      "1",
-			Created: time.Now(),
+			Created: now.Now(ctx),
 		},
 		{
 			Id:      "2",
-			Created: time.Now(),
+			Created: now.Now(ctx),
 		},
 	}
 	require.NoError(t, db.PutTasks(ctx, expect))
@@ -84,7 +84,7 @@ func TestModifiedJobsCh(t sktest.TestingT, db DB) {
 	expect := []*types.Job{
 		{
 			Id:      "0",
-			Created: time.Now(),
+			Created: now.Now(ctx),
 		},
 	}
 	require.NoError(t, db.PutJobs(ctx, expect))
@@ -95,11 +95,11 @@ func TestModifiedJobsCh(t sktest.TestingT, db DB) {
 	expect = []*types.Job{
 		{
 			Id:      "1",
-			Created: time.Now(),
+			Created: now.Now(ctx),
 		},
 		{
 			Id:      "2",
-			Created: time.Now(),
+			Created: now.Now(ctx),
 		},
 	}
 	require.NoError(t, db.PutJobs(ctx, expect))
@@ -146,7 +146,7 @@ func TestModifiedTaskCommentsCh(t sktest.TestingT, db DB) {
 			Repo:      "my-repo",
 			Revision:  "abc",
 			Name:      "taskname",
-			Timestamp: time.Now(),
+			Timestamp: now.Now(ctx),
 		},
 	}
 	require.NoError(t, db.PutTaskComment(ctx, expect[0]))
@@ -159,13 +159,13 @@ func TestModifiedTaskCommentsCh(t sktest.TestingT, db DB) {
 			Repo:      "my-repo",
 			Revision:  "def",
 			Name:      "taskname",
-			Timestamp: time.Now(),
+			Timestamp: now.Now(ctx),
 		},
 		{
 			Repo:      "my-repo",
 			Revision:  "123",
 			Name:      "taskname",
-			Timestamp: time.Now(),
+			Timestamp: now.Now(ctx),
 		},
 	}
 	require.NoError(t, db.PutTaskComment(ctx, expect[0]))
@@ -216,7 +216,7 @@ func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db DB) {
 		{
 			Repo:      "my-repo",
 			Name:      "taskname",
-			Timestamp: time.Now(),
+			Timestamp: now.Now(ctx),
 		},
 	}
 	require.NoError(t, db.PutTaskSpecComment(ctx, expect[0]))
@@ -228,12 +228,12 @@ func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db DB) {
 		{
 			Repo:      "my-repo",
 			Name:      "taskname2",
-			Timestamp: time.Now(),
+			Timestamp: now.Now(ctx),
 		},
 		{
 			Repo:      "my-repo",
 			Name:      "taskname3",
-			Timestamp: time.Now(),
+			Timestamp: now.Now(ctx),
 		},
 	}
 	require.NoError(t, db.PutTaskSpecComment(ctx, expect[0]))
@@ -284,7 +284,7 @@ func TestModifiedCommitCommentsCh(t sktest.TestingT, db DB) {
 		{
 			Repo:      "my-repo",
 			Revision:  "abc",
-			Timestamp: time.Now(),
+			Timestamp: now.Now(ctx),
 		},
 	}
 	require.NoError(t, db.PutCommitComment(ctx, expect[0]))
@@ -296,12 +296,12 @@ func TestModifiedCommitCommentsCh(t sktest.TestingT, db DB) {
 		{
 			Repo:      "my-repo",
 			Revision:  "def",
-			Timestamp: time.Now(),
+			Timestamp: now.Now(ctx),
 		},
 		{
 			Repo:      "my-repo",
 			Revision:  "123",
-			Timestamp: time.Now(),
+			Timestamp: now.Now(ctx),
 		},
 	}
 	require.NoError(t, db.PutCommitComment(ctx, expect[0]))

@@ -10,6 +10,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/git",
+        "//go/now",
         "//go/sklog",
         "//go/swarming",
         "//go/util",

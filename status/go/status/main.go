@@ -805,7 +805,7 @@ func main() {
 	}
 
 	// Create the IncrementalCacheImpl.
-	w, err := window.New(time.Minute, MAX_COMMITS_TO_LOAD, repos)
+	w, err := window.New(ctx, time.Minute, MAX_COMMITS_TO_LOAD, repos)
 	if err != nil {
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}

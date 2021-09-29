@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -71,7 +72,7 @@ func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommit
 			return nil, fmt.Errorf("Failed initial repo sync: %s", err)
 		}
 	}
-	w, err := window.New(period, numCommits, repos)
+	w, err := window.New(ctx, period, numCommits, repos)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create window: %s", err)
 	}
@@ -311,10 +312,10 @@ func (jc *JobCreator) HandleRepoUpdate(ctx context.Context, repoUrl string, g *r
 	// message without waiting to see if the cache refreshes
 	// below succeed.
 	ack()
-	if err := jc.window.Update(); err != nil {
+	if err := jc.window.Update(ctx); err != nil {
 		return skerr.Wrapf(err, "failed to update window")
 	}
-	if err := jc.taskCfgCache.Cleanup(ctx, time.Now().Sub(jc.window.EarliestStart())); err != nil {
+	if err := jc.taskCfgCache.Cleanup(ctx, now.Now(ctx).Sub(jc.window.EarliestStart())); err != nil {
 		return skerr.Wrapf(err, "failed to Cleanup TaskCfgCache")
 	}
 	jc.lvUpdateRepos.Reset()
@@ -387,7 +388,7 @@ func (jc *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName 
 	// trigger the same jobs multiple times in a day/week/whatever. Search a
 	// window that is not quite the size of the trigger interval, to allow
 	// for lag time.
-	end := time.Now()
+	end := now.Now(ctx)
 	var start time.Time
 	if triggerName == specs.TRIGGER_NIGHTLY {
 		start = end.Add(-23 * time.Hour)

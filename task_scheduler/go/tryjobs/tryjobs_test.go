@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -24,10 +25,11 @@ import (
 // Verify that updateJobs sends heartbeats for unfinished try Jobs and
 // success/failure for finished Jobs.
 func TestUpdateJobs(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
+	_, trybots, gb, mock, _, cleanup := setup(t)
 	defer cleanup()
 
-	now := time.Now()
+	ts := time.Unix(1632920378, 0)
+	ctx := now.TimeTravelingContext(ts)
 
 	assertActiveTryJob := func(j *types.Job) {
 		active, err := trybots.getActiveTryJobs(ctx)
@@ -44,25 +46,25 @@ func TestUpdateJobs(t *testing.T) {
 
 	// No jobs.
 	assertNoActiveTryJobs()
-	require.NoError(t, trybots.updateJobs(ctx, now))
+	require.NoError(t, trybots.updateJobs(ctx))
 	require.True(t, mock.Empty())
 
 	// One unfinished try job.
-	j1 := tryjob(gb.RepoUrl())
-	MockHeartbeats(t, mock, now, []*types.Job{j1}, nil)
+	j1 := tryjob(ctx, gb.RepoUrl())
+	MockHeartbeats(t, mock, ts, []*types.Job{j1}, nil)
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
-	require.NoError(t, trybots.updateJobs(ctx, now))
+	require.NoError(t, trybots.updateJobs(ctx))
 	require.True(t, mock.Empty())
 	assertActiveTryJob(j1)
 
 	// Send success/failure for finished jobs, not heartbeats.
 	j1.Status = types.JOB_STATUS_SUCCESS
-	j1.Finished = now
+	j1.Finished = ts
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
-	MockJobSuccess(mock, j1, now, nil, false)
-	require.NoError(t, trybots.updateJobs(ctx, now))
+	MockJobSuccess(mock, j1, ts, nil, false)
+	require.NoError(t, trybots.updateJobs(ctx))
 	require.True(t, mock.Empty())
 	assertNoActiveTryJobs()
 
@@ -73,22 +75,22 @@ func TestUpdateJobs(t *testing.T) {
 	j1.Status = types.JOB_STATUS_FAILURE
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
-	MockJobFailure(mock, j1, now, nil)
-	require.NoError(t, trybots.updateJobs(ctx, now))
+	MockJobFailure(mock, j1, ts, nil)
+	require.NoError(t, trybots.updateJobs(ctx))
 	require.True(t, mock.Empty())
 	assertNoActiveTryJobs()
 
 	// More than one batch of heartbeats.
 	jobs := []*types.Job{}
 	for i := 0; i < LEASE_BATCH_SIZE+2; i++ {
-		jobs = append(jobs, tryjob(gb.RepoUrl()))
+		jobs = append(jobs, tryjob(ctx, gb.RepoUrl()))
 	}
-	sort.Sort(types.JobSlice(jobs))
-	MockHeartbeats(t, mock, now, jobs[:LEASE_BATCH_SIZE], nil)
-	MockHeartbeats(t, mock, now, jobs[LEASE_BATCH_SIZE:], nil)
+	sort.Sort(heartbeatJobSlice(jobs))
+	MockHeartbeats(t, mock, ts, jobs[:LEASE_BATCH_SIZE], nil)
+	MockHeartbeats(t, mock, ts, jobs[LEASE_BATCH_SIZE:], nil)
 	require.NoError(t, trybots.db.PutJobs(ctx, jobs))
 	trybots.jCache.AddJobs(jobs)
-	require.NoError(t, trybots.updateJobs(ctx, now))
+	require.NoError(t, trybots.updateJobs(ctx))
 	require.True(t, mock.Empty())
 
 	// Test heartbeat failure for one job, ensure that it gets canceled.
@@ -100,9 +102,9 @@ func TestUpdateJobs(t *testing.T) {
 	require.NoError(t, trybots.db.PutJobs(ctx, jobs[2:]))
 	trybots.jCache.AddJobs(jobs[2:])
 	for _, j := range jobs[2:] {
-		MockJobSuccess(mock, j, now, nil, false)
+		MockJobSuccess(mock, j, ts, nil, false)
 	}
-	MockHeartbeats(t, mock, now, []*types.Job{j1, j2}, map[string]*heartbeatResp{
+	MockHeartbeats(t, mock, ts, []*types.Job{j1, j2}, map[string]*heartbeatResp{
 		j1.Id: {
 			BuildId: fmt.Sprintf("%d", j1.BuildbucketBuildId),
 			Error: &errMsg{
@@ -110,7 +112,7 @@ func TestUpdateJobs(t *testing.T) {
 			},
 		},
 	})
-	require.NoError(t, trybots.updateJobs(ctx, now))
+	require.NoError(t, trybots.updateJobs(ctx))
 	require.True(t, mock.Empty())
 	active, err := trybots.getActiveTryJobs(ctx)
 	require.NoError(t, err)
@@ -192,28 +194,28 @@ func TestCancelBuild(t *testing.T) {
 }
 
 func TestTryLeaseBuild(t *testing.T) {
-	_, trybots, _, mock, _, cleanup := setup(t)
+	ctx, trybots, _, mock, _, cleanup := setup(t)
 	defer cleanup()
 
 	id := int64(12345)
 	MockTryLeaseBuild(mock, id, nil)
-	k, err := trybots.tryLeaseBuild(id)
+	k, err := trybots.tryLeaseBuild(ctx, id)
 	require.NoError(t, err)
 	require.NotEqual(t, k, 0)
 	require.True(t, mock.Empty())
 
 	expect := fmt.Errorf("Can't lease this!")
 	MockTryLeaseBuild(mock, id, expect)
-	_, err = trybots.tryLeaseBuild(id)
+	_, err = trybots.tryLeaseBuild(ctx, id)
 	require.Contains(t, err.Error(), expect.Error())
 	require.True(t, mock.Empty())
 }
 
 func TestJobStarted(t *testing.T) {
-	_, trybots, gb, mock, _, cleanup := setup(t)
+	ctx, trybots, gb, mock, _, cleanup := setup(t)
 	defer cleanup()
 
-	j := tryjob(gb.RepoUrl())
+	j := tryjob(ctx, gb.RepoUrl())
 
 	// Success
 	MockJobStarted(mock, j.BuildbucketBuildId, nil)
@@ -231,7 +233,7 @@ func TestJobFinished(t *testing.T) {
 	ctx, trybots, gb, mock, _, cleanup := setup(t)
 	defer cleanup()
 
-	j := tryjob(gb.RepoUrl())
+	j := tryjob(ctx, gb.RepoUrl())
 	now := time.Now()
 
 	// Job not actually finished.

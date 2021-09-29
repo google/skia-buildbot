@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -205,7 +206,7 @@ func (c *TestClient) TriggerTask(ctx context.Context, t *swarming_api.SwarmingRp
 		return nil, fmt.Errorf("Mocked trigger failure!")
 	}
 
-	createdTs := time.Now().UTC().Format(swarming.TIMESTAMP_FORMAT)
+	createdTs := now.Now(ctx).UTC().Format(swarming.TIMESTAMP_FORMAT)
 	id := uuid.New().String()
 	rv := &swarming_api.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming_api.SwarmingRpcsTaskRequest{

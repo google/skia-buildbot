@@ -26,7 +26,7 @@ func setupTasks(t *testing.T, now time.Time) (*taskEventDB, db.TaskDB, <-chan st
 	ctx, cancel := context.WithCancel(context.Background())
 	tdb := memory.NewInMemoryTaskDB()
 	period := TIME_PERIODS[len(TIME_PERIODS)-1]
-	w, err := window.New(period, 0, nil)
+	w, err := window.New(ctx, period, 0, nil)
 	if err != nil {
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}

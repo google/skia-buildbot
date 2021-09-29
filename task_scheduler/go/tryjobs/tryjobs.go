@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,6 +20,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/cacher"
@@ -126,7 +128,7 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 		// DB even if the context is canceled, which helps to prevent
 		// inconsistencies between Buildbucket and the Task Scheduler
 		// DB.
-		if err := t.updateJobs(ctx, time.Now()); err != nil {
+		if err := t.updateJobs(ctx); err != nil {
 			sklog.Error(err)
 		} else {
 			lvUpdate.Reset()
@@ -165,7 +167,7 @@ func (t *TryJobIntegrator) getActiveTryJobs(ctx context.Context) ([]*types.Job, 
 }
 
 // updateJobs sends updates to Buildbucket for all active try Jobs.
-func (t *TryJobIntegrator) updateJobs(ctx context.Context, now time.Time) error {
+func (t *TryJobIntegrator) updateJobs(ctx context.Context) error {
 	// Get all Jobs associated with in-progress Buildbucket builds.
 	jobs, err := t.getActiveTryJobs(ctx)
 	if err != nil {
@@ -189,7 +191,7 @@ func (t *TryJobIntegrator) updateJobs(ctx context.Context, now time.Time) error 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		heartbeatErr = t.sendHeartbeats(ctx, now, unfinished)
+		heartbeatErr = t.sendHeartbeats(ctx, unfinished)
 	}()
 
 	// Send updates for finished Jobs, empty the lease keys to mark them
@@ -220,12 +222,28 @@ func (t *TryJobIntegrator) updateJobs(ctx context.Context, now time.Time) error 
 	return nil
 }
 
+// heartbeatJobSlice implements sort.Interface to sort Jobs by BuildbucketBuildId.
+type heartbeatJobSlice []*types.Job
+
+func (s heartbeatJobSlice) Len() int { return len(s) }
+
+func (s heartbeatJobSlice) Less(i, j int) bool {
+	return s[i].BuildbucketBuildId < s[j].BuildbucketBuildId
+}
+
+func (s heartbeatJobSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
 // sendHeartbeats sends heartbeats to Buildbucket for all of the unfinished try
 // Jobs.
-func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, now time.Time, jobs []*types.Job) error {
+func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job) error {
 	defer metrics2.FuncTimer().Stop()
 
-	expiration := now.Add(LEASE_DURATION).Unix() * secondsToMicros
+	// Sort the jobs by BuildbucketBuildId for consistency in testing.
+	sort.Sort(heartbeatJobSlice(jobs))
+
+	expiration := now.Now(ctx).Add(LEASE_DURATION).Unix() * secondsToMicros
 
 	errs := []error{}
 
@@ -321,7 +339,7 @@ func (t *TryJobIntegrator) localCancelJobs(ctx context.Context, jobs []*types.Jo
 	for _, j := range jobs {
 		j.BuildbucketLeaseKey = 0
 		j.Status = types.JOB_STATUS_CANCELED
-		j.Finished = time.Now()
+		j.Finished = now.Now(ctx)
 	}
 	if err := t.db.PutJobsInChunks(ctx, jobs); err != nil {
 		return err
@@ -353,8 +371,8 @@ func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
 	return nil
 }
 
-func (t *TryJobIntegrator) tryLeaseBuild(id int64) (int64, error) {
-	expiration := time.Now().Add(LEASE_DURATION_INITIAL).Unix() * secondsToMicros
+func (t *TryJobIntegrator) tryLeaseBuild(ctx context.Context, id int64) (int64, error) {
+	expiration := now.Now(ctx).Add(LEASE_DURATION_INITIAL).Unix() * secondsToMicros
 	sklog.Infof("Attempting to lease build %d", id)
 	resp, err := t.bb.Lease(id, &buildbucket_api.LegacyApiLeaseRequestBodyMessage{
 		LeaseExpirationTs: expiration,
@@ -376,7 +394,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 	}
 	if build.Status != buildbucketpb.Status_SCHEDULED {
 		sklog.Warningf("Found build %d with status: %s; attempting to lease anyway, to trigger the fix in Buildbucket.", build.Id, build.Status)
-		_, err := t.tryLeaseBuild(buildId)
+		_, err := t.tryLeaseBuild(ctx, buildId)
 		if err != nil {
 			// This is expected.
 			return nil
@@ -450,7 +468,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 	}
 
 	// Attempt to lease the build.
-	leaseKey, err := t.tryLeaseBuild(buildId)
+	leaseKey, err := t.tryLeaseBuild(ctx, buildId)
 	if err != nil {
 		// TODO(borenet): Buildbot cancels the build in this case.
 		// Should we do that too?

@@ -18,12 +18,12 @@ import (
 func TestWindowNoRepos(t *testing.T) {
 	unittest.SmallTest(t)
 	period := time.Hour
-	w, err := New(period, 0, nil)
+	w, err := New(context.Background(), period, 0, nil)
 	require.NoError(t, err)
-	now := time.Unix(0, 1480437867192070480)
+	now, err := time.Parse(time.RFC3339Nano, "2016-11-29T16:44:27.192070480Z")
+	require.NoError(t, err)
 	start := now.Add(-period)
-	startTs := int64(1480434267192070480)
-	require.Equal(t, startTs, start.UnixNano())
+	startTs := start.UnixNano()
 	require.NoError(t, w.UpdateWithTime(now))
 	repo := "..."
 	require.Equal(t, startTs, w.Start(repo).UnixNano())
@@ -44,7 +44,8 @@ func setupRepo(t *testing.T, numCommits int) (string, *repograph.Graph, []string
 	gb := git_testutils.GitInit(t, ctx)
 	f := "somefile"
 	commits := make([]string, 0, numCommits)
-	t0 := time.Unix(0, 1480437867192070480)
+	t0, err := time.Parse(time.RFC3339Nano, "2016-11-29T16:44:27.192070480Z")
+	require.NoError(t, err)
 	for i := 0; i < numCommits; i++ {
 		gb.AddGen(ctx, f)
 		ts := t0.Add(time.Duration(int64(5) * int64(i) * int64(time.Second)))
@@ -74,7 +75,7 @@ func setup(t *testing.T, period time.Duration, numCommits, threshold int) (*Wind
 	rm := repograph.Map{
 		repoUrl: repo,
 	}
-	w, err := New(period, threshold, rm)
+	w, err := New(context.Background(), period, threshold, rm)
 	require.NoError(t, err)
 	now := repo.Get(commits[len(commits)-1]).Timestamp.Add(5 * time.Second)
 	require.NoError(t, w.UpdateWithTime(now))
@@ -151,7 +152,7 @@ func TestWindowMultiRepo(t *testing.T) {
 		url1: repo1,
 		url2: repo2,
 	}
-	w, err := New(0, 6, rm)
+	w, err := New(context.Background(), 0, 6, rm)
 	require.NoError(t, err)
 	now := repo1.Get(commits1[len(commits1)-1]).Timestamp.Add(5 * time.Second)
 	require.NoError(t, w.UpdateWithTime(now))
