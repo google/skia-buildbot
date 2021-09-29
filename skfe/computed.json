@@ -1159,32 +1159,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "power-controller",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "power-controller",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "power-controller",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "prometheus",
           "endpoints": [
             {
@@ -3509,23 +3483,6 @@
                           },
                           "route": {
                             "cluster": "particles",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "power.skia.org",
-                      "name": "power.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "power-controller",
                             "timeout": {
                               "seconds": 600
                             }
