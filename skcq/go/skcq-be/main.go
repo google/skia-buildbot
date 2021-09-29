@@ -13,6 +13,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
+	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
@@ -105,9 +106,14 @@ func main() {
 	sklog.Infof("CurrentChangesCache: %+v", currentChangesCache.Get())
 
 	// Instantiate client for go/cria.
-	criaTs, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
-	if err != nil {
-		sklog.Fatal(err)
+	var criaTs oauth2.TokenSource
+	if *baseapp.Local {
+		criaTs = ts
+	} else {
+		criaTs, err = auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.ScopeUserinfoEmail)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
 	criaClient := httputils.DefaultClientConfig().WithTokenSource(criaTs).With2xxOnly().Client()
 	cfgModifyAllowed, err := allowed.NewAllowedFromChromeInfraAuth(criaClient, *canModifyCfgsOnTheFly)

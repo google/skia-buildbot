@@ -19,6 +19,7 @@ go_library(
         "//skcq/go/poller",
         "@com_github_gorilla_mux//:mux",
         "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_x_oauth2//:oauth2",
     ],
 )
 
