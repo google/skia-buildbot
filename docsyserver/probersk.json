@@ -3,9 +3,7 @@
     "urls": [
       "https://skia.org/",
       "https://skia.org/docs/user/modules/skottie/",
-      "http://docsyserver:8000",
-      "http://docsyserver-chromium:8000",
-      "https://chromium-docs.skia.org"
+      "http://docsyserver:8000"
     ],
     "method": "GET",
     "expected": [
