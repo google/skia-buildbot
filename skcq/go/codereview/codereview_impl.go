@@ -2,6 +2,7 @@ package codereview
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -78,7 +79,10 @@ func (gc *gerritCodeReview) GetCommitAuthor(ctx context.Context, issue int64, re
 	if err != nil {
 		return "", err
 	}
-	return commitInfo.Author, nil
+	if commitInfo.Author == nil {
+		return "", errors.New("commitInfo.Author was nil")
+	}
+	return commitInfo.Author.Email, nil
 }
 
 // GetCommitMessage implements the CodeReview interface.

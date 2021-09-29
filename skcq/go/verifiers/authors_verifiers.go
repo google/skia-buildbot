@@ -35,9 +35,9 @@ func (wv *AuthorsVerifier) Name() string {
 func (wv *AuthorsVerifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, startTime int64) (state types.VerifierState, reason string, err error) {
 
 	// Get the author of the latest patch of the specified change.
-	author, err := wv.cr.GetCommitAuthor(ctx, ci.Issue, "latest")
+	author, err := wv.cr.GetCommitAuthor(ctx, ci.Issue, "current")
 	if err != nil {
-		return "", "", skerr.Wrapf(err, "Could not find author of %d/latest", ci.Issue)
+		return "", "", skerr.Wrapf(err, "Could not find author of %d/current", ci.Issue)
 	}
 
 	// Parse the AUTHORS file content and find all email regexes in them.

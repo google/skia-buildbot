@@ -61,7 +61,7 @@ func TestVerify_Authors(t *testing.T) {
 		ci := &gerrit.ChangeInfo{Issue: 123}
 		// Setup codereview mock.
 		cr := &cr_mocks.CodeReview{}
-		cr.On("GetCommitAuthor", testutils.AnyContext, int64(123), "latest").Return(test.changeAuthor, nil).Once()
+		cr.On("GetCommitAuthor", testutils.AnyContext, int64(123), "current").Return(test.changeAuthor, nil).Once()
 
 		av := AuthorsVerifier{
 			test.authorsFileContent,
