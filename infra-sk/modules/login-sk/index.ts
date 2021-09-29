@@ -1,2 +1,2 @@
-import './login-sk.scss'
-import './login-sk'
+import './login-sk.scss';
+import './login-sk';

@@ -12,11 +12,11 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { live } from 'lit-html/directives/live';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import dialogPolyfill from 'dialog-polyfill';
 import { $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
 import { ParamSet } from 'common-sk/modules/query';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/styles/buttons';
 import 'elements-sk/checkbox-sk';
@@ -29,18 +29,18 @@ export interface Filters {
   maxRGBADelta: number; // Valid values are integers from 0 to 255.
   sortOrder: 'ascending' | 'descending';
   mustHaveReferenceImage: boolean;
-};
+}
 
 // This template produces an <input type=range> (a "slider") and an <input type=number> that
 // reflect each other's values. When one changes, the other is updated with the new value, and
 // viceversa.
 const numericParamTemplate = (id: string,
-                              label: string,
-                              setterFn: (value: number) => void,
-                              value: number = 0,
-                              min: number,
-                              max: number,
-                              step: number) => {
+  label: string,
+  setterFn: (value: number)=> void,
+  value: number = 0,
+  min: number,
+  max: number,
+  step: number) => {
   const onInput = (e: InputEvent) => {
     const target = e.target as HTMLInputElement;
 
@@ -72,10 +72,9 @@ const numericParamTemplate = (id: string,
              step=${step}
              @input=${onInput}/>
     </div>`;
-}
+};
 
 export class FilterDialogSk extends ElementSk {
-
   // The live() directive is required because the value attributes will change outside of lit-html,
   // e.g. on user input. Without it, said attributes won't be updated next time this template is
   // rendered with the same bound values, leaving the user's input intact.
@@ -93,22 +92,24 @@ export class FilterDialogSk extends ElementSk {
         </trace-filter-sk>
 
         ${numericParamTemplate(
-          'min-rgba-delta',
-          'Min RGBA delta:',
-          /* setterFn= */ (val) => el._filters!.minRGBADelta = val,
-          /* value= */ el._filters?.minRGBADelta,
-          /* min= */ 0,
-          /* max= */ 255,
-          /* step= */ 1)}
+    'min-rgba-delta',
+    'Min RGBA delta:',
+    /* setterFn= */ (val) => el._filters!.minRGBADelta = val,
+    /* value= */ el._filters?.minRGBADelta,
+    /* min= */ 0,
+    /* max= */ 255,
+    /* step= */ 1,
+  )}
 
         ${numericParamTemplate(
-          'max-rgba-delta',
-          'Max RGBA delta:',
-          /* setterFn= */ (val) => el._filters!.maxRGBADelta = val,
-          /* value= */ el._filters?.maxRGBADelta,
-          /* min= */ 0,
-          /* max= */ 255,
-          /* step= */ 1)}
+    'max-rgba-delta',
+    'Max RGBA delta:',
+    /* setterFn= */ (val) => el._filters!.maxRGBADelta = val,
+    /* value= */ el._filters?.maxRGBADelta,
+    /* min= */ 0,
+    /* max= */ 255,
+    /* step= */ 1,
+  )}
 
         <label for=sort-order>Sort order:</label>
         <select id=sort-order
@@ -134,6 +135,7 @@ export class FilterDialogSk extends ElementSk {
   private _dialog: HTMLDialogElement | null = null;
 
   private _paramSet: ParamSet | null = null;
+
   private _filters: Filters | null = null;
 
   constructor() {
@@ -179,7 +181,7 @@ export class FilterDialogSk extends ElementSk {
     this._dialog!.close();
     this.dispatchEvent(new CustomEvent<Filters>('edit', {
       bubbles: true,
-      detail: this._filters!
+      detail: this._filters!,
     }));
   }
 

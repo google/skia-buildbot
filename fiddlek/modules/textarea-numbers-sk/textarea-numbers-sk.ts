@@ -49,7 +49,7 @@ export class TextareaNumbersSk extends ElementSk {
   }
 
   /** Removes all error line annotations. */
-  clearErrors(): void{
+  clearErrors(): void {
     this.errorLines.forEach((textMarker) => {
       textMarker.clear();
     });

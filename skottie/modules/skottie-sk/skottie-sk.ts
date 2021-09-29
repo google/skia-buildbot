@@ -983,7 +983,7 @@ ${this.wasmCaption()}`;
     }
   }
 
-   // This fires every time the user moves the scrub slider.
+  // This fires every time the user moves the scrub slider.
   private onScrub(e: Event): void {
     if (!this.scrubbing) {
       // Pause the animation while dragging the slider.
@@ -1011,6 +1011,7 @@ ${this.wasmCaption()}`;
       this.playpause();
     }
   }
+
   private onFrameChange(e: Event): void {
     if (this.playing) {
       this.playpause();
@@ -1031,18 +1032,18 @@ ${this.wasmCaption()}`;
 
   private updateScrubber(): void {
     const scrubber = $$<HTMLInputElement>('#scrub', this);
-    const frameLabel = $$<HTMLInputElement>('#frameInput', this)
+    const frameLabel = $$<HTMLInputElement>('#frameInput', this);
     if (scrubber && frameLabel) {
       // Scale from time to the arbitrary scrubber range.
-      let progress = this.elapsedTime % this.duration;
+      const progress = this.elapsedTime % this.duration;
       scrubber.value = String((SCRUBBER_RANGE * progress) / this.duration);
       if (this.state.lottie!.fr) {
-        frameLabel.value  = String(Math.round(progress * (this.state.lottie!.fr / 1000)))
+        frameLabel.value = String(Math.round(progress * (this.state.lottie!.fr / 1000)));
       }
     }
   }
 
-  private seek(t: number) : void {
+  private seek(t: number): void {
     this.elapsedTime = t * this.duration;
     this.live?.goToAndStop(t);
     this.lottiePlayer?.goToAndStop(t * this.duration);

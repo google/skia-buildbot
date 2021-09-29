@@ -1,5 +1,5 @@
-import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 
 /** A page object for the BulkTriageSkPO component. */
@@ -56,7 +56,7 @@ export class BulkTriageSkPO extends PageObject {
 
   async clickClosestBtn() { await this.closestBtn.click(); }
 
-  async getTriageAllCheckboxLabel() {  return this.triageAllCheckBox.innerText; }
+  async getTriageAllCheckboxLabel() { return this.triageAllCheckBox.innerText; }
 
   async isTriageAllCheckboxChecked() {
     return this.triageAllCheckBox.applyFnToDOMNode((c) => (c as CheckOrRadio).checked);

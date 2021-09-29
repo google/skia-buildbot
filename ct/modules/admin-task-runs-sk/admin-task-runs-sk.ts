@@ -283,7 +283,6 @@ _redoTask(index: number): void {
     .catch(errorMessage);
 }
 
-
 _resetPagination(): void {
   this._pagination = { offset: 0, size: 10, total: 0 };
 }

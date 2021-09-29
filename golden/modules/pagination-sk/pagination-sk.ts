@@ -31,7 +31,7 @@ const MANY = 2147483647;
 
 export interface PaginationSkPageChangedEventDetail {
   readonly delta: number;
-};
+}
 
 export class PaginationSk extends ElementSk {
   private static _template = (ele: PaginationSk) => html`
@@ -76,14 +76,17 @@ export class PaginationSk extends ElementSk {
 
   /** Reflects offset attribute for convenience. */
   get offset(): number { return +this.getAttribute('offset')!; }
+
   set offset(val: number) { this.setAttribute('offset', (+val as unknown) as string); }
 
   /** Reflects page_size attribute for convenience. */
   get page_size(): number { return +this.getAttribute('page_size')!; }
+
   set page_size(val: number) { this.setAttribute('page_size', (+val as unknown) as string); }
 
   /** Reflects total attribute for convenience. */
   get total(): number { return +this.getAttribute('total')!; }
+
   set total(val: number) { this.setAttribute('total', (+val as unknown) as string); }
 
   attributeChangedCallback() {
@@ -95,8 +98,8 @@ export class PaginationSk extends ElementSk {
   }
 
   private _canGoNext(next: number) {
-    return this.total === MANY ? true : next <= this.total
-  };
+    return this.total === MANY ? true : next <= this.total;
+  }
 
   private _page(n: number) {
     this.dispatchEvent(new CustomEvent<PaginationSkPageChangedEventDetail>('page-changed', {

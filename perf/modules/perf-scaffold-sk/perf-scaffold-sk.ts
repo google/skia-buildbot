@@ -115,7 +115,6 @@ export class PerfScaffoldSk extends ElementSk {
     );
   }
 
-
   // Place these newly added nodes in the right place under the perf-scaffold-sk
   // element.
   private redistributeAddedNodes(from: NodeList) {

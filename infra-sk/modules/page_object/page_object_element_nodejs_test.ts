@@ -1,7 +1,9 @@
 import http from 'http';
 import net from 'net';
 import express from 'express';
-import { Browser, Page, ElementHandle, Serializable } from 'puppeteer';
+import {
+  Browser, Page, ElementHandle, Serializable,
+} from 'puppeteer';
 import { launchBrowser } from '../../../puppeteer-tests/util';
 import { PageObjectElement } from './page_object_element';
 import { TestBed, describePageObjectElement } from './page_object_element_test_cases';
@@ -66,9 +68,7 @@ describe('PageObjectElement on Puppeter', () => {
       return new PageObjectElement(container);
     },
 
-    evaluate: async <T extends Serializable | void = void>(fn: (el: HTMLElement) => T) => {
-      return await container.evaluate(fn) as T;
-    }
+    evaluate: async <T extends Serializable | void = void>(fn: (el: HTMLElement)=> T) => await container.evaluate(fn) as T,
   };
 
   describePageObjectElement(testBed);

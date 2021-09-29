@@ -80,12 +80,10 @@ void update(inout Particle p) {
   },
 };
 
-
 player.initialize(uniforms).then(() => {
   player.pause();
   $$('#results')!.innerHTML = '<div id=loaded>Loaded.</div>';
 });
-
 
 $$('#pause')!.addEventListener('click', () => player.pause());
 $$('#play')!.addEventListener('click', () => player.play());

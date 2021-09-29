@@ -1,14 +1,14 @@
 import * as path from 'path';
 import { expect } from 'chai';
 import {
-  loadCachedTestBed, takeScreenshot, TestBed
+  loadCachedTestBed, takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('capacity-sk', () => {
   let testBed: TestBed;
   before(async () => {
     testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
+      path.join(__dirname, '..', '..', 'webpack.config.ts'),
     );
   });
 

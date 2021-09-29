@@ -1,11 +1,10 @@
 import './index';
+import { expect } from 'chai';
 import { TimelineSk, TimelineSkMoveFrameEventDetail } from './timeline-sk';
 
-
 import {
-  setUpElementUnderTest, eventPromise, noEventPromise
-} from '../../../infra-sk/modules/test_util';import { expect } from 'chai';
-
+  setUpElementUnderTest, eventPromise, noEventPromise,
+} from '../../../infra-sk/modules/test_util';
 
 describe('timeline-sk', () => {
   const newInstance = setUpElementUnderTest<TimelineSk>('timeline-sk');

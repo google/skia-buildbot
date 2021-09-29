@@ -1,12 +1,12 @@
-import './index'
+import './index';
+import { expect } from 'chai';
 import { ConfirmDialogSk } from './confirm-dialog-sk';
 import { setUpElementUnderTest } from '../test_util';
-import { expect } from 'chai';
 
 function invertPromise(p: Promise<any>) {
   return p.then(
-    (x) => {throw x},
-    (x) => x
+    (x) => { throw x; },
+    (x) => x,
   );
 }
 
@@ -17,7 +17,7 @@ describe('confirm-dialog-sk', () => {
 
   beforeEach(() => {
     confirmDialogSk = newElement();
-  })
+  });
 
   describe('promise', () => {
     it('resolves when OK is clicked', () => {
@@ -25,12 +25,12 @@ describe('confirm-dialog-sk', () => {
       const button = confirmDialogSk.querySelector<HTMLButtonElement>('button.confirm')!;
       expect(button.textContent).to.equal('OK');
       expect(confirmDialogSk.querySelector('.message')?.textContent).to.equal('Testing');
-      button.click()
+      button.click();
       return promise; // Return the promise and let Mocha check that it resolves.
     });
 
     it('rejects when Cancel is clicked', () => {
-      const promise = confirmDialogSk.open("Testing");
+      const promise = confirmDialogSk.open('Testing');
       const button = confirmDialogSk.querySelector<HTMLButtonElement>('button.dismiss')!;
       expect(button.textContent).to.equal('Cancel');
       button.click();
@@ -44,5 +44,5 @@ describe('confirm-dialog-sk', () => {
       confirmDialogSk.open('whatever');
       expect(confirmDialogSk.querySelector('dialog')?.hasAttribute('open')).to.be.true;
     });
-  })
+  });
 });

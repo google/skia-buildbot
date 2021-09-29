@@ -9,14 +9,17 @@ import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html, TemplateResult } from 'lit-html';
 import { until } from 'lit-html/directives/until.js';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Login } from '../../../infra-sk/modules/login';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { Commit } from '../commits-table-sk/commits-table-sk';
 import { Task, Comment } from '../rpc';
 import { CommentData } from '../comments-sk/comments-sk';
-import { logsUrl, revisionUrlTemplate, swarmingUrl, taskSchedulerUrl } from '../settings';
+import {
+  logsUrl, revisionUrlTemplate, swarmingUrl, taskSchedulerUrl,
+} from '../settings';
 
 import '../comments-sk';
 import 'elements-sk/styles/buttons';
@@ -24,21 +27,19 @@ import 'elements-sk/icon/close-icon-sk';
 import 'elements-sk/icon/content-copy-icon-sk';
 import 'elements-sk/icon/launch-icon-sk';
 import '../../../infra-sk/modules/task-driver-sk';
-import { $$ } from 'common-sk/modules/dom';
 
 // Type defining the text and action of the upper-right button of the dialog.
 // For reverts of commits and re-running of tasks.
 interface Action {
   buttonText: string;
-  handler: () => void;
+  handler: ()=> void;
 }
 
 export class DetailsDialogSk extends ElementSk {
   // This template is essentially a title section with optional action button, an optional details
   // section, and a comments-sk section. Task, TaskSpec, and Commits set the appropriate sections
   // before rendering.
-  private static template = (el: DetailsDialogSk) =>
-    html`
+  private static template = (el: DetailsDialogSk) => html`
       <div class="dialog" @click=${(e: Event) => e.stopPropagation()}>
         <button class=close @click=${() => el.close()}><close-icon-sk></close-icon-sk></button>
         </br>
@@ -57,12 +58,12 @@ export class DetailsDialogSk extends ElementSk {
         ${
           el.detailsSection
             ? [
-                el.detailsSection,
-                html`
+              el.detailsSection,
+              html`
                   <br />
                   <hr />
                 `,
-              ]
+            ]
             : html``
         }
         <div>
@@ -79,12 +80,19 @@ export class DetailsDialogSk extends ElementSk {
     `;
 
   private titleSection: TemplateResult = html``;
+
   private detailsSection: TemplateResult | null = null;
+
   private actionButton: Action | null = null;
+
   private showCommentsIgnoreFailure: boolean = false;
+
   private showCommentsFlaky: boolean = false;
+
   private canEditComments = false;
+
   private _repo: string = '';
+
   private commentData?: CommentData;
 
   constructor() {
@@ -103,12 +111,12 @@ export class DetailsDialogSk extends ElementSk {
 
   private open() {
     this._render();
-    (<HTMLElement>this).style.display = 'block';
+    (<HTMLElement> this).style.display = 'block';
     document.addEventListener('keydown', this.keydown);
   }
 
   close() {
-    (<HTMLElement>this).style.display = 'none';
+    (<HTMLElement> this).style.display = 'none';
     document.removeEventListener('keydown', this.keydown);
   }
 
@@ -143,9 +151,7 @@ export class DetailsDialogSk extends ElementSk {
     };
     const td = fetch(`/json/td/${task.id}`)
       .then(jsonOrThrow)
-      .then((td) => {
-        return html`<br /><task-driver-sk id="tdStatus" .data=${td} embedded></task-driver-sk>`;
-      });
+      .then((td) => html`<br /><task-driver-sk id="tdStatus" .data=${td} embedded></task-driver-sk>`);
     // We don't catch failures, since we don't want the promise to resolve (and be used below)
     // unless the task-driver-sk has data.
     this.titleSection = html`${until(
@@ -193,15 +199,15 @@ export class DetailsDialogSk extends ElementSk {
             </tr>
           </table>
         </div>
-      `
+      `,
     )}`;
 
     this.detailsSection = html`
       <h3>Blamelist</h3>
       <table class="blamelist">
         ${task.commits?.map((hash: string) => {
-          const commit = commitsByHash.get(hash);
-          return html`
+    const commit = commitsByHash.get(hash);
+    return html`
             <tr>
               <td>
                 <a href="${revisionUrlTemplate(this.repo)}${hash}">${commit?.shortHash || ''}</a>
@@ -210,7 +216,7 @@ export class DetailsDialogSk extends ElementSk {
               <td>${commit?.shortSubject || ''}</td>
             </tr>
           `;
-        })}
+  })}
       </table>
     `;
 
@@ -259,8 +265,8 @@ export class DetailsDialogSk extends ElementSk {
         <content-copy-icon-sk
           class="small-icon clickable"
           @click=${() => {
-            navigator.clipboard.writeText(commit.hash);
-          }}
+    navigator.clipboard.writeText(commit.hash);
+  }}
         ></content-copy-icon-sk>
         <br />
         ${commit.author}
@@ -298,10 +304,9 @@ export class DetailsDialogSk extends ElementSk {
   }
 
   private revertCommit(commit: Commit) {
-    const url =
-      commit.patchStorage === 'gerrit'
-        ? `https://skia-review.googlesource.com/c/${commit.issue}/?revert`
-        : `https://codereview.chromium.org/${commit.issue}/revert`;
+    const url = commit.patchStorage === 'gerrit'
+      ? `https://skia-review.googlesource.com/c/${commit.issue}/?revert`
+      : `https://codereview.chromium.org/${commit.issue}/revert`;
     const win = window.open(url, '_blank') as Window;
     win.focus();
   }
@@ -327,6 +332,7 @@ export class DetailsDialogSk extends ElementSk {
   get repo(): string {
     return this._repo;
   }
+
   set repo(value) {
     this._repo = value;
   }

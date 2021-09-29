@@ -1,8 +1,8 @@
 import './index';
+import { expect } from 'chai';
 import { HistogramSk } from './histogram-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 
 describe('histogram-sk', () => {
   const newInstance = setUpElementUnderTest<HistogramSk>('histogram-sk');
@@ -18,6 +18,6 @@ describe('histogram-sk', () => {
 
   describe('some action', () => {
     it('some result', () => {});
-      expect(element).to.not.be.null;
+    expect(element).to.not.be.null;
   });
 });

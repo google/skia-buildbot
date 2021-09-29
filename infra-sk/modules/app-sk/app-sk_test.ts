@@ -1,7 +1,7 @@
 import './index';
+import { expect } from 'chai';
 import { AppSk } from './app-sk';
 import { setUpElementUnderTest } from '../test_util';
-import { expect } from 'chai';
 
 describe('app-sk', () => {
   const newInstance = setUpElementUnderTest<AppSk>('app-sk');

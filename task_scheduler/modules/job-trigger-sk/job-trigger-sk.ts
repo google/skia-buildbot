@@ -34,7 +34,7 @@ export class JobTriggerSk extends ElementSk {
         <th>Commit</th>
       </tr>
       ${ele.jobs.map(
-        (job: TriggerJob, index: number) => html`
+    (job: TriggerJob, index: number) => html`
       <tr>
         <td>
           <input
@@ -42,9 +42,9 @@ export class JobTriggerSk extends ElementSk {
               type="text"
               .value="${job.jobName}"
               @change="${(ev: any) => {
-                job.jobName = ev.currentTarget.value;
-                ele.updateURL();
-              }}"
+      job.jobName = ev.currentTarget.value;
+      ele.updateURL();
+    }}"
               >
           </input>
         </td>
@@ -54,22 +54,22 @@ export class JobTriggerSk extends ElementSk {
               type="text"
               .value="${job.commitHash}"
               @change="${(ev: any) => {
-                job.commitHash = ev.currentTarget.value;
-                ele.updateURL();
-              }}"
+      job.commitHash = ev.currentTarget.value;
+      ele.updateURL();
+    }}"
               >
           </input>
         </td>
         <td>
           <button @click="${() => {
-            ele.removeJob(index);
-          }}">
+      ele.removeJob(index);
+    }}">
             <delete-icon-sk></delete-icon-sk>
           </button>
         </td>
       </tr>
-    `
-      )}
+    `,
+  )}
     </table>
     <button @click="${ele.addJob}">
       <add-icon-sk></add-icon-sk>
@@ -79,25 +79,29 @@ export class JobTriggerSk extends ElementSk {
       Trigger Jobs
     </button>
     ${ele.triggeredJobs && ele.triggeredJobs.length > 0
-      ? html`
+    ? html`
           <div class="container">
             <h2>Triggered Jobs</h2>
             ${ele.triggeredJobs.map(
-              (job: TriggeredJob) => html`
+      (job: TriggeredJob) => html`
                 <div class="triggered_job">
                   <a href="/job/${job.id}">${job.name} @ ${job.commit}</a>
                 </div>
-              `
-            )}
+              `,
+    )}
           </div>
         `
-      : html``}
+    : html``}
   `;
 
   private initialLoad: boolean = true;
+
   private waitingForRPCs: boolean = false;
+
   private jobs: TriggerJob[] = [{ jobName: '', commitHash: '' }];
+
   private _rpc: TaskSchedulerService | null = null;
+
   private triggeredJobs: TriggeredJob[] = [];
 
   constructor() {
@@ -108,7 +112,7 @@ export class JobTriggerSk extends ElementSk {
     super.connectedCallback();
     if (this.initialLoad && window.location.search) {
       const params = toParamSet(window.location.search.substring(1));
-      const jobs = params['job'];
+      const jobs = params.job;
       if (jobs) {
         this.jobs = jobs.map((jobStr: string) => {
           const split = jobStr.split('@');
@@ -118,7 +122,7 @@ export class JobTriggerSk extends ElementSk {
           };
         });
 
-        const submit = params['submit'];
+        const submit = params.submit;
         if (submit && submit[0] == 'true') {
           if (this.rpc) {
             this.triggerJobs();
@@ -135,6 +139,7 @@ export class JobTriggerSk extends ElementSk {
   get rpc(): TaskSchedulerService | null {
     return this._rpc;
   }
+
   set rpc(rpc: TaskSchedulerService | null) {
     this._rpc = rpc;
     if (this.waitingForRPCs) {
@@ -161,11 +166,10 @@ export class JobTriggerSk extends ElementSk {
         .map((job: TriggerJob) => `${job.jobName}@${job.commitHash}`),
     };
     if (ps.job.length > 0) {
-      const url =
-        window.location.origin +
-        window.location.pathname +
-        '?' +
-        fromParamSet(ps);
+      const url = `${window.location.origin
+        + window.location.pathname
+      }?${
+        fromParamSet(ps)}`;
       window.history.pushState({ path: url }, '', url);
     }
   }
@@ -175,7 +179,7 @@ export class JobTriggerSk extends ElementSk {
       return;
     }
     const jobs = this.jobs.filter(
-      (job: TriggerJob) => job.jobName && job.commitHash
+      (job: TriggerJob) => job.jobName && job.commitHash,
     );
     if (jobs.length == 0) {
       return;
@@ -184,13 +188,11 @@ export class JobTriggerSk extends ElementSk {
       jobs: jobs,
     };
     this.rpc.triggerJobs(req).then((resp: TriggerJobsResponse) => {
-      this.triggeredJobs = resp.jobIds!.map((id: string, index: number) => {
-        return {
-          name: this.jobs[index].jobName,
-          commit: this.jobs[index].commitHash,
-          id: id,
-        };
-      });
+      this.triggeredJobs = resp.jobIds!.map((id: string, index: number) => ({
+        name: this.jobs[index].jobName,
+        commit: this.jobs[index].commitHash,
+        id: id,
+      }));
       // TODO(borenet): If I render with an empty TriggerJob, the values of the
       // input fields spill over from the previous set of jobs, so I first
       // render with an empty list.

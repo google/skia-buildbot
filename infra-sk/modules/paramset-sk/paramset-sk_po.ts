@@ -39,7 +39,7 @@ export class ParamSetSkPO extends PageObject {
 
     await this._forEachParamSetKeyValue(async (pkv) => {
       // Find the ParamSet, or create it if it doesn't exist.
-      while(paramSets.length <= pkv.paramSetIndex) { paramSets.push({}); }
+      while (paramSets.length <= pkv.paramSetIndex) { paramSets.push({}); }
       const paramSet = paramSets[pkv.paramSetIndex];
 
       // Add the key/value pair to the ParamSet.
@@ -72,16 +72,17 @@ export class ParamSetSkPO extends PageObject {
 
   async clickValue(pkv: ParamSetKeyValueTuple) {
     await this._forEachParamSetKeyValue(async (curPkv, valueDiv) => {
-      if (curPkv.paramSetIndex === pkv.paramSetIndex &&
-          curPkv.key === pkv.key &&
-          curPkv.value === pkv.value) {
+      if (curPkv.paramSetIndex === pkv.paramSetIndex
+          && curPkv.key === pkv.key
+          && curPkv.value === pkv.value) {
         await valueDiv.click();
       }
     });
   }
 
   private async _forEachParamSetKeyValue(
-      fn: (pkv: ParamSetKeyValueTuple, valueDiv: PageObjectElement) => Promise<void>) {
+    fn: (pkv: ParamSetKeyValueTuple, valueDiv: PageObjectElement)=> Promise<void>,
+  ) {
     // Iterate over all rows.
     await this.rows.forEach(async (row) => {
       const key = await row.bySelector('th').innerText;
@@ -89,9 +90,9 @@ export class ParamSetSkPO extends PageObject {
       await row.bySelectorAll('td').forEach(async (td, paramSetIndex) => {
         // Iterate over each value of the current ParamSet.
         await td.bySelectorAll('div').forEach(async (div) => {
-          await fn({paramSetIndex: paramSetIndex, key: key, value: await div.innerText}, div);
+          await fn({ paramSetIndex: paramSetIndex, key: key, value: await div.innerText }, div);
         });
-      })
+      });
     });
   }
 }

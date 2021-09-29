@@ -28,11 +28,12 @@ export abstract class PageObject {
   protected element: PageObjectElement;
 
   constructor(
-      element:
+    element:
           HTMLElement |
           ElementHandle<HTMLElement> |
           Promise<ElementHandle<HTMLElement> | null> |
-          PageObjectElement) {
+          PageObjectElement,
+  ) {
     if (element instanceof PageObjectElement) {
       this.element = element;
     } else {
@@ -57,21 +58,23 @@ export abstract class PageObject {
    * Returns the result of calling PageObjectElement#bySelectorAll() on the underlying
    * PageObjectElement.
    */
-  protected bySelectorAll(selector: string): PageObjectElementList  {
+  protected bySelectorAll(selector: string): PageObjectElementList {
     return this.element.bySelectorAll(selector);
   }
 
   /** Instantiates a PageObject with the first element that matches the given selector. */
   protected poBySelector<T extends PageObject>(
-      selector: string, ctor: { new(...args: any): T }): T {
+    selector: string, ctor: { new(...args: any): T },
+  ): T {
     return new ctor(this.bySelector(selector));
   }
 
   /** Instantiates one PageObject for each element that match the given selector. */
   protected poBySelectorAll<T extends PageObject>(
-      selector: string, ctor: { new(...args: any): T }): PageObjectList<T> {
+    selector: string, ctor: { new(...args: any): T },
+  ): PageObjectList<T> {
     return new PageObjectList(this.bySelectorAll(selector)
-        .map(async (poe: PageObjectElement) => new ctor(poe)));
+      .map(async (poe: PageObjectElement) => new ctor(poe)));
   }
 }
 

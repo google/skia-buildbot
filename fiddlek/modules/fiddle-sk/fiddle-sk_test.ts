@@ -2,7 +2,6 @@ import { assert } from 'chai';
 import { FiddleSk } from './fiddle-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
-
 describe('fiddle-sk', () => {
   const newInstance = setUpElementUnderTest<FiddleSk>('fiddle-sk');
 

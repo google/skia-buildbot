@@ -82,7 +82,6 @@ export class ClusterLastNPageSk extends ElementSk {
     triage: undefined,
   };
 
-
   /** Is true if the previous Run has returned an error. */
   private hasError: boolean = false;
 

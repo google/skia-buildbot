@@ -7,7 +7,7 @@ const jsTestFile = process.argv[process.argv.length - 1];
 // https://github.com/bazelbuild/rules_nodejs/blob/681c6683dac742f1e375a401c0399ec7783ac8fd/packages/karma/karma_web_test.bzl#L257
 const isBazelTest = !process.env.BUILD_WORKSPACE_DIRECTORY; // Set when running via "bazel run".
 
-module.exports = function (config) {
+module.exports = function(config) {
   config.set({
     plugins: [
       'karma-chrome-launcher',

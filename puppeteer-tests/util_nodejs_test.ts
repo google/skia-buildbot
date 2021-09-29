@@ -49,8 +49,7 @@ describe('utility functions for Puppeteer tests', async () => {
       }/`;
 
       // Serve a test page that triggers various custom events.
-      app.get('/', (req, res) =>
-        res.send(`
+      app.get('/', (req, res) => res.send(`
         <html>
           <head>
             <script>
@@ -92,8 +91,7 @@ describe('utility functions for Puppeteer tests', async () => {
             <p>I am just a test page.</p>
           </body>
         </html>
-      `)
-      );
+      `));
     });
 
     afterEach((done) => server.close(done));
@@ -101,10 +99,10 @@ describe('utility functions for Puppeteer tests', async () => {
     it('renders test page correctly', async () => {
       await page.goto(testPageUrl);
       expect(
-        await page.$eval('h1', (el) => (el as HTMLElement).innerText)
+        await page.$eval('h1', (el) => (el as HTMLElement).innerText),
       ).to.equal('Hello, world!');
       expect(
-        await page.$eval('p', (el) => (el as HTMLElement).innerText)
+        await page.$eval('p', (el) => (el as HTMLElement).innerText),
       ).to.equal('I am just a test page.');
     });
 
@@ -121,13 +119,13 @@ describe('utility functions for Puppeteer tests', async () => {
       ];
       const eventPromise = await addEventListenersToPuppeteerPage(
         page,
-        eventNames
+        eventNames,
       );
 
       // We will collect the Event object details in the order they are caught.
       const eventDetailsInOrder: TestEventDetail[] = [];
       const trackCaughtOrder = async (
-        anEventPromise: Promise<TestEventDetail>
+        anEventPromise: Promise<TestEventDetail>,
       ) => {
         const detail = await anEventPromise;
         eventDetailsInOrder.push(detail);
@@ -162,25 +160,25 @@ describe('utility functions for Puppeteer tests', async () => {
       // Assert that promises were resolved in the expected order.
       expect(eventDetailsInOrder).to.have.length(7);
       expect(eventDetailsInOrder[0].msg).to.equal(
-        'Only occurrence of alpha-event'
+        'Only occurrence of alpha-event',
       );
       expect(eventDetailsInOrder[1].msg).to.equal(
-        '1st occurrence of beta-event'
+        '1st occurrence of beta-event',
       );
       expect(eventDetailsInOrder[2].msg).to.equal(
-        '2nd occurrence of beta-event'
+        '2nd occurrence of beta-event',
       );
       expect(eventDetailsInOrder[3].msg).to.equal(
-        '3rd occurrence of beta-event'
+        '3rd occurrence of beta-event',
       );
       expect(eventDetailsInOrder[4].msg).to.equal(
-        '1st occurrence of gamma-event'
+        '1st occurrence of gamma-event',
       );
       expect(eventDetailsInOrder[5].msg).to.equal(
-        '2nd occurrence of gamma-event'
+        '2nd occurrence of gamma-event',
       );
       expect(eventDetailsInOrder[6].msg).to.equal(
-        '3rd occurrence of gamma-event'
+        '3rd occurrence of gamma-event',
       );
     });
 
@@ -189,7 +187,7 @@ describe('utility functions for Puppeteer tests', async () => {
         'foo-event',
       ]);
       expect(() => eventPromise('invalid-event')).to.throw(
-        'no event listener for "invalid-event"'
+        'no event listener for "invalid-event"',
       );
     });
   });
@@ -200,7 +198,7 @@ describe('utility functions for Puppeteer tests', async () => {
     if (inBazel()) return;
 
     let baseUrl: string;
-    let stopDemoPageServer: () => Promise<void>;
+    let stopDemoPageServer: ()=> Promise<void>;
 
     before(async () => {
       // Start a demo page server using Perfs's webpack.config.ts file.
@@ -208,10 +206,10 @@ describe('utility functions for Puppeteer tests', async () => {
         __dirname,
         '..',
         'perf',
-        'webpack.config.ts'
+        'webpack.config.ts',
       );
       ({ baseUrl, stopDemoPageServer } = await startWebpackDemoPageServer(
-        pathToPerfWebpackConfigTs
+        pathToPerfWebpackConfigTs,
       ));
     });
 

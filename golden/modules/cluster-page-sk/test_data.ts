@@ -1,4 +1,4 @@
-import {ClusterDiffResult, Digest} from '../rpc_types';
+import { ClusterDiffResult, Digest } from '../rpc_types';
 
 export const positiveDigest: Digest = '99c58c7002073346ff55f446d47d6311';
 export const negativeDigest: Digest = 'ec3b8f27397d99581e06eaa46d6d5837';

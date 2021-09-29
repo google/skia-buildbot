@@ -9,7 +9,7 @@ describe('fiddle-embed', () => {
   let testBed: TestBed;
   before(async () => {
     testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
+      path.join(__dirname, '..', '..', 'webpack.config.ts'),
     );
   });
 

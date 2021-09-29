@@ -1,12 +1,12 @@
 import './index';
-import { ListPageSk } from './list-page-sk';
 
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import fetchMock from 'fetch-mock';
 import { html } from 'lit-html';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { ListPageSk } from './list-page-sk';
 
 interface PigglyWiggly {
 	Piggly: string;
@@ -34,7 +34,7 @@ class PigglyWigglyPageSk extends ListPageSk<PigglyWiggly> {
       </tr>
     `;
   }
-};
+}
 
 const newPigglyWigglyElement = async (): Promise<PigglyWigglyPageSk> => {
   fetchMock.reset();

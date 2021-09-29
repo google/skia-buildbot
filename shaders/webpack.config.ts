@@ -8,7 +8,6 @@ import CopyWebpackPlugin from 'copy-webpack-plugin';
 import HtmlWebpackInjectAttributesPlugin from 'html-webpack-inject-attributes-plugin';
 import commonBuilder from '../infra-sk/pulito/webpack.common';
 
-
 const configFactory: webpack.ConfigurationFactory = (_, args): webpack.Configuration => {
   // Don't minify the HTML since it contains Go template tags.
   const config = commonBuilder(__dirname, args.mode, /* neverMinifyHtml= */ true);
@@ -25,7 +24,6 @@ const configFactory: webpack.ConfigurationFactory = (_, args): webpack.Configura
 
   // https://github.com/webpack/node-libs-browser/issues/26#issuecomment-267954095
   config.resolve.modules = [resolve(__dirname, '..', 'node_modules')];
-
 
   config.plugins!.push(
     new CopyWebpackPlugin([

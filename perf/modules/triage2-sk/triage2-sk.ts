@@ -59,7 +59,6 @@ export class TriageSk extends ElementSk {
     </button>
   `;
 
-
   connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('value');

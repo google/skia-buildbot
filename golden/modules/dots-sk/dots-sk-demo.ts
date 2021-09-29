@@ -2,7 +2,7 @@ import './index';
 import { $$ } from 'common-sk/modules/dom';
 import { isPuppeteerTest } from '../demo_util';
 import { traces, commits } from './demo_data';
-import {DotsSk} from './dots-sk';
+import { DotsSk } from './dots-sk';
 
 const logEventDetail = (e: Event) => {
   const detail = (e as CustomEvent).detail;

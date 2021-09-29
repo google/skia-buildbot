@@ -23,7 +23,6 @@ describe('paramtooms', () => {
     });
   });
 
-
   describe('addParamsToParamSet', () => {
     it('works on empty values', () => {
       const ps: ParamSet = {};

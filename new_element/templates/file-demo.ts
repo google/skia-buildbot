@@ -6,6 +6,6 @@ document
     document.querySelector('#events')!.textContent = JSON.stringify(
       e,
       null,
-      '  '
+      '  ',
     );
   });

@@ -1,26 +1,24 @@
-import dialogPolyfill from 'dialog-polyfill'
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
+import dialogPolyfill from 'dialog-polyfill';
+import { define } from 'elements-sk/define';
+import { html, render } from 'lit-html';
 
-import 'elements-sk/icon/check-icon-sk'
-import 'elements-sk/icon/warning-icon-sk'
-import 'elements-sk/select-sk'
-import 'elements-sk/styles/buttons'
-import { upgradeProperty } from 'elements-sk/upgradeProperty'
+import 'elements-sk/icon/check-icon-sk';
+import 'elements-sk/icon/warning-icon-sk';
+import 'elements-sk/select-sk';
+import 'elements-sk/styles/buttons';
+import { upgradeProperty } from 'elements-sk/upgradeProperty';
 
-import { diffDate } from 'common-sk/modules/human'
+import { diffDate } from 'common-sk/modules/human';
 
 function linkToCommit(hash) {
-  return 'https://skia.googlesource.com/buildbot/+show/' + hash;
+  return `https://skia.googlesource.com/buildbot/+show/${hash}`;
 }
 
 function shorten(s) {
   return s.slice(0, 8);
 }
 
-const dirtyIndicator = (choice) => {
-  return choice.Dirty ? html`<warning-icon-sk title="Uncommited changes when the package was built."></warning-icon-sk>` : ``;
-}
+const dirtyIndicator = (choice) => (choice.Dirty ? html`<warning-icon-sk title="Uncommited changes when the package was built."></warning-icon-sk>` : '');
 
 const listChoices = (choices) => choices.map((choice) => html`
   <div class=pushSelection data-name="${choice.Name}">
@@ -61,7 +59,7 @@ const template = (ele) => html`
  */
 class PushSelectionSk extends HTMLElement {
   constructor() {
-    super()
+    super();
     this._choices = [];
     this._chosen = -1;
   }
@@ -75,7 +73,7 @@ class PushSelectionSk extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this, {eventContext: this});
+    render(template(this), this, { eventContext: this });
   }
 
   /** @prop {Array} The list of packages that are available. Serialized Package from infra/go/packages/. For example:
@@ -92,6 +90,7 @@ class PushSelectionSk extends HTMLElement {
    * </pre>
    */
   get choices() { return this._choices; }
+
   set choices(val) {
     this._choices = val;
     this._render();
@@ -99,6 +98,7 @@ class PushSelectionSk extends HTMLElement {
 
   /** @prop {number} The index of the chosen package. */
   get chosen() { return this._chosen; }
+
   set chosen(val) {
     this._chosen = +val;
     this._render();
@@ -123,7 +123,6 @@ class PushSelectionSk extends HTMLElement {
   hide() {
     this._dialog.close();
   }
-
 }
 
 define('push-selection-sk', PushSelectionSk);

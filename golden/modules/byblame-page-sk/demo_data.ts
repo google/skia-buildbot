@@ -9,9 +9,9 @@ export const canvaskit: ByBlameResponse = {
 export const gm: ByBlameResponse = {
   data: [{
     groupID:
-        '4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:' +
-        'a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:' +
-        '05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
+        '4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:'
+        + 'a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:'
+        + '05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
     nDigests: 1,
     nTests: 1,
     affectedTests: [{

@@ -1,8 +1,8 @@
 import './index';
 
+import { expect } from 'chai';
 import { setUpElementUnderTest } from '../test_util';
 import { AutogrowTextareaSk } from './autogrow-textarea-sk';
-import { expect } from 'chai';
 
 describe('autogrow-textarea-sk', () => {
   // Function to create a new autogrow-textarea-sk.

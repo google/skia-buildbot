@@ -37,17 +37,16 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../ElementSk';
 import { ParamSet } from 'common-sk/modules/query';
+import { ElementSk } from '../ElementSk';
 
 export interface ParamSetSkClickEventDetail {
   readonly key: string;
   readonly value?: string;
   readonly ctrl: boolean;
-};
+}
 
 export class ParamSetSk extends ElementSk {
-
   private static template = (ele: ParamSetSk) => html`
   <table @click=${ele._click} class=${ele._computeClass()}>
     <tbody>
@@ -66,27 +65,28 @@ export class ParamSetSk extends ElementSk {
   private static rowsTemplate =
     (ele: ParamSetSk) => ele._sortedKeys.map((key) => ParamSetSk.rowTemplate(ele, key));
 
-  private static rowTemplate = (ele: ParamSetSk, key: string) =>
-    html`
+  private static rowTemplate = (ele: ParamSetSk, key: string) => html`
     <tr>
       <th data-key=${key}>${key}</th>
       ${ParamSetSk.paramsetValuesTemplate(ele, key)}
     </tr>`;
 
   private static paramsetValuesTemplate =
-    (ele: ParamSetSk, key: string) =>
-      ele._paramsets.map(
-        (p) => html`<td>${ParamSetSk.paramsetValueTemplate(ele, key, p[key] || [])}</td>`);
+    (ele: ParamSetSk, key: string) => ele._paramsets.map(
+      (p) => html`<td>${ParamSetSk.paramsetValueTemplate(ele, key, p[key] || [])}</td>`,
+    );
 
   private static paramsetValueTemplate =
-    (ele: ParamSetSk, key: string, params: string[]) =>
-      params.map((value) => html`<div class=${ele._highlighted(key, value)}
+    (ele: ParamSetSk, key: string, params: string[]) => params.map((value) => html`<div class=${ele._highlighted(key, value)}
                                       data-key=${key}
                                       data-value=${value}>${value}</div>`);
 
   private _titles: string[] = [];
+
   private _paramsets: ParamSet[] = [];
+
   private _sortedKeys: string[] = [];
+
   private _highlight: { [key: string]: string } = {};
 
   constructor() {
@@ -222,6 +222,6 @@ export class ParamSetSk extends ElementSk {
     this._highlight = val;
     this._render();
   }
-};
+}
 
 define('paramset-sk', ParamSetSk);

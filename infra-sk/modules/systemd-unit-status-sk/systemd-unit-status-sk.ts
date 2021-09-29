@@ -15,15 +15,15 @@
  *  }
  * </pre>
  */
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
+import { define } from 'elements-sk/define';
+import { html, render } from 'lit-html';
 
 import { SystemdUnitStatus } from './json';
 
-import 'elements-sk/styles/buttons'
-import { upgradeProperty } from 'elements-sk/upgradeProperty'
+import 'elements-sk/styles/buttons';
+import { upgradeProperty } from 'elements-sk/upgradeProperty';
 
-import { diffDate } from 'common-sk/modules/human'
+import { diffDate } from 'common-sk/modules/human';
 
 export interface SystemdUnitStatusSkEventDetail {
   machine: string,
@@ -36,7 +36,7 @@ export class SystemdUnitStatusSk extends HTMLElement {
     <button raised data-action="start"   data-name="${ele.value!.status!.Name}" @click=${ele.onClick}>Start  </button>
     <button raised data-action="stop"    data-name="${ele.value!.status!.Name}" @click=${ele.onClick}>Stop   </button>
     <button raised data-action="restart" data-name="${ele.value!.status!.Name}" @click=${ele.onClick}>Restart</button>
-    <div class=uptime>${diffDate(ele.value!.props ? +ele.value!.props.ExecMainStartTimestamp/1000 : 'n/a')}</div>
+    <div class=uptime>${diffDate(ele.value!.props ? +ele.value!.props.ExecMainStartTimestamp / 1000 : 'n/a')}</div>
     <div class="${ele.value!.status!.SubState} state">${ele.value!.status!.SubState}</div>
     <div class=service>${ele.value!.status!.Name}</div>
   `;
@@ -49,6 +49,7 @@ export class SystemdUnitStatusSk extends HTMLElement {
   }
 
   get value(): SystemdUnitStatus | null { return this._value; }
+
   set value(val: SystemdUnitStatus | null) {
     this._value = val;
     this.render();
@@ -56,7 +57,7 @@ export class SystemdUnitStatusSk extends HTMLElement {
 
   private render() {
     if (this.value) {
-      render(SystemdUnitStatusSk.template(this), this, {eventContext: this});
+      render(SystemdUnitStatusSk.template(this), this, { eventContext: this });
     }
   }
 
@@ -68,8 +69,8 @@ export class SystemdUnitStatusSk extends HTMLElement {
         name: target.dataset.name,
         action: target.dataset.action,
       } as SystemdUnitStatusSkEventDetail,
-      bubbles: true}
-    ));
+      bubbles: true,
+    }));
   }
 }
 

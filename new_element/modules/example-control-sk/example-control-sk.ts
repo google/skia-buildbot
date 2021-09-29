@@ -23,6 +23,6 @@ export class ExampleControlSk extends ElementSk {
     super.connectedCallback();
     this._render();
   }
-};
+}
 
 define('example-control-sk', ExampleControlSk);

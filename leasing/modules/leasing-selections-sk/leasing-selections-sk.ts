@@ -48,7 +48,6 @@ export class LeasingSelectionsSk extends ElementSk {
 
   private loadingDetails: boolean = false;
 
-
   constructor() {
     super(LeasingSelectionsSk.template);
 

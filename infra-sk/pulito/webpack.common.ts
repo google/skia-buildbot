@@ -88,7 +88,7 @@ import * as http from 'http';
 interface HtmlAndTsOrJsFilePair {
   html: string,
   tsOrJs: string,
-};
+}
 
 /**
  * Finds all HTML/TypeScript and HTML/JavaScript file pairs with the same base name in the given
@@ -101,7 +101,7 @@ function findHtmlAndTsOrJsFilePairs(directory: string, htmlGlob = '*.html'): Htm
   const pagesFound: HtmlAndTsOrJsFilePair[] = [];
 
   const htmlFiles = glob.sync(path.resolve(directory, htmlGlob));
-  htmlFiles.forEach(htmlFile => {
+  htmlFiles.forEach((htmlFile) => {
     const tsFile = htmlFile.replace(/\.html$/, '.ts');
     const jsFile = htmlFile.replace(/\.html$/, '.js');
 
@@ -122,7 +122,7 @@ function findHtmlAndTsOrJsFilePairs(directory: string, htmlGlob = '*.html'): Htm
 
     pagesFound.push({
       html: htmlFile,
-      tsOrJs: tsFileExists ? tsFile : jsFile
+      tsOrJs: tsFileExists ? tsFile : jsFile,
     });
   });
 
@@ -152,11 +152,12 @@ const minifyOptions: HtmlWebpackPlugin.MinifyOptions = {
  * Each page gets its own entry point and HtmlWebpackPlugin instance in the Webpack configuration.
  */
 function addApplicationPages(
-    pagesDirectory: string,
-    webpackConfig: webpack.Configuration,
-    minifyOutput: boolean): void {
+  pagesDirectory: string,
+  webpackConfig: webpack.Configuration,
+  minifyOutput: boolean,
+): void {
   // Find all HTML pages under the "pages" directory, along with their respective TS or JS files.
-  findHtmlAndTsOrJsFilePairs(pagesDirectory).forEach(pair => {
+  findHtmlAndTsOrJsFilePairs(pagesDirectory).forEach((pair) => {
     const chunkName = path.basename(pair.html, '.html');
 
     // Add TypeScript / JavaScript entry point.
@@ -168,9 +169,9 @@ function addApplicationPages(
         filename: path.basename(pair.html),
         template: pair.html,
         chunks: [chunkName],
-        minify: minifyOutput ? minifyOptions : false
-      })
-    )
+        minify: minifyOutput ? minifyOptions : false,
+      }),
+    );
   });
 }
 
@@ -184,17 +185,16 @@ function addApplicationPages(
  */
 function addDemoPages(modulesRootDir: string, webpackConfig: webpack.Configuration): void {
   // Find all module directories.
-  const moduleDirectories =
-      fs.readdirSync(modulesRootDir)
-          .map(f => path.join(modulesRootDir, f))
-          .filter(f => fs.lstatSync(f).isDirectory());
+  const moduleDirectories = fs.readdirSync(modulesRootDir)
+    .map((f) => path.join(modulesRootDir, f))
+    .filter((f) => fs.lstatSync(f).isDirectory());
 
   // We will populate this array with demo pages found in the module directories.
   const demoPages: {moduleName: string, html: string, tsOrJs: string}[] = [];
 
   // Search for demo pages inside each module. At most 1 demo page per module is allowed.
-  moduleDirectories.forEach(moduleDir => {
-    const pairs = findHtmlAndTsOrJsFilePairs(moduleDir, "*-demo.html");
+  moduleDirectories.forEach((moduleDir) => {
+    const pairs = findHtmlAndTsOrJsFilePairs(moduleDir, '*-demo.html');
 
     // At most 1 demo page per module.
     if (pairs.length > 1) {
@@ -205,21 +205,21 @@ function addDemoPages(modulesRootDir: string, webpackConfig: webpack.Configurati
     if (pairs.length == 0) return;
     const pair = pairs[0];
 
-    demoPages.push({moduleName: path.basename(moduleDir), html: pair.html, tsOrJs: pair.tsOrJs});
+    demoPages.push({ moduleName: path.basename(moduleDir), html: pair.html, tsOrJs: pair.tsOrJs });
   });
 
   // Add demo page entry points and HTML plugins to the Webpack configuration.
-  demoPages.forEach(page => {
+  demoPages.forEach((page) => {
     // Add TypeScript / JavaScript entry point.
     (webpackConfig.entry as webpack.Entry)[page.moduleName] = page.tsOrJs;
 
     // Add output HTML page.
     webpackConfig.plugins!.push(
       new HtmlWebpackPlugin({
-        filename: page.moduleName + '.html',
+        filename: `${page.moduleName}.html`,
         template: page.html,
         chunks: [page.moduleName],
-      })
+      }),
     );
   });
 }
@@ -233,22 +233,22 @@ function addDemoPages(modulesRootDir: string, webpackConfig: webpack.Configurati
  *     e.g. when the HTML files contain Go template tags.
  */
 function buildCommonWebpackConfig(
-    dirname: string,
-    mode?: 'development' | 'production' | 'none',
-    neverMinifyHtml = false): webpack.Configuration {
-
+  dirname: string,
+  mode?: 'development' | 'production' | 'none',
+  neverMinifyHtml = false,
+): webpack.Configuration {
   // Convenience constants. Defaults to production if e.g. "npx webpack" is invoked without
   // specifying a mode via the --mode fag.
   const devMode = mode == 'development';
   const prodMode = !devMode;
 
-  const configuration: webpack.Configuration  = {
+  const configuration: webpack.Configuration = {
     entry: {
       // Will be populated with application and demo pages.
     },
 
     resolve: {
-      extensions: ['.ts', '.js']
+      extensions: ['.ts', '.js'],
     },
 
     output: {
@@ -280,7 +280,7 @@ function buildCommonWebpackConfig(
         {
           test: /\.ts$/,
           use: 'ts-loader',
-          exclude: /node_modules/
+          exclude: /node_modules/,
         },
         {
           test: /\.[s]?css$/,
@@ -313,22 +313,22 @@ function buildCommonWebpackConfig(
               loader: 'sass-loader',
               options: {
                 includePaths: [__dirname],
-              }
-            }
+              },
+            },
           ],
         },
         {
           test: /\.html$/,
           use: [
             {
-              loader:'html-loader',
+              loader: 'html-loader',
               options: {
                 name: '[name].[ext]',
               },
-            }
+            },
           ],
         },
-      ]
+      ],
     },
 
     plugins: [
@@ -336,14 +336,15 @@ function buildCommonWebpackConfig(
         filename: '[name]-bundle.css?[hash]',
       }),
       new CleanWebpackPlugin(),
-    ]
+    ],
   };
 
   // Add application pages.
   addApplicationPages(
     path.resolve(dirname, 'pages'),
     configuration,
-    neverMinifyHtml ? false : prodMode);
+    neverMinifyHtml ? false : prodMode,
+  );
 
   // Add demo pages.
   if (devMode) {
@@ -351,6 +352,6 @@ function buildCommonWebpackConfig(
   }
 
   return configuration;
-};
+}
 
 export default buildCommonWebpackConfig;

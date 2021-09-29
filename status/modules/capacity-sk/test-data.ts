@@ -3,7 +3,9 @@ import { GetBotUsageResponse } from '../rpc/status';
 export const resp: GetBotUsageResponse = {
   botSets: [
     {
-      dimensions: { gpu: '1002:6613', os: 'foster', pool: 'Skia', purple: 'elephant' },
+      dimensions: {
+        gpu: '1002:6613', os: 'foster', pool: 'Skia', purple: 'elephant',
+      },
       botCount: 5,
       totalTasks: 10,
       msPerCommit: 60 * 60 * 1000,
@@ -19,7 +21,9 @@ export const resp: GetBotUsageResponse = {
       msPerCq: 30 * 60 * 1000,
     },
     {
-      dimensions: { gpu: 'widget5', os: 'Android', pool: 'Skia', device: 'marlin' },
+      dimensions: {
+        gpu: 'widget5', os: 'Android', pool: 'Skia', device: 'marlin',
+      },
       botCount: 25,
       totalTasks: 8,
       msPerCommit: 6 * 60 * 60 * 1000,

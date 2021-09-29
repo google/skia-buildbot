@@ -8,13 +8,13 @@ describe('task-scheduler-scaffold-sk', () => {
   let testBed: TestBed;
   before(async () => {
     testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
+      path.join(__dirname, '..', '..', 'webpack.config.ts'),
     );
   });
 
   beforeEach(async () => {
     await testBed.page.goto(
-      `${testBed.baseUrl}/dist/task-scheduler-scaffold-sk.html`
+      `${testBed.baseUrl}/dist/task-scheduler-scaffold-sk.html`,
     );
     await testBed.page.setViewport({ width: 650, height: 400 });
     await testBed.page.evaluate((_) => {
@@ -29,7 +29,7 @@ describe('task-scheduler-scaffold-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'task-scheduler-scaffold-sk'
+        'task-scheduler-scaffold-sk',
       );
       // Take a screenshot in dark mode.
       await testBed.page.evaluate((_) => {
@@ -40,7 +40,7 @@ describe('task-scheduler-scaffold-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'task-scheduler-scaffold-sk_dark'
+        'task-scheduler-scaffold-sk_dark',
       );
     });
   });

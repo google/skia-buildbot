@@ -3,7 +3,7 @@ import {
   addEventListenersToPuppeteerPage,
   loadCachedTestBed,
   takeScreenshot,
-  TestBed
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('byblame-page-sk', () => {
@@ -61,10 +61,10 @@ describe('byblame-page-sk', () => {
   });
 
   const expectSelectedCorpusToBe = async (corpus: string) => {
-    const selectedTitle =
-        await testBed.page.$eval(
-            'corpus-selector-sk li.selected',
-            (e: Element) => (e as HTMLLIElement).innerText);
+    const selectedTitle = await testBed.page.$eval(
+      'corpus-selector-sk li.selected',
+      (e: Element) => (e as HTMLLIElement).innerText,
+    );
     expect(selectedTitle).to.contain(corpus);
   };
 });

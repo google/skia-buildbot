@@ -21,7 +21,6 @@ window.sk = {
   },
 };
 
-
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');
 
 fetchMock.post('/_/cidRange/', (): Commit[] => [
@@ -111,7 +110,6 @@ fetchMock.get('path:/_/initpage/', () => ({
   skps: [],
   msg: '',
 }));
-
 
 // eslint-disable-next-line import/first
 import './index';

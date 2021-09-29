@@ -5,14 +5,14 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import { ARBStatusSk } from './arb-status-sk';
 import { SetupMocks, GetFakeStatus } from '../rpc-mock';
 
+import './index.ts';
+
 fetchMock.get('/loginstatus/', {
   Email: 'user@google.com',
   LoginURL: 'https://accounts.google.com/',
   IsAGoogler: true,
 });
 SetupMocks();
-
-import './index.ts';
 
 // Get the name of the fake roller from the demo data.
 const ele = <ARBStatusSk>document.getElementsByTagName('arb-status-sk')[0];

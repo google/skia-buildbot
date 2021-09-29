@@ -1,8 +1,8 @@
 import './index';
+import { expect } from 'chai';
 import { ExampleControlSk } from './example-control-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 
 describe('example-control-sk', () => {
   const newInstance = setUpElementUnderTest<ExampleControlSk>('example-control-sk');

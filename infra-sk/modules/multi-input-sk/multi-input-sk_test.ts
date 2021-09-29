@@ -1,9 +1,9 @@
 import './index';
-import { MultiInputSk } from './multi-input-sk';
-
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { expect } from 'chai';
 import { $ } from 'common-sk/modules/dom';
+import { MultiInputSk } from './multi-input-sk';
+
+import { setUpElementUnderTest } from '../test_util';
 
 describe('multi-input-sk', () => {
   const newInstance = setUpElementUnderTest<MultiInputSk>('multi-input-sk');

@@ -39,17 +39,15 @@
  *
  */
 import { define } from 'elements-sk/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { $, $$ } from 'common-sk/modules/dom';
+import { ElementSk } from '../ElementSk';
 import 'elements-sk/icon/arrow-drop-down-icon-sk';
 import 'elements-sk/icon/arrow-drop-up-icon-sk';
 
 export type SortDirection = 'down' | 'up';
 
 // The states to move each button through on a click.
-const toggle = (value: string): SortDirection => {
-  return value === 'down' ? 'up' : 'down';
-};
+const toggle = (value: string): SortDirection => (value === 'down' ? 'up' : 'down');
 
 interface SortableEntry {
   value: string;
@@ -58,18 +56,15 @@ interface SortableEntry {
 }
 
 // Functions to pass to sort().
-const f_alpha_up = (x: SortableEntry, y: SortableEntry) => {
-  return x.value.localeCompare(y.value);
-};
+const f_alpha_up = (x: SortableEntry, y: SortableEntry) => x.value.localeCompare(y.value);
 const f_alpha_down = (x: SortableEntry, y: SortableEntry) => f_alpha_up(y, x);
 const f_num_up = (x: SortableEntry, y: SortableEntry) => {
   if (x.valueAsNumber === y.valueAsNumber) {
     return 0;
-  } else if (x.valueAsNumber > y.valueAsNumber) {
+  } if (x.valueAsNumber > y.valueAsNumber) {
     return 1;
-  } else {
-    return -1;
   }
+  return -1;
 };
 const f_num_down = (x: SortableEntry, y: SortableEntry) => f_num_up(y, x);
 
@@ -140,7 +135,7 @@ export class SortSk extends ElementSk {
     const up = dir === 'up';
 
     const container = this.parentElement!.querySelector(
-        `#${this.getAttribute('target')}`
+      `#${this.getAttribute('target')}`,
     );
     if (container === null) {
       throw 'Failed to find "target" attribute.';

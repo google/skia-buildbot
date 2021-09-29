@@ -1,11 +1,11 @@
 import { expect } from 'chai';
+import { ElementHandle } from 'puppeteer';
 import {
   addEventListenersToPuppeteerPage, EventName, loadCachedTestBed,
-  takeScreenshot, TestBed
+  takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
-import { positiveDigest, negativeDigest, untriagedDigest } from '../cluster-page-sk/test_data';
-import {ClusterPageSkPO} from './cluster-page-sk_po';
-import {ElementHandle} from 'puppeteer';
+import { positiveDigest, negativeDigest, untriagedDigest } from './test_data';
+import { ClusterPageSkPO } from './cluster-page-sk_po';
 
 describe('cluster-page-sk', () => {
   let testBed: TestBed;
@@ -17,14 +17,14 @@ describe('cluster-page-sk', () => {
   let clusterPageSk: ElementHandle;
   let clusterPageSkPO: ClusterPageSkPO;
 
-  let promiseFactory: <T>(eventName: EventName) => Promise<T>;
+  let promiseFactory: <T>(eventName: EventName)=> Promise<T>;
 
   beforeEach(async () => {
     await testBed.page.setViewport({ width: 1200, height: 1200 });
 
-    promiseFactory =
-        await addEventListenersToPuppeteerPage(
-            testBed.page, ['layout-complete', 'selection-changed']);
+    promiseFactory = await addEventListenersToPuppeteerPage(
+      testBed.page, ['layout-complete', 'selection-changed'],
+    );
 
     const loaded = promiseFactory('layout-complete'); // Emitted when layout stabilizes.
     await testBed.page.goto(testBed.baseUrl);
@@ -70,14 +70,14 @@ describe('cluster-page-sk', () => {
 
   it('shows nodes with matching values when a value is clicked', async () => {
     const done = promiseFactory('layout-complete');
-    await clusterPageSkPO.paramSetSkPO.clickValue({paramSetIndex: 0, key: 'gpu', value: 'AMD'});
+    await clusterPageSkPO.paramSetSkPO.clickValue({ paramSetIndex: 0, key: 'gpu', value: 'AMD' });
     await done;
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_value-clicked');
   });
 
   it('can zoom in using the keyboard', async () => {
     const done = promiseFactory('layout-complete');
-    await clusterPageSk.type( 'aa');
+    await clusterPageSk.type('aa');
     await done;
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_zoom-in');
   });

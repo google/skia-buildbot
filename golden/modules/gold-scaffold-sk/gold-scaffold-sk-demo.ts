@@ -1,6 +1,6 @@
 import './index';
-import { testOnlySetSettings } from '../settings';
 import { $$ } from 'common-sk/modules/dom';
+import { testOnlySetSettings } from '../settings';
 import { GoldScaffoldSk } from './gold-scaffold-sk';
 
 testOnlySetSettings({

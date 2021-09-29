@@ -45,9 +45,9 @@ export function escapeAndLinkify(s: string): HTMLDivElement | string {
 
 const supportedIssueTrackers = [
   {
-    re:  /chromium:[0-9]+/g,
+    re: /chromium:[0-9]+/g,
     url: 'http://crbug.com/',
   }, {
-    re:  /skia:[0-9]+/g,
+    re: /skia:[0-9]+/g,
     url: 'http://skbug.com/',
   }];

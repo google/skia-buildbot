@@ -1,12 +1,12 @@
 import { expect } from 'chai';
+import { ElementHandle, Page } from 'puppeteer';
 import {
   addEventListenersToPuppeteerPage,
   loadCachedTestBed,
   takeScreenshot,
-  TestBed
+  TestBed,
 } from '../../../puppeteer-tests/util';
-import { ElementHandle, Page } from 'puppeteer';
-import {DetailsPageSkPO} from './details-page-sk_po';
+import { DetailsPageSkPO } from './details-page-sk_po';
 
 describe('details-page-sk', () => {
   let testBed: TestBed;
@@ -62,37 +62,39 @@ describe('details-page-sk', () => {
       const detailsPageSkPO = await navigateTo(testBed.page, testBed.baseUrl, baseParams);
 
       expect(await detailsPageSkPO.digestDetailsSkPO.getTestName())
-          .to.equal('Test: My test has spaces');
+        .to.equal('Test: My test has spaces');
       expect(await detailsPageSkPO.digestDetailsSkPO.getLeftDigest())
-          .to.equal('Left: 99c58c7002073346ff55f446d47d6311');
+        .to.equal('Left: 99c58c7002073346ff55f446d47d6311');
       expect(await detailsPageSkPO.digestDetailsSkPO.getRightDigest())
-          .to.equal('Right: 6246b773851984c726cb2e1cb13510c2');
+        .to.equal('Right: 6246b773851984c726cb2e1cb13510c2');
 
       // This link should not have a changelist ID or CRS.
       expect(await detailsPageSkPO.digestDetailsSkPO.getDiffPageLink()).to.equal(
-          '/diff?test=My test has spaces'
-          + '&left=99c58c7002073346ff55f446d47d6311&right=6246b773851984c726cb2e1cb13510c2');
+        '/diff?test=My test has spaces'
+          + '&left=99c58c7002073346ff55f446d47d6311&right=6246b773851984c726cb2e1cb13510c2',
+      );
     });
 
     it('correctly extracts the changelist ID and CRS if provided', async () => {
-      const detailsPageSkPO =
-          await navigateTo(
-              testBed.page,
-              testBed.baseUrl,
-              `${baseParams}&changelist_id=65432&crs=gerrit-internal`);
+      const detailsPageSkPO = await navigateTo(
+        testBed.page,
+        testBed.baseUrl,
+        `${baseParams}&changelist_id=65432&crs=gerrit-internal`,
+      );
 
       expect(await detailsPageSkPO.digestDetailsSkPO.getTestName())
-          .to.equal('Test: My test has spaces');
+        .to.equal('Test: My test has spaces');
       expect(await detailsPageSkPO.digestDetailsSkPO.getLeftDigest())
-          .to.equal('Left: 99c58c7002073346ff55f446d47d6311');
+        .to.equal('Left: 99c58c7002073346ff55f446d47d6311');
       expect(await detailsPageSkPO.digestDetailsSkPO.getRightDigest())
-          .to.equal('Right: 6246b773851984c726cb2e1cb13510c2');
+        .to.equal('Right: 6246b773851984c726cb2e1cb13510c2');
 
       // The changelist ID and CRS should be reflected in this link.
       expect(await detailsPageSkPO.digestDetailsSkPO.getDiffPageLink()).to.equal(
-          '/diff?test=My test has spaces'
+        '/diff?test=My test has spaces'
           + '&left=99c58c7002073346ff55f446d47d6311&right=6246b773851984c726cb2e1cb13510c2'
-          + '&changelist_id=65432&crs=gerrit-internal');
+          + '&changelist_id=65432&crs=gerrit-internal',
+      );
     });
   });
 });

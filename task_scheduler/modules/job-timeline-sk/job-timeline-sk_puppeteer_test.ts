@@ -9,7 +9,7 @@ describe('job-timeline-sk', () => {
   let testBed: TestBed;
   before(async () => {
     testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
+      path.join(__dirname, '..', '..', 'webpack.config.ts'),
     );
   });
 
@@ -39,7 +39,7 @@ describe('job-timeline-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'job-timeline-sk_dark'
+        'job-timeline-sk_dark',
       );
     });
   });

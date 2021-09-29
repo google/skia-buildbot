@@ -61,7 +61,6 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
     super(UniformDimensionsSk.template);
   }
 
-
   private static template = (ele: UniformDimensionsSk) => html`
     <select @change=${ele.selectionChanged} size="1">
       ${choices.map((choice, index) => html`
@@ -97,7 +96,7 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
     this._render();
   }
 
-  attributeChangedCallback(): void{
+  attributeChangedCallback(): void {
     this._render();
   }
 

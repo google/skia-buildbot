@@ -1,6 +1,6 @@
+import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { TraceFilterSkPO } from '../trace-filter-sk/trace-filter-sk_po';
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { Filters } from './filter-dialog-sk';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 
@@ -16,7 +16,7 @@ export class NumericParamPO extends PageObject {
   }
 
   private get numberInput(): PageObjectElement {
-    return this.bySelector('input[type=number]')
+    return this.bySelector('input[type=number]');
   }
 
   async focusRangeInput() { await this.rangeInput.focus(); }
@@ -86,7 +86,7 @@ export class FilterDialogSkPO extends PageObject {
 
   async isReferenceImageCheckboxChecked() {
     return this.mustHaveReferenceImageCheckBox
-        .applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
+      .applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
   }
 
   async clickReferenceImageCheckbox() { await this.mustHaveReferenceImageCheckBox.click(); }
@@ -102,8 +102,8 @@ export class FilterDialogSkPO extends PageObject {
       minRGBADelta: await this.getMinRGBADelta(),
       maxRGBADelta: await this.getMaxRGBADelta(),
       sortOrder: await this.getSortOrder(),
-      mustHaveReferenceImage: await this.isReferenceImageCheckboxChecked()
-    }
+      mustHaveReferenceImage: await this.isReferenceImageCheckboxChecked(),
+    };
     return filters;
   }
 

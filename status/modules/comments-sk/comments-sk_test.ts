@@ -1,10 +1,10 @@
 import './index';
+import { expect } from 'chai';
+import { $, $$ } from 'common-sk/modules/dom';
 import { CommentsSk } from './comments-sk';
 
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 import { taskspecComments } from './test_data';
-import { $, $$ } from 'common-sk/modules/dom';
 import { MockStatusService, SetupMocks } from '../rpc-mock';
 
 describe('comments-sk', () => {

@@ -1,11 +1,11 @@
 import { expect } from 'chai';
+import { ElementHandle } from 'puppeteer';
 import {
   addEventListenersToPuppeteerPage, EventName, loadCachedTestBed,
-  takeScreenshot, TestBed
+  takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
-import { ElementHandle } from 'puppeteer';
 import { positiveDigest, negativeDigest, untriagedDigest } from '../cluster-page-sk/test_data';
-import {ClusterDigestsSkPO} from './cluster-digests-sk_po';
+import { ClusterDigestsSkPO } from './cluster-digests-sk_po';
 
 describe('cluster-digests-sk', () => {
   let testBed: TestBed;
@@ -14,16 +14,16 @@ describe('cluster-digests-sk', () => {
     testBed = await loadCachedTestBed();
   });
 
-  let promiseFactory: <T>(eventName: EventName) => Promise<T>;
+  let promiseFactory: <T>(eventName: EventName)=> Promise<T>;
 
   let clusterDigestsSk: ElementHandle;
   let clusterDigestsSkPO: ClusterDigestsSkPO;
 
   beforeEach(async () => {
-    promiseFactory =
-        await addEventListenersToPuppeteerPage(
-            testBed.page,
-            ['layout-complete', 'selection-changed']);
+    promiseFactory = await addEventListenersToPuppeteerPage(
+      testBed.page,
+      ['layout-complete', 'selection-changed'],
+    );
 
     const loaded = promiseFactory('layout-complete'); // Emitted when layout stabilizes.
     await testBed.page.goto(testBed.baseUrl);
@@ -58,22 +58,25 @@ describe('cluster-digests-sk', () => {
     await clickNodeAndExpectSelectionChanged(untriagedDigest, [untriagedDigest]);
 
     await takeScreenshot(
-        clusterDigestsSk, 'gold', 'cluster-digests-sk_one-untriaged-selected');
+      clusterDigestsSk, 'gold', 'cluster-digests-sk_one-untriaged-selected',
+    );
   });
 
   it('supports multiple digest selection via shift clicking', async () => {
     await clickNodeAndExpectSelectionChanged(negativeDigest, [negativeDigest]);
 
     await shiftClickNodeAndExpectSelectionChanged(
-        positiveDigest, [negativeDigest, positiveDigest]);
+      positiveDigest, [negativeDigest, positiveDigest],
+    );
 
     await takeScreenshot(clusterDigestsSk, 'gold', 'cluster-digests-sk_two-digests-selected');
 
     await shiftClickNodeAndExpectSelectionChanged(
-        untriagedDigest, [negativeDigest, positiveDigest, untriagedDigest]);
+      untriagedDigest, [negativeDigest, positiveDigest, untriagedDigest],
+    );
 
     await takeScreenshot(clusterDigestsSk, 'gold',
-        'cluster-digests-sk_three-digests-selected');
+      'cluster-digests-sk_three-digests-selected');
   });
 
   it('clears selection by clicking anywhere on the svg that is not on a node', async () => {
@@ -93,7 +96,8 @@ describe('cluster-digests-sk', () => {
   }
 
   async function shiftClickNodeAndExpectSelectionChanged(
-      digest: string, expectedSelection: string[]) {
+    digest: string, expectedSelection: string[],
+  ) {
     const event = promiseFactory<Array<string>>('selection-changed');
     await clusterDigestsSkPO.shiftClickNode(digest);
     expect(await event).to.deep.equal(expectedSelection);

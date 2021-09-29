@@ -1,13 +1,13 @@
-import { define } from 'elements-sk/define'
-import { ElementSk } from './ElementSk'
-import { html } from 'lit-html'
-import { assert } from 'chai'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { assert } from 'chai';
+import { ElementSk } from './ElementSk';
 
-let container = document.createElement('div');
+const container = document.createElement('div');
 document.body.appendChild(container);
 
-afterEach(function() {
-  container.innerHTML = "";
+afterEach(() => {
+  container.innerHTML = '';
 });
 
 class MyTestElementSk extends ElementSk {
@@ -37,13 +37,13 @@ class MyTestElementSk extends ElementSk {
 
 define('my-test-element-sk', MyTestElementSk);
 
-describe('ElementSk', function() {
-  describe('render', function() {
-    it('only renders if connected', function() {
-        container.innerHTML = `<my-test-element-sk some-attribute><my-test-element-sk>`;
-        let ele = container.firstElementChild as MyTestElementSk;
-        assert.isNotNull(ele.querySelector('p'));
-        assert.isTrue(ele.attributeCalled);
+describe('ElementSk', () => {
+  describe('render', () => {
+    it('only renders if connected', () => {
+      container.innerHTML = '<my-test-element-sk some-attribute><my-test-element-sk>';
+      const ele = container.firstElementChild as MyTestElementSk;
+      assert.isNotNull(ele.querySelector('p'));
+      assert.isTrue(ele.attributeCalled);
     });
   });
 });

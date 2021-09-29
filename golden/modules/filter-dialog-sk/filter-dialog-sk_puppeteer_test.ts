@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { FilterDialogSkPO, NumericParamPO } from './filter-dialog-sk_po';
 
 describe('filter-dialog-sk', () => {
@@ -13,7 +13,7 @@ describe('filter-dialog-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
-    await testBed.page.setViewport({width: 800, height: 800});
+    await testBed.page.setViewport({ width: 800, height: 800 });
     filterDialogSkPO = new FilterDialogSkPO((await testBed.page.$('filter-dialog-sk'))!);
   });
 

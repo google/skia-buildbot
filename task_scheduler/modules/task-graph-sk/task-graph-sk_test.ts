@@ -1,8 +1,8 @@
 import './index';
+import { expect } from 'chai';
 import { TaskGraphSk } from './task-graph-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 import { job1 } from '../rpc-mock';
 
 describe('task-graph-sk', () => {
@@ -14,7 +14,7 @@ describe('task-graph-sk', () => {
   });
 
   it('renders job1', () => {
-    element.draw([job1], "fake-swarming.com");
-    expect(element.getElementsByTagName("svg").length).to.equal(1);
+    element.draw([job1], 'fake-swarming.com');
+    expect(element.getElementsByTagName('svg').length).to.equal(1);
   });
 });

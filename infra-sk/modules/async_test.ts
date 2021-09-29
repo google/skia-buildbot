@@ -1,5 +1,7 @@
-import { asyncFilter, asyncFind, asyncForEach, asyncMap } from './async';
 import { expect } from 'chai';
+import {
+  asyncFilter, asyncFind, asyncForEach, asyncMap,
+} from './async';
 
 describe('async utilities', () => {
   describe('asyncFind', () => {
@@ -9,7 +11,7 @@ describe('async utilities', () => {
         await simulateAsyncOp();
         visitedItems.push(item);
         return true;
-      }
+      };
 
       // Raw array.
       expect(await asyncFind([], finderFn)).to.be.null;
@@ -20,7 +22,7 @@ describe('async utilities', () => {
       expect(visitedItems).to.be.empty;
     });
 
-    it('finds it', async() => {
+    it('finds it', async () => {
       let visitedItems: string[];
       let visitedIndices: number[];
       const finderFn = async (item: string, index: number) => {
@@ -28,7 +30,7 @@ describe('async utilities', () => {
         visitedItems.push(item);
         visitedIndices.push(index);
         return item.startsWith('g');
-      }
+      };
       const input = ['alpha', 'beta', 'gamma', 'delta'];
 
       // Raw array.
@@ -54,7 +56,7 @@ describe('async utilities', () => {
         visitedItems.push(item);
         visitedIndices.push(index);
         return false; // Never finds it.
-      }
+      };
       const input = ['alpha', 'beta', 'gamma', 'delta'];
 
       // Raw array.
@@ -80,7 +82,7 @@ describe('async utilities', () => {
         await simulateAsyncOp();
         visitedIndices.push(index);
         return true;
-      }
+      };
 
       // Raw array.
       expect(await asyncFilter([], filterFn)).to.be.empty;
@@ -115,7 +117,7 @@ describe('async utilities', () => {
       expect(await asyncFilter(wrapInPromise(input), filterFn)).to.deep.equal(['alpha', 'gamma']);
       expect(visitedItems).to.deep.equal(input);
       expect(visitedIndices).to.deep.equal([0, 1, 2, 3]);
-    })
+    });
   });
 
   describe('asyncMap', () => {
@@ -125,7 +127,7 @@ describe('async utilities', () => {
         await simulateAsyncOp();
         visitedIndices.push(index);
         return 'hello';
-      }
+      };
 
       // Raw array.
       expect(await asyncMap([], mapperFn)).to.be.empty;
@@ -144,8 +146,8 @@ describe('async utilities', () => {
         visitedItems.push(item);
         visitedIndices.push(index);
         return item.toUpperCase();
-      }
-      const input = ["hello", "world"];
+      };
+      const input = ['hello', 'world'];
 
       // Raw array.
       visitedItems = [];
@@ -160,7 +162,7 @@ describe('async utilities', () => {
       expect(await asyncMap(wrapInPromise(input), mapperFn)).to.deep.equal(['HELLO', 'WORLD']);
       expect(visitedItems).to.deep.equal(input);
       expect(visitedIndices).to.deep.equal([0, 1]);
-    })
+    });
   });
 
   describe('asyncForEach', () => {
@@ -169,7 +171,7 @@ describe('async utilities', () => {
       const callbackFn = async (item: string, index: number) => {
         await simulateAsyncOp();
         visitedIndices.push(index);
-      }
+      };
 
       // Raw array.
       await asyncForEach([], callbackFn);
@@ -187,7 +189,7 @@ describe('async utilities', () => {
         await simulateAsyncOp();
         visitedItems.push(item);
         visitedIndices.push(index);
-      }
+      };
       const input = ['alpha', 'beta', 'gamma'];
 
       // Raw array.
@@ -203,7 +205,7 @@ describe('async utilities', () => {
       await asyncForEach(wrapInPromise(input), callbackFn);
       expect(visitedItems).to.deep.equal(input);
       expect(visitedIndices).to.deep.equal([0, 1, 2]);
-    })
+    });
   });
 });
 

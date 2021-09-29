@@ -1,6 +1,6 @@
+import { ParamSet } from 'common-sk/modules/query';
 import { PageObject } from '../page_object/page_object';
 import { QueryValuesSkPO } from '../query-values-sk/query-values-sk_po';
-import { ParamSet } from 'common-sk/modules/query';
 import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
 
 /** A page object for the QuerySk component. */

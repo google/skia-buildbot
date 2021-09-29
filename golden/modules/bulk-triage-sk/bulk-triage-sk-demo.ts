@@ -1,8 +1,8 @@
 import './index';
 import { $$ } from 'common-sk/modules/dom';
+import fetchMock from 'fetch-mock';
 import { examplePageData, exampleAllData } from './test_data';
 import { BulkTriageSk } from './bulk-triage-sk';
-import fetchMock from 'fetch-mock';
 
 const handleTriaged = () => {
   const log = $$<HTMLPreElement>('#event_log')!;

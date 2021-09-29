@@ -19,7 +19,7 @@ export const expectedPageDataTriageRequest: TriageRequest = {
     },
     beta_test: {
       ccccccccccccccccccccccccccc: 'positive',
-    }
+    },
   },
   changelist_id: '',
   crs: '',
@@ -55,7 +55,7 @@ export const expectedAllDataTriageRequest: TriageRequest = {
     },
     gamma_test: {
       eeeeeeeeeeeeeeeeeeeeeeeeeee: '' as Label,
-    }
+    },
   },
   changelist_id: 'someCL',
   crs: 'gerrit',

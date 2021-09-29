@@ -8,7 +8,6 @@ window.sk.perf = window.sk.perf || {};
 window.sk.perf.key_order = [];
 window.sk.perf.display_group_by = true;
 
-
 // Force all the alert-config-sk controls on the page to re-render.
 const refreshControls = () => {
   $<AlertConfigSk>('alert-config-sk')!.forEach((ele) => {

@@ -12,7 +12,7 @@ export function GetStatusService(): StatusService {
   // We use a lazy window property to keep our client, so it is truly global (to support client
   // injection), and initialized exactly once, rather than per import of this module.
   if (!w.rpcClient) {
-    const host = window.location.protocol + '//' + window.location.host;
+    const host = `${window.location.protocol}//${window.location.host}`;
     w.rpcClient = new StatusServiceClient(host, window.fetch.bind(window));
   }
   return w.rpcClient;

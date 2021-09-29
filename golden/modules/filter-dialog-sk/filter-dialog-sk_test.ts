@@ -1,39 +1,39 @@
 import './index';
+import { ParamSet } from 'common-sk/modules/query';
 import { setUpElementUnderTest, eventPromise, noEventPromise } from '../../../infra-sk/modules/test_util';
 import { FilterDialogSk, Filters } from './filter-dialog-sk';
 import { FilterDialogSkPO } from './filter-dialog-sk_po';
-import { ParamSet } from 'common-sk/modules/query';
 
 const expect = chai.expect;
 
 const paramSet: ParamSet = {
   'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],
-  'color': ['blue', 'green', 'red'],
-  'used': ['yes', 'no'],
-  'year': ['2020', '2019', '2018', '2017', '2016', '2015']
+  color: ['blue', 'green', 'red'],
+  used: ['yes', 'no'],
+  year: ['2020', '2019', '2018', '2017', '2016', '2015'],
 };
 
 const filters: Filters = {
   diffConfig: {
     'car make': ['chevrolet', 'dodge', 'ford'],
-    'color': ['blue'],
-    'year': ['2020', '2019']
+    color: ['blue'],
+    year: ['2020', '2019'],
   },
   minRGBADelta: 0,
   maxRGBADelta: 255,
   sortOrder: 'descending',
-  mustHaveReferenceImage: false
+  mustHaveReferenceImage: false,
 };
 
 const differentFilters: Filters = {
   diffConfig: {
-    'color': ['green'],
-    'used': ['yes', 'no'],
+    color: ['green'],
+    used: ['yes', 'no'],
   },
   minRGBADelta: 50,
   maxRGBADelta: 100,
   sortOrder: 'ascending',
-  mustHaveReferenceImage: true
+  mustHaveReferenceImage: true,
 };
 
 describe('filter-dialog-sk', () => {
@@ -67,7 +67,7 @@ describe('filter-dialog-sk', () => {
       filterDialogSk.open(paramSet, filters);
       await filterDialogSkPO.clickFilterBtn();
       expect(await filterDialogSkPO.isDialogOpen()).to.be.false;
-    })
+    });
 
     it('returns unmodified filters via the "edit" event if the user made no changes', async () => {
       filterDialogSk.open(paramSet, filters);

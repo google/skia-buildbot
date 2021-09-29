@@ -61,7 +61,6 @@ export class PaginationSk extends ElementSk {
   </div>
   `;
 
-
   connectedCallback(): void {
     super.connectedCallback();
     this._render();

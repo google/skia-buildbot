@@ -11,7 +11,7 @@ function setData(labels: boolean) {
   if (labels) {
     nodes.forEach((node, index) => {
       node.label = `node ${index}`;
-    })
+    });
   }
   clusterDigestsSk.setData(nodes, deepCopy(clusterDiffJSON.links!));
 }

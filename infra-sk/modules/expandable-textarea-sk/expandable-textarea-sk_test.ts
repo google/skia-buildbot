@@ -2,7 +2,7 @@ import './index';
 
 import { ExpandableTextareaSk } from './expandable-textarea-sk';
 import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { setUpElementUnderTest } from '../test_util';
 import { expect } from 'chai';
 import chai from 'chai';
 import 'chai-dom';

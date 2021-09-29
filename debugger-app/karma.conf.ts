@@ -18,7 +18,7 @@ export = function(karmaConfig: karma.Config) {
 
       // out debugger wasm products
       'build/debugger/debugger.js',
-      { pattern: 'build/debugger/debugger.wasm', included:false, served:true},
+      { pattern: 'build/debugger/debugger.wasm', included: false, served: true },
 
       // the test files that setCommonConfigOptions already set
       'node_modules/@webcomponents/custom-elements/custom-elements.min.js',

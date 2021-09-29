@@ -1,5 +1,7 @@
 import { Job, Task } from '../rpc';
-import { TaskStatus, JobStatus, RepoState, SkipTaskRule } from '../rpc/rpc';
+import {
+  TaskStatus, JobStatus, RepoState, SkipTaskRule,
+} from '../rpc/rpc';
 
 // This is an arbitrary date which happens to be after all of the other
 // timestamps listed in this file.
@@ -85,7 +87,7 @@ export const task2: Task = {
   finishedAt: '2019-02-19T13:27:14.669965Z',
   id: 'QT5J8rNsgnumXH67JwTr',
   isolatedOutput: 'f43fcadbbffe79a92f5da6792ed992581aa620bd',
-  jobs: [job1ID /*, job2ID*/],
+  jobs: [job1ID],
   maxAttempts: 2,
   parentTaskIds: [task0.id, task1.id],
   properties: {},
@@ -166,8 +168,8 @@ export const task4: Task = {
 
 // job1 represents real task data.
 export const job1: Job = {
-  buildbucketBuildId: "8855126827389415264",
-  buildbucketLeaseKey: "",
+  buildbucketBuildId: '8855126827389415264',
+  buildbucketLeaseKey: '',
   createdAt: new Date('2019-02-19T13:20:52.277737Z').toString(),
   dbModifiedAt: new Date('2019-02-19T13:33:14.64704Z').toString(),
   dependencies: [
@@ -275,8 +277,8 @@ export const job1: Job = {
 
 // job2 is fake data but is more visually interesting.
 export const job2: Job = {
-  buildbucketBuildId: "8855126827389415264",
-  buildbucketLeaseKey: "",
+  buildbucketBuildId: '8855126827389415264',
+  buildbucketLeaseKey: '',
   createdAt: new Date('2019-10-10T13:56:44.572122663Z').toUTCString(),
   dbModifiedAt: new Date('2019-10-10T19:56:44.572122663Z').toUTCString(),
   dependencies: [

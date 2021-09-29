@@ -52,7 +52,6 @@ export class UniformTimeSk extends ElementSk implements UniformControl {
   <span>${ele._uniform.name}</span>
 `;
 
-
   connectedCallback(): void {
     super.connectedCallback();
     this._render();

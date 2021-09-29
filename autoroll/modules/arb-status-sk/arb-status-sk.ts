@@ -50,17 +50,16 @@ interface RollCandidate {
 }
 
 export class ARBStatusSk extends ElementSk {
-  private static template = (ele: ARBStatusSk) =>
-    !ele.status
-      ? html``
-      : html`
+  private static template = (ele: ARBStatusSk) => (!ele.status
+    ? html``
+    : html`
   <tabs-sk>
     <button value="status">Roller Status</button>
     <button value="manual">Trigger Manual Rolls</button>
   </tabs-sk>
   ${!ele.editRights
-          ? html` <div id="pleaseLoginMsg" class="big">${ele.pleaseLoginMsg}</div> `
-          : html``
+      ? html` <div id="pleaseLoginMsg" class="big">${ele.pleaseLoginMsg}</div> `
+      : html``
         }
   <tabs-panel-sk selected="0">
     <div class="status">
@@ -107,8 +106,8 @@ export class ARBStatusSk extends ElementSk {
           <td class="nowrap unknown">
             ${ele.status.mode?.user}
             ${ele.status.mode
-          ? 'at ' + localeTime(new Date(ele.status.mode!.time!))
-          : html``
+            ? `at ${localeTime(new Date(ele.status.mode!.time!))}`
+            : html``
         }
             ${ele.status.mode?.message
           ? html`: ${ele.status.mode.message}`
@@ -119,26 +118,24 @@ export class ARBStatusSk extends ElementSk {
         <tr>
           <td class="nowrap">Change Mode:</td>
           <td class="nowrap">
-            ${Object.keys(Mode).map((mode: string) =>
-          mode === ele.status?.mode?.mode
-            ? ''
-            : html`
+            ${Object.keys(Mode).map((mode: string) => (mode === ele.status?.mode?.mode
+          ? ''
+          : html`
                     <button
                       @click="${() => {
-                ele.modeButtonPressed(mode);
-              }}"
+            ele.modeButtonPressed(mode);
+          }}"
                       ?disabled="${!ele.editRights || ele.modeChangePending}"
                       title="${ele.editRights
-                ? 'Change the mode.'
-                : ele.pleaseLoginMsg}"
+            ? 'Change the mode.'
+            : ele.pleaseLoginMsg}"
                       value="${mode}"
                     >
                       ${ele.status?.mode?.mode
-                ? ele.getModeButtonLabel(ele.status.mode.mode, mode)
-                : ''}
+              ? ele.getModeButtonLabel(ele.status.mode.mode, mode)
+              : ''}
                     </button>
-                  `
-        )}
+                  `))}
           </td>
         </tr>
         <tr>
@@ -148,7 +145,7 @@ export class ARBStatusSk extends ElementSk {
               <span class="big">${ele.status.status}</span>
             </span>
             ${ele.status.status.indexOf('throttle') >= 0
-          ? html`
+                ? html`
                     <span
                       >until
                       ${localeTime(new Date(ele.status.throttledUntil!))}</span
@@ -157,13 +154,13 @@ export class ARBStatusSk extends ElementSk {
                       @click="${ele.unthrottle}"
                       ?disabled="${!ele.editRights}"
                       title="${ele.editRights
-              ? 'Unthrottle the roller.'
-              : ele.pleaseLoginMsg}"
+                  ? 'Unthrottle the roller.'
+                  : ele.pleaseLoginMsg}"
                     >
                       Force Unthrottle
                     </button>
                   `
-          : html``
+                : html``
         }
             ${ele.status.status.indexOf('waiting for roll window') >= 0
           ? html` <span>until ${localeTime(ele.rollWindowStart)}</span> `
@@ -235,7 +232,7 @@ export class ARBStatusSk extends ElementSk {
             (tryResult) => html`
                         <div class="trybot">
                           ${tryResult.url
-                ? html`
+              ? html`
                                 <a
                                   href="${tryResult.url}"
                                   class="${ele.trybotClass(tryResult)}"
@@ -244,7 +241,7 @@ export class ARBStatusSk extends ElementSk {
                                   ${tryResult.name}
                                 </a>
                               `
-                : html`
+              : html`
                                 <span
                                   class="nowrap"
                                   class="${ele.trybotClass(tryResult)}"
@@ -260,7 +257,7 @@ export class ARBStatusSk extends ElementSk {
                                 >
                               `}
                         </div>
-                      `
+                      `,
           )
           : html``
         }
@@ -311,7 +308,7 @@ export class ARBStatusSk extends ElementSk {
                       >
                     </td>
                   </tr>
-                `
+                `,
         )}
             </table>
           </td>
@@ -343,7 +340,7 @@ export class ARBStatusSk extends ElementSk {
                   >
                     ${strategy.toLowerCase().replace('_', ' ')}
                   </option>
-                `
+                `,
         )}
             </select>
           </td>
@@ -353,7 +350,7 @@ export class ARBStatusSk extends ElementSk {
           <td class="nowrap unknown">
             ${ele.status.strategy?.user}
             ${ele.status.strategy
-          ? 'at ' + localeTime(new Date(ele.status.strategy!.time!))
+          ? `at ${localeTime(new Date(ele.status.strategy!.time!))}`
           : html``
         }
             ${ele.status.strategy?.message
@@ -369,11 +366,11 @@ export class ARBStatusSk extends ElementSk {
         ${ele.status.config?.supportsManualRolls
           ? html`
           ${!ele.rollCandidates
-              ? html`
+            ? html`
                   The roller is up to date; there are no revisions which could
                   be manually rolled.
                 `
-              : html``
+            : html``
             }
           <tr>
             <th>Revision</th>
@@ -388,77 +385,77 @@ export class ARBStatusSk extends ElementSk {
               <tr class="rollCandidate">
                 <td>
                   ${rollCandidate.revision.url
-                  ? html`
+                ? html`
                         <a href="${rollCandidate.revision.url}" target="_blank">
                           ${rollCandidate.revision.display}
                         </a>
                       `
-                  : html` ${rollCandidate.revision.display} `}
+                : html` ${rollCandidate.revision.display} `}
                 </td>
                 <td>
-                  ${!!rollCandidate.revision.description
+                  ${rollCandidate.revision.description
                   ? truncate(rollCandidate.revision.description, 100)
                   : html``}
                 </td>
                 <td>
-                  ${!!rollCandidate.revision.time
-                  ? localeTime(new Date(rollCandidate.revision.time!))
-                  : html``}
+                  ${rollCandidate.revision.time
+                    ? localeTime(new Date(rollCandidate.revision.time!))
+                    : html``}
                 </td>
                 <td>
                   ${rollCandidate.roll ? rollCandidate.roll.requester : html``}
                 </td>
                 <td>
                   ${rollCandidate.roll
-                  ? localeTime(new Date(rollCandidate.roll.timestamp!))
-                  : html``}
+                      ? localeTime(new Date(rollCandidate.roll.timestamp!))
+                      : html``}
                 </td>
                 <td>
                   ${rollCandidate.roll && rollCandidate.roll.url
-                  ? html`
+                        ? html`
                         <a href="${rollCandidate.roll.url}" , target="_blank">
                           ${rollCandidate.roll.url}
                         </a>
                       `
-                  : html``}
-                  ${!!rollCandidate.roll &&
-                  !rollCandidate.roll.url &&
-                  rollCandidate.roll.status
-                  ? rollCandidate.roll.status
-                  : html``}
+                        : html``}
+                  ${!!rollCandidate.roll
+                  && !rollCandidate.roll.url
+                  && rollCandidate.roll.status
+                          ? rollCandidate.roll.status
+                          : html``}
                   ${!rollCandidate.roll
-                  ? html`
+                            ? html`
                         <button
                           @click="${() => {
-                      ele.requestManualRoll(rollCandidate.revision.id);
-                    }}"
+                              ele.requestManualRoll(rollCandidate.revision.id);
+                            }}"
                           class="requestRoll"
                           ?disabled=${!ele.editRights}
                           title="${ele.editRights
-                      ? 'Request a roll to this revision.'
-                      : ele.pleaseLoginMsg}"
+                              ? 'Request a roll to this revision.'
+                              : ele.pleaseLoginMsg}"
                         >
                           Request Roll
                         </button>
                       `
-                  : html``}
+                            : html``}
                   ${!!rollCandidate.roll && !!rollCandidate.roll.result
-                  ? html`
+                              ? html`
                         <span
                           class="${ele.manualRollResultClass(
-                    rollCandidate.roll
-                  )}"
+                                rollCandidate.roll,
+                              )}"
                         >
-                          ${rollCandidate.roll.result ==
-                      ManualRoll_Result.UNKNOWN
-                      ? html``
-                      : rollCandidate.roll.result}
+                          ${rollCandidate.roll.result
+                      == ManualRoll_Result.UNKNOWN
+                                ? html``
+                                : rollCandidate.roll.result}
                         </span>
                       `
-                  : html``}
+                              : html``}
                 </td>
               </tr>
-            `
+            `,
             )}
           <tr class="rollCandidate">
             <td>
@@ -472,7 +469,7 @@ export class ARBStatusSk extends ElementSk {
               <button
                   @click="${() => {
               ele.requestManualRoll(
-                $$<HTMLInputElement>('#manualRollRevInput')!.value
+                $$<HTMLInputElement>('#manualRollRevInput')!.value,
               );
             }}"
                   class="requestRoll"
@@ -516,19 +513,30 @@ export class ARBStatusSk extends ElementSk {
           ele.changeStrategy(true);
         }}">Submit</button>
   </dialog>
-`;
+`);
 
   private editRights: boolean = false;
+
   private lastLoaded: Date = new Date(0);
+
   private modeChangePending: boolean = false;
+
   private readonly pleaseLoginMsg = 'Please login to make changes.';
+
   private refreshInterval = 60;
+
   private rollCandidates: RollCandidate[] = [];
+
   private rollWindowStart: Date = new Date(0);
+
   private rpc: AutoRollService = GetAutoRollService(this);
+
   private selectedMode: string = '';
+
   private status: AutoRollStatus | null = null;
+
   private strategyChangePending: boolean = false;
+
   private timeout: number = 0;
 
   constructor() {
@@ -549,6 +557,7 @@ export class ARBStatusSk extends ElementSk {
   get roller() {
     return this.getAttribute('roller') || '';
   }
+
   set roller(v: string) {
     this.setAttribute('roller', v);
     this.reload();
@@ -579,7 +588,7 @@ export class ARBStatusSk extends ElementSk {
     this.rpc
       .setMode({
         message: modeChangeMsgInput.value,
-        mode: Mode[<keyof typeof Mode>this.selectedMode],
+        mode: Mode[<keyof typeof Mode> this.selectedMode],
         rollerId: this.roller,
       })
       .then(
@@ -591,7 +600,7 @@ export class ARBStatusSk extends ElementSk {
         () => {
           this.modeChangePending = false;
           this._render();
-        }
+        },
       );
   }
 
@@ -629,7 +638,7 @@ export class ARBStatusSk extends ElementSk {
             strategySelect!.value = this.status.strategy.strategy;
           }
           this._render();
-        }
+        },
       );
   }
 
@@ -646,18 +655,18 @@ export class ARBStatusSk extends ElementSk {
     // parseDayTime returns a 2-element array containing the hour and
     // minutes as ints. Throws an error (string) if the given string cannot
     // be parsed as hours and minutes.
-    const parseDayTime = function (s: string) {
+    const parseDayTime = function(s: string) {
       const timeSplit = s.split(':');
       if (timeSplit.length !== 2) {
-        throw 'Expected time format "hh:mm", not ' + s;
+        throw `Expected time format "hh:mm", not ${s}`;
       }
       const hours = parseInt(timeSplit[0]);
       if (hours < 0 || hours >= 24) {
-        throw 'Hours must be between 0-23, not ' + timeSplit[0];
+        throw `Hours must be between 0-23, not ${timeSplit[0]}`;
       }
       const minutes = parseInt(timeSplit[1]);
       if (minutes < 0 || minutes >= 60) {
-        throw 'Minutes must be between 0-59, not ' + timeSplit[1];
+        throw `Minutes must be between 0-59, not ${timeSplit[1]}`;
       }
       return [hours, minutes];
     };
@@ -670,7 +679,7 @@ export class ARBStatusSk extends ElementSk {
       // Parse individual day/time window, eg. M-W 00:00-04:00
       const windowSplit = dayTimeWindow.split(' ');
       if (windowSplit.length !== 2) {
-        console.error('expected format "D hh:mm", not ' + dayTimeWindow);
+        console.error(`expected format "D hh:mm", not ${dayTimeWindow}`);
         return new Date();
       }
       const dayExpr = windowSplit[0].trim();
@@ -679,7 +688,7 @@ export class ARBStatusSk extends ElementSk {
       // Parse the starting and ending times.
       const timeExprSplit = timeExpr.split('-');
       if (timeExprSplit.length !== 2) {
-        console.error('expected format "hh:mm-hh:mm", not ' + timeExpr);
+        console.error(`expected format "hh:mm-hh:mm", not ${timeExpr}`);
         return new Date();
       }
       let startTime;
@@ -709,19 +718,19 @@ export class ARBStatusSk extends ElementSk {
           if (rangeSplit.length === 1) {
             const day = allDays.indexOf(rangeSplit[0]);
             if (day === -1) {
-              console.error('Unknown day ' + rangeSplit[0]);
+              console.error(`Unknown day ${rangeSplit[0]}`);
               return new Date();
             }
             days.push(day);
           } else if (rangeSplit.length === 2) {
             const startDay = allDays.indexOf(rangeSplit[0]);
             if (startDay === -1) {
-              console.error('Unknown day ' + rangeSplit[0]);
+              console.error(`Unknown day ${rangeSplit[0]}`);
               return new Date();
             }
             let endDay = allDays.indexOf(rangeSplit[1]);
             if (endDay === -1) {
-              console.error('Unknown day ' + rangeSplit[1]);
+              console.error(`Unknown day ${rangeSplit[1]}`);
               return new Date();
             }
             if (endDay < startDay) {
@@ -731,7 +740,7 @@ export class ARBStatusSk extends ElementSk {
               days.push(day % 7);
             }
           } else {
-            console.error('Invalid day expression ' + rangesSplit[i]);
+            console.error(`Invalid day expression ${rangesSplit[i]}`);
             return new Date();
           }
         }
@@ -825,7 +834,7 @@ export class ARBStatusSk extends ElementSk {
     if (!this.roller) {
       return;
     }
-    console.log('Loading status for ' + this.roller + '...');
+    console.log(`Loading status for ${this.roller}...`);
     this.rpc
       .getStatus({
         rollerId: this.roller,
@@ -861,9 +870,9 @@ export class ARBStatusSk extends ElementSk {
       })
       .then((resp: CreateManualRollResponse) => {
         const exist = this.rollCandidates.find(
-          (r) => r.revision.id === resp.roll!.revision
+          (r) => r.revision.id === resp.roll!.revision,
         );
-        if (!!exist) {
+        if (exist) {
           exist.roll = resp.roll!;
         } else {
           this.rollCandidates.push({
@@ -878,7 +887,7 @@ export class ARBStatusSk extends ElementSk {
           });
         }
         const manualRollRevInput = <HTMLInputElement>$$('#manualRollRevInput');
-        if (!!manualRollRevInput) {
+        if (manualRollRevInput) {
           manualRollRevInput.value = '';
         }
         this._render();
@@ -935,8 +944,8 @@ export class ARBStatusSk extends ElementSk {
 
   private selectedStrategyChanged() {
     if (
-      $$<HTMLSelectElement>('#strategySelect', this)!.value ===
-      this.status?.strategy?.strategy
+      $$<HTMLSelectElement>('#strategySelect', this)!.value
+      === this.status?.strategy?.strategy
     ) {
       return;
     }
@@ -981,9 +990,9 @@ export class ARBStatusSk extends ElementSk {
         let req = manualByRev[rev.id];
         delete manualByRev[rev.id];
         if (
-          !req &&
-          status.currentRoll &&
-          status.currentRoll.rollingTo === rev.id
+          !req
+          && status.currentRoll
+          && status.currentRoll.rollingTo === rev.id
         ) {
           req = {
             dryRun: false,

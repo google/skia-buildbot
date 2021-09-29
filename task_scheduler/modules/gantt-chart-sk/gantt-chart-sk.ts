@@ -95,8 +95,7 @@ export function draw(container: HTMLElement, data: Data) {
   const boundingRect = container.getBoundingClientRect();
   const totalWidth = boundingRect.width;
   const totalHeight = boundingRect.height;
-  const blocksHeight =
-    totalHeight - rulerHeight - mouseoverHeight - 2 * chartMarginY;
+  const blocksHeight = totalHeight - rulerHeight - mouseoverHeight - 2 * chartMarginY;
   const rowHeight = blocksHeight / data.lanes.length;
   const blockHeight = rowHeight * blockHeightProportion;
   const blockMarginY = (rowHeight - blockHeight) / 2;
@@ -106,10 +105,10 @@ export function draw(container: HTMLElement, data: Data) {
   // text.
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d')!;
-  ctx.font = labelFontSize + 'px ' + labelFontFamily;
+  ctx.font = `${labelFontSize}px ${labelFontFamily}`;
   let maxLabelWidth = 0;
   data.lanes.forEach((lane: Lane) => {
-    let width = ctx.measureText(lane.label).width;
+    const width = ctx.measureText(lane.label).width;
     if (width > maxLabelWidth) {
       maxLabelWidth = width;
     }
@@ -162,7 +161,7 @@ export function draw(container: HTMLElement, data: Data) {
       const end = block.end.getTime();
       let title = '';
       if (block.label) {
-        title = block.label + ' ';
+        title = `${block.label} `;
       }
       title += strDuration((end - start) / 1000);
       blocks.push({
@@ -223,7 +222,7 @@ export function draw(container: HTMLElement, data: Data) {
   // Create the ticks. The first tick is the first multiple of the tick size
   // which comes after tStart.
   const numTicksPastAnchor = Math.ceil(
-    (tStart - tickAnchor.getTime()) / actualTickSize
+    (tStart - tickAnchor.getTime()) / actualTickSize,
   );
   let tick = tickAnchor.getTime() + numTicksPastAnchor * actualTickSize;
   const ticks = [];
@@ -296,7 +295,7 @@ export function draw(container: HTMLElement, data: Data) {
   ];
 
   // Event handlers.
-  let dragStartX: number | undefined = undefined;
+  let dragStartX: number | undefined;
 
   // Helper function for finding the x-value and timestamp given a mouse
   // event.
@@ -331,9 +330,7 @@ export function draw(container: HTMLElement, data: Data) {
 
   // Helper function for finding the timestamp associated with the given
   // x-coordinate on the chart.
-  const getTimeAtMouseX = (x: number): Date => {
-    return new Date(timeStart + ((x - blocksStartX) / blocksWidth) * duration);
-  };
+  const getTimeAtMouseX = (x: number): Date => new Date(timeStart + ((x - blocksStartX) / blocksWidth) * duration);
 
   // Create a vertical line used on mouseover. This is a helper function used
   // by the mousemove callback function.
@@ -346,13 +343,13 @@ export function draw(container: HTMLElement, data: Data) {
     // Update the vertical cursor line.
     const x = getMouseX(e);
     const mouseLine = $$<SVGLineElement>('#mouse-line', svg)!;
-    mouseLine.setAttributeNS(null, 'x1', '' + x);
-    mouseLine.setAttributeNS(null, 'x2', '' + x);
+    mouseLine.setAttributeNS(null, 'x1', `${x}`);
+    mouseLine.setAttributeNS(null, 'x2', `${x}`);
 
     // Update the timestamp for the cursor.
     const ts = getTimeAtMouseX(x);
     const mouseTime = $$<SVGTextElement>('#mouse-text', svg)!;
-    mouseTime.setAttributeNS(null, 'x', '' + x);
+    mouseTime.setAttributeNS(null, 'x', `${x}`);
     mouseTime.innerHTML = ts.toLocaleTimeString();
 
     // If we're selecting, update the selection box.
@@ -368,17 +365,16 @@ export function draw(container: HTMLElement, data: Data) {
       const selectLineStart = $$<SVGLineElement>('#select-line-start', svg)!;
       const selectLineEnd = $$<SVGLineElement>('#select-line-end', svg)!;
 
-      selectRect.setAttributeNS(null, 'x', '' + x1);
-      selectRect.setAttributeNS(null, 'width', '' + (x2 - x1));
-      selectLineStart.setAttributeNS(null, 'x1', '' + x1);
-      selectLineStart.setAttributeNS(null, 'x2', '' + x1);
-      selectLineEnd.setAttributeNS(null, 'x1', '' + x2);
-      selectLineEnd.setAttributeNS(null, 'x2', '' + x2);
+      selectRect.setAttributeNS(null, 'x', `${x1}`);
+      selectRect.setAttributeNS(null, 'width', `${x2 - x1}`);
+      selectLineStart.setAttributeNS(null, 'x1', `${x1}`);
+      selectLineStart.setAttributeNS(null, 'x2', `${x1}`);
+      selectLineEnd.setAttributeNS(null, 'x1', `${x2}`);
+      selectLineEnd.setAttributeNS(null, 'x2', `${x2}`);
 
       // Update the selected time range label.
-      const selectedDuration =
-        getTimeAtMouseX(x2).getTime() - getTimeAtMouseX(x1).getTime();
-      selectText.setAttributeNS(null, 'x', '' + (x1 + x2) / 2);
+      const selectedDuration = getTimeAtMouseX(x2).getTime() - getTimeAtMouseX(x1).getTime();
+      selectText.setAttributeNS(null, 'x', `${(x1 + x2) / 2}`);
       selectText.innerHTML = strDuration(selectedDuration / 1000);
 
       // The cursor time label interferes with the selected time labels.
@@ -400,11 +396,11 @@ export function draw(container: HTMLElement, data: Data) {
 
     const x = getMouseX(e);
 
-    selectRect.setAttributeNS(null, 'x', '' + x);
-    selectLineStart.setAttributeNS(null, 'x1', '' + x);
-    selectLineStart.setAttributeNS(null, 'x2', '' + x);
-    selectLineEnd.setAttributeNS(null, 'x1', '' + x);
-    selectLineEnd.setAttributeNS(null, 'x2', '' + x);
+    selectRect.setAttributeNS(null, 'x', `${x}`);
+    selectLineStart.setAttributeNS(null, 'x1', `${x}`);
+    selectLineStart.setAttributeNS(null, 'x2', `${x}`);
+    selectLineEnd.setAttributeNS(null, 'x1', `${x}`);
+    selectLineEnd.setAttributeNS(null, 'x2', `${x}`);
 
     dragStartX = x;
   };
@@ -420,20 +416,20 @@ export function draw(container: HTMLElement, data: Data) {
         width="${totalWidth}"
         height="${totalHeight}"
         @mousemove="${(e: MouseEvent) => {
-          mouseMoved(e);
-        }}"
+    mouseMoved(e);
+  }}"
         @mousedown="${(e: MouseEvent) => {
-          mouseSelectStart(e);
-        }}"
+    mouseSelectStart(e);
+  }}"
         @mouseup="${(e: MouseEvent) => {
-          mouseOut(e);
-        }}"
+    mouseOut(e);
+  }}"
         @mouseleave="${(e: MouseEvent) => {
-          mouseOut(e);
-        }}"
+    mouseOut(e);
+  }}"
         >
       ${normEpochs.map(
-        (epoch: Epoch) => svg`
+    (epoch: Epoch) => svg`
         <rect
             x="${epoch.x}"
             y="${epoch.y}"
@@ -442,10 +438,10 @@ export function draw(container: HTMLElement, data: Data) {
             class="epoch"
             >
         </rect>
-      `
-      )}
+      `,
+  )}
       ${labels.map(
-        (lbl: Label) => svg`
+    (lbl: Label) => svg`
         <text
             alignment-baseline="middle"
             text-anchor="end"
@@ -456,10 +452,10 @@ export function draw(container: HTMLElement, data: Data) {
             >
           ${lbl.text}
         </text>
-      `
-      )}
+      `,
+  )}
       ${blocks.map(
-        (block: DisplayBlock) => svg`
+    (block: DisplayBlock) => svg`
         <rect
             x="${block.x}"
             y="${block.y}"
@@ -469,10 +465,10 @@ export function draw(container: HTMLElement, data: Data) {
             >
           <title>${block.title}</title>
         </rect>
-      `
-      )}
+      `,
+  )}
       ${borders.map(
-        (b: Border) => svg`
+    (b: Border) => svg`
         <line
             x1="${b.x1}"
             y1="${b.y1}"
@@ -480,10 +476,10 @@ export function draw(container: HTMLElement, data: Data) {
             y2="${b.y2}"
             >
         </line>
-      `
-      )}
+      `,
+  )}
       ${rulerTicks.map(
-        (tick: RulerTick) => svg`
+    (tick: RulerTick) => svg`
         <line
             x1="${tick.x1}"
             y1="${tick.y1}"
@@ -491,10 +487,10 @@ export function draw(container: HTMLElement, data: Data) {
             y2="${tick.y2}"
             >
         </line>
-      `
-      )}
+      `,
+  )}
       ${rulerTexts.map(
-        (text: RulerText) => svg`
+    (text: RulerText) => svg`
         <text
             alignment-baseline="middle"
             text-anchor="end"
@@ -504,8 +500,8 @@ export function draw(container: HTMLElement, data: Data) {
             >
           ${text.text}
         </text>
-      `
-      )}
+      `,
+  )}
       <line
           id="mouse-line"
           x1="-1000"
@@ -558,6 +554,6 @@ export function draw(container: HTMLElement, data: Data) {
       </line>
     </svg>
   `,
-    container
+    container,
   );
 }

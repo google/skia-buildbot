@@ -175,4 +175,8 @@ bazel-test-rbe:
 bazel-test-rbe-nocache:
 	$(BAZEL) test --config=remote --cache_test_results=no //...
 
+.PHONY: eslint
+eslint:
+	-npx eslint --fix .
+
 include make/npm.mk

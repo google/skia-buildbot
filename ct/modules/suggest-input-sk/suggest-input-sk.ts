@@ -129,7 +129,6 @@ export class SuggestInputSk extends ElementSk {
     this._label = o;
   }
 
-
   _blur(e: MouseEvent): void {
   // Ignore if this blur is preceding _suggestionClick.
     const blurredElem = e.relatedTarget as HTMLElement;

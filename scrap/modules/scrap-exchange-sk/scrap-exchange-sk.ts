@@ -10,7 +10,6 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import 'elements-sk/error-toast-sk';
 
-
 export class ScrapExchangeSk extends ElementSk {
   constructor() {
     super(ScrapExchangeSk.template);
@@ -28,7 +27,6 @@ export class ScrapExchangeSk extends ElementSk {
   <main>
   </main>
   <error-toast-sk></error-toast-sk>`;
-
 
   connectedCallback(): void {
     super.connectedCallback();

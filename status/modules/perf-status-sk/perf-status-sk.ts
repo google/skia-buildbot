@@ -6,13 +6,14 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AlertsStatus } from '../../../perf/modules/json';
 
 export class PerfStatusSk extends ElementSk {
   private resp: AlertsStatus = { alerts: 0 };
+
   private static template = (el: PerfStatusSk) => html`
     <div class="table">
       <a

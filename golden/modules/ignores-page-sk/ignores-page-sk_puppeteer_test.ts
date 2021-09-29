@@ -1,11 +1,11 @@
 import { expect } from 'chai';
+import { Page } from 'puppeteer';
 import {
   addEventListenersToPuppeteerPage,
   loadCachedTestBed,
   takeScreenshot,
-  TestBed
+  TestBed,
 } from '../../../puppeteer-tests/util';
-import { Page } from 'puppeteer';
 
 describe('ignores-page-sk', () => {
   let testBed: TestBed;

@@ -37,7 +37,7 @@ export class SkipTasksSk extends ElementSk {
                 <th>Description</th>
               </tr>
               ${ele.rules.map(
-                (rule) => html`
+          (rule) => html`
                   <tr>
                     <td>
                       <button @click="${() => ele.deleteRule(rule)}">
@@ -48,20 +48,20 @@ export class SkipTasksSk extends ElementSk {
                     <td>${rule.addedBy}</td>
                     <td>
                       ${rule.taskSpecPatterns?.map(
-                        (pattern) => html`
+            (pattern) => html`
                           <div class="task_spec_pattern">${pattern}</div>
-                        `
-                      )}
+                        `,
+          )}
                     </td>
                     <td>
                       ${rule.commits?.map(
-                        (commit) => html` <div class="commit">${commit}</div> `
-                      )}
+            (commit) => html` <div class="commit">${commit}</div> `,
+          )}
                     </td>
                     <td>${rule.description}</td>
                   </tr>
-                `
-              )}
+                `,
+        )}
             </table>
           `
         : html``
@@ -100,9 +100,9 @@ export class SkipTasksSk extends ElementSk {
               id="range-checkbox"
               ?checked="${ele.isCommitRange}"
               @change="${(ev: Event) => {
-                ele.isCommitRange = (<HTMLInputElement>ev.target).checked;
-                ele._render();
-              }}"
+      ele.isCommitRange = (<HTMLInputElement>ev.target).checked;
+      ele._render();
+    }}"
               >
             </input>
           </td>
@@ -154,7 +154,9 @@ export class SkipTasksSk extends ElementSk {
   `;
 
   private isCommitRange: boolean = false;
+
   private _rpc: TaskSchedulerService | null = null;
+
   private rules: SkipTaskRule[] = [];
 
   get rpc(): TaskSchedulerService | null {
@@ -178,7 +180,7 @@ export class SkipTasksSk extends ElementSk {
     const inputName = $$<HTMLInputElement>('#input-name', this)!;
     const inputDescription = $$<HTMLTextAreaElement>(
       '#input-description',
-      this
+      this,
     )!;
     const inputRangeStart = $$<HTMLInputElement>('#input-range-start', this)!;
     const inputRangeEnd = $$<HTMLInputElement>('#input-range-end', this);
@@ -223,7 +225,7 @@ export class SkipTasksSk extends ElementSk {
       (resp: DeleteSkipTaskRuleResponse) => {
         this.rules = resp.rules!;
         this._render();
-      }
+      },
     );
   }
 

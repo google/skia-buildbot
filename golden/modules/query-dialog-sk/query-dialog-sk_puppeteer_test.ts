@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { QueryDialogSkPO } from './query-dialog-sk_po';
 
 describe('query-dialog-sk', () => {
@@ -43,9 +43,9 @@ describe('query-dialog-sk', () => {
     await testBed.page.click('#show-dialog');
     await queryDialogSkPO.setSelection({
       'car make': ['chevrolet', 'dodge', 'ford'],
-      'color': ['blue'],
-      'used': ['yes', 'no'],
-      'year': ['2020', '2019', '2018', '2017'],
+      color: ['blue'],
+      used: ['yes', 'no'],
+      year: ['2020', '2019', '2018', '2017'],
     });
     await takeScreenshot(testBed.page, 'gold', 'query-dialog-sk_multiple-values-selected');
   });

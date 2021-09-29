@@ -9,13 +9,14 @@ describe('json-source-sk', () => {
   let testBed: TestBed;
   before(async () => {
     testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
+      path.join(__dirname, '..', '..', 'webpack.config.ts'),
     );
   });
 
   beforeEach(async () => {
     await testBed.page.goto(
-      inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/json-source-sk.html`);
+      inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/json-source-sk.html`,
+    );
     await testBed.page.setViewport({ width: 600, height: 600 });
   });
 

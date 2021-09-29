@@ -32,7 +32,9 @@ import {
   STROKE_WIDTH,
   TRACE_LINE_COLOR,
 } from './constants';
-import {Commit, Trace, TraceGroup, TraceID} from '../rpc_types';
+import {
+  Commit, Trace, TraceGroup, TraceID,
+} from '../rpc_types';
 
 // Array of dots-sk component instances. A dots-sk instance is present if it has a pending
 // mousemove update.
@@ -55,21 +57,22 @@ setInterval(() => {
  *
  * This assumes that the color array is of length MAX_UNIQUE_DIGESTS + 1.
  */
-const getColorSafe = (colorArray: string[], uniqueDigestIndex: number): string => {
-  return colorArray[Math.min(colorArray.length - 1, uniqueDigestIndex)];
-}
+const getColorSafe = (colorArray: string[], uniqueDigestIndex: number): string => colorArray[Math.min(colorArray.length - 1, uniqueDigestIndex)];
 
 export class DotsSk extends ElementSk {
   private static template = () => html`<canvas></canvas>`;
 
   private canvas: HTMLCanvasElement | null = null;
+
   private ctx: CanvasRenderingContext2D | null = null;
 
   private _commits: Commit[] = [];
-  private _value: TraceGroup = {traces: [], digests: [], total_digests: 0};
+
+  private _value: TraceGroup = { traces: [], digests: [], total_digests: 0 };
 
   // The index of the trace that should be highlighted.
   private hoverIndex = -1;
+
   private hasScrolledOnce = false;
 
   // For capturing the last mousemove event, which is later processed in a timer.
@@ -281,8 +284,8 @@ export class DotsSk extends ElementSk {
     const trace = this._value.traces![dotCoords.y];
     if (trace) {
       for (let i = trace.data!.length - 1; i >= 0; i--) {
-        const dot = trace.data![dotCoords.x]
-        if (dot !== undefined && dot !== MISSING_DOT ) {
+        const dot = trace.data![dotCoords.x];
+        if (dot !== undefined && dot !== MISSING_DOT) {
           found = true;
           break;
         }

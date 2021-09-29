@@ -1,4 +1,4 @@
-import {StatusResponse} from '../rpc_types';
+import { StatusResponse } from '../rpc_types';
 
 export const exampleStatusData: StatusResponse = {
   lastCommit: {

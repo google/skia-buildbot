@@ -24,28 +24,27 @@ function colorClass(status: AutorollerStatus) {
   // TODO(borenet): These numbers (especially number of commits behind)
   // are probably going to differ from roller to roller. How can we give
   // each roller its own definition of "bad"?
-  var badness = status.numFailed / 2.0;
-  var badnessBehind = status.numBehind / 20.0;
+  let badness = status.numFailed / 2.0;
+  const badnessBehind = status.numBehind / 20.0;
   if (status.mode !== 'dry run' && badnessBehind > badness) {
     badness = badnessBehind;
   }
   if (status.mode === 'stopped') {
     return 'bg-unexpected';
-  } else if (badness < 0.5) {
+  } if (badness < 0.5) {
     return 'bg-success';
-  } else if (badness < 1.0) {
+  } if (badness < 1.0) {
     return 'bg-warning';
-  } else {
-    return 'bg-failure';
   }
+  return 'bg-failure';
 }
 
 export class AutorollerStatusSk extends ElementSk {
   private client: StatusService = GetStatusService();
+
   private rollers: Array<AutorollerStatus> = [];
 
-  private static template = (el: AutorollerStatusSk) =>
-    html`
+  private static template = (el: AutorollerStatusSk) => html`
       <div class="table">
         <div class="tr">
           <div class="th">Roller</div>
@@ -54,7 +53,7 @@ export class AutorollerStatusSk extends ElementSk {
           <div class="th">Behind</div>
         </div>
         ${el.rollers.map(
-          (roller) => html`
+    (roller) => html`
             <a
               class="tr roller ${colorClass(roller)}"
               href=${roller.url}
@@ -66,8 +65,8 @@ export class AutorollerStatusSk extends ElementSk {
               <div class="td number">${roller.numFailed}</div>
               <div class="td number">${roller.numBehind}</div>
             </a>
-          `
-        )}
+          `,
+  )}
       </div>
     `;
 
@@ -91,7 +90,7 @@ export class AutorollerStatusSk extends ElementSk {
           new CustomEvent<Array<AutorollerStatus>>('rollers-update', {
             bubbles: true,
             detail: this.rollers.slice(),
-          })
+          }),
         );
       })
       .finally(() => {

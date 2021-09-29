@@ -9,7 +9,6 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
   // https://github.com/webpack/node-libs-browser/issues/26#issuecomment-267954095
   config.resolve.modules = [resolve(__dirname, '..', 'node_modules')];
 
-
   return config;
 };
 

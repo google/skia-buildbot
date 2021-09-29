@@ -45,7 +45,6 @@ export class JSONSourceSk extends ElementSk {
     <pre>${ele._json}</pre>
   `;
 
-
   connectedCallback(): void {
     super.connectedCallback();
     this._render();

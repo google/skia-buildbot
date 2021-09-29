@@ -68,7 +68,6 @@ export class LeasingScaffoldSk extends ElementSk {
   <app-sk>
 `;
 
-
   connectedCallback(): void {
     super.connectedCallback();
     // Don't call more than once.

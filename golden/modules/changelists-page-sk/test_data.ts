@@ -28,9 +28,9 @@ export const changelistSummaries_5: ChangelistsResponse = {
       owner: 'gamma@example.org',
       status: 'Open',
       subject:
-          "Implement deep content compliance and malware scans for uploads. " +
-          "This is a really long subject, like wow! " +
-          "I hope the web UI doesn't mishandle this massively long subject",
+          'Implement deep content compliance and malware scans for uploads. '
+          + 'This is a really long subject, like wow! '
+          + "I hope the web UI doesn't mishandle this massively long subject",
       updated: '2019-09-09T19:28:54Z',
       url: 'https://chromium-review.googlesource.com/1788259',
     },

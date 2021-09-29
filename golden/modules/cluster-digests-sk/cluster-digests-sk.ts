@@ -21,9 +21,9 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import * as d3Force from 'd3-force';
 import * as d3Select from 'd3-selection';
+import { SimulationLinkDatum, SimulationNodeDatum } from 'd3-force';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {ClusterDiffLink, ClusterDiffNode, Digest} from '../rpc_types';
-import {SimulationLinkDatum, SimulationNodeDatum} from 'd3-force';
+import { ClusterDiffLink, ClusterDiffNode, Digest } from '../rpc_types';
 
 /**
  * A node returned by the Gold backend, with an optional label added by client-side code.
@@ -43,12 +43,15 @@ export class ClusterDigestsSk extends ElementSk {
   `;
 
   private nodes: SimNode[] = [];
+
   private links: SimLink[] = [];
 
   private linkTightness = 1 / 8;
+
   private nodeRepulsion = 256;
 
   private width = 400;
+
   private height = 400;
 
   // An array of digests (strings) that correspond to the currently selected digests (if any).
@@ -148,10 +151,10 @@ export class ClusterDigestsSk extends ElementSk {
         // https://github.com/d3/d3-force#link_links
         d3Select.select(clusterSk)
           .selectAll<SVGLineElement, SimLink>('.link')
-          .attr('x1', (d) => isSimNode(d.source) ? d.source.x! : 0)
-          .attr('y1', (d) => isSimNode(d.source) ? d.source.y! : 0)
-          .attr('x2', (d) => isSimNode(d.target) ? d.target.x! : 0)
-          .attr('y2', (d) => isSimNode(d.target) ? d.target.y! : 0);
+          .attr('x1', (d) => (isSimNode(d.source) ? d.source.x! : 0))
+          .attr('y1', (d) => (isSimNode(d.source) ? d.source.y! : 0))
+          .attr('x2', (d) => (isSimNode(d.target) ? d.target.x! : 0))
+          .attr('y2', (d) => (isSimNode(d.target) ? d.target.y! : 0));
       })
       .on('end', () => {
         this.dispatchEvent(new CustomEvent('layout-complete', { bubbles: true }));

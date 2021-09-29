@@ -37,11 +37,11 @@ export const testData: SkpJsonCommandList = {
       auditTrail: {
         Ops: [
           {
-            'Name': 'North Korelana is Best Korelana',
-            'ClientID': 1,
-            'OpsTaskID': 2,
-            'ChildID': 3,
-          }
+            Name: 'North Korelana is Best Korelana',
+            ClientID: 1,
+            OpsTaskID: 2,
+            ChildID: 3,
+          },
         ],
       },
     },

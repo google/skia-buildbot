@@ -18,6 +18,7 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: 'module',
   },
+  ignorePatterns: ['dist/', 'build/', '_bazel*'],
   rules: {
     camelcase: ['off'],
     'class-methods-use-this': ['off'],

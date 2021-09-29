@@ -19,6 +19,7 @@
 import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/app-sk';
@@ -29,7 +30,6 @@ import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/icon/home-icon-sk';
 import 'elements-sk/spinner-sk';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 
 /**
  * Moves the elements from one NodeList to the given HTMLElement.
@@ -40,8 +40,11 @@ function move(from: HTMLCollection | NodeList, to: HTMLElement) {
 
 export class ARBScaffoldSk extends ElementSk {
   private main: HTMLElement | null = null;
+
   private busyTaskCount: number = 0;
+
   private spinner: SpinnerSk | null = null;
+
   private static template = (ele: ARBScaffoldSk) => html`
 <app-sk>
   <header class=primary-container-themes-sk>
@@ -127,7 +130,7 @@ export class ARBScaffoldSk extends ElementSk {
   get loginHost() { return window.location.host; }
 
   /** @prop title Reflects the app_title attribute for ease of use. */
-  get title() { return <string>this.getAttribute('title'); }
+  get title() { return <string> this.getAttribute('title'); }
 
   set title(val: string) { this.setAttribute('title', val); }
 

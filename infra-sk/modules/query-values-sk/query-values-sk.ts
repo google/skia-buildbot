@@ -15,12 +15,12 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import {
   MultiSelectSk,
   MultiSelectSkSelectionChangedEventDetail,
 } from 'elements-sk/multi-select-sk/multi-select-sk';
+import { ElementSk } from '../ElementSk';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/multi-select-sk';
@@ -58,20 +58,22 @@ export class QueryValuesSk extends ElementSk {
     </multi-select-sk>
   `;
 
-  private static valuesTemplate = (ele: QueryValuesSk) => {
-    return ele._options.map(
-      (v) => html`
+  private static valuesTemplate = (ele: QueryValuesSk) => ele._options.map(
+    (v) => html`
         <div value=${v} ?selected=${ele._selected.indexOf(v) !== -1}>${v}</div>
-      `
-    );
-  };
+      `,
+  );
 
   private _options: string[] = [];
+
   private _selected: string[] = [];
 
   private _invert: CheckOrRadio | null = null;
+
   private _regex: CheckOrRadio | null = null;
+
   private _regexValue: HTMLInputElement | null = null;
+
   private _values: MultiSelectSk | null = null;
 
   constructor() {
@@ -112,7 +114,7 @@ export class QueryValuesSk extends ElementSk {
   }
 
   private _selectionChange(
-    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>
+    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>,
   ) {
     this._selected = e.detail.selection.map((i) => this._options[i]);
     this._render();
@@ -122,7 +124,7 @@ export class QueryValuesSk extends ElementSk {
   private _fireEvent() {
     const prefix = this._invert!.checked ? '!' : '';
     let selected = this._values!.selection.map(
-      (i) => prefix + this._options[i]
+      (i) => prefix + this._options[i],
     );
     if (this._regex!.checked) {
       selected = [`~${this._regexValue!.value}`];
@@ -137,8 +139,8 @@ export class QueryValuesSk extends ElementSk {
             values: selected,
           },
           bubbles: true,
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -146,6 +148,7 @@ export class QueryValuesSk extends ElementSk {
   get hide_invert() {
     return this.hasAttribute('hide_invert');
   }
+
   set hide_invert(val) {
     if (val) {
       this.setAttribute('hide_invert', '');
@@ -159,6 +162,7 @@ export class QueryValuesSk extends ElementSk {
   get hide_regex() {
     return this.hasAttribute('hide_regex');
   }
+
   set hide_regex(val) {
     if (val) {
       this.setAttribute('hide_regex', '');
@@ -172,6 +176,7 @@ export class QueryValuesSk extends ElementSk {
   get options() {
     return this._options;
   }
+
   set options(val) {
     this._options = val;
     this._selected = [];
@@ -182,6 +187,7 @@ export class QueryValuesSk extends ElementSk {
   get selected() {
     return this._selected;
   }
+
   set selected(val) {
     this._selected = val;
     this._invert!.checked = !!(
@@ -202,9 +208,8 @@ export class QueryValuesSk extends ElementSk {
     this._selected = this._selected.map((val) => {
       if ('~!'.includes(val[0])) {
         return val.slice(1);
-      } else {
-        return val;
       }
+      return val;
     });
   }
 

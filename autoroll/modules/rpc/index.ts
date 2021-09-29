@@ -1,11 +1,11 @@
 import {
   AutoRollService,
   AutoRollServiceClient,
-} from "./rpc";
+} from './rpc';
 
-export * from "./rpc";
+export * from './rpc';
 
-const host = window.location.protocol + "//" + window.location.host;
+const host = `${window.location.protocol}//${window.location.host}`;
 let rpcClient: AutoRollService = new AutoRollServiceClient(host, window.fetch.bind(window));
 
 /**
@@ -33,8 +33,8 @@ export function GetAutoRollService(ele: HTMLElement): AutoRollService {
           }));
           Promise.reject(err);
         });
-      }
-    }
+      };
+    },
   };
   return new Proxy(rpcClient, handler);
 }

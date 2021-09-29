@@ -1,8 +1,8 @@
 import './index';
+import { expect } from 'chai';
 import { ZoomSk } from './zoom-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 
 describe('zoom-sk', () => {
   const newInstance = setUpElementUnderTest<ZoomSk>('zoom-sk');
@@ -18,6 +18,6 @@ describe('zoom-sk', () => {
 
   describe('some action', () => {
     it('some result', () => {});
-      expect(element).to.not.be.null;
+    expect(element).to.not.be.null;
   });
 });

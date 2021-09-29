@@ -25,6 +25,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
+import { errorMessage } from 'elements-sk/errorMessage';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import 'elements-sk/tabs-sk';
 import 'elements-sk/tabs-panel-sk';
@@ -41,17 +42,16 @@ import {
 import { TimelineSk, TimelineSkMoveFrameEventDetail } from '../timeline-sk/timeline-sk';
 import { PlaySk, PlaySkModeChangedManuallyEventDetail } from '../play-sk/play-sk';
 import { ZoomSk } from '../zoom-sk/zoom-sk';
-import { errorMessage } from 'elements-sk/errorMessage';
 import 'elements-sk/error-toast-sk';
 import {
-  AndroidLayersSk, AndroidLayersSkInspectLayerEventDetail
-} from '../android-layers-sk/android-layers-sk'
+  AndroidLayersSk, AndroidLayersSkInspectLayerEventDetail,
+} from '../android-layers-sk/android-layers-sk';
 import { ResourcesSk } from '../resources-sk/resources-sk';
 
 // Types for the wasm bindings
 import {
   Debugger, DebuggerInitOptions, SkpDebugPlayer, SkIRect, SkSurface, SkpJsonCommandList,
-  MatrixClipInfo, Matrix3x3, Matrix4x4
+  MatrixClipInfo, Matrix3x3, Matrix4x4,
 } from '../debugger';
 
 // other modules from this application
@@ -71,7 +71,7 @@ interface FileContext {
   player: SkpDebugPlayer;
   version: number;
   frameCount: number;
-};
+}
 
 export interface DebuggerPageSkLightDarkEventDetail {
   mode: string;
@@ -89,8 +89,7 @@ export interface DebuggerPageSkCursorEventDetail {
 }
 
 export class DebuggerPageSk extends ElementDocSk {
-  private static template = (ele: DebuggerPageSk) =>
-    html`
+  private static template = (ele: DebuggerPageSk) => html`
     <header>
       <h2>Skia WASM Debugger</h2>
       <a class="version-link"
@@ -129,8 +128,8 @@ export class DebuggerPageSk extends ElementDocSk {
           <histogram-sk></histogram-sk>
           <div>Command which shaded the<br>selected pixel: ${ele._pointCommandIndex}
             <button @click=${() => {
-              ele._jumpToCommand(ele._pointCommandIndex);
-            }}>Jump</button>
+    ele._jumpToCommand(ele._pointCommandIndex);
+  }}>Jump</button>
           </div>
           <zoom-sk></zoom-sk>
           <android-layers-sk></android-layers-sk>
@@ -140,8 +139,7 @@ export class DebuggerPageSk extends ElementDocSk {
     <error-toast-sk></error-toast-sk>
     `;
 
-  private static controlsTemplate = (ele: DebuggerPageSk) =>
-    html`
+  private static controlsTemplate = (ele: DebuggerPageSk) => html`
     <div>
       <table>
         <tr>
@@ -193,8 +191,8 @@ export class DebuggerPageSk extends ElementDocSk {
           <div class="matrixClipBox">
             <h3 class="compact">Clip</h3>
             <table>
-              <tr><td>${ ele._info.ClipRect[0] }</td><td>${ ele._info.ClipRect[1] }</td></tr>
-              <tr><td>${ ele._info.ClipRect[2] }</td><td>${ ele._info.ClipRect[3] }</td></tr>
+              <tr><td>${ele._info.ClipRect[0]}</td><td>${ele._info.ClipRect[1]}</td></tr>
+              <tr><td>${ele._info.ClipRect[2]}</td><td>${ele._info.ClipRect[3]}</td></tr>
             </table>
           </div>
           <div class="matrixClipBox">
@@ -208,27 +206,37 @@ export class DebuggerPageSk extends ElementDocSk {
 
   // defined by version.js which is included by main.html and generated in Makefile.
   private _skiaVersion: string = SKIA_VERSION;
+
   private _skiaVersionShort: string = SKIA_VERSION.substring(0, 7);
 
   // null as long as no file loaded.
   private _fileContext: FileContext | null = null;
+
   // null until the DebuggerInit promise resolves.
   private _debugger: Debugger | null = null;
+
   // null until either file loaded or cpu/gpu switch toggled
   private _surface: SkSurface | null = null;
 
   // submodules are null until first template render
   private _androidLayersSk: AndroidLayersSk | null = null;
+
   private _debugViewSk: DebugViewSk | null = null;
+
   private _commandsSk: CommandsSk | null = null;
+
   private _resourcesSk: ResourcesSk | null = null;
+
   private _timelineSk: TimelineSk | null = null;
+
   private _zoom: ZoomSk | null = null
 
   // application state
   private _targetItem: number = 0; // current command playback index in filtered list
+
   // When turned on, always draw to the end of a frame
   private _drawToEnd: boolean = false;
+
   // the index of the last command to alter the pixel under the crosshair
   private _pointCommandIndex = 0;
 
@@ -244,18 +252,24 @@ export class DebuggerPageSk extends ElementDocSk {
 
   // things toggled by the upper right checkboxes.
   private _gpuMode = true; // true means use gpu
+
   private _showOpBounds = false;
+
   private _darkBackgrounds = false; // true means dark
+
   private _showOverdrawViz = false;
+
   private _showClip = false;
+
   private _showAndroidClip = false;
+
   private _showOrigin = false;
 
   constructor() {
     super(DebuggerPageSk.template);
 
     DebuggerInit({
-      locateFile: (file: string) => '/dist/'+file,
+      locateFile: (file: string) => `/dist/${file}`,
     }).then((loadedWasmModule) => {
       // Save a reference to the module somewhere we can use it later.
       this._debugger = loadedWasmModule;
@@ -289,11 +303,12 @@ export class DebuggerPageSk extends ElementDocSk {
 
     this._timelineSk.playsk.addEventListener(
       'mode-changed-manually', (e) => {
-      const mode = (e as CustomEvent<PlaySkModeChangedManuallyEventDetail>).detail.mode;
-      if (mode === 'pause') {
-        this._setCommands();
-      }
-    });
+        const mode = (e as CustomEvent<PlaySkModeChangedManuallyEventDetail>).detail.mode;
+        if (mode === 'pause') {
+          this._setCommands();
+        }
+      },
+    );
 
     // this is the timeline, which owns the frame position, telling this element to update
     this._timelineSk.addEventListener('move-frame', (e) => {
@@ -327,12 +342,14 @@ export class DebuggerPageSk extends ElementDocSk {
           'render-cursor', {
             detail: detail,
             bubbles: true,
-          }));
+          },
+        ),
+      );
     });
   }
 
   private _checkUrlParams() {
-  const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(window.location.search);
     if (params.has('url')) {
       const skpurl = params.get('url')!;
       fetch(skpurl).then((response) => response.arrayBuffer()).then((ab) => {
@@ -349,19 +366,18 @@ export class DebuggerPageSk extends ElementDocSk {
   // Updates the Jump button with the result.
   // Consider disabling this feature alltogether for CPU backed debugging, too slow.
   private _updateJumpButton(p: Point) {
-    if (!this._debugViewSk!.crosshairActive)  {
+    if (!this._debugViewSk!.crosshairActive) {
       return; // Too slow to do this on every mouse move.
     }
     this._pointCommandIndex = this._fileContext!.player.findCommandByPixel(
-      this._surface!, p[0], p[1], this._targetItem);
+      this._surface!, p[0], p[1], this._targetItem,
+    );
     this._render();
   }
 
   // Template helper rendering a number[][] in a table
   private _matrixTable(m: Matrix3x3 | Matrix4x4) {
-    return (m as number[][]).map((row: number[]) => {
-      return html`<tr>${ row.map((i: number) => html`<td>${i}</td>`) }</tr>`;
-    });
+    return (m as number[][]).map((row: number[]) => html`<tr>${row.map((i: number) => html`<td>${i}</td>`)}</tr>`);
   }
 
   // Called when the filename in the file input element changs
@@ -400,7 +416,7 @@ export class DebuggerPageSk extends ElementDocSk {
     // might interpret binary stuff before "skiapict" as multi-byte code points.
     const magicOffset = head.findIndex(isMagicWord);
     // The unint32 after the first occurance of "skiapict" is the SKP version
-    const version = new Uint32Array(head.subarray(magicOffset+8, magicOffset+12))[0];
+    const version = new Uint32Array(head.subarray(magicOffset + 8, magicOffset + 12))[0];
     return version;
   }
 
@@ -429,7 +445,7 @@ export class DebuggerPageSk extends ElementDocSk {
     };
     this._replaceSurface();
     if (!this._surface) {
-      errorMessage("Could not create SkSurface, try GPU/CPU toggle.");
+      errorMessage('Could not create SkSurface, try GPU/CPU toggle.');
       return;
     }
     p.setGpuOpBounds(this._showOpBounds);
@@ -497,11 +513,10 @@ export class DebuggerPageSk extends ElementDocSk {
   // Note that if you want to move the frame for the whole app, just as if a user did it,
   // this is not the function you're looking for, instead set this._timelineSk.item
   private _moveFrameTo(n: number) {
-
     // bounds may change too, requring a new surface and gl context, but this is costly and
     // only rarely necessary
-    let oldBounds = this._fileContext!.player.getBounds();
-    let newBounds = this._fileContext!.player.getBoundsForFrame(n);
+    const oldBounds = this._fileContext!.player.getBounds();
+    const newBounds = this._fileContext!.player.getBoundsForFrame(n);
     if (!this._boundsEqual(oldBounds, newBounds)) {
       const width = newBounds.fRight - newBounds.fLeft;
       const height = newBounds.fBottom - newBounds.fTop;
@@ -548,9 +563,11 @@ export class DebuggerPageSk extends ElementDocSk {
     this.dispatchEvent(
       new CustomEvent<CommandsSkJumpEventDetail>(
         'jump-command', {
-          detail: {unfilteredIndex: i},
+          detail: { unfilteredIndex: i },
           bubbles: true,
-        }));
+        },
+      ),
+    );
   }
 
   // Asks the wasm module to draw to the provided surface.
@@ -571,9 +588,11 @@ export class DebuggerPageSk extends ElementDocSk {
     this.dispatchEvent(
       new CustomEvent<DebuggerPageSkCursorEventDetail>(
         'render-cursor', {
-          detail: {position: [0, 0], onlyData: true},
+          detail: { position: [0, 0], onlyData: true },
           bubbles: true,
-        }));
+        },
+      ),
+    );
 
     const clipmatjson = this._fileContext.player.lastCommandInfo();
     this._info = JSON.parse(clipmatjson) as MatrixClipInfo;
@@ -586,7 +605,7 @@ export class DebuggerPageSk extends ElementDocSk {
     this._gpuMode = (e.target as CheckOrRadio).checked;
     this._replaceSurface();
     if (!this._surface) {
-      errorMessage("Could not create SkSurface.");
+      errorMessage('Could not create SkSurface.');
       return;
     }
     this._setCommands();
@@ -599,9 +618,11 @@ export class DebuggerPageSk extends ElementDocSk {
     this.dispatchEvent(
       new CustomEvent<DebuggerPageSkLightDarkEventDetail>(
         'light-dark', {
-          detail: {mode: this._darkBackgrounds? 'dark-checkerboard' : 'light-checkerboard'},
+          detail: { mode: this._darkBackgrounds ? 'dark-checkerboard' : 'light-checkerboard' },
           bubbles: true,
-        }));
+        },
+      ),
+    );
   }
 
   private _opBoundsHandler(e: Event) {
@@ -618,8 +639,8 @@ export class DebuggerPageSk extends ElementDocSk {
 
   private _clipHandler(e: Event) {
     this._showClip = (e.target as CheckOrRadio).checked;
-    if(this._showClip) { // ON: 30% transparent dark teal
-      this._fileContext!.player.setClipVizColor(parseInt('500e978d',16));
+    if (this._showClip) { // ON: 30% transparent dark teal
+      this._fileContext!.player.setClipVizColor(0x500e978d);
     } else { // OFF: transparent black
       this._fileContext!.player.setClipVizColor(0);
     }
@@ -643,30 +664,32 @@ export class DebuggerPageSk extends ElementDocSk {
     this.dispatchEvent(
       new CustomEvent<DebuggerPageSkCursorEventDetail>(
         'render-cursor', {
-          detail: {position: [x, y], onlyData: false},
+          detail: { position: [x, y], onlyData: false },
           bubbles: true,
-        }));
+        },
+      ),
+    );
   }
 
   private _keyDownHandler(e: KeyboardEvent) {
-    if(this.querySelector<HTMLInputElement>('#text-filter') === document.activeElement) {
+    if (this.querySelector<HTMLInputElement>('#text-filter') === document.activeElement) {
       return; // don't interfere with the filter textbox.
     }
-    let flen = this._commandsSk!.countFiltered;
+    const flen = this._commandsSk!.countFiltered;
     const [x, y] = this._zoom!.point;
     // If adding a case here, document it in the user-visible keyboard shortcuts area.
     switch (e.keyCode) {
       case 74: // J
-        this._updateCursor(x, y+1);
+        this._updateCursor(x, y + 1);
         break;
       case 75: // K
-        this._updateCursor(x, y-1);
+        this._updateCursor(x, y - 1);
         break;
       case 72: // H
-        this._updateCursor(x-1, y);
+        this._updateCursor(x - 1, y);
         break;
       case 76: // L
-        this._updateCursor(x+1, y);
+        this._updateCursor(x + 1, y);
         break;
       case 190: // Period, step command forward
         this._commandsSk!.keyMove(1);
@@ -703,6 +726,6 @@ export class DebuggerPageSk extends ElementDocSk {
     this._setCommands();
     this._commandsSk!.end();
   }
-};
+}
 
 define('debugger-page-sk', DebuggerPageSk);

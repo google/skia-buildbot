@@ -3,7 +3,7 @@
  * Twirp-provided client directly, rather than cathing them on the network. This assumes Twirp
  * generated code works, and is to avoid implementation details of said code, such as transport
  * messages using snake_case for camelCase fields, etc.
- **/
+ * */
 import { MockRPCsForTesting, StatusService } from '../rpc';
 
 import * as status from '../rpc/status';
@@ -25,37 +25,41 @@ export function SetupMocks(): MockStatusService {
  */
 export class MockStatusService implements StatusService {
   private processAddComment:
-    | ((req: status.AddCommentRequest) => status.AddCommentResponse)
+    | ((req: status.AddCommentRequest)=> status.AddCommentResponse)
     | null = null;
+
   private processDeleteComment:
-    | ((req: status.DeleteCommentRequest) => status.DeleteCommentResponse)
+    | ((req: status.DeleteCommentRequest)=> status.DeleteCommentResponse)
     | null = null;
+
   private processGetAutorollerStatuses:
-    | ((req: status.GetAutorollerStatusesRequest) => status.GetAutorollerStatusesResponse)
+    | ((req: status.GetAutorollerStatusesRequest)=> status.GetAutorollerStatusesResponse)
     | null = null;
+
   private processGetIncrementalCommits:
-    | ((req: status.GetIncrementalCommitsRequest) => status.GetIncrementalCommitsResponse)
+    | ((req: status.GetIncrementalCommitsRequest)=> status.GetIncrementalCommitsResponse)
     | null = null;
+
   private processGetBotUsage:
-    | ((req: status.GetBotUsageRequest) => status.GetBotUsageResponse)
+    | ((req: status.GetBotUsageRequest)=> status.GetBotUsageResponse)
     | null = null;
 
   constructor() {}
 
   exhausted(): boolean {
     return !(
-      this.processAddComment ||
-      this.processDeleteComment ||
-      this.processGetIncrementalCommits ||
-      this.processGetAutorollerStatuses ||
-      this.processGetBotUsage
+      this.processAddComment
+      || this.processDeleteComment
+      || this.processGetIncrementalCommits
+      || this.processGetAutorollerStatuses
+      || this.processGetBotUsage
     );
   }
 
   // Set the AddComment response.
   expectAddComment(
     resp: status.AddCommentResponse,
-    check: (req: status.AddCommentRequest) => void = (req) => {}
+    check: (req: status.AddCommentRequest)=> void = (req) => {},
   ): MockStatusService {
     this.processAddComment = (req) => {
       check(req);
@@ -67,7 +71,7 @@ export class MockStatusService implements StatusService {
   // Set the DeleteComment response.
   expectDeleteComment(
     resp: status.DeleteCommentResponse,
-    check: (req: status.DeleteCommentRequest) => void = (req) => {}
+    check: (req: status.DeleteCommentRequest)=> void = (req) => {},
   ): MockStatusService {
     this.processDeleteComment = (req) => {
       check(req);
@@ -79,7 +83,7 @@ export class MockStatusService implements StatusService {
   // Set the GetIncrementalCommits response.
   expectGetIncrementalCommits(
     resp: status.GetIncrementalCommitsResponse,
-    check: (req: status.GetIncrementalCommitsRequest) => void = (req) => {}
+    check: (req: status.GetIncrementalCommitsRequest)=> void = (req) => {},
   ): MockStatusService {
     this.processGetIncrementalCommits = (req) => {
       check(req);
@@ -91,7 +95,7 @@ export class MockStatusService implements StatusService {
   // Set the GetAutorollerStatuses response.
   expectGetAutorollerStatuses(
     resp: status.GetAutorollerStatusesResponse,
-    check: (req: status.GetAutorollerStatusesRequest) => void = (req) => {}
+    check: (req: status.GetAutorollerStatusesRequest)=> void = (req) => {},
   ): MockStatusService {
     this.processGetAutorollerStatuses = (req) => {
       check(req);
@@ -103,7 +107,7 @@ export class MockStatusService implements StatusService {
   // Set the GetBotUsage response.
   expectGetBotUsage(
     resp: status.GetBotUsageRequest,
-    check: (req: status.GetBotUsageResponse) => void = (req) => {}
+    check: (req: status.GetBotUsageResponse)=> void = (req) => {},
   ): MockStatusService {
     this.processGetBotUsage = (req) => {
       check(req);
@@ -113,7 +117,7 @@ export class MockStatusService implements StatusService {
   }
 
   getIncrementalCommits(
-    req: status.GetIncrementalCommitsRequest
+    req: status.GetIncrementalCommitsRequest,
   ): Promise<status.GetIncrementalCommitsResponse> {
     const process = this.processGetIncrementalCommits;
     this.processGetIncrementalCommits = null;
@@ -133,7 +137,7 @@ export class MockStatusService implements StatusService {
   }
 
   getAutorollerStatuses(
-    req: status.GetAutorollerStatusesRequest
+    req: status.GetAutorollerStatusesRequest,
   ): Promise<status.GetAutorollerStatusesResponse> {
     const process = this.processGetAutorollerStatuses;
     this.processGetAutorollerStatuses = null;

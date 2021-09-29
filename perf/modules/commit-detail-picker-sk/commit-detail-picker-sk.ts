@@ -87,7 +87,6 @@ export class CommitDetailPickerSk extends ElementSk {
     </dialog>
   `;
 
-
   connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('details');

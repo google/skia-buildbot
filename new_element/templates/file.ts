@@ -23,6 +23,6 @@ export class {{.ClassName}} extends ElementSk {
     super.connectedCallback();
     this._render();
   }
-};
+}
 
 define('{{.ElementName}}', {{.ClassName}});

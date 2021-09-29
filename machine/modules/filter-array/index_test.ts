@@ -21,7 +21,7 @@ describe('FilterArray', () => {
 
   it('calls callback when input event is triggered', () => {
     let cbCalled = false;
-    const f = new FilterArray()
+    const f = new FilterArray();
     f.connect(element, () => {
       cbCalled = true;
     });

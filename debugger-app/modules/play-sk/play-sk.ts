@@ -25,23 +25,20 @@ import 'elements-sk/icon/video-library-icon-sk';
 export type PlayMode = 'play' | 'pause';
 export interface PlaySkMoveToEventDetail {
   readonly item: number
-};
+}
 export interface PlaySkModeChangedManuallyEventDetail {
   readonly mode: PlayMode;
-};
+}
 
 export class PlaySk extends ElementSk {
-
   private static template = (ele: PlaySk) => {
     if (ele.visual === 'simple') {
       return PlaySk.simpleTemplate(ele);
-    } else {
-      return PlaySk.fullTemplate(ele);
     }
+    return PlaySk.fullTemplate(ele);
   }
 
-  private static fullTemplate = (ele: PlaySk) =>
-    html`
+  private static fullTemplate = (ele: PlaySk) => html`
     <div class="horizontal-flex">
       <div class='filler'></div>
       <skip-previous-icon-sk title="Go to first" @click=${ele.begin}
@@ -58,19 +55,23 @@ export class PlaySk extends ElementSk {
         ></input>
     </div>`;
 
-  private static simpleTemplate = (ele: PlaySk) =>
-    html`<video-library-icon-sk title="Play/Pause" @click=${ele.togglePlay}
+  private static simpleTemplate = (ele: PlaySk) => html`<video-library-icon-sk title="Play/Pause" @click=${ele.togglePlay}
         id='play-button-v'></video-library-icon-sk>`;
 
   private _mode: PlayMode = 'pause';
+
   // current position in sequence
   private _item: number = 0;
+
   // length of sequence
   private _size: number = 2;
+
   // target number of milliseconds to wait between playback steps
   private _playbackDelay: number = 0;
+
   // time at which the last moveto event was emitted
   private _lastMoveTime: number = 0;
+
   // reference to a timeout we set so we can cancel it if necessary
   private _timeout: number = 0;
 
@@ -105,7 +106,7 @@ export class PlaySk extends ElementSk {
     if (m === 'play') {
       this.next();
     } else if (this._timeout) {
-      console.log('paused on '+this._item);
+      console.log(`paused on ${this._item}`);
       window.clearTimeout(this._timeout);
     }
     this._render();
@@ -138,12 +139,12 @@ export class PlaySk extends ElementSk {
   // to an item.
   movedTo(item: number) {
     this._item = item;
-    if (this._mode === "play") {
+    if (this._mode === 'play') {
       // wait out the remainder of the minimum playback delay
       const elapsed = Date.now() - this._lastMoveTime;
       const remainingMs = Math.max(0, this._playbackDelay - elapsed);
       // Must be done with timeout, even if it's zero, or we exceed call stack size
-      this._timeout = window.setTimeout(() => {this.next()}, remainingMs);
+      this._timeout = window.setTimeout(() => { this.next(); }, remainingMs);
     }
   }
 
@@ -152,10 +153,9 @@ export class PlaySk extends ElementSk {
     if (this._mode === 'pause') {
       return html`<play-arrow-icon-sk title="Play/Pause" @click=${ele.togglePlay}
         id='play-button'></play-arrow-icon-sk>`;
-    } else {
-      return html`<pause-icon-sk title="Play/Pause" @click=${ele.togglePlay}
-        ></pause-icon-sk>`;
     }
+    return html`<pause-icon-sk title="Play/Pause" @click=${ele.togglePlay}
+        ></pause-icon-sk>`;
   }
 
   togglePlay() {
@@ -163,9 +163,11 @@ export class PlaySk extends ElementSk {
     this.dispatchEvent(
       new CustomEvent<PlaySkModeChangedManuallyEventDetail>(
         'mode-changed-manually', {
-          detail: {mode: this._mode},
+          detail: { mode: this._mode },
           bubbles: true,
-        }));
+        },
+      ),
+    );
   }
 
   // sends the moveto event
@@ -177,9 +179,11 @@ export class PlaySk extends ElementSk {
     this.dispatchEvent(
       new CustomEvent<PlaySkMoveToEventDetail>(
         'moveto', {
-          detail: {item: this._item},
+          detail: { item: this._item },
           bubbles: true,
-        }));
+        },
+      ),
+    );
   }
 
   begin() {
@@ -204,6 +208,6 @@ export class PlaySk extends ElementSk {
     this._item = (this._item + 1) % this._size;
     this._triggerEvent();
   }
-};
+}
 
 define('play-sk', PlaySk);

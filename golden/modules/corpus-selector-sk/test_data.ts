@@ -8,7 +8,7 @@ export interface TestCorpus {
   minCommitHash: string,
   untriagedCount: number,
   negativeCount: number
-};
+}
 
 /** These examples are based on a real request against https://gold.skia.org/json/v1/trstatus. */
 export const customTypeCorpora: TestCorpus[] = [{

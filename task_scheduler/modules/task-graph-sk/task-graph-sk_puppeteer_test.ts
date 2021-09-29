@@ -9,7 +9,7 @@ describe('task-graph-sk', () => {
   let testBed: TestBed;
   before(async () => {
     testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
+      path.join(__dirname, '..', '..', 'webpack.config.ts'),
     );
   });
 
@@ -39,7 +39,7 @@ describe('task-graph-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'task-graph-sk_dark'
+        'task-graph-sk_dark',
       );
     });
   });

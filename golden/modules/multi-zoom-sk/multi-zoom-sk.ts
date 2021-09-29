@@ -52,15 +52,14 @@ function colorHex(r: number, g: number, b: number, a: number): string {
 
 // colorDist returns the distance of a color from (0, 0, 0, 0) using a
 // crude square distance per channel.
-const colorDist = (r: number, g: number, b: number, a: number): number =>
-    r * r + g * g + b * b + a * a;
+const colorDist = (r: number, g: number, b: number, a: number): number => r * r + g * g + b * b + a * a;
 
 // Compute how much we scaled down, if at all. Either we had to scale down because the width
 // was too big, the height was too big, or no scaling was done.
-const scaleOf = (originalWidth: number, originalHeight: number): number =>
-    Math.min(
-        previewCanvasSize / originalWidth,
-        previewCanvasSize / originalHeight, 1);
+const scaleOf = (originalWidth: number, originalHeight: number): number => Math.min(
+  previewCanvasSize / originalWidth,
+  previewCanvasSize / originalHeight, 1,
+);
 
 export interface MultiZoomDetails {
   leftImageSrc: string;
@@ -198,28 +197,38 @@ export class MultiZoomSk extends ElementSk {
 
   // _x and _y are in the native image coordinates; that is, they are not scaled.
   private _x = 0;
+
   private _y = 0;
+
   private srcs = ['', '', ''];
+
   private labels = ['', 'Diff', ''];
 
   // We save the image data from all 3 images after it loads here - this lets us access the
   // pixel data quickly.
   private loadedImageData: (ImageData | null)[] = [null, null, null];
+
   // How many times are we zoomed in. We default to 8x.
   private _zoomLevel = 8;
+
   // The index of the image we should be zoomed in. -1 is a sentinel value for none.
   private zoomedIndex = 0;
+
   private _showGrid = false;
+
   // If we are cycling through a subset of the images.
   private _cyclingView = true;
+
   // Default to rotating through left and right image (i.e. index 0 and index 2).
   private cycleThrough = [true, false, true];
+
   // Used by the u/y key presses to go through pixels that are different between the right and
   // left image.
   private cachedDiffs: {x: number, y: number, diff: number}[] = [];
+
   private cachedDiffIdx = -1;
 
-  private readonly _keyEventHandler: (e: KeyboardEvent) => void;
+  private readonly _keyEventHandler: (e: KeyboardEvent)=> void;
 
   constructor() {
     super(MultiZoomSk.template);
@@ -487,7 +496,7 @@ export class MultiZoomSk extends ElementSk {
     return this.querySelector<HTMLCanvasElement>(`canvas.idx_${imgIdx}`);
   }
 
-  private getImage(imgIdx: number): HTMLImageElement | null{
+  private getImage(imgIdx: number): HTMLImageElement | null {
     return this.querySelector<HTMLImageElement>(`img.idx_${imgIdx}`);
   }
 

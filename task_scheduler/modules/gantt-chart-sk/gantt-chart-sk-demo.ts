@@ -20,43 +20,41 @@ const clearAndDraw = (data: Data) => {
 };
 
 // getData returns some placeholder data for a chart.
-const getData = (): Data => {
-  return {
-    lanes: [
-      {
-        label: 'lane1',
-        blocks: [
-          {
-            start: new Date('1970-01-19T12:54:10.000Z'),
-            end: new Date('1970-01-19T12:54:20.000Z'),
-            color: 'blue',
-            label: 'block1',
-          },
-        ],
-      },
-      {
-        label: 'lane2',
-        blocks: [
-          {
-            start: new Date('1970-01-19T12:54:11.000Z'),
-            end: new Date('1970-01-19T12:54:12.000Z'),
-            color: 'red',
-            label: 'block1',
-          },
-          {
-            start: new Date('1970-01-19T12:54:13.000Z'),
-            end: new Date('1970-01-19T12:54:14.000Z'),
-            color: 'green',
-            label: 'block2',
-          },
-        ],
-      },
-    ],
-    start: undefined,
-    end: undefined,
-    epochs: undefined,
-  };
-};
+const getData = (): Data => ({
+  lanes: [
+    {
+      label: 'lane1',
+      blocks: [
+        {
+          start: new Date('1970-01-19T12:54:10.000Z'),
+          end: new Date('1970-01-19T12:54:20.000Z'),
+          color: 'blue',
+          label: 'block1',
+        },
+      ],
+    },
+    {
+      label: 'lane2',
+      blocks: [
+        {
+          start: new Date('1970-01-19T12:54:11.000Z'),
+          end: new Date('1970-01-19T12:54:12.000Z'),
+          color: 'red',
+          label: 'block1',
+        },
+        {
+          start: new Date('1970-01-19T12:54:13.000Z'),
+          end: new Date('1970-01-19T12:54:14.000Z'),
+          color: 'green',
+          label: 'block2',
+        },
+      ],
+    },
+  ],
+  start: undefined,
+  end: undefined,
+  epochs: undefined,
+});
 
 // Set up event handlers for the buttons to render charts.
 

@@ -1,25 +1,25 @@
 import './index';
 import { ParamSet, fromParamSet } from 'common-sk/modules/query';
-import { SearchControlsSk, SearchCriteria } from './search-controls-sk';
 import { $$ } from 'common-sk/modules/dom';
+import { SearchControlsSk, SearchCriteria } from './search-controls-sk';
 
 const corpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];
 
 const paramSet: ParamSet = {
   'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],
-  'color': ['blue', 'green', 'red'],
-  'used': ['yes', 'no'],
-  'year': ['2020', '2019', '2018', '2017', '2016', '2015']
+  color: ['blue', 'green', 'red'],
+  used: ['yes', 'no'],
+  year: ['2020', '2019', '2018', '2017', '2016', '2015'],
 };
 
 let currentValue: SearchCriteria = {
   corpus: 'gm',
   leftHandTraceFilter: {
     'car make': ['chevrolet', 'dodge', 'ford'],
-    'color': ['blue'],
-    'year': ['2020', '2019']
+    color: ['blue'],
+    year: ['2020', '2019'],
   },
-  rightHandTraceFilter: {'color': ['blue'], 'used': ['yes']},
+  rightHandTraceFilter: { color: ['blue'], used: ['yes'] },
   includePositiveDigests: true,
   includeNegativeDigests: true,
   includeUntriagedDigests: true,
@@ -28,7 +28,7 @@ let currentValue: SearchCriteria = {
   minRGBADelta: 100,
   maxRGBADelta: 200,
   mustHaveReferenceImage: true,
-  sortOrder: 'descending'
+  sortOrder: 'descending',
 };
 updateSearchCriteriaPreview();
 
@@ -55,7 +55,7 @@ $$<HTMLButtonElement>('#clear')!.addEventListener('click', () => {
     minRGBADelta: 0,
     maxRGBADelta: 0,
     mustHaveReferenceImage: false,
-    sortOrder: 'ascending'
+    sortOrder: 'ascending',
   };
   currentValue = searchControlsSk.searchCriteria;
   updateSearchCriteriaPreview();
@@ -63,9 +63,7 @@ $$<HTMLButtonElement>('#clear')!.addEventListener('click', () => {
 
 // Updates the "Search criteria" section of the demo page.
 function updateSearchCriteriaPreview() {
-  const set =
-    (selector: string, text: string | number | boolean) =>
-      $$<HTMLSpanElement>('.preview ' + selector)!.innerText = text.toString();
+  const set = (selector: string, text: string | number | boolean) => $$<HTMLSpanElement>(`.preview ${selector}`)!.innerText = text.toString();
 
   set('.corpus', currentValue.corpus);
   set('.left-hand-trace-filter', fromParamSet(currentValue.leftHandTraceFilter));

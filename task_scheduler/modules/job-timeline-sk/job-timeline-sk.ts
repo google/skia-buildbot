@@ -7,7 +7,9 @@
  */
 import { define } from 'elements-sk/define';
 import { Job, Task } from '../rpc';
-import { draw, Block, Lane, Data } from '../gantt-chart-sk';
+import {
+  draw, Block, Lane, Data,
+} from '../gantt-chart-sk';
 import {
   GetTaskSchedulerService,
   GetJobResponse,
@@ -35,22 +37,18 @@ export class JobTimelineSk extends HTMLElement {
         .then((jobResp: GetJobResponse) => {
           const taskIds = jobResp
             .job!.tasks!.map((tasks: TaskSummaries) => tasks.tasks!)
-            .reduce((acc: TaskSummary[], subArray: TaskSummary[]) =>
-              acc.concat(subArray)
-            )
+            .reduce((acc: TaskSummary[], subArray: TaskSummary[]) => acc.concat(subArray))
             .map((task: TaskSummary) => task.id);
           Promise.all(
-            taskIds.map((id: string) =>
-              rpc.getTask({
-                id: id,
-                includeStats: true,
-              })
-            )
+            taskIds.map((id: string) => rpc.getTask({
+              id: id,
+              includeStats: true,
+            })),
           ).then((taskResps: GetTaskResponse[]) => {
             this.draw(
               jobResp.job!,
               taskResps.map((resp: GetTaskResponse) => resp.task!),
-              []
+              [],
             );
           });
         });
@@ -86,7 +84,7 @@ export class JobTimelineSk extends HTMLElement {
       // becomes multiple blocks, indicating the download and upload overhead
       // as well as the run time itself.
       let lastBlockEnd = createTs;
-      const makeBlock = function (label: string, end: string, color: string) {
+      const makeBlock = function(label: string, end: string, color: string) {
         const block: Block = {
           label: label,
           start: lastBlockEnd,
@@ -105,16 +103,16 @@ export class JobTimelineSk extends HTMLElement {
         makeBlock(
           'overhead',
           new Date(
-            startTs + 1000 * parseFloat(t.stats.downloadOverheadS)
+            startTs + 1000 * parseFloat(t.stats.downloadOverheadS),
           ).toString(),
-          '#d55e00'
+          '#d55e00',
         );
         makeBlock(
           'running',
           new Date(
-            finishTs - 1000 * parseFloat(t.stats.uploadOverheadS)
+            finishTs - 1000 * parseFloat(t.stats.uploadOverheadS),
           ).toString(),
-          '#0072b2'
+          '#0072b2',
         );
         makeBlock('overhead', t.finishedAt!, '#d55e00');
       } else {

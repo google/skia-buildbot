@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
-import { BulkTriageSkPO } from './bulk-triage-sk_po';
 import { ElementHandle } from 'puppeteer';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import { BulkTriageSkPO } from './bulk-triage-sk_po';
 
 describe('bulk-triage-sk', () => {
   let bulkTriageSk: ElementHandle;

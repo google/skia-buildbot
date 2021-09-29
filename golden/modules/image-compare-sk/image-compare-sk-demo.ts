@@ -1,7 +1,7 @@
 import './index';
 import { $$ } from 'common-sk/modules/dom';
 import { setImageEndpointsForDemos } from '../common';
-import {ImageCompareSk} from './image-compare-sk';
+import { ImageCompareSk } from './image-compare-sk';
 
 const aDigest = '6246b773851984c726cb2e1cb13510c2';
 const bDigest = '99c58c7002073346ff55f446d47d6311';

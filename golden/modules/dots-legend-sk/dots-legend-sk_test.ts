@@ -1,4 +1,5 @@
 import './index';
+import { expect } from 'chai';
 import {
   DOT_STROKE_COLORS,
   DOT_FILL_COLORS,
@@ -7,7 +8,6 @@ import {
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { DotsLegendSk } from './dots-legend-sk';
 import { DotsLegendSkPO } from './dots-legend-sk_po';
-import { expect } from 'chai';
 
 describe('dots-legend-sk', () => {
   const newInstance = setUpElementUnderTest<DotsLegendSk>('dots-legend-sk');
@@ -78,8 +78,7 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', async () => {
-      const diffHrefFor =
-          (d: string) => `/diff?test=My Test&left=00000000000000000000000000000000&right=${d}`;
+      const diffHrefFor = (d: string) => `/diff?test=My Test&left=00000000000000000000000000000000&right=${d}`;
       expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
         diffHrefFor('11111111111111111111111111111111'),
         diffHrefFor('22222222222222222222222222222222'),
@@ -96,8 +95,7 @@ describe('dots-legend-sk', () => {
       });
 
       it('renders digest links correctly', async () => {
-        const digestHrefFor = (d:string) =>
-            `/detail?test=My Test&digest=${d}&changelist_id=123456&crs=gerrit`;
+        const digestHrefFor = (d: string) => `/detail?test=My Test&digest=${d}&changelist_id=123456&crs=gerrit`;
         expect(await dotsLegendSkPO.getDigestHrefs()).to.deep.equal([
           digestHrefFor('00000000000000000000000000000000'),
           digestHrefFor('11111111111111111111111111111111'),
@@ -108,9 +106,8 @@ describe('dots-legend-sk', () => {
       });
 
       it('renders diff links correctly', async () => {
-        const diffHrefFor = (d: string) =>
-            '/diff?test=My Test&left=00000000000000000000000000000000' +
-            `&right=${d}&changelist_id=123456&crs=gerrit`;
+        const diffHrefFor = (d: string) => '/diff?test=My Test&left=00000000000000000000000000000000'
+            + `&right=${d}&changelist_id=123456&crs=gerrit`;
         expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
           diffHrefFor('11111111111111111111111111111111'),
           diffHrefFor('22222222222222222222222222222222'),
@@ -183,8 +180,7 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', async () => {
-      const diffHrefFor = (d: string) =>
-          `/diff?test=My Test&left=00000000000000000000000000000000&right=${d}`;
+      const diffHrefFor = (d: string) => `/diff?test=My Test&left=00000000000000000000000000000000&right=${d}`;
       expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
         diffHrefFor('11111111111111111111111111111111'),
         diffHrefFor('22222222222222222222222222222222'),
@@ -263,8 +259,7 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders diff links correctly', async () => {
-      const diffHrefFor = (d: string) =>
-          `/diff?test=My Test&left=00000000000000000000000000000000&right=${d}`;
+      const diffHrefFor = (d: string) => `/diff?test=My Test&left=00000000000000000000000000000000&right=${d}`;
       expect(await dotsLegendSkPO.getDiffHrefs()).to.deep.equal([
         diffHrefFor('11111111111111111111111111111111'),
         diffHrefFor('22222222222222222222222222222222'),

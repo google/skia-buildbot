@@ -14,7 +14,6 @@ export interface ChangelistControlsSkChangeEventDetail {
 }
 
 export class ChangelistControlsSk extends ElementSk {
-
   private static template = (ele: ChangelistControlsSk) => {
     if (!ele._summary) {
       return '';
@@ -38,7 +37,8 @@ export class ChangelistControlsSk extends ElementSk {
       <div class=inputs>
         <select @input=${ele.onSelectPS}>
           ${ele._summary.patch_sets.map(
-            (ps) => html`<option ?selected=${ele.ps_order === ps.order}>PS ${ps.order}</option>`)}
+      (ps) => html`<option ?selected=${ele.ps_order === ps.order}>PS ${ps.order}</option>`,
+    )}
         </select>
         <span class=spacer></span>
         <div class=radiogroup>
@@ -72,7 +72,9 @@ export class ChangelistControlsSk extends ElementSk {
   `;
 
   private psOrder = 0; // Default to use the last patchset.
+
   private includeDigestsFromPrimary = false;
+
   private _summary: ChangelistSummaryResponse | null = null;
 
   constructor() {

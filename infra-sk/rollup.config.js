@@ -18,10 +18,10 @@ function commentOutCssImports() {
   return {
     name: 'comment-out-css-imports',
     transform: function(code) {
-      const output =
-        code.replace(
-          /import.*['"].*\.(css|scss)['"].*/g,
-          (match) => `// /* Commented out by Rollup. */ ${match}`);
+      const output = code.replace(
+        /import.*['"].*\.(css|scss)['"].*/g,
+        (match) => `// /* Commented out by Rollup. */ ${match}`,
+      );
 
       return {
         code: output,

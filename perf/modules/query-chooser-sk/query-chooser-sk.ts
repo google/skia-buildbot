@@ -66,7 +66,6 @@ export class QueryChooserSk extends ElementSk {
     </div>
   `;
 
-
   connectedCallback(): any {
     super.connectedCallback();
     this._upgradeProperty('paramset');

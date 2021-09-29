@@ -7,11 +7,16 @@
 
 class StatusSettings {
   public swarmingUrl: string = '';
+
   public treeStatusBaseUrl: string = '';
+
   // Url with '{{TaskID}}' as a placeholder.
   public logsUrlTemplate: string = '';
+
   public taskSchedulerUrl: string = '';
+
   public defaultRepo: string = '';
+
   public repos: Map<string, string> = new Map();
 }
 
@@ -45,7 +50,7 @@ export function logsUrl(taskId: string): string {
       return '#';
     }
     // Hack because chromium logs replaces a persistent trailing '0' with a '1' for log urls.
-    taskId = taskId.slice(0, -1) + '1';
+    taskId = `${taskId.slice(0, -1)}1`;
   }
   return temp.replace('{{TaskID}}', taskId);
 }

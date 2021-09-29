@@ -20,7 +20,8 @@ const tooManyDigests: DigestStatus[] = [
 ];
 
 function newDotsLegendSk(
-    parentSelector: string, id: string, digests: DigestStatus[], clID: string, test: string) {
+  parentSelector: string, id: string, digests: DigestStatus[], clID: string, test: string,
+) {
   const dotsLegendSk = new DotsLegendSk();
   dotsLegendSk.id = id;
   dotsLegendSk.digests = digests;

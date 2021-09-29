@@ -280,7 +280,6 @@ export class ChromiumPerfRunsSk extends ElementSk {
     <td>${formatRepeatAfterDays(task.repeat_after_days)}</td>
   </tr>`;
 
-
   private static taskDialogTemplate = (task: ChromiumPerfDatastoreTask, index: number) => html`
   <div id=${`benchmarkArgs${index}`} class="dialog-background hidden overlay-themes-sk"
     @click=${hideDialog}>
@@ -409,7 +408,6 @@ export class ChromiumPerfRunsSk extends ElementSk {
       })
       .catch(errorMessage);
   }
-
 
   _resetPagination(): void {
     this._pagination = { offset: 0, size: 10, total: 0 };

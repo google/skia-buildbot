@@ -345,7 +345,6 @@ document.querySelector('#mode_basic')!.addEventListener('click', () => {
   fiddle.querySelector('img.cpu')!.addEventListener('load', modeComplete);
 });
 
-
 document.querySelector('#mode_text')!.addEventListener('click', () => {
   beforeMode();
   fiddle.config = {
@@ -402,7 +401,6 @@ document.querySelector('#mode_text')!.addEventListener('click', () => {
   };
   fiddle.querySelector('test-src-sk')!.addEventListener('change', modeComplete);
 });
-
 
 document.querySelector<HTMLButtonElement>('#mode_start')!.click();
 document.querySelector<ThemeChooserSk>('theme-chooser-sk')!.darkmode = true;

@@ -12,12 +12,12 @@
 
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ParamSet, fromParamSet, toParamSet } from 'common-sk/modules/query';
 import { $$ } from 'common-sk/modules/dom';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { QueryDialogSk } from '../query-dialog-sk/query-dialog-sk';
 
-import 'elements-sk/styles/buttons'
+import 'elements-sk/styles/buttons';
 import '../../../infra-sk/modules/query-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import '../query-dialog-sk';
@@ -26,8 +26,8 @@ export class TraceFilterSk extends ElementSk {
   private static template = (el: TraceFilterSk) => html`
     <div class=selection>
       ${Object.keys(el._selection).length === 0
-        ? html`<div class=empty-placeholder>All traces.</div>`
-        : html`<paramset-sk .paramsets=${[el._selection]}></paramset-sk>`}
+    ? html`<div class=empty-placeholder>All traces.</div>`
+    : html`<paramset-sk .paramsets=${[el._selection]}></paramset-sk>`}
     </div>
     <button class=edit-query @click=${el._onEditQueryBtnClick}>Edit</button>
 
@@ -36,6 +36,7 @@ export class TraceFilterSk extends ElementSk {
     </query-dialog-sk>`;
 
   private _paramSet: ParamSet = {};
+
   private _selection: ParamSet = {};
 
   private _queryDialogSk: QueryDialogSk | null = null;
@@ -76,9 +77,9 @@ export class TraceFilterSk extends ElementSk {
     this._render();
     this.dispatchEvent(new CustomEvent<ParamSet>('trace-filter-sk-change', {
       detail: this._selection,
-      bubbles: true
+      bubbles: true,
     }));
   }
-};
+}
 
 define('trace-filter-sk', TraceFilterSk);

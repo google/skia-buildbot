@@ -1,8 +1,8 @@
 import './index';
+import { expect } from 'chai';
 import { DebugViewSk } from './debug-view-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 
 describe('debug-view-sk', () => {
   const newInstance = setUpElementUnderTest<DebugViewSk>('debug-view-sk');

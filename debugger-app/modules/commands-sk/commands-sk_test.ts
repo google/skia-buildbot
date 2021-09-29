@@ -1,14 +1,13 @@
 import './index';
+import { expect } from 'chai';
 import {
   CommandsSk, CommandsSkMovePositionEventDetail,
-  CommandsSkSelectImageEventDetail
+  CommandsSkSelectImageEventDetail,
 } from './commands-sk';
 
 import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 import { SkpJsonCommandList } from '../debugger';
 import { testData } from './test-data';
-
 
 describe('commands-sk', () => {
   const newInstance = setUpElementUnderTest<CommandsSk>('commands-sk');
@@ -102,7 +101,7 @@ describe('commands-sk', () => {
     commandsSk.clearFilter();
     commandsSk.processCommands(testData);
 
-    commandsSk.textFilter = "ClipRect cliprrect";
+    commandsSk.textFilter = 'ClipRect cliprrect';
 
     expect(commandsSk.countFiltered).to.equal(2);
     // the last item to pass the filter, op 5, cliprrect
@@ -114,7 +113,7 @@ describe('commands-sk', () => {
     commandsSk.clearFilter();
     commandsSk.processCommands(testData);
 
-    commandsSk.textFilter = "!Restore Save";
+    commandsSk.textFilter = '!Restore Save';
 
     expect(commandsSk.countFiltered).to.equal(6);
     expect(commandsSk.position).to.equal(7);
@@ -127,7 +126,7 @@ describe('commands-sk', () => {
     commandsSk.clearFilter();
     commandsSk.processCommands(testData);
 
-    commandsSk.textFilter = "money";
+    commandsSk.textFilter = 'money';
 
     expect(commandsSk.countFiltered).to.equal(2);
     expect(commandsSk.position).to.equal(8);
@@ -138,8 +137,8 @@ describe('commands-sk', () => {
     commandsSk.clearFilter();
     commandsSk.processCommands(testData);
 
-    commandsSk.textFilter = "Save"; // there's save at ops 0 and 4
-    commandsSk.range = [2,9];
+    commandsSk.textFilter = 'Save'; // there's save at ops 0 and 4
+    commandsSk.range = [2, 9];
 
     // only one op, the save at position 4, satisfies both filters
     expect(commandsSk.countFiltered).to.equal(1);
@@ -151,8 +150,8 @@ describe('commands-sk', () => {
     commandsSk.clearFilter();
     commandsSk.processCommands(testData);
 
-    commandsSk.textFilter = "!Save"; // there's saves at ops 0 and 4
-    commandsSk.range = [2,9];
+    commandsSk.textFilter = '!Save'; // there's saves at ops 0 and 4
+    commandsSk.range = [2, 9];
 
     // only one op, the save at position 4, satisfies both filters
     expect(commandsSk.countFiltered).to.equal(7);
@@ -164,8 +163,8 @@ describe('commands-sk', () => {
     commandsSk.clearFilter();
     commandsSk.processCommands(testData);
 
-    commandsSk.textFilter = "trees"; // there's matches at ops 0 and 9
-    commandsSk.range = [0,2];
+    commandsSk.textFilter = 'trees'; // there's matches at ops 0 and 9
+    commandsSk.range = [0, 2];
 
     expect(commandsSk.countFiltered).to.equal(1);
     expect(commandsSk.position).to.equal(0);
@@ -176,10 +175,10 @@ describe('commands-sk', () => {
     commandsSk.clearFilter();
     commandsSk.processCommands(testData);
 
-    commandsSk.textFilter = "trees"; // there's matches at ops 0 and 9
-    commandsSk.range = [0,2];
+    commandsSk.textFilter = 'trees'; // there's matches at ops 0 and 9
+    commandsSk.range = [0, 2];
 
-    commandsSk.querySelector<HTMLButtonElement>('#clear-filter-button')!.click()
+    commandsSk.querySelector<HTMLButtonElement>('#clear-filter-button')!.click();
 
     // confirm filters gone
     expect(commandsSk.querySelector<HTMLInputElement>('#rangelo')!.value)
@@ -215,7 +214,7 @@ describe('commands-sk', () => {
     const opDiv = commandsSk.querySelector<HTMLElement>('#op-6')!; // ClipRRect
     (opDiv.querySelector('summary') as HTMLElement).click();
 
-    commandsSk.textFilter = "!Save Restore";
+    commandsSk.textFilter = '!Save Restore';
 
     expect(commandsSk.position).to.equal(6);
   });
@@ -228,7 +227,7 @@ describe('commands-sk', () => {
     const opDiv = commandsSk.querySelector<HTMLElement>('#op-6')!; // ClipRRect
     (opDiv.querySelector('summary') as HTMLElement).click();
 
-    commandsSk.textFilter = "!DrawTextBlob";
+    commandsSk.textFilter = '!DrawTextBlob';
 
     expect(commandsSk.position).to.equal(9);
   });
@@ -241,8 +240,9 @@ describe('commands-sk', () => {
     expect(commandsSk.position).to.equal(9);
 
     // set up event promise
-    let ep = eventPromise<CustomEvent<CommandsSkMovePositionEventDetail>>(
-      'move-command-position', 200);
+    const ep = eventPromise<CustomEvent<CommandsSkMovePositionEventDetail>>(
+      'move-command-position', 200,
+    );
 
     // click the play button
     commandsSk.querySelector<HTMLButtonElement>('#play-button')!.click();
@@ -250,7 +250,7 @@ describe('commands-sk', () => {
     expect((await ep).detail.position).to.equal(4);
   });
 
-  it ('full op representatoin contains image buttons for image shaders', async () => {
+  it('full op representatoin contains image buttons for image shaders', async () => {
     commandsSk.clearFilter();
     commandsSk.processCommands(JSON.parse(`
 {
@@ -321,15 +321,16 @@ describe('commands-sk', () => {
   ]
 }
       `));
-      // Expand the command in this test data, by clicking it two times.
-      const opDiv = commandsSk.querySelector<HTMLElement>('#op-0')!;
-      const summary = (opDiv.querySelector('summary') as HTMLElement);
-      summary.click();
-      summary.click();
-      // Click the image button. confirm event generated
-      let ep = eventPromise<CustomEvent<CommandsSkSelectImageEventDetail>>(
-        'select-image', 200);
+    // Expand the command in this test data, by clicking it two times.
+    const opDiv = commandsSk.querySelector<HTMLElement>('#op-0')!;
+    const summary = (opDiv.querySelector('summary') as HTMLElement);
+    summary.click();
+    summary.click();
+    // Click the image button. confirm event generated
+    const ep = eventPromise<CustomEvent<CommandsSkSelectImageEventDetail>>(
+      'select-image', 200,
+    );
       opDiv.querySelector<HTMLButtonElement>('button')!.click();
       expect((await ep).detail.id).to.equal(1000);
-  })
+  });
 });

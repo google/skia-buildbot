@@ -1,6 +1,6 @@
+import { Serializable } from 'puppeteer';
 import { PageObjectElement } from './page_object_element';
 import { TestBed, describePageObjectElement } from './page_object_element_test_cases';
-import { Serializable } from 'puppeteer';
 
 describe('PageObjectElement on the browser', () => {
   // This div will contain the top-level element in the HTML provided via the test bed.
@@ -28,9 +28,7 @@ describe('PageObjectElement on the browser', () => {
       return Promise.resolve(new PageObjectElement(element));
     },
 
-    evaluate: <T extends Serializable | void = void>(fn: (el: HTMLElement) => T) => {
-      return Promise.resolve(fn(container.firstElementChild as HTMLElement));
-    }
+    evaluate: <T extends Serializable | void = void>(fn: (el: HTMLElement)=> T) => Promise.resolve(fn(container.firstElementChild as HTMLElement)),
   };
 
   describePageObjectElement(testBed);

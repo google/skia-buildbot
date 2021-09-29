@@ -229,7 +229,7 @@ describe('test utilities', () => {
 
       it('catches a sequence with repeated events', async () => {
         const sequence = eventSequencePromise<CustomEvent<string>>([
-          'hey', 'hey', 'hello', 'world', 'hey', 'world', 'goodbye'
+          'hey', 'hey', 'hello', 'world', 'hey', 'world', 'goodbye',
         ]);
         el.dispatchEvent(new CustomEvent('hey', { bubbles: true, detail: 'first' }));
         el.dispatchEvent(new CustomEvent('hey', { bubbles: true, detail: 'second' }));
@@ -284,8 +284,9 @@ describe('test utilities', () => {
           expect.fail('promise should not have resolved');
         } catch (error) {
           expect(error).to.equal(
-            'timed out after 200 ms while waiting to catch events ' +
-            '"a", "very", "long", "event", "sequence"');
+            'timed out after 200 ms while waiting to catch events '
+            + '"a", "very", "long", "event", "sequence"',
+          );
         }
       });
 
@@ -302,7 +303,8 @@ describe('test utilities', () => {
           expect.fail('promise should not have resolved');
         } catch (error) {
           expect(error).to.equal(
-            'timed out after 200 ms while waiting to catch events "world", "goodbye"');
+            'timed out after 200 ms while waiting to catch events "world", "goodbye"',
+          );
         }
       });
 
@@ -315,7 +317,8 @@ describe('test utilities', () => {
           expect.fail('promise should not have resolved');
         } catch (error) {
           expect(error).to.equal(
-            'timed out after 200 ms while waiting to catch events "hello"');
+            'timed out after 200 ms while waiting to catch events "hello"',
+          );
         }
       });
 

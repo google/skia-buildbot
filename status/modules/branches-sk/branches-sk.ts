@@ -37,7 +37,9 @@ class Point {
     this.x = x;
     this.y = y;
   }
+
   x: number;
+
   y: number;
 }
 
@@ -51,16 +53,25 @@ class DisplayCommit {
     this.parents = commit.parents || [];
     this.children = [];
   }
+
   hash: string;
+
   timestamp: Date;
+
   row: number;
+
   column: number;
+
   label: Array<string>;
+
   parents: Array<string>;
+
   children: Array<string>;
+
   color() {
     return palette[this.column % palette.length];
   }
+
   // Where to draw this commit.
   getBounds() {
     return new Point(paddingX, paddingY - commitY / 4 + commitY * this.row);
@@ -68,16 +79,16 @@ class DisplayCommit {
 
   // The center of this commit's dot.
   dotCenter() {
-    var start = this.getBounds();
-    var centerX = start.x + columnWidth * this.column + radius;
-    var centerY = start.y - radius - 2;
+    const start = this.getBounds();
+    const centerX = start.x + columnWidth * this.column + radius;
+    const centerY = start.y - radius - 2;
     return new Point(centerX, centerY);
   }
 
   // Coordinates for drawing this commit's label.
   labelCoords() {
-    var bounds = this.getBounds();
-    var center = this.dotCenter();
+    const bounds = this.getBounds();
+    const center = this.dotCenter();
     return new Point(center.x + 3 * radius, bounds.y - 1);
   }
 
@@ -93,16 +104,17 @@ class DisplayCommit {
 
   // Draw an an alternating background color for this commit.
   drawBackground(ctx: CanvasRenderingContext2D) {
-    var startY = commitY * this.row;
-    var bgColor = this.row % 2 ? commitBg : commitBgAlt;
+    const startY = commitY * this.row;
+    const bgColor = this.row % 2 ? commitBg : commitBgAlt;
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, startY, ctx.canvas.clientWidth, startY + commitY);
   }
+
   // Draw a line connecting this commit to one of its parents.
   drawConnection(
     ctx: CanvasRenderingContext2D,
     parent: DisplayCommit,
-    allCommits: Map<string, DisplayCommit>
+    allCommits: Map<string, DisplayCommit>,
   ) {
     const center = this.dotCenter();
     const to = parent.dotCenter();
@@ -130,9 +142,9 @@ class DisplayCommit {
       // flexible.
       let v1_flex = true;
       for (const parentHash of this.parents) {
-        var c = allCommits.get(parentHash);
+        const c = allCommits.get(parentHash);
         if (!c) {
-          console.warn('Cannot find ' + parentHash);
+          console.warn(`Cannot find ${parentHash}`);
           continue;
         }
         if (this.timestamp > c.timestamp && c.timestamp > parent.timestamp) {
@@ -147,9 +159,9 @@ class DisplayCommit {
       // current commit and this parent, the second arc must end at the
       // parent commit: the second vertical line has zero length.
       // Otherwise, the length of the second vertical line is flexible.
-      var v2_flex = true;
+      let v2_flex = true;
       for (const childHash of parent.children) {
-        let c = allCommits.get(childHash)!;
+        const c = allCommits.get(childHash)!;
         if (this.timestamp > c.timestamp && c.timestamp > parent.timestamp) {
           if (parent.column == c.column) {
             v2_flex = false;
@@ -159,8 +171,8 @@ class DisplayCommit {
       }
 
       // Arc information..
-      var a1 = new Point(center.x - d * arcRadius, to.y - commitY);
-      var a2 = new Point(to.x + d * arcRadius, to.y);
+      const a1 = new Point(center.x - d * arcRadius, to.y - commitY);
+      const a2 = new Point(to.x + d * arcRadius, to.y);
 
       // If both vertical lines are flexible, arbitrarily choose where to
       // put the arcs and horizontal line (eg. next to the parent).
@@ -185,14 +197,13 @@ class DisplayCommit {
       }
 
       // Distance between the two arc centers.
-      var dist = Math.sqrt(Math.pow(a2.x - a1.x, 2) + Math.pow(a2.y - a1.y, 2));
+      const dist = Math.sqrt(Math.pow(a2.x - a1.x, 2) + Math.pow(a2.y - a1.y, 2));
       // Length of the arc to draw.
-      var arcLength =
-        Math.PI -
-        Math.acos((2 * arcRadius) / dist) -
-        Math.acos((Math.abs(to.x - center.x) - 2 * arcRadius) / dist);
-      var a1_start = halfPI - d * halfPI;
-      var a2_start = oneAndHalfPI - d * (halfPI - arcLength);
+      const arcLength = Math.PI
+        - Math.acos((2 * arcRadius) / dist)
+        - Math.acos((Math.abs(to.x - center.x) - 2 * arcRadius) / dist);
+      const a1_start = halfPI - d * halfPI;
+      const a2_start = oneAndHalfPI - d * (halfPI - arcLength);
 
       // Draw the connector: vertical line, arc, horizontal line, arc,
       // vertical line.
@@ -212,10 +223,10 @@ class DisplayCommit {
       return;
     }
     const labelCoords = this.labelCoords();
-    var w = this.labelWidth(ctx);
-    var h = parseInt(font);
-    var paddingY = 3;
-    var paddingX = 3;
+    const w = this.labelWidth(ctx);
+    const h = parseInt(font);
+    const paddingY = 3;
+    const paddingX = 3;
     ctx.fillStyle = this.color();
     ctx.fillRect(labelCoords.x - paddingX, labelCoords.y - h, w + 2 * paddingX, h + paddingY);
     ctx.fillStyle = '#FFFFFF';
@@ -227,10 +238,10 @@ class DisplayCommit {
     const center = this.dotCenter();
 
     // Connect the dots.
-    for (let parentHash of this.parents) {
+    for (const parentHash of this.parents) {
       const parent = displayCommits.get(parentHash);
       if (!parent) {
-        console.warn('Cannot find ' + parentHash);
+        console.warn(`Cannot find ${parentHash}`);
         continue;
       }
       this.drawConnection(ctx, parent, displayCommits);
@@ -246,22 +257,31 @@ class DisplayCommit {
 
 export class BranchesSk extends ElementSk {
   private _repoUrl: string = '';
+
   private _commits: Array<Commit> = [];
+
   private _branchHeads: Array<Branch> = [];
+
   private _rolls: Array<AutorollerStatus> = [];
+
   // Artificial 'Branches' we use to label autorollers, derived from the above.
   private rollLabels: Array<Branch> = [];
+
   private displayCommits: Map<string, DisplayCommit> = new Map();
+
   private canvasWidth: number = 0;
+
   private canvasHeight: number = 0;
+
   // Map of commit index -> link to branch  or roller.
   private linkMap: Map<number, string> = new Map();
+
   // Map of commit index -> title containing branches and rollers.
   private titleMap: Map<number, string> = new Map();
+
   private canvas?: HTMLCanvasElement;
 
-  private static template = (el: BranchesSk) =>
-    html`
+  private static template = (el: BranchesSk) => html`
       <!-- The tap event (which was originally used) does not always produce offsetY.
       on-click works for the Pixels (even when touching), so we use that.-->
       <canvas
@@ -282,6 +302,7 @@ export class BranchesSk extends ElementSk {
     this.canvas = $$<HTMLCanvasElement>('#commitCanvas', this)!;
     this.draw();
   }
+
   disconnectedCallback() {
     document.removeEventListener('theme-chooser-toggle', this.draw);
   }
@@ -311,14 +332,11 @@ export class BranchesSk extends ElementSk {
   set rolls(value) {
     this._rolls = value;
     this.rollLabels = [
-      ...this.rolls.map((roll) => {
-        return { name: roll.name + ' rolled', head: roll.lastRollRev };
-      }),
-      ...this.rolls.map((roll) => {
-        return { name: roll.name + ' rolling', head: roll.currentRollRev };
-      }),
+      ...this.rolls.map((roll) => ({ name: `${roll.name} rolled`, head: roll.lastRollRev })),
+      ...this.rolls.map((roll) => ({ name: `${roll.name} rolling`, head: roll.currentRollRev })),
     ];
   }
+
   get repoUrl(): string {
     return this._repoUrl;
   }
@@ -356,7 +374,7 @@ export class BranchesSk extends ElementSk {
       const name = branch.name;
       const idx = this._indexOfRevision(branch.head);
       if (this.titleMap.has(idx)) {
-        this.titleMap.set(idx, this.titleMap.get(idx) + ',' + name);
+        this.titleMap.set(idx, `${this.titleMap.get(idx)},${name}`);
       } else {
         this.titleMap.set(idx, name);
       }
@@ -406,11 +424,11 @@ export class BranchesSk extends ElementSk {
     // labels.
     // TODO(borenet): Further minimize this width by reordering the columns
     // based on which has the longest label.
-    let dummyCtx = document.createElement('canvas').getContext('2d')!;
+    const dummyCtx = document.createElement('canvas').getContext('2d')!;
     dummyCtx.font = font;
     let longestWidth = 0;
-    for (let commit of this.commits) {
-      let c = this.displayCommits.get(commit.hash)!;
+    for (const commit of this.commits) {
+      const c = this.displayCommits.get(commit.hash)!;
       let w = c.labelWidth(dummyCtx);
       w += commitY * (c.column + 1);
       if (w > longestWidth) {
@@ -423,8 +441,8 @@ export class BranchesSk extends ElementSk {
     const canvas = this.canvas!;
     this.canvasWidth = Math.max(longestWidth + paddingX, MIN_CANVAS_WIDTH);
     this.canvasHeight = commitY * this.commits.length;
-    canvas.style.width = Math.floor(this.canvasWidth) + 'px';
-    canvas.style.height = Math.floor(this.canvasHeight) + 'px';
+    canvas.style.width = `${Math.floor(this.canvasWidth)}px`;
+    canvas.style.height = `${Math.floor(this.canvasHeight)}px`;
     canvas.width = this.canvasWidth * scale;
     canvas.height = this.canvasHeight * scale;
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -458,7 +476,7 @@ export class BranchesSk extends ElementSk {
 function prepareCommitsForDisplay(
   commits: Array<Commit>,
   branch_heads: Array<Branch>,
-  rolls: Array<Branch>
+  rolls: Array<Branch>,
 ): Map<string, DisplayCommit> {
   // Create a Commit object for each commit.
   const displayCommits: Map<string, DisplayCommit> = new Map(); // Commit objects by hash.
@@ -479,7 +497,7 @@ function prepareCommitsForDisplay(
     }
   }
   for (let b = 0; b < branch_heads.length; b++) {
-    var branch = branch_heads[b];
+    const branch = branch_heads[b];
     if (b != mainIdx && branch.name != 'HEAD') {
       branches.push(branch);
     }
@@ -489,7 +507,7 @@ function prepareCommitsForDisplay(
 
   // Trace each branch, placing commits on that branch in an associated column.
   let column = 0;
-  for (let branch of branches) {
+  for (const branch of branches) {
     // Add a label to commits at branch heads.
     const hash = branch.head;
     // The branch might have scrolled out of the time window. If so, just
@@ -512,9 +530,9 @@ function prepareCommitsForDisplay(
 
   // Point all parents at their children, for convenience.
   for (const [_, commit] of displayCommits) {
-    for (let parentHash of commit.parents) {
+    for (const parentHash of commit.parents) {
       if (!displayCommits.has(parentHash)) {
-        console.warn('Cannot find ' + parentHash);
+        console.warn(`Cannot find ${parentHash}`);
         continue;
       }
       displayCommits.get(parentHash)!.children.push(commit.hash);
@@ -530,7 +548,7 @@ function traceCommits(
   commits: Array<CommitInfo>,
   remaining: Map<string, DisplayCommit>,
   hash: string,
-  column: number
+  column: number,
 ) {
   let usedColumn = false;
   while (remaining.has(hash)) {
@@ -541,11 +559,11 @@ function traceCommits(
     usedColumn = true;
     // Special case for non-displayed parents.
     if (!displayCommits.has(hash)) {
-      let offscreenParent = new DisplayCommit(
+      const offscreenParent = new DisplayCommit(
         {
           hash: hash,
         },
-        commits.length
+        commits.length,
       );
       offscreenParent.column = c.column;
       displayCommits.set(hash, offscreenParent);

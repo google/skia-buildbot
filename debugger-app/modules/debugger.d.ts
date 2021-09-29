@@ -2,20 +2,20 @@
 // These are defined in //skia/experimental/wasm-skp-debugger/debugger_bindings.cpp
 
 export interface DebuggerInitOptions {
-    locateFile: (path: string) => string;
-};
+    locateFile: (path: string)=> string;
+}
 export interface Debugger {
   // defined in wasm-skp-debugger/helper.js
   SkpFilePlayer(ab: ArrayBuffer): SkpFilePlayerResult;
   MakeWebGLCanvasSurface(canvas: HTMLCanvasElement): SkSurface;
   MakeSWCanvasSurface(canvas: HTMLCanvasElement): SkSurface;
   MinVersion(): number;
-};
+}
 // An object containing either the successfully loaded file player or an error.
 export interface SkpFilePlayerResult {
   readonly error: string;
   readonly player: SkpDebugPlayer;
-};
+}
 export interface SkpDebugPlayer {
   changeFrame(index: number): void;
   deleteCommand(index: number): void;
@@ -43,18 +43,18 @@ export interface SkpDebugPlayer {
   setOverdrawVis(visible: boolean): void;
   setAndroidClipViz(visible: boolean): void;
   TRANSPARENT: number;
-};
+}
 export interface SkSurface {
   dispose(): void;
   flush(): void;
   clear(color: Color): void;
-};
+}
 export interface SimpleImageInfo {
   width: number,
   height: number,
   colorType: number,
   alphaType: number,
-};
+}
 export interface SkIRect {
   fLeft: number;
   fTop: number;
@@ -77,7 +77,7 @@ export type Matrix4x4 = [
 export interface MatrixClipInfo {
   ClipRect: [number, number, number, number],
   ViewMatrix: Matrix3x3 | Matrix4x4,
-};
+}
 
 export interface SkpJsonGpuOp {
   Name: string,
@@ -85,10 +85,10 @@ export interface SkpJsonGpuOp {
   OpsTaskID: number,
   ChildID: number,
   // TODO(nifong): bounds, stack
-};
+}
 export interface SkpJsonAuditTrail {
   Ops: SkpJsonGpuOp[],
-};
+}
 export interface SkpJsonCommand {
   command: string // name
   shortDesc?: string // short description
@@ -96,11 +96,11 @@ export interface SkpJsonCommand {
   imageIndex?: number,
   key?: string, // text that goes along with a DrawAnnotation command
   auditTrail: SkpJsonAuditTrail,
-};
+}
 // Return type of SkpDebugPlayer.jsonCommandList() after json.parse
 export interface SkpJsonCommandList {
   commands: SkpJsonCommand[],
-};
+}
 // Indentifier of a layer update evenet
 export interface LayerKey {
   frame: number,

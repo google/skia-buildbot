@@ -9,7 +9,7 @@ describe('skip-tasks-sk', () => {
   let testBed: TestBed;
   before(async () => {
     testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
+      path.join(__dirname, '..', '..', 'webpack.config.ts'),
     );
   });
 
@@ -32,7 +32,7 @@ describe('skip-tasks-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'skip-tasks-sk_start'
+        'skip-tasks-sk_start',
       );
       // Take a screenshot in dark mode.
       await testBed.page.evaluate((_) => {
@@ -43,7 +43,7 @@ describe('skip-tasks-sk', () => {
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'skip-tasks-sk_start-dark'
+        'skip-tasks-sk_start-dark',
       );
     });
     it('adds a rule', async () => {
@@ -56,18 +56,18 @@ describe('skip-tasks-sk', () => {
       await testBed.page.type('#input-range-start', 'abc123');
       await testBed.page.type(
         '#input-description',
-        'This is a detailed description of the rule.'
+        'This is a detailed description of the rule.',
       );
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'skip-tasks-sk_adding-rule'
+        'skip-tasks-sk_adding-rule',
       );
       await testBed.page.click('#add-button');
       await takeScreenshot(
         testBed.page,
         'task-scheduler',
-        'skip-tasks-sk_added-rule'
+        'skip-tasks-sk_added-rule',
       );
     });
   });

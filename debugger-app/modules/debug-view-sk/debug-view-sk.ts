@@ -17,8 +17,7 @@ import {
 export type FitStyle = 'natural' | 'fit' | 'right' | 'bottom';
 
 export class DebugViewSk extends ElementDocSk {
-  private static template = (ele: DebugViewSk) =>
-    html`
+  private static template = (ele: DebugViewSk) => html`
     <div class="horizontal-flex">
       <button title="Original size." @click=${() => ele.fitStyle = 'natural'}>
         <img src="/dist/image.png" />
@@ -34,10 +33,10 @@ export class DebugViewSk extends ElementDocSk {
       </button>
     </div>
     <div id="backdrop" class="${ele._backdropStyle} grid">
-      ${ ele._renderCanvas
-      ? html`<canvas id="main-canvas" class=${ele._fitStyle}
+      ${ele._renderCanvas
+    ? html`<canvas id="main-canvas" class=${ele._fitStyle}
               width=${ele._width} height=${ele._height}></canvas>`
-      : '' }
+    : ''}
       <canvas id="crosshair-canvas" class=${ele._fitStyle}
               width=${ele._width} height=${ele._height}
               @click=${ele._canvasClicked}
@@ -46,11 +45,16 @@ export class DebugViewSk extends ElementDocSk {
 
   // the native width and height of the main canvas, before css is applied
   private _width: number = 400;
+
   private _height: number = 400;
+
   // the css class used to size the canvas.
   private _fitStyle: FitStyle = 'fit';
+
   private _backdropStyle = 'light-checkerboard';
+
   private _crossHairActive = false;
+
   private _renderCanvas = true;
 
   get crosshairActive(): boolean {
@@ -88,7 +92,7 @@ export class DebugViewSk extends ElementDocSk {
 
   get canvas(): HTMLCanvasElement {
     this._render();
-    return this.querySelector<HTMLCanvasElement>('#main-canvas')!
+    return this.querySelector<HTMLCanvasElement>('#main-canvas')!;
   }
 
   // Replace the main canvas element, changing its native size
@@ -104,11 +108,11 @@ export class DebugViewSk extends ElementDocSk {
 
   private _visibleSize(): Point {
     const element = this.querySelector<HTMLCanvasElement>('#main-canvas')!;
-    var strW = window.getComputedStyle(element, null).width;
-    var strH = window.getComputedStyle(element, null).height;
+    const strW = window.getComputedStyle(element, null).width;
+    const strH = window.getComputedStyle(element, null).height;
     // Trim 'px' off the end of the style string and convert to a number.
-    const visibleWidth = parseFloat(strW.substring(0, strW.length-2));
-    const visibleHeight = parseFloat(strH.substring(0, strH.length-2));
+    const visibleWidth = parseFloat(strW.substring(0, strW.length - 2));
+    const visibleHeight = parseFloat(strH.substring(0, strH.length - 2));
     return [visibleWidth, visibleHeight];
   }
 
@@ -125,9 +129,11 @@ export class DebugViewSk extends ElementDocSk {
     this.dispatchEvent(
       new CustomEvent<DebuggerPageSkCursorEventDetail>(
         'move-cursor', {
-          detail: {position: p, onlyData: false},
+          detail: { position: p, onlyData: false },
           bubbles: true,
-        }));
+        },
+      ),
+    );
   }
 
   private _drawCrossHairAt(p: Point) {
@@ -138,10 +144,10 @@ export class DebugViewSk extends ElementDocSk {
     chx.lineWidth = this._width / this._visibleSize()[0];
     chx.strokeStyle = '#F00';
     chx.beginPath();
-    chx.moveTo(0, p[1]-0.5);
-    chx.lineTo(chCanvas.width+1, p[1]-0.5);
-    chx.moveTo(p[0]-0.5, 0);
-    chx.lineTo(p[0]-0.5, chCanvas.height+1);
+    chx.moveTo(0, p[1] - 0.5);
+    chx.lineTo(chCanvas.width + 1, p[1] - 0.5);
+    chx.moveTo(p[0] - 0.5, 0);
+    chx.lineTo(p[0] - 0.5, chCanvas.height + 1);
     chx.stroke();
   }
 
@@ -163,6 +169,6 @@ export class DebugViewSk extends ElementDocSk {
     if (this._crossHairActive) { return; }
     this._sendCursorMove(this._mouseOffsetToCanvasPoint(e));
   }
-};
+}
 
 define('debug-view-sk', DebugViewSk);

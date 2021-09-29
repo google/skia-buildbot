@@ -20,6 +20,7 @@
 import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/app-sk';
@@ -33,7 +34,6 @@ import 'elements-sk/icon/home-icon-sk';
 import 'elements-sk/icon/search-icon-sk';
 import 'elements-sk/icon/send-icon-sk';
 import 'elements-sk/spinner-sk';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 
 /**
  * Moves the elements from one NodeList to the given HTMLElement.
@@ -44,8 +44,11 @@ function move(from: HTMLCollection | NodeList, to: HTMLElement) {
 
 export class TaskSchedulerScaffoldSk extends ElementSk {
   private main: HTMLElement | null = null;
+
   private busyTaskCount: number = 0;
+
   private spinner: SpinnerSk | null = null;
+
   private static template = (ele: TaskSchedulerScaffoldSk) => html`
     <app-sk>
       <header class="primary-container-themes-sk">
@@ -148,7 +151,7 @@ export class TaskSchedulerScaffoldSk extends ElementSk {
 
   /** @prop title Reflects the app_title attribute for ease of use. */
   get title() {
-    return <string>this.getAttribute('title');
+    return <string> this.getAttribute('title');
   }
 
   set title(val: string) {
@@ -214,7 +217,7 @@ export class TaskSchedulerScaffoldSk extends ElementSk {
       // https://developer.mozilla.org/en-US/docs/Web/API/DOMException
       errorMessage(
         `Unexpected error loading ${loadingWhat}: ${e.message}`,
-        5000
+        5000,
       );
     }
     this.finishedTask();

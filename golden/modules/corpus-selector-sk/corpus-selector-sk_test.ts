@@ -28,20 +28,20 @@ describe('corpus-selector-sk', () => {
 
     it('shows the available corpora', async () => {
       expect(await corpusSelectorSkPO.getCorpora()).to.deep.equal([
-        'canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'
+        'canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg',
       ]);
     });
 
     it('shows the available corpora using a custom renderer function', async () => {
       corpusSelectorSk.corpusRendererFn = (corpus) => `(${corpus})`;
       expect(await corpusSelectorSkPO.getCorpora()).to.deep.equal([
-        '(canvaskit)', '(colorImage)', '(gm)', '(image)', '(pathkit)', '(skp)', '(svg)'
+        '(canvaskit)', '(colorImage)', '(gm)', '(image)', '(pathkit)', '(skp)', '(svg)',
       ]);
     });
 
     it('shows the selected corpus', async () => {
       expect(await corpusSelectorSkPO.getSelectedCorpus()).to.equal('gm');
-    })
+    });
 
     it('can handle an empty selection', async () => {
       corpusSelectorSk.selectedCorpus = null;
@@ -78,7 +78,7 @@ describe('corpus-selector-sk', () => {
         const noEvent = noEventPromise('corpus-selected');
         await corpusSelectorSkPO.clickCorpus('gm');
         await noEvent;
-      })
+      });
     });
   });
 
@@ -90,30 +90,29 @@ describe('corpus-selector-sk', () => {
 
     beforeEach(() => {
       corpusSelectorSk = newInstance();
-      corpusSelectorSk.corpusRendererFn =
-        (c: TestCorpus) => `${c.name} : ${c.untriagedCount} / ${c.negativeCount}`;
+      corpusSelectorSk.corpusRendererFn = (c: TestCorpus) => `${c.name} : ${c.untriagedCount} / ${c.negativeCount}`;
       corpusSelectorSk.corpora = customTypeCorpora;
-      corpusSelectorSk.selectedCorpus = customTypeCorpora.find(corpus => corpus.name === 'gm')!;
+      corpusSelectorSk.selectedCorpus = customTypeCorpora.find((corpus) => corpus.name === 'gm')!;
 
       corpusSelectorSkPO = new CorpusSelectorSkPO(corpusSelectorSk);
     });
 
     it('handles a non-trivial custom corpus renderer function', async () => {
       expect(await corpusSelectorSkPO.getCorpora()).to.deep.equal([
-          'canvaskit : 2 / 2',
-          'colorImage : 0 / 1',
-          'gm : 61 / 1494',
-          'image : 22 / 35',
-          'pathkit : 0 / 0',
-          'skp : 0 / 1',
-          'svg : 19 / 21'
+        'canvaskit : 2 / 2',
+        'colorImage : 0 / 1',
+        'gm : 61 / 1494',
+        'image : 22 / 35',
+        'pathkit : 0 / 0',
+        'skp : 0 / 1',
+        'svg : 19 / 21',
       ]);
     });
 
     it('changes the selection when clicking on a corpus', async () => {
       await corpusSelectorSkPO.clickCorpus('skp : 0 / 1');
       expect(corpusSelectorSk.selectedCorpus)
-        .to.deep.equal(customTypeCorpora.find(corpus => corpus.name === 'skp')!);
+        .to.deep.equal(customTypeCorpora.find((corpus) => corpus.name === 'skp')!);
       expect(await corpusSelectorSkPO.getSelectedCorpus()).to.equal('skp : 0 / 1');
     });
 
@@ -121,7 +120,7 @@ describe('corpus-selector-sk', () => {
       const corpusSelected = eventPromise<CustomEvent<TestCorpus>>('corpus-selected');
       await corpusSelectorSkPO.clickCorpus('skp : 0 / 1');
       const newSelection = (await corpusSelected).detail;
-      expect(newSelection).to.deep.equal(customTypeCorpora.find(corpus => corpus.name === 'skp')!);
+      expect(newSelection).to.deep.equal(customTypeCorpora.find((corpus) => corpus.name === 'skp')!);
     });
   });
 });

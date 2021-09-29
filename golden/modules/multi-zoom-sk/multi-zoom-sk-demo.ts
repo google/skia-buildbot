@@ -6,7 +6,7 @@ import { $$ } from 'common-sk/modules/dom';
 import { digestDiffImagePath, digestImagePath, setImageEndpointsForDemos } from '../common';
 import { diff16x16, left16x16, right16x16 } from './test_data';
 import { isPuppeteerTest } from '../demo_util';
-import {MultiZoomSk} from './multi-zoom-sk';
+import { MultiZoomSk } from './multi-zoom-sk';
 
 setImageEndpointsForDemos();
 
@@ -17,7 +17,8 @@ ele.cyclingView = !isPuppeteer;
 ele.details = {
   leftImageSrc: digestImagePath('99c58c7002073346ff55f446d47d6311'),
   diffImageSrc: digestDiffImagePath(
-      '99c58c7002073346ff55f446d47d6311', '6246b773851984c726cb2e1cb13510c2'),
+    '99c58c7002073346ff55f446d47d6311', '6246b773851984c726cb2e1cb13510c2',
+  ),
   rightImageSrc: digestImagePath('6246b773851984c726cb2e1cb13510c2'),
   leftLabel: '99c58c700207...',
   rightLabel: 'Closest Positive',
@@ -26,7 +27,6 @@ ele.details = {
 ele.x = 77;
 ele.y = 199;
 $$<HTMLDivElement>('#normal')!.appendChild(ele);
-
 
 ele = new MultiZoomSk();
 ele.cyclingView = !isPuppeteer;
@@ -56,7 +56,7 @@ ele.cyclingView = !isPuppeteer;
 ele.details = {
   leftImageSrc: digestImagePath('99c58c7002073346ff55f446d47d6311'),
   diffImageSrc:
-      digestDiffImagePath('99c58c7002073346ff55f446d47d6311','6246b773851984c726cb2e1cb13510c2'),
+      digestDiffImagePath('99c58c7002073346ff55f446d47d6311', '6246b773851984c726cb2e1cb13510c2'),
   rightImageSrc: digestImagePath('6246b773851984c726cb2e1cb13510c2'),
   leftLabel: '99c58c700207...',
   rightLabel: 'Closest Positive',

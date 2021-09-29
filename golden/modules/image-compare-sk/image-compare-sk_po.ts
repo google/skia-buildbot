@@ -1,6 +1,6 @@
-import {PageObject} from '../../../infra-sk/modules/page_object/page_object';
-import {PageObjectElement, PageObjectElementList} from '../../../infra-sk/modules/page_object/page_object_element';
-import {MultiZoomSkPO} from '../multi-zoom-sk/multi-zoom-sk_po';
+import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
+import { PageObjectElement, PageObjectElementList } from '../../../infra-sk/modules/page_object/page_object_element';
+import { MultiZoomSkPO } from '../multi-zoom-sk/multi-zoom-sk_po';
 
 /** A page object for the ImageCompareSk component. */
 export class ImageCompareSkPO extends PageObject {

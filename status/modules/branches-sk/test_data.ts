@@ -3,10 +3,8 @@ import { Branch } from '../rpc/status';
 import { } from '../rpc-mock/test_data';
 
 const fixedDate = Date.now();
-const timestampSinceFixed = (seconds: number = 0) => {
-  return new Date(fixedDate - 1000 * seconds).toISOString();
-};
-let numCommits = 0;
+const timestampSinceFixed = (seconds: number = 0) => new Date(fixedDate - 1000 * seconds).toISOString();
+const numCommits = 0;
 function nextTimestamp() {
   return timestampSinceFixed(10 * numCommits);
 }

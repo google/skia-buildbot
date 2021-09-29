@@ -129,7 +129,6 @@ export class TriagePageSk extends ElementSk {
     this.firstConnect = false;
   }
 
-
   private static template = (ele: TriagePageSk) => html`
     <header>
       <details>
@@ -378,8 +377,7 @@ export class TriagePageSk extends ElementSk {
       `,
   );
 
-
-  connectedCallback(): void{
+  connectedCallback(): void {
     super.connectedCallback();
     if (this.firstConnect) {
       return;

@@ -43,7 +43,6 @@ export class TaskQueueSk extends ElementSk {
 
   private _running: boolean = false;
 
-
   constructor() {
     super(TaskQueueSk.template);
   }
@@ -185,7 +184,6 @@ export class TaskQueueSk extends ElementSk {
     // Sort pending tasks according to TsAdded.
     this._pendingTasks.sort((a, b) => a.ts_added - b.ts_added);
   }
-
 
   confirmDeleteTask(index: number): void {
     const confirmed = window.confirm('Delete this task?');

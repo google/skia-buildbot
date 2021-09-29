@@ -1,6 +1,8 @@
 import fetchMock from 'fetch-mock';
 
-const loginURL = 'https://' + window.location.host + '/loginstatus/';
+import './index';
+
+const loginURL = `https://${window.location.host}/loginstatus/`;
 fetchMock.get(loginURL, {
   Email: 'user@google.com',
   LoginURL: 'https://accounts.google.com/',
@@ -11,5 +13,3 @@ fetchMock.get('https://skia.org/loginstatus/', {
   LoginURL: 'https://accounts.google.com/',
   IsAGoogler: true,
 });
-
-import './index';

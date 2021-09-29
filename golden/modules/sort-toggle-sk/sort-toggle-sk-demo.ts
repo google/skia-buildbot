@@ -30,9 +30,8 @@ const data: DemoSortable[] = [
     name: 'delta',
     cost: 2,
     weight: 4,
-  }
+  },
 ];
-
 
 const rowTemplate = (row: DemoSortable) => html`
 <tr>
@@ -61,7 +60,6 @@ const usingMap = html`
   </table>
 </sort-toggle-sk>`;
 
-
 function renderTemplates() {
   render(usingMap, $$('#container')!);
 }
@@ -70,4 +68,3 @@ renderTemplates();
 // Clients should call sort using the appropriate key and direction after the data is loaded.
 const sortToggleSK = $$('sort-toggle-sk')! as SortToggleSk<DemoSortable>;
 sortToggleSK.sort('name', 'up');
-

@@ -1,9 +1,9 @@
 import './index';
+import { expect } from 'chai';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { diff16x16, left16x16, right16x16 } from './test_data';
 import { MultiZoomSk } from './multi-zoom-sk';
 import { MultiZoomSkPO } from './multi-zoom-sk_po';
-import { expect } from 'chai';
 
 describe('multi-zoom-sk', () => {
   const newInstance = setUpElementUnderTest<MultiZoomSk>('multi-zoom-sk');
@@ -66,7 +66,7 @@ describe('multi-zoom-sk', () => {
 
     await multiZoomSkPO.sendKeypress('y');
     expect(multiZoomSk.x).to.equal(12);
-    expect(multiZoomSk.y).to.equal(13)
+    expect(multiZoomSk.y).to.equal(13);
     expect(await multiZoomSkPO.getCoordinate()).to.equal('(12, 13)');
 
     expect(await multiZoomSkPO.getNthDiff()).to.equal('1st biggest pixel diff (out of 32)');
@@ -153,7 +153,7 @@ describe('multi-zoom-sk', () => {
     expect(await multiZoomSkPO.isRightCheckboxChecked()).to.be.true;
 
     await multiZoomSkPO.sendKeypress('m');
-    expect(await multiZoomSkPO.isLeftDisplayed())
+    expect(await multiZoomSkPO.isLeftDisplayed());
     expect(await multiZoomSkPO.getDisplayedImage()).to.equal('diff');
 
     await multiZoomSkPO.sendKeypress('m');

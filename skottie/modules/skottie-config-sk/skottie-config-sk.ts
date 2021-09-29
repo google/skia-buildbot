@@ -159,11 +159,17 @@ export class SkottieConfigSk extends ElementSk {
   };
 
   private _isRatioLocked: boolean = false;
+
   private _ratio: number = 0;
+
   private _width: number = DEFAULT_SIZE;
+
   private _height: number = DEFAULT_SIZE;
+
   private _fps: number = 0;
+
   private _backgroundColor: string = BACKGROUND_VALUES.TRANSPARENT;
+
   private _fileChanged: boolean = false;
 
   constructor() {

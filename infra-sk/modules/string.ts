@@ -3,7 +3,7 @@
  * @description Shared utilities for strings.
  */
 
-const ellipsis = "...";
+const ellipsis = '...';
 
 /**
  * Truncate the given string to the given length. If the string was

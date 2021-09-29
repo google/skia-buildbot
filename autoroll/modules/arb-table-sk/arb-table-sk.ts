@@ -46,12 +46,15 @@ export class ARBTableSk extends ElementSk {
           <td>${st.numBehind}</td>
           <td>${st.numFailed}</td>
         </tr>
-      `
+      `,
     )}
   </table>
 `;
+
   private rollers: AutoRollMiniStatus[] = [];
+
   private filtered: AutoRollMiniStatus[] = [];
+
   private rpc: AutoRollService;
 
   constructor() {
@@ -76,13 +79,11 @@ export class ARBTableSk extends ElementSk {
     const filterInput = $$<HTMLInputElement>('#filter', this);
     if (!!filterInput && !!filterInput.value) {
       const regex = new RegExp(filterInput!.value);
-      this.filtered = this.rollers.filter((st: AutoRollMiniStatus) => {
-        return (
-          st.rollerId.match(regex) ||
-          st.childName.match(regex) ||
-          st.parentName.match(regex)
-        );
-      });
+      this.filtered = this.rollers.filter((st: AutoRollMiniStatus) => (
+        st.rollerId.match(regex)
+          || st.childName.match(regex)
+          || st.parentName.match(regex)
+      ));
     }
     this._render();
   }

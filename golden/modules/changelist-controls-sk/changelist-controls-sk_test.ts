@@ -1,10 +1,10 @@
 import './index';
 
+import { expect } from 'chai';
 import { ChangelistControlsSk, ChangelistControlsSkChangeEventDetail } from './changelist-controls-sk';
-import { ChangelistControlsSkPO  } from './changelist-controls-sk_po';
+import { ChangelistControlsSkPO } from './changelist-controls-sk_po';
 import { twoPatchsets } from './test_data';
 import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 
 describe('changelist-controls-sk', () => {
   const newInstance = setUpElementUnderTest<ChangelistControlsSk>('changelist-controls-sk');
@@ -13,7 +13,7 @@ describe('changelist-controls-sk', () => {
   let changelistControlsSkPO: ChangelistControlsSkPO;
 
   beforeEach(() => {
-    changelistControlsSk = newInstance()
+    changelistControlsSk = newInstance();
     changelistControlsSkPO = new ChangelistControlsSkPO(changelistControlsSk);
   });
 
@@ -68,8 +68,7 @@ describe('changelist-controls-sk', () => {
       expect(await changelistControlsSkPO.isExcludeResultsFromPrimaryRadioChecked()).to.be.true;
       expect(await changelistControlsSkPO.isShowAllResultsRadioChecked()).to.be.false;
 
-      const event =
-        eventPromise<CustomEvent<ChangelistControlsSkChangeEventDetail>>('cl-control-change');
+      const event = eventPromise<CustomEvent<ChangelistControlsSkChangeEventDetail>>('cl-control-change');
       await changelistControlsSkPO.clickShowAllResultsRadio();
       const eventDetail = (await event).detail;
 
@@ -87,8 +86,7 @@ describe('changelist-controls-sk', () => {
 
       expect(await changelistControlsSkPO.getPatchset()).to.equal('PS 4');
 
-      const event =
-        eventPromise<CustomEvent<ChangelistControlsSkChangeEventDetail>>('cl-control-change');
+      const event = eventPromise<CustomEvent<ChangelistControlsSkChangeEventDetail>>('cl-control-change');
       await changelistControlsSkPO.setPatchset('PS 1');
       const eventDetail = (await event).detail;
 

@@ -1,8 +1,8 @@
 import './index';
 
-import {setUpElementUnderTest} from '../test_util';
-import { SystemdUnitStatusSk, SystemdUnitStatusSkEventDetail } from './systemd-unit-status-sk';
 import { expect } from 'chai';
+import { setUpElementUnderTest } from '../test_util';
+import { SystemdUnitStatusSk, SystemdUnitStatusSkEventDetail } from './systemd-unit-status-sk';
 
 describe('systemd-unit-status-sk', () => {
   const newInstance = setUpElementUnderTest<SystemdUnitStatusSk>('systemd-unit-status-sk');
@@ -12,19 +12,19 @@ describe('systemd-unit-status-sk', () => {
       const systemdUnitStatusSk = newInstance();
       systemdUnitStatusSk.setAttribute('machine', 'skia-fiddle');
       systemdUnitStatusSk.value = {
-        "status": {
-          "Name": "pulld.service",
-          "Description": "",
-          "LoadState": "",
-          "ActiveState": "",
-          "SubState": "",
-          "Followed": "",
-          "Path": "",
-          "JobId": 0,
-          "JobType": "",
-          "JobPath": "",
+        status: {
+          Name: 'pulld.service',
+          Description: '',
+          LoadState: '',
+          ActiveState: '',
+          SubState: '',
+          Followed: '',
+          Path: '',
+          JobId: 0,
+          JobType: '',
+          JobPath: '',
         },
-        "props": {},
+        props: {},
       };
 
       let detail: SystemdUnitStatusSkEventDetail;
@@ -32,7 +32,8 @@ describe('systemd-unit-status-sk', () => {
         detail = (e as CustomEvent<SystemdUnitStatusSkEventDetail>).detail;
       });
       const button = systemdUnitStatusSk.querySelector<HTMLButtonElement>(
-        'button[data-action=restart]')!;
+        'button[data-action=restart]',
+      )!;
       expect(button.textContent).to.equal('Restart');
       button.click();
       expect(detail!.machine).to.equal('skia-fiddle');

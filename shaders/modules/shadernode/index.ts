@@ -97,7 +97,6 @@ export const childShaderArraysDiffer = (a: ChildShader[], b: ChildShader[]): boo
   return false;
 };
 
-
 /**
  * One node in a tree of shaders.
  */

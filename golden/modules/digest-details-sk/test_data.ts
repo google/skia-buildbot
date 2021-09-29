@@ -1,4 +1,6 @@
-import {Commit, Digest, SearchResult, TestName} from '../rpc_types';
+import {
+  Commit, Digest, SearchResult, TestName,
+} from '../rpc_types';
 
 export const fakeNow = Date.parse('2020-03-22T00:00:00.000Z');
 
@@ -136,11 +138,11 @@ export const makeTypicalSearchResult = (testName: TestName, digest: Digest, clos
   },
 });
 
-export const typicalDetails =
-    makeTypicalSearchResult(
-        'dots-legend-sk_too-many-digests',
-        '6246b773851984c726cb2e1cb13510c2',
-        '99c58c7002073346ff55f446d47d6311');
+export const typicalDetails = makeTypicalSearchResult(
+  'dots-legend-sk_too-many-digests',
+  '6246b773851984c726cb2e1cb13510c2',
+  '99c58c7002073346ff55f446d47d6311',
+);
 
 export const negativeOnly: SearchResult = {
   test: 'dots-legend-sk_too-many-digests',

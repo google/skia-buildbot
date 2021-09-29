@@ -20,7 +20,6 @@ export class BugsSLOPopupSk extends ElementSk {
 
   private dialog: HTMLDialogElement | null = null;
 
-
   constructor() {
     super(BugsSLOPopupSk.template);
   }
@@ -31,7 +30,6 @@ export class BugsSLOPopupSk extends ElementSk {
       ${el.displayIssues()}
     </dialog>
     `;
-
 
   connectedCallback(): void {
     super.connectedCallback();

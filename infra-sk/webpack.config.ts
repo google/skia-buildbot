@@ -1,8 +1,6 @@
 import webpack from 'webpack';
-import commonBuilder from '../infra-sk/pulito/webpack.common';
+import commonBuilder from './pulito/webpack.common';
 
-const configFactory: webpack.ConfigurationFactory = (_, args) => {
-  return commonBuilder(__dirname, args.mode);
-};
+const configFactory: webpack.ConfigurationFactory = (_, args) => commonBuilder(__dirname, args.mode);
 
 export = configFactory;

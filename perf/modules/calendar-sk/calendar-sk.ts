@@ -215,7 +215,7 @@ export class CalendarSk extends ElementSk {
     `;
   };
 
-  connectedCallback(): void{
+  connectedCallback(): void {
     super.connectedCallback();
     this.buildWeekDayHeader();
     this._render();

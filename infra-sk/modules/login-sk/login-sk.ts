@@ -26,8 +26,7 @@ define('login-sk', class extends HTMLElement {
     if (this.testingOffline) {
       this.querySelector<HTMLSpanElement>('.email')!.textContent = 'test@example.com';
       const logInOut = this.querySelector<HTMLAnchorElement>('.logInOut')!;
-      logInOut.href =
-          `https://${host}/logout/?redirect=${encodeURIComponent(document.location.toString())}`;
+      logInOut.href = `https://${host}/logout/?redirect=${encodeURIComponent(document.location.toString())}`;
       logInOut.textContent = 'Logout';
     } else {
       LoginTo(`https://${host}/loginstatus/`).then((status) => {
@@ -37,9 +36,8 @@ define('login-sk', class extends HTMLElement {
           logInOut.href = status.LoginURL;
           logInOut.textContent = 'Login';
         } else {
-          logInOut.href =
-              `https://${host}/logout/?redirect=` +
-              encodeURIComponent(document.location.toString());
+          logInOut.href = `https://${host}/logout/?redirect=${
+            encodeURIComponent(document.location.toString())}`;
           logInOut.textContent = 'Logout';
         }
       }).catch(errorMessage);

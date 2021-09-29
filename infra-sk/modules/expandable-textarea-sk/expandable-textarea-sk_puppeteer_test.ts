@@ -4,7 +4,7 @@ import {
   inBazel,
   loadCachedTestBed,
   takeScreenshot,
-  TestBed
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('expandable-textarea-sk', () => {
@@ -12,7 +12,7 @@ describe('expandable-textarea-sk', () => {
 
   before(async () => {
     testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
+      path.join(__dirname, '..', '..', 'webpack.config.ts'),
     );
   });
 

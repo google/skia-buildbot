@@ -1,9 +1,9 @@
 import './index';
-import { PerfStatusSk } from './perf-status-sk';
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { expect } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
 import fetchMock from 'fetch-mock';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { PerfStatusSk } from './perf-status-sk';
 import { AlertsStatus } from '../../../perf/modules/json';
 
 describe('perf-status-sk', () => {

@@ -1,9 +1,9 @@
 import {
   TaskSchedulerService,
   TaskSchedulerServiceClient,
-} from "./rpc";
+} from './rpc';
 
-export * from "./rpc";
+export * from './rpc';
 
 /**
  * GetTaskSchedulerService returns an TaskSchedulerService implementation
@@ -12,8 +12,8 @@ export * from "./rpc";
  * @param ele The parent element, used to dispatch events.
  */
 export function GetTaskSchedulerService(ele: HTMLElement): TaskSchedulerService {
-  const host = window.location.protocol + "//" + window.location.host;
-  let rpcClient: TaskSchedulerService = new TaskSchedulerServiceClient(host, window.fetch.bind(window));
+  const host = `${window.location.protocol}//${window.location.host}`;
+  const rpcClient: TaskSchedulerService = new TaskSchedulerServiceClient(host, window.fetch.bind(window));
   const handler = {
     get(target: any, propKey: any, receiver: any) {
       const origMethod = target[propKey];
@@ -32,8 +32,8 @@ export function GetTaskSchedulerService(ele: HTMLElement): TaskSchedulerService 
           }));
           Promise.reject(err);
         });
-      }
-    }
+      };
+    },
   };
   return new Proxy(rpcClient, handler);
 }

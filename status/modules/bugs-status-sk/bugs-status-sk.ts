@@ -23,15 +23,14 @@ export class BugsStatusSk extends ElementSk {
   private static template = (el: BugsStatusSk) => html`
     <div class="table">
       ${el.resp && el.resp.clients_to_status_data
-        ? el.displayBugsData()
-        : html``}
+    ? el.displayBugsData()
+    : html``}
     </div>
   `;
 
   displayBugsData(): TemplateResult[] {
     const rows: TemplateResult[] = [];
-    Object.keys(this.resp!.clients_to_status_data!).forEach((client: string) =>
-      rows.push(html`
+    Object.keys(this.resp!.clients_to_status_data!).forEach((client: string) => rows.push(html`
         <a
           class="tr"
           href="${this.resp!.clients_to_status_data![client].link}"
@@ -43,12 +42,11 @@ export class BugsStatusSk extends ElementSk {
           <div class="td number">
             <span class="value"
               >${this.resp!.clients_to_status_data![client]
-                .untriaged_count}</span
+  .untriaged_count}</span
             >
           </div>
         </a>
-      `)
-    );
+      `));
     return rows;
   }
 

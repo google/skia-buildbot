@@ -15,10 +15,10 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 
 import '../autogrow-textarea-sk';
+import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
 import { AutogrowTextareaSk } from '../autogrow-textarea-sk/autogrow-textarea-sk';
 import { ElementSk } from '../ElementSk';
 
-import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
 import 'elements-sk/collapse-sk';
 import 'elements-sk/icon/expand-more-icon-sk';
 import 'elements-sk/icon/expand-less-icon-sk';
@@ -28,8 +28,8 @@ export class ExpandableTextareaSk extends ElementSk {
   private static template = (ele: ExpandableTextareaSk) => html`
     <button class=expander @click=${ele.toggle}>
       ${!ele.open
-          ? html`<expand-more-icon-sk></expand-more-icon-sk>`
-          : html`<expand-less-icon-sk></expand-less-icon-sk>`}${ele.displayText}
+    ? html`<expand-more-icon-sk></expand-more-icon-sk>`
+    : html`<expand-less-icon-sk></expand-less-icon-sk>`}${ele.displayText}
     </button>
     <collapse-sk ?closed=${!ele.open}>
       <autogrow-textarea-sk placeholder=${ele.placeholder}
@@ -38,6 +38,7 @@ export class ExpandableTextareaSk extends ElementSk {
   `;
 
   private collapseSk: CollapseSk | null = null;
+
   private autogrowTextareaSk: AutogrowTextareaSk | null = null;
 
   constructor() {

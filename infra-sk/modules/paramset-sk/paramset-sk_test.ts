@@ -1,23 +1,23 @@
 import './index';
 
-import { setUpElementUnderTest, eventPromise, noEventPromise } from '../../../infra-sk/modules/test_util';
+import { ParamSet } from 'common-sk/modules/query';
+import { setUpElementUnderTest, eventPromise, noEventPromise } from '../test_util';
 import { ParamSetSk, ParamSetSkClickEventDetail } from './paramset-sk';
 import { ParamSetSkPO, ParamSetKeyValueTuple } from './paramset-sk_po';
-import { ParamSet } from 'common-sk/modules/query';
 
 const expect = chai.expect;
 
 const paramSet1: ParamSet = {
-  'a': ['hello', 'world'],
-  'b': ['1', '2', '3'],
-  'c': ['W', 'X', 'Y'],
-  'd': ['I', 'II', 'III'],
+  a: ['hello', 'world'],
+  b: ['1', '2', '3'],
+  c: ['W', 'X', 'Y'],
+  d: ['I', 'II', 'III'],
 };
 const paramSet2: ParamSet = {
-  'b': ['2', '3', '4'],
-  'c': ['X', 'Y', 'Z'],
-  'd': ['II', 'III', 'IV'],
-  'e': ['alpha']
+  b: ['2', '3', '4'],
+  c: ['X', 'Y', 'Z'],
+  d: ['II', 'III', 'IV'],
+  e: ['alpha'],
 };
 
 const title1 = 'foo';
@@ -94,15 +94,17 @@ describe('paramset-sk', () => {
     });
 
     it('should highlight values', async () => {
-      paramSetSk.highlight = {'a': 'hello', 'b': '1', 'c': 'X', 'd': 'IV', 'e': 'alpha'};
+      paramSetSk.highlight = {
+        a: 'hello', b: '1', c: 'X', d: 'IV', e: 'alpha',
+      };
 
       const expected: ParamSetKeyValueTuple[] = [
-        {paramSetIndex: 0, key: 'a', value: 'hello'},
-        {paramSetIndex: 0, key: 'b', value: '1'},
-        {paramSetIndex: 0, key: 'c', value: 'X'},
-        {paramSetIndex: 1, key: 'c', value: 'X'},
-        {paramSetIndex: 1, key: 'd', value: 'IV'},
-        {paramSetIndex: 1, key: 'e', value: 'alpha'},
+        { paramSetIndex: 0, key: 'a', value: 'hello' },
+        { paramSetIndex: 0, key: 'b', value: '1' },
+        { paramSetIndex: 0, key: 'c', value: 'X' },
+        { paramSetIndex: 1, key: 'c', value: 'X' },
+        { paramSetIndex: 1, key: 'd', value: 'IV' },
+        { paramSetIndex: 1, key: 'e', value: 'alpha' },
       ];
       expect(await paramSetSkPO.getHighlightedValues()).to.deep.equal(expected);
     });
@@ -123,7 +125,7 @@ describe('paramset-sk', () => {
 
       it('does not emit an event when clicking a value', async () => {
         const noEvent = noEventPromise('paramset-key-value-click');
-        await paramSetSkPO.clickValue({paramSetIndex: 0, key: 'a', value: 'hello'});
+        await paramSetSkPO.clickValue({ paramSetIndex: 0, key: 'a', value: 'hello' });
         await noEvent;
       });
     });
@@ -140,13 +142,12 @@ describe('paramset-sk', () => {
       });
 
       it('emits an event when clicking a value', async () => {
-        const event =
-          eventPromise<CustomEvent<ParamSetSkClickEventDetail>>('paramset-key-value-click');
-        await paramSetSkPO.clickValue({paramSetIndex: 0, key: 'a', value: 'hello'});
+        const event = eventPromise<CustomEvent<ParamSetSkClickEventDetail>>('paramset-key-value-click');
+        await paramSetSkPO.clickValue({ paramSetIndex: 0, key: 'a', value: 'hello' });
         const expectedDetail: ParamSetSkClickEventDetail = {
           ctrl: false,
           key: 'a',
-          value: 'hello'
+          value: 'hello',
         };
         expect((await event).detail).to.deep.equal(expectedDetail);
       });
@@ -160,15 +161,14 @@ describe('paramset-sk', () => {
       it('emits an event when clicking a key', async () => {
         const event = eventPromise<CustomEvent<ParamSetSkClickEventDetail>>('paramset-key-click');
         await paramSetSkPO.clickKey('a');
-        const expectedDetail: ParamSetSkClickEventDetail = {key: 'a', ctrl: false};
+        const expectedDetail: ParamSetSkClickEventDetail = { key: 'a', ctrl: false };
         expect((await event).detail).to.deep.equal(expectedDetail);
       });
 
       it('emits an event when clicking a value', async () => {
-        const event =
-          eventPromise<CustomEvent<ParamSetSkClickEventDetail>>('paramset-key-value-click');
-        await paramSetSkPO.clickValue({paramSetIndex: 0, key: 'a', value: 'hello'});
-        const expectedDetail: ParamSetSkClickEventDetail = {key: 'a', value: 'hello', ctrl: false};
+        const event = eventPromise<CustomEvent<ParamSetSkClickEventDetail>>('paramset-key-value-click');
+        await paramSetSkPO.clickValue({ paramSetIndex: 0, key: 'a', value: 'hello' });
+        const expectedDetail: ParamSetSkClickEventDetail = { key: 'a', value: 'hello', ctrl: false };
         expect((await event).detail).to.deep.equal(expectedDetail);
       });
     });

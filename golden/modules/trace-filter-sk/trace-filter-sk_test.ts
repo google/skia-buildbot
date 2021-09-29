@@ -1,6 +1,6 @@
 import './index';
-import { eventPromise, noEventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { ParamSet } from 'common-sk/modules/query';
+import { eventPromise, noEventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { TraceFilterSk } from './trace-filter-sk';
 import { TraceFilterSkPO } from './trace-filter-sk_po';
 
@@ -8,13 +8,13 @@ const expect = chai.expect;
 
 const paramSet: ParamSet = {
   'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],
-  'color': ['blue', 'green', 'red'],
-  'used': ['yes', 'no'],
-  'year': ['2020', '2019', '2018', '2017', '2016', '2015']
+  color: ['blue', 'green', 'red'],
+  used: ['yes', 'no'],
+  year: ['2020', '2019', '2018', '2017', '2016', '2015'],
 };
 
-const selection: ParamSet = {'car make': ['dodge', 'ford'], 'color': ['blue']};
-const differentSelection: ParamSet = {'color': ['green'], 'used': ['yes', 'no']};
+const selection: ParamSet = { 'car make': ['dodge', 'ford'], color: ['blue'] };
+const differentSelection: ParamSet = { color: ['green'], used: ['yes', 'no'] };
 
 describe('trace-filter-sk', () => {
   const newInstance = setUpElementUnderTest<TraceFilterSk>('trace-filter-sk');
@@ -30,10 +30,10 @@ describe('trace-filter-sk', () => {
   });
 
   it('opens the query dialog with the given ParamSet when clicking the "edit query" button',
-      async () => {
-    await traceFilterSkPO.clickEditBtn();
-    expect(await traceFilterSkPO.isQueryDialogSkOpen()).to.be.true;
-  });
+    async () => {
+      await traceFilterSkPO.clickEditBtn();
+      expect(await traceFilterSkPO.isQueryDialogSkOpen()).to.be.true;
+    });
 
   describe('empty selection', () => {
     it('shows empty selection message', async () => {
@@ -111,5 +111,5 @@ describe('trace-filter-sk', () => {
       await traceFilterSkPO.clickQueryDialogSkCancelBtn();
       await noEvent;
     });
-  })
+  });
 });

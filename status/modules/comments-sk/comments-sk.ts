@@ -17,8 +17,12 @@
  */
 import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { AddCommentRequest, Comment, GetStatusService, StatusService } from '../rpc';
+import {
+  AddCommentRequest, Comment, GetStatusService, StatusService,
+} from '../rpc';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 
 import '../../../ct/modules/input-sk';
@@ -28,25 +32,26 @@ import 'elements-sk/icon/check-box-outline-blank-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
-import { errorMessage } from 'elements-sk/errorMessage';
-import { $$ } from 'common-sk/modules/dom';
 
 // Helper class for parent to set comments to display, as well as metadata
 // about them and any comments added by the user.
 export class CommentData {
   repo: string = '';
+
   taskId: string = '';
+
   taskSpec: string = '';
+
   commit: string = '';
+
   comments: Array<Comment> = [];
 }
 
 export class CommentsSk extends ElementSk {
-  private static template = (el: CommentsSk) =>
-    html`
+  private static template = (el: CommentsSk) => html`
       <table class="comments">
         ${el.comments.length > 0
-          ? html`
+    ? html`
               <tr>
                 <th>Time</th>
                 <th>User</th>
@@ -56,37 +61,37 @@ export class CommentsSk extends ElementSk {
                 ${el.allowDelete && el.editRights ? html`<th>Delete</th>` : html``}
               </tr>
             `
-          : html``}
+    : html``}
         ${el.comments.map(
-          (c) => html`
+      (c) => html`
             <tr class="comment">
               <td><human-date-sk .date=${c.timestamp} .diff=${true}></human-date-sk> ago</td>
               <td>${c.user}</td>
               <td class="commentMessage">${escapeAndLinkify(c.message)}</td>
               ${el.optionalCommentFields(c)}
             </tr>
-          `
-        )}
+          `,
+    )}
         ${el.allowAdd && el.editRights
-          ? html`
+      ? html`
               <tr>
                 <td colspan="3">
                   <input-sk value="" class="commentField" label="Comment"></input-sk>
                 </td>
                 ${el.showFlaky
-                  ? html`<td><checkbox-sk class="commentFlaky" label="Flaky"></checkbox-sk></td>`
-                  : html``}
+        ? html`<td><checkbox-sk class="commentFlaky" label="Flaky"></checkbox-sk></td>`
+        : html``}
                 ${el.showIgnoreFailure
-                  ? html`<td>
+          ? html`<td>
                       <checkbox-sk class="commentIgnoreFailure" label="IgnoreFailure"></checkbox-sk>
                     </td>`
-                  : html``}
+          : html``}
                 <td>
                   <button @click=${() => el.addComment()}>Submit</button>
                 </td>
               </tr>
             `
-          : html``}
+      : html``}
       </table>
     `;
 
@@ -96,33 +101,40 @@ export class CommentsSk extends ElementSk {
       ret.push(
         comment.flaky
           ? html`<td><check-box-icon-sk></check-box-icon-sk></td> `
-          : html`<td><check-box-outline-blank-icon-sk></check-box-outline-blank-icon-sk></td>`
+          : html`<td><check-box-outline-blank-icon-sk></check-box-outline-blank-icon-sk></td>`,
       );
     }
     if (this.showIgnoreFailure) {
       ret.push(
         comment.ignoreFailure
           ? html`<td><check-box-icon-sk></check-box-icon-sk></td> `
-          : html`<td><check-box-outline-blank-icon-sk></check-box-outline-blank-icon-sk></td>`
+          : html`<td><check-box-outline-blank-icon-sk></check-box-outline-blank-icon-sk></td>`,
       );
     }
     if (this.allowDelete && this.editRights) {
       ret.push(
         html`<td @click=${() => this.deleteComment(comment)}>
           <delete-icon-sk></delete-icon-sk>
-        </td>`
+        </td>`,
       );
     }
     return ret;
   }
 
   private _commentData: CommentData = new CommentData();
+
   private _allowAdd: boolean = false;
+
   private _allowEmpty: boolean = false;
+
   private _allowDelete: boolean = false;
+
   private _showFlaky: boolean = false;
+
   private _showIgnoreFailure: boolean = false;
+
   private _editRights: boolean = false;
+
   private client: StatusService = GetStatusService();
 
   constructor() {
@@ -233,6 +245,7 @@ export class CommentsSk extends ElementSk {
       })
       .catch(errorMessage);
   }
+
   private addComment() {
     const req: AddCommentRequest = {
       repo: this.commentData.repo,

@@ -15,8 +15,7 @@ import 'elements-sk/icon/dashboard-icon-sk';
 import 'elements-sk/icon/devices-icon-sk';
 
 export class NavigationSk extends ElementSk {
-  private static template = (el: NavigationSk) =>
-    html` <div class="table">
+  private static template = (el: NavigationSk) => html` <div class="table">
       <a class="tr" href="https://goto.google.com/skbl">
         <span class="td">
           <devices-icon-sk class="icon"></devices-icon-sk> Swarming Bots

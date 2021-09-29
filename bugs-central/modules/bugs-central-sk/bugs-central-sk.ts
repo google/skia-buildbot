@@ -128,7 +128,6 @@ export class BugsCentralSk extends ElementSk {
   ${el.displayClientsTable()}
   `;
 
-
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
 

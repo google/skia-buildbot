@@ -3,7 +3,7 @@ import {
   addEventListenersToPuppeteerPage,
   loadCachedTestBed,
   takeScreenshot,
-  TestBed
+  TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('changelists-page-sk', () => {

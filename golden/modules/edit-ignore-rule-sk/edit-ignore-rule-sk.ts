@@ -19,7 +19,6 @@ import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-s
 import '../../../infra-sk/modules/query-sk';
 
 export class EditIgnoreRuleSk extends ElementSk {
-
   private static template = (ele: EditIgnoreRuleSk) => html`
     <div class=columns>
       <label for=expires>Expires in</label>
@@ -49,9 +48,13 @@ export class EditIgnoreRuleSk extends ElementSk {
   `;
 
   private _paramset: ParamSet = {};
+
   private _query = '';
+
   private _note = '';
+
   private _expires = '';
+
   private errMsg = '';
 
   constructor() {

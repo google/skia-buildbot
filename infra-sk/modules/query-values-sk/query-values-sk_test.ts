@@ -1,10 +1,10 @@
 import './index';
+import { assert } from 'chai';
 import {
   QueryValuesSk,
   QueryValuesSkQueryValuesChangedEventDetail,
 } from './query-values-sk';
 import { QueryValuesSkPO } from './query-values-sk_po';
-import { assert } from 'chai';
 import { setUpElementUnderTest, eventPromise } from '../test_util';
 
 describe('query-values-sk', () => {
@@ -70,11 +70,11 @@ describe('query-values-sk', () => {
       // Regex and Invert are mutually exclusive.
       assert.isFalse(
         await queryValuesSkPO.isRegexCheckboxChecked(),
-        'Regex checkbox is unchecked'
+        'Regex checkbox is unchecked',
       );
       assert.isTrue(
         await queryValuesSkPO.isInvertCheckboxChecked(),
-        'Invert is checked'
+        'Invert is checked',
       );
     });
 
@@ -87,11 +87,11 @@ describe('query-values-sk', () => {
       assert.isFalse(value.regex);
       assert.isFalse(
         await queryValuesSkPO.isRegexCheckboxChecked(),
-        'Regex is unchecked'
+        'Regex is unchecked',
       );
       assert.isFalse(
         await queryValuesSkPO.isInvertCheckboxChecked(),
-        'Invert stays unchecked'
+        'Invert stays unchecked',
       );
 
       // Now go back to regex.
@@ -99,15 +99,15 @@ describe('query-values-sk', () => {
       assert.deepEqual(
         { invert: false, regex: true, values: ['~ar'] },
         value,
-        'Event was sent.'
+        'Event was sent.',
       );
       assert.isTrue(
         await queryValuesSkPO.isRegexCheckboxChecked(),
-        'Regex is checked'
+        'Regex is checked',
       );
       assert.isFalse(
         await queryValuesSkPO.isInvertCheckboxChecked(),
-        'Invert stays unchecked'
+        'Invert stays unchecked',
       );
     });
   });
@@ -137,7 +137,7 @@ describe('query-values-sk', () => {
       assert.deepEqual(
         { invert: true, regex: false, values: ['!arm'] },
         value,
-        'Event was sent.'
+        'Event was sent.',
       );
       assert.isFalse(await queryValuesSkPO.isRegexCheckboxChecked());
       assert.isTrue(await queryValuesSkPO.isInvertCheckboxChecked());
@@ -146,7 +146,7 @@ describe('query-values-sk', () => {
       assert.deepEqual(
         { invert: false, regex: false, values: ['arm'] },
         value,
-        'Event was sent.'
+        'Event was sent.',
       );
       assert.isFalse(await queryValuesSkPO.isRegexCheckboxChecked());
       assert.isFalse(await queryValuesSkPO.isInvertCheckboxChecked());
@@ -173,7 +173,7 @@ describe('query-values-sk', () => {
       assert.deepEqual(
         { invert: false, regex: false, values: ['arm'] },
         value,
-        'Event was sent.'
+        'Event was sent.',
       );
       assert.isFalse(await queryValuesSkPO.isRegexCheckboxChecked());
       assert.isFalse(await queryValuesSkPO.isInvertCheckboxChecked());
@@ -182,7 +182,7 @@ describe('query-values-sk', () => {
       assert.deepEqual(
         { invert: true, regex: false, values: ['!arm'] },
         value,
-        'Event was sent.'
+        'Event was sent.',
       );
       assert.isFalse(await queryValuesSkPO.isRegexCheckboxChecked());
       assert.isTrue(await queryValuesSkPO.isInvertCheckboxChecked());
@@ -198,14 +198,14 @@ describe('query-values-sk', () => {
       assert.deepEqual(
         { invert: true, regex: false, values: ['!x86', '!arm'] },
         value,
-        'Event was sent.'
+        'Event was sent.',
       );
 
       value = await clickInvertAndWaitForEvent();
       assert.deepEqual(
         { invert: false, regex: false, values: ['x86', 'arm'] },
         value,
-        'Event was sent.'
+        'Event was sent.',
       );
       assert.isFalse(await queryValuesSkPO.isRegexCheckboxChecked());
       assert.isFalse(await queryValuesSkPO.isInvertCheckboxChecked());
@@ -224,10 +224,9 @@ describe('query-values-sk', () => {
     });
   });
 
-  const queryValuesChangedEventPromise = () =>
-    eventPromise<CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>>(
-      'query-values-changed'
-    );
+  const queryValuesChangedEventPromise = () => eventPromise<CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>>(
+    'query-values-changed',
+  );
 
   const clickInvertAndWaitForEvent = async () => {
     const event = queryValuesChangedEventPromise();

@@ -1,8 +1,8 @@
 import './index';
+import { expect } from 'chai';
 import { {{.ClassName }} } from './{{.ElementName}}';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 
 describe('{{.ElementName}}', () => {
   const newInstance = setUpElementUnderTest<{{.ClassName}}>('{{.ElementName}}');

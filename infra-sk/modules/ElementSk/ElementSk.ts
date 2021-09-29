@@ -3,8 +3,8 @@
  * @description <h2><code>ElementSk</code></h2>
  *
  */
-import { render } from 'lit-html'
-import { upgradeProperty } from 'elements-sk/upgradeProperty'
+import { render } from 'lit-html';
+import { upgradeProperty } from 'elements-sk/upgradeProperty';
 
 /**
  * A base class that records the connected status of the element in this._connected and provides a
@@ -26,14 +26,15 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty'
  * }
  */
 export class ElementSk extends HTMLElement {
-  protected _template: ((el: any) => unknown) | null = null;
+  protected _template: ((el: any)=> unknown) | null = null;
+
   protected _connected: boolean = false;
 
   /**
    * @param templateFn A function that, when applied to this component, will returns the component's
    *     lit-html template.
    */
-  constructor(templateFn?: (el: any) => unknown) {
+  constructor(templateFn?: (el: any)=> unknown) {
     super();
     this._template = templateFn || null;
   }
@@ -66,7 +67,7 @@ export class ElementSk extends HTMLElement {
    */
   protected _render() {
     if (this._connected && !!this._template) {
-      render(this._template(this), this, {eventContext: this});
+      render(this._template(this), this, { eventContext: this });
     }
   }
-};
+}

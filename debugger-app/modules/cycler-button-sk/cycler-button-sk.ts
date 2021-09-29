@@ -20,10 +20,10 @@ export interface CyclerButtonNextItemEventDetail {
 }
 
 export class CyclerButtonSk extends ElementSk {
-  private static template = (ele: CyclerButtonSk) =>
-    html`<button @click=${ele._click}>${ele.text}</button>`;
+  private static template = (ele: CyclerButtonSk) => html`<button @click=${ele._click}>${ele.text}</button>`;
 
   public text = '';
+
   public list: number[] = [];
 
   private _index = 0;
@@ -41,11 +41,13 @@ export class CyclerButtonSk extends ElementSk {
     this.dispatchEvent(
       new CustomEvent<CyclerButtonNextItemEventDetail>(
         'next-item', {
-          detail: {item: this.list[this._index]},
+          detail: { item: this.list[this._index] },
           bubbles: true,
-        }));
+        },
+      ),
+    );
     this._index = (this._index + 1) % this.list.length;
   }
-};
+}
 
 define('cycler-button-sk', CyclerButtonSk);

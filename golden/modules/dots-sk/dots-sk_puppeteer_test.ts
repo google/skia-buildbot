@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('dots-sk', () => {
   let testBed: TestBed;
@@ -29,7 +29,7 @@ describe('dots-sk', () => {
       // Get canvas position.
       const canvas = await testBed.page.$('canvas');
       const boxModel = await canvas!.boxModel();
-      const x = boxModel!.content[0].x
+      const x = boxModel!.content[0].x;
       const y = boxModel!.content[0].y;
 
       // Hover over the leftmost dot of the first trace.

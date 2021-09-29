@@ -4,7 +4,7 @@
  * @param queryStr URL-encoded query.
  * @return A human readable version of the input.
  */
-import {isBazelDemoPage} from './demo_util';
+import { isBazelDemoPage } from './demo_util';
 
 export function humanReadableQuery(queryStr: string): string {
   if (!queryStr) {
@@ -107,7 +107,7 @@ export function sendEndTask(ele: Element) {
 export interface FetchErrorEventDetail {
   error: any;
   loading: string;
-};
+}
 
 /**
  * Helper to tell gold-scaffold-sk that a fetch failed. This will pop up on the toast-sk.

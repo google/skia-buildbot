@@ -25,14 +25,16 @@ import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import { PlaySk, PlaySkMoveToEventDetail } from '../play-sk/play-sk';
-import { HistogramSkToggleEventDetail } from '../histogram-sk/histogram-sk'
+import { HistogramSkToggleEventDetail } from '../histogram-sk/histogram-sk';
 import { DefaultMap } from '../default-map';
 
 import 'elements-sk/icon/save-icon-sk';
 import 'elements-sk/icon/content-copy-icon-sk';
 import 'elements-sk/icon/image-icon-sk';
 
-import { SkpJsonCommandList, SkpJsonCommand, SkpJsonAuditTrail, SkpJsonGpuOp } from '../debugger';
+import {
+  SkpJsonCommandList, SkpJsonCommand, SkpJsonAuditTrail, SkpJsonGpuOp,
+} from '../debugger';
 
 import '../play-sk';
 
@@ -50,7 +52,7 @@ export interface PrefixItem {
   icon: string,
   color: string,
   count: number,
-};
+}
 
 /** A processed command object, created from a SkpJsonCommand */
 export interface Command {
@@ -69,7 +71,7 @@ export interface Command {
   visible: boolean,
   // index of any image referenced by this command
   imageIndex?: number,
-};
+}
 
 /** An entry of the command histogram
  *  obtained by totalling up occurances in the range filtered command list
@@ -121,38 +123,37 @@ export interface CommandsSkSelectImageEventDetail {
 
 // Colors to use for gpu op ids
 const COLORS = [
-    "#1B9E77",
-    "#D95F02",
-    "#7570B3",
-    "#E7298A",
-    "#66A61E",
-    "#E6AB02",
-    "#A6761D",
-    "#666666",
-    "#09c5d2",
-    "#064f77",
-    "#3a4ce4",
-    "#d256f0",
-    "#feb4c7",
-    "#fa3029",
-    "#ff6821",
-    "#a8ff21",
-    "#a5cf80",
-    "#36d511",
-    "#95f19c",
-  ];
+  '#1B9E77',
+  '#D95F02',
+  '#7570B3',
+  '#E7298A',
+  '#66A61E',
+  '#E6AB02',
+  '#A6761D',
+  '#666666',
+  '#09c5d2',
+  '#064f77',
+  '#3a4ce4',
+  '#d256f0',
+  '#feb4c7',
+  '#fa3029',
+  '#ff6821',
+  '#a8ff21',
+  '#a5cf80',
+  '#36d511',
+  '#95f19c',
+];
 // Commands that increase save/restore depth
 const INDENTERS: {[key: string]: PrefixItem} = {
-  'Save':             { icon: 'save-icon-sk',         color: '#B2DF8A', count: 1 },
-  'SaveLayer':        { icon: 'content-copy-icon-sk', color: '#FDBF6F', count: 1 },
-  'BeginDrawPicture': { icon: 'image-icon-sk',        color: '#A6CEE3', count: 1 },
+  Save: { icon: 'save-icon-sk', color: '#B2DF8A', count: 1 },
+  SaveLayer: { icon: 'content-copy-icon-sk', color: '#FDBF6F', count: 1 },
+  BeginDrawPicture: { icon: 'image-icon-sk', color: '#A6CEE3', count: 1 },
 };
 // commands that decrease save/restore depth
 const OUTDENTERS: string[] = ['Restore', 'EndDrawPicture'];
 
 export class CommandsSk extends ElementDocSk {
-  private static template = (ele: CommandsSk) =>
-    html`
+  private static template = (ele: CommandsSk) => html`
     <div>
       ${CommandsSk.filterTemplate(ele)}
       <div class="horizontal-flex">
@@ -160,44 +161,40 @@ export class CommandsSk extends ElementDocSk {
         <play-sk .visual=${'full'}></play-sk>
       </div>
       <div class="list">
-        ${ ele._filtered.map((i: number, filtPos: number) =>
-          CommandsSk.opTemplate(ele, filtPos, ele._cmd[i])) }
+        ${ele._filtered.map((i: number, filtPos: number) => CommandsSk.opTemplate(ele, filtPos, ele._cmd[i]))}
       </div>
     </div>`;
 
-  private static opTemplate = (ele: CommandsSk, filtpos: number, op: Command) =>
-    html`<div class="op" id="op-${op.index}" @click=${
-      (e: MouseEvent) => {ele._clickItem(e, filtpos)}}>
+  private static opTemplate = (ele: CommandsSk, filtpos: number, op: Command) => html`<div class="op" id="op-${op.index}" @click=${
+    (e: MouseEvent) => { ele._clickItem(e, filtpos); }}>
       <details>
-        <summary class="command-summary ${ ele.position == op.index ? 'selected' : ''}">
+        <summary class="command-summary ${ele.position == op.index ? 'selected' : ''}">
           <div class="command-icons-group">
             <span class="index">${op.index}</span>
-            ${ op.prefixes.map((pre: PrefixItem) =>
-              CommandsSk.prefixItemTemplate(ele, pre)) }
+            ${op.prefixes.map((pre: PrefixItem) => CommandsSk.prefixItemTemplate(ele, pre))}
           </div>
-          <div class="command-title">${ op.name }</div>
-          <code class="short-desc">${ op.details.shortDesc }</code>
-          ${ op.range
-            ? html`<button @click=${() => {ele.range = op.range!}}
+          <div class="command-title">${op.name}</div>
+          <code class="short-desc">${op.details.shortDesc}</code>
+          ${op.range
+    ? html`<button @click=${() => { ele.range = op.range!; }}
         title="Range-filter the command list to this save/restore pair">Zoom</button>`
-            : ''
+    : ''
           }
-          ${ op.imageIndex
-            ? html`<button @click=${()=>{ele._jumpToImage(op.imageIndex!)}}
+          ${op.imageIndex
+            ? html`<button @click=${() => { ele._jumpToImage(op.imageIndex!); }}
                 title="Show the image referenced by this command in the resource viewer"
                 >Image</button>`
             : ''
           }
           <div class="gpu-ops-group">
-            ${ (op.details.auditTrail && op.details.auditTrail.Ops)
-              ? op.details.auditTrail.Ops.map((gpuOp: SkpJsonGpuOp) =>
-                  CommandsSk.gpuOpIdTemplate(ele, gpuOp) )
-              : ''
+            ${(op.details.auditTrail && op.details.auditTrail.Ops)
+            ? op.details.auditTrail.Ops.map((gpuOp: SkpJsonGpuOp) => CommandsSk.gpuOpIdTemplate(ele, gpuOp))
+            : ''
             }
           </div>
         </summary>
         <div>
-          <checkbox-sk title="Toggle command visibility" checked=${ op.visible }
+          <checkbox-sk title="Toggle command visibility" checked=${op.visible}
                        @change=${ele._toggleVisible(op.index)}></checkbox-sk>
           <strong>Index: </strong> <span class=index>${op.index}</span>
         </div>
@@ -206,21 +203,18 @@ export class CommandsSk extends ElementDocSk {
     </div>
     <hr>`;
 
-  private static prefixItemTemplate = (ele: CommandsSk, item: PrefixItem) =>
-    html`${ ele._icon(item) }
-      ${ item.count > 1
-        ? html`<div title="depth of indenting operation"
-          class=count>${ item.count }</div>`
-        : ''
+  private static prefixItemTemplate = (ele: CommandsSk, item: PrefixItem) => html`${ele._icon(item)}
+      ${item.count > 1
+    ? html`<div title="depth of indenting operation"
+          class=count>${item.count}</div>`
+    : ''
       }`;
 
-  private static gpuOpIdTemplate = (ele: CommandsSk, gpuOp: SkpJsonGpuOp) =>
-    html`<span title="GPU Op ID - group of commands this was executed with on the GPU"
-            class="gpu-op-id" style="background: ${ ele._gpuOpColor(gpuOp.OpsTaskID) }"
-      >${ gpuOp.OpsTaskID }</span>`;
+  private static gpuOpIdTemplate = (ele: CommandsSk, gpuOp: SkpJsonGpuOp) => html`<span title="GPU Op ID - group of commands this was executed with on the GPU"
+            class="gpu-op-id" style="background: ${ele._gpuOpColor(gpuOp.OpsTaskID)}"
+      >${gpuOp.OpsTaskID}</span>`;
 
-  private static filterTemplate = (ele: CommandsSk) =>
-    html`
+  private static filterTemplate = (ele: CommandsSk) => html`
     <div class="horizontal-flex">
       <label title="Filter command names (Single leading ! negates entire filter).
 Command types can also be filted by clicking on their names in the histogram"
@@ -228,31 +222,39 @@ Command types can also be filted by clicking on their names in the histogram"
       <input @change=${ele._textFilter} value="!DrawAnnotation"
              id="text-filter"></input>&nbsp;
       <label>Range</label>
-      <input @change=${ele._rangeInputHandler} class=range-input value="${ ele._range[0] }"
+      <input @change=${ele._rangeInputHandler} class=range-input value="${ele._range[0]}"
              id="rangelo"></input>
       <b>:</b>
-      <input @change=${ele._rangeInputHandler} class=range-input value="${ ele._range[1] }"
+      <input @change=${ele._rangeInputHandler} class=range-input value="${ele._range[1]}"
              id="rangehi"></input>
       <button @click=${ele.clearFilter} id="clear-filter-button">Clear</button>
     </div>`;
 
   // processed command list (no filtering applied). change with processCommands
   private _cmd: Command[] = [];
+
   // list of indices of commands that passed the range and name filters.
   private _filtered: number[] = [];
+
   // position in filtered (visible) command list
   private _item: number = 0;
+
   // range filter
   private _range: CommandRange = [0, 100];
+
   // counts of command occurances
   private _histogram: HistogramEntry[] = [];
+
   // known command names (set by processCommands) names are lowercased.
   private _available = new Set<string>();
+
   // subset of command names that should pass the command filter
   // (names are lowercased)
   private _includedSet = new Set<string>();
+
   // Play bar submodule
   private _playSk: PlaySk | null = null;
+
   // information about layers collected from commands
   private _layerInfo: LayerInfo = {
     uses: new DefaultMap<number, number[]>(() => []),
@@ -263,6 +265,7 @@ Command types can also be filted by clicking on their names in the histogram"
   get count() {
     return this._cmd.length;
   }
+
   // the command count with all filters applied
   get countFiltered() {
     return this._filtered.length;
@@ -276,16 +279,17 @@ Command types can also be filted by clicking on their names in the histogram"
   // (index in filtered list)
   set item(i: number) {
     this._item = i;
-    this.querySelector<HTMLDivElement>('#op-' + this._filtered[this._item]
-      )?.scrollIntoView({block: 'nearest'});
+    this.querySelector<HTMLDivElement>(`#op-${this._filtered[this._item]}`)?.scrollIntoView({ block: 'nearest' });
     this._render();
     // notify debugger-page-sk that it needs to draw this.position
     this.dispatchEvent(
       new CustomEvent<CommandsSkMovePositionEventDetail>(
         'move-command-position', {
-          detail: {position: this.position, paused: this._playSk!.mode === 'pause'},
+          detail: { position: this.position, paused: this._playSk!.mode === 'pause' },
           bubbles: true,
-        }));
+        },
+      ),
+    );
     this._playSk!.movedTo(this._item);
   }
 
@@ -331,7 +335,7 @@ Command types can also be filted by clicking on their names in the histogram"
     // Jump to a command by it's unfiltered index.
     this.addDocumentEventListener('jump-command', (e) => {
       const i = (e as CustomEvent<CommandsSkJumpEventDetail>).detail.unfilteredIndex;
-      const filteredIndex = this._filtered.findIndex(e => e==i);
+      const filteredIndex = this._filtered.findIndex((e) => e == i);
       if (filteredIndex !== undefined) {
         this.item = filteredIndex;
       }
@@ -387,9 +391,9 @@ Command types can also be filted by clicking on their names in the histogram"
         // If this is the same type of indenting op we've already seen
         // then just increment the count, otherwise add as a new
         // op in prefixes.
-        if (depth > 1 && prefixes[prefixes.length-1].icon
+        if (depth > 1 && prefixes[prefixes.length - 1].icon
             == INDENTERS[name].icon) {
-          prefixes[prefixes.length-1].count++;
+          prefixes[prefixes.length - 1].count++;
         } else {
           prefixes.push(this._copyPrefix(INDENTERS[name]));
         }
@@ -404,8 +408,8 @@ Command types can also be filted by clicking on their names in the histogram"
         commands[begin].range = range;
 
         // Only pop the op from prefixes if its count has reached 1.
-        if (prefixes[prefixes.length-1].count > 1) {
-          prefixes[prefixes.length-1].count--;
+        if (prefixes[prefixes.length - 1].count > 1) {
+          prefixes[prefixes.length - 1].count--;
         } else {
           prefixes.pop();
         }
@@ -434,14 +438,14 @@ Command types can also be filted by clicking on their names in the histogram"
     });
 
     this._cmd = commands;
-    this.range = [0, this._cmd.length-1]; // this assignment also triggers render
+    this.range = [0, this._cmd.length - 1]; // this assignment also triggers render
   }
 
   // User clicked the clear filter button, clear both filters
   clearFilter() {
     this.querySelector<HTMLInputElement>('#text-filter')!.value = '';
     if (!this.count) { return; }
-    this.range = [0, this._cmd.length-1]; // setter triggers _applyRangeFilter, follow that
+    this.range = [0, this._cmd.length - 1]; // setter triggers _applyRangeFilter, follow that
   }
 
   // Stop playback and move by a given offset in the filtered list.
@@ -476,12 +480,12 @@ Command types can also be filted by clicking on their names in the histogram"
 
     // represent _includedSet as a negative text filter and put it in the box
     const diff = new Set(this._available);
-    for (let c of this._includedSet) {
-        diff.delete(c)
+    for (const c of this._includedSet) {
+      diff.delete(c);
     }
     let filter = '';
     if (diff.size > 0) {
-      filter = '!'+Array.from(diff).join(' ');
+      filter = `!${Array.from(diff).join(' ')}`;
     }
     this.querySelector<HTMLInputElement>('#text-filter')!.value = filter;
     // don't trigger _textFilter() since that would send an event back to histogram and
@@ -505,35 +509,36 @@ Command types can also be filted by clicking on their names in the histogram"
       if (name === 'imageIndex') {
         // Show a clickable button that takes the user to the image resource viewer.
         inserts.push(html`<b>${value}</b>
-          <button @click=${()=>{ele._jumpToImage(value)}}
+          <button @click=${() => { ele._jumpToImage(value); }}
           title="Show the image referenced by this command in the resource viewer"
           >Image</button>`);
         return magic;
       }
       return value;
-    }
+    };
     const strung = JSON.stringify(op.details, replacer, 2);
     // JSON.stringify adds some quotes around the magic word.
     // including these in our delimeter removes them.
-    const jsonparts = strung.split('"'+magic+'"');
-    let result = [html`${jsonparts[0]}`];
+    const jsonparts = strung.split(`"${magic}"`);
+    const result = [html`${jsonparts[0]}`];
     for (let i = 1; i < jsonparts.length; i++) {
-      result.push(inserts[i-1]);
-      result.push(html`${jsonparts[i]}`)
+      result.push(inserts[i - 1]);
+      result.push(html`${jsonparts[i]}`);
     }
     return html`<pre>${result}</pre>`;
   }
 
-  private _jumpToImage(index: number){
+  private _jumpToImage(index: number) {
     this.dispatchEvent(new CustomEvent<CommandsSkSelectImageEventDetail>(
       'select-image', {
         detail: { id: index },
         bubbles: true,
-      }));
+      },
+    ));
   }
 
   // (index is in the unfiltered list)
-  private _toggleVisible(index: number){
+  private _toggleVisible(index: number) {
     this._cmd[index].visible = !this._cmd[index].visible;
   }
 
@@ -541,13 +546,13 @@ Command types can also be filted by clicking on their names in the histogram"
   // a crummy workaround
   private _icon(item: PrefixItem) {
     if (item.icon === 'save-icon-sk') {
-      return html`<save-icon-sk style="fill: ${ item.color };"
+      return html`<save-icon-sk style="fill: ${item.color};"
         class=icon> </save-icon-sk>`;
-    } else if (item.icon === 'content-copy-icon-sk') {
-      return html`<content-copy-icon-sk style="fill: ${ item.color };"
+    } if (item.icon === 'content-copy-icon-sk') {
+      return html`<content-copy-icon-sk style="fill: ${item.color};"
         class=icon> </content-copy-icon-sk>`;
-    } else if (item.icon === 'image-icon-sk') {
-      return html`<image-icon-sk style="fill: ${ item.color };"
+    } if (item.icon === 'image-icon-sk') {
+      return html`<image-icon-sk style="fill: ${item.color};"
         class=icon> </image-icon-sk>`;
     }
   }
@@ -559,7 +564,7 @@ Command types can also be filted by clicking on their names in the histogram"
 
   // deep copy
   private _copyPrefix(p: PrefixItem): PrefixItem {
-    return {icon: p.icon, color: p.color, count: p.count};
+    return { icon: p.icon, color: p.color, count: p.count };
   }
 
   private _rangeInputHandler(e: Event) {
@@ -571,8 +576,7 @@ Command types can also be filted by clicking on their names in the histogram"
   // parse the text filter input, and if it is possible to represent it purely as
   // a command filter, store it in this._includedSet
   private _textFilter() {
-    let rawFilter = this.querySelector<HTMLInputElement>('#text-filter'
-      )!.value.trim().toLowerCase();
+    let rawFilter = this.querySelector<HTMLInputElement>('#text-filter')!.value.trim().toLowerCase();
     const negative = (rawFilter[0] == '!');
 
     // make sure to copy it so we don't alter this._available
@@ -602,7 +606,8 @@ Command types can also be filted by clicking on their names in the histogram"
               'histogram-update', {
                 detail: { included: new Set<string>(this._includedSet) },
                 bubbles: true,
-              }));
+              },
+            ));
             this._freeTextSearch(tokens);
             // TODO(nifong): need some visual feedback to let the user know
             console.log(`Query interpreted as free text search because ${token}\
@@ -613,10 +618,11 @@ Command types can also be filted by clicking on their names in the histogram"
       }
     }
     this.dispatchEvent(new CustomEvent<CommandsSkHistogramEventDetail>(
-        'histogram-update', {
-          detail: { included: new Set<string>(this._includedSet) },
-          bubbles: true,
-        }));
+      'histogram-update', {
+        detail: { included: new Set<string>(this._includedSet) },
+        bubbles: true,
+      },
+    ));
     this._applyCommandFilter(); // note we still do this for emtpy filters.
   }
 
@@ -630,7 +636,7 @@ Command types can also be filted by clicking on their names in the histogram"
         }
       }
       return false;
-    }
+    };
     this._filtered = [];
     for (let i = this._range[0]; i <= this._range[1]; i++) {
       const commandText = JSON.stringify(this._cmd[i].details).toLowerCase();
@@ -662,10 +668,10 @@ Command types can also be filted by clicking on their names in the histogram"
     }
     const counts = new DefaultMap<string, tally>(() => ({
       count_in_frame: 0,
-      count_in_range_filter: 0
+      count_in_range_filter: 0,
     }));
     for (let i = 0; i < this._cmd.length; i++) {
-      let c = this._cmd[i];
+      const c = this._cmd[i];
       counts.get(c.name).count_in_frame += 1; // always increment first count
       if (i >= this._range[0] && i <= this._range[1]) {
         counts.get(c.name)!.count_in_range_filter += 1; // optionally increment filtered count.
@@ -680,12 +686,12 @@ Command types can also be filted by clicking on their names in the histogram"
         name: key,
         countInFrame: value.count_in_frame,
         countInRange: value.count_in_range_filter,
-      })
+      });
     });
     // Now sort the array, descending on the rangeCount, ascending
     // on the op name.
     // sort by rangeCount so entries don't move on enable/disable
-    this._histogram.sort(function(a,b) {
+    this._histogram.sort((a, b) => {
       if (a.countInRange == b.countInRange) {
         if (a.name < b.name) {
           return -1;
@@ -694,9 +700,8 @@ Command types can also be filted by clicking on their names in the histogram"
           return 1;
         }
         return 0;
-      } else {
-        return b.countInRange - a.countInRange;
       }
+      return b.countInRange - a.countInRange;
     });
 
     // the user's selections are present in the text filter. Apply them now
@@ -714,7 +719,9 @@ Command types can also be filted by clicking on their names in the histogram"
             included: new Set<string>(this._includedSet),
           },
           bubbles: true,
-        }));
+        },
+      ),
+    );
   }
 
   // Apply a filter specified by this._includedSet and set the filtered list to be visible.
@@ -748,8 +755,8 @@ Command types can also be filted by clicking on their names in the histogram"
 
     const commandsOfEachOp = new DefaultMap<number, number[]>(() => []);
     this._cmd.forEach((command, index) => {
-      if (command.details.auditTrail &&
-          command.details.auditTrail.Ops) {
+      if (command.details.auditTrail
+          && command.details.auditTrail.Ops) {
         const opid = command.details.auditTrail.Ops[0].OpsTaskID;
         commandsOfEachOp.get(opid).push(index);
       }
@@ -761,7 +768,6 @@ Command types can also be filted by clicking on their names in the histogram"
         this._filtered.push(i);
       });
     });
-
 
     this._playSk!.size = this._filtered.length;
     this.item = this._filtered.length - 1;

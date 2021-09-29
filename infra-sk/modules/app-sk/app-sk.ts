@@ -36,8 +36,8 @@
  *  </app-sk>
  *
  */
-import { define } from 'elements-sk/define'
-import 'elements-sk/icon/menu-icon-sk'
+import { define } from 'elements-sk/define';
+import 'elements-sk/icon/menu-icon-sk';
 
 const buttonTemplate = document.createElement('template');
 buttonTemplate.innerHTML = `
@@ -59,9 +59,9 @@ export class AppSk extends HTMLElement {
     // btn is a document-fragment, so we need to insert it into the
     // DOM to make it "expand" into a real button.
     header.insertBefore(btn, header.firstElementChild);
-    btn = header.firstElementChild as HTMLButtonElement
+    btn = header.firstElementChild as HTMLButtonElement;
     btn.addEventListener('click', () => {
-      let sidebar = this.querySelector('aside')!;
+      const sidebar = this.querySelector('aside')!;
       sidebar.classList.toggle('shown');
     });
   }

@@ -1,1 +1,1 @@
-import '../modules/push-app-sk'
+import '../modules/push-app-sk';

@@ -1,17 +1,17 @@
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
+import { define } from 'elements-sk/define';
+import { html, render } from 'lit-html';
 
-import 'elements-sk/error-toast-sk'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { upgradeProperty } from 'elements-sk/upgradeProperty'
+import 'elements-sk/error-toast-sk';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { upgradeProperty } from 'elements-sk/upgradeProperty';
 
-import { fromObject } from 'common-sk/modules/query'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
+import { fromObject } from 'common-sk/modules/query';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 
-import '../../../infra-sk/modules/systemd-unit-status-sk'
+import '../../../infra-sk/modules/systemd-unit-status-sk';
 
-const listUnits = (ele) =>  ele._units.map(
-  unit => html`<systemd-unit-status-sk machine="${ele._hostname}" .value=${unit}></systemd-unit-status-sk>`
+const listUnits = (ele) => ele._units.map(
+  (unit) => html`<systemd-unit-status-sk machine="${ele._hostname}" .value=${unit}></systemd-unit-status-sk>`,
 );
 
 const template = (ele) => html`
@@ -58,13 +58,13 @@ define('pulld-app-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this, {eventContext: this});
+    render(template(this), this, { eventContext: this });
   }
 
   _loadData() {
     fetch('/_/list', {
       credentials: 'include',
-    }).then(jsonOrThrow).then(json => {
+    }).then(jsonOrThrow).then((json) => {
       this._units = json.units;
       this._hostname = json.hostname;
       this._render();
@@ -73,20 +73,19 @@ define('pulld-app-sk', class extends HTMLElement {
   }
 
   _unitAction(e) {
-    let params = {
+    const params = {
       name: e.detail.name,
       action: e.detail.action,
-    }
-    fetch('/_/change?' + fromObject(params), {
+    };
+    fetch(`/_/change?${fromObject(params)}`, {
       credentials: 'include',
       method: 'POST',
       headers: new Headers({
-        'Content-Type': 'application/json'
-      })
-    }).then(jsonOrThrow).then(json => {
-      errorMessage(e.detail.name + ": " + json.result);
+        'Content-Type': 'application/json',
+      }),
+    }).then(jsonOrThrow).then((json) => {
+      errorMessage(`${e.detail.name}: ${json.result}`);
       this._loadData();
     }).catch(errorMessage);
   }
-
 });

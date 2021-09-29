@@ -1,9 +1,9 @@
 import './index';
 import { ParamSet, toParamSet, fromParamSet } from 'common-sk/modules/query';
+import { assert } from 'chai';
 import { removePrefix, QuerySk } from './query-sk';
 import { QuerySkPO } from './query-sk_po';
 import { setUpElementUnderTest } from '../test_util';
-import { assert } from 'chai';
 
 const paramset: ParamSet = {
   arch: ['WASM', 'arm', 'arm64', 'asmjs', 'wasm', 'x86', 'x86_64'],
@@ -61,28 +61,28 @@ describe('query-sk', () => {
   it('obeys key_order', async () => {
     assert.deepEqual(
       ['arch', 'bench_type', 'compiler', 'config'],
-      await querySkPO.getKeys()
+      await querySkPO.getKeys(),
     );
 
     // Setting key_order will change the key order.
     querySk.key_order = ['config'];
     assert.deepEqual(
       ['config', 'arch', 'bench_type', 'compiler'],
-      await querySkPO.getKeys()
+      await querySkPO.getKeys(),
     );
 
     // Setting key_order to empty will go back to alphabetical order.
     querySk.key_order = [];
     assert.deepEqual(
       ['arch', 'bench_type', 'compiler', 'config'],
-      await querySkPO.getKeys()
+      await querySkPO.getKeys(),
     );
   });
 
   it('obeys filter', async () => {
     assert.deepEqual(
       ['arch', 'bench_type', 'compiler', 'config'],
-      await querySkPO.getKeys()
+      await querySkPO.getKeys(),
     );
 
     // Setting the filter will change the keys displayed.
@@ -96,7 +96,7 @@ describe('query-sk', () => {
 
     assert.deepEqual(
       ['arch', 'bench_type', 'compiler', 'config'],
-      await querySkPO.getKeys()
+      await querySkPO.getKeys(),
     );
   });
 
@@ -119,7 +119,7 @@ describe('query-sk', () => {
     // Confirm it gets added.
     assert.deepEqual(
       toParamSet('arch=x86&arch=arm64'),
-      toParamSet(querySk.current_query)
+      toParamSet(querySk.current_query),
     );
 
     // Click on the value 'arm64' a second time to remove it from the query.
@@ -148,7 +148,7 @@ describe('query-sk', () => {
     // Confirm it gets added.
     assert.deepEqual(
       toParamSet('arch=!x86&arch=!arm64'),
-      toParamSet(querySk.current_query)
+      toParamSet(querySk.current_query),
     );
 
     // Click on the value 'arm64' a second time to remove it from the query.
@@ -157,7 +157,7 @@ describe('query-sk', () => {
     // Confirm it gets removed.
     assert.deepEqual(
       toParamSet('arch=!x86'),
-      toParamSet(querySk.current_query)
+      toParamSet(querySk.current_query),
     );
   });
 
@@ -241,7 +241,7 @@ describe('query-sk', () => {
     assert.deepEqual(validQuery, querySk.current_query);
     assert.deepEqual(
       validQuery,
-      fromParamSet(await querySkPO.getCurrentQuery())
+      fromParamSet(await querySkPO.getCurrentQuery()),
     );
 
     // Invalid queries should be rationalized.
@@ -249,7 +249,7 @@ describe('query-sk', () => {
     assert.deepEqual(invalidQueryRationalized, querySk.current_query);
     assert.deepEqual(
       invalidQueryRationalized,
-      fromParamSet(await querySkPO.getCurrentQuery())
+      fromParamSet(await querySkPO.getCurrentQuery()),
     );
   });
 

@@ -1,7 +1,7 @@
+import { ParamSet } from 'common-sk/modules/query';
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { ParamSetSkPO } from '../../../infra-sk/modules/paramset-sk/paramset-sk_po';
 import { QuerySkPO } from '../../../infra-sk/modules/query-sk/query-sk_po';
-import { ParamSet } from 'common-sk/modules/query';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 
 /** A page object for the QueryDialogSk component. */

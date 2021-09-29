@@ -210,7 +210,6 @@ ${el._tasks.map((task, index) => MetricsAnalysisRunsSk.taskDialogTemplate(task, 
   <td>${formatRepeatAfterDays(task.repeat_after_days)}</td>
 </tr>`;
 
-
   private static taskDialogTemplate = (task: MetricsAnalysisDatastoreTask, index: number) => html`
 <div id=${`benchmarkArgs${index}`} class="dialog-background hidden overlay-themes-sk"
   @click=${hideDialog}>
@@ -324,7 +323,6 @@ ${el._tasks.map((task, index) => MetricsAnalysisRunsSk.taskDialogTemplate(task, 
       })
       .catch(errorMessage);
   }
-
 
   _resetPagination(): void {
     this._pagination = { offset: 0, size: 10, total: 0 };

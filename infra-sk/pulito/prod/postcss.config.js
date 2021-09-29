@@ -12,5 +12,5 @@ module.exports = {
       'postcss-discard-overridden': false,
       'postcss-discard-unused': false,
     }),
-  ]
-}
+  ],
+};

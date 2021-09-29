@@ -1,7 +1,7 @@
 import './index';
 import { entry, fakeNow } from './test_data';
 import { testOnlySetSettings } from '../settings';
-import {ByBlameEntrySk} from './byblameentry-sk';
+import { ByBlameEntrySk } from './byblameentry-sk';
 
 Date.now = () => fakeNow;
 testOnlySetSettings({

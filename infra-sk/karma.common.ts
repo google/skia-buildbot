@@ -6,7 +6,7 @@ export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig:
   // Work-around for karma-webpack issues:
   // https://github.com/webpack-contrib/karma-webpack/issues/322#issuecomment-417862717
   webpackConfig.output = {
-      filename: '[name]',
+    filename: '[name]',
   };
 
   karmaConfig.set({
@@ -99,4 +99,4 @@ export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig:
 
     webpackMiddleware: {},
   } as karma.ConfigOptions);
-};
+}

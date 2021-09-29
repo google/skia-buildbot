@@ -1,7 +1,7 @@
 import { HumanDateSk } from './human-date-sk';
 import './index';
 
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { setUpElementUnderTest } from '../test_util';
 import { expect } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
 
@@ -10,7 +10,7 @@ describe('human-date-sk', () => {
 
   let element: HumanDateSk;
   let nowImpl = () => new Date('September 22, 2020 10:21:52').getTime();
-  let localeImpl = global;
+  const localeImpl = global;
   beforeEach(() => {
     [nowImpl, Date.now] = [Date.now, nowImpl];
   });

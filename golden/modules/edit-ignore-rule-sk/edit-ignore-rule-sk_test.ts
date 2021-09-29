@@ -1,8 +1,8 @@
 import './index';
+import { expect } from 'chai';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { EditIgnoreRuleSk } from './edit-ignore-rule-sk';
 import { EditIgnoreRuleSkPO } from './edit-ignore-rule-sk_po';
-import { expect } from 'chai';
 
 describe('edit-ignore-rule-sk', () => {
   const newInstance = setUpElementUnderTest<EditIgnoreRuleSk>('edit-ignore-rule-sk');
@@ -79,7 +79,7 @@ describe('edit-ignore-rule-sk', () => {
       expect(editIgnoreRuleSk.query).to.equal('arch=arm64&arch=y75&custom=value');
       // ParamSet should be mutated to have the new values
       expect(editIgnoreRuleSk.paramset.arch)
-          .to.deep.equal(['arm', 'arm64', 'x86', 'x86_64', 'y75']);
+        .to.deep.equal(['arm', 'arm64', 'x86', 'x86_64', 'y75']);
       expect(editIgnoreRuleSk.paramset.custom).to.deep.equal(['value']);
     });
   });

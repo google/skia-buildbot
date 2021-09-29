@@ -4,12 +4,12 @@ import {
   EventName,
   loadCachedTestBed,
   takeScreenshot,
-  TestBed
+  TestBed,
 } from '../../../puppeteer-tests/util';
 import { SearchPageSkPO } from './search-page-sk_po';
 
 describe('search-page-sk', () => {
-  let eventPromiseFactory:  <T>(eventName: EventName) => Promise<T>;
+  let eventPromiseFactory: <T>(eventName: EventName)=> Promise<T>;
 
   let searchPageSkPO: SearchPageSkPO;
 
@@ -24,7 +24,7 @@ describe('search-page-sk', () => {
     await testBed.page.goto(`${testBed.baseUrl}${queryString}`);
     await busyEnd;
 
-    await testBed.page.setViewport({width: 1600, height: 1200});
+    await testBed.page.setViewport({ width: 1600, height: 1200 });
 
     searchPageSkPO = new SearchPageSkPO((await testBed.page.$('search-page-sk'))!);
   };

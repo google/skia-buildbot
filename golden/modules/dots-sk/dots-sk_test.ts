@@ -1,4 +1,5 @@
 import './index';
+import { expect } from 'chai';
 import { DotsSk } from './dots-sk';
 import { commits, traces } from './demo_data';
 import {
@@ -12,7 +13,6 @@ import {
   TRACE_LINE_COLOR,
 } from './constants';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 import { Commit } from '../rpc_types';
 
 describe('dots-sk constants', () => {
@@ -182,9 +182,7 @@ function dotToAscii(dotsSkCanvasCtx: CanvasRenderingContext2D, x: number, y: num
   const c = pixelAt(dotsSkCanvasCtx, canvasX, canvasY);
 
   // Determines whether the sampled pixels match the given expected colors.
-  const exactColorMatch = (en: string, ee: string, es: string, ew: string, ec: string) => {
-    return [n, e, s, w, c].toString() === [en, ee, es, ew, ec].toString();
-  };
+  const exactColorMatch = (en: string, ee: string, es: string, ew: string, ec: string) => [n, e, s, w, c].toString() === [en, ee, es, ew, ec].toString();
 
   // Is it empty?
   const white = '#FFFFFF';
@@ -277,7 +275,8 @@ async function hoverOverDot(dotsSkCanvas: HTMLCanvasElement, x: number, y: numbe
 
 // Simulate hovering over a dot, and return the trace label in the "hover" event details.
 async function hoverOverDotAndCatchHoverEvent(
-    dotsSkCanvas: HTMLCanvasElement, x: number, y: number): Promise<string> {
+  dotsSkCanvas: HTMLCanvasElement, x: number, y: number,
+): Promise<string> {
   // const eventPromise = dotsSkEventPromise(dotsSk, 'hover');
   const event = eventPromise<CustomEvent<string>>('hover');
   await hoverOverDot(dotsSkCanvas, x, y);
@@ -294,7 +293,8 @@ function clickDot(dotsSkCanvas: HTMLCanvasElement, x: number, y: number) {
 
 // Simulate clicking on a dot, and return the list of commits in the "showblamelist" event details.
 async function clickDotAndCatchShowBlamelistEvent(
-    dotsSkCanvas: HTMLCanvasElement, x: number, y: number): Promise<Commit[]> {
+  dotsSkCanvas: HTMLCanvasElement, x: number, y: number,
+): Promise<Commit[]> {
   const event = eventPromise<CustomEvent<Commit[]>>('showblamelist');
   clickDot(dotsSkCanvas, x, y);
   return (await event).detail;

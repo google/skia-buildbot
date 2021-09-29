@@ -12,14 +12,17 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { diffDate } from 'common-sk/modules/human';
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
+import { ElementSk } from '../ElementSk';
+
 export class HumanDateSk extends ElementSk {
   private static template = (el: HumanDateSk) => html`<span>${el.humanDate()}</span>`;
 
   private _date: string | number = 0;
+
   private _diff: boolean = false;
+
   private _seconds: boolean = false;
 
   constructor() {
@@ -49,7 +52,7 @@ export class HumanDateSk extends ElementSk {
     if (this.diff) {
       return diffDate(millis);
     }
-    var d = new Date(millis);
+    const d = new Date(millis);
     return `${d.toLocaleDateString()}, ${d.toLocaleTimeString()}`;
   }
 

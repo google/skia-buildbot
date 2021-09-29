@@ -1,25 +1,25 @@
-import 'elements-sk/styles/buttons'
-import 'elements-sk/icon/alarm-icon-sk'
-import 'elements-sk/icon/create-icon-sk'
-import 'elements-sk/icon/warning-icon-sk'
-import 'elements-sk/spinner-sk'
-import 'elements-sk/error-toast-sk'
-import { errorMessage } from 'elements-sk/errorMessage'
+import 'elements-sk/styles/buttons';
+import 'elements-sk/icon/alarm-icon-sk';
+import 'elements-sk/icon/create-icon-sk';
+import 'elements-sk/icon/warning-icon-sk';
+import 'elements-sk/spinner-sk';
+import 'elements-sk/error-toast-sk';
+import { errorMessage } from 'elements-sk/errorMessage';
 
-import '../../../infra-sk/modules/app-sk'
-import '../../../infra-sk/modules/confirm-dialog-sk'
-import '../../../infra-sk/modules/systemd-unit-status-sk'
-import '../../../infra-sk/modules/login-sk'
+import '../../../infra-sk/modules/app-sk';
+import '../../../infra-sk/modules/confirm-dialog-sk';
+import '../../../infra-sk/modules/systemd-unit-status-sk';
+import '../../../infra-sk/modules/login-sk';
 
-import { $$ } from 'common-sk/modules/dom'
-import { fromObject } from 'common-sk/modules/query'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import { stateReflector } from 'common-sk/modules/stateReflector'
+import { $$ } from 'common-sk/modules/dom';
+import { fromObject } from 'common-sk/modules/query';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { stateReflector } from 'common-sk/modules/stateReflector';
 
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
+import { define } from 'elements-sk/define';
+import { html, render } from 'lit-html';
 
-import '../push-selection-sk'
+import '../push-selection-sk';
 
 // How often we should poll for status updates.
 const UPDATE_MS = 5000;
@@ -28,40 +28,36 @@ const UPDATE_MS = 5000;
 const monURI = (name) => `https://${name}-10000-proxy.skia.org`;
 const logsURI = (name) => `https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=200&expandAll=false&resource=logging_log%2Fname%2F${name}`;
 const prefixOf = (s) => s.split('/')[0];
-const fullHash = (s) => s.slice(s.length-44, s.length-4);
+const fullHash = (s) => s.slice(s.length - 44, s.length - 4);
 const shorten = (s) => fullHash(s).slice(0, 6);
 
 const alarmVisibility = (ele, installed) => {
   if (!ele._packageLookup[installed]) {
-    return 'invisible'
-  } else {
-    return ele._packageLookup[installed].Latest ? 'invisible' : '';
+    return 'invisible';
   }
+  return ele._packageLookup[installed].Latest ? 'invisible' : '';
 };
 
 const dirtyVisibility = (ele, installed) => {
   if (!ele._packageLookup[installed]) {
-    return 'invisible'
-  } else {
-    return ele._packageLookup[installed].Dirty ? '' : 'invisible';
+    return 'invisible';
   }
+  return ele._packageLookup[installed].Dirty ? '' : 'invisible';
 };
 
 const logsFullURI = (name, installed) => {
-  let app = installed.split('/')[0];
-  return `https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=200&expandAll=false&resource=logging_log%2Fname%2F${ name }&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F${ app }`;
+  const app = installed.split('/')[0];
+  return `https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=200&expandAll=false&resource=logging_log%2Fname%2F${name}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F${app}`;
 };
 
 const servicesOf = (ele, installed) => {
-  let p = ele._packageLookup[installed];
+  const p = ele._packageLookup[installed];
   return p ? p.Services : [];
 };
 
-const listServices = (ele, server, installed) => servicesOf(ele, installed).map(service => {
-  return html`<systemd-unit-status-sk machine='${server.Name}' .value=${ele._state.status[server.Name + ':' + service]} ></systemd-unit-status-sk>`;
-});
+const listServices = (ele, server, installed) => servicesOf(ele, installed).map((service) => html`<systemd-unit-status-sk machine='${server.Name}' .value=${ele._state.status[`${server.Name}:${service}`]} ></systemd-unit-status-sk>`);
 
-const listApplications = (ele, server) => server.Installed.map(installed => html`
+const listApplications = (ele, server) => server.Installed.map((installed) => html`
 <div class=applicationRow>
   <button class=application data-server='${server.Name}' data-name='${installed}' data-app='${prefixOf(installed)}' @click=${ele._startChoose}><create-icon-sk title='Edit which package is installed.'></create-icon-sk></button>
   <warning-icon-sk class='${dirtyVisibility(ele, installed)}' title='Out of date.'></warning-icon-sk>
@@ -76,15 +72,15 @@ const listApplications = (ele, server) => server.Installed.map(installed => html
 
 // Only display a server if it matches the current filter.
 const classMatchFilter = (ele, server) => {
-  let search = ele._query.search;
+  const search = ele._query.search;
   // Short-circuit the most common case.
   if (!search) {
     return '';
   }
-  return (server.Name.includes(search) || server.Installed.find(installed => prefixOf(installed).includes(search))) ? '' : 'hidden';
+  return (server.Name.includes(search) || server.Installed.find((installed) => prefixOf(installed).includes(search))) ? '' : 'hidden';
 };
 
-const listServers = (ele) => ele._state.servers.map(server => html`
+const listServers = (ele) => ele._state.servers.map((server) => html`
 <section class='${classMatchFilter(ele, server)}'>
   <h2>${server.Name}</h2>
   <button class=reboot raised data-action='start' data-name='reboot.target' data-server='${server.Name}' @click=${ele._reboot}>Reboot</button>
@@ -133,7 +129,7 @@ class PushAppSk extends HTMLElement {
     this._query = {
       // The current value of the filter text box.
       search: '',
-    }
+    };
   }
 
   connectedCallback() {
@@ -141,7 +137,7 @@ class PushAppSk extends HTMLElement {
     this._spinner = $$('#spinner');
     this._push_selection = $$('#push-selection');
     this._chosenServer = '';
-    fetch('/_/state').then(jsonOrThrow).then(state => {
+    fetch('/_/state').then(jsonOrThrow).then((state) => {
       this._setState(state);
       this._updateStatus();
       this._render();
@@ -153,7 +149,7 @@ class PushAppSk extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this, {eventContext: this});
+    render(template(this), this, { eventContext: this });
   }
 
   // Called when the user presses the button to choose a different package version.
@@ -164,8 +160,8 @@ class PushAppSk extends HTMLElement {
       target = target.parentElement;
     }
     this._chosenServer = target.dataset.server;
-    let choices = this._state.packages[target.dataset.app];
-    let chosen = choices.findIndex(choice => choice.Name === target.dataset.name);
+    const choices = this._state.packages[target.dataset.app];
+    const chosen = choices.findIndex((choice) => choice.Name === target.dataset.name);
     this._push_selection.choices = choices;
     this._push_selection.chosen = chosen;
     this._push_selection.show();
@@ -176,29 +172,29 @@ class PushAppSk extends HTMLElement {
   _packageChange(e) {
     this._push_selection.hide();
     this._spinner.active = true;
-    let body = {
+    const body = {
       name: e.detail.name,
       server: this._chosenServer,
-    }
+    };
     fetch('/_/state', {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
       },
       credentials: 'include',
-    }).then(jsonOrThrow).then(state => {
+    }).then(jsonOrThrow).then((state) => {
       this._spinner.active = false;
       this._setState(state);
-    }).catch(err => {
+    }).catch((err) => {
       this._spinner.active = false;
       errorMessage(err);
     });
   }
 
   _reboot(e) {
-    let button = e.target;
-    $$('#confirm-dialog').open(`Proceed with rebooting ${ button.dataset.server }?`).then(() => {
+    const button = e.target;
+    $$('#confirm-dialog').open(`Proceed with rebooting ${button.dataset.server}?`).then(() => {
       this._unitAction({
         machine: button.dataset.server,
         name: button.dataset.name,
@@ -211,13 +207,13 @@ class PushAppSk extends HTMLElement {
   // 'action', and 'machine' properties.
   _unitAction(detail) {
     this._spinner.active = true;
-    fetch('/_/change?' + fromObject(detail), {
+    fetch(`/_/change?${fromObject(detail)}`, {
       method: 'POST',
       credentials: 'include',
-    }).then(jsonOrThrow).then(json => {
+    }).then(jsonOrThrow).then((json) => {
       this._spinner.active = false;
       errorMessage(json.result);
-    }).catch(err => {
+    }).catch((err) => {
       this._spinner.active = false;
       errorMessage(err);
     });
@@ -227,9 +223,9 @@ class PushAppSk extends HTMLElement {
   _setState(value) {
     this._state = value;
     this._packageLookup = {};
-    for (let appName in this._state.packages) {
+    for (const appName in this._state.packages) {
       let latest = true;
-      this._state.packages[appName].forEach(details => {
+      this._state.packages[appName].forEach((details) => {
         this._packageLookup[details.Name] = details;
         this._packageLookup[details.Name].Latest = latest;
         latest = false;
@@ -240,12 +236,12 @@ class PushAppSk extends HTMLElement {
 
   // Get the new status from the push server.
   _updateStatus() {
-    fetch('/_/status').then(jsonOrThrow).then(json => {
+    fetch('/_/status').then(jsonOrThrow).then((json) => {
       this._state.status = json;
       this._render();
       window.setTimeout(() => this._updateStatus(), UPDATE_MS);
-    }).catch(err => {
-      errorMessage(err)
+    }).catch((err) => {
+      errorMessage(err);
       window.setTimeout(() => this._updateStatus(), UPDATE_MS);
     });
   }
@@ -253,10 +249,10 @@ class PushAppSk extends HTMLElement {
   // Refresh the full state from push, not just the status.
   _refreshClick(e) {
     this._spinner.active = true;
-    fetch('/_/state?refresh=true').then(jsonOrThrow).then(json => {
+    fetch('/_/state?refresh=true').then(jsonOrThrow).then((json) => {
       this._setState(json);
       this._spinner.active = false;
-    }).catch(err => {
+    }).catch((err) => {
       this._spinner.active = false;
       errorMessage(err);
     });
@@ -268,7 +264,6 @@ class PushAppSk extends HTMLElement {
     this._stateHasChanged();
     this._render();
   }
-
 }
 
 define('push-app-sk', PushAppSk);

@@ -139,7 +139,6 @@ export class BugsCentralScaffoldSk extends ElementSk {
     });
   }
 
-
   /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
   get appTitle(): string { return this.getAttribute('app_title')!; }
 

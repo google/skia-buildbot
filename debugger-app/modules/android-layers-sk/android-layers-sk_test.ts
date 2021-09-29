@@ -1,11 +1,11 @@
 import './index';
+import { expect } from 'chai';
 import { AndroidLayersSk } from './android-layers-sk';
-import { LayerInfo } from '../commands-sk/commands-sk'
+import { LayerInfo } from '../commands-sk/commands-sk';
 import { LayerSummary } from '../debugger';
 import { DefaultMap } from '../default-map';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 
 describe('android-layers-sk', () => {
   const newInstance = setUpElementUnderTest<AndroidLayersSk>('android-layers-sk');
@@ -17,7 +17,6 @@ describe('android-layers-sk', () => {
 
   describe('update function', () => {
     it('update', () => {
-
       const summaries = <LayerSummary[]>[
         {
           nodeId: 111,
@@ -39,7 +38,7 @@ describe('android-layers-sk', () => {
           fullRedraw: true,
           layerWidth: 100,
           layerHeight: 100,
-        }
+        },
       ];
       const maps: LayerInfo = {
         uses: new DefaultMap<number, number[]>(() => []),

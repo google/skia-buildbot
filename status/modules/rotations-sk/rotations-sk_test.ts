@@ -1,9 +1,9 @@
 import './index';
+import { expect } from 'chai';
+import { $, $$ } from 'common-sk/modules/dom';
 import { RotationsSk } from './rotations-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
-import { $, $$ } from 'common-sk/modules/dom';
 
 describe('rotations-sk', () => {
   const newInstance = setUpElementUnderTest<RotationsSk>('rotations-sk');
@@ -12,10 +12,18 @@ describe('rotations-sk', () => {
   beforeEach(() => {
     element = newInstance((el: RotationsSk) => {
       el.rotations = [
-        { role: 'Arborist', icon: 'nature', currentUrl: '', docLink: '', name: 'alice' },
-        { role: 'Wrangler', icon: 'gesture', currentUrl: '', docLink: '', name: 'bob' },
-        { role: 'Android', icon: 'android', currentUrl: '', docLink: '', name: 'christy' },
-        { role: 'Beekeeper', icon: 'grain', currentUrl: '', docLink: '', name: 'dan' },
+        {
+          role: 'Arborist', icon: 'nature', currentUrl: '', docLink: '', name: 'alice',
+        },
+        {
+          role: 'Wrangler', icon: 'gesture', currentUrl: '', docLink: '', name: 'bob',
+        },
+        {
+          role: 'Android', icon: 'android', currentUrl: '', docLink: '', name: 'christy',
+        },
+        {
+          role: 'Beekeeper', icon: 'grain', currentUrl: '', docLink: '', name: 'dan',
+        },
       ];
     });
   });

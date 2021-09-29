@@ -40,7 +40,6 @@ export class CommitDetailSk extends ElementSk {
     </div>
   `;
 
-
   connectedCallback(): void {
     super.connectedCallback();
     upgradeProperty(this, 'cid');

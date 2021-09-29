@@ -32,8 +32,7 @@ export interface HistogramSkToggleEventDetail {
 }
 
 export class HistogramSk extends ElementDocSk {
-  private static template = (ele: HistogramSk) =>
-    html`
+  private static template = (ele: HistogramSk) => html`
 <details title="A table of the number of occurrences of each command." open>
   <summary><b>Histogram</b></summary>
   <table>
@@ -42,15 +41,14 @@ export class HistogramSk extends ElementDocSk {
       <td title="Occurrences of command within the current range filter.">range</td>
       <td>name</td>
     </tr>
-    ${ ele._hist.map((item: HistogramEntry) => HistogramSk.rowTemplate(ele, item)) }
+    ${ele._hist.map((item: HistogramEntry) => HistogramSk.rowTemplate(ele, item))}
     <tr><td class=countCol>${ele._total()}</td><td><b>Total</b></td></tr>
   </table>
 </details>`;
 
-  private static rowTemplate = (ele: HistogramSk, item: HistogramEntry) =>
-    html`
-<tr @click=${()=>{ele._toggle(item.name)}} id="hist-row-${item.name.toLowerCase()}"
-    class="${ele._incl.has(item.name.toLowerCase())? '' : 'pinkBackground'}">
+  private static rowTemplate = (ele: HistogramSk, item: HistogramEntry) => html`
+<tr @click=${() => { ele._toggle(item.name); }} id="hist-row-${item.name.toLowerCase()}"
+    class="${ele._incl.has(item.name.toLowerCase()) ? '' : 'pinkBackground'}">
   <td class=countCol>${item.countInFrame}</td>
   <td class=countCol>${item.countInRange}</td>
   <td>${item.name}</td>
@@ -58,6 +56,7 @@ export class HistogramSk extends ElementDocSk {
 
   // counts of command occurances
   private _hist: HistogramEntry[] = [];
+
   // commands which the filter includes
   private _incl = new Set<string>();
 
@@ -103,12 +102,14 @@ export class HistogramSk extends ElementDocSk {
 
     // but make sure to tell the module that actually owns this model
     this.dispatchEvent(
-    new CustomEvent<HistogramSkToggleEventDetail>(
-      'toggle-command-inclusion', {
-        detail: {name: lowerName},
-        bubbles: true,
-      }));
+      new CustomEvent<HistogramSkToggleEventDetail>(
+        'toggle-command-inclusion', {
+          detail: { name: lowerName },
+          bubbles: true,
+        },
+      ),
+    );
   }
-};
+}
 
 define('histogram-sk', HistogramSk);

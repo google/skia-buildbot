@@ -18,7 +18,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
  * Takes a corpus object and returns a string used to represent the corpus on the CorpusSelectorSk
  * element's UI.
  */
-export type CorpusRendererFn<T extends Object> = (corpus: T) => string;
+export type CorpusRendererFn<T extends Object> = (corpus: T)=> string;
 
 /**
  * An element that allows the user to select a corpus from a list of available corpora.
@@ -28,17 +28,14 @@ export type CorpusRendererFn<T extends Object> = (corpus: T) => string;
  * the customRendererFn property.
  */
 export class CorpusSelectorSk<T extends Object> extends ElementSk {
-
   private static template =
-    <T>(el: CorpusSelectorSk<T>) =>
-      el._corpora.length
-        ? html`
+    <T>(el: CorpusSelectorSk<T>) => (el._corpora.length
+      ? html`
             <ul>${el._corpora.map((corpus) => CorpusSelectorSk.corpusTemplate(el, corpus))}</ul>`
-        : html`<p>Loading corpora details...</p>`;
+      : html`<p>Loading corpora details...</p>`);
 
   private static corpusTemplate =
-    <T>(el: CorpusSelectorSk<T>, corpus: T) =>
-      html`
+    <T>(el: CorpusSelectorSk<T>, corpus: T) => html`
         <li class=${el._selectedCorpus === corpus ? 'selected' : ''}
             title="${el._corpusRendererFn(corpus)}"
             @click=${() => el._handleCorpusClick(corpus)}>
@@ -100,6 +97,6 @@ export class CorpusSelectorSk<T extends Object> extends ElementSk {
       }),
     );
   }
-};
+}
 
 define('corpus-selector-sk', CorpusSelectorSk);

@@ -12,8 +12,8 @@ import { diffDate } from 'common-sk/modules/human';
 import { define } from 'elements-sk/define';
 import 'elements-sk/styles/table';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { $$ } from 'common-sk/modules/dom';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   GetTaskSchedulerService,
   Job,
@@ -73,7 +73,7 @@ export class TaskSk extends ElementSk {
           </td>
         </tr>
         ${ele.task!.finishedAt && new Date(ele.task!.finishedAt).getTime() > 0
-          ? html`
+    ? html`
               <tr>
                 <td>Finished</td>
                 <td>
@@ -83,7 +83,7 @@ export class TaskSk extends ElementSk {
                 </td>
               </tr>
             `
-          : html``}
+    : html``}
         <tr>
           <td>Duration</td>
           <td>${ele.duration}</td>
@@ -116,12 +116,12 @@ export class TaskSk extends ElementSk {
           <td>Jobs</td>
           <td>
             ${ele.jobs.map(
-              (job: Job) => html` <a href="/job/${job.id}">${job.name}</a> `
-            )}
+      (job: Job) => html` <a href="/job/${job.id}">${job.name}</a> `,
+    )}
           </td>
         </tr>
         ${ele.isTryJob
-          ? html`
+      ? html`
               <tr>
                 <td>Codereview Link</td>
                 <td>
@@ -143,7 +143,7 @@ export class TaskSk extends ElementSk {
                 <td>${ele.task!.taskKey!.repoState!.patch!.patchset}</td>
               </tr>
             `
-          : html``}
+      : html``}
       </table>
     </div>
 
@@ -154,14 +154,23 @@ export class TaskSk extends ElementSk {
   `;
 
   private codereviewLink: string = '';
+
   private duration: string = '';
+
   private isTryJob: boolean = false;
+
   private jobs: Job[] = [];
+
   private revisionLink: string = '';
+
   private _rpc: TaskSchedulerService | null = null;
+
   private statusColor: string = '';
+
   private statusText: string = '';
+
   private swarmingTaskLink: string = '';
+
   private task: Task | null = null;
 
   constructor() {
@@ -209,30 +218,27 @@ export class TaskSk extends ElementSk {
     }).then((taskResp: GetTaskResponse) => {
       this.task = taskResp.task!;
       const start = new Date(this.task.createdAt!);
-      const end =
-        this.task.finishedAt && new Date(this.task.finishedAt).getTime() > 0
-          ? new Date(this.task.finishedAt)
-          : new Date(Date.now()); // Use Date.now so that it can be mocked.
+      const end = this.task.finishedAt && new Date(this.task.finishedAt).getTime() > 0
+        ? new Date(this.task.finishedAt)
+        : new Date(Date.now()); // Use Date.now so that it can be mocked.
       this.duration = diffDate(start.getTime(), end.getTime());
       const rs = this.task.taskKey!.repoState!;
       this.revisionLink = `${rs.repo}/+show/${rs.revision}`;
       if (
-        rs.patch &&
-        rs.patch.issue != '' &&
-        rs.patch.patchset != '' &&
-        rs.patch.server != ''
+        rs.patch
+        && rs.patch.issue != ''
+        && rs.patch.patchset != ''
+        && rs.patch.server != ''
       ) {
         this.isTryJob = true;
         const p = rs.patch!;
         this.codereviewLink = `${p.server}/c/${p.issue}/${p.patchset}`;
       }
       [this.statusText, this.statusColor] = taskStatusToTextColor.get(
-        this.task.status
+        this.task.status,
       )!;
       this.swarmingTaskLink = `https://${this.swarming}/task?id=${this.task.swarmingTaskId}`;
-      const jobReqs = this.task.jobs!.map((jobID: string) =>
-        this.rpc!.getJob({ id: jobID })
-      );
+      const jobReqs = this.task.jobs!.map((jobID: string) => this.rpc!.getJob({ id: jobID }));
       Promise.all(jobReqs).then((jobResps: GetJobResponse[]) => {
         this.jobs = jobResps
           .map((resp: GetJobResponse) => resp.job!)

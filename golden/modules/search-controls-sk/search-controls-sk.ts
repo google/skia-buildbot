@@ -69,7 +69,8 @@ export interface SearchCriteriaHintableObject {
  * missing values. This is intended to be used with common-sk's stateReflector() function.
  */
 export function SearchCriteriaFromHintableObject(
-    hintObj: SearchCriteriaHintableObject | HintableObject): SearchCriteria {
+  hintObj: SearchCriteriaHintableObject | HintableObject,
+): SearchCriteria {
   return {
     corpus: (hintObj.corpus as string) || defaultCorpus(),
 
@@ -87,7 +88,7 @@ export function SearchCriteriaFromHintableObject(
     mustHaveReferenceImage: !!hintObj.reference_image_required,
 
     sortOrder: (hintObj.sort as 'ascending' | 'descending') || 'descending',
-  }
+  };
 }
 
 /**
@@ -98,7 +99,8 @@ export function SearchCriteriaFromHintableObject(
  * conversion to HintableObject takes place.
  */
 export function SearchCriteriaToHintableObject(
-    sc: SearchCriteria | Partial<SearchCriteria>): SearchCriteriaHintableObject {
+  sc: SearchCriteria | Partial<SearchCriteria>,
+): SearchCriteriaHintableObject {
   return {
     corpus: sc.corpus || '',
 
@@ -116,7 +118,7 @@ export function SearchCriteriaToHintableObject(
     reference_image_required: sc.mustHaveReferenceImage || false,
 
     sort: sc.sortOrder || 'descending',
-  }
+  };
 }
 
 /** A component that allows the user to view and edit a digest search criteria. */
@@ -131,34 +133,39 @@ export class SearchControlsSk extends ElementSk {
       <span class=legend>Digests:</span>
 
       ${SearchControlsSk._checkBoxTemplate(
-          el,
-          /* label= */ 'Positive',
-          /* cssClass= */ 'include-positive-digests',
-          /* fieldName= */ 'includePositiveDigests')}
+    el,
+    /* label= */ 'Positive',
+    /* cssClass= */ 'include-positive-digests',
+    /* fieldName= */ 'includePositiveDigests',
+  )}
 
       ${SearchControlsSk._checkBoxTemplate(
-          el,
-          /* label= */ 'Negative',
-          /* cssClass= */ 'include-negative-digests',
-          /* fieldName= */ 'includeNegativeDigests')}
+    el,
+    /* label= */ 'Negative',
+    /* cssClass= */ 'include-negative-digests',
+    /* fieldName= */ 'includeNegativeDigests',
+  )}
 
       ${SearchControlsSk._checkBoxTemplate(
-          el,
-          /* label= */ 'Untriaged',
-          /* cssClass= */ 'include-untriaged-digests',
-          /* fieldName= */ 'includeUntriagedDigests')}
+    el,
+    /* label= */ 'Untriaged',
+    /* cssClass= */ 'include-untriaged-digests',
+    /* fieldName= */ 'includeUntriagedDigests',
+  )}
 
       ${SearchControlsSk._checkBoxTemplate(
-          el,
-          /* label= */ 'Include not at HEAD',
-          /* cssClass= */ 'include-digests-not-at-head',
-          /* fieldName= */ 'includeDigestsNotAtHead')}
+    el,
+    /* label= */ 'Include not at HEAD',
+    /* cssClass= */ 'include-digests-not-at-head',
+    /* fieldName= */ 'includeDigestsNotAtHead',
+  )}
 
       ${SearchControlsSk._checkBoxTemplate(
-          el,
-          /* label= */ 'Include ignored',
-          /* cssClass= */ 'include-ignored-digests',
-          /* fieldName= */ 'includeIgnoredDigests')}
+    el,
+    /* label= */ 'Include ignored',
+    /* cssClass= */ 'include-ignored-digests',
+    /* fieldName= */ 'includeIgnoredDigests',
+  )}
 
       <button class=more-filters @click=${el._openFilterDialog}>More filters</button>
     </div>
@@ -175,24 +182,25 @@ export class SearchControlsSk extends ElementSk {
 
   private static _checkBoxTemplate =
       (el: SearchControlsSk,
-       label: string,
-       cssClass: string,
-       fieldName: keyof SearchCriteria) => {
-    const onChange = (e: Event) => {
-      (el._searchCriteria[fieldName] as boolean) = (e.target as HTMLInputElement).checked;
-      el._emitChangeEvent();
-    };
-    return html`
+        label: string,
+        cssClass: string,
+        fieldName: keyof SearchCriteria) => {
+        const onChange = (e: Event) => {
+          (el._searchCriteria[fieldName] as boolean) = (e.target as HTMLInputElement).checked;
+          el._emitChangeEvent();
+        };
+        return html`
       <checkbox-sk label="${label}"
                    class="${cssClass}"
                    ?checked=${live(el.searchCriteria[fieldName])}
                    @change=${onChange}>
       </checkbox-sk>`;
-  };
+      };
 
   private _filterDialog: FilterDialogSk | null = null;
 
   private _corpora: string[] = [];
+
   private _paramSet: ParamSet = {};
 
   private _searchCriteria: SearchCriteria = {
@@ -207,7 +215,7 @@ export class SearchControlsSk extends ElementSk {
     minRGBADelta: 0,
     maxRGBADelta: 0,
     mustHaveReferenceImage: false,
-    sortOrder: 'ascending'
+    sortOrder: 'ascending',
   };
 
   constructor() {
@@ -282,7 +290,7 @@ export class SearchControlsSk extends ElementSk {
   private _emitChangeEvent() {
     this.dispatchEvent(new CustomEvent<SearchCriteria>('search-controls-sk-change', {
       detail: this._searchCriteria,
-      bubbles: true
+      bubbles: true,
     }));
   }
 }

@@ -42,7 +42,6 @@ export class MetricsAnalysisSk extends ElementSk {
 
   private _moreThanThreeActiveTasks = moreThanThreeActiveTasksChecker();
 
-
   constructor() {
     super(MetricsAnalysisSk.template);
   }

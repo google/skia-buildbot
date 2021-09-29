@@ -1,12 +1,12 @@
 /**
  * Nondeterministic, rich data for use on the demo page to visualize different scenarios.
  */
-import { Branch, GetIncrementalCommitsResponse, LongCommit, Comment, Task } from '../rpc/status';
+import {
+  Branch, GetIncrementalCommitsResponse, LongCommit, Comment, Task,
+} from '../rpc/status';
 
 Date.now = () => new Date('2020-09-23T09:39:36.659Z').valueOf();
-const timestampBeforeNow = (minutes: number = 0) => {
-  return new Date(Date.now() - 1000 * 60 * minutes).toISOString();
-};
+const timestampBeforeNow = (minutes: number = 0) => new Date(Date.now() - 1000 * 60 * minutes).toISOString();
 
 const branches: Array<Branch> = [
   { name: 'main', head: 'abc0' },
@@ -116,13 +116,13 @@ for (let i = 0; i < 30; i++) {
       hash: hash,
       parents: [`abc${i + 1}`],
       body: `${body}\nReviewed-on: https://skia-review.googlesource.com/c/buildbot/+/320557\n`,
-      subject: 'something, timestamp is ' + commitTime,
+      subject: `something, timestamp is ${commitTime}`,
       timestamp: commitTime,
       author: randomAuthor(),
-    })
+    }),
   );
 
-  for (let spec of taskSpecs) {
+  for (const spec of taskSpecs) {
     if (!seen(`${hash}/${spec}`)) {
       const hashes = [hash];
       // Randomly make some tasks cover multiple commits,
@@ -166,7 +166,7 @@ for (let i = 0; i < 30; i++) {
 commits.splice(4, 0, {
   ...commitTemplate,
   hash: 'def0',
-  parents: [`diffBranch`],
+  parents: ['diffBranch'],
   subject: 'otherBranchSubject',
   timestamp: timestampBeforeNow(minutesBetweenCommits * 4),
   author: 'branchAuthor',

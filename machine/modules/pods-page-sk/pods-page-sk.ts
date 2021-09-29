@@ -28,6 +28,6 @@ export class PodsPageSk extends ListPageSk<Pod> {
       </tr>
     `;
   }
-};
+}
 
 define('pods-page-sk', PodsPageSk);

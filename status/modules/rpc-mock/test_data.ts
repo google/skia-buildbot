@@ -16,9 +16,7 @@ function copy<T>(obj: T): T {
 }
 
 Date.now = () => new Date('2020-09-23T09:39:36.659Z').valueOf();
-const timestampBeforeNow = (minutes: number = 0) => {
-  return new Date(Date.now() - 1000 * 60 * minutes).toISOString();
-};
+const timestampBeforeNow = (minutes: number = 0) => new Date(Date.now() - 1000 * 60 * minutes).toISOString();
 
 export const branch0: Branch = { name: 'main', head: 'abc123' };
 export const branch1: Branch = { name: 'bar', head: '456789' };
@@ -218,12 +216,12 @@ export const responseTasksToFilter = (() => {
     },
   ];
   let i = 0;
-  for (let task of tasks) {
+  for (const task of tasks) {
     r.update!.tasks.push(Object.assign(copy(task0), task, { id: `id${i++}` }));
   }
   // Add a comment to 'Always-Red-Spec'.
   r.update!.comments!.push(
-    Object.assign(copy(commentTaskSpec), { ignoreFailure: false, taskSpecName: 'Always-Red-Spec' })
+    Object.assign(copy(commentTaskSpec), { ignoreFailure: false, taskSpecName: 'Always-Red-Spec' }),
   );
   return r;
 })();

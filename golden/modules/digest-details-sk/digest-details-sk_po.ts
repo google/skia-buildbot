@@ -1,8 +1,8 @@
-import {PageObject} from '../../../infra-sk/modules/page_object/page_object';
-import {TriageSkPO} from '../triage-sk/triage-sk_po';
-import {PageObjectElement, PageObjectElementList} from '../../../infra-sk/modules/page_object/page_object_element';
-import {ImageCompareSkPO} from '../image-compare-sk/image-compare-sk_po';
-import {DotsLegendSkPO} from '../dots-legend-sk/dots-legend-sk_po';
+import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
+import { TriageSkPO } from '../triage-sk/triage-sk_po';
+import { PageObjectElement, PageObjectElementList } from '../../../infra-sk/modules/page_object/page_object_element';
+import { ImageCompareSkPO } from '../image-compare-sk/image-compare-sk_po';
+import { DotsLegendSkPO } from '../dots-legend-sk/dots-legend-sk_po';
 
 /** A page object for the DigestDetailsSk component. */
 export class DigestDetailsSkPO extends PageObject {

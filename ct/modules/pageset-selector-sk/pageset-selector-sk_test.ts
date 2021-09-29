@@ -32,7 +32,6 @@ describe('pageset-selector-sk', () => {
     ($$('expandable-textarea-sk > button', selector) as HTMLElement).click();
   };
 
-
   // Simulates a user typing 'value' into the input element by setting its
   // value and triggering the built-in 'input' event.
   const simulateUserEnteringCustomPages = (value: string) => {

@@ -22,11 +22,11 @@
  * </script>
  *
  */
-import { define } from 'elements-sk/define'
-import dialogPolyfill from 'dialog-polyfill'
-import { html, render } from 'lit-html'
+import { define } from 'elements-sk/define';
+import dialogPolyfill from 'dialog-polyfill';
+import { html, render } from 'lit-html';
 
-import 'elements-sk/styles/buttons'
+import 'elements-sk/styles/buttons';
 
 export class ConfirmDialogSk extends HTMLElement {
   private static template = (ele: ConfirmDialogSk) => html`
@@ -41,8 +41,11 @@ export class ConfirmDialogSk extends HTMLElement {
   `;
 
   private message = '';
+
   private dialog: HTMLDialogElement | null = null;
+
   private resolve = () => {};
+
   private reject = () => {};
 
   connectedCallback() {
@@ -78,7 +81,7 @@ export class ConfirmDialogSk extends HTMLElement {
   }
 
   private render() {
-    render(ConfirmDialogSk.template(this), this, {eventContext: this});
+    render(ConfirmDialogSk.template(this), this, { eventContext: this });
   }
 }
 

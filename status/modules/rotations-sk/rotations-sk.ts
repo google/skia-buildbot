@@ -12,10 +12,11 @@ import { Rotation } from '../tree-status-sk/tree-status-sk';
 
 export class RotationsSk extends ElementSk {
   private _rotations: Array<Rotation> = [];
+
   private static template = (el: RotationsSk) => html`
     <div class="table">
       ${el._rotations.map(
-        (rotation) => html`
+    (rotation) => html`
           <a
             class="tr"
             href=${rotation.docLink}
@@ -24,13 +25,13 @@ export class RotationsSk extends ElementSk {
           >
             <div class="td">
               ${unsafeHTML(
-                `<${rotation.icon}-icon-sk></${rotation.icon}-icon-sk>`
-              )}
+      `<${rotation.icon}-icon-sk></${rotation.icon}-icon-sk>`,
+    )}
               ${rotation.role}: ${rotation.name}
             </div>
           </a>
-        `
-      )}
+        `,
+  )}
     </div>
   `;
 

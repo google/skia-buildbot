@@ -32,15 +32,14 @@ import {
 const inputID = 'configInput';
 
 export class ARBConfigSk extends ElementSk {
-  private static template = (ele: ARBConfigSk) =>
-    !ele.config
-      ? html``
-      : html`
+  private static template = (ele: ARBConfigSk) => (!ele.config
+    ? html``
+    : html`
   <div>
     <button
       @click="${() => {
-          $$<HTMLTextAreaElement>('#' + inputID, ele)!.value = ele.configJSON;
-        }}"
+          $$<HTMLTextAreaElement>(`#${inputID}`, ele)!.value = ele.configJSON;
+    }}"
       title="Revert to the checked-in config."
       >Revert</button>
     <button
@@ -61,10 +60,12 @@ export class ARBConfigSk extends ElementSk {
       <textarea id="configJson" name="configJson"></textarea>
     </form>
   </form>
-`;
+`);
 
   private config: Config = {} as Config;
-  private configJSON: string = "";
+
+  private configJSON: string = '';
+
   private rpc: AutoRollService = GetAutoRollService(this);
 
   constructor() {
@@ -82,9 +83,9 @@ export class ARBConfigSk extends ElementSk {
   }
 
   private loadConfig(roller: string) {
-    console.log('Loading config for ' + roller + '...');
+    console.log(`Loading config for ${roller}...`);
 
-    fetch('/r/' + roller + '/config').then(jsonOrThrow).then((cfg: Config) => {
+    fetch(`/r/${roller}/config`).then(jsonOrThrow).then((cfg: Config) => {
       this.config = cfg;
       this.configJSON = JSON.stringify(this.config, null, 2);
       this._render();
@@ -95,10 +96,10 @@ export class ARBConfigSk extends ElementSk {
     // TODO(borenet): This is goofy because we have two textareas which both
     // contain the config in JSON format, but eventually we'll have UI for
     // editing the config.
-    const configJSON = $$<HTMLTextAreaElement>('#' + inputID, this)!.value;
+    const configJSON = $$<HTMLTextAreaElement>(`#${inputID}`, this)!.value;
     const config = JSON.parse(configJSON) as Config;
     $$<HTMLTextAreaElement>('#configJson', this)!.value = configJSON;
-    $$<HTMLFormElement>("#configForm", this)!.submit();
+    $$<HTMLFormElement>('#configForm', this)!.submit();
   }
 }
 

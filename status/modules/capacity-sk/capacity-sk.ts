@@ -15,37 +15,49 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
 import '../../../ct/modules/input-sk';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/battery-charging-80-icon-sk';
 import 'elements-sk/icon/dashboard-icon-sk';
 import 'elements-sk/icon/devices-icon-sk';
 import 'elements-sk/icon/arrow-drop-down-icon-sk';
 import 'elements-sk/icon/arrow-drop-up-icon-sk';
-import { StatusService, GetStatusService, BotSet, BotSet_DimensionsEntry } from '../rpc';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { $$, DomReady } from 'common-sk/modules/dom';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
+import {
+  StatusService, GetStatusService, BotSet, BotSet_DimensionsEntry,
+} from '../rpc';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 // Row represents a given bot's data after applying user inputs,
 // split into 2 classes so we can define the ColumnName type for sorting.
 // Times are in minutes.
 class ColumnSet {
   config: string = '';
+
   commitTime: number = 0;
+
   commitTasks: number = 0;
+
   cqTime: number = 0;
+
   cqTasks: number = 0;
+
   botDays: number = 0;
+
   optimisticBots: number = 0;
+
   pessimisticBots: number = 0;
+
   botCount: number = 0;
+
   optimisticPercent: number = 0;
 }
 
 class Row extends ColumnSet {
   swarmingUrl: string = '';
+
   displayClass: string = '';
 }
 
@@ -55,20 +67,26 @@ type SortDirection = 1 | -1;
 // Used by stateReflector.
 class State {
   commits: number = 30;
+
   cq: number = 1.5;
+
   optimistic = 90;
+
   pessimistic = 60;
+
   backfill = 100;
+
   sortColumn: ColumnName = 'optimisticPercent';
+
   sortDirection: SortDirection = 1;
 }
 
 export class CapacitySk extends ElementSk {
   private client: StatusService = GetStatusService();
+
   private stateHasChanged = () => {};
 
-  private static template = (el: CapacitySk) =>
-    html`<app-sk>
+  private static template = (el: CapacitySk) => html`<app-sk>
       <header>
         <h1>Capacity Statistics for Skia Bots</h1>
         <div class="spacer"></div>
@@ -158,10 +176,10 @@ export class CapacitySk extends ElementSk {
           </thead>
           <tbody>
             ${el.botsets
-              .map((botset) => el.rowFromBotset(botset))
-              .sort((a, b) => el.compareRow(a, b))
-              .map(
-                (row) => html` <tr class=${row.displayClass}>
+    .map((botset) => el.rowFromBotset(botset))
+    .sort((a, b) => el.compareRow(a, b))
+    .map(
+      (row) => html` <tr class=${row.displayClass}>
                   <td><a href=${row.swarmingUrl}>${row.config}</a></td>
                   <td>${row.commitTime.toFixed(1)}</td>
                   <td>${row.commitTasks}</td>
@@ -172,8 +190,8 @@ export class CapacitySk extends ElementSk {
                   <td>${row.pessimisticBots.toFixed(1)}</td>
                   <td>${row.botCount}</td>
                   <td>${row.optimisticPercent.toFixed(1)} %</td>
-                </tr>`
-              )}
+                </tr>`,
+    )}
           </tbody>
         </table>
       </main>
@@ -194,7 +212,7 @@ export class CapacitySk extends ElementSk {
     // any parameters from the url.
     this.stateHasChanged = stateReflector(
       () => this.getState(),
-      (fromUrl) => this.setState(fromUrl)
+      (fromUrl) => this.setState(fromUrl),
     );
     this.client
       .getBotUsage({})
@@ -204,8 +222,11 @@ export class CapacitySk extends ElementSk {
       })
       .catch(errorMessage);
   }
+
   private sortColumn: ColumnName = 'optimisticPercent';
+
   private sortDirection: SortDirection = 1;
+
   private botsets: BotSet[] = [];
 
   private updateSort(column: ColumnName) {
@@ -218,12 +239,13 @@ export class CapacitySk extends ElementSk {
     }
     this.refresh();
   }
+
   private sortIcon(column: ColumnName) {
     return column !== this.sortColumn
       ? html``
       : this.sortDirection === 1
-      ? html`<arrow-drop-down-icon-sk></arrow-drop-down-icon-sk>`
-      : html`<arrow-drop-up-icon-sk></arrow-drop-up-icon-sk>`;
+        ? html`<arrow-drop-down-icon-sk></arrow-drop-down-icon-sk>`
+        : html`<arrow-drop-up-icon-sk></arrow-drop-up-icon-sk>`;
   }
 
   private refresh() {
@@ -248,13 +270,13 @@ export class CapacitySk extends ElementSk {
       botset,
       commitsPerDay,
       cqMultiplier,
-      targetBackfillPercent
+      targetBackfillPercent,
     );
     const optimisticBots = botEstimate(workMultiplier, optimisticUtilization);
     const pessimisticBots = botEstimate(workMultiplier, pessimisticUtilization);
     const swarmingUrl = Object.keys(botset.dimensions!).reduce(
       (url, dimKey) => `${url}&f=${dimKey}:${botset.dimensions![dimKey]}`,
-      'https://chromium-swarm.appspot.com/tasklist?c=name&c=state&c=created_ts&c=user&c=gpu&c=device_type&c=os&l=50&s=created_ts%3Adesc'
+      'https://chromium-swarm.appspot.com/tasklist?c=name&c=state&c=created_ts&c=user&c=gpu&c=device_type&c=os&l=50&s=created_ts%3Adesc',
     );
     return <Row>{
       config: botConfig(botset.dimensions!),
@@ -272,8 +294,8 @@ export class CapacitySk extends ElementSk {
         botset.botCount < optimisticBots
           ? 'lowBotCount'
           : botset.botCount < pessimisticBots
-          ? 'mediumBotCount'
-          : 'highBotCount',
+            ? 'mediumBotCount'
+            : 'highBotCount',
     };
   }
 
@@ -291,7 +313,7 @@ export class CapacitySk extends ElementSk {
   }
 
   private setState(fromUrl: HintableObject) {
-    let state = (fromUrl as unknown) as State;
+    const state = (fromUrl as unknown) as State;
     ($$('#commits', this) as HTMLInputElement).value = state.commits.toString();
     ($$('#cq', this) as HTMLInputElement).value = state.cq.toString();
     ($$('#optimistic', this) as HTMLInputElement).value = state.optimistic.toString();
@@ -312,7 +334,7 @@ function botWorkMultiplier(
   item: BotSet,
   commits_per_day: number,
   cq_multiplier: number,
-  target_backfill: number
+  target_backfill: number,
 ) {
   let days = (item.msPerCommit * commits_per_day * target_backfill) / 100;
   days += item.msPerCq * cq_multiplier * commits_per_day;
@@ -346,7 +368,7 @@ const ANDROID_ALIASES = {
 } as const;
 
 const GPU_ALIASES = {
-  '1002': 'AMD',
+  1002: 'AMD',
   '1002:6613': 'AMD Radeon R7 240',
   '1002:6646': 'AMD Radeon R9 M280X',
   '1002:6779': 'AMD Radeon HD 6450/7450/8450',
@@ -371,7 +393,7 @@ const GPU_ALIASES = {
   '10de:1401': 'NVIDIA GeForce GTX 960',
   '10de:1ba1': 'NVIDIA GeForce GTX 1070',
   '10de:1cb3': 'NVIDIA Quadro P400',
-  '8086': 'Intel',
+  8086: 'Intel',
   '8086:0046': 'Intel Ironlake HD Graphics',
   '8086:0102': 'Intel Sandy Bridge HD Graphics 2000',
   '8086:0116': 'Intel Sandy Bridge HD Graphics 3000',
@@ -399,7 +421,7 @@ type AliasTable = typeof GPU_ALIASES | typeof ANDROID_ALIASES;
 
 function applyAlias(str: string, lookup: AliasTable) {
   const nodash = str.split('-')[0] as keyof AliasTable;
-  var alias = lookup[nodash];
+  const alias = lookup[nodash];
   if (alias) {
     return `${alias} (${str})`;
   }

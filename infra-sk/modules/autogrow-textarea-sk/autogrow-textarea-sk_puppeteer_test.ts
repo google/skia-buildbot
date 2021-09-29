@@ -1,18 +1,18 @@
 import * as path from 'path';
 import { expect } from 'chai';
+import { ElementHandle } from 'puppeteer';
 import {
   inBazel,
   loadCachedTestBed,
   takeScreenshot,
-  TestBed
+  TestBed,
 } from '../../../puppeteer-tests/util';
-import { ElementHandle } from 'puppeteer';
 
 describe('autogrow-textarea-sk', () => {
   let testBed: TestBed;
   before(async () => {
     testBed = await loadCachedTestBed(
-        path.join(__dirname, '..', '..', 'webpack.config.ts')
+      path.join(__dirname, '..', '..', 'webpack.config.ts'),
     );
   });
   let textarea: ElementHandle;

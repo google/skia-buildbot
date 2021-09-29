@@ -33,8 +33,7 @@ function clamp(c: number): number {
 }
 
 export class ZoomSk extends ElementDocSk {
-  private static template = (ele: ZoomSk) =>
-    html`
+  private static template = (ele: ZoomSk) => html`
 <dl>
   <dt><b>Postion</b></dt>
   <dd>(${ele._cursor[0]}, ${ele._cursor[1]})</dd>
@@ -69,20 +68,28 @@ export class ZoomSk extends ElementDocSk {
 
   // Our own canvas
   private _canvas: HTMLCanvasElement | null = null;
+
   // The other canvas we are showing a zoomed view of
   private _source: HTMLCanvasElement | null = null;
+
   // cursor location. origin is top left
   private _cursor: Point = [0, 0];
+
   // color of the last selected pixel
   private _rgb = '';
+
   private _hex = '';
+
   private _backdropStyle = 'light-checkerboard';
 
   // must be an odd number of pixels
   // view is square, this is width and height
   private static ps = 12; // width of one zoomed pixel
+
   private static viewSize = 228
+
   private static size = 19; // * 12x zoom
+
   private static halfSize = 9;
 
   constructor() {
@@ -134,18 +141,18 @@ export class ZoomSk extends ElementDocSk {
       0, 0, ZoomSk.viewSize, ZoomSk.viewSize);
 
     // Box one selected pixel in the exact middle of the canvas.
-    ctx.strokeRect(ZoomSk.halfSize*ZoomSk.ps+0.5, ZoomSk.halfSize*ZoomSk.ps+0.5,
+    ctx.strokeRect(ZoomSk.halfSize * ZoomSk.ps + 0.5, ZoomSk.halfSize * ZoomSk.ps + 0.5,
       ZoomSk.ps, ZoomSk.ps);
 
     // store the color of the selected pixel.
     // gives a UInt8ClampedArray of RGBA
-    const c = ctx.getImageData(ZoomSk.viewSize/2, ZoomSk.viewSize/2, 1, 1).data;
+    const c = ctx.getImageData(ZoomSk.viewSize / 2, ZoomSk.viewSize / 2, 1, 1).data;
     this._rgb = `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${c[3]})`;
     this._hex = ((
-      (clamp(c[0]) << 24) |
-      (clamp(c[1]) << 16) |
-      (clamp(c[2]) << 8) |
-      (clamp(c[3]) << 0) & 0xFFFFFFF) >>> 0).toString(16);
+      (clamp(c[0]) << 24)
+      | (clamp(c[1]) << 16)
+      | (clamp(c[2]) << 8)
+      | (clamp(c[3]) << 0) & 0xFFFFFFF) >>> 0).toString(16);
   }
 
   // convert click in zoomed view to coordinates in source canvas
@@ -153,7 +160,7 @@ export class ZoomSk extends ElementDocSk {
   private _canvasClicked(e: MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    const x = Math.floor((e.offsetX-1) / ZoomSk.ps) - ZoomSk.halfSize;
+    const x = Math.floor((e.offsetX - 1) / ZoomSk.ps) - ZoomSk.halfSize;
     const y = Math.floor(e.offsetY / ZoomSk.ps) - ZoomSk.halfSize;
     const cx = Math.min(Math.max(this._cursor[0] + x, 0), this._source!.width);
     const cy = Math.min(Math.max(this._cursor[1] + y, 0), this._source!.height);
@@ -162,11 +169,12 @@ export class ZoomSk extends ElementDocSk {
     this.dispatchEvent(
       new CustomEvent<DebuggerPageSkCursorEventDetail>(
         'move-cursor', {
-          detail: {position: [cx, cy], onlyData: false},
+          detail: { position: [cx, cy], onlyData: false },
           bubbles: true,
-        }));
+        },
+      ),
+    );
   }
-
-};
+}
 
 define('zoom-sk', ZoomSk);

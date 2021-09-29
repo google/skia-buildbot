@@ -1,6 +1,6 @@
-import {PageObject} from '../../../infra-sk/modules/page_object/page_object';
-import {PageObjectElement} from '../../../infra-sk/modules/page_object/page_object_element';
-import {CheckOrRadio} from 'elements-sk/checkbox-sk/checkbox-sk';
+import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
+import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 
 /** A page object for the MultiZoomSk component. */
 export class MultiZoomSkPO extends PageObject {
@@ -95,7 +95,8 @@ export class MultiZoomSkPO extends PageObject {
     }
     if (numDisplayedImages !== 1) {
       throw new Error(
-          `Expected 1 image to be displayed, was: ${numDisplayedImages}. This is a bug.`);
+        `Expected 1 image to be displayed, was: ${numDisplayedImages}. This is a bug.`,
+      );
     }
     return displayedImage!;
   }

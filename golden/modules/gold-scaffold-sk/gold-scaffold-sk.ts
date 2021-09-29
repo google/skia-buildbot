@@ -15,9 +15,9 @@
 import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { title } from '../settings';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { FetchErrorEventDetail } from '../common';
 
 import '../../../infra-sk/modules/app-sk';
@@ -96,7 +96,9 @@ export class GoldScaffoldSk extends ElementSk {
   `;
 
   private main: HTMLElement | null = null;
+
   private busyTaskCount = 0;
+
   private spinner: SpinnerSk | null = null;
 
   constructor() {

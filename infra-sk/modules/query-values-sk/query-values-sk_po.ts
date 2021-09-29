@@ -1,5 +1,5 @@
-import { PageObject } from '../page_object/page_object';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { PageObject } from '../page_object/page_object';
 import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
 import { asyncForEach } from '../async';
 
@@ -27,12 +27,12 @@ export class QueryValuesSkPO extends PageObject {
 
   async isInvertCheckboxChecked() {
     return (await this.invertCheckBox)
-        .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
+      .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
   }
 
   async isRegexCheckboxChecked() {
     return (await this.regexCheckBox)
-        .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
+      .applyFnToDOMNode((c: HTMLElement) => (c as CheckOrRadio).checked);
   }
 
   async clickInvertCheckbox() { await (await this.invertCheckBox).click(); }
@@ -60,12 +60,12 @@ export class QueryValuesSkPO extends PageObject {
   async getSelected() {
     if (await this.isRegexCheckboxChecked()) {
       const regex = await this.getRegexValue();
-      return ['~' + regex];
+      return [`~${regex}`];
     }
 
     const selectedOptions = await this.getSelectedOptions();
     if (await this.isInvertCheckboxChecked()) {
-      return selectedOptions.map((option) => '!' + option);
+      return selectedOptions.map((option) => `!${option}`);
     }
     return selectedOptions;
   }

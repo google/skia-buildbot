@@ -34,6 +34,6 @@ export class MeetingPointsPageSk extends ListPageSk<MeetingPoint> {
       </tr>
     `;
   }
-};
+}
 
 define('meeting-points-page-sk', MeetingPointsPageSk);

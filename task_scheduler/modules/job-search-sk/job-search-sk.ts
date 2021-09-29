@@ -6,8 +6,8 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ParamSet, toParamSet, fromParamSet } from 'common-sk/modules/query';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   TaskSchedulerService,
   SearchJobsResponse,
@@ -79,7 +79,7 @@ export class JobSearchSk extends ElementSk {
     <div class="container">
       <table class="searchTerms">
         ${Array.from(ele.searchTerms.values()).map(
-          (term: SearchTerm) => html`
+    (term: SearchTerm) => html`
             <tr class="searchTerms">
               <th>
                 <label for="${term.key}">
@@ -88,36 +88,36 @@ export class JobSearchSk extends ElementSk {
               </th>
               <td>
                 ${term.key == 'status'
-                  ? html`
+      ? html`
                       <select
                         id="${term.key}"
                         @change="${(ev: Event) => {
-                          const input = (<HTMLSelectElement>ev.target)!;
-                          term.value = input.value;
-                          ele.updateQuery();
-                        }}"
+        const input = (<HTMLSelectElement>ev.target)!;
+        term.value = input.value;
+        ele.updateQuery();
+      }}"
                         selected=
                       >
                         ${Object.entries(jobStatusToLabelAndClass).map(
-                          ([status, labelAndClass]) => html`
+        ([status, labelAndClass]) => html`
                             <option
                               value="${status}"
                               ?selected="${term.value == status}"
                             >
                               ${labelAndClass.label}
                             </option>
-                          `
-                        )}
+                          `,
+      )}
                       </select>
                     `
-                  : html`
+      : html`
                     <input
                         .id="${term.key}"
                         .type="${searchTerms[term.key]!.type}"
                         .value="${term.value}"
                         ?checked="${
-                          searchTerms[term.key]!.type == 'checkbox' &&
-                          term.value == 'true'
+                          searchTerms[term.key]!.type == 'checkbox'
+                          && term.value == 'true'
                         }"
                         @change="${(ev: Event) => {
                           const input = (<HTMLInputElement>ev.target)!;
@@ -136,43 +136,43 @@ export class JobSearchSk extends ElementSk {
                 <button
                   class="delete"
                   @click="${() => {
-                    ele.searchTerms.delete(term.key);
-                    ele._render();
-                    ele.updateQuery();
-                  }}"
+                          ele.searchTerms.delete(term.key);
+                          ele._render();
+                          ele.updateQuery();
+                        }}"
                 >
                   <delete-icon-sk></delete-icon-sk>
                 </button>
               </td>
             </tr>
-          `
-        )}
+          `,
+  )}
         <tr class="searchTerms">
           <td>
             <select
               @change="${(ev: Event) => {
-                const select = <HTMLSelectElement>ev.target!;
-                const selected = select.value;
-                ele.searchTerms.set(selected, {
-                  key: select.value,
-                  value: '',
-                });
-                select.selectedIndex = 0;
-                ele._render();
-                ele.updateQuery();
-                // Auto-focus the new input field.
-                const inp = $$<HTMLInputElement>('#' + selected, ele)!;
-                inp?.focus();
-              }}"
+    const select = <HTMLSelectElement>ev.target!;
+    const selected = select.value;
+    ele.searchTerms.set(selected, {
+      key: select.value,
+      value: '',
+    });
+    select.selectedIndex = 0;
+    ele._render();
+    ele.updateQuery();
+    // Auto-focus the new input field.
+    const inp = $$<HTMLInputElement>(`#${selected}`, ele)!;
+    inp?.focus();
+  }}"
             >
               <option disabled selected>Add Search Term</option>
               ${Object.entries(searchTerms)
-                .filter(([key, _]) => !ele.searchTerms.get(key))
-                .map(
-                  ([key, term]) => html`
+    .filter(([key, _]) => !ele.searchTerms.get(key))
+    .map(
+      ([key, term]) => html`
                     <option .value="${key}">${term.label}</option>
-                  `
-                )}
+                  `,
+    )}
             </select>
           </td>
           <td></td>
@@ -204,7 +204,7 @@ export class JobSearchSk extends ElementSk {
               </tr>
 
               ${ele.results.map(
-                (job: Job) => html`
+        (job: Job) => html`
                   <tr>
                     <td>
                       <a href="/job/${job.id}" target="_blank">${job.id}</a>
@@ -218,28 +218,28 @@ export class JobSearchSk extends ElementSk {
                     <td>
                       <a
                         href="${job.repoState!.repo}/+show/${job.repoState!
-                          .revision}"
+          .revision}"
                         target="_blank"
                       >
                         ${job.repoState!.revision.substring(0, 12)}
                       </a>
                     </td>
                     <td>
-                      ${job.repoState?.patch?.issue &&
-                      job.repoState?.patch?.patchset &&
-                      job.repoState?.patch?.server
-                        ? html`
+                      ${job.repoState?.patch?.issue
+                      && job.repoState?.patch?.patchset
+                      && job.repoState?.patch?.server
+          ? html`
                             <a
                               href="${job.repoState?.patch?.server}/c/${job
-                                .repoState?.patch?.issue}/${job.repoState?.patch
-                                ?.patchset}"
+            .repoState?.patch?.issue}/${job.repoState?.patch
+            ?.patchset}"
                               target="_blank"
                               >${job.repoState?.patch?.server}/c/${job.repoState
-                                ?.patch?.issue}/${job.repoState?.patch
-                                ?.patchset}
+            ?.patch?.issue}/${job.repoState?.patch
+            ?.patchset}
                             </a>
                           `
-                        : html``}
+          : html``}
                     </td>
                     <td class="${jobStatusToLabelAndClass[job.status]!.class}">
                       ${jobStatusToLabelAndClass[job.status]!.label}
@@ -248,7 +248,7 @@ export class JobSearchSk extends ElementSk {
                     <td>${job.createdAt}</td>
                     <td>
                       ${job.status === JobStatus.JOB_STATUS_IN_PROGRESS
-                        ? html`
+            ? html`
                             <button
                               class="cancel"
                               @click="${() => ele.cancel(job)}"
@@ -257,11 +257,11 @@ export class JobSearchSk extends ElementSk {
                               Cancel
                             </button>
                           `
-                        : html``}
+            : html``}
                     </td>
                   </tr>
-                `
-              )}
+                `,
+      )}
             </table>
           </div>
         `
@@ -269,7 +269,9 @@ export class JobSearchSk extends ElementSk {
   `;
 
   private results: Job[] = [];
+
   private _rpc: TaskSchedulerService | null = null;
+
   private searchTerms: Map<string, SearchTerm> = new Map();
 
   constructor() {
@@ -311,8 +313,7 @@ export class JobSearchSk extends ElementSk {
     this.searchTerms.forEach((term: SearchTerm) => {
       params[term.key] = [term.value];
     });
-    const newUrl =
-      window.location.href.split('?')[0] + '?' + fromParamSet(params);
+    const newUrl = `${window.location.href.split('?')[0]}?${fromParamSet(params)}`;
     window.history.replaceState('', '', newUrl);
   }
 
@@ -335,11 +336,11 @@ export class JobSearchSk extends ElementSk {
       status: (this.searchTerms.get('status')?.value || null) as JobStatus,
       hasStatus: !!this.searchTerms.get('status'),
       timeEnd: new Date(
-        this.searchTerms.get('timeEnd')?.value || 0
+        this.searchTerms.get('timeEnd')?.value || 0,
       ).toISOString(),
       hasTimeEnd: !!this.searchTerms.get('timeEnd'),
       timeStart: new Date(
-        this.searchTerms.get('timeStart')?.value || 0
+        this.searchTerms.get('timeStart')?.value || 0,
       ).toISOString(),
       hasTimeStart: !!this.searchTerms.get('timeStart'),
     };
@@ -347,7 +348,7 @@ export class JobSearchSk extends ElementSk {
       (resp: SearchJobsResponse) => {
         this.results = resp.jobs!;
         this._render();
-      }
+      },
     );
   }
 

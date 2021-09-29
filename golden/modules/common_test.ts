@@ -1,4 +1,5 @@
 import { $$ } from 'common-sk/modules/dom';
+import { expect } from 'chai';
 import {
   humanReadableQuery,
   digestImagePath,
@@ -10,7 +11,6 @@ import {
   sendFetchError,
 } from './common';
 import { eventPromise } from '../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 
 describe('humanReadableQuery', () => {
   it('turns url encoded queries into human readable version', () => {

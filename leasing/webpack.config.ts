@@ -16,14 +16,14 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
     new CopyWebpackPlugin([
       {
         from: './images/favicon.ico',
-        to: 'favicon.ico'
-      }
+        to: 'favicon.ico',
+      },
     ]),
   );
 
   config.plugins!.push(
     new HtmlWebpackInjectAttributesPlugin({
-      nonce: "{% .Nonce %}",
+      nonce: '{% .Nonce %}',
     }),
   );
 

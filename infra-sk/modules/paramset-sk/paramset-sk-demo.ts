@@ -1,6 +1,6 @@
 import './index';
-import { ParamSetSk, ParamSetSkClickEventDetail } from './paramset-sk';
 import { ParamSet } from 'common-sk/modules/query';
+import { ParamSetSk, ParamSetSkClickEventDetail } from './paramset-sk';
 
 const paramSet1: ParamSet = {
   arch: ['Arm7', 'Arm64', 'x86_64', 'x86'],
@@ -26,7 +26,7 @@ const findParamSetSk = (selector: string) => {
   const paramSetSk = document.querySelector<ParamSetSk>(selector)!;
   allParamSetSks.push(paramSetSk);
   return paramSetSk;
-}
+};
 
 let paramSetSk = findParamSetSk('#one-paramset-no-titles');
 paramSetSk.paramsets = [paramSet1];
@@ -55,20 +55,19 @@ paramSetSk.clickable = true;
 allParamSetSks.forEach((paramSetSk) => {
   paramSetSk.addEventListener('paramset-key-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
-    document.querySelector<HTMLPreElement>('#key-click-event')!.textContent =
-      JSON.stringify(detail, null, '  ');
+    document.querySelector<HTMLPreElement>('#key-click-event')!.textContent = JSON.stringify(detail, null, '  ');
   });
 
   paramSetSk.addEventListener('paramset-key-value-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
-    document.querySelector<HTMLPreElement>('#key-value-click-event')!.textContent =
-      JSON.stringify(detail, null, '  ');
+    document.querySelector<HTMLPreElement>('#key-value-click-event')!.textContent = JSON.stringify(detail, null, '  ');
   });
 });
 
 document.querySelector('#highlight')!.addEventListener('click', () => {
   allParamSetSks.forEach(
-    (paramSetSk) => paramSetSk.highlight = { arch: 'Arm7', cpu_or_gpu: 'GPU' });
+    (paramSetSk) => paramSetSk.highlight = { arch: 'Arm7', cpu_or_gpu: 'GPU' },
+  );
 });
 
 document.querySelector('#clear')!.addEventListener('click', () => {

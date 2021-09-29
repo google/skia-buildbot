@@ -23,8 +23,8 @@ import 'elements-sk/icon/help-icon-sk';
 export class DotsLegendSk extends ElementSk {
   private static template = (el: DotsLegendSk) => html`
     ${el._digests
-        .slice(0, MAX_UNIQUE_DIGESTS - 1)
-        .map((digest, index) => DotsLegendSk.digestTemplate(el, digest, index))}
+    .slice(0, MAX_UNIQUE_DIGESTS - 1)
+    .map((digest, index) => DotsLegendSk.digestTemplate(el, digest, index))}
 
     ${DotsLegendSk.lastDigest(el)}
   `;
@@ -34,10 +34,10 @@ export class DotsLegendSk extends ElementSk {
     <a target=_blank class=digest href="${el.digestDetailHref(index)}">${digest.digest}</a>
     ${DotsLegendSk.statusIconTemplate(digest.status)}
     ${index > 0
-        ? html`<a target=_blank class=diff href="${el.digestDiffHref(index)}">
+    ? html`<a target=_blank class=diff href="${el.digestDiffHref(index)}">
                  diff
                </a>`
-        : html`<span></span>`}
+    : html`<span></span>`}
   `;
 
   private static lastDigest = (el: DotsLegendSk) => {
@@ -50,7 +50,8 @@ export class DotsLegendSk extends ElementSk {
     }
     if (el.totalDigests === MAX_UNIQUE_DIGESTS) {
       return DotsLegendSk.digestTemplate(
-          el, el.digests[MAX_UNIQUE_DIGESTS - 1], MAX_UNIQUE_DIGESTS - 1);
+        el, el.digests[MAX_UNIQUE_DIGESTS - 1], MAX_UNIQUE_DIGESTS - 1,
+      );
     }
     return DotsLegendSk.oneOfManyOtherDigestsTemplate(el.totalDigests);
   };
@@ -85,9 +86,13 @@ export class DotsLegendSk extends ElementSk {
   };
 
   private _digests: DigestStatus[] = [];
+
   private _changeListID = '';
+
   private _crs = '';
+
   private _test = '';
+
   private _totalDigests = 0;
 
   constructor() {

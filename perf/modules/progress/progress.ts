@@ -75,7 +75,6 @@ export const startRequest = (
   );
 });
 
-
 /**
  * Utility function to convert Messages into an error string.
  *

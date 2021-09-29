@@ -1,4 +1,3 @@
-
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
@@ -24,7 +23,6 @@ const intermediateStepBody: progress.SerializedProgress = {
   messages: [{ key: 'Step', value: '1/2' }],
   url: pollingURL,
 };
-
 
 describe('startRequest', () => {
   // Create a common spinner-sk to be used by all the tests.

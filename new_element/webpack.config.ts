@@ -7,7 +7,7 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
   const config = commonBuilder(
     __dirname,
     args.mode,
-    /* neverMinifyHtml= */ true
+    /* neverMinifyHtml= */ true,
   );
   config.output!.publicPath = '/dist/';
   config.resolve = config.resolve || {};
