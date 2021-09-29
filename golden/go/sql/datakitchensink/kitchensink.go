@@ -555,7 +555,7 @@ const (
 	GerritInternalCRS = "gerrit-internal"
 
 	BuildBucketCIS         = "buildbucket"
-	BuildBucketInternalCIS = "buildbucketInternal"
+	BuildBucketInternalCIS = "buildbucket-internal"
 
 	ChangelistIDThatAttemptsToFixIOS = "CL_fix_ios"
 	PatchSetIDFixesIPadButNotIPhone  = "PS_fixes_ipad_but_not_iphone"

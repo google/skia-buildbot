@@ -30,7 +30,7 @@
       GerritURL:          "https://chromium-review.googlesource.com",
       GerritInternalURL:  "https://chrome-internal-review.googlesource.com",
 
-      ContinuousIntegrationSystems: "buildbucket",
+      ContinuousIntegrationSystems: "buildbucket,buildbucket-internal",
     }
   },
 

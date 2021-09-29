@@ -312,9 +312,9 @@ FROM Changelists AS OF SYSTEM TIME '-0.1s'`
 // A list of CI systems we support. So far, the mapping of task ID to link is project agnostic. If
 // that stops being the case, then we'll need to supply this mapping on a per-instance basis.
 var cisTemplates = map[string]string{
-	"cirrus":              "https://cirrus-ci.com/task/%s",
-	"buildbucket":         "https://cr-buildbucket.appspot.com/build/%s",
-	"buildbucketInternal": "https://cr-buildbucket.appspot.com/build/%s",
+	"cirrus":               "https://cirrus-ci.com/task/%s",
+	"buildbucket":          "https://cr-buildbucket.appspot.com/build/%s",
+	"buildbucket-internal": "https://cr-buildbucket.appspot.com/build/%s",
 }
 
 // PatchsetsAndTryjobsForCL2 returns a summary of the data we have collected
@@ -394,7 +394,7 @@ ORDER BY Patchsets.patchset_id
 		if !ok {
 			return frontend.ChangelistSummary{}, skerr.Fmt("Unrecognized CIS system: %q", tj.System)
 		}
-		tj.URL = strings.Replace(urlTempl, "%s", tj.SystemID, 1)
+		tj.URL = strings.Replace(urlTempl, "%s", sql.Unqualify(tj.SystemID), 1)
 		if currentPS == nil || currentPS.SystemID != psID {
 			currentPS = &frontend.Patchset{
 				SystemID: psID,
@@ -405,6 +405,7 @@ ORDER BY Patchsets.patchset_id
 		currentPS.TryJobs = append(currentPS.TryJobs, tj)
 	}
 
+	rv.Patchsets = make([]frontend.Patchset, 0, len(patchsets)) // ensure non-nil slice
 	for _, ps := range patchsets {
 		rv.Patchsets = append(rv.Patchsets, *ps)
 	}
