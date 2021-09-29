@@ -42,6 +42,27 @@ func (_m *CodeReview) GetChangeRef(ci *gerrit.ChangeInfo) string {
 	return r0
 }
 
+// GetCommitAuthor provides a mock function with given fields: ctx, issue, revision
+func (_m *CodeReview) GetCommitAuthor(ctx context.Context, issue int64, revision string) (string, error) {
+	ret := _m.Called(ctx, issue, revision)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) string); ok {
+		r0 = rf(ctx, issue, revision)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64, string) error); ok {
+		r1 = rf(ctx, issue, revision)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCommitMessage provides a mock function with given fields: ctx, issue
 func (_m *CodeReview) GetCommitMessage(ctx context.Context, issue int64) (string, error) {
 	ret := _m.Called(ctx, issue)

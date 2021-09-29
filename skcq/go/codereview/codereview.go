@@ -21,6 +21,10 @@ type CodeReview interface {
 	//     refs/changes/22/401222/140
 	GetChangeRef(ci *gerrit.ChangeInfo) string
 
+	// GetCommitAuthor retrieves the author of the commit that corresponds to
+	// the patch identified by issue and revision.
+	GetCommitAuthor(ctx context.Context, issue int64, revision string) (string, error)
+
 	// GetCommitMessage returns the commit msg of this change. Note: this returns
 	// the commit msg on the latest patchset.
 	GetCommitMessage(ctx context.Context, issue int64) (string, error)

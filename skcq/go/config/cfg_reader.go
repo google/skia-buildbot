@@ -60,6 +60,10 @@ type ConfigReader interface {
 	// GetTasksCfg reads the Tasks.json file from CL's ref if it was modified, else
 	// it reads it from HEAD.
 	GetTasksCfg(ctx context.Context, tasksJSONPath string) (*specs.TasksCfg, error)
+
+	// GetAuthorsFileContents reads the AUTHORS file from CL's ref if it was modified,
+	// else it reads it from HEAD.
+	GetAuthorsFileContents(ctx context.Context, authorsPath string) (string, error)
 }
 
 // GitilesConfigReader is an implementation of ConfigReader interface.
@@ -122,6 +126,16 @@ func (gc *GitilesConfigReader) GetTasksCfg(ctx context.Context, tasksJSONPath st
 		return nil, skerr.Fmt("Error when parsing tasks.json cfg: %s", err)
 	}
 	return cfg, nil
+}
+
+// GetAuthorsFileContents implements the ConfigReader interface.
+func (gc *GitilesConfigReader) GetAuthorsFileContents(ctx context.Context, authorsPath string) (string, error) {
+	// If AUTHORS is in list of changed files then use that. Else use from HEAD.
+	contents, _, err := gc.getFileContents(ctx, authorsPath)
+	if err != nil {
+		return "", err
+	}
+	return contents, nil
 }
 
 // getFileContents checks to see if the CL has modified the file and returns those contents.

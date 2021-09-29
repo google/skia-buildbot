@@ -670,6 +670,7 @@ type CommitInfo struct {
 	Parents []*CommitInfo `json:"parents"`
 	Subject string        `json:"subject"`
 	Message string        `json:"message"`
+	Author  string        `json:"author"`
 }
 
 // GetCommit retrieves the commit that corresponds to the patch identified by issue and revision.

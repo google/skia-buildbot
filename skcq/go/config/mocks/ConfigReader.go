@@ -17,6 +17,27 @@ type ConfigReader struct {
 	mock.Mock
 }
 
+// GetAuthorsFileContents provides a mock function with given fields: ctx, authorsPath
+func (_m *ConfigReader) GetAuthorsFileContents(ctx context.Context, authorsPath string) (string, error) {
+	ret := _m.Called(ctx, authorsPath)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, authorsPath)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, authorsPath)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSkCQCfg provides a mock function with given fields: ctx
 func (_m *ConfigReader) GetSkCQCfg(ctx context.Context) (*config.SkCQCfg, error) {
 	ret := _m.Called(ctx)

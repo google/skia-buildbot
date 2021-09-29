@@ -40,6 +40,11 @@ type SkCQCfg struct {
 	// The throttler config that will gate the rate of submissions to this
 	// repo+branch.
 	ThrottlerCfg *ThrottlerCfg `json:"throttler_cfg,omitempty"`
+
+	// Full path to the AUTHORS file. If this is specified then SkCQ will
+	// run the authors_verifier on the change to validate that the author
+	// of the change is specified in the AUTHORS file.
+	AuthorsPath string `json:"authors_path,omitempty"`
 }
 
 // ThrottlerCfg is a struct which describes how the rate of submissions to

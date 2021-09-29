@@ -72,6 +72,15 @@ func (gc *gerritCodeReview) GetChangeRef(ci *gerrit.ChangeInfo) string {
 	return fmt.Sprintf("%s%02d/%d/%d", gerrit.ChangeRefPrefix, ci.Issue%100, ci.Issue, gc.GetLatestPatchSetID(ci))
 }
 
+// GetCommitAuthor implements the CodeReview interface.
+func (gc *gerritCodeReview) GetCommitAuthor(ctx context.Context, issue int64, revision string) (string, error) {
+	commitInfo, err := gc.gerritClient.GetCommit(ctx, issue, revision)
+	if err != nil {
+		return "", err
+	}
+	return commitInfo.Author, nil
+}
+
 // GetCommitMessage implements the CodeReview interface.
 func (gc *gerritCodeReview) GetCommitMessage(ctx context.Context, issue int64) (string, error) {
 	commitInfo, err := gc.gerritClient.GetCommit(ctx, issue, "current")

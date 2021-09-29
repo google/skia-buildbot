@@ -167,6 +167,19 @@ func (vm *SkCQVerifiersManager) GetVerifiers(ctx context.Context, cfg *config.Sk
 		clVerifiers = append(clVerifiers, tryJobsVerifier)
 	}
 
+	if cfg.AuthorsPath != "" {
+		// Verify that the author of the change is specified in the AUTHORS file.
+		authorsFileContent, err := configReader.GetAuthorsFileContents(ctx, cfg.AuthorsPath)
+		if err != nil {
+			return nil, nil, skerr.Wrapf(err, "Error getting AUTHORS file")
+		}
+		authorsVerifier, err := NewAuthorsVerifier(vm.cr, authorsFileContent)
+		if err != nil {
+			return nil, nil, skerr.Wrapf(err, "Error when creating AuthorsVerifier")
+		}
+		clVerifiers = append(clVerifiers, authorsVerifier)
+	}
+
 	togetherChangeIDs := []string{}
 	for _, t := range togetherChanges {
 		togetherChangeIDs = append(togetherChangeIDs, fmt.Sprintf("%d", t.Issue))
