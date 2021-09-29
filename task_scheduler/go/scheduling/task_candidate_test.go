@@ -15,8 +15,8 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-func fullTaskCandidate() *taskCandidate {
-	return &taskCandidate{
+func fullTaskCandidate() *TaskCandidate {
+	return &TaskCandidate{
 		Attempt:            3,
 		BuildbucketBuildId: 8888,
 		Commits:            []string{"a", "b"},
@@ -57,7 +57,7 @@ func TestTaskCandidate_EncodedToAndFromJSON_BeforeEqualsAfter(t *testing.T) {
 	v := fullTaskCandidate()
 	jsonB, err := json.Marshal(v)
 	require.NoError(t, err)
-	var reEncoded taskCandidate
+	var reEncoded TaskCandidate
 	err = json.Unmarshal(jsonB, &reEncoded)
 	require.NoError(t, err)
 	assert.Equal(t, v, &reEncoded)
@@ -127,7 +127,7 @@ func TestReplaceVar(t *testing.T) {
 func TestTaskCandidateJobs(t *testing.T) {
 	unittest.SmallTest(t)
 
-	c := taskCandidate{}
+	c := TaskCandidate{}
 	now := time.Now().UTC()
 	j1 := &types.Job{
 		Created: now,

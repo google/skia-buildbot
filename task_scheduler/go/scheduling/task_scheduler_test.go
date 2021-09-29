@@ -333,7 +333,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	ctx, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
-	test := func(jobs []*types.Job, expect map[types.TaskKey]*taskCandidate) {
+	test := func(jobs []*types.Job, expect map[types.TaskKey]*TaskCandidate) {
 		actual, err := s.findTaskCandidatesForJobs(ctx, jobs)
 		require.NoError(t, err)
 		assertdeep.Equal(t, expect, actual)
@@ -347,7 +347,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	require.NoError(t, cachedErr)
 
 	// Run on an empty job list, ensure empty list returned.
-	test([]*types.Job{}, map[types.TaskKey]*taskCandidate{})
+	test([]*types.Job{}, map[types.TaskKey]*TaskCandidate{})
 
 	now := time.Now().UTC()
 
@@ -361,7 +361,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
-	tc1 := &taskCandidate{
+	tc1 := &TaskCandidate{
 		CasDigests: []string{tcc_testutils.CompileCASDigest},
 		Jobs:       []*types.Job{j1},
 		TaskKey: types.TaskKey{
@@ -370,7 +370,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		},
 		TaskSpec: cfg1.Tasks[tcc_testutils.BuildTaskName].Copy(),
 	}
-	tc2 := &taskCandidate{
+	tc2 := &TaskCandidate{
 		CasDigests: []string{tcc_testutils.TestCASDigest},
 		Jobs:       []*types.Job{j1},
 		TaskKey: types.TaskKey{
@@ -380,7 +380,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: cfg1.Tasks[tcc_testutils.TestTaskName].Copy(),
 	}
 
-	test([]*types.Job{j1}, map[types.TaskKey]*taskCandidate{
+	test([]*types.Job{j1}, map[types.TaskKey]*TaskCandidate{
 		tc1.TaskKey: tc1,
 		tc2.TaskKey: tc2,
 	})
@@ -403,7 +403,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		Priority:     0.6,
 		RepoState:    rs2,
 	}
-	tc3 := &taskCandidate{
+	tc3 := &TaskCandidate{
 		CasDigests: []string{tcc_testutils.CompileCASDigest},
 		Jobs:       []*types.Job{j2, j3},
 		TaskKey: types.TaskKey{
@@ -412,7 +412,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		},
 		TaskSpec: cfg2.Tasks[tcc_testutils.BuildTaskName].Copy(),
 	}
-	tc4 := &taskCandidate{
+	tc4 := &TaskCandidate{
 		CasDigests: []string{tcc_testutils.TestCASDigest},
 		Jobs:       []*types.Job{j2},
 		TaskKey: types.TaskKey{
@@ -421,7 +421,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		},
 		TaskSpec: cfg2.Tasks[tcc_testutils.TestTaskName].Copy(),
 	}
-	tc5 := &taskCandidate{
+	tc5 := &TaskCandidate{
 		CasDigests: []string{tcc_testutils.PerfCASDigest},
 		Jobs:       []*types.Job{j3},
 		TaskKey: types.TaskKey{
@@ -430,7 +430,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		},
 		TaskSpec: cfg2.Tasks[tcc_testutils.PerfTaskName].Copy(),
 	}
-	allCandidates := map[types.TaskKey]*taskCandidate{
+	allCandidates := map[types.TaskKey]*TaskCandidate{
 		tc1.TaskKey: tc1,
 		tc2.TaskKey: tc2,
 		tc3.TaskKey: tc3,
@@ -458,7 +458,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 			Revision: "aaaaabbbbbcccccdddddeeeeefffff1111122222",
 		},
 	}
-	test([]*types.Job{j4}, map[types.TaskKey]*taskCandidate{})
+	test([]*types.Job{j4}, map[types.TaskKey]*TaskCandidate{})
 }
 
 func TestFilterTaskCandidates(t *testing.T) {
@@ -489,7 +489,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		RepoState: rs2,
 		Name:      tcc_testutils.PerfTaskName,
 	}
-	candidates := map[types.TaskKey]*taskCandidate{
+	candidates := map[types.TaskKey]*TaskCandidate{
 		k1: {
 			TaskKey:  k1,
 			TaskSpec: &specs.TaskSpec{},
@@ -518,7 +518,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		},
 	}
 
-	clearDiagnostics := func(candidates map[types.TaskKey]*taskCandidate) {
+	clearDiagnostics := func(candidates map[types.TaskKey]*TaskCandidate) {
 		for _, c := range candidates {
 			c.Diagnostics = nil
 		}
@@ -683,7 +683,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 	tryKey.Server = "dummy-server"
 	tryKey.Issue = "dummy-issue"
 	tryKey.Patchset = "dummy-patchset"
-	candidates[tryKey] = &taskCandidate{
+	candidates[tryKey] = &TaskCandidate{
 		TaskKey: tryKey,
 		TaskSpec: &specs.TaskSpec{
 			Dependencies: []string{tcc_testutils.BuildTaskName},
@@ -714,7 +714,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	now := time.Unix(0, 1470674884000000)
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 
-	checkDiagTryForced := func(c *taskCandidate, diag *taskCandidateScoringDiagnostics) {
+	checkDiagTryForced := func(c *TaskCandidate, diag *taskCandidateScoringDiagnostics) {
 		require.Equal(t, c.Jobs[0].Priority, diag.Priority)
 		require.Equal(t, now.Sub(c.Jobs[0].Created).Hours(), diag.JobCreatedHours)
 		// The remaining fields should always be 0 for try/forced jobs.
@@ -739,7 +739,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 		Priority:  0.5,
 		RepoState: tryjobRs,
 	}
-	c := &taskCandidate{
+	c := &TaskCandidate{
 		Jobs: []*types.Job{tryjob},
 		TaskKey: types.TaskKey{
 			Name:      tcc_testutils.BuildTaskName,
@@ -754,7 +754,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	checkDiagTryForced(c, diag)
 
 	// Retries are scored lower.
-	c = &taskCandidate{
+	c = &TaskCandidate{
 		Attempt: 1,
 		Jobs:    []*types.Job{tryjob},
 		TaskKey: types.TaskKey{
@@ -776,7 +776,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 		RepoState: rs2,
 	}
 	// Manually forced candidates have a blamelist and a specific score.
-	c = &taskCandidate{
+	c = &TaskCandidate{
 		Jobs: []*types.Job{forcedJob},
 		TaskKey: types.TaskKey{
 			Name:        tcc_testutils.BuildTaskName,
@@ -798,7 +798,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 		Priority:  0.5,
 		RepoState: rs2,
 	}
-	c = &taskCandidate{
+	c = &TaskCandidate{
 		Jobs: []*types.Job{regularJob},
 		TaskKey: types.TaskKey{
 			Name:      tcc_testutils.BuildTaskName,
@@ -821,7 +821,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	var err error
 	s.window, err = window.New(ctx, time.Nanosecond, 0, nil)
 	require.NoError(t, err)
-	c = &taskCandidate{
+	c = &TaskCandidate{
 		Jobs: []*types.Job{regularJob},
 		TaskKey: types.TaskKey{
 			Name:      tcc_testutils.BuildTaskName,
@@ -841,7 +841,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	now := time.Now()
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 
-	checkDiag := func(c *taskCandidate, diag *taskCandidateScoringDiagnostics) {
+	checkDiag := func(c *TaskCandidate, diag *taskCandidateScoringDiagnostics) {
 		// All candidates in this test have a single Job.
 		require.Equal(t, c.Jobs[0].Priority, diag.Priority)
 		require.Equal(t, now.Sub(c.Jobs[0].Created).Hours(), diag.JobCreatedHours)
@@ -864,14 +864,14 @@ func TestRegularJobRetryScoring(t *testing.T) {
 		RepoState: rs2,
 	}
 	// Candidates at rs1 and rs2
-	c1 := &taskCandidate{
+	c1 := &TaskCandidate{
 		Jobs: []*types.Job{j1},
 		TaskKey: types.TaskKey{
 			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs1,
 		},
 	}
-	c2 := &taskCandidate{
+	c2 := &TaskCandidate{
 		Jobs: []*types.Job{j2},
 		TaskKey: types.TaskKey{
 			Name:      tcc_testutils.BuildTaskName,
@@ -955,7 +955,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 	// Processing of individual candidates is already tested; just verify
 	// that if we pass in a bunch of candidates they all get processed.
 	// The JobSpecs do not specify priority, so they use the default of 0.5.
-	assertProcessed := func(c *taskCandidate) {
+	assertProcessed := func(c *TaskCandidate) {
 		if c.IsTryJob() {
 			require.True(t, c.Score > CANDIDATE_SCORE_TRY_JOB*0.5)
 			require.Nil(t, c.Commits)
@@ -1026,7 +1026,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 		RepoState: tryjobRs,
 	}
 
-	candidates := map[string]map[string][]*taskCandidate{
+	candidates := map[string]map[string][]*TaskCandidate{
 		rs1.Repo: {
 			tcc_testutils.BuildTaskName: {
 				{
@@ -1363,7 +1363,7 @@ func TestComputeBlamelist(t *testing.T) {
 		}
 
 		// Insert the task into the DB.
-		c := &taskCandidate{
+		c := &TaskCandidate{
 			TaskKey: types.TaskKey{
 				RepoState: types.RepoState{
 					Repo:     rs1.Repo,
@@ -1742,8 +1742,8 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.InDelta(t, 0.5*0.5, queue[1].Score, scoreDelta)
 }
 
-func makeTaskCandidate(name string, dims []string) *taskCandidate {
-	return &taskCandidate{
+func makeTaskCandidate(name string, dims []string) *TaskCandidate {
+	return &TaskCandidate{
 		Score: 1.0,
 		TaskKey: types.TaskKey{
 			Name: name,
@@ -1765,13 +1765,13 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	unittest.MediumTest(t)
 	ctx := context.Background()
 	// Empty lists.
-	rv := getCandidatesToSchedule(ctx, []*types.Machine{}, []*taskCandidate{})
+	rv := getCandidatesToSchedule(ctx, []*types.Machine{}, []*TaskCandidate{})
 	require.Equal(t, 0, len(rv))
 
 	// checkDiags takes a list of bots with the same dimensions and a list of
 	// ordered candidates that match those bots and checks the Diagnostics for
 	// candidates.
-	checkDiags := func(bots []*types.Machine, candidates []*taskCandidate) {
+	checkDiags := func(bots []*types.Machine, candidates []*TaskCandidate) {
 		var expectedBots []string
 		if len(bots) > 0 {
 			expectedBots = make([]string, len(bots), len(bots))
@@ -1803,50 +1803,50 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	}
 
 	t1 := makeTaskCandidate("task1", []string{"k:v"})
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{}, []*taskCandidate{t1})
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{}, []*TaskCandidate{t1})
 	require.Equal(t, 0, len(rv))
-	checkDiags([]*types.Machine{}, []*taskCandidate{t1})
+	checkDiags([]*types.Machine{}, []*TaskCandidate{t1})
 
 	b1 := makeSwarmingBot("bot1", []string{"k:v"})
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*taskCandidate{})
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*TaskCandidate{})
 	require.Equal(t, 0, len(rv))
 
 	// Single match.
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*taskCandidate{t1})
-	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
-	checkDiags([]*types.Machine{b1}, []*taskCandidate{t1})
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*TaskCandidate{t1})
+	assertdeep.Equal(t, []*TaskCandidate{t1}, rv)
+	checkDiags([]*types.Machine{b1}, []*TaskCandidate{t1})
 
 	// No match.
 	t1.TaskSpec.Dimensions[0] = "k:v2"
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*taskCandidate{t1})
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*TaskCandidate{t1})
 	require.Equal(t, 0, len(rv))
-	checkDiags([]*types.Machine{}, []*taskCandidate{t1})
+	checkDiags([]*types.Machine{}, []*TaskCandidate{t1})
 
 	// Add a task candidate to match b1.
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 := makeTaskCandidate("task2", []string{"k:v"})
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*taskCandidate{t1, t2})
-	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
-	checkDiags([]*types.Machine{}, []*taskCandidate{t1})
-	checkDiags([]*types.Machine{b1}, []*taskCandidate{t2})
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*TaskCandidate{t1, t2})
+	assertdeep.Equal(t, []*TaskCandidate{t2}, rv)
+	checkDiags([]*types.Machine{}, []*TaskCandidate{t1})
+	checkDiags([]*types.Machine{b1}, []*TaskCandidate{t2})
 
 	// Switch the task order.
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*taskCandidate{t2, t1})
-	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
-	checkDiags([]*types.Machine{}, []*taskCandidate{t1})
-	checkDiags([]*types.Machine{b1}, []*taskCandidate{t2})
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*TaskCandidate{t2, t1})
+	assertdeep.Equal(t, []*TaskCandidate{t2}, rv)
+	checkDiags([]*types.Machine{}, []*TaskCandidate{t1})
+	checkDiags([]*types.Machine{b1}, []*TaskCandidate{t2})
 
 	// Make both tasks match the bot, ensure that we pick the first one.
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*taskCandidate{t1, t2})
-	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
-	checkDiags([]*types.Machine{b1}, []*taskCandidate{t1, t2})
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*taskCandidate{t2, t1})
-	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
-	checkDiags([]*types.Machine{b1}, []*taskCandidate{t2, t1})
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*TaskCandidate{t1, t2})
+	assertdeep.Equal(t, []*TaskCandidate{t1}, rv)
+	checkDiags([]*types.Machine{b1}, []*TaskCandidate{t1, t2})
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*TaskCandidate{t2, t1})
+	assertdeep.Equal(t, []*TaskCandidate{t2}, rv)
+	checkDiags([]*types.Machine{b1}, []*TaskCandidate{t2, t1})
 
 	// Multiple dimensions. Ensure that different permutations of the bots
 	// and tasks lists give us the expected results.
@@ -1860,8 +1860,8 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	// is first in sorted order. The second task does not get scheduled
 	// because there is no bot available which can run it.
 	// TODO(borenet): Use a more optimal solution to avoid this case.
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1, b2}, []*taskCandidate{t1, t2})
-	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1, b2}, []*TaskCandidate{t1, t2})
+	assertdeep.Equal(t, []*TaskCandidate{t1}, rv)
 	// Can't use checkDiags for these cases.
 	require.Equal(t, []string{b1.ID, b2.ID}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 0, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
@@ -1876,8 +1876,8 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b2, b1}, []*taskCandidate{t1, t2})
-	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b2, b1}, []*TaskCandidate{t1, t2})
+	assertdeep.Equal(t, []*TaskCandidate{t1}, rv)
 	require.Equal(t, []string{b1.ID, b2.ID}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 0, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Nil(t, t1.Diagnostics.Scheduling.LastSimilarCandidate)
@@ -1893,8 +1893,8 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	// priority. Both tasks get scheduled.
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1, b2}, []*taskCandidate{t2, t1})
-	assertdeep.Equal(t, []*taskCandidate{t2, t1}, rv)
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1, b2}, []*TaskCandidate{t2, t1})
+	assertdeep.Equal(t, []*TaskCandidate{t2, t1}, rv)
 	require.Equal(t, []string{b1.ID, b2.ID}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 1, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Equal(t, &t2.TaskKey, t1.Diagnostics.Scheduling.LastSimilarCandidate)
@@ -1908,8 +1908,8 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b2, b1}, []*taskCandidate{t2, t1})
-	assertdeep.Equal(t, []*taskCandidate{t2, t1}, rv)
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b2, b1}, []*TaskCandidate{t2, t1})
+	assertdeep.Equal(t, []*TaskCandidate{t2, t1}, rv)
 	require.Equal(t, []string{b1.ID, b2.ID}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 1, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Equal(t, &t2.TaskKey, t1.Diagnostics.Scheduling.LastSimilarCandidate)
@@ -1927,17 +1927,17 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t1 = makeTaskCandidate("task1", dims)
 	t2 = makeTaskCandidate("task2", dims)
 	t3 := makeTaskCandidate("task3", dims)
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1, b2, b3}, []*taskCandidate{t1, t2})
-	assertdeep.Equal(t, []*taskCandidate{t1, t2}, rv)
-	checkDiags([]*types.Machine{b1, b2, b3}, []*taskCandidate{t1, t2})
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1, b2, b3}, []*TaskCandidate{t1, t2})
+	assertdeep.Equal(t, []*TaskCandidate{t1, t2}, rv)
+	checkDiags([]*types.Machine{b1, b2, b3}, []*TaskCandidate{t1, t2})
 
 	// More tasks than bots.
 	t1 = makeTaskCandidate("task1", dims)
 	t2 = makeTaskCandidate("task2", dims)
 	t3 = makeTaskCandidate("task3", dims)
-	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1, b2}, []*taskCandidate{t1, t2, t3})
-	assertdeep.Equal(t, []*taskCandidate{t1, t2}, rv)
-	checkDiags([]*types.Machine{b1, b2}, []*taskCandidate{t1, t2, t3})
+	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1, b2}, []*TaskCandidate{t1, t2, t3})
+	assertdeep.Equal(t, []*TaskCandidate{t1, t2}, rv)
+	checkDiags([]*types.Machine{b1, b2}, []*TaskCandidate{t1, t2, t3})
 }
 
 func makeBot(id string, dims map[string]string) *types.Machine {

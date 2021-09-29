@@ -16,19 +16,20 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"runtime/pprof"
+	"sort"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -61,6 +62,8 @@ var (
 	numCommits     = flag.Int("num_commits", 200, "Number of commits.")
 	maxRounds      = flag.Int("max_cycles", 0, "Stop after this many scheduling cycles.")
 	recipesCfgFile = flag.String("recipes_cfg_file", "", "Path to the recipes.cfg file. If not provided, attempt to find it automatically.")
+	saveQueue      = flag.String("save_queue", "", "If set, dump the task candidate queue for every round of scheduling into this file.")
+	checkQueue     = flag.String("check_queue", "", "If set, compare the task candidate queue at every round of scheduling to that contained in this file.")
 )
 
 func assertNoError(err error) {
@@ -72,12 +75,6 @@ func assertNoError(err error) {
 func assertEqual(a, b interface{}) {
 	if a != b {
 		sklog.Fatalf("Expected %v but got %v", a, b)
-	}
-}
-
-func assertDeepEqual(a, b interface{}) {
-	if !reflect.DeepEqual(a, b) {
-		sklog.Fatalf("Objects do not match: \na:\n%s\n\nb:\n%s\n", spew.Sprint(a), spew.Sprint(b))
 	}
 }
 
@@ -150,32 +147,6 @@ func waitForNewJobs(ctx context.Context, repos repograph.Map, jc *job_creation.J
 			break
 		}
 	}
-}
-
-// jobSlice implements sort.Interface to sort Jobs by name.
-type jobSlice []*types.Job
-
-func (s jobSlice) Len() int { return len(s) }
-
-func (s jobSlice) Less(i, j int) bool {
-	return s[i].Name < s[j].Name
-}
-
-func (s jobSlice) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-
-// taskSummarySlice implements sort.Interface to sort TaskSummary by name.
-type taskSummarySlice []*types.TaskSummary
-
-func (s taskSummarySlice) Len() int { return len(s) }
-
-func (s taskSummarySlice) Less(i, j int) bool {
-	return s[i].Attempt < s[j].Attempt
-}
-
-func (s taskSummarySlice) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
 }
 
 func main() {
@@ -329,7 +300,8 @@ func main() {
 
 	commits, err := repo.Get(head).AllCommits()
 	assertNoError(err)
-	assertDeepEqual([]string{head}, commits)
+	assertEqual(1, len(commits))
+	assertEqual(head, commits[0])
 
 	ts, err := auth.NewDefaultTokenSource(true, datastore.ScopeDatastore)
 	fsInstance := uuid.New().String()
@@ -377,9 +349,11 @@ func main() {
 	// Wait for job-creator to process the jobs from the repo.
 	waitForNewJobs(ctx, repos, jc, jCache, *tasksPerCommit)
 
-	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {
+	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) []*types.Task {
 		swarmingClient.MockBots(bots)
 		assertNoError(s.MainLoop(ctx))
+		time.Sleep(5 * time.Second) // Wait for tasks to appear in the cache.  TODO: no!
+		ctx.SetTime(now.Now(ctx).Add(10 * time.Second))
 		assertNoError(w.Update(ctx))
 		assertNoError(tCache.Update(ctx))
 		tasks, err := tCache.GetTasksForCommits(repoDir, commits)
@@ -404,10 +378,11 @@ func main() {
 		assertNoError(d.PutTasks(ctx, insert))
 		assertNoError(tCache.Update(ctx))
 		assertNoError(jCache.Update(ctx))
+		return insert
 	}
 
 	assertNoError(jCache.Update(ctx))
-	allJobs, err := jCache.GetJobsFromDateRange(time.Time{}, time.Now())
+	allJobs, err := jCache.GetJobsFromDateRange(time.Time{}, now.Now(ctx).Add(24*time.Hour))
 	assertNoError(err)
 	sklog.Infof("Found %d total jobs", len(allJobs))
 	assertEqual(*tasksPerCommit, len(allJobs))
@@ -430,13 +405,28 @@ func main() {
 	sklog.Infof("Done consuming initial set of jobs.")
 
 	// Add more commits to the repo.
+	ctx.SetTime(now.Now(ctx).Add(10 * time.Second))
 	makeCommits(ctx, repoDir, *numCommits)
 	waitForNewJobs(ctx, repos, jc, jCache, (*numCommits)*(*tasksPerCommit))
 	commits, err = repo.RevList(head, git.MainBranch)
 	assertNoError(err)
 
+	// If checking the queue against a previous run, load the data now.
+	type schedulingRoundInfo struct {
+		Queue []*scheduling.TaskCandidate
+		Tasks map[string]map[string]*types.Task
+	}
+	var checkSchedulingData []*schedulingRoundInfo
+	if *checkQueue != "" {
+		assertNoError(util.WithReadFile(*checkQueue, func(f io.Reader) error {
+			return json.NewDecoder(f).Decode(&checkSchedulingData)
+		}))
+	}
+
 	// Actually run the test.
 	sklog.Infof("Starting test...")
+	var queues [][]*scheduling.TaskCandidate
+	var taskLists [][]*types.Task
 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
 		assertNoError(err)
@@ -446,11 +436,98 @@ func main() {
 	schedulingRounds := 1
 	started := time.Now()
 	for ; *maxRounds > 0 && schedulingRounds <= *maxRounds; schedulingRounds++ {
-		runTasks(bots)
+		tasks := runTasks(bots)
+		if *saveQueue != "" || *checkQueue != "" {
+			queues = append(queues, s.CloneQueue())
+			taskLists = append(taskLists, tasks)
+		}
 		if s.QueueLen() == 0 {
 			break
 		}
 	}
 	elapsed := time.Now().Sub(started)
+
+	// Sanitize the scheduling data so that we can serialize it and compare it
+	// later.
+	if *saveQueue != "" || *checkQueue != "" {
+		schedulingData := make([]*schedulingRoundInfo, 0, len(queues))
+		for idx, queue := range queues {
+			tasksByCommit := taskLists[idx]
+			for _, candidate := range queue {
+				for _, job := range candidate.Jobs {
+					job.Id = "fake-job-id"
+					job.Repo = "fake-repo.git"
+					for _, deps := range job.Dependencies {
+						sort.Strings(deps)
+					}
+					for _, taskSummaries := range job.Tasks {
+						sort.Slice(taskSummaries, func(i, j int) bool {
+							return taskSummaries[i].Attempt < taskSummaries[j].Attempt
+						})
+						for _, ts := range taskSummaries {
+							ts.Id = "fake-task-summary-id"
+							ts.SwarmingTaskId = "fake-swarming-task"
+						}
+					}
+				}
+				sort.Slice(candidate.Jobs, func(i, j int) bool {
+					return candidate.Jobs[i].Name < candidate.Jobs[j].Name
+				})
+				sort.Strings(candidate.Commits)
+				sort.Strings(candidate.CasDigests)
+				candidate.Repo = "fake-repo.git"
+				for idx := range candidate.ParentTaskIds {
+					candidate.ParentTaskIds[idx] = "fake-parent-id"
+				}
+				if candidate.StealingFromId != "" {
+					if strings.HasPrefix(candidate.StealingFromId, "taskCandidate") {
+						candidate.StealingFromId = "fake-candidate"
+					} else {
+						candidate.StealingFromId = "fake-task"
+					}
+				}
+			}
+			// Sanitize timestamps and randomly-generated IDs from the data.
+			tasks := make(map[string]map[string]*types.Task, len(commits))
+			for _, task := range tasksByCommit {
+				sort.Strings(task.Commits)
+				task.Id = "fake-task-id"
+				task.Repo = "fake-repo.git"
+				task.SwarmingTaskId = "fake"
+				for idx := range task.Jobs {
+					task.Jobs[idx] = "fake-job"
+				}
+				if _, ok := tasks[task.Revision]; !ok {
+					tasks[task.Revision] = map[string]*types.Task{}
+				}
+				tasks[task.Revision][task.Name] = task
+			}
+			info := &schedulingRoundInfo{
+				Queue: queue,
+				Tasks: tasks,
+			}
+			schedulingData = append(schedulingData, info)
+		}
+
+		// Save and/or compare the scheduling data, as requested.
+		if *saveQueue != "" {
+			assertNoError(util.WithWriteFile(*saveQueue, func(w io.Writer) error {
+				enc := json.NewEncoder(w)
+				enc.SetIndent("", "  ")
+				return enc.Encode(schedulingData)
+			}))
+		}
+		if *checkQueue != "" {
+			if len(checkSchedulingData) < len(schedulingData) {
+				sklog.Fatalf("Not enough scheduling rounds in %s; have %d but needed %d", *checkQueue, len(schedulingData))
+			}
+			for idx, info := range schedulingData {
+				diff := assertdeep.Diff(checkSchedulingData[idx], info)
+				if diff != "" {
+					sklog.Fatal(diff)
+				}
+			}
+		}
+	}
 	sklog.Infof("Finished %d scheduling cycles in %s.", schedulingRounds, elapsed)
 }

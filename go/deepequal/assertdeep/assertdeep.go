@@ -24,31 +24,77 @@ var superVerbose = false
 // practically the same. This concretely comes up often when deserialzing a time.Time, but applies
 // in a few other situations as well.
 func Equal(t sktest.TestingT, expected, actual interface{}) {
-	if !deepequal.DeepEqual(expected, actual) {
-		// The formatting is inspired by stretchr/testify's require.Equal() output.
-		extra := ""
-		if doDetailedDiff(expected, actual) {
-			e := spewConfig.Sdump(expected)
-			a := spewConfig.Sdump(actual)
+	diff := Diff(expected, actual)
+	if diff != "" {
+		require.FailNow(t, diff)
+	}
+}
 
-			diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-				A:        difflib.SplitLines(e),
-				B:        difflib.SplitLines(a),
-				FromFile: "Expected",
-				FromDate: "",
-				ToFile:   "Actual",
-				ToDate:   "",
-				Context:  2,
-			})
+// Copy is Equal but also checks that none of the direct fields
+// have a zero value and none of the direct fields point to the same object.
+// This catches regressions where a new field is added without adding that field
+// to the Copy method. Arguments must be structs. Does not check private fields.
+func Copy(t sktest.TestingT, a, b interface{}) {
+	Equal(t, a, b)
 
-			extra = "\n\nDiff:\n" + diff
+	// Check that all fields are non-zero.
+	va := reflect.ValueOf(a)
+	vb := reflect.ValueOf(b)
+	require.Equal(t, va.Type(), vb.Type(), "Arguments are different types.")
+	for va.Kind() == reflect.Ptr {
+		require.Equal(t, reflect.Ptr, vb.Kind(), "Arguments are different types (pointer vs. non-pointer)")
+		va = va.Elem()
+		vb = vb.Elem()
+	}
+	require.Equal(t, reflect.Struct, va.Kind(), "Not a struct or pointer to struct.")
+	require.Equal(t, reflect.Struct, vb.Kind(), "Arguments are different types (pointer vs. non-pointer)")
+	for i := 0; i < va.NumField(); i++ {
+		fa := va.Field(i)
+		z := reflect.Zero(fa.Type())
+		if !fa.CanInterface() || !z.CanInterface() {
+			sklog.Errorf("Cannot Interface() field %q; skipping", va.Type().Field(i).Name)
+			continue
 		}
-
-		if superVerbose {
-			require.FailNow(t, fmt.Sprintf("Objects do not match: \na:\n%s\n\nb:\n%s\n%s", spew.Sdump(expected), spew.Sdump(actual), extra))
-		} else {
-			require.FailNow(t, fmt.Sprintf("Objects do not match: \na:\n%#v\n\nb:\n%#v\n%s", expected, actual, extra))
+		if reflect.DeepEqual(fa.Interface(), z.Interface()) {
+			require.FailNow(t, fmt.Sprintf("Missing field %q (or set to zero value).", va.Type().Field(i).Name))
 		}
+		if fa.Kind() == reflect.Map || fa.Kind() == reflect.Ptr || fa.Kind() == reflect.Slice {
+			fb := vb.Field(i)
+			require.NotEqual(t, fa.Pointer(), fb.Pointer(), "Field %q not deep-copied.", va.Type().Field(i).Name)
+		}
+	}
+}
+
+// Diff determines whether the two values are DeepEqual.  If they are not
+// equal, it returns a string diff of the two, otherwise it returns the empty
+// string.
+func Diff(x, y interface{}) string {
+	if deepequal.DeepEqual(x, y) {
+		return ""
+	}
+	// The formatting is inspired by stretchr/testify's require.Equal() output.
+	extra := ""
+	if doDetailedDiff(x, y) {
+		e := spewConfig.Sdump(x)
+		a := spewConfig.Sdump(y)
+
+		diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+			A:        difflib.SplitLines(e),
+			B:        difflib.SplitLines(a),
+			FromFile: "Expected",
+			FromDate: "",
+			ToFile:   "Actual",
+			ToDate:   "",
+			Context:  2,
+		})
+
+		extra = "\n\nDiff:\n" + diff
+	}
+
+	if superVerbose {
+		return fmt.Sprintf("Objects do not match: \na:\n%s\n\nb:\n%s\n%s", spew.Sdump(x), spew.Sdump(y), extra)
+	} else {
+		return fmt.Sprintf("Objects do not match: \na:\n%#v\n\nb:\n%#v\n%s", x, y, extra)
 	}
 }
 
@@ -88,39 +134,4 @@ var spewConfig = spew.ConfigState{
 	DisablePointerAddresses: true,
 	DisableCapacities:       true,
 	SortKeys:                true,
-}
-
-// Copy is Equal but also checks that none of the direct fields
-// have a zero value and none of the direct fields point to the same object.
-// This catches regressions where a new field is added without adding that field
-// to the Copy method. Arguments must be structs. Does not check private fields.
-func Copy(t sktest.TestingT, a, b interface{}) {
-	Equal(t, a, b)
-
-	// Check that all fields are non-zero.
-	va := reflect.ValueOf(a)
-	vb := reflect.ValueOf(b)
-	require.Equal(t, va.Type(), vb.Type(), "Arguments are different types.")
-	for va.Kind() == reflect.Ptr {
-		require.Equal(t, reflect.Ptr, vb.Kind(), "Arguments are different types (pointer vs. non-pointer)")
-		va = va.Elem()
-		vb = vb.Elem()
-	}
-	require.Equal(t, reflect.Struct, va.Kind(), "Not a struct or pointer to struct.")
-	require.Equal(t, reflect.Struct, vb.Kind(), "Arguments are different types (pointer vs. non-pointer)")
-	for i := 0; i < va.NumField(); i++ {
-		fa := va.Field(i)
-		z := reflect.Zero(fa.Type())
-		if !fa.CanInterface() || !z.CanInterface() {
-			sklog.Errorf("Cannot Interface() field %q; skipping", va.Type().Field(i).Name)
-			continue
-		}
-		if reflect.DeepEqual(fa.Interface(), z.Interface()) {
-			require.FailNow(t, fmt.Sprintf("Missing field %q (or set to zero value).", va.Type().Field(i).Name))
-		}
-		if fa.Kind() == reflect.Map || fa.Kind() == reflect.Ptr || fa.Kind() == reflect.Slice {
-			fb := vb.Field(i)
-			require.NotEqual(t, fa.Pointer(), fb.Pointer(), "Field %q not deep-copied.", va.Type().Field(i).Name)
-		}
-	}
 }

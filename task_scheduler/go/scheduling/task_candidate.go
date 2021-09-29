@@ -15,8 +15,8 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-// taskCandidate is a struct used for determining which tasks to schedule.
-type taskCandidate struct {
+// TaskCandidate is a struct used for determining which tasks to schedule.
+type TaskCandidate struct {
 	Attempt int `json:"attempt"`
 	// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
 	// could be inherited from any matching Job. Therefore, this should be
@@ -38,10 +38,10 @@ type taskCandidate struct {
 
 // CopyNoDiagnostics returns a copy of the taskCandidate, omitting the
 // Diagnostics field.
-func (c *taskCandidate) CopyNoDiagnostics() *taskCandidate {
+func (c *TaskCandidate) CopyNoDiagnostics() *TaskCandidate {
 	jobs := make([]*types.Job, len(c.Jobs))
 	copy(jobs, c.Jobs)
-	return &taskCandidate{
+	return &TaskCandidate{
 		Attempt:            c.Attempt,
 		BuildbucketBuildId: c.BuildbucketBuildId,
 		Commits:            util.CopyStringSlice(c.Commits),
@@ -58,7 +58,7 @@ func (c *taskCandidate) CopyNoDiagnostics() *taskCandidate {
 }
 
 // MakeId generates a string ID for the taskCandidate.
-func (c *taskCandidate) MakeId() string {
+func (c *TaskCandidate) MakeId() string {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(&c.TaskKey); err != nil {
 		panic(fmt.Sprintf("Failed to GOB encode TaskKey: %s", err))
@@ -89,7 +89,7 @@ func parseId(id string) (types.TaskKey, error) {
 
 // findJob locates job in c.Jobs and returns its index and true if found or the
 // insertion index and false if not.
-func (c *taskCandidate) findJob(job *types.Job) (int, bool) {
+func (c *TaskCandidate) findJob(job *types.Job) (int, bool) {
 	idx := sort.Search(len(c.Jobs), func(i int) bool {
 		return !c.Jobs[i].Created.Before(job.Created)
 	})
@@ -109,13 +109,13 @@ func (c *taskCandidate) findJob(job *types.Job) (int, bool) {
 }
 
 // HasJob returns true if job is a member of c.Jobs.
-func (c *taskCandidate) HasJob(job *types.Job) bool {
+func (c *TaskCandidate) HasJob(job *types.Job) bool {
 	_, ok := c.findJob(job)
 	return ok
 }
 
 // AddJob adds job to c.Jobs, unless already present.
-func (c *taskCandidate) AddJob(job *types.Job) {
+func (c *TaskCandidate) AddJob(job *types.Job) {
 	idx, ok := c.findJob(job)
 	if !ok {
 		c.Jobs = append(c.Jobs, nil)
@@ -125,7 +125,7 @@ func (c *taskCandidate) AddJob(job *types.Job) {
 }
 
 // MakeTask instantiates a types.Task from the taskCandidate.
-func (c *taskCandidate) MakeTask() *types.Task {
+func (c *TaskCandidate) MakeTask() *types.Task {
 	commits := make([]string, len(c.Commits))
 	copy(commits, c.Commits)
 	jobs := make([]string, 0, len(c.Jobs))
@@ -160,7 +160,7 @@ func getPatchStorage(server string) string {
 }
 
 // replaceVars replaces variable names with their values in a given string.
-func replaceVars(c *taskCandidate, s, taskId string) string {
+func replaceVars(c *TaskCandidate, s, taskId string) string {
 	issueShort := ""
 	if len(c.Issue) < types.ISSUE_SHORT_LENGTH {
 		issueShort = c.Issue
@@ -198,7 +198,7 @@ func replaceVars(c *taskCandidate, s, taskId string) string {
 }
 
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
-func (c *taskCandidate) MakeTaskRequest(id, casInstance, pubSubTopic string) (*types.TaskRequest, error) {
+func (c *TaskCandidate) MakeTaskRequest(id, casInstance, pubSubTopic string) (*types.TaskRequest, error) {
 	var caches []*types.CacheRequest
 	if len(c.TaskSpec.Caches) > 0 {
 		caches = make([]*types.CacheRequest, 0, len(c.TaskSpec.Caches))
@@ -264,7 +264,7 @@ func (c *taskCandidate) MakeTaskRequest(id, casInstance, pubSubTopic string) (*t
 // allDepsMet determines whether all dependencies for the given task candidate
 // have been satisfied, and if so, returns a map of whose keys are task IDs and
 // values are their isolated outputs.
-func (c *taskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]string, error) {
+func (c *TaskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]string, error) {
 	rv := make(map[string]string, len(c.TaskSpec.Dependencies))
 	var missingDeps []string
 	for _, depName := range c.TaskSpec.Dependencies {
@@ -296,7 +296,7 @@ func (c *taskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]stri
 }
 
 // taskCandidateSlice is an alias used for sorting a slice of taskCandidates.
-type taskCandidateSlice []*taskCandidate
+type taskCandidateSlice []*TaskCandidate
 
 func (s taskCandidateSlice) Len() int { return len(s) }
 func (s taskCandidateSlice) Swap(i, j int) {
@@ -322,7 +322,7 @@ type taskCandidateDiagnostics struct {
 	Triggering *taskCandidateTriggeringDiagnostics `json:"triggering,omitempty"`
 }
 
-func (s *taskCandidate) GetDiagnostics() *taskCandidateDiagnostics {
+func (s *TaskCandidate) GetDiagnostics() *taskCandidateDiagnostics {
 	if s.Diagnostics == nil {
 		s.Diagnostics = &taskCandidateDiagnostics{}
 	}

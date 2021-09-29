@@ -104,7 +104,7 @@ type TaskScheduler struct {
 	pools        []string
 	pubsubCount  metrics2.Counter
 	pubsubTopic  string
-	queue        []*taskCandidate // protected by queueMtx.
+	queue        []*TaskCandidate // protected by queueMtx.
 	queueMtx     sync.RWMutex
 	repos        repograph.Map
 	skipTasks    *skip_tasks.DB
@@ -156,7 +156,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 		pools:                 pools,
 		pubsubCount:           metrics2.GetCounter("task_scheduler_pubsub_handler"),
 		pubsubTopic:           pubsubTopic,
-		queue:                 []*taskCandidate{},
+		queue:                 []*TaskCandidate{},
 		queueMtx:              sync.RWMutex{},
 		rbeCas:                rbeCas,
 		rbeCasInstance:        rbeCasInstance,
@@ -265,7 +265,7 @@ func (s *TaskScheduler) putJobsInChunks(ctx context.Context, j []*types.Job) err
 // TaskScheduler.
 type TaskSchedulerStatus struct {
 	LastScheduled time.Time        `json:"last_scheduled"`
-	TopCandidates []*taskCandidate `json:"top_candidates"`
+	TopCandidates []*TaskCandidate `json:"top_candidates"`
 }
 
 // Status returns the current status of the TaskScheduler.
@@ -291,10 +291,10 @@ type TaskCandidateSearchTerms struct {
 
 // SearchQueue returns all task candidates in the queue which match the given
 // TaskKey. Any blank fields are considered to be wildcards.
-func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*taskCandidate {
+func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*TaskCandidate {
 	s.queueMtx.RLock()
 	defer s.queueMtx.RUnlock()
-	rv := []*taskCandidate{}
+	rv := []*TaskCandidate{}
 	for _, c := range s.queue {
 		// TODO(borenet): I wish there was a better way to do this.
 		if q.ForcedJobId != "" && c.ForcedJobId != q.ForcedJobId {
@@ -473,17 +473,17 @@ type taskSchedulerMainLoopDiagnostics struct {
 	StartTime  time.Time        `json:"startTime"`
 	EndTime    time.Time        `json:"endTime"`
 	Error      string           `json:"error,omitEmpty"`
-	Candidates []*taskCandidate `json:"candidates"`
+	Candidates []*TaskCandidate `json:"candidates"`
 	FreeBots   []*types.Machine `json:"freeBots"`
 }
 
 // writeMainLoopDiagnosticsToGCS writes JSON containing allCandidates and
 // freeBots to GCS. If called in a goroutine, the arguments may not be modified.
-func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end time.Time, diagClient gcs.GCSClient, diagInstance string, allCandidates map[types.TaskKey]*taskCandidate, freeBots []*types.Machine, scheduleErr error) error {
+func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end time.Time, diagClient gcs.GCSClient, diagInstance string, allCandidates map[types.TaskKey]*TaskCandidate, freeBots []*types.Machine, scheduleErr error) error {
 	ctx, span := trace.StartSpan(ctx, "writeMainLoopDiagnosticsToGCS")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
-	candidateSlice := make([]*taskCandidate, 0, len(allCandidates))
+	candidateSlice := make([]*TaskCandidate, 0, len(allCandidates))
 	for _, c := range allCandidates {
 		candidateSlice = append(candidateSlice, c)
 	}
@@ -510,13 +510,13 @@ func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end tim
 
 // findTaskCandidatesForJobs returns the set of all taskCandidates needed by all
 // currently-unfinished jobs.
-func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishedJobs []*types.Job) (map[types.TaskKey]*taskCandidate, error) {
+func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishedJobs []*types.Job) (map[types.TaskKey]*TaskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "findTaskCandidatesForJobs")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	// Get the repo+commit+taskspecs for each job.
-	candidates := map[types.TaskKey]*taskCandidate{}
+	candidates := map[types.TaskKey]*TaskCandidate{}
 	for _, j := range unfinishedJobs {
 		if !s.window.TestTime(j.Repo, j.Created) {
 			continue
@@ -553,7 +553,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 					sklog.Errorf("Task %s at %+v depends on non-existent CasSpec %q; wanted by job %s", tsName, j.RepoState, spec.CasSpec, j.Id)
 					continue
 				}
-				c = &taskCandidate{
+				c = &TaskCandidate{
 					// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
 					// could be inherited from any matching Job. Therefore, this should be
 					// used for non-critical, informational purposes only.
@@ -574,12 +574,12 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 
 // filterTaskCandidates reduces the set of taskCandidates to the ones we might
 // actually want to run and organizes them by repo and TaskSpec name.
-func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandidates map[types.TaskKey]*taskCandidate) (map[string]map[string][]*taskCandidate, error) {
+func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandidates map[types.TaskKey]*TaskCandidate) (map[string]map[string][]*TaskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "filterTaskCandidates")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
-	candidatesBySpec := map[string]map[string][]*taskCandidate{}
+	candidatesBySpec := map[string]map[string][]*TaskCandidate{}
 	total := 0
 	skipped := map[string]int{}
 	for _, c := range preFilterCandidates {
@@ -668,7 +668,7 @@ func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandi
 
 		candidates, ok := candidatesBySpec[c.Repo]
 		if !ok {
-			candidates = map[string][]*taskCandidate{}
+			candidates = map[string][]*TaskCandidate{}
 			candidatesBySpec[c.Repo] = candidates
 		}
 		candidates[c.Name] = append(candidates[c.Name], c)
@@ -684,7 +684,7 @@ func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandi
 
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
-func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit, diag *taskCandidateScoringDiagnostics) error {
+func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *TaskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit, diag *taskCandidateScoringDiagnostics) error {
 	ctx, span := trace.StartSpan(ctx, "processTaskCandidate")
 	defer span.End()
 	if len(c.Jobs) == 0 {
@@ -788,27 +788,27 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 }
 
 // Process the task candidates.
-func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates map[string]map[string][]*taskCandidate) ([]*taskCandidate, error) {
+func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates map[string]map[string][]*TaskCandidate) ([]*TaskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "processTaskCandidates")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	currentTime := now.Now(ctx)
-	processed := make(chan *taskCandidate)
+	processed := make(chan *TaskCandidate)
 	errs := make(chan error)
 	wg := sync.WaitGroup{}
 	for _, cs := range candidates {
 		for _, c := range cs {
 			wg.Add(1)
-			go func(candidates []*taskCandidate) {
+			go func(candidates []*TaskCandidate) {
 				defer wg.Done()
 				cache := newCacheWrapper(s.tCache)
 				commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 				for {
 					// Find the best candidate.
 					idx := -1
-					var orig *taskCandidate
-					var best *taskCandidate
+					var orig *TaskCandidate
+					var best *TaskCandidate
 					var bestDiag *taskCandidateScoringDiagnostics
 					for i, candidate := range candidates {
 						c := candidate.CopyNoDiagnostics()
@@ -862,7 +862,7 @@ func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates ma
 		close(processed)
 		close(errs)
 	}()
-	rvCandidates := []*taskCandidate{}
+	rvCandidates := []*TaskCandidate{}
 	rvErrs := []error{}
 	for {
 		select {
@@ -906,7 +906,7 @@ func flatten(dims map[string]string) map[string]string {
 }
 
 // recordCandidateMetrics generates metrics for candidates by dimension sets.
-func (s *TaskScheduler) recordCandidateMetrics(ctx context.Context, candidates map[string]map[string][]*taskCandidate) {
+func (s *TaskScheduler) recordCandidateMetrics(ctx context.Context, candidates map[string]map[string][]*TaskCandidate) {
 	ctx, span := trace.StartSpan(ctx, "recordCandidateMetrics")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
@@ -961,7 +961,7 @@ func (s *TaskScheduler) recordCandidateMetrics(ctx context.Context, candidates m
 // regenerateTaskQueue obtains the set of all eligible task candidates, scores
 // them, and prepares them to be triggered. The second return value contains
 // all candidates.
-func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context) ([]*taskCandidate, map[types.TaskKey]*taskCandidate, error) {
+func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context) ([]*TaskCandidate, map[types.TaskKey]*TaskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "regenerateTaskQueue")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
@@ -999,7 +999,7 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context) ([]*taskCandida
 // getCandidatesToSchedule matches the list of free Swarming bots to task
 // candidates in the queue and returns the candidates which should be run.
 // Assumes that the tasks are sorted in decreasing order by score.
-func getCandidatesToSchedule(ctx context.Context, bots []*types.Machine, tasks []*taskCandidate) []*taskCandidate {
+func getCandidatesToSchedule(ctx context.Context, bots []*types.Machine, tasks []*TaskCandidate) []*TaskCandidate {
 	ctx, span := trace.StartSpan(ctx, "getCandidatesToSchedule")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
@@ -1018,13 +1018,13 @@ func getCandidatesToSchedule(ctx context.Context, bots []*types.Machine, tasks [
 	// Map BotId to the candidates that could have used that bot. In the
 	// case that no bots are available for a candidate, map concatenated
 	// dimensions to candidates.
-	botToCandidates := map[string][]*taskCandidate{}
+	botToCandidates := map[string][]*TaskCandidate{}
 
 	// Match bots to tasks.
 	// TODO(borenet): Some tasks require a more specialized bot. We should
 	// match so that less-specialized tasks don't "steal" more-specialized
 	// bots which they don't actually need.
-	rv := make([]*taskCandidate, 0, len(bots))
+	rv := make([]*TaskCandidate, 0, len(bots))
 	countByTaskSpec := make(map[string]int, len(bots))
 	for _, c := range tasks {
 		diag := &taskCandidateSchedulingDiagnostics{}
@@ -1055,8 +1055,8 @@ func getCandidatesToSchedule(ctx context.Context, bots []*types.Machine, tasks [
 		}
 
 		// Set of candidates that could have used the same bots.
-		similarCandidates := map[*taskCandidate]struct{}{}
-		var lowestScoreSimilarCandidate *taskCandidate
+		similarCandidates := map[*TaskCandidate]struct{}{}
+		var lowestScoreSimilarCandidate *TaskCandidate
 		addCandidates := func(key string) {
 			candidates := botToCandidates[key]
 			for _, candidate := range candidates {
@@ -1114,12 +1114,12 @@ func getCandidatesToSchedule(ctx context.Context, bots []*types.Machine, tasks [
 // their CasInput set, and any error which occurred. Note that the successful
 // candidates AND an error may both be returned if some were successfully merged
 // but others failed.
-func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*taskCandidate) ([]*taskCandidate, error) {
+func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*TaskCandidate) ([]*TaskCandidate, error) {
 	ctx, span := trace.StartSpan(ctx, "mergeCASInputs")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
-	mergedCandidates := make([]*taskCandidate, 0, len(candidates))
+	mergedCandidates := make([]*TaskCandidate, 0, len(candidates))
 	var errs *multierror.Error
 	for _, c := range candidates {
 		digest, err := s.rbeCas.Merge(ctx, c.CasDigests)
@@ -1139,7 +1139,7 @@ func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*taskCa
 // triggerTasks triggers the given slice of tasks to run on Swarming and returns
 // a channel of the successfully-triggered tasks which is closed after all tasks
 // have been triggered or failed. Each failure is sent to errCh.
-func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*taskCandidate, errCh chan<- error) <-chan *types.Task {
+func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*TaskCandidate, errCh chan<- error) <-chan *types.Task {
 	ctx, span := trace.StartSpan(ctx, "triggerTasks")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
@@ -1147,7 +1147,7 @@ func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*taskCand
 	var wg sync.WaitGroup
 	for _, candidate := range candidates {
 		wg.Add(1)
-		go func(candidate *taskCandidate) {
+		go func(candidate *TaskCandidate) {
 			defer wg.Done()
 			t := candidate.MakeTask()
 			diag := &taskCandidateTriggeringDiagnostics{}
@@ -1205,7 +1205,7 @@ func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*taskCand
 
 // scheduleTasks queries for free Swarming bots and triggers tasks according
 // to relative priorities in the queue.
-func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine, queue []*taskCandidate) error {
+func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine, queue []*TaskCandidate) error {
 	ctx, span := trace.StartSpan(ctx, "scheduleTasks")
 	defer span.End()
 	defer metrics2.FuncTimer().Stop()
@@ -1285,7 +1285,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine
 			}
 
 			// Remove the tasks from the queue.
-			newQueue := make([]*taskCandidate, 0, len(queue)-numTriggered)
+			newQueue := make([]*TaskCandidate, 0, len(queue)-numTriggered)
 			for _, c := range queue {
 				if _, ok := remove[c.TaskKey]; !ok {
 					newQueue = append(newQueue, c)
@@ -1396,6 +1396,17 @@ func (s *TaskScheduler) QueueLen() int {
 	s.queueMtx.RLock()
 	defer s.queueMtx.RUnlock()
 	return len(s.queue)
+}
+
+// CloneQueue returns a full copy of the queue.
+func (s *TaskScheduler) CloneQueue() []*TaskCandidate {
+	s.queueMtx.RLock()
+	defer s.queueMtx.RUnlock()
+	rv := make([]*TaskCandidate, 0, len(s.queue))
+	for _, c := range s.queue {
+		rv = append(rv, c.CopyNoDiagnostics())
+	}
+	return rv
 }
 
 // timeDecay24Hr computes a linear time decay amount for the given duration,
