@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -25,11 +24,8 @@ import (
 // Verify that updateJobs sends heartbeats for unfinished try Jobs and
 // success/failure for finished Jobs.
 func TestUpdateJobs(t *testing.T) {
-	_, trybots, gb, mock, _, cleanup := setup(t)
+	ctx, trybots, gb, mock, _, cleanup := setup(t)
 	defer cleanup()
-
-	ts := time.Unix(1632920378, 0)
-	ctx := now.TimeTravelingContext(ts)
 
 	assertActiveTryJob := func(j *types.Job) {
 		active, err := trybots.getActiveTryJobs(ctx)

@@ -87,6 +87,9 @@ var (
 		Issue:    fmt.Sprintf("%d", gerritIssue),
 		Patchset: fmt.Sprintf("%d", gerritPatchset),
 	}
+
+	// Arbitrary start time to keep tests consistent.
+	ts = time.Unix(1632920378, 0)
 )
 
 // setup prepares the tests to run. Returns the created temporary dir,
@@ -94,7 +97,7 @@ var (
 func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, *mocks.BuildBucketInterface, func()) {
 	unittest.LargeTest(t)
 
-	ctx := context.Background()
+	ctx := now.TimeTravelingContext(ts)
 
 	// Set up the test Git repo.
 	gb := git_testutils.GitInit(t, ctx)

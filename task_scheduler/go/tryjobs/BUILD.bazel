@@ -54,7 +54,6 @@ go_test(
         "//go/gerrit",
         "//go/git",
         "//go/mockhttpclient",
-        "//go/now",
         "//go/testutils",
         "//task_scheduler/go/db",
         "//task_scheduler/go/types",
