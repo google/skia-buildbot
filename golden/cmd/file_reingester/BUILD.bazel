@@ -6,9 +6,12 @@ go_library(
     importpath = "go.skia.org/infra/golden/cmd/file_reingester",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/common",
         "//go/fileutil",
         "//go/gcs",
         "//go/sklog",
+        "//go/sklog/sklogimpl",
+        "//go/sklog/stdlogging",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@com_google_cloud_go_storage//:storage",
     ],
