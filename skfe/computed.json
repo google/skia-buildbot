@@ -899,32 +899,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "docsyserver-chromium",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "docsyserver-chromium",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "docsyserver-chromium",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "dotserver",
           "endpoints": [
             {
@@ -3313,23 +3287,6 @@
                           },
                           "route": {
                             "cluster": "demoserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "chromium-docs.skia.org",
-                      "name": "chromium-docs.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "docsyserver-chromium",
                             "timeout": {
                               "seconds": 600
                             }
