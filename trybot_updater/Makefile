@@ -1,3 +1,4 @@
+include ../make/bazel.mk
 include ../kube/kube.mk
 
 .PHONY: trybot_updater
@@ -6,8 +7,7 @@ trybot_updater:
 
 .PHONY: release
 release:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/...
-	./build_release
+	$(BAZEL) run //trybot_updater:push_trybot_updater_container
 
 .PHONY: push
 push: pushk release

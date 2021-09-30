@@ -25,7 +25,7 @@ import (
 const (
 	// The format of this file is that of a gerrit extension config (not a proto).
 	// The buildbucket extension parses the config like this:
-	// https://chromium.googlesource.com/infra/gerrit-plugins/buildbucket/+/refs/heads/master/src/main/java/com/googlesource/chromium/plugins/buildbucket/GetConfig.java
+	// https://chromium.googlesource.com/infra/gerrit-plugins/buildbucket/+/refs/heads/main/src/main/java/com/googlesource/chromium/plugins/buildbucket/GetConfig.java
 	bbCfgFileName = "buildbucket.config"
 	// Branch buildbucket.config lies in. Hopefully this will change one day, see b/38258213.
 	bbCfgBranch = "refs/meta/config"
@@ -44,7 +44,7 @@ const (
 var (
 	// Flags.
 	repoUrl           = flag.String("repo_url", common.REPO_SKIA, "Repo that needs buildbucket.config updated from it's tasks.json file.")
-	repoDefaultBranch = flag.String("branch", git.MasterBranch, "The default branch of the specified repo.")
+	repoDefaultBranch = flag.String("branch", git.MainBranch, "The default branch of the specified repo.")
 	bucketName        = flag.String("bucket_name", "luci.skia.skia.primary", "Name of the bucket to update in buildbucket.config.")
 	emptyBuckets      = common.NewMultiStringFlag("empty_bucket", nil, "Empty buckets to specify in buildbucket.config. Eg: luci.chromium.try. See skbug.com/9639 for why these buckets are empty.")
 	pollingPeriod     = flag.Duration("polling_period", 10*time.Minute, "How often to poll tasks.json.")

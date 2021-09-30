@@ -1,0 +1,21 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "trybot_updater_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//trybot_updater/go/trybot-updater:trybot-updater",
+                "0755",
+            ],
+        ],
+        "/etc/trybot-updater/": [
+            [
+                "//kube/clusters:config.json",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "",
+    repository = "skia-public/trybot-updater",
+)
