@@ -194,10 +194,10 @@ export class ShaderNode {
       // Now that we've set up this node, we build the rest of the tree of child nodes.
       this.children = [];
       this.currentChildShaders = [];
-      const allChildrenLoading = this.body.SKSLMetaData?.Children?.map<Promise<void>>(async (childShader) => {
-        this.currentChildShaders.push(childShader);
+      const allChildrenLoading = this.body.SKSLMetaData?.Children?.map<Promise<void>>(async (childShader, index) => {
+        this.currentChildShaders[index] = childShader;
         const childNode = await this.shaderNodeFromChildShader(childShader);
-        this.children.push(childNode);
+        this.children[index] = childNode;
       }) || [];
       await Promise.all(allChildrenLoading);
       this.compile();
