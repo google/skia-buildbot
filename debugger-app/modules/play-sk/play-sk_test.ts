@@ -1,12 +1,15 @@
 import './index';
 import { expect } from 'chai';
 import {
-  PlaySk, PlaySkMoveToEventDetail, PlaySkModeChangedManuallyEventDetail,
+  PlaySk,
 } from './play-sk';
 
 import {
   setUpElementUnderTest, eventPromise, noEventPromise,
 } from '../../../infra-sk/modules/test_util';
+import {
+  ModeChangedManuallyEvent, ModeChangedManuallyEventDetail, MoveToEvent, MoveToEventDetail,
+} from '../events';
 
 describe('play-sk', () => {
   const newInstance = setUpElementUnderTest<PlaySk>('play-sk');
@@ -27,10 +30,10 @@ describe('play-sk', () => {
 
   describe('Events', () => {
     it('Starts playing when play button clicked', async () => {
-      const promise1 = eventPromise<CustomEvent<PlaySkModeChangedManuallyEventDetail>>(
-        'mode-changed-manually', delay,
+      const promise1 = eventPromise<CustomEvent<ModeChangedManuallyEventDetail>>(
+        ModeChangedManuallyEvent, delay,
       );
-      const promise2 = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+      const promise2 = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       // rather than setting play.mode, click the play icon.
       (document.getElementById('play-button') as HTMLElement).click();
 
@@ -40,10 +43,10 @@ describe('play-sk', () => {
 
     it('No stack overflow when delay is 0', async () => {
       play.playbackDelay = 0;
-      const promise1 = eventPromise<CustomEvent<PlaySkModeChangedManuallyEventDetail>>(
-        'mode-changed-manually', delay,
+      const promise1 = eventPromise<CustomEvent<ModeChangedManuallyEventDetail>>(
+        ModeChangedManuallyEvent, delay,
       );
-      const promise2 = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+      const promise2 = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       // rather than setting play.mode, click the play icon.
       (document.getElementById('play-button') as HTMLElement).click();
 
@@ -52,12 +55,12 @@ describe('play-sk', () => {
     });
 
     it('emits moveto when playing', async () => {
-      let ep = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+      let ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       play.mode = 'play';
       expect((await ep).detail.item).to.equal(4);
       // Expect it doesn't happen again, because we haven't called movedTo yet.
-      await noEventPromise('moveto', delay);
-      ep = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+      await noEventPromise(MoveToEvent, delay);
+      ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       play.movedTo(4);
       // now expect it asks to play the next thing in 100 ms.
       expect((await ep).detail.item).to.equal(5);
@@ -65,32 +68,32 @@ describe('play-sk', () => {
 
     // State 1 being right after it emits moveto, but before the app calls movedTo
     it('Does not emit moveto after paused in state 1', async () => {
-      const ep = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+      const ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       play.mode = 'play';
       await ep;
       // now in state 1 indefinitely.
       play.mode = 'pause';
-      await noEventPromise('moveto', delay);
+      await noEventPromise(MoveToEvent, delay);
     });
 
     // State 2 being right after the app calls movedTo but it's sitting out it's internal
     // delay.
     it('Does not emit moveto after paused in state 2', async () => {
-      const ep = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+      const ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       play.mode = 'play';
       const item = (await ep).detail.item;
       play.movedTo(item);
       // now in state 2 for 100 ms.
       play.mode = 'pause';
-      await noEventPromise('moveto', delay);
+      await noEventPromise(MoveToEvent, delay);
     });
 
     it('Continues after skipping to an arbitrary position while playing in state 1',
       async () => {
-        let ep = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+        let ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
         play.mode = 'play';
         await ep;
-        ep = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+        ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
         play.movedTo(8);
         // expect it to emit moveto 9
         expect((await ep).detail.item).to.equal(9);
@@ -98,12 +101,12 @@ describe('play-sk', () => {
 
     it('Continues after skipping to an arbitrary position while playing in state 2',
       async () => {
-        let ep = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+        let ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
         play.mode = 'play';
         const item = (await ep).detail.item;
         play.movedTo(item);
         // now in state 2 for 100 ms
-        ep = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+        ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
         play.movedTo(8);
         // expect it to emit moveto 9
         expect((await ep).detail.item).to.equal(9);
@@ -113,9 +116,9 @@ describe('play-sk', () => {
       play.mode = 'pause';
       play.movedTo(8);
       // expect jumps don't start playback
-      await noEventPromise('moveto', delay);
+      await noEventPromise(MoveToEvent, delay);
       // expect it to emit moveto 9
-      const ep = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+      const ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       play.mode = 'play';
       expect((await ep).detail.item).to.equal(9);
     });

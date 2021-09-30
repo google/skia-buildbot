@@ -21,15 +21,11 @@ import { html } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 
 import {
-  CommandsSk, CommandsSkHistogramEventDetail, HistogramEntry,
-} from '../commands-sk/commands-sk';
-
-export interface HistogramSkToggleEventDetail {
-  // the name of a command to toggle in the filter
-  // Clicking rows of the histogram is an alternate way to add or remove command names
-  // from the command filter. The filter is managed by commands-sk
-  name: string,
-}
+  HistogramUpdateEventDetail, HistogramEntry,
+  HistogramUpdateEvent,
+  ToggleCommandInclusionEvent,
+  ToggleCommandInclusionEventDetail,
+} from '../events';
 
 export class HistogramSk extends ElementDocSk {
   private static template = (ele: HistogramSk) => html`
@@ -54,7 +50,7 @@ export class HistogramSk extends ElementDocSk {
   <td>${item.name}</td>
 </tr>`;
 
-  // counts of command occurances
+  // counts of command occurrences
   private _hist: HistogramEntry[] = [];
 
   // commands which the filter includes
@@ -72,12 +68,12 @@ export class HistogramSk extends ElementDocSk {
     super(HistogramSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
 
-    this.addDocumentEventListener('histogram-update', (e) => {
-      const detail = (e as CustomEvent<CommandsSkHistogramEventDetail>).detail;
+    this.addDocumentEventListener(HistogramUpdateEvent, (e) => {
+      const detail = (e as CustomEvent<HistogramUpdateEventDetail>).detail;
       // event may update one or both items
       if (detail.hist) {
         this._hist = detail.hist;
@@ -102,8 +98,8 @@ export class HistogramSk extends ElementDocSk {
 
     // but make sure to tell the module that actually owns this model
     this.dispatchEvent(
-      new CustomEvent<HistogramSkToggleEventDetail>(
-        'toggle-command-inclusion', {
+      new CustomEvent<ToggleCommandInclusionEventDetail>(
+        ToggleCommandInclusionEvent, {
           detail: { name: lowerName },
           bubbles: true,
         },

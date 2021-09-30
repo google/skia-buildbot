@@ -5,14 +5,19 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
-import { LayerInfo, CommandsSkJumpEventDetail } from '../commands-sk/commands-sk';
-import { DefaultMap } from '../default-map';
+import { LayerInfo } from '../commands-sk/commands-sk';
 
 // Types for the wasm bindings
 import { LayerSummary } from '../debugger';
 
 import '../cycler-button-sk';
-import { CyclerButtonNextItemEventDetail } from '../cycler-button-sk/cycler-button-sk';
+import {
+  InspectLayerEventDetail,
+  InspectLayerEvent,
+  JumpCommandEvent,
+  JumpCommandEventDetail,
+  JumpInspectLayerEvent, NextItemEventDetail,
+} from '../events';
 
 export interface LayerDescription {
   nodeId: number,
@@ -24,14 +29,6 @@ export interface LayerDescription {
   // A list of indices of drawImageRectLayer commands that reference this layer
   usesThisFrame: number[],
   updatedThisFrame: boolean,
-}
-
-// An event to trigger the inspector for a given layer update.
-// A layer update is fully specified by the node id and a frame on which an
-// update to it occurred.
-export interface AndroidLayersSkInspectLayerEventDetail {
-  id: number;
-  frame: number;
 }
 
 export class AndroidLayersSk extends ElementDocSk {
@@ -76,13 +73,13 @@ export class AndroidLayersSk extends ElementDocSk {
     super(AndroidLayersSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
 
     // An event from the image resource viewer, requesting the layer inspector to be opened.
-    this.addDocumentEventListener('jump-inspect-layer', (e) => {
-      const detail = (e as CustomEvent<AndroidLayersSkInspectLayerEventDetail>).detail;
+    this.addDocumentEventListener(JumpInspectLayerEvent, (e) => {
+      const detail = (e as CustomEvent<InspectLayerEventDetail>).detail;
       this._inspectLayer(detail.id, detail.frame);
     });
   }
@@ -90,7 +87,7 @@ export class AndroidLayersSk extends ElementDocSk {
   // Given layer info (maps from ids to names and uses) collected in processCommands
   // and summaries from wasm, (info about which past frames contain info necessary to
   // redraw a layer's offscreen buffer), Create the array used to draw the template.
-  update(maps: LayerInfo, summaries: LayerSummary[], frame: number) {
+  update(maps: LayerInfo, summaries: LayerSummary[], frame: number): void {
     this._layerList = [];
     summaries.forEach((item: LayerSummary) => {
       const ld: LayerDescription = {
@@ -121,8 +118,8 @@ export class AndroidLayersSk extends ElementDocSk {
     // The current frame must be set to one which has an update for a layer before opening
     // the inspector for that layer. debugger-page-sk will move the frame if necessary.
     this.dispatchEvent(
-      new CustomEvent<AndroidLayersSkInspectLayerEventDetail>(
-        'inspect-layer', {
+      new CustomEvent<InspectLayerEventDetail>(
+        InspectLayerEvent, {
           detail: { id: this._inspectedLayer, frame: frame },
           bubbles: true,
         },
@@ -132,14 +129,14 @@ export class AndroidLayersSk extends ElementDocSk {
   }
 
   private _jumpCommand(e: Event) {
-    const index = (e as CustomEvent<CyclerButtonNextItemEventDetail>).detail.item;
+    const index = (e as CustomEvent<NextItemEventDetail>).detail.item;
     if (this._inspectedLayer !== -1) {
       // if we are inspecting a layer, we must exit in order to show it's use in the top level skp
       this._inspectLayer(this._inspectedLayer, this._frame);
     }
     this.dispatchEvent(
-      new CustomEvent<CommandsSkJumpEventDetail>(
-        'jump-command', {
+      new CustomEvent<JumpCommandEventDetail>(
+        JumpCommandEvent, {
           detail: { unfilteredIndex: index },
           bubbles: true,
         },

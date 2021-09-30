@@ -14,10 +14,7 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-
-export interface CyclerButtonNextItemEventDetail {
-  item: number;
-}
+import { NextItemEventDetail, NextItemEvent } from '../events';
 
 export class CyclerButtonSk extends ElementSk {
   private static template = (ele: CyclerButtonSk) => html`<button @click=${ele._click}>${ele.text}</button>`;
@@ -32,15 +29,15 @@ export class CyclerButtonSk extends ElementSk {
     super(CyclerButtonSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
 
   private _click() {
     this.dispatchEvent(
-      new CustomEvent<CyclerButtonNextItemEventDetail>(
-        'next-item', {
+      new CustomEvent<NextItemEventDetail>(
+        NextItemEvent, {
           detail: { item: this.list[this._index] },
           bubbles: true,
         },

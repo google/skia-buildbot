@@ -17,33 +17,38 @@
  *      Emitted every time the histogram is recomputed.
  *
  * @evt move-command-position: When the play-sk module or user selects a different
- * command, this event is emitted, and it's detail contains the command index in
+ * command, this event is emitted, and its detail contains the command index in
  * the unfiltered command list for this frame.
  *
  */
 import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
-import { PlaySk, PlaySkMoveToEventDetail } from '../play-sk/play-sk';
-import { HistogramSkToggleEventDetail } from '../histogram-sk/histogram-sk';
+import { PlaySk } from '../play-sk/play-sk';
 import { DefaultMap } from '../default-map';
 
 import 'elements-sk/icon/save-icon-sk';
 import 'elements-sk/icon/content-copy-icon-sk';
 import 'elements-sk/icon/image-icon-sk';
 
-import {
-  SkpJsonCommandList, SkpJsonCommand, SkpJsonAuditTrail, SkpJsonGpuOp,
-} from '../debugger';
+import { SkpJsonCommand, SkpJsonCommandList, SkpJsonGpuOp } from '../debugger';
 
 import '../play-sk';
-
-export interface CommandsSkMovePositionEventDetail {
-  // the index of a command in the frame to which the wasm view should move.
-  position: number,
-  // true if we're currently paused
-  paused: boolean,
-}
+import {
+  HistogramUpdateEventDetail,
+  HistogramEntry,
+  HistogramUpdateEvent,
+  JumpCommandEvent,
+  JumpCommandEventDetail,
+  MoveCommandPositionEvent,
+  MoveCommandPositionEventDetail,
+  MoveToEvent,
+  MoveToEventDetail,
+  SelectImageEvent,
+  SelectImageEventDetail,
+  ToggleCommandInclusionEvent,
+  ToggleCommandInclusionEventDetail,
+} from '../events';
 
 export type CommandRange = [number, number];
 
@@ -73,29 +78,6 @@ export interface Command {
   imageIndex?: number,
 }
 
-/** An entry of the command histogram
- *  obtained by totalling up occurances in the range filtered command list
- */
-export interface HistogramEntry {
-  // name of a command (original CamelCase)
-  name: string,
-  // number of occurances in the current frame (or the whole file for a single-frame SKP)
-  countInFrame: number,
-  // number of occurances in the current range filter
-  countInRange: number,
-}
-
-/** An event detail containing a new histogram
- * or new filter set to be displayed by the histogram-sk module.
- * The event may update one or both of the two fields.
- */
-export interface CommandsSkHistogramEventDetail {
-  /** A newly computed histogram that needs to be displayed by histogram-sk */
-  hist?: HistogramEntry[];
-  /** whether the command is include by the filter */
-  included?: Set<string>;
-}
-
 // Information about layers collected by processCommands.
 // TODO(nifong): This could be collected in the C++ and returned from
 // getLayerSummaries and then commands-sk wouldn't have to be involved
@@ -108,17 +90,6 @@ export interface LayerInfo {
   // This should be sufficient for it to always contain what we attempt to look up.
   // Only valid for the duration of this frame.
   names: Map<number, string>;
-}
-
-// Jumpting to a command by it's unfiltered index can be done by emitting
-// 'jump-command' with this event detail
-export interface CommandsSkJumpEventDetail {
-  unfilteredIndex: number;
-}
-
-// event issued when the user clicks 'Image' to jump to this image with this id.
-export interface CommandsSkSelectImageEventDetail {
-  id: number;
 }
 
 // Colors to use for gpu op ids
@@ -220,13 +191,13 @@ export class CommandsSk extends ElementDocSk {
 Command types can also be filted by clicking on their names in the histogram"
         >Filter</label>
       <input @change=${ele._textFilter} value="!DrawAnnotation"
-             id="text-filter"></input>&nbsp;
+             id="text-filter">&nbsp;
       <label>Range</label>
       <input @change=${ele._rangeInputHandler} class=range-input value="${ele._range[0]}"
-             id="rangelo"></input>
+             id="rangelo">
       <b>:</b>
       <input @change=${ele._rangeInputHandler} class=range-input value="${ele._range[1]}"
-             id="rangehi"></input>
+             id="rangehi">
       <button @click=${ele.clearFilter} id="clear-filter-button">Clear</button>
     </div>`;
 
@@ -242,7 +213,7 @@ Command types can also be filted by clicking on their names in the histogram"
   // range filter
   private _range: CommandRange = [0, 100];
 
-  // counts of command occurances
+  // counts of command occurrences
   private _histogram: HistogramEntry[] = [];
 
   // known command names (set by processCommands) names are lowercased.
@@ -262,12 +233,12 @@ Command types can also be filted by clicking on their names in the histogram"
   };
 
   // the command count with no filtering
-  get count() {
+  get count(): number {
     return this._cmd.length;
   }
 
   // the command count with all filters applied
-  get countFiltered() {
+  get countFiltered(): number {
     return this._filtered.length;
   }
 
@@ -283,8 +254,8 @@ Command types can also be filted by clicking on their names in the histogram"
     this._render();
     // notify debugger-page-sk that it needs to draw this.position
     this.dispatchEvent(
-      new CustomEvent<CommandsSkMovePositionEventDetail>(
-        'move-command-position', {
+      new CustomEvent<MoveCommandPositionEventDetail>(
+        MoveCommandPositionEvent, {
           detail: { position: this.position, paused: this._playSk!.mode === 'pause' },
           bubbles: true,
         },
@@ -318,24 +289,24 @@ Command types can also be filted by clicking on their names in the histogram"
     super(CommandsSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
 
     this._playSk = this.querySelector<PlaySk>('play-sk')!;
 
-    this._playSk.addEventListener('moveto', (e) => {
-      this.item = (e as CustomEvent<PlaySkMoveToEventDetail>).detail.item;
+    this._playSk.addEventListener(MoveToEvent, (e) => {
+      this.item = (e as CustomEvent<MoveToEventDetail>).detail.item;
     });
 
-    this.addDocumentEventListener('toggle-command-inclusion', (e) => {
-      this._toggleName((e as CustomEvent<HistogramSkToggleEventDetail>).detail.name);
+    this.addDocumentEventListener(ToggleCommandInclusionEvent, (e) => {
+      this._toggleName((e as CustomEvent<ToggleCommandInclusionEventDetail>).detail.name);
     });
 
-    // Jump to a command by it's unfiltered index.
-    this.addDocumentEventListener('jump-command', (e) => {
-      const i = (e as CustomEvent<CommandsSkJumpEventDetail>).detail.unfilteredIndex;
-      const filteredIndex = this._filtered.findIndex((e) => e == i);
+    // Jump to a command by its unfiltered index.
+    this.addDocumentEventListener(JumpCommandEvent, (e: Event) => {
+      const i = (e as CustomEvent<JumpCommandEventDetail>).detail.unfilteredIndex;
+      const filteredIndex = this._filtered.findIndex((n: number) => n === i);
       if (filteredIndex !== undefined) {
         this.item = filteredIndex;
       }
@@ -347,7 +318,7 @@ Command types can also be filted by clicking on their names in the histogram"
   //  * A histogram showing how many times each type of command is used.
   //  * A map from layer node ids to the index of any layer use events in the command list.
   //  * The full set of command names that occur
-  processCommands(cmd: SkpJsonCommandList) {
+  processCommands(cmd: SkpJsonCommandList): void {
     const commands: Command[] = [];
     let depth = 0;
     const prefixes: PrefixItem[] = []; // A stack of indenting commands
@@ -518,7 +489,7 @@ Command types can also be filted by clicking on their names in the histogram"
     };
     const strung = JSON.stringify(op.details, replacer, 2);
     // JSON.stringify adds some quotes around the magic word.
-    // including these in our delimeter removes them.
+    // including these in our delimiter removes them.
     const jsonparts = strung.split(`"${magic}"`);
     const result = [html`${jsonparts[0]}`];
     for (let i = 1; i < jsonparts.length; i++) {
@@ -529,8 +500,8 @@ Command types can also be filted by clicking on their names in the histogram"
   }
 
   private _jumpToImage(index: number) {
-    this.dispatchEvent(new CustomEvent<CommandsSkSelectImageEventDetail>(
-      'select-image', {
+    this.dispatchEvent(new CustomEvent<SelectImageEventDetail>(
+      SelectImageEvent, {
         detail: { id: index },
         bubbles: true,
       },
@@ -544,7 +515,7 @@ Command types can also be filted by clicking on their names in the histogram"
 
   // lit-html does not appear to support setting a tag's name with a ${} so here's
   // a crummy workaround
-  private _icon(item: PrefixItem) {
+  private _icon(item: PrefixItem): TemplateResult | null {
     if (item.icon === 'save-icon-sk') {
       return html`<save-icon-sk style="fill: ${item.color};"
         class=icon> </save-icon-sk>`;
@@ -555,10 +526,11 @@ Command types can also be filted by clicking on their names in the histogram"
       return html`<image-icon-sk style="fill: ${item.color};"
         class=icon> </image-icon-sk>`;
     }
+    return null;
   }
 
   // Any deterministic mapping between integers and colors will do
-  private _gpuOpColor(index: number) {
+  private _gpuOpColor(index: number): string {
     return COLORS[index % COLORS.length];
   }
 
@@ -567,9 +539,9 @@ Command types can also be filted by clicking on their names in the histogram"
     return { icon: p.icon, color: p.color, count: p.count };
   }
 
-  private _rangeInputHandler(e: Event) {
-    const lo = parseInt(this.querySelector<HTMLInputElement>('#rangelo')!.value);
-    const hi = parseInt(this.querySelector<HTMLInputElement>('#rangehi')!.value);
+  private _rangeInputHandler() {
+    const lo = parseInt(this.querySelector<HTMLInputElement>('#rangelo')!.value, 10);
+    const hi = parseInt(this.querySelector<HTMLInputElement>('#rangehi')!.value, 10);
     this.range = [lo, hi];
   }
 
@@ -577,7 +549,7 @@ Command types can also be filted by clicking on their names in the histogram"
   // a command filter, store it in this._includedSet
   private _textFilter() {
     let rawFilter = this.querySelector<HTMLInputElement>('#text-filter')!.value.trim().toLowerCase();
-    const negative = (rawFilter[0] == '!');
+    const negative = (rawFilter[0] === '!');
 
     // make sure to copy it so we don't alter this._available
     this._includedSet = new Set<string>(this._available);
@@ -602,8 +574,8 @@ Command types can also be filted by clicking on their names in the histogram"
             // not a command name, bail out, reset this, do a free text search
             this._includedSet = new Set<string>(this._available);
             // since we just altered this._includedSet we have to let histogram know.
-            this.dispatchEvent(new CustomEvent<CommandsSkHistogramEventDetail>(
-              'histogram-update', {
+            this.dispatchEvent(new CustomEvent<HistogramUpdateEventDetail>(
+              HistogramUpdateEvent, {
                 detail: { included: new Set<string>(this._includedSet) },
                 bubbles: true,
               },
@@ -617,8 +589,8 @@ Command types can also be filted by clicking on their names in the histogram"
         }
       }
     }
-    this.dispatchEvent(new CustomEvent<CommandsSkHistogramEventDetail>(
-      'histogram-update', {
+    this.dispatchEvent(new CustomEvent<HistogramUpdateEventDetail>(
+      HistogramUpdateEvent, {
         detail: { included: new Set<string>(this._includedSet) },
         bubbles: true,
       },
@@ -692,7 +664,7 @@ Command types can also be filted by clicking on their names in the histogram"
     // on the op name.
     // sort by rangeCount so entries don't move on enable/disable
     this._histogram.sort((a, b) => {
-      if (a.countInRange == b.countInRange) {
+      if (a.countInRange === b.countInRange) {
         if (a.name < b.name) {
           return -1;
         }
@@ -711,11 +683,11 @@ Command types can also be filted by clicking on their names in the histogram"
 
     // send this to the histogram element
     this.dispatchEvent(
-      new CustomEvent<CommandsSkHistogramEventDetail>(
-        'histogram-update', {
+      new CustomEvent<HistogramUpdateEventDetail>(
+        HistogramUpdateEvent, {
           detail: {
             hist: this._histogram,
-            // Make a copy so listener can't accidently write to it.
+            // Make a copy so listener can't accidentally write to it.
             included: new Set<string>(this._includedSet),
           },
           bubbles: true,

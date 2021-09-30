@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 /**
  * @module modules/zoom-sk
  * @description A module that shows a zoomed in view of the canvas
@@ -23,10 +24,12 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import {
-  DebuggerPageSkLightDarkEventDetail,
-  DebuggerPageSkCursorEventDetail,
+  CursorEventDetail,
+  ToggleBackgroundEventDetail,
   Point,
-} from '../debugger-page-sk/debugger-page-sk';
+  RenderCursorEvent,
+  ToggleBackgroundEvent, MoveCursorEvent, BackgroundStyle,
+} from '../events';
 
 function clamp(c: number): number {
   return Math.round(Math.max(0, Math.min(c || 0, 255)));
@@ -80,7 +83,7 @@ export class ZoomSk extends ElementDocSk {
 
   private _hex = '';
 
-  private _backdropStyle = 'light-checkerboard';
+  private _backdropStyle: BackgroundStyle = 'light-checkerboard';
 
   // must be an odd number of pixels
   // view is square, this is width and height
@@ -96,14 +99,14 @@ export class ZoomSk extends ElementDocSk {
     super(ZoomSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
 
     this._canvas = this.querySelector<HTMLCanvasElement>('canvas')!;
 
-    this.addDocumentEventListener('render-cursor', (e) => {
-      const detail = (e as CustomEvent<DebuggerPageSkCursorEventDetail>).detail;
+    this.addDocumentEventListener(RenderCursorEvent, (e) => {
+      const detail = (e as CustomEvent<CursorEventDetail>).detail;
       // these three steps cannot happen in any other order, hence the repeated condition.
       if (!detail.onlyData) {
         this._cursor = detail.position;
@@ -112,8 +115,8 @@ export class ZoomSk extends ElementDocSk {
       this._render(); // to update the textual readout of the cursor in the template
     });
 
-    this.addDocumentEventListener('light-dark', (e) => {
-      this._backdropStyle = (e as CustomEvent<DebuggerPageSkLightDarkEventDetail>).detail.mode;
+    this.addDocumentEventListener(ToggleBackgroundEvent, (e) => {
+      this._backdropStyle = (e as CustomEvent<ToggleBackgroundEventDetail>).detail.mode;
       this._render();
     });
   }
@@ -127,7 +130,7 @@ export class ZoomSk extends ElementDocSk {
   }
 
   /** Redraw the zoomed in canvas */
-  update() {
+  update(): void {
     const ctx = this._canvas!.getContext('2d')!;
 
     // Clears to transparent black. it's important that the checkerboard show through.
@@ -152,7 +155,7 @@ export class ZoomSk extends ElementDocSk {
       (clamp(c[0]) << 24)
       | (clamp(c[1]) << 16)
       | (clamp(c[2]) << 8)
-      | (clamp(c[3]) << 0) & 0xFFFFFFF) >>> 0).toString(16);
+      | ((clamp(c[3]) << 0) & 0xFFFFFFF)) >>> 0).toString(16);
   }
 
   // convert click in zoomed view to coordinates in source canvas
@@ -167,8 +170,8 @@ export class ZoomSk extends ElementDocSk {
     // Don't render yet, just send the event, headquarters will tell you when to render.
     // Emit zoom-point
     this.dispatchEvent(
-      new CustomEvent<DebuggerPageSkCursorEventDetail>(
-        'move-cursor', {
+      new CustomEvent<CursorEventDetail>(
+        MoveCursorEvent, {
           detail: { position: [cx, cy], onlyData: false },
           bubbles: true,
         },

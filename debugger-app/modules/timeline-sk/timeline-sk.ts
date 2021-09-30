@@ -5,13 +5,12 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { PlaySk, PlaySkMoveToEventDetail } from '../play-sk/play-sk';
+import { PlaySk } from '../play-sk/play-sk';
 
 import '../play-sk';
-
-export interface TimelineSkMoveFrameEventDetail {
-  frame: number,
-}
+import {
+  MoveToEventDetail, MoveFrameEventDetail, MoveFrameEvent, MoveToEvent,
+} from '../events';
 
 export class TimelineSk extends ElementSk {
   private static template = (ele: TimelineSk) => html`
@@ -20,10 +19,10 @@ export class TimelineSk extends ElementSk {
       <div class="outer">
         <div class="hallway">
           ${[...Array(ele._count).keys()].map((i) => html`
-            <div class="room ${ele._item == i
+            <div class="room ${ele._item === i
     ? 'selected'
     : 'not-selected'
-              }" @click=${() => { ele._roomClick(i); }}>${(i % ele._modulo) == 0
+              }" @click=${() => { ele._roomClick(i); }}>${(i % ele._modulo) === 0
                 ? html`<div class="rel-point">
                     <span class="label">${i}<span>
                   </div>`
@@ -52,8 +51,8 @@ export class TimelineSk extends ElementSk {
     // this could be fixed by deferring this event with window.setTimeout, but that would break
     // pretty much any other code that sets timeline.item, such as the inspect button.
     this.dispatchEvent(
-      new CustomEvent<TimelineSkMoveFrameEventDetail>(
-        'move-frame', {
+      new CustomEvent<MoveFrameEventDetail>(
+        MoveFrameEvent, {
           detail: { frame: this._item },
           bubbles: true,
         },
@@ -69,7 +68,7 @@ export class TimelineSk extends ElementSk {
     const strW = window.getComputedStyle(hallway, null).width;
     const width = parseFloat(strW.substring(0, strW.length - 2));
     const space = 70; // minimum pixels of space to give each label.
-    this._modulo = Math.ceil(space * this._count / width);
+    this._modulo = Math.ceil((space * this._count) / width);
     this._render();
   }
 
@@ -81,15 +80,15 @@ export class TimelineSk extends ElementSk {
     super(TimelineSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
 
     this._playSk = this.querySelector<PlaySk>('play-sk');
     this._playSk!.size = this._count;
 
-    this._playSk!.addEventListener('moveto', (e) => {
-      this.item = (e as CustomEvent<PlaySkMoveToEventDetail>).detail.item;
+    this._playSk!.addEventListener(MoveToEvent, (e: Event) => {
+      this.item = (e as CustomEvent<MoveToEventDetail>).detail.item;
     });
 
     this._render();

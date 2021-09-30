@@ -26,32 +26,32 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { errorMessage } from 'elements-sk/errorMessage';
-import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import 'elements-sk/tabs-sk';
 import 'elements-sk/tabs-panel-sk';
 import { TabsSk } from 'elements-sk/tabs-sk/tabs-sk';
-// Import the checkbox element used in in the template
 import 'elements-sk/checkbox-sk';
-// import the type of the chckbox element
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import { DebugViewSk } from '../debug-view-sk/debug-view-sk';
-import {
-  CommandsSk, PrefixItem, Command, CommandsSkMovePositionEventDetail, LayerInfo,
-  CommandsSkJumpEventDetail, CommandsSkSelectImageEventDetail,
-} from '../commands-sk/commands-sk';
-import { TimelineSk, TimelineSkMoveFrameEventDetail } from '../timeline-sk/timeline-sk';
-import { PlaySk, PlaySkModeChangedManuallyEventDetail } from '../play-sk/play-sk';
+import { CommandsSk } from '../commands-sk/commands-sk';
+import { TimelineSk } from '../timeline-sk/timeline-sk';
+import { PlaySk } from '../play-sk/play-sk';
 import { ZoomSk } from '../zoom-sk/zoom-sk';
 import 'elements-sk/error-toast-sk';
-import {
-  AndroidLayersSk, AndroidLayersSkInspectLayerEventDetail,
-} from '../android-layers-sk/android-layers-sk';
+import { AndroidLayersSk } from '../android-layers-sk/android-layers-sk';
 import { ResourcesSk } from '../resources-sk/resources-sk';
 
 // Types for the wasm bindings
 import {
-  Debugger, DebuggerInitOptions, SkpDebugPlayer, SkIRect, SkSurface, SkpJsonCommandList,
-  MatrixClipInfo, Matrix3x3, Matrix4x4,
+  Debugger,
+  DebuggerInitOptions,
+  Matrix3x3,
+  Matrix4x4,
+  MatrixClipInfo,
+  SkIRect,
+  SkpDebugPlayer,
+  SkpJsonCommandList,
+  SkSurface,
 } from '../debugger';
 
 // other modules from this application
@@ -62,8 +62,26 @@ import '../histogram-sk';
 import '../resources-sk';
 import '../timeline-sk';
 import '../zoom-sk';
+import {
+  InspectLayerEventDetail,
+  CursorEventDetail,
+  ToggleBackgroundEventDetail,
+  InspectLayerEvent,
+  JumpCommandEvent,
+  JumpCommandEventDetail,
+  ModeChangedManuallyEvent,
+  MoveCommandPositionEvent,
+  MoveCommandPositionEventDetail,
+  MoveCursorEvent,
+  MoveFrameEvent,
+  Point,
+  RenderCursorEvent,
+  SelectImageEvent,
+  SelectImageEventDetail,
+  ToggleBackgroundEvent, ModeChangedManuallyEventDetail, MoveFrameEventDetail,
+} from '../events';
 
-// Declarartions for variables defined in JS files included by main.html
+// Declarations for variables defined in JS files included by main.html
 declare function DebuggerInit(opts: DebuggerInitOptions): Promise<Debugger>;
 declare const SKIA_VERSION: string;
 
@@ -71,21 +89,6 @@ interface FileContext {
   player: SkpDebugPlayer;
   version: number;
   frameCount: number;
-}
-
-export interface DebuggerPageSkLightDarkEventDetail {
-  mode: string;
-}
-
-export type Point = [number, number];
-
-// This event detail is used for both move-cursor and render-cursor
-export interface DebuggerPageSkCursorEventDetail {
-  // the position of the cursor.
-  position: Point,
-  // If true, indicates only the data under the cursor has changed.
-  // since some consumers don't need to update in this case.
-  onlyData: boolean,
 }
 
 export class DebuggerPageSk extends ElementDocSk {
@@ -292,8 +295,8 @@ export class DebuggerPageSk extends ElementDocSk {
 
     this._zoom.source = this._debugViewSk.canvas;
 
-    this._commandsSk.addEventListener('move-command-position', (e) => {
-      const detail = (e as CustomEvent<CommandsSkMovePositionEventDetail>).detail;
+    this._commandsSk.addEventListener(MoveCommandPositionEvent, (e) => {
+      const detail = (e as CustomEvent<MoveCommandPositionEventDetail>).detail;
       this._targetItem = detail.position;
       this._updateDebuggerView();
       if (detail.paused) {
@@ -302,8 +305,8 @@ export class DebuggerPageSk extends ElementDocSk {
     });
 
     this._timelineSk.playsk.addEventListener(
-      'mode-changed-manually', (e) => {
-        const mode = (e as CustomEvent<PlaySkModeChangedManuallyEventDetail>).detail.mode;
+      ModeChangedManuallyEvent, (e) => {
+        const mode = (e as CustomEvent<ModeChangedManuallyEventDetail>).detail.mode;
         if (mode === 'pause') {
           this._setCommands();
         }
@@ -311,20 +314,20 @@ export class DebuggerPageSk extends ElementDocSk {
     );
 
     // this is the timeline, which owns the frame position, telling this element to update
-    this._timelineSk.addEventListener('move-frame', (e) => {
-      const frame = (e as CustomEvent<TimelineSkMoveFrameEventDetail>).detail.frame;
+    this._timelineSk.addEventListener(MoveFrameEvent, (e) => {
+      const frame = (e as CustomEvent<MoveFrameEventDetail>).detail.frame;
       this._moveFrameTo(frame);
     });
 
     // this is the command list telling us to show the resource viewer and select an image
-    this._commandsSk.addEventListener('select-image', (e) => {
+    this._commandsSk.addEventListener(SelectImageEvent, (e) => {
       this.querySelector<TabsSk>('tabs-sk')!.select(1);
-      const id = (e as CustomEvent<CommandsSkSelectImageEventDetail>).detail.id;
+      const id = (e as CustomEvent<SelectImageEventDetail>).detail.id;
       this._resourcesSk!.selectItem(id, true);
     });
 
-    this._androidLayersSk.addEventListener('inspect-layer', (e) => {
-      const detail = (e as CustomEvent<AndroidLayersSkInspectLayerEventDetail>).detail;
+    this._androidLayersSk.addEventListener(InspectLayerEvent, (e) => {
+      const detail = (e as CustomEvent<InspectLayerEventDetail>).detail;
       this._inspectLayer(detail.id, detail.frame);
       this.querySelector<TabsSk>('tabs-sk')!.select(0);
     });
@@ -332,14 +335,14 @@ export class DebuggerPageSk extends ElementDocSk {
     this.addDocumentEventListener('keydown', this._keyDownHandler.bind(this),
       true /* useCapture */);
 
-    this.addDocumentEventListener('move-cursor', (e) => {
-      const detail = (e as CustomEvent<DebuggerPageSkCursorEventDetail>).detail;
+    this.addDocumentEventListener(MoveCursorEvent, (e) => {
+      const detail = (e as CustomEvent<CursorEventDetail>).detail;
       // Update this module's cursor-dependent element(s)
       this._updateJumpButton(detail.position);
       // re-emit event as render-cursor
       this.dispatchEvent(
-        new CustomEvent<DebuggerPageSkCursorEventDetail>(
-          'render-cursor', {
+        new CustomEvent<CursorEventDetail>(
+          RenderCursorEvent, {
             detail: detail,
             bubbles: true,
           },
@@ -561,8 +564,8 @@ export class DebuggerPageSk extends ElementDocSk {
   private _jumpToCommand(i: number) {
     // listened to by commands-sk
     this.dispatchEvent(
-      new CustomEvent<CommandsSkJumpEventDetail>(
-        'jump-command', {
+      new CustomEvent<JumpCommandEventDetail>(
+        JumpCommandEvent, {
           detail: { unfilteredIndex: i },
           bubbles: true,
         },
@@ -572,7 +575,7 @@ export class DebuggerPageSk extends ElementDocSk {
 
   // Asks the wasm module to draw to the provided surface.
   // Up to the command index indidated by this._targetItem
-  _updateDebuggerView() {
+  _updateDebuggerView(): void {
     if (!this._fileContext) {
       return; // Return early if no file. commands-sk tests load data to that
       // modules but not a whole file.
@@ -586,8 +589,8 @@ export class DebuggerPageSk extends ElementDocSk {
       this._surface!.flush();
     }
     this.dispatchEvent(
-      new CustomEvent<DebuggerPageSkCursorEventDetail>(
-        'render-cursor', {
+      new CustomEvent<CursorEventDetail>(
+        RenderCursorEvent, {
           detail: { position: [0, 0], onlyData: true },
           bubbles: true,
         },
@@ -616,8 +619,8 @@ export class DebuggerPageSk extends ElementDocSk {
     // should be received by anything in the application that shows a checkerboard
     // background for transparency
     this.dispatchEvent(
-      new CustomEvent<DebuggerPageSkLightDarkEventDetail>(
-        'light-dark', {
+      new CustomEvent<ToggleBackgroundEventDetail>(
+        ToggleBackgroundEvent, {
           detail: { mode: this._darkBackgrounds ? 'dark-checkerboard' : 'light-checkerboard' },
           bubbles: true,
         },
@@ -662,8 +665,8 @@ export class DebuggerPageSk extends ElementDocSk {
   private _updateCursor(x: number, y: number) {
     this._updateJumpButton([x, y]);
     this.dispatchEvent(
-      new CustomEvent<DebuggerPageSkCursorEventDetail>(
-        'render-cursor', {
+      new CustomEvent<CursorEventDetail>(
+        RenderCursorEvent, {
           detail: { position: [x, y], onlyData: false },
           bubbles: true,
         },
@@ -675,7 +678,6 @@ export class DebuggerPageSk extends ElementDocSk {
     if (this.querySelector<HTMLInputElement>('#text-filter') === document.activeElement) {
       return; // don't interfere with the filter textbox.
     }
-    const flen = this._commandsSk!.countFiltered;
     const [x, y] = this._zoom!.point;
     // If adding a case here, document it in the user-visible keyboard shortcuts area.
     switch (e.keyCode) {

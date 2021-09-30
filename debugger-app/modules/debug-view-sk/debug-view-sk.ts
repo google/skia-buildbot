@@ -9,10 +9,12 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import {
-  DebuggerPageSkLightDarkEventDetail,
-  DebuggerPageSkCursorEventDetail,
+  CursorEventDetail,
+  ToggleBackgroundEventDetail, MoveCursorEvent,
   Point,
-} from '../debugger-page-sk/debugger-page-sk';
+  RenderCursorEvent,
+  ToggleBackgroundEvent,
+} from '../events';
 
 export type FitStyle = 'natural' | 'fit' | 'right' | 'bottom';
 
@@ -65,20 +67,20 @@ export class DebugViewSk extends ElementDocSk {
     super(DebugViewSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
 
-    this.addDocumentEventListener('render-cursor', (e) => {
-      const detail = (e as CustomEvent<DebuggerPageSkCursorEventDetail>).detail;
+    this.addDocumentEventListener(RenderCursorEvent, (e) => {
+      const detail = (e as CustomEvent<CursorEventDetail>).detail;
       if (!this._crossHairActive || detail.onlyData) {
         return;
       }
       this._drawCrossHairAt(detail.position);
     });
 
-    this.addDocumentEventListener('light-dark', (e) => {
-      this._backdropStyle = (e as CustomEvent<DebuggerPageSkLightDarkEventDetail>).detail.mode;
+    this.addDocumentEventListener(ToggleBackgroundEvent, (e) => {
+      this._backdropStyle = (e as CustomEvent<ToggleBackgroundEventDetail>).detail.mode;
       this._render();
     });
   }
@@ -120,15 +122,15 @@ export class DebugViewSk extends ElementDocSk {
     // The element changes size occasionally, compute visible size just before use.
     const size = this._visibleSize();
     return [
-      Math.round(e.offsetX / size[0] * this._width),
-      Math.round(e.offsetY / size[1] * this._height),
+      Math.round((e.offsetX / size[0]) * this._width),
+      Math.round((e.offsetY / size[1]) * this._height),
     ];
   }
 
   private _sendCursorMove(p: Point) {
     this.dispatchEvent(
-      new CustomEvent<DebuggerPageSkCursorEventDetail>(
-        'move-cursor', {
+      new CustomEvent<CursorEventDetail>(
+        MoveCursorEvent, {
           detail: { position: p, onlyData: false },
           bubbles: true,
         },

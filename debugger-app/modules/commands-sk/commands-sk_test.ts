@@ -1,20 +1,26 @@
 import './index';
 import { expect } from 'chai';
 import {
-  CommandsSk, CommandsSkMovePositionEventDetail,
-  CommandsSkSelectImageEventDetail,
+  CommandsSk,
+
 } from './commands-sk';
 
 import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
 import { SkpJsonCommandList } from '../debugger';
 import { testData } from './test-data';
+import {
+  MoveCommandPositionEventDetail,
+  SelectImageEventDetail,
+  MoveCommandPositionEvent,
+  SelectImageEvent,
+} from '../events';
 
 describe('commands-sk', () => {
   const newInstance = setUpElementUnderTest<CommandsSk>('commands-sk');
 
   let commandsSk: CommandsSk;
   beforeEach(() => {
-    commandsSk = newInstance((el: CommandsSk) => {});
+    commandsSk = newInstance();
   });
 
   it('can process a list of commands', () => {
@@ -240,8 +246,8 @@ describe('commands-sk', () => {
     expect(commandsSk.position).to.equal(9);
 
     // set up event promise
-    const ep = eventPromise<CustomEvent<CommandsSkMovePositionEventDetail>>(
-      'move-command-position', 200,
+    const ep = eventPromise<CustomEvent<MoveCommandPositionEventDetail>>(
+      MoveCommandPositionEvent, 200,
     );
 
     // click the play button
@@ -327,8 +333,8 @@ describe('commands-sk', () => {
     summary.click();
     summary.click();
     // Click the image button. confirm event generated
-    const ep = eventPromise<CustomEvent<CommandsSkSelectImageEventDetail>>(
-      'select-image', 200,
+    const ep = eventPromise<CustomEvent<SelectImageEventDetail>>(
+      SelectImageEvent, 200,
     );
       opDiv.querySelector<HTMLButtonElement>('button')!.click();
       expect((await ep).detail.id).to.equal(1000);
