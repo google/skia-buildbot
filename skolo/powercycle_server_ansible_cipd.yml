@@ -1,0 +1,5 @@
+package: skia/internal/powercycle_server_ansible
+description: Builds of powercycle_server_ansible for all os/arch combinations.
+install_mode: copy
+data:
+  - dir: build/

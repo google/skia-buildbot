@@ -1,0 +1,15 @@
+# Installs powercycle_server_ansible.
+#
+# To push a test/debug version of powercycle_server_ansible to a machine you can
+# provide a value for the powercycle_server_ansible_version_override via the
+# --extra-vars command line parameter.
+- hosts: jumphosts
+  user: chrome-bot
+  gather_facts: true
+  vars:
+    powercycle_server_ansible_version_override: ''
+
+  roles:
+    - role: install_powercycle_server
+      powercycle_server_ansible_version:
+        '{{ powercycle_server_ansible_version_override }}'

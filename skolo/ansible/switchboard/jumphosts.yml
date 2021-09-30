@@ -4,13 +4,16 @@
   gather_facts: yes
   vars:
     router_backup_ansible_version_override: ''
+    powercycle_server_ansible_version_override: ''
 
   roles:
     - copy_authorized_keys
     - copy_service_account_key
     - install_collectd
     - install_metadata_server
-    - install_powercycle_server
+    - role: install_powercycle_server
+      powercycle_server_ansible_version:
+        '{{ powercycle_server_ansible_version_override }}'
     - role: install_router_backup
       router_backup_ansible_version:
         '{{ router_backup_ansible_version_override }}'
