@@ -110,7 +110,6 @@ build-frontend-ci: npm-ci
 	cd new_element && $(MAKE) build-frontend-ci
 	cd particles && $(MAKE) build-frontend-ci
 	cd perf && $(MAKE) build-frontend-ci
-	cd power && $(MAKE) build-frontend-ci
 	cd pulld && $(MAKE) build-frontend-ci
 	cd push && $(MAKE) build-frontend-ci
 	cd scrap && $(MAKE) build-frontend-ci
