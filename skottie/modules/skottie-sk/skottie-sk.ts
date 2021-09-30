@@ -1019,7 +1019,7 @@ ${this.wasmCaption()}`;
     const frameInput = $$<HTMLInputElement>('#frameInput', this);
     if (frameInput) {
       const frame = +frameInput.value;
-      if (frame > 0 && frame < this.duration) {
+      if (frame >= 0) {
         let seek = 0;
         if (this.state.lottie?.fr) {
           seek = ((frame / this.state.lottie.fr) * 1000) / this.duration;
@@ -1044,6 +1044,8 @@ ${this.wasmCaption()}`;
   }
 
   private seek(t: number): void {
+    // catch case where t = 1
+    t = Math.min(t, 0.9999)
     this.elapsedTime = t * this.duration;
     this.live?.goToAndStop(t);
     this.lottiePlayer?.goToAndStop(t * this.duration);
