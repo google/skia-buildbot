@@ -534,6 +534,7 @@ ${this.wasmCaption()}`;
         this.lottiePlayer?.goToAndStop(progress);
         this.live?.goToAndStop(progress);
         this.updateScrubber();
+        this.updateFrameLabel();
       }
     };
 
@@ -998,6 +999,7 @@ ${this.wasmCaption()}`;
     const scrubber = (e.target as HTMLInputElement)!;
     const seek = (+scrubber.value / SCRUBBER_RANGE);
     this.seek(seek);
+    this.updateFrameLabel();
   }
 
   // This fires when the user releases the scrub slider.
@@ -1051,11 +1053,17 @@ ${this.wasmCaption()}`;
 
   private updateScrubber(): void {
     const scrubber = $$<HTMLInputElement>('#scrub', this);
-    const frameLabel = $$<HTMLInputElement>('#frameInput', this);
-    if (scrubber && frameLabel) {
+    if (scrubber) {
       // Scale from time to the arbitrary scrubber range.
       const progress = this.elapsedTime % this.duration;
       scrubber.value = String((SCRUBBER_RANGE * progress) / this.duration);
+    }
+  }
+
+  private updateFrameLabel(): void {
+    const frameLabel = $$<HTMLInputElement>('#frameInput', this);
+    if (frameLabel) {
+      const progress = this.elapsedTime % this.duration;
       if (this.state.lottie!.fr) {
         frameLabel.value = String(Math.round(progress * (this.state.lottie!.fr / 1000)));
       }
