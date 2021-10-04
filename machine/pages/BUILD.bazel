@@ -5,20 +5,6 @@ sk_page(
     assets_serving_path = "/dist",
     html_file = "index.html",
     nonce = "{% .Nonce %}",
-    sk_element_deps = ["//machine/modules/machine-server-sk"],
+    sk_element_deps = ["//machine/modules/machine-app-sk"],
     ts_entry_point = "index.ts",
-)
-
-sk_page(
-    name = "pods",
-    html_file = "pods.html",
-    sk_element_deps = ["//machine/modules/pods-page-sk"],
-    ts_entry_point = "pods.ts",
-)
-
-sk_page(
-    name = "meeting_points",
-    html_file = "meeting_points.html",
-    sk_element_deps = ["//machine/modules/meeting-points-page-sk"],
-    ts_entry_point = "meeting_points.ts",
 )

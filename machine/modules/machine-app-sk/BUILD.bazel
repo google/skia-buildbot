@@ -1,0 +1,53 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":machine-app-sk-demo",
+)
+
+sk_element(
+    name = "machine-app-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["machine-app-sk.scss"],
+    sk_element_deps = [
+        "//machine/modules/list-page-sk",
+        "//machine/modules/machine-server-sk",
+        "//machine/modules/meeting-points-page-sk",
+        "//machine/modules/pods-page-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "machine-app-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "machine-app-sk-demo",
+    html_file = "machine-app-sk-demo.html",
+    sk_element_deps = [":machine-app-sk"],
+    ts_deps = [
+        "@npm//fetch-mock",
+        "//machine/modules/machine-server-sk:demo_data_ts_lib",
+    ],
+    ts_entry_point = "machine-app-sk-demo.ts",
+)
+
+karma_test(
+    name = "machine-app-sk_test",
+    src = "machine-app-sk_test.ts",
+    deps = [
+        ":machine-app-sk",
+        "//machine/modules/json:index_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+)

@@ -10,8 +10,6 @@ sk_element(
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         "//machine/modules/auto-refresh-sk",
-        "//machine/modules/device-editor-sk",
-        "//machine/modules/note-editor-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -32,7 +30,6 @@ karma_test(
     src = "list-page-sk_test.ts",
     deps = [
         ":list-page-sk",
-        "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
         "@npm//common-sk",

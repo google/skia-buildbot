@@ -11,13 +11,8 @@ skia_app_container(
         ],
         "/usr/local/share/machineserver/dist": [
             [
-                "//machine/pages:production/{}.{}".format(base, extension),
+                "//machine/pages:production/index.{}".format(extension),
                 "0644",
-            ]
-            for base in [
-                "index",
-                "meeting_points",
-                "pods",
             ]
             for extension in [
                 "css",

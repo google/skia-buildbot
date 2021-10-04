@@ -11,7 +11,7 @@ import { ListPageSk } from '../list-page-sk';
 import { Pod } from '../json';
 
 export class PodsPageSk extends ListPageSk<Pod> {
-  _fetchPath = '/_/pods';
+  fetchPath = '/_/pods';
 
   tableHeaders() {
     return html`

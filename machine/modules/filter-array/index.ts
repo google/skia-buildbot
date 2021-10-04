@@ -1,22 +1,22 @@
 /**
- * FilterArray is a class for filtering an array of things based on matching a
- * filter string.
- *
- * Once your page is drawn, call connect() to hook me up to an input element
- * (where the user types the filtration string) and a callback which draws the
- * filtered list.
+ * FilterArray is a class for filtering a live array of rich objects based on
+ * a case-insensitive substring search.
  *
  * The array being monitored needs to be passed to updateArray() every time it
  * changes.
+ *
+ * Each time the substring being filtered for changes, call filterChanged(),
+ * and pass it in. This is typically done from an event listener on an input
+ * field.
+ *
+ * Initially, the FilterArray will represent an empty list. If updateArray() is
+ * called before filterChanged(), it will represent an unfiltered view of the
+ * list. Then, once filterChanged() is called, filtration will begin.
  *
  * The matchingValues() function is expected to be used in a lit-html template
  * and returns all the matches for the filter.
  */
 export class FilterArray<T> {
-  private inputElement: HTMLInputElement | null = null;
-
-  private newFilterValueCallback?: ()=> void;
-
   private filter: string = '';
 
   private elements: T[] = [];
@@ -25,36 +25,9 @@ export class FilterArray<T> {
   private jsonifiedElements: string[] = [];
 
   /**
-   * Initially, the element will represent an empty list. If updateArray() is
-   * called before the element is connect()ed, it will represent an unfiltered
-   * view of the list. Then, once connect()ed to a filtration UI, filtration
-   * will begin.
-   */
-  constructor() {
-  }
-
-  /**
-   * Hook me up to a page, once it's drawn.
-   *
-   * @param inputElement The text input that contains the text to filter the
-   *   array with.
-   * @param newFilterValueCallback - Callback that is triggered on every
-   *   inputElement input event. Typically redraws the filtered list.
-   */
-  connect(
-    inputElement: HTMLInputElement,
-    newFilterValueCallback?: ()=> void,
-  ) {
-    this.inputElement = inputElement;
-    this.newFilterValueCallback = newFilterValueCallback;
-    this.inputElement.addEventListener('input', () => this.filterChanged());
-    this.filter = this.inputElement.value.toLowerCase();
-  }
-
-  /**
    * Call this every time the array being filtered changes.
    *
-   * @param arr - The array to be filtered.
+   * @param arr - The array to be filtered
    */
   updateArray(arr: T[]): void {
     this.elements = arr;
@@ -82,8 +55,8 @@ export class FilterArray<T> {
     return ret;
   }
 
-  private filterChanged(): void {
-    this.filter = this.inputElement!.value.toLowerCase();
-    this.newFilterValueCallback?.();
+  /** Inform me that the string I'm filtering for has changed. */
+  filterChanged(value: string): void {
+    this.filter = value.toLowerCase();
   }
 }

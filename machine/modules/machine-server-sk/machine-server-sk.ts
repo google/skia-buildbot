@@ -15,7 +15,7 @@ import { $$ } from 'common-sk/modules/dom';
 import {
   Annotation, FrontendDescription, SetNoteRequest, SupplyChromeOSRequest,
 } from '../json';
-import { ListPageSk } from '../list-page-sk';
+import { ListPageSk, WaitCursor } from '../list-page-sk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import 'elements-sk/error-toast-sk/index';
 import 'elements-sk/icon/cached-icon-sk';
@@ -26,6 +26,8 @@ import 'elements-sk/icon/power-settings-new-icon-sk';
 import 'elements-sk/styles/buttons/index';
 import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
 import '../auto-refresh-sk';
+import '../device-editor-sk';
+import '../note-editor-sk';
 import { DEVICE_ALIASES } from '../../../modules/devices/devices';
 import {
   ClearDeviceEvent,
@@ -212,7 +214,7 @@ export class MachineServerSk extends ListPageSk<FrontendDescription> {
 
   private deviceEditor: DeviceEditorSk | null = null;
 
-  _fetchPath = '/_/machines';
+  fetchPath = '/_/machines';
 
   tableHeaders(): TemplateResult {
     return html`
@@ -263,6 +265,13 @@ export class MachineServerSk extends ListPageSk<FrontendDescription> {
     `;
   }
 
+  protected moreTemplate(): TemplateResult {
+    return html`
+      <note-editor-sk></note-editor-sk>
+      <device-editor-sk></device-editor-sk>
+    `;
+  }
+
   private editDeviceIcon = (machine: FrontendDescription): TemplateResult => (machine.RunningSwarmingTask
     ? html``
     : html`
@@ -294,7 +303,7 @@ export class MachineServerSk extends ListPageSk<FrontendDescription> {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_update/${id}`);
       this.removeAttribute('waiting');
-      await this.update(true);
+      await this.update(WaitCursor.SHOW);
     } catch (error) {
       this.onError(error);
     }
@@ -305,7 +314,7 @@ export class MachineServerSk extends ListPageSk<FrontendDescription> {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_mode/${id}`, { method: 'POST' });
       this.removeAttribute('waiting');
-      await this.update(true);
+      await this.update(WaitCursor.SHOW);
     } catch (error) {
       this.onError(error);
     }
@@ -329,7 +338,7 @@ export class MachineServerSk extends ListPageSk<FrontendDescription> {
       if (!resp.ok) {
         this.onError(resp.statusText);
       }
-      await this.update(true);
+      await this.update(WaitCursor.SHOW);
     } catch (error) {
       this.onError(error);
     } finally {
@@ -341,7 +350,7 @@ export class MachineServerSk extends ListPageSk<FrontendDescription> {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_powercycle/${id}`, { method: 'POST' });
-      await this.update(true);
+      await this.update(WaitCursor.SHOW);
     } catch (error) {
       this.onError(error);
     } finally {
@@ -355,7 +364,7 @@ export class MachineServerSk extends ListPageSk<FrontendDescription> {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/remove_device/${id}`, { method: 'POST' });
 
-      await this.update(true);
+      await this.update(WaitCursor.SHOW);
     } catch (error) {
       this.onError(error);
     } finally {
@@ -367,7 +376,7 @@ export class MachineServerSk extends ListPageSk<FrontendDescription> {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/delete_machine/${id}`, { method: 'POST' });
-      await this.update(true);
+      await this.update(WaitCursor.SHOW);
     } catch (error) {
       this.onError(error);
     } finally {
@@ -388,7 +397,7 @@ export class MachineServerSk extends ListPageSk<FrontendDescription> {
         method: 'POST',
         body: JSON.stringify(postBody),
       });
-      await this.update(true);
+      await this.update(WaitCursor.SHOW);
     } catch (error) {
       this.onError(error);
     } finally {

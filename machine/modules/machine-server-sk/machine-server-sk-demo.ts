@@ -8,4 +8,6 @@ Date.now = () => fakeNow;
 
 fetchMock.get('/_/machines', descriptions);
 
-document.body.appendChild(new MachineServerSk());
+const element = new MachineServerSk();
+document.body.appendChild(element);
+element.update();

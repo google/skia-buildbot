@@ -1,1 +1,1 @@
-import '../modules/machine-server-sk';
+import '../modules/machine-app-sk';

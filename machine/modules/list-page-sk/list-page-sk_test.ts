@@ -1,11 +1,8 @@
-import './index';
-
 import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import fetchMock from 'fetch-mock';
 import { html } from 'lit-html';
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { ListPageSk } from './list-page-sk';
 
 interface PigglyWiggly {
@@ -17,7 +14,7 @@ interface PigglyWiggly {
  * An arbitrary concretization of the abstract ListPageSk class for testing
  */
 class PigglyWigglyPageSk extends ListPageSk<PigglyWiggly> {
-  _fetchPath = '/_/pigglywigglies';
+  fetchPath = '/_/pigglywigglies';
 
   tableHeaders() {
     return html`
@@ -46,7 +43,7 @@ const newPigglyWigglyElement = async (): Promise<PigglyWigglyPageSk> => {
     },
   ]);
 
-  document.body.innerHTML = '<piggly-wiggly-page-sk></piggly-wiggly-page-sk>';
+  document.body.innerHTML = '<piggly-wiggly-table-sk></piggly-wiggly-table-sk>';
 
   // Wait for the fetch that initially populates the list:
   await fetchMock.flush(true);
@@ -59,19 +56,18 @@ describe('list-page-sk', () => {
     document.body.innerHTML = '';
   });
 
-  define('piggly-wiggly-page-sk', PigglyWigglyPageSk);
+  define('piggly-wiggly-table-sk', PigglyWigglyPageSk);
 
-  it('loads data by fetch on connectedCallback', async () => {
+  it('loads data by fetch on update()', async () => {
+    const element = await newPigglyWigglyElement();
+    await element.update();
     // Each row has an ID set to the Piggly property of the list item:
-    assert.isNotNull($$('td#pigglyA', await newPigglyWigglyElement()));
+    assert.isNotNull($$('td#pigglyA', element));
   });
 
   it('filters out elements that do not match', async () => {
     const e = await newPigglyWigglyElement();
-    const filterElement = $$<HTMLInputElement>('#filter-input', e)!;
-    filterElement.value = 'this string does not appear in any machine';
-    filterElement.dispatchEvent(new InputEvent('input'));
-
+    e.filterChanged('this string does not appear in any machine');
     assert.isNull($$('td#pigglyA', e));
   });
 });

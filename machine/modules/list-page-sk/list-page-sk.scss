@@ -7,34 +7,13 @@
 // .defaultListPageSkStyling is applied by default to any element that is a
 // subclass of list-page-sk. ListPageSk's constructor arranges this.
 .defaultListPageSkStyling {
-  --header-height: 40px;
-
-  header {
-    padding: 8px;
-    background: var(--surface-1dp);
-    display: flex;
-    width: calc(100% - 16px);
-    border-bottom: solid 1px var(--on-surface);
-    position: fixed;
-    top: 0;
-    z-index: 10;
-    justify-content: space-between;
-
-    #header-rhs {
-      display: flex;
-      align-items: center;
-    }
-  }
-
   table {
     border-collapse: collapse;
+    width: 100%;
   }
 
   thead {
     background: var(--surface-1dp);
-    position: sticky;
-    z-index: 1;
-    top: var(--header-height);
 
     // If we just put a bottom border on the thead, it scrolls away when you
     // scroll the table.
@@ -59,6 +38,7 @@
 
   th {
     padding: 4px;
+    text-align: left;
   }
 
   td {
@@ -73,10 +53,6 @@
 
   td.center {
     text-align: center;
-  }
-
-  main {
-    margin-top: var(--header-height);
   }
 
   a:visited,
@@ -96,8 +72,8 @@
     padding: 4px;
     text-transform: capitalize;
   }
-}
 
-.defaultListPageSkStyling[waiting] * {
-  cursor: wait;
+  &[waiting] * {
+    cursor: wait;
+  }
 }

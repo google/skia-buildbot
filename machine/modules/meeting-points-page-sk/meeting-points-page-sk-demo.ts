@@ -17,4 +17,7 @@ fetchMock.get('/_/meeting_points',
     MachineID: 'skia-e-linux-234',
     LastUpdated: '2002-03-04T05:06:07.890123Z',
   }]);
-document.body.appendChild(new MeetingPointsPageSk());
+
+const element = new MeetingPointsPageSk();
+document.body.appendChild(element);
+element.update();

@@ -11,7 +11,7 @@ import { ListPageSk } from '../list-page-sk';
 import { MeetingPoint } from '../json';
 
 export class MeetingPointsPageSk extends ListPageSk<MeetingPoint> {
-  _fetchPath = '/_/meeting_points';
+  fetchPath = '/_/meeting_points';
 
   tableHeaders() {
     return html`

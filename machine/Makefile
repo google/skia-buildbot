@@ -104,3 +104,10 @@ build_and_upload_test_machine_monitor: build_test_machine_monitor_for_all_archs
 release_test_machine_monitor: build_and_upload_test_machine_monitor
 	../bash/ansible-release.sh test_machine_monitor ${VERSION}
 
+.PHONY: build generate serve testjs release push push_bazel \
+    release_firestore_emulator start_firestore_emulator start_pubsub_emulator \
+    build-remote run-local-instance build \
+    build_test_machine_monitor_for_all_archs \
+    build_and_upload_test_machine_monitor \
+    build_test_machine_monitor_for_all_archs release_test_machine_monitor \
+    build_and_upload_test_machine_monitor

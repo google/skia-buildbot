@@ -1,0 +1,63 @@
+machine-app-sk {
+  --header-height: 101px;
+
+  header {
+    padding: 8px;
+    background: var(--surface-1dp);
+    display: flex;
+    width: calc(100% - 16px);
+    border-bottom: solid 1px var(--on-surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    justify-content: space-between;
+    align-items: baseline;
+
+    #header-rhs {
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  // Keep dotted "focus" borders of tabs from overlapping header:
+  main {
+    margin-top: 6px;
+
+    tabs-sk {
+      background: var(--surface-1dp);
+      display: block;
+      margin-top: -6px;
+      // Make full width opaque to block scrolling table content:
+      padding-top: 13px;
+      position: sticky;
+      top: 43px;
+      width: 100%;
+      z-index: 1;
+
+      // Don't let the margin of the buttons allow scrolling table content to
+      // show through:
+      button {
+        margin: -12px 0 0 0;
+      }
+    }
+
+    // Cuddle tables up to tabs:
+    tabs-panel-sk {
+      padding: 4px 0;
+    }
+
+    tabs-panel-sk > .defaultListPageSkStyling {
+      display: none;
+
+      thead {
+        position: sticky;
+        top: 84px;
+        z-index: 1;
+      }
+
+      &.selected {
+        display: block;
+      }
+    }
+  }
+}
