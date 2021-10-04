@@ -102,7 +102,7 @@ const performanceChart = (show: boolean) => {
     return '';
   }
   return html`
-<skottie-performance-sk></skottie-performance-sk>`;
+<skottie-performance-sk id=chart></skottie-performance-sk>`;
 };
 
 const redir = () => renderByDomain(
@@ -181,7 +181,9 @@ ${this.controls()}
   ${this.livePreview()}
 </section>
 
-${performanceChart(this.showPerformanceChart)}
+<div @click=${this.onChartClick}>
+  ${performanceChart(this.showPerformanceChart)}
+<div>
 ${this.jsonEditor()}
 ${this.gifExporter()}
 ${this.jsonTextEditor()}
@@ -1019,14 +1021,31 @@ ${this.wasmCaption()}`;
     const frameInput = $$<HTMLInputElement>('#frameInput', this);
     if (frameInput) {
       const frame = +frameInput.value;
-      if (frame >= 0) {
-        let seek = 0;
-        if (this.state.lottie?.fr) {
-          seek = ((frame / this.state.lottie.fr) * 1000) / this.duration;
-        }
-        this.seek(seek);
-        this.updateScrubber();
+      this.seekFrame(frame);
+    }
+  }
+
+  private onChartClick(e: Event): void {
+    const chart = $$<SkottiePerformanceSk>('#chart', this);
+    const frame: number = chart?.getClickedFrame(e)!;
+    if (frame !== -1) {
+      if (this.playing) {
+        this.playpause();
       }
+      const frameInput = $$<HTMLInputElement>('#frameInput', this);
+      if (frameInput) frameInput.value = String(frame);
+      this.seekFrame(frame);
+    }
+  }
+
+  private seekFrame(frame: number): void {
+    if (frame > 0 && frame < this.duration) {
+      let seek = 0;
+      if (this.state.lottie?.fr) {
+        seek = ((frame / this.state.lottie.fr) * 1000) / this.duration;
+      }
+      this.seek(seek);
+      this.updateScrubber;
     }
   }
 
@@ -1045,7 +1064,7 @@ ${this.wasmCaption()}`;
 
   private seek(t: number): void {
     // catch case where t = 1
-    t = Math.min(t, 0.9999)
+    t = Math.min(t, 0.9999);
     this.elapsedTime = t * this.duration;
     this.live?.goToAndStop(t);
     this.lottiePlayer?.goToAndStop(t * this.duration);

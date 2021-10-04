@@ -94,11 +94,22 @@ export class SkottiePerformanceSk extends ElementSk {
       },
       options: {
         maintainAspectRatio: false,
+        events: ['click', 'mousemove'],
       },
     });
   }
 
-  reset() {
+  getClickedFrame(e: Event): number {
+    const points = this.chart?.getElementsAtEventForMode(e, 'index', { intersect: false, axis: 'x' }, true);
+    let frame: number = -1;
+    if (points && points[0]) {
+      const point = points[0];
+      frame = point.index;
+    }
+    return frame;
+  }
+
+  reset(): void {
     this._createNewChart();
   }
 
