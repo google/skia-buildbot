@@ -1,16 +1,16 @@
 /**
- * @module modules/meeting-points-page-sk
- * @description <h2><code>meeting-points-page-sk</code></h2>
+ * @module modules/meeting-points-table-sk
+ * @description <h2><code>meeting-points-table-sk</code></h2>
  *
  * A readout of currently extant Meeting Points
  */
 import { html } from 'lit-html';
 
 import { define } from 'elements-sk/define';
-import { ListPageSk } from '../list-page-sk';
+import { LiveTableSk } from '../live-table-sk';
 import { MeetingPoint } from '../json';
 
-export class MeetingPointsPageSk extends ListPageSk<MeetingPoint> {
+export class MeetingPointsTableSk extends LiveTableSk<MeetingPoint> {
   fetchPath = '/_/meeting_points';
 
   tableHeaders() {
@@ -36,4 +36,4 @@ export class MeetingPointsPageSk extends ListPageSk<MeetingPoint> {
   }
 }
 
-define('meeting-points-page-sk', MeetingPointsPageSk);
+define('meeting-points-table-sk', MeetingPointsTableSk);

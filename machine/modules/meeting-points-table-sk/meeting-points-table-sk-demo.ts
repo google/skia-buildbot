@@ -1,6 +1,6 @@
 import fetchMock from 'fetch-mock';
 
-import { MeetingPointsPageSk } from './meeting-points-page-sk';
+import { MeetingPointsTableSk } from './meeting-points-table-sk';
 
 fetchMock.get('/_/meeting_points',
   [{
@@ -18,6 +18,6 @@ fetchMock.get('/_/meeting_points',
     LastUpdated: '2002-03-04T05:06:07.890123Z',
   }]);
 
-const element = new MeetingPointsPageSk();
+const element = new MeetingPointsTableSk();
 document.body.appendChild(element);
 element.update();

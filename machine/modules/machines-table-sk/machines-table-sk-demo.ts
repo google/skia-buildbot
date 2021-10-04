@@ -2,12 +2,12 @@ import './index';
 
 import fetchMock from 'fetch-mock';
 import { descriptions, fakeNow } from './demo_data';
-import { MachineServerSk } from './machine-server-sk';
+import { MachinesTableSk } from './machines-table-sk';
 
 Date.now = () => fakeNow;
 
 fetchMock.get('/_/machines', descriptions);
 
-const element = new MachineServerSk();
+const element = new MachinesTableSk();
 document.body.appendChild(element);
 element.update();

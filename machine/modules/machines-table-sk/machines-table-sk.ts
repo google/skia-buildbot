@@ -15,7 +15,7 @@ import { $$ } from 'common-sk/modules/dom';
 import {
   Annotation, FrontendDescription, SetNoteRequest, SupplyChromeOSRequest,
 } from '../json';
-import { ListPageSk, WaitCursor } from '../list-page-sk';
+import { LiveTableSk, WaitCursor } from '../live-table-sk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import 'elements-sk/error-toast-sk/index';
 import 'elements-sk/icon/cached-icon-sk';
@@ -134,7 +134,7 @@ const imageVersion = (machine: FrontendDescription): string => {
 };
 
 // eslint-disable-next-line no-use-before-define
-const powerCycle = (ele: MachineServerSk, machine: FrontendDescription): TemplateResult => {
+const powerCycle = (ele: MachinesTableSk, machine: FrontendDescription): TemplateResult => {
   if (machine.PowerCycle) {
     return html`Waiting for Power Cycle`;
   }
@@ -147,7 +147,7 @@ const powerCycle = (ele: MachineServerSk, machine: FrontendDescription): Templat
 };
 
 // eslint-disable-next-line no-use-before-define
-const toggleMode = (ele: MachineServerSk, machine: FrontendDescription) => html`
+const toggleMode = (ele: MachinesTableSk, machine: FrontendDescription) => html`
     <button
       class="mode"
       @click=${() => ele.toggleMode(machine.Dimensions!.id![0])}
@@ -166,7 +166,7 @@ const machineLink = (machine: FrontendDescription): TemplateResult => html`
   `;
 
 // eslint-disable-next-line no-use-before-define
-const deleteMachine = (ele: MachineServerSk, machine: FrontendDescription): TemplateResult => html`
+const deleteMachine = (ele: MachinesTableSk, machine: FrontendDescription): TemplateResult => html`
   <delete-icon-sk
     title="Remove the machine from the database."
     @click=${() => ele.deleteDevice(machine.Dimensions!.id![0])}
@@ -188,7 +188,7 @@ export const outOfSpecIfTooOld = (lastUpdated: string): string => {
 export const uptimeOutOfSpecIfTooOld = (uptime: number): string => (uptime > MAX_UPTIME_ACCEPTABLE_S ? 'outOfSpec' : '');
 
 // eslint-disable-next-line no-use-before-define
-const note = (ele: MachineServerSk, machine: FrontendDescription): TemplateResult => html`
+const note = (ele: MachinesTableSk, machine: FrontendDescription): TemplateResult => html`
   <edit-icon-sk class="edit_note"
       @click=${() => ele.editNote(machine.Dimensions!.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
 `;
@@ -209,7 +209,7 @@ export const pretty_device_name = (devices: string[] | null): string => {
   return `${devices.join(' | ')} ${alias}`;
 };
 
-export class MachineServerSk extends ListPageSk<FrontendDescription> {
+export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
   private noteEditor: NoteEditorSk | null = null;
 
   private deviceEditor: DeviceEditorSk | null = null;
@@ -406,4 +406,4 @@ export class MachineServerSk extends ListPageSk<FrontendDescription> {
   }
 }
 
-window.customElements.define('machine-server-sk', MachineServerSk);
+window.customElements.define('machines-table-sk', MachinesTableSk);

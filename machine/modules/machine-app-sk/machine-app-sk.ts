@@ -15,19 +15,19 @@ import 'elements-sk/tabs-panel-sk';
 import { TabSelectedSkEventDetail } from 'elements-sk/tabs-sk/tabs-sk';
 import { TabsPanelSk } from 'elements-sk/tabs-panel-sk/tabs-panel-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { MachineServerSk } from '../machine-server-sk';
-import { PodsPageSk } from '../pods-page-sk';
-import { MeetingPointsPageSk } from '../meeting-points-page-sk';
-import { WaitCursor } from '../list-page-sk';
-import '../machine-server-sk';
-import '../pods-page-sk';
-import '../meeting-points-page-sk';
+import { MachinesTableSk } from '../machines-table-sk';
+import { PodsTableSk } from '../pods-table-sk';
+import { MeetingPointsTableSk } from '../meeting-points-table-sk';
+import { WaitCursor } from '../live-table-sk';
+import '../machines-table-sk';
+import '../pods-table-sk';
+import '../meeting-points-table-sk';
 
 /**
  * Any of the readouts that are on our tabs. This could turn into an interface
  * if we diversify beyond LiveTableSk subclasses.
  */
-type AnyLiveTable = MachineServerSk | MeetingPointsPageSk | PodsPageSk;
+type AnyLiveTable = MachinesTableSk | MeetingPointsTableSk | PodsTableSk;
 
 export class MachineAppSk extends ElementSk {
   private _inputElement: HTMLInputElement | null = null;
@@ -49,9 +49,9 @@ export class MachineAppSk extends ElementSk {
         <button>Meeting Points</button>
       </tabs-sk>
       <tabs-panel-sk>
-        <machine-server-sk></machine-server-sk>
-        <pods-page-sk></pods-page-sk>
-        <meeting-points-page-sk></meeting-points-page-sk>
+        <machines-table-sk></machines-table-sk>
+        <pods-table-sk></pods-table-sk>
+        <meeting-points-table-sk></meeting-points-table-sk>
       </tabs-panel-sk>
     </main>
     <error-toast-sk></error-toast-sk>

@@ -2,36 +2,36 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_pu
 
 sk_demo_page_server(
     name = "demo_page_server",
-    sk_page = ":pods-page-sk-demo",
+    sk_page = ":pods-table-sk-demo",
 )
 
 sk_element(
-    name = "pods-page-sk",
+    name = "pods-table-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
-    sk_element_deps = ["//machine/modules/list-page-sk"],
+    sk_element_deps = ["//machine/modules/live-table-sk"],
     ts_deps = [
         "@npm//elements-sk",
         "@npm//lit-html",
         "//machine/modules/json:index_ts_lib",
     ],
     ts_srcs = [
-        "pods-page-sk.ts",
+        "pods-table-sk.ts",
         "index.ts",
     ],
     visibility = ["//visibility:public"],
 )
 
 sk_page(
-    name = "pods-page-sk-demo",
-    html_file = "pods-page-sk-demo.html",
-    sk_element_deps = [":pods-page-sk"],
+    name = "pods-table-sk-demo",
+    html_file = "pods-table-sk-demo.html",
+    sk_element_deps = [":pods-table-sk"],
     ts_deps = ["@npm//fetch-mock"],
-    ts_entry_point = "pods-page-sk-demo.ts",
+    ts_entry_point = "pods-table-sk-demo.ts",
 )
 
 sk_element_puppeteer_test(
-    name = "pods-page-sk_puppeteer_test",
-    src = "pods-page-sk_puppeteer_test.ts",
+    name = "pods-table-sk_puppeteer_test",
+    src = "pods-table-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",

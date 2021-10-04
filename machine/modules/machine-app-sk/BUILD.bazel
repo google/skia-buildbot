@@ -10,10 +10,10 @@ sk_element(
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["machine-app-sk.scss"],
     sk_element_deps = [
-        "//machine/modules/list-page-sk",
-        "//machine/modules/machine-server-sk",
-        "//machine/modules/meeting-points-page-sk",
-        "//machine/modules/pods-page-sk",
+        "//machine/modules/live-table-sk",
+        "//machine/modules/machines-table-sk",
+        "//machine/modules/meeting-points-table-sk",
+        "//machine/modules/pods-table-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -34,7 +34,7 @@ sk_page(
     sk_element_deps = [":machine-app-sk"],
     ts_deps = [
         "@npm//fetch-mock",
-        "//machine/modules/machine-server-sk:demo_data_ts_lib",
+        "//machine/modules/machines-table-sk:demo_data_ts_lib",
     ],
     ts_entry_point = "machine-app-sk-demo.ts",
 )

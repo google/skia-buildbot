@@ -1,10 +1,10 @@
-import './machine-server-sk';
+import './machines-table-sk';
 import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
 import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
 import {
-  MachineServerSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name,
-} from './machine-server-sk';
+  MachinesTableSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name,
+} from './machines-table-sk';
 import {
   FrontendDescription, ListMachinesResponse, SetNoteRequest,
 } from '../json';
@@ -13,7 +13,7 @@ function mockMachinesResponse(param: ListMachinesResponse | Partial<FrontendDesc
   fetchMock.get('/_/machines', param);
 }
 
-const setUpElement = async (): Promise<MachineServerSk> => {
+const setUpElement = async (): Promise<MachinesTableSk> => {
   fetchMock.reset();
   fetchMock.config.overwriteRoutes = true;
   mockMachinesResponse([
@@ -41,8 +41,8 @@ const setUpElement = async (): Promise<MachineServerSk> => {
     },
   ]);
 
-  document.body.innerHTML = '<machine-server-sk></machine-server-sk>';
-  const element = document.body.firstElementChild as MachineServerSk;
+  document.body.innerHTML = '<machines-table-sk></machines-table-sk>';
+  const element = document.body.firstElementChild as MachinesTableSk;
   await element.update();
 
   // Wait for the initial fetch to finish.
@@ -51,12 +51,12 @@ const setUpElement = async (): Promise<MachineServerSk> => {
   return element;
 };
 
-describe('machine-server-sk', () => {
+describe('machines-table-sk', () => {
   afterEach(() => {
     document.body.innerHTML = '';
   });
 
-  it('updates the mode when you click on the mode button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
+  it('updates the mode when you click on the mode button', () => window.customElements.whenDefined('machines-table-sk').then(async () => {
     const s = await setUpElement();
 
     // Now set up fetchMock for the requests that happen when the button is clicked.
@@ -97,7 +97,7 @@ describe('machine-server-sk', () => {
     assert.equal('maintenance', button.textContent?.trim());
   }));
 
-  it('updates PowerCycle when you click on the button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
+  it('updates PowerCycle when you click on the button', () => window.customElements.whenDefined('machines-table-sk').then(async () => {
     const s = await setUpElement();
 
     // Now set up fetchMock for the requests that happen when the button is clicked.
@@ -144,7 +144,7 @@ describe('machine-server-sk', () => {
     );
   }));
 
-  it('clears the Dimensions when you click on the button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
+  it('clears the Dimensions when you click on the button', () => window.customElements.whenDefined('machines-table-sk').then(async () => {
     const s = await setUpElement();
     // Confirm there are row in the dimensions.
     assert.isNotNull($$('details.dimensions table tr', s));
@@ -193,7 +193,7 @@ describe('machine-server-sk', () => {
     assert.isTrue(called);
   }));
 
-  it('supplies chrome os data via RPC', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
+  it('supplies chrome os data via RPC', () => window.customElements.whenDefined('machines-table-sk').then(async () => {
     const s = await setUpElement();
     // Confirm there are row in the dimensions.
     assert.isNotNull($$('details.dimensions table tr', s));
@@ -227,7 +227,7 @@ describe('machine-server-sk', () => {
     assert.isTrue(called);
   }));
 
-  it('deletes the Machine when you click on the button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
+  it('deletes the Machine when you click on the button', () => window.customElements.whenDefined('machines-table-sk').then(async () => {
     const s = await setUpElement();
 
     // Confirm there are rows in the table.
@@ -251,7 +251,7 @@ describe('machine-server-sk', () => {
     assert.isNull($$('table > tbody > tr[id] > td', s));
   }));
 
-  it('sets the Machine Note when you edit the note.', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
+  it('sets the Machine Note when you edit the note.', () => window.customElements.whenDefined('machines-table-sk').then(async () => {
     const updatedMessage = 'This has been edited.';
     const s = await setUpElement();
     // Now set up fetchMock for the requests that happen when the button is clicked.

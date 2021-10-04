@@ -2,20 +2,20 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_pu
 
 sk_demo_page_server(
     name = "demo_page_server",
-    sk_page = ":meeting-points-page-sk-demo",
+    sk_page = ":meeting-points-table-sk-demo",
 )
 
 sk_page(
-    name = "meeting-points-page-sk-demo",
-    html_file = "meeting-points-page-sk-demo.html",
-    sk_element_deps = [":meeting-points-page-sk"],
+    name = "meeting-points-table-sk-demo",
+    html_file = "meeting-points-table-sk-demo.html",
+    sk_element_deps = [":meeting-points-table-sk"],
     ts_deps = ["@npm//fetch-mock"],
-    ts_entry_point = "meeting-points-page-sk-demo.ts",
+    ts_entry_point = "meeting-points-table-sk-demo.ts",
 )
 
 sk_element_puppeteer_test(
-    name = "meeting-points-page-sk_puppeteer_test",
-    src = "meeting-points-page-sk_puppeteer_test.ts",
+    name = "meeting-points-table-sk_puppeteer_test",
+    src = "meeting-points-table-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
@@ -25,9 +25,9 @@ sk_element_puppeteer_test(
 )
 
 sk_element(
-    name = "meeting-points-page-sk",
+    name = "meeting-points-table-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
-    sk_element_deps = ["//machine/modules/list-page-sk"],
+    sk_element_deps = ["//machine/modules/live-table-sk"],
     ts_deps = [
         "//machine/modules/json:index_ts_lib",
         "@npm//elements-sk",
@@ -35,7 +35,7 @@ sk_element(
     ],
     ts_srcs = [
         "index.ts",
-        "meeting-points-page-sk.ts",
+        "meeting-points-table-sk.ts",
     ],
     visibility = ["//visibility:public"],
 )

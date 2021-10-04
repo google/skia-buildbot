@@ -4,9 +4,9 @@
 @import '~elements-sk/themes/themes';
 @import '../theme/theme';
 
-// .defaultListPageSkStyling is applied by default to any element that is a
-// subclass of list-page-sk. ListPageSk's constructor arranges this.
-.defaultListPageSkStyling {
+// .defaultLiveTableSkStyling is applied by default to any element that is a
+// subclass of live-table-sk. LiveTableSk's constructor arranges this.
+.defaultLiveTableSkStyling {
   table {
     border-collapse: collapse;
     width: 100%;

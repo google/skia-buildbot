@@ -1,6 +1,6 @@
 /**
- * @module modules/list-page-sk
- * @description <h2><code>list-page-sk</code></h2>
+ * @module modules/live-table-sk
+ * @description <h2><code>live-table-sk</code></h2>
  *
  * A page comprising a filterable table of things pulled from a REST endpoint.
  * Fill out the abstract properties to parametrize. The table data doesn't
@@ -22,7 +22,7 @@ export enum WaitCursor {
   SHOW,
 }
 
-export abstract class ListPageSk<ItemType> extends ElementSk {
+export abstract class LiveTableSk<ItemType> extends ElementSk {
   protected filterer: FilterArray<ItemType> = new FilterArray();
 
   /**
@@ -37,7 +37,7 @@ export abstract class ListPageSk<ItemType> extends ElementSk {
   /** Return a <tr> displaying a single item. */
   abstract tableRow(item: ItemType): TemplateResult;
 
-  protected _template = (ele: ListPageSk<ItemType>): TemplateResult => html`
+  protected _template = (ele: LiveTableSk<ItemType>): TemplateResult => html`
     <table>
       <thead>
         <tr>
@@ -62,7 +62,7 @@ export abstract class ListPageSk<ItemType> extends ElementSk {
 
   constructor() {
     super();
-    this.classList.add('defaultListPageSkStyling'); // TODO(erikrose): Rename to "liveTableSk" or something.
+    this.classList.add('defaultLiveTableSkStyling');
   }
 
   /**

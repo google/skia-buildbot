@@ -3,7 +3,7 @@ import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import fetchMock from 'fetch-mock';
 import { html } from 'lit-html';
-import { ListPageSk } from './list-page-sk';
+import { LiveTableSk } from './live-table-sk';
 
 interface PigglyWiggly {
 	Piggly: string;
@@ -11,9 +11,9 @@ interface PigglyWiggly {
 }
 
 /**
- * An arbitrary concretization of the abstract ListPageSk class for testing
+ * An arbitrary concretization of the abstract LiveTableSk class for testing
  */
-class PigglyWigglyPageSk extends ListPageSk<PigglyWiggly> {
+class PigglyWigglyPageSk extends LiveTableSk<PigglyWiggly> {
   fetchPath = '/_/pigglywigglies';
 
   tableHeaders() {
@@ -51,7 +51,7 @@ const newPigglyWigglyElement = async (): Promise<PigglyWigglyPageSk> => {
   return document.body.firstElementChild as PigglyWigglyPageSk;
 };
 
-describe('list-page-sk', () => {
+describe('live-table-sk', () => {
   afterEach(() => {
     document.body.innerHTML = '';
   });

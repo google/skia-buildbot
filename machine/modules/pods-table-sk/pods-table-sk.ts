@@ -1,16 +1,16 @@
 /**
- * @module modules/pods-page-sk
- * @description <h2><code>pods-page-sk</code></h2>
+ * @module modules/pods-table-sk
+ * @description <h2><code>pods-table-sk</code></h2>
  *
  * A readout of currently extant switch-pods
  */
 import { html } from 'lit-html';
 
 import { define } from 'elements-sk/define';
-import { ListPageSk } from '../list-page-sk';
+import { LiveTableSk } from '../live-table-sk';
 import { Pod } from '../json';
 
-export class PodsPageSk extends ListPageSk<Pod> {
+export class PodsTableSk extends LiveTableSk<Pod> {
   fetchPath = '/_/pods';
 
   tableHeaders() {
@@ -30,4 +30,4 @@ export class PodsPageSk extends ListPageSk<Pod> {
   }
 }
 
-define('pods-page-sk', PodsPageSk);
+define('pods-table-sk', PodsTableSk);
