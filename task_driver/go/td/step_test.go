@@ -102,13 +102,13 @@ func TestExec(t *testing.T) {
 		require.Equal(t, 2, *counter)
 
 		// Ensure that we collect stdout.
-		out, err := exec.RunCwd(ctx, ".", "python", "-c", "print 'hello world'")
+		out, err := exec.RunCwd(ctx, ".", "python3", "-c", "print('hello world')")
 		require.NoError(t, err)
 		require.True(t, strings.Contains(out, "hello world"))
 		require.Equal(t, 2, *counter) // Not using the mock for this test case.
 
 		// Ensure that we collect stdout and stderr.
-		out, err = exec.RunCwd(ctx, ".", "python", "-c", "import sys; print 'stdout'; print >> sys.stderr, 'stderr'")
+		out, err = exec.RunCwd(ctx, ".", "python3", "-c", "import sys; print('stdout'); print('stderr',file=sys.stderr)")
 		require.NoError(t, err)
 		require.True(t, strings.Contains(out, "stdout"))
 		require.True(t, strings.Contains(out, "stderr"))

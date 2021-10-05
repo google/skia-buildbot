@@ -101,9 +101,9 @@ func TestBasic(t *testing.T) {
 	require.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
-	prog := fmt.Sprintf("with open(r'%s', 'wb') as f: f.write('')", file)
+	prog := fmt.Sprintf("with open(r'%s', 'w') as f: f.write('')", file)
 	require.NoError(t, Run(context.Background(), &Command{
-		Name: "python",
+		Name: "python3",
 		Args: []string{"-c", prog},
 	}))
 	_, err = os.Stat(file)
@@ -118,10 +118,10 @@ func TestEnv(t *testing.T) {
 	file := filepath.Join(dir, "ran")
 
 	err = Run(context.Background(), &Command{
-		Name: "python",
+		Name: "python3",
 		Args: []string{"-c", `
 import os
-with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
+with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
   f.write('')
 `},
 		Env:         []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file)},
@@ -139,10 +139,10 @@ func TestInheritPath(t *testing.T) {
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
 	require.NoError(t, Run(context.Background(), &Command{
-		Name: "python",
+		Name: "python3",
 		Args: []string{"-c", `
 import os
-with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
+with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
   f.write(os.environ['PATH'])
 `},
 		Env:         []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file)},
@@ -161,10 +161,10 @@ func TestInheritEnv(t *testing.T) {
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
 	require.NoError(t, Run(context.Background(), &Command{
-		Name: "python",
+		Name: "python3",
 		Args: []string{"-c", `
 import os
-with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
+with open(os.environ['EXEC_TEST_FILE'], 'w') as f:
   for var in ('PATH', 'USER', 'PWD', 'HOME'):
     f.write('%s\n' % os.environ.get(var, ''))
 `},
@@ -196,7 +196,7 @@ func TestDir(t *testing.T) {
 	defer RemoveAll(dir2)
 	require.NoError(t, Run(context.Background(), &Command{
 		Name: "python",
-		Args: []string{"-c", "with open('output.txt', 'wb') as f: f.write('Hello World!')"},
+		Args: []string{"-c", "with open('output.txt', 'w') as f: f.write('Hello World!')"},
 		Dir:  dir2,
 	}))
 	file := filepath.Join(dir2, "output.txt")
@@ -288,7 +288,7 @@ func TestTimeoutNotReached(t *testing.T) {
 		Args: []string{"-c", `
 import time
 time.sleep(3)
-with open('ran', 'wb') as f:
+with open('ran', 'w') as f:
   f.write('')
 `},
 		Dir:     dir,
@@ -309,7 +309,7 @@ func TestTimeoutExceeded(t *testing.T) {
 		Args: []string{"-c", `
 import time
 time.sleep(3)
-with open('ran', 'wb') as f:
+with open('ran', 'w') as f:
   f.write('')
 `},
 		Dir:     dir,
@@ -360,7 +360,7 @@ func TestRunCwd(t *testing.T) {
 	dir, err := ioutil.TempDir("", "exec_test")
 	require.NoError(t, err)
 	defer RemoveAll(dir)
-	output, err := RunCwd(context.Background(), dir, "python", "-u", "-c", "import os; print os.getcwd()")
+	output, err := RunCwd(context.Background(), dir, "python3", "-u", "-c", "import os; print(os.getcwd())")
 	require.NoError(t, err)
 	expectPath, err := filepath.EvalSymlinks(dir)
 	require.NoError(t, err)
@@ -410,8 +410,8 @@ func TestRunCommand(t *testing.T) {
 	// expectation.
 	buf := &bytes.Buffer{}
 	output, err := RunCommand(ctx, &Command{
-		Name:   "python",
-		Args:   []string{"-u", "-c", "print 'hello world'"},
+		Name:   "python3",
+		Args:   []string{"-u", "-c", "print('hello world')"},
 		Stdout: buf,
 	})
 	require.NoError(t, err)

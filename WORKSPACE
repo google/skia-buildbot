@@ -230,10 +230,10 @@ rbe_exec_properties(
 # Pulls the gcr.io/google/rbe-ubuntu16-04 container, used as the base container for our custom RBE
 # toolchain container.
 container_pull(
-    name = "rbe_ubuntu1604",
-    digest = "sha256:f6568d8168b14aafd1b707019927a63c2d37113a03bcee188218f99bd0327ea1",
+    name = "google_debian10",
+    digest = "sha256:96a0145e8bb84d6886abfb9f6a955d9ab3f8b1876b8f7572273598c86e902983",
     registry = "gcr.io",
-    repository = "cloud-marketplace/google/rbe-ubuntu16-04",
+    repository = "cloud-marketplace/google/debian10",
 )
 
 # Pulls the gcr.io/skia-public/skia-wasm-release container with the Skia WASM build.
@@ -260,4 +260,48 @@ container_pull(
     digest = "sha256:d58f6c8ced7d5436ce87ed1904340f1d8c6775eb8d891ac768159241a20c1eb4",
     registry = "gcr.io",
     repository = "skia-public/basealpine",
+)
+
+##############################
+# Packages for RBE container #
+##############################
+# The following http_archives are used to download and verify files that will be installed on
+# our RBE container.
+http_archive(
+    name = "go_sdk_external",
+    # We are downloading a tar file of pre-compiled executables, libraries and such that does
+    # NOT have a BUILD file for Bazel to read. As such, we can specify one here using
+    # build_file_content that makes all the contents of the the Golang SDK tar file available
+    # as a target called @go_sdk_external//:extracted_files
+    #
+    # Debugging tip: make an intentional typo in build_file_content and then try to `bazel build`
+    # something that depends on this. The error message will show where the archive is being
+    # downloaded/extracted in your bazel cache, which can help manual inspection.
+    build_file_content = """
+filegroup(
+    name = "extracted_files",
+    srcs = glob(["go/*"], exclude_directories=0),
+    visibility = ["//visibility:public"]
+)""",
+    # From https://golang.org/dl/
+    sha256 = "dab7d9c34361dc21ec237d584590d72500652e7c909bf082758fb63064fca0ef",
+    urls = ["https://golang.org/dl/go1.17.1.linux-amd64.tar.gz"],
+)
+
+http_archive(
+    name = "cockroachdb_external",
+    # We are downloading a zip file of pre-compiled executables, libraries and such that does
+    # NOT have a BUILD file for Bazel to read. As such, we can specify one here using
+    # build_file_content that makes all the contents of the the Android NDK zip file available
+    # as a target called @android_ndk_external//:extracted_files
+    build_file_content = """
+filegroup(
+    name = "extracted_exe",
+    srcs = ["cockroach-v21.1.9.linux-amd64/cockroach"],
+    visibility = ["//visibility:public"]
+)""",
+    # https://www.cockroachlabs.com/docs/v21.1/install-cockroachdb-linux does not currently
+    # provide SHA256 signatures. kjlubick@ downloaded this file and computed this sha256 signature.
+    sha256 = "05293e76dfb6443790117b6c6c05b1152038b49c83bd4345589e15ced8717be3",
+    url = "https://binaries.cockroachdb.com/cockroach-v21.1.9.linux-amd64.tgz",
 )

@@ -20,5 +20,5 @@ package(default_visibility = ["//visibility:public"])
 java_runtime(
     name = "jdk",
     srcs = [],
-    java_home = "/usr/lib/jvm/java-8-openjdk-amd64",
+    java_home = "/usr/lib/jvm/java-11-openjdk-amd64/",
 )

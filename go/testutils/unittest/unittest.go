@@ -304,10 +304,12 @@ func setUpEmulatorBazelRBEOnly(t sktest.TestingT, emulator emulators.Emulator, s
 
 	// If the above code actually started the emulator, give the emulator time to boot.
 	//
-	// Empirically chosen: A delay of 3 seconds seems OK for all emulators; shorter delays tend to
+	// Empirically chosen: A delay of 5 seconds seems OK for all emulators; shorter delays tend to
 	// cause flakes.
 	if wasEmulatorStarted {
-		time.Sleep(3 * time.Second)
+		// TODO(kjlubick) use emulator health checks instead of just sleeping
+		time.Sleep(5 * time.Second)
+		fmt.Println("Finished sleeping waiting for emulator to boot")
 	}
 
 	t.Cleanup(func() {

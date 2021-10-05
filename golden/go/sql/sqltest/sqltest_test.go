@@ -147,32 +147,6 @@ func TestGetAllRows_RowsOrderNotDefined_ReturnsInAnyOrder(t *testing.T) {
 	}, actualRows)
 }
 
-func TestAssertNoFullTableScans_Success(t *testing.T) {
-	unittest.LargeTest(t)
-
-	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	_, err := db.Exec(ctx, testSchema)
-	require.NoError(t, err)
-
-	err = sqltest.BulkInsertDataTables(ctx, db, testTables{
-		TableOne: []tableOneRow{
-			{ColumnOne: "apple", ColumnTwo: "banana"},
-			{ColumnOne: "cherry", ColumnTwo: "durian"},
-			{ColumnOne: "elderberry", ColumnTwo: "fig"},
-		},
-	})
-	require.NoError(t, err)
-	// This query is not a full table scan, since it is looked up by primary key.
-	sqltest.AssertNoFullTableScans(t, db, `SELECT * FROM TableOne WHERE column_one = $1`, "blackberry")
-	exp := sqltest.GetExplain(t, db, `SELECT * FROM TableOne WHERE column_one = $1`, "blackberry")
-	assert.NotContains(t, exp, "FULL")
-
-	// This should be a full table scan because column_two is not indexed.
-	exp = sqltest.GetExplain(t, db, `SELECT * FROM TableOne WHERE column_two = $1`, "blackberry")
-	assert.Contains(t, exp, "FULL")
-}
-
 func ts(s string) time.Time {
 	ct, err := time.Parse(time.RFC3339, s)
 	if err != nil {

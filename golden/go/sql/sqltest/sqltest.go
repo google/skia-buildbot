@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/emulators"
@@ -186,12 +185,6 @@ func GetAllRows(ctx context.Context, t *testing.T, db *pgxpool.Pool, table strin
 	}
 	// Return the slice as type interface{}; It can be type asserted to []RowType by the caller.
 	return rv.Interface()
-}
-
-// AssertNoFullTableScans runs the given query with an explain and ensures the plan does not
-// include a full table scan.
-func AssertNoFullTableScans(t *testing.T, db *pgxpool.Pool, statement string, args ...interface{}) {
-	assert.NotContains(t, GetExplain(t, db, statement, args...), "FULL")
 }
 
 // GetExplain returns the query plan for a given statement and arguments.
