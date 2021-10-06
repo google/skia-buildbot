@@ -134,6 +134,11 @@ def skia_app_container(
             commands = run_commands_root,
             docker_run_flags = ["--user", "root"],
             image = image_name + ".tar",
+            tags = [
+                # container_run_and_commit requires the docker daemon to be
+                # running. This is not possible inside RBE.
+                "no-remote",
+            ],
         )
         image_name = ":" + rule_name + "_commit.tar"
 
@@ -146,6 +151,11 @@ def skia_app_container(
             commands = ["whoami"],
             docker_run_flags = ["--user", "skia"],
             image = image_name,
+            tags = [
+                # container_run_and_commit requires the docker daemon to be
+                # running. This is not possible inside RBE.
+                "no-remote",
+            ],
         )
         image_name = ":" + rule_name + "_commit.tar"
 
@@ -158,6 +168,8 @@ def skia_app_container(
         tag = "{STABLE_DOCKER_TAG}",
         tags = [
             "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
-            "no-remote",  # We cannot build :rbe_container_skia_infra on RBE.
+            # container_push requires the docker daemon to be
+            # running. This is not possible inside RBE.
+            "no-remote",
         ],
     )
