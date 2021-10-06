@@ -97,7 +97,7 @@ func startSyncing(ctx context.Context, local bool, repoURL, repoDir string) (*Se
 func errorsInResults(runResults *types.RunResults) string {
 	status := ""
 	if runResults == nil {
-		status = "Failed to run."
+		sklog.Infof("runResults are nil, so this was a timeout, count it as valid for now and try again on the next run.")
 	} else if len(runResults.CompileErrors) > 0 || runResults.RunTimeError != "" {
 		// update validity
 		status = fmt.Sprintf("%v %s", runResults.CompileErrors, runResults.RunTimeError)
@@ -132,14 +132,18 @@ func (srv *Server) exampleStep(ctx context.Context) {
 			return nil
 		}
 		name = name[0 : len(name)-4]
-		b, err := ioutil.ReadFile(filepath.Join(dir, info.Name()))
+		filename := filepath.Join(dir, info.Name())
+		b, err := ioutil.ReadFile(filename)
+		if err != nil {
+			sklog.Warningf("Failed to load file: %q", filename)
+		}
 		fc, err := parse.ParseCpp(string(b))
 		if err == parse.ErrorInactiveExample {
 			sklog.Infof("Inactive sample: %q", info.Name())
 			return nil
 		} else if err != nil {
 			sklog.Infof("Invalid sample: %q\n%s", info.Name(), err)
-			numInvalid += 1
+			numInvalid++
 			srv.numInvalidExamples.Update(numInvalid)
 			return nil
 		}
