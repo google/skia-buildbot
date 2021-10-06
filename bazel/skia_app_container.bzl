@@ -8,7 +8,7 @@ def skia_app_container(
         name,
         repository,
         dirs,
-        entrypoint,
+        entrypoint = "",
         run_commands_root = None,
         base_image = "@basealpine//image"):
     """Builds a Docker container for a Skia app, and generates a target to push it to GCR.
@@ -90,6 +90,7 @@ def skia_app_container(
         ["//myapp/go:mybinary", "755"]).
       entrypoint: The entrypoint of the container, which can be a string or an array (e.g.
         "/usr/local/share/myapp/mybinary", or ["/usr/local/share/myapp/mybinary", "--someflag"]).
+        Optional.
       run_commands_root: The RUN commands that should be executed on the container by the root
         user. Optional.
       base_image: The image to base the container_image on. Optional.

@@ -10,7 +10,6 @@ skia_app_container(
             ],
         ],
     },
-    entrypoint = "",
     repository = "skia-public/codereview-watcher",
     run_commands_root = [
         "apk update",

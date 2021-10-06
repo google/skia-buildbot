@@ -16,6 +16,5 @@ skia_app_container(
             ],
         ],
     },
-    entrypoint = "",
     repository = "skia-public/trybot-updater",
 )
