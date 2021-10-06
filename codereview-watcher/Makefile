@@ -1,14 +1,15 @@
+include ../make/bazel.mk
+include ../kube/kube.mk
 
 default: build
 
 build:
 	go install -v ./go/codereview-watcher
 
-release: build
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/codereview-watcher
-	./images/build_release
+release:
+	$(BAZEL) run //codereview-watcher:push_codereview_watcher_container
 
-push: release
+push: pushk release
 	pushk --use-temp-checkout codereview-watcher
 
 testgo:

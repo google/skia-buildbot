@@ -1,0 +1,20 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "codereview_watcher_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//codereview-watcher/go/codereview-watcher:codereview-watcher",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "",
+    repository = "skia-public/codereview-watcher",
+    run_commands_root = [
+        "apk update",
+        # Install packages useful for debugging on the pod.
+        "apk add --no-cache bash procps",
+    ],
+)
