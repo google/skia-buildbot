@@ -177,14 +177,14 @@ func (wh *Handlers) cheapLimitForGerritPlugin(r *http.Request) error {
 	return wh.anonymousGerritQuota.Wait(r.Context())
 }
 
-// ByBlameHandler2 takes the response from the SQL backend's GetBlamesForUntriagedDigests and
+// ByBlameHandler takes the response from the SQL backend's GetBlamesForUntriagedDigests and
 // converts it into the same format that the legacy version (v1) produced.
-func (wh *Handlers) ByBlameHandler2(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
-	ctx, span := trace.StartSpan(r.Context(), "web_ByBlameHandler2", trace.WithSampler(trace.AlwaysSample()))
+	ctx, span := trace.StartSpan(r.Context(), "web_ByBlameHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 
 	// Extract the corpus from the query parameters.
@@ -230,10 +230,10 @@ func (wh *Handlers) ByBlameHandler2(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, result)
 }
 
-// ChangelistsHandler2 returns the list of code_review.Changelists that have
+// ChangelistsHandler returns the list of code_review.Changelists that have
 // uploaded results to Gold (via TryJobs).
-func (wh *Handlers) ChangelistsHandler2(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_ChangelistsHandler2", trace.WithSampler(trace.AlwaysSample()))
+func (wh *Handlers) ChangelistsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_ChangelistsHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
@@ -417,9 +417,9 @@ ORDER BY Patchsets.patchset_id
 	return rv, nil
 }
 
-// SearchHandler2 searches the data in the new SQL backend. It times out after 3 minutes, to prevent
+// SearchHandler searches the data in the new SQL backend. It times out after 3 minutes, to prevent
 // outstanding requests from growing unbounded.
-func (wh *Handlers) SearchHandler2(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
@@ -431,7 +431,7 @@ func (wh *Handlers) SearchHandler2(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Minute)
 	defer cancel()
-	ctx, span := trace.StartSpan(ctx, "web_SearchHandler2", trace.WithSampler(trace.AlwaysSample()))
+	ctx, span := trace.StartSpan(ctx, "web_SearchHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 
 	searchResponse, err := wh.Search2API.Search(ctx, q)
@@ -452,9 +452,9 @@ func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*search_query.Sea
 	return &q, true
 }
 
-// DetailsHandler2 returns the details about a single digest.
-func (wh *Handlers) DetailsHandler2(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_DetailsHandler2", trace.WithSampler(trace.AlwaysSample()))
+// DetailsHandler returns the details about a single digest.
+func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_DetailsHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
@@ -515,9 +515,9 @@ func (wh *Handlers) getGroupingForTest(ctx context.Context, testName string) (pa
 	return ps, nil
 }
 
-// DiffHandler2 compares two digests and returns that information along with triage data.
-func (wh *Handlers) DiffHandler2(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_DiffHandler2", trace.WithSampler(trace.AlwaysSample()))
+// DiffHandler compares two digests and returns that information along with triage data.
+func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_DiffHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 
 	// Extract: test, left, right where left and right are digests.
@@ -762,7 +762,7 @@ func (wh *Handlers) AddIgnoreRule(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, map[string]string{"added": "true"})
 }
 
-// TriageHandler2 handles a request to change the triage status of one or more
+// TriageHandler handles a request to change the triage status of one or more
 // digests of one test.
 //
 // It accepts a POST'd JSON serialization of TriageRequest and updates
@@ -771,8 +771,8 @@ func (wh *Handlers) AddIgnoreRule(w http.ResponseWriter, r *http.Request) {
 //   conditions where users triage the same thing at the same time, the request should include
 //   before and after. Finally, to avoid confusion on CLs, we should fail to apply changes
 //   on closed CLs (skbug.com/12122)
-func (wh *Handlers) TriageHandler2(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_TriageHandler2", trace.WithSampler(trace.AlwaysSample()))
+func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_TriageHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	user := login.LoggedInAs(r)
 	if user == "" {
@@ -931,10 +931,10 @@ func fillPreviousLabel(ctx context.Context, tx pgx.Tx, deltas []schema.Expectati
 	return nil
 }
 
-// StatusHandler2 returns information about the most recently ingested data and the triage status
+// StatusHandler returns information about the most recently ingested data and the triage status
 // of the various corpora.
-func (wh *Handlers) StatusHandler2(w http.ResponseWriter, r *http.Request) {
-	_, span := trace.StartSpan(r.Context(), "web_StatusHandler2")
+func (wh *Handlers) StatusHandler(w http.ResponseWriter, r *http.Request) {
+	_, span := trace.StartSpan(r.Context(), "web_StatusHandler")
 	defer span.End()
 	wh.statusCacheMutex.RLock()
 	defer wh.statusCacheMutex.RUnlock()
@@ -985,10 +985,10 @@ func parseClusterDiffQuery(r *http.Request) (ClusterDiffRequest, error) {
 	return rv, nil
 }
 
-// ClusterDiffHandler2 computes the diffs between all digests that match the filters and
+// ClusterDiffHandler computes the diffs between all digests that match the filters and
 // returns them in a way that is convenient for rendering via d3.js
-func (wh *Handlers) ClusterDiffHandler2(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_ClusterDiffHandler2", trace.WithSampler(trace.AlwaysSample()))
+func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_ClusterDiffHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
@@ -1030,10 +1030,10 @@ func (wh *Handlers) ClusterDiffHandler2(w http.ResponseWriter, r *http.Request) 
 	sendJSONResponse(w, clusterResp)
 }
 
-// ListTestsHandler2 returns all the tests in the given corpus and a count of how many digests
+// ListTestsHandler returns all the tests in the given corpus and a count of how many digests
 // have been seen for that.
-func (wh *Handlers) ListTestsHandler2(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_ListTestsHandler2", trace.WithSampler(trace.AlwaysSample()))
+func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_ListTestsHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
@@ -1054,9 +1054,9 @@ func (wh *Handlers) ListTestsHandler2(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, counts)
 }
 
-// TriageLogHandler2 returns what has been triaged recently.
-func (wh *Handlers) TriageLogHandler2(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_TriageLogHandler2", trace.WithSampler(trace.AlwaysSample()))
+// TriageLogHandler returns what has been triaged recently.
+func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_TriageLogHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
@@ -1194,11 +1194,11 @@ func (wh *Handlers) getTotalTriageRecords(ctx context.Context, crs, clid string)
 	return count, nil
 }
 
-// TriageUndoHandler2 performs an "undo" for a given id. This id corresponds to the record id of the
+// TriageUndoHandler performs an "undo" for a given id. This id corresponds to the record id of the
 // set of changes in the DB.
-// If successful it returns the same result as a call to TriageLogHandler2 to reflect the changes.
-func (wh *Handlers) TriageUndoHandler2(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_TriageUndoHandler2", trace.WithSampler(trace.AlwaysSample()))
+// If successful it returns the same result as a call to TriageLogHandler to reflect the changes.
+func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_TriageUndoHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	// Get the user and make sure they are logged in.
 	user := login.LoggedInAs(r)
@@ -1217,7 +1217,7 @@ func (wh *Handlers) TriageUndoHandler2(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send the same response as a query for the first page.
-	wh.TriageLogHandler2(w, r)
+	wh.TriageLogHandler(w, r)
 }
 
 // undoExpectationChanges will look up all ExpectationDeltas associated with the record that has
@@ -1373,14 +1373,14 @@ func applyDeltasToBranch(ctx context.Context, tx pgx.Tx, deltas []schema.Expecta
 	return err // don't wrap, could be retryable
 }
 
-// ParamsHandler2 returns all Params that could be searched over. It uses the SQL Backend and
+// ParamsHandler returns all Params that could be searched over. It uses the SQL Backend and
 // returns *only* the keys, not the options.
-func (wh *Handlers) ParamsHandler2(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
-	ctx, span := trace.StartSpan(r.Context(), "web_ParamsHandler2", trace.WithSampler(trace.AlwaysSample()))
+	ctx, span := trace.StartSpan(r.Context(), "web_ParamsHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 
 	if err := r.ParseForm(); err != nil {
@@ -1412,13 +1412,13 @@ func (wh *Handlers) ParamsHandler2(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, ps)
 }
 
-// CommitsHandler2 returns the last n commits with data that make up the sliding window.
-func (wh *Handlers) CommitsHandler2(w http.ResponseWriter, r *http.Request) {
+// CommitsHandler returns the last n commits with data that make up the sliding window.
+func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
-	ctx, span := trace.StartSpan(r.Context(), "web_CommitsHandler2", trace.WithSampler(trace.AlwaysSample()))
+	ctx, span := trace.StartSpan(r.Context(), "web_CommitsHandler", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 
 	commits, err := wh.Search2API.GetCommitsInWindow(ctx)
@@ -1549,14 +1549,14 @@ WHERE label = 'n' OR label = 'p'`
 	}, nil
 }
 
-// DigestListHandler2 returns a list of digests for a given test. This is used by goldctl's
+// DigestListHandler returns a list of digests for a given test. This is used by goldctl's
 // local diff tech.
-func (wh *Handlers) DigestListHandler2(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) DigestListHandler(w http.ResponseWriter, r *http.Request) {
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
-	ctx, span := trace.StartSpan(r.Context(), "web_DigestListHandler2")
+	ctx, span := trace.StartSpan(r.Context(), "web_DigestListHandler")
 	defer span.End()
 
 	if err := r.ParseForm(); err != nil {
@@ -1605,11 +1605,11 @@ func (wh *Handlers) Whoami(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, map[string]string{"whoami": user})
 }
 
-// LatestPositiveDigestHandler2 returns the most recent positive digest for the given trace.
+// LatestPositiveDigestHandler returns the most recent positive digest for the given trace.
 // Starting at the tip of tree, it will skip over any missing data, untriaged digests or digests
 // triaged negative until it finds a positive digest.
-func (wh *Handlers) LatestPositiveDigestHandler2(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_LatestPositiveDigestHandler2")
+func (wh *Handlers) LatestPositiveDigestHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_LatestPositiveDigestHandler")
 	defer span.End()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)

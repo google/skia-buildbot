@@ -3,10 +3,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "worker",
-    srcs = [
-        "worker.go",
-        "worker2.go",
-    ],
+    srcs = ["worker2.go"],
     importpath = "go.skia.org/infra/golden/go/diff/worker",
     visibility = ["//visibility:public"],
     deps = [
@@ -26,19 +23,14 @@ go_library(
         "@com_github_jackc_pgx_v4//pgxpool",
         "@com_github_patrickmn_go_cache//:go-cache",
         "@io_opencensus_go//trace",
-        "@org_golang_x_sync//errgroup",
     ],
 )
 
 go_test(
     name = "worker_test",
-    srcs = [
-        "worker2_test.go",
-        "worker_test.go",
-    ],
+    srcs = ["worker2_test.go"],
     embed = [":worker"],
     deps = [
-        "//go/metrics2",
         "//go/now",
         "//go/paramtools",
         "//go/repo_root",

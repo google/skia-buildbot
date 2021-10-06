@@ -1,12 +1,17 @@
 package worker
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"go.skia.org/infra/golden/go/sql/databuilder"
+
+	"go.skia.org/infra/go/repo_root"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
@@ -17,13 +22,14 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff/mocks"
+	"go.skia.org/infra/golden/go/sql"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	"go.skia.org/infra/golden/go/types"
 )
 
-func TestWorkerImpl2_CalculateDiffs_NoExistingData_Success(t *testing.T) {
+func TestWorkerImpl_CalculateDiffs_NoExistingData_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
@@ -60,7 +66,7 @@ func TestWorkerImpl2_CalculateDiffs_NoExistingData_Success(t *testing.T) {
 	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
-func TestWorkerImpl2_CalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
+func TestWorkerImpl_CalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
@@ -109,7 +115,7 @@ func TestWorkerImpl2_CalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) 
 	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
-func TestWorkerImpl2_CalculateDiffs_DiffSubset_Success(t *testing.T) {
+func TestWorkerImpl_CalculateDiffs_DiffSubset_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
@@ -163,7 +169,7 @@ func TestWorkerImpl2_CalculateDiffs_DiffSubset_Success(t *testing.T) {
 	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
-func TestWorkerImpl2_CalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
+func TestWorkerImpl_CalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
@@ -173,7 +179,7 @@ func TestWorkerImpl2_CalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *
 	sparseData := makeSparseData()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, sparseData))
 	waitForSystemTime()
-	w := NewV2(db, &fsImageSource{root: kitchenSinkRoot(t)}, 3)
+	w := New(db, &fsImageSource{root: kitchenSinkRoot(t)}, 3)
 
 	grouping := paramtools.Params{
 		types.CorpusField:     dks.RoundCorpus,
@@ -202,7 +208,7 @@ func TestWorkerImpl2_CalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *
 	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
-func TestWorkerImpl2_CalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
+func TestWorkerImpl_CalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
@@ -219,7 +225,7 @@ func TestWorkerImpl2_CalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA02Pos).Return(b02, nil)
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA04Unt).Return(nil, errors.New("not found"))
 
-	w := NewV2(db, mis, 2)
+	w := New(db, mis, 2)
 
 	grouping := paramtools.Params{
 		types.CorpusField:     "not used",
@@ -245,7 +251,7 @@ func TestWorkerImpl2_CalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 	assert.Equal(t, fakeNow, problem.ErrorTS)
 }
 
-func TestWorkerImpl2_CalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
+func TestWorkerImpl_CalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 2, 2, 2, 2, 0, time.UTC)
@@ -271,7 +277,7 @@ func TestWorkerImpl2_CalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA02Pos).Return(b02, nil)
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA04Unt).Return([]byte(`not a png`), nil)
 
-	w := NewV2(db, mis, 2)
+	w := New(db, mis, 2)
 
 	grouping := paramtools.Params{
 		types.CorpusField:     "not used",
@@ -297,7 +303,7 @@ func TestWorkerImpl2_CalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 	assert.Equal(t, fakeNow, problem.ErrorTS)
 }
 
-func TestWorkerImpl2_GetTriagedDigests_Success(t *testing.T) {
+func TestWorkerImpl_GetTriagedDigests_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -305,7 +311,7 @@ func TestWorkerImpl2_GetTriagedDigests_Success(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 	waitForSystemTime()
 
-	w := NewV2(db, nil, 100)
+	w := New(db, nil, 100)
 
 	squareGrouping := paramtools.Params{types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: dks.SquareTest}
 	triangleGrouping := paramtools.Params{types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: dks.TriangleTest}
@@ -331,7 +337,7 @@ func TestWorkerImpl2_GetTriagedDigests_Success(t *testing.T) {
 	}, actualCircle)
 }
 
-func TestWorkerImpl2_GetCommonAndRecentDigests_SmokeTest(t *testing.T) {
+func TestWorkerImpl_GetCommonAndRecentDigests_SmokeTest(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -339,7 +345,7 @@ func TestWorkerImpl2_GetCommonAndRecentDigests_SmokeTest(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 	waitForSystemTime()
 
-	w := NewV2(db, nil, 100)
+	w := New(db, nil, 100)
 
 	squareGrouping := paramtools.Params{types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: dks.SquareTest}
 
@@ -352,6 +358,103 @@ func TestWorkerImpl2_GetCommonAndRecentDigests_SmokeTest(t *testing.T) {
 	}, actualSquare)
 }
 
-func newWorker2UsingImagesFromKitchenSink(t *testing.T, db *pgxpool.Pool) *WorkerImpl2 {
-	return NewV2(db, &fsImageSource{root: kitchenSinkRoot(t)}, 200)
+func newWorker2UsingImagesFromKitchenSink(t *testing.T, db *pgxpool.Pool) *WorkerImpl {
+	return New(db, &fsImageSource{root: kitchenSinkRoot(t)}, 200)
+}
+
+var kitchenSinkData = dks.Build()
+
+// expectedFromKS returns the computed diff metric from the kitchen sink data. It replaces the
+// default timestamp with the provided timestamp.
+func expectedFromKS(t *testing.T, left types.Digest, right types.Digest, ts time.Time) schema.DiffMetricRow {
+	leftB := d(left)
+	rightB := d(right)
+	for _, row := range kitchenSinkData.DiffMetrics {
+		if bytes.Equal(leftB, row.LeftDigest) && bytes.Equal(rightB, row.RightDigest) {
+			row.Timestamp = ts
+			return row
+		}
+	}
+	require.Fail(t, "Could not find diff metrics for %s-%s", left, right)
+	return schema.DiffMetricRow{}
+}
+
+func makeSparseData() schema.Tables {
+	b := databuilder.TablesBuilder{TileWidth: 1}
+	// Make a few commits, each on their own tile
+	b.CommitsWithData().
+		Insert("337", "whomever", "commit 337", "2020-12-01T00:00:01Z").
+		Insert("437", "whomever", "commit 437", "2020-12-01T00:00:02Z").
+		Insert("537", "whomever", "commit 537", "2020-12-01T00:00:03Z").
+		Insert("637", "whomever", "commit 637", "2020-12-01T00:00:04Z").
+		Insert("687", "whomever", "commit 687", "2020-12-01T00:00:05Z")
+
+	b.SetDigests(map[rune]types.Digest{
+		// All of these will be untriaged because diffs don't care about triage status
+		'a': dks.DigestC01Pos,
+		'b': dks.DigestC02Pos,
+		'c': dks.DigestC03Unt,
+		'd': dks.DigestC04Unt,
+		'e': dks.DigestC05Unt,
+	})
+	b.SetGroupingKeys(types.CorpusField, types.PrimaryKeyField)
+
+	b.AddTracesWithCommonKeys(paramtools.Params{
+		types.CorpusField: dks.RoundCorpus,
+	}).History("abcde").Keys([]paramtools.Params{{types.PrimaryKeyField: dks.CircleTest}}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		IngestedFrom([]string{"file1", "file2", "file3", "file4", "file5"}, // not used in this test
+			[]string{"2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z"})
+
+	b.AddIgnoreRule("userOne", "userOne", "2020-12-02T0:00:00Z", "nop ignore",
+		paramtools.ParamSet{"matches": []string{"nothing"}})
+
+	rv := b.Build()
+	rv.DiffMetrics = nil
+	return rv
+}
+
+func d(d types.Digest) schema.DigestBytes {
+	b, err := sql.DigestToBytes(d)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+func getAllDiffMetricRows(t *testing.T, db *pgxpool.Pool) []schema.DiffMetricRow {
+	rows := sqltest.GetAllRows(context.Background(), t, db, "DiffMetrics", &schema.DiffMetricRow{}).([]schema.DiffMetricRow)
+	for _, r := range rows {
+		// spot check that we handle arrays correctly.
+		assert.NotEqual(t, [4]int{0, 0, 0, 0}, r.MaxRGBADiffs)
+	}
+	return rows
+}
+
+func getAllProblemImageRows(t *testing.T, db *pgxpool.Pool) []schema.ProblemImageRow {
+	return sqltest.GetAllRows(context.Background(), t, db, "ProblemImages", &schema.ProblemImageRow{}).([]schema.ProblemImageRow)
+}
+
+// waitForSystemTime waits for a time greater than the duration mentioned in "AS OF SYSTEM TIME"
+// clauses in queries. This way, the queries will be accurate.
+func waitForSystemTime() {
+	time.Sleep(150 * time.Millisecond)
+}
+
+// fsImageSource returns an image from the local file system, looking in a given root directory.
+type fsImageSource struct {
+	root string
+}
+
+func (f fsImageSource) GetImage(_ context.Context, digest types.Digest) ([]byte, error) {
+	p := filepath.Join(f.root, string(digest)+".png")
+	return ioutil.ReadFile(p)
+}
+
+func kitchenSinkRoot(t *testing.T) string {
+	root, err := repo_root.Get()
+	if err != nil {
+		require.NoError(t, err)
+	}
+	return filepath.Join(root, "golden", "go", "sql", "datakitchensink", "img")
 }

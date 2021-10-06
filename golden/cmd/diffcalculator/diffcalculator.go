@@ -108,7 +108,7 @@ func main() {
 	}
 
 	sqlProcessor := &processor{
-		calculator:         worker.NewV2(db, gis, dcc.WindowSize),
+		calculator:         worker.New(db, gis, dcc.WindowSize),
 		db:                 db,
 		groupingCache:      gc,
 		primaryCounter:     metrics2.GetCounter("diffcalculator_primarybranch_processed"),

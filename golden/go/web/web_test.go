@@ -1150,7 +1150,7 @@ func TestStartCLCacheProcess_Success(t *testing.T) {
 	assert.True(t, wh.clSummaryCache.Contains("gerrit-internal_CL_new_tests"))
 }
 
-func TestStatusHandler2_Success(t *testing.T) {
+func TestStatusHandler_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	wh := Handlers{statusCache: frontend.GUIStatus{
@@ -1175,7 +1175,7 @@ func TestStatusHandler2_Success(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-	wh.StatusHandler2(w, r)
+	wh.StatusHandler(w, r)
 	const expectedJSON = `{"lastCommit":{"commit_time":1607644800,"id":"0000000110","hash":"f4412901bfb130a8774c0c719450d1450845f471","author":"userTwo@example.com","message":"commit 110","cl_url":""},"corpStatus":[{"name":"corners","untriagedCount":0},{"name":"round","untriagedCount":3}]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
@@ -1228,12 +1228,12 @@ func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/byblame?query=source_type%3Dthe_corpus", nil)
-	wh.ByBlameHandler2(w, r)
+	wh.ByBlameHandler(w, r)
 	const expectedJSON = `{"data":[{"groupID":"000054321:000054322","nDigests":2,"nTests":2,"affectedTests":[{"test":"alpha","num":1,"sample_digest":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},{"test":"beta","num":1,"sample_digest":"dddddddddddddddddddddddddddddddd"}],"commits":[{"commit_time":12345678000,"id":"000054321","hash":"1234567890abcdef1234567890abcdef12345678","author":"user1@example.com","message":"Probably broke something","cl_url":""},{"commit_time":12345678900,"id":"000054322","hash":"4567890abcdef1234567890abcdef1234567890a","author":"user2@example.com","message":"Might not have broke anything","cl_url":""}]}]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
-func TestClusterDiffHandler2_ValidInput_CorrectJSONReturned(t *testing.T) {
+func TestClusterDiffHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 	unittest.SmallTest(t)
 
 	ms := &mock_search2.API{}
@@ -1278,12 +1278,12 @@ func TestClusterDiffHandler2_ValidInput_CorrectJSONReturned(t *testing.T) {
 	// Taken from a production request
 	url := `/json/v2/clusterdiff?neg=false&pos=true&query=build_system%3Dbazel%26build_system%3Dwebpack%26name%3Dinfra-sk_paramset-sk_many-paramsets_no-titles&source_type=infra&unt=true`
 	r := httptest.NewRequest(http.MethodGet, url, nil)
-	wh.ClusterDiffHandler2(w, r)
+	wh.ClusterDiffHandler(w, r)
 	const expectedJSON = `{"nodes":[{"name":"b01b01b01b01b01b01b01b01b01b01b0","status":"positive"}],"links":[],"test":"my_test","paramsetByDigest":{"b01b01b01b01b01b01b01b01b01b01b0":{"key1":["value1","value2"]}},"paramsetsUnion":{"key1":["value1","value2"]}}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
-func TestCommitsHandler2_CorrectJSONReturned(t *testing.T) {
+func TestCommitsHandler_CorrectJSONReturned(t *testing.T) {
 	unittest.SmallTest(t)
 
 	ms := &mock_search2.API{}
@@ -1311,12 +1311,12 @@ func TestCommitsHandler2_CorrectJSONReturned(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-	wh.CommitsHandler2(w, r)
+	wh.CommitsHandler(w, r)
 	const expectedJSON = `[{"commit_time":100000000,"id":"commit_1","hash":"aaaaaaaaaaaaaaaaaaaaaaaaa","author":"user@example.com","message":"first commit","cl_url":""},{"commit_time":200000000,"id":"commit_2","hash":"bbbbbbbbbbbbbbbbbbbbbbbbb","author":"user@example.com","message":"second commit","cl_url":""}]`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
-func TestDigestListHandler2_CorrectJSONReturned(t *testing.T) {
+func TestDigestListHandler_CorrectJSONReturned(t *testing.T) {
 	unittest.SmallTest(t)
 
 	ms := &mock_search2.API{}
@@ -1338,12 +1338,12 @@ func TestDigestListHandler2_CorrectJSONReturned(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/digests?grouping=name%3DThisIsTheOnlyTest%26source_type%3Dwhatever", nil)
-	wh.DigestListHandler2(w, r)
+	wh.DigestListHandler(w, r)
 	const expectedJSON = `{"digests":["c01c01c01c01c01c01c01c01c01c01c0","c02c02c02c02c02c02c02c02c02c02c0"]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
-func TestDigestListHandler2_GroupingOmitted_Error(t *testing.T) {
+func TestDigestListHandler_GroupingOmitted_Error(t *testing.T) {
 	unittest.SmallTest(t)
 
 	wh := Handlers{
@@ -1352,7 +1352,7 @@ func TestDigestListHandler2_GroupingOmitted_Error(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/digests", nil)
-	wh.DigestListHandler2(w, r)
+	wh.DigestListHandler(w, r)
 	resp := w.Result()
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
@@ -1458,7 +1458,7 @@ func TestPatchsetsAndTryjobsForCL2_InvalidCL_ReturnsErrorCode(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }
 
-func TestTriageLogHandler2_PrimaryBranch_Success(t *testing.T) {
+func TestTriageLogHandler_PrimaryBranch_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -1474,7 +1474,7 @@ func TestTriageLogHandler2_PrimaryBranch_Success(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/triagelog", nil)
-	wh.TriageLogHandler2(w, r)
+	wh.TriageLogHandler(w, r)
 	const expectedJSON = `{"offset":0,"size":20,"total":11,"entries":[` +
 		`{"id":"4275c86b-d64a-ae38-d931-24ea9b94c551","name":"userFour@example.com","ts":1607691600000,"details":[{"grouping":{"name":"square","source_type":"corners"},"digest":"a09a09a09a09a09a09a09a09a09a09a0","label_before":"untriaged","label_after":"negative"}]},` +
 		`{"id":"734d45d8-555a-aca5-6c55-c45039e43f89","name":"fuzzy","ts":1607685060000,"details":[{"grouping":{"name":"square","source_type":"corners"},"digest":"a08a08a08a08a08a08a08a08a08a08a0","label_before":"untriaged","label_after":"positive"}]},` +
@@ -1490,7 +1490,7 @@ func TestTriageLogHandler2_PrimaryBranch_Success(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
-func TestTriageLogHandler2_RespectsPagination_Success(t *testing.T) {
+func TestTriageLogHandler_RespectsPagination_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -1506,14 +1506,14 @@ func TestTriageLogHandler2_RespectsPagination_Success(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/triagelog?size=2&offset=1", nil)
-	wh.TriageLogHandler2(w, r)
+	wh.TriageLogHandler(w, r)
 	const expectedJSON = `{"offset":1,"size":2,"total":11,"entries":[` +
 		`{"id":"734d45d8-555a-aca5-6c55-c45039e43f89","name":"fuzzy","ts":1607685060000,"details":[{"grouping":{"name":"square","source_type":"corners"},"digest":"a08a08a08a08a08a08a08a08a08a08a0","label_before":"untriaged","label_after":"positive"}]},` +
 		`{"id":"fe054e2f-822a-7e0c-3dfb-0e9586adffe4","name":"userThree@example.com","ts":1607595010000,"details":[{"grouping":{"name":"square","source_type":"corners"},"digest":"a07a07a07a07a07a07a07a07a07a07a0","label_before":"untriaged","label_after":"positive"}]}]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
-func TestTriageLogHandler2_ValidChangelist_Success(t *testing.T) {
+func TestTriageLogHandler_ValidChangelist_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -1532,14 +1532,14 @@ func TestTriageLogHandler2_ValidChangelist_Success(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/triagelog?crs=gerrit&changelist_id=CL_fix_ios", nil)
-	wh.TriageLogHandler2(w, r)
+	wh.TriageLogHandler(w, r)
 	const expectedJSON = `{"offset":0,"size":20,"total":2,"entries":[` +
 		`{"id":"f3d0959f-bb1d-aea6-050d-23022044eff3","name":"userOne@example.com","ts":1607576402000,"details":[{"grouping":{"name":"circle","source_type":"round"},"digest":"c06c06c06c06c06c06c06c06c06c06c0","label_before":"untriaged","label_after":"positive"}]},` +
 		`{"id":"955d5de7-c792-e317-bd7b-069e55bd76df","name":"userOne@example.com","ts":1607576400000,"details":[{"grouping":{"name":"triangle","source_type":"corners"},"digest":"b01b01b01b01b01b01b01b01b01b01b0","label_before":"positive","label_after":"untriaged"}]}]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
 
-func TestTriageLogHandler2_InvalidChangelist_ReturnsEmptyEntries(t *testing.T) {
+func TestTriageLogHandler_InvalidChangelist_ReturnsEmptyEntries(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -1558,7 +1558,7 @@ func TestTriageLogHandler2_InvalidChangelist_ReturnsEmptyEntries(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/triagelog?crs=gerrit&changelist_id=not_real", nil)
-	wh.TriageLogHandler2(w, r)
+	wh.TriageLogHandler(w, r)
 	const expectedJSON = `{"offset":0,"size":20,"total":0,"entries":[]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 }
@@ -2042,7 +2042,7 @@ func TestLatestPositiveDigest2_TracesExist_Success(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 			r = mux.SetURLVars(r, map[string]string{"traceID": string(traceID)})
 
-			wh.LatestPositiveDigestHandler2(w, r)
+			wh.LatestPositiveDigestHandler(w, r)
 			expectedJSONResponse := `{"digest":"` + string(expectedDigest) + `"}`
 			assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 		})
@@ -2075,7 +2075,7 @@ func TestLatestPositiveDigest2_InvalidTraceFormat_ReturnsError(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 	r = mux.SetURLVars(r, map[string]string{"traceID": "this is formatted incorrectly"})
 
-	wh.LatestPositiveDigestHandler2(w, r)
+	wh.LatestPositiveDigestHandler(w, r)
 	resp := w.Result()
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
@@ -2098,12 +2098,12 @@ func TestLatestPositiveDigest2_TraceDoesNotExist_ReturnsEmptyDigest(t *testing.T
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 	r = mux.SetURLVars(r, map[string]string{"traceID": "1234567890abcdef1234567890abcdef"})
 
-	wh.LatestPositiveDigestHandler2(w, r)
+	wh.LatestPositiveDigestHandler(w, r)
 	expectedJSONResponse := `{"digest":""}`
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 }
 
-func TestGetChangelistsHandler2_AllChangelists_Success(t *testing.T) {
+func TestGetChangelistsHandler_AllChangelists_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -2126,7 +2126,7 @@ func TestGetChangelistsHandler2_AllChangelists_Success(t *testing.T) {
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?size=50", nil)
-	wh.ChangelistsHandler2(w, r)
+	wh.ChangelistsHandler(w, r)
 	const expectedResponse = `{"changelists":[{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"example.com/CL_new_tests/gerrit-internal"},` +
 		`{"system":"gerrit","id":"CL_fix_ios","owner":"userOne@example.com","status":"open","subject":"Fix iOS","updated":"2020-12-10T04:05:06Z","url":"example.com/CL_fix_ios/gerrit"},` +
 		`{"system":"gerrit","id":"CLisabandoned","owner":"userOne@example.com","status":"abandoned","subject":"was abandoned","updated":"2020-06-06T06:06:00Z","url":"example.com/CLisabandoned/gerrit"},` +
@@ -2134,7 +2134,7 @@ func TestGetChangelistsHandler2_AllChangelists_Success(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 
-func TestGetChangelistsHandler2_RespectsPagination_Success(t *testing.T) {
+func TestGetChangelistsHandler_RespectsPagination_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -2157,13 +2157,13 @@ func TestGetChangelistsHandler2_RespectsPagination_Success(t *testing.T) {
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?size=2&offset=1", nil)
-	wh.ChangelistsHandler2(w, r)
+	wh.ChangelistsHandler(w, r)
 	const expectedResponse = `{"changelists":[{"system":"gerrit","id":"CL_fix_ios","owner":"userOne@example.com","status":"open","subject":"Fix iOS","updated":"2020-12-10T04:05:06Z","url":"example.com/CL_fix_ios/gerrit"},` +
 		`{"system":"gerrit","id":"CLisabandoned","owner":"userOne@example.com","status":"abandoned","subject":"was abandoned","updated":"2020-06-06T06:06:00Z","url":"example.com/CLisabandoned/gerrit"}],"offset":1,"size":2,"total":2147483647}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 
-func TestGetChangelistsHandler2_ActiveChangelists_Success(t *testing.T) {
+func TestGetChangelistsHandler_ActiveChangelists_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -2186,7 +2186,7 @@ func TestGetChangelistsHandler2_ActiveChangelists_Success(t *testing.T) {
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/json/v2/changelists?active=true", nil)
-	wh.ChangelistsHandler2(w, r)
+	wh.ChangelistsHandler(w, r)
 	const expectedResponse = `{"changelists":[{"system":"gerrit-internal","id":"CL_new_tests","owner":"userTwo@example.com","status":"open","subject":"Increase test coverage","updated":"2020-12-12T09:20:33Z","url":"example.com/CL_new_tests/gerrit-internal"},` +
 		`{"system":"gerrit","id":"CL_fix_ios","owner":"userOne@example.com","status":"open","subject":"Fix iOS","updated":"2020-12-10T04:05:06Z","url":"example.com/CL_fix_ios/gerrit"}],"offset":0,"size":20,"total":2147483647}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)

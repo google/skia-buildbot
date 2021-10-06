@@ -1,9 +1,13 @@
 package worker
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"image"
+	"image/png"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgtype"
@@ -31,9 +35,31 @@ const (
 	// This number was chosen based on experimentation with the Skia instance (see also
 	// getCommonAndRecentDigests
 	computeTotalGridCutoff = 300
+	// Downloading and decoding images appears to be a bottleneck for diffing. We spin up a small
+	// cache for each diff message to help retain those images while we calculate the diffs.
+	// This number was chosen to be above the number of digests returned by
+	// getCommonAndRecentDigests, because downloading and decoding images is the most
+	// computationally expensive of the whole process.
+	decodedImageCacheSize = 1000
+	// In an effort to prevent spamming the ProblemImages database, we skip known bad images for
+	// a period of time. This time is controlled by badImageCooldown and a TTL cache.
+	badImageCooldown = time.Minute
+
+	diffingRoutines = 4
+
+	// This batch size corresponds to tens of seconds worth of computation. If we are
+	// interrupted, we hope not to lose more than this amount of work.
+	reportingBatchSize = 25
 )
 
-type WorkerImpl2 struct {
+// ImageSource is an abstraction around a way to load the images. If images are stored in GCS, or
+// on a file system or wherever, they should be provided by this mechanism.
+type ImageSource interface {
+	// GetImage returns the raw bytes of an image with the corresponding Digest.
+	GetImage(ctx context.Context, digest types.Digest) ([]byte, error)
+}
+
+type WorkerImpl struct {
 	db              *pgxpool.Pool
 	imageSource     ImageSource
 	badDigestsCache *ttlcache.Cache
@@ -44,9 +70,9 @@ type WorkerImpl2 struct {
 	metricsCalculatedCounter metrics2.Counter
 }
 
-// NewV2 returns a diff worker version 2.
-func NewV2(db *pgxpool.Pool, src ImageSource, windowSize int) *WorkerImpl2 {
-	return &WorkerImpl2{
+// New returns a diff worker which uses the provided ImageSource.
+func New(db *pgxpool.Pool, src ImageSource, windowSize int) *WorkerImpl {
+	return &WorkerImpl{
 		db:                       db,
 		imageSource:              src,
 		windowSize:               windowSize,
@@ -60,7 +86,7 @@ func NewV2(db *pgxpool.Pool, src ImageSource, windowSize int) *WorkerImpl2 {
 // CalculateDiffs calculates the diffs for the given grouping. It either computes all of the diffs
 // if there are only "a few" digests, otherwise it computes a subset of them, taking into account
 // recency and triage status.
-func (w *WorkerImpl2) CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
+func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
 	ctx, span := trace.StartSpan(ctx, "worker2_CalculateDiffs")
 	if span.IsRecordingEvents() {
 		addMetadata(span, grouping, len(additional))
@@ -89,6 +115,15 @@ func (w *WorkerImpl2) CalculateDiffs(ctx context.Context, grouping paramtools.Pa
 	return skerr.Wrap(w.calculateAllDiffs(ctx, allDigests))
 }
 
+// addMetadata adds some attributes to the span so we can tell how much work it was supposed to
+// be doing when we are looking at the traces and the performance.
+func addMetadata(span *trace.Span, grouping paramtools.Params, leftDigestCount int) {
+	groupingStr, _ := json.Marshal(grouping)
+	span.AddAttributes(
+		trace.StringAttribute("grouping", string(groupingStr)),
+		trace.Int64Attribute("additional_digests", int64(leftDigestCount)))
+}
+
 // convertToDigestBytes converts a slice of hex-encoded digests to bytes (the native type in the
 // SQL DB. If any are invalid, they are ignored.
 func convertToDigestBytes(digests []types.Digest) []schema.DigestBytes {
@@ -106,7 +141,7 @@ func convertToDigestBytes(digests []types.Digest) []schema.DigestBytes {
 
 // getTileBounds returns the tile id corresponding to the commit of the beginning of the window,
 // as well as the most recent tile id (so we get enough data to do our comparisons).
-func (w *WorkerImpl2) getTileBounds(ctx context.Context) (schema.TileID, schema.TileID, error) {
+func (w *WorkerImpl) getTileBounds(ctx context.Context) (schema.TileID, schema.TileID, error) {
 	if w.windowSize <= 0 {
 		return 0, 0, nil
 	}
@@ -137,7 +172,7 @@ AS OF SYSTEM TIME '-0.1s'
 
 // getAllExisting returns the unique digests that were seen on the primary branch for a given
 // grouping starting at the given commit.
-func (w *WorkerImpl2) getAllExisting(ctx context.Context, beginTile, endTile schema.TileID, grouping paramtools.Params) ([]schema.DigestBytes, error) {
+func (w *WorkerImpl) getAllExisting(ctx context.Context, beginTile, endTile schema.TileID, grouping paramtools.Params) ([]schema.DigestBytes, error) {
 	if w.windowSize <= 0 {
 		return nil, nil
 	}
@@ -184,7 +219,7 @@ WHERE tile_id = ANY($1) AND trace_id = ANY($2)`
 }
 
 // getTracesForGroup returns all the traces that are a part of the specified grouping.
-func (w *WorkerImpl2) getTracesForGroup(ctx context.Context, id schema.GroupingID) ([]schema.TraceID, error) {
+func (w *WorkerImpl) getTracesForGroup(ctx context.Context, id schema.GroupingID) ([]schema.TraceID, error) {
 	ctx, span := trace.StartSpan(ctx, "getTracesForGroup")
 	defer span.End()
 	const statement = `SELECT trace_id FROM Traces
@@ -208,7 +243,7 @@ WHERE grouping_id = $1`
 
 // calculateAllDiffs calculates all diffs between each digest in the slice and all other digests.
 // If there are duplicates in the given slice, they will be removed and not double-calculated.
-func (w *WorkerImpl2) calculateAllDiffs(ctx context.Context, digests []schema.DigestBytes) error {
+func (w *WorkerImpl) calculateAllDiffs(ctx context.Context, digests []schema.DigestBytes) error {
 	if len(digests) == 0 {
 		return nil
 	}
@@ -232,7 +267,7 @@ func (w *WorkerImpl2) calculateAllDiffs(ctx context.Context, digests []schema.Di
 
 // getMissingDiffs creates a half-square of diffs, where each digest is compared to every other
 // digest. Then, it returns all those digestPairs of diffs that have not already been calculated.
-func (w *WorkerImpl2) getMissingDiffs(ctx context.Context, digests []schema.DigestBytes) ([]digestPair, error) {
+func (w *WorkerImpl) getMissingDiffs(ctx context.Context, digests []schema.DigestBytes) ([]digestPair, error) {
 	ctx, span := trace.StartSpan(ctx, "getMissingDiffs")
 	span.AddAttributes(trace.Int64Attribute("num_digests", int64(len(digests))))
 	defer span.End()
@@ -280,7 +315,7 @@ WHERE left_digest = ANY($1) AND right_digest = ANY($1)`
 	return toCalculate, nil
 }
 
-func (w *WorkerImpl2) calculateDiffSubset(ctx context.Context, grouping paramtools.Params, digests []schema.DigestBytes, startingTile schema.TileID) error {
+func (w *WorkerImpl) calculateDiffSubset(ctx context.Context, grouping paramtools.Params, digests []schema.DigestBytes, startingTile schema.TileID) error {
 	ctx, span := trace.StartSpan(ctx, "calculateDiffSubset")
 	defer span.End()
 	span.AddAttributes(trace.Int64Attribute("starting_digests", int64(len(digests))))
@@ -306,7 +341,7 @@ func (w *WorkerImpl2) calculateDiffSubset(ctx context.Context, grouping paramtoo
 	return skerr.Wrapf(w.calculateAllDiffs(ctx, digests), "calculating diffs for %d digests in grouping %#v", len(digests), grouping)
 }
 
-func (w *WorkerImpl2) computeDiffsInParallel(ctx context.Context, work []digestPair) error {
+func (w *WorkerImpl) computeDiffsInParallel(ctx context.Context, work []digestPair) error {
 	ctx, span := trace.StartSpan(ctx, "computeDiffsInParallel")
 	span.AddAttributes(trace.Int64Attribute("num_diffs", int64(len(work))))
 	defer span.End()
@@ -370,7 +405,7 @@ func (w *WorkerImpl2) computeDiffsInParallel(ctx context.Context, work []digestP
 // diff calculates the difference between the two images with the provided digests and returns
 // it in a format that can be inserted into the SQL database. If there is an error downloading
 // or decoding a digest, an error is returned along with the problematic digest.
-func (w *WorkerImpl2) diff(ctx context.Context, left, right types.Digest) (schema.DiffMetricRow, *imgError) {
+func (w *WorkerImpl) diff(ctx context.Context, left, right types.Digest) (schema.DiffMetricRow, *imgError) {
 	ctx, span := trace.StartSpan(ctx, "diff")
 	defer span.End()
 	lb, err := sql.DigestToBytes(left)
@@ -403,10 +438,20 @@ func (w *WorkerImpl2) diff(ctx context.Context, left, right types.Digest) (schem
 	}, nil
 }
 
+func max(diffs [4]int) int {
+	m := diffs[0]
+	for _, d := range diffs {
+		if d > m {
+			m = d
+		}
+	}
+	return m
+}
+
 // getImage retrieves and decodes the given image. If the image is cached, this function will
 // return the cached version. We choose to cache the decoded image (and not just the downloaded
 // image) because the decoding tends to take 3-5x longer than downloading.
-func (w *WorkerImpl2) getDecodedImage(ctx context.Context, digest types.Digest) (*image.NRGBA, error) {
+func (w *WorkerImpl) getDecodedImage(ctx context.Context, digest types.Digest) (*image.NRGBA, error) {
 	ctx, span := trace.StartSpan(ctx, "getDecodedImage")
 	defer span.End()
 	cache := getImgCache(ctx)
@@ -435,7 +480,7 @@ func (w *WorkerImpl2) getDecodedImage(ctx context.Context, digest types.Digest) 
 
 // writeMetrics writes two copies of the provided metrics (one for left-right and one for
 // right-left) to the SQL database.
-func (w *WorkerImpl2) writeMetrics(ctx context.Context, metrics []schema.DiffMetricRow) error {
+func (w *WorkerImpl) writeMetrics(ctx context.Context, metrics []schema.DiffMetricRow) error {
 	if len(metrics) == 0 {
 		return nil
 	}
@@ -466,7 +511,7 @@ max_channel_diff, combined_metric, dimensions_differ, ts) VALUES `
 }
 
 // reportProblemImage creates or updates a row in the ProblemImages table for the given digest.
-func (w *WorkerImpl2) reportProblemImage(ctx context.Context, imgErr *imgError) error {
+func (w *WorkerImpl) reportProblemImage(ctx context.Context, imgErr *imgError) error {
 	ctx, span := trace.StartSpan(ctx, "reportProblemImage")
 	defer span.End()
 	sklog.Warningf("Reporting problem with image %s: %s", imgErr.digest, imgErr.err)
@@ -486,7 +531,7 @@ DO UPDATE SET (num_errors, latest_error, error_ts) =
 
 // getTriagedDigests returns all triaged digests (positive and negative) for the given grouping
 // seen in the given tile or later.
-func (w *WorkerImpl2) getTriagedDigests(ctx context.Context, grouping paramtools.Params, startingTile schema.TileID) ([]schema.DigestBytes, error) {
+func (w *WorkerImpl) getTriagedDigests(ctx context.Context, grouping paramtools.Params, startingTile schema.TileID) ([]schema.DigestBytes, error) {
 	ctx, span := trace.StartSpan(ctx, "getTriagedDigests")
 	defer span.End()
 	const statement = `WITH
@@ -524,7 +569,7 @@ WHERE Expectations.label = 'p' OR Expectations.label = 'n'`
 // are either commonly seen in the current window or recently seen. This approach prevents us from
 // calculating too many diffs that "aren't worth it", commonly when there are several flaky traces
 // in a grouping.
-func (w *WorkerImpl2) getCommonAndRecentDigests(ctx context.Context, grouping paramtools.Params) ([]schema.DigestBytes, error) {
+func (w *WorkerImpl) getCommonAndRecentDigests(ctx context.Context, grouping paramtools.Params) ([]schema.DigestBytes, error) {
 	ctx, span := trace.StartSpan(ctx, "getCommonAndRecentDigests")
 	defer span.End()
 
@@ -587,5 +632,53 @@ SELECT * FROM MostRecent`
 	return rv, nil
 }
 
+type digestPair struct {
+	left  types.Digest
+	right types.Digest
+}
+
+// newDigestPair returns a digestPair in a "canonical" order, such that left < right. This avoids
+// effective duplicates (since comparing left to right is the same right to left).
+func newDigestPair(one, two types.Digest) digestPair {
+	if one < two {
+		return digestPair{left: one, right: two}
+	}
+	return digestPair{left: two, right: one}
+}
+
+type imgError struct {
+	err    error
+	digest types.Digest
+}
+
+type contextType string
+
+const imgCacheContextKey contextType = "imgCache"
+
+// addImgCache adds a cache of decoded images to the context, so we can use it in leaf
+// functions more easily.
+func addImgCache(ctx context.Context, cache *lru.Cache) context.Context {
+	return context.WithValue(ctx, imgCacheContextKey, cache)
+}
+
+func getImgCache(ctx context.Context) *lru.Cache {
+	c, ok := ctx.Value(imgCacheContextKey).(*lru.Cache)
+	if !ok {
+		return nil
+	}
+	return c
+}
+
+// decode decodes the provided bytes as a PNG and returns them.
+func decode(ctx context.Context, b []byte) (*image.NRGBA, error) {
+	ctx, span := trace.StartSpan(ctx, "decode")
+	defer span.End()
+	im, err := png.Decode(bytes.NewReader(b))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return diff.GetNRGBA(im), nil
+}
+
 // Make sure WorkerImpl fulfills the diff.Calculator interface.
-var _ diff.Calculator = (*WorkerImpl2)(nil)
+var _ diff.Calculator = (*WorkerImpl)(nil)
