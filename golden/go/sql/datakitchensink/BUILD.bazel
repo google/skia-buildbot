@@ -22,9 +22,12 @@ go_test(
     data = glob(["img/**"]),
     deps = [
         ":datakitchensink",
+        "//go/paramtools",
         "//go/testutils/unittest",
+        "//golden/go/sql",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",
+        "//golden/go/types",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

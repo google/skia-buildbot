@@ -1583,10 +1583,6 @@ func TestUndoExpectationChanges_ExistingRecordOnPrimaryBranch_Success(t *testing
 	require.NotZero(t, recordID)
 	undoTime := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
 	const undoUser = "undo_user@example.com"
-	_, squareGroupingID := sql.SerializeMap(paramtools.Params{
-		types.CorpusField:     dks.CornersCorpus,
-		types.PrimaryKeyField: dks.SquareTest,
-	})
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -1612,14 +1608,14 @@ func TestUndoExpectationChanges_ExistingRecordOnPrimaryBranch_Success(t *testing
 	deltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{})
 	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
 		ExpectationRecordID: newRecordID,
-		GroupingID:          squareGroupingID,
+		GroupingID:          dks.SquareGroupingID,
 		Digest:              d(dks.DigestA01Pos),
 		LabelBefore:         schema.LabelPositive,
 		LabelAfter:          schema.LabelUntriaged,
 	})
 	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
 		ExpectationRecordID: newRecordID,
-		GroupingID:          squareGroupingID,
+		GroupingID:          dks.SquareGroupingID,
 		Digest:              d(dks.DigestA02Pos),
 		LabelBefore:         schema.LabelPositive,
 		LabelAfter:          schema.LabelUntriaged,
@@ -1627,13 +1623,13 @@ func TestUndoExpectationChanges_ExistingRecordOnPrimaryBranch_Success(t *testing
 
 	exps := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{})
 	assert.Contains(t, exps, schema.ExpectationRow{
-		GroupingID:          squareGroupingID,
+		GroupingID:          dks.SquareGroupingID,
 		Digest:              d(dks.DigestA01Pos),
 		Label:               schema.LabelUntriaged,
 		ExpectationRecordID: &newRecordID,
 	})
 	assert.Contains(t, exps, schema.ExpectationRow{
-		GroupingID:          squareGroupingID,
+		GroupingID:          dks.SquareGroupingID,
 		Digest:              d(dks.DigestA02Pos),
 		Label:               schema.LabelUntriaged,
 		ExpectationRecordID: &newRecordID,
@@ -1662,11 +1658,6 @@ func TestUndoExpectationChanges_ExistingRecordOnCL_Success(t *testing.T) {
 	require.NotZero(t, recordID)
 	undoTime := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
 	const undoUser = "undo_user@example.com"
-	_, triangleGroupingID := sql.SerializeMap(paramtools.Params{
-		types.CorpusField:     dks.CornersCorpus,
-		types.PrimaryKeyField: dks.TriangleTest,
-	})
-
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
@@ -1692,7 +1683,7 @@ func TestUndoExpectationChanges_ExistingRecordOnCL_Success(t *testing.T) {
 	deltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{})
 	assert.Contains(t, deltas, schema.ExpectationDeltaRow{
 		ExpectationRecordID: newRecordID,
-		GroupingID:          triangleGroupingID,
+		GroupingID:          dks.TriangleGroupingID,
 		Digest:              d(dks.DigestB01Pos),
 		LabelBefore:         schema.LabelUntriaged,
 		LabelAfter:          schema.LabelPositive,
@@ -1701,7 +1692,7 @@ func TestUndoExpectationChanges_ExistingRecordOnCL_Success(t *testing.T) {
 	exps := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchExpectations", &schema.SecondaryBranchExpectationRow{})
 	assert.Contains(t, exps, schema.SecondaryBranchExpectationRow{
 		BranchName:          expectedBranchName,
-		GroupingID:          triangleGroupingID,
+		GroupingID:          dks.TriangleGroupingID,
 		Digest:              d(dks.DigestB01Pos),
 		Label:               schema.LabelPositive,
 		ExpectationRecordID: newRecordID,
@@ -1742,11 +1733,6 @@ func TestTriage2_SingleDigestOnPrimaryBranch_Success(t *testing.T) {
 	const user = "single_triage@example.com"
 	fakeNow := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
 
-	_, circleGroupingID := sql.SerializeMap(paramtools.Params{
-		types.CorpusField:     dks.RoundCorpus,
-		types.PrimaryKeyField: dks.CircleTest,
-	})
-
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			DB: db,
@@ -1776,7 +1762,7 @@ func TestTriage2_SingleDigestOnPrimaryBranch_Success(t *testing.T) {
 	newDeltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{}, whereClause)
 	assert.ElementsMatch(t, []schema.ExpectationDeltaRow{{
 		ExpectationRecordID: newRecordID,
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestC03Unt),
 		LabelBefore:         schema.LabelUntriaged,
 		LabelAfter:          schema.LabelPositive,
@@ -1784,7 +1770,7 @@ func TestTriage2_SingleDigestOnPrimaryBranch_Success(t *testing.T) {
 
 	exps := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{})
 	assert.Contains(t, exps, schema.ExpectationRow{
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestC03Unt),
 		Label:               schema.LabelPositive,
 		ExpectationRecordID: &newRecordID,
@@ -1801,11 +1787,6 @@ func TestTriage2_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAuthor(t *testing.
 	const user = "not_me@example.com"
 	const algorithmName = "fuzzy"
 	fakeNow := time.Date(2021, time.July, 4, 4, 4, 4, 0, time.UTC)
-
-	_, circleGroupingID := sql.SerializeMap(paramtools.Params{
-		types.CorpusField:     dks.RoundCorpus,
-		types.PrimaryKeyField: dks.CircleTest,
-	})
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -1837,7 +1818,7 @@ func TestTriage2_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAuthor(t *testing.
 	newDeltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{}, whereClause)
 	assert.ElementsMatch(t, []schema.ExpectationDeltaRow{{
 		ExpectationRecordID: newRecordID,
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestC03Unt),
 		LabelBefore:         schema.LabelUntriaged,
 		LabelAfter:          schema.LabelPositive,
@@ -1845,7 +1826,7 @@ func TestTriage2_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAuthor(t *testing.
 
 	exps := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{})
 	assert.Contains(t, exps, schema.ExpectationRow{
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestC03Unt),
 		Label:               schema.LabelPositive,
 		ExpectationRecordID: &newRecordID,
@@ -1865,14 +1846,6 @@ func TestTriage2_BulkTriage_PrimaryBranch_Success(t *testing.T) {
 	// after the bulk triage operation.
 	existingRecordID, err := uuid.Parse("65693cef-0220-f0aa-3503-1d5df6548ac9")
 	require.NoError(t, err)
-	_, triangleGroupingID := sql.SerializeMap(paramtools.Params{
-		types.CorpusField:     dks.CornersCorpus,
-		types.PrimaryKeyField: dks.TriangleTest,
-	})
-	_, circleGroupingID := sql.SerializeMap(paramtools.Params{
-		types.CorpusField:     dks.RoundCorpus,
-		types.PrimaryKeyField: dks.CircleTest,
-	})
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -1908,19 +1881,19 @@ func TestTriage2_BulkTriage_PrimaryBranch_Success(t *testing.T) {
 	newDeltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{}, whereClause)
 	assert.ElementsMatch(t, []schema.ExpectationDeltaRow{{
 		ExpectationRecordID: newRecordID,
-		GroupingID:          triangleGroupingID,
+		GroupingID:          dks.TriangleGroupingID,
 		Digest:              d(dks.DigestB01Pos),
 		LabelBefore:         schema.LabelPositive,
 		LabelAfter:          schema.LabelUntriaged,
 	}, {
 		ExpectationRecordID: newRecordID,
-		GroupingID:          triangleGroupingID,
+		GroupingID:          dks.TriangleGroupingID,
 		Digest:              d(dks.DigestB02Pos),
 		LabelBefore:         schema.LabelPositive,
 		LabelAfter:          schema.LabelNegative,
 	}, {
 		ExpectationRecordID: newRecordID,
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestC03Unt),
 		LabelBefore:         schema.LabelUntriaged,
 		LabelAfter:          schema.LabelPositive,
@@ -1928,25 +1901,25 @@ func TestTriage2_BulkTriage_PrimaryBranch_Success(t *testing.T) {
 
 	exps := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{})
 	assert.Contains(t, exps, schema.ExpectationRow{
-		GroupingID:          triangleGroupingID,
+		GroupingID:          dks.TriangleGroupingID,
 		Digest:              d(dks.DigestB01Pos),
 		Label:               schema.LabelUntriaged,
 		ExpectationRecordID: &newRecordID,
 	})
 	assert.Contains(t, exps, schema.ExpectationRow{
-		GroupingID:          triangleGroupingID,
+		GroupingID:          dks.TriangleGroupingID,
 		Digest:              d(dks.DigestB02Pos),
 		Label:               schema.LabelNegative,
 		ExpectationRecordID: &newRecordID,
 	})
 	assert.Contains(t, exps, schema.ExpectationRow{
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestC03Unt),
 		Label:               schema.LabelPositive,
 		ExpectationRecordID: &newRecordID,
 	})
 	assert.Contains(t, exps, schema.ExpectationRow{
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestBlank),
 		Label:               schema.LabelNegative, // unchanged
 		ExpectationRecordID: &existingRecordID,    // unchanged
@@ -1966,11 +1939,6 @@ func TestTriage2_BulkTriage_OnCL_Success(t *testing.T) {
 	// This is the ID associated with triaging DigestC01Pos as positive on the primary branch.
 	existingID, err := uuid.Parse("94a63df2-33d3-97ad-f4d7-341f76ff8cb6")
 	require.NoError(t, err)
-
-	_, circleGroupingID := sql.SerializeMap(paramtools.Params{
-		types.CorpusField:     dks.RoundCorpus,
-		types.PrimaryKeyField: dks.CircleTest,
-	})
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -2005,13 +1973,13 @@ func TestTriage2_BulkTriage_OnCL_Success(t *testing.T) {
 	newDeltas := sqltest.GetAllRows(ctx, t, db, "ExpectationDeltas", &schema.ExpectationDeltaRow{}, whereClause)
 	assert.ElementsMatch(t, []schema.ExpectationDeltaRow{{
 		ExpectationRecordID: newRecordID,
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestC06Pos_CL),
 		LabelBefore:         schema.LabelUntriaged, // This state is pulled from the primary branch
 		LabelAfter:          schema.LabelNegative,
 	}, {
 		ExpectationRecordID: newRecordID,
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestC01Pos),
 		LabelBefore:         schema.LabelPositive,
 		LabelAfter:          schema.LabelNegative,
@@ -2020,14 +1988,14 @@ func TestTriage2_BulkTriage_OnCL_Success(t *testing.T) {
 	clExps := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchExpectations", &schema.SecondaryBranchExpectationRow{})
 	assert.Contains(t, clExps, schema.SecondaryBranchExpectationRow{
 		BranchName:          expectedBranch,
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestC06Pos_CL),
 		Label:               schema.LabelNegative,
 		ExpectationRecordID: newRecordID,
 	})
 	assert.Contains(t, clExps, schema.SecondaryBranchExpectationRow{
 		BranchName:          expectedBranch,
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestC01Pos),
 		Label:               schema.LabelNegative,
 		ExpectationRecordID: newRecordID,
@@ -2036,7 +2004,7 @@ func TestTriage2_BulkTriage_OnCL_Success(t *testing.T) {
 	// Primary branch expectations stay the same
 	exps := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{})
 	assert.Contains(t, exps, schema.ExpectationRow{
-		GroupingID:          circleGroupingID,
+		GroupingID:          dks.CircleGroupingID,
 		Digest:              d(dks.DigestC01Pos),
 		Label:               schema.LabelPositive,
 		ExpectationRecordID: &existingID,
@@ -2295,6 +2263,64 @@ func TestStartIgnoredTraceCacheProcess(t *testing.T) {
 	}}, wh.ignoredTracesCache)
 }
 
+func TestPositiveDigestsByGroupingIDHandler_ExistingGrouping_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB:         db,
+			WindowSize: 100,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	// We chose the square grouping for this test because it has some traces with more than one
+	// positive digest.
+	r := httptest.NewRequest(http.MethodGet, "/json/v1/positivedigestsbygrouping/"+dks.SquareGroupingIDHex, nil)
+	r = setGroupingID(r, dks.SquareGroupingIDHex)
+	wh.PositiveDigestsByGroupingIDHandler(w, r)
+	const expectedResponse = `{"grouping_id":"0f2ffd3aef866dc6155bcbc5697b0604","grouping_keys":{"name":"square","source_type":"corners"},"traces":[` +
+		`{"trace_id":"0e87221433a6de545e32d846fd7c3e6c","digests":["a01a01a01a01a01a01a01a01a01a01a0"]},` +
+		`{"trace_id":"36d3000d3dfb6f8fba4e631ef84332af","digests":["a02a02a02a02a02a02a02a02a02a02a0"]},` +
+		`{"trace_id":"4686a4134535ad178b67325f5f2f613a","digests":["a01a01a01a01a01a01a01a01a01a01a0","a07a07a07a07a07a07a07a07a07a07a0","a08a08a08a08a08a08a08a08a08a08a0"]},` +
+		`{"trace_id":"6bf423a4c00785c9b00725b3f58fed04","digests":["a02a02a02a02a02a02a02a02a02a02a0","a03a03a03a03a03a03a03a03a03a03a0"]},` +
+		`{"trace_id":"6cd155c000787257b3401e820b30f68e","digests":["a01a01a01a01a01a01a01a01a01a01a0"]},` +
+		`{"trace_id":"796f2cc3f33fa6a9a1f4bef3aa9c48c4","digests":["a02a02a02a02a02a02a02a02a02a02a0","a03a03a03a03a03a03a03a03a03a03a0"]},` +
+		`{"trace_id":"9c950b8ff6329f102175e4df2092e762","digests":["a02a02a02a02a02a02a02a02a02a02a0","a03a03a03a03a03a03a03a03a03a03a0"]},` +
+		`{"trace_id":"a3236d47225472d6c143f093e7ed6065","digests":["a02a02a02a02a02a02a02a02a02a02a0"]},` +
+		`{"trace_id":"a95ccd579ee7c4771019a3374753db36","digests":["a01a01a01a01a01a01a01a01a01a01a0"]},` +
+		`{"trace_id":"cf819763d5a7e8b3955ec65933f121e9","digests":["a01a01a01a01a01a01a01a01a01a01a0"]},` +
+		`{"trace_id":"ea0999cdbdb83a632327e9a1d65a565a","digests":["a01a01a01a01a01a01a01a01a01a01a0"]}]}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
+func TestPositiveDigestsByGroupingIDHandler_NonExistingGrouping_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v1/positivedigestsbygrouping/a02a02a02a02a02a02a02a02a02a02a0", nil)
+	r = setGroupingID(r, "a02a02a02a02a02a02a02a02a02a02a0")
+	wh.PositiveDigestsByGroupingIDHandler(w, r)
+	resp := w.Result()
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"
@@ -2354,6 +2380,11 @@ func assertDiffImageWas(t *testing.T, w *httptest.ResponseRecorder, expectedText
 // the handler directly, we need to set those variables ourselves.
 func setID(r *http.Request, id string) *http.Request {
 	return mux.SetURLVars(r, map[string]string{"id": id})
+}
+
+// setGroupingID works much like setID.
+func setGroupingID(r *http.Request, id string) *http.Request {
+	return mux.SetURLVars(r, map[string]string{"groupingID": id})
 }
 
 // waitForSystemTime waits for a time greater than the duration mentioned in "AS OF SYSTEM TIME"

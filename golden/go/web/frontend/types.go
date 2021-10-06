@@ -581,3 +581,18 @@ type GUICorpusStatus struct {
 	// Number of untriaged digests in HEAD.
 	UntriagedCount int `json:"untriagedCount"`
 }
+
+type PositiveDigestsByGroupingIDResponse struct {
+	// GroupingID is the hex encoded MD5 hash of GroupingKeys
+	GroupingID string `json:"grouping_id"`
+	// GroupingKeys are the key/value pairs that define a grouping. By default this is the
+	// corpus (called source_type for historical reasons) and name (i.e. the test name).
+	GroupingKeys paramtools.Params `json:"grouping_keys"`
+	// Traces contains all positive digests seen on a given trace which has the grouping GroupingID.
+	Traces []PositiveDigestsTraceInfo `json:"traces"`
+}
+
+type PositiveDigestsTraceInfo struct {
+	TraceID         string         `json:"trace_id"`
+	PositiveDigests []types.Digest `json:"digests"`
+}

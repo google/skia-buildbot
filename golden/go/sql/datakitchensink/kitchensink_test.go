@@ -1,16 +1,21 @@
 package datakitchensink_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/golden/go/sql/datakitchensink"
+	"go.skia.org/infra/golden/go/sql"
+	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
+	"go.skia.org/infra/golden/go/types"
 )
 
 func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
@@ -19,7 +24,7 @@ func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
-	data := datakitchensink.Build()
+	data := dks.Build()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, data))
 
 	// Spot check the data.
@@ -81,4 +86,40 @@ func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
 	count = 0
 	assert.NoError(t, row.Scan(&count))
 	assert.Equal(t, 10, count)
+}
+
+func TestGroupingIDs_HardCodedValuesMatchComputedValuesAndAreInComputedData(t *testing.T) {
+	unittest.MediumTest(t)
+	data := dks.Build()
+	test := func(name, hardCodedHex string, hardCodedID []byte, groupingKeys paramtools.Params) {
+		t.Run(name, func(t *testing.T) {
+			_, idBytes := sql.SerializeMap(groupingKeys)
+			assert.Equal(t, idBytes, hardCodedID)
+			expectedID := hex.EncodeToString(idBytes)
+			assert.Equal(t, expectedID, hardCodedHex)
+
+			// Make sure grouping exists in the data tables
+			found := false
+			for _, g := range data.Groupings {
+				if bytes.Equal(g.GroupingID, idBytes) {
+					found = true
+					assert.Equal(t, g.Keys, groupingKeys)
+				}
+			}
+			assert.True(t, found, "grouping was not in sample data tables")
+		})
+	}
+
+	test("CircleGroupingIDHex", dks.CircleGroupingIDHex, dks.CircleGroupingID, paramtools.Params{
+		types.CorpusField:     dks.RoundCorpus,
+		types.PrimaryKeyField: dks.CircleTest,
+	})
+	test("TriangleGroupingIDHex", dks.TriangleGroupingIDHex, dks.TriangleGroupingID, paramtools.Params{
+		types.CorpusField:     dks.CornersCorpus,
+		types.PrimaryKeyField: dks.TriangleTest,
+	})
+	test("SquareGroupingIDHex", dks.SquareGroupingIDHex, dks.SquareGroupingID, paramtools.Params{
+		types.CorpusField:     dks.CornersCorpus,
+		types.PrimaryKeyField: dks.SquareTest,
+	})
 }

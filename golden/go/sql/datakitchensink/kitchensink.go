@@ -1,6 +1,7 @@
 package datakitchensink
 
 import (
+	"encoding/hex"
 	"path/filepath"
 	"time"
 
@@ -658,9 +659,31 @@ const (
 	IOSFixTriangleTestsBreakCircleTestsCommitID = "0000000108"
 )
 
+// These are the computed trace ids for the tests in the example data. Their values are validated
+// via a test.
+const (
+	CircleGroupingIDHex   = "d612d801ac91001dd4b0024883aaf742"
+	SquareGroupingIDHex   = "0f2ffd3aef866dc6155bcbc5697b0604"
+	TriangleGroupingIDHex = "aa8d3c14238a4f717b9a99f7fe3735a7"
+)
+
+var (
+	CircleGroupingID   = mustDecode(CircleGroupingIDHex)
+	SquareGroupingID   = mustDecode(SquareGroupingIDHex)
+	TriangleGroupingID = mustDecode(TriangleGroupingIDHex)
+)
+
 var (
 	Tryjob01LastIngested = time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC)
 	Tryjob02LastIngested = time.Date(2020, time.December, 10, 3, 2, 1, 0, time.UTC)
 	Tryjob03LastIngested = time.Date(2020, time.December, 10, 3, 44, 44, 0, time.UTC)
 	Tryjob04LastIngested = time.Date(2020, time.December, 12, 8, 9, 10, 0, time.UTC)
 )
+
+func mustDecode(hexString string) schema.GroupingID {
+	b, err := hex.DecodeString(hexString)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}

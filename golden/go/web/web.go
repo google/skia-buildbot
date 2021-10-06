@@ -2211,3 +2211,172 @@ JOIN Expectations ON ValuesAtHead.grouping_id = Expectations.grouping_id
 	wh.ignoredTracesCache = ignoredTraces
 	return nil
 }
+
+// PositiveDigestsByGroupingIDHandler returns all positively triaged digests seen in the sliding
+// window for a given grouping, split up by trace.
+// Used by https://source.chromium.org/chromium/chromium/src/+/main:content/test/gpu/gold_inexact_matching/base_parameter_optimizer.py
+func (wh *Handlers) PositiveDigestsByGroupingIDHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "web_PositiveDigestsByGroupingIDHandler", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+
+	gID := mux.Vars(r)["groupingID"]
+	if len(gID) != 2*md5.Size {
+		http.Error(w, "Must specify 'groupingID', which is a hex-encoded MD5 hash of the JSON encoded group keys (e.g. source_type and name)", http.StatusBadRequest)
+		return
+	}
+	groupingID, err := hex.DecodeString(gID)
+	if err != nil {
+		httputils.ReportError(w, err, "Invalid 'groupingID', which is a hex-encoded MD5 hash of the JSON encoded group keys (e.g. source_type and name)", http.StatusBadRequest)
+		return
+	}
+
+	groupingKeys, err := wh.lookupGrouping(ctx, groupingID)
+	if err != nil {
+		httputils.ReportError(w, err, "Unknown groupingID", http.StatusBadRequest)
+		return
+	}
+
+	beginTile, endTile, err := wh.getTilesInWindow(ctx)
+	if err != nil {
+		httputils.ReportError(w, err, "Error while finding commits with data", http.StatusInternalServerError)
+		return
+	}
+
+	resp, err := wh.getPositiveDigests(ctx, beginTile, endTile, groupingID)
+	if err != nil {
+		httputils.ReportError(w, err, "Error while finding positive traces for grouping", http.StatusInternalServerError)
+		return
+	}
+	resp.GroupingID = gID
+	resp.GroupingKeys = groupingKeys
+
+	sendJSONResponse(w, resp)
+}
+
+// lookupGrouping returns the keys associated with the provided grouping id.
+func (wh *Handlers) lookupGrouping(ctx context.Context, id schema.GroupingID) (paramtools.Params, error) {
+	ctx, span := trace.StartSpan(ctx, "lookupGrouping")
+	defer span.End()
+
+	row := wh.DB.QueryRow(ctx, `SELECT keys FROM Groupings WHERE grouping_id = $1`, id)
+	var keys paramtools.Params
+	err := row.Scan(&keys)
+	if err != nil {
+		return nil, skerr.Wrap(err) // likely the grouping was not found
+	}
+	return keys, nil
+}
+
+// getTilesInWindow returns the start and end tile of the given window.
+func (wh *Handlers) getTilesInWindow(ctx context.Context) (schema.TileID, schema.TileID, error) {
+	ctx, span := trace.StartSpan(ctx, "getTilesInWindow")
+	defer span.End()
+	const statement = `WITH
+RecentCommits AS (
+	SELECT tile_id, commit_id FROM CommitsWithData
+	AS OF SYSTEM TIME '-0.1s'
+	ORDER BY commit_id DESC LIMIT $1
+)
+SELECT MIN(tile_id), MAX(tile_id) FROM RecentCommits
+AS OF SYSTEM TIME '-0.1s'
+`
+	row := wh.DB.QueryRow(ctx, statement, wh.WindowSize)
+	var lc pgtype.Int4
+	var mc pgtype.Int4
+	if err := row.Scan(&lc, &mc); err != nil {
+		if err == pgx.ErrNoRows {
+			return 0, 0, nil // not enough commits seen, so start at tile 0.
+		}
+		return 0, 0, skerr.Wrapf(err, "getting latest commit")
+	}
+	if lc.Status == pgtype.Null || mc.Status == pgtype.Null {
+		// There are no commits with data, so start at tile 0.
+		return 0, 0, nil
+	}
+	return schema.TileID(lc.Int), schema.TileID(mc.Int), nil
+}
+
+// getPositiveDigests returns all digests which are triaged as positive in the given tiles that
+// belong to the provided grouping. These digests are split according to the traces that made them.
+func (wh *Handlers) getPositiveDigests(ctx context.Context, beginTile, endTile schema.TileID, groupingID schema.GroupingID) (frontend.PositiveDigestsByGroupingIDResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "getPositiveDigests")
+	defer span.End()
+
+	tracesForGroup, err := wh.getTracesForGroup(ctx, groupingID)
+	if err != nil {
+		return frontend.PositiveDigestsByGroupingIDResponse{}, skerr.Wrap(err)
+	}
+
+	tilesInRange := make([]schema.TileID, 0, endTile-beginTile+1)
+	for i := beginTile; i <= endTile; i++ {
+		tilesInRange = append(tilesInRange, i)
+	}
+	// Querying traces, and then digests is much faster because the indexes can be used more
+	// efficiently. kjlubick@ tried specifying INNER LOOKUP JOIN but that didn't work on v20.2.7
+	const statement = `
+WITH
+DigestsOfInterest AS (
+    SELECT DISTINCT digest, trace_id FROM TiledTraceDigests
+    WHERE tile_id = ANY($1) AND trace_id = ANY($2)
+)
+SELECT encode(DigestsOfInterest.trace_id, 'hex'), encode(DigestsOfInterest.digest, 'hex') FROM DigestsOfInterest
+JOIN Expectations ON grouping_id = $3 AND label = 'p' AND
+  Expectations.digest = DigestsOfInterest.digest
+ORDER BY 1, 2`
+
+	rows, err := wh.DB.Query(ctx, statement, tilesInRange, tracesForGroup, groupingID)
+	if err != nil {
+		return frontend.PositiveDigestsByGroupingIDResponse{}, skerr.Wrapf(err, "fetching digests")
+	}
+	defer rows.Close()
+	traceToDigests := make(map[string][]types.Digest, len(tracesForGroup))
+	for rows.Next() {
+		var d types.Digest
+		var t string
+		if err := rows.Scan(&t, &d); err != nil {
+			return frontend.PositiveDigestsByGroupingIDResponse{}, skerr.Wrap(err)
+		}
+		traceToDigests[t] = append(traceToDigests[t], d)
+	}
+
+	rv := frontend.PositiveDigestsByGroupingIDResponse{}
+	for traceID, digests := range traceToDigests {
+		rv.Traces = append(rv.Traces, frontend.PositiveDigestsTraceInfo{
+			TraceID:         traceID,
+			PositiveDigests: digests,
+		})
+	}
+	// Sort by trace ID for determinism - the digests should already be sorted
+	// because of the SQL query.
+	sort.Slice(rv.Traces, func(i, j int) bool {
+		return rv.Traces[i].TraceID < rv.Traces[j].TraceID
+	})
+	return rv, nil
+}
+
+// getTracesForGroup returns all the traces that are a part of the specified grouping.
+func (wh *Handlers) getTracesForGroup(ctx context.Context, id schema.GroupingID) ([]schema.TraceID, error) {
+	ctx, span := trace.StartSpan(ctx, "getTracesForGroup")
+	defer span.End()
+	const statement = `SELECT trace_id FROM Traces
+AS OF SYSTEM TIME '-0.1s'
+WHERE grouping_id = $1`
+	rows, err := wh.DB.Query(ctx, statement, id)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching trace ids")
+	}
+	defer rows.Close()
+	var rv []schema.TraceID
+	for rows.Next() {
+		var t schema.TraceID
+		if err := rows.Scan(&t); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, t)
+	}
+	return rv, nil
+}
