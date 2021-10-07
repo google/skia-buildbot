@@ -34,9 +34,9 @@ Once the SD card has been placed in an RPi and is running in the lab:
 ```bash
      $ cd //skolo/ansible/
      $ ansible-playbook ./switchboard/prepare-rpi-for-ansible.yml \
-         --extra-vars variable_hosts=<machine-name>
+         --limit <machine-name>
      $ ansible-playbook ./switchboard/rpi.yml \
-         --extra-vars variable_hosts=<machine-name>
+         --limit <machine-name>
 ```
 
 Now the RPi should be fully setup with adb, idevice-\*, a recent copy of

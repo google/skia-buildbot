@@ -34,7 +34,7 @@ libraries can find and use this by default.
 
 ## Variables
 
-This role uses the `skolo_account` variable defined in `hosts.ini`.
+This role uses the `skolo_account` variable defined in `hosts.yml`.
 
 The `copy_service_account_key__name` is the name of the berglas secret that
 contains the service account key to use.

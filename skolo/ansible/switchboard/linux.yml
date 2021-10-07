@@ -1,4 +1,4 @@
-# Configures a gapid/AGI test machine with everything it needs to run under switchboard.
+# Configures a Linux test machine with everything it needs to run under switchboard.
 - hosts: linux
   user: chrome-bot
   gather_facts: yes
