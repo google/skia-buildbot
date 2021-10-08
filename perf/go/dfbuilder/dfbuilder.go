@@ -24,14 +24,21 @@ import (
 )
 
 const (
-	// NEW_N_FROM_KEY_STEP is the length of time to do a search for each step
-	// when constructing a NewN* query.
-	NEW_N_FROM_KEY_STEP = 12 * time.Hour
-
-	// NEW_N_MAX_SEARCH is the minimum number of queries to perform that returned
+	// newNMaxSearch is the minimum number of queries to perform that returned
 	// no data before giving up.
 	// TODO(jcgregorio) Make this either a flag or config value.
-	NEW_N_MAX_SEARCH = 40
+	newNMaxSearch = 4
+
+	// It is possible for some ParamSet tiles to have "bad" data, for example, a
+	// tremendous amount of garbage data from a bad ingestion process. This
+	// timeout guards against that eventuality by limiting how long Queries get
+	// to run on each tile.
+	//
+	// Note that this value is much shorter than the default timeout for all SQL
+	// requests because during regression detection we can issue many Queries and
+	// as each one hits that bad ParamSet tile we can clog the backend with these
+	// long running queries.
+	singleTileQueryTimeout = time.Minute
 )
 
 // builder implements DataFrameBuilder using TraceStore.
@@ -148,7 +155,9 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			defer timer.NewWithSummary("perfserver_dfbuilder_new_by_tile", b.newByTileTimer).Stop()
 
 			// Query for matching traces in the given tile.
-			traces, err := b.store.QueryTraces(ctx, tileNumber, q)
+			queryContext, cancel := context.WithTimeout(ctx, singleTileQueryTimeout)
+			defer cancel()
+			traces, err := b.store.QueryTraces(queryContext, tileNumber, q)
 			if err != nil {
 				return err
 			}
@@ -303,6 +312,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		if err != nil {
 			return nil, fmt.Errorf("Failed building index range: %s", err)
 		}
+
 		df, err := b.new(ctx, headers, indices, q, progress, skip)
 		if err != nil {
 			return nil, fmt.Errorf("Failed while querying: %s", err)
@@ -323,7 +333,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		if nonMissing == 0 {
 			numStepsNoData += 1
 		}
-		if numStepsNoData > NEW_N_MAX_SEARCH {
+		if numStepsNoData > newNMaxSearch {
 			sklog.Infof("Failed querying: %s", q)
 			break
 		}
@@ -458,7 +468,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 		if nonMissing == 0 {
 			numStepsNoData += 1
 		}
-		if numStepsNoData > NEW_N_MAX_SEARCH {
+		if numStepsNoData > newNMaxSearch {
 			break
 		}
 
@@ -537,9 +547,11 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 	// to build the ParamSet. Do so over the two most recent tiles.
 	ps := paramtools.NewParamSet()
 
+	queryContext, cancel := context.WithTimeout(ctx, time.Duration(b.numPreflightTiles)*singleTileQueryTimeout)
+	defer cancel()
 	for i := 0; i < b.numPreflightTiles; i++ {
 		// Count the matches and sum the params in the tile.
-		out, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
+		out, err := b.store.QueryTracesIDOnly(queryContext, tileNumber, q)
 		if err != nil {
 			return -1, nil, fmt.Errorf("failed to query traces: %s", err)
 		}
@@ -587,8 +599,11 @@ func (b *builder) NumMatches(ctx context.Context, q *query.Query) (int64, error)
 		return -1, skerr.Wrap(err)
 	}
 
+	queryContext, cancel := context.WithTimeout(ctx, 2*singleTileQueryTimeout)
+	defer cancel()
+
 	// Count the matches in the first tile.
-	out, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
+	out, err := b.store.QueryTracesIDOnly(queryContext, tileNumber, q)
 	if err != nil {
 		return -1, skerr.Wrapf(err, "Failed to query traces.")
 	}
@@ -602,7 +617,7 @@ func (b *builder) NumMatches(ctx context.Context, q *query.Query) (int64, error)
 	tileNumber = tileNumber.Prev()
 	if tileNumber != types.BadTileNumber {
 		// Count the matches in the second tile.
-		out, err = b.store.QueryTracesIDOnly(ctx, tileNumber, q)
+		out, err = b.store.QueryTracesIDOnly(queryContext, tileNumber, q)
 		if err != nil {
 			return -1, fmt.Errorf("Failed to query traces: %s", err)
 		}
