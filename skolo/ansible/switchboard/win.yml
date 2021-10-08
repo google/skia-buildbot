@@ -7,6 +7,7 @@
   roles:
     - copy_authorized_keys
     - copy_service_account_key
+    - swarming_needs
     - role: install_test_machine_monitor
       test_machine_monitor_version:
         '{{ test_machine_monitor_version_override }}'

@@ -1,0 +1,13 @@
+- name: Install Python 3
+  win_package:
+    # Reference: https://docs.python.org/3.9/using/windows.html#installing-without-ui
+    path: https://www.python.org/ftp/python/3.9.7/python-3.9.7-amd64.exe
+    arguments:
+    - /quiet
+    - "TargetDir={{ win_python3_path }}"
+    - PrependPath=1
+    - Include_launcher=0
+    state: present
+
+- name: Install pywin32
+  win_command: "{{ win_python3_path }}\\Scripts\\pip.exe install pywin32"
