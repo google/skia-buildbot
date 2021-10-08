@@ -133,7 +133,7 @@ def skia_app_container(
         container_run_and_commit(
             name = rule_name,
             commands = run_commands_root,
-            docker_run_flags = ["--user", "root"],
+            docker_run_flags = ["--user", "root", "--entrypoint", "/bin/echo"],
             image = image_name + ".tar",
             tags = [
                 # container_run_and_commit requires the docker daemon to be
@@ -143,22 +143,20 @@ def skia_app_container(
         )
         image_name = ":" + rule_name + "_commit.tar"
 
-        # The above container_run_and_commit sets root as the default user.
-        # Now execute container_run_and_commit with a no-op command to set the
-        # default user back to skia.
+        # The above container_run_and_commit sets root as the default user and
+        # overrides the entrypoint.
+        # Now execute container_image using the previous image as base to set
+        # back skia as the default user and to set back the original entrypoint.
         rule_name = name
-        container_run_and_commit(
+        container_image(
             name = rule_name,
-            commands = ["whoami"],
-            docker_run_flags = ["--user", "skia"],
-            image = image_name,
-            tags = [
-                # container_run_and_commit requires the docker daemon to be
-                # running. This is not possible inside RBE.
-                "no-remote",
-            ],
+            base = image_name,
+            entrypoint = [entrypoint],
+            stamp = True,
+            tars = pkg_tars,
+            user = "skia",
         )
-        image_name = ":" + rule_name + "_commit.tar"
+        image_name = ":" + rule_name
 
     container_push(
         name = "push_" + name,
