@@ -49,3 +49,9 @@
     restart_interval: PT1M
     # ISO 8601 Duration format for no limit.
     execution_time_limit: PT0S
+
+- name: Allow test_machine_monitor to accept connections (needed for Prometheus to scrape metrics).
+  community.windows.win_firewall_rule:
+    name: test_machine_monitor.exe
+    program: "C:\\Users\\{{ skolo_account }}\\bin\\test_machine_monitor.exe"
+    action: allow
