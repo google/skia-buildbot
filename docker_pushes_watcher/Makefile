@@ -1,3 +1,4 @@
+include ../make/bazel.mk
 include ../kube/kube.mk
 
 .PHONY: build test pushk release push
@@ -8,9 +9,8 @@ build:
 test:
 	go test ./go/...
 
-release: build
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/docker_pushes_watcher ./../kube/go/pushk
-	./build_docker_release
+release:
+	$(BAZEL) run //docker_pushes_watcher:push_docker_pushes_watcher_container
 
 push: pushk release
 	pushk --use-temp-checkout docker_pushes_watcher
