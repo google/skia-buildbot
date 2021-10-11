@@ -169,10 +169,35 @@ def nodejs_test(
         deps = [],
         tags = [],
         visibility = None,
+        env = {},
+        wait_for_debugger = False,
         _internal_skip_naming_convention_enforcement = False):
     """Runs a Node.js unit test using the Mocha test runner.
 
     For tests that should run in the browser, please use karma_test instead.
+
+    To debug the Mocha test, set wait_for_debugger to True, then attach your debugger using the URL
+    printed to stdout.
+
+    Example debugging session with Chrome DevTools (assumes wait_for_debugger = True):
+
+    1. Add a `debugger` statement in your test code (e.g. //path/to/foo_nodejs_test.ts):
+    ```
+    describe('foo', () => {
+      it('should do something', () => {
+        debugger;
+        ...
+      })
+    })
+    ```
+    2. Run `bazel run //path/to:foo_nodejs_test`.
+    3. Launch Chrome **in the machine where the test is running**, otherwise Chrome won't see the
+       Node.js process.
+    4. Enter chrome://inspect in the URL bar, then press return.
+    5. You should see an "inspect" link under the "Remote Target" heading.
+    6. Click that link to launch a Chrome DevTools window attached to your Node.js process.
+    7. Click the "Resume script execution" button (looks like a play/pause icon).
+    8. Test execution should start, and eventually pause at your `debugger` statement.
 
     Args:
       name: Name of the target.
@@ -180,6 +205,10 @@ def nodejs_test(
       deps: Any ts_library dependencies.
       tags: Tags for the generated nodejs_test rule.
       visibility: Visibility of the generated nodejs_test rule.
+      env: A dictionary of additional environment variables to set when the target is executed.
+      wait_for_debugger: Whether to invoke the Mocha test runner with --inspect-brk. If true,
+        the Node.js interpreter will wait for a debugger (such as Chrome DevTools) to be attached
+        before continuing.
       _internal_skip_naming_convention_enforcement: Not part of the public API - do not use.
     """
 
@@ -204,7 +233,8 @@ def nodejs_test(
             # See https://github.com/bazelbuild/rules_nodejs/commit/fdde32fa5653999b15459c4deebfeaa86a099135.
             "--bazel_patch_module_resolver",
             "$(rootpath %s)" % src,
-        ],
+        ] + (["--inspect-brk"] if wait_for_debugger else []),
+        env = env,
         tags = tags,
         visibility = visibility,
     )
@@ -225,6 +255,20 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
     To read more about undeclared test outputs, please see the following link:
     https://docs.bazel.build/versions/master/test-encyclopedia.html#test-interaction-with-the-filesystem.
 
+    This rule also generates a "<name>_debug" test target that waits for a debugger (such as
+    Chrome DevTools, or the VS Code Node.js debugger) to be attached to the Node.js process running
+    your test before continuing execution. For example, if your test target is
+    //path/to:my_puppeteer_test, invoke `bazel test //path/to:my_puppeteer_test`, to run your test
+    the usual way, or invoke `bazel run //path/to:my_puppeteer_test_debug` if you'd like to attach
+    a debugger. Tip: add one or more `debugger` statement in your test code in order to set
+    breakpoints. See the nodejs_test rule's docstring for an example debug session.
+
+    Additionally, this rule generates a "<name>_debug_headful" target that is identical to the
+    aforementioned "<name>_debug" target, except that the Chromium instance started by Puppeteer
+    runs in headful mode. Use this target to visually inspect how your test interacts with the demo
+    page under test as you step through your test code with the attached debugger. Example
+    invocation: `bazel run //path/to:my_puppeteer_test_debug_headful`.
+
     Args:
       name: Name of the rule.
       src: A single TypeScript source file.
@@ -235,19 +279,33 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
     if not src.endswith("_puppeteer_test.ts"):
         fail("Puppeteer tests must end with \"_puppeteer_test.ts\".")
 
-    nodejs_test(
-        name = name + "_test_only",
-        src = src,
-        tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test all".
-        deps = deps,
-        _internal_skip_naming_convention_enforcement = True,
-    )
+    for debug, headful in [(False, False), (True, False), (True, True)]:
+        suffix = ""
+        if debug:
+            suffix += "_debug"
+        if headful:
+            suffix += "_headful"
 
-    test_on_env(
-        name = name,
-        env = sk_demo_page_server,
-        test = name + "_test_only",
-    )
+        nodejs_test(
+            name = name + "_test_only" + suffix,
+            src = src,
+            tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test //...".
+            deps = deps,
+            wait_for_debugger = debug,
+            env = {"PUPPETEER_TEST_SHOW_BROWSER": "true"} if headful else {},
+            _internal_skip_naming_convention_enforcement = True,
+        )
+
+        test_on_env(
+            name = name + suffix,
+            env = sk_demo_page_server,
+            test = name + "_test_only" + suffix,
+            timeout_secs = 60 * 60 * 24 * 365 if debug else 10,
+            tags = ([
+                "manual",  # Exclude it from wildcards, e.g. "bazel test //...".
+                "no-remote",  # Do not run on RBE.
+            ] if debug or headful else []),
+        )
 
 def copy_file(name, src, dst, visibility = None):
     """Copies a single file to a destination path, making parent directories as needed."""

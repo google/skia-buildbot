@@ -356,13 +356,61 @@ Use `bazel test` to run a Puppeteer test, e.g.:
 $ bazel test //golden/modules/dots-sk:dots-sk_puppeteer_test
 ```
 
-To view the screenshots captured  by a Puppeteer test, use the `//:extract_puppeteer_screenshots`
+To view the screenshots captured by a Puppeteer test, use the `//:extract_puppeteer_screenshots`
 target:
 
 ```
-mkdir /tmp/screenshots
+$ mkdir /tmp/screenshots
 $ bazel run //:extract_puppeteer_screenshots -- --output_dir /tmp/screenshots
 ```
+
+To step through a Puppeteer test with a debugger, run your test with `bazel run`, and append
+`_debug` at the end of the target name, e.g.:
+
+```
+# Normal test execution (for reference).
+$ bazel test //golden/modules/dots-sk:dots-sk_puppeteer_test
+
+# Test execution in debug mode.
+$ bazel run //golden/modules/dots-sk:dots-sk_puppeteer_test_debug
+```
+
+This will print a URL to stdout that you can use to attach a Node.js debugger (such as the VS Code
+Node.js debugger, or Chrome DevTools). Your test will wait until a debugger is attached before
+continuing.
+
+Example debug session with Chrome DevTools:
+
+1. Add one or more `debugger` statements in your test code to set breakpoints, e.g.:
+```
+// //golden/modules/dots-sk/dots-sk_puppeteer_test.ts
+
+describe('dots-sk', () => {
+  it('should do something', () => {
+    debugger;
+    ...
+  });
+});
+```
+2. Run `bazel run //golden/modules/dots-sk:dots-sk_puppeteer_test_debugger`.
+3. Launch Chrome **in the machine where the test is running**, otherwise Chrome won't see the
+   Node.js process associated to your test.
+4. Enter `chrome://inspect` in the URL bar, then press return.
+5. You should see an "inspect" link under the "Remote Target" heading.
+6. Click that link to launch a Chrome DevTools window attached to your Node.js process.
+7. Click the "Resume script execution" button (looks like a play/pause icon).
+8. Test execution should start, and eventually pause at your `debugger` statement.
+
+By default, Puppeteer starts a Chromium instance in headless mode. If you would like to run your
+test in headful mode, invoke your test with `bazel run`, and append `_debug_headful` at the end of
+the target name, e.g.:
+
+```
+$ bazel run //golden/modules/dots-sk:dots-sk_puppeteer_test_debug_headful
+```
+
+Run your test in headful mode to visually inspect how your test interacts with the demo page under
+test as you step through your test code with the attached debugger.
 
 #### NodeJS tests (`nodejs_test` rule)
 

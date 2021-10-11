@@ -1,6 +1,6 @@
 """This module defines the test_on_env rule."""
 
-def test_on_env(name, test, env, timeout_secs = 10):
+def test_on_env(name, test, env, timeout_secs = 10, tags = []):
     """Allows running test targets that require launching a test environment before their execution.
 
     The test_on_env rule takes a *_test target and an environment *_binary target as arguments,
@@ -40,6 +40,7 @@ def test_on_env(name, test, env, timeout_secs = 10):
       test: Label for the test to execute (can be any *_test target).
       env: Label for the environment binary (can be any *_binary target).
       timeout_secs: Approximate maximum number of seconds to wait for the environment to be ready.
+      tags: Tags for the generated sh_test rule.
     """
     native.sh_test(
         name = name,
@@ -50,4 +51,5 @@ def test_on_env(name, test, env, timeout_secs = 10):
             "--ready-check-timeout-secs %d" % timeout_secs,
         ],
         data = [test, env],
+        tags = tags,
     )

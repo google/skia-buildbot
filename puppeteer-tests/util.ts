@@ -249,7 +249,13 @@ export async function loadCachedTestBed(pathToWebpackConfigTs?: string, showBrow
     newTestBed.baseUrl = baseUrl; // Make baseUrl available to tests.
   }
 
-  browser = await launchBrowser(!!showBrowser);
+  if (typeof showBrowser === 'undefined') {
+    // The sk_element_puppeteer_test Bazel rule sets this environment variable to "true" for
+    // "<name>_debug_headful" targets.
+    showBrowser = !!process.env.PUPPETEER_TEST_SHOW_BROWSER;
+  }
+
+  browser = await launchBrowser(showBrowser);
   testBed = newTestBed;
   setBeforeAfterHooks();
   return testBed as TestBed;
