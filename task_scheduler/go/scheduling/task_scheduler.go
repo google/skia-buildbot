@@ -682,17 +682,22 @@ func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandi
 	return candidatesBySpec, nil
 }
 
-// processTaskCandidate computes the remaining information about the task
-// candidate, eg. blamelists and scoring.
-func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *TaskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit, diag *taskCandidateScoringDiagnostics) error {
-	ctx, span := trace.StartSpan(ctx, "processTaskCandidate")
+// scoreCandidate sets the Score field on the given Task Candidate. Also records
+// diagnostic information on TaskCandidate.Diagnostics.Scoring.
+func (s *TaskScheduler) scoreCandidate(ctx context.Context, c *TaskCandidate, cycleStart, commitTime time.Time, stealingFrom *types.Task) {
+	ctx, span := trace.StartSpan(ctx, "scoreTaskCandidate")
 	defer span.End()
 	if len(c.Jobs) == 0 {
 		// Log an error and return to allow scheduling other tasks.
 		sklog.Errorf("taskCandidate has no Jobs: %#v", c)
 		c.Score = 0
-		return nil
+		return
 	}
+
+	// Record diagnostic information; this will be uploaded to GCS for forensics
+	// in case we need to determine why a candidate was or was not triggered.
+	diag := &taskCandidateScoringDiagnostics{}
+	c.GetDiagnostics().Scoring = diag
 
 	// Formula for priority is 1 - (1-<job1 priority>)(1-<job2 priority>)...(1-<jobN priority>).
 	inversePriorityProduct := 1.0
@@ -708,52 +713,22 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *TaskCandida
 
 	// Use the earliest Job's Created time, which will maximize priority for older forced/try jobs.
 	earliestJob := c.Jobs[0]
-	diag.JobCreatedHours = now.Sub(earliestJob.Created).Hours()
+	diag.JobCreatedHours = cycleStart.Sub(earliestJob.Created).Hours()
 
 	if c.IsTryJob() {
-		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(earliestJob.Created).Hours()
+		c.Score = CANDIDATE_SCORE_TRY_JOB + cycleStart.Sub(earliestJob.Created).Hours()
 		// Proritize each subsequent attempt lower than the previous attempt.
 		for i := 0; i < c.Attempt; i++ {
 			c.Score *= CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER
 		}
 		c.Score *= priority
-		return nil
-	}
-
-	// Compute blamelist.
-	repo, ok := s.repos[c.Repo]
-	if !ok {
-		return fmt.Errorf("No such repo: %s", c.Repo)
-	}
-	revision := repo.Get(c.Revision)
-	if revision == nil {
-		return fmt.Errorf("No such commit %s in %s.", c.Revision, c.Repo)
-	}
-	var stealingFrom *types.Task
-	var commits []string
-	if !s.window.TestTime(c.Repo, revision.Timestamp) {
-		// If the commit has scrolled out of our window, don't bother computing
-		// a blamelist.
-		commits = []string{}
-	} else {
-		var err error
-		commits, stealingFrom, err = ComputeBlamelist(ctx, cache, repo, c.Name, c.Repo, revision, commitsBuf, s.taskCfgCache, s.window)
-		if err != nil {
-			return err
-		}
-	}
-	c.Commits = commits
-	if stealingFrom != nil {
-		c.StealingFromId = stealingFrom.Id
-	}
-	if len(c.Commits) > 0 && !util.In(c.Revision, c.Commits) {
-		sklog.Errorf("task candidate %s @ %s doesn't have its own revision in its blamelist: %v", c.Name, c.Revision, c.Commits)
+		return
 	}
 
 	if c.IsForceRun() {
-		c.Score = CANDIDATE_SCORE_FORCE_RUN + now.Sub(earliestJob.Created).Hours()
+		c.Score = CANDIDATE_SCORE_FORCE_RUN + cycleStart.Sub(earliestJob.Created).Hours()
 		c.Score *= priority
-		return nil
+		return
 	}
 
 	// Score the candidate.
@@ -775,16 +750,113 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *TaskCandida
 	}
 
 	// Scale the score by other factors, eg. time decay.
-	decay, err := s.timeDecayForCommit(now, revision)
-	if err != nil {
-		return err
-	}
+	decay := s.timeDecayForCommit(cycleStart, commitTime)
 	diag.TimeDecay = decay
 	score *= decay
 	score *= priority
 
 	c.Score = score
-	return nil
+}
+
+// Process task candidates within a single task spec.
+func (s *TaskScheduler) processTaskCandidatesSingleTaskSpec(ctx context.Context, currentTime time.Time, repoUrl, name string, candidatesWithTryJobs []*TaskCandidate) ([]*TaskCandidate, error) {
+	ctx, span := trace.StartSpan(ctx, "processTaskCandidatesSingleTaskSpec")
+	defer span.End()
+	defer metrics2.FuncTimer().Stop()
+
+	// commitsBuf is used in blamelist computation to prevent needing repeated
+	// allocation of large blocks of commits.
+	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
+	repo := s.repos[repoUrl]
+	finished := make([]*TaskCandidate, 0, len(candidatesWithTryJobs))
+
+	// 1. Handle try jobs. Tasks for try jobs don't have blamelists,
+	//    so we can go ahead and score them and remove them from
+	//    consideration below.
+	candidates := make([]*TaskCandidate, 0, len(candidatesWithTryJobs))
+	for _, candidate := range candidatesWithTryJobs {
+		if candidate.IsTryJob() {
+			s.scoreCandidate(ctx, candidate, currentTime, repo.Get(candidate.Revision).Timestamp, nil)
+			finished = append(finished, candidate)
+		} else {
+			candidates = append(candidates, candidate)
+		}
+	}
+
+	// 2. Compute blamelists and scores for all other candidates.
+	//    The scores are just the initial scores, in the absence of
+	//    all the other candidates.  In reality, the candidates are
+	//    not independent, since their blamelists will interact, so
+	//    as we repeatedly choose the most important candidate, we
+	//    need to update the others' blamelists and scores.
+	stealingFromTasks := map[string]*types.Task{}
+	for _, candidate := range candidates {
+		revision := repo.Get(candidate.Revision)
+		commits, stealingFrom, err := ComputeBlamelist(ctx, s.tCache, repo, name, repoUrl, revision, commitsBuf, s.taskCfgCache, s.window)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		candidate.Commits = commits
+		if stealingFrom != nil {
+			candidate.StealingFromId = stealingFrom.Id
+			stealingFromTasks[stealingFrom.Id] = stealingFrom
+		}
+		s.scoreCandidate(ctx, candidate, currentTime, revision.Timestamp, stealingFrom)
+	}
+
+	// 3. Repeat until all candidates have been ranked:
+	for len(candidates) > 0 {
+		// a. Choose the highest-scoring candidate and add to the queue.
+		sort.Sort(taskCandidateSlice(candidates))
+		bestOrig := candidates[0]
+		finished = append(finished, bestOrig)
+		candidates = candidates[1:]
+		// Copy, since we might mangle the blamelist later.
+		best := bestOrig.CopyNoDiagnostics()
+		bestId := best.MakeId()
+		bestFakeTask := best.MakeTask()
+		stealingFromTasks[bestId] = bestFakeTask
+		// Update the blamelist of the task we stole commits from if applicable.
+		if best.StealingFromId != "" {
+			stealingFrom := stealingFromTasks[best.StealingFromId]
+			stealingFrom.Commits = util.NewStringSet(stealingFrom.Commits).Complement(util.NewStringSet(best.Commits)).Keys()
+		}
+
+		// b. Update candidates which were affected by the choice of the best
+		//    candidate; their blamelist, StealingFrom field, and score may need
+		//    to be updated.
+		for _, candidate := range candidates {
+			// TODO(borenet): This is still O(n^2), we should be able to get
+			// down to O(n lg n) with a blamelist map.
+			updated := false
+			// b1. This candidate has the best candidate's revision in its
+			//     blamelist.
+			if util.In(best.Revision, candidate.Commits) {
+				// Only transfer commits if the new candidate runs at a
+				// different revision from the best candidate. If they run at
+				// the same revision, this new candidate is a retry of the best
+				// candidate and therefore has the same blamelist.
+				if best.Revision != candidate.Revision {
+					// candidate.StealingFrom doesn't change, but the best
+					// candidate effectively steals commits from this candidate.
+					candidate.Commits = util.NewStringSet(candidate.Commits).Complement(util.NewStringSet(best.Commits)).Keys()
+					updated = true
+				}
+			}
+			// b2. The best candidate has this candidate's revision in its
+			//     blamelist.
+			if util.In(candidate.Revision, best.Commits) {
+				// This candidate is now stealing commits from the best
+				// candidate, but its blamelist doesn't change.
+				candidate.StealingFromId = bestId
+				updated = true
+			}
+			if updated {
+				s.scoreCandidate(ctx, candidate, currentTime, repo.Get(candidate.Revision).Timestamp, stealingFromTasks[candidate.StealingFromId])
+			}
+		}
+	}
+	return finished, nil
 }
 
 // Process the task candidates.
@@ -797,64 +869,20 @@ func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates ma
 	processed := make(chan *TaskCandidate)
 	errs := make(chan error)
 	wg := sync.WaitGroup{}
-	for _, cs := range candidates {
-		for _, c := range cs {
+	for repo, cs := range candidates {
+		for name, c := range cs {
 			wg.Add(1)
-			go func(candidates []*TaskCandidate) {
+			go func(repoUrl, name string, candidatesWithTryJobs []*TaskCandidate) {
 				defer wg.Done()
-				cache := newCacheWrapper(s.tCache)
-				commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
-				for {
-					// Find the best candidate.
-					idx := -1
-					var orig *TaskCandidate
-					var best *TaskCandidate
-					var bestDiag *taskCandidateScoringDiagnostics
-					for i, candidate := range candidates {
-						c := candidate.CopyNoDiagnostics()
-						diag := &taskCandidateScoringDiagnostics{}
-						if err := s.processTaskCandidate(ctx, c, currentTime, cache, commitsBuf, diag); err != nil {
-							errs <- err
-							return
-						}
-						if best == nil || c.Score > best.Score {
-							orig = candidate
-							best = c
-							bestDiag = diag
-							idx = i
-						}
+				c, err := s.processTaskCandidatesSingleTaskSpec(ctx, currentTime, repoUrl, name, candidatesWithTryJobs)
+				if err != nil {
+					errs <- err
+				} else {
+					for _, candidate := range c {
+						processed <- candidate
 					}
-					if best == nil {
-						return
-					}
-					// Use the original candidate since we're holding on to that pointer for diagnostics.
-					*orig = *best
-					best = orig
-					best.GetDiagnostics().Scoring = bestDiag
-
-					processed <- best
-					t := best.MakeTask()
-					t.Id = best.MakeId()
-					cache.insert(t)
-					if best.StealingFromId != "" {
-						stoleFrom, err := cache.GetTask(best.StealingFromId)
-						if err != nil {
-							errs <- err
-							return
-						}
-						stole := util.NewStringSet(best.Commits)
-						oldC := util.NewStringSet(stoleFrom.Commits)
-						newC := oldC.Complement(stole)
-						commits := make([]string, 0, len(newC))
-						for c := range newC {
-							commits = append(commits, c)
-						}
-						stoleFrom.Commits = commits
-						cache.insert(stoleFrom)
-					}
-					candidates = append(candidates[:idx], candidates[idx+1:]...)
 				}
-			}(c)
+			}(repo, name, c)
 		}
 	}
 	go func() {
@@ -1418,18 +1446,18 @@ func timeDecay24Hr(decayAmt24Hr float64, elapsed time.Duration) float64 {
 // timeDecayForCommit computes a multiplier for a task candidate score based
 // on how long ago the given commit landed. This allows us to prioritize more
 // recent commits.
-func (s *TaskScheduler) timeDecayForCommit(now time.Time, commit *repograph.Commit) (float64, error) {
+func (s *TaskScheduler) timeDecayForCommit(currentTime, commitTime time.Time) float64 {
 	if s.timeDecayAmt24Hr == 1.0 {
 		// Shortcut for special case.
-		return 1.0, nil
+		return 1.0
 	}
-	rv := timeDecay24Hr(s.timeDecayAmt24Hr, now.Sub(commit.Timestamp))
+	rv := timeDecay24Hr(s.timeDecayAmt24Hr, commitTime.Sub(commitTime))
 	// TODO(benjaminwagner): Change to an exponential decay to prevent
 	// zero/negative scores.
 	//if rv == 0.0 {
 	//	sklog.Warningf("timeDecayForCommit is zero. Now: %s, Commit: %s ts %s, TimeDecay: %2f\nDetails: %v", now, commit.Hash, commit.Timestamp, s.timeDecayAmt24Hr, commit)
 	//}
-	return rv, nil
+	return rv
 }
 
 func (s *TaskScheduler) GetSkipTasks() *skip_tasks.DB {
@@ -1705,6 +1733,7 @@ func (s *TaskScheduler) getTasksForJob(j *types.Job) (map[string][]*types.Task, 
 // the TaskDB. Also adjusts blamelists of existing tasks.
 func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*types.Task) error {
 	sort.Sort(types.TaskSlice(tasks))
+	// TODO(borenet): This is the only user of cacheWrapper; can we remove it?
 	cache := newCacheWrapper(s.tCache)
 	repoName := tasks[0].Repo
 	taskName := tasks[0].Name

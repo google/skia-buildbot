@@ -298,10 +298,15 @@ func (c *TaskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]stri
 // taskCandidateSlice is an alias used for sorting a slice of taskCandidates.
 type taskCandidateSlice []*TaskCandidate
 
+// Len implements sort.Interface.
 func (s taskCandidateSlice) Len() int { return len(s) }
+
+// Swap implements sort.Interface.
 func (s taskCandidateSlice) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
+
+// Less implements sort.Interface.
 func (s taskCandidateSlice) Less(i, j int) bool {
 	return s[i].Score > s[j].Score // candidates sort in decreasing order.
 }
@@ -322,6 +327,8 @@ type taskCandidateDiagnostics struct {
 	Triggering *taskCandidateTriggeringDiagnostics `json:"triggering,omitempty"`
 }
 
+// GetDiagnostics returns the taskCandidateDiagnostics for this taskCandidate,
+// creating one if not present.
 func (s *TaskCandidate) GetDiagnostics() *taskCandidateDiagnostics {
 	if s.Diagnostics == nil {
 		s.Diagnostics = &taskCandidateDiagnostics{}

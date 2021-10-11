@@ -15,16 +15,16 @@ import (
 )
 
 const (
-	// Allocate enough space for this many tasks.
-	TASKS_INIT_CAPACITY = 60000
-	// Allocate enough space for this many jobs.
-	JOBS_INIT_CAPACITY = 10000
+	// Caches should initially allocate enough space for this many tasks.
+	tasksInitCapacity = 60000
+	// Caches should initially allocate enough space for this many jobs.
+	jobsInitCapacity = 10000
 )
 
 type TaskCache interface {
 
 	// GetTask returns the task with the given ID, or an error if no such task exists.
-	GetTask(string) (*types.Task, error)
+	GetTask(id string) (*types.Task, error)
 
 	// GetTaskMaybeExpired does the same as GetTask but tries to dig into
 	// the DB in case the Task is old enough to have scrolled out of the
@@ -33,11 +33,11 @@ type TaskCache interface {
 
 	// GetTaskForCommit retrieves the task with the given name which ran at the
 	// given commit, or nil if no such task exists.
-	GetTaskForCommit(string, string, string) (*types.Task, error)
+	GetTaskForCommit(repo string, revision string, name string) (*types.Task, error)
 
 	// GetTasksByKey returns the tasks with the given TaskKey, sorted
 	// by creation time.
-	GetTasksByKey(*types.TaskKey) ([]*types.Task, error)
+	GetTasksByKey(key *types.TaskKey) ([]*types.Task, error)
 
 	// GetTasksForCommits retrieves all tasks which included[1] each of the
 	// given commits. Returns a map whose keys are commit hashes and values are
@@ -61,7 +61,7 @@ type TaskCache interface {
 	//          blamelist. Its blamelist consists of the commits in the previous
 	//          task's blamelist which it also covered. Those commits move out of
 	//          the previous task's blamelist and into the newer task's blamelist.
-	GetTasksForCommits(string, []string) (map[string]map[string]*types.Task, error)
+	GetTasksForCommits(repo string, commits []string) (map[string]map[string]*types.Task, error)
 
 	// GetTasksFromDateRange retrieves all tasks which were created in the given
 	// date range.
@@ -69,7 +69,7 @@ type TaskCache interface {
 
 	// KnownTaskName returns true iff the given task name has been seen
 	// before for a non-forced, non-tryjob run.
-	KnownTaskName(string, string) bool
+	KnownTaskName(repo string, name string) bool
 
 	// UnfinishedTasks returns a list of tasks which were not finished at
 	// the time of the last cache update. Fake tasks are not included.
@@ -79,7 +79,7 @@ type TaskCache interface {
 	Update(ctx context.Context) error
 
 	// AddTasks adds tasks directly to the TaskCache.
-	AddTasks([]*types.Task)
+	AddTasks(tasks []*types.Task)
 }
 
 type taskCache struct {
@@ -349,7 +349,7 @@ func (c *taskCache) insertOrUpdateTask(task *types.Task) {
 		// for a different implementation.
 		// Most common case is that the new task should be inserted at the end.
 		if len(c.tasksByTime) == 0 {
-			c.tasksByTime = append(make([]*types.Task, 0, TASKS_INIT_CAPACITY), task)
+			c.tasksByTime = append(make([]*types.Task, 0, tasksInitCapacity), task)
 		} else if lastTask := c.tasksByTime[len(c.tasksByTime)-1]; !task.Created.Before(lastTask.Created) {
 			c.tasksByTime = append(c.tasksByTime, task)
 		} else {
@@ -717,7 +717,7 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 		// for a different implementation.
 		// Most common case is that the new job should be inserted at the end.
 		if len(c.jobsByTime) == 0 {
-			c.jobsByTime = append(make([]*types.Job, 0, JOBS_INIT_CAPACITY), job)
+			c.jobsByTime = append(make([]*types.Job, 0, jobsInitCapacity), job)
 		} else if lastJob := c.jobsByTime[len(c.jobsByTime)-1]; !job.Created.Before(lastJob.Created) {
 			c.jobsByTime = append(c.jobsByTime, job)
 		} else {

@@ -128,10 +128,10 @@ var (
 	}
 )
 
-func makeTask(name, repo, revision string) *types.Task {
+func makeTask(ctx context.Context, name, repo, revision string) *types.Task {
 	return &types.Task{
 		Commits: []string{revision},
-		Created: time.Now(),
+		Created: now.Now(ctx),
 		TaskKey: types.TaskKey{
 			RepoState: types.RepoState{
 				Repo:     repo,
@@ -349,12 +349,12 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// Run on an empty job list, ensure empty list returned.
 	test([]*types.Job{}, map[types.TaskKey]*TaskCandidate{})
 
-	now := time.Now().UTC()
+	currentTime := now.Now(ctx).UTC()
 
 	// Run for one job, ensure that we get the right set of task specs
 	// returned (ie. all dependencies and their dependencies).
 	j1 := &types.Job{
-		Created:      now,
+		Created:      currentTime,
 		Id:           "job1id",
 		Name:         "j1",
 		Dependencies: map[string][]string{tcc_testutils.TestTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
@@ -388,7 +388,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// Add a job, ensure that its dependencies are added and that the right
 	// dependencies are de-duplicated.
 	j2 := &types.Job{
-		Created:      now,
+		Created:      currentTime,
 		Id:           "job2id",
 		Name:         "j2",
 		Dependencies: map[string][]string{tcc_testutils.TestTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
@@ -396,7 +396,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		RepoState:    rs2,
 	}
 	j3 := &types.Job{
-		Created:      now,
+		Created:      currentTime,
 		Id:           "job3id",
 		Name:         "j3",
 		Dependencies: map[string][]string{tcc_testutils.PerfTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
@@ -448,7 +448,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 
 	// Ensure that we don't generate candidates for jobs at nonexistent commits.
 	j4 := &types.Job{
-		Created:      now,
+		Created:      currentTime,
 		Id:           "job4id",
 		Name:         "j4",
 		Dependencies: map[string][]string{tcc_testutils.PerfTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
@@ -552,7 +552,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		for _, byName := range byRepo {
 			for _, candidate := range byName {
 				if candidate.Revision == c1 {
-					t1 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
+					t1 = makeTask(ctx, candidate.Name, candidate.Repo, candidate.Revision)
 					break
 				}
 			}
@@ -648,7 +648,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		for _, byName := range byRepo {
 			for _, candidate := range byName {
 				if candidate.Revision == c2 && strings.HasPrefix(candidate.Name, "Build-") {
-					t2 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
+					t2 = makeTask(ctx, candidate.Name, candidate.Repo, candidate.Revision)
 					break
 				}
 			}
@@ -706,17 +706,31 @@ func TestFilterTaskCandidates(t *testing.T) {
 	require.Equal(t, candidates[tryKey].Diagnostics.Filtering.UnmetDependencies, []string{tcc_testutils.BuildTaskName})
 }
 
+// processTaskCandidate is a helper function for processing a single task
+// candidate.
+func processTaskCandidate(ctx context.Context, s *TaskScheduler, c *TaskCandidate) error {
+	candidates := map[string]map[string][]*TaskCandidate{
+		c.Repo: {
+			c.Name: []*TaskCandidate{c},
+		},
+	}
+	_, err := s.processTaskCandidates(ctx, candidates)
+	return err
+}
+
 func TestProcessTaskCandidate(t *testing.T) {
-	ctx, _, _, _, s, _, _, cleanup := setup(t)
+	_, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
-	cache := newCacheWrapper(s.tCache)
-	now := time.Unix(0, 1470674884000000)
-	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
+	currentTime := time.Unix(0, 1470674884000000)
+	ctx := now.TimeTravelingContext(currentTime)
 
-	checkDiagTryForced := func(c *TaskCandidate, diag *taskCandidateScoringDiagnostics) {
+	checkDiagTryForced := func(c *TaskCandidate) {
+		require.NotNil(t, c.Diagnostics)
+		diag := c.Diagnostics.Scoring
+		require.NotNil(t, diag)
 		require.Equal(t, c.Jobs[0].Priority, diag.Priority)
-		require.Equal(t, now.Sub(c.Jobs[0].Created).Hours(), diag.JobCreatedHours)
+		require.Equal(t, currentTime.Sub(c.Jobs[0].Created).Hours(), diag.JobCreatedHours)
 		// The remaining fields should always be 0 for try/forced jobs.
 		require.Equal(t, 0, diag.StoleFromCommits)
 		require.Equal(t, 0.0, diag.TestednessIncrease)
@@ -734,7 +748,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	}
 	tryjob := &types.Job{
 		Id:        "tryjobId",
-		Created:   now.Add(-1 * time.Hour),
+		Created:   currentTime.Add(-1 * time.Hour),
 		Name:      "job",
 		Priority:  0.5,
 		RepoState: tryjobRs,
@@ -745,13 +759,13 @@ func TestProcessTaskCandidate(t *testing.T) {
 			Name:      tcc_testutils.BuildTaskName,
 			RepoState: tryjobRs,
 		},
+		TaskSpec: tcc_testutils.TasksCfg1.Tasks[tcc_testutils.BuildTaskName],
 	}
-	diag := &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
+	require.NoError(t, processTaskCandidate(ctx, s, c))
 	// Try job candidates have a specific score and no blamelist.
 	require.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5, c.Score, scoreDelta)
 	require.Nil(t, c.Commits)
-	checkDiagTryForced(c, diag)
+	checkDiagTryForced(c)
 
 	// Retries are scored lower.
 	c = &TaskCandidate{
@@ -761,16 +775,16 @@ func TestProcessTaskCandidate(t *testing.T) {
 			Name:      tcc_testutils.BuildTaskName,
 			RepoState: tryjobRs,
 		},
+		TaskSpec: tcc_testutils.TasksCfg1.Tasks[tcc_testutils.BuildTaskName],
 	}
-	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
+	require.NoError(t, processTaskCandidate(ctx, s, c))
 	require.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5*CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER, c.Score, scoreDelta)
 	require.Nil(t, c.Commits)
-	checkDiagTryForced(c, diag)
+	checkDiagTryForced(c)
 
 	forcedJob := &types.Job{
 		Id:        "forcedJobId",
-		Created:   now.Add(-2 * time.Hour),
+		Created:   currentTime.Add(-2 * time.Hour),
 		Name:      tcc_testutils.BuildTaskName,
 		Priority:  0.5,
 		RepoState: rs2,
@@ -783,17 +797,17 @@ func TestProcessTaskCandidate(t *testing.T) {
 			RepoState:   rs2,
 			ForcedJobId: forcedJob.Id,
 		},
+		TaskSpec: tcc_testutils.TasksCfg2.Tasks[tcc_testutils.BuildTaskName],
 	}
-	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
+	require.NoError(t, processTaskCandidate(ctx, s, c))
 	require.InDelta(t, (CANDIDATE_SCORE_FORCE_RUN+2.0)*0.5, c.Score, scoreDelta)
 	require.Equal(t, 2, len(c.Commits))
-	checkDiagTryForced(c, diag)
+	checkDiagTryForced(c)
 
 	// All other candidates have a blamelist and a time-decayed score.
 	regularJob := &types.Job{
 		Id:        "regularJobId",
-		Created:   now.Add(-1 * time.Hour),
+		Created:   currentTime.Add(-1 * time.Hour),
 		Name:      tcc_testutils.BuildTaskName,
 		Priority:  0.5,
 		RepoState: rs2,
@@ -804,61 +818,46 @@ func TestProcessTaskCandidate(t *testing.T) {
 			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs2,
 		},
+		TaskSpec: tcc_testutils.TasksCfg2.Tasks[tcc_testutils.BuildTaskName],
 	}
-	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
+	require.NoError(t, processTaskCandidate(ctx, s, c))
 	require.True(t, c.Score > 0)
 	require.Equal(t, 2, len(c.Commits))
+	diag := c.GetDiagnostics().Scoring
 	require.Equal(t, 0.5, diag.Priority)
 	require.Equal(t, 1.0, diag.JobCreatedHours)
 	require.Equal(t, 0, diag.StoleFromCommits)
 	require.Equal(t, 3.5, diag.TestednessIncrease)
 	require.InDelta(t, 1.0, diag.TimeDecay, scoreDelta)
-
-	// Now, replace the time window to ensure that this next candidate runs
-	// at a commit outside the window. Ensure that it gets the correct
-	// blamelist.
-	var err error
-	s.window, err = window.New(ctx, time.Nanosecond, 0, nil)
-	require.NoError(t, err)
-	c = &TaskCandidate{
-		Jobs: []*types.Job{regularJob},
-		TaskKey: types.TaskKey{
-			Name:      tcc_testutils.BuildTaskName,
-			RepoState: rs2,
-		},
-	}
-	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
-	require.Equal(t, 0, len(c.Commits))
 }
 
 func TestRegularJobRetryScoring(t *testing.T) {
 	ctx, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
-	cache := newCacheWrapper(s.tCache)
-	now := time.Now()
-	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
+	currentTime := now.Now(ctx)
 
-	checkDiag := func(c *TaskCandidate, diag *taskCandidateScoringDiagnostics) {
+	checkDiag := func(c *TaskCandidate) {
+		require.NotNil(t, c.Diagnostics)
+		diag := c.Diagnostics.Scoring
+		require.NotNil(t, diag)
 		// All candidates in this test have a single Job.
 		require.Equal(t, c.Jobs[0].Priority, diag.Priority)
-		require.Equal(t, now.Sub(c.Jobs[0].Created).Hours(), diag.JobCreatedHours)
+		require.InDelta(t, currentTime.Sub(c.Jobs[0].Created).Hours(), diag.JobCreatedHours, scoreDelta)
 		// The commits are added close enough to "now" that there is no time decay.
 		require.Equal(t, 1.0, diag.TimeDecay)
 	}
 
 	j1 := &types.Job{
 		Id:        "regularJobId1",
-		Created:   now.Add(-1 * time.Hour),
+		Created:   currentTime.Add(-1 * time.Hour),
 		Name:      tcc_testutils.BuildTaskName,
 		Priority:  0.5,
 		RepoState: rs1,
 	}
 	j2 := &types.Job{
 		Id:        "regularJobId2",
-		Created:   now.Add(-1 * time.Hour),
+		Created:   currentTime.Add(-1 * time.Hour),
 		Name:      tcc_testutils.BuildTaskName,
 		Priority:  0.5,
 		RepoState: rs2,
@@ -870,6 +869,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs1,
 		},
+		TaskSpec: tcc_testutils.TasksCfg1.Tasks[tcc_testutils.BuildTaskName],
 	}
 	c2 := &TaskCandidate{
 		Jobs: []*types.Job{j2},
@@ -877,27 +877,28 @@ func TestRegularJobRetryScoring(t *testing.T) {
 			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs2,
 		},
+		TaskSpec: tcc_testutils.TasksCfg2.Tasks[tcc_testutils.BuildTaskName],
 	}
 	// Regular task at HEAD with 2 commits has score 3.5 scaled by priority 0.5.
-	diag := &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
+	require.NoError(t, processTaskCandidate(ctx, s, c2))
 	require.InDelta(t, 3.5*0.5, c2.Score, scoreDelta)
 	require.Equal(t, 2, len(c2.Commits))
+	diag := c2.GetDiagnostics().Scoring
 	require.Equal(t, 0, diag.StoleFromCommits)
 	require.Equal(t, 3.5, diag.TestednessIncrease)
-	checkDiag(c2, diag)
+	checkDiag(c2)
 	// Regular task at HEAD^ (no backfill) with 1 commit has score 2 scaled by
 	// priority 0.5.
-	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
+	require.NoError(t, processTaskCandidate(ctx, s, c1))
+	diag = c1.GetDiagnostics().Scoring
 	require.InDelta(t, 2*0.5, c1.Score, scoreDelta)
 	require.Equal(t, 1, len(c1.Commits))
 	require.Equal(t, 0, diag.StoleFromCommits)
 	require.Equal(t, 2.0, diag.TestednessIncrease)
-	checkDiag(c1, diag)
+	checkDiag(c1)
 
 	// Add a task at rs2 that failed.
-	t2 := makeTask(c2.Name, c2.Repo, c2.Revision)
+	t2 := makeTask(ctx, c2.Name, c2.Repo, c2.Revision)
 	t2.Status = types.TASK_STATUS_FAILURE
 	t2.Commits = util.CopyStringSlice(c2.Commits)
 	require.NoError(t, s.putTask(ctx, t2))
@@ -908,49 +909,50 @@ func TestRegularJobRetryScoring(t *testing.T) {
 
 	// Retry task at rs2 with 2 commits for 2nd of 2 attempts has score 0.75
 	// scaled by priority 0.5.
-	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
+	require.NoError(t, processTaskCandidate(ctx, s, c2))
 	require.InDelta(t, 0.75*0.5, c2.Score, scoreDelta)
 	require.Equal(t, 2, len(c2.Commits))
+	diag = c2.GetDiagnostics().Scoring
 	require.Equal(t, 2, diag.StoleFromCommits)
 	require.Equal(t, 0.0, diag.TestednessIncrease)
-	checkDiag(c2, diag)
+	checkDiag(c2)
 	// Regular task at rs1 (backfilling failed task) with 1 commit has score 1.25
 	// scaled by priority 0.5.
 	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
+	require.NoError(t, processTaskCandidate(ctx, s, c1))
+	diag = c1.GetDiagnostics().Scoring
 	require.InDelta(t, 1.25*0.5, c1.Score, scoreDelta)
 	require.Equal(t, 1, len(c1.Commits))
 	require.Equal(t, 2, diag.StoleFromCommits)
 	require.Equal(t, 0.5, diag.TestednessIncrease)
-	checkDiag(c1, diag)
+	checkDiag(c1)
 
 	// Actually, the task at rs2 had a mishap.
 	t2.Status = types.TASK_STATUS_MISHAP
 	require.NoError(t, s.putTask(ctx, t2))
 
 	// Scores should be same as for FAILURE.
-	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
+	require.NoError(t, processTaskCandidate(ctx, s, c2))
+	diag = c2.GetDiagnostics().Scoring
 	require.InDelta(t, 0.75*0.5, c2.Score, scoreDelta)
 	require.Equal(t, 2, len(c2.Commits))
 	require.Equal(t, 2, diag.StoleFromCommits)
 	require.Equal(t, 0.0, diag.TestednessIncrease)
-	checkDiag(c2, diag)
-	diag = &taskCandidateScoringDiagnostics{}
-	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
+	checkDiag(c2)
+	require.NoError(t, processTaskCandidate(ctx, s, c1))
+	diag = c1.GetDiagnostics().Scoring
 	require.InDelta(t, 1.25*0.5, c1.Score, scoreDelta)
 	require.Equal(t, 1, len(c1.Commits))
 	require.Equal(t, 2, diag.StoleFromCommits)
 	require.Equal(t, 0.5, diag.TestednessIncrease)
-	checkDiag(c1, diag)
+	checkDiag(c1)
 }
 
 func TestProcessTaskCandidates(t *testing.T) {
 	ctx, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
-	ts := time.Now()
+	ts := now.Now(ctx)
 
 	// Processing of individual candidates is already tested; just verify
 	// that if we pass in a bunch of candidates they all get processed.
@@ -1375,7 +1377,7 @@ func TestComputeBlamelist(t *testing.T) {
 		}
 		task := c.MakeTask()
 		task.Commits = commits
-		task.Created = time.Now()
+		task.Created = now.Now(ctx)
 		if stoleFrom != nil {
 			// Re-insert the stoleFrom task without the commits
 			// which were stolen from it.
@@ -1651,7 +1653,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.InDelta(t, 0.5*0.75, queue[1].Score, scoreDelta)
 
 	// Insert the task at c1, even though it scored lower.
-	t1 := makeTask(queue[1].Name, queue[1].Repo, queue[1].Revision)
+	t1 := makeTask(ctx, queue[1].Name, queue[1].Repo, queue[1].Revision)
 	require.NotNil(t, t1)
 	t1.Status = types.TASK_STATUS_SUCCESS
 	t1.IsolatedOutput = "fake isolated hash"
@@ -1688,7 +1690,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.Equal(t, c1, queue[testIdx].Revision)
 
 	// Run the other Build task.
-	t2 := makeTask(queue[buildIdx].Name, queue[buildIdx].Repo, queue[buildIdx].Revision)
+	t2 := makeTask(ctx, queue[buildIdx].Name, queue[buildIdx].Repo, queue[buildIdx].Revision)
 	t2.Status = types.TASK_STATUS_SUCCESS
 	t2.IsolatedOutput = "fake isolated hash"
 	require.NoError(t, s.putTask(ctx, t2))
@@ -1719,7 +1721,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.True(t, perfIdx > -1)
 
 	// Run the Test task at tip of tree; its blamelist covers both commits.
-	t3 := makeTask(tcc_testutils.TestTaskName, rs1.Repo, c2)
+	t3 := makeTask(ctx, tcc_testutils.TestTaskName, rs1.Repo, c2)
 	t3.Commits = []string{c2, c1}
 	t3.Status = types.TASK_STATUS_SUCCESS
 	t3.IsolatedOutput = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff/256"
@@ -2012,7 +2014,7 @@ func TestSchedulingE2E(t *testing.T) {
 
 	// The task is complete.
 	t1.Status = types.TASK_STATUS_SUCCESS
-	t1.Finished = time.Now()
+	t1.Finished = now.Now(ctx)
 	t1.IsolatedOutput = "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/86"
 	require.NoError(t, s.putTask(ctx, t1))
 	swarmingClient.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{
@@ -2090,7 +2092,7 @@ func TestSchedulingE2E(t *testing.T) {
 	require.NotNil(t, t3)
 	require.NotNil(t, t4)
 	t4.Status = types.TASK_STATUS_SUCCESS
-	t4.Finished = time.Now()
+	t4.Finished = now.Now(ctx)
 	t4.IsolatedOutput = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee/99"
 	require.NoError(t, s.putTask(ctx, t4))
 
@@ -2112,7 +2114,7 @@ func TestSchedulingE2E(t *testing.T) {
 	t3, err = s.tCache.GetTask(t3.Id)
 	require.NoError(t, err)
 	t3.Status = types.TASK_STATUS_SUCCESS
-	t3.Finished = time.Now()
+	t3.Finished = now.Now(ctx)
 	t3.IsolatedOutput = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff/256"
 
 	// Ensure that we finalize all of the tasks and insert into the DB.
@@ -2135,7 +2137,7 @@ func TestSchedulingE2E(t *testing.T) {
 		for _, task := range v {
 			if task.Status != types.TASK_STATUS_SUCCESS {
 				task.Status = types.TASK_STATUS_SUCCESS
-				task.Finished = time.Now()
+				task.Finished = now.Now(ctx)
 				task.IsolatedOutput = "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234/56"
 				tasksList = append(tasksList, task)
 			}
@@ -2174,7 +2176,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	tasksList := []*types.Task{}
 	t1 := tasks[c2][tcc_testutils.BuildTaskName]
 	t1.Status = types.TASK_STATUS_SUCCESS
-	t1.Finished = time.Now()
+	t1.Finished = now.Now(ctx)
 	t1.IsolatedOutput = "abc123"
 	tasksList = append(tasksList, t1)
 
@@ -2215,7 +2217,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	assertdeep.Equal(t, expect, task.Commits)
 
 	task.Status = types.TASK_STATUS_SUCCESS
-	task.Finished = time.Now()
+	task.Finished = now.Now(ctx)
 	task.IsolatedOutput = "abc123"
 	require.NoError(t, s.putTask(ctx, task))
 
@@ -2259,7 +2261,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 		require.Equal(t, 0, len(new.Intersect(updatedOld)))
 		// Finish the new task.
 		newTask.Status = types.TASK_STATUS_SUCCESS
-		newTask.Finished = time.Now()
+		newTask.Finished = now.Now(ctx)
 		newTask.IsolatedOutput = "abc123"
 		require.NoError(t, s.putTask(ctx, newTask))
 		oldTasksByCommit = tasks
@@ -2350,7 +2352,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
 	mock := func(task *types.Task) {
 		task.Status = types.TASK_STATUS_SUCCESS
-		task.Finished = time.Now()
+		task.Finished = now.Now(ctx)
 		task.IsolatedOutput = tcc_testutils.CompileCASDigest
 		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task, linuxTaskDims))
 		swarmingClient.MockTasks(mockTasks)
@@ -2435,7 +2437,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 			} else if task.Revision == commits[2] || task.Revision == commits[6] {
 				t3 = task
 			} else {
-				require.FailNow(t, fmt.Sprintf("Task has unknown revision: %v", task))
+				require.FailNow(t, fmt.Sprintf("Task has unknown revision: %+v", task))
 			}
 		}
 	}
@@ -2556,9 +2558,9 @@ func TestSchedulingRetry(t *testing.T) {
 
 	// One task successful, the other not.
 	t1.Status = types.TASK_STATUS_FAILURE
-	t1.Finished = time.Now()
+	t1.Finished = now.Now(ctx)
 	t2.Status = types.TASK_STATUS_SUCCESS
-	t2.Finished = time.Now()
+	t2.Finished = now.Now(ctx)
 	t2.IsolatedOutput = "abc123"
 
 	require.NoError(t, s.putTasks(ctx, []*types.Task{t1, t2}))
@@ -2581,7 +2583,7 @@ func TestSchedulingRetry(t *testing.T) {
 		require.Equal(t, i, retry.Attempt)
 		require.Equal(t, c2, retry.Revision)
 		retry.Status = types.TASK_STATUS_FAILURE
-		retry.Finished = time.Now()
+		retry.Finished = now.Now(ctx)
 		require.NoError(t, s.putTask(ctx, retry))
 
 		prev = retry
@@ -2604,7 +2606,7 @@ func TestParentTaskId(t *testing.T) {
 	require.Equal(t, 1, len(tasks))
 	t1 := tasks[0]
 	t1.Status = types.TASK_STATUS_SUCCESS
-	t1.Finished = time.Now()
+	t1.Finished = now.Now(ctx)
 	t1.IsolatedOutput = "abc123/45"
 	require.Equal(t, 0, len(t1.ParentTaskIds))
 	require.NoError(t, s.putTasks(ctx, []*types.Task{t1}))
@@ -2778,7 +2780,7 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// Mark the task as failed.
 	t1.Status = types.TASK_STATUS_FAILURE
-	t1.Finished = time.Now()
+	t1.Finished = now.Now(ctx)
 	require.NoError(t, s.putTasks(ctx, []*types.Task{t1}))
 
 	// Test that the results propagated through.
@@ -2824,11 +2826,11 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// The retry succeeded.
 	t2.Status = types.TASK_STATUS_SUCCESS
-	t2.Finished = time.Now()
+	t2.Finished = now.Now(ctx)
 	t2.IsolatedOutput = "abc123/45"
 	// The Build at c1 failed.
 	t3.Status = types.TASK_STATUS_FAILURE
-	t3.Finished = time.Now()
+	t3.Finished = now.Now(ctx)
 	require.NoError(t, s.putTasks(ctx, []*types.Task{t2, t3}))
 	mockBots(t, swarmingClient)
 	runMainLoop(t, s, ctx)
@@ -3098,16 +3100,16 @@ func TestAddTasksSingleTaskSpecSimple(t *testing.T) {
 	ctx, _, hashes, d, s, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
-	t1 := makeTask("toil", rs1.Repo, hashes[6])
+	t1 := makeTask(ctx, "toil", rs1.Repo, hashes[6])
 	require.NoError(t, s.putTask(ctx, t1))
 
 	mod := d.ModifiedTasksCh(ctx)
 	<-mod // The first batch is unused.
 
-	t2 := makeTask("toil", rs1.Repo, hashes[5]) // Commits should be {5}
-	t3 := makeTask("toil", rs1.Repo, hashes[3]) // Commits should be {3, 4}
-	t4 := makeTask("toil", rs1.Repo, hashes[2]) // Commits should be {2}
-	t5 := makeTask("toil", rs1.Repo, hashes[0]) // Commits should be {0, 1}
+	t2 := makeTask(ctx, "toil", rs1.Repo, hashes[5]) // Commits should be {5}
+	t3 := makeTask(ctx, "toil", rs1.Repo, hashes[3]) // Commits should be {3, 4}
+	t4 := makeTask(ctx, "toil", rs1.Repo, hashes[2]) // Commits should be {2}
+	t5 := makeTask(ctx, "toil", rs1.Repo, hashes[0]) // Commits should be {0, 1}
 
 	// Clear Commits on some tasks, set incorrect Commits on others to
 	// ensure it's ignored.
@@ -3133,28 +3135,28 @@ func TestAddTasksSingleTaskSpecBisectNew(t *testing.T) {
 	ctx, _, hashes, d, s, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
-	t1 := makeTask("toil", rs1.Repo, hashes[6])
+	t1 := makeTask(ctx, "toil", rs1.Repo, hashes[6])
 	require.NoError(t, s.putTask(ctx, t1))
 
 	mod := d.ModifiedTasksCh(ctx)
 	<-mod // The first batch is unused.
 
 	// t2.Commits = {1, 2, 3, 4, 5}
-	t2 := makeTask("toil", rs1.Repo, hashes[1])
+	t2 := makeTask(ctx, "toil", rs1.Repo, hashes[1])
 	// t3.Commits = {3, 4, 5}
 	// t2.Commits = {1, 2}
-	t3 := makeTask("toil", rs1.Repo, hashes[3])
+	t3 := makeTask(ctx, "toil", rs1.Repo, hashes[3])
 	// t4.Commits = {4, 5}
 	// t3.Commits = {3}
-	t4 := makeTask("toil", rs1.Repo, hashes[4])
+	t4 := makeTask(ctx, "toil", rs1.Repo, hashes[4])
 	// t5.Commits = {0}
-	t5 := makeTask("toil", rs1.Repo, hashes[0])
+	t5 := makeTask(ctx, "toil", rs1.Repo, hashes[0])
 	// t6.Commits = {2}
 	// t2.Commits = {1}
-	t6 := makeTask("toil", rs1.Repo, hashes[2])
+	t6 := makeTask(ctx, "toil", rs1.Repo, hashes[2])
 	// t7.Commits = {1}
 	// t2.Commits = {}
-	t7 := makeTask("toil", rs1.Repo, hashes[1])
+	t7 := makeTask(ctx, "toil", rs1.Repo, hashes[1])
 
 	// Specify tasks in wrong order to ensure results are deterministic.
 	tasks := []*types.Task{t5, t2, t7, t3, t6, t4}
@@ -3183,8 +3185,8 @@ func TestAddTasksSingleTaskSpecBisectOld(t *testing.T) {
 	ctx, _, hashes, d, s, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
-	t1 := makeTask("toil", rs1.Repo, hashes[6])
-	t2 := makeTask("toil", rs1.Repo, hashes[1])
+	t1 := makeTask(ctx, "toil", rs1.Repo, hashes[6])
+	t2 := makeTask(ctx, "toil", rs1.Repo, hashes[1])
 	t2.Commits = []string{hashes[1], hashes[2], hashes[3], hashes[4], hashes[5]}
 	sort.Strings(t2.Commits)
 	require.NoError(t, s.putTasks(ctx, []*types.Task{t1, t2}))
@@ -3194,16 +3196,16 @@ func TestAddTasksSingleTaskSpecBisectOld(t *testing.T) {
 
 	// t3.Commits = {3, 4, 5}
 	// t2.Commits = {1, 2}
-	t3 := makeTask("toil", rs1.Repo, hashes[3])
+	t3 := makeTask(ctx, "toil", rs1.Repo, hashes[3])
 	// t4.Commits = {4, 5}
 	// t3.Commits = {3}
-	t4 := makeTask("toil", rs1.Repo, hashes[4])
+	t4 := makeTask(ctx, "toil", rs1.Repo, hashes[4])
 	// t5.Commits = {2}
 	// t2.Commits = {1}
-	t5 := makeTask("toil", rs1.Repo, hashes[2])
+	t5 := makeTask(ctx, "toil", rs1.Repo, hashes[2])
 	// t6.Commits = {4, 5}
 	// t4.Commits = {}
-	t6 := makeTask("toil", rs1.Repo, hashes[4])
+	t6 := makeTask(ctx, "toil", rs1.Repo, hashes[4])
 
 	// Specify tasks in wrong order to ensure results are deterministic.
 	require.NoError(t, s.addTasksSingleTaskSpec(ctx, []*types.Task{t5, t3, t6, t4}))
@@ -3228,14 +3230,14 @@ func TestAddTasksSingleTaskSpecUpdate(t *testing.T) {
 	ctx, _, hashes, d, s, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
-	t1 := makeTask("toil", rs1.Repo, hashes[6])
-	t2 := makeTask("toil", rs1.Repo, hashes[3])
-	t3 := makeTask("toil", rs1.Repo, hashes[4])
+	t1 := makeTask(ctx, "toil", rs1.Repo, hashes[6])
+	t2 := makeTask(ctx, "toil", rs1.Repo, hashes[3])
+	t3 := makeTask(ctx, "toil", rs1.Repo, hashes[4])
 	t3.Commits = nil // Stolen by t5
-	t4 := makeTask("toil", rs1.Repo, hashes[0])
+	t4 := makeTask(ctx, "toil", rs1.Repo, hashes[0])
 	t4.Commits = []string{hashes[0], hashes[1], hashes[2]}
 	sort.Strings(t4.Commits)
-	t5 := makeTask("toil", rs1.Repo, hashes[4])
+	t5 := makeTask(ctx, "toil", rs1.Repo, hashes[4])
 	t5.Commits = []string{hashes[4], hashes[5]}
 	sort.Strings(t5.Commits)
 
@@ -3269,14 +3271,14 @@ func TestAddTasks(t *testing.T) {
 	ctx, _, hashes, d, s, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
-	toil1 := makeTask("toil", rs1.Repo, hashes[6])
-	duty1 := makeTask("duty", rs1.Repo, hashes[6])
-	work1 := makeTask("work", rs1.Repo, hashes[6])
-	work2 := makeTask("work", rs1.Repo, hashes[1])
+	toil1 := makeTask(ctx, "toil", rs1.Repo, hashes[6])
+	duty1 := makeTask(ctx, "duty", rs1.Repo, hashes[6])
+	work1 := makeTask(ctx, "work", rs1.Repo, hashes[6])
+	work2 := makeTask(ctx, "work", rs1.Repo, hashes[1])
 	work2.Commits = []string{hashes[1], hashes[2], hashes[3], hashes[4], hashes[5]}
 	sort.Strings(work2.Commits)
-	onus1 := makeTask("onus", rs1.Repo, hashes[6])
-	onus2 := makeTask("onus", rs1.Repo, hashes[3])
+	onus1 := makeTask(ctx, "onus", rs1.Repo, hashes[6])
+	onus2 := makeTask(ctx, "onus", rs1.Repo, hashes[3])
 	onus2.Commits = []string{hashes[3], hashes[4], hashes[5]}
 	sort.Strings(onus2.Commits)
 	require.NoError(t, s.putTasks(ctx, []*types.Task{toil1, duty1, work1, work2, onus1, onus2}))
@@ -3285,28 +3287,28 @@ func TestAddTasks(t *testing.T) {
 	<-mod // The first batch is unused.
 
 	// toil2.Commits = {5}
-	toil2 := makeTask("toil", rs1.Repo, hashes[5])
+	toil2 := makeTask(ctx, "toil", rs1.Repo, hashes[5])
 	// toil3.Commits = {3, 4}
-	toil3 := makeTask("toil", rs1.Repo, hashes[3])
+	toil3 := makeTask(ctx, "toil", rs1.Repo, hashes[3])
 
 	// duty2.Commits = {1, 2, 3, 4, 5}
-	duty2 := makeTask("duty", rs1.Repo, hashes[1])
+	duty2 := makeTask(ctx, "duty", rs1.Repo, hashes[1])
 	// duty3.Commits = {3, 4, 5}
 	// duty2.Commits = {1, 2}
-	duty3 := makeTask("duty", rs1.Repo, hashes[3])
+	duty3 := makeTask(ctx, "duty", rs1.Repo, hashes[3])
 
 	// work3.Commits = {3, 4, 5}
 	// work2.Commits = {1, 2}
-	work3 := makeTask("work", rs1.Repo, hashes[3])
+	work3 := makeTask(ctx, "work", rs1.Repo, hashes[3])
 	// work4.Commits = {2}
 	// work2.Commits = {1}
-	work4 := makeTask("work", rs1.Repo, hashes[2])
+	work4 := makeTask(ctx, "work", rs1.Repo, hashes[2])
 
 	onus2.Status = types.TASK_STATUS_MISHAP
 	// onus3 steals all commits from onus2
-	onus3 := makeTask("onus", rs1.Repo, hashes[3])
+	onus3 := makeTask(ctx, "onus", rs1.Repo, hashes[3])
 	// onus4 steals all commits from onus3
-	onus4 := makeTask("onus", rs1.Repo, hashes[3])
+	onus4 := makeTask(ctx, "onus", rs1.Repo, hashes[3])
 
 	tasks := map[string]map[string][]*types.Task{
 		rs1.Repo: {
@@ -3346,9 +3348,9 @@ func TestAddTasksFailure(t *testing.T) {
 	ctx, _, hashes, d, s, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
-	toil1 := makeTask("toil", rs1.Repo, hashes[6])
-	duty1 := makeTask("duty", rs1.Repo, hashes[6])
-	duty2 := makeTask("duty", rs1.Repo, hashes[5])
+	toil1 := makeTask(ctx, "toil", rs1.Repo, hashes[6])
+	duty1 := makeTask(ctx, "duty", rs1.Repo, hashes[6])
+	duty2 := makeTask(ctx, "duty", rs1.Repo, hashes[5])
 	require.NoError(t, s.putTasks(ctx, []*types.Task{toil1, duty1, duty2}))
 	d.Wait()
 
@@ -3362,11 +3364,11 @@ func TestAddTasksFailure(t *testing.T) {
 	<-mod // The first batch is unused.
 
 	// toil2.Commits = {3, 4, 5}
-	toil2 := makeTask("toil", rs1.Repo, hashes[3])
+	toil2 := makeTask(ctx, "toil", rs1.Repo, hashes[3])
 
 	cachedDuty2.Status = types.TASK_STATUS_FAILURE
 	// duty3.Commits = {3, 4}
-	duty3 := makeTask("duty", rs1.Repo, hashes[3])
+	duty3 := makeTask(ctx, "duty", rs1.Repo, hashes[3])
 
 	tasks := map[string]map[string][]*types.Task{
 		rs1.Repo: {
@@ -3406,15 +3408,15 @@ func TestAddTasksRetries(t *testing.T) {
 	ctx, _, hashes, d, s, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
-	toil1 := makeTask("toil", rs1.Repo, hashes[6])
-	duty1 := makeTask("duty", rs1.Repo, hashes[6])
-	work1 := makeTask("work", rs1.Repo, hashes[6])
-	toil2 := makeTask("toil", rs1.Repo, hashes[1])
+	toil1 := makeTask(ctx, "toil", rs1.Repo, hashes[6])
+	duty1 := makeTask(ctx, "duty", rs1.Repo, hashes[6])
+	work1 := makeTask(ctx, "work", rs1.Repo, hashes[6])
+	toil2 := makeTask(ctx, "toil", rs1.Repo, hashes[1])
 	toil2.Commits = []string{hashes[1], hashes[2], hashes[3], hashes[4], hashes[5]}
 	sort.Strings(toil2.Commits)
-	duty2 := makeTask("duty", rs1.Repo, hashes[1])
+	duty2 := makeTask(ctx, "duty", rs1.Repo, hashes[1])
 	duty2.Commits = util.CopyStringSlice(toil2.Commits)
-	work2 := makeTask("work", rs1.Repo, hashes[1])
+	work2 := makeTask(ctx, "work", rs1.Repo, hashes[1])
 	work2.Commits = util.CopyStringSlice(toil2.Commits)
 	require.NoError(t, s.putTasks(ctx, []*types.Task{toil1, toil2, duty1, duty2, work1, work2}))
 
@@ -3423,14 +3425,14 @@ func TestAddTasksRetries(t *testing.T) {
 
 	// *3.Commits = {3, 4, 5}
 	// *2.Commits = {1, 2}
-	toil3 := makeTask("toil", rs1.Repo, hashes[3])
-	duty3 := makeTask("duty", rs1.Repo, hashes[3])
-	work3 := makeTask("work", rs1.Repo, hashes[3])
+	toil3 := makeTask(ctx, "toil", rs1.Repo, hashes[3])
+	duty3 := makeTask(ctx, "duty", rs1.Repo, hashes[3])
+	work3 := makeTask(ctx, "work", rs1.Repo, hashes[3])
 	// *4.Commits = {2}
 	// *2.Commits = {1}
-	toil4 := makeTask("toil", rs1.Repo, hashes[2])
-	duty4 := makeTask("duty", rs1.Repo, hashes[2])
-	work4 := makeTask("work", rs1.Repo, hashes[2])
+	toil4 := makeTask(ctx, "toil", rs1.Repo, hashes[2])
+	duty4 := makeTask(ctx, "duty", rs1.Repo, hashes[2])
+	work4 := makeTask(ctx, "work", rs1.Repo, hashes[2])
 
 	tasks := map[string]map[string][]*types.Task{
 		rs1.Repo: {
@@ -3447,17 +3449,17 @@ func TestAddTasksRetries(t *testing.T) {
 		defer retryCountMtx.Unlock()
 		retryCount[tasks[0].Name]++
 		if tasks[0].Name == "toil" && retryCount["toil"] < 2 {
-			toil2.Started = time.Now().UTC()
+			toil2.Started = now.Now(ctx).UTC()
 			require.NoError(t, d.PutTasks(ctx, []*types.Task{toil2}))
 			s.tCache.AddTasks([]*types.Task{toil2})
 		}
 		if tasks[0].Name == "duty" && retryCount["duty"] < 3 {
-			duty2.Started = time.Now().UTC()
+			duty2.Started = now.Now(ctx).UTC()
 			require.NoError(t, d.PutTasks(ctx, []*types.Task{duty2}))
 			s.tCache.AddTasks([]*types.Task{duty2})
 		}
 		if tasks[0].Name == "work" && retryCount["work"] < 4 {
-			work2.Started = time.Now().UTC()
+			work2.Started = now.Now(ctx).UTC()
 			require.NoError(t, d.PutTasks(ctx, []*types.Task{work2}))
 			s.tCache.AddTasks([]*types.Task{work2})
 		}
@@ -3667,7 +3669,7 @@ func TestContinueOnTriggerTaskFailure(t *testing.T) {
 		tasks, err := s.tCache.UnfinishedTasks()
 		require.NoError(t, err)
 		for _, task := range tasks {
-			task.Finished = time.Now()
+			task.Finished = now.Now(ctx)
 			task.Status = types.TASK_STATUS_SUCCESS
 		}
 		require.NoError(t, s.db.PutTasks(ctx, tasks))
