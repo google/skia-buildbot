@@ -122,7 +122,13 @@ def skia_app_container(
     container_image(
         name = image_name,
         base = base_image,
-        entrypoint = [entrypoint],
+
+        # We cannot use an entrypoint with the container_run_and_commit rule
+        # required when run_commands_root is specified, because the commands we
+        # want to execute do not require a specific entrypoint.
+        # We will set the entrypoint back after the container_run_and_commit
+        # rule is executed.
+        entrypoint = None if run_commands_root else [entrypoint],
         stamp = True,
         tars = pkg_tars,
         user = "skia",
@@ -133,7 +139,7 @@ def skia_app_container(
         container_run_and_commit(
             name = rule_name,
             commands = run_commands_root,
-            docker_run_flags = ["--user", "root", "--entrypoint", "/bin/echo"],
+            docker_run_flags = ["--user", "root"],
             image = image_name + ".tar",
             tags = [
                 # container_run_and_commit requires the docker daemon to be
