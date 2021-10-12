@@ -1,41 +1,12 @@
 # tasks file for install_metadata_server
 
-- name: make temporary directory for secrets and trigger `clean_up_tempfile`
-  delegate_to: 127.0.0.1
-  tempfile:
-    state: directory
-  register: secrets_dir
-  notify: clean_up_tempfile
-
-- name: set service account key location fact
-  set_fact:
-    service_account_key_filename: '{{ secrets_dir.path }}/key.json'
-
-- name: Extract service account key
-  delegate_to: 127.0.0.1
-  command:
-    argv:
-      - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
-      - etc
-      - '{{ install_metadata_server__service_account_name }}'
-      - '.data."key.json"'
-      - '{{ service_account_key_filename }}'
-    creates: '{{ service_account_key_filename }}'
-
-- name:
-    Build metadata_server_ansible for the target machine with the service
-    account key embedded.
-  delegate_to: 127.0.0.1
-  make:
-    chdir: '{{ all.repo_root }}/skolo/'
-    target:
-      "build_metadata_server_ansible_{{ ansible_facts['architecture'] }}_{{
-      ansible_facts['system'] }}_{{
-      install_metadata_server__service_account_name }}"
-    params:
-      # Pass the service account key base64 encoded so it doesn't mess up the Go compile command line.
-      SERVICE_ACCOUNT_KEY:
-        "{{ lookup('file', service_account_key_filename) | b64encode }}"
+- name: Load metadata_server_ansible executables.
+  run_once: yes
+  import_role:
+    name: get_ansible_binaries
+  vars:
+    get_ansible_binaries_application: metadata_server_ansible
+    get_ansible_binaries_version: '{{ metadata_server_ansible_version }}'
 
 - name: Copy over service file.
   become: yes
@@ -50,8 +21,8 @@
   become: yes
   copy:
     src:
-      "{{ all.repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
-      ansible_facts['architecture'] }}/{{
+      "{{ get_ansible_binaries_directory.path }}/build/{{
+      ansible_facts['system'] }}/{{ ansible_facts['architecture'] }}/{{
       install_metadata_server__service_account_name }}/metadata_server_ansible"
     dest: /usr/local/bin/metadata_server_ansible
     owner: root

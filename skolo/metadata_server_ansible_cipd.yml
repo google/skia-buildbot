@@ -1,0 +1,5 @@
+package: skia/internal/metadata_server_ansible
+description: Builds of metadata_server_ansible for all os/arch combinations.
+install_mode: copy
+data:
+  - dir: build/

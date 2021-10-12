@@ -23,8 +23,15 @@ export DATETIME:=$(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
 export GIT_STATE:=$(shell ../bash/gitstate.sh)
 export VERSION:=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
 
-# The names of this target can't change, as the form is dictated by ansible playbooks in //skolo/ansible/switchboard.
-build_metadata_server_ansible_x86_64_Linux_skolo-service-accounts:
+# This build must be launched from an Ansible playbook which will extract the
+# service account keys and base64 encode them into the SERVICE_ACCOUNT_KEY and
+# INTERNAL_SERVICE_ACCOUNT_KEY environment variables.
+build_metadata_server_ansible:
+	rm -rf ./build
+
+	test -n "${SERVICE_ACCOUNT_KEY}" || (echo "SERVICE_ACCOUNT_KEY must be set by Ansible playbook."; exit 1)
+	test -n "${INTERNAL_SERVICE_ACCOUNT_KEY}" || (echo "INTERNAL_SERVICE_ACCOUNT_KEY must be set by Ansible playbook."; exit 1)
+
 	CGO_ENABLED=0 \
 	GOOS=linux \
 	GOARCH=amd64 \
@@ -33,15 +40,19 @@ build_metadata_server_ansible_x86_64_Linux_skolo-service-accounts:
 	 -ldflags="-X 'main.Version=${VERSION}' -X 'main.Key=${SERVICE_ACCOUNT_KEY}' " \
 	 ./go/metadata_server_ansible
 
-build_metadata_server_ansible_x86_64_Linux_skolo-internal-service-account:
 	CGO_ENABLED=0 \
 	GOOS=linux \
 	GOARCH=amd64 \
 	go build \
 	 -o ./build/Linux/x86_64/skolo-internal-service-account/metadata_server_ansible \
-	 -ldflags="-X 'main.Version=${VERSION}' -X 'main.Key=${SERVICE_ACCOUNT_KEY}' " \
+	 -ldflags="-X 'main.Version=${VERSION}' -X 'main.Key=${INTERNAL_SERVICE_ACCOUNT_KEY}' " \
 	 ./go/metadata_server_ansible
 
+build_and_upload_metadata_server_ansible: build_metadata_server_ansible
+	cipd create -pkg-def=metadata_server_ansible_cipd.yml --tag version:${VERSION}
+
+release_metadata_server_ansible: build_and_upload_metadata_server_ansible
+	../bash/ansible-release.sh metadata_server_ansible ${VERSION}
 
 build_powercycle_server_ansible:
 	rm -rf ./build

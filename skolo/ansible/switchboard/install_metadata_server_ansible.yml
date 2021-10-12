@@ -1,0 +1,15 @@
+# Installs metadata_server_ansible.
+#
+# To push a test/debug version of metadata_server_ansible to a machine you can
+# provide a value for the metadata_server_ansible_version_override via the
+# --extra-vars command line parameter.
+- hosts: jumphosts
+  user: chrome-bot
+  gather_facts: true
+  vars:
+    metadata_server_ansible_version_override: ''
+
+  roles:
+    - role: install_metadata_server
+      metadata_server_ansible_version:
+        '{{ metadata_server_ansible_version_override }}'

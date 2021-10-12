@@ -1,0 +1,69 @@
+# Builds and uploads to CIPD the metadata_server_ansible binary.
+# That CIPD binary is used by the install_metadata_server role.
+- hosts: jumphosts
+  gather_facts: false
+
+  tasks:
+    - name: make temporary directory for secrets and trigger `clean_up_tempfile`
+      delegate_to: 127.0.0.1
+      run_once: true
+      tempfile:
+        state: directory
+      register: secrets_dir
+      notify: clean_up_tempfile
+
+    - name: set service account key location fact
+      delegate_to: 127.0.0.1
+      run_once: true
+      set_fact:
+        service_account_key_filename: '{{ secrets_dir.path }}/key.json'
+        internal_service_account_key_filename:
+          '{{ secrets_dir.path }}/internal_key.json'
+
+    - name: Extract service account key
+      delegate_to: 127.0.0.1
+      run_once: true
+      command:
+        argv:
+          - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
+          - etc
+          - skolo-service-accounts
+          - '.data."key.json"'
+          - '{{ service_account_key_filename }}'
+        creates: '{{ service_account_key_filename }}'
+
+    - name: Extract internal service account key
+      delegate_to: 127.0.0.1
+      run_once: true
+      command:
+        argv:
+          - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
+          - etc
+          - skolo-internal-service-account
+          - '.data."key.json"'
+          - '{{ internal_service_account_key_filename }}'
+        creates: '{{ internal_service_account_key_filename }}'
+
+    - name:
+        Build and release metadata_server_ansible for the target machine with
+        the service account key embedded.
+      delegate_to: 127.0.0.1
+      run_once: true
+      make:
+        chdir: '{{ all.repo_root }}/skolo/'
+        target: 'release_metadata_server_ansible'
+        params:
+          # Pass the service account keys base64 encoded so they don't mess up the
+          # Go compile command line.
+          SERVICE_ACCOUNT_KEY:
+            "{{ lookup('file', service_account_key_filename) | b64encode }}"
+          INTERNAL_SERVICE_ACCOUNT_KEY:
+            "{{ lookup('file', internal_service_account_key_filename) |
+            b64encode }}"
+
+  handlers:
+    - name: clean_up_tempfile
+      delegate_to: 127.0.0.1
+      file:
+        path: '{{ secrets_dir.path }}'
+        state: absent

@@ -2,34 +2,39 @@
   user: chrome-bot
 
   vars:
-    run_swarm_bot: "{{ ansible_env.APPDATA }}\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\run_swarm_bot.bat"
+    run_swarm_bot:
+      "{{ ansible_env.APPDATA }}\\Microsoft\\Windows\\Start
+      Menu\\Programs\\Startup\\run_swarm_bot.bat"
 
   roles:
     - { role: swarming_needs }
 
   tasks:
-  # This file contains a hard-coded path to the Python 2 binary used to invoke
-  # Swarming. If missing, Swarming will regenerate it with the path to the
-  # Python 3 binary we use to restart Swarming in the next task.
-  - name: Delete Swarming startup script (will be recreated upon restart)
-    win_file:
-      path: "{{ run_swarm_bot }}"
-      state: absent
+    # This file contains a hard-coded path to the Python 2 binary used to invoke
+    # Swarming. If missing, Swarming will regenerate it with the path to the
+    # Python 3 binary we use to restart Swarming in the next task.
+    - name: Delete Swarming startup script (will be recreated upon restart)
+      win_file:
+        path: '{{ run_swarm_bot }}'
+        state: absent
 
-  - name: Restart Swarming under Python 3 (triggers reboot, so expected to fail)
-    win_command: "{{ win_python3_path }}\\python.exe C:\\b\\s\\swarming_bot.zip"
-    ignore_unreachable: True
+    - name:
+        Restart Swarming under Python 3 (triggers reboot, so expected to fail)
+      win_command:
+        "{{ win_python3_path }}\\python.exe C:\\b\\s\\swarming_bot.zip"
+      ignore_unreachable: True
 
-  - name: Wait for reboot after restarting Swarming
-    wait_for_connection:
-      delay: 30 # Give Swarming time to initiate a reboot.
-      timeout: 180 # Default is 600 seconds.
+    - name: Wait for reboot after restarting Swarming
+      wait_for_connection:
+        delay: 30 # Give Swarming time to initiate a reboot.
+        timeout: 180 # Default is 600 seconds.
 
-  - name: Check if Swarming startup script was recreated
-    win_stat:
-      path: "{{ run_swarm_bot }}"
-    register: results
+    - name: Check if Swarming startup script was recreated
+      win_stat:
+        path: '{{ run_swarm_bot }}'
+      register: results
 
-  - when: not results.stat.exists
-    fail:
-      msg: "{{ run_swarm_bot }} does not exist after restarting Swarming."
+    - name: Verify Swarming has started.
+      when: not results.stat.exists
+      fail:
+        msg: '{{ run_swarm_bot }} does not exist after restarting Swarming.'

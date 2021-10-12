@@ -5,12 +5,15 @@
   vars:
     router_backup_ansible_version_override: ''
     powercycle_server_ansible_version_override: ''
+    metadata_server_ansible_version_override: ''
 
   roles:
     - copy_authorized_keys
     - copy_service_account_key
     - install_collectd
-    - install_metadata_server
+    - role: install_metadata_server
+      metadata_server_ansible_version:
+        '{{ metadata_server_ansible_version_override }}'
     - role: install_powercycle_server
       powercycle_server_ansible_version:
         '{{ powercycle_server_ansible_version_override }}'
