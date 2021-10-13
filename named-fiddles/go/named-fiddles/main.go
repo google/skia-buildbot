@@ -159,17 +159,16 @@ func (srv *Server) exampleStep(ctx context.Context) {
 			return true
 		})
 		status := errorsInResults(runResults)
+		if status == "" {
+			return nil
+		}
 		if !success {
-			sklog.Errorf("Failed to run: %s", status)
+			sklog.Errorf("Failed to run https://fiddle.skia.org/c/@%s: %s", name, status)
 			srv.errorsInExamplesRun.Inc(1)
 			return nil
 		}
-		if status != "" {
-			sklog.Warningf("Sample %s had a non-empty status: %s", name, status)
-		}
 		if err := srv.store.WriteName(name, runResults.FiddleHash, "Skia example", status); err != nil {
 			sklog.Errorf("Failed to write status for %s: %s", name, err)
-			srv.errorsInExamplesRun.Inc(1)
 		}
 		return nil
 	})
