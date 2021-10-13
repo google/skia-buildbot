@@ -375,10 +375,6 @@ func (s *server) machineSupplyChromeOSInfoHandler(w http.ResponseWriter, r *http
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *server) meetingPointsPageHandler(w http.ResponseWriter, r *http.Request) {
-	s.sendHTMLResponse("meeting_points.html", w, r)
-}
-
 func (s *server) meetingPointsHandler(w http.ResponseWriter, r *http.Request) {
 	meetingPoints, err := s.switchboard.ListMeetingPoints(r.Context())
 	if err != nil {
@@ -386,10 +382,6 @@ func (s *server) meetingPointsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sendJSONResponse(meetingPoints, w)
-}
-
-func (s *server) podsPageHandler(w http.ResponseWriter, r *http.Request) {
-	s.sendHTMLResponse("pods.html", w, r)
 }
 
 func (s *server) podsHandler(w http.ResponseWriter, r *http.Request) {
@@ -413,8 +405,6 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/machine/supply_chromeos/{id:.+}", s.machineSupplyChromeOSInfoHandler).Methods("POST")
 	r.HandleFunc("/_/meeting_points", s.meetingPointsHandler).Methods("GET")
 	r.HandleFunc("/_/pods", s.podsHandler).Methods("GET")
-	r.HandleFunc("/meeting_points", s.meetingPointsPageHandler).Methods("GET")
-	r.HandleFunc("/pods", s.podsPageHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
 
