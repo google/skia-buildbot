@@ -11,3 +11,4 @@
     - role: install_test_machine_monitor
       test_machine_monitor_version:
         '{{ test_machine_monitor_version_override }}'
+    - install_win_graphics_tools
