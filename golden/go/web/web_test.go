@@ -681,6 +681,48 @@ func TestChangelistSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
+func TestChangelistSearchRedirect_QueryParamAfterCLID_IncludedInRedirectURL(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: dks.GerritCRS,
+				},
+			},
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	// Support both & and ? for the query param options (as used by Flutter)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios&master=true", nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"system": dks.GerritCRS,
+		"id":     dks.ChangelistIDThatAttemptsToFixIOS + "&master=true",
+	})
+	wh.ChangelistSearchRedirect(w, r)
+	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+	headers := w.Header()
+	assert.Equal(t, []string{"/search?issue=CL_fix_ios&crs=gerrit&patchsets=3&master=true&corpus=corners"}, headers["Location"])
+
+	w = httptest.NewRecorder()
+	r = httptest.NewRequest(http.MethodGet, "/cl/gerrit/CL_fix_ios?master=true", nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"system": dks.GerritCRS,
+		"id":     dks.ChangelistIDThatAttemptsToFixIOS + "?master=true",
+	})
+	wh.ChangelistSearchRedirect(w, r)
+	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+	headers = w.Header()
+	assert.Equal(t, []string{"/search?issue=CL_fix_ios&crs=gerrit&patchsets=3&master=true&corpus=corners"}, headers["Location"])
+}
+
 func TestGetActionableDigests_ReturnsCorrectResults(t *testing.T) {
 	unittest.LargeTest(t)
 

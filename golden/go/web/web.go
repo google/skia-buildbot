@@ -1687,6 +1687,17 @@ func (wh *Handlers) ChangelistSearchRedirect(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Invalid Code Review System", http.StatusBadRequest)
 		return
 	}
+	// This allows users to link to something like:
+	// https://gold.skia.org/cl/gerrit/3213712&master=true
+	// And the page loads showing the all the results.
+	extraQueryParam := ""
+	if strings.Contains(clID, "?") {
+		s := strings.Split(clID, "?")
+		clID, extraQueryParam = s[0], s[1]
+	} else if strings.Contains(clID, "&") {
+		s := strings.Split(clID, "&")
+		clID, extraQueryParam = s[0], s[1]
+	}
 
 	qualifiedPSID, psOrder, err := wh.getLatestPatchset(ctx, crs, clID)
 	if err != nil {
@@ -1696,6 +1707,9 @@ func (wh *Handlers) ChangelistSearchRedirect(w http.ResponseWriter, r *http.Requ
 	// TODO(kjlubick) when we change the patchsets arg to not be a list of orders, we should
 	//   update it here too (probably specify the ps id).
 	baseURL := fmt.Sprintf("/search?issue=%s&crs=%s&patchsets=%d", clID, crs, psOrder)
+	if extraQueryParam != "" {
+		baseURL += "&" + extraQueryParam
+	}
 
 	corporaWithUntriagedUnignoredDigests, err := wh.getActionableDigests(ctx, crs, clID, qualifiedPSID)
 	if err != nil {
