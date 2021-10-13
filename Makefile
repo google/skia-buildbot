@@ -117,7 +117,6 @@ build-frontend-ci: npm-ci
 	cd status && $(MAKE) build-frontend-ci
 	cd task_driver && $(MAKE) build-frontend-ci
 	cd task_scheduler && $(MAKE) build-frontend-ci
-	cd tree_status && $(MAKE) build-frontend-ci
 
 # Front-end tests will be included in the Infra-PerCommit-Medium tryjob.
 #
