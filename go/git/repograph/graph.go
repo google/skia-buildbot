@@ -35,9 +35,14 @@ type Commit struct {
 	parents []*Commit
 }
 
-// Parents returns the parents of this commit.
+// GetParents returns the parents of this commit.
 func (c *Commit) GetParents() []*Commit {
 	return c.parents
+}
+
+// AddParent adds the given commit to the list of parents.
+func (c *Commit) AddParent(p *Commit) {
+	c.parents = append(c.parents, p)
 }
 
 // Recurse runs the given function recursively over commit history, starting

@@ -338,6 +338,18 @@ func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*TaskCandidat
 	return rv
 }
 
+type commitTester interface {
+	TestCommit(repo string, c *repograph.Commit) bool
+}
+
+type tasksCfgGetter interface {
+	Get(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error, error)
+}
+
+type commitGetter interface {
+	Get(ref string) *repograph.Commit
+}
+
 // ComputeBlamelist computes the blamelist for a new task, specified by name,
 // repo, and revision. Returns the list of commits covered by the task, and any
 // previous task which part or all of the blamelist was "stolen" from (see
@@ -362,7 +374,7 @@ func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*TaskCandidat
 //   - repoName:   Name of the repository for the task.
 //   - revision:   Revision at which the task would run.
 //   - commitsBuf: Buffer for use as scratch space.
-func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, tcc *task_cfg_cache.TaskCfgCache, w *window.Window) ([]string, *types.Task, error) {
+func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo commitGetter, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, tcg tasksCfgGetter, ct commitTester) ([]string, *types.Task, error) {
 	ctx, span := trace.StartSpan(ctx, "taskscheduler_ComputeBlamelist")
 	defer span.End()
 	commitsBuf = commitsBuf[:0]
@@ -373,7 +385,7 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograp
 		// If this commit is outside the scheduling window, we won't
 		// have tasks in the cache for it, and thus we won't be able
 		// to compute the correct blamelist. Stop here.
-		if !w.TestCommit(repoName, commit) {
+		if !ct.TestCommit(repoName, commit) {
 			return repograph.ErrStopRecursing
 		}
 
@@ -383,7 +395,7 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograp
 			Repo:     repoName,
 			Revision: commit.Hash,
 		}
-		cfg, cachedErr, err := tcc.Get(ctx, rs)
+		cfg, cachedErr, err := tcg.Get(ctx, rs)
 		if cachedErr != nil {
 			sklog.Warningf("Stopping blamelist recursion at %s; TaskCfgCache has error: %s", commit.Hash, err)
 			return repograph.ErrStopRecursing
@@ -438,7 +450,7 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograp
 					for _, c := range stealFrom.Commits {
 						ptr := repo.Get(c)
 						if ptr == nil {
-							return fmt.Errorf("No such commit: %q", c)
+							return skerr.Fmt("No such commit: %q", c)
 						}
 						commitsBuf = append(commitsBuf, ptr)
 					}
@@ -717,7 +729,7 @@ func (s *TaskScheduler) scoreCandidate(ctx context.Context, c *TaskCandidate, cy
 
 	if c.IsTryJob() {
 		c.Score = CANDIDATE_SCORE_TRY_JOB + cycleStart.Sub(earliestJob.Created).Hours()
-		// Proritize each subsequent attempt lower than the previous attempt.
+		// Prioritize each subsequent attempt lower than the previous attempt.
 		for i := 0; i < c.Attempt; i++ {
 			c.Score *= CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER
 		}

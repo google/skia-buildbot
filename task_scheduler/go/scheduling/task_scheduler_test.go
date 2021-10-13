@@ -2,6 +2,7 @@ package scheduling
 
 import (
 	"context"
+	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,9 +15,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
+
 	"cloud.google.com/go/storage"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+
 	"go.skia.org/infra/go/cas/mocks"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
@@ -38,6 +43,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
+	cache_mocks "go.skia.org/infra/task_scheduler/go/db/cache/mocks"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -3837,4 +3843,543 @@ func TestTriggerTaskNoResource(t *testing.T) {
 	tasks, err := s.tCache.GetTasksForCommits(rs1.Repo, []string{commits[0]})
 	require.NoError(t, err)
 	require.Equal(t, 0, len(tasks[commits[0]]))
+}
+
+func TestScoreCandidate_TryJob_PrioritizedHigherByWaitTime(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	test := func(name, jobCreated, now string, expectedScore float64) {
+		t.Run(name, func(t *testing.T) {
+			s := TaskScheduler{}
+			job := types.Job{
+				Created:  rfc3339(t, jobCreated),
+				Priority: specs.DEFAULT_JOB_SPEC_PRIORITY,
+			}
+			tc := asTryJob(TaskCandidate{
+				Jobs: []*types.Job{&job},
+			})
+			s.scoreCandidate(ctx, &tc, rfc3339(t, now), timeDoesNotMatter, nil)
+			assert.InDelta(t, expectedScore, tc.Score, 0.0001)
+		})
+	}
+
+	test("no waiting", "2021-10-01T15:00:00Z", "2021-10-01T15:00:00Z", 5)
+	test("10 min waiting", "2021-10-01T15:00:00Z", "2021-10-01T15:10:00Z", 5.08333)
+	test("30 min waiting", "2021-10-01T08:00:00Z", "2021-10-01T08:30:00Z", 5.25)
+	test("2 hours waiting", "2021-10-01T13:00:00Z", "2021-10-01T15:00:00Z", 6)
+}
+
+func TestScoreCandidate_TryJob_PrioritizedLowerByNumRetries(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	test := func(name string, numRetries int, expectedScore float64) {
+		t.Run(name, func(t *testing.T) {
+			s := TaskScheduler{}
+			ts := rfc3339(t, "2021-10-01T15:00:00Z") // fixed time indicating no waiting
+			job := types.Job{
+				Created:  ts,
+				Priority: specs.DEFAULT_JOB_SPEC_PRIORITY,
+			}
+			tc := asTryJob(TaskCandidate{
+				Jobs:    []*types.Job{&job},
+				Attempt: numRetries,
+			})
+			s.scoreCandidate(ctx, &tc, ts, timeDoesNotMatter, nil)
+			assert.InDelta(t, expectedScore, tc.Score, 0.0001)
+		})
+	}
+
+	test("first try", 0, 5)
+	test("second try", 1, 3.75)
+	test("third try", 2, 2.8125)
+	test("tenth try", 9, 0.3754)
+}
+
+func TestScoreCandidate_TryJob_MultipleJobPrioritiesImpactScore(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	test := func(name string, expectedScore float64, jobPriorities ...float64) {
+		t.Run(name, func(t *testing.T) {
+			s := TaskScheduler{}
+			ts := rfc3339(t, "2021-10-01T15:00:00Z") // fixed time indicating no waiting
+			tc := asTryJob(TaskCandidate{})
+			// For each job priority passed in, create a job with that priority that's a part
+			// of this task candidate.
+			for _, jp := range jobPriorities {
+				tc.Jobs = append(tc.Jobs, &types.Job{
+					Created:  ts,
+					Priority: jp,
+				})
+			}
+			s.scoreCandidate(ctx, &tc, ts, timeDoesNotMatter, nil)
+			assert.InDelta(t, expectedScore, tc.Score, 0.0001)
+		})
+	}
+
+	test("one job, default priority", 5, specs.DEFAULT_JOB_SPEC_PRIORITY)
+	test("one job, higher priority", 7.5, 0.75)
+	test("one job, highest priority", 10, 1.0)
+	test("one job, lower priority", 2.5, 0.25)
+	test("one job, lowest priority", 0.001, 0.0001)
+
+	test("out of range priority results in default", 5, 1234567)
+	test("zero priority results in default", 5, 0)
+
+	// We score tasks higher if they have more jobs.
+	test("two jobs, medium priority", 7.5, 0.5, 0.5)
+	test("three jobs, medium priority", 8.75, 0.5, 0.5, 0.5)
+	test("four jobs, medium priority", 9.375, 0.5, 0.5, 0.5, 0.5)
+	test("four jobs, mixed priorities", 9.811, 0.1, 0.7, 0.3, 0.9)
+	// Double-check the math for the mixed priorities test
+	assert.InDelta(t, .9811, 1-(1-0.1)*(1-0.7)*(1-0.3)*(1-0.9), 0.0001)
+}
+
+func TestScoreCandidate_TryJob_OldestJobOnlyUsedForWaitTime(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	cycleStart := rfc3339(t, "2021-10-01T15:00:00Z")
+	test := func(name string, expectedScore float64, jobCreated ...string) {
+		t.Run(name, func(t *testing.T) {
+			s := TaskScheduler{}
+			tc := asTryJob(TaskCandidate{})
+			for _, ts := range jobCreated {
+				tc.Jobs = append(tc.Jobs, &types.Job{
+					Created:  rfc3339(t, ts),
+					Priority: specs.DEFAULT_JOB_SPEC_PRIORITY,
+				})
+			}
+			s.scoreCandidate(ctx, &tc, cycleStart, timeDoesNotMatter, nil)
+			assert.InDelta(t, expectedScore, tc.Score, 0.0001)
+		})
+	}
+
+	// These should all be the same because the first job (which is presumed to be the oldest)
+	// is the time that is used.
+	test("two jobs, both waited 2 hours", 9, "2021-10-01T13:00:00Z", "2021-10-01T13:00:00Z")
+	test("two jobs, only one waited 2 hours", 9, "2021-10-01T13:00:00Z", "2021-10-01T14:55:00Z")
+}
+
+func TestScoreCandidate_ForcedJob_PrioritizedHigherByWaitTime(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	test := func(name, jobCreated, now string, expectedScore float64) {
+		t.Run(name, func(t *testing.T) {
+			s := TaskScheduler{}
+			job := types.Job{
+				Created:  rfc3339(t, jobCreated),
+				Priority: specs.DEFAULT_JOB_SPEC_PRIORITY,
+			}
+			tc := asForcedJob(TaskCandidate{
+				Jobs: []*types.Job{&job},
+			})
+			s.scoreCandidate(ctx, &tc, rfc3339(t, now), timeDoesNotMatter, nil)
+			assert.InDelta(t, expectedScore, tc.Score, 0.0001)
+		})
+	}
+
+	test("no waiting", "2021-10-01T15:00:00Z", "2021-10-01T15:00:00Z", 50)
+	test("10 min waiting", "2021-10-01T15:00:00Z", "2021-10-01T15:10:00Z", 50.08333)
+	test("30 min waiting", "2021-10-01T08:00:00Z", "2021-10-01T08:30:00Z", 50.25)
+	test("2 hours waiting", "2021-10-01T13:00:00Z", "2021-10-01T15:00:00Z", 51)
+}
+
+func TestScoreCandidate_ForcedJob_MultipleJobPrioritiesImpactScore(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	test := func(name string, expectedScore float64, jobPriorities ...float64) {
+		t.Run(name, func(t *testing.T) {
+			s := TaskScheduler{}
+			ts := rfc3339(t, "2021-10-01T15:00:00Z") // fixed time indicating no waiting
+			tc := asForcedJob(TaskCandidate{})
+			// For each job priority passed in, create a job with that priority that's a part
+			// of this task candidate.
+			for _, jp := range jobPriorities {
+				tc.Jobs = append(tc.Jobs, &types.Job{
+					Created:  ts,
+					Priority: jp,
+				})
+			}
+			s.scoreCandidate(ctx, &tc, ts, timeDoesNotMatter, nil)
+			assert.InDelta(t, expectedScore, tc.Score, 0.0001)
+		})
+	}
+
+	test("one job, default priority", 50, specs.DEFAULT_JOB_SPEC_PRIORITY)
+	test("one job, higher priority", 75, 0.75)
+	test("one job, highest priority", 100, 1.0)
+	test("one job, lower priority", 25, 0.25)
+	test("one job, lowest priority", 0.01, 0.0001)
+
+	test("out of range priority results in default", 50, 1234567)
+	test("zero priority results in default", 50, 0)
+
+	// We score tasks higher if they have more jobs.
+	test("two jobs, medium priority", 75, 0.5, 0.5)
+	test("three jobs, medium priority", 87.5, 0.5, 0.5, 0.5)
+	test("four jobs, medium priority", 93.75, 0.5, 0.5, 0.5, 0.5)
+	test("four jobs, mixed priorities", 98.11, 0.1, 0.7, 0.3, 0.9)
+	// Double-check the math for the mixed priorities test
+	assert.InDelta(t, .9811, 1-(1-0.1)*(1-0.7)*(1-0.3)*(1-0.9), 0.0001)
+}
+
+func TestScoreCandidate_ForcedJob_OldestJobOnlyUsedForWaitTime(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	cycleStart := rfc3339(t, "2021-10-01T15:00:00Z")
+	test := func(name string, expectedScore float64, jobCreated ...string) {
+		t.Run(name, func(t *testing.T) {
+			s := TaskScheduler{}
+			tc := asForcedJob(TaskCandidate{})
+			for _, ts := range jobCreated {
+				tc.Jobs = append(tc.Jobs, &types.Job{
+					Created:  rfc3339(t, ts),
+					Priority: specs.DEFAULT_JOB_SPEC_PRIORITY,
+				})
+			}
+			s.scoreCandidate(ctx, &tc, cycleStart, timeDoesNotMatter, nil)
+			assert.InDelta(t, expectedScore, tc.Score, 0.0001)
+		})
+	}
+
+	// These should all be the same because the first job (which is presumed to be the oldest)
+	// is the time that is used.
+	test("two jobs, both waited 2 hours", 76.5, "2021-10-01T13:00:00Z", "2021-10-01T13:00:00Z")
+	test("two jobs, only one waited 2 hours", 76.5, "2021-10-01T13:00:00Z", "2021-10-01T14:55:00Z")
+}
+
+func TestComputeBlamelist_NoExistingTests(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	const repoName = "some_repo"
+	const taskName = "Test-Foo-Bar"
+	tcg := tasksAlwaysDefined(taskName)
+
+	firstCommit := newCommit("a")
+	secondCommit := newCommit("b", firstCommit)
+	thirdCommit := newCommit("c", secondCommit)
+
+	mtc := &cache_mocks.TaskCache{}
+	mtc.On("GetTaskForCommit", repoName, mock.Anything, taskName).Return(nil, nil)
+
+	blamelistNoTask := func(name string, revision *repograph.Commit, expectedBlamelist []string) {
+		t.Run(name, func(t *testing.T) {
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, revision, commitsBuffer, tcg, allCommitsInWindow{})
+			require.NoError(t, err)
+			assert.Equal(t, expectedBlamelist, blamedCommits)
+			assert.Nil(t, stealFromTask)
+		})
+	}
+	// We expect this commit and all following commits to be blamed
+	blamelistNoTask("first commit", firstCommit, []string{firstCommit.Hash})
+	blamelistNoTask("second commit", secondCommit, []string{secondCommit.Hash, firstCommit.Hash})
+	blamelistNoTask("third commit", thirdCommit, []string{thirdCommit.Hash, secondCommit.Hash, firstCommit.Hash})
+}
+
+func TestComputeBlamelist_FirstCommitTested(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	const repoName = "some_repo"
+	const taskName = "Test-Foo-Bar"
+	tcg := tasksAlwaysDefined(taskName)
+
+	firstCommit := newCommit("a")
+	secondCommit := newCommit("b", firstCommit)
+	thirdCommit := newCommit("c", secondCommit)
+
+	firstCommitTask := newTask("task-1", firstCommit)
+
+	mtc := &cache_mocks.TaskCache{}
+	mtc.On("GetTaskForCommit", repoName, firstCommit.Hash, taskName).Return(firstCommitTask, nil)
+	mtc.On("GetTaskForCommit", repoName, mock.Anything, taskName).Return(nil, nil)
+
+	blamelistNoTask := func(name string, revision *repograph.Commit, expectedBlamelist []string) {
+		t.Run(name, func(t *testing.T) {
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, revision, commitsBuffer, tcg, allCommitsInWindow{})
+			require.NoError(t, err)
+			assert.Equal(t, expectedBlamelist, blamedCommits)
+			assert.Nil(t, stealFromTask)
+		})
+	}
+	// For commits after the task, the blamelist should extend back, but not include that commit.
+	blamelistNoTask("second commit", secondCommit, []string{secondCommit.Hash})
+	blamelistNoTask("third commit", thirdCommit, []string{thirdCommit.Hash, secondCommit.Hash})
+
+	// Calculating a blame for a commit which already ran a task is considered a retry. As such,
+	// the entire blamelist is returned.
+	t.Run("first commit (retry)", func(t *testing.T) {
+		rg := makeRepoGetter(firstCommit, secondCommit, thirdCommit)
+		blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, firstCommit, commitsBuffer, tcg, allCommitsInWindow{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{firstCommit.Hash}, blamedCommits)
+		assert.Equal(t, firstCommitTask, stealFromTask)
+	})
+}
+
+func TestComputeBlamelist_LastCommitTested_FollowingCommitsBlamed(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	const repoName = "some_repo"
+	const taskName = "Test-Foo-Bar"
+	tcg := tasksAlwaysDefined(taskName)
+
+	firstCommit := newCommit("a")
+	secondCommit := newCommit("b", firstCommit)
+	thirdCommit := newCommit("c", secondCommit)
+
+	thirdCommitTask := newTask("task-1", thirdCommit, secondCommit, firstCommit)
+
+	rg := makeRepoGetter(firstCommit, secondCommit, thirdCommit)
+
+	mtc := &cache_mocks.TaskCache{}
+	// By returning this task for all commits, we are saying that every commit is covered by
+	// the task that ran on the last commit.
+	mtc.On("GetTaskForCommit", repoName, mock.Anything, taskName).Return(thirdCommitTask, nil)
+
+	blamelistAndTask := func(name string, revision *repograph.Commit, expectedBlamelist []string, expectedTask *types.Task) {
+		t.Run(name, func(t *testing.T) {
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, revision, commitsBuffer, tcg, allCommitsInWindow{})
+			require.NoError(t, err)
+			assert.Equal(t, expectedBlamelist, blamedCommits)
+			assert.Equal(t, expectedTask, stealFromTask)
+		})
+	}
+
+	blamelistAndTask("first commit", firstCommit, []string{firstCommit.Hash}, thirdCommitTask)
+	blamelistAndTask("second commit", secondCommit, []string{secondCommit.Hash, firstCommit.Hash}, thirdCommitTask)
+	// Calculating a blame for a commit which already ran a task is considered a retry. As such,
+	// the entire blamelist is returned.
+	blamelistAndTask("third commit (retry)", thirdCommit, []string{thirdCommit.Hash, secondCommit.Hash, firstCommit.Hash}, thirdCommitTask)
+}
+
+func TestComputeBlamelist_BlamelistTooLong_UseProvidedCommit(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	const repoName = "some_repo"
+	const taskName = "Test-Foo-Bar"
+	tcg := tasksAlwaysDefined(taskName)
+
+	// Pretend we have 1000 commits in a row. We make sure their hashes are unique but predictable
+	// by using the integer values from 0 to 999 prefixed with enough zeros to make them 40 digits
+	// (the length of a real-world git SHA1 hash).
+	require.Greater(t, 1000, MAX_BLAMELIST_COMMITS)
+	prevCommit := newCommit("0")
+	for i := 1; i < 1000; i++ {
+		h := fmt.Sprintf("%040d", i)
+		prevCommit = newCommit(h, prevCommit)
+	}
+	require.Equal(t, "0000000000000000000000000000000000000999", prevCommit.Hash)
+
+	mtc := &cache_mocks.TaskCache{}
+	mtc.On("GetTaskForCommit", repoName, mock.Anything, taskName).Return(nil, nil)
+
+	blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, prevCommit, commitsBuffer, tcg, allCommitsInWindow{})
+	require.NoError(t, err)
+	assert.Equal(t, []string{prevCommit.Hash}, blamedCommits)
+	assert.Nil(t, stealFromTask)
+}
+
+func TestComputeBlamelist_BranchInHistory_NonOverlappingCoverage(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	const repoName = "some_repo"
+	const taskName = "Test-Foo-Bar"
+	tcg := tasksAlwaysDefined(taskName)
+
+	// This represents a git history with a branch and merge like this.
+	// The asterisks represent at which commits a task has run. Only one of the branches
+	// has a test, so commit 2 is not "double covered".
+	//     0
+	//     1*
+	//     2
+	//   3a  3b
+	//   4a* 4b
+	//   5a   |
+	//      6
+	zero := newCommit("0")
+	one := newCommit("1", zero)
+	two := newCommit("2", one)
+	threeA := newCommit("3a", two)
+	threeB := newCommit("3b", two)
+	fourA := newCommit("4a", threeA)
+	fourB := newCommit("4b", threeB)
+	fiveA := newCommit("5a", fourA)
+	six := newCommit("6", fourB, fiveA)
+
+	commitOneTask := newTask("task-1", one, zero)
+	commitFourATask := newTask("task-2", fourA, threeA, two)
+
+	mtc := &cache_mocks.TaskCache{}
+	mtc.On("GetTaskForCommit", repoName, zero.Hash, taskName).Return(commitOneTask, nil)
+	mtc.On("GetTaskForCommit", repoName, one.Hash, taskName).Return(commitOneTask, nil)
+	mtc.On("GetTaskForCommit", repoName, two.Hash, taskName).Return(commitFourATask, nil)
+	mtc.On("GetTaskForCommit", repoName, threeA.Hash, taskName).Return(commitFourATask, nil)
+	mtc.On("GetTaskForCommit", repoName, fourA.Hash, taskName).Return(commitFourATask, nil)
+	mtc.On("GetTaskForCommit", repoName, mock.Anything, taskName).Return(nil, nil)
+
+	rg := makeRepoGetter(zero, one, two, threeA, threeB, fourA, fourB, fiveA, six)
+
+	blamelistAndTask := func(name string, revision *repograph.Commit, expectedBlamelist []string, expectedTask *types.Task) {
+		t.Run(name, func(t *testing.T) {
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, revision, commitsBuffer, tcg, allCommitsInWindow{})
+			require.NoError(t, err)
+			assert.Equal(t, expectedBlamelist, blamedCommits)
+			assert.Equal(t, expectedTask, stealFromTask)
+		})
+	}
+
+	blamelistAndTask("commit zero", zero, []string{zero.Hash}, commitOneTask)
+	blamelistAndTask("commit one", one, []string{one.Hash, zero.Hash}, commitOneTask)
+	blamelistAndTask("commit two", two, []string{two.Hash}, commitFourATask)
+	blamelistAndTask("commit threeA", threeA, []string{threeA.Hash, two.Hash}, commitFourATask)
+	blamelistAndTask("commit threeB", threeB, []string{threeB.Hash}, nil)
+	blamelistAndTask("commit fourA", fourA, []string{fourA.Hash, threeA.Hash, two.Hash}, commitFourATask)
+	blamelistAndTask("commit fourB", fourB, []string{fourB.Hash, threeB.Hash}, nil)
+	blamelistAndTask("commit fiveA", fiveA, []string{fiveA.Hash}, nil)
+	blamelistAndTask("commit six", six, []string{six.Hash, fourB.Hash, threeB.Hash, fiveA.Hash}, nil)
+}
+
+const lengthOfSHA1Hash = sha1.Size * 2
+
+func newCommit(s string, parents ...*repograph.Commit) *repograph.Commit {
+	h := strings.Repeat(s, lengthOfSHA1Hash/len(s)+1)[:lengthOfSHA1Hash]
+	c := repograph.Commit{LongCommit: &vcsinfo.LongCommit{ShortCommit: &vcsinfo.ShortCommit{Hash: h}}}
+	for _, p := range parents {
+		c.Parents = append(c.Parents, p.Hash)
+		c.AddParent(p)
+	}
+	return &c
+}
+
+func TestNewCommit_SetsParentsCorrectly(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// This represents a git history with a branch and merge like this.
+	//     1
+	//     2
+	//   3a  3b
+	//   4a  |
+	//     5
+	one := newCommit("1")
+	two := newCommit("2", one)
+	// Branch
+	threeA := newCommit("3a", two)
+	threeB := newCommit("3b", two)
+	fourA := newCommit("4a", threeA)
+	// Merge
+	five := newCommit("5", threeB, fourA)
+
+	assert.Equal(t, "1111111111111111111111111111111111111111", one.Hash)
+	assert.Len(t, one.Hash, 2*sha1.Size)
+	assert.Empty(t, one.Parents)      // The strings from vcsinfo.LongCommit
+	assert.Empty(t, one.GetParents()) // The points in repograph.Commit
+
+	assert.Equal(t, "2222222222222222222222222222222222222222", two.Hash)
+	assert.Equal(t, []string{one.Hash}, two.Parents)
+	assert.Equal(t, []*repograph.Commit{one}, two.GetParents())
+
+	assert.Equal(t, "3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a", threeA.Hash)
+	assert.Equal(t, []string{two.Hash}, threeA.Parents)
+	assert.Equal(t, []*repograph.Commit{two}, threeA.GetParents())
+
+	assert.Equal(t, "3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b", threeB.Hash)
+	assert.Equal(t, []string{two.Hash}, threeB.Parents)
+	assert.Equal(t, []*repograph.Commit{two}, threeB.GetParents())
+
+	assert.Equal(t, "4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a", fourA.Hash)
+	assert.Equal(t, []string{threeA.Hash}, fourA.Parents)
+	assert.Equal(t, []*repograph.Commit{threeA}, fourA.GetParents())
+
+	assert.Equal(t, "5555555555555555555555555555555555555555", five.Hash)
+	assert.Equal(t, []string{threeB.Hash, fourA.Hash}, five.Parents)
+	assert.Equal(t, []*repograph.Commit{threeB, fourA}, five.GetParents())
+}
+
+var (
+	// Use of timeDoesNotMatter indicates that the time does not affect the outputs.
+	timeDoesNotMatter = time.Time{}
+	commitsBuffer     = make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
+)
+
+func rfc3339(t *testing.T, n string) time.Time {
+	ts, err := time.Parse(time.RFC3339, n)
+	require.NoError(t, err)
+	return ts
+}
+
+func asTryJob(c TaskCandidate) TaskCandidate {
+	c.Issue = "nonempty"
+	c.Patchset = "nonempty"
+	c.Server = "nonempty"
+	if !c.IsTryJob() {
+		panic("Should be a tryjob task candidate now")
+	}
+	return c
+}
+
+func asForcedJob(c TaskCandidate) TaskCandidate {
+	c.ForcedJobId = "nonempty"
+	if !c.IsForceRun() {
+		panic("Should be a tryjob task candidate now")
+	}
+	return c
+}
+
+type allCommitsInWindow struct{}
+
+func (allCommitsInWindow) TestCommit(string, *repograph.Commit) bool {
+	return true
+}
+
+type fixedTaskConfig struct {
+	cfg specs.TasksCfg
+}
+
+func (f fixedTaskConfig) Get(context.Context, types.RepoState) (*specs.TasksCfg, error, error) {
+	return &f.cfg, nil, nil
+}
+
+func tasksAlwaysDefined(taskNames ...string) tasksCfgGetter {
+	cfg := specs.TasksCfg{
+		Tasks: map[string]*specs.TaskSpec{},
+	}
+	for _, tn := range taskNames {
+		cfg.Tasks[tn] = &specs.TaskSpec{} // just needs to have a key, the value does not matter
+	}
+	return fixedTaskConfig{cfg: cfg}
+}
+
+func newTask(id string, ranAt *repograph.Commit, alsoCovered ...*repograph.Commit) *types.Task {
+	nt := types.Task{Id: id}
+	nt.Revision = ranAt.Hash
+	nt.Commits = append(nt.Commits, ranAt.Hash)
+	for _, c := range alsoCovered {
+		nt.Commits = append(nt.Commits, c.Hash)
+	}
+	return &nt
+}
+
+type repoMap map[string]*repograph.Commit
+
+func makeRepoGetter(commits ...*repograph.Commit) repoMap {
+	m := repoMap{}
+	for _, c := range commits {
+		m[c.Hash] = c
+	}
+	return m
+}
+
+func (m repoMap) Get(ref string) *repograph.Commit {
+	return m[ref]
 }
