@@ -1,19 +1,27 @@
-default: build npm-ci
-	npx webpack --mode=development
+include ../make/bazel.mk
 
-./modules/json/index.ts:
-	go generate ./go/types/ts
+generate:
+	go generate ./go/...
 
-build: ./modules/json/index.ts
-	go install ./go/tree_status
+build: generate
+	$(BAZEL) build ...
 
-release: build npm-ci
-	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/tree_status
-	./build_tree_status_release
+serve:
+	@echo "Bazel doesn't have a serve-all option."
+	@echo "For the module under development, try running something like:"
+	@echo "bazel run modules/machine-server-sk:demo_page_server"
 
-debug: npm-ci
-	npx webpack --mode=development
+run-local-instance: build
+	# Run "bazel build //tree_status/..." after making any frontend changes
+	# to pick up the change without restarting the golang server.
+	../_bazel_bin/tree_status/go/tree_status/tree_status_/tree_status --local --resources_dir ../_bazel_bin/tree_status/pages/development --repo=test --repo=skia
+
+frontend:
+	# Makes sure all the frontend pages and tests compile.
+	$(BAZEL) build modules/... pages/...
+
+release: build
+	$(BAZEL) run //tree_status:push_tree_status_container
 
 push: release
 	pushk tree_status
@@ -21,17 +29,5 @@ push: release
 push_internal: release
 	pushk --only-cluster skia-corp tree_status
 
-serve: npm-ci
-	npx webpack-dev-server --mode=development --watch-poll
-
 testgo:
 	go test ./go/...
-
-watch: npm-ci
-	npx webpack --mode=development --watch
-
-.PHONY: build-frontend-ci
-build-frontend-ci: npm-ci
-	npx webpack --mode=production
-
-include ../make/npm.mk

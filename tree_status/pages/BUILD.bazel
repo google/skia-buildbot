@@ -1,0 +1,14 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "index",
+    assets_serving_path = "/dist",
+    html_file = "index.html",
+    nonce = "{% .Nonce %}",
+    scss_entry_point = "index.scss",
+    sk_element_deps = [
+        "//tree_status/modules/tree-scaffold-sk",
+        "//tree_status/modules/tree-status-sk",
+    ],
+    ts_entry_point = "index.ts",
+)

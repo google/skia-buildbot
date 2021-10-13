@@ -1,0 +1,19 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "list-autorollers-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["list-autorollers-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//tree_status/modules/json:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "list-autorollers-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

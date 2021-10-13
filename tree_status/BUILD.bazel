@@ -1,0 +1,36 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "tree_status_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//tree_status/go/tree_status:tree_status",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/tree_status/dist": [
+            [
+                "//tree_status/images:favicon.ico",
+                "0644",
+            ],
+        ] + [
+            [
+                "//tree_status/pages:production/index.{}".format(extension),
+                "0644",
+            ]
+            for extension in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    entrypoint = "/usr/local/bin/tree_status",
+    repository = "skia-public/tree_status",
+    run_commands_root = [
+        "apk update",
+        # Install packages useful for debugging on the pod.
+        "apk add --no-cache bash procps",
+    ],
+)

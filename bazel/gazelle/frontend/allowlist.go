@@ -18,4 +18,6 @@ var targetDirectories = map[string]bool{
 	"perf/pages":          true,
 	"puppeteer-tests":     true,
 	"task_driver/modules": true,
+	"tree_status/modules": true,
+	"tree_status/pages":   true,
 }
