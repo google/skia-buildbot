@@ -8,3 +8,9 @@ sass_library(
     name = "elements-sk_scss",
     srcs = glob(["node_modules/elements-sk/**/*.scss"]) + ["//:~elements-sk"],
 )
+
+sass_library(
+    name = "themes",
+    srcs = ["themes.scss"],
+    deps = ["//infra-sk:elements-sk_scss"],
+)
