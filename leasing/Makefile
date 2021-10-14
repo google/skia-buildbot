@@ -1,34 +1,23 @@
+include ../make/bazel.mk
 include ../kube/kube.mk
 
-default: build
+generate:
+	go generate ./go/...
 
-./modules/json/index.ts:
-	go generate ./go/types/ts
+build: generate
+	$(BAZEL) build ...
 
-build: ./modules/json/index.ts npm-ci
-	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/leasing
+run-local-instance: build
+	# Run "bazel build //leasing/..." after making any frontend changes
+	# to pick up the change without restarting the golang server.
+	../_bazel_bin/leasing/go/leasing/leasing_/leasing --local --resources_dir ../_bazel_bin/leasing/pages/development
+
+frontend:
+	# Makes sure all the frontend pages and tests compile.
+	$(BAZEL) build modules/... pages/...
 
 release: build
-	./build_docker_release
-
-debug: npm-ci
-	npx webpack --mode=development
+	$(BAZEL) run //leasing:push_leasing_container
 
 push: pushk release
 	pushk --use-temp-checkout leasing
-
-serve: npm-ci
-	npx webpack-dev-server --mode=development --watch-poll
-
-testgo:
-	go test ./go/...
-
-watch: npm-ci
-	npx webpack --mode=development --watch
-
-.PHONY: build-frontend-ci
-build-frontend-ci: npm-ci
-	npx webpack --mode=production
-
-include ../make/npm.mk

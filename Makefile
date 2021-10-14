@@ -106,7 +106,6 @@ build-frontend-ci: npm-ci
 	cd hashtag && $(MAKE) build-frontend-ci
 	cd infra-sk && $(MAKE) build-frontend-ci
 	cd jsfiddle && $(MAKE) build-frontend-ci
-	cd leasing && $(MAKE) build-frontend-ci
 	cd new_element && $(MAKE) build-frontend-ci
 	cd particles && $(MAKE) build-frontend-ci
 	cd perf && $(MAKE) build-frontend-ci

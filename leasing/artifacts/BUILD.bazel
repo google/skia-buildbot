@@ -1,0 +1,5 @@
+py_binary(
+    name = "leasing",
+    srcs = ["leasing.py"],
+    visibility = ["//leasing:__subpackages__"],
+)

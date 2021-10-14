@@ -10,6 +10,8 @@ var targetDirectories = map[string]bool{
 	"golden/modules":      true,
 	"golden/pages":        true,
 	"infra-sk/modules":    true,
+	"leasing/modules":     true,
+	"leasing/pages":       true,
 	"machine/modules":     true,
 	"machine/pages":       true,
 	"modules/devices":     true,

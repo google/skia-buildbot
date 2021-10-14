@@ -1,0 +1,26 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "leasing-list-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//leasing/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["leasing-list-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/login-sk",
+        "//leasing/modules/leasing-task-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//leasing/modules/json:index_ts_lib",
+        "//leasing/modules:leasing_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "leasing-list-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
