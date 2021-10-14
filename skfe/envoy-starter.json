@@ -1775,8 +1775,8 @@
                       ]
                     },
                     {
-                      "domains": "cros-tast-dev-gold.skia.org",
-                      "name": "cros-tast-dev-gold.skia.org",
+                      "domains": "cros-tast-gold.skia.org",
+                      "name": "cros-tast-gold.skia.org",
                       "routes": [
                         {
                           "match": {
