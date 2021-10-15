@@ -838,9 +838,10 @@ func TestProcessTaskCandidate(t *testing.T) {
 }
 
 func TestRegularJobRetryScoring(t *testing.T) {
-	ctx, _, _, _, s, _, _, cleanup := setup(t)
+	_, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
+	ctx := now.TimeTravelingContext(time.Date(2021, time.October, 15, 0, 0, 0, 0, time.UTC))
 	currentTime := now.Now(ctx)
 
 	checkDiag := func(c *TaskCandidate) {
