@@ -482,7 +482,7 @@ third_party {
 	}
 
 	// Upload the CL to Gerrit.
-	uploadArgs := []string{"upload", "--no-verify"}
+	uploadArgs := []string{"upload", "--no-verify", "--push-option=uploadvalidator~skip"}
 	if rollEmails != nil && len(rollEmails) > 0 {
 		uploadArgs = append(uploadArgs, fmt.Sprintf("--re=%s", strings.Join(rollEmails, ",")))
 	}
