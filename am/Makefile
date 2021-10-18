@@ -61,9 +61,8 @@ export DATETIME:=$(shell date --utc "+%Y-%m-%dT%H:%M:%SZ")
 export GIT_STATE:=$(shell ../bash/gitstate.sh)
 export VERSION:=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
 
-# The name of this target can't change, as the form is dictated by ansible
-# playbooks in //skolo/ansible/switchboard.
-build_alert_to_pubsub_ansible_x86_64_Linux:
+build_alert_to_pubsub_ansible:
+	rm -rf ./build
 	CGO_ENABLED=0 \
 	GOOS=linux \
 	GOARCH=amd64 \
@@ -71,5 +70,16 @@ build_alert_to_pubsub_ansible_x86_64_Linux:
 	 -o ./build/Linux/x86_64/alert_to_pubsub_ansible \
 	 -ldflags="-X 'main.Version=${VERSION}' " \
 	 ./go/alert-to-pubsub
+
+build_and_upload_alert_to_pubsub_ansible: build_alert_to_pubsub_ansible
+	cipd create -pkg-def=alert_to_pubsub_ansible_cipd.yml --tag version:${VERSION}
+
+	#
+	# The instance can be retrieved using the version tag:
+	#
+	#   cipd install --root=/tmp/sometempdir skia/internal/alert_to_pubsub_ansible version:${VERSION}
+
+release_alert_to_pubsub_ansible: build_and_upload_alert_to_pubsub_ansible
+	../bash/ansible-release.sh alert_to_pubsub_ansible ${VERSION}
 
 include ../make/npm.mk

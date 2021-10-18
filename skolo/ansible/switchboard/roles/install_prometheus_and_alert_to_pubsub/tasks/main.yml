@@ -97,13 +97,13 @@
     group: chrome-bot
     mode: '0755'
 
-- name: Build alert_to_pubsub_ansible for the target machine.
-  delegate_to: 127.0.0.1
-  make:
-    chdir: '{{ all.repo_root }}/am/'
-    target:
-      "build_alert_to_pubsub_ansible_{{ ansible_facts['architecture'] }}_{{
-      ansible_facts['system'] }}"
+- name: Load alert_to_pubsub_ansible executables.
+  run_once: yes
+  import_role:
+    name: get_ansible_binaries
+  vars:
+    get_ansible_binaries_application: alert_to_pubsub_ansible
+    get_ansible_binaries_version: '{{ alert_to_pubsub_ansible_version }}'
 
 - name: Copy over alert_to_pubsub service file.
   become: yes
@@ -119,8 +119,9 @@
   become: yes
   copy:
     src:
-      "{{ all.repo_root }}/am/build/{{ ansible_facts['system'] }}/{{
-      ansible_facts['architecture'] }}/alert_to_pubsub_ansible"
+      "{{ get_ansible_binaries_directory.path }}/build/{{
+      ansible_facts['system'] }}/{{ ansible_facts['architecture']
+      }}/alert_to_pubsub_ansible"
     dest: /usr/local/bin/alert_to_pubsub_ansible
     owner: root
     group: root

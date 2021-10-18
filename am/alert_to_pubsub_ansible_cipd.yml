@@ -1,0 +1,5 @@
+package: skia/internal/alert_to_pubsub_ansible
+description: Builds of alert_to_pubsub_ansible for all os/arch combinations.
+install_mode: copy
+data:
+  - dir: build/
