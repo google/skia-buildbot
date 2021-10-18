@@ -23,7 +23,7 @@ alias skolo_rack5_router='google-chrome https://localhost:9004; ssh -L 9004:192.
 
 
 # Shelf ports start at 7000, and the second digit is the rack number, the last number is the shelf.
-alias skolo_rack1_shelf2_switch='google-chrome https://localhost:7101; ssh -L 7101:rack1-shelf1-poe-switch:443 rack1'
+alias skolo_rack1_shelf1_switch='google-chrome https://localhost:7101; ssh -L 7101:rack1-shelf1-poe-switch:443 rack1'
 alias skolo_rack1_shelf2_switch='google-chrome https://localhost:7102; ssh -L 7102:rack1-shelf2-poe-switch:443 rack1'
 
 alias skolo_rack4_shelf1_switch='google-chrome https://localhost:7401; ssh -L 7401:rack4-shelf1-poe-switch:443 rack4'
