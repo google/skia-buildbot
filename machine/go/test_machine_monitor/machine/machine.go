@@ -164,7 +164,6 @@ func (m *Machine) interrogateAndSend(ctx context.Context) error {
 // Start the background processes that send events to the sink and watch for
 // firestore changes.
 func (m *Machine) Start(ctx context.Context) error {
-	m.startStoreWatch(ctx)
 
 	if err := m.interrogateAndSend(ctx); err != nil {
 		return skerr.Wrap(err)
@@ -178,6 +177,11 @@ func (m *Machine) Start(ctx context.Context) error {
 			sklog.Errorf("interrogateAndSend failed: %s", err)
 		}
 	})
+
+	// Since startStoreWatch blocks until the first description is loaded it
+	// must come after the above RepeatCtx, to handle a new machine coming
+	// online.
+	m.startStoreWatch(ctx)
 
 	return nil
 }
