@@ -389,7 +389,7 @@ export class ShaderNode {
       this.children.forEach((childNode) => childNode.compile());
 
       const predefinedAndChildShaderUniformDeclarations = `${predefinedUniforms}\n${this.getChildShaderUniforms()}\n`;
-      const errorLineFixup = predefinedAndChildShaderUniformDeclarations.split('\n').length;
+      const errorLineFixup = predefinedAndChildShaderUniformDeclarations.split('\n').length - 1;
 
       this._compileErrorMessage = '';
       this._compileErrorLineNumbers = [];
