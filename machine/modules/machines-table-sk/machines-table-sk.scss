@@ -1,5 +1,10 @@
 machines-table-sk {
-  edit-icon-sk{
+  .clickable {
     cursor: pointer;
+  }
+
+  details > summary {
+    cursor: pointer;
+    white-space: nowrap;
   }
 }

@@ -141,6 +141,7 @@ const powerCycle = (ele: MachinesTableSk, machine: FrontendDescription): Templat
   return html`
     <power-settings-new-icon-sk
       title="Powercycle the host"
+      class="clickable"
       @click=${() => ele.togglePowerCycle(machine.Dimensions!.id![0])}
     ></power-settings-new-icon-sk>
   `;
@@ -169,6 +170,7 @@ const machineLink = (machine: FrontendDescription): TemplateResult => html`
 const deleteMachine = (ele: MachinesTableSk, machine: FrontendDescription): TemplateResult => html`
   <delete-icon-sk
     title="Remove the machine from the database."
+    class="clickable"
     @click=${() => ele.deleteDevice(machine.Dimensions!.id![0])}
   ></delete-icon-sk>
 `;
@@ -189,7 +191,8 @@ export const uptimeOutOfSpecIfTooOld = (uptime: number): string => (uptime > MAX
 
 // eslint-disable-next-line no-use-before-define
 const note = (ele: MachinesTableSk, machine: FrontendDescription): TemplateResult => html`
-  <edit-icon-sk class="edit_note"
+  <edit-icon-sk
+      class="edit_note clickable"
       @click=${() => ele.editNote(machine.Dimensions!.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
 `;
 
