@@ -905,6 +905,15 @@ func TestBatteryFromAndroidDumpSys_Success(t *testing.T) {
 	assert.Equal(t, 94, battery)
 }
 
+// It turns out that hammerhead devices separate dumpsys lines with \r\n instead
+// of \n, so test for that.
+func TestBatteryFromAndroidDumpSys_Hammerhead_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	battery, ok := batteryFromAndroidDumpSys("Current Battery Service state:\r\n  AC powered: false\r\n  USB powered: true\r\n  Wireless powered: false\r\n  Max charging current: 0\r\n  status: 5\r\n  health: 2\r\n  present: true\r\n  level: 45\r\n  scale: 100\r\n  voltage: 4189\r\n  temperature: 180\r\n  technology: Li-ion\r\n")
+	assert.True(t, ok)
+	assert.Equal(t, 45, battery)
+}
+
 func TestBatteryFromAndroidDumpSys_FalseOnEmptyString(t *testing.T) {
 	unittest.SmallTest(t)
 	_, ok := batteryFromAndroidDumpSys("")

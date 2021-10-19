@@ -56,19 +56,19 @@ var (
 	// for the battery level which looks like:
 	//
 	//    level: 94
-	batteryLevel = regexp.MustCompile(`(?m)level:\s+(\d+)\n`)
+	batteryLevel = regexp.MustCompile(`(?m)level:\s+(\d+)\b`)
 
 	// batteryScale is a regex that matches the output of `adb shell dumpsys battery` and looks
 	// for the battery scale which looks like:
 	//
 	//    scale: 100
-	batteryScale = regexp.MustCompile(`(?m)scale:\s+(\d+)\n`)
+	batteryScale = regexp.MustCompile(`(?m)scale:\s+(\d+)\b`)
 
 	// batteryTemperature is a regex that matches the output of `adb shell
 	// dumpsys battery` and looks for the battery temperature which looks like:
 	//
 	//      temperature: 280
-	batteryTemperature = regexp.MustCompile(`(?m)temperature:\s+(\d+)\n`)
+	batteryTemperature = regexp.MustCompile(`(?m)temperature:\s+(\d+)\b`)
 
 	// thermalServiceTemperature is a regex that matches the temperatures in the
 	// output of `adb shell dumpsys thermalservice`, which look like:
@@ -135,6 +135,8 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 			maintenanceMessage += "Battery low. "
 		}
 		metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": machineID}).Update(int64(battery))
+	} else {
+		sklog.Warningf("Failed to find battery value for %s", machineID)
 	}
 
 	temperatures, ok := temperatureFromAndroid(event.Android)
@@ -384,18 +386,22 @@ func dimensionsFromAndroidProperties(prop map[string]string) map[string][]string
 func batteryFromAndroidDumpSys(batteryDumpSys string) (int, bool) {
 	levelMatch := batteryLevel.FindStringSubmatch(batteryDumpSys)
 	if levelMatch == nil {
+		sklog.Warningf("Failed to find battery level in %q", batteryDumpSys)
 		return badBatteryLevel, false
 	}
 	level, err := strconv.Atoi(levelMatch[1])
 	if err != nil {
+		sklog.Warningf("Failed to convert battery level from %q", levelMatch[1])
 		return badBatteryLevel, false
 	}
 	scaleMatch := batteryScale.FindStringSubmatch(batteryDumpSys)
 	if scaleMatch == nil {
+		sklog.Warningf("Failed to find battery scale in %q", batteryDumpSys)
 		return badBatteryLevel, false
 	}
 	scale, err := strconv.Atoi(scaleMatch[1])
 	if err != nil {
+		sklog.Warningf("Failed to convert battery scale from %q", scaleMatch[1])
 		return badBatteryLevel, false
 	}
 	if scale == 0 {
