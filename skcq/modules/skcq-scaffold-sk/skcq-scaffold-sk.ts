@@ -1,6 +1,6 @@
 /**
- * @module module/skcq-scaffold
- * @description <h2><code>skcq-scaffold</code></h2>
+ * @module module/skcq-scaffold-sk
+ * @description <h2><code>skcq-scaffold-sk</code></h2>
  *
  * Contains the title bar and error-toast for all the SkCQ pages. The
  * rest of pages should be a child of this element.
@@ -113,7 +113,7 @@ export class SkCQScaffold extends ElementSk {
     super.disconnectedCallback();
   }
 
-  // Place these newly added nodes in the right place under the skcq-scaffold-sk
+  // Place these newly added nodes in the right place under the skcq-scaffold-sk-sk
   // element.
   private redistributeAddedNodes(from: NodeList) {
     Array.prototype.slice.call(from).forEach((node: Node) => {
@@ -139,4 +139,4 @@ export class SkCQScaffold extends ElementSk {
   }
 }
 
-define('skcq-scaffold', SkCQScaffold);
+define('skcq-scaffold-sk', SkCQScaffold);
