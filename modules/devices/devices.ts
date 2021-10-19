@@ -43,6 +43,7 @@ export const DEVICE_ALIASES: Record<string, string> = {
   shamu: 'Nexus 6',
   sprout: 'Android One',
   starlte: 'Galaxy S9',
+  sunfish: 'Pixel 4a',
   taimen: 'Pixel2 XL',
   universal7420: 'Galaxy S6',
   walleye: 'Pixel 2',
