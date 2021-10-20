@@ -361,6 +361,13 @@ func dimensionsFromAndroidProperties(prop map[string]string) map[string][]string
 		ret[machine.DimOS] = []string{"Android"}
 	}
 
+	// Detects whether the device is running a HWASan build of Android, and if so,
+	// advertises it via an extra dimension. See go/skia-android-hwasan and
+	// https://developer.android.com/ndk/guides/hwasan.
+	if strings.HasSuffix(prop["ro.product.name"], "_hwasan") { // Example: "aosp_sunfish_hwasan".
+		ret["android_hwasan_build"] = []string{"1"}
+	}
+
 	return ret
 }
 

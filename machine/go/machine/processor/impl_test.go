@@ -46,28 +46,30 @@ func TestDimensionsFromAndroidProperties_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	adbResponse := strings.Join([]string{
-		"[ro.product.manufacturer]: [Google]",   // Ignored
-		"[ro.product.model]: [Pixel 3a]",        // Ignored
-		"[ro.build.id]: [QQ2A.200305.002]",      // device_os
-		"[ro.product.brand]: [google]",          // device_os_flavor
-		"[ro.build.type]: [user]",               // device_os_type
-		"[ro.product.board]: []",                // Ignore empty values.
-		"[ro.product.device]: [4560MMX_sprout]", // device_type
-		"[ro.build.product]: [sargo]",           // device_type
-		"[ro.product.system.brand]: [google]",   // device_os_flavor (dup should be ignored)
-		"[ro.product.system.brand]: [aosp]",     // device_os_flavor (should be converted to "android")
+		"[ro.product.manufacturer]: [Google]",      // Ignored
+		"[ro.product.model]: [Pixel 3a]",           // Ignored
+		"[ro.build.id]: [QQ2A.200305.002]",         // device_os
+		"[ro.product.brand]: [google]",             // device_os_flavor
+		"[ro.build.type]: [user]",                  // device_os_type
+		"[ro.product.board]: []",                   // Ignore empty values.
+		"[ro.product.device]: [4560MMX_sprout]",    // device_type
+		"[ro.build.product]: [sargo]",              // device_type
+		"[ro.product.system.brand]: [google]",      // device_os_flavor (dup should be ignored)
+		"[ro.product.system.brand]: [aosp]",        // device_os_flavor (should be converted to "android")
+		"[ro.product.name]: [aosp_sunfish_hwasan]", // android_hwasan_build
 	}, "\n")
 
 	dimensions := parseAndroidProperties(adbResponse)
 	got := dimensionsFromAndroidProperties(dimensions)
 
 	expected := map[string][]string{
-		"android_devices":     {"1"},
-		"device_os":           {"Q", "QQ2A.200305.002"},
-		"device_os_flavor":    {"google", "android"},
-		"device_os_type":      {"user"},
-		machine.DimDeviceType: {"4560MMX_sprout", "sargo"},
-		machine.DimOS:         {"Android"},
+		"android_devices":      {"1"},
+		"android_hwasan_build": {"1"},
+		"device_os":            {"Q", "QQ2A.200305.002"},
+		"device_os_flavor":     {"google", "android"},
+		"device_os_type":       {"user"},
+		machine.DimDeviceType:  {"4560MMX_sprout", "sargo"},
+		machine.DimOS:          {"Android"},
 	}
 	assert.Equal(t, expected, got)
 }
