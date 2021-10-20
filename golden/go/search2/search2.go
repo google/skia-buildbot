@@ -752,6 +752,7 @@ const (
 	commitToIdxKey        = searchContextKey("commitToIdxKey")
 	firstCommitIDKey      = searchContextKey("firstCommitIDKey")
 	firstTileIDKey        = searchContextKey("firstTileIDKey")
+	lastTileIDKey         = searchContextKey("lastTileIDKey")
 	qualifiedCLIDKey      = searchContextKey("qualifiedCLIDKey")
 	qualifiedPSIDKey      = searchContextKey("qualifiedPSIDKey")
 	queryKey              = searchContextKey("queryKey")
@@ -763,6 +764,10 @@ func getFirstCommitID(ctx context.Context) schema.CommitID {
 
 func getFirstTileID(ctx context.Context) schema.TileID {
 	return ctx.Value(firstTileIDKey).(schema.TileID)
+}
+
+func getLastTileID(ctx context.Context) schema.TileID {
+	return ctx.Value(lastTileIDKey).(schema.TileID)
 }
 
 func getCommitToIdxMap(ctx context.Context) map[schema.CommitID]int {
@@ -803,11 +808,15 @@ CommitsWithData ORDER BY commit_id DESC LIMIT $1`
 	}
 	defer rows.Close()
 	ids := make([]schema.CommitID, 0, s.windowLength)
+	lastObservedTile := schema.TileID(-1)
 	var firstObservedTile schema.TileID
 	for rows.Next() {
 		var id schema.CommitID
 		if err := rows.Scan(&id, &firstObservedTile); err != nil {
 			return nil, skerr.Wrap(err)
+		}
+		if lastObservedTile < firstObservedTile {
+			lastObservedTile = firstObservedTile
 		}
 		ids = append(ids, id)
 	}
@@ -818,6 +827,7 @@ CommitsWithData ORDER BY commit_id DESC LIMIT $1`
 	ctx = context.WithValue(ctx, actualWindowLengthKey, len(ids))
 	ctx = context.WithValue(ctx, firstCommitIDKey, ids[len(ids)-1])
 	ctx = context.WithValue(ctx, firstTileIDKey, firstObservedTile)
+	ctx = context.WithValue(ctx, lastTileIDKey, lastObservedTile)
 	idToIndex := map[schema.CommitID]int{}
 	idx := 0
 	for i := len(ids) - 1; i >= 0; i-- {
@@ -1294,22 +1304,29 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 
 // getDiffsForGrouping returns the closest positive and negative diffs for the provided digests
 // in the given grouping.
-func (s *Impl) getDiffsForGrouping(ctx context.Context, groupingID schema.MD5Hash, digests []schema.DigestBytes) (map[groupingDigestKey][]*frontend.SRDiffDigest, error) {
+func (s *Impl) getDiffsForGrouping(ctx context.Context, groupingID schema.MD5Hash, leftDigests []schema.DigestBytes) (map[groupingDigestKey][]*frontend.SRDiffDigest, error) {
 	ctx, span := trace.StartSpan(ctx, "getDiffsForGrouping")
 	defer span.End()
-	statement, err := observedDigestsStatement(getQuery(ctx).RightTraceValues)
+	rtv := getQuery(ctx).RightTraceValues
+	// Currently, the frontend includes the corpus as a right trace value. That's really a no-op
+	// because that info (and the test name) are specified in the grouping. As such, we delete
+	// those so they don't cause us to go into a slow path accounting for keys when we do not
+	// need to.
+	delete(rtv, types.CorpusField)
+	delete(rtv, types.PrimaryKeyField)
+	digestsInGrouping, err := s.getDigestsForGrouping(ctx, groupingID[:], rtv)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	statement += `
+	statement := `
+WITH
 PositiveOrNegativeDigests AS (
 	SELECT digest, label FROM Expectations
-	WHERE grouping_id = $2 AND (label = 'n' OR label = 'p')
+	WHERE grouping_id = $1 AND (label = 'n' OR label = 'p')
 ),
 ComparisonBetweenUntriagedAndObserved AS (
 	SELECT DiffMetrics.* FROM DiffMetrics
-	JOIN ObservedDigestsInTile ON DiffMetrics.right_digest = ObservedDigestsInTile.digest
-	WHERE left_digest = ANY($1)
+	WHERE left_digest = ANY($2) AND right_digest = ANY($3)
 )
 -- This will return the right_digest with the smallest combined_metric for each left_digest + label
 SELECT DISTINCT ON (left_digest, label)
@@ -1322,7 +1339,7 @@ JOIN PositiveOrNegativeDigests
 ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_digest ASC
 `
 
-	rows, err := s.db.Query(ctx, statement, digests, groupingID[:], getFirstTileID(ctx))
+	rows, err := s.db.Query(ctx, statement, groupingID[:], leftDigests, digestsInGrouping)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -1356,16 +1373,82 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 	return results, nil
 }
 
-// observedDigestsStatement returns a statement creating a subquery called ObservedDigestsInTile.
-// If the provided paramset is non empty, the digests will be constrained to traces matching those
-// values.
+// getDigestsForGrouping returns the digests that were produced in the given range by any traces
+// which belong to the grouping and match the provided paramset (if provided). It returns digests
+// from traces regardless of the traces' ignore statuses. As per usual with a ParamSet, we use
+// a union on values associated with a given key and an intersect across multiple keys.
+func (s *Impl) getDigestsForGrouping(ctx context.Context, groupingID schema.GroupingID, traceKeys paramtools.ParamSet) ([]schema.DigestBytes, error) {
+	ctx, span := trace.StartSpan(ctx, "getDigestsForGrouping")
+	defer span.End()
+	tracesForGroup, err := s.getTracesForGroup(ctx, groupingID, traceKeys)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	beginTile, endTile := getFirstTileID(ctx), getLastTileID(ctx)
+	tilesInRange := make([]schema.TileID, 0, endTile-beginTile+1)
+	for i := beginTile; i <= endTile; i++ {
+		tilesInRange = append(tilesInRange, i)
+	}
+	// See diff/worker for explanation of this faster query.
+	const statement = `
+SELECT DISTINCT digest FROM TiledTraceDigests
+AS OF SYSTEM TIME '-0.1s'
+WHERE tile_id = ANY($1) AND trace_id = ANY($2)`
+
+	rows, err := s.db.Query(ctx, statement, tilesInRange, tracesForGroup)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching digests")
+	}
+	defer rows.Close()
+	var rv []schema.DigestBytes
+	for rows.Next() {
+		var d schema.DigestBytes
+		if err := rows.Scan(&d); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, d)
+	}
+	return rv, nil
+}
+
+// getTracesForGroup returns all traces that match the given groupingID and the provided key/values
+// in traceKeys, if any. It may return an error if traceKeys contains invalid characters that we
+// cannot safely turn into a SQL query.
+func (s *Impl) getTracesForGroup(ctx context.Context, groupingID schema.GroupingID, traceKeys paramtools.ParamSet) ([]schema.TraceID, error) {
+	ctx, span := trace.StartSpan(ctx, "getTracesForGroup")
+	span.AddAttributes(trace.Int64Attribute("num trace keys", int64(len(traceKeys))))
+	defer span.End()
+
+	statement, err := observedDigestsStatement(traceKeys)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Could not make valid query for %#v", traceKeys)
+	}
+
+	rows, err := s.db.Query(ctx, statement, groupingID)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching trace ids")
+	}
+	defer rows.Close()
+	var rv []schema.TraceID
+	for rows.Next() {
+		var t schema.TraceID
+		if err := rows.Scan(&t); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, t)
+	}
+	return rv, nil
+}
+
+// observedDigestsStatement returns a SQL query that returns all trace ids, regardless of ignore
+// status, that matches the given paramset and belongs to the given grouping. We put the keys and
+// values directly into the query because the pgx driver does not handle the placeholders well
+// when used like key -> $2; it has a hard time deducing the appropriate types.
 func observedDigestsStatement(ps paramtools.ParamSet) (string, error) {
 	if len(ps) == 0 {
-		return `WITH
-ObservedDigestsInTile AS (
-	SELECT DISTINCT digest FROM TiledTraceDigests
-	WHERE grouping_id = $2 and tile_id >= $3
-),`, nil
+		return `SELECT trace_id FROM Traces
+AS OF SYSTEM TIME '-0.1s'
+WHERE grouping_id = $1`, nil
 	}
 	statement := "WITH\n"
 	unionIndex := 0
@@ -1378,6 +1461,9 @@ ObservedDigestsInTile AS (
 		if key != sql.Sanitize(key) {
 			return "", skerr.Fmt("Invalid query key %q", key)
 		}
+		if unionIndex > 0 {
+			statement += ",\n"
+		}
 		statement += fmt.Sprintf("U%d AS (\n", unionIndex)
 		for j, value := range ps[key] {
 			if value != sql.Sanitize(value) {
@@ -1386,22 +1472,17 @@ ObservedDigestsInTile AS (
 			if j != 0 {
 				statement += "\tUNION\n"
 			}
+			// It is important to use -> and not --> to correctly make use of the keys index.
 			statement += fmt.Sprintf("\tSELECT trace_id FROM Traces WHERE keys -> '%s' = '%q'\n", key, value)
 		}
-		statement += "),\n"
+		statement += ")"
 		unionIndex++
 	}
-	statement += "MatchingTraces AS (\n"
+	statement += "\n"
 	for i := 0; i < unionIndex; i++ {
-		statement += fmt.Sprintf("\tSELECT trace_id FROM U%d\n\tINTERSECT\n", i)
+		statement += fmt.Sprintf("SELECT trace_id FROM U%d\nINTERSECT\n", i)
 	}
-	// Include a final intersect for the grouping and to then use the MatchingTraces.
-	statement += `	SELECT trace_id FROM Traces WHERE grouping_id = $2
-),
-ObservedDigestsInTile AS (
-	SELECT DISTINCT digest FROM TiledTraceDigests
-	JOIN MatchingTraces ON TiledTraceDigests.trace_id = MatchingTraces.trace_id AND tile_id >= $3
-),`
+	statement += `SELECT trace_id FROM Traces WHERE grouping_id = $1`
 	return statement, nil
 }
 

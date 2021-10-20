@@ -37,8 +37,7 @@ func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
@@ -66,8 +65,7 @@ func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
@@ -137,6 +135,7 @@ func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
 		FromTryjob("tryjob 2", dks.BuildBucketCIS, "My-Test", "whatever", "2021-04-01T02:03:04Z")
 
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
+	waitForSystemTime()
 
 	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
@@ -168,8 +167,7 @@ func TestNewAndUntriagedSummaryForCL_CLDoesNotExist_ReturnsError(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
@@ -240,6 +238,7 @@ func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCou
 		FromTryjob("tryjob 3", dks.BuildBucketCIS, "My-Test", "whatever", "2021-04-01T02:03:04Z")
 
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
+	waitForSystemTime()
 
 	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
@@ -328,6 +327,7 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 		FromTryjob("tryjob 2", dks.BuildBucketCIS, "My-Test", "whatever", "2021-03-30T00:00:00Z")
 
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
+	waitForSystemTime()
 
 	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
@@ -411,6 +411,7 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 		Negative(dks.DigestC07Unt_CL)
 
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
+	waitForSystemTime()
 
 	s := New(db, 100)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
@@ -448,8 +449,7 @@ func TestNewAndUntriagedSummaryForCL_MultipleThreadsAtOnce_NoRaces(t *testing.T)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	// Update the caches aggressively to be writing to the shared cache while reading from it.
@@ -486,9 +486,7 @@ func TestChangelistLastUpdated_ValidCL_ReturnsLatestTS(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	ts, err := s.ChangelistLastUpdated(ctx, sql.Qualify(dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests))
@@ -500,9 +498,7 @@ func TestChangelistLastUpdated_NonExistentCL_ReturnsZeroTime(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	ts, err := s.ChangelistLastUpdated(ctx, sql.Qualify(dks.GerritInternalCRS, "does not exist"))
@@ -514,8 +510,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	res, err := s.Search(ctx, &query.Search{
@@ -540,8 +535,7 @@ func TestSearch_UntriagedDigestsAtHead_WithMaterializedViews(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 10) // Otherwise there's no commit for the materialized views
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
@@ -765,8 +759,7 @@ func TestStartMaterializedViews_ViewsAreNonEmpty(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 10)
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
@@ -805,8 +798,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	res, err := s.Search(ctx, &query.Search{
@@ -922,8 +914,7 @@ func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	res, err := s.Search(ctx, &query.Search{
@@ -1007,8 +998,7 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	res, err := s.Search(ctx, &query.Search{
@@ -1415,8 +1405,7 @@ func TestSearch_FilterLeftSideByKeys_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	res, err := s.Search(ctx, &query.Search{
@@ -1443,8 +1432,7 @@ func TestSearch_FilterLeftSideByKeys_WithMaterializedViews(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 10) // Otherwise there's no commit for the materialized views
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
@@ -1670,8 +1658,7 @@ func TestSearch_FilterLeftSideByKeysAndOptions_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	res, err := s.Search(ctx, &query.Search{
@@ -1792,8 +1779,7 @@ func TestSearch_FilteredAcrossAllHistory_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	res, err := s.Search(ctx, &query.Search{
@@ -1818,8 +1804,7 @@ func TestSearch_FilteredAcrossAllHistory_WithMaterializedView(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 10) // Otherwise there's no commit for the materialized views
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
@@ -2189,8 +2174,7 @@ func TestSearch_AcrossAllHistory_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	res, err := s.Search(ctx, &query.Search{
@@ -2218,8 +2202,7 @@ func TestSearch_AcrossAllHistory_WithMaterializedViews(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 10) // Otherwise there's no commit for the materialized views
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
@@ -2362,6 +2345,7 @@ func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T)
 		})
 	b.ComputeDiffMetricsFromImages(dks.GetImgDirectory(), "2021-05-03T06:00:00Z")
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
+	waitForSystemTime()
 
 	s := New(db, 100)
 	res, err := s.Search(ctx, &query.Search{
@@ -2505,9 +2489,7 @@ func TestSearch_RespectsPublicParams_Success(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
 		dks.RoundCorpus: {
@@ -2540,9 +2522,7 @@ func TestSearch_RespectsPublicParams_WithMaterializedViews(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
 		dks.RoundCorpus: {
@@ -2689,8 +2669,7 @@ func TestSearch_RespectsRightSideFilter_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	res, err := s.Search(ctx, &query.Search{
@@ -2844,11 +2823,9 @@ func TestObservedDigestStatement_ValidInputs_Success(t *testing.T) {
 
 	statement, err := observedDigestsStatement(nil)
 	require.NoError(t, err)
-	assert.Equal(t, `WITH
-ObservedDigestsInTile AS (
-	SELECT DISTINCT digest FROM TiledTraceDigests
-	WHERE grouping_id = $2 and tile_id >= $3
-),`, statement)
+	assert.Equal(t, `SELECT trace_id FROM Traces
+AS OF SYSTEM TIME '-0.1s'
+WHERE grouping_id = $1`, statement)
 
 	statement, err = observedDigestsStatement(paramtools.ParamSet{
 		"some key":    []string{"a single value"},
@@ -2863,18 +2840,12 @@ U0 AS (
 ),
 U1 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'some key' = '"a single value"'
-),
-MatchingTraces AS (
-	SELECT trace_id FROM U0
-	INTERSECT
-	SELECT trace_id FROM U1
-	INTERSECT
-	SELECT trace_id FROM Traces WHERE grouping_id = $2
-),
-ObservedDigestsInTile AS (
-	SELECT DISTINCT digest FROM TiledTraceDigests
-	JOIN MatchingTraces ON TiledTraceDigests.trace_id = MatchingTraces.trace_id AND tile_id >= $3
-),`, statement)
+)
+SELECT trace_id FROM U0
+INTERSECT
+SELECT trace_id FROM U1
+INTERSECT
+SELECT trace_id FROM Traces WHERE grouping_id = $1`, statement)
 }
 
 func TestObservedDigestStatement_InvalidInputs_ReturnsError(t *testing.T) {
@@ -2895,8 +2866,7 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	s.SetReviewSystemTemplates(map[string]string{
@@ -3137,8 +3107,7 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	s.SetReviewSystemTemplates(map[string]string{
@@ -3369,8 +3338,7 @@ func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	s.SetReviewSystemTemplates(map[string]string{
@@ -3494,8 +3462,7 @@ func TestGetPrimaryBranchParamset_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	ps, err := s.GetPrimaryBranchParamset(ctx)
@@ -3514,9 +3481,7 @@ func TestGetPrimaryBranchParamset_RespectsPublicParams_Success(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
 		dks.RoundCorpus: {
@@ -3546,8 +3511,7 @@ func TestGetChangelistParamset_ValidCLs_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	ps, err := s.GetChangelistParamset(ctx, dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS)
@@ -3588,9 +3552,7 @@ func TestGetChangelistParamset_RespectsPublicView_Success(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
 		dks.RoundCorpus: {
@@ -3632,8 +3594,7 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 	s := New(db, 100)
 
 	blames, err := s.GetBlamesForUntriagedDigests(ctx, dks.RoundCorpus)
@@ -3646,8 +3607,7 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_WithMateria
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 	s := New(db, 9)
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 
@@ -3697,8 +3657,7 @@ func TestSearch_IncludesBlameCommit_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 
@@ -3720,8 +3679,7 @@ func TestSearch_IncludesBlameCommit_WithMaterializedViews(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 	s := New(db, 10)
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 
@@ -3861,6 +3819,7 @@ func TestSearch_IncludesBlameCommit_MultipleNewTraces_Success(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := buildMultipleNewTraces()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
 
 	s := New(db, 100)
 
@@ -3896,6 +3855,7 @@ func TestGetBlamesForUntriagedDigests_MultipleNewTraces_Success(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := buildMultipleNewTraces()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
 
 	alphaGrouping := paramtools.Params{types.PrimaryKeyField: "alpha", types.CorpusField: "test_corpus"}
 	betaGrouping := paramtools.Params{types.PrimaryKeyField: "beta", types.CorpusField: "test_corpus"}
@@ -3987,8 +3947,7 @@ func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 
@@ -4111,9 +4070,7 @@ func TestSearch_BlameRespectsPublicParams_Success(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
 		dks.RoundCorpus: {
@@ -4213,8 +4170,7 @@ func TestSearch_BlameCommitInCorpusWithNoUntriaged_ReturnsEmptyResult(t *testing
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 
@@ -4240,9 +4196,7 @@ func TestGetBlamesForUntriagedDigests_RespectsPublicParams_Success(t *testing.T)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
 		dks.RoundCorpus: {
@@ -4281,8 +4235,7 @@ func TestGetBlamesForUntriagedDigests_NoUntriagedDigestsAtHead_Success(t *testin
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 	s := New(db, 100)
 
 	// None of the traces for the corner tests have unignored, untriaged digests at head.
@@ -4608,9 +4561,7 @@ func TestGetCluster_ShowAllDataFromPrimaryBranch_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 	s := New(db, 100)
 	res, err := s.GetCluster(ctx, ClusterOptions{
 		Grouping: paramtools.Params{
@@ -4691,9 +4642,7 @@ func TestGetCluster_RespectsTriageStatuses_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 	s := New(db, 100)
 	res, err := s.GetCluster(ctx, ClusterOptions{
 		Grouping: paramtools.Params{
@@ -4715,9 +4664,7 @@ func TestGetCluster_RespectsFilters_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 	s := New(db, 100)
 	res, err := s.GetCluster(ctx, ClusterOptions{
 		Grouping: paramtools.Params{
@@ -4776,9 +4723,7 @@ func TestGetCluster_RespectsPublicParams_Success(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
 		dks.CornersCorpus: {
@@ -4927,9 +4872,7 @@ func TestGetCommitsInWindow_GitCommits_ReturnsAllCommitsWithData(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	commits, err := s.GetCommitsInWindow(ctx)
@@ -4941,9 +4884,7 @@ func TestGetCommitsInWindow_RespectsWindow_ReturnsMostRecentCommitsWithData(t *t
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	allCommits := makeKitchenSinkCommits()
 	mostRecentCommits := allCommits[len(allCommits)-3:]
@@ -4958,8 +4899,7 @@ func TestGetDigestsForGrouping_ValidGrouping_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	digests, err := s.GetDigestsForGrouping(ctx, paramtools.Params{
@@ -4978,8 +4918,7 @@ func TestGetDigestsForGrouping_InvalidGrouping_EmptyResponseReturned(t *testing.
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	digests, err := s.GetDigestsForGrouping(ctx, paramtools.Params{
@@ -4994,8 +4933,7 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnPrimary_Success(t *testing.T) 
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	inputGrouping := paramtools.Params{
 		types.PrimaryKeyField: dks.CircleTest,
@@ -5102,8 +5040,7 @@ func TestGetDigestDetails_InvalidDigestAndGroupingOnPrimary_ReturnsPartialResult
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	inputGrouping := paramtools.Params{
 		types.PrimaryKeyField: dks.CircleTest,
@@ -5144,8 +5081,7 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnCL_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	inputGrouping := paramtools.Params{
 		types.PrimaryKeyField: dks.CircleTest,
@@ -5237,8 +5173,7 @@ func TestGetDigestDetails_InvalidDigestAndGroupingOnCL_ReturnsError(t *testing.T
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	inputGrouping := paramtools.Params{
 		types.PrimaryKeyField: dks.CircleTest,
@@ -5260,8 +5195,7 @@ func TestGetDigestsDiff_TwoKnownDigests_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	inputGrouping := paramtools.Params{
 		types.PrimaryKeyField: dks.CircleTest,
@@ -5307,8 +5241,7 @@ func TestGetDigestsDiff_UnknownDigests_ReturnsError(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	inputGrouping := paramtools.Params{
 		types.PrimaryKeyField: dks.CircleTest,
@@ -5334,8 +5267,7 @@ func TestGetDigestsDiff_TwoKnownDigestsOnACL_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	inputGrouping := paramtools.Params{
 		types.PrimaryKeyField: dks.CircleTest,
@@ -5381,8 +5313,7 @@ func TestGetDigestsDiff_ExistingDigestsUnknownCL_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	inputGrouping := paramtools.Params{
 		types.PrimaryKeyField: dks.CircleTest,
@@ -5428,8 +5359,7 @@ func TestGetDigestsDiff_NewDigestUnknownCL_ReturnsError(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	inputGrouping := paramtools.Params{
 		types.PrimaryKeyField: dks.CircleTest,
@@ -5446,8 +5376,7 @@ func TestCountDigestsByTest_AllAtHead_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	resp, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
@@ -5495,8 +5424,7 @@ func TestCountDigestsByTest_WithIgnored_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	resp, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
@@ -5547,8 +5475,7 @@ func TestCountDigestsByTest_FilteredByParams_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	resp, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
@@ -5583,8 +5510,7 @@ func TestCountDigestsByTest_FilteredByParamset_NotImplemented(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 	_, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
@@ -5604,9 +5530,7 @@ func TestComputeGUIStatus_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	s := New(db, 100)
 
@@ -5639,9 +5563,7 @@ func TestComputeGUIStatus_RespectsPublicParams_Success(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	waitForSystemTime()
+	db := useKitchenSinkData(ctx, t)
 
 	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
 		dks.RoundCorpus: {
@@ -5796,6 +5718,89 @@ func TestGetCommits_NonStandardGitIDs_Success(t *testing.T) {
 	}, fec)
 }
 
+func TestGetDigestsForGrouping_NoRightTraceKeys_ReturnsDigestsFromTracesOnPrimaryBranch(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := useKitchenSinkData(ctx, t)
+
+	s := New(db, 100)
+	ctx, err := s.addCommitsData(ctx)
+	require.NoError(t, err)
+
+	test := func(name string, grouping schema.GroupingID, expectedDigests ...types.Digest) {
+		var expectedBytes []schema.DigestBytes
+		for _, d := range expectedDigests {
+			b, err := sql.DigestToBytes(d)
+			require.NoError(t, err)
+			expectedBytes = append(expectedBytes, b)
+		}
+		t.Run(name, func(t *testing.T) {
+			actual, err := s.getDigestsForGrouping(ctx, grouping, nil)
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, expectedBytes, actual)
+		})
+	}
+	// This includes dks.DigestA09Neg, despite it beingonly produced by an ignored trace
+	test("square grouping", dks.SquareGroupingID, dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA03Pos,
+		dks.DigestA04Unt, dks.DigestA05Unt, dks.DigestA06Unt, dks.DigestA07Pos, dks.DigestA08Pos, dks.DigestA09Neg)
+	// This grouping has a few digests that have been uploaded to CLs - those shouldn't be returned
+	// here.
+	test("circle grouping", dks.CircleGroupingID,
+		dks.DigestC01Pos, dks.DigestC02Pos, dks.DigestC03Unt, dks.DigestC04Unt, dks.DigestC05Unt)
+	test("non-existent grouping", schema.GroupingID{})
+}
+
+func TestGetDigestsForGrouping_WithRightTraceKeys_ReturnsDigestsFromThoseTracesOnly(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := useKitchenSinkData(ctx, t)
+
+	s := New(db, 100)
+	ctx, err := s.addCommitsData(ctx)
+	require.NoError(t, err)
+
+	test := func(name string, rightTraceKeys paramtools.ParamSet, expectedDigests ...types.Digest) {
+		var expectedBytes []schema.DigestBytes
+		for _, d := range expectedDigests {
+			b, err := sql.DigestToBytes(d)
+			require.NoError(t, err)
+			expectedBytes = append(expectedBytes, b)
+		}
+		t.Run(name, func(t *testing.T) {
+			actual, err := s.getDigestsForGrouping(ctx, dks.SquareGroupingID, rightTraceKeys)
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, expectedBytes, actual)
+		})
+	}
+	test("Empty map returns all", paramtools.ParamSet{}, dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA03Pos,
+		dks.DigestA04Unt, dks.DigestA05Unt, dks.DigestA06Unt, dks.DigestA07Pos, dks.DigestA08Pos, dks.DigestA09Neg)
+	test("One key one value", paramtools.ParamSet{dks.OSKey: []string{dks.Windows10dot3OS}},
+		dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA03Pos)
+	test("One key two values (union)", paramtools.ParamSet{dks.OSKey: []string{dks.Windows10dot3OS, dks.AndroidOS}},
+		// shared between both OSes
+		dks.DigestA01Pos, dks.DigestA02Pos,
+		// unique to Windows10dot3OS
+		dks.DigestA03Pos,
+		// unique to Android
+		dks.DigestA05Unt, dks.DigestA06Unt, dks.DigestA07Pos, dks.DigestA08Pos, dks.DigestA09Neg,
+	)
+	// The IPad, but not the IPhone draws DigestA03Pos and DigestA04Unt, so we shouldn't see them
+	// if the keys are properly intersected.
+	test("Two keys with one value (intersect)", paramtools.ParamSet{
+		dks.OSKey:     []string{dks.IOS},
+		dks.DeviceKey: []string{dks.IPhoneDevice},
+	}, dks.DigestA01Pos, dks.DigestA02Pos)
+	// We still expect digests to show up if all traces matching the query are ignored.
+	// The taimen device doesn't run the tests with color_mode = GREY, so we don't expect to see
+	// dks.DigestA02Pos or dks.DigestA03Pos, which are typically drawn in GREY mode.
+	test("All matching traces are ignored", paramtools.ParamSet{
+		dks.OSKey:     []string{dks.AndroidOS},
+		dks.DeviceKey: []string{dks.TaimenDevice}},
+		dks.DigestA01Pos, dks.DigestA09Neg)
+}
+
 var kitchenSinkCommits = makeKitchenSinkCommits()
 
 func makeKitchenSinkCommits() []frontend.Commit {
@@ -5836,4 +5841,15 @@ func ts(ts string) time.Time {
 		panic(err)
 	}
 	return t
+}
+
+// useKitchenSinkData returns a db that has the kitchen sink data loaded and enough time is passed
+// for AS OF SYSTEM TIME queries to work.
+func useKitchenSinkData(ctx context.Context, t *testing.T) *pgxpool.Pool {
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	// Some queries use "AS OF SYSTEM TIME", so we do this by default so if we add those
+	// constraints, we don't need to manually update some of the tests.
+	waitForSystemTime()
+	return db
 }
