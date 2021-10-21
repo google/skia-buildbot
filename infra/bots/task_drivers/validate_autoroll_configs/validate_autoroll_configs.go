@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/skerr"
@@ -96,8 +97,8 @@ func main() {
 			td.Fatal(ctx, err)
 		}
 		for _, f := range files {
-			// Ignore subdirectories and file names starting with '.'
-			if !f.IsDir() && f.Name()[0] != '.' {
+			// Ignore subdirectories and file names not ending with '.cfg'
+			if !f.IsDir() && strings.HasSuffix(f.Name(), ".cfg") {
 				configFiles = append(configFiles, filepath.Join(*configFlag, f.Name()))
 			}
 		}
