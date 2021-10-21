@@ -19,6 +19,12 @@
       ],
       "trigger": "main"
     },
+    "Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs": {
+      "tasks": [
+        "Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs"
+      ],
+      "trigger": "main"
+    },
     "Housekeeper-Weekly-UpdateCIPDPackages": {
       "tasks": [
         "Housekeeper-Weekly-UpdateCIPDPackages"
@@ -517,6 +523,68 @@
         "//sk/go/sk:sk",
         "--include_path",
         "_bazel_bin/sk/go/sk/sk_/sk[.exe]",
+        "--platform",
+        "@io_bazel_rules_go//go/toolchain:darwin_amd64=mac-amd64",
+        "--platform",
+        "@io_bazel_rules_go//go/toolchain:linux_amd64=linux-amd64",
+        "--platform",
+        "@io_bazel_rules_go//go/toolchain:windows_amd64=windows-amd64"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64",
+        "Infra-PerCommit-Large",
+        "Infra-PerCommit-Medium",
+        "Infra-PerCommit-Small"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "bazel/bin"
+        ]
+      },
+      "service_account": "cipd-uploader@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs": {
+      "casSpec": "whole-repo",
+      "cipd_packages": [
+        {
+          "name": "skia/bots/bazel",
+          "path": "bazel",
+          "version": "version:3"
+        }
+      ],
+      "command": [
+        "./build_and_deploy_cipd",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs",
+        "--build_dir",
+        "buildbot",
+        "--package_name",
+        "skia/tools/validate_autoroll_configs",
+        "--metadata",
+        "git_repo:<(REPO)",
+        "--tag",
+        "git_revision:<(REVISION)",
+        "--ref",
+        "latest",
+        "--rbe",
+        "--target",
+        "//infra/bots/task_drivers/validate_autoroll_configs:validate_autoroll_configs",
+        "--include_path",
+        "_bazel_bin/infra/bots/task_drivers/validate_autoroll_configs/validate_autoroll_configs_/validate_autoroll_configs[.exe]",
         "--platform",
         "@io_bazel_rules_go//go/toolchain:darwin_amd64=mac-amd64",
         "--platform",

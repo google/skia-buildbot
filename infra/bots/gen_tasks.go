@@ -71,18 +71,19 @@ var (
 		"Infra-PerCommit-Build-Bazel-RBE":         {},
 		"Infra-PerCommit-Test-Bazel-RBE":          {},
 
-		"Housekeeper-Nightly-UpdateGoDeps":             nil,
-		"Housekeeper-PerCommit-CIPD-SK":                nil,
-		"Housekeeper-Weekly-UpdateCIPDPackages":        nil,
-		"Infra-Experimental-Small-Linux":               nil,
-		"Infra-Experimental-Small-Win":                 nil,
-		"Infra-PerCommit-Build":                        nil,
-		"Infra-PerCommit-Build-Bazel-Local":            nil,
-		"Infra-PerCommit-CreateDockerImage":            nil,
-		"Infra-PerCommit-Puppeteer":                    nil,
-		"Infra-PerCommit-PushAppsFromInfraDockerImage": nil,
-		"Infra-PerCommit-Race":                         nil,
-		"Infra-PerCommit-Test-Bazel-Local":             nil,
+		"Housekeeper-Nightly-UpdateGoDeps":                   nil,
+		"Housekeeper-PerCommit-CIPD-SK":                      nil,
+		"Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs": nil,
+		"Housekeeper-Weekly-UpdateCIPDPackages":              nil,
+		"Infra-Experimental-Small-Linux":                     nil,
+		"Infra-Experimental-Small-Win":                       nil,
+		"Infra-PerCommit-Build":                              nil,
+		"Infra-PerCommit-Build-Bazel-Local":                  nil,
+		"Infra-PerCommit-CreateDockerImage":                  nil,
+		"Infra-PerCommit-Puppeteer":                          nil,
+		"Infra-PerCommit-PushAppsFromInfraDockerImage":       nil,
+		"Infra-PerCommit-Race":                               nil,
+		"Infra-PerCommit-Test-Bazel-Local":                   nil,
 	}
 
 	CACHES_GO = []*specs.Cache{
@@ -752,6 +753,10 @@ func buildAndDeploySK(b *specs.TasksCfgBuilder, name string) string {
 	return buildAndDeployCIPD(b, name, "skia/tools/sk", []string{"//sk/go/sk:sk"}, []string{"_bazel_bin/sk/go/sk/sk_/sk[.exe]"})
 }
 
+func buildAndDeployValidateAutorollConfigs(b *specs.TasksCfgBuilder, name string) string {
+	return buildAndDeployCIPD(b, name, "skia/tools/validate_autoroll_configs", []string{"//infra/bots/task_drivers/validate_autoroll_configs:validate_autoroll_configs"}, []string{"_bazel_bin/infra/bots/task_drivers/validate_autoroll_configs/validate_autoroll_configs_/validate_autoroll_configs[.exe]"})
+}
+
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJobConfig) {
 	var priority float64 // Leave as default for most jobs.
@@ -771,7 +776,7 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 	} else if strings.Contains(name, "UpdateCIPDPackages") {
 		// Update CIPD packages bot.
 		deps = append(deps, updateCIPDPackages(b, name))
-	} else if strings.Contains(name, "ValidateAutorollConfigs") {
+	} else if name == "Infra-PerCommit-ValidateAutorollConfigs" {
 		deps = append(deps, validateAutorollConfigs(b, name))
 	} else if strings.Contains(name, "Build-Bazel-Local") {
 		deps = append(deps, bazelBuild(b, name, false /* =rbe */))
@@ -783,6 +788,8 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 		deps = append(deps, bazelTest(b, name, true /* =rbe */))
 	} else if name == "Housekeeper-PerCommit-CIPD-SK" {
 		deps = append(deps, buildAndDeploySK(b, name))
+	} else if name == "Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs" {
+		deps = append(deps, buildAndDeployValidateAutorollConfigs(b, name))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {
