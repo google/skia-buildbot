@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { expect } from 'chai';
 import {
+  inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed,
@@ -14,7 +15,8 @@ describe('skcq-sk', () => {
     );
   });
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/skcq-sk.html`);
+    await testBed.page.goto(
+        inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/skcq-sk.html`);
     await testBed.page.setViewport({ width: 1300, height: 1300 });
   });
 

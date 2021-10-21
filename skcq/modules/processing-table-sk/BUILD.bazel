@@ -1,0 +1,56 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":processing-table-sk-demo",
+)
+
+sk_element(
+    name = "processing-table-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//skcq/modules:style_sass_lib",
+    ],
+    sass_srcs = ["processing-table-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/app-sk",
+        "//infra-sk/modules/login-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules:string_ts_lib",
+        "//skcq/modules/json:index_ts_lib",
+        "//skcq/modules:skcq_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "processing-table-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "processing-table-sk-demo",
+    html_file = "processing-table-sk-demo.html",
+    sk_element_deps = [":processing-table-sk"],
+    ts_deps = [
+        "//skcq/modules/json:index_ts_lib",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "processing-table-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "processing-table-sk_puppeteer_test",
+    src = "processing-table-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

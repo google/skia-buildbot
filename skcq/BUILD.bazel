@@ -1,0 +1,57 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "skcq_fe_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//skcq/go/skcq-fe:skcq-fe",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/skcq-fe/dist": [
+            [
+                "//skcq/images:favicon.ico",
+                "0644",
+            ],
+        ] + [
+            [
+                "//skcq/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in [
+                "index",
+                "verifiers_detail",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    repository = "skia-public/skcq-fe",
+    run_commands_root = [
+        "apk update",
+        # Install packages useful for debugging on the pod.
+        "apk add --no-cache bash procps",
+    ],
+)
+
+skia_app_container(
+    name = "skcq_be_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//skcq/go/skcq-be:skcq-be",
+                "0755",
+            ],
+        ],
+    },
+    repository = "skia-public/skcq-be",
+    run_commands_root = [
+        "apk update",
+        # Install packages useful for debugging on the pod.
+        "apk add --no-cache bash procps",
+    ],
+)

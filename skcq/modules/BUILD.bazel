@@ -1,0 +1,24 @@
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+ts_library(
+    name = "skcq_ts_lib",
+    srcs = ["skcq.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@npm//common-sk",
+        "@npm//elements-sk",
+    ],
+)
+
+sass_library(
+    name = "style_sass_lib",
+    srcs = ["style.scss"],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "colors_sass_lib",
+    srcs = ["colors.scss"],
+    visibility = ["//visibility:public"],
+    deps = ["//infra-sk:themes"],
+)

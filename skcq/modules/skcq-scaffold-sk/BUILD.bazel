@@ -1,0 +1,49 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":skcq-scaffold-sk-demo",
+)
+
+sk_element(
+    name = "skcq-scaffold-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//skcq/modules:colors_sass_lib",
+        "//skcq/modules:style_sass_lib",
+    ],
+    sass_srcs = ["skcq-scaffold-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/app-sk",
+        "//infra-sk/modules/login-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+    ],
+    ts_deps = [
+        "@npm//elements-sk",
+        "@npm//lit-html",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skcq-scaffold-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "skcq-scaffold-sk-demo",
+    html_file = "skcq-scaffold-sk-demo.html",
+    sk_element_deps = [":skcq-scaffold-sk"],
+    ts_entry_point = "skcq-scaffold-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "skcq-scaffold-sk_puppeteer_test",
+    src = "skcq-scaffold-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
