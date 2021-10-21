@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 package repo_manager
