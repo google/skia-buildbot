@@ -18,19 +18,20 @@ const (
 	// TODO(dogben): This probably should be passed as a command-line flag wherever it's used.
 	PROJECT_ID = "google.com:skia-buildbots"
 
-	REPO_ANGLE              = "https://chromium.googlesource.com/angle/angle.git"
-	REPO_CHROMIUM           = "https://chromium.googlesource.com/chromium/src.git"
-	REPO_DEPOT_TOOLS        = "https://chromium.googlesource.com/chromium/tools/depot_tools.git"
-	REPO_ESKIA              = "https://skia.googlesource.com/eskia.git"
-	REPO_LOTTIE_CI          = "https://skia.googlesource.com/lottie-ci.git"
-	REPO_PDFIUM             = "https://pdfium.googlesource.com/pdfium.git"
-	REPO_SKCMS              = "https://skia.googlesource.com/skcms.git"
-	REPO_SKIA               = "https://skia.googlesource.com/skia.git"
-	REPO_SKIABOT_TEST       = "https://skia.googlesource.com/skiabot-test.git"
-	REPO_SKIA_INFRA         = "https://skia.googlesource.com/buildbot.git"
-	REPO_SKIA_INTERNAL      = "https://skia.googlesource.com/skia_internal.git"
-	REPO_SKIA_INTERNAL_TEST = "https://skia.googlesource.com/internal_test.git"
-	REPO_WEBRTC             = "https://webrtc.googlesource.com/src.git"
+	REPO_ANGLE                         = "https://chromium.googlesource.com/angle/angle.git"
+	REPO_CHROMIUM                      = "https://chromium.googlesource.com/chromium/src.git"
+	REPO_DEPOT_TOOLS                   = "https://chromium.googlesource.com/chromium/tools/depot_tools.git"
+	REPO_ESKIA                         = "https://skia.googlesource.com/eskia.git"
+	REPO_LOTTIE_CI                     = "https://skia.googlesource.com/lottie-ci.git"
+	REPO_PDFIUM                        = "https://pdfium.googlesource.com/pdfium.git"
+	REPO_SKCMS                         = "https://skia.googlesource.com/skcms.git"
+	REPO_SKIA                          = "https://skia.googlesource.com/skia.git"
+	REPO_SKIABOT_TEST                  = "https://skia.googlesource.com/skiabot-test.git"
+	REPO_SKIA_AUTOROLL_INTERNAL_CONFIG = "https://skia.googlesource.com/skia-autoroll-internal-config.git"
+	REPO_SKIA_INFRA                    = "https://skia.googlesource.com/buildbot.git"
+	REPO_SKIA_INTERNAL                 = "https://skia.googlesource.com/skia_internal.git"
+	REPO_SKIA_INTERNAL_TEST            = "https://skia.googlesource.com/internal_test.git"
+	REPO_WEBRTC                        = "https://webrtc.googlesource.com/src.git"
 
 	SAMPLE_PERIOD = time.Minute
 )
@@ -42,14 +43,15 @@ var (
 
 	// REPO_PROJECT_MAPPING is a mapping of repo URLs to project names.
 	REPO_PROJECT_MAPPING = map[string]string{
-		REPO_ESKIA:              "eskia",
-		REPO_LOTTIE_CI:          "lottie-ci",
-		REPO_SKCMS:              "skcms",
-		REPO_SKIA:               "skia",
-		REPO_SKIABOT_TEST:       "skiabot-test",
-		REPO_SKIA_INFRA:         "skiabuildbot",
-		REPO_SKIA_INTERNAL:      "skia-internal",
-		REPO_SKIA_INTERNAL_TEST: "skia-internal-test",
+		REPO_ESKIA:                         "eskia",
+		REPO_LOTTIE_CI:                     "lottie-ci",
+		REPO_SKCMS:                         "skcms",
+		REPO_SKIA:                          "skia",
+		REPO_SKIABOT_TEST:                  "skiabot-test",
+		REPO_SKIA_AUTOROLL_INTERNAL_CONFIG: "skia-autoroll-internal-config",
+		REPO_SKIA_INFRA:                    "skiabuildbot",
+		REPO_SKIA_INTERNAL:                 "skia-internal",
+		REPO_SKIA_INTERNAL_TEST:            "skia-internal-test",
 	}
 )
 
