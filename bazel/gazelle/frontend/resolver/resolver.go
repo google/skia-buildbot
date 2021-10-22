@@ -383,23 +383,42 @@ func (rslv *Resolver) resolveDepsForTypeScriptImport(ruleKind string, ruleLabel 
 	}
 
 	// The import must be either an NPM package or a built-in Node.js module.
-	moduleName := strings.Split(importPath, "/")[0] // e.g. my-module/foo/bar => my-module
+	var moduleScope, moduleName, fullyQualifiedModuleName string
+	if strings.HasPrefix(importPath, "@") {
+		parts := strings.Split(importPath, "/")
+		moduleScope = parts[0]                                    // e.g. @scope/my-module/foo/bar => @scope
+		moduleName = parts[1]                                     // e.g. @scope/my-module/foo/bar => my-module
+		fullyQualifiedModuleName = moduleScope + "/" + moduleName // e.g. @scope/my-module/foo/bar => @scope/my-module
+	} else {
+		moduleName = strings.Split(importPath, "/")[0] // e.g. my-module/foo/bar => my-module
+		fullyQualifiedModuleName = moduleName
+	}
 
 	// Is this an import from an NPM package?
-	if npmPackages := rslv.getNPMPackages(filepath.Join(repoRootDir, packageJsonPath)); npmPackages[moduleName] {
+	if npmPackages := rslv.getNPMPackages(filepath.Join(repoRootDir, packageJsonPath)); npmPackages[fullyQualifiedModuleName] {
 		var rkals []ruleKindAndLabel
 		// Add as dependencies both the module and its type annotations package, if it exists.
-		rkals = append(rkals, ruleKindAndLabel{
-			kind:  "",                                                   // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
-			label: label.New(npmBazelNamespace, moduleName, moduleName), // e.g. @npm//puppeteer
-		})
-		typesModuleName := "@types/" + moduleName // e.g. @types/my-module
-		if npmPackages[typesModuleName] {
-			rkals = append(rkals, ruleKindAndLabel{
-				kind:  "",                                                        // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
-				label: label.New(npmBazelNamespace, typesModuleName, moduleName), // e.g. @npm//@types/puppeteer
-			})
+		labelPkg := moduleName
+		if moduleScope != "" {
+			labelPkg = fullyQualifiedModuleName
 		}
+		rkals = append(rkals, ruleKindAndLabel{
+			kind:  "",                                                 // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
+			label: label.New(npmBazelNamespace, labelPkg, moduleName), // e.g. @npm//puppeteer
+		})
+
+		// We assume that scoped packages (e.g. @google-web-components/google-chart) include type
+		// annotations. If this ceases to be true, we will have to update the below ruleKindAndLabel.
+		if moduleScope == "" {
+			typesModuleName := "@types/" + moduleName // e.g. @types/my-module
+			if npmPackages[typesModuleName] {
+				rkals = append(rkals, ruleKindAndLabel{
+					kind:  "",                                                        // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
+					label: label.New(npmBazelNamespace, typesModuleName, moduleName), // e.g. @npm//@types/puppeteer
+				})
+			}
+		}
+
 		return rkals
 	}
 

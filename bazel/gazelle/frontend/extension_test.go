@@ -21,6 +21,7 @@ func makeBasicWorkspace() []testtools.FileSpec {
 			Content: `
 {
   "dependencies": {
+    "@google-web-components/google-chart": "^4.0.2",
     "common-sk": "^3.4.1",
     "elements-sk": "^4.0.0",
     "lit-html": "~1.1.2"
@@ -53,14 +54,15 @@ func TestGazelle_NewSourceFilesAdded_GeneratesBuildRules(t *testing.T) {
 		{
 			Path: "a/alfa.ts",
 			Content: `
-import './bravo';        // Resolves to a/bravo.ts.
-import './b/charlie';    // Resolves to a/b/charlie.ts.
-import '../c';           // Resolves to c/index.ts.
-import '../c/delta';     // Resolves to c/delta.ts.
-import '../d_ts_lib/d';  // Resolves to d_ts_lib/d.ts.
-import 'lit-html';       // NPM import with built-in TypeScript annotations.
-import 'puppeteer';      // NPM import with a separate @types/puppeteer package.
-import 'net'             // Built-in Node.js module.
+import './bravo';                             // Resolves to a/bravo.ts.s
+import './b/charlie';                         // Resolves to a/b/charlie.ts.
+import '../c';                                // Resolves to c/index.ts.
+import '../c/delta';                          // Resolves to c/delta.ts.
+import '../d_ts_lib/d';                       // Resolves to d_ts_lib/d.ts.
+import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
+import '@google-web-components/google-chart'; // Scoped NPM import.
+import 'net'                                  // Built-in Node.js module.
 `,
 		},
 		{Path: "a/alfa.html"}, // Ignored because this is neither an app page nor a demo page.
@@ -70,14 +72,15 @@ import 'net'             // Built-in Node.js module.
 import './alfa';
 
 // The below imports are copied from alfa.ts.
-import './bravo';        // Resolves to a/bravo.ts.
-import './b/charlie';    // Resolves to a/b/charlie.ts.
-import '../c';           // Resolves to c/index.ts.
-import '../c/delta';     // Resolves to c/delta.ts.
-import '../d_ts_lib/d';  // Resolves to d_ts_lib/d.ts.
-import 'lit-html';       // NPM import with built-in TypeScript annotations.
-import 'puppeteer';      // NPM import with a separate @types/puppeteer package.
-import 'net'             // Built-in Node.js module.
+import './bravo';                             // Resolves to a/bravo.ts.
+import './b/charlie';                         // Resolves to a/b/charlie.ts.
+import '../c';                                // Resolves to c/index.ts.
+import '../c/delta';                          // Resolves to c/delta.ts.
+import '../d_ts_lib/d';                       // Resolves to d_ts_lib/d.ts.
+import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
+import '@google-web-components/google-chart'; // Scoped NPM import.
+import 'net'                                  // Built-in Node.js module.
 `,
 		},
 		{
@@ -86,14 +89,15 @@ import 'net'             // Built-in Node.js module.
 import './alfa';
 
 // The below imports are copied from alfa.ts.
-import './bravo';        // Resolves to a/bravo.ts.
-import './b/charlie';    // Resolves to a/b/charlie.ts.
-import '../c';           // Resolves to c/index.ts.
-import '../c/delta';     // Resolves to c/delta.ts.
-import '../d_ts_lib/d';  // Resolves to d_ts_lib/d.ts.
-import 'lit-html';       // NPM import with built-in TypeScript annotations.
-import 'puppeteer';      // NPM import with a separate @types/puppeteer package.
-import 'net'             // Built-in Node.js module.
+import './bravo';                             // Resolves to a/bravo.ts.
+import './b/charlie';                         // Resolves to a/b/charlie.ts.
+import '../c';                                // Resolves to c/index.ts.
+import '../c/delta';                          // Resolves to c/delta.ts.
+import '../d_ts_lib/d';                       // Resolves to d_ts_lib/d.ts.
+import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
+import '@google-web-components/google-chart'; // Scoped NPM import.
+import 'net'                                  // Built-in Node.js module.
 `,
 		},
 		{Path: "a/bravo.scss"},
@@ -133,14 +137,15 @@ import 'net'             // Built-in Node.js module.
 		{
 			Path: "myapp/modules/foxtrot-sk/foxtrot-sk.ts",
 			Content: `
-import './wibble';              // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
-import './wobble/wubble';       // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
-import '../hotel-sk/hotel-sk';  // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
-import '../../../c';            // Resolves to c/index.ts.
-import '../../../d_ts_lib/d';   // Resolves to d_ts_lib/d.ts.
-import 'lit-html';              // NPM import with built-in TypeScript annotations.
-import 'puppeteer';             // NPM import with a separate @types/puppeteer package.
-import 'net'                    // Built-in Node.js module.
+import './wibble';                            // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
+import './wobble/wubble';                     // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
+import '../hotel-sk/hotel-sk';                // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
+import '../../../c';                          // Resolves to c/index.ts.
+import '../../../d_ts_lib/d';                 // Resolves to d_ts_lib/d.ts.
+import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
+import '@google-web-components/google-chart'; // Scoped NPM import.
+import 'net'                                  // Built-in Node.js module.
 `,
 		},
 		{Path: "myapp/modules/foxtrot-sk/foxtrot-sk-demo.html"},
@@ -163,14 +168,15 @@ import 'net'                    // Built-in Node.js module.
 import './foxtrot-sk';  // Resolves to myapp/modules/foxtrot-sk/foxtrot-sk.ts.
 
 // The below imports are copied from foxtrot-sk.ts.
-import './wibble';              // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
-import './wobble/wubble';       // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
-import '../hotel-sk/hotel-sk';  // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
-import '../../../c';            // Resolves to c/index.ts.
-import '../../../d_ts_lib/d';   // Resolves to d_ts_lib/d.ts.
-import 'lit-html';              // NPM import with built-in TypeScript annotations.
-import 'puppeteer';             // NPM import with a separate @types/puppeteer package.
-import 'net'                    // Built-in Node.js module.
+import './wibble';                            // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
+import './wobble/wubble';                     // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
+import '../hotel-sk/hotel-sk';                // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
+import '../../../c';                          // Resolves to c/index.ts.
+import '../../../d_ts_lib/d';                 // Resolves to d_ts_lib/d.ts.
+import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
+import '@google-web-components/google-chart'; // Scoped NPM import.
+import 'net'                                  // Built-in Node.js module.
 `,
 		},
 		{
@@ -179,14 +185,15 @@ import 'net'                    // Built-in Node.js module.
 import './foxtrot-sk';  // Resolves to myapp/modules/foxtrot-sk/foxtrot-sk.ts.
 
 // The below imports are copied from foxtrot-sk.ts.
-import './wibble';              // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
-import './wobble/wubble';       // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
-import '../hotel-sk/hotel-sk';  // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
-import '../../../c';            // Resolves to c/index.ts.
-import '../../../d_ts_lib/d';   // Resolves to d_ts_lib/d.ts.
-import 'lit-html';              // NPM import with built-in TypeScript annotations.
-import 'puppeteer';             // NPM import with a separate @types/puppeteer package.
-import 'net'                    // Built-in Node.js module.
+import './wibble';                            // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
+import './wobble/wubble';                     // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
+import '../hotel-sk/hotel-sk';                // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
+import '../../../c';                          // Resolves to c/index.ts.
+import '../../../d_ts_lib/d';                 // Resolves to d_ts_lib/d.ts.
+import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
+import '@google-web-components/google-chart'; // Scoped NPM import.
+import 'net'                                  // Built-in Node.js module.
 `,
 		},
 		{
@@ -195,14 +202,15 @@ import 'net'                    // Built-in Node.js module.
 import './foxtrot-sk';  // Resolves to myapp/modules/foxtrot-sk/foxtrot-sk.ts.
 
 // The below imports are copied from foxtrot-sk.ts.
-import './wibble';              // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
-import './wobble/wubble';       // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
-import '../hotel-sk/hotel-sk';  // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
-import '../../../c';            // Resolves to c/index.ts.
-import '../../../d_ts_lib/d';   // Resolves to d_ts_lib/d.ts.
-import 'lit-html';              // NPM import with built-in TypeScript annotations.
-import 'puppeteer';             // NPM import with a separate @types/puppeteer package.
-import 'net'                    // Built-in Node.js module.
+import './wibble';                            // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
+import './wobble/wubble';                     // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
+import '../hotel-sk/hotel-sk';                // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
+import '../../../c';                          // Resolves to c/index.ts.
+import '../../../d_ts_lib/d';                 // Resolves to d_ts_lib/d.ts.
+import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
+import '@google-web-components/google-chart'; // Scoped NPM import.
+import 'net'                                  // Built-in Node.js module.
 `,
 		},
 		{Path: "myapp/modules/foxtrot-sk/wibble.scss"},
@@ -270,6 +278,7 @@ nodejs_test(
         "//c:delta_ts_lib",
         "//c:index_ts_lib",
         "//d_ts_lib",
+        "@npm//@google-web-components/google-chart",
         "@npm//@types/puppeteer",
         "@npm//lit-html",
         "@npm//puppeteer",
@@ -299,6 +308,7 @@ karma_test(
         "//c:delta_ts_lib",
         "//c:index_ts_lib",
         "//d_ts_lib",
+        "@npm//@google-web-components/google-chart",
         "@npm//@types/puppeteer",
         "@npm//lit-html",
         "@npm//puppeteer",
@@ -315,6 +325,7 @@ ts_library(
         "//c:delta_ts_lib",
         "//c:index_ts_lib",
         "//d_ts_lib",
+        "@npm//@google-web-components/google-chart",
         "@npm//@types/puppeteer",
         "@npm//lit-html",
         "@npm//puppeteer",
@@ -452,6 +463,7 @@ sk_element(
         "//d_ts_lib",
         "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
         ":wibble_ts_lib",
+        "@npm//@google-web-components/google-chart",
         "@npm//@types/puppeteer",
         "@npm//lit-html",
         "@npm//puppeteer",
@@ -483,6 +495,7 @@ sk_page(
         "//d_ts_lib",
         "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
         ":wibble_ts_lib",
+        "@npm//@google-web-components/google-chart",
         "@npm//@types/puppeteer",
         "@npm//lit-html",
         "@npm//puppeteer",
@@ -501,6 +514,7 @@ sk_element_puppeteer_test(
         "//d_ts_lib",
         "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
         "//myapp/modules/hotel-sk",
+        "@npm//@google-web-components/google-chart",
         "@npm//@types/puppeteer",
         "@npm//lit-html",
         "@npm//puppeteer",
@@ -517,6 +531,7 @@ karma_test(
         "//d_ts_lib",
         "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
         "//myapp/modules/hotel-sk",
+        "@npm//@google-web-components/google-chart",
         "@npm//@types/puppeteer",
         "@npm//lit-html",
         "@npm//puppeteer",
