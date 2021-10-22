@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -24,11 +25,11 @@ import (
 
 var (
 	// Required properties for this task.
-	projectId  = flag.String("project_id", "", "ID of the Google Cloud project.")
-	taskId     = flag.String("task_id", "", "ID of this task.")
-	taskName   = flag.String("task_name", "", "Name of the task.")
-	workdir    = flag.String("workdir", ".", "Working directory")
-	configFlag = flag.String("config", "", "Config file or dir of config files to validate.")
+	projectId   = flag.String("project_id", "", "ID of the Google Cloud project.")
+	taskId      = flag.String("task_id", "", "ID of this task.")
+	taskName    = flag.String("task_name", "", "Name of the task.")
+	workdir     = flag.String("workdir", ".", "Working directory")
+	configsFlag = common.NewMultiStringFlag("config", nil, "Config file or dir of config files to validate. May be specified multiple times.")
 
 	// Optional flags.
 	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
@@ -81,29 +82,31 @@ func main() {
 	ctx := td.StartRun(projectId, taskId, taskName, output, local)
 	defer td.EndRun(ctx)
 
-	if *configFlag == "" {
+	if len(*configsFlag) == 0 {
 		td.Fatalf(ctx, "--config is required.")
 	}
 
 	// Gather files to validate.
 	configFiles := []string{}
-	f, err := os_steps.Stat(ctx, *configFlag)
-	if err != nil {
-		td.Fatal(ctx, err)
-	}
-	if f.IsDir() {
-		files, err := os_steps.ReadDir(ctx, *configFlag)
+	for _, cfgPath := range *configsFlag {
+		f, err := os_steps.Stat(ctx, cfgPath)
 		if err != nil {
 			td.Fatal(ctx, err)
 		}
-		for _, f := range files {
-			// Ignore subdirectories and file names not ending with '.cfg'
-			if !f.IsDir() && strings.HasSuffix(f.Name(), ".cfg") {
-				configFiles = append(configFiles, filepath.Join(*configFlag, f.Name()))
+		if f.IsDir() {
+			files, err := os_steps.ReadDir(ctx, cfgPath)
+			if err != nil {
+				td.Fatal(ctx, err)
 			}
+			for _, f := range files {
+				// Ignore subdirectories and file names not ending with '.cfg'
+				if !f.IsDir() && strings.HasSuffix(f.Name(), ".cfg") {
+					configFiles = append(configFiles, filepath.Join(cfgPath, f.Name()))
+				}
+			}
+		} else {
+			configFiles = append(configFiles, cfgPath)
 		}
-	} else {
-		configFiles = append(configFiles, *configFlag)
 	}
 
 	// Validate the file(s).

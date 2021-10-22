@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//autoroll/go/config",
+        "//go/common",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
