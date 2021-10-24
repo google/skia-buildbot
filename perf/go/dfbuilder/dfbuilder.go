@@ -27,7 +27,7 @@ const (
 	// newNMaxSearch is the minimum number of queries to perform that returned
 	// no data before giving up.
 	// TODO(jcgregorio) Make this either a flag or config value.
-	newNMaxSearch = 4
+	newNMaxSearch = 40
 
 	// It is possible for some ParamSet tiles to have "bad" data, for example, a
 	// tremendous amount of garbage data from a bad ingestion process. This
