@@ -151,11 +151,6 @@ cp -r /src/shaders/tsconfig.json             /tests/shaders
 cp -r /src/shaders/modules                   /tests/shaders
 cp -r /src/shaders/Makefile                  /tests/shaders
 
-mkdir /tests/skcq
-cp -r /src/skcq/webpack.config.ts         /tests/skcq
-cp -r /src/skcq/tsconfig.json             /tests/skcq
-cp -r /src/skcq/modules                   /tests/skcq
-
 mkdir /tests/skottie
 cp -r /src/skottie/webpack.config.ts         /tests/skottie
 cp -r /src/skottie/tsconfig.json             /tests/skottie
