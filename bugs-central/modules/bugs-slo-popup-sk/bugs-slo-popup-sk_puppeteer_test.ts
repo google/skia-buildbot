@@ -14,7 +14,7 @@ describe('bugs-slo-popup-sk', () => {
     );
   });
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/static/bugs-slo-popup-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 800, height: 800 });
 
     await openDialog();

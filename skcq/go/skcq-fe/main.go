@@ -93,7 +93,6 @@ func (srv *Server) verifiersDetailHandler(w http.ResponseWriter, r *http.Request
 		internalText = "(Internal-only)"
 	}
 	if err := srv.templates.ExecuteTemplate(w, "verifiers_detail.html", map[string]string{
-		// Look in webpack.config.js for where the nonce templates are injected.
 		"Nonce":      secure.CSPNonce(r.Context()),
 		"Internal":   internalText,
 		"ChangeID":   changeID,
@@ -166,7 +165,6 @@ func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		internalText = "(Internal-only)"
 	}
 	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
-		// Look in webpack.config.js for where the nonce templates are injected.
 		"Nonce":    secure.CSPNonce(r.Context()),
 		"Internal": internalText,
 	}); err != nil {

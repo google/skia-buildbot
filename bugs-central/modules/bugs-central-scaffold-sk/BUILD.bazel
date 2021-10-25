@@ -1,0 +1,48 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "bugs-central-scaffold-sk",
+    sass_deps = [
+        "//bugs-central/modules:style_sass_lib",
+        "//infra-sk:elements-sk_scss",
+    ],
+    sass_srcs = ["bugs-central-scaffold-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/app-sk",
+        "//infra-sk/modules/login-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "bugs-central-scaffold-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "bugs-central-scaffold-sk-demo",
+    html_file = "bugs-central-scaffold-sk-demo.html",
+    sk_element_deps = [":bugs-central-scaffold-sk"],
+    ts_entry_point = "bugs-central-scaffold-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "bugs-central-scaffold-sk_puppeteer_test",
+    src = "bugs-central-scaffold-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":bugs-central-scaffold-sk-demo",
+)

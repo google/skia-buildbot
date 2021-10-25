@@ -330,15 +330,15 @@ export class BugsCentralSk extends ElementSk {
       const json = await jsonOrThrow(resp);
       action(json);
     } catch (msg) {
-      errorMessage(msg);
+      await errorMessage(msg);
     }
   }
 
   private async getSLOIssues(client: string, source: string, query: string) {
     const detail: ClientSourceQueryRequest = {
-      client: client,
-      source: source,
-      query: query,
+      client,
+      source,
+      query,
     };
     let priToSLOIssues = {} as Record<string, Issue[]>;
     await this.doImpl('/_/get_issues_outside_slo', detail, (json: PriToSLOIssues) => {
@@ -349,9 +349,9 @@ export class BugsCentralSk extends ElementSk {
 
   private async getCounts(client: string, source: string, query: string) {
     const detail: ClientSourceQueryRequest = {
-      client: client,
-      source: source,
-      query: query,
+      client,
+      source,
+      query,
     };
     let countsData = {} as IssueCountsData;
     await this.doImpl('/_/get_issue_counts', detail, (json: IssueCountsData) => {

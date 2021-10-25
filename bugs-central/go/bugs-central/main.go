@@ -146,7 +146,7 @@ func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
 	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
-		// Look in webpack.config.js for where the nonce templates are injected.
+
 		"Nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
@@ -353,5 +353,7 @@ func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
 }
 
 func main() {
+	// Parse flags to be able to send *host to baseapp.Serve
+	flag.Parse()
 	baseapp.Serve(New, []string{*host})
 }

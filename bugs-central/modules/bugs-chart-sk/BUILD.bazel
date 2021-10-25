@@ -1,0 +1,41 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "bugs-chart-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["bugs-chart-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+        "@npm//@google-web-components/google-chart",
+    ],
+    ts_srcs = [
+        "bugs-chart-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "bugs-chart-sk-demo",
+    html_file = "bugs-chart-sk-demo.html",
+    sk_element_deps = [":bugs-chart-sk"],
+    ts_entry_point = "bugs-chart-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "bugs-chart-sk_puppeteer_test",
+    src = "bugs-chart-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":bugs-chart-sk-demo",
+)

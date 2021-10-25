@@ -1,0 +1,48 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "bugs-slo-popup-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["bugs-slo-popup-sk.scss"],
+    ts_deps = [
+        "//bugs-central/modules/json:index_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//@types/dialog-polyfill",
+        "@npm//common-sk",
+        "@npm//dialog-polyfill",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "bugs-slo-popup-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "bugs-slo-popup-sk-demo",
+    html_file = "bugs-slo-popup-sk-demo.html",
+    sk_element_deps = [":bugs-slo-popup-sk"],
+    ts_deps = [
+        "//bugs-central/modules/json:index_ts_lib",
+        "@npm//common-sk",
+    ],
+    ts_entry_point = "bugs-slo-popup-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "bugs-slo-popup-sk_puppeteer_test",
+    src = "bugs-slo-popup-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":bugs-slo-popup-sk-demo",
+)

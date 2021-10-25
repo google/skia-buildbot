@@ -14,7 +14,7 @@ describe('bugs-central-scaffold-sk', () => {
     );
   });
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/static/bugs-central-scaffold-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 400, height: 500 });
   });
 
