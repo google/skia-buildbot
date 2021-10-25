@@ -662,15 +662,19 @@ const (
 // These are the computed trace ids for the tests in the example data. Their values are validated
 // via a test.
 const (
-	CircleGroupingIDHex   = "d612d801ac91001dd4b0024883aaf742"
-	SquareGroupingIDHex   = "0f2ffd3aef866dc6155bcbc5697b0604"
-	TriangleGroupingIDHex = "aa8d3c14238a4f717b9a99f7fe3735a7"
+	CircleGroupingIDHex    = "d612d801ac91001dd4b0024883aaf742"
+	RoundRectGroupingIDHex = "004478668604fac88f4bb811884d1b40"
+	SquareGroupingIDHex    = "0f2ffd3aef866dc6155bcbc5697b0604"
+	TextSevenGroupingIDHex = "8a58b09f0dbc06aeba43cf53ec66e830"
+	TriangleGroupingIDHex  = "aa8d3c14238a4f717b9a99f7fe3735a7"
 )
 
 var (
-	CircleGroupingID   = mustDecode(CircleGroupingIDHex)
-	SquareGroupingID   = mustDecode(SquareGroupingIDHex)
-	TriangleGroupingID = mustDecode(TriangleGroupingIDHex)
+	CircleGroupingID    = mustDecode(CircleGroupingIDHex)
+	RoundRectGroupingID = mustDecode(RoundRectGroupingIDHex)
+	SquareGroupingID    = mustDecode(SquareGroupingIDHex)
+	TextSevenGroupingID = mustDecode(TextSevenGroupingIDHex)
+	TriangleGroupingID  = mustDecode(TriangleGroupingIDHex)
 )
 
 var (

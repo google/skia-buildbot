@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/md5"
 	"testing"
 	"time"
 
@@ -31,17 +30,17 @@ func TestGatherFromPrimaryBranch_NoExistingWork_AllWorkAdded(t *testing.T) {
 	actualWork := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchDiffCalculationWork", &schema.PrimaryBranchDiffCalculationRow{})
 	assert.ElementsMatch(t, []schema.PrimaryBranchDiffCalculationRow{
 		{
-			GroupingID:           h(squareGrouping),
+			GroupingID:           dks.SquareGroupingID,
 			LastCalculated:       beginningOfTime,
 			CalculationLeaseEnds: beginningOfTime,
 		},
 		{
-			GroupingID:           h(triangleGrouping),
+			GroupingID:           dks.TriangleGroupingID,
 			LastCalculated:       beginningOfTime,
 			CalculationLeaseEnds: beginningOfTime,
 		},
 		{
-			GroupingID:           h(circleGrouping),
+			GroupingID:           dks.CircleGroupingID,
 			LastCalculated:       beginningOfTime,
 			CalculationLeaseEnds: beginningOfTime,
 		},
@@ -56,12 +55,12 @@ func TestGatherFromPrimaryBranch_SomeExistingWork_AllWorkAdded(t *testing.T) {
 	existingData := dks.Build()
 	existingData.PrimaryBranchDiffCalculationWork = []schema.PrimaryBranchDiffCalculationRow{
 		{
-			GroupingID:           h(squareGrouping),
+			GroupingID:           dks.SquareGroupingID,
 			LastCalculated:       sentinelTime,
 			CalculationLeaseEnds: sentinelTime,
 		},
 		{
-			GroupingID:           h(triangleGrouping),
+			GroupingID:           dks.TriangleGroupingID,
 			LastCalculated:       sentinelTime,
 			CalculationLeaseEnds: sentinelTime,
 		},
@@ -77,17 +76,17 @@ func TestGatherFromPrimaryBranch_SomeExistingWork_AllWorkAdded(t *testing.T) {
 	actualWork := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchDiffCalculationWork", &schema.PrimaryBranchDiffCalculationRow{})
 	assert.ElementsMatch(t, []schema.PrimaryBranchDiffCalculationRow{
 		{
-			GroupingID:           h(squareGrouping),
+			GroupingID:           dks.SquareGroupingID,
 			LastCalculated:       sentinelTime,
 			CalculationLeaseEnds: sentinelTime,
 		},
 		{
-			GroupingID:           h(triangleGrouping),
+			GroupingID:           dks.TriangleGroupingID,
 			LastCalculated:       sentinelTime,
 			CalculationLeaseEnds: sentinelTime,
 		},
 		{
-			GroupingID:           h(circleGrouping),
+			GroupingID:           dks.CircleGroupingID,
 			LastCalculated:       beginningOfTime,
 			CalculationLeaseEnds: beginningOfTime,
 		},
@@ -102,17 +101,17 @@ func TestGatherFromPrimaryBranch_NoNewWork_NothingChanged(t *testing.T) {
 	existingData := dks.Build()
 	existingData.PrimaryBranchDiffCalculationWork = []schema.PrimaryBranchDiffCalculationRow{
 		{
-			GroupingID:           h(squareGrouping),
+			GroupingID:           dks.SquareGroupingID,
 			LastCalculated:       sentinelTime,
 			CalculationLeaseEnds: sentinelTime,
 		},
 		{
-			GroupingID:           h(triangleGrouping),
+			GroupingID:           dks.TriangleGroupingID,
 			LastCalculated:       sentinelTime,
 			CalculationLeaseEnds: sentinelTime,
 		},
 		{
-			GroupingID:           h(circleGrouping),
+			GroupingID:           dks.CircleGroupingID,
 			LastCalculated:       sentinelTime,
 			CalculationLeaseEnds: sentinelTime,
 		},
@@ -128,17 +127,17 @@ func TestGatherFromPrimaryBranch_NoNewWork_NothingChanged(t *testing.T) {
 	actualWork := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchDiffCalculationWork", &schema.PrimaryBranchDiffCalculationRow{})
 	assert.ElementsMatch(t, []schema.PrimaryBranchDiffCalculationRow{
 		{
-			GroupingID:           h(squareGrouping),
+			GroupingID:           dks.SquareGroupingID,
 			LastCalculated:       sentinelTime,
 			CalculationLeaseEnds: sentinelTime,
 		},
 		{
-			GroupingID:           h(triangleGrouping),
+			GroupingID:           dks.TriangleGroupingID,
 			LastCalculated:       sentinelTime,
 			CalculationLeaseEnds: sentinelTime,
 		},
 		{
-			GroupingID:           h(circleGrouping),
+			GroupingID:           dks.CircleGroupingID,
 			LastCalculated:       sentinelTime,
 			CalculationLeaseEnds: sentinelTime,
 		},
@@ -164,7 +163,7 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 	assert.ElementsMatch(t, []schema.SecondaryBranchDiffCalculationRow{
 		{
 			BranchName:           "gerrit_CL_fix_ios",
-			GroupingID:           h(circleGrouping),
+			GroupingID:           dks.CircleGroupingID,
 			LastUpdated:          ts("2020-12-10T04:05:06Z"),
 			LastCalculated:       beginningOfTime,
 			CalculationLeaseEnds: beginningOfTime,
@@ -174,7 +173,7 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 		},
 		{
 			BranchName:           "gerrit-internal_CL_new_tests",
-			GroupingID:           h(roundRectGrouping),
+			GroupingID:           dks.RoundRectGroupingID,
 			LastUpdated:          ts("2020-12-12T09:20:33Z"),
 			LastCalculated:       beginningOfTime,
 			CalculationLeaseEnds: beginningOfTime,
@@ -184,7 +183,7 @@ func TestGatherFromChangelists_OnlyReportsGroupingsWithDataNotOnPrimaryBranch(t 
 		},
 		{
 			BranchName:           "gerrit-internal_CL_new_tests",
-			GroupingID:           h(textGrouping),
+			GroupingID:           dks.TextSevenGroupingID,
 			LastUpdated:          ts("2020-12-12T09:20:33Z"),
 			LastCalculated:       beginningOfTime,
 			CalculationLeaseEnds: beginningOfTime,
@@ -207,7 +206,7 @@ func TestGatherFromChangelists_UpdatesExistingWork(t *testing.T) {
 	existingData.SecondaryBranchDiffCalculationWork = []schema.SecondaryBranchDiffCalculationRow{
 		{
 			BranchName:           "gerrit-internal_CL_new_tests",
-			GroupingID:           h(textGrouping),
+			GroupingID:           dks.TextSevenGroupingID,
 			DigestsNotOnPrimary:  []types.Digest{dks.DigestBlank},
 			LastUpdated:          sentinelTime,
 			LastCalculated:       sentinelTime,
@@ -215,7 +214,7 @@ func TestGatherFromChangelists_UpdatesExistingWork(t *testing.T) {
 		},
 		{
 			BranchName:           "gerrit_CL_fix_ios",
-			GroupingID:           h(circleGrouping),
+			GroupingID:           dks.CircleGroupingID,
 			DigestsNotOnPrimary:  []types.Digest{dks.DigestBlank},
 			LastUpdated:          sentinelTime,
 			LastCalculated:       sentinelTime,
@@ -235,7 +234,7 @@ func TestGatherFromChangelists_UpdatesExistingWork(t *testing.T) {
 	assert.ElementsMatch(t, []schema.SecondaryBranchDiffCalculationRow{
 		{
 			BranchName:           "gerrit_CL_fix_ios",
-			GroupingID:           h(circleGrouping),
+			GroupingID:           dks.CircleGroupingID,
 			LastUpdated:          ts("2020-12-10T04:05:06Z"),
 			LastCalculated:       sentinelTime, // not changed
 			CalculationLeaseEnds: sentinelTime, // not changed
@@ -245,7 +244,7 @@ func TestGatherFromChangelists_UpdatesExistingWork(t *testing.T) {
 		},
 		{
 			BranchName:           "gerrit-internal_CL_new_tests",
-			GroupingID:           h(roundRectGrouping),
+			GroupingID:           dks.RoundRectGroupingID,
 			LastUpdated:          ts("2020-12-12T09:20:33Z"),
 			LastCalculated:       beginningOfTime,
 			CalculationLeaseEnds: beginningOfTime,
@@ -255,7 +254,7 @@ func TestGatherFromChangelists_UpdatesExistingWork(t *testing.T) {
 		},
 		{
 			BranchName:           "gerrit-internal_CL_new_tests",
-			GroupingID:           h(textGrouping),
+			GroupingID:           dks.TextSevenGroupingID,
 			LastUpdated:          ts("2020-12-12T09:20:33Z"),
 			LastCalculated:       sentinelTime, // not changed
 			CalculationLeaseEnds: sentinelTime, // not changed
@@ -277,7 +276,7 @@ func TestGatherFromChangelists_DeletesOldWork(t *testing.T) {
 	existingData.SecondaryBranchDiffCalculationWork = []schema.SecondaryBranchDiffCalculationRow{
 		{
 			BranchName:           "new_cl",
-			GroupingID:           h(textGrouping),
+			GroupingID:           dks.TextSevenGroupingID,
 			DigestsNotOnPrimary:  []types.Digest{dks.DigestBlank},
 			LastUpdated:          ts("2021-07-05T00:00:00Z"), // 2 days ago
 			LastCalculated:       beginningOfTime,
@@ -285,7 +284,7 @@ func TestGatherFromChangelists_DeletesOldWork(t *testing.T) {
 		},
 		{
 			BranchName:           "old_cl",
-			GroupingID:           h(circleGrouping),
+			GroupingID:           dks.CircleGroupingID,
 			DigestsNotOnPrimary:  []types.Digest{dks.DigestBlank},
 			LastUpdated:          ts("2021-07-01T00:00:00Z"), // 6 days ago,
 			LastCalculated:       beginningOfTime,
@@ -305,7 +304,7 @@ func TestGatherFromChangelists_DeletesOldWork(t *testing.T) {
 	assert.Equal(t, []schema.SecondaryBranchDiffCalculationRow{
 		{
 			BranchName:           "new_cl", // This should still be around
-			GroupingID:           h(textGrouping),
+			GroupingID:           dks.TextSevenGroupingID,
 			DigestsNotOnPrimary:  []types.Digest{dks.DigestBlank},
 			LastUpdated:          ts("2021-07-05T00:00:00Z"),
 			LastCalculated:       beginningOfTime,
@@ -315,13 +314,22 @@ func TestGatherFromChangelists_DeletesOldWork(t *testing.T) {
 	assert.Equal(t, fakeNow, g.mostRecentCLScan)
 }
 
-const (
-	circleGrouping    = `{"name":"circle","source_type":"round"}`
-	squareGrouping    = `{"name":"square","source_type":"corners"}`
-	triangleGrouping  = `{"name":"triangle","source_type":"corners"}`
-	roundRectGrouping = `{"name":"round rect","source_type":"round"}`
-	textGrouping      = `{"name":"seven","source_type":"text"}`
-)
+func TestGetAllRecentDigests_ReturnsAllRecentDigestsFromPrimaryBranch(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	digests, err := getAllRecentDigests(ctx, db, 100)
+	require.NoError(t, err)
+	assert.Equal(t, []types.Digest{
+		dks.DigestBlank, dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA03Pos, dks.DigestA04Unt,
+		dks.DigestA05Unt, dks.DigestA06Unt, dks.DigestA07Pos, dks.DigestA08Pos, dks.DigestA09Neg,
+		dks.DigestB01Pos, dks.DigestB02Pos, dks.DigestB03Neg, dks.DigestB04Neg,
+		dks.DigestC01Pos, dks.DigestC02Pos, dks.DigestC03Unt, dks.DigestC04Unt, dks.DigestC05Unt,
+	}, digests)
+}
 
 var beginningOfTime = ts("1970-01-01T00:00:00Z")
 
@@ -331,12 +339,6 @@ func ts(s string) time.Time {
 		panic(err)
 	}
 	return t
-}
-
-// h returns the MD5 hash of the provided string.
-func h(s string) []byte {
-	hash := md5.Sum([]byte(s))
-	return hash[:]
 }
 
 func waitForSystemTime() {

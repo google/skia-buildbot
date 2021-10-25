@@ -716,6 +716,17 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'It has been at least 20 minutes since the Gold went through all open CLs in for {{ $labels.app }} to maybe comment them on. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#goldcommentingstalled'
 
+  - alert: GoldDigestSyncingStalled
+    expr: liveness_periodic_tasks_s{task="syncKnownDigests"} > 60*60
+    labels:
+      category: infra
+      severity: critical
+      owner: kjlubick@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'It has been at least 60 minutes since the Gold finished syncing known digests for {{ $labels.app }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/golden/docs/PROD.md#golddigestsyncingstalled'
+
+
   - alert: GoldHeavyTraffic
     expr: rate(gold_rpc_call_counter[5m]) > 50
     labels:

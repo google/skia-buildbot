@@ -178,6 +178,17 @@ out of quota messages will be in the error messages or the bodies of the failing
 
 Key metrics: liveness_periodic_tasks_s{task="commentOnCLs"}
 
+GoldDigestSyncingStalled
+---------------------
+Gold hasn't been able to sync the known digests to the GCS. See KnownHashesGCSPath in the config
+for the actual file path.
+
+If the GCS file is stale, it means our tests might be doing a bit of extra work encoding, writing,
+and uploading images that are already there. Check the logs of periodictasks to see what is
+going wrong.
+
+Key metrics: liveness_periodic_tasks_s{task="syncKnownDigests"}
+
 GoldHeavyTraffic
 ----------------
 Gold is seeing over 50 QPS to a specific RPC. As of writing, there are only two RPCs that

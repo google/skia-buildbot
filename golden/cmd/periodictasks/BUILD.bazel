@@ -24,6 +24,7 @@ go_library(
         "//golden/go/ignore/sqlignorestore",
         "//golden/go/sql",
         "//golden/go/sql/schema",
+        "//golden/go/storage",
         "//golden/go/tracing",
         "//golden/go/types",
         "@com_github_cockroachdb_cockroach_go_v2//crdb/crdbpgx",

@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tracing"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -124,6 +125,7 @@ func main() {
 	startChangelistsDiffWork(ctx, gatherer, ptc)
 	startDiffWorkMetrics(ctx, db)
 	startBackupStatusCheck(ctx, db, ptc)
+	startKnownDigestsSync(ctx, db, ptc)
 
 	sklog.Infof("periodic tasks have been started")
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
@@ -692,4 +694,85 @@ func startBackupStatusCheck(ctx context.Context, db *pgxpool.Pool, ptc periodicT
 			}
 		}
 	}()
+}
+
+// startKnownDigestsSync regularly syncs all the known digests to the KnownHashesGCSPath, which
+// can be used by clients (we know it is used by Skia) to make tests not have to decoded and output
+// images that match the given hash. This optimization becomes important when tests are putting out
+// many many images.
+func startKnownDigestsSync(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksConfig) {
+	liveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
+		"task": "syncKnownDigests",
+	})
+
+	storageClient, err := storage.NewGCSClient(ctx, nil, storage.GCSClientOptions{
+		Bucket:             "skia-infra-testdata",
+		KnownHashesGCSPath: ptc.KnownHashesGCSPath,
+	})
+	if err != nil {
+		sklog.Errorf("Could not start syncing known digests: %s", err)
+		return
+	}
+
+	go util.RepeatCtx(ctx, 20*time.Minute, func(ctx context.Context) {
+		sklog.Infof("Syncing all recently seen digests to %s", ptc.KnownHashesGCSPath)
+		ctx, span := trace.StartSpan(ctx, "periodic_SyncKnownDigests")
+		defer span.End()
+
+		// We grab digests from twice our window length to be overly thorough to avoid excess
+		// uploads from clients who use this.
+		digests, err := getAllRecentDigests(ctx, db, ptc.WindowSize*2)
+		if err != nil {
+			sklog.Errorf("Error getting recent digests: %s", err)
+			return
+		}
+
+		if err := storageClient.WriteKnownDigests(ctx, digests); err != nil {
+			sklog.Errorf("Error writing recent digests: %s", err)
+			return
+		}
+		liveness.Reset()
+		sklog.Infof("Done syncing recently seen digests")
+	})
+}
+
+// getAllRecentDigests returns all the digests seen on the primary branch in the provided window
+// of commits. If needed, this could combine the digests with the unique digests seen from recent
+// Tryjob results.
+func getAllRecentDigests(ctx context.Context, db *pgxpool.Pool, numCommits int) ([]types.Digest, error) {
+	ctx, span := trace.StartSpan(ctx, "getAllRecentDigests")
+	defer span.End()
+
+	const statement = `
+WITH
+RecentCommits AS (
+	SELECT tile_id, commit_id FROM CommitsWithData
+	AS OF SYSTEM TIME '-0.1s'
+	ORDER BY commit_id DESC LIMIT $1
+),
+OldestTileInWindow AS (
+	SELECT MIN(tile_id) as tile_id FROM RecentCommits
+	AS OF SYSTEM TIME '-0.1s'
+)
+SELECT DISTINCT encode(digest, 'hex') FROM TiledTraceDigests
+JOIN OldestTileInWindow ON TiledTraceDigests.tile_id >= OldestTileInWindow.tile_id
+AS OF SYSTEM TIME '-0.1s'
+ORDER BY 1
+`
+
+	rows, err := db.Query(ctx, statement, numCommits)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+
+	var rv []types.Digest
+	for rows.Next() {
+		var d types.Digest
+		if err := rows.Scan(&d); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, d)
+	}
+	return rv, nil
 }

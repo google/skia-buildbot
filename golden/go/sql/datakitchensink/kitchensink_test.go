@@ -98,7 +98,7 @@ func TestGroupingIDs_HardCodedValuesMatchComputedValuesAndAreInComputedData(t *t
 			expectedID := hex.EncodeToString(idBytes)
 			assert.Equal(t, expectedID, hardCodedHex)
 
-			// Make sure grouping exists in the data tables
+			// Make sure grouping exists in the data tables and matches the keys we specified.
 			found := false
 			for _, g := range data.Groupings {
 				if bytes.Equal(g.GroupingID, idBytes) {
@@ -121,5 +121,13 @@ func TestGroupingIDs_HardCodedValuesMatchComputedValuesAndAreInComputedData(t *t
 	test("SquareGroupingIDHex", dks.SquareGroupingIDHex, dks.SquareGroupingID, paramtools.Params{
 		types.CorpusField:     dks.CornersCorpus,
 		types.PrimaryKeyField: dks.SquareTest,
+	})
+	test("RoundRectGroupingIDHex", dks.RoundRectGroupingIDHex, dks.RoundRectGroupingID, paramtools.Params{
+		types.CorpusField:     dks.RoundCorpus,
+		types.PrimaryKeyField: dks.RoundRectTest,
+	})
+	test("TextSevenGroupingIDHex", dks.TextSevenGroupingIDHex, dks.TextSevenGroupingID, paramtools.Params{
+		types.CorpusField:     dks.TextCorpus,
+		types.PrimaryKeyField: dks.SevenTest,
 	})
 }
