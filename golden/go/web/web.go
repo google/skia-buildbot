@@ -449,6 +449,13 @@ func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*search_query.Sea
 		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return nil, false
 	}
+	// Currently, the frontend includes the corpus as a right trace value. That's really a no-op
+	// because that info (and the test name) are specified in the grouping. As such, we delete
+	// those so they don't cause us to go into a slow path accounting for keys when we do not
+	// need to.
+	// TODO(kjlubick) Make the frontend not supply these.
+	delete(q.RightTraceValues, types.CorpusField)
+	delete(q.RightTraceValues, types.PrimaryKeyField)
 	return &q, true
 }
 

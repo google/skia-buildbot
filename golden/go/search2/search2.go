@@ -1308,12 +1308,6 @@ func (s *Impl) getDiffsForGrouping(ctx context.Context, groupingID schema.MD5Has
 	ctx, span := trace.StartSpan(ctx, "getDiffsForGrouping")
 	defer span.End()
 	rtv := getQuery(ctx).RightTraceValues
-	// Currently, the frontend includes the corpus as a right trace value. That's really a no-op
-	// because that info (and the test name) are specified in the grouping. As such, we delete
-	// those so they don't cause us to go into a slow path accounting for keys when we do not
-	// need to.
-	delete(rtv, types.CorpusField)
-	delete(rtv, types.PrimaryKeyField)
 	digestsInGrouping, err := s.getDigestsForGrouping(ctx, groupingID[:], rtv)
 	if err != nil {
 		return nil, skerr.Wrap(err)
