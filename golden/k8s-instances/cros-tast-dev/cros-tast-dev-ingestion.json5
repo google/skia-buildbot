@@ -9,7 +9,7 @@
   primary_branch_config: {
     type: "sql_primary",
     gcs_source: {
-      bucket: "skia-gold-cros-tast-dev",
+      bucket: "skia-gold-cros-tast",
       prefix: "dm-json-v1"
     },
     extra_configuration: {
@@ -19,7 +19,7 @@
   secondary_branch_config: {
     type: "sql_secondary",
     gcs_source: {
-      bucket: "skia-gold-cros-tast-dev",
+      bucket: "skia-gold-cros-tast",
       prefix: "trybot/dm-json-v1"
     },
     extra_configuration: {

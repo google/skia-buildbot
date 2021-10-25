@@ -15,7 +15,7 @@
   site_url: "https://cros-tast-gold.skia.org",  // "new" instance id
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "crostastdev",
-  known_hashes_gcs_path: "skia-gold-cros-tast-dev/hash_files/gold-cros-tast-dev-hashes.txt",
+  known_hashes_gcs_path: "skia-gold-cros-tast/hash_files/gold-cros-tast-dev-hashes.txt",
   window_size: 512,
 
   // These values affect the k8s deployment; they are not read in by the binary.
