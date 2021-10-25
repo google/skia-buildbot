@@ -98,7 +98,6 @@ puppeteer-tests:
 build-frontend-ci: npm-ci
 	cd am && $(MAKE) build-frontend-ci
 	cd autoroll && $(MAKE) build-frontend-ci
-	cd bugs-central && $(MAKE) build-frontend-ci
 	cd ct && $(MAKE) build-frontend-ci
 	cd debugger-app && $(MAKE) build-frontend-ci
 	cd demos && $(MAKE) build-frontend-ci
