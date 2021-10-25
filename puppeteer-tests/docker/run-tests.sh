@@ -226,8 +226,5 @@ npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 cd /tests/shaders
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
-cd /tests/skcq
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
 cd /tests/skottie
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
