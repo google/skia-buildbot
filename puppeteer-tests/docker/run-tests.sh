@@ -191,9 +191,6 @@ npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 cd /tests/am
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
-cd /tests/bugs-central
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
 cd /tests/ct
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
