@@ -1,0 +1,21 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "k8s_checker_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//k8s-checker/go/k8s-checker:k8s-checker",
+                "0755",
+            ],
+        ],
+        "/etc/k8s-checker/": [
+            [
+                "//kube/clusters:config.json",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/k8s-checker",
+    repository = "skia-public/k8s-checker",
+)

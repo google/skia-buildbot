@@ -1,16 +1,17 @@
-.PHONY: k8s-checker
-k8s_checker:
-	go install -v ./go/k8s-checker/...
+include ../make/bazel.mk
+include ../kube/kube.mk
 
-.PHONY: release
+build:
+	$(BAZEL) build go/k8s-checker/...
+
 release:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/...
-	./build_docker_release
+	$(BAZEL) run //k8s-checker:push_k8s_checker_container
 
-.PHONY: push
-push: release
-	pushk k8s-checker
+push: pushk release
+	pushk --use-temp-checkout k8s-checker
 
-.PHONY: push_public
 push_public: release
 	pushk --only-cluster skia-public k8s-checker
+
+push_corp: release
+	pushk --only-cluster skia-corp k8s-checker
