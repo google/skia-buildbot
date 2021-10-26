@@ -428,18 +428,18 @@ export class SkottiePlayerSk extends ElementSk {
   }
 
   private onPropertySelect(e: Event): void {
-    const target = (e.target as HTMLInputElement);
+    const target = (e.target as HTMLSelectElement);
     switch (target.id) {
       case 'color-prop-select':
-        this.colorProps.index = target.valueAsNumber;
+        this.colorProps.index = target.selectedIndex;
         this.querySelector<HTMLInputElement>('#color-picker')!.value = hexColor(this.colorProps.current().value);
         break;
       case 'opacity-prop-select':
-        this.opacityProps.index = target.valueAsNumber;
+        this.opacityProps.index = target.selectedIndex;
         this.querySelector<HTMLInputElement>('#opacity-picker')!.value = String(this.opacityProps.current().value);
         break;
       case 'segment-prop-select':
-        this.currentSegment = this.animationSegments[target.valueAsNumber];
+        this.currentSegment = this.animationSegments[target.selectedIndex];
         this.seek(0);
         this._render();
         break;
