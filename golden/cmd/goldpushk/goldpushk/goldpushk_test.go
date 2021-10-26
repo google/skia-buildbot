@@ -904,19 +904,6 @@ func assertNumCommits(t *testing.T, ctx context.Context, repo *testutils.GitBuil
 	assert.Equal(t, n, actualN)
 }
 
-// assertRepositoryContainsFileWithContents asserts the presence of a file with the given contents
-// in a git repo.
-func assertRepositoryContainsFileWithContents(t *testing.T, ctx context.Context, repo *testutils.GitBuilder, filename, expectedContents string) {
-	clone, err := git.NewTempCheckout(ctx, repo.RepoUrl())
-	require.NoError(t, err)
-	commits, err := clone.RevList(ctx, git.MainBranch)
-	require.NoError(t, err)
-	lastCommit := commits[0]
-	actualContents, err := clone.GetFile(ctx, filename, lastCommit)
-	require.NoError(t, err)
-	assert.Equal(t, expectedContents, actualContents)
-}
-
 // This fake kubectl output simulates the following situation:
 //   - gold-chrome-baselineserver:     three replicas, all of them ready.
 //   - gold-chrome-diffcalculator:         one single replica, ready.

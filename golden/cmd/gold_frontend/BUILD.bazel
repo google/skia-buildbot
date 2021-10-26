@@ -15,7 +15,6 @@ go_library(
         "//go/metrics2",
         "//go/sklog",
         "//golden/go/clstore",
-        "//golden/go/clstore/sqlclstore",
         "//golden/go/code_review",
         "//golden/go/code_review/gerrit_crs",
         "//golden/go/code_review/github_crs",

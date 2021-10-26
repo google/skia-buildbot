@@ -29,7 +29,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/clstore"
-	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	mock_crs "go.skia.org/infra/golden/go/code_review/mocks"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/ignore"
@@ -71,7 +70,6 @@ func TestNewHandlers_BaselineSubset_HasAllPieces_Success(t *testing.T) {
 		ReviewSystems: []clstore.ReviewSystem{
 			{
 				ID:     "whatever",
-				Store:  &mock_clstore.Store{},
 				Client: &mock_crs.Client{},
 			},
 		},
@@ -117,7 +115,6 @@ func TestNewHandlers_FullFrontEnd_MissingPieces_Failure(t *testing.T) {
 		ReviewSystems: []clstore.ReviewSystem{
 			{
 				ID:     "whatever",
-				Store:  &mock_clstore.Store{},
 				Client: &mock_crs.Client{},
 			},
 		},

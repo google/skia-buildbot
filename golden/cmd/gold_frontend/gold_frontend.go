@@ -31,7 +31,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/clstore"
-	"go.skia.org/infra/golden/go/clstore/sqlclstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	"go.skia.org/infra/golden/go/code_review/github_crs"
@@ -145,7 +144,7 @@ func main() {
 
 	ignoreStore := mustMakeIgnoreStore(ctx, sqlDB)
 
-	reviewSystems := mustInitializeReviewSystems(fsc, client, sqlDB)
+	reviewSystems := mustInitializeReviewSystems(fsc, client)
 
 	s2a := mustLoadSearchAPI(ctx, fsc, sqlDB, publiclyViewableParams, reviewSystems)
 
@@ -315,7 +314,7 @@ func mustMakeIgnoreStore(ctx context.Context, db *pgxpool.Pool) ignore.Store {
 
 // mustInitializeReviewSystems validates and instantiates one clstore.ReviewSystem for each CRS
 // specified via the JSON configuration files.
-func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client, sqlDB *pgxpool.Pool) []clstore.ReviewSystem {
+func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client) []clstore.ReviewSystem {
 	rs := make([]clstore.ReviewSystem, 0, len(fsc.CodeReviewSystems))
 	for _, cfg := range fsc.CodeReviewSystems {
 		var crs code_review.Client
@@ -348,11 +347,9 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client, sql
 			sklog.Fatalf("CRS flavor %s not supported.", cfg.Flavor)
 			return nil
 		}
-		sqlCS := sqlclstore.New(sqlDB, cfg.ID)
 		rs = append(rs, clstore.ReviewSystem{
 			ID:          cfg.ID,
 			Client:      crs,
-			Store:       sqlCS,
 			URLTemplate: cfg.URLTemplate,
 		})
 	}
