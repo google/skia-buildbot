@@ -422,6 +422,20 @@ func (g *goldTryjobProcessor) lookupAndCreatePS(ctx context.Context, client code
 
 	qualifiedCLID := sql.Qualify(crs, ps.ChangelistID)
 	qualifiedPSID := sql.Qualify(crs, ps.SystemID)
+
+	// In rare cases for GitHub, we see the same commit uploaded to different PRs. This
+	// causes an issue because the default primary key for the patchset is based on the
+	// git hash. See skbug.com/12580
+	if ok, err := g.psAlreadyExistsForAnotherCL(ctx, qualifiedPSID, qualifiedPSID); err != nil {
+		sklog.Errorf("Error checking existence of patchset %#v: %s", ps, err)
+		return "", ingestion.ErrRetryable
+	} else if ok {
+		// If the patchset exists, but for a different CL, we need to try a different id.
+		// We don't do this by default so as not to cause a large change across all the tables,
+		// since this is a rare phenomenon.
+		qualifiedPSID = sql.Qualify(crs, ps.SystemID+"-"+ps.ChangelistID)
+	}
+
 	const statement = `
 INSERT INTO Patchsets (patchset_id, system, changelist_id, ps_order, git_hash,
   commented_on_cl, created_ts)
@@ -437,6 +451,26 @@ ON CONFLICT DO NOTHING`
 		return "", ingestion.ErrRetryable
 	}
 	return qualifiedPSID, nil
+}
+
+// psAlreadyExistsForAnotherCL returns true if the given qualified patchset ID already exists, but
+// belonging to another CL than the one passed in. It returns false if the patchset ID does not
+// exist or if it does exist, but belongs to the CL provided.
+func (g *goldTryjobProcessor) psAlreadyExistsForAnotherCL(ctx context.Context, psID, clID string) (bool, error) {
+	ctx, span := trace.StartSpan(ctx, "psAlreadyExistsForAnotherCL")
+	defer span.End()
+	const statement = `SELECT changelist_id FROM Patchsets WHERE patchset_id = $1`
+	row := g.db.QueryRow(ctx, statement, psID)
+	var actualCLID string
+	if err := row.Scan(&actualCLID); err != nil {
+		if err == pgx.ErrNoRows {
+			return false, nil
+		}
+		return false, skerr.Wrap(err)
+	}
+	// The patchsetID already exists. If it doesn't match the CL we are given, we need to return
+	// true, so we deduplicate the patchset.
+	return actualCLID != clID, nil
 }
 
 // lookupTryjob returns the qualified Tryjob ID for these given results if derivation was

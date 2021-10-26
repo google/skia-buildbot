@@ -1202,6 +1202,90 @@ func TestTryjobSQL_Process_LookupReturnsDifferentSystem_ReturnsError(t *testing.
 	assert.Contains(t, err.Error(), "after lookup")
 }
 
+func TestLookupAndCreatePS_PatchsetExistsForAnotherCL_ReturnsNonconflictingPSID(t *testing.T) {
+	unittest.LargeTest(t)
+
+	const gitHash = "000000000000000"
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := schema.Tables{
+		Changelists: []schema.ChangelistRow{
+			{
+				ChangelistID:     "github_cl1111111",
+				System:           "github",
+				Status:           schema.StatusOpen,
+				OwnerEmail:       "user@example.com",
+				Subject:          "Some subject",
+				LastIngestedData: time.Date(2021, time.October, 11, 11, 11, 11, 0, time.UTC),
+			},
+			{
+				ChangelistID:     "github_cl2222222",
+				System:           "github",
+				Status:           schema.StatusOpen,
+				OwnerEmail:       "user@example.com",
+				Subject:          "Some other subject",
+				LastIngestedData: time.Date(2021, time.October, 22, 22, 22, 22, 0, time.UTC),
+			},
+		},
+		Patchsets: []schema.PatchsetRow{
+			{
+				PatchsetID:    "github_ps000000000000000",
+				System:        "github",
+				ChangelistID:  "github_cl1111111",
+				Order:         4,
+				GitHash:       gitHash,
+				CommentedOnCL: false,
+				Created:       time.Date(2021, time.October, 11, 11, 12, 0, 0, time.UTC),
+			},
+		},
+	}
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	const clID = "cl2222222"
+	const psID = "ps000000000000000"
+
+	mcrs := &mock_crs.Client{}
+	mcrs.On("GetPatchset", testutils.AnyContext, "cl2222222", "ps000000000000000", 0).Return(code_review.Patchset{
+		SystemID:      psID,
+		ChangelistID:  clID,
+		Order:         1,
+		GitHash:       gitHash,
+		Created:       time.Date(2021, time.October, 22, 22, 23, 0, 0, time.UTC),
+		CommentedOnCL: false,
+	}, nil)
+
+	p := goldTryjobProcessor{
+		db: db,
+	}
+
+	qualifiedPSID, err := p.lookupAndCreatePS(ctx, mcrs, clID, psID, "github", 0)
+	require.NoError(t, err)
+	// We expect to see the patchset id qualified even further with the CLID.
+	assert.Equal(t, "github_ps000000000000000-cl2222222", qualifiedPSID)
+
+	patchsets := sqltest.GetAllRows(ctx, t, db, "Patchsets", &schema.PatchsetRow{})
+	assert.ElementsMatch(t, []schema.PatchsetRow{
+		{
+			PatchsetID:    "github_ps000000000000000",
+			System:        "github",
+			ChangelistID:  "github_cl1111111",
+			Order:         4,
+			GitHash:       gitHash,
+			CommentedOnCL: false,
+			Created:       time.Date(2021, time.October, 11, 11, 12, 0, 0, time.UTC),
+		},
+		{
+			PatchsetID:    "github_ps000000000000000-cl2222222",
+			System:        "github",
+			ChangelistID:  "github_cl2222222",
+			Order:         1,
+			GitHash:       gitHash,
+			CommentedOnCL: false,
+			Created:       time.Date(2021, time.October, 22, 22, 23, 0, 0, time.UTC),
+		},
+	}, patchsets)
+}
+
 func initCaches(processor goldTryjobProcessor) goldTryjobProcessor {
 	ogCache, err := lru.New(optionsGroupingCacheSize)
 	if err != nil {
