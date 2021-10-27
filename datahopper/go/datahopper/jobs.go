@@ -382,7 +382,7 @@ func addJobAggregates(s *events.EventStream, instance string) error {
 
 // StartJobMetrics starts a goroutine which ingests metrics data based on Jobs.
 // The caller is responsible for updating the passed-in repos and TaskCfgCache.
-func StartJobMetrics(ctx context.Context, jCache cache.JobCache, w *window.Window, instance string, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache) error {
+func StartJobMetrics(ctx context.Context, jCache cache.JobCache, w window.Window, instance string, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCacheImpl) error {
 	edb := &jobEventDB{
 		cached: []*events.Event{},
 		jCache: jCache,
@@ -436,13 +436,13 @@ type overdueJobMetrics struct {
 
 	jCache       cache.JobCache
 	repos        repograph.Map
-	taskCfgCache *task_cfg_cache.TaskCfgCache
-	window       *window.Window
+	taskCfgCache *task_cfg_cache.TaskCfgCacheImpl
+	window       window.Window
 }
 
 // Return an overdueJobMetrics instance. The caller is responsible for updating
 // the passed-in repos and TaskCfgCache.
-func newOverdueJobMetrics(jCache cache.JobCache, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, w *window.Window) (*overdueJobMetrics, error) {
+func newOverdueJobMetrics(jCache cache.JobCache, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCacheImpl, w window.Window) (*overdueJobMetrics, error) {
 	return &overdueJobMetrics{
 		overdueMetrics: map[jobSpecMetricKey]metrics2.Int64Metric{},
 		jCache:         jCache,
@@ -465,7 +465,7 @@ func (m *overdueJobMetrics) start(ctx context.Context) {
 
 // getMostRecentCachedRev returns the Commit and TasksCfg for the most recent
 // commit which has an entry in the TaskCfgCache.
-func getMostRecentCachedRev(ctx context.Context, tcc *task_cfg_cache.TaskCfgCache, repoUrl string, repo *repograph.Graph) (*repograph.Commit, *specs.TasksCfg, error) {
+func getMostRecentCachedRev(ctx context.Context, tcc *task_cfg_cache.TaskCfgCacheImpl, repoUrl string, repo *repograph.Graph) (*repograph.Commit, *specs.TasksCfg, error) {
 	head := repo.Get(git.MasterBranch)
 	if head == nil {
 		head = repo.Get(git.MainBranch)

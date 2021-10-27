@@ -75,7 +75,7 @@ func mapTasks(tasks map[string]*types.Task) map[string][]*Task {
 // in the desired range. The boolean return value is the "startOver" indicator
 // as returned by Update(), included here for convenience so that Update() can
 // just "return c.Reset(...)".
-func (c *taskCache) Reset(ctx context.Context, w *window.Window) (map[string][]*Task, bool, error) {
+func (c *taskCache) Reset(ctx context.Context, w window.Window) (map[string][]*Task, bool, error) {
 	sklog.Infof("Resetting DB connection.")
 	tasks, err := db.GetTasksFromWindow(ctx, c.db, w)
 	if err != nil {
@@ -100,7 +100,7 @@ func (c *taskCache) Reset(ctx context.Context, w *window.Window) (map[string][]*
 // Update returns any new tasks since the last Update() call. In the case of a
 // lost connection to the remote database, all tasks from the desired window are
 // returned, and the boolean return value is set to true.
-func (c *taskCache) Update(ctx context.Context, w *window.Window) (map[string][]*Task, bool, error) {
+func (c *taskCache) Update(ctx context.Context, w window.Window) (map[string][]*Task, bool, error) {
 	defer metrics2.FuncTimer().Stop()
 	if c.shouldReset {
 		return c.Reset(ctx, w)

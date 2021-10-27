@@ -91,11 +91,11 @@ func (_m *TaskCache) GetTaskMaybeExpired(_a0 context.Context, _a1 string) (*type
 }
 
 // GetTasksByKey provides a mock function with given fields: key
-func (_m *TaskCache) GetTasksByKey(key *types.TaskKey) ([]*types.Task, error) {
+func (_m *TaskCache) GetTasksByKey(key types.TaskKey) ([]*types.Task, error) {
 	ret := _m.Called(key)
 
 	var r0 []*types.Task
-	if rf, ok := ret.Get(0).(func(*types.TaskKey) []*types.Task); ok {
+	if rf, ok := ret.Get(0).(func(types.TaskKey) []*types.Task); ok {
 		r0 = rf(key)
 	} else {
 		if ret.Get(0) != nil {
@@ -104,7 +104,7 @@ func (_m *TaskCache) GetTasksByKey(key *types.TaskKey) ([]*types.Task, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*types.TaskKey) error); ok {
+	if rf, ok := ret.Get(1).(func(types.TaskKey) error); ok {
 		r1 = rf(key)
 	} else {
 		r1 = ret.Error(1)

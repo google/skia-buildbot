@@ -35,11 +35,11 @@ func IsCachedError(err error) bool {
 type Cacher struct {
 	rbeCas cas.CAS
 	s      *syncer.Syncer
-	tcc    *task_cfg_cache.TaskCfgCache
+	tcc    task_cfg_cache.TaskCfgCache
 }
 
 // New creates a Cacher instance.
-func New(s *syncer.Syncer, tcc *task_cfg_cache.TaskCfgCache, rbeCas cas.CAS) *Cacher {
+func New(s *syncer.Syncer, tcc task_cfg_cache.TaskCfgCache, rbeCas cas.CAS) *Cacher {
 	return &Cacher{
 		rbeCas: rbeCas,
 		s:      s,

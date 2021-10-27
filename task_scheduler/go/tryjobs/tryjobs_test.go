@@ -21,6 +21,8 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
+var distantFutureTime = time.Date(3000, time.January, 1, 0, 0, 0, 0, time.UTC)
+
 // Verify that updateJobs sends heartbeats for unfinished try Jobs and
 // success/failure for finished Jobs.
 func TestUpdateJobs(t *testing.T) {
@@ -93,7 +95,7 @@ func TestUpdateJobs(t *testing.T) {
 	j1, j2 := jobs[0], jobs[1]
 	for _, j := range jobs[2:] {
 		j.Status = types.JOB_STATUS_SUCCESS
-		j.Finished = time.Now()
+		j.Finished = time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	}
 	require.NoError(t, trybots.db.PutJobs(ctx, jobs[2:]))
 	trybots.jCache.AddJobs(jobs[2:])
@@ -230,7 +232,7 @@ func TestJobFinished(t *testing.T) {
 	defer cleanup()
 
 	j := tryjob(ctx, gb.RepoUrl())
-	now := time.Now()
+	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
 	// Job not actually finished.
 	require.EqualError(t, trybots.jobFinished(j), "JobFinished called for unfinished Job!")
@@ -280,7 +282,7 @@ func TestJobFinished(t *testing.T) {
 type addedJobs map[string]*types.Job
 
 func (aj addedJobs) getAddedJob(ctx context.Context, t *testing.T, d db.JobReader) *types.Job {
-	allJobs, err := d.GetJobsFromDateRange(ctx, time.Time{}, time.Now(), "")
+	allJobs, err := d.GetJobsFromDateRange(ctx, time.Time{}, distantFutureTime, "")
 	require.NoError(t, err)
 	for _, job := range allJobs {
 		if _, ok := aj[job.Id]; !ok {
@@ -297,7 +299,7 @@ func TestInsertNewJob(t *testing.T) {
 
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MasterBranch)
 
-	now := time.Now()
+	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
 	aj := addedJobs(map[string]*types.Job{})
 
@@ -394,7 +396,7 @@ func TestRetry(t *testing.T) {
 
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MasterBranch)
 
-	now := time.Now()
+	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
 	// Insert one try job.
 	aj := addedJobs(map[string]*types.Job{})
@@ -435,7 +437,7 @@ func TestPoll(t *testing.T) {
 
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MasterBranch)
 
-	now := time.Now()
+	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
 	assertAdded := func(builds []*buildbucketpb.Build) {
 		jobs, err := trybots.getActiveTryJobs(ctx)
@@ -547,4 +549,34 @@ func TestPoll(t *testing.T) {
 	require.EqualError(t, trybots.Poll(ctx), "Got errors loading builds from Buildbucket: [Failed peek]")
 	require.True(t, mock.Empty())
 	assertAdded(builds)
+}
+
+func TestTryJobsNotAllowedForCD(t *testing.T) {
+	ctx, trybots, gb, mock, mockBB, cleanup := setup(t)
+	defer cleanup()
+
+	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MasterBranch)
+
+	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
+
+	aj := addedJobs(map[string]*types.Job{})
+
+	rs := types.RepoState{
+		Patch:    gerritPatch,
+		Repo:     gb.RepoUrl(),
+		Revision: trybots.rm[gb.RepoUrl()].Get(git.MasterBranch).Hash,
+	}
+	rs.Patch.PatchRepo = rs.Repo
+
+	// Someone requested a try job of "cd-job"; which is not allowed.
+	b1 := Build(t, now)
+	b1.Builder.Builder = "cd-job"
+	mockBB.On("GetBuild", ctx, b1.Id).Return(b1, nil)
+	MockCancelBuild(mock, b1.Id, fmt.Sprintf("Failed to create Job from JobSpec: %s @ %+v: Cannot trigger try jobs for CD job %q", b1.Builder.Builder, rs, b1.Builder.Builder), nil)
+	err := trybots.insertNewJob(ctx, b1.Id)
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), fmt.Sprintf("Cannot trigger try jobs for CD job %q", b1.Builder.Builder))
+	result := aj.getAddedJob(ctx, t, trybots.db)
+	require.Nil(t, result)
+	require.True(t, mock.Empty())
 }

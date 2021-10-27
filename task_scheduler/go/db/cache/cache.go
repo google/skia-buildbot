@@ -31,13 +31,13 @@ type TaskCache interface {
 	// cache window.
 	GetTaskMaybeExpired(context.Context, string) (*types.Task, error)
 
-	// GetTaskForCommit retrieves the task with the given name which ran at the
-	// given commit, or nil if no such task exists.
+	// GetTaskForCommit retrieves the task with the given name whose blamelist
+	// includes the given commit, or nil if no such task exists.
 	GetTaskForCommit(repo string, revision string, name string) (*types.Task, error)
 
 	// GetTasksByKey returns the tasks with the given TaskKey, sorted
 	// by creation time.
-	GetTasksByKey(key *types.TaskKey) ([]*types.Task, error)
+	GetTasksByKey(key types.TaskKey) ([]*types.Task, error)
 
 	// GetTasksForCommits retrieves all tasks which included[1] each of the
 	// given commits. Returns a map whose keys are commit hashes and values are
@@ -94,7 +94,7 @@ type taskCache struct {
 	tasksByKey map[types.TaskKey]map[string]*types.Task
 	// tasksByTime is sorted by Task.Created.
 	tasksByTime []*types.Task
-	timeWindow  *window.Window
+	timeWindow  window.Window
 	unfinished  map[string]*types.Task
 
 	// Stash modified tasks until Update() is called.
@@ -133,7 +133,7 @@ func (c *taskCache) GetTaskMaybeExpired(ctx context.Context, id string) (*types.
 }
 
 // See documentation for TaskCache interface.
-func (c *taskCache) GetTasksByKey(k *types.TaskKey) ([]*types.Task, error) {
+func (c *taskCache) GetTasksByKey(k types.TaskKey) ([]*types.Task, error) {
 	if !k.Valid() {
 		return nil, fmt.Errorf("TaskKey is invalid: %v", k)
 	}
@@ -141,7 +141,7 @@ func (c *taskCache) GetTasksByKey(k *types.TaskKey) ([]*types.Task, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 
-	tasks := c.tasksByKey[*k]
+	tasks := c.tasksByKey[k]
 	rv := make([]*types.Task, 0, len(tasks))
 	for _, t := range tasks {
 		rv = append(rv, t.Copy())
@@ -415,7 +415,7 @@ func (c *taskCache) AddTasks(tasks []*types.Task) {
 // task data than the database can provide. The last parameter is a callback
 // function which is called when modified tasks are received from the DB. This
 // is used for testing.
-func NewTaskCache(ctx context.Context, d db.TaskReader, timeWindow *window.Window, onModifiedTasks func()) (TaskCache, error) {
+func NewTaskCache(ctx context.Context, d db.TaskReader, timeWindow window.Window, onModifiedTasks func()) (TaskCache, error) {
 	mod := d.ModifiedTasksCh(ctx)
 	tasks, err := db.GetTasksFromWindow(ctx, d, timeWindow)
 	if err != nil {
@@ -497,7 +497,7 @@ type jobCache struct {
 	jobsByNameAndState map[types.RepoState]map[string]map[string]*types.Job
 	// jobsByTime is sorted by Task.Created.
 	jobsByTime []*types.Job
-	timeWindow *window.Window
+	timeWindow window.Window
 	unfinished map[string]*types.Job
 
 	modified map[string]*types.Job
@@ -773,7 +773,7 @@ func (c *jobCache) AddJobs(jobs []*types.Job) {
 // job data than the database can provide. The last parameter is a callback
 // function which is called when modified tasks are received from the DB. This
 // is used for testing.
-func NewJobCache(ctx context.Context, d db.JobReader, timeWindow *window.Window, onModifiedJobs func()) (JobCache, error) {
+func NewJobCache(ctx context.Context, d db.JobReader, timeWindow window.Window, onModifiedJobs func()) (JobCache, error) {
 	mod := d.ModifiedJobsCh(ctx)
 	jobs, err := db.GetJobsFromWindow(ctx, d, timeWindow)
 	if err != nil {

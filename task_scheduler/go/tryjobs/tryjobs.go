@@ -92,11 +92,11 @@ type TryJobIntegrator struct {
 	jCache             cache.JobCache
 	projectRepoMapping map[string]string
 	rm                 repograph.Map
-	taskCfgCache       *task_cfg_cache.TaskCfgCache
+	taskCfgCache       task_cfg_cache.TaskCfgCache
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB, jCache cache.JobCache, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *task_cfg_cache.TaskCfgCache, chr *cacher.Cacher, gerrit gerrit.GerritInterface) (*TryJobIntegrator, error) {
+func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB, jCache cache.JobCache, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache task_cfg_cache.TaskCfgCache, chr *cacher.Cacher, gerrit gerrit.GerritInterface) (*TryJobIntegrator, error) {
 	bb, err := buildbucket_api.New(c)
 	if err != nil {
 		return nil, err
@@ -441,7 +441,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 	if _, err := t.chr.GetOrCacheRepoState(ctx, rs); err != nil {
 		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to obtain JobSpec: %s; \n\n%v", err, rs))
 	}
-	j, err := t.taskCfgCache.MakeJob(ctx, rs, build.Builder.Builder)
+	j, err := task_cfg_cache.MakeJob(ctx, t.taskCfgCache, rs, build.Builder.Builder)
 	if err != nil {
 		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to create Job from JobSpec: %s @ %+v: %s", build.Builder.Builder, rs, err))
 	}

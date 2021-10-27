@@ -85,11 +85,11 @@ type IncrementalCacheImpl struct {
 	updateMtx        sync.Mutex
 	// Updates, keyed by repo and sorted ascending by timestamp.
 	updates map[string][]*Update
-	w       *window.Window
+	w       window.Window
 }
 
 // NewIncrementalCacheImpl returns an IncrementalCacheImpl instance.
-func NewIncrementalCacheImpl(ctx context.Context, d db.RemoteDB, w *window.Window, repos repograph.Map, numCommits int, swarmingUrl, taskSchedulerUrl string) (*IncrementalCacheImpl, error) {
+func NewIncrementalCacheImpl(ctx context.Context, d db.RemoteDB, w window.Window, repos repograph.Map, numCommits int, swarmingUrl, taskSchedulerUrl string) (*IncrementalCacheImpl, error) {
 	c := &IncrementalCacheImpl{
 		comments:         newCommentsCache(d, repos),
 		commits:          newCommitsCache(repos),

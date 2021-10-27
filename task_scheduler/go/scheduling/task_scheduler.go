@@ -90,6 +90,7 @@ type TaskScheduler struct {
 	busyBots            *busyBots
 	candidateMetrics    map[string]metrics2.Int64Metric
 	candidateMetricsMtx sync.Mutex
+	cdPool              string
 	db                  db.DB
 	diagClient          gcs.GCSClient
 	diagInstance        string
@@ -109,7 +110,7 @@ type TaskScheduler struct {
 	repos        repograph.Map
 	skipTasks    *skip_tasks.DB
 	taskExecutor types.TaskExecutor
-	taskCfgCache *task_cfg_cache.TaskCfgCache
+	taskCfgCache task_cfg_cache.TaskCfgCache
 	tCache       cache.TaskCache
 	// testWaitGroup keeps track of any goroutines the TaskScheduler methods
 	// create so that tests can ensure all goroutines finish before asserting.
@@ -117,10 +118,10 @@ type TaskScheduler struct {
 	timeDecayAmt24Hr      float64
 	triggeredCount        metrics2.Counter
 	updateUnfinishedCount metrics2.Counter
-	window                *window.Window
+	window                window.Window
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, rbeCas cas.CAS, rbeCasInstance string, taskExecutor types.TaskExecutor, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, rbeCas cas.CAS, rbeCasInstance string, taskExecutor types.TaskExecutor, c *http.Client, timeDecayAmt24Hr float64, pools []string, cdPool, pubsubTopic string, taskCfgCache task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -144,10 +145,17 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
 	}
 
+	// Add the CD pool to the list of pools if it isn't there already. We'll
+	// verify that only CD tasks get assigned to that pool.
+	if cdPool != "" && !util.In(cdPool, pools) {
+		pools = append(pools, cdPool)
+	}
+
 	s := &TaskScheduler{
 		skipTasks:             bl,
 		busyBots:              newBusyBots(),
 		candidateMetrics:      map[string]metrics2.Int64Metric{},
+		cdPool:                cdPool,
 		db:                    d,
 		diagClient:            diagClient,
 		diagInstance:          diagInstance,
@@ -565,12 +573,20 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 					sklog.Errorf("Task %s at %+v depends on non-existent CasSpec %q; wanted by job %s", tsName, j.RepoState, spec.CasSpec, j.Id)
 					continue
 				}
+				jobSpec, ok := taskCfg.Jobs[j.Name]
+				if !ok {
+					// This shouldn't happen, because we couldn't have created
+					// the job if it wasn't present in the TasksCfg.
+					sklog.Errorf("Unable to find JobSpec for %s at %+v", j.Name, j.RepoState)
+					continue
+				}
 				c = &TaskCandidate{
 					// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
 					// could be inherited from any matching Job. Therefore, this should be
 					// used for non-critical, informational purposes only.
 					BuildbucketBuildId: j.BuildbucketBuildId,
 					CasDigests:         []string{casSpec.Digest},
+					IsCD:               jobSpec.IsCD,
 					Jobs:               nil,
 					TaskKey:            key,
 					TaskSpec:           spec,
@@ -605,7 +621,7 @@ func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandi
 		// Reject tasks for too-old commits, as long as they aren't try jobs.
 		if !c.IsTryJob() {
 			if in, err := s.window.TestCommitHash(c.Repo, c.Revision); err != nil {
-				return nil, err
+				return nil, skerr.Wrap(err)
 			} else if !in {
 				c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{RevisionTooOld: true}
 				continue
@@ -613,7 +629,7 @@ func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandi
 		}
 		// We shouldn't duplicate pending, in-progress,
 		// or successfully completed tasks.
-		prevTasks, err := s.tCache.GetTasksByKey(&c.TaskKey)
+		prevTasks, err := s.tCache.GetTasksByKey(c.TaskKey)
 		if err != nil {
 			return nil, err
 		}
@@ -668,6 +684,42 @@ func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandi
 			// c.Filtering set in allDepsMet.
 			continue
 		}
+
+		// Ensure that only CD tasks get assigned to the CD pool.
+		// TODO(borenet): It'd be great to perform this check earlier in the
+		// flow (ie. during gen_tasks.go), so that we have a better chance of
+		// the error message reaching the user directly, rather than relying on
+		// error-rate alerts. Unfortunately, I'm not sure how to do that unless
+		// we make the CD pool name constant, eg. "SkiaCD".
+		if s.cdPool != "" {
+			cdPoolDimension := fmt.Sprintf("pool:%s", s.cdPool)
+			if util.In(cdPoolDimension, c.TaskSpec.Dimensions) && !c.IsCD {
+				// Log an error; this is a mistake in the task configuration which
+				// needs to be corrected.
+				sklog.Errorf("Non-CD task %s at %s is requesting use of CD pool %q; rejecting the task.", c.Name, c.Revision, s.cdPool)
+				c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{ForbiddenPool: s.cdPool}
+				continue
+			}
+			if !util.In(cdPoolDimension, c.TaskSpec.Dimensions) && c.IsCD {
+				// Log an error; this is a mistake in the task configuration which
+				// needs to be corrected.
+				// TODO(borenet): In this case, could we just automatically add the
+				// correct pool, unless another is specifically requested?
+				pool := "(no pool specified)"
+				for _, dim := range c.TaskSpec.Dimensions {
+					if strings.HasPrefix(dim, "pool:") {
+						pool = strings.TrimPrefix(dim, "pool:")
+						break
+					}
+				}
+
+				sklog.Errorf("CD task %s at %s is not configured to use CD pool %q and instead uses %q; rejecting the task.", c.Name, c.Revision, s.cdPool, pool)
+				c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{ForbiddenPool: pool}
+				continue
+			}
+		}
+
+		// Add the CasDigests and ParentTaskIds which feed into this candidate.
 		hashes := make([]string, 0, len(idsToHashes))
 		parentTaskIds := make([]string, 0, len(idsToHashes))
 		for id, hash := range idsToHashes {
@@ -788,8 +840,13 @@ func (s *TaskScheduler) processTaskCandidatesSingleTaskSpec(ctx context.Context,
 	candidates := make([]*TaskCandidate, 0, len(candidatesWithTryJobs))
 	for _, candidate := range candidatesWithTryJobs {
 		if candidate.IsTryJob() {
-			s.scoreCandidate(ctx, candidate, currentTime, repo.Get(candidate.Revision).Timestamp, nil)
-			finished = append(finished, candidate)
+			// We already reject tryjobs for CD jobs elsewhere, so this
+			// shouldn't be necessary, but there's no harm in being extra
+			// careful.  Just throw away any try job candidates for CD jobs.
+			if !candidate.IsCD {
+				s.scoreCandidate(ctx, candidate, currentTime, repo.Get(candidate.Revision).Timestamp, nil)
+				finished = append(finished, candidate)
+			}
 		} else {
 			candidates = append(candidates, candidate)
 		}
@@ -816,7 +873,29 @@ func (s *TaskScheduler) processTaskCandidatesSingleTaskSpec(ctx context.Context,
 		s.scoreCandidate(ctx, candidate, currentTime, revision.Timestamp, stealingFrom)
 	}
 
-	// 3. Repeat until all candidates have been ranked:
+	// 3. Throw away all backfill candidates for CD jobs.
+	// If one candidate for this TaskSpec is a CD candidate, they all are.
+	if len(candidates) > 0 && candidates[0].IsCD {
+		// Find the candidate with the largest blamelist; that will be the
+		// newest commit.
+		var best *TaskCandidate
+		for _, candidate := range candidates {
+			// If a candidate steals commits, it's a backfill; only consider
+			// those which don't steal commits.
+			if candidate.StealingFromId == "" {
+				if best == nil || len(candidate.Commits) > len(best.Commits) {
+					best = candidate
+				}
+			}
+		}
+		if best != nil {
+			candidates = []*TaskCandidate{best}
+		} else {
+			candidates = []*TaskCandidate{}
+		}
+	}
+
+	// 4. Repeat until all candidates have been ranked:
 	for len(candidates) > 0 {
 		// a. Choose the highest-scoring candidate and add to the queue.
 		sort.Sort(taskCandidateSlice(candidates))
@@ -1731,7 +1810,7 @@ func (s *TaskScheduler) getTasksForJob(j *types.Job) (map[string][]*types.Task, 
 	tasks := map[string][]*types.Task{}
 	for d := range j.Dependencies {
 		key := j.MakeTaskKey(d)
-		gotTasks, err := s.tCache.GetTasksByKey(&key)
+		gotTasks, err := s.tCache.GetTasksByKey(key)
 		if err != nil {
 			return nil, err
 		}

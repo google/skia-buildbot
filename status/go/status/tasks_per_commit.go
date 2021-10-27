@@ -21,7 +21,7 @@ type tasksPerCommitCache struct {
 	mtx    sync.Mutex
 	period time.Duration
 	repos  repograph.Map
-	tcc    *task_cfg_cache.TaskCfgCache
+	tcc    *task_cfg_cache.TaskCfgCacheImpl
 }
 
 // newTasksPerCommitCache returns a tasksPerCommitCache instance.

@@ -201,7 +201,7 @@ func addMetric(s *events.EventStream, repoUrl string, pct float64, period time.D
 // cycle runs ingestion of task data, maps each task to the commits it covered
 // before any other task, and inserts event data based on the lag time between
 // a commit landing and each task finishing for that commit.
-func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time) error {
+func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCacheImpl, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time) error {
 	if err := tCache.Update(ctx); err != nil {
 		return skerr.Wrapf(err, "failed to update task cache")
 	}
@@ -406,7 +406,7 @@ func getLastIngestionTs(edb events.EventDB, repos repograph.Map) (time.Time, err
 
 // Start initiates "average time to X% bot coverage" metrics data generation.
 // The caller is responsible for updating the passed-in repos and TaskCfgCache.
-func Start(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, btProject, btInstance string, ts oauth2.TokenSource) error {
+func Start(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCacheImpl, btProject, btInstance string, ts oauth2.TokenSource) error {
 	// Set up event metrics.
 	edb, err := events.NewBTEventDB(ctx, btProject, btInstance, ts)
 	if err != nil {

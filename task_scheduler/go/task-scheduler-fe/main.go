@@ -63,7 +63,7 @@ var (
 	swarm swarming.ApiClient
 
 	// Task cfg cache.
-	taskCfgCache *task_cfg_cache.TaskCfgCache
+	taskCfgCache task_cfg_cache.TaskCfgCache
 
 	// HTML templates.
 	skipTasksTemplate   *template.Template = nil
@@ -176,7 +176,7 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 
 // makeJob creates a Job for the given repo, revision, and name.
 func makeJob(ctx context.Context, repo, revision, jobName string) (*types.Job, error) {
-	j, err := taskCfgCache.MakeJob(ctx, types.RepoState{
+	j, err := task_cfg_cache.MakeJob(ctx, taskCfgCache, types.RepoState{
 		Repo:     repo,
 		Revision: revision,
 	}, jobName)

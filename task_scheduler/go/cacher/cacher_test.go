@@ -22,7 +22,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-func setup(t *testing.T) (context.Context, *Cacher, *task_cfg_cache.TaskCfgCache, *mocks.CAS, types.RepoState, *git_testutils.GitBuilder, func()) {
+func setup(t *testing.T) (context.Context, *Cacher, task_cfg_cache.TaskCfgCache, *mocks.CAS, types.RepoState, *git_testutils.GitBuilder, func()) {
 	unittest.LargeTest(t)
 	ctx, gb, rev, _ := tcc_testutils.SetupTestRepo(t)
 	ctx, cancel := context.WithCancel(ctx)

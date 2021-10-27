@@ -58,13 +58,13 @@ type JobCreator struct {
 	lvUpdateRepos metrics2.Liveness
 	repos         repograph.Map
 	syncer        *syncer.Syncer
-	taskCfgCache  *task_cfg_cache.TaskCfgCache
+	taskCfgCache  task_cfg_cache.TaskCfgCache
 	tryjobs       *tryjobs.TryJobIntegrator
-	window        *window.Window
+	window        window.Window
 }
 
 // NewJobCreator returns a JobCreator instance.
-func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, rbe cas.CAS, c *http.Client, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache *task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource) (*JobCreator, error) {
+func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, rbe cas.CAS, c *http.Client, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource) (*JobCreator, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -205,9 +205,9 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 		for name, spec := range cfg.Jobs {
 			shouldRun := false
 			if !util.In(spec.Trigger, specs.PERIODIC_TRIGGERS) {
-				if spec.Trigger == specs.TRIGGER_ANY_BRANCH {
-					shouldRun = true
-				} else if spec.Trigger == specs.TRIGGER_MASTER_ONLY || spec.Trigger == specs.TRIGGER_MAIN_ONLY {
+				// CD jobs only run on the main branch, even if they are set to
+				// TRIGGER_ANY_BRANCH.
+				if spec.Trigger == specs.TRIGGER_MASTER_ONLY || spec.Trigger == specs.TRIGGER_MAIN_ONLY || spec.IsCD {
 					mainBranch := git.MasterBranch
 					if r.Get(mainBranch) == nil {
 						mainBranch = git.MainBranch
@@ -223,6 +223,8 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 							shouldRun = true
 						}
 					}
+				} else if spec.Trigger == specs.TRIGGER_ANY_BRANCH {
+					shouldRun = true
 				}
 			}
 			if shouldRun {
@@ -242,7 +244,7 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 				}
 				if !alreadyScheduled {
 					alreadyScheduledAllJobs = false
-					j, err := jc.taskCfgCache.MakeJob(ctx, rs, name)
+					j, err := task_cfg_cache.MakeJob(ctx, jc.taskCfgCache, rs, name)
 					if err != nil {
 						// We shouldn't get ErrNoSuchEntry due to the
 						// call to jc.cacher.GetOrCacheRepoState above,
@@ -428,7 +430,7 @@ func (jc *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName 
 		}
 		for name, js := range cfg.Jobs {
 			if js.Trigger == triggerName {
-				job, err := jc.taskCfgCache.MakeJob(ctx, rs, name)
+				job, err := task_cfg_cache.MakeJob(ctx, jc.taskCfgCache, rs, name)
 				if err != nil {
 					return fmt.Errorf("Failed to create job: %s", err)
 				}

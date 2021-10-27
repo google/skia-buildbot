@@ -409,7 +409,7 @@ func NewDB(tdb TaskDB, jdb JobDB, cdb CommentDB) DB {
 
 // GetTasksFromWindow returns all tasks matching the given Window from the
 // TaskReader.
-func GetTasksFromWindow(ctx context.Context, db TaskReader, w *window.Window) ([]*types.Task, error) {
+func GetTasksFromWindow(ctx context.Context, db TaskReader, w window.Window) ([]*types.Task, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	startTimesByRepo := w.StartTimesByRepo()
@@ -436,7 +436,7 @@ func GetTasksFromWindow(ctx context.Context, db TaskReader, w *window.Window) ([
 
 // GetJobsFromWindow returns all jobs matching the given Window from the
 // JobReader.
-func GetJobsFromWindow(ctx context.Context, db JobReader, w *window.Window) ([]*types.Job, error) {
+func GetJobsFromWindow(ctx context.Context, db JobReader, w window.Window) ([]*types.Job, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	startTimesByRepo := w.StartTimesByRepo()

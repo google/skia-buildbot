@@ -49,6 +49,7 @@ var (
 	// Flags.
 	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	cdPool            = flag.String("cd_pool", "", "Swarming pool used only for continuous deployment tasks.")
 	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
@@ -161,7 +162,7 @@ func main() {
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
 	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarm, *rbeInstance, *pubsubTopicName)
-	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, cas, *rbeInstance, taskExec, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, tokenSource, diagClient, diagInstance)
+	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, cas, *rbeInstance, taskExec, httpClient, *scoreDecay24Hr, *swarmingPools, *cdPool, *pubsubTopicName, taskCfgCache, tokenSource, diagClient, diagInstance)
 	if err != nil {
 		sklog.Fatal(err)
 	}

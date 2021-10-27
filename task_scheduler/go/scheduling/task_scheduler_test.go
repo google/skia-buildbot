@@ -23,6 +23,7 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 
 	"go.skia.org/infra/go/cas/mocks"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	ftestutils "go.skia.org/infra/go/firestore/testutils"
@@ -33,6 +34,7 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sktest"
@@ -48,15 +50,18 @@ import (
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
+	tcc_mocks "go.skia.org/infra/task_scheduler/go/task_cfg_cache/mocks"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
 	swarming_testutils "go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
+	window_mocks "go.skia.org/infra/task_scheduler/go/window/mocks"
 )
 
 const (
 	scoreDelta = 0.000001
+	cdPoolName = "cd-pool"
 )
 
 var (
@@ -235,7 +240,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 }
 
 // Insert the given data into the caches.
-func fillCaches(t sktest.TestingT, ctx context.Context, taskCfgCache *task_cfg_cache.TaskCfgCache, rs types.RepoState, cfg *specs.TasksCfg) {
+func fillCaches(t sktest.TestingT, ctx context.Context, taskCfgCache task_cfg_cache.TaskCfgCache, rs types.RepoState, cfg *specs.TasksCfg) {
 	require.NoError(t, taskCfgCache.Set(ctx, rs, cfg, nil))
 }
 
@@ -248,7 +253,7 @@ func insertJobs(t sktest.TestingT, ctx context.Context, s *TaskScheduler, rss ..
 		require.NoError(t, err)
 		require.NoError(t, cachedErr)
 		for name := range cfg.Jobs {
-			j, err := s.taskCfgCache.MakeJob(ctx, rs, name)
+			j, err := task_cfg_cache.MakeJob(ctx, s.taskCfgCache, rs, name)
 			require.NoError(t, err)
 			jobs = append(jobs, j)
 		}
@@ -297,7 +302,7 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
 	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", "")
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExec, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExec, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, cdPoolName, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
 	// Insert jobs. This is normally done by the JobCreator.
@@ -362,7 +367,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	j1 := &types.Job{
 		Created:      currentTime,
 		Id:           "job1id",
-		Name:         "j1",
+		Name:         tcc_testutils.TestTaskName,
 		Dependencies: map[string][]string{tcc_testutils.TestTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
@@ -396,7 +401,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	j2 := &types.Job{
 		Created:      currentTime,
 		Id:           "job2id",
-		Name:         "j2",
+		Name:         tcc_testutils.TestTaskName,
 		Dependencies: map[string][]string{tcc_testutils.TestTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
 		Priority:     0.6,
 		RepoState:    rs2,
@@ -404,7 +409,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	j3 := &types.Job{
 		Created:      currentTime,
 		Id:           "job3id",
-		Name:         "j3",
+		Name:         tcc_testutils.PerfTaskName,
 		Dependencies: map[string][]string{tcc_testutils.PerfTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
 		Priority:     0.6,
 		RepoState:    rs2,
@@ -456,7 +461,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	j4 := &types.Job{
 		Created:      currentTime,
 		Id:           "job4id",
-		Name:         "j4",
+		Name:         tcc_testutils.PerfTaskName,
 		Dependencies: map[string][]string{tcc_testutils.PerfTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
 		Priority:     0.6,
 		RepoState: types.RepoState{
@@ -534,7 +539,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 	// should be the only ones available.
 	c, err := s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(c))
+	require.Len(t, c, 1)
 	require.Equal(t, 1, len(c[rs1.Repo]))
 	require.Equal(t, 2, len(c[rs1.Repo][tcc_testutils.BuildTaskName]))
 	for _, byRepo := range c {
@@ -575,7 +580,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 
 		c, err = s.filterTaskCandidates(ctx, candidates)
 		require.NoError(t, err)
-		require.Equal(t, 1, len(c))
+		require.Len(t, c, 1)
 		for _, byRepo := range c {
 			for _, byName := range byRepo {
 				for _, candidate := range byName {
@@ -606,11 +611,11 @@ func TestFilterTaskCandidates(t *testing.T) {
 
 	c, err = s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(c))
+	require.Len(t, c, 1)
 	for _, byRepo := range c {
-		require.Equal(t, 1, len(byRepo))
+		require.Len(t, byRepo, 1)
 		for _, byName := range byRepo {
-			require.Equal(t, 2, len(byName))
+			require.Len(t, byName, 2)
 			for _, candidate := range byName {
 				require.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
 			}
@@ -634,9 +639,9 @@ func TestFilterTaskCandidates(t *testing.T) {
 
 	c, err = s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(c))
+	require.Len(t, c, 1)
 	for _, byRepo := range c {
-		require.Equal(t, 2, len(byRepo))
+		require.Len(t, byRepo, 2)
 		for _, byName := range byRepo {
 			for _, candidate := range byName {
 				require.False(t, t1.Name == candidate.Name && t1.Revision == candidate.Revision)
@@ -668,7 +673,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 	// All test and perf tasks are now candidates, no build tasks.
 	c, err = s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(c))
+	require.Len(t, c, 1)
 	require.Equal(t, 2, len(c[rs1.Repo][tcc_testutils.TestTaskName]))
 	require.Equal(t, 1, len(c[rs1.Repo][tcc_testutils.PerfTaskName]))
 	for _, byRepo := range c {
@@ -697,7 +702,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 	}
 	c, err = s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(c))
+	require.Len(t, c, 1)
 	require.Equal(t, 2, len(c[rs1.Repo][tcc_testutils.TestTaskName]))
 	require.Equal(t, 1, len(c[rs1.Repo][tcc_testutils.PerfTaskName]))
 	for _, byRepo := range c {
@@ -1105,7 +1110,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 
 	processed, err := s.processTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
-	require.Equal(t, 7, len(processed))
+	require.Len(t, processed, 7)
 	for _, c := range processed {
 		assertProcessed(c)
 	}
@@ -1629,7 +1634,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	// Regenerate the task queue.
 	queue, _, err := s.regenerateTaskQueue(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(queue)) // Two Build tasks.
+	require.Len(t, queue, 2) // Two Build tasks.
 
 	testSort := func() {
 		// Ensure that we sorted correctly.
@@ -1672,7 +1677,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 
 	// Now we expect the queue to contain the other Build task and the one
 	// Test task we unblocked by running the first Build task.
-	require.Equal(t, 2, len(queue))
+	require.Len(t, queue, 2)
 	testSort()
 	for _, c := range queue {
 		if c.Name == tcc_testutils.TestTaskName {
@@ -1705,7 +1710,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	// Regenerate the task queue.
 	queue, _, err = s.regenerateTaskQueue(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(queue))
+	require.Len(t, queue, 3)
 	testSort()
 	perfIdx := -1
 	for i, c := range queue {
@@ -1741,7 +1746,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	// Now we expect the queue to contain one Test and one Perf task. The
 	// Test task is a backfill, and should have a score of 0.5, scaled by
 	// the priority of 0.5.
-	require.Equal(t, 2, len(queue))
+	require.Len(t, queue, 2)
 	testSort()
 	// First candidate should be the perf task.
 	require.Equal(t, tcc_testutils.PerfTaskName, queue[0].Name)
@@ -1775,7 +1780,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	ctx := context.Background()
 	// Empty lists.
 	rv := getCandidatesToSchedule(ctx, []*types.Machine{}, []*TaskCandidate{})
-	require.Equal(t, 0, len(rv))
+	require.Empty(t, rv)
 
 	// checkDiags takes a list of bots with the same dimensions and a list of
 	// ordered candidates that match those bots and checks the Diagnostics for
@@ -1813,12 +1818,12 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 
 	t1 := makeTaskCandidate("task1", []string{"k:v"})
 	rv = getCandidatesToSchedule(ctx, []*types.Machine{}, []*TaskCandidate{t1})
-	require.Equal(t, 0, len(rv))
+	require.Empty(t, rv)
 	checkDiags([]*types.Machine{}, []*TaskCandidate{t1})
 
 	b1 := makeSwarmingBot("bot1", []string{"k:v"})
 	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*TaskCandidate{})
-	require.Equal(t, 0, len(rv))
+	require.Empty(t, rv)
 
 	// Single match.
 	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*TaskCandidate{t1})
@@ -1828,7 +1833,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	// No match.
 	t1.TaskSpec.Dimensions[0] = "k:v2"
 	rv = getCandidatesToSchedule(ctx, []*types.Machine{b1}, []*TaskCandidate{t1})
-	require.Equal(t, 0, len(rv))
+	require.Empty(t, rv)
 	checkDiags([]*types.Machine{}, []*TaskCandidate{t1})
 
 	// Add a task candidate to match b1.
@@ -2060,11 +2065,11 @@ func TestSchedulingE2E(t *testing.T) {
 	var t4 *types.Task
 	tasks, err = s.tCache.GetTasksForCommits(rs1.Repo, []string{c1, c2})
 	require.NoError(t, err)
-	require.Equal(t, 2, len(tasks))
+	require.Len(t, tasks, 2)
 	for commit, v := range tasks {
 		if commit == c1 {
 			// Build task at c1 and test task at c2 whose blamelist also has c1.
-			require.Equal(t, 2, len(v))
+			require.Len(t, v, 2)
 			for _, task := range v {
 				if task.Revision != commit {
 					continue
@@ -2076,7 +2081,7 @@ func TestSchedulingE2E(t *testing.T) {
 				require.Equal(t, []string{c1}, task.Commits)
 			}
 		} else {
-			require.Equal(t, 3, len(v))
+			require.Len(t, v, 3)
 			for _, task := range v {
 				if task.Name == tcc_testutils.TestTaskName {
 					require.Nil(t, t2)
@@ -2215,7 +2220,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	require.NoError(t, s.tCache.Update(ctx))
 	tasks, err = s.tCache.GetTasksForCommits(rs1.Repo, commits)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(tasks[head]))
+	require.Len(t, tasks[head], 1)
 	task := tasks[head][tcc_testutils.BuildTaskName]
 	require.Equal(t, head, task.Revision)
 	expect := commits[:]
@@ -2374,7 +2379,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
 	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", "")
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExec, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExec, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, cdPoolName, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
 	for _, h := range hashes {
@@ -2395,7 +2400,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	head := s.repos[rs1.Repo].Get(git.MasterBranch).Hash
 	tasks, err := s.tCache.GetTasksForCommits(rs1.Repo, []string{head})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(tasks[head]))
+	require.Len(t, tasks[head], 1)
 	mock(tasks[head][taskName])
 
 	// Add some commits to the repo.
@@ -2549,7 +2554,7 @@ func TestSchedulingRetry(t *testing.T) {
 	require.NoError(t, s.tCache.Update(ctx))
 	tasks, err := s.tCache.UnfinishedTasks()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(tasks))
+	require.Len(t, tasks, 1)
 	t1 := tasks[0]
 	require.NotNil(t, t1)
 	// Ensure c2, not c1.
@@ -2583,7 +2588,7 @@ func TestSchedulingRetry(t *testing.T) {
 		if len(tasks) == 0 {
 			break
 		}
-		require.Equal(t, 1, len(tasks))
+		require.Len(t, tasks, 1)
 		retry := tasks[0]
 		require.NotNil(t, retry)
 		require.Equal(t, prev.Id, retry.RetryOf)
@@ -2610,7 +2615,7 @@ func TestParentTaskId(t *testing.T) {
 	require.NoError(t, s.tCache.Update(ctx))
 	tasks, err := s.tCache.UnfinishedTasks()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(tasks))
+	require.Len(t, tasks, 1)
 	t1 := tasks[0]
 	t1.Status = types.TASK_STATUS_SUCCESS
 	t1.Finished = now.Now(ctx)
@@ -2628,7 +2633,7 @@ func TestParentTaskId(t *testing.T) {
 	require.NoError(t, s.tCache.Update(ctx))
 	tasks, err = s.tCache.UnfinishedTasks()
 	require.NoError(t, err)
-	require.Equal(t, 2, len(tasks))
+	require.Len(t, tasks, 2)
 	for _, task := range tasks {
 		require.Equal(t, 1, len(task.ParentTaskIds))
 		p := task.ParentTaskIds[0]
@@ -2685,7 +2690,7 @@ func TestSkipTasks(t *testing.T) {
 	tasks, err := s.tCache.UnfinishedTasks()
 	require.NoError(t, err)
 	// The skipped commit should not have been triggered.
-	require.Equal(t, 1, len(tasks))
+	require.Len(t, tasks, 1)
 	require.NotEqual(t, c1, tasks[0].Revision)
 	// Candidate diagnostics should indicate the skip rule.
 	diag := lastDiagnostics(t, s)
@@ -2716,7 +2721,7 @@ func TestGetTasksForJob(t *testing.T) {
 	runMainLoop(t, s, ctx)
 	jobs, err := s.jCache.UnfinishedJobs()
 	require.NoError(t, err)
-	require.Equal(t, 5, len(jobs))
+	require.Len(t, jobs, 5)
 	var j1, j2, j3, j4, j5 *types.Job
 	for _, j := range jobs {
 		if j.Revision == c1 {
@@ -2737,7 +2742,7 @@ func TestGetTasksForJob(t *testing.T) {
 		tasksByName, err := s.getTasksForJob(j)
 		require.NoError(t, err)
 		for _, tasks := range tasksByName {
-			require.Equal(t, 0, len(tasks))
+			require.Empty(t, tasks)
 		}
 	}
 	require.NotNil(t, j1)
@@ -2753,7 +2758,7 @@ func TestGetTasksForJob(t *testing.T) {
 	require.NoError(t, s.tCache.Update(ctx))
 	tasks, err := s.tCache.UnfinishedTasks()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(tasks))
+	require.Len(t, tasks, 1)
 	t1 := tasks[0]
 	require.NotNil(t, t1)
 	require.Equal(t, t1.Revision, c2)
@@ -2805,7 +2810,7 @@ func TestGetTasksForJob(t *testing.T) {
 	require.NoError(t, s.tCache.Update(ctx))
 	tasks, err = s.tCache.UnfinishedTasks()
 	require.NoError(t, err)
-	require.Equal(t, 2, len(tasks))
+	require.Len(t, tasks, 2)
 	var t2, t3 *types.Task
 	for _, task := range tasks {
 		if task.TaskKey == t1.TaskKey {
@@ -2844,7 +2849,7 @@ func TestGetTasksForJob(t *testing.T) {
 	require.NoError(t, s.tCache.Update(ctx))
 	tasks, err = s.tCache.UnfinishedTasks()
 	require.NoError(t, err)
-	require.Equal(t, 0, len(tasks))
+	require.Empty(t, tasks)
 
 	// Test that the results propagated through.
 	for _, j := range jobs {
@@ -2866,7 +2871,7 @@ func TestGetTasksForJob(t *testing.T) {
 	// Verify that the new tasks show up.
 	tasks, err = s.tCache.UnfinishedTasks()
 	require.NoError(t, err)
-	require.Equal(t, 2, len(tasks)) // Test and perf at c2.
+	require.Len(t, tasks, 2) // Test and perf at c2.
 	var t4, t5 *types.Task
 	for _, task := range tasks {
 		if task.Name == tcc_testutils.TestTaskName {
@@ -2896,7 +2901,7 @@ func TestTaskTimeouts(t *testing.T) {
 	require.NoError(t, s.tCache.Update(ctx))
 	unfinished, err := s.tCache.UnfinishedTasks()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(unfinished))
+	require.Len(t, unfinished, 1)
 	task := unfinished[0]
 	swarmingTask, err := swarmingClient.GetTaskMetadata(ctx, task.SwarmingTaskId)
 	require.NoError(t, err)
@@ -2956,7 +2961,7 @@ func TestTaskTimeouts(t *testing.T) {
 	require.NoError(t, s.tCache.Update(ctx))
 	unfinished, err = s.tCache.UnfinishedTasks()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(unfinished))
+	require.Len(t, unfinished, 1)
 	task = unfinished[0]
 	require.Equal(t, name, task.Name)
 	swarmingTask, err = swarmingClient.GetTaskMetadata(ctx, task.SwarmingTaskId)
@@ -3715,7 +3720,7 @@ func TestContinueOnTriggerTaskFailure(t *testing.T) {
 		// fail. Ensure that we triggered all of the others.
 		tasks, err := s.tCache.UnfinishedTasks()
 		require.NoError(t, err)
-		require.Equal(t, 1, len(tasks))
+		require.Len(t, tasks, 1)
 		require.NotEqual(t, badTaskName, tasks[0].Name)
 
 		// Clean up for the next iteration.
@@ -4061,7 +4066,7 @@ func TestComputeBlamelist_NoExistingTests(t *testing.T) {
 
 	const repoName = "some_repo"
 	const taskName = "Test-Foo-Bar"
-	tcg := tasksAlwaysDefined(taskName)
+	tcg := tcc_mocks.TasksAlwaysDefined(taskName)
 
 	firstCommit := newCommit("a")
 	secondCommit := newCommit("b", firstCommit)
@@ -4072,7 +4077,7 @@ func TestComputeBlamelist_NoExistingTests(t *testing.T) {
 
 	blamelistNoTask := func(name string, revision *repograph.Commit, expectedBlamelist []string) {
 		t.Run(name, func(t *testing.T) {
-			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, revision, commitsBuffer, tcg, allCommitsInWindow{})
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, revision, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 			require.NoError(t, err)
 			assert.Equal(t, expectedBlamelist, blamedCommits)
 			assert.Nil(t, stealFromTask)
@@ -4090,7 +4095,7 @@ func TestComputeBlamelist_FirstCommitTested(t *testing.T) {
 
 	const repoName = "some_repo"
 	const taskName = "Test-Foo-Bar"
-	tcg := tasksAlwaysDefined(taskName)
+	tcg := tcc_mocks.TasksAlwaysDefined(taskName)
 
 	firstCommit := newCommit("a")
 	secondCommit := newCommit("b", firstCommit)
@@ -4104,7 +4109,7 @@ func TestComputeBlamelist_FirstCommitTested(t *testing.T) {
 
 	blamelistNoTask := func(name string, revision *repograph.Commit, expectedBlamelist []string) {
 		t.Run(name, func(t *testing.T) {
-			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, revision, commitsBuffer, tcg, allCommitsInWindow{})
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, revision, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 			require.NoError(t, err)
 			assert.Equal(t, expectedBlamelist, blamedCommits)
 			assert.Nil(t, stealFromTask)
@@ -4118,7 +4123,7 @@ func TestComputeBlamelist_FirstCommitTested(t *testing.T) {
 	// the entire blamelist is returned.
 	t.Run("first commit (retry)", func(t *testing.T) {
 		rg := makeRepoGetter(firstCommit, secondCommit, thirdCommit)
-		blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, firstCommit, commitsBuffer, tcg, allCommitsInWindow{})
+		blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, firstCommit, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 		require.NoError(t, err)
 		assert.Equal(t, []string{firstCommit.Hash}, blamedCommits)
 		assert.Equal(t, firstCommitTask, stealFromTask)
@@ -4131,7 +4136,7 @@ func TestComputeBlamelist_LastCommitTested_FollowingCommitsBlamed(t *testing.T) 
 
 	const repoName = "some_repo"
 	const taskName = "Test-Foo-Bar"
-	tcg := tasksAlwaysDefined(taskName)
+	tcg := tcc_mocks.TasksAlwaysDefined(taskName)
 
 	firstCommit := newCommit("a")
 	secondCommit := newCommit("b", firstCommit)
@@ -4148,7 +4153,7 @@ func TestComputeBlamelist_LastCommitTested_FollowingCommitsBlamed(t *testing.T) 
 
 	blamelistAndTask := func(name string, revision *repograph.Commit, expectedBlamelist []string, expectedTask *types.Task) {
 		t.Run(name, func(t *testing.T) {
-			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, revision, commitsBuffer, tcg, allCommitsInWindow{})
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, revision, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 			require.NoError(t, err)
 			assert.Equal(t, expectedBlamelist, blamedCommits)
 			assert.Equal(t, expectedTask, stealFromTask)
@@ -4168,7 +4173,7 @@ func TestComputeBlamelist_BlamelistTooLong_UseProvidedCommit(t *testing.T) {
 
 	const repoName = "some_repo"
 	const taskName = "Test-Foo-Bar"
-	tcg := tasksAlwaysDefined(taskName)
+	tcg := tcc_mocks.TasksAlwaysDefined(taskName)
 
 	// Pretend we have 1000 commits in a row. We make sure their hashes are unique but predictable
 	// by using the integer values from 0 to 999 prefixed with enough zeros to make them 40 digits
@@ -4184,7 +4189,7 @@ func TestComputeBlamelist_BlamelistTooLong_UseProvidedCommit(t *testing.T) {
 	mtc := &cache_mocks.TaskCache{}
 	mtc.On("GetTaskForCommit", repoName, mock.Anything, taskName).Return(nil, nil)
 
-	blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, prevCommit, commitsBuffer, tcg, allCommitsInWindow{})
+	blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, prevCommit, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 	require.NoError(t, err)
 	assert.Equal(t, []string{prevCommit.Hash}, blamedCommits)
 	assert.Nil(t, stealFromTask)
@@ -4196,7 +4201,7 @@ func TestComputeBlamelist_BranchInHistory_NonOverlappingCoverage(t *testing.T) {
 
 	const repoName = "some_repo"
 	const taskName = "Test-Foo-Bar"
-	tcg := tasksAlwaysDefined(taskName)
+	tcg := tcc_mocks.TasksAlwaysDefined(taskName)
 
 	// This represents a git history with a branch and merge like this.
 	// The asterisks represent at which commits a task has run. Only one of the branches
@@ -4233,7 +4238,7 @@ func TestComputeBlamelist_BranchInHistory_NonOverlappingCoverage(t *testing.T) {
 
 	blamelistAndTask := func(name string, revision *repograph.Commit, expectedBlamelist []string, expectedTask *types.Task) {
 		t.Run(name, func(t *testing.T) {
-			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, revision, commitsBuffer, tcg, allCommitsInWindow{})
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, revision, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 			require.NoError(t, err)
 			assert.Equal(t, expectedBlamelist, blamedCommits)
 			assert.Equal(t, expectedTask, stealFromTask)
@@ -4337,30 +4342,6 @@ func asForcedJob(c TaskCandidate) TaskCandidate {
 	return c
 }
 
-type allCommitsInWindow struct{}
-
-func (allCommitsInWindow) TestCommit(string, *repograph.Commit) bool {
-	return true
-}
-
-type fixedTaskConfig struct {
-	cfg specs.TasksCfg
-}
-
-func (f fixedTaskConfig) Get(context.Context, types.RepoState) (*specs.TasksCfg, error, error) {
-	return &f.cfg, nil, nil
-}
-
-func tasksAlwaysDefined(taskNames ...string) tasksCfgGetter {
-	cfg := specs.TasksCfg{
-		Tasks: map[string]*specs.TaskSpec{},
-	}
-	for _, tn := range taskNames {
-		cfg.Tasks[tn] = &specs.TaskSpec{} // just needs to have a key, the value does not matter
-	}
-	return fixedTaskConfig{cfg: cfg}
-}
-
 func newTask(id string, ranAt *repograph.Commit, alsoCovered ...*repograph.Commit) *types.Task {
 	nt := types.Task{Id: id}
 	nt.Revision = ranAt.Hash
@@ -4383,4 +4364,308 @@ func makeRepoGetter(commits ...*repograph.Commit) repoMap {
 
 func (m repoMap) Get(ref string) *repograph.Commit {
 	return m[ref]
+}
+
+func TestRegenerateTaskQueue_OnlyBestCandidateForCD(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.Background()
+
+	// Create a TasksCfg.
+	tc := &specs.TasksCfg{
+		Jobs: map[string]*specs.JobSpec{
+			"cd-job": {
+				IsCD: true,
+				TaskSpecs: []string{
+					"cd-task",
+				},
+			},
+		},
+		Tasks: map[string]*specs.TaskSpec{
+			"cd-task": {
+				CasSpec:    "empty",
+				Dimensions: []string{fmt.Sprintf("pool:%s", cdPoolName)},
+			},
+		},
+		CasSpecs: map[string]*specs.CasSpec{
+			"empty": {
+				Digest: rbe.EmptyDigest,
+			},
+		},
+	}
+	tcc := &tcc_mocks.TaskCfgCache{}
+	tcc.On("Get", mock.Anything, mock.Anything).Return(tc, nil, nil)
+
+	// There are three commits in the repo.
+	gs := mem_gitstore.New()
+	gb := mem_git.New(t, gs)
+	hashes := gb.CommitN(ctx, 3)
+	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
+	require.NoError(t, err)
+	repo, err := repograph.NewWithRepoImpl(ctx, ri)
+	require.NoError(t, err)
+	rs1 := types.RepoState{
+		Repo:     "fake-repo",
+		Revision: hashes[2],
+	}
+	rs2 := types.RepoState{
+		Repo:     "fake-repo",
+		Revision: hashes[1],
+	}
+	rs3 := types.RepoState{
+		Repo:     "fake-repo",
+		Revision: hashes[0],
+	}
+	repos := repograph.Map{
+		rs1.Repo: repo,
+	}
+
+	// Add jobs to the cache.
+	jCache := &cache_mocks.JobCache{}
+	jobs := []*types.Job{
+		{
+			Name:         "cd-job",
+			RepoState:    rs1,
+			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
+			Dependencies: map[string][]string{"cd-task": {}},
+		},
+		{
+			Name:         "cd-job",
+			RepoState:    rs2,
+			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
+			Dependencies: map[string][]string{"cd-task": {}},
+		},
+		{
+			Name:         "cd-job",
+			RepoState:    rs3,
+			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
+			Dependencies: map[string][]string{"cd-task": {}},
+		},
+	}
+	jCache.On("UnfinishedJobs").Return(jobs, nil)
+
+	// No tasks in the TaskCache.
+	tCache := &cache_mocks.TaskCache{}
+	tCache.On("GetTasksByKey", mock.Anything).Return([]*types.Task{}, nil)
+	tCache.On("GetTaskForCommit", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+
+	// Set up a time window to include everything.
+	w := window_mocks.AllInclusiveWindow()
+
+	// Create the scheduler.
+	s := &TaskScheduler{
+		candidateMetrics: map[string]metrics2.Int64Metric{},
+		jCache:           jCache,
+		repos:            repos,
+		taskCfgCache:     tcc,
+		tCache:           tCache,
+		window:           w,
+	}
+
+	// Regenerate the task queue.
+	queue, _, err := s.regenerateTaskQueue(ctx)
+	require.NoError(t, err)
+
+	// There should only be one task in the queue, despite the fact that there
+	// are three candidates available, since we only consider running the newest
+	// candidate.
+	require.Len(t, queue, 1)
+	c := queue[0]
+	require.Len(t, c.Commits, 3)
+	require.True(t, c.IsCD)
+	require.Equal(t, rs3.Revision, c.Revision)
+}
+
+func TestRegenerateTaskQueue_NoBackfillForCD(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.Background()
+
+	// Create a TasksCfg.
+	tc := &specs.TasksCfg{
+		Jobs: map[string]*specs.JobSpec{
+			"cd-job": {
+				IsCD: true,
+				TaskSpecs: []string{
+					"cd-task",
+				},
+			},
+		},
+		Tasks: map[string]*specs.TaskSpec{
+			"cd-task": {
+				CasSpec:    "empty",
+				Dimensions: []string{fmt.Sprintf("pool:%s", cdPoolName)},
+			},
+		},
+		CasSpecs: map[string]*specs.CasSpec{
+			"empty": {
+				Digest: rbe.EmptyDigest,
+			},
+		},
+	}
+	tcc := &tcc_mocks.TaskCfgCache{}
+	tcc.On("Get", mock.Anything, mock.Anything).Return(tc, nil, nil)
+
+	// There are three commits in the repo.
+	gs := mem_gitstore.New()
+	gb := mem_git.New(t, gs)
+	hashes := gb.CommitN(ctx, 3)
+	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
+	require.NoError(t, err)
+	repo, err := repograph.NewWithRepoImpl(ctx, ri)
+	require.NoError(t, err)
+	rs1 := types.RepoState{
+		Repo:     "fake-repo",
+		Revision: hashes[2],
+	}
+	rs2 := types.RepoState{
+		Repo:     "fake-repo",
+		Revision: hashes[1],
+	}
+	rs3 := types.RepoState{
+		Repo:     "fake-repo",
+		Revision: hashes[0],
+	}
+	repos := repograph.Map{
+		rs1.Repo: repo,
+	}
+
+	// Add jobs to the cache.
+	jCache := &cache_mocks.JobCache{}
+	jobs := []*types.Job{
+		{
+			Name:         "cd-job",
+			RepoState:    rs1,
+			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
+			Dependencies: map[string][]string{"cd-task": {}},
+		},
+		{
+			Name:         "cd-job",
+			RepoState:    rs2,
+			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
+			Dependencies: map[string][]string{"cd-task": {}},
+		},
+		{
+			Name:         "cd-job",
+			RepoState:    rs3,
+			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
+			Dependencies: map[string][]string{"cd-task": {}},
+		},
+	}
+	jCache.On("UnfinishedJobs").Return(jobs, nil)
+
+	// One task already ran at the newest commit.
+	t3 := &types.Task{
+		Commits: []string{rs3.Revision, rs2.Revision, rs1.Revision},
+		Id:      "fake-task",
+		TaskKey: types.TaskKey{
+			Name:      "cd-task",
+			RepoState: rs3,
+		},
+		Status: types.TASK_STATUS_SUCCESS,
+	}
+	tCache := &cache_mocks.TaskCache{}
+	tCache.On("GetTasksByKey", types.TaskKey{
+		RepoState: rs3,
+		Name:      "cd-task",
+	}).Return([]*types.Task{t3}, nil)
+	tCache.On("GetTasksByKey", mock.Anything).Return([]*types.Task{}, nil)
+	tCache.On("GetTaskForCommit", rs1.Repo, rs1.Revision, "cd-task").Return(t3, nil)
+	tCache.On("GetTaskForCommit", rs2.Repo, rs2.Revision, "cd-task").Return(t3, nil)
+
+	// Set up a time window to include everything.
+	w := window_mocks.AllInclusiveWindow()
+
+	// Create the scheduler.
+	s := &TaskScheduler{
+		candidateMetrics: map[string]metrics2.Int64Metric{},
+		jCache:           jCache,
+		repos:            repos,
+		taskCfgCache:     tcc,
+		tCache:           tCache,
+		window:           w,
+	}
+
+	// Regenerate the task queue. We should end up with zero candidates, despite
+	// the fact that we have two unfinished jobs at the older commits.
+	queue, _, err := s.regenerateTaskQueue(ctx)
+	require.NoError(t, err)
+	require.Empty(t, queue)
+}
+
+func TestFilterTaskCandidates_NoCDTasksInRegularPools(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.Background()
+
+	// Create a single candidate, which is a CD task but requests to be run in a
+	// non-CD pool.
+	k1 := types.TaskKey{
+		RepoState: rs1,
+		Name:      tcc_testutils.BuildTaskName,
+	}
+	candidate := &TaskCandidate{
+		IsCD:    true,
+		TaskKey: k1,
+		TaskSpec: &specs.TaskSpec{
+			Dimensions: []string{"pool:Skia"},
+		},
+	}
+	candidates := map[types.TaskKey]*TaskCandidate{
+		k1: candidate,
+	}
+
+	// Set up mocks.
+	tCache := &cache_mocks.TaskCache{}
+	tCache.On("GetTasksByKey", candidate.TaskKey).Return([]*types.Task{}, nil)
+	s := &TaskScheduler{
+		cdPool: cdPoolName,
+		tCache: tCache,
+		window: window_mocks.AllInclusiveWindow(),
+	}
+
+	// Ensure that the candidate gets filtered out, and that the diagnostics
+	// tell us why.
+	c, err := s.filterTaskCandidates(ctx, candidates)
+	require.NoError(t, err)
+	require.Empty(t, c)
+	require.Equal(t, "Skia", candidate.GetDiagnostics().Filtering.ForbiddenPool)
+}
+
+func TestFilterTaskCandidates_NoRegularTasksInCDPool(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.Background()
+
+	// Create a single candidate, which is a non-CD task but requests to be run
+	// in the CD pool.
+	k1 := types.TaskKey{
+		RepoState: rs1,
+		Name:      tcc_testutils.BuildTaskName,
+	}
+	candidate := &TaskCandidate{
+		TaskKey: k1,
+		TaskSpec: &specs.TaskSpec{
+			Dimensions: []string{fmt.Sprintf("pool:%s", cdPoolName)},
+		},
+	}
+	candidates := map[types.TaskKey]*TaskCandidate{
+		k1: candidate,
+	}
+
+	// Set up mocks.
+	tCache := &cache_mocks.TaskCache{}
+	tCache.On("GetTasksByKey", candidate.TaskKey).Return([]*types.Task{}, nil)
+	s := &TaskScheduler{
+		cdPool: cdPoolName,
+		tCache: tCache,
+		window: window_mocks.AllInclusiveWindow(),
+	}
+
+	// Ensure that the candidate gets filtered out, and that the diagnostics
+	// tell us why.
+	c, err := s.filterTaskCandidates(ctx, candidates)
+	require.NoError(t, err)
+	require.Empty(t, c)
+	require.Equal(t, cdPoolName, candidate.GetDiagnostics().Filtering.ForbiddenPool)
 }

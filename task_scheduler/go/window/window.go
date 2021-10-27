@@ -11,9 +11,32 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-// Window is a struct used for managing time windows based on a duration and
+// Window uses both a Git repo and a duration of time to determine whether a
+// given commit or timestamp is within a specified scheduling range, eg. 10
+// commits or the last 24 hours.
+type Window interface {
+	// Update updates the start time of the Window.
+	Update(ctx context.Context) error
+	// UpdateWithTime updates the start time of the Window, using the given current time.
+	UpdateWithTime(now time.Time) error
+	// Start returns the time.Time at the beginning of the Window.
+	Start(repo string) time.Time
+	// TestTime determines whether the given Time is in the Window.
+	TestTime(repo string, t time.Time) bool
+	// TestCommit determines whether the given commit is in the Window.
+	TestCommit(repo string, c *repograph.Commit) bool
+	// TestCommitHash determines whether the given commit is in the Window.
+	TestCommitHash(repo, revision string) (bool, error)
+	// EarliestStart returns the earliest start time of any repo's Window.
+	EarliestStart() time.Time
+	// StartTimesByRepo returns a map of repo URL to start time of that repo's
+	// window.
+	StartTimesByRepo() map[string]time.Time
+}
+
+// WindowImpl is a struct used for managing time windows based on a duration and
 // a minimum number of commits in zero or more repositories.
-type Window struct {
+type WindowImpl struct {
 	duration      time.Duration
 	earliestStart time.Time
 	mtx           sync.RWMutex
@@ -23,8 +46,8 @@ type Window struct {
 }
 
 // New returns a Window instance.
-func New(ctx context.Context, duration time.Duration, numCommits int, repos repograph.Map) (*Window, error) {
-	w := &Window{
+func New(ctx context.Context, duration time.Duration, numCommits int, repos repograph.Map) (*WindowImpl, error) {
+	w := &WindowImpl{
 		duration:   duration,
 		numCommits: numCommits,
 		repos:      repos,
@@ -36,13 +59,13 @@ func New(ctx context.Context, duration time.Duration, numCommits int, repos repo
 	return w, nil
 }
 
-// Update updates the start time of the Window.
-func (w *Window) Update(ctx context.Context) error {
+// Update implements Window.
+func (w *WindowImpl) Update(ctx context.Context) error {
 	return w.UpdateWithTime(now.Now(ctx))
 }
 
-// UpdateWithTime updates the start time of the Window, using the given current time.
-func (w *Window) UpdateWithTime(now time.Time) error {
+// UpdateWithTime implements Window.
+func (w *WindowImpl) UpdateWithTime(now time.Time) error {
 	// Take the maximum of (time period, last N commits)
 	earliest := now.Add(-w.duration)
 	start := map[string]time.Time{}
@@ -84,8 +107,8 @@ func (w *Window) UpdateWithTime(now time.Time) error {
 	return nil
 }
 
-// Start returns the time.Time at the beginning of the Window.
-func (w *Window) Start(repo string) time.Time {
+// Start implements Window.
+func (w *WindowImpl) Start(repo string) time.Time {
 	w.mtx.RLock()
 	defer w.mtx.RUnlock()
 	rv, ok := w.start[repo]
@@ -95,18 +118,18 @@ func (w *Window) Start(repo string) time.Time {
 	return rv
 }
 
-// TestTime determines whether the given Time is in the Window.
-func (w *Window) TestTime(repo string, t time.Time) bool {
+// TestTime implements Window.
+func (w *WindowImpl) TestTime(repo string, t time.Time) bool {
 	return !w.Start(repo).After(t)
 }
 
-// TestCommit determines whether the given commit is in the Window.
-func (w *Window) TestCommit(repo string, c *repograph.Commit) bool {
+// TestCommit implements Window.
+func (w *WindowImpl) TestCommit(repo string, c *repograph.Commit) bool {
 	return w.TestTime(repo, c.Timestamp)
 }
 
-// TestCommitHash determines whether the given commit is in the Window.
-func (w *Window) TestCommitHash(repo, revision string) (bool, error) {
+// TestCommitHash implements Window.
+func (w *WindowImpl) TestCommitHash(repo, revision string) (bool, error) {
 	r, ok := w.repos[repo]
 	if !ok {
 		return false, fmt.Errorf("No such repo: %s", repo)
@@ -118,16 +141,15 @@ func (w *Window) TestCommitHash(repo, revision string) (bool, error) {
 	return w.TestCommit(repo, c), nil
 }
 
-// EarliestStart returns the earliest start time of any repo's Window.
-func (w *Window) EarliestStart() time.Time {
+// EarliestStart implements Window.
+func (w *WindowImpl) EarliestStart() time.Time {
 	w.mtx.RLock()
 	defer w.mtx.RUnlock()
 	return w.earliestStart
 }
 
-// StartTimesByRepo returns a map of repo URL to start time of that repo's
-// window.
-func (w *Window) StartTimesByRepo() map[string]time.Time {
+// StartTimesByRepo implements Window.
+func (w *WindowImpl) StartTimesByRepo() map[string]time.Time {
 	w.mtx.RLock()
 	defer w.mtx.RUnlock()
 	rv := make(map[string]time.Time, len(w.repos))
@@ -136,3 +158,5 @@ func (w *Window) StartTimesByRepo() map[string]time.Time {
 	}
 	return rv
 }
+
+var _ Window = &WindowImpl{}

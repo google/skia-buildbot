@@ -64,12 +64,25 @@ const (
       "dimensions": ["pool:Skia", "os:Ubuntu", "cpu:x86-64-avx2", "gpu:none"],
       "extra_args": [],
       "priority": 0.8
+	},
+    "cd-task": {
+      "casSpec": "fake",
+      "dependencies": [],
+      "dimensions": ["pool:Skia", "os:Ubuntu", "cpu:x86-64-avx2", "gpu:none"],
+      "extra_args": [],
+      "priority": 1.0
     }
   },
   "jobs": {
     "fake-job": {
       "priority": 0.8,
       "tasks": ["fake-task2"]
+    },
+    "cd-job": {
+      "is_cd": true,
+      "priority": 1.0,
+	  "tasks": ["cd-task"],
+	  "trigger": "main"
     }
   }
 }`

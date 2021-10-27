@@ -45,9 +45,33 @@ var (
 	ErrNoSuchEntry = atomic_miss_cache.ErrNoSuchEntry
 )
 
-// TaskCfgCache is a struct used for caching tasks cfg files. The user should
+type TaskCfgCache interface {
+	// Cleanup removes cache entries which are outside of our scheduling window.
+	Cleanup(ctx context.Context, period time.Duration) error
+
+	// Close frees up resources used by the TaskCfgCache.
+	Close() error
+
+	// Get returns the TasksCfg (or error) for the given RepoState in the cache.
+	// If the given entry does not exist in the cache, reads through to the
+	// backing store to find it there and adds to the cache if it exists. If no
+	// entry exists for the given RepoState, returns ErrNoSuchEntry. If there is
+	// a cached (ie. permanent non-recoverable) error for this RepoState, it is
+	// returned as the second return value.
+	Get(context.Context, types.RepoState) (*specs.TasksCfg, error, error)
+
+	// Sets the TasksCfg (or error) for the given RepoState in the cache.
+	Set(ctx context.Context, rs types.RepoState, cfg *specs.TasksCfg, storedErr error) error
+
+	// Sets the TasksCfg (or error) for the given RepoState in the cache by
+	// calling the given function if no value already exists. Returns the
+	// existing or new CachedValue, or any error which occurred.
+	SetIfUnset(ctx context.Context, rs types.RepoState, fn func(context.Context) (*CachedValue, error)) (*CachedValue, error)
+}
+
+// TaskCfgCacheImpl is a struct used for caching tasks cfg files. The user should
 // periodically call Cleanup() to remove old entries.
-type TaskCfgCache struct {
+type TaskCfgCacheImpl struct {
 	cache  *atomic_miss_cache.AtomicMissCache
 	client *bigtable.Client
 	repos  repograph.Map
@@ -56,7 +80,7 @@ type TaskCfgCache struct {
 // backingCache implements persistent storage of TasksCfgs in BigTable.
 type backingCache struct {
 	table *bigtable.Table
-	tcc   *TaskCfgCache
+	tcc   *TaskCfgCacheImpl
 }
 
 // CachedValue represents a cached TasksCfg value. It includes any permanent
@@ -91,13 +115,13 @@ func (c *backingCache) Delete(ctx context.Context, key string) error {
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(ctx context.Context, repos repograph.Map, btProject, btInstance string, ts oauth2.TokenSource) (*TaskCfgCache, error) {
+func NewTaskCfgCache(ctx context.Context, repos repograph.Map, btProject, btInstance string, ts oauth2.TokenSource) (*TaskCfgCacheImpl, error) {
 	client, err := bigtable.NewClient(ctx, btProject, btInstance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create BigTable client: %s", err)
 	}
 	table := client.Open(BT_TABLE)
-	c := &TaskCfgCache{
+	c := &TaskCfgCacheImpl{
 		client: client,
 		repos:  repos,
 	}
@@ -151,18 +175,13 @@ func WriteTasksCfgToBigTable(ctx context.Context, table *bigtable.Table, key str
 	return table.Apply(ctx, rowKey, mut)
 }
 
-// Close frees up resources used by the TaskCfgCache.
-func (c *TaskCfgCache) Close() error {
+// Close implements TaskCfgCache.
+func (c *TaskCfgCacheImpl) Close() error {
 	return c.client.Close()
 }
 
-// Get returns the TasksCfg (or error) for the given RepoState in the cache. If
-// the given entry does not exist in the cache, reads through to BigTable to
-// find it there and adds to the cache if it exists. If no entry exists for the
-// given RepoState, returns ErrNoSuchEntry. If there is a cached (ie. permanent
-// non-recoverable error for this RepoState) error, it is returned as the second
-// return value.
-func (c *TaskCfgCache) Get(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error, error) {
+// Get implements TaskCfgCache.
+func (c *TaskCfgCacheImpl) Get(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error, error) {
 	ctx, span := trace.StartSpan(ctx, "taskcfgcache_Get")
 	defer span.End()
 	val, err := c.cache.Get(ctx, rs.RowKey())
@@ -177,7 +196,7 @@ func (c *TaskCfgCache) Get(ctx context.Context, rs types.RepoState) (*specs.Task
 }
 
 // Sets the TasksCfg (or error) for the given RepoState in the cache.
-func (c *TaskCfgCache) Set(ctx context.Context, rs types.RepoState, cfg *specs.TasksCfg, storedErr error) error {
+func (c *TaskCfgCacheImpl) Set(ctx context.Context, rs types.RepoState, cfg *specs.TasksCfg, storedErr error) error {
 	errString := ""
 	if storedErr != nil {
 		errString = storedErr.Error()
@@ -192,7 +211,7 @@ func (c *TaskCfgCache) Set(ctx context.Context, rs types.RepoState, cfg *specs.T
 // Sets the TasksCfg (or error) for the given RepoState in the cache by calling
 // the given function if no value already exists. Returns the existing or new
 // CachedValue, or any error which occurred.
-func (c *TaskCfgCache) SetIfUnset(ctx context.Context, rs types.RepoState, fn func(context.Context) (*CachedValue, error)) (*CachedValue, error) {
+func (c *TaskCfgCacheImpl) SetIfUnset(ctx context.Context, rs types.RepoState, fn func(context.Context) (*CachedValue, error)) (*CachedValue, error) {
 	cv, err := c.cache.SetIfUnset(ctx, rs.RowKey(), func(ctx context.Context) (atomic_miss_cache.Value, error) {
 		val, err := fn(ctx)
 		return val, err
@@ -207,7 +226,7 @@ func (c *TaskCfgCache) SetIfUnset(ctx context.Context, rs types.RepoState, fn fu
 // set of RepoStates, keyed by RepoState and TaskSpec name. If any of the
 // RepoStates do not have a corresponding entry in the cache, they are simply
 // left out.
-func (c *TaskCfgCache) getTaskSpecsForRepoStates(ctx context.Context, rs []types.RepoState) (map[types.RepoState]map[string]*specs.TaskSpec, error) {
+func (c *TaskCfgCacheImpl) getTaskSpecsForRepoStates(ctx context.Context, rs []types.RepoState) (map[types.RepoState]map[string]*specs.TaskSpec, error) {
 	rv := make(map[types.RepoState]map[string]*specs.TaskSpec, len(rs))
 	for _, s := range rs {
 		cached, err := c.cache.Get(ctx, s.RowKey())
@@ -233,7 +252,7 @@ func (c *TaskCfgCache) getTaskSpecsForRepoStates(ctx context.Context, rs []types
 
 // GetTaskSpec returns the TaskSpec at the given RepoState, or an error if no
 // such TaskSpec exists.
-func (c *TaskCfgCache) GetTaskSpec(ctx context.Context, rs types.RepoState, name string) (*specs.TaskSpec, error) {
+func GetTaskSpec(ctx context.Context, c TaskCfgCache, rs types.RepoState, name string) (*specs.TaskSpec, error) {
 	cfg, cachedErr, err := c.Get(ctx, rs)
 	if err != nil {
 		return nil, err
@@ -250,7 +269,7 @@ func (c *TaskCfgCache) GetTaskSpec(ctx context.Context, rs types.RepoState, name
 
 // MakeJob is a helper function which retrieves the given JobSpec at the given
 // RepoState and uses it to create a Job instance.
-func (c *TaskCfgCache) MakeJob(ctx context.Context, rs types.RepoState, name string) (*types.Job, error) {
+func MakeJob(ctx context.Context, c TaskCfgCache, rs types.RepoState, name string) (*types.Job, error) {
 	cfg, cachedErr, err := c.Get(ctx, rs)
 	if err != nil {
 		return nil, err
@@ -261,6 +280,9 @@ func (c *TaskCfgCache) MakeJob(ctx context.Context, rs types.RepoState, name str
 	spec, ok := cfg.Jobs[name]
 	if !ok {
 		return nil, fmt.Errorf("No such job: %s", name)
+	}
+	if rs.IsTryJob() && spec.IsCD {
+		return nil, fmt.Errorf("Cannot trigger try jobs for CD job %q", name)
 	}
 	deps, err := spec.GetTaskSpecDAG(cfg)
 	if err != nil {
@@ -278,7 +300,7 @@ func (c *TaskCfgCache) MakeJob(ctx context.Context, rs types.RepoState, name str
 }
 
 // Cleanup removes cache entries which are outside of our scheduling window.
-func (c *TaskCfgCache) Cleanup(ctx context.Context, period time.Duration) error {
+func (c *TaskCfgCacheImpl) Cleanup(ctx context.Context, period time.Duration) error {
 	periodStart := now.Now(ctx).Add(-period)
 	if err := c.cache.Cleanup(ctx, func(ctx context.Context, key string, val atomic_miss_cache.Value) bool {
 		cv := val.(*CachedValue)

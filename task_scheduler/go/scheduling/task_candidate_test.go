@@ -23,6 +23,7 @@ func fullTaskCandidate() *TaskCandidate {
 		Diagnostics:        &taskCandidateDiagnostics{},
 		CasInput:           "lonely-parameter",
 		CasDigests:         []string{"browns"},
+		IsCD:               true,
 		Jobs: []*types.Job{{
 			Id: "dummy",
 		}},

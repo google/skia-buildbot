@@ -31,7 +31,7 @@ import (
 //go:generate protoc --twirp_typescript_out=../../modules/rpc ./rpc.proto
 
 // NewTaskSchedulerServer creates and returns a Twirp HTTP server.
-func NewTaskSchedulerServer(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache *task_cfg_cache.TaskCfgCache, swarm swarming.ApiClient, viewers, editors, admins allowed.Allow) http.Handler {
+func NewTaskSchedulerServer(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache task_cfg_cache.TaskCfgCache, swarm swarming.ApiClient, viewers, editors, admins allowed.Allow) http.Handler {
 	impl := newTaskSchedulerServiceImpl(ctx, db, repos, skipTasks, taskCfgCache, swarm, viewers, editors, admins)
 	srv := NewTaskSchedulerServiceServer(impl, nil)
 	return twirp_auth.Middleware(srv)
@@ -43,12 +43,12 @@ type taskSchedulerServiceImpl struct {
 	db           db.DB
 	repos        repograph.Map
 	skipTasks    *skip_tasks.DB
-	taskCfgCache *task_cfg_cache.TaskCfgCache
+	taskCfgCache task_cfg_cache.TaskCfgCache
 	swarming     swarming.ApiClient
 }
 
 // newTaskSchedulerServiceImpl returns a taskSchedulerServiceImpl instance.
-func newTaskSchedulerServiceImpl(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache *task_cfg_cache.TaskCfgCache, swarm swarming.ApiClient, viewers, editors, admins allowed.Allow) *taskSchedulerServiceImpl {
+func newTaskSchedulerServiceImpl(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache task_cfg_cache.TaskCfgCache, swarm swarming.ApiClient, viewers, editors, admins allowed.Allow) *taskSchedulerServiceImpl {
 	return &taskSchedulerServiceImpl{
 		AuthHelper:   twirp_auth.NewAuthHelper(viewers, editors, admins),
 		db:           db,
@@ -71,7 +71,7 @@ func (s *taskSchedulerServiceImpl) TriggerJobs(ctx context.Context, req *Trigger
 			sklog.Error(err)
 			return nil, twirp.NotFoundError("Unable to find the given commit in any repo.")
 		}
-		job, err := s.taskCfgCache.MakeJob(ctx, types.RepoState{
+		job, err := task_cfg_cache.MakeJob(ctx, s.taskCfgCache, types.RepoState{
 			Repo:     repoName,
 			Revision: j.CommitHash,
 		}, j.JobName)

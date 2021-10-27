@@ -39,7 +39,7 @@ type CapacityClient interface {
 }
 
 type CapacityClientImpl struct {
-	tcc   *task_cfg_cache.TaskCfgCache
+	tcc   *task_cfg_cache.TaskCfgCacheImpl
 	tasks cache.TaskCache
 	repos repograph.Map
 	// The cached measurements
@@ -48,7 +48,7 @@ type CapacityClientImpl struct {
 }
 
 // Caller is responsible for periodically updating the arguments.
-func New(tcc *task_cfg_cache.TaskCfgCache, tasks cache.TaskCache, repos repograph.Map) *CapacityClientImpl {
+func New(tcc *task_cfg_cache.TaskCfgCacheImpl, tasks cache.TaskCache, repos repograph.Map) *CapacityClientImpl {
 	return &CapacityClientImpl{tcc: tcc, tasks: tasks, repos: repos}
 }
 

@@ -138,7 +138,7 @@ func (c *commentsCache) Reset() {
 
 // Update returns any sets of comments which have changed since the last call
 // to Update.
-func (c *commentsCache) Update(ctx context.Context, w *window.Window) (map[string]RepoComments, error) {
+func (c *commentsCache) Update(ctx context.Context, w window.Window) (map[string]RepoComments, error) {
 	defer metrics2.FuncTimer().Stop()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()

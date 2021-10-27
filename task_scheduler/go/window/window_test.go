@@ -68,7 +68,7 @@ func setupRepo(t *testing.T, numCommits int) (string, *repograph.Graph, []string
 // a Window instance. Returns the Window instance, a convenience function for
 // asserting that the Window returns a particular value for a given commit
 // index, and a cleanup function.
-func setup(t *testing.T, period time.Duration, numCommits, threshold int) (*Window, func(int, bool), func()) {
+func setup(t *testing.T, period time.Duration, numCommits, threshold int) (*WindowImpl, func(int, bool), func()) {
 	unittest.LargeTest(t)
 
 	repoUrl, repo, commits, cleanup := setupRepo(t, numCommits)

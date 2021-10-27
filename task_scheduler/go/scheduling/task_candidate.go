@@ -25,6 +25,7 @@ type TaskCandidate struct {
 	Commits            []string `json:"commits"`
 	CasInput           string   `json:"casInput"`
 	CasDigests         []string `json:"casDigests"`
+	IsCD               bool     `json:"isCd"`
 	// Jobs must be kept in sorted order; see AddJob.
 	Jobs           []*types.Job `json:"jobs"`
 	ParentTaskIds  []string     `json:"parentTaskIds"`
@@ -47,6 +48,7 @@ func (c *TaskCandidate) CopyNoDiagnostics() *TaskCandidate {
 		Commits:            util.CopyStringSlice(c.Commits),
 		CasInput:           c.CasInput,
 		CasDigests:         util.CopyStringSlice(c.CasDigests),
+		IsCD:               c.IsCD,
 		Jobs:               jobs,
 		ParentTaskIds:      util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:            c.RetryOf,
@@ -270,7 +272,7 @@ func (c *TaskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]stri
 	for _, depName := range c.TaskSpec.Dependencies {
 		key := c.TaskKey.Copy()
 		key.Name = depName
-		byKey, err := cache.GetTasksByKey(&key)
+		byKey, err := cache.GetTasksByKey(key)
 		if err != nil {
 			return false, nil, err
 		}
@@ -350,6 +352,8 @@ type taskCandidateFilteringDiagnostics struct {
 	PreviousAttempts []string `json:"previousAttempts,omitempty"`
 	// Names of TaskSpec dependencies that have not completed.
 	UnmetDependencies []string `json:"unmetDependencies,omitempty"`
+	// Name of the pool in which this candidate is not allowed to be triggered.
+	ForbiddenPool string `json:"forbiddenPool,omitempty"`
 }
 
 // taskCandidateScoringDiagnostics contains intermediate results in the calculation of Score. For

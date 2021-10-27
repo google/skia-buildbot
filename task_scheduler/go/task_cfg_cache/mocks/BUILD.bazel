@@ -3,13 +3,15 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "mocks",
     srcs = [
-        "JobCache.go",
-        "TaskCache.go",
+        "TaskCfgCache.go",
         "generate.go",
+        "helper.go",
     ],
-    importpath = "go.skia.org/infra/task_scheduler/go/db/cache/mocks",
+    importpath = "go.skia.org/infra/task_scheduler/go/task_cfg_cache/mocks",
     visibility = ["//visibility:public"],
     deps = [
+        "//task_scheduler/go/specs",
+        "//task_scheduler/go/task_cfg_cache",
         "//task_scheduler/go/types",
         "@com_github_stretchr_testify//mock",
     ],

@@ -49,7 +49,7 @@ func (c *cacheWrapper) GetTaskForCommit(repo, commit, name string) (*types.Task,
 }
 
 // See documentation for TaskCache interface.
-func (c *cacheWrapper) GetTasksByKey(*types.TaskKey) ([]*types.Task, error) {
+func (c *cacheWrapper) GetTasksByKey(types.TaskKey) ([]*types.Task, error) {
 	return nil, fmt.Errorf("cacheWrapper.GetTasksByKey not implemented.")
 }
 
