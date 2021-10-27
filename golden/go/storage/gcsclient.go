@@ -167,7 +167,6 @@ func (g *ClientImpl) writeToPath(ctx context.Context, targetPath, contentType st
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
 	writer := target.NewWriter(ctx)
 	writer.ObjectAttrs.ContentType = contentType
-	writer.ObjectAttrs.ACL = []gstorage.ACLRule{{Entity: gstorage.AllUsers, Role: gstorage.RoleReader}}
 
 	// Write the actual data.
 	if err := wrtFn(writer); err != nil {

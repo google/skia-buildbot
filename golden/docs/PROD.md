@@ -206,7 +206,7 @@ It is best to look at the logs for the app (e.g. gold-skia-diffcalculator) to se
 error messages. It might mean that there is too much work and we need to scale up the
 number of workers.
 
-`kubebectl scale deployment/gold-FOO-diffcalculator --replicas 8`
+`kubectl scale deployment/gold-FOO-diffcalculator --replicas 8`
 
 Key metrics: diffcalculator_workqueuesize
 
