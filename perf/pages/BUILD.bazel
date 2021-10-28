@@ -2,6 +2,7 @@ load("//infra-sk:index.bzl", "sass_library", "sk_page")
 
 sk_page(
     name = "alerts",
+    assets_serving_path = "/dist",
     html_file = "alerts.html",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "alerts.scss",
@@ -20,6 +21,7 @@ sass_library(
 
 sk_page(
     name = "clusters2",
+    assets_serving_path = "/dist",
     html_file = "clusters2.html",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "clusters2.scss",
@@ -32,18 +34,20 @@ sk_page(
 
 sk_page(
     name = "dryrunalert",
-    html_file = "dryRunAlert.html",
+    assets_serving_path = "/dist",
+    html_file = "dryrunalert.html",
     sass_deps = [":body_sass_lib"],
-    scss_entry_point = "dryRunAlert.scss",
+    scss_entry_point = "dryrunalert.scss",
     sk_element_deps = [
         "//perf/modules/cluster-lastn-page-sk",
         "//perf/modules/perf-scaffold-sk",
     ],
-    ts_entry_point = "dryRunAlert.ts",
+    ts_entry_point = "dryrunalert.ts",
 )
 
 sk_page(
     name = "help",
+    assets_serving_path = "/dist",
     html_file = "help.html",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "help.scss",
@@ -53,6 +57,7 @@ sk_page(
 
 sk_page(
     name = "newindex",
+    assets_serving_path = "/dist",
     html_file = "newindex.html",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "newindex.scss",
@@ -65,6 +70,7 @@ sk_page(
 
 sk_page(
     name = "triage",
+    assets_serving_path = "/dist",
     html_file = "triage.html",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "triage.scss",
@@ -77,6 +83,7 @@ sk_page(
 
 sk_page(
     name = "trybot",
+    assets_serving_path = "/dist",
     html_file = "trybot.html",
     sass_deps = [":body_sass_lib"],
     scss_entry_point = "trybot.scss",

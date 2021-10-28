@@ -159,7 +159,7 @@ var templateFilenames = []string{
 	"triage.html",
 	"alerts.html",
 	"help.html",
-	"dryRunAlert.html",
+	"dryrunalert.html",
 	"trybot.html",
 }
 
@@ -1432,7 +1432,7 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/c/", f.templateHandler("clusters2.html"))
 	router.HandleFunc("/t/", f.templateHandler("triage.html"))
 	router.HandleFunc("/a/", f.templateHandler("alerts.html"))
-	router.HandleFunc("/d/", f.templateHandler("dryRunAlert.html"))
+	router.HandleFunc("/d/", f.templateHandler("dryrunalert.html"))
 	router.HandleFunc("/r/", f.templateHandler("trybot.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)

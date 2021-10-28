@@ -1,3 +1,8 @@
+include ../make/bazel.mk
+
+build:
+	$(BAZEL) build ...
+
 .PHONY: default
 default: ./dist
 	go install -v ./go/...
@@ -83,12 +88,15 @@ build-frontend-ci: npm-ci
 test-frontend-ci: npm-ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
+build-remote:
+	$(BAZEL) build //perf/... --config=remote
+
 # Presumes you've already run:
 #
 #   kubectl port-forward perf-cockroachdb-0 25000:26257
 #
 run-local-instance:
-	perfserver frontend \
+	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
 	    --local \
 		--do_clustering=false \
 		--port=:8001 \
@@ -96,7 +104,7 @@ run-local-instance:
 	    --config_filename=./configs/cdb-nano.json \
 		--num_continuous_parallel=1 \
 		--display_group_by=true \
-		--resources_dir=./dist \
+		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:25000/skia?sslmode=disable
 
 include ../make/npm.mk
