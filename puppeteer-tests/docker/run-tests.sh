@@ -79,9 +79,10 @@ cp -r /src/infra-sk/*.scss                   /tests/infra-sk
 cp -r /src/infra-sk/tsconfig.json            /tests/infra-sk
 cp -r /src/infra-sk/modules                  /tests/infra-sk
 cp -r /src/infra-sk/pulito                   /tests/infra-sk
-# Depended upon by infra-sk/modules/task-driver-sk
-mkdir -p /tests/task_driver/modules
-cp -r /src/task_driver/modules/              /tests/task_driver/modules
+
+# Depended upon by //infra-sk/modules/task-driver-sk.
+mkdir -p /tests/task_driver
+cp -r /src/task_driver/modules/              /tests/task_driver
 
 mkdir /tests/puppeteer-tests
 cp -r /src/puppeteer-tests/*.ts              /tests/puppeteer-tests
@@ -111,6 +112,18 @@ mkdir /tests/status
 cp -r /src/status/webpack.config.ts          /tests/status
 cp -r /src/status/tsconfig.json              /tests/status
 cp -r /src/status/modules                    /tests/status
+
+# Depended upon by //status/modules/gold-status-sk.
+mkdir -p /tests/golden
+cp -r /src/golden/modules/                   /tests/golden
+
+# Depended upon by //status/modules/bugs-status-sk and //status/modules/status-sk.
+mkdir -p /tests/bugs-central
+cp -r /src/bugs-central/modules/             /tests/bugs-central
+
+# Depended upon by //status/modules/capacity-sk and //status/modules/comments-sk.
+mkdir -p /tests/ct
+cp -r /src/ct/modules/                       /tests/ct
 
 mkdir /tests/task_scheduler
 cp -r /src/task_scheduler/webpack.config.ts  /tests/task_scheduler
