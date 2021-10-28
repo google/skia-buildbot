@@ -35,8 +35,8 @@ var (
 )
 
 func ReloadTemplates(resourcesDir string) {
-	runsHistoryTemplate = template.Must(template.ParseFiles(filepath.Join(resourcesDir, "dist", "runs_history.html")))
-	pendingTasksTemplate = template.Must(template.ParseFiles(filepath.Join(resourcesDir, "dist", "queue.html")))
+	runsHistoryTemplate = template.Must(template.ParseFiles(filepath.Join(resourcesDir, "runs_history.html")))
+	pendingTasksTemplate = template.Must(template.ParseFiles(filepath.Join(resourcesDir, "queue.html")))
 }
 
 type CompletedTask struct {

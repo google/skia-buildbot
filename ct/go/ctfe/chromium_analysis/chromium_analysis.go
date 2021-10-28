@@ -38,10 +38,10 @@ var (
 
 func ReloadTemplates(resourcesDir string) {
 	addTaskTemplate = template.Must(template.ParseFiles(
-		filepath.Join(resourcesDir, "dist", "chromium_analysis.html"),
+		filepath.Join(resourcesDir, "chromium_analysis.html"),
 	))
 	runsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(resourcesDir, "dist", "chromium_analysis_runs.html"),
+		filepath.Join(resourcesDir, "chromium_analysis_runs.html"),
 	))
 }
 

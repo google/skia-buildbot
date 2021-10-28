@@ -227,9 +227,6 @@ func runChromiumAnalysisOnWorkers() error {
 	}
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, defaultMaxPagesPerSwarmingBot)
 	casSpec := util.CasChromiumAnalysisLinux()
-	if *targetPlatform == util.PLATFORM_WINDOWS {
-		casSpec = util.CasChromiumAnalysisWin()
-	}
 	casSpec.IncludeDigests = append(casSpec.IncludeDigests, casDeps...)
 	numWorkers, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", *runID, *targetPlatform, casSpec, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, swarmingClient, casClient)
 	if err != nil {

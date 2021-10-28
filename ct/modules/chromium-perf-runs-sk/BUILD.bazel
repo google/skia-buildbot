@@ -1,0 +1,63 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page", "ts_library")
+
+sk_element(
+    name = "chromium-perf-runs-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sk_element_deps = ["//ct/modules/pagination-sk"],
+    ts_deps = [
+        "//ct/modules/json:index_ts_lib",
+        "//ct/modules:ctfe_utils_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "chromium-perf-runs-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "chromium-perf-runs-sk-demo",
+    html_file = "chromium-perf-runs-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":chromium-perf-runs-sk",
+    ],
+    ts_deps = [
+        ":test_data_ts_lib",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "chromium-perf-runs-sk-demo.ts",
+)
+
+karma_test(
+    name = "chromium-perf-runs-sk_test",
+    src = "chromium-perf-runs-sk_test.ts",
+    deps = [
+        ":chromium-perf-runs-sk",
+        ":test_data_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//@types/sinon",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+        "@npm//sinon",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":chromium-perf-runs-sk-demo",
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//ct/modules/json:index_ts_lib"],
+)

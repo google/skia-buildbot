@@ -1,0 +1,64 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page", "ts_library")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":task-priority-sk-demo",
+)
+
+sk_element(
+    name = "task-priority-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//ct/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["task-priority-sk.scss"],
+    ts_deps = [
+        "//ct/modules/json:index_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "task-priority-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "task-priority-sk-demo",
+    html_file = "task-priority-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":task-priority-sk",
+    ],
+    ts_deps = [
+        ":test_data_ts_lib",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "task-priority-sk-demo.ts",
+)
+
+karma_test(
+    name = "task-priority-sk_test",
+    src = "task-priority-sk_test.ts",
+    deps = [
+        ":task-priority-sk",
+        ":test_data_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//fetch-mock",
+    ],
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//ct/modules/json:index_ts_lib"],
+)

@@ -1,0 +1,123 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "ctfe_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        # Copy over the entrypoint of CTFE.
+        "/usr/local/bin": [
+            [
+                "//ct/go/ctfe:ctfe",
+                "0755",
+            ],
+        ],
+
+        # Copy over the python files used by CT's master/worker scripts.
+        "/usr/local/share/ctfe/py": [
+            [
+                "//ct/py:all_py_files",
+                "0644",
+            ],
+        ],
+
+        # Copy over the HTML templates used by the above python scripts.
+        "/usr/local/share/ctfe/py/html-templates": [
+            [
+                "//ct/py/html-templates:html-templates",
+                "0644",
+            ],
+        ],
+
+        # Copy over the various CT master/worker binaries.
+        "/usr/local/share/ctfe/bin": [
+            [
+                "//ct/go/master_scripts/capture_archives_on_workers:capture_archives_on_workers",
+                "0755",
+            ],
+            [
+                "//ct/go/master_scripts/create_pagesets_on_workers:create_pagesets_on_workers",
+                "0755",
+            ],
+            [
+                "//ct/go/master_scripts/metrics_analysis_on_workers:metrics_analysis_on_workers",
+                "0755",
+            ],
+            [
+                "//ct/go/master_scripts/run_chromium_analysis_on_workers:run_chromium_analysis_on_workers",
+                "0755",
+            ],
+            [
+                "//ct/go/master_scripts/run_chromium_perf_on_workers:run_chromium_perf_on_workers",
+                "0755",
+            ],
+            [
+                "//ct/go/worker_scripts/build_repo:build_repo",
+                "0755",
+            ],
+            [
+                "//ct/go/worker_scripts/capture_archives:capture_archives",
+                "0755",
+            ],
+            [
+                "//ct/go/worker_scripts/create_pagesets:create_pagesets",
+                "0755",
+            ],
+            [
+                "//ct/go/worker_scripts/isolate_telemetry:isolate_telemetry",
+                "0755",
+            ],
+            [
+                "//ct/go/worker_scripts/metrics_analysis:metrics_analysis",
+                "0755",
+            ],
+            [
+                "//ct/go/worker_scripts/run_chromium_analysis:run_chromium_analysis",
+                "0755",
+            ],
+            [
+                "//ct/go/worker_scripts/run_chromium_perf:run_chromium_perf",
+                "0755",
+            ],
+        ],
+
+        # Copy over UI files.
+        "/usr/local/share/ctfe/dist": [
+            [
+                "//ct/images:favicon.ico",
+                "0644",
+            ],
+        ] + [
+            [
+                "//ct/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in [
+                "admin_tasks",
+                "chromium_analysis",
+                "chromium_analysis_runs",
+                "chromium_perf",
+                "chromium_perf_runs",
+                "metrics_analysis",
+                "metrics_analysis_runs",
+                "queue",
+                "recreate_page_sets_runs",
+                "recreate_webpage_archives_runs",
+                "runs_history",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    entrypoint = "/usr/local/bin/ctfe",
+    repository = "skia-public/ctfe",
+    run_commands_root = [
+        "apt-get update",
+        # Install packages required for the various CT scripts.
+        "apt-get install -y file ca-certificates procps wget",
+        # Create required dirs.
+        "mkdir --parents /b/storage/ && chown skia:skia /b/storage",
+    ],
+)

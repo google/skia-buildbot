@@ -101,8 +101,7 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 
 func runServer(serverURL string) {
 	externalRouter := mux.NewRouter()
-	externalRouter.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	externalRouter.PathPrefix("/dist/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
+	externalRouter.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
 
 	admin_tasks.AddHandlers(externalRouter)
 	chromium_analysis.AddHandlers(externalRouter)

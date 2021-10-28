@@ -6,6 +6,7 @@ import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
 import { pageSets } from '../pageset-selector-sk/test_data';
 import { AdminTasksSk } from './admin-tasks-sk';
+import { AdminAddTaskVars } from '../json';
 import {
   eventPromise,
   setUpElementUnderTest,
@@ -72,7 +73,7 @@ describe('admin-tasks-sk', () => {
     sinon.stub(window, 'confirm').returns(true);
     clickSubmit();
     await fetchMock.flush(true);
-    const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any);
+    const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any) as AdminAddTaskVars;
     const expectation = {
       page_sets: '10k',
       repeat_after_days: '0',
@@ -92,7 +93,7 @@ describe('admin-tasks-sk', () => {
     ($('tabs-sk button', adminTasks)[1] as HTMLElement).click();
     clickSubmit();
     await fetchMock.flush(true);
-    const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any);
+    const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any) as AdminAddTaskVars;
     const expectation = {
       page_sets: '10k',
       repeat_after_days: '0',

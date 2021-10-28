@@ -1,0 +1,74 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":task-queue-sk-demo",
+)
+
+sk_element(
+    name = "task-queue-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    ts_deps = [
+        "//ct/modules/json:index_ts_lib",
+        "//ct/modules:ctfe_utils_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "task-queue-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "task-queue-sk-demo",
+    html_file = "task-queue-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":task-queue-sk",
+    ],
+    ts_deps = [
+        ":test_data_ts_lib",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "task-queue-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "task-queue-sk_puppeteer_test",
+    src = "task-queue-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "task-queue-sk_test",
+    src = "task-queue-sk_test.ts",
+    deps = [
+        ":task-queue-sk",
+        ":test_data_ts_lib",
+        "//ct/modules/json:index_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//@types/sinon",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+        "@npm//sinon",
+    ],
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//ct/modules/json:index_ts_lib"],
+)

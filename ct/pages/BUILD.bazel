@@ -1,0 +1,133 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "admin_tasks",
+    assets_serving_path = "/dist",
+    html_file = "admin_tasks.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//ct/modules/admin-tasks-sk",
+        "//ct/modules/ct-scaffold-sk",
+    ],
+    ts_entry_point = "admin_tasks.ts",
+)
+
+sk_page(
+    name = "chromium_analysis",
+    assets_serving_path = "/dist",
+    html_file = "chromium_analysis.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//ct/modules/chromium-analysis-sk",
+        "//ct/modules/ct-scaffold-sk",
+    ],
+    ts_entry_point = "chromium_analysis.ts",
+)
+
+sk_page(
+    name = "chromium_analysis_runs",
+    assets_serving_path = "/dist",
+    html_file = "chromium_analysis_runs.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//ct/modules/chromium-analysis-runs-sk",
+        "//ct/modules/ct-scaffold-sk",
+    ],
+    ts_entry_point = "chromium_analysis_runs.ts",
+)
+
+sk_page(
+    name = "chromium_perf",
+    assets_serving_path = "/dist",
+    html_file = "chromium_perf.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//ct/modules/chromium-perf-sk",
+        "//ct/modules/ct-scaffold-sk",
+    ],
+    ts_entry_point = "chromium_perf.ts",
+)
+
+sk_page(
+    name = "chromium_perf_runs",
+    assets_serving_path = "/dist",
+    html_file = "chromium_perf_runs.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//ct/modules/chromium-perf-runs-sk",
+        "//ct/modules/ct-scaffold-sk",
+    ],
+    ts_entry_point = "chromium_perf_runs.ts",
+)
+
+sk_page(
+    name = "metrics_analysis",
+    assets_serving_path = "/dist",
+    html_file = "metrics_analysis.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//ct/modules/ct-scaffold-sk",
+        "//ct/modules/metrics-analysis-sk",
+    ],
+    ts_entry_point = "metrics_analysis.ts",
+)
+
+sk_page(
+    name = "metrics_analysis_runs",
+    assets_serving_path = "/dist",
+    html_file = "metrics_analysis_runs.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//ct/modules/ct-scaffold-sk",
+        "//ct/modules/metrics-analysis-runs-sk",
+    ],
+    ts_entry_point = "metrics_analysis_runs.ts",
+)
+
+sk_page(
+    name = "queue",
+    assets_serving_path = "/dist",
+    html_file = "queue.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//ct/modules/ct-scaffold-sk",
+        "//ct/modules/task-queue-sk",
+    ],
+    ts_entry_point = "queue.ts",
+)
+
+sk_page(
+    name = "recreate_page_sets_runs",
+    assets_serving_path = "/dist",
+    html_file = "recreate_page_sets_runs.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//ct/modules/admin-task-runs-sk",
+        "//ct/modules/ct-scaffold-sk",
+    ],
+    ts_entry_point = "recreate_page_sets_runs.ts",
+)
+
+sk_page(
+    name = "recreate_webpage_archives_runs",
+    assets_serving_path = "/dist",
+    html_file = "recreate_webpage_archives_runs.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//ct/modules/admin-task-runs-sk",
+        "//ct/modules/ct-scaffold-sk",
+    ],
+    ts_entry_point = "recreate_webpage_archives_runs.ts",
+)
+
+sk_page(
+    name = "runs_history",
+    assets_serving_path = "/dist",
+    html_file = "runs_history.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//ct/modules/ct-scaffold-sk",
+        "//ct/modules/runs-history-summary-sk",
+    ],
+    ts_entry_point = "runs_history.ts",
+)

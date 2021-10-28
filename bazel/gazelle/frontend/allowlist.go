@@ -9,6 +9,8 @@ package frontend
 var targetDirectories = map[string]bool{
 	"bugs-central/modules": true,
 	"bugs-central/pages":   true,
+	"ct/modules":           true,
+	"ct/pages":             true,
 	"golden/modules":       true,
 	"golden/pages":         true,
 	"infra-sk/modules":     true,

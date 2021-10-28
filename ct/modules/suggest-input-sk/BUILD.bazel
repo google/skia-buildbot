@@ -1,0 +1,70 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":suggest-input-sk-demo",
+)
+
+sk_element(
+    name = "suggest-input-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//ct/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["suggest-input-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "suggest-input-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "suggest-input-sk-demo",
+    html_file = "suggest-input-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":suggest-input-sk",
+    ],
+    ts_deps = [
+        ":test_data_ts_lib",
+        "@npm//common-sk",
+    ],
+    ts_entry_point = "suggest-input-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "suggest-input-sk_puppeteer_test",
+    src = "suggest-input-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "suggest-input-sk_test",
+    src = "suggest-input-sk_test.ts",
+    deps = [
+        ":suggest-input-sk",
+        ":test_data_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+    ],
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+)

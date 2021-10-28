@@ -11,6 +11,7 @@ import { priorities } from '../task-priority-sk/test_data';
 import { chromiumPatchResult } from '../patch-sk/test_data';
 import { InputSk } from '../input-sk/input-sk';
 import { ChromiumAnalysisSk } from './chromium-analysis-sk';
+import { ChromiumAnalysisAddTaskVars } from '../json';
 import {
   eventPromise,
   setUpElementUnderTest,
@@ -145,7 +146,7 @@ describe('chromium-analysis-sk', () => {
     sinon.stub(window, 'confirm').returns(true);
     clickSubmit();
     await fetchMock.flush(true);
-    const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any);
+    const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any) as ChromiumAnalysisAddTaskVars;
     // Here we test the 'interesting' arguments. We try a single patch,
     // and we don't bother filling in the simple string arguments.
     const expectation = {

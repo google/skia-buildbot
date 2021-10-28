@@ -75,7 +75,6 @@ func CasCaptureArchivesMaster() *CasSpec {
 		IncludeCasSpecs: []*CasSpec{
 			CasPython(),
 			CasIsolateTelemetryLinux(),
-			CasIsolateTelemetryWin(),
 			CasCaptureArchives(),
 		},
 	}
@@ -86,11 +85,8 @@ func CasChromiumAnalysisMaster() *CasSpec {
 		IncludeCasSpecs: []*CasSpec{
 			CasPython(),
 			CasBuildRepoLinux(),
-			CasBuildRepoWin(),
 			CasIsolateTelemetryLinux(),
-			CasIsolateTelemetryWin(),
 			CasChromiumAnalysisLinux(),
-			CasChromiumAnalysisWin(),
 		},
 	}
 }
@@ -100,11 +96,8 @@ func CasChromiumPerfMaster() *CasSpec {
 		IncludeCasSpecs: []*CasSpec{
 			CasPython(),
 			CasBuildRepoLinux(),
-			CasBuildRepoWin(),
 			CasIsolateTelemetryLinux(),
-			CasIsolateTelemetryWin(),
 			CasChromiumPerfLinux(),
-			CasChromiumPerfWin(),
 		},
 	}
 }
@@ -114,7 +107,6 @@ func CasMetricsAnalysisMaster() *CasSpec {
 		IncludeCasSpecs: []*CasSpec{
 			CasPython(),
 			CasIsolateTelemetryLinux(),
-			CasIsolateTelemetryWin(),
 			CasMetricsAnalysis(),
 		},
 	}
@@ -138,21 +130,9 @@ func CasChromiumAnalysisLinux() *CasSpec {
 		IncludeCasSpecs: []*CasSpec{CasPython()},
 	}
 }
-func CasChromiumAnalysisWin() *CasSpec {
-	return &CasSpec{
-		Paths:           []string{"bin/run_chromium_analysis.exe"},
-		IncludeCasSpecs: []*CasSpec{CasPython()},
-	}
-}
 func CasChromiumPerfLinux() *CasSpec {
 	return &CasSpec{
 		Paths:           []string{"bin/run_chromium_perf"},
-		IncludeCasSpecs: []*CasSpec{CasPython()},
-	}
-}
-func CasChromiumPerfWin() *CasSpec {
-	return &CasSpec{
-		Paths:           []string{"bin/run_chromium_perf.exe"},
 		IncludeCasSpecs: []*CasSpec{CasPython()},
 	}
 }
@@ -170,21 +150,9 @@ func CasBuildRepoLinux() *CasSpec {
 		IncludeCasSpecs: []*CasSpec{CasPython()},
 	}
 }
-func CasBuildRepoWin() *CasSpec {
-	return &CasSpec{
-		Paths:           []string{"bin/build_repo.exe"},
-		IncludeCasSpecs: []*CasSpec{CasPython()},
-	}
-}
 func CasIsolateTelemetryLinux() *CasSpec {
 	return &CasSpec{
 		Paths:           []string{"bin/isolate_telemetry"},
-		IncludeCasSpecs: []*CasSpec{CasPython()},
-	}
-}
-func CasIsolateTelemetryWin() *CasSpec {
-	return &CasSpec{
-		Paths:           []string{"bin/isolate_telemetry.exe"},
 		IncludeCasSpecs: []*CasSpec{CasPython()},
 	}
 }
@@ -1061,7 +1029,6 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	cipdPkgs := []string{}
 	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(specs.CIPD_PKGS_ISOLATE)...)
 	if targetPlatform == PLATFORM_WINDOWS {
-		casSpec = CasIsolateTelemetryWin()
 		dimensions = GCE_WINDOWS_BUILDER_DIMENSIONS
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformWindowsAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
@@ -1225,7 +1192,6 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	// Find which os and CIPD pkgs to use.
 	var casSpec *CasSpec
 	if targetPlatform == PLATFORM_WINDOWS {
-		casSpec = CasBuildRepoWin()
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformWindowsAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
 	} else {

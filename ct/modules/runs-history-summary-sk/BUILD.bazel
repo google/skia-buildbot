@@ -1,0 +1,60 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page", "ts_library")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":runs-history-summary-sk-demo",
+)
+
+sk_element(
+    name = "runs-history-summary-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    ts_deps = [
+        "//ct/modules/json:index_ts_lib",
+        "//ct/modules:ctfe_utils_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "runs-history-summary-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "runs-history-summary-sk-demo",
+    html_file = "runs-history-summary-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":runs-history-summary-sk",
+    ],
+    ts_deps = [
+        ":test_data_ts_lib",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "runs-history-summary-sk-demo.ts",
+)
+
+karma_test(
+    name = "runs-history-summary-sk_test",
+    src = "runs-history-summary-sk_test.ts",
+    deps = [
+        ":runs-history-summary-sk",
+        ":test_data_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//ct/modules/json:index_ts_lib"],
+)

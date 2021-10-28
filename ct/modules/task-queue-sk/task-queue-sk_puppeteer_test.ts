@@ -14,7 +14,7 @@ describe('task-queue-sk', () => {
     );
   });
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/task-queue-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 1500, height: 500 });
   });
 

@@ -1,0 +1,50 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":task-repeater-sk-demo",
+)
+
+sk_element(
+    name = "task-repeater-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//ct/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["task-repeater-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "task-repeater-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "task-repeater-sk-demo",
+    html_file = "task-repeater-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":task-repeater-sk",
+    ],
+    ts_deps = ["@npm//common-sk"],
+    ts_entry_point = "task-repeater-sk-demo.ts",
+)
+
+karma_test(
+    name = "task-repeater-sk_test",
+    src = "task-repeater-sk_test.ts",
+    deps = [
+        ":task-repeater-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+    ],
+)

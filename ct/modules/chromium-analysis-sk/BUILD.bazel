@@ -1,0 +1,81 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page", "ts_library")
+
+sk_element(
+    name = "chromium-analysis-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sk_element_deps = [
+        "//ct/modules/input-sk",
+        "//ct/modules/pageset-selector-sk",
+        "//ct/modules/patch-sk",
+        "//ct/modules/suggest-input-sk",
+        "//ct/modules/task-priority-sk",
+        "//ct/modules/task-repeater-sk",
+    ],
+    ts_deps = [
+        "//ct/modules/json:index_ts_lib",
+        "//ct/modules:ctfe_utils_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "chromium-analysis-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "chromium-analysis-sk-demo",
+    html_file = "chromium-analysis-sk-demo.html",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":chromium-analysis-sk",
+    ],
+    ts_deps = [
+        "//ct/modules/pageset-selector-sk:test_data_ts_lib",
+        "//ct/modules/patch-sk:test_data_ts_lib",
+        "//ct/modules/task-priority-sk:test_data_ts_lib",
+        ":test_data_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "chromium-analysis-sk-demo.ts",
+)
+
+karma_test(
+    name = "chromium-analysis-sk_test",
+    src = "chromium-analysis-sk_test.ts",
+    deps = [
+        ":chromium-analysis-sk",
+        ":test_data_ts_lib",
+        "//ct/modules/input-sk",
+        "//ct/modules/json:index_ts_lib",
+        "//ct/modules/pageset-selector-sk:test_data_ts_lib",
+        "//ct/modules/patch-sk:test_data_ts_lib",
+        "//ct/modules/task-priority-sk:test_data_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//@types/sinon",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//fetch-mock",
+        "@npm//sinon",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":chromium-analysis-sk-demo",
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//ct/modules/json:index_ts_lib"],
+)

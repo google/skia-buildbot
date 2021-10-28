@@ -1,0 +1,68 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_element(
+    name = "admin-tasks-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//ct/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["admin-tasks-sk.scss"],
+    sk_element_deps = [
+        "//ct/modules/input-sk",
+        "//ct/modules/pageset-selector-sk",
+        "//ct/modules/suggest-input-sk",
+        "//ct/modules/task-repeater-sk",
+    ],
+    ts_deps = [
+        "//ct/modules/json:index_ts_lib",
+        "//ct/modules:ctfe_utils_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "admin-tasks-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "admin-tasks-sk-demo",
+    html_file = "admin-tasks-sk-demo.html",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":admin-tasks-sk",
+    ],
+    ts_deps = [
+        "//ct/modules/pageset-selector-sk:test_data_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "admin-tasks-sk-demo.ts",
+)
+
+karma_test(
+    name = "admin-tasks-sk_test",
+    src = "admin-tasks-sk_test.ts",
+    deps = [
+        ":admin-tasks-sk",
+        "//ct/modules/json:index_ts_lib",
+        "//ct/modules/pageset-selector-sk:test_data_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//@types/sinon",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+        "@npm//sinon",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":admin-tasks-sk-demo",
+)

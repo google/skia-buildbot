@@ -1,0 +1,37 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":input-sk-demo",
+)
+
+sk_element(
+    name = "input-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//ct/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["input-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "input-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "input-sk-demo",
+    html_file = "input-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":input-sk",
+    ],
+    ts_deps = ["@npm//common-sk"],
+    ts_entry_point = "input-sk-demo.ts",
+)

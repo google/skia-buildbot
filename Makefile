@@ -98,7 +98,6 @@ puppeteer-tests:
 build-frontend-ci: npm-ci
 	cd am && $(MAKE) build-frontend-ci
 	cd autoroll && $(MAKE) build-frontend-ci
-	cd ct && $(MAKE) build-frontend-ci
 	cd debugger-app && $(MAKE) build-frontend-ci
 	cd demos && $(MAKE) build-frontend-ci
 	cd fiddlek && $(MAKE) build-frontend-ci
@@ -122,7 +121,6 @@ build-frontend-ci: npm-ci
 .PHONY: test-frontend-ci
 test-frontend-ci: npm-ci
 	cd am && $(MAKE) test-frontend-ci
-	cd ct && $(MAKE) test-frontend-ci
 	cd debugger-app && $(MAKE) test-frontend-ci
 	cd demos && $(MAKE) test-frontend-ci
 	cd fiddlek && $(MAKE) test-frontend-ci

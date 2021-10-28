@@ -1,0 +1,54 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_element(
+    name = "ct-scaffold-sk",
+    sass_deps = [
+        "//ct/modules:style_sass_lib",
+        "//infra-sk:elements-sk_scss",
+        "//ct/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["ct-scaffold-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/app-sk",
+        "//infra-sk/modules/login-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+    ],
+    ts_deps = [
+        "//ct/modules:ctfe_utils_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "ct-scaffold-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "ct-scaffold-sk-demo",
+    html_file = "ct-scaffold-sk-demo.html",
+    sk_element_deps = [":ct-scaffold-sk"],
+    ts_entry_point = "ct-scaffold-sk-demo.ts",
+)
+
+karma_test(
+    name = "ct-scaffold-sk_test",
+    src = "ct-scaffold-sk_test.ts",
+    deps = [
+        ":ct-scaffold-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//fetch-mock",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":ct-scaffold-sk-demo",
+)

@@ -97,11 +97,6 @@ cp -r /src/am/webpack.config.ts              /tests/am
 cp -r /src/am/tsconfig.json                  /tests/am
 cp -r /src/am/modules                        /tests/am
 
-mkdir /tests/ct
-cp -r /src/ct/webpack.config.ts              /tests/ct
-cp -r /src/ct/tsconfig.json                  /tests/ct
-cp -r /src/ct/modules                        /tests/ct
-
 mkdir /tests/new_element
 cp -r /src/new_element/webpack.config.ts     /tests/new_element
 cp -r /src/new_element/tsconfig.json         /tests/new_element
@@ -189,9 +184,6 @@ cd /tests/perf
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/am
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
-cd /tests/ct
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/new_element

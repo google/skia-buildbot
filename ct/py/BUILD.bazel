@@ -1,0 +1,107 @@
+# The purpose of this target is to easily include all of CT's python files in
+# the skia_app_container in ct/BUILD.bazel
+filegroup(
+    name = "all_py_files",
+    srcs = glob(["*.py"]),
+    visibility = ["//ct:__subpackages__"],
+)
+
+py_binary(
+    name = "create_page_set",
+    srcs = ["create_page_set.py"],
+    visibility = ["//ct:__subpackages__"],
+)
+
+py_library(
+    name = "csv-django-settings",
+    srcs = ["csv-django-settings.py"],
+)
+
+py_binary(
+    name = "csv_comparer",
+    srcs = ["csv_comparer.py"],
+    visibility = ["//ct:__subpackages__"],
+    deps = [
+        ":csv-django-settings",
+    ],
+)
+
+py_library(
+    name = "test_utils",
+    srcs = ["test_utils.py"],
+)
+
+py_test(
+    name = "csv_comparer_test",
+    srcs = ["csv_comparer_test.py"],
+    # This test requires django installed.
+    tags = ["manual"],
+    deps = [
+        ":csv_comparer",
+        ":test_utils",
+    ],
+)
+
+py_binary(
+    name = "csv_merger",
+    srcs = ["csv_merger.py"],
+    visibility = ["//ct:__subpackages__"],
+)
+
+py_test(
+    name = "csv_merger_test",
+    srcs = ["csv_merger_test.py"],
+    # This test requires django installed.
+    tags = ["manual"],
+    deps = [
+        ":csv_merger",
+        ":test_utils",
+    ],
+)
+
+py_binary(
+    name = "csv_pivot_table_merger",
+    srcs = ["csv_pivot_table_merger.py"],
+    visibility = ["//ct:__subpackages__"],
+)
+
+py_test(
+    name = "csv_pivot_table_merger_test",
+    srcs = ["csv_pivot_table_merger_test.py"],
+    # This test requires django installed.
+    tags = ["manual"],
+    deps = [
+        ":csv_pivot_table_merger",
+        ":test_utils",
+    ],
+)
+
+py_library(
+    name = "misc",
+    srcs = ["misc.py"],
+)
+
+py_library(
+    name = "shell_utils",
+    srcs = ["shell_utils.py"],
+)
+
+py_library(
+    name = "gclient_utils",
+    srcs = ["gclient_utils.py"],
+    deps = [
+        ":misc",
+        ":shell_utils",
+    ],
+)
+
+py_binary(
+    name = "sync_skia_in_chrome",
+    srcs = ["sync_skia_in_chrome.py"],
+    visibility = ["//ct:__subpackages__"],
+    deps = [
+        ":gclient_utils",
+        ":misc",
+        ":shell_utils",
+    ],
+)

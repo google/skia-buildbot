@@ -14,7 +14,7 @@ describe('suggest-input-sk', () => {
     );
   });
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/suggest-input-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 400, height: 500 });
   });
 

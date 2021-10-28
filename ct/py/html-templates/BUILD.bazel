@@ -1,0 +1,5 @@
+filegroup(
+    name = "html-templates",
+    srcs = glob(["*.html"]),
+    visibility = ["//ct:__subpackages__"],
+)
