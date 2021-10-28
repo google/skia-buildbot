@@ -31,14 +31,6 @@ cq_watcher:
 datahopper:
 	cd datahopper && $(MAKE) all
 
-.PHONY: ct
-ct:
-	cd ct && $(MAKE) all
-
-.PHONY: ctfe
-ctfe:
-	cd ct && $(MAKE) ctfe
-
 .PHONY: infra-sk
 infra-sk:
 	cd infra-sk && $(MAKE) all
@@ -65,7 +57,7 @@ task_scheduler:
 
 # This target is invoked by the Infra-PerCommit-Build tryjob.
 .PHONY: all
-all: infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler build-frontend-ci
+all: infra-sk autoroll datahopper perf sharedgo cq_watcher status task_scheduler build-frontend-ci
 
 .PHONY: tags
 tags:
