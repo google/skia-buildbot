@@ -53,7 +53,7 @@ func actualMain(stdout io.Writer) {
 		fmt.Printf("usage: nanostat [options] old.json new.json\n")
 		fmt.Printf("options:\n")
 		flagSet.PrintDefaults()
-		fmt.Printf("\nSee https://github.com/google/skia-buildbot/tree/master/perf/nanostat/README.md for more details.\n")
+		fmt.Printf("\nSee https://github.com/google/skia-buildbot/tree/main/perf/nanostat/README.md for more details.\n")
 		os.Exit(2)
 	}
 
