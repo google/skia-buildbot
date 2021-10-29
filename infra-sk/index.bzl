@@ -1,6 +1,6 @@
 """This module defines rules for building Skia Infrastructure web applications."""
 
-load("@build_bazel_rules_nodejs//:index.bzl", _nodejs_test = "nodejs_test")
+load("@build_bazel_rules_nodejs//:index.bzl", "npm_package_bin", _nodejs_test = "nodejs_test")
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@npm//@bazel/terser:index.bzl", "terser_minified")
 load("@npm//html-insert-assets:index.bzl", "html_insert_assets")
@@ -498,15 +498,31 @@ def sk_page(
         visibility = ["//visibility:public"],
     )
 
-    # Generates file production/<name>.css.
+    # Generates file <name>_unoptimized.css.
     sass_binary(
-        name = "%s_css_prod" % name,
+        name = "%s_css_unoptimized_prod" % name,
         src = name + "_ghost_entrypoint_scss",
-        output_name = "%s/%s.css" % (PROD_OUT_DIR, name),
+        output_name = "%s_unoptimized.css" % name,
         deps = [name + "_styles"],
         include_paths = ["//node_modules"],
         output_style = "compressed",
         sourcemap = False,
+        visibility = ["//visibility:public"],
+    )
+
+    # Generates file production/<name>.css.
+    #
+    # That sass tool used by `sass_binary` doesn't remove duplicate CSS rules,
+    # so the output can contain many copies of the CSS rules like 'colors.scss'.
+    # We pass the CSS through csso to remove duplicate CSS rules, which can
+    # reduce a file to 1/10 its unoptimized size.
+    npm_package_bin(
+        name = "%s_css_prod" % name,
+        tool = "@npm//csso-cli/bin:csso",
+        chdir = "$(RULEDIR)",
+        data = [":%s_css_unoptimized_prod" % name],
+        stdout = "%s/%s.css" % (PROD_OUT_DIR, name),
+        args = ["%s_unoptimized.css" % name],
         visibility = ["//visibility:public"],
     )
 

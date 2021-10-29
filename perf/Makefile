@@ -104,7 +104,7 @@ run-local-instance:
 	    --config_filename=./configs/cdb-nano.json \
 		--num_continuous_parallel=1 \
 		--display_group_by=true \
-		--resources_dir=../_bazel_bin/perf/pages/development/ \
+		--resources_dir=../_bazel_bin/perf/pages/production/ \
 		--connection_string=postgresql://root@127.0.0.1:25000/skia?sslmode=disable
 
 include ../make/npm.mk
