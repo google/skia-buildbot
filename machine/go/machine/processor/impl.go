@@ -115,7 +115,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		return processAndroidEvent(ctx, previous, event)
 	} else if event.ChromeOS.Uptime > 0 {
 		return processChromeOSEvent(ctx, previous, event)
-	} else if event.IOS.Uptime > 0 {
+	} else if event.IOS.DeviceType != "" {
 		return processIOSEvent(ctx, previous, event)
 	}
 	return processNonDeviceEvent(ctx, previous, event)
@@ -162,7 +162,7 @@ func processAndroidEvent(ctx context.Context, previous machine.Description, even
 	delete(ret.Dimensions, machine.DimQuarantined)
 
 	ret = handleGeneralFields(ctx, ret, event)
-	ret = handleMaintenanceMode(ctx, previous, ret, inMaintenanceMode, maintenanceMessage)
+	ret = handleRecoveryMode(ctx, previous, ret, inMaintenanceMode, maintenanceMessage)
 	return ret
 }
 
@@ -175,15 +175,16 @@ func handleGeneralFields(ctx context.Context, current machine.Description, event
 	return current
 }
 
-// handleMaintenanceMode determines if the machine should enter or leave maintenance mode.
-func handleMaintenanceMode(ctx context.Context, previous, current machine.Description, inMaintenanceMode bool, msg string) machine.Description {
+// handleRecoveryMode effects transitions in or out of Recovery mode based on an assertion of
+// whether a machine shouldBeRecovering.
+func handleRecoveryMode(ctx context.Context, previous, current machine.Description, shouldBeRecovering bool, msg string) machine.Description {
 
-	// If the machine just started in Recovery mode then record the start time.
+	// If the machine is going into Recovery mode then record the start time.
 	// Note that if the machine is currently running a test then the amount of
 	// time in recovery will also include some of the test time, but that's the
 	// price we pay to avoid a race condition where a test ends and a new test
-	// starts before we set maintenance mode.
-	if inMaintenanceMode && previous.Mode != machine.ModeRecovery {
+	// starts before we set Recovery mode.
+	if shouldBeRecovering && previous.Mode != machine.ModeRecovery {
 		current.Mode = machine.ModeRecovery
 		current.RecoveryStart = now.Now(ctx)
 		current.Annotation.Timestamp = now.Now(ctx)
@@ -191,9 +192,9 @@ func handleMaintenanceMode(ctx context.Context, previous, current machine.Descri
 		current.Annotation.User = machineUserName
 	}
 
-	// If nothing put the device in maintenance this cycle then move back being
+	// If the machine didn't report an empty battery or other bad condition, move back being
 	// available.
-	if !inMaintenanceMode && previous.Mode == machine.ModeRecovery {
+	if !shouldBeRecovering && previous.Mode == machine.ModeRecovery {
 		current.Mode = machine.ModeAvailable
 		current.Annotation.Timestamp = now.Now(ctx)
 		current.Annotation.Message = "Leaving recovery mode."
@@ -201,8 +202,9 @@ func handleMaintenanceMode(ctx context.Context, previous, current machine.Descri
 	}
 
 	machineID := current.Dimensions[machine.DimID][0]
+	// This refers to Swarming's maintenance mode, not machineserver's:
 	maintenanceModeMetric := metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": machineID})
-	if inMaintenanceMode {
+	if shouldBeRecovering {
 		maintenanceModeMetric.Update(1)
 	} else {
 		maintenanceModeMetric.Update(0)
@@ -236,15 +238,32 @@ func processChromeOSEvent(ctx context.Context, previous machine.Description, eve
 	delete(ret.Dimensions, machine.DimQuarantined)
 
 	ret = handleGeneralFields(ctx, ret, event)
-	ret = handleMaintenanceMode(ctx, previous, ret, false, "")
+	ret = handleRecoveryMode(ctx, previous, ret, false, "")
 	return ret
 }
 
+// Based on an incoming iOS event from a test machine, processIOSEvent updates the machine's
+// centralized description.
 func processIOSEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
-	// TODO(erikrose)
-	return machine.Description{}
+	ret := previous.Copy()
+
+	// Swarming expects a leading "iOS-":
+	ret.Dimensions[machine.DimOS] = []string{"iOS", "iOS-" + event.IOS.OSVersion}
+	// TODO(erikrose): Skia Swarming bot list also shows a bare "iOS" in its "os" dimension. I don't
+	// see where that's getting put in. See if it shows up twice since we add it explicitly here.
+	// It's how RebootDevice() tells whether there's an iOS device attached as well.
+
+	ret.Dimensions[machine.DimDeviceType] = []string{event.IOS.DeviceType}
+
+	// The device was attached, so it will no longer be quarantined:
+	delete(ret.Dimensions, machine.DimQuarantined)
+
+	ret = handleGeneralFields(ctx, ret, event)
+	ret = handleRecoveryMode(ctx, previous, ret, false, "")
+	return ret
 }
 
+// processNonDeviceEvent processes an event from a machine that has no attached device.
 func processNonDeviceEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
 	machineID := event.Host.Name
 	dimensions := machine.SwarmingDimensions{
@@ -269,7 +288,7 @@ func processNonDeviceEvent(ctx context.Context, previous machine.Description, ev
 	}
 
 	ret = handleGeneralFields(ctx, ret, event)
-	ret = handleMaintenanceMode(ctx, previous, ret, false, "")
+	ret = handleRecoveryMode(ctx, previous, ret, false, "")
 	return ret
 }
 

@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/test_machine_monitor/adb"
+	"go.skia.org/infra/machine/go/test_machine_monitor/ios"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ssh"
 	"go.skia.org/infra/machine/go/test_machine_monitor/swarming"
 )
@@ -41,11 +42,14 @@ type Machine struct {
 	// store is how we get our dimensions and status updates from the machine state server.
 	store store.Store
 
-	// sink is how we send machine.Events to the the machine state server.
+	// sink is how we send machine.Events to the machine state server.
 	sink sink.Sink
 
 	// adb makes calls to the adb server.
 	adb adb.Adb
+
+	// ios is an interface through which we talk to iOS devices.
+	ios ios.IOS
 
 	// ssh is an abstraction around an ssh executor
 	ssh ssh.SSH
@@ -109,6 +113,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		store:                      store,
 		sink:                       sink,
 		adb:                        adb.New(),
+		ios:                        ios.New(),
 		ssh:                        ssh.ExeImpl{},
 		sshMachineLocation:         defaultSSHMachineFileLocation,
 		MachineID:                  machineID,
@@ -121,8 +126,8 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 	}, nil
 }
 
-// interrogate the machine we are running on for state-related information. It compiles that into
-// a machine.Event and returns it.
+// interrogate the machine we are running on for state-related information. Compile that into a
+// machine.Event and return it.
 func (m *Machine) interrogate(ctx context.Context) machine.Event {
 	defer timer.NewWithSummary("interrogate", m.interrogateTimer).Stop()
 
@@ -244,11 +249,14 @@ func (m *Machine) IsRunningSwarmingTask() bool {
 func (m *Machine) RebootDevice(ctx context.Context) error {
 	m.mutex.Lock()
 	shouldRebootAndroid := len(m.description.Dimensions[machine.DimAndroidDevices]) > 0
+	shouldRebootIOS := util.In("iOS", m.description.Dimensions[machine.DimOS])
 	sshUserIP := m.description.SSHUserIP
 	m.mutex.Unlock()
 
 	if shouldRebootAndroid {
 		return m.adb.Reboot(ctx)
+	} else if shouldRebootIOS {
+		return m.ios.Reboot(ctx)
 	} else if sshUserIP != "" {
 		return m.rebootChromeOS(ctx, sshUserIP)
 	}
@@ -293,9 +301,26 @@ func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.An
 	return ret, true
 }
 
-func (m *Machine) tryInterrogatingIOSDevice(_ context.Context) (machine.IOS, bool) {
-	// TODO(erikrose)
-	return machine.IOS{}, false
+// tryInterrogatingIOSDevice attempts to communicate with an attached iOS device. If there is one,
+// this function returns true and the information gathered (which can be partially filled out). If
+// there is not a device attached, it returns false, and the other return value is undefined. If
+// multiple devices are attached, an arbitrary one is chosen.
+func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, bool) {
+	var ret machine.IOS
+
+	if device_type, err := m.ios.DeviceType(ctx); err != nil {
+		return ret, false
+	} else {
+		ret.DeviceType = device_type
+	}
+
+	if os_version, err := m.ios.OSVersion(ctx); err != nil {
+		sklog.Warningf("Failed to read iOS version, though we managed to read the device type: %s", err)
+	} else {
+		ret.OSVersion = os_version
+	}
+
+	return ret, true
 }
 
 var (

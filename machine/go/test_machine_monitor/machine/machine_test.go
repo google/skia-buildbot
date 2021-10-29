@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/test_machine_monitor/adb"
+	"go.skia.org/infra/machine/go/test_machine_monitor/ios"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ssh"
 )
 
@@ -25,6 +26,9 @@ const (
 	dumpSysThermalPlaceholder = "Placeholder dumpsys thermal response"
 	// This formatting matters because it is processed in adb.go
 	adbUptimePlaceholder = "123.4 567.8"
+
+	iOSVersionPlaceholder    = "99.9.9"
+	iOSDeviceTypePlaceholder = "iPhone88,8"
 
 	testUserIP = "root@skia-foobar-01"
 	// This example was taken directly from a production ChromeOS device
@@ -181,10 +185,12 @@ func TestInterrogate_NoDeviceAttached_Success(t *testing.T) {
 	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_ExitCodeOne", // No Android device
+		"Test_FakeExe_ExitCodeOne", // No iOS device
 	)
 
 	m := &Machine{
 		adb:              adb.New(),
+		ios:              ios.New(),
 		MachineID:        "some-machine",
 		Version:          "some-version",
 		runningTask:      true,
@@ -241,6 +247,69 @@ func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 			Uptime:                123 * time.Second,
 		},
 	}, actual)
+}
+
+// Just make sure it can get into tryInterrogatingIOSDevice(), and test success while we're at it.
+// Tests that call tryInterrogatingIOSDevice() directly cover the other cases.
+func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_ExitCodeOne", // no Android attached
+		"Test_FakeExe_IDeviceInfo_ReturnsDeviceType",
+		"Test_FakeExe_IDeviceInfo_ReturnsOSVersion",
+	)
+
+	timePlaceholder := time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC)
+	m := &Machine{
+		adb:              adb.New(),
+		ios:              ios.New(),
+		MachineID:        "some-machine",
+		Version:          "some-version",
+		runningTask:      true,
+		startSwarming:    true,
+		startTime:        timePlaceholder,
+		interrogateTimer: noop.Float64SummaryMetric{},
+	}
+	actual := m.interrogate(ctx)
+	assert.Equal(t, machine.Event{
+		EventType:           machine.EventTypeRawState,
+		LaunchedSwarming:    true,
+		RunningSwarmingTask: true,
+		Host: machine.Host{
+			Name:      "some-machine",
+			Version:   "some-version",
+			StartTime: timePlaceholder,
+		},
+		IOS: machine.IOS{
+			OSVersion:  iOSVersionPlaceholder,
+			DeviceType: iOSDeviceTypePlaceholder,
+		},
+	}, actual)
+}
+
+func TestTryInterrogatingIOSDevice_OSVersionFails_StillSucceeds(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_IDeviceInfo_ReturnsDeviceType",
+		"Test_FakeExe_ExitCodeOne", // OS version check goes kaboom.
+	)
+	m := &Machine{ios: ios.New()}
+	actual, deviceIsAttached := m.tryInterrogatingIOSDevice(ctx)
+	assert.True(t, deviceIsAttached)
+	assert.Equal(t, machine.IOS{
+		OSVersion:  "",
+		DeviceType: iOSDeviceTypePlaceholder,
+	}, actual)
+}
+
+func TestTryInterrogatingIOSDevice_DeviceTypeFails_DeviceConsideredUnattached(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_ExitCodeOne", // Device-type check fails.
+	)
+	m := &Machine{ios: ios.New()}
+	_, deviceIsAttached := m.tryInterrogatingIOSDevice(ctx)
+	assert.False(t, deviceIsAttached)
 }
 
 func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
@@ -345,6 +414,24 @@ func TestRebootDevice_NoErrorIfNoDevicesAttached(t *testing.T) {
 	require.NoError(t, m.RebootDevice(ctx))
 }
 
+func TestRebootDevice_IOSDeviceAttached_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_IDeviceDiagnosticsReboot_Success")
+
+	m := &Machine{
+		ios: ios.New(),
+		description: machine.Description{
+			Dimensions: machine.SwarmingDimensions{
+				machine.DimOS: []string{"iOS", "iOS-1.2.3"},
+			},
+		},
+	}
+
+	require.NoError(t, m.RebootDevice(ctx))
+	assert.Equal(t, 1, executil.FakeCommandsReturned(ctx)) // Make sure it was really called.
+}
+
 func TestRebootDevice_ChromeOSDeviceAttached_Success(t *testing.T) {
 	unittest.MediumTest(t)
 
@@ -432,6 +519,37 @@ func Test_FakeExe_RawDumpSysThermal_ReturnsPlaceholder(t *testing.T) {
 	require.Equal(t, []string{"adb", "shell", "dumpsys", "thermalservice"}, args)
 
 	fmt.Print(dumpSysThermalPlaceholder)
+	os.Exit(0)
+}
+
+func Test_FakeExe_IDeviceInfo_ReturnsDeviceType(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+	require.Equal(t, []string{"ideviceinfo", "-k", "ProductType"}, executil.OriginalArgs())
+
+	fmt.Fprint(os.Stderr, iOSDeviceTypePlaceholder+"\n")
+	os.Exit(0)
+}
+
+func Test_FakeExe_IDeviceInfo_ReturnsOSVersion(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+	require.Equal(t, []string{"ideviceinfo", "-k", "ProductVersion"}, executil.OriginalArgs())
+
+	fmt.Fprint(os.Stderr, iOSVersionPlaceholder+"\n")
+	os.Exit(0)
+}
+
+func Test_FakeExe_IDeviceDiagnosticsReboot_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+	require.Equal(t, []string{"idevicediagnostics", "restart"}, executil.OriginalArgs())
 	os.Exit(0)
 }
 

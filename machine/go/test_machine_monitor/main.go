@@ -1,4 +1,4 @@
-// A command-line application where each sub-command implements a get_* call in test_machine_monitor.py.
+// A command-line application where each sub-command implements a get_* call in bot_config.py
 package main
 
 import (

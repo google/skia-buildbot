@@ -101,7 +101,8 @@ type Description struct {
 	SSHUserIP string
 
 	// SuppliedDimensions are dimensions that we, the humans, supply because they are difficult
-	// for the automated system to gather.
+	// for the automated system to gather. These are used only for ChromeOS devices, which don't
+	// readily report their CPU and GPU.
 	SuppliedDimensions SwarmingDimensions
 
 	// Dimensions describe what hardware/software this machine has and informs what tasks
@@ -171,8 +172,8 @@ type ChromeOS struct {
 }
 
 type IOS struct {
-	// A positive Uptime indicates there is an iOS device attached to the host.
-	Uptime time.Duration `json:"uptime"`
+	OSVersion  string `json:"version"`     // e.g. "13.3.1"
+	DeviceType string `json:"device_type"` // e.g. "iPhone10,1"
 }
 
 // Event is the information a machine should send via Source when
@@ -193,7 +194,5 @@ type Event struct {
 func NewEvent() Event {
 	return Event{
 		EventType: EventTypeRawState,
-		Android:   Android{},
-		Host:      Host{},
 	}
 }
