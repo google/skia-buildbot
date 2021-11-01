@@ -90,6 +90,11 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		return nil, skerr.Wrap(err)
 	}
 
+	// Clean up any lockfiles, in case the process was interrupted.
+	if err := git.DeleteLockFiles(ctx, workdir); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	// Create the Git checkout. DEPS allows the parent repo to be flexibly
 	// located, ie. not necessarily in the root of the workdir, so we can't
 	// rely on GitCheckoutParent to do the right thing.
