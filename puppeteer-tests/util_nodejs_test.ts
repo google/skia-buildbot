@@ -191,36 +191,4 @@ describe('utility functions for Puppeteer tests', async () => {
       );
     });
   });
-
-  describe('startDemoPageServer', () => {
-    // Skip if this test is running from Bazel (e.g. "bazel test ...") because this depends on
-    // Webpack, and the Bazel build does not use Webpack.
-    if (inBazel()) return;
-
-    let baseUrl: string;
-    let stopDemoPageServer: ()=> Promise<void>;
-
-    before(async () => {
-      // Start a demo page server using Perfs's webpack.config.ts file.
-      const pathToPerfWebpackConfigTs = path.join(
-        __dirname,
-        '..',
-        'perf',
-        'webpack.config.ts',
-      );
-      ({ baseUrl, stopDemoPageServer } = await startWebpackDemoPageServer(
-        pathToPerfWebpackConfigTs,
-      ));
-    });
-
-    after(async () => {
-      await stopDemoPageServer();
-    });
-
-    it('should serve a demo page', async () => {
-      // Load day-range-sk-demo.html and perform a basic smoke test on a known page.
-      await page.goto(`${baseUrl}/dist/day-range-sk.html`);
-      expect(await page.$$('day-range-sk')).to.have.length(3);
-    });
-  });
 });

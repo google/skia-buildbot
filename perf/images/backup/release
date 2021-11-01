@@ -4,14 +4,15 @@ APPNAME=perf-cockroachdb-backup
 set -x -e
 
 IMAGE=$(dirname "$0")
+BAZEL_BIN=${IMAGE}/../../../_bazel_bin
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile          ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${IMAGE}/backup.sh           ${ROOT}/backup.sh
-${INSTALL} --mode=755 -T ${GOPATH}/bin/perf-tool      ${ROOT}/usr/local/bin/perf-tool
-${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/skiaperf/configs
-${INSTALL} --mode=644 ./configs/*                     ${ROOT}/usr/local/share/skiaperf/configs
+${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile                                   ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${IMAGE}/backup.sh                                    ${ROOT}/backup.sh
+${INSTALL} --mode=755 -T ${BAZEL_BIN}/perf/go/perf-tool/perf-tool_/perf-tool   ${ROOT}/usr/local/bin/perf-tool
+${INSTALL_DIR} --mode=755                                                      ${ROOT}/usr/local/share/skiaperf/configs
+${INSTALL} --mode=644 ./configs/*                                              ${ROOT}/usr/local/share/skiaperf/configs
 }
 source ../bash/docker_build.sh

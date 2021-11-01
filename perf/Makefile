@@ -1,29 +1,33 @@
 include ../make/bazel.mk
 
-build:
-	$(BAZEL) build ...
+.PHONY: build
+build: ./modules/json/index.ts
+	$(BAZEL) build //perf/... --config=remote
 
-.PHONY: default
-default: ./dist
-	go install -v ./go/...
-
+.PHONY: docs
 docs:
 	go install ./go/perf-tool ./go/perfserver
 	perf-tool markdown > PERFTOOL.md
 	perfserver markdown > PERFSERVER.md
 
-build: ./dist
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/perfserver ./go/perf-tool
+.PHONY: release
+release: build
 	./images/perfserver/release
 
-push: build
+.PHONY: push
+push: release
 	pushk perfserver
 
+.PHONY: build_backup
 build_backup:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/perf-tool
+	$(BAZEL) build //perf/go/perf-tool/... --config=remote
+
+.PHONY: release_backup
+release_backup: build_backup
 	./images/backup/release
 
-push_backup: build_backup
+.PHONY: push_backup
+push_backup: release_backup
 	pushk perf-cockroachdb-backup
 
 # First create a list of all the modules that ./go/ts depends upon.
@@ -35,20 +39,105 @@ tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '
 ./modules/json/index.ts: $(tsDependentFiles)
 	go generate ./go/ts
 
-MODULES = $(shell find ./modules -type f)
+.PHONY: test
+test:
+	$(BAZEL) test //perf/... --config=remote
 
-# We can depend on the timestamp of the dist directory since webpack will delete
-# the directory before repopulating it.
-./dist: $(MODULES) ./modules/json/index.ts npm-ci
-	npx webpack-cli --mode=production
+.PHONY: demo_alert-config-sk
+demo_alert-config-sk:
+	$(BAZEL) run //perf/modules/alert-config-sk:demo_page_server
 
-watch: npm-ci
-	npx webpack --mode=development --watch
+.PHONY: demo_alerts-page-sk
+demo_alerts-page-sk:
+	$(BAZEL) run //perf/modules/alerts-page-sk:demo_page_server
 
-.PHONY: testjs
-testjs: npm-ci
-	# Run the generated tests just once under Xvfb.
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+.PHONY: demo_algo-select-sk
+demo_algo-select-sk:
+	$(BAZEL) run //perf/modules/algo-select-sk:demo_page_server
+
+.PHONY: demo_calendar-input-sk
+demo_calendar-input-sk:
+	$(BAZEL) run //perf/modules/calendar-input-sk:demo_page_server
+
+.PHONY: demo_calendar-sk
+demo_calendar-sk:
+	$(BAZEL) run //perf/modules/calendar-sk:demo_page_server
+
+.PHONY: demo_cluster-lastn-page-sk
+demo_cluster-lastn-page-sk:
+	$(BAZEL) run //perf/modules/cluster-lastn-page-sk:demo_page_server
+
+.PHONY: demo_cluster-page-sk
+demo_cluster-page-sk:
+	$(BAZEL) run //perf/modules/cluster-page-sk:demo_page_server
+
+.PHONY: demo_cluster-summary2-sk
+demo_cluster-summary2-sk:
+	$(BAZEL) run //perf/modules/cluster-summary2-sk:demo_page_server
+
+.PHONY: demo_commit-detail-panel-sk
+demo_commit-detail-panel-sk:
+	$(BAZEL) run //perf/modules/commit-detail-panel-sk:demo_page_server
+
+.PHONY: demo_commit-detail-picker-sk
+demo_commit-detail-picker-sk:
+	$(BAZEL) run //perf/modules/commit-detail-picker-sk:demo_page_server
+
+.PHONY: demo_commit-detail-sk
+demo_commit-detail-sk:
+	$(BAZEL) run //perf/modules/commit-detail-sk:demo_page_server
+
+.PHONY: demo_day-range-sk
+demo_day-range-sk:
+	$(BAZEL) run //perf/modules/day-range-sk:demo_page_server
+
+.PHONY: demo_domain-picker-sk
+demo_domain-picker-sk:
+	$(BAZEL) run //perf/modules/domain-picker-sk:demo_page_server
+
+.PHONY: demo_json-source-sk
+demo_json-source-sk:
+	$(BAZEL) run //perf/modules/json-source-sk:demo_page_server
+
+.PHONY: demo_perf-scaffold-sk
+demo_perf-scaffold-sk:
+	$(BAZEL) run //perf/modules/perf-scaffold-sk:demo_page_server
+
+.PHONY: demo_plot-simple-sk
+demo_plot-simple-sk:
+	$(BAZEL) run //perf/modules/plot-simple-sk:demo_page_server
+
+.PHONY: demo_query-chooser-sk
+demo_query-chooser-sk:
+	$(BAZEL) run //perf/modules/query-chooser-sk:demo_page_server
+
+.PHONY: demo_query-count-sk
+demo_query-count-sk:
+	$(BAZEL) run //perf/modules/query-count-sk:demo_page_server
+
+.PHONY: demo_triage-page-sk
+demo_triage-page-sk:
+	$(BAZEL) run //perf/modules/triage-page-sk:demo_page_server
+
+.PHONY: demo_triage-status-sk
+demo_triage-status-sk:
+	$(BAZEL) run //perf/modules/triage-status-sk:demo_page_server
+
+.PHONY: demo_triage2-sk
+demo_triage2-sk:
+	$(BAZEL) run //perf/modules/triage2-sk:demo_page_server
+
+.PHONY: demo_tricon2-sk
+demo_tricon2-sk:
+	$(BAZEL) run //perf/modules/tricon2-sk:demo_page_server
+
+.PHONY: demo_trybot-page-sk
+demo_trybot-page-sk:
+	$(BAZEL) run //perf/modules/trybot-page-sk:demo_page_server
+
+.PHONY: demo_word-cloud-sk
+demo_word-cloud-sk:
+	$(BAZEL) run //perf/modules/word-cloud-sk:demo_page_server
 
 # Increase Node's heap size to accommodate for ts-node's higher memory usage.
 NODE_MEMORY_LIMIT=4096
@@ -57,54 +146,21 @@ NODE_MEMORY_LIMIT=4096
 testpptr: npm-ci
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
-.PHONY: test
-test: testgo testjs testpptr
-
-.PHONY: testgo
-testgo:
-	go test ./go/...
-
-.PHONY: debug
-debug: npm-ci
-	npx webpack-cli --mode=development
-
-.PHONY: all # For ../Makefile 'all' target.
-all: npm-ci
-	go install -v ./go/...
-	npx webpack-cli --mode=production
-
-start_pubsub_emulator:
-	docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
-		  --project test-project --host-port 0.0.0.0:8010
-
-start_cockroachdb_emulator:
-	cd /tmp; cockroach start-single-node --insecure  --listen-addr=127.0.0.1
-
-.PHONY: build-frontend-ci
-build-frontend-ci: npm-ci
-	npx webpack --mode=production
-
-.PHONY: test-frontend-ci
-test-frontend-ci: npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
-
-build-remote:
-	$(BAZEL) build //perf/... --config=remote
-
-# Presumes you've already run:
+# Presumes you've already run: make build kubectl port-forward
+#   perf-cockroachdb-0 25000:26257
 #
-#   kubectl port-forward perf-cockroachdb-0 25000:26257
-#
+# Run "bazel build //perf/..." after making any frontend changes to pick up the
+# change without restarting the golang server.
 run-local-instance:
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
-	    --local \
+		--local \
 		--do_clustering=false \
 		--port=:8001 \
 		--noemail \
-	    --config_filename=./configs/cdb-nano.json \
+		--config_filename=./configs/cdb-nano.json \
 		--num_continuous_parallel=1 \
 		--display_group_by=true \
-		--resources_dir=../_bazel_bin/perf/pages/production/ \
+		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:25000/skia?sslmode=disable
 
 include ../make/npm.mk

@@ -15,10 +15,6 @@ sharedgo:
 #golden:
 #	cd golden && $(MAKE) all
 
-.PHONY: perf
-perf:
-	cd perf && $(MAKE) all
-
 .PHONY: autoroll
 autoroll:
 	cd autoroll && $(MAKE) all
@@ -57,7 +53,7 @@ task_scheduler:
 
 # This target is invoked by the Infra-PerCommit-Build tryjob.
 .PHONY: all
-all: infra-sk autoroll datahopper perf sharedgo cq_watcher status task_scheduler build-frontend-ci
+all: infra-sk autoroll datahopper sharedgo cq_watcher status task_scheduler build-frontend-ci
 
 .PHONY: tags
 tags:
@@ -98,7 +94,6 @@ build-frontend-ci: npm-ci
 	cd jsfiddle && $(MAKE) build-frontend-ci
 	cd new_element && $(MAKE) build-frontend-ci
 	cd particles && $(MAKE) build-frontend-ci
-	cd perf && $(MAKE) build-frontend-ci
 	cd pulld && $(MAKE) build-frontend-ci
 	cd push && $(MAKE) build-frontend-ci
 	cd scrap && $(MAKE) build-frontend-ci
@@ -118,7 +113,6 @@ test-frontend-ci: npm-ci
 	cd fiddlek && $(MAKE) test-frontend-ci
 	cd infra-sk && $(MAKE) test-frontend-ci
 	cd new_element && $(MAKE) test-frontend-ci
-	cd perf && $(MAKE) test-frontend-ci
 	cd puppeteer-tests && $(MAKE) test-frontend-ci
 	cd push && $(MAKE) test-frontend-ci
 	cd scrap && $(MAKE) test-frontend-ci
