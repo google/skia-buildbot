@@ -19,16 +19,17 @@ def skia_app_container(
                         root will be the default user here. Will be created only
                         if run_commands_root is specified.
     * "push_<name>" target to push the container to GCR.
+    * "pushk_<name>" target to push the container to GCR, and deploy <name> to production via pushk.
 
     Example:
 
-    ````
+    ```
         # //myapp/BUILD.bazel
 
         load("//bazel:skia_app_container.bzl", "skia_app_container")
 
         skia_app_container(
-            name = "myapp_container",
+            name = "myapp",
             dirs = {
                 "/usr/local/bin/myapp": [
                     ["//myapp/go:mybinary", 755"],
@@ -41,7 +42,7 @@ def skia_app_container(
             entrypoint = "/usr/local/bin/myapp/mybinary",
             repository = "skia-public/myapp",
         )
-    ````
+    ```
 
     The above example will produce a Docker container based on gcr.io/skia-public/basealpine with
     the following contents:
@@ -52,32 +53,38 @@ def skia_app_container(
 
     To build the container and load it into Docker:
 
-    ````
-        $ bazel run //myapp:myapp_container
+    ```
+        $ bazel run //myapp:myapp
         ...
         Loaded image ID: sha256:c0decafe
-        Tagging c0decafe as bazel/myapp:myapp_container
-    ````
+        Tagging c0decafe as bazel/myapp:myapp
+    ```
 
     To debug the container locally:
 
     ```
-        $ docker run bazel/myapp:myapp_container
-        $ docker run -it --entrypoint /bin/sh bazel/myapp:myapp_container
+        $ docker run bazel/myapp:myapp
+        $ docker run -it --entrypoint /bin/sh bazel/myapp:myapp
     ```
 
     To push the container to GCR:
 
     ```
-        $ bazel run //myapp:push_myapp_container
+        $ bazel run //myapp:push_myapp
         ...
         Successfully pushed Docker image to gcr.io/skia-public/myapp:...
     ```
 
-    To push the app to production (assuming the app is pushk-enabled):
+    To push the app to production (assuming the app is compatible with pushk):
 
     ```
-        $ bazel run //myapp:push_myapp_container
+        $ bazel run //myapp:pushk_myapp
+    ```
+
+    Which is equivalent to:
+
+    ```
+        $ bazel run //myapp:push_myapp
         $ pushk myapp
     ```
 
@@ -176,5 +183,39 @@ def skia_app_container(
             # container_push requires the docker daemon to be
             # running. This is not possible inside RBE.
             "no-remote",
+        ],
+    )
+
+    # The container_push rule outputs two files: <name>, which is a script that uploads the
+    # container to GCR, and <name>.digest, which contains the SHA256 digest of the container.
+    #
+    # Because the container_push rule outputs multiple files, we cannot use $$(rootpath push_<name>)
+    # to get the path to <name>, so we use $$(rootpaths push_<name>), which returns the list of all
+    # output files, then take the base directory of an arbitrary file, and append <name> to it to
+    # get the path to the desired script.
+    pushk_script = "\n".join([
+        "container_push_outputs=($(rootpaths push_%s))",
+        "container_push_base_dir=$$(dirname $${container_push_outputs[0]})",
+        "container_push_script=$${container_push_base_dir}/push_%s",
+        "",
+        "$$container_push_script && $(rootpath //kube/go/pushk) %s",
+    ]) % (name, name, name)
+
+    native.genrule(
+        name = "gen_pushk_" + name,
+        srcs = [
+            "push_" + name,
+            "//kube/go/pushk",
+        ],
+        outs = ["pushk_%s.sh" % name],
+        cmd = "echo '%s' > $@" % pushk_script,
+    )
+
+    native.sh_binary(
+        name = "pushk_" + name,
+        srcs = ["gen_pushk_" + name],
+        data = [
+            "push_" + name,
+            "//kube/go/pushk",
         ],
     )

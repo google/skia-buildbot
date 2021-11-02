@@ -21,6 +21,10 @@ go_library(
 
 go_binary(
     name = "pushk",
+    data = [
+        "//kube:attach.sh",
+        "//kube/clusters:config.json",
+    ],
     embed = [":pushk_lib"],
     visibility = ["//visibility:public"],
 )
