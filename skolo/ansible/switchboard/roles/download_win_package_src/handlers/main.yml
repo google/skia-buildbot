@@ -1,0 +1,5 @@
+- name: clean_up_tempdir
+  delegate_to: 127.0.0.1
+  file:
+    path: '{{ win_package_src_dir.path }}'
+    state: absent

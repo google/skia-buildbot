@@ -1,0 +1,115 @@
+# This file is based on
+# https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/skolo-settings.yml.
+
+- name: Fail if platform unsupported.
+  fail:
+    msg: This role is Windows-only.
+  when: ansible_facts['system']|lower not in ['win32nt']
+
+- name: Set time zone to EST
+  win_timezone:
+    timezone: Eastern Standard Time
+
+- name: Ensure Windows time service is started
+  # Omitting this task causes the w32tm command below to fail with "The service has not been
+  # started." I'm not sure why the w32time service is not started automatically -- maybe it only
+  # starts after login?
+  win_service:
+    name: w32time
+    state: started
+
+- name: Set NTP server
+  # This assumes default router setup per
+  # https://docs.google.com/document/d/1yFoVSqFgIHZgUZmLt7FeydyeOEYULmYGXsJlyqP6GQ4/edit#heading=h.c3io3a4viw51
+  # Doc for w32tm is here: https://technet.microsoft.com/en-us/library/bb491016.aspx
+  win_command: w32tm /config /update /manualpeerlist:192.168.1.1 /syncfromflags:MANUAL
+
+- name: Restart Windows time service to pick up new config
+  win_service:
+    name: w32time
+    state: restarted
+
+- name: Force NTP resync
+  win_command: w32tm /resync /rediscover
+
+- name: Create Temp
+  win_file:
+    path: c:\Temp
+    state: directory
+
+- name: Copy skolo.pow to host
+  # The skolo.pow file was created by configuring a machine as desired, then:
+  # > powercfg -list
+  # ... Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c  (High performance) * ...
+  # > powercfg -changename 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+  #     Skolo "High performance and never sleep."
+  # > powercfg -export skolo.pow 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+  win_copy:
+    src: "{{ win_package_src }}/skolo.pow"
+    dest: c:\Temp\skolo.pow
+
+- name: Import Skolo power settings
+  win_command: powercfg -import c:\Temp\skolo.pow
+  register: powercfg_out
+
+- name: Activate Skolo power settings
+  win_command: "powercfg -setactive {{ powercfg_out.stdout |
+    regex_replace('^.*GUID: ([-0-9a-f]+)$', '\\1') }}"
+
+- name: Cleanup skolo.pow
+  win_file:
+    path: c:\Temp\skolo.pow
+    state: absent
+
+# For unknown reasons, occasionally Windows will have trouble logging in and say "We can't sign in
+# to your account." When this happens, the Default profile is used instead. Despite many attempts,
+# I have not found a way to avoid this problem; instead, just reboot when the Default profile
+# opens.
+
+- name: Read the default Startup folder path from the registry
+  win_reg_stat:
+    path: HKU:\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders
+    name: Startup
+  # Looks like: "%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup".
+  register: startup_folder
+
+- name: Read Default profile's home directory from the registry
+  win_reg_stat:
+    path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList
+    name: Default
+  # Looks like: "C:\Users\Default".
+  register: default_user_home_folder
+
+- name: Compute the Default profile's Startup folder
+  set_fact:
+    # Looks like: "C:\Users\Default\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup".
+    win_default_profile_startup_path:  "{{ startup_folder['raw_value'] | replace('%USERPROFILE%', default_user_home_folder['value']) }}"
+
+- name: Create Default profile Startup folder
+  win_file:
+    path: "{{ win_default_profile_startup_path }}"
+    state: directory
+
+- name: Copy default-profile-auto-reboot.bat to Default profile Startup folder
+  win_copy:
+    src: files/default-profile-auto-reboot.bat
+    dest: "{{ win_default_profile_startup_path }}"
+
+# The following two tasks were extracted from
+# https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/windows-update.yml.
+
+# Unlike Windows Server, Windows Defender can not be uninstalled on Windows 10. Windows also
+# tends to re-enable it if it's disabled. Instead we exclude the entire drive from scanning and
+# disable specific features. Docs here:
+# https://docs.microsoft.com/en-us/powershell/module/defender/Set-MpPreference?view=win10-ps
+- name: Disable Windows Defender
+  win_shell: "Set-MpPreference -ExclusionPath C:\\ -DisableBehaviorMonitoring $True
+    -DisableBlockAtFirstSeen $True -DisableIOAVProtection $True
+    -DisableIntrusionPreventionSystem $True -DisableRealtimeMonitoring $True
+    -MAPSReporting Disabled -PUAProtection Disabled"
+
+- name: Disable disk indexing
+  win_service:
+    name: WSearch
+    start_mode: disabled
+    state: stopped

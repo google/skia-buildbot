@@ -5,6 +5,7 @@
     test_machine_monitor_version_override: ''
 
   roles:
+    - set_win_skolo_settings
     - copy_authorized_keys
     - copy_service_account_key
     - swarming_needs
