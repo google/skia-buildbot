@@ -1,0 +1,87 @@
+# This file is based on
+# https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/windows-update.yml.
+
+- name: Fail if platform unsupported.
+  fail:
+    msg: This role is Windows-only.
+  when: ansible_facts['system']|lower not in ['win32nt']
+
+- name: Enable deferring feature updates in Windows Update
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState
+    name: "DeferFeatureUpdates"
+    data: 1
+    type: dword
+
+- name: Set deferral period for feature updates to 365 in Windows Update UpdatePolicy
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState
+    name: "FeatureUpdatesDeferralInDays"
+    data: 365
+    type: dword
+
+- name: Set deferral period for feature updates to 365 in Windows Update UX Settings
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings
+    name: "DeferFeatureUpdatesPeriodInDays"
+    data: 365
+    type: dword
+
+# We do not defer quality updates because they rarely cause problems.
+- name: Disable deferring quality updates in Windows Update
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState
+    name: "DeferQualityUpdates"
+    data: 0
+    type: dword
+
+- name: Set deferral period for quality updates to 0 in Windows Update UpdatePolicy
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState
+    name: "QualityUpdatesDeferralInDays"
+    data: 0
+    type: dword
+
+- name: Set deferral period for quality updates to 0 in Windows Update UX Settings
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings
+    name: "DeferQualityUpdatesPeriodInDays"
+    data: 0
+    type: dword
+
+# Exclude driver updates.  None of these are guaranteed to work, westont@
+# currently testing on half the machines.
+- name: Exclude driver updates in Windows Update 0
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Update
+    name: "ExcludeWUDriversInQualityUpdate"
+    data: 1
+    type: dword
+
+- name: Exclude driver updates in Windows Update 1
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Update
+    name: "ExcludeWUDriversInQualityUpdate"
+    data: 1
+    type: dword
+
+- name: Exclude driver updates in Windows Update 2
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings
+    name: "ExcludeWUDriversInQualityUpdate"
+    data: 1
+    type: dword
+
+- name: Exclude driver updates in Windows Update 3
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate
+    name: "ExcludeWUDriversInQualityUpdate"
+    data: 1
+    type: dword
+
+- name: Exclude driver updates in Windows Update 4
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Update\ExcludeWUDriversInQualityUpdate
+    name: "value"
+    data: 1
+    type: dword
