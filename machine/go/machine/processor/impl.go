@@ -209,10 +209,12 @@ func handleRecoveryMode(ctx context.Context, previous, current machine.Descripti
 		maintenanceModeMetric.Update(0)
 	}
 
+	recoveryTimeMetric := metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", current.Dimensions.AsMetricsTags())
 	if current.Mode == machine.ModeRecovery {
 		// Report time in recovery mode as a metric.
-		recoveryTimeMetric := metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", current.Dimensions.AsMetricsTags())
 		recoveryTimeMetric.Update(int64(now.Now(ctx).Sub(current.RecoveryStart).Seconds()))
+	} else {
+		recoveryTimeMetric.Update(0)
 	}
 
 	// Record the quarantined state in a metric.

@@ -723,6 +723,7 @@ func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *tes
 	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
 	assert.Equal(t, 95, next.Battery)
+	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", next.Dimensions.AsMetricsTags()).Get())
 }
 
 func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
