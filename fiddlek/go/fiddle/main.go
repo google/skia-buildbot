@@ -306,9 +306,7 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	id := mux.Vars(r)["id"]
 	fiddleHash, media, err := names.DereferenceImageID(id)
-	if fiddleHash == id {
-		w.Header().Add("Cache-Control", "max-age=36000")
-	}
+	w.Header().Add("Cache-Control", "max-age=300")
 	if err != nil {
 		http.NotFound(w, r)
 		sklog.Errorf("Invalid id: %s", err)
@@ -348,7 +346,7 @@ func sourceHandler(w http.ResponseWriter, r *http.Request) {
 		sklog.Errorf("Unknown source id %s", id)
 		return
 	}
-	w.Header().Add("Cache-Control", "max-age=360000")
+	w.Header().Add("Cache-Control", "max-age=300")
 	w.Header().Set("Content-Type", "image/png")
 	if _, err := w.Write(b); err != nil {
 		sklog.Errorf("Failed to write image: %s", err)
