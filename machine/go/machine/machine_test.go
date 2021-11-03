@@ -4,8 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -53,4 +55,42 @@ func TestCopy(t *testing.T) {
 	in.Dimensions["baz"] = []string{"quux"}
 	in.Dimensions["alpha"][0] = "zeta"
 	require.NotEqual(t, in, out)
+}
+
+func TestAsMetricsTags_EmptyDimensions_ReturnsEmptyTags(t *testing.T) {
+	unittest.SmallTest(t)
+	emptyTags := map[string]string{
+		DimID:         "",
+		DimOS:         "",
+		DimDeviceType: "",
+	}
+	assert.Equal(t, emptyTags, SwarmingDimensions{}.AsMetricsTags())
+}
+
+func TestAsMetricsTags_MultipleValues_ReturnsTagsWithMostSpecificValues(t *testing.T) {
+	unittest.SmallTest(t)
+	expected := map[string]string{
+		DimID:         "",
+		DimOS:         "iOS-13.6",
+		DimDeviceType: "",
+	}
+	assert.Equal(t, expected, SwarmingDimensions{"os": []string{"iOS", "iOS-13.6"}}.AsMetricsTags())
+}
+
+func TestNewEvent(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, EventTypeRawState, NewEvent().EventType)
+}
+
+func TestNewDescription(t *testing.T) {
+	unittest.SmallTest(t)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+	ctx := now.TimeTravelingContext(serverTime)
+	actual := NewDescription(ctx)
+	expected := Description{
+		Mode:        ModeAvailable,
+		Dimensions:  SwarmingDimensions{},
+		LastUpdated: serverTime,
+	}
+	assert.Equal(t, expected, actual)
 }

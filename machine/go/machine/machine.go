@@ -23,6 +23,26 @@ func (s SwarmingDimensions) Copy() SwarmingDimensions {
 	return n
 }
 
+func (s SwarmingDimensions) getDimensionValueOrEmptyString(key string) string {
+	if values, ok := s[key]; ok {
+		return values[len(values)-1]
+	}
+	return ""
+}
+
+// AsMetricsTags returns a map that is suitable to pass as tags for a metric.
+//
+// If there are multiple values for a key only the most specific value us used.
+func (s SwarmingDimensions) AsMetricsTags() map[string]string {
+	// Note that all metrics with the same name must have the exact same set of
+	// tag keys so we can't just stuff all the Dimensions into the tags.
+	return map[string]string{
+		DimID:         s.getDimensionValueOrEmptyString(DimID),
+		DimOS:         s.getDimensionValueOrEmptyString(DimOS),
+		DimDeviceType: s.getDimensionValueOrEmptyString(DimDeviceType),
+	}
+}
+
 // Well known swarming dimensions.
 const (
 	DimID                     = "id"

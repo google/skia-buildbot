@@ -15,7 +15,9 @@ go_test(
     embed = [":machine"],
     deps = [
         "//go/deepequal/assertdeep",
+        "//go/now",
         "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],
 )

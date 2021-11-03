@@ -201,17 +201,22 @@ func handleRecoveryMode(ctx context.Context, previous, current machine.Descripti
 		current.Annotation.User = machineUserName
 	}
 
-	machineID := current.Dimensions[machine.DimID][0]
 	// This refers to Swarming's maintenance mode, not machineserver's:
-	maintenanceModeMetric := metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": machineID})
+	maintenanceModeMetric := metrics2.GetInt64Metric("machine_processor_device_maintenance", current.Dimensions.AsMetricsTags())
 	if shouldBeRecovering {
 		maintenanceModeMetric.Update(1)
 	} else {
 		maintenanceModeMetric.Update(0)
 	}
 
+	if current.Mode == machine.ModeRecovery {
+		// Report time in recovery mode as a metric.
+		recoveryTimeMetric := metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", current.Dimensions.AsMetricsTags())
+		recoveryTimeMetric.Update(int64(now.Now(ctx).Sub(current.RecoveryStart).Seconds()))
+	}
+
 	// Record the quarantined state in a metric.
-	quarantinedMetric := metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": machineID})
+	quarantinedMetric := metrics2.GetInt64Metric("machine_processor_device_quarantined", current.Dimensions.AsMetricsTags())
 	if len(current.Dimensions[machine.DimQuarantined]) > 0 {
 		quarantinedMetric.Update(1)
 	} else {

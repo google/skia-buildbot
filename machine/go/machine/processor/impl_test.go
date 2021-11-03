@@ -342,7 +342,7 @@ func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 
 	assert.Equal(t, expected, next.Dimensions)
 	assert.Equal(t, machine.ModeMaintenance, next.Mode)
-	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": "skia-rpi2-0001"}).Get())
+	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", next.Dimensions.AsMetricsTags()).Get())
 }
 
 func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
@@ -405,7 +405,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		Battery:            badBatteryLevel,
 	}, next)
 
-	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": "skia-rpi2-0001"}).Get())
+	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", next.Dimensions.AsMetricsTags()).Get())
 }
 
 func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
@@ -462,7 +462,51 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 	}, next)
 
 	assert.Equal(t, int64(9), metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": "skia-rpi2-0001"}).Get())
-	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": "skia-rpi2-0001"}).Get())
+	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", next.Dimensions.AsMetricsTags()).Get())
+	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", next.Dimensions.AsMetricsTags()).Get())
+}
+
+func TestProcess_DeviceStillInRecoveryMode_MetricReportsTimeInRecovery(t *testing.T) {
+	unittest.SmallTest(t)
+
+	startRecoveryTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	ctx := now.TimeTravelingContext(serverTime)
+
+	previous := machine.NewDescription(ctx)
+	previous.RecoveryStart = startRecoveryTime
+	previous.Mode = machine.ModeRecovery
+
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-rpi2-0001",
+			StartTime: bootUpTime,
+		},
+		Android: machine.Android{
+			Uptime: 10,
+			DumpsysBattery: `Current Battery Service state:
+  AC powered: true
+  USB powered: false
+  Wireless powered: false
+  Max charging current: 1500000
+  Max charging voltage: 5000000
+  Charge counter: 2448973
+  status: 2
+  health: 2
+  present: true
+  level: 9
+  scale: 100
+  voltage: 4248`,
+		},
+	}
+
+	p := newProcessorForTest()
+	next := p.Process(ctx, previous, event)
+
+	assert.Equal(t, int64(serverTime.Sub(startRecoveryTime).Seconds()), metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", next.Dimensions.AsMetricsTags()).Get())
 }
 
 func TestProcess_RecoveryModeIfDeviceTooHot(t *testing.T) {
@@ -541,7 +585,9 @@ Current cooling devices from HAL:
 	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
 
 	assert.Equal(t, float64(44.1), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "cpu1-silver-usr"}).Get())
-	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": "skia-rpi2-0001"}).Get())
+	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", next.Dimensions.AsMetricsTags()).Get())
+	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", next.Dimensions.AsMetricsTags()).Get())
+
 }
 
 func TestProcess_RecoveryModeIfDeviceTooHotAndBatteryIsTooLow(t *testing.T) {
@@ -633,7 +679,8 @@ Current cooling devices from HAL:
 	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
 
 	assert.Equal(t, float64(44.1), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "cpu1-silver-usr"}).Get())
-	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": "skia-rpi2-0001"}).Get())
+	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", next.Dimensions.AsMetricsTags()).Get())
+	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", next.Dimensions.AsMetricsTags()).Get())
 }
 
 func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
