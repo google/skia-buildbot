@@ -1,0 +1,54 @@
+# This file is based on
+# https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/nvidia-graphics-driver.yml.
+
+# Install NVIDIA Graphics Driver.
+
+- name: Create Temp
+  win_file:
+    path: C:\Temp
+    state: directory
+
+# The NVIDIA driver Uses the same product_id for multiple versions, so win_package doesn't work.
+- name: Copy the NVIDIA driver EXE to the host
+  win_copy:
+    src: "{{ win_package_src }}/NVIDIA Graphics 441.20-desktop-win10-64bit-international-whql-rp.exe"
+    dest: C:\Temp\nvidia_gfx.exe
+
+- name: Install NVIDIA Graphics Driver
+  # -s means silently install (discovered by guess-and-check).
+  # Note that in previous versions this would only extract the driver; see git history if this
+  # behavior reverts.
+  win_command: C:\Temp\nvidia_gfx.exe -s
+  register: setup_result
+  ignore_errors: True
+
+- when: setup_result is failed
+  # Sometimes the NVIDIA installer returns a non-zero exit code for unknown reason. Sometimes it
+  # reboots the machine (even when we use the -noreboot option mentioned here:
+  # https://lazyadmin.nl/it/deploy-nvidia-drivers/).
+  block:
+    # In the case of a non-zero exit code, usually rebooting and retrying allows the installer to
+    # succeed.
+    - name: Reboot host after NVIDIA Graphics Driver failed
+      win_reboot:
+      # If the installer rebooted the machine, this will fail because Ansible isn't able to
+      # connect.
+      ignore_errors: True
+    # If the NVIDIA installer rebooted the machine, we need to wait for it to come back before
+    # continuing.
+    - name: Wait for connection after NVIDIA Graphics Driver failed
+      wait_for_connection:
+        # Only wait for 3 minutes before failing. (Default is 10 min.)
+        timeout: 180
+    - name: Retry install NVIDIA Graphics Driver
+      win_command: C:\Temp\nvidia_gfx.exe -s
+
+- name: Cleanup NVIDIA
+  win_file:
+    path: C:\NVIDIA
+    state: absent
+
+- name: Cleanup EXE
+  win_file:
+    path: C:\Temp\nvidia_gfx.exe
+    state: absent

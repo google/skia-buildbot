@@ -6,6 +6,7 @@
 
   roles:
     - set_win_skolo_settings
+    - install_win_gpu_drivers
     - copy_authorized_keys
     - copy_service_account_key
     - swarming_needs

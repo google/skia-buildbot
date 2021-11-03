@@ -1,0 +1,38 @@
+# This file is based on
+# https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/intel-graphics-driver-skylake.yml.
+
+# Install Intel Graphics Driver for Skylake and later GPUs.
+
+- name: Create Temp
+  win_file:
+    path: C:\Temp
+    state: directory
+
+# For v25.20.100.6519, the Intel driver download page only has a ZIP available. If we want to
+# switch back to using the EXE in the future, see git history.
+- name: Copy the Intel Graphics Driver Skylake ZIP to the host
+  win_copy:
+    src: "{{ win_package_src }}/Intel Graphics Skylake igfx_win10_100.7463.zip"
+    dest: C:\Temp\intel_gfx.zip
+
+- name: Extract the Intel Graphics Skylake driver ZIP
+  win_unzip:
+    src: C:\Temp\intel_gfx.zip
+    dest: C:\Temp\Intel
+
+# The Intel driver uses the same product_id for multiple versions, so win_package doesn't work.
+- name: Install Intel Graphics Driver for Skylake and later
+  # See https://www.intel.com/content/www/us/en/support/articles/000006773/graphics-drivers.html
+  # The "-overwrite" option allows downgrading the driver if a newer one is already installed for
+  # some reason (e.g. Windows Update). "-s" means silent.
+  win_command: C:\Temp\Intel\igxpin.exe -overwrite -s
+
+- name: Cleanup Intel
+  win_file:
+    path: C:\Temp\Intel
+    state: absent
+
+- name: Cleanup ZIP
+  win_file:
+    path: C:\Temp\intel_gfx.zip
+    state: absent

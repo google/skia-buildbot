@@ -1,0 +1,34 @@
+# This file is based on
+# https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/radeon-graphics-driver.yml.
+
+# Install Radeon Graphics Driver.
+
+- name: Create Temp
+  win_file:
+    path: C:\Temp
+    state: directory
+
+# This zip was created by opening the self-extracting exe using Archive Manager on Debian and
+# re-zipping the extracted files as a ZIP archive ("Save As").
+- name: Copy the Radeon driver ZIP to the host
+  win_copy:
+    src: "{{ win_package_src }}/\
+      Radeon Graphics win10-64bit-radeon-software-adrenalin-2019-edition-19.11.3-nov18.zip"
+    dest: C:\Temp\radeon_gfx.zip
+
+- name: Extract the Radeon driver ZIP
+  win_unzip:
+    src: C:\Temp\radeon_gfx.zip
+    dest: C:\Temp\Radeon
+    delete_archive: yes
+
+- name: Install Radeon Graphics Driver
+  # Silent install args based on info displayed for "Setup.exe /?".
+  # TODO(dogben): The graphics driver seems to install OK, but there are errors for other
+  # components. Need to investigate more.
+  win_command: C:\Temp\Radeon\Setup.exe -INSTALL
+
+- name: Cleanup
+  win_file:
+    path: C:\Temp\Radeon
+    state: absent

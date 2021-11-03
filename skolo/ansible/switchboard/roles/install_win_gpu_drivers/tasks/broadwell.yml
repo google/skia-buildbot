@@ -1,0 +1,26 @@
+# This file is based on
+# https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/intel-graphics-driver-broadwell.yml.
+
+# Install Intel Graphics Driver for Broadwell and earlier GPUs.
+
+- name: Create Temp
+  win_file:
+    path: C:\Temp
+    state: directory
+
+# The Intel driver uses the same product_id for multiple versions, so win_package doesn't work.
+- name: Copy the Intel Graphics Driver EXE to the host
+  win_copy:
+    src: "{{ win_package_src }}/Intel Graphics Broadwell win64_15.40.38.4963.exe"
+    dest: C:\Temp\intel_gfx.exe
+
+- name: Install Intel Graphics Driver for Broadwell and earlier
+  # See https://www.intel.com/content/www/us/en/support/articles/000006773/graphics-drivers.html
+  # The "-overwrite" option allows downgrading the driver if a newer one is already installed for
+  # some reason (e.g. Windows Update).
+  win_command: C:\Temp\intel_gfx.exe -s -A -overwrite -s
+
+- name: Cleanup
+  win_file:
+    path: C:\Temp\intel_gfx.exe
+    state: absent
