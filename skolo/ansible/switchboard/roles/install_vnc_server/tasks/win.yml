@@ -1,0 +1,25 @@
+# This file is basead on
+# https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/vnc-server.yml.
+
+# Install TightVNC server.
+- name: Create Temp
+  win_file:
+    path: C:\Temp
+    state: directory
+
+- name: Copy the TightVNC MSI to the host
+  win_copy:
+    src: "{{ win_package_src }}/tightvnc-2.8.11-gpl-setup-64bit.msi"
+    dest: C:\Temp\tightvnc.msi
+
+- name: Install TightVNC
+  win_package:
+    path: C:\Temp\tightvnc.msi
+    # https://www.tightvnc.com/doc/win/TightVNC_2.7_for_Windows_Installing_from_MSI_Packages.pdf
+    arguments: SET_PASSWORD=1 VALUE_OF_PASSWORD={{ secrets.skolo_password }}
+    state: present
+
+- name: Cleanup
+  win_file:
+    path: C:\Temp\tightvnc.msi
+    state: absent

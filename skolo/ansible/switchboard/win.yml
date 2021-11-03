@@ -14,3 +14,4 @@
       test_machine_monitor_version:
         '{{ test_machine_monitor_version_override }}'
     - install_win_graphics_tools
+    - install_vnc_server

@@ -1,0 +1,8 @@
+- name: Install VNC server for Windows.
+  import_tasks: win.yml
+  when: ansible_facts['system']|lower == "win32nt"
+
+- name: Other platforms.
+  fail:
+    msg: This system isn't supported, please add support.
+  when: ansible_facts['system']|lower != "win32nt"

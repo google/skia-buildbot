@@ -1,0 +1,3 @@
+dependencies:
+  - role: download_win_package_src
+  - role: load_secret_vars
