@@ -9,7 +9,6 @@ validate: ./tmp/promtool absent
 	promk-absent --input=prometheus/alerts_perf_cockroachdb.yml --output=prometheus/absent_alerts_perf_cockroachdb.yml
 	-./tmp/promtool check config ./prometheus/prometheus-public.yml
 	-./tmp/promtool check config ./prometheus/prometheus-corp.yml
-	-./tmp/promtool check config ./prometheus/prometheus-rack4.yml
 	./tmp/promtool check rules ./prometheus/alerts_*.yml
 	./tmp/promtool check rules ./prometheus/absent_*.yml
 	# Please check output above for FAILED. If the only error is "FAILED: error checking bearer
@@ -66,7 +65,7 @@ push_config_corp: validate skia-corp
 	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
 
 .PHONY: push_config
-push_config: push_config_public push_config_corp push_config_skolo_rack4
+push_config: push_config_public push_config_corp
 
 release_thanos:
 	./images/thanos/release

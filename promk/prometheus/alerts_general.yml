@@ -504,6 +504,15 @@ groups:
       abbr: '{{ $labels.bot }}'
       description: 'Swarming bot {{ $labels.bot }} is quarantined because the device is {{ $labels.device_state }} and has not resolved itself in 1+ hours. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
+  - alert: TestMachineUnhealthy
+    expr: machine_processor_device_time_in_recovery_mode_s >= 60*60
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.id }}'
+      description: 'Test machine {{ $labels.id }} has been in recovery >1 hour. https://machines.skia.org/?search={{ $labels.id }} https://goto.google.com/skolo-maintenance'
+
   - alert: BotUptime
     expr: swarming_bots_uptime_s{bot!~"skia-rpi2.*"} / 60 / 60 > 36
     labels:
