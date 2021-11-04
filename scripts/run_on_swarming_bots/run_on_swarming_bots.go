@@ -190,7 +190,7 @@ func main() {
 				Priority: swarming.HIGHEST_PRIORITY,
 				TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
 					{
-						ExpirationSecs: int64((120 * time.Minute).Seconds()),
+						ExpirationSecs: int64((12 * time.Hour).Seconds()),
 						Properties: &swarming_api.SwarmingRpcsTaskProperties{
 							Caches: []*swarming_api.SwarmingRpcsCacheEntry{
 								{
