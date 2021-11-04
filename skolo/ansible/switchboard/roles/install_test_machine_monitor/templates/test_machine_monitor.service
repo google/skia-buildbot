@@ -22,6 +22,7 @@ ExecStart=/usr/local/bin/test_machine_monitor \
    {% if install_test_machine_monitor__start_swarming is true %}
    --python_exe=/usr/bin/python3 \
    --start_swarming \
+   --swarming_bot_zip=/b/s/swarming_bot.zip \
    {% endif %}
    --username=chrome-bot
 Restart=always
