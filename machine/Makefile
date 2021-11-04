@@ -22,8 +22,7 @@ push: release
 	pushk machineserver
 
 push_bazel:
-	$(BAZEL) run //machine:push_machineserver
-	pushk machineserver
+	$(BAZEL) run //machine:pushk_machineserver
 
 # Make our own firestore emulator image.
 # https://issuetracker.google.com/issues/153087269
