@@ -31,11 +31,11 @@ var (
 	metadataURL      = flag.String("metadata_url", "http://metadata:8000/computeMetadata/v1/instance/service-accounts/default/token", "The URL of the metadata server that provides service account tokens.")
 	port             = flag.String("port", ":11000", "HTTP service address (e.g., ':8000')")
 	promPort         = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	pythonExe        = flag.String("python_exe", "/usr/bin/python2.7", "Absolute path to Python.")
+	pythonExe        = flag.String("python_exe", "", "Absolute path to Python.")
 	startSwarming    = flag.Bool("start_swarming", false, "If true then start swarming_bot.zip.")
 	startSwitchboard = flag.Bool("start_switchboard", false, "If true then establish a connection to skia-switchboard.")
 	username         = flag.String("username", "chrome-bot", "The username of the account that accepts SSH connections.")
-	swarmingBotZip   = flag.String("swarming_bot_zip", "/b/s/swarming_bot.zip", "Absolute path to where the swarming_bot.zip code should run from.")
+	swarmingBotZip   = flag.String("swarming_bot_zip", "", "Absolute path to where the swarming_bot.zip code should run from.")
 )
 
 var (
@@ -112,6 +112,12 @@ func main() {
 	}
 
 	if *startSwarming {
+		if *pythonExe == "" {
+			sklog.Fatalf("Flag --python_exe is required when --start_swarming is true.")
+		}
+		if *swarmingBotZip == "" {
+			sklog.Fatalf("Flag --swarming_bot_zip is required when --start_swarming is true.")
+		}
 		sklog.Infof("Starting swarming_bot.")
 		bot, err := swarming.New(*pythonExe, *swarmingBotZip, *metadataURL)
 		if err != nil {
