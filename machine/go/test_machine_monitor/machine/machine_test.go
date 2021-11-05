@@ -257,6 +257,7 @@ func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
 		"Test_FakeExe_ExitCodeOne", // no Android attached
 		"Test_FakeExe_IDeviceInfo_ReturnsDeviceType",
 		"Test_FakeExe_IDeviceInfo_ReturnsOSVersion",
+		"Test_FakeExe_IDeviceInfo_ReturnsGoodBatteryLevel",
 	)
 
 	timePlaceholder := time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC)
@@ -283,15 +284,17 @@ func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
 		IOS: machine.IOS{
 			OSVersion:  iOSVersionPlaceholder,
 			DeviceType: iOSDeviceTypePlaceholder,
+			Battery:    33,
 		},
 	}, actual)
 }
 
-func TestTryInterrogatingIOSDevice_OSVersionFails_StillSucceeds(t *testing.T) {
+func TestTryInterrogatingIOSDevice_OSVersionAndBatteryFail_StillSucceeds(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_IDeviceInfo_ReturnsDeviceType",
 		"Test_FakeExe_ExitCodeOne", // OS version check goes kaboom.
+		"Test_FakeExe_ExitCodeOne", // battery level too
 	)
 	m := &Machine{ios: ios.New()}
 	actual, deviceIsAttached := m.tryInterrogatingIOSDevice(ctx)
@@ -299,6 +302,7 @@ func TestTryInterrogatingIOSDevice_OSVersionFails_StillSucceeds(t *testing.T) {
 	assert.Equal(t, machine.IOS{
 		OSVersion:  "",
 		DeviceType: iOSDeviceTypePlaceholder,
+		Battery:    machine.BadBatteryLevel,
 	}, actual)
 }
 
@@ -529,7 +533,7 @@ func Test_FakeExe_IDeviceInfo_ReturnsDeviceType(t *testing.T) {
 	}
 	require.Equal(t, []string{"ideviceinfo", "-k", "ProductType"}, executil.OriginalArgs())
 
-	fmt.Fprint(os.Stderr, iOSDeviceTypePlaceholder+"\n")
+	fmt.Fprintln(os.Stderr, iOSDeviceTypePlaceholder)
 	os.Exit(0)
 }
 
@@ -540,7 +544,18 @@ func Test_FakeExe_IDeviceInfo_ReturnsOSVersion(t *testing.T) {
 	}
 	require.Equal(t, []string{"ideviceinfo", "-k", "ProductVersion"}, executil.OriginalArgs())
 
-	fmt.Fprint(os.Stderr, iOSVersionPlaceholder+"\n")
+	fmt.Fprintln(os.Stderr, iOSVersionPlaceholder)
+	os.Exit(0)
+}
+
+func Test_FakeExe_IDeviceInfo_ReturnsGoodBatteryLevel(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+	require.Equal(t, []string{"ideviceinfo", "--domain", "com.apple.mobile.battery", "-k", "BatteryCurrentCapacity"}, executil.OriginalArgs())
+
+	fmt.Fprintln(os.Stderr, "33")
 	os.Exit(0)
 }
 

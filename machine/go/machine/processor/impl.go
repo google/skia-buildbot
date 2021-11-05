@@ -24,8 +24,6 @@ import (
 )
 
 const (
-	badBatteryLevel = -99
-
 	// minBatteryLevel is the minimum percentage that a battery needs to be
 	// charged before testing is allowed. Below this the device should be
 	// quarantined.
@@ -262,11 +260,22 @@ func processIOSEvent(ctx context.Context, previous machine.Description, event ma
 
 	ret.Dimensions[machine.DimDeviceType] = []string{event.IOS.DeviceType}
 
+	inMaintenanceMode := false
+	maintenanceMessage := ""
+	battery := event.IOS.Battery
+	if battery != machine.BadBatteryLevel {
+		if battery < minBatteryLevel {
+			inMaintenanceMode = true
+			maintenanceMessage += "Battery low. "
+		}
+		metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": event.Host.Name}).Update(int64(battery))
+	}
+
 	// The device was attached, so it will no longer be quarantined:
 	delete(ret.Dimensions, machine.DimQuarantined)
 
 	ret = handleGeneralFields(ctx, ret, event)
-	ret = handleRecoveryMode(ctx, previous, ret, false, "")
+	ret = handleRecoveryMode(ctx, previous, ret, inMaintenanceMode, maintenanceMessage)
 	return ret
 }
 
@@ -420,25 +429,25 @@ func batteryFromAndroidDumpSys(batteryDumpSys string) (int, bool) {
 	levelMatch := batteryLevel.FindStringSubmatch(batteryDumpSys)
 	if levelMatch == nil {
 		sklog.Warningf("Failed to find battery level in %q", batteryDumpSys)
-		return badBatteryLevel, false
+		return machine.BadBatteryLevel, false
 	}
 	level, err := strconv.Atoi(levelMatch[1])
 	if err != nil {
 		sklog.Warningf("Failed to convert battery level from %q", levelMatch[1])
-		return badBatteryLevel, false
+		return machine.BadBatteryLevel, false
 	}
 	scaleMatch := batteryScale.FindStringSubmatch(batteryDumpSys)
 	if scaleMatch == nil {
 		sklog.Warningf("Failed to find battery scale in %q", batteryDumpSys)
-		return badBatteryLevel, false
+		return machine.BadBatteryLevel, false
 	}
 	scale, err := strconv.Atoi(scaleMatch[1])
 	if err != nil {
 		sklog.Warningf("Failed to convert battery scale from %q", scaleMatch[1])
-		return badBatteryLevel, false
+		return machine.BadBatteryLevel, false
 	}
 	if scale == 0 {
-		return badBatteryLevel, false
+		return machine.BadBatteryLevel, false
 	}
 	return (100 * level) / scale, true
 

@@ -53,6 +53,8 @@ const (
 	DimChromeOSChannel        = "chromeos_channel"
 	DimChromeOSMilestone      = "chromeos_milestone"
 	DimChromeOSReleaseVersion = "release_version"
+
+	BadBatteryLevel = -99
 )
 
 // Mode is the mode we want the machine to be in. Note that this is the desired
@@ -194,6 +196,7 @@ type ChromeOS struct {
 type IOS struct {
 	OSVersion  string `json:"version"`     // e.g. "13.3.1"
 	DeviceType string `json:"device_type"` // e.g. "iPhone10,1"
+	Battery    int    `json:"battery"`     // as integer percent, or BadBatteryLevel
 }
 
 // Event is the information a machine should send via Source when

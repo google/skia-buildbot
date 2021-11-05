@@ -205,7 +205,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 			machine.DimID:         []string{"skia-rpi2-0001"},
 		},
 		SuppliedDimensions: machine.SwarmingDimensions{},
-		Battery:            badBatteryLevel,
+		Battery:            machine.BadBatteryLevel,
 		Version:            myTestVersion,
 		DeviceUptime:       5,
 	}, next)
@@ -402,7 +402,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		Dimensions:         expectedDims,
 		SuppliedDimensions: machine.SwarmingDimensions{},
 		LastUpdated:        serverTime,
-		Battery:            badBatteryLevel,
+		Battery:            machine.BadBatteryLevel,
 	}, next)
 
 	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", next.Dimensions.AsMetricsTags()).Get())

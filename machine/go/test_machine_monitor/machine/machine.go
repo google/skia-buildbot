@@ -307,6 +307,7 @@ func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.An
 // multiple devices are attached, an arbitrary one is chosen.
 func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, bool) {
 	var ret machine.IOS
+	var err error
 
 	if device_type, err := m.ios.DeviceType(ctx); err != nil {
 		return ret, false
@@ -318,6 +319,10 @@ func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, b
 		sklog.Warningf("Failed to read iOS version, though we managed to read the device type: %s", err)
 	} else {
 		ret.OSVersion = os_version
+	}
+
+	if ret.Battery, err = m.ios.BatteryLevel(ctx); err != nil {
+		sklog.Warningf("Failed to read iOS device battery level, though we managed to read its device type: %s", err)
 	}
 
 	return ret, true
