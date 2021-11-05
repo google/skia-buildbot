@@ -3,7 +3,6 @@ package skip_tasks
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"testing"
 	"time"
 
@@ -12,7 +11,9 @@ import (
 	ftestutils "go.skia.org/infra/go/firestore/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
-	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/git/testutils/mem_git"
+	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/mem_gitstore"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -187,9 +188,16 @@ func TestRules(t *testing.T) {
 	}
 }
 
-func setupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, []string) {
+func setupTestRepo(t *testing.T) (context.Context, repograph.Map, []string) {
 	ctx := context.Background()
-	gb := git_testutils.GitInit(t, ctx)
+	gs := mem_gitstore.New()
+	mg := mem_git.New(t, gs)
+	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
+	require.NoError(t, err)
+	repo, err := repograph.NewWithRepoImpl(ctx, ri)
+	require.NoError(t, err)
+	mg.AddUpdater(repo)
+
 	commits := []string{}
 
 	/*
@@ -216,58 +224,44 @@ func setupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, []
 	*/
 
 	// 0
-	gb.Add(ctx, "a.txt", "")
-	commits = append(commits, gb.Commit(ctx))
+	commits = append(commits, mg.Commit("0"))
 
 	// 1
-	gb.Add(ctx, "a.txt", "\n")
-	commits = append(commits, gb.Commit(ctx))
+	commits = append(commits, mg.Commit("1"))
 
 	// 2
-	gb.Add(ctx, "a.txt", "\n\n")
-	commits = append(commits, gb.Commit(ctx))
+	commits = append(commits, mg.Commit("2"))
 
 	// 3
-	gb.Add(ctx, "a.txt", "\n\n\n")
-	commits = append(commits, gb.Commit(ctx))
+	commits = append(commits, mg.Commit("3"))
 
 	// 4
-	gb.Add(ctx, "a.txt", "\n\n\n\n")
-	commits = append(commits, gb.Commit(ctx))
+	commits = append(commits, mg.Commit("4"))
 
 	// 5
-	gb.CreateBranchAtCommit(ctx, "mybranch", commits[1])
-	gb.Add(ctx, "b.txt", "\n\n")
-	commits = append(commits, gb.Commit(ctx))
+	mg.NewBranch("mybranch", commits[1])
+	commits = append(commits, mg.Commit("5"))
 
 	// 6
-	gb.Add(ctx, "b.txt", "\n\n\n")
-	commits = append(commits, gb.Commit(ctx))
+	commits = append(commits, mg.Commit("6"))
 
 	// 7
-	gb.CheckoutBranch(ctx, git.MasterBranch)
-	commits = append(commits, gb.MergeBranch(ctx, "mybranch"))
+	mg.CheckoutBranch(git.MainBranch)
+	commits = append(commits, mg.Merge("mybranch"))
 
 	// 8
-	gb.Add(ctx, "a.txt", "\n\n\n\n\n")
-	commits = append(commits, gb.Commit(ctx))
+	commits = append(commits, mg.Commit("8"))
 
-	return ctx, gb, commits
+	repos := repograph.Map{
+		"fake.git": repo,
+	}
+	return ctx, repos, commits
 }
 
 func TestValidation(t *testing.T) {
-	unittest.LargeTest(t)
+	unittest.SmallTest(t)
 	// Setup.
-	ctx, gb, commits := setupTestRepo(t)
-	defer gb.Cleanup()
-	tmp, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
-	repos := repograph.Map{}
-	repo, err := repograph.NewLocalGraph(ctx, gb.RepoUrl(), tmp)
-	require.NoError(t, err)
-	repos[gb.RepoUrl()] = repo
-	require.NoError(t, repos.Update(ctx))
+	_, repos, commits := setupTestRepo(t)
 
 	// Test.
 	tests := []struct {
@@ -392,16 +386,7 @@ func TestValidation(t *testing.T) {
 func TestCommitRange(t *testing.T) {
 	unittest.LargeTest(t)
 	// Setup.
-	ctx, gb, commits := setupTestRepo(t)
-	defer gb.Cleanup()
-	tmp, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
-	repos := repograph.Map{}
-	repo, err := repograph.NewLocalGraph(ctx, gb.RepoUrl(), tmp)
-	require.NoError(t, err)
-	repos[gb.RepoUrl()] = repo
-	require.NoError(t, repos.Update(ctx))
+	ctx, repos, commits := setupTestRepo(t)
 	b, cleanup := setup(t)
 	defer cleanup()
 

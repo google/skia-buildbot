@@ -331,7 +331,7 @@ func TestLogLimit(t *testing.T) {
 	ctx := context.Background()
 	gs := mem_gitstore.New()
 	g := mem_git.New(t, gs)
-	hashes := g.CommitN(ctx, 100)
+	hashes := g.CommitN(100)
 	commits, err := gs.Get(ctx, hashes)
 	require.NoError(t, err)
 	// Strip some extra info we don't expect to get back from Gitiles.

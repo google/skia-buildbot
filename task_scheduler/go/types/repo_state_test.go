@@ -2,16 +2,16 @@ package types
 
 import (
 	"context"
-	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git/repograph"
-	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/git/testutils/mem_git"
+	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/mem_gitstore"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
 )
 
 func TestCopyPatch(t *testing.T) {
@@ -42,43 +42,55 @@ func TestCopyRepoState(t *testing.T) {
 
 // repoMapSetup creates two test repos, and returns a map from repo URL to
 // commits (from c0 to c4), a repograph.Map, and a cleanup function. The layout
-// of each repo looks like this:
+// of the repos look like this:
+//
+// fake1.git:
 //
 // c0--c1------c3--c4--
 //       \-c2-----/
-func repoMapSetup(t *testing.T) (map[string][]string, repograph.Map, func()) {
-	unittest.LargeTest(t)
+//
+// fake2.git:
+//
+// c0--c1--c2------c4--c5--
+//           \-c3-----/
+func repoMapSetup(t *testing.T) (map[string][]string, repograph.Map) {
+	unittest.SmallTest(t)
 
 	ctx := context.Background()
-	gb1 := git_testutils.GitInit(t, ctx)
-	commits1 := git_testutils.GitSetup(ctx, gb1)
 
-	gb2 := git_testutils.GitInit(t, ctx)
-	commits2 := git_testutils.GitSetup(ctx, gb2)
+	gs1 := mem_gitstore.New()
+	mg1 := mem_git.New(t, gs1)
+	ri1, err := gitstore.NewGitStoreRepoImpl(ctx, gs1)
+	require.NoError(t, err)
+	repo1, err := repograph.NewWithRepoImpl(ctx, ri1)
+	require.NoError(t, err)
+	mg1.AddUpdater(repo1)
+	commits1 := mem_git.FillWithBranchingHistory(mg1)
+
+	gs2 := mem_gitstore.New()
+	mg2 := mem_git.New(t, gs2)
+	ri2, err := gitstore.NewGitStoreRepoImpl(ctx, gs2)
+	require.NoError(t, err)
+	repo2, err := repograph.NewWithRepoImpl(ctx, ri2)
+	require.NoError(t, err)
+	mg2.AddUpdater(repo2)
+	initialCommitInRepo2 := mg2.Commit("Fake initial commit to ensure that hashes are different between repos")
+	commits2 := []string{initialCommitInRepo2}
+	commits2 = append(commits2, mem_git.FillWithBranchingHistory(mg2)...)
 
 	commitMap := map[string][]string{
-		gb1.RepoUrl(): commits1,
-		gb2.RepoUrl(): commits2,
+		"fake1.git": commits1,
+		"fake2.git": commits2,
 	}
-
-	tmp, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-
-	repoMap, err := repograph.NewLocalMap(ctx, []string{gb1.RepoUrl(), gb2.RepoUrl()}, tmp)
-	require.NoError(t, err)
-	require.NoError(t, repoMap.Update(ctx))
-
-	cleanup := func() {
-		gb1.Cleanup()
-		gb2.Cleanup()
-		util.RemoveAll(tmp)
+	repoMap := repograph.Map{
+		"fake1.git": repo1,
+		"fake2.git": repo2,
 	}
-	return commitMap, repoMap, cleanup
+	return commitMap, repoMap
 }
 
 func TestGetCommit(t *testing.T) {
-	commitMap, repoMap, cleanup := repoMapSetup(t)
-	defer cleanup()
+	commitMap, repoMap := repoMapSetup(t)
 
 	for repo, commits := range commitMap {
 		for _, commit := range commits {
@@ -104,8 +116,7 @@ func TestGetCommit(t *testing.T) {
 }
 
 func TestGetCommitError(t *testing.T) {
-	commitMap, repoMap, cleanup := repoMapSetup(t)
-	defer cleanup()
+	commitMap, repoMap := repoMapSetup(t)
 
 	existingRepo := ""
 	existingRevision := ""
@@ -161,8 +172,7 @@ func TestParentsTryJob(t *testing.T) {
 }
 
 func TestParentsSingle(t *testing.T) {
-	commitMap, repoMap, cleanup := repoMapSetup(t)
-	defer cleanup()
+	commitMap, repoMap := repoMapSetup(t)
 
 	test := func(repo, commit, parent string) {
 		input := RepoState{
@@ -179,46 +189,51 @@ func TestParentsSingle(t *testing.T) {
 		assertdeep.Equal(t, expected, actual[0])
 	}
 
-	for repo, commits := range commitMap {
-		test(repo, commits[1], commits[0])
-		test(repo, commits[2], commits[1])
-		test(repo, commits[3], commits[1])
-	}
+	repo := "fake1.git"
+	commits := commitMap[repo]
+	test(repo, commits[1], commits[0])
+	test(repo, commits[2], commits[1])
+	test(repo, commits[3], commits[1])
+
+	repo = "fake2.git"
+	commits = commitMap[repo]
+	test(repo, commits[1], commits[0])
+	test(repo, commits[2], commits[1])
+	test(repo, commits[3], commits[2])
+	test(repo, commits[4], commits[2])
 }
 
 func TestParentsDouble(t *testing.T) {
-	commitMap, repoMap, cleanup := repoMapSetup(t)
-	defer cleanup()
+	commitMap, repoMap := repoMapSetup(t)
 
-	for repo, commits := range commitMap {
+	test := func(repo, commit string, parents []string) {
 		input := RepoState{
 			Repo:     repo,
-			Revision: commits[4],
+			Revision: commit,
 		}
 		actual, err := input.Parents(repoMap)
 		require.NoError(t, err)
-		require.Equal(t, 2, len(actual))
-
-		expected := []RepoState{
-			{
+		require.Len(t, actual, len(parents))
+		for idx, parent := range parents {
+			expected := RepoState{
 				Repo:     repo,
-				Revision: commits[2],
-			},
-			{
-				Repo:     repo,
-				Revision: commits[3],
-			},
+				Revision: parent,
+			}
+			assertdeep.Equal(t, expected, actual[idx])
 		}
-		if actual[0].Revision != expected[0].Revision {
-			expected[0], expected[1] = expected[1], expected[0]
-		}
-		assertdeep.Equal(t, expected, actual)
 	}
+
+	repo1 := "fake1.git"
+	commits1 := commitMap[repo1]
+	test(repo1, commits1[4], []string{commits1[3], commits1[2]})
+
+	repo2 := "fake2.git"
+	commits2 := commitMap[repo2]
+	test(repo2, commits2[5], []string{commits2[4], commits2[3]})
 }
 
 func TestParentsNone(t *testing.T) {
-	commitMap, repoMap, cleanup := repoMapSetup(t)
-	defer cleanup()
+	commitMap, repoMap := repoMapSetup(t)
 
 	for repo, commits := range commitMap {
 		input := RepoState{

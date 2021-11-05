@@ -19,8 +19,9 @@ go_test(
     embed = [":window"],
     deps = [
         "//go/git/repograph",
-        "//go/git/testutils",
-        "//go/testutils",
+        "//go/git/testutils/mem_git",
+        "//go/gitstore",
+        "//go/gitstore/mem_gitstore",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
     ],

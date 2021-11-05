@@ -38,9 +38,10 @@ go_test(
         "//go/common",
         "//go/deepequal/assertdeep",
         "//go/git/repograph",
-        "//go/git/testutils",
+        "//go/git/testutils/mem_git",
+        "//go/gitstore",
+        "//go/gitstore/mem_gitstore",
         "//go/testutils/unittest",
-        "//go/util",
         "@com_github_stretchr_testify//require",
     ],
 )

@@ -2,7 +2,6 @@ package scheduling
 
 import (
 	"context"
-	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -92,7 +91,7 @@ var (
 	// contents are completely arbitrary.
 	lc1 = &vcsinfo.LongCommit{
 		ShortCommit: &vcsinfo.ShortCommit{
-			Hash:    "62463ce8091e96b1cf0c9d328c6931ffa0844c72",
+			Hash:    mem_git.Commit0,
 			Author:  "me@google.com",
 			Subject: "First Commit",
 		},
@@ -100,12 +99,12 @@ var (
 		Timestamp: time.Unix(1571926390, 0),
 		Index:     0,
 		Branches: map[string]bool{
-			git.MasterBranch: true,
+			git.MainBranch: true,
 		},
 	}
 	lc2 = &vcsinfo.LongCommit{
 		ShortCommit: &vcsinfo.ShortCommit{
-			Hash:    "4f5e1f4b44db19042955d08a96f9cbbb76e199d7",
+			Hash:    mem_git.Commit1,
 			Author:  "you@google.com",
 			Subject: "Second Commit",
 		},
@@ -114,7 +113,7 @@ var (
 		Timestamp: time.Unix(1571926450, 0),
 		Index:     1,
 		Branches: map[string]bool{
-			git.MasterBranch: true,
+			git.MainBranch: true,
 		},
 	}
 
@@ -273,16 +272,11 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	d := memory.NewInMemoryDB()
 	swarmingClient := swarming_testutils.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
-	gs := mem_gitstore.New()
-	gb := mem_git.New(t, gs)
-	hashes := gb.CommitN(ctx, 2)
+	mg, repo := newMemRepo(t)
+	hashes := mg.CommitN(2)
 	// Sanity check.
 	require.Equal(t, lc1.Hash, hashes[1])
 	require.Equal(t, lc2.Hash, hashes[0])
-	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
-	require.NoError(t, err)
-	repo, err := repograph.NewWithRepoImpl(ctx, ri)
-	require.NoError(t, err)
 	repos := repograph.Map{
 		rs1.Repo: repo,
 	}
@@ -308,7 +302,7 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	// Insert jobs. This is normally done by the JobCreator.
 	insertJobs(t, ctx, s, rs1, rs2)
 
-	return ctx, gb, d, swarmingClient, s, urlMock, cas, func() {
+	return ctx, mg, d, swarmingClient, s, urlMock, cas, func() {
 		testutils.AssertCloses(t, s)
 		testutils.RemoveAll(t, tmp)
 		btCleanup()
@@ -1265,12 +1259,7 @@ func TestComputeBlamelist(t *testing.T) {
 	ctx, cancel := context.WithCancel(nowCtx)
 	defer cancel()
 
-	gs := mem_gitstore.New()
-	gb := mem_git.New(t, gs)
-	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
-	require.NoError(t, err)
-	repo, err := repograph.NewWithRepoImpl(ctx, ri)
-	require.NoError(t, err)
+	mg, repo := newMemRepo(t)
 	repos := repograph.Map{
 		rs1.Repo: repo,
 	}
@@ -1280,7 +1269,6 @@ func TestComputeBlamelist(t *testing.T) {
 	cache, err := cache.NewTaskCache(ctx, d, w, nil)
 	require.NoError(t, err)
 
-	require.NoError(t, repos.Update(ctx))
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	defer btCleanup()
 	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
@@ -1322,7 +1310,7 @@ func TestComputeBlamelist(t *testing.T) {
 		},
 	}
 	commit := func(name string) {
-		hashes[name] = gb.Commit(ctx, name)
+		hashes[name] = mg.Commit(name)
 		require.NoError(t, tcc.Set(ctx, types.RepoState{
 			Repo:     rs1.Repo,
 			Revision: hashes[name],
@@ -1330,7 +1318,7 @@ func TestComputeBlamelist(t *testing.T) {
 	}
 
 	// Initial commit.
-	hashes["_"] = gb.Commit(ctx, "_")
+	hashes["_"] = mg.Commit("_")
 
 	// First commit containing TasksCfg.
 	commit("A")
@@ -1446,12 +1434,12 @@ func TestComputeBlamelist(t *testing.T) {
 	commit("E")
 	commit("F")
 	commit("G")
-	gb.NewBranch(ctx, "otherbranch", hashes["D"])
-	gb.CheckoutBranch(ctx, "otherbranch")
+	mg.NewBranch("otherbranch", hashes["D"])
+	mg.CheckoutBranch("otherbranch")
 	commit("H")
 	commit("I")
-	gb.CheckoutBranch(ctx, git.MasterBranch)
-	hashes["J"] = gb.Merge(ctx, "otherbranch").Hash
+	mg.CheckoutBranch(git.MainBranch)
+	hashes["J"] = mg.Merge("otherbranch")
 	require.NoError(t, tcc.Set(ctx, types.RepoState{
 		Repo:     rs1.Repo,
 		Revision: hashes["J"],
@@ -1528,9 +1516,9 @@ func TestComputeBlamelist(t *testing.T) {
 	})
 
 	// 11. Verify that we correctly track when task specs were added.
-	gb.NewBranch(ctx, "otherbranch2", hashes["O"])
+	mg.NewBranch("otherbranch2", hashes["O"])
 	commit("P")
-	gb.CheckoutBranch(ctx, git.MasterBranch)
+	mg.CheckoutBranch(git.MainBranch)
 	commit("Q")
 	newTaskCfg := taskCfg.Copy()
 	newTaskCfg.Tasks["added-task"] = &specs.TaskSpec{}
@@ -1538,7 +1526,7 @@ func TestComputeBlamelist(t *testing.T) {
 		Repo:     rs1.Repo,
 		Revision: hashes["Q"],
 	}, newTaskCfg, nil))
-	hashes["R"] = gb.Merge(ctx, "otherbranch2").Hash
+	hashes["R"] = mg.Merge("otherbranch2")
 	require.NoError(t, tcc.Set(ctx, types.RepoState{
 		Repo:     rs1.Repo,
 		Revision: hashes["R"],
@@ -1560,7 +1548,7 @@ func TestComputeBlamelist(t *testing.T) {
 
 	// 12. Stop computing blamelists when we reach a commit outside of the
 	// scheduling window.
-	hashes["S"] = gb.CommitAt(ctx, "S", w.EarliestStart().Add(-time.Hour))
+	hashes["S"] = mg.CommitAt("S", w.EarliestStart().Add(-time.Hour))
 	require.NoError(t, tcc.Set(ctx, types.RepoState{
 		Repo:     rs1.Repo,
 		Revision: hashes["S"],
@@ -2167,7 +2155,7 @@ func TestSchedulingE2E(t *testing.T) {
 }
 
 func TestSchedulerStealingFrom(t *testing.T) {
-	ctx, gb, _, swarmingClient, s, _, _, cleanup := setup(t)
+	ctx, mg, _, swarmingClient, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	c1 := rs1.Revision
@@ -2202,7 +2190,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	require.NoError(t, s.putTasks(ctx, tasksList))
 
 	// Add some commits.
-	commits := gb.CommitN(ctx, 10)
+	commits := mg.CommitN(10)
 	require.NoError(t, s.repos[rs1.Repo].Update(ctx))
 	for _, h := range commits {
 		rs := types.RepoState{
@@ -2214,7 +2202,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	}
 
 	// Run one task. Ensure that it's at tip-of-tree.
-	head := s.repos[rs1.Repo].Get(git.MasterBranch).Hash
+	head := s.repos[rs1.Repo].Get(git.MainBranch).Hash
 	mockBots(t, swarmingClient, bot1)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update(ctx))
@@ -2323,12 +2311,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	// Setup the scheduler.
 	d := memory.NewInMemoryDB()
 	swarmingClient := swarming_testutils.NewTestClient()
-	gs := mem_gitstore.New()
-	gb := mem_git.New(t, gs)
-	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
-	require.NoError(t, err)
-	repo, err := repograph.NewWithRepoImpl(ctx, ri)
-	require.NoError(t, err)
+	mg, repo := newMemRepo(t)
 	repos := repograph.Map{
 		rs1.Repo: repo,
 	}
@@ -2359,7 +2342,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 			},
 		},
 	}
-	hashes := gb.CommitN(ctx, 1)
+	hashes := mg.CommitN(1)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
 	mock := func(task *types.Task) {
@@ -2397,14 +2380,14 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update(ctx))
 	require.Equal(t, 0, len(s.queue))
-	head := s.repos[rs1.Repo].Get(git.MasterBranch).Hash
+	head := s.repos[rs1.Repo].Get(git.MainBranch).Hash
 	tasks, err := s.tCache.GetTasksForCommits(rs1.Repo, []string{head})
 	require.NoError(t, err)
 	require.Len(t, tasks[head], 1)
 	mock(tasks[head][taskName])
 
 	// Add some commits to the repo.
-	newHashes := gb.CommitN(ctx, 8)
+	newHashes := mg.CommitN(8)
 	for _, h := range newHashes {
 		rs := types.RepoState{
 			Repo:     rs1.Repo,
@@ -2414,7 +2397,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 		insertJobs(t, ctx, s, rs)
 	}
 	require.NoError(t, s.repos[rs1.Repo].Update(ctx))
-	return ctx, gb, d, s, swarmingClient, newHashes, mock, cfg, func() {
+	return ctx, mg, d, s, swarmingClient, newHashes, mock, cfg, func() {
 		testutils.AssertCloses(t, s)
 		testutils.RemoveAll(t, workdir)
 		btCleanup()
@@ -2890,7 +2873,7 @@ func TestGetTasksForJob(t *testing.T) {
 }
 
 func TestTaskTimeouts(t *testing.T) {
-	ctx, gb, _, swarmingClient, s, _, _, cleanup := setup(t)
+	ctx, mg, _, swarmingClient, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	// The test repo does not set any timeouts. Ensure that we get
@@ -2945,7 +2928,7 @@ func TestTaskTimeouts(t *testing.T) {
 			},
 		},
 	}
-	hashes := gb.CommitN(ctx, 1)
+	hashes := mg.CommitN(1)
 	require.NoError(t, s.repos.Update(ctx))
 	rs := types.RepoState{
 		Repo:     "fake.git",
@@ -3038,12 +3021,12 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 // setupAddTasksTest calls setup then adds 7 commits to the repo and returns
 // their hashes.
 func setupAddTasksTest(t *testing.T) (context.Context, *mem_git.MemGit, []string, *memory.InMemoryDB, *TaskScheduler, func()) {
-	ctx, gb, d, _, s, _, _, cleanup := setup(t)
+	ctx, mg, d, _, s, _, _, cleanup := setup(t)
 
 	// Add some commits to test blamelist calculation.
-	gb.CommitN(ctx, 7)
+	mg.CommitN(7)
 	require.NoError(t, s.repos.Update(ctx))
-	hashes, err := s.repos[rs1.Repo].Get(git.MasterBranch).AllCommits()
+	hashes, err := s.repos[rs1.Repo].Get(git.MainBranch).AllCommits()
 	require.NoError(t, err)
 	for _, hash := range hashes {
 		require.NoError(t, s.taskCfgCache.Set(ctx, types.RepoState{
@@ -3059,7 +3042,7 @@ func setupAddTasksTest(t *testing.T) (context.Context, *mem_git.MemGit, []string
 		}, nil))
 	}
 
-	return ctx, gb, hashes, d, s, func() {
+	return ctx, mg, hashes, d, s, func() {
 		cleanup()
 	}
 }
@@ -3644,11 +3627,11 @@ func (d *mockDB) PutTasks(ctx context.Context, tasks []*types.Task) error {
 func TestContinueOnTriggerTaskFailure(t *testing.T) {
 	// Verify that if one task out of a set fails any part of the triggering
 	// process, the others are still triggered, inserted into the DB, etc.
-	ctx, gb, _, s, swarmingClient, commits, _, cfg, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
+	ctx, mg, _, s, swarmingClient, commits, _, cfg, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
 	defer cleanup()
 
 	// Add several more commits.
-	newCommits := gb.CommitN(ctx, 10)
+	newCommits := mg.CommitN(10)
 	commits = append(newCommits, commits...)
 	badCommit := commits[0]
 	badTaskName := "badtask"
@@ -4068,25 +4051,26 @@ func TestComputeBlamelist_NoExistingTests(t *testing.T) {
 	const taskName = "Test-Foo-Bar"
 	tcg := tcc_mocks.TasksAlwaysDefined(taskName)
 
-	firstCommit := newCommit("a")
-	secondCommit := newCommit("b", firstCommit)
-	thirdCommit := newCommit("c", secondCommit)
+	mg, repo := newMemRepo(t)
+	firstCommit := mg.Commit("a")
+	secondCommit := mg.Commit("b", firstCommit)
+	thirdCommit := mg.Commit("c", secondCommit)
 
 	mtc := &cache_mocks.TaskCache{}
 	mtc.On("GetTaskForCommit", repoName, mock.Anything, taskName).Return(nil, nil)
 
-	blamelistNoTask := func(name string, revision *repograph.Commit, expectedBlamelist []string) {
+	blamelistNoTask := func(name string, revision string, expectedBlamelist []string) {
 		t.Run(name, func(t *testing.T) {
-			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, revision, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, repo, taskName, repoName, repo.Get(revision), commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 			require.NoError(t, err)
 			assert.Equal(t, expectedBlamelist, blamedCommits)
 			assert.Nil(t, stealFromTask)
 		})
 	}
 	// We expect this commit and all following commits to be blamed
-	blamelistNoTask("first commit", firstCommit, []string{firstCommit.Hash})
-	blamelistNoTask("second commit", secondCommit, []string{secondCommit.Hash, firstCommit.Hash})
-	blamelistNoTask("third commit", thirdCommit, []string{thirdCommit.Hash, secondCommit.Hash, firstCommit.Hash})
+	blamelistNoTask("first commit", firstCommit, []string{firstCommit})
+	blamelistNoTask("second commit", secondCommit, []string{secondCommit, firstCommit})
+	blamelistNoTask("third commit", thirdCommit, []string{thirdCommit, secondCommit, firstCommit})
 }
 
 func TestComputeBlamelist_FirstCommitTested(t *testing.T) {
@@ -4097,35 +4081,35 @@ func TestComputeBlamelist_FirstCommitTested(t *testing.T) {
 	const taskName = "Test-Foo-Bar"
 	tcg := tcc_mocks.TasksAlwaysDefined(taskName)
 
-	firstCommit := newCommit("a")
-	secondCommit := newCommit("b", firstCommit)
-	thirdCommit := newCommit("c", secondCommit)
+	mg, repo := newMemRepo(t)
+	firstCommit := mg.Commit("a")
+	secondCommit := mg.Commit("b", firstCommit)
+	thirdCommit := mg.Commit("c", secondCommit)
 
 	firstCommitTask := newTask("task-1", firstCommit)
 
 	mtc := &cache_mocks.TaskCache{}
-	mtc.On("GetTaskForCommit", repoName, firstCommit.Hash, taskName).Return(firstCommitTask, nil)
+	mtc.On("GetTaskForCommit", repoName, firstCommit, taskName).Return(firstCommitTask, nil)
 	mtc.On("GetTaskForCommit", repoName, mock.Anything, taskName).Return(nil, nil)
 
-	blamelistNoTask := func(name string, revision *repograph.Commit, expectedBlamelist []string) {
+	blamelistNoTask := func(name string, revision string, expectedBlamelist []string) {
 		t.Run(name, func(t *testing.T) {
-			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, revision, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, repo, taskName, repoName, repo.Get(revision), commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 			require.NoError(t, err)
 			assert.Equal(t, expectedBlamelist, blamedCommits)
 			assert.Nil(t, stealFromTask)
 		})
 	}
 	// For commits after the task, the blamelist should extend back, but not include that commit.
-	blamelistNoTask("second commit", secondCommit, []string{secondCommit.Hash})
-	blamelistNoTask("third commit", thirdCommit, []string{thirdCommit.Hash, secondCommit.Hash})
+	blamelistNoTask("second commit", secondCommit, []string{secondCommit})
+	blamelistNoTask("third commit", thirdCommit, []string{thirdCommit, secondCommit})
 
 	// Calculating a blame for a commit which already ran a task is considered a retry. As such,
 	// the entire blamelist is returned.
 	t.Run("first commit (retry)", func(t *testing.T) {
-		rg := makeRepoGetter(firstCommit, secondCommit, thirdCommit)
-		blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, firstCommit, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
+		blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, repo, taskName, repoName, repo.Get(firstCommit), commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 		require.NoError(t, err)
-		assert.Equal(t, []string{firstCommit.Hash}, blamedCommits)
+		assert.Equal(t, []string{firstCommit}, blamedCommits)
 		assert.Equal(t, firstCommitTask, stealFromTask)
 	})
 }
@@ -4138,33 +4122,32 @@ func TestComputeBlamelist_LastCommitTested_FollowingCommitsBlamed(t *testing.T) 
 	const taskName = "Test-Foo-Bar"
 	tcg := tcc_mocks.TasksAlwaysDefined(taskName)
 
-	firstCommit := newCommit("a")
-	secondCommit := newCommit("b", firstCommit)
-	thirdCommit := newCommit("c", secondCommit)
+	mg, repo := newMemRepo(t)
+	firstCommit := mg.Commit("a")
+	secondCommit := mg.Commit("b", firstCommit)
+	thirdCommit := mg.Commit("c", secondCommit)
 
 	thirdCommitTask := newTask("task-1", thirdCommit, secondCommit, firstCommit)
-
-	rg := makeRepoGetter(firstCommit, secondCommit, thirdCommit)
 
 	mtc := &cache_mocks.TaskCache{}
 	// By returning this task for all commits, we are saying that every commit is covered by
 	// the task that ran on the last commit.
 	mtc.On("GetTaskForCommit", repoName, mock.Anything, taskName).Return(thirdCommitTask, nil)
 
-	blamelistAndTask := func(name string, revision *repograph.Commit, expectedBlamelist []string, expectedTask *types.Task) {
+	blamelistAndTask := func(name string, revision string, expectedBlamelist []string, expectedTask *types.Task) {
 		t.Run(name, func(t *testing.T) {
-			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, revision, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, repo, taskName, repoName, repo.Get(revision), commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 			require.NoError(t, err)
 			assert.Equal(t, expectedBlamelist, blamedCommits)
 			assert.Equal(t, expectedTask, stealFromTask)
 		})
 	}
 
-	blamelistAndTask("first commit", firstCommit, []string{firstCommit.Hash}, thirdCommitTask)
-	blamelistAndTask("second commit", secondCommit, []string{secondCommit.Hash, firstCommit.Hash}, thirdCommitTask)
+	blamelistAndTask("first commit", firstCommit, []string{firstCommit}, thirdCommitTask)
+	blamelistAndTask("second commit", secondCommit, []string{secondCommit, firstCommit}, thirdCommitTask)
 	// Calculating a blame for a commit which already ran a task is considered a retry. As such,
 	// the entire blamelist is returned.
-	blamelistAndTask("third commit (retry)", thirdCommit, []string{thirdCommit.Hash, secondCommit.Hash, firstCommit.Hash}, thirdCommitTask)
+	blamelistAndTask("third commit (retry)", thirdCommit, []string{thirdCommit, secondCommit, firstCommit}, thirdCommitTask)
 }
 
 func TestComputeBlamelist_BlamelistTooLong_UseProvidedCommit(t *testing.T) {
@@ -4179,19 +4162,21 @@ func TestComputeBlamelist_BlamelistTooLong_UseProvidedCommit(t *testing.T) {
 	// by using the integer values from 0 to 999 prefixed with enough zeros to make them 40 digits
 	// (the length of a real-world git SHA1 hash).
 	require.Greater(t, 1000, MAX_BLAMELIST_COMMITS)
-	prevCommit := newCommit("0")
+	mg, repo := newMemRepo(t)
+	mg.Commit("0")
 	for i := 1; i < 1000; i++ {
-		h := fmt.Sprintf("%040d", i)
-		prevCommit = newCommit(h, prevCommit)
+		h := fmt.Sprintf("Commit_%d", i)
+		mg.Commit(h)
 	}
-	require.Equal(t, "0000000000000000000000000000000000000999", prevCommit.Hash)
+	lastCommit := repo.Get(repo.Branches()[0])
+	require.Equal(t, "Commit_999", lastCommit.Subject)
 
 	mtc := &cache_mocks.TaskCache{}
 	mtc.On("GetTaskForCommit", repoName, mock.Anything, taskName).Return(nil, nil)
 
-	blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, nil, taskName, repoName, prevCommit, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
+	blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, repo, taskName, repoName, lastCommit, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 	require.NoError(t, err)
-	assert.Equal(t, []string{prevCommit.Hash}, blamedCommits)
+	assert.Equal(t, []string{lastCommit.Hash}, blamedCommits)
 	assert.Nil(t, stealFromTask)
 }
 
@@ -4213,103 +4198,46 @@ func TestComputeBlamelist_BranchInHistory_NonOverlappingCoverage(t *testing.T) {
 	//   4a* 4b
 	//   5a   |
 	//      6
-	zero := newCommit("0")
-	one := newCommit("1", zero)
-	two := newCommit("2", one)
-	threeA := newCommit("3a", two)
-	threeB := newCommit("3b", two)
-	fourA := newCommit("4a", threeA)
-	fourB := newCommit("4b", threeB)
-	fiveA := newCommit("5a", fourA)
-	six := newCommit("6", fourB, fiveA)
+	mg, repo := newMemRepo(t)
+	zero := mg.Commit("0")
+	one := mg.Commit("1", zero)
+	two := mg.Commit("2", one)
+	threeA := mg.Commit("3a", two)
+	threeB := mg.Commit("3b", two)
+	fourA := mg.Commit("4a", threeA)
+	fourB := mg.Commit("4b", threeB)
+	fiveA := mg.Commit("5a", fourA)
+	six := mg.Commit("6", fourB, fiveA)
 
 	commitOneTask := newTask("task-1", one, zero)
 	commitFourATask := newTask("task-2", fourA, threeA, two)
 
 	mtc := &cache_mocks.TaskCache{}
-	mtc.On("GetTaskForCommit", repoName, zero.Hash, taskName).Return(commitOneTask, nil)
-	mtc.On("GetTaskForCommit", repoName, one.Hash, taskName).Return(commitOneTask, nil)
-	mtc.On("GetTaskForCommit", repoName, two.Hash, taskName).Return(commitFourATask, nil)
-	mtc.On("GetTaskForCommit", repoName, threeA.Hash, taskName).Return(commitFourATask, nil)
-	mtc.On("GetTaskForCommit", repoName, fourA.Hash, taskName).Return(commitFourATask, nil)
+	mtc.On("GetTaskForCommit", repoName, zero, taskName).Return(commitOneTask, nil)
+	mtc.On("GetTaskForCommit", repoName, one, taskName).Return(commitOneTask, nil)
+	mtc.On("GetTaskForCommit", repoName, two, taskName).Return(commitFourATask, nil)
+	mtc.On("GetTaskForCommit", repoName, threeA, taskName).Return(commitFourATask, nil)
+	mtc.On("GetTaskForCommit", repoName, fourA, taskName).Return(commitFourATask, nil)
 	mtc.On("GetTaskForCommit", repoName, mock.Anything, taskName).Return(nil, nil)
 
-	rg := makeRepoGetter(zero, one, two, threeA, threeB, fourA, fourB, fiveA, six)
-
-	blamelistAndTask := func(name string, revision *repograph.Commit, expectedBlamelist []string, expectedTask *types.Task) {
+	blamelistAndTask := func(name string, revision string, expectedBlamelist []string, expectedTask *types.Task) {
 		t.Run(name, func(t *testing.T) {
-			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, rg, taskName, repoName, revision, commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
+			blamedCommits, stealFromTask, err := ComputeBlamelist(ctx, mtc, repo, taskName, repoName, repo.Get(revision), commitsBuffer, tcg, window_mocks.AllInclusiveWindow())
 			require.NoError(t, err)
 			assert.Equal(t, expectedBlamelist, blamedCommits)
 			assert.Equal(t, expectedTask, stealFromTask)
 		})
 	}
 
-	blamelistAndTask("commit zero", zero, []string{zero.Hash}, commitOneTask)
-	blamelistAndTask("commit one", one, []string{one.Hash, zero.Hash}, commitOneTask)
-	blamelistAndTask("commit two", two, []string{two.Hash}, commitFourATask)
-	blamelistAndTask("commit threeA", threeA, []string{threeA.Hash, two.Hash}, commitFourATask)
-	blamelistAndTask("commit threeB", threeB, []string{threeB.Hash}, nil)
-	blamelistAndTask("commit fourA", fourA, []string{fourA.Hash, threeA.Hash, two.Hash}, commitFourATask)
-	blamelistAndTask("commit fourB", fourB, []string{fourB.Hash, threeB.Hash}, nil)
-	blamelistAndTask("commit fiveA", fiveA, []string{fiveA.Hash}, nil)
-	blamelistAndTask("commit six", six, []string{six.Hash, fourB.Hash, threeB.Hash, fiveA.Hash}, nil)
-}
-
-const lengthOfSHA1Hash = sha1.Size * 2
-
-func newCommit(s string, parents ...*repograph.Commit) *repograph.Commit {
-	h := strings.Repeat(s, lengthOfSHA1Hash/len(s)+1)[:lengthOfSHA1Hash]
-	c := repograph.Commit{LongCommit: &vcsinfo.LongCommit{ShortCommit: &vcsinfo.ShortCommit{Hash: h}}}
-	for _, p := range parents {
-		c.Parents = append(c.Parents, p.Hash)
-		c.AddParent(p)
-	}
-	return &c
-}
-
-func TestNewCommit_SetsParentsCorrectly(t *testing.T) {
-	unittest.SmallTest(t)
-
-	// This represents a git history with a branch and merge like this.
-	//     1
-	//     2
-	//   3a  3b
-	//   4a  |
-	//     5
-	one := newCommit("1")
-	two := newCommit("2", one)
-	// Branch
-	threeA := newCommit("3a", two)
-	threeB := newCommit("3b", two)
-	fourA := newCommit("4a", threeA)
-	// Merge
-	five := newCommit("5", threeB, fourA)
-
-	assert.Equal(t, "1111111111111111111111111111111111111111", one.Hash)
-	assert.Len(t, one.Hash, 2*sha1.Size)
-	assert.Empty(t, one.Parents)      // The strings from vcsinfo.LongCommit
-	assert.Empty(t, one.GetParents()) // The points in repograph.Commit
-
-	assert.Equal(t, "2222222222222222222222222222222222222222", two.Hash)
-	assert.Equal(t, []string{one.Hash}, two.Parents)
-	assert.Equal(t, []*repograph.Commit{one}, two.GetParents())
-
-	assert.Equal(t, "3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a", threeA.Hash)
-	assert.Equal(t, []string{two.Hash}, threeA.Parents)
-	assert.Equal(t, []*repograph.Commit{two}, threeA.GetParents())
-
-	assert.Equal(t, "3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b", threeB.Hash)
-	assert.Equal(t, []string{two.Hash}, threeB.Parents)
-	assert.Equal(t, []*repograph.Commit{two}, threeB.GetParents())
-
-	assert.Equal(t, "4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a", fourA.Hash)
-	assert.Equal(t, []string{threeA.Hash}, fourA.Parents)
-	assert.Equal(t, []*repograph.Commit{threeA}, fourA.GetParents())
-
-	assert.Equal(t, "5555555555555555555555555555555555555555", five.Hash)
-	assert.Equal(t, []string{threeB.Hash, fourA.Hash}, five.Parents)
-	assert.Equal(t, []*repograph.Commit{threeB, fourA}, five.GetParents())
+	blamelistAndTask("commit zero", zero, []string{zero}, commitOneTask)
+	blamelistAndTask("commit one", one, []string{one, zero}, commitOneTask)
+	blamelistAndTask("commit two", two, []string{two}, commitFourATask)
+	blamelistAndTask("commit threeA", threeA, []string{threeA, two}, commitFourATask)
+	blamelistAndTask("commit threeB", threeB, []string{threeB}, nil)
+	blamelistAndTask("commit fourA", fourA, []string{fourA, threeA, two}, commitFourATask)
+	blamelistAndTask("commit fourB", fourB, []string{fourB, threeB}, nil)
+	blamelistAndTask("commit fiveA", fiveA, []string{fiveA}, nil)
+	blamelistAndTask("commit six", six, []string{six, fourB, threeB, fiveA}, nil)
 }
 
 var (
@@ -4342,28 +4270,14 @@ func asForcedJob(c TaskCandidate) TaskCandidate {
 	return c
 }
 
-func newTask(id string, ranAt *repograph.Commit, alsoCovered ...*repograph.Commit) *types.Task {
+func newTask(id string, ranAt string, alsoCovered ...string) *types.Task {
 	nt := types.Task{Id: id}
-	nt.Revision = ranAt.Hash
-	nt.Commits = append(nt.Commits, ranAt.Hash)
+	nt.Revision = ranAt
+	nt.Commits = append(nt.Commits, ranAt)
 	for _, c := range alsoCovered {
-		nt.Commits = append(nt.Commits, c.Hash)
+		nt.Commits = append(nt.Commits, c)
 	}
 	return &nt
-}
-
-type repoMap map[string]*repograph.Commit
-
-func makeRepoGetter(commits ...*repograph.Commit) repoMap {
-	m := repoMap{}
-	for _, c := range commits {
-		m[c.Hash] = c
-	}
-	return m
-}
-
-func (m repoMap) Get(ref string) *repograph.Commit {
-	return m[ref]
 }
 
 func TestRegenerateTaskQueue_OnlyBestCandidateForCD(t *testing.T) {
@@ -4397,13 +4311,8 @@ func TestRegenerateTaskQueue_OnlyBestCandidateForCD(t *testing.T) {
 	tcc.On("Get", mock.Anything, mock.Anything).Return(tc, nil, nil)
 
 	// There are three commits in the repo.
-	gs := mem_gitstore.New()
-	gb := mem_git.New(t, gs)
-	hashes := gb.CommitN(ctx, 3)
-	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
-	require.NoError(t, err)
-	repo, err := repograph.NewWithRepoImpl(ctx, ri)
-	require.NoError(t, err)
+	mg, repo := newMemRepo(t)
+	hashes := mg.CommitN(3)
 	rs1 := types.RepoState{
 		Repo:     "fake-repo",
 		Revision: hashes[2],
@@ -4507,13 +4416,8 @@ func TestRegenerateTaskQueue_NoBackfillForCD(t *testing.T) {
 	tcc.On("Get", mock.Anything, mock.Anything).Return(tc, nil, nil)
 
 	// There are three commits in the repo.
-	gs := mem_gitstore.New()
-	gb := mem_git.New(t, gs)
-	hashes := gb.CommitN(ctx, 3)
-	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
-	require.NoError(t, err)
-	repo, err := repograph.NewWithRepoImpl(ctx, ri)
-	require.NoError(t, err)
+	gb, repo := newMemRepo(t)
+	hashes := gb.CommitN(3)
 	rs1 := types.RepoState{
 		Repo:     "fake-repo",
 		Revision: hashes[2],
@@ -4668,4 +4572,19 @@ func TestFilterTaskCandidates_NoRegularTasksInCDPool(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, c)
 	require.Equal(t, cdPoolName, candidate.GetDiagnostics().Filtering.ForbiddenPool)
+}
+
+// newMemRepo is a convenience function which creates a MemGit backed by an
+// in-memory GitStore and builds a repograph.Graph from it. MemGit automatically
+// calls Graph.Update() whenever it is mutated.
+func newMemRepo(t sktest.TestingT) (*mem_git.MemGit, *repograph.Graph) {
+	gs := mem_gitstore.New()
+	gb := mem_git.New(t, gs)
+	ctx := context.Background()
+	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
+	require.NoError(t, err)
+	repo, err := repograph.NewWithRepoImpl(ctx, ri)
+	require.NoError(t, err)
+	gb.AddUpdater(repo)
+	return gb, repo
 }

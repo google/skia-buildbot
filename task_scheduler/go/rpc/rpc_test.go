@@ -50,7 +50,7 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 	d := memory.NewInMemoryDB()
 	gs := mem_gitstore.New()
 	gb := mem_git.New(t, gs)
-	hashes := gb.CommitN(ctx, 2)
+	hashes := gb.CommitN(2)
 	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
 	require.NoError(t, err)
 	repo, err := repograph.NewWithRepoImpl(ctx, ri)
@@ -141,7 +141,7 @@ func TestTriggerJobs(t *testing.T) {
 	ctx, srv, _, _, _, _, cleanup := setup(t)
 	defer cleanup()
 
-	commit := srv.repos[fakeRepo].Get(git.MasterBranch).Hash
+	commit := srv.repos[fakeRepo].Get(git.MainBranch).Hash
 	req := &TriggerJobsRequest{
 		Jobs: []*TriggerJob{
 			{

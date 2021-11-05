@@ -3,14 +3,14 @@ package window
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git/repograph"
-	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/git/testutils/mem_git"
+	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/mem_gitstore"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -39,39 +39,36 @@ func TestWindowNoRepos(t *testing.T) {
 // setupRepo initializes a temporary Git repo with the given number of commits.
 // Returns the repo URL, a repograph.Graph instance, a slice of commit hashes,
 // and a cleanup function.
-func setupRepo(t *testing.T, numCommits int) (string, *repograph.Graph, []string, func()) {
+func setupRepo(t *testing.T, numCommits int) (*repograph.Graph, []string) {
 	ctx := context.Background()
-	gb := git_testutils.GitInit(t, ctx)
-	f := "somefile"
+	gs := mem_gitstore.New()
+	mg := mem_git.New(t, gs)
 	commits := make([]string, 0, numCommits)
 	t0, err := time.Parse(time.RFC3339Nano, "2016-11-29T16:44:27.192070480Z")
 	require.NoError(t, err)
 	for i := 0; i < numCommits; i++ {
-		gb.AddGen(ctx, f)
 		ts := t0.Add(time.Duration(int64(5) * int64(i) * int64(time.Second)))
-		h := gb.CommitMsgAt(ctx, fmt.Sprintf("C%d", i), ts)
+		h := mg.CommitAt(fmt.Sprintf("C%d", i), ts)
 		commits = append(commits, h)
 	}
 
-	tmp, err := ioutil.TempDir("", "")
+	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
 	require.NoError(t, err)
-	repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), tmp)
+	repo, err := repograph.NewWithRepoImpl(ctx, ri)
 	require.NoError(t, err)
-	require.NoError(t, repo.Update(ctx))
-	return gb.Dir(), repo, commits, func() {
-		gb.Cleanup()
-		testutils.RemoveAll(t, tmp)
-	}
+	mg.AddUpdater(repo)
+	return repo, commits
 }
 
 // setup initializes all of the test inputs, including a temporary git repo and
 // a Window instance. Returns the Window instance, a convenience function for
 // asserting that the Window returns a particular value for a given commit
 // index, and a cleanup function.
-func setup(t *testing.T, period time.Duration, numCommits, threshold int) (*WindowImpl, func(int, bool), func()) {
-	unittest.LargeTest(t)
+func setup(t *testing.T, period time.Duration, numCommits, threshold int) (*WindowImpl, func(int, bool)) {
+	unittest.SmallTest(t)
 
-	repoUrl, repo, commits, cleanup := setupRepo(t, numCommits)
+	repo, commits := setupRepo(t, numCommits)
+	repoUrl := "fake.git"
 	rm := repograph.Map{
 		repoUrl: repo,
 	}
@@ -85,13 +82,12 @@ func setup(t *testing.T, period time.Duration, numCommits, threshold int) (*Wind
 		require.NoError(t, err)
 		require.Equal(t, expect, actual)
 	}
-	return w, test, cleanup
+	return w, test
 }
 
 // Only test the repo, duration is zero.
 func TestWindowRepoOnly(t *testing.T) {
-	_, test, cleanup := setup(t, 0, 100, 50)
-	defer cleanup()
+	_, test := setup(t, 0, 100, 50)
 
 	test(0, false)
 	test(20, false)
@@ -104,8 +100,7 @@ func TestWindowRepoOnly(t *testing.T) {
 
 // Fewer than N commits in the repo.
 func TestWindowFewCommits(t *testing.T) {
-	_, test, cleanup := setup(t, 0, 5, 10)
-	defer cleanup()
+	_, test := setup(t, 0, 5, 10)
 
 	test(0, true)
 	test(1, true)
@@ -114,8 +109,7 @@ func TestWindowFewCommits(t *testing.T) {
 
 // Test both repo and duration.
 func TestWindowRepoAndDuration1(t *testing.T) {
-	_, test, cleanup := setup(t, 30*time.Second, 20, 10)
-	defer cleanup()
+	_, test := setup(t, 30*time.Second, 20, 10)
 
 	// Commits are 5 seconds apart, so the last 6 commits are within 30
 	// seconds. In this case the repo will win out and the last 10 commits
@@ -128,8 +122,7 @@ func TestWindowRepoAndDuration1(t *testing.T) {
 }
 
 func TestWindowRepoAndDuration2(t *testing.T) {
-	_, test, cleanup := setup(t, 60*time.Second, 20, 10)
-	defer cleanup()
+	_, test := setup(t, 60*time.Second, 20, 10)
 
 	// Commits are 5 seconds apart, so the last 12 commits are within 60
 	// seconds. In this case the time period will win out and the last 11
@@ -142,12 +135,12 @@ func TestWindowRepoAndDuration2(t *testing.T) {
 
 // Test multiple repos.
 func TestWindowMultiRepo(t *testing.T) {
-	unittest.LargeTest(t)
-	url1, repo1, commits1, cleanup1 := setupRepo(t, 20)
-	defer cleanup1()
-	url2, repo2, commits2, cleanup2 := setupRepo(t, 10)
-	defer cleanup2()
+	unittest.SmallTest(t)
+	repo1, commits1 := setupRepo(t, 20)
+	repo2, commits2 := setupRepo(t, 10)
 
+	url1 := "fake1.git"
+	url2 := "fake2.git"
 	rm := repograph.Map{
 		url1: repo1,
 		url2: repo2,
