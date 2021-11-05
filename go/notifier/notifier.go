@@ -170,8 +170,10 @@ func (n *emailNotifier) Send(_ context.Context, subject string, msg *Message) er
 		sklog.Warning("No gmail API client; cannot send email!")
 		return nil
 	}
+	// Replace all newlines with <br/> since gmail uses HTML format.
+	body := strings.ReplaceAll(msg.Body, "\n", "<br/>")
 	sklog.Infof("Sending email to %s: %s", strings.Join(n.to, ","), subject)
-	_, err := n.gmail.SendWithMarkup(n.from, n.to, subject, msg.Body, n.markup, "")
+	_, err := n.gmail.SendWithMarkup(n.from, n.to, subject, body, n.markup, "")
 	return err
 }
 
