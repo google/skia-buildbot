@@ -8,8 +8,18 @@
   gather_facts: true
   vars:
     test_machine_monitor_version_override: ''
+    restart: false
 
   roles:
     - role: install_test_machine_monitor
       test_machine_monitor_version:
         '{{ test_machine_monitor_version_override }}'
+
+  tasks:
+    - name: Reboot Windows host.
+      win_reboot:
+      when: restart and ansible_facts['system']|lower in ['win32nt']
+
+    - name: Reboot non-Windows host.
+      reboot:
+      when: restart and ansible_facts['system']|lower not in ['win32nt']

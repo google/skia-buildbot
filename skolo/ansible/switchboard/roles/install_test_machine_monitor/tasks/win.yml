@@ -1,3 +1,11 @@
+- name: Delete Swarming startup script if running test_machine_monitor with --start_swarming.
+  win_file:
+    path:
+      "{{ ansible_env.APPDATA }}\\Microsoft\\Windows\\Start
+      Menu\\Programs\\Startup\\run_swarm_bot.bat"
+    state: absent
+  when: install_test_machine_monitor__start_swarming
+
 - name: Create ~/bin directory if it doesn't exist.
   ansible.windows.win_file:
     path: "C:\\Users\\{{ skolo_account }}\\bin"
