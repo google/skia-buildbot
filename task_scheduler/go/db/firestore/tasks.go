@@ -286,6 +286,5 @@ func (d *firestoreDB) SearchTasks(ctx context.Context, params *db.TaskSearchPara
 	if err == db.ErrDoneSearching {
 		err = nil
 	}
-	sklog.Infof("Searching tasks; terms: %q; results: %d", term, len(results))
 	return results, err
 }
