@@ -121,7 +121,7 @@ export class IncidentSk extends HTMLElement {
     <table class=params>
       ${ele.table()}
     </table>
-    ${displayNotes(ele.state.notes, ele)}
+    ${displayNotes(ele.state.notes, ele.state.key, 'del-note')}
     <section class=addNote>
       <textarea rows=2 cols=80></textarea>
       <button @click=${ele.addNote}>Submit</button>
@@ -140,14 +140,6 @@ export class IncidentSk extends HTMLElement {
     </section>
   </section>
 `;
-
-  public deleteNote(e: Event, index: number): void {
-    const detail = {
-      key: this.state.key,
-      index: index,
-    };
-    this.dispatchEvent(new CustomEvent('del-note', { detail: detail, bubbles: true }));
-  }
 
   /** @prop incident_state An Incident. */
   get incident_state(): State { return this.state; }

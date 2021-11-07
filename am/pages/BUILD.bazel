@@ -1,0 +1,12 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "index",
+    assets_serving_path = "/dist",
+    html_file = "index.html",
+    nonce = "{% .Nonce %}",
+    scss_entry_point = "index.scss",
+    sk_element_deps = ["//am/modules/alert-manager-sk"],
+    ts_deps = ["@npm//@webcomponents/custom-elements"],
+    ts_entry_point = "index.ts",
+)

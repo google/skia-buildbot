@@ -193,13 +193,13 @@ export class AlertManagerSk extends HTMLElement {
     <section class=silences>
       <input class=silences-filter placeholder="Filter silences" .value="${ele.filterSilencesVal}" @input=${(e: Event) => ele.filterSilencesEvent(e)}></input>
       <br/><br/>
-      ${ele.silences.filter((silence: Silence) => getSilenceFullName(silence).includes(ele.filterSilencesVal)).slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i: Silence) => html`
+      ${ele.silences.filter((silence: Silence) => getSilenceFullName(silence.param_set).includes(ele.filterSilencesVal)).slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i: Silence) => html`
         <h2 class=${ele.classOfSilenceH2(i)} @click=${() => ele.silenceClick(i)}>
           <span>
-            ${displaySilence(i)}
+            ${displaySilence(i.param_set)}
           </span>
           <span>
-            <span title='Expires in'>${expiresIn(i)}</span>
+            <span title='Expires in'>${expiresIn(i.active, i.created, i.duration)}</span>
             <comment-icon-sk title='This silence has notes.' class=${ele.hasNotes(i)}></comment-icon-sk>
             <span title='The number of active alerts that match this silence.'>${ele.numMatchSilence(i)}</span>
           </span>
@@ -764,7 +764,7 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private silenceClick(silence: Silence): void {
-    this.current_silence = JSON.parse(JSON.stringify(silence));
+    this.current_silence = JSON.parse(JSON.stringify(silence)) as Silence;
     this.selected = silence;
     this.rhs_state = EDIT_SILENCE;
     this._render();
@@ -1218,7 +1218,7 @@ export class AlertManagerSk extends HTMLElement {
       text = `There are ${unNotifiedIncidents.length} alerts assigned to you`;
     }
     const notification = new Notification('am.skia.org notification', {
-      icon: '/static/icon-active.png',
+      icon: '/dist/icon-active.png',
       body: text,
       // 'tag' handles multi-tab scenarios. When multiple tabs are open then
       // only one notification is sent for the same alert.
@@ -1255,9 +1255,9 @@ export class AlertManagerSk extends HTMLElement {
       return;
     }
     if (numActive > 0) {
-      this.favicon.href = '/static/icon-active.png';
+      this.favicon.href = '/dist/icon-active.png';
     } else {
-      this.favicon.href = '/static/icon.png';
+      this.favicon.href = '/dist/icon.png';
     }
   }
 }

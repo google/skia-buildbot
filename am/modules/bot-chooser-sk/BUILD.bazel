@@ -1,0 +1,20 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "bot-chooser-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["bot-chooser-sk.scss"],
+    ts_deps = [
+        "//am/modules/json:index_ts_lib",
+        "@npm//@types/dialog-polyfill",
+        "@npm//common-sk",
+        "@npm//dialog-polyfill",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "bot-chooser-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,5 @@
+exports_files([
+    "icon-active.png",
+    "icon.png",
+    "icon.svg",
+])

@@ -1,0 +1,24 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "incident-sk",
+    sass_deps = [
+        "//am/modules/themes:themes_sass_lib",
+        "//infra-sk:elements-sk_scss",
+    ],
+    sass_srcs = ["incident-sk.scss"],
+    sk_element_deps = ["//am/modules/silence-sk"],
+    ts_deps = [
+        "//am/modules/json:index_ts_lib",
+        "//am/modules/paramset:index_ts_lib",
+        "//am/modules:am_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "incident-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

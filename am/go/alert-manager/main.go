@@ -15,6 +15,8 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/am/go/audit"
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/note"
@@ -32,7 +34,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"google.golang.org/api/option"
 )
 
 // flags
@@ -40,6 +41,7 @@ var (
 	assignGroup        = flag.String("assign_group", "google/skia-root@google.com", "The chrome infra auth group to use for users incidents can be assigned to.")
 	authGroup          = flag.String("auth_group", "google/skia-staff@google.com", "The chrome infra auth group to use for restricting access.")
 	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
+	host               = flag.String("host", "am.skia.org", "HTTP service host")
 	namespace          = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'alert-manager'.")
 	internalPort       = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
 	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
@@ -224,12 +226,9 @@ func (srv *server) loadTemplates() {
 
 func (srv *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	if *baseapp.Local {
-		srv.loadTemplates()
-	}
+
 	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
-		// Look in webpack.config.js for where the nonce templates are injected.
-		"nonce": secure.CSPNonce(r.Context()),
+		"Nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
@@ -265,7 +264,7 @@ func (srv *server) addNoteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	in, err := srv.incidentStore.AddNote(req.Key, note)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to add note.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to add incident note.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(in); err != nil {
@@ -289,7 +288,7 @@ func (srv *server) addSilenceNoteHandler(w http.ResponseWriter, r *http.Request)
 	}
 	in, err := srv.silenceStore.AddNote(req.Key, note)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to add note.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to add silence note.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(in); err != nil {
@@ -312,7 +311,7 @@ func (srv *server) delNoteHandler(w http.ResponseWriter, r *http.Request) {
 	audit.Log(r, "del-note", req)
 	in, err := srv.incidentStore.DeleteNote(req.Key, req.Index)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to add note.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to del incident note.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(in); err != nil {
@@ -330,7 +329,7 @@ func (srv *server) delSilenceNoteHandler(w http.ResponseWriter, r *http.Request)
 	audit.Log(r, "del-silence-note", req)
 	in, err := srv.silenceStore.DeleteNote(req.Key, req.Index)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to add note.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to del silence note.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(in); err != nil {
@@ -728,5 +727,7 @@ func (srv *server) startInternalServer() {
 }
 
 func main() {
-	baseapp.Serve(New, []string{"am.skia.org"})
+	// Parse flags to be able to send *host to baseapp.Serve
+	flag.Parse()
+	baseapp.Serve(New, []string{*host})
 }

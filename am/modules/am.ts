@@ -2,22 +2,20 @@
 import { diffDate } from 'common-sk/modules/human';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html';
 import { TemplateResult, html, Part } from 'lit-html';
-import { SilenceSk, State } from './silence-sk/silence-sk';
-import { IncidentSk } from './incident-sk/incident-sk';
-import { Note, Silence } from './json';
+import { Note, ParamSet } from './json';
 
 const linkRe = /(http[s]?:\/\/[^\s]*)/gm;
 
 /**
  * Returns the full name of a silence.
  */
-export function getSilenceFullName(silence: Silence | State): string {
+export function getSilenceFullName(paramSet: ParamSet): string {
   const ret: string[] = [];
-  Object.keys(silence.param_set!).forEach((key) => {
+  Object.keys(paramSet!).forEach((key) => {
     if (key.startsWith('__')) {
       return;
     }
-    ret.push(`${silence.param_set![key]!.join(', ')}`);
+    ret.push(`${paramSet![key]!.join(', ')}`);
   });
   return ret.join(' ');
 }
@@ -25,8 +23,8 @@ export function getSilenceFullName(silence: Silence | State): string {
 /**
  * Formats the text for a silence header.
  */
-export function displaySilence(silence: Silence | State): TemplateResult {
-  const fullName = getSilenceFullName(silence);
+export function displaySilence(paramSet: ParamSet): TemplateResult {
+  const fullName = getSilenceFullName(paramSet);
   let displayName = fullName;
   if (displayName.length > 33) {
     displayName = `${displayName.slice(0, 30)}...`;
@@ -57,7 +55,7 @@ export function linkify(s: string): (part: Part)=> void {
 /**
  * Templates notes to be displayed.
  */
-export function displayNotes(notes: Note[], ele: SilenceSk|IncidentSk): TemplateResult[] {
+export function displayNotes(notes: Note[], stateKey: string, eventName: string): TemplateResult[] {
   if (!notes) {
     return [];
   }
@@ -66,9 +64,20 @@ export function displayNotes(notes: Note[], ele: SilenceSk|IncidentSk): Template
   <div class=meta>
     <span class=author>${note.author}</span>
     <span class=date>${diffDate(note.ts * 1000)}</span>
-    <delete-icon-sk title='Delete comment.' @click=${(e: Event) => ele.deleteNote(e, index)}></delete-icon-sk>
+    <delete-icon-sk title='Delete comment.' @click=${(e: Event) => deleteNote(index, stateKey, eventName, e)}></delete-icon-sk>
   </div>
 </section>`);
+}
+
+/**
+ * Deletes notes in the specified event's target.
+ */
+function deleteNote(index: number, key: string, eventName: string, e: Event): void {
+  const detail = {
+    key: key,
+    index: index,
+  };
+  e.target!.dispatchEvent(new CustomEvent(eventName, { detail: detail, bubbles: true }));
 }
 
 const TIME_DELTAS = [
@@ -99,9 +108,9 @@ export function parseDuration(d: string): number {
   return 0;
 }
 
-export function expiresIn(silence: Silence| State): string {
-  if (silence.active) {
-    return diffDate((silence.created + parseDuration(silence.duration)) * 1000);
+export function expiresIn(active: boolean, created: number, duration: string): string {
+  if (active) {
+    return diffDate((created + parseDuration(duration)) * 1000);
   }
   return '';
 }

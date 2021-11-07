@@ -84,7 +84,6 @@ puppeteer-tests:
 # All apps with a webpack.config.ts file should be included here.
 .PHONY: build-frontend-ci
 build-frontend-ci: npm-ci
-	cd am && $(MAKE) build-frontend-ci
 	cd autoroll && $(MAKE) build-frontend-ci
 	cd debugger-app && $(MAKE) build-frontend-ci
 	cd demos && $(MAKE) build-frontend-ci
@@ -107,7 +106,6 @@ build-frontend-ci: npm-ci
 # All apps with a karma.conf.ts file should be included here.
 .PHONY: test-frontend-ci
 test-frontend-ci: npm-ci
-	cd am && $(MAKE) test-frontend-ci
 	cd debugger-app && $(MAKE) test-frontend-ci
 	cd demos && $(MAKE) test-frontend-ci
 	cd fiddlek && $(MAKE) test-frontend-ci

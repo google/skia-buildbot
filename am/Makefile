@@ -1,65 +1,49 @@
-default: build npm-ci
-	npx webpack --mode=development
+include ../make/bazel.mk
+include ../kube/kube.mk
 
-./modules/json/index.ts:
-	go generate ./go/types/ts
 
-build: ./modules/json/index.ts
-	go install ./go/alert-manager ./go/alert-to-pubsub
-
-release: build npm-ci
-	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/alert-manager ./go/alert-to-pubsub
-	./build_alert_manager_release
-	./build_alert_to_pubsub_release
-
-debug: npm-ci
-	npx webpack --mode=development
-
-legacy_release: build npm-ci
-	./build_legacy_alert_to_pubsub_release "`git log -n1 --format=%s`"
-
-push: release
-	pushk alert-manager alert-to-pubsub
-
-push_am: release
-	pushk alert-manager
-
-serve: npm-ci
-	npx webpack-dev-server --mode=development --watch-poll
+generate:
+	go generate ./go/...
 
 testgo:
 	go test ./go/...
 
-test: npm-ci
-	# Run the generated tests just once under Xvfb.
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
-# Increase Node's heap size to accommodate for ts-node's higher memory usage.
-NODE_MEMORY_LIMIT=4096
+# ALERT-MANAGER TARGETS
 
-.PHONY: testpptr
-testpptr: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
+serve:
+	@echo "Bazel doesn't have a serve-all option."
+	@echo "For the module under development, try running something like:"
+	@echo "bazel run modules/email-chooser-sk:demo_page_server"
 
-testci: npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+run-local-instance-am: build-am
+	# Run "bazel build //am/..." after making any frontend changes
+	# to pick up the change without restarting the golang server.
+	../_bazel_bin/am/go/alert-manager/alert-manager_/alert-manager --local --resources_dir ../_bazel_bin/am/pages/development --namespace=am-localhost-jcgregorio --email_client_secret_file=secrets/client_secret.json --email_token_cache_file=secrets/client_token.json
 
-watch: npm-ci
-	npx webpack --mode=development --watch
+testjs:
+	$(BAZEL) test modules/...
 
-.PHONY: build-frontend-ci
-build-frontend-ci: npm-ci
-	npx webpack --mode=production
+build-am: generate
+	$(BAZEL) build go/alert-manager/... modules/... pages/...
 
-.PHONY: test-frontend-ci
-test-frontend-ci: npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+release-am: build-am
+	$(BAZEL) run //am:push_alert_manager_container
 
-export HASH:=$(shell git rev-parse HEAD)
-export DATETIME:=$(shell date --utc "+%Y-%m-%dT%H:%M:%SZ")
-export GIT_STATE:=$(shell ../bash/gitstate.sh)
-export VERSION:=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
+push-am: pushk release-am
+	$(BAZEL) run //am:pushk_alert_manager_container
+
+
+# ALERT-TO-PUBSUB TARGETS
+
+build-atp:
+	$(BAZEL) build go/alert-to-pubsub/...
+
+release-atp: build-atp
+	$(BAZEL) run //am:push_alert_to_pubsub_container
+
+push-atp: pushk release-atp
+	$(BAZEL) run //am:pushk_alert_to_pubsub_container
 
 build_alert_to_pubsub_ansible:
 	rm -rf ./build
@@ -82,4 +66,11 @@ build_and_upload_alert_to_pubsub_ansible: build_alert_to_pubsub_ansible
 release_alert_to_pubsub_ansible: build_and_upload_alert_to_pubsub_ansible
 	../bash/ansible-release.sh alert_to_pubsub_ansible ${VERSION}
 
-include ../make/npm.mk
+
+# ALERT-MANAGER + ALERT-TO-PUBSUB TARGETS
+
+build-all: build-am build-atp
+
+release-all: release-am release-atp
+
+push-all: push-am push-atp

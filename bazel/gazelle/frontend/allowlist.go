@@ -7,6 +7,8 @@ package frontend
 //
 // TODO(lovisolo): Delete once we are targeting the entire repository.
 var targetDirectories = map[string]bool{
+	"am/modules":           true,
+	"am/pages":             true,
 	"bugs-central/modules": true,
 	"bugs-central/pages":   true,
 	"ct/modules":           true,

@@ -1,0 +1,53 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "alert_manager_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//am/go/alert-manager:alert-manager",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/alert-manager/dist": [
+            [
+                "//am/images:icon-active.png",
+                "0644",
+            ],
+            [
+                "//am/images:icon.png",
+                "0644",
+            ],
+            [
+                "//am/images:icon.svg",
+                "0644",
+            ],
+        ] + [
+            [
+                "//am/pages:production/index.%s" % ext,
+                "0644",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    entrypoint = "/usr/local/bin/alert-manager",
+    repository = "skia-public/alert-manager",
+)
+
+skia_app_container(
+    name = "alert_to_pubsub_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//am/go/alert-to-pubsub:alert-to-pubsub",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/alert-to-pubsub",
+    repository = "skia-public/alert-to-pubsub",
+)

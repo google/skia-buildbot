@@ -98,7 +98,9 @@ import {
   abbr, displaySilence, expiresIn, getDurationTillNextDay, displayNotes,
 } from '../am';
 import * as paramset from '../paramset';
-import { Incident, ParamSet, Note } from '../json';
+import {
+  Incident, ParamSet, Note, Silence,
+} from '../json';
 
 const BOT_CENTRIC_PARAMS = ['alertname', 'bot'];
 
@@ -134,7 +136,7 @@ export class SilenceSk extends HTMLElement {
   private incidents: Incident[] = [];
 
   private static template = (ele: SilenceSk) => html`
-  <h2 class=${ele.classOfH2()} @click=${ele.headerClick}>${displaySilence(ele.state)}</h2>
+  <h2 class=${ele.classOfH2()} @click=${ele.headerClick}>${displaySilence(ele.state.param_set)}</h2>
   <div class=body>
     <section class=actions>
       ${ele.actionButtons()}
@@ -143,13 +145,13 @@ export class SilenceSk extends HTMLElement {
       <tr><th>User:</th><td>${ele.state.user}</td></th>
       <tr><th>Duration:</th><td><input class="duration" @change=${ele.durationChange} value=${ele.state.duration}></input><button class="param-btns" @click=${ele.tillNextShift}>Till next shift</button></td></th>
       <tr><th>Created</th><td title=${new Date(ele.state.created * 1000).toLocaleString()}>${diffDate(ele.state.created * 1000)}</td></tr>
-      <tr><th>Expires</th><td>${expiresIn(ele.state)}</td></tr>
+      <tr><th>Expires</th><td>${expiresIn(ele.state.active, ele.state.created, ele.state.duration)}</td></tr>
     </table>
     <table class=params>
       ${ele.table()}
     </table>
     <section class=notes>
-      ${displayNotes(ele.state.notes, ele)}
+      ${displayNotes(ele.state.notes, ele.state.key, 'del-silence-note')}
     </section>
     <section class=addNote>
       ${ele.displayAddNote()}
@@ -163,14 +165,6 @@ export class SilenceSk extends HTMLElement {
 
   connectedCallback(): void {
     this._render();
-  }
-
-  public deleteNote(e: Event, index: number): void {
-    const detail = {
-      key: this.state.key,
-      index: index,
-    };
-    this.dispatchEvent(new CustomEvent('del-silence-note', { detail: detail, bubbles: true }));
   }
 
   /** @prop silence_state A Silence. */
@@ -333,7 +327,7 @@ export class SilenceSk extends HTMLElement {
   }
 
   private deleteRule(key: string): void {
-    const silence = JSON.parse(JSON.stringify(this.state));
+    const silence = JSON.parse(JSON.stringify(this.state)) as Silence;
     delete silence.param_set[key];
     const detail = {
       silence: silence,
@@ -342,7 +336,7 @@ export class SilenceSk extends HTMLElement {
   }
 
   private modifyRule(e: Event, key: string): void {
-    const silence = JSON.parse(JSON.stringify(this.state));
+    const silence = JSON.parse(JSON.stringify(this.state)) as Silence;
     silence.param_set[key] = [(e.target as HTMLInputElement).value];
     const detail = {
       silence: silence,
@@ -365,7 +359,7 @@ export class SilenceSk extends HTMLElement {
     }
 
     // Dispatch event adding the new silence param.
-    const silence = JSON.parse(JSON.stringify(this.state));
+    const silence = JSON.parse(JSON.stringify(this.state)) as Silence;
     silence.param_set[keyInput.value] = [valueInput.value];
     const detail = {
       silence: silence,

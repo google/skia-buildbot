@@ -1,0 +1,33 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "alert-manager-sk",
+    sass_deps = [
+        "//am/modules/themes:themes_sass_lib",
+        "//infra-sk:elements-sk_scss",
+    ],
+    sass_srcs = ["alert-manager-sk.scss"],
+    sk_element_deps = [
+        "//am/modules/bot-chooser-sk",
+        "//am/modules/email-chooser-sk",
+        "//am/modules/incident-sk",
+        "//am/modules/silence-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+    ],
+    ts_deps = [
+        "//am/modules/json:index_ts_lib",
+        "//am/modules/paramset:index_ts_lib",
+        "//am/modules:am_ts_lib",
+        "//infra-sk/modules:login_ts_lib",
+        "@npm//@types/dialog-polyfill",
+        "@npm//common-sk",
+        "@npm//dialog-polyfill",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "alert-manager-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

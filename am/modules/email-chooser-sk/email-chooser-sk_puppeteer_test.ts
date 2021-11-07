@@ -15,7 +15,7 @@ describe('email-chooser-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/static/email-chooser-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 300, height: 600 });
   });
 

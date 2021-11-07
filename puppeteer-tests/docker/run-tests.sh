@@ -88,11 +88,6 @@ mkdir /tests/puppeteer-tests
 cp -r /src/puppeteer-tests/*.ts              /tests/puppeteer-tests
 cp -r /src/puppeteer-tests/tsconfig.json     /tests/puppeteer-tests
 
-mkdir /tests/am
-cp -r /src/am/webpack.config.ts              /tests/am
-cp -r /src/am/tsconfig.json                  /tests/am
-cp -r /src/am/modules                        /tests/am
-
 mkdir /tests/new_element
 cp -r /src/new_element/webpack.config.ts     /tests/new_element
 cp -r /src/new_element/tsconfig.json         /tests/new_element
@@ -186,9 +181,6 @@ npx mocha --require ts-node/register ./**/*_test.ts
 # The ./**/*_puppeteer_test.ts glob patterns below exclude the Karma tests.
 
 cd /tests/infra-sk
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
-cd /tests/am
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/new_element
