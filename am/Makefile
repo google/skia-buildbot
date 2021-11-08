@@ -31,7 +31,7 @@ release-am: build-am
 	$(BAZEL) run //am:push_alert_manager_container
 
 push-am: pushk release-am
-	$(BAZEL) run //am:pushk_alert_manager_container
+	pushk --use-temp-checkout alert-manager
 
 
 # ALERT-TO-PUBSUB TARGETS
@@ -43,7 +43,7 @@ release-atp: build-atp
 	$(BAZEL) run //am:push_alert_to_pubsub_container
 
 push-atp: pushk release-atp
-	$(BAZEL) run //am:pushk_alert_to_pubsub_container
+	pushk --use-temp-checkout alert-to-pubsub
 
 build_alert_to_pubsub_ansible:
 	rm -rf ./build
