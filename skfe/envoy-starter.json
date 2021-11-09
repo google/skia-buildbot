@@ -41,6 +41,58 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "docsyserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "docsyserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "docsyserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-skia-baselineserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-skia-baselineserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-skia-baselineserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "gold-skia-frontend",
           "endpoints": [
             {
@@ -86,32 +138,6 @@
           ]
         },
         "name": "gold-skia-infra-baselineserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "docsyserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "docsyserver",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "docsyserver",
         "type": "STRICT_DNS"
       },
       {
@@ -1419,6 +1445,34 @@
                       "domains": "gold.skia.org",
                       "name": "gold.skia.org",
                       "routes": [
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/hashes"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-skia-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/expectations.*"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-skia-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
                         {
                           "match": {
                             "prefix": "/"

@@ -83,7 +83,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 
 	// Add BaselineServer to the instances that require it.
 	publicInstancesNeedingBaselineServer := []Instance{
-		Angle, Chrome, ChromiumOSTastDev, ESkia, Flutter, FlutterEngine, Pdfium, SkiaInfra,
+		Angle, Chrome, ChromiumOSTastDev, ESkia, Flutter, FlutterEngine, Pdfium, SkiaInfra, Skia,
 	}
 	for _, instance := range publicInstancesNeedingBaselineServer {
 		s.add(instance, BaselineServer)

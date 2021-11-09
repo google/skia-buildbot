@@ -9,114 +9,50 @@ import (
 	"go.skia.org/infra/golden/cmd/goldpushk/goldpushk"
 )
 
-func TestParseAndValidateFlagsErrors(t *testing.T) {
+func TestParseAndValidateFlags_ErrorCases(t *testing.T) {
 	unittest.SmallTest(t)
 
-	testCases := []struct {
-		message string // Test case name.
-
-		// Inputs.
-		flagInstances []string
-		flagServices  []string
-		flagCanaries  []string
-
-		// Expected outputs.
-		errorMsg string
-	}{
-
-		{
-			message:       "Error: --instances all,chrome",
-			flagInstances: []string{"all", "chrome"},
-			flagServices:  []string{"baselineserver"},
-			flagCanaries:  []string{},
-			errorMsg:      "flag --instances should contain either \"all\" or a list of Gold instances, but not both",
-		},
-
-		{
-			message:       "Error: --services all,baselineserver",
-			flagInstances: []string{"chrome"},
-			flagServices:  []string{"all", "baselineserver"},
-			flagCanaries:  []string{},
-			errorMsg:      "flag --services should contain either \"all\" or a list of Gold services, but not both",
-		},
-
-		{
-			message:       "Error: --instances and --services both set to \"all\"",
-			flagInstances: []string{"all"},
-			flagServices:  []string{"all"},
-			flagCanaries:  []string{},
-			errorMsg:      "cannot set both --instances and --services to \"all\"",
-		},
-
-		{
-			message:       "Error: Unknown instance",
-			flagInstances: []string{"foo"},
-			flagServices:  []string{"baselineserver"},
-			flagCanaries:  []string{},
-			errorMsg:      "unknown Gold instance: \"foo\"",
-		},
-
-		{
-			message:       "Error: Unknown service",
-			flagInstances: []string{"chrome"},
-			flagServices:  []string{"foo"},
-			flagCanaries:  []string{},
-			errorMsg:      "unknown Gold service: \"foo\"",
-		},
-
-		{
-			message:       "Error: No instances/services matched.",
-			flagInstances: []string{"skia"},
-			flagServices:  []string{"baselineserver"},
-			errorMsg:      "no known Gold services match the values supplied with --instances and --services",
-		},
-
-		{
-			message:       "Error: Invalid canary format",
-			flagInstances: []string{"chrome"},
-			flagServices:  []string{"baselineserver"},
-			flagCanaries:  []string{"xxxxxxxxx"},
-			errorMsg:      "invalid canary format: \"xxxxxxxxx\"",
-		},
-
-		{
-			message:       "Error: Invalid canary due to unknown instance",
-			flagInstances: []string{"chrome"},
-			flagServices:  []string{"baselineserver"},
-			flagCanaries:  []string{"foo:baselineserver"},
-			errorMsg:      "invalid canary - unknown Gold instance: \"foo:baselineserver\"",
-		},
-
-		{
-			message:       "Error: Invalid canary due to unknown service",
-			flagInstances: []string{"chrome"},
-			flagServices:  []string{"baselineserver"},
-			flagCanaries:  []string{"chrome:foo"},
-			errorMsg:      "invalid canary - unknown Gold service: \"chrome:foo\"",
-		},
-
-		{
-			message:       "Error: Canary doesn't match --instances / --services",
-			flagInstances: []string{"chrome"},
-			flagServices:  []string{"baselineserver"},
-			flagCanaries:  []string{"skia:diffcalculator"},
-			errorMsg:      "canary does not match any targeted services: \"skia:diffcalculator\"",
-		},
-
-		{
-			message:       "Error: All targeted services are canaried",
-			flagInstances: []string{"chrome"},
-			flagServices:  []string{"baselineserver"},
-			flagCanaries:  []string{"chrome:baselineserver"},
-			errorMsg:      "all targeted services are marked for canarying",
-		},
+	test := func(name string, instances, services, canaries []string, errMsg string) {
+		t.Run(name, func(t *testing.T) {
+			_, _, err := parseAndValidateFlags(goldpushk.ProductionDeployableUnits(), instances, services, canaries)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), errMsg)
+		})
 	}
 
-	for _, tc := range testCases {
-		_, _, err := parseAndValidateFlags(goldpushk.ProductionDeployableUnits(), tc.flagInstances, tc.flagServices, tc.flagCanaries)
-		require.Error(t, err, tc.message)
-		require.Contains(t, err.Error(), tc.errorMsg, tc.message)
-	}
+	test("instances all,chrome", []string{"all", "chrome"}, []string{"baselineserver"}, nil,
+		"flag --instances should contain either \"all\" or a list of Gold instances, but not both")
+
+	test("services all,baselineserver", []string{"chrome"}, []string{"all", "baselineserver"}, nil,
+		"flag --services should contain either \"all\" or a list of Gold services, but not both")
+
+	test("--instances and --services both set to \"all\"", []string{"all"}, []string{"all"}, nil,
+		"cannot set both --instances and --services to \"all\"")
+
+	test("Unknown instance", []string{"foo"}, []string{"baselineserver"}, nil,
+		"unknown Gold instance: \"foo\"")
+
+	test("Unknown service", []string{"chrome"}, []string{"foo"}, nil,
+		"unknown Gold service: \"foo\"")
+
+	test("No instances/services matched.", []string{"skia-public"}, []string{"baselineserver"}, nil,
+		"no known Gold services match the values supplied with --instances and --services")
+
+	test("Invalid canary format", []string{"chrome"}, []string{"baselineserver"}, []string{"xxxxxxxxx"},
+		"invalid canary format: \"xxxxxxxxx\"")
+
+	test("Invalid canary due to unknown instance", []string{"chrome"}, []string{"baselineserver"}, []string{"foo:baselineserver"},
+		"invalid canary - unknown Gold instance: \"foo:baselineserver\"")
+
+	test("Invalid canary due to unknown service", []string{"chrome"}, []string{"baselineserver"}, []string{"chrome:foo"},
+		"invalid canary - unknown Gold service: \"chrome:foo\"")
+
+	test("Canary doesn't match --instances / --services", []string{"chrome"}, []string{"baselineserver"}, []string{"skia:diffcalculator"},
+		"canary does not match any targeted services: \"skia:diffcalculator\"")
+
+	test("All targeted services are canaried", []string{"chrome"}, []string{"baselineserver"}, []string{"chrome:baselineserver"},
+		"all targeted services are marked for canarying",
+	)
 }
 
 func TestParseAndValidateFlagsSuccess(t *testing.T) {
@@ -143,6 +79,7 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	lottieFrontend := makeID(goldpushk.Lottie, goldpushk.Frontend)
 	pdfiumBaselineServer := makeID(goldpushk.Pdfium, goldpushk.BaselineServer)
 	pdfiumFrontend := makeID(goldpushk.Pdfium, goldpushk.Frontend)
+	skiaBaselineServer := makeID(goldpushk.Skia, goldpushk.BaselineServer)
 	skiaDiffCalculator := makeID(goldpushk.Skia, goldpushk.DiffCalculator)
 	skiaFrontend := makeID(goldpushk.Skia, goldpushk.Frontend)
 	skiaGitilesFollower := makeID(goldpushk.Skia, goldpushk.GitilesFollower)
@@ -223,15 +160,15 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 		[]goldpushk.DeployableUnitID{chromeIngestion, chromeFrontend})
 	test("Multiple instances, all services, no canary",
 		[]string{"chrome", "skia"}, []string{"all"}, nil,
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestion, chromeFrontend, chromeGitilesFollower, chromePeriodicTasks, skiaDiffCalculator, skiaIngestion, skiaFrontend, skiaGitilesFollower, skiaPeriodicTasks},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestion, chromeFrontend, chromeGitilesFollower, chromePeriodicTasks, skiaBaselineServer, skiaDiffCalculator, skiaIngestion, skiaFrontend, skiaGitilesFollower, skiaPeriodicTasks},
 		nil)
 	test("Multiple instances, all services, one canary",
 		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestion, chromeFrontend, chromeGitilesFollower, chromePeriodicTasks, skiaDiffCalculator, skiaIngestion, skiaGitilesFollower, skiaPeriodicTasks},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestion, chromeFrontend, chromeGitilesFollower, chromePeriodicTasks, skiaBaselineServer, skiaDiffCalculator, skiaIngestion, skiaGitilesFollower, skiaPeriodicTasks},
 		[]goldpushk.DeployableUnitID{skiaFrontend})
 	test("Multiple instances, all services, multiple canaries",
 		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:ingestion", "skia:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestion, chromeFrontend, chromeGitilesFollower, chromePeriodicTasks, skiaDiffCalculator, skiaGitilesFollower, skiaPeriodicTasks},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestion, chromeFrontend, chromeGitilesFollower, chromePeriodicTasks, skiaBaselineServer, skiaDiffCalculator, skiaGitilesFollower, skiaPeriodicTasks},
 		[]goldpushk.DeployableUnitID{skiaIngestion, skiaFrontend})
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -253,13 +190,13 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 		[]string{"all"}, []string{"baselineserver", "frontend"}, nil,
 		[]goldpushk.DeployableUnitID{
 			angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, eskiaFrontend, flutterFrontend, flutterEngineFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend, skiaPublicFrontend,
-			angleBaselineServer, chromeBaselineServer, chromiumTastBaselineServer, eskiaBaselineServer, flutterBaselineServer, flutterEngineBaselineServer, pdfiumBaselineServer, skiaInfraBaselineServer},
+			angleBaselineServer, chromeBaselineServer, chromiumTastBaselineServer, eskiaBaselineServer, flutterBaselineServer, flutterEngineBaselineServer, pdfiumBaselineServer, skiaBaselineServer, skiaInfraBaselineServer},
 		nil)
 	test("All instances, multiple services, one canary",
 		[]string{"all"}, []string{"baselineserver", "frontend"}, []string{"skia-public:frontend"},
 		[]goldpushk.DeployableUnitID{
 			angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, eskiaFrontend, flutterFrontend, flutterEngineFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend,
-			angleBaselineServer, chromeBaselineServer, chromiumTastBaselineServer, eskiaBaselineServer, flutterBaselineServer, flutterEngineBaselineServer, pdfiumBaselineServer, skiaInfraBaselineServer},
+			angleBaselineServer, chromeBaselineServer, chromiumTastBaselineServer, eskiaBaselineServer, flutterBaselineServer, flutterEngineBaselineServer, pdfiumBaselineServer, skiaBaselineServer, skiaInfraBaselineServer},
 		[]goldpushk.DeployableUnitID{skiaPublicFrontend})
 
 	////////////////////////////////////////////////////////////////////////////////////////////////

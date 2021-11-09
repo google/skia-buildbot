@@ -500,14 +500,6 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	add("/json/whoami", handlers.Whoami, "GET")
 	add("/json/v1/whoami", handlers.Whoami, "GET")
 
-	// Routes shared with the baseline server. These usually don't see traffic because the envoy
-	// routing directs these requests to the baseline servers, if there are some.
-	add(frontend.KnownHashesRoute, handlers.TextKnownHashesProxy, "GET")
-	add(frontend.KnownHashesRouteV1, handlers.TextKnownHashesProxy, "GET")
-	// Retrieving a baseline for the primary branch and a Gerrit issue are handled the same way.
-	// These routes can be served with baseline_server for higher availability.
-	add(frontend.ExpectationsRouteV2, handlers.BaselineHandlerV2, "GET")
-
 	// Only expose these endpoints if this instance is not a public view. The reason we want to hide
 	// ignore rules is so that we don't leak params that might be in them.
 	if !fsc.IsPublicView {
@@ -535,6 +527,14 @@ func addUnauthenticatedJSONRoutes(router *mux.Router, _ *frontendServerConfig, h
 	add("/json/v2/trstatus", handlers.StatusHandler)
 	add("/json/v2/changelist/{system}/{id}", handlers.PatchsetsAndTryjobsForCL2)
 	add("/json/v1/changelist_summary/{system}/{id}", handlers.ChangelistSummaryHandler)
+
+	// Routes shared with the baseline server. These usually don't see traffic because the envoy
+	// routing directs these requests to the baseline servers, if there are some.
+	add(frontend.KnownHashesRoute, handlers.TextKnownHashesProxy)
+	add(frontend.KnownHashesRouteV1, handlers.TextKnownHashesProxy)
+	// Retrieving a baseline for the primary branch and a Gerrit issue are handled the same way.
+	// These routes can be served with baseline_server for higher availability.
+	add(frontend.ExpectationsRouteV2, handlers.BaselineHandlerV2)
 }
 
 var (
