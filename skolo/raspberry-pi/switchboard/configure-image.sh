@@ -31,4 +31,4 @@ if [ ! -f "$MOUNT/etc/hostname" ]; then
     exit 1
 fi
 
-sudo su -c "./configure-image-impl.sh $HOSTNAME $MOUNT" root
+sudo su root -c "./configure-image-impl.sh $HOSTNAME $MOUNT"
