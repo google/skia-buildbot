@@ -20,6 +20,7 @@ export enum CommitMsgConfig_BuiltIn {
   DEFAULT = "DEFAULT",
   ANDROID = "ANDROID",
   ANDROID_NO_CR = "ANDROID_NO_CR",
+  CANARY = "CANARY",
 }
 
 export enum GerritConfig_Config {

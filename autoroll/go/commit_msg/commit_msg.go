@@ -23,6 +23,7 @@ var (
 		config.CommitMsgConfig_ANDROID:       tmplAndroid,
 		config.CommitMsgConfig_ANDROID_NO_CR: tmplAndroidNoCR,
 		config.CommitMsgConfig_DEFAULT:       tmplCommitMsg,
+		config.CommitMsgConfig_CANARY:        tmplCanary,
 	}
 
 	limitEmptyLinesRegex = regexp.MustCompile(`\n\n\n+`)
@@ -77,19 +78,21 @@ func NewBuilder(c *config.CommitMsgConfig, reg *config_vars.Registry, childName,
 }
 
 // Build a commit message for the given roll.
-func (b *Builder) Build(from, to *revision.Revision, rolling []*revision.Revision, reviewers []string) (string, error) {
-	return buildCommitMsg(b.cfg, b.reg.Vars(), b.childName, b.parentName, b.serverURL, b.childBugLink, b.parentBugLink, b.transitiveDeps, from, to, rolling, reviewers)
+func (b *Builder) Build(from, to *revision.Revision, rolling []*revision.Revision, reviewers []string, canary bool) (string, error) {
+	return buildCommitMsg(b.cfg, b.reg.Vars(), b.childName, b.parentName, b.serverURL, b.childBugLink, b.parentBugLink, b.transitiveDeps, from, to, rolling, reviewers, canary)
 }
 
 // buildCommitMsg builds a commit message for the given roll.
-func buildCommitMsg(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers []string) (string, error) {
+func buildCommitMsg(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parentName, serverURL, childBugLink, parentBugLink string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers []string, canary bool) (string, error) {
 	vars, err := makeVars(c, cv, childName, parentName, serverURL, childBugLink, parentBugLink, transitiveDeps, from, to, rolling, reviewers)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
 	// Create the commit message.
 	commitMsgTmpl := tmplCommitMsg
-	if c.GetCustom() != "" {
+	if canary {
+		commitMsgTmpl = namedCommitMsgTemplates[config.CommitMsgConfig_CANARY]
+	} else if c.GetCustom() != "" {
 		commitMsgTmpl, err = parseCommitMsgTemplate(tmplCommitMsg, "customCommitMsg", c.GetCustom())
 		if err != nil {
 			return "", skerr.Wrap(err)
@@ -330,7 +333,7 @@ var fakeTransitiveDeps = []*config.TransitiveDepConfig{
 
 // FakeCommitMsgInputs returns Revisions which may be used to validate commit
 // message templates.
-func FakeCommitMsgInputs() (*revision.Revision, *revision.Revision, []*revision.Revision, []string) {
+func FakeCommitMsgInputs() (*revision.Revision, *revision.Revision, []*revision.Revision, []string, bool) {
 	a := &revision.Revision{
 		Id:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 		Display: "aaaaaaaaaaaa",
@@ -392,5 +395,5 @@ func FakeCommitMsgInputs() (*revision.Revision, *revision.Revision, []*revision.
 		Timestamp: time.Unix(1587081600, 0),
 		URL:       "https://fake.com/cccccccccccc",
 	}
-	return a, c, []*revision.Revision{c, b}, []string{"reviewer@google.com"}
+	return a, c, []*revision.Revision{c, b}, []string{"reviewer@google.com"}, false
 }

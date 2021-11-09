@@ -127,13 +127,13 @@ func TestNamedTemplateDefault_NoBugs(t *testing.T) {
 	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
-	from, to, revs, emails := FakeCommitMsgInputs()
+	from, to, revs, emails, canary := FakeCommitMsgInputs()
 	from.Bugs = nil
 	to.Bugs = nil
 	for _, rev := range revs {
 		rev.Bugs = nil
 	}
-	result, err := b.Build(from, to, revs, emails)
+	result, err := b.Build(from, to, revs, emails, canary)
 	require.NoError(t, err)
 	require.Equal(t, `Roll fake/child/src from aaaaaaaaaaaa to cccccccccccc (2 revisions)
 

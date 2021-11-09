@@ -32,6 +32,7 @@ func req() *ManualRollRequest {
 		Status:            STATUS_COMPLETE,
 		Timestamp:         firestore.FixTimestamp(time.Now()),
 		Url:               "http://my-roll.com",
+		Canary:            true,
 	}
 }
 

@@ -444,7 +444,7 @@ func (r *AutoRoller) unthrottle(ctx context.Context) error {
 
 // UploadNewRoll implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to *revision.Revision, dryRun bool) (state_machine.RollCLImpl, error) {
-	issue, err := r.createNewRoll(ctx, from, to, r.GetEmails(), dryRun)
+	issue, err := r.createNewRoll(ctx, from, to, r.GetEmails(), dryRun, false)
 	if err != nil {
 		return nil, err
 	}
@@ -460,7 +460,7 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to *revision.Revis
 }
 
 // createNewRoll is a helper function which uploads a new roll.
-func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, dryRun bool) (rv *autoroll.AutoRollIssue, rvErr error) {
+func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, dryRun, canary bool) (rv *autoroll.AutoRollIssue, rvErr error) {
 	// Track roll CL upload attempts vs failures.
 	defer func() {
 		r.rollUploadAttempts.Inc(1)
@@ -482,7 +482,8 @@ func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revis
 		}
 	}
 	r.statusMtx.RUnlock()
-	commitMsg, err := r.commitMsgBuilder.Build(from, to, revs, emails)
+
+	commitMsg, err := r.commitMsgBuilder.Build(from, to, revs, emails, canary)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -927,7 +928,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			var err error
 			sklog.Infof("Creating manual roll to %s as requested by %s...", req.Revision, req.Requester)
 
-			issue, err = r.createNewRoll(ctx, from, to, emails, req.DryRun)
+			issue, err = r.createNewRoll(ctx, from, to, emails, req.DryRun, req.Canary)
 			if err != nil {
 				req.Status = manual.STATUS_COMPLETE
 				req.Result = manual.RESULT_FAILURE

@@ -225,7 +225,7 @@ func main() {
 			log.Fatal("Either Gerrit or Github is required.")
 		}
 	} else {
-		from, to, revs, _ = commit_msg.FakeCommitMsgInputs()
+		from, to, revs, _, _ = commit_msg.FakeCommitMsgInputs()
 		var err error
 		reviewers, err = roller.GetReviewers(cfg.RollerName, cfg.Reviewer, cfg.ReviewerBackup)
 		if err != nil {
@@ -244,7 +244,7 @@ func main() {
 	}
 
 	// Build the commit message.
-	genCommitMsg, err := b.Build(from, to, revs, reviewers)
+	genCommitMsg, err := b.Build(from, to, revs, reviewers, false)
 	if err != nil {
 		log.Fatalf("Failed to build commit message: %s", err)
 	}

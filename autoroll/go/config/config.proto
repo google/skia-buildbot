@@ -128,6 +128,8 @@ message CommitMsgConfig {
         // ANDROID_NO_CR is the commit message template used for Android rollers
         // where the service account does not have CR+2 access.
         ANDROID_NO_CR = 2;
+        // CANARY is the commit message template used for canary rolls.
+        CANARY = 3;
     }
 
     // template specifies exactly how the commit message should be structured.

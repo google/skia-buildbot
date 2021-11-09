@@ -84,7 +84,7 @@ func TestMakeVars(t *testing.T) {
 		b, err := NewBuilder(c, reg, fakeChildName, fakeParentName, fakeServerURL, fakeChildBugLink, fakeParentBugLink, fakeTransitiveDeps)
 		require.NoError(t, err)
 		fn(b)
-		from, to, revs, reviewers := FakeCommitMsgInputs()
+		from, to, revs, reviewers, _ := FakeCommitMsgInputs()
 		vars, err := makeVars(c, reg.Vars(), b.childName, b.parentName, b.serverURL, fakeChildBugLink, fakeParentBugLink, b.transitiveDeps, from, to, revs, reviewers)
 		require.NoError(t, err)
 

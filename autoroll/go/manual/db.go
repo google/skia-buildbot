@@ -113,6 +113,8 @@ type ManualRollRequest struct {
 	// Do not call rm.GetRevision(Revision) if this is true. Use
 	// Revision{Id: Revision} instead.
 	NoResolveRevision bool `json:"no_resolve_revision"`
+	// Constructs a canary-specific commit msg if this is true.
+	Canary bool `json:"canary"`
 }
 
 // Return a copy of the ManualRollRequest.
@@ -132,6 +134,7 @@ func (r *ManualRollRequest) Copy() *ManualRollRequest {
 		DryRun:            r.DryRun,
 		NoEmail:           r.NoEmail,
 		NoResolveRevision: r.NoResolveRevision,
+		Canary:            r.Canary,
 	}
 }
 
