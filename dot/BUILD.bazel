@@ -1,0 +1,19 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "dotserver_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//dot/go/dotserver:dotserver",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/dotserver",
+    repository = "skia-public/dotserver",
+    run_commands_root = [
+        "apk update",
+        "apk add --no-cache ca-certificates graphviz",
+    ],
+)

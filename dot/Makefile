@@ -1,12 +1,18 @@
+include ../make/bazel.mk
+include ../kube/kube.mk
+
+
 build:
-	go install ./go/dotserver
+	$(BAZEL) build go/dotserver/...
 
-release:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/dotserver
-	./build_release
+run-local-instance: build
+	../_bazel_bin/dot/go/dotserver/dotserver_/dotserver --local
 
-push: release
-	pushk dotserver
+release: build
+	$(BAZEL) run //dot:push_dotserver_container
+
+push: pushk release
+	pushk --use-temp-checkout dotserver
 
 test:
-	go test ./go/...
+	$(BAZEL) test go/...
