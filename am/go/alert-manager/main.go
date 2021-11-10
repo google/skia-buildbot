@@ -226,7 +226,9 @@ func (srv *server) loadTemplates() {
 
 func (srv *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-
+	if *baseapp.Local {
+		srv.loadTemplates()
+	}
 	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
 		"Nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
