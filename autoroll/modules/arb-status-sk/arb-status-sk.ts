@@ -891,6 +891,18 @@ export class ARBStatusSk extends ElementSk {
   }
 
   private requestManualRoll(rev: string, dryRun: boolean) {
+    // Make sure the user wants to proceed.
+    let confirmMsg = 'Proceed with requesting manual ';
+    if (dryRun) {
+      confirmMsg += 'dry-run?'
+    } else {
+      confirmMsg += 'roll?'
+    }
+    const confirmed = window.confirm(confirmMsg);
+    if (!confirmed) {
+      return;
+    }
+
     this.rpc
       .createManualRoll({
         revision: rev,
