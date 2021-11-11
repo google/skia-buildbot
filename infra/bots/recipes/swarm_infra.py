@@ -10,6 +10,9 @@ import json
 import re
 
 
+PYTHON_VERSION_COMPATIBILITY = "PY3"
+
+
 DEPS = [
   'recipe_engine/context',
   'recipe_engine/path',

@@ -201,8 +201,6 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 			"PATH": {
 				"cipd_bin_packages",
 				"cipd_bin_packages/bin",
-				"cipd_bin_packages/cpython",
-				"cipd_bin_packages/cpython/bin",
 				"cipd_bin_packages/cpython3",
 				"cipd_bin_packages/cpython3/bin",
 			},
@@ -278,8 +276,6 @@ func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []stri
 			"PATH": {
 				"cipd_bin_packages",
 				"cipd_bin_packages/bin",
-				"cipd_bin_packages/cpython",
-				"cipd_bin_packages/cpython/bin",
 				"cipd_bin_packages/cpython3",
 				"cipd_bin_packages/cpython3/bin",
 			},
@@ -428,8 +424,6 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 			"PATH": {
 				"cipd_bin_packages",
 				"cipd_bin_packages/bin",
-				"cipd_bin_packages/cpython",
-				"cipd_bin_packages/cpython/bin",
 				"cipd_bin_packages/cpython3",
 				"cipd_bin_packages/cpython3/bin",
 				"go/go/bin",
@@ -682,8 +676,6 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 			"PATH": {
 				"cipd_bin_packages",
 				"cipd_bin_packages/bin",
-				"cipd_bin_packages/cpython",
-				"cipd_bin_packages/cpython/bin",
 				"cipd_bin_packages/cpython3",
 				"cipd_bin_packages/cpython3/bin",
 				"go/go/bin",
