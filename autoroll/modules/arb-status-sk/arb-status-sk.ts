@@ -416,6 +416,7 @@ export class ARBStatusSk extends ElementSk {
                         <a href="${rollCandidate.roll.url}" , target="_blank">
                           ${rollCandidate.roll.url}
                         </a>
+                        ${rollCandidate.roll.dryRun ? html` [dry-run]` : html``}
                       `
                         : html``}
                   ${!!rollCandidate.roll
@@ -427,7 +428,19 @@ export class ARBStatusSk extends ElementSk {
                             ? html`
                         <button
                           @click="${() => {
-                              ele.requestManualRoll(rollCandidate.revision.id);
+                              ele.requestManualRoll(rollCandidate.revision.id, true);
+                            }}"
+                          class="requestRoll"
+                          ?disabled=${!ele.editRights}
+                          title="${ele.editRights
+                              ? 'Request a dry-run to this revision.'
+                              : ele.pleaseLoginMsg}"
+                        >
+                          Request Dry-Run
+                        </button>
+                        <button
+                          @click="${() => {
+                              ele.requestManualRoll(rollCandidate.revision.id, false);
                             }}"
                           class="requestRoll"
                           ?disabled=${!ele.editRights}
@@ -469,7 +482,22 @@ export class ARBStatusSk extends ElementSk {
               <button
                   @click="${() => {
               ele.requestManualRoll(
-                $$<HTMLInputElement>('#manualRollRevInput')!.value,
+                $$<HTMLInputElement>('#manualRollRevInput')!.value, true,
+              );
+            }}"
+                  class="requestRoll"
+                  ?disabled=${!ele.editRights}
+                  title="${ele.editRights
+              ? 'Request a dry-run to this revision.'
+              : ele.pleaseLoginMsg
+            }">
+                Request Dry-Run
+              </button>
+
+              <button
+                  @click="${() => {
+              ele.requestManualRoll(
+                $$<HTMLInputElement>('#manualRollRevInput')!.value, false,
               );
             }}"
                   class="requestRoll"
@@ -862,11 +890,12 @@ export class ARBStatusSk extends ElementSk {
     }
   }
 
-  private requestManualRoll(rev: string) {
+  private requestManualRoll(rev: string, dryRun: boolean) {
     this.rpc
       .createManualRoll({
         revision: rev,
         rollerId: this.roller,
+        dryRun: dryRun,
       })
       .then((resp: CreateManualRollResponse) => {
         const exist = this.rollCandidates.find(

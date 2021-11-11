@@ -498,17 +498,20 @@ const JSONToSetStrategyResponse = (m: SetStrategyResponseJSON): SetStrategyRespo
 export interface CreateManualRollRequest {
   rollerId: string;
   revision: string;
+  dryRun: boolean;
 }
 
 interface CreateManualRollRequestJSON {
   roller_id?: string;
   revision?: string;
+  dry_run?: boolean;
 }
 
 const CreateManualRollRequestToJSON = (m: CreateManualRollRequest): CreateManualRollRequestJSON => {
   return {
     roller_id: m.rollerId,
     revision: m.revision,
+    dry_run: m.dryRun,
   };
 };
 

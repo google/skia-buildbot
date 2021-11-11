@@ -384,6 +384,8 @@ message CreateManualRollRequest {
   string roller_id = 1;
   // revision is the ID of the revision to be rolled.
   string revision = 2;
+  // dry_run flag controls whether the roll is a dry-run.
+  bool dry_run = 3;
 }
 
 // CreateManualRollResponse is a response returned by CreateManualRoll.

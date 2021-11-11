@@ -242,6 +242,7 @@ func (s *autoRollServerImpl) CreateManualRoll(ctx context.Context, req *CreateMa
 		RollerName: req.RollerId,
 		Revision:   req.Revision,
 		Requester:  user,
+		DryRun:     req.DryRun,
 	}
 	m.Status = manual.STATUS_PENDING
 	m.Timestamp = firestore.FixTimestamp(timeNowFunc())
