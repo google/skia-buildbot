@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "find_task_results_by_git_log_lib",
+    srcs = ["find_task_results_by_git_log.go"],
+    importpath = "go.skia.org/infra/scripts/find_task_results_by_git_log",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/git",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/sklog",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/db/firestore",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_binary(
+    name = "find_task_results_by_git_log",
+    embed = [":find_task_results_by_git_log_lib"],
+    visibility = ["//visibility:public"],
+)
