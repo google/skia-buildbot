@@ -10,7 +10,7 @@
   ],
   diff_work_topic: "gold-flutter-engine-diffmetrics", // includes instance id
   gcs_bucket: "skia-gold-flutter-engine",
-  git_repo_branch: "master",
+  git_repo_branch: "main",
   git_repo_url: "https://github.com/flutter/engine",
   pubsub_project_id: "skia-public",
   site_url: "https://flutter-engine-gold.skia.org",
