@@ -46,6 +46,7 @@ const (
 	pkgGitTmpl = "infra/3pp/tools/git/%s"
 
 	// Template for cpython CIPD package for a particular platform.
+	pkgCpythonTmpl  = "infra/3pp/tools/cpython/%s"
 	pkgCpython3Tmpl = "infra/3pp/tools/cpython3/%s"
 )
 
@@ -96,31 +97,37 @@ var (
 	// CIPD packages required for using Python.
 	PkgsPython = map[string][]*Package{
 		PlatformLinuxAmd64: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformLinuxAmd64)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformLinuxAmd64)),
 			MustGetPackage("infra/tools/luci/vpython/${platform}"),
 			MustGetPackage("infra/tools/luci/vpython-native/${platform}"),
 		},
 		PlatformLinuxArm64: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformLinuxArm64)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformLinuxArm64)),
 			MustGetPackage("infra/tools/luci/vpython/${platform}"),
 			MustGetPackage("infra/tools/luci/vpython-native/${platform}"),
 		},
 		PlatformLinuxArmv6l: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformLinuxArmv6l)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformLinuxArmv6l)),
 			MustGetPackage("infra/tools/luci/vpython/${platform}"),
 			MustGetPackage("infra/tools/luci/vpython-native/${platform}"),
 		},
 		PlatformMacAmd64: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformMacAmd64)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformMacAmd64)),
 			MustGetPackage("infra/tools/luci/vpython/${platform}"),
 			MustGetPackage("infra/tools/luci/vpython-native/${platform}"),
 		},
 		PlatformWindows386: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformWindows386)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformWindows386)),
 			MustGetPackage("infra/tools/luci/vpython/${platform}"),
 			MustGetPackage("infra/tools/luci/vpython-native/${platform}"),
 		},
 		PlatformWindowsAmd64: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformWindowsAmd64)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformWindowsAmd64)),
 			MustGetPackage("infra/tools/luci/vpython/${platform}"),
 			MustGetPackage("infra/tools/luci/vpython-native/${platform}"),

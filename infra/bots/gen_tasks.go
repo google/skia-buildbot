@@ -272,6 +272,9 @@ func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []stri
 		Command:      []string{python, "-u", "buildbot/infra/bots/run_recipe.py", "${ISOLATED_OUTDIR}", recipe, props(properties), "skia"},
 		Dependencies: []string{BUNDLE_RECIPES_NAME},
 		Dimensions:   dimensions,
+		Environment: map[string]string{
+			"RECIPES_USE_PY3": "true",
+		},
 		EnvPrefixes: map[string][]string{
 			"PATH": {
 				"cipd_bin_packages",
@@ -280,6 +283,7 @@ func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []stri
 				"cipd_bin_packages/cpython3/bin",
 			},
 			"VPYTHON_VIRTUALENV_ROOT": {"cache/vpython"},
+			"VPYTHON_DEFAULT_SPEC":    {"buildbot/.vpython"},
 		},
 		ExtraTags: map[string]string{
 			"log_location": LOGDOG_ANNOTATION_URL,
@@ -368,7 +372,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	task.CipdPackages = append(task.CipdPackages, &specs.CipdPackage{
 		Name:    "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
 		Path:    "recipe_bundle",
-		Version: "git_revision:57b025298deb13e7af1ce0bc07bab76716e076ff",
+		Version: "git_revision:1a28cb094add070f4beefd052725223930d8c27a",
 	})
 	task.Dependencies = []string{} // No bundled recipes for this one.
 
@@ -376,6 +380,10 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("bazel"))
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
 	task.EnvPrefixes["PATH"] = append(task.EnvPrefixes["PATH"], "bazel/bin", "go/go/bin")
+
+	// Setting the python version causes conflicts with some of the packages
+	// needed by the presubmit recipe.
+	delete(task.EnvPrefixes, "VPYTHON_DEFAULT_SPEC")
 
 	b.MustAddTask(name, task)
 	return name
@@ -836,6 +844,7 @@ func main() {
 	b.MustAddCasSpec(CAS_RECIPES, &specs.CasSpec{
 		Root: "..",
 		Paths: []string{
+			"buildbot/.vpython",
 			"buildbot/infra/config/recipes.cfg",
 			"buildbot/infra/bots/bundle_recipes.sh",
 			"buildbot/infra/bots/recipes",
@@ -843,8 +852,11 @@ func main() {
 		},
 	})
 	b.MustAddCasSpec(CAS_RUN_RECIPE, &specs.CasSpec{
-		Root:  "..",
-		Paths: []string{"buildbot/infra/bots/run_recipe.py"},
+		Root: "..",
+		Paths: []string{
+			"buildbot/.vpython",
+			"buildbot/infra/bots/run_recipe.py",
+		},
 	})
 	b.MustAddCasSpec(CAS_WHOLE_REPO, &specs.CasSpec{
 		Root:     "..",

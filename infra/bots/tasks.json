@@ -210,6 +210,11 @@
       "casSpec": "run-recipe",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.8.10.chromium.19"
@@ -222,7 +227,7 @@
         {
           "name": "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
           "path": "recipe_bundle",
-          "version": "git_revision:57b025298deb13e7af1ce0bc07bab76716e076ff"
+          "version": "git_revision:1a28cb094add070f4beefd052725223930d8c27a"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -282,6 +287,9 @@
         "machine_type:n1-standard-16",
         "docker_installed:true"
       ],
+      "environment": {
+        "RECIPES_USE_PY3": "true"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -423,6 +431,11 @@
     "Housekeeper-PerCommit-BundleRecipes": {
       "casSpec": "recipes",
       "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
@@ -707,6 +720,11 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.8.10.chromium.19"
@@ -798,6 +816,11 @@
       ],
       "casSpec": "whole-repo",
       "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython/windows-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
         {
           "name": "infra/3pp/tools/cpython3/windows-amd64",
           "path": "cipd_bin_packages/cpython3",
@@ -894,6 +917,11 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.8.10.chromium.19"
@@ -979,6 +1007,9 @@
         "machine_type:n1-standard-16",
         "docker_installed:true"
       ],
+      "environment": {
+        "RECIPES_USE_PY3": "true"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -986,6 +1017,9 @@
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin",
           "mockery"
+        ],
+        "VPYTHON_DEFAULT_SPEC": [
+          "buildbot/.vpython"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "cache/vpython"
@@ -1294,6 +1328,11 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.8.10.chromium.19"
@@ -1404,6 +1443,9 @@
         "machine_type:n1-highcpu-64",
         "docker_installed:true"
       ],
+      "environment": {
+        "RECIPES_USE_PY3": "true"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -1411,6 +1453,9 @@
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin",
           "mockery"
+        ],
+        "VPYTHON_DEFAULT_SPEC": [
+          "buildbot/.vpython"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "cache/vpython"
@@ -1439,6 +1484,11 @@
       ],
       "casSpec": "whole-repo",
       "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
@@ -1515,12 +1565,18 @@
         "machine_type:n1-standard-16",
         "docker_installed:true"
       ],
+      "environment": {
+        "RECIPES_USE_PY3": "true"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin"
+        ],
+        "VPYTHON_DEFAULT_SPEC": [
+          "buildbot/.vpython"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "cache/vpython"
@@ -1549,6 +1605,11 @@
       ],
       "casSpec": "whole-repo",
       "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
@@ -1630,12 +1691,18 @@
         "machine_type:n1-standard-16",
         "docker_installed:true"
       ],
+      "environment": {
+        "RECIPES_USE_PY3": "true"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin"
+        ],
+        "VPYTHON_DEFAULT_SPEC": [
+          "buildbot/.vpython"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "cache/vpython"
@@ -1756,6 +1823,11 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
+        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.8.10.chromium.19"
@@ -1856,12 +1928,18 @@
         "machine_type:n1-standard-16",
         "docker_installed:true"
       ],
+      "environment": {
+        "RECIPES_USE_PY3": "true"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin"
+        ],
+        "VPYTHON_DEFAULT_SPEC": [
+          "buildbot/.vpython"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "cache/vpython"
@@ -1891,6 +1969,11 @@
       ],
       "casSpec": "whole-repo",
       "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
@@ -1967,12 +2050,18 @@
         "machine_type:n1-standard-16",
         "docker_installed:true"
       ],
+      "environment": {
+        "RECIPES_USE_PY3": "true"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin"
+        ],
+        "VPYTHON_DEFAULT_SPEC": [
+          "buildbot/.vpython"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "cache/vpython"
@@ -2001,6 +2090,11 @@
       ],
       "casSpec": "empty",
       "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
@@ -2135,6 +2229,11 @@
       ],
       "casSpec": "empty",
       "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages/cpython",
+          "version": "version:2@2.7.18.chromium.39"
+        },
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
@@ -2295,6 +2394,7 @@
     "recipes": {
       "root": "..",
       "paths": [
+        "buildbot/.vpython",
         "buildbot/infra/config/recipes.cfg",
         "buildbot/infra/bots/bundle_recipes.sh",
         "buildbot/infra/bots/recipes",
@@ -2304,6 +2404,7 @@
     "run-recipe": {
       "root": "..",
       "paths": [
+        "buildbot/.vpython",
         "buildbot/infra/bots/run_recipe.py"
       ]
     },

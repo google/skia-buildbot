@@ -154,7 +154,7 @@ func TestIngestCommits(t *testing.T) {
 }
 
 func TestGetFilteredBranches(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	g := git_testutils.GitInit(t, ctx)

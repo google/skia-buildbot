@@ -24,9 +24,9 @@ SKIP = 'SKIP'
 def main():
   cmd = ['go', 'test', '-v', './...', '--uncategorized']
   try:
-    output = subprocess.check_output(cmd)
+    output = subprocess.check_output(cmd).decode('utf-8')
   except subprocess.CalledProcessError as e:
-    output = e.output
+    output = e.output.decode('utf-8')
   notskipped = []
   for line in output.splitlines():
     m = re.search(REGEX, line)
