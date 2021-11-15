@@ -455,7 +455,7 @@ func main() {
 			ClusterName:  "skia-public",
 		},
 		{
-			Dir:          CONFIG_DIR_INTERNAL,
+			Dir:          filepath.Join(CONFIG_DIR_INTERNAL, "skia-corp"),
 			FeConfigFile: filepath.Join(autorollDir, "go", "autoroll-fe", "cfg-corp.json"),
 			Project:      PROJECT_CORP,
 			ClusterName:  "skia-corp",
