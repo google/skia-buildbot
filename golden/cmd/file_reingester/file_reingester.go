@@ -73,11 +73,16 @@ func main() {
 	}
 
 	dirs := fileutil.GetHourlyDirs(root, beginning, time.Now())
+	published := 0
 	for _, dir := range dirs {
 		sklog.Infof("Directory: %q", dir)
 		var last *pubsub.PublishResult
 		err := gcs.AllFilesInDir(gcsClient, *srcBucket, dir, func(item *storage.ObjectAttrs) {
 			if matchesChangelist(changelistIDs, item.Name) {
+				published++
+				if published%1000 == 0 {
+					sklog.Infof("%d reingeseted", published)
+				}
 				last = publishSyntheticStorageEvent(ctx, topic, item.Bucket, item.Name)
 			}
 		})
@@ -110,7 +115,7 @@ func main() {
 //   trybot/dm-json-v1/2021/09/23/02/4140248__1/8835339621082367857/dm-1632364432749558598.json
 // has a match for CL 4140248. It's implemented simply, meant for some adhoc re-ingestion.
 func matchesChangelist(changelistIDs *[]string, name string) bool {
-	if changelistIDs == nil {
+	if changelistIDs == nil || len(*changelistIDs) == 0 {
 		return true
 	}
 	for _, id := range *changelistIDs {
