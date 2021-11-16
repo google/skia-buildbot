@@ -9,7 +9,7 @@
   ],
   diff_work_topic: "gold-angle-diffmetrics", // includes instance id
   gcs_bucket: "skia-gold-angle",
-  git_repo_branch: "master",
+  git_repo_branch: "main",
   git_repo_url: "https://chromium.googlesource.com/angle/angle",
   pubsub_project_id: "skia-public",
   site_url: "https://angle-gold.skia.org",
