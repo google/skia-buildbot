@@ -217,7 +217,7 @@ func main() {
 			sklog.Fatal(err)
 		}
 		defer tmp.Delete()
-		checkout = (*git.Checkout)(tmp)
+		checkout = tmp.Checkout
 	}
 
 	output, err := checkout.Git(ctx, "status", "-s")

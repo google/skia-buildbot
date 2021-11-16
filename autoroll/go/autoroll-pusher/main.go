@@ -40,11 +40,9 @@ const (
 	GCR_IMAGE_BE = "autoroll-be"
 	GCR_IMAGE_FE = "autoroll-fe"
 
-	// Path to internal autoroller configs.
-	CONFIG_DIR_INTERNAL = "/tmp/skia-autoroll-internal-config"
-
-	// Config maps are named using the roller name with a constant prefix.
-	CONFIG_MAP_NAME_TMPL = "autoroll-config-%s"
+	// Path to autoroller config repo.
+	// TODO(borenet): Support an arbitrary location.
+	CONFIG_REPO = "/tmp/skia-autoroll-internal-config"
 
 	// Directory containing the k8s config files.
 	// TODO(borenet): Look into moving this out of /tmp, possibly with
@@ -69,7 +67,6 @@ var (
 	updateRollerConfig = flag.Bool("update-config", false, "If true, update the roller config(s).")
 	updateBeImage      = flag.Bool("update-be-image", false, "If true, update to the most recently uploaded backend image.")
 	updateFeImage      = flag.Bool("update-fe-image", false, "If true, update to the most recently uploaded frontend image.")
-	useTmpCheckout     = flag.Bool("use-tmp-checkout", false, "If true, use a temporary checkout of the k8s config repo. Only valid with --commit-with-msg")
 )
 
 // configDir contains information about an autoroller config dir.
@@ -425,8 +422,6 @@ func main() {
 		}
 		// --commit-with-msg implies --apply.
 		*apply = true
-	} else if *useTmpCheckout {
-		log.Fatal("--use-tmp-checkout is only valid with --commit-with-msg.")
 	}
 
 	// Derive paths to config files.
@@ -435,7 +430,6 @@ func main() {
 		log.Fatal("Unable to find path to current file.")
 	}
 	autorollDir := filepath.Dir(filepath.Dir(filepath.Dir(thisFileName)))
-	configDirExternal := filepath.Join(autorollDir, "config")
 
 	// Determine where to look for roller configs.
 	var rollerRegex *regexp.Regexp
@@ -449,13 +443,13 @@ func main() {
 	// TODO(borenet): We should use the go/kube/clusterconfig package.
 	cfgDirs := []*configDir{
 		{
-			Dir:          configDirExternal,
+			Dir:          filepath.Join(CONFIG_REPO, "skia-public"),
 			FeConfigFile: filepath.Join(autorollDir, "go", "autoroll-fe", "cfg-public.json"),
 			Project:      PROJECT_PUBLIC,
 			ClusterName:  "skia-public",
 		},
 		{
-			Dir:          filepath.Join(CONFIG_DIR_INTERNAL, "skia-corp"),
+			Dir:          filepath.Join(CONFIG_REPO, "skia-corp"),
 			FeConfigFile: filepath.Join(autorollDir, "go", "autoroll-fe", "cfg-corp.json"),
 			Project:      PROJECT_CORP,
 			ClusterName:  "skia-corp",
@@ -515,24 +509,18 @@ func main() {
 		log.Fatalf("Failed to get latest image for %s: %s", GCR_IMAGE_BE, err)
 	}
 
-	// Find or create the checkout.
+	// Create the checkout.
 	ctx := context.Background()
-	var co *git.Checkout
-	if *useTmpCheckout {
-		c, err := git.NewTempCheckout(ctx, K8S_CONFIG_REPO)
-		if err != nil {
-			log.Fatalf("Failed to create temporary checkout: %s", err)
-		}
-		defer c.Delete()
-		co = (*git.Checkout)(c)
-	} else {
-		co = &git.Checkout{GitDir: git.GitDir(DEFAULT_K8S_CONFIG_DIR)}
+	co, err := git.NewTempCheckout(ctx, K8S_CONFIG_REPO)
+	if err != nil {
+		log.Fatalf("Failed to create temporary checkout: %s", err)
 	}
+	defer co.Delete()
 
 	// Update the configs.
 	modByDir := make(map[*configDir][]string, len(configs))
 	for cfgDir, cfgs := range configs {
-		modified, err := updateConfigs(ctx, co, cfgDir, latestImageFe, latestImageBe, cfgs)
+		modified, err := updateConfigs(ctx, co.Checkout, cfgDir, latestImageFe, latestImageBe, cfgs)
 		if err != nil {
 			log.Fatalf("Failed to update configs: %s", err)
 		}
@@ -584,19 +572,19 @@ func main() {
 			if _, err := co.Git(ctx, cmd...); err != nil {
 				log.Fatalf("Failed to 'git add' k8s config file(s): %s", err)
 			}
-			msg := *commitMsg + "\n\n" + rubberstamper.RandomChangeID()
-			if _, err := co.Git(ctx, "commit", "-m", msg); err != nil {
-				log.Fatalf("Failed to 'git commit' k8s config file(s): %s", err)
+		}
+		msg := *commitMsg + "\n\n" + rubberstamper.RandomChangeID()
+		if _, err := co.Git(ctx, "commit", "-m", msg); err != nil {
+			log.Fatalf("Failed to 'git commit' k8s config file(s): %s", err)
+		}
+		if _, err := co.Git(ctx, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit); err != nil {
+			// The upstream might have changed while we were
+			// working. Rebase and try again.
+			if err2 := co.Fetch(ctx); err2 != nil {
+				log.Fatalf("Failed to push with %q and failed to fetch with %q", err, err2)
 			}
-			if _, err := co.Git(ctx, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit); err != nil {
-				// The upstream might have changed while we were
-				// working. Rebase and try again.
-				if err2 := co.Fetch(ctx); err2 != nil {
-					log.Fatalf("Failed to push with %q and failed to fetch with %q", err, err2)
-				}
-				if _, err2 := co.Git(ctx, "rebase"); err2 != nil {
-					log.Fatalf("Failed to push with %q and failed to rebase with %q", err, err2)
-				}
+			if _, err2 := co.Git(ctx, "rebase"); err2 != nil {
+				log.Fatalf("Failed to push with %q and failed to rebase with %q", err, err2)
 			}
 		}
 	}

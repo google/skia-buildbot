@@ -100,11 +100,6 @@
       "tasks": [
         "Infra-PerCommit-Test-Bazel-RBE"
       ]
-    },
-    "Infra-PerCommit-ValidateAutorollConfigs": {
-      "tasks": [
-        "Infra-PerCommit-ValidateAutorollConfigs"
-      ]
     }
   },
   "tasks": {
@@ -2351,34 +2346,6 @@
         ]
       },
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
-    },
-    "Infra-PerCommit-ValidateAutorollConfigs": {
-      "casSpec": "autoroll-configs",
-      "command": [
-        "./validate_autoroll_configs",
-        "--project_id",
-        "skia-swarming-bots",
-        "--task_id",
-        "<(TASK_ID)",
-        "--task_name",
-        "Infra-PerCommit-ValidateAutorollConfigs",
-        "--workdir",
-        ".",
-        "--config",
-        "./autoroll/config"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
-      ],
-      "dimensions": [
-        "pool:Skia",
-        "os:Debian-10.3",
-        "gpu:none",
-        "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highmem-2",
-        "docker_installed:true"
-      ],
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     }
   },
   "casSpecs": {
@@ -2424,7 +2391,6 @@
     "Infra-PerCommit-Large": {},
     "Infra-PerCommit-Medium": {},
     "Infra-PerCommit-Small": {},
-    "Infra-PerCommit-Test-Bazel-RBE": {},
-    "Infra-PerCommit-ValidateAutorollConfigs": {}
+    "Infra-PerCommit-Test-Bazel-RBE": {}
   }
 }

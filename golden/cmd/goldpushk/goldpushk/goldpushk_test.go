@@ -827,7 +827,9 @@ func createFakeK8sConfigRepo(t *testing.T, ctx context.Context) *testutils.GitBu
 // git.TempCheckout instance to e.g. compute a path into a checkout.
 func addFakeK8sConfigRepoCheckout(g *Goldpushk) {
 	fakeK8sConfigCheckout := &git.TempCheckout{
-		GitDir: "/path/to/k8s-config",
+		Checkout: &git.Checkout{
+			GitDir: "/path/to/k8s-config",
+		},
 	}
 	g.k8sConfigCheckout = fakeK8sConfigCheckout
 }

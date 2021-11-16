@@ -112,7 +112,9 @@ func (c *Checkout) Update(ctx context.Context) error {
 }
 
 // TempCheckout is a temporary Git Checkout.
-type TempCheckout Checkout
+type TempCheckout struct {
+	*Checkout
+}
 
 // NewTempCheckout returns a TempCheckout instance. Creates a temporary
 // directory and then clones the repoUrl into a subdirectory, based on default
@@ -126,7 +128,9 @@ func NewTempCheckout(ctx context.Context, repoUrl string) (*TempCheckout, error)
 	if err != nil {
 		return nil, err
 	}
-	return (*TempCheckout)(c), nil
+	return &TempCheckout{
+		Checkout: c,
+	}, nil
 }
 
 // Delete removes the TempCheckout's working directory.

@@ -63,13 +63,12 @@ var (
 	// Top-level list of all Jobs and their CQ config to run at each commit.
 	// If CQ config is nil then the job will not be put on the CQ.
 	JOBS_TO_CQ = map[string]*specs.CommitQueueJobConfig{
-		"Housekeeper-OnDemand-Presubmit":          {},
-		"Infra-PerCommit-Small":                   {},
-		"Infra-PerCommit-Medium":                  {},
-		"Infra-PerCommit-Large":                   {},
-		"Infra-PerCommit-ValidateAutorollConfigs": {},
-		"Infra-PerCommit-Build-Bazel-RBE":         {},
-		"Infra-PerCommit-Test-Bazel-RBE":          {},
+		"Housekeeper-OnDemand-Presubmit":  {},
+		"Infra-PerCommit-Small":           {},
+		"Infra-PerCommit-Medium":          {},
+		"Infra-PerCommit-Large":           {},
+		"Infra-PerCommit-Build-Bazel-RBE": {},
+		"Infra-PerCommit-Test-Bazel-RBE":  {},
 
 		"Housekeeper-Nightly-UpdateGoDeps":                   nil,
 		"Housekeeper-PerCommit-CIPD-SK":                      nil,
@@ -588,25 +587,6 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
-func validateAutorollConfigs(b *specs.TasksCfgBuilder, name string) string {
-	t := &specs.TaskSpec{
-		CasSpec: CAS_AUTOROLL_CONFIGS,
-		Command: []string{
-			"./validate_autoroll_configs",
-			"--project_id", "skia-swarming-bots",
-			"--task_id", specs.PLACEHOLDER_TASK_ID,
-			"--task_name", name,
-			"--workdir", ".",
-			"--config", "./autoroll/config",
-		},
-		Dependencies:   []string{buildTaskDrivers(b, "Linux", "x86_64")},
-		Dimensions:     linuxGceDimensions(MACHINE_TYPE_SMALL),
-		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
-	}
-	b.MustAddTask(name, t)
-	return name
-}
-
 func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazel"))
@@ -776,8 +756,6 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 	} else if strings.Contains(name, "UpdateCIPDPackages") {
 		// Update CIPD packages bot.
 		deps = append(deps, updateCIPDPackages(b, name))
-	} else if name == "Infra-PerCommit-ValidateAutorollConfigs" {
-		deps = append(deps, validateAutorollConfigs(b, name))
 	} else if strings.Contains(name, "Build-Bazel-Local") {
 		deps = append(deps, bazelBuild(b, name, false /* =rbe */))
 	} else if strings.Contains(name, "Build-Bazel-RBE") {

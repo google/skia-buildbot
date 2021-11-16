@@ -94,7 +94,7 @@ apply-roller: release-be autoroll-pusher setup-internal-config-repo
 # from the MESSAGE environment variable.
 .PHONY: push-roller
 push-roller: release-be autoroll-pusher setup-internal-config-repo
-	autoroll-pusher --roller="$(ROLLER)" --update-config --update-be-image --commit-with-msg="$(MESSAGE)" --use-tmp-checkout
+	autoroll-pusher --roller="$(ROLLER)" --update-config --update-be-image --commit-with-msg="$(MESSAGE)"
 
 # push-be generates a new backend release build and applies it to ALL rollers,
 # then commits and pushes the modified kubernetes config files into the git
@@ -102,7 +102,7 @@ push-roller: release-be autoroll-pusher setup-internal-config-repo
 # update the roller config files used by the backends.
 .PHONY: push-be
 push-be: release-be autoroll-pusher setup-internal-config-repo
-	autoroll-pusher --update-be-image --commit-with-msg="$(MESSAGE)" --use-tmp-checkout
+	autoroll-pusher --update-be-image --commit-with-msg="$(MESSAGE)"
 
 # push-fe generates a new frontend release build, applies it, and commits and
 # pushes the modified kubernetes config files into the git repo, using the
@@ -110,7 +110,7 @@ push-be: release-be autoroll-pusher setup-internal-config-repo
 # roller config files used by the frontends.
 .PHONY: push-fe
 push-fe: release-fe autoroll-pusher setup-internal-config-repo
-	autoroll-pusher --update-fe-image --commit-with-msg="$(MESSAGE)" --use-tmp-checkout
+	autoroll-pusher --update-fe-image --commit-with-msg="$(MESSAGE)"
 
 # push-all generates new frontend and backend release builds, applies them along
 # with the current roller config files(s), and commits and pushes the modified
@@ -118,7 +118,7 @@ push-fe: release-fe autoroll-pusher setup-internal-config-repo
 # MESSAGE environment variable.
 .PHONY: push-all
 push-all: release-be release-fe autoroll-pusher setup-internal-config-repo
-	autoroll-pusher --update-config --update-be-image --update-fe-image --commit-with-msg="$(MESSAGE)" --use-tmp-checkout
+	autoroll-pusher --update-config --update-be-image --update-fe-image --commit-with-msg="$(MESSAGE)"
 
 # validate runs the validate_autoroll_config task driver using the provided
 # CONFIG variable, which may be a single config file or a directory containing
