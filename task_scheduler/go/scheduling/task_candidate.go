@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -278,8 +279,11 @@ func (c *TaskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]stri
 		}
 		ok := false
 		for _, t := range byKey {
-			if t.Done() && t.Success() && t.IsolatedOutput != "" {
+			if t.Done() && t.Success() {
 				rv[t.Id] = t.IsolatedOutput
+				if t.IsolatedOutput == "" {
+					rv[t.Id] = rbe.EmptyDigest
+				}
 				ok = true
 				break
 			}
