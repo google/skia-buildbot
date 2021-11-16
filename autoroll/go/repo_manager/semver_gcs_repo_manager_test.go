@@ -400,7 +400,8 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &revision.Revision{
-		Id: "BOGUS_REV",
+		Id:            "BOGUS_REV",
+		InvalidReason: "Failed to retrieve revision.",
 	}, lastRollRev)
 	require.Equal(t, afdoRevNext, tipRev.Id)
 	require.Equal(t, 1, len(notRolledRevs))

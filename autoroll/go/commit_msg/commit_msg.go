@@ -16,6 +16,10 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	invalidRevisionLogURLTmpl = "Cannot build log URL because revision %q is invalid: %s"
+)
+
 var (
 	// namedCommitMsgTemplates contains pre-defined commit message templates
 	// which may be referenced by name in config files.
@@ -189,15 +193,21 @@ func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parent
 	// Log URL.
 	vars.ChildLogURL = ""
 	if c.ChildLogUrlTmpl != "" {
-		childLogURLTmpl, err := parseCommitMsgTemplate(nil, "childLogURL", c.ChildLogUrlTmpl)
-		if err != nil {
-			return nil, skerr.Wrap(err)
+		if vars.RollingFrom.InvalidReason != "" {
+			vars.ChildLogURL = fmt.Sprintf(invalidRevisionLogURLTmpl, vars.RollingFrom.String(), vars.RollingFrom.InvalidReason)
+		} else if vars.RollingTo.InvalidReason != "" {
+			vars.ChildLogURL = fmt.Sprintf(invalidRevisionLogURLTmpl, vars.RollingTo.String(), vars.RollingTo.InvalidReason)
+		} else {
+			childLogURLTmpl, err := parseCommitMsgTemplate(nil, "childLogURL", c.ChildLogUrlTmpl)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			var buf bytes.Buffer
+			if err := childLogURLTmpl.Execute(&buf, vars); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			vars.ChildLogURL = buf.String()
 		}
-		var buf bytes.Buffer
-		if err := childLogURLTmpl.Execute(&buf, vars); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		vars.ChildLogURL = buf.String()
 	}
 
 	// Tests.

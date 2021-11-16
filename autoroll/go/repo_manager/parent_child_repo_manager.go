@@ -114,8 +114,11 @@ func (rm *parentChildRepoManager) Update(ctx context.Context) (*revision.Revisio
 	}
 	lastRollRev, err := rm.Child.GetRevision(ctx, lastRollRevId)
 	if err != nil {
-		sklog.Errorf("Last roll rev %q not found. This is acceptable for some rollers which allow outside versions to be rolled manually (eg. AFDO roller). A human should verify that this is indeed caused by a manual roll. Attempting to continue with no last-rolled revision. The revisions listed in the commit message will be incorrect!", lastRollRevId)
-		lastRollRev = &revision.Revision{Id: lastRollRevId}
+		sklog.Errorf("Last roll rev %q not found. This is acceptable for some rollers which allow outside versions to be rolled manually (eg. AFDO roller). A human should verify that this is indeed caused by a manual roll. Attempting to continue with no last-rolled revision. The revisions listed in the commit message will be incorrect!  Error: %s", lastRollRevId, err)
+		lastRollRev = &revision.Revision{
+			Id:            lastRollRevId,
+			InvalidReason: "Failed to retrieve revision.",
+		}
 	}
 	tipRev, notRolledRevs, err := rm.Child.Update(ctx, lastRollRev)
 	if err != nil {
