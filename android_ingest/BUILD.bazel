@@ -1,0 +1,22 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "android_ingest_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//android_ingest/go/androidingest:androidingest",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/androidingest/templates": [
+            [
+                "//android_ingest/templates:index.html",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/androidingest",
+    repository = "skia-public/androidingest",
+)

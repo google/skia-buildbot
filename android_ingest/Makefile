@@ -1,19 +1,21 @@
+include ../make/bazel.mk
+include ../kube/kube.mk
+
 .PHONY: build
 build:
-	go install -v ./go/...
+	$(BAZEL) build //android_ingest/go/...
 
 .PHONY: test
 test:
 	go test ./go/...
 
 .PHONY: release
-release:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/androidingest
-	./images/androidingest/release
+release: build
+	$(BAZEL) run //android_ingest:push_android_ingest_container
 
 .PHONY: push
-push: release
-	pushk androidingest
+push: pushk release
+	pushk --use-temp-checkout androidingest
 
 # Get the exact service account key, so we know that it has access to the API.
 service-account.json:
