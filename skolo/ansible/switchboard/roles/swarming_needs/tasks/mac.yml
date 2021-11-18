@@ -62,7 +62,8 @@
     path: /private/etc/sudoers.d/swarming
     state: present
     create: yes
-    line: '{{ skolo_account }} ALL=NOPASSWD:/sbin/shutdown -r now'
+    line: '{{ skolo_account }} ALL=NOPASSWD: ALL'
+    regexp: '^{{ skolo_account }} ALL=NOPASSWD:.*'
     validate: /usr/sbin/visudo -cf %s
     mode: 0644
     owner: root
