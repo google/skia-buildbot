@@ -11,7 +11,6 @@
     // Arbitrary commit from 1 Apr 2021
     initial_commit: "dbcac7f177f57d84ea358a9c9b554e2c1bbc5b5f",
     system_name: "github",
-    branch: "master",
   }],
 
   prom_port: ":20000",

@@ -9,7 +9,6 @@
     // Arbitrary commit from 1 Apr 2021
     initial_commit: "ff0c9ed625ad106afdac89b59f0599b235a37e30",
     system_name: "gerrit",
-    branch: "master",
   }],
 
   prom_port: ":20000",

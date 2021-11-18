@@ -310,7 +310,7 @@ func TestCheckForLandedCycle_EmptyDB_UsesInitialCommit(t *testing.T) {
 	mc := monitorConfig{
 		RepoURL:             "https://example.com/my-repo.git",
 		SystemName:          "gerrit",
-		Branch:              "main",
+		branch:              "main",
 		ExtractionTechnique: ReviewedLine,
 		InitialCommit:       "1111111111111111111111111111111111111111",
 	}
@@ -354,7 +354,7 @@ func TestCheckForLandedCycle_UpToDate_Success(t *testing.T) {
 	mc := monitorConfig{
 		RepoURL:             "https://example.com/my-repo.git",
 		SystemName:          "gerrit",
-		Branch:              "main",
+		branch:              "main",
 		ExtractionTechnique: ReviewedLine,
 		InitialCommit:       "1111111111111111111111111111111111111111", // ignored
 	}
@@ -416,7 +416,7 @@ func TestCheckForLandedCycle_UnparsableCL_Success(t *testing.T) {
 	mc := monitorConfig{
 		RepoURL:             "https://example.com/my-repo.git",
 		SystemName:          "gerrit",
-		Branch:              "main",
+		branch:              "main",
 		ExtractionTechnique: ReviewedLine,
 		InitialCommit:       "1111111111111111111111111111111111111111",
 	}
@@ -510,7 +510,7 @@ Commit-Queue: User One <user1@google.com>`,
 	mc := monitorConfig{
 		RepoURL:             "https://example.com/my-repo.git",
 		SystemName:          "gerrit",
-		Branch:              "main",
+		branch:              "main",
 		ExtractionTechnique: ReviewedLine,
 		InitialCommit:       "1111111111111111111111111111111111111111", // should be ignored
 	}
@@ -579,7 +579,7 @@ func TestCheckForLandedCycle_CLExpectations_MergedIntoPrimaryBranch(t *testing.T
 	mc := monitorConfig{
 		RepoURL:             "https://example.com/my-repo.git",
 		SystemName:          dks.GerritInternalCRS,
-		Branch:              "main",
+		branch:              "main",
 		ExtractionTechnique: ReviewedLine,
 		InitialCommit:       "1111111111111111111111111111111111111111",
 	}
@@ -745,7 +745,7 @@ func TestCheckForLandedCycle_ExtractsCLFromSubject_Success(t *testing.T) {
 	mc := monitorConfig{
 		RepoURL:             "https://example.com/my-repo.git",
 		SystemName:          "github",
-		Branch:              "main",
+		branch:              "main",
 		ExtractionTechnique: FromSubject,
 		InitialCommit:       "1111111111111111111111111111111111111111", // should be ignored
 	}
@@ -840,7 +840,7 @@ func TestCheckForLandedCycle_LegacyMode_StatusNotChanged(t *testing.T) {
 	mc := monitorConfig{
 		RepoURL:             "https://example.com/my-repo.git",
 		SystemName:          "github",
-		Branch:              "main",
+		branch:              "main",
 		ExtractionTechnique: FromSubject,
 		InitialCommit:       "1111111111111111111111111111111111111111", // should be ignored
 		LegacyUpdaterInUse:  true,
@@ -923,7 +923,7 @@ func TestCheckForLandedCycle_TriageExistingData_Success(t *testing.T) {
 	mc := monitorConfig{
 		RepoURL:             "https://example.com/my-repo.git",
 		SystemName:          dks.GerritInternalCRS,
-		Branch:              "main",
+		branch:              "main",
 		ExtractionTechnique: ReviewedLine,
 		InitialCommit:       "1111111111111111111111111111111111111111",
 	}

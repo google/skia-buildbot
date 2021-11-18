@@ -82,12 +82,13 @@ type monitorConfig struct {
 	InitialCommit string `json:"initial_commit"`
 	// SystemName is the abbreviation that is given to a given CodeReviewSystem.
 	SystemName string `json:"system_name"`
-	// Branch is generally the primary branch of the repo that we will poll for the latest commit.
-	Branch string `json:"branch"`
 	// LegacyUpdaterInUse indicates the status of the CLs should not be changed because the source
 	// of truth for expectations is still Firestore, which is controlled by gold_frontend.
 	// This should be able to be removed after the SQL migration is complete.
 	LegacyUpdaterInUse bool `json:"legacy_updater_in_use"`
+	// branch is the git branch of the repo that we will poll for the latest commit. It is set to
+	// the primary branch of this repo.
+	branch string
 }
 
 type extractionTechnique string
@@ -341,7 +342,9 @@ func checkForLanded(ctx context.Context, db *pgxpool.Pool, client *http.Client, 
 		gClients = append(gClients, gitiles.NewRepo(repo.RepoURL, client))
 	}
 	for i, client := range gClients {
-		err := checkForLandedCycle(ctx, db, client, rfc.ReposToMonitorCLs[i])
+		cfg := rfc.ReposToMonitorCLs[i]
+		cfg.branch = rfc.GitRepoBranch
+		err := checkForLandedCycle(ctx, db, client, cfg)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
@@ -376,7 +379,7 @@ func checkForLandedCycle(ctx context.Context, db *pgxpool.Pool, client GitilesLo
 	ctx, span := trace.StartSpan(ctx, "gitilesfollower_checkForLandedCycle")
 	span.AddAttributes(trace.StringAttribute("repo", m.RepoURL))
 	defer span.End()
-	latestHash, err := getLatestCommitFromRepo(ctx, client, m.Branch)
+	latestHash, err := getLatestCommitFromRepo(ctx, client, m.branch)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

@@ -8,7 +8,7 @@
     },
   ],
   gcs_bucket: "skia-gold-chrome",
-  git_repo_branch: "master",
+  git_repo_branch: "main",
   git_repo_url: "https://chromium.googlesource.com/chromium/src",
   pubsub_project_id: "skia-public",
   site_url: "https://chrome-public-gold.skia.org",
