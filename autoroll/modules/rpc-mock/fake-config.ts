@@ -48,6 +48,7 @@ export function GetFakeConfig(): Config {
       readinessInitialDelaySeconds: 30,
       readinessPeriodSeconds: 30,
       disk: '',
+      image: 'gcr.io/fake-image',
     },
     parentChildRepoManager: {
       gitilesParent: {
