@@ -204,6 +204,8 @@ message KubernetesConfig {
     string disk = 6;
     // secrets provided to the pod.
     repeated KubernetesSecret secrets = 7;
+    // image used for the autoroll backend container.
+    string image = 8;
 }
 
 // KubernetesSecret provides configuration for a Kubernetes secret.

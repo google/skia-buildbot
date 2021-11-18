@@ -14,6 +14,10 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+const (
+	checkedInFile = "somefile"
+)
+
 func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, []string) {
 	unittest.LargeTest(t)
 

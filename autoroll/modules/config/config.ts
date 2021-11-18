@@ -188,6 +188,7 @@ export interface KubernetesConfig {
   readinessPeriodSeconds: number;
   disk: string;
   secrets?: KubernetesSecret[];
+  image: string;
 }
 
 interface KubernetesConfigJSON {
@@ -198,6 +199,7 @@ interface KubernetesConfigJSON {
   readiness_period_seconds?: number;
   disk?: string;
   secrets?: KubernetesSecretJSON[];
+  image?: string;
 }
 
 export interface KubernetesSecret {

@@ -312,6 +312,9 @@ func (c *KubernetesConfig) Validate() error {
 			return skerr.Wrap(err)
 		}
 	}
+	if c.Image == "" {
+		return skerr.Fmt("Image is required.")
+	}
 	return nil
 }
 

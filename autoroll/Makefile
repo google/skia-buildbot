@@ -81,44 +81,36 @@ release-all: release-fe release-be release-google3
 autoroll-pusher: kube-conf-gen deployment-dirs
 	go install -v ./go/autoroll-pusher
 
-# apply-roller generates a new backend release build and applies it, along with
-# the current roller config file(s), to the roller(s) matching the ROLLER
-# environment variable. Also updates the frontend with the current roller
-# config(s) but does not change the frontend build.
-.PHONY: apply-roller
-apply-roller: release-be autoroll-pusher setup-internal-config-repo
-	autoroll-pusher --roller="$(ROLLER)" --update-config --update-be-image
-
 # push-roller is the same as apply-roller, but it also commits and pushes the
 # modified kubernetes config files into the git repo, using the commit message
 # from the MESSAGE environment variable.
 .PHONY: push-roller
-push-roller: release-be autoroll-pusher setup-internal-config-repo
-	autoroll-pusher --roller="$(ROLLER)" --update-config --update-be-image --commit-with-msg="$(MESSAGE)"
+push-roller: release-be autoroll-pusher
+	autoroll-pusher --roller="$(ROLLER)" --update-config --update-be-image --commit-msg="$(MESSAGE)"
 
 # push-be generates a new backend release build and applies it to ALL rollers,
 # then commits and pushes the modified kubernetes config files into the git
 # repo, using the commit message from the MESSAGE environment variable. Does NOT
 # update the roller config files used by the backends.
 .PHONY: push-be
-push-be: release-be autoroll-pusher setup-internal-config-repo
-	autoroll-pusher --update-be-image --commit-with-msg="$(MESSAGE)"
+push-be: release-be autoroll-pusher
+	autoroll-pusher --update-be-image --commit-msg="$(MESSAGE)"
 
 # push-fe generates a new frontend release build, applies it, and commits and
 # pushes the modified kubernetes config files into the git repo, using the
 # commit message from the MESSAGE environment variable. Does NOT update the
 # roller config files used by the frontends.
 .PHONY: push-fe
-push-fe: release-fe autoroll-pusher setup-internal-config-repo
-	autoroll-pusher --update-fe-image --commit-with-msg="$(MESSAGE)"
+push-fe: release-fe autoroll-pusher
+	autoroll-pusher --update-fe-image --commit-msg="$(MESSAGE)"
 
 # push-all generates new frontend and backend release builds, applies them along
 # with the current roller config files(s), and commits and pushes the modified
 # kubernetes config files into the git repo, using the commit message from the
 # MESSAGE environment variable.
 .PHONY: push-all
-push-all: release-be release-fe autoroll-pusher setup-internal-config-repo
-	autoroll-pusher --update-config --update-be-image --update-fe-image --commit-with-msg="$(MESSAGE)"
+push-all: release-be release-fe autoroll-pusher
+	autoroll-pusher --update-config --update-be-image --update-fe-image --commit-msg="$(MESSAGE)"
 
 # validate runs the validate_autoroll_config task driver using the provided
 # CONFIG variable, which may be a single config file or a directory containing

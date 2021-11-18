@@ -111,6 +111,40 @@ func (c *Checkout) Update(ctx context.Context) error {
 	return c.UpdateBranch(ctx, MasterBranch)
 }
 
+// IsDirty returns true if the Checkout is dirty, ie. any of the following are
+// true:
+// 1. There are unstaged changes.
+// 2. There are untracked files (not including .gitignore'd files).
+// 3. HEAD is not an ancestor of ${remote}/${branch}.
+//
+// Also returns the output of "git status", for human consumption if desired.
+func (c *Checkout) IsDirty(ctx context.Context, remote, branch string) (bool, string, error) {
+	status, err := c.Git(ctx, "status")
+	if err != nil {
+		return false, "", err
+	}
+	if _, err := c.Git(ctx, "update-index", "--refresh"); err != nil {
+		return true, status, nil
+	}
+	if _, err := c.Git(ctx, "diff-index", "--quiet", "HEAD", "--"); err != nil {
+		return true, status, nil
+	}
+	output, err := c.Git(ctx, "ls-files", "--other", "--directory", "--exclude-standard")
+	if err != nil {
+		return false, status, err
+	}
+	output = strings.TrimSpace(output)
+	if output != "" {
+		return true, status, nil
+	}
+	if anc, err := c.IsAncestor(ctx, "HEAD", remote+"/"+branch); err != nil {
+		return false, status, err
+	} else if !anc {
+		return true, status, nil
+	}
+	return false, status, nil
+}
+
 // TempCheckout is a temporary Git Checkout.
 type TempCheckout struct {
 	*Checkout

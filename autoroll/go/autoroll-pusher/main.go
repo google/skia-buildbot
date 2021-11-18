@@ -42,12 +42,8 @@ const (
 
 	// Path to autoroller config repo.
 	// TODO(borenet): Support an arbitrary location.
-	CONFIG_REPO = "/tmp/skia-autoroll-internal-config"
-
-	// Directory containing the k8s config files.
-	// TODO(borenet): Look into moving this out of /tmp, possibly with
-	// support for putting it wherever a developer wants.
-	DEFAULT_K8S_CONFIG_DIR = "/tmp/k8s-config"
+	CONFIG_REPO_LOCATION = "/tmp/skia-autoroll-internal-config"
+	CONFIG_REPO_URL      = "https://skia.googlesource.com/skia-autoroll-internal-config.git"
 
 	// Repo containing the k8s config files.
 	K8S_CONFIG_REPO = "https://skia.googlesource.com/k8s-config.git"
@@ -61,20 +57,23 @@ const (
 )
 
 var (
-	apply              = flag.Bool("apply", false, "If true, 'kubectl apply' the modified configs.")
-	commitMsg          = flag.String("commit-with-msg", "", "If set, commit and push the changes in Git, using the given message. Implies --apply.")
+	// Flags.
+	commitMsg          = flag.String("commit-msg", "", "If set, commit and push the changes in Git, using the given message. Implies --apply.")
 	rollerRe           = flag.String("roller", "", "If set, only apply changes for rollers matching the given regex.")
 	updateRollerConfig = flag.Bool("update-config", false, "If true, update the roller config(s).")
 	updateBeImage      = flag.Bool("update-be-image", false, "If true, update to the most recently uploaded backend image.")
 	updateFeImage      = flag.Bool("update-fe-image", false, "If true, update to the most recently uploaded frontend image.")
+
+	// Regular expression used to replace the Docker image version in config
+	// files.
+	dockerImageRe = regexp.MustCompile(`^\s*image:\s*"\S+"`)
 )
 
-// configDir contains information about an autoroller config dir.
-type configDir struct {
-	Dir          string
+// clusterCfg contains information about a cluster which runs autorollers.
+type clusterCfg struct {
 	FeConfigFile string
 	Project      string
-	ClusterName  string
+	Name         string
 }
 
 // kubeConfGen generates the given destination Kubernetes YAML config file
@@ -112,11 +111,10 @@ func kubeConfGen(ctx context.Context, tmpl, dstConfig string, extraVars map[stri
 
 // kubeConfGenBe generates the Kubernetes YAML config file for the given backend
 // instance.
-func kubeConfGenBe(ctx context.Context, tmpl, srcConfig, dstConfig, configFileBase64, image string) (bool, error) {
+func kubeConfGenBe(ctx context.Context, tmpl, srcConfig, dstConfig, configFileBase64 string) (bool, error) {
 	// Generate the k8s config.
 	return kubeConfGen(ctx, tmpl, dstConfig, map[string]string{
 		"configBase64": configFileBase64,
-		"image":        image,
 	}, srcConfig)
 }
 
@@ -232,18 +230,18 @@ func switchCluster(ctx context.Context, project string) (kubecfg string, cleanup
 // updateConfigs updates the Kubernetes config files in k8sConfigDir to reflect
 // the current contents of configDir, inserting the roller configs into the
 // given ConfigMap.
-func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, latestImageFe, latestImageBe string, configs map[string]*config.Config) ([]string, error) {
+func updateConfigs(ctx context.Context, co *git.Checkout, cluster *clusterCfg, latestImageFe string, configs map[string]*config.Config) ([]string, error) {
 	// This is the subdir for the current cluster.
-	clusterCfgDir := filepath.Join(co.Dir(), cfgDir.ClusterName)
+	clusterCfgDir := filepath.Join(co.Dir(), cluster.Name)
 
 	// Pull some information out of the frontend config.
 	var configFe struct {
 		AppName string `json:"appName"`
 	}
-	if err := util.WithReadFile(cfgDir.FeConfigFile, func(f io.Reader) error {
+	if err := util.WithReadFile(cluster.FeConfigFile, func(f io.Reader) error {
 		return json5.NewDecoder(f).Decode(&configFe)
 	}); err != nil {
-		return nil, skerr.Wrapf(err, "Failed to decode frontend config file %s", cfgDir.FeConfigFile)
+		return nil, skerr.Wrapf(err, "Failed to decode frontend config file %s", cluster.FeConfigFile)
 	}
 
 	// Read the existing frontend k8s config file (if it exists) and parse
@@ -312,7 +310,7 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 				return nil, skerr.Wrapf(err, "Failed to get active image for frontend")
 			}
 		}
-		modifiedFe, err := kubeConfGenFe(ctx, tmplFe, cfgDir.FeConfigFile, dstFe, cfgBase64ByRollerName, imageFe)
+		modifiedFe, err := kubeConfGenFe(ctx, tmplFe, cluster.FeConfigFile, dstFe, cfgBase64ByRollerName, imageFe)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to generate k8s config for frontend")
 		}
@@ -330,25 +328,6 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 				continue
 			}
 			dst := filepath.Join(clusterCfgDir, fmt.Sprintf("autoroll-be-%s.yaml", strings.Split(cfgFile, ".")[0]))
-
-			// If the k8s file doesn't exist yet or the user supplied the
-			// --update-be-image flag, use the latest image. Otherwise use
-			// the currently-active image.
-			image := latestImageBe
-			if _, err := os.Stat(dst); os.IsNotExist(err) {
-				// Do nothing, ie. use the latest image even if
-				// --update-be-image was not provided.
-				if !*updateBeImage {
-					fmt.Fprintf(os.Stderr, "--update-be-image was not provided, but destination config file %q does not exist. Defaulting to use the latest image: %s\n", dst, latestImageBe)
-				}
-			} else if err != nil {
-				return nil, skerr.Wrapf(err, "Failed to read backend k8s config file %s", dst)
-			} else if !*updateBeImage {
-				image, err = getActiveImage(ctx, dst)
-				if err != nil {
-					return nil, skerr.Wrapf(err, "Failed to get active image for backend")
-				}
-			}
 
 			// kube-conf-gen wants a JSON version of the config. Write it to a
 			// temporary directory.
@@ -375,7 +354,7 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 
 			// Regenerate the k8s config file.
 			cfgFileBase64 := cfgBase64ByRollerName[config.RollerName]
-			modifiedBe, err := kubeConfGenBe(ctx, tmplBe, cfgFilePath, dst, cfgFileBase64, image)
+			modifiedBe, err := kubeConfGenBe(ctx, tmplBe, cfgFilePath, dst, cfgFileBase64)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "Failed to generate k8s config file for backend: %s", dst)
 			}
@@ -402,6 +381,8 @@ func flagWasSet(name string) bool {
 func main() {
 	common.Init()
 
+	ctx := context.Background()
+
 	// Validate flags.
 	if !*updateRollerConfig && !*updateBeImage && !*updateFeImage {
 		log.Fatal("One or more of --update-config, --update-be-image, or --update-fe-image is required.")
@@ -410,18 +391,14 @@ func main() {
 		// This is almost certainly a mistake.
 		log.Fatal("--roller was set to an empty string.")
 	}
-	if flagWasSet("commit-with-msg") {
-		if *commitMsg == "" {
-			r := bufio.NewReader(os.Stdin)
-			fmt.Println("--commit-with-msg was specified but is empty. Please enter a commit message, followed by EOF (ctrl+D):")
-			msg, err := ioutil.ReadAll(r)
-			if err != nil {
-				log.Fatalf("Failed to read commit message from stdin: %s", err)
-			}
-			*commitMsg = string(msg)
+	if *commitMsg == "" {
+		r := bufio.NewReader(os.Stdin)
+		fmt.Println("--commit-msg was not provided. Please enter a commit message, followed by EOF (ctrl+D):")
+		msg, err := ioutil.ReadAll(r)
+		if err != nil {
+			log.Fatalf("Failed to read commit message from stdin: %s", err)
 		}
-		// --commit-with-msg implies --apply.
-		*apply = true
+		*commitMsg = string(msg)
 	}
 
 	// Derive paths to config files.
@@ -441,45 +418,65 @@ func main() {
 		}
 	}
 	// TODO(borenet): We should use the go/kube/clusterconfig package.
-	cfgDirs := []*configDir{
+	clusters := []*clusterCfg{
 		{
-			Dir:          filepath.Join(CONFIG_REPO, "skia-public"),
 			FeConfigFile: filepath.Join(autorollDir, "go", "autoroll-fe", "cfg-public.json"),
 			Project:      PROJECT_PUBLIC,
-			ClusterName:  "skia-public",
+			Name:         "skia-public",
 		},
 		{
-			Dir:          filepath.Join(CONFIG_REPO, "skia-corp"),
 			FeConfigFile: filepath.Join(autorollDir, "go", "autoroll-fe", "cfg-corp.json"),
 			Project:      PROJECT_CORP,
-			ClusterName:  "skia-corp",
+			Name:         "skia-corp",
 		},
+	}
+
+	// Ensure that the config repo is present.
+	configCo := &git.Checkout{GitDir: git.GitDir(CONFIG_REPO_LOCATION)}
+	if _, err := os.Stat(configCo.Dir()); os.IsNotExist(err) {
+		if err := git.Clone(ctx, CONFIG_REPO_URL, configCo.Dir(), false); err != nil {
+			log.Fatalf("Failed to clone config repo: %s", err)
+		}
+	}
+	if err := configCo.Fetch(ctx); err != nil {
+		log.Fatal(err)
+	}
+	configRepoIsDirty, configRepoStatus, err := configCo.IsDirty(ctx, git.DefaultRemote, git.MainBranch)
+	if err != nil {
+		log.Fatal(err)
+	} else if configRepoIsDirty {
+		fmt.Println(configRepoStatus)
+		fmt.Println(fmt.Sprintf("Checkout in %s is dirty; are you sure you want to use it? (y/n): ", configCo.Dir()))
+		reader := bufio.NewReader(os.Stdin)
+		read, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+		read = strings.TrimSpace(read)
+		if read != "y" {
+			os.Exit(1)
+		}
 	}
 
 	// Load all configs. This a nested map whose keys are config dir paths,
 	// sub-map keys are config file names, and values are roller configs.
-	configs := map[*configDir]map[string]*config.Config{}
-	for _, dir := range cfgDirs {
-		dirEntries, err := ioutil.ReadDir(dir.Dir)
+	configs := map[*clusterCfg]map[string]*config.Config{}
+	for _, cluster := range clusters {
+		dirEntries, err := ioutil.ReadDir(filepath.Join(configCo.Dir(), cluster.Name))
 		if err != nil {
-			log.Fatalf("Failed to read roller configs in %s: %s", dir, err)
+			log.Fatalf("Failed to read roller configs in %s: %s", cluster, err)
 		}
 		cfgsInDir := make(map[string]*config.Config, len(dirEntries))
 		for _, entry := range dirEntries {
 			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".cfg") {
-				cfgPath := filepath.Join(dir.Dir, entry.Name())
+				cfgPath := filepath.Join(configCo.Dir(), cluster.Name, entry.Name())
+				cfgBytes, err := ioutil.ReadFile(cfgPath)
+				if err != nil {
+					log.Fatalf("Failed to read roller config %s: %s", cfgPath, err)
+				}
 				var cfg config.Config
-				if err := util.WithReadFile(cfgPath, func(f io.Reader) error {
-					configBytes, err := ioutil.ReadAll(f)
-					if err != nil {
-						return err
-					}
-					if err := prototext.Unmarshal(configBytes, &cfg); err != nil {
-						return err
-					}
-					return nil
-				}); err != nil {
-					log.Fatalf("Failed to parse roller config %s: %s", cfgPath, err)
+				if err := prototext.Unmarshal(cfgBytes, &cfg); err != nil {
+					log.Fatalf("Failed to parse roller config: %s", err)
 				}
 				if rollerRegex == nil || rollerRegex.MatchString(cfg.RollerName) {
 					if err := cfg.Validate(); err != nil {
@@ -490,9 +487,9 @@ func main() {
 			}
 		}
 		if len(cfgsInDir) == 0 {
-			fmt.Println(fmt.Sprintf("No matching rollers in %s. Skipping.", dir.Dir))
+			fmt.Println(fmt.Sprintf("No matching rollers in %s. Skipping.", cluster.Name))
 		} else {
-			configs[dir] = cfgsInDir
+			configs[cluster] = cfgsInDir
 		}
 	}
 	if len(configs) == 0 {
@@ -504,13 +501,53 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to get latest image for %s: %s", GCR_IMAGE_FE, err)
 	}
-	latestImageBe, err := getLatestImage(GCR_IMAGE_BE)
-	if err != nil {
-		log.Fatalf("Failed to get latest image for %s: %s", GCR_IMAGE_BE, err)
+
+	// Update the backend image if requested.
+	if *updateBeImage {
+		latestImageBe, err := getLatestImage(GCR_IMAGE_BE)
+		if err != nil {
+			log.Fatalf("Failed to get latest image for %s: %s", GCR_IMAGE_BE, err)
+		}
+		imageBytes := []byte(fmt.Sprintf("image:  %q", latestImageBe))
+		for cluster, byCluster := range configs {
+			for filename, config := range byCluster {
+				// Update the config files on disk.
+				cfgPath := filepath.Join(configCo.Dir(), cluster.Name, filename)
+				cfgBytes, err := ioutil.ReadFile(cfgPath)
+				if err != nil {
+					log.Fatalf("Failed to read roller config %s: %s", cfgPath, err)
+				}
+				cfgBytes = dockerImageRe.ReplaceAll(cfgBytes, imageBytes)
+				if err := ioutil.WriteFile(cfgPath, cfgBytes, os.ModePerm); err != nil {
+					log.Fatalf("Failed to write roller config %s: %s", cfgPath, err)
+				}
+
+				// Update the configs we already read.
+				config.Kubernetes.Image = latestImageBe
+			}
+		}
+		// If the repo is not dirty, commit and push the updated configs.
+		if !configRepoIsDirty {
+			msg := *commitMsg + "\n\n" + rubberstamper.RandomChangeID()
+			if _, err := configCo.Git(ctx, "commit", "-a", "-m", msg); err != nil {
+				log.Fatalf("Failed to 'git commit' k8s config file(s): %s", err)
+			}
+			if _, err := configCo.Git(ctx, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit); err != nil {
+				// The upstream might have changed while we were
+				// working. Rebase and try again.
+				if err2 := configCo.Fetch(ctx); err2 != nil {
+					log.Fatalf("Failed to push with %q and failed to fetch with %q", err, err2)
+				}
+				if _, err2 := configCo.Git(ctx, "rebase"); err2 != nil {
+					log.Fatalf("Failed to push with %q and failed to rebase with %q", err, err2)
+				}
+			}
+		} else {
+			fmt.Println(fmt.Sprintf("Updated config files in %s but not committing because of dirty checkout.", configCo.Dir()))
+		}
 	}
 
 	// Create the checkout.
-	ctx := context.Background()
 	co, err := git.NewTempCheckout(ctx, K8S_CONFIG_REPO)
 	if err != nil {
 		log.Fatalf("Failed to create temporary checkout: %s", err)
@@ -518,33 +555,28 @@ func main() {
 	defer co.Delete()
 
 	// Update the configs.
-	modByDir := make(map[*configDir][]string, len(configs))
-	for cfgDir, cfgs := range configs {
-		modified, err := updateConfigs(ctx, co.Checkout, cfgDir, latestImageFe, latestImageBe, cfgs)
+	modByCluster := make(map[*clusterCfg][]string, len(configs))
+	for cluster, cfgs := range configs {
+		modified, err := updateConfigs(ctx, co.Checkout, cluster, latestImageFe, cfgs)
 		if err != nil {
 			log.Fatalf("Failed to update configs: %s", err)
 		}
 		if len(modified) > 0 {
 			modFullPaths := make([]string, 0, len(modified))
-			fmt.Println(fmt.Sprintf("Modified the following files in %s:", cfgDir.ClusterName))
+			fmt.Println(fmt.Sprintf("Modified the following files in %s:", cluster.Name))
 			for _, f := range modified {
 				fmt.Println(fmt.Sprintf("  %s", f))
-				modFullPaths = append(modFullPaths, filepath.Join(cfgDir.ClusterName, f))
+				modFullPaths = append(modFullPaths, filepath.Join(cluster.Name, f))
 			}
-			modByDir[cfgDir] = modFullPaths
+			modByCluster[cluster] = modFullPaths
 		} else {
-			fmt.Fprintf(os.Stderr, "No configs modified in %s.\n", cfgDir.ClusterName)
+			fmt.Fprintf(os.Stderr, "No configs modified in %s.\n", cluster.Name)
 		}
 	}
 
-	// Apply the modified configs.
-	if !*apply || len(modByDir) == 0 {
-		return
-	}
-
 	// TODO(borenet): Support rolling back on error.
-	for cfgDir, modified := range modByDir {
-		kubecfg, cleanup, err := switchCluster(ctx, cfgDir.Project)
+	for cluster, modified := range modByCluster {
+		kubecfg, cleanup, err := switchCluster(ctx, cluster.Project)
 		if err != nil {
 			log.Fatalf("Failed to update k8s configs: %s", err)
 		}
@@ -567,7 +599,7 @@ func main() {
 
 	// Commit and push the modified configs.
 	if *commitMsg != "" {
-		for _, modified := range modByDir {
+		for _, modified := range modByCluster {
 			cmd := append([]string{"add"}, modified...)
 			if _, err := co.Git(ctx, cmd...); err != nil {
 				log.Fatalf("Failed to 'git add' k8s config file(s): %s", err)

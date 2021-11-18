@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -99,6 +100,42 @@ func TestCheckout(t *testing.T) {
 	_, err = c.Git(ctx, "commit", "-a", "-m", "msg")
 	require.NoError(t, err)
 	updateAndAssertClean()
+}
+
+func TestCheckout_IsDirty(t *testing.T) {
+	ctx, gb, _ := setup(t)
+	defer gb.Cleanup()
+
+	test := func(name string, expectDirty bool, fn func(*testing.T, *Checkout)) {
+		t.Run(name, func(t *testing.T) {
+			tmp, err := ioutil.TempDir("", "")
+			require.NoError(t, err)
+			defer testutils.RemoveAll(t, tmp)
+			c, err := NewCheckout(ctx, gb.Dir(), tmp)
+			require.NoError(t, err)
+			fn(t, c)
+			dirty, status, err := c.IsDirty(ctx, DefaultRemote, MasterBranch)
+			require.NoError(t, err)
+			require.Equal(t, expectDirty, dirty, status)
+		})
+	}
+
+	test("clean", false, func(t *testing.T, c *Checkout) {})
+	test("unstaged_changes", true, func(t *testing.T, c *Checkout) {
+		require.NoError(t, ioutil.WriteFile(filepath.Join(c.Dir(), checkedInFile), []byte("blahblah"), os.ModePerm))
+	})
+	test("untracked_file", true, func(t *testing.T, c *Checkout) {
+		require.NoError(t, ioutil.WriteFile(filepath.Join(c.Dir(), "untracked-file"), []byte("blahblah"), os.ModePerm))
+	})
+	test("ahead_of_main", true, func(t *testing.T, c *Checkout) {
+		require.NoError(t, ioutil.WriteFile(filepath.Join(c.Dir(), checkedInFile), []byte("blahblah"), os.ModePerm))
+		_, err := c.Git(ctx, "commit", "-a", "-m", "updated file")
+		require.NoError(t, err)
+	})
+	test("behind_main", false, func(t *testing.T, c *Checkout) {
+		_, err := c.Git(ctx, "reset", "--hard", "HEAD^")
+		require.NoError(t, err)
+	})
 }
 
 func TestTempCheckout(t *testing.T) {
