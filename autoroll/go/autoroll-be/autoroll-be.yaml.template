@@ -42,7 +42,7 @@ spec:
 {{if .kubernetes.disk}}
       initContainers:
         - name: init-autoroll-be-{{.rollerName}}
-          image: {{.image}}
+          image: {{.kubernetes.image}}
           command: ['mkdir', '-p', '$(TMPDIR)']
           env:
             - name: TMPDIR
@@ -53,7 +53,7 @@ spec:
 {{end}}
       containers:
         - name: autoroll-be-{{.rollerName}}
-          image: {{.image}}
+          image: {{.kubernetes.image}}
           command: ["luci-auth"]
           args:
             - "context"
