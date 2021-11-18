@@ -71,6 +71,7 @@ var (
 		"Infra-PerCommit-Test-Bazel-RBE":  {},
 
 		"Housekeeper-Nightly-UpdateGoDeps":                   nil,
+		"Housekeeper-PerCommit-CIPD-Canary":                  nil,
 		"Housekeeper-PerCommit-CIPD-SK":                      nil,
 		"Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs": nil,
 		"Housekeeper-Weekly-UpdateCIPDPackages":              nil,
@@ -729,6 +730,10 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 	return name
 }
 
+func buildAndDeployCanary(b *specs.TasksCfgBuilder, name string) string {
+	return buildAndDeployCIPD(b, name, "skia/tools/canary", []string{"//infra/bots/task_drivers/canary:canary"}, []string{"_bazel_bin/infra/bots/task_drivers/canary/canary_/canary[.exe]"})
+}
+
 func buildAndDeploySK(b *specs.TasksCfgBuilder, name string) string {
 	return buildAndDeployCIPD(b, name, "skia/tools/sk", []string{"//sk/go/sk:sk"}, []string{"_bazel_bin/sk/go/sk/sk_/sk[.exe]"})
 }
@@ -764,6 +769,8 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 		deps = append(deps, bazelTest(b, name, false /* =rbe */))
 	} else if strings.Contains(name, "Test-Bazel-RBE") {
 		deps = append(deps, bazelTest(b, name, true /* =rbe */))
+	} else if name == "Housekeeper-PerCommit-CIPD-Canary" {
+		deps = append(deps, buildAndDeployCanary(b, name))
 	} else if name == "Housekeeper-PerCommit-CIPD-SK" {
 		deps = append(deps, buildAndDeploySK(b, name))
 	} else if name == "Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs" {
