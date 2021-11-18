@@ -43,19 +43,3 @@
     owner: chrome-bot
     mode: 0755
 
-- name: Create /etc/swarming_config directory
-  become: yes
-  file:
-    path: /etc/swarming_config
-    state: directory
-    recurse: yes
-    owner: chrome-bot
-    mode: 0755
-
-- name: Copy oauth2 config file
-  become: yes
-  template:
-    src: templates/oauth2_access_token_config.json
-    dest: /etc/swarming_config/oauth2_access_token_config.json
-    owner: chrome-bot
-    mode: 0644

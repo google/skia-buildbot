@@ -4,9 +4,9 @@
 
 ## Description
 
-Compiles and installs `test_machine_monitor` to the machine and arranges for it
-to run at startup. Does _not_ restart `test_machine_monitor` if an old copy is
-already running; reboot to bring up the new version.
+Installs `test_machine_monitor` to the machine and arranges for it to run at
+startup. Does _not_ restart `test_machine_monitor` if an old copy is already
+running; reboot to bring up the new version.
 
 ## Variables Required
 

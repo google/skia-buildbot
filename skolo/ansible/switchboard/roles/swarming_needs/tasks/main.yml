@@ -3,13 +3,8 @@
     msg: This system isn't supported, please add support.
   when: ansible_facts['system']|lower not in ['linux', 'darwin', 'win32nt']
 
-- name: Copy empty .boto file.
-  copy:
-    src: files/.boto
-    dest: ~chrome-bot/.boto
-    owner: 'chrome-bot'
-    group: '{{ skolo_group }}'
-    mode: 0644
+- name: Do shared POSIX tasks.
+  import_tasks: posix.yml
   when: ansible_facts['system']|lower != "win32nt"
 
 - name: Install Swarming prereqs for Linux.
