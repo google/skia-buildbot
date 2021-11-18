@@ -66,7 +66,7 @@ var (
 
 	// Regular expression used to replace the Docker image version in config
 	// files.
-	dockerImageRe = regexp.MustCompile(`^\s*image:\s*"\S+"`)
+	dockerImageRe = regexp.MustCompile(`(?m)^\s*image:\s*"\S+"\s*$`)
 )
 
 // clusterCfg contains information about a cluster which runs autorollers.
@@ -508,7 +508,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to get latest image for %s: %s", GCR_IMAGE_BE, err)
 		}
-		imageBytes := []byte(fmt.Sprintf("image:  %q", latestImageBe))
+		imageBytes := []byte(fmt.Sprintf("  image:  %q", latestImageBe))
 		for cluster, byCluster := range configs {
 			for filename, config := range byCluster {
 				// Update the config files on disk.
