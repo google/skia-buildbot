@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"flag"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -40,7 +41,7 @@ var refreshInterval = 10 * time.Minute
 // Flags.
 var (
 	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port     = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
+	ports    = flag.String("ports", ":8000", "A comma separated list of HTTP service ports for the web server (e.g., ':80,:8000')")
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
@@ -169,6 +170,11 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/computeMetadata/v1/instance/service-accounts/default/token", s.handleTokenRequest)
 	http.Handle("/", httputils.Healthz(httputils.LoggingGzipRequestResponse(r)))
-	sklog.Infof("Ready to serve on http://localhost%s", *port)
-	sklog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infof("Ready to serve on the following ports: %s", *ports)
+	for _, port := range strings.Split(*ports, ",") {
+		go func(port string) {
+			sklog.Fatal(http.ListenAndServe(port, nil))
+		}(port)
+	}
+	select {}
 }
