@@ -410,6 +410,10 @@ language_tool_layer(
         "kubectl",
         # Python3 is necessary for some tests/scripts
         "python3",
+        # zip is necessary for the undeclared outputs of tests running on RBE to show up under
+        # //_bazel_testlogs/path/to/test/test.outputs/outputs.zip. This is the mechanism we use to
+        # extract screenshots taken by Puppeteer tests. See b/147694106.
+        "zip",
     ],
     tags = [
         "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
