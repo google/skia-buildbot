@@ -139,6 +139,7 @@ def skia_app_container(
         stamp = True,
         tars = pkg_tars,
         user = "skia",
+        tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
     )
 
     if run_commands_root:
@@ -149,6 +150,7 @@ def skia_app_container(
             docker_run_flags = ["--user", "root"],
             image = image_name + ".tar",
             tags = [
+                "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
                 # container_run_and_commit requires the docker daemon to be
                 # running. This is not possible inside RBE.
                 "no-remote",
@@ -168,6 +170,7 @@ def skia_app_container(
             stamp = True,
             tars = pkg_tars,
             user = "skia",
+            tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
         )
         image_name = ":" + rule_name
 
@@ -209,6 +212,7 @@ def skia_app_container(
         ],
         outs = ["pushk_%s.sh" % name],
         cmd = "echo '%s' > $@" % pushk_script,
+        tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
     )
 
     native.sh_binary(
@@ -218,4 +222,5 @@ def skia_app_container(
             "push_" + name,
             "//kube/go/pushk",
         ],
+        tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
     )
