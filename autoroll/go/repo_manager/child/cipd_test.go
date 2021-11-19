@@ -122,7 +122,7 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 	reg, err := config_vars.NewRegistry(ctx, cbc)
 	require.NoError(t, err)
 	gitilesConfig := &config.GitilesConfig{
-		Branch:  git.MasterBranch,
+		Branch:  git.MainBranch,
 		RepoUrl: "fake.git",
 	}
 	gitilesRepo, err := gitiles_common.NewGitilesRepo(ctx, gitilesConfig, reg, nil)
@@ -269,7 +269,7 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	reg, err := config_vars.NewRegistry(ctx, cbc)
 	require.NoError(t, err)
 	gitilesConfig := &config.GitilesConfig{
-		Branch:  git.MasterBranch,
+		Branch:  git.MainBranch,
 		RepoUrl: "fake.git",
 	}
 	gitilesRepo, err := gitiles_common.NewGitilesRepo(ctx, gitilesConfig, reg, nil)

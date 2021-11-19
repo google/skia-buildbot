@@ -466,12 +466,12 @@ func (m *overdueJobMetrics) start(ctx context.Context) {
 // getMostRecentCachedRev returns the Commit and TasksCfg for the most recent
 // commit which has an entry in the TaskCfgCache.
 func getMostRecentCachedRev(ctx context.Context, tcc *task_cfg_cache.TaskCfgCacheImpl, repoUrl string, repo *repograph.Graph) (*repograph.Commit, *specs.TasksCfg, error) {
-	head := repo.Get(git.MasterBranch)
+	head := repo.Get(git.MainBranch)
 	if head == nil {
 		head = repo.Get(git.MainBranch)
 	}
 	if head == nil {
-		return nil, nil, skerr.Fmt("Can't resolve %q or %q in %q.", git.MasterBranch, git.MainBranch, repoUrl)
+		return nil, nil, skerr.Fmt("Can't resolve %q or %q in %q.", git.MainBranch, git.MainBranch, repoUrl)
 	}
 	var commit *repograph.Commit
 	var cfg *specs.TasksCfg

@@ -897,9 +897,9 @@ func (r *Graph) GetCommitsNewerThan(ts time.Time) ([]*vcsinfo.LongCommit, error)
 func (r *Graph) GetLastNCommits(n int) ([]*vcsinfo.LongCommit, error) {
 	// Find the last Nth commit on the main branch, which we assume has far more
 	// commits than any other branch.
-	commit := r.Get(git.MasterBranch)
+	commit := r.Get(git.MainBranch)
 	if commit == nil {
-		commit = r.Get(git.MainBranch)
+		commit = r.Get(git.MasterBranch)
 	}
 	if commit == nil {
 		if len(r.branches) > 0 {

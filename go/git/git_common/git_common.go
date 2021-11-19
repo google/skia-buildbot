@@ -26,12 +26,12 @@ const (
 	MainBranch   = "main"
 	// DefaultRef is the fully-qualified ref name of the default branch for most
 	// repositories.
-	DefaultRef = RefsHeadsPrefix + MasterBranch
+	DefaultRef = RefsHeadsPrefix + MainBranch
 	// DefaultRemote is the name of the default remote repository.
 	DefaultRemote = "origin"
 	// DefaultRemoteBranch is the name of the default branch in the default
 	// remote repository, for most repos.
-	DefaultRemoteBranch = DefaultRemote + "/" + MasterBranch
+	DefaultRemoteBranch = DefaultRemote + "/" + MainBranch
 	// RefsHeadsPrefix is the "refs/heads/" prefix used for branches.
 	RefsHeadsPrefix = "refs/heads/"
 )

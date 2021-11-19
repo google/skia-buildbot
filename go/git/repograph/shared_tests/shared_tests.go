@@ -65,7 +65,7 @@ func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilde
 	rf.Refresh(c1details)
 	require.NoError(t, repo.Update(ctx))
 
-	c1 := repo.Get(git.MasterBranch)
+	c1 := repo.Get(git.MainBranch)
 	require.NotNil(t, c1)
 	require.Equal(t, 0, len(c1.GetParents()))
 	require.False(t, util.TimeIsZero(c1.Timestamp))
@@ -73,11 +73,11 @@ func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilde
 	c2details := commit()
 	rf.Refresh(c2details)
 	require.NoError(t, repo.Update(ctx))
-	c2 := repo.Get(git.MasterBranch)
+	c2 := repo.Get(git.MainBranch)
 	require.NotNil(t, c2)
 	require.Equal(t, 1, len(c2.GetParents()))
 	require.Equal(t, c1, c2.GetParents()[0])
-	require.Equal(t, []string{git.MasterBranch}, repo.Branches())
+	require.Equal(t, []string{git.MainBranch}, repo.Branches())
 	require.False(t, util.TimeIsZero(c2.Timestamp))
 
 	// Create a second branch.
@@ -87,17 +87,17 @@ func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilde
 	require.NoError(t, repo.Update(ctx))
 	c3 := repo.Get("branch2")
 	require.NotNil(t, c3)
-	require.Equal(t, c2, repo.Get(git.MasterBranch))
-	require.Equal(t, []string{"branch2", git.MasterBranch}, repo.Branches())
+	require.Equal(t, c2, repo.Get(git.MainBranch))
+	require.Equal(t, []string{"branch2", git.MainBranch}, repo.Branches())
 	require.False(t, util.TimeIsZero(c3.Timestamp))
 
 	// Commit again to the main branch.
-	g.CheckoutBranch(ctx, git.MasterBranch)
+	g.CheckoutBranch(ctx, git.MainBranch)
 	c4details := commit()
 	rf.Refresh(c4details)
 	require.NoError(t, repo.Update(ctx))
 	require.Equal(t, c3, repo.Get("branch2"))
-	c4 := repo.Get(git.MasterBranch)
+	c4 := repo.Get(git.MainBranch)
 	require.NotNil(t, c4)
 	require.False(t, util.TimeIsZero(c4.Timestamp))
 
@@ -105,8 +105,8 @@ func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilde
 	c5details := merge("branch2")
 	rf.Refresh(c1details, c2details, c3details, c4details, c5details)
 	require.NoError(t, repo.Update(ctx))
-	require.Equal(t, []string{"branch2", git.MasterBranch}, repo.Branches())
-	c5 := repo.Get(git.MasterBranch)
+	require.Equal(t, []string{"branch2", git.MainBranch}, repo.Branches())
+	c5 := repo.Get(git.MainBranch)
 	require.NotNil(t, c5)
 	require.Equal(t, c3, repo.Get("branch2"))
 	require.False(t, util.TimeIsZero(c5.Timestamp))
@@ -238,8 +238,8 @@ func TestGraphWellFormed(t sktest.TestingT, ctx context.Context, g *git_testutil
 	require.NoError(t, err)
 	require.NoError(t, repo2.Update(ctx))
 	assertdeep.Equal(t, repo.Branches(), repo2.Branches())
-	m1 := repo.Get(git.MasterBranch)
-	m2 := repo2.Get(git.MasterBranch)
+	m1 := repo.Get(git.MainBranch)
+	m2 := repo2.Get(git.MainBranch)
 	// Different implementations may or may not track branch info.
 	for _, c := range repo2.GetAll() {
 		c.Branches = repo.Get(c.Hash).Branches
@@ -258,7 +258,7 @@ func TestRecurse(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBui
 
 	// Get the list of commits using head.Recurse(). Ensure that we get all
 	// of the commits but don't get any duplicates.
-	head := repo.Get(git.MasterBranch)
+	head := repo.Get(git.MainBranch)
 	require.NotNil(t, head)
 	gotCommits := map[*repograph.Commit]bool{}
 	require.NoError(t, head.Recurse(func(c *repograph.Commit) error {
@@ -458,7 +458,7 @@ func TestUpdateHistoryChanged(t sktest.TestingT, ctx context.Context, g *git_tes
 	g.CreateBranchAtCommit(ctx, "new", commits[0].Hash)
 	c7 := g.CommitGen(ctx, "blah")
 	c8 := g.CommitGen(ctx, "blah")
-	g.CheckoutBranch(ctx, git.MasterBranch)
+	g.CheckoutBranch(ctx, git.MainBranch)
 	g.Reset(ctx, "--hard", c8)
 	c7details, err := git.GitDir(g.Dir()).Details(ctx, c7)
 	require.NoError(t, err)
@@ -468,7 +468,7 @@ func TestUpdateHistoryChanged(t sktest.TestingT, ctx context.Context, g *git_tes
 	require.NoError(t, repo.Update(ctx))
 	require.NotNil(t, repo.Get(c7))
 	require.NotNil(t, repo.Get(c8))
-	main := repo.Get(git.MasterBranch)
+	main := repo.Get(git.MainBranch)
 	require.NotNil(t, main)
 	require.Equal(t, c8, main.Hash)
 	require.NoError(t, repo.RecurseAllBranches(func(c *repograph.Commit) error {
@@ -495,7 +495,7 @@ func TestUpdateHistoryChanged(t sktest.TestingT, ctx context.Context, g *git_tes
 	g.UpdateRef(ctx, "refs/heads/new", commits[0].Hash)
 	rf.Refresh()
 	require.NoError(t, repo.Update(ctx))
-	require.NotNil(t, repo.Get(git.MasterBranch))
+	require.NotNil(t, repo.Get(git.MainBranch))
 	require.NotNil(t, repo.Get(commits[0].Hash))
 	require.Equal(t, commits[0].Hash, repo.Get(commits[0].Hash).Hash)
 	for _, c := range removed {
@@ -522,7 +522,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	require.Equal(t, len(removed), 0)
 
 	// Add a few commits, ensure that they get picked up.
-	g.CheckoutBranch(ctx, git.MasterBranch)
+	g.CheckoutBranch(ctx, git.MainBranch)
 	f := "myfile"
 	new1 := g.CommitGen(ctx, f)
 	new2 := g.CommitGen(ctx, f)
@@ -563,8 +563,8 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	}
 
 	// Add a new branch. Make sure that we don't get duplicate commits.
-	g.CheckoutBranch(ctx, git.MasterBranch)
-	g.CreateBranchTrackBranch(ctx, "branch3", git.MasterBranch)
+	g.CheckoutBranch(ctx, git.MainBranch)
+	g.CreateBranchTrackBranch(ctx, "branch3", git.MainBranch)
 	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	require.NoError(t, err)
@@ -573,7 +573,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	require.Equal(t, 3, len(repo.BranchHeads()))
 
 	// Make sure we get no duplicates if the branch heads aren't the same.
-	g.Reset(ctx, "--hard", git.MasterBranch+"^")
+	g.Reset(ctx, "--hard", git.MainBranch+"^")
 	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	require.NoError(t, err)
@@ -581,8 +581,8 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	require.Equal(t, len(removed), 0)
 
 	// Create a new branch.
-	g.CheckoutBranch(ctx, git.MasterBranch)
-	g.CreateBranchTrackBranch(ctx, "branch4", git.MasterBranch)
+	g.CheckoutBranch(ctx, git.MainBranch)
+	g.CreateBranchTrackBranch(ctx, "branch4", git.MainBranch)
 	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	require.NoError(t, err)
@@ -604,7 +604,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	// between, the main branch head moves and now has the same hash as
 	// "branch4", which means that there aren't any new commits even though
 	// the branch head changed.
-	g.CheckoutBranch(ctx, git.MasterBranch)
+	g.CheckoutBranch(ctx, git.MainBranch)
 	mergeCommit := g.MergeBranch(ctx, "branch4")
 	mergeCommitDetails, err := git.GitDir(g.Dir()).Details(ctx, mergeCommit)
 	require.NoError(t, err)
@@ -616,8 +616,8 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	require.Equal(t, mergeCommit, new1)
 
 	// Create a new branch.
-	g.CheckoutBranch(ctx, git.MasterBranch)
-	g.CreateBranchTrackBranch(ctx, "branch5", git.MasterBranch)
+	g.CheckoutBranch(ctx, git.MainBranch)
+	g.CreateBranchTrackBranch(ctx, "branch5", git.MainBranch)
 	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	require.NoError(t, err)
@@ -636,7 +636,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	require.Equal(t, new1, added[0].Hash)
 
 	// Add a commit on the main branch.
-	g.CheckoutBranch(ctx, git.MasterBranch)
+	g.CheckoutBranch(ctx, git.MainBranch)
 	new1 = g.CommitGen(ctx, "file2")
 	new1details, err = git.GitDir(g.Dir()).Details(ctx, new1)
 	require.NoError(t, err)
@@ -660,14 +660,14 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 
 	// Reset all branches to the initial commit.
 	var c0 string
-	require.NoError(t, repo.Get(git.MasterBranch).Recurse(func(c *repograph.Commit) error {
+	require.NoError(t, repo.Get(git.MainBranch).Recurse(func(c *repograph.Commit) error {
 		if len(c.Parents) == 0 {
 			c0 = c.Hash
 			return repograph.ErrStopRecursing
 		}
 		return nil
 	}))
-	for _, branch := range []string{git.MasterBranch, "branch2", "branch3", "branch4", "branch5"} {
+	for _, branch := range []string{git.MainBranch, "branch2", "branch3", "branch4", "branch5"} {
 		g.CheckoutBranch(ctx, branch)
 		g.Reset(ctx, "--hard", c0)
 	}
@@ -679,7 +679,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 
 	// Add some new commits, some of which share an ancestor. Ensure that
 	// the added list doesn't double-count the shared commit.
-	g.CheckoutBranch(ctx, git.MasterBranch)
+	g.CheckoutBranch(ctx, git.MainBranch)
 	shared := g.CommitGen(ctx, "f")
 	main := g.CommitGen(ctx, "f")
 	g.CheckoutBranch(ctx, "branch2")
@@ -786,33 +786,33 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 	// Update branch info. Ensure that all commits were updated with the
 	// correct branch membership.
 	up(c1, c2, c3, c4, c5)
-	test(c1, git.MasterBranch, "branch2")
-	test(c2, git.MasterBranch, "branch2")
+	test(c1, git.MainBranch, "branch2")
+	test(c2, git.MainBranch, "branch2")
 	test(c3, "branch2") // c3 is reachable from main, but not via first-parent.
-	test(c4, git.MasterBranch)
-	test(c5, git.MasterBranch)
+	test(c4, git.MainBranch)
+	test(c5, git.MainBranch)
 
 	// Add a branch.
-	gb.CreateBranchTrackBranch(ctx, "b3", git.MasterBranch)
+	gb.CreateBranchTrackBranch(ctx, "b3", git.MainBranch)
 	rf.Refresh()
 	require.NoError(t, repo.Update(ctx))
 	up(c1, c2, c4, c5)
-	test(c1, git.MasterBranch, "branch2", "b3")
-	test(c2, git.MasterBranch, "branch2", "b3")
+	test(c1, git.MainBranch, "branch2", "b3")
+	test(c2, git.MainBranch, "branch2", "b3")
 	test(c3, "branch2") // c3 is reachable from b3, but not via first-parent.
-	test(c4, git.MasterBranch, "b3")
-	test(c5, git.MasterBranch, "b3")
+	test(c4, git.MainBranch, "b3")
+	test(c5, git.MainBranch, "b3")
 
 	// Reset b3 to branch2.
 	gb.Reset(ctx, "--hard", "branch2")
 	rf.Refresh()
 	require.NoError(t, repo.Update(ctx))
 	up(c3, c4, c5)
-	test(c1, git.MasterBranch, "branch2", "b3")
-	test(c2, git.MasterBranch, "branch2", "b3")
+	test(c1, git.MainBranch, "branch2", "b3")
+	test(c2, git.MainBranch, "branch2", "b3")
 	test(c3, "branch2", "b3")
-	test(c4, git.MasterBranch)
-	test(c5, git.MasterBranch)
+	test(c4, git.MainBranch)
+	test(c5, git.MainBranch)
 
 	// Reset branch2 to c4.
 	gb.CheckoutBranch(ctx, "branch2")
@@ -820,23 +820,23 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 	rf.Refresh()
 	require.NoError(t, repo.Update(ctx))
 	up(c3, c4)
-	test(c1, git.MasterBranch, "branch2", "b3")
-	test(c2, git.MasterBranch, "branch2", "b3")
+	test(c1, git.MainBranch, "branch2", "b3")
+	test(c2, git.MainBranch, "branch2", "b3")
 	test(c3, "b3")
-	test(c4, git.MasterBranch, "branch2")
-	test(c5, git.MasterBranch)
+	test(c4, git.MainBranch, "branch2")
+	test(c5, git.MainBranch)
 
 	// Delete b3. We should get the same results as before it was added.
-	gb.CheckoutBranch(ctx, git.MasterBranch)
+	gb.CheckoutBranch(ctx, git.MainBranch)
 	gb.UpdateRef(ctx, "-d", "refs/heads/b3")
 	rf.Refresh()
 	require.NoError(t, repo.Update(ctx))
 	up(c1, c2, c3)
-	test(c1, git.MasterBranch, "branch2")
-	test(c2, git.MasterBranch, "branch2")
+	test(c1, git.MainBranch, "branch2")
+	test(c2, git.MainBranch, "branch2")
 	test(c3)
-	test(c4, git.MasterBranch, "branch2")
-	test(c5, git.MasterBranch)
+	test(c4, git.MainBranch, "branch2")
+	test(c5, git.MainBranch)
 
 	// Add a commit.
 	c6hash := gb.CommitGenAt(ctx, "blah", c5.Timestamp.Add(time.Second))
@@ -847,10 +847,10 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 	c6 := repo.Get(c6hash)
 	require.NotNil(t, c6)
 	up(c6)
-	test(c1, git.MasterBranch, "branch2")
-	test(c2, git.MasterBranch, "branch2")
+	test(c1, git.MainBranch, "branch2")
+	test(c2, git.MainBranch, "branch2")
 	test(c3)
-	test(c4, git.MasterBranch, "branch2")
-	test(c5, git.MasterBranch)
-	test(c6, git.MasterBranch)
+	test(c4, git.MainBranch, "branch2")
+	test(c5, git.MainBranch)
+	test(c6, git.MainBranch)
 }

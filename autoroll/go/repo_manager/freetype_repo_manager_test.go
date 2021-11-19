@@ -91,7 +91,7 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 		Parent: &config.FreeTypeParentConfig{
 			Gitiles: &config.GitilesParentConfig{
 				Gitiles: &config.GitilesConfig{
-					Branch:  git.MasterBranch,
+					Branch:  git.MainBranch,
 					RepoUrl: parentRepo.RepoUrl(),
 				},
 				Dep: &config.DependencyConfig{
@@ -109,7 +109,7 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 		},
 		Child: &config.GitilesChildConfig{
 			Gitiles: &config.GitilesConfig{
-				Branch:  git.MasterBranch,
+				Branch:  git.MainBranch,
 				RepoUrl: child.RepoUrl(),
 			},
 		},
@@ -119,11 +119,11 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	require.NoError(t, err)
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, git.MasterBranch)
+	mockParent.MockGetCommit(ctx, git.MainBranch)
 	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
-	mockChild.MockGetCommit(ctx, git.MasterBranch)
+	mockChild.MockGetCommit(ctx, git.MainBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
@@ -146,11 +146,11 @@ func TestFreeTypeRepoManagerUpdate(t *testing.T) {
 	defer cleanup()
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, git.MasterBranch)
+	mockParent.MockGetCommit(ctx, git.MainBranch)
 	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
-	mockChild.MockGetCommit(ctx, git.MasterBranch)
+	mockChild.MockGetCommit(ctx, git.MainBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
@@ -168,11 +168,11 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	defer cleanup()
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, git.MasterBranch)
+	mockParent.MockGetCommit(ctx, git.MainBranch)
 	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
-	mockChild.MockGetCommit(ctx, git.MasterBranch)
+	mockChild.MockGetCommit(ctx, git.MainBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
@@ -198,7 +198,7 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	}
 
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.MasterBranch, parentHead))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.MainBranch, parentHead))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Project:  "test-project",

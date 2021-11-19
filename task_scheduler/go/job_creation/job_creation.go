@@ -208,9 +208,9 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 				// CD jobs only run on the main branch, even if they are set to
 				// TRIGGER_ANY_BRANCH.
 				if spec.Trigger == specs.TRIGGER_MASTER_ONLY || spec.Trigger == specs.TRIGGER_MAIN_ONLY || spec.IsCD {
-					mainBranch := git.MasterBranch
+					mainBranch := git.MainBranch
 					if r.Get(mainBranch) == nil {
-						mainBranch = git.MainBranch
+						mainBranch = git.MasterBranch
 					}
 					if r.Get(mainBranch) == nil {
 						// No known main branch in this repo, so we'll trigger.

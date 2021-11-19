@@ -31,7 +31,7 @@ func TestCheckout(t *testing.T) {
 	// Verify that we have a working copy.
 	_, err = c.Git(ctx, "status")
 	require.NoError(t, err)
-	_, err = c.Git(ctx, "checkout", MasterBranch)
+	_, err = c.Git(ctx, "checkout", MainBranch)
 	require.NoError(t, err)
 
 	// Log.
@@ -62,7 +62,7 @@ func TestCheckout(t *testing.T) {
 		if len(untracked) != 0 {
 			return false
 		}
-		h1, err := c.RevParse(ctx, MasterBranch)
+		h1, err := c.RevParse(ctx, MainBranch)
 		require.NoError(t, err)
 		h2, err := c.RevParse(ctx, DefaultRemoteBranch)
 		require.NoError(t, err)
@@ -114,7 +114,7 @@ func TestCheckout_IsDirty(t *testing.T) {
 			c, err := NewCheckout(ctx, gb.Dir(), tmp)
 			require.NoError(t, err)
 			fn(t, c)
-			dirty, status, err := c.IsDirty(ctx, DefaultRemote, MasterBranch)
+			dirty, status, err := c.IsDirty(ctx)
 			require.NoError(t, err)
 			require.Equal(t, expectDirty, dirty, status)
 		})

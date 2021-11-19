@@ -33,7 +33,7 @@ func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilde
 		ChildDisplayName: "test-child",
 		RepoManager: &config.Config_Google3RepoManager{
 			Google3RepoManager: &config.Google3RepoManagerConfig{
-				ChildBranch: git.MasterBranch,
+				ChildBranch: git.MainBranch,
 				ChildRepo:   gb.RepoUrl(),
 			},
 		},
@@ -102,7 +102,7 @@ func TestStatus(t *testing.T) {
 	// Ensure that repo update occurs when updating status.
 	commits = append(commits, gb.CommitGen(ctx, "a.txt"))
 
-	mockChild.MockGetCommit(ctx, git.MasterBranch)
+	mockChild.MockGetCommit(ctx, git.MainBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(commits[0], commits[1]))
 	require.NoError(t, a.UpdateStatus(ctx, "", true))
 	status := a.status.Get()
@@ -130,7 +130,7 @@ func TestStatus(t *testing.T) {
 	require.NoError(t, a.AddOrUpdateIssue(ctx, issue4, http.MethodPost))
 
 	recent := []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}
-	mockChild.MockGetCommit(ctx, git.MasterBranch)
+	mockChild.MockGetCommit(ctx, git.MainBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(commits[0], commits[2]))
 	require.NoError(t, a.UpdateStatus(ctx, "error message", false))
 	status = a.status.Get()
@@ -143,7 +143,7 @@ func TestStatus(t *testing.T) {
 	assertdeep.Equal(t, recent, status.Recent)
 
 	// Test preserving error.
-	mockChild.MockGetCommit(ctx, git.MasterBranch)
+	mockChild.MockGetCommit(ctx, git.MainBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(commits[0], commits[2]))
 	require.NoError(t, a.UpdateStatus(ctx, "", true))
 	status = a.status.Get()
@@ -162,7 +162,7 @@ func TestStatus(t *testing.T) {
 		require.NoError(t, a.AddOrUpdateIssue(ctx, issueI, http.MethodPut))
 		recent = append([]*autoroll.AutoRollIssue{issueI}, recent...)
 	}
-	mockChild.MockGetCommit(ctx, git.MasterBranch)
+	mockChild.MockGetCommit(ctx, git.MainBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(commits[0], commits[2]))
 	require.NoError(t, a.UpdateStatus(ctx, "error message", false))
 	status = a.status.Get()
@@ -192,7 +192,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	issue2 := makeIssue(2, commits[1])
 	closeIssue(issue2, autoroll.ROLL_RESULT_SUCCESS)
 	require.NoError(t, a.AddOrUpdateIssue(ctx, issue2, http.MethodPut))
-	mockChild.MockGetCommit(ctx, git.MasterBranch)
+	mockChild.MockGetCommit(ctx, git.MainBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(commits[1], commits[2]))
 	require.NoError(t, a.UpdateStatus(ctx, "", true))
 	assertdeep.Equal(t, []*autoroll.AutoRollIssue{issue2, issue1}, a.status.Get().Recent)
@@ -202,7 +202,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	require.NoError(t, a.AddOrUpdateIssue(ctx, issue3, http.MethodPost))
 	issue4 := makeIssue(4, commits[2])
 	require.NoError(t, a.AddOrUpdateIssue(ctx, issue4, http.MethodPost))
-	mockChild.MockGetCommit(ctx, git.MasterBranch)
+	mockChild.MockGetCommit(ctx, git.MainBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(commits[1], commits[2]))
 	require.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue3.Closed = true
@@ -213,7 +213,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	issue5 := makeIssue(5, commits[2])
 	closeIssue(issue5, autoroll.ROLL_RESULT_SUCCESS)
 	require.NoError(t, a.AddOrUpdateIssue(ctx, issue5, http.MethodPut))
-	mockChild.MockGetCommit(ctx, git.MasterBranch)
+	mockChild.MockGetCommit(ctx, git.MainBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(commits[2], commits[2]))
 	require.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue4.Closed = true

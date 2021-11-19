@@ -46,7 +46,7 @@ func fuchsiaCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
 			GitilesParent: &config.GitilesParentConfig{
 				Gitiles: &config.GitilesConfig{
-					Branch:  git.MasterBranch,
+					Branch:  git.MainBranch,
 					RepoUrl: "todo.git",
 				},
 				Dep: &config.DependencyConfig{
@@ -115,7 +115,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 	require.NoError(t, err)
 
 	// Initial update, everything up-to-date.
-	mockParent.MockGetCommit(ctx, git.MasterBranch)
+	mockParent.MockGetCommit(ctx, git.MainBranch)
 	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
@@ -160,7 +160,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	require.Equal(t, 0, len(notRolledRevs))
 
 	// There's a new version.
-	mockParent.MockGetCommit(ctx, git.MasterBranch)
+	mockParent.MockGetCommit(ctx, git.MainBranch)
 	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
@@ -181,7 +181,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 
 	// Mock the initial change creation.
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.MasterBranch, parentHead))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.MainBranch, parentHead))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Project:  "test-project",

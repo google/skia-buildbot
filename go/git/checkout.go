@@ -88,7 +88,7 @@ func (c *Checkout) CleanupBranch(ctx context.Context, branch string) error {
 // Cleanup forcibly resets all changes and checks out the main branch to match
 // that of the remote. All local changes will be lost.
 func (c *Checkout) Cleanup(ctx context.Context) error {
-	return c.CleanupBranch(ctx, MasterBranch)
+	return c.CleanupBranch(ctx, MainBranch)
 }
 
 // UpdateBranch syncs the Checkout from its remote. Forcibly resets and checks
@@ -108,17 +108,17 @@ func (c *Checkout) UpdateBranch(ctx context.Context, branch string) error {
 // the main branch to match the remote. All local changes will be lost.
 // Equivalent to c.Fetch() + c.Cleanup().
 func (c *Checkout) Update(ctx context.Context) error {
-	return c.UpdateBranch(ctx, MasterBranch)
+	return c.UpdateBranch(ctx, MainBranch)
 }
 
 // IsDirty returns true if the Checkout is dirty, ie. any of the following are
 // true:
 // 1. There are unstaged changes.
 // 2. There are untracked files (not including .gitignore'd files).
-// 3. HEAD is not an ancestor of ${remote}/${branch}.
+// 3. HEAD is not an ancestor of origin/main.
 //
 // Also returns the output of "git status", for human consumption if desired.
-func (c *Checkout) IsDirty(ctx context.Context, remote, branch string) (bool, string, error) {
+func (c *Checkout) IsDirty(ctx context.Context) (bool, string, error) {
 	status, err := c.Git(ctx, "status")
 	if err != nil {
 		return false, "", err
@@ -137,7 +137,7 @@ func (c *Checkout) IsDirty(ctx context.Context, remote, branch string) (bool, st
 	if output != "" {
 		return true, status, nil
 	}
-	if anc, err := c.IsAncestor(ctx, "HEAD", remote+"/"+branch); err != nil {
+	if anc, err := c.IsAncestor(ctx, "HEAD", DefaultRemoteBranch); err != nil {
 		return false, status, err
 	} else if !anc {
 		return true, status, nil

@@ -60,7 +60,7 @@ func githubCipdDEPSRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 				DepsLocal: &config.DEPSLocalParentConfig{
 					GitCheckout: &config.GitCheckoutParentConfig{
 						GitCheckout: &config.GitCheckoutConfig{
-							Branch:  git.MasterBranch,
+							Branch:  git.MainBranch,
 							RepoUrl: "todo.git",
 						},
 						Dep: &config.DependencyConfig{
@@ -124,7 +124,7 @@ deps = {
 	fork := git_testutils.GitInit(t, ctx)
 	fork.Git(ctx, "remote", "set-url", git.DefaultRemote, parent.RepoUrl())
 	fork.Git(ctx, "fetch", git.DefaultRemote)
-	fork.Git(ctx, "checkout", git.MasterBranch)
+	fork.Git(ctx, "checkout", git.MainBranch)
 	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
 	mockRun := &exec.CommandCollector{}
@@ -134,7 +134,7 @@ deps = {
 				sklog.Infof("Skipping command: %s %s", cmd.Name, strings.Join(cmd.Args, " "))
 				return nil
 			}
-			if cmd.Args[0] == "checkout" && cmd.Args[1] == "remote/"+git.MasterBranch {
+			if cmd.Args[0] == "checkout" && cmd.Args[1] == "remote/"+git.MainBranch {
 				// Pretend origin is the remote branch for testing ease.
 				cmd.Args[1] = git.DefaultRemoteBranch
 			}

@@ -441,7 +441,7 @@ func main() {
 	if err := configCo.Fetch(ctx); err != nil {
 		log.Fatal(err)
 	}
-	configRepoIsDirty, configRepoStatus, err := configCo.IsDirty(ctx, git.DefaultRemote, git.MainBranch)
+	configRepoIsDirty, configRepoStatus, err := configCo.IsDirty(ctx)
 	if err != nil {
 		log.Fatal(err)
 	} else if configRepoIsDirty {

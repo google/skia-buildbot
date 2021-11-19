@@ -47,7 +47,7 @@ var (
 )
 
 func defaultBranchTmpl(t *testing.T) *config_vars.Template {
-	tmpl, err := config_vars.NewTemplate(git.MasterBranch)
+	tmpl, err := config_vars.NewTemplate(git.MainBranch)
 	require.NoError(t, err)
 	return tmpl
 }
@@ -182,7 +182,7 @@ func makeRoller(ctx context.Context, t *testing.T, name string, mdb *manual_mock
 				Child: &config.ParentChildRepoManagerConfig_GitilesChild{
 					GitilesChild: &config.GitilesChildConfig{
 						Gitiles: &config.GitilesConfig{
-							Branch:  git.MasterBranch,
+							Branch:  git.MainBranch,
 							RepoUrl: "https://fake.child",
 						},
 					},
@@ -190,7 +190,7 @@ func makeRoller(ctx context.Context, t *testing.T, name string, mdb *manual_mock
 				Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
 					GitilesParent: &config.GitilesParentConfig{
 						Gitiles: &config.GitilesConfig{
-							Branch:  git.MasterBranch,
+							Branch:  git.MainBranch,
 							RepoUrl: "https://fake.parent",
 						},
 						Dep: &config.DependencyConfig{

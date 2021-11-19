@@ -53,7 +53,7 @@ func afdoCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
 			GitilesParent: &config.GitilesParentConfig{
 				Gitiles: &config.GitilesConfig{
-					Branch:  git.MasterBranch,
+					Branch:  git.MainBranch,
 					RepoUrl: "todo.git",
 				},
 				Dep: &config.DependencyConfig{
@@ -127,7 +127,7 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 	require.NoError(t, err)
 
 	// Mock requests for Update.
-	mockParent.MockGetCommit(ctx, git.MasterBranch)
+	mockParent.MockGetCommit(ctx, git.MainBranch)
 	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
@@ -238,7 +238,7 @@ func TestAFDORepoManager(t *testing.T) {
 	defer cleanup()
 
 	// Mock requests for Update.
-	mockParent.MockGetCommit(ctx, git.MasterBranch)
+	mockParent.MockGetCommit(ctx, git.MainBranch)
 	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
@@ -267,7 +267,7 @@ func TestAFDORepoManager(t *testing.T) {
 	require.Equal(t, 0, len(notRolledRevs))
 
 	// There's a new version.
-	mockParent.MockGetCommit(ctx, git.MasterBranch)
+	mockParent.MockGetCommit(ctx, git.MainBranch)
 	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
 		afdoRevBase: afdoTimeBase,
@@ -288,7 +288,7 @@ func TestAFDORepoManager(t *testing.T) {
 
 	// Mock the initial change creation.
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.MasterBranch, parentHead))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.MainBranch, parentHead))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Project:  "test-project",
@@ -362,7 +362,7 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 	// Roll to a revision which is not in the GCS bucket.
 	parent.Add(context.Background(), afdoVersionFilePath, "BOGUS_REV")
 	parent.Commit(context.Background())
-	mockParent.MockGetCommit(ctx, git.MasterBranch)
+	mockParent.MockGetCommit(ctx, git.MainBranch)
 	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
@@ -390,7 +390,7 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 	// Now try again, but don't mock the bogus rev in GCS. We should still
 	// come up with the same lastRollRev.Id, but the Revision will otherwise
 	// be empty.
-	mockParent.MockGetCommit(ctx, git.MasterBranch)
+	mockParent.MockGetCommit(ctx, git.MainBranch)
 	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
 		afdoRevBase: afdoTimeBase,

@@ -37,7 +37,7 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	// Put a commit, but don't update the branch head. It should show up in
 	// results of Get() and Range, but the main branch should not be
 	// updated.
-	main := git.MasterBranch
+	main := git.MainBranch
 	c0 := mem_git.FakeCommit(t, "c0", main)
 	require.NoError(t, gs.Put(ctx, []*vcsinfo.LongCommit{c0}))
 	branches, err = gs.GetBranches(ctx)

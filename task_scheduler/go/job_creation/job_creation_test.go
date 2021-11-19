@@ -139,7 +139,7 @@ func TestGatherNewJobs(t *testing.T) {
 	// Add a commit on a branch other than main, run gatherNewJobs, ensure
 	// that we added the new Jobs.
 	branchName := "otherBranch"
-	gb.CreateBranchTrackBranch(ctx, branchName, git.MasterBranch)
+	gb.CreateBranchTrackBranch(ctx, branchName, git.MainBranch)
 	msg := "Branch commit"
 	fileName := "some_other_file"
 	gb.Add(ctx, fileName, msg)
@@ -150,7 +150,7 @@ func TestGatherNewJobs(t *testing.T) {
 	// Add several commits in a row on different branches, ensure that we
 	// added all of the Jobs for all of the new commits.
 	makeDummyCommits(ctx, gb, 5)
-	gb.CheckoutBranch(ctx, git.MasterBranch)
+	gb.CheckoutBranch(ctx, git.MainBranch)
 	makeDummyCommits(ctx, gb, 5)
 	updateRepos(t, ctx, jc)
 	testGatherNewJobs(71) // 10 commits x 3 jobs/commit = 30, plus 41

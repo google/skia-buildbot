@@ -49,7 +49,7 @@ func githubRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 				GitCheckout: &config.GitCheckoutGitHubParentConfig{
 					GitCheckout: &config.GitCheckoutParentConfig{
 						GitCheckout: &config.GitCheckoutConfig{
-							Branch:  git.MasterBranch,
+							Branch:  git.MainBranch,
 							RepoUrl: "todo.git",
 						},
 						Dep: &config.DependencyConfig{
@@ -67,7 +67,7 @@ func githubRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 			GitCheckoutGithubChild: &config.GitCheckoutGitHubChildConfig{
 				GitCheckout: &config.GitCheckoutChildConfig{
 					GitCheckout: &config.GitCheckoutConfig{
-						Branch:  git.MasterBranch,
+						Branch:  git.MainBranch,
 						RepoUrl: "todo.git",
 					},
 				},
@@ -86,7 +86,7 @@ func setupGithub(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (contex
 	// Create child and parent repos.
 	childPath := filepath.Join(wd, "earth")
 	require.NoError(t, os.MkdirAll(childPath, 0755))
-	child := git_testutils.GitInitWithDir(t, ctx, childPath, git.MasterBranch)
+	child := git_testutils.GitInitWithDir(t, ctx, childPath, git.MainBranch)
 	f := "somefile.txt"
 	childCommits := make([]string, 0, 10)
 	for i := 0; i < numChildCommits; i++ {
@@ -95,14 +95,14 @@ func setupGithub(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (contex
 
 	parentPath := filepath.Join(wd, "krypton")
 	require.NoError(t, os.MkdirAll(parentPath, 0755))
-	parent := git_testutils.GitInitWithDir(t, ctx, parentPath, git.MasterBranch)
+	parent := git_testutils.GitInitWithDir(t, ctx, parentPath, git.MainBranch)
 	parent.Add(ctx, githubVersionFile, fmt.Sprintf(`%s`, childCommits[0]))
 	parent.Commit(ctx)
 
 	fork := git_testutils.GitInit(t, ctx)
 	fork.Git(ctx, "remote", "set-url", git.DefaultRemote, parent.RepoUrl())
 	fork.Git(ctx, "fetch", git.DefaultRemote)
-	fork.Git(ctx, "checkout", git.MasterBranch)
+	fork.Git(ctx, "checkout", git.MainBranch)
 	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
@@ -119,7 +119,7 @@ func setupGithub(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (contex
 			if cmd.Args[0] == "clone" || cmd.Args[0] == "fetch" {
 				return nil
 			}
-			if cmd.Args[0] == "checkout" && cmd.Args[1] == "remote/"+git.MasterBranch {
+			if cmd.Args[0] == "checkout" && cmd.Args[1] == "remote/"+git.MainBranch {
 				// Pretend origin is the remote branch for testing ease.
 				cmd.Args[1] = git.DefaultRemoteBranch
 			}
@@ -205,7 +205,7 @@ func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRepoU
 		},
 	})
 	require.NoError(t, err)
-	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs/%s", githubApiUrl, forkRepoOwner, forkRepoName, "heads%2F"+git.MasterBranch), mockhttpclient.MockGetDialogue(serializedRef))
+	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs/%s", githubApiUrl, forkRepoOwner, forkRepoName, "heads%2F"+git.MainBranch), mockhttpclient.MockGetDialogue(serializedRef))
 	md = mockhttpclient.MockPostDialogueWithResponseCode(reqType, mockhttpclient.DONT_CARE_REQUEST, nil, http.StatusCreated)
 	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs", githubApiUrl, forkRepoOwner, forkRepoName), md)
 	require.NoError(t, err)

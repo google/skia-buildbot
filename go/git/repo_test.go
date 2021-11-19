@@ -26,7 +26,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, []string) 
 	g := git_testutils.GitInit(t, ctx)
 	commits := make([]string, 10)
 	for i := 0; i < 10; i++ {
-		commits[9-i] = g.CommitGenMsg(ctx, "somefile", fmt.Sprintf("Commit Title #%d\n\nCommit Body #%d", i, i))
+		commits[9-i] = g.CommitGenMsg(ctx, checkedInFile, fmt.Sprintf("Commit Title #%d\n\nCommit Body #%d", i, i))
 	}
 	return ctx, g, commits
 }
@@ -49,16 +49,16 @@ func TestRepo(t *testing.T) {
 	// Verify that we don't have a working copy.
 	_, err = r.Git(ctx, "status")
 	require.Error(t, err)
-	_, err = r.Git(ctx, "checkout", MasterBranch)
+	_, err = r.Git(ctx, "checkout", MainBranch)
 	require.Error(t, err)
 
 	// Log.
-	gotCommits, err := r.RevList(ctx, MasterBranch)
+	gotCommits, err := r.RevList(ctx, MainBranch)
 	require.NoError(t, err)
 	assertdeep.Equal(t, commits, gotCommits)
 
 	// Add a commit on the remote.
-	c := gb.CommitGen(ctx, "somefile")
+	c := gb.CommitGen(ctx, checkedInFile)
 
 	// Verify that Update() succeeds.
 	require.NoError(t, r.Update(ctx))

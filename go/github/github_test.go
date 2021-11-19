@@ -413,12 +413,12 @@ func TestReadRawFileRequest(t *testing.T) {
 	respBody := []byte(`abcd`)
 	r := mux.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
-	r.Schemes("https").Host("raw.githubusercontent.com").Methods("GET").Path("/kryptonians/krypton/master/dummy/path/to/this.txt").Handler(md)
+	r.Schemes("https").Host("raw.githubusercontent.com").Methods("GET").Path("/kryptonians/krypton/main/dummy/path/to/this.txt").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	require.NoError(t, err)
-	contents, readRawErr := githubClient.ReadRawFile(git.MasterBranch, "/dummy/path/to/this.txt")
+	contents, readRawErr := githubClient.ReadRawFile(git.MainBranch, "/dummy/path/to/this.txt")
 	require.NoError(t, readRawErr)
 	require.Equal(t, "abcd", contents)
 }

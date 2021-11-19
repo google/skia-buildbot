@@ -154,11 +154,11 @@ func TestGetRevision(t *testing.T) {
 	// Get the (only) commit from the repo.
 	_, r, err := trybots.getRepo(patchProject)
 	require.NoError(t, err)
-	c := r.Get(git.MasterBranch).Hash
+	c := r.Get(git.MainBranch).Hash
 
 	// Fake response from Gerrit.
 	ci := &gerrit.ChangeInfo{
-		Branch: git.MasterBranch,
+		Branch: git.MainBranch,
 	}
 	serialized := []byte(testutils.MarshalJSON(t, ci))
 	// Gerrit API prepends garbage to prevent XSS.
@@ -297,7 +297,7 @@ func TestInsertNewJob(t *testing.T) {
 	ctx, trybots, gb, mock, mockBB, cleanup := setup(t)
 	defer cleanup()
 
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MasterBranch)
+	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
@@ -352,7 +352,7 @@ func TestInsertNewJob(t *testing.T) {
 	rs := types.RepoState{
 		Patch:    gerritPatch,
 		Repo:     gb.RepoUrl(),
-		Revision: trybots.rm[gb.RepoUrl()].Get(git.MasterBranch).Hash,
+		Revision: trybots.rm[gb.RepoUrl()].Get(git.MainBranch).Hash,
 	}
 	rs.Patch.PatchRepo = rs.Repo
 	b8 := Build(t, now)
@@ -394,7 +394,7 @@ func TestRetry(t *testing.T) {
 	ctx, trybots, _, mock, mockBB, cleanup := setup(t)
 	defer cleanup()
 
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MasterBranch)
+	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
@@ -435,7 +435,7 @@ func TestPoll(t *testing.T) {
 	ctx, trybots, _, mock, mockBB, cleanup := setup(t)
 	defer cleanup()
 
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MasterBranch)
+	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
@@ -555,7 +555,7 @@ func TestTryJobsNotAllowedForCD(t *testing.T) {
 	ctx, trybots, gb, mock, mockBB, cleanup := setup(t)
 	defer cleanup()
 
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MasterBranch)
+	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
@@ -564,7 +564,7 @@ func TestTryJobsNotAllowedForCD(t *testing.T) {
 	rs := types.RepoState{
 		Patch:    gerritPatch,
 		Repo:     gb.RepoUrl(),
-		Revision: trybots.rm[gb.RepoUrl()].Get(git.MasterBranch).Hash,
+		Revision: trybots.rm[gb.RepoUrl()].Get(git.MainBranch).Hash,
 	}
 	rs.Patch.PatchRepo = rs.Repo
 

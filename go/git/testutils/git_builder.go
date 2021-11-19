@@ -26,12 +26,12 @@ type GitBuilder struct {
 	rng    *rand.Rand
 }
 
-// GitInit calls GitInitWithDefaultBranch with MasterBranch.
+// GitInit calls GitInitWithDefaultBranch with MainBranch.
 func GitInit(t sktest.TestingT, ctx context.Context) *GitBuilder {
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
-	return GitInitWithDir(t, ctx, tmp, git_common.MasterBranch)
+	return GitInitWithDir(t, ctx, tmp, git_common.MainBranch)
 }
 
 // GitInitWithDefaultBranch creates a new git repo in a temporary directory with the
@@ -68,7 +68,7 @@ func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir, defaultBranch s
 	//
 	// [1] https://git-scm.com/docs/git-config#Documentation/git-config.txt-initdefaultBranch
 	//
-	// TODO(lovisolo): Replace with "git init --initial-branch <git_common.MasterBranch>" once all
+	// TODO(lovisolo): Replace with "git init --initial-branch <git_common.MainBranch>" once all
 	//                 GCE instances have been upgraded to Git >= v2.28, which introduces flag
 	//                 --initial-branch.
 	//                 See https://github.com/git/git/commit/32ba12dab2acf1ad11836a627956d1473f6b851a.
@@ -268,7 +268,7 @@ func (g *GitBuilder) UpdateRef(ctx context.Context, args ...string) {
 // a CL on a trybot.
 func (g *GitBuilder) CreateFakeGerritCLGen(ctx context.Context, issue, patchset string) {
 	currentBranch := strings.TrimSpace(g.Git(ctx, "rev-parse", "--abbrev-ref", "HEAD"))
-	g.CreateBranchTrackBranch(ctx, "fake-patch", git_common.MasterBranch)
+	g.CreateBranchTrackBranch(ctx, "fake-patch", git_common.MainBranch)
 	patchCommit := g.CommitGen(ctx, "somefile")
 	g.UpdateRef(ctx, fmt.Sprintf("refs/changes/%s/%s/%s", issue[len(issue)-2:], issue, patchset), patchCommit)
 	g.CheckoutBranch(ctx, currentBranch)
@@ -298,7 +298,7 @@ func GitSetup(ctx context.Context, g *GitBuilder) []string {
 	c1 := g.CommitGen(ctx, "myfile.txt")
 	g.CreateBranchTrackBranch(ctx, "branch2", git_common.DefaultRemoteBranch)
 	c2 := g.CommitGen(ctx, "anotherfile.txt")
-	g.CheckoutBranch(ctx, git_common.MasterBranch)
+	g.CheckoutBranch(ctx, git_common.MainBranch)
 	c3 := g.CommitGen(ctx, "myfile.txt")
 	c4 := g.MergeBranch(ctx, "branch2")
 	return []string{c0, c1, c2, c3, c4}
