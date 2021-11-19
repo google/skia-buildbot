@@ -129,5 +129,10 @@ build:remote --remote_timeout=3600
 # Use the RBE instance on the skia-infra-rbe GCP project.
 build:remote --remote_instance_name projects/skia-infra-rbe/instances/default_instance
 
+# Skip building the runfiles tree on the local system when building on RBE. This can be very slow,
+# and is unnecessary for RBE builds because remote build actions will generate their own runfile
+# tree anyway. See b/111951625.
+build:remote --nobuild_runfile_links
+
 # Note that running remote builds requires a service account key with the correct permissions. See
 # instructions in //BAZEL_CHEATSHEET.md.
