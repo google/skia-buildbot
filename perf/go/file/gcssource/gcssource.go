@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	"cloud.google.com/go/pubsub"
@@ -13,6 +12,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/pubsub/sub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
@@ -78,44 +78,11 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	pubSubClient, err := pubsub.NewClient(ctx, instanceConfig.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
+
+	sub, err := sub.New(ctx, local, instanceConfig.IngestionConfig.SourceConfig.Project, instanceConfig.IngestionConfig.SourceConfig.Topic, maxParallelReceives)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-
-	// When running in production we have every instance use the same topic name so that
-	// they load-balance pulling items from the topic.
-	subName := instanceConfig.IngestionConfig.SourceConfig.Subscription
-	if subName == "" {
-		subName = fmt.Sprintf("%s%s", instanceConfig.IngestionConfig.SourceConfig.Topic, subscriptionSuffix)
-		if local {
-			hostname, err := os.Hostname()
-			if err != nil {
-				hostname = "unknown-hostname"
-			}
-
-			// When running locally create a new topic for every host.
-			subName = fmt.Sprintf("%s-%s", instanceConfig.IngestionConfig.SourceConfig.Topic, hostname)
-		}
-	}
-	sklog.Infof("Creating subscription %q for topic %q", subName, instanceConfig.IngestionConfig.SourceConfig.Topic)
-	sub := pubSubClient.Subscription(subName)
-	ok, err := sub.Exists(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create a reference to subscription: %q ", subName)
-	}
-	if !ok {
-		sub, err = pubSubClient.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic: pubSubClient.Topic(instanceConfig.IngestionConfig.SourceConfig.Topic),
-		})
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to create subscription: %q", subName)
-		}
-	}
-
-	// How many Go routines should be processing messages.
-	sub.ReceiveSettings.MaxOutstandingMessages = maxParallelReceives
-	sub.ReceiveSettings.NumGoroutines = maxParallelReceives
 
 	f, err := filter.New(instanceConfig.IngestionConfig.SourceConfig.AcceptIfNameMatches, instanceConfig.IngestionConfig.SourceConfig.RejectIfNameMatches)
 	if err != nil {

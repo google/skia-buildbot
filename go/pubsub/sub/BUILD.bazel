@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sub",
+    srcs = ["sub.go"],
+    importpath = "go.skia.org/infra/go/pubsub/sub",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/skerr",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_test(
+    name = "sub_test",
+    srcs = ["sub_manual_test.go"],
+    embed = [":sub"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

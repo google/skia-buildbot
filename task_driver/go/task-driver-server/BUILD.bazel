@@ -10,6 +10,7 @@ go_library(
         "//go/common",
         "//go/httputils",
         "//go/login",
+        "//go/pubsub/sub",
         "//go/sklog",
         "//task_driver/go/db",
         "//task_driver/go/db/bigtable",

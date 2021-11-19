@@ -4,14 +4,12 @@ package pubsubsource
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"os"
 
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/pubsub/sub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/machine/go/common"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/source"
 	"go.skia.org/infra/machine/go/machineserver/config"
@@ -38,42 +36,11 @@ type Source struct {
 
 // New returns a new *Source.
 func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) (*Source, error) {
-
-	pubsubClient, topic, err := common.NewPubSubClient(ctx, local, instanceConfig)
+	sub, err := sub.New(ctx, local, instanceConfig.Source.Project, instanceConfig.Source.Topic, maxParallelReceives)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	sklog.Infof("pubsub Source started for topic: %q", topic.String())
-
-	// When running in production we have every instance use the same topic name so that
-	// they load-balance pulling items from the topic.
-	subName := instanceConfig.Source.Topic + subscriptionSuffix
-	if local {
-		// When running locally create a new topic for every host.
-		hostname, err := os.Hostname()
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to get hostname.")
-		}
-		subName = fmt.Sprintf("%s-%s", instanceConfig.Source.Topic, hostname)
-	}
-	sub := pubsubClient.Subscription(subName)
-	ok, err := sub.Exists(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed checking subscription existence: %q", subName)
-	}
-	if !ok {
-		sub, err = pubsubClient.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic: topic,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("Failed creating subscription: %s", err)
-		}
-	}
-	sklog.Infof("Subsciption: %q", sub.String())
-
-	// How many Go routines should be processing messages.
-	sub.ReceiveSettings.MaxOutstandingMessages = maxParallelReceives
-	sub.ReceiveSettings.NumGoroutines = maxParallelReceives
+	sklog.Infof("pubsub Source started for topic: %q", instanceConfig.Source.Topic)
 
 	return &Source{
 		sub:                        sub,

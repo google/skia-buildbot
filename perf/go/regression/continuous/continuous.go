@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"math/rand"
 	"net/url"
-	"os"
 	"sync"
 	"time"
 
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/pubsub/sub"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -179,42 +179,9 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 	if c.instanceConfig.IngestionConfig.FileIngestionTopicName == "" {
 		return nil, skerr.Fmt("Subscription name isn't set.")
 	}
-	hostname, err := os.Hostname()
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
+
 	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, c.instanceConfig.IngestionConfig.SourceConfig.Project)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	// When running in production we have every instance use the same topic name
-	// so that they load-balance pulling items from the topic.
-	topicName := fmt.Sprintf("%s-%s", c.instanceConfig.IngestionConfig.FileIngestionTopicName, "prod")
-	if c.flags.Local {
-		// When running locally create a new topic for every host.
-		topicName = fmt.Sprintf("%s-%s", c.instanceConfig.IngestionConfig.FileIngestionTopicName, hostname)
-	}
-	sub := client.Subscription(topicName)
-	ok, err := sub.Exists(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed checking subscription existence")
-	}
-	if !ok {
-		sub, err = client.CreateSubscription(ctx, topicName, pubsub.SubscriptionConfig{
-			Topic: client.Topic(topicName),
-		})
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed creating subscription")
-		}
-	}
-
-	// How many Go routines should be processing messages?
-	sub.ReceiveSettings.MaxOutstandingMessages = maxParallelReceives
-	sub.ReceiveSettings.NumGoroutines = maxParallelReceives
-
-	return sub, nil
+	return sub.New(ctx, c.flags.Local, c.instanceConfig.IngestionConfig.SourceConfig.Project, c.instanceConfig.IngestionConfig.SourceConfig.Topic, maxParallelReceives)
 }
 
 // buildConfigAndParamsetChannel returns a channel that will feed the configs

@@ -10,6 +10,7 @@ go_library(
         "//go/auth",
         "//go/httputils",
         "//go/metrics2",
+        "//go/pubsub/sub",
         "//go/skerr",
         "//go/sklog",
         "//perf/go/config",

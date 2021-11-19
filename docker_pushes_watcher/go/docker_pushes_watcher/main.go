@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 	"sync"
@@ -28,12 +27,12 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/pubsub/sub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
 )
 
 // Flags
@@ -317,29 +316,9 @@ func main() {
 		}
 	}
 
-	// Setup pubsub.
-	client, err := pubsub.NewClient(ctx, *project, option.WithTokenSource(ts))
+	sub, err := sub.New(ctx, *local, *project, docker_pubsub.TOPIC, 1)
 	if err != nil {
 		sklog.Fatal(err)
-	}
-	topic := client.Topic(docker_pubsub.TOPIC)
-	hostname, err := os.Hostname()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	subName := fmt.Sprintf("%s-%s", docker_pubsub.TOPIC, hostname)
-	sub := client.Subscription(subName)
-	ok, err := sub.Exists(ctx)
-	if err != nil {
-		sklog.Fatalf("Failed checking subscription existence: %s", err)
-	}
-	if !ok {
-		sub, err = client.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic: topic,
-		})
-		if err != nil {
-			sklog.Fatalf("Failed creating subscription: %s", err)
-		}
 	}
 
 	// Instantiate firestore.

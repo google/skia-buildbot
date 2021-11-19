@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/metrics2",
         "//go/paramtools",
+        "//go/pubsub/sub",
         "//go/query",
         "//go/skerr",
         "//go/sklog",

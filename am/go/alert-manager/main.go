@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"os"
 	"path/filepath"
 	"sort"
 	"time"
@@ -32,6 +31,8 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/pubsub/sub"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -112,35 +113,9 @@ func New() (baseapp.App, error) {
 		return nil, fmt.Errorf("Failed to init Cloud Datastore: %s", err)
 	}
 
-	client, err := pubsub.NewClient(ctx, *project, option.WithTokenSource(ts))
+	sub, err := sub.New(ctx, *baseapp.Local, *project, alerts.TOPIC, 1)
 	if err != nil {
-		return nil, err
-	}
-	topic := client.Topic(alerts.TOPIC)
-	hostname, err := os.Hostname()
-	if err != nil {
-		return nil, err
-	}
-
-	// When running in production we have every instance use the same topic name so that
-	// they load-balance pulling items from the topic.
-	subName := fmt.Sprintf("%s-%s", alerts.TOPIC, "prod")
-	if *baseapp.Local {
-		// When running locally create a new topic for every host.
-		subName = fmt.Sprintf("%s-%s", alerts.TOPIC, hostname)
-	}
-	sub := client.Subscription(subName)
-	ok, err := sub.Exists(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("Failed checking subscription existence: %s", err)
-	}
-	if !ok {
-		sub, err = client.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic: topic,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("Failed creating subscription: %s", err)
-		}
+		return nil, skerr.Wrapf(err, "Failed to create subscription.")
 	}
 
 	srv := &server{

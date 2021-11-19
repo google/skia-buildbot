@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/pubsub"
@@ -22,6 +21,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/pubsub/sub"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_driver/go/db"
 	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
@@ -300,30 +300,9 @@ func main() {
 
 	// Setup pubsub.
 	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, *project)
+	sub, err := sub.New(ctx, *local, *project, td.PubsubTopicLogs, 1)
 	if err != nil {
 		sklog.Fatal(err)
-	}
-	topic := client.Topic(td.PubsubTopicLogs)
-	if exists, err := topic.Exists(ctx); err != nil {
-		sklog.Fatal(err)
-	} else if !exists {
-		topic, err = client.CreateTopic(ctx, td.PubsubTopicLogs)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-	}
-	sub := client.Subscription(subscriptionName)
-	if exists, err := sub.Exists(ctx); err != nil {
-		sklog.Fatal(err)
-	} else if !exists {
-		sub, err = client.CreateSubscription(ctx, subscriptionName, pubsub.SubscriptionConfig{
-			Topic:       topic,
-			AckDeadline: 10 * time.Second,
-		})
-		if err != nil {
-			sklog.Fatal(err)
-		}
 	}
 
 	// Create the TaskDriver DB.
