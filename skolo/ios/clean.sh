@@ -8,6 +8,7 @@ rm -rf out
 rm -rf libplist
 rm -rf libusbmuxd
 rm -rf libimobiledevice
+rm -rf libimobiledevice-glue
 rm -rf ifuse
 rm -rf ideviceinstaller
 rm -rf usbmuxd

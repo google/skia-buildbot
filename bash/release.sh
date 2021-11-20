@@ -31,10 +31,17 @@
 # -------
 # If DEPENDS is specified it should be a list of dependencies that this package
 # depends upon. Note that they will not be installed if missing. If you want
-# packages installed beyond the base snapshot they that should be done in the
-# startup script. See https://cloud.google.com/compute/docs/startupscript
+# packages installed beyond the base snapshot, do it in the startup script. See
+# https://cloud.google.com/compute/docs/startupscript
 #
 # For more details see ../push/DESIGN.md.
+#
+# BREAKS and CONFLICTS
+# --------------------
+# These, if set, go into the Breaks and Conflicts control-file fields of the
+# package and have the semantics described at
+# https://www.debian.org/doc/debian-policy/ch-relationships.html#packages-which-
+# break-other-packages-breaks.
 #
 # SYSTEMD
 # -------
@@ -63,6 +70,7 @@ set -x
 ROOT=`mktemp -d`
 OUT=`mktemp -d`
 REL=$(dirname "$BASH_SOURCE")
+USERID=${USER}@`hostname`
 
 if [ "$#" -ne 1 ]
 then
@@ -87,12 +95,22 @@ chmod 755 -R ${ROOT}
 # Create the control files that describes this deb.
 echo 2.0 > ${ROOT}/DEBIAN/debian-binary
 
+if [ -v CONFLICTS ]
+then
+  CONFLICTS=$'\n'"Conflicts: ${CONFLICTS}"
+fi
+
+if [ -v BREAKS ]
+then
+  BREAKS=$'\n'"Breaks: ${BREAKS}"
+fi
+
 cat <<-EOF > ${ROOT}/DEBIAN/control
 	Package: skia-${APPNAME}
-	Version: 1.0
-	Depends: ${DEPENDS}
+	Version: ${VERSION:-1.0}
+	Depends: ${DEPENDS}${BREAKS}${CONFLICTS}
 	Architecture: ${ARCH}
-	Maintainer: ${USERNAME}@${HOST}
+	Maintainer: ${USERID}
 	Priority: optional
 	Description: ${DESCRIPTION}
 EOF
@@ -116,7 +134,7 @@ EOF
 # Only call enable if there is something to enable.
 if [ ! -z "$SYSTEMD" ]; then
   cat <<-EOF >> ${ROOT}/DEBIAN/postinst
-  /bin/systemctl enable ${SYSTEMD}
+  /bin/systemctl start ${SYSTEMD}
 EOF
 fi
 
@@ -137,7 +155,7 @@ EOF
 
 if [ -n "${UDEV_LIB_RELOAD}" ]; then
   cat <<-EOF >> ${ROOT}/DEBIAN/postinst
-/sbin/udevadm control --reload-rules
+/bin/udevadm control --reload-rules
 ldconfig
 
 # add the usb group and user if they don't exist.
@@ -171,7 +189,6 @@ then
   # Upload the package to right location in Google Storage.
   DATETIME=`date --utc "+%Y-%m-%dT%H:%M:%SZ"`
   HASH=`git rev-parse HEAD`
-  USERID=${USER}@${HOSTNAME}
   DIRTY=false
   GITSTATE=`${REL}/gitstate.sh`
   if [ "$GITSTATE" = "dirty" ]; then

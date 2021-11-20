@@ -1,20 +1,26 @@
 #!/bin/bash
+# Build and upload a Debian package for libimobiledevice and associated tools.
 
 set -x -e
 
 APPNAME=imobiledevice
-SERVICE_FILE="path-to-service-file.service"
 
-# Builds and uploads a debian package for libimobiledevice.
 SYSTEMD="usbmuxd.service"
-DESCRIPTION="Latest versions of libimobiledevice and related tools."
+DESCRIPTION="Patched versions of libimobiledevice and related tools"
 IN_DIR="$(pwd)/out"
 OUT_DIR=""
 
 # Make sure we restart udev rules and bypass the upload.
 UDEV_LIB_RELOAD=True
 BYPASS_UPLOAD=True
-DEPENDS="libzip2"
+
+# DEPENDS, BREAKS, and CONFLICTS are unions of those fields across all Debian
+# packages in the libimobiledevice family:
+DEPENDS="fuse, libc6 (>= 2.17), libfuse2 (>= 2.8), libzip4 (>= 0.10), libssl1.1 (>= 1.1.0), libusb-1.0-0 (>= 2:1.0.22), adduser"
+BREAKS="usbmuxd (<< 1.1.1~git20181007.f838cf6-1)"
+CONFLICTS="libplist3, libusbmuxd6, usbmuxd, ideviceinstaller, ifuse, libimobiledevice6"
+
+VERSION=1.1
 
 # Fix the paths in the config files.
 sed -i "s+${IN_DIR}/sbin+${OUT_DIR}/sbin+g" ${IN_DIR}/systemd/usbmuxd.service
