@@ -368,13 +368,24 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 
 	// Start the merge.
 	mergeTarget := to.Id
+	squash := false
 	if strings.HasPrefix(to.Id, gerrit.ChangeRefPrefix) {
 		if err := r.childRepo.FetchRefFromRepo(ctx, r.childRepoURL, to.Id); err != nil {
 			return 0, fmt.Errorf("Failed to fetch ref in %s: %s", r.childRepo.Dir(), err)
 		}
 		mergeTarget = "FETCH_HEAD"
+		// To avoid having Android automatically upload the unsubmitted changes of
+		// the canary user, squash the merge commit.
+		// For regular rolls not squashing the merge is preferable because
+		// individual changes have already been replicated over and that means
+		// that they will not be uploaded again in Android.
+		squash = true
 	}
-	if _, err := r.childRepo.Git(ctx, "merge", mergeTarget, "--no-commit"); err != nil {
+	mergeCmds := []string{"merge", mergeTarget, "--no-commit"}
+	if squash {
+		mergeCmds = append(mergeCmds, "--squash")
+	}
+	if _, err := r.childRepo.Git(ctx, mergeCmds...); err != nil {
 		// Check to see if this was a merge conflict with ignoreMergeConflictFiles and deleteMergeConflictFiles.
 		conflictsOutput, conflictsErr := r.childRepo.Git(ctx, "diff", "--name-only", "--diff-filter=U")
 		if conflictsErr != nil || conflictsOutput == "" {
