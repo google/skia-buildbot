@@ -162,13 +162,43 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	g.On("Config").Return(gerrit.ConfigAndroid)
 	g.On("Search", testutils.AnyContext, 1, false, gerrit.SearchCommit("")).Return([]*gerrit.ChangeInfo{{Issue: androidIssueNum}}, nil)
 	g.On("GetIssueProperties", testutils.AnyContext, androidIssueNum).Return(&gerrit.ChangeInfo{Issue: androidIssueNum}, nil)
-	g.On("SetTopic", testutils.AnyContext, mock.AnythingOfType("string"), androidIssueNum).Return(nil)
+	g.On("SetTopic", testutils.AnyContext, "child_merge_12345", androidIssueNum).Return(nil)
 	g.On("SetReview", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	mockGerrit, _ := androidGerrit(t, g)
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, true)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
+
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, false, fakeCommitMsg)
+	require.NoError(t, err)
+	require.Equal(t, issueNum, issue)
+}
+
+// TestCreateNewAndroidRollWithExternalChangeId tests creating a new roll
+// with an external change ID specified in the target revision.
+func TestCreateNewAndroidRollWithExternalChangeId(t *testing.T) {
+	unittest.LargeTest(t)
+	testTopicName := "test_topic_name"
+	ctx, reg, wd, cleanup := setupAndroid(t)
+	defer cleanup()
+
+	g := &mocks.GerritInterface{}
+	g.On("GetUserEmail", testutils.AnyContext).Return("fake-service-account", nil)
+	g.On("GetRepoUrl").Return(androidCfg().ParentRepoUrl)
+	g.On("Config").Return(gerrit.ConfigAndroid)
+	g.On("Search", testutils.AnyContext, 1, false, gerrit.SearchCommit("")).Return([]*gerrit.ChangeInfo{{Issue: androidIssueNum}}, nil)
+	g.On("GetIssueProperties", testutils.AnyContext, androidIssueNum).Return(&gerrit.ChangeInfo{Issue: androidIssueNum}, nil)
+	g.On("SetTopic", testutils.AnyContext, testTopicName, androidIssueNum).Return(nil)
+	g.On("SetReview", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	mockGerrit, _ := androidGerrit(t, g)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, mockGerrit, true, true)
+	require.NoError(t, err)
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
+
+	// Add ExternalChangeId to the revision.
+	tipRev.ExternalChangeId = testTopicName
 
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, androidEmails, false, fakeCommitMsg)
 	require.NoError(t, err)

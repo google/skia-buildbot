@@ -347,13 +347,6 @@ func (r *androidRepoManager) getChangeForHash(hash string) (*gerrit.ChangeInfo, 
 	return r.g.GetIssueProperties(context.TODO(), issues[0].Issue)
 }
 
-// setTopic sets a topic using the name of the child repo and the change number.
-// Example: skia_merge_1234
-func (r *androidRepoManager) setTopic(changeNum int64) error {
-	topic := fmt.Sprintf("%s_merge_%d", path.Base(r.childDir), changeNum)
-	return r.g.SetTopic(context.TODO(), topic, changeNum)
-}
-
 // See documentation for RepoManager interface.
 func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
 	r.repoMtx.Lock()
@@ -529,8 +522,13 @@ third_party {
 		util.LogErr(r.abandonRepoBranch(ctx))
 		return 0, err
 	}
-	// Set the topic of the merge change.
-	if err := r.setTopic(change.Issue); err != nil {
+	// Set the topic of the merge change. By default use the name of the child
+	// repo and the change number. Example: skia_merge_1234
+	topicName := fmt.Sprintf("%s_merge_%d", path.Base(r.childDir), change.Issue)
+	if to.ExternalChangeId != "" {
+		topicName = to.ExternalChangeId
+	}
+	if err := r.g.SetTopic(ctx, topicName, change.Issue); err != nil {
 		return 0, err
 	}
 
