@@ -14,6 +14,7 @@ CONFIGS=(
   'flutter-engine2.json'
   'cdb-android-x.json'
   'cdb-android-prod.json'
+  'v8'
 )
 
 # Dump the tables we want backed up and copy the gzipped output to Google Cloud Storage.
