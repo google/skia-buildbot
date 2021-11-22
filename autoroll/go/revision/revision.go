@@ -23,6 +23,11 @@ type Revision struct {
 	// Author is a string indicating the author of this Revision.
 	Author string `json:"author"`
 
+	// ExternalChangeId is the external change ID that, if specified, is included
+	// as part of the roll. The ID is defined by the repo_manager.
+	// Eg: CL num for Chromium, PR num for Github, Topic name for Android.
+	ExternalChangeId string `json:"external_change_id"`
+
 	// Bugs are the IDs of any bugs referenced by this Revision, keyed by
 	// project ID (defined in whatever way makes sense to the user).
 	Bugs map[string][]string `json:"bugs"`
@@ -70,17 +75,18 @@ func (r *Revision) Copy() *Revision {
 		}
 	}
 	return &Revision{
-		Id:            r.Id,
-		Author:        r.Author,
-		Bugs:          bugs,
-		Description:   r.Description,
-		Details:       r.Details,
-		Display:       r.Display,
-		Dependencies:  util.CopyStringMap(r.Dependencies),
-		InvalidReason: r.InvalidReason,
-		Tests:         util.CopyStringSlice(r.Tests),
-		Timestamp:     r.Timestamp,
-		URL:           r.URL,
+		Id:               r.Id,
+		ExternalChangeId: r.ExternalChangeId,
+		Author:           r.Author,
+		Bugs:             bugs,
+		Description:      r.Description,
+		Details:          r.Details,
+		Display:          r.Display,
+		Dependencies:     util.CopyStringMap(r.Dependencies),
+		InvalidReason:    r.InvalidReason,
+		Tests:            util.CopyStringSlice(r.Tests),
+		Timestamp:        r.Timestamp,
+		URL:              r.URL,
 	}
 }
 

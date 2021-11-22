@@ -13,8 +13,9 @@ func TestCopyRevision(t *testing.T) {
 	unittest.SmallTest(t)
 
 	v := &Revision{
-		Id:     "abc123",
-		Author: "me@google.com",
+		Id:               "abc123",
+		ExternalChangeId: "xyz123",
+		Author:           "me@google.com",
 		Bugs: map[string][]string{
 			"project": {"123"},
 		},

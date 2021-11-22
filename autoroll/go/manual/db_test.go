@@ -21,7 +21,9 @@ const (
 // req returns a dummy ManualRollRequest.
 func req() *ManualRollRequest {
 	return &ManualRollRequest{
+		ExternalChangeId:  "xyz123",
 		DryRun:            true,
+		Canary:            true,
 		NoEmail:           true,
 		NoResolveRevision: true,
 		Requester:         "user@google.com",
@@ -32,7 +34,6 @@ func req() *ManualRollRequest {
 		Status:            STATUS_COMPLETE,
 		Timestamp:         firestore.FixTimestamp(time.Now()),
 		Url:               "http://my-roll.com",
-		Canary:            true,
 	}
 }
 

@@ -115,6 +115,10 @@ type ManualRollRequest struct {
 	NoResolveRevision bool `json:"no_resolve_revision"`
 	// Constructs a canary-specific commit msg if this is true.
 	Canary bool `json:"canary"`
+	// The external change ID, if specified, is included as part of the manual
+	// roll. The ID is defined by the repo_manager.
+	// Eg: CL num for Chromium, PR num for Github, Topic name for Android.
+	ExternalChangeId string `json:"external_change_id,omitempty"`
 }
 
 // Return a copy of the ManualRollRequest.
@@ -135,6 +139,7 @@ func (r *ManualRollRequest) Copy() *ManualRollRequest {
 		NoEmail:           r.NoEmail,
 		NoResolveRevision: r.NoResolveRevision,
 		Canary:            r.Canary,
+		ExternalChangeId:  r.ExternalChangeId,
 	}
 }
 

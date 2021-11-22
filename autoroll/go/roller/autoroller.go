@@ -905,6 +905,9 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 				continue
 			}
 		}
+		if req.ExternalChangeId != "" {
+			to.ExternalChangeId = req.ExternalChangeId
+		}
 		if req.Status == manual.STATUS_PENDING {
 			// Avoid creating rolls to the current revision.
 			from := r.GetCurrentRev()
