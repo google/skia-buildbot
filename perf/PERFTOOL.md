@@ -38,6 +38,12 @@ Create PubSub topics for the given big_table_config.
 
 **--connection_string**="": Override the connection string in the config file.
 
+### validate
+
+Validate the given config
+
+**--config_filename**="": Load configuration from `FILE`
+
 ## tiles
 
 
@@ -117,6 +123,16 @@ Writes a JSON files with the traces that match --query for the given range of co
 **--start**="": Start the ingestion at this time, of the form: 2006-01-02. Default to one week ago.
 
 **--stop**="": Ingest up to this time, of the form: 2006-01-02. Default to now.
+
+### validate
+
+
+
+**--config_filename**="": Load configuration from `FILE`
+
+**--in**="": The input filename.
+
+**--verbose**: Verbose output.
 
 ## database
 

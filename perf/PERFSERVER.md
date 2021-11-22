@@ -37,6 +37,8 @@ The main web UI.
 
 **--default_sparse**: The default value for 'Sparse' in Alerts.
 
+**--display_group_by**: Show the Group By section of Alert configuration.
+
 **--do_clustering**: If true then run continuous clustering over all the alerts.
 
 **--email_client_secret_file**="": OAuth client secret JSON file for sending email. (default: client_secret.json)
@@ -61,13 +63,19 @@ The main web UI.
 
 **--num_continuous_parallel**="": The number of parallel copies of continuous clustering to run. (default: 3)
 
+**--num_paramsets_for_queries**="": The number of paramsets we gather to populate the query dialog. (default: 2)
+
 **--num_shift**="": The number of commits the shift navigation buttons should jump. (default: 10)
 
 **--port**="": HTTP service address (e.g., ':8000') (default: :8000)
 
 **--prom_port**="": Metrics service address (e.g., ':10110') (default: :20000)
 
+**--proxy-login**: Use //go/alogin/proxyauth, instead of the default of //go/alogin/sklogin, for verifying logged in users.
+
 **--radius**="": The number of commits to include on either side of a commit when clustering. (default: 7)
+
+**--resources_dir**="": The directory to find templates, JS, and CSS files. If blank then ../../dist relative to the current directory will be used.
 
 **--step_up_only**: Only regressions that look like a step up will be reported.
 
@@ -99,6 +107,8 @@ Run the regression detection process.
 
 **--default_sparse**: The default value for 'Sparse' in Alerts.
 
+**--display_group_by**: Show the Group By section of Alert configuration.
+
 **--do_clustering**: If true then run continuous clustering over all the alerts.
 
 **--email_client_secret_file**="": OAuth client secret JSON file for sending email. (default: client_secret.json)
@@ -123,13 +133,19 @@ Run the regression detection process.
 
 **--num_continuous_parallel**="": The number of parallel copies of continuous clustering to run. (default: 3)
 
+**--num_paramsets_for_queries**="": The number of paramsets we gather to populate the query dialog. (default: 2)
+
 **--num_shift**="": The number of commits the shift navigation buttons should jump. (default: 10)
 
 **--port**="": HTTP service address (e.g., ':8000') (default: :8000)
 
 **--prom_port**="": Metrics service address (e.g., ':10110') (default: :20000)
 
+**--proxy-login**: Use //go/alogin/proxyauth, instead of the default of //go/alogin/sklogin, for verifying logged in users.
+
 **--radius**="": The number of commits to include on either side of a commit when clustering. (default: 7)
+
+**--resources_dir**="": The directory to find templates, JS, and CSS files. If blank then ../../dist relative to the current directory will be used.
 
 **--step_up_only**: Only regressions that look like a step up will be reported.
 

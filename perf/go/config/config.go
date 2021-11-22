@@ -430,7 +430,7 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Destination: &flags.ProxyLogin,
 			Name:        "proxy-login",
 			Value:       false,
-			Usage:       "Use //go/alogin/proxyauth, instead of the default of //go/alogin/sklogin, for verifying logged in users. ",
+			Usage:       "Use //go/alogin/proxyauth, instead of the default of //go/alogin/sklogin, for verifying logged in users.",
 		},
 	}
 }
