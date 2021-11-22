@@ -38,6 +38,7 @@ const (
 	tileNumberFlagName       = "tile"
 	trybotFilenameFlagName   = "filename"
 	trybotNumCommitsFlagName = "num"
+	verboseFlagName          = "verbose"
 )
 
 // flags
@@ -155,6 +156,12 @@ var loggingFlag = &cli.BoolFlag{
 	Name:  loggingFlagName,
 	Value: false,
 	Usage: "Turn on logging while running commands.",
+}
+
+var verboseFlag = &cli.BoolFlag{
+	Name:  verboseFlagName,
+	Value: false,
+	Usage: "Verbose output.",
 }
 
 // instanceConfigFromFlags returns an InstanceConfig based
@@ -367,10 +374,16 @@ func actualMain(app application.Application) {
 						Name:        "validate",
 						Description: "Validate an ingestion file",
 						Flags: []cli.Flag{
+							configFilenameFlag,
 							inputFilenameFlag,
+							verboseFlag,
 						},
 						Action: func(c *cli.Context) error {
-							return app.IngestValidate(c.String(inputFilenameFlag.Name))
+							instanceConfig, err := instanceConfigFromFlags(c)
+							if err != nil {
+								return skerr.Wrap(err)
+							}
+							return app.IngestValidate(instanceConfig, c.String(inputFilenameFlag.Name), c.Bool(verboseFlag.Name))
 						},
 					},
 				},

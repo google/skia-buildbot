@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"sort"
@@ -27,6 +28,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/ingest/parser"
 	"go.skia.org/infra/perf/go/regression"
@@ -54,7 +56,7 @@ type Application interface {
 	TracesList(store tracestore.TraceStore, queryString string, tileNumber types.TileNumber) error
 	TracesExport(store tracestore.TraceStore, queryString string, begin, end types.CommitNumber, outputFile string) error
 	IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool) error
-	IngestValidate(inputFile string) error
+	IngestValidate(instanceConfig *config.InstanceConfig, inputFile string, verbose bool) error
 	TrybotReference(local bool, store tracestore.TraceStore, instanceConfig *config.InstanceConfig, trybotFilename string, outputFilename string, numCommits int) error
 }
 
@@ -735,9 +737,9 @@ func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig
 	return nil
 }
 
-func (app) IngestValidate(inputFile string) error {
+func (app) IngestValidate(instanceConfig *config.InstanceConfig, inputFile string, verbose bool) error {
 	ctx := context.Background()
-	return util.WithReadFile(inputFile, func(r io.Reader) error {
+	err := util.WithReadFile(inputFile, func(r io.Reader) error {
 		schemaViolations, err := format.Validate(ctx, r)
 		for i, violation := range schemaViolations {
 			fmt.Printf("%d - %s\n", i, violation)
@@ -745,6 +747,27 @@ func (app) IngestValidate(inputFile string) error {
 		if err != nil {
 			// Unwrap the error since this gets printed as a user facing error message.
 			return fmt.Errorf("Validation Failed: %s", skerr.Unwrap(err))
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	if !verbose {
+		return nil
+	}
+	return util.WithReadFile(inputFile, func(r io.Reader) error {
+		f := file.File{
+			Name:     inputFile,
+			Contents: ioutil.NopCloser(r),
+		}
+		p, v, hash, err := parser.New(instanceConfig).Parse(f)
+		if err != nil {
+			return fmt.Errorf("Parse Failed: %s", skerr.Unwrap(err))
+		}
+		fmt.Printf("hash: %s\n", hash)
+		for i, params := range p {
+			fmt.Printf("params: %v value: %g\n", params, v[i])
 		}
 		return nil
 	})

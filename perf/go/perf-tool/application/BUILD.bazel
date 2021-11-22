@@ -18,6 +18,7 @@ go_library(
         "//perf/go/alerts",
         "//perf/go/builders",
         "//perf/go/config",
+        "//perf/go/file",
         "//perf/go/ingest/format",
         "//perf/go/ingest/parser",
         "//perf/go/regression",

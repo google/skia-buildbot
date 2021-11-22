@@ -142,13 +142,13 @@ func (_m *Application) IngestForceReingest(local bool, instanceConfig *config.In
 	return r0
 }
 
-// IngestValidate provides a mock function with given fields: inputFile
-func (_m *Application) IngestValidate(inputFile string) error {
-	ret := _m.Called(inputFile)
+// IngestValidate provides a mock function with given fields: instanceConfig, inputFile, verbose
+func (_m *Application) IngestValidate(instanceConfig *config.InstanceConfig, inputFile string, verbose bool) error {
+	ret := _m.Called(instanceConfig, inputFile, verbose)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(inputFile)
+	if rf, ok := ret.Get(0).(func(*config.InstanceConfig, string, bool) error); ok {
+		r0 = rf(instanceConfig, inputFile, verbose)
 	} else {
 		r0 = ret.Error(0)
 	}
