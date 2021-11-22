@@ -1445,6 +1445,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "skiaperf-v8",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "skiaperf-v8",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "skiaperf-v8",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "skottie",
           "endpoints": [
             {
@@ -3681,6 +3707,23 @@
                           },
                           "route": {
                             "cluster": "skiaperf-flutter-flutter2",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "v8-perf.skia.org",
+                      "name": "v8-perf.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "skiaperf-v8",
                             "timeout": {
                               "seconds": 600
                             }

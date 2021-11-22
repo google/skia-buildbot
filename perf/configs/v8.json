@@ -26,7 +26,7 @@
       "topic": "perf-ingestion-v8-production",
       "subscription": "perf-ingestion-v8-production-prod",
       "sources": [
-        "gs://v8_perf_skia/v8/"
+        "gs://v8_perf_skia/v8"
       ]
     },
     "branches": [],

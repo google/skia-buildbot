@@ -13,7 +13,8 @@ CREATE DATABASE
 Time: 24.075052ms
 ```
 
-2. Perform the migrations on the new database to create the tables. See COCKROACH.md.
+2. Perform the migrations on the new database to create the tables. See
+   COCKROACH.md.
 
 First port-forward in the production database:
 
@@ -84,8 +85,13 @@ perf-tool config create-pubsub-topics --config_filename=./configs/flutter.json
 gsutil notification create -f json -e OBJECT_FINALIZE -t projects/${PROJECT_ID}/topics/${TOPIC} -p flutter-flutter gs://flutter-skia-perf-prod
 ```
 
-8. Start new "perfserver ingest" instances for the given data with new service account.
-9. [Optional] Use perf-tool to forcibly trigger reingestion of existing files.
+8. Start new "perfserver ingest" instances for the given data with new service
+   account.
+
+Also make sure this has only 1 replica, so that two instances aren't both trying
+to add the full repo history to the database at the same time.
+
+9.  [Optional] Use perf-tool to forcibly trigger reingestion of existing files.
 
 ```
 perf-tool ingest force-reingest --config_filename=./configs/flutter-flutter2.json

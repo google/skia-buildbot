@@ -698,6 +698,7 @@ func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig
 		return skerr.Wrap(err)
 	}
 	for _, prefix := range instanceConfig.IngestionConfig.SourceConfig.Sources {
+		sklog.Infof("Source: %s", prefix)
 		u, err := url.Parse(prefix)
 		if err != nil {
 			return skerr.Wrap(err)
