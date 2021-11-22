@@ -1,0 +1,40 @@
+{
+  "URL": "https://v8-perf.skia.org",
+  "auth_config": {
+    "header_name": "X-WEBAUTH-USER",
+    "login_url": "https://skia.org/login/",
+    "logout_url": "https://skia.org/logout/"
+  },
+  "data_store_config": {
+    "datastore_type": "cockroachdb",
+    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/v8?sslmode=disable",
+    "tile_size": 256,
+    "cache": {
+      "memcached_servers": [
+        "perf-memcached-0.perf-memcached:11211",
+        "perf-memcached-1.perf-memcached:11211",
+        "perf-memcached-2.perf-memcached:11211"
+      ],
+      "namespace": "v8"
+    },
+    "enable_follower_reads": true
+  },
+  "ingestion_config": {
+    "source_config": {
+      "source_type": "gcs",
+      "project": "skia-public",
+      "topic": "perf-ingestion-v8-production",
+      "subscription": "perf-ingestion-v8-production-prod",
+      "sources": [
+        "gs://v8_perf_skia/v8/"
+      ]
+    },
+    "branches": [],
+    "file_ingestion_pubsub_topic_name": ""
+  },
+  "git_repo_config": {
+    "url": "https://chromium.googlesource.com/v8/v8.git",
+    "dir": "/tmp/v8",
+    "debounce_commit_url": false
+  }
+}
