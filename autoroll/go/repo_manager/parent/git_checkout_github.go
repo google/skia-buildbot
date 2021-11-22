@@ -26,7 +26,24 @@ var (
 	REGitHubForkRepoURL = regexp.MustCompile(`^(git@github.com:|file:///)(.*)/(.*?)(\.git)?$`)
 )
 
-// GitCheckoutUploadGithubRollFunc returns
+// ApplyExternalChangeGithubFunc returns a ApplyExternalChangeFunc which
+// handles external change Ids for github checkouts.
+func ApplyExternalChangeGithubFunc() git_common.ApplyExternalChangeFunc {
+	return func(ctx context.Context, co *git.Checkout, externalChangeId string) error {
+		// Fetch specified PR locally.
+		if _, err := co.Git(ctx, "fetch", "origin", fmt.Sprintf("pull/%s/head", externalChangeId)); err != nil {
+			return skerr.Wrap(err)
+		}
+		// Cherry-pick the PR patch without committing.
+		if _, err := co.Git(ctx, "cherry-pick", "--no-commit", "FETCH_HEAD"); err != nil {
+			return skerr.Wrap(err)
+		}
+		return nil
+	}
+}
+
+// GitCheckoutUploadGithubRollFunc returns a UploadRollFunc which uploads a CL
+// to Github.
 func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, rollerName, forkRepoURL string) git_common.UploadRollFunc {
 	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
 

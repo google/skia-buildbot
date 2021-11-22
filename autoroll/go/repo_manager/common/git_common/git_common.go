@@ -123,6 +123,11 @@ func (c *Checkout) LogFirstParent(ctx context.Context, from, to *revision.Revisi
 	return revs, nil
 }
 
+// ApplyExternalChangeFunc applies the specified ExternalChangeId in whichever
+// way makes sense for the implementation. Example: git_checkout_github uses
+// the ExternalChangeId as a Github PR and cherry-picks the PR patch locally.
+type ApplyExternalChangeFunc func(context.Context, *git.Checkout, string) error
+
 // CreateRollFunc generates commit(s) in the local Git checkout to
 // be used in the next roll and returns the hash of the commit to be uploaded.
 // GitCheckoutParent handles creation of the roll branch.
