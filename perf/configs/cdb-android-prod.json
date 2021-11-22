@@ -1,5 +1,6 @@
 {
   "URL": "https://android-master-perf.skia.org",
+  "contact": "n/a",
   "data_store_config": {
     "datastore_type": "cockroachdb",
     "connection_string": "postgresql://root@perf-cockroachdb-public:26257/android?sslmode=disable",
@@ -19,7 +20,9 @@
       "project": "skia-public",
       "topic": "perf-ingestion-android-production",
       "subscription": "perf-ingestion-android-cdb-prod",
-      "sources": ["gs://skia-perf/android-master-ingest"],
+      "sources": [
+        "gs://skia-perf/android-master-ingest"
+      ],
       "reject_if_name_matches": "/tx_log/"
     },
     "branches": [],

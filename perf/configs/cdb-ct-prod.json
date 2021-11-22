@@ -1,5 +1,6 @@
 {
   "URL": "https://ct-perf.skia.org",
+  "contact": "https://bugs.skia.org",
   "data_store_config": {
     "datastore_type": "cockroachdb",
     "connection_string": "postgresql://root@perf-cockroachdb-public:26257/ct?sslmode=disable",
@@ -19,7 +20,9 @@
       "project": "skia-public",
       "topic": "perf-ingestion-ct-production",
       "subscription": "perf-ingestion-ct-cdb-prod",
-      "sources": ["gs://cluster-telemetry-perf/ingest"]
+      "sources": [
+        "gs://cluster-telemetry-perf/ingest"
+      ]
     },
     "branches": [],
     "file_ingestion_pubsub_topic_name": ""

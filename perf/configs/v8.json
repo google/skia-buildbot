@@ -1,5 +1,6 @@
 {
   "URL": "https://v8-perf.skia.org",
+  "contact": "https://bugs.chromium.org/p/v8/issues/list?q=component%3ATools&can=2",
   "auth_config": {
     "header_name": "X-WEBAUTH-USER",
     "login_url": "https://skia.org/login/",

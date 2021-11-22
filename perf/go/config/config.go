@@ -485,6 +485,9 @@ type InstanceConfig struct {
 	// URL is the root URL at which this instance is available, for example: "https://example.com".
 	URL string `json:"URL"`
 
+	// Contact is the best way to contact the team for this instance.
+	Contact string `json:"contact"`
+
 	AuthConfig      AuthConfig      `json:"auth_config,omitempty"`
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`

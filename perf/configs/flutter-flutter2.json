@@ -1,5 +1,6 @@
 {
     "URL": "https://flutter-flutter-perf.skia.org/",
+    "contact": "https://mail.google.com/chat/u/0/?zx=s88snihcl7ie#chat/space/AAAAm69vf-M",
     "data_store_config": {
         "datastore_type": "cockroachdb",
         "connection_string": "postgresql://root@perf-cockroachdb-public:26257/flutter_flutter2?sslmode=disable",

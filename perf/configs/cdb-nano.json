@@ -1,5 +1,6 @@
 {
   "URL": "https://perf.skia.org",
+  "contact": "https://bugs.skia.org",
   "auth_config": {
     "header_name": "X-WEBAUTH-USER",
     "login_url": "https://skia.org/login/",
