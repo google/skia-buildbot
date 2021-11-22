@@ -136,17 +136,18 @@ func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parent
 		revsCopy = append(revsCopy, fixupRevision(rev))
 	}
 	vars := &commitMsgVars{
-		CommitMsgConfig: c,
-		Vars:            cv,
-		ChildName:       childName,
-		ChildBugLink:    childBugLink,
-		ParentName:      parentName,
-		ParentBugLink:   parentBugLink,
-		Reviewers:       reviewers,
-		Revisions:       revsCopy,
-		RollingFrom:     fixupRevision(from),
-		RollingTo:       fixupRevision(to),
-		ServerURL:       serverURL,
+		CommitMsgConfig:  c,
+		Vars:             cv,
+		ChildName:        childName,
+		ChildBugLink:     childBugLink,
+		ExternalChangeId: to.ExternalChangeId,
+		ParentName:       parentName,
+		ParentBugLink:    parentBugLink,
+		Reviewers:        reviewers,
+		Revisions:        revsCopy,
+		RollingFrom:      fixupRevision(from),
+		RollingTo:        fixupRevision(to),
+		ServerURL:        serverURL,
 	}
 
 	// Bugs.
@@ -257,20 +258,21 @@ func makeVars(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, parent
 type commitMsgVars struct {
 	*config.CommitMsgConfig
 	*config_vars.Vars
-	Bugs           []string
-	ChildBugLink   string
-	ChildLogURL    string
-	ChildName      string
-	CqExtraTrybots []string
-	ParentBugLink  string
-	ParentName     string
-	Reviewers      []string
-	Revisions      []*revision.Revision
-	RollingFrom    *revision.Revision
-	RollingTo      *revision.Revision
-	ServerURL      string
-	Tests          []string
-	TransitiveDeps []*transitiveDepUpdate
+	Bugs             []string
+	ChildBugLink     string
+	ChildLogURL      string
+	ChildName        string
+	CqExtraTrybots   []string
+	ExternalChangeId string
+	ParentBugLink    string
+	ParentName       string
+	Reviewers        []string
+	Revisions        []*revision.Revision
+	RollingFrom      *revision.Revision
+	RollingTo        *revision.Revision
+	ServerURL        string
+	Tests            []string
+	TransitiveDeps   []*transitiveDepUpdate
 }
 
 // parseCommitMsgTemplate parses the given commit message template string and

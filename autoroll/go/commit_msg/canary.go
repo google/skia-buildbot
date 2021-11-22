@@ -15,6 +15,10 @@ var (
 		`{{- define "subject" }}Canary roll {{ .ChildName }} to {{ .RollingTo }}{{ end -}}
 {{- define "revisions" }}{{ if .ChildLogURL }}{{ .ChildLogURL }}{{ end -}}{{end -}}
 {{- define "boilerplate" }}
+{{ if .ExternalChangeId -}}
+This canary roll also includes patch from change {{ .ExternalChangeId }}
+
+{{ end -}}
 DO_NOT_SUBMIT: This canary roll is only for testing
 
 Documentation for Autoroller Canaries is here:
