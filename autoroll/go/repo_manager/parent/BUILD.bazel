@@ -50,11 +50,15 @@ go_library(
 
 go_test(
     name = "parent_test",
-    srcs = ["pre_upload_steps_test.go"],
+    srcs = [
+        "gitiles_test.go",
+        "pre_upload_steps_test.go",
+    ],
     embed = [":parent"],
     deps = [
         "//autoroll/go/config",
         "//go/exec",
+        "//go/gerrit/mocks",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
     ],

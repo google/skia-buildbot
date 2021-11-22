@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"sync"
 
 	"go.skia.org/infra/autoroll/go/codereview"
@@ -104,7 +105,44 @@ func (p *gitilesParent) CreateNewRoll(ctx context.Context, from, to *revision.Re
 	if err != nil {
 		return 0, skerr.Wrapf(err, "getChangesForRoll func failed")
 	}
+
+	// If the revision contains an external change ID then download the
+	// files and patches modified by that change and add it to the next
+	// roll changes.
+	if to.ExternalChangeId != "" {
+		if err := handleExternalChangeId(ctx, nextRollChanges, to.ExternalChangeId, p.gerrit); err != nil {
+			return 0, skerr.Wrapf(err, "handleExternalChangeId func failed")
+		}
+	}
+
 	return CreateNewGerritRoll(ctx, p.gerrit, p.gerritConfig.Project, p.Branch(), commitMsg, p.baseCommit, nextRollChanges, emails, dryRun)
+}
+
+// handleExternalChangeId handles the specified externalChangeId as a CL
+// number. It gets all files to content from that CL and then adds it to the
+// specified map of changes. If a file name is already in the map of changes
+// then an error is returned.
+func handleExternalChangeId(ctx context.Context, changes map[string]string, externalChangeId string, g gerrit.GerritInterface) error {
+	clNum, err := strconv.ParseInt(externalChangeId, 10, 64)
+	if err != nil {
+		return skerr.Wrapf(err, "Could not convert externalChangeId %s to int64", externalChangeId)
+	}
+	additionalFilesContent, err := g.GetFilesToContent(ctx, clNum, "current")
+	if err != nil {
+		return skerr.Wrapf(err, "GetFilesToContent failed")
+	}
+	for af, afc := range additionalFilesContent {
+		if af == gerrit.CommitMsgFileName {
+			// We are not interested in the commit msg's patch.
+			continue
+		}
+		// If the file was already modified then return an error.
+		if _, ok := changes[af]; ok {
+			return fmt.Errorf("The CL %d contains file %s already modified by the roll", clNum, af)
+		}
+		changes[af] = afc
+	}
+	return nil
 }
 
 // CreateNewGerritRoll uploads a Gerrit CL with the given changes and returns
