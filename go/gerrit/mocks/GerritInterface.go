@@ -286,6 +286,27 @@ func (_m *GerritInterface) GetCommit(ctx context.Context, issue int64, revision 
 	return r0, r1
 }
 
+// GetContent provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *GerritInterface) GetContent(_a0 context.Context, _a1 int64, _a2 string, _a3 string) (string, error) {
+	ret := _m.Called(_a0, _a1, _a2, _a3)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string, string) string); ok {
+		r0 = rf(_a0, _a1, _a2, _a3)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64, string, string) error); ok {
+		r1 = rf(_a0, _a1, _a2, _a3)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetFileNames provides a mock function with given fields: ctx, issue, patch
 func (_m *GerritInterface) GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error) {
 	ret := _m.Called(ctx, issue, patch)
@@ -302,6 +323,29 @@ func (_m *GerritInterface) GetFileNames(ctx context.Context, issue int64, patch 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, int64, string) error); ok {
 		r1 = rf(ctx, issue, patch)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetFilesToContent provides a mock function with given fields: ctx, issue, revision
+func (_m *GerritInterface) GetFilesToContent(ctx context.Context, issue int64, revision string) (map[string]string, error) {
+	ret := _m.Called(ctx, issue, revision)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) map[string]string); ok {
+		r0 = rf(ctx, issue, revision)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64, string) error); ok {
+		r1 = rf(ctx, issue, revision)
 	} else {
 		r1 = ret.Error(1)
 	}

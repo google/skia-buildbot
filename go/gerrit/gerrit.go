@@ -181,6 +181,10 @@ const (
 	// Hopefully they apply to Gerrit as well.
 	defaultMaxQPS   = 4.0
 	defaultMaxBurst = 40
+
+	// Gerrit's magic path for the commit message. See:
+	// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#file-id
+	CommitMsgFileName = "/COMMIT_MSG"
 )
 
 var (
@@ -398,7 +402,9 @@ type GerritInterface interface {
 	Files(ctx context.Context, issue int64, patch string) (map[string]*FileInfo, error)
 	GetChange(ctx context.Context, id string) (*ChangeInfo, error)
 	GetCommit(ctx context.Context, issue int64, revision string) (*CommitInfo, error)
+	GetContent(context.Context, int64, string, string) (string, error)
 	GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error)
+	GetFilesToContent(ctx context.Context, issue int64, revision string) (map[string]string, error)
 	GetIssueProperties(context.Context, int64) (*ChangeInfo, error)
 	GetPatch(context.Context, int64, string) (string, error)
 	GetRepoUrl() string
@@ -684,6 +690,55 @@ func (g *Gerrit) GetCommit(ctx context.Context, issue int64, revision string) (*
 		return nil, err
 	}
 	return ret, nil
+}
+
+// GetContent gets the content of a file from the specified revision.
+// See: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-content
+func (g *Gerrit) GetContent(ctx context.Context, issue int64, revision string, filePath string) (string, error) {
+	// Encode the filePath to convert paths like /COMMIT_MSG into %2FCOMMIT_MSG.
+	filePath = url.QueryEscape(filePath)
+	u := fmt.Sprintf("%s/changes/%d/revisions/%s/files/%s/content", g.apiUrl, issue, revision, filePath)
+	resp, err := httputils.GetWithContext(ctx, g.client, u)
+	if err != nil {
+		return "", fmt.Errorf("Failed to GET %s: %s", u, err)
+	}
+	if resp.StatusCode >= 400 {
+		return "", fmt.Errorf("Error retrieving %s: %d %s", u, resp.StatusCode, resp.Status)
+	}
+	defer util.Close(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("Could not read response body: %s", err)
+	}
+
+	data, err := base64.StdEncoding.DecodeString(string(body))
+	if err != nil {
+		return "", fmt.Errorf("Could not base64 decode response body: %s", err)
+	}
+	return string(data), nil
+}
+
+// GetFilesToContent returns a map of files in the specified issue+revision to
+// their content.
+func (g *Gerrit) GetFilesToContent(ctx context.Context, issue int64, revision string) (map[string]string, error) {
+	filesToContent := map[string]string{}
+	files, err := g.GetFileNames(ctx, issue, revision)
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range files {
+		content, err := g.GetContent(ctx, issue, revision, f)
+		if err != nil {
+			if strings.Contains(err.Error(), "404 Not Found") {
+				// Deleted files are expected to return 404s.
+				content = ""
+			} else {
+				return nil, err
+			}
+		}
+		filesToContent[f] = content
+	}
+	return filesToContent, err
 }
 
 type reviewer struct {

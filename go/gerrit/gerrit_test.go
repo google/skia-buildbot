@@ -2,6 +2,7 @@ package gerrit
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -459,6 +460,43 @@ func TestGetFileNames(t *testing.T) {
 	require.Len(t, files, 4)
 	require.Contains(t, files, "/COMMIT_MSG")
 	require.Contains(t, files, "tools/gpu/vk/GrVulkanDefines.h")
+}
+
+func TestGetFilesToContent(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/a/changes/123/revisions/current/files" {
+			w.Header().Set("Content-Type", "application/json")
+			_, err := fmt.Fprintln(w, `)]}'
+{
+  "dir1/file1": {},
+  "file2": {},
+  "file3": {}
+}`)
+			require.NoError(t, err)
+		} else if r.URL.Path == "/a/changes/123/revisions/current/files/dir1/file1/content" {
+			w.Header().Set("Content-Type", "text/plain")
+			_, err := fmt.Fprintln(w, base64.StdEncoding.EncodeToString([]byte("xyz")))
+			require.NoError(t, err)
+		} else if r.URL.Path == "/a/changes/123/revisions/current/files/file2/content" {
+			w.Header().Set("Content-Type", "text/plain")
+			_, err := fmt.Fprintln(w, base64.StdEncoding.EncodeToString([]byte("xyz abc")))
+			require.NoError(t, err)
+		} else if r.URL.Path == "/a/changes/123/revisions/current/files/file3/content" {
+			http.Error(w, "404 Not Found", http.StatusNotFound)
+		}
+	}))
+	defer ts.Close()
+
+	api, err := NewGerritWithConfig(ConfigChromium, ts.URL, c)
+	ci := &ChangeInfo{Issue: int64(123)}
+	filesToContent, err := api.GetFilesToContent(context.Background(), ci.Issue, "current")
+	require.NoError(t, err)
+	require.Len(t, filesToContent, 3)
+	require.Equal(t, "xyz", filesToContent["dir1/file1"])
+	require.Equal(t, "xyz abc", filesToContent["file2"])
+	require.Equal(t, "", filesToContent["file3"])
 }
 
 func TestSubmittedTogether(t *testing.T) {
