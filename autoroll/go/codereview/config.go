@@ -11,6 +11,7 @@ var (
 	GerritConfigs = map[config.GerritConfig_Config]*gerrit.Config{
 		config.GerritConfig_ANDROID:                   gerrit.ConfigAndroid,
 		config.GerritConfig_ANDROID_NO_CR:             gerrit.ConfigAndroidNoCR,
+		config.GerritConfig_ANDROID_NO_CR_NO_PR:       gerrit.ConfigAndroidNoCRNoPR,
 		config.GerritConfig_ANGLE:                     gerrit.ConfigANGLE,
 		config.GerritConfig_CHROMIUM:                  gerrit.ConfigChromium,
 		config.GerritConfig_CHROMIUM_NO_CQ:            gerrit.ConfigChromiumNoCQ,
