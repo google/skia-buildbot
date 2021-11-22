@@ -27,8 +27,9 @@ type Store interface {
 
 	// WatchForPowerCycle returns a channel that will produce the name of a
 	// machine that needs to be power-cycled. Before a machineID is sent on the
-	// channel the PowerCycle value is set back to false.
-	WatchForPowerCycle(ctx context.Context) <-chan string
+	// channel the PowerCycle value is set back to false. If rack is set then
+	// only machines whose id contains the rack value will be returned.
+	WatchForPowerCycle(ctx context.Context, rack string) <-chan string
 
 	// List returns a slice containing all known machines.
 	List(ctx context.Context) ([]machine.Description, error)

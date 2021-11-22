@@ -103,6 +103,7 @@ func TestUpdate_CanUpdateEvenIfDescriptionDoesntExist(t *testing.T) {
 	store, err := NewFirestoreImpl(ctx, true, cfg)
 	require.NoError(t, err)
 
+	store.updateCounter.Reset()
 	called := false
 	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
 		assert.Equal(t, machine.ModeAvailable, previous.Mode)

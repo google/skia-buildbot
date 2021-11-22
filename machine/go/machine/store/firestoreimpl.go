@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"math/rand"
+	"strings"
 	"time"
 
 	gcfirestore "cloud.google.com/go/firestore"
@@ -195,7 +196,7 @@ func (st *FirestoreImpl) Watch(ctx context.Context, machineID string) <-chan mac
 }
 
 // WatchForPowerCycle implements the Store interface.
-func (st *FirestoreImpl) WatchForPowerCycle(ctx context.Context) <-chan string {
+func (st *FirestoreImpl) WatchForPowerCycle(ctx context.Context, rack string) <-chan string {
 	q := st.machinesCollection.Where("PowerCycle", "==", true).Where("RunningSwarmingTask", "==", false)
 	ch := make(chan string)
 	go func() {
@@ -217,8 +218,12 @@ func (st *FirestoreImpl) WatchForPowerCycle(ctx context.Context) <-chan string {
 					continue
 				}
 				machineDescription := convertFSDescription(storeDescription)
-				st.watchForPowerCycleReceiveSnapshotCounter.Inc(1)
 				machineID := machineDescription.Dimensions[machine.DimID][0]
+				// If rack is set then only respond to powercycle events for that rack.
+				if rack != "" && !strings.Contains(machineID, rack) {
+					continue
+				}
+				st.watchForPowerCycleReceiveSnapshotCounter.Inc(1)
 				err = st.Update(ctx, machineID, func(previous machine.Description) machine.Description {
 					ret := previous.Copy()
 					ret.PowerCycle = false

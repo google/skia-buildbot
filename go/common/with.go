@@ -119,6 +119,11 @@ func (o *cloudLoggingInitOpt) preinit(appName string) error {
 	if err != nil {
 		return fmt.Errorf("problem getting authenticated token source: %s", err)
 	}
+	// Try to grab a token right away to confirm auth is set up correctly.
+	_, err = ts.Token()
+	if err != nil {
+		return err
+	}
 	hostname, err := os.Hostname()
 	if err != nil {
 		return err

@@ -18,11 +18,17 @@ import (
 )
 
 var (
+	// Version can be changed via -ldflags.
+	Version = "development"
+)
+
+var (
 	// Flags.
 	configFlag               = flag.String("config", "", "The name of the configuration file.")
 	local                    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	powercycleConfigFilename = flag.String("powercycle_config", "", "The name of the config file for powercycle.Controller.")
 	promPort                 = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	rack                     = flag.String("rack", "", "The rack in the skolo that this is running on.")
 )
 
 func main() {
@@ -31,6 +37,7 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLogging(local, "skia-public"),
 	)
+	sklog.Infof("Version: %s", Version)
 	ctx := context.Background()
 
 	if *powercycleConfigFilename == "" {
@@ -71,8 +78,7 @@ func main() {
 
 	// Start a loop that does a firestore onsnapshot watcher that gets machine names
 	// that need to be power-cycled.
-	for machineID := range store.WatchForPowerCycle(ctx) {
-		// TODO(jcgregorio) We should filter on rack and ignore devices not on the local rack.
+	for machineID := range store.WatchForPowerCycle(ctx, *rack) {
 		if err := powercycleController.PowerCycle(ctx, powercycle.DeviceID(machineID), 0); err != nil {
 			sklog.Errorf("Failed to powercycle %q: %s", machineID, err)
 		} else {

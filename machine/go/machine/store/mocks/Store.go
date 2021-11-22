@@ -83,13 +83,13 @@ func (_m *Store) Watch(ctx context.Context, machineID string) <-chan machine.Des
 	return r0
 }
 
-// WatchForPowerCycle provides a mock function with given fields: ctx
-func (_m *Store) WatchForPowerCycle(ctx context.Context) <-chan string {
-	ret := _m.Called(ctx)
+// WatchForPowerCycle provides a mock function with given fields: ctx, rack
+func (_m *Store) WatchForPowerCycle(ctx context.Context, rack string) <-chan string {
+	ret := _m.Called(ctx, rack)
 
 	var r0 <-chan string
-	if rf, ok := ret.Get(0).(func(context.Context) <-chan string); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, string) <-chan string); ok {
+		r0 = rf(ctx, rack)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(<-chan string)

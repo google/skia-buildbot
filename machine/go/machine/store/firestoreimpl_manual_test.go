@@ -51,7 +51,7 @@ func TestWatchForPowerCycle_Success(t *testing.T) {
 	defer store.watchForPowerCycleReceiveSnapshotCounter.Reset()
 
 	// First add the watch.
-	ch := store.WatchForPowerCycle(ctx)
+	ch := store.WatchForPowerCycle(ctx, "")
 
 	const machineName = "skia-rpi2-rack2-shelf1-001"
 
@@ -95,13 +95,13 @@ func TestWatchForPowerCycle_OnlyMatchesTheRightMachines(t *testing.T) {
 	defer store.watchForPowerCycleReceiveSnapshotCounter.Reset()
 
 	// First add the watch.
-	ch := store.WatchForPowerCycle(ctx)
+	ch := store.WatchForPowerCycle(ctx, "rack4")
 
 	// Add some machines that don't match the query.
 	err = store.Update(ctx, "skia-rpi2-rack4-shelf2-013", func(previous machine.Description) machine.Description {
 		ret := previous.Copy()
 		ret.Mode = machine.ModeMaintenance
-		ret.RunningSwarmingTask = true
+		ret.RunningSwarmingTask = true // Skipped because it's running a task.
 		ret.PowerCycle = true
 		return ret
 	})
@@ -111,13 +111,23 @@ func TestWatchForPowerCycle_OnlyMatchesTheRightMachines(t *testing.T) {
 		ret := previous.Copy()
 		ret.Mode = machine.ModeMaintenance
 		ret.RunningSwarmingTask = false
-		ret.PowerCycle = false
+		ret.PowerCycle = false // Skipped because there's no powercycle request.
+		return ret
+	})
+	require.NoError(t, err)
+
+	// Skipped because it does not match the selected rack.
+	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-021", func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		ret.Mode = machine.ModeAvailable
+		ret.RunningSwarmingTask = false
+		ret.PowerCycle = true
 		return ret
 	})
 	require.NoError(t, err)
 
 	// Now add a machine that will match the query.
-	const machineName = "skia-rpi2-rack2-shelf1-001"
+	const machineName = "skia-rpi2-rack4-shelf1-001"
 
 	// Then create the document.
 	err = store.Update(ctx, machineName, func(previous machine.Description) machine.Description {
@@ -147,7 +157,7 @@ func TestWatchForPowerCycle_IsCancellable(t *testing.T) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	// First add the watch.
-	ch := store.WatchForPowerCycle(ctx)
+	ch := store.WatchForPowerCycle(ctx, "")
 
 	const machineName = "skia-rpi2-rack2-shelf1-001"
 
