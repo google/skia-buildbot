@@ -729,8 +729,11 @@ func (g *Gerrit) GetFilesToContent(ctx context.Context, issue int64, revision st
 	for _, f := range files {
 		content, err := g.GetContent(ctx, issue, revision, f)
 		if err != nil {
-			if strings.Contains(err.Error(), "404 Not Found") {
-				// Deleted files are expected to return 404s.
+			// Deleted files are expected to return 404s. Actual http.StatusNotFound
+			// message should be "404 Not Found", but httputils.GetWithContext wraps
+			// 404s as errors that contain the text "status code 404". So check for
+			// both strings to be safe.
+			if strings.Contains(err.Error(), "404 Not Found") || strings.Contains(err.Error(), "status code 404") {
 				content = ""
 			} else {
 				return nil, err
