@@ -9,6 +9,8 @@ go_library(
         "//autoroll/go/manual",
         "//go/auth",
         "//go/firestore",
+        "//go/gerrit",
+        "//go/git",
         "//go/skerr",
         "//task_driver/go/lib/auth_steps",
         "//task_driver/go/lib/checkout",

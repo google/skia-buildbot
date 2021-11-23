@@ -9,6 +9,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"strconv"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -16,6 +17,8 @@ import (
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
@@ -44,7 +47,9 @@ func main() {
 
 		checkoutFlags = checkout.SetupFlags(nil)
 
-		rollerName = flag.String("roller_name", "", "The roller we will use to create the canary with.")
+		rollerName           = flag.String("roller_name", "", "The roller we will use to create the canary with.")
+		canaryCQKeyword      = flag.String("cq_keyword", "", "The canary's CQ keyword. Eg: Canary-Chromium-CL.")
+		targetProjectBaseURL = flag.String("target_project_base_url", "", "The base URL to append the canaryCQKeyword's value to. canaryCQKeyword must be specified for this to be used. Eg: https://chromium-review.googlesource.com/c/")
 	)
 	ctx := td.StartRun(projectId, taskId, taskName, output, local)
 	defer td.EndRun(ctx)
@@ -69,6 +74,31 @@ func main() {
 	// Add documentation link for canary rolls.
 	td.StepText(ctx, "Canary roll doc", "https://goto.google.com/autoroller-canary-bots")
 
+	// Instantiate Gerrit.
+	client, err := auth_steps.InitHttpClient(ctx, *local, gerrit.AuthScope)
+	if err != nil {
+		td.Fatal(ctx, skerr.Wrap(err))
+	}
+	g, err := gerrit.NewGerrit("https://skia-review.googlesource.com", client)
+	if err != nil {
+		td.Fatal(ctx, skerr.Wrap(err))
+	}
+
+	// Read footers from Gerrit change if canaryCQKeyword is specified.
+	canaryCQKeywordValue := ""
+	if *canaryCQKeyword != "" {
+		issueNum, err := strconv.ParseInt(rs.Issue, 10, 64)
+		if err != nil {
+			td.Fatal(ctx, skerr.Wrap(err))
+		}
+		commit, err := g.GetCommit(ctx, issueNum, rs.Patchset)
+		if err != nil {
+			td.Fatal(ctx, skerr.Wrap(err))
+		}
+		footersMap := git.GetFootersMap(commit.Message)
+		canaryCQKeywordValue = git.GetStringFooterVal(footersMap, *canaryCQKeyword)
+	}
+
 	// Instantiate firestore DB.
 	manualRollDB, err := manual.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, "production", ts)
 	if err != nil {
@@ -85,11 +115,12 @@ func main() {
 		}
 
 		req := manual.ManualRollRequest{
-			Requester:  *rollerName,
-			RollerName: *rollerName,
-			Status:     manual.STATUS_PENDING,
-			Timestamp:  firestore.FixTimestamp(time.Now()),
-			Revision:   rs.GetPatchRef(),
+			Requester:        *rollerName,
+			RollerName:       *rollerName,
+			Status:           manual.STATUS_PENDING,
+			Timestamp:        firestore.FixTimestamp(time.Now()),
+			Revision:         rs.GetPatchRef(),
+			ExternalChangeId: canaryCQKeywordValue,
 
 			DryRun:            true,
 			NoEmail:           true,
@@ -103,7 +134,7 @@ func main() {
 			td.Fatal(ctx, skerr.Wrap(err))
 		}
 
-		if err := waitForCanaryRoll(ctx, manualRollDB, req.Id, fmt.Sprintf("Wait for canary roll%s", retryText)); err != nil {
+		if err := waitForCanaryRoll(ctx, manualRollDB, req.Id, fmt.Sprintf("Wait for canary roll%s", retryText), canaryCQKeywordValue, *targetProjectBaseURL); err != nil {
 			// Retry these errors.
 			if err == canaryRollNotCreatedErr || err == canaryRollSuccessTooQuicklyErr {
 				if retry >= (retryAttempts - 1) {
@@ -122,7 +153,7 @@ func main() {
 	}
 }
 
-func waitForCanaryRoll(parentCtx context.Context, manualRollDB manual.DB, rollId, stepName string) error {
+func waitForCanaryRoll(parentCtx context.Context, manualRollDB manual.DB, rollId, stepName, canaryCQKeywordValue, targetProjectBaseURL string) error {
 	ctx := td.StartStep(parentCtx, td.Props(stepName))
 	defer td.EndStep(ctx)
 	startTime := time.Now()
@@ -143,6 +174,11 @@ func waitForCanaryRoll(parentCtx context.Context, manualRollDB manual.DB, rollId
 				// Add the roll link to both the current step and it's parent.
 				td.StepText(ctx, "Canary roll CL", cl)
 				td.StepText(parentCtx, "Canary roll CL", cl)
+				if canaryCQKeywordValue != "" && targetProjectBaseURL != "" {
+					// Display link to additional patch.
+					td.StepText(ctx, "Additional Patch", targetProjectBaseURL+canaryCQKeywordValue)
+					td.StepText(parentCtx, "Additional Patch", targetProjectBaseURL+canaryCQKeywordValue)
+				}
 				addedRollLinkStepData = true
 			}
 			rollStatus = fmt.Sprintf("Canary roll [ %s ] has status %s", roll.Url, roll.Status)
