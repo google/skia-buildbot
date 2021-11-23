@@ -4,6 +4,7 @@
 
 set -e -x
 
+rm -rf build
 rm -rf out
 rm -rf libplist
 rm -rf libusbmuxd

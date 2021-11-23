@@ -1,0 +1,5 @@
+package: skia/internal/imobiledevice
+description: Builds of libimobiledevice and associated tools for all relevant os/arch combinations
+install_mode: copy
+data:
+  - dir: build/
