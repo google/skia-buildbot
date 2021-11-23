@@ -542,6 +542,11 @@ func main() {
 					log.Fatalf("Failed to push with %q and failed to rebase with %q", err, err2)
 				}
 			}
+			// Remove the commit we just made, so that we aren't leaving the
+			// checkout in a "dirty" state.
+			if _, err := configCo.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch); err != nil {
+				log.Fatalf("Failed to cleanup: %s", err)
+			}
 		} else {
 			fmt.Println(fmt.Sprintf("Updated config files in %s but not committing because of dirty checkout.", configCo.Dir()))
 		}
