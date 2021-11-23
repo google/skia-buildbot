@@ -36,15 +36,20 @@ import (
 )
 
 var (
-	invalidChar = regexp.MustCompile("([^a-zA-Z0-9._\\-])")
-	keyRe       = regexp.MustCompile("^,([a-zA-Z0-9._\\-]+=[a-zA-Z0-9._\\-]+,)+$")
-	paramRe     = regexp.MustCompile("^[a-zA-Z0-9._\\-]+$")
+	invalidChar = regexp.MustCompile(`([^a-zA-Z0-9._\-])`)
+	keyRe       = regexp.MustCompile(`^,([a-zA-Z0-9._\-]+=[a-zA-Z0-9._\\-]+,)+$`)
+	paramRe     = regexp.MustCompile(`^[a-zA-Z0-9._\-]+$`)
 
 	QueryWillNeverMatch = errors.New("Query will never match.")
 )
 
 func clean(s string) string {
-	return invalidChar.ReplaceAllLiteralString(s, "_")
+	ret := invalidChar.ReplaceAllLiteralString(s, "_")
+	if ret == "" {
+		return "_"
+	}
+
+	return ret
 }
 
 // ForceValid ensures that the resulting map will make a valid structured key.

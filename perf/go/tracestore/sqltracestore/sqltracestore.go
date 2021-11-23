@@ -1424,8 +1424,10 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 	postingsTemplateContext := []insertIntoPostingsContext{} // We have no idea how long this will be.
 
 	for i, p := range params {
+		p = query.ForceValid(p)
 		traceName, err := query.MakeKey(p)
 		if err != nil {
+			sklog.Errorf("Somehow still invalid: %v", p)
 			continue
 		}
 		traceID := traceIDForSQLFromTraceName(traceName)
@@ -1479,7 +1481,7 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 		}
 	}
 
-	sklog.Infof("About to format %d trace values", len(params))
+	sklog.Infof("About to format %d trace values", len(valuesTemplateContext))
 
 	err = util.ChunkIter(len(valuesTemplateContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
 		var b bytes.Buffer

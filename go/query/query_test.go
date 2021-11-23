@@ -23,6 +23,16 @@ func TestValidateKey(t *testing.T) {
 			reason: "",
 		},
 		{
+			key:    ",arch=x86,con-fig=5-65,",
+			valid:  true,
+			reason: "",
+		},
+		{
+			key:    ",arch=x86,config=5 65,",
+			valid:  false,
+			reason: "",
+		},
+		{
 			key:    "arch=x86,config=565,",
 			valid:  false,
 			reason: "No comma at beginning.",
@@ -427,6 +437,18 @@ func TestForceValue(t *testing.T) {
 		{
 			input: map[string]string{"arch": "x86", "config": "565"},
 			want:  map[string]string{"arch": "x86", "config": "565"},
+		},
+		{
+			input: map[string]string{"arch": "x86", "con-fig": "5-65"},
+			want:  map[string]string{"arch": "x86", "con-fig": "5-65"},
+		},
+		{
+			input: map[string]string{"arch": "x86", "config": "5 65"},
+			want:  map[string]string{"arch": "x86", "config": "5_65"},
+		},
+		{
+			input: map[string]string{"arch": "x86", "config": ""},
+			want:  map[string]string{"arch": "x86", "config": "_"},
 		},
 		{
 			input: map[string]string{"arch::this": "x!~@#$%^&*()86"},
