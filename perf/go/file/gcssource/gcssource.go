@@ -79,7 +79,14 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool)
 		return nil, skerr.Wrap(err)
 	}
 
-	sub, err := sub.New(ctx, local, instanceConfig.IngestionConfig.SourceConfig.Project, instanceConfig.IngestionConfig.SourceConfig.Topic, maxParallelReceives)
+	subName := instanceConfig.IngestionConfig.SourceConfig.Subscription
+	if subName == "" {
+		subName, err = sub.NewRoundRobinNameProvider(local, instanceConfig.IngestionConfig.SourceConfig.Topic).SubName()
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+	sub, err := sub.NewWithSubName(ctx, local, instanceConfig.IngestionConfig.SourceConfig.Project, instanceConfig.IngestionConfig.SourceConfig.Topic, subName, maxParallelReceives)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
