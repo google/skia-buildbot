@@ -17,7 +17,7 @@ Installs all packages necessary for development.
 
 Checks out the libimobiledevice family of tools (see
 http://www.libimobiledevice.org/) and builds them. This is intended to be run a
-Raspberry Pi, but should work on most (Debian based) Linux distributions. We
+Raspberry Pi, but should work on most (Debian-based) Linux distributions. We
 roll 1 big package containing what several Debian-proper ones do, just to reduce
 paperwork, since we have to build everything from source anyway atop our patched
 libimobiledevice.
@@ -57,12 +57,5 @@ Original version, with Ben Wagner's patches, intended for use with pushk.
 ### 1.1
 
 Same patches, rebased on the latest upstreams, a bit after the 1.3.0 release
-of libimobiledevice. Hashes of subprojects:
-
-- https://github.com/skia-dev/libimobiledevice.git @ bf5f66f7216b7147e36629cb0f698a41053bb854
-- ideviceinstaller @ d5c37d657969a6c71ff965a3f17004a844449879
-- ifuse @ 14839dcda4ec8c86f11372665c853dc4a294fa72
-- libimobiledevice-glue @ 7c37434360f1c49975c286566efc3f0c935a84ef
-- libplist @ cf7a3f3d7c06b197ee71c9f97eb9aa05f26d63b5
-- libusbmuxd @ 2ec5354a6ff2ba5e2740eabe7402186f29294f79
-- usbmuxd @ e3a3180b9b380ce9092ee0d7b8e9d82d66b1c261
+of libimobiledevice. Add Conflicts and Breaks metadata so we can install
+it atop the upstream Debian packages and have them leap out of the way.
