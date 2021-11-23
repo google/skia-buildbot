@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "parsers",
+    srcs = ["parsers.go"],
+    importpath = "go.skia.org/infra/bazel/gazelle/cpp/parsers",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/gazelle/cpp/common",
+        "//bazel/gazelle/frontend/parsers",
+    ],
+)
+
+go_test(
+    name = "parsers_test",
+    srcs = ["parsers_test.go"],
+    embed = [":parsers"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

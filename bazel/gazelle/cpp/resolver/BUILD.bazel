@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "resolver",
+    srcs = ["resolver.go"],
+    importpath = "go.skia.org/infra/bazel/gazelle/cpp/resolver",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/gazelle/cpp/common",
+        "//go/util",
+        "@bazel_gazelle//config:go_default_library",
+        "@bazel_gazelle//label:go_default_library",
+        "@bazel_gazelle//repo:go_default_library",
+        "@bazel_gazelle//resolve:go_default_library",
+        "@bazel_gazelle//rule:go_default_library",
+    ],
+)
+
+go_test(
+    name = "resolver_test",
+    srcs = ["resolver_test.go"],
+    embed = [":resolver"],
+    deps = [
+        "//bazel/gazelle/cpp/common",
+        "//go/testutils/unittest",
+        "@bazel_gazelle//label:go_default_library",
+        "@bazel_gazelle//rule:go_default_library",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

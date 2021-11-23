@@ -64,7 +64,7 @@ var ignoredTsImportsRegexp = regexp.MustCompile(`\.s?css$`)
 // any imported modules.
 func ParseTSImports(source string) []string {
 	// Remove comments from the source file.
-	lines := splitLinesAndRemoveComments(source)
+	lines := SplitLinesAndRemoveComments(source)
 
 	// Extract all imports.
 	importsSet := map[string]bool{}
@@ -119,7 +119,7 @@ var sassImportRegexps = []*regexp.Regexp{
 // imported modules.
 func ParseSassImports(source string) []string {
 	// Remove comments from the source file.
-	lines := splitLinesAndRemoveComments(source)
+	lines := SplitLinesAndRemoveComments(source)
 
 	// Extract all imports.
 	importsSet := map[string]bool{}
@@ -152,11 +152,11 @@ func ParseSassImports(source string) []string {
 // Functions for filtering out comments. //
 ///////////////////////////////////////////
 
-// splitLinesAndRemoveComments deletes "// line comments" and "/* block comments */" from the given
+// SplitLinesAndRemoveComments deletes "// line comments" and "/* block comments */" from the given
 // source, and splits the results into lines.
 //
-// This works for both TypeScript and Sass because both languages use the same syntax for comments.
-func splitLinesAndRemoveComments(source string) []string {
+// This works for any language that uses that style of comments, including Typescript, Sass, C++.
+func SplitLinesAndRemoveComments(source string) []string {
 	lines := strings.Split(source, "\n")
 	lines = stripBlockComments(lines)
 	lines = stripCommentedOutLines(lines)
