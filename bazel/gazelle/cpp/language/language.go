@@ -71,7 +71,6 @@ func (l *CppLanguage) Loads() []rule.LoadInfo {
 // update is requested.
 func (l *CppLanguage) GenerateRules(args language.GenerateArgs) language.GenerateResult {
 	allFiles := append(args.RegularFiles, args.GenFiles...)
-	log.Printf("All files %s", allFiles)
 	rules := makeRulesFromFiles(allFiles)
 	imports := getImportsFromRules(rules, args.Dir, l.ThirdPartyFileMap)
 
