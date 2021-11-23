@@ -77,7 +77,10 @@ var (
 			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
 		},
 		CqLabelsUnsetOnCompletion: true,
-		DryRunActiveLabels:        map[string]int{},
+		DryRunActiveLabels: map[string]int{
+			LabelAutoSubmit:     LabelAutoSubmitNone,
+			LabelPresubmitReady: LabelPresubmitReadyEnable,
+		},
 		DryRunSuccessLabels: map[string]int{
 			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
 		},
