@@ -598,3 +598,17 @@ $ bazel test //path/to:my_cockroachdb_test --test_env=COCKROACHDB_EMULATOR_STORE
 
 More on the `--test_env` flag
 [here](https://docs.bazel.build/versions/main/command-line-reference.html#flag--test_env).
+
+### Faster Sandboxing
+
+By default, Bazel [sandboxes](https://docs.bazel.build/versions/main/sandboxing.html)
+every build step. Effectively, it runs the compile command with only the given source files for a
+particular rule and the specified dependencies visible, to force all dependencies to be
+properly listed.
+
+For steps that have a lot of files, this can have a bit of I/O overhead. To speed this up, one
+can use tempfs (e.g. a RAM disk) for the sandbox by adding `--sandbox_base=/dev/shm` to the build
+command. When compiling Skia, for example, this reduces compile time by 2-3x.
+
+Sandboxing can make diagnosing failing rules a bit harder. To see what command got run and to be
+able to view the sandbox after failure, add `--subcommands --sandbox_debug` to the command.
