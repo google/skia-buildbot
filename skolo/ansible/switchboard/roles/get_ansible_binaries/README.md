@@ -29,7 +29,7 @@ that has a path attribute with the location of the downloaded binaries.
 This role is designed to be used in other roles.
 
         - name: Load test_machine_monitor executables.
-          import_role:
+          include_role:
             name: get_ansible_binaries
           vars:
             get_ansible_binaries_application: test_machine_monitor

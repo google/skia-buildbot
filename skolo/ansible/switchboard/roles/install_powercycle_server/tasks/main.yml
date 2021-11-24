@@ -1,6 +1,6 @@
 - name: Load powercycle_server_ansible executables.
   run_once: yes
-  import_role:
+  include_role:
     name: get_ansible_binaries
   vars:
     get_ansible_binaries_application: powercycle_server_ansible

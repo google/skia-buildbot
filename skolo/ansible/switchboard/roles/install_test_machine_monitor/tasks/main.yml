@@ -5,7 +5,7 @@
 
 - name: Load test_machine_monitor executables.
   run_once: yes
-  import_role:
+  include_role:
     name: get_ansible_binaries
   vars:
     get_ansible_binaries_application: test_machine_monitor
