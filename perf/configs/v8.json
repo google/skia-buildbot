@@ -16,7 +16,7 @@
       "source_type": "gcs",
       "project": "skia-public",
       "topic": "perf-ingestion-v8-production",
-      "subscription": "perf-ingestion-v8-production-prod",
+      "subscription": "",
       "sources": [
         "gs://v8_perf_skia/v8"
       ]
