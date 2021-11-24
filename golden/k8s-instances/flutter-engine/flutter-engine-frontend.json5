@@ -1,6 +1,9 @@
 {
   authorized_users: [
     "google.com",
+    "flutter-try-builder@chops-service-accounts.iam.gserviceaccount.com",
+    "flutter-staging-builder@chops-service-accounts.iam.gserviceaccount.com",
+    "flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com",
   ],
   client_secret_file: "/etc/skia.org/login.json",
   disable_sql_exp_cl: true,
