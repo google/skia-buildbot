@@ -1,0 +1,4 @@
+- name: clean_up_package_dir
+  file:
+    path: '{{ package_dir.path }}'
+    state: absent

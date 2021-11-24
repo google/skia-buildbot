@@ -22,7 +22,7 @@ USER="$2"
 DATETIME=`date --utc "+%Y-%m-%dT%H:%M:%SZ"`
 HASH=`git rev-parse HEAD`
 GITSTATE=`../../bash/gitstate.sh`
-VERSION=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
+VERSION=${DATETIME}-${USER}-${HASH}-${GITSTATE}
 DEB_DIR=build/Linux/aarch64
 
 mkdir -p "${DEB_DIR}"

@@ -1,10 +1,77 @@
-- name: Install mobile device applications.
-  become: yes
-  apt:
-    pkg:
-      - adb
-      - libimobiledevice-utils
+- name: Install mobile tools.
   when: swarming_needs__needs_mobile_tools
+  block:
+    - name: Load skia-imobiledevice package.
+      run_once: yes
+      include_role:
+        name: get_ansible_binaries
+      vars:
+        get_ansible_binaries_application: imobiledevice
+
+    - name: Make temp dir to hold skia-imobiledevice package.
+      tempfile:
+        state: directory
+      register: package_dir
+      notify: clean_up_package_dir
+
+    - name: Copy package to host.
+      become: yes
+      copy:
+        src:
+          "{{ get_ansible_binaries_directory.path }}/build/{{
+      ansible_facts['system'] }}/{{ ansible_facts['architecture']
+      }}/skia-imobiledevice.deb"
+        dest: '{{ package_dir.path }}/skia-imobiledevice.deb'
+        owner: root
+        group: root
+        mode: '0755'
+
+    # Ansible's apt module doesn't want to remove conflicting packages, no
+    # matter what options I could come up with, so we do it manually.
+    - name: Remove packages that conflict with skia-imobiledevice.
+      become: yes
+      apt:
+        state: absent
+        pkg:
+          - libplist3
+          - libusbmuxd6
+          - usbmuxd
+          - ideviceinstaller
+          - ifuse
+          - libimobiledevice6
+        autoremove: yes
+
+    - name: Install skia-imobiledevice.
+      become: yes
+      apt:
+        deb: '{{ package_dir.path }}/skia-imobiledevice.deb'
+
+    - name: Install adb and python 2.7.
+      become: yes
+      apt:
+        pkg:
+          - adb
+          - python2.7  # still needed for iOS swarming recipes
+
+    # iOS recipes need a /usr/bin/python2.
+    - name: link /usr/bin/python2 to /usr/bin/python2.7
+      become: yes
+      file:
+        src: /usr/bin/python2.7
+        dest: /usr/bin/python2
+        owner: root
+        group: root
+        state: link
+
+    # Our recipes hard-code a specific adb.
+    - name: link adb to /usr/bin/adb.1.0.35
+      become: yes
+      file:
+        src: /usr/bin/adb
+        dest: /usr/bin/adb.1.0.35
+        owner: root
+        group: root
+        state: link
 
 - name: Install python3 modules.
   become: yes
@@ -12,17 +79,6 @@
     pkg:
       - python3-distutils
       - python3-certifi
-
-# Our recipes hard code a specific adb.
-- name: link adb to /usr/bin/adb.1.0.35
-  become: yes
-  file:
-    src: /usr/bin/adb
-    dest: /usr/bin/adb.1.0.35
-    owner: root
-    group: root
-    state: link
-  when: swarming_needs__needs_mobile_tools
 
 # Recipes need a /usr/bin/python.
 - name: link /usr/bin/python to /usr/bin/python3
@@ -42,4 +98,3 @@
     recurse: yes
     owner: chrome-bot
     mode: 0755
-
