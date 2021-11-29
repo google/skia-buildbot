@@ -6,10 +6,7 @@ go_library(
     srcs = ["params.go"],
     importpath = "go.skia.org/infra/go/paramtools",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/skerr",
-        "//go/util",
-    ],
+    deps = ["//go/util"],
 )
 
 go_test(
