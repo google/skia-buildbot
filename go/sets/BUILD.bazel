@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sets",
+    srcs = ["sets.go"],
+    importpath = "go.skia.org/infra/go/sets",
+    visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
+)
+
+go_test(
+    name = "sets_test",
+    srcs = ["sets_test.go"],
+    embed = [":sets"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)
