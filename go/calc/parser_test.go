@@ -10,17 +10,18 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/types"
 )
 
 var (
 	e        = vec32.MissingDataSentinel
-	testRows = Rows{
+	testRows = types.TraceSet{
 		",config=8888,os=Ubuntu12,": []float32{e, 1.234, e},
 		",config=gpu,os=Ubuntu12,":  []float32{e, 1.236, e},
 	}
 )
 
-func newTestContext(rows, shortcutRows Rows) *Context {
+func newTestContext(rows, shortcutRows types.TraceSet) *Context {
 	if rows == nil {
 		rows = testRows
 	}
@@ -28,13 +29,13 @@ func newTestContext(rows, shortcutRows Rows) *Context {
 		shortcutRows = testRows
 	}
 
-	from := func(s string) (Rows, error) {
+	from := func(s string) (types.TraceSet, error) {
 		urlValues, err := url.ParseQuery(s)
 		if err != nil {
 			return nil, fmt.Errorf("Could not parse query: %s", err)
 		}
 		q, err := query.New(urlValues)
-		ret := Rows{}
+		ret := types.TraceSet{}
 		for k, v := range rows {
 			if q.Matches(k) {
 				ret[k] = v
@@ -43,7 +44,7 @@ func newTestContext(rows, shortcutRows Rows) *Context {
 		return ret, nil
 	}
 
-	fromShortcut := func(s string) (Rows, error) {
+	fromShortcut := func(s string) (types.TraceSet, error) {
 		return shortcutRows, nil
 	}
 
@@ -77,7 +78,7 @@ func TestFilter(t *testing.T) {
 
 func TestShortcut(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := newTestContext(nil, Rows{
+	ctx := newTestContext(nil, types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, 2.0, e},
 		",name=t2,": []float32{e, 2.0, 8.0, -2.0},
 		",name=t3,": []float32{e, 1.0, 8.0, -3.0},
@@ -156,7 +157,7 @@ func near(a, b float32) bool {
 
 func TestNorm(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := newTestContext(Rows{
+	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{2.0, -2.0, e},
 	}, nil)
 	rows, err := ctx.Eval(`norm(filter(""))`)
@@ -171,7 +172,7 @@ func TestNorm(t *testing.T) {
 
 func TestAve(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := newTestContext(Rows{
+	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
 	}, nil)
@@ -193,7 +194,7 @@ func TestAve(t *testing.T) {
 
 func TestAvg(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := newTestContext(Rows{
+	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
 	}, nil)
@@ -215,7 +216,7 @@ func TestAvg(t *testing.T) {
 
 func TestCount(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := newTestContext(Rows{
+	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
 	}, nil)
@@ -237,7 +238,7 @@ func TestCount(t *testing.T) {
 
 func TestRatio(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := newTestContext(Rows{
+	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{10, 4, 100, 50, 9999, 0},
 		",name=t2,": []float32{5, 2, 4, 5, 0, 1000},
 	}, nil)
@@ -259,7 +260,7 @@ func TestRatio(t *testing.T) {
 
 func TestFill(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := newTestContext(Rows{
+	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{e, e, 2, 3, e, 5},
 	}, nil)
 	formula := `fill(filter("name=t1"))`
@@ -280,7 +281,7 @@ func TestFill(t *testing.T) {
 
 func TestSum(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := newTestContext(Rows{
+	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
 	}, nil)
@@ -302,7 +303,7 @@ func TestSum(t *testing.T) {
 
 func TestGeo(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := newTestContext(Rows{
+	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1.0, -1.0, 2.0, e},
 		",name=t2,": []float32{e, 2.0, 8.0, -2.0},
 	}, nil)
@@ -324,7 +325,7 @@ func TestGeo(t *testing.T) {
 
 func TestLog(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := newTestContext(Rows{
+	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{1, 10, 100, -1, 0, e},
 	}, nil)
 	formula := `log(filter(""))`
@@ -346,7 +347,7 @@ func TestLog(t *testing.T) {
 
 func TestIQRR(t *testing.T) {
 	unittest.SmallTest(t)
-	ctx := newTestContext(Rows{
+	ctx := newTestContext(types.TraceSet{
 		",name=t1,": []float32{5, 7, 10, 15, 19, 21, 21, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 25},
 	}, nil)
 	formula := `iqrr(filter("name=t1"))`
@@ -354,6 +355,6 @@ func TestIQRR(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to eval iqrr() test: %s", err)
 	}
-	expected := []float32{e, e, e, 15, 19, 21, 21, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 25}
+	expected := types.Trace{e, e, e, 15, 19, 21, 21, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 25}
 	assert.Equal(t, expected, rows["iqrr(,name=t1,)"])
 }

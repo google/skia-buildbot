@@ -286,7 +286,7 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 	// to filter(), we can just use the last one returned.
 	var df *DataFrame
 
-	rowsFromQuery := func(s string) (calc.Rows, error) {
+	rowsFromQuery := func(s string) (types.TraceSet, error) {
 		urlValues, err := url.ParseQuery(s)
 		if err != nil {
 			return nil, err
@@ -304,14 +304,14 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 			return nil, err
 		}
 		// DataFrames are float32, but calc does its work in float64.
-		rows := calc.Rows{}
+		rows := types.TraceSet{}
 		for k, v := range df.TraceSet {
 			rows[k] = vec32.Dup(v)
 		}
 		return rows, nil
 	}
 
-	rowsFromShortcut := func(s string) (calc.Rows, error) {
+	rowsFromShortcut := func(s string) (types.TraceSet, error) {
 		keys, err := p.shortcutStore.Get(ctx, s)
 		if err != nil {
 			return nil, err
@@ -325,7 +325,7 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 			return nil, err
 		}
 		// DataFrames are float32, but calc does its work in float64.
-		rows := calc.Rows{}
+		rows := types.TraceSet{}
 		for k, v := range df.TraceSet {
 			rows[k] = vec32.Dup(v)
 		}

@@ -11,7 +11,10 @@ go_library(
     ],
     importpath = "go.skia.org/infra/go/calc",
     visibility = ["//visibility:public"],
-    deps = ["//go/vec32"],
+    deps = [
+        "//go/vec32",
+        "//perf/go/types",
+    ],
 )
 
 go_test(
@@ -25,6 +28,7 @@ go_test(
         "//go/query",
         "//go/testutils/unittest",
         "//go/vec32",
+        "//perf/go/types",
         "@com_github_stretchr_testify//assert",
     ],
 )

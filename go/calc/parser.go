@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -15,13 +16,11 @@ const (
 
 type (
 	NodeType         int
-	RowsFromQuery    func(q string) (Rows, error)
-	RowsFromShortcut func(id string) (Rows, error)
+	RowsFromQuery    func(q string) (types.TraceSet, error)
+	RowsFromShortcut func(id string) (types.TraceSet, error)
 )
 
-type Rows map[string][]float32
-
-func newRow(rows Rows) []float32 {
+func newRow(rows types.TraceSet) []float32 {
 	if len(rows) == 0 {
 		return []float32{}
 	}
@@ -54,7 +53,7 @@ func newNode(val string, typ NodeType) *Node {
 }
 
 // Evaluates a node. Only valid to call on Nodes of type NodeFunc.
-func (n *Node) Eval(ctx *Context) (Rows, error) {
+func (n *Node) Eval(ctx *Context) (types.TraceSet, error) {
 	if n.Typ != NodeFunc {
 		return nil, fmt.Errorf("Tried to call eval on a non-Func node: %s", n.Val)
 	}
@@ -70,7 +69,7 @@ func (n *Node) Eval(ctx *Context) (Rows, error) {
 // The traces returned will always have a Param of "id" that identifies
 // the trace. See DESIGN.md for the Trace ID naming conventions.
 type Func interface {
-	Eval(*Context, *Node) (Rows, error)
+	Eval(*Context, *Node) (types.TraceSet, error)
 	Describe() string
 }
 
@@ -115,7 +114,7 @@ func NewContext(rowsFromQuery RowsFromQuery, rowsFromShortcut RowsFromShortcut) 
 
 // Eval parses and evaluates the given string expression and returns the Traces, or
 // an error.
-func (ctx *Context) Eval(exp string) (Rows, error) {
+func (ctx *Context) Eval(exp string) (types.TraceSet, error) {
 	ctx.formula = exp
 	n, err := parse(exp)
 	if err != nil {

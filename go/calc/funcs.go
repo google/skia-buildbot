@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -20,7 +21,7 @@ type FilterFunc struct{}
 //
 // It expects a single argument that is a string in URL query format, ala
 // os=Ubuntu12&config=8888.
-func (FilterFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (FilterFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("filter() takes a single argument.")
 	}
@@ -45,7 +46,7 @@ type ShortcutFunc struct{}
 // shortcutFunc is a Func that returns a set of Rows in the Context.
 //
 // It expects a single argument that is a shortcut id.
-func (ShortcutFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (ShortcutFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("shortcut() takes a single argument.")
 	}
@@ -72,7 +73,7 @@ type NormFunc struct{}
 // standard deviation of 1.0. If a second optional number is passed in to
 // norm() then that is used as the minimum standard deviation that is
 // normalized, otherwise it defaults to MIN_STDDEV.
-func (NormFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (NormFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) > 2 || len(node.Args) == 0 {
 		return nil, fmt.Errorf("norm() takes one or two arguments.")
 	}
@@ -95,7 +96,7 @@ func (NormFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		return nil, fmt.Errorf("norm() failed evaluating argument: %s", err)
 	}
 
-	ret := Rows{}
+	ret := types.TraceSet{}
 	for key, r := range rows {
 		row := vec32.Dup(r)
 		vec32.Norm(row, float32(minStdDev))
@@ -122,7 +123,7 @@ type FillFunc struct{}
 //
 // Note that a Row with all vec32.MISSING_DATA_SENTINEL values will be filled with
 // 0's.
-func (FillFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (FillFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("fill() takes a single argument.")
 	}
@@ -134,7 +135,7 @@ func (FillFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		return nil, fmt.Errorf("fill() failed evaluating argument: %s", err)
 	}
 
-	ret := Rows{}
+	ret := types.TraceSet{}
 	for key, r := range rows {
 		row := vec32.Dup(r)
 		vec32.Fill(row)
@@ -157,7 +158,7 @@ type AveFunc struct{}
 // vec32.MISSING_DATA_SENTINEL values are not included in the average.  Note that if
 // all the values at an index are vec32.MISSING_DATA_SENTINEL then the average will
 // be vec32.MISSING_DATA_SENTINEL.
-func (AveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (AveFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("ave() takes a single argument.")
 	}
@@ -187,7 +188,7 @@ func (AveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 			ret[i] = sum / float32(count)
 		}
 	}
-	return Rows{ctx.formula: ret}, nil
+	return types.TraceSet{ctx.formula: ret}, nil
 }
 
 func (AveFunc) Describe() string {
@@ -198,7 +199,7 @@ var aveFunc = AveFunc{}
 
 type RatioFunc struct{}
 
-func (RatioFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (RatioFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 2 {
 		return nil, fmt.Errorf("ratio() takes two arguments")
 	}
@@ -230,7 +231,7 @@ func (RatioFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 			ret[i] = vec32.MissingDataSentinel
 		}
 	}
-	return Rows{ctx.formula: ret}, nil
+	return types.TraceSet{ctx.formula: ret}, nil
 }
 
 func (RatioFunc) Describe() string {
@@ -248,7 +249,7 @@ var ratioFunc = RatioFunc{}
 // be 0.
 type CountFunc struct{}
 
-func (CountFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (CountFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("count() takes a single argument.")
 	}
@@ -274,7 +275,7 @@ func (CountFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		}
 		ret[i] = float32(count)
 	}
-	return Rows{ctx.formula: ret}, nil
+	return types.TraceSet{ctx.formula: ret}, nil
 }
 
 func (CountFunc) Describe() string {
@@ -291,7 +292,7 @@ type SumFunc struct{}
 // vec32.MISSING_DATA_SENTINEL values are not included in the sum. Note that if all
 // the values at an index are vec32.MISSING_DATA_SENTINEL then the sum will be
 // vec32.MISSING_DATA_SENTINEL.
-func (SumFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (SumFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("sum() takes a single argument.")
 	}
@@ -321,7 +322,7 @@ func (SumFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 			ret[i] = sum
 		}
 	}
-	return Rows{ctx.formula: ret}, nil
+	return types.TraceSet{ctx.formula: ret}, nil
 }
 
 func (SumFunc) Describe() string {
@@ -338,7 +339,7 @@ type GeoFunc struct{}
 // vec32.MISSING_DATA_SENTINEL and negative values are not included in the mean.
 // Note that if all the values at an index are vec32.MISSING_DATA_SENTINEL or
 // negative then the mean will be vec32.MISSING_DATA_SENTINEL.
-func (GeoFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (GeoFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("geo() takes a single argument.")
 	}
@@ -371,7 +372,7 @@ func (GeoFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 			ret[i] = float32(math.Exp(sumLog / float64(count)))
 		}
 	}
-	return Rows{ctx.formula: ret}, nil
+	return types.TraceSet{ctx.formula: ret}, nil
 }
 
 func (GeoFunc) Describe() string {
@@ -385,7 +386,7 @@ type LogFunc struct{}
 // logFunc implements Func and transforms a row of x into a row of log10(x).
 //
 // Values <= 0 are set to vec32.MISSING_DATA_SENTINEL.  vec32.MISSING_DATA_SENTINEL values are left untouched.
-func (LogFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (LogFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("log() takes a single argument.")
 	}
@@ -426,7 +427,7 @@ type TraceAveFunc struct{}
 //
 // vec32.MISSING_DATA_SENTINEL values are not taken into account for the ave. If the entire vector is vec32.MISSING_DATA_SENTINEL then
 // the result is also all vec32.MISSING_DATA_SENTINEL.
-func (TraceAveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (TraceAveFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("trace_ave() takes a single argument.")
 	}
@@ -438,7 +439,7 @@ func (TraceAveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		return nil, fmt.Errorf("trace_ave() failed evaluating argument: %s", err)
 	}
 
-	ret := Rows{}
+	ret := types.TraceSet{}
 	for key, r := range rows {
 		row := vec32.Dup(r)
 		vec32.FillMeanMissing(row)
@@ -460,7 +461,7 @@ type TraceStdDevFunc struct{}
 //
 // vec32.MISSING_DATA_SENTINEL values are not taken into account for the ave. If the entire vector is vec32.MISSING_DATA_SENTINEL then
 // the result is also all vec32.MISSING_DATA_SENTINEL.
-func (TraceStdDevFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (TraceStdDevFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("trace_stddev() takes a single argument.")
 	}
@@ -472,7 +473,7 @@ func (TraceStdDevFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		return nil, fmt.Errorf("trace_stddev() failed evaluating argument: %s", err)
 	}
 
-	ret := Rows{}
+	ret := types.TraceSet{}
 	for key, r := range rows {
 		row := vec32.Dup(r)
 		vec32.FillStdDev(row)
@@ -494,7 +495,7 @@ type TraceCovFunc struct{}
 //
 // vec32.MISSING_DATA_SENTINEL values are not taken into account for the ave. If the entire vector is vec32.MISSING_DATA_SENTINEL then
 // the result is also all vec32.MISSING_DATA_SENTINEL.
-func (TraceCovFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (TraceCovFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("trace_cov() takes a single argument.")
 	}
@@ -506,7 +507,7 @@ func (TraceCovFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		return nil, fmt.Errorf("trace_cov() failed evaluating argument: %s", err)
 	}
 
-	ret := Rows{}
+	ret := types.TraceSet{}
 	for key, r := range rows {
 		row := vec32.Dup(r)
 		vec32.FillCov(row)
@@ -529,7 +530,7 @@ type TraceStepFunc struct{}
 //
 // vec32.MISSING_DATA_SENTINEL values are not taken into account for the ave. If the entire vector is vec32.MISSING_DATA_SENTINEL then
 // the result is also all vec32.MISSING_DATA_SENTINEL.
-func (TraceStepFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (TraceStepFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("trace_step() takes a single argument.")
 	}
@@ -541,7 +542,7 @@ func (TraceStepFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		return nil, fmt.Errorf("trace_step() failed evaluating argument: %s", err)
 	}
 
-	ret := Rows{}
+	ret := types.TraceSet{}
 	for key, r := range rows {
 		row := vec32.Dup(r)
 		vec32.FillStep(row)
@@ -563,7 +564,7 @@ type ScaleByAveFunc struct{}
 //
 // vec32.MISSING_DATA_SENTINEL values are not taken into account for the ave. If the entire vector is vec32.MISSING_DATA_SENTINEL then
 // the result is also all vec32.MISSING_DATA_SENTINEL.
-func (ScaleByAveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (ScaleByAveFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("scale_by_ave() takes a single argument.")
 	}
@@ -575,7 +576,7 @@ func (ScaleByAveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		return nil, fmt.Errorf("scale_by_ave() failed evaluating argument: %s", err)
 	}
 
-	ret := Rows{}
+	ret := types.TraceSet{}
 	for key, r := range rows {
 		row := vec32.Dup(r)
 		mean := vec32.Mean(row)
@@ -599,7 +600,7 @@ var scaleByAveFunc = ScaleByAveFunc{}
 // the outliers.
 type IQRRFunc struct{}
 
-func (IQRRFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+func (IQRRFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("iqrr() takes a single argument.")
 	}
@@ -611,7 +612,7 @@ func (IQRRFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		return nil, fmt.Errorf("iqrr() failed evaluating argument: %s", err)
 	}
 
-	ret := Rows{}
+	ret := types.TraceSet{}
 	for key, r := range rows {
 		row := vec32.Dup(r)
 		vec32.IQRR(row)
