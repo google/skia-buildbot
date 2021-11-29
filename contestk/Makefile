@@ -6,7 +6,7 @@ build:
 	${BAZEL} build //contestk/go/...
 
 release: build
-	${BAZEL} build //contestk:push_contest_container
+	${BAZEL} run //contestk:push_contest_container
 
 push: pushk release
 	pushk --use-temp-checkout contest
