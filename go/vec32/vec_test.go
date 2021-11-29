@@ -722,3 +722,10 @@ func TestIQRR(t *testing.T) {
 		})
 	}
 }
+
+func TestSum(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, float32(0), Sum(nil))
+	assert.Equal(t, float32(0), Sum([]float32{e}))
+	assert.Equal(t, float32(3), Sum([]float32{e, 1, 2}))
+}

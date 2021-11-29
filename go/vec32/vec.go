@@ -318,6 +318,19 @@ func Mean(xs []float32) float32 {
 	return total / float32(n)
 }
 
+// Sum calculates and returns the sum of the given []float32.
+//
+// Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.
+func Sum(xs []float32) float32 {
+	total := float32(0.0)
+	for _, v := range xs {
+		if v != MissingDataSentinel {
+			total += v
+		}
+	}
+	return total
+}
+
 // MeanMissing calculates and returns the Mean value of the given []float32.
 //
 // Returns MISSING_DATA_SENTINEL for an array with all MISSING_DATA_SENTINEL values.
