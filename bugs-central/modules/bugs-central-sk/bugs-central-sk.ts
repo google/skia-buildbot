@@ -141,11 +141,13 @@ export class BugsCentralSk extends ElementSk {
 
     this.updatingData = true;
     this._render();
+    // Assign and use the SLO popup after the first render so that it is ready
+    // before charts data finishes loading.
+    this.sloPopup = $$<BugsSLOPopupSk>('bugs-slo-popup-sk', this);
+
     await this.populateDataAndRender();
     this.updatingData = false;
     this._render();
-
-    this.sloPopup = $$<BugsSLOPopupSk>('bugs-slo-popup-sk', this);
   }
 
   // Call this anytime something in private state is changed. Will be replaced
