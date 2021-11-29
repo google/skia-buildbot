@@ -1,17 +1,17 @@
-default:
-	go install -v ./go/datastore-backup-k
+include ../make/bazel.mk
+include ../kube/kube.mk
 
-release:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/datastore-backup-k
+build:
+	${BAZEL} build //ds/go/...
 
-push: release
-	./build_docker_release
-	pushk --message="`git log -n1 --format=%s`" datastore-backup-k
+release: build
+	${BAZEL} run //ds:push_datastore_backup_container
+
+push: pushk release
+	pushk --use-temp-checkout datastore-backup-k
 
 indexes:
 	gcloud datastore create-indexes ./index.yaml
 
 cleanup-indexes:
 	gcloud datastore cleanup-indexes ./index.yaml
-
-.PHONY: default push indexes
