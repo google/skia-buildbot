@@ -1,5 +1,0 @@
-- name: clean_up_tempfile
-  delegate_to: 127.0.0.1
-  file:
-    path: get_ansible_binaries_directory.path
-    state: absent

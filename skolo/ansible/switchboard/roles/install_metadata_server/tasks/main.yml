@@ -1,8 +1,7 @@
 # tasks file for install_metadata_server
 
 - name: Load metadata_server_ansible executables.
-  run_once: yes
-  include_role:
+  import_role:
     name: get_ansible_binaries
   vars:
     get_ansible_binaries_application: metadata_server_ansible
