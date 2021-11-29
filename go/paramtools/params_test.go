@@ -408,3 +408,53 @@ func TestParamSetEqual_KeysAndValuesDoNotMatch_ReturnsFalse(t *testing.T) {
 		"alpha": {"gamma", "delta", "bettttttttttta"},
 	}))
 }
+
+func readAllFromChannel(in <-chan Params) []Params {
+	ret := []Params{}
+	for s := range in {
+		ret = append(ret, s)
+	}
+	return ret
+}
+
+func TestParamSetCartesianProduct_KeyNotPresent_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	ps := ParamSet{}
+	_, err := ps.CartesianProduct([]string{"key_that_is_not_present_in_ps"})
+	assert.Error(t, err)
+}
+
+func TestParamSetCartesianProduct_OneKey_ReturnsAllValues(t *testing.T) {
+	unittest.SmallTest(t)
+	ps := ParamSet{"arch": []string{"arm", "arm64", "x86", "x86_64"}}
+	pch, err := ps.CartesianProduct([]string{"arch"})
+	all := readAllFromChannel(pch)
+	assert.NoError(t, err)
+	assert.Equal(t, []Params{
+		{"arch": "x86_64"},
+		{"arch": "x86"},
+		{"arch": "arm64"},
+		{"arch": "arm"},
+	}, all)
+}
+
+func TestParamSetCartesianProduct_TwoKeys_ReturnsCartesianProduct(t *testing.T) {
+	unittest.SmallTest(t)
+	ps := ParamSet{
+		"arch":   []string{"arm", "arm64", "x86", "x86_64"},
+		"config": []string{"8888", "gles"},
+	}
+	pch, err := ps.CartesianProduct([]string{"config", "arch"})
+	all := readAllFromChannel(pch)
+	assert.NoError(t, err)
+	assert.Equal(t, []Params{
+		{"arch": "x86_64", "config": "gles"},
+		{"arch": "x86_64", "config": "8888"},
+		{"arch": "x86", "config": "gles"},
+		{"arch": "x86", "config": "8888"},
+		{"arch": "arm64", "config": "gles"},
+		{"arch": "arm64", "config": "8888"},
+		{"arch": "arm", "config": "gles"},
+		{"arch": "arm", "config": "8888"},
+	}, all)
+}

@@ -1,10 +1,12 @@
-// Package params provides Params and ParamSet.
+// Package paramtools provides Params and ParamSet.
 package paramtools
 
 import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/sets"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -246,6 +248,34 @@ func (p ReadOnlyParamSet) Matches(right ReadOnlyParamSet) bool {
 // intersection of their values must be not empty.
 func (p ParamSet) Matches(right ParamSet) bool {
 	return ReadOnlyParamSet(p).Matches(ReadOnlyParamSet(right))
+}
+
+// CartesianProduct returns a channel of Params that represent the Cartesian
+// Product of all the values for the given keys.
+func (p ParamSet) CartesianProduct(keys []string) (<-chan Params, error) {
+	ret := make(chan Params)
+	counts := make([]int, len(keys))
+	for i, key := range keys {
+		counts[i] = len(p[key])
+	}
+	cpChan, err := sets.CartesianProduct(counts)
+	if err != nil {
+		close(ret)
+		return nil, skerr.Wrapf(err, "can not make cartesian product")
+	}
+
+	go func() {
+		for indices := range cpChan {
+			v := Params{}
+			for i, n := range indices {
+				v[keys[i]] = p[keys[i]][n]
+			}
+			ret <- v
+		}
+		close(ret)
+	}()
+
+	return ret, nil
 }
 
 // MatchesParams returns true if the params in 'p' match the values given in
