@@ -8,7 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//bazel/gazelle/cpp/common",
-        "//bazel/gazelle/frontend/parsers",
+        "//bazel/gazelle/parsers",
     ],
 )
 

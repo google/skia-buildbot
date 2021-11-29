@@ -10,6 +10,7 @@ import (
 	"github.com/bazelbuild/bazel-gazelle/repo"
 	"github.com/bazelbuild/bazel-gazelle/resolve"
 	"github.com/bazelbuild/bazel-gazelle/rule"
+
 	"go.skia.org/infra/bazel/gazelle/cpp/common"
 	"go.skia.org/infra/go/util"
 )

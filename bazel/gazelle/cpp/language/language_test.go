@@ -3,11 +3,10 @@ package language
 import (
 	"testing"
 
-	"go.skia.org/infra/bazel/gazelle/cpp/common"
-
 	"github.com/bazelbuild/bazel-gazelle/rule"
 	"github.com/stretchr/testify/assert"
 
+	"go.skia.org/infra/bazel/gazelle/cpp/common"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 

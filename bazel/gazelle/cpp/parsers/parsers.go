@@ -12,7 +12,7 @@ import (
 	"sort"
 
 	"go.skia.org/infra/bazel/gazelle/cpp/common"
-	"go.skia.org/infra/bazel/gazelle/frontend/parsers"
+	"go.skia.org/infra/bazel/gazelle/parsers"
 )
 
 var repoIncludeRegex = regexp.MustCompile(`^\s*#\s*include\s+"(?P<file>.+)"`)
