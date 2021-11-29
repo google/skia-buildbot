@@ -1,0 +1,15 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "contest_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//contestk/go/contest:contest",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/contest",
+    repository = "skia-public/contest",
+)

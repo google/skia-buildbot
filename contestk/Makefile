@@ -1,10 +1,12 @@
+include ../make/bazel.mk
+include ../kube/kube.mk
+
 .PHONY: build release push
 build:
-	go install  ./go/...
+	${BAZEL} build //contestk/go/...
 
-release:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/contest
-	./build_docker_release
+release: build
+	${BAZEL} build //contestk:push_contest_container
 
-push: release
-	pushk contest
+push: pushk release
+	pushk --use-temp-checkout contest
