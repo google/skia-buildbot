@@ -660,13 +660,13 @@ func (_m *GerritInterface) SetReadyForReview(_a0 context.Context, _a1 *gerrit.Ch
 	return r0
 }
 
-// SetReview provides a mock function with given fields: _a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7
-func (_m *GerritInterface) SetReview(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string, _a3 map[string]int, _a4 []string, _a5 gerrit.NotifyOption, _a6 string, _a7 int) error {
-	ret := _m.Called(_a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7)
+// SetReview provides a mock function with given fields: _a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8
+func (_m *GerritInterface) SetReview(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string, _a3 map[string]int, _a4 []string, _a5 gerrit.NotifyOption, _a6 gerrit.NotifyDetails, _a7 string, _a8 int) error {
+	ret := _m.Called(_a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *gerrit.ChangeInfo, string, map[string]int, []string, gerrit.NotifyOption, string, int) error); ok {
-		r0 = rf(_a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7)
+	if rf, ok := ret.Get(0).(func(context.Context, *gerrit.ChangeInfo, string, map[string]int, []string, gerrit.NotifyOption, gerrit.NotifyDetails, string, int) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8)
 	} else {
 		r0 = ret.Error(0)
 	}
