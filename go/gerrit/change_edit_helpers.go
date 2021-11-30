@@ -117,7 +117,7 @@ func CreateCLWithChanges(ctx context.Context, g GerritInterface, project, branch
 				return ci, skerr.Wrapf(err, "failed to set ready for review")
 			}
 		}
-		if err := g.SetReview(ctx, ci, "", nil, reviewers, "", nil, "", 0); err != nil {
+		if err := g.SetReview(ctx, ci, "", nil, reviewers, "", nil, "", 0, nil); err != nil {
 			return ci, skerr.Wrapf(err, "failed to set review")
 		}
 	}

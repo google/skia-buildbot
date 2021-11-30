@@ -538,7 +538,7 @@ third_party {
 		labels = r.g.Config().SetDryRunLabels
 	}
 	labels = gerrit.MergeLabels(labels, r.g.Config().SelfApproveLabels)
-	if err = r.g.SetReview(ctx, change, "Roller setting labels to auto-land change.", labels, rollEmails, "", nil, "", 0); err != nil {
+	if err = r.g.SetReview(ctx, change, "Roller setting labels to auto-land change.", labels, rollEmails, "", nil, "", 0, nil); err != nil {
 		return 0, err
 	}
 
@@ -549,7 +549,7 @@ third_party {
 
 	// Use the second account to auto-approve the CL from the first account.
 	if r.autoApproverGerrit != nil {
-		if err := r.autoApproverGerrit.SetReview(ctx, change, "Auto-approving AutoRoll CL", r.g.Config().SelfApproveLabels, nil, "", nil, "", 0); err != nil {
+		if err := r.autoApproverGerrit.SetReview(ctx, change, "Auto-approving AutoRoll CL", r.g.Config().SelfApproveLabels, nil, "", nil, "", 0, nil); err != nil {
 			return 0, skerr.Wrap(err)
 		}
 	}

@@ -27,7 +27,7 @@ func SetChangeLabels(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.C
 		labels = g.Config().SetDryRunLabels
 	}
 	labels = gerrit.MergeLabels(labels, g.Config().SelfApproveLabels)
-	if err := g.SetReview(ctx, ci, "", labels, emails, "", nil, "", 0); err != nil {
+	if err := g.SetReview(ctx, ci, "", labels, emails, "", nil, "", 0, nil); err != nil {
 		// TODO(borenet): Should we try to abandon the CL?
 		return skerr.Wrapf(err, "failed to set review")
 	}

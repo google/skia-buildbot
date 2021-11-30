@@ -431,7 +431,7 @@ type GerritInterface interface {
 	SendToDryRun(context.Context, *ChangeInfo, string) error
 	SetCommitMessage(context.Context, *ChangeInfo, string) error
 	SetReadyForReview(context.Context, *ChangeInfo) error
-	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string, NotifyOption, NotifyDetails, string, int) error
+	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string, NotifyOption, NotifyDetails, string, int, []*AttentionSetInput) error
 	SetTopic(context.Context, string, int64) error
 	Submit(context.Context, *ChangeInfo) error
 	SubmittedTogether(context.Context, *ChangeInfo) ([]*ChangeInfo, int, error)
@@ -761,6 +761,11 @@ type NotifyInfo struct {
 
 type NotifyDetails map[RecipientType]*NotifyInfo
 
+type AttentionSetInput struct {
+	User   string `json:"user"`
+	Reason string `json:"reason"`
+}
+
 // SetReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
 // the latest patchset.
 // API documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#set-review
@@ -768,7 +773,9 @@ type NotifyDetails map[RecipientType]*NotifyInfo
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#review-input
 // onBehalfOf is expected to be the accountId the review should be posted on
 // behalf of. Set to 0 to not use this functionality.
-func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message string, labels map[string]int, reviewers []string, notify NotifyOption, notifyDetails NotifyDetails, tag string, onBehalfOf int) error {
+// attentionSetInputs contains details for adding users to the attension set. See details in
+// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#attention-set-input
+func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message string, labels map[string]int, reviewers []string, notify NotifyOption, notifyDetails NotifyDetails, tag string, onBehalfOf int, attentionSetInputs []*AttentionSetInput) error {
 	postData := map[string]interface{}{
 		"message": message,
 		"labels":  labels,
@@ -784,6 +791,9 @@ func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message strin
 	}
 	if onBehalfOf != 0 {
 		postData["on_behalf_of"] = onBehalfOf
+	}
+	if len(attentionSetInputs) > 0 {
+		postData["add_to_attention_set"] = attentionSetInputs
 	}
 
 	if len(reviewers) > 0 {
@@ -820,46 +830,46 @@ func (g *Gerrit) AddCC(ctx context.Context, issue *ChangeInfo, ccList []string) 
 
 // AddComment adds a message to the issue.
 func (g *Gerrit) AddComment(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]int{}, nil, "", nil, "", 0)
+	return g.SetReview(ctx, issue, message, map[string]int{}, nil, "", nil, "", 0, nil)
 }
 
 // Utility methods for interacting with the COMMITQUEUE_LABEL.
 
 // SendToDryRun sets the Commit Queue dry run labels on the Change.
 func (g *Gerrit) SendToDryRun(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, g.cfg.SetDryRunLabels, nil, "", nil, "", 0)
+	return g.SetReview(ctx, issue, message, g.cfg.SetDryRunLabels, nil, "", nil, "", 0, nil)
 }
 
 // SendToCQ sets the Commit Queue labels on the Change.
 func (g *Gerrit) SendToCQ(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, g.cfg.SetCqLabels, nil, "", nil, "", 0)
+	return g.SetReview(ctx, issue, message, g.cfg.SetCqLabels, nil, "", nil, "", 0, nil)
 }
 
 // RemoveFromCQ unsets the Commit Queue labels on the Change.
 func (g *Gerrit) RemoveFromCQ(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, g.cfg.NoCqLabels, nil, "", nil, "", 0)
+	return g.SetReview(ctx, issue, message, g.cfg.NoCqLabels, nil, "", nil, "", 0, nil)
 }
 
 // Utility methods for interacting with the CODEREVIEW_LABEL.
 
 // Approve sets the Code Review label to indicate approval.
 func (g *Gerrit) Approve(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewApprove}, nil, "", nil, "", 0)
+	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewApprove}, nil, "", nil, "", 0, nil)
 }
 
 // NoScore unsets the Code Review label.
 func (g *Gerrit) NoScore(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewNone}, nil, "", nil, "", 0)
+	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewNone}, nil, "", nil, "", 0, nil)
 }
 
 // Disapprove sets the Code Review label to indicate disapproval.
 func (g *Gerrit) Disapprove(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewDisapprove}, nil, "", nil, "", 0)
+	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewDisapprove}, nil, "", nil, "", 0, nil)
 }
 
 // SelfApprove sets the Code Review label to indicate self-approval.
 func (g *Gerrit) SelfApprove(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, g.cfg.SelfApproveLabels, nil, "", nil, "", 0)
+	return g.SetReview(ctx, issue, message, g.cfg.SelfApproveLabels, nil, "", nil, "", 0, nil)
 }
 
 // Abandon abandons the issue with the given message.
