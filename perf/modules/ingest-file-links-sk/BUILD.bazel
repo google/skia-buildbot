@@ -1,0 +1,57 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":ingest-file-links-sk-demo",
+)
+
+sk_element(
+    name = "ingest-file-links-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["ingest-file-links-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+        "//perf/modules/json:index_ts_lib",
+        "@npm//common-sk",
+    ],
+    ts_srcs = [
+        "ingest-file-links-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "ingest-file-links-sk-demo",
+    html_file = "ingest-file-links-sk-demo.html",
+    sk_element_deps = [":ingest-file-links-sk"],
+    ts_deps = ["@npm//fetch-mock"],
+    ts_entry_point = "ingest-file-links-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "ingest-file-links-sk_puppeteer_test",
+    src = "ingest-file-links-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "ingest-file-links-sk_test",
+    src = "ingest-file-links-sk_test.ts",
+    deps = [
+        ":ingest-file-links-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//fetch-mock",
+    ],
+)

@@ -30,6 +30,7 @@ import '../../../infra-sk/modules/paramset-sk';
 import '../commit-detail-panel-sk';
 import '../domain-picker-sk';
 import '../json-source-sk';
+import '../ingest-file-links-sk';
 import '../plot-simple-sk';
 import '../query-count-sk';
 import '../window/window';
@@ -62,6 +63,7 @@ import { QueryCountSk } from '../query-count-sk/query-count-sk';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 import { MISSING_DATA_SENTINEL } from '../plot-simple-sk/plot-simple-sk';
 import { messageByName, messagesToErrorString, startRequest } from '../progress/progress';
+import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 
 // The trace id of the zero line, a trace of all zeros.
 const ZERO_NAME = 'special_zero';
@@ -245,6 +247,8 @@ export class ExploreSk extends ElementSk {
   private formula: HTMLTextAreaElement | null = null;
 
   private jsonsource: JSONSourceSk | null = null;
+
+  private ingestFileLinks: IngestFileLinksSk | null = null;
 
   private paramset: ParamSetSk | null = null;
 
@@ -459,6 +463,7 @@ export class ExploreSk extends ElementSk {
           </paramset-sk>
           <div>
             <commit-detail-panel-sk id=commits selectable></commit-detail-panel-sk>
+            <ingest-file-links-sk id=ingest-file-links></ingest-file-links-sk>
             <json-source-sk id=jsonsource></json-source-sk>
           </div>
         </div>
@@ -479,6 +484,7 @@ export class ExploreSk extends ElementSk {
     this.detailTab = this.querySelector('#detailTab');
     this.formula = this.querySelector('#formula');
     this.jsonsource = this.querySelector('#jsonsource');
+    this.ingestFileLinks = this.querySelector('#ingest-file-links');
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
     this.plot = this.querySelector('#plot');
@@ -782,8 +788,11 @@ export class ExploreSk extends ElementSk {
         this.commitsTab!.disabled = false;
         this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
         this.detailTab!.selected = COMMIT_TAB_INDEX;
-        this.jsonsource!.cid = commits[0]!;
-        this.jsonsource!.traceid = e.detail.name;
+        const cid = commits[0]!;
+        const traceid = e.detail.name;
+        this.jsonsource!.cid = cid;
+        this.jsonsource!.traceid = traceid;
+        this.ingestFileLinks!.load(cid, traceid);
       })
       .catch(errorMessage);
   }

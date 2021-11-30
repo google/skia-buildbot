@@ -271,6 +271,33 @@ export namespace progress {
 	}
 }
 
+export namespace ingest {
+	export interface SingleMeasurement {
+		value: string;
+		measurement: number;
+	}
+}
+
+export namespace ingest {
+	export interface Result {
+		key: { [key: string]: string } | null;
+		measurement?: number;
+		measurements?: { [key: string]: ingest.SingleMeasurement[] | null } | null;
+	}
+}
+
+export namespace ingest {
+	export interface Format {
+		version: number;
+		git_hash: string;
+		issue?: CL;
+		patchset?: string;
+		key?: { [key: string]: string } | null;
+		results: ingest.Result[] | null;
+		links?: { [key: string]: string } | null;
+	}
+}
+
 export type Params = { [key: string]: string };
 
 export type ParamSet = { [key: string]: string[] };

@@ -95,6 +95,10 @@ demo_day-range-sk:
 demo_domain-picker-sk:
 	$(BAZEL) run //perf/modules/domain-picker-sk:demo_page_server
 
+.PHONY: demo_ingest-file-links-sk
+demo_ingest-file-links-sk:
+	$(BAZEL) run //perf/modules/ingest-file-links-sk:demo_page_server
+
 .PHONY: demo_json-source-sk
 demo_json-source-sk:
 	$(BAZEL) run //perf/modules/json-source-sk:demo_page_server
@@ -146,8 +150,11 @@ NODE_MEMORY_LIMIT=4096
 testpptr: npm-ci
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
-# Presumes you've already run: make build kubectl port-forward
-#   perf-cockroachdb-0 25000:26257
+# Presumes you've already run:
+#
+#    make build
+#
+#    kubectl port-forward perf-cockroachdb-0 25000:26257
 #
 # Run "bazel build //perf/..." after making any frontend changes to pick up the
 # change without restarting the golang server.

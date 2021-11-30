@@ -15,6 +15,7 @@ sk_element(
         "//perf/modules/json-source-sk",
         "//perf/modules/plot-simple-sk",
         "//perf/modules/query-count-sk",
+        "//perf/modules/ingest-file-links-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

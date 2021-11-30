@@ -11,12 +11,15 @@ import (
 
 // Init tracing for this application.
 func Init(local bool) error {
-	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+	options := stackdriver.Options{
+		// TODO(jcgregorio) Add a Tracing section to Config, for now hard-code the ProjectID. https://skbug.com/12686
+		ProjectID:                "skia-public",
 		TraceSpansBufferMaxBytes: 80_000_000,
 		DefaultTraceAttributes: map[string]interface{}{
 			"podName": os.Getenv("MY_POD_NAME"),
 		},
-	})
+	}
+	exporter, err := stackdriver.NewExporter(options)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
