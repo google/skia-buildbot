@@ -188,7 +188,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 		if internalRepo {
 			feURL = corpFEInstanceURL
 		}
-		notify := gerrit.NotifyNone
+		notify := codereview.NotifyNone
 		comment := "SkCQ is trying the patch."
 		if !cr.IsCQ(ctx, ci) {
 			comment = fmt.Sprintf("Dry run: %s", comment)
@@ -199,7 +199,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 			}
 			comment = fmt.Sprintf("%s\nThis change will be submitted with the following changes: %s", comment, strings.Join(togetherChangesLinks, ", "))
 			// Notify owner and reviewers to let them know that other changes might be submitted as well.
-			notify = gerrit.NotifyOwnerReviewers
+			notify = codereview.NotifyOwnerReviewersTriggerers
 		}
 		comment = fmt.Sprintf("%s\n\nFollow status at: %s/%d/%d", comment, feURL, ci.Issue, cr.GetLatestPatchSetID(ci))
 		if err := cr.AddComment(ctx, ci, comment, notify); err != nil {
