@@ -63,7 +63,7 @@ func testProcessCL(t *testing.T, testVerifierStatuses []*types.VerifierStatus, e
 	cr.On("GetEarliestEquivalentPatchSetID", ci).Return(int64(5)).Once()
 	cr.On("GetLatestPatchSetID", ci).Return(int64(5)).Twice()
 	if expectedOverallState != types.VerifierWaitingState {
-		cr.On("RemoveFromCQ", testutils.AnyContext, ci, mock.AnythingOfType("string")).Once()
+		cr.On("RemoveFromCQ", testutils.AnyContext, ci, mock.AnythingOfType("string"), mock.AnythingOfType("string")).Once()
 	}
 	if !dryRun && expectedOverallState == types.VerifierSuccessState {
 		cr.On("Submit", testutils.AnyContext, ci).Return(nil).Once()

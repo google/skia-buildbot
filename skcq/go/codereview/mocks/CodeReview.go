@@ -17,13 +17,13 @@ type CodeReview struct {
 	mock.Mock
 }
 
-// AddComment provides a mock function with given fields: ctx, ci, comment, notify
-func (_m *CodeReview) AddComment(ctx context.Context, ci *gerrit.ChangeInfo, comment string, notify codereview.NotifyOption) error {
-	ret := _m.Called(ctx, ci, comment, notify)
+// AddComment provides a mock function with given fields: ctx, ci, comment, notify, notifyReason
+func (_m *CodeReview) AddComment(ctx context.Context, ci *gerrit.ChangeInfo, comment string, notify codereview.NotifyOption, notifyReason string) error {
+	ret := _m.Called(ctx, ci, comment, notify, notifyReason)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *gerrit.ChangeInfo, string, codereview.NotifyOption) error); ok {
-		r0 = rf(ctx, ci, comment, notify)
+	if rf, ok := ret.Get(0).(func(context.Context, *gerrit.ChangeInfo, string, codereview.NotifyOption, string) error); ok {
+		r0 = rf(ctx, ci, comment, notify, notifyReason)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -258,9 +258,9 @@ func (_m *CodeReview) IsDryRun(ctx context.Context, ci *gerrit.ChangeInfo) bool 
 	return r0
 }
 
-// RemoveFromCQ provides a mock function with given fields: ctx, ci, reason
-func (_m *CodeReview) RemoveFromCQ(ctx context.Context, ci *gerrit.ChangeInfo, reason string) {
-	_m.Called(ctx, ci, reason)
+// RemoveFromCQ provides a mock function with given fields: ctx, ci, comment, notifyReason
+func (_m *CodeReview) RemoveFromCQ(ctx context.Context, ci *gerrit.ChangeInfo, comment string, notifyReason string) {
+	_m.Called(ctx, ci, comment, notifyReason)
 }
 
 // Search provides a mock function with given fields: ctx

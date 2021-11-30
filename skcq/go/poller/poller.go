@@ -142,10 +142,10 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 	if err != nil {
 		sklog.Infof("[%d] Error when reading %s: %s", ci.Issue, config.SkCQCfgPath, err)
 		if config.IsNotFound(err) {
-			cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("%s. Removing from CQ.\nPlease add a %s file if this repo+branch requires CQ.", err.Error(), config.SkCQCfgPath))
+			cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("%s. Removing from CQ.\nPlease add a %s file if this repo+branch requires CQ.", err.Error(), config.SkCQCfgPath), "Repo+Branch is missing SkCQ config file.")
 			return
 		} else if config.IsCannotModifyCfgsOnTheFly(err) {
-			cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("CL owner %s does not have permission to modify %s", ci.Owner.Email, config.SkCQCfgPath))
+			cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("CL owner %s does not have permission to modify %s", ci.Owner.Email, config.SkCQCfgPath), "CL owner cannot modify SkCQ configs.")
 			return
 		} else {
 			sklog.Errorf("[%d] Error reading %s: %s", ci.Issue, config.SkCQCfgPath, err)
@@ -202,7 +202,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 			notify = codereview.NotifyOwnerReviewersTriggerers
 		}
 		comment = fmt.Sprintf("%s\n\nFollow status at: %s/%d/%d", comment, feURL, ci.Issue, cr.GetLatestPatchSetID(ci))
-		if err := cr.AddComment(ctx, ci, comment, notify); err != nil {
+		if err := cr.AddComment(ctx, ci, comment, notify, "Started SkCQ run."); err != nil {
 			sklog.Errorf("[%d] Could not add started processing comment: %s", ci.Issue, err)
 		}
 	}
@@ -214,7 +214,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 	if len(rejectMsgsFromVerifiers) > 0 {
 		// There were failed verifiers.
 		sklog.Infof("[%d] from %s has failed verifiers: %s", ci.Issue, repoBranch, stripNewLinesFromLog(strings.Join(rejectMsgsFromVerifiers, ", ")))
-		cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Removing from SkCQ because verifiers have failed:\n\n%s", strings.Join(rejectMsgsFromVerifiers, "\n")))
+		cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Removing from SkCQ because verifiers have failed:\n\n%s", strings.Join(rejectMsgsFromVerifiers, "\n")), "SkCQ run failed.")
 		if err := currentChangesCache.Remove(ctx, changeEquivalentPatchset); err != nil {
 			sklog.Errorf("[%d] could not update the currentChangesCache: %s", ci.Issue, err)
 		}
@@ -245,12 +245,12 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 				}
 			}
 			// Say everything was succesful and we are done.
-			cr.RemoveFromCQ(ctx, ci, removeFromCQMsg)
+			cr.RemoveFromCQ(ctx, ci, removeFromCQMsg, "SkCQ dry run succeeded.")
 		} else {
 			if err := cr.Submit(ctx, ci); err != nil {
 				if strings.Contains(err.Error(), gerrit.ErrMergeConflict) {
 					sklog.Infof("[%d] Gerrit rejected submission due to merge conflict: %s", ci.Issue, err.Error())
-					cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Gerrit rejected submission due to merge conflict.\n\nHint: Rebasing CL in Gerrit UI and re-submitting through SkCQ usually works."))
+					cr.RemoveFromCQ(ctx, ci, fmt.Sprintf("Gerrit rejected submission due to merge conflict.\n\nHint: Rebasing CL in Gerrit UI and re-submitting through SkCQ usually works."), "SkCQ merge conflict")
 				} else {
 					sklog.Errorf("[%d] Error when submitting: %s", ci.Issue, err)
 					return
