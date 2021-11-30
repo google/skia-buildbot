@@ -20,7 +20,7 @@ type (
 	RowsFromShortcut func(id string) (types.TraceSet, error)
 )
 
-func newRow(rows types.TraceSet) []float32 {
+func newRow(rows types.TraceSet) types.Trace {
 	if len(rows) == 0 {
 		return []float32{}
 	}

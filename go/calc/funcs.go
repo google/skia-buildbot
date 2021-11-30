@@ -174,21 +174,27 @@ func (AveFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 		return rows, nil
 	}
 
-	ret := newRow(rows)
+	retRow := AveFuncImpl(types.TraceSet(rows))
+	return types.TraceSet{ctx.formula: retRow}, nil
+}
+
+// AveFuncImpl averages the values of all argument traces into a single trace.
+func AveFuncImpl(rows types.TraceSet) types.Trace {
+	ret := newRow(types.TraceSet(rows))
 	for i := range ret {
 		sum := float32(0.0)
 		count := 0
 		for _, r := range rows {
 			if v := r[i]; v != vec32.MissingDataSentinel {
 				sum += v
-				count += 1
+				count++
 			}
 		}
 		if count > 0 {
 			ret[i] = sum / float32(count)
 		}
 	}
-	return types.TraceSet{ctx.formula: ret}, nil
+	return ret
 }
 
 func (AveFunc) Describe() string {
@@ -308,21 +314,27 @@ func (SumFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 		return rows, nil
 	}
 
-	ret := newRow(rows)
+	retRow := SumFuncImpl(types.TraceSet(rows))
+	return types.TraceSet{ctx.formula: retRow}, nil
+}
+
+// SumFuncImpl sums the values of all argument rows into a single trace.
+func SumFuncImpl(rows types.TraceSet) types.Trace {
+	ret := newRow(types.TraceSet(rows))
 	for i := range ret {
 		sum := float32(0.0)
 		count := 0
 		for _, r := range rows {
 			if v := r[i]; v != vec32.MissingDataSentinel {
 				sum += v
-				count += 1
+				count++
 			}
 		}
 		if count > 0 {
 			ret[i] = sum
 		}
 	}
-	return types.TraceSet{ctx.formula: ret}, nil
+	return ret
 }
 
 func (SumFunc) Describe() string {
