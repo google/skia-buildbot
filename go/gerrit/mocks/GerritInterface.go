@@ -140,13 +140,13 @@ func (_m *GerritInterface) DeleteFile(_a0 context.Context, _a1 *gerrit.ChangeInf
 	return r0
 }
 
-// DeleteVote provides a mock function with given fields: _a0, _a1, _a2, _a3, _a4
-func (_m *GerritInterface) DeleteVote(_a0 context.Context, _a1 int64, _a2 string, _a3 int, _a4 gerrit.NotifyOption) error {
-	ret := _m.Called(_a0, _a1, _a2, _a3, _a4)
+// DeleteVote provides a mock function with given fields: _a0, _a1, _a2, _a3, _a4, _a5
+func (_m *GerritInterface) DeleteVote(_a0 context.Context, _a1 int64, _a2 string, _a3 int, _a4 gerrit.NotifyOption, _a5 bool) error {
+	ret := _m.Called(_a0, _a1, _a2, _a3, _a4, _a5)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64, string, int, gerrit.NotifyOption) error); ok {
-		r0 = rf(_a0, _a1, _a2, _a3, _a4)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string, int, gerrit.NotifyOption, bool) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3, _a4, _a5)
 	} else {
 		r0 = ret.Error(0)
 	}

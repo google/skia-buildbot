@@ -402,7 +402,7 @@ type GerritInterface interface {
 	CreateChange(context.Context, string, string, string, string) (*ChangeInfo, error)
 	DeleteChangeEdit(context.Context, *ChangeInfo) error
 	DeleteFile(context.Context, *ChangeInfo, string) error
-	DeleteVote(context.Context, int64, string, int, NotifyOption) error
+	DeleteVote(context.Context, int64, string, int, NotifyOption, bool) error
 	Disapprove(context.Context, *ChangeInfo, string) error
 	DownloadCommitMsgHook(ctx context.Context, dest string) error
 	EditFile(context.Context, *ChangeInfo, string, string) error
@@ -1473,12 +1473,15 @@ func (g *Gerrit) DeleteFile(ctx context.Context, ci *ChangeInfo, filepath string
 	return g.delete(ctx, fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath)))
 }
 
-// DeleteVote deletes a single vote from a change.
-func (g *Gerrit) DeleteVote(ctx context.Context, changeNum int64, labelID string, accountID int, notify NotifyOption) error {
+// DeleteVote deletes a single vote from a change. Documentation is here:
+// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#delete-vote
+func (g *Gerrit) DeleteVote(ctx context.Context, changeNum int64, labelID string, accountID int, notify NotifyOption, ignoreAutomaticAttentionSetRules bool) error {
 	msg := struct {
-		Notify NotifyOption `json:"notify,omitempty"`
+		Notify                           NotifyOption `json:"notify,omitempty"`
+		IgnoreAutomaticAttentionSetRules bool         `json:"ignore_automatic_attention_set_rules,omitempty"`
 	}{
-		Notify: notify,
+		Notify:                           notify,
+		IgnoreAutomaticAttentionSetRules: ignoreAutomaticAttentionSetRules,
 	}
 	u := fmt.Sprintf("/changes/%d/reviewers/%d/votes/%s/delete", changeNum, accountID, labelID)
 	return g.postJson(ctx, u, msg)

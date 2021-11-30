@@ -216,7 +216,7 @@ func (gc *gerritCodeReview) RemoveFromCQ(ctx context.Context, ci *gerrit.ChangeI
 	le := ci.Labels[gerrit.LabelCommitQueue]
 	for _, labelDetail := range le.All {
 		if labelDetail.Value > 0 {
-			if err := gc.gerritClient.DeleteVote(ctx, ci.Issue, gerrit.LabelCommitQueue, labelDetail.AccountID, gerrit.NotifyNone); err != nil {
+			if err := gc.gerritClient.DeleteVote(ctx, ci.Issue, gerrit.LabelCommitQueue, labelDetail.AccountID, gerrit.NotifyNone, true); err != nil {
 				sklog.Errorf("[%d] Could not remove from CQ: %s", ci.Issue, err)
 				return
 			}
