@@ -252,7 +252,7 @@ func (p ParamSet) Matches(right ParamSet) bool {
 
 // CartesianProduct returns a channel of Params that represent the Cartesian
 // Product of all the values for the given keys.
-func (p ParamSet) CartesianProduct(keys []string) (<-chan Params, error) {
+func (p ReadOnlyParamSet) CartesianProduct(keys []string) (<-chan Params, error) {
 	ret := make(chan Params)
 	counts := make([]int, len(keys))
 	for i, key := range keys {
@@ -276,6 +276,12 @@ func (p ParamSet) CartesianProduct(keys []string) (<-chan Params, error) {
 	}()
 
 	return ret, nil
+}
+
+// CartesianProduct returns a channel of Params that represent the Cartesian
+// Product of all the values for the given keys.
+func (p ParamSet) CartesianProduct(keys []string) (<-chan Params, error) {
+	return ReadOnlyParamSet(p).CartesianProduct(keys)
 }
 
 // MatchesParams returns true if the params in 'p' match the values given in

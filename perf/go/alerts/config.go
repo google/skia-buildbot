@@ -3,10 +3,12 @@ package alerts
 import (
 	"fmt"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -176,53 +178,12 @@ type KeyValue struct {
 // Combination is a slice of KeyValue's, returned from GroupCombinations.
 type Combination []KeyValue
 
-// equal returns true if the two slices of ints are equal.
-func equal(sliceA, sliceB []int) bool {
-	for i, a := range sliceA {
-		if a != sliceB[i] {
-			return false
-		}
-	}
-	return true
-}
-
-// inc() will cycle through all combinations of slices with integer values <=
-// the values in limits.
-//
-// I.e. inc increments the values in 'a' up the to maximum values in 'limits',
-// effectively counting as if each column in the slice was a different base.
-//
-// I.e. inc([0,0,1], [1,1,1]) would return [0,1,0].
-//
-// See the unit tests for more examples.
-func inc(a, limits []int) []int {
-	ret := make([]int, len(a))
-	_ = copy(ret, a)
-	for i := len(a) - 1; i >= 0; i-- {
-		ret[i] = ret[i] + 1
-		if ret[i] <= limits[i] {
-			break
-		}
-		ret[i] = 0
+func newCombinationFromParams(keys []string, p paramtools.Params) Combination {
+	ret := Combination{}
+	for _, key := range keys {
+		ret = append(ret, KeyValue{Key: key, Value: p[key]})
 	}
 	return ret
-}
-
-// toCombination converts the slice of offsets into a Combination.
-func toCombination(offsets []int, keys []string, ps paramtools.ReadOnlyParamSet) (Combination, error) {
-	ret := Combination{}
-	for i, offset := range offsets {
-		key := keys[i]
-		values, ok := ps[key]
-		if !ok {
-			return nil, fmt.Errorf("Key %q not found in ParamSet %#v", key, ps)
-		}
-		ret = append(ret, KeyValue{
-			Key:   key,
-			Value: values[offset],
-		})
-	}
-	return ret, nil
 }
 
 // GroupCombinations returns a slice of Combinations that represent
@@ -247,25 +208,18 @@ func toCombination(offsets []int, keys []string, ps paramtools.ReadOnlyParamSet)
 //	}
 //
 func (c *Alert) GroupCombinations(ps paramtools.ReadOnlyParamSet) ([]Combination, error) {
-	limits := []int{}
 	keys := c.GroupedBy()
-	for _, key := range keys {
-		limits = append(limits, len(ps[key])-1)
+	keys = sort.StringSlice(keys)
+	paramsCh, err := ps.CartesianProduct(keys)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "invalid GroupBy")
 	}
+
 	ret := []Combination{}
-	zeroes := make([]int, len(limits))
-	cfg := make([]int, len(limits))
-	for {
-		comb, err := toCombination(cfg, keys, ps)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to build combination: %s", err)
-		}
-		ret = append(ret, comb)
-		cfg = inc(cfg, limits)
-		if equal(cfg, zeroes) {
-			break
-		}
+	for p := range paramsCh {
+		ret = append(ret, newCombinationFromParams(keys, p))
 	}
+
 	return ret, nil
 }
 

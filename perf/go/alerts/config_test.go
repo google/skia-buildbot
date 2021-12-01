@@ -96,101 +96,6 @@ func TestGroupedBy(t *testing.T) {
 	}
 }
 
-func TestCombinations(t *testing.T) {
-	unittest.SmallTest(t)
-	testCases := []struct {
-		value       []int
-		limits      []int
-		expected    []int
-		equalLimits bool
-		message     string
-	}{
-		{
-			value:       []int{0, 1, 0},
-			expected:    []int{0, 1, 1},
-			limits:      []int{2, 2, 2},
-			equalLimits: false,
-			message:     "simple",
-		},
-		{
-			value:       []int{0, 1, 1},
-			expected:    []int{1, 0, 0},
-			limits:      []int{1, 1, 1},
-			equalLimits: false,
-			message:     "Rollover",
-		},
-		{
-			value:       []int{0, 2, 4},
-			expected:    []int{0, 3, 0},
-			limits:      []int{5, 3, 4},
-			equalLimits: false,
-			message:     "Rollover, mixed",
-		},
-		{
-			value:       []int{0, 3, 4},
-			expected:    []int{1, 0, 0},
-			limits:      []int{5, 3, 4},
-			equalLimits: false,
-			message:     "Rollover, mixed 2",
-		},
-		{
-			value:       []int{5, 3, 3},
-			expected:    []int{5, 3, 4},
-			limits:      []int{5, 3, 4},
-			equalLimits: true,
-			message:     "Rollover, mixed at limits",
-		},
-		{
-			value:       []int{5, 3, 4},
-			expected:    []int{0, 0, 0},
-			limits:      []int{5, 3, 4},
-			equalLimits: false,
-			message:     "Rollover, all",
-		},
-		{
-			value:       []int{},
-			expected:    []int{},
-			limits:      []int{},
-			equalLimits: true,
-			message:     "Empty",
-		},
-		{
-			value:       []int{2},
-			expected:    []int{3},
-			limits:      []int{3},
-			equalLimits: true,
-			message:     "Single",
-		},
-		{
-			value:       []int{3},
-			expected:    []int{0},
-			limits:      []int{3},
-			equalLimits: false,
-			message:     "Single rollover",
-		},
-	}
-	for _, tc := range testCases {
-		next := inc(tc.value, tc.limits)
-		assert.Equal(t, tc.expected, next, tc.message)
-		assert.Equal(t, tc.equalLimits, equal(tc.limits, next), tc.message)
-	}
-}
-
-func TestToCombination(t *testing.T) {
-	unittest.SmallTest(t)
-	res, err := toCombination([]int{1, 2}, []string{"config", "model"},
-		paramtools.ReadOnlyParamSet{
-			"model":  []string{"nexus4", "nexus6", "nexus6"},
-			"config": []string{"8888", "565", "nvpr"},
-		})
-	assert.NoError(t, err)
-	expected := Combination{
-		KeyValue{"config", "565"},
-		KeyValue{"model", "nexus6"},
-	}
-	assert.Equal(t, expected, res)
-}
-
 func TestGroupCombinations(t *testing.T) {
 	unittest.SmallTest(t)
 	ps := paramtools.ParamSet{
@@ -211,12 +116,12 @@ func TestGroupCombinations(t *testing.T) {
 	actual, err := cfg.GroupCombinations(paramtools.ReadOnlyParamSet(ps))
 	assert.NoError(t, err)
 	expected := []Combination{
-		{KeyValue{"arch", "ARM"}, KeyValue{"config", "565"}},
-		{KeyValue{"arch", "ARM"}, KeyValue{"config", "8888"}},
-		{KeyValue{"arch", "ARM"}, KeyValue{"config", "nvpr"}},
-		{KeyValue{"arch", "x86"}, KeyValue{"config", "565"}},
-		{KeyValue{"arch", "x86"}, KeyValue{"config", "8888"}},
-		{KeyValue{"arch", "x86"}, KeyValue{"config", "nvpr"}},
+		{KeyValue{Key: "arch", Value: "x86"}, KeyValue{Key: "config", Value: "nvpr"}},
+		{KeyValue{Key: "arch", Value: "ARM"}, KeyValue{Key: "config", Value: "nvpr"}},
+		{KeyValue{Key: "arch", Value: "x86"}, KeyValue{Key: "config", Value: "8888"}},
+		{KeyValue{Key: "arch", Value: "ARM"}, KeyValue{Key: "config", Value: "8888"}},
+		{KeyValue{Key: "arch", Value: "x86"}, KeyValue{Key: "config", Value: "565"}},
+		{KeyValue{Key: "arch", Value: "ARM"}, KeyValue{Key: "config", Value: "565"}},
 	}
 	assert.Equal(t, expected, actual)
 }
@@ -242,12 +147,12 @@ func TestQueriesFromParamset(t *testing.T) {
 	queries, err := cfg.QueriesFromParamset(paramtools.ReadOnlyParamSet(ps))
 	assert.NoError(t, err)
 	expected := []string{
-		"arch=ARM&config=565&model=nexus6",
-		"arch=ARM&config=8888&model=nexus6",
-		"arch=ARM&config=nvpr&model=nexus6",
-		"arch=x86&config=565&model=nexus6",
-		"arch=x86&config=8888&model=nexus6",
 		"arch=x86&config=nvpr&model=nexus6",
+		"arch=ARM&config=nvpr&model=nexus6",
+		"arch=x86&config=8888&model=nexus6",
+		"arch=ARM&config=8888&model=nexus6",
+		"arch=x86&config=565&model=nexus6",
+		"arch=ARM&config=565&model=nexus6",
 	}
 	assert.Equal(t, expected, queries)
 
