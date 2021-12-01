@@ -1,0 +1,72 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_element(
+    name = "demo-list-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//demos/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["demo-list-sk.scss"],
+    ts_deps = [
+        "//demos/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "demo-list-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "demo-list-sk-demo",
+    html_file = "demo-list-sk-demo.html",
+    sk_element_deps = [":demo-list-sk"],
+    ts_deps = [
+        ":test_data_ts_lib",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "demo-list-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "demo-list-sk_puppeteer_test",
+    src = "demo-list-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "demo-list-sk_test",
+    src = "demo-list-sk_test.ts",
+    deps = [
+        ":demo-list-sk",
+        ":test_data_ts_lib",
+        "//demos/modules:rpc_types_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":demo-list-sk-demo",
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//demos/modules:rpc_types_ts_lib"],
+)

@@ -1,0 +1,14 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+ASSETS_SERVING_PATH = "/dist"
+
+sk_page(
+    name = "main",
+    assets_serving_path = ASSETS_SERVING_PATH,
+    html_file = "main.html",
+    sk_element_deps = [
+        "//demos/modules/header-sk",
+        "//demos/modules/demo-list-sk",
+    ],
+    ts_entry_point = "main.ts",
+)

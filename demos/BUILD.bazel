@@ -1,0 +1,30 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "demos_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//demos/go/demoserver:demoserver",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/demos/dist": [
+            [
+                "//demos/pages:production/main.html",
+                "0644",
+            ],
+            [
+                "//demos/pages:production/main.js",
+                "0644",
+            ],
+            [
+                "//demos/pages:production/main.css",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/demoserver",
+    repository = "skia-public/demoserver",
+)

@@ -13,6 +13,7 @@ var targetDirectories = map[string]bool{
 	"bugs-central/pages":   true,
 	"ct/modules":           true,
 	"ct/pages":             true,
+	"demos/modules":        true,
 	"golden/modules":       true,
 	"golden/pages":         true,
 	"infra-sk/modules":     true,

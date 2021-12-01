@@ -1,0 +1,45 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":header-sk-demo",
+)
+
+sk_element(
+    name = "header-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//demos/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["header-sk.scss"],
+    sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "header-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "header-sk-demo",
+    html_file = "header-sk-demo.html",
+    sk_element_deps = [":header-sk"],
+    ts_deps = ["@npm//common-sk"],
+    ts_entry_point = "header-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "header-sk_puppeteer_test",
+    src = "header-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
