@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"go.opencensus.io/trace"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/httputils"
@@ -21,7 +24,7 @@ func logsHandler(w http.ResponseWriter, r *http.Request, lm *logs.LogsManager, t
 	// retrieve the run and then limit our search to its duration. That
 	// might speed up the search quite a bit.
 	w.Header().Set("Content-Type", "text/plain")
-	entries, err := lm.Search(taskId, stepId, logId)
+	entries, err := lm.Search(r.Context(), taskId, stepId, logId)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to search log entries.", http.StatusInternalServerError)
 		return
@@ -94,12 +97,14 @@ func singleLogHandler(lm *logs.LogsManager) http.HandlerFunc {
 
 // getTaskDriver returns a db.TaskDriverRun instance for the given request. If
 // anything went wrong, returns nil and writes an error to the ResponseWriter.
-func getTaskDriver(w http.ResponseWriter, r *http.Request, d db.DB) *db.TaskDriverRun {
+func getTaskDriver(ctx context.Context, w http.ResponseWriter, r *http.Request, d db.DB) *db.TaskDriverRun {
+	ctx, span := trace.StartSpan(ctx, "getTaskDriverDisplay")
+	defer span.End()
 	id := getVar(w, r, "taskId")
 	if id == "" {
 		return nil
 	}
-	td, err := d.GetTaskDriver(id)
+	td, err := d.GetTaskDriver(ctx, id)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve task driver.", http.StatusInternalServerError)
 		return nil
@@ -114,8 +119,10 @@ func getTaskDriver(w http.ResponseWriter, r *http.Request, d db.DB) *db.TaskDriv
 // getTaskDriverDisplay returns a display.TaskDriverRunDisplay instance for the
 // given request. If anything went wrong, returns nil and writes an error to the
 // ResponseWriter.
-func getTaskDriverDisplay(w http.ResponseWriter, r *http.Request, d db.DB) *display.TaskDriverRunDisplay {
-	td := getTaskDriver(w, r, d)
+func getTaskDriverDisplay(ctx context.Context, w http.ResponseWriter, r *http.Request, d db.DB) *display.TaskDriverRunDisplay {
+	ctx, span := trace.StartSpan(ctx, "getTaskDriverDisplay")
+	defer span.End()
+	td := getTaskDriver(ctx, w, r, d)
 	if td == nil {
 		// Any error was handled by getTaskDriver.
 		return nil
@@ -131,7 +138,9 @@ func getTaskDriverDisplay(w http.ResponseWriter, r *http.Request, d db.DB) *disp
 // jsonTaskDriverHandler returns the JSON representation of the requested Task Driver.
 func jsonTaskDriverHandler(d db.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		disp := getTaskDriverDisplay(w, r, d)
+		ctx, span := trace.StartSpan(r.Context(), "jsonTaskDriverHandler")
+		defer span.End()
+		disp := getTaskDriverDisplay(ctx, w, r, d)
 		if disp == nil {
 			// Any error was handled by getTaskDriverDisplay.
 			return
@@ -147,6 +156,8 @@ func jsonTaskDriverHandler(d db.DB) http.HandlerFunc {
 // fullErrorHandler returns the text of a given error.
 func fullErrorHandler(d db.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := trace.StartSpan(r.Context(), "fullErrorHandler")
+		defer span.End()
 		taskId := getVar(w, r, "taskId")
 		errId := getVar(w, r, "errId")
 		if taskId == "" || errId == "" {
@@ -162,7 +173,7 @@ func fullErrorHandler(d db.DB) http.HandlerFunc {
 			httputils.ReportError(w, err, "Invalid error ID", http.StatusInternalServerError)
 			return
 		}
-		td := getTaskDriver(w, r, d)
+		td := getTaskDriver(ctx, w, r, d)
 		if td == nil {
 			// Any error was handled by getTaskDriver.
 			return

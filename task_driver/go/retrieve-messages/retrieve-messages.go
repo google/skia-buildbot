@@ -34,7 +34,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	msgs, err := db.GetMessagesForTaskDriver(*id)
+	msgs, err := db.GetMessagesForTaskDriver(ctx, *id)
 	if err != nil {
 		sklog.Fatal(err)
 	}

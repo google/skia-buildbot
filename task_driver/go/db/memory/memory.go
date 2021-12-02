@@ -5,7 +5,10 @@ package memory
 */
 
 import (
+	"context"
 	"sync"
+
+	"go.opencensus.io/trace"
 
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/db"
@@ -31,14 +34,16 @@ func (d *memoryDB) write() error {
 }
 
 // See documentation for db.DB interface.
-func (d *memoryDB) GetTaskDriver(id string) (*db.TaskDriverRun, error) {
+func (d *memoryDB) GetTaskDriver(ctx context.Context, id string) (*db.TaskDriverRun, error) {
 	d.mtx.Lock()
 	defer d.mtx.Unlock()
 	return d.taskDrivers[id], nil
 }
 
 // See documentation for db.DB interface.
-func (d *memoryDB) UpdateTaskDriver(id string, msg *td.Message) error {
+func (d *memoryDB) UpdateTaskDriver(ctx context.Context, id string, msg *td.Message) error {
+	ctx, span := trace.StartSpan(ctx, "memory_UpdateTaskDriver")
+	defer span.End()
 	d.mtx.Lock()
 	defer d.mtx.Unlock()
 	old := d.taskDrivers[id]

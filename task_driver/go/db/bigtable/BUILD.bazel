@@ -10,6 +10,7 @@ go_library(
         "//task_driver/go/db",
         "//task_driver/go/td",
         "@com_google_cloud_go_bigtable//:bigtable",
+        "@io_opencensus_go//trace",
         "@org_golang_google_api//option",
         "@org_golang_x_oauth2//:oauth2",
     ],

@@ -12,5 +12,6 @@ go_library(
         "//task_driver/go/logs",
         "//task_driver/go/td",
         "@com_github_gorilla_mux//:mux",
+        "@io_opencensus_go//trace",
     ],
 )

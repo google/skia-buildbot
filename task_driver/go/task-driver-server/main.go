@@ -11,17 +11,23 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/pubsub"
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
+	"go.opencensus.io/trace"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/pubsub/sub"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_driver/go/db"
 	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
@@ -65,7 +71,7 @@ func logsHandler(w http.ResponseWriter, r *http.Request, taskId, stepId, logId s
 	// retrieve the run and then limit our search to its duration. That
 	// might speed up the search quite a bit.
 	w.Header().Set("Content-Type", "text/plain")
-	entries, err := lm.Search(taskId, stepId, logId)
+	entries, err := lm.Search(r.Context(), taskId, stepId, logId)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to search log entries.", http.StatusInternalServerError)
 		return
@@ -132,12 +138,14 @@ func singleLogHandler(w http.ResponseWriter, r *http.Request) {
 
 // getTaskDriver returns a db.TaskDriverRun instance for the given request. If
 // anything went wrong, returns nil and writes an error to the ResponseWriter.
-func getTaskDriver(w http.ResponseWriter, r *http.Request) *db.TaskDriverRun {
+func getTaskDriver(ctx context.Context, w http.ResponseWriter, r *http.Request) *db.TaskDriverRun {
+	ctx, span := trace.StartSpan(ctx, "getTaskDriverDisplay")
+	defer span.End()
 	id := getVar(w, r, "taskId")
 	if id == "" {
 		return nil
 	}
-	td, err := d.GetTaskDriver(id)
+	td, err := d.GetTaskDriver(ctx, id)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve task driver.", http.StatusInternalServerError)
 		return nil
@@ -160,8 +168,10 @@ func getTaskDriver(w http.ResponseWriter, r *http.Request) *db.TaskDriverRun {
 // getTaskDriverDisplay returns a display.TaskDriverRunDisplay instance for the
 // given request. If anything went wrong, returns nil and writes an error to the
 // ResponseWriter.
-func getTaskDriverDisplay(w http.ResponseWriter, r *http.Request) *display.TaskDriverRunDisplay {
-	td := getTaskDriver(w, r)
+func getTaskDriverDisplay(ctx context.Context, w http.ResponseWriter, r *http.Request) *display.TaskDriverRunDisplay {
+	ctx, span := trace.StartSpan(ctx, "getTaskDriverDisplay")
+	defer span.End()
+	td := getTaskDriver(ctx, w, r)
 	if td == nil {
 		// Any error was handled by getTaskDriver.
 		return nil
@@ -176,7 +186,9 @@ func getTaskDriverDisplay(w http.ResponseWriter, r *http.Request) *display.TaskD
 
 // taskDriverHandler handles requests for an individual Task Driver.
 func taskDriverHandler(w http.ResponseWriter, r *http.Request) {
-	disp := getTaskDriverDisplay(w, r)
+	ctx, span := trace.StartSpan(r.Context(), "taskdriverserver_taskDriverHandler")
+	defer span.End()
+	disp := getTaskDriverDisplay(ctx, w, r)
 	if disp == nil {
 		// Any error was handled by getTaskDriverDisplay.
 		return
@@ -210,20 +222,6 @@ func taskDriverHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// jsonTaskDriverHandler returns the JSON representation of the requested Task Driver.
-func jsonTaskDriverHandler(w http.ResponseWriter, r *http.Request) {
-	disp := getTaskDriverDisplay(w, r)
-	if disp == nil {
-		// Any error was handled by getTaskDriverDisplay.
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(disp); err != nil {
-		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
-		return
-	}
-}
-
 // Load the HTML pages.
 func loadTemplates() {
 	tdTemplate = template.Must(template.ParseFiles(
@@ -252,15 +250,21 @@ func runServer(ctx context.Context, serverURL string) {
 }
 
 // handleMessage decodes and inserts an update
-func handleMessage(msg *pubsub.Message) error {
+func handleMessage(ctx context.Context, msg *pubsub.Message) error {
+	ctx, span := trace.StartSpan(ctx, "taskdriverserver_handleMessage")
+	defer span.End()
 	var e logs.Entry
+
+	_, jspan := trace.StartSpan(ctx, "processJSON")
 	if err := json.Unmarshal(msg.Data, &e); err != nil {
 		// If the message has badly-formatted data,
 		// we'll never be able to parse it, so go ahead
 		// and ack it to get it out of the queue.
 		msg.Ack()
+		jspan.End()
 		return err
 	}
+	jspan.End()
 	if e.JsonPayload != nil {
 		if err := e.JsonPayload.Validate(); err != nil {
 			// If the message has badly-formatted data,
@@ -269,14 +273,14 @@ func handleMessage(msg *pubsub.Message) error {
 			msg.Ack()
 			return err
 		}
-		if err := d.UpdateTaskDriver(e.JsonPayload.TaskId, e.JsonPayload); err != nil {
+		if err := d.UpdateTaskDriver(ctx, e.JsonPayload.TaskId, e.JsonPayload); err != nil {
 			// This may be a transient error, so nack the message and hope
 			// that we'll be able to handle it on redelivery.
 			msg.Nack()
 			return fmt.Errorf("Failed to insert task driver update: %s", err)
 		}
 	} else if e.TextPayload != "" {
-		if err := lm.Insert(&e); err != nil {
+		if err := lm.Insert(ctx, &e); err != nil {
 			// This may be a transient error, so nack the message and hope
 			// that we'll be able to handle it on redelivery.
 			msg.Nack()
@@ -303,6 +307,12 @@ func main() {
 	}
 	if *hang {
 		select {}
+	}
+
+	// We ingest a lot of log entries, so we only really should trace a small percentage of them
+	// by default. If this results in too much data, we can turn it down.
+	if err := initializeTracing(0.01); err != nil {
+		sklog.Fatalf("Could not set up tracing: %s", err)
 	}
 
 	// Setup pubsub.
@@ -332,7 +342,7 @@ func main() {
 		sklog.Infof("Waiting for messages.")
 		for {
 			if err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-				if err := handleMessage(msg); err != nil {
+				if err := handleMessage(ctx, msg); err != nil {
 					sklog.Errorf("Failed to handle pubsub message: %s", err)
 				}
 			}); err != nil {
@@ -347,4 +357,27 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 	runServer(ctx, serverURL)
+}
+
+func initializeTracing(traceSampleProportion float64) error {
+	// TODO(kjlubick) deduplicate with Gold and Perf
+	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+		// Use 10 times the default (because that's what perf does).
+		TraceSpansBufferMaxBytes: 80_000_000,
+		// It is not clear what the default interval is. One minute seems to be a good value since
+		// that is the same as our Prometheus metrics are reported.
+		ReportingInterval: time.Minute,
+		DefaultTraceAttributes: map[string]interface{}{
+			// This environment variable should be set in the k8s templates.
+			"podName": os.Getenv("K8S_POD_NAME"),
+		},
+	})
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	trace.RegisterExporter(exporter)
+	sampler := trace.ProbabilitySampler(traceSampleProportion)
+	trace.ApplyConfig(trace.Config{DefaultSampler: sampler})
+	return nil
 }

@@ -10,6 +10,7 @@ go_library(
         "//go/util",
         "//task_driver/go/db",
         "//task_driver/go/td",
+        "@io_opencensus_go//trace",
     ],
 )
 

@@ -5,6 +5,7 @@ package shared_tests
 */
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -33,7 +34,8 @@ const (
 func TestDB(t sktest.TestingT, d db.DB) {
 	// DB should return nil with no error for missing task drivers.
 	id := "fake-id-TestDB"
-	r, err := d.GetTaskDriver(id)
+	ctx := context.Background()
+	r, err := d.GetTaskDriver(ctx, id)
 	require.NoError(t, err)
 	require.Nil(t, r)
 
@@ -50,8 +52,8 @@ func TestDB(t sktest.TestingT, d db.DB) {
 		},
 	}
 	require.NoError(t, m.Validate())
-	require.NoError(t, d.UpdateTaskDriver(id, m))
-	r, err = d.GetTaskDriver(id)
+	require.NoError(t, d.UpdateTaskDriver(ctx, id, m))
+	r, err = d.GetTaskDriver(ctx, id)
 	require.NoError(t, err)
 	require.NotNil(t, r)
 	expect := &db.TaskDriverRun{
@@ -83,8 +85,8 @@ func TestDB(t sktest.TestingT, d db.DB) {
 		DataType: td.DATA_TYPE_LOG,
 	}
 	require.NoError(t, m.Validate())
-	require.NoError(t, d.UpdateTaskDriver(id, m))
-	r, err = d.GetTaskDriver(id)
+	require.NoError(t, d.UpdateTaskDriver(ctx, id, m))
+	r, err = d.GetTaskDriver(ctx, id)
 	require.NoError(t, err)
 	require.NotNil(t, r)
 	expect.Steps[td.StepIDRoot].Data = append(expect.Steps[td.StepIDRoot].Data, &db.StepData{
@@ -97,6 +99,7 @@ func TestDB(t sktest.TestingT, d db.DB) {
 
 // Verify that messages can arrive in any order with the same result.
 func TestMessageOrdering(t sktest.TestingT, d db.DB) {
+	ctx := context.Background()
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
@@ -115,9 +118,9 @@ func TestMessageOrdering(t sktest.TestingT, d db.DB) {
 	// Play back the messages in the order they were sent. The returned
 	// instance becomes the baseline for the remaining tests.
 	for _, m := range msgs {
-		require.NoError(t, d.UpdateTaskDriver(id, m))
+		require.NoError(t, d.UpdateTaskDriver(ctx, id, m))
 	}
-	base, err := d.GetTaskDriver(id)
+	base, err := d.GetTaskDriver(ctx, id)
 	require.NoError(t, err)
 	require.NotNil(t, base)
 
@@ -130,9 +133,9 @@ func TestMessageOrdering(t sktest.TestingT, d db.DB) {
 		reversed[len(reversed)-1-i] = m
 	}
 	for _, m := range reversed {
-		require.NoError(t, d.UpdateTaskDriver(id2, m))
+		require.NoError(t, d.UpdateTaskDriver(ctx, id2, m))
 	}
-	rev, err := d.GetTaskDriver(id2)
+	rev, err := d.GetTaskDriver(ctx, id2)
 	require.NoError(t, err)
 	base.TaskId = id2 // The task ID will differ; switch it.
 	assertdeep.Equal(t, base, rev)
@@ -147,9 +150,9 @@ func TestMessageOrdering(t sktest.TestingT, d db.DB) {
 		shuffled[i] = m
 	}
 	for _, m := range shuffled {
-		require.NoError(t, d.UpdateTaskDriver(id3, m))
+		require.NoError(t, d.UpdateTaskDriver(ctx, id3, m))
 	}
-	shuf, err := d.GetTaskDriver(id3)
+	shuf, err := d.GetTaskDriver(ctx, id3)
 	require.NoError(t, err)
 	base.TaskId = id3 // The task ID will differ; switch it.
 	assertdeep.Equal(t, base, shuf)
@@ -159,9 +162,9 @@ func TestMessageOrdering(t sktest.TestingT, d db.DB) {
 	for _, m := range append(append(msgs, reversed...), shuffled...) {
 		// Fixup the ID.
 		m.TaskId = id4
-		require.NoError(t, d.UpdateTaskDriver(id4, m))
+		require.NoError(t, d.UpdateTaskDriver(ctx, id4, m))
 	}
-	mult, err := d.GetTaskDriver(id4)
+	mult, err := d.GetTaskDriver(ctx, id4)
 	require.NoError(t, err)
 	base.TaskId = id4 // The task ID will differ; switch it.
 	assertdeep.Equal(t, base, mult)

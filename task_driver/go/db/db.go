@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"encoding/gob"
 	"fmt"
 	"sort"
@@ -25,13 +26,13 @@ func init() {
 type DB interface {
 	// GetTaskDriver returns the TaskDriver instance with the given ID. If
 	// the Task Driver does not exist, returns nil with no error.
-	GetTaskDriver(string) (*TaskDriverRun, error)
+	GetTaskDriver(context.Context, string) (*TaskDriverRun, error)
 
 	// UpdateTaskDriver updates the Task Driver with the given ID from the
 	// given Message. If no TaskDriver with the given ID exists, the DB will
 	// create and insert one. The DB implementation is responsible for
 	// handling thread safety, as messages may arrive simultaneously.
-	UpdateTaskDriver(string, *td.Message) error
+	UpdateTaskDriver(context.Context, string, *td.Message) error
 
 	// Close closes the DB.
 	Close() error

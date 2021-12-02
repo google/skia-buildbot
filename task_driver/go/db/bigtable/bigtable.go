@@ -12,10 +12,12 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
-	"go.skia.org/infra/task_driver/go/db"
-	"go.skia.org/infra/task_driver/go/td"
+	"go.opencensus.io/trace"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
+
+	"go.skia.org/infra/task_driver/go/db"
+	"go.skia.org/infra/task_driver/go/td"
 )
 
 const (
@@ -72,11 +74,13 @@ func (d *BTDB) Close() error {
 
 // GetMessagesForTaskDriver returns all td.Messages sent for the Task Driver
 // with the given ID.
-func (d *BTDB) GetMessagesForTaskDriver(id string) ([]*td.Message, error) {
+func (d *BTDB) GetMessagesForTaskDriver(ctx context.Context, id string) ([]*td.Message, error) {
+	ctx, span := trace.StartSpan(ctx, "bigtable_GetMessagesForTaskDriver")
+	defer span.End()
 	// Retrieve all messages for the Task Driver from BigTable.
 	msgs := []*td.Message{}
 	var decodeErr error
-	ctx, cancel := context.WithTimeout(context.Background(), QUERY_TIMEOUT)
+	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT)
 	defer cancel()
 	if err := d.table.ReadRows(ctx, bigtable.PrefixRange(id), func(row bigtable.Row) bool {
 		for _, ri := range row[BT_COLUMN_FAMILY] {
@@ -102,8 +106,10 @@ func (d *BTDB) GetMessagesForTaskDriver(id string) ([]*td.Message, error) {
 }
 
 // See documentation for db.DB interface.
-func (d *BTDB) GetTaskDriver(id string) (*db.TaskDriverRun, error) {
-	msgs, err := d.GetMessagesForTaskDriver(id)
+func (d *BTDB) GetTaskDriver(ctx context.Context, id string) (*db.TaskDriverRun, error) {
+	ctx, span := trace.StartSpan(ctx, "bigtable_GetTaskDriver")
+	defer span.End()
+	msgs, err := d.GetMessagesForTaskDriver(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +134,9 @@ func (d *BTDB) GetTaskDriver(id string) (*db.TaskDriverRun, error) {
 }
 
 // See documentation for db.DB interface.
-func (d *BTDB) UpdateTaskDriver(id string, msg *td.Message) error {
+func (d *BTDB) UpdateTaskDriver(ctx context.Context, id string, msg *td.Message) error {
+	ctx, span := trace.StartSpan(ctx, "bigtable_UpdateTaskDriver")
+	defer span.End()
 	// Encode the Message.
 	buf := bytes.Buffer{}
 	if err := gob.NewEncoder(&buf).Encode(msg); err != nil {
@@ -138,7 +146,7 @@ func (d *BTDB) UpdateTaskDriver(id string, msg *td.Message) error {
 	mt := bigtable.NewMutation()
 	mt.Set(BT_COLUMN_FAMILY, BT_COLUMN, bigtable.Time(msg.Timestamp), buf.Bytes())
 	rk := rowKey(id, msg)
-	ctx, cancel := context.WithTimeout(context.Background(), INSERT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(ctx, INSERT_TIMEOUT)
 	defer cancel()
 	return d.table.Apply(ctx, rk, mt)
 }

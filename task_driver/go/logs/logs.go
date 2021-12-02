@@ -13,11 +13,13 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	"go.opencensus.io/trace"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/td"
-	"golang.org/x/oauth2"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -120,7 +122,9 @@ func (m *LogsManager) Close() error {
 }
 
 // Insert the given log entry.
-func (m *LogsManager) Insert(e *Entry) error {
+func (m *LogsManager) Insert(ctx context.Context, e *Entry) error {
+	ctx, span := trace.StartSpan(ctx, "LogsManager_Insert")
+	defer span.End()
 	// Encode the log entry.
 	buf := bytes.Buffer{}
 	if err := gob.NewEncoder(&buf).Encode(e); err != nil {
@@ -143,18 +147,20 @@ func (m *LogsManager) Insert(e *Entry) error {
 		logId = "no_log_id"
 	}
 	rk := rowKey(taskId, stepId, logId, e.Timestamp, e.InsertID)
-	ctx, cancel := context.WithTimeout(context.Background(), INSERT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(ctx, INSERT_TIMEOUT)
 	defer cancel()
 	return m.table.Apply(ctx, rk, mt)
 }
 
 // Search returns Entries matching the given search terms.
-func (m *LogsManager) Search(taskId, stepId, logId string) ([]*Entry, error) {
+func (m *LogsManager) Search(ctx context.Context, taskId, stepId, logId string) ([]*Entry, error) {
+	ctx, span := trace.StartSpan(ctx, "LogsManager_Search")
+	defer span.End()
 	prefix := rowKey(taskId, stepId, logId, time.Time{}, "")
 	sklog.Infof("Searching for entries with prefix: %s", prefix)
 	entries := []*Entry{}
 	var decodeErr error
-	ctx, cancel := context.WithTimeout(context.Background(), QUERY_TIMEOUT)
+	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT)
 	defer cancel()
 	if err := m.table.ReadRows(ctx, bigtable.PrefixRange(prefix), func(row bigtable.Row) bool {
 		for _, ri := range row[BT_COLUMN_FAMILY] {
