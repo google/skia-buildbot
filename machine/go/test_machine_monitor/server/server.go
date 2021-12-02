@@ -2,6 +2,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -182,7 +183,9 @@ func (s *Server) onBeforeTask(http.ResponseWriter, *http.Request) {
 func (s *Server) onAfterTask(_ http.ResponseWriter, r *http.Request) {
 	s.machine.SetIsRunningSwarmingTask(false)
 	s.onAfterTaskSuccess.Inc(1)
-	if err := s.machine.RebootDevice(r.Context()); err != nil {
+	// Don't use r.Context() here as that seems to get cancelled by Swarming
+	// pretty quickly.
+	if err := s.machine.RebootDevice(context.Background()); err != nil {
 		sklog.Warningf("Failed to reboot device: %s", err)
 	}
 }

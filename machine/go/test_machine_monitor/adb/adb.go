@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -101,7 +102,7 @@ func (a AdbImpl) EnsureOnline(ctx context.Context) error {
 	if !strings.Contains(state, "offline") {
 		return skerr.Wrapf(err, "adb returned an error state we can't do anything about: %q", state)
 	}
-
+	// TODO(jcgregorio) If this works we should generalize this behavior for other commands.
 	_, _, err = a.adbCommand(ctx, "reconnect", "offline")
 	if err != nil {
 		return skerr.Wrap(err)
@@ -133,6 +134,16 @@ func (a AdbImpl) RawDumpSys(ctx context.Context, service string) (string, error)
 // Reboot implements the Adb interface.
 func (a AdbImpl) Reboot(ctx context.Context) error {
 	_, _, err := a.adbCommand(ctx, "reboot")
+	if err == nil {
+		return nil
+	}
+	// Try reconnecting.
+	_, _, err = a.adbCommand(ctx, "reconnect", "offline")
+	if err != nil {
+		sklog.Errorf("Reboot: Failed to reconnect: %s", err)
+	}
+	_, _, err = a.adbCommand(ctx, "reboot")
+
 	return err
 }
 

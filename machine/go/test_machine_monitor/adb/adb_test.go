@@ -49,10 +49,28 @@ func TestReboot_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestReboot_ErrFromAdbNonZeroExitCode_ReconnectRecovers_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_Reboot_NonZeroExitCode",
+		"Test_FakeExe_ReconnectOffline_Success",
+		"Test_FakeExe_AdbReboot_Success",
+	)
+
+	a := New()
+	err := a.Reboot(ctx)
+	require.NoError(t, err)
+}
+
 func TestReboot_ErrFromAdbNonZeroExitCode(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ctx := executil.FakeTestsContext("Test_FakeExe_Reboot_NonZeroExitCode")
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_Reboot_NonZeroExitCode",
+		"Test_FakeExe_ReconnectOffline_NoDevice",
+		"Test_FakeExe_Reboot_NonZeroExitCode",
+	)
 
 	a := New()
 	err := a.Reboot(ctx)

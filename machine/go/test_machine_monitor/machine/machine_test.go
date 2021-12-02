@@ -391,6 +391,8 @@ func TestRebootDevice_AndroidDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) {
 
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_Reboot_NonZeroExitCode",
+		"Test_FakeExe_ReconnectOffline_Success",
+		"Test_FakeExe_Reboot_NonZeroExitCode",
 	)
 
 	m := &Machine{
@@ -403,7 +405,7 @@ func TestRebootDevice_AndroidDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) {
 	}
 
 	require.Error(t, m.RebootDevice(ctx))
-	assert.Equal(t, 1, executil.FakeCommandsReturned(ctx))
+	assert.Equal(t, 3, executil.FakeCommandsReturned(ctx))
 }
 
 func TestRebootDevice_NoErrorIfNoDevicesAttached(t *testing.T) {
@@ -660,6 +662,20 @@ func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
 	_, _ = fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
 
 	os.Exit(127)
+}
+
+func Test_FakeExe_ReconnectOffline_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "reconnect", "offline"}, args)
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
 }
 
 func Test_FakeExe_SSHReboot_Success(t *testing.T) {
