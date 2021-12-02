@@ -1,0 +1,48 @@
+This is an inventory of iOS devices in the lab. Its mapping of device names to
+UDIDs informs the once-or-twice-yearly update of
+Upstream_Testing_Provisioning_Profile.mobileprovision, found at
+https://drive.google.com/corp/drive/folders/1yXLfVzmYsdNCx2RYQIu5wwoOTz7CtR1B?
+resourcekey=0-QSIbMa_offYEtYN60RHv-g. The profile is maintained by Justin Cohen
+and also contains devices used by the broader Chrome organization.
+
+For an in-depth explanation of the role of a provisioning profile, see
+go/cips#how-does-signing-work. But in short, a lab iOS device gets a
+provisioning profile, which contains the device's UDID. Any custom app we want
+to run on the device must have a signing identity that matches the profile's.
+Further, the entitlements in the profile and app usually have to match, though
+sometimes the profile can have a superset.
+
+Device Name          UDID
+skia-iPad-pro97-01   f121946d983f5b21b90182959fba78f92a498b8a
+skia-iPad-pro97-05   61c19c31d713b37333f265d1e29db46a9f856ada
+Skia-iPad-pro97-06   9fd817b7bf9351cb380ae4468d87bcff9988c741
+Skia-iPad-pro97-07   170884e15a6cc0a8b292d04de810ecaf3460679e
+Skia-iPad-pro97-08   ead94fe1310cb3b12c818faea628103c2164a600
+Skia-iPad-pro97-09   2b8ec1b244c343695ff4b74e19d7caa0eee9ea68
+skia-iphone-11-01    00008030-001C50283692802E
+skia-iphone-11-02    00008030-000510C602E1802E
+skia-iphone-11-03    00008030-001D34191A61802E
+skia-iphone-11-04    00008030-000D48A13C31802E
+skia-iphone-11-05    00008030-0009451934E1802E
+skia-iphone-11-06    00008030-0015559126C1802E
+skia-iphone-6-01     029eb952f57a785802688e2a8d014df008faa874
+skia-iphone-6-03     923db49ffc49d862cdd4e2250018aa8d6d3702b9
+skia-iphone-7-01     5946102add716c8bb3d2800c4c200367b8f39751
+skia-iphone-7-02     b808af1c6ea6310e43840c430026f69622059981
+skia-iphone-7-03     945380f0d2a616520b885360946f6f6a1368c616
+skia-iphone-7-04     e26989ffaf6b7b2415fbdc6f96cee158606e322d
+skia-iphone-7-05     b4f1460bfcbf92e2216b2d69dbcb40c3d90096d3
+skia-iphone-7-06     cb28291ddc90084aa60732b71298c34dc914185a
+skia-iphone-8-01     4512c5748a80de139284f1e91acd08e48031f542
+skia-iphone-8-03     cea6fe77fc91b1687ee2189e3cc056a9e7381b38
+skia-iphone-8-04     16eb34a43b59642a3a3d08ef8be3d6bbd4b14b86
+skia-iphone-8-05     424eb0dc867de6a03eb109b7d809087a5008396e
+skia-iphone-8-06     f7a5647fb6523db24b3a2d27b66f3e3ba801e6ca
+
+Died in March 2020 flood:
+skia-iPad-pro97-02   3f9b063d55e482398174283bb1c72a8322e8af39
+skia-iPad-pro97-03   9b8e97d500bc98035c073515015645ef3a35dd70
+skia-iPad-pro97-04   e2e1d3390e50aed9c3f23b1fb55826e6dcfccd1d
+
+Alive but not in lab:
+An iPad Pro 9.7"     aeb09b8254dea08253bdcc10e1432d00dc7d8764, engraved "SKIA Bot". Found on far north shelf of office under a stack of other tablets.

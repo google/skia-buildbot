@@ -43,4 +43,4 @@ copy_release_files()
     ${INSTALL} --mode=644 -T ${IN_DIR}/systemd/usbmuxd.service     ${ROOT}/etc/systemd/system/usbmuxd.service
 }
 
-source ../../bash/release.sh
+source ../../../bash/release.sh

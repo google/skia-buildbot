@@ -21,11 +21,11 @@ USER="$2"
 
 DATETIME=`date --utc "+%Y-%m-%dT%H:%M:%SZ"`
 HASH=`git rev-parse HEAD`
-GITSTATE=`../../bash/gitstate.sh`
+GITSTATE=`../../../bash/gitstate.sh`
 VERSION=${DATETIME}-${USER}-${HASH}-${GITSTATE}
 DEB_DIR=build/Linux/aarch64
 
 mkdir -p "${DEB_DIR}"
 cp "${DEB}" "${DEB_DIR}/skia-imobiledevice.deb"
 cipd create -pkg-def=cipd.yml --tag version:${VERSION}
-../../bash/ansible-release.sh imobiledevice ${VERSION}
+../../../bash/ansible-release.sh imobiledevice ${VERSION}
