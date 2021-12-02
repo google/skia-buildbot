@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "bloaty_treemap_lib",
+    srcs = ["main.go"],
+    embedsrcs = ["template.html"],
+    importpath = "go.skia.org/infra/codesize/go/bloaty_treemap",
+    visibility = ["//visibility:private"],
+    deps = ["//codesize/go/bloaty"],
+)
+
+go_binary(
+    name = "bloaty_treemap",
+    embed = [":bloaty_treemap_lib"],
+    visibility = ["//visibility:public"],
+)

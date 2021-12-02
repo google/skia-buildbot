@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "bloaty",
+    srcs = ["bloaty.go"],
+    importpath = "go.skia.org/infra/codesize/go/bloaty",
+    visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
+)
+
+go_test(
+    name = "bloaty_test",
+    srcs = ["bloaty_test.go"],
+    embed = [":bloaty"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

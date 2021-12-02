@@ -1,0 +1,35 @@
+{{/* The indentation and line breaks in the HTML below match bloaty_treemap.py's output byte by
+     byte. This was useful while porting bloaty_treemap.py to Golang as a quick correctness test.
+     Moving forward, we don't need to keep this invariant. */}}
+    <html>
+        <head>
+            <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+            <script type="text/javascript">
+                google.charts.load('current', {'packages':['treemap']});
+                google.charts.setOnLoadCallback(drawChart);
+                function drawChart() {
+                    const data = google.visualization.arrayToDataTable([
+                        ['Name', 'Parent', 'Size'],
+                        {{ .rows }}
+       ]);
+                    tree = new google.visualization.TreeMap(document.getElementById('chart_div'));
+                    tree.draw(data, {
+                        generateTooltip: showTooltip
+                    });
+
+                    function showTooltip(row, size, value) {
+                        const escapedLabel = data.getValue(row, 0)
+                            .replace('&', '&amp;')
+                            .replace('<', '&lt;')
+                            .replace('>', '&gt;')
+                        return `<div style="background:#fd9; padding:10px; border-style:solid">
+                                <span style="font-family:Courier"> ${escapedLabel} <br>
+                                Size: ${size} </div>`;
+                    }
+                }
+            </script>
+        </head>
+        <body>
+            <div id="chart_div" style="width: 100%; height: 100%;"></div>
+        </body>
+    </html>
