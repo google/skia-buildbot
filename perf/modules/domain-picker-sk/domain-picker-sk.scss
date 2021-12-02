@@ -1,6 +1,8 @@
 @import '~elements-sk/colors';
 
 domain-picker-sk {
+  display: block;
+
   .controls {
     justify-content: flex-end;
     display: flex;

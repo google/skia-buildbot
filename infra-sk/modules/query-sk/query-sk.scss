@@ -16,7 +16,8 @@ query-sk {
   }
 
   query-values-sk {
-    display: inline-block;
+    display: flex;
+    flex-direction: column;
     margin: 0 1em;
   }
 
