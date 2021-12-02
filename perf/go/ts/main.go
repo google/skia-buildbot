@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/perf/go/frontend"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/ingest/format"
+	"go.skia.org/infra/perf/go/pivot"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/continuous"
@@ -98,6 +99,9 @@ func main() {
 	generator.AddToNamespace(progress.SerializedProgress{}, "progress")
 
 	generator.AddToNamespace(format.Format{}, "ingest")
+
+	generator.AddUnionToNamespace(pivot.AllOperations, "pivot")
+	generator.AddToNamespace(pivot.Request{}, "pivot")
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)

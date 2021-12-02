@@ -298,6 +298,14 @@ export namespace ingest {
 	}
 }
 
+export namespace pivot {
+	export interface Request {
+		GroupBy: string[] | null;
+		Operation: pivot.Operation;
+		Summary: pivot.Operation[] | null;
+	}
+}
+
 export type Params = { [key: string]: string };
 
 export type ParamSet = { [key: string]: string[] };
@@ -333,3 +341,5 @@ export type CL = string;
 export type ProcessState = "Running" | "Success" | "Error";
 
 export namespace progress { export type Status = "Running" | "Finished" | "Error"; }
+
+export namespace pivot { export type Operation = "sum" | "avg"; }

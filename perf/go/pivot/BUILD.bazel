@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "pivot",
+    srcs = ["pivot.go"],
+    importpath = "go.skia.org/infra/perf/go/pivot",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/calc",
+        "//go/paramtools",
+        "//go/query",
+        "//go/skerr",
+        "//go/vec32",
+        "//perf/go/dataframe",
+        "//perf/go/types",
+    ],
+)
+
+go_test(
+    name = "pivot_test",
+    srcs = ["pivot_test.go"],
+    embed = [":pivot"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//perf/go/dataframe",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

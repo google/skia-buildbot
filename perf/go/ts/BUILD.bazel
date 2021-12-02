@@ -16,6 +16,7 @@ go_library(
         "//perf/go/frontend",
         "//perf/go/git",
         "//perf/go/ingest/format",
+        "//perf/go/pivot",
         "//perf/go/progress",
         "//perf/go/regression",
         "//perf/go/regression/continuous",
