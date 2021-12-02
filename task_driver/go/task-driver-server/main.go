@@ -32,7 +32,9 @@ import (
 )
 
 const (
-	subscriptionName = "td_server_log_collector"
+	subscriptionName                   = "td_server_log_collector"
+	subscriptionGoroutines             = 10
+	subscriptionMaxOutstandingMessages = 1000
 )
 
 var (
@@ -305,10 +307,11 @@ func main() {
 
 	// Setup pubsub.
 	ctx := context.Background()
-	sub, err := sub.New(ctx, *local, *project, td.PubsubTopicLogs, 1)
+	sub, err := sub.NewWithSubName(ctx, *local, *project, td.PubsubTopicLogs, subscriptionName, subscriptionGoroutines)
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	sub.ReceiveSettings.MaxOutstandingMessages = subscriptionMaxOutstandingMessages
 
 	// Create the TaskDriver DB.
 	ts, err := auth.NewDefaultTokenSource(*local, bigtable.Scope)
