@@ -94,12 +94,11 @@ func main() {
 	if dcc.TracingProportion > tp {
 		tp = dcc.TracingProportion
 	}
-	if err := tracing.Initialize(tp); err != nil {
+	if err := tracing.Initialize(tp, dcc.SQLDatabaseName); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}
 
 	ctx := context.Background()
-
 	db := mustInitSQLDatabase(ctx, dcc)
 	gis := mustMakeGCSImageSource(ctx, dcc)
 	gc, err := lru.New(groupingCacheSize)

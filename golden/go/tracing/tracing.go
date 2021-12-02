@@ -13,7 +13,7 @@ import (
 
 // Initialize sets up trace options and exporting for this application. It will sample the given
 // proportion of traces.
-func Initialize(traceSampleProportion float64) error {
+func Initialize(traceSampleProportion float64, instanceName string) error {
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
 		// Use 10 times the default (because that's what perf does).
 		TraceSpansBufferMaxBytes: 80_000_000,
@@ -22,7 +22,8 @@ func Initialize(traceSampleProportion float64) error {
 		ReportingInterval: time.Minute,
 		DefaultTraceAttributes: map[string]interface{}{
 			// This environment variable should be set in the k8s templates.
-			"podName": os.Getenv("K8S_POD_NAME"),
+			"podName":  os.Getenv("K8S_POD_NAME"),
+			"instance": instanceName,
 		},
 	})
 	if err != nil {

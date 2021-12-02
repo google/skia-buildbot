@@ -128,7 +128,7 @@ func main() {
 	}
 
 	common.InitWithMust("gitilesfollower", logOpts...)
-	if err := tracing.Initialize(1); err != nil {
+	if err := tracing.Initialize(1, rfc.SQLDatabaseName); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}
 

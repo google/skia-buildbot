@@ -105,7 +105,7 @@ func main() {
 		tp = ptc.TracingProportion
 	}
 	common.InitWithMust("periodictasks", logOpts...)
-	if err := tracing.Initialize(tp); err != nil {
+	if err := tracing.Initialize(tp, ptc.SQLDatabaseName); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}
 

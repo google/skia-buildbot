@@ -118,7 +118,7 @@ func main() {
 	// Speculative memory usage fix? https://github.com/googleapis/google-cloud-go/issues/375
 	grpc.EnableTracing = false
 
-	if err := tracing.Initialize(0.01); err != nil {
+	if err := tracing.Initialize(0.01, fsc.SQLDatabaseName); err != nil {
 		sklog.Fatalf("Could not initialize tracing: %s", err)
 	}
 

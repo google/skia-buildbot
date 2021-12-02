@@ -130,7 +130,7 @@ func main() {
 	common.InitWithMust("gold-ingestion", logOpts...)
 	// We expect there to be a lot of ingestion work, so we sample 1% of them to avoid incurring
 	// too much overhead.
-	if err := tracing.Initialize(0.01); err != nil {
+	if err := tracing.Initialize(0.01, isc.SQLDatabaseName); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}
 
