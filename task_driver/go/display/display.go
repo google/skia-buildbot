@@ -79,6 +79,7 @@ func TaskDriverForDisplay(t *db.TaskDriverRun) (*TaskDriverRunDisplay, error) {
 			// We should do our best to display anyway. Store the
 			// error but keep going.
 			errs = multierror.Append(errs, fmt.Errorf("Unknown step %s", id))
+			return errs
 		}
 		var data []*db.StepData
 		if len(orig.Data) > 0 {

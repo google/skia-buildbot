@@ -189,11 +189,16 @@ func taskDriverHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 		return
 	}
+	// When data is missing, we may not have the "name" field.
+	taskName := "unknown"
+	if disp.StepDisplay != nil {
+		taskName = disp.StepDisplay.Name
+	}
 	page := struct {
 		TaskName string
 		TaskJson string
 	}{
-		TaskName: disp.Name,
+		TaskName: taskName,
 		TaskJson: string(b),
 	}
 	w.Header().Set("Content-Type", "text/html")
