@@ -387,6 +387,10 @@ func main() {
 			return
 		}
 
+		if *message == "" {
+			*message = "Push"
+		}
+
 		messageWithBody := *message + "\n\n" + rubberstamper.RandomChangeID()
 		msg, err = checkout.Git(ctx, "commit", "-m", messageWithBody)
 		if err != nil {
