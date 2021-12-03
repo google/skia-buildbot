@@ -468,7 +468,20 @@ message FuchsiaSDKChildConfig {
     // include_mac_sdk indicates whether to also roll the version of the Mac
     // SDK. Note that the dependency is not tracked separately; the Mac SDK is
     // simply rolled to the newest available version.
+    // DEPRECATED: The presence of latest_mac_path indicates whether the Mac
+    // SDK is included.
     bool include_mac_sdk = 1;
+    // gcs_bucket containing the SDK tarballs.
+    string gcs_bucket = 2;
+    // latest_linux_path is the path to the file containing the ID of the latest
+    // Linux SDK.
+    string latest_linux_path = 3;
+    // latest_mac_path is the path to the file containing the ID of the latest
+    // Mac SDK.
+    string latest_mac_path = 4;
+    // tarball_linux_path_tmpl is a template for the GCS path of the Linux SDK,
+    // with the version ID to be inserted later.
+    string tarball_linux_path_tmpl = 5;
 }
 
 // SemVerGCSChildConfig provides configuration for a Child in GCS which uses

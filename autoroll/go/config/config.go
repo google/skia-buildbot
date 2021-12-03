@@ -872,6 +872,18 @@ func (c *DependencyConfig) Validate() error {
 
 // Validate implements util.Validator.
 func (c *FuchsiaSDKChildConfig) Validate() error {
+	if c.GcsBucket == "" {
+		return skerr.Fmt("GcsBucket is required.")
+	}
+	if c.LatestLinuxPath == "" {
+		return skerr.Fmt("LatestLinuxPath is required.")
+	}
+	if c.IncludeMacSdk && c.LatestMacPath == "" {
+		return skerr.Fmt("IncludeMacSdk is deprecated; use LatestMacPath instead.")
+	}
+	if c.TarballLinuxPathTmpl == "" {
+		return skerr.Fmt("TarballLinuxPathTmpl is required.")
+	}
 	return nil
 }
 

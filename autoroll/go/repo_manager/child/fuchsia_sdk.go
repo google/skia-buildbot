@@ -15,34 +15,15 @@ import (
 	"google.golang.org/api/option"
 )
 
-const (
-	// TODO(borenet): These should probably all move to the config file.
-
-	// FuchsiaSDKGSBucket is the Google Cloud Storage bucket in which the
-	// Fuchsia SDK tarballs are stored.
-	FuchsiaSDKGSBucket = "fuchsia"
-
-	// FuchsiaSDKGSLatestPathLinux is the path in GCS of the file containing the
-	// ID of the latest Linux Fuchsia SDK.
-	FuchsiaSDKGSLatestPathLinux = "development/LATEST_LINUX"
-
-	// FuchsiaSDKGSLatestPathMac is the path in GCS of the file containing the
-	// ID of the latest Mac Fuchsia SDK.
-	FuchsiaSDKGSLatestPathMac = "development/LATEST_MAC"
-
-	// FuchsiaSDKGSTarballPathLinux is a template for the path in GCS of the
-	// Linux Fuchsia SDK tarball itself, keyed by version ID.
-	FuchsiaSDKGSTarballPathLinux = "development/%s/sdk/linux-amd64/gn.tar.gz"
-)
-
 // FuchsiaSDKChild is an implementation of Child which deals with the Fuchsia
 // SDK.
 type FuchsiaSDKChild struct {
-	gsBucket          string
-	gsLatestPathLinux string
-	gsLatestPathMac   string
-	includeMacSDK     bool
-	storageClient     *storage.Client
+	gsBucket               string
+	gsLatestPathLinux      string
+	gsLatestPathMac        string
+	gsTarballPathLinuxTmpl string
+	includeMacSDK          bool
+	storageClient          *storage.Client
 }
 
 // NewFuchsiaSDK returns a Child implementation which deals with the Fuchsia
@@ -57,11 +38,12 @@ func NewFuchsiaSDK(ctx context.Context, c *config.FuchsiaSDKChildConfig, client 
 	}
 
 	rv := &FuchsiaSDKChild{
-		gsBucket:          FuchsiaSDKGSBucket,
-		gsLatestPathLinux: FuchsiaSDKGSLatestPathLinux,
-		gsLatestPathMac:   FuchsiaSDKGSLatestPathMac,
-		includeMacSDK:     c.IncludeMacSdk,
-		storageClient:     storageClient,
+		gsBucket:               c.GcsBucket,
+		gsLatestPathLinux:      c.LatestLinuxPath,
+		gsLatestPathMac:        c.LatestMacPath,
+		gsTarballPathLinuxTmpl: c.TarballLinuxPathTmpl,
+		includeMacSDK:          c.IncludeMacSdk,
+		storageClient:          storageClient,
 	}
 	return rv, nil
 }
@@ -83,14 +65,14 @@ func (c *FuchsiaSDKChild) Update(ctx context.Context, lastRollRev *revision.Revi
 		return nil, nil, skerr.Wrap(err)
 	}
 
-	if c.includeMacSDK {
+	if c.gsLatestPathMac != "" {
 		tipRevMacBytes, err := gcs.FileContentsFromGCS(c.storageClient, c.gsBucket, c.gsLatestPathMac)
 		if err != nil {
 			return nil, nil, skerr.Wrapf(err, "Failed to read latest SDK version (mac)")
 		}
 		// TODO(borenet): Is there a better dep ID than the GCS path?
 		tipRev.Dependencies = map[string]string{
-			FuchsiaSDKGSLatestPathMac: strings.TrimSpace(string(tipRevMacBytes)),
+			c.gsLatestPathMac: strings.TrimSpace(string(tipRevMacBytes)),
 		}
 	}
 
@@ -112,8 +94,8 @@ func (c *FuchsiaSDKChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	gcsPath := fmt.Sprintf(FuchsiaSDKGSTarballPathLinux, rev.Id)
-	if err := gcs.DownloadAndExtractTarGz(ctx, c.storageClient, FuchsiaSDKGSBucket, gcsPath, fs.Dir()); err != nil {
+	gcsPath := fmt.Sprintf(c.gsTarballPathLinuxTmpl, rev.Id)
+	if err := gcs.DownloadAndExtractTarGz(ctx, c.storageClient, c.gsBucket, gcsPath, fs.Dir()); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return fs, nil

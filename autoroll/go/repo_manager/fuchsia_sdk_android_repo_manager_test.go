@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -38,7 +37,9 @@ func fuchsiaAndroidCfg(t *testing.T) *config.FuchsiaSDKAndroidRepoManagerConfig 
 			},
 		},
 		Child: &config.FuchsiaSDKChildConfig{
-			IncludeMacSdk: false,
+			GcsBucket:            "fake-fuchsia-sdk",
+			LatestLinuxPath:      "linux/LATEST",
+			TarballLinuxPathTmpl: "%s.sdk",
 		},
 		GenSdkBpRepo:   "TODO",
 		GenSdkBpBranch: git.MainBranch,
@@ -108,7 +109,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, fuchsiaSDKAndroidVersionFile, parentHead)
-	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevBase, "mac-base")
+	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
 
 	// Create a dummy commit-msg hook.
 	changeId := "123"
@@ -155,7 +156,7 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	parentHead, err := git.GitDir(parentRepoDir).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, fuchsiaSDKAndroidVersionFile, parentHead)
-	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevNext, "mac-next")
+	mockGetLatestSDK(urlmock, fuchsiaSDKRevNext, "mac-next")
 
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)

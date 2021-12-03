@@ -493,10 +493,18 @@ interface CIPDChildConfigJSON {
 
 export interface FuchsiaSDKChildConfig {
   includeMacSdk: boolean;
+  gcsBucket: string;
+  latestLinuxPath: string;
+  latestMacPath: string;
+  tarballLinuxPathTmpl: string;
 }
 
 interface FuchsiaSDKChildConfigJSON {
   include_mac_sdk?: boolean;
+  gcs_bucket?: string;
+  latest_linux_path?: string;
+  latest_mac_path?: string;
+  tarball_linux_path_tmpl?: string;
 }
 
 export interface SemVerGCSChildConfig {

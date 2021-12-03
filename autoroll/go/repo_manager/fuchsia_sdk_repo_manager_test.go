@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -41,7 +40,15 @@ var (
 	fuchsiaSDKLatestArchiveUrlMac   = fmt.Sprintf(fuchsiaSDKArchiveUrlTmpl, "LATEST_MAC")
 )
 
-func fuchsiaCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+func fuchsiaCfg() *config.ParentChildRepoManagerConfig {
+	child := &config.ParentChildRepoManagerConfig_FuchsiaSdkChild{
+		FuchsiaSdkChild: &config.FuchsiaSDKChildConfig{
+			GcsBucket:            "fake-fuchsia-sdk",
+			LatestLinuxPath:      "linux/LATEST",
+			LatestMacPath:        "mac/LATEST",
+			TarballLinuxPathTmpl: "%s.sdk",
+		},
+	}
 	return &config.ParentChildRepoManagerConfig{
 		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
 			GitilesParent: &config.GitilesParentConfig{
@@ -57,11 +64,11 @@ func fuchsiaCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 					Transitive: []*config.TransitiveDepConfig{
 						{
 							Child: &config.VersionFileConfig{
-								Id:   "development/LATEST_MAC",
+								Id:   child.FuchsiaSdkChild.LatestMacPath,
 								Path: fuchsiaSDKVersionFilePathMac,
 							},
 							Parent: &config.VersionFileConfig{
-								Id:   "development/LATEST_MAC",
+								Id:   child.FuchsiaSdkChild.LatestLinuxPath,
 								Path: fuchsiaSDKVersionFilePathMac,
 							},
 						},
@@ -74,11 +81,7 @@ func fuchsiaCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 				},
 			},
 		},
-		Child: &config.ParentChildRepoManagerConfig_FuchsiaSdkChild{
-			FuchsiaSdkChild: &config.FuchsiaSDKChildConfig{
-				IncludeMacSdk: true,
-			},
-		},
+		Child: child,
 	}
 }
 
@@ -88,7 +91,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 
 	ctx := context.Background()
 
-	cfg := fuchsiaCfg(t)
+	cfg := fuchsiaCfg()
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 
 	// Create child and parent repos.
@@ -120,7 +123,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)
-	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevBase, "mac-base")
+	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
 
 	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake-recipes-cfg", "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
 	require.NoError(t, err)
@@ -133,9 +136,12 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 	return ctx, rm, urlmock, mockParent, parent, cleanup
 }
 
-func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, pathLinux, pathMac, revLinux, revMac string) {
-	urlmock.MockOnce("https://storage.googleapis.com/"+child.FuchsiaSDKGSBucket+"/"+pathLinux, mockhttpclient.MockGetDialogue([]byte(revLinux)))
-	urlmock.MockOnce("https://storage.googleapis.com/"+child.FuchsiaSDKGSBucket+"/"+pathMac, mockhttpclient.MockGetDialogue([]byte(revMac)))
+func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, revLinux, revMac string) {
+	c := fuchsiaCfg().GetFuchsiaSdkChild()
+	urlmock.MockOnce("https://storage.googleapis.com/"+c.GcsBucket+"/"+c.LatestLinuxPath, mockhttpclient.MockGetDialogue([]byte(revLinux)))
+	if c.LatestMacPath != "" {
+		urlmock.MockOnce("https://storage.googleapis.com/"+c.GcsBucket+"/"+c.LatestMacPath, mockhttpclient.MockGetDialogue([]byte(revMac)))
+	}
 }
 
 func TestFuchsiaSDKRepoManager(t *testing.T) {
@@ -165,7 +171,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)
-	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevNext, "mac-next")
+	mockGetLatestSDK(urlmock, fuchsiaSDKRevNext, "mac-next")
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)
 	require.Equal(t, fuchsiaSDKRevBase, lastRollRev.Id)
