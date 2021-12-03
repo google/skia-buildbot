@@ -5,9 +5,5 @@ go_library(
     srcs = ["tracing.go"],
     importpath = "go.skia.org/infra/golden/go/tracing",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/skerr",
-        "@io_opencensus_go//trace",
-        "@io_opencensus_go_contrib_exporter_stackdriver//:stackdriver",
-    ],
+    deps = ["//go/tracing"],
 )

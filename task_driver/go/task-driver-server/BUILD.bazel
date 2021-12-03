@@ -13,6 +13,7 @@ go_library(
         "//go/pubsub/sub",
         "//go/skerr",
         "//go/sklog",
+        "//go/tracing",
         "//task_driver/go/db",
         "//task_driver/go/db/bigtable",
         "//task_driver/go/display",

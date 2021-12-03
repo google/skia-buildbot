@@ -5,12 +5,13 @@ import (
 	"flag"
 	"time"
 
-	"go.skia.org/infra/task_scheduler/go/tracing"
-
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cleanup"
@@ -24,14 +25,13 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/tracing"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
-	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -78,7 +78,7 @@ func main() {
 	)
 	defer common.Defer()
 
-	if err := tracing.Initialize(0.1); err != nil {
+	if err := tracing.Initialize(0.1, *btProject, nil); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}
 	ctx, cancelFn := context.WithCancel(context.Background())

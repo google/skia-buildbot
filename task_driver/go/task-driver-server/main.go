@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/pubsub/sub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/tracing"
 	"go.skia.org/infra/task_driver/go/db"
 	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
 	"go.skia.org/infra/task_driver/go/display"
@@ -311,7 +312,10 @@ func main() {
 
 	// We ingest a lot of log entries, so we only really should trace a small percentage of them
 	// by default. If this results in too much data, we can turn it down.
-	if err := initializeTracing(0.01); err != nil {
+	if err := tracing.Initialize(0.01, *btProject, map[string]interface{}{
+		// This environment variable should be set in the k8s templates.
+		"podName": os.Getenv("K8S_POD_NAME"),
+	}); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}
 

@@ -8,11 +8,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"go.skia.org/infra/task_scheduler/go/tracing"
-
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/compute/v1"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cleanup"
@@ -26,13 +27,12 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/tracing"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/job_creation"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
-	"golang.org/x/oauth2"
-	"google.golang.org/api/compute/v1"
 )
 
 const (
@@ -78,7 +78,7 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	if err := tracing.Initialize(0.1); err != nil {
+	if err := tracing.Initialize(0.1, *btProject, nil); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}
 	ctx, cancelFn := context.WithCancel(context.Background())
