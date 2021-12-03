@@ -38,12 +38,35 @@ func main() {
 		*port = 0
 	}
 
+	var (
+		listener   net.Listener
+		actualPort int
+		err        error
+	)
+
 	// If the port is unspecified (i.e. 0), an unused port will be chosen by the OS.
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
-	if err != nil {
-		panic(err)
+	if *port == 0 {
+		listener, err = net.Listen("tcp", fmt.Sprintf(":%d", *port))
+		if err != nil {
+			panic(err)
+		}
+		actualPort = listener.Addr().(*net.TCPAddr).Port // Retrieve the port number chosen by the OS.
+	} else {
+		// Try opening the specified port, or repeatedly increase it by 1 until an unused port is found.
+		// This allows developers to view multiple demo pages at the same time.
+		actualPort = *port
+		for {
+			if actualPort > 65535 {
+				panic("no unused TCP ports found")
+			}
+			listener, err = net.Listen("tcp", fmt.Sprintf(":%d", actualPort))
+			if err != nil {
+				actualPort++
+			} else {
+				break
+			}
+		}
 	}
-	actualPort := listener.Addr().(*net.TCPAddr).Port // Retrieve the port number chosen by the OS.
 
 	// Set up the HTTP server.
 	assetsDirAbs, err := filepath.Abs(*assetsDir)
