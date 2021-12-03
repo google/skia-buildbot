@@ -16,8 +16,7 @@ cd /tmp/ramdisk
 gcloud --project=${PROJECT_ID} iam service-accounts create "${SA_NAME}" --display-name="Service account for Task Driver"
 gcloud projects add-iam-policy-binding skia-swarming-bots --member serviceAccount:${SA_EMAIL} --role roles/pubsub.admin --role roles/logging.admin
 gcloud projects add-iam-policy-binding skia-public --member serviceAccount:${SA_EMAIL} --role roles/bigtable.user
-gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_EMAIL}"
-
-kubectl create secret generic "${SA_NAME}" --from-file=key.json=${SA_NAME}.json
+gcloud projects add-iam-policy-binding --project ${PROJECT} \
+  --member serviceAccount:${SA_EMAIL} --role roles/cloudtrace.agent
 
 cd -
