@@ -9,7 +9,8 @@ import (
 	"go.skia.org/infra/task_driver/go/td"
 )
 
-// Bazel provides a Task Driver API for working with Bazel.
+// Bazel provides a Task Driver API for working with Bazel (via the Bazelisk launcher, see
+// https://github.com/bazelbuild/bazelisk).
 type Bazel struct {
 	cacheDir          string
 	local             bool
@@ -126,7 +127,7 @@ func New(ctx context.Context, workspace string, local bool, rbeCredentialFile st
 
 // Do executes a Bazel subcommand.
 func (b *Bazel) Do(ctx context.Context, subCmd string, args ...string) (string, error) {
-	cmd := []string{"bazel", "--output_user_root=" + b.cacheDir, subCmd}
+	cmd := []string{"bazelisk", "--output_user_root=" + b.cacheDir, subCmd}
 	cmd = append(cmd, args...)
 	return exec.RunCwd(ctx, b.workspace, cmd...)
 }

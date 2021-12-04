@@ -377,10 +377,10 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	})
 	task.Dependencies = []string{} // No bundled recipes for this one.
 
-	// Bazel and Go are needed for the Gazelle, Buildifier and gofmt presubmit checks.
-	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("bazel"))
+	// Bazelisk and Go are needed for the Gazelle, Buildifier and gofmt presubmit checks.
+	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("bazelisk"))
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
-	task.EnvPrefixes["PATH"] = append(task.EnvPrefixes["PATH"], "bazel/bin", "go/go/bin")
+	task.EnvPrefixes["PATH"] = append(task.EnvPrefixes["PATH"], "bazelisk", "go/go/bin")
 
 	// Setting the python version causes conflicts with some of the packages
 	// needed by the presubmit recipe.
@@ -591,7 +591,7 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 
 func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazel"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazelisk"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("mockery"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
@@ -620,7 +620,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "mockery", "bazel/bin"},
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "mockery", "bazelisk"},
 		},
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
@@ -633,7 +633,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	cipd = append(cipd, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...)
 	cipd = append(cipd, specs.CIPD_PKGS_GSUTIL...)
 	cipd = append(cipd, specs.CIPD_PKGS_ISOLATE...)
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazel"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazelisk"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("cockroachdb"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("gcloud_linux"))
@@ -669,7 +669,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 				"cipd_bin_packages/cpython3",
 				"cipd_bin_packages/cpython3/bin",
 				"go/go/bin",
-				"bazel/bin",
+				"bazelisk",
 				"cockroachdb",
 				"gcloud_linux/bin",
 			},
@@ -683,7 +683,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 
 func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targets, includePaths []string) string {
 	cipd := []*specs.CipdPackage{
-		b.MustGetCipdPackageFromAsset("bazel"),
+		b.MustGetCipdPackageFromAsset("bazelisk"),
 	}
 
 	cmd := []string{
@@ -722,7 +722,7 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 			"PATH": {
 				"cipd_bin_packages",
 				"cipd_bin_packages/bin",
-				"bazel/bin",
+				"bazelisk",
 			},
 		},
 		ServiceAccount: SERVICE_ACCOUNT_CIPD_UPLOADER,

@@ -261,9 +261,9 @@
           "version": "git_revision:d3fbee085c588c4503855b6041da53280ba3f7c7"
         },
         {
-          "name": "skia/bots/bazel",
-          "path": "bazel",
-          "version": "version:3"
+          "name": "skia/bots/bazelisk",
+          "path": "bazelisk",
+          "version": "version:0"
         },
         {
           "name": "skia/bots/go",
@@ -297,7 +297,7 @@
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin",
-          "bazel/bin",
+          "bazelisk",
           "go/go/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
@@ -495,9 +495,9 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "skia/bots/bazel",
-          "path": "bazel",
-          "version": "version:3"
+          "name": "skia/bots/bazelisk",
+          "path": "bazelisk",
+          "version": "version:0"
         }
       ],
       "command": [
@@ -550,7 +550,7 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
-          "bazel/bin"
+          "bazelisk"
         ]
       },
       "service_account": "cipd-uploader@skia-swarming-bots.iam.gserviceaccount.com"
@@ -559,9 +559,9 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "skia/bots/bazel",
-          "path": "bazel",
-          "version": "version:3"
+          "name": "skia/bots/bazelisk",
+          "path": "bazelisk",
+          "version": "version:0"
         }
       ],
       "command": [
@@ -614,7 +614,7 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
-          "bazel/bin"
+          "bazelisk"
         ]
       },
       "service_account": "cipd-uploader@skia-swarming-bots.iam.gserviceaccount.com"
@@ -623,9 +623,9 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "skia/bots/bazel",
-          "path": "bazel",
-          "version": "version:3"
+          "name": "skia/bots/bazelisk",
+          "path": "bazelisk",
+          "version": "version:0"
         }
       ],
       "command": [
@@ -678,7 +678,7 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
-          "bazel/bin"
+          "bazelisk"
         ]
       },
       "service_account": "cipd-uploader@skia-swarming-bots.iam.gserviceaccount.com"
@@ -1129,9 +1129,9 @@
           "version": "git_revision:d3fbee085c588c4503855b6041da53280ba3f7c7"
         },
         {
-          "name": "skia/bots/bazel",
-          "path": "bazel",
-          "version": "version:3"
+          "name": "skia/bots/bazelisk",
+          "path": "bazelisk",
+          "version": "version:0"
         },
         {
           "name": "skia/bots/go",
@@ -1187,7 +1187,7 @@
           "cipd_bin_packages/bin",
           "go/go/bin",
           "mockery",
-          "bazel/bin"
+          "bazelisk"
         ]
       },
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
@@ -1221,9 +1221,9 @@
           "version": "git_revision:d3fbee085c588c4503855b6041da53280ba3f7c7"
         },
         {
-          "name": "skia/bots/bazel",
-          "path": "bazel",
-          "version": "version:3"
+          "name": "skia/bots/bazelisk",
+          "path": "bazelisk",
+          "version": "version:0"
         },
         {
           "name": "skia/bots/go",
@@ -1280,7 +1280,7 @@
           "cipd_bin_packages/bin",
           "go/go/bin",
           "mockery",
-          "bazel/bin"
+          "bazelisk"
         ]
       },
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
@@ -2210,9 +2210,9 @@
           "version": "git_revision:d3fbee085c588c4503855b6041da53280ba3f7c7"
         },
         {
-          "name": "skia/bots/bazel",
-          "path": "bazel",
-          "version": "version:3"
+          "name": "skia/bots/bazelisk",
+          "path": "bazelisk",
+          "version": "version:0"
         },
         {
           "name": "skia/bots/cockroachdb",
@@ -2271,7 +2271,7 @@
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin",
           "go/go/bin",
-          "bazel/bin",
+          "bazelisk",
           "cockroachdb",
           "gcloud_linux/bin"
         ],
@@ -2349,9 +2349,9 @@
           "version": "git_revision:d3fbee085c588c4503855b6041da53280ba3f7c7"
         },
         {
-          "name": "skia/bots/bazel",
-          "path": "bazel",
-          "version": "version:3"
+          "name": "skia/bots/bazelisk",
+          "path": "bazelisk",
+          "version": "version:0"
         },
         {
           "name": "skia/bots/cockroachdb",
@@ -2411,7 +2411,7 @@
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin",
           "go/go/bin",
-          "bazel/bin",
+          "bazelisk",
           "cockroachdb",
           "gcloud_linux/bin"
         ],
