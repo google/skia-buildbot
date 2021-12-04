@@ -268,6 +268,11 @@ func (m *Machine) RebootDevice(ctx context.Context) error {
 // adb interface. If there is one attached, this function returns true and the information gathered
 // (which can be partially filled out). If there is not a device attached, false is returned.
 func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.Android, bool) {
+	metrics2.GetCounter("bot_config_machine_interrogate_device_type", map[string]string{
+		"machine": m.MachineID,
+		"type":    "android",
+	}).Inc(1)
+	sklog.Info("tryInterrogatingAndroidDevice")
 	var ret machine.Android
 
 	if err := m.adb.EnsureOnline(ctx); err != nil {
@@ -306,6 +311,12 @@ func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.An
 // there is not a device attached, it returns false, and the other return value is undefined. If
 // multiple devices are attached, an arbitrary one is chosen.
 func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, bool) {
+	metrics2.GetCounter("bot_config_machine_interrogate_device_type", map[string]string{
+		"machine": m.MachineID,
+		"type":    "ios",
+	}).Inc(1)
+
+	sklog.Info("tryInterrogatingIOSDevice")
 	var ret machine.IOS
 	var err error
 
@@ -335,6 +346,12 @@ var (
 )
 
 func (m *Machine) tryInterrogatingChromeOSDevice(ctx context.Context) (machine.ChromeOS, bool) {
+	metrics2.GetCounter("bot_config_machine_interrogate_device_type", map[string]string{
+		"machine": m.MachineID,
+		"type":    "chromeos",
+	}).Inc(1)
+
+	sklog.Info("tryInterrogatingChromeOSDevice")
 	if m.description.SSHUserIP == "" {
 		return machine.ChromeOS{}, false
 	}
