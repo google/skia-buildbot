@@ -1935,8 +1935,8 @@ def go_repositories():
     go_repository(
         name = "com_github_klauspost_compress",
         importpath = "github.com/klauspost/compress",
-        sum = "h1:MiK62aErc3gIiVEtyzKfeOHgW7atJb5g/KNX5m3c2nQ=",
-        version = "v1.11.2",
+        sum = "h1:G5AfA94pHPysR56qqrkO2pxEexdDzrpFJ6yt/VqWxVU=",
+        version = "v1.12.3",
     )
 
     go_repository(
@@ -2252,6 +2252,12 @@ def go_repositories():
         importpath = "github.com/morikuni/aec",
         sum = "h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=",
         version = "v1.0.0",
+    )
+    go_repository(
+        name = "com_github_mostynb_zstdpool_syncpool",
+        importpath = "github.com/mostynb/zstdpool-syncpool",
+        sum = "h1:meYfUODlzmtOCrFmbJsUVEIt5rbmNUsz+Bu+Vnr95ls=",
+        version = "v0.0.7",
     )
 
     go_repository(
@@ -2610,6 +2616,12 @@ def go_repositories():
         importpath = "github.com/pkg/sftp",
         sum = "h1:VasscCm72135zRysgrJDKsntdmPN+OuU3+nnHYA9wyc=",
         version = "v1.10.1",
+    )
+    go_repository(
+        name = "com_github_pkg_xattr",
+        importpath = "github.com/pkg/xattr",
+        sum = "h1:FSoblPdYobYoKCItkqASqcrKCxRn9Bgurz0sCBwzO5g=",
+        version = "v0.4.4",
     )
 
     go_repository(
