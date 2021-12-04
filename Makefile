@@ -127,6 +127,10 @@ update-go-bazel-deps:
 .PHONY: gazelle
 gazelle: update-go-bazel-deps update-go-bazel-files
 
+.PHONY: buildifier
+buildifier:
+	$(BAZEL) run //:buildifier
+
 .PHONY: bazel-build
 bazel-build:
 	$(BAZEL) build //...
