@@ -493,3 +493,34 @@ groups:
     annotations:
       abbr: '{{ $labels.app }}'
       description: 'docsyserver has failed to successfully refresh in the last 10 minutes. Check the logs for docsyserver and look for errors.'
+
+# PubSub
+  - alert: GCloudMetricsLiveness
+    expr: liveness_last_successful_report_gcloud_metrics_s > 600
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'datahopper has failed to successfully ingest metrics from GCloud projects in the last 10 minutes. Check the logs for datahopper and look for errors.'
+
+  - alert: PerfIngestionBehind
+    expr: avg_over_time(pubsub_num_undelivered_messages{subscription_id=~"perf-ingestion-.*"}[5m]) > 10000
+    labels:
+      category: infra
+      severity: critical
+      owner: jcgregorio@google.com
+    annotations:
+      abbr: '{{ $labels.subscription_id }}'
+      description: 'There are too many undelivered pubsub messages for {{ $labels.subscription_id }}'
+
+  - alert: TaskDriverLogIngestionBehind
+    expr: pubsub_olded_unacked_message_age_s{subscription_id="td_server_log_collector"} > 600
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.subscription_id }}'
+      description: 'A pubsub message for {{ $labels.subscription_id }} has not been acknowledged in more than 10 minutes.'
