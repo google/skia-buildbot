@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "gcloud_metrics",
+    srcs = ["gcloud_metrics.go"],
+    importpath = "go.skia.org/infra/datahopper/go/gcloud_metrics",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/now",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_googleapis_gax_go_v2//:gax-go",
+        "@com_google_cloud_go//monitoring/apiv3",
+        "@go_googleapis//google/monitoring/v3:monitoring_go_proto",
+        "@org_golang_google_api//iterator",
+        "@org_golang_google_api//option",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "gcloud_metrics_test",
+    srcs = ["gcloud_metrics_test.go"],
+    embed = [":gcloud_metrics"],
+    deps = [
+        "//go/metrics2",
+        "//go/testutils/unittest",
+        "@com_github_googleapis_gax_go_v2//:gax-go",
+        "@com_github_stretchr_testify//require",
+        "@go_googleapis//google/api:monitoredres_go_proto",
+        "@go_googleapis//google/monitoring/v3:monitoring_go_proto",
+        "@org_golang_google_api//iterator",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+    ],
+)

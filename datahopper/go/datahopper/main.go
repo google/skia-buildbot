@@ -14,6 +14,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/datahopper/go/bot_metrics"
+	"go.skia.org/infra/datahopper/go/gcloud_metrics"
 	"go.skia.org/infra/datahopper/go/supported_branches"
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
 	"go.skia.org/infra/go/auth"
@@ -43,6 +44,7 @@ var (
 	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	gcloudProjects    = common.NewMultiStringFlag("gcloud_project", nil, "GCloud projects from which to ingest data")
 	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	perfBucket        = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
@@ -198,6 +200,11 @@ func main() {
 		}
 	}
 	StartLastModifiedMetrics(ctx, httpClient, goModRepos)
+
+	// Metrics imported from Google Cloud projects.
+	if err := gcloud_metrics.StartGCloudMetrics(ctx, *gcloudProjects, ts); err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Wait while the above goroutines generate data.
 	httputils.RunHealthCheckServer(*port)

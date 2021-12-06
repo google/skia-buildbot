@@ -88,6 +88,7 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/martian/v3 v3.1.0 // indirect
 	github.com/google/uuid v1.1.2
+	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
 	github.com/googleapis/gnostic v0.5.3 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/mux v1.8.0
