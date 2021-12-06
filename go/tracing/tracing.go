@@ -1,5 +1,6 @@
 // Package tracing consolidates the setup logic for using opencensus tracing and exporting the
-// metrics.
+// metrics to https://cloud.google.com/trace. In order to authenticate to the correct API, any
+// service account that uses this package must have the Cloud Trace Agent Role in gcp.
 package tracing
 
 import (
