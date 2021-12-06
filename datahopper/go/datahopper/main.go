@@ -11,6 +11,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
+	monitoring "cloud.google.com/go/monitoring/apiv3"
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/datahopper/go/bot_metrics"
@@ -65,7 +66,9 @@ func main() {
 	ctx := context.Background()
 
 	// OAuth2.0 TokenSource.
-	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, pubsub.ScopePubSub, bigtable.Scope, datastore.ScopeDatastore, swarming.AUTH_SCOPE, auth.ScopeReadWrite, auth.ScopeGerrit)
+	authScopes := []string{auth.ScopeUserinfoEmail, pubsub.ScopePubSub, bigtable.Scope, datastore.ScopeDatastore, swarming.AUTH_SCOPE, auth.ScopeReadWrite, auth.ScopeGerrit}
+	authScopes = append(authScopes, monitoring.DefaultAuthScopes()...)
+	ts, err := auth.NewDefaultTokenSource(*local, authScopes...)
 	if err != nil {
 		sklog.Fatal(err)
 	}

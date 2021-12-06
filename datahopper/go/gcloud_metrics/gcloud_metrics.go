@@ -31,7 +31,7 @@ const (
 var (
 	pubsubMetrics = map[string]string{
 		pubsubMetricPrefix + "num_undelivered_messages":   "pubsub_num_undelivered_messages",
-		pubsubMetricPrefix + "oldest_unacked_message_age": "pubsub_olded_unacked_message_age_s",
+		pubsubMetricPrefix + "oldest_unacked_message_age": "pubsub_oldest_unacked_message_age_s",
 	}
 	pubsubIncludeLabels = []string{"subscription_id"}
 )

@@ -18,6 +18,8 @@ gcloud projects add-iam-policy-binding skia-firestore --member serviceAccount:${
 gcloud projects add-iam-policy-binding skia-firestore --member serviceAccount:${SA_EMAIL} --role roles/datastore.importExportAdmin
 gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:${SA_EMAIL} --role roles/pubsub.admin
 gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:${SA_EMAIL} --role roles/bigtable.user
+gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:${SA_EMAIL} --role roles/monitoring.viewer
+gcloud projects add-iam-policy-binding skia-swarming-bots --member serviceAccount:${SA_EMAIL} --role roles/monitoring.viewer
 gsutil acl ch -u "${SA_EMAIL}:W" gs://skia-perf
 
 gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_EMAIL}"
