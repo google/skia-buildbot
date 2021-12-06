@@ -10,6 +10,7 @@ def skia_app_container(
         dirs,
         entrypoint = "",
         run_commands_root = None,
+        run_commands_skia = None,
         base_image = "@basealpine//image"):
     """Builds a Docker container for a Skia app, and generates a target to push it to GCR.
 
@@ -18,6 +19,8 @@ def skia_app_container(
     * "<name>_run_root" target to execute run commands as root on the image.
                         root will be the default user here. Will be created only
                         if run_commands_root is specified.
+    * "<name>_run_skia" target to execute run commands as the "skia" user on the image.
+                        Will be created only if run_commands_skia is specified.
     * "push_<name>" target to push the container to GCR.
     * "pushk_<name>" target to push the container to GCR, and deploy <name> to production via pushk.
 
@@ -100,6 +103,8 @@ def skia_app_container(
         Optional.
       run_commands_root: The RUN commands that should be executed on the container by the root
         user. Optional.
+      run_commands_skia: The RUN commands that should be executed on the container by the skia
+        user. Optional.
       base_image: The image to base the container_image on. Optional.
     """
 
@@ -124,18 +129,19 @@ def skia_app_container(
                 mode = mode,
             )
 
-    image_name = (name + "_base") if run_commands_root else name
+    image_name = (name + "_base") if (run_commands_root or run_commands_skia) else name
 
     container_image(
         name = image_name,
         base = base_image,
 
         # We cannot use an entrypoint with the container_run_and_commit rule
-        # required when run_commands_root is specified, because the commands we
-        # want to execute do not require a specific entrypoint.
+        # required when run_commands_root or run_commands_skia is specified,
+        # because the commands we want to execute do not require a specific
+        # entrypoint.
         # We will set the entrypoint back after the container_run_and_commit
         # rule is executed.
-        entrypoint = None if run_commands_root else [entrypoint],
+        entrypoint = None if (run_commands_root or run_commands_skia) else [entrypoint],
         stamp = True,
         tars = pkg_tars,
         user = "skia",
@@ -158,8 +164,29 @@ def skia_app_container(
         )
         image_name = ":" + rule_name + "_commit.tar"
 
-        # The above container_run_and_commit sets root as the default user and
-        # overrides the entrypoint.
+    if run_commands_skia:
+        rule_name = name + "_run_skia"
+        container_run_and_commit(
+            name = rule_name,
+            commands = run_commands_skia,
+            docker_run_flags = ["--user", "skia"],
+            # If run_commands_root was specified then the image_name already contains
+            # ".tar" suffix. Make sure we do not add a double ".tar" suffix here.
+            image = image_name if image_name.endswith(".tar") else image_name + ".tar",
+            tags = [
+                "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
+                # container_run_and_commit requires the docker daemon to be
+                # running. This is not possible inside RBE.
+                "no-remote",
+            ],
+        )
+        image_name = ":" + rule_name + "_commit.tar"
+
+    if run_commands_root or run_commands_skia:
+        # If run_commands_root was specified then it's container_run_and_commit
+        # sets root as the default user and overrides the entrypoint.
+        # If run_commands_skia was specified then it overrides the entrypoint.
+        #
         # Now execute container_image using the previous image as base to set
         # back skia as the default user and to set back the original entrypoint.
         rule_name = name
