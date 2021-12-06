@@ -11,7 +11,8 @@ def skia_app_container(
         entrypoint = "",
         run_commands_root = None,
         run_commands_skia = None,
-        base_image = "@basealpine//image"):
+        base_image = "@basealpine//image",
+        env = None):
     """Builds a Docker container for a Skia app, and generates a target to push it to GCR.
 
     This macro produces the following:
@@ -106,6 +107,8 @@ def skia_app_container(
       run_commands_skia: The RUN commands that should be executed on the container by the skia
         user. Optional.
       base_image: The image to base the container_image on. Optional.
+      env: A {"var": "val"} dictionary with the environment variables to use when building the
+        container. Optional.
     """
 
     # According to the container_image rule's docs[1], the recommended way to place files in
@@ -146,6 +149,7 @@ def skia_app_container(
         tars = pkg_tars,
         user = "skia",
         tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        env = env,
     )
 
     if run_commands_root:
@@ -198,6 +202,7 @@ def skia_app_container(
             tars = pkg_tars,
             user = "skia",
             tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
+            env = env,
         )
         image_name = ":" + rule_name
 
