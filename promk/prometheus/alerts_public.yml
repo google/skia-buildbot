@@ -516,7 +516,7 @@ groups:
       description: 'There are too many undelivered pubsub messages for {{ $labels.subscription_id }}'
 
   - alert: TaskDriverLogIngestionBehind
-    expr: pubsub_olded_unacked_message_age_s{subscription_id="td_server_log_collector"} > 600
+    expr: pubsub_oldest_unacked_message_age_s{subscription_id="td_server_log_collector"} > 600
     labels:
       category: infra
       severity: critical
