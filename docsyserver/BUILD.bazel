@@ -1,0 +1,73 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "docsyserver_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//docsyserver/go/docsyserver:docsyserver",
+                "0755",
+            ],
+        ],
+        "/": [
+            [
+                "//docsyserver/images:serve.sh",
+                "0755",
+            ],
+            [
+                "//docsyserver/images:build.sh",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/docsy/layouts/partials": [
+            [
+                "//docsyserver/images:head.html",
+                "0644",
+            ],
+            [
+                "//docsyserver/images:head-end.html",
+                "0644",
+            ],
+            [
+                "//docsyserver/images:page-meta-lastmod.html",
+                "0644",
+            ],
+        ],
+        "/usr/local/share/docsy/static/favicons": [
+            [
+                "//docsyserver/images:favicon.ico",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/docsyserver",
+    env = {
+        "PATH": "$$PATH:/home/skia/node-v14.16.0-linux-x64/bin",
+    },
+    repository = "skia-public/docsyserver",
+    run_commands_root = [
+        # Install required packages.
+        "apt-get update",
+        "apt-get install -y wget openssh-client procps unzip vim less build-essential gcc gcc-10 gcc-10-base libgcc-10-dev",
+        "apt-get clean",
+    ],
+    run_commands_skia = [
+        # Install golang.
+        "cd && wget https://golang.org/dl/go1.16.2.linux-amd64.tar.gz && tar -xzf go1.16.2.linux-amd64.tar.gz",
+
+        # Install hugo.
+        "cd && git clone https://github.com/gohugoio/hugo.git && cd hugo && ~/go/bin/go install --tags extended",
+
+        # Install node.
+        "cd && wget https://nodejs.org/dist/v14.16.0/node-v14.16.0-linux-x64.tar.gz && tar -xzf node-v14.16.0-linux-x64.tar.gz",
+
+        # Install docsy.
+        "cd && git clone --recurse-submodules --depth 1 https://github.com/google/docsy-example.git docsy && cd docsy",
+        "PATH=\"/home/skia/node-v14.16.0-linux-x64/bin:${PATH}\"",
+        "/home/skia/node-v14.16.0-linux-x64/bin/npm install && rm config.toml && rm -rf content",
+        # Copy artifacts over.
+        "cp -r /usr/local/share/docsy/layouts/partials layouts/",
+        "cp -r /usr/local/share/docsy/static .",
+    ],
+)

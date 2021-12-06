@@ -1,17 +1,17 @@
-build:
-	go install ./go/...
+include ../make/bazel.mk
+include ../kube/kube.mk
 
-build-local-image: build
-	SKIP_UPLOAD=1 ./images/release
+build:
+	$(BAZEL) build //docsyserver/go/...
 
 test:
 	go test -cover ./go/...
 
 release: build
-	./images/release
+	$(BAZEL) run //docsyserver:push_docsyserver_container
 
-push: release
-	pushk docsyserver
+push: pushk release
+	pushk --use-temp-checkout docsyserver
 
 # The docker image has two scripts that allow seeing what docs would look like
 # when rendered with Hugo/Docsy.

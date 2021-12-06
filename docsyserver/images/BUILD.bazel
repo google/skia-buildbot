@@ -1,0 +1,7 @@
+exports_files(
+    ["favicon.ico"] + glob([
+        "*.html",
+    ]) + glob([
+        "*.sh",
+    ]),
+)

@@ -18,7 +18,7 @@ The detailed design doc is at http://go/docsyserver.
 
 ## Directory Structure
 
-- `images/release` - Builds a docker file that contains a checkout of the Docsy
+- `BUILD.bazel` - Builds a docker file that contains a checkout of the Docsy
   example repo, along with all the dependencies needed to build it, including
   Hugo and npm.
 
@@ -34,7 +34,7 @@ The detailed design doc is at http://go/docsyserver.
 - `go/docset` - Manages checking out the repo, patching CLs for documentation
   under code review, and cleaning up after code review issues are closed.
 
-- `images/head-end.htm` - If there are script sources that need to be added to
+- `images/head-end.html` - If there are script sources that need to be added to
   each page those should go in this file, which will be placed in the right
   directory in the docsy template.
 
