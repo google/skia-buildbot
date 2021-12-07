@@ -94,6 +94,10 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		rfConfig := c.GetBuildbucketRevisionFilter()
 		revFilter, err = revision_filter.NewBuildbucketRevisionFilter(client, rfConfig)
 	}
+	if c.GetCipdRevisionFilter() != nil {
+		rfConfig := c.GetCipdRevisionFilter()
+		revFilter, err = revision_filter.NewCIPDRevisionFilter(client, rfConfig, workdir)
+	}
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

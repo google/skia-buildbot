@@ -346,6 +346,7 @@ message ParentChildRepoManagerConfig {
     // considered as roll candidates.
     oneof revision_filter {
         BuildbucketRevisionFilterConfig buildbucket_revision_filter = 12;
+        CIPDRevisionFilterConfig cipd_revision_filter = 13;
     }
 }
 
@@ -688,6 +689,14 @@ message BuildbucketRevisionFilterConfig {
     string bucket = 2;
     string buildset_commit_tmpl = 3;
     repeated string builder = 4;
+}
+
+// CIPDRevisionFilterConfig provides configuration for a revision filter
+// which filters out revisions which don't exist on all of the configured
+// packages and platforms.
+message CIPDRevisionFilterConfig {
+    repeated string package = 1;
+    repeated string platform = 2;
 }
 
 // PreUploadConfig describes additional steps to run after updating the

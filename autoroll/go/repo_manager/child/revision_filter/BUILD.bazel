@@ -1,9 +1,11 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "revision_filter",
     srcs = [
         "buildbucket.go",
+        "cipd.go",
         "revision_filter.go",
     ],
     importpath = "go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter",
@@ -12,9 +14,23 @@ go_library(
         "//autoroll/go/config",
         "//autoroll/go/revision",
         "//go/buildbucket",
+        "//go/cipd",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
         "@org_chromium_go_luci//buildbucket/proto",
+    ],
+)
+
+go_test(
+    name = "revision_filter_test",
+    srcs = ["cipd_test.go"],
+    embed = [":revision_filter"],
+    deps = [
+        "//autoroll/go/revision",
+        "//go/cipd/mocks",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//cipd/common",
     ],
 )

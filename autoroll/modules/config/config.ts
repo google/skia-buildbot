@@ -334,6 +334,7 @@ export interface ParentChildRepoManagerConfig {
   gitilesChild?: GitilesChildConfig;
   semverGcsChild?: SemVerGCSChildConfig;
   buildbucketRevisionFilter?: BuildbucketRevisionFilterConfig;
+  cipdRevisionFilter?: CIPDRevisionFilterConfig;
 }
 
 interface ParentChildRepoManagerConfigJSON {
@@ -349,6 +350,7 @@ interface ParentChildRepoManagerConfigJSON {
   gitiles_child?: GitilesChildConfigJSON;
   semver_gcs_child?: SemVerGCSChildConfigJSON;
   buildbucket_revision_filter?: BuildbucketRevisionFilterConfigJSON;
+  cipd_revision_filter?: CIPDRevisionFilterConfigJSON;
 }
 
 export interface CopyParentConfig_CopyEntry {
@@ -685,6 +687,16 @@ interface BuildbucketRevisionFilterConfigJSON {
   bucket?: string;
   buildset_commit_tmpl?: string;
   builder?: string[];
+}
+
+export interface CIPDRevisionFilterConfig {
+  package?: string[];
+  platform?: string[];
+}
+
+interface CIPDRevisionFilterConfigJSON {
+  package?: string[];
+  platform?: string[];
 }
 
 export interface PreUploadConfig {
