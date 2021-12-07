@@ -19,11 +19,11 @@ over-ride the defaults regardless of the processing order of the CSS files.
 body {
   --sidebar-width: 200px;
   --sidebar-horiz-padding: 5px;
-  --sidebar-background-color: var(--on-primary, --white);
+  --sidebar-background-color: var(--on-primary, var(--white));
 
   --header-height: 50px;
-  --header-background-color: var(--primary, --blue);
-  --header-font-color: var(--on-primary, --white);
+  --header-background-color: var(--primary, var(--blue));
+  --header-font-color: var(--on-primary, var(--white));
 
   --content-horiz-padding: 5px;
   --content-vert-padding: 0px;
@@ -38,9 +38,9 @@ body {
 }
 
 app-sk {
-  color: var(--on-background, --black);
-  fill: var(--on-background, --black);
-  background: var(--background, --white);
+  color: var(--on-background, var(--black));
+  fill: var(--on-background, var(--black));
+  background: var(--background, var(--white));
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;
   grid-template-rows: var(--header-height) 1fr var(--footer-height);

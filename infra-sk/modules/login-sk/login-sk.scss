@@ -16,6 +16,6 @@ login-sk {
   .email,
   .logInOut {
     font-size: 15px;
-    color: var(--background, --white);
+    color: var(--background, var(--white));
   }
 }
