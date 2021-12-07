@@ -107,7 +107,7 @@ func main() {
 	}
 
 	// TODO(kjlubick) Build and push all apps of interest as they are ported.
-	if err := buildPushJSFiddle(ctx, dkr, wasmProductsDir, wd, *skiaRevision); err != nil {
+	if err := buildPushJSFiddle(ctx, wasmProductsDir, wd, *skiaRevision); err != nil {
 		td.Fatal(ctx, err)
 	}
 	fmt.Printf("TODO(kjlubick): need to publish to pubsub topic %s", topic.String())
@@ -120,14 +120,16 @@ func main() {
 	}
 }
 
-func buildPushJSFiddle(ctx context.Context, dkr *docker.Docker, wasmProductsDir, workDir, skiaRevision string) error {
+func buildPushJSFiddle(ctx context.Context, wasmProductsDir, workDir, skiaRevision string) error {
 	err := td.Do(ctx, td.Props("Build jsfiddle image").Infra(), func(ctx context.Context) error {
 		runCmd := &sk_exec.Command{
-			Name: "make",
-			Args: []string{"bazel_release_ci"},
+			Name:       "make",
+			Args:       []string{"bazel_release_ci"},
+			InheritEnv: true,
 			Env: []string{
 				"COPY_FROM_DIR=" + wasmProductsDir,
-				"STABLE_DOCKER_TAG=" + skiaRevision},
+				"STABLE_DOCKER_TAG=" + skiaRevision,
+			},
 			Dir:       filepath.Join(workDir, "jsfiddle"),
 			LogStdout: true,
 			LogStderr: true,
