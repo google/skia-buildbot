@@ -1,0 +1,15 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "sa_keys_checker_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//sa-keys-checker/go/sa-keys-checker:sa-keys-checker",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/sa-keys-checker",
+    repository = "skia-public/sa-keys-checker",
+)
