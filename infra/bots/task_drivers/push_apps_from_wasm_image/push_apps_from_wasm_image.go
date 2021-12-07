@@ -9,7 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"path"
 
 	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/option"
@@ -27,6 +26,7 @@ import (
 
 var (
 	// Required properties for this task.
+	// TODO(kjlubick) remove gerrit* once skia doesn't set them
 	gerritProject = flag.String("gerrit_project", "", "Gerrit project name.")
 	gerritUrl     = flag.String("gerrit_url", "", "URL of the Gerrit server.")
 	projectId     = flag.String("project_id", "", "ID of the Google Cloud project.")
@@ -135,20 +135,8 @@ func main() {
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	if *gerritProject == "" {
-		td.Fatalf(ctx, "--gerrit_project is required.")
-	}
-	if *gerritUrl == "" {
-		td.Fatalf(ctx, "--gerrit_url is required.")
-	}
 
 	wd, err := os_steps.Abs(ctx, *workdir)
-	if err != nil {
-		td.Fatal(ctx, err)
-	}
-
-	// Check out the code.
-	_, err = checkout.EnsureGitCheckout(ctx, path.Join(wd, "repo"), rs)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}

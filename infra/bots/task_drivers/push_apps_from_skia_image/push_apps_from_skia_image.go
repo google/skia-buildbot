@@ -28,6 +28,7 @@ import (
 
 var (
 	// Required properties for this task.
+	// TODO(kjlubick) remove gerrit* once skia doesn't set them
 	gerritProject = flag.String("gerrit_project", "", "Gerrit project name.")
 	gerritUrl     = flag.String("gerrit_url", "", "URL of the Gerrit server.")
 	projectId     = flag.String("project_id", "", "ID of the Google Cloud project.")
@@ -122,12 +123,6 @@ func main() {
 	rs, err := checkout.GetRepoState(checkoutFlags)
 	if err != nil {
 		td.Fatal(ctx, err)
-	}
-	if *gerritProject == "" {
-		td.Fatalf(ctx, "--gerrit_project is required.")
-	}
-	if *gerritUrl == "" {
-		td.Fatalf(ctx, "--gerrit_url is required.")
 	}
 
 	wd, err := os_steps.Abs(ctx, *workdir)
