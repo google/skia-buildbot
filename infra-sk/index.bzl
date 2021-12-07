@@ -510,7 +510,6 @@ def sk_page(
         output_name = "%s/%s.css" % (DEV_OUT_DIR, name),
         deps = [name + "_styles"],
         include_paths = [
-            "//node_modules",  # TODO(lovisolo) why is this path needed?
             "//external/npm",  # Allows @use "node_modules/some_package/some_file.css" to work
         ],
         output_style = "expanded",
@@ -526,7 +525,6 @@ def sk_page(
         output_name = "%s_unoptimized.css" % name,
         deps = [name + "_styles"],
         include_paths = [
-            "//node_modules",  # TODO(lovisolo) why is this path needed?
             "//external/npm",  # Allows @use "node_modules/some_package/some_file.css" to work
         ],
         output_style = "compressed",
