@@ -31,7 +31,6 @@ services/bugdroid/bugdroid_log.txt
 **/gcloud_token.data
 **/gcloud_token_skia-buildbots.data
 **/gcloud_token_skia-swarming-bots.data
-git_cookie_authdaemon/third_party
 google_oauth_token.data
 oauth-token.cache
 # Node related directories
