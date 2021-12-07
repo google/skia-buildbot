@@ -50,18 +50,18 @@ func StartGCloudMetrics(ctx context.Context, projects []string, ts oauth2.TokenS
 		lvReportGCloudMetrics := metrics2.NewLiveness("last_successful_report_gcloud_metrics", map[string]string{
 			"project": project,
 		})
-		oldMetrics := map[metrics2.Float64Metric]struct{}{}
+		oldMetrics := map[metrics2.Int64Metric]struct{}{}
 		go util.RepeatCtx(ctx, metricsInterval, func(ctx context.Context) {
 			newMetrics, err := ingestMetricsForProject(ctx, metricsClient, project)
 			if err != nil {
 				sklog.Error(err)
 				return
 			}
-			newMetricsMap := make(map[metrics2.Float64Metric]struct{}, len(newMetrics))
+			newMetricsMap := make(map[metrics2.Int64Metric]struct{}, len(newMetrics))
 			for _, m := range newMetrics {
 				newMetricsMap[m] = struct{}{}
 			}
-			var cleanup []metrics2.Float64Metric
+			var cleanup []metrics2.Int64Metric
 			for m := range oldMetrics {
 				if _, ok := newMetricsMap[m]; !ok {
 					cleanup = append(cleanup, m)
@@ -82,8 +82,8 @@ func StartGCloudMetrics(ctx context.Context, projects []string, ts oauth2.TokenS
 
 // cleanupOldMetrics deletes old metrics. This fixes the case where metrics no
 // longer appear upstream but their metrics hang around without being updated.
-func cleanupOldMetrics(oldMetrics []metrics2.Float64Metric) []metrics2.Float64Metric {
-	failedDelete := []metrics2.Float64Metric{}
+func cleanupOldMetrics(oldMetrics []metrics2.Int64Metric) []metrics2.Int64Metric {
+	failedDelete := []metrics2.Int64Metric{}
 	for _, m := range oldMetrics {
 		if err := m.Delete(); err != nil {
 			sklog.Warningf("Failed to delete metric: %s", err)
@@ -94,8 +94,8 @@ func cleanupOldMetrics(oldMetrics []metrics2.Float64Metric) []metrics2.Float64Me
 }
 
 // ingestMetricsForProject ingests all GCloud metrics for a particular projects.
-func ingestMetricsForProject(ctx context.Context, metricsClient MetricClient, project string) ([]metrics2.Float64Metric, error) {
-	rv := []metrics2.Float64Metric{}
+func ingestMetricsForProject(ctx context.Context, metricsClient MetricClient, project string) ([]metrics2.Int64Metric, error) {
+	rv := []metrics2.Int64Metric{}
 
 	// PubSub metrics.
 	pubsubMetrics, err := ingestPubSubMetrics(ctx, metricsClient, project)
@@ -111,11 +111,11 @@ func ingestMetricsForProject(ctx context.Context, metricsClient MetricClient, pr
 }
 
 // ingestPubSubMetrics ingests Cloud PubSub metrics for a project.
-func ingestPubSubMetrics(ctx context.Context, metricsClient MetricClient, project string) ([]metrics2.Float64Metric, error) {
+func ingestPubSubMetrics(ctx context.Context, metricsClient MetricClient, project string) ([]metrics2.Int64Metric, error) {
 	endTs := now.Now(ctx)
 	endTime := timestamppb.New(endTs)
 	startTime := timestamppb.New(endTs.Add(-metricsPeriod))
-	rv := []metrics2.Float64Metric{}
+	rv := []metrics2.Int64Metric{}
 	for metricType, measurement := range pubsubMetrics {
 		metrics, err := ingestTimeSeries(ctx, metricsClient, project, metricType, measurement, pubsubIncludeLabels, startTime, endTime)
 		if err != nil {
@@ -153,8 +153,8 @@ func (w *metricClientWrapper) ListTimeSeries(ctx context.Context, req *monitorin
 // metricType within the given project. The data is stored under the given
 // measurement name. The includeLabels must deduplicate the time series
 // sufficiently to prevent writing conflicting values to the same metric.
-func ingestTimeSeries(ctx context.Context, metricsClient MetricClient, project, metricType, measurement string, includeLabels []string, startTime, endTime *timestamppb.Timestamp) ([]metrics2.Float64Metric, error) {
-	rv := []metrics2.Float64Metric{}
+func ingestTimeSeries(ctx context.Context, metricsClient MetricClient, project, metricType, measurement string, includeLabels []string, startTime, endTime *timestamppb.Timestamp) ([]metrics2.Int64Metric, error) {
+	rv := []metrics2.Int64Metric{}
 	req := &monitoringpb.ListTimeSeriesRequest{
 		Name:   fmt.Sprintf("projects/%s", project),
 		Filter: fmt.Sprintf("metric.type = %q", metricType),
@@ -177,13 +177,13 @@ func ingestTimeSeries(ctx context.Context, metricsClient MetricClient, project, 
 		}
 		if len(timeSeries.Points) > 0 {
 			// Just use the very last data point.
-			value := timeSeries.Points[len(timeSeries.Points)-1].GetValue().GetDoubleValue()
+			value := timeSeries.Points[len(timeSeries.Points)-1].GetValue().GetInt64Value()
 			tags := make(map[string]string, len(includeLabels)+1)
 			for _, label := range includeLabels {
 				tags[label] = timeSeries.Resource.Labels[label]
 			}
 			tags["project"] = project
-			metric := metrics2.GetFloat64Metric(measurement, tags)
+			metric := metrics2.GetInt64Metric(measurement, tags)
 			metric.Update(value)
 			rv = append(rv, metric)
 		}

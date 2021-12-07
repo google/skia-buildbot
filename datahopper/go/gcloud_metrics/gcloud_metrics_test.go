@@ -41,13 +41,13 @@ func (i *testTimeSeriesIterator) Next() (*monitoringpb.TimeSeries, error) {
 	return rv, nil
 }
 
-func makeTimeSeries(labels map[string]string, points []float64) *monitoringpb.TimeSeries {
+func makeTimeSeries(labels map[string]string, points []int64) *monitoringpb.TimeSeries {
 	pointsPb := make([]*monitoringpb.Point, 0, len(points))
 	for _, point := range points {
 		pointsPb = append(pointsPb, &monitoringpb.Point{
 			Value: &monitoringpb.TypedValue{
-				Value: &monitoringpb.TypedValue_DoubleValue{
-					DoubleValue: point,
+				Value: &monitoringpb.TypedValue_Int64Value{
+					Int64Value: point,
 				},
 			},
 		})
@@ -73,12 +73,12 @@ func TestIngestTimeSeries(t *testing.T) {
 				"key1": "value1a",
 				"key2": "value2a",
 				"key3": "value3a",
-			}, []float64{0.9, 1.0, 1.1}),
+			}, []int64{9, 10, 11}),
 			makeTimeSeries(map[string]string{
 				"key2": "value2b",
 				"key3": "value3b",
 				"key4": "value4b",
-			}, []float64{2.3, 2.2, 2.1}),
+			}, []int64{3, 22, 21}),
 		},
 	}
 	// Timestamps are ignored by the mock client.
@@ -91,20 +91,20 @@ func TestIngestTimeSeries(t *testing.T) {
 	require.Len(t, metrics, 2)
 
 	// Ensure that we registered the metrics as expected.
-	m0 := metrics2.GetFloat64Metric(measurement, map[string]string{
+	m0 := metrics2.GetInt64Metric(measurement, map[string]string{
 		"key1":    "value1a",
 		"key2":    "value2a",
 		"project": project, // Added automatically by ingestTimeSeries.
 	})
 	require.Equal(t, m0, metrics[0])
-	require.Equal(t, 1.1, m0.Get()) // We only use the last data point.
-	m1 := metrics2.GetFloat64Metric(measurement, map[string]string{
+	require.Equal(t, int64(11), m0.Get()) // We only use the last data point.
+	m1 := metrics2.GetInt64Metric(measurement, map[string]string{
 		"key1":    "", // Not present in the original time series.
 		"key2":    "value2b",
 		"project": project, // Added automatically by ingestTimeSeries.
 	})
 	require.Equal(t, m1, metrics[1])
-	require.Equal(t, 2.1, m1.Get()) // We only use the last data point.
+	require.Equal(t, int64(21), m1.Get()) // We only use the last data point.
 }
 
 var _ MetricClient = &testMetricClient{}
