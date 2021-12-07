@@ -53,6 +53,10 @@ push: release
 bazel_release: wasm_libs
 	$(BAZEL) run //jsfiddle:push_jsfiddle_container
 
+bazel_release_ci:
+	cp -r $(COPY_FROM_DIR)/* build/
+	bazelisk run //jsfiddle:push_jsfiddle_container --workspace_status_command=bazel/override_container_label.sh
+
 run-local-instance: wasm_libs
 	$(BAZEL) build ...
 	../_bazel_bin/jsfiddle/go/jsfiddle/jsfiddle_/jsfiddle --local --resources_dir ../_bazel_bin/jsfiddle/pages/development
