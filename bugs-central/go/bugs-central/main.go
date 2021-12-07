@@ -187,7 +187,7 @@ type GetClientCountsResponse struct {
 func (srv *Server) getClientCounts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	clientsForStatus := []types.RecognizedClient{types.SkiaClient, types.AndroidClient, types.ChromiumClient}
+	clientsForStatus := []types.RecognizedClient{types.SkiaClient, types.AndroidClient, types.ChromiumClient, types.OSSFuzzClient}
 	clientsToStatusData := map[types.RecognizedClient]StatusData{}
 	for _, c := range clientsForStatus {
 		countsData, err := srv.dbClient.GetCountsFromDB(r.Context(), c, "", "")
