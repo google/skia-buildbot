@@ -1,1 +1,1 @@
-import '../modules/pathkit-fiddle';
+import '../modules/pathkit-fiddle-sk';

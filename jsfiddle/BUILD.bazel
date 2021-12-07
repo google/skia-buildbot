@@ -1,0 +1,46 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "jsfiddle_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//jsfiddle/go/jsfiddle:jsfiddle",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/jsfiddle/dist": [
+            [
+                "//jsfiddle/pages:production/canvaskit-index.html",
+                "0644",
+            ],
+            [
+                "//jsfiddle/pages:production/canvaskit-index.js",
+                "0644",
+            ],
+            [
+                "//jsfiddle/pages:production/canvaskit-index.css",
+                "0644",
+            ],
+            [
+                "//jsfiddle/pages:production/pathkit-index.html",
+                "0644",
+            ],
+            [
+                "//jsfiddle/pages:production/pathkit-index.js",
+                "0644",
+            ],
+            [
+                "//jsfiddle/pages:production/pathkit-index.css",
+                "0644",
+            ],
+            [
+                "//jsfiddle/build:wasm_files",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/jsfiddle",
+    repository = "skia-public/jsfiddle",
+)

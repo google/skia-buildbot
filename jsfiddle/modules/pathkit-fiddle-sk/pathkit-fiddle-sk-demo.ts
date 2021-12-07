@@ -1,7 +1,7 @@
 import './index';
 
 import { $$ } from 'common-sk/modules/dom';
-import { WasmFiddle } from '../wasm-fiddle/wasm-fiddle';
+import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
 
 const pk = $$ <WasmFiddle>('pathkit-fiddle')!;
 pk.content = `// canvas and PathKit are globally available

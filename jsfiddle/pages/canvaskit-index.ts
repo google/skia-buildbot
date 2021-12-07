@@ -1,1 +1,1 @@
-import '../modules/canvaskit-fiddle';
+import '../modules/canvaskit-fiddle-sk';

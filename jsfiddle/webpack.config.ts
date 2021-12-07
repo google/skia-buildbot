@@ -11,9 +11,10 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
 
   config.plugins!.push(
     new CopyWebpackPlugin([
+      { from: resolve(__dirname, 'build/canvaskit/canvaskit.js') },
       { from: resolve(__dirname, 'build/canvaskit/canvaskit.wasm') },
+      { from: resolve(__dirname, 'build/pathkit/pathkit.js') },
       { from: resolve(__dirname, 'build/pathkit/pathkit.wasm') },
-      { from: resolve(__dirname, 'node_modules/@webcomponents/custom-elements/custom-elements.min.js') },
     ]),
   );
 

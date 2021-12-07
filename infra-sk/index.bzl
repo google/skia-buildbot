@@ -326,6 +326,7 @@ def sk_page(
         sass_deps = [],
         sk_element_deps = [],
         assets_serving_path = "/",
+        copy_files = None,
         nonce = None):
     """Builds a static HTML page, and its CSS and JavaScript development and production bundles.
 
@@ -364,6 +365,8 @@ def sk_page(
       sk_element_deps: Any sk_element dependencies. Equivalent to adding the ts_library and
         sass_library of each sk_element to deps and sass_deps, respectively.
       assets_serving_path: Path prefix for the inserted <script> and <link> tags.
+      copy_files: Any files that should just be copied into the final build directory. These are
+        assets needed by the page that are not loaded in via imports (e.g. images, WASM).
       nonce: If set, its contents will be added as a "nonce" attributes to any inserted <script> and
         <link> tags.
     """
@@ -429,6 +432,21 @@ def sk_page(
         visibility = ["//visibility:public"],
     )
 
+    if copy_files:
+        for pair in copy_files:
+            copy_file(
+                name = "%s_copy_prod" % pair["dst"],
+                src = pair["src"],
+                dst = PROD_OUT_DIR + "/" + pair["dst"],
+                visibility = ["//visibility:public"],
+            )
+            copy_file(
+                name = "%s_copy_dev" % pair["dst"],
+                src = pair["src"],
+                dst = DEV_OUT_DIR + "/" + pair["dst"],
+                visibility = ["//visibility:public"],
+            )
+
     ################
     # CSS Bundles. #
     ################
@@ -491,7 +509,10 @@ def sk_page(
         src = name + "_ghost_entrypoint_scss",
         output_name = "%s/%s.css" % (DEV_OUT_DIR, name),
         deps = [name + "_styles"],
-        include_paths = ["//node_modules"],
+        include_paths = [
+            "//node_modules",  # TODO(lovisolo) why is this path needed?
+            "//external/npm",  # Allows @use "node_modules/some_package/some_file.css" to work
+        ],
         output_style = "expanded",
         sourcemap = True,
         sourcemap_embed_sources = True,
@@ -504,7 +525,10 @@ def sk_page(
         src = name + "_ghost_entrypoint_scss",
         output_name = "%s_unoptimized.css" % name,
         deps = [name + "_styles"],
-        include_paths = ["//node_modules"],
+        include_paths = [
+            "//node_modules",  # TODO(lovisolo) why is this path needed?
+            "//external/npm",  # Allows @use "node_modules/some_package/some_file.css" to work
+        ],
         output_style = "compressed",
         sourcemap = False,
         visibility = ["//visibility:public"],

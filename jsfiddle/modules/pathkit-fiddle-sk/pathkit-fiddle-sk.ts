@@ -3,14 +3,12 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 
 import { SKIA_VERSION } from '../../build/version';
-import {
-  WasmFiddle,
-} from '../wasm-fiddle/wasm-fiddle';
+import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
 
 import '../../../infra-sk/modules/theme-chooser-sk';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const PathKitInit = require('../../build/pathkit/pathkit.js');
+// It is assumed that canvaskit.js has been loaded and this symbol is available globally.
+declare const PathKitInit: any;
 
 // Main template for this element
 const template = (ele: WasmFiddle) => html`
@@ -50,8 +48,8 @@ const wasmPromise = PathKitInit({
 });
 
 /**
- * @module jsfiddle/modules/pathkit-fiddle
- * @description <h2><code>pathkit-fiddle</code></h2>
+ * @module jsfiddle/modules/pathkit-fiddle-sk
+ * @description <h2><code>pathkit-fiddle-sk</code></h2>
  *
  * <p>
  *   The top level element for displaying pathkit fiddles.
@@ -67,4 +65,4 @@ class PathKitFiddle extends WasmFiddle {
   }
 }
 
-define('pathkit-fiddle', PathKitFiddle);
+define('pathkit-fiddle-sk', PathKitFiddle);

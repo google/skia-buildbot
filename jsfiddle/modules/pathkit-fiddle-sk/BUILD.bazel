@@ -1,0 +1,36 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":pathkit-fiddle-sk-demo",
+)
+
+sk_element(
+    name = "pathkit-fiddle-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        "//jsfiddle/modules/wasm-fiddle-sk",
+    ],
+    ts_deps = [
+        "//jsfiddle/build:wasm_libraries",  # keep
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "pathkit-fiddle-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "pathkit-fiddle-sk-demo",
+    html_file = "pathkit-fiddle-sk-demo.html",
+    sk_element_deps = [
+        "//jsfiddle/modules/wasm-fiddle-sk",
+        ":pathkit-fiddle-sk",
+    ],
+    ts_deps = ["@npm//common-sk"],
+    ts_entry_point = "pathkit-fiddle-sk-demo.ts",
+)

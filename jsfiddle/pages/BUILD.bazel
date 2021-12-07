@@ -1,0 +1,37 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "canvaskit-index",
+    assets_serving_path = "/res",
+    copy_files = [
+        {
+            "src": "//jsfiddle/build:canvaskit_js",
+            "dst": "canvaskit.js",
+        },
+        {
+            "src": "//jsfiddle/build:canvaskit_wasm",
+            "dst": "canvaskit.wasm",
+        },
+    ],
+    html_file = "canvaskit-index.html",
+    sk_element_deps = ["//jsfiddle/modules/canvaskit-fiddle-sk"],
+    ts_entry_point = "canvaskit-index.ts",
+)
+
+sk_page(
+    name = "pathkit-index",
+    assets_serving_path = "/res",
+    copy_files = [
+        {
+            "src": "//jsfiddle/build:pathkit_js",
+            "dst": "pathkit.js",
+        },
+        {
+            "src": "//jsfiddle/build:pathkit_wasm",
+            "dst": "pathkit.wasm",
+        },
+    ],
+    html_file = "pathkit-index.html",
+    sk_element_deps = ["//jsfiddle/modules/pathkit-fiddle-sk"],
+    ts_entry_point = "pathkit-index.ts",
+)

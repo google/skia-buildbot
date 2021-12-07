@@ -3,7 +3,7 @@ import { assert } from 'chai';
 import {
   colorPickerRegex,
   extractControlNames, sliderRegex,
-} from './wasm-fiddle';
+} from './wasm-fiddle-sk';
 
 describe('wasm-fiddle', () => {
   describe('extractControlNames', () => {

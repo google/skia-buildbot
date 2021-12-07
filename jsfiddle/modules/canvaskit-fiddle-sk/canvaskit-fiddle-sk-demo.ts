@@ -1,9 +1,9 @@
 import './index';
 
 import { $$ } from 'common-sk/modules/dom';
-import { WasmFiddle } from '../wasm-fiddle/wasm-fiddle';
+import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
 
-const ck = $$<WasmFiddle>('canvaskit-fiddle')!;
+const ck = $$<WasmFiddle>('canvaskit-fiddle-sk')!;
 
 ck.content = `// One can specify up to 10 sliders or color pickers using the syntax
 // #sliderN:displayNameNoSpaces. This will create a variable in the scope

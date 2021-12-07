@@ -1,3 +1,5 @@
+include ../make/bazel.mk
+
 build: npm-ci
 	go install ./go/...
 	npx webpack --mode=development
@@ -13,7 +15,7 @@ watch: npm-ci
 
 wasm_libs:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
-	rm -rf build
+	rm -rf build/canvaskit build/pathkit build/debugger
 	mkdir -p build/canvaskit build/pathkit
 	# Extract them from the most recently built ones. These are built
 	# using cloudbuild.yaml in the Skia repo.
@@ -45,16 +47,22 @@ release_ci: npm-ci
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/jsfiddle
 	./build_release
 
-push: get_latest_skia release
+push: release
 	pushk jsfiddle
 
-.PHONY: build serve release_build watch core release wasm_libs get_latest_skia
+bazel_release: wasm_libs
+	$(BAZEL) run //jsfiddle:push_jsfiddle_container
+
+run-local-instance: wasm_libs
+	$(BAZEL) build ...
+	../_bazel_bin/jsfiddle/go/jsfiddle/jsfiddle_/jsfiddle --local --resources_dir ../_bazel_bin/jsfiddle/pages/development
+	# put the placeholders back
+	git checkout origin/main -- build/
+
+.PHONY: build serve release_build watch core release wasm_libs
 
 .PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs npm-ci
 	npx webpack --mode=production
-
-run-local-instance:
-	jsfiddle --local
 
 include ../make/npm.mk

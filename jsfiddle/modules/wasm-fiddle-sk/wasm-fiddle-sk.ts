@@ -12,7 +12,7 @@ import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like language
 
 import type {
   CanvasKit,
-} from '../../build/canvaskit/canvaskit.js';
+} from '../../build/canvaskit/canvaskit';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 /** Regexp to determine if the code measures FPS. */

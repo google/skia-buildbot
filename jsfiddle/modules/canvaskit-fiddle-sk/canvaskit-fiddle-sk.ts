@@ -3,12 +3,13 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 
 import { SKIA_VERSION } from '../../build/version';
-import { WasmFiddle } from '../wasm-fiddle/wasm-fiddle';
+import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
 
 import '../../../infra-sk/modules/theme-chooser-sk';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
+import { CanvasKitInit as CKInit } from '../../build/canvaskit/canvaskit';
+// It is assumed that canvaskit.js has been loaded and this symbol is available globally.
+declare const CanvasKitInit: typeof CKInit;
 
 // Main template for this element
 const template = (ele: WasmFiddle) => html` <header>
@@ -52,8 +53,8 @@ const wasmPromise = CanvasKitInit({
 });
 
 /**
- * @module jsfiddle/modules/canvaskit-fiddle
- * @description <h2><code>canvaskit-fiddle</code></h2>
+ * @module jsfiddle/modules/canvaskit-fiddle-sk
+ * @description <h2><code>canvaskit-fiddle-sk</code></h2>
  *
  * <p>
  *   The top level element for displaying canvaskit fiddles.
@@ -70,5 +71,5 @@ class CanvasKitFiddle extends WasmFiddle {
 }
 
 define(
-  'canvaskit-fiddle', CanvasKitFiddle,
+  'canvaskit-fiddle-sk', CanvasKitFiddle,
 );
