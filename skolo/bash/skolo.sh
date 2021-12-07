@@ -28,4 +28,5 @@ alias skolo_rack1_shelf2_switch='google-chrome https://localhost:7102; ssh -L 71
 
 alias skolo_rack4_shelf1_switch='google-chrome https://localhost:7401; ssh -L 7401:rack4-shelf1-poe-switch:443 rack4'
 alias skolo_rack4_shelf2_switch='google-chrome https://localhost:7402; ssh -L 7402:rack4-shelf2-poe-switch:443 rack4'
-alias skolo_rack4_shelf3_switch='google-chrome https://localhost:7402; ssh -L 7403:rack4-shelf3-poe-switch:443 rack4'
+alias skolo_rack4_shelf3_switch='google-chrome https://localhost:7403; ssh -L 7403:rack4-shelf3-poe-switch:443 rack4'
+alias skolo_rack4_shelf4_switch='google-chrome https://localhost:7404; ssh -L 7403:rack4-shelf4-poe-switch:443 rack4'
