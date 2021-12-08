@@ -101,8 +101,7 @@ def skia_app_container(
         ["//myapp/go:mybinary", "755"]).
       entrypoint: The entrypoint of the container, which can be a string or an array (e.g.
         "/usr/local/share/myapp/mybinary", or ["/usr/local/share/myapp/mybinary", "--someflag"]).
-        If run_commands_root is specified then entrypoint must be a binary that can be called with
-        no arguments. Optional.
+        Optional.
       run_commands_root: The RUN commands that should be executed on the container by the root
         user. Optional.
       run_commands_skia: The RUN commands that should be executed on the container by the skia
