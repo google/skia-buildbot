@@ -315,6 +315,28 @@ Use `bazel run` to serve a demo page via its `sk_demo_page_server` rule, e.g.:
 $ bazel run //golden/modules/dots-sk:demo_page_server
 ```
 
+#### Watching for changes
+
+To rebuild the demo page automatically upon changes in the custom element's directory, use the
+`demopage.sh` script found in the repository's root directory, e.g.:
+
+```
+$ ./demopage.sh golden/modules/dots-sk
+```
+
+This script uses [entr](https://eradman.com/entrproject/) to watch for file changes and re-execute
+the `bazel run` command as needed. The above `demopage.sh` invocation is equivalent to:
+
+```
+$ ls golden/modules/dots-sk/* | entr -r bazel run //golden/modules/dots-sk:demo_page_server
+```
+
+Install `entr` on a gLinux workstation with `sudo apt-get install entr`.
+
+In the future, we might replace this script with
+[ibazel](https://github.com/bazelbuild/bazel-watcher), which requires changes to the
+`sk_demo_page_server` rule.
+
 ### Testing TypeScript code
 
 Tip: Start by reading the [General testing tips](#general-testing-tips) section.
