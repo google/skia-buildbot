@@ -113,5 +113,13 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'off',
       },
     },
+    {
+      files: ['*_test.ts'],
+      rules: {
+        // Prevents Chai.js assertions such as expect(foo).to.be.true from causing "Expected an
+        // assignment or function call and instead saw an expression." linting errors.
+        'no-unused-expressions': 'off',
+      },
+    },
   ],
 };
