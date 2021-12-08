@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto:400,400i,700,700i');
-@import '~elements-sk/colors';
+@import '~elements-sk/themes/themes';
 
 /*
 
@@ -16,6 +16,15 @@ over-ride the defaults regardless of the processing order of the CSS files.
 
 */
 
+// The mobile breakpoint determines the maximum screen width where a mobile layout should be used.
+// The chosen value corresponds to the smallest "small" window size as per
+// https://material.io/archive/guidelines/layout/responsive-ui.html.
+//
+// Note that custom CSS properties cannot be used in media queries (see
+// https://stackoverflow.com/questions/40722882/css-native-variables-not-working-in-media-queries),
+// so we must define the mobile breakpoint as a Sass variable.
+$mobile-breakpoint: 600px;
+
 body {
   --sidebar-width: 200px;
   --sidebar-horiz-padding: 5px;
@@ -24,6 +33,7 @@ body {
   --header-height: 50px;
   --header-background-color: var(--primary, var(--blue));
   --header-font-color: var(--on-primary, var(--white));
+  --header-horiz-padding: 8px;
 
   --content-horiz-padding: 5px;
   --content-vert-padding: 0px;
@@ -49,19 +59,25 @@ app-sk {
 app-sk > {
   header {
     background: var(--header-background-color);
-    padding: 0 0.5em;
+    padding: 0 var(--header-horiz-padding);
     display: flex;
     flex-flow: row;
     justify-content: flex-start;
+    align-items: center;
     color: var(--header-font-color);
     fill: var(--header-font-color);
 
     grid-column: 1 / span 2;
     grid-row: 1;
-  }
 
-  header > * {
-    margin: auto; /* Center things vertically */
+    // Eliminate all margins, except for a small gap between the header items, which coincides with
+    // the header's horizontal padding.
+    > * {
+      margin: 0 var(--header-horiz-padding) 0 0;
+      &:last-child {
+        margin: 0;
+      }
+    }
   }
 
   aside {
@@ -86,7 +102,7 @@ app-sk > {
     grid-row: 3;
   }
 
-  @media screen and (min-width: 480px) {
+  @media screen and (min-width: $mobile-breakpoint) {
     header > .toggle-button {
       display: none;
     }
@@ -96,7 +112,7 @@ app-sk > {
     }
   }
 
-  @media screen and (max-width: 480px) {
+  @media screen and (max-width: $mobile-breakpoint) {
     header > .toggle-button {
       display: block;
       background-color: transparent;
@@ -107,7 +123,7 @@ app-sk > {
        the transitions will make it slide between the two states. */
     aside {
       position: relative;
-      left: calc(-var(--sidebar-width) - 2 * var(--sidebar-horiz-padding));
+      left: calc(-1 * (var(--sidebar-width) + 2 * var(--sidebar-horiz-padding)));
       transition: 0.5s;
     }
 
