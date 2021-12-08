@@ -252,12 +252,17 @@ func processChromeOSEvent(ctx context.Context, previous machine.Description, eve
 func processIOSEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
 	ret := previous.Copy()
 
-	// Swarming expects a leading "iOS-":
-	ret.Dimensions[machine.DimOS] = []string{"iOS", "iOS-" + event.IOS.OSVersion}
-	// TODO(erikrose): Skia Swarming bot list also shows a bare "iOS" in its "os" dimension. I don't
-	// see where that's getting put in. See if it shows up twice since we add it explicitly here.
-	// It's how RebootDevice() tells whether there's an iOS device attached as well.
+	// The bare "iOS" in the "os" dimension, as well as being useful for
+	// filtering in the Swarming UI, is how RebootDevice() tells whether there's
+	// an iOS device attached.
+	osDimensions := []string{"iOS"}
 
+	// Also add the OS version if it was successfully detected:
+	if event.IOS.OSVersion != "" {
+		osDimensions = append(osDimensions, "iOS-"+event.IOS.OSVersion)
+	}
+
+	ret.Dimensions[machine.DimOS] = osDimensions
 	ret.Dimensions[machine.DimDeviceType] = []string{event.IOS.DeviceType}
 
 	inMaintenanceMode := false

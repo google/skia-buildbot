@@ -194,7 +194,7 @@ type ChromeOS struct {
 }
 
 type IOS struct {
-	OSVersion  string `json:"version"`     // e.g. "13.3.1"
+	OSVersion  string `json:"version"`     // e.g. "13.3.1". "" if it couldn't be detected.
 	DeviceType string `json:"device_type"` // e.g. "iPhone10,1"
 	Battery    int    `json:"battery"`     // as integer percent, or BadBatteryLevel
 }
