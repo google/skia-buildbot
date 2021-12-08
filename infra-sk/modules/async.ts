@@ -10,6 +10,7 @@ export async function asyncFind<T>(
   }
   const actualItems = items instanceof Promise ? await items : items;
   for (let i = 0; i < actualItems.length; i++) {
+    // eslint-disable-next-line no-await-in-loop
     if (await (predicate(actualItems[i], i))) {
       return actualItems[i];
     }
@@ -28,6 +29,7 @@ export async function asyncFilter<T>(
   const actualItems = items instanceof Promise ? await items : items;
   const filteredItems: T[] = [];
   for (let i = 0; i < actualItems.length; i++) {
+    // eslint-disable-next-line no-await-in-loop
     if (await (predicate(actualItems[i], i))) {
       filteredItems.push(actualItems[i]);
     }

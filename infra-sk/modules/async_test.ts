@@ -7,7 +7,7 @@ describe('async utilities', () => {
   describe('asyncFind', () => {
     it('handles empty inputs', async () => {
       const visitedItems: number[] = [];
-      const finderFn = async (item: any, index: number) => {
+      const finderFn = async (item: any) => {
         await simulateAsyncOp();
         visitedItems.push(item);
         return true;
@@ -209,8 +209,96 @@ describe('async utilities', () => {
   });
 });
 
-async function simulateAsyncOp(): Promise<void> {}
+async function simulateAsyncOp(): Promise<void> {
+  // Do nothing.
+}
 
 function wrapInPromise<T>(value: T): Promise<T> {
   return new Promise((resolve) => resolve(value));
 }
+
+describe('examples with and without async.ts', () => {
+  // These examples illustrate situations involving multiple async operations where async.ts can
+  // make the code simpler.
+
+  const stateCapitalsMap = new Map<string, string>([
+    ['Colorado', 'Denver'],
+    ['Georgia', 'Atlanta'],
+    ['Massachussets', 'Boston'],
+    ['North Carolina', 'Raleigh'],
+    ['Texas', 'Austin'],
+  ]);
+
+  const cityPopulationsMap = new Map<string, number>([
+    ['Atlanta', 498_715],
+    ['Austin', 950_807],
+    ['Boston', 684_000],
+    ['Denver', 705_576],
+    ['Raleigh', 464_485],
+  ]);
+
+  // Simulates an RPC operation.
+  const getStatesRPC = (): Promise<string[]> => wrapInPromise(Array.from(stateCapitalsMap.keys()));
+
+  // Simulates an RPC operation.
+  const getStateCapitalRPC = (state: string): Promise<string> => (
+    wrapInPromise(stateCapitalsMap.get(state)!)
+  );
+
+  // Simulates an RPC operation.
+  const getCityPopulationRPC = (city: string): Promise<number> => (
+    wrapInPromise(cityPopulationsMap.get(city)!)
+  );
+
+  describe('without async.ts', () => {
+    it('fetches state capitals', async () => {
+      const states = await getStatesRPC();
+      const stateCapitalPromises = states.map(getStateCapitalRPC);
+      const stateCapitals = await Promise.all(stateCapitalPromises);
+
+      expect(stateCapitals).to.have.length(5);
+      expect(stateCapitals).to.have.members(['Atlanta', 'Austin', 'Boston', 'Denver', 'Raleigh']);
+    });
+
+    it('fetches state capitals with population > 500k', async () => {
+      const states = await getStatesRPC();
+      const stateCapitals = await Promise.all(states.map(getStateCapitalRPC));
+
+      // We can't use Array.prototype.filter because async predicates return promises, which are
+      // truthy, and thus nothing gets filtered out.
+      const failedAttempt = stateCapitals.filter(
+        async (city) => (await getCityPopulationRPC(city)) > 500_000,
+      );
+      expect(failedAttempt).to.have.length(5);
+
+      const populousStateCapitals: string[] = [];
+      await Promise.all(stateCapitals.map(async (city) => {
+        const population = await getCityPopulationRPC(city);
+        if (population > 500_000) populousStateCapitals.push(city);
+      }));
+
+      expect(populousStateCapitals).to.have.length(3);
+      expect(populousStateCapitals).to.have.members(['Austin', 'Boston', 'Denver']);
+    });
+  });
+
+  describe('with async.ts', () => {
+    it('fetches state capitals', async () => {
+      const stateCapitals = await asyncMap(getStatesRPC(), getStateCapitalRPC);
+
+      expect(stateCapitals).to.have.length(5);
+      expect(stateCapitals).to.have.members(['Atlanta', 'Austin', 'Boston', 'Denver', 'Raleigh']);
+    });
+
+    it('fetches state capitals with population > 500k', async () => {
+      const stateCapitals = asyncMap(getStatesRPC(), getStateCapitalRPC);
+      const populousStateCapitals = await asyncFilter(
+        stateCapitals,
+        async (city) => (await getCityPopulationRPC(city)) > 500_000,
+      );
+
+      expect(populousStateCapitals).to.have.length(3);
+      expect(populousStateCapitals).to.have.members(['Austin', 'Boston', 'Denver']);
+    });
+  });
+});
