@@ -130,6 +130,7 @@ var (
 		"--platform", "@io_bazel_rules_go//go/toolchain:darwin_amd64=mac-amd64",
 		"--platform", "@io_bazel_rules_go//go/toolchain:darwin_arm64=mac-arm64",
 		"--platform", "@io_bazel_rules_go//go/toolchain:linux_amd64=linux-amd64",
+		"--platform", "@io_bazel_rules_go//go/toolchain:linux_arm64=linux-arm64",
 		"--platform", "@io_bazel_rules_go//go/toolchain:windows_amd64=windows-amd64",
 	}
 )
