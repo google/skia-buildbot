@@ -108,7 +108,7 @@ func CreateTelemetryIsolates(ctx context.Context, runID, targetPlatform, chromiu
 	// Run "tools/mb/mb.py isolate ${TELEMETRY_ISOLATES_OUT_DIR} ${TELEMETRY_ISOLATES_TARGET}"
 	mbArgs := []string{filepath.Join("tools", "mb", "mb.py"), "isolate", TELEMETRY_ISOLATES_OUT_DIR, TELEMETRY_ISOLATES_TARGET}
 	mbCommand := &exec.Command{
-		Name:      BINARY_VPYTHON,
+		Name:      BINARY_VPYTHON3,
 		Args:      mbArgs,
 		Timeout:   NINJA_TIMEOUT,
 		LogStdout: true,
