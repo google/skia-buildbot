@@ -5,5 +5,3 @@ release:
 
 push: release
 	pushk demoserver
-
-include ../make/npm.mk
