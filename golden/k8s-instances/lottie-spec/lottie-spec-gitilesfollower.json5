@@ -1,0 +1,12 @@
+{
+  // Initial commit from 2021-06-29
+  initial_commit: "a77951511720178c47fffe538c52971651986b3c",
+  // Need to use a gitiles mirror
+  git_repo_url: "https://skia.googlesource.com/external/github.com/lottie-animation-community/tests",
+  poll_period: "1m",
+
+  repos_to_monitor_cls: [],
+
+  prom_port: ":20000",
+  ready_port: ":8000"
+}
