@@ -13,6 +13,7 @@ const (
 	Flutter           Instance = "flutter"
 	FlutterEngine     Instance = "flutter-engine"
 	Lottie            Instance = "lottie"
+	LottieSpec        Instance = "lottie-spec"
 	Pdfium            Instance = "pdfium"
 	Skia              Instance = "skia"
 	SkiaInfra         Instance = "skia-infra"
@@ -51,6 +52,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			Flutter,
 			FlutterEngine,
 			Lottie,
+			LottieSpec,
 			Pdfium,
 			Skia,
 			SkiaInfra,
