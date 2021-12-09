@@ -1,3 +1,5 @@
+// This program takes an HTML page and inserts <link> and <script> tags to load CSS and JavaScript
+// files at the specified locations, with an optional "nonce" attribute with the specified value.
 package main
 
 import (
@@ -12,18 +14,18 @@ import (
 
 func insertAssets(inputHTML io.Reader, jsPath, cssPath, nonce string) (string, error) {
 	var output []string
-	z := html.NewTokenizer(inputHTML)
+	tokenizer := html.NewTokenizer(inputHTML)
 	for {
-		tt := z.Next()
-		switch tt {
+		tokenType := tokenizer.Next()
+		switch tokenType {
 		case html.ErrorToken:
-			if z.Err() == io.EOF {
+			if tokenizer.Err() == io.EOF {
 				return strings.Join(output, ""), nil
 			} else {
-				return "", z.Err()
+				return "", tokenizer.Err()
 			}
 		case html.EndTagToken:
-			tagNameBytes, _ := z.TagName()
+			tagNameBytes, _ := tokenizer.TagName()
 			tagName := string(tagNameBytes)
 			if tagName == "head" {
 				// Insert <link> tag.
@@ -42,7 +44,7 @@ func insertAssets(inputHTML io.Reader, jsPath, cssPath, nonce string) (string, e
 				}
 			}
 		}
-		output = append(output, string(z.Raw()))
+		output = append(output, string(tokenizer.Raw()))
 	}
 }
 
