@@ -3,11 +3,10 @@
 load("@build_bazel_rules_nodejs//:index.bzl", "npm_package_bin", _nodejs_test = "nodejs_test")
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@npm//@bazel/terser:index.bzl", "terser_minified")
-load("@npm//html-insert-assets:index.bzl", "html_insert_assets")
 load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary", _sass_library = "sass_library")
 load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
-load("//infra-sk/html_insert_nonce_attribute:index.bzl", "html_insert_nonce_attribute")
+load("//infra-sk/html_insert_assets:index.bzl", "html_insert_assets")
 load("//infra-sk/karma_test:index.bzl", _karma_test = "karma_test")
 load("//infra-sk/sk_demo_page_server:index.bzl", _sk_demo_page_server = "sk_demo_page_server")
 load(":ts_library.bzl", _ts_library = "ts_library")
@@ -552,59 +551,31 @@ def sk_page(
     # HTML files. #
     ###############
 
-    # Generates file <name>.with_assets.html. Intermediate result; do not use.
-    #
-    # See https://www.npmjs.com/package/html-insert-assets.
-    html_insert_assets(
-        name = "%s_html" % name,
-        outs = ["%s.with_assets.html" % name],
-        args = [
-            "--html=$(location %s)" % html_file,
-            "--out=$@",
-            "--roots=$(RULEDIR)",
-            "--assets",
-            # This is OK because html-insert-assets normalizes paths with successive slashes.
-            "%s/%s.js" % (assets_serving_path, name),
-            "%s/%s.css" % (assets_serving_path, name),
-        ],
-        data = [
-            html_file,
-            # This rule does not use the bundles directly, but by declaring them as dependencies via
-            # the "data" argument, we guarantee that Bazel will rebuild <name>.with_assets.html any
-            # time the bundles change. This refreshes the asset URL query parameters added by this
-            # rule for cache busting purposes.
-            "%s_js_dev" % name,
-            "%s_js_prod" % name,
-            "%s_css_dev" % name,
-            "%s_css_prod" % name,
-        ],
-    )
-
-    if nonce:
-        # Generates file <name>.with_assets_and_nonce.html. Intermediate result; do not use.
-        html_insert_nonce_attribute(
-            name = "%s_html_nonce" % name,
-            src = "%s.with_assets.html" % name,
-            out = "%s.with_assets_and_nonce.html" % name,
-            nonce = nonce,
-        )
-
-    instrumented_html = ("%s.with_assets_and_nonce.html" if nonce else "%s.with_assets.html") % name
+    if assets_serving_path.endswith("/"):
+        assets_serving_path = assets_serving_path[:-1]
 
     # Generates file development/<name>.html.
-    copy_file(
+    html_insert_assets(
         name = "%s_html_dev" % name,
-        src = instrumented_html,
-        dst = "%s/%s.html" % (DEV_OUT_DIR, name),
-        visibility = ["//visibility:public"],
+        html_src = html_file,
+        html_out = "%s/%s.html" % (DEV_OUT_DIR, name),
+        js_src = "%s/%s.js" % (DEV_OUT_DIR, name),
+        js_serving_path = "%s/%s.js" % (assets_serving_path, name),
+        css_src = "%s/%s.css" % (DEV_OUT_DIR, name),
+        css_serving_path = "%s/%s.css" % (assets_serving_path, name),
+        nonce = nonce,
     )
 
     # Generates file production/<name>.html.
-    copy_file(
+    html_insert_assets(
         name = "%s_html_prod" % name,
-        src = instrumented_html,
-        dst = "%s/%s.html" % (PROD_OUT_DIR, name),
-        visibility = ["//visibility:public"],
+        html_src = html_file,
+        html_out = "%s/%s.html" % (PROD_OUT_DIR, name),
+        js_src = "%s/%s.js" % (PROD_OUT_DIR, name),
+        js_serving_path = "%s/%s.js" % (assets_serving_path, name),
+        css_src = "%s/%s.css" % (PROD_OUT_DIR, name),
+        css_serving_path = "%s/%s.css" % (assets_serving_path, name),
+        nonce = nonce,
     )
 
     ###########################

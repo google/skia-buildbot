@@ -1,0 +1,47 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test")
+load("//bazel/go:go_test.bzl", "go_test")
+load(":index.bzl", "html_insert_assets")
+
+go_library(
+    name = "html_insert_assets_lib",
+    srcs = ["html_insert_assets.go"],
+    importpath = "go.skia.org/infra/infra-sk/html_insert_assets",
+    visibility = ["//visibility:private"],
+    deps = ["@org_golang_x_net//html"],
+)
+
+go_binary(
+    name = "html_insert_assets",
+    embed = [":html_insert_assets_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "html_insert_assets_test",
+    srcs = ["html_insert_assets_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":html_insert_assets_lib"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
+
+html_insert_assets(
+    name = "actual_output",
+    css_serving_path = "/dist/index.css",
+    css_src = ":testdata/bundle.css",
+    html_out = ":testdata/actual_output.html",
+    html_src = ":testdata/input.html",
+    js_serving_path = "/dist/index.js",
+    js_src = ":testdata/bundle.js",
+    nonce = "{% .Nonce %}",
+)
+
+generated_file_test(
+    name = "test",
+    src = ":testdata/expected_output.html",
+    generated = ":testdata/actual_output.html",
+)
