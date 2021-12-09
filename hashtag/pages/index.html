@@ -91,17 +91,17 @@
       <h2>{% .DisplayName %} [{% len .Artifacts %}]</h2>
       <ul>
         {% range .Artifacts %}
-        <li class='{% if .Hidden %}hidden{% end %}'>
+        <li class="{% if .Hidden %}hidden{% end %}">
           <!-- Form for toggling the hidden state of an Artifact. -->
           <form action="/toggleHidden" method=POST target=__toggle_hidden>
-            <input type=hidden name=title value='{% .Title %}'>
-            <input type=hidden name=value value='{% .Value %}'>
-            <input type=hidden name=url value='{% .URL %}'>
-            <input type=hidden name=hidden value='{% .Hidden %}'>
+            <input type=hidden name=title value="{% .Title %}">
+            <input type=hidden name=value value="{% .Value %}">
+            <input type=hidden name=url value="{% .URL %}">
+            <input type=hidden name=hidden value="{% .Hidden %}">
             <button class='hidden'> &cross;</button>
             <button class='nothidden'> &check;</button>
           </form>
-          <a href='{% .URL %}'>{% .Title %}</a>
+          <a href="{% .URL %}">{% .Title %}</a>
         </li>
         {% else %}
         <p>None found.</p>

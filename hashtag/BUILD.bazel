@@ -1,0 +1,30 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "hashtag_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//hashtag/go/hashtag:hashtag",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/hashtag/dist": [
+            [
+                "//hashtag/config:config.json",
+                "0644",
+            ],
+        ] + [
+            [
+                "//hashtag/pages:production/index.%s" % ext,
+                "0644",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    repository = "skia-public/hashtag",
+)

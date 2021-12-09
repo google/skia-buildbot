@@ -1,30 +1,24 @@
-default: build npm-ci
-	npx webpack --mode=development
+include ../make/bazel.mk
+include ../kube/kube.mk
+
 
 build:
-	go install ./go/hashtag
+	$(BAZEL) build go/hashtag/... modules/... pages/...
 
-release: npm-ci
-	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/hashtag
-	./build_release
+release: build
+	$(BAZEL) run //hashtag:push_hashtag_container
 
-push: release
-	pushk hashtag
+push: pushk release
+	pushk --use-temp-checkout hashtag
 
-watch: npm-ci
-	npx webpack --mode=development --watch
-
-run: build
+run-local-instance: build
+	# Run "bazel build //hashtag/..." after making any frontend changes
+	# to pick up the change without restarting the golang server.
+	#
 	# To run locally download the service account and point to it via the
 	# GOOGLE_APPLICATION_CREDENTIALS environment variable.
-	GOOGLE_APPLICATION_CREDENTIALS=${HOME}/.hashtag_creds hashtag --local
+	cp config/config.json ../_bazel_bin/hashtag/pages/development/
+	GOOGLE_APPLICATION_CREDENTIALS=${HOME}/.hashtag_creds ../_bazel_bin/hashtag/go/hashtag/hashtag_/hashtag --local --resources_dir ../_bazel_bin/hashtag/pages/development
 
 test:
 	go test ./go/...
-
-.PHONY: build-frontend-ci
-build-frontend-ci: npm-ci
-	npx webpack --mode=production
-
-include ../make/npm.mk

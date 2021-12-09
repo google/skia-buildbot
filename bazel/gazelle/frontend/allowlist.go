@@ -17,6 +17,8 @@ var targetDirectories = map[string]bool{
 	"demos/pages":          true,
 	"golden/modules":       true,
 	"golden/pages":         true,
+	"hashtag/modules":      true,
+	"hashtag/pages":        true,
 	"infra-sk/modules":     true,
 	"jsfiddle/modules":     true,
 	"jsfiddle/pages":       true,
