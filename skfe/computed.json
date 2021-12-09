@@ -223,32 +223,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-lottie-spec-frontend",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-lottie-spec-frontend",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-lottie-spec-frontend",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "gold-pdfium-baselineserver",
           "endpoints": [
             {
@@ -2680,23 +2654,6 @@
                           },
                           "route": {
                             "cluster": "gold-lottie-frontend",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "lottie-animation-community-gold.skia.org",
-                      "name": "lottie-animation-community-gold.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "gold-lottie-spec-frontend",
                             "timeout": {
                               "seconds": 600
                             }
