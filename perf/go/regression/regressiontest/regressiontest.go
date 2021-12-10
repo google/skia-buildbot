@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/perf/go/clustering2"
-	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 var (
@@ -38,7 +38,7 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	ctx, c := getTestVars()
 
 	// Args to Set* that are then serialized to the datastore.
-	df := &dataframe.FrameResponse{
+	df := &frame.FrameResponse{
 		Msg: "Looks like a regression",
 	}
 	cl := &clustering2.ClusterSummary{
@@ -91,7 +91,7 @@ func Range_Exact(t *testing.T, store regression.Store) {
 	ctx, c := getTestVars()
 
 	// Args to Set* that are then serialized to the datastore.
-	df := &dataframe.FrameResponse{
+	df := &frame.FrameResponse{
 		Msg: "Looks like a regression",
 	}
 	cl := &clustering2.ClusterSummary{

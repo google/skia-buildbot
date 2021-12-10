@@ -57,6 +57,7 @@ import (
 	"go.skia.org/infra/perf/go/trybot/results"
 	"go.skia.org/infra/perf/go/trybot/results/dfloader"
 	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 const (
@@ -422,7 +423,7 @@ func (f *Frontend) alertsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *Frontend) initpageHandler(w http.ResponseWriter, r *http.Request) {
-	resp := &dataframe.FrameResponse{
+	resp := &frame.FrameResponse{
 		DataFrame: &dataframe.DataFrame{
 			ParamSet: f.paramsetRefresher.Get(),
 		},
@@ -530,7 +531,7 @@ func (f *Frontend) cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 //  * Finally return the constructed DataFrame (_/frame/results/{id}).
 func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	fr := dataframe.NewFrameRequest()
+	fr := frame.NewFrameRequest()
 	if err := json.NewDecoder(r.Body).Decode(fr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -555,7 +556,7 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	f.progressTracker.Add(fr.Progress)
 
 	go func() {
-		err := dataframe.ProcessFrameRequest(ctx, fr, f.perfGit, f.dfBuilder, f.shortcutStore)
+		err := frame.ProcessFrameRequest(ctx, fr, f.perfGit, f.dfBuilder, f.shortcutStore)
 		if err != nil {
 			fr.Progress.Error(err.Error())
 		} else {

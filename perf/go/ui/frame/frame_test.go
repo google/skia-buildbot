@@ -1,4 +1,4 @@
-package dataframe
+package frame
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/progress"
@@ -19,17 +20,17 @@ import (
 func TestMerge(t *testing.T) {
 	unittest.SmallTest(t)
 	// Simple
-	a := []*ColumnHeader{
+	a := []*dataframe.ColumnHeader{
 		{Offset: 1},
 		{Offset: 2},
 		{Offset: 4},
 	}
-	b := []*ColumnHeader{
+	b := []*dataframe.ColumnHeader{
 		{Offset: 3},
 		{Offset: 4},
 	}
-	m, aMap, bMap := merge(a, b)
-	expected := []*ColumnHeader{
+	m, aMap, bMap := dataframe.MergeColumnHeaders(a, b)
+	expected := []*dataframe.ColumnHeader{
 		{Offset: 1},
 		{Offset: 2},
 		{Offset: 3},
@@ -40,17 +41,17 @@ func TestMerge(t *testing.T) {
 	assert.Equal(t, map[int]int{0: 2, 1: 3}, bMap)
 
 	// Skips
-	a = []*ColumnHeader{
+	a = []*dataframe.ColumnHeader{
 		{Offset: 1},
 		{Offset: 2},
 		{Offset: 4},
 	}
-	b = []*ColumnHeader{
+	b = []*dataframe.ColumnHeader{
 		{Offset: 5},
 		{Offset: 7},
 	}
-	m, aMap, bMap = merge(a, b)
-	expected = []*ColumnHeader{
+	m, aMap, bMap = dataframe.MergeColumnHeaders(a, b)
+	expected = []*dataframe.ColumnHeader{
 		{Offset: 1},
 		{Offset: 2},
 		{Offset: 4},
@@ -62,14 +63,14 @@ func TestMerge(t *testing.T) {
 	assert.Equal(t, map[int]int{0: 3, 1: 4}, bMap)
 
 	// Empty b
-	a = []*ColumnHeader{
+	a = []*dataframe.ColumnHeader{
 		{Offset: 1},
 		{Offset: 2},
 		{Offset: 4},
 	}
-	b = []*ColumnHeader{}
-	m, aMap, bMap = merge(a, b)
-	expected = []*ColumnHeader{
+	b = []*dataframe.ColumnHeader{}
+	m, aMap, bMap = dataframe.MergeColumnHeaders(a, b)
+	expected = []*dataframe.ColumnHeader{
 		{Offset: 1},
 		{Offset: 2},
 		{Offset: 4},
@@ -79,14 +80,14 @@ func TestMerge(t *testing.T) {
 	assert.Equal(t, map[int]int{}, bMap)
 
 	// Empty a
-	a = []*ColumnHeader{}
-	b = []*ColumnHeader{
+	a = []*dataframe.ColumnHeader{}
+	b = []*dataframe.ColumnHeader{
 		{Offset: 1},
 		{Offset: 2},
 		{Offset: 4},
 	}
-	m, aMap, bMap = merge(a, b)
-	expected = []*ColumnHeader{
+	m, aMap, bMap = dataframe.MergeColumnHeaders(a, b)
+	expected = []*dataframe.ColumnHeader{
 		{Offset: 1},
 		{Offset: 2},
 		{Offset: 4},
@@ -96,10 +97,10 @@ func TestMerge(t *testing.T) {
 	assert.Equal(t, map[int]int{0: 0, 1: 1, 2: 2}, bMap)
 
 	// Empty a and b.
-	a = []*ColumnHeader{}
-	b = []*ColumnHeader{}
-	m, aMap, bMap = merge(a, b)
-	expected = []*ColumnHeader{}
+	a = []*dataframe.ColumnHeader{}
+	b = []*dataframe.ColumnHeader{}
+	m, aMap, bMap = dataframe.MergeColumnHeaders(a, b)
+	expected = []*dataframe.ColumnHeader{}
 	assert.Equal(t, m, expected)
 	assert.Equal(t, map[int]int{}, aMap)
 	assert.Equal(t, map[int]int{}, bMap)
@@ -107,8 +108,8 @@ func TestMerge(t *testing.T) {
 
 func TestDFAppend(t *testing.T) {
 	unittest.SmallTest(t)
-	a := DataFrame{
-		Header: []*ColumnHeader{
+	a := dataframe.DataFrame{
+		Header: []*dataframe.ColumnHeader{
 			{Offset: 1},
 			{Offset: 2},
 			{Offset: 4},
@@ -118,8 +119,8 @@ func TestDFAppend(t *testing.T) {
 			",config=8888,arch=arm,": []float32{1.1, 1.2, 1.4},
 		},
 	}
-	b := DataFrame{
-		Header: []*ColumnHeader{
+	b := dataframe.DataFrame{
+		Header: []*dataframe.ColumnHeader{
 			{Offset: 3},
 			{Offset: 4},
 		},
@@ -130,9 +131,9 @@ func TestDFAppend(t *testing.T) {
 	}
 	a.BuildParamSet()
 	b.BuildParamSet()
-	r := Join(&a, &b)
+	r := dataframe.Join(&a, &b)
 
-	expectedHeader := []*ColumnHeader{
+	expectedHeader := []*dataframe.ColumnHeader{
 		{Offset: 1},
 		{Offset: 2},
 		{Offset: 3},
@@ -158,7 +159,7 @@ func TestGetSkps_Success(t *testing.T) {
 	instanceConfig.GitRepoConfig.FileChangeMarker = "bar.txt"
 	config.Config = instanceConfig
 
-	skps, err := getSkps(ctx, []*ColumnHeader{
+	skps, err := getSkps(ctx, []*dataframe.ColumnHeader{
 		{
 			Offset: 0,
 		},
@@ -180,7 +181,7 @@ func TestGetSkps_SuccessIfFileChangeMarkerNotSet(t *testing.T) {
 	instanceConfig.GitRepoConfig.FileChangeMarker = ""
 	config.Config = instanceConfig
 
-	skps, err := getSkps(ctx, []*ColumnHeader{
+	skps, err := getSkps(ctx, []*dataframe.ColumnHeader{
 		{
 			Offset: 0,
 		},
@@ -202,7 +203,7 @@ func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
 	instanceConfig.GitRepoConfig.FileChangeMarker = "bar.txt"
 	config.Config = instanceConfig
 
-	_, err = getSkps(ctx, []*ColumnHeader{
+	_, err = getSkps(ctx, []*dataframe.ColumnHeader{
 		{
 			Offset: -3,
 		},

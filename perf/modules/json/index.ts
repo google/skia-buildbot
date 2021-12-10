@@ -56,16 +56,19 @@ export interface ClusterSummary {
 	ts: string;
 }
 
-export interface FrameRequest {
-	begin: number;
-	end: number;
-	formulas: string[] | null;
-	queries: string[] | null;
-	hidden: string[] | null;
-	keys: string;
-	tz: string;
-	num_commits: number;
-	request_type: RequestType;
+export interface Commit {
+	offset: CommitNumber;
+	hash: string;
+	ts: number;
+	author: string;
+	message: string;
+	url: string;
+}
+
+export interface Current {
+	commit: Commit;
+	alert: Alert | null;
+	message: string;
 }
 
 export interface DataFrame {
@@ -79,15 +82,6 @@ export interface FrameResponse {
 	dataframe: DataFrame | null;
 	skps: number[] | null;
 	msg: string;
-}
-
-export interface Commit {
-	offset: CommitNumber;
-	hash: string;
-	ts: number;
-	author: string;
-	message: string;
-	url: string;
 }
 
 export interface TriageStatus {
@@ -106,6 +100,18 @@ export interface Regression {
 export interface RegressionAtCommit {
 	cid: Commit;
 	regression: Regression | null;
+}
+
+export interface FrameRequest {
+	begin: number;
+	end: number;
+	formulas: string[] | null;
+	queries: string[] | null;
+	hidden: string[] | null;
+	keys: string;
+	tz: string;
+	num_commits: number;
+	request_type: RequestType;
 }
 
 export interface AlertUpdateResponse {
@@ -194,12 +200,6 @@ export interface TryBugRequest {
 
 export interface TryBugResponse {
 	url: string;
-}
-
-export interface Current {
-	commit: Commit;
-	alert: Alert | null;
-	message: string;
 }
 
 export interface FullSummary {
@@ -300,9 +300,9 @@ export namespace ingest {
 
 export namespace pivot {
 	export interface Request {
-		GroupBy: string[] | null;
-		Operation: pivot.Operation;
-		Summary: pivot.Operation[] | null;
+		group_by: string[] | null;
+		operation: pivot.Operation;
+		summary: pivot.Operation[] | null;
 	}
 }
 
@@ -328,9 +328,9 @@ export type StepFitStatus = "Low" | "High" | "Uninteresting";
 
 export type CommitNumber = number;
 
-export type RequestType = 0 | 1;
-
 export type Status = "" | "positive" | "negative" | "untriaged";
+
+export type RequestType = 0 | 1;
 
 export type Subset = "all" | "regressions" | "untriaged";
 

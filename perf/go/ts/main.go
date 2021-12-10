@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
-	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dryrun"
 	"go.skia.org/infra/perf/go/frontend"
 	perfgit "go.skia.org/infra/perf/go/git"
@@ -26,6 +25,7 @@ import (
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/trybot/results"
 	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 type unionAndName struct {
@@ -53,9 +53,10 @@ func main() {
 		alerts.AlertsStatus{},
 		clustering2.ClusterSummary{},
 		clustering2.ValuePercent{},
-		dataframe.FrameRequest{},
-		dataframe.FrameResponse{},
+		continuous.Current{},
 		dryrun.RegressionAtCommit{},
+		frame.FrameRequest{},
+		frame.FrameResponse{},
 		frontend.AlertUpdateResponse{},
 		frontend.ClusterStartResponse{},
 		frontend.CommitDetailsRequest{},
@@ -72,7 +73,6 @@ func main() {
 		frontend.TryBugRequest{},
 		frontend.TryBugResponse{},
 		perfgit.Commit{},
-		continuous.Current{},
 		regression.FullSummary{},
 		regression.RegressionDetectionRequest{},
 		regression.RegressionDetectionResponse{},
@@ -85,7 +85,7 @@ func main() {
 	addMultipleUnions(generator, []unionAndName{
 		{alerts.AllConfigState, "ConfigState"},
 		{alerts.AllDirections, "Direction"},
-		{dataframe.AllRequestType, "RequestType"},
+		{frame.AllRequestType, "RequestType"},
 		{frontend.AllRegressionSubset, "Subset"},
 		{regression.AllProcessState, "ProcessState"},
 		{regression.AllStatus, "Status"},

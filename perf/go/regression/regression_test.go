@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/clustering2"
-	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/stepfit"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 var testTime = time.Date(2020, 05, 01, 12, 00, 00, 00, time.UTC)
@@ -19,7 +19,7 @@ func TestMerge(t *testing.T) {
 	r := NewRegression()
 
 	rhs := NewRegression()
-	df := &dataframe.FrameResponse{}
+	df := &frame.FrameResponse{}
 	cl := &clustering2.ClusterSummary{
 		StepFit: &stepfit.StepFit{
 			Regression: 1,
@@ -41,7 +41,7 @@ func TestMerge(t *testing.T) {
 			Regression: 2,
 		},
 	}
-	dfbetter := &dataframe.FrameResponse{}
+	dfbetter := &frame.FrameResponse{}
 	betterlow := NewRegression()
 	betterlow.Low = clbetter
 	betterlow.Frame = dfbetter
@@ -56,7 +56,7 @@ func TestMerge(t *testing.T) {
 
 	// Now the same for High.
 	rhs = NewRegression()
-	df = &dataframe.FrameResponse{}
+	df = &frame.FrameResponse{}
 	cl = &clustering2.ClusterSummary{
 		StepFit: &stepfit.StepFit{
 			Regression: -1,
@@ -78,7 +78,7 @@ func TestMerge(t *testing.T) {
 			Regression: -2,
 		},
 	}
-	dfbetter = &dataframe.FrameResponse{}
+	dfbetter = &frame.FrameResponse{}
 	betterhigh := NewRegression()
 	betterhigh.High = clbetter
 	betterhigh.Frame = dfbetter

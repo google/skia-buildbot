@@ -3,35 +3,23 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "dataframe",
-    srcs = [
-        "async.go",
-        "dataframe.go",
-    ],
+    srcs = ["dataframe.go"],
     importpath = "go.skia.org/infra/perf/go/dataframe",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/calc",
         "//go/paramtools",
         "//go/query",
         "//go/skerr",
-        "//go/sklog",
         "//go/timer",
-        "//go/vec32",
-        "//perf/go/config",
         "//perf/go/git",
         "//perf/go/progress",
-        "//perf/go/shortcut",
         "//perf/go/types",
-        "@io_opencensus_go//trace",
     ],
 )
 
 go_test(
     name = "dataframe_test",
-    srcs = [
-        "async_test.go",
-        "dataframe_test.go",
-    ],
+    srcs = ["dataframe_test.go"],
     data = ["//perf/migrations:cockroachdb"],
     embed = [":dataframe"],
     # Perf CockroachDB tests fail intermittently when running locally (i.e. not on RBE) due to tests
@@ -46,11 +34,8 @@ go_test(
     deps = [
         "//go/paramtools",
         "//go/testutils/unittest",
-        "//go/vec32",
-        "//perf/go/config",
         "//perf/go/git",
         "//perf/go/git/gittest",
-        "//perf/go/progress",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

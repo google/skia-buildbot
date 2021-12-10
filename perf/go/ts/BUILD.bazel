@@ -11,7 +11,6 @@ go_library(
         "//go/util",
         "//perf/go/alerts",
         "//perf/go/clustering2",
-        "//perf/go/dataframe",
         "//perf/go/dryrun",
         "//perf/go/frontend",
         "//perf/go/git",
@@ -23,6 +22,7 @@ go_library(
         "//perf/go/stepfit",
         "//perf/go/trybot/results",
         "//perf/go/types",
+        "//perf/go/ui/frame",
         "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )

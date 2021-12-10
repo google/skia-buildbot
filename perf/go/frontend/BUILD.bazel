@@ -40,6 +40,7 @@ go_library(
         "//perf/go/trybot/results",
         "//perf/go/trybot/results/dfloader",
         "//perf/go/types",
+        "//perf/go/ui/frame",
         "@com_github_gorilla_mux//:mux",
         "@io_opencensus_go//trace",
     ],

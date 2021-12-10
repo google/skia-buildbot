@@ -99,10 +99,10 @@ func simpleMap(n int) map[int]int {
 	return ret
 }
 
-// merge creates a merged header from the two given headers.
+// MergeColumnHeaders creates a merged header from the two given headers.
 //
 // I.e. {1,4,5} + {3,4} => {1,3,4,5}
-func merge(a, b []*ColumnHeader) ([]*ColumnHeader, map[int]int, map[int]int) {
+func MergeColumnHeaders(a, b []*ColumnHeader) ([]*ColumnHeader, map[int]int, map[int]int) {
 	if len(a) == 0 {
 		return b, simpleMap(0), simpleMap(len(b))
 	} else if len(b) == 0 {
@@ -161,7 +161,7 @@ func merge(a, b []*ColumnHeader) ([]*ColumnHeader, map[int]int, map[int]int) {
 func Join(a, b *DataFrame) *DataFrame {
 	ret := NewEmpty()
 	// Build a merged set of headers.
-	header, aMap, bMap := merge(a.Header, b.Header)
+	header, aMap, bMap := MergeColumnHeaders(a.Header, b.Header)
 	ret.Header = header
 	if len(a.Header) == 0 {
 		a.Header = b.Header

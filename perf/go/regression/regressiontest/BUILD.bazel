@@ -7,9 +7,9 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//perf/go/clustering2",
-        "//perf/go/dataframe",
         "//perf/go/regression",
         "//perf/go/types",
+        "//perf/go/ui/frame",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

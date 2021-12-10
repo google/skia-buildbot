@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/skerr"
@@ -23,6 +22,5 @@ func New() (http.FileSystem, error) {
 		return nil, skerr.Wrap(err)
 	}
 	// Directory is infra/perf/migrations.
-	_, filename, _, _ := runtime.Caller(1)
-	return http.Dir(filepath.Join(filepath.Dir(filename), "../../../migrations/cockroachdb")), nil
+	return http.Dir(filepath.Join(workspaceRoot, "perf/migrations/cockroachdb")), nil
 }

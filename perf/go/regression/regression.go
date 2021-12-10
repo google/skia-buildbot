@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"go.skia.org/infra/perf/go/clustering2"
-	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 var ErrNoClusterFound = errors.New("No Cluster.")
@@ -55,7 +55,7 @@ type TriageStatus struct {
 type Regression struct {
 	Low        *clustering2.ClusterSummary `json:"low"`   // Can be nil.
 	High       *clustering2.ClusterSummary `json:"high"`  // Can be nil.
-	Frame      *dataframe.FrameResponse    `json:"frame"` // Describes the Low and High ClusterSummary's.
+	Frame      *frame.FrameResponse        `json:"frame"` // Describes the Low and High ClusterSummary's.
 	LowStatus  TriageStatus                `json:"low_status"`
 	HighStatus TriageStatus                `json:"high_status"`
 }

@@ -1,4 +1,6 @@
-package dataframe
+// Package frame takes frontend requests for dataframes (FrameRequest), and
+// turns them into FrameResponses.
+package frame
 
 import (
 	"context"
@@ -15,12 +17,15 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
 
+// RequestType distinguishes the domain of the traces returned in a
+// FrameResponse.
 type RequestType int
 
 const (
@@ -35,7 +40,7 @@ const (
 var AllRequestType = []RequestType{REQUEST_TIME_RANGE, REQUEST_COMPACT}
 
 const (
-	MAX_TRACES_IN_RESPONSE = 350
+	maxTracesInResponse = 350
 )
 
 // FrameRequest is used to deserialize JSON frame requests.
@@ -62,9 +67,9 @@ func NewFrameRequest() *FrameRequest {
 
 // FrameResponse is serialized to JSON as the response to frame requests.
 type FrameResponse struct {
-	DataFrame *DataFrame `json:"dataframe"`
-	Skps      []int      `json:"skps"`
-	Msg       string     `json:"msg"`
+	DataFrame *dataframe.DataFrame `json:"dataframe"`
+	Skps      []int                `json:"skps"`
+	Msg       string               `json:"msg"`
 }
 
 // frameRequestProcess keeps track of a running Go routine that's
@@ -76,7 +81,7 @@ type frameRequestProcess struct {
 	perfGit *perfgit.Git
 
 	// dfBuilder builds DataFrame's.
-	dfBuilder DataFrameBuilder
+	dfBuilder dataframe.DataFrameBuilder
 
 	shortcutStore shortcut.Store
 
@@ -90,7 +95,7 @@ type frameRequestProcess struct {
 // It does not return until all the work is complete.
 //
 // The finished results are stored in the FrameRequestProcess.Progress.Results.
-func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit *perfgit.Git, dfBuilder DataFrameBuilder, shortcutStore shortcut.Store) error {
+func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit *perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store) error {
 	numKeys := 0
 	if req.Keys != "" {
 		numKeys = 1
@@ -127,7 +132,7 @@ func (p *frameRequestProcess) run(ctx context.Context) error {
 	end := time.Unix(int64(p.request.End), 0)
 
 	// Results from all the queries and calcs will be accumulated in this dataframe.
-	df := NewEmpty()
+	df := dataframe.NewEmpty()
 
 	// Queries.
 	for _, q := range p.request.Queries {
@@ -135,7 +140,7 @@ func (p *frameRequestProcess) run(ctx context.Context) error {
 		if err != nil {
 			return p.reportError(err, "Failed to complete query for search.")
 		}
-		df = Join(df, newDF)
+		df = dataframe.Join(df, newDF)
 		p.searchInc()
 	}
 
@@ -145,7 +150,7 @@ func (p *frameRequestProcess) run(ctx context.Context) error {
 		if err != nil {
 			return p.reportError(err, "Failed to complete query for calculations")
 		}
-		df = Join(df, newDF)
+		df = dataframe.Join(df, newDF)
 		p.searchInc()
 	}
 
@@ -155,7 +160,7 @@ func (p *frameRequestProcess) run(ctx context.Context) error {
 		if err != nil {
 			return p.reportError(err, "Failed to complete query for keys")
 		}
-		df = Join(df, newDF)
+		df = dataframe.Join(df, newDF)
 	}
 
 	// Filter out "Hidden" traces.
@@ -165,7 +170,7 @@ func (p *frameRequestProcess) run(ctx context.Context) error {
 
 	if len(df.Header) == 0 {
 		var err error
-		df, err = NewHeaderOnly(ctx, p.perfGit, begin, end, true)
+		df, err = dataframe.NewHeaderOnly(ctx, p.perfGit, begin, end, true)
 		if err != nil {
 			return p.reportError(err, "Failed to load dataframe.")
 		}
@@ -185,7 +190,7 @@ func (p *frameRequestProcess) run(ctx context.Context) error {
 // the ColumnHeaders.
 //
 // TODO(jcgregorio) Rename this functionality to something more generic.
-func getSkps(ctx context.Context, headers []*ColumnHeader, perfGit *perfgit.Git) ([]int, error) {
+func getSkps(ctx context.Context, headers []*dataframe.ColumnHeader, perfGit *perfgit.Git) ([]int, error) {
 	if config.Config.GitRepoConfig.FileChangeMarker == "" {
 		return []int{}, nil
 	}
@@ -209,7 +214,7 @@ func getSkps(ctx context.Context, headers []*ColumnHeader, perfGit *perfgit.Git)
 // If truncate is true then the number of traces returned is limited.
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
-func ResponseFromDataFrame(ctx context.Context, df *DataFrame, perfGit *perfgit.Git, truncate bool, progress progress.Progress) (*FrameResponse, error) {
+func ResponseFromDataFrame(ctx context.Context, df *dataframe.DataFrame, perfGit *perfgit.Git, truncate bool, progress progress.Progress) (*FrameResponse, error) {
 	if len(df.Header) == 0 {
 		return nil, fmt.Errorf("No commits matched that time range.")
 	}
@@ -221,14 +226,14 @@ func ResponseFromDataFrame(ctx context.Context, df *DataFrame, perfGit *perfgit.
 	}
 
 	// Truncate the result if it's too large.
-	if truncate && len(df.TraceSet) > MAX_TRACES_IN_RESPONSE {
-		progress.Message("Message", fmt.Sprintf("Response too large, the number of traces returned has been truncated from %d to %d.", len(df.TraceSet), MAX_TRACES_IN_RESPONSE))
+	if truncate && len(df.TraceSet) > maxTracesInResponse {
+		progress.Message("Message", fmt.Sprintf("Response too large, the number of traces returned has been truncated from %d to %d.", len(df.TraceSet), maxTracesInResponse))
 		keys := []string{}
 		for k := range df.TraceSet {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
-		keys = keys[:MAX_TRACES_IN_RESPONSE]
+		keys = keys[:maxTracesInResponse]
 		newTraceSet := types.TraceSet{}
 		for _, key := range keys {
 			newTraceSet[key] = df.TraceSet[key]
@@ -244,7 +249,7 @@ func ResponseFromDataFrame(ctx context.Context, df *DataFrame, perfGit *perfgit.
 
 // doSearch applies the given query and returns a dataframe that matches the
 // given time range [begin, end) in a DataFrame.
-func (p *frameRequestProcess) doSearch(ctx context.Context, queryStr string, begin, end time.Time) (*DataFrame, error) {
+func (p *frameRequestProcess) doSearch(ctx context.Context, queryStr string, begin, end time.Time) (*dataframe.DataFrame, error) {
 	ctx, span := trace.StartSpan(ctx, "FrameRequestProcess.doSearch")
 	defer span.End()
 
@@ -265,7 +270,7 @@ func (p *frameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 
 // doKeys returns a DataFrame that matches the given set of keys given
 // the time range [begin, end).
-func (p *frameRequestProcess) doKeys(ctx context.Context, keyID string, begin, end time.Time) (*DataFrame, error) {
+func (p *frameRequestProcess) doKeys(ctx context.Context, keyID string, begin, end time.Time) (*dataframe.DataFrame, error) {
 	keys, err := p.shortcutStore.Get(ctx, keyID)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
@@ -279,12 +284,12 @@ func (p *frameRequestProcess) doKeys(ctx context.Context, keyID string, begin, e
 
 // doCalc applies the given formula and returns a dataframe that matches the
 // given time range [begin, end) in a DataFrame.
-func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin, end time.Time) (*DataFrame, error) {
+func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin, end time.Time) (*dataframe.DataFrame, error) {
 	// During the calculation 'rowsFromQuery' will be called to load up data, we
 	// will capture the dataframe that's created at that time. We only really
 	// need df.Headers so it doesn't matter if the calculation has multiple calls
 	// to filter(), we can just use the last one returned.
-	var df *DataFrame
+	var df *dataframe.DataFrame
 
 	rowsFromQuery := func(s string) (types.TraceSet, error) {
 		urlValues, err := url.ParseQuery(s)

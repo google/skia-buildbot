@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/perf/go/ui/frame"
 )
 
 // ProcessState is the state of a RegressionDetectionProcess.
@@ -103,7 +104,7 @@ func NewRegressionDetectionRequest() *RegressionDetectionRequest {
 // RegressionDetectionResponse is the response from running a RegressionDetectionRequest.
 type RegressionDetectionResponse struct {
 	Summary *clustering2.ClusterSummaries `json:"summary"`
-	Frame   *dataframe.FrameResponse      `json:"frame"`
+	Frame   *frame.FrameResponse          `json:"frame"`
 }
 
 // regressionDetectionProcess handles the processing of a single RegressionDetectionRequest.
@@ -316,7 +317,7 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 		}
 
 		df.TraceSet = types.TraceSet{}
-		frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.perfGit, false, p.request.Progress)
+		frame, err := frame.ResponseFromDataFrame(ctx, df, p.perfGit, false, p.request.Progress)
 		if err != nil {
 			return p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
 		}

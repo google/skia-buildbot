@@ -1,0 +1,43 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "frame",
+    srcs = ["frame.go"],
+    importpath = "go.skia.org/infra/perf/go/ui/frame",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/calc",
+        "//go/paramtools",
+        "//go/query",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/vec32",
+        "//perf/go/config",
+        "//perf/go/dataframe",
+        "//perf/go/git",
+        "//perf/go/progress",
+        "//perf/go/shortcut",
+        "//perf/go/types",
+        "@io_opencensus_go//trace",
+    ],
+)
+
+go_test(
+    name = "frame_test",
+    srcs = ["frame_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
+    embed = [":frame"],
+    deps = [
+        "//go/testutils/unittest",
+        "//go/vec32",
+        "//perf/go/config",
+        "//perf/go/dataframe",
+        "//perf/go/git",
+        "//perf/go/git/gittest",
+        "//perf/go/progress",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

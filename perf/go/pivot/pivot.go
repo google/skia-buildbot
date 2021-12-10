@@ -83,14 +83,14 @@ var AllOperations = []Operation{Sum, Avg}
 // Request controls how a pivot is done.
 type Request struct {
 	// Which keys to group by.
-	GroupBy []string
+	GroupBy []string `json:"group_by"`
 
 	// Operation to apply when grouping.
-	Operation Operation
+	Operation Operation `json:"operation"`
 
 	// If Summary is the empty slice then the Summary is commits, i.e. a plot.
 	// otherwise produce one column for each Operation in Summary.
-	Summary []Operation
+	Summary []Operation `json:"summary"`
 }
 
 type groupByOperation func(types.TraceSet) types.Trace
