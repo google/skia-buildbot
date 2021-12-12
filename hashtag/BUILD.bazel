@@ -26,5 +26,6 @@ skia_app_container(
             ]
         ],
     },
+    entrypoint = "/usr/local/bin/hashtag",
     repository = "skia-public/hashtag",
 )
