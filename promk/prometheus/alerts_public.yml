@@ -364,20 +364,9 @@ groups:
       abbr: '{{ $labels.file }} in {{ $labels.repo }} too old'
       description: 'The {{ $labels.file }} file in {{ $labels.repo }} was last updated more than 3 days ago. https://skia.googlesource.com/buildbot/%2B/main/infra/bots/task_drivers/update_go_deps/update_go_deps.go'
 
-# External RPis.
+# External machines
   - alert: DiskSpaceLow
-    expr: collectd_df_df_complex{df=~"var|tmp",exported_instance=~"skia-(e-)?rpi-.+",type="free"} < 1e8
-    for: 5m
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.exported_instance }}'
-      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}  https://skia.googlesource.com/buildbot/+doc/main/docs/PROD.md#diskspacelow'
-
-# External bots except RPis.
-  - alert: DiskSpaceLow
-    expr: collectd_df_df_complex{df="root",exported_instance=~"skia-e-[^r].+",type="free"} < 1e9
+    expr: collectd_df_df_complex{df="root",exported_instance=~"skia-(e|rpi).+",type="free"} < 1e9
     for: 5m
     labels:
       category: infra
