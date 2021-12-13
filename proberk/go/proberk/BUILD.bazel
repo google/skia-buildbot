@@ -28,11 +28,11 @@ go_binary(
 
 go_test(
     name = "proberk_test",
-    srcs = ["proberk_test.go"],
+    srcs = ["proberk_manual_test.go"],
     embed = [":proberk_lib"],
     deps = [
         "//go/testutils/unittest",
         "//proberk/go/types",
-        "@com_github_stretchr_testify//require",
+        "@com_github_stretchr_testify//assert",
     ],
 )
