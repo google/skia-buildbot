@@ -530,8 +530,8 @@ func addUnauthenticatedJSONRoutes(router *mux.Router, _ *frontendServerConfig, h
 
 	// Routes shared with the baseline server. These usually don't see traffic because the envoy
 	// routing directs these requests to the baseline servers, if there are some.
-	add(frontend.KnownHashesRoute, handlers.TextKnownHashesProxy)
-	add(frontend.KnownHashesRouteV1, handlers.TextKnownHashesProxy)
+	add(frontend.KnownHashesRoute, handlers.KnownHashesHandler)
+	add(frontend.KnownHashesRouteV1, handlers.KnownHashesHandler)
 	// Retrieving a baseline for the primary branch and a Gerrit issue are handled the same way.
 	// These routes can be served with baseline_server for higher availability.
 	add(frontend.ExpectationsRouteV2, handlers.BaselineHandlerV2)

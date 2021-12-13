@@ -1439,10 +1439,10 @@ func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, commits)
 }
 
-// TextKnownHashesProxy returns known hashes that have been written to GCS in the background
+// KnownHashesHandler returns known hashes that have been written to GCS in the background
 // Each line contains a single digest for an image. Bots will then only upload images which
 // have a hash not found on this list, avoiding significant amounts of unnecessary uploads.
-func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) KnownHashesHandler(w http.ResponseWriter, r *http.Request) {
 	// No limit for anon users - this is an endpoint backed up by baseline servers, and
 	// should be able to handle a large load.
 	_, span := trace.StartSpan(r.Context(), "web_TextKnownHashesProxy")
@@ -2093,7 +2093,7 @@ func (wh *Handlers) StartCacheWarming(ctx context.Context) {
 	wh.startCLCacheProcess(ctx)
 	wh.startStatusCacheProcess(ctx)
 	wh.startIgnoredTraceCacheProcess(ctx)
-	wh.startKnownHashesCacheProcess(ctx)
+	wh.StartKnownHashesCacheProcess(ctx)
 }
 
 // startCLCacheProcess starts a go routine to warm the CL Summary cache. This way, most
@@ -2175,8 +2175,8 @@ func (wh *Handlers) startStatusCacheProcess(ctx context.Context) {
 	})
 }
 
-// startKnownHashesCacheProcess will fetch the known hashes on a timer and save it to the cache.
-func (wh *Handlers) startKnownHashesCacheProcess(ctx context.Context) {
+// StartKnownHashesCacheProcess will fetch the known hashes on a timer and save it to the cache.
+func (wh *Handlers) StartKnownHashesCacheProcess(ctx context.Context) {
 	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
 		ctx, span := trace.StartSpan(ctx, "web_warmKnownHashesCacheCycle", trace.WithSampler(trace.AlwaysSample()))
 		defer span.End()

@@ -104,6 +104,8 @@ func main() {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
 	}
 
+	handlers.StartKnownHashesCacheProcess(ctx)
+
 	// Set up a router for all the application endpoints which are part of the Gold API.
 	appRouter := mux.NewRouter()
 
@@ -145,8 +147,8 @@ func main() {
 	}
 
 	// Serve the known hashes from GCS.
-	v0(frontend.KnownHashesRoute, handlers.TextKnownHashesProxy).Methods("GET")
-	v1(frontend.KnownHashesRouteV1, handlers.TextKnownHashesProxy).Methods("GET")
+	v0(frontend.KnownHashesRoute, handlers.KnownHashesHandler).Methods("GET")
+	v1(frontend.KnownHashesRouteV1, handlers.KnownHashesHandler).Methods("GET")
 	// Serve the expectations for the master branch and for CLs in progress.
 	v2(frontend.ExpectationsRouteV2, handlers.BaselineHandlerV2).Methods("GET")
 
