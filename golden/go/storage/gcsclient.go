@@ -7,10 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
-	"time"
+
+	"go.opencensus.io/trace"
 
 	gstorage "cloud.google.com/go/storage"
-	ttlcache "github.com/patrickmn/go-cache"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -48,13 +48,6 @@ type GCSClient interface {
 }
 
 const (
-	// Used to cache the digests in a time-to-live (TTL) cache.
-	digestsCacheKey = "digestsCacheKey"
-
-	// We re-index the tile (and thus re-compute the known digests) no
-	// faster than once per minute.
-	digestsCacheFreshness = time.Minute
-
 	// The GCS folder that contains the images, named by their digests.
 	imgFolder = "dm-images-v1"
 )
@@ -63,8 +56,6 @@ const (
 type ClientImpl struct {
 	storageClient *gstorage.Client
 	options       GCSClientOptions
-
-	digestsCache *ttlcache.Cache
 }
 
 // NewGCSClient creates a new instance of ClientImpl. The various
@@ -78,7 +69,6 @@ func NewGCSClient(ctx context.Context, client *http.Client, options GCSClientOpt
 	return &ClientImpl{
 		storageClient: storageClient,
 		options:       options,
-		digestsCache:  ttlcache.New(digestsCacheFreshness, digestsCacheFreshness),
 	}, nil
 }
 
@@ -89,6 +79,8 @@ func (g *ClientImpl) Options() GCSClientOptions {
 
 // WriteKnownDigests fulfills the GCSClient interface.
 func (g *ClientImpl) WriteKnownDigests(ctx context.Context, digests types.DigestSlice) error {
+	ctx, span := trace.StartSpan(ctx, "gcsclient_WriteKnownDigests")
+	defer span.End()
 	if g.options.Dryrun {
 		sklog.Infof("dryrun: Writing %d digests", len(digests))
 		return nil
@@ -101,20 +93,13 @@ func (g *ClientImpl) WriteKnownDigests(ctx context.Context, digests types.Digest
 		}
 		return nil
 	}
-	// Clear the read cache when the write completes or fails
-	defer g.digestsCache.Delete(digestsCacheKey)
-
 	return g.writeToPath(ctx, g.options.KnownHashesGCSPath, "text/plain", writeFn)
 }
 
-// LoadKnownDigests fulfills the GCSClient interface.
+// LoadKnownDigests fulfills the GCSClient interface. It does no caching of the result.
 func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
-	if cachedBytes, ok := g.digestsCache.Get(digestsCacheKey); ok {
-		b := cachedBytes.([]byte)
-		n, err := w.Write(b)
-		return skerr.Wrapf(err, "copying %d cached bytes to writer", n)
-	}
-
+	ctx, span := trace.StartSpan(ctx, "gcsclient_LoadKnownDigests")
+	defer span.End()
 	bucketName, storagePath := gcs.SplitGSPath(g.options.KnownHashesGCSPath)
 
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
@@ -127,7 +112,7 @@ func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 			sklog.Warningf("No known digests found - maybe %s is a wrong path?", g.options.KnownHashesGCSPath)
 			return nil
 		}
-		return err
+		return skerr.Wrap(err)
 	}
 
 	// Copy the content to the output writer.
@@ -136,15 +121,8 @@ func (g *ClientImpl) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 		return skerr.Wrapf(err, "opening %s for reading", g.options.KnownHashesGCSPath)
 	}
 	defer util.Close(reader)
-
-	b, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return skerr.Wrapf(err, "reading digests from GCS")
-	}
-	g.digestsCache.SetDefault(digestsCacheKey, b)
-
-	n, err := w.Write(b)
-	return skerr.Wrapf(err, "writing %d bytes from cache to writer", n)
+	n, err := io.Copy(w, reader)
+	return skerr.Wrapf(err, "writing %d bytes of digests to writer", n)
 }
 
 // removeForTestingOnly removes the given file. Should only be used for testing.
@@ -183,6 +161,8 @@ func (g *ClientImpl) writeToPath(ctx context.Context, targetPath, contentType st
 // GetImage downloads the bytes and returns them for the given image. It returns an error if
 // the image is not found.
 func (g *ClientImpl) GetImage(ctx context.Context, digest types.Digest) ([]byte, error) {
+	ctx, span := trace.StartSpan(ctx, "gcsclient_GetImage")
+	defer span.End()
 	// intentionally using path because gcs is forward slashes
 	imgPath := path.Join(imgFolder, string(digest)+".png")
 	r, err := g.storageClient.Bucket(g.options.Bucket).Object(imgPath).NewReader(ctx)

@@ -12,8 +12,8 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//golden/go/types",
-        "@com_github_patrickmn_go_cache//:go-cache",
         "@com_google_cloud_go_storage//:storage",
+        "@io_opencensus_go//trace",
         "@org_golang_google_api//option",
     ],
 )

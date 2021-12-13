@@ -111,6 +111,9 @@ type Handlers struct {
 	ignoredTracesCache      []ignoredTrace
 	ignoredTracesCacheMutex sync.RWMutex
 
+	knownHashesMutex sync.RWMutex
+	knownHashesCache string
+
 	// These can be set for unit tests to simplify the testing.
 	testingAuthAs string
 }
@@ -1442,11 +1445,13 @@ func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request) {
 	// No limit for anon users - this is an endpoint backed up by baseline servers, and
 	// should be able to handle a large load.
-	ctx, span := trace.StartSpan(r.Context(), "web_TextKnownHashesProxy")
+	_, span := trace.StartSpan(r.Context(), "web_TextKnownHashesProxy")
 	defer span.End()
 	w.Header().Set("Content-Type", "text/plain")
-	if err := wh.GCSClient.LoadKnownDigests(ctx, w); err != nil {
-		sklog.Errorf("Failed to copy the known hashes from GCS: %s", err)
+	wh.knownHashesMutex.RLock()
+	defer wh.knownHashesMutex.RUnlock()
+	if _, err := w.Write([]byte(wh.knownHashesCache)); err != nil {
+		sklog.Errorf("Failed to write the known hashes", err)
 		return
 	}
 }
@@ -2088,6 +2093,7 @@ func (wh *Handlers) StartCacheWarming(ctx context.Context) {
 	wh.startCLCacheProcess(ctx)
 	wh.startStatusCacheProcess(ctx)
 	wh.startIgnoredTraceCacheProcess(ctx)
+	wh.startKnownHashesCacheProcess(ctx)
 }
 
 // startCLCacheProcess starts a go routine to warm the CL Summary cache. This way, most
@@ -2166,6 +2172,24 @@ func (wh *Handlers) startStatusCacheProcess(ctx context.Context) {
 		wh.statusCacheMutex.Lock()
 		defer wh.statusCacheMutex.Unlock()
 		wh.statusCache = gs
+	})
+}
+
+// startKnownHashesCacheProcess will fetch the known hashes on a timer and save it to the cache.
+func (wh *Handlers) startKnownHashesCacheProcess(ctx context.Context) {
+	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
+		ctx, span := trace.StartSpan(ctx, "web_warmKnownHashesCacheCycle", trace.WithSampler(trace.AlwaysSample()))
+		defer span.End()
+
+		var buf bytes.Buffer
+		if err := wh.GCSClient.LoadKnownDigests(ctx, &buf); err != nil {
+			sklog.Errorf("Could not fetch known digests: %s", err)
+			return
+		}
+
+		wh.knownHashesMutex.Lock()
+		defer wh.knownHashesMutex.Unlock()
+		wh.knownHashesCache = buf.String()
 	})
 }
 
