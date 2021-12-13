@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
     name = "proberk_lib",
-    srcs = ["main.go"],
+    srcs = ["proberk.go"],
     importpath = "go.skia.org/infra/proberk/go/proberk",
     visibility = ["//visibility:private"],
     deps = [
@@ -28,7 +28,7 @@ go_binary(
 
 go_test(
     name = "proberk_test",
-    srcs = ["main_test.go"],
+    srcs = ["proberk_test.go"],
     embed = [":proberk_lib"],
     deps = [
         "//go/testutils/unittest",
