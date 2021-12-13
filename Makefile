@@ -93,7 +93,6 @@ build-frontend-ci: npm-ci
 	cd particles && $(MAKE) build-frontend-ci
 	cd pulld && $(MAKE) build-frontend-ci
 	cd push && $(MAKE) build-frontend-ci
-	cd scrap && $(MAKE) build-frontend-ci
 	cd skottie && $(MAKE) build-frontend-ci
 	cd status && $(MAKE) build-frontend-ci
 	cd task_driver && $(MAKE) build-frontend-ci
@@ -110,7 +109,6 @@ test-frontend-ci: npm-ci
 	cd new_element && $(MAKE) test-frontend-ci
 	cd puppeteer-tests && $(MAKE) test-frontend-ci
 	cd push && $(MAKE) test-frontend-ci
-	cd scrap && $(MAKE) test-frontend-ci
 	cd shaders && $(MAKE) test-frontend-ci
 	cd status && $(MAKE) test-frontend-ci
 	cd task_scheduler && $(MAKE) test-frontend-ci

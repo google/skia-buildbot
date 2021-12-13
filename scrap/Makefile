@@ -1,49 +1,27 @@
-build: web
-	go install -v ./go/...
+include ../make/bazel.mk
+include ../kube/kube.mk
 
-web: npm-ci
-	npx webpack --mode=development
+build:
+	${BAZEL} build go/... modules/... pages/...
 
-test: npm-ci
-	go test -cover ./go/...
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+release: build
+	${BAZEL} run //scrap:push_scrapexchange_container
 
-testjs: npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+push: pushk release
+	pushk --use-temp-checkout scrapexchange
 
-# Increase Node's heap size to accommodate for ts-node's higher memory usage.
-NODE_MEMORY_LIMIT=4096
+testgo:
+	go test ./go/...
 
-.PHONY: testpptr
-testpptr: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
+testjs:
+	${BAZEL} test modules/...
 
-debugjs: npm-ci
-	npx karma start --no-single-run
+serve:
+	@echo "Bazel doesn't have a serve-all option."
+	@echo "For the module under development, try running something like:"
+	@echo "bazel run modules/scrap-exchange-sk:demo_page_server"
 
-testci: npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
-
-release: build npm-ci
-	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/scrapexchange
-	./images/scrapexchange/release
-
-watch: npm-ci
-	npx webpack --mode=development --watch
-
-push: release
-	pushk scrapexchange
-
-.PHONY: build-frontend-ci
-build-frontend-ci: npm-ci
-	npx webpack --mode=production
-
-.PHONY: test-frontend-ci
-test-frontend-ci: npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
-
-run-local-instance:
-	scrapexchange --local --bucket=skia-public-scrap-exchange
-
-include ../make/npm.mk
+run-local-instance: build
+	# Run "bazel build //scrap/..." after making any frontend changes
+	# to pick up the change without restarting the golang server.
+	../_bazel_bin/scrap/go/scrapexchange/scrapexchange_/scrapexchange --local --resources_dir ../_bazel_bin/scrap/pages/development --bucket=skia-public-scrap-exchange

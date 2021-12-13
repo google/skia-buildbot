@@ -1,0 +1,26 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "scrapexchange_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//scrap/go/scrapexchange:scrapexchange",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/scrapexchange/dist": [
+            [
+                "//scrap/pages:production/index.%s" % ext,
+                "0644",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    entrypoint = "/usr/local/bin/scrapexchange",
+    repository = "skia-public/scrapexchange",
+)

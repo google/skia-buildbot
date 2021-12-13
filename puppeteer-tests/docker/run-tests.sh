@@ -127,11 +127,6 @@ cp -r /src/debugger-app/modules              /tests/debugger-app
 cp -r /src/debugger-app/build                /tests/debugger-app
 cp -r /src/debugger-app/static               /tests/debugger-app
 
-mkdir /tests/scrap
-cp -r /src/scrap/webpack.config.ts           /tests/scrap
-cp -r /src/scrap/tsconfig.json               /tests/scrap
-cp -r /src/scrap/modules                     /tests/scrap
-
 mkdir /tests/particles
 cp -r /src/particles/webpack.config.ts       /tests/particles
 cp -r /src/particles/tsconfig.json           /tests/particles
@@ -196,9 +191,6 @@ cd /tests/task_scheduler
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/debugger-app
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
-cd /tests/scrap
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/particles

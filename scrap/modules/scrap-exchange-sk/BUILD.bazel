@@ -1,0 +1,52 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":scrap-exchange-sk-demo",
+)
+
+sk_element(
+    name = "scrap-exchange-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["scrap-exchange-sk.scss"],
+    sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "scrap-exchange-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "scrap-exchange-sk-demo",
+    html_file = "scrap-exchange-sk-demo.html",
+    sk_element_deps = [":scrap-exchange-sk"],
+    ts_entry_point = "scrap-exchange-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "scrap-exchange-sk_puppeteer_test",
+    src = "scrap-exchange-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "scrap-exchange-sk_test",
+    src = "scrap-exchange-sk_test.ts",
+    deps = [
+        ":scrap-exchange-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

@@ -13,7 +13,7 @@ describe('scrap-exchange-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/scrap-exchange-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 400, height: 550 });
   });
 
