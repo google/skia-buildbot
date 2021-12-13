@@ -74,6 +74,9 @@ export class BugsCentralScaffoldSk extends ElementSk {
       <a href="/?client=Flutter-on-web" tab-index=0 >
         <person-pin-icon-sk></person-pin-icon-sk><span>Flutter-on-web Client</span>
       </a>
+      <a href="/?client=OSS-Fuzz" tab-index=0 >
+        <person-pin-icon-sk></person-pin-icon-sk><span>OSS-Fuzz Client</span>
+      </a>
       <a href="/?client=Skia" tab-index=0 >
         <person-pin-icon-sk></person-pin-icon-sk><span>Skia Client</span>
       </a>

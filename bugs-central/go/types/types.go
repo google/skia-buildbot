@@ -14,6 +14,7 @@ const (
 	FlutterNativeClient RecognizedClient = "Flutter-native"
 	FlutterOnWebClient  RecognizedClient = "Flutter-on-web"
 	SkiaClient          RecognizedClient = "Skia"
+	OSSFuzzClient       RecognizedClient = "OSS-Fuzz"
 
 	// All recognized bug frameworks.
 	GithubSource       IssueSource = "Github"

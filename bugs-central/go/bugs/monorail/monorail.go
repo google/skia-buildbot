@@ -251,7 +251,8 @@ func (m *monorail) Search(ctx context.Context) ([]*types.Issue, *types.IssueCoun
 				}
 			}
 		} else {
-			sklog.Errorf("Could not find MonorailProjectToPriorityData for project %s", m.queryConfig.Instance)
+			// Its ok for some projects not to have priorities specified. Eg: OSS-Fuzz.
+			sklog.Infof("Could not find MonorailProjectToPriorityData for project %s", m.queryConfig.Instance)
 		}
 
 		// Populate counts data.

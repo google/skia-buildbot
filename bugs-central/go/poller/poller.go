@@ -26,15 +26,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-const (
-	// All recognized clients.
-	AndroidClient       types.RecognizedClient = "Android"
-	ChromiumClient      types.RecognizedClient = "Chromium"
-	FlutterNativeClient types.RecognizedClient = "Flutter-native"
-	FlutterOnWebClient  types.RecognizedClient = "Flutter-on-web"
-	SkiaClient          types.RecognizedClient = "Skia"
-)
-
 // IssuesPoller will be used to poll the different issue frameworks.
 type IssuesPoller struct {
 	storageClient            *storage.Client
@@ -91,7 +82,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	//////////////////// Android - IssueTracker ////////////////////
 	androidQueryConfig := &issuetracker.IssueTrackerQueryConfig{
 		Query:               "componentid:1346 status:open",
-		Client:              AndroidClient,
+		Client:              types.AndroidClient,
 		UntriagedPriorities: []string{},
 		UntriagedAliases:    []string{"skia-android-triage@google.com", "none"},
 	}
@@ -106,7 +97,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		Labels:           []string{"e: web_canvaskit"},
 		Open:             true,
 		PriorityRequired: true,
-		Client:           FlutterOnWebClient,
+		Client:           types.FlutterOnWebClient,
 	}
 	flutterOnWebGithub, err := github.New(ctx, "flutter", "flutter", p.pathToGithubToken, p.openIssues, flutterOnWebQueryConfig)
 	if err != nil {
@@ -120,7 +111,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		ExcludeLabels:    []string{"e: web_canvaskit"}, // These issues are already covered by flutter-on-web
 		Open:             true,
 		PriorityRequired: false,
-		Client:           FlutterNativeClient,
+		Client:           types.FlutterNativeClient,
 	}
 	flutterNativeGithub, err := github.New(ctx, "flutter", "flutter", p.pathToGithubToken, p.openIssues, flutterNativeQueryConfig)
 	if err != nil {
@@ -132,7 +123,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	crQueryConfig1 := &monorail.MonorailQueryConfig{
 		Instance:          "chromium",
 		Query:             "is:open component=Internals>Skia",
-		Client:            ChromiumClient,
+		Client:            types.ChromiumClient,
 		UntriagedStatuses: []string{"Untriaged", "Unconfirmed"},
 	}
 	crMonorail1, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, crQueryConfig1)
@@ -145,7 +136,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	crQueryConfig2 := &monorail.MonorailQueryConfig{
 		Instance:          "chromium",
 		Query:             "is:open component=Internals>Skia>Compositing",
-		Client:            ChromiumClient,
+		Client:            types.ChromiumClient,
 		UntriagedStatuses: []string{"Untriaged", "Unconfirmed"},
 	}
 	crMonorail2, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, crQueryConfig2)
@@ -158,7 +149,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	crQueryConfig3 := &monorail.MonorailQueryConfig{
 		Instance:          "chromium",
 		Query:             "is:open component=Internals>Skia>PDF",
-		Client:            ChromiumClient,
+		Client:            types.ChromiumClient,
 		UntriagedStatuses: []string{"Untriaged", "Unconfirmed"},
 	}
 	crMonorail3, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, crQueryConfig3)
@@ -171,7 +162,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	skQueryConfig := &monorail.MonorailQueryConfig{
 		Instance:              "skia",
 		Query:                 "is:open",
-		Client:                SkiaClient,
+		Client:                types.SkiaClient,
 		UntriagedStatuses:     []string{"Untriaged"},
 		UnassignedIsUntriaged: true,
 	}
@@ -180,6 +171,20 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		return skerr.Wrapf(err, "failed to init monorail for skia")
 	}
 	bugFrameworks = append(bugFrameworks, skMonorail)
+
+	//////////////////// OSS-Fuzz - Monorail ////////////////////
+	fuzzQueryConfig := &monorail.MonorailQueryConfig{
+		Instance:              "oss-fuzz",
+		Query:                 "is:open api_triangulation",
+		Client:                types.OSSFuzzClient,
+		UntriagedStatuses:     []string{"New"},
+		UnassignedIsUntriaged: true,
+	}
+	fuzzMonorail, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, fuzzQueryConfig)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to init monorail for oss-fuzz")
+	}
+	bugFrameworks = append(bugFrameworks, fuzzMonorail)
 
 	cleanup.Repeat(pollInterval, func(ctx context.Context) {
 		if !*baseapp.Local {
