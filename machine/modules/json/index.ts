@@ -22,6 +22,10 @@ export interface SupplyChromeOSRequest {
 	SuppliedDimensions: SwarmingDimensions;
 }
 
+export interface SetAttachedDevice {
+	AttachedDevice: AttachedDevice;
+}
+
 export interface Annotation {
 	Message: string;
 	User: string;
@@ -30,6 +34,7 @@ export interface Annotation {
 
 export interface FrontendDescription {
 	Mode: Mode;
+	AttachedDevice: AttachedDevice;
 	Annotation: Annotation;
 	Note: Annotation;
 	Version: string;
@@ -45,6 +50,8 @@ export interface FrontendDescription {
 }
 
 export type SwarmingDimensions = { [key: string]: string[] | null } | null;
+
+export type AttachedDevice = "nodevice" | "adb" | "ios" | "ssh";
 
 export type Mode = "available" | "maintenance" | "recovery";
 

@@ -14,7 +14,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
@@ -277,7 +276,8 @@ func TestMachineRemoveDeviceHandler_ChromeOSDevice_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, machines, 1)
 	assert.Equal(t, machine.Description{
-		Mode: machine.ModeAvailable,
+		Mode:           machine.ModeAvailable,
+		AttachedDevice: machine.AttachedDeviceNone,
 		Annotation: machine.Annotation{
 			Message:   "Requested device removal of skia-rpi-002",
 			User:      "barney@example.org",
@@ -493,7 +493,8 @@ func TestMachineSupplyChromeOSInfoHandler_Success(t *testing.T) {
 
 	err = store.Update(ctx, "someid", func(_ machine.Description) machine.Description {
 		return machine.Description{
-			Mode: machine.ModeAvailable,
+			Mode:           machine.ModeAvailable,
+			AttachedDevice: machine.AttachedDeviceSSH,
 			Dimensions: machine.SwarmingDimensions{
 				"cpu": {"x86"},
 				"os":  {"Linux"},
@@ -535,7 +536,8 @@ func TestMachineSupplyChromeOSInfoHandler_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, machines, 1)
 	assert.Equal(t, machine.Description{
-		Mode: machine.ModeAvailable,
+		Mode:           machine.ModeAvailable,
+		AttachedDevice: machine.AttachedDeviceSSH,
 		Dimensions: machine.SwarmingDimensions{ // These dimensions remain unchanged
 			"cpu": {"x86"},
 			"os":  {"Linux"},
@@ -562,7 +564,8 @@ func TestMachineSupplyChromeOSInfoHandler_FailOnMissingField(t *testing.T) {
 
 	err = store.Update(ctx, "someid", func(_ machine.Description) machine.Description {
 		return machine.Description{
-			Mode: machine.ModeAvailable,
+			Mode:           machine.ModeAvailable,
+			AttachedDevice: machine.AttachedDeviceSSH,
 			Dimensions: machine.SwarmingDimensions{
 				"cpu": {"x86"},
 				"os":  {"Linux"},
@@ -597,7 +600,9 @@ func TestMachineSupplyChromeOSInfoHandler_FailOnMissingField(t *testing.T) {
 			require.Len(t, machines, 1)
 			assert.Equal(t, machine.Description{
 				// This all remains unchanged
-				Mode: machine.ModeAvailable,
+
+				Mode:           machine.ModeAvailable,
+				AttachedDevice: machine.AttachedDeviceSSH,
 				Dimensions: machine.SwarmingDimensions{
 					"cpu": {"x86"},
 					"os":  {"Linux"},
@@ -637,3 +642,90 @@ func TestMachineSupplyChromeOSInfoHandler_FailOnMissingID(t *testing.T) {
 }
 
 var fakeTime = time.Date(2021, time.September, 1, 2, 3, 4, 0, time.UTC)
+
+func TestSetAttachedDeviceHandler_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cfg := setupForTest(t)
+	store, err := store.NewFirestoreImpl(ctx, true, cfg)
+	require.NoError(t, err)
+
+	// Create a machine at "someid".
+	err = store.Update(ctx, "someid", func(in machine.Description) machine.Description {
+		return machine.Description{
+			Mode: machine.ModeAvailable,
+			// Start with an AttachedDevice that isn't iOS so we can see that it changes.
+			AttachedDevice: machine.AttachedDeviceSSH,
+			Dimensions: machine.SwarmingDimensions{
+				"cpu": {"x86"},
+				"os":  {"Linux"},
+			},
+			LastUpdated: fakeTime,
+		}
+	})
+	require.NoError(t, err)
+
+	// Create our server.
+	s := &server{
+		store: store,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	adReq := rpc.SetAttachedDevice{
+		AttachedDevice: machine.AttachedDeviceiOS,
+	}
+	b, err := json.Marshal(adReq)
+	assert.NoError(t, err)
+	r := httptest.NewRequest("POST", "/_/machine/set_attached_device/someid", bytes.NewReader(b))
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, 200, w.Code)
+	machines, err := store.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, machines, 1)
+	assert.Equal(t, machines[0].AttachedDevice, machine.AttachedDeviceiOS)
+}
+
+func TestSetAttachedDeviceHandler_FailOnMissingID(t *testing.T) {
+	unittest.LargeTest(t)
+
+	// Create our server.
+	s := &server{}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("POST", "/_/machine/set_attached_device/", nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, 404, w.Code)
+}
+
+func TestSetAttachedDeviceHandler_FailOnInvalidJSON(t *testing.T) {
+	unittest.LargeTest(t)
+
+	// Create our server.
+	s := &server{}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("POST", "/_/machine/set_attached_device/someid", bytes.NewReader([]byte("This isn't valid JSON.")))
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}

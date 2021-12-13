@@ -221,7 +221,7 @@ export class AlertManagerSk extends HTMLElement {
   <bot-chooser-sk id=bot-chooser></bot-chooser-sk>
   <email-chooser-sk id=email-chooser></email-chooser-sk>
   <error-toast-sk></error-toast-sk>
-<footer>
+</footer>
 `;
 
   connectedCallback(): void {

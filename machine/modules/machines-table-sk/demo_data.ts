@@ -5,6 +5,7 @@ export const fakeNow = Date.parse('2021-06-03T18:20:30.00000Z');
 // Based on a production response on 2021-06-03.
 export const descriptions: ListMachinesResponse = [{
   Mode: 'available',
+  AttachedDevice: 'adb',
   Annotation: {
     Message: 'Leaving recovery mode.',
     User: 'machines.skia.org',
@@ -42,6 +43,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
 }, {
   Mode: 'available',
+  AttachedDevice: 'ssh',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-qdgf2"',
     User: 'machines.skia.org',
@@ -75,6 +77,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
 }, {
   Mode: 'available',
+  AttachedDevice: 'adb',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-5hqvb"',
     User: 'machines.skia.org',
@@ -108,6 +111,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
 }, {
   Mode: 'available',
+  AttachedDevice: 'adb',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-q2vpj"',
     User: 'machines.skia.org',
@@ -141,6 +145,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
 }, {
   Mode: 'available',
+  AttachedDevice: 'adb',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-k8fdn"',
     User: 'machines.skia.org',
@@ -174,6 +179,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
 }, {
   Mode: 'recovery',
+  AttachedDevice: 'adb',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-j9lzl"',
     User: 'machines.skia.org',
@@ -211,6 +217,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
 }, {
   Mode: 'available',
+  AttachedDevice: 'adb',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-d86nk"',
     User: 'machines.skia.org',
@@ -244,6 +251,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
 }, {
   Mode: 'available',
+  AttachedDevice: 'adb',
   Annotation: {
     Message: 'Leaving recovery mode.',
     User: 'machines.skia.org',
@@ -281,6 +289,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
 }, {
   Mode: 'recovery',
+  AttachedDevice: 'adb',
   Annotation: {
     Message: 'Too hot. ',
     User: 'machines.skia.org',
@@ -318,6 +327,7 @@ export const descriptions: ListMachinesResponse = [{
   SSHUserIP: '',
 }, {
   Mode: 'available',
+  AttachedDevice: 'ssh',
   Annotation: {
     Message: 'Pod too old, requested update for "rpi-swarming-ghncz"',
     User: 'machines.skia.org',

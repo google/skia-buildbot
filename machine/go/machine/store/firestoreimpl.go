@@ -55,6 +55,9 @@ type storeDescription struct {
 	// Mode describes if the machine is capable of running tasks or is otherwise not ready.
 	Mode machine.Mode
 
+	// AttachedDevice is the kind of device attached.
+	AttachedDevice machine.AttachedDevice
+
 	// Annotation is used to record the most recent non-user change to Description.
 	Annotation fsAnnotation
 
@@ -278,6 +281,7 @@ func (st *FirestoreImpl) Delete(ctx context.Context, machineID string) error {
 func convertDescription(m machine.Description) storeDescription {
 	return storeDescription{
 		Annotation:          convertAnnotation(m.Annotation),
+		AttachedDevice:      forceToAttachedDevice(m.AttachedDevice),
 		Battery:             m.Battery,
 		DeviceType:          m.Dimensions[machine.DimDeviceType],
 		DeviceUptime:        m.DeviceUptime,
@@ -314,10 +318,20 @@ func convertFSAnnotation(a fsAnnotation) machine.Annotation {
 	}
 }
 
+func forceToAttachedDevice(a machine.AttachedDevice) machine.AttachedDevice {
+	for _, d := range machine.AllAttachedDevices {
+		if a == d {
+			return a
+		}
+	}
+	return machine.AttachedDeviceNone
+}
+
 // convertFSDescription converts the firestore version of the description to the common format.
 func convertFSDescription(s storeDescription) machine.Description {
 	return machine.Description{
 		Annotation:          convertFSAnnotation(s.Annotation),
+		AttachedDevice:      forceToAttachedDevice(s.AttachedDevice),
 		Battery:             s.Battery,
 		DeviceUptime:        s.DeviceUptime,
 		Dimensions:          s.Dimensions,

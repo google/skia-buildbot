@@ -13,7 +13,7 @@ import { html, TemplateResult } from 'lit-html';
 import { diffDate, strDuration } from 'common-sk/modules/human';
 import { $$ } from 'common-sk/modules/dom';
 import {
-  Annotation, FrontendDescription, SetNoteRequest, SupplyChromeOSRequest,
+  Annotation, AttachedDevice, FrontendDescription, SetAttachedDevice, SetNoteRequest, SupplyChromeOSRequest,
 } from '../json';
 import { LiveTableSk, WaitCursor } from '../live-table-sk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
@@ -47,6 +47,16 @@ export const MAX_LAST_UPDATED_ACCEPTABLE_MS = 60 * 1000;
  * running a test.
  */
 export const MAX_UPTIME_ACCEPTABLE_S = 60 * 60 * 25;
+
+const attachedDeviceDisplayName: Record< string, AttachedDevice> = {
+  '-': 'nodevice',
+  Android: 'adb',
+  iOS: 'ios',
+  SSH: 'ssh',
+};
+
+// Sorted by display name.
+const attachedDeviceDisplayNamesOrder: string[] = Object.keys(attachedDeviceDisplayName).sort();
 
 const temps = (temperatures: { [key: string]: number } | null): TemplateResult => {
   if (!temperatures) {
@@ -212,6 +222,14 @@ export const pretty_device_name = (devices: string[] | null): string => {
   return `${devices.join(' | ')} ${alias}`;
 };
 
+const attachedDeviceOption = (key: string, ele: MachinesTableSk, machine: FrontendDescription): TemplateResult => html`<option value=${attachedDeviceDisplayName[key]} ?selected=${attachedDeviceDisplayName[key] === machine.AttachedDevice}>${key}</option>`;
+
+const attachedDevice = (ele: MachinesTableSk, machine: FrontendDescription): TemplateResult => html`
+  <select @input=${(e: InputEvent) => ele.attachedDeviceChanged(e, machine.Dimensions!.id![0])}>
+    ${attachedDeviceDisplayNamesOrder.map((key: string) => attachedDeviceOption(key, ele, machine))}
+  </select>
+`;
+
 export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
   private noteEditor: NoteEditorSk | null = null;
 
@@ -222,6 +240,7 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
   tableHeaders(): TemplateResult {
     return html`
       <th>Machine</th>
+      <th>Attached</th>
       <th>Device</th>
       <th>Mode</th>
       <th>Host</th>
@@ -248,6 +267,7 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
     return html`
       <tr id=${machine.Dimensions.id[0]}>
         <td>${machineLink(machine)}</td>
+        <td>${attachedDevice(this, machine)}</td>
         <td>${pretty_device_name(machine.Dimensions.device_type)}</td>
         <td>${toggleMode(this, machine)}</td>
         <td class="powercycle">${powerCycle(this, machine)}</td>
@@ -275,7 +295,7 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
     `;
   }
 
-  private editDeviceIcon = (machine: FrontendDescription): TemplateResult => (machine.RunningSwarmingTask
+  private editDeviceIcon = (machine: FrontendDescription): TemplateResult => ((machine.RunningSwarmingTask || machine.AttachedDevice !== 'ssh')
     ? html``
     : html`
         <edit-icon-sk
@@ -308,7 +328,29 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
       this.removeAttribute('waiting');
       await this.update(WaitCursor.SHOW);
     } catch (error) {
-      this.onError(error);
+      this.onError(error as string);
+    }
+  }
+
+  async attachedDeviceChanged(e: InputEvent, id: string): Promise<void> {
+    try {
+      this.setAttribute('waiting', '');
+      const sel = e.target as HTMLSelectElement;
+      const request: SetAttachedDevice = {
+        AttachedDevice: sel.selectedOptions[0].value as AttachedDevice,
+      };
+      await fetch(`/_/machine/set_attached_device/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
+      await this.update(WaitCursor.SHOW);
+    } catch (error) {
+      this.onError(error as string);
+    } finally {
+      this.removeAttribute('waiting');
     }
   }
 
@@ -319,7 +361,7 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
       this.removeAttribute('waiting');
       await this.update(WaitCursor.SHOW);
     } catch (error) {
-      this.onError(error);
+      this.onError(error as string);
     }
   }
 
@@ -343,7 +385,7 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
       }
       await this.update(WaitCursor.SHOW);
     } catch (error) {
-      this.onError(error);
+      this.onError(error as string);
     } finally {
       this.removeAttribute('waiting');
     }
@@ -355,7 +397,7 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
       await fetch(`/_/machine/toggle_powercycle/${id}`, { method: 'POST' });
       await this.update(WaitCursor.SHOW);
     } catch (error) {
-      this.onError(error);
+      this.onError(error as string);
     } finally {
       this.removeAttribute('waiting');
     }
@@ -369,7 +411,7 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
 
       await this.update(WaitCursor.SHOW);
     } catch (error) {
-      this.onError(error);
+      this.onError(error as string);
     } finally {
       this.removeAttribute('waiting');
     }
@@ -381,7 +423,7 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
       await fetch(`/_/machine/delete_machine/${id}`, { method: 'POST' });
       await this.update(WaitCursor.SHOW);
     } catch (error) {
-      this.onError(error);
+      this.onError(error as string);
     } finally {
       this.removeAttribute('waiting');
     }
@@ -402,7 +444,7 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
       });
       await this.update(WaitCursor.SHOW);
     } catch (error) {
-      this.onError(error);
+      this.onError(error as string);
     } finally {
       this.removeAttribute('waiting');
     }

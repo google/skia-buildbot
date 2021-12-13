@@ -16,10 +16,15 @@ type SetNoteRequest struct {
 	// User and Timestamp will be added by the server
 }
 
-// FrontendDescription is the frontend representation of machine.Description. See that struct
-// for details on the fields.
+type SetAttachedDevice struct {
+	AttachedDevice machine.AttachedDevice
+}
+
+// FrontendDescription is the frontend representation of machine.Description.
+// See that struct for details on the fields.
 type FrontendDescription struct {
 	Mode                machine.Mode
+	AttachedDevice      machine.AttachedDevice
 	Annotation          machine.Annotation
 	Note                machine.Annotation
 	Version             string
@@ -41,6 +46,7 @@ func ToListMachinesResponse(descriptions []machine.Description) []FrontendDescri
 	for _, d := range descriptions {
 		rv = append(rv, FrontendDescription{
 			Mode:                d.Mode,
+			AttachedDevice:      d.AttachedDevice,
 			Annotation:          d.Annotation,
 			Note:                d.Note,
 			Version:             d.Version,

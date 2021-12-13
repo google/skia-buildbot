@@ -128,7 +128,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 
 // interrogate the machine we are running on for state-related information. Compile that into a
 // machine.Event and return it.
-func (m *Machine) interrogate(ctx context.Context) machine.Event {
+func (m *Machine) interrogate(ctx context.Context) (machine.Event, error) {
 	defer timer.NewWithSummary("interrogate", m.interrogateTimer).Stop()
 
 	ret := machine.NewEvent()
@@ -137,21 +137,35 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 	ret.Host.StartTime = m.startTime
 	ret.RunningSwarmingTask = m.runningTask
 	ret.LaunchedSwarming = m.startSwarming
+	var err error = nil
 
-	if ce, ok := m.tryInterrogatingChromeOSDevice(ctx); ok {
-		sklog.Infof("Successful communication with ChromeOS device: %#v", ce)
-		ret.ChromeOS = ce
-	} else if ae, ok := m.tryInterrogatingAndroidDevice(ctx); ok {
-		sklog.Infof("Successful communication with Android device: %#v", ae)
-		ret.Android = ae
-	} else if ie, ok := m.tryInterrogatingIOSDevice(ctx); ok {
-		sklog.Infof("Successful communication with iOS device: %#v", ie)
-		ret.IOS = ie
-	} else {
-		sklog.Infof("No attached device found")
+	switch m.description.AttachedDevice {
+	case machine.AttachedDeviceSSH:
+		var ce machine.ChromeOS
+		if ce, err = m.tryInterrogatingChromeOSDevice(ctx); err == nil {
+			sklog.Infof("Successful communication with ChromeOS device: %#v", ce)
+			ret.ChromeOS = ce
+		}
+	case machine.AttachedDeviceAdb:
+		var ae machine.Android
+		if ae, err = m.tryInterrogatingAndroidDevice(ctx); err == nil {
+			sklog.Infof("Successful communication with abd device: %#v", ae)
+			ret.Android = ae
+		}
+	case machine.AttachedDeviceiOS:
+		var ie machine.IOS
+		if ie, err = m.tryInterrogatingIOSDevice(ctx); err == nil {
+			sklog.Infof("Successful communication with iOS device: %#v", ie)
+			ret.IOS = ie
+		}
+	case machine.AttachedDeviceNone:
+		sklog.Infof("No attached device expected.")
+	default:
+		sklog.Error("Unhandled type of machine.AttachedDevice.")
+
 	}
 
-	return ret
+	return ret, skerr.Wrap(err)
 }
 
 // interrogateAndSend gathers the state for this machine and sends it to the sink. Of note, this
@@ -159,7 +173,10 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 // listens to the events will determine the dimensions based on the reported state and any
 // information it has from other sources (e.g. human-supplied details, previously attached devices)
 func (m *Machine) interrogateAndSend(ctx context.Context) error {
-	event := m.interrogate(ctx)
+	event, err := m.interrogate(ctx)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to interrogate")
+	}
 	if err := m.sink.Send(ctx, event); err != nil {
 		return skerr.Wrapf(err, "Failed to send interrogation step.")
 	}
@@ -267,7 +284,7 @@ func (m *Machine) RebootDevice(ctx context.Context) error {
 // tryInterrogatingAndroidDevice attempts to communicate with an Android device using the
 // adb interface. If there is one attached, this function returns true and the information gathered
 // (which can be partially filled out). If there is not a device attached, false is returned.
-func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.Android, bool) {
+func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.Android, error) {
 	metrics2.GetCounter("bot_config_machine_interrogate_device_type", map[string]string{
 		"machine": m.MachineID,
 		"type":    "android",
@@ -277,66 +294,67 @@ func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.An
 
 	if err := m.adb.EnsureOnline(ctx); err != nil {
 		sklog.Warningf("No Android device is available: %s", err)
-		return ret, false
+		return ret, skerr.Wrapf(err, "No Android device is available")
 	}
 	if uptime, err := m.adb.Uptime(ctx); err != nil {
-		sklog.Warningf("Failed to read uptime - assuming there is no Android device attached: %s", err)
-		return ret, false // Assume there is no Android device attached.
+		return ret, skerr.Wrapf(err, "Failed to read uptime - assuming there is no Android device attached.")
 	} else {
 		ret.Uptime = uptime
 	}
 
-	if props, err := m.adb.RawProperties(ctx); err != nil {
-		sklog.Warningf("Failed to read android properties: %s", err)
-	} else {
-		ret.GetProp = props
+	props, err := m.adb.RawProperties(ctx)
+	if err != nil {
+		return ret, skerr.Wrapf(err, "Failed to read android properties.")
 	}
+	ret.GetProp = props
 
-	if battery, err := m.adb.RawDumpSys(ctx, "battery"); err != nil {
-		sklog.Warningf("Failed to read android battery status: %s", err)
-	} else {
+	if battery, err := m.adb.RawDumpSys(ctx, "battery"); err == nil {
 		ret.DumpsysBattery = battery
+	} else {
+		sklog.Warningf("Failed to read android battery status: %s", err)
 	}
 
-	if thermal, err := m.adb.RawDumpSys(ctx, "thermalservice"); err != nil {
-		sklog.Warningf("Failed to read android thermal status: %s", err)
-	} else {
+	if thermal, err := m.adb.RawDumpSys(ctx, "thermalservice"); err == nil {
 		ret.DumpsysThermalService = thermal
+	} else {
+		sklog.Warningf("Failed to read android thermal status.", err)
 	}
-	return ret, true
+	return ret, nil
 }
 
 // tryInterrogatingIOSDevice attempts to communicate with an attached iOS device. If there is one,
 // this function returns true and the information gathered (which can be partially filled out). If
 // there is not a device attached, it returns false, and the other return value is undefined. If
 // multiple devices are attached, an arbitrary one is chosen.
-func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, bool) {
+func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, error) {
 	metrics2.GetCounter("bot_config_machine_interrogate_device_type", map[string]string{
 		"machine": m.MachineID,
 		"type":    "ios",
 	}).Inc(1)
-
 	sklog.Info("tryInterrogatingIOSDevice")
+
 	var ret machine.IOS
 	var err error
 
-	if device_type, err := m.ios.DeviceType(ctx); err != nil {
-		return ret, false
-	} else {
-		ret.DeviceType = device_type
+	deviceType, err := m.ios.DeviceType(ctx)
+	if err != nil {
+		return ret, skerr.Wrap(err)
 	}
+	ret.DeviceType = deviceType
 
-	if os_version, err := m.ios.OSVersion(ctx); err != nil {
+	if osVersion, err := m.ios.OSVersion(ctx); err != nil {
 		sklog.Warningf("Failed to read iOS version, though we managed to read the device type: %s", err)
 	} else {
-		ret.OSVersion = os_version
+		ret.OSVersion = osVersion
 	}
 
-	if ret.Battery, err = m.ios.BatteryLevel(ctx); err != nil {
+	battery, err := m.ios.BatteryLevel(ctx)
+	if err != nil {
 		sklog.Warningf("Failed to read iOS device battery level, though we managed to read its device type: %s", err)
 	}
+	ret.Battery = battery
 
-	return ret, true
+	return ret, nil
 }
 
 var (
@@ -345,47 +363,43 @@ var (
 	chromeOSTrackRegex     = regexp.MustCompile(`CHROMEOS_RELEASE_TRACK=(\S+)`)
 )
 
-func (m *Machine) tryInterrogatingChromeOSDevice(ctx context.Context) (machine.ChromeOS, bool) {
+func (m *Machine) tryInterrogatingChromeOSDevice(ctx context.Context) (machine.ChromeOS, error) {
 	metrics2.GetCounter("bot_config_machine_interrogate_device_type", map[string]string{
 		"machine": m.MachineID,
 		"type":    "chromeos",
 	}).Inc(1)
-
 	sklog.Info("tryInterrogatingChromeOSDevice")
+
+	var ret machine.ChromeOS
 	if m.description.SSHUserIP == "" {
-		return machine.ChromeOS{}, false
+		return ret, skerr.Fmt("no machine.SSHUserIP supplied")
 	}
-	rv := machine.ChromeOS{}
 	uptime, err := m.ssh.Run(ctx, m.description.SSHUserIP, "cat", "/proc/uptime")
 	if err != nil {
-		sklog.Warningf("Could not read ChromeOS uptime %s - assuming there is no ChromeOS device attached", err)
-		return machine.ChromeOS{}, false
+		return ret, skerr.Wrapf(err, "Could not read ChromeOS uptime - assuming there is no ChromeOS device attached")
+	}
+	u := strings.Split(uptime, " ")[0]
+	if f, err := strconv.ParseFloat(u, 64); err != nil {
+		return ret, skerr.Wrapf(err, "Invalid /proc/uptime format: %q", uptime)
 	} else {
-		u := strings.Split(uptime, " ")[0]
-		if f, err := strconv.ParseFloat(u, 64); err != nil {
-			sklog.Warningf("Invalid /proc/uptime format: %q", uptime)
-		} else {
-			rv.Uptime = time.Duration(f * float64(time.Second))
-		}
+		ret.Uptime = time.Duration(f * float64(time.Second))
 	}
 
 	lsbReleaseContents, err := m.ssh.Run(ctx, m.description.SSHUserIP, "cat", "/etc/lsb-release")
 	if err != nil {
-		sklog.Warningf("Failed to read lsb-release - assuming there is no ChromeOS device attached: %s", err)
-		return machine.ChromeOS{}, false
+		return ret, skerr.Wrapf(err, "Failed to read lsb-release - assuming there is no ChromeOS device attached")
 	}
 	if match := chromeOSReleaseRegex.FindStringSubmatch(lsbReleaseContents); match != nil {
-		rv.ReleaseVersion = match[1]
+		ret.ReleaseVersion = match[1]
 	}
 	if match := chromeOSMilestoneRegex.FindStringSubmatch(lsbReleaseContents); match != nil {
-		rv.Milestone = match[1]
+		ret.Milestone = match[1]
 	}
 	if match := chromeOSTrackRegex.FindStringSubmatch(lsbReleaseContents); match != nil {
-		rv.Channel = match[1]
+		ret.Channel = match[1]
 	}
-	if rv.ReleaseVersion == "" && rv.Milestone == "" && rv.Channel == "" {
-		sklog.Errorf("Could not find ChromeOS data in /etc/lsb-release. Are we sure this is the right IP?\n%s", lsbReleaseContents)
-		return machine.ChromeOS{}, false
+	if ret.ReleaseVersion == "" && ret.Milestone == "" && ret.Channel == "" {
+		return ret, skerr.Wrapf(err, "Could not find ChromeOS data in /etc/lsb-release. Are we sure this is the right IP?\n%s", lsbReleaseContents)
 	}
 	// Now that we know we can connect to the SSH machine, make sure recipes can as well.
 	err = util.WithWriteFile(m.sshMachineLocation, func(w io.Writer) error {
@@ -402,10 +416,9 @@ func (m *Machine) tryInterrogatingChromeOSDevice(ctx context.Context) (machine.C
 		return e.Encode(toWrite)
 	})
 	if err != nil {
-		sklog.Errorf("Could not write SSH info to %s: %s", m.sshMachineLocation, err)
-		return machine.ChromeOS{}, false
+		return ret, skerr.Wrapf(err, "Could not write SSH info to %s", m.sshMachineLocation)
 	}
-	return rv, true
+	return ret, nil
 }
 
 // rebootChromeOS reboots the ChromeOS device attached via SSH.

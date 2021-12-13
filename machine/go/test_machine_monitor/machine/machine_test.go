@@ -65,8 +65,8 @@ func TestTryInterrogatingAndroidDevice_DeviceAttached_Success(t *testing.T) {
 	)
 
 	m := &Machine{adb: adb.New()}
-	actual, ok := m.tryInterrogatingAndroidDevice(ctx)
-	assert.True(t, ok)
+	actual, err := m.tryInterrogatingAndroidDevice(ctx)
+	require.NoError(t, err)
 	assert.Equal(t, machine.Android{
 		GetProp:               getPropPlaceholder,
 		DumpsysBattery:        dumpSysBatteryPlaceholder,
@@ -82,8 +82,8 @@ func TestTryInterrogatingAndroidDevice_UptimeFails_DeviceConsideredNotAttached(t
 	)
 
 	m := &Machine{adb: adb.New()}
-	_, ok := m.tryInterrogatingAndroidDevice(ctx)
-	assert.False(t, ok)
+	_, err := m.tryInterrogatingAndroidDevice(ctx)
+	require.Error(t, err)
 }
 
 func TestTryInterrogatingAndroidDevice_ThermalFails_PartialSuccess(t *testing.T) {
@@ -97,8 +97,8 @@ func TestTryInterrogatingAndroidDevice_ThermalFails_PartialSuccess(t *testing.T)
 	)
 
 	m := &Machine{adb: adb.New()}
-	actual, ok := m.tryInterrogatingAndroidDevice(ctx)
-	assert.True(t, ok)
+	actual, err := m.tryInterrogatingAndroidDevice(ctx)
+	require.NoError(t, err)
 	assert.Equal(t, machine.Android{
 		GetProp:        getPropPlaceholder,
 		DumpsysBattery: dumpSysBatteryPlaceholder,
@@ -118,8 +118,8 @@ func TestTryInterrogatingChromeOS_DeviceReachable_Success(t *testing.T) {
 		sshMachineLocation: sshFile,
 		description:        machine.Description{SSHUserIP: testUserIP},
 	}
-	actual, ok := m.tryInterrogatingChromeOSDevice(ctx)
-	assert.True(t, ok)
+	actual, err := m.tryInterrogatingChromeOSDevice(ctx)
+	require.NoError(t, err)
 	assert.Equal(t, machine.ChromeOS{
 		Channel:        "stable-channel",
 		Milestone:      "89",
@@ -146,8 +146,8 @@ func TestTryInterrogatingChromeOS_CatLSBReleaseFails_DeviceConsideredUnattached(
 	)
 
 	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
-	_, ok := m.tryInterrogatingChromeOSDevice(ctx)
-	assert.False(t, ok)
+	_, err := m.tryInterrogatingChromeOSDevice(ctx)
+	require.Error(t, err)
 }
 
 func TestTryInterrogatingChromeOS_NoSSHUserIP_ReturnFalse(t *testing.T) {
@@ -155,8 +155,8 @@ func TestTryInterrogatingChromeOS_NoSSHUserIP_ReturnFalse(t *testing.T) {
 	ctx := executil.FakeTestsContext() // Any exe call will panic
 
 	m := &Machine{ssh: ssh.ExeImpl{}}
-	_, ok := m.tryInterrogatingChromeOSDevice(ctx)
-	assert.False(t, ok)
+	_, err := m.tryInterrogatingChromeOSDevice(ctx)
+	require.Error(t, err)
 }
 
 func TestTryInterrogatingChromeOS_UptimeFails_ReturnFalse(t *testing.T) {
@@ -166,8 +166,8 @@ func TestTryInterrogatingChromeOS_UptimeFails_ReturnFalse(t *testing.T) {
 	)
 
 	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
-	_, ok := m.tryInterrogatingChromeOSDevice(ctx)
-	assert.False(t, ok)
+	_, err := m.tryInterrogatingChromeOSDevice(ctx)
+	require.Error(t, err)
 }
 
 func TestTryInterrogatingChromeOS_NoChromeOSData_AssumesNotAttached(t *testing.T) {
@@ -177,8 +177,8 @@ func TestTryInterrogatingChromeOS_NoChromeOSData_AssumesNotAttached(t *testing.T
 	)
 
 	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
-	_, ok := m.tryInterrogatingChromeOSDevice(ctx)
-	assert.False(t, ok)
+	_, err := m.tryInterrogatingChromeOSDevice(ctx)
+	require.Error(t, err)
 }
 
 func TestInterrogate_NoDeviceAttached_Success(t *testing.T) {
@@ -198,7 +198,8 @@ func TestInterrogate_NoDeviceAttached_Success(t *testing.T) {
 		startTime:        time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC),
 		interrogateTimer: noop.Float64SummaryMetric{},
 	}
-	actual := m.interrogate(ctx)
+	actual, err := m.interrogate(ctx)
+	require.NoError(t, err)
 	assert.Equal(t, machine.Event{
 		EventType:           machine.EventTypeRawState,
 		LaunchedSwarming:    true,
@@ -229,8 +230,12 @@ func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 		startSwarming:    true,
 		startTime:        time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC),
 		interrogateTimer: noop.Float64SummaryMetric{},
+		description: machine.Description{
+			AttachedDevice: machine.AttachedDeviceAdb,
+		},
 	}
-	actual := m.interrogate(ctx)
+	actual, err := m.interrogate(ctx)
+	require.NoError(t, err)
 	assert.Equal(t, machine.Event{
 		EventType:           machine.EventTypeRawState,
 		LaunchedSwarming:    true,
@@ -254,7 +259,6 @@ func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
 	unittest.MediumTest(t)
 	ctx := executil.FakeTestsContext(
-		"Test_FakeExe_ExitCodeOne", // no Android attached
 		"Test_FakeExe_IDeviceInfo_ReturnsDeviceType",
 		"Test_FakeExe_IDeviceInfo_ReturnsOSVersion",
 		"Test_FakeExe_IDeviceInfo_ReturnsGoodBatteryLevel",
@@ -270,8 +274,12 @@ func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
 		startSwarming:    true,
 		startTime:        timePlaceholder,
 		interrogateTimer: noop.Float64SummaryMetric{},
+		description: machine.Description{
+			AttachedDevice: machine.AttachedDeviceiOS,
+		},
 	}
-	actual := m.interrogate(ctx)
+	actual, err := m.interrogate(ctx)
+	require.NoError(t, err)
 	assert.Equal(t, machine.Event{
 		EventType:           machine.EventTypeRawState,
 		LaunchedSwarming:    true,
@@ -297,8 +305,8 @@ func TestTryInterrogatingIOSDevice_OSVersionAndBatteryFail_StillSucceeds(t *test
 		"Test_FakeExe_ExitCodeOne", // battery level too
 	)
 	m := &Machine{ios: ios.New()}
-	actual, deviceIsAttached := m.tryInterrogatingIOSDevice(ctx)
-	assert.True(t, deviceIsAttached)
+	actual, err := m.tryInterrogatingIOSDevice(ctx)
+	require.NoError(t, err)
 	assert.Equal(t, machine.IOS{
 		OSVersion:  "",
 		DeviceType: iOSDeviceTypePlaceholder,
@@ -312,8 +320,8 @@ func TestTryInterrogatingIOSDevice_DeviceTypeFails_DeviceConsideredUnattached(t 
 		"Test_FakeExe_ExitCodeOne", // Device-type check fails.
 	)
 	m := &Machine{ios: ios.New()}
-	_, deviceIsAttached := m.tryInterrogatingIOSDevice(ctx)
-	assert.False(t, deviceIsAttached)
+	_, err := m.tryInterrogatingIOSDevice(ctx)
+	require.Error(t, err)
 }
 
 func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
@@ -329,7 +337,8 @@ func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 		sshMachineLocation: sshFile,
 		MachineID:          "some-machine",
 		description: machine.Description{
-			SSHUserIP: testUserIP,
+			SSHUserIP:      testUserIP,
+			AttachedDevice: machine.AttachedDeviceSSH,
 		},
 		Version:          "some-version",
 		runningTask:      true,
@@ -337,7 +346,8 @@ func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 		startTime:        time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC),
 		interrogateTimer: noop.Float64SummaryMetric{},
 	}
-	actual := m.interrogate(ctx)
+	actual, err := m.interrogate(ctx)
+	require.NoError(t, err)
 	assert.Equal(t, machine.Event{
 		EventType:           machine.EventTypeRawState,
 		LaunchedSwarming:    true,

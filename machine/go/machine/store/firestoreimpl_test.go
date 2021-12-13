@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
@@ -21,15 +20,17 @@ func TestConvertDescription_NoDimensions(t *testing.T) {
 	d := machine.NewDescription(now.TimeTravelingContext(fakeTime))
 	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
-		Mode:        machine.ModeAvailable,
-		LastUpdated: fakeTime,
-		Dimensions:  machine.SwarmingDimensions{},
+		Mode:           machine.ModeAvailable,
+		AttachedDevice: machine.AttachedDeviceNone,
+		LastUpdated:    fakeTime,
+		Dimensions:     machine.SwarmingDimensions{},
 	}, m)
 }
 
 func TestConvertDescription_WithDimensions(t *testing.T) {
 	unittest.SmallTest(t)
 	d := machine.NewDescription(now.TimeTravelingContext(fakeTime))
+	d.AttachedDevice = machine.AttachedDeviceAdb
 	d.Dimensions = machine.SwarmingDimensions{
 		machine.DimOS:          []string{"Android"},
 		machine.DimDeviceType:  []string{"sailfish"},
@@ -39,18 +40,20 @@ func TestConvertDescription_WithDimensions(t *testing.T) {
 
 	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
-		OS:          []string{"Android"},
-		DeviceType:  []string{"sailfish"},
-		Quarantined: []string{"Device sailfish too hot."},
-		Dimensions:  expectedDims,
-		Mode:        machine.ModeAvailable,
-		LastUpdated: fakeTime,
+		AttachedDevice: machine.AttachedDeviceAdb,
+		OS:             []string{"Android"},
+		DeviceType:     []string{"sailfish"},
+		Quarantined:    []string{"Device sailfish too hot."},
+		Dimensions:     expectedDims,
+		Mode:           machine.ModeAvailable,
+		LastUpdated:    fakeTime,
 	}, m)
 }
 
 func TestConvertDescription_WithPowerCycle(t *testing.T) {
 	unittest.SmallTest(t)
 	d := machine.NewDescription(now.TimeTravelingContext(fakeTime))
+	d.AttachedDevice = machine.AttachedDeviceAdb
 	d.Dimensions = machine.SwarmingDimensions{
 		machine.DimOS: []string{"Android"},
 	}
@@ -60,11 +63,12 @@ func TestConvertDescription_WithPowerCycle(t *testing.T) {
 
 	m := convertDescription(d)
 	assert.Equal(t, storeDescription{
-		OS:          []string{"Android"},
-		Mode:        machine.ModeAvailable,
-		Dimensions:  expectedDims,
-		LastUpdated: fakeTime,
-		PowerCycle:  true,
+		AttachedDevice: machine.AttachedDeviceAdb,
+		OS:             []string{"Android"},
+		Mode:           machine.ModeAvailable,
+		Dimensions:     expectedDims,
+		LastUpdated:    fakeTime,
+		PowerCycle:     true,
 	}, m)
 }
 
@@ -336,3 +340,9 @@ func TestDelete_NoErrorIfMachineDoesntExist(t *testing.T) {
 }
 
 var fakeTime = time.Date(2021, time.September, 1, 0, 0, 0, 0, time.UTC)
+
+func TestForceToAttachedDevice(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, machine.AttachedDeviceSSH, forceToAttachedDevice(machine.AttachedDeviceSSH))
+	assert.Equal(t, machine.AttachedDeviceNone, forceToAttachedDevice(machine.AttachedDevice("this is not a valid attached device name")))
+}

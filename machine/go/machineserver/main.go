@@ -250,6 +250,40 @@ func (s *server) machineTogglePowerCycleHandler(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *server) machineSetAttachedDeviceHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := strings.TrimSpace(vars["id"])
+	if id == "" {
+		http.Error(w, "ID must be supplied.", http.StatusBadRequest)
+		return
+	}
+
+	var attachedDeviceRequest rpc.SetAttachedDevice
+	if err := json.NewDecoder(r.Body).Decode(&attachedDeviceRequest); err != nil {
+		httputils.ReportError(w, err, "Failed to parse incoming note.", http.StatusBadRequest)
+		return
+	}
+
+	var ret machine.Description
+	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
+		ret = in.Copy()
+		ret.AttachedDevice = attachedDeviceRequest.AttachedDevice
+		return ret
+	})
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
+		return
+	}
+	auditlog.Log(r, "set-attached-device", struct {
+		MachineID      string
+		AttachedDevice machine.AttachedDevice
+	}{
+		MachineID:      id,
+		AttachedDevice: attachedDeviceRequest.AttachedDevice,
+	})
+	w.WriteHeader(http.StatusOK)
+}
+
 func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := strings.TrimSpace(vars["id"])
@@ -399,6 +433,7 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
 	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("POST")
 	r.HandleFunc("/_/machine/toggle_powercycle/{id:.+}", s.machineTogglePowerCycleHandler).Methods("POST")
+	r.HandleFunc("/_/machine/set_attached_device/{id:.+}", s.machineSetAttachedDeviceHandler).Methods("POST")
 	r.HandleFunc("/_/machine/remove_device/{id:.+}", s.machineRemoveDeviceHandler).Methods("POST")
 	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("POST")
 	r.HandleFunc("/_/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")

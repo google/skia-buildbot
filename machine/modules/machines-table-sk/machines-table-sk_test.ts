@@ -19,6 +19,7 @@ const setUpElement = async (): Promise<MachinesTableSk> => {
   mockMachinesResponse([
     {
       Mode: 'available',
+      AttachedDevice: 'ssh',
       Battery: 100,
       Dimensions: {
         id: ['skia-rpi2-rack4-shelf1-002'],
@@ -65,6 +66,7 @@ describe('machines-table-sk', () => {
     mockMachinesResponse([
       {
         Mode: 'maintenance',
+        AttachedDevice: 'ssh',
         Battery: 100,
         Dimensions: {
           id: ['skia-rpi2-rack4-shelf1-002'],
@@ -109,6 +111,7 @@ describe('machines-table-sk', () => {
     mockMachinesResponse([
       {
         Mode: 'maintenance',
+        AttachedDevice: 'ssh',
         Battery: 100,
         Dimensions: {
           id: ['skia-rpi2-rack4-shelf1-002'],
@@ -164,6 +167,7 @@ describe('machines-table-sk', () => {
     mockMachinesResponse([
       {
         Mode: 'maintenance',
+        AttachedDevice: 'ssh',
         Battery: 100,
         Dimensions: {},
         Note: {
@@ -271,6 +275,7 @@ describe('machines-table-sk', () => {
     mockMachinesResponse([
       {
         Mode: 'available',
+        AttachedDevice: 'ssh',
         Battery: 100,
         Dimensions: {
           id: ['skia-rpi2-rack4-shelf1-002'],

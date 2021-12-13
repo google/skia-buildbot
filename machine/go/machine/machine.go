@@ -83,6 +83,29 @@ const (
 // definitions.
 var AllModes = []Mode{ModeAvailable, ModeMaintenance, ModeRecovery}
 
+// AttachedDevice is what kind of mobile device, if any, we expect to find attached to the test machine.
+type AttachedDevice string
+
+const (
+	// AttachedDeviceNone means no device is attached. Used for all non-mobile
+	// test machines, like Windows boxes.
+	AttachedDeviceNone AttachedDevice = "nodevice"
+
+	// AttachedDeviceAdb means an Android device, or anything else that
+	// understands adb.
+	AttachedDeviceAdb AttachedDevice = "adb"
+
+	// AttachedDeviceiOS means an iOS device, or anything else that we talk to
+	// using idevice* commands.
+	AttachedDeviceiOS AttachedDevice = "ios"
+
+	// AttachedDeviceSSH means a ChromeOS device, or any other device we
+	// interact with via SSH.
+	AttachedDeviceSSH AttachedDevice = "ssh"
+)
+
+var AllAttachedDevices = []AttachedDevice{AttachedDeviceNone, AttachedDeviceAdb, AttachedDeviceiOS, AttachedDeviceSSH}
+
 // Annotation represents a timestamped message.
 type Annotation struct {
 	Message   string
@@ -93,6 +116,10 @@ type Annotation struct {
 // Description is the current state of a single machine.
 type Description struct {
 	Mode Mode
+
+	// AttachedDevice defines the kind of device attached to this test machine,
+	// if any.
+	AttachedDevice AttachedDevice
 
 	// Annotation is used to record the most recent non-user change to Description.
 	// For example, if the device battery is too low, this will be set automatically.

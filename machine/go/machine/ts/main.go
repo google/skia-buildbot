@@ -26,9 +26,12 @@ func main() {
 		switchboard.MeetingPoint{},
 		switchboard.Pod{},
 		rpc.SetNoteRequest{},
-		rpc.SupplyChromeOSRequest{})
+		rpc.SupplyChromeOSRequest{},
+		rpc.SetAttachedDevice{},
+	)
 	generator.AddIgnoreNil(rpc.ListMachinesResponse{})
 	generator.AddUnion(machine.AllModes)
+	generator.AddUnion(machine.AllAttachedDevices)
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)

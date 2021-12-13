@@ -18,7 +18,8 @@ var testDuration = int32(5) // Seconds
 func TestCopy(t *testing.T) {
 	unittest.SmallTest(t)
 	in := Description{
-		Mode: ModeAvailable,
+		Mode:           ModeAvailable,
+		AttachedDevice: AttachedDevice(AttachedDeviceAdb),
 		Annotation: Annotation{
 			Message:   "take offline",
 			User:      "barney@example.com",
