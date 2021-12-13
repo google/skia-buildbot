@@ -37,6 +37,7 @@ go_test(
         "//perf/go/dataframe/mocks",
         "//perf/go/git",
         "//perf/go/git/gittest",
+        "//perf/go/pivot",
         "//perf/go/progress",
         "//perf/go/shortcut",
         "//perf/go/shortcut/mocks",

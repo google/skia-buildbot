@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe/mocks"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
+	"go.skia.org/infra/perf/go/pivot"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
 	shortcutStoreMock "go.skia.org/infra/perf/go/shortcut/mocks"
@@ -30,8 +31,8 @@ const (
 )
 
 var (
-	testTimeBegin = time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
-	testTimeEnd   = time.Date(2020, 1, 1, 2, 1, 1, 1, time.UTC)
+	testTimeBegin = time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC)
+	testTimeEnd   = time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC)
 	errTestError  = errors.New("my test error")
 )
 
@@ -130,6 +131,7 @@ func frameRequestForTest(t *testing.T) (*mocks.DataFrameBuilder, *dataframe.Data
 
 	fr := &frameRequestProcess{
 		request: &FrameRequest{
+			Queries:     []string{"arch=x86"},
 			RequestType: REQUEST_COMPACT,
 			Progress:    progress.New(),
 			NumCommits:  10,
@@ -341,4 +343,71 @@ func TestDoCalc_ValidFormulaValidShortcutTimeRange_ReturnsDataFrameWithCalculate
 	actualDf, err := fr.doCalc(context.Background(), formula, testTimeBegin, testTimeEnd)
 	require.NoError(t, err)
 	require.Equal(t, actualDf.TraceSet[formula], types.Trace{3, 6, 9})
+}
+
+func TestRun_QueryAndThenPivot_ReturnsPivotedDataFrame(t *testing.T) {
+	unittest.SmallTest(t)
+
+	dfbMock, df, fr := frameRequestForTest(t)
+	fr.request.Pivot = &pivot.Request{
+		GroupBy:   []string{"config"},
+		Operation: pivot.Sum,
+	}
+	fr.request.Begin = int(testTimeBegin.Unix())
+	fr.request.End = int(testTimeEnd.Unix())
+
+	dfbMock.On("NewNFromQuery", testutils.AnyContext, testTimeEnd, mock.Anything, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
+
+	actualDf, err := fr.run(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, actualDf.TraceSet[",config=565,"], types.Trace{2, 4, 6})
+	require.Equal(t, actualDf.TraceSet[",config=8888,"], types.Trace{1, 2, 3})
+}
+
+func TestRun_ValidQueryAndThenInvalidPivot_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	dfbMock, df, fr := frameRequestForTest(t)
+	fr.request.Pivot = &pivot.Request{
+		GroupBy:   []string{"config"},
+		Operation: pivot.Operation("this-is-not-a-valid-operation"),
+	}
+	fr.request.Begin = int(testTimeBegin.Unix())
+	fr.request.End = int(testTimeEnd.Unix())
+
+	dfbMock.On("NewNFromQuery", testutils.AnyContext, testTimeEnd, mock.Anything, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
+
+	_, err := fr.run(context.Background())
+	require.Error(t, err)
+}
+
+func TestRun_KeysAndThenPivot_ReturnsPivotedDataFrame(t *testing.T) {
+	unittest.SmallTest(t)
+
+	dfbMock, df, fr := frameRequestForTest(t)
+	fr.request.Pivot = &pivot.Request{
+		GroupBy:   []string{"config"},
+		Operation: pivot.Sum,
+	}
+	fr.request.Begin = int(testTimeBegin.Unix())
+	fr.request.End = int(testTimeEnd.Unix())
+	fr.request.Queries = []string{}
+	fr.request.Keys = testShortcutKey
+
+	// Create valid shortCut.Shortcut for "Get" to return.
+	shortCutKeys := []string{}
+	copy(shortCutKeys, df.ParamSet.Keys())
+	sort.Strings(shortCutKeys)
+	shortCut := &shortcut.Shortcut{
+		Keys: shortCutKeys,
+	}
+
+	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
+	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(shortCut, nil)
+	dfbMock.On("NewNFromKeys", testutils.AnyContext, testTimeEnd, shortCut.Keys, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
+
+	actualDf, err := fr.run(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, actualDf.TraceSet[",config=565,"], types.Trace{2, 4, 6})
+	require.Equal(t, actualDf.TraceSet[",config=8888,"], types.Trace{1, 2, 3})
 }
