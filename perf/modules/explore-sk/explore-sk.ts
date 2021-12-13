@@ -876,8 +876,8 @@ export class ExploreSk extends ElementSk {
       formulas: this.state.formulas,
       queries: this.state.queries,
       keys: this.state.keys,
-      hidden: [],
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      pivot: null,
     };
   }
 
@@ -1278,7 +1278,6 @@ export class ExploreSk extends ElementSk {
    *    begin:    1448325780,
    *    end:      1476706336,
    *    formulas: ["ave(filter("name=desk_nytimes.skp&sub_result=min_ms"))"],
-   *    hidden:   [],
    *    queries:  [
    *        "name=AndroidCodec_01_original.jpg_SampleSize8",
    *        "name=AndroidCodec_1.bmp_SampleSize8"],

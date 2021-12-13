@@ -48,6 +48,10 @@ func main() {
 	generator.AddIgnoreNil(paramtools.ParamSet{})
 	generator.AddIgnoreNil(paramtools.ReadOnlyParamSet{})
 	generator.AddIgnoreNil(types.TraceSet{})
+
+	generator.AddUnionToNamespace(pivot.AllOperations, "pivot")
+	generator.AddToNamespace(pivot.Request{}, "pivot")
+
 	generator.AddMultiple(generator,
 		alerts.Alert{},
 		alerts.AlertsStatus{},
@@ -99,9 +103,6 @@ func main() {
 	generator.AddToNamespace(progress.SerializedProgress{}, "progress")
 
 	generator.AddToNamespace(format.Format{}, "ingest")
-
-	generator.AddUnionToNamespace(pivot.AllOperations, "pivot")
-	generator.AddToNamespace(pivot.Request{}, "pivot")
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)

@@ -3,151 +3,37 @@ package frame
 import (
 	"bytes"
 	"context"
+	"errors"
+	"fmt"
+	"sort"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/dataframe/mocks"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/progress"
+	"go.skia.org/infra/perf/go/shortcut"
+	shortcutStoreMock "go.skia.org/infra/perf/go/shortcut/mocks"
 	"go.skia.org/infra/perf/go/types"
 )
 
-func TestMerge(t *testing.T) {
-	unittest.SmallTest(t)
-	// Simple
-	a := []*dataframe.ColumnHeader{
-		{Offset: 1},
-		{Offset: 2},
-		{Offset: 4},
-	}
-	b := []*dataframe.ColumnHeader{
-		{Offset: 3},
-		{Offset: 4},
-	}
-	m, aMap, bMap := dataframe.MergeColumnHeaders(a, b)
-	expected := []*dataframe.ColumnHeader{
-		{Offset: 1},
-		{Offset: 2},
-		{Offset: 3},
-		{Offset: 4},
-	}
-	assert.Equal(t, m, expected)
-	assert.Equal(t, map[int]int{0: 0, 1: 1, 2: 3}, aMap)
-	assert.Equal(t, map[int]int{0: 2, 1: 3}, bMap)
+const (
+	testShortcutKey = "some-key-value"
+)
 
-	// Skips
-	a = []*dataframe.ColumnHeader{
-		{Offset: 1},
-		{Offset: 2},
-		{Offset: 4},
-	}
-	b = []*dataframe.ColumnHeader{
-		{Offset: 5},
-		{Offset: 7},
-	}
-	m, aMap, bMap = dataframe.MergeColumnHeaders(a, b)
-	expected = []*dataframe.ColumnHeader{
-		{Offset: 1},
-		{Offset: 2},
-		{Offset: 4},
-		{Offset: 5},
-		{Offset: 7},
-	}
-	assert.Equal(t, m, expected)
-	assert.Equal(t, map[int]int{0: 0, 1: 1, 2: 2}, aMap)
-	assert.Equal(t, map[int]int{0: 3, 1: 4}, bMap)
-
-	// Empty b
-	a = []*dataframe.ColumnHeader{
-		{Offset: 1},
-		{Offset: 2},
-		{Offset: 4},
-	}
-	b = []*dataframe.ColumnHeader{}
-	m, aMap, bMap = dataframe.MergeColumnHeaders(a, b)
-	expected = []*dataframe.ColumnHeader{
-		{Offset: 1},
-		{Offset: 2},
-		{Offset: 4},
-	}
-	assert.Equal(t, m, expected)
-	assert.Equal(t, map[int]int{0: 0, 1: 1, 2: 2}, aMap)
-	assert.Equal(t, map[int]int{}, bMap)
-
-	// Empty a
-	a = []*dataframe.ColumnHeader{}
-	b = []*dataframe.ColumnHeader{
-		{Offset: 1},
-		{Offset: 2},
-		{Offset: 4},
-	}
-	m, aMap, bMap = dataframe.MergeColumnHeaders(a, b)
-	expected = []*dataframe.ColumnHeader{
-		{Offset: 1},
-		{Offset: 2},
-		{Offset: 4},
-	}
-	assert.Equal(t, m, expected)
-	assert.Equal(t, map[int]int{}, aMap)
-	assert.Equal(t, map[int]int{0: 0, 1: 1, 2: 2}, bMap)
-
-	// Empty a and b.
-	a = []*dataframe.ColumnHeader{}
-	b = []*dataframe.ColumnHeader{}
-	m, aMap, bMap = dataframe.MergeColumnHeaders(a, b)
-	expected = []*dataframe.ColumnHeader{}
-	assert.Equal(t, m, expected)
-	assert.Equal(t, map[int]int{}, aMap)
-	assert.Equal(t, map[int]int{}, bMap)
-}
-
-func TestDFAppend(t *testing.T) {
-	unittest.SmallTest(t)
-	a := dataframe.DataFrame{
-		Header: []*dataframe.ColumnHeader{
-			{Offset: 1},
-			{Offset: 2},
-			{Offset: 4},
-		},
-		TraceSet: types.TraceSet{
-			",config=8888,arch=x86,": []float32{0.1, 0.2, 0.4},
-			",config=8888,arch=arm,": []float32{1.1, 1.2, 1.4},
-		},
-	}
-	b := dataframe.DataFrame{
-		Header: []*dataframe.ColumnHeader{
-			{Offset: 3},
-			{Offset: 4},
-		},
-		TraceSet: types.TraceSet{
-			",config=565,arch=x86,": []float32{3.3, 3.4},
-			",config=565,arch=arm,": []float32{4.3, 4.4},
-		},
-	}
-	a.BuildParamSet()
-	b.BuildParamSet()
-	r := dataframe.Join(&a, &b)
-
-	expectedHeader := []*dataframe.ColumnHeader{
-		{Offset: 1},
-		{Offset: 2},
-		{Offset: 3},
-		{Offset: 4},
-	}
-
-	assert.Equal(t, expectedHeader, r.Header)
-	assert.Len(t, r.TraceSet, 4)
-	e := vec32.MissingDataSentinel
-	assert.Equal(t, types.Trace{0.1, 0.2, e, 0.4}, r.TraceSet[",config=8888,arch=x86,"])
-	assert.Equal(t, types.Trace{1.1, 1.2, e, 1.4}, r.TraceSet[",config=8888,arch=arm,"])
-	assert.Equal(t, types.Trace{e, e, 4.3, 4.4}, r.TraceSet[",config=565,arch=arm,"])
-	assert.Equal(t, types.Trace{e, e, 3.3, 3.4}, r.TraceSet[",config=565,arch=x86,"])
-}
+var (
+	testTimeBegin = time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
+	testTimeEnd   = time.Date(2020, 1, 1, 2, 1, 1, 1, time.UTC)
+	errTestError  = errors.New("my test error")
+)
 
 func TestGetSkps_Success(t *testing.T) {
 	unittest.LargeTest(t)
@@ -214,7 +100,7 @@ func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestProcessFrameRequest(t *testing.T) {
+func TestProcessFrameRequest_InvalidQuery_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	fr := &FrameRequest{
@@ -227,4 +113,232 @@ func TestProcessFrameRequest(t *testing.T) {
 	err = fr.Progress.JSON(&b)
 	require.NoError(t, err)
 	assert.Equal(t, "{\"status\":\"Running\",\"messages\":[],\"url\":\"\"}\n", b.String())
+}
+
+// frameRequestForTest returns a mock DataFrameBuilder, a frameRequestProcess,
+// and a populated DateFrame for testing.
+//
+// The DataFrame returned has the following Traces:
+//
+//     [",arch=x86,config=8888,"] = {1, 2, 3}
+//     [",arch=x86,config=565,"]  = {2, 4, 6}
+//
+func frameRequestForTest(t *testing.T) (*mocks.DataFrameBuilder, *dataframe.DataFrame, *frameRequestProcess) {
+	t.Helper()
+	dfbMock := &mocks.DataFrameBuilder{}
+	ssMock := &shortcutStoreMock.Store{}
+
+	fr := &frameRequestProcess{
+		request: &FrameRequest{
+			RequestType: REQUEST_COMPACT,
+			Progress:    progress.New(),
+			NumCommits:  10,
+		},
+		dfBuilder:     dfbMock,
+		shortcutStore: ssMock,
+	}
+
+	df := dataframe.NewEmpty()
+	df.TraceSet[",arch=x86,config=8888,"] = types.Trace{1, 2, 3}
+	df.TraceSet[",arch=x86,config=565,"] = types.Trace{2, 4, 6}
+	df.Header = make([]*dataframe.ColumnHeader, 3)
+	df.BuildParamSet()
+
+	t.Cleanup(func() {
+		dfbMock.AssertExpectations(t)
+	})
+
+	return dfbMock, df, fr
+}
+
+func TestDoSearch_InvalidQuery_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_, _, fr := frameRequestForTest(t)
+	_, err := fr.doSearch(context.Background(), "http://[::1]a", testTimeBegin, testTimeEnd)
+
+	require.Error(t, err)
+}
+
+func TestDoSearch_ValidQueryCompact_ReturnsDataFrameWithQueryResults(t *testing.T) {
+	unittest.SmallTest(t)
+
+	dfbMock, df, fr := frameRequestForTest(t)
+	dfbMock.On("NewNFromQuery", testutils.AnyContext, testTimeEnd, mock.Anything, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
+
+	actualDf, err := fr.doSearch(context.Background(), "config=8888", testTimeBegin, testTimeEnd)
+	require.NoError(t, err)
+	require.Equal(t, df, actualDf)
+}
+
+func TestDoSearch_ValidQueryTimeRange_ReturnsDataFrameWithQueryResults(t *testing.T) {
+	unittest.SmallTest(t)
+
+	dfbMock, df, fr := frameRequestForTest(t)
+	fr.request.RequestType = REQUEST_TIME_RANGE
+
+	dfbMock.On("NewFromQueryAndRange", testutils.AnyContext, testTimeBegin, testTimeEnd, mock.Anything, true, fr.request.Progress).Return(df, nil)
+
+	actualDf, err := fr.doSearch(context.Background(), "config=8888", testTimeBegin, testTimeEnd)
+	require.NoError(t, err)
+	require.Equal(t, df, actualDf)
+}
+
+func TestDoKeys_ShortcutStoreReturnsError_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_, _, fr := frameRequestForTest(t)
+	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
+	testShortcutKey := "some-key-value"
+	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(nil, errTestError)
+	_, err := fr.doKeys(context.Background(), testShortcutKey, testTimeBegin, testTimeEnd)
+
+	require.Error(t, err)
+}
+
+func TestDoKeys_ValidKeyID_ReturnsDataFrameWithTracesFromShortcut(t *testing.T) {
+	unittest.SmallTest(t)
+
+	dfbMock, df, fr := frameRequestForTest(t)
+	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
+
+	// Create valid shortCut.Shortcut for "Get" to return.
+	shortCutKeys := []string{}
+	copy(shortCutKeys, df.ParamSet.Keys())
+	sort.Strings(shortCutKeys)
+	shortCut := &shortcut.Shortcut{
+		Keys: shortCutKeys,
+	}
+
+	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(shortCut, nil)
+	dfbMock.On("NewNFromKeys", testutils.AnyContext, testTimeEnd, shortCut.Keys, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
+	actualDf, err := fr.doKeys(context.Background(), testShortcutKey, testTimeBegin, testTimeEnd)
+
+	require.NoError(t, err)
+	require.Equal(t, df, actualDf)
+}
+
+func TestDoKeys_ValidKeyIDTimeRange_ReturnsDataFrameWithTracesFromShortcut(t *testing.T) {
+	unittest.SmallTest(t)
+
+	dfbMock, df, fr := frameRequestForTest(t)
+	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
+
+	fr.request.RequestType = REQUEST_TIME_RANGE
+
+	// Create valid shortCut.Shortcut for "Get" to return.
+	shortCutKeys := []string{}
+	copy(shortCutKeys, df.ParamSet.Keys())
+	sort.Strings(shortCutKeys)
+	shortCut := &shortcut.Shortcut{
+		Keys: shortCutKeys,
+	}
+
+	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(shortCut, nil)
+	dfbMock.On("NewFromKeysAndRange", testutils.AnyContext, shortCut.Keys, testTimeBegin, testTimeEnd, true, fr.request.Progress).Return(df, nil)
+	actualDf, err := fr.doKeys(context.Background(), testShortcutKey, testTimeBegin, testTimeEnd)
+
+	require.NoError(t, err)
+	require.Equal(t, df, actualDf)
+}
+
+func TestDoCalc_InvalidFormulaCompact_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_, _, fr := frameRequestForTest(t)
+	_, err := fr.doCalc(context.Background(), `sum(filter(`, testTimeBegin, testTimeEnd)
+	require.Error(t, err)
+}
+
+func TestDoCalc_ValidFormulaInvalidQueryCompact_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_, _, fr := frameRequestForTest(t)
+	_, err := fr.doCalc(context.Background(), `sum(filter("this is not a valid query"))`, testTimeBegin, testTimeEnd)
+	require.Error(t, err)
+}
+
+func TestDoCalc_ValidQueryCompact_ReturnsDataFrameWithCalculatedTraces(t *testing.T) {
+	unittest.SmallTest(t)
+
+	dfbMock, df, fr := frameRequestForTest(t)
+	dfbMock.On("NewNFromQuery", testutils.AnyContext, testTimeEnd, mock.Anything, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
+
+	actualDf, err := fr.doCalc(context.Background(), `sum(filter("arch=x86"))`, testTimeBegin, testTimeEnd)
+	require.NoError(t, err)
+	assert.Equal(t, actualDf.TraceSet[`sum(filter("arch=x86"))`], types.Trace{3, 6, 9})
+}
+
+func TestDoCalc_ValidQueryTimeRange_ReturnsDataFrameWithCalculatedTraces(t *testing.T) {
+	unittest.SmallTest(t)
+
+	dfbMock, df, fr := frameRequestForTest(t)
+
+	fr.request.RequestType = REQUEST_TIME_RANGE
+
+	dfbMock.On("NewFromQueryAndRange", testutils.AnyContext, testTimeBegin, testTimeEnd, mock.Anything, true, fr.request.Progress).Return(df, nil)
+
+	actualDf, err := fr.doCalc(context.Background(), `sum(filter("arch=x86"))`, testTimeBegin, testTimeEnd)
+	require.NoError(t, err)
+	assert.Equal(t, actualDf.TraceSet[`sum(filter("arch=x86"))`], types.Trace{3, 6, 9})
+}
+
+func TestDoCalc_ValidFormulaInvalidShortcutCompact_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_, _, fr := frameRequestForTest(t)
+	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
+	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(nil, errTestError)
+
+	_, err := fr.doCalc(context.Background(), fmt.Sprintf(`shortcut("%s")`, testShortcutKey), testTimeBegin, testTimeEnd)
+	require.Error(t, err)
+}
+
+func TestDoCalc_ValidFormulaValidShortcutCompact_ReturnsDataFrameWithCalculatedTracesFromShortcut(t *testing.T) {
+	unittest.SmallTest(t)
+
+	dfbMock, df, fr := frameRequestForTest(t)
+	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
+
+	// Create valid shortCut.Shortcut for "Get" to return.
+	shortCutKeys := []string{}
+	copy(shortCutKeys, df.ParamSet.Keys())
+	sort.Strings(shortCutKeys)
+	shortCut := &shortcut.Shortcut{
+		Keys: shortCutKeys,
+	}
+
+	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(shortCut, nil)
+	dfbMock.On("NewNFromKeys", testutils.AnyContext, testTimeEnd, shortCut.Keys, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
+
+	formula := fmt.Sprintf(`sum(shortcut("%s"))`, testShortcutKey)
+	actualDf, err := fr.doCalc(context.Background(), formula, testTimeBegin, testTimeEnd)
+	require.NoError(t, err)
+	require.Equal(t, actualDf.TraceSet[formula], types.Trace{3, 6, 9})
+}
+
+func TestDoCalc_ValidFormulaValidShortcutTimeRange_ReturnsDataFrameWithCalculatedTracesFromShortcut(t *testing.T) {
+	unittest.SmallTest(t)
+
+	dfbMock, df, fr := frameRequestForTest(t)
+
+	fr.request.RequestType = REQUEST_TIME_RANGE
+
+	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
+
+	// Create valid shortCut.Shortcut for "Get" to return.
+	shortCutKeys := []string{}
+	copy(shortCutKeys, df.ParamSet.Keys())
+	sort.Strings(shortCutKeys)
+	shortCut := &shortcut.Shortcut{
+		Keys: shortCutKeys,
+	}
+
+	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(shortCut, nil)
+	dfbMock.On("NewFromKeysAndRange", testutils.AnyContext, shortCut.Keys, testTimeBegin, testTimeEnd, true, fr.request.Progress).Return(df, nil)
+
+	formula := fmt.Sprintf(`sum(shortcut("%s"))`, testShortcutKey)
+	actualDf, err := fr.doCalc(context.Background(), formula, testTimeBegin, testTimeEnd)
+	require.NoError(t, err)
+	require.Equal(t, actualDf.TraceSet[formula], types.Trace{3, 6, 9})
 }

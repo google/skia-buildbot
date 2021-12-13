@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/pivot"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
@@ -49,11 +50,12 @@ type FrameRequest struct {
 	End         int         `json:"end"`         // End of time range in Unix timestamp seconds.
 	Formulas    []string    `json:"formulas"`    // The Formulae to evaluate.
 	Queries     []string    `json:"queries"`     // The queries to perform encoded as a URL query.
-	Hidden      []string    `json:"hidden"`      // The ids of traces to remove from the response.
 	Keys        string      `json:"keys"`        // The id of a list of keys stored via shortcut2.
 	TZ          string      `json:"tz"`          // The timezone the request is from. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/resolvedOptions
 	NumCommits  int32       `json:"num_commits"` // If RequestType is REQUEST_COMPACT, then the number of commits to show before End, and Begin is ignored.
 	RequestType RequestType `json:"request_type"`
+
+	Pivot *pivot.Request `json:"pivot"`
 
 	Progress progress.Progress `json:"-"`
 }
@@ -163,18 +165,23 @@ func (p *frameRequestProcess) run(ctx context.Context) error {
 		df = dataframe.Join(df, newDF)
 	}
 
-	// Filter out "Hidden" traces.
-	for _, key := range p.request.Hidden {
-		delete(df.TraceSet, key)
-	}
-
 	if len(df.Header) == 0 {
 		var err error
 		df, err = dataframe.NewHeaderOnly(ctx, p.perfGit, begin, end, true)
 		if err != nil {
 			return p.reportError(err, "Failed to load dataframe.")
 		}
+	}
 
+	if p.request.Pivot != nil {
+		var err error
+		// Note that Pivot will only act on traces with good traceIDs, not on
+		// calculated traces, which will be ignored and dropped from the Pivot
+		// response.
+		df, err = pivot.Pivot(ctx, *p.request.Pivot, df)
+		if err != nil {
+			return p.reportError(err, "Pivot failed.")
+		}
 	}
 
 	resp, err := ResponseFromDataFrame(ctx, df, p.perfGit, true, p.request.Progress)
@@ -263,9 +270,9 @@ func (p *frameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
 		return p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.request.Progress)
-	} else {
-		return p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.request.Progress)
 	}
+	return p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.request.Progress)
+
 }
 
 // doKeys returns a DataFrame that matches the given set of keys given
@@ -277,9 +284,9 @@ func (p *frameRequestProcess) doKeys(ctx context.Context, keyID string, begin, e
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
 		return p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.request.Progress)
-	} else {
-		return p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.request.Progress)
 	}
+	return p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.request.Progress)
+
 }
 
 // doCalc applies the given formula and returns a dataframe that matches the
@@ -340,7 +347,7 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 	calcContext := calc.NewContext(rowsFromQuery, rowsFromShortcut)
 	rows, err := calcContext.Eval(formula)
 	if err != nil {
-		return nil, fmt.Errorf("Calculation failed: %s", err)
+		return nil, skerr.Wrapf(err, "Calculation failed")
 	}
 
 	// Convert the Rows from float64 to float32 for DataFrame.
