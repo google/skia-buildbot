@@ -98,6 +98,11 @@
     "clone_url": "https://skia.googlesource.com/external/github.com/libjpeg-turbo/libjpeg-turbo",
     "mirrored_from_url": "https://github.com/libjpeg-turbo/libjpeg-turbo.git"
   },
+  "external/github.com/lottie-animation-community/tests": {
+    "name": "external/github.com/lottie-animation-community/tests",
+    "clone_url": "https://skia.googlesource.com/external/github.com/lottie-animation-community/tests",
+    "mirrored_from_url": "https://github.com/lottie-animation-community/tests.git"
+  },
   "external/github.com/lua/lua": {
     "name": "external/github.com/lua/lua",
     "clone_url": "https://skia.googlesource.com/external/github.com/lua/lua",

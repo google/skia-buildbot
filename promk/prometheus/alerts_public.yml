@@ -309,9 +309,9 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.probename }} {{ $labels.url }}'
-      description: 'Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to
-        respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{
-        $labels.probename }}+filename%3Aprobersk.json5 for the endpoint URL.'
+      description: 'Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to respond
+        as expected in at least 5 minutes. See https://github.com/google/skia-buildbot/blob/main/proberk/PROD.md#probefailure
+        and https://github.com/google/skia-buildbot/search?q={{$labels.probename }}+filename%3Aprobersk.json5'
 
   - alert: ProberLiveness
     expr: liveness_probes_s > 300
