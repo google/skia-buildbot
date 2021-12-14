@@ -360,6 +360,7 @@ func TestRun_QueryAndThenPivot_ReturnsPivotedDataFrame(t *testing.T) {
 
 	actualDf, err := fr.run(context.Background())
 	require.NoError(t, err)
+	// You can tell this succeeded since the keys are changed to just include the pivot GroupBy keys.
 	require.Equal(t, actualDf.TraceSet[",config=565,"], types.Trace{2, 4, 6})
 	require.Equal(t, actualDf.TraceSet[",config=8888,"], types.Trace{1, 2, 3})
 }
@@ -408,6 +409,7 @@ func TestRun_KeysAndThenPivot_ReturnsPivotedDataFrame(t *testing.T) {
 
 	actualDf, err := fr.run(context.Background())
 	require.NoError(t, err)
+	// You can tell this succeeded since the keys are changed to just include the pivot GroupBy keys.
 	require.Equal(t, actualDf.TraceSet[",config=565,"], types.Trace{2, 4, 6})
 	require.Equal(t, actualDf.TraceSet[",config=8888,"], types.Trace{1, 2, 3})
 }
