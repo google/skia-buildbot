@@ -26,11 +26,13 @@ skia_app_container(
                 "0644",
             ],
             [
-                "//docsyserver/images:head-end.html",
+                "//docsyserver/images:page-meta-lastmod.html",
                 "0644",
             ],
+        ],
+        "/usr/local/share/docsy/layouts/partials/hooks": [
             [
-                "//docsyserver/images:page-meta-lastmod.html",
+                "//docsyserver/images:head-end.html",
                 "0644",
             ],
         ],
