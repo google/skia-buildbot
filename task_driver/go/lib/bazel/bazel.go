@@ -4,6 +4,8 @@ import (
 	"context"
 	"path/filepath"
 
+	"go.skia.org/infra/go/skerr"
+
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
@@ -12,7 +14,6 @@ import (
 // Bazel provides a Task Driver API for working with Bazel (via the Bazelisk launcher, see
 // https://github.com/bazelbuild/bazelisk).
 type Bazel struct {
-	cacheDir          string
 	local             bool
 	rbeCredentialFile string
 	workspace         string
@@ -27,29 +28,34 @@ func NewWithRamdisk(ctx context.Context, workspace string, rbeCredentialFile str
 	//
 	// At the time of writing, a full build of the Buildbot repository on an empty Bazel cache takes
 	// ~20GB on cache space. Infra-PerCommit-Test-Bazel-Local runs on GCE VMs with 64GB of RAM.
-	ramdiskDir, err := os_steps.TempDir(ctx, "", "ramdisk-*")
+	ramdiskDir, err := os_steps.TempDir(ctx, "", "ramdisk_*")
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, skerr.Wrap(err)
 	}
 	if _, err := exec.RunCwd(ctx, workspace, "sudo", "mount", "-t", "tmpfs", "-o", "size=32g", "tmpfs", ramdiskDir); err != nil {
-		return nil, nil, err
+		return nil, nil, skerr.Wrap(err)
 	}
 
 	// Create Bazel cache directory inside the ramdisk.
 	//
 	// Using the ramdisk's mount point directly as the Bazel cache causes Bazel to fail with a file
 	// permission error. Using a directory within the ramdisk as the Bazel cache prevents this error.
-	cacheDir := filepath.Join(ramdiskDir, "bazel-cache")
+	cacheDir := filepath.Join(ramdiskDir, "bazel_cache")
 	if err := os_steps.MkdirAll(ctx, cacheDir); err != nil {
-		return nil, nil, err
+		return nil, nil, skerr.Wrap(err)
+	}
+	opts := BazelOptions{
+		CachePath: filepath.Join(ramdiskDir, "bazel_cache"),
+	}
+	if err := EnsureBazelRCFile(ctx, opts); err != nil {
+		return nil, nil, skerr.Wrap(err)
 	}
 
 	absCredentialFile, err := os_steps.Abs(ctx, rbeCredentialFile)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, skerr.Wrap(err)
 	}
 	bzl := &Bazel{
-		cacheDir:          cacheDir,
 		rbeCredentialFile: absCredentialFile,
 		workspace:         workspace,
 	}
@@ -71,10 +77,34 @@ func NewWithRamdisk(ctx context.Context, workspace string, rbeCredentialFile str
 	return bzl, cleanup, nil
 }
 
+type BazelOptions struct {
+	CachePath string
+}
+
+// https://docs.bazel.build/versions/main/guide.html#where-are-the-bazelrc-files
+// We go for the user's .bazelrc file instead of the system one because the swarming user does
+// not have access to write to /etc/bazel.bazelrc
+const (
+	userBazelRCLocation = "/home/chrome-bot/.bazelrc"
+
+	defaultBazelCachePath = "/mnt/pd0/bazel_cache"
+)
+
+// EnsureBazelRCFile makes sure the user .bazelrc file exists and matches the provided
+// configuration. This makes it easy for all subsequent calls to Bazel use the right command
+// line args, even if Bazel is not invoked directly from task_driver (e.g. from a Makefile).
+func EnsureBazelRCFile(ctx context.Context, bazelOpts BazelOptions) error {
+	c := ""
+	if bazelOpts.CachePath != "" {
+		// https://docs.bazel.build/versions/main/output_directories.html#current-layout
+		c += "startup --output_user_root=" + bazelOpts.CachePath
+	}
+	return os_steps.WriteFile(ctx, userBazelRCLocation, []byte(c), 0666)
+
+}
+
 // New returns a new Bazel instance.
-func New(ctx context.Context, workspace string, local bool, rbeCredentialFile string) (*Bazel, func(), error) {
-	// cacheDir is a temporary directory for the Bazel cache.
-	//
+func New(ctx context.Context, workspace string, local bool, rbeCredentialFile string) (*Bazel, error) {
 	// We cannot use the default Bazel cache location ($HOME/.cache/bazel)
 	// because:
 	//
@@ -82,52 +112,36 @@ func New(ctx context.Context, workspace string, local bool, rbeCredentialFile st
 	//  - Swarming bots have limited storage space on the root partition (15G).
 	//  - Because the above, the Bazel build fails with a "no space left on
 	//    device" error.
-	//  - The Bazel cache under $HOME/.cache/bazel lingers after the tryjob
-	//    completes, causing the Swarming bot to be quarantined due to low disk
-	//    space.
-	//  - Generally, it's considered poor hygiene to leave a bot in a different
-	//    state.
 	//
-	// The temporary directory created by the below function call lives under
-	// /mnt/pd0, which has significantly more storage space, and will be wiped
-	// after the tryjob completes.
-	//
-	// Reference: https://docs.bazel.build/versions/master/output_directories.html#current-layout.
-	cacheDir, err := os_steps.TempDir(ctx, "", "bazel-user-cache-*")
-	if err != nil {
-		return nil, nil, err
+	// We are ok re-using the same Bazel cache from run to run as Bazel should be smart enough
+	// to invalidate certain cached items when they change.
+	opts := BazelOptions{
+		CachePath: defaultBazelCachePath,
 	}
+	if local {
+		opts.CachePath = "/tmp/bazel_cache"
+	}
+	if err := EnsureBazelRCFile(ctx, opts); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	absCredentialFile := ""
+	var err error
 	if rbeCredentialFile != "" {
 		absCredentialFile, err = os_steps.Abs(ctx, rbeCredentialFile)
 		if err != nil {
-			return nil, nil, err
-		}
-	}
-
-	cleanup := func() {
-		// Clean up the temporary Bazel cache directory when running locally,
-		// because during development, we do not want to leave behind a ~10GB Bazel
-		// cache directory under /tmp after each run.
-		//
-		// This is not necessary under Swarming because the temporary directory will
-		// be cleaned up automatically.
-		if local {
-			if err := os_steps.RemoveAll(ctx, cacheDir); err != nil {
-				td.Fatal(ctx, err)
-			}
+			return nil, skerr.Wrap(err)
 		}
 	}
 	return &Bazel{
-		cacheDir:          cacheDir,
 		rbeCredentialFile: absCredentialFile,
 		workspace:         workspace,
-	}, cleanup, nil
+	}, nil
 }
 
 // Do executes a Bazel subcommand.
 func (b *Bazel) Do(ctx context.Context, subCmd string, args ...string) (string, error) {
-	cmd := []string{"bazelisk", "--output_user_root=" + b.cacheDir, subCmd}
+	cmd := []string{"bazelisk", subCmd}
 	cmd = append(cmd, args...)
 	return exec.RunCwd(ctx, b.workspace, cmd...)
 }
@@ -142,4 +156,5 @@ func (b *Bazel) DoOnRBE(ctx context.Context, subCmd string, args ...string) (str
 	}
 	cmd = append(cmd, args...)
 	return b.Do(ctx, subCmd, cmd...)
+
 }

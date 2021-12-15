@@ -124,11 +124,10 @@ func main() {
 
 	// Perform the build(s).
 	if err := td.Do(ctx, td.Props("Build"), func(ctx context.Context) (rvErr error) {
-		bzl, cleanup, err := bazel.New(ctx, *buildDir, *local, *rbeKey)
+		bzl, err := bazel.New(ctx, *buildDir, *local, *rbeKey)
 		if err != nil {
 			return err
 		}
-		defer cleanup()
 
 		for _, pkg := range pkgs {
 			if err := td.Do(ctx, td.Props("Build "+pkg.cipdPlatform), func(ctx context.Context) error {

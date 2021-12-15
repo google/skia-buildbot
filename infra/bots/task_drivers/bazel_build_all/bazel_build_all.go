@@ -76,11 +76,10 @@ func main() {
 	failIfNonEmptyGitDiff()
 
 	// Set up Bazel.
-	bzl, bzlCleanup, err := bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+	bzl, err := bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	defer bzlCleanup()
 
 	// Print out the Bazel version for debugging purposes.
 	if _, err := bzl.Do(ctx, "version"); err != nil {

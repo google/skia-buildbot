@@ -74,7 +74,8 @@ func main() {
 		// CockroachDB "disk stall detected" errors on GCE VMs due to slow I/O.
 		bzl, bzlCleanup, err = bazel.NewWithRamdisk(ctx, gitDir.Dir(), *rbeKey)
 	} else {
-		bzl, bzlCleanup, err = bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+		bzl, err = bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+		bzlCleanup = func() {}
 	}
 	if err != nil {
 		td.Fatal(ctx, err)
