@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -219,7 +220,11 @@ func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 	r.Use(middleware...)
 
 	// Start serving.
-	sklog.Info("Ready to serve.")
+	hostname, err := os.Hostname()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	sklog.Infof("Ready to serve at http://%s%s", hostname, *Port) // The port string includes a colon, e.g. ":8000".
 	server := &http.Server{
 		Addr:           *Port,
 		Handler:        r,
