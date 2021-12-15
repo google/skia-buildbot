@@ -1237,6 +1237,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "pushgateway",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "pushgateway",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "pushgateway",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "scrapexchange",
           "endpoints": [
             {
@@ -3597,6 +3623,23 @@
                           },
                           "route": {
                             "cluster": "push",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "pushgateway.skia.org",
+                      "name": "pushgateway.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "pushgateway",
                             "timeout": {
                               "seconds": 600
                             }
