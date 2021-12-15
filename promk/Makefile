@@ -36,7 +36,7 @@ push_config_thanos: validate skia-public
 	cp prometheus/*_rules.yml ./tmpconf
 	# Need to use replace so that the configmap gets updated. Change "replace"
 	# to "create" if this is the first time the configmap has been uploaded.
-	kubectl create configmap thanos-rules --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
+	kubectl create configmap thanos-rules --from-file=./tmpconf -o yaml --dry-run=client | kubectl replace -f -
 
 .PHONY: push_config_public
 push_config_public: validate skia-public
@@ -47,7 +47,7 @@ push_config_public: validate skia-public
 	cp prometheus/absent_alerts_thanos.yml ./tmpconf/
 	# Need to use replace so that the configmap gets updated. Change "replace"
 	# to "create" if this is the first time the configmap has been uploaded.
-	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
+	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run=client | kubectl replace -f -
 
 .PHONY: backup-to-gcs
 backup-to-gcs:
@@ -62,7 +62,7 @@ push_config_corp: validate skia-corp
 	-rm -rf ./tmpconf
 	mkdir ./tmpconf
 	cp prometheus/prometheus-corp.yml ./tmpconf/prometheus.yml
-	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
+	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run=client | kubectl replace -f -
 
 .PHONY: push_config
 push_config: push_config_public push_config_corp
