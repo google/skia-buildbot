@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/auth",
         "//go/httputils",
+        "//go/skerr",
         "//go/sklog",
         "//go/util",
         "@org_golang_google_api//gmail/v1:gmail",

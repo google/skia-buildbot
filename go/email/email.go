@@ -13,13 +13,14 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	gmail "google.golang.org/api/gmail/v1"
 )
 
-var (
-	viewActionMarkupTemplate string = `
+const (
+	viewActionMarkupTemplate = `
 <div itemscope itemtype="http://schema.org/EmailMessage">
   <div itemprop="potentialAction" itemscope itemtype="http://schema.org/ViewAction">
     <link itemprop="target" href="{{.Link}}"/>
@@ -28,7 +29,7 @@ var (
   <meta itemprop="description" content="{{.Description}}"/>
 </div>
 `
-	emailTemplate string = `From: {{.From}}
+	emailTemplate = `From: {{.From}}
 To: {{.To}}
 Subject: {{.Subject}}
 Content-Type: text/html; charset=UTF-8
@@ -42,6 +43,9 @@ In-Reply-To: {{.ThreadingReference}}
 </body>
 </html>
 `
+)
+
+var (
 	viewActionMarkupTemplateParsed *template.Template  = nil
 	emailTemplateParsed            *ttemplate.Template = nil
 )
@@ -77,7 +81,7 @@ func GetViewActionMarkup(link, name, description string) (string, error) {
 		Name:        name,
 		Description: description,
 	}); err != nil {
-		return "", fmt.Errorf("Could not execute template: %v", err)
+		return "", skerr.Wrapf(err, "Could not execute template %s", name)
 	}
 	return markupBytes.String(), nil
 }
@@ -144,7 +148,7 @@ func (a *GMail) Send(senderDisplayName string, to []string, subject, body, threa
 	return a.SendWithMarkup(senderDisplayName, to, subject, body, "", threadingReference)
 }
 
-// Send an email with gmail markup. Returns the messageId of the sent email.
+// SendWithMarkup sends an email with gmail markup. Returns the messageId of the sent email.
 // Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
 func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject, body, markup, threadingReference string) (string, error) {
@@ -152,7 +156,7 @@ func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject, b
 	// Get email address to use in the from section.
 	profile, err := a.service.Users.GetProfile(sender).Do()
 	if err != nil {
-		return "", fmt.Errorf("Failed to get profile for %s: %v", sender, err)
+		return "", skerr.Wrapf(err, "Failed to get profile for %s", sender)
 	}
 	fromWithName := fmt.Sprintf("%s <%s>", senderDisplayName, profile.EmailAddress)
 
@@ -172,7 +176,7 @@ func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject, b
 		Body:               template.HTML(body),
 		Markup:             template.HTML(markup),
 	}); err != nil {
-		return "", fmt.Errorf("Failed to send email; could not execute template: %v", err)
+		return "", skerr.Wrapf(err, "Failed to send email; could not execute template")
 	}
 	sklog.Infof("Message to send: %q", msgBytes.String())
 	msg := gmail.Message{}
@@ -182,17 +186,17 @@ func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject, b
 
 	m, err := a.service.Users.Messages.Send(sender, &msg).Do()
 	if err != nil {
-		return "", fmt.Errorf("Failed to send email: %v", err)
+		return "", skerr.Wrapf(err, "Failed to send email to %s", to)
 	}
 	return m.Id, nil
 }
 
 // GetThreadingReference returns the reference string that can be used to thread emails.
-func (a *GMail) GetThreadingReference(messageId string) (string, error) {
+func (a *GMail) GetThreadingReference(messageID string) (string, error) {
 	// Get the reference from the response headers of messages.get call.
-	m, err := a.service.Users.Messages.Get("me", messageId).Do()
+	m, err := a.service.Users.Messages.Get("me", messageID).Do()
 	if err != nil {
-		return "", fmt.Errorf("Failed to get message data: %v", err)
+		return "", skerr.Wrapf(err, "Failed to get message data for id %s", messageID)
 	}
 	reference := ""
 	for _, h := range m.Payload.Headers {
@@ -202,7 +206,7 @@ func (a *GMail) GetThreadingReference(messageId string) (string, error) {
 		}
 	}
 	if reference == "" {
-		return "", fmt.Errorf("Could not find \"Message-Id\" header for message Id %s", messageId)
+		return "", skerr.Wrapf(err, "Could not find \"Message-Id\" header for Message-Id %s", messageID)
 	}
 	return reference, nil
 }
