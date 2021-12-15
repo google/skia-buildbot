@@ -107,6 +107,10 @@ demo_json-source-sk:
 demo_perf-scaffold-sk:
 	$(BAZEL) run //perf/modules/perf-scaffold-sk:demo_page_server
 
+.PHONY: demo_pivot-table-sk
+demo_pivot-table-sk:
+	$(BAZEL) run //perf/modules/pivot-table-sk:demo_page_server
+
 .PHONY: demo_plot-simple-sk
 demo_plot-simple-sk:
 	$(BAZEL) run //perf/modules/plot-simple-sk:demo_page_server

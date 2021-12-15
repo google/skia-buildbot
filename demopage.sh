@@ -18,4 +18,4 @@ fi
 # via the tab key.
 DIR=$(echo $1 | sed 's:/*$::')
 
-ls $DIR/* | entr -r bazel run //$DIR:demo_page_server
+ls $DIR/* | entr -r bazelisk run //$DIR:demo_page_server

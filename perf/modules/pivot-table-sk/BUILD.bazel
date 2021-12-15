@@ -1,0 +1,49 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":pivot-table-sk-demo",
+)
+
+sk_element(
+    name = "pivot-table-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//perf/modules/themes:themes_sass_lib",
+    ],
+    sass_srcs = ["pivot-table-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/pivotutil:index_ts_lib",
+    ],
+    ts_srcs = [
+        "pivot-table-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "pivot-table-sk-demo",
+    html_file = "pivot-table-sk-demo.html",
+    sk_element_deps = [":pivot-table-sk"],
+    ts_deps = [
+        "//perf/modules/json:index_ts_lib",
+        "@npm//common-sk",
+    ],
+    ts_entry_point = "pivot-table-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "pivot-table-sk_puppeteer_test",
+    src = "pivot-table-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

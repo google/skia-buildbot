@@ -1,0 +1,25 @@
+@import '../themes/themes';
+
+pivot-table-sk {
+  display: block;
+  margin: 8px;
+
+  table {
+    border-collapse: collapse;
+  }
+
+  td,
+  th {
+    border: solid var(--primary) 1px;
+    padding: 8px;
+  }
+
+  th.key {
+    text-align: right;
+  }
+
+  th.empty {
+    border-top: none;
+    border-left: none;
+  }
+}
