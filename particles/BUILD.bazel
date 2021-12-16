@@ -1,22 +1,44 @@
-load("//infra-sk:index.bzl", "extract_files_from_skia_wasm_container")
+load("//bazel:skia_app_container.bzl", "skia_app_container")
 
-extract_files_from_skia_wasm_container(
-    name = "canvaskit_wasm",
-    outs = [
-        "build/VERSION",
-        "build/canvaskit/canvaskit.js",
-        "build/canvaskit/canvaskit.wasm",
-    ],
-    container_files = [
-        "/tmp/VERSION",
-        "/tmp/canvaskit/canvaskit.js",
-        "/tmp/canvaskit/canvaskit.wasm",
-    ],
-)
-
-genrule(
-    name = "canvaskit_wasm_version_js",
-    srcs = ["build/VERSION"],
-    outs = ["build/version.js"],
-    cmd = "echo \"export const SKIA_VERSION = '`cat $<`';\" > $@",
+skia_app_container(
+    name = "particles_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//particles/go/particles:particles",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/particles/dist": [
+            [
+                "//particles/pages:production/main.html",
+                "0644",
+            ],
+            [
+                "//particles/pages:production/main.js",
+                "0644",
+            ],
+            [
+                "//particles/pages:production/main.css",
+                "0644",
+            ],
+            [
+                "//particles/build:canvaskit_js",
+                "0644",
+            ],
+            [
+                "//particles/build:canvaskit_wasm",
+                "0644",
+            ],
+        ],
+        "/usr/local/share/particles/dist/img": [
+            [
+                "@npm//:node_modules/jsoneditor/dist/img/jsoneditor-icons.svg",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/particles",
+    repository = "skia-public/particles",
 )

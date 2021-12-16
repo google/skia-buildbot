@@ -1,0 +1,31 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":particles-config-sk-demo",
+)
+
+sk_element(
+    name = "particles-config-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["particles-config-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "particles-config-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "particles-config-sk-demo",
+    html_file = "particles-config-sk-demo.html",
+    sk_element_deps = [":particles-config-sk"],
+    ts_deps = ["@npm//common-sk"],
+    ts_entry_point = "particles-config-sk-demo.ts",
+)

@@ -1,10 +1,10 @@
 """This module defines rules for building Skia Infrastructure web applications."""
 
 load("@build_bazel_rules_nodejs//:index.bzl", "npm_package_bin", _nodejs_test = "nodejs_test")
-load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
-load("@npm//@bazel/terser:index.bzl", "terser_minified")
 load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary", _sass_library = "sass_library")
+load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
+load("@npm//@bazel/terser:index.bzl", "terser_minified")
 load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 load("//infra-sk/html_insert_assets:index.bzl", "html_insert_assets")
 load("//infra-sk/karma_test:index.bzl", _karma_test = "karma_test")
@@ -615,7 +615,7 @@ def sk_page(
         visibility = ["//visibility:public"],
     )
 
-def extract_files_from_skia_wasm_container(name, container_files, outs):
+def extract_files_from_skia_wasm_container(name, container_files, outs, **kwargs):
     """Extracts files from the Skia WASM container image (gcr.io/skia-public/skia-wasm-release).
 
     This macro takes as inputs a list of paths inside the Docker container (container_files
@@ -626,6 +626,7 @@ def extract_files_from_skia_wasm_container(name, container_files, outs):
       name: Name of the target.
       container_files: List of absolute paths inside the Docker container to extract.
       outs: Destination paths for each file to extract, relative to the target's directory.
+      **kwargs: Any flags that should be forwarded to the generated rule
     """
 
     if len(container_files) != len(outs):
@@ -686,4 +687,5 @@ def extract_files_from_skia_wasm_container(name, container_files, outs):
             "cp %s/%s %s/%s" % (skia_wasm_filesystem_dir, src, output_dir, dst)
             for src, dst in zip(container_files, outs)
         ]),
+        **kwargs
     )

@@ -9,6 +9,17 @@ push: release
 release: wasm_libs
 	$(BAZEL) run //jsfiddle:push_jsfiddle_container
 
+wasm_libs:
+	docker pull gcr.io/skia-public/skia-wasm-release:prod
+	rm -rf build/canvaskit build/pathkit build/debugger
+	mkdir -p build/canvaskit build/pathkit
+	# Extract them from the most recently built docker container. This is built
+	# with @skia//docker/skia-wasm-release/Dockerfile
+	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
+	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
+	    sh -c "cp -r /tmp/* /OUT/"
+	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
+
 bazel_release_ci:
 	# COPY_FROM_DIR is expected to be set by the auto deploy mechanism, e.g.
 	# https://github.com/google/skia/blob/44c81d1492738cb1c6ab3d68a925bd7e64201bca/infra/bots/task_drivers/push_bazel_apps_from_wasm_image/push_bazel_apps_from_wasm_image.go#L137

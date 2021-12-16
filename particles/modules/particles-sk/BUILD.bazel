@@ -1,0 +1,74 @@
+load(
+    "//infra-sk:index.bzl",
+    "sass_library",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":particles-sk-demo",
+    static_assets = {
+        "/dist": [
+            "//particles/test_bin:canvaskit.js",
+            "//particles/test_bin:canvaskit.wasm",
+        ],
+    },
+)
+
+sass_library(
+    name = "json_editor_styles",
+    srcs = [
+        "@npm//:node_modules/jsoneditor/dist/jsoneditor.min.css",  # keep
+    ],
+)
+
+sk_element(
+    name = "particles-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//particles/modules/themes:themes_sass_lib",
+        ":json_editor_styles",  # keep
+    ],
+    sass_srcs = ["particles-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        "//particles/modules/particles-config-sk",
+        "//particles/modules/particles-player-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//particles/build:wasm_libraries",  # keep
+        "//particles/modules/json:index_ts_lib",
+        "@npm//@types/jsoneditor",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//jsoneditor",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "particles-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "particles-sk-demo",
+    html_file = "particles-sk-demo.html",
+    sk_element_deps = [":particles-sk"],
+    ts_entry_point = "particles-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "particles-sk_puppeteer_test",
+    src = "particles-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

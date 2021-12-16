@@ -89,7 +89,6 @@ build-frontend-ci: npm-ci
 	cd fiddlek && $(MAKE) build-frontend-ci
 	cd infra-sk && $(MAKE) build-frontend-ci
 	cd new_element && $(MAKE) build-frontend-ci
-	cd particles && $(MAKE) build-frontend-ci
 	cd pulld && $(MAKE) build-frontend-ci
 	cd push && $(MAKE) build-frontend-ci
 	cd skottie && $(MAKE) build-frontend-ci

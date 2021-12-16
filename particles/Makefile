@@ -1,72 +1,43 @@
-default: app npm-ci
-	npx webpack --mode=development
+include ../make/bazel.mk
 
-release: wasm_libs_tot npm-ci
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/particles
-	npx webpack --mode=production
-	./build_release
+.PHONY: build
+build: wasm_libs
+	$(BAZEL) build //particles/...
 
-release_ci: app npm-ci
-	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
-	rm -rf build
-	mkdir -p build/canvaskit
-	cp -r /OUT/* build
-	echo "export const SKIA_VERSION = '`cat /OUT/VERSION`';" > ./build/version.ts
-	# Now that we have the canvaskit.wasm etc, we can bundle it in with webpack.
-	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/particles
-	./build_release
-
-serve: npm-ci
-	npx webpack-dev-server --mode=development --watch --watch-poll 100
-
-watch: npm-ci
-	npx webpack --mode=development --watch
-
-app:
-	go install ./go/particles
-
-# Increase Node's heap size to accommodate for ts-node's higher memory usage.
-NODE_MEMORY_LIMIT=4096
-
-.PHONY: testpptr
-testpptr: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
-get_latest_skia:
+.PHONY: wasm_libs
+wasm_libs:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
-
-wasm_libs_tot: get_latest_skia
-	rm -rf build
+	rm -rf build/canvaskit
 	mkdir -p build/canvaskit
-	# Extract them from the most recently built ones. These are built
-	# using cloudbuild.yaml in the Skia repo.
-	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp -r /tmp/canvaskit /OUT/
-	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/
-	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.ts
+	# Extract them from the most recently built docker container. This is built
+	# with @skia//docker/skia-wasm-release/Dockerfile
+	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
+	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
+	    sh -c "cp -r /tmp/canvaskit /OUT/"
+	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
-wasm_libs_fixed:
-	rm -rf build
-	mkdir -p build/canvaskit
-	curl https://particles.skia.org/dist/canvaskit.js --output build/canvaskit/canvaskit.js
-	curl https://particles.skia.org/dist/canvaskit.d.ts --output build/canvaskit/canvaskit.d.ts
-	curl https://particles.skia.org/dist/canvaskit.wasm --output build/canvaskit/canvaskit.wasm
-	echo "Latest" >> build/VERSION
-	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.ts
+.PHONY: release
+release: wasm_libs
+	$(BAZEL) run //particles:push_particles_container
 
-push: release skia-public
+.PHONY: push
+push: release
 	pushk particles
 
-.PHONY: serve watch app release release_ci wasm_libs_fixed wasm_libs_tot get_latest_skia push
-
-.PHONY: build-frontend-ci
-build-frontend-ci: wasm_libs_tot npm-ci
-	npx webpack --mode=production
+bazel_release_ci:
+	# COPY_FROM_DIR is expected to be set by the auto deploy mechanism, e.g.
+	# https://github.com/google/skia/blob/44c81d1492738cb1c6ab3d68a925bd7e64201bca/infra/bots/task_drivers/push_bazel_apps_from_wasm_image/push_bazel_apps_from_wasm_image.go#L137
+	cp -r $(COPY_FROM_DIR)/* build/
+	echo "export const SKIA_VERSION = '`cat ./build/VERSION`';" > ./build/version.js
+	bazelisk run //particles:push_particles_container --workspace_status_command=bazel/override_container_label.sh
 
 # You can either run a local copy of scrapexchange, or port-forward the production instance:
 #
 #   kubectl port-forward service/scrapexchange 9000
-run-local-instance:
-	particles --local --scrapexchange=http://localhost:9000
-
-include ../make/npm.mk
+.PHONY: run-local-instance
+run-local-instance: build
+	../_bazel_bin/particles/go/particles/particles_/particles --local \
+		--resources_dir ../_bazel_bin/particles/pages/development \
+		--scrapexchange=http://localhost:9000
+	# put the placeholders back
+	git checkout origin/main -- build/

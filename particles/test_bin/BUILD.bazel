@@ -1,0 +1,18 @@
+load("//infra-sk:index.bzl", "extract_files_from_skia_wasm_container")
+
+# This target makes the canvaskit js and wasm binaries available for tests. This is not the same
+# as ../build because we want to be able to control which binaries get used when we deploy a
+# container, but we are less stringent when running tests on the infra CI.
+extract_files_from_skia_wasm_container(
+    name = "canvaskit_wasm",
+    testonly = True,
+    outs = [
+        "canvaskit.js",
+        "canvaskit.wasm",
+    ],
+    container_files = [
+        "/tmp/canvaskit/canvaskit.js",
+        "/tmp/canvaskit/canvaskit.wasm",
+    ],
+    visibility = ["//particles:__subpackages__"],
+)

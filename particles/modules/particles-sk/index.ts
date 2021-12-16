@@ -1,2 +1,2 @@
 import './particles-sk.scss';
-import './particles-sk.ts';
+import './particles-sk';

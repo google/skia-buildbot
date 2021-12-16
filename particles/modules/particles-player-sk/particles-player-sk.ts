@@ -13,11 +13,11 @@ import { errorMessage } from 'elements-sk/errorMessage';
 import { html, TemplateResult } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import type {
-  Particles, CanvasKit, Surface, Canvas,
-} from '../../build/canvaskit/canvaskit.js';
+  Particles, CanvasKit, Surface, Canvas, CanvasKitInit as CKInit,
+} from '../../build/canvaskit/canvaskit';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
+// It is assumed that canvaskit.js has been loaded and this symbol is available globally.
+declare const CanvasKitInit: typeof CKInit;
 
 const DEFAULT_SIZE = 256;
 const ZOOM_IN_FACTOR = 1.1; // 10%

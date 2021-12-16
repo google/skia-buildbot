@@ -1,0 +1,27 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+
+js_library(
+    name = "wasm_libraries",
+    srcs = [
+        "canvaskit/canvaskit.d.ts",
+        "version.d.ts",
+        "version.js",
+    ],
+    visibility = ["//particles:__subpackages__"],
+)
+
+filegroup(
+    name = "canvaskit_js",
+    srcs = [
+        "canvaskit/canvaskit.js",
+    ],
+    visibility = ["//particles:__subpackages__"],
+)
+
+filegroup(
+    name = "canvaskit_wasm",
+    srcs = [
+        "canvaskit/canvaskit.wasm",
+    ],
+    visibility = ["//particles:__subpackages__"],
+)

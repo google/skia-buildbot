@@ -28,6 +28,8 @@ var targetDirectories = map[string]bool{
 	"machine/pages":        true,
 	"modules/devices":      true,
 	"new_element/modules":  true,
+	"particles/modules":    true,
+	"particles/pages":      true,
 	"perf/modules":         true,
 	"perf/pages":           true,
 	"puppeteer-tests":      true,

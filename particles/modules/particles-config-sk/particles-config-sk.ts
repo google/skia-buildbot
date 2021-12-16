@@ -76,7 +76,7 @@ export class ParticlesConfigSk extends ElementSk {
       const body = reader.result as string;
       let parsed: any = {};
       try {
-        parsed = JSON.parse(body);
+        parsed = JSON.parse(body) as any;
       } catch (error) {
         errorMessage(`Not a valid JSON file: ${error}`);
         return;

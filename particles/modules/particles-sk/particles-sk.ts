@@ -32,36 +32,32 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import { ScrapBody, ScrapID } from '../json';
 
 const defaultParticleDemo = {
-  Bindings: [],
+  MaxCount: 1000,
+  Drawable: {
+    Type: 'SkCircleDrawable',
+    Radius: 2,
+  },
   Code: [
+    'void effectSpawn(inout Effect effect) {',
+    '  effect.rate = 200;',
+    '  effect.color = float4(1, 0, 0, 1);',
+    '}',
+    '',
     'void spawn(inout Particle p) {',
-    '  p.lifetime = 2 + rand(p.seed);',
-    '  p.vel = p.dir * mix(50, 60, rand(p.seed));',
+    '  p.lifetime = 3 + rand(p.seed);',
+    '  p.vel.y = -50;',
     '}',
     '',
     'void update(inout Particle p) {',
-    '  p.scale = 0.5 + 1.5 * p.age;',
-    '  float3 a0 = float3(0.098, 0.141, 0.784);',
-    '  float3 a1 = float3(0.525, 0.886, 0.980);',
-    '  float3 b0 = float3(0.376, 0.121, 0.705);',
-    '  float3 b1 = float3(0.933, 0.227, 0.953);',
-    '  p.color.rgb = mix(mix(a0, a1, p.age), mix(b0, b1, p.age), rand(p.seed));',
+    '  float w = mix(15, 3, p.age);',
+    '  p.pos.x = sin(radians(p.age * 320)) * mix(25, 10, p.age) + mix(-w, w, rand(p.seed));',
+    '  if (rand(p.seed) < 0.5) { p.pos.x = -p.pos.x; }',
+    '',
+    '  p.color.g = (mix(75, 220, p.age) + mix(-30, 30, rand(p.seed))) / 255;',
     '}',
     '',
   ],
-  Drawable: {
-    Radius: 2,
-    Type: 'SkCircleDrawable',
-  },
-  EffectCode: [
-    'void effectSpawn(inout Effect effect) {',
-    '  effect.lifetime = 4;',
-    '  effect.rate = 120;',
-    '  effect.spin = 6;',
-    '}',
-    '',
-  ],
-  MaxCount: 800,
+  Bindings: [],
 };
 
 const DEFAULT_SIZE = 800;
@@ -309,17 +305,17 @@ export class ParticlesSk extends ElementSk {
         return;
       }
       this.setJSON(newConfig.body);
-      this.upload();
+      await this.upload();
       this.stateChanged!();
       this._render();
     } catch (err) {
-      errorMessage(err);
+      await errorMessage(err);
     }
   }
 
-  private applyEdits() {
+  private async applyEdits() {
     this.setJSON(this.editor!.get());
-    this.upload();
+    await this.upload();
   }
 
   private togglePlayPause() {
@@ -351,11 +347,11 @@ export class ParticlesSk extends ElementSk {
         credentials: 'include',
       });
       const json = await jsonOrThrow(resp) as ScrapBody;
-      this.setJSON(JSON.parse(json.Body));
+      this.setJSON(JSON.parse(json.Body) as any);
       this.play();
       this.currentNameOrHash = this.state.nameOrHash;
     } catch (error) {
-      errorMessage(error);
+      await errorMessage(error);
       // Return to the default view.
       this.state = Object.assign({}, defaultState);
       this.currentNameOrHash = this.state.nameOrHash;
@@ -397,7 +393,7 @@ export class ParticlesSk extends ElementSk {
       this.state.nameOrHash = json.Hash;
       this.stateChanged!();
     } catch (error) {
-      errorMessage(`${error}`);
+      await errorMessage(`${error}`);
     }
   }
 }
