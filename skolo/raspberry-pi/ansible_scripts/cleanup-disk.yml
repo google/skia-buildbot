@@ -1,7 +1,0 @@
-- hosts: all
-  remote_user: chrome-bot
-  tasks:
-
-     - command: python swarming_bot.1.zip run_isolated --clean --log-file ./logs/run_isolated.log --cache ./isolated_cache --min-free-space 10737418240
-       args:
-         chdir: /b/s

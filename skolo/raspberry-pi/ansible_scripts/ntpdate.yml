@@ -1,9 +1,0 @@
-- hosts: all
-  become_user: root
-  become: yes
-  become_method: sudo
-
-  tasks:
-
-     - name: Update ntp with an unprivileged port to work around firewall wonkiness.
-       command: ntpdate -u time.google.com

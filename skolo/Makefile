@@ -1,23 +1,6 @@
 # Go build command to build static binaries suitable for lean Alpine containers.
 KGO := CGO_ENABLED=0 GOOS=linux go build
 
-.PHONY: all
-all: hotspare backup trooper_tools
-
-.PHONY: hotspare
-hotspare:
-	go install -v ./go/hotspare
-
-.PHONY: hotspare_release
-hotspare_release: hotspare
-	./build_release_hotspare "`git log -n1 --format=%s`"
-
-.PHONY: hotspare_push
-hotspare_push: hotspare
-	go install -v ../push/go/pushcli
-	./build_release_hotspare "`git log -n1 --format=%s`"
-	pushcli hotspare skia-rpi-master-spare
-
 export HASH:=$(shell git rev-parse HEAD)
 export DATETIME:=$(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
 export GIT_STATE:=$(shell ../bash/gitstate.sh)

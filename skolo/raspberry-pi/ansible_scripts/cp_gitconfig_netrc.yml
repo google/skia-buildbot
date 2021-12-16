@@ -1,9 +1,0 @@
-- hosts: all
-  remote_user: chrome-bot
-  tasks:
-
-     - name: Copy .gitconfig to home
-       copy: src=/opt/prod/root/opt/.gitconfig dest=/home/chrome-bot/.gitconfig owner=chrome-bot group=chrome-bot mode=0644
-     - name: Copy .netrc to home
-       copy: src=/opt/prod/root/opt/.netrc dest=/home/chrome-bot/.netrc owner=chrome-bot group=chrome-bot mode=0644
-

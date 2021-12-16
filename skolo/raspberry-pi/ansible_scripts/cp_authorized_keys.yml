@@ -1,6 +1,0 @@
-- hosts: all
-  remote_user: chrome-bot
-  tasks:
-
-     - name: Copy authorized_keys to .ssh/authorized_keys
-       copy: src=authorized_keys dest=/home/chrome-bot/.ssh/authorized_keys owner=chrome-bot group=chrome-bot mode=0644

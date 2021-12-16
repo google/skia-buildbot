@@ -1,6 +1,0 @@
-- hosts: all
-  remote_user: chrome-bot
-  tasks:
-
-     - name: making sure there is about 16 GB free in cache
-       command: df -h
