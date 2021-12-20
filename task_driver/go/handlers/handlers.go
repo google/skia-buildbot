@@ -40,7 +40,17 @@ func logsHandler(w http.ResponseWriter, r *http.Request, lm *logs.LogsManager, t
 		if !strings.HasSuffix(line, "\n") {
 			line += "\n"
 		}
-		if _, err := w.Write([]byte(line)); err != nil {
+
+		// Strip out any null bytes; these cause the content type to be
+		// interpreted as binary, even with Content-Type set to "text/plain".
+		lineBytes := make([]byte, 0, len(line))
+		for _, b := range []byte(line) {
+			if b != byte(0) {
+				lineBytes = append(lineBytes, b)
+			}
+		}
+
+		if _, err := w.Write(lineBytes); err != nil {
 			httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
 			return
 		}
