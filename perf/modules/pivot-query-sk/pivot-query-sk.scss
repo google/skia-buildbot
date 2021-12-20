@@ -1,0 +1,16 @@
+@import '../themes/themes';
+
+pivot-query-sk {
+  multi-select-sk,
+  select-sk {
+    display: inline-grid;
+    flex-direction: column;
+    padding: 2px;
+
+    div {
+      display: inline-block;
+      padding: 2px;
+      margin: 3px;
+    }
+  }
+}
