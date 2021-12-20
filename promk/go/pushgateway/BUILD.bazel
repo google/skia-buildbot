@@ -1,0 +1,24 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "pushgateway",
+    srcs = ["pushgateway.go"],
+    importpath = "go.skia.org/infra/promk/go/pushgateway",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/httputils",
+        "//go/skerr",
+    ],
+)
+
+go_test(
+    name = "pushgateway_test",
+    srcs = ["pushgateway_test.go"],
+    embed = [":pushgateway"],
+    deps = [
+        "//go/httputils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
