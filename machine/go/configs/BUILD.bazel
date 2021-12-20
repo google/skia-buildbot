@@ -1,5 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
+exports_files(["prod.json"])
+
 go_library(
     name = "configs",
     srcs = ["configs_embed.go"],

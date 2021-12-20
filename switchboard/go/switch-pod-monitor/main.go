@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	configFlag = flag.String("config", "../machine/configs/test.json", "The path to the configuration file.")
+	configFlag = flag.String("config", "../machine/go/configs/test.json", "The path to the configuration file.")
 	local      = flag.Bool("local", false, "Running locally if true, as opposed to running in GCE.")
 	promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )

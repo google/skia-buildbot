@@ -1,14 +1,17 @@
+include ../make/bazel.mk
+include ../kube/kube.mk
+
 build:
-	go install ./go/...
+	${BAZEL} build go/...
 
 release: build
-	./images/switch-pod/release
+	${BAZEL} run //switchboard:push_switchboard_container
 
-push: release
-	pushk switch-pod
+push: pushk release
+	pushk --use-temp-checkout switch-pod
 
 test:
 	go test ./go/...
 
 run-local-instance: build
-	switch-pod-monitor
+	../_bazel_bin/switchboard/go/switch-pod-monitor/switch-pod-monitor_/switch-pod-monitor --local

@@ -1,0 +1,35 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "switchboard_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//switchboard/go/switch-pod-monitor:switch-pod-monitor",
+                "0755",
+            ],
+            [
+                "//switchboard/go/ncrev:ncrev",
+                "0755",
+            ],
+        ],
+        "/etc/switch-pod-monitor": [
+            [
+                "//machine/go/configs:prod.json",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/switch-pod-monitor",
+    repository = "skia-public/switch-pod",
+    run_commands_root = [
+        # Install required packages.
+        "apt-get update",
+        "apt-get install -y openssh-client curl procps netcat-openbsd",
+        "apt-get clean",
+
+        # Rename prod.config.
+        "mv /etc/switch-pod-monitor/prod.json /etc/switch-pod-monitor/config.json",
+    ],
+)
