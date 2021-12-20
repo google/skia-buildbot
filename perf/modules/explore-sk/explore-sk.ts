@@ -65,6 +65,9 @@ import { MISSING_DATA_SENTINEL } from '../plot-simple-sk/plot-simple-sk';
 import { messageByName, messagesToErrorString, startRequest } from '../progress/progress';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 
+/** The type of trace we are adding to a plot. */
+type addPlotType = 'query' | 'formula';
+
 // The trace id of the zero line, a trace of all zeros.
 const ZERO_NAME = 'special_zero';
 
@@ -395,27 +398,35 @@ export class ExploreSk extends ElementSk {
             }>
             </query-count-sk>
           </div>
-          <button @click=${() => ele.add(true)} class=action>Plot</button>
-          <button @click=${() => ele.add(false)}>Add to Plot</button>
         </div>
     </div>
+
     <details>
       <summary>Time Range</summary>
       <domain-picker-sk id=range>
       </domain-picker-sk>
     </details>
 
-    <details>
-      <summary>Calculated Traces</summary>
-      <div class=formulas>
-        <textarea id=formula rows=3 cols=80></textarea>
-        <button @click=${() => ele.addCalculated(true)}>Plot</button>
-        <button @click=${() => ele.addCalculated(false)}>Add to Plot</button>
-        <a href=/help/ target=_blank>
-          <help-icon-sk></help-icon-sk>
-        </a>
+    <tabs-sk>
+      <button>Plot</button>
+      <button>Calculations</button>
+    </tabs-sk>
+    <tabs-panel-sk>
+      <div>
+        <button @click=${() => ele.add(true, 'query')} class=action>Plot</button>
+        <button @click=${() => ele.add(false, 'query')}>Add to Plot</button>
       </div>
-    </details>
+      <div>
+        <div class=formulas>
+          <textarea id=formula rows=3 cols=80></textarea>
+          <button @click=${() => ele.add(true, 'formula')} class=action>Plot</button>
+          <button @click=${() => ele.add(false, 'formula')}>Add to Plot</button>
+          <a href=/help/ target=_blank>
+            <help-icon-sk></help-icon-sk>
+          </a>
+        </div>
+      </div>
+    </tabs-panel-sk>
   </dialog>
 
   <dialog id=help>
@@ -1028,17 +1039,32 @@ export class ExploreSk extends ElementSk {
   }
 
   /**
-   * Plot the traces that match this._query.current_query.
+   * Plot the traces that match either the current query or the current formula,
+   * depending on the value of plotType.
    *
    * @param replace - If true then replace all the traces with ones
    * that match this query, otherwise add them to the current traces being
    * displayed.
+   *
+   * @param plotType - The type of traces being added.
    */
-  private add(replace: boolean) {
+  private add(replace: boolean, plotType: addPlotType) {
     this.queryDialog!.close();
     const q = this.query!.current_query;
-    if (!q || q.trim() === '') {
-      errorMessage('The query must not be empty.');
+    const f = this.formula!.value;
+
+    if (plotType === 'query') {
+      if (!q || q.trim() === '') {
+        errorMessage('The query must not be empty.');
+        return;
+      }
+    } else if (plotType === 'formula') {
+      if (f.trim() === '') {
+        errorMessage('The formula must not be empty.');
+        return;
+      }
+    } else {
+      errorMessage('Unknown plotType');
       return;
     }
     this.state.begin = this.range!.state.begin;
@@ -1048,9 +1074,17 @@ export class ExploreSk extends ElementSk {
     if (replace) {
       this.removeAll(true);
     }
-    if (this.state.queries.indexOf(q) === -1) {
-      this.state.queries.push(q);
+
+    if (plotType === 'query') {
+      if (this.state.queries.indexOf(q) === -1) {
+        this.state.queries.push(q);
+      }
+    } else if (plotType === 'formula') {
+      if (this.state.formulas.indexOf(f) === -1) {
+        this.state.formulas.push(f);
+      }
     }
+
     this._stateHasChanged();
     const body = this.requestFrameBodyFullFromState();
     this.requestFrame(body, (json) => {
@@ -1216,41 +1250,8 @@ export class ExploreSk extends ElementSk {
     this.reShortCut(toShortcut);
   }
 
-  /**
-   * Plot the traces from the formula in this._formula.value;
-   *
-   * @param replace - If true then replace all the traces with the
-   * calculated traces from this formula, otherwise add the calculated traces to
-   * the current traces being displayed.
-   */
-  private addCalculated(replace: boolean) {
-    this.queryDialog!.close();
-    const f = this.formula!.value;
-    if (f.trim() === '') {
-      errorMessage('The formula must not be empty.');
-      return;
-    }
-
-    this.state.begin = this.range!.state.begin;
-    this.state.end = this.range!.state.end;
-    this.state.numCommits = this.range!.state.num_commits;
-    this.state.requestType = this.range!.state.request_type;
-
-    if (replace) {
-      this.removeAll(true);
-    }
-    if (this.state.formulas.indexOf(f) === -1) {
-      this.state.formulas.push(f);
-    }
-    const body = this.requestFrameBodyFullFromState();
-    this._stateHasChanged();
-    this.requestFrame(body, (json) => {
-      this.addTraces(json, false);
-    });
-  }
-
   /** Common catch function for _requestFrame and _checkFrameRequestStatus. */
-  private catch(msg: string) {
+  private catch(msg: any) {
     this._requestId = '';
     if (msg) {
       errorMessage(msg);
