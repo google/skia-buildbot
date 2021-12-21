@@ -127,18 +127,6 @@ cp -r /src/debugger-app/modules              /tests/debugger-app
 cp -r /src/debugger-app/build                /tests/debugger-app
 cp -r /src/debugger-app/static               /tests/debugger-app
 
-mkdir /tests/particles
-cp -r /src/particles/webpack.config.ts       /tests/particles
-cp -r /src/particles/tsconfig.json           /tests/particles
-cp -r /src/particles/modules                 /tests/particles
-cp -r /src/particles/Makefile                /tests/particles
-
-mkdir /tests/shaders
-cp -r /src/shaders/webpack.config.ts         /tests/shaders
-cp -r /src/shaders/tsconfig.json             /tests/shaders
-cp -r /src/shaders/modules                   /tests/shaders
-cp -r /src/shaders/Makefile                  /tests/shaders
-
 mkdir /tests/skottie
 cp -r /src/skottie/webpack.config.ts         /tests/skottie
 cp -r /src/skottie/tsconfig.json             /tests/skottie
@@ -152,12 +140,6 @@ cp -r /src/skottie/Makefile                  /tests/skottie
 cd /tests
 # https://docs.npmjs.com/cli/v7/using-npm/config
 npm ci --fetch-retry-maxtimeout 300000 --fetch-timeout 600000
-
-cd /tests/particles
-make wasm_libs_fixed
-
-cd /tests/shaders
-make wasm_libs_fixed
 
 cd /tests/skottie
 make wasm_libs_fixed
@@ -191,12 +173,6 @@ cd /tests/task_scheduler
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/debugger-app
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
-cd /tests/particles
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
-cd /tests/shaders
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/skottie
