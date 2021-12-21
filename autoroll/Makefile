@@ -67,7 +67,8 @@ release-be: autoroll-be build_base_cipd_release
 
 .PHONY: release-fe
 release-fe: autoroll-fe
-	./build_frontend_release
+	./build_frontend_release_public
+	./build_frontend_release_corp
 
 .PHONY: release-google3
 release-google3: autoroll-google3 setup-internal-config-repo
@@ -85,7 +86,7 @@ autoroll-pusher: kube-conf-gen deployment-dirs
 # modified kubernetes config files into the git repo, using the commit message
 # from the MESSAGE environment variable.
 .PHONY: push-roller
-push-roller: release-be autoroll-pusher
+push-roller: release-fe release-be autoroll-pusher
 	autoroll-pusher --roller="$(ROLLER)" --update-config --update-be-image --commit-msg="$(MESSAGE)"
 
 # push-be generates a new backend release build and applies it to ALL rollers,

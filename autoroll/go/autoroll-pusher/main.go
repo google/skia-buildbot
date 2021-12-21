@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -38,7 +37,6 @@ const (
 	// autoroller.
 	GCR_PROJECT  = PROJECT_PUBLIC
 	GCR_IMAGE_BE = "autoroll-be"
-	GCR_IMAGE_FE = "autoroll-fe"
 
 	// Path to autoroller config repo.
 	// TODO(borenet): Support an arbitrary location.
@@ -125,40 +123,11 @@ type rollerConfig struct {
 
 // kubeConfGenFe generates the Kubernetes YAML config file for the given
 // frontend instance.
-func kubeConfGenFe(ctx context.Context, tmpl, srcConfig, dstConfig string, cfgBase64ByRollerName map[string]string, image string) (bool, error) {
-	// Write the config info to a temporary file.
-	rollerNames := make([]string, 0, len(cfgBase64ByRollerName))
-	for name := range cfgBase64ByRollerName {
-		rollerNames = append(rollerNames, name)
-	}
-	sort.Strings(rollerNames)
-	cfgs := make([]rollerConfig, 0, len(rollerNames))
-	for _, name := range rollerNames {
-		cfgs = append(cfgs, rollerConfig{
-			RollerName: name,
-			Base64:     cfgBase64ByRollerName[name],
-		})
-	}
-	d, err := ioutil.TempDir("", "")
-	if err != nil {
-		return false, err
-	}
-	defer util.RemoveAll(d)
-	cfgsJson := filepath.Join(d, "configs.json")
-	if err := util.WithWriteFile(cfgsJson, func(w io.Writer) error {
-		return json.NewEncoder(w).Encode(&struct {
-			Configs []rollerConfig `json:"configs"`
-		}{
-			Configs: cfgs,
-		})
-	}); err != nil {
-		return false, skerr.Wrapf(err, "failed kube-conf-gen")
-	}
-
+func kubeConfGenFe(ctx context.Context, tmpl, srcConfig, dstConfig string, image string) (bool, error) {
 	// Generate the k8s config.
 	return kubeConfGen(ctx, tmpl, dstConfig, map[string]string{
 		"image": image,
-	}, srcConfig, cfgsJson)
+	}, srcConfig)
 }
 
 // getActiveImage returns the image currently used in the given Kubernetes
@@ -191,6 +160,9 @@ func getLatestImage(image string) (string, error) {
 		return "", skerr.Wrapf(err, "Failed to get latest image for %s; failed to get tags", image)
 	}
 	sort.Strings(imageTags)
+	if len(imageTags) == 0 {
+		return "", skerr.Fmt("No image tags returned for %s", image)
+	}
 	return fmt.Sprintf("gcr.io/%s/%s:%s", GCR_PROJECT, image, imageTags[len(imageTags)-1]), nil
 }
 
@@ -230,7 +202,7 @@ func switchCluster(ctx context.Context, project string) (kubecfg string, cleanup
 // updateConfigs updates the Kubernetes config files in k8sConfigDir to reflect
 // the current contents of configDir, inserting the roller configs into the
 // given ConfigMap.
-func updateConfigs(ctx context.Context, co *git.Checkout, cluster *clusterCfg, latestImageFe string, configs map[string]*config.Config) ([]string, error) {
+func updateConfigs(ctx context.Context, co *git.Checkout, cluster *clusterCfg, configs map[string]*config.Config) ([]string, error) {
 	// This is the subdir for the current cluster.
 	clusterCfgDir := filepath.Join(co.Dir(), cluster.Name)
 
@@ -244,64 +216,15 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cluster *clusterCfg, l
 		return nil, skerr.Wrapf(err, "Failed to decode frontend config file %s", cluster.FeConfigFile)
 	}
 
-	// Read the existing frontend k8s config file (if it exists) and parse
-	// out the currently-used roller configs.
-	k8sFeConfigFile := filepath.Join(clusterCfgDir, configFe.AppName+".yaml")
-	cfgBase64ByRollerName := map[string]string{}
-	b, err := ioutil.ReadFile(k8sFeConfigFile)
-	if err != nil && !os.IsNotExist(err) {
-		return nil, skerr.Wrapf(err, "failed to read k8s config file for frontend")
-	} else if err == nil {
-		// TODO(borenet): Should we parse the config as YAML?
-		for _, line := range strings.Split(string(b), "\n") {
-			if strings.Contains(line, "--config=") {
-				split := strings.Split(line, "--config=")
-				if len(split) != 2 {
-					return nil, skerr.Fmt("Failed to parse k8s config; invalid format --config line: %s", line)
-				}
-				cfgBase64 := strings.TrimSuffix(strings.TrimSpace(split[1]), "\"")
-				dec, err := base64.StdEncoding.DecodeString(cfgBase64)
-				if err != nil {
-					return nil, skerr.Fmt("Failed to decode existing roller config as base64: %s", err)
-				}
-				opts := prototext.UnmarshalOptions{
-					AllowPartial:   true,
-					DiscardUnknown: true,
-				}
-				cfg := new(config.Config)
-				if err := opts.Unmarshal(dec, cfg); err != nil {
-					return nil, skerr.Wrapf(err, "failed to decode existing roller config")
-				}
-				cfgBase64ByRollerName[cfg.RollerName] = cfgBase64
-			}
-		}
-	}
-
-	// Update the roller config contents if requested.
-	if *updateRollerConfig {
-		for _, config := range configs {
-			// Note that we could re-read the config file from disk
-			// and base64-encode its contents. In practice, the
-			// behavior of the autoroll frontend and backends would
-			// be the same, so we consider it preferable to encode
-			// the parsed config, which will strip things like
-			// comments and whitespace that would otherwise produce
-			// a "different" config.
-			b, err := prototext.MarshalOptions{
-				AllowPartial: true,
-				EmitUnknown:  true,
-			}.Marshal(config)
-			if err != nil {
-				return nil, skerr.Wrapf(err, "Failed to encode roller config as text proto")
-			}
-			cfgBase64ByRollerName[config.RollerName] = base64.StdEncoding.EncodeToString(b)
-		}
-	}
-
 	// Write the new k8s config file for the frontend.
 	modified := []string{}
 	if *updateFeImage || *updateRollerConfig {
 		tmplFe := "./go/autoroll-fe/autoroll-fe.yaml.template"
+		// Get the latest image for the frontend.
+		latestImageFe, err := getLatestImage(configFe.AppName)
+		if err != nil {
+			log.Fatalf("Failed to get latest image for %s: %s", configFe.AppName, err)
+		}
 		imageFe := latestImageFe
 		dstFe := filepath.Join(clusterCfgDir, configFe.AppName+".yaml")
 		if _, err := os.Stat(dstFe); err == nil && !*updateFeImage {
@@ -310,7 +233,7 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cluster *clusterCfg, l
 				return nil, skerr.Wrapf(err, "Failed to get active image for frontend")
 			}
 		}
-		modifiedFe, err := kubeConfGenFe(ctx, tmplFe, cluster.FeConfigFile, dstFe, cfgBase64ByRollerName, imageFe)
+		modifiedFe, err := kubeConfGenFe(ctx, tmplFe, cluster.FeConfigFile, dstFe, imageFe)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to generate k8s config for frontend")
 		}
@@ -352,8 +275,23 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cluster *clusterCfg, l
 				return nil, skerr.Wrap(err)
 			}
 
-			// Regenerate the k8s config file.
-			cfgFileBase64 := cfgBase64ByRollerName[config.RollerName]
+			// Encode the roller config file.
+			// Note that we could re-read the config file from disk
+			// and base64-encode its contents. In practice, the
+			// behavior of the autoroll frontend and backends would
+			// be the same, so we consider it preferable to encode
+			// the parsed config, which will strip things like
+			// comments and whitespace that would otherwise produce
+			// a "different" config.
+			b, err := prototext.MarshalOptions{
+				AllowPartial: true,
+				EmitUnknown:  true,
+			}.Marshal(config)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "Failed to encode roller config as text proto")
+			}
+			cfgFileBase64 := base64.StdEncoding.EncodeToString(b)
+
 			modifiedBe, err := kubeConfGenBe(ctx, tmplBe, cfgFilePath, dst, cfgFileBase64)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "Failed to generate k8s config file for backend: %s", dst)
@@ -496,12 +434,6 @@ func main() {
 		log.Fatalf("Found no rollers matching %q", *rollerRe)
 	}
 
-	// Get the latest images for frontend and backend.
-	latestImageFe, err := getLatestImage(GCR_IMAGE_FE)
-	if err != nil {
-		log.Fatalf("Failed to get latest image for %s: %s", GCR_IMAGE_FE, err)
-	}
-
 	// Update the backend image if requested.
 	if *updateBeImage {
 		latestImageBe, err := getLatestImage(GCR_IMAGE_BE)
@@ -562,7 +494,7 @@ func main() {
 	// Update the configs.
 	modByCluster := make(map[*clusterCfg][]string, len(configs))
 	for cluster, cfgs := range configs {
-		modified, err := updateConfigs(ctx, co.Checkout, cluster, latestImageFe, cfgs)
+		modified, err := updateConfigs(ctx, co.Checkout, cluster, cfgs)
 		if err != nil {
 			log.Fatalf("Failed to update configs: %s", err)
 		}

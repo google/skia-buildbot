@@ -50,8 +50,9 @@ import (
 
 var (
 	// flags.
-	configsContents     = common.NewMultiStringFlag("config", nil, "Base 64 encoded config in JSON format. Supply this flag once for each roller. Mutually exclusive with --config_file.")
-	configFiles         = common.NewMultiStringFlag("config_file", nil, "Path to autoroller config file. Supply this flag once for each roller. Mutually exclusive with --config.")
+	configsContents     = common.NewMultiStringFlag("config", nil, "Base 64 encoded config in JSON format. Supply this flag once for each roller. Mutually exclusive with --config_file and --config_dir.")
+	configFiles         = common.NewMultiStringFlag("config_file", nil, "Path to autoroller config file. Supply this flag once for each roller. Mutually exclusive with --config and --config_dir.")
+	configDir           = flag.String("config_dir", "", "Path to directory containing autoroll config files.  Mutually exclusive with --config and --config_file.")
 	configGerritProject = flag.String("config_gerrit_project", "", "Gerrit project used for editing configs.")
 	configRepo          = flag.String("config_repo", "", "Repo URL where configs are stored.")
 	configRepoPath      = flag.String("config_repo_path", "", "Path within the config repo where configs are stored.")
@@ -354,10 +355,11 @@ func main() {
 	configGitiles = gitiles.NewRepo(*configRepo, client)
 
 	// Read the configs for the rollers.
-	if len(*configsContents) > 0 && len(*configFiles) > 0 {
-		sklog.Fatal("--config and --config_file are mutually exclusive.")
-	} else if len(*configsContents) == 0 && len(*configFiles) == 0 {
-		sklog.Fatal("At least one instance of --config or --config_file is required.")
+	if len(*configsContents) > 0 && (len(*configFiles) > 0 || *configDir != "") ||
+		len(*configFiles) > 0 && (len(*configsContents) > 0 || *configDir != "") {
+		sklog.Fatal("--config, --config_file, and --config_dir are mutually exclusive.")
+	} else if len(*configsContents) == 0 && len(*configFiles) == 0 && *configDir == "" {
+		sklog.Fatal("At least one instance of --config, --config_file, --config_dir is required.")
 	}
 	cfgBytes := make([][]byte, 0, len(*configsContents)+len(*configFiles))
 	for _, cfgStr := range *configsContents {
@@ -366,6 +368,17 @@ func main() {
 			sklog.Fatalf("Failed to base64-decode config: %s\n\nbase64:\n%s", err, cfgStr)
 		}
 		cfgBytes = append(cfgBytes, b)
+	}
+	if *configDir != "" {
+		files, err := os.ReadDir(*configDir)
+		if err != nil {
+			sklog.Fatalf("Failed to read config dir %s: %s", *configDir, err)
+		}
+		for _, file := range files {
+			if file.Type().IsRegular() {
+				*configFiles = append(*configFiles, filepath.Join(*configDir, file.Name()))
+			}
+		}
 	}
 	for _, path := range *configFiles {
 		b, err := ioutil.ReadFile(path)

@@ -50,15 +50,11 @@ spec:
             - "--host={{.hostName}}"
             - "--port=:8000"
             - "--prom_port=:20000"{{if eq .internal "true"}}
+            - "--internal"{{end}}
             - "--config_repo=https://skia.googlesource.com/skia-autoroll-internal-config.git"
             - "--config_gerrit_project=skia-autoroll-internal-config"
-            - "--internal"{{else}}
-            - "--config_repo=https://skia.googlesource.com/buildbot.git"
-            - "--config_repo_path=autoroll/config"
-            - "--config_gerrit_project=buildbot"{{end}}
-            - "--resources_dir=/usr/local/share/autoroll-fe/dist"{{- range $index, $config := .configs}}
-            # {{$config.rollerName}}
-            - "--config={{$config.base64}}"{{- end}}
+            - "--resources_dir=/usr/local/share/autoroll-fe/dist"
+            - "--config_dir=/usr/local/share/autoroll-fe/configs"
           ports:
             - containerPort: 8000
             - containerPort: 20000
