@@ -513,3 +513,14 @@ groups:
     annotations:
       abbr: '{{ $labels.subscription_id }}'
       description: 'A pubsub message for {{ $labels.subscription_id }} has not been acknowledged in more than 10 minutes.'
+
+# G3 Canary
+  - alert: G3CanaryInfraFailure
+    expr: g3_canary_infra_failure > 0
+    labels:
+      category: infra
+      severity: critical
+      owner: rmistry@google.com
+    annotations:
+      abbr: '{{ $labels.exported_job }}'
+      description: 'The G3 canary is experiencing failures and may need to be restarted. https://skia.googlesource.com/skia/+doc/main/infra/bots/task_drivers/g3_canary/PROD.md#g3_canary_infra_failures'
