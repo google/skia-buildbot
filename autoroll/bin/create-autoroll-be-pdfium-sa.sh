@@ -15,7 +15,7 @@ cd /tmp/ramdisk
 
 gcloud --project=${PROJECT_ID} iam service-accounts create "${SA_NAME}" \
     --display-name="Service account for AutoRolls into PDFium"
-gcloud projects add-iam-policy-binding google.com:skia-buildbots \
+gcloud projects add-iam-policy-binding skia-firestore \
     --member serviceAccount:${SA_EMAIL} --role roles/datastore.user
 gsutil iam ch serviceAccount:${SA_EMAIL}:objectAdmin gs://skia-autoroll
 gcloud beta iam service-accounts keys create ${SA_NAME}.json \
