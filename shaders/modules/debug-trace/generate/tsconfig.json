@@ -1,0 +1,11 @@
+{
+  "extends": "../../../../tsconfig",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@bazel/tsetse",
+        "disabledRules": ["must-type-assert-json-parse"]
+      }
+    ]
+  }
+}
