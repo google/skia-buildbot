@@ -29,7 +29,7 @@ bazel_release_ci:
 	# https://github.com/google/skia/blob/44c81d1492738cb1c6ab3d68a925bd7e64201bca/infra/bots/task_drivers/push_bazel_apps_from_wasm_image/push_bazel_apps_from_wasm_image.go#L137
 	cp -r $(COPY_FROM_DIR)/* build/
 	echo "export const SKIA_VERSION = '`cat ./build/VERSION`';" > ./build/version.js
-	bazelisk run //particles:push_particles_container --workspace_status_command=bazel/override_container_label.sh
+	bazelisk run //shaders:push_shaders_container --workspace_status_command=bazel/override_container_label.sh
 
 # You can either run a local copy of scrapexchange, or port-forward the production instance:
 #
