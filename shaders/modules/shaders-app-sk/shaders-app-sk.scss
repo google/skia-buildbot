@@ -1,7 +1,8 @@
+@use 'node_modules/codemirror/lib/codemirror.css';
+@use 'node_modules/codemirror/theme/ambiance.css';
+@use 'node_modules/codemirror/theme/base16-light.css';
+
 @import '../themes/themes.scss';
-@import '~codemirror/lib/codemirror.css';
-@import '~codemirror/theme/ambiance.css';
-@import '~codemirror/theme/base16-light.css';
 
 .body-sk shaders-app-sk {
   display: block;

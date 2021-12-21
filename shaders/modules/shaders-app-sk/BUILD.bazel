@@ -1,0 +1,79 @@
+load("//infra-sk:index.bzl", "sass_library", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":shaders-app-sk-demo",
+    static_assets = {
+        "/dist": [
+            "//shaders/test_bin:canvaskit.js",
+            "//shaders/test_bin:canvaskit.wasm",
+            "//shaders/sources:mandrill_png",
+            "//shaders/sources:soccer_png",
+        ],
+    },
+)
+
+sass_library(
+    name = "code_mirror_styles",
+    srcs = [
+        "@npm//:node_modules/codemirror/lib/codemirror.css",  # keep
+        "@npm//:node_modules/codemirror/theme/ambiance.css",  # keep
+        "@npm//:node_modules/codemirror/theme/base16-light.css",  # keep
+    ],
+)
+
+sk_element(
+    name = "shaders-app-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//shaders/modules/themes:themes_sass_lib",
+        ":code_mirror_styles",  # keep
+    ],
+    sass_srcs = ["shaders-app-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        "//infra-sk/modules/uniform-color-sk",
+        "//infra-sk/modules/uniform-dimensions-sk",
+        "//infra-sk/modules/uniform-fps-sk",
+        "//infra-sk/modules/uniform-generic-sk",
+        "//infra-sk/modules/uniform-imageresolution-sk",
+        "//infra-sk/modules/uniform-mouse-sk",
+        "//infra-sk/modules/uniform-slider-sk",
+        "//infra-sk/modules/uniform-time-sk",
+        "//shaders/modules/edit-child-shader-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:elementsk_ts_lib",
+        "//infra-sk/modules/uniform:uniform_ts_lib",
+        "//shaders/build:wasm_libraries",  # keep
+        "//shaders/modules/shadernode:index_ts_lib",
+        "@npm//@types/codemirror",
+        "@npm//codemirror",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "shaders-app-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "shaders-app-sk-demo",
+    html_file = "shaders-app-sk-demo.html",
+    sk_element_deps = [":shaders-app-sk"],
+    ts_entry_point = "shaders-app-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "shaders-app-sk_puppeteer_test",
+    src = "shaders-app-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

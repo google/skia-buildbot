@@ -3,13 +3,18 @@
 //   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/build_bazel_rules_nodejs/internal/node/_node_bin/node',
 //   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/npm/node_modules/karma/bin/karma',
 //   'start',
-//   'infra-sk/karma_test/karma.conf.js',
-//   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/skia_infra/golden/modules/common_test_bundle.js',
+//   'shaders/modules/shadernode/shaders.karma.conf.js',
+//   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/skia_infra/shaders/modules/shadernode/index_test_bundle.js',
+//   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/skia_infra/shaders/test_bin/canvaskit.js',
+//   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/skia_infra/shaders/test_bin/canvaskit.wasm'
 // ]
 const startIdx = process.argv.findIndex((v) => v === 'start');
 
 // The path to the JS bundle is passed by the karma_test rule as the second argument after start.
 const jsTestFile = process.argv[startIdx + 2];
+// CanvasKit JS and WASM files are right after that.
+const canvasKitJSFile = process.argv[startIdx + 3];
+const canvasKitWASMFile = process.argv[startIdx + 4];
 
 // Detect whether we're running as a test (e.g. "bazel test //path/to/my:karma_test").
 //
@@ -30,12 +35,24 @@ module.exports = function(config) {
     // Frameworks are loaded in reverse order, so chai-dom loads after chai.
     frameworks: ['mocha', 'chai-dom', 'chai', 'sinon'],
 
-    files: [{
-      pattern: jsTestFile,
-      // Force the test files to be served from disk on each request. Without this, interactive mode
-      // with ibazel does not work (e.g. "ibazel run //path/to/my:karma_test").
-      nocache: true,
-    }],
+    files: [
+      // We want the WASM file to be available for loading by the CanvasKit JS file.
+      { pattern: canvasKitWASMFile, included: false, served: true },
+      // We want the canvasKitJS file to be run before the tests so CanvasKitInit is defined.
+      { pattern: canvasKitJSFile },
+      {
+        pattern: jsTestFile,
+        // Force the test files to be served from disk on each request. Without this,
+        // interactive mode with ibazel does not work (e.g. "ibazel run //path/to/my:karma_test").
+        nocache: true,
+      },
+    ],
+
+    proxies: {
+      // This lets our tests just try to load /canvaskit_assets/canvaskit.wasm instead of the
+      // actual path (which is deep inside Bazel's output directory)
+      '/canvaskit_assets/canvaskit.wasm': canvasKitWASMFile,
+    },
 
     // Only use a headless browser when running as a test (i.e. "bazel test").
     //

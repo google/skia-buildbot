@@ -1,17 +1,17 @@
 /* eslint-disable dot-notation */
 import './index';
 import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
-import { assert, AssertionError } from 'chai';
+import { assert } from 'chai';
 import {
   childShaderArraysDiffer,
   childShadersAreDifferent,
   defaultChildShaderScrapHashOrName, defaultImageURL, defaultScrapBody, numPredefinedUniforms, ShaderNode,
 } from './index';
-import { CanvasKit } from '../../build/canvaskit/canvaskit';
+import { CanvasKit, CanvasKitInit as CKInit } from '../../build/canvaskit/canvaskit';
 import { ChildShader, ScrapBody, ScrapID } from '../json';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
+// It is assumed that canvaskit.js has been loaded and this symbol is available globally.
+declare const CanvasKitInit: typeof CKInit;
 
 let canvasKit: CanvasKit | null = null;
 
@@ -19,8 +19,11 @@ const getCanvasKit = async (): Promise<CanvasKit> => {
   if (canvasKit) {
     return canvasKit;
   }
-  canvasKit = await CanvasKitInit({ locateFile: (file: string) => `https://particles.skia.org/dist/${file}` });
-  return canvasKit!;
+  canvasKit = await CanvasKitInit({ locateFile: (file: string) => `/canvaskit_assets/${file}` });
+  if (!canvasKit) {
+    throw new Error('Could not load CanvasKit');
+  }
+  return canvasKit;
 };
 
 const createShaderNode = async (): Promise<ShaderNode> => {
@@ -192,8 +195,8 @@ describe('ShaderNode', async () => {
     });
     node.compile();
 
-    assert.deepEqual(node.compileErrorLineNumbers, [4]);
-    node.compileErrorMessage.startsWith('error: 4:');
+    assert.deepEqual(node.compileErrorLineNumbers, [5]);
+    node.compileErrorMessage.startsWith("error: 5: expected ';', but found '}'");
   });
 
   it('makes a copy of the ScrapBody', async () => {

@@ -15,10 +15,11 @@ import { HintableObject } from 'common-sk/modules/hintable';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import type {
   CanvasKit,
+  CanvasKitInit as CKInit,
   Surface,
   Canvas,
   Paint,
-} from '../../build/canvaskit/canvaskit.js';
+} from '../../build/canvaskit/canvaskit';
 
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/styles/buttons';
@@ -46,20 +47,26 @@ import {
 import { EditChildShaderSk } from '../edit-child-shader-sk/edit-child-shader-sk';
 import '../edit-child-shader-sk';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
+// It is assumed that canvaskit.js has been loaded and this symbol is available globally.
+declare const CanvasKitInit: typeof CKInit;
 
 // This element might be loaded from a different site, and that means we need
 // to be careful about how we construct the URL back to the canvas.wasm file.
 // Start by recording the script origin.
 const scriptOrigin = new URL((document!.currentScript as HTMLScriptElement).src).origin;
 const kitReady = CanvasKitInit({
-  locateFile: (file: any) => `${scriptOrigin}/dist/${file}`,
+  locateFile: (file: string) => `${scriptOrigin}/dist/${file}`,
 });
 
 const DEFAULT_SIZE = 512;
 
 type stateChangedCallback = ()=> void;
+
+// This works around a TS lint rule included in Bazel rules which requires promises be awaited
+// on. We do not necessarily want to await on errorMessage, especially when we tell the error
+// message to be up indefinitely.
+// eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
+function doNotWait(_: Promise<unknown>) {}
 
 // State represents data reflected to/from the URL.
 interface State {
@@ -189,7 +196,7 @@ export class ShadersAppSk extends ElementSk {
       <button
         class=deleteButton
         title="Delete child shader."
-        @click=${(e: Event) => ele.removeChildShader(e, parentNode, node, index)}>
+        @click=${(e: Event) => ele.removeChildShader(e, parentNode, index)}>
         <delete-icon-sk></delete-icon-sk>
       </button>
     `;
@@ -436,12 +443,12 @@ export class ShadersAppSk extends ElementSk {
               await this.rootShaderNode.setScrap(defaultScrapBody);
               this.run();
             } else {
-              this.loadShaderIfNecessary();
+              await this.loadShaderIfNecessary();
             }
           },
         );
       } catch (error) {
-        errorMessage(error, 0);
+        doNotWait(errorMessage(error, 0));
       }
     });
   }
@@ -470,7 +477,7 @@ export class ShadersAppSk extends ElementSk {
       this.setUniformValuesToControls();
       this.run();
     } catch (error) {
-      errorMessage(error, 0);
+      doNotWait(errorMessage(error, 0));
       // Return to the default view.
       this.state = Object.assign({}, defaultState);
       this.stateChanged!();
@@ -512,7 +519,7 @@ export class ShadersAppSk extends ElementSk {
     this.surface?.delete();
     this.surface = this.kit!.MakeCanvasSurface(this.canvasEle!);
     if (!this.surface) {
-      errorMessage('Could not make Surface.', 0);
+      doNotWait(errorMessage('Could not make Surface.', 0));
       return;
     }
     // We don't need to call .delete() on the canvas because
@@ -617,7 +624,7 @@ export class ShadersAppSk extends ElementSk {
 
   private async runClick() {
     this.run();
-    this.saveClick();
+    await this.saveClick();
   }
 
   private async saveClick() {
@@ -626,7 +633,7 @@ export class ShadersAppSk extends ElementSk {
       this.stateChanged!();
       this._render();
     } catch (error) {
-      errorMessage(`${error}`, 0);
+      doNotWait(errorMessage(`${error}`, 0));
     }
   }
 
@@ -660,13 +667,13 @@ export class ShadersAppSk extends ElementSk {
     try {
       await node.appendNewChildShader();
       this._render();
-      this.runClick();
+      await this.runClick();
     } catch (error) {
-      errorMessage(error);
+      doNotWait(errorMessage(error));
     }
   }
 
-  private async removeChildShader(e: Event, parentNode: ShaderNode, node: ShaderNode, index: number) {
+  private async removeChildShader(e: Event, parentNode: ShaderNode, index: number) {
     e.stopPropagation();
     // We could write a bunch of complicated logic to track which current shader
     // is selected and restore that correctly on delete, or we can just always
@@ -676,7 +683,7 @@ export class ShadersAppSk extends ElementSk {
 
     parentNode.removeChildShader(index);
     this._render();
-    this.runClick();
+    await this.runClick();
   }
 
   private async editChildShader(e: Event, parentNode: ShaderNode, index: number) {
@@ -685,9 +692,9 @@ export class ShadersAppSk extends ElementSk {
     if (!editedChildShader) {
       return;
     }
-    parentNode.setChildShaderUniformName(index, editedChildShader.UniformName);
+    await parentNode.setChildShaderUniformName(index, editedChildShader.UniformName);
     this._render();
-    this.runClick();
+    await this.runClick();
   }
 
   private childShaderClick(node: ShaderNode) {
@@ -700,7 +707,7 @@ export class ShadersAppSk extends ElementSk {
   /**
    * Load example by changing state rather than actually following the links.
    */
-  private fastLoad(e: Event): void {
+  private async fastLoad(e: Event): Promise<void> {
     const ele = (e.target as HTMLLinkElement);
     if (ele.tagName !== 'A') {
       return;
@@ -711,7 +718,7 @@ export class ShadersAppSk extends ElementSk {
     const id = new URL(ele.href).searchParams.get('id') || '';
     this.state.id = id;
     this.stateChanged!();
-    this.loadShaderIfNecessary();
+    await this.loadShaderIfNecessary();
   }
 
   private setCurrentImageURL(url: string): void {

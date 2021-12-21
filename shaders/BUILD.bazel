@@ -1,0 +1,42 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "shaders_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//shaders/go/shaders:shaders",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/shaders/dist": [
+            [
+                "//shaders/pages:production/main.html",
+                "0644",
+            ],
+            [
+                "//shaders/pages:production/main.js",
+                "0644",
+            ],
+            [
+                "//shaders/pages:production/main.css",
+                "0644",
+            ],
+            [
+                "//shaders/build:canvaskit_js",
+                "0644",
+            ],
+            [
+                "//shaders/build:canvaskit_wasm",
+                "0644",
+            ],
+            [
+                "//shaders/sources:images",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/shaders",
+    repository = "skia-public/shaders",
+)

@@ -1,0 +1,29 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "main",
+    assets_serving_path = "/dist",
+    copy_files = [
+        {
+            "src": "//shaders/build:canvaskit_js",
+            "dst": "canvaskit.js",
+        },
+        {
+            "src": "//shaders/build:canvaskit_wasm",
+            "dst": "canvaskit.wasm",
+        },
+        {
+            "src": "//shaders/sources:mandrill_png",
+            "dst": "mandrill.png",
+        },
+        {
+            "src": "//shaders/sources:soccer_png",
+            "dst": "soccer.png",
+        },
+    ],
+    html_file = "main.html",
+    nonce = "{% .Nonce %}",
+    scss_entry_point = "main.scss",
+    sk_element_deps = ["//shaders/modules/shaders-app-sk"],
+    ts_entry_point = "main.ts",
+)

@@ -35,6 +35,8 @@ var targetDirectories = map[string]bool{
 	"puppeteer-tests":      true,
 	"scrap/modules":        true,
 	"scrap/pages":          true,
+	"shaders/modules":      true,
+	"shaders/pages":        true,
 	"skcq/modules":         true,
 	"skcq/pages":           true,
 	"task_driver/modules":  true,

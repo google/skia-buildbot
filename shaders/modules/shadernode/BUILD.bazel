@@ -1,0 +1,32 @@
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
+
+karma_test(
+    name = "index_test",
+    src = "index_test.ts",
+    karma_config_file = "shaders.karma.conf.js",
+    static_karma_files = [
+        "//shaders/test_bin:canvaskit.js",
+        "//shaders/test_bin:canvaskit.wasm",
+    ],
+    deps = [
+        ":index_ts_lib",
+        "//shaders/build:wasm_libraries",  # keep
+        "//shaders/modules/json:index_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//fetch-mock",
+    ],
+)
+
+ts_library(
+    name = "index_ts_lib",
+    srcs = ["index.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk/modules/uniform:uniform_ts_lib",
+        "//shaders/build:wasm_libraries",  # keep
+        "//shaders/modules/json:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+    ],
+)

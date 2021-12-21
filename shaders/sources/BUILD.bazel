@@ -1,0 +1,38 @@
+genrule(
+    name = "get_mandrill",
+    srcs = [],
+    outs = ["mandrill.png"],
+    cmd = "wget --output-document=$@ https://storage.googleapis.com/skia-public-shader-images/mandrill.png",
+)
+
+genrule(
+    name = "get_soccer",
+    srcs = [],
+    outs = ["soccer.png"],
+    cmd = "wget --output-document=$@ https://storage.googleapis.com/skia-public-shader-images/soccer.png",
+)
+
+filegroup(
+    name = "mandrill_png",
+    srcs = [
+        "mandrill.png",
+    ],
+    visibility = ["//shaders:__subpackages__"],
+)
+
+filegroup(
+    name = "soccer_png",
+    srcs = [
+        "soccer.png",
+    ],
+    visibility = ["//shaders:__subpackages__"],
+)
+
+filegroup(
+    name = "images",
+    srcs = [
+        ":mandrill_png",
+        ":soccer_png",
+    ],
+    visibility = ["//shaders:__subpackages__"],
+)

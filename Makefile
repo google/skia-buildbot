@@ -107,7 +107,6 @@ test-frontend-ci: npm-ci
 	cd new_element && $(MAKE) test-frontend-ci
 	cd puppeteer-tests && $(MAKE) test-frontend-ci
 	cd push && $(MAKE) test-frontend-ci
-	cd shaders && $(MAKE) test-frontend-ci
 	cd status && $(MAKE) test-frontend-ci
 	cd task_scheduler && $(MAKE) test-frontend-ci
 

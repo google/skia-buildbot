@@ -12,7 +12,9 @@ import { Uniform } from '../../../infra-sk/modules/uniform/uniform';
 import {
   CanvasKit,
   Image,
-  MallocObj, RuntimeEffect, Shader,
+  MallocObj,
+  RuntimeEffect,
+  Shader,
 } from '../../build/canvaskit/canvaskit';
 import { ChildShader, ScrapBody, ScrapID } from '../json';
 
@@ -205,7 +207,7 @@ export class ShaderNode {
 
     /** Returns a copy of the current ScrapBody for the shader. */
     getScrap(): ScrapBody {
-      return JSON.parse(JSON.stringify(this.body));
+      return JSON.parse(JSON.stringify(this.body)) as ScrapBody;
     }
 
     get inputImageElement(): HTMLImageElement {
@@ -244,7 +246,8 @@ export class ShaderNode {
           this.inputImageShaderFromCanvasImageSource(imageElement);
         });
       } catch (error) {
-        errorMessage(`Failed to load image: ${this.currentImageURL}. Falling back to an empty image.`);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const _ = errorMessage(`Failed to load image: ${this.currentImageURL}. Falling back to an empty image.`);
         this.currentImageURL = '';
         this.setInputImageShaderToEmptyImage();
       }
@@ -380,13 +383,13 @@ export class ShaderNode {
 
     /** A scrap of shader code with the child shader declarations. */
     getChildShaderUniforms(): string {
-      return this.currentChildShaders.map((childNode) => `uniform shader ${childNode.UniformName};`).join('\n');
+      return this.currentChildShaders.map((childNode: ChildShader) => `uniform shader ${childNode.UniformName};`).join('\n');
     }
 
     /** Compiles the shader code for this node. */
     compile(): void {
       // Compile depth first.
-      this.children.forEach((childNode) => childNode.compile());
+      this.children.forEach((childNode: ShaderNode) => childNode.compile());
 
       const predefinedAndChildShaderUniformDeclarations = `${predefinedUniforms}\n${this.getChildShaderUniforms()}\n`;
       const errorLineFixup = predefinedAndChildShaderUniformDeclarations.split('\n').length - 1;
@@ -397,13 +400,13 @@ export class ShaderNode {
       this.runningChildShaders = this.currentChildShaders.slice();
       // eslint-disable-next-line no-unused-expressions
       this.effect?.delete();
-      this.effect = this.canvasKit!.RuntimeEffect.Make(`${predefinedAndChildShaderUniformDeclarations}${this.runningCode}`, (err) => {
+      this.effect = this.canvasKit!.RuntimeEffect.Make(`${predefinedAndChildShaderUniformDeclarations}${this.runningCode}`, (err: string) => {
       // Fix up the line numbers on the error messages, because they are off by
       // the number of lines we prefixed with the predefined uniforms and child
       // shaders. The regex captures the line number so we can replace it with
       // the correct value. While doing the fix up of the error message we also
       // annotate the corresponding lines in the CodeMirror editor.
-        err = err.replace(shaderCompilerErrorRegex, (_match, firstRegexCaptureValue): string => {
+        err = err.replace(shaderCompilerErrorRegex, (_match: unknown, firstRegexCaptureValue: string): string => {
           const lineNumber = (+firstRegexCaptureValue - errorLineFixup);
           this._compileErrorLineNumbers.push(lineNumber);
           return `error: ${lineNumber.toFixed(0)}`;
@@ -427,7 +430,7 @@ export class ShaderNode {
     /** Returns true if this node needs to have its code recompiled. */
     needsCompile(): boolean {
       return (this._shaderCode !== this.runningCode)
-       || this.children.some((childNode) => childNode.needsCompile())
+       || this.children.some((childNode: ShaderNode) => childNode.needsCompile())
        || childShaderArraysDiffer(this.currentChildShaders, this.runningChildShaders);
     }
 
@@ -437,7 +440,7 @@ export class ShaderNode {
        || this.userUniformValuesHaveBeenEdited()
        || this.imageURLHasChanged()
        || childShaderArraysDiffer(this.currentChildShaders, this.body?.SKSLMetaData?.Children || [])
-       || this.children.some((childNode) => childNode.needsSave());
+       || this.children.some((childNode: ShaderNode) => childNode.needsSave());
     }
 
     /** Returns the number of uniforms in the effect. */
@@ -585,7 +588,8 @@ export class ShaderNode {
           resolve(ele);
         } else {
           ele.addEventListener('load', () => resolve(ele));
-          ele.addEventListener('error', (e) => reject(e));
+          // https://developer.mozilla.org/en-US/docs/Web/API/Element/error_event
+          ele.addEventListener('error', (e: Event | UIEvent) => reject(e));
         }
       });
     }

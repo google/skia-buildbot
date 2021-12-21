@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { expect } from 'chai';
 import {
   loadCachedTestBed,
@@ -9,13 +8,11 @@ import {
 describe('shaders-app-sk', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(
-      path.join(__dirname, '..', '..', 'webpack.config.ts'),
-    );
+    testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/shaders-app-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 1024, height: 512 });
   });
 

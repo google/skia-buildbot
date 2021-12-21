@@ -1,15 +1,8 @@
-// These make our Bazel rules happy
 @use 'node_modules/codemirror/lib/codemirror.css';
 @use 'node_modules/codemirror/theme/ambiance.css';
 @use 'node_modules/codemirror/theme/base16-light.css';
 
 @import '~elements-sk/themes/themes';
-// These make the webpack rules happy
-@import '~codemirror/lib/codemirror.css';
-@import '~codemirror/theme/ambiance.css';
-@import '~codemirror/theme/base16-light.css';
-
-
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500');
 
 /*
