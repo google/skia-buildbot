@@ -28,7 +28,8 @@ cd k8s-config; git diff
 printf "\n\nThen apply the modified yaml file after checking that you are working in skia-public:\n\n"
 printf "  kubectl apply -f ./k8s-config/skia-public/skia-ingress.yaml\n\n"
 printf "And commit and push the updated config file.\n\n"
-printf "  cd k8s-config; git add --all; git commit -m 'Update skia.org certs on $DATE'; git push\n\n"
+printf "  cd k8s-config; git add --all; git commit -m 'Update skia.org certs on $DATE'; \n\n"
+printf "  git cl upload --skip-title --reviewers=\"rubber-stamper@appspot.gserviceaccount.com\" --enable-auto-submit --send-mail --force\n\n"
 
 printf "Also remove unused certs: \n\n"
 gcloud compute ssl-certificates list --project=skia-public --format=json | jq '.[].name' | grep --invert-match skia-org-$DATE | xargs -L1 echo "  " gcloud compute ssl-certificates delete --project=skia-public
