@@ -93,6 +93,6 @@ func CTWindowsInstance(num int, setupScriptPath, startupScriptPath, chromebotScr
 }
 
 func getCTWindowsInstance(name, machineType, diskType, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	vm := skia_instance_types.Swarming20180406(name, machineType, gce.SERVICE_ACCOUNT_CT_SWARMING, setupScriptPath, WIN_SOURCE_IMAGE)
+	vm := skia_instance_types.Swarming20180406(name, machineType, gce.SERVICE_ACCOUNT_CT_SWARMING, setupScriptPath, "", WIN_SOURCE_IMAGE)
 	return skia_instance_types.AddWinConfigs(vm, startupScriptPath, chromebotScript, diskType)
 }

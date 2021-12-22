@@ -1,6 +1,15 @@
 #!/bin/bash
 
-set -e
+set -e -x
+
+# Fix some problems with GPG keys.
+sudo apt update 2>&1 1>/dev/null \
+  | sed -ne 's/.*NO_PUBKEY //p' \
+  | while read key; do if ! [[ ${keys[*]} =~ "$key" ]]; then sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys "$key"; keys+=("$key"); fi; done
+
+# A new Debian version was released since the base image was created, so we need
+# to apt-get update with --allow-releaseinfo-change.
+sudo apt-get update --allow-releaseinfo-change
 
 # Install packages.
 
@@ -43,8 +52,8 @@ sudo ln -sfn /usr/lib/i386-linux-gnu/libGL.so.1 /usr/lib/i386-linux-gnu/libGL.so
 sudo ln -sfn /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib/i386-linux-gnu/libX11.so
 
 # NodeJS / NPM.
-# --location basically means follow redirects.
-curl --silent --location https://deb.nodesource.com/setup_6.x | sudo bash -
+curl --header "Metadata-Flavor: Google" -o /tmp/node-setup.sh http://metadata/computeMetadata/v1/instance/attributes/node-setup-script
+sudo bash /tmp/node-setup.sh
 sudo apt-get --assume-yes install nodejs npm
 sudo npm install --global npm@3.10.9
 

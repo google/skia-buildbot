@@ -95,11 +95,11 @@ func main() {
 	_, filename, _, _ := runtime.Caller(0)
 	checkoutRoot := path.Dir(path.Dir(path.Dir(path.Dir(filename))))
 	ctx := context.Background()
-	var setupScript, startupScript, chromebotScript string
+	var setupScript, startupScript, chromebotScript, nodeSetup string
 	if util.In(*instanceType, WIN_INSTANCE_TYPES) {
 		setupScript, startupScript, chromebotScript, err = instance_types.GetWindowsScripts(ctx, checkoutRoot, wdAbs)
 	} else {
-		setupScript, err = instance_types.GetLinuxScripts(ctx, checkoutRoot, wdAbs)
+		setupScript, nodeSetup, err = instance_types.GetLinuxScripts(ctx, checkoutRoot, wdAbs)
 	}
 	if err != nil {
 		sklog.Fatal(err)
@@ -110,24 +110,24 @@ func main() {
 	var getInstance func(int) *gce.Instance
 	switch *instanceType {
 	case instance_types.INSTANCE_TYPE_CT:
-		getInstance = func(num int) *gce.Instance { return instance_types.SkiaCT(num, setupScript) }
+		getInstance = func(num int) *gce.Instance { return instance_types.SkiaCT(num, setupScript, nodeSetup) }
 	case instance_types.INSTANCE_TYPE_LINUX_MICRO:
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMicro(num, setupScript) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMicro(num, setupScript, nodeSetup) }
 	case instance_types.INSTANCE_TYPE_LINUX_SMALL:
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSmall(num, setupScript) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSmall(num, setupScript, nodeSetup) }
 	case instance_types.INSTANCE_TYPE_LINUX_MEDIUM:
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMedium(num, setupScript) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMedium(num, setupScript, nodeSetup) }
 	case instance_types.INSTANCE_TYPE_LINUX_LARGE:
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxLarge(num, setupScript) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxLarge(num, setupScript, nodeSetup) }
 	case instance_types.INSTANCE_TYPE_LINUX_GPU:
 		zone = gce.ZONE_GPU
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxGpu(num, setupScript) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxGpu(num, setupScript, nodeSetup) }
 	case instance_types.INSTANCE_TYPE_LINUX_AMD:
 		zone = gce.ZONE_AMD
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxAmd(num, setupScript) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxAmd(num, setupScript, nodeSetup) }
 	case instance_types.INSTANCE_TYPE_LINUX_SKYLAKE:
 		zone = gce.ZONE_SKYLAKE
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSkylake(num, setupScript) }
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSkylake(num, setupScript, nodeSetup) }
 	case instance_types.INSTANCE_TYPE_WIN_MEDIUM:
 		getInstance = func(num int) *gce.Instance {
 			return instance_types.WinMedium(num, setupScript, startupScript, chromebotScript)
