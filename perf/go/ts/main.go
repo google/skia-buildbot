@@ -97,6 +97,7 @@ func main() {
 		{types.AllClusterAlgos, "ClusterAlgo"},
 		{types.AllStepDetections, "StepDetection"},
 		{results.AllRequestKind, "TryBotRequestKind"},
+		{frame.AllResponseDisplayModes, "FrameResponseDisplayMode"},
 	})
 
 	generator.AddUnionToNamespace(progress.AllStatus, "progress")

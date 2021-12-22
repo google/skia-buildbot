@@ -11,7 +11,7 @@ describe('pivot-query-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
-    await testBed.page.setViewport({ width: 500, height: 800 });
+    await testBed.page.setViewport({ width: 800, height: 600 });
   });
 
   it('should render the demo page (smoke test)', async () => {

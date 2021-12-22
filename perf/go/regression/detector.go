@@ -317,7 +317,7 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 		}
 
 		df.TraceSet = types.TraceSet{}
-		frame, err := frame.ResponseFromDataFrame(ctx, df, p.perfGit, false, p.request.Progress)
+		frame, err := frame.ResponseFromDataFrame(ctx, nil, df, p.perfGit, false, p.request.Progress)
 		if err != nil {
 			return p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
 		}

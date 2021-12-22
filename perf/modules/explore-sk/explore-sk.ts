@@ -31,6 +31,8 @@ import '../commit-detail-panel-sk';
 import '../domain-picker-sk';
 import '../json-source-sk';
 import '../ingest-file-links-sk';
+import '../pivot-query-sk';
+import '../pivot-table-sk';
 import '../plot-simple-sk';
 import '../query-count-sk';
 import '../window/window';
@@ -44,6 +46,8 @@ import {
   ShiftRequest,
   ShiftResponse,
   progress,
+  pivot,
+  FrameResponseDisplayMode,
 } from '../json';
 import {
   PlotSimpleSk,
@@ -64,12 +68,18 @@ import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 import { MISSING_DATA_SENTINEL } from '../plot-simple-sk/plot-simple-sk';
 import { messageByName, messagesToErrorString, startRequest } from '../progress/progress';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
+import { validatePivotRequest } from '../pivotutil';
+import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
+import { PivotTableSk } from '../pivot-table-sk/pivot-table-sk';
 
 /** The type of trace we are adding to a plot. */
-type addPlotType = 'query' | 'formula';
+type addPlotType = 'query' | 'formula' | 'pivot';
 
 // The trace id of the zero line, a trace of all zeros.
 const ZERO_NAME = 'special_zero';
+
+// A list of all special trace names.
+const SPECIAL_TRACE_NAMES = [ZERO_NAME];
 
 // How often to refresh if the auto-refresh checkmark is checked.
 const REFRESH_TIMEOUT = 30 * 1000; // milliseconds
@@ -96,6 +106,15 @@ const MIN_ZOOM_RANGE = 0.1;
 
 type RequestFrameCallback = (frameResponse: FrameResponse)=> void;
 
+// Even though pivot.Request sent to the server can be null, we don't want to
+// put use a null in state, as that won't let stateReflector figure out the
+// right types inside pivot.Request, so we default to an invalid value here.
+const defaultPivotRequest = (): pivot.Request => ({
+  group_by: [],
+  operation: 'avg',
+  summary: [],
+});
+
 // State is reflected to the URL via stateReflector.
 class State {
   begin: number = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
@@ -119,6 +138,8 @@ class State {
   numCommits: number = 50;
 
   requestType: RequestType = 1; // TODO(jcgregorio) Use constants in domain-picker-sk.
+
+  pivotRequest: pivot.Request = defaultPivotRequest();
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -224,6 +245,9 @@ export class ExploreSk extends ElementSk {
   // The state that does into the URL.
   private state = new State();
 
+  // Controls the mode of the display. See FrameResponseDisplayMode.
+  private displayMode: FrameResponseDisplayMode = 'display_query_only';
+
   // Are we waiting on data from the server.
   private _spinning: boolean = false;
 
@@ -275,6 +299,12 @@ export class ExploreSk extends ElementSk {
 
   private csvDownload: HTMLAnchorElement | null = null;
 
+  private pivotControl: PivotQuerySk | null = null;
+
+  private pivotTable: PivotTableSk | null = null;
+
+  private pivotDisplayButton: HTMLButtonElement | null = null;
+
   private queryDialog: HTMLDialogElement | null = null;
 
   private helpDialog: HTMLDialogElement | null = null;
@@ -284,172 +314,200 @@ export class ExploreSk extends ElementSk {
   }
 
   private static template = (ele: ExploreSk) => html`
-  <div id=buttons>
-    <button @click=${ele.openQuery}>Query</button>
-    <div id=traceButtons ?hide_if_no_data=${!ele.hasData()}>
-      <button
-        @click=${() => ele.removeAll(false)}
-        title='Remove all the traces.'>
-        Remove All
-      </button>
+  <div id=explore class=${ele.displayMode}>
+    <div id=buttons>
+      <button @click=${ele.openQuery}>Query</button>
+      <div id=traceButtons class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
+        <button
+          @click=${() => ele.removeAll(false)}
+          title='Remove all the traces.'>
+          Remove All
+        </button>
 
-      <button
-        @click=${ele.removeHighlighted}
-        ?hidden=${!(ele.plot && ele.plot!.highlight.length)}
-        title='Remove all the highlighted traces.'>
-        Remove Highlighted
-      </button>
+        <button
+          @click=${ele.removeHighlighted}
+          ?hidden=${!(ele.plot && ele.plot!.highlight.length)}
+          title='Remove all the highlighted traces.'>
+          Remove Highlighted
+        </button>
 
-      <button
-        @click=${ele.highlightedOnly}
-        ?hidden=${!(ele.plot && ele.plot!.highlight.length)}
-        title='Remove all but the highlighted traces.'>
-        Highlighted Only
-      </button>
+        <button
+          @click=${ele.highlightedOnly}
+          ?hidden=${!(ele.plot && ele.plot!.highlight.length)}
+          title='Remove all but the highlighted traces.'>
+          Highlighted Only
+        </button>
 
-      <span
-        title='Number of commits skipped between each point displayed.'
-        ?hidden=${ele.isZero(ele._dataframe.skip)}
-        id=skip>
-          ${ele._dataframe.skip}
-      </span>
-      <checkbox-sk
-        name=zero
-        @change=${ele.zeroChangeHandler}
-        ?checked=${ele.state.showZero}
-        label='Zero'
-        title='Toggle the presence of the zero line.'>
-      </checkbox-sk>
-      <checkbox-sk
-        name=dots
-        @change=${ele.toggleDotsHandler}
-        ?checked=${ele.state.dots}
-        label='Dots'
-        title='Toggle the presence of dots at each commit.'>
-      </checkbox-sk>
-      <checkbox-sk
-        name=auto
-        @change=${ele.autoRefreshHandler}
-        ?checked=${ele.state.autoRefresh}
-        label='Auto-refresh'
-        title='Auto-refresh the data displayed in the graph.'>
-      </checkbox-sk>
-      <div
-        id=calcButtons
-        ?hide_if_no_data=${!ele.hasData()}>
-        <button
-          @click=${() => ele.applyFuncToTraces('norm')}
-          title='Apply norm() to all the traces.'>
-          Normalize
-        </button>
-        <button
-          @click=${() => ele.applyFuncToTraces('scale_by_avg')}
-          title='Apply scale_by_avg() to all the traces.'>
-          Scale By Avg
-        </button>
-        <button
-          @click=${() => { ele.applyFuncToTraces('iqrr'); }}
-          title='Apply iqrr() to all the traces.'>
-          Remove outliers
-        </button>
-        <button
-          @click=${ele.csv}
-          title='Download all displayed data as a CSV file.'>
-          CSV
-        </button>
-        <a href='' target=_blank download='traces.csv' id=csv_download></a>
+        <span
+          title='Number of commits skipped between each point displayed.'
+          ?hidden=${ele.isZero(ele._dataframe.skip)}
+          id=skip>
+            ${ele._dataframe.skip}
+        </span>
+        <checkbox-sk
+          name=zero
+          @change=${ele.zeroChangeHandler}
+          ?checked=${ele.state.showZero}
+          label='Zero'
+          title='Toggle the presence of the zero line.'>
+        </checkbox-sk>
+        <checkbox-sk
+          name=dots
+          @change=${ele.toggleDotsHandler}
+          ?checked=${ele.state.dots}
+          label='Dots'
+          title='Toggle the presence of dots at each commit.'>
+        </checkbox-sk>
+        <checkbox-sk
+          name=auto
+          @change=${ele.autoRefreshHandler}
+          ?checked=${ele.state.autoRefresh}
+          label='Auto-refresh'
+          title='Auto-refresh the data displayed in the graph.'>
+        </checkbox-sk>
+        <div
+          id=calcButtons
+          class="hide_on_query_only">
+          <button
+            @click=${() => ele.applyFuncToTraces('norm')}
+            title='Apply norm() to all the traces.'>
+            Normalize
+          </button>
+          <button
+            @click=${() => ele.applyFuncToTraces('scale_by_avg')}
+            title='Apply scale_by_avg() to all the traces.'>
+            Scale By Avg
+          </button>
+          <button
+            @click=${() => { ele.applyFuncToTraces('iqrr'); }}
+            title='Apply iqrr() to all the traces.'>
+            Remove outliers
+          </button>
+          <button
+            @click=${ele.csv}
+            title='Download all displayed data as a CSV file.'>
+            CSV
+          </button>
+          <a href='' target=_blank download='traces.csv' id=csv_download></a>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id=spin-overlay>
-    <plot-simple-sk
-      summary
-      width=1200
-      height=400
-      id=plot
-      ?spinning=${ele.spinning}
-      @trace_selected=${ele.traceSelected}
-      @zoom=${ele.plotZoom}
-      @trace_focused=${ele.plotTraceFocused}
-      ?hide_if_no_data=${!ele.hasData()}
-      >
-    </plot-simple-sk>
-    <div id=spin-container ?spinning=${ele.spinning}>
-      <spinner-sk id=spinner ?active=${ele.spinning}></spinner-sk>
-      <span id=percent></span>
+    <div id=spin-overlay>
+      <plot-simple-sk
+        summary
+        width=1200
+        height=400
+        id=plot
+        @trace_selected=${ele.traceSelected}
+        @zoom=${ele.plotZoom}
+        @trace_focused=${ele.plotTraceFocused}
+        class="hide_on_pivot_table hide_on_query_only hide_on_spinner"
+        >
+      </plot-simple-sk>
+      <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
+        <spinner-sk id=spinner active></spinner-sk>
+        <span id=percent></span>
+      </div>
     </div>
-  </div>
 
-  <dialog id='query-dialog'>
-    <h2>Query</h2>
-    <div class=query-parts>
-      <query-sk
-        id=query
-        @query-change=${ele.queryChangeHandler}
-        @query-change-delayed=${ele.queryChangeDelayedHandler}
-        > </query-sk>
-        <div id=selections>
-          <h3>Selections</h3>
-          <paramset-sk id=summary></paramset-sk>
-          <div class=query-counts>
-            Matches: <query-count-sk url='/_/count/' @paramset-changed=${
-              ele.paramsetChanged
-            }>
-            </query-count-sk>
+    <pivot-table-sk
+      class="hide_on_plot hide_on_pivot_plot hide_on_query_only hide_on_spinner">
+    </pivot-table-sk>
+
+    <dialog id='query-dialog'>
+      <h2>Query</h2>
+      <div class=query-parts>
+        <query-sk
+          id=query
+          @query-change=${ele.queryChangeHandler}
+          @query-change-delayed=${ele.queryChangeDelayedHandler}
+          > </query-sk>
+          <div id=selections>
+            <h3>Selections</h3>
+            <paramset-sk id=summary></paramset-sk>
+            <div class=query-counts>
+              Matches: <query-count-sk url='/_/count/' @paramset-changed=${
+                ele.paramsetChanged
+              }>
+              </query-count-sk>
+            </div>
+          </div>
+      </div>
+
+      <details>
+        <summary>Time Range</summary>
+        <domain-picker-sk id=range>
+        </domain-picker-sk>
+      </details>
+
+      <tabs-sk>
+        <button>Plot</button>
+        <button>Calculations</button>
+        <button>Pivot</button>
+      </tabs-sk>
+      <tabs-panel-sk>
+        <div>
+          <button @click=${() => ele.add(true, 'query')} class=action>Plot</button>
+          <button @click=${() => ele.add(false, 'query')}>Add to Plot</button>
+        </div>
+        <div>
+          <div class=formulas>
+            <label>
+              Enter a formula:
+              <textarea id=formula rows=3 cols=80></textarea>
+            </label>
+            <div>
+              <button @click=${() => ele.add(true, 'formula')} class=action>Plot</button>
+              <button @click=${() => ele.add(false, 'formula')}>Add to Plot</button>
+              <a href=/help/ target=_blank>
+                <help-icon-sk></help-icon-sk>
+              </a>
+            </div>
           </div>
         </div>
-    </div>
-
-    <details>
-      <summary>Time Range</summary>
-      <domain-picker-sk id=range>
-      </domain-picker-sk>
-    </details>
-
-    <tabs-sk>
-      <button>Plot</button>
-      <button>Calculations</button>
-    </tabs-sk>
-    <tabs-panel-sk>
-      <div>
-        <button @click=${() => ele.add(true, 'query')} class=action>Plot</button>
-        <button @click=${() => ele.add(false, 'query')}>Add to Plot</button>
-      </div>
-      <div>
-        <div class=formulas>
-          <textarea id=formula rows=3 cols=80></textarea>
-          <button @click=${() => ele.add(true, 'formula')} class=action>Plot</button>
-          <button @click=${() => ele.add(false, 'formula')}>Add to Plot</button>
-          <a href=/help/ target=_blank>
-            <help-icon-sk></help-icon-sk>
-          </a>
+        <div>
+          <pivot-query-sk
+            @pivot-changed=${ele.pivotChanged}
+            .pivotRequest=${ele.state.pivotRequest}
+          >
+          </pivot-query-sk>
+          <div>
+            <button
+              id=pivot-display-button
+              @click=${() => ele.add(true, 'pivot')}
+              class=action
+              .disabled=${validatePivotRequest(ele.state.pivotRequest) !== ''}
+            >Display</button>
+          </div>
         </div>
+      </tabs-panel-sk>
+      <div class=footer>
+        <button @click=${ele.closeQueryDialog}>Close</button>
       </div>
-    </tabs-panel-sk>
-  </dialog>
+    </dialog>
 
-  <dialog id=help>
-    <h2>Perf Help</h2>
-    <table>
-      <tr><td colspan=2><h3>Mouse Controls</h3></td></tr>
-      <tr><td class=mono>Hover</td><td>Snap crosshair to closest point.</td></tr>
-      <tr><td class=mono>Shift + Hover</td><td>Highlight closest trace.</td></tr>
-      <tr><td class=mono>Click</td><td>Select closest point.</td></tr>
-      <tr><td class=mono>Drag</td><td>Zoom into rectangular region.</td></tr>
-      <tr><td class=mono>Wheel</td><td>Remove rectangular zoom.</td></tr>
-      <tr><td colspan=2><h3>Keyboard Controls</h3></td></tr>
-      <tr><td class=mono>'w'/'s'</td><td>Zoom in/out.<sup>1</sup></td></tr>
-      <tr><td class=mono>'a'/'d'</td><td>Pan left/right.<sup>1</sup></td></tr>
-      <tr><td class=mono>'?'</td><td>Show help.</td></tr>
-      <tr><td class=mono>Esc</td><td>Stop showing help.</td></tr>
-    </table>
-    <div class=footnote>
-      <sup>1</sup> And Dvorak equivalents.
-    </div>
-  </dialog>
+    <dialog id=help>
+      <h2>Perf Help</h2>
+      <table>
+        <tr><td colspan=2><h3>Mouse Controls</h3></td></tr>
+        <tr><td class=mono>Hover</td><td>Snap crosshair to closest point.</td></tr>
+        <tr><td class=mono>Shift + Hover</td><td>Highlight closest trace.</td></tr>
+        <tr><td class=mono>Click</td><td>Select closest point.</td></tr>
+        <tr><td class=mono>Drag</td><td>Zoom into rectangular region.</td></tr>
+        <tr><td class=mono>Wheel</td><td>Remove rectangular zoom.</td></tr>
+        <tr><td colspan=2><h3>Keyboard Controls</h3></td></tr>
+        <tr><td class=mono>'w'/'s'</td><td>Zoom in/out.<sup>1</sup></td></tr>
+        <tr><td class=mono>'a'/'d'</td><td>Pan left/right.<sup>1</sup></td></tr>
+        <tr><td class=mono>'?'</td><td>Show help.</td></tr>
+        <tr><td class=mono>Esc</td><td>Stop showing help.</td></tr>
+      </table>
+      <div class=footnote>
+        <sup>1</sup> And Dvorak equivalents.
+      </div>
+    </dialog>
 
-    <div id=tabs ?hide_if_no_data=${!ele.hasData()}>
+    <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table">
       <tabs-sk id=detailTab>
         <button>Params</button>
         <button id=commitsTab disabled>Details</button>
@@ -474,12 +532,13 @@ export class ExploreSk extends ElementSk {
           </paramset-sk>
           <div>
             <commit-detail-panel-sk id=commits selectable></commit-detail-panel-sk>
-            <ingest-file-links-sk id=ingest-file-links></ingest-file-links-sk>
-            <json-source-sk id=jsonsource></json-source-sk>
+            <ingest-file-links-sk class="hide_on_pivot_plot" id=ingest-file-links></ingest-file-links-sk>
+            <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
           </div>
         </div>
       </tabs-panel-sk>
     </div>
+  </div>
   `;
 
   connectedCallback(): void {
@@ -499,6 +558,9 @@ export class ExploreSk extends ElementSk {
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
     this.plot = this.querySelector('#plot');
+    this.pivotControl = this.querySelector('pivot-query-sk');
+    this.pivotDisplayButton = this.querySelector('#pivot-display-button');
+    this.pivotTable = this.querySelector('pivot-table-sk');
     this.query = this.querySelector('#query');
     this.queryCount = this.querySelector('query-count-sk');
     this.range = this.querySelector('#range');
@@ -532,6 +594,7 @@ export class ExploreSk extends ElementSk {
 
         this.query!.key_order = window.sk.perf.key_order || [];
         this.query!.paramset = json.dataframe.paramset;
+        this.pivotControl!.paramset = json.dataframe.paramset;
 
         // Remove the paramset so it doesn't get displayed in the Params tab.
         json.dataframe.paramset = {};
@@ -548,6 +611,10 @@ export class ExploreSk extends ElementSk {
   // with the real function once stateReflector has been setup.
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private _stateHasChanged = () => {};
+
+  private closeQueryDialog(): void {
+    this.queryDialog!.close();
+  }
 
   private keyDown(e: KeyboardEvent) {
     // Ignore IME composition events.
@@ -680,6 +747,12 @@ export class ExploreSk extends ElementSk {
     }
   }
 
+  private pivotChanged(e: CustomEvent<PivotQueryChangedEventDetail>): void {
+      // Only enable the Display button if we have a valid pivot.Request and a
+      // query.
+      this.pivotDisplayButton!.disabled = (validatePivotRequest(e.detail) !== '' || this.query!.current_query.trim() === '');
+  }
+
   private zoomInKey() {
     const cz = this.getCurrentZoom();
     const zoom: [number, number] = [
@@ -718,11 +791,13 @@ export class ExploreSk extends ElementSk {
 
   /**  Returns true if we have any traces to be displayed. */
   private hasData() {
-    return Object.keys(this._dataframe.traceset).length > 0 || this._spinning;
+    // We have data if at least one traceID isn't a special name.
+    return Object.keys(this._dataframe.traceset).some((traceID) => !SPECIAL_TRACE_NAMES.includes(traceID));
   }
 
   /** Open the query dialog box. */
   private openQuery() {
+    this._render();
     this.queryDialog!.showModal();
   }
 
@@ -801,9 +876,11 @@ export class ExploreSk extends ElementSk {
         this.detailTab!.selected = COMMIT_TAB_INDEX;
         const cid = commits[0]!;
         const traceid = e.detail.name;
-        this.jsonsource!.cid = cid;
-        this.jsonsource!.traceid = traceid;
-        this.ingestFileLinks!.load(cid, traceid);
+        if (this.displayMode === 'display_plot') {
+          this.jsonsource!.cid = cid;
+          this.jsonsource!.traceid = traceid;
+          this.ingestFileLinks!.load(cid, traceid);
+        }
       })
       .catch(errorMessage);
   }
@@ -888,7 +965,7 @@ export class ExploreSk extends ElementSk {
       queries: this.state.queries,
       keys: this.state.keys,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      pivot: null,
+      pivot: (validatePivotRequest(this.state.pivotRequest) === '') ? this.state.pivotRequest : null,
     };
   }
 
@@ -986,7 +1063,17 @@ export class ExploreSk extends ElementSk {
    */
   private addTraces(json: FrameResponse, tab: boolean) {
     const dataframe = json.dataframe!;
-    if (dataframe.traceset === null) {
+    if (dataframe.traceset === null || Object.keys(dataframe.traceset).length === 0) {
+      this.displayMode = 'display_query_only';
+      this._render();
+      return;
+    }
+
+    this.displayMode = json.display_mode;
+    this._render();
+
+    if (this.displayMode === 'display_pivot_table') {
+      this.pivotTable!.set(dataframe, this.pivotControl!.pivotRequest!);
       return;
     }
 
@@ -1063,6 +1150,17 @@ export class ExploreSk extends ElementSk {
         errorMessage('The formula must not be empty.');
         return;
       }
+    } else if (plotType === 'pivot') {
+      if (!q || q.trim() === '') {
+        errorMessage('The query must not be empty.');
+        return;
+      }
+
+      const pivotMsg = validatePivotRequest(this.pivotControl!.pivotRequest!);
+      if (pivotMsg !== '') {
+        errorMessage(pivotMsg);
+        return;
+      }
     } else {
       errorMessage('Unknown plotType');
       return;
@@ -1071,10 +1169,11 @@ export class ExploreSk extends ElementSk {
     this.state.end = this.range!.state.end;
     this.state.numCommits = this.range!.state.num_commits;
     this.state.requestType = this.range!.state.request_type;
-    if (replace) {
+    if (replace || plotType === 'pivot') {
       this.removeAll(true);
     }
 
+    this.state.pivotRequest = defaultPivotRequest();
     if (plotType === 'query') {
       if (this.state.queries.indexOf(q) === -1) {
         this.state.queries.push(q);
@@ -1083,6 +1182,11 @@ export class ExploreSk extends ElementSk {
       if (this.state.formulas.indexOf(f) === -1) {
         this.state.formulas.push(f);
       }
+    } else if (plotType === 'pivot') {
+      if (this.state.queries.indexOf(q) === -1) {
+        this.state.queries.push(q);
+      }
+      this.state.pivotRequest = this.pivotControl!.pivotRequest!;
     }
 
     this._stateHasChanged();
@@ -1108,6 +1212,7 @@ export class ExploreSk extends ElementSk {
     this.paramset!.paramsets = [];
     this.traceID!.textContent = '';
     this.detailTab!.selected = PARAMS_TAB_INDEX;
+    this.displayMode = 'display_query_only';
     this._render();
     if (!skipHistory) {
       this._stateHasChanged();
@@ -1217,6 +1322,10 @@ export class ExploreSk extends ElementSk {
     });
     this.plot!.deleteLines(ids);
     this.plot!.highlight = [];
+    if (!this.hasData()) {
+      this.displayMode = 'display_query_only';
+      this._render();
+    }
     this.reShortCut(toShortcut);
   }
 
@@ -1247,6 +1356,10 @@ export class ExploreSk extends ElementSk {
 
     this.plot!.deleteLines(toremove);
     this.plot!.highlight = [];
+    if (!this.hasData()) {
+      this.displayMode = 'display_query_only';
+      this._render();
+    }
     this.reShortCut(toShortcut);
   }
 
@@ -1265,6 +1378,9 @@ export class ExploreSk extends ElementSk {
    */
   set spinning(b: boolean) {
     this._spinning = b;
+    if (b) {
+      this.displayMode = 'display_spinner';
+    }
     this._render();
   }
 

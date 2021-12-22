@@ -214,6 +214,8 @@ func Pivot(ctx context.Context, req Request, df *dataframe.DataFrame) (*datafram
 
 	// Return now if there aren't any Summary operations.
 	if len(req.Summary) == 0 {
+		// Use the original Header from the DataFrame.
+		ret.Header = df.Header
 		return ret, nil
 	}
 

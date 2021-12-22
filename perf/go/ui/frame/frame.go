@@ -44,6 +44,35 @@ const (
 	maxTracesInResponse = 350
 )
 
+// ResponseDisplayMode are the different modes of the explore-sk page.
+type ResponseDisplayMode string
+
+const (
+	// DisplayQueryOnly means just display the Query button.
+	DisplayQueryOnly ResponseDisplayMode = "display_query_only"
+
+	// DisplayPlot display the results of a query as a plot.
+	DisplayPlot ResponseDisplayMode = "display_plot"
+
+	// DisplayPivotTable display the results of a query as a pivot table.
+	DisplayPivotTable ResponseDisplayMode = "display_pivot_table"
+
+	// DisplayPivotPlot display the results of a query as a plot of pivoted traces.
+	DisplayPivotPlot ResponseDisplayMode = "display_pivot_plot"
+
+	// DisplaySpinner display the spinner indicating we are waiting for results.
+	DisplaySpinner ResponseDisplayMode = "display_spinner"
+)
+
+// AllResponseDisplayModes lists all ResponseDisplayMode for use by go2ts.
+var AllResponseDisplayModes = []ResponseDisplayMode{
+	DisplayQueryOnly,
+	DisplayPlot,
+	DisplayPivotTable,
+	DisplayPivotPlot,
+	DisplaySpinner,
+}
+
 // FrameRequest is used to deserialize JSON frame requests.
 type FrameRequest struct {
 	Begin       int         `json:"begin"`       // Beginning of time range in Unix timestamp seconds.
@@ -69,9 +98,10 @@ func NewFrameRequest() *FrameRequest {
 
 // FrameResponse is serialized to JSON as the response to frame requests.
 type FrameResponse struct {
-	DataFrame *dataframe.DataFrame `json:"dataframe"`
-	Skps      []int                `json:"skps"`
-	Msg       string               `json:"msg"`
+	DataFrame   *dataframe.DataFrame `json:"dataframe"`
+	Skps        []int                `json:"skps"`
+	Msg         string               `json:"msg"`
+	DisplayMode ResponseDisplayMode  `json:"display_mode"`
 }
 
 // frameRequestProcess keeps track of a running Go routine that's
@@ -114,7 +144,9 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit *perfgi
 		return skerr.Wrap(err)
 	}
 
-	resp, err := ResponseFromDataFrame(ctx, df, ret.perfGit, true, ret.request.Progress)
+	// Do not truncate pivot requests.
+	truncate := req.Pivot == nil || req.Pivot.Valid() != nil
+	resp, err := ResponseFromDataFrame(ctx, req.Pivot, df, ret.perfGit, truncate, ret.request.Progress)
 	if err != nil {
 		return ret.reportError(err, "Failed to get skps.")
 	}
@@ -201,7 +233,10 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 //
 // TODO(jcgregorio) Rename this functionality to something more generic.
 func getSkps(ctx context.Context, headers []*dataframe.ColumnHeader, perfGit *perfgit.Git) ([]int, error) {
-	if config.Config.GitRepoConfig.FileChangeMarker == "" {
+	if perfGit == nil {
+		return []int{}, nil
+	}
+	if config.Config == nil || config.Config.GitRepoConfig.FileChangeMarker == "" {
 		return []int{}, nil
 	}
 	begin := types.CommitNumber(headers[0].Offset)
@@ -224,7 +259,7 @@ func getSkps(ctx context.Context, headers []*dataframe.ColumnHeader, perfGit *pe
 // If truncate is true then the number of traces returned is limited.
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
-func ResponseFromDataFrame(ctx context.Context, df *dataframe.DataFrame, perfGit *perfgit.Git, truncate bool, progress progress.Progress) (*FrameResponse, error) {
+func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df *dataframe.DataFrame, perfGit *perfgit.Git, truncate bool, progress progress.Progress) (*FrameResponse, error) {
 	if len(df.Header) == 0 {
 		return nil, fmt.Errorf("No commits matched that time range.")
 	}
@@ -251,9 +286,19 @@ func ResponseFromDataFrame(ctx context.Context, df *dataframe.DataFrame, perfGit
 		df.TraceSet = newTraceSet
 	}
 
+	// Determine the DisplayMode to return.
+	displayMode := DisplayPlot
+	if pivotRequest != nil && len(pivotRequest.GroupBy) > 0 {
+		displayMode = DisplayPivotPlot
+		if len(pivotRequest.Summary) > 0 {
+			displayMode = DisplayPivotTable
+		}
+	}
+
 	return &FrameResponse{
-		DataFrame: df,
-		Skps:      skps,
+		DataFrame:   df,
+		Skps:        skps,
+		DisplayMode: displayMode,
 	}, nil
 }
 

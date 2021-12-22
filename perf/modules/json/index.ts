@@ -90,6 +90,7 @@ export interface FrameResponse {
 	dataframe: DataFrame | null;
 	skps: number[] | null;
 	msg: string;
+	display_mode: FrameResponseDisplayMode;
 }
 
 export interface TriageStatus {
@@ -329,6 +330,8 @@ export type Direction = "UP" | "DOWN" | "BOTH";
 export type StepFitStatus = "Low" | "High" | "Uninteresting";
 
 export type CommitNumber = number;
+
+export type FrameResponseDisplayMode = "display_query_only" | "display_plot" | "display_pivot_table" | "display_pivot_plot" | "display_spinner";
 
 export type Status = "" | "positive" | "negative" | "untriaged";
 

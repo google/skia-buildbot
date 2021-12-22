@@ -23,8 +23,11 @@ explore-sk {
   }
 
   .formulas {
-    display: flex;
-    align-items: center;
+    display: block;
+
+    textarea {
+      display: block;
+    }
   }
 
   help-icon-sk {
@@ -73,11 +76,23 @@ explore-sk {
     color: var(--on-surface);
   }
 
-  #tabs[hide_if_no_data],
-  #calcButtons[hide_if_no_data],
-  #shiftButtons[hide_if_no_data],
-  #traceButtons[hide_if_no_data],
-  #plot[hide_if_no_data] {
+  #explore.display_query_only .hide_on_query_only {
+    display: none;
+  }
+
+  #explore.display_plot .hide_on_plot {
+    display: none;
+  }
+
+  #explore.display_pivot_table .hide_on_pivot_table {
+    display: none;
+  }
+
+  #explore.display_pivot_plot .hide_on_pivot_plot {
+    display: none;
+  }
+
+  #explore.display_spinner .hide_on_spinner {
     display: none;
   }
 
@@ -125,8 +140,7 @@ explore-sk {
     display: none;
   }
 
-  #spin-container[spinning] {
-    position: absolute;
+  #spin-container {
     top: 0;
     left: 0;
     display: flex;
@@ -191,6 +205,28 @@ explore-sk {
       div {
         display: block;
       }
+    }
+
+    tabs-panel-sk {
+      margin-top: 0;
+      border-top: solid 1px var(--on-surface);
+      background: var(--surface);
+    }
+
+    tabs-sk {
+      display: block;
+      border-bottom: solid 1px;
+      margin-top: 8px;
+
+      button {
+        margin: 0;
+        padding: 4px 4px 0 4px;
+      }
+    }
+
+    .footer {
+      display: flex;
+      justify-content: right;
     }
   }
 

@@ -143,7 +143,14 @@ func frameRequestForTest(t *testing.T) (*mocks.DataFrameBuilder, *dataframe.Data
 	df := dataframe.NewEmpty()
 	df.TraceSet[",arch=x86,config=8888,"] = types.Trace{1, 2, 3}
 	df.TraceSet[",arch=x86,config=565,"] = types.Trace{2, 4, 6}
-	df.Header = make([]*dataframe.ColumnHeader, 3)
+	const numHeaders = 3
+	df.Header = make([]*dataframe.ColumnHeader, numHeaders)
+	for i := 0; i < numHeaders; i++ {
+		df.Header[i] = &dataframe.ColumnHeader{
+			Offset:    types.CommitNumber(i + 1),
+			Timestamp: testTimeBegin.Unix() + int64(i),
+		}
+	}
 	df.BuildParamSet()
 
 	t.Cleanup(func() {
@@ -412,4 +419,37 @@ func TestRun_KeysAndThenPivot_ReturnsPivotedDataFrame(t *testing.T) {
 	// You can tell this succeeded since the keys are changed to just include the pivot GroupBy keys.
 	require.Equal(t, actualDf.TraceSet[",config=565,"], types.Trace{2, 4, 6})
 	require.Equal(t, actualDf.TraceSet[",config=8888,"], types.Trace{1, 2, 3})
+}
+
+func TestResponseFromDataFrame_NullPivot_ReturnsDisplayModePlot(t *testing.T) {
+	unittest.SmallTest(t)
+	_, df, _ := frameRequestForTest(t)
+	resp, err := ResponseFromDataFrame(context.Background(), nil, df, nil, false, progress.New())
+	require.NoError(t, err)
+	require.Equal(t, DisplayPlot, resp.DisplayMode)
+}
+
+func TestResponseFromDataFrame_ValidPivotRequestForPlot_ReturnsDisplayModePivotPlot(t *testing.T) {
+	unittest.SmallTest(t)
+	_, df, _ := frameRequestForTest(t)
+	pivotRequest := &pivot.Request{
+		GroupBy:   []string{"config"},
+		Operation: pivot.Sum,
+	}
+	resp, err := ResponseFromDataFrame(context.Background(), pivotRequest, df, nil, false, progress.New())
+	require.NoError(t, err)
+	require.Equal(t, DisplayPivotPlot, resp.DisplayMode)
+}
+
+func TestResponseFromDataFrame_ValidPivotRequestForPivotTable_ReturnsDisplayModePivotTable(t *testing.T) {
+	unittest.SmallTest(t)
+	_, df, _ := frameRequestForTest(t)
+	pivotRequest := &pivot.Request{
+		GroupBy:   []string{"config"},
+		Operation: pivot.Sum,
+		Summary:   []pivot.Operation{pivot.Avg},
+	}
+	resp, err := ResponseFromDataFrame(context.Background(), pivotRequest, df, nil, false, progress.New())
+	require.NoError(t, err)
+	require.Equal(t, DisplayPivotTable, resp.DisplayMode)
 }

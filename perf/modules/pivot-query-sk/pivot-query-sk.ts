@@ -17,7 +17,7 @@ import { validatePivotRequest } from '../pivotutil';
 
 const operationDescriptions: {[key in pivot.Operation]: string} = {
   sum: 'sum - Add all the values together',
-  avg: 'avg - Take the average of all the value.',
+  avg: 'avg - Take the average of all the values.',
 };
 
 const sortedOps = Object.keys(operationDescriptions).sort() as pivot.Operation[];
