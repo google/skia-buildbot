@@ -215,7 +215,7 @@ func extractTypeScriptImportsProvidedByRule(pkg string, r *rule.Rule, srcsAttr s
 func extractSassImportsProvidedByRule(pkg string, r *rule.Rule, srcsAttr string) []string {
 	var importPaths []string
 	for _, src := range r.AttrStrings(srcsAttr) {
-		if !strings.HasSuffix(src, ".scss") {
+		if !strings.HasSuffix(src, ".scss") && !strings.HasSuffix(src, ".css") {
 			log.Printf("Rule %s of kind %s contains a non-Sass file in its %s attribute: %s", label.New("", pkg, r.Name()).String(), r.Kind(), srcsAttr, src)
 			continue
 		}
@@ -225,7 +225,7 @@ func extractSassImportsProvidedByRule(pkg string, r *rule.Rule, srcsAttr string)
 }
 
 // Embeds implements the resolve.Resolver interface.
-func (rslv *Resolver) Embeds(r *rule.Rule, from label.Label) []label.Label { return nil }
+func (rslv *Resolver) Embeds(*rule.Rule, label.Label) []label.Label { return nil }
 
 // Resolve implements the resolve.Resolver interface.
 //
