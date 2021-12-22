@@ -1,0 +1,25 @@
+# Get a freshly OS-installed Mac (see
+# https://docs.google.com/document/d/1X7Hvsj33AlBmj-KEWfFbmdCArUJJAICLkB7ipDcxRV8)
+# ready to obey ansible. Also perform tasks that would be unnecessary to repeat
+# later. After this, run mac.yml.
+- hosts: all
+  remote_user: '{{ skolo_account }}'
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Set hostname.
+      command: scutil --set HostName {{ mac_hostname }}
+
+    - name: Set Bonjour hostname.
+      command: scutil --set LocalHostName {{ mac_hostname }}
+
+    - name: Set user-visible computer name.
+      command: scutil --set ComputerName {{ mac_hostname }}
+
+    - name: Install ssh keys.
+      import_role:
+        name: copy_authorized_keys
+
+    - name: Turn off wifi radio.
+      command: networksetup -setairportpower en1 off
