@@ -87,7 +87,7 @@ autoroll-pusher: kube-conf-gen deployment-dirs
 # from the MESSAGE environment variable.
 .PHONY: push-roller
 push-roller: release-fe release-be autoroll-pusher
-	autoroll-pusher --roller="$(ROLLER)" --update-config --update-be-image --commit-msg="$(MESSAGE)"
+	autoroll-pusher --roller="$(ROLLER)" --update-config --update-be-image --update-fe-image --commit-msg="$(MESSAGE)"
 
 # push-be generates a new backend release build and applies it to ALL rollers,
 # then commits and pushes the modified kubernetes config files into the git
