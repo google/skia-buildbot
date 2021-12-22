@@ -17,10 +17,21 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { pivot, DataFrame } from '../json';
 import { validateAsPivotTable } from '../pivotutil';
 
+import 'elements-sk/icon/sort-icon-sk';
+import 'elements-sk/icon/arrow-drop-down-icon-sk';
+import 'elements-sk/icon/arrow-drop-up-icon-sk';
+
+type direction = 'up' | 'down';
 export class PivotTableSk extends ElementSk {
   private df: DataFrame | null = null;
 
   private req: pivot.Request | null = null;
+
+  /** The index into the trace values to sort rows by, with -1 sorting by the
+   * row id. */
+  private sortBy: number = -1;
+
+  private sortDirection: direction = 'up';
 
   constructor() {
     super(PivotTableSk.template);
@@ -52,11 +63,56 @@ export class PivotTableSk extends ElementSk {
   }
 
   private tableHeader(): TemplateResult {
-    return html`<tr><th class=empty></th>${this.req!.summary!.map((summaryOperation) => html`<th>${summaryOperation}</th>`)}</tr>`;
+    return html`
+    <tr>
+      <th>${this.sortArrow(-1)} Group</th>
+      ${this.req!.summary!.map((summaryOperation, index) => html`<th>${this.sortArrow(index)} ${summaryOperation}</th>`)}
+    </tr>`;
+  }
+
+  private sortArrow(index: number): TemplateResult {
+    if (index === this.sortBy) {
+      if (this.sortDirection === 'up') {
+        return html`<arrow-drop-up-icon-sk title="Change sort order to descending." @click=${() => this.changeSort(index)}></arrow-drop-up-icon-sk>`;
+      }
+      return html`<arrow-drop-down-icon-sk title="Change sort order to ascending." @click=${() => this.changeSort(index)}></arrow-drop-down-icon-sk>`;
+    }
+    return html`<sort-icon-sk title="Sort this column." @click=${() => this.changeSort(index)}></sort-icon-sk>`;
+  }
+
+  private changeSort(column: number) {
+    if (this.sortBy === column) {
+      if (this.sortDirection === 'down') {
+        this.sortDirection = 'up';
+      } else {
+        this.sortDirection = 'down';
+      }
+    }
+    this.sortBy = column;
+    this._render();
   }
 
   private tableRows(): TemplateResult[] {
-    const sortedRowKeys = Object.keys(this.df!.traceset).sort();
+    const traceset = this.df!.traceset;
+    const sortedRowKeys = Object.keys(traceset).sort((a: string, b: string) => {
+      let ret = 0;
+      if (this.sortBy === -1) {
+        if (a < b) {
+          ret = -1;
+        } else if (b < a) {
+          ret = 1;
+        } else {
+          ret = 0;
+        }
+      } else {
+        ret = traceset[a][this.sortBy] - traceset[b][this.sortBy];
+      }
+
+      if (this.sortDirection === 'down') {
+        ret = -ret;
+      }
+      return ret;
+    });
     const ret: TemplateResult[] = [];
     sortedRowKeys.forEach((key) => {
       ret.push(html`<tr><th class=key>${key}</th>${this.rowValues(key)}</tr>`);

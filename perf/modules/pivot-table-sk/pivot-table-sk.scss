@@ -18,8 +18,9 @@ pivot-table-sk {
     text-align: right;
   }
 
-  th.empty {
-    border-top: none;
-    border-left: none;
+  sort-icon-sk,
+  arrow-drop-down-icon-sk,
+  arrow-drop-up-icon-sk {
+    cursor: pointer;
   }
 }
