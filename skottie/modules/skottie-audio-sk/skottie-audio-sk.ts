@@ -50,6 +50,11 @@ interface animationMarker {
   cm: string;
 }
 
+interface markerData {
+  beat?: number;
+  type: string;
+}
+
 interface tempoInterval {
   count: number;
   tempo: number;
@@ -171,8 +176,8 @@ export class SkottieAudioSk extends ElementSk {
     const markers = (animation.markers || []) as animationMarker[];
     const marker = markers.find((markerItem: animationMarker) => {
       try {
-        const markerData = JSON.parse(markerItem.cm);
-        if (markerData.type === 'beat') {
+        const md = JSON.parse(markerItem.cm) as markerData;
+        if (md.type === 'beat') {
           return true;
         }
       } catch (err) {
@@ -181,12 +186,9 @@ export class SkottieAudioSk extends ElementSk {
       return false;
     });
     if (marker) {
-      const beatData = {
-        ...marker,
-        payload: JSON.parse(marker.cm),
-      };
-      if (beatData.payload.beat) {
-        this.beatDuration = beatData.payload.beat;
+      const payload = JSON.parse(marker.cm) as markerData;
+      if (payload.beat) {
+        this.beatDuration = payload.beat;
         this._render();
       }
     }

@@ -1,0 +1,26 @@
+load("//infra-sk:index.bzl", "sk_element", "ts_library")
+
+sk_element(
+    name = "skottie-text-editor-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["skottie-text-editor-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//skottie/modules:types_ts_lib",
+        ":text-replace_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skottie-text-editor-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "text-replace_ts_lib",
+    srcs = ["text-replace.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//skottie/modules:types_ts_lib"],
+)

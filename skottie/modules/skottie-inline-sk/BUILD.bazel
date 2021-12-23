@@ -1,0 +1,37 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":skottie-inline-sk-demo",
+)
+
+sk_element(
+    name = "skottie-inline-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["skottie-inline-sk.scss"],
+    sk_element_deps = ["//skottie/modules/skottie-player-sk"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skottie-inline-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "skottie-inline-sk-demo",
+    html_file = "skottie-inline-sk-demo.html",
+    sk_element_deps = [":skottie-inline-sk"],
+    ts_entry_point = "skottie-inline-sk-demo.ts",
+)
+
+filegroup(
+    name = "index_ts",
+    srcs = ["index.ts"],
+    visibility = ["//skottie:__subpackages__"],
+)

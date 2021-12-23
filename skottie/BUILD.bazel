@@ -1,0 +1,63 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "skottie_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//skottie/go/skottie:skottie",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/skottie/": [
+            [
+                "build/canvaskit/canvaskit.js",
+                "0644",
+            ],
+            [
+                "build/canvaskit/canvaskit.wasm",
+                "0644",
+            ],
+            [
+                "build/version.js",
+                "0644",
+            ],
+            [
+                "//skottie/modules/skottie-gif-exporter-sk:gif_js",
+                "0644",
+            ],
+            [
+                "//skottie/modules/skottie-gif-exporter-sk:gif_worker_js",
+                "0644",
+            ],
+            [
+                "//skottie/pages:inline-bundle",
+                "0644",
+            ],
+        ] + [
+            [
+                "//skottie/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in [
+                "drive",
+                "embed",
+                "index",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+        "/usr/local/share/skottie/img": [
+            [
+                "@npm//:node_modules/jsoneditor/dist/img/jsoneditor-icons.svg",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/skottie",
+    repository = "skia-public/skottie",
+)

@@ -16,15 +16,14 @@ import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat';
 import {
-  Canvas,
-  CanvasKit, CanvasKitInitOptions, ColorProperty, ManagedSkottieAnimation, OpacityProperty, SoundMap, Surface,
+  Canvas, CanvasKit, CanvasKitInit as CKInit, ColorProperty, ManagedSkottieAnimation,
+  OpacityProperty, SoundMap, Surface,
 } from 'canvaskit-wasm';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LottieAnimation } from '../types';
 
-// This is how we can bundle in our CanvasKit build at TOT, not the one from npm.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const CanvasKitInit: (_: CanvasKitInitOptions)=> Promise<CanvasKit> = require('../../build/canvaskit/canvaskit.js');
+// It is assumed that canvaskit.js has been loaded and this symbol is available globally.
+declare const CanvasKitInit: typeof CKInit;
 
 function hexColor(c: number) {
   // eslint-disable-next-line no-bitwise

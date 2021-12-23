@@ -1,0 +1,101 @@
+load(
+    "//infra-sk:index.bzl",
+    "sass_library",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+    "ts_library",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":skottie-sk-demo",
+    static_assets = {
+        "/static": [
+            "//skottie/wasm_libs:version.js",
+            "//skottie/wasm_libs:canvaskit.js",
+            "//skottie/wasm_libs:canvaskit.wasm",
+        ],
+        "/img": [
+            # Not quite sure why this is being looked for in /img and not /static/img.
+            "@npm//:node_modules/jsoneditor/dist/img/jsoneditor-icons.svg",
+        ],
+    },
+)
+
+sass_library(
+    name = "json_editor_styles",
+    srcs = [
+        "@npm//:node_modules/jsoneditor/dist/jsoneditor.min.css",  # keep
+    ],
+)
+
+sk_element(
+    name = "skottie-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        ":json_editor_styles",  # keep
+    ],
+    sass_srcs = ["skottie-sk.scss"],
+    sk_element_deps = [
+        "//skottie/modules/skottie-audio-sk",
+        "//skottie/modules/skottie-config-sk",
+        "//skottie/modules/skottie-gif-exporter-sk",
+        "//skottie/modules/skottie-library-sk",
+        "//skottie/modules/skottie-performance-sk",
+        "//skottie/modules/skottie-player-sk",
+        "//skottie/modules/skottie-text-editor-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//skottie/modules/helpers:domains_ts_lib",
+        "//skottie/modules/helpers:templates_ts_lib",
+        "//skottie/modules/skottie-text-editor-sk:text-replace_ts_lib",
+        "//skottie/modules:audio_ts_lib",
+        "//skottie/modules:types_ts_lib",
+        "@npm//@types/jsoneditor",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//jsoneditor",
+        "@npm//lit-html",
+        "@npm//lottie-web",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skottie-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "skottie-sk-demo",
+    html_file = "skottie-sk-demo.html",
+    scss_entry_point = "skottie-sk-demo.scss",
+    sk_element_deps = [":skottie-sk"],
+    ts_deps = [
+        ":test_gear_ts_lib",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "skottie-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "skottie-sk_puppeteer_test",
+    src = "skottie-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//puppeteer",
+    ],
+)
+
+ts_library(
+    name = "test_gear_ts_lib",
+    srcs = ["test_gear.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//skottie/modules:types_ts_lib"],
+)

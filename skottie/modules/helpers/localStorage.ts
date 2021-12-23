@@ -16,7 +16,7 @@ const _localStorage = {
       if (!v) {
         return {};
       }
-      return JSON.parse(v);
+      return JSON.parse(v) as Record<string, unknown>;
     } catch (err) {
       console.error('err', err);
       return {};

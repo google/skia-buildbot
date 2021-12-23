@@ -1,0 +1,35 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":skottie-embed-sk-demo",
+)
+
+sk_element(
+    name = "skottie-embed-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["skottie-embed-sk.scss"],
+    sk_element_deps = ["//skottie/modules/skottie-player-sk"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skottie-embed-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "skottie-embed-sk-demo",
+    html_file = "skottie-embed-sk-demo.html",
+    sk_element_deps = [":skottie-embed-sk"],
+    ts_deps = [
+        "//skottie/modules/skottie-sk:test_gear_ts_lib",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "skottie-embed-sk-demo.ts",
+)

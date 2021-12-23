@@ -1,0 +1,32 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "skottie-gif-exporter-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["skottie-gif-exporter-sk.scss"],
+    sk_element_deps = ["//skottie/modules/skottie-player-sk"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//skottie/modules/helpers:gifstorage_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skottie-gif-exporter-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "gif_js",
+    srcs = ["gif.js"],
+    visibility = ["//skottie:__subpackages__"],
+)
+
+filegroup(
+    name = "gif_worker_js",
+    srcs = ["gif.worker.js"],
+    visibility = ["//skottie:__subpackages__"],
+)

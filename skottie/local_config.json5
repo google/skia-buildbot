@@ -1,0 +1,7 @@
+{
+  "can_upload_zips": true,
+  "force_auth": false,
+  "gcs_bucket": "skottie-renderer",
+  "local": true,
+  "resources_path": "../_bazel_bin/skottie/pages/development",
+}

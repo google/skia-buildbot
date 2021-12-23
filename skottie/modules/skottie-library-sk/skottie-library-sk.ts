@@ -20,7 +20,7 @@ import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import JSZip, { JSZipObject } from 'jszip';
-import { replaceTextsByLayerName, TextData } from '../skottie-text-editor/text-replace';
+import { replaceTextsByLayerName, TextData } from '../skottie-text-editor-sk/text-replace';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LottieAnimation } from '../types';
 import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
@@ -278,7 +278,7 @@ If not selected, the animations will be paused and not respond to scrubbing of t
         try {
           // eslint-disable-next-line no-await-in-loop
           const animation = await animationFile.async('text');
-          const animationData = replaceTextsByLayerName(texts, JSON.parse(animation));
+          const animationData = replaceTextsByLayerName(texts, JSON.parse(animation) as LottieAnimation);
           animationData.metadata = {
             ...animationData.metadata,
             filename: animationFile.name,

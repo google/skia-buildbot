@@ -18,12 +18,13 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
-import JSONEditor, { JSONEditorOptions } from 'jsoneditor';
+import JSONEditor from 'jsoneditor';
+import LottiePlayer from 'lottie-web';
 import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
 import { SkottieGifExporterSk } from '../skottie-gif-exporter-sk/skottie-gif-exporter-sk';
 import '../skottie-gif-exporter-sk';
-import '../skottie-text-editor';
-import { replaceTexts } from '../skottie-text-editor/text-replace';
+import '../skottie-text-editor-sk';
+import { replaceTexts } from '../skottie-text-editor-sk/text-replace';
 import '../skottie-library-sk';
 import { SoundMap, AudioPlayer } from '../audio';
 import '../skottie-performance-sk';
@@ -39,12 +40,11 @@ import {
 } from '../types';
 import { SkottieLibrarySk } from '../skottie-library-sk/skottie-library-sk';
 import { AudioStartEventDetail, SkottieAudioSk } from '../skottie-audio-sk/skottie-audio-sk';
+import { SkottieTextEditorSk, TextEditApplyEventDetail } from '../skottie-text-editor-sk/skottie-text-editor-sk';
 
-import { SKIA_VERSION } from '../../build/version';
-import { SkottieTextEditorSk, TextEditApplyEventDetail } from '../skottie-text-editor/skottie-text-editor';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const JSONEditorConstructor: new(e: HTMLElement, o: JSONEditorOptions)=> JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
+// It is assumed that this symbol is being provided by a version.js file loaded in before this
+// file.
+declare const SKIA_VERSION: string;
 
 interface BodymovinPlayer {
   goToAndStop(t: number): void;
@@ -63,9 +63,6 @@ interface LoadedAsset {
   bytes?: ArrayBuffer;
   player?: AudioPlayer;
 }
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const bodymovin: LottieLibrary = require('lottie-web/build/player/lottie.min.js');
 
 const GOOGLE_WEB_FONTS_HOST = 'https://storage.googleapis.com/skia-cdn/google-web-fonts';
 
@@ -276,7 +273,7 @@ ${this.wasmCaption()}`;
 <figure>
   <div id=container title=lottie-web
        style='width: ${this.width}px; height: ${this.height}px; background-color: ${this.backgroundColor}'></div>
-       ${caption(`lottie-web ${bodymovin.version}`, this.viewMode)}
+       ${caption('lottie-web', this.viewMode)}
 </figure>`;
   };
 
@@ -355,12 +352,12 @@ ${this.wasmCaption()}`;
     }
     return html`
 <section class=editor>
-  <skottie-text-editor
+  <skottie-text-editor-sk
     .animation=${this.state.lottie}
     .mode=${this.viewMode}
     @apply=${this.applyTextEdits}
   >
-  </skottie-text-editor>
+  </skottie-text-editor-sk>
 </section>`;
   };
 
@@ -898,7 +895,7 @@ ${this.wasmCaption()}`;
 
   private renderTextEditor(): void {
     if (this.showTextEditor) {
-      const textEditor = $$<SkottieTextEditorSk>('skottie-text-editor', this);
+      const textEditor = $$<SkottieTextEditorSk>('skottie-text-editor-sk', this);
       if (textEditor) {
         textEditor.animation = this.state.lottie!;
       }
@@ -932,7 +929,7 @@ ${this.wasmCaption()}`;
     if (!this.editor) {
       this.editorLoaded = false;
       editorContainer.innerHTML = '';
-      this.editor = new JSONEditorConstructor(editorContainer, editorOptions);
+      this.editor = new JSONEditor(editorContainer, editorOptions);
     }
     if (!this.hasEdits) {
       this.editorLoaded = false;
@@ -953,14 +950,14 @@ ${this.wasmCaption()}`;
     // Don't re-start the animation while the user edits.
     if (!this.hasEdits) {
       $$<HTMLDivElement>('#container')!.innerHTML = '';
-      this.lottiePlayer = bodymovin.loadAnimation({
-        container: $$('#container'),
+      this.lottiePlayer = LottiePlayer.loadAnimation({
+        container: $$('#container')!,
         renderer: 'svg',
         loop: true,
         autoplay: this.playing,
         assetsPath: `${this.assetsPath}/${this.hash}/`,
         // Apparently the lottie player modifies the data as it runs?
-        animationData: JSON.parse(JSON.stringify(this.state.lottie)),
+        animationData: JSON.parse(JSON.stringify(this.state.lottie)) as LottieAnimation,
         rendererSettings: {
           preserveAspectRatio: 'xMidYMid meet',
         },
@@ -971,14 +968,14 @@ ${this.wasmCaption()}`;
       // It will re-start from the very beginning, but the user can
       // hit "rewind" to re-sync them.
       $$<HTMLDivElement>('#live')!.innerHTML = '';
-      this.live = bodymovin.loadAnimation({
-        container: $$('#live'),
+      this.live = LottiePlayer.loadAnimation({
+        container: $$('#live')!,
         renderer: 'svg',
         loop: true,
         autoplay: this.playing,
         assetsPath: `${this.assetsPath}/${this.hash}/`,
         // Apparently the lottie player modifies the data as it runs?
-        animationData: JSON.parse(JSON.stringify(this.editor!.get())),
+        animationData: JSON.parse(JSON.stringify(this.editor!.get())) as LottieAnimation,
         rendererSettings: {
           preserveAspectRatio: 'xMidYMid meet',
         },
@@ -1029,8 +1026,8 @@ ${this.wasmCaption()}`;
 
   private onChartClick(e: Event): void {
     const chart = $$<SkottiePerformanceSk>('#chart', this);
-    const frame: number = chart?.getClickedFrame(e)!;
-    if (frame !== -1) {
+    const frame: (number|undefined) = chart?.getClickedFrame(e);
+    if (frame !== undefined && frame !== -1) {
       if (this.playing) {
         this.playpause();
       }
@@ -1047,7 +1044,7 @@ ${this.wasmCaption()}`;
         seek = ((frame / this.state.lottie.fr) * 1000) / this.duration;
       }
       this.seek(seek);
-      this.updateScrubber;
+      this.updateScrubber();
     }
   }
 

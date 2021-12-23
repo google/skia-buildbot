@@ -44,8 +44,7 @@ interface BackgroundOption {
   color: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const GIF: new (_: GIFLibraryOptions)=> GIFLibrary = require('./gif.js');
+declare const GIF: new (_: GIFLibraryOptions)=> GIFLibrary;
 
 const QUALITY_SCRUBBER_RANGE = 50;
 

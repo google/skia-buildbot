@@ -1,6 +1,6 @@
 /**
- * @module skottie-text-editor
- * @description <h2><code>skottie-text-editor</code></h2>
+ * @module skottie-text-editor-sk
+ * @description <h2><code>skottie-text-editor-sk</code></h2>
  *
  * <p>
  *   A skottie text editor
@@ -244,7 +244,7 @@ export class SkottieTextEditorSk extends ElementSk {
 
   private updateAnimation(animation: LottieAnimation): void {
     if (animation && this.originalAnimation !== animation) {
-      const clonedAnimation = JSON.parse(JSON.stringify(animation));
+      const clonedAnimation = JSON.parse(JSON.stringify(animation)) as LottieAnimation;
       this.buildTexts(clonedAnimation);
       this._animation = clonedAnimation;
       this.originalAnimation = animation;
@@ -263,4 +263,4 @@ export class SkottieTextEditorSk extends ElementSk {
   }
 }
 
-define('skottie-text-editor', SkottieTextEditorSk);
+define('skottie-text-editor-sk', SkottieTextEditorSk);

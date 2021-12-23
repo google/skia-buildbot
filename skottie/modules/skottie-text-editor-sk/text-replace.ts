@@ -55,7 +55,7 @@ export const replaceTextsByLayerName = (texts: TextData[], currentAnimation: Lot
     return currentAnimation;
   }
   // Make a copy of the original animation.
-  const animation: LottieAnimation = JSON.parse(JSON.stringify(currentAnimation));
+  const animation: LottieAnimation = JSON.parse(JSON.stringify(currentAnimation)) as LottieAnimation;
   // Create dictionary to access data by name instead of iterating on every layer
   const textsDictionary = texts.reduce((dict: Record<string, string>, text: TextData) => {
     dict[text.name] = text.text;

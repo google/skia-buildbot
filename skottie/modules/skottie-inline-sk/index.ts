@@ -1,2 +1,2 @@
-import './skottie-inline-sk.ts';
+import './skottie-inline-sk';
 import './skottie-inline-sk.scss';

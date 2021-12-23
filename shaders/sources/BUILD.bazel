@@ -2,14 +2,14 @@ genrule(
     name = "get_mandrill",
     srcs = [],
     outs = ["mandrill.png"],
-    cmd = "wget --output-document=$@ https://storage.googleapis.com/skia-public-shader-images/mandrill.png",
+    cmd = "wget --quiet --output-document=$@ https://storage.googleapis.com/skia-public-shader-images/mandrill.png",
 )
 
 genrule(
     name = "get_soccer",
     srcs = [],
     outs = ["soccer.png"],
-    cmd = "wget --output-document=$@ https://storage.googleapis.com/skia-public-shader-images/soccer.png",
+    cmd = "wget --quiet --output-document=$@ https://storage.googleapis.com/skia-public-shader-images/soccer.png",
 )
 
 filegroup(

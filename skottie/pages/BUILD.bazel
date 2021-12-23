@@ -1,0 +1,90 @@
+load("//infra-sk:index.bzl", "sk_page")
+load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
+load("@npm//@bazel/terser:index.bzl", "terser_minified")
+
+CANVAKIT_FILES = [
+    {
+        "src": "//skottie/wasm_libs:canvaskit.js",
+        "dst": "canvaskit.js",
+    },
+    {
+        "src": "//skottie/wasm_libs:version.js",
+        "dst": "version.js",
+    },
+    {
+        "src": "//skottie/wasm_libs:canvaskit.wasm",
+        "dst": "canvaskit.wasm",
+    },
+]
+
+sk_page(
+    name = "drive",
+    assets_serving_path = "/static",
+    html_file = "drive.html",
+    scss_entry_point = "drive.scss",
+    sk_element_deps = ["//skottie/modules/skottie-drive-sk"],
+    ts_entry_point = "drive.ts",
+)
+
+sk_page(
+    name = "embed",
+    assets_serving_path = "/static",
+    html_file = "embed.html",
+    scss_entry_point = "embed.scss",
+    sk_element_deps = ["//skottie/modules/skottie-embed-sk"],
+    ts_entry_point = "embed.ts",
+)
+
+sk_page(
+    name = "index",
+    assets_serving_path = "/static",
+    # Note: If we try to set these files more than once (e.g. on the other pages), then the
+    # page cannot build because there are duplicate entries for the same output files. Thus, we
+    # only specify them once on the index page.
+    copy_files = CANVAKIT_FILES + [
+        {
+            "src": "//skottie/modules/skottie-gif-exporter-sk:gif_js",
+            "dst": "gif.js",
+        },
+        {
+            "src": "//skottie/modules/skottie-gif-exporter-sk:gif_worker_js",
+            "dst": "gif.worker.js",
+        },
+        {
+            "src": "@npm//:node_modules/jsoneditor/dist/img/jsoneditor-icons.svg",
+            "dst": "img/jsoneditor-icons.svg",
+        },
+        {
+            "src": ":inline-bundle",
+            "dst": "inline-bundle.js",
+        },
+    ],
+    html_file = "index.html",
+    scss_entry_point = "index.scss",
+    sk_element_deps = ["//skottie/modules/skottie-sk"],
+    ts_entry_point = "index.ts",
+)
+
+# We want to make skottie-inline-sk available for the documentation on skia.org
+# (e.g. https://skia.org/docs/user/modules/skottie/). In order to do this, we make an
+# inline-bundle.js file with that element's code and make it available in the output directory.
+# These rules are adapted from the sk_page macro.
+rollup_bundle(
+    name = "inline_js_bundle",
+    config_file = "//infra-sk:rollup.config.js",
+    entry_point = "//skottie/modules/skottie-inline-sk:index_ts",
+    format = "umd",
+    deps = [
+        "//skottie/modules/skottie-inline-sk",
+        "@npm//@rollup/plugin-commonjs",
+        "@npm//@rollup/plugin-node-resolve",
+        "@npm//rollup-plugin-sourcemaps",
+    ],
+)
+
+terser_minified(
+    name = "inline-bundle",  # This is the name of the output file w/o the .js suffix
+    src = "inline_js_bundle.js",
+    sourcemap = False,
+    visibility = ["//skottie:__subpackages__"],
+)

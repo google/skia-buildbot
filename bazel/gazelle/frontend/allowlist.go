@@ -39,6 +39,8 @@ var targetDirectories = map[string]bool{
 	"shaders/pages":        true,
 	"skcq/modules":         true,
 	"skcq/pages":           true,
+	"skottie/modules":      true,
+	"skottie/pages":        true,
 	"task_driver/modules":  true,
 	"tree_status/modules":  true,
 	"tree_status/pages":    true,

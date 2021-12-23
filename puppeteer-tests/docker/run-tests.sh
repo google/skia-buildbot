@@ -127,12 +127,6 @@ cp -r /src/debugger-app/modules              /tests/debugger-app
 cp -r /src/debugger-app/build                /tests/debugger-app
 cp -r /src/debugger-app/static               /tests/debugger-app
 
-mkdir /tests/skottie
-cp -r /src/skottie/webpack.config.ts         /tests/skottie
-cp -r /src/skottie/tsconfig.json             /tests/skottie
-cp -r /src/skottie/modules                   /tests/skottie
-cp -r /src/skottie/Makefile                  /tests/skottie
-
 ################################################################################
 # Install node modules and WASM dependencies.                                  #
 ################################################################################
@@ -140,9 +134,6 @@ cp -r /src/skottie/Makefile                  /tests/skottie
 cd /tests
 # https://docs.npmjs.com/cli/v7/using-npm/config
 npm ci --fetch-retry-maxtimeout 300000 --fetch-timeout 600000
-
-cd /tests/skottie
-make wasm_libs_fixed
 
 ################################################################################
 # Run tests.                                                                   #
@@ -175,5 +166,3 @@ npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 cd /tests/debugger-app
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
-cd /tests/skottie
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts

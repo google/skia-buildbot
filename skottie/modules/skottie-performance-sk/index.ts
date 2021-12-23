@@ -1,2 +1,2 @@
-import './skottie-performance-sk.ts';
+import './skottie-performance-sk';
 import './skottie-performance-sk.scss';

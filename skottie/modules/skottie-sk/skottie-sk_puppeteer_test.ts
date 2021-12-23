@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { Page } from 'puppeteer';
-import path from 'path';
 import {
   addEventListenersToPuppeteerPage,
   loadCachedTestBed,
@@ -12,18 +11,18 @@ describe('skottie-sk', () => {
   let testBed: TestBed;
 
   before(async () => {
-    testBed = await loadCachedTestBed(path.join(__dirname, '..', '..', 'webpack.config.ts'));
+    testBed = await loadCachedTestBed();
   });
 
   describe('screenshots', () => {
     it('should show the default page', async () => {
-      await navigateTo(testBed.page, `${testBed.baseUrl}/static/skottie-sk.html`);
+      await navigateTo(testBed.page, testBed.baseUrl);
       await testBed.page.setViewport({ width: 1300, height: 800 });
       await takeScreenshot(testBed.page, 'skottie', 'default_page');
     });
 
     it('shows lottie-web animation when a box is checked', async () => {
-      await navigateTo(testBed.page, `${testBed.baseUrl}/static/skottie-sk.html`);
+      await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
       await testBed.page.click('checkbox-sk[label="Show lottie-web"]');
@@ -32,7 +31,7 @@ describe('skottie-sk', () => {
     });
 
     it('shows JSON editor when a box is checked', async () => {
-      await navigateTo(testBed.page, `${testBed.baseUrl}/static/skottie-sk.html`);
+      await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
       await testBed.page.click('checkbox-sk[label="Show editor"]');
@@ -41,7 +40,7 @@ describe('skottie-sk', () => {
     });
 
     it('shows GIF exporter when a box is checked', async () => {
-      await navigateTo(testBed.page, `${testBed.baseUrl}/static/skottie-sk.html`);
+      await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
       await testBed.page.click('checkbox-sk[label="Show gif exporter"]');
@@ -50,7 +49,7 @@ describe('skottie-sk', () => {
     });
 
     it('shows text editor when a box is checked', async () => {
-      await navigateTo(testBed.page, `${testBed.baseUrl}/static/skottie-sk.html?test=withText`);
+      await navigateTo(testBed.page, `${testBed.baseUrl}?test=withText`);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 1200 });
       await testBed.page.click('checkbox-sk[label="Show text editor"]');
@@ -59,7 +58,7 @@ describe('skottie-sk', () => {
     });
 
     it('shows performance chart when a box is checked', async () => {
-      await navigateTo(testBed.page, `${testBed.baseUrl}/static/skottie-sk.html`);
+      await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
       await testBed.page.click('checkbox-sk[label="Show performance chart"]');
@@ -68,7 +67,7 @@ describe('skottie-sk', () => {
     });
 
     it('shows a dialog to upload multiple lotties when a box is checked', async () => {
-      await navigateTo(testBed.page, `${testBed.baseUrl}/static/skottie-sk.html`);
+      await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
       await testBed.page.click('checkbox-sk[label="Show library"]');
@@ -77,7 +76,7 @@ describe('skottie-sk', () => {
     });
 
     it('shows audio uploader when a box is checked', async () => {
-      await navigateTo(testBed.page, `${testBed.baseUrl}/static/skottie-sk.html`);
+      await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
       await testBed.page.click('checkbox-sk[label="Show audio"]');
@@ -86,7 +85,7 @@ describe('skottie-sk', () => {
     });
 
     it('shows the embed code when a button is clicked', async () => {
-      await navigateTo(testBed.page, `${testBed.baseUrl}/static/skottie-sk.html`);
+      await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
       await testBed.page.click('#embed-btn');
@@ -94,7 +93,7 @@ describe('skottie-sk', () => {
     });
 
     it('shows the upload animation dialog when a button is clicked', async () => {
-      await navigateTo(testBed.page, `${testBed.baseUrl}/static/skottie-sk.html`);
+      await navigateTo(testBed.page, testBed.baseUrl);
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
       await testBed.page.click('.edit-config');

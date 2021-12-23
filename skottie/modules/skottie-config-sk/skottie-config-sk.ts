@@ -197,7 +197,6 @@ export class SkottieConfigSk extends ElementSk {
   get state(): SkottieConfigState { return this._state; }
 
   set state(val: SkottieConfigState) {
-    console.log('set state', val);
     this._state = Object.assign({}, val); // make a copy of passed in state.
     this._render();
   }
@@ -240,7 +239,7 @@ export class SkottieConfigSk extends ElementSk {
       reader.addEventListener('load', () => {
         let parsed: LottieAnimation;
         try {
-          parsed = JSON.parse(reader.result as string);
+          parsed = JSON.parse(reader.result as string) as LottieAnimation;
         } catch (error) {
           errorMessage(`Not a valid JSON file: ${error}`);
           return;

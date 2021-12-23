@@ -31,7 +31,6 @@ import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
 import { until } from 'lit-html/directives/until.js';
-import { SKIA_VERSION } from '../../build/version';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SkottiePlayerConfig, SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 import { LottieAnimation } from '../types';
@@ -42,6 +41,10 @@ interface WindowWithGAPILoaded extends Window {
 }
 
 declare let window: WindowWithGAPILoaded;
+
+// It is assumed that this symbol is being provided by a version.js file loaded in before this
+// file.
+declare const SKIA_VERSION: string;
 
 // gapiLoaded is a promise that resolves when the 'gapi' JS library is
 // finished loading.
@@ -67,6 +70,10 @@ interface ErrorResponse {
 interface DriveGetResponse {
   headers: Record<string, string>;
   result: LottieAnimation;
+}
+
+interface URLState {
+  ids: string[];
 }
 
 export class SkottieDriveSk extends ElementSk {
@@ -154,7 +161,7 @@ export class SkottieDriveSk extends ElementSk {
     let ids = ['12M0hlsK-zYCrKU6TG-Bji5Kcr9hWoyJw'];
     const stateParam = (new URL(document.location.href)).searchParams.get('state');
     if (stateParam) {
-      ids = JSON.parse(stateParam).ids;
+      ids = (JSON.parse(stateParam) as URLState).ids;
     }
     // Render a <skottie-player-sk> for each id.
     this.ids = ids;
@@ -162,7 +169,7 @@ export class SkottieDriveSk extends ElementSk {
 
     // Now kick off a fetch request for each player that retrieves the JSON
     // and populates the player.
-    ids.forEach((id, i) => {
+    ids.forEach((id: string, i: number) => {
       // Media.
       window.gapi.client.drive.files.get({
         alt: 'media',
