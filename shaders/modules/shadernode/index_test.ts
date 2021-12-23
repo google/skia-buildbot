@@ -2,12 +2,12 @@
 import './index';
 import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
 import { assert } from 'chai';
+import { CanvasKit, CanvasKitInit as CKInit } from 'canvaskit-wasm';
 import {
   childShaderArraysDiffer,
   childShadersAreDifferent,
   defaultChildShaderScrapHashOrName, defaultImageURL, defaultScrapBody, numPredefinedUniforms, ShaderNode,
 } from './index';
-import { CanvasKit, CanvasKitInit as CKInit } from '../../build/canvaskit/canvaskit';
 import { ChildShader, ScrapBody, ScrapID } from '../json';
 
 // It is assumed that canvaskit.js has been loaded and this symbol is available globally.

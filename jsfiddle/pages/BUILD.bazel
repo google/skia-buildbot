@@ -5,12 +5,16 @@ sk_page(
     assets_serving_path = "/res",
     copy_files = [
         {
-            "src": "//jsfiddle/build:canvaskit_js",
+            "src": "//jsfiddle/wasm_libs:canvaskit.js",
             "dst": "canvaskit.js",
         },
         {
-            "src": "//jsfiddle/build:canvaskit_wasm",
+            "src": "//jsfiddle/wasm_libs:canvaskit.wasm",
             "dst": "canvaskit.wasm",
+        },
+        {
+            "src": "//jsfiddle/wasm_libs:version.js",
+            "dst": "version.js",
         },
     ],
     html_file = "canvaskit-index.html",
@@ -23,11 +27,11 @@ sk_page(
     assets_serving_path = "/res",
     copy_files = [
         {
-            "src": "//jsfiddle/build:pathkit_js",
+            "src": "//jsfiddle/wasm_libs:pathkit.js",
             "dst": "pathkit.js",
         },
         {
-            "src": "//jsfiddle/build:pathkit_wasm",
+            "src": "//jsfiddle/wasm_libs:pathkit.wasm",
             "dst": "pathkit.wasm",
         },
     ],

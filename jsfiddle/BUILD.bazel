@@ -36,7 +36,23 @@ skia_app_container(
                 "0644",
             ],
             [
-                "//jsfiddle/build:wasm_files",
+                "build/canvaskit/canvaskit.js",
+                "0644",
+            ],
+            [
+                "build/canvaskit/canvaskit.wasm",
+                "0644",
+            ],
+            [
+                "build/pathkit/pathkit.js",
+                "0644",
+            ],
+            [
+                "build/pathkit/pathkit.wasm",
+                "0644",
+            ],
+            [
+                "build/version.js",
                 "0644",
             ],
         ],

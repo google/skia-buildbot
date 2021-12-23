@@ -19,12 +19,12 @@ sk_element(
     sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],
     ts_deps = [
         "//infra-sk/modules/fps:fps_ts_lib",
-        "//jsfiddle/build:wasm_libraries",  # keep
         "@npm//@types/codemirror",
         "@npm//codemirror",
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "@npm//canvaskit-wasm",
     ],
     ts_srcs = [
         "index.ts",

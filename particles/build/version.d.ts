@@ -1,1 +1,0 @@
-export const SKIA_VERSION: string;

@@ -1,14 +1,15 @@
 import 'elements-sk/error-toast-sk';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-
-import { SKIA_VERSION } from '../../build/version';
 import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
-
 import '../../../infra-sk/modules/theme-chooser-sk';
 
-// It is assumed that canvaskit.js has been loaded and this symbol is available globally.
+// It is assumed that pathkit.js has been loaded and this symbol is available globally.
 declare const PathKitInit: any;
+
+// It is assumed that this symbol is being provided by a version.js file loaded in before this
+// file.
+declare const SKIA_VERSION: string;
 
 // Main template for this element
 const template = (ele: WasmFiddle) => html`

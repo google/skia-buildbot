@@ -8,9 +8,9 @@ sk_element(
         "//jsfiddle/modules/wasm-fiddle-sk",
     ],
     ts_deps = [
-        "//jsfiddle/build:wasm_libraries",  # keep
         "@npm//elements-sk",
         "@npm//lit-html",
+        "@npm//canvaskit-wasm",
     ],
     ts_srcs = [
         "canvaskit-fiddle-sk.ts",

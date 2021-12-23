@@ -5,12 +5,16 @@ sk_page(
     assets_serving_path = "/dist",
     copy_files = [
         {
-            "src": "//shaders/build:canvaskit_js",
+            "src": "//shaders/wasm_libs:canvaskit.js",
             "dst": "canvaskit.js",
         },
         {
-            "src": "//shaders/build:canvaskit_wasm",
+            "src": "//shaders/wasm_libs:canvaskit.wasm",
             "dst": "canvaskit.wasm",
+        },
+        {
+            "src": "//shaders/wasm_libs:version.js",
+            "dst": "version.js",
         },
         {
             "src": "//shaders/sources:mandrill_png",

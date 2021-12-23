@@ -5,12 +5,16 @@ sk_page(
     assets_serving_path = "/dist",
     copy_files = [
         {
-            "src": "//particles/build:canvaskit_js",
+            "src": "//particles/wasm_libs:canvaskit.js",
             "dst": "canvaskit.js",
         },
         {
-            "src": "//particles/build:canvaskit_wasm",
+            "src": "//particles/wasm_libs:canvaskit.wasm",
             "dst": "canvaskit.wasm",
+        },
+        {
+            "src": "//particles/wasm_libs:version.js",
+            "dst": "version.js",
         },
         {
             "src": "@npm//:node_modules/jsoneditor/dist/img/jsoneditor-icons.svg",

@@ -24,12 +24,15 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import JSONEditor, { JSONEditorOptions } from 'jsoneditor';
 import { HintableObject } from 'common-sk/modules/hintable';
-import { SKIA_VERSION } from '../../build/version';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ParticlesConfig, ParticlesConfigSk } from '../particles-config-sk/particles-config-sk';
 import { ParticlesPlayerSk } from '../particles-player-sk/particles-player-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { ScrapBody, ScrapID } from '../json';
+
+// It is assumed that this symbol is being provided by a version.js file loaded in before this
+// file.
+declare const SKIA_VERSION: string;
 
 const defaultParticleDemo = {
   MaxCount: 1000,

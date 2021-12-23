@@ -11,10 +11,10 @@ import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html, TemplateResult } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import type {
   Particles, CanvasKit, Surface, Canvas, CanvasKitInit as CKInit,
-} from '../../build/canvaskit/canvaskit';
+} from 'canvaskit-wasm';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 // It is assumed that canvaskit.js has been loaded and this symbol is available globally.
 declare const CanvasKitInit: typeof CKInit;

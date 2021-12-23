@@ -24,11 +24,15 @@ skia_app_container(
                 "0644",
             ],
             [
-                "//particles/build:canvaskit_js",
+                "build/canvaskit/canvaskit.js",
                 "0644",
             ],
             [
-                "//particles/build:canvaskit_wasm",
+                "build/canvaskit/canvaskit.wasm",
+                "0644",
+            ],
+            [
+                "build/version.js",
                 "0644",
             ],
         ],

@@ -8,14 +8,14 @@
  */
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
-import { Uniform } from '../../../infra-sk/modules/uniform/uniform';
 import {
   CanvasKit,
   Image,
   MallocObj,
   RuntimeEffect,
   Shader,
-} from '../../build/canvaskit/canvaskit';
+} from 'canvaskit-wasm';
+import { Uniform } from '../../../infra-sk/modules/uniform/uniform';
 import { ChildShader, ScrapBody, ScrapID } from '../json';
 
 const DEFAULT_SIZE = 512;

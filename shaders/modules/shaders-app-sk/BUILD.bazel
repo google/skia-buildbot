@@ -5,8 +5,9 @@ sk_demo_page_server(
     sk_page = ":shaders-app-sk-demo",
     static_assets = {
         "/dist": [
-            "//shaders/test_bin:canvaskit.js",
-            "//shaders/test_bin:canvaskit.wasm",
+            "//shaders/wasm_libs:canvaskit.js",
+            "//shaders/wasm_libs:canvaskit.wasm",
+            "//shaders/wasm_libs:version.js",
             "//shaders/sources:mandrill_png",
             "//shaders/sources:soccer_png",
         ],
@@ -43,11 +44,11 @@ sk_element(
         "//shaders/modules/edit-child-shader-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:elementsk_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/uniform:uniform_ts_lib",
-        "//shaders/build:wasm_libraries",  # keep
         "//shaders/modules/shadernode:index_ts_lib",
         "@npm//@types/codemirror",
+        "@npm//canvaskit-wasm",
         "@npm//codemirror",
         "@npm//common-sk",
         "@npm//elements-sk",
@@ -63,6 +64,7 @@ sk_element(
 sk_page(
     name = "shaders-app-sk-demo",
     html_file = "shaders-app-sk-demo.html",
+    scss_entry_point = "shaders-app-sk-demo.scss",
     sk_element_deps = [":shaders-app-sk"],
     ts_entry_point = "shaders-app-sk-demo.ts",
 )

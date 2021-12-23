@@ -25,6 +25,7 @@ sk_element(
 sk_page(
     name = "particles-config-sk-demo",
     html_file = "particles-config-sk-demo.html",
+    scss_entry_point = "particles-config-sk-demo.scss",
     sk_element_deps = [":particles-config-sk"],
     ts_deps = ["@npm//common-sk"],
     ts_entry_point = "particles-config-sk-demo.ts",

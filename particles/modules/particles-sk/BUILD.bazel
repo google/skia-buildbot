@@ -12,8 +12,13 @@ sk_demo_page_server(
     sk_page = ":particles-sk-demo",
     static_assets = {
         "/dist": [
-            "//particles/test_bin:canvaskit.js",
-            "//particles/test_bin:canvaskit.wasm",
+            "//particles/wasm_libs:version.js",
+            "//particles/wasm_libs:canvaskit.js",
+            "//particles/wasm_libs:canvaskit.wasm",
+        ],
+        "/img": [
+            # Not quite sure why this is being looked for in /img and not /dist/img.
+            "@npm//:node_modules/jsoneditor/dist/img/jsoneditor-icons.svg",
         ],
     },
 )
@@ -40,7 +45,6 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//particles/build:wasm_libraries",  # keep
         "//particles/modules/json:index_ts_lib",
         "@npm//@types/jsoneditor",
         "@npm//common-sk",
@@ -58,6 +62,7 @@ sk_element(
 sk_page(
     name = "particles-sk-demo",
     html_file = "particles-sk-demo.html",
+    scss_entry_point = "particles-sk-demo.scss",
     sk_element_deps = [":particles-sk"],
     ts_entry_point = "particles-sk-demo.ts",
 )

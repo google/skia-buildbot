@@ -16,3 +16,11 @@ extract_files_from_skia_wasm_container(
     ],
     visibility = ["//particles:__subpackages__"],
 )
+
+genrule(
+    name = "make version file",
+    outs = ["version.js"],
+    # We use LATEST here to make Puppeteer tests more deterministic.
+    cmd = """echo "const SKIA_VERSION = 'LATEST';" > $@""",
+    visibility = ["//particles:__subpackages__"],
+)

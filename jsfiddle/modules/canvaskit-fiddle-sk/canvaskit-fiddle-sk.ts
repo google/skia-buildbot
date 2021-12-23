@@ -1,15 +1,16 @@
 import 'elements-sk/error-toast-sk';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-
-import { SKIA_VERSION } from '../../build/version';
+import { CanvasKitInit as CKInit } from 'canvaskit-wasm';
 import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
-
 import '../../../infra-sk/modules/theme-chooser-sk';
 
-import { CanvasKitInit as CKInit } from '../../build/canvaskit/canvaskit';
 // It is assumed that canvaskit.js has been loaded and this symbol is available globally.
 declare const CanvasKitInit: typeof CKInit;
+
+// It is assumed that this symbol is being provided by a version.js file loaded in before this
+// file.
+declare const SKIA_VERSION: string;
 
 // Main template for this element
 const template = (ele: WasmFiddle) => html` <header>

@@ -5,8 +5,8 @@ sk_demo_page_server(
     sk_page = ":particles-player-sk-demo",
     static_assets = {
         "/dist": [
-            "//particles/test_bin:canvaskit.js",
-            "//particles/test_bin:canvaskit.wasm",
+            "//particles/wasm_libs:canvaskit.js",
+            "//particles/wasm_libs:canvaskit.wasm",
         ],
     },
 )
@@ -17,10 +17,10 @@ sk_element(
     sass_srcs = ["particles-player-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//particles/build:wasm_libraries",  # keep
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "@npm//canvaskit-wasm",
     ],
     ts_srcs = [
         "index.ts",
@@ -32,6 +32,7 @@ sk_element(
 sk_page(
     name = "particles-player-sk-demo",
     html_file = "particles-player-sk-demo.html",
+    scss_entry_point = "particles-player-sk-demo.scss",
     sk_element_deps = [":particles-player-sk"],
     ts_deps = ["@npm//common-sk"],
     ts_entry_point = "particles-player-sk-demo.ts",

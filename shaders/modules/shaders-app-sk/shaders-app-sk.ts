@@ -12,14 +12,14 @@ import { errorMessage } from 'elements-sk/errorMessage';
 import CodeMirror from 'codemirror';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
-import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import type {
   CanvasKit,
   CanvasKitInit as CKInit,
   Surface,
   Canvas,
   Paint,
-} from '../../build/canvaskit/canvaskit';
+} from 'canvaskit-wasm';
+import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/styles/buttons';
@@ -28,8 +28,7 @@ import 'elements-sk/icon/edit-icon-sk';
 import 'elements-sk/icon/add-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { SKIA_VERSION } from '../../build/version';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/uniform-fps-sk';
 import '../../../infra-sk/modules/uniform-time-sk';
 import '../../../infra-sk/modules/uniform-generic-sk';
@@ -49,6 +48,10 @@ import '../edit-child-shader-sk';
 
 // It is assumed that canvaskit.js has been loaded and this symbol is available globally.
 declare const CanvasKitInit: typeof CKInit;
+
+// It is assumed that this symbol is being provided by a version.js file loaded in before this
+// file.
+declare const SKIA_VERSION: string;
 
 // This element might be loaded from a different site, and that means we need
 // to be careful about how we construct the URL back to the canvas.wasm file.
