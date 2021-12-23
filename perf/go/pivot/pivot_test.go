@@ -144,6 +144,27 @@ func TestPivot_SumOperationNoSummary_Success(t *testing.T) {
 	}, df.TraceSet)
 }
 
+func TestPivot_SumOperationNoSummaryExtraKeyInParamSet_GroupsWithNoTracesAreMissingFromResult(t *testing.T) {
+	unittest.SmallTest(t)
+
+	req := Request{
+		GroupBy:   []string{"arch"},
+		Operation: Sum,
+	}
+	df := dataframeForTesting()
+
+	// Add risc-v as an arch.
+	df.ParamSet["arch"] = append(df.ParamSet["arch"], "risc-v")
+	df, err := Pivot(context.Background(), req, df)
+	require.NoError(t, err)
+
+	// Note that risc-v does not appear in result.
+	require.Equal(t, types.TraceSet{
+		",arch=arm,":   types.Trace{11, 22, 33},
+		",arch=intel,": types.Trace{33, 66, 99},
+	}, df.TraceSet)
+}
+
 func TestPivot_SumOperationWithSummary_Success(t *testing.T) {
 	unittest.SmallTest(t)
 

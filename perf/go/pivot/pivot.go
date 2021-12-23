@@ -206,6 +206,9 @@ func Pivot(ctx context.Context, req Request, df *dataframe.DataFrame) (*datafram
 
 	// Do the GroupBy Operation.
 	for groupID, traces := range groupedTraceSets {
+		if len(traces) == 0 {
+			continue
+		}
 		ret.TraceSet[groupID] = opMap[req.Operation].groupByOperation(traces)
 		if ctx.Err() != nil {
 			return nil, skerr.Wrap(ctx.Err())
