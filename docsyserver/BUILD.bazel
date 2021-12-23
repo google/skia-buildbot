@@ -58,14 +58,16 @@ skia_app_container(
         # Install golang.
         "cd && wget https://golang.org/dl/go1.16.2.linux-amd64.tar.gz && tar -xzf go1.16.2.linux-amd64.tar.gz",
 
-        # Install hugo.
-        "cd && git clone https://github.com/gohugoio/hugo.git && cd hugo && ~/go/bin/go install --tags extended",
+        # Install hugo at a pinned version we know works.
+        "cd && git clone https://github.com/gohugoio/hugo.git && cd hugo && git checkout 803f572e66c5e22213ddcc994c41b3e80e9c1f35 " +
+        "&& ~/go/bin/go install --tags extended",
 
         # Install node.
         "cd && wget https://nodejs.org/dist/v14.16.0/node-v14.16.0-linux-x64.tar.gz && tar -xzf node-v14.16.0-linux-x64.tar.gz",
 
-        # Install docsy.
-        "cd && git clone --recurse-submodules --depth 1 https://github.com/google/docsy-example.git docsy && cd docsy",
+        # Install docsy at a pinned version we know works.
+        "cd && git clone --recurse-submodules https://github.com/google/docsy-example.git docsy " +
+        "&& cd docsy && git checkout 70e301f7861122ab129d2c46ee5ed625e92c04d0",
         "PATH=\"/home/skia/node-v14.16.0-linux-x64/bin:${PATH}\"",
         "/home/skia/node-v14.16.0-linux-x64/bin/npm install && rm config.toml && rm -rf content",
         # Copy artifacts over.
