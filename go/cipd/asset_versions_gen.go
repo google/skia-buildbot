@@ -101,27 +101,27 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/cipd/${os}-${arch}": {
 		Path:    ".",
 		Name:    "infra/tools/cipd/${os}-${arch}",
-		Version: "git_revision:749deb20c96c279223a5325eaf327d41ef1716f9",
+		Version: "git_revision:bf4ab713fc43394048f9a6b1000aec74759a6de1",
 	},
 	"infra/tools/git/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/git/${platform}",
-		Version: "git_revision:749deb20c96c279223a5325eaf327d41ef1716f9",
+		Version: "git_revision:bf4ab713fc43394048f9a6b1000aec74759a6de1",
 	},
 	"infra/tools/luci-auth/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci-auth/${platform}",
-		Version: "git_revision:749deb20c96c279223a5325eaf327d41ef1716f9",
+		Version: "git_revision:bf4ab713fc43394048f9a6b1000aec74759a6de1",
 	},
 	"infra/tools/luci/git-credential-luci/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/git-credential-luci/${platform}",
-		Version: "git_revision:749deb20c96c279223a5325eaf327d41ef1716f9",
+		Version: "git_revision:bf4ab713fc43394048f9a6b1000aec74759a6de1",
 	},
 	"infra/tools/luci/isolate/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/isolate/${platform}",
-		Version: "git_revision:749deb20c96c279223a5325eaf327d41ef1716f9",
+		Version: "git_revision:bf4ab713fc43394048f9a6b1000aec74759a6de1",
 	},
 	"infra/tools/luci/isolated/${platform}": {
 		Path:    "cipd_bin_packages",
@@ -131,27 +131,27 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/luci/kitchen/${platform}": {
 		Path:    ".",
 		Name:    "infra/tools/luci/kitchen/${platform}",
-		Version: "git_revision:749deb20c96c279223a5325eaf327d41ef1716f9",
+		Version: "git_revision:bf4ab713fc43394048f9a6b1000aec74759a6de1",
 	},
 	"infra/tools/luci/lucicfg/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/lucicfg/${platform}",
-		Version: "git_revision:749deb20c96c279223a5325eaf327d41ef1716f9",
+		Version: "git_revision:bf4ab713fc43394048f9a6b1000aec74759a6de1",
 	},
 	"infra/tools/luci/swarming/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/swarming/${platform}",
-		Version: "git_revision:749deb20c96c279223a5325eaf327d41ef1716f9",
+		Version: "git_revision:bf4ab713fc43394048f9a6b1000aec74759a6de1",
 	},
 	"infra/tools/luci/vpython-native/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/vpython-native/${platform}",
-		Version: "git_revision:749deb20c96c279223a5325eaf327d41ef1716f9",
+		Version: "git_revision:bf4ab713fc43394048f9a6b1000aec74759a6de1",
 	},
 	"infra/tools/luci/vpython/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/vpython/${platform}",
-		Version: "git_revision:749deb20c96c279223a5325eaf327d41ef1716f9",
+		Version: "git_revision:bf4ab713fc43394048f9a6b1000aec74759a6de1",
 	},
 	"skia/bots/bazel": {
 		Path:    "bazel",
@@ -201,6 +201,6 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/goldctl/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "skia/tools/goldctl/${platform}",
-		Version: "git_revision:749deb20c96c279223a5325eaf327d41ef1716f9",
+		Version: "git_revision:bf4ab713fc43394048f9a6b1000aec74759a6de1",
 	},
 }
