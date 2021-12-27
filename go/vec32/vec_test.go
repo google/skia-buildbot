@@ -158,38 +158,24 @@ func TestDup(t *testing.T) {
 	assert.Equal(t, a, b)
 }
 
-func TestMean(t *testing.T) {
+func TestMean_ReturnsZeroIfAllMissing(t *testing.T) {
 	unittest.SmallTest(t)
-	testCases := []struct {
-		Slice []float32
-		Mean  float32
-	}{
-		{
-			Slice: []float32{1, 2, e, 0},
-			Mean:  1.0,
-		},
-		{
-			Slice: []float32{},
-			Mean:  0.0,
-		},
-		{
-			Slice: []float32{e},
-			Mean:  0.0,
-		},
-		{
-			Slice: []float32{e, e},
-			Mean:  0.0,
-		},
-		{
-			Slice: []float32{1, 5},
-			Mean:  3.0,
-		},
-	}
-	for _, tc := range testCases {
-		if got, want := Mean(tc.Slice), tc.Mean; !near(got, want) {
-			t.Errorf("Mean(%v) Got %v Want %v", tc.Slice, got, want)
-		}
-	}
+
+	assert.Equal(t, float32(1), Mean([]float32{1, 2, e, 0}))
+	assert.Equal(t, float32(0), Mean([]float32{}))
+	assert.Equal(t, float32(0), Mean([]float32{e}))
+	assert.Equal(t, float32(0), Mean([]float32{e, e}))
+	assert.Equal(t, float32(3), Mean([]float32{1, 5}))
+}
+
+func TestMeanE_ReturnsMissingIfAllMissing(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Equal(t, float32(1), MeanE([]float32{1, 2, e, 0}))
+	assert.Equal(t, float32(e), MeanE([]float32{}))
+	assert.Equal(t, float32(e), MeanE([]float32{e}))
+	assert.Equal(t, float32(e), MeanE([]float32{e, e}))
+	assert.Equal(t, float32(3), MeanE([]float32{1, 5}))
 }
 
 func TestSSE(t *testing.T) {
@@ -728,4 +714,46 @@ func TestSum(t *testing.T) {
 	assert.Equal(t, float32(0), Sum(nil))
 	assert.Equal(t, float32(0), Sum([]float32{e}))
 	assert.Equal(t, float32(3), Sum([]float32{e, 1, 2}))
+}
+
+func TestGeo_ReturnsZeroIfAllMissing(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, float32(4), Geo([]float32{2, 8}), "4 = sqrt(2*8)")
+	assert.Equal(t, float32(0), Geo([]float32{-2, -8}), "Return 0 on all ignored.")
+	assert.Equal(t, float32(8), Geo([]float32{-2, 8}), "Ignore negative numbers.")
+	assert.Equal(t, float32(2), Geo([]float32{2, e}), "Ingore MissingDataSentinels.")
+	assert.Equal(t, float32(0), Geo([]float32{}), "Return 0 on empty vector.")
+}
+
+func TestGeoE_ReturnsMissingIfAllMissing(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, float32(4), GeoE([]float32{2, 8}), "4 = sqrt(2*8)")
+	assert.Equal(t, float32(e), GeoE([]float32{-2, -8}), "Return 0 on all ignored.")
+	assert.Equal(t, float32(8), GeoE([]float32{-2, 8}), "Ignore negative numbers.")
+	assert.Equal(t, float32(2), GeoE([]float32{2, e}), "Ingore MissingDataSentinels.")
+	assert.Equal(t, float32(e), GeoE([]float32{}), "Return 0 on empty vector.")
+}
+
+func TestCount(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, float32(0), Count([]float32{}), "Empty returns 0.")
+	assert.Equal(t, float32(0), Count([]float32{e}), "MissingDataSentinels are ignored")
+	assert.Equal(t, float32(2), Count([]float32{1, 3}), "Counts all non-MissingDataSentinels values")
+	assert.Equal(t, float32(2), Count([]float32{1, e, 3}), "Ingores MissingDataSentinels")
+}
+
+func TestMin(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, float32(math.MaxFloat32), Min([]float32{}))
+	assert.Equal(t, float32(math.MaxFloat32), Min([]float32{e}))
+	assert.Equal(t, float32(2), Min([]float32{2}))
+	assert.Equal(t, float32(3), Min([]float32{5, e, 3}))
+}
+
+func TestMax(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, float32(-math.MaxFloat32), Max([]float32{}))
+	assert.Equal(t, float32(-math.MaxFloat32), Max([]float32{e}))
+	assert.Equal(t, float32(2), Max([]float32{2}))
+	assert.Equal(t, float32(5), Max([]float32{5, e, 3}))
 }

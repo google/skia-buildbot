@@ -803,6 +803,8 @@ export class ExploreSk extends ElementSk {
 
   private paramsetChanged(e: CustomEvent<ParamSet>) {
     this.query!.paramset = e.detail as CommonSkParamSet;
+    this.pivotControl!.paramset = e.detail;
+    this._render();
   }
 
   private queryChangeDelayedHandler(

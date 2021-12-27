@@ -21,7 +21,7 @@ const (
 )
 
 // New creates a new []float32 of the given size pre-populated
-// with MISSING_DATA_SENTINEL.
+// with MissingDataSentinenl.
 func New(size int) []float32 {
 	ret := make([]float32, size)
 	for i := range ret {
@@ -31,7 +31,7 @@ func New(size int) []float32 {
 }
 
 // MeanAndStdDev returns the mean, stddev, and if an error occurred while doing
-// the calculation. MISSING_DATA_SENTINELs are ignored.
+// the calculation. MissingDataSentinenls are ignored.
 func MeanAndStdDev(a []float32) (float32, float32, error) {
 	count := 0
 	sum := float32(0.0)
@@ -89,7 +89,7 @@ func (p float32Slice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // value of 0. This implies that the distribution of samples from a benchmark
 // are skewed.
 //
-// MISSING_DATA_SENTINELs are ignored.
+// MissingDataSentinenls are ignored.
 //
 // The median is chosen as the midpoint instead of the mean because that ensures
 // that both sides have the same number of points (+/- 1).
@@ -277,7 +277,7 @@ func Fill(a []float32) {
 }
 
 // FillAt returns the value at the given index of a vector, using non-sentinel
-// values with nearby points if the original is MISSING_DATA_SENTINEL.
+// values with nearby points if the original is MissingDataSentinenl.
 //
 // Note that the input vector is unchanged.
 //
@@ -302,8 +302,19 @@ func Dup(a []float32) []float32 {
 
 // Mean calculates and returns the Mean value of the given []float32.
 //
-// Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.
+// Returns 0 for an array with no non-MissingDataSentinenl values.
 func Mean(xs []float32) float32 {
+	ret := MeanE(xs)
+	if ret == MissingDataSentinel {
+		return 0
+	}
+	return ret
+}
+
+// MeanE calculates and returns the Mean value of the given []float32.
+//
+// Returns MissingDataSentinenl for an array with no non-MissingDataSentinenl values.
+func MeanE(xs []float32) float32 {
 	total := float32(0.0)
 	n := 0
 	for _, v := range xs {
@@ -313,27 +324,44 @@ func Mean(xs []float32) float32 {
 		}
 	}
 	if n == 0 {
-		return total
+		return MissingDataSentinel
 	}
 	return total / float32(n)
 }
 
 // Sum calculates and returns the sum of the given []float32.
 //
-// Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.
+// Returns 0 for an array with no non-MissingDataSentinenl values.
 func Sum(xs []float32) float32 {
-	total := float32(0.0)
+	total := SumE(xs)
+	if total == MissingDataSentinel {
+		return 0
+	}
+	return total
+}
+
+// SumE calculates and returns the sum of the given []float32.
+//
+// Returns MissingDataSentinenl for an array with no non-MissingDataSentinenl values.
+func SumE(xs []float32) float32 {
+	total := float32(0)
+	count := 0
 	for _, v := range xs {
 		if v != MissingDataSentinel {
 			total += v
+			count++
 		}
 	}
+	if count == 0 {
+		return MissingDataSentinel
+	}
+
 	return total
 }
 
 // MeanMissing calculates and returns the Mean value of the given []float32.
 //
-// Returns MISSING_DATA_SENTINEL for an array with all MISSING_DATA_SENTINEL values.
+// Returns MissingDataSentinenl for an array with all MissingDataSentinenl values.
 func MeanMissing(xs []float32) float32 {
 	total := float32(0.0)
 	n := 0
@@ -361,8 +389,8 @@ func FillMeanMissing(a []float32) {
 
 // FillStdDev fills the slice with the Standard Deviation of the values in the slice.
 //
-// If slice is filled with only MISSING_DATA_SENTINEL then the slice will be
-// filled with MISSING_DATA_SENTINEL.
+// If slice is filled with only MissingDataSentinenl then the slice will be
+// filled with MissingDataSentinenl.
 func FillStdDev(a []float32) {
 	_, stddev, err := MeanAndStdDev(a)
 	if err != nil {
@@ -376,8 +404,8 @@ func FillStdDev(a []float32) {
 
 // FillCov fills the slice with the Coefficient of Variation of the values in the slice.
 //
-// If the mean is 0 or the slice is filled with only MISSING_DATA_SENTINEL then
-// the slice will be filled with MISSING_DATA_SENTINEL.
+// If the mean is 0 or the slice is filled with only MissingDataSentinenl then
+// the slice will be filled with MissingDataSentinenl.
 func FillCov(a []float32) {
 	mean, stddev, err := MeanAndStdDev(a)
 	cov := MissingDataSentinel
@@ -395,7 +423,7 @@ func FillCov(a []float32) {
 
 // ssen calculates and returns the sum squared error from the given base of []float32.
 //
-// Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.
+// Returns 0 for an array with no non-MissingDataSentinenl values.
 func ssen(xs []float32, base float32) (float32, int) {
 	total := float32(0.0)
 	n := 0
@@ -410,7 +438,7 @@ func ssen(xs []float32, base float32) (float32, int) {
 
 // SSE calculates and returns the sum squared error from the given base of []float32.
 //
-// Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.
+// Returns 0 for an array with no non-MissingDataSentinenl values.
 func SSE(xs []float32, base float32) float32 {
 	total, _ := ssen(xs, base)
 	return total
@@ -430,8 +458,8 @@ func StdDev(xs []float32, base float32) float32 {
 // the ave of the first half of the trace values divided by the ave of the
 // second half of the trace values.
 //
-// If the second mean is 0 or the slice is filled with only MISSING_DATA_SENTINEL then
-// the slice will be filled with MISSING_DATA_SENTINEL.
+// If the second mean is 0 or the slice is filled with only MissingDataSentinenl then
+// the slice will be filled with MissingDataSentinenl.
 func FillStep(a []float32) {
 	mid := len(a) / 2
 
@@ -455,6 +483,77 @@ func ToFloat64(in []float32) []float64 {
 	ret := make([]float64, len(in))
 	for i, x := range in {
 		ret[i] = float64(x)
+	}
+	return ret
+}
+
+// Geo takes the geomentric mean of all the values in the trace, ignoring
+// negative values and MissingDataSentinels. If no values match that critera
+// then it returns 0.
+func Geo(a []float32) float32 {
+	ret := GeoE(a)
+	if ret == MissingDataSentinel {
+		return 0
+	}
+	return ret
+}
+
+// GeoE takes the geomentric mean of all the values in the trace, ignoring
+// negative values and MissingDataSentinels. If no values match that critera
+// then it returns MissingDataSentinel.
+func GeoE(a []float32) float32 {
+	var ret float32 = MissingDataSentinel
+	count := 0
+	sumLog := 0.0
+	for _, x := range a {
+		if x >= 0 && x != MissingDataSentinel {
+			sumLog += math.Log(float64(x))
+			count++
+		}
+	}
+	if count > 0 {
+		// The geometric mean is the N-th root of the product of N terms.
+		// In log-space, the root becomes a division, then we translate back to normal space.
+		ret = float32(math.Exp(sumLog / float64(count)))
+	}
+	return ret
+}
+
+// Count the number of non MissingDataSentinel values in a vector.
+func Count(a []float32) float32 {
+	count := 0
+	for _, x := range a {
+		if x != MissingDataSentinel {
+			count++
+		}
+	}
+	return float32(count)
+}
+
+// Min returns the smallest value in the vector, or math.MaxFloat32 if no
+// non-MissingDataSentinel values are found.
+func Min(a []float32) float32 {
+	ret := float32(math.MaxFloat32)
+	for _, x := range a {
+		if x != MissingDataSentinel {
+			if x < ret {
+				ret = x
+			}
+		}
+	}
+	return ret
+}
+
+// Max returns the largest value in the vector, or math.MinFloat32 if no
+// non-MissingDataSentinel values are found.
+func Max(a []float32) float32 {
+	ret := float32(-math.MaxFloat32)
+	for _, x := range a {
+		if x != MissingDataSentinel {
+			if x > ret {
+				ret = x
+			}
+		}
 	}
 	return ret
 }

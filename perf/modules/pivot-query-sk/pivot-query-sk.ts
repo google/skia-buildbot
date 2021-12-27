@@ -13,12 +13,7 @@ import { ParamSet, pivot } from '../json';
 import 'elements-sk/multi-select-sk';
 import 'elements-sk/select-sk';
 import 'elements-sk/styles/select';
-import { validatePivotRequest } from '../pivotutil';
-
-const operationDescriptions: {[key in pivot.Operation]: string} = {
-  sum: 'sum - Add all the values together',
-  avg: 'avg - Take the average of all the values.',
-};
+import { operationDescriptions, validatePivotRequest } from '../pivotutil';
 
 const sortedOps = Object.keys(operationDescriptions).sort() as pivot.Operation[];
 

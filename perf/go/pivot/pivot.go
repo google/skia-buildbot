@@ -73,12 +73,17 @@ type Operation string
 
 // Operation constants.
 const (
-	Sum Operation = "sum"
-	Avg Operation = "avg"
+	Sum   Operation = "sum"
+	Avg   Operation = "avg"
+	Geo   Operation = "geo"
+	Std   Operation = "std"
+	Count Operation = "count"
+	Min   Operation = "min"
+	Max   Operation = "max"
 )
 
 // AllOperations for exporting to TypeScript.
-var AllOperations = []Operation{Sum, Avg}
+var AllOperations = []Operation{Sum, Avg, Geo, Std, Count, Min, Max}
 
 // Request controls how a pivot is done.
 type Request struct {
@@ -104,17 +109,45 @@ type operationFunctions struct {
 	summaryOperation summaryOperation
 }
 
+func stdDev(a []float32) float32 {
+	_, stddev, err := vec32.MeanAndStdDev(a)
+	if err != nil {
+		return vec32.MissingDataSentinel
+	}
+	return stddev
+}
+
 // opMap contains all the known operation implementations for both GroupBy and
 // Summary operations. Keeping it in a table like this ensures that we always
 // have both groupBy and summary functions available.
 var opMap map[Operation]operationFunctions = map[Operation]operationFunctions{
 	Sum: {
 		groupByOperation: calc.SumFuncImpl,
-		summaryOperation: vec32.Sum,
+		summaryOperation: vec32.SumE,
 	},
 	Avg: {
 		groupByOperation: calc.AveFuncImpl,
-		summaryOperation: vec32.Mean,
+		summaryOperation: vec32.MeanE,
+	},
+	Geo: {
+		groupByOperation: calc.GeoFuncImpl,
+		summaryOperation: vec32.GeoE,
+	},
+	Std: {
+		groupByOperation: calc.StdDevFuncImpl,
+		summaryOperation: stdDev,
+	},
+	Count: {
+		groupByOperation: calc.CountFuncImpl,
+		summaryOperation: vec32.Count,
+	},
+	Min: {
+		groupByOperation: calc.MinFuncImpl,
+		summaryOperation: vec32.Min,
+	},
+	Max: {
+		groupByOperation: calc.MaxFuncImpl,
+		summaryOperation: vec32.Max,
 	},
 }
 

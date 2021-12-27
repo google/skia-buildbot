@@ -1,5 +1,16 @@
 import { pivot } from '../json';
 
+/** Maps pivot.Operations to human readable names. */
+export const operationDescriptions: {[key in pivot.Operation]: string} = {
+  sum: 'Sum',
+  avg: 'Mean',
+  geo: 'Geometric Mean',
+  std: 'Standard Deviation',
+  count: 'Count',
+  min: 'Minimum',
+  max: 'Maximum',
+};
+
 /** Returns a non-empty string with the error message if the pivot.Request is
  * invalid.
  */

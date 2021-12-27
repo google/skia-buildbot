@@ -317,7 +317,7 @@ export type Trace = number[];
 
 export type TraceSet = { [key: string]: Trace };
 
-export namespace pivot { export type Operation = "sum" | "avg"; }
+export namespace pivot { export type Operation = "sum" | "avg" | "geo" | "std" | "count" | "min" | "max"; }
 
 export type ClusterAlgo = "kmeans" | "stepfit";
 

@@ -15,7 +15,7 @@ import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { pivot, DataFrame } from '../json';
-import { validateAsPivotTable } from '../pivotutil';
+import { operationDescriptions, validateAsPivotTable } from '../pivotutil';
 
 import 'elements-sk/icon/sort-icon-sk';
 import 'elements-sk/icon/arrow-drop-down-icon-sk';
@@ -66,7 +66,7 @@ export class PivotTableSk extends ElementSk {
     return html`
     <tr>
       <th>${this.sortArrow(-1)} Group</th>
-      ${this.req!.summary!.map((summaryOperation, index) => html`<th>${this.sortArrow(index)} ${summaryOperation}</th>`)}
+      ${this.req!.summary!.map((summaryOperation, index) => html`<th>${this.sortArrow(index)} ${operationDescriptions[summaryOperation]}</th>`)}
     </tr>`;
   }
 
@@ -121,7 +121,17 @@ export class PivotTableSk extends ElementSk {
   }
 
   private rowValues(key: string): TemplateResult[] {
-    return this.df!.traceset[key]!.map((value) => html`<td>${value.toPrecision(4)}</td>`);
+    return this.df!.traceset[key]!.map((value) => html`<td>${PivotTableSk.displayValue(value)}</td>`);
+  }
+
+  /** Converts vec32.MissingDataSentinel values into '-'. */
+  private static displayValue(value: number): string {
+    // TODO(jcgregorio) Have a common definition of vec32.MissingDataSentinel in
+    // TS and Go code.
+    if (value === 1e32) {
+      return '-';
+    }
+    return value.toPrecision(4);
   }
 }
 

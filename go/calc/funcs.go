@@ -15,6 +15,21 @@ const (
 	MIN_STDDEV = 0.001
 )
 
+// applyFuncToEachColumn applies the given func 'f' to each column in the given TraceSet.
+func applyFuncToEachColumn(rows types.TraceSet, f func(column []float32) float32) types.Trace {
+	ret := newRow(types.TraceSet(rows))
+	for i := range ret {
+		column := vec32.New(len(rows))
+		colIndex := 0
+		for _, r := range rows {
+			column[colIndex] = r[i]
+			colIndex++
+		}
+		ret[i] = f(column)
+	}
+	return ret
+}
+
 type FilterFunc struct{}
 
 // filterFunc is a Func that returns a filtered set of Rows in the Context.
@@ -271,17 +286,8 @@ func (CountFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 		return rows, nil
 	}
 
-	ret := newRow(rows)
-	for i := range ret {
-		count := 0
-		for _, r := range rows {
-			if r[i] != vec32.MissingDataSentinel {
-				count += 1
-			}
-		}
-		ret[i] = float32(count)
-	}
-	return types.TraceSet{ctx.formula: ret}, nil
+	retRow := CountFuncImpl(rows)
+	return types.TraceSet{ctx.formula: retRow}, nil
 }
 
 func (CountFunc) Describe() string {
@@ -289,6 +295,10 @@ func (CountFunc) Describe() string {
 }
 
 var countFunc = CountFunc{}
+
+func CountFuncImpl(rows types.TraceSet) types.Trace {
+	return applyFuncToEachColumn(rows, vec32.Count)
+}
 
 type SumFunc struct{}
 
@@ -320,21 +330,7 @@ func (SumFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 
 // SumFuncImpl sums the values of all argument rows into a single trace.
 func SumFuncImpl(rows types.TraceSet) types.Trace {
-	ret := newRow(types.TraceSet(rows))
-	for i := range ret {
-		sum := float32(0.0)
-		count := 0
-		for _, r := range rows {
-			if v := r[i]; v != vec32.MissingDataSentinel {
-				sum += v
-				count++
-			}
-		}
-		if count > 0 {
-			ret[i] = sum
-		}
-	}
-	return ret
+	return applyFuncToEachColumn(rows, vec32.SumE)
 }
 
 func (SumFunc) Describe() string {
@@ -367,24 +363,8 @@ func (GeoFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 		return rows, nil
 	}
 
-	ret := newRow(rows)
-	for i := range ret {
-		// We're accumulating a product, but in log-space to avoid large N overflow.
-		sumLog := 0.0
-		count := 0
-		for _, r := range rows {
-			if v := r[i]; v >= 0 && v != vec32.MissingDataSentinel {
-				sumLog += math.Log(float64(v))
-				count += 1
-			}
-		}
-		if count > 0 {
-			// The geometric mean is the N-th root of the product of N terms.
-			// In log-space, the root becomes a division, then we translate back to normal space.
-			ret[i] = float32(math.Exp(sumLog / float64(count)))
-		}
-	}
-	return types.TraceSet{ctx.formula: ret}, nil
+	retRow := GeoFuncImpl(rows)
+	return types.TraceSet{ctx.formula: retRow}, nil
 }
 
 func (GeoFunc) Describe() string {
@@ -392,6 +372,11 @@ func (GeoFunc) Describe() string {
 }
 
 var geoFunc = GeoFunc{}
+
+// GeoFuncImpl take the geometric mean of the values of all argument rows into a single trace.
+func GeoFuncImpl(rows types.TraceSet) types.Trace {
+	return applyFuncToEachColumn(rows, vec32.GeoE)
+}
 
 type LogFunc struct{}
 
@@ -600,7 +585,7 @@ func (ScaleByAveFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
 }
 
 func (ScaleByAveFunc) Describe() string {
-	return `Computes a new trace that is scaled by 1/(ave) where ave is the average of the input trace.`
+	return `Computes a new trace t1Ghat is scaled by 1/(ave) where ave is the average of the input trace.`
 }
 
 var scaleByAveFunc = ScaleByAveFunc{}
@@ -639,3 +624,27 @@ func (IQRRFunc) Describe() string {
 }
 
 var iqrrFunc = IQRRFunc{}
+
+// StdDevFuncImpl puts the std deviation of the values of all argument traces
+// into a single trace.
+func StdDevFuncImpl(rows types.TraceSet) types.Trace {
+	return applyFuncToEachColumn(rows, func(column []float32) float32 {
+		_, stddev, err := vec32.MeanAndStdDev(column)
+		if err != nil {
+			return vec32.MissingDataSentinel
+		}
+		return stddev
+	})
+}
+
+// MaxFuncImpl puts the max of the values of all argument traces into a single
+// trace.
+func MaxFuncImpl(rows types.TraceSet) types.Trace {
+	return applyFuncToEachColumn(rows, vec32.Max)
+}
+
+// MinFuncImpl puts the min of the values of all argument traces into a single
+// trace.
+func MinFuncImpl(rows types.TraceSet) types.Trace {
+	return applyFuncToEachColumn(rows, vec32.Min)
+}

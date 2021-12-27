@@ -20,6 +20,7 @@ go_library(
 go_test(
     name = "calc_test",
     srcs = [
+        "funcs_test.go",
         "lex_test.go",
         "parser_test.go",
     ],
