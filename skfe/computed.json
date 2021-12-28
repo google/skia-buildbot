@@ -1211,32 +1211,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "push",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "push",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "push",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "pushgateway",
           "endpoints": [
             {
@@ -3606,23 +3580,6 @@
                           },
                           "route": {
                             "cluster": "prometheus",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "push.skia.org",
-                      "name": "push.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "push",
                             "timeout": {
                               "seconds": 600
                             }

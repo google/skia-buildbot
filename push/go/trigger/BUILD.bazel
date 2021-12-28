@@ -1,9 +1,0 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
-
-go_library(
-    name = "trigger",
-    srcs = ["trigger.go"],
-    importpath = "go.skia.org/infra/push/go/trigger",
-    visibility = ["//visibility:public"],
-    deps = ["@org_golang_google_api//compute/v1:compute"],
-)
