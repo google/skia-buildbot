@@ -85,7 +85,6 @@ build-frontend-ci: npm-ci
 	cd fiddlek && $(MAKE) build-frontend-ci
 	cd infra-sk && $(MAKE) build-frontend-ci
 	cd new_element && $(MAKE) build-frontend-ci
-	cd skottie && $(MAKE) build-frontend-ci
 	cd status && $(MAKE) build-frontend-ci
 	cd task_driver && $(MAKE) build-frontend-ci
 	cd task_scheduler && $(MAKE) build-frontend-ci
