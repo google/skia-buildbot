@@ -142,6 +142,7 @@ func TestPivot_SumOperationNoSummary_Success(t *testing.T) {
 		",arch=arm,device=Nexus7,":   types.Trace{10, 20, 30},
 		",arch=intel,device=Nexus7,": types.Trace{30, 60, 90},
 	}, df.TraceSet)
+	require.NotEmpty(t, df.ParamSet)
 }
 
 func TestPivot_SumOperationNoSummaryExtraKeyInParamSet_GroupsWithNoTracesAreMissingFromResult(t *testing.T) {
@@ -182,6 +183,8 @@ func TestPivot_SumOperationWithSummary_Success(t *testing.T) {
 		",arch=arm,device=Nexus7,":   types.Trace{20, 60},
 		",arch=intel,device=Nexus7,": types.Trace{60, 180},
 	}, df.TraceSet)
+	require.NotEmpty(t, df.ParamSet)
+
 }
 
 func TestPivot_ContextIsCancelled_ReturnsError(t *testing.T) {
