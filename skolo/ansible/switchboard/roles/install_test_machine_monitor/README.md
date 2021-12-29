@@ -53,5 +53,5 @@ For example:
 ```
 $ ansible-playbook ./switchboard/install_test_machine_monitor.yml \
   -l skia-rpi2-rack4-shelf4-006 \
-  --extra-vars test_machine_monitor_version_override=2021-09-19T15:36:31Z-jcgregorio-ba7510fdcda7d3979cc2c0df21fee100e3ba4075-dirty
+  --extra-vars test_machine_monitor_version=2021-09-19T15:36:31Z-jcgregorio-ba7510fdcda7d3979cc2c0df21fee100e3ba4075-dirty
 ```

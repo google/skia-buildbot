@@ -5,8 +5,5 @@ install_test_machine_monitor__start_swarming: False
 # X Windows. Only applies to linux machines.
 install_test_machine_monitor__linux_run_under_desktop: True
 
-# Default to not overriding but rather installing the latest version:
-test_machine_monitor_version_override: ''
-
 # The version of TMM to install:
-test_machine_monitor_version: '{{ test_machine_monitor_version_override }}'
+test_machine_monitor_version: ''
