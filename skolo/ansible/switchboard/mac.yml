@@ -28,5 +28,5 @@
         name: swarming_needs
     - import_role:
         name: switchboard_needs
-    - include_role:
+    - import_role:
         name: install_test_machine_monitor

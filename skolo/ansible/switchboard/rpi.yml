@@ -2,8 +2,6 @@
 - hosts: switchboard_rpis
   user: chrome-bot
   gather_facts: yes
-  vars:
-    test_machine_monitor_version_override: ''
 
   # Using the `roles:` key here causes an error about
   # test_machine_monitor_version being undefined in get_ansible_binaries during
@@ -23,5 +21,3 @@
         name: switchboard_needs
     - import_role:
         name: install_test_machine_monitor
-      vars:
-        test_machine_monitor_version: '{{ test_machine_monitor_version_override }}'

@@ -1,8 +1,6 @@
 - hosts: all_win
   user: chrome-bot
   gather_facts: yes
-  vars:
-    test_machine_monitor_version_override: ''
 
   roles:
     - set_win_skolo_settings
@@ -10,8 +8,6 @@
     - copy_authorized_keys
     - copy_service_account_key
     - swarming_needs
-    - role: install_test_machine_monitor
-      test_machine_monitor_version:
-        '{{ test_machine_monitor_version_override }}'
+    - install_test_machine_monitor
     - install_win_graphics_tools
     - install_vnc_server

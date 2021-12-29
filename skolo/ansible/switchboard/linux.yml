@@ -2,8 +2,6 @@
 - hosts: all_linux
   user: chrome-bot
   gather_facts: yes
-  vars:
-    test_machine_monitor_version_override: ''
 
   roles:
     - copy_authorized_keys
@@ -11,6 +9,4 @@
     - install_collectd
     - swarming_needs
     - switchboard_needs
-    - role: install_test_machine_monitor
-      test_machine_monitor_version:
-        '{{ test_machine_monitor_version_override }}'
+    - install_test_machine_monitor
