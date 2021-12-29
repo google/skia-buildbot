@@ -3,10 +3,10 @@
     # Reference: https://docs.python.org/3.9/using/windows.html#installing-without-ui
     path: https://www.python.org/ftp/python/3.9.7/python-3.9.7-amd64.exe
     arguments:
-    - /quiet
-    - "TargetDir={{ win_python3_path }}"
-    - PrependPath=1
-    - Include_launcher=0
+      - /quiet
+      - 'TargetDir={{ win_python3_path }}'
+      - PrependPath=1
+      - Include_launcher=0
     state: present
 
 - name: Install pywin32
@@ -41,4 +41,11 @@
   # and none of the solutions worked.
   win_lineinfile:
     path: c:\Windows\System32\Drivers\etc\hosts
-    line: "192.168.1.20 metadata"
+    line: '192.168.1.20 metadata'
+
+- name: Stop Swarming from running on its own.
+  win_environment:
+    name: SWARMING_EXTERNAL_BOT_SETUP
+    level: machine
+    state: present
+    value: '1'
