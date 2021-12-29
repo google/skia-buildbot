@@ -30,10 +30,20 @@
 
 - name: Install test_machine_monitor.
   vars:
-    tmm_launch_plist:
+    launch_agents_folder:
       ~{{ skolo_account
-      }}/Library/LaunchAgents/com.google.skia.test_machine_monitor.plist
+      }}/Library/LaunchAgents
+    tmm_launch_plist:
+      '{{ launch_agents_folder }}/com.google.skia.test_machine_monitor.plist'
   block:
+    - name: Make sure LaunchAgents folder is there.
+      file:
+        path: '{{ launch_agents_folder }}'
+        state: directory
+        owner: '{{ skolo_account }}'
+        group: '{{ skolo_group }}'
+        mode: 0755
+
     - name: Install startup job.
       template:
         src: templates/com.google.skia.test_machine_monitor.plist

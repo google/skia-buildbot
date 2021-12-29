@@ -30,6 +30,7 @@
         cmd: curl -O 'https://www.python.org/ftp/python/3.9.6/{{ python_pkg }}'
         chdir: ~{{ skolo_account }}/Downloads
         creates: ~{{ skolo_account }}/Downloads/{{ python_pkg }}
+        warn: false
 
     - name: Run installer.
       become: yes
