@@ -463,15 +463,6 @@ groups:
       abbr: '{{ $labels.envoy_cluster_name }}'
       description: 'Envoy Cluster Not OK for {{ $labels.envoy_cluster_name }}. https://skia.googlesource.com/buildbot/%2B/main/skfe/PROD.md#envoy_cluster_lb_local_cluster_not_ok'
 
-# Push
-  - alert: DirtyPackages
-    expr: min_over_time(dirty_packages[25h]) >= 1
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      description: 'One or more dirty packages have been running for more than 24 hours. https://push.skia.org'
-
 # Docsyserver
   - alert: SkiaDotOrgRefreshFail
     expr: liveness_docsy_docset_refresh_s > 600
