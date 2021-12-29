@@ -1,4 +1,4 @@
-- name: Make temp directory for binaries and trigger `clean_up_tempfile`.
+- name: Make temp directory for binaries.
   delegate_to: 127.0.0.1
   run_once: yes
   tempfile:

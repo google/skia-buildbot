@@ -24,10 +24,12 @@
     python_pkg: python-3.9.6-macos11.pkg
   block:
     - name: Download Python installer.
-      get_url:
-        url: https://www.python.org/ftp/python/3.9.6/{{ python_pkg }}
-        dest: ~{{ skolo_account }}/Downloads
-        checksum: 'sha256:634b77de7d2ef77710950a84bd18d2adae9d252ae204934168c9eecb0c38ea29'
+      # Do this with curl instead of the get_url module because 10.12's Python
+      # has too old a version of TLS to work.
+      command:
+        cmd: curl -O 'https://www.python.org/ftp/python/3.9.6/{{ python_pkg }}'
+        chdir: ~{{ skolo_account }}/Downloads
+        creates: ~{{ skolo_account }}/Downloads/{{ python_pkg }}
 
     - name: Run installer.
       become: yes
