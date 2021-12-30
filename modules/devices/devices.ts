@@ -37,6 +37,7 @@ export const DEVICE_ALIASES: Record<string, string> = {
   mako: 'Nexus 4',
   manta: 'Nexus 10',
   marlin: 'Pixel XL',
+  msm8937: 'JioNext',
   redfin: 'Pixel 5',
   sailfish: 'Pixel',
   sargo: 'Pixel 3a',
@@ -47,5 +48,6 @@ export const DEVICE_ALIASES: Record<string, string> = {
   taimen: 'Pixel2 XL',
   universal7420: 'Galaxy S6',
   walleye: 'Pixel 2',
+  wembley: 'Wembley',
   zerofltetmo: 'Galaxy S6',
 };
