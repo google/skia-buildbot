@@ -751,6 +751,11 @@ export class ExploreSk extends ElementSk {
       // Only enable the Display button if we have a valid pivot.Request and a
       // query.
       this.pivotDisplayButton!.disabled = (validatePivotRequest(e.detail) !== '' || this.query!.current_query.trim() === '');
+      if (!e.detail || e.detail.summary!.length === 0) {
+        this.pivotDisplayButton!.textContent = 'Display';
+      } else {
+        this.pivotDisplayButton!.textContent = 'Display Table';
+      }
   }
 
   private zoomInKey() {
