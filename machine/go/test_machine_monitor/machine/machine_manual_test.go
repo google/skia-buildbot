@@ -26,6 +26,7 @@ const (
 	adbShellGetPropSuccess = `[ro.product.manufacturer]: [asus]`
 	adbShellDumpSysBattery = `This is dumpsys output.`
 	versionForTest         = "some-version-string-for-testing-purposes"
+	maintenanceModeMessage = "This is a note about why the machine was put in maintenance mode."
 )
 
 func setupConfig(t *testing.T) (context.Context, *pubsub.Topic, config.InstanceConfig) {
@@ -175,7 +176,8 @@ func TestStart_FirestoreWritesGetReflectedToMachine(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "my-test-bot-001", m.MachineID)
 
-	assert.False(t, m.GetMaintenanceMode())
+	mode, _ := m.GetMaintenanceMode()
+	assert.False(t, mode)
 
 	// Start just the Firestore watcher.
 	m.startStoreWatch(ctx)
@@ -185,13 +187,16 @@ func TestStart_FirestoreWritesGetReflectedToMachine(t *testing.T) {
 	err = m.store.Update(ctx, "my-test-bot-001", func(machine.Description) machine.Description {
 		ret := machine.NewDescription(ctx)
 		ret.Mode = machine.ModeMaintenance
+		ret.Note.Message = maintenanceModeMessage
 		ret.Dimensions["foo"] = []string{"bar"}
 		return ret
 	})
 	require.NoError(t, err)
 
 	assert.Equal(t, machine.SwarmingDimensions{"foo": {"bar"}}, m.DimensionsForSwarming())
-	assert.True(t, m.GetMaintenanceMode())
+	mode, message := m.GetMaintenanceMode()
+	assert.True(t, mode)
+	assert.Equal(t, maintenanceModeMessage, message)
 
 	// Now change the mode.
 	err = m.store.Update(ctx, "my-test-bot-001", func(machine.Description) machine.Description {
@@ -202,7 +207,8 @@ func TestStart_FirestoreWritesGetReflectedToMachine(t *testing.T) {
 	require.NoError(t, err)
 
 	// Confirm we go out of maintenance mode.
-	assert.False(t, m.GetMaintenanceMode())
+	mode, _ = m.GetMaintenanceMode()
+	assert.False(t, mode)
 
 	// Cancel Go routine inside startStoreWatch.
 	cancel()

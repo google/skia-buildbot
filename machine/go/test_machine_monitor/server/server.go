@@ -87,8 +87,9 @@ func (s *Server) getState(w http.ResponseWriter, r *http.Request) {
 	delete(dict, "quarantined")
 	delete(dict, "maintenance")
 
-	if s.machine.GetMaintenanceMode() {
-		dict["maintenance"] = "Maintenance Mode"
+	inMaintenanceMode, message := s.machine.GetMaintenanceMode()
+	if inMaintenanceMode {
+		dict["maintenance"] = message
 	}
 
 	// TODO(jcgregorio) Also gather/report device temp to Machine State.
