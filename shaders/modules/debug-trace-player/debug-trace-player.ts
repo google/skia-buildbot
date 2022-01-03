@@ -217,7 +217,7 @@ export class DebugTracePlayer {
     const slot: SlotInfo = this.trace!.slots[slotIndex];
 
     if (slot.rows > 1) {
-      return "["  + Math.floor(slot.index / slot.rows) + "][" + slot.index % slot.rows + "]";
+      return "[" + Math.floor(slot.index / slot.rows) + "][" + slot.index % slot.rows + "]";
     }
     if (slot.columns > 1) {
       switch (slot.index) {
