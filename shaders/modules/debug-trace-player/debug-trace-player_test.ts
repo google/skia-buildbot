@@ -289,6 +289,66 @@ const ifStatementShader = String.raw`
   ]
 }`;
 
+const forLoopShader = String.raw`
+{
+  "functions": [{"name": "half4 main(float2 p)", "slot": 0}],
+  "slots": [
+    {"columns": 4, "index": 0, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 0},
+    {"columns": 4, "index": 1, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 2},
+    {"columns": 4, "index": 3, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 3},
+    {"columns": 2, "index": 0, "kind": 0, "line": 2, "name": "p", "rows": 1, "slot": 4},
+    {"columns": 2, "index": 1, "kind": 0, "line": 2, "name": "p", "rows": 1, "slot": 5},
+    {"columns": 1, "index": 0, "kind": 0, "line": 4, "name": "x", "rows": 1, "slot": 6}
+  ],
+  "source": [
+    "                                     // Line 1",
+    "half4 main(float2 p) {               // Line 2",
+    "    p *= 0;                          // Line 3",
+    "    for (float x = 1; x < 3; ++x) {  // Line 4",
+    "        p.y = x;                     // Line 5",
+    "    }                                // Line 6",
+    "    return p.xy01;                   // Line 7",
+    "}                                    // Line 8",
+    ""
+  ],
+  "trace": [
+    [2],
+    [1, 4, 1107361792],
+    [1, 5, 1107361792],
+    [4, 1],
+    [0, 3],
+    [1, 4],
+    [1, 5],
+    [0, 4],
+    [4, 1],
+    [1, 6, 1065353216],
+    [4, 1],
+    [0, 5],
+    [1, 5, 1065353216],
+    [4, -1],
+    [0, 4],
+    [1, 6, 1073741824],
+    [4, 1],
+    [0, 5],
+    [1, 5, 1073741824],
+    [4, -1],
+    [0, 4],
+    [4, -1],
+    [0, 7],
+    [1],
+    [1, 1, 1073741824],
+    [1, 2],
+    [1, 3, 1065353216],
+    [4, -1],
+    [3]
+  ]
+}`;
+
 describe('DebugTrace playback', () => {
   it('Hello World: return green', () => {
     const trace: DebugTrace = Convert.toDebugTrace(trivialGreenShader);
@@ -547,5 +607,54 @@ describe('DebugTrace playback', () => {
     assert.deepEqual(getGlobalVariables(trace, player),
                      ['##[main].result.x = 4', '##[main].result.y = 4',
                       '##[main].result.z = 4', '##[main].result.w = 4']);
+  });
+
+  it('for-loop flow control', () => {
+    const trace: DebugTrace = Convert.toDebugTrace(forLoopShader);
+    const player = new DebugTracePlayer();
+    player.reset(trace);
+
+    assert.deepEqual(player.getLineNumbersReached(), new Map([[3, 1], [4, 3], [5, 2], [7, 1]]));
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 3);
+    assert.deepEqual(player.getLineNumbersReached(), new Map([[3, 0], [4, 3], [5, 2], [7, 1]]));
+    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 32.25', '##p.y = 32.25']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 4);
+    assert.deepEqual(player.getLineNumbersReached(), new Map([[3, 0], [4, 2], [5, 2], [7, 1]]));
+    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 0', '##p.y = 0']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 5);
+    assert.deepEqual(player.getLineNumbersReached(), new Map([[3, 0], [4, 2], [5, 1], [7, 1]]));
+    assert.deepEqual(getLocalVariables(trace, player), ['##x = 1', 'p.x = 0', 'p.y = 0']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 4);
+    assert.deepEqual(player.getLineNumbersReached(), new Map([[3, 0], [4, 1], [5, 1], [7, 1]]));
+    assert.deepEqual(getLocalVariables(trace, player), ['p.x = 0', '##p.y = 1', 'x = 1']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 5);
+    assert.deepEqual(player.getLineNumbersReached(), new Map([[3, 0], [4, 1], [5, 0], [7, 1]]));
+    assert.deepEqual(getLocalVariables(trace, player), ['##x = 2', 'p.x = 0', 'p.y = 1']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 4);
+    assert.deepEqual(player.getLineNumbersReached(), new Map([[3, 0], [4, 0], [5, 0], [7, 1]]));
+    assert.deepEqual(getLocalVariables(trace, player), ['p.x = 0', '##p.y = 2', 'x = 2']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 7);
+    assert.deepEqual(player.getLineNumbersReached(), new Map([[3, 0], [4, 0], [5, 0], [7, 0]]));
+    assert.deepEqual(getLocalVariables(trace, player), ['p.x = 0', 'p.y = 2']);
+    player.step();
+
+    assert.isTrue(player.traceHasCompleted());
+    assert.deepEqual(getGlobalVariables(trace, player),
+                     ['##[main].result.x = 0', '##[main].result.y = 2',
+                      '##[main].result.z = 0', '##[main].result.w = 1']);
   });
 });
