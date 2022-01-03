@@ -412,6 +412,106 @@ const stepOutShader = String.raw`
   ]
 }`;
 
+const varScopeShader = String.raw`
+{
+  "functions": [{"name": "half4 main(float2 p)", "slot": 0}, {"name": "int fn()", "slot": 1}],
+  "slots": [
+    {"columns": 4, "index": 0, "kind": 0, "line": 22, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 0},
+    {"columns": 4, "index": 1, "kind": 0, "line": 22, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 22, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 2},
+    {"columns": 4, "index": 3, "kind": 0, "line": 22, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 3},
+    {"columns": 2, "index": 0, "kind": 0, "line": 22, "name": "p", "rows": 1, "slot": 4},
+    {"columns": 2, "index": 1, "kind": 0, "line": 22, "name": "p", "rows": 1, "slot": 5},
+    {"columns": 1, "index": 0, "kind": 1, "line": 2, "name": "[fn].result", "retval": 1,
+     "rows": 1, "slot": 6},
+    {"columns": 1, "index": 0, "kind": 1, "line": 3, "name": "a", "rows": 1, "slot": 7},
+    {"columns": 1, "index": 0, "kind": 1, "line": 5, "name": "b", "rows": 1, "slot": 8},
+    {"columns": 1, "index": 0, "kind": 1, "line": 7, "name": "c", "rows": 1, "slot": 9},
+    {"columns": 1, "index": 0, "kind": 1, "line": 9, "name": "d", "rows": 1, "slot": 10},
+    {"columns": 1, "index": 0, "kind": 1, "line": 11, "name": "e", "rows": 1, "slot": 11},
+    {"columns": 1, "index": 0, "kind": 1, "line": 13, "name": "f", "rows": 1, "slot": 12},
+    {"columns": 1, "index": 0, "kind": 1, "line": 15, "name": "g", "rows": 1, "slot": 13},
+    {"columns": 1, "index": 0, "kind": 1, "line": 17, "name": "h", "rows": 1, "slot": 14},
+    {"columns": 1, "index": 0, "kind": 1, "line": 19, "name": "i", "rows": 1, "slot": 15}
+  ],
+  "source": [
+    "                            // Line 1",
+    "int fn() {                  // Line 2",
+    "    int a = 1;              // Line 3",
+    "    {                       // Line 4",
+    "        int b = 2;          // Line 5",
+    "        {                   // Line 6",
+    "            int c = 3;      // Line 7",
+    "        }                   // Line 8",
+    "        int d = 4;          // Line 9",
+    "    }                       // Line 10",
+    "    int e = 5;              // Line 11",
+    "    {                       // Line 12",
+    "        int f = 6;          // Line 13",
+    "        {                   // Line 14",
+    "            int g = 7;      // Line 15",
+    "        }                   // Line 16",
+    "        int h = 8;          // Line 17",
+    "    }                       // Line 18",
+    "    int i = 9;              // Line 19",
+    "    return 0;               // Line 20",
+    "}                           // Line 21",
+    "half4 main(float2 p) {      // Line 22",
+    "    return half4(fn());     // Line 23",
+    "}                           // Line 24"
+  ],
+  "trace": [
+    [2],
+    [1, 4, 1107361792],
+    [1, 5, 1107361792],
+    [4, 1],
+    [0, 23],
+    [2, 1],
+    [4, 1],
+    [0, 3],
+    [1, 7, 1],
+    [4, 1],
+    [0, 5],
+    [1, 8, 2],
+    [4, 1],
+    [0, 7],
+    [1, 9, 3],
+    [4, -1],
+    [0, 9],
+    [1, 10, 4],
+    [4, -1],
+    [0, 11],
+    [1, 11, 5],
+    [4, 1],
+    [0, 13],
+    [1, 12, 6],
+    [4, 1],
+    [0, 15],
+    [1, 13, 7],
+    [4, -1],
+    [0, 17],
+    [1, 14, 8],
+    [4, -1],
+    [0, 19],
+    [1, 15, 9],
+    [0, 20],
+    [1, 6],
+    [4, -1],
+    [3, 1],
+    [1],
+    [1, 1],
+    [1, 2],
+    [1, 3],
+    [4, -1],
+    [3]
+  ]
+}`;
+
+
 describe('DebugTrace playback', () => {
   it('Hello World: return green', () => {
     const trace: DebugTrace = Convert.toDebugTrace(trivialGreenShader);
@@ -761,5 +861,58 @@ describe('DebugTrace playback', () => {
     assert.deepEqual(getGlobalVariables(trace, player),
                      ['##[main].result.x = 44', '##[main].result.y = 44',
                       '##[main].result.z = 44', '##[main].result.w = 1']);
+  });
+
+  it('variables fall out of scope', () => {
+    const trace: DebugTrace = Convert.toDebugTrace(varScopeShader);
+    const player = new DebugTracePlayer();
+    player.reset(trace);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 23);
+    player.step();
+
+    // We should now be inside fn().
+    assert.equal(player.getCurrentLine(), 3);
+    assert.deepEqual(getLocalVariables(trace, player), []);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 5);
+    assert.deepEqual(getLocalVariables(trace, player), ['##a = 1']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 7);
+    assert.deepEqual(getLocalVariables(trace, player), ['##b = 2', 'a = 1']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 9);
+    assert.deepEqual(getLocalVariables(trace, player), ['b = 2', 'a = 1']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 11);
+    assert.deepEqual(getLocalVariables(trace, player), ['a = 1']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 13);
+    assert.deepEqual(getLocalVariables(trace, player), ['##e = 5', 'a = 1']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 15);
+    assert.deepEqual(getLocalVariables(trace, player), ['##f = 6', 'e = 5', 'a = 1']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 17);
+    assert.deepEqual(getLocalVariables(trace, player), ['f = 6', 'e = 5', 'a = 1']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 19);
+    assert.deepEqual(getLocalVariables(trace, player), ['e = 5', 'a = 1']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 20);
+    assert.deepEqual(getLocalVariables(trace, player), ['##i = 9', 'e = 5', 'a = 1']);
+    player.stepOut();
+    player.stepOut();
+    assert.isTrue(player.traceHasCompleted());
   });
 });
