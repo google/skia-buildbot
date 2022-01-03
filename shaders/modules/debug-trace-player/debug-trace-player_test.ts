@@ -223,6 +223,72 @@ const variablesShader = String.raw`
   ]
 }`;
 
+const ifStatementShader = String.raw`
+{
+  "functions": [{"name": "half4 main(float2 p)", "slot": 0}],
+  "slots": [
+    {"columns": 4, "index": 0, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 0},
+    {"columns": 4, "index": 1, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 2},
+    {"columns": 4, "index": 3, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 3},
+    {"columns": 2, "index": 0, "kind": 0, "line": 2, "name": "p", "rows": 1, "slot": 4},
+    {"columns": 2, "index": 1, "kind": 0, "line": 2, "name": "p", "rows": 1, "slot": 5},
+    {"columns": 1, "index": 0, "kind": 1, "line": 3, "name": "val", "rows": 1, "slot": 6},
+    {"columns": 1, "index": 0, "kind": 1, "line": 5, "name": "temp", "rows": 1, "slot": 7}
+  ],
+  "source": [
+    "                       // Line 1",
+    "half4 main(float2 p) { // Line 2",
+    "    int val;           // Line 3",
+    "    if (true) {        // Line 4",
+    "        int temp = 1;  // Line 5",
+    "        val = temp;    // Line 6",
+    "    } else {           // Line 7",
+    "        val = 2;       // Line 8",
+    "    }                  // Line 9",
+    "    if (false) {       // Line 10",
+    "        int temp = 3;  // Line 11",
+    "        val = temp;    // Line 12",
+    "    } else {           // Line 13",
+    "        val = 4;       // Line 14",
+    "    }                  // Line 15",
+    "    return half4(val); // Line 16",
+    "}                      // Line 17",
+    ""
+  ],
+  "trace": [
+    [2],
+    [1, 4, 1107361792],
+    [1, 5, 1107361792],
+    [4, 1],
+    [0, 3],
+    [1, 6],
+    [0, 4],
+    [4, 1],
+    [0, 5],
+    [1, 7, 1],
+    [0, 6],
+    [1, 6, 1],
+    [4, -1],
+    [0, 10],
+    [4, 1],
+    [0, 14],
+    [1, 6, 4],
+    [4, -1],
+    [0, 16],
+    [1, 0, 1082130432],
+    [1, 1, 1082130432],
+    [1, 2, 1082130432],
+    [1, 3, 1082130432],
+    [4, -1],
+    [3]
+  ]
+}`;
+
 describe('DebugTrace playback', () => {
   it('Hello World: return green', () => {
     const trace: DebugTrace = Convert.toDebugTrace(trivialGreenShader);
@@ -435,5 +501,51 @@ describe('DebugTrace playback', () => {
     assert.deepEqual(getGlobalVariables(trace, player),
                      ['##[main].result.x = 0', '##[main].result.y = 0.5',
                       '##[main].result.z = 1', '##[main].result.w = 1']);
+  });
+
+  it('if-statement flow control', () => {
+    const trace: DebugTrace = Convert.toDebugTrace(ifStatementShader);
+    const player = new DebugTracePlayer();
+    player.reset(trace);
+
+    assert.deepEqual(player.getLineNumbersReached(), new Map([[3, 1], [4, 1], [5, 1], [6, 1],
+                                                              [10, 1], [14, 1], [16, 1]]));
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 3);
+    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 32.25', '##p.y = 32.25']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 4);
+    assert.deepEqual(getLocalVariables(trace, player), ['##val = 0', 'p.x = 32.25', 'p.y = 32.25']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 5);
+    assert.deepEqual(getLocalVariables(trace, player), ['val = 0', 'p.x = 32.25', 'p.y = 32.25']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 6);
+    assert.deepEqual(getLocalVariables(trace, player),
+                     ['##temp = 1', 'val = 0', 'p.x = 32.25', 'p.y = 32.25']);
+    player.step();
+
+    // We skip over the false-branch.
+    assert.equal(player.getCurrentLine(), 10);
+    assert.deepEqual(getLocalVariables(trace, player), ['##val = 1', 'p.x = 32.25', 'p.y = 32.25']);
+    player.step();
+
+    // We skip over the true-branch.
+    assert.equal(player.getCurrentLine(), 14);
+    assert.deepEqual(getLocalVariables(trace, player), ['val = 1', 'p.x = 32.25', 'p.y = 32.25']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 16);
+    assert.deepEqual(getLocalVariables(trace, player), ['##val = 4', 'p.x = 32.25', 'p.y = 32.25']);
+    player.step();
+
+    assert.isTrue(player.traceHasCompleted());
+    assert.deepEqual(getGlobalVariables(trace, player),
+                     ['##[main].result.x = 4', '##[main].result.y = 4',
+                      '##[main].result.z = 4', '##[main].result.w = 4']);
   });
 });
