@@ -75,6 +75,9 @@ export class DebugTracePlayer {
   // Tracks all the data slots which hold function return values.
   private returnValues: boolean[] = [];
 
+  // Tracks line numbers that have breakpoints set on them.
+  private breakpointLines: Set<number> = new Set();
+
   /** Throws an error if a precondition is not met. Indicates a logic bug or invalid trace. */
   private check(result: boolean): void {
     if (!result) {
@@ -155,7 +158,7 @@ export class DebugTracePlayer {
     while (!this.traceHasCompleted()) {
       const canEscapeFromThisStackDepth = (this.stack.length <= initialStackDepth);
       if (this.execute(this.cursor++)) {
-        if (canEscapeFromThisStackDepth) {
+        if (canEscapeFromThisStackDepth || this.atBreakpoint()) {
           break;
         }
       }
@@ -169,7 +172,19 @@ export class DebugTracePlayer {
     while (!this.traceHasCompleted()) {
       if (this.execute(this.cursor++)) {
         const hasEscapedFromInitialStackDepth = (this.stack.length < initialStackDepth);
-        if (hasEscapedFromInitialStackDepth) {
+        if (hasEscapedFromInitialStackDepth || this.atBreakpoint()) {
+          break;
+        }
+      }
+    }
+  }
+
+  public run() : void {
+    this.tidyState();
+
+    while (!this.traceHasCompleted()) {
+      if (this.execute(this.cursor++)) {
+        if (this.atBreakpoint()) {
           break;
         }
       }
@@ -196,6 +211,26 @@ export class DebugTracePlayer {
   /** Reports the position of the cursor "read head" within the array of trace instructions. */
   public getCursor(): number {
     return this.cursor;
+  }
+
+  /** Returns true if the current line has a breakpoint set on it. */
+  public atBreakpoint(): boolean {
+    return this.breakpointLines.has(this.getCurrentLine());
+  }
+
+  /** Replaces all current breakpoints with a new set of them. */
+  public setBreakpoints(breakpointLines: Set<number>): void {
+    this.breakpointLines = breakpointLines;
+  }
+
+  /** Adds a breakpoint to a line (if one doesn't exist). */
+  public addBreakpoint(line: number): void {
+    this.breakpointLines.add(line);
+  }
+
+  /** Removes a breakpoint from a line (if one exists). */
+  public removeBreakpoint(line: number): void {
+    this.breakpointLines.delete(line);
   }
 
   /** Retrieves the current line. */

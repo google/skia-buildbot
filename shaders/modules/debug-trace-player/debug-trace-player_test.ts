@@ -511,6 +511,91 @@ const varScopeShader = String.raw`
   ]
 }`;
 
+const breakpointShader = String.raw`
+{
+  "functions": [{"name": "half4 main(float2 p)", "slot": 0}, {"name": "void func()", "slot": 1}],
+  "slots": [
+    {"columns": 1, "index": 0, "kind": 1, "line": 2, "name": "counter", "rows": 1, "slot": 0},
+    {"columns": 4, "index": 0, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 1},
+    {"columns": 4, "index": 1, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 2},
+    {"columns": 4, "index": 2, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 3},
+    {"columns": 4, "index": 3, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 4},
+    {"columns": 2, "index": 0, "kind": 0, "line": 6, "name": "p", "rows": 1, "slot": 5},
+    {"columns": 2, "index": 1, "kind": 0, "line": 6, "name": "p", "rows": 1, "slot": 6},
+    {"columns": 1, "index": 0, "kind": 1, "line": 7, "name": "x", "rows": 1, "slot": 7}
+  ],
+  "source": [
+    "                                   // Line 1",
+    "int counter = 0;                   // Line 2",
+    "void func() {                      // Line 3",
+    "    --counter;                     // Line 4   BREAKPOINT 4 5",
+    "}                                  // Line 5",
+    "half4 main(float2 p) {             // Line 6",
+    "    for (int x = 1; x <= 3; ++x) { // Line 7",
+    "        ++counter;                 // Line 8   BREAKPOINT 1 2 3",
+    "    }                              // Line 9",
+    "    func();                        // Line 10",
+    "    func();                        // Line 11",
+    "    ++counter;                     // Line 12  BREAKPOINT 6",
+    "    return half4(counter);         // Line 13",
+    "}                                  // Line 14"
+  ],
+  "trace": [
+    [1],
+    [2],
+    [1, 5, 1107165184],
+    [1, 6, 1107492864],
+    [4, 1],
+    [0, 7],
+    [4, 1],
+    [1, 7, 1],
+    [4, 1],
+    [0, 8],
+    [1, 0, 1],
+    [4, -1],
+    [0, 7],
+    [1, 7, 2],
+    [4, 1],
+    [0, 8],
+    [1, 0, 2],
+    [4, -1],
+    [0, 7],
+    [1, 7, 3],
+    [4, 1],
+    [0, 8],
+    [1, 0, 3],
+    [4, -1],
+    [0, 7],
+    [4, -1],
+    [0, 10],
+    [2, 1],
+    [4, 1],
+    [0, 4],
+    [1, 0, 2],
+    [4, -1],
+    [3, 1],
+    [0, 11],
+    [2, 1],
+    [4, 1],
+    [0, 4],
+    [1, 0, 1],
+    [4, -1],
+    [3, 1],
+    [0, 12],
+    [1, 0, 2],
+    [0, 13],
+    [1, 1, 1073741824],
+    [1, 2, 1073741824],
+    [1, 3, 1073741824],
+    [1, 4, 1073741824],
+    [4, -1],
+    [3]
+  ]
+}`;
 
 describe('DebugTrace playback', () => {
   it('Hello World: return green', () => {
@@ -914,5 +999,96 @@ describe('DebugTrace playback', () => {
     player.stepOut();
     player.stepOut();
     assert.isTrue(player.traceHasCompleted());
+  });
+
+  it('breakpoints fire during run', () => {
+    const trace: DebugTrace = Convert.toDebugTrace(breakpointShader);
+    const player = new DebugTracePlayer();
+    player.reset(trace);
+
+    // Run the simulation with a variety of breakpoints set.
+    player.setBreakpoints(new Set([8, 13, 20]));
+    player.run();
+    assert.equal(player.getCurrentLine(), 8);
+
+    player.run();
+    assert.equal(player.getCurrentLine(), 8);
+
+    player.addBreakpoint(1);
+    player.removeBreakpoint(13);
+    player.addBreakpoint(4);
+    player.removeBreakpoint(20);
+    player.run();
+    assert.equal(player.getCurrentLine(), 8);
+
+    player.run();
+    assert.equal(player.getCurrentLine(), 4);
+
+    player.setBreakpoints(new Set([4, 12, 14]));
+    player.run();
+    assert.equal(player.getCurrentLine(), 4);
+
+    player.run();
+    assert.equal(player.getCurrentLine(), 12);
+
+    player.run();
+    assert.isTrue(player.traceHasCompleted());
+
+    // Run the simulation again with no breakpoints set. We should reach the end of the trace
+    // instantly.
+    player.reset(trace);
+    player.setBreakpoints(new Set());
+    assert.isFalse(player.traceHasCompleted());
+
+    player.run();
+    assert.isTrue(player.traceHasCompleted());
+  });
+
+  it('breakpoints fire during step-over', () => {
+    // Try stepping over with no breakpoint set; we will step over.
+    const trace: DebugTrace = Convert.toDebugTrace(stepOutShader);
+    const player = new DebugTracePlayer();
+    player.reset(trace);
+    player.step();
+    assert.equal(player.getCurrentLine(), 10);
+
+    player.stepOver();
+    assert.isTrue(player.traceHasCompleted());
+
+    // Try stepping over with a breakpoint set; we will stop at the breakpoint.
+    player.reset(trace);
+    player.addBreakpoint(5);
+    player.step();
+    assert.equal(player.getCurrentLine(), 10);
+
+    player.stepOver();
+    assert.equal(player.getCurrentLine(), 5);
+  });
+
+  it('breakpoints fire during step-out', () => {
+    // Try stepping out with no breakpoint set; we will step out.
+    const trace: DebugTrace = Convert.toDebugTrace(stepOutShader);
+    const player = new DebugTracePlayer();
+    player.reset(trace);
+    player.step();
+    assert.equal(player.getCurrentLine(), 10);
+
+    player.step();
+    assert.equal(player.getCurrentLine(), 3);
+
+    player.stepOut();
+    assert.equal(player.getCurrentLine(), 10);
+
+    // Try stepping out with a breakpoint set; we will stop at the breakpoint.
+    player.reset(trace);
+    player.addBreakpoint(6);
+    player.step();
+    assert.equal(player.getCurrentLine(), 10);
+
+    player.step();
+    assert.equal(player.getCurrentLine(), 3);
+
+    player.stepOut();
+    assert.equal(player.getCurrentLine(), 6);
   });
 });
