@@ -349,6 +349,69 @@ const forLoopShader = String.raw`
   ]
 }`;
 
+const stepOutShader = String.raw`
+{
+  "functions": [{"name": "half4 main(float2 p)", "slot": 0}, {"name": "half fn()", "slot": 1}],
+  "slots": [
+    {"columns": 4, "index": 0, "kind": 0, "line": 9, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 0},
+    {"columns": 4, "index": 1, "kind": 0, "line": 9, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 9, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 2},
+    {"columns": 4, "index": 3, "kind": 0, "line": 9, "name": "[main].result", "retval": 0,
+     "rows": 1, "slot": 3},
+    {"columns": 2, "index": 0, "kind": 0, "line": 9, "name": "p", "rows": 1, "slot": 4},
+    {"columns": 2, "index": 1, "kind": 0, "line": 9, "name": "p", "rows": 1, "slot": 5},
+    {"columns": 1, "index": 0, "kind": 0, "line": 2, "name": "[fn].result", "retval": 1,
+     "rows": 1, "slot": 6},
+    {"columns": 1, "index": 0, "kind": 0, "line": 3, "name": "a", "rows": 1, "slot": 7},
+    {"columns": 1, "index": 0, "kind": 0, "line": 4, "name": "b", "rows": 1, "slot": 8},
+    {"columns": 1, "index": 0, "kind": 0, "line": 5, "name": "c", "rows": 1, "slot": 9},
+    {"columns": 1, "index": 0, "kind": 0, "line": 6, "name": "d", "rows": 1, "slot": 10}
+  ],
+  "source": [
+    "                       // Line 1",
+    "half fn() {            // Line 2",
+    "    half a = 11;       // Line 3",
+    "    half b = 22;       // Line 4",
+    "    half c = 33;       // Line 5",
+    "    half d = 44;       // Line 6",
+    "    return d;          // Line 7",
+    "}                      // Line 8",
+    "half4 main(float2 p) { // Line 9",
+    "    return fn().xxx1;  // Line 10",
+    "}                      // Line 11"
+  ],
+  "trace": [
+    [2],
+    [1, 4, 1106640896],
+    [1, 5, 1106640896],
+    [4, 1],
+    [0, 10],
+    [2, 1],
+    [4, 1],
+    [0, 3],
+    [1, 7, 1093664768],
+    [0, 4],
+    [1, 8, 1102053376],
+    [0, 5],
+    [1, 9, 1107558400],
+    [0, 6],
+    [1, 10, 1110441984],
+    [0, 7],
+    [1, 6, 1110441984],
+    [4, -1],
+    [3, 1],
+    [1, 0, 1110441984],
+    [1, 1, 1110441984],
+    [1, 2, 1110441984],
+    [1, 3, 1065353216],
+    [4, -1],
+    [3]
+  ]
+}`;
+
 describe('DebugTrace playback', () => {
   it('Hello World: return green', () => {
     const trace: DebugTrace = Convert.toDebugTrace(trivialGreenShader);
@@ -656,5 +719,47 @@ describe('DebugTrace playback', () => {
     assert.deepEqual(getGlobalVariables(trace, player),
                      ['##[main].result.x = 0', '##[main].result.y = 2',
                       '##[main].result.z = 0', '##[main].result.w = 1']);
+  });
+
+  it('step out from a function', () => {
+    const trace: DebugTrace = Convert.toDebugTrace(stepOutShader);
+    const player = new DebugTracePlayer();
+    player.reset(trace);
+    assert.deepEqual(player.getLineNumbersReached(), new Map([[3, 1], [4, 1], [5, 1],
+                                                              [6, 1], [7, 1], [10, 1]]));
+    player.step();
+
+    // We should now be inside main.
+    assert.equal(player.getCurrentLine(), 10);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)']);
+    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 30.75', '##p.y = 30.75']);
+    player.step();
+
+    // We should now be inside fn.
+    assert.equal(player.getCurrentLine(), 3);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)', 'half fn()']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 4);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)', 'half fn()']);
+    assert.deepEqual(getLocalVariables(trace, player), ['##a = 11']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 5);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)', 'half fn()']);
+    assert.deepEqual(getLocalVariables(trace, player), ['##b = 22', 'a = 11']);
+    player.stepOut();
+
+    // We should now be back inside main(), right where we left off.
+    assert.equal(player.getCurrentLine(), 10);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)']);
+    assert.deepEqual(getLocalVariables(trace, player),
+                     ['##[fn].result = 44', 'p.x = 30.75', 'p.y = 30.75']);
+    player.stepOut();
+
+    assert.isTrue(player.traceHasCompleted());
+    assert.deepEqual(getGlobalVariables(trace, player),
+                     ['##[main].result.x = 44', '##[main].result.y = 44',
+                      '##[main].result.z = 44', '##[main].result.w = 1']);
   });
 });

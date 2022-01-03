@@ -162,6 +162,20 @@ export class DebugTracePlayer {
     }
   }
 
+  public stepOut() : void {
+    this.tidyState();
+    const initialStackDepth = this.stack.length;
+
+    while (!this.traceHasCompleted()) {
+      if (this.execute(this.cursor++)) {
+        const hasEscapedFromInitialStackDepth = (this.stack.length < initialStackDepth);
+        if (hasEscapedFromInitialStackDepth) {
+          break;
+        }
+      }
+    }
+  }
+
   /**
    * Cleans up temporary state between steps, such as the dirty mask and function return values.
    */
