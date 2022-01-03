@@ -82,7 +82,7 @@ def html_insert_assets(
             # Compute the MD5 hash of the file, and convert it to base 10 using Bash. We can't use
             # the full 128 bits of the hash because Bash overflows at 2^63. To play it extra-safe,
             # we take the 32 most significant bits (i.e. the first 8 characters).
-            cmd = "HASH=$$(md5sum $<); echo $$((16#$${HASH:0:8})) > $@",
+            cmd = "HASH=$$(md5sum $< || md5 -r $<); echo $$((16#$${HASH:0:8})) > $@",
         )
 
     native.genrule(
