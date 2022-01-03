@@ -1,9 +1,14 @@
 // These functions will throw an error if the JSON doesn't match the DebugTrace interface, even if
 // the JSON is valid.
 
-import { Convert as GencodeConvert, DebugTrace } from './generate/debug-trace-quicktype';
+import {
+  Convert as GencodeConvert,
+  DebugTrace,
+  Function as FunctionInfo,
+  Slot as SlotInfo
+} from './generate/debug-trace-quicktype';
 
-export { DebugTrace };
+export { DebugTrace, FunctionInfo, SlotInfo };
 
 export class Convert extends GencodeConvert {
   public static toDebugTrace(json: string): DebugTrace {
