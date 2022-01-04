@@ -40,7 +40,9 @@ bazel_release_ci:
 run-local-instance: build
 	../_bazel_bin/shaders/go/shaders/shaders_/shaders --local \
 		--resources_dir ../_bazel_bin/shaders/pages/development \
-		--scrapexchange=http://localhost:9000
+		--scrapexchange=http://localhost:9000 \
+		--port=:8001 \
+		--prom_port=:20001
 
 .PHONY: build-placeholders
 build-placeholders:
