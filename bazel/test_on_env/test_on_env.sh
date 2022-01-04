@@ -2,54 +2,27 @@
 #
 # Runner script for the test_on_env Bazel build rule.
 
-CMDLINE_ARGS=$@
-
 # These will be populated/overwritten from command-line flags.
 TEST_BIN=
 ENV_BIN=
-READY_CHECK_TIMEOUT=5
+READY_CHECK_TIMEOUT=
 
 printUsageAndDie() {
-  echo "Usage: $0 <flags>"
+  echo "Usage: test_on_env.sh <test_bin> <env_bin> <ready_check>"
   echo ""
   echo "Required flags:"
-  echo " -t, --test-bin <path>               path to the test bianry"
-  echo " -e, --env-bin <path>                path to the environment binary"
-  echo ""
-  echo "Optional flags:"
-  echo " -r, --ready-check-timeout-secs <s>  wait up to <s> seconds for the environment to be ready"
+  echo " test_bin: path to the test binary"
+  echo " env_bin: path to the environment binary"
+  echo " ready_check: wait up to <s> seconds for the environment to be ready"
   exit 1
 }
 
 parseFlags() {
-  options=$(getopt -u --name $0 \
-                   --options t:e:r: \
-                   --longoptions test-bin:,env-bin:,ready-check-timeout-secs: \
-                   -- ""$CMDLINE_ARGS"")
-  if [ $? != "0" ]; then
-    printUsageAndDie
-  fi
-  set -- $options
-
-  while true; do
-    case "$1"
-    in
-      -t|--test-bin)
-        TEST_BIN="$2"; shift;;
-      -e|--env-bin)
-        ENV_BIN="$2"; shift;;
-      -r|--ready-check-timeout-secs)
-        READY_CHECK_TIMEOUT="$2"; shift;;
-      --)
-        shift; break;;
-      *)
-        printUsageAndDie;;
-    esac
-    shift
-  done
-
+  TEST_BIN=$1
+  ENV_BIN=$2
+  READY_CHECK_TIMEOUT=$3
   # Validate required flags.
-  if [[ -z "$TEST_BIN" || -z "$ENV_BIN" ]]; then
+  if [[ -z "$TEST_BIN" || -z "$ENV_BIN" || -z "$READY_CHECK_TIMEOUT" ]]; then
     printUsageAndDie
   fi
 }
@@ -59,7 +32,7 @@ log() {
 }
 
 main() {
-  parseFlags
+  parseFlags $@
 
   # Set shared environment variables. Both the environment and the test binaries will see this.
   export ENV_DIR=$TEST_TMPDIR/envdir
@@ -109,4 +82,4 @@ main() {
   exit $test_exit_code
 }
 
-main
+main $@

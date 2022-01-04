@@ -46,9 +46,9 @@ def test_on_env(name, test, env, timeout_secs = 10, tags = []):
         name = name,
         srcs = ["//bazel/test_on_env:test_on_env.sh"],
         args = [
-            "--test-bin $(location %s)" % test,
-            "--env-bin $(location %s)" % env,
-            "--ready-check-timeout-secs %d" % timeout_secs,
+            "$(location %s)" % test,  # TEST_BIN
+            "$(location %s)" % env,  # ENV_BIN
+            "%d" % timeout_secs,  # READY_CHECK_TIMEOUT
         ],
         data = [test, env],
         tags = tags,
