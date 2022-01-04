@@ -1,0 +1,29 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "codesizeserver",
+    dirs = {
+        "/usr/local/bin/codesizeserver": [
+            [
+                "//codesize/go/codesizeserver:codesizeserver",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/codesizeserver/dist": [
+            [
+                "//codesize/pages:production/index.css",
+                "0644",
+            ],
+            [
+                "//codesize/pages:production/index.html",
+                "0644",
+            ],
+            [
+                "//codesize/pages:production/index.js",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/codesizeserver/codesizeserver",
+    repository = "skia-public/codesizeserver",
+)
