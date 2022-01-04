@@ -2,12 +2,7 @@
 <html>
 <head>
   <title>SKP Debugger</title>
-  <link rel="shortcut icon" href="/dist/favicon.png">
-  <!-- have the browser load the wasm-loading js instead of the typescript compiler
-
-    Though it would compile, it doesn't work. The code that references it finds DebuggerInit
-    undefined unless it is loaded here. I suspect this could be fixed by having debugger's
-    helper.js be written in TypeScript with proper export function. TODO(nifong): investigate this -->
+  <link rel="shortcut icon" href="/dist/img/favicon.png">
   <script src="/dist/debugger.js"></script>
   <script src="/dist/version.js"></script>
 </head>

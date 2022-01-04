@@ -1,0 +1,60 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "android-layers-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["android-layers-sk.scss"],
+    sk_element_deps = [
+        "//debugger-app/modules/commands-sk",
+        "//debugger-app/modules/cycler-button-sk",
+        "//debugger-app/modules/element-doc-sk",
+    ],
+    ts_deps = [
+        "//debugger-app/modules:debugger_ts_lib",
+        "//debugger-app/modules:events_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "android-layers-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "android-layers-sk-demo",
+    html_file = "android-layers-sk-demo.html",
+    sk_element_deps = [":android-layers-sk"],
+    ts_entry_point = "android-layers-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "android-layers-sk_puppeteer_test",
+    src = "android-layers-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "android-layers-sk_test",
+    src = "android-layers-sk_test.ts",
+    deps = [
+        ":android-layers-sk",
+        "//debugger-app/modules:debugger_ts_lib",
+        "//debugger-app/modules:default-map_ts_lib",
+        "//debugger-app/modules/commands-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":android-layers-sk-demo",
+)

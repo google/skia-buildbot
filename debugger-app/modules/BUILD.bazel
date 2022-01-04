@@ -1,0 +1,29 @@
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
+
+karma_test(
+    name = "default-map_test",
+    src = "default-map_test.ts",
+    deps = [
+        ":default-map_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+ts_library(
+    name = "default-map_ts_lib",
+    srcs = ["default-map.ts"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "events_ts_lib",
+    srcs = ["events.ts"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "debugger_ts_lib",
+    srcs = ["debugger.ts"],
+    visibility = ["//visibility:public"],
+)

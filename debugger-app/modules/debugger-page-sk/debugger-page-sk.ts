@@ -24,7 +24,7 @@
  *       [               ] <- render-cursor -- [ page-sk   ] -- render-cursor -> [         ]
  */
 import { define } from 'elements-sk/define';
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 import { errorMessage } from 'elements-sk/errorMessage';
 import 'elements-sk/tabs-sk';
 import 'elements-sk/tabs-panel-sk';
@@ -283,7 +283,7 @@ export class DebuggerPageSk extends ElementDocSk {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this._androidLayersSk = this.querySelector<AndroidLayersSk>('android-layers-sk')!;
@@ -351,7 +351,7 @@ export class DebuggerPageSk extends ElementDocSk {
     });
   }
 
-  private _checkUrlParams() {
+  private _checkUrlParams(): void {
     const params = new URLSearchParams(window.location.search);
     if (params.has('url')) {
       const skpurl = params.get('url')!;
@@ -368,7 +368,7 @@ export class DebuggerPageSk extends ElementDocSk {
   // Searches for the command which left the given pixel in it's current color,
   // Updates the Jump button with the result.
   // Consider disabling this feature alltogether for CPU backed debugging, too slow.
-  private _updateJumpButton(p: Point) {
+  private _updateJumpButton(p: Point): void {
     if (!this._debugViewSk!.crosshairActive) {
       return; // Too slow to do this on every mouse move.
     }
@@ -379,12 +379,12 @@ export class DebuggerPageSk extends ElementDocSk {
   }
 
   // Template helper rendering a number[][] in a table
-  private _matrixTable(m: Matrix3x3 | Matrix4x4) {
+  private _matrixTable(m: Matrix3x3 | Matrix4x4): TemplateResult[] {
     return (m as number[][]).map((row: number[]) => html`<tr>${row.map((i: number) => html`<td>${i}</td>`)}</tr>`);
   }
 
   // Called when the filename in the file input element changs
-  private _fileInputChanged(e: Event) {
+  private _fileInputChanged(e: Event): void {
     // Did the change event result in the file-input element specifing a file?
     // (user might have cancelled the dialog)
     const element = e.target as HTMLInputElement;
@@ -419,13 +419,12 @@ export class DebuggerPageSk extends ElementDocSk {
     // might interpret binary stuff before "skiapict" as multi-byte code points.
     const magicOffset = head.findIndex(isMagicWord);
     // The unint32 after the first occurance of "skiapict" is the SKP version
-    const version = new Uint32Array(head.subarray(magicOffset + 8, magicOffset + 12))[0];
-    return version;
+    return new Uint32Array(head.subarray(magicOffset + 8, magicOffset + 12))[0];
   }
 
   // Open an SKP or MSKP file. fileContents is expected to be an arraybuffer
   // with the file's contents
-  private _openSkpFile(fileContents: ArrayBuffer) {
+  private _openSkpFile(fileContents: ArrayBuffer): void {
     if (!this._debugger) { return; }
     const version = this._skpFileVersion(fileContents);
     const minVersion = this._debugger.MinVersion();
@@ -481,7 +480,7 @@ export class DebuggerPageSk extends ElementDocSk {
   // * GPU/CPU mode changes
   // * Bounds of the skp change (skp loaded)
   // * (not yet supported) Color mode changes
-  private _replaceSurface() {
+  private _replaceSurface(): void {
     if (!this._debugger) { return; }
 
     let width = 400;
@@ -499,7 +498,7 @@ export class DebuggerPageSk extends ElementDocSk {
   }
 
   // replace surface, using the given size
-  private _replaceSurfaceKnownBounds(width: number, height: number) {
+  private _replaceSurfaceKnownBounds(width: number, height: number): void {
     if (!this._debugger) { return; }
     const canvas = this._debugViewSk!.resize(width, height);
     // free the wasm memory of the previous surface
@@ -515,8 +514,8 @@ export class DebuggerPageSk extends ElementDocSk {
   // Moves the player to a frame and updates dependent elements
   // Note that if you want to move the frame for the whole app, just as if a user did it,
   // this is not the function you're looking for, instead set this._timelineSk.item
-  private _moveFrameTo(n: number) {
-    // bounds may change too, requring a new surface and gl context, but this is costly and
+  private _moveFrameTo(n: number): void {
+    // bounds may change too, requiring a new surface and gl context, but this is costly and
     // only rarely necessary
     const oldBounds = this._fileContext!.player.getBounds();
     const newBounds = this._fileContext!.player.getBoundsForFrame(n);
@@ -542,7 +541,7 @@ export class DebuggerPageSk extends ElementDocSk {
     this._timelineSk!.playsk.movedTo(n);
   }
 
-  private _boundsEqual(a: SkIRect, b: SkIRect) {
+  private _boundsEqual(a: SkIRect, b: SkIRect): boolean {
     return (a.fLeft === b.fLeft
          && a.fTop === b.fTop
          && a.fRight === b.fRight
@@ -551,7 +550,7 @@ export class DebuggerPageSk extends ElementDocSk {
 
   // Fetch the list of commands for the frame or layer the debugger is currently showing
   // from wasm.
-  private _setCommands() {
+  private _setCommands(): void {
     // Cache only holds the regular frame's commands, not layers.
     // const json = (self.inspectedLayer === -1 ? this._memoizedJsonCommandList()
     //               : this._player.jsonCommandList(this._surface));
@@ -561,7 +560,7 @@ export class DebuggerPageSk extends ElementDocSk {
     this._commandsSk!.processCommands(parsed);
   }
 
-  private _jumpToCommand(i: number) {
+  private _jumpToCommand(i: number): void {
     // listened to by commands-sk
     this.dispatchEvent(
       new CustomEvent<JumpCommandEventDetail>(
@@ -604,7 +603,7 @@ export class DebuggerPageSk extends ElementDocSk {
 
   // controls change handlers
 
-  private _gpuHandler(e: Event) {
+  private _gpuHandler(e: Event): void {
     this._gpuMode = (e.target as CheckOrRadio).checked;
     this._replaceSurface();
     if (!this._surface) {
@@ -614,7 +613,7 @@ export class DebuggerPageSk extends ElementDocSk {
     this._setCommands();
   }
 
-  private _lightDarkHandler(e: Event) {
+  private _lightDarkHandler(e: Event): void {
     this._darkBackgrounds = (e.target as CheckOrRadio).checked;
     // should be received by anything in the application that shows a checkerboard
     // background for transparency
@@ -628,19 +627,19 @@ export class DebuggerPageSk extends ElementDocSk {
     );
   }
 
-  private _opBoundsHandler(e: Event) {
+  private _opBoundsHandler(e: Event): void {
     this._showOpBounds = (e.target as CheckOrRadio).checked;
     this._fileContext!.player.setGpuOpBounds(this._showOpBounds);
     this._updateDebuggerView();
   }
 
-  private _overdrawHandler(e: Event) {
+  private _overdrawHandler(e: Event): void {
     this._showOverdrawViz = (e.target as CheckOrRadio).checked;
     this._fileContext!.player.setOverdrawVis(this._showOverdrawViz);
     this._updateDebuggerView();
   }
 
-  private _clipHandler(e: Event) {
+  private _clipHandler(e: Event): void {
     this._showClip = (e.target as CheckOrRadio).checked;
     if (this._showClip) { // ON: 30% transparent dark teal
       this._fileContext!.player.setClipVizColor(0x500e978d);
@@ -650,19 +649,19 @@ export class DebuggerPageSk extends ElementDocSk {
     this._updateDebuggerView();
   }
 
-  private _androidClipHandler(e: Event) {
+  private _androidClipHandler(e: Event): void {
     this._showAndroidClip = (e.target as CheckOrRadio).checked;
     this._fileContext!.player.setAndroidClipViz(this._showAndroidClip);
     this._updateDebuggerView();
   }
 
-  private _originHandler(e: Event) {
+  private _originHandler(e: Event): void {
     this._showOrigin = (e.target as CheckOrRadio).checked;
     this._fileContext!.player.setOriginVisible(this._showOrigin);
     this._updateDebuggerView();
   }
 
-  private _updateCursor(x: number, y: number) {
+  private _updateCursor(x: number, y: number): void {
     this._updateJumpButton([x, y]);
     this.dispatchEvent(
       new CustomEvent<CursorEventDetail>(
@@ -674,7 +673,7 @@ export class DebuggerPageSk extends ElementDocSk {
     );
   }
 
-  private _keyDownHandler(e: KeyboardEvent) {
+  private _keyDownHandler(e: KeyboardEvent): void {
     if (this.querySelector<HTMLInputElement>('#text-filter') === document.activeElement) {
       return; // don't interfere with the filter textbox.
     }
@@ -714,7 +713,7 @@ export class DebuggerPageSk extends ElementDocSk {
     e.stopPropagation();
   }
 
-  private _inspectLayer(layerId: number, frame: number) {
+  private _inspectLayer(layerId: number, frame: number): void {
     // This method is called any time one of the Inspector/Exit buttons is pressed.
     // if the the button was on the layer already being inspected, it says "exit"
     // and -1 is passed to layerId.

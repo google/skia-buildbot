@@ -13,6 +13,8 @@ var targetDirectories = map[string]bool{
 	"bugs-central/pages":   true,
 	"ct/modules":           true,
 	"ct/pages":             true,
+	"debugger-app/modules": true,
+	"debugger-app/pages":   true,
 	"demos/modules":        true,
 	"demos/pages":          true,
 	"golden/modules":       true,

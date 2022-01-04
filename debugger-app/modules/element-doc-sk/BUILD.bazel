@@ -1,0 +1,11 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "element-doc-sk",
+    ts_deps = ["//infra-sk/modules/ElementSk:index_ts_lib"],
+    ts_srcs = [
+        "element-doc-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

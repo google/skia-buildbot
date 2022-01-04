@@ -1,0 +1,22 @@
+exports_files(
+    [
+        "both.png",
+        "bottom.png",
+        "favicon.png",
+        "image.png",
+        "right.png",
+    ],
+    visibility = ["//debugger-app:__subpackages__"],
+)
+
+filegroup(
+    name = "images",
+    srcs = [
+        "both.png",
+        "bottom.png",
+        "favicon.png",
+        "image.png",
+        "right.png",
+    ],
+    visibility = ["//debugger-app:__subpackages__"],
+)

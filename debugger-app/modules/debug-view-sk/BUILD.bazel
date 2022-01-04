@@ -1,0 +1,49 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "debug-view-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["debug-view-sk.scss"],
+    sk_element_deps = ["//debugger-app/modules/element-doc-sk"],
+    ts_deps = [
+        "//debugger-app/modules:events_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "debug-view-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "debug-view-sk-demo",
+    html_file = "debug-view-sk-demo.html",
+    sk_element_deps = [":debug-view-sk"],
+    ts_entry_point = "debug-view-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "debug-view-sk_puppeteer_test",
+    src = "debug-view-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":debug-view-sk-demo",
+    static_assets = {
+        "/dist": [
+            "//debugger-app/static:both.png",
+            "//debugger-app/static:bottom.png",
+            "//debugger-app/static:image.png",
+            "//debugger-app/static:right.png",
+        ],
+    },
+)

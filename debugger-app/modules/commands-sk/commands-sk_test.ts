@@ -326,7 +326,7 @@ describe('commands-sk', () => {
     }
   ]
 }
-      `));
+      `) as SkpJsonCommandList);
     // Expand the command in this test data, by clicking it two times.
     const opDiv = commandsSk.querySelector<HTMLElement>('#op-0')!;
     const summary = (opDiv.querySelector('summary') as HTMLElement);

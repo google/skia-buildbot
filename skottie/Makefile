@@ -38,7 +38,7 @@ bazel_release_ci:
 .PHONY: run-local-instance
 run-local-instance: build
 	../_bazel_bin/skottie/go/skottie/skottie_/skottie \
-		--config ./local_config.json5 \
+		--config ./local_config.json5
 
 build-placeholders:
 	rm -rf build

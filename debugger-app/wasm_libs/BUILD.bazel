@@ -1,0 +1,26 @@
+load("//infra-sk:index.bzl", "extract_files_from_skia_wasm_container")
+
+# This target makes the wasm binaries and js files available for tests. This is not the same
+# as ../build because we want to be able to control which binaries get used when we deploy a
+# container, but we are less stringent when running tests on the infra CI.
+extract_files_from_skia_wasm_container(
+    name = "fetch_debugger_wasm",
+    testonly = True,
+    outs = [
+        "debugger.js",
+        "debugger.wasm",
+    ],
+    container_files = [
+        "/tmp/debugger/debugger.js",
+        "/tmp/debugger/debugger.wasm",
+    ],
+    visibility = ["//debugger-app:__subpackages__"],
+)
+
+genrule(
+    name = "make version file",
+    outs = ["version.js"],
+    # We use LATEST here to make Puppeteer tests more deterministic.
+    cmd = """echo "const SKIA_VERSION = 'LATEST';" > $@""",
+    visibility = ["//debugger-app:__subpackages__"],
+)

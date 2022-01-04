@@ -1,0 +1,44 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "main",
+    assets_serving_path = "/dist",
+    copy_files = [
+        {
+            "src": "//debugger-app/wasm_libs:debugger.js",
+            "dst": "debugger.js",
+        },
+        {
+            "src": "//debugger-app/wasm_libs:debugger.wasm",
+            "dst": "debugger.wasm",
+        },
+        {
+            "src": "//debugger-app/wasm_libs:version.js",
+            "dst": "version.js",
+        },
+        {
+            "src": "//debugger-app/static:both.png",
+            "dst": "both.png",
+        },
+        {
+            "src": "//debugger-app/static:bottom.png",
+            "dst": "bottom.png",
+        },
+        {
+            "src": "//debugger-app/static:favicon.png",
+            "dst": "favicon.png",
+        },
+        {
+            "src": "//debugger-app/static:image.png",
+            "dst": "image.png",
+        },
+        {
+            "src": "//debugger-app/static:right.png",
+            "dst": "right.png",
+        },
+    ],
+    html_file = "main.html",
+    scss_entry_point = "main.scss",
+    sk_element_deps = ["//debugger-app/modules/debugger-page-sk"],
+    ts_entry_point = "main.ts",
+)

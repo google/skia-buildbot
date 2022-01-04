@@ -120,13 +120,6 @@ cp -r /src/task_scheduler/webpack.config.ts  /tests/task_scheduler
 cp -r /src/task_scheduler/tsconfig.json      /tests/task_scheduler
 cp -r /src/task_scheduler/modules            /tests/task_scheduler
 
-mkdir /tests/debugger-app
-cp -r /src/debugger-app/webpack.config.ts    /tests/debugger-app
-cp -r /src/debugger-app/tsconfig.json        /tests/debugger-app
-cp -r /src/debugger-app/modules              /tests/debugger-app
-cp -r /src/debugger-app/build                /tests/debugger-app
-cp -r /src/debugger-app/static               /tests/debugger-app
-
 ################################################################################
 # Install node modules and WASM dependencies.                                  #
 ################################################################################
@@ -162,7 +155,3 @@ npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/task_scheduler
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
-cd /tests/debugger-app
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-

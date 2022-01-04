@@ -1,0 +1,52 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":zoom-sk-demo",
+)
+
+sk_element(
+    name = "zoom-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["zoom-sk.scss"],
+    sk_element_deps = ["//debugger-app/modules/element-doc-sk"],
+    ts_deps = [
+        "//debugger-app/modules:events_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "zoom-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "zoom-sk-demo",
+    html_file = "zoom-sk-demo.html",
+    sk_element_deps = [":zoom-sk"],
+    ts_entry_point = "zoom-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "zoom-sk_puppeteer_test",
+    src = "zoom-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "zoom-sk_test",
+    src = "zoom-sk_test.ts",
+    deps = [
+        ":zoom-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

@@ -11,10 +11,6 @@ testjs:
 sharedgo:
 	cd go && $(MAKE) all
 
-#.PHONY: golden
-#golden:
-#	cd golden && $(MAKE) all
-
 .PHONY: autoroll
 autoroll:
 	cd autoroll && $(MAKE) all
@@ -34,10 +30,6 @@ infra-sk:
 .PHONY: status
 status:
 	cd status && $(MAKE) all
-
-.PHONY: fuzzer
-fuzzer:
-	cd fuzzer && $(MAKE) all
 
 .PHONY: skolo
 skolo:
@@ -66,9 +58,6 @@ PUPPETEER_TESTS_DOCKER_IMG=gcr.io/skia-public/rbe-container-skia-infra:2021-10-0
 # This is invoked from Infra-PerCommit-Puppeteer.
 .PHONY: puppeteer-tests
 puppeteer-tests:
-	# Pull the WASM binaries needed by the debugger-app Webpack build.
-	cd debugger-app && $(MAKE) wasm_libs
-
 	docker run --interactive --rm \
 		--mount type=bind,source=`pwd`,target=/src \
 		--mount type=bind,source=`pwd`/puppeteer-tests/output,target=/out \
@@ -81,7 +70,6 @@ puppeteer-tests:
 .PHONY: build-frontend-ci
 build-frontend-ci: npm-ci
 	cd autoroll && $(MAKE) build-frontend-ci
-	cd debugger-app && $(MAKE) build-frontend-ci
 	cd fiddlek && $(MAKE) build-frontend-ci
 	cd infra-sk && $(MAKE) build-frontend-ci
 	cd new_element && $(MAKE) build-frontend-ci
@@ -94,7 +82,6 @@ build-frontend-ci: npm-ci
 # All apps with a karma.conf.ts file should be included here.
 .PHONY: test-frontend-ci
 test-frontend-ci: npm-ci
-	cd debugger-app && $(MAKE) test-frontend-ci
 	cd fiddlek && $(MAKE) test-frontend-ci
 	cd infra-sk && $(MAKE) test-frontend-ci
 	cd new_element && $(MAKE) test-frontend-ci

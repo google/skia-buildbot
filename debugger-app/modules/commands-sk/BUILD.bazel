@@ -1,0 +1,67 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_element(
+    name = "commands-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["commands-sk.scss"],
+    sk_element_deps = [
+        "//debugger-app/modules/element-doc-sk",
+        "//debugger-app/modules/play-sk",
+    ],
+    ts_deps = [
+        "//debugger-app/modules:debugger_ts_lib",
+        "//debugger-app/modules:default-map_ts_lib",
+        "//debugger-app/modules:events_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "commands-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "commands-sk-demo",
+    html_file = "commands-sk-demo.html",
+    sk_element_deps = [":commands-sk"],
+    ts_entry_point = "commands-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "commands-sk_puppeteer_test",
+    src = "commands-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "commands-sk_test",
+    src = "commands-sk_test.ts",
+    deps = [
+        ":commands-sk",
+        ":test-data_ts_lib",
+        "//debugger-app/modules:debugger_ts_lib",
+        "//debugger-app/modules:events_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":commands-sk-demo",
+)
+
+ts_library(
+    name = "test-data_ts_lib",
+    srcs = ["test-data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//debugger-app/modules:debugger_ts_lib"],
+)

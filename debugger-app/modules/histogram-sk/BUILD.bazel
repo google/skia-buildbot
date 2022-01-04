@@ -1,0 +1,52 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":histogram-sk-demo",
+)
+
+sk_element(
+    name = "histogram-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["histogram-sk.scss"],
+    sk_element_deps = ["//debugger-app/modules/element-doc-sk"],
+    ts_deps = [
+        "//debugger-app/modules:events_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "histogram-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "histogram-sk-demo",
+    html_file = "histogram-sk-demo.html",
+    sk_element_deps = [":histogram-sk"],
+    ts_entry_point = "histogram-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "histogram-sk_puppeteer_test",
+    src = "histogram-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "histogram-sk_test",
+    src = "histogram-sk_test.ts",
+    deps = [
+        ":histogram-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

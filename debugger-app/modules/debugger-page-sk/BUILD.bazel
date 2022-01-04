@@ -1,0 +1,84 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_element(
+    name = "debugger-page-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["debugger-page-sk.scss"],
+    sk_element_deps = [
+        "//debugger-app/modules/android-layers-sk",
+        "//debugger-app/modules/commands-sk",
+        "//debugger-app/modules/debug-view-sk",
+        "//debugger-app/modules/element-doc-sk",
+        "//debugger-app/modules/histogram-sk",
+        "//debugger-app/modules/play-sk",
+        "//debugger-app/modules/resources-sk",
+        "//debugger-app/modules/timeline-sk",
+        "//debugger-app/modules/zoom-sk",
+    ],
+    ts_deps = [
+        "//debugger-app/modules:debugger_ts_lib",
+        "//debugger-app/modules:events_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "debugger-page-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "debugger-page-sk-demo",
+    html_file = "debugger-page-sk-demo.html",
+    scss_entry_point = "debugger-page-sk-demo.scss",
+    sk_element_deps = [":debugger-page-sk"],
+    ts_entry_point = "debugger-page-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "debugger-page-sk_puppeteer_test",
+    src = "debugger-page-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "debugger-page-sk_test",
+    src = "debugger-page-sk_test.ts",
+    karma_config_file = "debugger.karma.conf.js",
+    static_karma_files = [
+        "//debugger-app/wasm_libs:version.js",
+        "//debugger-app/wasm_libs:debugger.js",
+        "//debugger-app/wasm_libs:debugger.wasm",
+    ],
+    deps = [
+        ":debugger-page-sk",
+        "//debugger-app/modules/commands-sk",
+        "//debugger-app/modules/commands-sk:test-data_ts_lib",
+        "//debugger-app/modules/histogram-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":debugger-page-sk-demo",
+    static_assets = {
+        "/dist": [
+            "//debugger-app/wasm_libs:version.js",
+            "//debugger-app/wasm_libs:debugger.js",
+            "//debugger-app/wasm_libs:debugger.wasm",
+            "//debugger-app/static:both.png",
+            "//debugger-app/static:bottom.png",
+            "//debugger-app/static:image.png",
+            "//debugger-app/static:right.png",
+        ],
+    },
+)

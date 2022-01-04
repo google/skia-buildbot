@@ -1,0 +1,46 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "debugger_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//debugger-app/go/debugger-app:debugger-app",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/debugger-app/": [
+            [
+                "build/debugger/debugger.js",
+                "0644",
+            ],
+            [
+                "build/debugger/debugger.wasm",
+                "0644",
+            ],
+            [
+                "build/version.js",
+                "0644",
+            ],
+            [
+                "//debugger-app/pages:production/main.html",
+                "0644",
+            ],
+            [
+                "//debugger-app/pages:production/main.js",
+                "0644",
+            ],
+            [
+                "//debugger-app/pages:production/main.css",
+                "0644",
+            ],
+            [
+                "//debugger-app/static:images",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/debugger-app",
+    repository = "skia-public/debugger",
+)

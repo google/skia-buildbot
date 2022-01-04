@@ -1,71 +1,47 @@
-KGO := CGO_ENABLED=0 GOOS=linux go build
+include ../make/bazel.mk
 
-.PHONY: test
-test: go-test js-test
-	true
+.PHONY: build
+build: build-placeholders
+	$(BAZEL) build //debugger-app/...
 
-.PHONY: go-test
-go-test:
-	go test ./go/...
+.PHONY: release
+release: get_latest_skia
+	$(BAZEL) run //debugger-app:push_debugger_container
+	$(MAKE) build-placeholders
 
-# note that this will require you to have put the wasm binary in place by some method
-# e.g. make wasm-libs
-.PHONY: js-test
-js-test: npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
-
-.PHONY: js-test-debug
-js-test-debug: npm-ci
-	npx karma start --no-single-run
-
-.PHONY: puppeteer-test
-puppeteer-test: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
-.PHONY: puppeteer-test-debug
-puppeteer-test-debug: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
-
-.PHONY: version-file
-	mkdir build
-	echo "const SKIA_VERSION = 'local';" > build/version.js
-
-.PHONY: serve
-serve: version-file npm-ci
-	npx webpack-dev-server --watch-poll --mode=development
-
-.PHONY: wasm_libs
-wasm_libs:
+.PHONY: get_latest_skia
+get_latest_skia:
+	docker pull gcr.io/skia-public/skia-wasm-release:prod
 	rm -rf build
-	mkdir build
+	# Make docker happy by having these folders already exist.
+	mkdir -p build/debugger
+	# Extract them from the most recently built docker container. This is built
+	# with @skia//docker/skia-wasm-release/Dockerfile
 	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
-	       --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
-	       sh -c "cp -r /tmp/* /OUT"
+	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
+	    sh -c "cp -r /tmp/debugger /tmp/VERSION /OUT/"
 	echo "const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
-.PHONY: build-frontend-ci
-build-frontend-ci: wasm_libs npm-ci
-	npx webpack --mode=production
+.PHONY: push
+push: release
+	pushk debugger
 
-.PHONY: test-frontend-ci
-test-frontend-ci: wasm_libs npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+bazel_release_ci:
+	# COPY_FROM_DIR is expected to be set by the auto deploy mechanism, e.g.
+	# https://github.com/google/skia/blob/44c81d1492738cb1c6ab3d68a925bd7e64201bca/infra/bots/task_drivers/push_bazel_apps_from_wasm_image/push_bazel_apps_from_wasm_image.go#L137
+	cp -r $(COPY_FROM_DIR)/* build/
+	echo "const SKIA_VERSION = '`cat ./build/VERSION`';" > ./build/version.js
+	bazelisk run //debugger-app:push_debugger_container --workspace_status_command=bazel/override_container_label.sh
+	$(MAKE) build-placeholders
 
-release: wasm_libs npm-ci
-	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-app
-	./build_release
+.PHONY: run-local-instance
+run-local-instance: build
+	../_bazel_bin/debugger-app/go/debugger-app/debugger-app_/debugger-app \
+        --resources_dir ../_bazel_bin/debugger-app/pages/development
 
-.PHONY: release_ci
-release_ci: npm-ci
-	# Assumes the environment mounts the wasm outputs to /OUT
+build-placeholders:
 	rm -rf build
-	mkdir -p build/
-	cp -r /OUT/* build
-	echo "const SKIA_VERSION = '`cat /OUT/VERSION`';" > ./build/version.js
-	# Now that we have the debugger.wasm etc, we can bundle it in with webpack.
-	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-app
-	./build_release
-
-include ../make/npm.mk
+	mkdir -p build/debugger
+	touch build/debugger/debugger.js
+	touch build/debugger/debugger.wasm
+	touch build/version.js
