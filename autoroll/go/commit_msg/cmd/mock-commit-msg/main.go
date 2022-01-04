@@ -226,11 +226,7 @@ func main() {
 		}
 	} else {
 		from, to, revs, _, _ = commit_msg.FakeCommitMsgInputs()
-		var err error
-		reviewers, err = roller.GetReviewers(cfg.RollerName, cfg.Reviewer, cfg.ReviewerBackup)
-		if err != nil {
-			log.Fatalf("Failed to retrieve reviewers: %s", err)
-		}
+		reviewers = roller.GetReviewers(client, cfg.RollerName, cfg.Reviewer, cfg.ReviewerBackup)
 	}
 
 	// Create the commit message builder.

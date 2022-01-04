@@ -60,6 +60,7 @@ const (
 // project into another.
 type AutoRoller struct {
 	cfg                *config.Config
+	client             *http.Client
 	codereview         codereview.CodeReview
 	commitMsgBuilder   *commit_msg.Builder
 	currentRoll        codereview.RollImpl
@@ -202,10 +203,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, 
 		return nil, skerr.Wrapf(err, "Failed to create success throttler")
 	}
 	sklog.Info("Getting reviewers")
-	emails, err := GetReviewers(c.RollerName, c.Reviewer, c.ReviewerBackup)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to get reviewers")
-	}
+	emails := GetReviewers(client, c.RollerName, c.Reviewer, c.ReviewerBackup)
 	sklog.Info("Creating notifier")
 	configCopies := replaceReviewersPlaceholder(c.Notifiers, emails)
 	n, err := arb_notifier.New(ctx, c.ChildDisplayName, c.ParentDisplayName, serverURL, client, emailer, chatBotConfigReader, configCopies)
@@ -232,6 +230,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, 
 	}
 	arb := &AutoRoller{
 		cfg:                c,
+		client:             client,
 		codereview:         cr,
 		commitMsgBuilder:   commitMsgBuilder,
 		emails:             emails,
@@ -352,21 +351,17 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 	// Update the current reviewers in a loop.
 	lvReviewers := metrics2.NewLiveness("last_successful_reviewers_retrieval", map[string]string{"roller": r.roller})
 	cleanup.Repeat(30*time.Minute, func(ctx context.Context) {
-		emails, err := GetReviewers(r.cfg.RollerName, r.cfg.Reviewer, r.cfg.ReviewerBackup)
-		if err != nil {
-			sklog.Errorf("Failed to retrieve current reviewers: %s", err)
-		} else {
-			r.emailsMtx.Lock()
-			defer r.emailsMtx.Unlock()
-			r.emails = emails
+		emails := GetReviewers(r.client, r.cfg.RollerName, r.cfg.Reviewer, r.cfg.ReviewerBackup)
+		r.emailsMtx.Lock()
+		defer r.emailsMtx.Unlock()
+		r.emails = emails
 
-			configCopies := replaceReviewersPlaceholder(r.cfg.Notifiers, emails)
-			if err := r.notifier.ReloadConfigs(ctx, configCopies); err != nil {
-				sklog.Errorf("Failed to reload configs: %s", err)
-				return
-			}
-			lvReviewers.Reset()
+		configCopies := replaceReviewersPlaceholder(r.cfg.Notifiers, emails)
+		if err := r.notifier.ReloadConfigs(ctx, configCopies); err != nil {
+			sklog.Errorf("Failed to reload configs: %s", err)
+			return
 		}
+		lvReviewers.Reset()
 	}, nil)
 
 	// Handle requests for manual rolls.

@@ -212,7 +212,21 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.roller }}'
-      description: 'Autoroll on {{ $labels.app }} has failed to obtain the current sheriff for more than 2 hours. Please verify that the sheriff endpoint is working and that the rotation schedule is not empty.
+      description: 'Autoroll on {{ $labels.app }} has failed to obtain the current set of reviewers for more than 2 hours. Please verify that the reviewers endpoint is working.
+      {{ $labels.reviewer_source }}
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
+      '
+
+  - alert: AutoRollGetReviewersEmpty
+    expr: autoroll_get_reviewers_nonempty == 0
+    for: 72h
+    labels:
+      category: infra
+      severity: warning
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.roller }}'
+      description: 'Autoroll on {{ $labels.app }} has found no reviewers for more than 72 hours. Please verify that the reviewer endpoints are working and that the rotation schedule is not empty.
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&resource=k8s_container%2Fcluster_name%2F{{ $labels.cluster }}%2Fnamespace_name%2Fdefault%2Fcontainer_name%2F{{ $labels.app }}
       '
 

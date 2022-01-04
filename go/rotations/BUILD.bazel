@@ -6,7 +6,10 @@ go_library(
     srcs = ["rotations.go"],
     importpath = "go.skia.org/infra/go/rotations",
     visibility = ["//visibility:public"],
-    deps = ["//go/util"],
+    deps = [
+        "//go/skerr",
+        "//go/util",
+    ],
 )
 
 go_test(
@@ -14,7 +17,8 @@ go_test(
     srcs = ["rotations_test.go"],
     embed = [":rotations"],
     deps = [
+        "//go/mockhttpclient",
         "//go/testutils/unittest",
-        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )
