@@ -1,0 +1,17 @@
+@import '../../../infra-sk/themes';
+
+codesize-scaffold-sk {
+  a, a:visited {
+    color: var(--primary);
+  }
+
+  app-sk {
+    min-height: 100vh; // Make the app span the entire height of the page.
+
+    header {
+      a, a:visited {
+        color: var(--header-font-color);
+      }
+    }
+  }
+}
