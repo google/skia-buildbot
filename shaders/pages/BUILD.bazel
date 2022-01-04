@@ -31,3 +31,13 @@ sk_page(
     sk_element_deps = ["//shaders/modules/shaders-app-sk"],
     ts_entry_point = "main.ts",
 )
+
+sk_page(
+    name = "debugger",
+    assets_serving_path = "/dist",
+    html_file = "debugger.html",
+    nonce = "{% .Nonce %}",
+    scss_entry_point = "debugger.scss",
+    sk_element_deps = ["//shaders/modules/debugger-app-sk"],
+    ts_entry_point = "debugger.ts",
+)

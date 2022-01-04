@@ -1,0 +1,70 @@
+@use 'node_modules/codemirror/lib/codemirror.css';
+@use 'node_modules/codemirror/theme/ambiance.css';
+@use 'node_modules/codemirror/theme/base16-light.css';
+
+@import '../themes/themes.scss';
+
+.body-sk debugger-app-sk {
+  display: block;
+  background: var(--surface);
+  margin: 0;
+  min-height: 100vh;
+
+  header {
+    background: var(--surface-1dp);
+    color: var(--primary);
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0 16px;
+    align-items: center;
+
+    h2 {
+      margin: 8px 0 8px 0;
+
+      a {
+        background: var(--surface-1dp);
+      }
+    }
+
+    #githash {
+      background: var(--surface-1dp);
+    }
+  }
+
+  main {
+    padding: 16px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    textarea {
+      display: block;
+      background: var(--surface);
+      color: var(--secondary);
+      font-family: monospace;
+      resize: none;
+      font-size: 11px;
+      margin: 0 8px 0 0;
+    }
+
+    button {
+      margin: 0;
+    }
+
+    .linkish {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    #examples {
+      margin: 0 8px 8px 0;
+      font-size: 12px;
+    }
+
+    #codeEditor {
+      margin: 0 8px 8px 0;
+    }
+  }
+}

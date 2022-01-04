@@ -24,6 +24,18 @@ skia_app_container(
                 "0644",
             ],
             [
+                "//shaders/pages:production/debugger.html",
+                "0644",
+            ],
+            [
+                "//shaders/pages:production/debugger.js",
+                "0644",
+            ],
+            [
+                "//shaders/pages:production/debugger.css",
+                "0644",
+            ],
+            [
                 "build/canvaskit/canvaskit.js",
                 "0644",
             ],

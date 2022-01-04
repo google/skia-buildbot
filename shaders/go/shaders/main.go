@@ -51,20 +51,29 @@ func new() (baseapp.App, error) {
 func (srv *server) loadTemplates() {
 	srv.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*baseapp.ResourcesDir, "main.html"),
+		filepath.Join(*baseapp.ResourcesDir, "debugger.html"),
 	))
 }
 
-func (srv *server) mainHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *server) pageHandler(w http.ResponseWriter, r *http.Request, p string) {
 	w.Header().Set("Content-Type", "text/html")
 	if *baseapp.Local {
 		srv.loadTemplates()
 	}
-	if err := srv.templates.ExecuteTemplate(w, "main.html", map[string]string{
+	if err := srv.templates.ExecuteTemplate(w, p, map[string]string{
 		// Look in webpack.config.js for where the nonce templates are injected.
 		"Nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
+}
+
+func (srv *server) mainHandler(w http.ResponseWriter, r *http.Request) {
+	srv.pageHandler(w, r, "main.html")
+}
+
+func (srv *server) debugHandler(w http.ResponseWriter, r *http.Request) {
+	srv.pageHandler(w, r, "debugger.html")
 }
 
 func (srv *server) loadHandler(w http.ResponseWriter, r *http.Request) {
@@ -108,6 +117,7 @@ func (srv *server) saveHandler(w http.ResponseWriter, r *http.Request) {
 // See baseapp.App.
 func (srv *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", srv.mainHandler)
+	r.HandleFunc("/debug", srv.debugHandler)
 	r.HandleFunc("/_/load/{hashOrName:[@0-9a-zA-Z-_]+}", srv.loadHandler).Methods("GET")
 	r.HandleFunc("/_/save/", srv.saveHandler).Methods("POST")
 }
