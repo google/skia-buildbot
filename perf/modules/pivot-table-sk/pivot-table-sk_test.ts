@@ -3,7 +3,7 @@ import './index';
 import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
 
-import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { DataFrame, pivot } from '../json';
 import { PivotTableSk } from './pivot-table-sk';
 
@@ -34,19 +34,20 @@ describe('pivot-table-sk', () => {
 
   describe('click sort icon on first column', () => {
     it('sorts column descending', async () => {
-      // Click 'arch' which will be first, but isn't in the pivot.Request yet.
-      assert.equal(element['sortBy'], -1);
+      assert.equal(element['sortBy'], 0);
       assert.equal(element['sortDirection'], 'up');
+      assert.equal(element['sortKind'], 'summaryValues');
 
-      // Click on the sort up icon that appears over the 'Group' column.
-      $$<HTMLElement>('arrow-drop-up-icon-sk', element)!.click();
+      // Click on the sort up icon that appears over the 'config' column.
+      $$<HTMLElement>('sort-icon-sk', element)!.click();
 
       // Confirm it changes to a drop down icon.
       assert.isNotNull($$<HTMLElement>('arrow-drop-down-icon-sk', element));
 
       // Confirm sort state has changed.
-      assert.equal(element['sortBy'], -1);
+      assert.equal(element['sortBy'], 0);
       assert.equal(element['sortDirection'], 'down');
+      assert.equal(element['sortKind'], 'keyValues');
     });
   });
 });

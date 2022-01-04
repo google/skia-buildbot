@@ -18,6 +18,7 @@ sk_element(
         "@npm//lit-html",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/pivotutil:index_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
     ],
     ts_srcs = [
         "pivot-table-sk.ts",

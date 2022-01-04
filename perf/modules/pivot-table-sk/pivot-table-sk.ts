@@ -20,16 +20,33 @@ import { operationDescriptions, validateAsPivotTable } from '../pivotutil';
 import 'elements-sk/icon/sort-icon-sk';
 import 'elements-sk/icon/arrow-drop-down-icon-sk';
 import 'elements-sk/icon/arrow-drop-up-icon-sk';
+import { fromKey } from '../paramtools';
 
 type direction = 'up' | 'down';
+
+type sortKind = 'keyValues' | 'summaryValues'
 export class PivotTableSk extends ElementSk {
   private df: DataFrame | null = null;
 
   private req: pivot.Request | null = null;
 
-  /** The index into the trace values to sort rows by, with -1 sorting by the
-   * row id. */
-  private sortBy: number = -1;
+  /** Maps each traceKey to a list of the values for each key in the traceID,
+   * where the order is determined by this.req.group_by.
+   *
+   * That is ',arch=arm,config=8888,' maps to ['8888', 'arm'] if
+   * this.req.group_by is ['config', 'arch'].
+   *  */
+  private keyValues: {[key: string]: string[]} = {}
+
+  /** The index to sort by, the value is interpreted differently based
+   * on the value of this.sortKind:
+   *
+   * If this.sortKind === 'keyValues' then it is an index in the trace values.
+   * If this.sortKind === 'summaryValues' then it is an index in keyValues.
+   *  */
+  private sortBy: number = 0;
+
+  private sortKind: sortKind = 'summaryValues';
 
   private sortDirection: direction = 'up';
 
@@ -59,28 +76,46 @@ export class PivotTableSk extends ElementSk {
   set(df: DataFrame, req: pivot.Request): void {
     this.df = df;
     this.req = req;
+    this.keyValues = {};
+
+    Object.keys(this.df.traceset).forEach((traceKey) => {
+      // Parse the key.
+      const ps = fromKey(traceKey);
+      // Store the values for each key in group_by order.
+      this.keyValues[traceKey] = this.req!.group_by!.map((colName) => ps[colName]);
+    });
     this._render();
   }
 
   private tableHeader(): TemplateResult {
     return html`
     <tr>
-      <th>${this.sortArrow(-1)} Group</th>
-      ${this.req!.summary!.map((summaryOperation, index) => html`<th>${this.sortArrow(index)} ${operationDescriptions[summaryOperation]}</th>`)}
+      ${this.keyColumnHeaders()}
+      ${this.summaryColumnHeaders()}
     </tr>`;
   }
 
-  private sortArrow(index: number): TemplateResult {
-    if (index === this.sortBy) {
-      if (this.sortDirection === 'up') {
-        return html`<arrow-drop-up-icon-sk title="Change sort order to descending." @click=${() => this.changeSort(index)}></arrow-drop-up-icon-sk>`;
-      }
-      return html`<arrow-drop-down-icon-sk title="Change sort order to ascending." @click=${() => this.changeSort(index)}></arrow-drop-down-icon-sk>`;
-    }
-    return html`<sort-icon-sk title="Sort this column." @click=${() => this.changeSort(index)}></sort-icon-sk>`;
+  private keyColumnHeaders(): TemplateResult[] {
+    return this.req!.group_by!.map((groupBy: string, index: number) => html`<th>${this.sortArrow(index, 'keyValues')} ${groupBy}</th>`);
   }
 
-  private changeSort(column: number) {
+  private summaryColumnHeaders(): TemplateResult[] {
+    return this.req!.summary!.map((summaryOperation, index) => html`<th>${this.sortArrow(index, 'summaryValues')} ${operationDescriptions[summaryOperation]}</th>`);
+  }
+
+  private sortArrow(index: number, kind: sortKind): TemplateResult {
+    if (this.sortKind === kind) {
+      if (index === this.sortBy) {
+        if (this.sortDirection === 'up') {
+          return html`<arrow-drop-up-icon-sk title="Change sort order to descending." @click=${() => this.changeSort(index, kind)}></arrow-drop-up-icon-sk>`;
+        }
+        return html`<arrow-drop-down-icon-sk title="Change sort order to ascending." @click=${() => this.changeSort(index, kind)}></arrow-drop-down-icon-sk>`;
+      }
+    }
+    return html`<sort-icon-sk title="Sort this column." @click=${() => this.changeSort(index, kind)}></sort-icon-sk>`;
+  }
+
+  private changeSort(column: number, kind: sortKind) {
     if (this.sortBy === column) {
       if (this.sortDirection === 'down') {
         this.sortDirection = 'up';
@@ -88,6 +123,7 @@ export class PivotTableSk extends ElementSk {
         this.sortDirection = 'down';
       }
     }
+    this.sortKind = kind;
     this.sortBy = column;
     this._render();
   }
@@ -96,13 +132,21 @@ export class PivotTableSk extends ElementSk {
     const traceset = this.df!.traceset;
     const sortedRowKeys = Object.keys(traceset).sort((a: string, b: string) => {
       let ret = 0;
-      if (this.sortBy === -1) {
-        if (a < b) {
+      if (this.sortKind === 'keyValues') {
+        const aString = this.keyValues[a][this.sortBy];
+        const bString = this.keyValues[b][this.sortBy];
+        if (aString < bString) {
           ret = -1;
-        } else if (b < a) {
+        } else if (bString < aString) {
           ret = 1;
         } else {
-          ret = 0;
+          // Fall back to sorting by the full keys if aString === bString.
+          if (a < b) {
+            return -1;
+          } if (b < a) {
+            return 1;
+          }
+          return 0;
         }
       } else {
         ret = traceset[a][this.sortBy] - traceset[b][this.sortBy];
@@ -115,12 +159,16 @@ export class PivotTableSk extends ElementSk {
     });
     const ret: TemplateResult[] = [];
     sortedRowKeys.forEach((key) => {
-      ret.push(html`<tr><th class=key>${key}</th>${this.rowValues(key)}</tr>`);
+      ret.push(html`<tr>${this.keyRowValues(key)}${this.summaryRowValues(key)}</tr>`);
     });
     return ret;
   }
 
-  private rowValues(key: string): TemplateResult[] {
+  private keyRowValues(traceKey: string): TemplateResult[] {
+    return this.keyValues[traceKey].map((value) => html`<th class=key>${value}</th>`);
+  }
+
+  private summaryRowValues(key: string): TemplateResult[] {
     return this.df!.traceset[key]!.map((value) => html`<td>${PivotTableSk.displayValue(value)}</td>`);
   }
 
