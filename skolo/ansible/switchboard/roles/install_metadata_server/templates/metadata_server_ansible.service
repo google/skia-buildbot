@@ -4,10 +4,10 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
-User=root
+User=chrome-bot
 
 ExecStart=/usr/local/bin/metadata_server_ansible \
-  --ports=:80,:{{ all.metadata_server_port }} \
+  --ports=:{{ all.metadata_server_port }} \
   --prom_port=:{{ all.prometheus.monitoring.ports.metadata_server_ansible }}
 Restart=always
 
