@@ -409,7 +409,7 @@ export class SkottieAudioSk extends ElementSk {
 
   private start(): void {
     const animBeat = this.beatDuration;
-    const animFps = this.animation.fr as number;
+    const animFps: number = this._animation?.fr || 0;
     const songBpm = this.bpm;
     const songBps = songBpm / 60;
     const animBps = animFps / animBeat;
