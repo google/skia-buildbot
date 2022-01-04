@@ -74,8 +74,9 @@ var (
 	goTestRegexp = regexp.MustCompile("--- (\\w+):\\s+(\\w+)\\s+\\((.+)\\)")
 
 	// Flags.
-
-	race = flag.Bool("race", false, "Whether or not to enable the race flag when running go tests.  This flag signals to only run go tests.")
+	list    = flag.Bool("list", false, "If set, just list the tests which would be run and exit.")
+	race    = flag.Bool("race", false, "Whether or not to enable the race flag when running go tests.  This flag signals to only run go tests.")
+	verbose = flag.Bool("verbose", false, "Print detailed information about the tests as they run.")
 
 	// writeTimings is a file in which to write the test timings in JSON
 	// format.
@@ -278,15 +279,28 @@ func (t *test) Run() error {
 		return nil
 	}
 
+	sklog.Infof("Running  %s", t.Name)
+
 	started := time.Now()
-	defer func() {
-		t.totalTime = time.Now().Sub(started)
-	}()
 	output, err := t.run()
+	t.totalTime = time.Now().Sub(started)
+	t.output = output
+
+	verb := "Finished"
+	if err != nil {
+		verb = "Failed  "
+	}
+	msg := fmt.Sprintf("%s %s (%s)", verb, t.Name, t.totalTime.String())
+	if *verbose {
+		for name, duration := range t.Duration() {
+			msg += fmt.Sprintf("\n  %s: %s", name, duration)
+		}
+	}
+	sklog.Info(msg)
+
 	if err != nil {
 		return fmt.Errorf(testFailure, t.Name, t.Cmd, err, output)
 	}
-	t.output = output
 	return nil
 }
 
@@ -445,23 +459,25 @@ func main() {
 	sklog.Infof("Found %d tests.", len(tests))
 	errors := map[string]error{}
 
-	if *race {
+	if *list {
+		sklog.Infof("Tests:")
+		for _, t := range tests {
+			sklog.Info(t.Name)
+		}
+	} else if *race {
 		// Do unit tests one at a time, as the -race can fail when done concurrently with a bunch of other stuff.
 		for _, t := range gotests {
 			if err := t.Run(); err != nil {
 				errors[t.Name] = err
 			}
-			sklog.Infof("Finished %s", t.Name)
 		}
 	} else {
-
 		var mutex sync.Mutex
 		var wg sync.WaitGroup
 		for _, t := range tests {
 			wg.Add(1)
 			go func(t *test) {
 				defer wg.Done()
-				sklog.Debugf("Running %s", t.Name)
 				if err := t.Run(); err != nil {
 					mutex.Lock()
 					errors[t.Name] = err

@@ -188,6 +188,7 @@
       "go",
       "run",
       "./run_unittests.go",
+      "--verbose",
       "--small"
     ],
     "cwd": "[START_DIR]/buildbot",
