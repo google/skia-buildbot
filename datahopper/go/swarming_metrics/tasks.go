@@ -158,11 +158,15 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 	parsed["failure"] = strconv.FormatBool(t.TaskResult.Failure)
 
 	casOverhead := float64(0.0)
-	if t.TaskResult.PerformanceStats.IsolatedDownload != nil {
-		casOverhead += t.TaskResult.PerformanceStats.IsolatedDownload.Duration
-	}
-	if t.TaskResult.PerformanceStats.IsolatedUpload != nil {
-		casOverhead += t.TaskResult.PerformanceStats.IsolatedUpload.Duration
+	if t.TaskResult.PerformanceStats != nil {
+		if t.TaskResult.PerformanceStats.IsolatedDownload != nil {
+			casOverhead += t.TaskResult.PerformanceStats.IsolatedDownload.Duration
+		}
+		if t.TaskResult.PerformanceStats.IsolatedUpload != nil {
+			casOverhead += t.TaskResult.PerformanceStats.IsolatedUpload.Duration
+		}
+	} else {
+		sklog.Warningf("No PerformanceStats for task %s")
 	}
 	durations := format.BenchResults{
 		"task_duration": {
