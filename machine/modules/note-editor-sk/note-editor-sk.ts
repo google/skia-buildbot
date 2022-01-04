@@ -60,8 +60,7 @@ export class NoteEditorSk extends ElementSk {
       this.resolve = resolve;
       this.annotation = Object.assign({}, annotation);
       this._render();
-      // eslint-disable-next-line no-unused-expressions
-      this.dialog?.showModal();
+      this.dialog!.showModal();
     });
   }
 

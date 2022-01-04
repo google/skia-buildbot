@@ -62,8 +62,7 @@ export class EditChildShaderSk extends ElementSk {
       this.resolve = resolve;
       this.childShader = Object.assign({}, childShader);
       this._render();
-      // eslint-disable-next-line no-unused-expressions
-      this.dialog?.showModal();
+      this.dialog!.showModal();
     });
   }
 

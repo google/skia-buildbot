@@ -44,11 +44,11 @@ export class ConfirmDialogSk extends HTMLElement {
 
   private dialog: HTMLDialogElement | null = null;
 
-  private resolve = () => {};
+  private resolve: ((value?: any)=> void) | null = null;
 
-  private reject = () => {};
+  private reject: ((reason?: any)=> void) | null = null;
 
-  connectedCallback() {
+  connectedCallback(): void {
     this.render();
     this.dialog = this.querySelector('dialog');
     dialogPolyfill.registerDialog(this.dialog!);
@@ -60,12 +60,12 @@ export class ConfirmDialogSk extends HTMLElement {
    * @param message Message to display. Text only, any markup will be escaped.
    * @returns Returns a Promise that resolves on OK, and rejects on Cancel.
    */
-  open(message: string) {
+  open(message: string): Promise<void> {
     this.message = message;
     this.render();
     this.dialog!.showModal();
     return new Promise((resolve, reject) => {
-      this.resolve = () => resolve(undefined);
+      this.resolve = resolve;
       this.reject = reject;
     });
   }
