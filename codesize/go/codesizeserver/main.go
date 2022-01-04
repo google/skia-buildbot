@@ -9,6 +9,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
 
+	"go.skia.org/infra/codesize/go/bloaty"
+	"go.skia.org/infra/codesize/go/codesizeserver/rpc"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/sklog"
 )
@@ -56,7 +58,35 @@ func (s *server) machinesPageHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) bloatyHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO(lovisolo): Implement.
-	res := map[string]string{"msg": "Hello, world!"}
+	res := rpc.BloatyRPCResponse{
+		Rows: []bloaty.TreeMapDataTableRow{
+			{
+				Name:   "ROOT",
+				Parent: "",
+				Size:   0,
+			},
+			{
+				Name:   "a",
+				Parent: "ROOT",
+				Size:   50,
+			},
+			{
+				Name:   "a1",
+				Parent: "a",
+				Size:   30,
+			},
+			{
+				Name:   "a2",
+				Parent: "a",
+				Size:   20,
+			},
+			{
+				Name:   "b",
+				Parent: "ROOT",
+				Size:   100,
+			},
+		},
+	}
 	sendJSONResponse(res, w)
 }
 

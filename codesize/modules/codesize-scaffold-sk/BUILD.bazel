@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 sk_element(
     name = "codesize-scaffold-sk",
@@ -15,6 +15,7 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//elements-sk",
         "@npm//lit-html",
+        ":events_ts_lib",
     ],
     ts_srcs = [
         "codesize-scaffold-sk.ts",
@@ -44,4 +45,10 @@ sk_element_puppeteer_test(
         "@npm//@types/chai",
         "@npm//chai",
     ],
+)
+
+ts_library(
+    name = "events_ts_lib",
+    srcs = ["events.ts"],
+    visibility = ["//visibility:public"],
 )

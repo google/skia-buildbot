@@ -136,20 +136,18 @@ func ParseTSVOutput(bloatyOutput string) ([]OutputItem, error) {
 // to google.visualization.arrayToDataTable()[1].
 //
 // [1] https://developers.google.com/chart/interactive/docs/reference#arraytodatatable
-//
-// TODO(lovisolo): Add go2ts tags in order to consume this from codesize.skia.org's front-end code.
 type TreeMapDataTableRow struct {
 	// Name is the unique, non-empty name of the node. Uniqueness is necessary, otherwise
 	// google.visualization.TreeView will throw an exception.
-	Name string
+	Name string `json:"name"`
 
 	// Parent is the name of the parent node. The root node will have an empty parent. Client code
 	// must turn the parent node into a null JavaScript value, otherwise google.visualization.TreeView
 	// will throw an exception.
-	Parent string
+	Parent string `json:"parent"`
 
 	// Size is the size in bytes of the node. Non-symbol nodes (e.g. paths) should be 0.
-	Size int
+	Size int `json:"size"`
 }
 
 // GenTreeMapDataTableRows takes a parsed Bloaty output and returns a slice of "row" structs that

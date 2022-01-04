@@ -12,6 +12,13 @@ codesize-scaffold-sk {
       a, a:visited {
         color: var(--header-font-color);
       }
+      spinner-sk {
+        // Make the gap between the <h1> and the <header> top and bottom the same length.
+        border-width: var(--header-horiz-padding);
+        --size: calc(var(--header-height) - 4 * var(--header-horiz-padding));
+        width: var(--size);
+        height: var(--size);
+      }
     }
   }
 }

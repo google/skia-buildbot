@@ -1,0 +1,7 @@
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "rpc_types_ts_lib",
+    srcs = ["rpc_types.ts"],
+    visibility = ["//visibility:public"],
+)
