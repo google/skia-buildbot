@@ -769,6 +769,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "codesizeserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "codesizeserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "codesizeserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "collectd-exporter",
           "endpoints": [
             {
@@ -3291,6 +3317,23 @@
                           },
                           "route": {
                             "cluster": "bugs-central",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "codesize.skia.org",
+                      "name": "codesize.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "codesizeserver",
                             "timeout": {
                               "seconds": 600
                             }
