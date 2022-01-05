@@ -42,7 +42,7 @@ describe('index-page-sk', () => {
       );
 
       // Give the TreeMap a chance to redraw.
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       await takeScreenshot(testBed.page, 'codesize', 'index-page-sk_node');
     });
