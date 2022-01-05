@@ -67,4 +67,15 @@
       margin: 0 8px 8px 0;
     }
   }
+
+  .CodeMirror {
+    height: 512px;
+    resize: both;
+    overflow: hidden;
+
+    * {
+      font-family: monospace;
+      font-size: 13px;
+    }
+  }
 }

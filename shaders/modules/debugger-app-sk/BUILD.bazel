@@ -39,10 +39,12 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//shaders/modules/sksl-constants:sksl-constants_ts_lib",
         "@npm//@types/codemirror",
         "@npm//codemirror",
         "@npm//elements-sk",
         "@npm//lit-html",
+        "@npm//common-sk",
     ],
     ts_srcs = [
         "index.ts",
