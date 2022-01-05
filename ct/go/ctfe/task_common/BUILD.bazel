@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -22,5 +23,15 @@ go_library(
         "@com_google_cloud_go_datastore//:datastore",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
         "@org_golang_google_api//iterator",
+    ],
+)
+
+go_test(
+    name = "task_common_test",
+    srcs = ["task_common_test.go"],
+    embed = [":task_common"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
     ],
 )

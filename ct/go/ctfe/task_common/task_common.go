@@ -609,7 +609,7 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var gerritURLRegexp = regexp.MustCompile("^(https?://(?:[a-z]+)-review\\.googlesource\\.com)/(?:#/)?c/(?:.+/)?(\\d{3,})/?$")
+var gerritURLRegexp = regexp.MustCompile("^(https?://(?:[a-z]+)-review\\.googlesource\\.com)/(?:#/)?c/(?:.+/)?(\\d{3,})(?:/(\\d+)?)?$")
 
 type clDetail struct {
 	Issue         int64  `json:"issue"`
@@ -686,14 +686,25 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Invalid Gerrit CL number", http.StatusInternalServerError)
 		return
 	}
-	change, err := g.GetIssueProperties(context.TODO(), cl)
+	change, err := g.GetIssueProperties(r.Context(), cl)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get issue properties from Gerrit", http.StatusInternalServerError)
 		return
 	}
 
-	// Check to see if the change has any open dependencies.
-	activeDep, err := g.HasOpenDependency(context.TODO(), cl, len(change.Patchsets))
+	// Use latest patchset if patchset is not specified in the clURL.
+	patchset := strconv.Itoa(len(change.Patchsets))
+	if len(matches) > 3 && matches[3] != "" {
+		patchset = matches[3]
+	}
+
+	// Check to see if the change has any open dependencies
+	patchsetInt, err := strconv.Atoi(patchset)
+	if err != nil {
+		httputils.ReportError(w, err, "Patchset must be an int", http.StatusBadRequest)
+		return
+	}
+	activeDep, err := g.HasOpenDependency(r.Context(), cl, patchsetInt)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get related changes from Gerrit", http.StatusInternalServerError)
 		return
@@ -704,8 +715,7 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check to see if the change has a binary file.
-	latestPatchsetID := strconv.Itoa(len(change.Patchsets))
-	isBinary, err := g.IsBinaryPatch(context.TODO(), cl, latestPatchsetID)
+	isBinary, err := g.IsBinaryPatch(r.Context(), cl, patchset)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get list of files from Gerrit", http.StatusInternalServerError)
 		return
@@ -720,9 +730,9 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 		Subject:       change.Subject,
 		Modified:      change.UpdatedString,
 		Project:       change.Project,
-		CodereviewURL: fmt.Sprintf("%s/c/%d/%s", crURL, cl, latestPatchsetID),
+		CodereviewURL: fmt.Sprintf("%s/c/%d/%s", crURL, cl, patchset),
 	}
-	patch, err = g.GetPatch(context.TODO(), cl, latestPatchsetID)
+	patch, err = g.GetPatch(r.Context(), cl, patchset)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to download patch from Gerrit", http.StatusInternalServerError)
 		return
