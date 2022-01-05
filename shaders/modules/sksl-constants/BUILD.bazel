@@ -1,0 +1,7 @@
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "sksl-constants_ts_lib",
+    srcs = ["sksl-constants.ts"],
+    visibility = ["//visibility:public"],
+)
