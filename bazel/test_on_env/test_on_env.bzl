@@ -4,7 +4,7 @@ def test_on_env(name, test, env, timeout_secs = 10, tags = []):
     """Allows running test targets that require launching a test environment before their execution.
 
     The test_on_env rule takes a *_test target and an environment *_binary target as arguments,
-    and carries out the following steps when invoked with "blaze test":
+    and carries out the following steps when invoked with "bazel test":
 
     1. Launches the environment binary.
     2. Waits until the environment signals that it is ready.
@@ -12,7 +12,7 @@ def test_on_env(name, test, env, timeout_secs = 10, tags = []):
     4. Tears down the environment process by sending it a SIGTERM signal.
     5. Reports the results of the test target (pass/fail).
 
-    The test_on_env runner script sets two environment variables:
+    The test_on_env runner sets two environment variables:
 
     - ENV_READY_FILE: Path to a "ready file" that the environment must create to signal the test
       runner that it is ready to accept connections.
@@ -33,7 +33,7 @@ def test_on_env(name, test, env, timeout_secs = 10, tags = []):
 
     Some examples of tests that might require an environment include: Puppeteer tests, where the
     environment can be a demo page server (for screenshot tests) or a web application server (for
-    integration tests); integration tests for a command-line tool that talks an RPC server, etc.
+    integration tests); integration tests for a command-line tool that talks to an RPC server, etc.
 
     Args:
       name: Name of the rule.
@@ -42,13 +42,16 @@ def test_on_env(name, test, env, timeout_secs = 10, tags = []):
       timeout_secs: Approximate maximum number of seconds to wait for the environment to be ready.
       tags: Tags for the generated sh_test rule.
     """
+
+    # Even though test_on_env is a go binary, it seems perfectly happy to be run with the
+    # sh_test rule.
     native.sh_test(
         name = name,
-        srcs = ["//bazel/test_on_env:test_on_env.sh"],
+        srcs = ["//bazel/test_on_env:test_on_env"],
         args = [
-            "$(location %s)" % test,  # TEST_BIN
-            "$(location %s)" % env,  # ENV_BIN
-            "%d" % timeout_secs,  # READY_CHECK_TIMEOUT
+            "--test_bin=$(location %s)" % test,
+            "--env_bin=$(location %s)" % env,
+            "--ready_check=%ds" % timeout_secs,
         ],
         data = [test, env],
         tags = tags,

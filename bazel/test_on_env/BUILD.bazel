@@ -1,9 +1,5 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load(":test_on_env.bzl", "test_on_env")
-
-exports_files(
-    ["test_on_env.sh"],
-    visibility = ["//visibility:public"],
-)
 
 test_on_env(
     name = "test_on_env_go_test",
@@ -15,4 +11,17 @@ test_on_env(
     name = "test_on_env_nodejs_test",
     env = "//bazel/test_on_env/examples:env",
     test = "//bazel/test_on_env/examples/typescript:typescript_test",
+)
+
+go_library(
+    name = "test_on_env_lib",
+    srcs = ["test_on_env.go"],
+    importpath = "go.skia.org/infra/bazel/test_on_env",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "test_on_env",
+    embed = [":test_on_env_lib"],
+    visibility = ["//visibility:public"],
 )

@@ -2,11 +2,10 @@
 
 _demo_page_server = "//infra-sk/sk_demo_page_server:demo_page_server"
 
-_demo_server_script_template = """
-#!/bin/bash
+_demo_server_script_template = """#!/bin/bash
 #
 # Runs the demo page server.
-
+set -x
 HTML_FILE=$(rootpath {html_file})
 DEMO_PAGE_SERVER_BIN=$(rootpath {demo_page_server})
 PORT={port}
