@@ -509,9 +509,9 @@ export class ShadersAppSk extends ElementSk {
     // Set the class of that line to 'cm-error'.
     this.compileErrorLines.push(this.codeMirror!.markText(
       { line: lineNumber - 1, ch: 0 },
-      { line: lineNumber - 1, ch: 200 }, // Some large number for the character offset.
+      { line: lineNumber - 1, ch: 9999 }, // Some large number for the character offset.
       {
-        className: 'cm-error', // See the base16-dark.css file in CodeMirror for the class name.
+        className: 'cm-error', // See the ambiance.css file in CodeMirror for the class name.
       },
     ));
   }
