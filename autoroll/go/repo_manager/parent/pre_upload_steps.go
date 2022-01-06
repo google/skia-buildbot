@@ -315,7 +315,10 @@ func SkiaGnToBp(ctx context.Context, env []string, client *http.Client, parentRe
 	}
 	for _, genFile := range android_skia_checkout.FilesGeneratedByGnToGp {
 		if _, err := git.GitDir(skiaDir).Git(ctx, "add", genFile); err != nil {
-			return fmt.Errorf("Could not git add %s: %s", genFile, err)
+			// Some generated files may be ready in canaries but not
+			// submitted yet. So log warnings instead of returning
+			// errors here.
+			sklog.Warningf("Could not git add %s: %s", genFile, err)
 		}
 	}
 	if _, err := git.GitDir(skiaDir).Git(ctx, "add", android_skia_checkout.LibGifRelPath); err != nil {
