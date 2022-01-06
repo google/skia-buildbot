@@ -43,12 +43,13 @@ func stripBlockComments(lines []string) []string {
 
 	for _, line := range lines {
 		if !blockComment {
-			// We are not currently inside a /* block comment */. Does this line have a single-line
-			// block comment?
+			// We are not currently inside a /* block comment */. Does this line have one or more
+			// single-line block comment?
 			match := singleLineBlockCommentRegexp.FindStringSubmatch(line)
-			if len(match) > 0 {
+			for len(match) > 0 {
 				// Remove the single-line block-comment and proceed as if it was never there.
 				line = match[1] + match[2]
+				match = singleLineBlockCommentRegexp.FindStringSubmatch(line)
 			}
 
 			// Does a multi-line block-comment start on the current line?

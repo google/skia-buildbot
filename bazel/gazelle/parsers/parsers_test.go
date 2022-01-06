@@ -39,3 +39,23 @@ Seventh`
 		"Seventh",
 	}, SplitLinesAndRemoveComments(input))
 }
+
+func TestSplitLinesAndRemoveComments_HandlesMultipleBlockCommentsOnALine(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const input = `#include "alpha.h"
+/* foo */ /* bar */
+#include "beta.h"
+apple/* foo */=/* bar */orange
+#include "gamma.h"
+/* done */`
+
+	assert.Equal(t, []string{
+		`#include "alpha.h"`,
+		" ",
+		`#include "beta.h"`,
+		"apple=orange",
+		`#include "gamma.h"`,
+		"",
+	}, SplitLinesAndRemoveComments(input))
+}
