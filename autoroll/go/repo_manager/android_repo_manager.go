@@ -329,10 +329,16 @@ func (r *androidRepoManager) abortMerge(ctx context.Context) error {
 	return err
 }
 
-// abandonRepoBranch abandons the repo branch.
-func (r *androidRepoManager) abandonRepoBranch(ctx context.Context) error {
-	_, err := exec.RunCwd(ctx, r.childRepo.Dir(), r.repoToolPath, "abandon", androidRepoBranchName)
-	return err
+// abandonRepoBranchAndCleanup abandons the repo branch and cleans up the local
+// checkout to make sure there are no leftover untracked files/directories.
+func (r *androidRepoManager) abandonRepoBranchAndCleanup(ctx context.Context) error {
+	if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), r.repoToolPath, "abandon", androidRepoBranchName); err != nil {
+		return skerr.Wrap(err)
+	}
+	if _, err := r.childRepo.Git(ctx, "clean", "-d", "-f"); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
 // getChangeNumForHash returns the corresponding change number for the provided commit hash by querying Gerrit's search API.
@@ -473,7 +479,7 @@ third_party {
 
 	// Commit the change with the above message.
 	if _, commitErr := r.childRepo.Git(ctx, "commit", "-a", "-m", commitMsg); commitErr != nil {
-		util.LogErr(r.abandonRepoBranch(ctx))
+		util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
 		return 0, fmt.Errorf("Nothing to merge; did someone already merge %s..%s?: %s", from, to, commitErr)
 	}
 
@@ -481,7 +487,7 @@ third_party {
 	// Strip "-review" from the upload URL else autoupload does not work.
 	uploadUrl := strings.Replace(r.parentRepoURL, "-review", "", 1)
 	if _, configErr := r.childRepo.Git(ctx, "config", fmt.Sprintf("review.%s/.autoupload", uploadUrl), "true"); configErr != nil {
-		util.LogErr(r.abandonRepoBranch(ctx))
+		util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
 		return 0, fmt.Errorf("Could not set autoupload config: %s", configErr)
 	}
 
@@ -500,7 +506,7 @@ third_party {
 		Stdin: strings.NewReader("yes"),
 	}
 	if uploadOutput, uploadErr := exec.RunCommand(ctx, uploadCommand); uploadErr != nil {
-		util.LogErr(r.abandonRepoBranch(ctx))
+		util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
 		return 0, fmt.Errorf("Could not upload to Gerrit: %s", uploadErr)
 	} else {
 		sklog.Info(uploadOutput)
@@ -509,17 +515,17 @@ third_party {
 	// Get latest hash to find Gerrit change number with.
 	commitHashOutput, revParseErr := r.childRepo.Git(ctx, "rev-parse", "HEAD")
 	if revParseErr != nil {
-		util.LogErr(r.abandonRepoBranch(ctx))
+		util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
 		return 0, revParseErr
 	}
 	commitHash := strings.Split(commitHashOutput, "\n")[0]
 	// We no longer need the local branch. Abandon the repo.
-	util.LogErr(r.abandonRepoBranch(ctx))
+	util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
 
 	// Get the change number.
 	change, err := r.getChangeForHash(commitHash)
 	if err != nil {
-		util.LogErr(r.abandonRepoBranch(ctx))
+		util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
 		return 0, err
 	}
 	// Set the topic of the merge change. By default use the name of the child
