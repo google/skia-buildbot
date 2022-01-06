@@ -28,6 +28,11 @@
     "clone_url": "https://skia.googlesource.com/external/github.com/airbnb/lottie-web",
     "mirrored_from_url": "https://github.com/airbnb/lottie-web.git"
   },
+  "external/github.com/BalazsJako/ImGuiColorTextEdit": {
+    "name": "external/github.com/BalazsJako/ImGuiColorTextEdit",
+    "clone_url": "https://skia.googlesource.com/external/github.com/BalazsJako/ImGuiColorTextEdit",
+    "mirrored_from_url": "https://github.com/BalazsJako/ImGuiColorTextEdit.git"
+  },
   "external/github.com/BinomialLLC/basis_universal": {
     "name": "external/github.com/BinomialLLC/basis_universal",
     "clone_url": "https://skia.googlesource.com/external/github.com/BinomialLLC/basis_universal",
