@@ -91,7 +91,9 @@ karma_test(
         ":demo_data_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "@npm//@types/chai",
+        "@npm//@types/codemirror",
         "@npm//chai",
+        "@npm//codemirror",
         "@npm//common-sk",
     ],
 )

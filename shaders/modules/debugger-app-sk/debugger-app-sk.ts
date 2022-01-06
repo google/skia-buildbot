@@ -42,6 +42,8 @@ export class DebuggerAppSk extends ElementSk {
 
   private codeMirror: CodeMirror.Editor | null = null;
 
+  private currentLineMarker: CodeMirror.TextMarker | null = null;
+
   constructor() {
     super(DebuggerAppSk.template);
   }
@@ -74,11 +76,31 @@ export class DebuggerAppSk extends ElementSk {
     });
   }
 
+  getEditor(): CodeMirror.Editor | null {
+      return this.codeMirror;
+  }
+
+  updateCurrentLineMarker(): void {
+    this.currentLineMarker?.clear();
+    this.currentLineMarker = null;
+
+    if (!this.player.traceHasCompleted()) {
+      const lineNumber = this.player.getCurrentLine();
+      this.currentLineMarker = this.codeMirror!.markText(
+        { line: lineNumber - 1, ch: 0 },
+        { line: lineNumber,     ch: 0 },
+        { className: 'cm-current-line' },
+      );
+    }
+  }
+
   loadJSONData(jsonData: string): void {
     try {
       this.trace = Convert.toDebugTrace(jsonData);
       this.player.reset(this.trace);
+      this.player.step();
       this.codeMirror!.setValue(this.trace.source.join('\n'));
+      this.updateCurrentLineMarker();
     } catch (ex) {
       this.codeMirror!.setValue((ex instanceof Error) ? ex.message : String(ex));
     }

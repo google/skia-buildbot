@@ -4,6 +4,9 @@
 
 @import '../themes/themes.scss';
 
+.cm-s-base16-light .cm-current-line { background: rgba(  0, 128, 255, 0.2); }
+.cm-s-ambiance     .cm-current-line { background: rgba(128, 192, 255, 0.2); }
+
 .body-sk debugger-app-sk {
   display: block;
   background: var(--surface);
