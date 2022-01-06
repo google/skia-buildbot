@@ -12,9 +12,10 @@ const startIdx = process.argv.findIndex((v) => v === 'start');
 
 // The path to the JS bundle is passed by the karma_test rule as the second argument after start.
 const jsTestFile = process.argv[startIdx + 2];
-// CanvasKit JS and WASM files are right after that.
+// CanvasKit JS, WASM, and version files are right after that.
 const canvasKitJSFile = process.argv[startIdx + 3];
 const canvasKitWASMFile = process.argv[startIdx + 4];
+const versionFile = process.argv[startIdx + 5];
 
 // Detect whether we're running as a test (e.g. "bazel test //path/to/my:karma_test").
 //
@@ -40,6 +41,7 @@ module.exports = function(config) {
       { pattern: canvasKitWASMFile, included: false, served: true },
       // We want the canvasKitJS file to be run before the tests so CanvasKitInit is defined.
       { pattern: canvasKitJSFile },
+      { pattern: versionFile },
       {
         pattern: jsTestFile,
         // Force the test files to be served from disk on each request. Without this,

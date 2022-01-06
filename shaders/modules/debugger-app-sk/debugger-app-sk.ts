@@ -14,6 +14,9 @@ import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-cho
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import * as SkSLConstants from '../sksl-constants/sksl-constants';
 
+import { Convert, DebugTrace } from '../debug-trace/debug-trace';
+import { DebugTracePlayer } from '../debug-trace-player/debug-trace-player';
+
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
 declare const SKIA_VERSION: string;
@@ -33,6 +36,10 @@ CodeMirror.defineMIME('x-shader/x-sksl', {
 });
 
 export class DebuggerAppSk extends ElementSk {
+  private trace: DebugTrace | null = null;
+
+  private player: DebugTracePlayer = new DebugTracePlayer();
+
   private codeMirror: CodeMirror.Editor | null = null;
 
   constructor() {
@@ -47,6 +54,9 @@ export class DebuggerAppSk extends ElementSk {
     super.connectedCallback();
     this._render();
 
+    // Set up drag-and-drop support.
+    this.enableDragAndDrop($$<HTMLDivElement>('#drag-area', this)!);
+
     // Set up CodeMirror.
     this.codeMirror = CodeMirror($$<HTMLDivElement>('#codeEditor', this)!, {
       lineNumbers: true,
@@ -54,13 +64,9 @@ export class DebuggerAppSk extends ElementSk {
       theme: DebuggerAppSk.themeFromCurrentMode(),
       viewportMargin: Infinity,
       scrollbarStyle: 'native',
-      readOnly: true
+      readOnly: true,
     });
-    this.codeMirror!.setValue(String.raw`// TODO(skia:12778): implement SkSL web debugger
-
-half4 main(float2 p) {
-  return half4(p.xy01);
-}`);
+    this.codeMirror!.setValue('/*** Drag in a DebugTrace JSON file to start the debugger. ***/');
 
     // Listen for theme changes.
     document.addEventListener('theme-chooser-toggle', () => {
@@ -68,22 +74,59 @@ half4 main(float2 p) {
     });
   }
 
+  loadJSONData(jsonData: string): void {
+    try {
+      this.trace = Convert.toDebugTrace(jsonData);
+      this.player.reset(this.trace);
+      this.codeMirror!.setValue(this.trace.source.join('\n'));
+    } catch (ex) {
+      this.codeMirror!.setValue((ex instanceof Error) ? ex.message : String(ex));
+    }
+  }
+
+  private enableDragAndDrop(dropArea: HTMLDivElement): void {
+    dropArea.addEventListener('dragover', (event: DragEvent) => {
+      event.stopPropagation();
+      event.preventDefault();
+      event.dataTransfer!.dropEffect = 'move';
+    });
+
+    dropArea.addEventListener('drop', (event: DragEvent) => {
+      event.stopPropagation();
+      event.preventDefault();
+      const fileList = event.dataTransfer!.files;
+      if (fileList.length === 1) {
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+          try {
+            this.loadJSONData(reader.result as string);
+          } catch (ex) {
+            this.codeMirror!.setValue('Unable to read JSON trace file.');
+          }
+        });
+        reader.readAsText(fileList[0]);
+      }
+    });
+  }
+
   private static template = (ele: DebuggerAppSk): TemplateResult => html`
-    <header>
-      <h2>SkSL Debugger</h2>
-      <span>
-        <a
-          id="githash"
-          href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}"
-        >
-          ${SKIA_VERSION.slice(0, 7)}
-        </a>
-        <theme-chooser-sk></theme-chooser-sk>
-      </span>
-    </header>
-    <main>
-      <div id="codeEditor"></div>
-    </main>
+    <div id="drag-area">
+      <header>
+        <h2>SkSL Debugger</h2>
+        <span>
+          <a
+            id="githash"
+            href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}"
+          >
+            ${SKIA_VERSION.slice(0, 7)}
+          </a>
+          <theme-chooser-sk></theme-chooser-sk>
+        </span>
+      </header>
+      <main>
+        <div id="codeEditor"></div>
+      </main>
+    </div>
   `;
 }
 

@@ -1,5 +1,10 @@
 load("//bazel:skia_app_container.bzl", "skia_app_container")
 
+exports_files(
+    ["shaders.karma.conf.js"],
+    visibility = ["//shaders:__subpackages__"],
+)
+
 skia_app_container(
     name = "shaders_container",
     base_image = "@base-cipd//image",
