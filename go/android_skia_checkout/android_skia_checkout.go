@@ -23,7 +23,7 @@ var (
 	AndroidBpRelPath                = path.Join("Android.bp")
 	LibGifRelPath                   = path.Join("third_party", "libgifcodec")
 
-	FilesGeneratedByGnToGp = []string{SkUserConfigAndroidRelPath, SkUserConfigLinuxRelPath, SkUserConfigMacRelPath, SkUserConfigWinRelPath, AndroidBpRelPath, SkUserConfigRenderengineRelPath}
+	FilesGeneratedByGnToGp = []string{SkqpUserConfigRelPath, SkUserConfigAndroidRelPath, SkUserConfigLinuxRelPath, SkUserConfigMacRelPath, SkUserConfigWinRelPath, AndroidBpRelPath, SkUserConfigRenderengineRelPath}
 )
 
 const (
