@@ -654,11 +654,13 @@ interface VersionFileConfigJSON {
 export interface DependencyConfig {
   primary?: VersionFileConfig;
   transitive?: TransitiveDepConfig[];
+  findAndReplace?: string[];
 }
 
 interface DependencyConfigJSON {
   primary?: VersionFileConfigJSON;
   transitive?: TransitiveDepConfigJSON[];
+  find_and_replace?: string[];
 }
 
 export interface GitCheckoutConfig {

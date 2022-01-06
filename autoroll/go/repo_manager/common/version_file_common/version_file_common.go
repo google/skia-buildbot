@@ -65,7 +65,7 @@ type GetFileFunc func(ctx context.Context, path string) (string, error)
 
 // updateSingleDep updates the dependency in the given file, writing the new
 // contents into the changes map and returning the previous version.
-func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newVersion string, changes map[string]string, getFile GetFileFunc) error {
+func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newVersion string, changes map[string]string, getFile GetFileFunc) (string, error) {
 	// Look up the path in our changes map to prevent overwriting
 	// modifications we've already made.
 	oldContents, ok := changes[dep.Path]
@@ -73,25 +73,25 @@ func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newVers
 		var err error
 		oldContents, err = getFile(ctx, dep.Path)
 		if err != nil {
-			return skerr.Wrap(err)
+			return "", skerr.Wrap(err)
 		}
 	}
 
 	// Find the currently-pinned revision.
 	oldVersion, err := GetPinnedRev(dep, oldContents)
 	if err != nil {
-		return skerr.Wrap(err)
+		return "", skerr.Wrap(err)
 	}
 
 	// Create the new file content.
 	if newVersion != oldVersion {
 		newContents, err := SetPinnedRev(dep, newVersion, oldContents)
 		if err != nil {
-			return skerr.Wrap(err)
+			return "", skerr.Wrap(err)
 		}
 		changes[dep.Path] = newContents
 	}
-	return nil
+	return oldVersion, nil
 }
 
 // UpdateDep updates the given dependency to the given revision, also updating
@@ -101,7 +101,8 @@ func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newVers
 func UpdateDep(ctx context.Context, primaryDep *config.DependencyConfig, rev *revision.Revision, getFile GetFileFunc) (map[string]string, error) {
 	// Update the primary dependency.
 	changes := make(map[string]string, 1+len(primaryDep.Transitive))
-	if err := updateSingleDep(ctx, primaryDep.Primary, rev.Id, changes, getFile); err != nil {
+	oldRev, err := updateSingleDep(ctx, primaryDep.Primary, rev.Id, changes, getFile)
+	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
@@ -114,9 +115,21 @@ func UpdateDep(ctx context.Context, primaryDep *config.DependencyConfig, rev *re
 				return nil, skerr.Fmt("Could not find transitive dependency %q in %#v", dep.Child.Id, rev)
 			}
 			// Update.
-			if err := updateSingleDep(ctx, dep.Parent, newVersion, changes, getFile); err != nil {
+			if _, err := updateSingleDep(ctx, dep.Parent, newVersion, changes, getFile); err != nil {
 				return nil, skerr.Wrap(err)
 			}
+		}
+	}
+
+	// Handle find-and-replace.
+	for _, f := range primaryDep.FindAndReplace {
+		oldContents, err := getFile(ctx, f)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		newContents := strings.ReplaceAll(oldContents, oldRev, rev.Id)
+		if oldContents != newContents {
+			changes[f] = newContents
 		}
 	}
 

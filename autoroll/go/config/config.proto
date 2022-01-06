@@ -664,6 +664,10 @@ message DependencyConfig {
     VersionFileConfig primary = 1;
     // transitive dependencies.
     repeated TransitiveDepConfig transitive = 2;
+    // find_and_replace lists additional files in which all instances of the
+    // previous primary revision ID should be replaced with the new primary
+    // revision ID.
+    repeated string find_and_replace = 3;
 }
 
 // GitCheckoutConfig provides configuration for a Git checkout.

@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -10,5 +11,18 @@ go_library(
         "//autoroll/go/revision",
         "//go/depot_tools/deps_parser",
         "//go/skerr",
+    ],
+)
+
+go_test(
+    name = "version_file_common_test",
+    srcs = ["version_file_common_test.go"],
+    embed = [":version_file_common"],
+    deps = [
+        "//autoroll/go/config",
+        "//autoroll/go/revision",
+        "//go/depot_tools/deps_parser",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
     ],
 )
