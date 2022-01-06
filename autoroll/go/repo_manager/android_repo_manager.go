@@ -46,6 +46,7 @@ const (
 
 var (
 	androidDeleteMergeConflictFiles = []string{
+		android_skia_checkout.SkqpUserConfigRelPath,
 		android_skia_checkout.SkUserConfigRelPath,
 		// Android does not allow remote submodules (b/189557997).
 		".gitmodules",

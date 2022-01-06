@@ -13,6 +13,7 @@ import (
 
 var (
 	// Files within the Skia checkout.
+	SkqpUserConfigRelPath           = path.Join("skqp", "include", "config", "SkUserConfig.h")
 	SkUserConfigRelPath             = path.Join("include", "config", "SkUserConfig.h")
 	SkUserConfigAndroidRelPath      = path.Join("android", "include", "config", "SkUserConfig.h")
 	SkUserConfigLinuxRelPath        = path.Join("linux", "include", "config", "SkUserConfig.h")
