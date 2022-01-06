@@ -7,10 +7,10 @@ const df: DataFrame = {
   header: [],
   paramset: {},
   traceset: {
-    ',arch=x86,config=8888,': [1.2345, 1.3e27],
-    ',arch=arm,config=8888,': [2.345, 2.3e27],
-    ',arch=x86,config=gpu,': [0.1234, Math.PI],
-    ',arch=arm,config=gpu,': [0.2345, Math.PI],
+    ',arch=x86,config=8888,': [1, 1.3e27],
+    ',arch=arm,config=8888,': [2, 2.3e27],
+    ',arch=x86,config=gpu,': [3, 1.2345],
+    ',arch=arm,config=gpu,': [3, Math.PI],
   },
   skip: 0,
 };
