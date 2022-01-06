@@ -1080,7 +1080,7 @@ export class ExploreSk extends ElementSk {
     this._render();
 
     if (this.displayMode === 'display_pivot_table') {
-      this.pivotTable!.set(dataframe, this.pivotControl!.pivotRequest!);
+      this.pivotTable!.set(dataframe, this.pivotControl!.pivotRequest!, this.state.queries[0]);
       return;
     }
 

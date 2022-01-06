@@ -13,10 +13,12 @@
  */
 import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
+import { toParamSet } from 'common-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { pivot, DataFrame, TraceSet } from '../json';
 import { operationDescriptions, validateAsPivotTable } from '../pivotutil';
 
+import '../../../infra-sk/modules/paramset-sk';
 import 'elements-sk/icon/sort-icon-sk';
 import 'elements-sk/icon/arrow-drop-down-icon-sk';
 import 'elements-sk/icon/arrow-drop-up-icon-sk';
@@ -179,6 +181,8 @@ export class PivotTableSk extends ElementSk {
 
   private req: pivot.Request | null = null;
 
+  private query: string = ''
+
   /** Maps each traceKey to a list of the values for each key in the traceID,
    * where the order is determined by this.req.group_by.
    *
@@ -204,10 +208,12 @@ export class PivotTableSk extends ElementSk {
     if (!ele.df) {
       return html`<h2>Cannot display: Data is missing.</h2>`;
     }
-    return html`<table>
-    ${ele.tableHeader()}
-    ${ele.tableRows()}
-  </table>`;
+    return html`
+    ${ele.queryDefinition()}
+    <table>
+      ${ele.tableHeader()}
+      ${ele.tableRows()}
+    </table>`;
   }
 
   connectedCallback(): void {
@@ -215,13 +221,36 @@ export class PivotTableSk extends ElementSk {
     this._render();
   }
 
-  set(df: DataFrame, req: pivot.Request): void {
+  set(df: DataFrame, req: pivot.Request, query: string): void {
     this.df = df;
     this.req = req;
+    this.query = query;
     this.keyValues = keyValuesFromTraceSet(this.df.traceset, this.req);
     this.sortHistory = new SortHistory(req.group_by!.length, req.summary!.length);
     this.compare = this.sortHistory.buildCompare(this.df.traceset, this.keyValues);
     this._render();
+  }
+
+  private queryDefinition(): TemplateResult {
+    return html`
+    <div class=querydef>
+      <div>
+        <span class=title>Query</span>
+        <paramset-sk .paramsets=${[toParamSet(this.query)]}></paramset-sk>
+      </div>
+      <div>
+        <span class=title>Group by:</span>
+        ${this.req!.group_by!.join(', ')}
+      </div>
+      <div>
+        <span class=title>Operation:</span>
+        ${operationDescriptions[this.req!.operation]}
+      </div>
+      <div>
+        <span class=title>Summaries:</span>
+        ${this.req!.summary!.map((op: pivot.Operation) => operationDescriptions[op]).join(', ')}
+      </div>
+    </div>`;
   }
 
   private tableHeader(): TemplateResult {

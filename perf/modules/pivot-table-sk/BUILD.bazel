@@ -12,6 +12,7 @@ sk_element(
         "//perf/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["pivot-table-sk.scss"],
+    sk_element_deps = ["//infra-sk/modules/paramset-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//elements-sk",
@@ -19,6 +20,7 @@ sk_element(
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/pivotutil:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
+        "@npm//common-sk",
     ],
     ts_srcs = [
         "pivot-table-sk.ts",

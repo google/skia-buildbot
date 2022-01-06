@@ -23,4 +23,31 @@ pivot-table-sk {
   arrow-drop-up-icon-sk {
     cursor: pointer;
   }
+
+  paramset-sk {
+    table * {
+      border: none;
+    }
+  }
+
+  .querydef {
+    display: inline-grid;
+    margin-bottom: 8px;
+
+    paramset-sk {
+      display: inline-block;
+    }
+
+    > div {
+      margin: 0 8px 8px 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .title {
+      font-weight: bold;
+      margin-right: 8px;
+      color: var(--secondary);
+    }
+  }
 }

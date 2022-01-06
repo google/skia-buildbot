@@ -28,13 +28,15 @@ const req: pivot.Request = {
   summary: ['avg', 'sum'],
 };
 
+const query = 'config=8888&config=gpu&arch=x86&arch=arm';
+
 describe('pivot-table-sk', () => {
   const newInstance = setUpElementUnderTest<PivotTableSk>('pivot-table-sk');
 
   let element: PivotTableSk;
   beforeEach(() => {
     element = newInstance((el: PivotTableSk) => {
-      el.set(df, req);
+      el.set(df, req, query);
     });
   });
 
