@@ -42,7 +42,7 @@ export class DebuggerAppSk extends ElementSk {
 
   private codeMirror: CodeMirror.Editor | null = null;
 
-  private currentLineMarker: CodeMirror.TextMarker | null = null;
+  private currentLineHandle: CodeMirror.LineHandle | null = null;
 
   constructor() {
     super(DebuggerAppSk.template);
@@ -81,16 +81,16 @@ export class DebuggerAppSk extends ElementSk {
   }
 
   updateCurrentLineMarker(): void {
-    this.currentLineMarker?.clear();
-    this.currentLineMarker = null;
+    if (this.currentLineHandle !== null) {
+      this.codeMirror!.removeLineClass(this.currentLineHandle!, 'background', 'cm-current-line');
+      this.currentLineHandle = null;
+    }
 
     if (!this.player.traceHasCompleted()) {
-      const lineNumber = this.player.getCurrentLine() - 1;  // CodeMirror uses zero-indexed lines
-      this.currentLineMarker = this.codeMirror!.markText(
-        { line: lineNumber,     ch: 0 },
-        { line: lineNumber + 1, ch: 0 },
-        { className: 'cm-current-line' },
-      );
+      // Subtract one from the line number because CodeMirror uses zero-indexed lines.
+      const lineNumber = this.player.getCurrentLine() - 1;
+      this.currentLineHandle = this.codeMirror!.addLineClass(lineNumber, 'background',
+                                                             'cm-current-line');
       this.codeMirror!.scrollIntoView({ line: lineNumber, ch: 0 }, /*margin=*/36);
     }
   }

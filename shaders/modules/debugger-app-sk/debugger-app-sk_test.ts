@@ -6,33 +6,27 @@ import { DebuggerAppSk } from './debugger-app-sk';
 import { exampleTraceString } from './demo_data';
 import CodeMirror from 'codemirror';
 
-function getMarkedLines(app: DebuggerAppSk, markType: string): number[] {
+function getLinesWithBgClass(app: DebuggerAppSk, expectedType: string): number[] {
   const editor: CodeMirror.Editor = app.getEditor()!;
   assert.isNotNull(editor);
 
-  // Search for marks with the given class. We expect marks to cover an entire line (from
-  // char 0 of one line, to char 0 of the following line).
-  let markedLines: number[] = [];
-  editor.getAllMarks().forEach((marker: CodeMirror.TextMarker) => {
-    if (marker.className === markType) {
-      const pos: CodeMirror.MarkerRange = marker.find() as CodeMirror.MarkerRange;
-      assert.isDefined(pos);
-      assert.equal(pos.from.ch, 0);
-      assert.equal(pos.to.ch, 0);
-      assert.equal(pos.to.line, pos.from.line + 1);
-
+  // Search for lines with the given background class.
+  let result: number[] = [];
+  for (let index = 0; index < editor!.lineCount(); ++index) {
+    const info = editor!.lineInfo(index);
+    if (info.bgClass === expectedType) {
       // CodeMirror line numbers are zero-indexed, so add 1 to compensate.
-      markedLines.push(pos.from.line + 1);
+      result.push(index + 1);
     }
-  });
+  }
 
-  return markedLines;
+  return result;
 }
 
 function getCurrentLine(app: DebuggerAppSk): number | null {
-  const markedLines = getMarkedLines(app, 'cm-current-line');
-  assert.isAtMost(markedLines.length, 1);
-  return (markedLines.length > 0) ? markedLines[0] : null;
+  const lines: number[] = getLinesWithBgClass(app, 'cm-current-line');
+  assert.isAtMost(lines.length, 1);
+  return (lines.length > 0) ? lines[0] : null;
 }
 
 describe('debugger-app-sk', () => {
