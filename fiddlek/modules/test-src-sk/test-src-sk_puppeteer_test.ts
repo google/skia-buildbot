@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
 import {
@@ -11,13 +10,11 @@ fetchMock.config.overwriteRoutes = true;
 describe('test-src-sk', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(
-      path.join(__dirname, '..', '..', 'webpack.config.ts'),
-    );
+    testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/test-src-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 400, height: 400 });
   });
 

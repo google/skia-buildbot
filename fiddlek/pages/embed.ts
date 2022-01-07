@@ -1,2 +1,2 @@
 import '../modules/themes/themes.scss';
-import '../modules/fiddle-embed';
+import '../modules/fiddle-embed-sk';

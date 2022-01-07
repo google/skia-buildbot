@@ -1,6 +1,6 @@
 /**
- * @module modules/fiddle-embed
- * @description <h2><code>fiddle-embed</code></h2>
+ * @module modules/fiddle-embed-sk
+ * @description <h2><code>fiddle-embed-sk</code></h2>
  *
  * A control for embedding a fiddle as a custom element on a different domain.
  *
@@ -87,4 +87,4 @@ export class FiddleEmbed extends ElementSk {
   }
 }
 
-define('fiddle-embed', FiddleEmbed);
+define('fiddle-embed-sk', FiddleEmbed);

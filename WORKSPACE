@@ -274,6 +274,15 @@ container_pull(
     repository = "skia-public/base-cipd",
 )
 
+# Pulls the gcr.io/skia-public/skia-build-tools container, needed by some apps that
+# build skia.
+container_pull(
+    name = "skia-build-tools",
+    digest = "sha256:5ed9f46e992b3633c69f7cb68074fb30b8280711c9e129794cf875a2c02a300b",
+    registry = "gcr.io",
+    repository = "skia-public/skia-build-tools",
+)
+
 ##############################
 # Packages for RBE container #
 ##############################

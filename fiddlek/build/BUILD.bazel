@@ -1,0 +1,23 @@
+# Adding "skia" directly to filegroup srcs did not include hidden files which
+# are required for compilation (eg: .gn). To make sure hidden files are included
+# we use a gen_skia_checkout rule that copies from the tmp directory to the
+# final "skia" directory.
+filegroup(
+    name = "skia_checkout",
+    srcs = [":gen_skia_checkout"],
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+    visibility = ["//fiddlek:__subpackages__"],
+)
+
+genrule(
+    name = "gen_skia_checkout",
+    outs = ["skia"],
+    cmd = "if [ -d /tmp/release-fiddler-skia-tmp-checkout ]; then cp -r /tmp/release-fiddler-skia-tmp-checkout $@; else mkdir $@; touch $@/placeholder; fi",
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+)

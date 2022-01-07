@@ -1,6 +1,7 @@
-@import '~codemirror/lib/codemirror.css';
-@import '~codemirror/theme/base16-dark.css';
-@import '~codemirror/theme/base16-light.css';
+// These make our Bazel rules happy
+@use 'node_modules/codemirror/lib/codemirror.css';
+@use 'node_modules/codemirror/theme/base16-dark.css';
+@use 'node_modules/codemirror/theme/base16-light.css';
 
 .CodeMirror {
   height: auto;

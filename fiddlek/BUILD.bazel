@@ -1,5 +1,112 @@
-filegroup(
-    name = "source",
-    srcs = glob(["source/**"]),
-    visibility = ["//fiddlek:__subpackages__"],
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+exports_files([
+    "fiddler_restart.sh",
+])
+
+skia_app_container(
+    name = "fiddle_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//fiddlek/go/fiddle:fiddle",
+                "0755",
+            ],
+        ],
+        "/etc/fiddle/source": [
+            [
+                "//fiddlek/source:%s" % img,
+                "0755",
+            ]
+            for img in [
+                "1.png",
+                "2.png",
+                "3.png",
+                "4.png",
+                "5.png",
+                "6.png",
+            ]
+        ],
+        "/usr/local/share/fiddle/dist": [
+            [
+                "//fiddlek/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in [
+                "embed",
+                "named",
+                "newindex",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    entrypoint = "/usr/local/bin/fiddle",
+    repository = "skia-public/fiddle",
+)
+
+skia_app_container(
+    name = "fiddler_container",
+    base_image = "@skia-build-tools//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//fiddlek/go/fiddler:fiddler",
+                "0755",
+            ],
+            [
+                "//fiddlek:fiddler_restart.sh",
+                "0755",
+            ],
+            [
+                "//fiddlek/bin:fiddle_secwrap",
+                "0755",
+            ],
+        ],
+        # Note source is fiddle, not fiddler, to agree with the fiddle image.
+        "/etc/fiddle/source": [
+            [
+                "//fiddlek/source:%s" % img,
+                "0644",
+            ]
+            for img in [
+                "1.png",
+                "2.png",
+                "3.png",
+                "4.png",
+                "5.png",
+                "6.png",
+            ]
+        ],
+        "/usr/local/share/fiddler": [
+            [
+                "//fiddlek/build:skia_checkout",
+                "0777",  # For executables that fiddler runs.
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/fiddler",
+    repository = "skia-public/fiddler",
+    run_commands_root = [
+        # Install required packages.
+        "apt-get update",
+        "apt-get upgrade -y",
+        "apt-get install -y libfontconfig1 libglu1-mesa ffmpeg xvfb",
+        "rm -rf /var/lib/apt/lists/*",
+        "useradd you-are-still",
+        "useradd in-a",
+        "useradd container",
+    ],
+    run_commands_skia = [
+        # Builds will use libs from SwiftShader.
+        "git clone https://swiftshader.googlesource.com/SwiftShader /tmp/swiftshader",
+        # Move the skia checkout into the dir used by the fiddler k8s config.
+        "mkdir /tmp/skia",
+        "cp -r /usr/local/share/fiddler/skia /tmp/skia/",
+        # Build again so that first runs are fast in the new container.
+        "/tmp/depot_tools/ninja -C /tmp/skia/skia/out/Static",
+    ],
 )

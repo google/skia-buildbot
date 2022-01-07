@@ -10,8 +10,8 @@ $$('#mode_start')!.addEventListener('click', () => {
 
   // The number of images that have emitted 'load' events.
   let loadedCount = 0;
-  $('fiddle-embed').forEach((ele) => {
-    // Set the fiddle to load for each fiddle-embed element.
+  $('fiddle-embed-sk').forEach((ele) => {
+    // Set the fiddle to load for each fiddle-embed-sk element.
     ele.setAttribute('name', '5e3a25b5d5dfb2195a3c5fd5959245a5');
 
     // Once that context has been loaded we add a listener for each image to load.

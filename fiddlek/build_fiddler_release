@@ -16,7 +16,7 @@ ${INSTALL}     --mode=755 -T ./bin/fiddle_secwrap     ${ROOT}/usr/local/bin/fidd
 ${INSTALL}     --mode=755 -T ./fiddler_restart.sh     ${ROOT}/usr/local/bin/fiddler_restart.sh
 # Note source is fiddle, not fiddler, to agree with the fiddle image.
 ${INSTALL_DIR} --mode=755                             ${ROOT}/etc/fiddle/source
-${INSTALL}     --mode=644    ./source/*               ${ROOT}/etc/fiddle/source
+${INSTALL}     --mode=644    ./source/*.png           ${ROOT}/etc/fiddle/source
 }
 
 source ../bash/docker_build.sh

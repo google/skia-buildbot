@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { expect } from 'chai';
 import {
   loadCachedTestBed,
@@ -8,13 +7,11 @@ import {
 describe('fiddle-sk', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(
-      path.join(__dirname, '..', '..', 'webpack.config.ts'),
-    );
+    testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/fiddle-sk.html`, { waitUntil: 'networkidle0' });
+    await testBed.page.goto(testBed.baseUrl, { waitUntil: 'networkidle0' });
     await testBed.page.setViewport({ width: 1024, height: 1400 });
   });
 

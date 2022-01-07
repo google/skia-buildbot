@@ -124,8 +124,8 @@ var (
 
 func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").Funcs(funcMap).ParseFiles(
-		filepath.Join(*distDir, "dist/newindex.html"),
-		filepath.Join(*distDir, "dist/named.html"),
+		filepath.Join(*distDir, "newindex.html"),
+		filepath.Join(*distDir, "named.html"),
 	))
 }
 
@@ -536,7 +536,8 @@ func basicModeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addHandlers(r *mux.Router) {
-	r.PathPrefix("/dist/").HandlerFunc(makeDistHandler())
+	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(makeDistHandler())))
+
 	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler).Methods("GET")
 	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle).Methods("GET")
 	r.HandleFunc("/e/{id:[@0-9a-zA-Z_]+}", embedHandle).Methods("GET")
@@ -557,16 +558,19 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 
-	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		BundleDelayThreshold: time.Second / 10,
-		BundleCountThreshold: 10})
-	if err != nil {
-		sklog.Fatal(err)
+	var err error
+	if !*local {
+		exporter, err := stackdriver.NewExporter(stackdriver.Options{
+			BundleDelayThreshold: time.Second / 10,
+			BundleCountThreshold: 10})
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		trace.RegisterExporter(exporter)
+		trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+		_, span := trace.StartSpan(context.Background(), "main")
+		defer span.End()
 	}
-	trace.RegisterExporter(exporter)
-	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
-	_, span := trace.StartSpan(context.Background(), "main")
-	defer span.End()
 
 	loadTemplates()
 	fiddleStore, err = store.New(*local)

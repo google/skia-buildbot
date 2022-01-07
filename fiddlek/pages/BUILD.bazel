@@ -1,0 +1,34 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "embed",
+    assets_serving_path = "/dist",
+    html_file = "embed.html",
+    sk_element_deps = ["//fiddlek/modules/fiddle-embed-sk"],
+    ts_entry_point = "embed.ts",
+)
+
+sk_page(
+    name = "named",
+    assets_serving_path = "/dist",
+    html_file = "named.html",
+    scss_entry_point = "named.scss",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        "//fiddlek/modules/fiddle-sk",
+    ],
+    ts_entry_point = "named.ts",
+)
+
+sk_page(
+    name = "newindex",
+    assets_serving_path = "/dist",
+    html_file = "newindex.html",
+    scss_entry_point = "newindex.scss",
+    sk_element_deps = [
+        "//fiddlek/modules/fiddle-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+    ],
+    ts_deps = ["//fiddlek/modules/json:index_ts_lib"],
+    ts_entry_point = "newindex.ts",
+)

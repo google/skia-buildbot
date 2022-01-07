@@ -19,6 +19,8 @@ var targetDirectories = map[string]bool{
 	"debugger-app/pages":   true,
 	"demos/modules":        true,
 	"demos/pages":          true,
+	"fiddlek/modules":      true,
+	"fiddlek/pages":        true,
 	"golden/modules":       true,
 	"golden/pages":         true,
 	"hashtag/modules":      true,

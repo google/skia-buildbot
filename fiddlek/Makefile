@@ -1,34 +1,4 @@
-.PHONY: build
-build: web
-	go install -v ./go/fiddle
-	go install -v ./go/fiddler
-	go install -v ./go/fiddlecli
-	go install -v ./go/smoketest
-	mkdir -p ./bin
-	clang++ -O2 ./cpp/fiddle_secwrap.cpp -o ./bin/fiddle_secwrap
-
-web: ./modules/json/index.ts npm-ci
-	npx webpack --mode=production
-
-testjs: npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
-
-debugjs: npm-ci
-	npx karma start --no-single-run
-
-watch: npm-ci
-	npx webpack --mode=development --watch
-
-.PHONY: build-frontend-ci
-build-frontend-ci: npm-ci
-	npx webpack --mode=production
-
-.PHONY: test-frontend-ci
-test-frontend-ci: npm-ci
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
-
-testpptr: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -v --require ts-node/register ./modules/**/*_puppeteer_test.ts
+include ../make/bazel.mk
 
 # First create a list of all the modules that ./go/ts depends upon.
 tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/fiddlek/go/ts/  )
@@ -39,55 +9,62 @@ tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '
 ./modules/json/index.ts: $(tsDependentFiles)
 	go generate ./go/...
 
-.PHONY: fiddle_secwrap
 fiddle_secwrap:
-	mkdir -p ./bin
 	clang++ -O2 ./cpp/fiddle_secwrap.cpp -o ./bin/fiddle_secwrap
 
-.PHONY: image
-image: build
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/fiddle
+build: ./modules/json/index.ts fiddle_secwrap
+	$(BAZEL) build go/... modules/... pages/...
+
+serve:
+	@echo "Bazel doesn't have a serve-all option."
+	@echo "For the module under development, try running something like:"
+	@echo "bazel run modules/fiddle-embed-sk:demo_page_server"
+
+release-fiddle: build
+	$(BAZEL) run //fiddlek:push_fiddle_container
+
+release-fiddler: build
 	docker pull gcr.io/skia-public/skia-release:prod
-	SKIP_UPLOAD=1 ./build_fiddle_release
-	SKIP_UPLOAD=1 ./build_fiddler_release
+	mkdir /tmp/release-fiddler-skia-tmp-checkout
+	# Extract skia checkout from the most recently built docker container.
+	# This is built with @skia//docker/skia-wasm-release/Dockerfile
+	docker run --rm -u $$(id -u ${USER}):$$(id -g ${USER}) \
+	    --volume /tmp/release-fiddler-skia-tmp-checkout:/OUT gcr.io/skia-public/skia-release:prod \
+	    sh -c "cp -r /tmp/skia/skia/. /OUT/"
+	$(BAZEL) run //fiddlek:push_fiddler_container
+	# Cleanup the skia checkout.
+	rm -rf /tmp/release-fiddler-skia-tmp-checkout
 
-.PHONY: release
-release: build
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/fiddle
-	docker pull gcr.io/skia-public/skia-release:prod
-	./build_fiddle_release
-	./build_fiddler_release
+release: release-fiddle release-fiddler
 
-.PHONY: release_ci
-release_ci: build
-	# Don't docker pull here, as we are in the CI pipeline and it already has
-	# done the pull.
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/fiddle
-	./build_fiddle_release
-	./build_fiddler_release
+# Used by the autodeployment framework:
+# https://skia.googlesource.com/buildbot/+doc/main/docker_pushes_watcher/README.md
+release-fiddler-ci: build
+	# COPY_FROM_DIR and STABLE_DOCKER_TAG env variables are expected to be
+	# set by the auto deploy mechanism,
+	mkdir /tmp/release-fiddler-skia-tmp-checkout
+	cp -r $(COPY_FROM_DIR)/. build/skia/
+	${BAZEL} run //fiddlek:push_fiddler_container --workspace_status_command=bazel/override_container_label.sh
+	# Cleanup the skia checkout.
+	rm -rf /tmp/release-fiddler-skia-tmp-checkout
 
-.PHONY: push
-push: release
-	pushk fiddle fiddler
+push: pushk release
+	pushk --use-temp-checkout fiddle fiddler
 
-.PHONY: push_fiddle
-push_fiddle:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/fiddle
-	./build_fiddle_release
-	pushk fiddle
+push_fiddle: pushk release-fiddle
+	pushk --use-temp-checkout fiddle
 
-.PHONY: cli
 cli:
 	go install -v ./go/fiddlecli
 
-.PHONY: test
-test: testgo testcpp
+test: testgo testcpp testjs
 
-.PHONY: testgo
+testjs:
+	$(BAZEL) test modules/...
+
 testgo:
 	go test -v ./...
 
-.PHONY: testcpp
 testcpp: build
 	clang ./cpp/fail_socket.cpp -o ./bin/fail_socket
 	clang ./cpp/fail_execve.cpp -o ./bin/fail_execve
@@ -102,13 +79,13 @@ testcpp: build
 	echo "SUCCESS"
 
 # This presumes a fiddler is available at port :8000 and scrapexchange is available at port :9000.
+# You can either run a local copy of scrapexchange, or port-forward the production instance:
+#   kubectl port-forward service/scrapexchange 9000
 .PHONY: run_local_fiddle
-run_local_fiddle:
-	fiddle --local --port=:8080 --source_image_dir=/etc/fiddle/source --scrapexchange=localhost:9000
+run_local_fiddle: build
+	../_bazel_bin/fiddlek/go/fiddle/fiddle_/fiddle --local --port=:8080 --source_image_dir=/etc/fiddle/source --scrapexchange=localhost:9000 --dist_dir=../_bazel_bin/fiddlek/pages/development
 
 # Runs a local fiddler.
 .PHONY: run_local_fiddler
 run_local_fiddler:
-	docker run -ti -p8000:8000 --cap-add=SYS_PTRACE fiddler
-
-include ../make/npm.mk
+	docker run -ti -p8000:8000 --cap-add=SYS_PTRACE fiddler --fiddle_root=/tmp --checkout=/tmp/skia/skia/ --local

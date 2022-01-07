@@ -70,7 +70,6 @@ puppeteer-tests:
 .PHONY: build-frontend-ci
 build-frontend-ci: npm-ci
 	cd autoroll && $(MAKE) build-frontend-ci
-	cd fiddlek && $(MAKE) build-frontend-ci
 	cd infra-sk && $(MAKE) build-frontend-ci
 	cd new_element && $(MAKE) build-frontend-ci
 	cd status && $(MAKE) build-frontend-ci
@@ -82,7 +81,6 @@ build-frontend-ci: npm-ci
 # All apps with a karma.conf.ts file should be included here.
 .PHONY: test-frontend-ci
 test-frontend-ci: npm-ci
-	cd fiddlek && $(MAKE) test-frontend-ci
 	cd infra-sk && $(MAKE) test-frontend-ci
 	cd new_element && $(MAKE) test-frontend-ci
 	cd puppeteer-tests && $(MAKE) test-frontend-ci

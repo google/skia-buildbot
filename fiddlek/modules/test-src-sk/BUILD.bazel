@@ -1,0 +1,54 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":test-src-sk-demo",
+)
+
+sk_element(
+    name = "test-src-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["test-src-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "test-src-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "test-src-sk-demo",
+    html_file = "test-src-sk-demo.html",
+    sk_element_deps = [":test-src-sk"],
+    ts_deps = ["@npm//fetch-mock"],
+    ts_entry_point = "test-src-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "test-src-sk_puppeteer_test",
+    src = "test-src-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//fetch-mock",
+    ],
+)
+
+karma_test(
+    name = "test-src-sk_test",
+    src = "test-src-sk_test.ts",
+    deps = [
+        ":test-src-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//fetch-mock",
+    ],
+)

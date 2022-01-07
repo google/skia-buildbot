@@ -16,9 +16,10 @@ go_library(
 go_test(
     name = "source_test",
     srcs = ["source_test.go"],
-    data = ["//fiddlek:source"],
+    data = glob(["testdata/**"]),
     embed = [":source"],
     deps = [
+        "//go/testutils",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
     ],
