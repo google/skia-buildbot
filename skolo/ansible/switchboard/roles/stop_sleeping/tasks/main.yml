@@ -12,3 +12,9 @@
     group: wheel
     mode: 0644
   when: ansible_facts['system']|lower == 'darwin'
+
+- name: Run caffeinate now so we don't need to reboot.
+  command: launchctl load /Library/LaunchAgents/org.skia.caffeinated.plist
+
+- name: Disable screensaver
+  command: defaults -currentHost write com.apple.screensaver idleTime 0

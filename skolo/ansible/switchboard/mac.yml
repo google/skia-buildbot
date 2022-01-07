@@ -19,11 +19,11 @@
       command: networksetup -setairportpower en1 off
 
     - import_role:
+        name: stop_sleeping
+    - import_role:
         name: copy_authorized_keys
     - import_role:
         name: copy_service_account_key
-    - import_role:
-        name: stop_sleeping
     - import_role:
         name: swarming_needs
     - import_role:
