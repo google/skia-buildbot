@@ -3,11 +3,11 @@ import './index';
 import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
 
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { DataFrame, pivot, TraceSet } from '../json';
 import {
   KeyValues,
-  keyValuesFromTraceSet, PivotTableSk, SortHistory, SortSelection,
+  keyValuesFromTraceSet, PivotTableSk, PivotTableSkChangeEventDetail, SortHistory, SortSelection,
 } from './pivot-table-sk';
 
 const df: DataFrame = {
@@ -45,8 +45,12 @@ describe('pivot-table-sk', () => {
       let firstSortSelection = element['sortHistory']!.history[0];
       assert.deepEqual(firstSortSelection, new SortSelection(0, 'summaryValues', 'up'));
 
+      const event = eventPromise<CustomEvent<PivotTableSkChangeEventDetail>>('change');
+
       // Click on the sort up icon that appears over the 'config' column.
       $$<HTMLElement>('sort-icon-sk', element)!.click();
+
+      const encodedHistory = (await event).detail;
 
       // Confirm it changes to a drop down icon.
       assert.isNotNull($$<HTMLElement>('arrow-drop-down-icon-sk', element));
@@ -54,6 +58,7 @@ describe('pivot-table-sk', () => {
       // Confirm sort state has changed.
       firstSortSelection = element['sortHistory']!.history[0];
       assert.deepEqual(firstSortSelection, new SortSelection(0, 'keyValues', 'down'));
+      assert.isTrue(encodedHistory.startsWith(firstSortSelection.encode()));
     });
   });
 });
@@ -104,6 +109,19 @@ describe('SortSelection', () => {
     assert.equal(compare(',arch=arm,config=8888,', ',arch=x86,config=gpu,'), -1, '8888 < gpu sorting up');
     s.toggleDirection();
     assert.equal(compare(',arch=arm,config=8888,', ',arch=x86,config=gpu,'), 1, '8888 < gpu sorting down');
+  });
+
+  it('round trips through encode and decode', () => {
+    const expected = new SortSelection(2, 'keyValues', 'down');
+    const encoded = expected.encode();
+    assert.equal(encoded, 'dk2');
+    const actual = SortSelection.decode(expected.encode());
+    assert.deepEqual(actual, expected);
+  });
+
+  it('decode robustly handles invalid strings', () => {
+    const actual = SortSelection.decode('');
+    assert.deepEqual(actual, new SortSelection(0, 'summaryValues', 'down'));
   });
 });
 
@@ -180,6 +198,14 @@ describe('keyValuesFromTraceSet', () => {
       ',arch=arm,config=8888,': ['arm'],
       ',arch=x86,config=8888,': ['x86'],
     };
+    assert.deepEqual(actual, expected);
+  });
+
+  it('round trips through encode and decode', () => {
+    const expected = new SortHistory(req.group_by!.length, req.summary!.length);
+    const actual = new SortHistory(req.group_by!.length, req.summary!.length);
+    actual.history = [];
+    actual.decode(expected.encode());
     assert.deepEqual(actual, expected);
   });
 });

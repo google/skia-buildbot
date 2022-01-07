@@ -10,6 +10,8 @@
  * The inputs required are a DataFrame and a pivot.Request, which has details on
  * how the input DataFrame was pivoted.
  *
+ * @evt Emits a change event with the sort history encoded as a string when the
+ *    user sorts on a column.
  */
 import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
@@ -38,6 +40,9 @@ export type compareFunc = (a: string, b: string)=> number;
  * determined by pivot.Request.group_by.
  */
 export type KeyValues = {[key: string]: string[]};
+
+// The event detail is the sort history of the table encoded as a string.
+export type PivotTableSkChangeEventDetail = string;
 
 /** Represents a how a single column in the table is to be sorted.
  */
@@ -93,6 +98,22 @@ export class SortSelection {
     };
 
     return compare;
+  }
+
+  /** Encodes the SortSelection as a string. */
+  encode(): string {
+    const encodedDir = this.dir === 'up' ? 'u' : 'd';
+    const encodedKind = this.kind === 'keyValues' ? 'k' : 's';
+    return `${encodedDir}${encodedKind}${this.column}`;
+  }
+
+  /** Decode an encoded SortSelection from a string encoded by
+   * SortSelection.encode(). */
+  static decode(s: string): SortSelection {
+    const dir = s[0] === 'u' ? 'up' : 'down';
+    const kind: columnKind = s[1] === 'k' ? 'keyValues' : 'summaryValues';
+    const column = +s.slice(2);
+    return new SortSelection(column, kind, dir);
   }
 }
 
@@ -163,6 +184,21 @@ export class SortHistory {
     };
     return compare;
   }
+
+  /** Encodes the SortHistory as a string.
+   *
+   * The format is of all the serialized history members joined by
+   * dashes.
+   */
+  encode(): string {
+    return this.history.map((sel: SortSelection) => sel.encode()).join('-');
+  }
+
+  /** Decodes a string previously encoded via this.encode() and uses it to set
+   * the history state. */
+  decode(s: string): void {
+    this.history = s.split('-').map((encodedSortSelection: string) => SortSelection.decode(encodedSortSelection));
+  }
 }
 
 export function keyValuesFromTraceSet(traceset: TraceSet, req: pivot.Request): KeyValues {
@@ -221,12 +257,15 @@ export class PivotTableSk extends ElementSk {
     this._render();
   }
 
-  set(df: DataFrame, req: pivot.Request, query: string): void {
+  set(df: DataFrame, req: pivot.Request, query: string, encodedHistory: string = ''): void {
     this.df = df;
     this.req = req;
     this.query = query;
     this.keyValues = keyValuesFromTraceSet(this.df.traceset, this.req);
     this.sortHistory = new SortHistory(req.group_by!.length, req.summary!.length);
+    if (encodedHistory !== '') {
+      this.sortHistory.decode(encodedHistory);
+    }
     this.compare = this.sortHistory.buildCompare(this.df.traceset, this.keyValues);
     this._render();
   }
@@ -285,6 +324,7 @@ export class PivotTableSk extends ElementSk {
   private changeSort(column: number, kind: columnKind) {
     this.sortHistory!.selectColumnToSortOn(column, kind);
     this.compare = this.sortHistory!.buildCompare(this.df!.traceset, this.keyValues);
+    this.dispatchEvent(new CustomEvent<PivotTableSkChangeEventDetail>('change', { detail: this.sortHistory!.encode(), bubbles: true }));
     this._render();
   }
 
