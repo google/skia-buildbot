@@ -7,6 +7,14 @@
 .cm-s-base16-light .cm-current-line { background: rgba(  0, 128, 255, 0.2); }
 .cm-s-ambiance     .cm-current-line { background: rgba(128, 192, 255, 0.2); }
 
+.cm-breakpoints                     { width: 15px; }
+.cm-s-base16-light .cm-reachable    { text-align: center; font-size: 10px; color: #ee222260; }
+.cm-s-ambiance     .cm-reachable    { text-align: center; font-size: 10px; color: #cc444460; }
+.cm-reachable::after                { content: '◯'; }
+.cm-s-base16-light .cm-breakpoint   { text-align: center; font-size: 10px; color: #ee2222; }
+.cm-s-ambiance     .cm-breakpoint   { text-align: center; font-size: 10px; color: #cc0000; }
+.cm-breakpoint::after               { content: '●'; }
+
 .body-sk debugger-app-sk {
   display: block;
   background: var(--surface);

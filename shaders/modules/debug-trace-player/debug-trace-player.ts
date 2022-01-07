@@ -223,6 +223,11 @@ export class DebugTracePlayer {
     this.breakpointLines = breakpointLines;
   }
 
+  /** Returns the current set of lines which have a breakpoint. */
+  public getBreakpoints(): Set<number> {
+    return this.breakpointLines;
+  }
+
   /** Adds a breakpoint to a line (if one doesn't exist). */
   public addBreakpoint(line: number): void {
     this.breakpointLines.add(line);

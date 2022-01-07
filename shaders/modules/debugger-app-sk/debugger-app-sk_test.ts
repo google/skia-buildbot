@@ -12,7 +12,7 @@ function getLinesWithBgClass(app: DebuggerAppSk, expectedType: string): number[]
 
   // Search for lines with the given background class.
   let result: number[] = [];
-  for (let index = 0; index < editor!.lineCount(); ++index) {
+  for (let index = 0; index < editor.lineCount(); ++index) {
     const info = editor!.lineInfo(index);
     if (info.bgClass === expectedType) {
       // CodeMirror line numbers are zero-indexed, so add 1 to compensate.
@@ -27,6 +27,35 @@ function getCurrentLine(app: DebuggerAppSk): number | null {
   const lines: number[] = getLinesWithBgClass(app, 'cm-current-line');
   assert.isAtMost(lines.length, 1);
   return (lines.length > 0) ? lines[0] : null;
+}
+
+function getLinesWithBreakpointMarker(app: DebuggerAppSk, expectedMarker: string): number[] {
+  const editor: CodeMirror.Editor = app.getEditor()!;
+  assert.isNotNull(editor);
+
+  // Search for lines with the given background class.
+  let result: number[] = [];
+  for (let index = 0; index < editor.lineCount(); ++index) {
+    const info = editor.lineInfo(index);
+    if ('cm-breakpoints' in (info.gutterMarkers ?? {})) {
+      if (info.gutterMarkers['cm-breakpoints'].classList.contains(expectedMarker)) {
+        // CodeMirror line numbers are zero-indexed, so add 1 to compensate.
+        result.push(index + 1);
+      }
+    }
+  }
+
+  return result;
+}
+
+function getBreakpointableLines(app: DebuggerAppSk): number[] {
+  // Returns line which could have a breakpoint set, but currently don't.
+  return getLinesWithBreakpointMarker(app, 'cm-reachable');
+}
+
+function getBreakpointLines(app: DebuggerAppSk): number[] {
+  // Returns line which currently have a breakpoint set.
+  return getLinesWithBreakpointMarker(app, 'cm-breakpoint');
 }
 
 describe('debugger-app-sk', () => {
@@ -57,6 +86,30 @@ describe('debugger-app-sk', () => {
   const entrypointLine = 6;
   const helperFunctionLine = 2;
 
+  it('shows breakpointable markers on lines with code', () => {
+    debuggerAppSk.loadJSONData(exampleTraceString);
+    assert.sameDeepMembers(getBreakpointableLines(debuggerAppSk),
+                           [entrypointLine, entrypointLine + 1,
+                            helperFunctionLine, helperFunctionLine + 1]);
+  });
+
+  it('shows breakpoint markers on lines after breakpoints are set', () => {
+    debuggerAppSk.loadJSONData(exampleTraceString);
+    debuggerAppSk.toggleBreakpoint(helperFunctionLine);
+    debuggerAppSk.toggleBreakpoint(entrypointLine + 1);
+    assert.sameDeepMembers(getBreakpointableLines(debuggerAppSk),
+                           [entrypointLine, helperFunctionLine + 1]);
+    assert.sameDeepMembers(getBreakpointLines(debuggerAppSk),
+                           [entrypointLine + 1, helperFunctionLine]);
+  });
+
+  it('shows an error message after invalid data is loaded', () => {
+    debuggerAppSk.loadJSONData('This is invalid data');
+
+    assert.include($$<HTMLDivElement>('#codeEditor')?.innerText, 'Unexpected token');
+  });
+
+
   it('highlights the entrypoint after valid data is loaded', () => {
     debuggerAppSk.loadJSONData(exampleTraceString);
     assert.equal(getCurrentLine(debuggerAppSk), entrypointLine);
@@ -78,6 +131,19 @@ describe('debugger-app-sk', () => {
     debuggerAppSk.loadJSONData(exampleTraceString);
     debuggerAppSk.stepOut();
     assert.equal(getCurrentLine(debuggerAppSk), null);
+  });
+
+  it('completes the trace after running without a breakpoint set', () => {
+    debuggerAppSk.loadJSONData(exampleTraceString);
+    debuggerAppSk.run();
+    assert.equal(getCurrentLine(debuggerAppSk), null);
+  });
+
+  it('runs until a breakpoint is hit', () => {
+    debuggerAppSk.loadJSONData(exampleTraceString);
+    debuggerAppSk.toggleBreakpoint(helperFunctionLine);
+    debuggerAppSk.run();
+    assert.equal(getCurrentLine(debuggerAppSk), helperFunctionLine);
   });
 
   it('highlights each line in sequential order when single-stepping', () => {

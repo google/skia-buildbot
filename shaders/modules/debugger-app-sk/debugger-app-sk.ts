@@ -5,7 +5,7 @@
  */
 import { $$ } from 'common-sk/modules/dom';
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
-import CodeMirror from 'codemirror';
+import CodeMirror, { EditorConfiguration } from 'codemirror';
 import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 
@@ -60,15 +60,21 @@ export class DebuggerAppSk extends ElementSk {
     this.enableDragAndDrop($$<HTMLDivElement>('#drag-area', this)!);
 
     // Set up CodeMirror.
-    this.codeMirror = CodeMirror($$<HTMLDivElement>('#codeEditor', this)!, {
+    this.codeMirror = CodeMirror($$<HTMLDivElement>('#codeEditor', this)!, <EditorConfiguration>{
+      value: '/*** Drag in a DebugTrace JSON file to start the debugger. ***/',
       lineNumbers: true,
       mode: 'x-shader/x-sksl',
       theme: DebuggerAppSk.themeFromCurrentMode(),
       viewportMargin: Infinity,
       scrollbarStyle: 'native',
       readOnly: true,
+      gutters: ['CodeMirror-linenumbers', 'cm-breakpoints'],
+      fixedGutter: true,
     });
-    this.codeMirror!.setValue('/*** Drag in a DebugTrace JSON file to start the debugger. ***/');
+    this.codeMirror!.on('gutterClick', (_, line: number) => {
+      // 'line' comes from CodeMirror so is indexed starting from zero.
+      this.toggleBreakpoint(line + 1);
+    });
 
     // Listen for theme changes.
     document.addEventListener('theme-chooser-toggle', () => {
@@ -98,10 +104,10 @@ export class DebuggerAppSk extends ElementSk {
   loadJSONData(jsonData: string): void {
     try {
       this.trace = Convert.toDebugTrace(jsonData);
-      this.player.reset(this.trace);
-      this.player.step();
       this.codeMirror!.setValue(this.trace.source.join('\n'));
-      this.updateCurrentLineMarker();
+      this.player.setBreakpoints(new Set());
+      this.resetTrace();
+      this.resetBreakpointGutter();
       this._render();
     } catch (ex) {
       this.codeMirror!.setValue((ex instanceof Error) ? ex.message : String(ex));
@@ -148,10 +154,46 @@ export class DebuggerAppSk extends ElementSk {
     this.updateCurrentLineMarker();
   }
 
+  run(): void {
+    this.player.run();
+    this.updateCurrentLineMarker();
+  }
+
   resetTrace(): void {
     this.player.reset(this.trace);
     this.player.step();
     this.updateCurrentLineMarker();
+  }
+
+  static makeDivWithClass(name: string): HTMLDivElement {
+    const marker: HTMLDivElement = document.createElement("div");
+    marker.classList.add(name);
+    return marker;
+  }
+
+  resetBreakpointGutter(): void {
+    this.codeMirror!.clearGutter('cm-breakpoints');
+    this.player.getLineNumbersReached().forEach((timesReached: number, line: number) => {
+      this.codeMirror!.setGutterMarker(line - 1, 'cm-breakpoints',
+                                       DebuggerAppSk.makeDivWithClass('cm-reachable'));
+    });
+  }
+
+  toggleBreakpoint(line: number): void {
+    // The line number is 1-indexed.
+    if (this.player.getBreakpoints().has(line)) {
+      this.player.removeBreakpoint(line);
+      this.codeMirror!.setGutterMarker(line - 1, 'cm-breakpoints',
+                                       DebuggerAppSk.makeDivWithClass('cm-reachable'));
+    } else if (this.player.getLineNumbersReached().has(line)) {
+      this.player.addBreakpoint(line);
+      this.codeMirror!.setGutterMarker(line - 1, 'cm-breakpoints',
+                                       DebuggerAppSk.makeDivWithClass('cm-breakpoint'));
+    } else {
+      // Don't allow breakpoints to be set on unreachable lines.
+    }
+
+    this._render();
   }
 
   private static template = (self: DebuggerAppSk): TemplateResult => html`
@@ -192,6 +234,13 @@ export class DebuggerAppSk extends ElementSk {
                     @click=${self.stepOut}
                     class=action>
               Step Out
+            </button>
+          </span>
+          <span id=buttonGroup>
+            <button ?disabled=${self.trace === null}
+                    @click=${self.run}
+                    class=action>
+              ${self.player.getBreakpoints().size > 0 ? 'Run to Breakpoint' : 'Run'}
             </button>
           </span>
         </div>
