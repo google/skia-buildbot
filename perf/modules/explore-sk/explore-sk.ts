@@ -70,7 +70,7 @@ import { messageByName, messagesToErrorString, startRequest } from '../progress/
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
-import { PivotTableSk } from '../pivot-table-sk/pivot-table-sk';
+import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -140,6 +140,8 @@ class State {
   requestType: RequestType = 1; // TODO(jcgregorio) Use constants in domain-picker-sk.
 
   pivotRequest: pivot.Request = defaultPivotRequest();
+
+  sort: string = '' // Pivot table sort order.
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -412,6 +414,7 @@ export class ExploreSk extends ElementSk {
     </div>
 
     <pivot-table-sk
+      @change=${ele.pivotTableSortChange}
       class="hide_on_plot hide_on_pivot_plot hide_on_query_only hide_on_spinner">
     </pivot-table-sk>
 
@@ -831,6 +834,11 @@ export class ExploreSk extends ElementSk {
     }
   }
 
+  private pivotTableSortChange(e: CustomEvent<PivotTableSkChangeEventDetail>): void {
+    this.state.sort = e.detail;
+    this._stateHasChanged();
+  }
+
   /** Reflect the focused trace in the paramset. */
   private plotTraceFocused(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     this.paramset!.highlight = toObject(e.detail.name);
@@ -1080,7 +1088,7 @@ export class ExploreSk extends ElementSk {
     this._render();
 
     if (this.displayMode === 'display_pivot_table') {
-      this.pivotTable!.set(dataframe, this.pivotControl!.pivotRequest!, this.state.queries[0]);
+      this.pivotTable!.set(dataframe, this.pivotControl!.pivotRequest!, this.state.queries[0], this.state.sort);
       return;
     }
 
@@ -1176,6 +1184,7 @@ export class ExploreSk extends ElementSk {
     this.state.end = this.range!.state.end;
     this.state.numCommits = this.range!.state.num_commits;
     this.state.requestType = this.range!.state.request_type;
+    this.state.sort = '';
     if (replace || plotType === 'pivot') {
       this.removeAll(true);
     }
