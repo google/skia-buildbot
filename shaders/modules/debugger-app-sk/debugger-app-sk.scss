@@ -38,7 +38,7 @@
 
   main {
     padding: 16px;
-    display: flex;
+    display: inline-grid;
     flex-direction: row;
     flex-wrap: wrap;
 
@@ -68,6 +68,10 @@
 
     #codeEditor {
       margin: 0 8px 8px 0;
+    }
+
+    #debuggerControls #buttonGroup {
+      margin-right: 50px;
     }
   }
 

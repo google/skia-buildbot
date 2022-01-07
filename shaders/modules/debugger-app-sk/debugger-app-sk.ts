@@ -85,12 +85,13 @@ export class DebuggerAppSk extends ElementSk {
     this.currentLineMarker = null;
 
     if (!this.player.traceHasCompleted()) {
-      const lineNumber = this.player.getCurrentLine();
+      const lineNumber = this.player.getCurrentLine() - 1;  // CodeMirror uses zero-indexed lines
       this.currentLineMarker = this.codeMirror!.markText(
-        { line: lineNumber - 1, ch: 0 },
         { line: lineNumber,     ch: 0 },
+        { line: lineNumber + 1, ch: 0 },
         { className: 'cm-current-line' },
       );
+      this.codeMirror!.scrollIntoView({ line: lineNumber, ch: 0 }, /*margin=*/36);
     }
   }
 
@@ -101,6 +102,7 @@ export class DebuggerAppSk extends ElementSk {
       this.player.step();
       this.codeMirror!.setValue(this.trace.source.join('\n'));
       this.updateCurrentLineMarker();
+      this._render();
     } catch (ex) {
       this.codeMirror!.setValue((ex instanceof Error) ? ex.message : String(ex));
     }
@@ -131,7 +133,28 @@ export class DebuggerAppSk extends ElementSk {
     });
   }
 
-  private static template = (ele: DebuggerAppSk): TemplateResult => html`
+  step(): void {
+    this.player.step();
+    this.updateCurrentLineMarker();
+  }
+
+  stepOver(): void {
+    this.player.stepOver();
+    this.updateCurrentLineMarker();
+  }
+
+  stepOut(): void {
+    this.player.stepOut();
+    this.updateCurrentLineMarker();
+  }
+
+  resetTrace(): void {
+    this.player.reset(this.trace);
+    this.player.step();
+    this.updateCurrentLineMarker();
+  }
+
+  private static template = (self: DebuggerAppSk): TemplateResult => html`
     <div id="drag-area">
       <header>
         <h2>SkSL Debugger</h2>
@@ -146,6 +169,33 @@ export class DebuggerAppSk extends ElementSk {
         </span>
       </header>
       <main>
+        <div id=debuggerControls>
+          <span id=buttonGroup>
+            <button ?disabled=${self.trace === null}
+                    @click=${self.resetTrace}
+                    class=action>
+              Reset
+            </button>
+          </span>
+          <span id=buttonGroup>
+            <button ?disabled=${self.trace === null}
+                    @click=${self.stepOver}
+                    class=action>
+              Step
+            </button>
+            <button ?disabled=${self.trace === null}
+                    @click=${self.step}
+                    class=action>
+              Step In
+            </button>
+            <button ?disabled=${self.trace === null}
+                    @click=${self.stepOut}
+                    class=action>
+              Step Out
+            </button>
+          </span>
+        </div>
+        <br>
         <div id="codeEditor"></div>
       </main>
     </div>
