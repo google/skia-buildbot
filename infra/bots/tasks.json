@@ -2020,10 +2020,11 @@
           "cache/vpython"
         ]
       },
+      "execution_timeout_ns": 7200000000000,
       "extra_tags": {
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
-      "io_timeout_ns": 3600000000000,
+      "io_timeout_ns": 7200000000000,
       "max_attempts": 1,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
