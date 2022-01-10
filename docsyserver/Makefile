@@ -4,6 +4,9 @@ include ../kube/kube.mk
 build:
 	$(BAZEL) build //docsyserver/go/...
 
+build-local-image: build
+	$(BAZEL) run //docsyserver:docsyserver_container
+
 test:
 	go test -cover ./go/...
 
@@ -18,14 +21,14 @@ push: pushk release
 #
 # The second renders the docs to an output directory.
 render-using-docker-image:
-	docker run --entrypoint=/build.sh  -ti -v ~/projects/skia/site:/input -v /tmp/output/:/output  docsyserver:latest
+	docker run --entrypoint=/build.sh  -ti -v ~/projects/skia/site:/input -v /tmp/output/:/output bazel/docsyserver:docsyserver_container
 
 # The second shows a live preview using 'hugo serve'.
 preview-using-docker-image:
-	docker run --entrypoint=/serve.sh -ti -p 1313:1313 -v ~/projects/skia/site:/input docsyserver:latest
+	docker run --entrypoint=/serve.sh -ti -p 1313:1313 -v ~/projects/skia/site:/input bazel/docsyserver:docsyserver_container
 
 run-local-instance:
-	docker run -ti --entrypoint=/usr/local/bin/docsyserver -p 8000:8000 -p 20000:20000 --user root -eGOOGLE_APPLICATION_CREDENTIALS=/creds.json -v $(GOOGLE_APPLICATION_CREDENTIALS):/creds.json docsyserver:latest \
+	docker run -ti --entrypoint=/usr/local/bin/docsyserver -p 8000:8000 -p 20000:20000 --user root -eGOOGLE_APPLICATION_CREDENTIALS=/creds.json -v $(GOOGLE_APPLICATION_CREDENTIALS):/creds.json bazel/docsyserver:docsyserver_container \
         --work_dir=/tmp \
         --port=:8000 \
         --prom_port=:20000 \

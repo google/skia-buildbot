@@ -54,7 +54,7 @@ First build the docker image, which only needs to be done once:
 
 Then run a local instance, changing `$(SKIA)` to the local checkout of Skia:
 
-      docker run --entrypoint=/serve.sh -ti -p 1313:1313 --user=root -v $(SKIA)/site:/input docsyserver:latest
+      docker run --entrypoint=/serve.sh -ti -p 1313:1313 --user=root -v $(SKIA)/site:/input bazel/docsyserver:docsyserver_container
 
 The content will now be available at [localhost:1313](http://localhost:1313/).
 The server will automatically re-render the HTML and refresh the page as the
