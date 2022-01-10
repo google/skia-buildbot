@@ -179,7 +179,6 @@ func (m *Machine) interrogateAndSend(ctx context.Context) error {
 		// for example, if an Android device is missing, and that's a fatal
 		// error.
 		sklog.Errorf("Failed to interrogate: %s", err)
-		return nil
 	}
 	if err := m.sink.Send(ctx, event); err != nil {
 		return skerr.Wrapf(err, "Failed to send interrogation step.")
