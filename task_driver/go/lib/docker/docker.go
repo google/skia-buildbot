@@ -278,12 +278,15 @@ func BuildPushImageFromInfraImage(ctx context.Context, appName, image, tag, repo
 			return err
 		}
 		// Send pubsub msg.
-		return publishToTopic(ctx, image, tag, repo, topic)
+		return PublishToTopic(ctx, image, tag, repo, topic)
 	})
 	return err
 }
 
-func publishToTopic(ctx context.Context, image, tag, repo string, topic *pubsub.Topic) error {
+// PublishToTopic publishes a message to the pubsub topic which is subscribed to by
+// https://github.com/google/skia-buildbot/blob/cd593cf6c534ba7a1bd2d88a488d37840663230d/docker_pushes_watcher/go/docker_pushes_watcher/main.go#L335
+// The tag will be used to determine if the image should be updated.
+func PublishToTopic(ctx context.Context, image, tag, repo string, topic *pubsub.Topic) error {
 	return td.Do(ctx, td.Props(fmt.Sprintf("Publish pubsub msg to %s", docker_pubsub.TOPIC)).Infra(), func(ctx context.Context) error {
 		// Publish to the pubsub topic.
 		b, err := json.Marshal(&docker_pubsub.BuildInfo{
