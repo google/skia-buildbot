@@ -18,6 +18,15 @@
     owner: '{{ skolo_account }}'
     mode: 0755
 
+- name: Install Rosetta on ARM machines if it's absent.
+  # The Python installer package isn't marked as being ARM-native, so it refuses
+  # to run unless Rosetta 2 is around. This is true as of the 3.10.1 universal2
+  # installer.
+  command:
+    cmd: softwareupdate --install-rosetta --agree-to-license
+    creates: /Library/Apple/usr/libexec/oah/libRosettaRuntime
+  when: ansible_facts['machine'] == 'arm64'
+
 - name: Install Python 3.
   vars:
     # Contains universal binaries. Happily runs on macOS 10.9+, despite name.
