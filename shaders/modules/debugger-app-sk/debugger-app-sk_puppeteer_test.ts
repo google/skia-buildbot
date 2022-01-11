@@ -15,7 +15,7 @@ describe('debugger-app-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
-    await testBed.page.setViewport({ width: 1024, height: 512 });
+    await testBed.page.setViewport({ width: 1024, height: 1024 });
   });
 
   it('should render the demo page (smoke test)', async () => {

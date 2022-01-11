@@ -15,7 +15,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import * as SkSLConstants from '../sksl-constants/sksl-constants';
 
 import { Convert, DebugTrace } from '../debug-trace/debug-trace';
-import { DebugTracePlayer } from '../debug-trace-player/debug-trace-player';
+import { DebugTracePlayer, VariableData } from '../debug-trace-player/debug-trace-player';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -113,6 +113,23 @@ export class DebuggerAppSk extends ElementSk {
         stack = stack.reverse();
         stack[0] = '➔ ' + stack[0];
         return stack.map((text: string) => html`<tr><td>${text}</td></tr>`);
+      }
+    }
+    return [html`<tr><td>at global scope</td></tr>`];
+  }
+
+  private varsDisplay(): TemplateResult[] {
+    if (this.trace) {
+      const vars: VariableData[] = this.player.getStackDepth() > 0
+                    ? this.player.getLocalVariables(this.player.getStackDepth() - 1)
+                    : this.player.getGlobalVariables();
+      if (vars.length > 0) {
+        return vars.map((v: VariableData) => {
+          const name: string = this.trace!.slots[v.slotIndex].name +
+                               this.player.getSlotComponentSuffix(v.slotIndex);
+          const highlight: string = v.dirty ? 'highlighted' : '';
+          return html`<tr><td class='${highlight}'>${name}</td><td>${v.value}</td></tr>`;
+        });
       }
     }
     return [html`<tr><td>&nbsp;</td></tr>`];
@@ -263,17 +280,17 @@ export class DebuggerAppSk extends ElementSk {
         </div>
         <br>
         <div id="debuggerPane">
-          <div id="header">
-          <table id="stack">
-            <thead><th>Stack</th></thead>
-            <tbody>${self.stackDisplay()}</tbody>
-          </table>
-          <table id="variables">
-            <thead><th>Variables</th></thead>
-            <tbody><tr><td>&nbsp;</td></tr></tbody>
-          </table>
-          </div>
           <div id="codeEditor"></div>
+          <div id="debuggerTables">
+            <table>
+              <thead><th>Stack</th></thead>
+              <tbody>${self.stackDisplay()}</tbody>
+            </table>
+            <table>
+              <thead><th colspan=2>Variables</th></thead>
+              <tbody>${self.varsDisplay()}</tbody>
+            </table>
+          </div>
         </div>
       </main>
     </div>

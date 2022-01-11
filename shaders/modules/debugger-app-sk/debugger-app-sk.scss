@@ -16,6 +16,10 @@
 
 .cm-reachable::after, .cm-breakpoint::after { content: '●'; }
 
+.highlighted {
+  background: var(--secondary-highlight);
+}
+
 .body-sk debugger-app-sk {
   display: block;
   background: var(--surface);
@@ -75,47 +79,24 @@
     }
 
     #debuggerPane {
-
-      #header {
-        $headerHeight: 200px;
-
-        column-count: 2;
-        height: $headerHeight + 10px;
-        width: 100%;
-        overflow-x: hidden;
-
+      #debuggerTables {
         table {
-          overflow-y: auto;
-          height: $headerHeight;
-          max-height: $headerHeight;
-          display: inline-block;
-          position: relative;
+          width: 100%;
           border-collapse: collapse;
+          border: 2px solid var(--secondary);
           thead {
             background: var(--secondary);
             color: var(--on-secondary);
           }
-          tr {
-            border: 2px solid var(--secondary);
-            td {
-              padding-left: 8px;
-              padding-right: 8px;
-            }
+          tbody tr td {
+            border-bottom: 1px solid var(--secondary);
+            border-right: 1px solid var(--secondary);
+            padding-left: 8px;
+            padding-right: 8px;
+            padding-top: 3px;
+            padding-bottom: 3px;
           }
         }
-
-        #stack {
-          width: 75%;
-        }
-
-        #variables {
-          width: 125%;
-          margin-left: -25%;
-        }
-      }
-
-      #codeEditor {
-        column-count: 1;
       }
     }
   }
@@ -124,6 +105,7 @@
     height: 512px;
     resize: both;
     overflow: hidden;
+    border: 1px solid var(--secondary);
 
     * {
       font-family: monospace;

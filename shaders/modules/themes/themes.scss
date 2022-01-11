@@ -1,7 +1,7 @@
 @import '~elements-sk/themes/themes';
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons');
 /*
-  Only define deltas from the original theme and global changes from elemets-sk
+  Only define deltas from the original theme and global changes from elements-sk
   elements.
 */
 
@@ -14,10 +14,12 @@
   --primary-variant: var(--light-blue-200);
   --on-primary-variant: var(--black);
   --on-surface: var(--grey-200);
+  --secondary-highlight: var(--green-900);
 }
 
 .body-sk {
   --secondary: var(--green-500);
+  --secondary-highlight: var(--green-100);
   --primary-variant: var(--light-blue-600);
 
   input {
