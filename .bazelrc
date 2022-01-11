@@ -136,3 +136,7 @@ build:remote --nobuild_runfile_links
 
 # Note that running remote builds requires a service account key with the correct permissions. See
 # instructions in //BAZEL_CHEATSHEET.md.
+
+# Alias to build configurations below. This makes configuring things from
+# the command line easier.
+build --flag_alias=with_local_debugger=no//debugger-app/wasm_libs:use_debugger_from_container

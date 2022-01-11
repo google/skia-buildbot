@@ -10,14 +10,21 @@ Source for this wasm module is in the skia repository at //experimental/wasm-skp
 Running locally
 ---------------
 
-Run the following to run the debugger instance locally. Talk to the Skia Infra team if you have
-permission issues that need to be sorted out.
+Run the following to run the debugger instance locally using the latest debugger built on ToT.
+Talk to the Skia Infra team if you have permission issues that need to be sorted out.
 
 ```
 make run-local-instance
 ```
 
-The application can now be loaded at http://localhost:8080/
+To run debugger locally with a custom build of debugger, copy the debugger.js and debugger.wasm
+to //debugger-app/wasm_libs/local_build and run:
+```
+make run-with-custom
+```
+Do not check in those files you copied.
+
+The application can now be loaded at http://localhost:8000/
 
 Production deployment
 ---------------------

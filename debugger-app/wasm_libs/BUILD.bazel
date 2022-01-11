@@ -1,4 +1,9 @@
-load("//infra-sk:index.bzl", "extract_files_from_skia_wasm_container")
+load("//infra-sk:index.bzl", "bool_flag", "extract_files_from_skia_wasm_container")
+
+bool_flag(
+    default = True,
+    flag_name = "use_debugger_from_container",
+)
 
 # This target makes the wasm binaries and js files available for tests. This is not the same
 # as ../build because we want to be able to control which binaries get used when we deploy a
@@ -7,13 +12,30 @@ extract_files_from_skia_wasm_container(
     name = "fetch_debugger_wasm",
     testonly = True,
     outs = [
-        "debugger.js",
-        "debugger.wasm",
+        "from_container/debugger.js",
+        "from_container/debugger.wasm",
     ],
     container_files = [
         "/tmp/debugger/debugger.js",
         "/tmp/debugger/debugger.wasm",
     ],
+)
+
+filegroup(
+    name = "debugger.js",
+    srcs = select({
+        ":use_debugger_from_container_true": ["from_container/debugger.js"],
+        ":use_debugger_from_container_false": ["local_build/debugger.js"],
+    }),
+    visibility = ["//debugger-app:__subpackages__"],
+)
+
+filegroup(
+    name = "debugger.wasm",
+    srcs = select({
+        ":use_debugger_from_container_true": ["from_container/debugger.wasm"],
+        ":use_debugger_from_container_false": ["local_build/debugger.wasm"],
+    }),
     visibility = ["//debugger-app:__subpackages__"],
 )
 

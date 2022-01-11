@@ -11,6 +11,9 @@ load("//infra-sk/karma_test:index.bzl", _karma_test = "karma_test")
 load("//infra-sk/sk_demo_page_server:index.bzl", _sk_demo_page_server = "sk_demo_page_server")
 load(":ts_library.bzl", _ts_library = "ts_library")
 
+# https://github.com/bazelbuild/bazel-skylib/blob/main/rules/common_settings.bzl
+load("@bazel_skylib//rules:common_settings.bzl", skylib_bool_flag = "bool_flag")
+
 # Re-export these common rules so we only have to load this .bzl file from our BUILD.bazel files.
 karma_test = _karma_test
 sass_library = _sass_library
@@ -688,4 +691,36 @@ def extract_files_from_skia_wasm_container(name, container_files, outs, **kwargs
             for src, dst in zip(container_files, outs)
         ]),
         **kwargs
+    )
+
+def bool_flag(flag_name, default = True, name = ""):
+    """Create a boolean flag and corresponding config_settings.
+
+    bool_flag is a Bazel Macro that defines a boolean flag with the given name two config_settings,
+    one for True, one for False. Reminder that Bazel has special syntax for unsetting boolean flags,
+    but this does not work well with aliases.
+    https://docs.bazel.build/versions/main/skylark/config.html#using-build-settings-on-the-command-line
+    Thus it is best to define both an "enabled" alias and a "disabled" alias.
+
+    Args:
+        flag_name: string, the name of the flag to create and use for the config_settings
+        default: boolean, if the flag should default to on or off.
+        name: string unused, https://github.com/bazelbuild/buildtools/blob/master/WARNINGS.md#unnamed-macro
+    """
+    skylib_bool_flag(name = flag_name, build_setting_default = default)
+
+    native.config_setting(
+        name = flag_name + "_true",
+        flag_values = {
+            # The value must be a string, but it will be parsed to a boolean
+            # https://docs.bazel.build/versions/main/skylark/config.html#build-settings-and-select
+            ":" + flag_name: "True",
+        },
+    )
+
+    native.config_setting(
+        name = flag_name + "_false",
+        flag_values = {
+            ":" + flag_name: "False",
+        },
     )

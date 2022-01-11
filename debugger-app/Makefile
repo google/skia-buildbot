@@ -39,6 +39,13 @@ run-local-instance: build
 	../_bazel_bin/debugger-app/go/debugger-app/debugger-app_/debugger-app \
         --resources_dir ../_bazel_bin/debugger-app/pages/development
 
+.PHONY: run-with-custom
+run-with-custom:
+	echo "Using the debugger files in //debugger-app/wasm_libs/local_build"
+	$(BAZEL) build //debugger-app/... --with_local_debugger
+	../_bazel_bin/debugger-app/go/debugger-app/debugger-app_/debugger-app \
+        --resources_dir ../_bazel_bin/debugger-app/pages/development
+
 build-placeholders:
 	rm -rf build
 	mkdir -p build/debugger
