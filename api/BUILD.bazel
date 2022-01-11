@@ -1,0 +1,23 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+exports_files(["docs"])
+
+skia_app_container(
+    name = "api_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//api/go/api:api",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/api": [
+            [
+                "//api:docs",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/api",
+    repository = "skia-public/api",
+)

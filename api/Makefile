@@ -1,18 +1,34 @@
-.PHONY: build docs release push
+include ../make/bazel.mk
+include ../kube/kube.mk
+
 build:
-	go install  ./go/api
+	$(BAZEL) build go/...
 
+.PHONY: docs
 docs:
-	cd ${SKIA}/tools/doxygen; doxygen ./Doxyfile
+	cd $(SKIA)/tools/doxygen; doxygen ./Doxyfile
 
-release:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/api
-	./build_docker_release
+release: docs
+	cp -r /tmp/doxygen/html/* docs/
+	$(BAZEL) run //api:push_api_container
+	# Cleanup the doc directory (silently).
+	git clean -f -d -q docs/
 
-.PHONY: release_ci
+# TODO(rmistry): Remove after autodeployment uses the below release-api-ci
+# bazel target.
 release_ci:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/api
 	./build_docker_release_ci
 
-push: release
-	pushk api
+# Used by the autodeployment framework:
+# https://skia.googlesource.com/buildbot/+doc/main/docker_pushes_watcher/README.md
+release-api-ci:
+	# COPY_FROM_DIR and STABLE_DOCKER_TAG env variables are expected to be
+	# set by the auto deploy mechanism.
+	cp -r $(COPY_FROM_DIR)/* docs/
+	$(BAZEL) run //api:push_api_container
+	# Cleanup the doc directory (silently).
+	git clean -f -d -q docs/
+
+push: pushk release
+	pushk --use-temp-checkout api
