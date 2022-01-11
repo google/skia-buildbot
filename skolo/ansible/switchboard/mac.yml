@@ -21,6 +21,12 @@
     - name: Turn off wifi radio.
       command: networksetup -setairportpower en1 off
 
+    - name: Don't automatically download OS updates.
+      # OSes are updated manually (if at all) to prevent surprises. There's no
+      # sense spending network and disk on updates that might not be installed.
+      command: defaults write /Library/Preferences/com.apple.SoftwareUpdate AutomaticCheckEnabled -boolean FALSE
+      become: yes
+
     - import_role:
         name: copy_authorized_keys
 
