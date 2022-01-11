@@ -26,15 +26,14 @@ release-fiddle: build
 
 release-fiddler: build
 	docker pull gcr.io/skia-public/skia-release:prod
-	mkdir /tmp/release-fiddler-skia-tmp-checkout
 	# Extract skia checkout from the most recently built docker container.
 	# This is built with @skia//docker/skia-wasm-release/Dockerfile
 	docker run --rm -u $$(id -u ${USER}):$$(id -g ${USER}) \
-	    --volume /tmp/release-fiddler-skia-tmp-checkout:/OUT gcr.io/skia-public/skia-release:prod \
-	    sh -c "cp -r /tmp/skia/skia/. /OUT/"
+	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-release:prod \
+	   sh -c "cd /tmp; tar cvzf skia.tar.gz --directory=/tmp/skia skia; cp /tmp/skia.tar.gz /OUT/"
 	$(BAZEL) run //fiddlek:push_fiddler_container
-	# Cleanup the skia checkout.
-	rm -rf /tmp/release-fiddler-skia-tmp-checkout
+	# Cleanup the build directory.
+	git checkout build/*
 
 release: release-fiddle release-fiddler
 
@@ -43,11 +42,10 @@ release: release-fiddle release-fiddler
 release-fiddler-ci: build
 	# COPY_FROM_DIR and STABLE_DOCKER_TAG env variables are expected to be
 	# set by the auto deploy mechanism,
-	mkdir /tmp/release-fiddler-skia-tmp-checkout
-	cp -r $(COPY_FROM_DIR)/. build/skia/
+	cp $(COPY_FROM_DIR)/skia.tar.gz build/skia.tar.gz
 	${BAZEL} run //fiddlek:push_fiddler_container --workspace_status_command=bazel/override_container_label.sh
-	# Cleanup the skia checkout.
-	rm -rf /tmp/release-fiddler-skia-tmp-checkout
+	# Cleanup the build directory.
+	git checkout build/*
 
 push: pushk release
 	pushk --use-temp-checkout fiddle fiddler

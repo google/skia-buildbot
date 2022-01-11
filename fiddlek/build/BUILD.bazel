@@ -12,10 +12,14 @@ filegroup(
     visibility = ["//fiddlek:__subpackages__"],
 )
 
+# Note: skia.tar.gz in this directory is a placeholder that contains-
+# skia/placeholder. The file will be replaced and added to the container
+# during `make release-fiddler` and `make release-fiddler-ci`.
 genrule(
     name = "gen_skia_checkout",
+    srcs = ["//fiddlek/build:skia.tar.gz"],
     outs = ["skia"],
-    cmd = "if [ -d /tmp/release-fiddler-skia-tmp-checkout ]; then cp -r /tmp/release-fiddler-skia-tmp-checkout $@; else mkdir $@; touch $@/placeholder; fi",
+    cmd = "tar xvzf $(location //fiddlek/build:skia.tar.gz) -C $(RULEDIR)",
     tags = [
         "manual",
         "no-remote",
