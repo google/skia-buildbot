@@ -86,7 +86,12 @@ export class DebuggerAppSk extends ElementSk {
       return this.codeMirror;
   }
 
-  updateCurrentLineMarker(): void {
+  private updateControls(): void {
+    this.updateCurrentLineMarker();
+    this._render();
+  }
+
+  private updateCurrentLineMarker(): void {
     if (this.currentLineHandle !== null) {
       this.codeMirror!.removeLineClass(this.currentLineHandle!, 'background', 'cm-current-line');
       this.currentLineHandle = null;
@@ -99,6 +104,18 @@ export class DebuggerAppSk extends ElementSk {
                                                              'cm-current-line');
       this.codeMirror!.scrollIntoView({ line: lineNumber, ch: 0 }, /*margin=*/36);
     }
+  }
+
+  private stackDisplay(): TemplateResult[] {
+    if (this.trace) {
+      let stack = this.player.getCallStack().map((idx: number) => this.trace!.functions[idx].name);
+      if (stack.length > 0) {
+        stack = stack.reverse();
+        stack[0] = '➔ ' + stack[0];
+        return stack.map((text: string) => html`<tr><td>${text}</td></tr>`);
+      }
+    }
+    return [html`<tr><td>&nbsp;</td></tr>`];
   }
 
   loadJSONData(jsonData: string): void {
@@ -141,37 +158,37 @@ export class DebuggerAppSk extends ElementSk {
 
   step(): void {
     this.player.step();
-    this.updateCurrentLineMarker();
+    this.updateControls();
   }
 
   stepOver(): void {
     this.player.stepOver();
-    this.updateCurrentLineMarker();
+    this.updateControls();
   }
 
   stepOut(): void {
     this.player.stepOut();
-    this.updateCurrentLineMarker();
+    this.updateControls();
   }
 
   run(): void {
     this.player.run();
-    this.updateCurrentLineMarker();
+    this.updateControls();
   }
 
   resetTrace(): void {
     this.player.reset(this.trace);
     this.player.step();
-    this.updateCurrentLineMarker();
+    this.updateControls();
   }
 
-  static makeDivWithClass(name: string): HTMLDivElement {
+  private static makeDivWithClass(name: string): HTMLDivElement {
     const marker: HTMLDivElement = document.createElement("div");
     marker.classList.add(name);
     return marker;
   }
 
-  resetBreakpointGutter(): void {
+  private resetBreakpointGutter(): void {
     this.codeMirror!.clearGutter('cm-breakpoints');
     this.player.getLineNumbersReached().forEach((timesReached: number, line: number) => {
       this.codeMirror!.setGutterMarker(line - 1, 'cm-breakpoints',
@@ -245,7 +262,19 @@ export class DebuggerAppSk extends ElementSk {
           </span>
         </div>
         <br>
-        <div id="codeEditor"></div>
+        <div id="debuggerPane">
+          <div id="header">
+          <table id="stack">
+            <thead><th>Stack</th></thead>
+            <tbody>${self.stackDisplay()}</tbody>
+          </table>
+          <table id="variables">
+            <thead><th>Variables</th></thead>
+            <tbody><tr><td>&nbsp;</td></tr></tbody>
+          </table>
+          </div>
+          <div id="codeEditor"></div>
+        </div>
       </main>
     </div>
   `;

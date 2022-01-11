@@ -47,6 +47,7 @@
 
   main {
     padding: 16px;
+    font-size: 13px;
     display: inline-grid;
     flex-direction: row;
     flex-wrap: wrap;
@@ -57,7 +58,6 @@
       color: var(--secondary);
       font-family: monospace;
       resize: none;
-      font-size: 11px;
       margin: 0 8px 0 0;
     }
 
@@ -70,17 +70,53 @@
       cursor: pointer;
     }
 
-    #examples {
-      margin: 0 8px 8px 0;
-      font-size: 12px;
-    }
-
-    #codeEditor {
-      margin: 0 8px 8px 0;
-    }
-
     #debuggerControls #buttonGroup {
       margin-right: 50px;
+    }
+
+    #debuggerPane {
+
+      #header {
+        $headerHeight: 200px;
+
+        column-count: 2;
+        height: $headerHeight + 10px;
+        width: 100%;
+        overflow-x: hidden;
+
+        table {
+          overflow-y: auto;
+          height: $headerHeight;
+          max-height: $headerHeight;
+          display: inline-block;
+          position: relative;
+          border-collapse: collapse;
+          thead {
+            background: var(--secondary);
+            color: var(--on-secondary);
+          }
+          tr {
+            border: 2px solid var(--secondary);
+            td {
+              padding-left: 8px;
+              padding-right: 8px;
+            }
+          }
+        }
+
+        #stack {
+          width: 75%;
+        }
+
+        #variables {
+          width: 125%;
+          margin-left: -25%;
+        }
+      }
+
+      #codeEditor {
+        column-count: 1;
+      }
     }
   }
 
