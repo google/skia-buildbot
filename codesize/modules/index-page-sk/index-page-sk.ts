@@ -13,6 +13,11 @@ import '@google-web-components/google-chart/';
 export class IndexPageSk extends ElementSk {
   private static template = (el: IndexPageSk) => html`
     <codesize-scaffold-sk>
+      <!--
+        TODO(lovisolo): The artifact name should be determined from metadata returned by the RPC.
+      -->
+      <h2>Debug build of the <code>dm</code> binary</h2>
+
       <p>Instructions:</p>
 
       <ul>

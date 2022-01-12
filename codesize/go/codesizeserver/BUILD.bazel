@@ -8,10 +8,16 @@ go_library(
     deps = [
         "//codesize/go/bloaty",
         "//codesize/go/codesizeserver/rpc",
+        "//go/auth",
         "//go/baseapp",
+        "//go/gcs/gcsclient",
+        "//go/httputils",
+        "//go/skerr",
         "//go/sklog",
         "@com_github_gorilla_mux//:mux",
         "@com_github_unrolled_secure//:secure",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
     ],
 )
 
