@@ -59,6 +59,7 @@
         "None",
       ],
       device_string: [ // Set by mobile devices
+        "ANGLE (ARM, Mali-G78, OpenGL ES 3.2 v1.r32p1-00pxl0.b7e5868a59a273f4a9f58d1657ef99de)",
         "ANGLE (Vulkan 1.1.0(SwiftShader Device (LLVM 7.0.1) (0x0000C0DE)))",
         "ANGLE (Vulkan 1.1.0(SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)))",
         "ANGLE (Google, Vulkan 1.1.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), Google-5.0.0)",
@@ -68,6 +69,7 @@
         "Adreno (TM) 430",
         "Adreno (TM) 540",
         "Adreno (TM) 640",
+        "Mali-G78",
         "Mali-T860",
         "NVIDIA Tegra",
         "None"
