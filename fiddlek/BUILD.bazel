@@ -103,9 +103,12 @@ skia_app_container(
     run_commands_skia = [
         # Builds will use libs from SwiftShader.
         "git clone https://swiftshader.googlesource.com/SwiftShader /tmp/swiftshader",
-        # Move the skia checkout into the dir used by the fiddler k8s config.
+        # Copy the skia checkout into the dir used by the fiddler k8s config.
+        # We cannot do a move because we get a "Permission denied".
         "mkdir /tmp/skia",
         "cp -r /usr/local/share/fiddler/skia /tmp/skia/",
+        # Cleanup the old skia checkout location in /usr/local/share/fiddler/skia
+        "rm -rf /usr/local/share/fiddler/skia/*",
         # Build again so that first runs are fast in the new container.
         "/tmp/depot_tools/ninja -C /tmp/skia/skia/out/Static",
     ],
