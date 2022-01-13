@@ -163,9 +163,10 @@ type Description struct {
 // known dimensions.
 func NewDescription(ctx context.Context) Description {
 	return Description{
-		Mode:        ModeAvailable,
-		Dimensions:  SwarmingDimensions{},
-		LastUpdated: now.Now(ctx),
+		AttachedDevice: AttachedDeviceNone,
+		Mode:           ModeAvailable,
+		Dimensions:     SwarmingDimensions{},
+		LastUpdated:    now.Now(ctx),
 	}
 }
 

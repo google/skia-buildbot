@@ -89,9 +89,10 @@ func TestNewDescription(t *testing.T) {
 	ctx := now.TimeTravelingContext(serverTime)
 	actual := NewDescription(ctx)
 	expected := Description{
-		Mode:        ModeAvailable,
-		Dimensions:  SwarmingDimensions{},
-		LastUpdated: serverTime,
+		AttachedDevice: AttachedDeviceNone,
+		Mode:           ModeAvailable,
+		Dimensions:     SwarmingDimensions{},
+		LastUpdated:    serverTime,
 	}
 	assert.Equal(t, expected, actual)
 }

@@ -101,6 +101,41 @@ func TestNew(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestGet_MachineDoesNotExist_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, cfg := setupForTest(t)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
+	require.NoError(t, err)
+
+	store.getCounter.Reset()
+
+	_, err = store.Get(ctx, "id for machine that does not exist")
+	require.Error(t, err)
+	require.Equal(t, int64(1), store.getCounter.Get())
+}
+
+func TestGet_MachineExists_ReturnsCurrentDescription(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, cfg := setupForTest(t)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
+	require.NoError(t, err)
+
+	store.getCounter.Reset()
+
+	const machineID = "skia-rpi2-rack2-shelf1-001"
+	ret := machine.NewDescription(ctx)
+	err = store.Update(ctx, machineID, func(previous machine.Description) machine.Description {
+		ret = previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		return ret
+	})
+	require.NoError(t, err)
+
+	getRet, err := store.Get(ctx, machineID)
+	require.NoError(t, err)
+	require.Equal(t, ret, getRet)
+}
+
 func TestUpdate_CanUpdateEvenIfDescriptionDoesntExist(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
@@ -298,6 +333,56 @@ func TestList_Success(t *testing.T) {
 	descriptions, err = store.List(ctx)
 	require.NoError(t, err)
 	assert.Len(t, descriptions, 2)
+}
+
+func TestListPowerCycle_OneMachineNeedsPowerCycling_ReturnsMachineInList(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, cfg := setupForTest(t)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
+	require.NoError(t, err)
+	store.listPowerCycleCounter.Reset()
+	store.listPowerCycleIterErrorCounter.Reset()
+
+	// Add a single machine that needs powercycle.
+	const machineID = "skia-rpi2-rack2-shelf1-001"
+	err = store.Update(ctx, machineID, func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		ret.PowerCycle = true
+		ret.RunningSwarmingTask = true // Confirm we allow powercycling of machines running tasks.
+		return ret
+	})
+	require.NoError(t, err)
+
+	// Add another machine that doesn't need powercycling.
+	err = store.Update(ctx, "id-of-machine-that-does-not-need-power-cycle", func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		return ret
+	})
+	require.NoError(t, err)
+
+	// One machine appears in ListPowerCycle.
+	toPowerCycle, err := store.ListPowerCycle(ctx)
+	require.NoError(t, err)
+	require.Equal(t, []string{machineID}, toPowerCycle)
+	require.Equal(t, int64(1), store.listPowerCycleCounter.Get())
+	require.Equal(t, int64(0), store.listPowerCycleIterErrorCounter.Get())
+}
+
+func TestListPowerCycle_NoMachinesNeedPowerCycling_ReturnsEmptyList(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, cfg := setupForTest(t)
+	store, err := NewFirestoreImpl(ctx, true, cfg)
+	require.NoError(t, err)
+	store.listPowerCycleCounter.Reset()
+	store.listPowerCycleIterErrorCounter.Reset()
+
+	// List on an empty collection is OK.
+	toPowerCycle, err := store.ListPowerCycle(ctx)
+	require.NoError(t, err)
+	require.Len(t, toPowerCycle, 0)
+	require.Equal(t, int64(1), store.listPowerCycleCounter.Get())
+	require.Equal(t, int64(0), store.listPowerCycleIterErrorCounter.Get())
+
 }
 
 func TestDelete_Success(t *testing.T) {

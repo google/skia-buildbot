@@ -161,6 +161,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 
 	// The current machine has nothing attached.
 	previous := machine.NewDescription(ctx)
+	previous.AttachedDevice = machine.AttachedDeviceAdb
 	require.Empty(t, previous.Dimensions)
 	const uptime = int32(5)
 
@@ -193,8 +194,9 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 
 	// The Android device should be reflected in the returned Dimensions.
 	assert.Equal(t, machine.Description{
-		Mode:        machine.ModeAvailable,
-		LastUpdated: serverTime,
+		AttachedDevice: machine.AttachedDeviceAdb,
+		Mode:           machine.ModeAvailable,
+		LastUpdated:    serverTime,
 		Dimensions: machine.SwarmingDimensions{
 			"android_devices":     []string{"1"},
 			"device_os":           []string{"Q", "QQ2A.200305.002"},
@@ -252,6 +254,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 
 	// The current machine has a device attached.
 	previous := machine.NewDescription(ctx)
+	previous.AttachedDevice = machine.AttachedDeviceAdb
 	previous.Dimensions = machine.SwarmingDimensions{
 		"android_devices":     []string{"1"},
 		"device_os":           []string{"Q", "QQ2A.200305.002"},
@@ -283,6 +286,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
 	assert.Equal(t, machine.Description{
+		AttachedDevice:     machine.AttachedDeviceAdb,
 		Mode:               machine.ModeAvailable,
 		Dimensions:         expectedDims,
 		SuppliedDimensions: machine.SwarmingDimensions{},
@@ -356,6 +360,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 
 	// The current machine has been quarantined because the device went missing.
 	previous := machine.NewDescription(ctx)
+	previous.AttachedDevice = machine.AttachedDeviceAdb
 	previous.Dimensions = machine.SwarmingDimensions{
 		"android_devices":      []string{"1"},
 		"device_os":            []string{"Q", "QQ2A.200305.002"},
@@ -398,6 +403,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
 	assert.Equal(t, machine.Description{
+		AttachedDevice:     machine.AttachedDeviceAdb,
 		Mode:               machine.ModeAvailable,
 		Dimensions:         expectedDims,
 		SuppliedDimensions: machine.SwarmingDimensions{},
@@ -418,6 +424,7 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 	ctx := now.TimeTravelingContext(stateTime)
 
 	previous := machine.NewDescription(ctx)
+	previous.AttachedDevice = machine.AttachedDeviceAdb
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
@@ -446,7 +453,8 @@ func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 	p := newProcessorForTest()
 	next := p.Process(ctx, previous, event)
 	assert.Equal(t, machine.Description{
-		Mode: machine.ModeRecovery,
+		AttachedDevice: machine.AttachedDeviceAdb,
+		Mode:           machine.ModeRecovery,
 		Annotation: machine.Annotation{
 			Message:   "Battery low. ",
 			User:      machineUserName,

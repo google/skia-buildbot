@@ -43,8 +43,11 @@ type FirestoreImpl struct {
 	updateDataToErrorCounter                 metrics2.Counter
 	watchReceiveSnapshotCounter              metrics2.Counter
 	watchDataToErrorCounter                  metrics2.Counter
+	getCounter                               metrics2.Counter
 	listCounter                              metrics2.Counter
 	deleteCounter                            metrics2.Counter
+	listPowerCycleCounter                    metrics2.Counter
+	listPowerCycleIterErrorCounter           metrics2.Counter
 	listIterFailureCounter                   metrics2.Counter
 	watchForPowerCycleReceiveSnapshotCounter metrics2.Counter
 	watchForPowerCycleDataToErrorCounter     metrics2.Counter
@@ -125,12 +128,29 @@ func NewFirestoreImpl(ctx context.Context, local bool, instanceConfig config.Ins
 		updateDataToErrorCounter:                 metrics2.GetCounter("machine_store_update_datato_error"),
 		watchReceiveSnapshotCounter:              metrics2.GetCounter("machine_store_watch_receive_snapshot"),
 		watchDataToErrorCounter:                  metrics2.GetCounter("machine_store_watch_datato_error"),
+		getCounter:                               metrics2.GetCounter("machine_store_get"),
 		listCounter:                              metrics2.GetCounter("machine_store_list"),
+		listPowerCycleCounter:                    metrics2.GetCounter("machine_store_list_power_cycle"),
+		listPowerCycleIterErrorCounter:           metrics2.GetCounter("machine_store_list_power_cycle_iter_error"),
 		deleteCounter:                            metrics2.GetCounter("machine_store_delete"),
 		listIterFailureCounter:                   metrics2.GetCounter("machine_store_list_iter_error"),
 		watchForPowerCycleReceiveSnapshotCounter: metrics2.GetCounter("machine_store_watch_for_power_cycle_receive_snapshot"),
 		watchForPowerCycleDataToErrorCounter:     metrics2.GetCounter("machine_store_watch_for_power_cycle_datato_error"),
 	}, nil
+}
+
+// Get implements the Store interface.
+func (st *FirestoreImpl) Get(ctx context.Context, machineID string) (machine.Description, error) {
+	st.getCounter.Inc(1)
+	ret := machine.NewDescription(ctx)
+	snap, err := st.machinesCollection.Doc(machineID).Get(ctx)
+	if err != nil {
+		return ret, skerr.Wrapf(err, "Failed to query for machine: %q", machineID)
+	}
+	if err := snap.DataTo(&ret); err != nil {
+		return ret, skerr.Wrapf(err, "Failed to deserialize for machine: %q", machineID)
+	}
+	return ret, nil
 }
 
 // Update implements the Store interface.
@@ -241,6 +261,33 @@ func (st *FirestoreImpl) WatchForPowerCycle(ctx context.Context, rack string) <-
 		}
 	}()
 	return ch
+}
+
+// ListPowerCycle implements the Store interface.
+func (st *FirestoreImpl) ListPowerCycle(ctx context.Context) ([]string, error) {
+	st.listPowerCycleCounter.Inc(1)
+	ret := []string{}
+	iter := st.machinesCollection.Where("PowerCycle", "==", true).Documents(ctx)
+	for {
+		snap, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			st.listPowerCycleIterErrorCounter.Inc(1)
+			return nil, skerr.Wrapf(err, "ListPowerCycle failed to read description.")
+		}
+
+		var storeDescription storeDescription
+		if err := snap.DataTo(&storeDescription); err != nil {
+			st.listPowerCycleIterErrorCounter.Inc(1)
+			sklog.Errorf("ListPowerCycle failed to read data from snapshot: %s", err)
+			continue
+		}
+		machineDescription := convertFSDescription(storeDescription)
+		ret = append(ret, machineDescription.Dimensions[machine.DimID][0])
+	}
+	return ret, nil
 }
 
 // List implements the Store interface.
