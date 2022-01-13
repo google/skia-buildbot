@@ -2635,6 +2635,54 @@
                       ]
                     },
                     {
+                      "domains": "shader.skia.org",
+                      "name": "shader.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "shaders.skia.org",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "particle.skia.org",
+                      "name": "particle.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "particles.skia.org",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "machine.skia.org",
+                      "name": "machine.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "machines.skia.org",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/"
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "gold.skia.org",
                       "name": "gold.skia.org",
                       "routes": [
