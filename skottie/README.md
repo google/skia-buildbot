@@ -14,3 +14,10 @@ are set up to get the latest built version of CanvasKit by looking at
 
 When deploying, we look in ./build and use the files there. The files checked in to build are just
 empty placeholders. The real ones will be provided through our build pipeline.
+
+To run skottie locally with a custom build of CanvasKit, copy the files to
+//skottie/wasm_libs/local_build and run:
+```
+make run-with-custom
+```
+Do not check in those files you copied.

@@ -1,4 +1,9 @@
-load("//infra-sk:index.bzl", "extract_files_from_skia_wasm_container")
+load("//infra-sk:index.bzl", "bool_flag", "extract_files_from_skia_wasm_container")
+
+bool_flag(
+    default = True,
+    flag_name = "use_libraries_from_container",
+)
 
 # This target makes the wasm binaries and js files available for tests. This is not the same
 # as ../build because we want to be able to control which binaries get used when we deploy a
@@ -7,11 +12,11 @@ extract_files_from_skia_wasm_container(
     name = "fetch_canvaskit_wasm",
     testonly = True,
     outs = [
-        "canvaskit.d.ts",
-        "canvaskit.js",
-        "canvaskit.wasm",
-        "pathkit.js",
-        "pathkit.wasm",
+        "from_container/canvaskit.d.ts",
+        "from_container/canvaskit.js",
+        "from_container/canvaskit.wasm",
+        "from_container/pathkit.js",
+        "from_container/pathkit.wasm",
     ],
     container_files = [
         "/tmp/canvaskit/canvaskit.d.ts",
@@ -20,6 +25,51 @@ extract_files_from_skia_wasm_container(
         "/tmp/pathkit/pathkit.js",
         "/tmp/pathkit/pathkit.wasm",
     ],
+    visibility = ["//jsfiddle:__subpackages__"],
+)
+
+filegroup(
+    name = "canvaskit.d.ts",
+    srcs = select({
+        ":use_libraries_from_container_true": ["from_container/canvaskit.d.ts"],
+        ":use_libraries_from_container_false": ["local_build/canvaskit.d.ts"],
+    }),
+    visibility = ["//jsfiddle:__subpackages__"],
+)
+
+filegroup(
+    name = "canvaskit.js",
+    srcs = select({
+        ":use_libraries_from_container_true": ["from_container/canvaskit.js"],
+        ":use_libraries_from_container_false": ["local_build/canvaskit.js"],
+    }),
+    visibility = ["//jsfiddle:__subpackages__"],
+)
+
+filegroup(
+    name = "canvaskit.wasm",
+    srcs = select({
+        ":use_libraries_from_container_true": ["from_container/canvaskit.wasm"],
+        ":use_libraries_from_container_false": ["local_build/canvaskit.wasm"],
+    }),
+    visibility = ["//jsfiddle:__subpackages__"],
+)
+
+filegroup(
+    name = "pathkit.js",
+    srcs = select({
+        ":use_libraries_from_container_true": ["from_container/pathkit.js"],
+        ":use_libraries_from_container_false": ["local_build/pathkit.js"],
+    }),
+    visibility = ["//jsfiddle:__subpackages__"],
+)
+
+filegroup(
+    name = "pathkit.wasm",
+    srcs = select({
+        ":use_libraries_from_container_true": ["from_container/pathkit.wasm"],
+        ":use_libraries_from_container_false": ["local_build/pathkit.wasm"],
+    }),
     visibility = ["//jsfiddle:__subpackages__"],
 )
 

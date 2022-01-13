@@ -44,6 +44,16 @@ run-local-instance: build
 		--port=:8001 \
 		--prom_port=:20001
 
+.PHONY: run-with-custom
+run-with-custom:
+	echo "Using the wasm files in //shaders/wasm_libs/local_build"
+	$(BAZEL) build //shaders/... --with_local_canvaskit
+	../_bazel_bin/shaders/go/shaders/shaders_/shaders --local \
+		--resources_dir ../_bazel_bin/shaders/pages/development \
+		--scrapexchange=http://localhost:9000 \
+		--port=:8001 \
+		--prom_port=:20001
+
 .PHONY: build-placeholders
 build-placeholders:
 	rm -rf build

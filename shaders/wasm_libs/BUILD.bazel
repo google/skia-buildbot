@@ -1,4 +1,9 @@
-load("//infra-sk:index.bzl", "extract_files_from_skia_wasm_container")
+load("//infra-sk:index.bzl", "bool_flag", "extract_files_from_skia_wasm_container")
+
+bool_flag(
+    default = True,
+    flag_name = "use_canvaskit_from_container",
+)
 
 # This target makes the canvaskit js and wasm binaries available for tests. This is not the same
 # as ../build because we want to be able to control which binaries get used when we deploy a
@@ -7,13 +12,31 @@ extract_files_from_skia_wasm_container(
     name = "fetch_canvaskit_wasm",
     testonly = True,
     outs = [
-        "canvaskit.js",
-        "canvaskit.wasm",
+        "from_container/canvaskit.js",
+        "from_container/canvaskit.wasm",
     ],
     container_files = [
         "/tmp/canvaskit/canvaskit.js",
         "/tmp/canvaskit/canvaskit.wasm",
     ],
+    visibility = ["//shaders:__subpackages__"],
+)
+
+filegroup(
+    name = "canvaskit.js",
+    srcs = select({
+        ":use_canvaskit_from_container_true": ["from_container/canvaskit.js"],
+        ":use_canvaskit_from_container_false": ["local_build/canvaskit.js"],
+    }),
+    visibility = ["//shaders:__subpackages__"],
+)
+
+filegroup(
+    name = "canvaskit.wasm",
+    srcs = select({
+        ":use_canvaskit_from_container_true": ["from_container/canvaskit.wasm"],
+        ":use_canvaskit_from_container_false": ["local_build/canvaskit.wasm"],
+    }),
     visibility = ["//shaders:__subpackages__"],
 )
 

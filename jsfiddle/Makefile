@@ -38,6 +38,13 @@ bazel_release_ci:
 run-local-instance: build
 	../_bazel_bin/jsfiddle/go/jsfiddle/jsfiddle_/jsfiddle --local --resources_dir ../_bazel_bin/jsfiddle/pages/development
 
+.PHONY: run-with-custom
+run-with-custom:
+	echo "Using the wasm files in //jsfiddle/wasm_libs/local_build"
+	$(BAZEL) build //jsfiddle/... --with_local_wasm
+	../_bazel_bin/jsfiddle/go/jsfiddle/jsfiddle_/jsfiddle \
+        --local --resources_dir ../_bazel_bin/jsfiddle/pages/development
+
 .PHONY: build-placeholders
 build-placeholders:
 	rm -rf build

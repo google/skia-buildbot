@@ -40,6 +40,13 @@ run-local-instance: build
 	../_bazel_bin/skottie/go/skottie/skottie_/skottie \
 		--config ./local_config.json5
 
+.PHONY: run-with-custom
+run-with-custom:
+	echo "Using the wasm files in //skottie/wasm_libs/local_build"
+	$(BAZEL) build //skottie/... --with_local_canvaskit
+	../_bazel_bin/skottie/go/skottie/skottie_/skottie \
+		--config ./local_config.json5
+
 build-placeholders:
 	rm -rf build
 	mkdir -p build/canvaskit

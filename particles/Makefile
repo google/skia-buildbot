@@ -43,6 +43,13 @@ run-local-instance: build
 		--resources_dir ../_bazel_bin/particles/pages/development \
 		--scrapexchange=http://localhost:9000
 
+.PHONY: run-with-custom
+run-with-custom:
+	echo "Using the wasm files in //particles/wasm_libs/local_build"
+	$(BAZEL) build //particles/... --with_local_canvaskit
+	../_bazel_bin/particles/go/particles/particles_/particles --local \
+		--resources_dir ../_bazel_bin/particles/pages/development \
+		--scrapexchange=http://localhost:9000
 
 .PHONY: build-placeholders
 build-placeholders:
