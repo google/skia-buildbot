@@ -199,7 +199,6 @@ def skia_app_container(
             base = image_name,
             entrypoint = [entrypoint],
             stamp = True,
-            tars = pkg_tars,
             user = "skia",
             tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             env = env,
