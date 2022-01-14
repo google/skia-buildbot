@@ -13,11 +13,11 @@ import CodeMirror from 'codemirror';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
 import type {
+  Canvas,
   CanvasKit,
   CanvasKitInit as CKInit,
-  Surface,
-  Canvas,
   Paint,
+  Surface,
 } from '../../wasm_libs/types/canvaskit';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
@@ -353,6 +353,13 @@ export class ShadersAppSk extends ElementSk {
         >
           Save
         </button>
+        <button
+          ?hidden=${ele.currentNode?.compileErrorMessage || ele.rootShaderNode?.needsCompile()}
+          @click=${ele.createDebugTrace}
+          class=action
+        >
+          Debug
+        </button>
       </div>
     </main>
     <footer>
@@ -553,12 +560,12 @@ export class ShadersAppSk extends ElementSk {
     });
   }
 
-  private uniformControlsChange() {
+  private uniformControlsChange(): void {
     this.currentNode!.currentUserUniformValues = this.getUserUniformValuesFromControls();
     this._render();
   }
 
-  private drawFrame() {
+  private drawFrame(): void {
     const shader = this.currentNode!.getShader(this.getPredefinedUniformValuesFromControls());
     if (!shader) {
       return;
@@ -579,6 +586,41 @@ export class ShadersAppSk extends ElementSk {
     this.rafID = requestAnimationFrame(() => {
       this.drawFrame();
     });
+  }
+
+  private createDebugTrace(): void {
+    const shader = this.currentNode!.getShader(this.getPredefinedUniformValuesFromControls());
+    if (!shader || !this.kit) {
+      return;
+    }
+
+    // Debug traces require a software surface.
+    const surface: Surface = this.kit.MakeSurface(this.width, this.height)!;
+    if (surface) {
+      const canvas: Canvas = surface.getCanvas();
+      const paint: Paint = new this.kit.Paint();
+      const traceCoordX: number = this.width / 2;
+      const traceCoordY: number = this.height / 2;
+      const traced = this.kit.RuntimeEffect.MakeTraced(shader, traceCoordX, traceCoordY);
+      paint.setShader(traced.shader);
+      // Clip to a tight rectangle around the trace coordinate to reduce draw time.
+      const tightClip = this.kit.XYWHRect(traceCoordX - 2, traceCoordY - 2, 5, 5);
+      canvas.clipRect(tightClip, this.kit.ClipOp.Intersect, /*doAntiAlias=*/ false);
+      const rect = this.kit.XYWHRect(0, 0, this.width, this.height);
+      canvas.drawRect(rect, paint);
+      const traceJSON: string = traced.debugTrace.writeTrace();
+
+      traced.shader.delete();
+      traced.debugTrace.delete();
+      paint.delete();
+      surface.delete();
+
+      // Write our trace JSON to HTML local storage, where the debugger can see it.
+      localStorage.setItem('sksl-debug-trace', traceJSON);
+
+      // Open the debugger in a separate tab, pointing it at our local storage buffer.
+      window.open('/debug?local-storage', 'sksl-debug-target');
+    }
   }
 
   private async runClick() {
