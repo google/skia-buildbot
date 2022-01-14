@@ -2,7 +2,7 @@
 import './index';
 import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
 import { assert } from 'chai';
-import { CanvasKit, CanvasKitInit as CKInit } from 'canvaskit-wasm';
+import type { CanvasKit, CanvasKitInit as CKInit } from '../../wasm_libs/types/canvaskit';
 import {
   childShaderArraysDiffer,
   childShadersAreDifferent,

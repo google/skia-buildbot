@@ -8,13 +8,12 @@
  */
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
-import {
+import type {
   CanvasKit,
-  Image,
   MallocObj,
   RuntimeEffect,
   Shader,
-} from 'canvaskit-wasm';
+} from '../../wasm_libs/types/canvaskit';
 import { Uniform } from '../../../infra-sk/modules/uniform/uniform';
 import { ChildShader, ScrapBody, ScrapID } from '../json';
 

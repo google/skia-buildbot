@@ -18,7 +18,7 @@ import type {
   Surface,
   Canvas,
   Paint,
-} from 'canvaskit-wasm';
+} from '../../wasm_libs/types/canvaskit';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 import 'elements-sk/error-toast-sk';

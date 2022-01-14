@@ -48,8 +48,8 @@ sk_element(
         "//infra-sk/modules/uniform:uniform_ts_lib",
         "//shaders/modules/shadernode:index_ts_lib",
         "//shaders/modules/sksl-constants:sksl-constants_ts_lib",
+        "//shaders/wasm_libs:canvaskit_types",  # keep
         "@npm//@types/codemirror",
-        "@npm//canvaskit-wasm",
         "@npm//codemirror",
         "@npm//common-sk",
         "@npm//elements-sk",

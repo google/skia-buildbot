@@ -1,4 +1,5 @@
 load("//infra-sk:index.bzl", "bool_flag", "extract_files_from_skia_wasm_container")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 
 bool_flag(
     default = True,
@@ -12,13 +13,44 @@ extract_files_from_skia_wasm_container(
     name = "fetch_canvaskit_wasm",
     testonly = True,
     outs = [
+        "from_container/canvaskit.d.ts",
         "from_container/canvaskit.js",
         "from_container/canvaskit.wasm",
     ],
     container_files = [
+        "/tmp/canvaskit/canvaskit.d.ts",
         "/tmp/canvaskit/canvaskit.js",
         "/tmp/canvaskit/canvaskit.wasm",
     ],
+    visibility = ["//shaders:__subpackages__"],
+)
+
+# This js_library rule makes the source a viable dependency of ts_library rules (and thus visible
+# during compilation).
+js_library(
+    name = "canvaskit_types",
+    srcs = [
+        "types/canvaskit.d.ts",
+    ],
+    visibility = ["//shaders:__subpackages__"],
+)
+
+# This copy rule makes it so we can import from '../../wasm_libs/types/canvaskit' and not
+# '../../wasm_libs/from_container/canvaskit', which does not make the source easily toggleable.
+genrule(
+    name = "copy_canvaskit_types",
+    srcs = ["canvaskit.d.ts"],
+    outs = ["types/canvaskit.d.ts"],
+    # Copy the one input file to the one output location
+    cmd = "cp $< $@",
+)
+
+filegroup(
+    name = "canvaskit.d.ts",
+    srcs = select({
+        ":use_canvaskit_from_container_true": ["from_container/canvaskit.d.ts"],
+        ":use_canvaskit_from_container_false": ["local_build/canvaskit.d.ts"],
+    }),
     visibility = ["//shaders:__subpackages__"],
 )
 

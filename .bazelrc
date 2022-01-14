@@ -141,6 +141,6 @@ build:remote --nobuild_runfile_links
 # the command line easier.
 build --flag_alias=with_local_debugger=no//debugger-app/wasm_libs:use_debugger_from_container
 build --flag_alias=with_local_wasm=no//jsfiddle/wasm_libs:use_libraries_from_container
-build --flag_alias=with_local_canvaskit=no//particles/wasm_libs:use_canvaskit_from_container
-build --flag_alias=with_local_canvaskit=no//shaders/wasm_libs:use_canvaskit_from_container
-build --flag_alias=with_local_canvaskit=no//skottie/wasm_libs:use_canvaskit_from_container
+build --flag_alias=particles_local_canvaskit=no//particles/wasm_libs:use_canvaskit_from_container
+build --flag_alias=shaders_local_canvaskit=no//shaders/wasm_libs:use_canvaskit_from_container
+build --flag_alias=skottie_local_canvaskit=no//skottie/wasm_libs:use_canvaskit_from_container

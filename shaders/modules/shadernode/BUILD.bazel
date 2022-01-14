@@ -12,8 +12,8 @@ karma_test(
     deps = [
         ":index_ts_lib",
         "//shaders/modules/json:index_ts_lib",
+        "//shaders/wasm_libs:canvaskit_types",  # keep
         "@npm//@types/chai",
-        "@npm//canvaskit-wasm",
         "@npm//chai",
         "@npm//fetch-mock",
     ],
@@ -26,7 +26,7 @@ ts_library(
     deps = [
         "//infra-sk/modules/uniform:uniform_ts_lib",
         "//shaders/modules/json:index_ts_lib",
-        "@npm//canvaskit-wasm",
+        "//shaders/wasm_libs:canvaskit_types",  # keep
         "@npm//common-sk",
         "@npm//elements-sk",
     ],
