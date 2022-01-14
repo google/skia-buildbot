@@ -35,6 +35,11 @@ CodeMirror.defineMIME('x-shader/x-sksl', {
   modeProps: { fold: ['brace', 'include'] },
 });
 
+enum ErrorReporting {
+  Yes = 1,
+  No = 0
+}
+
 export class DebuggerAppSk extends ElementSk {
   private trace: DebugTrace | null = null;
 
@@ -44,8 +49,20 @@ export class DebuggerAppSk extends ElementSk {
 
   private currentLineHandle: CodeMirror.LineHandle | null = null;
 
+  private localStorage: Storage = window.localStorage; // can be overridden in tests
+
+  private queryParameter: string = window.location.search; // can be overridden in tests
+
   constructor() {
     super(DebuggerAppSk.template);
+  }
+
+  setLocalStorageForTest(mockStorage: Storage): void {
+    this.localStorage = mockStorage;
+  }
+
+  setQueryParameterForTest(overrideQueryParam: string): void {
+    this.queryParameter = overrideQueryParam;
   }
 
   private static themeFromCurrentMode(): string {
@@ -80,6 +97,18 @@ export class DebuggerAppSk extends ElementSk {
     document.addEventListener('theme-chooser-toggle', () => {
       this.codeMirror!.setOption('theme', DebuggerAppSk.themeFromCurrentMode());
     });
+
+    // If ?local-storage(=anything), try loading a debug trace from local storage.
+    const params = new URLSearchParams(this.queryParameter);
+    if (params.has('local-storage')) {
+      this.loadJSONData(this.localStorage.getItem('sksl-debug-trace')!, ErrorReporting.No);
+
+      // Remove ?local-storage from the query parameters on the window, so a reload or copy-paste
+      // will present a clean slate.
+      const url = new URL(window.location.toString());
+      url.searchParams.delete('local-storage');
+      window.history.pushState({}, '', url.toString());
+    }
   }
 
   getEditor(): CodeMirror.Editor | null {
@@ -135,7 +164,7 @@ export class DebuggerAppSk extends ElementSk {
     return [html`<tr><td>&nbsp;</td></tr>`];
   }
 
-  loadJSONData(jsonData: string): void {
+  loadJSONData(jsonData: string, reportErrors?: ErrorReporting): void {
     try {
       this.trace = Convert.toDebugTrace(jsonData);
       this.codeMirror!.setValue(this.trace.source.join('\n'));
@@ -144,7 +173,9 @@ export class DebuggerAppSk extends ElementSk {
       this.resetBreakpointGutter();
       this._render();
     } catch (ex) {
-      this.codeMirror!.setValue((ex instanceof Error) ? ex.message : String(ex));
+      if (reportErrors ?? ErrorReporting.Yes) {
+        this.codeMirror!.setValue((ex instanceof Error) ? ex.message : String(ex));
+      }
     }
   }
 

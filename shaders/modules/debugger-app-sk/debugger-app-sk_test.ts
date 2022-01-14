@@ -6,6 +6,30 @@ import { DebuggerAppSk } from './debugger-app-sk';
 import { exampleTraceString } from './demo_data';
 import CodeMirror from 'codemirror';
 
+function makeFakeLocalStorage(store: Record<string, string>): Storage {
+  const fakeLocalStorage: Storage = {
+    length: 0,
+    getItem: (key: string): string | null => {
+      return key in store ? store[key] as string : null;
+    },
+    setItem: (key: string, value: string) => {
+      store[key] = `${value}`;
+      length = Object.keys(store).length;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+      length = Object.keys(store).length;
+    },
+    clear: () => {
+      store = {};
+    },
+    key: function (index: number): string | null {
+      return Object.keys(store)[index];
+    }
+  };
+  return fakeLocalStorage;
+}
+
 function getLinesWithBgClass(app: DebuggerAppSk, expectedType: string): number[] {
   const editor: CodeMirror.Editor = app.getEditor()!;
   assert.isNotNull(editor);
@@ -58,9 +82,9 @@ function getBreakpointLines(app: DebuggerAppSk): number[] {
   return getLinesWithBreakpointMarker(app, 'cm-breakpoint');
 }
 
-describe('debugger-app-sk', () => {
-  const newInstance = setUpElementUnderTest<DebuggerAppSk>('debugger-app-sk');
+const newInstance = setUpElementUnderTest<DebuggerAppSk>('debugger-app-sk');
 
+describe('debugger app', () => {
   let debuggerAppSk: DebuggerAppSk;
 
   beforeEach(() => {
@@ -159,5 +183,53 @@ describe('debugger-app-sk', () => {
     assert.equal(getCurrentLine(debuggerAppSk), entrypointLine + 1);
     debuggerAppSk.step();
     assert.equal(getCurrentLine(debuggerAppSk), null);
+  });
+});
+
+describe('local storage', () => {
+  let debuggerAppSk: DebuggerAppSk;
+
+  it('loads a trace when populated and ?local-storage query param exists', () => {
+    debuggerAppSk = newInstance((self: DebuggerAppSk) => {
+      self.setLocalStorageForTest(makeFakeLocalStorage({'sksl-debug-trace': exampleTraceString}));
+      self.setQueryParameterForTest('?local-storage');
+    });
+
+    const codeAreaText = $$<HTMLDivElement>('#codeEditor')?.innerText;
+    assert.include(codeAreaText, 'half4 convert(float2 c) {');
+    assert.include(codeAreaText, 'half4 c = convert(p * 0.001);');
+    assert.notInclude(codeAreaText, 'Drag in a DebugTrace JSON file to start the debugger.');
+  });
+
+  it('does nothing when ?local-storage query param is not present', () => {
+    debuggerAppSk = newInstance((self: DebuggerAppSk) => {
+      self.setLocalStorageForTest(makeFakeLocalStorage({'sksl-debug-trace': exampleTraceString}));
+    });
+
+    const codeAreaText = $$<HTMLDivElement>('#codeEditor')?.innerText;
+    assert.notInclude(codeAreaText, 'half4 convert(float2 c) {');
+    assert.include(codeAreaText, 'Drag in a DebugTrace JSON file to start the debugger.');
+  });
+
+  it('does nothing when local storage is invalid, even if ?local-storage is set', () => {
+    debuggerAppSk = newInstance((self: DebuggerAppSk) => {
+      self.setLocalStorageForTest(makeFakeLocalStorage({'sksl-debug-trace': '{}'}));
+      self.setQueryParameterForTest('?local-storage');
+    });
+
+    const codeAreaText = $$<HTMLDivElement>('#codeEditor')?.innerText;
+    assert.notInclude(codeAreaText, 'half4 convert(float2 c) {');
+    assert.include(codeAreaText, 'Drag in a DebugTrace JSON file to start the debugger.');
+  });
+
+  it('does nothing when local storage is empty, even if ?local-storage is set', () => {
+    debuggerAppSk = newInstance((self: DebuggerAppSk) => {
+      self.setLocalStorageForTest(makeFakeLocalStorage({}));
+      self.setQueryParameterForTest('?local-storage');
+    });
+
+    const codeAreaText = $$<HTMLDivElement>('#codeEditor')?.innerText;
+    assert.notInclude(codeAreaText, 'half4 convert(float2 c) {');
+    assert.include(codeAreaText, 'Drag in a DebugTrace JSON file to start the debugger.');
   });
 });
