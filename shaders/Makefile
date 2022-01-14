@@ -18,7 +18,7 @@ wasm_libs:
 	# with @skia//docker/skia-wasm-release/Dockerfile
 	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
 	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
-	    sh -c "cp -r /tmp/canvaskit /OUT/"
+	    sh -c "cp -r /tmp/canvaskit /tmp/VERSION /OUT/"
 	echo "const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
 .PHONY: push
