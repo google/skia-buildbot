@@ -103,6 +103,12 @@ export class ShadersAppSk extends ElementSk {
 
   private height: number = DEFAULT_SIZE;
 
+  private traceCoordX: number = DEFAULT_SIZE / 2;
+
+  private traceCoordY: number = DEFAULT_SIZE / 2;
+
+  private traceCoordClickMs: number = 0;
+
   private codeMirror: CodeMirror.Editor | null = null;
 
   private canvasEle: HTMLCanvasElement | null = null;
@@ -394,6 +400,13 @@ export class ShadersAppSk extends ElementSk {
       this.codeMirror!.setOption('theme', ShadersAppSk.themeFromCurrentMode());
     });
 
+    // Listen for clicks on the canvas, to update the debug trace coordinate.
+    this.canvasEle!.addEventListener('click', (e: MouseEvent) => {
+      this.traceCoordX = Math.floor(e.offsetX);
+      this.traceCoordY = Math.floor(e.offsetY);
+      this.traceCoordClickMs = Date.now();
+    });
+
     // Continue the setup once CanvasKit WASM has loaded.
     kitReady.then(async (ck: CanvasKit) => {
       this.kit = ck;
@@ -423,6 +436,8 @@ export class ShadersAppSk extends ElementSk {
     const newDims = (e as CustomEvent<DimensionsChangedEventDetail>).detail;
     this.width = newDims.width;
     this.height = newDims.height;
+    this.traceCoordX = Math.floor(this.width / 2);
+    this.traceCoordY = Math.floor(this.height / 2);
     this.run();
   }
 
@@ -567,7 +582,7 @@ export class ShadersAppSk extends ElementSk {
 
   private drawFrame(): void {
     const shader = this.currentNode!.getShader(this.getPredefinedUniformValuesFromControls());
-    if (!shader) {
+    if (!shader || !this.kit) {
       return;
     }
 
@@ -577,10 +592,29 @@ export class ShadersAppSk extends ElementSk {
     });
 
     // Draw the shader.
-    this.canvas!.clear(this.kit!.BLACK);
+    this.canvas!.clear(this.kit.BLACK);
     this.paint!.setShader(shader);
-    const rect = this.kit!.XYWHRect(0, 0, this.width, this.height);
+    const rect = this.kit.XYWHRect(0, 0, this.width, this.height);
     this.canvas!.drawRect(rect, this.paint!);
+
+    // If the user recently clicked on the canvas to set the trace coordinate, circle it.
+    // The circle pulses three times; each pulse lasts 200ms.
+    const blinkMs: number = Date.now() - this.traceCoordClickMs;
+    if (blinkMs < 600) {
+      const phase = ((blinkMs % 200) / 200); // increases from 0 to 1 over each pulse
+      const paint: Paint = new this.kit.Paint();
+      paint.setAntiAlias(true);
+      paint.setStyle(this.kit.PaintStyle.Stroke);
+      paint.setStrokeWidth(2.0);
+      const opacity: number = 1.0 - phase;
+      paint.setColor(this.kit.Color4f(1, 0, 0, opacity));
+      const size: number = 10 + (phase * 5);
+      const ovalFrame = this.kit.XYWHRect(this.traceCoordX - size, this.traceCoordY - size,
+                                          2 * size, 2 * size);
+      this.canvas!.drawOval(ovalFrame, paint);
+      paint.delete();
+    }
+
     this.surface!.flush();
 
     this.rafID = requestAnimationFrame(() => {
@@ -599,12 +633,10 @@ export class ShadersAppSk extends ElementSk {
     if (surface) {
       const canvas: Canvas = surface.getCanvas();
       const paint: Paint = new this.kit.Paint();
-      const traceCoordX: number = this.width / 2;
-      const traceCoordY: number = this.height / 2;
-      const traced = this.kit.RuntimeEffect.MakeTraced(shader, traceCoordX, traceCoordY);
+      const traced = this.kit.RuntimeEffect.MakeTraced(shader, this.traceCoordX, this.traceCoordY);
       paint.setShader(traced.shader);
       // Clip to a tight rectangle around the trace coordinate to reduce draw time.
-      const tightClip = this.kit.XYWHRect(traceCoordX - 2, traceCoordY - 2, 5, 5);
+      const tightClip = this.kit.XYWHRect(this.traceCoordX - 2, this.traceCoordY - 2, 5, 5);
       canvas.clipRect(tightClip, this.kit.ClipOp.Intersect, /*doAntiAlias=*/ false);
       const rect = this.kit.XYWHRect(0, 0, this.width, this.height);
       canvas.drawRect(rect, paint);
