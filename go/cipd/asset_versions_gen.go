@@ -6,32 +6,32 @@ var PACKAGES = map[string]*Package{
 	"infra/3pp/tools/cpython/linux-amd64": {
 		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/linux-amd64",
-		Version: "version:2@2.7.18.chromium.39",
+		Version: "version:2@2.7.18.chromium.40",
 	},
 	"infra/3pp/tools/cpython/linux-arm64": {
 		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/linux-arm64",
-		Version: "version:2@2.7.18.chromium.39",
+		Version: "version:2@2.7.18.chromium.40",
 	},
 	"infra/3pp/tools/cpython/linux-armv6l": {
 		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/linux-armv6l",
-		Version: "version:2@2.7.18.chromium.39",
+		Version: "version:2@2.7.18.chromium.40",
 	},
 	"infra/3pp/tools/cpython/mac-amd64": {
 		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/mac-amd64",
-		Version: "version:2@2.7.18.chromium.39",
+		Version: "version:2@2.7.18.chromium.40",
 	},
 	"infra/3pp/tools/cpython/windows-386": {
 		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/windows-386",
-		Version: "version:2@2.7.18.chromium.39",
+		Version: "version:2@2.7.18.chromium.40",
 	},
 	"infra/3pp/tools/cpython/windows-amd64": {
 		Path:    "cipd_bin_packages/cpython",
 		Name:    "infra/3pp/tools/cpython/windows-amd64",
-		Version: "version:2@2.7.18.chromium.39",
+		Version: "version:2@2.7.18.chromium.40",
 	},
 	"infra/3pp/tools/cpython3/linux-amd64": {
 		Path:    "cipd_bin_packages/cpython3",
@@ -66,32 +66,32 @@ var PACKAGES = map[string]*Package{
 	"infra/3pp/tools/git/linux-amd64": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/linux-amd64",
-		Version: "version:2@2.34.1.chromium.6",
+		Version: "version:2@2.35.0-rc1.chromium.7",
 	},
 	"infra/3pp/tools/git/linux-arm64": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/linux-arm64",
-		Version: "version:2@2.34.1.chromium.6",
+		Version: "version:2@2.35.0-rc1.chromium.7",
 	},
 	"infra/3pp/tools/git/linux-armv6l": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/linux-armv6l",
-		Version: "version:2@2.34.1.chromium.6",
+		Version: "version:2@2.35.0-rc1.chromium.7",
 	},
 	"infra/3pp/tools/git/mac-amd64": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/mac-amd64",
-		Version: "version:2@2.34.1.chromium.6",
+		Version: "version:2@2.35.0-rc1.chromium.7",
 	},
 	"infra/3pp/tools/git/windows-386": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/windows-386",
-		Version: "version:2@2.34.1.chromium.6",
+		Version: "version:2@2.34.1.chromium.7",
 	},
 	"infra/3pp/tools/git/windows-amd64": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/windows-amd64",
-		Version: "version:2@2.34.1.chromium.6",
+		Version: "version:2@2.34.1.chromium.7",
 	},
 	"infra/gsutil": {
 		Path:    "cipd_bin_packages",
@@ -101,27 +101,27 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/cipd/${os}-${arch}": {
 		Path:    ".",
 		Name:    "infra/tools/cipd/${os}-${arch}",
-		Version: "git_revision:aa47e6be98046ddf930042773df0bd2b768e3d99",
+		Version: "git_revision:a337b1aadf7a6190700bb8881fde60d17e74d222",
 	},
 	"infra/tools/git/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/git/${platform}",
-		Version: "git_revision:aa47e6be98046ddf930042773df0bd2b768e3d99",
+		Version: "git_revision:a337b1aadf7a6190700bb8881fde60d17e74d222",
 	},
 	"infra/tools/luci-auth/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci-auth/${platform}",
-		Version: "git_revision:aa47e6be98046ddf930042773df0bd2b768e3d99",
+		Version: "git_revision:a337b1aadf7a6190700bb8881fde60d17e74d222",
 	},
 	"infra/tools/luci/git-credential-luci/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/git-credential-luci/${platform}",
-		Version: "git_revision:aa47e6be98046ddf930042773df0bd2b768e3d99",
+		Version: "git_revision:a337b1aadf7a6190700bb8881fde60d17e74d222",
 	},
 	"infra/tools/luci/isolate/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/isolate/${platform}",
-		Version: "git_revision:aa47e6be98046ddf930042773df0bd2b768e3d99",
+		Version: "git_revision:a337b1aadf7a6190700bb8881fde60d17e74d222",
 	},
 	"infra/tools/luci/isolated/${platform}": {
 		Path:    "cipd_bin_packages",
@@ -131,27 +131,27 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/luci/kitchen/${platform}": {
 		Path:    ".",
 		Name:    "infra/tools/luci/kitchen/${platform}",
-		Version: "git_revision:aa47e6be98046ddf930042773df0bd2b768e3d99",
+		Version: "git_revision:a337b1aadf7a6190700bb8881fde60d17e74d222",
 	},
 	"infra/tools/luci/lucicfg/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/lucicfg/${platform}",
-		Version: "git_revision:aa47e6be98046ddf930042773df0bd2b768e3d99",
+		Version: "git_revision:a337b1aadf7a6190700bb8881fde60d17e74d222",
 	},
 	"infra/tools/luci/swarming/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/swarming/${platform}",
-		Version: "git_revision:aa47e6be98046ddf930042773df0bd2b768e3d99",
+		Version: "git_revision:a337b1aadf7a6190700bb8881fde60d17e74d222",
 	},
 	"infra/tools/luci/vpython-native/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/vpython-native/${platform}",
-		Version: "git_revision:aa47e6be98046ddf930042773df0bd2b768e3d99",
+		Version: "git_revision:a337b1aadf7a6190700bb8881fde60d17e74d222",
 	},
 	"infra/tools/luci/vpython/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/vpython/${platform}",
-		Version: "git_revision:aa47e6be98046ddf930042773df0bd2b768e3d99",
+		Version: "git_revision:a337b1aadf7a6190700bb8881fde60d17e74d222",
 	},
 	"skia/bots/bazel": {
 		Path:    "bazel",
@@ -201,6 +201,6 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/goldctl/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "skia/tools/goldctl/${platform}",
-		Version: "git_revision:aa47e6be98046ddf930042773df0bd2b768e3d99",
+		Version: "git_revision:a337b1aadf7a6190700bb8881fde60d17e74d222",
 	},
 }
