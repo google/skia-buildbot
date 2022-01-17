@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/now"
@@ -20,11 +22,16 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/store"
+	"go.skia.org/infra/machine/go/machine/store/mocks"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/machine/go/switchboard"
 	switchboardMocks "go.skia.org/infra/machine/go/switchboard/mocks"
 )
+
+var fakeTime = time.Date(2021, time.September, 1, 2, 3, 4, 0, time.UTC)
+
+var myFakeError = errors.New("my fake error")
 
 func setupForTest(t *testing.T) (context.Context, config.InstanceConfig) {
 	unittest.RequiresFirestoreEmulator(t)
@@ -60,6 +67,8 @@ func assertJSONResponseWas(t *testing.T, expected string, w *httptest.ResponseRe
 	assert.Equal(t, []byte(expected+"\n"), w.Body.Bytes())
 }
 
+// TODO(jcgregorio) Move the rest of these tests to use the store.Store mock.
+// TODO(jcgregorio) Remove inline funcs passed to store.Update and test them individually.
 func TestMachineToggleModeHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -641,8 +650,6 @@ func TestMachineSupplyChromeOSInfoHandler_FailOnMissingID(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
-var fakeTime = time.Date(2021, time.September, 1, 2, 3, 4, 0, time.UTC)
-
 func TestSetAttachedDeviceHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -728,4 +735,202 @@ func TestSetAttachedDeviceHandler_FailOnInvalidJSON(t *testing.T) {
 	router.ServeHTTP(w, r)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestApiMachineDescriptionHandler_GoodMachineID_ReturnsFrontendDescription(t *testing.T) {
+	unittest.SmallTest(t)
+	store := &mocks.Store{}
+	const machineID = "skia-rpi2-rack4-shelf1-001"
+	ctx := now.TimeTravelingContext(fakeTime).WithContext(context.Background())
+	desc := machine.NewDescription(ctx)
+	desc.Dimensions = machine.SwarmingDimensions{
+		machine.DimID: []string{machineID},
+	}
+	store.On("Get", testutils.AnyContext, machineID).Return(desc, nil)
+	s := &server{
+		store: store,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("GET", fmt.Sprintf("/json/v1/machine/description/%s", machineID), nil)
+	r = r.WithContext(ctx)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	var actual rpc.FrontendDescription
+	err := json.Unmarshal(w.Body.Bytes(), &actual)
+	require.NoError(t, err)
+	assert.Equal(t, rpc.ToFrontendDescription(desc), actual)
+}
+
+func TestApiMachineDescriptionHandler_StoreGetFails_ReturnsInternalServerError(t *testing.T) {
+	unittest.SmallTest(t)
+	store := &mocks.Store{}
+	const machineID = "skia-rpi2-rack4-shelf1-001"
+	store.On("Get", testutils.AnyContext, machineID).Return(machine.NewDescription(context.Background()), myFakeError)
+	s := &server{
+		store: store,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("GET", fmt.Sprintf("/json/v1/machine/description/%s", machineID), nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestApiMachineDescriptionHandler_NoMachineIDSupplied_ReturnsNotFound(t *testing.T) {
+	unittest.SmallTest(t)
+	store := &mocks.Store{}
+	s := &server{
+		store: store,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("GET", "/json/v1/machine/description/", nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, 404, w.Code)
+}
+
+func TestApiPowerCycleListHandler_NoMachinesNeedPowerCycling_ReturnsEmptyList(t *testing.T) {
+	unittest.SmallTest(t)
+	store := &mocks.Store{}
+	machines := []string{}
+	store.On("ListPowerCycle", testutils.AnyContext).Return(machines, nil)
+	s := &server{
+		store: store,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("GET", "/json/v1/powercycle/list", nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	var actual rpc.ListPowerCycleResponse
+	err := json.Unmarshal(w.Body.Bytes(), &actual)
+	require.NoError(t, err)
+	assert.Equal(t, rpc.ToListPowerCycleResponse(machines), actual)
+}
+
+func TestApiPowerCycleListHandler_OneMachineNeedsPowerCycling_ReturnsOneMachineInList(t *testing.T) {
+	unittest.SmallTest(t)
+	store := &mocks.Store{}
+	const machineID = "skia-rpi2-rack4-shelf1-001"
+	machines := []string{machineID}
+	store.On("ListPowerCycle", testutils.AnyContext).Return(machines, nil)
+	s := &server{
+		store: store,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("GET", "/json/v1/powercycle/list", nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	var actual rpc.ListPowerCycleResponse
+	err := json.Unmarshal(w.Body.Bytes(), &actual)
+	require.NoError(t, err)
+	assert.Equal(t, rpc.ToListPowerCycleResponse(machines), actual)
+}
+
+func TestApiPowerCycleListHandler_ListPowerCycleReturnsError_ReturnsInternalServerError(t *testing.T) {
+	unittest.SmallTest(t)
+	store := &mocks.Store{}
+	store.On("ListPowerCycle", testutils.AnyContext).Return(nil, myFakeError)
+	s := &server{
+		store: store,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("GET", "/json/v1/powercycle/list", nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestApiPowerCycleCompleteHandler_UpdateSucceeds_ReturnStatusOK(t *testing.T) {
+	unittest.SmallTest(t)
+	storeMock := &mocks.Store{}
+	const machineID = "skia-rpi2-rack4-shelf1-001"
+	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(nil)
+	s := &server{
+		store: storeMock,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("POST", fmt.Sprintf("/json/v1/powercycle/complete/%s", machineID), nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestApiPowerCycleCompleteHandler_UpdateFails_ReturnStatusInernalServerError(t *testing.T) {
+	unittest.SmallTest(t)
+	storeMock := &mocks.Store{}
+	const machineID = "skia-rpi2-rack4-shelf1-001"
+	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(myFakeError)
+	s := &server{
+		store: storeMock,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("POST", fmt.Sprintf("/json/v1/powercycle/complete/%s", machineID), nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestSetPowerCycleFalse_PowerCycleIsTrue_PowerCycleBecomesFalse(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+	desc := machine.NewDescription(ctx)
+	desc.PowerCycle = true
+	desc = setPowerCycleFalse(desc)
+	require.False(t, desc.PowerCycle)
 }

@@ -39,27 +39,43 @@ type FrontendDescription struct {
 	Dimensions          machine.SwarmingDimensions
 }
 
+// ListMachinesResponse is the full list of all known machines.
 type ListMachinesResponse []FrontendDescription
 
+// ListPowerCycleResponse is the list of machine ids that need powercycling.
+type ListPowerCycleResponse []string
+
+// ToListPowerCycleResponse converts the response from store.ListPowerCycle to a
+// ListPowerCycleResponse.
+func ToListPowerCycleResponse(machineIDs []string) ListPowerCycleResponse {
+	return machineIDs
+}
+
+// ToFrontendDescription converts a machine.Description into a FrontendDescription.
+func ToFrontendDescription(d machine.Description) FrontendDescription {
+	return FrontendDescription{
+		Mode:                d.Mode,
+		AttachedDevice:      d.AttachedDevice,
+		Annotation:          d.Annotation,
+		Note:                d.Note,
+		Version:             d.Version,
+		PowerCycle:          d.PowerCycle,
+		LastUpdated:         d.LastUpdated,
+		Battery:             d.Battery,
+		Temperature:         d.Temperature,
+		RunningSwarmingTask: d.RunningSwarmingTask,
+		LaunchedSwarming:    d.LaunchedSwarming,
+		DeviceUptime:        d.DeviceUptime,
+		SSHUserIP:           d.SSHUserIP,
+		Dimensions:          d.Dimensions,
+	}
+}
+
+// ToListMachinesResponse converts []machine.Description into []FrontendDescription.
 func ToListMachinesResponse(descriptions []machine.Description) []FrontendDescription {
 	rv := make([]FrontendDescription, 0, len(descriptions))
 	for _, d := range descriptions {
-		rv = append(rv, FrontendDescription{
-			Mode:                d.Mode,
-			AttachedDevice:      d.AttachedDevice,
-			Annotation:          d.Annotation,
-			Note:                d.Note,
-			Version:             d.Version,
-			PowerCycle:          d.PowerCycle,
-			LastUpdated:         d.LastUpdated,
-			Battery:             d.Battery,
-			Temperature:         d.Temperature,
-			RunningSwarmingTask: d.RunningSwarmingTask,
-			LaunchedSwarming:    d.LaunchedSwarming,
-			DeviceUptime:        d.DeviceUptime,
-			SSHUserIP:           d.SSHUserIP,
-			Dimensions:          d.Dimensions,
-		})
+		rv = append(rv, ToFrontendDescription(d))
 	}
 	return rv
 }

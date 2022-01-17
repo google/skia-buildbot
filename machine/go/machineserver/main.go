@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -39,8 +40,11 @@ import (
 
 // flags
 var (
-	configFlag = flag.String("config", "test.json", "The name to the configuration file, such as prod.json or test.json, as found in machine/go/configs.")
+	configFlag             = flag.String("config", "test.json", "The name to the configuration file, such as prod.json or test.json, as found in machine/go/configs.")
+	allowedServiceAccounts = flag.String("service_accounts", "skolo-jumphost@skia-public.iam.gserviceaccount.com", "A comma separated list of service accounts that can access the JSON API.")
 )
+
+var errFailedToGetID = errors.New("failed to get id from URL")
 
 type server struct {
 	store             machineStore.Store
@@ -55,14 +59,24 @@ func new() (baseapp.App, error) {
 
 	ctx := context.Background()
 
-	var allow allowed.Allow
+	var allowList []string
 	if !*baseapp.Local {
-		allow = allowed.NewAllowedFromList([]string{"google.com"})
+		allowList = []string{"google.com"}
 	} else {
-		allow = allowed.NewAllowedFromList([]string{"barney@example.org"})
+		allowList = []string{"barney@example.org"}
 	}
 
-	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
+	// Add in service accounts.
+	for _, s := range strings.Split(*allowedServiceAccounts, ",") {
+		s = strings.TrimSpace(s)
+		if s != "" {
+			allowList = append(allowList, s)
+		}
+	}
+
+	sklog.Infof("AllowList: %s", allowList)
+
+	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allowed.NewAllowedFromList(allowList))
 
 	var instanceConfig config.InstanceConfig
 	b, err := fs.ReadFile(configs.Configs, *configFlag)
@@ -153,6 +167,18 @@ func sendJSONResponse(data interface{}, w http.ResponseWriter) {
 	}
 }
 
+// getID retrieves the value of {id:.+} from URLs. It reports an error on the
+// ResponseWrite if none is found.
+func getID(w http.ResponseWriter, r *http.Request) (string, error) {
+	vars := mux.Vars(r)
+	id := strings.TrimSpace(vars["id"])
+	if id == "" {
+		http.Error(w, "Machine ID must be supplied.", http.StatusBadRequest)
+		return "", errFailedToGetID
+	}
+	return id, nil
+}
+
 // sendHTMLResponse renders the given template, passing it the current
 // context's CSP nonce. If template rendering fails, it logs an error.
 func (s *server) sendHTMLResponse(templateName string, w http.ResponseWriter, r *http.Request) {
@@ -180,15 +206,13 @@ func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := strings.TrimSpace(vars["id"])
-	if id == "" {
-		http.Error(w, "ID must be supplied.", http.StatusBadRequest)
+	id, err := getID(w, r)
+	if err != nil {
 		return
 	}
 
 	resultMode := machine.ModeAvailable
-	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
+	err = s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
 		ret := in.Copy()
 		if ret.Mode == machine.ModeAvailable {
 			ret.Mode = machine.ModeMaintenance
@@ -218,15 +242,13 @@ func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (s *server) machineTogglePowerCycleHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := strings.TrimSpace(vars["id"])
-	if id == "" {
-		http.Error(w, "ID must be supplied.", http.StatusBadRequest)
+	id, err := getID(w, r)
+	if err != nil {
 		return
 	}
 
 	var ret machine.Description
-	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
+	err = s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
 		ret = in.Copy()
 		ret.PowerCycle = !ret.PowerCycle
 		ret.Annotation = machine.Annotation{
@@ -251,10 +273,8 @@ func (s *server) machineTogglePowerCycleHandler(w http.ResponseWriter, r *http.R
 }
 
 func (s *server) machineSetAttachedDeviceHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := strings.TrimSpace(vars["id"])
-	if id == "" {
-		http.Error(w, "ID must be supplied.", http.StatusBadRequest)
+	id, err := getID(w, r)
+	if err != nil {
 		return
 	}
 
@@ -265,7 +285,7 @@ func (s *server) machineSetAttachedDeviceHandler(w http.ResponseWriter, r *http.
 	}
 
 	var ret machine.Description
-	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
+	err = s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
 		ret = in.Copy()
 		ret.AttachedDevice = attachedDeviceRequest.AttachedDevice
 		return ret
@@ -285,16 +305,14 @@ func (s *server) machineSetAttachedDeviceHandler(w http.ResponseWriter, r *http.
 }
 
 func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := strings.TrimSpace(vars["id"])
-	if id == "" {
-		http.Error(w, "ID must be supplied.", http.StatusBadRequest)
+	id, err := getID(w, r)
+	if err != nil {
 		return
 	}
 
 	var ret machine.Description
 	ctx := r.Context()
-	err := s.store.Update(ctx, id, func(in machine.Description) machine.Description {
+	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		ret = in.Copy()
 
 		ret.Dimensions = machine.SwarmingDimensions{}
@@ -321,10 +339,8 @@ func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (s *server) machineDeleteMachineHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := strings.TrimSpace(vars["id"])
-	if id == "" {
-		http.Error(w, "ID must be supplied.", http.StatusBadRequest)
+	id, err := getID(w, r)
+	if err != nil {
 		return
 	}
 
@@ -342,12 +358,11 @@ func (s *server) machineDeleteMachineHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := strings.TrimSpace(vars["id"])
-	if id == "" {
-		http.Error(w, "ID must be supplied.", http.StatusBadRequest)
+	id, err := getID(w, r)
+	if err != nil {
 		return
 	}
+
 	var note rpc.SetNoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
 		httputils.ReportError(w, err, "Failed to parse incoming note.", http.StatusBadRequest)
@@ -361,7 +376,7 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var ret machine.Description
-	err := s.store.Update(ctx, id, func(in machine.Description) machine.Description {
+	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		ret = in.Copy()
 		ret.Note = newNote
 		return ret
@@ -377,12 +392,11 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 // machineSupplyChromeOSInfoHandler takes in the information needed to connect a given machine with
 // a ChromeOS device (via SSH).
 func (s *server) machineSupplyChromeOSInfoHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := strings.TrimSpace(vars["id"])
-	if id == "" {
-		http.Error(w, "Machine ID must be supplied.", http.StatusBadRequest)
+	id, err := getID(w, r)
+	if err != nil {
 		return
 	}
+
 	var req rpc.SupplyChromeOSRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to parse request.", http.StatusBadRequest)
@@ -394,7 +408,7 @@ func (s *server) machineSupplyChromeOSInfoHandler(w http.ResponseWriter, r *http
 	}
 	var ret machine.Description
 	ctx := r.Context()
-	err := s.store.Update(ctx, id, func(in machine.Description) machine.Description {
+	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
 		ret = in.Copy()
 		ret.SSHUserIP = req.SSHUserIP
 		ret.SuppliedDimensions = req.SuppliedDimensions
@@ -427,9 +441,56 @@ func (s *server) podsHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(pods, w)
 }
 
+func (s *server) apiMachineDescriptionHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := getID(w, r)
+	if err != nil {
+		return
+	}
+
+	desc, err := s.store.Get(r.Context(), id)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(rpc.ToFrontendDescription(desc), w)
+}
+
+func (s *server) apiPowerCycleListHandler(w http.ResponseWriter, r *http.Request) {
+	toPowerCycle, err := s.store.ListPowerCycle(r.Context())
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
+		return
+	}
+	sendJSONResponse(toPowerCycle, w)
+}
+
+func setPowerCycleFalse(in machine.Description) machine.Description {
+	ret := in.Copy()
+	ret.PowerCycle = false
+	return ret
+}
+
+func (s *server) apiPowerCycleCompleteHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := getID(w, r)
+	if err != nil {
+		return
+	}
+
+	err = s.store.Update(r.Context(), id, setPowerCycleFalse)
+	auditlog.Log(r, "powercycle-complete", id)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
+	// Pages
 	r.HandleFunc("/", s.machinesPageHandler).Methods("GET")
+
+	// UI API
 	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
 	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("POST")
 	r.HandleFunc("/_/machine/toggle_powercycle/{id:.+}", s.machineTogglePowerCycleHandler).Methods("POST")
@@ -441,6 +502,11 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/meeting_points", s.meetingPointsHandler).Methods("GET")
 	r.HandleFunc("/_/pods", s.podsHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
+
+	// Public API
+	r.HandleFunc("/json/v1/machine/description/{id:.+}", s.apiMachineDescriptionHandler).Methods("GET")
+	r.HandleFunc("/json/v1/powercycle/list", s.apiPowerCycleListHandler).Methods("GET")
+	r.HandleFunc("/json/v1/powercycle/complete/{id:.+}", s.apiPowerCycleCompleteHandler).Methods("POST")
 }
 
 // See baseapp.App.
