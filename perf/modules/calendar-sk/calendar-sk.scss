@@ -10,14 +10,16 @@ calendar-sk {
     font-size: 120%;
     text-align: center;
     border: solid 2px var(--background);
+    padding: 2px;
   }
 
   td.today button {
     color: var(--secondary);
   }
 
-  td.selected {
-    border: solid 2px var(--secondary);
+  td.selected button {
+    border: solid 1px var(--secondary);
+    font-weight: bold;
   }
 
   th.clickable {
@@ -30,6 +32,11 @@ calendar-sk {
 
   tr.weekdayHeader {
     opacity: 0.6;
+  }
+
+  th {
+    margin: 0;
+    padding: 0;
   }
 
   table.calendar button {

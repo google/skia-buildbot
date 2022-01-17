@@ -41,7 +41,7 @@ export class TreeScaffoldSk extends ElementSk {
 
   private static template = (ele: TreeScaffoldSk) => html`
   <app-sk>
-    <header class="primary-container-themes-sk">
+    <header>
       <h1 class=name>${ele.appTitle}</h1>
       <div class="spacer"></div>
       <login-sk></login-sk>

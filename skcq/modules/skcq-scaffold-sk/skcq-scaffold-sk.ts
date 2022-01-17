@@ -44,7 +44,7 @@ export class SkCQScaffold extends ElementSk {
 
   private static template = (el: SkCQScaffold) => html`
   <app-sk>
-  <header class=primary-container-themes-sk>
+  <header>
     <h1>${el.appTitle}</h1>
     <div class=spinner-spacer>
       <spinner-sk></spinner-sk>

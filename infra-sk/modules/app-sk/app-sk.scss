@@ -28,11 +28,11 @@ $mobile-breakpoint: 600px;
 body {
   --sidebar-width: 200px;
   --sidebar-horiz-padding: 5px;
-  --sidebar-background-color: var(--on-primary, var(--white));
+  --sidebar-background-color: var(--surface, var(--black));
 
   --header-height: 50px;
-  --header-background-color: var(--primary, var(--blue));
-  --header-font-color: var(--on-primary, var(--white));
+  --header-background-color: var(--background, var(--black));
+  --header-font-color: var(--primary, var(--white));
   --header-horiz-padding: 8px;
 
   --content-horiz-padding: 5px;
@@ -77,6 +77,12 @@ app-sk > {
       &:last-child {
         margin: 0;
       }
+    }
+
+    login-sk .email,
+    login-sk .logInOut {
+      color: var(--header-font-color);
+      fill: var(--header-font-color);
     }
   }
 
@@ -123,7 +129,9 @@ app-sk > {
        the transitions will make it slide between the two states. */
     aside {
       position: relative;
-      left: calc(-1 * (var(--sidebar-width) + 2 * var(--sidebar-horiz-padding)));
+      left: calc(
+        -1 * (var(--sidebar-width) + 2 * var(--sidebar-horiz-padding))
+      );
       transition: 0.5s;
     }
 

@@ -1,4 +1,9 @@
 @import '~elements-sk/themes/themes';
+@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons');
+
+@import '~elements-sk/styles/buttons/buttons.scss';
+@import '~elements-sk/styles/select/select.scss';
+@import '~elements-sk/styles/table/table.scss';
 
 html {
   --success: rgb(102, 166, 30);
@@ -15,12 +20,218 @@ html {
   --disabled: var(--grey-500);
   --disabled-alpha: rgba(117, 117, 117, 1);
 
+  --primary-variant: var(--light-blue-600);
+  --secondary-highlight: var(--green-100);
+  --secondary: var(--green-500);
+
   .darkmode {
     --on-success: var(--on-secondary);
     --on-failure: var(--on-secondary);
     --on-warning: var(--on-secondary);
 
+    --on-primary-variant: var(--black);
+    --on-surface: var(--grey-200);
+    --primary-variant: var(--light-blue-200);
+    --primary: var(--light-blue-500);
+    --secondary-highlight: var(--green-900);
+    --secondary: var(--green-500);
+
     --warning-alpha: rgb(255, 171, 64, 0.5);
     --failure-alpha: rgba(217, 95, 2, 0.5);
+  }
+
+  header {
+    border-bottom: solid 1px var(--primary);
+  }
+
+  input {
+    border: solid 1px var(--on-surface);
+    color: solid 1px var(--on-surface);
+    background: solid 1px var(--surface);
+    display: inline-block;
+  }
+
+  button {
+    min-width: auto;
+    text-align: center;
+    text-transform: none;
+    padding: 4px;
+    height: fit-content;
+    margin: 8px 2px;
+    outline: none;
+
+    box-shadow: 2px 2px 0px 0px var(--surface-2dp);
+  }
+
+  button.action {
+    box-shadow: 2px 2px 0px 0px var(--surface-2dp);
+  }
+
+  button:active {
+    box-shadow: none;
+    transition: box-shadow 0.2s ease-in;
+  }
+
+  multi-select-sk:focus,
+  select-sk:focus,
+  button:focus {
+    outline: dashed 1px var(--on-surface);
+    outline-offset: -4px;
+  }
+
+  multi-select-sk {
+    border: solid 1px var(--on-surface);
+    background-color: var(--surface);
+    color: var(--on-surface);
+  }
+
+  multi-select-sk > * {
+    background-color: var(--surface);
+    border: solid 1px var(--surface);
+  }
+
+  multi-select-sk > [selected] {
+    background: var(--surface-1dp);
+  }
+
+  multi-select-sk > :hover {
+    border: var(--surface-1dp) solid 1px;
+  }
+
+  select-sk,
+  select-sk > * {
+    background-color: var(--surface);
+    color: var(--on-surface);
+  }
+
+  select-sk > [selected] {
+    background: var(--surface-1dp);
+  }
+
+  select-sk > * {
+    border: var(--surface) solid 1px;
+  }
+
+  select-sk > :hover {
+    border: var(--surface-1dp) solid 1px;
+  }
+
+  select-sk > :focus {
+    background-color: var(--surface-1dp);
+    transition: background-color 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  select-sk > [selected] {
+    background-color: var(--surface-1dp);
+  }
+
+  error-toast-sk {
+    padding: 8px;
+  }
+
+  error-toast-sk button {
+    margin: 0 0 0 8px;
+    padding: 4px;
+  }
+
+  button:focus {
+    outline: dashed 1px var(--on-surface);
+    outline-offset: -4px;
+  }
+
+  tabs-sk > button {
+    box-shadow: none;
+  }
+
+  details {
+    summary {
+      display: inline-block;
+      padding: 4px;
+      background: var(--surface);
+      color: var(--on-surface);
+      border: solid 1px var(--on-surface);
+      cursor: pointer;
+      list-style: none;
+      margin: 8px 4px 8px 0;
+      box-shadow: 2px 2px 0px 0px var(--on-surface);
+    }
+
+    summary:focus {
+      outline: dashed 1px var(--on-surface);
+      outline-offset: -4px;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary:active {
+      box-shadow: none;
+      transition: box-shadow 0.2s ease-in;
+    }
+  }
+
+  details[open] {
+    border: solid 1px var(--on-surface);
+    padding: 0 8px 16px 8px;
+    background: var(--surface);
+    margin: 8px 8px 8px 0;
+
+    summary {
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+  }
+
+  /*
+     The following styles are for scrollbars. There are some non-standard looking
+     styles because it is 2020 and there's still no standard way to style
+     scrollbars on a web page.
+
+     https://caniuse.com/#feat=css-scrollbar
+
+     There is currently an editor's draft for styling scrollbars:
+     https://drafts.csswg.org/css-scrollbars-1/, but it is only supported by
+     FireFox. So set that first.
+  */
+
+  * {
+    scrollbar-color: var(--surface-1dp) var(--background);
+  }
+
+  /* Now set the non-standard styles. Unfortunately the way webpack/cssmin is
+     configured currently it will strip the following rules from the output so we
+     turn the autoprefixer off.
+  */
+
+  /* Turn on a 13x13 scrollbar */
+  ::-webkit-scrollbar {
+    width: 13px;
+    height: 13px;
+  }
+
+  /* Turn off single button up on top and down on bottom */
+  ::-webkit-scrollbar-button:start:decrement,
+  ::-webkit-scrollbar-button:end:increment,
+  ::-webkit-scrollbar-button:vertical:start:increment,
+  ::-webkit-scrollbar-button:vertical:end:decrement {
+    display: none;
+  }
+
+  /* Track below and above */
+  ::-webkit-scrollbar-track-piece {
+    background-color: var(--background);
+    border: solid 1px var(--surface-2dp);
+  }
+
+  /* The thumb itself */
+  ::-webkit-scrollbar-thumb {
+    border: solid 1px var(--on-surface);
+    background: var(--surface-1dp);
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--surface);
   }
 }

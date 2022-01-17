@@ -13,7 +13,7 @@ verifiers-detail-sk {
     }
   }
 
-  .verifier-table.failed {
+  .verifier-table.failed tr {
     background-color: var(--failed);
     color: var(--on-primary);
 
@@ -22,15 +22,15 @@ verifiers-detail-sk {
     }
   }
 
-  .verifier-table.success {
+  .verifier-table.success tr {
     background-color: var(--success);
   }
 
-  .verifier-table.waiting {
+  .verifier-table.waiting tr {
     background-color: var(--waiting);
   }
 
-  .verifier-table.aborted {
+  .verifier-table.aborted tr {
     background-color: var(--gray);
   }
 

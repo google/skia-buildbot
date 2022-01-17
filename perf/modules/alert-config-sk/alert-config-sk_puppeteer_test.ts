@@ -11,7 +11,7 @@ describe('alert-config-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(testBed.baseUrl);
-    await testBed.page.setViewport({ width: 1400, height: 2500 });
+    await testBed.page.setViewport({ width: 2000, height: 2500 });
   });
 
   it('should render the demo page', async () => {
