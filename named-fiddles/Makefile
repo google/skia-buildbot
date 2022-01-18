@@ -1,12 +1,14 @@
+include ../make/bazel.mk
+include ../kube/kube.mk
+
 build:
-	go install ./go/named-fiddles
+	$(BAZEL) build //named-fiddles/go/...
 
 release: build
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/named-fiddles
-	./images/named-fiddles/release
+	$(BAZEL) run //named-fiddles:push_named_fiddles_container
 
-push: release
-	pushk named-fiddles
+push: pushk release
+	pushk --use-temp-checkout named-fiddles
 
 testci:
 	go test ./go/...

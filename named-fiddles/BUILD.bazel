@@ -1,0 +1,16 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "named_fiddles_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//named-fiddles/go/named-fiddles:named-fiddles",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/named-fiddles",
+    repository = "skia-public/named-fiddles",
+)
