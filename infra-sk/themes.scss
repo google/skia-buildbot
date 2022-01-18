@@ -5,7 +5,7 @@
 @import '~elements-sk/styles/select/select.scss';
 @import '~elements-sk/styles/table/table.scss';
 
-html {
+:root {
   --success: rgb(102, 166, 30);
   --success-alpha: rgba(102, 166, 30, 0.3);
   --warning: rgb(255, 167, 38);
