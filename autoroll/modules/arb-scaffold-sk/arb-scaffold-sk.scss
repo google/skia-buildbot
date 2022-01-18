@@ -3,8 +3,11 @@
 
 arb-scaffold-sk {
   * {
-    font-family:Roboto,Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    font-family: Roboto, Helvetica, Arial, 'Bitstream Vera Sans', sans-serif;
   }
+
+  --header-background-color: var(--background);
+  --header-font-color: var(--on-background);
 
   header {
     h1 {
@@ -26,7 +29,7 @@ arb-scaffold-sk {
   }
 
   nav {
-    display:flex;
+    display: flex;
     flex-direction: column;
     a {
       padding: 1em 1em;
@@ -56,6 +59,8 @@ arb-scaffold-sk {
 
 // Make sure the app doesn't leave empty space on the bottom. e.g. blank
 // white in darkmode.
-html, body, app-sk {
-  height:100%;
+html,
+body,
+app-sk {
+  height: 100%;
 }
