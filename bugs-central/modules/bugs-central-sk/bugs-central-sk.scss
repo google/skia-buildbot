@@ -1,5 +1,13 @@
 bugs-central-sk {
 
+  spinner-sk {
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    border: 8px solid var(--primary);
+    border-left: 8px solid var(--primary-variant);
+  }
+
   table.client-counts {
     width: 100%;
     border: 1px solid var(--on-background);

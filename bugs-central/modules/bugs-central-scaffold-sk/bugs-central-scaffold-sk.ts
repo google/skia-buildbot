@@ -22,7 +22,6 @@ import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/icon/home-icon-sk';
 import 'elements-sk/icon/insert-chart-icon-sk';
 import 'elements-sk/icon/person-pin-icon-sk';
-import 'elements-sk/spinner-sk';
 
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
@@ -49,9 +48,6 @@ export class BugsCentralScaffoldSk extends ElementSk {
   <app-sk>
   <header class=primary-container-themes-sk>
     <h1>${el.appTitle}</h1>
-    <div class=spinner-spacer>
-      <spinner-sk></spinner-sk>
-    </div>
     <div class=spacer></div>
     <login-sk ?testing_offline=${el.testingOffline}></login-sk>
     <theme-chooser-sk></theme-chooser-sk>
