@@ -1,0 +1,14 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "periodic_trigger_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//periodic-trigger/go/periodic-trigger:periodic-trigger",
+                "0755",
+            ],
+        ],
+    },
+    repository = "skia-public/periodic-trigger",
+)

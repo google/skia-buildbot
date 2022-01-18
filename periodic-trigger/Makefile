@@ -1,12 +1,13 @@
+include ../make/bazel.mk
 include ../kube/kube.mk
 
 .PHONY: build
 build:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/periodic-trigger
+	$(BAZEL) build //periodic-trigger/go/...
 
 .PHONY: release
 release: build
-	./build_release
+	$(BAZEL) run //periodic-trigger:push_periodic_trigger_container
 
 .PHONY: push
 push: release pushk
