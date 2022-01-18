@@ -4,17 +4,40 @@
 
 @import '../themes/themes.scss';
 
-.cm-s-base16-light .cm-current-line { background: rgba(  0, 128, 255, 0.2); }
-.cm-s-ambiance     .cm-current-line { background: rgba(128, 192, 255, 0.2); }
+.cm-s-base16-light .cm-current-line {
+  background: rgba(0, 128, 255, 0.2);
+}
+.cm-s-ambiance .cm-current-line {
+  background: rgba(128, 192, 255, 0.2);
+}
 
-.cm-breakpoints                   { width: 15px; border-left: 1px solid #00000020; }
-.cm-reachable, .cm-breakpoint     { text-align:center; font-size:10px; text-shadow:0 0 1.5px red }
-.cm-s-base16-light .cm-reachable  { color: #f5f5f5; }
-.cm-s-ambiance     .cm-reachable  { color: #3d3d3d; }
-.cm-s-base16-light .cm-breakpoint { color: #ee2222; }
-.cm-s-ambiance     .cm-breakpoint { color: #cc0000; }
+.cm-breakpoints {
+  width: 15px;
+  border-left: 1px solid #00000020;
+}
+.cm-reachable,
+.cm-breakpoint {
+  text-align: center;
+  font-size: 10px;
+  text-shadow: 0 0 1.5px red;
+}
+.cm-s-base16-light .cm-reachable {
+  color: #f5f5f5;
+}
+.cm-s-ambiance .cm-reachable {
+  color: #3d3d3d;
+}
+.cm-s-base16-light .cm-breakpoint {
+  color: #ee2222;
+}
+.cm-s-ambiance .cm-breakpoint {
+  color: #cc0000;
+}
 
-.cm-reachable::after, .cm-breakpoint::after { content: '●'; }
+.cm-reachable::after,
+.cm-breakpoint::after {
+  content: '●';
+}
 
 .highlighted {
   background: var(--secondary-highlight);
@@ -26,28 +49,7 @@
   margin: 0;
   min-height: 100vh;
 
-  header {
-    background: var(--surface-1dp);
-    color: var(--primary);
-    margin: 0;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 0 16px;
-    align-items: center;
-
-    h2 {
-      margin: 8px 0 8px 0;
-
-      a {
-        background: var(--surface-1dp);
-      }
-    }
-
-    #githash {
-      background: var(--surface-1dp);
-    }
-  }
+  --sidebar-width: 0;
 
   main {
     padding: 16px;
@@ -55,6 +57,7 @@
     display: inline-grid;
     flex-direction: row;
     flex-wrap: wrap;
+    max-width: 640px;
 
     textarea {
       display: block;
@@ -84,17 +87,21 @@
           width: 100%;
           border-collapse: collapse;
           border: 2px solid var(--secondary);
-          thead {
+          font-size: 13px;
+
+          th {
             background: var(--secondary);
             color: var(--on-secondary);
+            font-size: 13px;
+            opacity: 1;
+            padding: 3px 8px;
           }
-          tbody tr td {
+
+          td {
             border-bottom: 1px solid var(--secondary);
             border-right: 1px solid var(--secondary);
-            padding-left: 8px;
-            padding-right: 8px;
-            padding-top: 3px;
-            padding-bottom: 3px;
+            padding: 3px 8px;
+            font-size: 13px;
           }
         }
       }

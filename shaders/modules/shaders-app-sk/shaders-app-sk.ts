@@ -29,6 +29,7 @@ import 'elements-sk/icon/add-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/uniform-fps-sk';
 import '../../../infra-sk/modules/uniform-time-sk';
 import '../../../infra-sk/modules/uniform-generic-sk';
@@ -272,6 +273,7 @@ export class ShadersAppSk extends ElementSk {
   }
 
   private static template = (ele: ShadersAppSk) => html`
+  <app-sk>
     <header>
       <h2><a href="/">SkSL Shaders</a></h2>
       <span>
@@ -372,6 +374,7 @@ export class ShadersAppSk extends ElementSk {
       <edit-child-shader-sk></edit-child-shader-sk>
       <error-toast-sk></error-toast-sk>
     </footer>
+  </app-sk>
   `;
 
   /** Returns the CodeMirror theme based on the state of the page's darkmode.

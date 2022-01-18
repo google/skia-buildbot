@@ -16,6 +16,7 @@ import * as SkSLConstants from '../sksl-constants/sksl-constants';
 
 import { Convert, DebugTrace } from '../debug-trace/debug-trace';
 import { DebugTracePlayer, VariableData } from '../debug-trace-player/debug-trace-player';
+import '../../../infra-sk/modules/app-sk';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -112,7 +113,7 @@ export class DebuggerAppSk extends ElementSk {
   }
 
   getEditor(): CodeMirror.Editor | null {
-      return this.codeMirror;
+    return this.codeMirror;
   }
 
   private updateControls(): void {
@@ -130,8 +131,8 @@ export class DebuggerAppSk extends ElementSk {
       // Subtract one from the line number because CodeMirror uses zero-indexed lines.
       const lineNumber = this.player.getCurrentLine() - 1;
       this.currentLineHandle = this.codeMirror!.addLineClass(lineNumber, 'background',
-                                                             'cm-current-line');
-      this.codeMirror!.scrollIntoView({ line: lineNumber, ch: 0 }, /*margin=*/36);
+        'cm-current-line');
+      this.codeMirror!.scrollIntoView({ line: lineNumber, ch: 0 }, /* margin= */36);
     }
   }
 
@@ -140,7 +141,7 @@ export class DebuggerAppSk extends ElementSk {
       let stack = this.player.getCallStack().map((idx: number) => this.trace!.functions[idx].name);
       if (stack.length > 0) {
         stack = stack.reverse();
-        stack[0] = '➔ ' + stack[0];
+        stack[0] = `➔ ${stack[0]}`;
         return stack.map((text: string) => html`<tr><td>${text}</td></tr>`);
       }
     }
@@ -150,12 +151,12 @@ export class DebuggerAppSk extends ElementSk {
   private varsDisplay(): TemplateResult[] {
     if (this.trace) {
       const vars: VariableData[] = this.player.getStackDepth() > 0
-                    ? this.player.getLocalVariables(this.player.getStackDepth() - 1)
-                    : this.player.getGlobalVariables();
+        ? this.player.getLocalVariables(this.player.getStackDepth() - 1)
+        : this.player.getGlobalVariables();
       if (vars.length > 0) {
         return vars.map((v: VariableData) => {
-          const name: string = this.trace!.slots[v.slotIndex].name +
-                               this.player.getSlotComponentSuffix(v.slotIndex);
+          const name: string = this.trace!.slots[v.slotIndex].name
+                               + this.player.getSlotComponentSuffix(v.slotIndex);
           const highlight: string = v.dirty ? 'highlighted' : '';
           return html`<tr><td class='${highlight}'>${name}</td><td>${v.value}</td></tr>`;
         });
@@ -231,7 +232,7 @@ export class DebuggerAppSk extends ElementSk {
   }
 
   private static makeDivWithClass(name: string): HTMLDivElement {
-    const marker: HTMLDivElement = document.createElement("div");
+    const marker: HTMLDivElement = document.createElement('div');
     marker.classList.add(name);
     return marker;
   }
@@ -240,7 +241,7 @@ export class DebuggerAppSk extends ElementSk {
     this.codeMirror!.clearGutter('cm-breakpoints');
     this.player.getLineNumbersReached().forEach((timesReached: number, line: number) => {
       this.codeMirror!.setGutterMarker(line - 1, 'cm-breakpoints',
-                                       DebuggerAppSk.makeDivWithClass('cm-reachable'));
+        DebuggerAppSk.makeDivWithClass('cm-reachable'));
     });
   }
 
@@ -249,11 +250,11 @@ export class DebuggerAppSk extends ElementSk {
     if (this.player.getBreakpoints().has(line)) {
       this.player.removeBreakpoint(line);
       this.codeMirror!.setGutterMarker(line - 1, 'cm-breakpoints',
-                                       DebuggerAppSk.makeDivWithClass('cm-reachable'));
+        DebuggerAppSk.makeDivWithClass('cm-reachable'));
     } else if (this.player.getLineNumbersReached().has(line)) {
       this.player.addBreakpoint(line);
       this.codeMirror!.setGutterMarker(line - 1, 'cm-breakpoints',
-                                       DebuggerAppSk.makeDivWithClass('cm-breakpoint'));
+        DebuggerAppSk.makeDivWithClass('cm-breakpoint'));
     } else {
       // Don't allow breakpoints to be set on unreachable lines.
     }
@@ -262,7 +263,7 @@ export class DebuggerAppSk extends ElementSk {
   }
 
   private static template = (self: DebuggerAppSk): TemplateResult => html`
-    <div id="drag-area">
+    <app-sk id="drag-area">
       <header>
         <h2>SkSL Debugger</h2>
         <span>
@@ -279,32 +280,27 @@ export class DebuggerAppSk extends ElementSk {
         <div id=debuggerControls>
           <span id=buttonGroup>
             <button ?disabled=${self.trace === null}
-                    @click=${self.resetTrace}
-                    class=action>
+                    @click=${self.resetTrace}>
               Reset
             </button>
           </span>
           <span id=buttonGroup>
             <button ?disabled=${self.trace === null}
-                    @click=${self.stepOver}
-                    class=action>
+                    @click=${self.stepOver}>
               Step
             </button>
             <button ?disabled=${self.trace === null}
-                    @click=${self.step}
-                    class=action>
+                    @click=${self.step}>
               Step In
             </button>
             <button ?disabled=${self.trace === null}
-                    @click=${self.stepOut}
-                    class=action>
+                    @click=${self.stepOut}>
               Step Out
             </button>
           </span>
           <span id=buttonGroup>
             <button ?disabled=${self.trace === null}
-                    @click=${self.run}
-                    class=action>
+                    @click=${self.run}>
               ${self.player.getBreakpoints().size > 0 ? 'Run to Breakpoint' : 'Run'}
             </button>
           </span>
@@ -324,7 +320,7 @@ export class DebuggerAppSk extends ElementSk {
           </div>
         </div>
       </main>
-    </div>
+    </app-sk>
   `;
 }
 

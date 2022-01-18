@@ -13,4 +13,12 @@ uniform-generic-sk {
   span {
     margin-left: 8px;
   }
+
+  td {
+    padding: 0 4px 4px 0;
+  }
+
+  tr {
+    border-bottom: none;
+  }
 }

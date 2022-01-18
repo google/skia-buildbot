@@ -24,6 +24,16 @@ html {
   --secondary-highlight: var(--green-100);
   --secondary: var(--green-500);
 
+  a:active,
+  a:visited,
+  a:link {
+    color: var(--primary);
+  }
+
+  a:hover {
+    color: var(--secondary);
+  }
+
   .darkmode {
     --on-success: var(--on-secondary);
     --on-failure: var(--on-secondary);
@@ -70,6 +80,13 @@ html {
   button:active {
     box-shadow: none;
     transition: box-shadow 0.2s ease-in;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    background: var(--on-disabled);
+    color: var(--disabled);
+    fill: var(--disabled);
   }
 
   multi-select-sk:focus,

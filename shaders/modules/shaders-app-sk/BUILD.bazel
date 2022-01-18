@@ -42,6 +42,7 @@ sk_element(
         "//infra-sk/modules/uniform-slider-sk",
         "//infra-sk/modules/uniform-time-sk",
         "//shaders/modules/edit-child-shader-sk",
+        "//infra-sk/modules/app-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -65,6 +66,7 @@ sk_element(
 sk_page(
     name = "shaders-app-sk-demo",
     html_file = "shaders-app-sk-demo.html",
+    sass_deps = ["//infra-sk:themes"],
     scss_entry_point = "shaders-app-sk-demo.scss",
     sk_element_deps = [":shaders-app-sk"],
     ts_entry_point = "shaders-app-sk-demo.ts",

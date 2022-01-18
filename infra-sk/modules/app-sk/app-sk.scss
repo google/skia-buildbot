@@ -62,7 +62,7 @@ app-sk > {
     padding: 0 var(--header-horiz-padding);
     display: flex;
     flex-flow: row;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
     color: var(--header-font-color);
     fill: var(--header-font-color);
