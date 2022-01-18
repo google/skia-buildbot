@@ -87,21 +87,19 @@
           width: 100%;
           border-collapse: collapse;
           border: 2px solid var(--secondary);
-          font-size: 13px;
-
-          th {
-            background: var(--secondary);
-            color: var(--on-secondary);
-            font-size: 13px;
-            opacity: 1;
-            padding: 3px 8px;
-          }
 
           td {
-            border-bottom: 1px solid var(--secondary);
-            border-right: 1px solid var(--secondary);
             padding: 3px 8px;
             font-size: 13px;
+            border-bottom: 1px solid var(--secondary);
+            border-right: 1px solid var(--secondary);
+          }
+
+          .heading {
+            background-color: var(--secondary);
+            color: var(--on-secondary);
+            text-align: center;
+            font-weight: bold;
           }
         }
       }

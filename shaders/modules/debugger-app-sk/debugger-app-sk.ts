@@ -148,21 +148,25 @@ export class DebuggerAppSk extends ElementSk {
     return [html`<tr><td>at global scope</td></tr>`];
   }
 
-  private varsDisplay(): TemplateResult[] {
-    if (this.trace) {
-      const vars: VariableData[] = this.player.getStackDepth() > 0
-        ? this.player.getLocalVariables(this.player.getStackDepth() - 1)
-        : this.player.getGlobalVariables();
-      if (vars.length > 0) {
-        return vars.map((v: VariableData) => {
-          const name: string = this.trace!.slots[v.slotIndex].name
-                               + this.player.getSlotComponentSuffix(v.slotIndex);
-          const highlight: string = v.dirty ? 'highlighted' : '';
-          return html`<tr><td class='${highlight}'>${name}</td><td>${v.value}</td></tr>`;
-        });
-      }
+  private varsDisplay(vars: VariableData[]): TemplateResult[] {
+    if (this.trace && vars.length > 0) {
+      return vars.map((v: VariableData) => {
+        const name: string = this.trace!.slots[v.slotIndex].name +
+                             this.player.getSlotComponentSuffix(v.slotIndex);
+        const highlight: string = v.dirty ? 'highlighted' : '';
+        return html`<tr><td class='${highlight}'>${name}</td><td>${v.value}</td></tr>`;
+      });
     }
     return [html`<tr><td>&nbsp;</td></tr>`];
+  }
+
+  private localVarsDisplay(): TemplateResult[] {
+    const stackDepth = this.trace ? this.player.getStackDepth() : 0;
+    return stackDepth <= 0 ? [] : this.varsDisplay(this.player.getLocalVariables(stackDepth - 1));
+  }
+
+  private globalVarsDisplay(): TemplateResult[] {
+    return this.varsDisplay(this.player.getGlobalVariables());
   }
 
   loadJSONData(jsonData: string, reportErrors?: ErrorReporting): void {
@@ -310,12 +314,18 @@ export class DebuggerAppSk extends ElementSk {
           <div id="codeEditor"></div>
           <div id="debuggerTables">
             <table>
-              <thead><th>Stack</th></thead>
-              <tbody>${self.stackDisplay()}</tbody>
+              <tr><td class="heading">Stack</td></tr>
+              ${self.stackDisplay()}
             </table>
             <table>
-              <thead><th colspan=2>Variables</th></thead>
-              <tbody>${self.varsDisplay()}</tbody>
+              <tr ?hidden=${!self.trace || !self.player.getStackDepth()}>
+                <td class="heading" colspan=2>Local Variables</td>
+              </tr>
+              ${self.localVarsDisplay()}
+              <tr>
+                <td class="heading" colspan=2>Global Variables</td>
+              </tr>
+              ${self.globalVarsDisplay()}
             </table>
           </div>
         </div>
