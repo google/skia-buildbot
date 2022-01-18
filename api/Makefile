@@ -14,12 +14,6 @@ release: docs
 	# Cleanup the doc directory (silently).
 	git clean -f -d -q docs/
 
-# TODO(rmistry): Remove after autodeployment uses the below release-api-ci
-# bazel target.
-release_ci:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/api
-	./build_docker_release_ci
-
 # Used by the autodeployment framework:
 # https://skia.googlesource.com/buildbot/+doc/main/docker_pushes_watcher/README.md
 release-api-ci:
