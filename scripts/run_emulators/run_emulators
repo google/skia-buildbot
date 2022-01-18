@@ -3,7 +3,10 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 nohup go run $DIR/run_emulators.go "$@" > /tmp/cloud_emulators.log &
 
-if [ "$1" == "start" ]; then
+cmd="$1"
+shift
+
+if [ "$cmd" == "start" ]; then
   sleep 20 # Give the emulators time to start up before exiting.
 
   # The ports below should be kept in sync with run_emulators.go.
@@ -13,11 +16,16 @@ if [ "$1" == "start" ]; then
   echo export PUBSUB_EMULATOR_HOST=localhost:8893
   echo export FIRESTORE_EMULATOR_HOST=localhost:8894
   echo export COCKROACHDB_EMULATOR_HOST=localhost:8895
-elif [ "$1" == "stop" ]; then
+elif [ "$cmd" == "stop" ]; then
   echo Emulators stopped. Unset environment variables as follows:
   echo export DATASTORE_EMULATOR_HOST=
   echo export BIGTABLE_EMULATOR_HOST=
   echo export PUBSUB_EMULATOR_HOST=
   echo export FIRESTORE_EMULATOR_HOST=
   echo export COCKROACHDB_EMULATOR_HOST=
+
+  if [ "$1" == "--dump-logs" ]; then
+    echo "Emulator logs:"
+    cat /tmp/cloud_emulators.log
+  fi
 fi

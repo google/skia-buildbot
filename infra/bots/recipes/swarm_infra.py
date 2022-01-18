@@ -135,7 +135,8 @@ def RunSteps(api):
     finally:
       if ('Large' in builder) or ('Race' in builder):
         with api.context(cwd=infra_dir, env=env):
-          api.step('stop the cloud emulators', cmd=[run_emulators, 'stop'])
+          api.step('stop the cloud emulators',
+                   cmd=[run_emulators, 'stop', '--dump-logs'])
 
   # Sanity check; none of the above should have modified the go.mod file.
   with api.context(cwd=infra_dir):

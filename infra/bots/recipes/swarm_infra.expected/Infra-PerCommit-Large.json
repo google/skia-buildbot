@@ -231,7 +231,8 @@
   {
     "cmd": [
       "[START_DIR]/buildbot/scripts/run_emulators/run_emulators",
-      "stop"
+      "stop",
+      "--dump-logs"
     ],
     "cwd": "[START_DIR]/buildbot",
     "env": {
