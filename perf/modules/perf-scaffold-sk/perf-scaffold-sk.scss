@@ -82,8 +82,14 @@ perf-scaffold-sk {
       fill: var(--primary);
       color: var(--primary);
 
+      tr,
+      td {
+        background-color: var(--surface);
+        padding: 4px;
+      }
+
       .mono {
-        font-family: 'Courier New', Courier, monospace;
+        font-family: 'Roboto Mono', Courier, monospace;
       }
 
       h3 {
@@ -92,7 +98,7 @@ perf-scaffold-sk {
       }
 
       table {
-        margin-left: 8px;
+        margin-left: 4px;
       }
     }
   }
