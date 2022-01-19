@@ -15,6 +15,14 @@ export class Convert extends GencodeConvert {
     // Use the quicktype library to parse and check the validity of the passed-in JSON.
     const out = GencodeConvert.toDebugTrace(json);
 
+    // Confirm the version of the JSON trace data.
+    const expectedVersion: string = '20220119a';
+    if (out.version != expectedVersion) {
+      throw Error(
+        `Version mismatch. ` +
+        `Trace version is '${out.version}', expected version is '${expectedVersion}'`);
+    }
+
     // The trace data consists of three values--one trace-op and two data fields.
     // https://github.com/google/skia/blob/2ac310266912687a2266d45f5008b942d56fc35e/src/sksl/tracing/SkVMDebugTrace.h#L52-L53
     // Our JSON trace arrays omit trailing zeros from the data to save space. Re-insert them here.

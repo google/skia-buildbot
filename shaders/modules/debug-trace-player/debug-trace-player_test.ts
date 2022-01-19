@@ -34,6 +34,7 @@ function getGlobalVariables(trace: DebugTrace, player: DebugTracePlayer): string
 
 const trivialGreenShader = String.raw`
 {
+  "version": "20220119a",
   "functions": [{"name": "float4 main(float2 i)", "slot": 0}],
   "slots": [
     {"columns": 4, "index": 0, "kind": 0, "line": 1,
@@ -71,6 +72,7 @@ const trivialGreenShader = String.raw`
 
 const functionsShader = String.raw`
 {
+  "version": "20220119a",
   "functions": [
     {"name": "half4 main(float2 f2)", "slot": 0},
     {"name": "half fnA()", "slot": 1},
@@ -134,6 +136,7 @@ const functionsShader = String.raw`
 
 const variablesShader = String.raw`
 {
+  "version": "20220119a",
   "functions": [{"name": "half4 main(float2 p)", "slot": 0}, {"name": "float func()", "slot": 1}],
   "slots": [
     {"columns": 4, "index": 0, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
@@ -225,6 +228,7 @@ const variablesShader = String.raw`
 
 const ifStatementShader = String.raw`
 {
+  "version": "20220119a",
   "functions": [{"name": "half4 main(float2 p)", "slot": 0}],
   "slots": [
     {"columns": 4, "index": 0, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
@@ -291,6 +295,7 @@ const ifStatementShader = String.raw`
 
 const forLoopShader = String.raw`
 {
+  "version": "20220119a",
   "functions": [{"name": "half4 main(float2 p)", "slot": 0}],
   "slots": [
     {"columns": 4, "index": 0, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
@@ -351,6 +356,7 @@ const forLoopShader = String.raw`
 
 const stepOutShader = String.raw`
 {
+  "version": "20220119a",
   "functions": [{"name": "half4 main(float2 p)", "slot": 0}, {"name": "half fn()", "slot": 1}],
   "slots": [
     {"columns": 4, "index": 0, "kind": 0, "line": 9, "name": "[main].result", "retval": 0,
@@ -414,6 +420,7 @@ const stepOutShader = String.raw`
 
 const varScopeShader = String.raw`
 {
+  "version": "20220119a",
   "functions": [{"name": "half4 main(float2 p)", "slot": 0}, {"name": "int fn()", "slot": 1}],
   "slots": [
     {"columns": 4, "index": 0, "kind": 0, "line": 22, "name": "[main].result", "retval": 0,
@@ -513,6 +520,7 @@ const varScopeShader = String.raw`
 
 const breakpointShader = String.raw`
 {
+  "version": "20220119a",
   "functions": [{"name": "half4 main(float2 p)", "slot": 0}, {"name": "void func()", "slot": 1}],
   "slots": [
     {"columns": 1, "index": 0, "kind": 1, "line": 2, "name": "counter", "rows": 1, "slot": 0},

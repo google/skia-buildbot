@@ -5,6 +5,7 @@ describe('DebugTrace JSON parsing', () => {
   it('converts a valid JSON string to a DebugTrace struct', () => {
     const text = String.raw`
     {
+      "version": "20220119a",
       "source": [
         "\t// first line",
         "// \"second line\"",
@@ -71,10 +72,23 @@ describe('DebugTrace JSON parsing', () => {
     assert.deepEqual(trace.trace[3], [3, 20, 0]);
   });
 
+  it('throws when the version is mismatched', () => {
+    const text = String.raw`
+    {
+      "version": "987654321z",
+      "source": [],
+      "slots": [],
+      "functions": [],
+      "trace": []
+    }`;
+    assert.throws(() => Convert.toDebugTrace(text), /Version mismatch.*987654321z.*/);
+  });
+
   it('throws when parsing invalid JSON', () => {
     // Some trailing bracket close characters have been removed, so the JSON isn't valid.
     const text = String.raw`
     {
+      "version": "20220119a",
       "source": [
         "\t// first line",
         "// \"second line\"",
@@ -111,6 +125,7 @@ describe('DebugTrace JSON parsing', () => {
     // This is valid JSON, but it is missing a required key ("functions").
     const text = String.raw`
     {
+      "version": "20220119a",
       "source": [
         "\t// first line",
         "// \"second line\"",
@@ -146,6 +161,7 @@ describe('DebugTrace JSON parsing', () => {
     // This is valid JSON, but it has an extra key we don't know about ("bogus").
     const text = String.raw`
     {
+      "version": "20220119a",
       "source": [
         "\t// first line",
         "// \"second line\"",

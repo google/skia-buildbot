@@ -12,6 +12,7 @@
 // match the expected interface, even if the JSON is valid.
 
 export interface DebugTrace {
+    version:   string;
     source:    string[];
     slots:     Slot[];
     functions: Function[];
@@ -180,6 +181,7 @@ function r(name: string) {
 
 const typeMap: any = {
     "DebugTrace": o([
+        { json: "version", js: "version", typ: "" },
         { json: "source", js: "source", typ: a("") },
         { json: "slots", js: "slots", typ: a(r("Slot")) },
         { json: "functions", js: "functions", typ: a(r("Function")) },

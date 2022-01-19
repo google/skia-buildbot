@@ -248,7 +248,7 @@ container_pull(
     # for reproducible builds. Specifying "head" ends up not working well because of Bazel caching.
     # We should only need to update this if CanvasKit adds new APIs that are depended on by
     # our webapps, and that is not too often.
-    tag = "55c215cfb650300419033ea9a0af364acfd3976c",
+    tag = "98c09e51f33e978a0d2860b70dd82b8c97aa4ca5",
 )
 
 # Pulls the gcr.io/skia-public/basealpine container, needed by the skia_app_container macro.
