@@ -18,9 +18,11 @@ The detailed design doc is at http://go/docsyserver.
 
 ## Directory Structure
 
-- `BUILD.bazel` - Builds a docker file that contains a checkout of the Docsy
-  example repo, along with all the dependencies needed to build it, including
-  Hugo and npm.
+- `BUILD.bazel` - Builds a Docker container that contains a checkout of the
+  Docsy example repo, along with all the dependencies needed to build it,
+  including Hugo and npm. All third-party dependencies are contained in the
+  gcr.io/skia-public/docsyserver-base base container, which is also built with
+  rules in this file.
 
 - `go/docsyserver` - The application.
 

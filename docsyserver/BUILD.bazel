@@ -1,8 +1,10 @@
+load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 skia_app_container(
     name = "docsyserver_container",
-    base_image = "@base-cipd//image",
+    base_image = "@docsyserver-base//image",
     dirs = {
         "/usr/local/bin": [
             [
@@ -48,13 +50,20 @@ skia_app_container(
         "PATH": "$$PATH:/home/skia/node-v14.16.0-linux-x64/bin",
     },
     repository = "skia-public/docsyserver",
-    run_commands_root = [
-        # Install required packages.
-        "apt-get update",
-        "apt-get install -y wget openssh-client procps unzip vim less build-essential gcc gcc-10 gcc-10-base libgcc-10-dev",
-        "apt-get clean",
-    ],
     run_commands_skia = [
+        # Copy artifacts over.
+        "cp -r /usr/local/share/docsy/layouts/partials /home/skia/docsy/layouts",
+        "cp -r /usr/local/share/docsy/static /home/skia/docsy",
+    ],
+)
+
+# Builds gcr.io/skia-public/docsyserver-base, a base image for docsyserver that contains docsy and
+# its dependencies. This container takes several minutes to build and rarely changes. By pinning a
+# revision of this container in //WORKSPACE and using it as the base image, we can build the
+# docsyserver container much faster.
+container_run_and_commit(
+    name = "docsyserver_base_container",
+    commands = [
         # Install golang.
         "cd && wget https://golang.org/dl/go1.16.2.linux-amd64.tar.gz && tar -xzf go1.16.2.linux-amd64.tar.gz",
 
@@ -70,8 +79,53 @@ skia_app_container(
         "&& cd docsy && git checkout 70e301f7861122ab129d2c46ee5ed625e92c04d0",
         "PATH=\"/home/skia/node-v14.16.0-linux-x64/bin:${PATH}\"",
         "/home/skia/node-v14.16.0-linux-x64/bin/npm install && rm config.toml && rm -rf content",
-        # Copy artifacts over.
-        "cp -r /usr/local/share/docsy/layouts/partials layouts/",
-        "cp -r /usr/local/share/docsy/static .",
+    ],
+    docker_run_flags = [
+        "--user",
+        "skia",
+    ],
+    image = ":docsyserver_base_container_root_commit.tar",
+    tags = [
+        "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        # container_run_and_commit requires the docker daemon to be running. This is not possible
+        # inside RBE.
+        "no-remote",
+    ],
+)
+
+# Subset of the docsy dependencies that need to be installed as the root user.
+container_run_and_commit(
+    name = "docsyserver_base_container_root",
+    commands = [
+        # Install required packages.
+        "apt-get update",
+        "apt-get install -y wget openssh-client procps unzip vim less build-essential gcc gcc-10 gcc-10-base libgcc-10-dev",
+        "apt-get clean",
+    ],
+    docker_run_flags = [
+        "--user",
+        "root",
+    ],
+    image = "@base-cipd//image",
+    tags = [
+        "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        # container_run_and_commit requires the docker daemon to be running. This is not possible
+        # inside RBE.
+        "no-remote",
+    ],
+)
+
+# Pushes a new release of the gcr.io/skia-public/docsyserver-base container.
+container_push(
+    name = "push_docsyserver_base_container",
+    format = "Docker",
+    image = ":docsyserver_base_container_commit.tar",
+    registry = "gcr.io",
+    repository = "skia-public/docsyserver-base",
+    tag = "{STABLE_DOCKER_TAG}",
+    tags = [
+        "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        # container_push requires the docker daemon to be running. This is not possible inside RBE.
+        "no-remote",
     ],
 )

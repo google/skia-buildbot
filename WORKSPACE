@@ -277,6 +277,14 @@ container_pull(
     repository = "skia-public/skia-build-tools",
 )
 
+# Pulls the gcr.io/skia-public/docsyserver-base container, needed by docsyserver.
+container_pull(
+    name = "docsyserver-base",
+    digest = "sha256:ca63ba5a92e1adbe49eb6e6e1262ee4724e572f87e54eea01737cbb2a73fde6c",
+    registry = "gcr.io",
+    repository = "skia-public/docsyserver-base",
+)
+
 ##############################
 # Packages for RBE container #
 ##############################
