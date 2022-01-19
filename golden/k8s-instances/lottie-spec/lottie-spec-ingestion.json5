@@ -9,7 +9,7 @@
   primary_branch_config: {
     type: "sql_primary",
     gcs_source: {
-      bucket: "lottie-animation-community",
+      bucket: "lottie-animation-community-tests",
       prefix: "dm-json-v1"
     },
     extra_configuration: {

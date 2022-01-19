@@ -16,7 +16,7 @@
   site_url: "https://lottie-animation-community-gold.skia.org",
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "lottiespec",
-  known_hashes_gcs_path: "skia-gold-lottie-spec/hash_files/gold-lottie-spec-hashes.txt",
+  known_hashes_gcs_path: "lottie-animation-community-tests/hash_files/gold-lottie-spec-hashes.txt",
   window_size: 200,
 
   // These values affect the k8s deployment; they are not read in by the binary.
