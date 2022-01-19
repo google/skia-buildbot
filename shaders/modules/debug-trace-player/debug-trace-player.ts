@@ -244,6 +244,16 @@ export class DebugTracePlayer {
     return this.stack[this.stack.length - 1].line;
   }
 
+  /** Retrieves the current line for a given stack frame. */
+  public getCurrentLineInStackFrame(stackFrameIndex: number): number {
+    // The first entry on the stack is the "global" frame before we enter main, so offset our index
+    // by one to account for it.
+    ++stackFrameIndex;
+    this.check(stackFrameIndex > 0);
+    this.check(stackFrameIndex < this.stack.length);
+    return this.stack[stackFrameIndex].line;
+  }
+
   /**
    * Returns every line number reached inside this debug trace, along with the remaining number of
    * times that this trace will reach it. e.g. {100, 2} means line 100 will be reached twice.
@@ -335,7 +345,7 @@ export class DebugTracePlayer {
     // by one to account for it.
     ++stackFrameIndex;
     this.check(stackFrameIndex > 0);
-    this.check(stackFrameIndex <= this.stack.length);
+    this.check(stackFrameIndex < this.stack.length);
     return this.getVariablesForDisplayMask(this.stack[stackFrameIndex].displayMask);
   }
 
