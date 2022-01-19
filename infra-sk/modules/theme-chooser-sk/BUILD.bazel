@@ -24,9 +24,17 @@ sk_element(
 sk_page(
     name = "theme-chooser-sk-demo",
     html_file = "theme-chooser-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "//infra-sk:themes",
+        "//infra-sk:elements-sk_scss",
+    ],
     scss_entry_point = "theme-chooser-sk-demo.scss",
     sk_element_deps = [":theme-chooser-sk"],
+    ts_deps = [
+        "@npm//common-sk",
+        "@npm//lit-html",
+        "@npm//elements-sk",
+    ],
     ts_entry_point = "theme-chooser-sk-demo.ts",
 )
 

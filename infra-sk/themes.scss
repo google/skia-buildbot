@@ -6,24 +6,81 @@
 @import '~elements-sk/styles/table/table.scss';
 
 :root {
-  --success: rgb(102, 166, 30);
-  --success-alpha: rgba(102, 166, 30, 0.3);
-  --warning: rgb(255, 167, 38);
-  --warning-alpha: rgb(255, 171, 64, 0.8);
-  --failure: rgb(217, 95, 2);
-  --failure-alpha: rgba(217, 95, 2, 0.8);
-  --on-success: var(--black);
-  --on-failure: var(--black);
-  --on-warning: var(--black);
-  --unexpected: rgb(117, 112, 179);
-  --unexpected-alpha: rgba(117, 112, 179, 1);
+  /* Semantic colors defined by elements-sk. */
+  --background: var(--grey-50);
   --disabled: var(--grey-500);
-  --disabled-alpha: rgba(117, 117, 117, 1);
-
+  --error: var(--red-900);
+  --on-background: var(--black);
+  --on-disabled: var(--grey-700);
+  --on-error: var(--white);
+  --on-primary-variant: var(--black);
+  --on-primary: var(--white);
+  --on-secondary: var(--white);
+  --on-surface: var(--black);
   --primary-variant: var(--light-blue-600);
+  --primary: var(--blue-800);
+  --secondary: var(--green-500);
+  --surface-1dp: var(--grey-200);
+  --surface-2dp: var(--grey-400);
+  --surface: var(--white);
+  --transparent-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Additional semantic colors. */
   --primary-highlight: var(--light-blue-100);
   --secondary-highlight: var(--green-100);
-  --secondary: var(--green-500);
+  --on-hightlight: var(--black);
+
+  --failure-alpha: rgba(217, 95, 2, 0.8);
+  --failure: rgb(217, 95, 2);
+  --on-failure: var(--black);
+  --on-success: var(--black);
+  --on-warning: var(--black);
+  --success-alpha: rgba(102, 166, 30, 0.3);
+  --success: rgb(102, 166, 30);
+  --warning-alpha: rgb(255, 171, 64, 0.8);
+  --warning: rgb(255, 167, 38);
+  --unexpected: rgb(117, 112, 179);
+  --unexpected-alpha: rgba(117, 112, 179, 1);
+
+  --positive: var(--green-500);
+  --negative: var(--red-500);
+  --untriaged: var(--brown-400);
+
+  .darkmode {
+    /* Semantic colors defined by elements-sk. */
+    --background: var(--black);
+    --disabled: var(--grey-600);
+    --error: var(--pink-400);
+    --on-background: var(--white);
+    --on-disabled: var(--grey-300);
+    --on-error: var(--black);
+    --on-primary-variant: var(--black);
+    --on-primary: var(--black);
+    --on-secondary: var(--black);
+    --on-surface: var(--grey-200);
+    --primary-variant: var(--light-blue-300);
+    --primary: var(--light-blue-600);
+    --secondary: var(--green-600);
+    --surface-1dp: var(--grey-800);
+    --surface-2dp: var(--grey-700);
+    --surface: var(--grey-900);
+    --transparent-overlay: rgba(255, 255, 255, 0.5);
+
+    /* Additional semantic colors. */
+    --primary-highlight: var(--light-blue-900);
+    --secondary-highlight: var(--green-900);
+    --on-hightlight: var(--grey-100);
+
+    --failure-alpha: rgba(217, 95, 2, 0.5);
+    --on-failure: var(--on-secondary);
+    --on-success: var(--on-secondary);
+    --on-warning: var(--on-secondary);
+    --warning-alpha: rgb(255, 171, 64, 0.5);
+
+    --positive: var(--green-500);
+    --negative: var(--red-500);
+    --untriaged: var(--brown-400);
+  }
 
   a:active,
   a:visited,
@@ -33,23 +90,6 @@
 
   a:hover {
     color: var(--secondary);
-  }
-
-  .darkmode {
-    --on-success: var(--on-secondary);
-    --on-failure: var(--on-secondary);
-    --on-warning: var(--on-secondary);
-
-    --on-primary-variant: var(--black);
-    --on-surface: var(--grey-200);
-    --primary-variant: var(--light-blue-200);
-    --primary: var(--light-blue-500);
-    --primary-highlight: var(--light-blue-900);
-    --secondary-highlight: var(--green-900);
-    --secondary: var(--green-500);
-
-    --warning-alpha: rgb(255, 171, 64, 0.5);
-    --failure-alpha: rgba(217, 95, 2, 0.5);
   }
 
   header {
@@ -253,4 +293,12 @@
   ::-webkit-scrollbar-thumb:hover {
     background: var(--surface);
   }
+}
+
+td {
+  font-size: 100%;
+}
+
+th {
+  font-size: 100%;
 }

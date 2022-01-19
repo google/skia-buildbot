@@ -8,7 +8,7 @@ triage-status-sk {
 
 .body-sk.darkmode triage-status-sk {
   .positive {
-    fill: var(--green-500);
+    fill: var(--positive);
     background: var(--surface);
 
     .inside_status check-circle-icon-sk {
@@ -17,7 +17,7 @@ triage-status-sk {
   }
 
   .negative {
-    fill: var(--red-500);
+    fill: var(--negative);
     background: var(--surface);
 
     .inside_status cancel-icon-sk {
@@ -26,7 +26,7 @@ triage-status-sk {
   }
 
   .untriaged {
-    fill: var(--brown-400);
+    fill: var(--untriaged);
     background: var(--surface);
 
     .inside_status help-icon-sk {

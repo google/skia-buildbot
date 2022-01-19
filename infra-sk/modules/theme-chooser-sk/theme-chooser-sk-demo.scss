@@ -1,5 +1,5 @@
-@use "./theme-chooser-sk.scss";
-@import '~elements-sk/themes/themes';
+@use './theme-chooser-sk.scss';
+@import '../../themes';
 
 theme-chooser-sk {
   cursor: pointer;
@@ -10,7 +10,10 @@ div {
   width: 128px;
 }
 
-body.darkmode {
-  background-color: #333;
-  color: white;
+body {
+  display: flex;
+}
+
+section {
+  margin: 0 8px;
 }

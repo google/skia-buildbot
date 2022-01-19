@@ -8,11 +8,100 @@
   </head>
 
   <body class="body-sk">
-    <h1>theme-chooser-sk demo</h1>
-    <theme-chooser-sk></theme-chooser-sk>-Click that!
-    <div class="primary-container-themes-sk">Primary</div>
-    <div class="secondary-container-themes-sk">Secondary</div>
-    <div class="primary-variant-container-themes-sk">Primary Variant</div>
-    <div class="error-container-themes-sk">Error</div>
+    <section>
+      <h1>theme-chooser-sk demo</h1>
+      <theme-chooser-sk></theme-chooser-sk>-Click that!
+      <div class="primary-container-themes-sk">Primary</div>
+      <div class="secondary-container-themes-sk">Secondary</div>
+      <div class="primary-variant-container-themes-sk">Primary Variant</div>
+      <div class="error-container-themes-sk">Error</div>
+    </section>
+    <section>
+      <h1>Semantic colors</h1>
+      <table id="demotable">
+        <tr>
+          <th>color</th>
+          <th>background</th>
+        </tr>
+        <tr style="color: var(--on-background); background: var(--background)">
+          <td>--on-background</td>
+          <td>--background</td>
+        </tr>
+      </table>
+    </section>
+    <section>
+      <h1>Example Controls</h1>
+      <h2 id="Buttons">Button Styles</h2>
+      <button>Plain</button>
+      <button class="action">Action</button>
+      <button disabled>Plain Disabled</button>
+      <button disabled class="action">Action Disabled</button>
+      <button><menu-icon-sk></menu-icon-sk> With Icon</button>
+      <button class="action raised">
+        <link-icon-sk></link-icon-sk>With Icon
+      </button>
+      <h2 id="Select">Select Styles (see also select-sk below)</h2>
+      <select name="some_name" id="some_name" multiple size="3">
+        <option value="option1">option1</option>
+        <option value="option2">option2</option>
+        <option value="option3">option3</option>
+      </select>
+      <select name="some_name" id="some_name" size="1">
+        <option value="option1">option1</option>
+        <option value="option2">option2</option>
+        <option value="option3">option3</option>
+      </select>
+      <h2>Links</h2>
+      <p><a href="">Link</a></p>
+      <h2>Details/Summary</h2>
+      <details>
+        <summary>Summary appears as button.</summary>
+        <ul>
+          <li>Details</li>
+          <li>appear</li>
+          <li>here</li>
+        </ul>
+      </details>
+      <h2>Scrollbars</h2>
+      <div style="width: 200px; height: 100px; overflow: auto">
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quis
+          nisi nec velit rhoncus ultrices et ac augue. Morbi malesuada augue at
+          est imperdiet luctus. Pellentesque condimentum mi eget lorem luctus
+          facilisis. Mauris vitae tempor dolor, eu finibus orci. Etiam risus
+          justo, mollis eu neque ut, suscipit vehicula sapien. Integer
+          convallis, sem non lobortis congue, risus lacus sodales massa, vitae
+          dignissim odio arcu a mi. Nulla accumsan dolor id congue pharetra.
+        </p>
+        <p>
+          Nunc mattis consequat faucibus. Aliquam ut leo lorem. Morbi dignissim
+          sem id sem dapibus, nec mattis sem congue. Nunc sodales scelerisque
+          enim, at consectetur nisi tincidunt ut. Sed tempus orci et nulla
+          pellentesque efficitur. Ut sollicitudin finibus est et accumsan.
+          Vestibulum elit justo, interdum nec nisl id, eleifend egestas augue.
+          Curabitur blandit nisl est, consectetur pellentesque orci finibus at.
+          Cras porta leo mi, vel iaculis quam finibus eget. Etiam rutrum tempus
+          ullamcorper. Maecenas mattis, enim ac gravida ullamcorper, purus purus
+          varius mauris, eget tempor turpis ante nec leo. Pellentesque habitant
+          morbi tristique senectus et netus et malesuada fames ac turpis
+          egestas.
+        </p>
+      </div>
+      <h2>Tables</h2>
+      <table>
+        <tr>
+          <th>Fruit</th>
+          <th>Color</th>
+        </tr>
+        <tr>
+          <td>Apple</td>
+          <td>Red</td>
+        </tr>
+        <tr>
+          <td>Grape</td>
+          <td>Green</td>
+        </tr>
+      </table>
+    </section>
   </body>
 </html>
