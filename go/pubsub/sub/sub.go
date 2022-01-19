@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/auth"
@@ -58,6 +59,44 @@ func (r RoundRobinNameProvider) SubName() (string, error) {
 	return subName, nil
 }
 
+// BroadcastNameProvider implements SubNameProvider. It prevents messages from
+// being load-balanced across multiple subscribers by generating unique,
+// per-machine subscription names (based on the machine's hostname). Use this
+// provider when you want all machines to receive all messages in a topic.
+//
+// In production, subscription names are appended a suffix to avoid conflicts
+// with local subscriptions created during development.
+//
+// Note that Kubernetes Deployments and ReplicaSets assign fresh hostnames to
+// pods, so applications will leave behind one unused subscription per pod when
+// restarted. Unused subscriptions will be garbage-collected after 31 days. See
+// https://cloud.google.com/pubsub/docs/admin#pubsub_create_pull_subscription-go.
+type BroadcastNameProvider struct {
+	local     bool
+	topicName string
+}
+
+// NewBroadcastNameProvider returns a new BroadcastNameProvider.
+func NewBroadcastNameProvider(local bool, topicName string) BroadcastNameProvider {
+	return BroadcastNameProvider{
+		local:     local,
+		topicName: topicName,
+	}
+}
+
+// SubName implements SubNameProvider.
+func (b BroadcastNameProvider) SubName() (string, error) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "", skerr.Wrapf(err, "Failed to get hostname.")
+	}
+	subName := fmt.Sprintf("%s-%s", b.topicName, hostname)
+	if !b.local {
+		subName += subscriptionSuffix
+	}
+	return subName, nil
+}
+
 // ConstNameProvider implements SubNameProvider that always returns the same
 // subscription name.
 type ConstNameProvider string
@@ -90,7 +129,7 @@ func (c ConstNameProvider) SubName() (string, error) {
 // subscription are created if they don't already exist, which requires the
 // "PubSub Admin" role.
 func New(ctx context.Context, local bool, project string, topicName string, numGoRoutines int) (*pubsub.Subscription, error) {
-	return NewWithSubNameProvider(ctx, local, project, topicName, NewRoundRobinNameProvider(local, topicName), numGoRoutines)
+	return NewWithSubNameProviderAndExpirationPolicy(ctx, local, project, topicName, NewRoundRobinNameProvider(local, topicName), nil, numGoRoutines)
 }
 
 // NewWithSubName returns a new *pubsub.Subscription.
@@ -111,7 +150,7 @@ func New(ctx context.Context, local bool, project string, topicName string, numG
 // The topic and subscription are created if they don't already exist, which
 // requires the "PubSub Admin" role.
 func NewWithSubName(ctx context.Context, local bool, project string, topicName string, subName string, numGoRoutines int) (*pubsub.Subscription, error) {
-	return NewWithSubNameProvider(ctx, local, project, topicName, NewConstNameProvider(subName), numGoRoutines)
+	return NewWithSubNameProviderAndExpirationPolicy(ctx, local, project, topicName, NewConstNameProvider(subName), nil, numGoRoutines)
 }
 
 // NewWithSubNameProvider returns a new *pubsub.Subscription.
@@ -132,6 +171,31 @@ func NewWithSubName(ctx context.Context, local bool, project string, topicName s
 // The topic and subscription are created if they don't already exist, which
 // requires the "PubSub Admin" role.
 func NewWithSubNameProvider(ctx context.Context, local bool, project string, topicName string, subNameProvider SubNameProvider, numGoRoutines int) (*pubsub.Subscription, error) {
+	return NewWithSubNameProviderAndExpirationPolicy(ctx, local, project, topicName, subNameProvider, nil, numGoRoutines)
+}
+
+// NewWithSubNameProviderAndExpirationPolicy returns a new *pubsub.Subscription.
+//
+// project is the Google Cloud project that contains the PubSub topic.
+//
+// topicName is the PubSub topic to listen to.
+//
+// subNameProvider generates a subscription name.
+//
+// expirationPolicy determines the inactivity period before the subscription is
+// automatically deleted. The minimum allowed value is 1 day. Defaults to 31
+// days if nil.
+//
+// numGoRoutines is the number of Go routines we want to run.
+//
+// Note that the returned subscription will have both
+// sub.ReceiveSettings.MaxOutstandingMessages and
+// sub.ReceiveSettings.NumGoroutines set, but they can be changed in the
+// returned subscription.
+//
+// The topic and subscription are created if they don't already exist, which
+// requires the "PubSub Admin" role.
+func NewWithSubNameProviderAndExpirationPolicy(ctx context.Context, local bool, project string, topicName string, subNameProvider SubNameProvider, expirationPolicy *time.Duration, numGoRoutines int) (*pubsub.Subscription, error) {
 	subName, err := subNameProvider.SubName()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get subscription name.")
@@ -163,9 +227,12 @@ func NewWithSubNameProvider(ctx context.Context, local bool, project string, top
 		return nil, skerr.Wrapf(err, "Failed checking subscription existence: %q", subName)
 	}
 	if !ok {
-		sub, err = pubsubClient.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic: topic,
-		})
+		config := pubsub.SubscriptionConfig{Topic: topic}
+		// The ExpirationPolicy defaults to 31 days if not specified.
+		if expirationPolicy != nil {
+			config.ExpirationPolicy = *expirationPolicy
+		}
+		sub, err = pubsubClient.CreateSubscription(ctx, subName, config)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed creating subscription")
 		}
@@ -175,5 +242,4 @@ func NewWithSubNameProvider(ctx context.Context, local bool, project string, top
 	sub.ReceiveSettings.MaxOutstandingMessages = numGoRoutines * batchSize
 	sub.ReceiveSettings.NumGoroutines = numGoRoutines
 	return sub, nil
-
 }

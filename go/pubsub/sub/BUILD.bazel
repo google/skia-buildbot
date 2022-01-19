@@ -16,7 +16,10 @@ go_library(
 
 go_test(
     name = "sub_test",
-    srcs = ["sub_manual_test.go"],
+    srcs = [
+        "sub_manual_test.go",
+        "sub_test.go",
+    ],
     embed = [":sub"],
     deps = [
         "//go/testutils/unittest",
