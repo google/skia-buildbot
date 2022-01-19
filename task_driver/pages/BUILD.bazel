@@ -1,0 +1,10 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "task-driver-index",
+    assets_serving_path = "/dist",
+    html_file = "task-driver-index.html",
+    scss_entry_point = "task-driver-index.scss",
+    sk_element_deps = ["//infra-sk/modules/task-driver-sk"],
+    ts_entry_point = "task-driver-index.ts",
+)

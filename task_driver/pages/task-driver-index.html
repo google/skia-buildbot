@@ -16,9 +16,11 @@
     }
   </script>
 </head>
-<task-driver-sk id="td"></task-driver-sk>
+<body>
+  <task-driver-sk id="td"></task-driver-sk>
+</body>
 <script type="text/javascript" charset="utf-8">
-let ele = document.getElementById("td");
-ele.data = JSON.parse({{.TaskJson}});
+  let ele = document.getElementById("td");
+  ele.data = JSON.parse({{.TaskJson}});
 </script>
 </html>

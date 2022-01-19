@@ -1,0 +1,25 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "task_driver_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//task_driver/go/task-driver-server:task-driver-server",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/task-driver-server/dist": [
+            [
+                "//task_driver/pages:production/task-driver-index.%s" % ext,
+                "0644",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    repository = "skia-public/task-driver-server",
+)

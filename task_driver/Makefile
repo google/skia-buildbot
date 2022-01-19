@@ -1,30 +1,25 @@
+include ../make/bazel.mk
 include ../kube/kube.mk
 
 .PHONY: build
-build: npm-ci
-	npx webpack --mode=development
-	GOOS=linux go install -a ./go/task-driver-server
+build:
+	$(BAZEL) build //task_driver/...
 
 .PHONY: release
-release: npm-ci
-	NODE_ENV='production' npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-driver-server
-	./build_release
+release: build
+	$(BAZEL) run //task_driver:push_task_driver_container
 
 .PHONY: push
 push: release pushk
 	pushk --message="$(MESSAGE)" --use-temp-checkout task-driver-server
 
 .PHONY: serve
-serve: npm-ci
-	npx webpack-dev-server --mode=development --watch-poll --host=$(shell hostname)
+serve:
+	@echo "Bazel doesn't have a serve-all option."
+	@echo "For the module under development, try running something like:"
+	@echo "bazel run //infra-sk/modules/task-driver-sk:demo_page_server"
 
-.PHONY: watch
-watch: npm-ci
-	npx webpack --watch-poll --mode=development --watch-poll
-
-.PHONY: build-frontend-ci
-build-frontend-ci: npm-ci
-	npx webpack --mode=production
-
-include ../make/npm.mk
+run-local-instance: build
+	# Run "bazel build //task_driver/..." after making any frontend changes
+	# to pick up the change without restarting the golang server.
+	../_bazel_bin/task_driver/go/task-driver-server/task-driver-server_/task-driver-server --local --project_id=skia-swarming-bots --resources_dir ../_bazel_bin/task_driver/pages/development --bigtable_instance=staging --bigtable_project=skia-public

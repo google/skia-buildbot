@@ -48,6 +48,7 @@ var targetDirectories = map[string]bool{
 	"skottie/modules":      true,
 	"skottie/pages":        true,
 	"task_driver/modules":  true,
+	"task_driver/pages":    true,
 	"tree_status/modules":  true,
 	"tree_status/pages":    true,
 }
