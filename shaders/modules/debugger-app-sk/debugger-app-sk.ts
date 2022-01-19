@@ -8,6 +8,7 @@ import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like language
 import CodeMirror, { EditorConfiguration } from 'codemirror';
 import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
+import { classMap } from 'lit-html/directives/class-map';
 
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
@@ -50,6 +51,8 @@ export class DebuggerAppSk extends ElementSk {
 
   private currentLineHandle: CodeMirror.LineHandle | null = null;
 
+  private currentHoveredWord: string = '';
+
   private localStorage: Storage = window.localStorage; // can be overridden in tests
 
   private queryParameter: string = window.location.search; // can be overridden in tests
@@ -78,7 +81,8 @@ export class DebuggerAppSk extends ElementSk {
     this.enableDragAndDrop($$<HTMLDivElement>('#drag-area', this)!);
 
     // Set up CodeMirror.
-    this.codeMirror = CodeMirror($$<HTMLDivElement>('#codeEditor', this)!, <EditorConfiguration>{
+    const editorDiv: HTMLDivElement = $$<HTMLDivElement>('#codeEditor', this)!;
+    this.codeMirror = CodeMirror(editorDiv, <EditorConfiguration>{
       value: '/*** Drag in a DebugTrace JSON file to start the debugger. ***/',
       lineNumbers: true,
       mode: 'x-shader/x-sksl',
@@ -92,6 +96,16 @@ export class DebuggerAppSk extends ElementSk {
     this.codeMirror!.on('gutterClick', (_, line: number) => {
       // 'line' comes from CodeMirror so is indexed starting from zero.
       this.toggleBreakpoint(line + 1);
+    });
+    editorDiv.addEventListener('mousemove', (e: MouseEvent) => {
+      const mousePos = {left:e.pageX, top:e.pageY};
+      const codePos = this.codeMirror!.coordsChar(mousePos);
+      const word = this.codeMirror!.findWordAt(codePos);
+      const hoveredWord: string = this.codeMirror!.getRange(word.anchor, word.head);
+      if (hoveredWord != this.currentHoveredWord) {
+        this.currentHoveredWord = hoveredWord;
+        this._render();
+      }
     });
 
     // Listen for theme changes.
@@ -151,10 +165,20 @@ export class DebuggerAppSk extends ElementSk {
   private varsDisplay(vars: VariableData[]): TemplateResult[] {
     if (this.trace && vars.length > 0) {
       return vars.map((v: VariableData) => {
-        const name: string = this.trace!.slots[v.slotIndex].name +
-                             this.player.getSlotComponentSuffix(v.slotIndex);
-        const highlight: string = v.dirty ? 'highlighted' : '';
-        return html`<tr><td class='${highlight}'>${name}</td><td>${v.value}</td></tr>`;
+        const name: string = this.trace!.slots[v.slotIndex].name;
+        const componentName: string = name + this.player.getSlotComponentSuffix(v.slotIndex);
+        const nameClass = {
+          'change-highlight': v.dirty,
+          'hover-highlight': (name == this.currentHoveredWord)
+        };
+        const valueClass = {
+          'hover-highlight': (name == this.currentHoveredWord)
+        };
+        return html`
+          <tr>
+            <td class=${classMap(nameClass)}>${componentName}</td>
+            <td class=${classMap(valueClass)}>${v.value}</td>
+          </tr>`;
       });
     }
     return [html`<tr><td>&nbsp;</td></tr>`];

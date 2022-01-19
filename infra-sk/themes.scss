@@ -21,6 +21,7 @@
   --disabled-alpha: rgba(117, 117, 117, 1);
 
   --primary-variant: var(--light-blue-600);
+  --primary-highlight: var(--light-blue-100);
   --secondary-highlight: var(--green-100);
   --secondary: var(--green-500);
 
@@ -43,6 +44,7 @@
     --on-surface: var(--grey-200);
     --primary-variant: var(--light-blue-200);
     --primary: var(--light-blue-500);
+    --primary-highlight: var(--light-blue-900);
     --secondary-highlight: var(--green-900);
     --secondary: var(--green-500);
 

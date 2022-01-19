@@ -39,8 +39,12 @@
   content: '●';
 }
 
-.highlighted {
+.change-highlight {
   background: var(--secondary-highlight);
+}
+
+.hover-highlight {
+  background: var(--primary-highlight);
 }
 
 .body-sk debugger-app-sk {
