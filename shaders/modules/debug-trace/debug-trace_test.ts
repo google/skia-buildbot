@@ -5,7 +5,7 @@ describe('DebugTrace JSON parsing', () => {
   it('converts a valid JSON string to a DebugTrace struct', () => {
     const text = String.raw`
     {
-      "version": "20220119a",
+      "version": "20220119b",
       "source": [
         "\t// first line",
         "// \"second line\"",
@@ -13,7 +13,6 @@ describe('DebugTrace JSON parsing', () => {
       ],
       "slots": [
         {
-          "slot": 0,
           "name": "SkVM_DebugTrace",
           "columns": 1,
           "rows": 2,
@@ -22,7 +21,6 @@ describe('DebugTrace JSON parsing', () => {
           "line": 5
         },
         {
-          "slot": 1,
           "name": "Unit_Test",
           "columns": 6,
           "rows": 7,
@@ -32,7 +30,7 @@ describe('DebugTrace JSON parsing', () => {
           "retval": 11
         }
       ],
-      "functions": [{ "slot": 0, "name": "void testFunc();" }],
+      "functions": [{ "name": "void testFunc();" }],
       "trace": [[2], [0, 5], [1, 10, 15], [3, 20]]
     }`;
     const trace: DebugTrace = Convert.toDebugTrace(text);
@@ -62,7 +60,6 @@ describe('DebugTrace JSON parsing', () => {
     assert.equal(trace.slots[1].line, 10);
     assert.equal(trace.slots[1].retval, 11);
 
-    assert.equal(trace.functions[0].slot, 0);
     assert.equal(trace.functions[0].name, 'void testFunc();');
 
     // Verify that trailing zeros are re-added to the trace arrays.
@@ -88,7 +85,7 @@ describe('DebugTrace JSON parsing', () => {
     // Some trailing bracket close characters have been removed, so the JSON isn't valid.
     const text = String.raw`
     {
-      "version": "20220119a",
+      "version": "20220119b",
       "source": [
         "\t// first line",
         "// \"second line\"",
@@ -96,7 +93,6 @@ describe('DebugTrace JSON parsing', () => {
       ],
       "slots": [
         {
-          "slot": 0,
           "name": "SkVM_DebugTrace",
           "columns": 1,
           "rows": 2,
@@ -105,7 +101,6 @@ describe('DebugTrace JSON parsing', () => {
           "line": 5
         },
         {
-          "slot": 1,
           "name": "Unit_Test",
           "columns": 6,
           "rows": 7,
@@ -115,7 +110,7 @@ describe('DebugTrace JSON parsing', () => {
           "retval": 11
         }
       ],
-      "functions": [{ "slot": 0, "name": "void testFunc();" }],
+      "functions": [{ "name": "void testFunc();" }],
       "trace": [[2], [0, 5], [1, 10, 15], [3, 20
     }`;
     expect(() => { Convert.toDebugTrace(text); }).to.throw();
@@ -125,7 +120,7 @@ describe('DebugTrace JSON parsing', () => {
     // This is valid JSON, but it is missing a required key ("functions").
     const text = String.raw`
     {
-      "version": "20220119a",
+      "version": "20220119b",
       "source": [
         "\t// first line",
         "// \"second line\"",
@@ -133,7 +128,6 @@ describe('DebugTrace JSON parsing', () => {
       ],
       "slots": [
         {
-          "slot": 0,
           "name": "SkVM_DebugTrace",
           "columns": 1,
           "rows": 2,
@@ -142,7 +136,6 @@ describe('DebugTrace JSON parsing', () => {
           "line": 5
         },
         {
-          "slot": 1,
           "name": "Unit_Test",
           "columns": 6,
           "rows": 7,
@@ -161,7 +154,7 @@ describe('DebugTrace JSON parsing', () => {
     // This is valid JSON, but it has an extra key we don't know about ("bogus").
     const text = String.raw`
     {
-      "version": "20220119a",
+      "version": "20220119b",
       "source": [
         "\t// first line",
         "// \"second line\"",
@@ -169,7 +162,6 @@ describe('DebugTrace JSON parsing', () => {
       ],
       "slots": [
         {
-          "slot": 0,
           "name": "SkVM_DebugTrace",
           "columns": 1,
           "rows": 2,
@@ -178,7 +170,6 @@ describe('DebugTrace JSON parsing', () => {
           "line": 5
         },
         {
-          "slot": 1,
           "name": "Unit_Test",
           "columns": 6,
           "rows": 7,

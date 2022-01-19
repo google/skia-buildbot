@@ -1,7 +1,7 @@
 import { DebugTrace } from '../debug-trace/generate/debug-trace-quicktype';
 
 export const exampleTrace: DebugTrace = {
-  version: '20220119a',
+  version: '20220119b',
   source: [
     'half4 convert(float2 c) {',
     '    float4 color = c.xy11;',
@@ -13,30 +13,30 @@ export const exampleTrace: DebugTrace = {
     '}'
   ],
   slots: [
-   {slot: 0, name: '[main].result', columns: 4, rows: 1, index: 0, kind: 0, line: 5, retval: 0},
-   {slot: 1, name: '[main].result', columns: 4, rows: 1, index: 1, kind: 0, line: 5, retval: 0},
-   {slot: 2, name: '[main].result', columns: 4, rows: 1, index: 2, kind: 0, line: 5, retval: 0},
-   {slot: 3, name: '[main].result', columns: 4, rows: 1, index: 3, kind: 0, line: 5, retval: 0},
-   {slot: 4, name: 'p', columns: 2, rows: 1, index: 0, kind: 0, line: 5},
-   {slot: 5, name: 'p', columns: 2, rows: 1, index: 1, kind: 0, line: 5},
-   {slot: 6, name: 'c', columns: 4, rows: 1, index: 0, kind: 0, line: 6},
-   {slot: 7, name: 'c', columns: 4, rows: 1, index: 1, kind: 0, line: 6},
-   {slot: 8, name: 'c', columns: 4, rows: 1, index: 2, kind: 0, line: 6},
-   {slot: 9, name: 'c', columns: 4, rows: 1, index: 3, kind: 0, line: 6},
-   {slot: 10, name: '[convert].result', columns: 4, rows: 1, index: 0, kind: 0, line: 1, retval: 1},
-   {slot: 11, name: '[convert].result', columns: 4, rows: 1, index: 1, kind: 0, line: 1, retval: 1},
-   {slot: 12, name: '[convert].result', columns: 4, rows: 1, index: 2, kind: 0, line: 1, retval: 1},
-   {slot: 13, name: '[convert].result', columns: 4, rows: 1, index: 3, kind: 0, line: 1, retval: 1},
-   {slot: 14, name: 'c', columns: 2, rows: 1, index: 0, kind: 0, line: 1},
-   {slot: 15, name: 'c', columns: 2, rows: 1, index: 1, kind: 0, line: 1},
-   {slot: 16, name: 'color', columns: 4, rows: 1, index: 0, kind: 0, line: 2},
-   {slot: 17, name: 'color', columns: 4, rows: 1, index: 1, kind: 0, line: 2},
-   {slot: 18, name: 'color', columns: 4, rows: 1, index: 2, kind: 0, line: 2},
-   {slot: 19, name: 'color', columns: 4, rows: 1, index: 3, kind: 0, line: 2}
+   {name: '[main].result', columns: 4, rows: 1, index: 0, kind: 0, line: 5, retval: 0},
+   {name: '[main].result', columns: 4, rows: 1, index: 1, kind: 0, line: 5, retval: 0},
+   {name: '[main].result', columns: 4, rows: 1, index: 2, kind: 0, line: 5, retval: 0},
+   {name: '[main].result', columns: 4, rows: 1, index: 3, kind: 0, line: 5, retval: 0},
+   {name: 'p', columns: 2, rows: 1, index: 0, kind: 0, line: 5},
+   {name: 'p', columns: 2, rows: 1, index: 1, kind: 0, line: 5},
+   {name: 'c', columns: 4, rows: 1, index: 0, kind: 0, line: 6},
+   {name: 'c', columns: 4, rows: 1, index: 1, kind: 0, line: 6},
+   {name: 'c', columns: 4, rows: 1, index: 2, kind: 0, line: 6},
+   {name: 'c', columns: 4, rows: 1, index: 3, kind: 0, line: 6},
+   {name: '[convert].result', columns: 4, rows: 1, index: 0, kind: 0, line: 1, retval: 1},
+   {name: '[convert].result', columns: 4, rows: 1, index: 1, kind: 0, line: 1, retval: 1},
+   {name: '[convert].result', columns: 4, rows: 1, index: 2, kind: 0, line: 1, retval: 1},
+   {name: '[convert].result', columns: 4, rows: 1, index: 3, kind: 0, line: 1, retval: 1},
+   {name: 'c', columns: 2, rows: 1, index: 0, kind: 0, line: 1},
+   {name: 'c', columns: 2, rows: 1, index: 1, kind: 0, line: 1},
+   {name: 'color', columns: 4, rows: 1, index: 0, kind: 0, line: 2},
+   {name: 'color', columns: 4, rows: 1, index: 1, kind: 0, line: 2},
+   {name: 'color', columns: 4, rows: 1, index: 2, kind: 0, line: 2},
+   {name: 'color', columns: 4, rows: 1, index: 3, kind: 0, line: 2}
   ],
   functions: [
-    { slot: 0, name: 'half4 main(float2 p)' },
-    { slot: 1, name: 'half4 convert(float2 c)' }
+    { name: 'half4 main(float2 p)' },
+    { name: 'half4 convert(float2 c)' }
   ],
   trace: [
     [2], [1, 4, 1048576000], [1, 5, 1048576000], [4, 1], [0, 6], [2, 1], [1, 14, 964891247],

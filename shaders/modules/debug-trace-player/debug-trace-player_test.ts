@@ -34,21 +34,14 @@ function getGlobalVariables(trace: DebugTrace, player: DebugTracePlayer): string
 
 const trivialGreenShader = String.raw`
 {
-  "version": "20220119a",
-  "functions": [{"name": "float4 main(float2 i)", "slot": 0}],
+  "functions": [{"name": "vec4 main(vec2 i)"}],
   "slots": [
-    {"columns": 4, "index": 0, "kind": 0, "line": 1,
-     "name": "[main].result", "retval": 0, "rows": 1, "slot": 0},
-    {"columns": 4, "index": 1, "kind": 0, "line": 1,
-     "name": "[main].result", "retval": 0, "rows": 1, "slot": 1},
-    {"columns": 4, "index": 2, "kind": 0, "line": 1,
-     "name": "[main].result", "retval": 0, "rows": 1, "slot": 2},
-    {"columns": 4, "index": 3, "kind": 0, "line": 1,
-     "name": "[main].result", "retval": 0, "rows": 1, "slot": 3},
-    {"columns": 2, "index": 0, "kind": 0, "line": 1,
-     "name": "i", "rows": 1, "slot": 4},
-    {"columns": 2, "index": 1, "kind": 0, "line": 1,
-     "name": "i", "rows": 1, "slot": 5}
+    {"columns": 4, "index": 0, "kind": 0, "line": 1, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 1, "kind": 0, "line": 1, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 1, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 3, "kind": 0, "line": 1, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 2, "index": 0, "kind": 0, "line": 1, "name": "i", "rows": 1},
+    {"columns": 2, "index": 1, "kind": 0, "line": 1, "name": "i", "rows": 1}
   ],
   "source": [
     "vec4 main(vec2 i) {     // Line 1",
@@ -57,8 +50,8 @@ const trivialGreenShader = String.raw`
   ],
   "trace": [
     [2],
-    [1, 4, 1109721088],
-    [1, 5, -1035403264],
+    [1, 4, 1107361792],
+    [1, 5, 1107361792],
     [4, 1],
     [0, 2],
     [1],
@@ -67,34 +60,22 @@ const trivialGreenShader = String.raw`
     [1, 3, 1065353216],
     [4, -1],
     [3]
-  ]
+  ],
+  "version": "20220119b"
 }`;
 
 const functionsShader = String.raw`
 {
-  "version": "20220119a",
-  "functions": [
-    {"name": "half4 main(float2 f2)", "slot": 0},
-    {"name": "half fnA()", "slot": 1},
-    {"name": "half fnB()", "slot": 2}
-  ],
+  "functions": [{"name": "half4 main(float2 f2)"}, {"name": "half fnA()"}, {"name": "half fnB()"}],
   "slots": [
-    {"columns": 4, "index": 0, "kind": 0, "line": 7,
-     "name": "[main].result", "retval": 0, "rows": 1, "slot": 0},
-    {"columns": 4, "index": 1, "kind": 0, "line": 7,
-     "name": "[main].result", "retval": 0, "rows": 1, "slot": 1},
-    {"columns": 4, "index": 2, "kind": 0, "line": 7,
-     "name": "[main].result", "retval": 0, "rows": 1, "slot": 2},
-    {"columns": 4, "index": 3, "kind": 0, "line": 7,
-     "name": "[main].result", "retval": 0, "rows": 1, "slot": 3},
-    {"columns": 2, "index": 0, "kind": 0, "line": 7,
-     "name": "f2", "rows": 1, "slot": 4},
-    {"columns": 2, "index": 1, "kind": 0, "line": 7,
-     "name": "f2", "rows": 1, "slot": 5},
-    {"columns": 1, "index": 0, "kind": 0, "line": 4,
-     "name": "[fnA].result", "retval": 1, "rows": 1, "slot": 6},
-    {"columns": 1, "index": 0, "kind": 0, "line": 1,
-     "name": "[fnB].result", "retval": 2, "rows": 1, "slot": 7}
+    {"columns": 4, "index": 0, "kind": 0, "line": 7, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 1, "kind": 0, "line": 7, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 7, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 3, "kind": 0, "line": 7, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 2, "index": 0, "kind": 0, "line": 7, "name": "f2", "rows": 1},
+    {"columns": 2, "index": 1, "kind": 0, "line": 7, "name": "f2", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 0, "line": 4, "name": "[fnA].result", "retval": 1, "rows": 1},
+    {"columns": 1, "index": 0, "kind": 0, "line": 1, "name": "[fnB].result", "retval": 2, "rows": 1}
   ],
   "source": [
     "half fnB() {                    // Line 1",
@@ -109,8 +90,8 @@ const functionsShader = String.raw`
   ],
   "trace": [
     [2],
-    [1, 4, 1109852160],
-    [1, 5, 1107755008],
+    [1, 4, 1107361792],
+    [1, 5, 1107361792],
     [4, 1],
     [0, 8],
     [2, 1],
@@ -131,42 +112,37 @@ const functionsShader = String.raw`
     [1, 3, 1065353216],
     [4, -1],
     [3]
-  ]
+  ],
+  "version": "20220119b"
 }`;
 
 const variablesShader = String.raw`
 {
-  "version": "20220119a",
-  "functions": [{"name": "half4 main(float2 p)", "slot": 0}, {"name": "float func()", "slot": 1}],
+  "functions": [{"name": "half4 main(float2 p)"}, {"name": "float func()"}],
   "slots": [
-    {"columns": 4, "index": 0, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 0},
-    {"columns": 4, "index": 1, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 1},
-    {"columns": 4, "index": 2, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 2},
-    {"columns": 4, "index": 3, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 3},
-    {"columns": 2, "index": 0, "kind": 0, "line": 6, "name": "p", "rows": 1, "slot": 4},
-    {"columns": 2, "index": 1, "kind": 0, "line": 6, "name": "p", "rows": 1, "slot": 5},
-    {"columns": 1, "index": 0, "kind": 1, "line": 7, "name": "a", "rows": 1, "slot": 6},
-    {"columns": 1, "index": 0, "kind": 3, "line": 8, "name": "b", "rows": 1, "slot": 7},
-    {"columns": 1, "index": 0, "kind": 0, "line": 2, "name": "[func].result", "retval": 1,
-     "rows": 1, "slot": 8},
-    {"columns": 1, "index": 0, "kind": 0, "line": 3, "name": "z", "rows": 1, "slot": 9},
-    {"columns": 4, "index": 0, "kind": 0, "line": 10, "name": "c", "rows": 1, "slot": 10},
-    {"columns": 4, "index": 1, "kind": 0, "line": 10, "name": "c", "rows": 1, "slot": 11},
-    {"columns": 4, "index": 2, "kind": 0, "line": 10, "name": "c", "rows": 1, "slot": 12},
-    {"columns": 4, "index": 3, "kind": 0, "line": 10, "name": "c", "rows": 1, "slot": 13},
-    {"columns": 3, "index": 0, "kind": 0, "line": 11, "name": "d", "rows": 3, "slot": 14},
-    {"columns": 3, "index": 1, "kind": 0, "line": 11, "name": "d", "rows": 3, "slot": 15},
-    {"columns": 3, "index": 2, "kind": 0, "line": 11, "name": "d", "rows": 3, "slot": 16},
-    {"columns": 3, "index": 3, "kind": 0, "line": 11, "name": "d", "rows": 3, "slot": 17},
-    {"columns": 3, "index": 4, "kind": 0, "line": 11, "name": "d", "rows": 3, "slot": 18},
-    {"columns": 3, "index": 5, "kind": 0, "line": 11, "name": "d", "rows": 3, "slot": 19},
-    {"columns": 3, "index": 6, "kind": 0, "line": 11, "name": "d", "rows": 3, "slot": 20},
-    {"columns": 3, "index": 7, "kind": 0, "line": 11, "name": "d", "rows": 3, "slot": 21},
-    {"columns": 3, "index": 8, "kind": 0, "line": 11, "name": "d", "rows": 3, "slot": 22}
+    {"columns": 4, "index": 0, "kind": 0, "line": 6, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 1, "kind": 0, "line": 6, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 6, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 3, "kind": 0, "line": 6, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 2, "index": 0, "kind": 0, "line": 6, "name": "p", "rows": 1},
+    {"columns": 2, "index": 1, "kind": 0, "line": 6, "name": "p", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 7, "name": "a", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 3, "line": 8, "name": "b", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 0, "line": 2, "name": "[func].result", "retval": 1, "rows": 1},
+    {"columns": 1, "index": 0, "kind": 0, "line": 3, "name": "z", "rows": 1},
+    {"columns": 4, "index": 0, "kind": 0, "line": 10, "name": "c", "rows": 1},
+    {"columns": 4, "index": 1, "kind": 0, "line": 10, "name": "c", "rows": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 10, "name": "c", "rows": 1},
+    {"columns": 4, "index": 3, "kind": 0, "line": 10, "name": "c", "rows": 1},
+    {"columns": 3, "index": 0, "kind": 0, "line": 11, "name": "d", "rows": 3},
+    {"columns": 3, "index": 1, "kind": 0, "line": 11, "name": "d", "rows": 3},
+    {"columns": 3, "index": 2, "kind": 0, "line": 11, "name": "d", "rows": 3},
+    {"columns": 3, "index": 3, "kind": 0, "line": 11, "name": "d", "rows": 3},
+    {"columns": 3, "index": 4, "kind": 0, "line": 11, "name": "d", "rows": 3},
+    {"columns": 3, "index": 5, "kind": 0, "line": 11, "name": "d", "rows": 3},
+    {"columns": 3, "index": 6, "kind": 0, "line": 11, "name": "d", "rows": 3},
+    {"columns": 3, "index": 7, "kind": 0, "line": 11, "name": "d", "rows": 3},
+    {"columns": 3, "index": 8, "kind": 0, "line": 11, "name": "d", "rows": 3}
   ],
   "source": [
     "                                      // Line 1",
@@ -223,26 +199,23 @@ const variablesShader = String.raw`
     [1, 3, 1065353216],
     [4, -1],
     [3]
-  ]
+  ],
+  "version": "20220119b"
 }`;
 
 const ifStatementShader = String.raw`
 {
-  "version": "20220119a",
-  "functions": [{"name": "half4 main(float2 p)", "slot": 0}],
+  "functions": [{"name": "half4 main(float2 p)"}],
   "slots": [
-    {"columns": 4, "index": 0, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 0},
-    {"columns": 4, "index": 1, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 1},
-    {"columns": 4, "index": 2, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 2},
-    {"columns": 4, "index": 3, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 3},
-    {"columns": 2, "index": 0, "kind": 0, "line": 2, "name": "p", "rows": 1, "slot": 4},
-    {"columns": 2, "index": 1, "kind": 0, "line": 2, "name": "p", "rows": 1, "slot": 5},
-    {"columns": 1, "index": 0, "kind": 1, "line": 3, "name": "val", "rows": 1, "slot": 6},
-    {"columns": 1, "index": 0, "kind": 1, "line": 5, "name": "temp", "rows": 1, "slot": 7}
+    {"columns": 4, "index": 0, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 1, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 3, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 2, "index": 0, "kind": 0, "line": 2, "name": "p", "rows": 1},
+    {"columns": 2, "index": 1, "kind": 0, "line": 2, "name": "p", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 3, "name": "val", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 5, "name": "temp", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 11, "name": "temp", "rows": 1}
   ],
   "source": [
     "                       // Line 1",
@@ -261,8 +234,7 @@ const ifStatementShader = String.raw`
     "        val = 4;       // Line 14",
     "    }                  // Line 15",
     "    return half4(val); // Line 16",
-    "}                      // Line 17",
-    ""
+    "}                      // Line 17"
   ],
   "trace": [
     [2],
@@ -290,25 +262,21 @@ const ifStatementShader = String.raw`
     [1, 3, 1082130432],
     [4, -1],
     [3]
-  ]
+  ],
+  "version": "20220119b"
 }`;
 
 const forLoopShader = String.raw`
 {
-  "version": "20220119a",
-  "functions": [{"name": "half4 main(float2 p)", "slot": 0}],
+  "functions": [{"name": "half4 main(float2 p)"}],
   "slots": [
-    {"columns": 4, "index": 0, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 0},
-    {"columns": 4, "index": 1, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 1},
-    {"columns": 4, "index": 2, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 2},
-    {"columns": 4, "index": 3, "kind": 0, "line": 2, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 3},
-    {"columns": 2, "index": 0, "kind": 0, "line": 2, "name": "p", "rows": 1, "slot": 4},
-    {"columns": 2, "index": 1, "kind": 0, "line": 2, "name": "p", "rows": 1, "slot": 5},
-    {"columns": 1, "index": 0, "kind": 0, "line": 4, "name": "x", "rows": 1, "slot": 6}
+    {"columns": 4, "index": 0, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 1, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 3, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 2, "index": 0, "kind": 0, "line": 2, "name": "p", "rows": 1},
+    {"columns": 2, "index": 1, "kind": 0, "line": 2, "name": "p", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 0, "line": 4, "name": "x", "rows": 1}
   ],
   "source": [
     "                                     // Line 1",
@@ -318,8 +286,7 @@ const forLoopShader = String.raw`
     "        p.y = x;                     // Line 5",
     "    }                                // Line 6",
     "    return p.xy01;                   // Line 7",
-    "}                                    // Line 8",
-    ""
+    "}                                    // Line 8"
   ],
   "trace": [
     [2],
@@ -351,30 +318,25 @@ const forLoopShader = String.raw`
     [1, 3, 1065353216],
     [4, -1],
     [3]
-  ]
+  ],
+  "version": "20220119b"
 }`;
 
 const stepOutShader = String.raw`
 {
-  "version": "20220119a",
-  "functions": [{"name": "half4 main(float2 p)", "slot": 0}, {"name": "half fn()", "slot": 1}],
+  "functions": [{"name": "half4 main(float2 p)"}, {"name": "half fn()"}],
   "slots": [
-    {"columns": 4, "index": 0, "kind": 0, "line": 9, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 0},
-    {"columns": 4, "index": 1, "kind": 0, "line": 9, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 1},
-    {"columns": 4, "index": 2, "kind": 0, "line": 9, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 2},
-    {"columns": 4, "index": 3, "kind": 0, "line": 9, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 3},
-    {"columns": 2, "index": 0, "kind": 0, "line": 9, "name": "p", "rows": 1, "slot": 4},
-    {"columns": 2, "index": 1, "kind": 0, "line": 9, "name": "p", "rows": 1, "slot": 5},
-    {"columns": 1, "index": 0, "kind": 0, "line": 2, "name": "[fn].result", "retval": 1,
-     "rows": 1, "slot": 6},
-    {"columns": 1, "index": 0, "kind": 0, "line": 3, "name": "a", "rows": 1, "slot": 7},
-    {"columns": 1, "index": 0, "kind": 0, "line": 4, "name": "b", "rows": 1, "slot": 8},
-    {"columns": 1, "index": 0, "kind": 0, "line": 5, "name": "c", "rows": 1, "slot": 9},
-    {"columns": 1, "index": 0, "kind": 0, "line": 6, "name": "d", "rows": 1, "slot": 10}
+    {"columns": 4, "index": 0, "kind": 0, "line": 9, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 1, "kind": 0, "line": 9, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 9, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 3, "kind": 0, "line": 9, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 2, "index": 0, "kind": 0, "line": 9, "name": "p", "rows": 1},
+    {"columns": 2, "index": 1, "kind": 0, "line": 9, "name": "p", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 0, "line": 2, "name": "[fn].result", "retval": 1, "rows": 1},
+    {"columns": 1, "index": 0, "kind": 0, "line": 3, "name": "a", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 0, "line": 4, "name": "b", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 0, "line": 5, "name": "c", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 0, "line": 6, "name": "d", "rows": 1}
   ],
   "source": [
     "                       // Line 1",
@@ -391,8 +353,8 @@ const stepOutShader = String.raw`
   ],
   "trace": [
     [2],
-    [1, 4, 1106640896],
-    [1, 5, 1106640896],
+    [1, 4, 1107361792],
+    [1, 5, 1107361792],
     [4, 1],
     [0, 10],
     [2, 1],
@@ -415,35 +377,30 @@ const stepOutShader = String.raw`
     [1, 3, 1065353216],
     [4, -1],
     [3]
-  ]
+  ],
+  "version": "20220119b"
 }`;
 
 const varScopeShader = String.raw`
 {
-  "version": "20220119a",
-  "functions": [{"name": "half4 main(float2 p)", "slot": 0}, {"name": "int fn()", "slot": 1}],
+  "functions": [{"name": "half4 main(float2 p)"}, {"name": "int fn()"}],
   "slots": [
-    {"columns": 4, "index": 0, "kind": 0, "line": 22, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 0},
-    {"columns": 4, "index": 1, "kind": 0, "line": 22, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 1},
-    {"columns": 4, "index": 2, "kind": 0, "line": 22, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 2},
-    {"columns": 4, "index": 3, "kind": 0, "line": 22, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 3},
-    {"columns": 2, "index": 0, "kind": 0, "line": 22, "name": "p", "rows": 1, "slot": 4},
-    {"columns": 2, "index": 1, "kind": 0, "line": 22, "name": "p", "rows": 1, "slot": 5},
-    {"columns": 1, "index": 0, "kind": 1, "line": 2, "name": "[fn].result", "retval": 1,
-     "rows": 1, "slot": 6},
-    {"columns": 1, "index": 0, "kind": 1, "line": 3, "name": "a", "rows": 1, "slot": 7},
-    {"columns": 1, "index": 0, "kind": 1, "line": 5, "name": "b", "rows": 1, "slot": 8},
-    {"columns": 1, "index": 0, "kind": 1, "line": 7, "name": "c", "rows": 1, "slot": 9},
-    {"columns": 1, "index": 0, "kind": 1, "line": 9, "name": "d", "rows": 1, "slot": 10},
-    {"columns": 1, "index": 0, "kind": 1, "line": 11, "name": "e", "rows": 1, "slot": 11},
-    {"columns": 1, "index": 0, "kind": 1, "line": 13, "name": "f", "rows": 1, "slot": 12},
-    {"columns": 1, "index": 0, "kind": 1, "line": 15, "name": "g", "rows": 1, "slot": 13},
-    {"columns": 1, "index": 0, "kind": 1, "line": 17, "name": "h", "rows": 1, "slot": 14},
-    {"columns": 1, "index": 0, "kind": 1, "line": 19, "name": "i", "rows": 1, "slot": 15}
+    {"columns": 4, "index": 0, "kind": 0, "line": 22, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 1, "kind": 0, "line": 22, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 22, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 3, "kind": 0, "line": 22, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 2, "index": 0, "kind": 0, "line": 22, "name": "p", "rows": 1},
+    {"columns": 2, "index": 1, "kind": 0, "line": 22, "name": "p", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 2, "name": "[fn].result", "retval": 1, "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 3, "name": "a", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 5, "name": "b", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 7, "name": "c", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 9, "name": "d", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 11, "name": "e", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 13, "name": "f", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 15, "name": "g", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 17, "name": "h", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 19, "name": "i", "rows": 1}
   ],
   "source": [
     "                            // Line 1",
@@ -515,26 +472,22 @@ const varScopeShader = String.raw`
     [1, 3],
     [4, -1],
     [3]
-  ]
+  ],
+  "version": "20220119b"
 }`;
 
 const breakpointShader = String.raw`
 {
-  "version": "20220119a",
-  "functions": [{"name": "half4 main(float2 p)", "slot": 0}, {"name": "void func()", "slot": 1}],
+  "functions": [{"name": "half4 main(float2 p)"}, {"name": "void func()"}],
   "slots": [
-    {"columns": 1, "index": 0, "kind": 1, "line": 2, "name": "counter", "rows": 1, "slot": 0},
-    {"columns": 4, "index": 0, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 1},
-    {"columns": 4, "index": 1, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 2},
-    {"columns": 4, "index": 2, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 3},
-    {"columns": 4, "index": 3, "kind": 0, "line": 6, "name": "[main].result", "retval": 0,
-     "rows": 1, "slot": 4},
-    {"columns": 2, "index": 0, "kind": 0, "line": 6, "name": "p", "rows": 1, "slot": 5},
-    {"columns": 2, "index": 1, "kind": 0, "line": 6, "name": "p", "rows": 1, "slot": 6},
-    {"columns": 1, "index": 0, "kind": 1, "line": 7, "name": "x", "rows": 1, "slot": 7}
+    {"columns": 1, "index": 0, "kind": 1, "line": 2, "name": "counter", "rows": 1},
+    {"columns": 4, "index": 0, "kind": 0, "line": 6, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 1, "kind": 0, "line": 6, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 6, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 3, "kind": 0, "line": 6, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 2, "index": 0, "kind": 0, "line": 6, "name": "p", "rows": 1},
+    {"columns": 2, "index": 1, "kind": 0, "line": 6, "name": "p", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 7, "name": "x", "rows": 1}
   ],
   "source": [
     "                                   // Line 1",
@@ -555,8 +508,8 @@ const breakpointShader = String.raw`
   "trace": [
     [1],
     [2],
-    [1, 5, 1107165184],
-    [1, 6, 1107492864],
+    [1, 5, 1107361792],
+    [1, 6, 1107361792],
     [4, 1],
     [0, 7],
     [4, 1],
@@ -602,7 +555,8 @@ const breakpointShader = String.raw`
     [1, 4, 1073741824],
     [4, -1],
     [3]
-  ]
+  ],
+  "version": "20220119b"
 }`;
 
 describe('DebugTrace playback', () => {
@@ -626,7 +580,7 @@ describe('DebugTrace playback', () => {
     assert.equal(player.getCurrentLine(), 2);
     assert.deepEqual(player.getLineNumbersReached(), new Map([[2, 0]]));
     assert.isFalse(player.traceHasCompleted());
-    assert.deepEqual(getStack(trace, player), ['float4 main(float2 i)']);
+    assert.deepEqual(getStack(trace, player), ['vec4 main(vec2 i)']);
     assert.deepEqual(getGlobalVariables(trace, player), []);
 
     player.step();
@@ -659,7 +613,7 @@ describe('DebugTrace playback', () => {
     assert.isAbove(player.getCursor(), 0);
     assert.equal(player.getCurrentLine(), 2);
     assert.isFalse(player.traceHasCompleted());
-    assert.deepEqual(getStack(trace, player), ['float4 main(float2 i)']);
+    assert.deepEqual(getStack(trace, player), ['vec4 main(vec2 i)']);
 
     player.reset(trace);
 
@@ -688,8 +642,8 @@ describe('DebugTrace playback', () => {
     assert.isFalse(player.traceHasCompleted());
     assert.equal(player.getCurrentLine(), 8);
     assert.deepEqual(getStack(trace, player), ['half4 main(float2 f2)']);
-    assert.deepEqual(getLocalVariables(trace, player), ['##f2.x = 41.75',
-                                                        '##f2.y = 33.75']);
+    assert.deepEqual(getLocalVariables(trace, player), ['##f2.x = 32.25',
+                                                        '##f2.y = 32.25']);
     assert.deepEqual(getGlobalVariables(trace, player), []);
 
     player.stepOver();
@@ -708,8 +662,8 @@ describe('DebugTrace playback', () => {
     player.step();
 
     assert.deepEqual(getStack(trace, player), ['half4 main(float2 f2)']);
-    assert.deepEqual(getLocalVariables(trace, player), ['##f2.x = 41.75',
-                                                        '##f2.y = 33.75']);
+    assert.deepEqual(getLocalVariables(trace, player), ['##f2.x = 32.25',
+                                                        '##f2.y = 32.25']);
     assert.deepEqual(getGlobalVariables(trace, player), []);
     player.step();
 
@@ -734,8 +688,8 @@ describe('DebugTrace playback', () => {
 
     assert.deepEqual(getStack(trace, player), ['half4 main(float2 f2)']);
     assert.deepEqual(getLocalVariables(trace, player), ['##[fnA].result = 0.5',
-                                                        'f2.x = 41.75',
-                                                        'f2.y = 33.75']);
+                                                        'f2.x = 32.25',
+                                                        'f2.y = 32.25']);
     assert.deepEqual(getGlobalVariables(trace, player), []);
 
     player.step();
@@ -925,7 +879,7 @@ describe('DebugTrace playback', () => {
     // We should now be inside main.
     assert.equal(player.getCurrentLine(), 10);
     assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)']);
-    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 30.75', '##p.y = 30.75']);
+    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 32.25', '##p.y = 32.25']);
     player.step();
 
     // We should now be inside fn.
@@ -947,7 +901,7 @@ describe('DebugTrace playback', () => {
     assert.equal(player.getCurrentLine(), 10);
     assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)']);
     assert.deepEqual(getLocalVariables(trace, player),
-                     ['##[fn].result = 44', 'p.x = 30.75', 'p.y = 30.75']);
+                     ['##[fn].result = 44', 'p.x = 32.25', 'p.y = 32.25']);
     player.stepOut();
 
     assert.isTrue(player.traceHasCompleted());

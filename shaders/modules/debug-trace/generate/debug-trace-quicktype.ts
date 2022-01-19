@@ -20,12 +20,10 @@ export interface DebugTrace {
 }
 
 export interface Function {
-    slot: number;
     name: string;
 }
 
 export interface Slot {
-    slot:    number;
     name:    string;
     columns: number;
     rows:    number;
@@ -188,11 +186,9 @@ const typeMap: any = {
         { json: "trace", js: "trace", typ: a(a(0)) },
     ], false),
     "Function": o([
-        { json: "slot", js: "slot", typ: 0 },
         { json: "name", js: "name", typ: "" },
     ], false),
     "Slot": o([
-        { json: "slot", js: "slot", typ: 0 },
         { json: "name", js: "name", typ: "" },
         { json: "columns", js: "columns", typ: 0 },
         { json: "rows", js: "rows", typ: 0 },
