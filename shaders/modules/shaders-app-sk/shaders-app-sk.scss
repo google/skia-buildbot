@@ -5,6 +5,7 @@
 @import '../themes/themes.scss';
 
 .body-sk shaders-app-sk {
+  overflow: hidden;
   display: block;
   background: var(--background);
   margin: 0;

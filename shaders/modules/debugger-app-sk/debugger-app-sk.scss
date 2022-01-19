@@ -48,6 +48,7 @@
 }
 
 .body-sk debugger-app-sk {
+  overflow: hidden;
   display: block;
   background: var(--surface);
   margin: 0;
