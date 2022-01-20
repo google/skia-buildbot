@@ -11,4 +11,20 @@ machines-table-sk {
   select {
     padding: 0;
   }
+
+  table {
+    position: relative;
+
+    th {
+      position: sticky;
+      top: 50px;
+      background-color: var(--background);
+      opacity: 1;
+      z-index: 10;
+
+      svg {
+        z-index: 1;
+      }
+    }
+  }
 }

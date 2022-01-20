@@ -14,6 +14,8 @@ sk_element(
         "//machine/modules/machines-table-sk",
         "//machine/modules/meeting-points-table-sk",
         "//machine/modules/pods-table-sk",
+        "//infra-sk/modules/app-sk",
+        "//infra-sk/modules/theme-chooser-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
