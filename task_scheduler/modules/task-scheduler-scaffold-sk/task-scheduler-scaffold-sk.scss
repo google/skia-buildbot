@@ -6,6 +6,9 @@ task-scheduler-scaffold-sk {
     font-family: Roboto, Helvetica, Arial, 'Bitstream Vera Sans', sans-serif;
   }
 
+  --header-background-color: var(--background);
+  --header-font-color: var(--on-background);
+
   header {
     h1 {
       font-weight: 400;

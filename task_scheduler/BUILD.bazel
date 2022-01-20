@@ -1,0 +1,74 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "task_scheduler_be_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//task_scheduler/go/task-scheduler-be:task-scheduler-be",
+                "0755",
+            ],
+        ],
+    },
+    repository = "skia-public/task-scheduler-be",
+)
+
+skia_app_container(
+    name = "task_scheduler_jc_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//task_scheduler/go/task-scheduler-jc:task-scheduler-jc",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/task-scheduler": [
+            [
+                "//infra/config:recipes.cfg",
+                "0644",
+            ],
+        ],
+    },
+    repository = "skia-public/task-scheduler-jc",
+)
+
+skia_app_container(
+    name = "task_scheduler_fe_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//task_scheduler/go/task-scheduler-fe:task-scheduler-fe",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/task-scheduler-fe/dist": [
+            [
+                "//task_scheduler/images:favicon.ico",
+                "0644",
+            ],
+        ] + [
+            [
+                "//task_scheduler/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in [
+                "index",
+                "job",
+                "job_search",
+                "job_timeline",
+                "job_trigger",
+                "skip_tasks",
+                "task",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    repository = "skia-public/task-scheduler-fe",
+)

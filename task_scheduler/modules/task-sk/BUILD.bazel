@@ -1,0 +1,52 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":task-sk-demo",
+)
+
+sk_element(
+    name = "task-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//task_scheduler/modules:colors_sass_lib",
+    ],
+    sass_srcs = ["task-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/human-date-sk",
+        "//task_scheduler/modules/task-graph-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//task_scheduler/modules/rpc:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "task-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "task-sk-demo",
+    html_file = "task-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":task-sk",
+    ],
+    ts_deps = ["//task_scheduler/modules/rpc-mock:index_ts_lib"],
+    ts_entry_point = "task-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "task-sk_puppeteer_test",
+    src = "task-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)

@@ -110,11 +110,6 @@ cp -r /src/bugs-central/modules/             /tests/bugs-central
 mkdir -p /tests/ct
 cp -r /src/ct/modules/                       /tests/ct
 
-mkdir /tests/task_scheduler
-cp -r /src/task_scheduler/webpack.config.ts  /tests/task_scheduler
-cp -r /src/task_scheduler/tsconfig.json      /tests/task_scheduler
-cp -r /src/task_scheduler/modules            /tests/task_scheduler
-
 ################################################################################
 # Install node modules and WASM dependencies.                                  #
 ################################################################################
@@ -143,7 +138,4 @@ cd /tests/new_element
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/status
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
-cd /tests/task_scheduler
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts

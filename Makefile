@@ -35,13 +35,9 @@ status:
 skolo:
 	cd skolo && $(MAKE) all
 
-.PHONY: task_scheduler
-task_scheduler:
-	cd task_scheduler && $(MAKE) all
-
 # This target is invoked by the Infra-PerCommit-Build tryjob.
 .PHONY: all
-all: infra-sk autoroll datahopper sharedgo cq_watcher status task_scheduler build-frontend-ci
+all: infra-sk autoroll datahopper sharedgo cq_watcher status build-frontend-ci
 
 .PHONY: tags
 tags:
@@ -73,7 +69,6 @@ build-frontend-ci: npm-ci
 	cd infra-sk && $(MAKE) build-frontend-ci
 	cd new_element && $(MAKE) build-frontend-ci
 	cd status && $(MAKE) build-frontend-ci
-	cd task_scheduler && $(MAKE) build-frontend-ci
 
 # Front-end tests will be included in the Infra-PerCommit-Medium tryjob.
 #
@@ -84,7 +79,6 @@ test-frontend-ci: npm-ci
 	cd new_element && $(MAKE) test-frontend-ci
 	cd puppeteer-tests && $(MAKE) test-frontend-ci
 	cd status && $(MAKE) test-frontend-ci
-	cd task_scheduler && $(MAKE) test-frontend-ci
 
 .PHONY: update-go-bazel-files
 update-go-bazel-files:

@@ -1,4 +1,3 @@
-import * as path from 'path';
 import {
   loadCachedTestBed, takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
@@ -7,15 +6,11 @@ import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme
 describe('task-scheduler-scaffold-sk', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(
-      path.join(__dirname, '..', '..', 'webpack.config.ts'),
-    );
+    testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(
-      `${testBed.baseUrl}/dist/task-scheduler-scaffold-sk.html`,
-    );
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 650, height: 400 });
     await testBed.page.evaluate((_) => {
       (<ThemeChooserSk>(

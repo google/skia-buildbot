@@ -17,7 +17,7 @@ push: release pushk
 serve:
 	@echo "Bazel doesn't have a serve-all option."
 	@echo "For the module under development, try running something like:"
-	@echo "bazel run //infra-sk/modules/task-driver-sk:demo_page_server"
+	@echo "bazel run //task_scheduler/modules/job-search-sk:demo_page_server"
 
 run-local-instance: build
 	# Run "bazel build //task_driver/..." after making any frontend changes

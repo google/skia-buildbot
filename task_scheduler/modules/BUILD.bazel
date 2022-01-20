@@ -1,0 +1,8 @@
+load("//infra-sk:index.bzl", "sass_library")
+
+sass_library(
+    name = "colors_sass_lib",
+    srcs = ["colors.scss"],
+    visibility = ["//visibility:public"],
+    deps = ["//infra-sk:elements-sk_scss"],
+)

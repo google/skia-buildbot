@@ -1,0 +1,41 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":gantt-chart-sk-demo",
+)
+
+sk_element(
+    name = "gantt-chart-sk",
+    sass_deps = ["//task_scheduler/modules:colors_sass_lib"],
+    sass_srcs = ["gantt-chart-sk.scss"],
+    ts_deps = [
+        "@npm//common-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "gantt-chart-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "gantt-chart-sk-demo",
+    html_file = "gantt-chart-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":gantt-chart-sk",
+    ],
+    ts_entry_point = "gantt-chart-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "gantt-chart-sk_puppeteer_test",
+    src = "gantt-chart-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)

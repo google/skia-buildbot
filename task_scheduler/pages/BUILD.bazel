@@ -1,0 +1,80 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "index",
+    assets_serving_path = "/dist",
+    html_file = "index.html",
+    sk_element_deps = ["//task_scheduler/modules/task-scheduler-scaffold-sk"],
+    ts_entry_point = "index.ts",
+)
+
+sk_page(
+    name = "job",
+    assets_serving_path = "/dist",
+    html_file = "job.html",
+    sk_element_deps = [
+        "//task_scheduler/modules/job-sk",
+        "//task_scheduler/modules/task-scheduler-scaffold-sk",
+    ],
+    ts_deps = ["//task_scheduler/modules/rpc:index_ts_lib"],
+    ts_entry_point = "job.ts",
+)
+
+sk_page(
+    name = "job_search",
+    assets_serving_path = "/dist",
+    html_file = "job_search.html",
+    sk_element_deps = [
+        "//task_scheduler/modules/job-search-sk",
+        "//task_scheduler/modules/task-scheduler-scaffold-sk",
+    ],
+    ts_deps = ["//task_scheduler/modules/rpc:index_ts_lib"],
+    ts_entry_point = "job_search.ts",
+)
+
+sk_page(
+    name = "job_timeline",
+    assets_serving_path = "/dist",
+    html_file = "job_timeline.html",
+    sk_element_deps = [
+        "//task_scheduler/modules/job-timeline-sk",
+        "//task_scheduler/modules/task-scheduler-scaffold-sk",
+    ],
+    ts_entry_point = "job_timeline.ts",
+)
+
+sk_page(
+    name = "job_trigger",
+    assets_serving_path = "/dist",
+    html_file = "job_trigger.html",
+    sk_element_deps = [
+        "//task_scheduler/modules/job-trigger-sk",
+        "//task_scheduler/modules/task-scheduler-scaffold-sk",
+    ],
+    ts_deps = ["//task_scheduler/modules/rpc:index_ts_lib"],
+    ts_entry_point = "job_trigger.ts",
+)
+
+sk_page(
+    name = "skip_tasks",
+    assets_serving_path = "/dist",
+    html_file = "skip_tasks.html",
+    sk_element_deps = [
+        "//task_scheduler/modules/skip-tasks-sk",
+        "//task_scheduler/modules/task-scheduler-scaffold-sk",
+    ],
+    ts_deps = ["//task_scheduler/modules/rpc:index_ts_lib"],
+    ts_entry_point = "skip_tasks.ts",
+)
+
+sk_page(
+    name = "task",
+    assets_serving_path = "/dist",
+    html_file = "task.html",
+    sk_element_deps = [
+        "//task_scheduler/modules/task-scheduler-scaffold-sk",
+        "//task_scheduler/modules/task-sk",
+    ],
+    ts_deps = ["//task_scheduler/modules/rpc:index_ts_lib"],
+    ts_entry_point = "task.ts",
+)
