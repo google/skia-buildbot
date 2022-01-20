@@ -53,6 +53,10 @@ export class DebuggerAppSk extends ElementSk {
 
   private currentHoveredWord: string = '';
 
+  private currentStackFrame: number = -1; // -1 corresponds to global scope
+
+  private currentLineNumber: number = 0; // 0 corresponds to no current line
+
   private localStorage: Storage = window.localStorage; // can be overridden in tests
 
   private queryParameter: string = window.location.search; // can be overridden in tests
@@ -131,6 +135,8 @@ export class DebuggerAppSk extends ElementSk {
   }
 
   private updateControls(): void {
+    this.currentStackFrame = this.player.getStackDepth() - 1;
+    this.currentLineNumber = this.player.getCurrentLine();
     this.updateCurrentLineMarker();
     this._render();
   }
@@ -141,25 +147,40 @@ export class DebuggerAppSk extends ElementSk {
       this.currentLineHandle = null;
     }
 
-    if (!this.player.traceHasCompleted()) {
+    if (this.currentLineNumber > 0) {
       // Subtract one from the line number because CodeMirror uses zero-indexed lines.
-      const lineNumber = this.player.getCurrentLine() - 1;
+      const lineNumber = this.currentLineNumber - 1;
       this.currentLineHandle = this.codeMirror!.addLineClass(lineNumber, 'background',
-        'cm-current-line');
+                                                            'cm-current-line');
       this.codeMirror!.scrollIntoView({ line: lineNumber, ch: 0 }, /* margin= */36);
     }
   }
 
+  private arrowIfCurrentFrameIs(n: number): string {
+    return this.currentStackFrame == n ? '➔ ' : '';
+  }
+
   private stackDisplay(): TemplateResult[] {
+    let stack: string[] = [];
     if (this.trace) {
-      let stack = this.player.getCallStack().map((idx: number) => this.trace!.functions[idx].name);
-      if (stack.length > 0) {
-        stack = stack.reverse();
-        stack[0] = `➔ ${stack[0]}`;
-        return stack.map((text: string) => html`<tr><td>${text}</td></tr>`);
-      }
+      stack = this.player.getCallStack().map((funcIdx: number, frame: number) =>
+        (this.arrowIfCurrentFrameIs(frame) + this.trace!.functions[funcIdx].name)
+      );
     }
-    return [html`<tr><td>at global scope</td></tr>`];
+    stack.unshift(this.arrowIfCurrentFrameIs(-1) + 'global scope');
+
+    const result: TemplateResult[] = stack.map((text: String, index: number) => html`
+      <tr><td>
+        <a href="javascript:;" @click=${() => this.changeStackFrame(index - 1)}>${text}</a>
+      </td></tr>`);
+    return result.reverse();
+  }
+
+  private changeStackFrame(frame: number): void {
+    this.currentLineNumber = (frame >= 0) ? this.player.getCurrentLineInStackFrame(frame) : 0;
+    this.currentStackFrame = frame;
+    this.updateCurrentLineMarker();
+    this._render();
   }
 
   private varsDisplay(vars: VariableData[]): TemplateResult[] {
@@ -185,8 +206,10 @@ export class DebuggerAppSk extends ElementSk {
   }
 
   private localVarsDisplay(): TemplateResult[] {
-    const stackDepth = this.trace ? this.player.getStackDepth() : 0;
-    return stackDepth <= 0 ? [] : this.varsDisplay(this.player.getLocalVariables(stackDepth - 1));
+    if (this.currentStackFrame < 0) {
+      return [];
+    }
+    return this.varsDisplay(this.player.getLocalVariables(this.currentStackFrame));
   }
 
   private globalVarsDisplay(): TemplateResult[] {
@@ -342,7 +365,7 @@ export class DebuggerAppSk extends ElementSk {
               ${self.stackDisplay()}
             </table>
             <table>
-              <tr ?hidden=${!self.trace || !self.player.getStackDepth()}>
+              <tr ?hidden=${self.currentStackFrame < 0}>
                 <td class="heading" colspan=2>Local Variables</td>
               </tr>
               ${self.localVarsDisplay()}

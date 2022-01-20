@@ -98,6 +98,11 @@
             font-size: 13px;
             border-bottom: 1px solid var(--secondary);
             border-right: 1px solid var(--secondary);
+
+            a {
+              text-decoration: none;
+              color: var(--on-surface);
+            }
           }
 
           .heading {
