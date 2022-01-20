@@ -62,7 +62,6 @@
     display: inline-grid;
     flex-direction: row;
     flex-wrap: wrap;
-    max-width: 640px;
 
     textarea {
       display: block;
@@ -86,8 +85,18 @@
       margin-right: 50px;
     }
 
+    #codeEditor {
+      vertical-align: top;
+      display: inline-block;
+      margin-right: 20px;
+      margin-bottom: 20px;
+    }
+
     #debuggerPane {
       #debuggerTables {
+        vertical-align: top;
+        display: inline-block;
+
         table {
           width: 100%;
           border-collapse: collapse;
@@ -120,7 +129,7 @@
     height: 512px;
     resize: both;
     overflow: hidden;
-    border: 1px solid var(--secondary);
+    border: 1px solid var(--surface-2dp);
 
     * {
       font-family: monospace;
