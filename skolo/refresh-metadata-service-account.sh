@@ -3,7 +3,7 @@
 set -e
 
 ../kube/secrets/generate-new-key-for-service-account.sh skia-swarming-bots etc chromium-swarm-bots
-../kube/secrets/generate-new-key-for-service-account.sh skia-buildbots etc chrome-swarming-bots
+../kube/secrets/generate-new-key-for-service-account.sh google.com:skia-buildbots etc chrome-swarming-bots
 
 printf 'You should now run:\n'
 printf '    cd ansible\n'
