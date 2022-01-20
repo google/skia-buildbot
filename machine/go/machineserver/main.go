@@ -504,9 +504,9 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 
 	// Public API
-	r.HandleFunc("/json/v1/machine/description/{id:.+}", s.apiMachineDescriptionHandler).Methods("GET")
-	r.HandleFunc("/json/v1/powercycle/list", s.apiPowerCycleListHandler).Methods("GET")
-	r.HandleFunc("/json/v1/powercycle/complete/{id:.+}", s.apiPowerCycleCompleteHandler).Methods("POST")
+	r.HandleFunc(rpc.MachineDescriptionURL, s.apiMachineDescriptionHandler).Methods("GET")
+	r.HandleFunc(rpc.PowerCycleListURL, s.apiPowerCycleListHandler).Methods("GET")
+	r.HandleFunc(rpc.PowerCycleCompleteURL, s.apiPowerCycleCompleteHandler).Methods("POST")
 }
 
 // See baseapp.App.

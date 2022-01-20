@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_binary(
@@ -12,12 +13,32 @@ go_library(
     importpath = "go.skia.org/infra/skolo/go/powercycle_server_ansible",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/auth",
         "//go/common",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/skerr",
         "//go/sklog",
+        "//go/util",
         "//machine/go/configs",
-        "//machine/go/machine/store",
         "//machine/go/machineserver/config",
+        "//machine/go/machineserver/rpc",
         "//skolo/go/powercycle",
         "//skolo/sys",
+    ],
+)
+
+go_test(
+    name = "powercycle_server_ansible_test",
+    srcs = ["main_test.go"],
+    embed = [":powercycle_server_ansible_lib"],
+    deps = [
+        "//go/httputils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//machine/go/machineserver/rpc",
+        "//skolo/go/powercycle",
+        "//skolo/go/powercycle/mocks",
+        "@com_github_stretchr_testify//require",
     ],
 )

@@ -10,7 +10,7 @@ ExecStart=/usr/local/bin/powercycle_server_ansible \
    --config=prod.json \
    --powercycle_config=powercycle-{{ inventory_hostname }}.json5 \
    --prom_port=:{{ all.prometheus.monitoring.ports.powercycle_server_ansible }} \
-   --rack={{ inventory_hostname }}
+   --machine_server=https://machines.skia.org
 Restart=always
 
 [Install]

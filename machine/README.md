@@ -43,11 +43,11 @@ See the [Design Doc](http://go/skia-switchboard).
 
 ## User triggers powercycle for a machine.
 
-| initiator                 | message                         | target                    | notes                        |
-| ------------------------- | ------------------------------- | ------------------------- | ---------------------------- |
-| machineserver             | >Set(Δ[Description][desc])      | DB                        | Description.Powercycle=true  |
-| DB                        | >Snapshot(Δ[Description][desc]) | powercycle_server_ansible |                              |
-| powercycle_server_ansible | >Set(Δ[Description][desc])      | DB                        | Description.Powercycle=false |
+| initiator                 | message                                 | target        | notes                                          |
+| ------------------------- | --------------------------------------- | ------------- | ---------------------------------------------- |
+| machineserver             | >Set(Δ[Description][desc])              | DB            | Description.Powercycle=true                    |
+| powercycle_server_ansible | <WebAPI([ListPowerCycleResponse][lpcr]) | machineserver | GET on `/json/v1/powercycle/list`              |
+| powercycle_server_ansible | >WebAPI                                 | machineserver | POST to `/json/v1/powercycle/complete/{id:.+}` |
 
 ## How test_machine_monitor keeps machine.Description up to date.
 
@@ -62,6 +62,9 @@ See the [Design Doc](http://go/skia-switchboard).
 [event]:
   https://pkg.go.dev/go.skia.org/infra/machine/go/machine#Event
   'machine.Event'
+[lpcr]:
+  https://pkg.go.dev/go.skia.org/infra/machine/go/machineserver/rpc#ListPowerCycleResponse
+  'rpc.ListPowerCycleResponse'
 
 # Legend
 

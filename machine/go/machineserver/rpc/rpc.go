@@ -6,6 +6,13 @@ import (
 	"go.skia.org/infra/machine/go/machine"
 )
 
+// URL paths.
+const (
+	MachineDescriptionURL = "/json/v1/machine/description/{id:.+}"
+	PowerCycleListURL     = "/json/v1/powercycle/list"
+	PowerCycleCompleteURL = "/json/v1/powercycle/complete/{id:.+}"
+)
+
 type SupplyChromeOSRequest struct {
 	SSHUserIP          string
 	SuppliedDimensions machine.SwarmingDimensions
