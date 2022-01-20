@@ -27,6 +27,7 @@ import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ParticlesConfig, ParticlesConfigSk } from '../particles-config-sk/particles-config-sk';
 import { ParticlesPlayerSk } from '../particles-player-sk/particles-player-sk';
+import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { ScrapBody, ScrapID } from '../json';
 
@@ -118,89 +119,91 @@ export class ParticlesSk extends ElementSk {
   }
 
   private static template = (ele: ParticlesSk) => html`
-  <header>
-    <h2>Particles</h2>
-    <span>
-      <a
-        id=githash
-        href='https://skia.googlesource.com/skia/+show/${SKIA_VERSION}'
-      >
-        ${SKIA_VERSION.slice(0, 7)}
-      </a>
-      <theme-chooser-sk></theme-chooser-sk>
-    </span>
-  </header>
-  <main>
-    <particles-config-sk></particles-config-sk>
-    <!-- TODO(jcgregorio) Eventually this should be replaced with Scrap Exchange List Names. -->
-    <span @click=${ele.namedDemoLinkClick}>
-      <a href="/?nameOrHash=@fireworks">fireworks</a>
-      <a href="/?nameOrHash=@spiral">spiral</a>
-      <a href="/?nameOrHash=@swirl">swirl</a>
-      <a href="/?nameOrHash=@text">text</a>
-      <a href="/?nameOrHash=@wave">wave</a>
-      <a href="/?nameOrHash=@cube">cube</a>
-      <a href="/?nameOrHash=@confetti">confetti</a>
-      <a href="/?nameOrHash=@uniforms">uniforms</a>
-    </span>
+  <app-sk>
+    <header>
+      <h2>Particles</h2>
+      <span>
+        <a
+          id=githash
+          href='https://skia.googlesource.com/skia/+show/${SKIA_VERSION}'
+        >
+          ${SKIA_VERSION.slice(0, 7)}
+        </a>
+        <theme-chooser-sk></theme-chooser-sk>
+      </span>
+    </header>
+    <main>
+      <particles-config-sk></particles-config-sk>
+      <!-- TODO(jcgregorio) Eventually this should be replaced with Scrap Exchange List Names. -->
+      <span @click=${ele.namedDemoLinkClick}>
+        <a href="/?nameOrHash=@fireworks">fireworks</a>
+        <a href="/?nameOrHash=@spiral">spiral</a>
+        <a href="/?nameOrHash=@swirl">swirl</a>
+        <a href="/?nameOrHash=@text">text</a>
+        <a href="/?nameOrHash=@wave">wave</a>
+        <a href="/?nameOrHash=@cube">cube</a>
+        <a href="/?nameOrHash=@confetti">confetti</a>
+        <a href="/?nameOrHash=@uniforms">uniforms</a>
+      </span>
 
-    <button @click=${ele.openUploadDialog}>
-      Upload
-    </button>
-    <div class=playerAndEditor>
-      <figure>
-        <particles-player-sk width=${ele.state.width} height=${ele.state.height}></particles-player-sk>
-        <figcaption>
-          <div>
-            <button @click=${ele.restartAnimation}>Restart</button>
-            <button id=playpause @click=${ele.togglePlayPause}>Pause</button>
-            <button @click=${ele.resetView}>
-              Reset Pan/Zoom
-            </button>
-          </div>
-          <div>
-            Click to pan. Scroll wheel to zoom.
-          </div>
-          <div class=download>
-            <a target=_blank download="particles.json" href=${ele.downloadURL}>
-              Download JSON
-            </a>
-            ${ele.hasEdits ? '(without edits)' : ''}
-          </div>
-        </figcaption>
-      </figure>
-      <div>
-        <details id=editorDetails
-          ?open=${ele.state.showEditor}
-          @toggle=${ele.toggleEditor}>
-          <summary>Edit</summary>
-          <div id=dimensions>
-            <label>
-              <input
-               id=width
-               type=number
-               .value=${ele.state.width.toFixed(0)}
-               @change=${ele.widthChange}}
-              /> Width (px)
-            </label>
-            <label>
-              <input
-                id=height
+      <button @click=${ele.openUploadDialog}>
+        Upload
+      </button>
+      <div class=playerAndEditor>
+        <figure>
+          <particles-player-sk width=${ele.state.width} height=${ele.state.height}></particles-player-sk>
+          <figcaption>
+            <div>
+              <button @click=${ele.restartAnimation}>Restart</button>
+              <button id=playpause @click=${ele.togglePlayPause}>Pause</button>
+              <button @click=${ele.resetView}>
+                Reset Pan/Zoom
+              </button>
+            </div>
+            <div>
+              Click to pan. Scroll wheel to zoom.
+            </div>
+            <div class=download>
+              <a target=_blank download="particles.json" href=${ele.downloadURL}>
+                Download JSON
+              </a>
+              ${ele.hasEdits ? '(without edits)' : ''}
+            </div>
+          </figcaption>
+        </figure>
+        <div>
+          <details id=editorDetails
+            ?open=${ele.state.showEditor}
+            @toggle=${ele.toggleEditor}>
+            <summary>Edit</summary>
+            <div id=dimensions>
+              <label>
+                <input
+                id=width
                 type=number
-                .value=${ele.state.height.toFixed(0)}
-                @change=${ele.heightChange}
-              /> Height (px)
-            </label>
-          </div>
-          <div id=json_editor></div>
-        </details>
+                .value=${ele.state.width.toFixed(0)}
+                @change=${ele.widthChange}}
+                /> Width (px)
+              </label>
+              <label>
+                <input
+                  id=height
+                  type=number
+                  .value=${ele.state.height.toFixed(0)}
+                  @change=${ele.heightChange}
+                /> Height (px)
+              </label>
+            </div>
+            <div id=json_editor></div>
+          </details>
+        </div>
+        <button ?hidden=${!ele.hasEdits} @click=${ele.applyEdits}>Apply Edits</button>
       </div>
-      <button ?hidden=${!ele.hasEdits} @click=${ele.applyEdits}>Apply Edits</button>
-    </div>
-  </main>
-  <footer>
-    <error-toast-sk></error-toast-sk>
-  </footer>
+    </main>
+    <footer>
+      <error-toast-sk></error-toast-sk>
+    </footer>
+  </app-sk>
   `;
 
   connectedCallback(): void {

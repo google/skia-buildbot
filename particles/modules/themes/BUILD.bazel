@@ -1,8 +1,0 @@
-load("//infra-sk:index.bzl", "sass_library")
-
-sass_library(
-    name = "themes_sass_lib",
-    srcs = ["themes.scss"],
-    visibility = ["//visibility:public"],
-    deps = ["//infra-sk:elements-sk_scss"],
-)
