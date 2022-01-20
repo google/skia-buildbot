@@ -4,6 +4,7 @@ import '../modules/fiddle-sk';
 import { FiddleSk, FiddleSkFiddleSuccessEventDetail } from '../modules/fiddle-sk/fiddle-sk';
 import { FiddleContext } from '../modules/json';
 import '../../infra-sk/modules/theme-chooser-sk';
+import '../../infra-sk/modules/app-sk';
 
 const fiddle = document.querySelector<FiddleSk>('fiddle-sk')!;
 fiddle.config = {

@@ -12,27 +12,29 @@
   </head>
 
   <body class="body-sk darkmode fiddle-body">
-    <header>
-      <h2>Skia Fiddle</h2>
-      <div>
-        <theme-chooser-sk></theme-chooser-sk>
-        Skia Version:
-        <a href="https://skia.googlesource.com/skia/+show/{%.Version%}"
-          >{% chop .Version %}</a
-        >
-      </div>
-    </header>
-    <main>
-      <fiddle-sk></fiddle-sk>
-      <error-toast-sk></error-toast-sk>
-      <p>
-        <a href="https://api.skia.org/" target="_blank" id="docs"
-          >Skia API Documentation</a
-        >
-      </p>
-      <p>
-        <a href="/named/">Named Fiddles</a>
-      </p>
-    </main>
+    <app-sk>
+      <header>
+        <h2><a href="/">Skia Fiddle</a></h2>
+        <div>
+          Skia Version:
+          <a href="https://skia.googlesource.com/skia/+show/{%.Version%}"
+            >{% chop .Version %}</a
+          >
+          <theme-chooser-sk></theme-chooser-sk>
+        </div>
+      </header>
+      <main>
+        <fiddle-sk></fiddle-sk>
+        <error-toast-sk></error-toast-sk>
+        <p>
+          <a href="https://api.skia.org/" target="_blank" id="docs"
+            >Skia API Documentation</a
+          >
+        </p>
+        <p>
+          <a href="/named/">Named Fiddles</a>
+        </p>
+      </main>
+    </app-sk>
   </body>
 </html>

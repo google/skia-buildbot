@@ -1,23 +1,12 @@
-header {
-  background: var(--surface);
-  color: var(--primary);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 0;
-  padding: 0 8px;
-}
+@import '../../../infra-sk/themes.scss';
 
-body {
+.body-sk {
   padding: 0;
   margin: 0;
-}
+  --sidebar-width: 0;
+  --header-horiz-padding: 16px;
 
-fiddle-sk {
-  display: block;
-  margin: 16px;
-}
-
-main > p {
-  margin: 16px;
+  h1 {
+    opacity: var(--text-intensity-medium);
+  }
 }

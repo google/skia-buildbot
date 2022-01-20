@@ -4,6 +4,7 @@ sk_page(
     name = "embed",
     assets_serving_path = "/dist",
     html_file = "embed.html",
+    scss_entry_point = "embed.scss",
     sk_element_deps = ["//fiddlek/modules/fiddle-embed-sk"],
     ts_entry_point = "embed.ts",
 )
@@ -16,6 +17,7 @@ sk_page(
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         "//fiddlek/modules/fiddle-sk",
+        "//infra-sk/modules/app-sk",
     ],
     ts_entry_point = "named.ts",
 )
@@ -28,6 +30,7 @@ sk_page(
     sk_element_deps = [
         "//fiddlek/modules/fiddle-sk",
         "//infra-sk/modules/theme-chooser-sk",
+        "//infra-sk/modules/app-sk",
     ],
     ts_deps = ["//fiddlek/modules/json:index_ts_lib"],
     ts_entry_point = "newindex.ts",

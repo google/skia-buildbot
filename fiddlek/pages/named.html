@@ -8,26 +8,28 @@
   </head>
 
   <body class="body-sk">
-    <header>
-      <h2>Skia Fiddle</h2>
-      <div>
-        <theme-chooser-sk></theme-chooser-sk>
-      </div>
-    </header>
-    <section id="main">
-      <h1>{% .Title %}</h1>
-      <table>
-        <tr>
-          <th>Name</th>
-          <th>Author</th>
-        </tr>
-        {% range .Named %}
-        <tr>
-          <td><a href="/c/@{% .Name %}">@{% .Name %}</a></td>
-          <td>{% .User %}</td>
-        </tr>
-        {% end %}
-      </table>
-    </section>
+    <app-sk>
+      <header>
+        <h2><a href="/">Skia Fiddle</a></h2>
+        <div>
+          <theme-chooser-sk></theme-chooser-sk>
+        </div>
+      </header>
+      <main>
+        <h1>{% .Title %}</h1>
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Author</th>
+          </tr>
+          {% range .Named %}
+          <tr>
+            <td><a href="/c/@{% .Name %}">@{% .Name %}</a></td>
+            <td>{% .User %}</td>
+          </tr>
+          {% end %}
+        </table>
+      <main>
+    </app-sk>
   </body>
 </html>

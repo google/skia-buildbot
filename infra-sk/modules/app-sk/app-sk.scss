@@ -79,6 +79,12 @@ app-sk > {
       }
     }
 
+    h1,
+    h2 {
+      font-weight: 400;
+      font-size: 20px;
+    }
+
     login-sk .email,
     login-sk .logInOut {
       color: var(--header-font-color);

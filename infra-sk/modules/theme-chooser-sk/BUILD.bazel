@@ -7,7 +7,10 @@ sk_demo_page_server(
 
 sk_element(
     name = "theme-chooser-sk",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//infra-sk:themes",
+    ],
     sass_srcs = ["theme-chooser-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
