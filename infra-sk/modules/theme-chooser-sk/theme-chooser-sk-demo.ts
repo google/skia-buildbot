@@ -153,10 +153,6 @@ const examples: example[] = [
     background: '--surface',
     color: '--negative',
   },
-  {
-    background: '--',
-    color: '--',
-  },
 ];
 
 const template = (context: example[]): TemplateResult => html`
