@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "test-service_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/test-service/go/test-service",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+        "@com_github_gorilla_mux//:mux",
+    ],
+)
+
+go_binary(
+    name = "test-service",
+    embed = [":test-service_lib"],
+    visibility = ["//visibility:public"],
+)
