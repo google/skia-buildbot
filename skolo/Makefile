@@ -9,6 +9,9 @@ export VERSION:=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
 # This build must be launched from an Ansible playbook which will extract the
 # service account keys and base64 encode them into the SERVICE_ACCOUNT_KEY and
 # INTERNAL_SERVICE_ACCOUNT_KEY environment variables.
+#
+# The directory under ./build/Linux/x86_64/ is the name of the secret where the
+# service key is stored under.
 build_metadata_server_ansible:
 	rm -rf ./build
 
@@ -19,7 +22,7 @@ build_metadata_server_ansible:
 	GOOS=linux \
 	GOARCH=amd64 \
 	go build \
-	 -o ./build/Linux/x86_64/skolo-service-accounts/metadata_server_ansible \
+	 -o ./build/Linux/x86_64/chromium-swarm-bots/metadata_server_ansible \
 	 -ldflags="-X 'main.Version=${VERSION}' -X 'main.Key=${SERVICE_ACCOUNT_KEY}' " \
 	 ./go/metadata_server_ansible
 
@@ -27,7 +30,7 @@ build_metadata_server_ansible:
 	GOOS=linux \
 	GOARCH=amd64 \
 	go build \
-	 -o ./build/Linux/x86_64/skolo-internal-service-account/metadata_server_ansible \
+	 -o ./build/Linux/x86_64/chrome-swarming-bots/metadata_server_ansible \
 	 -ldflags="-X 'main.Version=${VERSION}' -X 'main.Key=${INTERNAL_SERVICE_ACCOUNT_KEY}' " \
 	 ./go/metadata_server_ansible
 

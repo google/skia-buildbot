@@ -27,7 +27,7 @@
         argv:
           - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
           - etc
-          - skolo-service-accounts
+          - chromium-swarm-bots
           - '.data."key.json"'
           - '{{ service_account_key_filename }}'
         creates: '{{ service_account_key_filename }}'
@@ -39,7 +39,7 @@
         argv:
           - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
           - etc
-          - skolo-internal-service-account
+          - chrome-swarming-bots
           - '.data."key.json"'
           - '{{ internal_service_account_key_filename }}'
         creates: '{{ internal_service_account_key_filename }}'

@@ -45,6 +45,17 @@ var (
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
+type keyFormat struct {
+	ClientEmail  string `json:"client_email"`
+	PrivateKeyID string `json:"private_key_id"`
+	PrivateKey   string `json:"private_key"`
+	TokenURL     string `json:"token_uri"`
+	ProjectID    string `json:"project_id"`
+	ClientSecret string `json:"client_secret"`
+	ClientID     string `json:"client_id"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 type server struct {
 	successfulRefresh metrics2.Counter
 	failedRefresh     metrics2.Counter
@@ -63,8 +74,18 @@ func getTokenSource() (oauth2.TokenSource, error) {
 
 	decodedKey, err := base64.StdEncoding.DecodeString(Key)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to base64 decode key.json")
+		return nil, skerr.Wrapf(err, "failed to base64 decode Key: %q", Key)
 	}
+
+	// Unmarshal Key so that we can log some of its values.
+	var key keyFormat
+	if err := json.Unmarshal([]byte(decodedKey), &key); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse Key as JSON")
+	}
+	sklog.Infof("client_email: %s", key.ClientEmail)
+	sklog.Infof("client_id: %s", key.ClientID)
+	sklog.Infof("private_key_id: %s", key.PrivateKeyID)
+	sklog.Infof("project_id: %s", key.ProjectID)
 
 	cred, err := google.CredentialsFromJSON(ctx, []byte(decodedKey), auth.ScopeUserinfoEmail)
 	if err != nil {
