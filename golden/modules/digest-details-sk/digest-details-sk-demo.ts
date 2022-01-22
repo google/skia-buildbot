@@ -16,6 +16,7 @@ testOnlySetSettings({
 });
 
 setImageEndpointsForDemos();
+
 let ele = new DigestDetailsSk();
 ele.details = typicalDetails;
 ele.commits = twoHundredCommits;
@@ -60,6 +61,12 @@ noParams.paramset = {};
 ele.details = noParams;
 ele.commits = twoHundredCommits;
 $$('#no_params')!.appendChild(ele);
+
+ele = new DigestDetailsSk();
+ele.details = typicalDetails;
+ele.commits = twoHundredCommits;
+ele.fullSizeImages = true;
+$$('#full_size_images')!.appendChild(ele);
 
 document.addEventListener('triage', (e) => {
   $$('#event')!.textContent = `triage: ${JSON.stringify((e as CustomEvent).detail)}`;

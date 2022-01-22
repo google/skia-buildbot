@@ -13,7 +13,7 @@ describe('digest-details-sk', () => {
 
   it('should render the demo page', async () => {
     // Smoke test.
-    expect(await testBed.page.$$('digest-details-sk')).to.have.length(8);
+    expect(await testBed.page.$$('digest-details-sk')).to.have.length(9);
   });
 
   describe('screenshots', () => {
@@ -55,6 +55,11 @@ describe('digest-details-sk', () => {
     it('had no params sent by the backend', async () => {
       const digestDetailsSk = await testBed.page.$('#no_params');
       await takeScreenshot(digestDetailsSk!, 'gold', 'digest-details-sk_no-params');
+    });
+
+    it('shows full size images', async () => {
+      const digestDetailsSk = await testBed.page.$('#full_size_images');
+      await takeScreenshot(digestDetailsSk!, 'gold', 'digest-details-sk_full-size-images');
     });
   });
 });

@@ -67,6 +67,21 @@ describe('search-page-sk', () => {
       await takeScreenshot(testBed.page, 'gold', 'search-page-sk_bulk-triage-with-cl');
     });
 
+    it('shows full size images', async () => {
+      await goToPage();
+      await searchPageSkPO.clickToggleFullSizeImagesBtn();
+      await takeScreenshot(testBed.page, 'gold', 'search-page-sk_full-size-images');
+    });
+
+    it('toggles back to small size images', async () => {
+      await goToPage();
+      await searchPageSkPO.clickToggleFullSizeImagesBtn();
+      await searchPageSkPO.clickToggleFullSizeImagesBtn();
+      await takeScreenshot(
+        testBed.page, 'gold', 'search-page-sk_small-images-after-full-size-images',
+      );
+    });
+
     it('shows the help dialog', async () => {
       await goToPage();
       await searchPageSkPO.clickHelpBtn();

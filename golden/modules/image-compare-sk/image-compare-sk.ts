@@ -28,7 +28,9 @@ export class ImageCompareSk extends ElementSk {
   private static template = (ele: ImageCompareSk) => html`
     <div class=comparison_bar>
       <figure>
-        <img class=thumbnail alt="left image" src=${digestImagePath(ele.left.digest)}>
+        <img class="thumbnail ${ele._fullSizeImages ? 'fullsize' : ''}"
+             alt="left image"
+             src=${digestImagePath(ele.left.digest)}>
         <figcaption>
           <span class=legend_dot></span>
           <a target=_blank rel=noopener href=${ele.left.detail}>${ele.left.title}</a>
@@ -56,13 +58,17 @@ export class ImageCompareSk extends ElementSk {
     }
     const diffSrc = digestDiffImagePath(ele.left.digest, ele.right.digest);
     return html`
-      <img class="thumbnail diff" alt="diff between left and right image" src=${diffSrc}>
+      <img class="thumbnail diff ${ele._fullSizeImages ? 'fullsize' : ''}"
+           alt="diff between left and right image"
+           src=${diffSrc}>
       <a target=_blank rel=noopener href=${diffSrc}>
         <open-in-new-icon-sk></open-in-new-icon-sk>
       </a>
 
       <figure>
-        <img class=thumbnail alt="right image" src=${digestImagePath(ele.right.digest)}>
+        <img class="thumbnail ${ele._fullSizeImages ? 'fullsize' : ''}"
+             alt="right image"
+             src=${digestImagePath(ele.right.digest)}>
         <figcaption>
           <a target=_blank rel=noopener href=${ele.right.detail}>${ele.right.title}</a>
         </figcaption>
@@ -84,6 +90,8 @@ export class ImageCompareSk extends ElementSk {
   private _right: ImageComparisonData | null = null;
 
   private computingDiffs = false;
+
+  private _fullSizeImages = false;
 
   constructor() {
     super(ImageCompareSk.template);
@@ -113,6 +121,16 @@ export class ImageCompareSk extends ElementSk {
 
   set right(img: ImageComparisonData | null) {
     this._right = img;
+    this._render();
+  }
+
+  /** Whether to show thumbnails or full size images. */
+  get fullSizeImages(): boolean {
+    return this._fullSizeImages;
+  }
+
+  set fullSizeImages(val: boolean) {
+    this._fullSizeImages = val;
     this._render();
   }
 

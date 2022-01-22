@@ -176,8 +176,12 @@ export class DigestDetailsSk extends ElementSk {
     };
     if (!ele.right) {
       const hasOtherDigests = (ele.traces?.digests?.length || 0) > 1;
-      return html`<image-compare-sk .left=${left}
-        .isComputingDiffs=${hasOtherDigests}></image-compare-sk>`;
+      return html`
+        <image-compare-sk .left=${left}
+                          .isComputingDiffs=${hasOtherDigests}
+                          .fullSizeImages=${ele._fullSizeImages}>
+        </image-compare-sk>
+      `;
     }
 
     const right: ImageComparisonData = {
@@ -189,7 +193,12 @@ export class DigestDetailsSk extends ElementSk {
       right.title = truncate(ele.right.digest, 15);
     }
 
-    return html`<image-compare-sk .left=${left} .right=${right}></image-compare-sk>`;
+    return html`
+      <image-compare-sk .left=${left}
+                        .right=${right}
+                        .fullSizeImages=${ele._fullSizeImages}>
+      </image-compare-sk>
+    `;
   };
 
   private static traceInfoTemplate = (ele: DigestDetailsSk) => {
@@ -265,6 +274,8 @@ export class DigestDetailsSk extends ElementSk {
 
   private _highlightedParams: { [key: string]: string } = {};
 
+  private _fullSizeImages = false;
+
   constructor() {
     super(DigestDetailsSk.template);
   }
@@ -314,9 +325,7 @@ export class DigestDetailsSk extends ElementSk {
     this._render();
   }
 
-  /**
-   * @prop right {Object} Forces the left image to be compared to the given ref.
-   */
+  /** Forces the left image to be compared to the given ref. */
   get right(): SRDiffDigest | null {
     if (this._overrideRight) {
       return this._overrideRight;
@@ -326,6 +335,16 @@ export class DigestDetailsSk extends ElementSk {
 
   set right(override: SRDiffDigest | null) {
     this._overrideRight = override;
+    this._render();
+  }
+
+  /** Whether to show thumbnails or full size images. */
+  get fullSizeImages(): boolean {
+    return this._fullSizeImages;
+  }
+
+  set fullSizeImages(val: boolean) {
+    this._fullSizeImages = val;
     this._render();
   }
 

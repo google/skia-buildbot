@@ -11,11 +11,14 @@
         width: 900px;
         border: 1px dashed grey;
       }
+      .full-size {
+        width: inherit;
+      }
     </style>
   </head>
   <body class="body-sk">
     <h2>Events</h2>
-    <input type="checkbox" id="simulate-not-logged-in" />
+    <input type="checkbox" id="simulate-not-logged-in"/>
     <label for="simulate-not-logged-in">
       Simulate 403 RPC error (for example, not being logged in).
     </label>
@@ -43,5 +46,8 @@
 
     <h2>digest-details-sk with no param data send by backend</h2>
     <div id="no_params" class="demo-container"></div>
+
+    <h2>digest-details-sk with full-size images</h2>
+    <div id="full_size_images" class="demo-container full-size"></div>
   </body>
 </html>

@@ -32,6 +32,10 @@ export class SearchPageSkPO extends PageObject {
     return this.bySelector('dialog.bulk-triage');
   }
 
+  private get toggleFullSizeImagesBtn(): PageObjectElement {
+    return this.bySelector('button.full-size-images');
+  }
+
   private get helpBtn(): PageObjectElement {
     return this.bySelector('button.help');
   }
@@ -51,6 +55,8 @@ export class SearchPageSkPO extends PageObject {
   async clickBulkTriageBtn() { await this.bulkTriageBtn.click(); }
 
   async isBulkTriageDialogOpen() { return this.bulkTriageDialog.hasAttribute('open'); }
+
+  async clickToggleFullSizeImagesBtn() { await this.toggleFullSizeImagesBtn.click(); }
 
   async clickHelpBtn() { await this.helpBtn.click(); }
 

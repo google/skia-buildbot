@@ -52,4 +52,9 @@ image-compare-sk {
   img.diff {
     image-rendering: pixelated;
   }
+
+  img.fullsize {
+    width: inherit;
+    height: inherit;
+  }
 }

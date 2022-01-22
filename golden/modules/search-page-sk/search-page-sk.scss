@@ -9,7 +9,8 @@ search-page-sk {
     div.buttons {
       display: flex;
       flex-direction: row;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
+      align-content: flex-start;
 
       button {
         white-space: nopwrap;

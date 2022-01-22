@@ -92,6 +92,9 @@ export class SearchPageSk extends ElementSk {
         <button class="bulk-triage" @click=${() => el.bulkTriageDialog?.showModal()}>
           Bulk Triage
         </button>
+        <button class="full-size-images" @click=${() => el.toggleFullSizeImages()}>
+          Toggle Full Size Images
+        </button>
         <button class="help" @click=${() => el.helpDialog?.showModal()}>
           Help
         </button>
@@ -171,6 +174,7 @@ export class SearchPageSk extends ElementSk {
                          .details=${result}
                          .changeListID=${el.changelistId}
                          .crs=${el.crs}
+                         .fullSizeImages=${el.fullSizeImages}
                          @triage=${(e: CustomEvent<Label>) => el.onTriage(result, e.detail)}
                          class="${selected ? 'selected' : ''}">
       </digest-details-sk>
@@ -222,6 +226,8 @@ export class SearchPageSk extends ElementSk {
   private bulkTriageDialog: HTMLDialogElement | null = null;
 
   private helpDialog: HTMLDialogElement | null = null;
+
+  private fullSizeImages = false;
 
   private keyDownEventHandlerFn: ((event: KeyboardEvent)=> void) | null = null;
 
@@ -569,6 +575,11 @@ export class SearchPageSk extends ElementSk {
     return this.querySelector<DigestDetailsSk>(
       `digest-details-sk:nth-child(${this.selectedSearchResultIdx + 1})`,
     );
+  }
+
+  private toggleFullSizeImages(): void {
+    this.fullSizeImages = !this.fullSizeImages;
+    this._render();
   }
 }
 

@@ -14,7 +14,7 @@ describe('image-compare-sk', () => {
 
   it('should render the demo page', async () => {
     // Smoke test.
-    expect(await testBed.page.$$('image-compare-sk')).to.have.length(2);
+    expect(await testBed.page.$$('image-compare-sk')).to.have.length(3);
   });
 
   describe('screenshots', () => {
@@ -34,6 +34,11 @@ describe('image-compare-sk', () => {
       await takeScreenshot(
         imageCompareSk!, 'gold', 'image-compare-sk_no-right',
       );
+    });
+
+    it('shows full size images', async () => {
+      const imageCompareSk = await testBed.page.$('#full_size_images');
+      await takeScreenshot(imageCompareSk!, 'gold', 'image-compare-sk_full-size-images');
     });
   });
 });
