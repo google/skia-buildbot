@@ -6,6 +6,7 @@ sk_element(
     sk_element_deps = [
         "//infra-sk/modules/theme-chooser-sk",
         "//jsfiddle/modules/wasm-fiddle-sk",
+        "//infra-sk/modules/app-sk",
     ],
     ts_deps = [
         "@npm//elements-sk",

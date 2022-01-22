@@ -4,6 +4,7 @@ import { html } from 'lit-html';
 import { CanvasKitInit as CKInit } from 'canvaskit-wasm';
 import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
+import '../../../infra-sk/modules/app-sk';
 
 // It is assumed that canvaskit.js has been loaded and this symbol is available globally.
 declare const CanvasKitInit: typeof CKInit;
@@ -13,15 +14,16 @@ declare const CanvasKitInit: typeof CKInit;
 declare const SKIA_VERSION: string;
 
 // Main template for this element
-const template = (ele: WasmFiddle) => html` <header>
-    <div class="title">CanvasKit Fiddle</div>
-    <div class="flex"></div>
+const template = (ele: WasmFiddle) => html`
+<app-sk>
+  <header>
+    <h1>CanvasKit Fiddle</h1>
     <div class="version">
       <a href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}"
         >${SKIA_VERSION.substring(0, 10)}</a
       >
+      <theme-chooser-sk></theme-chooser-sk>
     </div>
-    <theme-chooser-sk></theme-chooser-sk>
   </header>
 
   <main>
@@ -47,7 +49,9 @@ ${ele.log}</textarea
   </main>
   <footer>
     <error-toast-sk></error-toast-sk>
-  </footer>`;
+  </footer>
+</app-sk>
+`;
 
 const wasmPromise = CanvasKitInit({
   locateFile: (file: string) => `/res/${file}`,

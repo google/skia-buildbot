@@ -14,6 +14,7 @@ sk_element(
     sass_deps = [
         "//infra-sk:elements-sk_scss",
         ":code_mirror_styles",  # keep
+        "//infra-sk:themes",
     ],
     sass_srcs = ["wasm-fiddle-sk.scss"],
     sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],

@@ -3,6 +3,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
+import '../../../infra-sk/modules/app-sk';
 
 // It is assumed that pathkit.js has been loaded and this symbol is available globally.
 declare const PathKitInit: any;
@@ -13,36 +14,34 @@ declare const SKIA_VERSION: string;
 
 // Main template for this element
 const template = (ele: WasmFiddle) => html`
-<header>
-  <div class=title>PathKit Fiddle</div>
-  <div class=npm>
-    <a href="https://www.npmjs.com/package/pathkit-wasm">Available on npm</a>
-  </div>
-  <div class=flex></div>
-
-  <div class=version>
-    <a href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">${SKIA_VERSION.substring(0, 10)}</a>
-  </div>
-  <theme-chooser-sk></theme-chooser-sk>
-</header>
-
-<main>
-  ${WasmFiddle.codeEditor(ele)}
-  <div class=output>
-    ${ele.sliders.map(WasmFiddle.floatSlider)}
-    ${ele.colorpickers.map(WasmFiddle.colorPicker)}
-    ${ele.fpsMeter ? html`<div class=widget id=fps>0 FPS</div>` : ''}
-    <div class=buttons>
-      <button class="action ${(ele.hasRun || !ele.loadedWasm) ? '' : 'prompt'}" @click=${ele.run}>Run</button>
-      <button @click=${ele.save}>Save</button>
+<app-sk>
+  <header>
+    <h1>PathKit Fiddle</h1>
+    <div>
+      <a href="https://www.npmjs.com/package/pathkit-wasm">Available on npm</a>
+      <a href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">${SKIA_VERSION.substring(0, 10)}</a>
+      <theme-chooser-sk></theme-chooser-sk>
     </div>
-    <div id=canvasContainer><canvas width=500 height=500></canvas></div>
-    <textarea id=logsContainer placeholder="Console Logs" readonly>${ele.log}</textarea>
-  </div>
-</main>
-<footer>
-  <error-toast-sk></error-toast-sk>
-</footer>`;
+  </header>
+
+  <main>
+    ${WasmFiddle.codeEditor(ele)}
+    <div class=output>
+      ${ele.sliders.map(WasmFiddle.floatSlider)}
+      ${ele.colorpickers.map(WasmFiddle.colorPicker)}
+      ${ele.fpsMeter ? html`<div class=widget id=fps>0 FPS</div>` : ''}
+      <div class=buttons>
+        <button class="action ${(ele.hasRun || !ele.loadedWasm) ? '' : 'prompt'}" @click=${ele.run}>Run</button>
+        <button @click=${ele.save}>Save</button>
+      </div>
+      <div id=canvasContainer><canvas width=500 height=500></canvas></div>
+      <textarea id=logsContainer placeholder="Console Logs" readonly>${ele.log}</textarea>
+    </div>
+  </main>
+  <footer>
+    <error-toast-sk></error-toast-sk>
+  </footer>
+</app-sk>`;
 
 const wasmPromise = PathKitInit({
   locateFile: (file: string) => `/res/${file}`,
