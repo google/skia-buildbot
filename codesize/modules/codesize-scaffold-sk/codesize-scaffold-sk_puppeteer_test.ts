@@ -43,7 +43,6 @@ describe('codesize-scaffold-sk', () => {
     expect(await classProp.jsonValue()).to.equal(className);
   };
 
-  const expectDarkMode = () => expectBodyClassName('darkmode');
-  const expectNonDarkMode = () => expectBodyClassName('');
+  const expectDarkMode = () => expectBodyClassName('body-sk darkmode');
+  const expectNonDarkMode = () => expectBodyClassName('body-sk');
 });
-

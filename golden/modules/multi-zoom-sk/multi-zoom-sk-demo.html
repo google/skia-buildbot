@@ -1,37 +1,37 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>multi-zoom-sk</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    .demo_container {
-      width: 900px;
-    }
-  </style>
-</head>
-<body>
-  <button id=dialog_btn>Push for Dialog</button>
+  <head>
+    <title>multi-zoom-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .demo_container {
+        width: 900px;
+      }
+    </style>
+  </head>
+  <body class="body-sk">
+    <button id="dialog_btn">Push for Dialog</button>
 
-  <h2>Image sizes match</h2>
-  <div id=normal class=demo_container></div>
+    <h2>Image sizes match</h2>
+    <div id="normal" class="demo_container"></div>
 
-  <h2>Image sizes mismatch</h2>
-  <div id=mismatch class=demo_container></div>
+    <h2>Image sizes mismatch</h2>
+    <div id="mismatch" class="demo_container"></div>
 
-  <h2>Small base64 image</h2>
-  <div id=base64 class=demo_container></div>
+    <h2>Small base64 image</h2>
+    <div id="base64" class="demo_container"></div>
 
-  <h2>Zoomed in with the grid</h2>
-  <div id=zoomed_grid class=demo_container></div>
+    <h2>Zoomed in with the grid</h2>
+    <div id="zoomed_grid" class="demo_container"></div>
 
-  <h2>Jump to closest pixel diff</h2>
-  <div id=base64_nthpixel class=demo_container></div>
+    <h2>Jump to closest pixel diff</h2>
+    <div id="base64_nthpixel" class="demo_container"></div>
 
-  <dialog id=the_dialog>
-    <multi-zoom-sk id=in_dialog></multi-zoom-sk>
-    <button id=close_btn>Close</button>
-  </dialog>
-</body>
+    <dialog id="the_dialog">
+      <multi-zoom-sk id="in_dialog"></multi-zoom-sk>
+      <button id="close_btn">Close</button>
+    </dialog>
+  </body>
 </html>

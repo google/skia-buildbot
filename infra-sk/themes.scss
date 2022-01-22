@@ -5,7 +5,7 @@
 @import '~elements-sk/styles/select/select.scss';
 @import '~elements-sk/styles/table/table.scss';
 
-:root {
+.body-sk {
   /* Semantic colors defined by elements-sk. */
   --background: var(--grey-50);
   --disabled: var(--grey-500);
@@ -45,42 +45,6 @@
   --positive: var(--green-500);
   --negative: var(--red-500);
   --untriaged: var(--brown-400);
-
-  .darkmode {
-    /* Semantic colors defined by elements-sk. */
-    --background: var(--black);
-    --disabled: var(--grey-600);
-    --error: var(--pink-400);
-    --on-background: var(--white);
-    --on-disabled: var(--grey-300);
-    --on-error: var(--black);
-    --on-primary-variant: var(--black);
-    --on-primary: var(--black);
-    --on-secondary: var(--black);
-    --on-surface: var(--grey-200);
-    --primary-variant: var(--light-blue-300);
-    --primary: var(--light-blue-600);
-    --secondary: var(--green-600);
-    --surface-1dp: var(--grey-800);
-    --surface-2dp: var(--grey-700);
-    --surface: var(--grey-900);
-    --transparent-overlay: rgba(255, 255, 255, 0.5);
-
-    /* Additional semantic colors. */
-    --primary-highlight: var(--light-blue-900);
-    --secondary-highlight: var(--green-900);
-    --on-hightlight: var(--grey-100);
-
-    --failure-alpha: rgba(217, 95, 2, 0.5);
-    --on-failure: var(--on-secondary);
-    --on-success: var(--on-secondary);
-    --on-warning: var(--on-secondary);
-    --warning-alpha: rgb(255, 171, 64, 0.5);
-
-    --positive: var(--green-500);
-    --negative: var(--red-500);
-    --untriaged: var(--brown-400);
-  }
 
   a:active,
   a:visited,
@@ -293,12 +257,49 @@
   ::-webkit-scrollbar-thumb:hover {
     background: var(--surface);
   }
+
+  td {
+    font-size: 100%;
+  }
+
+  th {
+    font-size: 100%;
+  }
 }
 
-td {
-  font-size: 100%;
-}
+.body-sk.darkmode,
+.body-sk .darkmode {
+  /* Semantic colors defined by elements-sk. */
+  --background: var(--black);
+  --disabled: var(--grey-600);
+  --error: var(--pink-400);
+  --on-background: var(--white);
+  --on-disabled: var(--grey-300);
+  --on-error: var(--black);
+  --on-primary-variant: var(--black);
+  --on-primary: var(--black);
+  --on-secondary: var(--black);
+  --on-surface: var(--grey-200);
+  --primary-variant: var(--light-blue-300);
+  --primary: var(--light-blue-600);
+  --secondary: var(--green-600);
+  --surface-1dp: var(--grey-800);
+  --surface-2dp: var(--grey-700);
+  --surface: var(--grey-900);
+  --transparent-overlay: rgba(255, 255, 255, 0.5);
 
-th {
-  font-size: 100%;
+  /* Additional semantic colors. */
+  --primary-highlight: var(--light-blue-900);
+  --secondary-highlight: var(--green-900);
+  --on-hightlight: var(--grey-100);
+
+  --failure-alpha: rgba(217, 95, 2, 0.5);
+  --on-failure: var(--on-secondary);
+  --on-success: var(--on-secondary);
+  --on-warning: var(--on-secondary);
+  --warning-alpha: rgb(255, 171, 64, 0.5);
+
+  --positive: var(--green-500);
+  --negative: var(--red-500);
+  --untriaged: var(--brown-400);
 }

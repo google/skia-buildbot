@@ -1,24 +1,36 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>skottie-inline-sk demo page</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script type="text/javascript" charset="utf-8">
-    // This bit of script loads the custom elements v1 polyfill, but only if required.
-    // See https://webpack.js.org/guides/shimming/#loading-polyfills
-    if (!window.customElements) {
-      var newScript = document.createElement('script');
-      newScript.async = false;
-      newScript.src = '/static/custom-elements.min.js';
-      document.head.appendChild(newScript);
-    }
-  </script>
-</head>
-<body>
-  <skottie-inline-sk width=64 height=64 src='https://skottie.skia.org/_/j/e6741dda67629da1f80c254dad3df865'></skottie-inline-sk>
-  <skottie-inline-sk width=64 height=64 src='https://skottie.skia.org/_/j/ffea72cf6be48fa061671c124ed7789c'></skottie-inline-sk>
-  <skottie-inline-sk width=128 height=128 src='https://skottie.skia.org/_/j/c16eee287f2cea44102b6670c66e60ab'></skottie-inline-sk>
-</body>
+  <head>
+    <title>skottie-inline-sk demo page</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript" charset="utf-8">
+      // This bit of script loads the custom elements v1 polyfill, but only if required.
+      // See https://webpack.js.org/guides/shimming/#loading-polyfills
+      if (!window.customElements) {
+        var newScript = document.createElement('script');
+        newScript.async = false;
+        newScript.src = '/static/custom-elements.min.js';
+        document.head.appendChild(newScript);
+      }
+    </script>
+  </head>
+  <body class="body-sk">
+    <skottie-inline-sk
+      width="64"
+      height="64"
+      src="https://skottie.skia.org/_/j/e6741dda67629da1f80c254dad3df865"
+    ></skottie-inline-sk>
+    <skottie-inline-sk
+      width="64"
+      height="64"
+      src="https://skottie.skia.org/_/j/ffea72cf6be48fa061671c124ed7789c"
+    ></skottie-inline-sk>
+    <skottie-inline-sk
+      width="128"
+      height="128"
+      src="https://skottie.skia.org/_/j/c16eee287f2cea44102b6670c66e60ab"
+    ></skottie-inline-sk>
+  </body>
 </html>

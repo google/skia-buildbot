@@ -1,26 +1,30 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>triage-page-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
 
-<head>
-  <title>triage-page-sk</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
+  <body class="body-sk">
+    <section class="body-sk darkmode">
+      <h1>triage-page-sk</h1>
+      <triage-page-sk></triage-page-sk>
+    </section>
 
-<body>
-  <section class="body-sk darkmode">
-    <h1>triage-page-sk</h1>
-    <triage-page-sk></triage-page-sk>
-  </section>
-
-  <h2>Events</h2>
-  <pre id=events></pre>
-  <script type="text/javascript" charset="utf-8">
-    document.querySelector('triage-page-sk').addEventListener('some-event-name', (e) => {
-      document.querySelector('#events').textContent = JSON.stringify(e.detail, null, '  ');
-    });
-  </script>
-</body>
-
+    <h2>Events</h2>
+    <pre id="events"></pre>
+    <script type="text/javascript" charset="utf-8">
+      document
+        .querySelector('triage-page-sk')
+        .addEventListener('some-event-name', (e) => {
+          document.querySelector('#events').textContent = JSON.stringify(
+            e.detail,
+            null,
+            '  '
+          );
+        });
+    </script>
+  </body>
 </html>

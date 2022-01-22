@@ -1,44 +1,40 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>alert-config-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style type="text/css" media="screen">
+      alert-config-sk {
+        display: block;
+        width: 40em;
+      }
 
-<head>
-  <title>alert-config-sk</title>
-  <meta charset='utf-8' />
-  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <style type='text/css' media='screen'>
-    alert-config-sk {
-      display: block;
-      width: 40em;
-    }
+      body {
+        display: flex;
+      }
 
-    body {
-      display: flex;
-    }
+      section {
+        padding: 8px;
+      }
+    </style>
+  </head>
 
-    section {
-      padding: 8px;
-    }
-  </style>
-</head>
+  <body class="body-sk">
+    <section class="body-sk">
+      <h1>alert-config-sk</h1>
+      <alert-config-sk></alert-config-sk>
+    </section>
 
-<body>
-  <section class="body-sk">
-    <h1>alert-config-sk</h1>
-    <alert-config-sk></alert-config-sk>
-  </section>
+    <section class="body-sk darkmode">
+      <h1>alert-config-sk</h1>
+      <alert-config-sk></alert-config-sk>
+    </section>
 
-  <section class="body-sk darkmode">
-    <h1>alert-config-sk</h1>
-    <alert-config-sk></alert-config-sk>
-  </section>
-
-  <h2>State</h2>
-  <button id=display_group_by>Display Group By</button>
-  <button id=hide_group_by>Hide Group By</button>
-  <pre id=state></pre>
-
-
-</body>
-
+    <h2>State</h2>
+    <button id="display_group_by">Display Group By</button>
+    <button id="hide_group_by">Hide Group By</button>
+    <pre id="state"></pre>
+  </body>
 </html>

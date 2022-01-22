@@ -1,88 +1,100 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Gold Help</title>
-  <link rel="shortcut icon" href="/dist/favicon.ico">
-</head>
-<body>
-<gold-scaffold-sk>
-  <h1>What is Gold?</h1>
+  <head>
+    <title>Gold Help</title>
+    <link rel="shortcut icon" href="/dist/favicon.ico" />
+  </head>
+  <body class="body-sk">
+    <gold-scaffold-sk>
+      <h1>What is Gold?</h1>
 
-  <p>
-    Gold is a tool to help track and manage the output of visual tests over a range of commits.
-  </p>
+      <p>
+        Gold is a tool to help track and manage the output of visual tests over
+        a range of commits.
+      </p>
 
-  <h2>Overview and Vocabulary</h2>
+      <h2>Overview and Vocabulary</h2>
 
-  <p>
-    A <dfn>test</dfn> is a bit of code that produces a PNG image which is uploaded to Gold for
-    cataloging. The images uploaded to Gold are uniquely identified by a hash digest of their pixel
-    content (and potentially other metadata like colorspace); thus the term <dfn>digest</dfn> is
-    frequently used as a synonym of image. Digests are "triaged" to be correct (positive) or
-    incorrect (negative); this is generally done by a human inspecting the digests. A digest that
-    has not been marked positive or negative is said to be "untriaged" and generally means that
-    a test has started producing different output (and a human should check if it's correct).
-  </p>
+      <p>
+        A <dfn>test</dfn> is a bit of code that produces a PNG image which is
+        uploaded to Gold for cataloging. The images uploaded to Gold are
+        uniquely identified by a hash digest of their pixel content (and
+        potentially other metadata like colorspace); thus the term
+        <dfn>digest</dfn> is frequently used as a synonym of image. Digests are
+        "triaged" to be correct (positive) or incorrect (negative); this is
+        generally done by a human inspecting the digests. A digest that has not
+        been marked positive or negative is said to be "untriaged" and generally
+        means that a test has started producing different output (and a human
+        should check if it's correct).
+      </p>
 
-  <p>
-    When a digest is uploaded to Gold, it is tagged with a number of key/value pairs.
-    These keys (frequently called <dfn>params</dfn>) are generally used to label how a digest was
-    produced, for example OS=Android or GPU=Nvidia770GTX. Params can be arbitrary and Gold will
-    automatically identify and process any new params produced by a test - no server-side
-    pre-configuration is necessary. There are two special keys, one for the "name" of the test and
-    the other is "source_type" (aka corpus). Data in Gold tends to be grouped first by corpus, and
-    then by test.
-  </p>
+      <p>
+        When a digest is uploaded to Gold, it is tagged with a number of
+        key/value pairs. These keys (frequently called <dfn>params</dfn>) are
+        generally used to label how a digest was produced, for example
+        OS=Android or GPU=Nvidia770GTX. Params can be arbitrary and Gold will
+        automatically identify and process any new params produced by a test -
+        no server-side pre-configuration is necessary. There are two special
+        keys, one for the "name" of the test and the other is "source_type" (aka
+        corpus). Data in Gold tends to be grouped first by corpus, and then by
+        test.
+      </p>
 
-  <p>
-    A Gold <dfn>trace</dfn> refers to all digests seen belonging to a unique set of params. These
-    traces are visualized throughout Gold as lines of colored dots where a color refers to a
-    specific digest. A trace belongs to exactly one test in exactly one corpus. A trace (or test)
-    is allowed to have multiple positive digests; in practice this happens due to things like
-    nondeterminism in anti-aliasing algorithms for certain GPUs.
-  </p>
+      <p>
+        A Gold <dfn>trace</dfn> refers to all digests seen belonging to a unique
+        set of params. These traces are visualized throughout Gold as lines of
+        colored dots where a color refers to a specific digest. A trace belongs
+        to exactly one test in exactly one corpus. A trace (or test) is allowed
+        to have multiple positive digests; in practice this happens due to
+        things like nondeterminism in anti-aliasing algorithms for certain GPUs.
+      </p>
 
-  <p>
-    To keep processing tractable, Gold only focuses on the last N commits for which it has seen
-    data. N is generally between 200 and 500 depending on settings for an individual instance.
-  </p>
+      <p>
+        To keep processing tractable, Gold only focuses on the last N commits
+        for which it has seen data. N is generally between 200 and 500 depending
+        on settings for an individual instance.
+      </p>
 
-  <h2>Pages on Gold</h2>
+      <h2>Pages on Gold</h2>
 
-  <h3>By Blame (default page)</h3>
+      <h3>By Blame (default page)</h3>
 
-  <p>
-    On the By Blame page, Gold shows a set of recent commits that Gold believes have first
-    introduced on or more untriaged digests. There are links on this page that will lead to
-    the Search Page showing all untriaged digests and the Details page showing details about
-    individual digests.
-  </p>
+      <p>
+        On the By Blame page, Gold shows a set of recent commits that Gold
+        believes have first introduced on or more untriaged digests. There are
+        links on this page that will lead to the Search Page showing all
+        untriaged digests and the Details page showing details about individual
+        digests.
+      </p>
 
-  <h3>Search</h3>
+      <h3>Search</h3>
 
-  <p>
-    This is one of Gold's most powerful pages, as it allows one to search and filter over all
-    the input Gold has processed. By default, it will show traces that have untriaged digests
-    "at head", that is to say, traces which have most recently produced an unseen image. These
-    traces are grouped together by digest, so if multiple traces output the same digest (for
-    example, a Release and a Debug build), they will be closer together. Digests will automatically
-    be compared to another digest from the same test; in fact, the most similar digest.
-  </p>
+      <p>
+        This is one of Gold's most powerful pages, as it allows one to search
+        and filter over all the input Gold has processed. By default, it will
+        show traces that have untriaged digests "at head", that is to say,
+        traces which have most recently produced an unseen image. These traces
+        are grouped together by digest, so if multiple traces output the same
+        digest (for example, a Release and a Debug build), they will be closer
+        together. Digests will automatically be compared to another digest from
+        the same test; in fact, the most similar digest.
+      </p>
 
-  <p>
-    It is common to triage digests on the search page. Additionally, there is a zoom button that
-    can allow for a closer side-by-side view of the difference between a digest and another digest.
-    When zoomed in, a common keyboard shortcut "u" can be used to jump to the largest difference.
-  </p>
+      <p>
+        It is common to triage digests on the search page. Additionally, there
+        is a zoom button that can allow for a closer side-by-side view of the
+        difference between a digest and another digest. When zoomed in, a common
+        keyboard shortcut "u" can be used to jump to the largest difference.
+      </p>
 
-  <h3>Details</h3>
+      <h3>Details</h3>
 
-  <p>
-    The details page shows information about one digest and any traces the produce it.
-  </p>
+      <p>
+        The details page shows information about one digest and any traces the
+        produce it.
+      </p>
 
-  <!-- TODO(kjlubick) more about the other pages -->
-
-</gold-scaffold-sk>
-</body>
+      <!-- TODO(kjlubick) more about the other pages -->
+    </gold-scaffold-sk>
+  </body>
 </html>

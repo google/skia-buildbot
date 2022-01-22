@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>{{.TaskName}}</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <title>{{.TaskName}}</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript" charset="utf-8">
+      // This bit of script loads the custom elements v1 polyfill, but only if required.
+      // See https://webpack.js.org/guides/shimming/#loading-polyfills
+      if (!window.customElements) {
+        var newScript = document.createElement('script');
+        newScript.async = false;
+        newScript.src = '/res/custom-elements.min.js';
+        document.head.appendChild(newScript);
+      }
+    </script>
+  </head>
+  <body class="body-sk">
+    <task-driver-sk id="td"></task-driver-sk>
+  </body>
   <script type="text/javascript" charset="utf-8">
-    // This bit of script loads the custom elements v1 polyfill, but only if required.
-    // See https://webpack.js.org/guides/shimming/#loading-polyfills
-    if (!window.customElements) {
-      var newScript = document.createElement('script');
-      newScript.async = false;
-      newScript.src = '/res/custom-elements.min.js';
-      document.head.appendChild(newScript);
-    }
+    let ele = document.getElementById("td");
+    ele.data = JSON.parse({{.TaskJson}});
   </script>
-</head>
-<body>
-  <task-driver-sk id="td"></task-driver-sk>
-</body>
-<script type="text/javascript" charset="utf-8">
-  let ele = document.getElementById("td");
-  ele.data = JSON.parse({{.TaskJson}});
-</script>
 </html>

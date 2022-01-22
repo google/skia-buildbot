@@ -1,43 +1,40 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>commit-detail-panel-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style type="text/css" media="screen">
+      commit-detail-panel-sk {
+        margin: 2em;
+        display: block;
+      }
+    </style>
+  </head>
 
-<head>
-  <title>commit-detail-panel-sk</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style type="text/css" media="screen">
-    commit-detail-panel-sk {
-      margin: 2em;
-      display: block;
-    }
-  </style>
-</head>
+  <body class="body-sk">
+    <h1>Commits</h1>
 
-<body>
-  <h1>Commits</h1>
+    <h2>Unselectable</h2>
+    <commit-detail-panel-sk></commit-detail-panel-sk>
 
-  <h2>Unselectable</h2>
-  <commit-detail-panel-sk></commit-detail-panel-sk>
-
-  <h2>Selectable</h2>
-  <commit-detail-panel-sk selectable></commit-detail-panel-sk>
-
-  <section class=body-sk>
-    <h2>Selectable Light Theme</h2>
+    <h2>Selectable</h2>
     <commit-detail-panel-sk selectable></commit-detail-panel-sk>
-  </section>
 
-  <section class="body-sk darkmode">
-    <h2>Selectable Dark Theme</h2>
-    <commit-detail-panel-sk selectable></commit-detail-panel-sk>
-  </section>
+    <section class="body-sk">
+      <h2>Selectable Light Theme</h2>
+      <commit-detail-panel-sk selectable></commit-detail-panel-sk>
+    </section>
 
-  <div>
-    Event:
-    <pre id=evt></pre>
-  </div>
+    <section class="body-sk darkmode">
+      <h2>Selectable Dark Theme</h2>
+      <commit-detail-panel-sk selectable></commit-detail-panel-sk>
+    </section>
 
-</body>
-
+    <div>
+      Event:
+      <pre id="evt"></pre>
+    </div>
+  </body>
 </html>

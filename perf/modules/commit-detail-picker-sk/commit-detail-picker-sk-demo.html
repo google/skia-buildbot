@@ -1,37 +1,34 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>commit-detail-picker-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style type="text/css" media="screen">
+      commit-detail-picker-sk {
+        margin: 2em;
+        display: block;
+      }
+    </style>
+  </head>
 
-<head>
-  <title>commit-detail-picker-sk</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style type="text/css" media="screen">
-    commit-detail-picker-sk {
-      margin: 2em;
-      display: block;
-    }
-  </style>
-</head>
+  <body class="body-sk">
+    <h1>Commits</h1>
 
-<body>
-  <h1>Commits</h1>
+    <section class="body-sk">
+      <h2>themes.css</h2>
+      <commit-detail-picker-sk></commit-detail-picker-sk>
+    </section>
 
-  <section class="body-sk">
-    <h2>themes.css</h2>
-    <commit-detail-picker-sk></commit-detail-picker-sk>
-  </section>
+    <section class="body-sk darkmode">
+      <h2>themes.css - darkmode</h2>
+      <commit-detail-picker-sk id="darkmode-picker"></commit-detail-picker-sk>
+    </section>
 
-  <section class="body-sk darkmode">
-    <h2>themes.css - darkmode</h2>
-    <commit-detail-picker-sk id=darkmode-picker></commit-detail-picker-sk>
-  </section>
-
-  <div>
-    Event:
-    <pre id=evt></pre>
-  </div>
-
-</body>
-
+    <div>
+      Event:
+      <pre id="evt"></pre>
+    </div>
+  </body>
 </html>

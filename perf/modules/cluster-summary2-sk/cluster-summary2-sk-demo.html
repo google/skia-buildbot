@@ -1,40 +1,36 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>cluster-summary2-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript" charset="utf-8">
+      var sk = {};
+      sk.perf = {};
+      sk.perf.commit_range_url = '';
+    </script>
+    <style type="text/css" media="screen">
+      cluster-summary2-sk {
+        width: 60em;
+      }
+    </style>
+  </head>
 
-<head>
-  <title>cluster-summary2-sk</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script type="text/javascript" charset="utf-8">
-    var sk = {};
-    sk.perf = {};
-    sk.perf.commit_range_url = "";
-  </script>
-  <style type="text/css" media="screen">
-    cluster-summary2-sk {
-      width: 60em;
-    }
-  </style>
-</head>
+  <body class="body-sk">
+    <h1>Cluster</h1>
 
-<body>
-  <h1>Cluster</h1>
+    <section class="body-sk">
+      <h2>A cluster</h2>
+      <cluster-summary2-sk class="cluster" notriage></cluster-summary2-sk>
+    </section>
 
-  <section class="body-sk">
-    <h2>A cluster</h2>
-    <cluster-summary2-sk class="cluster" notriage></cluster-summary2-sk>
-  </section>
+    <section class="body-sk darkmode">
+      <h2>A cluster with triaging</h2>
+      <cluster-summary2-sk class="nostatus"></cluster-summary2-sk>
+    </section>
 
-  <section class="body-sk darkmode">
-    <h2>A cluster with triaging</h2>
-    <cluster-summary2-sk class="nostatus"></cluster-summary2-sk>
-  </section>
-
-  <h3>Events</h3>
-  <pre><code class=events></code></pre>
-
-
-</body>
-
+    <h3>Events</h3>
+    <pre><code class=events></code></pre>
+  </body>
 </html>

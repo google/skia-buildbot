@@ -1,64 +1,68 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>query-values-sk</title>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style type="text/css" media="screen">
-query-values-sk multi-select-sk {
-  max-height: 4em;
-  overflow-y: scroll;
-}
-    </style>
-</head>
-<body>
-  <query-values-sk></query-values-sk>
-  <div>
-    <button id=change>Change</button>
-  </div>
-  <h2>Events</h2>
-  <pre id=events></pre>
-  <script type="text/javascript" charset="utf-8">
-    let q = document.querySelector('query-values-sk');
-    let b = document.querySelector('#change');
-    q.addEventListener('query-values-changed', (e) => {
-      document.querySelector('#events').textContent = JSON.stringify(e.detail, null, '  ');
-    })
-
-    const long_options =[
-      "565",
-      "8888",
-      "opt3",
-      "opt4",
-      "opt5",
-      "opt6",
-      "opt7",
-      "opt8",
-      "opt9",
-      "opt10",
-    ];
-    q.options = long_options;
-    q.selected = ["!565"];
-
-    let n = 0;
-    b.addEventListener('click', (e) =>{
-      n = (n + 1) % 3;
-      switch(n) {
-        case 0:
-          q.options = long_options;
-          q.selected = ["!565"];
-          break;
-        case 1:
-          q.options = ["x86", "arm"];
-          q.selected = ["~ar"];
-          break;
-        case 2:
-          q.options = ["x86", "arm"];
-          q.selected = ["arm"];
-          break;
+      query-values-sk multi-select-sk {
+        max-height: 4em;
+        overflow-y: scroll;
       }
-    });
-  </script>
-</body>
+    </style>
+  </head>
+  <body class="body-sk">
+    <query-values-sk></query-values-sk>
+    <div>
+      <button id="change">Change</button>
+    </div>
+    <h2>Events</h2>
+    <pre id="events"></pre>
+    <script type="text/javascript" charset="utf-8">
+      let q = document.querySelector('query-values-sk');
+      let b = document.querySelector('#change');
+      q.addEventListener('query-values-changed', (e) => {
+        document.querySelector('#events').textContent = JSON.stringify(
+          e.detail,
+          null,
+          '  '
+        );
+      });
+
+      const long_options = [
+        '565',
+        '8888',
+        'opt3',
+        'opt4',
+        'opt5',
+        'opt6',
+        'opt7',
+        'opt8',
+        'opt9',
+        'opt10',
+      ];
+      q.options = long_options;
+      q.selected = ['!565'];
+
+      let n = 0;
+      b.addEventListener('click', (e) => {
+        n = (n + 1) % 3;
+        switch (n) {
+          case 0:
+            q.options = long_options;
+            q.selected = ['!565'];
+            break;
+          case 1:
+            q.options = ['x86', 'arm'];
+            q.selected = ['~ar'];
+            break;
+          case 2:
+            q.options = ['x86', 'arm'];
+            q.selected = ['arm'];
+            break;
+        }
+      });
+    </script>
+  </body>
 </html>

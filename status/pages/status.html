@@ -2,7 +2,11 @@
 <html>
   <head>
     <title>{{.Title}}</title>
-    <link id="dynamicFavicon" rel="shortcut icon" href="/dist/img/favicon-open.ico" />
+    <link
+      id="dynamicFavicon"
+      rel="shortcut icon"
+      href="/dist/img/favicon-open.ico"
+    />
     <script>
       window.StatusSettings = {
         swarmingUrl: '{{.SwarmingURL}}',
@@ -18,7 +22,7 @@
       };
     </script>
   </head>
-  <body>
+  <body class="body-sk">
     <status-sk></status-sk>
   </body>
 </html>

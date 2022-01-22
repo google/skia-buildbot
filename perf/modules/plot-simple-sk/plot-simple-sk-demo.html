@@ -1,75 +1,72 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>plot-simple</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style type="text/css" media="screen">
+      button.action {
+        display: inline-block;
+        min-width: none;
+        text-transform: none;
+        padding: 4px;
+        margin: 4px;
+      }
 
-<head>
-  <title>plot-simple</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style type="text/css" media="screen">
-    button.action {
-      display: inline-block;
-      min-width: none;
-      text-transform: none;
-      padding: 4px;
-      margin: 4px;
-    }
+      plot-simple-sk {
+        display: block;
+      }
 
-    plot-simple-sk {
-      display: block;
-    }
+      body {
+        width: 1000px;
+      }
+    </style>
+  </head>
 
-    body {
-      width: 1000px;
-    }
-  </style>
-</head>
+  <body class="body-sk">
+    <h1>Plot</h1>
+    <div>
+      <button class="action" id="zoomAction">Zoom</button>
+      <button class="action" id="reset">Reset</button>
+      <button class="action" id="add">Add</button>
+      <button class="action" id="addalot">Add a lot</button>
+      <button class="action" id="clear">Clear</button>
+      <button class="action" id="high">Highlight</button>
+      <button class="action" id="clearhigh">Clear Highlight</button>
+      <button class="action" id="xbar">X Bar</button>
+      <button class="action" id="clearxbar">Clear X Bar</button>
+      <button class="action" id="bands">Bands</button>
+      <button class="action" id="toggleDots">Toggle Dots</button>
+      <button class="action" id="special">Add Special</button>
+    </div>
 
-<body>
-  <h1>Plot</h1>
-  <div>
-    <button class=action id=zoomAction>Zoom</button>
-    <button class=action id=reset>Reset</button>
-    <button class=action id=add>Add</button>
-    <button class=action id=addalot>Add a lot</button>
-    <button class=action id=clear>Clear</button>
-    <button class=action id=high>Highlight</button>
-    <button class=action id=clearhigh>Clear Highlight</button>
-    <button class=action id=xbar>X Bar</button>
-    <button class=action id=clearxbar>Clear X Bar</button>
-    <button class=action id=bands>Bands</button>
-    <button class=action id=toggleDots>Toggle Dots</button>
-    <button class=action id=special>Add Special</button>
-  </div>
+    <plot-simple-sk summary width="600" height="300" id="plot"></plot-simple-sk>
 
-  <plot-simple-sk summary width=600 height=300 id=plot></plot-simple-sk>
+    <table>
+      <tr>
+        <th>Selected</th>
+        <td id="selected"></td>
+      </tr>
+      <tr>
+        <th>Focused</th>
+        <td id="focused"></td>
+      </tr>
+      <tr>
+        <th>Zoom</th>
+        <td id="zoom"></td>
+      </tr>
+    </table>
 
-  <table>
-    <tr>
-      <th>Selected</th>
-      <td id=selected></td>
-    </tr>
-    <tr>
-      <th>Focused</th>
-      <td id=focused></td>
-    </tr>
-    <tr>
-      <th>Zoom</th>
-      <td id=zoom></td>
-    </tr>
-  </table>
+    <section class="body-sk">
+      <h2>themes.css</h2>
+      <plot-simple-sk summary width="600" height="300"></plot-simple-sk>
+    </section>
 
-  <section class="body-sk">
-    <h2>themes.css</h2>
-    <plot-simple-sk summary width=600 height=300></plot-simple-sk>
-  </section>
-
-  <section class="body-sk darkmode">
-    <theme-chooser-sk></theme-chooser-sk>
-    <h2>themes.css - darkmode</h2>
-    <plot-simple-sk summary width=600 height=300></plot-simple-sk>
-  </section>
-
-</body>
-
+    <section class="body-sk darkmode">
+      <theme-chooser-sk></theme-chooser-sk>
+      <h2>themes.css - darkmode</h2>
+      <plot-simple-sk summary width="600" height="300"></plot-simple-sk>
+    </section>
+  </body>
 </html>

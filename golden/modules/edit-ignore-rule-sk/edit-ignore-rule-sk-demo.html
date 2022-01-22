@@ -1,38 +1,37 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>edit-ignore-rule-sk</title>
-  <meta charset="utf-8"/>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-      #empty,#filled,#missing {
-          max-width: 600px;
+  <head>
+    <title>edit-ignore-rule-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      #empty,
+      #filled,
+      #missing {
+        max-width: 600px;
       }
-  </style>
-</head>
-<body>
+    </style>
+  </head>
+  <body class="body-sk">
+    <h2>An empty editor</h2>
+    <div id="empty">
+      <!-- An edit-ignore-rule element will be inserted here dynamically. -->
+    </div>
 
-<h2>An empty editor</h2>
-<div id=empty>
-  <!-- An edit-ignore-rule element will be inserted here dynamically. -->
-</div>
+    <h2>An editor with all values filled out</h2>
+    <div id="filled">
+      <!-- An edit-ignore-rule element will be inserted here dynamically. -->
+    </div>
 
-<h2>An editor with all values filled out</h2>
-<div id=filled>
-    <!-- An edit-ignore-rule element will be inserted here dynamically. -->
-</div>
+    <h2>An editor showing an error when verify</h2>
+    <div id="missing">
+      <!-- An edit-ignore-rule element will be inserted here dynamically. -->
+    </div>
 
-<h2>An editor showing an error when verify</h2>
-<div id=missing>
-    <!-- An edit-ignore-rule element will be inserted here dynamically. -->
-</div>
-
-<h2>An editor showing an error when only partially adding custom value</h2>
-<div id=partial_custom_values>
-  <!-- An edit-ignore-rule element will be inserted here dynamically. -->
-</div>
-
-
-</body>
+    <h2>An editor showing an error when only partially adding custom value</h2>
+    <div id="partial_custom_values">
+      <!-- An edit-ignore-rule element will be inserted here dynamically. -->
+    </div>
+  </body>
 </html>

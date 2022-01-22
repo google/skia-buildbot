@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>dots-sk</title>
-  <meta charset="utf-8"/>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    canvas {
-      margin: 1em;
-      border: 1px solid lightgrey;
-    }
-    #event-log-container {
-      border: 1px solid lightgrey;
-      margin: 5em 1em 1em;
-      padding: 1em;
-    }
-    #event-log {
-      font-family: monospace;
-    }
-  </style>
-</head>
-<body>
-<div id=container>
-  <!-- A dots-sk element will be inserted here dynamically. -->
-</div>
+  <head>
+    <title>dots-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      canvas {
+        margin: 1em;
+        border: 1px solid lightgrey;
+      }
+      #event-log-container {
+        border: 1px solid lightgrey;
+        margin: 5em 1em 1em;
+        padding: 1em;
+      }
+      #event-log {
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body class="body-sk">
+    <div id="container">
+      <!-- A dots-sk element will be inserted here dynamically. -->
+    </div>
 
-<div id=event-log-container>
-  <p><strong>Event log</strong></p>
-  <textarea id=event-log readonly rows=30 cols=120></textarea>
-</div>
-</body>
+    <div id="event-log-container">
+      <p><strong>Event log</strong></p>
+      <textarea id="event-log" readonly rows="30" cols="120"></textarea>
+    </div>
+  </body>
 </html>

@@ -11,7 +11,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="body-sk">
     <triage2-sk></triage2-sk>
     <triage2-sk value="positive"></triage2-sk>
     <triage2-sk value="negative"></triage2-sk>
@@ -29,7 +29,7 @@
       <triage2-sk value="negative"></triage2-sk>
       <triage2-sk value="untriaged"></triage2-sk>
     </div>
-    <p> Event: <code id="evt"></code> </p>
+    <p>Event: <code id="evt"></code></p>
     <script type="text/javascript" charset="utf-8">
       document.body.addEventListener('change', (e) => {
         document.getElementById('evt').innerText = e.detail;

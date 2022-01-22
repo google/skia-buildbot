@@ -1,38 +1,37 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>corpus-selector-sk</title>
-  <meta charset="utf-8"/>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    .event-log {
-      margin: 5em 1em 1em;
-      padding: 1em;
-      border: 1px solid lightgrey;
-    }
-  </style>
-</head>
-<body>
+  <head>
+    <title>corpus-selector-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .event-log {
+        margin: 5em 1em 1em;
+        padding: 1em;
+        border: 1px solid lightgrey;
+      }
+    </style>
+  </head>
+  <body class="body-sk">
+    <h2>Default corpus renderer function:</h2>
+    <div id="default">
+      <!-- A corpus-selector-sk element will be inserted here dynamically. -->
+    </div>
 
-<h2>Default corpus renderer function:</h2>
-<div id="default">
-  <!-- A corpus-selector-sk element will be inserted here dynamically. -->
-</div>
+    <h2>Custom corpus renderer function:</h2>
+    <div id="custom-fn">
+      <!-- A corpus-selector-sk element will be inserted here dynamically. -->
+    </div>
 
-<h2>Custom corpus renderer function:</h2>
-<div id="custom-fn">
-  <!-- A corpus-selector-sk element will be inserted here dynamically. -->
-</div>
+    <h2>Custom corpus renderer function (long):</h2>
+    <div id="custom-fn-long-corpus">
+      <!-- A corpus-selector-sk element will be inserted here dynamically. -->
+    </div>
 
-<h2>Custom corpus renderer function (long):</h2>
-<div id="custom-fn-long-corpus">
-  <!-- A corpus-selector-sk element will be inserted here dynamically. -->
-</div>
-
-<div class=event-log>
-  <p><strong>Event log</strong></p>
-  <textarea id="event-log" readonly rows="10" cols="80"></textarea>
-</div>
-</body>
+    <div class="event-log">
+      <p><strong>Event log</strong></p>
+      <textarea id="event-log" readonly rows="10" cols="80"></textarea>
+    </div>
+  </body>
 </html>
