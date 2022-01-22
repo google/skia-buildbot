@@ -1,35 +1,20 @@
 @import '~elements-sk/colors';
 
 skottie-config-sk {
-  display: block;
+  display: inline-block;
+  background: var(--surface);
+  padding: 8px;
+  border: solid 1px var(--on-surface);
+  margin: 16px 8px;
 
-  // TODO(jcgregorio) Add a .button-like class to elements-sk to avoid the copy-paste.
-  label.file {
-    min-width: 5.14em;
-    background-color: var(--white);
-    color: var(--blue);
-    fill: var(--blue);
-    text-align: center;
-    outline: none;
-    border-radius: 4px;
-    padding: 0.6em 1.2em;
-    border: solid var(--light-gray) 1px;
-    margin: 0.6em;
-    height: 3em;
-    transition: box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 2px 2px 8px 0 rgba(0, 0, 0, 0.6);
-  }
-
-  input[type=file] {
+  input[type='file'] {
     visibility: hidden;
     width: 0;
   }
 
   .filename {
-    border: solid var(--light-gray) 1px;
-    padding: 0.4em;
-    margin: 0.6em;
-    display: inline-block;
+    padding: 4px;
+    margin: 8px;
     font-style: inherit;
     font-weight: bold;
   }
@@ -39,29 +24,28 @@ skottie-config-sk {
     font-weight: inherit;
   }
 
-  input[type=number] {
-    margin-right: 0.6em;
-    padding: 0.3em;
-    border: solid var(--light-gray) 1px;
+  input[type='number'] {
+    margin-right: 8px;
+    padding: 4px;
+    border: solid var(--on-surface) 1px;
   }
 
   label.number {
     display: block;
-    margin: 0.6em;
+    margin: 8px;
   }
 
   #dialog-buttons {
-    width: 21em;
-    margin-top: 1em;
+    margin-top: 8px;
     text-align: right;
   }
 
   .warning {
-    margin: 1em 0 0.2em 0.6em;
+    margin: 16px 0 4px 8px;
   }
 
   .warning p {
     font-weight: bold;
-    color: var(--red);
+    color: var(--error);
   }
 }

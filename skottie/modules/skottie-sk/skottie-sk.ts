@@ -41,6 +41,8 @@ import {
 import { SkottieLibrarySk } from '../skottie-library-sk/skottie-library-sk';
 import { AudioStartEventDetail, SkottieAudioSk } from '../skottie-audio-sk/skottie-audio-sk';
 import { SkottieTextEditorSk, TextEditApplyEventDetail } from '../skottie-text-editor-sk/skottie-text-editor-sk';
+import '../../../infra-sk/modules/theme-chooser-sk';
+import '../../../infra-sk/modules/app-sk';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -118,21 +120,24 @@ const displayLoading = () => html`
 
 export class SkottieSk extends ElementSk {
   private static template = (ele: SkottieSk) => html`
-<header>
-  <h2>Skottie</h2>
-  <span>
-    <a href='https://skia.googlesource.com/skia/+show/${SKIA_VERSION}'>
-      ${SKIA_VERSION.slice(0, 7)}
-    </a>
-  </span>
-</header>
-<main>
-  ${ele.pick()}
-</main>
-<footer>
-  <error-toast-sk></error-toast-sk>
-  ${redir()}
-</footer>
+  <app-sk>
+    <header>
+      <h2>Skottie</h2>
+      <span>
+        <a href='https://skia.googlesource.com/skia/+show/${SKIA_VERSION}'>
+          ${SKIA_VERSION.slice(0, 7)}
+        </a>
+        <theme-chooser-sk></theme-chooser-sk>
+      </span>
+    </header>
+    <main>
+      ${ele.pick()}
+    </main>
+    <footer>
+      <error-toast-sk></error-toast-sk>
+      ${redir()}
+    </footer>
+  </app-sk>
 `;
 
   // pick the right part of the UI to display based on ele._ui.

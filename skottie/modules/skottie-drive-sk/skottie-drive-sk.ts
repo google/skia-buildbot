@@ -34,6 +34,8 @@ import { until } from 'lit-html/directives/until.js';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SkottiePlayerConfig, SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 import { LottieAnimation } from '../types';
+import '../../../infra-sk/modules/theme-chooser-sk';
+import '../../../infra-sk/modules/app-sk';
 
 // See https://stackoverflow.com/a/45352250
 interface WindowWithGAPILoaded extends Window {
@@ -78,15 +80,21 @@ interface URLState {
 
 export class SkottieDriveSk extends ElementSk {
   private static template = (ele: SkottieDriveSk) => html`
-<header>
-  <h2>Skia Lottie Drive Previewer</h2><span><a href='https://skia.googlesource.com/skia/+show/${SKIA_VERSION}'>${SKIA_VERSION.slice(0, 7)}</a></span>
-</header>
-<main>
-  ${ele.players()}
-</main>
-<footer>
-  <error-toast-sk></error-toast-sk>
-</footer>
+  <app-sk>
+    <header>
+      <h2>Skia Lottie Drive Previewer</h2>
+      <span>
+        <a href='https://skia.googlesource.com/skia/+show/${SKIA_VERSION}'>${SKIA_VERSION.slice(0, 7)}</a>
+        <theme-chooser-sk></theme-chooser-sk>
+      </span>
+    </header>
+    <main>
+      ${ele.players()}
+    </main>
+    <footer>
+      <error-toast-sk></error-toast-sk>
+    </footer>
+  </app-sk>
 `;
 
   // caption returns a promise that resolves to the filename of the document

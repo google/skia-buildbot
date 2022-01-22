@@ -4,7 +4,11 @@ sk_element(
     name = "skottie-drive-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["skottie-drive-sk.scss"],
-    sk_element_deps = ["//skottie/modules/skottie-player-sk"],
+    sk_element_deps = [
+        "//skottie/modules/skottie-player-sk",
+        "//infra-sk/modules/app-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//skottie/modules:types_ts_lib",

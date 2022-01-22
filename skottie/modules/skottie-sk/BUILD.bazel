@@ -46,6 +46,8 @@ sk_element(
         "//skottie/modules/skottie-performance-sk",
         "//skottie/modules/skottie-player-sk",
         "//skottie/modules/skottie-text-editor-sk",
+        "//infra-sk/modules/app-sk",
+        "//infra-sk/modules/theme-chooser-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

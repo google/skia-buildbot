@@ -79,16 +79,16 @@ export class SkottieConfigSk extends ElementSk {
       </li>
     </ul>
   </div>
-  <label class=file>Lottie file to upload
+  <label class=button-like>Lottie file to upload
     <input type=file name=file id=file @change=${ele.onFileChange}/>
   </label>
-  <div class="filename ${ele._state.filename ? '' : 'empty'}">
+  <div class="filename input-like ${ele._state.filename ? '' : 'empty'}">
     ${ele._state.filename ? ele._state.filename : 'No file selected.'}
   </div>
-  <label class=file ?hidden=${!allowZips}>Optional Asset Folder (.zip)
+  <label class=button-like ?hidden=${!allowZips}>Optional Asset Folder (.zip)
     <input type=file name=folder id=folder @change=${ele.onFolderChange}/>
   </label>
-  <div class="filename ${ele._state.assetsFilename ? '' : 'empty'}" ?hidden=${!allowZips}>
+  <div class="filename input-like ${ele._state.assetsFilename ? '' : 'empty'}" ?hidden=${!allowZips}>
     ${ele._state.assetsFilename ? ele._state.assetsFilename : 'No asset folder selected.'}
   </div>
   <label class=number>

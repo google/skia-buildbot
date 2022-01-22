@@ -66,6 +66,8 @@ app-sk > {
     align-items: center;
     color: var(--header-font-color);
     fill: var(--header-font-color);
+    min-height: 48px;
+    border-bottom: solid 1px var(--primary);
 
     grid-column: 1 / span 2;
     grid-row: 1;

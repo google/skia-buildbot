@@ -56,10 +56,7 @@
     color: var(--secondary);
   }
 
-  header {
-    border-bottom: solid 1px var(--primary);
-  }
-
+  .input-like,
   input {
     border: solid 1px var(--on-surface);
     color: solid 1px var(--on-surface);
@@ -67,6 +64,7 @@
     display: inline-block;
   }
 
+  .button-like,
   button {
     min-width: auto;
     text-align: center;
@@ -75,19 +73,23 @@
     height: fit-content;
     margin: 8px 2px;
     outline: none;
+    border: solid 1px var(--on-surface);
 
     box-shadow: 2px 2px 0px 0px var(--surface-2dp);
   }
 
+  .button-like.action,
   button.action {
     box-shadow: 2px 2px 0px 0px var(--surface-2dp);
   }
 
+  .button-like:active,
   button:active {
     box-shadow: none;
     transition: box-shadow 0.2s ease-in;
   }
 
+  .button-like:disabled,
   button:disabled {
     opacity: 0.5;
     background: var(--on-disabled);
