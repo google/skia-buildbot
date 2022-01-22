@@ -211,3 +211,65 @@ func TestInsertAssets_WithoutNonce_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, expectedHTMLWithoutNonce, actualOutput)
 }
+
+func TestInsertAssets_MissingEndHeadTag_Error(t *testing.T) {
+	unittest.SmallTest(t)
+	html := `
+	<html>
+		<head>
+			<title>Hello</title>
+		<body>
+			<p>Hello, world!</p>
+		</body>
+	</html>
+	`
+	_, err := insertAssets(strings.NewReader(html), jsPath, cssPath, "" /* =nonce */)
+	assert.EqualError(t, err, "no </head> tag found")
+}
+
+func TestInsertAssets_MalformedEndHeadTag_Error(t *testing.T) {
+	unittest.SmallTest(t)
+	html := `
+	<html>
+		<head>
+			<title>Hello</title>
+		<head>
+		<body>
+			<p>Hello, world!</p>
+		</body>
+	</html>
+	`
+	_, err := insertAssets(strings.NewReader(html), jsPath, cssPath, "" /* =nonce */)
+	assert.EqualError(t, err, "no </head> tag found")
+}
+
+func TestInsertAssets_MissingEndBodyTag_Error(t *testing.T) {
+	unittest.SmallTest(t)
+	html := `
+	<html>
+		<head>
+			<title>Hello</title>
+		</head>
+		<body>
+			<p>Hello, world!</p>
+	</html>
+	`
+	_, err := insertAssets(strings.NewReader(html), jsPath, cssPath, "" /* =nonce */)
+	assert.EqualError(t, err, "no </body> tag found")
+}
+
+func TestInsertAssets_MalformedEndBodyTag_Error(t *testing.T) {
+	unittest.SmallTest(t)
+	html := `
+	<html>
+		<head>
+			<title>Hello</title>
+		</head>
+		<body>
+			<p>Hello, world!</p>
+		<body>
+	</html>
+	`
+	_, err := insertAssets(strings.NewReader(html), jsPath, cssPath, "" /* =nonce */)
+	assert.EqualError(t, err, "no </body> tag found")
+}

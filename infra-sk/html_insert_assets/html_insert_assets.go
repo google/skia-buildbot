@@ -14,13 +14,17 @@ import (
 
 func insertAssets(inputHTML io.Reader, jsPath, cssPath, nonce string) (string, error) {
 	var output []string
+	var endHeadTagFound bool
+	var endBodyTagFound bool
 	tokenizer := html.NewTokenizer(inputHTML)
+
+loop:
 	for {
 		tokenType := tokenizer.Next()
 		switch tokenType {
 		case html.ErrorToken:
 			if tokenizer.Err() == io.EOF {
-				return strings.Join(output, ""), nil
+				break loop
 			} else {
 				return "", tokenizer.Err()
 			}
@@ -28,6 +32,7 @@ func insertAssets(inputHTML io.Reader, jsPath, cssPath, nonce string) (string, e
 			tagNameBytes, _ := tokenizer.TagName()
 			tagName := string(tagNameBytes)
 			if tagName == "head" {
+				endHeadTagFound = true
 				// Insert <link> tag.
 				if nonce != "" {
 					output = append(output, fmt.Sprintf("<link rel=\"stylesheet\" href=%q nonce=%q>", cssPath, nonce))
@@ -36,6 +41,7 @@ func insertAssets(inputHTML io.Reader, jsPath, cssPath, nonce string) (string, e
 				}
 			}
 			if tagName == "body" {
+				endBodyTagFound = true
 				// Insert <script> tag.
 				if nonce != "" {
 					output = append(output, fmt.Sprintf("<script src=%q nonce=%q></script>", jsPath, nonce))
@@ -46,6 +52,14 @@ func insertAssets(inputHTML io.Reader, jsPath, cssPath, nonce string) (string, e
 		}
 		output = append(output, string(tokenizer.Raw()))
 	}
+
+	if !endHeadTagFound {
+		return "", fmt.Errorf("no </head> tag found")
+	}
+	if !endBodyTagFound {
+		return "", fmt.Errorf("no </body> tag found")
+	}
+	return strings.Join(output, ""), nil
 }
 
 func main() {
@@ -61,15 +75,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	htmlReader, err := os.Open(*html)
-	if err != nil {
-		panic(err)
+	ifErrThenDie := func(err error) {
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error while instrumenting %s: %s", *html, err)
+			os.Exit(1)
+		}
 	}
 
+	htmlReader, err := os.Open(*html)
+	ifErrThenDie(err)
+
 	instrumentedHTML, err := insertAssets(htmlReader, *js, *css, *nonce)
-	if err != nil && err != io.EOF {
-		panic(err)
-	}
+	ifErrThenDie(err)
 
 	fmt.Printf("%s", instrumentedHTML)
 }
