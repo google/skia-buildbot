@@ -28,9 +28,10 @@ export class ImageCompareSk extends ElementSk {
   private static template = (ele: ImageCompareSk) => html`
     <div class=comparison_bar>
       <figure>
-        <img class="thumbnail ${ele._fullSizeImages ? 'fullsize' : ''}"
+        <img class="thumbnail ${ele._fullSizeLeftImage ? 'fullsize' : ''}"
              alt="left image"
-             src=${digestImagePath(ele.left.digest)}>
+             src=${digestImagePath(ele.left.digest)}
+             @click=${ele.toggleFullSizeLeftImage}>
         <figcaption>
           <span class=legend_dot></span>
           <a target=_blank rel=noopener href=${ele.left.detail}>${ele.left.title}</a>
@@ -58,17 +59,19 @@ export class ImageCompareSk extends ElementSk {
     }
     const diffSrc = digestDiffImagePath(ele.left.digest, ele.right.digest);
     return html`
-      <img class="thumbnail diff ${ele._fullSizeImages ? 'fullsize' : ''}"
+      <img class="thumbnail diff ${ele._fullSizeDiffImage ? 'fullsize' : ''}"
            alt="diff between left and right image"
-           src=${diffSrc}>
+           src=${diffSrc}
+           @click=${ele.toggleFullSizeDiffImage}>
       <a target=_blank rel=noopener href=${diffSrc}>
         <open-in-new-icon-sk></open-in-new-icon-sk>
       </a>
 
       <figure>
-        <img class="thumbnail ${ele._fullSizeImages ? 'fullsize' : ''}"
+        <img class="thumbnail ${ele._fullSizeRightImage ? 'fullsize' : ''}"
              alt="right image"
-             src=${digestImagePath(ele.right.digest)}>
+             src=${digestImagePath(ele.right.digest)}
+             @click=${ele.toggleFullSizeRightImage}>
         <figcaption>
           <a target=_blank rel=noopener href=${ele.right.detail}>${ele.right.title}</a>
         </figcaption>
@@ -92,6 +95,12 @@ export class ImageCompareSk extends ElementSk {
   private computingDiffs = false;
 
   private _fullSizeImages = false;
+
+  private _fullSizeLeftImage = false;
+
+  private _fullSizeDiffImage = false;
+
+  private _fullSizeRightImage = false;
 
   constructor() {
     super(ImageCompareSk.template);
@@ -131,6 +140,9 @@ export class ImageCompareSk extends ElementSk {
 
   set fullSizeImages(val: boolean) {
     this._fullSizeImages = val;
+    this._fullSizeLeftImage = val;
+    this._fullSizeDiffImage = val;
+    this._fullSizeRightImage = val;
     this._render();
   }
 
@@ -164,6 +176,21 @@ export class ImageCompareSk extends ElementSk {
     // put the dialog before the button
     dialog.insertBefore(ele, dialog.childNodes[0]);
     dialog.showModal();
+  }
+
+  private toggleFullSizeLeftImage(): void {
+    this._fullSizeLeftImage = !this._fullSizeLeftImage;
+    this._render();
+  }
+
+  private toggleFullSizeDiffImage(): void {
+    this._fullSizeDiffImage = !this._fullSizeDiffImage;
+    this._render();
+  }
+
+  private toggleFullSizeRightImage(): void {
+    this._fullSizeRightImage = !this._fullSizeRightImage;
+    this._render();
   }
 }
 

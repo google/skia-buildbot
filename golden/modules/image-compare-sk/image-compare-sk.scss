@@ -47,6 +47,7 @@ image-compare-sk {
     height: 128px;
     object-fit: scale-down;
     object-position: top left;
+    cursor: zoom-in;
   }
 
   img.diff {
@@ -56,5 +57,6 @@ image-compare-sk {
   img.fullsize {
     width: inherit;
     height: inherit;
+    cursor: zoom-out;
   }
 }

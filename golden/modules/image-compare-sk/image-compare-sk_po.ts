@@ -44,7 +44,7 @@ export class ImageCompareSkPO extends PageObject {
     return !(await this.zoomBtn.hasAttribute('hidden'));
   }
 
-  async clickZoomBtn() {
+  async clickZoomBtn(): Promise<void> {
     await this.zoomBtn.click();
   }
 
@@ -52,7 +52,12 @@ export class ImageCompareSkPO extends PageObject {
     return this.zoomDialog.hasAttribute('open');
   }
 
-  async clickCloseZoomDialogBtn() {
+  async clickCloseZoomDialogBtn(): Promise<void> {
     await this.closeZoomDialogBtn.click();
+  }
+
+  async clickImage(index: number): Promise<void> {
+    const image = await this.images.item(index);
+    await image.click();
   }
 }

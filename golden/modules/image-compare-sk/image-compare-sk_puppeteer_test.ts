@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import { ImageCompareSkPO } from './image-compare-sk_po';
 
 describe('image-compare-sk', () => {
   let testBed: TestBed;
@@ -39,6 +40,15 @@ describe('image-compare-sk', () => {
     it('shows full size images', async () => {
       const imageCompareSk = await testBed.page.$('#full_size_images');
       await takeScreenshot(imageCompareSk!, 'gold', 'image-compare-sk_full-size-images');
+    });
+
+    it('zooms in and out of a specific image', async () => {
+      const imageCompareSk = await testBed.page.$('#normal');
+      const imageCompareSkPO = new ImageCompareSkPO(imageCompareSk);
+      await imageCompareSkPO.clickImage(0);
+      await takeScreenshot(imageCompareSk!, 'gold', 'image-compare-sk_image-zoomed-in');
+      await imageCompareSkPO.clickImage(0);
+      await takeScreenshot(imageCompareSk!, 'gold', 'image-compare-sk_image-zoomed-out');
     });
   });
 });

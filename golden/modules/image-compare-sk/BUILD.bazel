@@ -54,6 +54,7 @@ sk_element_puppeteer_test(
     src = "image-compare-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        ":image-compare-sk_po_ts_lib",
         "//puppeteer-tests:util_ts_lib",
         "@npm//@types/chai",
         "@npm//chai",
