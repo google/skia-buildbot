@@ -139,7 +139,7 @@ export class CommandsSk extends ElementDocSk {
   private static opTemplate = (ele: CommandsSk, filtpos: number, op: Command) => html`<div class="op" id="op-${op.index}" @click=${
     (e: MouseEvent) => { ele._clickItem(e, filtpos); }}>
       <details>
-        <summary class="command-summary ${ele.position == op.index ? 'selected' : ''}">
+        <summary class="command-summary ${ele.position === op.index ? 'selected' : ''}">
           <div class="command-icons-group">
             <span class="index">${op.index}</span>
             ${op.prefixes.map((pre: PrefixItem) => CommandsSk.prefixItemTemplate(ele, pre))}
@@ -166,13 +166,13 @@ export class CommandsSk extends ElementDocSk {
         </summary>
         <div>
           <checkbox-sk title="Toggle command visibility" checked=${op.visible}
-                       @change=${ele._toggleVisible(op.index)}></checkbox-sk>
+                       @change=${() => ele._toggleVisible(op.index)}></checkbox-sk>
           <strong>Index: </strong> <span class=index>${op.index}</span>
         </div>
         ${ele._renderRullOpRepresentation(ele, op)}
       </details>
     </div>
-    <hr>`;
+`;
 
   private static prefixItemTemplate = (ele: CommandsSk, item: PrefixItem) => html`${ele._icon(item)}
       ${item.count > 1
@@ -265,7 +265,7 @@ Command types can also be filted by clicking on their names in the histogram"
   }
 
   // get the playback index in _cmd after filtering is applied.
-  get position() {
+  get position(): number {
     return this._filtered[this._item];
   }
 
@@ -326,10 +326,6 @@ Command types can also be filted by clicking on their names in the histogram"
     const matchup: number[] = [];
     // All command types that occur in this frame
     this._available = new Set<string>();
-    interface tally {
-      count_in_frame: number,
-      count_in_range_filter: number,
-    }
 
     this._layerInfo.uses = new DefaultMap<number, number[]>(() => []);
     this._layerInfo.names = new Map<number, string>();
@@ -362,8 +358,7 @@ Command types can also be filted by clicking on their names in the histogram"
         // If this is the same type of indenting op we've already seen
         // then just increment the count, otherwise add as a new
         // op in prefixes.
-        if (depth > 1 && prefixes[prefixes.length - 1].icon
-            == INDENTERS[name].icon) {
+        if (depth > 1 && prefixes[prefixes.length - 1].icon === INDENTERS[name].icon) {
           prefixes[prefixes.length - 1].count++;
         } else {
           prefixes.push(this._copyPrefix(INDENTERS[name]));
@@ -393,7 +388,6 @@ Command types can also be filted by clicking on their names in the histogram"
       } else if (name === 'DrawAnnotation') {
         // DrawAnnotation is a bit of metadata added by the android view system.
         // All render nodes have names, but not all of them are drawn with offscreen buffers
-        const annotationKey = com.key;
         const found = com.key!.match(renderNodeRe);
         if (found) {
           // group 1 is the render node id
@@ -413,19 +407,19 @@ Command types can also be filted by clicking on their names in the histogram"
   }
 
   // User clicked the clear filter button, clear both filters
-  clearFilter() {
+  clearFilter(): void {
     this.querySelector<HTMLInputElement>('#text-filter')!.value = '';
     if (!this.count) { return; }
     this.range = [0, this._cmd.length - 1]; // setter triggers _applyRangeFilter, follow that
   }
 
   // Stop playback and move by a given offset in the filtered list.
-  keyMove(offset: number) {
+  keyMove(offset: number): void {
     this._playSk!.mode = 'pause';
     this.item = Math.max(0, Math.min(this._item + offset, this.countFiltered));
   }
 
-  end() {
+  end(): void {
     this.item = this._filtered.length - 1;
   }
 

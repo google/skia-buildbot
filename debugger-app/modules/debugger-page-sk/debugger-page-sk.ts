@@ -40,6 +40,8 @@ import { ZoomSk } from '../zoom-sk/zoom-sk';
 import 'elements-sk/error-toast-sk';
 import { AndroidLayersSk } from '../android-layers-sk/android-layers-sk';
 import { ResourcesSk } from '../resources-sk/resources-sk';
+import '../../../infra-sk/modules/theme-chooser-sk';
+import '../../../infra-sk/modules/app-sk';
 
 // Types for the wasm bindings
 import {
@@ -93,15 +95,19 @@ interface FileContext {
 
 export class DebuggerPageSk extends ElementDocSk {
   private static template = (ele: DebuggerPageSk) => html`
+  <app-sk>
     <header>
       <h2>Skia WASM Debugger</h2>
-      <a class="version-link"
-         href="https://skia.googlesource.com/skia/+show/${ele._skiaVersion}"
-         title="The skia commit at which the debugger WASM module was built">
-        ${ele._skiaVersionShort}
-      </a>
+      <span>
+        <a class="version-link"
+          href="https://skia.googlesource.com/skia/+show/${ele._skiaVersion}"
+          title="The skia commit at which the debugger WASM module was built">
+          ${ele._skiaVersionShort}
+        </a>
+        <theme-chooser-sk></theme-chooser-sk>
+      </span>
     </header>
-    <div id=content>
+    <main id=content>
       <div class="horizontal-flex">
         <label>SKP to open:</label>
         <input type="file" @change=${ele._fileInputChanged}
@@ -110,7 +116,7 @@ export class DebuggerPageSk extends ElementDocSk {
         <p class="file-version">File version: ${ele._fileContext?.version}</p>
       </div>
       <timeline-sk></timeline-sk>
-      <div class="horizontal-flex">
+      <div class="horizontal-flex-start">
         <commands-sk></commands-sk>
         <div id=center>
           <tabs-sk id='center-tabs'>
@@ -124,7 +130,7 @@ export class DebuggerPageSk extends ElementDocSk {
             <div>
               <resources-sk></resources-sk>
             </div>
-          </tabs-panel>
+          </tabs-panel-sk>
         </div>
         <div id=right>
           ${DebuggerPageSk.controlsTemplate(ele)}
@@ -138,8 +144,11 @@ export class DebuggerPageSk extends ElementDocSk {
           <android-layers-sk></android-layers-sk>
         </div>
       </div>
-    </div>
-    <error-toast-sk></error-toast-sk>
+    </main>
+    <footer>
+      <error-toast-sk></error-toast-sk>
+    </footer>
+  </app-sk>
     `;
 
   private static controlsTemplate = (ele: DebuggerPageSk) => html`
@@ -205,6 +214,7 @@ export class DebuggerPageSk extends ElementDocSk {
             </table>
           </div>
         </div>
+      </details>
     </div>`;
 
   // defined by version.js which is included by main.html and generated in Makefile.

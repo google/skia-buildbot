@@ -1,56 +1,28 @@
+@import '../../../infra-sk/themes.scss';
+
 commands-sk {
-
-  .list {
-    overflow-y: scroll;
-    height: 85vh;
-    display: block;
-  }
-
-  .op {
-    display: block;
-    margin-left: -2em;
-  }
-
   hr {
     border: none;
     height: 1px;
-    margin: 0px;
-    color: #BBB;
-    background-color: #BBB;
+    margin: 0;
+    color: #bbb;
+    background-color: #bbb;
   }
 
   .count {
     display: inline-block;
-    margin-left: -1em;
     font-weight: bold;
-    top: 0.5em;
-    left: -0.5em;
-    position: relative;
-    width: 0.7em;
   }
 
-  .index {
-    margin-right: 0.5em;
-  }
-
-  // makes the button only as tall as necessary to hold text
-  button {
-    margin-top: auto;
-    margin-bottom: auto;
-  }
-
-  pre {
-    margin-left: 1em;
+  .horizontal-flex {
+    display: flex;
+    justify-items: stretch;
+    align-items: center;
   }
 
   .icon {
-    margin-left: -0.5em;
     display: inline-block;
     opacity: 0.7;
-  }
-
-  details {
-    margin-left: 2em;
   }
 
   details[open] {
@@ -67,16 +39,31 @@ commands-sk {
 
   summary {
     display: flex;
-    flex-diection: row;
   }
 
-  // flex box was happy to shrink this thing, which looked terrible.
-  details summary::-webkit-details-marker {
-    width: 9px;
+  .list {
+    margin-top: 4px;
+    overflow-y: scroll;
+    height: 85vh;
+    display: block;
+
+    .op {
+      display: block;
+
+      // makes the button only as tall as necessary to hold text
+      button {
+        margin: 2px;
+      }
+
+      .command-summary {
+        display: flex;
+        align-items: center;
+        margin: 0 2px 4px 0;
+      }
+    }
   }
 
   .command-icons-group {
-    margin-left: -0.4em;
     white-space: nowrap;
   }
 
@@ -89,11 +76,11 @@ commands-sk {
     overflow: hidden;
     white-space: nowrap;
     flex-grow: 6;
-    padding-top: 4px;
+    color: var(--primary-variant);
   }
 
   .gpu-op-id {
-    background: #1B9E77;
+    background: #1b9e77;
     color: white;
     border-radius: 5px;
     padding: 2px 4px;
@@ -107,12 +94,8 @@ commands-sk {
     display: inline-block;
   }
 
-  play-sk {
-    margin: 5px auto;
-  }
-
   .range-input {
-    width: 2em;
+    width: 24px;
   }
 
   #text-filter {

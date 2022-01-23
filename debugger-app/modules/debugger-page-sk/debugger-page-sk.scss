@@ -1,31 +1,23 @@
 debugger-page-sk {
+  --sidebar-width: 0;
+  --header-horiz-padding: 16px;
+
   * {
-    font-family: Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
     font-size: 12px;
   }
 
   .horizontal-flex {
     display: flex;
-    flex-diection: row;
+    align-items: center;
   }
 
-  header {
-    background: #1f78b4;
-    color: white;
-    padding: 0.5em;
-    margin: 0;
-
+  .horizontal-flex-start {
     display: flex;
-    justify-content: space-between;
+    align-items: flex-start;
   }
 
   .file-version {
     margin: 2px;
-  }
-
-  header h2 {
-    font-size: 1.5em;
-    margin: 0;
   }
 
   commands-sk {
@@ -37,11 +29,10 @@ debugger-page-sk {
   }
 
   .version-link {
-    color: white;
     font-weight: bold;
   }
 
-  input[type="file"] {
+  input[type='file'] {
     width: 100%;
   }
 
@@ -55,22 +46,21 @@ debugger-page-sk {
   }
 
   .gpuDrawBoundColor {
-    color: #E31A1C;
+    color: var(--error);
     opacity: 0.75;
   }
 
   .gpuOpBoundColor {
-    color: #FF7F00;
+    color: var(--failure);
     opacity: 0.75;
   }
 
   .gpuTotalOpColor {
-    color: #6A3D9A;
+    color: var(--warning);
     opacity: 0.75;
   }
 
   .matrixClipBox {
-    background-color: #EEE;
     padding-left: 1em;
     padding-right: 1em;
     margin: 0.5em;

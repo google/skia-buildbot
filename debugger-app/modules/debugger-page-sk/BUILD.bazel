@@ -14,6 +14,8 @@ sk_element(
         "//debugger-app/modules/resources-sk",
         "//debugger-app/modules/timeline-sk",
         "//debugger-app/modules/zoom-sk",
+        "//infra-sk/modules/app-sk",
+        "//infra-sk/modules/theme-chooser-sk",
     ],
     ts_deps = [
         "//debugger-app/modules:debugger_ts_lib",
