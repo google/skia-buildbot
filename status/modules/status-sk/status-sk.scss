@@ -48,6 +48,16 @@ status-sk {
       }
     }
 
+    a:active,
+    a:visited,
+    a:link {
+      color: var(--on-surface);
+    }
+
+    a:hover {
+      color: var(--on-primary);
+    }
+
     // TODO(westont): Make table row underlays non-interactive overlays so as to avoid z-index
     // difficulties on everything else.
     footer {
