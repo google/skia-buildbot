@@ -19,10 +19,6 @@ autoroll:
 cq_watcher:
 	cd cq_watcher && $(MAKE) default
 
-.PHONY: datahopper
-datahopper:
-	cd datahopper && $(MAKE) all
-
 .PHONY: infra-sk
 infra-sk:
 	cd infra-sk && $(MAKE) all
@@ -37,7 +33,7 @@ skolo:
 
 # This target is invoked by the Infra-PerCommit-Build tryjob.
 .PHONY: all
-all: infra-sk autoroll datahopper sharedgo cq_watcher status build-frontend-ci
+all: infra-sk autoroll sharedgo cq_watcher status build-frontend-ci
 
 .PHONY: tags
 tags:

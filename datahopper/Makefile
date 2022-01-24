@@ -1,15 +1,13 @@
+include ../make/bazel.mk
 include ../kube/kube.mk
 
-.PHONY: datahopper
-datahopper:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/datahopper
-
-.PHONY: all
-all: datahopper
+.PHONY: build
+build: build
+	$(BAZEL) build //datahopper/...
 
 .PHONY: release
-release: datahopper
-	./build_release
+release: build
+	$(BAZEL) run //datahopper:push_datahopper_container
 
 .PHONY: push
 push: release pushk
