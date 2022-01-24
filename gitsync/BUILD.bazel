@@ -1,0 +1,15 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "gitsync_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//gitsync/go/gitsync:gitsync",
+                "0755",
+            ],
+        ],
+    },
+    repository = "skia-public/gitsync",
+)

@@ -1,19 +1,17 @@
+include ../make/bazel.mk
 include ../kube/kube.mk
 
-.PHONY: default
-default: gitsync btgit
-
-.PHONY: gitsync
-gitsync:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/gitsync
+.PHONY: build
+build:
+	$(BAZEL) build //gitsync/...
 
 .PHONY: btgit
 btgit:
 	go install ./go/btgit/...
 
-.PHONY: build_release
-release: gitsync build_base_cipd_release
-	./build_release
+.PHONY: release
+release: build
+	$(BAZEL) run //gitsync:gitsync_container
 
 .PHONY: push
 push: release pushk
