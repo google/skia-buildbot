@@ -14,7 +14,7 @@ import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Login } from '../../../infra-sk/modules/login';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
-import { Commit } from '../commits-table-sk/commits-table-sk';
+import { Commit } from '../util';
 import { Task, Comment } from '../rpc';
 import { CommentData } from '../comments-sk/comments-sk';
 import {
@@ -102,7 +102,7 @@ export class DetailsDialogSk extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    login().then((res: any) => {
+    Login.then((res: any) => {
       this.canEditComments = res.Email !== '';
       this._render();
     });
@@ -339,9 +339,3 @@ export class DetailsDialogSk extends ElementSk {
 }
 
 define('details-dialog-sk', DetailsDialogSk);
-
-// Use this intermediary so we can inject a Login promise in place of the module-initialized
-// Login object.
-function login(): Promise<any> {
-  return window.Login ? window.Login : Login;
-}

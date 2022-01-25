@@ -1,0 +1,24 @@
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+ts_library(
+    name = "settings_ts_lib",
+    srcs = ["settings.ts"],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "styles_sass_lib",
+    srcs = ["styles.scss"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra-sk:elements-sk_scss",
+        "//infra-sk:themes",
+    ],
+)
+
+ts_library(
+    name = "util_ts_lib",
+    srcs = ["util.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//status/modules/rpc:status_ts_lib"],
+)

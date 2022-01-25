@@ -1,0 +1,62 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_element(
+    name = "branches-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//status/modules:styles_sass_lib",
+    ],
+    sass_srcs = ["branches-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules:string_ts_lib",
+        "//status/modules/rpc:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+        "//status/modules:util_ts_lib",
+    ],
+    ts_srcs = [
+        "branches-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "branches-sk-demo",
+    html_file = "branches-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":branches-sk",
+    ],
+    ts_deps = [":test_data_ts_lib"],
+    ts_entry_point = "branches-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "branches-sk_puppeteer_test",
+    src = "branches-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":branches-sk-demo",
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//status/modules:util_ts_lib",
+        "//status/modules/rpc:status_ts_lib",
+        "//status/modules/rpc-mock:test_data_ts_lib",
+    ],
+)

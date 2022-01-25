@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { expect } from 'chai';
 import {
   addEventListenersToPuppeteerPage,
@@ -9,14 +8,12 @@ import {
 describe('comments-sk', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(
-      path.join(__dirname, '..', '..', 'webpack.config.ts'),
-    );
+    testBed = await loadCachedTestBed();
   });
   let eventPromise: EventPromiseFactory;
   beforeEach(async () => {
     eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['data-update']);
-    await testBed.page.goto(`${testBed.baseUrl}/dist/comments-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 600, height: 550 });
   });
 

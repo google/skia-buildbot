@@ -1,0 +1,5 @@
+exports_files([
+    "favicon-caution.ico",
+    "favicon-closed.ico",
+    "favicon-open.ico",
+])

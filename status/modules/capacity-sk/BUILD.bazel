@@ -1,0 +1,62 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_element(
+    name = "capacity-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//status/modules:styles_sass_lib",
+    ],
+    sass_srcs = ["capacity-sk.scss"],
+    sk_element_deps = [
+        "//ct/modules/input-sk",
+        "//infra-sk/modules/app-sk",
+        "//infra-sk/modules/login-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//status/modules/rpc:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "capacity-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "capacity-sk-demo",
+    html_file = "capacity-sk-demo.html",
+    sk_element_deps = [":capacity-sk"],
+    ts_deps = [
+        "//status/modules/rpc-mock:index_ts_lib",
+        ":test-data_ts_lib",
+    ],
+    ts_entry_point = "capacity-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "capacity-sk_puppeteer_test",
+    src = "capacity-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":capacity-sk-demo",
+)
+
+ts_library(
+    name = "test-data_ts_lib",
+    srcs = ["test-data.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//status/modules/rpc:status_ts_lib"],
+)

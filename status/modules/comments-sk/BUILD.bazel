@@ -1,0 +1,76 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+
+sk_element(
+    name = "comments-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["comments-sk.scss"],
+    sk_element_deps = [
+        "//ct/modules/input-sk",
+        "//infra-sk/modules/human-date-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules:linkify_ts_lib",
+        "//status/modules/rpc:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "comments-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "comments-sk-demo",
+    html_file = "comments-sk-demo.html",
+    sk_element_deps = [":comments-sk"],
+    ts_deps = [
+        "//status/modules/rpc-mock:index_ts_lib",
+        ":test_data_ts_lib",
+        "@npm//common-sk",
+    ],
+    ts_entry_point = "comments-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "comments-sk_puppeteer_test",
+    src = "comments-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "comments-sk_test",
+    src = "comments-sk_test.ts",
+    deps = [
+        ":comments-sk",
+        ":test_data_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//status/modules/rpc-mock:index_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+    ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":comments-sk-demo",
+)
+
+ts_library(
+    name = "test_data_ts_lib",
+    srcs = ["test_data.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//status/modules/rpc:index_ts_lib",
+        "//status/modules/rpc-mock:index_ts_lib",
+    ],
+)

@@ -12,7 +12,7 @@ import {
 } from '../rpc/status';
 
 function copy<T>(obj: T): T {
-  return JSON.parse(JSON.stringify(obj));
+  return JSON.parse(JSON.stringify(obj)) as T;
 }
 
 Date.now = () => new Date('2020-09-23T09:39:36.659Z').valueOf();

@@ -1,15 +1,14 @@
-import * as path from 'path';
 import { expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('status-sk', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(path.join(__dirname, '..', '..', 'webpack.config.ts'));
+    testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/status-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 1600, height: 1000 });
   });
 

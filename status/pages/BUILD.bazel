@@ -1,0 +1,17 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "capacity",
+    assets_serving_path = "/dist",
+    html_file = "capacity.html",
+    sk_element_deps = ["//status/modules/capacity-sk"],
+    ts_entry_point = "capacity.ts",
+)
+
+sk_page(
+    name = "status",
+    assets_serving_path = "/dist",
+    html_file = "status.html",
+    sk_element_deps = ["//status/modules/status-sk"],
+    ts_entry_point = "status.ts",
+)

@@ -22,6 +22,7 @@ import { styleMap } from 'lit-html/directives/style-map';
 import { classMap } from 'lit-html/directives/class-map';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { Commit } from '../util';
 
 import 'elements-sk/radio-sk';
 import 'elements-sk/tabs-sk';
@@ -74,18 +75,6 @@ const TASK_STATUS_MISHAP = 'MISHAP';
 export type CommitHash = string;
 export type TaskSpec = string;
 export type TaskId = string;
-
-// Commit with added metadata we compute that aid in displaying and associating it with other data.
-export interface Commit extends LongCommit {
-  shortAuthor: string;
-  shortHash: string;
-  shortSubject: string;
-  issue: string;
-  patchStorage: string;
-  isRevert: boolean;
-  isReland: boolean;
-  ignoreFailure: boolean;
-}
 
 // Describes the subcategories and taskspecs within a category.
 export class CategorySpec {

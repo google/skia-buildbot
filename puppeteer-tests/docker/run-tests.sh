@@ -93,23 +93,6 @@ cp -r /src/new_element/webpack.config.ts     /tests/new_element
 cp -r /src/new_element/tsconfig.json         /tests/new_element
 cp -r /src/new_element/modules               /tests/new_element
 
-mkdir /tests/status
-cp -r /src/status/webpack.config.ts          /tests/status
-cp -r /src/status/tsconfig.json              /tests/status
-cp -r /src/status/modules                    /tests/status
-
-# Depended upon by //status/modules/gold-status-sk.
-mkdir -p /tests/golden
-cp -r /src/golden/modules/                   /tests/golden
-
-# Depended upon by //status/modules/bugs-status-sk and //status/modules/status-sk.
-mkdir -p /tests/bugs-central
-cp -r /src/bugs-central/modules/             /tests/bugs-central
-
-# Depended upon by //status/modules/capacity-sk and //status/modules/comments-sk.
-mkdir -p /tests/ct
-cp -r /src/ct/modules/                       /tests/ct
-
 ################################################################################
 # Install node modules and WASM dependencies.                                  #
 ################################################################################
@@ -135,7 +118,4 @@ cd /tests/infra-sk
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/new_element
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
-cd /tests/status
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts

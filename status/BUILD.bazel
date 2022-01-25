@@ -1,0 +1,40 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "status_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//status/go/status:status",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/status/dist/img": [
+            [
+                "//status/images:%s" % favicon,
+                "0644",
+            ]
+            for favicon in [
+                "favicon-caution.ico",
+                "favicon-closed.ico",
+                "favicon-open.ico",
+            ]
+        ],
+        "/usr/local/share/status/dist": [
+            [
+                "//status/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in [
+                "status",
+                "capacity",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    repository = "skia-public/status",
+)

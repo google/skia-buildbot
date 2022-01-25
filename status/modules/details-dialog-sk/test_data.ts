@@ -1,4 +1,4 @@
-import { Commit, TaskSpecDetails } from '../commits-table-sk/commits-table-sk';
+import { Commit } from '../util';
 import { Comment, Task } from '../rpc/status';
 
 export const comment: Comment = {

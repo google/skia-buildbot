@@ -1,4 +1,4 @@
-import { Commit } from '../commits-table-sk/commits-table-sk';
+import { Commit } from '../util';
 import { Branch } from '../rpc/status';
 import { } from '../rpc-mock/test_data';
 

@@ -1,0 +1,66 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":gold-status-sk-demo",
+)
+
+sk_element(
+    name = "gold-status-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//status/modules:styles_sass_lib",
+    ],
+    sass_srcs = ["gold-status-sk.scss"],
+    ts_deps = [
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "gold-status-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "gold-status-sk-demo",
+    html_file = "gold-status-sk-demo.html",
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk",
+        ":gold-status-sk",
+    ],
+    ts_deps = [
+        "//golden/modules:rpc_types_ts_lib",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "gold-status-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "gold-status-sk_puppeteer_test",
+    src = "gold-status-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "gold-status-sk_test",
+    src = "gold-status-sk_test.ts",
+    deps = [
+        ":gold-status-sk",
+        "//golden/modules:rpc_types_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//fetch-mock",
+    ],
+)

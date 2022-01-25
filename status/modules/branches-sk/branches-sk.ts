@@ -9,7 +9,7 @@ import { $$ } from 'common-sk/modules/dom';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncate } from '../../../infra-sk/modules/string';
-import { Commit } from '../commits-table-sk/commits-table-sk';
+import { Commit } from '../util';
 import { AutorollerStatus, Branch } from '../rpc';
 
 const MIN_CANVAS_WIDTH = 175;

@@ -112,7 +112,7 @@ for (let i = 0; i < 30; i++) {
     commitTime = timestampBeforeNow(36 * 60 + i);
   }
   commits.push(
-    Object.assign(JSON.parse(JSON.stringify(commitTemplate)), {
+    Object.assign(JSON.parse(JSON.stringify(commitTemplate)) as LongCommit, {
       hash: hash,
       parents: [`abc${i + 1}`],
       body: `${body}\nReviewed-on: https://skia-review.googlesource.com/c/buildbot/+/320557\n`,
