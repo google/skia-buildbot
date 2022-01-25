@@ -11,7 +11,7 @@ btgit:
 
 .PHONY: release
 release: build
-	$(BAZEL) run //gitsync:gitsync_container
+	$(BAZEL) run //gitsync:push_gitsync_container
 
 .PHONY: push
 push: release pushk
