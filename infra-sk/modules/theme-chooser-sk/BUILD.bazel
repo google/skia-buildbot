@@ -32,7 +32,10 @@ sk_page(
         "//infra-sk:elements-sk_scss",
     ],
     scss_entry_point = "theme-chooser-sk-demo.scss",
-    sk_element_deps = [":theme-chooser-sk"],
+    sk_element_deps = [
+        ":theme-chooser-sk",
+        "//infra-sk/modules/app-sk",
+    ],
     ts_deps = [
         "@npm//common-sk",
         "@npm//lit-html",

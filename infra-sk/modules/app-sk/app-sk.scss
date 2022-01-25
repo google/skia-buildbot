@@ -28,12 +28,14 @@ $mobile-breakpoint: 600px;
 body {
   --sidebar-width: 200px;
   --sidebar-horiz-padding: 5px;
-  --sidebar-background-color: var(--surface, var(--black));
+  --sidebar-background-color: var(--surface-1dp, var(--black));
+  --sidebar-border-color: var(--on-surface, var(--black));
 
   --header-height: 50px;
-  --header-background-color: var(--background, var(--black));
+  --header-background-color: var(--surface, var(--black));
   --header-font-color: var(--primary, var(--white));
   --header-horiz-padding: 8px;
+  --header-border-color: var(--primary, var(--white));
 
   --content-horiz-padding: 5px;
   --content-vert-padding: 0px;
@@ -67,7 +69,7 @@ app-sk > {
     color: var(--header-font-color);
     fill: var(--header-font-color);
     min-height: 48px;
-    border-bottom: solid 1px var(--primary);
+    border-bottom: solid 1px var(--header-border-color);
 
     grid-column: 1 / span 2;
     grid-row: 1;
@@ -95,7 +97,7 @@ app-sk > {
   }
 
   aside {
-    border-right: 1px solid var(--on-surface);
+    border-right: 1px solid var(--sidebar-border-color);
     padding: 0 var(--sidebar-horiz-padding);
     z-index: 2;
     background-color: var(--sidebar-background-color);

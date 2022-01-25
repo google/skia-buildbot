@@ -1,19 +1,25 @@
 @use './theme-chooser-sk.scss';
 @import '../../themes';
 
-theme-chooser-sk {
-  cursor: pointer;
-}
+.body-sk {
+  app-sk > aside {
+    padding: 16px;
+  }
 
-div {
-  padding: 16px;
-  width: 128px;
-}
+  theme-chooser-sk {
+    cursor: pointer;
+  }
 
-body {
-  display: flex;
-}
+  div {
+    padding: 16px;
+    width: 128px;
+  }
 
-section {
-  margin: 0 8px;
+  main {
+    display: flex;
+  }
+
+  section {
+    margin: 0 8px;
+  }
 }

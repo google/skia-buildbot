@@ -78,6 +78,12 @@
     box-shadow: 2px 2px 0px 0px var(--surface-2dp);
   }
 
+  .button-like.icon,
+  button.icon {
+    border: none;
+    box-shadow: none;
+  }
+
   .button-like.action,
   button.action {
     box-shadow: 2px 2px 0px 0px var(--surface-2dp);
@@ -272,22 +278,22 @@
 .body-sk.darkmode,
 .body-sk .darkmode {
   /* Semantic colors defined by elements-sk. */
-  --background: var(--black);
+  --background: #121212;
   --disabled: var(--grey-600);
   --error: var(--pink-400);
-  --on-background: var(--white);
+  --on-background: #cccccc;
   --on-disabled: var(--grey-300);
   --on-error: var(--black);
-  --on-primary-variant: var(--black);
-  --on-primary: var(--black);
-  --on-secondary: var(--black);
-  --on-surface: var(--grey-200);
-  --primary-variant: var(--light-blue-300);
-  --primary: var(--light-blue-600);
-  --secondary: var(--green-600);
-  --surface-1dp: var(--grey-800);
-  --surface-2dp: var(--grey-700);
-  --surface: var(--grey-900);
+  --on-primary-variant: var(--surface);
+  --on-primary: var(--surface);
+  --on-secondary: var(--background);
+  --on-surface: #dddddd;
+  --primary-variant: var(--light-blue-100);
+  --primary: var(--blue-200);
+  --secondary: var(--green-200);
+  --surface-1dp: #373737;
+  --surface-2dp: #414141;
+  --surface: #303030;
   --transparent-overlay: rgba(255, 255, 255, 0.5);
 
   /* Additional semantic colors. */

@@ -3,6 +3,7 @@ import { render, html, TemplateResult } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
 import { DARKMODE_LOCALSTORAGE_KEY } from './theme-chooser-sk';
 import 'elements-sk/icon/menu-icon-sk';
+import '../app-sk';
 
 // Force the element to use the default mode set in the elements attribute.
 window.localStorage.removeItem(DARKMODE_LOCALSTORAGE_KEY);
