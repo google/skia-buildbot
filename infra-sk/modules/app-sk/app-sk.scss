@@ -101,6 +101,13 @@ app-sk > {
     padding: 0 var(--sidebar-horiz-padding);
     z-index: 2;
     background-color: var(--sidebar-background-color);
+    color: var(--secondary);
+    fill: var(--secondary);
+
+    svg.icon-sk-svg {
+      color: var(--secondary);
+      fill: var(--secondary);
+    }
 
     grid-column: 1;
     grid-row: 2;

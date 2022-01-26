@@ -2,7 +2,7 @@ tree-scaffold-sk {
   text-align: center;
 
   * {
-    font-family:Roboto,Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    font-family: Roboto, Helvetica, Arial, 'Bitstream Vera Sans', sans-serif;
     font-size: 12px;
   }
 
@@ -43,11 +43,6 @@ tree-scaffold-sk {
 
   login-sk {
     margin-right: 1em;
-  }
-
-  /* Overrides to elements-sk elements since they set color internally. */
-  svg.icon-sk-svg {
-    fill: var(--on-surface);
   }
 
   h1 {
