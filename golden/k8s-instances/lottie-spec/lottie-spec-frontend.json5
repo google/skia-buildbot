@@ -5,7 +5,7 @@
   client_secret_file: "/etc/skia.org/login.json",
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
-    defaultCorpus: "spec",
+    defaultCorpus: "lottie-animation-community",
     title: "Gold for Lottie Animation Community",
   },
   prom_port: ":20000",
