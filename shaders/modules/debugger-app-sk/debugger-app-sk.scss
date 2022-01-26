@@ -50,11 +50,13 @@
 .body-sk debugger-app-sk {
   overflow: hidden;
   display: block;
-  background: var(--surface);
+  background: var(--background);
   margin: 0;
   min-height: 100vh;
 
   --sidebar-width: 0;
+
+  --secondary: var(--green-500);
 
   main {
     padding: 16px;
