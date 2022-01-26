@@ -523,6 +523,10 @@ func temperatureFromAndroid(android machine.Android) (map[string]float64, bool) 
 			if err != nil {
 				continue
 			}
+			if temp > 1000 {
+				// Assume it's in milli-C.
+				temp /= 1000
+			}
 			ret[matches[2]] = temp
 		}
 	}

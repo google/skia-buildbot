@@ -598,6 +598,139 @@ Current cooling devices from HAL:
 
 }
 
+func TestProcess_HandleTempsInMilliCentgrade(t *testing.T) {
+
+	unittest.SmallTest(t)
+
+	stateTime := time.Date(2021, time.September, 1, 10, 0, 0, 0, time.UTC)
+	bootUpTime := time.Date(2021, time.September, 1, 10, 1, 0, 0, time.UTC)
+	serverTime := time.Date(2021, time.September, 1, 10, 1, 5, 0, time.UTC)
+
+	ctx := now.TimeTravelingContext(stateTime)
+
+	const dumpsysBattery = `IsStatusOverride: false
+ThermalEventListeners:
+	callbacks: 8
+	killed: false
+	broadcasts count: -1
+ThermalStatusListeners:
+	callbacks: 2
+	killed: false
+	broadcasts count: -1
+Thermal Status: 0
+Cached temperatures:
+	Temperature{mValue=1300.0, mType=6, mName=smpl_gm, mStatus=0}
+	Temperature{mValue=55.000004, mType=0, mName=LITTLE, mStatus=0}
+	Temperature{mValue=0.0, mType=6, mName=critical-battery-cell, mStatus=0}
+	Temperature{mValue=11900.0, mType=7, mName=ocp_gpu, mStatus=0}
+	Temperature{mValue=10400.0, mType=7, mName=ocp_tpu, mStatus=0}
+	Temperature{mValue=20.623001, mType=-1, mName=neutral_therm, mStatus=0}
+	Temperature{mValue=0.0, mType=4, mName=VIRTUAL-USB-UI, mStatus=0}
+	Temperature{mValue=8900.0, mType=7, mName=soft_ocp_gpu, mStatus=0}
+	Temperature{mValue=8400.0, mType=7, mName=soft_ocp_tpu, mStatus=0}
+	Temperature{mValue=21.423, mType=-1, mName=disp_therm, mStatus=0}
+	Temperature{mValue=-1.8060001, mType=-1, mName=USB2-MINUS-QI, mStatus=0}
+	Temperature{mValue=0.0, mType=-1, mName=FLASH_LED_REDUCE, mStatus=0}
+	Temperature{mValue=19.324453, mType=-1, mName=VIRTUAL-QUIET-BATT, mStatus=0}
+	Temperature{mValue=6900.0, mType=7, mName=soft_ocp_cpu1, mStatus=0}
+	Temperature{mValue=8900.0, mType=7, mName=soft_ocp_cpu2, mStatus=0}
+	Temperature{mValue=0.0, mType=6, mName=battery_cycle, mStatus=0}
+	Temperature{mValue=20.723001, mType=-1, mName=quiet_therm, mStatus=0}
+	Temperature{mValue=22.771002, mType=-1, mName=VIRTUAL-SKIN-CHARGE, mStatus=0}
+	Temperature{mValue=4900.0, mType=7, mName=batoilo, mStatus=0}
+	Temperature{mValue=20.2, mType=2, mName=battery, mStatus=0}
+	Temperature{mValue=61.000004, mType=0, mName=BIG, mStatus=0}
+	Temperature{mValue=36.0, mType=1, mName=G3D, mStatus=0}
+	Temperature{mValue=52.000004, mType=0, mName=MID, mStatus=0}
+	Temperature{mValue=37.0, mType=9, mName=TPU, mStatus=0}
+	Temperature{mValue=19.0, mType=8, mName=soc, mStatus=0}
+	Temperature{mValue=20.473001, mType=-1, mName=usb_pwr_therm2, mStatus=0}
+	Temperature{mValue=1050.0, mType=6, mName=vdroop1, mStatus=0}
+	Temperature{mValue=1250.0, mType=6, mName=vdroop2, mStatus=0}
+	Temperature{mValue=22.279001, mType=-1, mName=qi_therm, mStatus=0}
+	Temperature{mValue=-0.05, mType=-1, mName=USB2-MINUS-USB, mStatus=0}
+	Temperature{mValue=6900.0, mType=7, mName=ocp_cpu1, mStatus=0}
+	Temperature{mValue=11900.0, mType=7, mName=ocp_cpu2, mStatus=0}
+	Temperature{mValue=22.771002, mType=5, mName=cellular-emergency, mStatus=0}
+	Temperature{mValue=22.841002, mType=-1, mName=gnss_tcxo_therm, mStatus=0}
+	Temperature{mValue=22.771002, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+	Temperature{mValue=20.523, mType=-1, mName=usb_pwr_therm, mStatus=0}
+	Temperature{mValue=0.0, mType=4, mName=VIRTUAL-USB-THROTTLING, mStatus=0}
+	Temperature{mValue=20.15738, mType=-1, mName=VIRTUAL-QI-BATT, mStatus=0}
+	Temperature{mValue=18.2005, mType=-1, mName=VIRTUAL-QI-GNSS, mStatus=0}
+	Temperature{mValue=22.771002, mType=-1, mName=VIRTUAL-USB2-DISP, mStatus=0}
+HAL Ready: true
+HAL connection:
+	ThermalHAL 2.0 connected: yes
+Current temperatures from HAL:
+	Temperature{mValue=8900.0, mType=7, mName=soft_ocp_gpu, mStatus=0}
+	Temperature{mValue=8400.0, mType=7, mName=soft_ocp_tpu, mStatus=0}
+	Temperature{mValue=25.000002, mType=9, mName=TPU, mStatus=0}
+	Temperature{mValue=8900.0, mType=7, mName=soft_ocp_cpu2, mStatus=0}
+	Temperature{mValue=10400.0, mType=7, mName=ocp_tpu, mStatus=0}
+	Temperature{mValue=1300.0, mType=6, mName=smpl_gm, mStatus=0}
+	Temperature{mValue=1250.0, mType=6, mName=vdroop2, mStatus=0}
+	Temperature{mValue=4900.0, mType=7, mName=batoilo, mStatus=0}
+	Temperature{mValue=0.0, mType=8, mName=soc, mStatus=0}
+	Temperature{mValue=0.0, mType=-1, mName=FLASH_LED_REDUCE, mStatus=0}
+	Temperature{mValue=0.0, mType=6, mName=critical-battery-cell, mStatus=0}
+	Temperature{mValue=26.000002, mType=1, mName=G3D, mStatus=0}
+	Temperature{mValue=26.000002, mType=0, mName=BIG, mStatus=0}
+	Temperature{mValue=27.000002, mType=0, mName=LITTLE, mStatus=0}
+	Temperature{mValue=0.0, mType=4, mName=VIRTUAL-USB-THROTTLING, mStatus=0}
+	Temperature{mValue=-0.117000006, mType=-1, mName=USB2-MINUS-USB, mStatus=0}
+	Temperature{mValue=22.912, mType=-1, mName=neutral_therm, mStatus=0}
+	Temperature{mValue=24.83324, mType=5, mName=cellular-emergency, mStatus=0}
+	Temperature{mValue=27.000002, mType=0, mName=MID, mStatus=0}
+	Temperature{mValue=-0.82000005, mType=-1, mName=USB2-MINUS-QI, mStatus=0}
+	Temperature{mValue=24.83324, mType=-1, mName=VIRTUAL-SKIN-CHARGE, mStatus=0}
+	Temperature{mValue=24.83324, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+	Temperature{mValue=21.542654, mType=-1, mName=VIRTUAL-QUIET-BATT, mStatus=0}
+	Temperature{mValue=1.0, mType=6, mName=battery_cycle, mStatus=0}
+	Temperature{mValue=24.83324, mType=-1, mName=VIRTUAL-USB2-DISP, mStatus=0}
+	Temperature{mValue=6900.0, mType=7, mName=soft_ocp_cpu1, mStatus=0}
+	Temperature{mValue=21.000002, mType=-1, mName=rf2_therm, mStatus=0}
+	Temperature{mValue=11900.0, mType=7, mName=ocp_gpu, mStatus=0}
+	Temperature{mValue=6900.0, mType=7, mName=ocp_cpu1, mStatus=0}
+	Temperature{mValue=18.844501, mType=-1, mName=VIRTUAL-QI-GNSS, mStatus=0}
+	Temperature{mValue=0.0, mType=4, mName=VIRTUAL-USB-UI, mStatus=0}
+	Temperature{mValue=21.000002, mType=-1, mName=rf1_therm, mStatus=0}
+	Temperature{mValue=11900.0, mType=7, mName=ocp_cpu2, mStatus=0}
+	Temperature{mValue=23.427002, mType=-1, mName=disp_therm, mStatus=0}
+	Temperature{mValue=1050.0, mType=6, mName=vdroop1, mStatus=0}
+	Temperature{mValue=23.661001, mType=-1, mName=qi_therm, mStatus=0}
+	Temperature{mValue=23.239, mType=-1, mName=gnss_tcxo_therm, mStatus=0}
+	Temperature{mValue=22.771002, mType=-1, mName=quiet_therm, mStatus=0}
+	Temperature{mValue=21.94342, mType=-1, mName=VIRTUAL-QI-BATT, mStatus=0}
+	Temperature{mValue=22.841002, mType=-1, mName=usb_pwr_therm2, mStatus=0}
+	Temperature{mValue=22.958, mType=-1, mName=usb_pwr_therm, mStatus=0}
+	Temperature{mValue=22.1, mType=2, mName=battery, mStatus=0}
+Current cooling devices from HAL:`
+
+	previous := machine.NewDescription(ctx)
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-rpi2-0001",
+			StartTime: bootUpTime,
+		},
+		Android: machine.Android{
+			Uptime:                10,
+			DumpsysThermalService: dumpsysBattery,
+		},
+	}
+
+	ctx.SetTime(serverTime)
+	p := newProcessorForTest()
+	next := p.Process(ctx, previous, event)
+	assert.Equal(t, machine.ModeAvailable, next.Mode)
+	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
+
+	assert.Equal(t, float64(11.9), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "ocp_cpu2"}).Get())
+	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_maintenance", next.Dimensions.AsMetricsTags()).Get())
+	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_time_in_recovery_mode_s", next.Dimensions.AsMetricsTags()).Get())
+}
+
 func TestProcess_RecoveryModeIfDeviceTooHotAndBatteryIsTooLow(t *testing.T) {
 	unittest.SmallTest(t)
 
