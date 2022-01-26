@@ -87,6 +87,7 @@
   .button-like.action,
   button.action {
     box-shadow: 2px 2px 0px 0px var(--surface-2dp);
+    border: none;
   }
 
   .button-like:active,
@@ -170,8 +171,15 @@
     outline-offset: -4px;
   }
 
-  tabs-sk > button {
-    box-shadow: none;
+  tabs-sk {
+    > button {
+      border: none;
+      border-bottom: solid 4px var(--on-surface);
+      box-shadow: none;
+    }
+    > button.selected {
+      border-bottom: solid 4px var(--primary);
+    }
   }
 
   details {
