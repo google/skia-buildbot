@@ -1,8 +1,16 @@
 @import '../../../infra-sk/themes.scss';
 
-.fiddle-body {
+.body-sk {
   padding: 0;
   margin: 0;
   --sidebar-width: 0;
   --header-horiz-padding: 16px;
+
+  app-sk main {
+    padding: 16px;
+
+    a {
+      background-color: var(--background);
+    }
+  }
 }

@@ -1,37 +1,6 @@
 @import '../themes/themes';
 
-fiddle-sk {
-  details {
-    margin-left: 8px;
-    summary {
-      margin-left: -16px;
-      display: inline-block;
-      outline: none;
-      padding: 4px;
-      background: var(--surface);
-      color: var(--on-surface);
-      border: solid 1px var(--surface-1dp);
-      cursor: pointer;
-      list-style: none;
-    }
-
-    summary::-webkit-details-marker {
-      display: none;
-    }
-  }
-
-  details[open] {
-    border: solid 1px var(--on-surface);
-    padding: 0 8px 16px 32px;
-    background: var(--surface);
-    margin-left: 0px;
-
-    summary {
-      margin-top: 8px;
-      margin-bottom: 8px;
-    }
-  }
-
+.body-sk fiddle-sk {
   #f16,
   #offscreen_mipmap {
     margin-left: 16px;
@@ -87,13 +56,17 @@ fiddle-sk {
     display: flex;
     align-items: center;
     margin-left: 4px;
-  }
 
-  #submit > button,
-  #submit > spinner-sk,
-  #submit > a,
-  #submit > details {
-    margin-right: 8px;
+    a {
+      background-color: var(--background);
+    }
+
+    > button,
+    > spinner-sk,
+    > a,
+    > details {
+      margin-right: 8px;
+    }
   }
 
   #results {
