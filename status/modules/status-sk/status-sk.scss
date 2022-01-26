@@ -1,12 +1,13 @@
 @import '../styles.scss';
 
-status-sk {
+.body-sk status-sk {
   app-sk {
     --sidebar-width: auto;
     --sidebar-horiz-padding: 0;
     --content-horiz-padding: 5px;
     --content-vert-padding: 5px;
     --header-background-color: var(--success-alpha);
+    --header-border-color: var(--success-alpha);
     --header-font-color: var(--on-success);
 
     header {
