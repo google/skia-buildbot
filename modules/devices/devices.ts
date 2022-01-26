@@ -38,6 +38,7 @@ export const DEVICE_ALIASES: Record<string, string> = {
   manta: 'Nexus 10',
   marlin: 'Pixel XL',
   msm8937: 'JioNext',
+  oriole: 'Pixel 6',
   redfin: 'Pixel 5',
   sailfish: 'Pixel',
   sargo: 'Pixel 3a',
