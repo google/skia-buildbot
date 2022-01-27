@@ -140,6 +140,11 @@ func runChromiumAnalysis() error {
 		util.MkdirAll(pathToBinaryDir, 0700)
 		defer skutil.RemoveAll(pathToBinaryDir)
 
+		// If we are using a custom APK with an older version then installing it
+		// could result in INSTALL_FAILED_VERSION_DOWNGRADE errors. Uninstall the
+		// chrome APK first.
+		util.UnInstallChromeAPK(ctx)
+
 		// Download the specified APK from Google storage.
 		r := regexp.MustCompile(`gs://(.+?)/(.*)`)
 		m := r.FindStringSubmatch(*apkGsPath)

@@ -414,6 +414,19 @@ func applyRepoPatches(ctx context.Context, chromiumSrcDir, runID, gitExec string
 	return nil
 }
 
+// UnInstallChromeAPK uninstalls the chrome APK from the Android device.
+func UnInstallChromeAPK(ctx context.Context) {
+	sklog.Info("UnInstalling the com.google.android.apps.chrome APK to start from a clean slate.")
+	err := ExecuteCmd(ctx, BINARY_ADB, []string{"uninstall", CHROME_ANDROID_PACKAGE_NAME}, []string{},
+		ADB_UNINSTALL_TIMEOUT, nil, nil)
+	if err != nil {
+		// It is ok if the APK was not already installed.
+		// TODO(rmistry): Add a check to see if the APK exists after
+		// failing to remove it. It is still exists then throw an error.
+		sklog.Warningf("Could not uninstall the Chrome APK: %s", err)
+	}
+}
+
 func InstallChromeAPK(ctx context.Context, chromiumApkPath string) error {
 	// Install the APK on the Android device.
 	sklog.Infof("Installing the APK at %s", chromiumApkPath)

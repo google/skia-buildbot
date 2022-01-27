@@ -127,6 +127,9 @@ const (
 	GN_CHROMIUM_TIMEOUT         = 30 * time.Minute
 	NINJA_TIMEOUT               = 2 * time.Hour
 
+	// util.UnInstallChromeAPK
+	ADB_UNINSTALL_TIMEOUT = time.Minute
+
 	// util.InstallChromeAPK
 	ADB_INSTALL_TIMEOUT = 5 * time.Minute
 
@@ -175,6 +178,7 @@ const (
 	// the steps in https://bugs.chromium.org/p/skia/issues/detail?id=10187#c1
 	CT_SERVICE_ACCOUNT = "ct-golo@ct-swarming-bots.iam.gserviceaccount.com"
 
+	CHROME_ANDROID_PACKAGE_NAME  = "com.google.android.apps.chrome"
 	ADB_CIPD_PACKAGE             = "cipd_bin_packages:infra/adb/linux-amd64:adb_version:1.0.36"
 	LUCI_AUTH_CIPD_PACKAGE_LINUX = "cipd_bin_packages:infra/tools/luci-auth/linux-amd64:git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70"
 	LUCI_AUTH_CIPD_PACKAGE_WIN   = "cipd_bin_packages:infra/tools/luci-auth/windows-amd64:git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70"
