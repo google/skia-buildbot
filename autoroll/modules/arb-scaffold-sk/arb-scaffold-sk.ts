@@ -47,7 +47,7 @@ export class ARBScaffoldSk extends ElementSk {
 
   private static template = (ele: ARBScaffoldSk) => html`
 <app-sk>
-  <header class=primary-container-themes-sk>
+  <header>
     <h1>${ele.title}</h1>
     <div class=spinner-spacer>
       <spinner-sk></spinner-sk>

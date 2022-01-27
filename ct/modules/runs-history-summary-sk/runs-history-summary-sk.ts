@@ -48,7 +48,7 @@ export class RunsHistorySummarySk extends ElementSk {
     </span>
     <br/>
 <table class="queue surface-themes-sk secondary-links runssummary" id=runssummary>
-  <tr class=primary-variant-container-themes-sk>
+  <tr>
     <th>Type</th>
     <th>User</th>
     <th>Description</th>

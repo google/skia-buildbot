@@ -51,7 +51,7 @@ export class TaskSchedulerScaffoldSk extends ElementSk {
 
   private static template = (ele: TaskSchedulerScaffoldSk) => html`
     <app-sk>
-      <header class="primary-container-themes-sk">
+      <header>
         <h1>${ele.title}</h1>
         <div class="spinner-spacer">
           <spinner-sk></spinner-sk>

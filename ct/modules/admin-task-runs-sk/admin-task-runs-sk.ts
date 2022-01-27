@@ -64,7 +64,7 @@ private static template = (el: AdminTaskRunsSk) => html`
   <br/>
   <br/>
   <table class="surface-themes-sk secondary-links runssummary" id=runssummary>
-    <tr class=primary-variant-container-themes-sk>
+    <tr>
       <th>Id</th>
       <th>User</th>
       <th>Timestamps</th>

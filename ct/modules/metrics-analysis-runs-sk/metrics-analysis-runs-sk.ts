@@ -61,7 +61,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
   <br/>
   <br/>
   <table class="surface-themes-sk secondary-links runssummary" id=runssummary>
-    <tr class=primary-variant-container-themes-sk>
+    <tr>
       <th>Id</th>
       <th>User</th>
       <th>Timestamps</th>
@@ -77,7 +77,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
 </div>
 
 ${el._tasks.map((task, index) => MetricsAnalysisRunsSk.taskDialogTemplate(task, index))}
-<toast-sk id=confirm_toast class=primary-variant-container-themes-sk duration=5000></toast-sk>
+<toast-sk id=confirm_toast duration=5000></toast-sk>
 `;
 
   private static taskRowTemplate = (el: MetricsAnalysisRunsSk, task: MetricsAnalysisDatastoreTask, index: number) => html`

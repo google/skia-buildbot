@@ -49,7 +49,7 @@ export class TaskQueueSk extends ElementSk {
 
   private static template = (el: TaskQueueSk) => html`
   <table class="runssummary surface-themes-sk secondary-links" id=queue>
-    <tr class=primary-variant-container-themes-sk>
+    <tr>
       <th>Queue Position</th>
       <th>Added</th>
       <th>Task Type</th>
@@ -60,7 +60,7 @@ export class TaskQueueSk extends ElementSk {
     ${el._pendingTasks.map((task: CommonCols, index: number) => TaskQueueSk.taskRowTemplate(el, task, index))}
    </table>
   ${el._pendingTasks.map((task, index) => TaskQueueSk.taskDetailDialogTemplate(task, index))}
-  <toast-sk id=confirm_toast class=primary-variant-container-themes-sk duration=5000></toast-sk>
+  <toast-sk id=confirm_toast duration=5000></toast-sk>
   `;
 
   private static taskRowTemplate = (el: TaskQueueSk, task: CommonCols, index: number) => html`

@@ -43,7 +43,7 @@ export class LeasingScaffoldSk extends ElementSk {
 
   private static template = (ele: LeasingScaffoldSk) => html`
   <app-sk>
-    <header class="primary-container-themes-sk">
+    <header>
       <h1 class=name>${ele.appTitle}</h1>
       <div class="spacer"></div>
       <login-sk></login-sk>

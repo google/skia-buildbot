@@ -76,7 +76,7 @@ export class CtScaffoldSk extends ElementSk {
 
   private static template = (ele: CtScaffoldSk) => html`
 <app-sk>
-  <header class=primary-container-themes-sk>
+  <header>
     <h1>${ele.appTitle}</h1>
     <div class=spinner-spacer>
       <spinner-sk></spinner-sk>
