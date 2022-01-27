@@ -104,9 +104,11 @@ app-sk > {
     color: var(--secondary);
     fill: var(--secondary);
 
+    min-height: calc(100vh - var(--header-height));
+
     svg.icon-sk-svg {
-      color: var(--secondary);
-      fill: var(--secondary);
+      color: var(--on-surface);
+      fill: var(--on-surface);
     }
 
     grid-column: 1;
