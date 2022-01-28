@@ -17,7 +17,7 @@ describe('theme-chooser-sk', () => {
     await testBed.page.goto(
       inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/theme-chooser-sk.html`,
     );
-    await testBed.page.setViewport({ width: 1200, height: 2000 });
+    await testBed.page.setViewport({ width: 1500, height: 2000 });
   });
 
   it('should render the demo page', async () => {
@@ -30,7 +30,7 @@ describe('theme-chooser-sk', () => {
       await takeScreenshot(testBed.page, 'infra-sk', 'theme-chooser-sk_default');
     });
 
-    it('shows the dark theme', async () => {
+    it('shows the light theme', async () => {
       await testBed.page.click('theme-chooser-sk');
       await takeScreenshot(testBed.page, 'infra-sk', 'theme-chooser-sk_light');
     });

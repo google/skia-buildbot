@@ -6,6 +6,49 @@
 @import '~elements-sk/styles/table/table.scss';
 
 .body-sk {
+  &.font-sk,
+  & .font-sk {
+    /* Typography */
+    --font: Roboto, Arial, 'Bitstream Vera Sans', sans-serif;
+    --mono-font: Roboto Mono, monospace;
+
+    * {
+      font-size: 12px;
+      font-family: var(--font);
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 20px;
+      margin: 16px 0;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 14px 0;
+    }
+
+    h3 {
+      font-size: 16px;
+      margin: 12px 0;
+    }
+
+    h4 {
+      font-size: 14px;
+      margin: 10px 0;
+    }
+
+    h5 {
+      font-size: 12px;
+      margin: 8px 0;
+    }
+
+    code,
+    pre {
+      font-family: var(--mono-font);
+    }
+  }
+
   /* Semantic colors defined by elements-sk. */
   --background: var(--grey-50);
   --disabled: var(--grey-500);
@@ -45,6 +88,43 @@
   --positive: var(--green-500);
   --negative: var(--red-500);
   --untriaged: var(--brown-400);
+
+  &.darkmode,
+  & .darkmode {
+    /* Semantic colors defined by elements-sk. */
+    --background: #121212;
+    --disabled: var(--grey-600);
+    --error: var(--pink-400);
+    --on-background: #cccccc;
+    --on-disabled: var(--grey-300);
+    --on-error: var(--black);
+    --on-primary-variant: var(--surface);
+    --on-primary: var(--surface);
+    --on-secondary: var(--background);
+    --on-surface: #dddddd;
+    --primary-variant: var(--light-blue-100);
+    --primary: var(--blue-200);
+    --secondary: var(--green-200);
+    --surface-1dp: #373737;
+    --surface-2dp: #414141;
+    --surface: #303030;
+    --transparent-overlay: rgba(255, 255, 255, 0.5);
+
+    /* Additional semantic colors. */
+    --primary-highlight: var(--light-blue-900);
+    --secondary-highlight: var(--green-900);
+    --on-hightlight: var(--grey-100);
+
+    --failure-alpha: rgba(217, 95, 2, 0.5);
+    --on-failure: var(--on-secondary);
+    --on-success: var(--on-secondary);
+    --on-warning: var(--on-secondary);
+    --warning-alpha: rgb(255, 171, 64, 0.5);
+
+    --positive: var(--green-500);
+    --negative: var(--red-500);
+    --untriaged: var(--brown-400);
+  }
 
   a:active,
   a:visited,
@@ -281,41 +361,4 @@
   th {
     font-size: 100%;
   }
-}
-
-.body-sk.darkmode,
-.body-sk .darkmode {
-  /* Semantic colors defined by elements-sk. */
-  --background: #121212;
-  --disabled: var(--grey-600);
-  --error: var(--pink-400);
-  --on-background: #cccccc;
-  --on-disabled: var(--grey-300);
-  --on-error: var(--black);
-  --on-primary-variant: var(--surface);
-  --on-primary: var(--surface);
-  --on-secondary: var(--background);
-  --on-surface: #dddddd;
-  --primary-variant: var(--light-blue-100);
-  --primary: var(--blue-200);
-  --secondary: var(--green-200);
-  --surface-1dp: #373737;
-  --surface-2dp: #414141;
-  --surface: #303030;
-  --transparent-overlay: rgba(255, 255, 255, 0.5);
-
-  /* Additional semantic colors. */
-  --primary-highlight: var(--light-blue-900);
-  --secondary-highlight: var(--green-900);
-  --on-hightlight: var(--grey-100);
-
-  --failure-alpha: rgba(217, 95, 2, 0.5);
-  --on-failure: var(--on-secondary);
-  --on-success: var(--on-secondary);
-  --on-warning: var(--on-secondary);
-  --warning-alpha: rgb(255, 171, 64, 0.5);
-
-  --positive: var(--green-500);
-  --negative: var(--red-500);
-  --untriaged: var(--brown-400);
 }
