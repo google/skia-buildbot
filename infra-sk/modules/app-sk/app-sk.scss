@@ -34,7 +34,7 @@ body {
   --header-height: 50px;
   --header-background-color: var(--surface, var(--black));
   --header-font-color: var(--primary, var(--white));
-  --header-horiz-padding: 8px;
+  --header-horiz-padding: 16px;
   --header-border-color: var(--primary, var(--white));
 
   --content-horiz-padding: 5px;
@@ -70,17 +70,14 @@ app-sk > {
     fill: var(--header-font-color);
     min-height: 48px;
     border-bottom: solid 1px var(--header-border-color);
+    gap: 8px;
 
     grid-column: 1 / span 2;
     grid-row: 1;
 
-    // Eliminate all margins, except for a small gap between the header items, which coincides with
-    // the header's horizontal padding.
+    // Eliminate all margins since spacing is done via gap.
     > * {
-      margin: 0 var(--header-horiz-padding) 0 0;
-      &:last-child {
-        margin: 0;
-      }
+      margin: 0;
     }
 
     h1,
@@ -125,6 +122,11 @@ app-sk > {
 
     grid-column: 1 / span 2;
     grid-row: 3;
+  }
+
+  header > .toggle-button {
+    margin: 0;
+    padding: 0;
   }
 
   @media screen and (min-width: $mobile-breakpoint) {

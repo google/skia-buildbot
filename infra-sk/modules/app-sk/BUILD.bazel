@@ -20,6 +20,7 @@ sk_page(
     sk_element_deps = [
         "//infra-sk/modules/login-sk",
         ":app-sk",
+        "//infra-sk/modules/theme-chooser-sk",
     ],
     ts_deps = ["@npm//elements-sk"],
     ts_entry_point = "app-sk-demo.ts",

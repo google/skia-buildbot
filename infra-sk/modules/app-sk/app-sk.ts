@@ -10,7 +10,7 @@
  *   app-sk.scss and app-sk-demo.css for an example of this).
  * </p>
  * <p>
- *   In general, create an app with a &lt;header&gt;, aside, main, and footer
+ *   In general, create an app with a header, aside, main, and footer
  *   and app-sk will apply the appropriate CSS to make an app with a
  *   header bar, a collapsible (on small screens) side-bar, the main content,
  *   and a footer.
