@@ -38,7 +38,7 @@ describe('details-dialog-sk', () => {
     expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
     expect($('.task-failure', element)).to.have.length(1);
     // 3 sections, seperated by lines.
-    expect($('hr', element)).to.have.length(2);
+    expect($('hr', element)).to.have.length(1);
     expect($('table.blamelist tr', element)).to.have.length(2);
     expect($('table.comments tr.comment', element)).to.have.length(1);
   });
@@ -53,7 +53,7 @@ describe('details-dialog-sk', () => {
     expect($('.task-failure', element)).to.have.length(0);
     expect($('task-driver-sk', element)).to.have.length(1);
     // 3 sections, seperated by lines.
-    expect($('hr', element)).to.have.length(2);
+    expect($('hr', element)).to.have.length(1);
     expect($('table.blamelist tr', element)).to.have.length(2);
     expect($('table.comments tr.comment', element)).to.have.length(1);
   });
@@ -62,7 +62,7 @@ describe('details-dialog-sk', () => {
     element.displayTaskSpec('Build-Some-Thing', [comment]);
     expect($('button.action', element)).to.have.length(0);
     // 2 sections, seperated by a line.
-    expect($('hr', element)).to.have.length(1);
+    expect($('hr', element)).to.have.length(0);
     expect($('table.comments tr.comment', element)).to.have.length(1);
   });
 
@@ -70,7 +70,7 @@ describe('details-dialog-sk', () => {
     element.displayCommit(commit, [comment]);
     expect($$('button.action', element)).to.have.property('innerText', 'Revert');
     // 3 sections, seperated by lines.
-    expect($('hr', element)).to.have.length(2);
+    expect($('hr', element)).to.have.length(1);
     expect($('table.comments tr.comment', element)).to.have.length(1);
   });
 });

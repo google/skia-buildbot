@@ -5,8 +5,8 @@ details-dialog-sk {
   z-index: 5;
   .dialog {
     position: fixed;
-    box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12),
-      0 8px 10px -5px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14),
+      0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.4);
     padding: 15px;
     border-radius: 10px;
     border: none;
@@ -19,23 +19,30 @@ details-dialog-sk {
     background-color: var(--surface);
     color: var(--on-surface);
     fill: var(--on-surface);
+
     a {
       color: var(--on-surface);
       fill: var(--on-surface);
     }
-    .close {
-      float: right;
-      height: min-content;
-      width: min-content;
-      min-width: 0;
-      padding: 0;
-    }
   }
 
-  .horizontal {
+  header {
     display: flex;
-    flex-flow: row wrap;
     justify-content: space-between;
+    gap: 8px;
+    align-items: flex-start;
+
+    > * {
+      margin: 0;
+    }
+
+    .spacer {
+      flex-grow: 1;
+    }
+
+    button.action {
+      padding: 10px 4px;
+    }
   }
 
   .small-icon svg {

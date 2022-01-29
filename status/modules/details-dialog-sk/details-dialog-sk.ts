@@ -41,10 +41,9 @@ export class DetailsDialogSk extends ElementSk {
   // before rendering.
   private static template = (el: DetailsDialogSk) => html`
       <div class="dialog" @click=${(e: Event) => e.stopPropagation()}>
-        <button class=close @click=${() => el.close()}><close-icon-sk></close-icon-sk></button>
-        </br>
-        <div class="horizontal">
-          <div class="flex titleContainer">${el.titleSection}</div>
+        <header>
+          <div>${el.titleSection}</div>
+          <div class=spacer></div>
           ${
             el.actionButton
               ? html`<button class="action" @click=${el.actionButton.handler}>
@@ -52,9 +51,8 @@ export class DetailsDialogSk extends ElementSk {
                 </button>`
               : html``
           }
-        </div>
-        <br />
-        <hr />
+          <button class=close @click=${() => el.close()}><close-icon-sk></close-icon-sk></button>
+        </header>
         ${
           el.detailsSection
             ? [
