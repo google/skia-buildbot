@@ -133,7 +133,8 @@
   }
 
   a:hover {
-    color: var(--secondary);
+    /* Distinguish hovering over links. */
+    color: var(--primary-variant);
   }
 
   .input-like,
