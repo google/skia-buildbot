@@ -1,6 +1,9 @@
 @import '../themes/themes.scss';
 
 cluster-page-sk {
+  display: block;
+  padding: 16px;
+
   algo-select-sk {
     max-width: 10em;
     display: block;

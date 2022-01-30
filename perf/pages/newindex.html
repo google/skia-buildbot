@@ -1,40 +1,38 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>Skia Performance Monitoring</title>
+    <script type="text/javascript" charset="utf-8">
+      this.sk = this.sk || {};
+      this.sk.perf = {{.context }};
+    </script>
+    <meta charset="utf-8" />
+    <meta name="theme-color" content="#1f78b4" />
+    <link rel="shortcut icon" href="/dist/favicon.ico" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
 
-<head>
-  <title>Skia Performance Monitoring</title>
-  <script type="text/javascript" charset="utf-8">
-    this.sk = this.sk || {};
-    this.sk.perf = {{.context }};
-  </script>
-  <meta charset="utf-8" />
-  <meta name="theme-color" content="#1f78b4" />
-  <link rel="shortcut icon" href="/dist/favicon.ico" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-</head>
-
-<body class="body-sk">
-  <perf-scaffold-sk>
-    <explore-sk></explore-sk>
-    <div id=sidebar_help>
-      <h3>Navigation</h3>
-      <table>
-        <tr>
-          <td class=mono>'w'/'s'</td>
-          <td>Zoom</td>
-        </tr>
-        <tr>
-          <td class=mono>'a'/'d'</td>
-          <td>Pan</td>
-        </tr>
-        <tr>
-          <td class=mono>'?'</td>
-          <td>Help</td>
-        </tr>
-      </table>
-    </div>
-  </perf-scaffold-sk>
-</body>
-
+  <body class="body-sk font-sk">
+    <perf-scaffold-sk>
+      <explore-sk></explore-sk>
+      <div id="sidebar_help">
+        <h4>Navigation</h4>
+        <table>
+          <tr>
+            <td class="mono">'w'/'s'</td>
+            <td>Zoom</td>
+          </tr>
+          <tr>
+            <td class="mono">'a'/'d'</td>
+            <td>Pan</td>
+          </tr>
+          <tr>
+            <td class="mono">'?'</td>
+            <td>Help</td>
+          </tr>
+        </table>
+      </div>
+    </perf-scaffold-sk>
+  </body>
 </html>

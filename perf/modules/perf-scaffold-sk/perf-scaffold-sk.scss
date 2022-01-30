@@ -1,80 +1,36 @@
 @import '../themes/themes.scss';
 
-@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500');
+perf-scaffold-sk app-sk {
+  --sidebar-width: 110px;
 
-// If the sidebar is to be hidden then we remove it from the grid.
-perf-scaffold-sk.sidebar_hidden {
-  grid-template-areas:
-    'topbar'
-    'main';
-
-  grid-template-columns: 100%;
-
-  #sidebar {
-    display: none;
-  }
-}
-
-perf-scaffold-sk {
-  display: grid;
-  height: 100vh;
-
-  // The third column here shouldn't be needed, but if it isn't there then as
-  // you toggle back and forth having the sidebar visible then perf-scaffold-sk
-  // grows beyond the width of the page. CSS is fun.
-  grid-template-columns: 110px 1fr 10px;
-  grid-template-rows: 55px 1fr;
-  grid-template-areas:
-    'topbar topbar topbar'
-    'sidebar main main';
-
-  * {
-    font-family: Roboto, Helvetica, Arial, 'Bitstream Vera Sans', sans-serif;
-    font-size: 12px;
-  }
-
-  h1 {
-    font-size: 20px;
-  }
-
-  h2 {
-    font-size: 18px;
-  }
-
-  h3 {
-    font-size: 16px;
-  }
-
-  h4 {
-    font-size: 14px;
-  }
-
-  #sidebar {
-    grid-area: sidebar;
+  aside#sidebar {
     display: flex;
     flex-direction: column;
+    padding: 16px 8px 0 8px;
+    gap: 16px;
 
-    background: var(--surface);
-
-    ul {
-      padding-inline-start: 0;
-      list-style-type: none;
+    > * {
+      margin: 0;
+      padding: 0;
     }
 
-    li {
-      padding: 10px;
+    #links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    li a span {
-      margin-left: 6px;
-    }
+    a,
+    svg {
+      display: flex;
+      align-items: center;
+      gap: 8px;
 
-    li > * {
       fill: var(--secondary);
       color: var(--secondary);
     }
 
-    li:hover {
+    a:hover {
       opacity: 0.8;
     }
 
@@ -89,81 +45,9 @@ perf-scaffold-sk {
       }
 
       .mono {
-        font-family: 'Roboto Mono', Courier, monospace;
-      }
-
-      h3 {
-        font-size: 14px;
-        margin-left: 8px;
-      }
-
-      table {
-        margin-left: 4px;
+        font-family: var(--mono-font);
       }
     }
-  }
-
-  #topbar {
-    display: flex;
-    grid-area: topbar;
-
-    align-items: center;
-    color: var(--primary);
-    fill: var(--primary);
-    background: var(--on-primary);
-    border-bottom: 1px solid var(--primary);
-
-    #toggleSidebarButton {
-      fill: var(--primary);
-      color: var(--primary);
-      background: var(--on-primary);
-      border: none;
-      box-shadow: none;
-      border-radius: 0;
-    }
-
-    #toggleSidebarButton:hover {
-      opacity: 0.8;
-    }
-
-    a[href]:hover {
-      text-decoration: underline;
-    }
-
-    a span {
-      vertical-align: middle;
-      padding: 0.2em;
-      padding-left: 1em;
-      color: var(--primary);
-    }
-
-    div {
-      margin: 1em;
-    }
-
-    alogin-sk {
-      margin-left: auto;
-      margin-right: 1em;
-      display: block;
-    }
-
-    alogin-sk .email,
-    alogin-sk .logInOut {
-      color: var(--primary);
-    }
-  }
-
-  h1 {
-    font-weight: normal;
-  }
-
-  main {
-    grid-area: main;
-    padding: 1em;
-  }
-
-  .name {
-    font-size: 20px;
   }
 
   tabs-sk > button.selected,

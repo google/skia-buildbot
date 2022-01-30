@@ -2,6 +2,7 @@
 
 explore-sk {
   display: block;
+  padding: 16px;
 
   h3 {
     margin: 0.5em 0 0 0;
@@ -107,23 +108,17 @@ explore-sk {
     display: block;
   }
 
-  #buttons {
-    font-size: 11px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    padding: 0;
-    margin: 0;
-  }
-
-  #traceButtons {
+  #buttons,
+  #traceButtons,
+  #calcButtons {
     display: flex;
     align-items: center;
-  }
+    gap: 8px;
 
-  button {
-    padding: 0.4em;
-    text-transform: none;
+    button,
+    checkbox-sk {
+      margin: 0;
+    }
   }
 
   #spinner[aria-hidden='true'] {

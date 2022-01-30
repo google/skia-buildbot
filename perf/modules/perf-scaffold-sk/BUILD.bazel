@@ -15,6 +15,7 @@ sk_element(
     sk_element_deps = [
         "//infra-sk/modules/alogin-sk",
         "//infra-sk/modules/theme-chooser-sk",
+        "//infra-sk/modules/app-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

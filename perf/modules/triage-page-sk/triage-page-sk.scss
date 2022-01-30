@@ -1,6 +1,9 @@
 @import '../themes/themes.scss';
 
 triage-page-sk {
+  display: block;
+  padding: 16px;
+
   > dialog {
     z-index: 2;
     background: var(--background);

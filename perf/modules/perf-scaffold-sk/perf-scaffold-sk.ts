@@ -16,15 +16,11 @@ import 'elements-sk/icon/event-icon-sk';
 import 'elements-sk/icon/folder-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/icon/home-icon-sk';
-import 'elements-sk/icon/menu-icon-sk';
 import 'elements-sk/icon/sort-icon-sk';
 import 'elements-sk/icon/trending-up-icon-sk';
 import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
-
-// The class applied to perf-scaffold-sk that hides the sidebar. It is also used
-// as the key for localStorage, which is used to remember the user's preference.
-const SIDEBAR_HIDDEN_CLASS = 'sidebar_hidden';
+import '../../../infra-sk/modules/app-sk';
 
 // The ID of a top level element under perf-scaffold-sk that will be moved under
 // the right hand side nav bar.
@@ -50,29 +46,31 @@ export class PerfScaffoldSk extends ElementSk {
   }
 
   private static template = (ele: PerfScaffoldSk) => html`
-  <nav id=topbar>
-    <button id=toggleSidebarButton @click=${() => ele.toggleSidebar()}>
-      <menu-icon-sk></menu-icon-sk>
-    </button>
-    <h1 class=name>Perf</h1>
-    <alogin-sk url=/_/login/status></alogin-sk>
-    <theme-chooser-sk></theme-chooser-sk>
-  </nav>
-  <nav id=sidebar>
-    <ul>
-      <li><a href="/e/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Home</span></a></li>
-      <li><a href="/t/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a></li>
-      <li><a href="/a/" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a></li>
-      <li><a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a></li>
-      <li><a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a></li>
-      <li><a href="http://go/perf-user-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a></li>
-    </ul>
-    <div id=help>
-    </div>
-  </nav>
-  <main>
-  </main>
-  <error-toast-sk></error-toast-sk>
+  <app-sk>
+    <header id=topbar>
+      <h1 class=name>Perf</h1>
+      <div class=spacer></div>
+      <alogin-sk url=/_/login/status></alogin-sk>
+      <theme-chooser-sk></theme-chooser-sk>
+    </header>
+    <aside id=sidebar>
+      <div id=links>
+        <a href="/e/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Home</span></a>
+        <a href="/t/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a>
+        <a href="/a/" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a>
+        <a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
+        <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a>
+        <a href="http://go/perf-user-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a>
+      </div>
+      <div id=help>
+      </div>
+    </aside>
+    <main>
+    </main>
+    <footer>
+      <error-toast-sk></error-toast-sk>
+    </footer>
+  </app-sk>
 `;
 
   connectedCallback(): void {
@@ -106,13 +104,6 @@ export class PerfScaffoldSk extends ElementSk {
       });
     });
     observer.observe(this, { childList: true });
-    // Force the sidebar status based on localStorage. If the user has never
-    // toggled the sidebar then localStorage.getItem will return null, which
-    // won't equal 'true', so we will show the sidebar by default.
-    this.classList.toggle(
-      SIDEBAR_HIDDEN_CLASS,
-      window.localStorage.getItem(SIDEBAR_HIDDEN_CLASS) === 'true',
-    );
   }
 
   // Place these newly added nodes in the right place under the perf-scaffold-sk
@@ -125,15 +116,6 @@ export class PerfScaffoldSk extends ElementSk {
         this._main!.appendChild(node);
       }
     });
-  }
-
-  private toggleSidebar() {
-    this.classList.toggle(SIDEBAR_HIDDEN_CLASS);
-    // Remember the user's preference.
-    window.localStorage.setItem(
-      SIDEBAR_HIDDEN_CLASS,
-      this.classList.contains(SIDEBAR_HIDDEN_CLASS).toString(),
-    );
   }
 }
 

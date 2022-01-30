@@ -1,6 +1,9 @@
 @import '../themes/themes.scss';
 
 alerts-page-sk {
+  display: block;
+  padding: 16px;
+
   dialog {
     background: var(--background);
     border: solid 1px var(--on-background);
