@@ -1,10 +1,7 @@
 # Go build command to build static binaries suitable for lean Alpine containers.
 KGO := CGO_ENABLED=0 GOOS=linux go build
 
-export HASH:=$(shell git rev-parse HEAD)
-export DATETIME:=$(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
-export GIT_STATE:=$(shell ../bash/gitstate.sh)
-export VERSION:=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
+export VERSION:=$(shell ../bash/release_tag.sh)
 
 # This build must be launched from an Ansible playbook which will extract the
 # service account keys and base64 encode them into the SERVICE_ACCOUNT_KEY and

@@ -42,10 +42,7 @@ build-remote:
 run-local-instance: build
 	../_bazel_bin/machine/go/machineserver/machineserver_/machineserver --local --resources_dir ../_bazel_bin/machine/pages/development
 
-export HASH:=$(shell git rev-parse HEAD)
-export DATETIME:=$(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
-export GIT_STATE:=$(shell ../bash/gitstate.sh)
-export VERSION:=${DATETIME}-${USER}-${HASH}-${GIT_STATE}
+export VERSION:=$(shell ../bash/release_tag.sh)
 
 build_test_machine_monitor_for_all_archs:
 	rm -rf ./build

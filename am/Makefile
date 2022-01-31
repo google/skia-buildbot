@@ -45,6 +45,8 @@ release-atp: build-atp
 push-atp: pushk release-atp
 	pushk --use-temp-checkout alert-to-pubsub
 
+VERSION := $(shell ../bash/release_tag.sh)
+
 build_alert_to_pubsub_ansible:
 	rm -rf ./build
 	CGO_ENABLED=0 \
@@ -52,11 +54,11 @@ build_alert_to_pubsub_ansible:
 	GOARCH=amd64 \
 	go build \
 	 -o ./build/Linux/x86_64/alert_to_pubsub_ansible \
-	 -ldflags="-X 'main.Version=${VERSION}' " \
+	 -ldflags="-X 'main.Version=$(VERSION)' " \
 	 ./go/alert-to-pubsub
 
 build_and_upload_alert_to_pubsub_ansible: build_alert_to_pubsub_ansible
-	cipd create -pkg-def=alert_to_pubsub_ansible_cipd.yml --tag version:${VERSION}
+	cipd create -pkg-def=alert_to_pubsub_ansible_cipd.yml --tag version:$(VERSION)
 
 	#
 	# The instance can be retrieved using the version tag:
@@ -64,7 +66,7 @@ build_and_upload_alert_to_pubsub_ansible: build_alert_to_pubsub_ansible
 	#   cipd install --root=/tmp/sometempdir skia/internal/alert_to_pubsub_ansible version:${VERSION}
 
 release_alert_to_pubsub_ansible: build_and_upload_alert_to_pubsub_ansible
-	../bash/ansible-release.sh alert_to_pubsub_ansible ${VERSION}
+	../bash/ansible-release.sh alert_to_pubsub_ansible $(VERSION)
 
 
 # ALERT-MANAGER + ALERT-TO-PUBSUB TARGETS

@@ -19,10 +19,7 @@ DEB="$1"
 # a rpi doesn't result in "chrome-bot" as the username in the version string:
 USER="$2"
 
-DATETIME=`date --utc "+%Y-%m-%dT%H:%M:%SZ"`
-HASH=`git rev-parse HEAD`
-GITSTATE=`../../../bash/gitstate.sh`
-VERSION=${DATETIME}-${USER}-${HASH}-${GITSTATE}
+VERSION=`../bash/release_tag.sh`
 DEB_DIR=build/Linux/aarch64
 
 mkdir -p "${DEB_DIR}"

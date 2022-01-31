@@ -48,20 +48,11 @@ if [ -z "$ROOT" ]; then
 fi
 mkdir -p ${ROOT}
 PROJECT="${PROJECT:-skia-public}"
-DATETIME=`date --utc "+%Y-%m-%dT%H_%M_%SZ"`
-HASH=`git rev-parse HEAD`
-
-GITSTATE=`${REL}/gitstate.sh`
-# Determine repo state.
-REPO_STATE=clean
-if [ "$GITSTATE" = "dirty" ]; then
-  REPO_STATE=dirty
-fi
 
 # Calculate the tag.
 if [ -z "$TAG" ]; then
   # If the format of this ever changes then please also update k8s_checker/main.go
-  TAG=${DATETIME}-${USER}-${HASH:0:7}-${REPO_STATE}
+  TAG=`${REL}/release_tag.sh`
 fi
 
 copy_release_files
