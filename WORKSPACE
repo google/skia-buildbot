@@ -272,7 +272,7 @@ container_pull(
 # build skia.
 container_pull(
     name = "skia-build-tools",
-    digest = "sha256:5ed9f46e992b3633c69f7cb68074fb30b8280711c9e129794cf875a2c02a300b",
+    digest = "sha256:28cc48a073ac1f35f468c1b725e331b626791b35edb18696f30891c4f047d236",
     registry = "gcr.io",
     repository = "skia-public/skia-build-tools",
 )
