@@ -15,7 +15,7 @@ release_auth_proxy:
 	./build_auth_proxy_release
 
 release_basealpine:
-	docker pull alpine:3.8
+	docker pull alpine:3.9
 	./build_basealpine_release
 
 push_reposync:

@@ -1,4 +1,4 @@
-FROM gcr.io/skia-public/basealpine:3.8
+FROM gcr.io/skia-public/basealpine:3.9
 
 USER skia
 
