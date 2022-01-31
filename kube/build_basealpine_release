@@ -6,7 +6,7 @@ APPNAME=basealpine
 
 # Keep in sync with the version of alpine we are depending on, i.e.
 # make this match the tag  in basealpine/Dockerfile.
-TAG=3.8
+TAG=3.9
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()

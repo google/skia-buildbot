@@ -254,7 +254,7 @@ container_pull(
 # Pulls the gcr.io/skia-public/basealpine container, needed by the skia_app_container macro.
 container_pull(
     name = "basealpine",
-    digest = "sha256:d58f6c8ced7d5436ce87ed1904340f1d8c6775eb8d891ac768159241a20c1eb4",
+    digest = "sha256:35a26930eb37b90cb0bdf69050e363bd749b56656963b78c8c4b4758a5aea8fa",
     registry = "gcr.io",
     repository = "skia-public/basealpine",
 )
