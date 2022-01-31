@@ -38,7 +38,6 @@ sk_element(
         "@npm//d3-scale",
         "@npm//elements-sk",
         "@npm//lit-html",
-        "@npm//resize-observer-polyfill",
     ],
     ts_srcs = [
         "index.ts",

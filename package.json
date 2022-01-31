@@ -107,7 +107,6 @@
     "pulito": "^4.4.0",
     "puppeteer": "^8.0.0",
     "requirejs": "^2.3.6",
-    "resize-observer-polyfill": "^1.5.1",
     "rollup": "^2.45.1",
     "rollup-plugin-sourcemaps": "^0.6.3",
     "sass-loader": "^7.3.1",

@@ -3,6 +3,10 @@
 perf-scaffold-sk app-sk {
   --sidebar-width: 110px;
 
+  main {
+    width: calc(100vw - var(--sidebar-width));
+  }
+
   aside#sidebar {
     display: flex;
     flex-direction: column;

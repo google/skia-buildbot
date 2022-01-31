@@ -94,9 +94,6 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
-import * as ResizeObserverPolyfill from 'resize-observer-polyfill';
-// This import is needed because https://github.com/Microsoft/TypeScript/issues/28502
-import ResizeObserver from 'resize-observer-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { KDTree, KDPoint } from './kd';
 import { ticks } from './ticks';
@@ -120,11 +117,6 @@ const DETAIL_LINE_WIDTH = 1; // px
 const AXIS_LINE_WIDTH = 1; // px
 
 const MIN_MOUSE_MOVE_FOR_ZOOM = 5; // px
-
-// As backup use a Polyfill for ResizeObserver if it isn't supported. This can
-// go away when Safari supports ResizeObserver:
-// https://caniuse.com/#feat=resizeobserver
-const LocalResizeObserver = ResizeObserver || ResizeObserverPolyfill;
 
 /**
  * @constant {Array} - Colors used for traces.
@@ -741,7 +733,7 @@ export class PlotSimpleSk extends ElementSk {
 
     // We need to dynamically resize the canvas elements since they don't do
     // that themselves.
-    const resizeObserver = new LocalResizeObserver((entries: ResizeObserverEntry[]) => {
+    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
       entries.forEach((entry) => {
         this.width = entry.contentRect.width;
       });
