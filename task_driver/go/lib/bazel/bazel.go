@@ -2,6 +2,7 @@ package bazel
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 
 	"go.skia.org/infra/go/skerr"
@@ -23,7 +24,7 @@ type Bazel struct {
 //
 // Using a ramdisk as the Bazel cache prevents CockroachDB "disk stall detected" errors on GCE VMs
 // due to slow I/O.
-func NewWithRamdisk(ctx context.Context, workspace string, rbeCredentialFile string) (*Bazel, func(), error) {
+func NewWithRamdisk(ctx context.Context, workspace string, rbeCredentialFile string, sizeGb int) (*Bazel, func(), error) {
 	// Create and mount ramdisk.
 	//
 	// At the time of writing, a full build of the Buildbot repository on an empty Bazel cache takes
@@ -32,7 +33,7 @@ func NewWithRamdisk(ctx context.Context, workspace string, rbeCredentialFile str
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
-	if _, err := exec.RunCwd(ctx, workspace, "sudo", "mount", "-t", "tmpfs", "-o", "size=32g", "tmpfs", ramdiskDir); err != nil {
+	if _, err := exec.RunCwd(ctx, workspace, "sudo", "mount", "-t", "tmpfs", "-o", fmt.Sprintf("size=%dg", sizeGb), "tmpfs", ramdiskDir); err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
 

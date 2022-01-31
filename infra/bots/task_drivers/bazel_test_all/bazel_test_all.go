@@ -29,6 +29,7 @@ var (
 	buildbucketBuildID = flag.String("buildbucket_build_id", "", "ID of the Buildbucket build.")
 	rbe                = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
 	rbeKey             = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
+	ramdiskSizeGb      = flag.Int("ramdisk_gb", 40, "Size of ramdisk to use, in GB.")
 
 	checkoutFlags = checkout.SetupFlags(nil)
 
@@ -72,7 +73,7 @@ func main() {
 	if !*rbe && !*local {
 		// Infra-PerCommit-Test-Bazel-Local uses a ramdisk as the Bazel cache in order to prevent
 		// CockroachDB "disk stall detected" errors on GCE VMs due to slow I/O.
-		bzl, bzlCleanup, err = bazel.NewWithRamdisk(ctx, gitDir.Dir(), *rbeKey)
+		bzl, bzlCleanup, err = bazel.NewWithRamdisk(ctx, gitDir.Dir(), *rbeKey, *ramdiskSizeGb)
 	} else {
 		bzl, err = bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
 		bzlCleanup = func() {}
