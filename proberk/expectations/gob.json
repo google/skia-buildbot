@@ -38,6 +38,11 @@
     "clone_url": "https://skia.googlesource.com/external/github.com/BinomialLLC/basis_universal",
     "mirrored_from_url": "https://github.com/BinomialLLC/basis_universal.git"
   },
+  "external/github.com/emscripten-core/emsdk": {
+    "name": "external/github.com/emscripten-core/emsdk",
+    "clone_url": "https://skia.googlesource.com/external/github.com/emscripten-core/emsdk",
+    "mirrored_from_url": "https://github.com/emscripten-core/emsdk.git"
+  },
   "external/github.com/google/brotli": {
     "name": "external/github.com/google/brotli",
     "clone_url": "https://skia.googlesource.com/external/github.com/google/brotli",
