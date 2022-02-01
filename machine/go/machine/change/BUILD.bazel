@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "change",
+    srcs = ["change.go"],
+    importpath = "go.skia.org/infra/machine/go/machine/change",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/skerr",
+        "//machine/go/machineserver/config",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
+    ],
+)

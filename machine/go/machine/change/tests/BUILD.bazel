@@ -1,0 +1,13 @@
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_test(
+    name = "tests_test",
+    srcs = ["change_manual_test.go"],
+    deps = [
+        "//go/testutils/unittest",
+        "//machine/go/machine/change/sink",
+        "//machine/go/machine/change/source",
+        "//machine/go/machineserver/config",
+        "@com_github_stretchr_testify//require",
+    ],
+)

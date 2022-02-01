@@ -8,7 +8,15 @@
     "instance": "prod"
   },
   "web": {
-    "allowed_users": ["google.com"],
-    "allowed_hosts": ["machines-test.skia.org"]
+    "allowed_users": [
+      "google.com"
+    ],
+    "allowed_hosts": [
+      "machines-test.skia.org"
+    ]
+  },
+  "desc_source": {
+    "project": "skia-public",
+    "topic": "machineserver-events-test"
   }
 }

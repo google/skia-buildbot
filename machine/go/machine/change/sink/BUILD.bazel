@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "sink",
+    srcs = [
+        "impl.go",
+        "sink.go",
+    ],
+    importpath = "go.skia.org/infra/machine/go/machine/change/sink",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//machine/go/machine/change",
+        "//machine/go/machineserver/config",
+        "@com_google_cloud_go_pubsub//:pubsub",
+    ],
+)

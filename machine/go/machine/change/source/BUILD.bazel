@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "source",
+    srcs = [
+        "impl.go",
+        "source.go",
+    ],
+    importpath = "go.skia.org/infra/machine/go/machine/change/source",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//machine/go/machine/change",
+        "//machine/go/machineserver/config",
+        "@com_google_cloud_go_pubsub//:pubsub",
+    ],
+)
