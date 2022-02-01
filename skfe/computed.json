@@ -1367,32 +1367,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "skiaperf-android",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "skiaperf-android",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "skiaperf-android",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "skiaperf-android-x",
           "endpoints": [
             {
@@ -2578,21 +2552,6 @@
                       ]
                     },
                     {
-                      "domains": "android-perf.skia.org",
-                      "name": "android-perf.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "redirect": {
-                            "host_redirect": "android-master-perf.skia.org",
-                            "https_redirect": true
-                          }
-                        }
-                      ]
-                    },
-                    {
                       "domains": "www.skia.org",
                       "name": "www.skia.org",
                       "routes": [
@@ -3756,23 +3715,6 @@
                           },
                           "route": {
                             "cluster": "skiaperf",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "android-master-perf.skia.org",
-                      "name": "android-master-perf.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "skiaperf-android",
                             "timeout": {
                               "seconds": 600
                             }

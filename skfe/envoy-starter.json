@@ -1411,21 +1411,6 @@
                       ]
                     },
                     {
-                      "domains": "android-perf.skia.org",
-                      "name": "android-perf.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "redirect": {
-                            "host_redirect": "android-master-perf.skia.org",
-                            "https_redirect": true
-                          }
-                        }
-                      ]
-                    },
-                    {
                       "domains": "www.skia.org",
                       "name": "www.skia.org",
                       "routes": [
