@@ -215,24 +215,6 @@ groups:
       '
 
 # Perf
-  - alert: AndroidIngestStalled
-    expr: rate(ack[30m]) < 0.01
-    labels:
-      category: infra
-      severity: critical
-      owner: jcgregorio@google.com
-    annotations:
-      description: 'The Android Perf instances that run using --event_driven_regression_detection have stopped receiving data. Confirm via https://android-metric-ingest.skia.org/ that data is arriving.'
-
-  - alert: AndroidRegressionDetectionTooSlow
-    expr: sum(rate(perf_regression_store_found{app=~"perf-clustering-android|skiaperf|skiaperf-android-x"}[1h])) by (app) < 0.01
-    labels:
-      category: infra
-      severity: critical
-      owner: jcgregorio@google.com
-    annotations:
-      description: 'Perf failed to find any regressions in an hour. See https://github.com/google/skia-buildbot/blob/main/android_ingest/PROD.md#regression_detection_slow'
-
   - alert: AndroidIngestFailures
     expr: rate(process_failures[1h]) > 0.01
     labels:
@@ -279,16 +261,6 @@ groups:
       owner: jcgregorio@google.com
     annotations:
       description: 'Too few ingestion files are being successfully ingested. See https://github.com/google/skia-buildbot/blob/main/perf/PROD.md#success_rate_too_low'
-
-  - alert: PerfAndroidClusteringSlow
-    expr: sum(rate(perf_clustering_runs{app="perf-clustering-android"}[1h])*60*60) < 1
-    for: 15m
-    labels:
-      category: infra
-      severity: critical
-      owner: jcgregorio@google.com
-    annotations:
-      description: 'Android Perf Clustering (https://android-main-perf.skia.org)Rate is too low. See https://github.com/google/skia-buildbot/blob/main/perf/PROD.md#android_clustering_rate'
 
   - alert: PerfClusteringSlow
     expr: rate(perf_clustering_runs{app!="skiaperf-android"}[1h])*60*60 < 1
