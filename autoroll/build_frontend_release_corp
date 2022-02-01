@@ -1,4 +1,0 @@
-#!/bin/bash
-SUFFIX="-internal"
-CLUSTER="skia-corp"
-source ./build_frontend_release.sh

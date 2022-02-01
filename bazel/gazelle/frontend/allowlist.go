@@ -9,6 +9,8 @@ package frontend
 var targetDirectories = map[string]bool{
 	"am/modules":             true,
 	"am/pages":               true,
+	"autoroll/modules":       true,
+	"autoroll/pages":         true,
 	"bugs-central/modules":   true,
 	"bugs-central/pages":     true,
 	"codesize/modules":       true,

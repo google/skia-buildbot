@@ -6,7 +6,7 @@ import { ARBConfigSk } from './arb-config-sk';
 import { SetupMocks, GetFakeStatus } from '../rpc-mock';
 import { GetFakeConfig } from '../rpc-mock/fake-config';
 
-import './index.ts';
+import './index';
 
 fetchMock.get('/loginstatus/', {
   Email: 'user@google.com',

@@ -1,0 +1,59 @@
+filegroup(
+    name = "public_configs",
+    srcs = [":gen_skia_public_configs"],
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+    visibility = ["//autoroll:__subpackages__"],
+)
+
+genrule(
+    name = "gen_skia_public_configs",
+    outs = ["skia-public"],
+    cmd = "if [ -d /tmp/skia-autoroll-internal-config ]; then cp -r /tmp/skia-autoroll-internal-config/skia-public $@; else mkdir $@; touch $@/placeholder; fi",
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+)
+
+filegroup(
+    name = "corp_configs",
+    srcs = [":gen_skia_corp_configs"],
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+    visibility = ["//autoroll:__subpackages__"],
+)
+
+genrule(
+    name = "gen_skia_corp_configs",
+    outs = ["skia-corp"],
+    cmd = "if [ -d /tmp/skia-autoroll-internal-config ]; then cp -r /tmp/skia-autoroll-internal-config/skia-corp $@; else mkdir $@; touch $@/placeholder; fi",
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+)
+
+filegroup(
+    name = "google3_config",
+    srcs = [":gen_google3_config"],
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+    visibility = ["//autoroll:__subpackages__"],
+)
+
+genrule(
+    name = "gen_google3_config",
+    outs = ["skia-google3.cfg"],
+    cmd = "if [ -d /tmp/skia-autoroll-internal-config ]; then cp -r /tmp/skia-autoroll-internal-config/skia-corp/skia-google3.cfg $@; else touch $@; fi",
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+)

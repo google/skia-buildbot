@@ -1,0 +1,34 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "config",
+    assets_serving_path = "/dist",
+    html_file = "config.html",
+    sk_element_deps = [
+        "//autoroll/modules/arb-config-sk",
+        "//autoroll/modules/arb-scaffold-sk",
+    ],
+    ts_entry_point = "config.ts",
+)
+
+sk_page(
+    name = "index",
+    assets_serving_path = "/dist",
+    html_file = "index.html",
+    sk_element_deps = [
+        "//autoroll/modules/arb-scaffold-sk",
+        "//autoroll/modules/arb-table-sk",
+    ],
+    ts_entry_point = "index.ts",
+)
+
+sk_page(
+    name = "roller",
+    assets_serving_path = "/dist",
+    html_file = "roller.html",
+    sk_element_deps = [
+        "//autoroll/modules/arb-scaffold-sk",
+        "//autoroll/modules/arb-status-sk",
+    ],
+    ts_entry_point = "roller.ts",
+)

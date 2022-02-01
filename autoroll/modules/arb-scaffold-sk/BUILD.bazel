@@ -1,0 +1,38 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_element(
+    name = "arb-scaffold-sk",
+    sass_deps = [
+        "//autoroll/modules:colors_sass_lib",
+        "//infra-sk:elements-sk_scss",
+    ],
+    sass_srcs = ["arb-scaffold-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/app-sk",
+        "//infra-sk/modules/login-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "arb-scaffold-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "arb-scaffold-sk-demo",
+    html_file = "arb-scaffold-sk-demo.html",
+    sk_element_deps = [":arb-scaffold-sk"],
+    ts_deps = ["@npm//fetch-mock"],
+    ts_entry_point = "arb-scaffold-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":arb-scaffold-sk-demo",
+)

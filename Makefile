@@ -11,10 +11,6 @@ testjs:
 sharedgo:
 	cd go && $(MAKE) all
 
-.PHONY: autoroll
-autoroll:
-	cd autoroll && $(MAKE) all
-
 .PHONY: cq_watcher
 cq_watcher:
 	cd cq_watcher && $(MAKE) default
@@ -29,7 +25,7 @@ skolo:
 
 # This target is invoked by the Infra-PerCommit-Build tryjob.
 .PHONY: all
-all: infra-sk autoroll sharedgo cq_watcher build-frontend-ci
+all: infra-sk sharedgo cq_watcher build-frontend-ci
 
 .PHONY: tags
 tags:
@@ -57,7 +53,6 @@ puppeteer-tests:
 # All apps with a webpack.config.ts file should be included here.
 .PHONY: build-frontend-ci
 build-frontend-ci: npm-ci
-	cd autoroll && $(MAKE) build-frontend-ci
 	cd infra-sk && $(MAKE) build-frontend-ci
 	cd new_element && $(MAKE) build-frontend-ci
 

@@ -2,6 +2,7 @@
 # containing the same, and generate, apply, and push Kubernetes configs
 # for the autorollers.
 
+include ../make/bazel.mk
 include ../kube/kube.mk
 
 # First create a list of all the modules that ./go/rpc depends upon.
@@ -15,34 +16,26 @@ rpcOutputFiles := ./go/rpc/rpc.pb.go ./go/rpc/rpc.twirp.go ./modules/rpc/rpc.ts 
 $(rpcOutputFiles): $(rpcDependentFiles)
 	go generate ./go/rpc
 
-pages := $(shell find ./pages -type f)
-modules := $(shell find ./modules -type f)
-frontendInputFiles := $(pages) $(modules) $(rpcOutputFiles) npm-ci
-pageBaseNames := $(sort $(basename $(notdir $(pages))))
-distNames := $(addsuffix -bundle.js,$(pageBaseNames)) $(addsuffix -bundle.css,$(pageBaseNames)) $(addsuffix .html,$(pageBaseNames))
-dist := $(addprefix ./dist/,$(distNames))
-
-$(dist): $(frontendInputFiles)
-	npx webpack --mode=production
-
 .PHONY: autoroll-fe
-autoroll-fe: $(dist)
-	CGO_ENABLED=0 GOOS=linux go install -v ./go/autoroll-fe
+autoroll-fe:
+	$(BAZEL) build //autoroll/...
 
 .PHONY: autoroll-be
 autoroll-be:
-	GOOS=linux go install -v ./go/autoroll-be
+	$(BAZEL) build //autoroll/go/autoroll-be/...
 
 .PHONY: autoroll-google3
 autoroll-google3:
-	CGO_ENABLED=0 GOOS=linux go install -v ./go/autoroll-google3
+	$(BAZEL) build //autoroll/go/autoroll-google3/...
 
 .PHONY: all
 all: autoroll-fe autoroll-be autoroll-google3
 
 .PHONY: serve
-serve: $(dist)
-	npx webpack-dev-server --mode=development --watch-poll
+serve:
+	@echo "Bazel doesn't have a serve-all option."
+	@echo "For the module under development, try running something like:"
+	@echo "bazel run //autoroll/modules/arb-status-sk:demo_page_server"
 
 ROLLER_INTERNAL_CONFIG_DIR = "/tmp/skia-autoroll-internal-config"
 USE_INTERNAL_CONFIG_DIR_PROMPT ?= $$(bash -c 'read -s -p "The checkout in $(ROLLER_INTERNAL_CONFIG_DIR) is dirty. Would you still like to use it? (y/n): " ans; echo $$ans')
@@ -62,17 +55,21 @@ setup-internal-config-repo:
 
 # These targets build kubernetes releases.
 .PHONY: release-be
-release-be: autoroll-be build_base_cipd_release
-	./build_backend_release
+release-be: autoroll-be
+	$(BAZEL) run //autoroll:push_autoroll_be_container
 
 .PHONY: release-fe
-release-fe: autoroll-fe
-	./build_frontend_release_public
-	./build_frontend_release_corp
+release-fe: autoroll-fe setup-internal-config-repo
+	$(BAZEL) run //autoroll:push_autoroll_fe_container
+	$(BAZEL) run //autoroll:push_autoroll_fe_internal_container
+	# Cleanup the config directory.
+	git clean -fxq config/*
 
 .PHONY: release-google3
 release-google3: autoroll-google3 setup-internal-config-repo
-	CONFIG_DIR="$(ROLLER_INTERNAL_CONFIG_DIR)" ./build_google3_release "$(MESSAGE)"
+	$(BAZEL) run //autoroll:push_autoroll_google3_container
+	# Cleanup the config directory.
+	git clean -fxq config/*
 
 .PHONY: release-all
 release-all: release-fe release-be release-google3
@@ -121,12 +118,8 @@ validate:
 	go run ../infra/bots/task_drivers/validate_autoroll_configs/validate_autoroll_configs.go --local --config="$(CONFIG)"
 
 # Run the autoroll-fe locally. This is just for convenience in testing.
-.PHONY: run-fe
-run-fe: autoroll-fe
-	autoroll-fe --local --firestore_instance=staging --config_file=./config/skia-skiabot-test.json
-
-.PHONY: build-frontend-ci
-build-frontend-ci: npm-ci
-	npx webpack --mode=production
-
-include ../make/npm.mk
+.PHONY: run-local-fe-instance
+run-local-fe-instance: autoroll-fe setup-internal-config-repo
+	# Run "bazel build //autoroll/..." after making any frontend changes
+	# to pick up the change without restarting the golang server.
+	../_bazel_bin/autoroll/go/autoroll-fe/autoroll-fe_/autoroll-fe --local --firestore_instance=staging --config_file=$(ROLLER_INTERNAL_CONFIG_DIR)/skia-public/skia-skiabot-test.cfg --resources_dir ../_bazel_bin/autoroll/pages/development --config_repo=https://skia.googlesource.com/skia-autoroll-internal-config.git --config_gerrit_project=skia-autoroll-internal-config

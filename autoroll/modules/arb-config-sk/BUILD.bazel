@@ -1,0 +1,48 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_element(
+    name = "arb-config-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//autoroll/modules:colors_sass_lib",
+        "//infra-sk/modules:results_sass_lib",
+    ],
+    sass_srcs = ["arb-config-sk.scss"],
+    ts_deps = [
+        "//autoroll/modules/config:index_ts_lib",
+        "//autoroll/modules/rpc:index_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules:login_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "arb-config-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "arb-config-sk-demo",
+    html_file = "arb-config-sk-demo.html",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/login-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+        ":arb-config-sk",
+    ],
+    ts_deps = [
+        "//autoroll/modules/rpc-mock:fake-config_ts_lib",
+        "//autoroll/modules/rpc-mock:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//fetch-mock",
+    ],
+    ts_entry_point = "arb-config-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":arb-config-sk-demo",
+)

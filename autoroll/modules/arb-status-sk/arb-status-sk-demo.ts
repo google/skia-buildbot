@@ -5,7 +5,7 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import { ARBStatusSk } from './arb-status-sk';
 import { SetupMocks, GetFakeStatus } from '../rpc-mock';
 
-import './index.ts';
+import './index';
 
 fetchMock.get('/loginstatus/', {
   Email: 'user@google.com',

@@ -1,4 +1,0 @@
-#!/bin/bash
-SUFFIX=""
-CLUSTER="skia-public"
-source ./build_frontend_release.sh

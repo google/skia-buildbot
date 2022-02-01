@@ -1,0 +1,117 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "autoroll_google3_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//autoroll/go/autoroll-google3:autoroll-google3",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/autoroll/configs": [
+            [
+                "//autoroll/config:google3_config",
+                "0644",
+            ],
+        ],
+    },
+    repository = "skia-public/autoroll-google3",
+    run_commands_root = [
+        "mkdir -p -m 777 /mnt/pd0/autoroll_workdir",
+    ],
+)
+
+skia_app_container(
+    name = "autoroll_be_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//autoroll/go/autoroll-be:autoroll-be",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/autoroll": [
+            [
+                "//infra/config:recipes.cfg",
+                "0644",
+            ],
+        ],
+    },
+    repository = "skia-public/autoroll-be",
+    run_commands_root = [
+        "apt-get update",
+        "apt-get install -y wget openssh-client curl procps unzip vim less build-essential g++ g++-10 gcc gcc-10 gcc-10-base cpp cpp-10 libgcc-10-dev libstdc++-10-dev cmake",
+    ],
+)
+
+skia_app_container(
+    name = "autoroll_fe_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//autoroll/go/autoroll-fe:autoroll-fe",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/autoroll-fe/configs": [
+            [
+                "//autoroll/config:public_configs",
+                "0644",
+            ],
+        ],
+        "/usr/local/share/autoroll-fe/dist": [
+            [
+                "//autoroll/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in [
+                "index",
+                "config",
+                "roller",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    repository = "skia-public/autoroll-fe",
+)
+
+skia_app_container(
+    name = "autoroll_fe_internal_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//autoroll/go/autoroll-fe:autoroll-fe",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/autoroll-fe/configs": [
+            [
+                "//autoroll/config:corp_configs",
+                "0644",
+            ],
+        ],
+        "/usr/local/share/autoroll-fe/dist": [
+            [
+                "//autoroll/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in [
+                "index",
+                "config",
+                "roller",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    repository = "skia-public/autoroll-fe-internal",
+)
