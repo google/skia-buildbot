@@ -5,11 +5,17 @@
  * A code editor element with numbers and the ability to mark lines that contain
  * errors.
  */
-import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
+import 'codemirror5/addon/fold/foldcode';
+import 'codemirror5/addon/fold/foldgutter';
+import 'codemirror5/lib/codemirror';
+import 'codemirror5/mode/clike/clike'; // Syntax highlighting for c-like languages.
 import { define } from 'elements-sk/define';
-import CodeMirror from 'codemirror';
+import CodeMirror from 'codemirror5';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
+
+const FOLDABLE_BLOCK_START = '// SK_FOLD_START';
+const FOLDABLE_BLOCK_END = '// SK_FOLD_END';
 
 export class TextareaNumbersSk extends ElementSk {
   /** The CodeMirror control. */
@@ -35,6 +41,54 @@ export class TextareaNumbersSk extends ElementSk {
       mode: 'text/x-c++src',
       theme: TextareaNumbersSk.themeFromCurrentMode(),
       viewportMargin: Infinity,
+      extraKeys: {
+        // Keyboard shortcuts for adding fold block tokens.
+        'Ctrl-S': function(cm) { cm.replaceRange(FOLDABLE_BLOCK_START, cm.getCursor()); },
+        'Ctrl-E': function(cm) { cm.replaceRange(FOLDABLE_BLOCK_END, cm.getCursor()); },
+      },
+      foldGutter: true,
+      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+      foldOptions: {
+        // Looks for FOLDABLE_BLOCK_START in the current line and then scans
+        // the remaining code to find a corresponding FOLDABLE_BLOCK_END.
+        rangeFinder: (cm: CodeMirror.Editor, pos: CodeMirror.Position): CodeMirror.FoldRange | undefined => {
+          const startLineText = cm.getLine(pos.line);
+          const blockStartIndex = startLineText.indexOf(FOLDABLE_BLOCK_START);
+          if (blockStartIndex === -1) {
+            // We did not find a start block. Return empty values.
+            return undefined;
+          }
+
+          // We found the start block now let's look for the end block.
+          let blockEndLine = -1;
+          for (let i = pos.line + 1, end = cm.lastLine(); i <= end; ++i) {
+            const lineText = cm.getLine(i);
+            if (lineText.includes(FOLDABLE_BLOCK_START)) {
+              // We found another start block. Fold blocks do not match. Ignore.
+              break;
+            }
+            if (lineText.includes(FOLDABLE_BLOCK_END)) {
+              blockEndLine = i;
+              break;
+            }
+          }
+
+          if (blockEndLine === -1) {
+            // We did not find a matching end block. Return empty values.
+            return undefined;
+          }
+          return {
+            from: CodeMirror.Pos(pos.line, blockStartIndex),
+            to: CodeMirror.Pos(blockEndLine, cm.getLine(blockEndLine).length),
+          };
+        },
+        // Creates a fold widget that contains the count of total folded lines.
+        widget: (from: CodeMirror.Position, to: CodeMirror.Position): string => {
+          const content = this.codeMirror!.getRange(from, to);
+          const count = content.trim().split('\n').length;
+          return `${count}...`;
+        },
+      },
     });
 
     this._upgradeProperty('value');
@@ -86,6 +140,8 @@ export class TextareaNumbersSk extends ElementSk {
   set value(val: string) {
     if (this.codeMirror) {
       this.codeMirror!.setValue(val);
+      // When we assign a value, automatically fold all blocks.
+      CodeMirror.commands.foldAll(this.codeMirror);
     }
     this.clearErrors();
   }

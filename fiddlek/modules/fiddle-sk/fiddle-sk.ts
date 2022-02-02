@@ -307,6 +307,14 @@ sk_sp&lt;SkImage> image;
 GrBackendTexture backEndTexture; // GPU Only.</pre
                 >
               </div>
+              <div class="offset">
+                Note:<br/>
+                <div class="notes">
+                  Adding comments with SK_FOLD_START and SK_FOLD_END creates foldable code blocks.<br/>
+                  These blocks will be folded by default and are useful for highlighting specific lines of code.<br/>
+                  You can also use the keyboard shortcuts Ctrl+S and Ctrl+E in the code editor to set them.
+                </div>
+              </div>
             </div>
           </details>
         `);

@@ -3,9 +3,10 @@ load("//infra-sk:index.bzl", "sass_library", "sk_demo_page_server", "sk_element"
 sass_library(
     name = "code_mirror_styles",
     srcs = [
-        "@npm//:node_modules/codemirror/lib/codemirror.css",  # keep
-        "@npm//:node_modules/codemirror/theme/base16-dark.css",  # keep
-        "@npm//:node_modules/codemirror/theme/base16-light.css",  # keep
+        "@npm//:node_modules/codemirror5/addon/fold/foldgutter.css",  # keep
+        "@npm//:node_modules/codemirror5/lib/codemirror.css",  # keep
+        "@npm//:node_modules/codemirror5/theme/base16-dark.css",  # keep
+        "@npm//:node_modules/codemirror5/theme/base16-light.css",  # keep
     ],
 )
 
@@ -19,14 +20,15 @@ sk_element(
     sass_deps = [
         "//infra-sk:elements-sk_scss",
         ":code_mirror_styles",  # keep
+        "//fiddlek/modules/themes:themes_sass_lib",
     ],
     sass_srcs = ["textarea-numbers-sk.scss"],
     sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//@types/codemirror",
-        "@npm//codemirror",
         "@npm//elements-sk",
+        "@npm//codemirror5",
+        "@npm//@types/codemirror5",
     ],
     ts_srcs = [
         "index.ts",
@@ -39,8 +41,8 @@ sk_page(
     name = "textarea-numbers-sk-demo",
     html_file = "textarea-numbers-sk-demo.html",
     sk_element_deps = [
-        "//infra-sk/modules/theme-chooser-sk",
         ":textarea-numbers-sk",
+        "//infra-sk/modules/theme-chooser-sk",
     ],
     ts_entry_point = "textarea-numbers-sk-demo.ts",
 )

@@ -32,5 +32,24 @@ describe('textarea-numbers-sk', () => {
         'textarea-numbers-sk_cleared',
       );
     });
+
+    it('default fold with fold tokens', async () => {
+      await testBed.page.click('#add_fold_tokens');
+      await takeScreenshot(
+        testBed.page,
+        'fiddle',
+        'textarea-numbers-sk_default-fold',
+      );
+    });
+
+    it('expand fold', async () => {
+      await testBed.page.click('#add_fold_tokens');
+      await testBed.page.click('#expand_fold');
+      await takeScreenshot(
+        testBed.page,
+        'fiddle',
+        'textarea-numbers-sk_expand-fold',
+      );
+    });
   });
 });

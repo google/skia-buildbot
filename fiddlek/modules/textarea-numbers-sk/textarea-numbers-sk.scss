@@ -1,8 +1,36 @@
 // These make our Bazel rules happy
-@use 'node_modules/codemirror/lib/codemirror.css';
-@use 'node_modules/codemirror/theme/base16-dark.css';
-@use 'node_modules/codemirror/theme/base16-light.css';
+@use 'node_modules/codemirror5/addon/fold/foldgutter.css';
+@use 'node_modules/codemirror5/lib/codemirror.css';
+@use 'node_modules/codemirror5/theme/base16-dark.css';
+@use 'node_modules/codemirror5/theme/base16-light.css';
+
+@import '../themes/themes';
 
 .CodeMirror {
   height: auto;
+}
+
+.CodeMirror-foldmarker {
+  font-size: smaller;
+  color: var(--primary);
+  text-shadow: var(--background) 1px 1px 2px, var(--background)-1px -1px 2px, var(--background) 1px -1px 2px, var(--background) -1px 1px 2px;
+  font-family: arial;
+  line-height: .3;
+  cursor: pointer;
+}
+.CodeMirror-foldgutter {
+  width: .7em;
+}
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded {
+  color: #555;
+  cursor: pointer;
+}
+.CodeMirror-foldgutter-open:after {
+  content: "\25BE";
+  color: var(--primary);
+}
+.CodeMirror-foldgutter-folded:after {
+  content: "\25B8";
+  color: var(--primary);
 }
