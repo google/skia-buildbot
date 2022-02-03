@@ -165,6 +165,10 @@ export class DebugTracePlayer {
     }
   }
 
+  /**
+   * Advances the simulation until we exit from the current stack frame.
+   * Breakpoints will also stop the simulation even if we haven't left the stack frame.
+   */
   public stepOut() : void {
     this.tidyState();
     const initialStackDepth = this.stack.length;
@@ -179,6 +183,7 @@ export class DebugTracePlayer {
     }
   }
 
+  /** Advances the simulation until we hit a breakpoint, or the trace completes. */
   public run() : void {
     this.tidyState();
 
