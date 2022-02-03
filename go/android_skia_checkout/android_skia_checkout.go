@@ -21,7 +21,6 @@ var (
 	SkUserConfigWinRelPath          = path.Join("win", "include", "config", "SkUserConfig.h")
 	SkUserConfigRenderengineRelPath = path.Join("renderengine", "include", "config", "SkUserConfig.h")
 	AndroidBpRelPath                = path.Join("Android.bp")
-	LibGifRelPath                   = path.Join("third_party", "libgifcodec")
 
 	FilesGeneratedByGnToGp = []string{SkqpUserConfigRelPath, SkUserConfigAndroidRelPath, SkUserConfigLinuxRelPath, SkUserConfigMacRelPath, SkUserConfigWinRelPath, AndroidBpRelPath, SkUserConfigRenderengineRelPath}
 )
@@ -35,14 +34,6 @@ const (
 func RunGnToBp(ctx context.Context, skiaCheckout string) error {
 	if _, syncErr := exec.RunCwd(ctx, skiaCheckout, "./bin/sync"); syncErr != nil {
 		return fmt.Errorf("bin/sync error: %s", syncErr)
-	}
-	libgifargs := []string{
-		"gn/copy_git_directory.py",
-		"third_party/externals/libgifcodec",
-		LibGifRelPath,
-	}
-	if _, gifErr := exec.RunCwd(ctx, skiaCheckout, libgifargs...); gifErr != nil {
-		return fmt.Errorf("LibGif copy error: %s", gifErr)
 	}
 	if _, fetchGNErr := exec.RunCwd(ctx, skiaCheckout, "./bin/fetch-gn"); fetchGNErr != nil {
 		return fmt.Errorf("Failed to install GN: %s", fetchGNErr)

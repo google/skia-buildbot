@@ -321,9 +321,6 @@ func SkiaGnToBp(ctx context.Context, env []string, client *http.Client, parentRe
 			sklog.Warningf("Could not git add %s: %s", genFile, err)
 		}
 	}
-	if _, err := git.GitDir(skiaDir).Git(ctx, "add", android_skia_checkout.LibGifRelPath); err != nil {
-		return fmt.Errorf("Could not git add %s: %s", android_skia_checkout.LibGifRelPath, err)
-	}
 	return nil
 }
 
