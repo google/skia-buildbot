@@ -42,13 +42,24 @@ describe('textarea-numbers-sk', () => {
       );
     });
 
-    it('expand fold', async () => {
+    it('expand outer fold', async () => {
       await testBed.page.click('#add_fold_tokens');
-      await testBed.page.click('#expand_fold');
+      await testBed.page.click('#expand_outer_fold');
       await takeScreenshot(
         testBed.page,
         'fiddle',
-        'textarea-numbers-sk_expand-fold',
+        'textarea-numbers-sk_expand-outer-fold',
+      );
+    });
+
+    it('expand inner fold', async () => {
+      await testBed.page.click('#add_fold_tokens');
+      await testBed.page.click('#expand_outer_fold');
+      await testBed.page.click('#expand_inner_fold');
+      await takeScreenshot(
+        testBed.page,
+        'fiddle',
+        'textarea-numbers-sk_expand-inner-fold',
       );
     });
   });

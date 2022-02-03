@@ -32,10 +32,14 @@ document
     textarea.value = `  void draw(SkCanvas* canvas) {
       // Setup code // SK_FOLD_START
       SkPaint p;
+      // Setup code for feature ABC // SK_FOLD_START
       p.setColor(SK_ColorRED);
+      // SK_FOLD_END
       p.setAntiAlias(true);
+      // Setup code for feature XYZ // SK_FOLD_START
       p.setStyle(SkPaint::kStroke_Style)
       p.setStrokeWidth(10);
+      // SK_FOLD_END
       // SK_FOLD_END
 
       canvas->drawLine(20, 20, 100, 100, p
@@ -43,8 +47,15 @@ document
   });
 
 document
-  .querySelector<HTMLButtonElement>('#expand_fold')!
+  .querySelector<HTMLButtonElement>('#expand_outer_fold')!
   .addEventListener('click', () => {
-    // Set cursor on the foldmarker to expand the fold.
+    // Set cursor on the foldmarker to expand the outer fold.
     textarea.setCursor(2, 22);
+  });
+
+document
+  .querySelector<HTMLButtonElement>('#expand_inner_fold')!
+  .addEventListener('click', () => {
+    // Set cursor on the foldmarker to expand the first inner fold.
+    textarea.setCursor(4, 38);
   });

@@ -61,15 +61,22 @@ export class TextareaNumbersSk extends ElementSk {
 
           // We found the start block now let's look for the end block.
           let blockEndLine = -1;
+          let countOfNestedBlocks = 0;
           for (let i = pos.line + 1, end = cm.lastLine(); i <= end; ++i) {
             const lineText = cm.getLine(i);
             if (lineText.includes(FOLDABLE_BLOCK_START)) {
-              // We found another start block. Fold blocks do not match. Ignore.
-              break;
+              // We found another start block. There might be nested blocks here.
+              countOfNestedBlocks++;
             }
             if (lineText.includes(FOLDABLE_BLOCK_END)) {
-              blockEndLine = i;
-              break;
+              if (countOfNestedBlocks > 0) {
+                // We found an end block which is part of a nested block.
+                countOfNestedBlocks--;
+              } else if (countOfNestedBlocks === 0) {
+                // We found the end block of the block that we started off with.
+                blockEndLine = i;
+                break;
+              }
             }
           }
 
