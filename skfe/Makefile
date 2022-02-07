@@ -1,3 +1,6 @@
+include ../make/bazel.mk
+include ../kube/kube.mk
+
 build-config:
 	go install ./go/merge_envoy
 	go install ./go/update_probers
@@ -5,13 +8,14 @@ build-config:
 	../kube/attach.sh skia-public  ./build_envoy_json
 
 release: build-config
-	./build_envoy_skia_org_release
+	$(BAZEL) run //skfe:push_skfe_container
 
 validate: build-config
 	docker run -ti --entrypoint=/usr/local/bin/envoy -v `pwd`/computed.json:/tmp/envoy/computed.json envoyproxy/envoy:v1.16.1 --mode validate --config-path /tmp/envoy/computed.json
 
-push: release validate
-	pushk envoy-skia-org
+push: pushk release validate
+	pushk --use-temp-checkout envoy-skia-org
 
+# Set DOCKER_IMAGE to the image you want to run locally.
 run-local:
-	docker run -ti -p 8000:8000 envoy-skia-org:latest --config-path /etc/envoy/computed.json
+	docker run -ti -p 8000:8000 $(DOCKER_IMAGE) --config-path /etc/envoy/computed.json

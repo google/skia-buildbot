@@ -1,0 +1,21 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+exports_files([
+    "computed.json",
+])
+
+skia_app_container(
+    name = "skfe_container",
+    base_image = "@envoy_alpine//image",
+    default_user = "root",
+    dirs = {
+        "/etc/envoy": [
+            [
+                "//skfe:computed.json",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/docker-entrypoint.sh",
+    repository = "skia-public/envoy-skia-org",
+)

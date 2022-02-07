@@ -285,6 +285,14 @@ container_pull(
     repository = "skia-public/docsyserver-base",
 )
 
+# Pulls the envoyproxy/envoy-alpine:v1.16.1 container, needed by skfe.
+container_pull(
+    name = "envoy_alpine",
+    digest = "sha256:061559f887b6b7980ea1ebb5af636079858d8b0f51cd803b9fe16f87811ff7d3",
+    registry = "index.docker.io",
+    repository = "envoyproxy/envoy-alpine",
+)
+
 ##############################
 # Packages for RBE container #
 ##############################
