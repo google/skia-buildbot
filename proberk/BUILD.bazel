@@ -1,0 +1,30 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+exports_files([
+    "expectations",
+    "allprobersk.json",
+])
+
+skia_app_container(
+    name = "proberk_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//proberk/go/proberk:proberk",
+                "0755",
+            ],
+        ],
+        "/etc/proberk": [
+            [
+                "//proberk:allprobersk.json",
+                "0644",
+            ],
+            [
+                "//proberk:expectations",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/proberk",
+    repository = "skia-public/proberk",
+)

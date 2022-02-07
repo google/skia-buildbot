@@ -394,7 +394,6 @@ func main() {
 	if runtime.GOOS == "linux" {
 		tests = append(tests, cmdTest([]string{"make", "testci"}, "named-fiddles", "named-fiddles elements", unittest.MEDIUM_TEST))
 		tests = append(tests, cmdTest([]string{"make", "test-frontend-ci"}, ".", "front-end tests", unittest.MEDIUM_TEST))
-		tests = append(tests, cmdTest([]string{"make", "validate"}, "proberk", "validate probers", unittest.SMALL_TEST))
 		tests = append(tests, cmdTest([]string{"make"}, "licenses", "check go package licenses", unittest.MEDIUM_TEST))
 	}
 
