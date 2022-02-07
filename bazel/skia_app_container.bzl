@@ -12,7 +12,8 @@ def skia_app_container(
         run_commands_root = None,
         run_commands_skia = None,
         base_image = "@basealpine//image",
-        env = None):
+        env = None,
+        default_user = "skia"):
     """Builds a Docker container for a Skia app, and generates a target to push it to GCR.
 
     This macro produces the following:
@@ -109,6 +110,8 @@ def skia_app_container(
       base_image: The image to base the container_image on. Optional.
       env: A {"var": "val"} dictionary with the environment variables to use when building the
         container. Optional.
+      default_user: The user the container will be run with. Defaults to "skia" but some apps
+        like skfe requires the default user to be "root".
     """
 
     # According to the container_image rule's docs[1], the recommended way to place files in
@@ -147,7 +150,7 @@ def skia_app_container(
         entrypoint = None if (run_commands_root or run_commands_skia) else [entrypoint],
         stamp = True,
         tars = pkg_tars,
-        user = "skia",
+        user = default_user,
         tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
         env = env,
     )
@@ -199,7 +202,7 @@ def skia_app_container(
             base = image_name,
             entrypoint = [entrypoint],
             stamp = True,
-            user = "skia",
+            user = default_user,
             tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             env = env,
         )
