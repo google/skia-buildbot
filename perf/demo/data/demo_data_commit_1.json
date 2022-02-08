@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "git_hash": "fcd63691360443c852ab3bd832d0a9be7596e2d5",
+  "key": {
+    "arch": "x86",
+    "config": "8888"
+  },
+  "results": [
+    {
+      "key": {
+        "units": "ms"
+      },
+      "measurements": {
+        "test": [
+          {
+            "value": "encode",
+            "measurement": 51.81398
+          },
+          {
+            "value": "decode",
+            "measurement": 10.940509
+          }
+        ]
+      }
+    },
+    {
+      "key": {
+        "units": "kb"
+      },
+      "measurements": {
+        "test": [
+          {
+            "value": "encode",
+            "measurement": 207
+          },
+          {
+            "value": "decode",
+            "measurement": 65
+          }
+        ]
+      }
+    }
+  ]
+}

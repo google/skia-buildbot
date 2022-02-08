@@ -174,4 +174,22 @@ run-local-instance:
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:25000/skia?sslmode=disable
 
+
+run-demo-instance:
+	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
+		--local \
+		--config_filename=./configs/demo.json \
+		--connection_string=postgresql://root@127.0.0.1:25000/demo?sslmode=disable
+
+	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
+		--local \
+		--do_clustering=false \
+		--port=:8001 \
+		--noemail \
+		--config_filename=./configs/demo.json \
+		--num_continuous_parallel=1 \
+		--display_group_by=false \
+		--resources_dir=../_bazel_bin/perf/pages/development/ \
+		--connection_string=postgresql://root@127.0.0.1:25000/demo?sslmode=disable
+
 include ../make/npm.mk

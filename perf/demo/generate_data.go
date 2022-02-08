@@ -1,6 +1,5 @@
 // Generates demo data to go along with the demo repo at
-// https://github.com/skia-dev/perf-demo-repo. It emits 9 good files and one
-// file with an unknown git commit.
+// https://github.com/skia-dev/perf-demo-repo.
 package main
 
 import (
@@ -8,6 +7,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"os"
+	"path"
+	"runtime"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/ingest/format"
@@ -26,9 +28,21 @@ func main() {
 		"38485885d3d3c5de086d4e67f68879e9456f551e",
 		"977e0ef44bec17659faf8c5d4025c5a068354817",
 		"6079a7810530025d9877916895dd14eb8bb454c0",
-		"ffffffffffffffffffffffffffffffffffffffff", // Unknown commit.
 	}
+	_, filename, _, _ := runtime.Caller(0)
+	err := os.MkdirAll(path.Join(path.Dir(filename), "data"), 0755)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	for i, hash := range hashes {
+		encode := 50 + 3*rand.Float32()
+		multiplier := float32(1.0)
+		if i >= 5 {
+			multiplier = 1.2
+		}
+		decode := 10.0*multiplier + rand.Float32()
+		encodeMemory := 237 - multiplier*30
 		f := format.Format{
 			Version: format.FileFormatVersion,
 			GitHash: hash,
@@ -39,27 +53,34 @@ func main() {
 			Results: []format.Result{
 				{
 					Key: map[string]string{
-						"test": "encode",
+						"units": "ms",
 					},
 					Measurements: map[string][]format.SingleMeasurement{
-						"ns": {
+						"test": {
 							{
-								Value:       "min",
-								Measurement: 10.1 + rand.Float32(),
+								Value:       "encode",
+								Measurement: encode,
 							},
 							{
-								Value:       "max",
-								Measurement: 12.2 + rand.Float32()*float32(i),
+								Value:       "decode",
+								Measurement: decode,
 							},
 						},
-						"alloc": {
+					},
+				},
+				{
+					Key: map[string]string{
+						"units": "kb",
+					},
+					Measurements: map[string][]format.SingleMeasurement{
+						"test": {
 							{
-								Value:       "kb",
-								Measurement: 120,
+								Value:       "encode",
+								Measurement: encodeMemory,
 							},
 							{
-								Value:       "num",
-								Measurement: float32(7 + i/5),
+								Value:       "decode",
+								Measurement: 65,
 							},
 						},
 					},

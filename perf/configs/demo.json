@@ -1,0 +1,27 @@
+{
+    "URL": "http://localhost:8001",
+    "contact": "user@example.org",
+    "data_store_config": {
+        "datastore_type": "cockroachdb",
+        "connection_string": "postgresql://root@localhost:26257/demo?sslmode=disable",
+        "tile_size": 256
+    },
+    "ingestion_config": {
+        "source_config": {
+            "source_type": "dir",
+            "sources": [
+                "./demo/data/"
+            ],
+            "project": "",
+            "topic": "",
+            "subscription": ""
+        },
+        "branches": [],
+        "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+        "url": "https://github.com/skia-dev/perf-demo-repo.git",
+        "dir": "/tmp/perf-demo",
+        "debounce_commit_url": false
+    }
+}
