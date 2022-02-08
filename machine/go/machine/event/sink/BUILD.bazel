@@ -7,7 +7,7 @@ go_library(
         "impl.go",
         "sink.go",
     ],
-    importpath = "go.skia.org/infra/machine/go/machine/sink",
+    importpath = "go.skia.org/infra/machine/go/machine/event/sink",
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",

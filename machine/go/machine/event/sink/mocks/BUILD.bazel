@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "Sink.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/machine/go/machine/event/sink/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//machine/go/machine",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

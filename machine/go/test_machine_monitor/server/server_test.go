@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
+	"go.skia.org/infra/machine/go/machineserver/rpc"
 	botmachine "go.skia.org/infra/machine/go/test_machine_monitor/machine"
 )
 
@@ -70,7 +71,7 @@ func TestGetState_MaintenanceAppearsInStateResponse(t *testing.T) {
 	r := httptest.NewRequest("POST", "/get_state", strings.NewReader("{\"foo\":\"bar\"}"))
 
 	m := &botmachine.Machine{}
-	m.UpdateDescription(machine.Description{
+	m.UpdateDescription(rpc.FrontendDescription{
 		Mode: machine.ModeMaintenance,
 	})
 	s, err := New(m)
@@ -109,7 +110,7 @@ func TestGetDimensions_Success(t *testing.T) {
 
 	s, err := New(&botmachine.Machine{})
 	require.NoError(t, err)
-	s.machine.UpdateDescription(machine.Description{
+	s.machine.UpdateDescription(rpc.FrontendDescription{
 		Dimensions: machine.SwarmingDimensions{"foo": {"baz", "quux"}},
 	})
 

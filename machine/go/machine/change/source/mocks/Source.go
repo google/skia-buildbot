@@ -14,7 +14,7 @@ type Source struct {
 }
 
 // Start provides a mock function with given fields: ctx
-func (_m *Source) Start(ctx context.Context) (<-chan interface{}, error) {
+func (_m *Source) Start(ctx context.Context) <-chan interface{} {
 	ret := _m.Called(ctx)
 
 	var r0 <-chan interface{}
@@ -26,12 +26,5 @@ func (_m *Source) Start(ctx context.Context) (<-chan interface{}, error) {
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }

@@ -4,7 +4,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "pubsubsource",
     srcs = ["pubsubsource.go"],
-    importpath = "go.skia.org/infra/machine/go/machine/source/pubsubsource",
+    importpath = "go.skia.org/infra/machine/go/machine/event/source/pubsubsource",
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",
@@ -12,7 +12,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//machine/go/machine",
-        "//machine/go/machine/source",
+        "//machine/go/machine/event/source",
         "//machine/go/machineserver/config",
         "@com_google_cloud_go_pubsub//:pubsub",
     ],

@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -12,15 +14,19 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/machine"
-	"go.skia.org/infra/machine/go/machine/sink"
-	"go.skia.org/infra/machine/go/machine/store"
+	changeSource "go.skia.org/infra/machine/go/machine/change/source"
+	eventSink "go.skia.org/infra/machine/go/machine/event/sink"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/machine/go/test_machine_monitor/adb"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ios"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ssh"
@@ -35,15 +41,31 @@ const (
 	// That file is /tmp/ssh_machine.json. The file must be valid JSON and have a key called
 	// user_ip that is a string (see //infra/bots/recipe_modules/flavor/ssh.py in the skia repo)
 	defaultSSHMachineFileLocation = "/tmp/ssh_machine.json"
+
+	// How often we should poll machines.skia.org for an updated Description.
+	descriptionPollDuration = time.Minute
+)
+
+var (
+	// urlExpansionRegex is used to replace gorilla mux URL variables with
+	// values.
+	urlExpansionRegex = regexp.MustCompile("{.*}")
 )
 
 // Machine is the interface to the machine state server. See //machine.
 type Machine struct {
-	// store is how we get our dimensions and status updates from the machine state server.
-	store store.Store
+	// An authenticated http client that can talk to the machines.skia.org frontend.
+	client *http.Client
 
-	// sink is how we send machine.Events to the machine state server.
-	sink sink.Sink
+	// An absolute URL used to retrieve this machines Description.
+	machineDescriptionURL string
+
+	// eventSink is how we send machine.Events to the machine state server.
+	eventSink eventSink.Sink
+
+	// changeSource emits events when the machine Description has changed on the
+	// server.
+	changeSource changeSource.Source
 
 	// adb makes calls to the adb server.
 	adb adb.Adb
@@ -64,9 +86,9 @@ type Machine struct {
 	startTime time.Time
 
 	// Metrics
-	interrogateTimer           metrics2.Float64SummaryMetric
-	interrogateAndSendFailures metrics2.Counter
-	storeWatchArrivalCounter   metrics2.Counter
+	interrogateTimer               metrics2.Float64SummaryMetric
+	interrogateAndSendFailures     metrics2.Counter
+	descriptionWatchArrivalCounter metrics2.Counter
 
 	// startSwarming is true if test_machine_monitor was used to launch Swarming.
 	startSwarming bool
@@ -80,7 +102,7 @@ type Machine struct {
 
 	// description is provided by the machine state server. This tells us what
 	// to tell swarming, what our current mode is, etc.
-	description machine.Description
+	description rpc.FrontendDescription
 
 	// sshMachineLocation is the name and path of the file to write the JSON data that specifies
 	// to recipes how to communicate with the device under test.
@@ -88,12 +110,9 @@ type Machine struct {
 }
 
 // New return an instance of *Machine.
-func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, startTime time.Time, version string, startSwarming bool) (*Machine, error) {
-	store, err := store.NewFirestoreImpl(ctx, false, instanceConfig)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to build store instance.")
-	}
-	sink, err := sink.New(ctx, local, instanceConfig)
+func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, version string, startSwarming bool, machineServerHost string) (*Machine, error) {
+
+	sink, err := eventSink.New(ctx, local, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
 	}
@@ -109,20 +128,41 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		machineID = hostname
 	}
 
+	// Construct the URL need to retrieve this machines Description.
+	u, err := url.Parse(machineServerHost)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse machineserver flag: %s", machineServerHost)
+	}
+	u.Path = urlExpansionRegex.ReplaceAllLiteralString(rpc.MachineDescriptionURL, machineID)
+
+	ts, err := auth.NewDefaultTokenSource(local, "email")
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to create tokensource.")
+	}
+
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().WithoutRetries().Client()
+
+	changeSource, err := changeSource.New(ctx, local, instanceConfig.DescriptionChangeSource, machineID)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to create changeSource.")
+	}
+
 	return &Machine{
-		store:                      store,
-		sink:                       sink,
-		adb:                        adb.New(),
-		ios:                        ios.New(),
-		ssh:                        ssh.ExeImpl{},
-		sshMachineLocation:         defaultSSHMachineFileLocation,
-		MachineID:                  machineID,
-		Version:                    version,
-		startTime:                  startTime,
-		startSwarming:              startSwarming,
-		interrogateTimer:           metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
-		interrogateAndSendFailures: metrics2.GetCounter("bot_config_machine_interrogate_and_send_errors", map[string]string{"machine": machineID}),
-		storeWatchArrivalCounter:   metrics2.GetCounter("bot_config_machine_store_watch_arrival", map[string]string{"machine": machineID}),
+		client:                         httpClient,
+		machineDescriptionURL:          u.String(),
+		eventSink:                      sink,
+		changeSource:                   changeSource,
+		adb:                            adb.New(),
+		ios:                            ios.New(),
+		ssh:                            ssh.ExeImpl{},
+		sshMachineLocation:             defaultSSHMachineFileLocation,
+		MachineID:                      machineID,
+		Version:                        version,
+		startTime:                      now.Now(ctx),
+		startSwarming:                  startSwarming,
+		interrogateTimer:               metrics2.GetFloat64SummaryMetric("test_machine_monitor_interrogate_timer", map[string]string{"machine": machineID}),
+		interrogateAndSendFailures:     metrics2.GetCounter("test_machine_monitor_interrogate_and_send_errors", map[string]string{"machine": machineID}),
+		descriptionWatchArrivalCounter: metrics2.GetCounter("test_machine_monitor_description_watch_arrival", map[string]string{"machine": machineID}),
 	}, nil
 }
 
@@ -168,10 +208,11 @@ func (m *Machine) interrogate(ctx context.Context) (machine.Event, error) {
 	return ret, skerr.Wrap(err)
 }
 
-// interrogateAndSend gathers the state for this machine and sends it to the sink. Of note, this
-// does not directly determine what dimensions this machine should have. The machine server that
-// listens to the events will determine the dimensions based on the reported state and any
-// information it has from other sources (e.g. human-supplied details, previously attached devices)
+// interrogateAndSend gathers the state for this machine and sends it to the
+// sink. Of note, this does not directly determine what dimensions this machine
+// should have. The machine server that listens to the events will determine the
+// dimensions based on the reported state and any information it has from other
+// sources (e.g. human-supplied details, previously attached devices)
 func (m *Machine) interrogateAndSend(ctx context.Context) error {
 	event, err := m.interrogate(ctx)
 	if err != nil {
@@ -180,57 +221,87 @@ func (m *Machine) interrogateAndSend(ctx context.Context) error {
 		// error.
 		sklog.Errorf("Failed to interrogate: %s", err)
 	}
-	if err := m.sink.Send(ctx, event); err != nil {
+	if err := m.eventSink.Send(ctx, event); err != nil {
 		return skerr.Wrapf(err, "Failed to send interrogation step.")
 	}
 	return nil
 }
 
 // Start the background processes that send events to the sink and watch for
-// firestore changes.
+// changes to the Description.
 func (m *Machine) Start(ctx context.Context) error {
 
+	// First do a single steps of interrogating to make sure that sending the
+	// event works. We don't do the same for the Description since this may be a
+	// new machine and retrieveDescription could fail.
 	if err := m.interrogateAndSend(ctx); err != nil {
 		return skerr.Wrap(err)
 	}
 
-	// Start a loop that scans for local devices and sends pubsub events with all the
-	// data every 30s.
-	go util.RepeatCtx(ctx, interrogateDuration, func(ctx context.Context) {
+	go m.startInterrogateLoop(ctx)
+
+	go m.startDescriptionWatch(ctx)
+
+	return nil
+}
+
+// Start a loop that scans for local devices and sends pubsub events with all
+// the data every 30s.
+func (m *Machine) startInterrogateLoop(ctx context.Context) {
+	util.RepeatCtx(ctx, interrogateDuration, func(ctx context.Context) {
 		if err := m.interrogateAndSend(ctx); err != nil {
 			m.interrogateAndSendFailures.Inc(1)
 			sklog.Errorf("interrogateAndSend failed: %s", err)
 		}
 	})
+}
 
-	// Since startStoreWatch blocks until the first description is loaded it
-	// must come after the above RepeatCtx, to handle a new machine coming
-	// online.
-	m.startStoreWatch(ctx)
-
+// retrieveDescription stores and updates the machine Description in m.description.
+func (m *Machine) retrieveDescription(ctx context.Context) error {
+	req, err := http.NewRequestWithContext(ctx, "GET", m.machineDescriptionURL, nil)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to create HTTP request")
+	}
+	resp, err := m.client.Do(req)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to retrieve description from %q", m.machineDescriptionURL)
+	}
+	var desc rpc.FrontendDescription
+	if err := json.NewDecoder(resp.Body).Decode(&desc); err != nil {
+		return skerr.Wrapf(err, "Failed to decode description from %q", m.machineDescriptionURL)
+	}
+	m.UpdateDescription(desc)
+	m.descriptionWatchArrivalCounter.Inc(1)
 	return nil
 }
 
-// startStoreWatch starts a loop that does a firestore onsnapshot watcher that gets the dims
-// and state we should be reporting to swarming. It blocks until the first description is loaded.
-func (m *Machine) startStoreWatch(ctx context.Context) {
-	c := m.store.Watch(ctx, m.MachineID)
-	desc := <-c
-	m.storeWatchArrivalCounter.Inc(1)
-	sklog.Infof("Loaded existing description from FS: %#v", desc)
-	m.UpdateDescription(desc)
-	go func() {
-		for desc := range c {
-			m.storeWatchArrivalCounter.Inc(1)
-			m.UpdateDescription(desc)
+// startDescriptionWatch starts a loop that continually looks for updates to the
+// machine Description. This function does not return unless the context is
+// cancelled.
+func (m *Machine) startDescriptionWatch(ctx context.Context) {
+	changeCh := m.changeSource.Start(ctx)
+	tickCh := time.NewTicker(descriptionPollDuration).C
+	for {
+		select {
+		case <-changeCh:
+			if err := m.retrieveDescription(ctx); err != nil {
+				sklog.Errorf("Event driven retrieveDescription failed: %s", err)
+			}
+		case <-tickCh:
+			if err := m.retrieveDescription(ctx); err != nil {
+				sklog.Errorf("Timer driven retrieveDescription failed: %s", err)
+			}
+		case <-ctx.Done():
+			sklog.Errorf("context cancelled")
+			return
 		}
-	}()
+	}
 }
 
 // UpdateDescription applies any change in behavior based on the new given description. This
 // impacts what we tell Swarming, what mode we are in, if we should communicate with a device
 // via SSH, etc.
-func (m *Machine) UpdateDescription(desc machine.Description) {
+func (m *Machine) UpdateDescription(desc rpc.FrontendDescription) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.description = desc
@@ -293,7 +364,7 @@ func (m *Machine) RebootDevice(ctx context.Context) error {
 // adb interface. If there is one attached, this function returns true and the information gathered
 // (which can be partially filled out). If there is not a device attached, false is returned.
 func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.Android, error) {
-	metrics2.GetCounter("bot_config_machine_interrogate_device_type", map[string]string{
+	metrics2.GetCounter("test_machine_monitor_interrogate_device_type", map[string]string{
 		"machine": m.MachineID,
 		"type":    "android",
 	}).Inc(1)
@@ -335,7 +406,7 @@ func (m *Machine) tryInterrogatingAndroidDevice(ctx context.Context) (machine.An
 // there is not a device attached, it returns false, and the other return value is undefined. If
 // multiple devices are attached, an arbitrary one is chosen.
 func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, error) {
-	metrics2.GetCounter("bot_config_machine_interrogate_device_type", map[string]string{
+	metrics2.GetCounter("test_machine_monitor_interrogate_device_type", map[string]string{
 		"machine": m.MachineID,
 		"type":    "ios",
 	}).Inc(1)
@@ -372,7 +443,7 @@ var (
 )
 
 func (m *Machine) tryInterrogatingChromeOSDevice(ctx context.Context) (machine.ChromeOS, error) {
-	metrics2.GetCounter("bot_config_machine_interrogate_device_type", map[string]string{
+	metrics2.GetCounter("test_machine_monitor_interrogate_device_type", map[string]string{
 		"machine": m.MachineID,
 		"type":    "chromeos",
 	}).Inc(1)

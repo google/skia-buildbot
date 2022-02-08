@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/machine"
-	"go.skia.org/infra/machine/go/machine/source"
+	"go.skia.org/infra/machine/go/machine/event/source"
 	"go.skia.org/infra/machine/go/machineserver/config"
 )
 

@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "source",
     srcs = ["source.go"],
-    importpath = "go.skia.org/infra/machine/go/machine/source",
+    importpath = "go.skia.org/infra/machine/go/machine/event/source",
     visibility = ["//visibility:public"],
     deps = ["//machine/go/machine"],
 )

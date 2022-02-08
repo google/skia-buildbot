@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 	"text/template"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
@@ -29,13 +28,12 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/configs"
 	"go.skia.org/infra/machine/go/machine"
+	changeSink "go.skia.org/infra/machine/go/machine/change/sink"
+	"go.skia.org/infra/machine/go/machine/event/source/pubsubsource"
 	machineProcessor "go.skia.org/infra/machine/go/machine/processor"
-	"go.skia.org/infra/machine/go/machine/source/pubsubsource"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/machine/go/machineserver/rpc"
-	firestoreSwitchboard "go.skia.org/infra/machine/go/switchboard"
-	"go.skia.org/infra/machine/go/switchboard/cleanup"
 )
 
 // flags
@@ -50,7 +48,7 @@ type server struct {
 	store             machineStore.Store
 	templates         *template.Template
 	loadTemplatesOnce sync.Once
-	switchboard       firestoreSwitchboard.Switchboard
+	changeSink        changeSink.Sink
 }
 
 // See baseapp.Constructor.
@@ -89,28 +87,25 @@ func new() (baseapp.App, error) {
 	}
 
 	processor := machineProcessor.New(ctx)
-	source, err := pubsubsource.New(ctx, *baseapp.Local, instanceConfig)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
+
 	store, err := machineStore.NewFirestoreImpl(ctx, *baseapp.Local, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	switchboard, err := firestoreSwitchboard.New(ctx, *baseapp.Local, instanceConfig)
+	eventSource, err := pubsubsource.New(ctx, *baseapp.Local, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	eventCh, err := source.Start(ctx)
+	eventCh, err := eventSource.Start(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to start pubsubsource.")
 	}
 	storeUpdateFail := metrics2.GetCounter("machineserver_store_update_fail")
-	switchboardImpl, err := firestoreSwitchboard.New(ctx, *baseapp.Local, instanceConfig)
+
+	changeSink, err := changeSink.New(ctx, *baseapp.Local, instanceConfig.DescriptionChangeSource)
 	if err != nil {
-		sklog.Fatal(err)
+		return nil, skerr.Wrapf(err, "Failed to start change sink.")
 	}
-	cleaner := cleanup.New(switchboardImpl)
 
 	// Start our main loop.
 	go func() {
@@ -125,12 +120,9 @@ func new() (baseapp.App, error) {
 		}
 	}()
 
-	// Start the process to clean up stale MeetingPoints.
-	go cleaner.Start(ctx)
-
 	s := &server{
-		store:       store,
-		switchboard: switchboard,
+		store:      store,
+		changeSink: changeSink,
 	}
 	s.loadTemplates()
 	return s, nil
@@ -205,25 +197,39 @@ func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(rpc.ToListMachinesResponse(descriptions), w)
 }
 
+func (s *server) triggerDescriptionUpdateEvent(ctx context.Context, id string) {
+	if err := s.changeSink.Send(ctx, id); err != nil {
+		sklog.Errorf("Failed to trigger change event: %s", err)
+	}
+}
+
+// toggleMode is used in machineToggleModeHandler and passed to s.store.Update
+// to toggle the Description mode between Available and Maintenance.
+func toggleMode(ctx context.Context, user string, in machine.Description) machine.Description {
+	ret := in.Copy()
+	if ret.Mode == machine.ModeAvailable {
+		ret.Mode = machine.ModeMaintenance
+	} else {
+		ret.Mode = machine.ModeAvailable
+	}
+	ret.Annotation = machine.Annotation{
+		User:      user,
+		Message:   fmt.Sprintf("Changed mode to %q", ret.Mode),
+		Timestamp: now.Now(ctx),
+	}
+	return ret
+}
+
 func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := getID(w, r)
 	if err != nil {
 		return
 	}
+	ctx := r.Context()
 
 	resultMode := machine.ModeAvailable
-	err = s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
-		ret := in.Copy()
-		if ret.Mode == machine.ModeAvailable {
-			ret.Mode = machine.ModeMaintenance
-		} else {
-			ret.Mode = machine.ModeAvailable
-		}
-		ret.Annotation = machine.Annotation{
-			User:      user(r),
-			Message:   fmt.Sprintf("Changed mode to %q", ret.Mode),
-			Timestamp: time.Now(),
-		}
+	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
+		ret := toggleMode(ctx, user(r), in)
 		resultMode = ret.Mode
 		return ret
 	})
@@ -238,7 +244,22 @@ func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
 	}
+	s.triggerDescriptionUpdateEvent(r.Context(), id)
+
 	w.WriteHeader(http.StatusOK)
+}
+
+// togglePowerCycle is used in machineTogglePowerCycleHandler and passed to
+// s.store.Update to toggle the Description PowerCycle boolean.
+func togglePowerCycle(ctx context.Context, id, user string, in machine.Description) machine.Description {
+	ret := in.Copy()
+	ret.PowerCycle = !ret.PowerCycle
+	ret.Annotation = machine.Annotation{
+		User:      user,
+		Message:   fmt.Sprintf("Requested powercycle for %q", id),
+		Timestamp: now.Now(ctx),
+	}
+	return ret
 }
 
 func (s *server) machineTogglePowerCycleHandler(w http.ResponseWriter, r *http.Request) {
@@ -247,16 +268,10 @@ func (s *server) machineTogglePowerCycleHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	ctx := r.Context()
 	var ret machine.Description
 	err = s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
-		ret = in.Copy()
-		ret.PowerCycle = !ret.PowerCycle
-		ret.Annotation = machine.Annotation{
-			User:      user(r),
-			Message:   fmt.Sprintf("Requested powercycle for %q", id),
-			Timestamp: time.Now(),
-		}
-		return ret
+		return togglePowerCycle(ctx, id, user(r), in)
 	})
 	auditlog.Log(r, "toggle-powercycle", struct {
 		MachineID  string
@@ -272,6 +287,14 @@ func (s *server) machineTogglePowerCycleHandler(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusOK)
 }
 
+// setAttachedDevice is used in machineSetAttachedDeviceHandler and passed to
+// s.store.Update to set the value of Description.AttachedDevice.
+func setAttachedDevice(ad machine.AttachedDevice, in machine.Description) machine.Description {
+	ret := in.Copy()
+	ret.AttachedDevice = ad
+	return ret
+}
+
 func (s *server) machineSetAttachedDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := getID(w, r)
 	if err != nil {
@@ -284,11 +307,8 @@ func (s *server) machineSetAttachedDeviceHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	var ret machine.Description
 	err = s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
-		ret = in.Copy()
-		ret.AttachedDevice = attachedDeviceRequest.AttachedDevice
-		return ret
+		return setAttachedDevice(attachedDeviceRequest.AttachedDevice, in)
 	})
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
@@ -301,7 +321,26 @@ func (s *server) machineSetAttachedDeviceHandler(w http.ResponseWriter, r *http.
 		MachineID:      id,
 		AttachedDevice: attachedDeviceRequest.AttachedDevice,
 	})
+	s.triggerDescriptionUpdateEvent(r.Context(), id)
 	w.WriteHeader(http.StatusOK)
+}
+
+// removeDevice is used in machineRemoveDeviceHandler and passed to
+// s.store.Update to clear values in the Description that come from attached
+// devices.
+func removeDevice(ctx context.Context, id, user string, in machine.Description) machine.Description {
+	ret := in.Copy()
+
+	ret.Dimensions = machine.SwarmingDimensions{}
+	ret.Annotation = machine.Annotation{
+		User:      user,
+		Message:   fmt.Sprintf("Requested device removal of %q", id),
+		Timestamp: now.Now(ctx),
+	}
+	ret.Temperature = nil
+	ret.SuppliedDimensions = nil
+	ret.SSHUserIP = ""
+	return ret
 }
 
 func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Request) {
@@ -310,21 +349,9 @@ func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var ret machine.Description
 	ctx := r.Context()
 	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
-		ret = in.Copy()
-
-		ret.Dimensions = machine.SwarmingDimensions{}
-		ret.Annotation = machine.Annotation{
-			User:      user(r),
-			Message:   fmt.Sprintf("Requested device removal of %s", id),
-			Timestamp: now.Now(ctx),
-		}
-		ret.Temperature = nil
-		ret.SuppliedDimensions = nil
-		ret.SSHUserIP = ""
-		return ret
+		return removeDevice(ctx, id, user(r), in)
 	})
 	auditlog.Log(r, "remove-device", struct {
 		MachineID string
@@ -335,6 +362,7 @@ func (s *server) machineRemoveDeviceHandler(w http.ResponseWriter, r *http.Reque
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
 	}
+	s.triggerDescriptionUpdateEvent(r.Context(), id)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -354,7 +382,21 @@ func (s *server) machineDeleteMachineHandler(w http.ResponseWriter, r *http.Requ
 		httputils.ReportError(w, err, "Failed to delete machine.", http.StatusInternalServerError)
 		return
 	}
+	s.triggerDescriptionUpdateEvent(r.Context(), id)
 	w.WriteHeader(http.StatusOK)
+}
+
+// setNote is used in machineSetNoteHandler and passed to s.store.Update to set
+// the Description.Note value.
+func setNote(ctx context.Context, user string, note rpc.SetNoteRequest, in machine.Description) machine.Description {
+	ret := in.Copy()
+
+	ret.Note = machine.Annotation{
+		Message:   note.Message,
+		User:      user,
+		Timestamp: now.Now(ctx),
+	}
+	return ret
 }
 
 func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
@@ -369,24 +411,26 @@ func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
-	newNote := machine.Annotation{
-		Message:   note.Message,
-		User:      user(r),
-		Timestamp: now.Now(ctx),
-	}
-
-	var ret machine.Description
 	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
-		ret = in.Copy()
-		ret.Note = newNote
-		return ret
+		return setNote(ctx, user(r), note, in)
 	})
 	auditlog.Log(r, "set-note", note)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
 	}
+	s.triggerDescriptionUpdateEvent(r.Context(), id)
 	w.WriteHeader(http.StatusOK)
+}
+
+// setChromeOSInfo is used in machineSetChromeOSInfoHandler and passed to
+// s.store.Update to set Description values used by ChromeOS devices.
+func setChromeOSInfo(ctx context.Context, req rpc.SupplyChromeOSRequest, in machine.Description) machine.Description {
+	ret := in.Copy()
+	ret.SSHUserIP = req.SSHUserIP
+	ret.SuppliedDimensions = req.SuppliedDimensions
+	ret.LastUpdated = now.Now(ctx)
+	return ret
 }
 
 // machineSupplyChromeOSInfoHandler takes in the information needed to connect a given machine with
@@ -406,39 +450,17 @@ func (s *server) machineSupplyChromeOSInfoHandler(w http.ResponseWriter, r *http
 		http.Error(w, "Missing fields.", http.StatusBadRequest)
 		return
 	}
-	var ret machine.Description
 	ctx := r.Context()
 	err = s.store.Update(ctx, id, func(in machine.Description) machine.Description {
-		ret = in.Copy()
-		ret.SSHUserIP = req.SSHUserIP
-		ret.SuppliedDimensions = req.SuppliedDimensions
-		ret.LastUpdated = now.Now(ctx)
-		return ret
+		return setChromeOSInfo(ctx, req, in)
 	})
 	auditlog.Log(r, "supply-dimensions", req)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to process dimensions.", http.StatusInternalServerError)
 		return
 	}
+	s.triggerDescriptionUpdateEvent(r.Context(), id)
 	w.WriteHeader(http.StatusOK)
-}
-
-func (s *server) meetingPointsHandler(w http.ResponseWriter, r *http.Request) {
-	meetingPoints, err := s.switchboard.ListMeetingPoints(r.Context())
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to get list of meeting points", http.StatusInternalServerError)
-		return
-	}
-	sendJSONResponse(meetingPoints, w)
-}
-
-func (s *server) podsHandler(w http.ResponseWriter, r *http.Request) {
-	pods, err := s.switchboard.ListPods(r.Context())
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to get list of pods.", http.StatusInternalServerError)
-		return
-	}
-	sendJSONResponse(pods, w)
 }
 
 func (s *server) apiMachineDescriptionHandler(w http.ResponseWriter, r *http.Request) {
@@ -499,8 +521,6 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("POST")
 	r.HandleFunc("/_/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
 	r.HandleFunc("/_/machine/supply_chromeos/{id:.+}", s.machineSupplyChromeOSInfoHandler).Methods("POST")
-	r.HandleFunc("/_/meeting_points", s.meetingPointsHandler).Methods("GET")
-	r.HandleFunc("/_/pods", s.podsHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 
 	// Public API

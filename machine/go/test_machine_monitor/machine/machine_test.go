@@ -1,7 +1,12 @@
 package machine
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,9 +16,15 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/executil"
+	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/noop"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
+	"go.skia.org/infra/machine/go/machine/change/source/mocks"
+	sinkMocks "go.skia.org/infra/machine/go/machine/event/sink/mocks"
+	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/machine/go/test_machine_monitor/adb"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ios"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ssh"
@@ -52,6 +63,16 @@ GOOGLE_RELEASE=13729.56.0`
 
 	// This example was taken directly from a production ChromeOS device
 	sampleChromeOSUptime = "1234.5 5678.9"
+
+	machineID = "skia-rpi2-rack4-shelf1-001"
+
+	adbGetStateSuccess       = "device"
+	adbShellGetUptimeSuccess = "27 8218793.04"
+	adbShellGetPropSuccess   = "[ro.product.manufacturer]: [asus]"
+	adbShellDumpSysBattery   = "This is dumpsys output."
+	versionForTest           = "some-version-string-for-testing-purposes"
+	maintenanceModeMessage   = "This is a note about why the machine was put in maintenance mode."
+	machineServerHost        = "https://machines.skia.org"
 )
 
 func TestTryInterrogatingAndroidDevice_DeviceAttached_Success(t *testing.T) {
@@ -116,7 +137,7 @@ func TestTryInterrogatingChromeOS_DeviceReachable_Success(t *testing.T) {
 	m := &Machine{
 		ssh:                ssh.ExeImpl{},
 		sshMachineLocation: sshFile,
-		description:        machine.Description{SSHUserIP: testUserIP},
+		description:        rpc.FrontendDescription{SSHUserIP: testUserIP},
 	}
 	actual, err := m.tryInterrogatingChromeOSDevice(ctx)
 	require.NoError(t, err)
@@ -145,7 +166,7 @@ func TestTryInterrogatingChromeOS_CatLSBReleaseFails_DeviceConsideredUnattached(
 		"Test_FakeExe_ExitCodeOne", // pretend LSBRelease failed
 	)
 
-	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
+	m := &Machine{ssh: ssh.ExeImpl{}, description: rpc.FrontendDescription{SSHUserIP: testUserIP}}
 	_, err := m.tryInterrogatingChromeOSDevice(ctx)
 	require.Error(t, err)
 }
@@ -165,7 +186,7 @@ func TestTryInterrogatingChromeOS_UptimeFails_ReturnFalse(t *testing.T) {
 		"Test_FakeExe_ExitCodeOne", // pretend uptime fails
 	)
 
-	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
+	m := &Machine{ssh: ssh.ExeImpl{}, description: rpc.FrontendDescription{SSHUserIP: testUserIP}}
 	_, err := m.tryInterrogatingChromeOSDevice(ctx)
 	require.Error(t, err)
 }
@@ -176,7 +197,7 @@ func TestTryInterrogatingChromeOS_NoChromeOSData_AssumesNotAttached(t *testing.T
 		"Test_FakeExe_SSHLSBRelease_ReturnsNonChromeOS",
 	)
 
-	m := &Machine{ssh: ssh.ExeImpl{}, description: machine.Description{SSHUserIP: testUserIP}}
+	m := &Machine{ssh: ssh.ExeImpl{}, description: rpc.FrontendDescription{SSHUserIP: testUserIP}}
 	_, err := m.tryInterrogatingChromeOSDevice(ctx)
 	require.Error(t, err)
 }
@@ -230,7 +251,7 @@ func TestInterrogate_AndroidDeviceAttached_Success(t *testing.T) {
 		startSwarming:    true,
 		startTime:        time.Date(2021, time.September, 2, 2, 2, 2, 2, time.UTC),
 		interrogateTimer: noop.Float64SummaryMetric{},
-		description: machine.Description{
+		description: rpc.FrontendDescription{
 			AttachedDevice: machine.AttachedDeviceAdb,
 		},
 	}
@@ -274,7 +295,7 @@ func TestInterrogate_IOSDeviceAttached_Success(t *testing.T) {
 		startSwarming:    true,
 		startTime:        timePlaceholder,
 		interrogateTimer: noop.Float64SummaryMetric{},
-		description: machine.Description{
+		description: rpc.FrontendDescription{
 			AttachedDevice: machine.AttachedDeviceiOS,
 		},
 	}
@@ -336,7 +357,7 @@ func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {
 		ssh:                ssh.ExeImpl{},
 		sshMachineLocation: sshFile,
 		MachineID:          "some-machine",
-		description: machine.Description{
+		description: rpc.FrontendDescription{
 			SSHUserIP:      testUserIP,
 			AttachedDevice: machine.AttachedDeviceSSH,
 		},
@@ -385,7 +406,7 @@ func TestRebootDevice_AndroidDeviceAttached_Success(t *testing.T) {
 
 	m := &Machine{
 		adb: adb.New(),
-		description: machine.Description{
+		description: rpc.FrontendDescription{
 			Dimensions: machine.SwarmingDimensions{
 				machine.DimAndroidDevices: []string{"sprout"},
 			},
@@ -407,7 +428,7 @@ func TestRebootDevice_AndroidDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) {
 
 	m := &Machine{
 		adb: adb.New(),
-		description: machine.Description{
+		description: rpc.FrontendDescription{
 			Dimensions: machine.SwarmingDimensions{
 				machine.DimAndroidDevices: []string{"sprout"},
 			},
@@ -424,7 +445,7 @@ func TestRebootDevice_NoErrorIfNoDevicesAttached(t *testing.T) {
 	ctx := executil.FakeTestsContext() // Any exe call will panic
 
 	m := &Machine{
-		description: machine.Description{},
+		description: rpc.FrontendDescription{},
 	}
 
 	require.NoError(t, m.RebootDevice(ctx))
@@ -437,7 +458,7 @@ func TestRebootDevice_IOSDeviceAttached_Success(t *testing.T) {
 
 	m := &Machine{
 		ios: ios.New(),
-		description: machine.Description{
+		description: rpc.FrontendDescription{
 			Dimensions: machine.SwarmingDimensions{
 				machine.DimOS: []string{"iOS", "iOS-1.2.3"},
 			},
@@ -457,7 +478,7 @@ func TestRebootDevice_ChromeOSDeviceAttached_Success(t *testing.T) {
 
 	m := &Machine{
 		ssh: ssh.ExeImpl{},
-		description: machine.Description{
+		description: rpc.FrontendDescription{
 			SSHUserIP: testUserIP,
 		},
 	}
@@ -475,13 +496,157 @@ func TestRebootDevice_ChromeOSDeviceAttached_ErrOnNonZeroExitCode(t *testing.T) 
 
 	m := &Machine{
 		ssh: ssh.ExeImpl{},
-		description: machine.Description{
+		description: rpc.FrontendDescription{
 			SSHUserIP: testUserIP,
 		},
 	}
 
 	require.Error(t, m.RebootDevice(ctx))
 	assert.Equal(t, 1, executil.FakeCommandsReturned(ctx))
+}
+
+func TestInterrogateAndSend_InterrogateSuccessful_EmitsEventViaSink(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx := context.Background()
+
+	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
+	expectedEvent := machine.Event{
+		EventType: "raw_state",
+		Android: machine.Android{
+			GetProp:               adbShellGetPropSuccess,
+			DumpsysBattery:        adbShellDumpSysBattery,
+			DumpsysThermalService: adbShellDumpSysBattery,
+			Uptime:                27 * time.Second,
+		},
+		Host: machine.Host{
+			Name:      "my-test-bot-001",
+			StartTime: start,
+		},
+	}
+
+	eventSink := &sinkMocks.Sink{}
+	eventSink.On("Send", testutils.AnyContext, expectedEvent).Return(nil)
+
+	desc := machine.NewDescription(ctx)
+	desc.AttachedDevice = machine.AttachedDeviceAdb
+
+	// Create a Machine instance.
+	m := &Machine{
+		eventSink:        eventSink,
+		startTime:        start,
+		description:      rpc.ToFrontendDescription(desc),
+		adb:              adb.New(),
+		interrogateTimer: metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
+		MachineID:        "my-test-bot-001",
+	}
+
+	ctx = executil.WithFakeTests(ctx,
+		"Test_FakeExe_AdbGetState_Success",
+		"Test_FakeExe_AdbShellGetUptime_Success",
+		"Test_FakeExe_AdbShellGetProp_Success",
+		"Test_FakeExe_RawDumpSys_Success",
+		"Test_FakeExe_RawDumpSys_Success",
+	)
+
+	err := m.interrogateAndSend(ctx)
+	require.NoError(t, err)
+	eventSink.AssertExpectations(t)
+}
+
+func TestInterrogateAndSend_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx := context.Background()
+
+	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
+	expectedEvent := machine.Event{
+		EventType: "raw_state",
+		Android: machine.Android{
+			GetProp:               "",
+			DumpsysBattery:        "",
+			DumpsysThermalService: "",
+		},
+		Host: machine.Host{
+			Name:      "my-test-bot-001",
+			StartTime: start,
+		},
+	}
+
+	eventSink := &sinkMocks.Sink{}
+	eventSink.On("Send", testutils.AnyContext, expectedEvent).Return(nil)
+
+	desc := machine.NewDescription(ctx)
+	desc.AttachedDevice = machine.AttachedDeviceAdb
+
+	// Create a Machine instance.
+	m := &Machine{
+		eventSink:        eventSink,
+		startTime:        start,
+		description:      rpc.ToFrontendDescription(desc),
+		adb:              adb.New(),
+		interrogateTimer: metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
+		MachineID:        "my-test-bot-001",
+	}
+
+	ctx = executil.WithFakeTests(ctx,
+		"Test_FakeExe_AdbFail",
+		"Test_FakeExe_AdbFail",
+	)
+
+	err := m.interrogateAndSend(ctx)
+	require.NoError(t, err)
+	eventSink.AssertExpectations(t)
+}
+
+func Test_FakeExe_AdbShellGetUptime_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "shell", "cat", "/proc/uptime"}, args)
+
+	fmt.Print(adbShellGetUptimeSuccess)
+	os.Exit(0)
+}
+
+func Test_FakeExe_AdbState_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "get-state"}, args)
+
+	fmt.Print(adbGetStateSuccess)
+	os.Exit(0)
+}
+
+func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "shell", "getprop"}, args)
+
+	fmt.Print(adbShellGetPropSuccess)
+	os.Exit(0)
+}
+
+func Test_FakeExe_RawDumpSys_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	fmt.Print(adbShellDumpSysBattery)
+	os.Exit(0)
 }
 
 func Test_FakeExe_ADBUptime_ReturnsPlaceholder(t *testing.T) {
@@ -702,4 +867,108 @@ func Test_FakeExe_SSHReboot_Success(t *testing.T) {
 
 	// Force exit so we don't get PASS in the output.
 	os.Exit(0)
+}
+
+// setupLocalServerWithCallback sets up a local HTTP server where the provided
+// 'cb' function will be used to serve all requests. A *url.URL is returned with
+// the scheme and host configured to point at the local HTTP server.
+func setupLocalServerWithCallback(t *testing.T, cb http.HandlerFunc) (*url.URL, *bool, *http.Client) {
+	unittest.MediumTest(t)
+	t.Helper()
+	called := false
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cb(w, r)
+		called = true
+	}))
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	u, err := url.Parse(ts.URL)
+	u.Path = urlExpansionRegex.ReplaceAllLiteralString(rpc.MachineDescriptionURL, machineID)
+	require.NoError(t, err)
+
+	httpClient := httputils.DefaultClientConfig().With2xxOnly().WithoutRetries().Client()
+	return u, &called, httpClient
+}
+
+func TestRetrieveDescription_EndpointReturnsError_DescriptionIsNotUpdated(t *testing.T) {
+	u, called, client := setupLocalServerWithCallback(t, func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "error", http.StatusInternalServerError)
+	})
+
+	m := &Machine{
+		client:                client,
+		machineDescriptionURL: u.String(),
+	}
+	err := m.retrieveDescription(context.Background())
+	require.Error(t, err)
+	require.True(t, *called)
+	require.Equal(t, rpc.FrontendDescription{}, m.description)
+}
+
+func TestRetrieveDescription_EndpointReturnsInvalidJSON_DescriptionIsNotUpdated(t *testing.T) {
+	u, called, client := setupLocalServerWithCallback(t, func(w http.ResponseWriter, r *http.Request) {
+		_, err := fmt.Fprint(w, "} not valid json {")
+		require.NoError(t, err)
+	})
+
+	m := &Machine{
+		client:                         client,
+		machineDescriptionURL:          u.String(),
+		descriptionWatchArrivalCounter: metrics2.GetCounter("bot_config_machine_description_watch_arrival", map[string]string{"machine": machineID}),
+	}
+	m.descriptionWatchArrivalCounter.Reset()
+
+	err := m.retrieveDescription(context.Background())
+	require.Error(t, err)
+	require.True(t, *called)
+	require.Equal(t, rpc.FrontendDescription{}, m.description)
+	require.Equal(t, int64(0), m.descriptionWatchArrivalCounter.Get())
+}
+
+func TestRetrieveDescription_EndpointReturnsNewDescription_DescriptionIsUpdated(t *testing.T) {
+	desc := rpc.FrontendDescription{
+		Mode: machine.ModeAvailable,
+	}
+	var capturedRequest *http.Request
+	u, called, client := setupLocalServerWithCallback(t, func(w http.ResponseWriter, r *http.Request) {
+		capturedRequest = r
+		err := json.NewEncoder(w).Encode(desc)
+		require.NoError(t, err)
+	})
+
+	m := &Machine{
+		client:                         client,
+		machineDescriptionURL:          u.String(),
+		descriptionWatchArrivalCounter: metrics2.GetCounter("bot_config_machine_description_watch_arrival", map[string]string{"machine": machineID}),
+	}
+	m.descriptionWatchArrivalCounter.Reset()
+
+	err := m.retrieveDescription(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, u.Path, capturedRequest.URL.Path)
+	require.True(t, *called)
+	require.Equal(t, desc, m.description)
+	require.Equal(t, int64(1), m.descriptionWatchArrivalCounter.Get())
+}
+
+func TestStartDescriptionWatch_ChannelIsClosed_FunctionExits(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Cancel the context so startDescriptionWatch will return.
+	cancel()
+	ch := make(chan interface{})
+	var readOnlyCh <-chan interface{} = ch
+	changeSource := &mocks.Source{}
+	changeSource.On("Start", testutils.AnyContext).Return(readOnlyCh)
+
+	m := &Machine{
+		changeSource: changeSource,
+	}
+	m.startDescriptionWatch(ctx)
+	close(ch)
+
+	// Test will never exit on failure.
 }

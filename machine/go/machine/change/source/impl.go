@@ -59,7 +59,7 @@ func New(ctx context.Context, local bool, config config.DescriptionChangeSource,
 }
 
 // Start implement change.Source.
-func (s *changeSource) Start(ctx context.Context) (<-chan interface{}, error) {
+func (s *changeSource) Start(ctx context.Context) <-chan interface{} {
 
 	ch := make(chan interface{})
 
@@ -78,7 +78,7 @@ func (s *changeSource) Start(ctx context.Context) (<-chan interface{}, error) {
 		}
 	}()
 
-	return ch, nil
+	return ch
 }
 
 // Assert that *changeSource implements the Source interface.

@@ -40,13 +40,11 @@ func TestSourceAndSink(t *testing.T) {
 	require.NoError(t, sink.Send(ctx, machineID1))
 
 	// Confirm everyone gets the right number of events.
-	ch1, err := source1.Start(ctx)
-	require.NoError(t, err)
+	ch1 := source1.Start(ctx)
 	<-ch1
 	<-ch1
 
-	ch2, err := source2.Start(ctx)
-	require.NoError(t, err)
+	ch2 := source2.Start(ctx)
 	<-ch2
 
 	// The only way to reach here is if the three messages sent only went to
