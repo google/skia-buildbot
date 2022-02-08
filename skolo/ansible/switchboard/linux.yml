@@ -4,6 +4,8 @@
   gather_facts: yes
 
   roles:
+    - stop_sleeping
+    - create_chrome_bot_user
     - copy_authorized_keys
     - copy_service_account_key
     - install_collectd
