@@ -1,7 +1,8 @@
 #!/bin/bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-nohup go run $DIR/run_emulators.go "$@" > /tmp/cloud_emulators.log &
+TMPDIR="${TMPDIR:-/tmp}"
+nohup go run $DIR/run_emulators.go "$@" > ${TMPDIR}/cloud_emulators.log &
 
 cmd="$1"
 shift
@@ -26,6 +27,6 @@ elif [ "$cmd" == "stop" ]; then
 
   if [ "$1" == "--dump-logs" ]; then
     echo "Emulator logs:"
-    cat /tmp/cloud_emulators.log
+    cat ${TMPDIR}/cloud_emulators.log
   fi
 fi
