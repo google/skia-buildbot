@@ -73,6 +73,8 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(dup),
         ALLOW_SYSCALL(chmod),
         ALLOW_SYSCALL(chown),
+        ALLOW_SYSCALL(newfstatat),
+        ALLOW_SYSCALL(pread64),
 
         TRACE_SYSCALL(mknod),
         TRACE_SYSCALL(link),
