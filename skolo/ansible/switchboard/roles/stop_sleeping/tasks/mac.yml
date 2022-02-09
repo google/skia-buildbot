@@ -9,6 +9,7 @@
 
 - name: Run caffeinate now so we don't need to reboot.
   command: launchctl load /Library/LaunchAgents/org.skia.caffeinated.plist
+  become: yes
 
 - name: Disable screensaver
   command: defaults -currentHost write com.apple.screensaver idleTime 0

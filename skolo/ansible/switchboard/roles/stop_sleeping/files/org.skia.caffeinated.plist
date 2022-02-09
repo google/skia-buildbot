@@ -8,8 +8,8 @@
     <key>Label</key>
     <string>org.skia.caffeinated</string>
 
-    <key>OnDemand</key>
-    <false/>
+    <key>KeepAlive</key>
+    <true/>
 
     <key>UserName</key>
     <string>chrome-bot</string>
