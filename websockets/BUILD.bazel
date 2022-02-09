@@ -1,0 +1,47 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+go_library(
+    name = "websockets_lib",
+    srcs = [
+        "main.go",
+        "server.go",
+    ],
+    importpath = "go.skia.org/infra/websockets",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@io_nhooyr_websocket//:websocket",
+        "@org_golang_x_time//rate",
+    ],
+)
+
+go_binary(
+    name = "websockets",
+    embed = [":websockets_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "websockets_test",
+    srcs = ["server_test.go"],
+    embed = [":websockets_lib"],
+    deps = [
+        "@io_nhooyr_websocket//:websocket",
+        "@io_nhooyr_websocket//wsjson",
+    ],
+)
+
+skia_app_container(
+    name = "websockets_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//websockets:websockets",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/websockets",
+    repository = "skia-public/websockets",
+)

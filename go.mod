@@ -163,6 +163,7 @@ require (
 	k8s.io/apimachinery v0.21.0
 	k8s.io/client-go v0.21.0
 	k8s.io/kubectl v0.21.0
+	nhooyr.io/websocket v1.8.7 // indirect
 )
 
 go 1.16

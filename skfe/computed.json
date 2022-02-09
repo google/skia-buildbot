@@ -1777,6 +1777,32 @@
         },
         "name": "tree-status",
         "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "websockets",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "websockets",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "websockets",
+        "type": "STRICT_DNS"
       }
     ],
     "listeners": [
@@ -3993,10 +4019,30 @@
                           }
                         }
                       ]
+                    },
+                    {
+                      "domains": "websockets.skia.org",
+                      "name": "websockets.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "websockets",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
                     }
                   ]
                 },
-                "stat_prefix": "ingress_http"
+                "stat_prefix": "ingress_http",
+                "upgrade_configs": {
+                  "upgrade_type": "websocket"
+                }
               }
             }
           ]

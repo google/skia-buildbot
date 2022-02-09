@@ -680,6 +680,9 @@
                     }
                   }
                 ],
+                "upgrade_configs": {
+                  "upgrade_type": "websocket"
+                },
                 "http_filters": [
                   {
                     "typed_config": {},
