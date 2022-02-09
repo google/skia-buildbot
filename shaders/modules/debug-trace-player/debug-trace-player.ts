@@ -366,13 +366,23 @@ export class DebugTracePlayer {
   private updateVariableWriteTime(slotIdx: number, cursor: number): void {
     // The slotIdx could point to any slot within a variable.
     // We want to update the write time on EVERY slot associated with this variable.
-    // The SlotInfo gives us enough information to find the affected range.
+    // The SlotInfo's groupIndex gives us enough information to find the affected range.
     const changedSlot = this.trace!.slots[slotIdx];
-    slotIdx -= changedSlot.index;
-    const lastSlotIdx = slotIdx + (changedSlot.columns * changedSlot.rows);
+    slotIdx -= changedSlot.groupIdx!;
+    this.check(slotIdx >= 0);
+    this.check(slotIdx < this.trace!.slots.length);
 
-    for (; slotIdx < lastSlotIdx; ++slotIdx) {
-      this.slots[slotIdx].writeTime = cursor;
+    for (;;) {
+      this.slots[slotIdx++].writeTime = cursor;
+
+      // Stop if we've reached the final slot.
+      if (slotIdx >= this.trace!.slots.length) {
+        break;
+      }
+      // Each separate variable-group starts with a groupIndex of 0; stop when we detect this.
+      if (this.trace!.slots[slotIdx].groupIdx! == 0) {
+        break;
+      }
     }
   }
 

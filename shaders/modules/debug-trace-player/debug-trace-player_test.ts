@@ -61,7 +61,7 @@ const trivialGreenShader = String.raw`
     [4, -1],
     [3]
   ],
-  "version": "20220119b"
+  "version": "20220209"
 }`;
 
 const functionsShader = String.raw`
@@ -113,7 +113,7 @@ const functionsShader = String.raw`
     [4, -1],
     [3]
   ],
-  "version": "20220119b"
+  "version": "20220209"
 }`;
 
 const variablesShader = String.raw`
@@ -200,7 +200,69 @@ const variablesShader = String.raw`
     [4, -1],
     [3]
   ],
-  "version": "20220119b"
+  "version": "20220209"
+}`;
+
+const variableGroupsShader = String.raw`
+{
+  "functions": [{"name": "vec4 main(vec2 p)"}],
+  "slots": [
+    {"columns": 4, "index": 0, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 1, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 2, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 4, "index": 3, "kind": 0, "line": 2, "name": "[main].result", "retval": 0, "rows": 1},
+    {"columns": 2, "index": 0, "kind": 0, "line": 2, "name": "p", "rows": 1},
+    {"columns": 2, "index": 1, "kind": 0, "line": 2, "name": "p", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 3, "name": "s.x", "rows": 1},
+    {"columns": 1, "groupIdx": 1, "index": 0, "kind": 1, "line": 3, "name": "s.y", "rows": 1},
+    {"columns": 1, "groupIdx": 2, "index": 0, "kind": 1, "line": 3, "name": "s.z", "rows": 1},
+    {"columns": 1, "index": 0, "kind": 1, "line": 4, "name": "arr[0]", "rows": 1},
+    {"columns": 1, "groupIdx": 1, "index": 0, "kind": 1, "line": 4, "name": "arr[1]", "rows": 1},
+    {"columns": 1, "groupIdx": 2, "index": 0, "kind": 1, "line": 4, "name": "arr[2]", "rows": 1}
+  ],
+  "source": [
+    "struct S { int x, y, z; };",
+    "vec4 main(vec2 p) {",
+    "    S s;",
+    "    int arr[3];",
+    "    s.y = 1;",
+    "    arr[1] = 2;",
+    "    s.x = 3;",
+    "    arr[2] = 4;",
+    "    return p.xy11;",
+    "}",
+    ""
+  ],
+  "trace": [
+    [2],
+    [1, 4, 1107361792],
+    [1, 5, 1107361792],
+    [4, 1],
+    [0, 3],
+    [1, 6],
+    [1, 7],
+    [1, 8],
+    [0, 4],
+    [1, 9],
+    [1, 10],
+    [1, 11],
+    [0, 5],
+    [1, 7, 1],
+    [0, 6],
+    [1, 10, 2],
+    [0, 7],
+    [1, 6, 3],
+    [0, 8],
+    [1, 11, 4],
+    [0, 9],
+    [1, 0, 1107361792],
+    [1, 1, 1107361792],
+    [1, 2, 1065353216],
+    [1, 3, 1065353216],
+    [4, -1],
+    [3]
+  ],
+  "version": "20220209"
 }`;
 
 const ifStatementShader = String.raw`
@@ -263,7 +325,7 @@ const ifStatementShader = String.raw`
     [4, -1],
     [3]
   ],
-  "version": "20220119b"
+  "version": "20220209"
 }`;
 
 const forLoopShader = String.raw`
@@ -319,7 +381,7 @@ const forLoopShader = String.raw`
     [4, -1],
     [3]
   ],
-  "version": "20220119b"
+  "version": "20220209"
 }`;
 
 const stepOutShader = String.raw`
@@ -378,7 +440,7 @@ const stepOutShader = String.raw`
     [4, -1],
     [3]
   ],
-  "version": "20220119b"
+  "version": "20220209"
 }`;
 
 const varScopeShader = String.raw`
@@ -473,7 +535,7 @@ const varScopeShader = String.raw`
     [4, -1],
     [3]
   ],
-  "version": "20220119b"
+  "version": "20220209"
 }`;
 
 const breakpointShader = String.raw`
@@ -556,7 +618,7 @@ const breakpointShader = String.raw`
     [4, -1],
     [3]
   ],
-  "version": "20220119b"
+  "version": "20220209"
 }`;
 
 describe('DebugTrace playback', () => {
@@ -777,6 +839,53 @@ describe('DebugTrace playback', () => {
     assert.deepEqual(getGlobalVariables(trace, player),
                      ['##[main].result.x = 0', '##[main].result.y = 0.5',
                       '##[main].result.z = 1', '##[main].result.w = 1']);
+  });
+
+  it('variable groups', () => {
+    const trace: DebugTrace = Convert.toDebugTrace(variableGroupsShader);
+    const player = new DebugTracePlayer();
+    player.reset(trace);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 3);
+    assert.deepEqual(getStack(trace, player), ['vec4 main(vec2 p)']);
+    assert.deepEqual(getLocalVariables(trace, player),
+                     ['##p.x = 32.25', '##p.y = 32.25']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 4);
+    assert.deepEqual(getLocalVariables(trace, player),
+                     ['##s.x = 0', '##s.y = 0', '##s.z = 0', 'p.x = 32.25', 'p.y = 32.25']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 5);
+    assert.deepEqual(getLocalVariables(trace, player),
+                     ['##arr[0] = 0', '##arr[1] = 0', '##arr[2] = 0',
+                      's.x = 0', 's.y = 0', 's.z = 0', 'p.x = 32.25', 'p.y = 32.25']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 6);
+    assert.deepEqual(getLocalVariables(trace, player),
+                     ['s.x = 0', '##s.y = 1', 's.z = 0', 'arr[0] = 0', 'arr[1] = 0', 'arr[2] = 0',
+                      'p.x = 32.25', 'p.y = 32.25']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 7);
+    assert.deepEqual(getLocalVariables(trace, player),
+                     ['arr[0] = 0', '##arr[1] = 2', 'arr[2] = 0', 's.x = 0', 's.y = 1', 's.z = 0',
+                      'p.x = 32.25', 'p.y = 32.25']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 8);
+    assert.deepEqual(getLocalVariables(trace, player),
+                     ['##s.x = 3', 's.y = 1', 's.z = 0', 'arr[0] = 0', 'arr[1] = 2', 'arr[2] = 0',
+                      'p.x = 32.25', 'p.y = 32.25']);
+    player.step();
+
+    assert.equal(player.getCurrentLine(), 9);
+    assert.deepEqual(getLocalVariables(trace, player),
+                     ['arr[0] = 0', 'arr[1] = 2', '##arr[2] = 4', 's.x = 3', 's.y = 1', 's.z = 0',
+                      'p.x = 32.25', 'p.y = 32.25']);
   });
 
   it('if-statement flow control', () => {
