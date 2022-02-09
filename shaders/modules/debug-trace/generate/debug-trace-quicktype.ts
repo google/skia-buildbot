@@ -24,13 +24,14 @@ export interface Function {
 }
 
 export interface Slot {
-    name:    string;
-    columns: number;
-    rows:    number;
-    index:   number;
-    kind:    number;
-    line:    number;
-    retval?: number;
+    name:      string;
+    columns:   number;
+    rows:      number;
+    index:     number;
+    kind:      number;
+    line:      number;
+    groupIdx?: number;
+    retval?:   number;
 }
 
 // Converts JSON strings to/from your types
@@ -195,6 +196,7 @@ const typeMap: any = {
         { json: "index", js: "index", typ: 0 },
         { json: "kind", js: "kind", typ: 0 },
         { json: "line", js: "line", typ: 0 },
+        { json: "groupIdx", js: "groupIdx", typ: u(undefined, 0) },
         { json: "retval", js: "retval", typ: u(undefined, 0) },
     ], false),
 };

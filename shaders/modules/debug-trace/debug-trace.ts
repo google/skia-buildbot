@@ -16,11 +16,12 @@ export class Convert extends GencodeConvert {
     const out = GencodeConvert.toDebugTrace(json);
 
     // Confirm the version of the JSON trace data.
-    const expectedVersion: string = '20220119b';
-    if (out.version != expectedVersion) {
+    const expectedVersion1: string = '20220119b';
+    const expectedVersion2: string = '20220209';
+    if (out.version != expectedVersion1 && out.version != expectedVersion2) {
       throw Error(
-        `Version mismatch. ` +
-        `Trace version is '${out.version}', expected version is '${expectedVersion}'`);
+        `Version mismatch. Trace version is '${out.version}', expected version ` +
+        `is '${expectedVersion1}' or '${expectedVersion2}'`);
     }
 
     // The trace data consists of three values--one trace-op and two data fields.
@@ -29,6 +30,13 @@ export class Convert extends GencodeConvert {
     for (let index = 0; index < out.trace.length; ++index) {
       while (out.trace[index].length < 3) {
         out.trace[index].push(0);
+      }
+    }
+
+    // If the groupIdx field is missing from a slot, have it mirror `index` (the component index).
+    for (let index = 0; index < out.slots.length; ++index) {
+      if ((out.slots[index].groupIdx ?? -1) < 0) {
+        out.slots[index].groupIdx = out.slots[index].index;
       }
     }
 
