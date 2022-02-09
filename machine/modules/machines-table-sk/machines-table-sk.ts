@@ -25,6 +25,7 @@ import 'elements-sk/icon/launch-icon-sk';
 import 'elements-sk/icon/power-settings-new-icon-sk';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/styles/select';
+import 'elements-sk/spinner-sk';
 import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
 import '../auto-refresh-sk';
 import '../device-editor-sk';
@@ -145,18 +146,14 @@ const imageVersion = (machine: FrontendDescription): string => {
 };
 
 // eslint-disable-next-line no-use-before-define
-const powerCycle = (ele: MachinesTableSk, machine: FrontendDescription): TemplateResult => {
-  if (machine.PowerCycle) {
-    return html`Waiting for Power Cycle`;
-  }
-  return html`
+const powerCycle = (ele: MachinesTableSk, machine: FrontendDescription): TemplateResult => html`
     <power-settings-new-icon-sk
       title="Powercycle the host"
       class="clickable"
       @click=${() => ele.togglePowerCycle(machine.Dimensions!.id![0])}
     ></power-settings-new-icon-sk>
+    <spinner-sk ?active=${machine.PowerCycle}></spinner-sk>
   `;
-};
 
 // eslint-disable-next-line no-use-before-define
 const toggleMode = (ele: MachinesTableSk, machine: FrontendDescription) => html`

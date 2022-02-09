@@ -2,6 +2,7 @@ import './machines-table-sk';
 import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
 import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import {
   MachinesTableSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name,
 } from './machines-table-sk';
@@ -140,10 +141,9 @@ describe('machines-table-sk', () => {
     // Wait for all requests to finish.
     await fetchMock.flush(true);
 
-    // Confirm the button text has been updated.
-    assert.equal(
-      'Waiting for Power Cycle',
-      $$('.powercycle', s)?.textContent?.trim(),
+    // Confirm the spinner is active.
+    assert.isTrue(
+      $$<SpinnerSk>('.powercycle spinner-sk', s)!.active,
     );
   }));
 

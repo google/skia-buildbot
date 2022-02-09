@@ -34,6 +34,7 @@ karma_test(
         "@npm//@types/chai",
         "@npm//chai",
         "@npm//common-sk",
+        "@npm//elements-sk",
         "@npm//fetch-mock",
     ],
 )

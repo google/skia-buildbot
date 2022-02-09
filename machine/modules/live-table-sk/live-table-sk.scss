@@ -37,13 +37,13 @@
   }
 
   th {
-    padding: 4px;
+    padding: 4px 8px 4px 0;
     text-align: left;
   }
 
   td {
-    vertical-align: top;
-    padding: 8px 4px 4px 4px;
+    vertical-align: baseline;
+    padding: 0;
   }
 
   td.outOfSpec {
