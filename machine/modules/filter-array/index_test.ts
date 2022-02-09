@@ -20,8 +20,22 @@ describe('FilterArray', () => {
     assert.deepEqual(f.matchingValues(), [{ key: 'foo' }]);
   });
 
+  it('returns the AND of all the filter words', () => {
+    const f = new FilterArray();
+    f.filterChanged('foo bar');
+    f.updateArray([{ key: 'foo' }, { key: 'bar' }, { key: 'foo-bar' }]);
+    assert.deepEqual(f.matchingValues(), [{ key: 'foo-bar' }]);
+  });
+
   it('matches all elements with an empty filter', () => {
     const f = new FilterArray();
+    f.updateArray([{ key: 'foo' }, { key: 'bar' }]);
+    assert.deepEqual(f.matchingValues(), [{ key: 'foo' }, { key: 'bar' }]);
+  });
+
+  it('matches all elements with a non-empty filter that is all spaces', () => {
+    const f = new FilterArray();
+    f.filterChanged('   ');
     f.updateArray([{ key: 'foo' }, { key: 'bar' }]);
     assert.deepEqual(f.matchingValues(), [{ key: 'foo' }, { key: 'bar' }]);
   });

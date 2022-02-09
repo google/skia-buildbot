@@ -1,13 +1,12 @@
 /**
- * FilterArray is a class for filtering a live array of rich objects based on
- * a case-insensitive substring search.
+ * FilterArray is a class for filtering a live array of rich objects based on a
+ * case-insensitive substring search.
  *
  * The array being monitored needs to be passed to updateArray() every time it
  * changes.
  *
- * Each time the substring being filtered for changes, call filterChanged(),
- * and pass it in. This is typically done from an event listener on an input
- * field.
+ * Each time the substring being filtered for changes, call filterChanged(), and
+ * pass it in. This is typically done from an event listener on an input field.
  *
  * Initially, the FilterArray will represent an empty list. If updateArray() is
  * called before filterChanged(), it will represent an unfiltered view of the
@@ -15,9 +14,13 @@
  *
  * The matchingValues() function is expected to be used in a lit-html template
  * and returns all the matches for the filter.
+ *
+ * The string passed into filterChanged is split on spaces and each word is
+ * searched on, i.e. the searching is an AND of all the words in the search
+ * string.
  */
 export class FilterArray<T> {
-  private filter: string = '';
+  private filterWords: string[] = [];
 
   private elements: T[] = [];
 
@@ -47,8 +50,11 @@ export class FilterArray<T> {
    */
   matchingValues(): T[] {
     const ret: T[] = [];
+    if (this.filterWords.length === 0) {
+      return [...this.elements];
+    }
     this.jsonifiedElements.forEach((v, i) => {
-      if (v.includes(this.filter)) {
+      if (this.filterWords.every((filt) => v.includes(filt))) {
         ret.push(this.elements[i]);
       }
     });
@@ -57,6 +63,6 @@ export class FilterArray<T> {
 
   /** Inform me that the string I'm filtering for has changed. */
   filterChanged(value: string): void {
-    this.filter = value.toLowerCase();
+    this.filterWords = value.toLowerCase().split(' ').filter((s: string) => s.length > 0);
   }
 }
