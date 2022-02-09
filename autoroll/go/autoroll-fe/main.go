@@ -22,6 +22,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
@@ -285,6 +286,18 @@ func oAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// addCorsMiddleware wraps the specified HTTP handler with a handler that applies the
+// CORS specification on the request, and adds relevant CORS headers as necessary.
+// This is needed for some handlers that do not have this middleware. Eg: the twirp
+// handler (https://github.com/twitchtv/twirp/issues/210).
+func addCorsMiddleware(handler http.Handler) http.Handler {
+	corsWrapper := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		Debug:          true,
+	})
+	return corsWrapper.Handler(handler)
+}
+
 func runServer(ctx context.Context, serverURL string, srv http.Handler) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
@@ -296,7 +309,7 @@ func runServer(ctx context.Context, serverURL string, srv http.Handler) {
 	rollerRouter := r.PathPrefix("/r/{roller}").Subrouter()
 	rollerRouter.HandleFunc("", rollerHandler)
 	rollerRouter.HandleFunc("/config", configJSONHandler)
-	r.PathPrefix(rpc.AutoRollServicePathPrefix).Handler(srv)
+	r.PathPrefix(rpc.AutoRollServicePathPrefix).Handler(addCorsMiddleware(srv))
 	h := httputils.LoggingRequestResponse(r)
 	h = httputils.XFrameOptionsDeny(h)
 	if !*local {
