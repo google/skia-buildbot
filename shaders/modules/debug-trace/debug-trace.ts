@@ -16,12 +16,11 @@ export class Convert extends GencodeConvert {
     const out = GencodeConvert.toDebugTrace(json);
 
     // Confirm the version of the JSON trace data.
-    const expectedVersion1: string = '20220119b';
-    const expectedVersion2: string = '20220209';
-    if (out.version != expectedVersion1 && out.version != expectedVersion2) {
+    const expectedVersion: string = '20220209';
+    if (out.version != expectedVersion) {
       throw Error(
         `Version mismatch. Trace version is '${out.version}', expected version ` +
-        `is '${expectedVersion1}' or '${expectedVersion2}'`);
+        `is '${expectedVersion}'`);
     }
 
     // The trace data consists of three values--one trace-op and two data fields.

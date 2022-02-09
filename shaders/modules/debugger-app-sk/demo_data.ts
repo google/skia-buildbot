@@ -1,7 +1,7 @@
 import { DebugTrace } from '../debug-trace/generate/debug-trace-quicktype';
 
 export const exampleTrace: DebugTrace = {
-  version: '20220119b',
+  version: '20220209',
   source: [
     'half4 convert(float2 c) {',
     '    float4 color = c.xy11;',

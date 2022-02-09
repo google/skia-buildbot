@@ -5,7 +5,7 @@ describe('DebugTrace JSON parsing', () => {
   it('converts a valid JSON string to a DebugTrace struct', () => {
     const text = String.raw`
     {
-      "version": "20220119b",
+      "version": "20220209",
       "source": [
         "\t// first line",
         "// \"second line\"",
@@ -85,7 +85,7 @@ describe('DebugTrace JSON parsing', () => {
     // Some trailing bracket close characters have been removed, so the JSON isn't valid.
     const text = String.raw`
     {
-      "version": "20220119b",
+      "version": "20220209",
       "source": [
         "\t// first line",
         "// \"second line\"",
@@ -120,7 +120,7 @@ describe('DebugTrace JSON parsing', () => {
     // This is valid JSON, but it is missing a required key ("functions").
     const text = String.raw`
     {
-      "version": "20220119b",
+      "version": "20220209",
       "source": [
         "\t// first line",
         "// \"second line\"",
@@ -154,7 +154,7 @@ describe('DebugTrace JSON parsing', () => {
     // This is valid JSON, but it has an extra key we don't know about ("bogus").
     const text = String.raw`
     {
-      "version": "20220119b",
+      "version": "20220209",
       "source": [
         "\t// first line",
         "// \"second line\"",
