@@ -1,9 +1,0 @@
-FROM gcr.io/skia-public/basealpine:3.9
-
-USER root
-
-COPY . /
-
-USER skia
-
-ENTRYPOINT ["/usr/local/bin/gold-gitilesfollower"]
