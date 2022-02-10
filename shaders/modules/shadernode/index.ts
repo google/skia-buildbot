@@ -482,7 +482,7 @@ export class ShaderNode {
 
       let childShaders = [this.inputImageShader!.shader];
       childShaders = childShaders.concat(this.children.map((childNode) => childNode.getShader(predefinedUniformsValues)!));
-      return this.effect!.makeShaderWithChildren(uniformsFloat32Array, false, childShaders);
+      return this.effect!.makeShaderWithChildren(uniformsFloat32Array, childShaders);
     }
 
     get numPredefinedUniformValues(): number {
