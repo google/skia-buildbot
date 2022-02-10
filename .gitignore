@@ -83,11 +83,6 @@ prober/allprobers.json5
 push/allskiapush.json5
 # AP
 dist
-# jsdoc
-common/out
-push/out
-ap/out
-jsdoc/out
 # lottiecap
 lottiecap/filmstrip.png
 # promk

@@ -1,0 +1,41 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+exports_files([
+    "infra-sk",
+    "elements-sk",
+    "docs",
+])
+
+skia_app_container(
+    name = "jsdoc_container",
+    base_image = "@node_alpine//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//jsdoc/go/jsdoc:jsdoc",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/jsdoc/": [
+            [
+                "//jsdoc:docs",
+                "0755",
+            ],
+            [
+                "//jsdoc:infra-sk",
+                "0755",
+            ],
+            [
+                "//jsdoc:elements-sk",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/jsdoc",
+    repository = "skia-public/jsdoc",
+    run_commands_root = [
+        # Create the skia user.
+        "addgroup -g 2000 -S skia",
+        "adduser -u 2000 -S skia -G skia",
+    ],
+)

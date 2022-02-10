@@ -293,6 +293,14 @@ container_pull(
     repository = "envoyproxy/envoy-alpine",
 )
 
+# Pulls the node:17-alpine container, needed by jsdoc.
+container_pull(
+    name = "node_alpine",
+    digest = "sha256:44b4db12ba2899f92786aa7e98782eb6430e81d92488c59144a567853185c2bb",
+    registry = "index.docker.io",
+    repository = "node",
+)
+
 ##############################
 # Packages for RBE container #
 ##############################
