@@ -83,7 +83,7 @@
     "jsdoc": "^3.6.6",
     "jsoneditor": "^9.3.1",
     "jszip": "^3.6.0",
-    "karma": "^4.4.1",
+    "karma": "^6.3.14",
     "karma-chai": "^0.1.0",
     "karma-chai-dom": "^1.1.0",
     "karma-chrome-launcher": "^3.1.0",
