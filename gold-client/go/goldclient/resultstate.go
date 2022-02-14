@@ -171,6 +171,8 @@ func (r *resultState) getResultFilePath(ctx context.Context) string {
 	gitHashOrCL := r.SharedConfig.GitHash
 	if r.SharedConfig.ChangelistID != "" {
 		gitHashOrCL = fmt.Sprintf("%s_%s_%d", r.SharedConfig.ChangelistID, r.SharedConfig.PatchsetID, r.SharedConfig.PatchsetOrder)
+	} else if gitHashOrCL == "" {
+		gitHashOrCL = r.SharedConfig.CommitID
 	}
 	segments := []interface{}{
 		jsonPrefix,

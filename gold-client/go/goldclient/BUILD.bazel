@@ -39,6 +39,7 @@ go_test(
         "common_test.go",
         "context_test.go",
         "goldclient_test.go",
+        "resultstate_test.go",
     ],
     embed = [":goldclient"],
     deps = [
