@@ -50,8 +50,6 @@ const (
 
 	// ChangeStatusAbandoned indicates the the change is abandoned.
 	ChangeStatusAbandoned = "ABANDONED"
-	// ChangeStatusDraft indicates the the change is a draft.
-	ChangeStatusDraft = "DRAFT"
 	// ChangeStatusMerged indicates the the change is merged.
 	ChangeStatusMerged = "MERGED"
 	// ChangeStatusNew indicates the the change is new.

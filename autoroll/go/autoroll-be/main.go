@@ -299,17 +299,11 @@ func main() {
 		}
 		go func() {
 			for range time.Tick(60 * time.Minute) {
-				issues, err := g.Search(ctx, 100, true, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.ChangeStatusDraft))
+				issues, err := g.Search(ctx, 100, true, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.ChangeStatusNew))
 				if err != nil {
 					sklog.Errorf("Failed to retrieve autoroller issues: %s", err)
 					continue
 				}
-				issues2, err := g.Search(ctx, 100, true, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.ChangeStatusNew))
-				if err != nil {
-					sklog.Errorf("Failed to retrieve autoroller issues: %s", err)
-					continue
-				}
-				issues = append(issues, issues2...)
 				for _, ci := range issues {
 					if ci.Updated.Before(time.Now().Add(-168 * time.Hour)) {
 						// Gerrit search sometimes returns incorrect statuses.
@@ -320,7 +314,7 @@ func main() {
 							sklog.Errorf("Failed to retrieve change details: %s", err)
 							continue
 						}
-						if ci.Status == gerrit.ChangeStatusDraft || ci.Status == gerrit.ChangeStatusNew {
+						if ci.Status == gerrit.ChangeStatusNew {
 							if err := g.Abandon(ctx, ci, "Abandoning new/draft issues older than a week."); err != nil && !strings.Contains(err.Error(), "change is abandoned") {
 								sklog.Errorf("Failed to abandon old issue %s: %s", g.Url(ci.Issue), err)
 							}
