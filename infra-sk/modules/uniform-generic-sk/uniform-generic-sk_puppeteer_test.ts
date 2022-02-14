@@ -1,7 +1,6 @@
 import * as path from 'path';
 import { expect } from 'chai';
 import {
-  inBazel,
   loadCachedTestBed, takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
 
@@ -14,9 +13,7 @@ describe('uniform-generic-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(
-      inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/uniform-generic-sk.html`,
-    );
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 600, height: 600 });
   });
 

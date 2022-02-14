@@ -6,7 +6,6 @@ import {
   takeScreenshot,
   TestBed,
   loadCachedTestBed,
-  inBazel,
 } from '../../../puppeteer-tests/util';
 import { ParamSetSkClickEventDetail } from './paramset-sk';
 import { ParamSetSkPO } from './paramset-sk_po';
@@ -24,7 +23,7 @@ describe('paramset-sk', () => {
     eventPromise = await addEventListenersToPuppeteerPage(
       testBed.page, ['paramset-key-click', 'paramset-key-value-click'],
     );
-    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/paramset-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 800, height: 600 });
   });
 

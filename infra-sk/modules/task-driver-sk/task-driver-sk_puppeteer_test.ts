@@ -1,6 +1,6 @@
 import * as path from 'path';
 import {
-  inBazel, loadCachedTestBed,
+  loadCachedTestBed,
   takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
 
@@ -13,9 +13,7 @@ describe('task-driver-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(
-      inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/task-driver-sk.html`,
-    );
+    await testBed.page.goto(testBed.baseUrl);
   });
 
   describe('screenshots', () => {

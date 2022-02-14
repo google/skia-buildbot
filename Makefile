@@ -15,17 +15,13 @@ sharedgo:
 cq_watcher:
 	cd cq_watcher && $(MAKE) default
 
-.PHONY: infra-sk
-infra-sk:
-	cd infra-sk && $(MAKE) all
-
 .PHONY: skolo
 skolo:
 	cd skolo && $(MAKE) all
 
 # This target is invoked by the Infra-PerCommit-Build tryjob.
 .PHONY: all
-all: infra-sk sharedgo cq_watcher build-frontend-ci
+all: sharedgo cq_watcher build-frontend-ci
 
 .PHONY: tags
 tags:
@@ -53,7 +49,6 @@ puppeteer-tests:
 # All apps with a webpack.config.ts file should be included here.
 .PHONY: build-frontend-ci
 build-frontend-ci: npm-ci
-	cd infra-sk && $(MAKE) build-frontend-ci
 	cd new_element && $(MAKE) build-frontend-ci
 
 # Front-end tests will be included in the Infra-PerCommit-Medium tryjob.
@@ -61,7 +56,6 @@ build-frontend-ci: npm-ci
 # All apps with a karma.conf.ts file should be included here.
 .PHONY: test-frontend-ci
 test-frontend-ci: npm-ci
-	cd infra-sk && $(MAKE) test-frontend-ci
 	cd new_element && $(MAKE) test-frontend-ci
 	cd puppeteer-tests && $(MAKE) test-frontend-ci
 

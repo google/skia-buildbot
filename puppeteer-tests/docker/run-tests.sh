@@ -73,17 +73,6 @@ cp -r /src/modules                           /tests
 mkdir /tests/make
 cp -r /src/make/npm.mk                       /tests/make
 
-mkdir /tests/infra-sk
-cp -r /src/infra-sk/*.ts                     /tests/infra-sk
-cp -r /src/infra-sk/*.scss                   /tests/infra-sk
-cp -r /src/infra-sk/tsconfig.json            /tests/infra-sk
-cp -r /src/infra-sk/modules                  /tests/infra-sk
-cp -r /src/infra-sk/pulito                   /tests/infra-sk
-
-# Depended upon by //infra-sk/modules/task-driver-sk.
-mkdir -p /tests/task_driver
-cp -r /src/task_driver/modules/              /tests/task_driver
-
 mkdir /tests/puppeteer-tests
 cp -r /src/puppeteer-tests/*.ts              /tests/puppeteer-tests
 cp -r /src/puppeteer-tests/tsconfig.json     /tests/puppeteer-tests
@@ -113,9 +102,6 @@ cd /tests/puppeteer-tests
 npx mocha --require ts-node/register ./**/*_test.ts
 
 # The ./**/*_puppeteer_test.ts glob patterns below exclude the Karma tests.
-
-cd /tests/infra-sk
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/new_element
 npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
