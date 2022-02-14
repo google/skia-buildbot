@@ -1,27 +1,13 @@
-default:
-	go generate .
-	go install .
+include ../make/bazel.mk
+include ../kube/kube.mk
 
-.PHONY: debug
-debug: npm-ci
-	npx webpack-cli --mode=development
+serve:
+	@echo "Bazel doesn't have a serve-all option."
+	@echo "For the module under development, try running something like:"
+	@echo "bazel run //new_element/modules/example-control-sk:demo_page_server"
 
-.PHONY: testjs
-testjs: npm-ci
-	# Run the generated tests just once under Xvfb.
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+test-js:
+	$(BAZEL) test //new_element/modules/...
 
-.PHONY: test-frontend-ci
-test-frontend-ci: build-frontend-ci npm-ci
-	# Run the generated tests just once under Xvfb.
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
-
-.PHONY: build-frontend-ci
-build-frontend-ci: npm-ci
-	npx webpack --mode=development
-
-.PHONY: testpptr
-testpptr: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./modules/**/*_puppeteer_test.ts
-
-include ../make/npm.mk
+build:
+	$(BAZEL) build //new_element/...

@@ -49,14 +49,12 @@ puppeteer-tests:
 # All apps with a webpack.config.ts file should be included here.
 .PHONY: build-frontend-ci
 build-frontend-ci: npm-ci
-	cd new_element && $(MAKE) build-frontend-ci
 
 # Front-end tests will be included in the Infra-PerCommit-Medium tryjob.
 #
 # All apps with a karma.conf.ts file should be included here.
 .PHONY: test-frontend-ci
 test-frontend-ci: npm-ci
-	cd new_element && $(MAKE) test-frontend-ci
 	cd puppeteer-tests && $(MAKE) test-frontend-ci
 
 .PHONY: update-go-bazel-files

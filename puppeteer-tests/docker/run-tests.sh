@@ -77,11 +77,6 @@ mkdir /tests/puppeteer-tests
 cp -r /src/puppeteer-tests/*.ts              /tests/puppeteer-tests
 cp -r /src/puppeteer-tests/tsconfig.json     /tests/puppeteer-tests
 
-mkdir /tests/new_element
-cp -r /src/new_element/webpack.config.ts     /tests/new_element
-cp -r /src/new_element/tsconfig.json         /tests/new_element
-cp -r /src/new_element/modules               /tests/new_element
-
 ################################################################################
 # Install node modules and WASM dependencies.                                  #
 ################################################################################
@@ -100,8 +95,3 @@ export NODE_OPTIONS="--max-old-space-size=8192"
 
 cd /tests/puppeteer-tests
 npx mocha --require ts-node/register ./**/*_test.ts
-
-# The ./**/*_puppeteer_test.ts glob patterns below exclude the Karma tests.
-
-cd /tests/new_element
-npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
