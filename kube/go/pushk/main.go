@@ -300,7 +300,7 @@ func main() {
 					continue
 				}
 				if *doNotOverrideDirtyImage && strings.HasSuffix(matches[3], dirtyImageTagSuffix) {
-					sklog.Infof("%s is dirty. Not pushing to it since --do-not-override-dirty-image is set.", image)
+					sklog.Infof("%s is dirty. Not pushing to it since --do-not-override-dirty-image is set.", matches[3])
 					continue
 				}
 
