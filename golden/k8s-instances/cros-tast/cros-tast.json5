@@ -1,0 +1,22 @@
+{
+  code_review_systems: [
+    {
+      id: "gerrit",
+      flavor: "gerrit",
+      gerrit_url: "https://chromium-review.googlesource.com",
+      url_template: "https://chromium-review.googlesource.com/%s"
+    },
+  ],
+  gcs_bucket: "skia-gold-cros-tast",
+  git_repo_branch: "main",
+  git_repo_url: "https://chromium.googlesource.com/chromiumos/platform/tast-tests",
+  pubsub_project_id: "skia-public",
+  site_url: "https://cros-tast-gold.skia.org",
+  sql_connection: "root@gold-cockroachdb-public:26234",
+  sql_database: "crostast",
+  known_hashes_gcs_path: "skia-gold-cros-tast/hash_files/gold-cros-tast-hashes.txt",
+  window_size: 512,
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  INCLUDE_GITHUB_CREDS: false
+}

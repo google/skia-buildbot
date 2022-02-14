@@ -1,0 +1,11 @@
+{
+  cl_comment_template: "Gold has detected about {{.NumNewDigests}} new digest(s) on patchset {{.PatchsetOrder}}.\n\
+\n\
+Please triage them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}.\n",
+  changelist_diff_period: "5m",
+  comment_on_cls_period: "5m",
+  primary_branch_diff_period: "5m",
+  update_traces_ignore_period: "1m",
+  prom_port: ":20000",
+  ready_port: ":8000"
+}

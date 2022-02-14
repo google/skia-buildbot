@@ -1,0 +1,21 @@
+{
+  authorized_users: [
+    "google.com",
+    "goldctl-auth@cros-screenshot-tests.iam.gserviceaccount.com"
+  ],
+  client_secret_file: "/etc/skia.org/login.json",
+  force_login: true, // This instance requires authentication. No public view requested.
+  frontend: {
+    baseRepoURL: "<inherited from git_repo_url>",
+    defaultCorpus: "crostini",
+    title: "Gold for Chromiumos Tast Tests",
+  },
+  prom_port: ":20000",
+  ready_port: ":8000",
+  resources_path: "/usr/local/share/frontend/dist",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  K8S_CPU: 4,
+  K8S_LOGIN_SECRETS: "skia-org-legacy-login-secrets",
+  K8S_MEMORY: "4Gi",
+}
