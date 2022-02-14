@@ -365,6 +365,25 @@ func TestUpdateLegacyFields_Success(t *testing.T) {
 	parseUpdateValidate(t, inverted_results)
 }
 
+func TestUpdateLegacyFields_LexicographicalOrderOfCommitIDsFixed(t *testing.T) {
+	unittest.SmallTest(t)
+
+	test := func(oldID, fixedID string) {
+		t.Run(oldID, func(t *testing.T) {
+			g := GoldResults{CommitID: oldID}
+			require.NoError(t, g.UpdateLegacyFields())
+			assert.Equal(t, g.CommitID, fixedID)
+		})
+	}
+	test("R99-14469.8.1", "R099-14469.8.1")
+	test("R23-14469.8.1", "R023-14469.8.1")
+
+	// No changes
+	test("R100-14470.0.0", "R100-14470.0.0")
+	test("R987-14470.0.0", "R987-14470.0.0")
+	test("R012-14470.0.0", "R012-14470.0.0")
+}
+
 func TestGenJson(t *testing.T) {
 	unittest.SmallTest(t)
 

@@ -108,9 +108,17 @@ type Result struct {
 	Digest  types.Digest      `json:"md5"      validate:"required"`
 }
 
+var twoDigitMilestone = regexp.MustCompile(`R([0-9][0-9])-`)
+
 // UpdateLegacyFields takes data from old, legacy fields and copies it into the newer equivalents.
 // This lets us import older data.
 func (g *GoldResults) UpdateLegacyFields() error {
+	// b/218602384
+	if g.CommitID != "" {
+		if match := twoDigitMilestone.FindStringSubmatch(g.CommitID); match != nil {
+			g.CommitID = "R0" + g.CommitID[1:]
+		}
+	}
 	if g.ChangelistID == "" && g.GerritChangelistID == "" {
 		return nil
 	}
