@@ -535,7 +535,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-cros-tast-dev-baselineserver",
+          "cluster_name": "gold-cros-tast-baselineserver",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -543,7 +543,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-cros-tast-dev-baselineserver",
+                        "address": "gold-cros-tast-baselineserver",
                         "port_value": 8000
                       }
                     }
@@ -553,7 +553,7 @@
             }
           ]
         },
-        "name": "gold-cros-tast-dev-baselineserver",
+        "name": "gold-cros-tast-baselineserver",
         "type": "STRICT_DNS"
       },
       {
@@ -561,7 +561,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-cros-tast-dev-frontend",
+          "cluster_name": "gold-cros-tast-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -569,7 +569,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-cros-tast-dev-frontend",
+                        "address": "gold-cros-tast-frontend",
                         "port_value": 8000
                       }
                     }
@@ -579,7 +579,7 @@
             }
           ]
         },
-        "name": "gold-cros-tast-dev-frontend",
+        "name": "gold-cros-tast-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -3080,7 +3080,7 @@
                             "prefix": "/json/hashes"
                           },
                           "route": {
-                            "cluster": "gold-cros-tast-dev-baselineserver",
+                            "cluster": "gold-cros-tast-baselineserver",
                             "timeout": {
                               "seconds": 600
                             }
@@ -3091,7 +3091,7 @@
                             "prefix": "/json/expectations"
                           },
                           "route": {
-                            "cluster": "gold-cros-tast-dev-baselineserver",
+                            "cluster": "gold-cros-tast-baselineserver",
                             "timeout": {
                               "seconds": 600
                             }
@@ -3105,7 +3105,7 @@
                             }
                           },
                           "route": {
-                            "cluster": "gold-cros-tast-dev-baselineserver",
+                            "cluster": "gold-cros-tast-baselineserver",
                             "timeout": {
                               "seconds": 600
                             }
@@ -3119,7 +3119,7 @@
                             }
                           },
                           "route": {
-                            "cluster": "gold-cros-tast-dev-baselineserver",
+                            "cluster": "gold-cros-tast-baselineserver",
                             "timeout": {
                               "seconds": 600
                             }
@@ -3130,7 +3130,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-cros-tast-dev-frontend",
+                            "cluster": "gold-cros-tast-frontend",
                             "timeout": {
                               "seconds": 600
                             }
