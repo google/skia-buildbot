@@ -3696,16 +3696,22 @@ func (s *Impl) ComputeGUIStatus(ctx context.Context) (frontend.GUIStatus, error)
 	defer span.End()
 
 	var gs frontend.GUIStatus
-	row := s.db.QueryRow(ctx, `SELECT git_hash, GitCommits.commit_id, commit_time, author_email, subject
-FROM GitCommits JOIN CommitsWithData ON GitCommits.commit_id = CommitsWithData.commit_id
+	row := s.db.QueryRow(ctx, `SELECT commit_id FROM CommitsWithData
 AS OF SYSTEM TIME '-0.1s'
 ORDER BY CommitsWithData.commit_id DESC LIMIT 1`)
-	var ts time.Time
-	if err := row.Scan(&gs.LastCommit.Hash, &gs.LastCommit.ID, &ts,
-		&gs.LastCommit.Author, &gs.LastCommit.Subject); err != nil {
+	if err := row.Scan(&gs.LastCommit.ID); err != nil {
 		return frontend.GUIStatus{}, skerr.Wrap(err)
 	}
-	gs.LastCommit.CommitTime = ts.UTC().Unix()
+
+	row = s.db.QueryRow(ctx, `SELECT git_hash, commit_time, author_email, subject
+FROM GitCommits WHERE GitCommits.commit_id = $1`, gs.LastCommit.ID)
+	var ts time.Time
+	if err := row.Scan(&gs.LastCommit.Hash, &ts, &gs.LastCommit.Author, &gs.LastCommit.Subject); err != nil {
+		// TODO(kjlubick) make this work for MetadataCommits
+		sklog.Infof("Error getting git info for commit_id %s - %s", gs.LastCommit.ID, err)
+	} else {
+		gs.LastCommit.CommitTime = ts.UTC().Unix()
+	}
 
 	if s.isPublicView {
 		xcs, err := s.getPublicViewCorporaStatuses(ctx)

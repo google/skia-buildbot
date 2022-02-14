@@ -5558,6 +5558,41 @@ func TestComputeGUIStatus_Success(t *testing.T) {
 	}, res)
 }
 
+func TestComputeGUIStatus_GitCommitIDsDoNotMatch_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	data := dks.Build()
+	for i := range data.GitCommits {
+		data.GitCommits[i].CommitID = "does not match"
+	}
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, data))
+	waitForSystemTime()
+
+	s := New(db, 100)
+
+	res, err := s.ComputeGUIStatus(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, frontend.GUIStatus{
+		LastCommit: frontend.Commit{
+			ID: "0000000110",
+			// For now, none of this info can be filled out
+		},
+		CorpStatus: []frontend.GUICorpusStatus{
+			{
+				Name:           dks.CornersCorpus,
+				UntriagedCount: 0,
+			},
+			{
+				Name:           dks.RoundCorpus,
+				UntriagedCount: 3,
+			},
+		},
+	}, res)
+}
+
 func TestComputeGUIStatus_RespectsPublicParams_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
