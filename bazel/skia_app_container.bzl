@@ -133,6 +133,7 @@ def skia_app_container(
                 srcs = [file],
                 package_dir = dir,
                 mode = mode,
+                tags = ["manual"],  # Exclude it from wildcard queries, e.g. "bazel build //...".
             )
 
     image_name = (name + "_base") if (run_commands_root or run_commands_skia) else name
