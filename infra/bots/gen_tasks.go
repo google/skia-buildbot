@@ -80,7 +80,6 @@ var (
 		"Infra-PerCommit-Build":                              nil,
 		"Infra-PerCommit-Build-Bazel-Local":                  nil,
 		"Infra-PerCommit-CreateDockerImage":                  nil,
-		"Infra-PerCommit-Puppeteer":                          nil,
 		"Infra-PerCommit-PushAppsFromInfraDockerImage":       nil,
 		"Infra-PerCommit-Race":                               nil,
 		"Infra-PerCommit-Test-Bazel-Local":                   nil,
@@ -304,18 +303,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		machineType = MACHINE_TYPE_LARGE
 	}
 
-	var task *specs.TaskSpec
-	if strings.Contains(name, "Puppeteer") {
-		// Puppeteer tests run inside a Docker container, take screenshots and
-		// upload them to Gold. Therefore we need Docker, goldctl and EXTRA_PROPS,
-		// which include the properties required by goldctl (issue, patchset, etc).
-		task = kitchenTask(name, "puppeteer_tests", CAS_WHOLE_REPO, SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), EXTRA_PROPS, OUTPUT_NONE)
-		task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GOLDCTL...)
-		task.IoTimeout = 60 * time.Minute
-		task.ExecutionTimeout = 60 * time.Minute
-	} else {
-		task = kitchenTask(name, "swarm_infra", CAS_WHOLE_REPO, SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
-	}
+	task := kitchenTask(name, "swarm_infra", CAS_WHOLE_REPO, SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
 
 	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))

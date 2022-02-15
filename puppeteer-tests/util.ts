@@ -192,12 +192,6 @@ export const outputDir = () => {
     return outputDir;
   }
 
-  // In the pre-Bazel world, Puppeteer tests either run inside the puppeteer-tests Docker container
-  // (e.g. Infra-PerCommit-Puppeteer), or locally during development.
-  if (exports.inDocker()) {
-    return '/out';
-  }
-
   // Resolves to //puppeteer-tests/output when running locally.
   return path.join(__dirname, 'output');
 };
