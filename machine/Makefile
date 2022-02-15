@@ -15,13 +15,9 @@ testjs:
 	$(BAZEL) test modules/...
 
 release:
-	$(BAZEL) build --config=remote //machine/...
-	./images/machineserver/release
+	$(BAZEL) run //machine:push_machineserver
 
-push: release
-	pushk machineserver
-
-push_bazel:
+push:
 	$(BAZEL) run //machine:pushk_machineserver
 
 # Make our own firestore emulator image.
