@@ -116,27 +116,23 @@ def RunSteps(api):
   env['PATH'] = api.path.pathsep.join([
       env['PATH'], str(api.path['depot_tools'])])
 
-  if 'Build' in builder:
-    with api.context(cwd=infra_dir, env=env):
-      api.step('make all', ['make', 'all'])
+  cmd = ['go', 'run', './run_unittests.go', '--verbose']
+  if 'Race' in builder:
+    cmd.extend(['--race', '--large', '--medium', '--small'])
+  elif 'Large' in builder:
+    cmd.append('--large')
+  elif 'Medium' in builder:
+    cmd.append('--medium')
   else:
-    cmd = ['go', 'run', './run_unittests.go', '--verbose']
-    if 'Race' in builder:
-      cmd.extend(['--race', '--large', '--medium', '--small'])
-    elif 'Large' in builder:
-      cmd.append('--large')
-    elif 'Medium' in builder:
-      cmd.append('--medium')
-    else:
-      cmd.append('--small')
-    try:
+    cmd.append('--small')
+  try:
+    with api.context(cwd=infra_dir, env=env):
+      api.step('run_unittests', cmd)
+  finally:
+    if ('Large' in builder) or ('Race' in builder):
       with api.context(cwd=infra_dir, env=env):
-        api.step('run_unittests', cmd)
-    finally:
-      if ('Large' in builder) or ('Race' in builder):
-        with api.context(cwd=infra_dir, env=env):
-          api.step('stop the cloud emulators',
-                   cmd=[run_emulators, 'stop', '--dump-logs'])
+        api.step('stop the cloud emulators',
+                 cmd=[run_emulators, 'stop', '--dump-logs'])
 
   # Sanity check; none of the above should have modified the go.mod file.
   with api.context(cwd=infra_dir):
@@ -167,11 +163,6 @@ def GenTests(api):
                      patch_storage='gerrit',
                      path_config='kitchen',
                      repository='https://skia.googlesource.com/buildbot.git')
-  )
-  yield (
-      api.test('Infra-PerCommit-Build') +
-      api.properties(buildername='Infra-PerCommit-Build',
-                     path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit-Large') +

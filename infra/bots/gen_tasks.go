@@ -77,7 +77,6 @@ var (
 		"Housekeeper-Weekly-UpdateCIPDPackages":              nil,
 		"Infra-Experimental-Small-Linux":                     nil,
 		"Infra-Experimental-Small-Win":                       nil,
-		"Infra-PerCommit-Build":                              nil,
 		"Infra-PerCommit-Build-Bazel-Local":                  nil,
 		"Infra-PerCommit-CreateDockerImage":                  nil,
 		"Infra-PerCommit-PushAppsFromInfraDockerImage":       nil,
