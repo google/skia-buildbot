@@ -1,0 +1,7 @@
+# Installs Windows GPU drivers.
+- hosts: all_win
+  user: chrome-bot
+  gather_facts: true
+
+  roles:
+  - role: install_win_gpu_drivers

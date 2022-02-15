@@ -9,9 +9,14 @@
     state: directory
 
 # The NVIDIA driver Uses the same product_id for multiple versions, so win_package doesn't work.
+#
+# Downloaded from https://www.nvidia.com/download/find.aspx. At the time of writing, this is the
+# latest driver that supports RTX 30 series GPUs. To make sure this driver is compatible with our
+# older Nvidia GPUs, I searched for drivers for GTX 900 series GPUs. The search results included
+# this driver as well, so it should work across our entire Nvidia GPU fleet.
 - name: Copy the NVIDIA driver EXE to the host
   win_copy:
-    src: "{{ win_package_src }}/NVIDIA Graphics 441.20-desktop-win10-64bit-international-whql-rp.exe"
+    src: "{{ win_package_src }}/NVIDIA Graphics 511.65-desktop-win10-win11-64bit-international-nsd-dch-whql.exe"
     dest: C:\Temp\nvidia_gfx.exe
 
 - name: Install NVIDIA Graphics Driver

@@ -113,3 +113,14 @@
     name: WSearch
     start_mode: disabled
     state: stopped
+
+- name: Enable RDP
+  ansible.windows.win_regedit:
+    path: HKLM:\System\CurrentControlSet\Control\Terminal Server
+    name: fDenyTSConnections
+    data: 0
+
+- name: Allow RDP connections to go through the Windows Firewall
+  win_command: powershell.exe -
+  args:
+    stdin: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
