@@ -13,12 +13,13 @@ import (
 
 var (
 	// Required properties for this task.
-	projectID   = flag.String("project_id", "", "ID of the Google Cloud project.")
-	taskID      = flag.String("task_id", "", "ID of this task.")
-	taskName    = flag.String("task_name", "", "Name of the task.")
-	workDirFlag = flag.String("workdir", ".", "Working directory.")
-	rbe         = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
-	rbeKey      = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
+	projectID     = flag.String("project_id", "", "ID of the Google Cloud project.")
+	taskID        = flag.String("task_id", "", "ID of this task.")
+	taskName      = flag.String("task_name", "", "Name of the task.")
+	workDirFlag   = flag.String("workdir", ".", "Working directory.")
+	rbe           = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
+	rbeKey        = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
+	ramdiskSizeGb = flag.Int("ramdisk_gb", 40, "Size of ramdisk to use, in GB.")
 
 	checkoutFlags = checkout.SetupFlags(nil)
 
@@ -76,10 +77,22 @@ func main() {
 	failIfNonEmptyGitDiff()
 
 	// Set up Bazel.
-	bzl, err := bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+	var (
+		bzl        *bazel.Bazel
+		bzlCleanup func()
+	)
+	if !*rbe && !*local {
+		// Infra-PerCommit-Build-Bazel-Local uses a ramdisk as the Bazel cache. I/O on GCE VMs can be
+		// very slow, which that can cause said task to time out.
+		bzl, bzlCleanup, err = bazel.NewWithRamdisk(ctx, gitDir.Dir(), *rbeKey, *ramdiskSizeGb)
+	} else {
+		bzl, err = bazel.New(ctx, gitDir.Dir(), *local, *rbeKey)
+		bzlCleanup = func() {}
+	}
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
+	defer bzlCleanup()
 
 	// Print out the Bazel version for debugging purposes.
 	if _, err := bzl.Do(ctx, "version"); err != nil {
