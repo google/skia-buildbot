@@ -301,6 +301,14 @@ container_pull(
     repository = "node",
 )
 
+# Pulls the node:17-alpine container, needed by jsdoc.
+container_pull(
+    name = "kubectl",
+    digest = "sha256:fb1a8540f657d76f980c75e59fa95fa3683f9f7eadeea6fbdff099968bfcadca",
+    registry = "gcr.io",
+    repository = "cloud-builders/kubectl",
+)
+
 ##############################
 # Packages for RBE container #
 ##############################

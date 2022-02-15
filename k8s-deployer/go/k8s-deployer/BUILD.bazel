@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "k8s-deployer_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/k8s-deployer/go/k8s-deployer",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/exec",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "k8s-deployer",
+    embed = [":k8s-deployer_lib"],
+    visibility = ["//visibility:public"],
+)
