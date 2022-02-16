@@ -30,6 +30,7 @@ func main() {
 	configRepo := flag.String("config_repo", "https://skia.googlesource.com/k8s-config.git", "Repo containing Kubernetes configurations.")
 	configSubdir := flag.String("config_subdir", "", "Subdirectory within the config repo to apply to this cluster.")
 	interval := flag.Duration("interval", 10*time.Minute, "How often to re-apply configurations to the cluster")
+	port := flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	promPort := flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 
 	common.InitWithMust("k8s_deployer", common.PrometheusOpt(promPort))
@@ -73,7 +74,8 @@ func main() {
 		}
 	})
 
-	select {}
+	// Run health check server.
+	httputils.RunHealthCheckServer(*port)
 }
 
 func applyConfigs(ctx context.Context, repo *gitiles.Repo, cluster, configSubdir string) error {
