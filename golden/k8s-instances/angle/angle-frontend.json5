@@ -2,6 +2,8 @@
   authorized_users: [
     "google.com", "angle-gold@chops-service-accounts.iam.gserviceaccount.com",
     "chrome-gold-internal@chops-service-accounts.iam.gserviceaccount.com",
+    "chrome-tester@chops-service-accounts.iam.gserviceaccount.com",
+    "chromium-tester@chops-service-accounts.iam.gserviceaccount.com",
   ],
   client_secret_file: "/etc/skia.org/login.json",
   disable_sql_exp_cl: true,
