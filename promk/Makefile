@@ -1,3 +1,5 @@
+include ../make/bazel.mk
+include ../kube/kube.mk
 
 .PHONY: validate
 validate: ./tmp/promtool absent
@@ -50,9 +52,8 @@ push_config_public: validate skia-public
 	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run=client | kubectl replace -f -
 
 .PHONY: backup-to-gcs
-backup-to-gcs:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/backup-to-gcs
-	./build_backup_to_gcs_release "`git log -n1 --format=%s`"
+backup-to-gcs: pushk
+	$(BAZEL) run //promk:push_backup_to_gcs_container
 	pushk backup-to-gcs
 
 .PHONY: push_config_corp

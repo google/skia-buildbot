@@ -1,0 +1,15 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "backup_to_gcs_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//promk/go/backup-to-gcs:backup-to-gcs",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/backup-to-gcs",
+    repository = "skia-public/backup-to-gcs",
+)
