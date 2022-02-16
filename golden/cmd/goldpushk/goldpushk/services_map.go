@@ -5,20 +5,19 @@ package goldpushk
 
 const (
 	// Gold instances.
-	Angle                       Instance = "angle"
-	Chrome                      Instance = "chrome"
-	ChromePublic                Instance = "chrome-public"
-	ChromiumOSTast              Instance = "cros-tast"
-	DeprecatedChromiumOSTastDev Instance = "cros-tast-dev"
-	ESkia                       Instance = "eskia"
-	Flutter                     Instance = "flutter"
-	FlutterEngine               Instance = "flutter-engine"
-	Lottie                      Instance = "lottie"
-	LottieSpec                  Instance = "lottie-spec"
-	Pdfium                      Instance = "pdfium"
-	Skia                        Instance = "skia"
-	SkiaInfra                   Instance = "skia-infra"
-	SkiaPublic                  Instance = "skia-public"
+	Angle          Instance = "angle"
+	Chrome         Instance = "chrome"
+	ChromePublic   Instance = "chrome-public"
+	ChromiumOSTast Instance = "cros-tast"
+	ESkia          Instance = "eskia"
+	Flutter        Instance = "flutter"
+	FlutterEngine  Instance = "flutter-engine"
+	Lottie         Instance = "lottie"
+	LottieSpec     Instance = "lottie-spec"
+	Pdfium         Instance = "pdfium"
+	Skia           Instance = "skia"
+	SkiaInfra      Instance = "skia-infra"
+	SkiaPublic     Instance = "skia-public"
 
 	// Gold services.
 	BaselineServer  Service = "baselineserver"
@@ -49,7 +48,6 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			Chrome,
 			ChromePublic,
 			ChromiumOSTast,
-			DeprecatedChromiumOSTastDev,
 			ESkia,
 			Flutter,
 			FlutterEngine,
@@ -87,7 +85,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 
 	// Add BaselineServer to the instances that require it.
 	publicInstancesNeedingBaselineServer := []Instance{
-		Angle, Chrome, ChromiumOSTast, DeprecatedChromiumOSTastDev, ESkia, Flutter, FlutterEngine, Pdfium, SkiaInfra, Skia,
+		Angle, Chrome, ChromiumOSTast, ESkia, Flutter, FlutterEngine, Pdfium, SkiaInfra, Skia,
 	}
 	for _, instance := range publicInstancesNeedingBaselineServer {
 		s.add(instance, BaselineServer)
