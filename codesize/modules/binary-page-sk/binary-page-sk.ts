@@ -29,20 +29,22 @@ export class BinaryPageSk extends ElementSk {
     return html`
       <h2>
         Code size statistics for <code>${el.metadata?.binary_name}</code>
-        <small>(<a href="${compileTaskNameHref}">${el.metadata?.compile_task_name}</a>)</small>
+        <span class="compile-task">
+          (<a href="${compileTaskNameHref}">${el.metadata?.compile_task_name}</a>)
+        </span>
       </h2>
 
       <p>
         <a href="${commitOrCLAnchorHref}">${commitOrCLAnchorText}</a>
         ${el.metadata?.subject}
         <br/>
-        <small>
+        <span class="author-and-timestamp">
           ${el.metadata?.author},
           <human-date-sk .date=${el.metadata?.timestamp} .diff=${true}></human-date-sk> ago.
-        </small>
+        </span>
       </p>
 
-      <p><strong>Instructions:</strong></p>
+      <p class="instructions">Instructions:</p>
 
       <ul>
         <li><strong>Click</strong> on a node to navigate down the tree.</li>

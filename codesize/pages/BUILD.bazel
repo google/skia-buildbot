@@ -5,7 +5,10 @@ sk_page(
     assets_serving_path = "/dist",
     html_file = "index.html",
     nonce = "{% .Nonce %}",
-    sk_element_deps = ["//codesize/modules/codesize-scaffold-sk"],
+    sk_element_deps = [
+        "//codesize/modules/codesize-scaffold-sk",
+        "//codesize/modules/index-page-sk",
+    ],
     ts_entry_point = "index.ts",
 )
 

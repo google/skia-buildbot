@@ -1,4 +1,13 @@
 binary-page-sk {
+  .author-and-timestamp,
+  .compile-task {
+    font-size: .8em;
+  }
+
+  .instructions {
+    font-weight: bold;
+  }
+
   div#treemap {
     margin-top: 10px;
   }

@@ -1,0 +1,23 @@
+@import '../../../infra-sk/themes';
+
+index-page-sk {
+  div.commit-or-cl {
+    background: var(--on-primary);
+    border: 1px solid var(--surface-1dp);
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .author-and-timestamp {
+    font-size: .8em;
+  }
+
+  .compile-task {
+    font-size: .8em;
+    margin-left: .5em;
+  }
+
+  .binaries {
+    font-weight: bold;
+  }
+}
