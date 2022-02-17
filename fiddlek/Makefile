@@ -55,6 +55,9 @@ push: pushk release
 push_fiddle: pushk release-fiddle
 	pushk --use-temp-checkout fiddle
 
+push_fiddler: pushk release-fiddler
+	pushk --use-temp-checkout fiddler
+
 cli:
 	go install -v ./go/fiddlecli
 

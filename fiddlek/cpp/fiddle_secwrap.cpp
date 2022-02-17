@@ -75,6 +75,7 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(chown),
         ALLOW_SYSCALL(newfstatat),
         ALLOW_SYSCALL(pread64),
+        ALLOW_SYSCALL(getdents64),
 
         TRACE_SYSCALL(mknod),
         TRACE_SYSCALL(link),
