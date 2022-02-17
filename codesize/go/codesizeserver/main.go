@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"path/filepath"
+	"regexp"
 	"text/template"
 	"time"
 
@@ -17,6 +17,7 @@ import (
 
 	"go.skia.org/infra/codesize/go/bloaty"
 	"go.skia.org/infra/codesize/go/codesizeserver/rpc"
+	"go.skia.org/infra/codesize/go/store"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -30,6 +31,10 @@ const (
 	gcpProjectName = "skia-public"
 	gcsBucket      = "skia-codesize"
 	pubSubTopic    = "skia-codesize-files"
+
+	// numMostRecentBinaries is the number of most recent binaries to show on the index page (grouped
+	// by changelist or patchset).
+	numMostRecentBinaries = 20
 )
 
 // gcsPubSubEvent is the payload of the PubSub events sent by GCS on file uploads. See
@@ -44,13 +49,7 @@ type gcsPubSubEvent struct {
 type server struct {
 	templates *template.Template
 	gcsClient *gcsclient.StorageClient
-
-	// bloatyFile holds the contents of a single Bloaty file loaded from GCS, and will soon be
-	// replaced with a more appropriate data structure to support multiple artifacts and metadata
-	// (from JSON files with build parameters, Bloaty command-line arguments, etc.).
-	//
-	// TODO(lovisolo): Replace with a more definitive in-memory cache with the above information.
-	bloatyFile string
+	store     store.Store
 }
 
 // See baseapp.Constructor.
@@ -70,8 +69,19 @@ func new() (baseapp.App, error) {
 	}
 	srv.gcsClient = gcsclient.New(storageClient, gcsBucket)
 
+	// Set up Store.
+	store := store.New(func(ctx context.Context, path string) ([]byte, error) {
+		sklog.Infof("Downloading %s from GCS", path)
+		contents, err := srv.gcsClient.GetFileContents(ctx, path)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return contents, nil
+	})
+	srv.store = store
+
 	// Preload the latest Bloaty outputs.
-	if err := srv.preloadBloatyFiles(); err != nil {
+	if err := srv.preloadBloatyFiles(ctx); err != nil {
 		return nil, skerr.Wrapf(err, "failed to preload Bloaty outputs from GCS")
 	}
 
@@ -116,7 +126,7 @@ func new() (baseapp.App, error) {
 					sklog.Warningf("Failed to process PubSub message: [bucket: %s, name: %s]. Error: %s.\n", evt.Bucket, evt.Name, err)
 
 					// We Ack messages we failed to process to prevent them from being continuously retried.
-					// Some of these errors might be retriable, such as transiet network errors while
+					// Some of these errors might be retriable, such as transient network errors while
 					// downloading from GCS, but I don't anticipate this to happen often. As is, such an error
 					// would prevent the replica from picking up the latest Bloaty output, but this would
 					// resolve itself as soon as the next Skia commit lands.
@@ -144,40 +154,39 @@ func new() (baseapp.App, error) {
 }
 
 // preloadBloatyFiles preloads the latest Bloaty outputs for each supported build artifact.
-func (s *server) preloadBloatyFiles() error {
-	// For now, this reads a single known Bloaty output file. Soon, we will replace this with a
-	// directory structure of the form /<artifact name>/YYYY/MM/DD/<git hash>.{tsv/json}, where
-	// <artifact name> is the name of the binary plus information about how it was built (e.g.
-	// "dm-debug", "dm-release", etc.), the TSV file is the corresponding Bloaty output, and the JSON
-	// file is a file with metadata such as the exact build parameters, Bloaty version and
-	// command-line arguments, etc.
-	//
-	// TODO(lovisolo): Implement and test.
+func (s *server) preloadBloatyFiles(ctx context.Context) error {
+	// We'll filter out anything that isn't under a YYYY/MM/DD directory and doesn't end in ".tsv".
+	// This excludes debug files that we occasionally upload to GCS.
+	bloatyOutputFilePattern := regexp.MustCompile(`^[0-9]{4}/[0-9]{2}/[0-9]{2}/.*\.tsv$`)
 
-	contents, err := s.gcsClient.GetFileContents(context.Background(), "dm.tsv")
+	// TODO(lovisolo): Consider limiting this, e.g. to the last 3 months.
+	err := s.gcsClient.AllFilesInDirectory(context.Background(), "", func(item *storage.ObjectAttrs) {
+		if !bloatyOutputFilePattern.MatchString(item.Name) {
+			return
+		}
+		if err := s.store.Index(ctx, item.Name); err != nil {
+			// If this happens often (e.g. because we're hitting a GCS QPS limit) we can do a combination
+			// of limiting our QPS rate and only fetching the most recent files.
+			//
+			// As is, this is probably fine. At worst, the app will crash and Kubernetes will retry
+			// creating the pod, entering a crash loop if we're still over the QPS quota. Exponential
+			// backoff would be a potential mitigation.
+			sklog.Fatalf("Error while preloading %s: %s\n", item.Name, err)
+		}
+	})
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 
-	s.bloatyFile = string(contents[:])
 	return nil
 }
 
 // handleFileUploadNotification is called when a new file is uplodaded to the GCS bucket.
 func (s *server) handleFileUploadNotification(ctx context.Context, path string) error {
-	// For now, this handler simply reads the contents of the uploaded file and prints them to stdout.
-	// Eventually we will update the in-memory data structures with the contents and metadata of any
-	// incoming files.
-	//
-	// TODO(lovisolo): Implement and test.
-	gcsUrl := fmt.Sprintf("gs://%s/%s", gcsBucket, path)
-
-	contents, err := s.gcsClient.GetFileContents(ctx, path)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to get contents of %s", gcsUrl)
+	sklog.Infof("Received file upload PubSub message: %s", path)
+	if err := s.store.Index(ctx, path); err != nil {
+		return skerr.Wrap(err)
 	}
-
-	fmt.Printf("Contents of %s:\n%s\n", gcsUrl, string(contents[:]))
 	return nil
 }
 
@@ -208,29 +217,55 @@ func (s *server) sendHTMLResponse(templateName string, w http.ResponseWriter, r 
 	}
 }
 
-func (s *server) machinesPageHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) indexPageHandler(w http.ResponseWriter, r *http.Request) {
 	s.sendHTMLResponse("index.html", w, r)
 }
 
-func (s *server) bloatyHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO(lovisolo): Parameterize this RPC and read the Bloaty output for the given artifact from
-	//                 an in-memory cache.
-	outputItems, err := bloaty.ParseTSVOutput(s.bloatyFile)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to parse dm.tsv.", http.StatusInternalServerError)
+func (s *server) binaryRPCHandler(w http.ResponseWriter, r *http.Request) {
+	req := rpc.BinaryRPCRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, err, "Failed to parse request", http.StatusBadRequest)
 		return
 	}
 
-	res := rpc.BloatyRPCResponse{
-		Rows: bloaty.GenTreeMapDataTableRows(outputItems),
+	binary, ok := s.store.GetBinary(req.CommitOrPatchset, req.BinaryName, req.CompileTaskName)
+	if !ok {
+		httputils.ReportError(w, nil, "Binary not found in Store", http.StatusNotFound)
+		return
+	}
+
+	bytes, err := s.store.GetBloatyOutputFileContents(r.Context(), binary)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to retrieve Bloaty output file", http.StatusInternalServerError)
+		return
+	}
+
+	outputItems, err := bloaty.ParseTSVOutput(string(bytes))
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to parse Bloaty output file.", http.StatusInternalServerError)
+		return
+	}
+
+	res := rpc.BinaryRPCResponse{
+		Metadata: binary.Metadata,
+		Rows:     bloaty.GenTreeMapDataTableRows(outputItems),
+	}
+	sendJSONResponse(res, w)
+}
+
+func (s *server) mostRecentBinariesRPCHandler(w http.ResponseWriter, r *http.Request) {
+	binaries := s.store.GetMostRecentBinaries(numMostRecentBinaries)
+	res := rpc.MostRecentBinariesRPCResponse{
+		Binaries: binaries,
 	}
 	sendJSONResponse(res, w)
 }
 
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
-	r.HandleFunc("/", s.machinesPageHandler).Methods("GET")
-	r.HandleFunc("/rpc/bloaty/v1", s.bloatyHandler).Methods("GET")
+	r.HandleFunc("/", s.indexPageHandler).Methods("GET")
+	r.HandleFunc("/rpc/binary/v1", s.binaryRPCHandler).Methods("POST")
+	r.HandleFunc("/rpc/most_recent_binaries/v1", s.mostRecentBinariesRPCHandler).Methods("GET")
 }
 
 // See baseapp.App.

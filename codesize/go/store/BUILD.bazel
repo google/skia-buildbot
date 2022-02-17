@@ -1,0 +1,27 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "store",
+    srcs = ["store.go"],
+    importpath = "go.skia.org/infra/codesize/go/store",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//codesize/go/common",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_hashicorp_golang_lru//:golang-lru",
+    ],
+)
+
+go_test(
+    name = "store_test",
+    srcs = ["store_test.go"],
+    embed = [":store"],
+    deps = [
+        "//codesize/go/common",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

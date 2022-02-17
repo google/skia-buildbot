@@ -5,5 +5,9 @@ go_library(
     srcs = ["types.go"],
     importpath = "go.skia.org/infra/codesize/go/codesizeserver/rpc",
     visibility = ["//visibility:public"],
-    deps = ["//codesize/go/bloaty"],
+    deps = [
+        "//codesize/go/bloaty",
+        "//codesize/go/common",
+        "//codesize/go/store",
+    ],
 )

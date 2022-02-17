@@ -15,7 +15,7 @@ describe('index-page-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.setViewport({ width: 800, height: 600 });
+    await testBed.page.setViewport({ width: 1024, height: 768 });
     const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, [END_BUSY_EVENT]);
     const loaded = eventPromise(END_BUSY_EVENT); // Emitted when page is loaded.
     await testBed.page.goto(testBed.baseUrl);

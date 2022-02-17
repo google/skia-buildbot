@@ -17,7 +17,9 @@ func main() {
 	flag.Parse()
 
 	generator := go2ts.New()
-	generator.Add(rpc.BloatyRPCResponse{})
+	generator.Add(rpc.BinaryRPCRequest{})
+	generator.Add(rpc.BinaryRPCResponse{})
+	generator.Add(rpc.MostRecentBinariesRPCResponse{})
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)

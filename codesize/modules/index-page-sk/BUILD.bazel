@@ -9,17 +9,21 @@ sk_element(
     name = "index-page-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["index-page-sk.scss"],
-    sk_element_deps = ["//codesize/modules/codesize-scaffold-sk"],
+    sk_element_deps = [
+        "//codesize/modules/codesize-scaffold-sk",
+        "//infra-sk/modules/human-date-sk",
+    ],
     ts_deps = [
+        "//codesize/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//elements-sk",
-        "@npm//lit-html",
         "@npm//@google-web-components/google-chart",
         # Provides types for the @google-web-components/google-chart import, which does not follow
         # the import naming convention expected by the Gazelle front-end extension, and thus needs
         # to be added manually.
         "@npm//@types/google.visualization",  # keep
-        "//codesize/modules:rpc_types_ts_lib",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+        "@npm//lit-html",
     ],
     ts_srcs = [
         "index-page-sk.ts",
@@ -31,7 +35,10 @@ sk_element(
 sk_page(
     name = "index-page-sk-demo",
     html_file = "index-page-sk-demo.html",
-    sk_element_deps = [":index-page-sk"],
+    sk_element_deps = [
+        "//codesize/modules/codesize-scaffold-sk",
+        ":index-page-sk",
+    ],
     ts_deps = [
         "//codesize/modules:rpc_types_ts_lib",
         "@npm//fetch-mock",

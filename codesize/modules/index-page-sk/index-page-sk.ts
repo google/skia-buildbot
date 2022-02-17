@@ -1,24 +1,48 @@
-/** Home page of codesize.skia.org. */
+/** Shows code size statistics about a single binary. */
 
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { load } from '@google-web-components/google-chart/loader';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import '../codesize-scaffold-sk';
 import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk';
-import { BloatyRPCResponse } from '../rpc_types';
+import { BloatyOutputMetadata, BinaryRPCRequest, BinaryRPCResponse } from '../rpc_types';
+import '../../../infra-sk/modules/human-date-sk';
 
 import '@google-web-components/google-chart/';
 
 export class IndexPageSk extends ElementSk {
-  private static template = (el: IndexPageSk) => html`
-    <codesize-scaffold-sk>
-      <!--
-        TODO(lovisolo): The artifact name should be determined from metadata returned by the RPC.
-      -->
-      <h2>Debug build of the <code>dm</code> binary</h2>
+  private static template = (el: IndexPageSk) => {
+    if (el.metadata === null) {
+      return html`<p>Loading...</p>`;
+    }
 
-      <p>Instructions:</p>
+    const isTryJob = el.metadata?.patch_issue || el.metadata?.patch_set;
+    const commitOrCLAnchorText = isTryJob
+      ? `Issue ${el.metadata?.patch_issue}, PS ${el.metadata?.patch_set}`
+      : el.metadata?.revision.substring(0, 7);
+    const commitOrCLAnchorHref = isTryJob
+      ? `https://review.skia.org/${el.metadata?.patch_issue}/${el.metadata?.patch_set}`
+      : `https://skia.googlesource.com/skia/+/${el.metadata?.revision}`;
+
+    const compileTaskNameHref = `https://task-scheduler.skia.org/task/${el.metadata?.task_id}`;
+    return html`
+      <h2>
+        Code size statistics for <code>${el.metadata?.binary_name}</code>
+        <small>(<a href="${compileTaskNameHref}">${el.metadata?.compile_task_name}</a>)</small>
+      </h2>
+
+      <p>
+        <a href="${commitOrCLAnchorHref}">${commitOrCLAnchorText}</a>
+        ${el.metadata?.subject}
+        <br/>
+        <small>
+          ${el.metadata?.author},
+          <human-date-sk .date=${el.metadata?.timestamp} .diff=${true}></human-date-sk> ago.
+        </small>
+      </p>
+
+      <p><strong>Instructions:</strong></p>
 
       <ul>
         <li><strong>Click</strong> on a node to navigate down the tree.</li>
@@ -26,8 +50,10 @@ export class IndexPageSk extends ElementSk {
       </ul>
 
       <div id="treemap"></div>
-    </codesize-scaffold-sk>
-  `;
+    `;
+  }
+
+  private metadata: BloatyOutputMetadata | null = null;
 
   constructor() {
     super(IndexPageSk.template);
@@ -41,10 +67,24 @@ export class IndexPageSk extends ElementSk {
   }
 
   private async loadTreeMap(): Promise<void> {
+    const params = new URLSearchParams(window.location.search);
+    const request: BinaryRPCRequest = {
+      commit: params.get('commit') || '',
+      patch_issue: params.get('patch_issue') || '',
+      patch_set: params.get('patch_set') || '',
+      binary_name: params.get('binary_name') || '',
+      compile_task_name: params.get('compile_task_name') || '',
+    };
+
     const [, response] = await Promise.all([
       load({ packages: ['treemap'] }),
-      fetch('/rpc/bloaty/v1').then((r) => r.json() as Promise<BloatyRPCResponse>),
+      fetch('/rpc/binary/v1', { method: 'POST', body: JSON.stringify(request) })
+        .then(jsonOrThrow)
+        .then((r: BinaryRPCResponse) => r),
     ]);
+
+    this.metadata = response.metadata;
+    this._render();
 
     const rows = [
       ['Name', 'Parent', 'Size'],

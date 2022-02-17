@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//codesize/go/bloaty",
         "//codesize/go/codesizeserver/rpc",
+        "//codesize/go/store",
         "//go/auth",
         "//go/baseapp",
         "//go/gcs/gcsclient",
