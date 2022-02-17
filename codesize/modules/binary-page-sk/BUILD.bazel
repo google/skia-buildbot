@@ -1,14 +1,9 @@
 load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
-sk_demo_page_server(
-    name = "demo_page_server",
-    sk_page = ":index-page-sk-demo",
-)
-
 sk_element(
-    name = "index-page-sk",
+    name = "binary-page-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
-    sass_srcs = ["index-page-sk.scss"],
+    sass_srcs = ["binary-page-sk.scss"],
     sk_element_deps = [
         "//codesize/modules/codesize-scaffold-sk",
         "//infra-sk/modules/human-date-sk",
@@ -26,29 +21,29 @@ sk_element(
         "@npm//lit-html",
     ],
     ts_srcs = [
-        "index-page-sk.ts",
+        "binary-page-sk.ts",
         "index.ts",
     ],
     visibility = ["//visibility:public"],
 )
 
 sk_page(
-    name = "index-page-sk-demo",
-    html_file = "index-page-sk-demo.html",
+    name = "binary-page-sk-demo",
+    html_file = "binary-page-sk-demo.html",
     sk_element_deps = [
+        ":binary-page-sk",
         "//codesize/modules/codesize-scaffold-sk",
-        ":index-page-sk",
     ],
     ts_deps = [
         "//codesize/modules:rpc_types_ts_lib",
         "@npm//fetch-mock",
     ],
-    ts_entry_point = "index-page-sk-demo.ts",
+    ts_entry_point = "binary-page-sk-demo.ts",
 )
 
 sk_element_puppeteer_test(
-    name = "index-page-sk_puppeteer_test",
-    src = "index-page-sk_puppeteer_test.ts",
+    name = "binary-page-sk_puppeteer_test",
+    src = "binary-page-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//codesize/modules/codesize-scaffold-sk:events_ts_lib",
@@ -56,4 +51,9 @@ sk_element_puppeteer_test(
         "@npm//@types/chai",
         "@npm//chai",
     ],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":binary-page-sk-demo",
 )

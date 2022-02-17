@@ -11,8 +11,8 @@ import '../../../infra-sk/modules/human-date-sk';
 
 import '@google-web-components/google-chart/';
 
-export class IndexPageSk extends ElementSk {
-  private static template = (el: IndexPageSk) => {
+export class BinaryPageSk extends ElementSk {
+  private static template = (el: BinaryPageSk) => {
     if (el.metadata === null) {
       return html`<p>Loading...</p>`;
     }
@@ -56,7 +56,7 @@ export class IndexPageSk extends ElementSk {
   private metadata: BloatyOutputMetadata | null = null;
 
   constructor() {
-    super(IndexPageSk.template);
+    super(BinaryPageSk.template);
   }
 
   connectedCallback(): void {
@@ -122,4 +122,4 @@ export class IndexPageSk extends ElementSk {
     });
   }
 }
-define('index-page-sk', IndexPageSk);
+define('binary-page-sk', BinaryPageSk);

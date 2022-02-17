@@ -1,7 +1,7 @@
 import './index';
 import fetchMock from 'fetch-mock';
 import { BinaryRPCRequest, BinaryRPCResponse } from '../rpc_types';
-import { IndexPageSk } from './index-page-sk';
+import { BinaryPageSk } from './binary-page-sk';
 import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk';
 
 const fakeRpcDelayMillis = 300;
@@ -64,4 +64,4 @@ window.history.pushState(null, '', queryString);
 // Add the page under test only after all RPCs are mocked out.
 const scaffold = new CodesizeScaffoldSk();
 document.body.appendChild(scaffold);
-scaffold.appendChild(new IndexPageSk());
+scaffold.appendChild(new BinaryPageSk());

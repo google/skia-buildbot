@@ -7,7 +7,7 @@ import {
 } from '../../../puppeteer-tests/util';
 import { END_BUSY_EVENT } from '../codesize-scaffold-sk/events';
 
-describe('index-page-sk', () => {
+describe('binary-page-sk', () => {
   let testBed: TestBed;
 
   before(async () => {
@@ -23,12 +23,12 @@ describe('index-page-sk', () => {
   });
 
   it('should render the demo page', async () => {
-    expect(await testBed.page.$$('index-page-sk')).to.have.length(1);
+    expect(await testBed.page.$$('binary-page-sk')).to.have.length(1);
   });
 
   describe('screenshots', () => {
     it('shows the default view', async () => {
-      await takeScreenshot(testBed.page, 'codesize', 'index-page-sk');
+      await takeScreenshot(testBed.page, 'codesize', 'binary-page-sk');
     });
 
     it('shows a child node', async () => {
@@ -44,7 +44,7 @@ describe('index-page-sk', () => {
       // Give the TreeMap a chance to redraw.
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      await takeScreenshot(testBed.page, 'codesize', 'index-page-sk_node');
+      await takeScreenshot(testBed.page, 'codesize', 'binary-page-sk_node');
     });
   });
 });

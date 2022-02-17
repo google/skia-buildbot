@@ -22,6 +22,18 @@ skia_app_container(
                 "//codesize/pages:production/index.js",
                 "0644",
             ],
+            [
+                "//codesize/pages:production/binary.css",
+                "0644",
+            ],
+            [
+                "//codesize/pages:production/binary.html",
+                "0644",
+            ],
+            [
+                "//codesize/pages:production/binary.js",
+                "0644",
+            ],
         ],
     },
     entrypoint = "/usr/local/bin/codesizeserver/codesizeserver",

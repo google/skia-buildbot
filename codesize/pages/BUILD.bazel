@@ -5,9 +5,18 @@ sk_page(
     assets_serving_path = "/dist",
     html_file = "index.html",
     nonce = "{% .Nonce %}",
-    sk_element_deps = [
-        "//codesize/modules/index-page-sk",
-        "//codesize/modules/codesize-scaffold-sk",
-    ],
+    sk_element_deps = ["//codesize/modules/codesize-scaffold-sk"],
     ts_entry_point = "index.ts",
+)
+
+sk_page(
+    name = "binary",
+    assets_serving_path = "/dist",
+    html_file = "binary.html",
+    nonce = "{% .Nonce %}",
+    sk_element_deps = [
+        "//codesize/modules/codesize-scaffold-sk",
+        "//codesize/modules/binary-page-sk",
+    ],
+    ts_entry_point = "binary.ts",
 )

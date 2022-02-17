@@ -1,0 +1,1 @@
+import './binary-page-sk';
