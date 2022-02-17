@@ -17,5 +17,7 @@ skia_app_container(
         # Create the skia user.
         "addgroup --gid 2000 skia",
         "useradd --uid 2000 --gid 2000 skia",
+        "mkdir -p /home/skia",
+        "chown skia:skia /home/skia",
     ],
 )

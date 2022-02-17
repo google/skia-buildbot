@@ -32,6 +32,8 @@ func main() {
 	interval := flag.Duration("interval", 10*time.Minute, "How often to re-apply configurations to the cluster")
 	port := flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	promPort := flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	kubectl := flag.String("kubectl", "kubectl", "Path to the kubectl executable.")
+	k8sServer := flag.String("k8s_server", "", "Address of the Kubernetes server.")
 
 	common.InitWithMust("k8s_deployer", common.PrometheusOpt(promPort))
 	defer sklog.Flush()
@@ -67,7 +69,7 @@ func main() {
 	// too much of a delay.
 	liveness := metrics2.NewLiveness(livenessMetric)
 	go util.RepeatCtx(ctx, *interval, func(ctx context.Context) {
-		if err := applyConfigs(ctx, repo, *cluster, *configSubdir); err != nil {
+		if err := applyConfigs(ctx, repo, *kubectl, *k8sServer, *cluster, *configSubdir); err != nil {
 			sklog.Errorf("Failed to apply configs to cluster: %s", err)
 		} else {
 			liveness.Reset()
@@ -78,7 +80,7 @@ func main() {
 	httputils.RunHealthCheckServer(*port)
 }
 
-func applyConfigs(ctx context.Context, repo *gitiles.Repo, cluster, configSubdir string) error {
+func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, cluster, configSubdir string) error {
 	// Download the configs from Gitiles instead of maintaining a local Git
 	// checkout, to avoid dealing with Git, persistent checkouts, etc.
 
@@ -139,9 +141,15 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, cluster, configSubdir
 	// a much more complicated and error-prone approach, but it would allow us
 	// to partially apply configurations in the case of a failure and to alert
 	// on specific components which fail to apply for whatever reason.
-	output, err := exec.RunCwd(ctx, tmp, "kubectl", "apply", "--prune", "-f", ".")
+	cmd := []string{kubectl, "apply"}
+	if k8sServer != "" {
+		cmd = append(cmd, "--server", k8sServer)
+	}
+	cmd = append(cmd, "--prune", "--all", "-f", ".")
+	output, err := exec.RunCwd(ctx, tmp, cmd...)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to apply configs: %s", output)
 	}
+	sklog.Infof("Output from kubectl: %s", output)
 	return nil
 }
