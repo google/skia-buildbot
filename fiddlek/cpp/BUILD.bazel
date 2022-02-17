@@ -1,0 +1,8 @@
+cc_binary(
+    name = "fiddle_secwrap",
+    srcs = [
+        "fiddle_secwrap.cpp",
+        "seccomp_bpf.h",
+    ],
+    visibility = ["//visibility:public"],
+)
