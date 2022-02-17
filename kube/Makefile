@@ -18,11 +18,6 @@ release_basealpine:
 	docker pull alpine:3.9
 	./build_basealpine_release
 
-push_reposync:
-	go install ./go/repo-sync
-	./build_reposync_release
-	pushk repo-sync
-
 push: release_auth_proxy release_configmap_reload
 	pushk auth-proxy configmap-reload
 
