@@ -1,6 +1,6 @@
 """This module defines the test_on_env rule."""
 
-def test_on_env(name, test, env, timeout_secs = 10, tags = []):
+def test_on_env(name, test, env, timeout_secs = 10, tags = None, test_on_env_binary = None):
     """Allows running test targets that require launching a test environment before their execution.
 
     The test_on_env rule takes a *_test target and an environment *_binary target as arguments,
@@ -41,13 +41,20 @@ def test_on_env(name, test, env, timeout_secs = 10, tags = []):
       env: Label for the environment binary (can be any *_binary target).
       timeout_secs: Approximate maximum number of seconds to wait for the environment to be ready.
       tags: Tags for the generated sh_test rule.
+      test_on_env_binary: Optional override of the test_on_env binary to use. This is useful when
+          this macro is used by the Skia repo and the binary needs to be referenced like
+          "@org_skia_go_infra//bazel/test_on_env:test_on_env".
     """
+    if not tags:
+        tags = []
+    if not test_on_env_binary:
+        test_on_env_binary = "//bazel/test_on_env:test_on_env"
 
     # Even though test_on_env is a go binary, it seems perfectly happy to be run with the
     # sh_test rule.
     native.sh_test(
         name = name,
-        srcs = ["//bazel/test_on_env:test_on_env"],
+        srcs = [test_on_env_binary],
         args = [
             "--test_bin=$(location %s)" % test,
             "--env_bin=$(location %s)" % env,
