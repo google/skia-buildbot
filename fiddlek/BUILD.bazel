@@ -62,7 +62,7 @@ skia_app_container(
                 "0755",
             ],
             [
-                "//fiddlek/cpp:fiddle_secwrap",
+                "//fiddlek/bin:fiddle_secwrap",
                 "0755",
             ],
         ],
