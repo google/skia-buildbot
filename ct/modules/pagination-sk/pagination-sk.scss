@@ -6,6 +6,14 @@ pagination-sk {
     border-radius: 5px;
   }
 
+  button.action {
+    background: var(--primary-highlight);
+  }
+
+  button.action:hover {
+    background: var(--primary);
+  }
+
   button:not(.action)[disabled] {
     font-weight: 900;
     text-decoration: underline;

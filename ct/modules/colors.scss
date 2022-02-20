@@ -5,18 +5,70 @@
 
     @import '../colors';
 */
-@import '~elements-sk/themes/themes';
 
 
-/* Use the default theme except for the primary colors, and we'll use
- * complete default dark theme.
+/*
+ * TODO(rmistry): The below has been copied over from infra-sk/themes.css to
+ * look similar to other Skia infra apps.
+ * We cannot directly use the complete body-sk themes yet because it causes
+ * broken behavior in the CT UI with input-sk, suggest-input-sk, and colors in
+ * select-sk.
+ * More work is needed to make body-sk behaviors work here.
  */
 :root {
-  --ocean-blue-pearl: rgb(63, 81, 181);
-  --lavender: rgb(204, 204, 255);
-
-  --primary: var(--ocean-blue-pearl);
-  --on-primary: var(--white);
-  --primary-variant: var(--lavender);
+/* Semantic colors defined by elements-sk. */
+  --background: var(--grey-50);
+  --disabled: var(--grey-500);
+  --error: var(--red-900);
+  --on-background: var(--black);
+  --on-disabled: var(--grey-700);
+  --on-error: var(--white);
   --on-primary-variant: var(--black);
+  --on-primary: var(--white);
+  --on-secondary: var(--white);
+  --on-surface: var(--black);
+  --primary-variant: var(--light-blue-600);
+  --primary: var(--blue-800);
+  --secondary: var(--green-500);
+  --surface-1dp: var(--grey-200);
+  --surface-2dp: var(--grey-400);
+  --surface: var(--white);
+  --transparent-overlay: rgba(0, 0, 0, 0.5);
+
+ &.darkmode,
+  & .darkmode {
+    /* Semantic colors defined by elements-sk. */
+    --background: #121212;
+    --disabled: var(--grey-600);
+    --error: var(--pink-400);
+    --on-background: #cccccc;
+    --on-disabled: var(--grey-300);
+    --on-error: var(--black);
+    --on-primary-variant: var(--surface);
+    --on-primary: var(--surface);
+    --on-secondary: var(--background);
+    --on-surface: #dddddd;
+    --primary-variant: var(--light-blue-100);
+    --primary: var(--blue-200);
+    --secondary: var(--green-200);
+    --surface-1dp: #373737;
+    --surface-2dp: #414141;
+    --surface: #303030;
+    --transparent-overlay: rgba(255, 255, 255, 0.5);
+
+    /* Additional semantic colors. */
+    --primary-highlight: var(--light-blue-900);
+    --secondary-highlight: var(--green-900);
+    --on-hightlight: var(--grey-100);
+
+    --failure-alpha: rgba(217, 95, 2, 0.5);
+    --on-failure: var(--on-secondary);
+    --on-success: var(--on-secondary);
+    --on-warning: var(--on-secondary);
+    --warning-alpha: rgb(255, 171, 64, 0.5);
+
+    --positive: var(--green-500);
+    --negative: var(--red-500);
+    --untriaged: var(--brown-400);
+  }
 }
