@@ -22,7 +22,8 @@ bugs-central-sk {
     white-space: nowrap;
   }
 
-  table.client-counts th a {
+  table.client-counts th a:active, table.client-counts th a:visited,
+  table.client-counts th a:link {
     cursor: pointer;
     text-decoration: underline;
     color: var(--on-primary);
@@ -47,7 +48,7 @@ bugs-central-sk {
   span.slo-link {
     cursor: pointer;
     text-decoration: underline;
-    color: var(--on-background);
+    color: var(--primary);
   }
 
   .charts-container {

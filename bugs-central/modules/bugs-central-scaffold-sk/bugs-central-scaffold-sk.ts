@@ -47,7 +47,7 @@ export class BugsCentralScaffoldSk extends ElementSk {
   private static template = (el: BugsCentralScaffoldSk) => html`
   <app-sk>
   <header>
-    <h1>${el.appTitle}</h1>
+    <h1 class=name>${el.appTitle}</h1>
     <div class=spacer></div>
     <login-sk ?testing_offline=${el.testingOffline}></login-sk>
     <theme-chooser-sk></theme-chooser-sk>

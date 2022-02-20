@@ -2,35 +2,12 @@
 @import '../style.scss';
 
 bugs-central-scaffold-sk {
-  * {
-    font-family:Roboto,Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
-  }
-
-  --header-background-color: var(--background);
-  --header-font-color: var(--on-background);
-
-  header {
-    h1 {
-      font-weight: 400;
-      font-size: 24px;
-    }
-
-    .spacer {
-      min-width: 40px;
-    }
-  }
-
-  main {
-    background-color: var(--background);
-  }
-
   nav {
     display:flex;
     flex-direction: column;
 
     a {
       padding: 16px 0px;
-      color: var(--on-surface); /* Override User Agent SS*/
       text-decoration: none;
     }
 
@@ -41,47 +18,10 @@ bugs-central-scaffold-sk {
     }
   }
 
-  /* Overrides to elements-sk elements since they set color internally. */
   app-sk, app-sk > aside {
-    background-color: var(--background);
-    color: var(--on-background);
-
     aside {
       border-right: 1px solid var(--on-background);
     }
     --content-horiz-padding: 32px;
   }
-
-  app-sk > main {
-    padding: 32px 80px;
-  }
-
-  svg.icon-sk-svg {
-    fill: var(--on-surface);
-  }
-
-  login-sk {
-    margin-left: auto;
-    margin-right: 16px;
-    display: block;
-    color: var(--on-primary);
-  }
-
-  login-sk .email, login-sk .logInOut {
-    font-size: 16px;
-    color: var(--on-primary);
-  }
-
-  error-toast-sk toast-sk {
-    background-color: var(--error);
-    color: var(--on-error);
-  }
-}
-
-// Make sure the app doesn't leave empty space on the bottom. e.g. blank
-// white in darkmode.
-html,
-body,
-app-sk {
-  height: 100%;
 }
