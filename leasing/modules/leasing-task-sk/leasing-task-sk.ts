@@ -109,7 +109,7 @@ export class LeasingTaskSk extends ElementSk {
     <col width ="50%">
 
     <tr class="headers">
-       <td colspan=2>
+       <td colspan=2 class="task-title">
          Task - ${ele.leasingTask.description} - ${ele.leasingTask.requester} - ${displayTaskStatus(ele.leasingTask)}
        </td>
     </tr>

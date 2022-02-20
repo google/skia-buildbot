@@ -11,6 +11,10 @@ leasing-task-sk {
 
   table.tasktable tr.headers {
     background-color: var(--primary);
+    opacity: var(--text-intensity-medium);
+  }
+
+  table.tasktable td.task-title {
     color: var(--on-primary);
   }
 

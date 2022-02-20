@@ -10,7 +10,7 @@ build: generate
 run-local-instance: build
 	# Run "bazel build //leasing/..." after making any frontend changes
 	# to pick up the change without restarting the golang server.
-	../_bazel_bin/leasing/go/leasing/leasing_/leasing --local --resources_dir ../_bazel_bin/leasing/pages/development
+	../_bazel_bin/leasing/go/leasing/leasing_/leasing --local --resources_dir ../_bazel_bin/leasing/pages/development --project_name skia-public
 
 frontend:
 	# Makes sure all the frontend pages and tests compile.
