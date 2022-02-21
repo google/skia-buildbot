@@ -23,7 +23,7 @@ verifiers-detail-sk {
   }
 
   .verifier-table.success tr {
-    background-color: var(--success);
+    background-color: var(--success-alpha);
   }
 
   .verifier-table.waiting tr {
@@ -67,7 +67,7 @@ verifiers-detail-sk {
   }
 
   .attempt-section.success {
-    box-shadow: 0 0 0 3px var(--success) inset;
+    box-shadow: 0 0 0 3px var(--success-alpha) inset;
   }
 
   .attempt-section.waiting {
