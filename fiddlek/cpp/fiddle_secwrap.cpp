@@ -218,6 +218,7 @@ const char *unlink_allowed_prefixes[] = {
 
 const char *writing_allowed_prefixes[] = {
     "/tmp/",
+    "/var/cache/fontconfig", // This dir is readonly in the container, so this is OK.
     NULL,
 };
 
