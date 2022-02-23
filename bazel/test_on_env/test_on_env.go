@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -60,6 +61,8 @@ func main() {
 
 	envCmd := exec.CommandContext(ctx, *envBin)
 	envCmd.Env = env
+	envCmd.Stdout = wrap(os.Stdout, "[env binary] ")
+	envCmd.Stderr = wrap(os.Stderr, "[env binary] ")
 	if err := envCmd.Start(); err != nil {
 		fatalf("Could not run env binary %s: %s", *envBin, err)
 	}
@@ -69,7 +72,7 @@ func main() {
 	startTime := time.Now()
 	tck := time.NewTicker(100 * time.Millisecond)
 	ready := false
-	for startTime.Sub(time.Now()) < *readyCheck {
+	for time.Now().Sub(startTime) < *readyCheck {
 		<-tck.C
 		if _, err := os.Stat(envReadyFile); err == nil {
 			ready = true
@@ -103,6 +106,25 @@ func main() {
 
 	// forward the test exit code to Bazel
 	os.Exit(testCmd.ProcessState.ExitCode())
+}
+
+type wrappedWriter struct {
+	writer io.Writer
+	prefix []byte
+}
+
+// Write writes the configured prefix and then the given bytes. If the prefix fails, the main
+// payload is not written.
+func (w wrappedWriter) Write(p []byte) (n int, err error) {
+	if _, err := w.writer.Write(w.prefix); err != nil {
+		return 0, err
+	}
+	return w.writer.Write(p)
+}
+
+// wrap will put the given prefix before any calls to Write on the provided io.Writer.
+func wrap(w io.Writer, prefix string) io.Writer {
+	return wrappedWriter{writer: w, prefix: []byte(prefix)}
 }
 
 func fatalf(format string, args ...interface{}) {
