@@ -44,7 +44,7 @@ func main() {
 	router.HandleFunc("/", mainHandler)
 
 	http.Handle("/", httputils.HealthzAndHTTPS(httputils.LoggingRequestResponse(router)))
-	sklog.Info("Ready to serve.")
+	sklog.Info("Application served at http://localhost:8000/dist/main.html")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
