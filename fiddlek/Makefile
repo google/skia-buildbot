@@ -11,7 +11,7 @@ tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '
 	go generate ./go/...
 
 fiddle_secwrap:
-	clang++ -O2 ./cpp/fiddle_secwrap.cpp -o ./bin/fiddle_secwrap
+	$(BAZEL) build //fiddlek/cpp:fiddle_secwrap
 
 build: ./modules/json/index.ts fiddle_secwrap
 	$(BAZEL) build go/... modules/... pages/...
@@ -70,16 +70,17 @@ testgo:
 	go test -v ./...
 
 testcpp: build
+	mkdir -p bin
 	clang ./cpp/fail_socket.cpp -o ./bin/fail_socket
 	clang ./cpp/fail_execve.cpp -o ./bin/fail_execve
 	clang ./cpp/fail_link.cpp -o ./bin/fail_link
 	clang ./cpp/fail_rename.cpp -o ./bin/fail_rename
 	clang ./cpp/fail_mknod.cpp -o ./bin/fail_mknod
-	./bin/fiddle_secwrap ./bin/fail_socket; test $$? -eq 1
-	./bin/fiddle_secwrap ./bin/fail_execve; test $$? -eq 255
-	./bin/fiddle_secwrap ./bin/fail_link; test $$? -eq 255
-	./bin/fiddle_secwrap ./bin/fail_rename; test $$? -eq 255
-	./bin/fiddle_secwrap ./bin/fail_mknod; test $$? -eq 255
+	../_bazel_bin/fiddlek/cpp/fiddle_secwrap ./bin/fail_socket; test $$? -eq 1
+	../_bazel_bin/fiddlek/cpp/fiddle_secwrap ./bin/fail_execve; test $$? -eq 255
+	../_bazel_bin/fiddlek/cpp/fiddle_secwrap ./bin/fail_link; test $$? -eq 255
+	../_bazel_bin/fiddlek/cpp/fiddle_secwrap ./bin/fail_rename; test $$? -eq 255
+	../_bazel_bin/fiddlek/cpp/fiddle_secwrap ./bin/fail_mknod; test $$? -eq 255
 	echo "SUCCESS"
 
 # This presumes a fiddler is available at port :8000 and scrapexchange is available at port :9000.
