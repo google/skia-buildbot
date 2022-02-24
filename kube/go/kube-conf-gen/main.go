@@ -1,20 +1,12 @@
 package main
 
 import (
-	"bytes"
 	"flag"
-	"fmt"
-	"io/ioutil"
-	"path"
-	"reflect"
 	"strings"
-	"text/template"
 
-	"github.com/Masterminds/sprig"
-	"github.com/davecgh/go-spew/spew"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/kube/go/kube_conf_gen_lib"
 )
 
 func main() {
@@ -49,7 +41,7 @@ func main() {
 	}
 
 	// Assemble the config map.
-	config, err := loadConfigFiles(*parseConf, *strict, *emptyQuotes, *configFileNames...)
+	config, err := kube_conf_gen_lib.LoadConfigFiles(*parseConf, *strict, *emptyQuotes, *configFileNames...)
 	if err != nil {
 		sklog.Fatalf("Error loading config files: %s", err)
 	}
@@ -58,104 +50,7 @@ func main() {
 	}
 
 	// Generate the output.
-	tmpl, err := template.New(path.Base(*templateFileName)).Funcs(sprig.TxtFuncMap()).ParseFiles(*templateFileName)
-	if err != nil {
-		sklog.Fatalf("Error parsing template '%s'. Error:%s", *templateFileName, err)
+	if err := kube_conf_gen_lib.GenerateOutput(*templateFileName, *strict, config, *outputFileName); err != nil {
+		sklog.Fatal(err)
 	}
-	if *strict {
-		tmpl.Option("missingkey=error")
-	}
-
-	if err := generateOutput(tmpl, config, *outputFileName); err != nil {
-		sklog.Fatalf("Error: %s", err)
-	}
-}
-
-// generateOutput executes the template with config as its environment and writes the result to outFile.
-func generateOutput(tmpl *template.Template, config map[string]interface{}, outFile string) error {
-	sklog.Infof("Config: %s", spew.Sdump(config))
-
-	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, config); err != nil {
-		sklog.Fatalf("Error: %s", err)
-	}
-
-	if outFile == "_" {
-		fmt.Println(string(buf.Bytes()))
-		return nil
-	} else {
-		return ioutil.WriteFile(outFile, buf.Bytes(), 0644)
-	}
-}
-
-func parseConfigHelper(confMap map[string]interface{}, ret map[string]interface{}, strict bool) error {
-	for k, v := range confMap {
-		val := ""
-		switch t := v.(type) {
-		case string:
-			val = t
-		case bool:
-			if t {
-				val = "true"
-			} else {
-				val = "false"
-			}
-		case int, int32, int64:
-			val = fmt.Sprintf("%d", v)
-		case float32, float64:
-			val = fmt.Sprintf("%f", v)
-		case []interface{}:
-			ret[k] = t
-		case map[string]interface{}:
-			subMap := map[string]interface{}{}
-			if err := parseConfigHelper(t, subMap, strict); err != nil {
-				return err
-			}
-			ret[k] = subMap
-		default:
-			if strict {
-				return fmt.Errorf("Key %q has unsupported type %q", k, t)
-			}
-			reflectVal := reflect.ValueOf(v)
-			if !reflectVal.IsValid() {
-				sklog.Warningf("Key %q has unsupported type %q", k, t)
-			} else {
-				sklog.Warningf("Key %q has unsupported type %q", k, reflectVal.Type().String())
-			}
-		}
-		if val != "" {
-			ret[k] = val
-		}
-	}
-	return nil
-}
-
-func loadConfigFiles(parseConf, strict, emptyQuotes bool, configFileNames ...string) (map[string]interface{}, error) {
-	ret := map[string]interface{}{}
-	for _, configFile := range configFileNames {
-		confMap := map[string]interface{}{}
-		if err := config.ParseConfigFile(configFile, "-c", &confMap); err != nil {
-			return nil, fmt.Errorf("Failed to parse config file %q: %s", configFile, err)
-		}
-		if parseConf {
-			if err := parseConfigHelper(confMap, ret, strict); err != nil {
-				return nil, fmt.Errorf("Failed to parse config file %q: %s", configFile, err)
-			}
-		} else {
-			for k, v := range confMap {
-				ret[k] = v
-			}
-		}
-	}
-
-	// Go through the result and replace empty strings with empty single quotes if requested.
-	if emptyQuotes {
-		for k, v := range ret {
-			if strVal, ok := v.(string); ok && strVal == "" {
-				ret[k] = "''"
-			}
-		}
-	}
-
-	return ret, nil
 }

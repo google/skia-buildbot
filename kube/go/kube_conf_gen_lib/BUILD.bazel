@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "kube_conf_gen_lib",
+    srcs = ["kube_conf_gen_lib.go"],
+    importpath = "go.skia.org/infra/kube/go/kube_conf_gen_lib",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/config",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_masterminds_sprig//:sprig",
+    ],
+)

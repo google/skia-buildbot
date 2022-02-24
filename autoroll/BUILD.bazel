@@ -115,3 +115,16 @@ skia_app_container(
     },
     repository = "skia-public/autoroll-fe-internal",
 )
+
+skia_app_container(
+    name = "autoroll_config_converter_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//autoroll/go/autoroll-config-converter:autoroll-config-converter",
+                "0755",
+            ],
+        ],
+    },
+    repository = "skia-public/autoroll-config-converter",
+)

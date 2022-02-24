@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "autoroll-config-converter_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/autoroll/go/autoroll-config-converter",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//autoroll/go/config",
+        "//go/skerr",
+        "//go/sklog",
+        "//kube/go/kube_conf_gen_lib",
+        "@org_golang_google_protobuf//encoding/protojson",
+        "@org_golang_google_protobuf//encoding/prototext",
+    ],
+)
+
+go_binary(
+    name = "autoroll-config-converter",
+    embed = [":autoroll-config-converter_lib"],
+    visibility = ["//visibility:public"],
+)

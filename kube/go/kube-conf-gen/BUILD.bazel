@@ -7,10 +7,8 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
-        "//go/config",
         "//go/sklog",
-        "@com_github_davecgh_go_spew//spew",
-        "@com_github_masterminds_sprig//:sprig",
+        "//kube/go/kube_conf_gen_lib",
     ],
 )
 
