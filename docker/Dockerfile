@@ -54,6 +54,12 @@ RUN if [ ! -z "${PATCH_REF}" ] ; then cd $GOPATH/src/go.skia.org/infra \
 RUN cd $GOPATH/src/go.skia.org/infra \
     && go install ./...
 
+# Install bazelisk, which we use to load Bazel, which is needed for 'make
+# fiddle_secwrap'.
+RUN go install github.com/bazelbuild/bazelisk@latest
+
+ENV BAZEL $GOPATH/bin/bazelisk
+
 RUN cd $GOPATH/src/go.skia.org/infra/fiddlek \
   && make fiddle_secwrap
 
