@@ -178,3 +178,74 @@ func TestNamedTemplatesValid(t *testing.T) {
 		require.NoError(t, cfg.Validate())
 	}
 }
+
+func TestQuotedLines(t *testing.T) {
+	unittest.SmallTest(t)
+
+	c := fakeCommitMsgConfig(t)
+	c.Template = &config.CommitMsgConfig_Custom{
+		Custom: `{{- define "revisions" -}}
+{{ range .Revisions }}{{ .Timestamp.Format "2006-01-02" }} {{ .Author }} {{ .Description }}
+{{ quotedLines .Details }}
+
+{{ end }}
+{{ end -}}
+`,
+	}
+	reg := fakeRegistry(t)
+	b, err := NewBuilder(c, reg, fakeChildName, fakeParentName, fakeServerURL, "", "", fakeTransitiveDeps)
+	require.NoError(t, err)
+
+	from, to, revs, reviewers, _ := FakeCommitMsgInputs()
+	for _, rev := range revs {
+		rev.Details += `
+
+Change-Id: If3fd7d9b2ec5aaf7f048df1029b732b28378999d
+`
+	}
+
+	msg, err := b.Build(from, to, revs, reviewers, false)
+	require.NoError(t, err)
+	require.Equal(t, `Roll fake/child/src from aaaaaaaaaaaa to cccccccccccc (2 revisions)
+
+2020-04-17 c@google.com Commit C
+> blah blah
+> 
+> ccccccc
+> 
+> blah
+> 
+> Change-Id: If3fd7d9b2ec5aaf7f048df1029b732b28378999d
+> 
+
+2020-04-16 b@google.com Commit B
+> blah blah
+> 
+> bbbbbbb
+> 
+> blah
+> 
+> Change-Id: If3fd7d9b2ec5aaf7f048df1029b732b28378999d
+> 
+
+If this roll has caused a breakage, revert this CL and stop the roller
+using the controls here:
+https://fake.server.com/r/fake-autoroll
+Please CC reviewer@google.com on the revert to ensure that a human
+is aware of the problem.
+
+To report a problem with the AutoRoller itself, please file a bug:
+https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
+
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
+
+Cq-Include-Trybots: some-trybot-on-m92
+Cq-Do-Not-Cancel-Tryjobs: true
+Bug: fakebugproject:1234,fakebugproject:5678
+Tbr: reviewer@google.com
+Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
+`, msg)
+}

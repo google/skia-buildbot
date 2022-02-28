@@ -119,6 +119,7 @@ func buildCommitMsg(c *config.CommitMsgConfig, cv *config_vars.Vars, childName, 
 	// one newline.
 	msg := limitEmptyLinesRegex.ReplaceAllString(buf.String(), "\n\n")
 	msg = newlineAtEndRegex.ReplaceAllString(msg, "\n")
+
 	return msg, nil
 }
 
@@ -289,6 +290,14 @@ func parseCommitMsgTemplate(parent *template.Template, name, tmpl string) (*temp
 		t = template.New(name)
 	}
 	return t.Option("missingkey=error").Funcs(template.FuncMap{
+		"quotedLines": func(s string) string {
+			lines := strings.Split(s, "\n")
+			quotedLines := make([]string, 0, len(lines))
+			for _, line := range lines {
+				quotedLines = append(quotedLines, "> "+line)
+			}
+			return strings.Join(quotedLines, "\n")
+		},
 		"stringsJoin": strings.Join,
 		"substr": func(s string, a, b int) string {
 			if a > len(s) {
@@ -358,9 +367,9 @@ func FakeCommitMsgInputs() (*revision.Revision, *revision.Revision, []*revision.
 		Description: "Commit A",
 		Details: `blah blah
 
-	aaaaaaa
+aaaaaaa
 
-	blah`,
+blah`,
 		Timestamp: time.Unix(1586908800, 0),
 		URL:       "https://fake.com/aaaaaaaaaaaa",
 	}
@@ -379,9 +388,9 @@ func FakeCommitMsgInputs() (*revision.Revision, *revision.Revision, []*revision.
 		Description: "Commit B",
 		Details: `blah blah
 
-	bbbbbbb
+bbbbbbb
 
-	blah`,
+blah`,
 		Timestamp: time.Unix(1586995200, 0),
 		URL:       "https://fake.com/bbbbbbbbbbbb",
 	}
@@ -401,9 +410,9 @@ func FakeCommitMsgInputs() (*revision.Revision, *revision.Revision, []*revision.
 		Description: "Commit C",
 		Details: `blah blah
 
-	ccccccc
+ccccccc
 
-	blah`,
+blah`,
 		Timestamp: time.Unix(1587081600, 0),
 		URL:       "https://fake.com/cccccccccccc",
 	}
