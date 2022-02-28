@@ -3,33 +3,13 @@
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
 def ts_library(name, srcs, deps = [], **kwargs):
-    """Wraps rules_nodejs's ts_project rule to include ambient types declared in //tsconfig.json.
+    """Wraps rules_nodejs's ts_project rule with common settings for our code.
 
-    This macro prevents errors such as "error TS2688: Cannot find type definition file for 'mocha'",
-    which arise when the //tsconfig.json file declares ambient modules[2] via
-    compilerOptions.types[3], but we forget to provide them to the ts_project rule via the deps
-    argument. This macro simply adds those dependencies for us.
-
-    ```
-        // tsconfig.json
-        {
-          "compilerOptions": {
-            ...
-            "types": ["mocha", "node"],  // Ambient type declarations.
-          }
-        }
-
-        // BUILD.bazel
-        ts_project(
-          name = "example",
-          srcs = ["example.ts"],
-          deps = [
-            "@types/mocha",  # Added by this macro.
-            "@types/node",   # Added by this macro.
-            ...
-          ],
-        )
-    ```
+    This macro ensures all ts_project rules use our common //tsconfig.json file, and prevents errors
+    such as "error TS2688: Cannot find type definition file for 'mocha'", which arise when the
+    tsconfig.json file declares ambient modules[2] via compilerOptions.types[3], but we forget to
+    provide them to the ts_project rule via the deps argument. This macro simply adds those
+    dependencies for us.
 
     This macro is called ts_library, as opposed to ts_project, for consistency with our other
     *_library rules, and also because it used to be a wrapper around the now-deprecated ts_library
@@ -57,17 +37,11 @@ def ts_library(name, srcs, deps = [], **kwargs):
         name = name,
         srcs = srcs,
         deps = deps + [dep for dep in ambient_types if dep not in deps],
-        # These options emulate the behavior of the now deprecated ts_library rule from the
-        # rules_nodejs repository. Our tsconfig.json produces JavaScript files compatible with Node
-        # by default, which is great for e.g. Puppeteer tests because they don't make use of this
-        # rule. For browser bundles, we override these settings such that the .js and .d.ts files
-        # produced by the TypeScript compiler can be consumed by rollup_bundle.
-        tsconfig = {
-            "compilerOptions": {
-                "module": "esnext",
-                "moduleResolution": "node",
-            },
-        },
+        # We provide an empty dictionary and a base tsconfig.json file to extend, as opposed to just
+        # a path to a tsconfig.json file, because this causes the ts_project rule to generate a
+        # tsconfig.json file for each target with the necessary settings to pick up files produced
+        # by other ts_project rules (i.e. dependencies declared via the "deps" argument).
+        tsconfig = {},
         extends = "//:tsconfig.json",
         declaration = True,
         allow_js = True,

@@ -7,13 +7,10 @@
     "doc": "docs"
   },
   "dependencies": {
-    "@bazel/rollup": "^5.0.0",
-    "@bazel/terser": "^5.0.0",
-    "@bazel/typescript": "^5.0.0",
+    "@bazel/esbuild": "^5.1.0",
+    "@bazel/typescript": "^5.1.0",
     "@google-web-components/google-apis": "^3.0.1",
     "@google-web-components/google-chart": "^4.0.2",
-    "@rollup/plugin-commonjs": "^15.0.0",
-    "@rollup/plugin-node-resolve": "^9.0.0",
     "@types/chai": "^4.2.16",
     "@types/chai-dom": "0.0.10",
     "@types/codemirror": "0.0.108",
@@ -70,10 +67,7 @@
     "mocha": "^8.3.2",
     "natives": "^1.1.6",
     "puppeteer": "^8.0.0",
-    "rollup": "^2.45.1",
-    "rollup-plugin-sourcemaps": "^0.6.3",
     "sinon": "^7.5.0",
-    "terser": "^5.6.1",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4"
   },

@@ -1,6 +1,5 @@
+load("//infra-sk:esbuild.bzl", "esbuild_prod_bundle")
 load("//infra-sk:index.bzl", "sk_page")
-load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
-load("@npm//@bazel/terser:index.bzl", "terser_minified")
 
 CANVAKIT_FILES = [
     {
@@ -55,7 +54,7 @@ sk_page(
             "dst": "img/jsoneditor-icons.svg",
         },
         {
-            "src": ":inline-bundle",
+            "src": ":inline-bundle.js",
             "dst": "inline-bundle.js",
         },
     ],
@@ -68,23 +67,10 @@ sk_page(
 # We want to make skottie-inline-sk available for the documentation on skia.org
 # (e.g. https://skia.org/docs/user/modules/skottie/). In order to do this, we make an
 # inline-bundle.js file with that element's code and make it available in the output directory.
-# These rules are adapted from the sk_page macro.
-rollup_bundle(
-    name = "inline_js_bundle",
-    config_file = "//infra-sk:rollup.config.js",
+esbuild_prod_bundle(
+    name = "inline-bundle",
     entry_point = "//skottie/modules/skottie-inline-sk:index_ts",
-    format = "umd",
-    deps = [
-        "//skottie/modules/skottie-inline-sk",
-        "@npm//@rollup/plugin-commonjs",
-        "@npm//@rollup/plugin-node-resolve",
-        "@npm//rollup-plugin-sourcemaps",
-    ],
-)
-
-terser_minified(
-    name = "inline-bundle",  # This is the name of the output file w/o the .js suffix
-    src = "inline_js_bundle.js",
-    sourcemap = False,
+    output = "inline-bundle.js",
     visibility = ["//skottie:__subpackages__"],
+    deps = ["//skottie/modules/skottie-inline-sk"],
 )

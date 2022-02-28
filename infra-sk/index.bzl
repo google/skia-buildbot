@@ -3,12 +3,11 @@
 load("@build_bazel_rules_nodejs//:index.bzl", "npm_package_bin", _nodejs_test = "nodejs_test")
 load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary", _sass_library = "sass_library")
-load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
-load("@npm//@bazel/terser:index.bzl", "terser_minified")
 load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 load("//infra-sk/html_insert_assets:index.bzl", "html_insert_assets")
 load("//infra-sk/karma_test:index.bzl", _karma_test = "karma_test")
 load("//infra-sk/sk_demo_page_server:index.bzl", _sk_demo_page_server = "sk_demo_page_server")
+load(":esbuild.bzl", "esbuild_dev_bundle", "esbuild_prod_bundle")
 load(":ts_library.bzl", _ts_library = "ts_library")
 
 # https://github.com/bazelbuild/bazel-skylib/blob/main/rules/common_settings.bzl
@@ -366,8 +365,8 @@ def sk_page(
       assets_serving_path: Path prefix for the inserted <script> and <link> tags.
       copy_files: Any files that should just be copied into the final build directory. These are
         assets needed by the page that are not loaded in via imports (e.g. images, WASM).
-      nonce: If set, its contents will be added as a "nonce" attributes to any inserted <script> and
-        <link> tags.
+      nonce: If set, its contents will be added as a "nonce" attribute to any <script> and <link>
+        tags inserted into the page's HTML file.
     """
 
     # Extend ts_deps and sass_deps with the ts_library and sass_library targets produced by each
@@ -392,59 +391,21 @@ def sk_page(
         deps = all_ts_deps,
     )
 
-    # Generates file <name>_js_bundle.js. Intermediate result; do not use.
-    rollup_bundle(
-        name = "%s_js_bundle" % name,
-        deps = [
-            ":%s_ts_lib" % name,
-            "@npm//@rollup/plugin-node-resolve",
-            "@npm//@rollup/plugin-commonjs",
-            "@npm//rollup-plugin-sourcemaps",
-        ],
-        entry_point = ts_entry_point,
-        format = "umd",
-        config_file = "//infra-sk:rollup.config.js",
-    )
-
-    # Generates file <name>_js_bundle_minified.js. Intermediate result; do not use.
-    terser_minified(
-        name = "%s_js_bundle_minified" % name,
-        src = "%s_js_bundle.js" % name,
-        sourcemap = False,
-    )
-
     # Generates file development/<name>.js.
-    copy_file(
+    esbuild_dev_bundle(
         name = "%s_js_dev" % name,
-        src = "%s_js_bundle.js" % name,
-        dst = "%s/%s.js" % (DEV_OUT_DIR, name),
-        visibility = ["//visibility:public"],
+        entry_point = ts_entry_point,
+        deps = [":%s_ts_lib" % name],
+        output = "%s/%s.js" % (DEV_OUT_DIR, name),
     )
 
     # Generates file production/<name>.js.
-    copy_file(
+    esbuild_prod_bundle(
         name = "%s_js_prod" % name,
-        # For some reason the output of the terser_minified rule above is not directly visible as a
-        # source file, so we use the rule name instead (i.e. we drop the ".js" extension).
-        src = "%s_js_bundle_minified" % name,
-        dst = "%s/%s.js" % (PROD_OUT_DIR, name),
-        visibility = ["//visibility:public"],
+        entry_point = ts_entry_point,
+        deps = [":%s_ts_lib" % name],
+        output = "%s/%s.js" % (PROD_OUT_DIR, name),
     )
-
-    if copy_files:
-        for pair in copy_files:
-            copy_file(
-                name = "%s_copy_prod" % pair["dst"],
-                src = pair["src"],
-                dst = PROD_OUT_DIR + "/" + pair["dst"],
-                visibility = ["//visibility:public"],
-            )
-            copy_file(
-                name = "%s_copy_dev" % pair["dst"],
-                src = pair["src"],
-                dst = DEV_OUT_DIR + "/" + pair["dst"],
-                visibility = ["//visibility:public"],
-            )
 
     ################
     # CSS Bundles. #
@@ -546,6 +507,25 @@ def sk_page(
         args = ["%s_unoptimized.css" % name],
         visibility = ["//visibility:public"],
     )
+
+    #####################
+    # Static resources. #
+    #####################
+
+    if copy_files:
+        for pair in copy_files:
+            copy_file(
+                name = "%s_copy_prod" % pair["dst"],
+                src = pair["src"],
+                dst = PROD_OUT_DIR + "/" + pair["dst"],
+                visibility = ["//visibility:public"],
+            )
+            copy_file(
+                name = "%s_copy_dev" % pair["dst"],
+                src = pair["src"],
+                dst = DEV_OUT_DIR + "/" + pair["dst"],
+                visibility = ["//visibility:public"],
+            )
 
     ###############
     # HTML files. #

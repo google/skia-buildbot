@@ -1,7 +1,7 @@
 """This module defines the karma_test rule."""
 
-load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@npm//karma:index.bzl", _generated_karma_test = "karma_test")
+load("//infra-sk:esbuild.bzl", "esbuild_dev_bundle")
 load("//infra-sk:ts_library.bzl", "ts_library")
 
 def karma_test(
@@ -49,17 +49,11 @@ def karma_test(
         deps = deps,
     )
 
-    rollup_bundle(
+    esbuild_dev_bundle(
         name = name + "_bundle",
         entry_point = src,
-        deps = [
-            name + "_lib",
-            "@npm//@rollup/plugin-node-resolve",
-            "@npm//@rollup/plugin-commonjs",
-            "@npm//rollup-plugin-sourcemaps",
-        ],
-        format = "umd",
-        config_file = "//infra-sk:rollup.config.js",
+        deps = [name + "_lib"],
+        output = name + "_bundle.js",
     )
 
     static_template_args = []
@@ -72,7 +66,7 @@ def karma_test(
         name = name,
         size = "large",
         data = [
-            name + "_bundle",
+            name + "_bundle.js",
             karma_config_file,
             "@npm//karma-chrome-launcher",
             "@npm//karma-sinon",
@@ -85,8 +79,8 @@ def karma_test(
         templated_args = [
             "start",
             "$(execpath %s)" % karma_config_file,
-            # This gets the absolute file path to the js bundle created by rollup.
-            "$$(rlocation $(location %s_bundle))" % name,
+            # This gets the absolute file path to the JS bundle created by esbuild.
+            "$$(rlocation $(location %s_bundle.js))" % name,
         ] + static_template_args,
         tags = [
             # Necessary for it to work with ibazel.
