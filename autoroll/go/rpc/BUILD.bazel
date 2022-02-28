@@ -12,6 +12,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//autoroll/go/config",
+        "//autoroll/go/config/db",
         "//autoroll/go/manual",
         "//autoroll/go/modes",
         "//autoroll/go/revision",
@@ -21,7 +22,10 @@ go_library(
         "//go/allowed",
         "//go/autoroll",
         "//go/firestore",
+        "//go/skerr",
+        "//go/sklog",
         "//go/twirp_auth",
+        "//go/util",
         "@com_github_golang_protobuf//jsonpb:go_default_library_gen",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_twitchtv_twirp//:twirp",
@@ -39,6 +43,8 @@ go_test(
     embed = [":rpc"],
     deps = [
         "//autoroll/go/config",
+        "//autoroll/go/config/db",
+        "//autoroll/go/config/db/mocks",
         "//autoroll/go/config_vars",
         "//autoroll/go/manual",
         "//autoroll/go/manual/mocks",

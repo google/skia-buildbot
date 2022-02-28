@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/config/db"
+	config_db_mocks "go.skia.org/infra/autoroll/go/config/db/mocks"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/manual"
 	manual_mocks "go.skia.org/infra/autoroll/go/manual/mocks"
@@ -228,11 +230,12 @@ func makeRoller(ctx context.Context, t *testing.T, name string, mdb *manual_mock
 	}
 }
 
-func setup(t *testing.T) (context.Context, map[string]*AutoRoller, *autoRollServerImpl) {
+func setup(t *testing.T) (context.Context, map[string]*AutoRoller, *AutoRollServer) {
 	timeNowFunc = func() time.Time {
 		return currentTime
 	}
 	ctx := context.Background()
+	cdb := &config_db_mocks.DB{}
 	mdb := &manual_mocks.DB{}
 	r1 := makeRoller(ctx, t, "roller1", mdb)
 	r2 := makeRoller(ctx, t, "roller2", mdb)
@@ -240,7 +243,11 @@ func setup(t *testing.T) (context.Context, map[string]*AutoRoller, *autoRollServ
 		r1.Cfg.RollerName: r1,
 		r2.Cfg.RollerName: r2,
 	}
-	srv := newAutoRollServerImpl(rollers, mdb, &unthrottle_mocks.Throttle{}, viewers, editors, admins)
+	loadRollersFunc = func(context.Context, db.DB) (map[string]*AutoRoller, context.CancelFunc, error) {
+		return rollers, func() {}, nil
+	}
+	srv, err := NewAutoRollServer(ctx, cdb, mdb, &unthrottle_mocks.Throttle{}, viewers, editors, admins, time.Duration(0))
+	require.NoError(t, err)
 	return ctx, rollers, srv
 }
 

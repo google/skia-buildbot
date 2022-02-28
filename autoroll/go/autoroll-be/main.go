@@ -20,6 +20,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/config/db"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/roller"
@@ -186,6 +187,15 @@ func main() {
 			} else {
 				return string(b)
 			}
+		}
+
+		// Update the roller config in the DB.
+		configDB, err := db.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, namespace, *firestoreInstance, ts)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		if err := configDB.Put(ctx, cfg.RollerName, &cfg); err != nil {
+			sklog.Fatal(err)
 		}
 	}
 

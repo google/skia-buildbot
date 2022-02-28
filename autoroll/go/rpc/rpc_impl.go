@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/twitchtv/twirp"
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/config/db"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -18,7 +20,10 @@ import (
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/twirp_auth"
+	"go.skia.org/infra/go/util"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -33,33 +38,121 @@ import (
 // timeNowFunc allows tests to mock out time.Now() for testing.
 var timeNowFunc = time.Now
 
-// NewAutoRollServer creates and returns a Twirp HTTP server.
-func NewAutoRollServer(ctx context.Context, rollers map[string]*AutoRoller, manualRollDB manual.DB, throttle unthrottle.Throttle, viewers, editors, admins allowed.Allow) http.Handler {
-	impl := newAutoRollServerImpl(rollers, manualRollDB, throttle, viewers, editors, admins)
-	srv := NewAutoRollServiceServer(impl, nil)
-	return twirp_auth.Middleware(srv)
-}
+// loadRollersFunc allows tests to mock out loadRollers() for testing.
+var loadRollersFunc = loadRollers
 
-// autoRollServerImpl implements AutoRollRPCs.
-type autoRollServerImpl struct {
+// AutoRollServer implements AutoRollRPCs.
+type AutoRollServer struct {
 	*twirp_auth.AuthHelper
-	manualRollDB manual.DB
-	throttle     unthrottle.Throttle
-	rollers      map[string]*AutoRoller
+	cancelPolling context.CancelFunc
+	handler       http.Handler
+	manualRollDB  manual.DB
+	throttle      unthrottle.Throttle
+	rollers       map[string]*AutoRoller
+	rollersMtx    sync.RWMutex
 }
 
-// newAutoRollServerImpl returns an autoRollServerImpl instance.
-func newAutoRollServerImpl(rollers map[string]*AutoRoller, manualRollDB manual.DB, throttle unthrottle.Throttle, viewers, editors, admins allowed.Allow) *autoRollServerImpl {
-	return &autoRollServerImpl{
-		AuthHelper:   twirp_auth.NewAuthHelper(viewers, editors, admins),
-		manualRollDB: manualRollDB,
-		throttle:     throttle,
-		rollers:      rollers,
+// GetHandler returns the http.Handler for this AutoRollServer.
+func (s *AutoRollServer) GetHandler() http.Handler {
+	return s.handler
+}
+
+// NewAutoRollServer returns an AutoRollServer instance.
+// If configRefreshInterval is zero, the configs are not refreshed.
+func NewAutoRollServer(ctx context.Context, configDB db.DB, manualRollDB manual.DB, throttle unthrottle.Throttle, viewers, editors, admins allowed.Allow, configRefreshInterval time.Duration) (*AutoRollServer, error) {
+	rollers, cancelPolling, err := loadRollersFunc(ctx, configDB)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to load roller configs from DB")
 	}
+	srv := &AutoRollServer{
+		AuthHelper:    twirp_auth.NewAuthHelper(viewers, editors, admins),
+		cancelPolling: cancelPolling,
+		manualRollDB:  manualRollDB,
+		throttle:      throttle,
+		rollers:       rollers,
+	}
+	srv.handler = twirp_auth.Middleware(NewAutoRollServiceServer(srv, nil))
+	if configRefreshInterval != time.Duration(0) {
+		go util.RepeatCtx(ctx, configRefreshInterval, func(ctx context.Context) {
+			rollers, cancelPolling, err = loadRollersFunc(ctx, configDB)
+			if err != nil {
+				sklog.Errorf("Failed to refresh rollers: %s", err)
+				return
+			}
+			srv.rollersMtx.Lock()
+			defer srv.rollersMtx.Unlock()
+			srv.cancelPolling()
+			srv.rollers = rollers
+			srv.cancelPolling = cancelPolling
+		})
+	}
+	return srv, nil
 }
 
-// getRoller retrieves the given roller.
-func (s *autoRollServerImpl) getRoller(roller string) (*AutoRoller, error) {
+// loadRollers loads the roller configs from the config DB and creates the
+// various databases used for each roller.  Returns a map containing the rollers
+// themselves and a context.CancelFunc which can be used to stop the polling
+// loops for the rollers, eg. when loadRollers is to be called again.
+func loadRollers(ctx context.Context, configDB db.DB) (rv map[string]*AutoRoller, rvCancel context.CancelFunc, rvErr error) {
+	configs, err := configDB.GetAll(ctx)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	rollers := make(map[string]*AutoRoller, len(configs))
+	// Use a cancellable context so that we can restart the polling loops when
+	// we reload the rollers next time.
+	ctx, cancel := context.WithCancel(ctx)
+	defer func() {
+		// If something went wrong, cancel the polling loops to avoid a
+		// goroutine leak.
+		if rvErr != nil {
+			cancel()
+		}
+	}()
+	for _, cfg := range configs {
+		// Set up DBs for the roller.
+		arbMode, err := modes.NewDatastoreModeHistory(ctx, cfg.RollerName)
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		go util.RepeatCtx(ctx, 10*time.Second, func(ctx context.Context) {
+			if err := arbMode.Update(ctx); err != nil {
+				sklog.Error(err)
+			}
+		})
+		arbStatusDB := status.NewDatastoreDB()
+		arbStatus, err := status.NewCache(ctx, arbStatusDB, cfg.RollerName)
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		go util.RepeatCtx(ctx, 10*time.Second, func(ctx context.Context) {
+			if err := arbStatus.Update(ctx); err != nil {
+				sklog.Error(err)
+			}
+		})
+		arbStrategy, err := strategy.NewDatastoreStrategyHistory(ctx, cfg.RollerName, cfg.ValidStrategies())
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		go util.RepeatCtx(ctx, 10*time.Second, func(ctx context.Context) {
+			if err := arbStrategy.Update(ctx); err != nil {
+				sklog.Error(err)
+			}
+		})
+		rollers[cfg.RollerName] = &AutoRoller{
+			Cfg:      cfg,
+			Mode:     arbMode,
+			Status:   arbStatus,
+			Strategy: arbStrategy,
+		}
+	}
+	return rollers, cancel, nil
+}
+
+// GetRoller retrieves the given roller.
+func (s *AutoRollServer) GetRoller(roller string) (*AutoRoller, error) {
+	s.rollersMtx.RLock()
+	defer s.rollersMtx.RUnlock()
 	rv, ok := s.rollers[roller]
 	if !ok {
 		return nil, twirp.NewError(twirp.NotFound, "Unknown roller")
@@ -83,11 +176,13 @@ func (s autoRollMiniStatusSlice) Swap(a, b int) {
 }
 
 // GetRollers implements AutoRollRPCs.
-func (s *autoRollServerImpl) GetRollers(ctx context.Context, req *GetRollersRequest) (*GetRollersResponse, error) {
+func (s *AutoRollServer) GetRollers(ctx context.Context, req *GetRollersRequest) (*GetRollersResponse, error) {
 	// Verify that the user has view access.
 	if _, err := s.GetViewer(ctx); err != nil {
 		return nil, err
 	}
+	s.rollersMtx.RLock()
+	defer s.rollersMtx.RUnlock()
 	statuses := make([]*AutoRollMiniStatus, 0, len(s.rollers))
 	for name, roller := range s.rollers {
 		mc := roller.Mode.CurrentMode()
@@ -109,12 +204,12 @@ func (s *autoRollServerImpl) GetRollers(ctx context.Context, req *GetRollersRequ
 }
 
 // GetMiniStatus implements AutoRollRPCs.
-func (s *autoRollServerImpl) GetMiniStatus(ctx context.Context, req *GetMiniStatusRequest) (*GetMiniStatusResponse, error) {
+func (s *AutoRollServer) GetMiniStatus(ctx context.Context, req *GetMiniStatusRequest) (*GetMiniStatusResponse, error) {
 	// Verify that the user has view access.
 	if _, err := s.GetViewer(ctx); err != nil {
 		return nil, err
 	}
-	roller, err := s.getRoller(req.RollerId)
+	roller, err := s.GetRoller(req.RollerId)
 	if err != nil {
 		return nil, err
 	}
@@ -128,12 +223,12 @@ func (s *autoRollServerImpl) GetMiniStatus(ctx context.Context, req *GetMiniStat
 }
 
 // getStatus retrieves the status for the given roller.
-func (s *autoRollServerImpl) getStatus(ctx context.Context, rollerID string) (*AutoRollStatus, error) {
+func (s *AutoRollServer) getStatus(ctx context.Context, rollerID string) (*AutoRollStatus, error) {
 	// Verify that the user has view access.
 	if _, err := s.GetViewer(ctx); err != nil {
 		return nil, err
 	}
-	roller, err := s.getRoller(rollerID)
+	roller, err := s.GetRoller(rollerID)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +244,7 @@ func (s *autoRollServerImpl) getStatus(ctx context.Context, rollerID string) (*A
 }
 
 // GetStatus implements AutoRollRPCs.
-func (s *autoRollServerImpl) GetStatus(ctx context.Context, req *GetStatusRequest) (*GetStatusResponse, error) {
+func (s *AutoRollServer) GetStatus(ctx context.Context, req *GetStatusRequest) (*GetStatusResponse, error) {
 	st, err := s.getStatus(ctx, req.RollerId)
 	if err != nil {
 		return nil, err
@@ -160,13 +255,13 @@ func (s *autoRollServerImpl) GetStatus(ctx context.Context, req *GetStatusReques
 }
 
 // SetMode implements AutoRollRPCs.
-func (s *autoRollServerImpl) SetMode(ctx context.Context, req *SetModeRequest) (*SetModeResponse, error) {
+func (s *AutoRollServer) SetMode(ctx context.Context, req *SetModeRequest) (*SetModeResponse, error) {
 	// Verify that the user has edit access.
 	user, err := s.GetEditor(ctx)
 	if err != nil {
 		return nil, err
 	}
-	roller, err := s.getRoller(req.RollerId)
+	roller, err := s.GetRoller(req.RollerId)
 	if err != nil {
 		return nil, err
 	}
@@ -194,13 +289,13 @@ func (s *autoRollServerImpl) SetMode(ctx context.Context, req *SetModeRequest) (
 }
 
 // SetStrategy implements AutoRollRPCs.
-func (s *autoRollServerImpl) SetStrategy(ctx context.Context, req *SetStrategyRequest) (*SetStrategyResponse, error) {
+func (s *AutoRollServer) SetStrategy(ctx context.Context, req *SetStrategyRequest) (*SetStrategyResponse, error) {
 	// Verify that the user has edit access.
 	user, err := s.GetEditor(ctx)
 	if err != nil {
 		return nil, err
 	}
-	roller, err := s.getRoller(req.RollerId)
+	roller, err := s.GetRoller(req.RollerId)
 	if err != nil {
 		return nil, err
 	}
@@ -228,14 +323,14 @@ func (s *autoRollServerImpl) SetStrategy(ctx context.Context, req *SetStrategyRe
 }
 
 // CreateManualRoll implements AutoRollRPCs.
-func (s *autoRollServerImpl) CreateManualRoll(ctx context.Context, req *CreateManualRollRequest) (*CreateManualRollResponse, error) {
+func (s *AutoRollServer) CreateManualRoll(ctx context.Context, req *CreateManualRollRequest) (*CreateManualRollResponse, error) {
 	// Verify that the user has edit access.
 	user, err := s.GetEditor(ctx)
 	if err != nil {
 		return nil, err
 	}
 	// Check that the roller exists.
-	if _, err := s.getRoller(req.RollerId); err != nil {
+	if _, err := s.GetRoller(req.RollerId); err != nil {
 		return nil, err
 	}
 	m := &manual.ManualRollRequest{
@@ -259,13 +354,13 @@ func (s *autoRollServerImpl) CreateManualRoll(ctx context.Context, req *CreateMa
 }
 
 // Unthrottle implements AutoRollRPCs.
-func (s *autoRollServerImpl) Unthrottle(ctx context.Context, req *UnthrottleRequest) (*UnthrottleResponse, error) {
+func (s *AutoRollServer) Unthrottle(ctx context.Context, req *UnthrottleRequest) (*UnthrottleResponse, error) {
 	// Verify that the user has edit access.
 	if _, err := s.GetEditor(ctx); err != nil {
 		return nil, err
 	}
 	// Check that the roller exists.
-	if _, err := s.getRoller(req.RollerId); err != nil {
+	if _, err := s.GetRoller(req.RollerId); err != nil {
 		return nil, err
 	}
 	if err := s.throttle.Unthrottle(ctx, req.RollerId); err != nil {

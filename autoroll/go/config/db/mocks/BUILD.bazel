@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "DB.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/config/db/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/config",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

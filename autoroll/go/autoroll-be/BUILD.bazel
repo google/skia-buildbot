@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//autoroll/go/codereview",
         "//autoroll/go/config",
+        "//autoroll/go/config/db",
         "//autoroll/go/manual",
         "//autoroll/go/repo_manager/parent",
         "//autoroll/go/roller",
