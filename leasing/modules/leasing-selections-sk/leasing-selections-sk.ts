@@ -139,7 +139,7 @@ export class LeasingSelectionsSk extends ElementSk {
   }
 
   private static displayOsTypes(ele: LeasingSelectionsSk): TemplateResult[] {
-    if (ele.osTypes === {}) {
+    if (Object.keys(ele.osTypes).length === 0) {
       return [html``];
     }
     return Object.keys(ele.osTypes).map((o) => html`
@@ -151,7 +151,7 @@ export class LeasingSelectionsSk extends ElementSk {
   }
 
   private static displayDeviceTypes(ele: LeasingSelectionsSk): TemplateResult[] {
-    if (ele.osToDeviceTypes === {}) {
+    if (Object.keys(ele.osToDeviceTypes).length === 0) {
       return [html``];
     }
     if (!(ele.selectedOsType in ele.osToDeviceTypes)) {
