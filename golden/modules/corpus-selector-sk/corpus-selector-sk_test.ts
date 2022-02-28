@@ -1,10 +1,9 @@
 import './index';
+import { expect } from 'chai';
 import { eventPromise, noEventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { CorpusSelectorSk } from './corpus-selector-sk';
 import { CorpusSelectorSkPO } from './corpus-selector-sk_po';
 import { stringCorpora, customTypeCorpora, TestCorpus } from './test_data';
-
-const expect = chai.expect;
 
 describe('corpus-selector-sk', () => {
   describe('with string corpora', () => {

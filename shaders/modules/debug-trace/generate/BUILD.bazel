@@ -1,15 +1,7 @@
 load("//infra-sk:index.bzl", "ts_library")
-load("@npm//@bazel/typescript:index.bzl", "ts_config")
 
 ts_library(
     name = "debug-trace-quicktype_ts_lib",
     srcs = ["debug-trace-quicktype.ts"],
-    tsconfig = ":custom_tsconfig",
     visibility = ["//visibility:public"],
-)
-
-ts_config(
-    name = "custom_tsconfig",
-    src = "tsconfig.json",
-    deps = ["//:tsconfig.json"],
 )

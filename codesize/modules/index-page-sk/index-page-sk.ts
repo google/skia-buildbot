@@ -8,8 +8,6 @@ import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk
 import { Binary, BinariesFromCommitOrPatchset, MostRecentBinariesRPCResponse } from '../rpc_types';
 import '../../../infra-sk/modules/human-date-sk';
 
-import '@google-web-components/google-chart/';
-
 export class IndexPageSk extends ElementSk {
   private static template = (el: IndexPageSk) => html`
     <h2>Most recent code size statistics</h2>

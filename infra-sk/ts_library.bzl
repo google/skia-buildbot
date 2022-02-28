@@ -1,18 +1,14 @@
-"""This module provides a wrapper around the ts_library rule from the rules_nodejs repository."""
+"""This module provides a wrapper around the ts_project rule from the rules_nodejs repository."""
 
-load("@npm//@bazel/typescript:index.bzl", _ts_library = "ts_library")
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
 def ts_library(name, srcs, deps = [], **kwargs):
-    """Wraps rules_nodejs's ts_library rule to include ambient types declared in //tsconfig.json.
+    """Wraps rules_nodejs's ts_project rule to include ambient types declared in //tsconfig.json.
 
-    The ts_library[1] rule from the rules_nodejs repository ignores[2] any ambient types[3] declared
-    via the `{"compilerOptions": {"types": [...]}}` field[4] in //tsconfig.json. This causes
-    TypeScript files using said types to fail to compile (e.g. "TS2304: Cannot find name 'XXX'").
-    Code editors, however, would not report any such errors because they correctly interpret the
-    "types" field in //tsconfig.json.
-
-    The solution is to explicitly include the ambient types in the deps argument of the ts_library
-    rule, e.g.:
+    This macro prevents errors such as "error TS2688: Cannot find type definition file for 'mocha'",
+    which arise when the //tsconfig.json file declares ambient modules[2] via
+    compilerOptions.types[3], but we forget to provide them to the ts_project rule via the deps
+    argument. This macro simply adds those dependencies for us.
 
     ```
         // tsconfig.json
@@ -24,24 +20,25 @@ def ts_library(name, srcs, deps = [], **kwargs):
         }
 
         // BUILD.bazel
-        ts_library(
+        ts_project(
           name = "example",
           srcs = ["example.ts"],
           deps = [
-            "@types/mocha",  # Ambient type declared in //tsconfig.json.
-            "@types/node",   # Ambient type declared in //tsconfig.json.
-            ...              # Any other deps.
+            "@types/mocha",  # Added by this macro.
+            "@types/node",   # Added by this macro.
+            ...
           ],
         )
     ```
 
-    This wrapper around the ts_library rule eliminates said compilation errors by automatically
-    including as dependencies any ambient types declared in the //tsconfig.json file.
+    This macro is called ts_library, as opposed to ts_project, for consistency with our other
+    *_library rules, and also because it used to be a wrapper around the now-deprecated ts_library
+    rule from the rules_nodejs repository[4].
 
-    [1] https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_library
-    [2] https://github.com/bazelbuild/rules_nodejs/blob/92e816986e19b9a68091a667f206d8589393eb74/packages/typescript/internal/build_defs.bzl#L248
-    [3] https://www.typescriptlang.org/docs/handbook/modules.html#ambient-modules
-    [4] https://www.typescriptlang.org/tsconfig#types
+    [1] https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_project
+    [2] https://www.typescriptlang.org/docs/handbook/modules.html#ambient-modules
+    [3] https://www.typescriptlang.org/tsconfig#types
+    [4] https://bazelbuild.github.io/rules_nodejs/TypeScript.html#option-4-ts_library
 
     Args:
       name: The name of the target.
@@ -56,9 +53,23 @@ def ts_library(name, srcs, deps = [], **kwargs):
         "@npm//@types/node",
     ]
 
-    _ts_library(
+    ts_project(
         name = name,
         srcs = srcs,
         deps = deps + [dep for dep in ambient_types if dep not in deps],
+        # These options emulate the behavior of the now deprecated ts_library rule from the
+        # rules_nodejs repository. Our tsconfig.json produces JavaScript files compatible with Node
+        # by default, which is great for e.g. Puppeteer tests because they don't make use of this
+        # rule. For browser bundles, we override these settings such that the .js and .d.ts files
+        # produced by the TypeScript compiler can be consumed by rollup_bundle.
+        tsconfig = {
+            "compilerOptions": {
+                "module": "esnext",
+                "moduleResolution": "node",
+            },
+        },
+        extends = "//:tsconfig.json",
+        declaration = True,
+        allow_js = True,
         **kwargs
     )

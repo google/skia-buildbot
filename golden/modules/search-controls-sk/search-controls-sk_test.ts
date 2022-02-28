@@ -1,4 +1,5 @@
 import './index';
+import { expect } from 'chai';
 import { ParamSet } from 'common-sk/modules/query';
 import * as query from 'common-sk/modules/query';
 import { HintableObject } from 'common-sk/modules/hintable';
@@ -8,8 +9,6 @@ import {
 } from './search-controls-sk';
 import { SearchControlsSkPO } from './search-controls-sk_po';
 import { testOnlySetSettings } from '../settings';
-
-const expect = chai.expect;
 
 const corpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];
 

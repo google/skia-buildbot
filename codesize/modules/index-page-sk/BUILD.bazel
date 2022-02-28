@@ -26,7 +26,6 @@ sk_element(
     ts_deps = [
         "//codesize/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//@google-web-components/google-chart",
         "@npm//common-sk",
         "@npm//elements-sk",
         "@npm//lit-html",

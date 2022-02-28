@@ -56,6 +56,8 @@ karma_test(
         ":corpus-selector-sk_po_ts_lib",
         ":test_data_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
     ],
 )
 

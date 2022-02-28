@@ -1,5 +1,6 @@
 import './index';
 import fetchMock from 'fetch-mock';
+import { expect } from 'chai';
 import { deepCopy } from 'common-sk/modules/object';
 import { fromObject } from 'common-sk/modules/query';
 import {
@@ -16,8 +17,6 @@ import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import { SearchControlsSkPO } from '../search-controls-sk/search-controls-sk_po';
 import { ChangelistControlsSkPO } from '../changelist-controls-sk/changelist-controls-sk_po';
 import { BulkTriageSkPO } from '../bulk-triage-sk/bulk-triage-sk_po';
-
-const expect = chai.expect;
 
 describe('search-page-sk', () => {
   const newInstance = setUpElementUnderTest<SearchPageSk>('search-page-sk');

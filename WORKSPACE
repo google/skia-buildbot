@@ -127,9 +127,13 @@ grpc_deps()
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "2644a66772938db8d8c760334a252f1687455daa7e188073f2d46283f2f6fbb7",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/4.6.2/rules_nodejs-4.6.2.tar.gz"],
+    sha256 = "c077680a307eb88f3e62b0b662c2e9c6315319385bc8c637a861ffdbed8ca247",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.1.0/rules_nodejs-5.1.0.tar.gz"],
 )
+
+load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
+
+build_bazel_rules_nodejs_dependencies()
 
 # The npm_install rule runs anytime the package.json or package-lock.json file changes. It also
 # extracts any Bazel rules distributed in an npm package.
@@ -142,8 +146,10 @@ load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
 # Manages the node_modules directory.
 npm_install(
     name = "npm",
+    exports_directories_only = False,
     package_json = "//:package.json",
     package_lock_json = "//:package-lock.json",
+    symlink_node_modules = True,
 )
 
 ################################

@@ -6,6 +6,10 @@ sk_element(
     sass_srcs = ["bugs-chart-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
+        # Provides types for the @google-web-components/google-chart import, which does not follow
+        # the import naming convention expected by the Gazelle front-end extension, and thus needs
+        # to be added manually.
+        "@npm//@types/google.visualization",  # keep
         "@npm//elements-sk",
         "@npm//lit-html",
         "@npm//@google-web-components/google-chart",

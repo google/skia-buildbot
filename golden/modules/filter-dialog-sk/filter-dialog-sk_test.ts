@@ -1,10 +1,10 @@
 import './index';
+
+import { expect } from 'chai';
 import { ParamSet } from 'common-sk/modules/query';
 import { setUpElementUnderTest, eventPromise, noEventPromise } from '../../../infra-sk/modules/test_util';
 import { FilterDialogSk, Filters } from './filter-dialog-sk';
 import { FilterDialogSkPO } from './filter-dialog-sk_po';
-
-const expect = chai.expect;
 
 const paramSet: ParamSet = {
   'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],

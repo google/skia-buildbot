@@ -5,9 +5,23 @@
     "module": "commonjs",
     "lib": ["DOM", "ES2017"],
     "noImplicitAny": true,
-    "sourceMap": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "strict": true,
     "target": "es2017",
     "types": ["mocha", "node"],
+    "rootDirs": [
+      ".",
+      // These are necessary for relative imports to work under the ts_project Bazel rule. See
+      // https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_project.
+      "./bazel-out/host/bin",
+      "./bazel-out/darwin-fastbuild/bin",
+      "./bazel-out/darwin_arm64-fastbuild/bin",
+      "./bazel-out/k8-fastbuild/bin",
+      "./bazel-out/x64_windows-fastbuild/bin",
+      "./bazel-out/darwin-dbg/bin",
+      "./bazel-out/k8-dbg/bin",
+      "./bazel-out/x64_windows-dbg/bin",
+    ],
   },
 }

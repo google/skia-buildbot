@@ -100,6 +100,8 @@ karma_test(
         "//golden/modules/search-controls-sk",
         "//golden/modules/search-controls-sk:search-controls-sk_po_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
         "@npm//common-sk",
         "@npm//fetch-mock",
     ],

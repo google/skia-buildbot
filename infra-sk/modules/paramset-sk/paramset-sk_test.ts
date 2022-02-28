@@ -1,11 +1,10 @@
 import './index';
 
+import { expect } from 'chai';
 import { ParamSet } from 'common-sk/modules/query';
 import { setUpElementUnderTest, eventPromise, noEventPromise } from '../test_util';
 import { ParamSetSk, ParamSetSkClickEventDetail } from './paramset-sk';
 import { ParamSetSkPO, ParamSetKeyValueTuple } from './paramset-sk_po';
-
-const expect = chai.expect;
 
 const paramSet1: ParamSet = {
   a: ['hello', 'world'],

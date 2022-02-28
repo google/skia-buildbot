@@ -1,10 +1,9 @@
 import './index';
+import { expect } from 'chai';
 import { ParamSet } from 'common-sk/modules/query';
 import { eventPromise, noEventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { TraceFilterSk } from './trace-filter-sk';
 import { TraceFilterSkPO } from './trace-filter-sk_po';
-
-const expect = chai.expect;
 
 const paramSet: ParamSet = {
   'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],

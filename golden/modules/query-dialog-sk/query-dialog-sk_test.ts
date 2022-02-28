@@ -1,12 +1,11 @@
 import './index';
 
+import { expect } from 'chai';
 import { ParamSet, fromParamSet } from 'common-sk/modules/query';
 import { $$ } from 'common-sk/modules/dom';
 import { setUpElementUnderTest, eventPromise, noEventPromise } from '../../../infra-sk/modules/test_util';
 import { QueryDialogSk } from './query-dialog-sk';
 import { QueryDialogSkPO } from './query-dialog-sk_po';
-
-const expect = chai.expect;
 
 describe('query-dialog-sk', () => {
   const newInstance = setUpElementUnderTest<QueryDialogSk>('query-dialog-sk');
