@@ -51,7 +51,6 @@ sk_page(
     ],
     ts_deps = [
         ":demo_data_ts_lib",
-        "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//golden/modules:settings_ts_lib",
         "@npm//common-sk",

@@ -72,7 +72,9 @@ func cspReporter(w http.ResponseWriter, r *http.Request) {
 // cspString returns a properly formatted content security policy string.
 func cspString(allowedHosts []string, local bool, options []Option) string {
 	addScriptSrc := ""
-	// webpack uses eval() in development mode, so allow unsafe-eval when local.
+	// Currently, when executing WebAssembly, if there is a non-empty CSP policy for a page (such as
+	// when we are running with --local), the unsafe-eval policy must be enabled. See
+	// https://chromestatus.com/feature/5499765773041664.
 	if local || hasWASMOption(options) {
 		addScriptSrc = "'unsafe-eval'"
 	}
@@ -149,22 +151,25 @@ func hasAllowAnyImageOption(options []Option) bool {
 //
 // For this to work every script and style tag must have a nonce attribute
 // whose value matches the one sent in the Content-Security-Policy: header. You
-// can have webpack inject an attribute with a template for the nonce by adding
-// the HtmlWebPackInjectAttributesPlugin to your plugins, i.e.
+// can have Bazel inject an attribute with a template for the nonce to all
+// <script> and <link> tags via the sk_page rule's nonce attribute, e.g.
 //
-//    config.plugins.push(
-//      new HtmlWebpackInjectAttributesPlugin({
-//        nonce: "{%.nonce%}",
-//      }),
-//    );
+//    load("//infra-sk:index.bzl", "sk_page")
+//
+//    sk_page(
+//        name = "index",
+//        html_file = "index.html",
+//        nonce = "{% .Nonce %}",
+//        ...
+//    )
 //
 // And then include that nonce when expanding any pages:
 //
-//    if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
-//      "nonce": secure.CSPNonce(r.Context()),
-//    }); err != nil {
-//     sklog.Errorf("Failed to expand template: %s", err)
-//   }
+//     if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
+//       "Nonce": secure.CSPNonce(r.Context()),
+//     }); err != nil {
+//      sklog.Errorf("Failed to expand template: %s", err)
+//     }
 //
 // Since our audience is small and only uses modern browsers we shouldn't need
 // any further XSS protection. For example, even if a user is logged into
@@ -175,8 +180,8 @@ func hasAllowAnyImageOption(options []Option) bool {
 //
 // CSP failures will be logged as structured log events.
 //
-// Static resources, e.g. webpack output, will be served at '/dist/' and will
-// serve the contents of the '/dist' directory.
+// Static resources, e.g. Bazel-built HTML, CSS and JS files, will be served at
+// '/dist/' and will serve the contents of the '/dist' directory.
 func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 	// Do common init.
 	common.InitWithMust(

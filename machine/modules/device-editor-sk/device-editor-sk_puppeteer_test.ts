@@ -1,4 +1,3 @@
-import * as path from 'path';
 import {
   inBazel, loadCachedTestBed, takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
@@ -6,7 +5,7 @@ import {
 describe('device-editor-sk', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(path.join(__dirname, '..', '..', 'webpack.config.ts'));
+    testBed = await loadCachedTestBed();
   });
 
   describe('screenshots', () => {

@@ -139,8 +139,8 @@ type Form struct {
 
 // TemplateContext is the context for the index.html template.
 type TemplateContext struct {
-	// Nonce is the CSP Nonce. Look in webpack.config.js for where the nonce
-	// templates are injected.
+	// Nonce is the CSP Nonce. Look in //hashtag/pages/BUILD.bazel for where the
+	// nonce templates are injected.
 	Nonce string
 
 	// IsSearch is true if we contain search results.
@@ -204,7 +204,8 @@ func (srv *server) indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	templateContext := TemplateContext{
-		// Look in webpack.config.js for where the nonce templates are injected.
+		// Look in //hashtag/pages/BUILD.bazel for where the nonce templates are
+		// injected.
 		Nonce:    secure.CSPNonce(r.Context()),
 		Hashtags: viper.GetStringSlice("hashtags"),
 	}

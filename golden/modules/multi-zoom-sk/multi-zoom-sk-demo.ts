@@ -3,12 +3,10 @@ import './index';
 import dialogPolyfill from 'dialog-polyfill';
 
 import { $$ } from 'common-sk/modules/dom';
-import { digestDiffImagePath, digestImagePath, setImageEndpointsForDemos } from '../common';
+import { digestDiffImagePath, digestImagePath } from '../common';
 import { diff16x16, left16x16, right16x16 } from './test_data';
 import { isPuppeteerTest } from '../demo_util';
 import { MultiZoomSk } from './multi-zoom-sk';
-
-setImageEndpointsForDemos();
 
 const isPuppeteer = isPuppeteerTest();
 

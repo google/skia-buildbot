@@ -31,10 +31,7 @@ sk_page(
     name = "image-compare-sk-demo",
     html_file = "image-compare-sk-demo.html",
     sk_element_deps = [":image-compare-sk"],
-    ts_deps = [
-        "//golden/modules:common_ts_lib",
-        "@npm//common-sk",
-    ],
+    ts_deps = ["@npm//common-sk"],
     ts_entry_point = "image-compare-sk-demo.ts",
 )
 

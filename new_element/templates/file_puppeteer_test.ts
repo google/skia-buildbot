@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { expect } from 'chai';
 import {
   inBazel, loadCachedTestBed, takeScreenshot, TestBed,
@@ -7,7 +6,7 @@ import {
 describe('{{.ElementName}}', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(path.join(__dirname, '..', '..', 'webpack.config.ts'));
+    testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {

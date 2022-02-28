@@ -4,7 +4,6 @@ import '../gold-scaffold-sk';
 import fetchMock from 'fetch-mock';
 import { testOnlySetSettings } from '../settings';
 import { delay, isPuppeteerTest } from '../demo_util';
-import { setImageEndpointsForDemos } from '../common';
 import { clusterDiffJSON } from './test_data';
 import { fakeNow, twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
@@ -17,8 +16,6 @@ testOnlySetSettings({
   defaultCorpus: 'infra',
   baseRepoURL: 'https://skia.googlesource.com/skia.git',
 });
-
-setImageEndpointsForDemos();
 
 // Load the demo page with some params to load if there aren't any already. 4 is an arbitrary
 // small number to check against to determine "no query params"

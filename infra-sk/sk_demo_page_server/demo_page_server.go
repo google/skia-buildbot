@@ -78,6 +78,7 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Session cookie used by demo pages to determine whether they are being served by
 		// webpack-dev-server or by an sk_demo_page_server Bazel rule.
+		// TODO(lovisolo): Delete.
 		http.SetCookie(w, &http.Cookie{
 			Name:  "bazel",
 			Value: "true",

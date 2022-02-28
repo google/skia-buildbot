@@ -1,4 +1,3 @@
-import * as path from 'path';
 import * as http from 'http';
 import * as net from 'net';
 import express from 'express';
@@ -7,9 +6,7 @@ import { expect } from 'chai';
 import {
   EventName,
   addEventListenersToPuppeteerPage,
-  inBazel,
   launchBrowser,
-  startWebpackDemoPageServer,
 } from './util';
 
 describe('utility functions for Puppeteer tests', async () => {

@@ -35,7 +35,6 @@ sk_page(
         ":diff-page-sk",
     ],
     ts_deps = [
-        "//golden/modules:common_ts_lib",
         "//golden/modules:demo_util_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//golden/modules:settings_ts_lib",

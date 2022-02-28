@@ -4,7 +4,6 @@ import { $$ } from 'common-sk/modules/dom';
 import {
   typicalDetails, negativeOnly, noRefs, noRefsYet, noTraces, twoHundredCommits, fakeNow,
 } from './test_data';
-import { setImageEndpointsForDemos } from '../common';
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
 import { DigestDetailsSk } from './digest-details-sk';
@@ -14,8 +13,6 @@ Date.now = () => fakeNow;
 testOnlySetSettings({
   baseRepoURL: 'https://skia.googlesource.com/skia.git',
 });
-
-setImageEndpointsForDemos();
 
 let ele = new DigestDetailsSk();
 ele.details = typicalDetails;

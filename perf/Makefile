@@ -147,13 +147,6 @@ demo_trybot-page-sk:
 demo_word-cloud-sk:
 	$(BAZEL) run //perf/modules/word-cloud-sk:demo_page_server
 
-# Increase Node's heap size to accommodate for ts-node's higher memory usage.
-NODE_MEMORY_LIMIT=4096
-
-.PHONY: testpptr
-testpptr: npm-ci
-	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha --require ts-node/register ./**/*_puppeteer_test.ts
-
 # Presumes you've already run:
 #
 #    make build
@@ -191,5 +184,3 @@ run-demo-instance:
 		--display_group_by=false \
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:25000/demo?sslmode=disable
-
-include ../make/npm.mk

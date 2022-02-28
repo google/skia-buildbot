@@ -418,12 +418,12 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers) *mux.
 // addUIRoutes adds the necessary routes to serve Gold's web pages and static assets such as JS and
 // CSS bundles, static images (digest and diff images are handled elsewhere), etc.
 func addUIRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
-	// Serve static assets (JS and CSS Webpack bundles, images, etc.).
+	// Serve static assets (JS and CSS bundles, images, etc.).
 	//
 	// Note that this includes the raw HTML templates (e.g. /dist/byblame.html) with unpopulated
 	// placeholders such as {{.Title}}. These aren't used directly by client code. We should probably
-	// unexpose them and only serve the JS/CSS Webpack bundles from this route (and any other static
-	// assets such as the favicon).
+	// unexpose them and only serve the JS/CSS bundles from this route (and any other static assets
+	// such as the favicon).
 	router.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(makeResourceHandler(fsc.ResourcesPath))))
 
 	var templates *template.Template

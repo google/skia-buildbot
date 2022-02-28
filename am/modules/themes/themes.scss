@@ -71,13 +71,6 @@
   scrollbar-color: var(--surface-1dp) var(--background);
 }
 
-/* Now set the non-standard styles. Unfortunately the way webpack/cssmin is
-   configured currently it will strip the following rules from the output so we
-   turn the autoprefixer off.
-*/
-
-/* autoprefixer: off */
-
 /* Turn on a 13x13 scrollbar */
 ::-webkit-scrollbar {
   width: 13px;

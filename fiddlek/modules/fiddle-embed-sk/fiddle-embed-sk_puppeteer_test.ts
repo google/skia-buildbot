@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { expect } from 'chai';
 import {
   loadCachedTestBed,

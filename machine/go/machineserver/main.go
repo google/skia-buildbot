@@ -177,7 +177,7 @@ func (s *server) sendHTMLResponse(templateName string, w http.ResponseWriter, r 
 	w.Header().Set("Content-Type", "text/html")
 	s.loadTemplates() // just to support template changes during dev
 	if err := s.templates.ExecuteTemplate(w, templateName, map[string]string{
-		// Look in webpack.config.js for where the nonce templates are injected.
+		// Look in //machine/pages/BUILD.bazel for where the nonce templates are injected.
 		"Nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)

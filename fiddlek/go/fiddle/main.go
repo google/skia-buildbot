@@ -38,7 +38,7 @@ import (
 
 // flags
 var (
-	distDir        = flag.String("dist_dir", ".", "The directory to find dist/, which contains templates, JS, and CSS files as producted by webpack.")
+	distDir        = flag.String("dist_dir", ".", "The directory to find dist/, which contains templates, JS, and CSS files as producted by Bazel.")
 	fiddleRoot     = flag.String("fiddle_root", "", "Directory location where all the work is done.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")

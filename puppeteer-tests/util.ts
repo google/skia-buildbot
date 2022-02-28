@@ -1,11 +1,6 @@
-import express from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as http from 'http';
-import * as net from 'net';
 import puppeteer, { Browser } from 'puppeteer';
-import webpack from 'webpack';
-import webpackDevMiddleware from 'webpack-dev-middleware';
 
 // File inside $ENV_DIR containing the demo page server's TCP port. Only applies to Bazel tests
 // using the test_on_env rule.
@@ -124,52 +119,6 @@ export interface TestBed {
 }
 
 /**
- * Starts a web server that serves custom element demo pages. Equivalent to
- * running "npx webpack-dev-server" on the terminal.
- *
- * Demo pages can be accessed at the returned baseUrl. For example, page
- * my-component-sk-demo.html is found at `${baseUrl}/dist/my-component-sk.html`.
- *
- * This function should be called once at the beginning of any test suite that
- * requires custom element demo pages. The returned function stopDemoPageServer
- * should be called at the end of the test suite.
- */
-export const startWebpackDemoPageServer = async (pathToWebpackConfigTs: string) => {
-  // Load Webpack configuration.
-  const webpackConfigFactory = require(pathToWebpackConfigTs) as webpack.ConfigurationFactory;
-  const configuration = webpackConfigFactory('', { mode: 'development' }) as webpack.Configuration;
-
-  // Prevent the creation of source maps, which can consume lots of memory.
-  // https://github.com/webpack/webpack-sources/issues/66#issuecomment-537526984
-  delete configuration.devtool;
-
-  // This is equivalent to running "npx webpack-dev-server" on the terminal.
-  const middleware = webpackDevMiddleware(webpack(configuration), {
-    logLevel: 'warn', // Do not print summary on startup.
-  } as any);
-  await new Promise((resolve) => middleware.waitUntilValid(resolve));
-
-  // Start an HTTP server on a random, unused port. Serve the above middleware.
-  const app = express();
-  app.use(configuration.output!.publicPath! || '', middleware); // Serve on e.g. /dist.
-  let server: http.Server;
-  await new Promise((resolve) => { server = app.listen(0, () => resolve(undefined)); });
-
-  return {
-    // Base URL for the demo page server.
-    baseUrl: `http://localhost:${(server!.address() as net.AddressInfo).port}`,
-
-    // Call this function to shut down the HTTP server after tests are finished.
-    stopDemoPageServer: async () => {
-      await Promise.all([
-        new Promise((resolve) => middleware.close(() => resolve(undefined))),
-        new Promise((resolve) => server.close(resolve)),
-      ]);
-    },
-  };
-};
-
-/**
  * Returns the output directory where tests should e.g. save screenshots.
  * Screenshots saved in this directory will be uploaded to Gold.
  */
@@ -210,9 +159,9 @@ let browser: puppeteer.Browser;
 let testBed: Partial<TestBed>;
 
 /**
- * Once per Mocha invocation, loadCachedTestBed will compile all the demo pages and launch a
- * Puppeteer browser window to run the tests. On all subsequent calls, it will return essentially
- * a cached handle to that invocation.
+ * Once per Mocha invocation, loadCachedTestBed will launch a new Puppeteer browser window to run
+ * the tests. On all subsequent calls, it will return essentially a cached handle to that
+ * invocation.
  *
  * Test cases can access the demo page server's base URL and a Puppeteer page ready to be used via
  * the return value's baseUrl and page objects, respectively.
@@ -224,24 +173,17 @@ let testBed: Partial<TestBed>;
  *
  * When debugging, it can be handy to set showBrowser to true.
  */
-export async function loadCachedTestBed(pathToWebpackConfigTs?: string, showBrowser?: boolean) {
+export async function loadCachedTestBed(showBrowser?: boolean) {
   if (testBed) {
     return testBed as TestBed;
   }
   const newTestBed: Partial<TestBed> = {};
 
-  if (inBazel() || !pathToWebpackConfigTs) {
-    // Read the demo page server's TCP port.
-    const envDir = process.env.ENV_DIR;
-    if (!envDir) throw new Error('required environment variable ENV_DIR is unset');
-    const port = parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'));
-    newTestBed.baseUrl = `http://localhost:${port}`;
-  } else {
-    // Not in Bazel - Start the Webpack-based demo page server.
-    let baseUrl;
-    ({ baseUrl } = await startWebpackDemoPageServer(pathToWebpackConfigTs));
-    newTestBed.baseUrl = baseUrl; // Make baseUrl available to tests.
-  }
+  // Read the demo page server's TCP port.
+  const envDir = process.env.ENV_DIR; // This is set by the test_on_env Bazel rule.
+  if (!envDir) throw new Error('required environment variable ENV_DIR is unset');
+  const port = parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'));
+  newTestBed.baseUrl = `http://localhost:${port}`;
 
   if (typeof showBrowser === 'undefined') {
     // The sk_element_puppeteer_test Bazel rule sets this environment variable to "true" for

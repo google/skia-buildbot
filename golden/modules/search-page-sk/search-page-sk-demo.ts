@@ -8,7 +8,6 @@ import { SearchPageSk } from './search-page-sk';
 import {
   searchResponse, statusResponse, paramSetResponse, fakeNow, changeListSummaryResponse,
 } from './demo_data';
-import { setImageEndpointsForDemos } from '../common';
 import { DigestStatus, SearchResult, TriageRequest } from '../rpc_types';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 
@@ -86,8 +85,6 @@ fetchMock.post('/json/v2/triage', (_: any, req: any) => {
 
   return 200;
 });
-
-setImageEndpointsForDemos();
 
 const newScaf = new GoldScaffoldSk();
 newScaf.testingOffline = true;

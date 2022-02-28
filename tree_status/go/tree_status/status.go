@@ -111,7 +111,7 @@ func (srv *Server) treeStateDefaultRepoHandler(w http.ResponseWriter, r *http.Re
 		srv.loadTemplates()
 	}
 	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
-		// Look in webpack.config.js for where the nonce templates are injected.
+		// Look in //tree_status/pages/BUILD.bazel for where the nonce templates are injected.
 		"Nonce": secure.CSPNonce(r.Context()),
 		"Repo":  repo,
 	}); err != nil {

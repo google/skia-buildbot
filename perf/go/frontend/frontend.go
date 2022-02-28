@@ -118,7 +118,7 @@ type Frontend struct {
 
 	trybotResultsLoader results.Loader
 
-	// distFileSystem is the ./dist directory of files produced by webpack.
+	// distFileSystem is the ./dist directory of files produced by Bazel.
 	distFileSystem http.FileSystem
 
 	flags *config.FrontendFlags

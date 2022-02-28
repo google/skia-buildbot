@@ -61,7 +61,7 @@ func (srv *server) pageHandler(w http.ResponseWriter, r *http.Request, p string)
 		srv.loadTemplates()
 	}
 	if err := srv.templates.ExecuteTemplate(w, p, map[string]string{
-		// Look in webpack.config.js for where the nonce templates are injected.
+		// Look in //shaders/pages/BUILD.bazel for where the nonce templates are injected.
 		"Nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)

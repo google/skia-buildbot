@@ -1,4 +1,3 @@
-import * as path from 'path';
 import {
   loadCachedTestBed,
   takeScreenshot, TestBed,
@@ -7,9 +6,7 @@ import {
 describe('task-driver-sk', () => {
   let testBed: TestBed;
   before(async () => {
-    testBed = await loadCachedTestBed(
-      path.join(__dirname, '..', '..', 'webpack.config.ts'),
-    );
+    testBed = await loadCachedTestBed();
   });
 
   beforeEach(async () => {

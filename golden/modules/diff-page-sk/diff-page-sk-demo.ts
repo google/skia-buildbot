@@ -7,7 +7,6 @@ import { toObject } from 'common-sk/modules/query';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { fakeNow, makeTypicalSearchResult } from '../digest-details-sk/test_data';
 import { delay } from '../demo_util';
-import { setImageEndpointsForDemos } from '../common';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
@@ -19,8 +18,6 @@ testOnlySetSettings({
   title: 'Skia Public',
   baseRepoURL: 'https://github.com/flutter/flutter',
 });
-
-setImageEndpointsForDemos();
 
 // Load the demo page with some params to load if there aren't any already.
 if (window.location.search.length === 0) {

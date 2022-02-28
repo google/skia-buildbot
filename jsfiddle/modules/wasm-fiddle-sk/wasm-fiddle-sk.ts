@@ -52,8 +52,7 @@ export const extractControlNames = (r: RegExp, s: string): string[] => {
  *   <div> element with id 'canvasContainer' where the canvas
  *   should go.
  * - There are buttons that call run() and save() on 'this'.
- * - The foo.wasm has been copied into /res/ by means of CopyWebpackPlugin.
- *
+ * - The foo.wasm has been copied into /res/.
  */
 export class WasmFiddle extends HTMLElement {
   /** The JS code being run. */

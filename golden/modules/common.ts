@@ -4,8 +4,6 @@
  * @param queryStr URL-encoded query.
  * @return A human readable version of the input.
  */
-import { isBazelDemoPage } from './demo_util';
-
 export function humanReadableQuery(queryStr: string): string {
   if (!queryStr) {
     return '';
@@ -15,19 +13,6 @@ export function humanReadableQuery(queryStr: string): string {
 
 let imagePrefix = '/img/images';
 let diffPrefix = '/img/diffs';
-
-/**
- * No-op under Bazel. Tests should use the static_assets argument of the sk_demo_page_server rule.
- *
- * Changes the image endpoints to be based on /dist, which is where they are served when running
- * the demo pages locally. It should *not* be called by tests, as the effects will persist and make
- * for interdependent tests.
- */
-export function setImageEndpointsForDemos() {
-  if (isBazelDemoPage()) return;
-  imagePrefix = '/dist';
-  diffPrefix = '/dist';
-}
 
 /**
  * Returns a link to the PNG image associated with the given digest.
