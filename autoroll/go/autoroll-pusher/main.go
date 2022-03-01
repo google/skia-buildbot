@@ -244,7 +244,7 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cluster *clusterCfg, c
 
 	// Write the new k8s config files for the backends.
 	if *updateBeImage || *updateRollerConfig {
-		tmplBe := "./go/autoroll-be/autoroll-be.yaml.template"
+		tmplBe := "./go/autoroll-config-converter/autoroll-be.yaml.template"
 		for cfgFile, config := range configs {
 			// Google3 uses a different type of backend.
 			if config.ParentDisplayName == GOOGLE3_PARENT_NAME {

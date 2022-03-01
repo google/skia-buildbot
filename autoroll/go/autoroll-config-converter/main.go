@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -25,11 +26,16 @@ const (
 	GOOGLE3_PARENT_NAME = "Google3"
 )
 
+var (
+	// backendTemplate is the template used to generate the k8s YAML config file
+	// for autoroll backends.
+	//go:embed autoroll-be.yaml.template
+	backendTemplate string
+)
+
 func main() {
 	src := flag.String("src", "", "Source directory.")
 	dst := flag.String("dst", "", "Destination directory. Outputs will mimic the structure of the source.")
-	backendTmpl := flag.String("backend-template", "", "Template used for backends.")
-	kubeConfGen := flag.String("kube-conf-gen", "kube-conf-gen", "Path to kube-conf-gen tool; if not specified, expect it to be in PATH.")
 
 	flag.Parse()
 
@@ -39,8 +45,8 @@ func main() {
 	if *dst == "" {
 		sklog.Fatal("--dst is required.")
 	}
-	if *backendTmpl == "" {
-		sklog.Fatal("--backend-template is required.")
+	if backendTemplate == "" {
+		sklog.Fatal("internal error; embedded template is empty.")
 	}
 
 	ctx := context.Background()
@@ -53,7 +59,7 @@ func main() {
 			return nil
 		}
 		if strings.HasSuffix(d.Name(), ".cfg") {
-			if err := convertConfig(ctx, path, *src, *dst, *backendTmpl, *kubeConfGen); err != nil {
+			if err := convertConfig(ctx, path, *src, *dst); err != nil {
 				return skerr.Wrapf(err, "failed to convert config %s", path)
 			}
 		}
@@ -63,7 +69,7 @@ func main() {
 	}
 }
 
-func convertConfig(ctx context.Context, relPath, srcDir, dstDir, backendTmpl, kubeConfGen string) error {
+func convertConfig(ctx context.Context, relPath, srcDir, dstDir string) error {
 	// Read the config file.
 	srcPath := filepath.Join(srcDir, relPath)
 	cfgBytes, err := ioutil.ReadFile(srcPath)
@@ -118,7 +124,7 @@ func convertConfig(ctx context.Context, relPath, srcDir, dstDir, backendTmpl, ku
 	// Run kube-conf-gen to generate the output file.
 	relDir, baseName := filepath.Split(relPath)
 	dstPath := filepath.Join(dstDir, relDir, fmt.Sprintf("autoroll-be-%s.yaml", strings.Split(baseName, ".")[0]))
-	if err := kube_conf_gen_lib.GenerateOutput(backendTmpl, false, cfgMap, dstPath); err != nil {
+	if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(backendTemplate, false, cfgMap, dstPath); err != nil {
 		return skerr.Wrapf(err, "failed to write output")
 	}
 	return nil

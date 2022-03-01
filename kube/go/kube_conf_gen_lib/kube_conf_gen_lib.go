@@ -94,13 +94,27 @@ func LoadConfigFiles(parseConf, strict, emptyQuotes bool, configFileNames ...str
 	return ret, nil
 }
 
-// GenerateOutput executes the template with config as its environment and
-// writes the result to outFile.
-func GenerateOutput(templateFileName string, strict bool, config map[string]interface{}, outFile string) error {
+// GenerateOutputFromTemplateString executes the template string with config as
+// its environment and writes the result to outFile.
+func GenerateOutputFromTemplateString(tmplString string, strict bool, config map[string]interface{}, outFile string) error {
+	tmpl, err := template.New("kube-conf-gen-tmpl").Funcs(sprig.TxtFuncMap()).Parse(tmplString)
+	if err != nil {
+		return skerr.Wrapf(err, "error parsing template %s", tmplString)
+	}
+	return generateOutputHelper(tmpl, strict, config, outFile)
+}
+
+// GenerateOutputFromTemplateFile executes the template file with config as its
+// environment and writes the result to outFile.
+func GenerateOutputFromTemplateFile(templateFileName string, strict bool, config map[string]interface{}, outFile string) error {
 	tmpl, err := template.New(path.Base(templateFileName)).Funcs(sprig.TxtFuncMap()).ParseFiles(templateFileName)
 	if err != nil {
-		return skerr.Wrapf(err, "error parsing template '%s'. Error:%s", templateFileName, err)
+		return skerr.Wrapf(err, "error parsing template '%s'", templateFileName)
 	}
+	return generateOutputHelper(tmpl, strict, config, outFile)
+}
+
+func generateOutputHelper(tmpl *template.Template, strict bool, config map[string]interface{}, outFile string) error {
 	if strict {
 		tmpl.Option("missingkey=error")
 	}

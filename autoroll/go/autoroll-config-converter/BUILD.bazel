@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "autoroll-config-converter_lib",
     srcs = ["main.go"],
+    embedsrcs = ["autoroll-be.yaml.template"],
     importpath = "go.skia.org/infra/autoroll/go/autoroll-config-converter",
     visibility = ["//visibility:private"],
     deps = [
