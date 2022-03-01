@@ -64,10 +64,10 @@ var (
 	// If CQ config is nil then the job will not be put on the CQ.
 	JOBS_TO_CQ = map[string]*specs.CommitQueueJobConfig{
 		"Housekeeper-OnDemand-Presubmit":  {},
-		"Infra-PerCommit-Small":           {},
-		"Infra-PerCommit-Medium":          {},
-		"Infra-PerCommit-Large":           {},
 		"Infra-PerCommit-Build-Bazel-RBE": {},
+		"Infra-PerCommit-Large":           {},
+		"Infra-PerCommit-Medium":          {},
+		"Infra-PerCommit-Small":           {},
 		"Infra-PerCommit-Test-Bazel-RBE":  {},
 
 		"Housekeeper-Nightly-UpdateGoDeps":                   nil,
@@ -210,10 +210,11 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	return BUNDLE_RECIPES_NAME
 }
 
-// buildTaskDrivers generates the task to compile the task driver code to run on
-// a given platform.
+// buildTaskDrivers generates the task which compiles the task driver code to run on the specified
+// the platform.
 func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
-	// TODO(borenet): Add support for RPI.
+	// Not all of these configurations are currently used. These are a subset of all options
+	// supported by Golang: https://go.dev/doc/install/source#environment
 	goos := map[string]string{
 		"Linux": "linux",
 		"Mac":   "darwin",
@@ -225,26 +226,21 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 	}[arch]
 	name := fmt.Sprintf("%s-%s-%s", BUILD_TASK_DRIVERS_NAME, os, arch)
 	b.MustAddTask(name, &specs.TaskSpec{
-		Caches:       CACHES_GO,
 		CasSpec:      CAS_WHOLE_REPO,
-		CipdPackages: append(specs.CIPD_PKGS_GIT_LINUX_AMD64, b.MustGetCipdPackageFromAsset("go")),
+		CipdPackages: []*specs.CipdPackage{b.MustGetCipdPackageFromAsset("bazelisk")},
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
+			goos + "_" + goarch,
 		},
-		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
-		Environment: map[string]string{
-			"GOOS":   goos,
-			"GOARCH": goarch,
-		},
+		Dimensions: linuxGceDimensions(MACHINE_TYPE_MEDIUM),
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+			"PATH": {"bazelisk"},
 		},
 		// This task is idempotent but unlikely to ever be deduped
 		// because it depends on the entire repo...
 		Idempotent: true,
 	})
 	return name
-
 }
 
 // kitchenTask returns a specs.TaskSpec instance which uses Kitchen to run a

@@ -1,17 +1,21 @@
 #!/bin/bash
 
-# Takes a single argument that is the output directory where executables are to
-# be placed.
+# Takes two arguments.
+#   First argument is the output directory where executables are to be placed.
+#   Second (optional) argument is the target platform. These are formatted as os_arch
+#   https://github.com/bazelbuild/rules_go/blob/e9a7054ff11a520e3b8aceb76a3ba44bb8da4c94/go/toolchain/toolchains.bzl#L22
 
 set -x -e
 
-export GOCACHE="$(pwd)/cache/go_cache"
-export GOPATH="$(pwd)/cache/gopath"
-export GOROOT="$(pwd)/go/go"
+# Navigate to the root of the infra checkout.
+cd $(dirname ${BASH_SOURCE[0]})
+cd ../..
 
-cd buildbot
+PLATFORM=${2:-linux_amd64} # use linux_amd64 if not specified
 
-task_drivers_dir=infra/bots/task_drivers
-for td in $(cd ${task_drivers_dir} && ls); do
-  go build -o ${1}/${td} ${task_drivers_dir}/${td}/${td}.go
-done
+# Build the executables and extract them to the folder in the first argument.
+bazelisk build //:all_task_drivers --platforms=@io_bazel_rules_go//go/toolchain:${PLATFORM}
+tar -xf _bazel_bin/built_task_drivers.tar -C ${1}
+# Bazel outputs are write-protected, so we make sure everybody can write them. This way there
+# are no expected errors in deleting them later.
+chmod 0777 ${1}/*
