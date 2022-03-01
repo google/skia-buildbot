@@ -11,9 +11,11 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/config/db"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -24,11 +26,12 @@ import (
 
 // flags
 var (
-	configFile  = flag.String("config_file", "", "Configuration file to use.")
-	local       = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port        = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
-	promPort    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	webhookSalt = flag.String("webhook_request_salt", "", "Path to a file containing webhook request salt.")
+	configFile        = flag.String("config_file", "", "Configuration file to use.")
+	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port              = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	webhookSalt       = flag.String("webhook_request_salt", "", "Path to a file containing webhook request salt.")
 )
 
 func main() {
@@ -61,16 +64,28 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_INTERNAL_NS, option.WithTokenSource(ts)); err != nil {
+	const namespace = ds.AUTOROLL_INTERNAL_NS
+	if err := ds.InitWithOpt(common.PROJECT_ID, namespace, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatal(err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+
+	ctx := context.Background()
+	if !*local {
+		// Update the roller config in the DB.
+		configDB, err := db.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, namespace, *firestoreInstance, ts)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		if err := configDB.Put(ctx, cfg.RollerName, &cfg); err != nil {
+			sklog.Fatal(err)
+		}
+	}
 
 	r := mux.NewRouter()
 	if err := webhook.InitRequestSaltFromFile(*webhookSalt); err != nil {
 		sklog.Fatal(err)
 	}
-	ctx := context.Background()
 	arb, err := NewAutoRoller(ctx, &cfg, client, ts)
 	if err != nil {
 		sklog.Fatal(err)

@@ -11,6 +11,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//autoroll/go/config",
+        "//autoroll/go/config/db",
         "//autoroll/go/modes",
         "//autoroll/go/recent_rolls",
         "//autoroll/go/state_machine",
@@ -21,6 +22,7 @@ go_library(
         "//go/cleanup",
         "//go/common",
         "//go/ds",
+        "//go/firestore",
         "//go/gitiles",
         "//go/httputils",
         "//go/jsonutils",
