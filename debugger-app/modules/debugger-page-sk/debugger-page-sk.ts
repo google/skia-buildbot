@@ -114,6 +114,7 @@ export class DebuggerPageSk extends ElementDocSk {
          ?disabled=${ele._debugger === null} />
         <a href="https://skia.org/dev/tools/debugger">User Guide</a>
         <p class="file-version">File version: ${ele._fileContext?.version}</p>
+        <p class="file-version">Minimum version this build can open: ${ele._debugger?.MinVersion()}</p>
       </div>
       <timeline-sk></timeline-sk>
       <div class="horizontal-flex-start">
