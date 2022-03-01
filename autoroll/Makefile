@@ -55,15 +55,12 @@ setup-internal-config-repo:
 
 # These targets build kubernetes releases.
 .PHONY: release-be
-release-be: autoroll-be
+release-be: autoroll-be setup-internal-config-repo
 	$(BAZEL) run //autoroll:push_autoroll_be_container
 
 .PHONY: release-fe
-release-fe: autoroll-fe setup-internal-config-repo
+release-fe: autoroll-fe
 	$(BAZEL) run //autoroll:push_autoroll_fe_container
-	$(BAZEL) run //autoroll:push_autoroll_fe_internal_container
-	# Cleanup the config directory.
-	git clean -fxq config/*
 
 .PHONY: release-google3
 release-google3: autoroll-google3 setup-internal-config-repo

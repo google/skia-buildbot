@@ -55,12 +55,6 @@ skia_app_container(
                 "0755",
             ],
         ],
-        "/usr/local/share/autoroll-fe/configs": [
-            [
-                "//autoroll/config:public_configs",
-                "0644",
-            ],
-        ],
         "/usr/local/share/autoroll-fe/dist": [
             [
                 "//autoroll/pages:production/%s.%s" % (page, ext),
@@ -79,41 +73,6 @@ skia_app_container(
         ],
     },
     repository = "skia-public/autoroll-fe",
-)
-
-skia_app_container(
-    name = "autoroll_fe_internal_container",
-    dirs = {
-        "/usr/local/bin": [
-            [
-                "//autoroll/go/autoroll-fe:autoroll-fe",
-                "0755",
-            ],
-        ],
-        "/usr/local/share/autoroll-fe/configs": [
-            [
-                "//autoroll/config:corp_configs",
-                "0644",
-            ],
-        ],
-        "/usr/local/share/autoroll-fe/dist": [
-            [
-                "//autoroll/pages:production/%s.%s" % (page, ext),
-                "0644",
-            ]
-            for page in [
-                "index",
-                "config",
-                "roller",
-            ]
-            for ext in [
-                "css",
-                "html",
-                "js",
-            ]
-        ],
-    },
-    repository = "skia-public/autoroll-fe-internal",
 )
 
 skia_app_container(
