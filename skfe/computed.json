@@ -1185,6 +1185,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "npm-audit-mirror",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "npm-audit-mirror",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "npm-audit-mirror",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "particles",
           "endpoints": [
             {
@@ -3622,6 +3648,23 @@
                           },
                           "route": {
                             "cluster": "machineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "npm.skia.org",
+                      "name": "npm.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "npm-audit-mirror",
                             "timeout": {
                               "seconds": 600
                             }
