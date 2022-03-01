@@ -37,6 +37,7 @@ const (
 	// autoroller.
 	GCR_PROJECT  = PROJECT_PUBLIC
 	GCR_IMAGE_BE = "autoroll-be"
+	GCR_IMAGE_FE = "autoroll-fe"
 
 	// Path to autoroller config repo.
 	// TODO(borenet): Support an arbitrary location.
@@ -218,10 +219,10 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cluster *clusterCfg, c
 
 	// Write the new k8s config file for the frontend.
 	modified := []string{}
-	if *updateFeImage || *updateRollerConfig {
+	if *updateFeImage {
 		tmplFe := "./go/autoroll-fe/autoroll-fe.yaml.template"
 		// Get the latest image for the frontend.
-		latestImageFe, err := getLatestImage(configFe.AppName)
+		latestImageFe, err := getLatestImage(GCR_IMAGE_FE)
 		if err != nil {
 			log.Fatalf("Failed to get latest image for %s: %s", configFe.AppName, err)
 		}

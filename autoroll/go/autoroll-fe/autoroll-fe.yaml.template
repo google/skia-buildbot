@@ -54,7 +54,6 @@ spec:
             - "--config_repo=https://skia.googlesource.com/skia-autoroll-internal-config.git"
             - "--config_gerrit_project=skia-autoroll-internal-config"
             - "--resources_dir=/usr/local/share/autoroll-fe/dist"
-            - "--config_dir=/usr/local/share/autoroll-fe/configs/{{if eq .internal "true"}}skia-corp{{else}}skia-public{{end}}/"
           ports:
             - containerPort: 8000
             - containerPort: 20000
