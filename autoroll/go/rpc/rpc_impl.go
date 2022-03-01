@@ -101,7 +101,7 @@ func loadRollers(ctx context.Context, configDB db.DB) (rv map[string]*AutoRoller
 	rollers := make(map[string]*AutoRoller, len(configs))
 	// Use a cancellable context so that we can restart the polling loops when
 	// we reload the rollers next time.
-	ctx, cancel := context.WithCancel(ctx)
+	cancellableCtx, cancel := context.WithCancel(ctx)
 	defer func() {
 		// If something went wrong, cancel the polling loops to avoid a
 		// goroutine leak.
@@ -115,7 +115,7 @@ func loadRollers(ctx context.Context, configDB db.DB) (rv map[string]*AutoRoller
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
-		go util.RepeatCtx(ctx, 10*time.Second, func(ctx context.Context) {
+		go util.RepeatCtx(cancellableCtx, 10*time.Second, func(ctx context.Context) {
 			if err := arbMode.Update(ctx); err != nil {
 				sklog.Error(err)
 			}
@@ -125,7 +125,7 @@ func loadRollers(ctx context.Context, configDB db.DB) (rv map[string]*AutoRoller
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
-		go util.RepeatCtx(ctx, 10*time.Second, func(ctx context.Context) {
+		go util.RepeatCtx(cancellableCtx, 10*time.Second, func(ctx context.Context) {
 			if err := arbStatus.Update(ctx); err != nil {
 				sklog.Error(err)
 			}
@@ -134,7 +134,7 @@ func loadRollers(ctx context.Context, configDB db.DB) (rv map[string]*AutoRoller
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
-		go util.RepeatCtx(ctx, 10*time.Second, func(ctx context.Context) {
+		go util.RepeatCtx(cancellableCtx, 10*time.Second, func(ctx context.Context) {
 			if err := arbStrategy.Update(ctx); err != nil {
 				sklog.Error(err)
 			}
