@@ -13,7 +13,8 @@ import json
 import os
 import sys
 import time
-import urllib2
+from urllib.error import HTTPError
+from urllib.request import urlopen
 
 
 POLLING_WAIT_TIME_SECS = 60
@@ -53,11 +54,11 @@ def main():
     get_task_status_url = 'http://%s/_/get_task_status?task=%s' % (
         args.leasing_server, args.task_id)
     try:
-      resp = urllib2.urlopen(get_task_status_url)
+      resp = urlopen(get_task_status_url)
       output = json.load(resp)
       if output['Expired']:
         break
-    except urllib2.HTTPError as e:
+    except HTTPError as e:
       print('Could not contact the leasing server: %s' % e)
 
     time.sleep(POLLING_WAIT_TIME_SECS)
