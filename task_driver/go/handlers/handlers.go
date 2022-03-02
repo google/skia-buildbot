@@ -23,7 +23,7 @@ func logsHandler(w http.ResponseWriter, r *http.Request, lm *logs.LogsManager, t
 	// TODO(borenet): If we had access to the Task Driver DB, we could first
 	// retrieve the run and then limit our search to its duration. That
 	// might speed up the search quite a bit.
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	entries, err := lm.Search(r.Context(), taskId, stepId, logId)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to search log entries.", http.StatusInternalServerError)
@@ -197,7 +197,7 @@ func fullErrorHandler(d db.DB) http.HandlerFunc {
 			http.NotFound(w, r)
 			return
 		}
-		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		if _, err := w.Write([]byte(step.Errors[errIdx])); err != nil {
 			httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
 			return
