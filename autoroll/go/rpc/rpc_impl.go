@@ -111,13 +111,14 @@ func loadRollers(ctx context.Context, configDB db.DB) (rv map[string]*AutoRoller
 	}()
 	for _, cfg := range configs {
 		// Set up DBs for the roller.
+		cfg := cfg // Capture loop variable for use by goroutines.
 		arbMode, err := modes.NewDatastoreModeHistory(ctx, cfg.RollerName)
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
-		go util.RepeatCtx(cancellableCtx, 10*time.Second, func(ctx context.Context) {
+		go util.RepeatCtx(cancellableCtx, 10*time.Second, func(_ context.Context) {
 			if err := arbMode.Update(ctx); err != nil {
-				sklog.Error(err)
+				sklog.Errorf("Failed to retrieve mode history for %s: %s", cfg.RollerName, err)
 			}
 		})
 		arbStatusDB := status.NewDatastoreDB()
@@ -125,18 +126,18 @@ func loadRollers(ctx context.Context, configDB db.DB) (rv map[string]*AutoRoller
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
-		go util.RepeatCtx(cancellableCtx, 10*time.Second, func(ctx context.Context) {
+		go util.RepeatCtx(cancellableCtx, 10*time.Second, func(_ context.Context) {
 			if err := arbStatus.Update(ctx); err != nil {
-				sklog.Error(err)
+				sklog.Errorf("Failed to retrieve status for %s: %s", cfg.RollerName, err)
 			}
 		})
 		arbStrategy, err := strategy.NewDatastoreStrategyHistory(ctx, cfg.RollerName, cfg.ValidStrategies())
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
-		go util.RepeatCtx(cancellableCtx, 10*time.Second, func(ctx context.Context) {
+		go util.RepeatCtx(cancellableCtx, 10*time.Second, func(_ context.Context) {
 			if err := arbStrategy.Update(ctx); err != nil {
-				sklog.Error(err)
+				sklog.Errorf("Failed to retrieve strategy history for %s: %s", cfg.RollerName, err)
 			}
 		})
 		rollers[cfg.RollerName] = &AutoRoller{
