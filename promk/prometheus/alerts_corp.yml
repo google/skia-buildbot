@@ -72,7 +72,6 @@ groups:
     labels:
       category: infra
       severity: warning
-      owner: rmistry@google.com
     annotations:
       abbr: '{{ $labels.sa }} - {{ $labels.key }}'
       description: 'The key {{ $labels.key }} of {{ $labels.sa }} in project {{ $labels.project }} has expired.
