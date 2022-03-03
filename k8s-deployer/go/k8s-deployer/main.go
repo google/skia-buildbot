@@ -32,6 +32,7 @@ func main() {
 	interval := flag.Duration("interval", 10*time.Minute, "How often to re-apply configurations to the cluster")
 	port := flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	promPort := flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	prune := flag.Bool("prune", false, "Whether to run 'kubectl apply' with '--prune'")
 	kubectl := flag.String("kubectl", "kubectl", "Path to the kubectl executable.")
 	k8sServer := flag.String("k8s_server", "", "Address of the Kubernetes server.")
 
@@ -69,7 +70,7 @@ func main() {
 	// too much of a delay.
 	liveness := metrics2.NewLiveness(livenessMetric)
 	go util.RepeatCtx(ctx, *interval, func(ctx context.Context) {
-		if err := applyConfigs(ctx, repo, *kubectl, *k8sServer, *cluster, *configSubdir); err != nil {
+		if err := applyConfigs(ctx, repo, *kubectl, *k8sServer, *cluster, *configSubdir, *prune); err != nil {
 			sklog.Errorf("Failed to apply configs to cluster: %s", err)
 		} else {
 			liveness.Reset()
@@ -80,7 +81,7 @@ func main() {
 	httputils.RunHealthCheckServer(*port)
 }
 
-func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, cluster, configSubdir string) error {
+func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, cluster, configSubdir string, prune bool) error {
 	// Download the configs from Gitiles instead of maintaining a local Git
 	// checkout, to avoid dealing with Git, persistent checkouts, etc.
 
@@ -145,7 +146,10 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	if k8sServer != "" {
 		cmd = append(cmd, "--server", k8sServer)
 	}
-	cmd = append(cmd, "--prune", "--all", "-f", ".")
+	if prune {
+		cmd = append(cmd, "--prune")
+	}
+	cmd = append(cmd, "-f", ".")
 	output, err := exec.RunCwd(ctx, tmp, cmd...)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to apply configs: %s", output)
