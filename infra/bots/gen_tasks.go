@@ -11,9 +11,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"path"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -24,67 +21,66 @@ import (
 )
 
 const (
-	BUILD_TASK_DRIVERS_NAME = "Housekeeper-PerCommit-BuildTaskDrivers"
-	BUNDLE_RECIPES_NAME     = "Housekeeper-PerCommit-BundleRecipes"
+	buildTaskDriversName = "Housekeeper-PerCommit-BuildTaskDrivers"
+	buildRecipesName     = "Housekeeper-PerCommit-BundleRecipes"
 
-	CAS_AUTOROLL_CONFIGS = "autoroll-configs"
-	CAS_EMPTY            = "empty" // TODO(borenet): It'd be nice if this wasn't necessary.
-	CAS_RUN_RECIPE       = "run-recipe"
-	CAS_RECIPES          = "recipes"
-	CAS_WHOLE_REPO       = "whole-repo"
+	casAutorollConfigs = "autoroll-configs"
+	casEmpty           = "empty" // TODO(borenet): It'd be nice if this wasn't necessary.
+	casRunRecipe       = "run-recipe"
+	casRecipes         = "recipes"
+	casWholeRepo       = "whole-repo"
 
-	DEFAULT_OS       = DEFAULT_OS_LINUX
-	DEFAULT_OS_LINUX = "Debian-10.3"
-	DEFAULT_OS_WIN   = "Windows-Server-17763"
+	defaultOSLinux   = "Debian-10.3"
+	defaultOSWindows = "Windows-Server-17763"
 
-	LOGDOG_ANNOTATION_URL = "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
+	logdogAnnotationURL = "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
 
-	// Small is a 2-core machine.
-	MACHINE_TYPE_SMALL = "n1-highmem-2"
-	// Medium is a 16-core machine
-	MACHINE_TYPE_MEDIUM = "n1-standard-16"
-	// Large is a 64-core machine.
-	MACHINE_TYPE_LARGE = "n1-highcpu-64"
+	// machineTypeSmall refers to a 2-core machine.
+	machineTypeSmall = "n1-highmem-2"
+	// machineTypeMedium refers to a 16-core machine
+	machineTypeMedium = "n1-standard-16"
+	// machineTypeLarge refers to a 64-core machine.
+	machineTypeLarge = "n1-highcpu-64"
 
-	// Swarming output dirs.
-	OUTPUT_NONE = "output_ignored" // This will result in outputs not being isolated.
+	// ignoreSwarmingOutput indicates that the outputs will not be isolated/uploaded by swarming
+	ignoreSwarmingOutput = "output_ignored"
 
-	// Pool for Skia bots.
-	POOL_SKIA = "Skia"
-
-	SERVICE_ACCOUNT_CIPD_UPLOADER = "cipd-uploader@skia-swarming-bots.iam.gserviceaccount.com"
-	SERVICE_ACCOUNT_COMPILE       = "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
-	SERVICE_ACCOUNT_RECREATE_SKPS = "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
+	cipdUploaderServiceAccount = "cipd-uploader@skia-swarming-bots.iam.gserviceaccount.com"
+	compileServiceAccount      = "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+	recreateSKPsServiceAccount = "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
 )
 
 var (
-	// "Constants"
+	// jobsToCQStatus lists all infra Jobs and their CQ config to run at each commit.
+	jobsToCQStatus = map[string]*specs.CommitQueueJobConfig{
+		"Housekeeper-OnDemand-Presubmit":  &cqWithDefaults,
+		"Infra-PerCommit-Build-Bazel-RBE": &cqWithDefaults,
+		"Infra-PerCommit-Large":           &cqWithDefaults,
+		"Infra-PerCommit-Medium":          &cqWithDefaults,
+		"Infra-PerCommit-Small":           &cqWithDefaults,
+		"Infra-PerCommit-Test-Bazel-RBE":  &cqWithDefaults,
 
-	// Top-level list of all Jobs and their CQ config to run at each commit.
-	// If CQ config is nil then the job will not be put on the CQ.
-	JOBS_TO_CQ = map[string]*specs.CommitQueueJobConfig{
-		"Housekeeper-OnDemand-Presubmit":  {},
-		"Infra-PerCommit-Build-Bazel-RBE": {},
-		"Infra-PerCommit-Large":           {},
-		"Infra-PerCommit-Medium":          {},
-		"Infra-PerCommit-Small":           {},
-		"Infra-PerCommit-Test-Bazel-RBE":  {},
-
-		"Housekeeper-Nightly-UpdateGoDeps":                   nil,
-		"Housekeeper-PerCommit-CIPD-Canary":                  nil,
-		"Housekeeper-PerCommit-CIPD-SK":                      nil,
-		"Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs": nil,
-		"Housekeeper-Weekly-UpdateCIPDPackages":              nil,
-		"Infra-Experimental-Small-Linux":                     nil,
-		"Infra-Experimental-Small-Win":                       nil,
-		"Infra-PerCommit-Build-Bazel-Local":                  nil,
-		"Infra-PerCommit-CreateDockerImage":                  nil,
-		"Infra-PerCommit-PushAppsFromInfraDockerImage":       nil,
-		"Infra-PerCommit-Race":                               nil,
-		"Infra-PerCommit-Test-Bazel-Local":                   nil,
+		"Housekeeper-Nightly-UpdateGoDeps":                   noCQ,
+		"Housekeeper-PerCommit-CIPD-Canary":                  noCQ,
+		"Housekeeper-PerCommit-CIPD-SK":                      noCQ,
+		"Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs": noCQ,
+		"Housekeeper-Weekly-UpdateCIPDPackages":              noCQ,
+		"Infra-Experimental-Small-Linux":                     noCQ,
+		"Infra-Experimental-Small-Win":                       noCQ,
+		"Infra-PerCommit-Build-Bazel-Local":                  noCQ,
+		"Infra-PerCommit-CreateDockerImage":                  noCQ,
+		"Infra-PerCommit-PushAppsFromInfraDockerImage":       noCQ,
+		"Infra-PerCommit-Race":                               noCQ,
+		"Infra-PerCommit-Test-Bazel-Local":                   noCQ,
 	}
 
-	CACHES_GO = []*specs.Cache{
+	// cqWithDefaults means this is a non-experimental CQ job (if it fails, the submission will
+	// be blocked) and it will run all the time (and not just when some files are modified).
+	cqWithDefaults = specs.CommitQueueJobConfig{}
+	// noCQ means this job will not appear on the CQ
+	noCQ *specs.CommitQueueJobConfig = nil
+
+	goCaches = []*specs.Cache{
 		{
 			Name: "go_cache",
 			Path: "cache/go_cache",
@@ -95,14 +91,14 @@ var (
 		},
 	}
 
-	CACHES_DOCKER = []*specs.Cache{
+	dockerCaches = []*specs.Cache{
 		{
 			Name: "docker",
 			Path: "cache/docker",
 		},
 	}
 
-	CACHES_VPYTHON = []*specs.Cache{
+	vpythonCaches = []*specs.Cache{
 		{
 			Name: "vpython",
 			Path: "cache/vpython",
@@ -112,7 +108,7 @@ var (
 	// These properties are required by some tasks, eg. for running
 	// bot_update, but they prevent de-duplication, so they should only be
 	// used where necessary.
-	EXTRA_PROPS = map[string]string{
+	extraProperties = map[string]string{
 		"buildbucket_build_id": specs.PLACEHOLDER_BUILDBUCKET_BUILD_ID,
 		"patch_issue":          specs.PLACEHOLDER_ISSUE_INT,
 		"patch_ref":            specs.PLACEHOLDER_PATCH_REF,
@@ -124,7 +120,7 @@ var (
 		"task_id":              specs.PLACEHOLDER_TASK_ID,
 	}
 
-	CIPD_PLATFORMS = []string{
+	cipdPlatforms = []string{
 		"--platform", "@io_bazel_rules_go//go/toolchain:darwin_amd64=mac-amd64",
 		"--platform", "@io_bazel_rules_go//go/toolchain:darwin_arm64=mac-arm64",
 		"--platform", "@io_bazel_rules_go//go/toolchain:linux_amd64=linux-amd64",
@@ -133,22 +129,11 @@ var (
 	}
 )
 
-// relpath returns the relative path to the given file from the config file.
-func relpath(f string) string {
-	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Dir(filename)
-	rv, err := filepath.Rel(dir, path.Join(dir, f))
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	return rv
-}
-
 // Dimensions for Linux GCE instances.
 func linuxGceDimensions(machineType string) []string {
 	return []string{
 		"pool:Skia",
-		fmt.Sprintf("os:%s", DEFAULT_OS_LINUX),
+		fmt.Sprintf("os:%s", defaultOSLinux),
 		"gpu:none",
 		"cpu:x86-64-Haswell_GCE",
 		fmt.Sprintf("machine_type:%s", machineType),
@@ -160,7 +145,7 @@ func linuxGceDimensions(machineType string) []string {
 func winGceDimensions(machineType string) []string {
 	return []string{
 		"pool:Skia",
-		fmt.Sprintf("os:%s", DEFAULT_OS_WIN),
+		fmt.Sprintf("os:%s", defaultOSWindows),
 		"gpu:none",
 		"cpu:x86-64-Haswell_GCE",
 		fmt.Sprintf("machine_type:%s", machineType),
@@ -190,13 +175,13 @@ func props(p map[string]string) string {
 
 // bundleRecipes generates the task to bundle and isolate the recipes.
 func bundleRecipes(b *specs.TasksCfgBuilder) string {
-	b.MustAddTask(BUNDLE_RECIPES_NAME, &specs.TaskSpec{
-		CasSpec:      CAS_RECIPES,
+	b.MustAddTask(buildRecipesName, &specs.TaskSpec{
+		CasSpec:      casRecipes,
 		CipdPackages: append(specs.CIPD_PKGS_GIT_LINUX_AMD64, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/bundle_recipes.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
-		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
+		Dimensions: linuxGceDimensions(machineTypeSmall),
 		EnvPrefixes: map[string][]string{
 			"PATH": {
 				"cipd_bin_packages",
@@ -207,7 +192,7 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 		},
 		Idempotent: true,
 	})
-	return BUNDLE_RECIPES_NAME
+	return buildRecipesName
 }
 
 // buildTaskDrivers generates the task which compiles the task driver code to run on the specified
@@ -224,15 +209,15 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 		"x86":    "386",
 		"x86_64": "amd64",
 	}[arch]
-	name := fmt.Sprintf("%s-%s-%s", BUILD_TASK_DRIVERS_NAME, os, arch)
+	name := fmt.Sprintf("%s-%s-%s", buildTaskDriversName, os, arch)
 	b.MustAddTask(name, &specs.TaskSpec{
-		CasSpec:      CAS_WHOLE_REPO,
+		CasSpec:      casWholeRepo,
 		CipdPackages: []*specs.CipdPackage{b.MustGetCipdPackageFromAsset("bazelisk")},
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 			goos + "_" + goarch,
 		},
-		Dimensions: linuxGceDimensions(MACHINE_TYPE_MEDIUM),
+		Dimensions: linuxGceDimensions(machineTypeMedium),
 		EnvPrefixes: map[string][]string{
 			"PATH": {"bazelisk"},
 		},
@@ -248,7 +233,7 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
 	// TODO(borenet): Currently all callers are for Linux tasks, but that may
 	// not always be the case.
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_KITCHEN_LINUX_AMD64...)
+	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_KITCHEN_LINUX_AMD64...)
 	properties := map[string]string{
 		"buildername":   name,
 		"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
@@ -257,16 +242,16 @@ func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []stri
 		properties[k] = v
 	}
 	var outputs []string = nil
-	if outputDir != OUTPUT_NONE {
+	if outputDir != ignoreSwarmingOutput {
 		outputs = []string{outputDir}
 	}
 	python := "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}"
 	return &specs.TaskSpec{
-		Caches:       CACHES_VPYTHON,
+		Caches:       vpythonCaches,
 		CasSpec:      casSpec,
-		CipdPackages: cipd,
+		CipdPackages: pkgs,
 		Command:      []string{python, "-u", "buildbot/infra/bots/run_recipe.py", "${ISOLATED_OUTDIR}", recipe, props(properties), "skia"},
-		Dependencies: []string{BUNDLE_RECIPES_NAME},
+		Dependencies: []string{buildRecipesName},
 		Dimensions:   dimensions,
 		Environment: map[string]string{
 			"RECIPES_USE_PY3": "true",
@@ -282,7 +267,7 @@ func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []stri
 			"VPYTHON_DEFAULT_SPEC":    {"buildbot/.vpython"},
 		},
 		ExtraTags: map[string]string{
-			"log_location": LOGDOG_ANNOTATION_URL,
+			"log_location": logdogAnnotationURL,
 		},
 		Outputs:        outputs,
 		ServiceAccount: serviceAccount,
@@ -292,17 +277,17 @@ func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []stri
 // infra generates an infra test Task. Returns the name of the last Task in the
 // generated chain of Tasks, which the Job should add as a dependency.
 func infra(b *specs.TasksCfgBuilder, name string) string {
-	machineType := MACHINE_TYPE_MEDIUM
+	machineType := machineTypeMedium
 	if strings.Contains(name, "Large") {
-		// Using MACHINE_TYPE_LARGE for Large tests saves ~2 minutes.
-		machineType = MACHINE_TYPE_LARGE
+		// Using machineTypeLarge for Large tests saves ~2 minutes.
+		machineType = machineTypeLarge
 	}
 
-	task := kitchenTask(name, "swarm_infra", CAS_WHOLE_REPO, SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
+	task := kitchenTask(name, "swarm_infra", casWholeRepo, compileServiceAccount, linuxGceDimensions(machineType), nil, ignoreSwarmingOutput)
 
 	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
-	task.Caches = append(task.Caches, CACHES_GO...)
+	task.Caches = append(task.Caches, goCaches...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))
 	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GSUTIL...)
 	if strings.Contains(name, "Large") || strings.Contains(name, "Build") {
@@ -340,10 +325,10 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		"reason":           "CQ",
 		"repo_name":        "skia_buildbot",
 	}
-	for k, v := range EXTRA_PROPS {
+	for k, v := range extraProperties {
 		extraProps[k] = v
 	}
-	task := kitchenTask(name, "run_presubmit", CAS_RUN_RECIPE, SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_MEDIUM), extraProps, OUTPUT_NONE)
+	task := kitchenTask(name, "run_presubmit", casRunRecipe, compileServiceAccount, linuxGceDimensions(machineTypeMedium), extraProps, ignoreSwarmingOutput)
 	task.Caches = append(task.Caches, []*specs.Cache{
 		{
 			Name: "git",
@@ -376,35 +361,35 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 }
 
 func experimental(b *specs.TasksCfgBuilder, name string) string {
-	cipd := []*specs.CipdPackage{}
+	var pkgs []*specs.CipdPackage
 	if strings.Contains(name, "Win") {
-		cipd = append(cipd, specs.CIPD_PKGS_GIT_WINDOWS_AMD64...)
-		cipd = append(cipd, specs.CIPD_PKGS_PYTHON_WINDOWS_AMD64...)
+		pkgs = append(pkgs, specs.CIPD_PKGS_GIT_WINDOWS_AMD64...)
+		pkgs = append(pkgs, specs.CIPD_PKGS_PYTHON_WINDOWS_AMD64...)
 	} else {
-		cipd = append(cipd, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-		cipd = append(cipd, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...)
+		pkgs = append(pkgs, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+		pkgs = append(pkgs, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...)
 	}
-	cipd = append(cipd, specs.CIPD_PKGS_GSUTIL...)
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("node"))
+	pkgs = append(pkgs, specs.CIPD_PKGS_GSUTIL...)
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("node"))
 
-	machineType := MACHINE_TYPE_MEDIUM
+	machineType := machineTypeMedium
 	var deps []string
 	var dims []string
 	if strings.Contains(name, "Win") {
 		goPkg := b.MustGetCipdPackageFromAsset("go_win")
 		goPkg.Path = "go"
-		cipd = append(cipd, goPkg)
+		pkgs = append(pkgs, goPkg)
 		deps = append(deps, buildTaskDrivers(b, "Win", "x86_64"))
 		dims = winGceDimensions(machineType)
 	} else if strings.Contains(name, "Linux") {
-		cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+		pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
 		deps = append(deps, buildTaskDrivers(b, "Linux", "x86_64"))
 		dims = linuxGceDimensions(machineType)
 	}
 	t := &specs.TaskSpec{
-		Caches:       CACHES_GO,
-		CasSpec:      CAS_WHOLE_REPO,
-		CipdPackages: cipd,
+		Caches:       goCaches,
+		CasSpec:      casWholeRepo,
+		CipdPackages: pkgs,
 		Command: []string{
 			"./infra_tests",
 			"--project_id", "skia-swarming-bots",
@@ -423,22 +408,22 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 				"go/go/bin",
 			},
 		},
-		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+		ServiceAccount: compileServiceAccount,
 	}
 	b.MustAddTask(name, t)
 	return name
 }
 
 func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
 
-	machineType := MACHINE_TYPE_MEDIUM
+	machineType := machineTypeMedium
 	t := &specs.TaskSpec{
-		Caches:       CACHES_GO,
-		CasSpec:      CAS_EMPTY,
-		CipdPackages: cipd,
+		Caches:       goCaches,
+		CasSpec:      casEmpty,
+		CipdPackages: pkgs,
 		Command: []string{
 			"./update_go_deps",
 			"--project_id", "skia-swarming-bots",
@@ -458,22 +443,22 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		ServiceAccount: SERVICE_ACCOUNT_RECREATE_SKPS,
+		ServiceAccount: recreateSKPsServiceAccount,
 	}
 	b.MustAddTask(name, t)
 	return name
 }
 
 func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
 
-	machineType := MACHINE_TYPE_MEDIUM
+	machineType := machineTypeMedium
 	t := &specs.TaskSpec{
-		Caches:       append(CACHES_GO, CACHES_DOCKER...),
-		CasSpec:      CAS_EMPTY,
-		CipdPackages: cipd,
+		Caches:       append(goCaches, dockerCaches...),
+		CasSpec:      casEmpty,
+		CipdPackages: pkgs,
 		Command: []string{
 			"./build_push_docker_image",
 			"--image_name", "gcr.io/skia-public/infra",
@@ -496,22 +481,22 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+		ServiceAccount: compileServiceAccount,
 	}
 	b.MustAddTask(name, t)
 	return name
 }
 
 func createPushAppsFromInfraDockerImage(b *specs.TasksCfgBuilder, name string) string {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
 
-	machineType := MACHINE_TYPE_MEDIUM
+	machineType := machineTypeMedium
 	t := &specs.TaskSpec{
-		Caches:       append(CACHES_GO, CACHES_DOCKER...),
-		CasSpec:      CAS_EMPTY,
-		CipdPackages: cipd,
+		Caches:       append(goCaches, dockerCaches...),
+		CasSpec:      casEmpty,
+		CipdPackages: pkgs,
 		Command: []string{
 			"./push_apps_from_infra_image",
 			"--project_id", "skia-swarming-bots",
@@ -531,23 +516,23 @@ func createPushAppsFromInfraDockerImage(b *specs.TasksCfgBuilder, name string) s
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+		ServiceAccount: compileServiceAccount,
 	}
 	b.MustAddTask(name, t)
 	return name
 }
 
 func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("mockery"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("mockery"))
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
 
-	machineType := MACHINE_TYPE_MEDIUM
+	machineType := machineTypeMedium
 	t := &specs.TaskSpec{
-		Caches:       CACHES_GO,
-		CasSpec:      CAS_EMPTY,
-		CipdPackages: cipd,
+		Caches:       goCaches,
+		CasSpec:      casEmpty,
+		CipdPackages: pkgs,
 		Command: []string{
 			"./roll_cipd_packages",
 			"--project_id", "skia-swarming-bots",
@@ -568,18 +553,18 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "mockery"},
 		},
-		ServiceAccount: SERVICE_ACCOUNT_RECREATE_SKPS,
+		ServiceAccount: recreateSKPsServiceAccount,
 	}
 	b.MustAddTask(name, t)
 	return name
 }
 
 func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazelisk"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("mockery"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("bazelisk"))
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("mockery"))
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
 
 	cmd := []string{
 		"./bazel_build_all",
@@ -598,30 +583,30 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	}
 
 	t := &specs.TaskSpec{
-		Caches:       CACHES_GO,
-		CasSpec:      CAS_EMPTY,
-		CipdPackages: cipd,
+		Caches:       goCaches,
+		CasSpec:      casEmpty,
+		CipdPackages: pkgs,
 		Command:      cmd,
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
-		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
+		Dimensions:   linuxGceDimensions(machineTypeLarge),
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "mockery", "bazelisk"},
 		},
-		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+		ServiceAccount: compileServiceAccount,
 	}
 	b.MustAddTask(name, t)
 	return name
 }
 
 func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	cipd = append(cipd, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...)
-	cipd = append(cipd, specs.CIPD_PKGS_GSUTIL...)
-	cipd = append(cipd, specs.CIPD_PKGS_ISOLATE...)
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazelisk"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("cockroachdb"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("gcloud_linux"))
+	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	pkgs = append(pkgs, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...)
+	pkgs = append(pkgs, specs.CIPD_PKGS_GSUTIL...)
+	pkgs = append(pkgs, specs.CIPD_PKGS_ISOLATE...)
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("bazelisk"))
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("cockroachdb"))
+	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("gcloud_linux"))
 
 	cmd := []string{
 		"./bazel_test_all",
@@ -641,12 +626,12 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	}
 
 	t := &specs.TaskSpec{
-		Caches:       append(CACHES_VPYTHON, CACHES_GO...),
-		CasSpec:      CAS_EMPTY,
-		CipdPackages: cipd,
+		Caches:       append(vpythonCaches, goCaches...),
+		CasSpec:      casEmpty,
+		CipdPackages: pkgs,
 		Command:      cmd,
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
-		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
+		Dimensions:   linuxGceDimensions(machineTypeLarge),
 		EnvPrefixes: map[string][]string{
 			"PATH": {
 				"cipd_bin_packages",
@@ -660,14 +645,14 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 			},
 			"VPYTHON_VIRTUALENV_ROOT": {"cache/vpython"},
 		},
-		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+		ServiceAccount: compileServiceAccount,
 	}
 	b.MustAddTask(name, t)
 	return name
 }
 
 func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targets, includePaths []string) string {
-	cipd := []*specs.CipdPackage{
+	pkgs := []*specs.CipdPackage{
 		b.MustGetCipdPackageFromAsset("bazelisk"),
 	}
 
@@ -689,10 +674,10 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 	for _, includePath := range includePaths {
 		cmd = append(cmd, "--include_path", includePath)
 	}
-	cmd = append(cmd, CIPD_PLATFORMS...)
+	cmd = append(cmd, cipdPlatforms...)
 	t := &specs.TaskSpec{
-		CasSpec:      CAS_WHOLE_REPO,
-		CipdPackages: cipd,
+		CasSpec:      casWholeRepo,
+		CipdPackages: pkgs,
 		Command:      cmd,
 		Dependencies: []string{
 			buildTaskDrivers(b, "Linux", "x86_64"),
@@ -702,7 +687,7 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 			"Infra-PerCommit-Medium",
 			"Infra-PerCommit-Large",
 		},
-		Dimensions: linuxGceDimensions(MACHINE_TYPE_LARGE),
+		Dimensions: linuxGceDimensions(machineTypeLarge),
 		EnvPrefixes: map[string][]string{
 			"PATH": {
 				"cipd_bin_packages",
@@ -710,7 +695,7 @@ func buildAndDeployCIPD(b *specs.TasksCfgBuilder, name, packageName string, targ
 				"bazelisk",
 			},
 		},
-		ServiceAccount: SERVICE_ACCOUNT_CIPD_UPLOADER,
+		ServiceAccount: cipdUploaderServiceAccount,
 	}
 	b.MustAddTask(name, t)
 	return name
@@ -731,7 +716,7 @@ func buildAndDeployValidateAutorollConfigs(b *specs.TasksCfgBuilder, name string
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJobConfig) {
 	var priority float64 // Leave as default for most jobs.
-	deps := []string{}
+	var deps []string
 
 	if strings.Contains(name, "Experimental") {
 		// Experimental recipe-less tasks.
@@ -791,7 +776,7 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 	})
 
 	// Add the CQ spec if it is a CQ job.
-	if cqConfig != nil {
+	if cqConfig != noCQ {
 		b.MustAddCQJob(name, cqConfig)
 	}
 }
@@ -802,17 +787,17 @@ func main() {
 
 	// Create Tasks and Jobs.
 	bundleRecipes(b)
-	for name, cq := range JOBS_TO_CQ {
+	for name, cq := range jobsToCQStatus {
 		process(b, name, cq)
 	}
 
 	// CasSpecs.
-	b.MustAddCasSpec(CAS_AUTOROLL_CONFIGS, &specs.CasSpec{
+	b.MustAddCasSpec(casAutorollConfigs, &specs.CasSpec{
 		Root:  ".",
 		Paths: []string{"autoroll/config"},
 	})
-	b.MustAddCasSpec(CAS_EMPTY, specs.EmptyCasSpec)
-	b.MustAddCasSpec(CAS_RECIPES, &specs.CasSpec{
+	b.MustAddCasSpec(casEmpty, specs.EmptyCasSpec)
+	b.MustAddCasSpec(casRecipes, &specs.CasSpec{
 		Root: "..",
 		Paths: []string{
 			"buildbot/.vpython",
@@ -822,14 +807,14 @@ func main() {
 			"buildbot/infra/bots/recipes.py",
 		},
 	})
-	b.MustAddCasSpec(CAS_RUN_RECIPE, &specs.CasSpec{
+	b.MustAddCasSpec(casRunRecipe, &specs.CasSpec{
 		Root: "..",
 		Paths: []string{
 			"buildbot/.vpython",
 			"buildbot/infra/bots/run_recipe.py",
 		},
 	})
-	b.MustAddCasSpec(CAS_WHOLE_REPO, &specs.CasSpec{
+	b.MustAddCasSpec(casWholeRepo, &specs.CasSpec{
 		Root:     "..",
 		Paths:    []string{"buildbot"},
 		Excludes: []string{rbe.ExcludeGitDir},
