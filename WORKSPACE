@@ -135,15 +135,20 @@ load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_d
 
 build_bazel_rules_nodejs_dependencies()
 
-# The npm_install rule runs anytime the package.json or package-lock.json file changes. It also
-# extracts any Bazel rules distributed in an npm package.
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "npm_install")
+
+node_repositories(
+    node_version = "16.12.0",
+    # We don't use Yarn directly, but the Bazel rules in the rules_nodejs repository do.
+    yarn_version = "1.22.11",
+)
+
+# The npm_install rule manages the node_modules directory, and runs anytime the package.json or
+# package-lock.json file changes. It also extracts any Bazel rules distributed in an NPM package.
 #
 # There must be one npm_install rule for each package.json file in this repository. Any node_modules
 # directories managed by npm_install rules must be mentioned in the workspace() rule at the top of
 # this file.
-load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
-
-# Manages the node_modules directory.
 npm_install(
     name = "npm",
     exports_directories_only = False,
