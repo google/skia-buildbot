@@ -30,7 +30,7 @@ def esbuild_dev_bundle(
     """
     esbuild(
         name = name,
-        config = "//infra-sk:esbuild_config",
+        config = "//infra-sk/esbuild:esbuild_config",
         entry_point = entry_point,
         deps = deps,
         sourcemap = "inline",
@@ -62,7 +62,7 @@ def esbuild_prod_bundle(
     """
     esbuild(
         name = name,
-        config = "//infra-sk:esbuild_config",
+        config = "//infra-sk/esbuild:esbuild_config",
         entry_point = entry_point,
         deps = deps,
         output = output,

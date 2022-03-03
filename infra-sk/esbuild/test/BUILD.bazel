@@ -1,0 +1,35 @@
+load("//infra-sk:index.bzl", "nodejs_test", "ts_library")
+load("//infra-sk/esbuild:esbuild.bzl", "esbuild_dev_bundle", "esbuild_prod_bundle")
+
+ts_library(
+    name = "testdata_ts_lib",
+    srcs = ["testdata.ts"],
+    visibility = ["//visibility:public"],
+)
+
+esbuild_dev_bundle(
+    name = "dev_bundle",
+    entry_point = "testdata.ts",
+    output = "dev_bundle.js",
+    deps = [":testdata_ts_lib"],
+)
+
+esbuild_prod_bundle(
+    name = "prod_bundle",
+    entry_point = "testdata.ts",
+    output = "prod_bundle.js",
+    deps = [":testdata_ts_lib"],
+)
+
+nodejs_test(
+    name = "esbuild_sourcemap_nodejs_test",
+    src = "esbuild_sourcemap_nodejs_test.ts",
+    data = [
+        ":dev_bundle.js",
+        ":prod_bundle.js",
+    ],
+    deps = [
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)

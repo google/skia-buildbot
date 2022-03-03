@@ -1,0 +1,7 @@
+load("@npm//@bazel/esbuild:index.bzl", "esbuild_config")
+
+esbuild_config(
+    name = "esbuild_config",
+    config_file = "esbuild.config.mjs",
+    visibility = ["//visibility:public"],
+)

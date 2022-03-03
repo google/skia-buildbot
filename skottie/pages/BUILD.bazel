@@ -1,4 +1,4 @@
-load("//infra-sk:esbuild.bzl", "esbuild_prod_bundle")
+load("//infra-sk/esbuild:esbuild.bzl", "esbuild_prod_bundle")
 load("//infra-sk:index.bzl", "sk_page")
 
 CANVAKIT_FILES = [

@@ -27,6 +27,7 @@ var targetDirectories = map[string]bool{
 	"golden/pages":           true,
 	"hashtag/modules":        true,
 	"hashtag/pages":          true,
+	"infra-sk/esbuild":       true,
 	"infra-sk/modules":       true,
 	"jsfiddle/modules":       true,
 	"jsfiddle/pages":         true,

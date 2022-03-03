@@ -7,7 +7,7 @@ load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 load("//infra-sk/html_insert_assets:index.bzl", "html_insert_assets")
 load("//infra-sk/karma_test:index.bzl", _karma_test = "karma_test")
 load("//infra-sk/sk_demo_page_server:index.bzl", _sk_demo_page_server = "sk_demo_page_server")
-load(":esbuild.bzl", "esbuild_dev_bundle", "esbuild_prod_bundle")
+load("//infra-sk/esbuild:esbuild.bzl", "esbuild_dev_bundle", "esbuild_prod_bundle")
 load(":ts_library.bzl", _ts_library = "ts_library")
 
 # https://github.com/bazelbuild/bazel-skylib/blob/main/rules/common_settings.bzl
@@ -167,6 +167,7 @@ def make_label_target_explicit(label):
 def nodejs_test(
         name,
         src,
+        data = [],
         deps = [],
         tags = [],
         visibility = None,
@@ -203,6 +204,7 @@ def nodejs_test(
     Args:
       name: Name of the target.
       src: A single TypeScript source file.
+      data: Any data dependencies.
       deps: Any ts_library dependencies.
       tags: Tags for the generated nodejs_test rule.
       visibility: Visibility of the generated nodejs_test rule.
@@ -226,7 +228,7 @@ def nodejs_test(
     _nodejs_test(
         name = name,
         entry_point = "@npm//:node_modules/mocha/bin/mocha",
-        data = [src] + deps + [dep for dep in mocha_deps if dep not in deps],
+        data = data + [src] + deps + [dep for dep in mocha_deps if dep not in deps],
         templated_args = [
             "--require ts-node/register/transpile-only",
             "--timeout 60000",

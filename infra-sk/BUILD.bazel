@@ -1,5 +1,4 @@
 load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
-load("@npm//@bazel/esbuild:index.bzl", "esbuild_config")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -12,9 +11,4 @@ sass_library(
     name = "themes",
     srcs = ["themes.scss"],
     deps = ["//infra-sk:elements-sk_scss"],
-)
-
-esbuild_config(
-    name = "esbuild_config",
-    config_file = "esbuild.config.mjs",
 )
