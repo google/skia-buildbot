@@ -124,9 +124,6 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 	if conf.DB == nil {
 		return nil, skerr.Fmt("Baseliner cannot be nil")
 	}
-	if len(conf.ReviewSystems) == 0 {
-		return nil, skerr.Fmt("ReviewSystems cannot be empty")
-	}
 	if conf.GCSClient == nil {
 		return nil, skerr.Fmt("GCSClient cannot be nil")
 	}

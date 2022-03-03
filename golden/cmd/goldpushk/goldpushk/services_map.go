@@ -6,6 +6,7 @@ package goldpushk
 const (
 	// Gold instances.
 	Angle          Instance = "angle"
+	Battlestar     Instance = "battlestar"
 	Chrome         Instance = "chrome"
 	ChromePublic   Instance = "chrome-public"
 	ChromiumOSTast Instance = "cros-tast"
@@ -45,6 +46,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	s := DeployableUnitSet{
 		knownInstances: []Instance{
 			Angle,
+			Battlestar,
 			Chrome,
 			ChromePublic,
 			ChromiumOSTast,
@@ -79,13 +81,15 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			s.add(instance, Frontend)
 			s.add(instance, Ingestion)
 			s.add(instance, PeriodicTasks)
-			s.add(instance, GitilesFollower)
+			if instance != Battlestar {
+				s.add(instance, GitilesFollower)
+			}
 		}
 	}
 
 	// Add BaselineServer to the instances that require it.
 	publicInstancesNeedingBaselineServer := []Instance{
-		Angle, Chrome, ChromiumOSTast, ESkia, Flutter, FlutterEngine, Pdfium, SkiaInfra, Skia,
+		Angle, Battlestar, Chrome, ChromiumOSTast, ESkia, Flutter, FlutterEngine, Pdfium, SkiaInfra, Skia,
 	}
 	for _, instance := range publicInstancesNeedingBaselineServer {
 		s.add(instance, BaselineServer)

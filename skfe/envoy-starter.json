@@ -457,6 +457,59 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "gold-battlestar-baselineserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-battlestar-baselineserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-battlestar-baselineserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-battlestar-frontend",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-battlestar-frontend",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-battlestar-frontend",
+        "type": "STRICT_DNS"
+      },
+
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "gold-chrome-baselineserver",
           "endpoints": [
             {
@@ -1816,6 +1869,73 @@
                           },
                           "route": {
                             "cluster": "gold-angle-frontend",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "battlestar-gold.skia.org",
+                      "name": "battlestar-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/json/hashes"
+                          },
+                          "route": {
+                            "cluster": "gold-battlestar-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/json/expectations"
+                          },
+                          "route": {
+                            "cluster": "gold-battlestar-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/hashes"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-battlestar-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/expectations.*"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-battlestar-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-battlestar-frontend",
                             "timeout": {
                               "seconds": 600
                             }

@@ -89,12 +89,11 @@ func TestNewHandlers_BaselineSubset_MissingPieces_Failure(t *testing.T) {
 	assert.Contains(t, err.Error(), "cannot be nil")
 
 	hc = HandlersConfig{
-		DB:        &pgxpool.Pool{},
 		GCSClient: &mocks.GCSClient{},
 	}
 	_, err = NewHandlers(hc, BaselineSubset)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "cannot be empty")
+	assert.Contains(t, err.Error(), "cannot be nil")
 }
 
 // TestNewHandlers_FullFront_EndMissingPieces_Failure makes sure that if we omit values from

@@ -1,4 +1,5 @@
 include ../make/bazel.mk
+include ../kube/kube.mk
 
 .PHONY: default
 default:
@@ -10,7 +11,7 @@ frontend:
 	bazel build modules/...
 
 .PHONY: goldpushk
-goldpushk:
+goldpushk: kube-conf-gen
 	go install ./cmd/goldpushk/...
 
 # Build the gold-frontend container with Bazel and push it to GCR.
