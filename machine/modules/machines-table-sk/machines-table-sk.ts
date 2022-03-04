@@ -10,12 +10,14 @@
  */
 import { html, TemplateResult } from 'lit-html';
 
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { diffDate, strDuration } from 'common-sk/modules/human';
 import { $$ } from 'common-sk/modules/dom';
+import { errorMessage } from 'elements-sk/errorMessage';
 import {
   Annotation, AttachedDevice, FrontendDescription, SetAttachedDevice, SetNoteRequest, SupplyChromeOSRequest,
 } from '../json';
-import { LiveTableSk, WaitCursor } from '../live-table-sk';
+
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import 'elements-sk/error-toast-sk/index';
 import 'elements-sk/icon/cached-icon-sk';
@@ -26,6 +28,9 @@ import 'elements-sk/icon/power-settings-new-icon-sk';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/styles/select';
 import 'elements-sk/spinner-sk';
+import 'elements-sk/icon/sort-icon-sk';
+import 'elements-sk/icon/arrow-drop-down-icon-sk';
+import 'elements-sk/icon/arrow-drop-up-icon-sk';
 import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
 import '../auto-refresh-sk';
 import '../device-editor-sk';
@@ -37,6 +42,14 @@ import {
   UpdateDimensionsDetails,
   UpdateDimensionsEvent,
 } from '../device-editor-sk/device-editor-sk';
+import { compareFunc, SortHistory, up } from '../sort';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
+import { FilterArray } from '../filter-array';
+
+export enum WaitCursor {
+  DO_NOT_SHOW,
+  SHOW,
+}
 
 /**
  * Updates should arrive every 30 seconds, so we allow up to 2x that for lag
@@ -50,6 +63,11 @@ export const MAX_LAST_UPDATED_ACCEPTABLE_MS = 60 * 1000;
  */
 export const MAX_UPTIME_ACCEPTABLE_S = 60 * 60 * 25;
 
+export const MachineTableSkSortChangeEventName: string = 'machine-table-sort-change';
+
+// The event detail is the sort history of the table encoded as a string.
+export type MachineTableSkChangeEventDetail = string;
+
 const attachedDeviceDisplayName: Record< string, AttachedDevice> = {
   '-': 'nodevice',
   Android: 'adb',
@@ -59,6 +77,76 @@ const attachedDeviceDisplayName: Record< string, AttachedDevice> = {
 
 // Sorted by display name.
 const attachedDeviceDisplayNamesOrder: string[] = Object.keys(attachedDeviceDisplayName).sort();
+
+/** sortBooleans is a utility function for sorting booleans, where true comes
+ * before false. */
+const sortBooleans = (a: boolean, b: boolean): number => {
+  if (a === b) {
+    return 0;
+  }
+  if (a) {
+    return 1;
+  }
+  return -1;
+};
+
+// Sort functions for different clumns, i.e. values in FrontendDescription.
+export const sortByMode = (a: FrontendDescription, b: FrontendDescription): number => a.Mode.localeCompare(b.Mode);
+
+export const sortByAttachedDevice = (a: FrontendDescription, b: FrontendDescription): number => a.AttachedDevice.localeCompare(b.AttachedDevice);
+
+export const sortByAnnotation = (a: FrontendDescription, b: FrontendDescription): number => a.Annotation.Message.localeCompare(b.Annotation.Message);
+
+export const sortByNote = (a: FrontendDescription, b: FrontendDescription): number => a.Note.Message.localeCompare(b.Note.Message);
+
+export const sortByVersion = (a: FrontendDescription, b: FrontendDescription): number => a.Version.localeCompare(b.Version);
+
+export const sortByPowerCycle = (a: FrontendDescription, b: FrontendDescription): number => sortBooleans(a.PowerCycle, b.PowerCycle);
+
+export const sortByLastUpated = (a: FrontendDescription, b: FrontendDescription): number => a.LastUpdated.localeCompare(b.LastUpdated);
+
+export const sortByBattery = (a: FrontendDescription, b: FrontendDescription): number => a.Battery - b.Battery;
+
+export const sortByRunningSwarmingTask = (a: FrontendDescription, b: FrontendDescription): number => sortBooleans(a.RunningSwarmingTask, b.RunningSwarmingTask);
+
+export const sortByLaunchedSwarming = (a: FrontendDescription, b: FrontendDescription): number => sortBooleans(a.LaunchedSwarming, b.LaunchedSwarming);
+
+export const sortByDeviceUptime = (a: FrontendDescription, b: FrontendDescription): number => a.DeviceUptime - b.DeviceUptime;
+
+export const sortByDevice = (a: FrontendDescription, b: FrontendDescription): number => pretty_device_name(a.Dimensions!.device_type).localeCompare(pretty_device_name(b.Dimensions!.device_type));
+
+export const sortByQuarantined = (a: FrontendDescription, b: FrontendDescription): number => {
+  const qa = a.Dimensions!.quarantined?.join('') || '';
+  const qb = b.Dimensions!.quarantined?.join('') || '';
+  return qa.localeCompare(qb);
+};
+
+export const sortByMachineID = (a: FrontendDescription, b: FrontendDescription): number => {
+  const qa = a.Dimensions!.id?.join('') || '';
+  const qb = b.Dimensions!.id?.join('') || '';
+  return qa.localeCompare(qb);
+};
+
+// Do not change the location of these functions, i.e. their index, as that would
+// change the meaning of URLs already in the wild. Always add new sort functions
+// to the end of the list, and if a sort function is no-longer used replace it with
+// a no-op function, e.g. (a: FrontendDescription, b: FrontendDescription): number => 0.
+const sortFunctionsByColumn: compareFunc<FrontendDescription>[] = [
+  sortByMachineID,
+  sortByAttachedDevice,
+  sortByDevice,
+  sortByMode,
+  sortByPowerCycle,
+  sortByQuarantined,
+  sortByRunningSwarmingTask,
+  sortByBattery,
+  sortByLastUpated,
+  sortByDeviceUptime,
+  sortByLaunchedSwarming,
+  sortByNote,
+  sortByAnnotation,
+  sortByVersion,
+];
 
 const temps = (temperatures: { [key: string]: number } | null): TemplateResult => {
   if (!temperatures) {
@@ -220,41 +308,107 @@ export const pretty_device_name = (devices: string[] | null): string => {
   return `${devices.join(' | ')} ${alias}`;
 };
 
-const attachedDeviceOption = (key: string, ele: MachinesTableSk, machine: FrontendDescription): TemplateResult => html`<option value=${attachedDeviceDisplayName[key]} ?selected=${attachedDeviceDisplayName[key] === machine.AttachedDevice}>${key}</option>`;
+/**
+   * The URL path from which to fetch the JSON representation of the latest
+   * list items
+   */
+const fetchPath = '/_/machines';
 
-const attachedDevice = (ele: MachinesTableSk, machine: FrontendDescription): TemplateResult => html`
-  <select @input=${(e: InputEvent) => ele.attachedDeviceChanged(e, machine.Dimensions!.id![0])}>
-    ${attachedDeviceDisplayNamesOrder.map((key: string) => attachedDeviceOption(key, ele, machine))}
-  </select>
-`;
-
-export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
+export class MachinesTableSk extends ElementSk {
   private noteEditor: NoteEditorSk | null = null;
 
   private deviceEditor: DeviceEditorSk | null = null;
 
-  fetchPath = '/_/machines';
+  private sortHistory: SortHistory<FrontendDescription> = new SortHistory(sortFunctionsByColumn);
+
+  private filterer: FilterArray<FrontendDescription> = new FilterArray();
+
+  private static template = (ele: MachinesTableSk): TemplateResult => html`
+    <table>
+      <thead>
+        <tr>
+          ${ele.tableHeaders()}
+        </tr>
+      </thead>
+      <tbody>
+        ${ele.tableRows()}
+      </tbody>
+    </table>
+    ${ele.moreTemplate()}
+  `;
+
+  constructor() {
+    super(MachinesTableSk.template);
+    this.classList.add('defaultLiveTableSkStyling');
+  }
+
+  private tableRows(): TemplateResult[] {
+    const values = this.filterer.matchingValues();
+    values.sort(this.sortHistory.compare.bind(this.sortHistory));
+    return values.map((item) => this.tableRow(item));
+  }
+
+  /**
+   * Show and hide rows to reflect a change in the filtration string.
+   */
+  filterChanged(value: string): void {
+    this.filterer.filterChanged(value);
+    this._render();
+  }
+
+  restoreSortState(value: string): void {
+    this.sortHistory.decode(value);
+  }
+
+  /**
+   * Fetch the latest list from the server, and update the page to reflect it.
+   *
+   * @param showWaitCursor Whether the mouse pointer should be changed to a
+   *   spinner while we wait for the fetch
+   */
+  async update(waitCursorPolicy: WaitCursor = WaitCursor.DO_NOT_SHOW): Promise<void> {
+    if (waitCursorPolicy === WaitCursor.SHOW) {
+      this.setAttribute('waiting', '');
+    }
+
+    try {
+      const resp = await fetch(fetchPath);
+      const json = await jsonOrThrow(resp);
+      if (waitCursorPolicy === WaitCursor.SHOW) {
+        this.removeAttribute('waiting');
+      }
+      this.filterer.updateArray(json);
+      this._render();
+    } catch (error: any) {
+      this.onError(error);
+    }
+  }
+
+  onError(msg: { message: string; } | string): void {
+    this.removeAttribute('waiting');
+    errorMessage(msg);
+  }
 
   tableHeaders(): TemplateResult {
     return html`
-      <th>Machine</th>
-      <th>Attached</th>
-      <th>Device</th>
-      <th>Mode</th>
-      <th>Host</th>
-      <th>Device</th>
-      <th>Quarantined</th>
-      <th>Task</th>
-      <th>Battery</th>
+      <th>Machine ${this.sortArrow(sortByMachineID)}</th>
+      <th>Attached ${this.sortArrow(sortByAttachedDevice)}</th>
+      <th>Device ${this.sortArrow(sortByDevice)}</th>
+      <th>Mode ${this.sortArrow(sortByMode)}</th>
+      <th>Power${this.sortArrow(sortByPowerCycle)}</th>
+      <th>Details</th>
+      <th>Quarantined ${this.sortArrow(sortByQuarantined)}</th>
+      <th>Task ${this.sortArrow(sortByRunningSwarmingTask)}</th>
+      <th>Battery ${this.sortArrow(sortByBattery)}</th>
       <th>Temperature</th>
-      <th>Last Seen</th>
-      <th>Uptime</th>
+      <th>Last Seen ${this.sortArrow(sortByLastUpated)}</th>
+      <th>Uptime ${this.sortArrow(sortByDeviceUptime)}</th>
       <th>Dimensions</th>
-      <th>Launched Swarming</th>
-      <th>Note</th>
-      <th>Annotation</th>
-      <th>Version</th>
-      <th>Delete</th>
+      <th>Launched Swarming ${this.sortArrow(sortByLaunchedSwarming)}</th>
+      <th>Note ${this.sortArrow(sortByNote)}</th>
+      <th>Annotation ${this.sortArrow(sortByAnnotation)}</th>
+      <th>Version ${this.sortArrow(sortByVersion)}</th>
+      <th>Delete </th>
     `;
   }
 
@@ -265,7 +419,7 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
     return html`
       <tr id=${machine.Dimensions.id[0]}>
         <td>${machineLink(machine)}</td>
-        <td>${attachedDevice(this, machine)}</td>
+        <td>${this.attachedDevice(machine)}</td>
         <td>${pretty_device_name(machine.Dimensions.device_type)}</td>
         <td>${toggleMode(this, machine)}</td>
         <td class="powercycle">${powerCycle(this, machine)}</td>
@@ -286,11 +440,55 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
     `;
   }
 
-  protected moreTemplate(): TemplateResult {
+  private moreTemplate(): TemplateResult {
     return html`
       <note-editor-sk></note-editor-sk>
       <device-editor-sk></device-editor-sk>
     `;
+  }
+
+  private attachedDeviceOption(key: string, machine: FrontendDescription): TemplateResult {
+    return html`
+    <option
+      value=${attachedDeviceDisplayName[key]}
+      ?selected=${attachedDeviceDisplayName[key] === machine.AttachedDevice}>
+      ${key}
+    </option>`;
+  }
+
+  private attachedDevice(machine: FrontendDescription): TemplateResult {
+    return html`
+    <select
+      @input=${(e: InputEvent) => this.attachedDeviceChanged(e, machine.Dimensions!.id![0])}>
+      ${attachedDeviceDisplayNamesOrder.map((key: string) => this.attachedDeviceOption(key, machine))}
+    </select>`;
+  }
+
+  private sortArrow(fn: compareFunc<FrontendDescription>): TemplateResult {
+    const column = sortFunctionsByColumn.indexOf(fn);
+    if (column === -1) {
+      errorMessage(`Invalid compareFunc: ${fn.name}`);
+    }
+    const firstSortSelection = this.sortHistory!.history[0];
+
+    if (column === firstSortSelection.column) {
+      if (firstSortSelection.dir === up) {
+        return html`<arrow-drop-up-icon-sk title="Change sort order to descending." @click=${() => this.changeSort(column)}></arrow-drop-up-icon-sk>`;
+      }
+      return html`<arrow-drop-down-icon-sk title="Change sort order to ascending." @click=${() => this.changeSort(column)}></arrow-drop-down-icon-sk>`;
+    }
+    return html`<sort-icon-sk title="Sort this column." @click=${() => this.changeSort(column)}></sort-icon-sk>`;
+  }
+
+  private changeSort(column: number) {
+    this.sortHistory?.selectColumnToSortOn(column);
+
+    this.dispatchEvent(
+      new CustomEvent<MachineTableSkChangeEventDetail>(
+        MachineTableSkSortChangeEventName, { detail: this.sortHistory!.encode(), bubbles: true },
+      ),
+    );
+    this._render();
   }
 
   private editDeviceIcon = (machine: FrontendDescription): TemplateResult => ((machine.RunningSwarmingTask || machine.AttachedDevice !== 'ssh')
@@ -299,12 +497,13 @@ export class MachinesTableSk extends LiveTableSk<FrontendDescription> {
         <edit-icon-sk
           title="Edit/clear the dimensions for the bot"
           class="edit_device"
-          @click=${() => this.deviceEditor?.show(machine.Dimensions, machine.SSHUserIP)}
+          @click=${() => this.deviceEditor!.show(machine.Dimensions, machine.SSHUserIP)}
         ></edit-icon-sk>
       `);
 
-  async connectedCallback(): Promise<void> {
-    await super.connectedCallback();
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._render();
     this.noteEditor = $$<NoteEditorSk>('note-editor-sk', this);
     this.deviceEditor = $$<DeviceEditorSk>('device-editor-sk', this);
 

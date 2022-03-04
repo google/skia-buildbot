@@ -15,11 +15,8 @@ import 'elements-sk/tabs-panel-sk';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { MachinesTableSk } from '../machines-table-sk';
-import { WaitCursor } from '../live-table-sk';
+import { MachinesTableSk, MachineTableSkChangeEventDetail, WaitCursor } from '../machines-table-sk';
 import '../machines-table-sk';
-import '../pods-table-sk';
-import '../meeting-points-table-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 
@@ -27,6 +24,9 @@ import '../../../infra-sk/modules/app-sk';
 class State {
   /** The value of the search input element. */
   search: string = '';
+
+  /** The value of the sort history encode as a string. */
+  sort: string = '';
 }
 
 export class MachineAppSk extends ElementSk {
@@ -41,7 +41,7 @@ export class MachineAppSk extends ElementSk {
   private machinesTable: MachinesTableSk | null = null;
 
   protected _template = (ele: MachineAppSk): TemplateResult => html`
-    <app-sk>
+    <app-sk @machine-table-sort-change=${ele.sortChanged}>
       <header>
         <span>
           <auto-refresh-sk @refresh-page=${ele.update}></auto-refresh-sk>
@@ -70,6 +70,8 @@ export class MachineAppSk extends ElementSk {
       (hintableState) => {
         const state = hintableState as unknown as State;
         this.state = state;
+        this.machinesTable?.restoreSortState(this.state.sort);
+
         this.update();
 
         this._inputElement!.value = this.state.search;
@@ -83,6 +85,12 @@ export class MachineAppSk extends ElementSk {
   private filterChanged(): void {
     this.propagateFilterChange();
     this.state.search = this._inputElement!.value;
+    this.stateHasChanged();
+  }
+
+  /** Handle the sort order changing. */
+  private sortChanged(e: CustomEvent<MachineTableSkChangeEventDetail>): void {
+    this.state.sort = e.detail;
     this.stateHasChanged();
   }
 

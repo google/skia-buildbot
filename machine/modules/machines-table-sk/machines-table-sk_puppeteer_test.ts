@@ -11,7 +11,7 @@ describe('machines-table-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/machines-table-sk.html`);
-    await testBed.page.setViewport({ width: 2000, height: 500 });
+    await testBed.page.setViewport({ width: 2800, height: 500 });
   });
 
   it('should render the demo page (smoke test)', async () => {

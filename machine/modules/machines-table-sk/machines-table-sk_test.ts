@@ -4,11 +4,15 @@ import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import {
-  MachinesTableSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name,
+  Mode, AttachedDevice, Annotation, SwarmingDimensions,
+} from '../json';
+import {
+  MachinesTableSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name, sortByAnnotation, sortByAttachedDevice, sortByBattery, sortByDevice, sortByDeviceUptime, sortByLastUpated, sortByLaunchedSwarming, sortByMachineID, sortByMode, sortByNote, sortByPowerCycle, sortByQuarantined, sortByRunningSwarmingTask, sortByVersion,
 } from './machines-table-sk';
 import {
   FrontendDescription, ListMachinesResponse, SetNoteRequest,
 } from '../json';
+import { compareFunc } from '../sort';
 
 function mockMachinesResponse(param: ListMachinesResponse | Partial<FrontendDescription>[]): void {
   fetchMock.get('/_/machines', param);
@@ -332,6 +336,42 @@ describe('machines-table-sk', () => {
     });
     it('returns the last match in a list', () => {
       assert.equal('herolte | universal8890 (Galaxy S7 [Global])', pretty_device_name(['herolte', 'universal8890']));
+    });
+  });
+
+  // Utiltiy function that tests the compare function passed in against
+  // FrontendDescriptions with the value of its 'key' set to 'aValue' and
+  // 'bValue' respectively. Note that the values passed in must be in the order
+  // aValue < bValue.
+  const testCompareFunc = <T>(key: string, fn: compareFunc<FrontendDescription>, aValue: T, bValue: T) => {
+    const a: Record<string, T> = {};
+    a[key] = aValue;
+    const b: Record<string, T> = {};
+    b[key] = bValue;
+
+    const castFn = fn as unknown as compareFunc<Record<string, T>>;
+    assert.isBelow(castFn(a, b), 0, key);
+    assert.isAbove(castFn(b, a), 0, key);
+    assert.equal(castFn(b, b), 0, key);
+    assert.equal(castFn(a, a), 0, key);
+  };
+
+  describe('compare functions', () => {
+    it('returns correct values on compare', () => {
+      testCompareFunc<Mode>('Mode', sortByMode, 'available', 'maintenance');
+      testCompareFunc<AttachedDevice>('AttachedDevice', sortByAttachedDevice, 'adb', 'nodevice');
+      testCompareFunc<Annotation>('Annotation', sortByAnnotation, { Message: 'a' } as Annotation, { Message: 'b' } as Annotation);
+      testCompareFunc<Annotation>('Note', sortByNote, { Message: 'a' } as Annotation, { Message: 'b' } as Annotation);
+      testCompareFunc<string>('Version', sortByVersion, 'v001', 'v002');
+      testCompareFunc<boolean>('PowerCycle', sortByPowerCycle, false, true);
+      testCompareFunc<string>('LastUpdated', sortByLastUpated, '2022-03-03T22:22:22.222222Z', '2022-03-03T44:44:44.444444Z');
+      testCompareFunc<number>('Battery', sortByBattery, 50, 100);
+      testCompareFunc<boolean>('RunningSwarmingTask', sortByRunningSwarmingTask, false, true);
+      testCompareFunc<boolean>('LaunchedSwarming', sortByLaunchedSwarming, false, true);
+      testCompareFunc<number>('DeviceUptime', sortByDeviceUptime, 10, 20);
+      testCompareFunc<SwarmingDimensions>('Dimensions', sortByDevice, { device_type: ['a'] }, { device_type: ['b'] });
+      testCompareFunc<SwarmingDimensions>('Dimensions', sortByQuarantined, { quarantined: ['a'] }, { quarantined: ['b'] });
+      testCompareFunc<SwarmingDimensions>('Dimensions', sortByMachineID, { id: ['a'] }, { id: ['b'] });
     });
   });
 });
