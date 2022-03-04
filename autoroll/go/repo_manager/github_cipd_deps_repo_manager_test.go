@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/cipd/mocks"
-	infra_common "go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
@@ -93,6 +92,8 @@ func setupGithubCipdDEPS(t *testing.T, cfg *config.ParentChildRepoManagerConfig)
 	require.NoError(t, err)
 	ctx := context.Background()
 
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
+
 	// Under Bazel and RBE, there is no pre-existing depot_tools repository checkout for tests to use,
 	// so depot_tools.Get() will try to clone the depot_tools repository. However, the delegate "run"
 	// function of the exec.CommandCollector below skips any "git clone" commands. For this reason, we
@@ -100,8 +101,7 @@ func setupGithubCipdDEPS(t *testing.T, cfg *config.ParentChildRepoManagerConfig)
 	// make the checkout available to the caller test case via the corresponding environment variable.
 	originalDepotToolsTestEnvVar := os.Getenv(depot_tools.DEPOT_TOOLS_TEST_ENV_VAR)
 	if bazel.InBazelTestOnRBE() {
-		depotToolsDir := filepath.Join(wd, "depot_tools")
-		_, err := git.NewCheckout(ctx, infra_common.REPO_DEPOT_TOOLS, wd)
+		depotToolsDir, err := depot_tools.Sync(ctx, filepath.Join(wd, "depot_tools"), recipesCfg)
 		require.NoError(t, err)
 		require.NoError(t, os.Setenv(depot_tools.DEPOT_TOOLS_TEST_ENV_VAR, depotToolsDir))
 	}
@@ -142,8 +142,6 @@ deps = {
 		return exec.DefaultRun(ctx, cmd)
 	})
 	ctx = exec.NewContext(ctx, mockRun.Run)
-
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(ctx, t, nil)
 
