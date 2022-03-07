@@ -17,4 +17,4 @@ ${INSTALL} --mode=644 -T ${IMAGE}/kubeconfig.yaml ${ROOT}/etc/thanos-bouncer/kub
 ${INSTALL} --mode=755 -T ${IMAGE}/bouncer.sh      ${ROOT}/usr/local/bin/bouncer.sh
 }
 
-source ../bash/docker_build.sh
+source ../../../bash/docker_build.sh

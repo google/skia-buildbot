@@ -21,4 +21,4 @@ ${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile   ${ROOT}/Dockerfile
 ${INSTALL} --mode=755 -T ./thanos-0.18.0.linux-amd64/thanos ${ROOT}/usr/local/bin/thanos
 }
 
-source ../bash/docker_build.sh
+source ../../../bash/docker_build.sh
