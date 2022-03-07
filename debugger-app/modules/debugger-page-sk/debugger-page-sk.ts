@@ -110,6 +110,8 @@ export class DebuggerPageSk extends ElementDocSk {
           title="The skia commit at which the debugger WASM module was built">
           ${ele._skiaVersionShort}
         </a>
+        &nbsp;
+        <a href="/versions">Older Debugger Versions</a>
         <theme-chooser-sk></theme-chooser-sk>
       </span>
     </header>

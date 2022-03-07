@@ -36,6 +36,18 @@ skia_app_container(
                 "0644",
             ],
             [
+                "//debugger-app/pages:production/versions.html",
+                "0644",
+            ],
+            [
+                "//debugger-app/pages:production/versions.js",
+                "0644",
+            ],
+            [
+                "//debugger-app/pages:production/versions.css",
+                "0644",
+            ],
+            [
                 "//debugger-app/static:images",
                 "0644",
             ],

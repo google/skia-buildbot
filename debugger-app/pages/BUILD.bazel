@@ -42,3 +42,12 @@ sk_page(
     sk_element_deps = ["//debugger-app/modules/debugger-page-sk"],
     ts_entry_point = "main.ts",
 )
+
+sk_page(
+    name = "versions",
+    assets_serving_path = "/dist",
+    html_file = "versions.html",
+    scss_entry_point = "versions.scss",
+    sk_element_deps = ["//debugger-app/modules/version-page-sk"],
+    ts_entry_point = "versions.ts",
+)

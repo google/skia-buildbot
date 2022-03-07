@@ -17,6 +17,8 @@ import (
 var (
 	// The loaded index page of the lit-html version.
 	indexPage []byte
+	// The page that displays the older debugger versions.
+	versionsPage []byte
 )
 
 func main() {
@@ -32,7 +34,7 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
-	loadPage(*resourcesDir)
+	loadPages(*resourcesDir)
 
 	// Need to set the mime-type for wasm files so streaming compile works.
 	if err := mime.AddExtensionType(".wasm", "application/wasm"); err != nil {
@@ -42,18 +44,26 @@ func main() {
 	router := mux.NewRouter()
 	router.PathPrefix("/dist/").HandlerFunc(makeResourceHandler(*resourcesDir))
 	router.HandleFunc("/", mainHandler)
+	router.HandleFunc("/old", versionsHandler)
+	router.HandleFunc("/versions", versionsHandler)
 
 	http.Handle("/", httputils.HealthzAndHTTPS(httputils.LoggingRequestResponse(router)))
 	sklog.Info("Application served at http://localhost:8000/dist/main.html")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
-func loadPage(resourceDir string) {
+func loadPages(resourceDir string) {
 	p, err := ioutil.ReadFile(filepath.Join(resourceDir, "main.html"))
 	if err != nil {
 		sklog.Fatalf("Could not find index html: %s", err)
 	}
 	indexPage = p
+
+	p, err = ioutil.ReadFile(filepath.Join(resourceDir, "versions.html"))
+	if err != nil {
+		sklog.Fatalf("Could not find index html: %s", err)
+	}
+	versionsPage = p
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -64,6 +74,14 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "max-age=60")
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write(indexPage); err != nil {
+		httputils.ReportError(w, err, "Server could not load page", http.StatusInternalServerError)
+	}
+}
+
+func versionsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(versionsPage); err != nil {
 		httputils.ReportError(w, err, "Server could not load page", http.StatusInternalServerError)
 	}
 }
