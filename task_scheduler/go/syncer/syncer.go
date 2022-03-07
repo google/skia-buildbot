@@ -190,8 +190,10 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	// Run gclient to obtain a checkout of the repo and its DEPS.
 	gclientPath := path.Join(depotToolsDir, "gclient.py")
 	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")
+	// gclient requires the use of vpython3 to bring in needed dependencies.
+	vpythonBinary := "vpython3"
 	spec := fmt.Sprintf("cache_dir = '%s'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", gitCacheDir, projectName, rs.Repo)
-	if _, err := exec.RunCwd(ctx, tmp, "python", "-u", gclientPath, "config", fmt.Sprintf("--spec=%s", spec)); err != nil {
+	if _, err := exec.RunCwd(ctx, tmp, vpythonBinary, "-u", gclientPath, "config", fmt.Sprintf("--spec=%s", spec)); err != nil {
 		return nil, skerr.Wrapf(err, "Failed 'gclient config'")
 	}
 
@@ -202,7 +204,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		patchRepoName = strings.TrimSuffix(path.Base(rs.PatchRepo), ".git")
 	}
 	cmd := []string{
-		"python", "-u", gclientPath, "sync",
+		vpythonBinary, "-u", gclientPath, "sync",
 		"--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision),
 		"--reset", "--force", "--ignore_locks", "--nohooks", "--noprehooks",
 		"-v", "-v", "-v",

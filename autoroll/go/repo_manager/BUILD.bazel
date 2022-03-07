@@ -38,6 +38,7 @@ go_library(
 
 go_test(
     name = "repo_manager_test",
+    size = "large",
     srcs = [
         "android_repo_manager_test.go",
         "command_repo_manager_test.go",

@@ -20,6 +20,7 @@ go_library(
 
 go_test(
     name = "syncer_test",
+    size = "large",
     srcs = [
         "syncer_manual_test.go",
         "syncer_test.go",

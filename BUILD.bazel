@@ -229,6 +229,14 @@ container_run_and_commit(
         "mkdir /cipd",
         "/depot_tools/cipd init /cipd -force",
 
+        # Initialize the CIPD bin directory.
+        "mkdir /cipd/bin",
+        "/depot_tools/cipd init /cipd/bin -force",
+
+        # Initialize the CIPD python3 directory.
+        "mkdir /cipd/bin/cpython3",
+        "/depot_tools/cipd init /cipd/bin/cpython3 -force",
+
         # Install CIPD packages needed by various tests. These should be kept in sync with
         # //cipd.ensure.
         "/depot_tools/cipd install infra/3pp/tools/git/linux-amd64 version:2.29.2.chromium.6 " +
@@ -237,6 +245,14 @@ container_run_and_commit(
         "    git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378 -root /cipd",
         "/depot_tools/cipd install infra/tools/luci/isolated/linux-amd64 " +
         "    git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378 -root /cipd",
+
+        # Install vpython.
+        "/depot_tools/cipd install infra/tools/luci/vpython/linux-amd64 " +
+        "    git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097 -root /cipd/bin",
+        "/depot_tools/cipd install infra/tools/luci/vpython-native/linux-amd64 " +
+        "    git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097 -root /cipd/bin",
+        "/depot_tools/cipd install infra/3pp/tools/cpython3/linux-amd64 " +
+        "    version:2@3.8.10.chromium.19 -root /cipd/bin/cpython3",
 
         # Include the CIPD-installed binaries (including git) in the PATH. Note that this does
         # not persist after the container is created. Said binaries are included in the PATH

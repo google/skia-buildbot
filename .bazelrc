@@ -64,7 +64,7 @@ build:remote --test_env=BAZEL_REMOTE=true
 
 # Update the PATH environment variable under RBE to include the locations of various binaries
 # installed in our custom RBE container toolchain image.
-build:remote --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/local/go/bin:/cipd:/cipd/bin
+build:remote --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/local/go/bin:/cipd:/cipd/bin:/cipd/bin/cpython:/cipd/bin/cpython3:/cipd/bin/cpython3/bin
 
 # Sass compilation errors are not correctly reported unless "bazel build" is invoked with this flag.
 # This is due to a known issue with sass_binary.

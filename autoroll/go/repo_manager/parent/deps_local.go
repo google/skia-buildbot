@@ -61,13 +61,15 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		}
 	}
 	gclientCmd := []string{filepath.Join(depotTools, GClient)}
+	// gclient requires the use of vpython3 to bring in needed dependencies.
+	vpythonBinary := "vpython3"
 	gclient := func(ctx context.Context, cmd ...string) error {
 		args := append(gclientCmd, cmd...)
-		sklog.Infof("Running: %s %s", "python", strings.Join(args, " "))
+		sklog.Infof("Running: %s %s", vpythonBinary, strings.Join(args, " "))
 		_, err := exec.RunCommand(ctx, &exec.Command{
 			Dir:  workdir,
 			Env:  depotToolsEnv,
-			Name: "python",
+			Name: vpythonBinary,
 			Args: args,
 		})
 		return skerr.Wrap(err)

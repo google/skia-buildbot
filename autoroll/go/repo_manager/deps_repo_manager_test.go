@@ -121,7 +121,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig
 			}
 			*lastUpload = *d
 			return nil
-		} else if cmd.Name == "python" && strings.Contains(cmd.Args[0], "gclient.py") && cmd.Args[1] == "sync" && util.In("--patch-ref", cmd.Args) && util.In("--no-rebase-patch-ref", cmd.Args) && util.In("--no-reset-patch-ref", cmd.Args) {
+		} else if cmd.Name == "vpython3" && strings.Contains(cmd.Args[0], "gclient.py") && cmd.Args[1] == "sync" && util.In("--patch-ref", cmd.Args) && util.In("--no-rebase-patch-ref", cmd.Args) && util.In("--no-reset-patch-ref", cmd.Args) {
 			*patchRefInSyncCmd = true
 			return nil
 		}
@@ -362,7 +362,7 @@ cache_dir=None
 	// Ensure that we pass the spec into "gclient config".
 	found := false
 	for _, c := range mockRun.Commands() {
-		if c.Name == "python" && strings.Contains(c.Args[0], parent.GClient) && c.Args[1] == "config" {
+		if c.Name == "vpython3" && strings.Contains(c.Args[0], parent.GClient) && c.Args[1] == "config" {
 			for _, arg := range c.Args {
 				if strings.HasPrefix(arg, "--spec=") && strings.Contains(arg, `"a": "b",`) {
 					found = true
