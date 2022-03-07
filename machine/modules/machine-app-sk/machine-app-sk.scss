@@ -10,6 +10,10 @@ machine-app-sk {
       display: flex;
       align-items: center;
 
+      more-vert-icon-sk {
+        cursor: pointer;
+      }
+
       input,
       h1 {
         display: inline;

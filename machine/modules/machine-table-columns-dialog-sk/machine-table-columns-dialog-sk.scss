@@ -1,0 +1,29 @@
+@import '../theme/theme';
+
+machine-table-columns-dialog-sk {
+  dialog[open] {
+    padding: 8px;
+    border: solid 1px var(--on-surface);
+    color: var(--on-background);
+    background: var(--background);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 0;
+    }
+
+    .controls {
+      display: block;
+      text-align: right;
+
+      button {
+        margin-right: 0 8px 0 0;
+      }
+    }
+  }
+}

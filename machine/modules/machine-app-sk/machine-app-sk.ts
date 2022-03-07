@@ -12,6 +12,7 @@ import { define } from 'elements-sk/define';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/tabs-sk';
 import 'elements-sk/tabs-panel-sk';
+import 'elements-sk/icon/more-vert-icon-sk';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -19,6 +20,7 @@ import { MachinesTableSk, MachineTableSkChangeEventDetail, WaitCursor } from '..
 import '../machines-table-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
+import { ColumnTitles } from '../machine-table-columns-dialog-sk/machine-table-columns-dialog-sk';
 
 /** The State of our page that gets reflected into the URL. */
 class State {
@@ -27,6 +29,9 @@ class State {
 
   /** The value of the sort history encode as a string. */
   sort: string = '';
+
+  /** The names of all the hidden columns. */
+  hidden: ColumnTitles[] = ['Version', 'Annotation', 'Launched Swarming'];
 }
 
 export class MachineAppSk extends ElementSk {
@@ -48,6 +53,7 @@ export class MachineAppSk extends ElementSk {
           <h1><a href="/">Machines</a></h1>
         </span>
         <span id=header-rhs>
+          <more-vert-icon-sk @click=${ele.editHiddenColumns}></more-vert-icon-sk>
           <input id="filter-input" @input=${ele.filterChanged} type="text" placeholder="Filter">
           <theme-chooser-sk title="Toggle between light and dark mode."></theme-chooser-sk>
         </span>
@@ -64,13 +70,14 @@ export class MachineAppSk extends ElementSk {
     this._render();
     this._inputElement = $$<HTMLInputElement>('#filter-input', this)!;
     this.machinesTable = $$<MachinesTableSk>('machines-table-sk', this);
-    this.update(WaitCursor.SHOW);
+    this.update('ShowWaitCursor');
     this.stateHasChanged = stateReflector(
       () => this.state as unknown as HintableObject,
       (hintableState) => {
         const state = hintableState as unknown as State;
         this.state = state;
-        this.machinesTable?.restoreSortState(this.state.sort);
+        this.machinesTable!.restoreSortState(this.state.sort);
+        this.machinesTable!.restoreHiddenColumns(this.state.hidden);
 
         this.update();
 
@@ -100,8 +107,14 @@ export class MachineAppSk extends ElementSk {
   }
 
   /** Tell the active table to fetch new data and redraw itself. */
-  private update(waitCursorPolicy = WaitCursor.DO_NOT_SHOW): void {
+  private update(waitCursorPolicy: WaitCursor = 'DoNotShowWaitCursor'): void {
     this.machinesTable?.update(waitCursorPolicy);
+  }
+
+  /** Edit the configuration of the table, e.g. the columns to hide. */
+  private async editHiddenColumns(): Promise<void> {
+    this.state.hidden = await this.machinesTable!.editHiddenColumns();
+    this.stateHasChanged();
   }
 }
 

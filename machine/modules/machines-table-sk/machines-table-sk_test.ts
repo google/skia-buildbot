@@ -7,7 +7,7 @@ import {
   Mode, AttachedDevice, Annotation, SwarmingDimensions,
 } from '../json';
 import {
-  MachinesTableSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name, sortByAnnotation, sortByAttachedDevice, sortByBattery, sortByDevice, sortByDeviceUptime, sortByLastUpated, sortByLaunchedSwarming, sortByMachineID, sortByMode, sortByNote, sortByPowerCycle, sortByQuarantined, sortByRunningSwarmingTask, sortByVersion,
+  MachinesTableSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld, pretty_device_name_as_string, sortByAnnotation, sortByAttachedDevice, sortByBattery, sortByDevice, sortByDeviceUptime, sortByLastUpated, sortByLaunchedSwarming, sortByMachineID, sortByMode, sortByNote, sortByPowerCycle, sortByQuarantined, sortByRunningSwarmingTask, sortByVersion,
 } from './machines-table-sk';
 import {
   FrontendDescription, ListMachinesResponse, SetNoteRequest,
@@ -239,7 +239,7 @@ describe('machines-table-sk', () => {
     const s = await setUpElement();
 
     // Confirm there are rows in the table.
-    assert.isNotNull($$('table > tbody > tr[id] > td', s));
+    assert.isNotNull($$('table > tbody > tr > td.powercycle', s));
 
     // Now set up fetchMock for the requests that happen when the button is clicked.
     fetchMock.reset();
@@ -256,7 +256,7 @@ describe('machines-table-sk', () => {
     await fetchMock.flush(true);
 
     // Confirm the one machine has been removed.
-    assert.isNull($$('table > tbody > tr[id] > td', s));
+    assert.isNull($$('table > tbody > tr > td.powercycle', s));
   }));
 
   it('sets the Machine Note when you edit the note.', () => window.customElements.whenDefined('machines-table-sk').then(async () => {
@@ -318,24 +318,29 @@ describe('machines-table-sk', () => {
   describe('outOfSpecIfTooOld', () => {
     it('returns an empty string if LastModified is recent enough', () => {
       const now = new Date(Date.now());
-      assert.equal(outOfSpecIfTooOld(now.toString()), '');
+      const machine: Partial<FrontendDescription> = { LastUpdated: now.toString() };
+      assert.equal(outOfSpecIfTooOld(machine as FrontendDescription), '');
     });
 
     it('returns outOfSpec if LastModified is too old', () => {
       const old = new Date(Date.now() - 2 * MAX_LAST_UPDATED_ACCEPTABLE_MS);
-      assert.equal(outOfSpecIfTooOld(old.toString()), 'outOfSpec');
+      const machine: Partial<FrontendDescription> = { LastUpdated: old.toString() };
+      assert.equal(outOfSpecIfTooOld(machine as FrontendDescription), 'outOfSpec');
     });
   });
 
   describe('pretty_device_name', () => {
     it('returns an empty string on null', () => {
-      assert.equal('', pretty_device_name(null));
+      const machine: Partial<FrontendDescription> = { Dimensions: { } };
+      assert.equal('', pretty_device_name_as_string(machine as FrontendDescription));
     });
     it('returns Pixel 5 for redfin.', () => {
-      assert.equal('redfin (Pixel 5)', pretty_device_name(['redfin']));
+      const machine: Partial<FrontendDescription> = { Dimensions: { device_type: ['redfin'] } };
+      assert.equal('redfin (Pixel 5)', pretty_device_name_as_string(machine as FrontendDescription));
     });
     it('returns the last match in a list', () => {
-      assert.equal('herolte | universal8890 (Galaxy S7 [Global])', pretty_device_name(['herolte', 'universal8890']));
+      const machine: Partial<FrontendDescription> = { Dimensions: { device_type: ['herolte', 'universal8890'] } };
+      assert.equal('herolte | universal8890 (Galaxy S7 [Global])', pretty_device_name_as_string(machine as FrontendDescription));
     });
   });
 

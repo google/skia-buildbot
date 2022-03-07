@@ -13,6 +13,7 @@ sk_element(
         "//machine/modules/machines-table-sk",
         "//infra-sk/modules/app-sk",
         "//infra-sk/modules/theme-chooser-sk",
+        "//machine/modules/machine-table-columns-dialog-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

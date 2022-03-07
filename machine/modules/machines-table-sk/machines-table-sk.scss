@@ -1,3 +1,5 @@
+@import '../theme/theme.scss';
+
 machines-table-sk {
   .clickable {
     cursor: pointer;
@@ -21,6 +23,7 @@ machines-table-sk {
       background-color: var(--background);
       opacity: 1;
       z-index: 10;
+      white-space: nowrap;
 
       svg {
         z-index: 1;
@@ -30,6 +33,10 @@ machines-table-sk {
     td {
       vertical-align: baseline;
       padding: 0;
+
+      &.outOfSpec {
+        color: var(--failure);
+      }
 
       &.powercycle {
         display: flex;

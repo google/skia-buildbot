@@ -1,0 +1,60 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":machine-table-columns-dialog-sk-demo",
+)
+
+sk_element(
+    name = "machine-table-columns-dialog-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//machine/modules/theme:theme_sass_lib",
+    ],
+    sass_srcs = ["machine-table-columns-dialog-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+        "@npm//@types/dialog-polyfill",
+        "@npm//common-sk",
+        "@npm//dialog-polyfill",
+    ],
+    ts_srcs = [
+        "machine-table-columns-dialog-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "machine-table-columns-dialog-sk-demo",
+    html_file = "machine-table-columns-dialog-sk-demo.html",
+    sk_element_deps = [":machine-table-columns-dialog-sk"],
+    ts_deps = ["@npm//common-sk"],
+    ts_entry_point = "machine-table-columns-dialog-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "machine-table-columns-dialog-sk_puppeteer_test",
+    src = "machine-table-columns-dialog-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+    ],
+)
+
+karma_test(
+    name = "machine-table-columns-dialog-sk_test",
+    src = "machine-table-columns-dialog-sk_test.ts",
+    deps = [
+        ":machine-table-columns-dialog-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@npm//@types/chai",
+        "@npm//chai",
+        "@npm//common-sk",
+        "@npm//elements-sk",
+    ],
+)
