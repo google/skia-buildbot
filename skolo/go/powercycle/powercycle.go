@@ -8,6 +8,7 @@ import (
 
 	"github.com/flynn/json5"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 // DeviceID is a unique identifier for a given machine or attached device.
@@ -101,7 +102,8 @@ func controllerFromConfig(ctx context.Context, conf config, connect bool) (Contr
 	for name, c := range conf.MPower {
 		mp, err := newMPowerController(ctx, c, connect)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "initializing %s", name)
+			sklog.Errorf("failed to initialize %s", name)
+			continue
 		}
 		// TODO(kjlubick) add test for duplicate device names.
 		if err := ret.add(mp); err != nil {
@@ -113,7 +115,8 @@ func controllerFromConfig(ctx context.Context, conf config, connect bool) (Contr
 	for name, c := range conf.EdgeSwitch {
 		es, err := newEdgeSwitchController(ctx, c, connect)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "initializing %s", name)
+			sklog.Errorf("failed to initialize %s", name)
+			continue
 		}
 
 		if err := ret.add(es); err != nil {
