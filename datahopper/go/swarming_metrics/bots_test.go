@@ -117,6 +117,7 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 			swarming.DIMENSION_OS_KEY,
 			swarming.DIMENSION_DEVICE_TYPE_KEY,
 			swarming.DIMENSION_DEVICE_OS_KEY,
+			swarming.DIMENSION_GPU_KEY,
 			swarming.DIMENSION_QUARANTINED_KEY,
 		} {
 			tags[d] = ""
@@ -176,6 +177,10 @@ func TestLastTaskBotMetrics(t *testing.T) {
 					Value: []string{"P", "PPR1.180610.009"},
 				},
 				{
+					Key:   swarming.DIMENSION_GPU_KEY,
+					Value: []string{"102b:0534"},
+				},
+				{
 					Key:   swarming.DIMENSION_QUARANTINED_KEY,
 					Value: []string{"Device Missing"},
 				},
@@ -202,6 +207,7 @@ func TestLastTaskBotMetrics(t *testing.T) {
 		swarming.DIMENSION_OS_KEY:          "Android",
 		swarming.DIMENSION_DEVICE_TYPE_KEY: "Nexus5x",
 		swarming.DIMENSION_DEVICE_OS_KEY:   "PPR1.180610.009",
+		swarming.DIMENSION_GPU_KEY:         "102b:0534",
 		swarming.DIMENSION_QUARANTINED_KEY: "Device Missing",
 	}
 	// even though this is a (really big) int, JSON notation returns scientific notation
@@ -286,6 +292,7 @@ func TestBotTemperatureMetrics(t *testing.T) {
 			swarming.DIMENSION_OS_KEY:          "",
 			swarming.DIMENSION_DEVICE_TYPE_KEY: "",
 			swarming.DIMENSION_DEVICE_OS_KEY:   "",
+			swarming.DIMENSION_GPU_KEY:         "",
 			swarming.DIMENSION_QUARANTINED_KEY: "",
 		}
 		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 64)
@@ -311,6 +318,7 @@ func TestBotTemperatureMetrics(t *testing.T) {
 			swarming.DIMENSION_OS_KEY:          "",
 			swarming.DIMENSION_DEVICE_TYPE_KEY: "",
 			swarming.DIMENSION_DEVICE_OS_KEY:   "",
+			swarming.DIMENSION_GPU_KEY:         "",
 			swarming.DIMENSION_QUARANTINED_KEY: "",
 		}
 		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 64)

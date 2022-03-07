@@ -67,6 +67,7 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarming.ApiCli
 
 		var deviceOs string
 		var deviceType string
+		var gpu string
 		var os string
 		var quarantined string
 		for _, d := range bot.Dimensions {
@@ -75,6 +76,8 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarming.ApiCli
 				deviceOs = val
 			} else if d.Key == swarming.DIMENSION_DEVICE_TYPE_KEY {
 				deviceType = val
+			} else if d.Key == swarming.DIMENSION_GPU_KEY {
+				gpu = val
 			} else if d.Key == swarming.DIMENSION_OS_KEY {
 				os = val
 			} else if d.Key == swarming.DIMENSION_QUARANTINED_KEY {
@@ -85,9 +88,10 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarming.ApiCli
 			"bot":                              bot.BotId,
 			"pool":                             pool,
 			"swarming":                         server,
-			swarming.DIMENSION_OS_KEY:          os,
 			swarming.DIMENSION_DEVICE_TYPE_KEY: deviceType,
 			swarming.DIMENSION_DEVICE_OS_KEY:   deviceOs,
+			swarming.DIMENSION_GPU_KEY:         gpu,
+			swarming.DIMENSION_OS_KEY:          os,
 			swarming.DIMENSION_QUARANTINED_KEY: quarantined,
 		}
 

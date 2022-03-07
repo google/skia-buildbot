@@ -25,6 +25,7 @@ const (
 
 	DIMENSION_DEVICE_OS_KEY            = "device_os"
 	DIMENSION_DEVICE_TYPE_KEY          = "device_type"
+	DIMENSION_GPU_KEY                  = "gpu"
 	DIMENSION_OS_KEY                   = "os"
 	DIMENSION_POOL_KEY                 = "pool"
 	DIMENSION_POOL_VALUE_SKIA          = "Skia"
