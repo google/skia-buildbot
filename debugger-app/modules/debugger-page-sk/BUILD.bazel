@@ -20,6 +20,7 @@ sk_element(
     ts_deps = [
         "//debugger-app/modules:debugger_ts_lib",
         "//debugger-app/modules:events_ts_lib",
+        "//debugger-app/wasm_libs:canvaskit_types",  # keep
         "@npm//elements-sk",
         "@npm//lit-html",
     ],
@@ -55,8 +56,8 @@ karma_test(
     karma_config_file = "debugger.karma.conf.js",
     static_karma_files = [
         "//debugger-app/wasm_libs:version.js",
-        "//debugger-app/wasm_libs:debugger.js",
-        "//debugger-app/wasm_libs:debugger.wasm",
+        "//debugger-app/wasm_libs:canvaskit.js",
+        "//debugger-app/wasm_libs:canvaskit.wasm",
     ],
     deps = [
         ":debugger-page-sk",
@@ -75,8 +76,8 @@ sk_demo_page_server(
     static_assets = {
         "/dist": [
             "//debugger-app/wasm_libs:version.js",
-            "//debugger-app/wasm_libs:debugger.js",
-            "//debugger-app/wasm_libs:debugger.wasm",
+            "//debugger-app/wasm_libs:canvaskit.js",
+            "//debugger-app/wasm_libs:canvaskit.wasm",
             "//debugger-app/static:both.png",
             "//debugger-app/static:bottom.png",
             "//debugger-app/static:image.png",

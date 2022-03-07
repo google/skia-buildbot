@@ -1,14 +1,12 @@
 // Contains the type definitions for all the emscripten bound methods from the wasm debugger.
 // These are defined in //skia/experimental/wasm-skp-debugger/debugger_bindings.cpp
+import type {
+  CanvasKit,
+  Surface
+} from '../wasm_libs/types/canvaskit';
 
-export interface DebuggerInitOptions {
-    locateFile: (path: string)=> string;
-}
-export interface Debugger {
-  // defined in wasm-skp-debugger/helper.js
+export interface Debugger extends CanvasKit {
   SkpFilePlayer(ab: ArrayBuffer): SkpFilePlayerResult;
-  MakeWebGLCanvasSurface(canvas: HTMLCanvasElement): SkSurface;
-  MakeSWCanvasSurface(canvas: HTMLCanvasElement): SkSurface;
   MinVersion(): number;
 }
 // An object containing either the successfully loaded file player or an error.
@@ -19,20 +17,20 @@ export interface SkpFilePlayerResult {
 export interface SkpDebugPlayer {
   changeFrame(index: number): void;
   deleteCommand(index: number): void;
-  draw(surface: SkSurface): void;
-  drawTo(surface: SkSurface, index: number): void;
-  findCommandByPixel(surface: SkSurface, x: number, y: number, upperBound: number): number;
+  draw(surface: Surface): void;
+  drawTo(surface: Surface, index: number): void;
+  findCommandByPixel(surface: Surface, x: number, y: number, upperBound: number): number;
   getBounds(): SkIRect;
   getBoundsForFrame(frame: number): SkIRect;
   getFrameCount(): number;
   getImageResource(index: number): string;
   getImageCount(): number;
-  getImageInfo(index: number): SimpleImageInfo;
+  getImageInfo(index: number): ImageInfoNoColorspace;
   getLayerKeys(): LayerKey[]
   getLayerSummariesJs(): LayerSummary[];
   getSize(): number;
   imageUseInfo(frame: number, nodeid: number): ImageUseMap;
-  jsonCommandList(surface: SkSurface): string;
+  jsonCommandList(surface: Surface): string;
   lastCommandInfo(): string;
   loadSkp(ptr: number, len: number): string;
   setClipVizColor(color: Color): void;
@@ -44,12 +42,7 @@ export interface SkpDebugPlayer {
   setAndroidClipViz(visible: boolean): void;
   TRANSPARENT: number;
 }
-export interface SkSurface {
-  dispose(): void;
-  flush(): void;
-  clear(color: Color): void;
-}
-export interface SimpleImageInfo {
+export interface ImageInfoNoColorspace {
   width: number,
   height: number,
   colorType: number,

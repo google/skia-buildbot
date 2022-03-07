@@ -5,12 +5,12 @@ sk_page(
     assets_serving_path = "/dist",
     copy_files = [
         {
-            "src": "//debugger-app/wasm_libs:debugger.js",
-            "dst": "debugger.js",
+            "src": "//debugger-app/wasm_libs:canvaskit.js",
+            "dst": "canvaskit.js",
         },
         {
-            "src": "//debugger-app/wasm_libs:debugger.wasm",
-            "dst": "debugger.wasm",
+            "src": "//debugger-app/wasm_libs:canvaskit.wasm",
+            "dst": "canvaskit.wasm",
         },
         {
             "src": "//debugger-app/wasm_libs:version.js",

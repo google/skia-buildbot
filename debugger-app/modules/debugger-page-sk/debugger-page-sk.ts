@@ -1,7 +1,7 @@
 /**
  * @module modules/debugger-page-sk
  * @description The main module of the wasm-based SKP and MSKP debugger.
- *  Holds the loaded wasm module, pointer to the SkSurface in wasm, and SKP file state.
+ *  Holds the loaded wasm module, pointer to the Surface in wasm, and SKP file state.
  *  Handles all the interaction and control of the application that does not cleanly fit
  *  within a submodule.
  *
@@ -44,16 +44,21 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 
 // Types for the wasm bindings
+import type {
+  Canvas,
+  CanvasKit,
+  CanvasKitInitOptions,
+  Paint,
+  Surface,
+} from '../../wasm_libs/types/canvaskit';
 import {
   Debugger,
-  DebuggerInitOptions,
   Matrix3x3,
   Matrix4x4,
   MatrixClipInfo,
   SkIRect,
   SkpDebugPlayer,
   SkpJsonCommandList,
-  SkSurface,
 } from '../debugger';
 
 // other modules from this application
@@ -83,8 +88,9 @@ import {
   ToggleBackgroundEvent, ModeChangedManuallyEventDetail, MoveFrameEventDetail,
 } from '../events';
 
-// Declarations for variables defined in JS files included by main.html
-declare function DebuggerInit(opts: DebuggerInitOptions): Promise<Debugger>;
+// Declarations for variables defined in JS files included by main.html;
+// It is assumed that canvaskit.js has been loaded and this symbol is available globally.
+declare function CanvasKitInit(opts: CanvasKitInitOptions): Promise<Debugger>;
 declare const SKIA_VERSION: string;
 
 interface FileContext {
@@ -230,7 +236,7 @@ export class DebuggerPageSk extends ElementDocSk {
   private _debugger: Debugger | null = null;
 
   // null until either file loaded or cpu/gpu switch toggled
-  private _surface: SkSurface | null = null;
+  private _surface: Surface | null = null;
 
   // submodules are null until first template render
   private _androidLayersSk: AndroidLayersSk | null = null;
@@ -282,7 +288,7 @@ export class DebuggerPageSk extends ElementDocSk {
   constructor() {
     super(DebuggerPageSk.template);
 
-    DebuggerInit({
+    CanvasKitInit({
       locateFile: (file: string) => `/dist/${file}`,
     }).then((loadedWasmModule) => {
       // Save a reference to the module somewhere we can use it later.
@@ -458,7 +464,7 @@ export class DebuggerPageSk extends ElementDocSk {
     };
     this._replaceSurface();
     if (!this._surface) {
-      errorMessage('Could not create SkSurface, try GPU/CPU toggle.');
+      errorMessage('Could not create Surface, try GPU/CPU toggle.');
       return;
     }
     p.setGpuOpBounds(this._showOpBounds);
@@ -515,7 +521,12 @@ export class DebuggerPageSk extends ElementDocSk {
     // free the wasm memory of the previous surface
     if (this._surface) { this._surface.dispose(); }
     if (this._gpuMode) {
-      this._surface = this._debugger.MakeWebGLCanvasSurface(canvas);
+      let glAttrs = {
+        // for the zoom to be able to access the pixels. Incurs performance penalty
+        'preserveDrawingBuffer': 1,
+      };
+      this._surface = this._debugger.MakeWebGLCanvasSurface(canvas,
+        this._debugger.ColorSpace.SRGB, glAttrs);
     } else {
       this._surface = this._debugger.MakeSWCanvasSurface(canvas);
     }
@@ -534,9 +545,9 @@ export class DebuggerPageSk extends ElementDocSk {
       const width = newBounds.fRight - newBounds.fLeft;
       const height = newBounds.fBottom - newBounds.fTop;
       this._replaceSurfaceKnownBounds(width, height);
-    } else {
+    } else if (this._surface) {
       // When not changing size, it only needs to be cleared.
-      this._surface!.clear(0);
+      this._surface.getCanvas().clear(this._debugger!.TRANSPARENT);
     }
 
     this._fileContext!.player.changeFrame(n);
@@ -618,7 +629,7 @@ export class DebuggerPageSk extends ElementDocSk {
     this._gpuMode = (e.target as CheckOrRadio).checked;
     this._replaceSurface();
     if (!this._surface) {
-      errorMessage('Could not create SkSurface.');
+      errorMessage('Could not create Surface.');
       return;
     }
     this._setCommands();
