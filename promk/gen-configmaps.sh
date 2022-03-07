@@ -34,4 +34,4 @@ kubectl create configmap prometheus-server-conf --from-file=${TMP_DIR} -o yaml -
 # skia-infra-public-dev/prometheus-server-conf.yml
 TMP_DIR="$(mktemp -d)"
 cp ${SCRIPT_DIR}/prometheus/prometheus-skia-infra-public-dev.yml ${TMP_DIR}/prometheus.yml
-kubectl create configmap prometheus-server-conf --from-file=${TMP_DIR} -o yaml --dry-run=client > ${OUT_DIR}/skia-infra-public-dev/prometheus-server-conf.yml
+kubectl create configmap prometheus-server-conf --namespace=prometheus --from-file=${TMP_DIR} -o yaml --dry-run=client > ${OUT_DIR}/skia-infra-public-dev/prometheus-server-conf.yml
