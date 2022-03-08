@@ -1,3 +1,5 @@
+include ../make/bazel.mk
+
 .PHONY: build test pushk release_configmap_reload release_auth_push
 
 build:
@@ -7,8 +9,7 @@ test:
 	go test ./go/...
 
 release_configmap_reload:
-	CGO_ENABLED=0 GOOS=linux go install -a github.com/jimmidyson/configmap-reload
-	./build_configmap_reload_release
+	$(BAZEL) run //kube:configmap_reload_container
 
 release_auth_proxy:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/auth-proxy

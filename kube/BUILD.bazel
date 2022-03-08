@@ -1,1 +1,17 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
 exports_files(["attach.sh"])
+
+skia_app_container(
+    name = "configmap_reload_container",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "@com_github_jimmidyson_configmap_reload//:configmap-reload",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/configmap-reload",
+    repository = "skia-public/configmap-reload",
+)

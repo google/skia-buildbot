@@ -76,6 +76,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
+	github.com/go-kit/kit v0.10.0 // indirect
 	github.com/go-python/gpython v0.0.3
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/golang-migrate/migrate/v4 v4.13.0
@@ -83,6 +84,7 @@ require (
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
 	github.com/golang/snappy v0.0.2 // indirect
+	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20210816172045-3099c18c36e1
 	github.com/google/gofuzz v1.2.0 // indirect
@@ -103,6 +105,8 @@ require (
 	github.com/jackc/pgx/v4 v4.9.2
 	github.com/jcgregorio/logger v0.1.2
 	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900 // indirect
+	github.com/jimmidyson/configmap-reload v0.7.1 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kisielk/errcheck v1.5.0
 	github.com/lib/pq v1.8.0 // indirect
 	github.com/luci/gtreap v0.0.0-20161228054646-35df89791e8f // indirect
@@ -117,7 +121,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0
-	github.com/prometheus/client_golang v1.8.0
+	github.com/prometheus/client_golang v1.11.0
 	github.com/robertkrimen/otto v0.0.0-20200922221731-ef014fd054ac // indirect
 	github.com/rs/cors v1.6.0
 	github.com/shopspring/decimal v1.2.0 // indirect
@@ -145,14 +149,14 @@ require (
 	go.opencensus.io v0.22.5
 	golang.org/x/net v0.0.0-20210224082022-3d97a244fca7 // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 	golang.org/x/tools v0.1.0
 	google.golang.org/api v0.34.0
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20201029200359-8ce4113da6f7
 	google.golang.org/grpc v1.33.1
-	google.golang.org/protobuf v1.25.0
+	google.golang.org/protobuf v1.26.0-rc.1
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/ini.v1 v1.62.0 // indirect
