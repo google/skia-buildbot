@@ -12,11 +12,11 @@ skia_app_container(
         ],
         "/usr/local/share/debugger-app/": [
             [
-                "build/debugger/debugger.js",
+                "build/canvaskit/canvaskit.js",
                 "0644",
             ],
             [
-                "build/debugger/debugger.wasm",
+                "build/canvaskit/canvaskit.wasm",
                 "0644",
             ],
             [

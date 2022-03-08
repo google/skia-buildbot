@@ -19,12 +19,14 @@ get_latest_skia:
 	# with @skia//docker/skia-wasm-release/Dockerfile
 	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
 	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
-	    sh -c "cp -r /tmp/debugger /tmp/VERSION /OUT/"
+	    sh -c "cp -r /tmp/canvaskit /tmp/VERSION /OUT/"
 	echo "const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
 .PHONY: push
 push: release
-	pushk debugger
+    # Please do not bypass the override dirty image because that will overwrite all the
+    # old versions of debugger.
+	pushk --do-not-override-dirty-image debugger-app
 
 bazel_release_ci:
 	# COPY_FROM_DIR is expected to be set by the auto deploy mechanism, e.g.
@@ -48,7 +50,7 @@ run-with-custom:
 
 build-placeholders:
 	rm -rf build
-	mkdir -p build/debugger
-	touch build/debugger/debugger.js
-	touch build/debugger/debugger.wasm
+	mkdir -p build/canvaskit
+	touch build/canvaskit/canvaskit.js
+	touch build/canvaskit/canvaskit.wasm
 	touch build/version.js
