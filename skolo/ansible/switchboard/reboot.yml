@@ -1,0 +1,17 @@
+# Reboot all machines.
+#
+# Warning: This playbook reboots *all* machines by default. Recommended invocation:
+#
+#     ansible-playbook switchboard/reboot.yml --limit <hosts>
+- hosts: all_linux, all_mac, all_win
+  user: chrome-bot
+  gather_facts: yes
+
+  tasks:
+    - name: Reboot Windows machine
+      win_reboot:
+      when: ansible_facts['system']|lower == "win32nt"
+
+    - name: Reboot Linux/Mac machine
+      reboot:
+      when: ansible_facts['system']|lower in ['linux', 'darwin']

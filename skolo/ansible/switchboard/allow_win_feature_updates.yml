@@ -1,0 +1,61 @@
+# Allow Windows machines to download feature updates.
+#
+# Loosely based on
+# https://skia.googlesource.com/buildbot/+/355447d27fce43db1ab3f13f55552f2abe063e33/skolo/win/ansible/windows-update.yml.
+#
+# Unfortunately Ansible's win_updates does not seem to install feature updates. lovisolo@ tried
+# the following task, but feature updates remain uninstalled:
+#
+#     - name: Install updates and reboot
+#       win_updates:
+#         category_names:
+#           - Application
+#           - Connectors
+#           - CriticalUpdates
+#           - DefinitionUpdates
+#           - DeveloperKits
+#           - FeaturePacks
+#           - Guidance
+#           - SecurityUpdates
+#           - ServicePacks
+#           - Tools
+#           - UpdateRollups
+#           - Updates
+#         reboot: yes
+#
+# lovisolo@ also tried the PSWindowUpdate PowerShell module, with similar results
+# (https://www.powershellgallery.com/packages/PSWindowsUpdate/2.2.0.2).
+#
+# This means we must log into each Windows machine via RDP or VNC and install feature updates
+# manually.
+- hosts: all_win
+  user: chrome-bot
+  gather_facts: true
+
+  tasks:
+    # Taken from //skolo/win/ansible/windows-update.yml.
+    # See also //skolo/ansible/switchboard/roles/disable_win_updates.
+    - name: Disable deferring feature updates
+      win_regedit:
+        path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState
+        name: "DeferFeatureUpdates"
+        data: 0
+        type: dword
+
+    # Taken from //skolo/win/ansible/windows-update.yml.
+    # See also //skolo/ansible/switchboard/roles/disable_win_updates.
+    - name: Set deferral period for feature updates to 0 in UpdatePolicy
+      win_regedit:
+        path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState
+        name: "FeatureUpdatesDeferralInDays"
+        data: 0
+        type: dword
+
+    # Taken from //skolo/win/ansible/windows-update.yml.
+    # See also //skolo/ansible/switchboard/roles/disable_win_updates.
+    - name: Set deferral period for feature updates to 0 in UX Settings
+      win_regedit:
+        path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings
+        name: "DeferFeatureUpdatesPeriodInDays"
+        data: 0
+        type: dword

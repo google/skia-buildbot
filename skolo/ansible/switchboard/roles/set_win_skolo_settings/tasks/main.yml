@@ -114,6 +114,9 @@
     start_mode: disabled
     state: stopped
 
+# Note: This does not seem to enable RDP unless it was previously enabled via the UI and
+# subsequently disabled. lovisolo@ has not found a way to enable RDP from Ansible on a fresh
+# Windows install.
 - name: Enable RDP
   ansible.windows.win_regedit:
     path: HKLM:\System\CurrentControlSet\Control\Terminal Server
@@ -124,3 +127,8 @@
   win_command: powershell.exe -
   args:
     stdin: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+- name: Set auto logon settings for chrome-bot
+  community.windows.win_auto_logon:
+    username: chrome-bot
+    password: "{{ secrets.skolo_password }}"

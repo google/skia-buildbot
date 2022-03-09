@@ -1,0 +1,12 @@
+- hosts: all_win
+  user: chrome-bot
+  gather_facts: yes
+
+  roles:
+  - load_secret_vars
+
+  tasks:
+  - name: Set auto logon settings for chrome-bot
+    community.windows.win_auto_logon:
+      username: chrome-bot
+      password: "{{ secrets.skolo_password }}"
