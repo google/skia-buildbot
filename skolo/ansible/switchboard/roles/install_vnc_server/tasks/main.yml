@@ -1,4 +1,4 @@
-- name: Install VNC server for Windows.
+- name: Install UltraVNC server for Windows.
   import_tasks: win.yml
   when: ansible_facts['system']|lower == "win32nt"
 

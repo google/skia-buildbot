@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "encrypt_ultravnc_password_lib",
+    srcs = ["encrypt_ultravnc_password.go"],
+    importpath = "go.skia.org/infra/skolo/go/encrypt_ultravnc_password",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "encrypt_ultravnc_password",
+    embed = [":encrypt_ultravnc_password_lib"],
+    visibility = ["//visibility:public"],
+)
