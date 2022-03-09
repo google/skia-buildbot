@@ -67,9 +67,9 @@ var (
 	}
 
 	cpythonPackage = &swarming_api.SwarmingRpcsCipdPackage{
-		PackageName: "infra/python/cpython/${platform}",
+		PackageName: "infra/3pp/tools/cpython3/${platform}",
 		Path:        "python",
-		Version:     "version:2.7.14.chromium14",
+		Version:     "version:2@3.8.10.chromium.19",
 	}
 )
 
@@ -262,17 +262,14 @@ func TriggerSwarmingTask(ctx context.Context, pool, requester, datastoreID, osTy
 
 	// Always include cpython for Windows. See skbug.com/9501 for context and
 	// for why we do not include it for all architectures.
-	pythonBinary := "python"
-	if strings.HasPrefix(osType, "Windows") {
-		if cipdInput == nil {
-			cipdInput = &swarming_api.SwarmingRpcsCipdInput{}
-		}
-		if cipdInput.Packages == nil {
-			cipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{cpythonPackage}
-		} else {
-			cipdInput.Packages = append(cipdInput.Packages, cpythonPackage)
-		}
-		pythonBinary = "python/bin/python"
+	pythonBinary := "python/bin/python3"
+	if cipdInput == nil {
+		cipdInput = &swarming_api.SwarmingRpcsCipdInput{}
+	}
+	if cipdInput.Packages == nil {
+		cipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{cpythonPackage}
+	} else {
+		cipdInput.Packages = append(cipdInput.Packages, cpythonPackage)
 	}
 
 	// Arguments that will be passed to leasing.py
