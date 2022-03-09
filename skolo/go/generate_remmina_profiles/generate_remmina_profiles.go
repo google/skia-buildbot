@@ -7,14 +7,18 @@
 // using passwordless public key authentication. Make sure you're able to passwordlessly SSH into
 // rack1, rack2, etc. before using the generated connection profiles.
 //
-// Usage: Invoke without arguments to generate profiles for all known Skolo Windows machines (e.g.
-// "bazel run //skolo/go/generate_remmina_profiles"), then launch Remmina and double-click on a
-// connection profile to initiate a VNC or RDP session. Invoke with --help to see additional
-// options such as overriding the RDP or VNC port number (e.g.
-// "bazel run //skolo/go/generate_remmina_profiles -- --help").
+// Usage (from the repository root):
+//
+//     $ bazel run //skolo/go/generate_remmina_profiles -- skolo/ansible/hosts.yml
+//
+// Then, launch Remmina and double-click on a connection profile to initiate a session.
+//
+// Invoke with --help to see additional options such as overriding RDP/VNC port numbers, wiping
+// the existing contents of the directory where Remmina profiles live (~/.local/share/remmina),
+// customizing said directory, etc.
 //
 // Note that there is nothing specific to Windows about this program, so in theory we could extend
-// it to generate connection profiles for Macs or any other OS that can run a VNC or RDP server.
+// it to generate connection profiles for Macs or any other OSes that can run a VNC or RDP server.
 //
 // [1] https://remmina.org
 
@@ -29,79 +33,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"syscall"
 
 	"golang.org/x/term"
 )
-
-// machinesByJumphost should be kept in sync with our hosts.yml Ansible file.
-var machinesByJumphost = map[string][]string{
-	"rack1": {
-		"skia-e-win-101",
-		"skia-e-win-150",
-	},
-	"rack2": {
-		"skia-e-win-202",
-		"skia-e-win-201",
-		"skia-e-win-202",
-		"skia-e-win-203",
-		"skia-e-win-204",
-		"skia-e-win-205",
-		"skia-e-win-206",
-		"skia-e-win-210",
-		"skia-e-win-211",
-		"skia-e-win-212",
-		"skia-e-win-240",
-		"skia-e-win-241",
-		"skia-e-win-242",
-		"skia-e-win-243",
-		"skia-e-win-244",
-		"skia-e-win-245",
-		"skia-e-win-246",
-		"skia-e-win-247",
-		"skia-e-win-248",
-		"skia-e-win-249",
-		"skia-e-win-250",
-		"skia-e-win-251",
-		"skia-e-win-252",
-		"skia-e-win-253",
-		"skia-e-win-255",
-		"skia-e-win-270",
-		"skia-e-win-271",
-		"skia-e-win-272",
-		"skia-e-win-273",
-		"skia-e-win-274",
-		"skia-e-win-275",
-		"skia-e-win-276",
-		"skia-e-win-277",
-		"skia-e-win-278",
-		"skia-e-win-279",
-		"skia-e-win-280",
-	},
-	"rack3": {
-		"skia-e-win-301",
-		"skia-e-win-302",
-		"skia-e-win-304",
-		"skia-e-win-305",
-		"skia-e-win-306",
-		"skia-e-win-310",
-		"skia-e-win-311",
-		"skia-e-win-312",
-		"skia-e-win-341",
-		"skia-e-win-342",
-		"skia-e-win-343",
-		"skia-e-win-344",
-		"skia-e-win-345",
-		"skia-e-win-346",
-		"skia-e-win-347",
-		"skia-e-win-348",
-		"skia-e-win-349",
-		"skia-e-win-353",
-		"skia-e-win-354",
-		"skia-e-win-355",
-	},
-}
 
 type Protocol string
 
@@ -309,6 +246,11 @@ websockets=0
 freerdp_log_level=INFO
 `
 
+var (
+	rackRegexp       = regexp.MustCompile(`^rack\d+$`)
+	winMachineRegexp = regexp.MustCompile(`^skia-e-win-\d+$`)
+)
+
 func main() {
 	outputDir := flag.String("output-dir", filepath.Join(os.Getenv("HOME"), ".local", "share", "remmina"), "Output directory.")
 	wipeOutputDir := flag.Bool("wipe", false, "Wipe contents of output directory before generating connection profiles.")
@@ -316,7 +258,25 @@ func main() {
 	genVNCProfiles := flag.Bool("vnc", true, "Generate VNC connection profiles.")
 	rdpPort := flag.Int("rdp-port", 3389, "TCP port used for RDP connections.")
 	vncPort := flag.Int("vnc-port", 5900, "TCP port used for VNC connections.")
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS] <path to Ansible inventory file>\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+
 	flag.Parse()
+	if flag.NArg() != 1 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	ansibleInventoryFilePath := flag.Arg(0)
+
+	// If running via "bazel run", change into the directory where Bazel was invoked. This is
+	// necessary to correctly compute the absolute path of the Ansible inventory file.
+	if os.Getenv("BUILD_WORKING_DIRECTORY") != "" {
+		ifErrThenDie(os.Chdir(os.Getenv("BUILD_WORKING_DIRECTORY")))
+	}
 
 	if *rdpPort < 1 || *rdpPort > 65535 {
 		die("Invalid RDP port.")
@@ -325,6 +285,9 @@ func main() {
 	if *vncPort < 1 || *vncPort > 65535 {
 		die("Invalid VNC port.")
 	}
+
+	machinesByJumphost, err := getMachinesByJumphost(ansibleInventoryFilePath)
+	ifErrThenDie(err)
 
 	// Read in the chrome-bot password. Remmina will encrypt it with gnome-keyring or kwallet.
 	fmt.Printf("Please enter the chrome-bot password: ")
@@ -409,6 +372,52 @@ func main() {
 			}
 		}
 	}
+}
+
+func getMachinesByJumphost(ansibleInventoryFilePath string) (map[string][]string, error) {
+	racks, err := queryAnsibleInventory(ansibleInventoryFilePath, "all", rackRegexp)
+	if err != nil {
+		return nil, err
+	}
+	machinesByJumphost := map[string][]string{}
+	for _, rack := range racks {
+		hosts, err := queryAnsibleInventory(ansibleInventoryFilePath, rack+"_win", winMachineRegexp)
+		ifErrThenDie(err)
+		machinesByJumphost[rack] = hosts
+	}
+	return machinesByJumphost, nil
+}
+
+// queryAnsibleInventory returns a list hosts that match the given Ansible pattern (e.g. "all",
+// "rack1", etc.) and the given regular expression.
+func queryAnsibleInventory(ansibleInventoryFilePath, pattern string, hostsFilter *regexp.Regexp) ([]string, error) {
+	cmd := exec.Command("ansible", "--inventory", ansibleInventoryFilePath, "--list-hosts", pattern)
+	outBytes, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, err
+	}
+	rawLines := strings.Split(string(outBytes), "\n")
+
+	// The output looks like so:
+	//
+	//     $ ansible --inventory skolo/ansible/hosts.yml --list-hosts all
+	//       hosts (275):
+	//         rack1
+	//         rack2
+	//         rack3
+	//         ...
+	//
+	// Thus, we discard the first line and trim any leading/trailing spaces on the remaining lines.
+	rawLines = rawLines[1:]
+	var hosts []string
+	for _, line := range rawLines {
+		line = strings.TrimSpace(line)
+		if hostsFilter.MatchString(line) {
+			hosts = append(hosts, line)
+		}
+	}
+
+	return hosts, nil
 }
 
 func ifErrThenDie(err error) {
