@@ -193,6 +193,7 @@
   "gold_baselines": {
     "urls": [
       "https://angle-gold.skia.org/json/v2/expectations",
+      "https://battlestar-gold.skia.org/json/v2/expectations",
       "https://chrome-gold.skia.org/json/v2/expectations",
       "https://eskia-gold.skia.org/json/v2/expectations",
       "https://flutter-engine-gold.skia.org/json/v2/expectations",
@@ -209,6 +210,7 @@
   "gold_frontend": {
     "urls": [
       "https://angle-gold.skia.org/healthz",
+      "https://battlestar-gold.skia.org/healthz",
       "https://chrome-gold.skia.org/healthz",
       "https://chrome-public-gold.skia.org/healthz",
       "https://eskia-gold.skia.org/healthz",
