@@ -5,7 +5,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     && apt upgrade -y \
     && apt install -y \
     curl \
-    netcat \
+    netcat-traditional \
     ucspi-tcp \
     psutils \
     bash
