@@ -8,15 +8,10 @@
     "name": "common",
     "clone_url": "https://skia.googlesource.com/common"
   },
-  "external/github.com/2d-inc/Nima-Cpp": {
-    "name": "external/github.com/2d-inc/Nima-Cpp",
-    "clone_url": "https://skia.googlesource.com/external/github.com/2d-inc/Nima-Cpp",
-    "mirrored_from_url": "https://github.com/2d-inc/Nima-Cpp.git"
-  },
-  "external/github.com/2d-inc/Nima-Math-Cpp": {
-    "name": "external/github.com/2d-inc/Nima-Math-Cpp",
-    "clone_url": "https://skia.googlesource.com/external/github.com/2d-inc/Nima-Math-Cpp",
-    "mirrored_from_url": "https://github.com/2d-inc/Nima-Math-Cpp.git"
+  "external/github.com/abseil/abseil-cpp": {
+    "name": "external/github.com/abseil/abseil-cpp",
+    "clone_url": "https://skia.googlesource.com/external/github.com/abseil/abseil-cpp",
+    "mirrored_from_url": "https://github.com/abseil/abseil-cpp.git"
   },
   "external/github.com/airbnb/lottie-android": {
     "name": "external/github.com/airbnb/lottie-android",
@@ -127,11 +122,6 @@
     "name": "external/github.com/ocornut/imgui",
     "clone_url": "https://skia.googlesource.com/external/github.com/ocornut/imgui",
     "mirrored_from_url": "https://github.com/ocornut/imgui.git"
-  },
-  "external/github.com/Tencent/rapidjson": {
-    "name": "external/github.com/Tencent/rapidjson",
-    "clone_url": "https://skia.googlesource.com/external/github.com/Tencent/rapidjson",
-    "mirrored_from_url": "https://github.com/Tencent/rapidjson.git"
   },
   "external/github.com/unicode-org/icu": {
     "name": "external/github.com/unicode-org/icu",
