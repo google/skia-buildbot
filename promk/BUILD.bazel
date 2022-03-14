@@ -13,3 +13,29 @@ skia_app_container(
     entrypoint = "/usr/local/bin/backup-to-gcs",
     repository = "skia-public/backup-to-gcs",
 )
+
+skia_app_container(
+    name = "thanos_bounce_container",
+    base_image = "@kubectl//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//promk/images/thanos-bounce:bouncer.sh",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/bouncer.sh",
+    repository = "skia-public/thanos-bounce",
+    run_commands_root = [
+        "apt update",
+        "apt upgrade -y",
+        "apt install -y curl netcat-traditional ucspi-tcp psutils",
+
+        # Create the skia user.
+        "addgroup --gid 2000 skia",
+        "useradd --uid 2000 --gid 2000 skia",
+        "mkdir -p /home/skia",
+        "chown skia:skia /home/skia",
+    ],
+)
