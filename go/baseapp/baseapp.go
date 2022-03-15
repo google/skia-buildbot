@@ -209,8 +209,12 @@ func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 	// to work with puppeteer.
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.MakeResourceHandler(*ResourcesDir))))
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*ResourcesDir))))
-
 	app.AddHandlers(r)
+
+	// We must specify that we handle /healthz or it will never flow through to our middleware.
+	// Even though this handler is never actually called (due to the early termination in
+	// httputils.HealthzAndHTTPS), we need to have it added to the routes we handle.
+	r.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 	// Layer on all the middleware.
 	middleware := []mux.MiddlewareFunc{}

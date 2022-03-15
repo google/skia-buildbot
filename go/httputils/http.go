@@ -615,6 +615,8 @@ func Healthz(h http.Handler) http.Handler {
 			w.WriteHeader(http.StatusOK)
 			return
 		} else if r.URL.Path == "/healthz" {
+			// We do not need to log this or use any of our other handling logic. A simple
+			// 200 return is all we need.
 			w.WriteHeader(http.StatusOK)
 			return
 		} else {
@@ -625,10 +627,9 @@ func Healthz(h http.Handler) http.Handler {
 }
 
 // ReadyHandleFunc can be used to set up a ready-handler used to check
-// whether a service is ready. Simply returns 'ready'.
+// whether a service is ready. Simply returns a StatusOK
 func ReadyHandleFunc(w http.ResponseWriter, r *http.Request) {
-	_, err := w.Write([]byte("ready"))
-	util.LogErr(err)
+	w.WriteHeader(http.StatusOK)
 }
 
 // RunHealthCheckServer is a helper function which runs an HTTP server which
