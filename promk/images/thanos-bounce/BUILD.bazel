@@ -1,4 +1,3 @@
 exports_files([
     "bouncer.sh",
-    "kubeconfig.yaml",
 ])
