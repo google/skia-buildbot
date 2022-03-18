@@ -97,3 +97,29 @@
     recurse: yes
     owner: chrome-bot
     mode: 0755
+
+- name: Look for /etc/gdm3
+  stat:
+    path: /etc/gdm3
+  register: gdm3_config_directory
+
+- name: Copy gdm3 config to host, which causes chrome-bot to be automatically logged in for Debian 11 systems running Gnome.
+  become: yes
+  when: gdm3_config_directory.stat.exists
+  copy:
+    src: files/gdm3_daemon.conf
+    dest: /etc/gdm3/daemon.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Install build tools.
+  when: swarming_needs__can_build
+  become: yes
+  apt:
+    pkg:
+      - make
+      - fontconfig
+      - libfontconfig-dev
+      - libglu-dev
+
