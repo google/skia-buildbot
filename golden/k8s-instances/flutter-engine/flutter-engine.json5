@@ -8,7 +8,6 @@
       url_template: "https://github.com/flutter/engine/pull/%s"
     },
   ],
-  diff_work_topic: "gold-flutter-engine-diffmetrics", // includes instance id
   gcs_bucket: "skia-gold-flutter-engine",
   git_repo_branch: "main",
   git_repo_url: "https://github.com/flutter/engine",

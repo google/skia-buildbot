@@ -7,7 +7,6 @@
       url_template: "https://skia-review.googlesource.com/%s"
     },
   ],
-  diff_work_topic: "gold-lottie-diffmetrics", // includes instance id
   gcs_bucket: "skia-gold-lottie",
   git_repo_branch: "main",
   git_repo_url: "https://skia.googlesource.com/lottie-ci",

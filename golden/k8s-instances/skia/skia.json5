@@ -7,7 +7,6 @@
       url_template: "https://skia-review.googlesource.com/%s"
     },
   ],
-  diff_work_topic: "gold-skia-diffmetrics", // includes instance id
   gcs_bucket: "skia-infra-gm", // Legacy bucket name
   git_repo_branch: "main",
   git_repo_url: "https://skia.googlesource.com/skia.git",

@@ -3,8 +3,6 @@
     "google.com",
   ],
   client_secret_file: "/etc/skia.org/login.json",
-  disable_sql_exp_cl: true,
-  flaky_trace_threshold: 10000, // no flaky traces
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
     defaultCorpus: "corpus",
@@ -13,8 +11,6 @@
   prom_port: ":20000",
   ready_port: ":8000",
   resources_path: "/usr/local/share/frontend/dist",
-  tile_freshness: "1m",
-  trace_bt_table: "gold-pdfium",
 
   // These values affect the k8s deployment; they are not read in by the binary.
   K8S_CPU: 4,

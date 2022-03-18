@@ -7,7 +7,6 @@
       url_template: "https://pdfium-review.googlesource.com/%s"
     },
   ],
-  diff_work_topic: "gold-pdfium-diffmetrics", // includes instance id
   gcs_bucket: "skia-pdfium-gm",  // Legacy bucket name
   git_repo_branch: "master",
   git_repo_url: "https://pdfium.googlesource.com/pdfium",

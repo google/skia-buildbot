@@ -12,7 +12,6 @@
       url_template: "https://chrome-internal-review.googlesource.com/%s"
     }
   ],
-  diff_work_topic: "gold-chrome-diffmetrics", // includes instance id
   gcs_bucket: "skia-gold-chrome",
   git_repo_branch: "master",
   git_repo_url: "https://chromium.googlesource.com/chromium/src",
