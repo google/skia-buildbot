@@ -295,7 +295,7 @@ def CheckChange(input_api, output_api):
   # Use 100 for max length for files other than python. Python length is
   # already checked during the Pylint above. No max length for Go files.
   IGNORE_LINE_LENGTH_EXTS = ['go', 'html', 'py']
-  IGNORE_LINE_LENGTH_FILENAMES = ['package-lock.json']
+  IGNORE_LINE_LENGTH_FILENAMES = ['package-lock.json', 'go.sum']
   file_filter = _MakeFileFilter(input_api,
                                 exclude_extensions=IGNORE_LINE_LENGTH_EXTS,
                                 exclude_filenames=IGNORE_LINE_LENGTH_FILENAMES)
