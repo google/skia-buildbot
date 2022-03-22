@@ -17,6 +17,7 @@ DEPS = [
   'recipe_engine/context',
   'recipe_engine/path',
   'recipe_engine/properties',
+  'recipe_engine/raw_io',
   'recipe_engine/step',
 ]
 
@@ -36,6 +37,36 @@ def retry(api, attempts, *args, **kwargs):
     raise exc  # pylint:disable=raising-bad-type
 
 
+def compute_go_root(api):
+  # Starting with Go 1.18, the standard library includes "//go:embed"
+  # directives that point to other files in the standard library. For security
+  # reasons, the "embed" package does not support symbolic links (discussion at
+  # https://github.com/golang/go/issues/35950#issuecomment-561725322), and it
+  # produces "cannot embed irregular file" errors when it encounters one.
+  #
+  # To prevent the above error, we ensure our GOROOT environment variable
+  # points to a path without symbolic links.
+  #
+  # For some reason api.path.realpath returns the path unchanged, so we invoke
+  # realpath instead.
+  go_root = api.path['start_dir'].join('go', 'go')
+  symlink_version_file = go_root.join('VERSION') # Arbitrary symlink.
+  step_result = api.step('realpath go/go/VERSION',
+                         cmd=['realpath', str(symlink_version_file)],
+                         stdout=api.raw_io.output_text())
+  step_result = api.step('dirname',
+                         cmd=['dirname', step_result.stdout],
+                         stdout=api.raw_io.output_text())
+  go_root_nosymlinks = step_result.stdout.strip()
+  if go_root_nosymlinks != "":
+    return go_root_nosymlinks # pragma: nocover
+  else:
+    # This branch exists solely to appease recipe tests, under which the
+    # workdir variable is unset. Returning an empty string causes tests to
+    # fail, so we return the original GOROOT instead.
+    return go_root
+
+
 def RunSteps(api):
   # Hack start_dir to remove the "k" directory which is added by Kitchen.
   # Otherwise, we can't get to the CIPD packages, caches, and isolates which
@@ -52,8 +83,8 @@ def RunSteps(api):
   gopath = api.path['start_dir'].join('cache', 'gopath')
   infra_dir = api.path['start_dir'].join('buildbot')
   go_cache = api.path['start_dir'].join('cache', 'go_cache')
-  go_root = api.path['start_dir'].join('go', 'go')
-  go_bin = go_root.join('bin')
+  go_root = compute_go_root(api)
+  go_bin = api.path.join(go_root, 'bin')
 
   # Initialize the Git repo. We receive the code via Isolate, but it doesn't
   # include the .git dir.

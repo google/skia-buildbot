@@ -33,7 +33,7 @@ var (
 // descendant of it.
 func WithEnv(ctx context.Context, workdir string) context.Context {
 	goPath := filepath.Join(workdir, "gopath")
-	goRoot := filepath.Join(workdir, "go", "go")
+	goRoot := computeGoRoot(workdir)
 	goBin := filepath.Join(goRoot, "bin")
 
 	PATH := strings.Join([]string{
@@ -52,6 +52,34 @@ func WithEnv(ctx context.Context, workdir string) context.Context {
 		fmt.Sprintf("GOPATH=%s", goPath),
 		fmt.Sprintf("PATH=%s", PATH),
 	})
+}
+
+// computeGoRoot returns the path to the Go SDK without the symbolic links created by CIPD.
+//
+// Starting with Go 1.18, the standard library includes "//go:embed" directives that point to other
+// files in the standard library. For security reasons, the "embed" package does not support
+// symbolic links (discussion at https://github.com/golang/go/issues/35950#issuecomment-561725322),
+// and it produces "cannot embed irregular file" errors when it encounters one.
+//
+// In our CI environment, Go is provided via a CIPD package. Files in CIPD packages are surfaced to
+// Swarming tasks via symbolic links inside a directory within the Swarming work directory. If we
+// were to point the GOROOT environment variable to said directory, we would get the error above.
+// To prevent this, we compute the real path to the Go SDK, and set GOROOT to said path.
+//
+// An alternative approach is to copy the entire Go SDK to an different location without symbolic
+// links, as done in rules_go: https://github.com/bazelbuild/rules_go/pull/3083. However, this
+// approach is slower and more complex.
+func computeGoRoot(workdir string) string {
+	symlinkGoRoot := filepath.Join(workdir, "go", "go")
+	symlinkVersionFile := filepath.Join(symlinkGoRoot, "VERSION") // Arbitrary symlink.
+	symlinkFreeVersionFile, err := filepath.EvalSymlinks(symlinkVersionFile)
+	if err != nil {
+		// If the symbolic link could not be resolved, fall back to the non-resolved GOROOT. This
+		// should never happen in production, but we exercise this code path from tests that do not
+		// mock a directory structure inside the work directory.
+		return symlinkGoRoot
+	}
+	return filepath.Dir(symlinkFreeVersionFile)
 }
 
 // Go runs the given Go command in the given working directory.

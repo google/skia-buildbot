@@ -1,6 +1,20 @@
 [
   {
     "cmd": [
+      "realpath",
+      "[START_DIR]/go/go/VERSION"
+    ],
+    "name": "realpath go/go/VERSION"
+  },
+  {
+    "cmd": [
+      "dirname",
+      ""
+    ],
+    "name": "dirname"
+  },
+  {
+    "cmd": [
       "git",
       "init"
     ],

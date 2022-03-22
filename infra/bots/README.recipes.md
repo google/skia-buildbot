@@ -8,15 +8,18 @@
 
 ### *recipes* / [swarm\_infra](/infra/bots/recipes/swarm_infra.py)
 
-[DEPS](/infra/bots/recipes/swarm_infra.py#16): [recipe\_engine/context][recipe_engine/recipe_modules/context], [recipe\_engine/path][recipe_engine/recipe_modules/path], [recipe\_engine/properties][recipe_engine/recipe_modules/properties], [recipe\_engine/step][recipe_engine/recipe_modules/step]
+[DEPS](/infra/bots/recipes/swarm_infra.py#16): [recipe\_engine/context][recipe_engine/recipe_modules/context], [recipe\_engine/path][recipe_engine/recipe_modules/path], [recipe\_engine/properties][recipe_engine/recipe_modules/properties], [recipe\_engine/raw\_io][recipe_engine/recipe_modules/raw_io], [recipe\_engine/step][recipe_engine/recipe_modules/step]
 
 PYTHON_VERSION_COMPATIBILITY: PY3
 
-&mdash; **def [RunSteps](/infra/bots/recipes/swarm_infra.py#39)(api):**
+&mdash; **def [RunSteps](/infra/bots/recipes/swarm_infra.py#70)(api):**
 
-&mdash; **def [retry](/infra/bots/recipes/swarm_infra.py#27)(api, attempts, \*args, \*\*kwargs):**
+&mdash; **def [compute\_go\_root](/infra/bots/recipes/swarm_infra.py#40)(api):**
+
+&mdash; **def [retry](/infra/bots/recipes/swarm_infra.py#28)(api, attempts, \*args, \*\*kwargs):**
 
 [recipe_engine/recipe_modules/context]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/52ef3060ed5a4f75ef6e4056fb36aaf7274bc291/README.recipes.md#recipe_modules-context
 [recipe_engine/recipe_modules/path]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/52ef3060ed5a4f75ef6e4056fb36aaf7274bc291/README.recipes.md#recipe_modules-path
 [recipe_engine/recipe_modules/properties]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/52ef3060ed5a4f75ef6e4056fb36aaf7274bc291/README.recipes.md#recipe_modules-properties
+[recipe_engine/recipe_modules/raw_io]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/52ef3060ed5a4f75ef6e4056fb36aaf7274bc291/README.recipes.md#recipe_modules-raw_io
 [recipe_engine/recipe_modules/step]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/52ef3060ed5a4f75ef6e4056fb36aaf7274bc291/README.recipes.md#recipe_modules-step
