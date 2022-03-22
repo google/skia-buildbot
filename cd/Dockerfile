@@ -7,6 +7,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
     clang-11 \
     curl \
     gnupg2 \
+    make \
     patch \
     software-properties-common \
     && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
@@ -54,4 +55,6 @@ FROM base AS final
 ARG CIPD_ROOT
 ENV CIPD_ROOT=$CIPD_ROOT
 COPY --from=install_pkgs ${CIPD_ROOT} ${CIPD_ROOT}
-ENV PATH="${CIPD_ROOT}:${CIPD_ROOT}/bin:${PATH}"
+ENV GOPATH=/go
+RUN mkdir -p ${GOPATH}
+ENV PATH="${CIPD_ROOT}/bin:${CIPD_ROOT}/go/bin:${CIPD_ROOT}:${GOPATH}/bin:${PATH}"
