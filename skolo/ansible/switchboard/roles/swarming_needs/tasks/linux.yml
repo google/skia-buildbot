@@ -122,4 +122,5 @@
       - fontconfig
       - libfontconfig-dev
       - libglu-dev
+      - build-essential
 
