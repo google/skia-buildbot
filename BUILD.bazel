@@ -484,7 +484,6 @@ genrule(
         "//infra/bots/task_drivers/build_push_docker_image",
         "//infra/bots/task_drivers/canary",
         "//infra/bots/task_drivers/infra_tests",
-        "//infra/bots/task_drivers/push_apps_from_infra_image",
         "//infra/bots/task_drivers/roll_cipd_packages",
         "//infra/bots/task_drivers/update_go_deps",
         "//infra/bots/task_drivers/validate_autoroll_configs",

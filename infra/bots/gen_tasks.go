@@ -68,8 +68,6 @@ var (
 		"Infra-Experimental-Small-Linux":                     noCQ,
 		"Infra-Experimental-Small-Win":                       noCQ,
 		"Infra-PerCommit-Build-Bazel-Local":                  noCQ,
-		"Infra-PerCommit-CreateDockerImage":                  noCQ,
-		"Infra-PerCommit-PushAppsFromInfraDockerImage":       noCQ,
 		"Infra-PerCommit-Race":                               noCQ,
 		"Infra-PerCommit-Test-Bazel-Local":                   noCQ,
 	}
@@ -449,79 +447,6 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
-func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
-	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
-
-	machineType := machineTypeMedium
-	t := &specs.TaskSpec{
-		Caches:       append(goCaches, dockerCaches...),
-		CasSpec:      casEmpty,
-		CipdPackages: pkgs,
-		Command: []string{
-			"./build_push_docker_image",
-			"--image_name", "gcr.io/skia-public/infra",
-			"--dockerfile_dir", "docker",
-			"--project_id", "skia-swarming-bots",
-			"--task_id", specs.PLACEHOLDER_TASK_ID,
-			"--task_name", name,
-			"--workdir", ".",
-			"--gerrit_project", "buildbot",
-			"--gerrit_url", "https://skia-review.googlesource.com",
-			"--repo", specs.PLACEHOLDER_REPO,
-			"--revision", specs.PLACEHOLDER_REVISION,
-			"--patch_issue", specs.PLACEHOLDER_ISSUE,
-			"--patch_set", specs.PLACEHOLDER_PATCHSET,
-			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
-			"--swarm_out_dir", specs.PLACEHOLDER_ISOLATED_OUTDIR,
-		},
-		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
-		Dimensions:   linuxGceDimensions(machineType),
-		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
-		},
-		ServiceAccount: compileServiceAccount,
-	}
-	b.MustAddTask(name, t)
-	return name
-}
-
-func createPushAppsFromInfraDockerImage(b *specs.TasksCfgBuilder, name string) string {
-	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
-
-	machineType := machineTypeMedium
-	t := &specs.TaskSpec{
-		Caches:       append(goCaches, dockerCaches...),
-		CasSpec:      casEmpty,
-		CipdPackages: pkgs,
-		Command: []string{
-			"./push_apps_from_infra_image",
-			"--project_id", "skia-swarming-bots",
-			"--task_id", specs.PLACEHOLDER_TASK_ID,
-			"--task_name", name,
-			"--workdir", ".",
-			"--gerrit_project", "buildbot",
-			"--gerrit_url", "https://skia-review.googlesource.com",
-			"--repo", specs.PLACEHOLDER_REPO,
-			"--revision", specs.PLACEHOLDER_REVISION,
-			"--patch_issue", specs.PLACEHOLDER_ISSUE,
-			"--patch_set", specs.PLACEHOLDER_PATCHSET,
-			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
-		},
-		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64"), createDockerImage(b, "Infra-PerCommit-CreateDockerImage")},
-		Dimensions:   linuxGceDimensions(machineType),
-		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
-		},
-		ServiceAccount: compileServiceAccount,
-	}
-	b.MustAddTask(name, t)
-	return name
-}
-
 func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
@@ -724,11 +649,6 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 	} else if strings.Contains(name, "UpdateGoDeps") {
 		// Update Go deps bot.
 		deps = append(deps, updateGoDeps(b, name))
-	} else if strings.Contains(name, "CreateDockerImage") {
-		// Create docker image bot.
-		deps = append(deps, createDockerImage(b, name))
-	} else if strings.Contains(name, "PushAppsFromInfraDockerImage") {
-		deps = append(deps, createPushAppsFromInfraDockerImage(b, name))
 	} else if strings.Contains(name, "UpdateCIPDPackages") {
 		// Update CIPD packages bot.
 		deps = append(deps, updateCIPDPackages(b, name))
