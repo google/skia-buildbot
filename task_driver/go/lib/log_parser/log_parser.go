@@ -302,6 +302,26 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 		}
 	}
 
+	// Handle stdout.
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return td.FailStep(ctx, err)
+	}
+	var parseErr error
+	stream(stdout, sm.root.stdout, split, func(tok string) {
+		if err := handleToken(sm, tok); err != nil {
+			parseErr = skerr.Wrapf(err, "Failed handling token %q", tok)
+			sklog.Error(parseErr.Error())
+		}
+	})
+
+	// Handle stderr. Attempt to direct it to the appropriate sub-step.
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return td.FailStep(ctx, err)
+	}
+	stream(stderr, sm.root.stderr, bufio.ScanLines, logStderr)
+
 	// Spin up a goroutine which watches for context cancellation and closes
 	// the io streams to allow the streaming goroutines to exit in case of a
 	// context cancellation. Note that this wouldn't be necessary if
@@ -333,26 +353,6 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 		// Allow the above goroutine to exit.
 		stop <- struct{}{}
 	}()
-
-	// Handle stdout.
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return td.FailStep(ctx, err)
-	}
-	var parseErr error
-	stream(stdout, sm.root.stdout, split, func(tok string) {
-		if err := handleToken(sm, tok); err != nil {
-			parseErr = skerr.Wrapf(err, "Failed handling token %q", tok)
-			sklog.Error(parseErr.Error())
-		}
-	})
-
-	// Handle stderr. Attempt to direct it to the appropriate sub-step.
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return td.FailStep(ctx, err)
-	}
-	stream(stderr, sm.root.stderr, bufio.ScanLines, logStderr)
 
 	// Start the command.
 	if err := cmd.Start(); err != nil {
