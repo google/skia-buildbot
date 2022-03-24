@@ -26,7 +26,6 @@ const (
 )
 
 func main() {
-	cluster := flag.String("cluster", "main", "GKE cluster name")
 	configRepo := flag.String("config_repo", "https://skia.googlesource.com/k8s-config.git", "Repo containing Kubernetes configurations.")
 	configSubdir := flag.String("config_subdir", "", "Subdirectory within the config repo to apply to this cluster.")
 	interval := flag.Duration("interval", 10*time.Minute, "How often to re-apply configurations to the cluster")
@@ -39,9 +38,6 @@ func main() {
 	common.InitWithMust("k8s_deployer", common.PrometheusOpt(promPort))
 	defer sklog.Flush()
 
-	if *cluster == "" {
-		sklog.Fatal("cluster is required.")
-	}
 	if *configRepo == "" {
 		sklog.Fatal("config_repo is required.")
 	}
@@ -70,7 +66,7 @@ func main() {
 	// too much of a delay.
 	liveness := metrics2.NewLiveness(livenessMetric)
 	go util.RepeatCtx(ctx, *interval, func(ctx context.Context) {
-		if err := applyConfigs(ctx, repo, *kubectl, *k8sServer, *cluster, *configSubdir, *prune); err != nil {
+		if err := applyConfigs(ctx, repo, *kubectl, *k8sServer, *configSubdir, *prune); err != nil {
 			sklog.Errorf("Failed to apply configs to cluster: %s", err)
 		} else {
 			liveness.Reset()
@@ -81,7 +77,7 @@ func main() {
 	httputils.RunHealthCheckServer(*port)
 }
 
-func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, cluster, configSubdir string, prune bool) error {
+func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, configSubdir string, prune bool) error {
 	// Download the configs from Gitiles instead of maintaining a local Git
 	// checkout, to avoid dealing with Git, persistent checkouts, etc.
 
