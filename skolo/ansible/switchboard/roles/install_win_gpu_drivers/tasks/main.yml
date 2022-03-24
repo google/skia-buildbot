@@ -8,7 +8,7 @@
   run_once: True
   command:
     argv:
-      - bazel
+      - bazelisk
       - build
       - --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64
       - //skolo/go/getgpu
@@ -20,7 +20,7 @@
 
 - name: Copy getgpu.exe to host
   win_copy:
-    src: "{{ all.repo_root }}/_bazel_bin/skolo/go/getgpu/getgpu_/getgpu.exe"
+    src: '{{ all.repo_root }}/_bazel_bin/skolo/go/getgpu/getgpu_/getgpu.exe'
     dest: C:\Temp\getgpu.exe
 
 - name: Run getgpu.exe
@@ -29,7 +29,7 @@
 
 - name: Print out GPU
   debug:
-    msg: "Detected GPU: {{ getgpu.stdout }}"
+    msg: 'Detected GPU: {{ getgpu.stdout }}'
 
 - name: Install Nvidia driver
   import_tasks: nvidia.yml
