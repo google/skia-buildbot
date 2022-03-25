@@ -30,6 +30,7 @@ import (
 
 const (
 	dirtyImageSuffix = "-dirty"
+	namespaceDefault = "default"
 
 	// Metric names.
 	evictedPodMetric                = "evicted_pod_metric"
@@ -62,6 +63,7 @@ func main() {
 	configFile := flag.String("config_file", "", "The location of the config.json file that describes all the clusters.")
 	cluster := flag.String("cluster", "skia-public", "The k8s cluster name.")
 	promPort := flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	ignoreNamespaces := common.NewMultiStringFlag("ignore_namespace", nil, "Namespaces to ignore.")
 
 	common.InitWithMust("k8s_checker", common.PrometheusOpt(promPort))
 	defer sklog.Flush()
@@ -97,7 +99,7 @@ func main() {
 	liveness := metrics2.NewLiveness(livenessMetric)
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	go util.RepeatCtx(ctx, *dirtyConfigChecksPeriod, func(ctx context.Context) {
-		newMetrics, err := performChecks(ctx, *cluster, clusterConfig.Repo, clientset, gitiles.NewRepo(clusterConfig.Repo, httpClient), oldMetrics)
+		newMetrics, err := performChecks(ctx, *cluster, clusterConfig.Repo, clientset, *ignoreNamespaces, gitiles.NewRepo(clusterConfig.Repo, httpClient), oldMetrics)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
 		} else {
@@ -109,10 +111,33 @@ func main() {
 	select {}
 }
 
+// fixupNamespace sets the namespace to the default, if necessary.
+func fixupNamespace(namespace string) string {
+	if namespace == "" {
+		return namespaceDefault
+	}
+	return namespace
+}
+
+// getNamespaces finds all namespaces in the cluster.
+func getNamespaces(ctx context.Context, cluster string, clientset *kubernetes.Clientset, ignoreNamespaces []string) ([]string, error) {
+	namespaces, err := clientset.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "listing namespaces")
+	}
+	rv := make([]string, 0, len(namespaces.Items))
+	for _, namespace := range namespaces.Items {
+		if !util.In(namespace.Name, ignoreNamespaces) {
+			rv = append(rv, namespace.Name)
+		}
+	}
+	return rv, nil
+}
+
 // getEvictedPods finds all pods in "Evicted" state and reports metrics.
 // It puts all reported evictedMetrics into the specified metrics map.
-func getEvictedPods(ctx context.Context, cluster string, clientset *kubernetes.Clientset, metrics map[metrics2.Int64Metric]struct{}) error {
-	pods, err := clientset.CoreV1().Pods("default").List(ctx, metav1.ListOptions{
+func getEvictedPods(ctx context.Context, cluster, namespace string, clientset *kubernetes.Clientset, metrics map[metrics2.Int64Metric]struct{}) error {
+	pods, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
 		FieldSelector: "status.phase=Failed",
 	})
 	if err != nil {
@@ -121,10 +146,11 @@ func getEvictedPods(ctx context.Context, cluster string, clientset *kubernetes.C
 
 	for _, p := range pods.Items {
 		evictedMetricTags := map[string]string{
-			"pod":     p.ObjectMeta.Name,
-			"cluster": cluster,
-			"reason":  p.Status.Reason,
-			"message": p.Status.Message,
+			"pod":       p.ObjectMeta.Name,
+			"cluster":   cluster,
+			"namespace": fixupNamespace(namespace),
+			"reason":    p.Status.Reason,
+			"message":   p.Status.Message,
 		}
 		evictedMetric := metrics2.GetInt64Metric(evictedPodMetric, evictedMetricTags)
 		metrics[evictedMetric] = struct{}{}
@@ -140,8 +166,8 @@ func getEvictedPods(ctx context.Context, cluster string, clientset *kubernetes.C
 
 // getPodMetrics reports metrics for all pods and places them into the specified
 // metrics map.
-func getPodMetrics(ctx context.Context, cluster string, clientset *kubernetes.Clientset, metrics map[metrics2.Int64Metric]struct{}) error {
-	pods, err := clientset.CoreV1().Pods("default").List(ctx, metav1.ListOptions{})
+func getPodMetrics(ctx context.Context, cluster, namespace string, clientset *kubernetes.Clientset, metrics map[metrics2.Int64Metric]struct{}) error {
+	pods, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return skerr.Wrapf(err, "listing all pods")
 	}
@@ -153,6 +179,7 @@ func getPodMetrics(ctx context.Context, cluster string, clientset *kubernetes.Cl
 				"pod":       p.ObjectMeta.Name,
 				"container": c.Name,
 				"cluster":   cluster,
+				"namespace": fixupNamespace(namespace),
 			}
 			restarts := metrics2.GetInt64Metric(podRestartCountMetric, tags)
 			restarts.Update(int64(c.RestartCount))
@@ -191,9 +218,9 @@ func getPodMetrics(ctx context.Context, cluster string, clientset *kubernetes.Cl
 }
 
 // getLiveAppContainersToImages returns a map of app names to their containers to the images running on them.
-func getLiveAppContainersToImages(ctx context.Context, clientset *kubernetes.Clientset) (map[string]map[string]string, error) {
+func getLiveAppContainersToImages(ctx context.Context, namespace string, clientset *kubernetes.Clientset) (map[string]map[string]string, error) {
 	// Get JSON output of pods running in K8s.
-	pods, err := clientset.CoreV1().Pods("default").List(ctx, metav1.ListOptions{
+	pods, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
 		FieldSelector: "status.phase=Running",
 	})
 	if err != nil {
@@ -224,14 +251,17 @@ type TemplateSpecConfig struct {
 }
 
 type MetadataConfig struct {
-	Labels struct {
+	Name      string `yaml:"name"`
+	Namespace string `yaml:"namespace"`
+	Labels    struct {
 		App string `yaml:"app"`
 	} `yaml:"labels"`
 }
 
 type K8sConfig struct {
-	Kind string `yaml:"kind"`
-	Spec struct {
+	Kind     string         `yaml:"kind"`
+	Metadata MetadataConfig `yaml:"metadata"`
+	Spec     struct {
 		Schedule    string `yaml:"schedule"`
 		JobTemplate struct {
 			Metadata MetadataConfig `yaml:"metadata"`
@@ -261,19 +291,33 @@ type K8sConfig struct {
 // change. Eg: liveImage in dirtyConfigMetricTags.
 // It returns a map of newMetrics, which are all the metrics that were used during this
 // invocation of the function.
-func performChecks(ctx context.Context, cluster, repo string, clientset *kubernetes.Clientset, g *gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
+func performChecks(ctx context.Context, cluster, repo string, clientset *kubernetes.Clientset, ignoreNamespaces []string, g *gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
 	sklog.Info("---------- New round of checking k8s ----------")
 	newMetrics := map[metrics2.Int64Metric]struct{}{}
 
-	// Check for evicted pods.
-	if err := getEvictedPods(ctx, cluster, clientset, newMetrics); err != nil {
-		return nil, skerr.Wrapf(err, "checking for evicted pods from kubectl")
+	namespaces, err := getNamespaces(ctx, cluster, clientset, ignoreNamespaces)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "retrieving namespaces")
 	}
 
-	// Get mapping from live apps to their containers and images.
-	liveAppContainerToImages, err := getLiveAppContainersToImages(ctx, clientset)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "getting live pods from kubectl for cluster %s", cluster)
+	liveAppContainerToImagesByNamespace := make(map[string]map[string]map[string]string, len(namespaces))
+	for _, namespace := range namespaces {
+		// Check for evicted pods.
+		if err := getEvictedPods(ctx, cluster, namespace, clientset, newMetrics); err != nil {
+			return nil, skerr.Wrapf(err, "checking for evicted pods from kubectl")
+		}
+
+		// Check for crashing pods.
+		if err := getPodMetrics(ctx, cluster, namespace, clientset, newMetrics); err != nil {
+			return nil, skerr.Wrapf(err, "checking for crashing pods from kubectl")
+		}
+
+		// Get mapping from live apps to their containers and images.
+		liveAppContainerToImages, err := getLiveAppContainersToImages(ctx, namespace, clientset)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "getting live pods from kubectl for cluster %s", cluster)
+		}
+		liveAppContainerToImagesByNamespace[namespace] = liveAppContainerToImages
 	}
 
 	// Read files from the repo using gitiles.
@@ -305,14 +349,16 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 			if err := yaml.Unmarshal([]byte(yamlDoc), &config); err != nil {
 				sklog.Fatalf("Error when parsing %s: %s", yamlDoc, err)
 			}
+			namespace := fixupNamespace(config.Metadata.Namespace)
+			liveAppContainerToImages := liveAppContainerToImagesByNamespace[namespace]
 
 			if config.Kind == cronjobKind {
 				for _, c := range config.Spec.JobTemplate.Spec.Template.TemplateSpec.Containers {
 					// Check if the image in the config is dirty.
-					addMetricForDirtyCommittedImage(f, repo, cluster, c.Image, newMetrics)
+					addMetricForDirtyCommittedImage(f, repo, cluster, namespace, c.Image, newMetrics)
 
 					// Now add a metric for how many days old the committed image is.
-					if err := addMetricForImageAge(c.Name, c.Name, f, repo, c.Image, newMetrics); err != nil {
+					if err := addMetricForImageAge(c.Name, c.Name, namespace, f, repo, c.Image, newMetrics); err != nil {
 						sklog.Errorf("Could not add image age metric for %s: %s", c.Name, err)
 					}
 				}
@@ -326,14 +372,15 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 					checkedInAppsToContainers[app][c.Name] = true
 
 					// Check if the image in the config is dirty.
-					addMetricForDirtyCommittedImage(f, repo, cluster, committedImage, newMetrics)
+					addMetricForDirtyCommittedImage(f, repo, cluster, namespace, committedImage, newMetrics)
 
 					// Create app_running metric.
 					appRunningMetricTags := map[string]string{
-						"app":     app,
-						"yaml":    f,
-						"repo":    repo,
-						"cluster": cluster,
+						"app":       app,
+						"yaml":      f,
+						"repo":      repo,
+						"cluster":   cluster,
+						"namespace": fixupNamespace(namespace),
 					}
 					appRunningMetric := metrics2.GetInt64Metric(appRunningMetric, appRunningMetricTags)
 					newMetrics[appRunningMetric] = struct{}{}
@@ -349,6 +396,7 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 							"yaml":      f,
 							"repo":      repo,
 							"cluster":   cluster,
+							"namespace": fixupNamespace(namespace),
 						}
 						containerRunningMetric := metrics2.GetInt64Metric(containerRunningMetric, containerRunningMetricTags)
 						newMetrics[containerRunningMetric] = struct{}{}
@@ -362,6 +410,7 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 								"yaml":           f,
 								"repo":           repo,
 								"cluster":        cluster,
+								"namespace":      fixupNamespace(namespace),
 								"committedImage": committedImage,
 								"liveImage":      liveImage,
 							}
@@ -375,7 +424,7 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 								dirtyConfigMetric.Update(0)
 
 								// Now add a metric for how many days old the live/committed image is.
-								if err := addMetricForImageAge(app, container, f, repo, liveImage, newMetrics); err != nil {
+								if err := addMetricForImageAge(app, container, namespace, f, repo, liveImage, newMetrics); err != nil {
 									sklog.Errorf("Could not add image age metric for %s: %s", container, err)
 								}
 							}
@@ -396,42 +445,41 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 	}
 
 	// Find out which apps and containers are live but not found in git repo.
-	for liveApp := range liveAppContainerToImages {
-		runningAppHasConfigMetricTags := map[string]string{
-			"app":     liveApp,
-			"repo":    repo,
-			"cluster": cluster,
-		}
-		runningAppHasConfigMetric := metrics2.GetInt64Metric(runningAppHasConfigMetric, runningAppHasConfigMetricTags)
-		newMetrics[runningAppHasConfigMetric] = struct{}{}
-		if checkedInApp, ok := checkedInAppsToContainers[liveApp]; ok {
-			runningAppHasConfigMetric.Update(1)
-
-			for liveContainer := range liveAppContainerToImages[liveApp] {
-				runningContainerHasConfigMetricTags := map[string]string{
-					"app":       liveApp,
-					"container": liveContainer,
-					"repo":      repo,
-					"cluster":   cluster,
-				}
-				runningContainerHasConfigMetric := metrics2.GetInt64Metric(runningContainerHasConfigMetric, runningContainerHasConfigMetricTags)
-				newMetrics[runningContainerHasConfigMetric] = struct{}{}
-				if _, ok := checkedInApp[liveContainer]; ok {
-					runningContainerHasConfigMetric.Update(1)
-				} else {
-					sklog.Infof("The running container %s of app %s is not checked into %s", liveContainer, liveApp, repo)
-					runningContainerHasConfigMetric.Update(0)
-				}
+	for namespace, liveAppContainerToImages := range liveAppContainerToImagesByNamespace {
+		for liveApp := range liveAppContainerToImages {
+			runningAppHasConfigMetricTags := map[string]string{
+				"app":       liveApp,
+				"repo":      repo,
+				"cluster":   cluster,
+				"namespace": fixupNamespace(namespace),
 			}
-		} else {
-			sklog.Infof("The running app %s is not checked into %s", liveApp, repo)
-			runningAppHasConfigMetric.Update(0)
-		}
-	}
+			runningAppHasConfigMetric := metrics2.GetInt64Metric(runningAppHasConfigMetric, runningAppHasConfigMetricTags)
+			newMetrics[runningAppHasConfigMetric] = struct{}{}
+			if checkedInApp, ok := checkedInAppsToContainers[liveApp]; ok {
+				runningAppHasConfigMetric.Update(1)
 
-	// Check for crashing pods.
-	if err := getPodMetrics(ctx, cluster, clientset, newMetrics); err != nil {
-		return nil, skerr.Wrapf(err, "checking for crashing pods from kubectl")
+				for liveContainer := range liveAppContainerToImages[liveApp] {
+					runningContainerHasConfigMetricTags := map[string]string{
+						"app":       liveApp,
+						"container": liveContainer,
+						"repo":      repo,
+						"cluster":   cluster,
+						"namespace": fixupNamespace(namespace),
+					}
+					runningContainerHasConfigMetric := metrics2.GetInt64Metric(runningContainerHasConfigMetric, runningContainerHasConfigMetricTags)
+					newMetrics[runningContainerHasConfigMetric] = struct{}{}
+					if _, ok := checkedInApp[liveContainer]; ok {
+						runningContainerHasConfigMetric.Update(1)
+					} else {
+						sklog.Infof("The running container %s of app %s is not checked into %s", liveContainer, liveApp, repo)
+						runningContainerHasConfigMetric.Update(0)
+					}
+				}
+			} else {
+				sklog.Infof("The running app %s is not checked into %s", liveApp, repo)
+				runningAppHasConfigMetric.Update(0)
+			}
+		}
 	}
 
 	// Delete unused old metrics.
@@ -452,11 +500,12 @@ func performChecks(ctx context.Context, cluster, repo string, clientset *kuberne
 
 // addMetricForDirtyCommittedImage creates a metric for if the committed image is dirty, and adds
 // it to the metrics map.
-func addMetricForDirtyCommittedImage(yaml, repo, cluster, committedImage string, metrics map[metrics2.Int64Metric]struct{}) {
+func addMetricForDirtyCommittedImage(yaml, repo, cluster, namespace, committedImage string, metrics map[metrics2.Int64Metric]struct{}) {
 	dirtyCommittedMetricTags := map[string]string{
 		"yaml":           yaml,
 		"repo":           repo,
 		"cluster":        cluster,
+		"namespace":      fixupNamespace(namespace),
 		"committedImage": committedImage,
 	}
 	dirtyCommittedMetric := metrics2.GetInt64Metric(dirtyCommittedImageMetric, dirtyCommittedMetricTags)
@@ -471,7 +520,7 @@ func addMetricForDirtyCommittedImage(yaml, repo, cluster, committedImage string,
 
 // addMetricForImageAge creates a metric for how old the specified image is, and adds it to the
 // metrics map.
-func addMetricForImageAge(app, container, yaml, repo, image string, metrics map[metrics2.Int64Metric]struct{}) error {
+func addMetricForImageAge(app, container, namespace, yaml, repo, image string, metrics map[metrics2.Int64Metric]struct{}) error {
 	m := imageRegex.FindStringSubmatch(image)
 	if len(m) == 2 {
 		t, err := time.Parse(time.RFC3339, strings.ReplaceAll(m[1], "_", ":"))
@@ -484,6 +533,7 @@ func addMetricForImageAge(app, container, yaml, repo, image string, metrics map[
 			"yaml":      yaml,
 			"repo":      repo,
 			"liveImage": image,
+			"namespace": fixupNamespace(namespace),
 		}
 		staleImageMetric := metrics2.GetInt64Metric(staleImageMetric, staleImageMetricTags)
 		metrics[staleImageMetric] = struct{}{}
