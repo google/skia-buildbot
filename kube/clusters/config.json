@@ -14,6 +14,12 @@
             "project": "google.com:skia-corp",
             "context_name": "gke_google.com:skia-corp_us-central1-a_skia-corp"
         },
+        "skia-infra-public-dev": {
+            "type": "gke",
+            "zone": "us-central1-a",
+            "project": "skia-infra-public-dev",
+            "context_name": "gke_skia-infra-public-dev_us-central1-a_skia-infra-public-dev"
+        },
         "skia-switchboard": {
             "type": "gke",
             "zone": "us-central1-c",
