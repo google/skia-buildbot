@@ -28,6 +28,7 @@ export const descriptions: ListMachinesResponse = [{
   },
   Version: 'v1.2',
   PowerCycle: false,
+  PowerCycleState: 'available',
   LastUpdated: '2021-06-03T18:20:24.974527Z',
   Battery: 100,
   Temperature: {
@@ -66,6 +67,7 @@ export const descriptions: ListMachinesResponse = [{
   },
   Version: 'v1.3',
   PowerCycle: false,
+  PowerCycleState: 'in_error',
   LastUpdated: '2021-06-03T18:20:18.710416Z',
   Battery: 100,
   Temperature: {
@@ -100,6 +102,7 @@ export const descriptions: ListMachinesResponse = [{
   },
   Version: 'v1.4',
   PowerCycle: false,
+  PowerCycleState: 'not_available',
   LastUpdated: '2021-06-03T18:20:20.87764Z',
   Battery: 100,
   Temperature: {
@@ -134,6 +137,7 @@ export const descriptions: ListMachinesResponse = [{
   },
   Version: 'v1.2',
   PowerCycle: false,
+  PowerCycleState: 'available',
   LastUpdated: '2021-06-03T18:20:02.034149Z',
   Battery: 100,
   Temperature: {
@@ -168,6 +172,7 @@ export const descriptions: ListMachinesResponse = [{
   },
   Version: 'v1.2',
   PowerCycle: false,
+  PowerCycleState: 'available',
   LastUpdated: '2021-06-03T18:20:21.471856Z',
   Battery: 100,
   Temperature: {
@@ -202,6 +207,7 @@ export const descriptions: ListMachinesResponse = [{
   },
   Version: 'v1.2',
   PowerCycle: false,
+  PowerCycleState: 'available',
   LastUpdated: '2021-06-03T18:20:33.121421Z',
   Battery: 94,
   Temperature: {
@@ -240,6 +246,7 @@ export const descriptions: ListMachinesResponse = [{
   },
   Version: 'v1.2',
   PowerCycle: false,
+  PowerCycleState: 'available',
   LastUpdated: '2021-06-03T18:20:09.386348Z',
   Battery: 99,
   Temperature: {
@@ -274,6 +281,7 @@ export const descriptions: ListMachinesResponse = [{
   },
   Version: 'v1.2',
   PowerCycle: false,
+  PowerCycleState: 'available',
   LastUpdated: '2021-06-03T18:20:35.74389Z',
   Battery: 100,
   Temperature: {
@@ -312,6 +320,7 @@ export const descriptions: ListMachinesResponse = [{
   },
   Version: 'v1.2',
   PowerCycle: false,
+  PowerCycleState: 'available',
   LastUpdated: '2021-06-03T18:20:35.282608Z',
   Battery: 91,
   Temperature: {
@@ -350,6 +359,7 @@ export const descriptions: ListMachinesResponse = [{
   },
   Version: 'v1.2',
   PowerCycle: false,
+  PowerCycleState: 'available',
   LastUpdated: '2021-06-03T18:20:23.312632Z',
   Battery: 100,
   Temperature: {

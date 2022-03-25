@@ -431,3 +431,16 @@ func TestForceToAttachedDevice(t *testing.T) {
 	assert.Equal(t, machine.AttachedDeviceSSH, forceToAttachedDevice(machine.AttachedDeviceSSH))
 	assert.Equal(t, machine.AttachedDeviceNone, forceToAttachedDevice(machine.AttachedDevice("this is not a valid attached device name")))
 }
+
+func TestForceToPowerCycleState_AllCurrentValuesConvertToThemSelves(t *testing.T) {
+	unittest.SmallTest(t)
+	for _, state := range machine.AllPowerCycleStates {
+		assert.Equal(t, state, forceToPowerCycleState(state), state)
+	}
+}
+
+func TestForceToPowerCycleState_UnknownValuesAreConvertedToNotAvailable(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, machine.NotAvailable, forceToPowerCycleState(""), "empty string")
+	assert.Equal(t, machine.NotAvailable, forceToPowerCycleState("foo-bar-baz"), "foo-bar-baz")
+}

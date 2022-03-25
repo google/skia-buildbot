@@ -70,6 +70,5 @@ describe('machine-app-sk', () => {
 
       // Confirm we are displaying the right icon.
       assert.isNotNull($$('pause-icon-sk', s));
-    })
-  );
+    }));
 });

@@ -36,6 +36,7 @@ type FrontendDescription struct {
 	Note                machine.Annotation
 	Version             string
 	PowerCycle          bool
+	PowerCycleState     machine.PowerCycleState
 	LastUpdated         time.Time
 	Battery             int
 	Temperature         map[string]float64
@@ -67,6 +68,7 @@ func ToFrontendDescription(d machine.Description) FrontendDescription {
 		Note:                d.Note,
 		Version:             d.Version,
 		PowerCycle:          d.PowerCycle,
+		PowerCycleState:     d.PowerCycleState,
 		LastUpdated:         d.LastUpdated,
 		Battery:             d.Battery,
 		Temperature:         d.Temperature,

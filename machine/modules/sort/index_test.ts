@@ -101,6 +101,7 @@ describe('SortHistory', () => {
       },
       Version: '2022-02-09T13_06_42Z-jcgregorio-7605d80-clean',
       PowerCycle: false,
+      PowerCycleState: 'available',
       LastUpdated: '2022-02-26T16:40:38.008347Z',
       Battery: 0,
       Temperature: {},

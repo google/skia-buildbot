@@ -44,6 +44,7 @@ func TestCopy(t *testing.T) {
 		RunningSwarmingTask: true,
 		LaunchedSwarming:    true,
 		PowerCycle:          true,
+		PowerCycleState:     Available,
 		RecoveryStart:       testTime,
 		DeviceUptime:        testDuration,
 		SSHUserIP:           "root@skia-sparky360-03",

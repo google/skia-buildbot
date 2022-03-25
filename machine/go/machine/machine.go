@@ -57,6 +57,25 @@ const (
 	BadBatteryLevel = -99
 )
 
+// PowerCycleState is the state of powercycling for a single machine.
+type PowerCycleState string
+
+const (
+	// NotAvailable means powercycling is not available for this machine. This
+	// is the default.
+	NotAvailable PowerCycleState = "not_available"
+
+	// Available means powercycling is available for this machine.
+	Available PowerCycleState = "available"
+
+	// InError means that powercycle should be available, but an error has
+	// occurred on powercycle_server, likely it failed to connect to the power
+	// cycle device, aka the POE switch, or the PD.
+	InError PowerCycleState = "in_error"
+)
+
+var AllPowerCycleStates = []PowerCycleState{NotAvailable, Available, InError}
+
 // Mode is the mode we want the machine to be in. Note that this is the desired
 // state, it might not be the actual state, for example if we put a machine in
 // maintenance mode it will only get there after it finishes running the current
@@ -135,6 +154,10 @@ type Description struct {
 
 	// PowerCycle is true if the machine needs to be power-cycled.
 	PowerCycle bool
+
+	// PowerCycleState is the state of power cycling availability for this
+	// machine.
+	PowerCycleState PowerCycleState
 
 	LastUpdated         time.Time
 	Battery             int                // Charge as an integer percent, e.g. 50% = 50.

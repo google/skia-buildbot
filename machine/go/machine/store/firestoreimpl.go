@@ -73,6 +73,10 @@ type storeDescription struct {
 	// PowerCycle is true if the machine needs to be power-cycled.
 	PowerCycle bool
 
+	// PowerCycleState is the state of power cycling availability for this
+	// machine.
+	PowerCycleState machine.PowerCycleState
+
 	// LastUpdated is the timestamp that the machine last checked in.
 	LastUpdated         time.Time
 	RunningSwarmingTask bool
@@ -339,6 +343,7 @@ func convertDescription(m machine.Description) storeDescription {
 		Note:                convertAnnotation(m.Note),
 		OS:                  m.Dimensions[machine.DimOS],
 		PowerCycle:          m.PowerCycle,
+		PowerCycleState:     m.PowerCycleState,
 		Quarantined:         m.Dimensions[machine.DimQuarantined],
 		RecoveryStart:       m.RecoveryStart,
 		RunningSwarmingTask: m.RunningSwarmingTask,
@@ -374,6 +379,15 @@ func forceToAttachedDevice(a machine.AttachedDevice) machine.AttachedDevice {
 	return machine.AttachedDeviceNone
 }
 
+func forceToPowerCycleState(powerCycleState machine.PowerCycleState) machine.PowerCycleState {
+	for _, s := range machine.AllPowerCycleStates {
+		if s == powerCycleState {
+			return s
+		}
+	}
+	return machine.NotAvailable
+}
+
 // convertFSDescription converts the firestore version of the description to the common format.
 func convertFSDescription(s storeDescription) machine.Description {
 	return machine.Description{
@@ -387,6 +401,7 @@ func convertFSDescription(s storeDescription) machine.Description {
 		Mode:                s.Mode,
 		Note:                convertFSAnnotation(s.Note),
 		PowerCycle:          s.PowerCycle,
+		PowerCycleState:     forceToPowerCycleState(s.PowerCycleState),
 		RecoveryStart:       s.RecoveryStart,
 		RunningSwarmingTask: s.RunningSwarmingTask,
 		SSHUserIP:           s.SSHUserIP,

@@ -39,6 +39,7 @@ export interface FrontendDescription {
 	Note: Annotation;
 	Version: string;
 	PowerCycle: boolean;
+	PowerCycleState: PowerCycleState;
 	LastUpdated: string;
 	Battery: number;
 	Temperature: { [key: string]: number };
@@ -54,5 +55,7 @@ export type SwarmingDimensions = { [key: string]: string[] | null } | null;
 export type AttachedDevice = "nodevice" | "adb" | "ios" | "ssh";
 
 export type Mode = "available" | "maintenance" | "recovery";
+
+export type PowerCycleState = "not_available" | "available" | "in_error";
 
 export type ListMachinesResponse = FrontendDescription[];
