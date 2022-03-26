@@ -793,7 +793,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		// Set the DISPLAY.
 		env = append(env, "DISPLAY=:0")
 	}
-	pythonExec := BINARY_VPYTHON
+	pythonExec := BINARY_VPYTHON3
 	// Set VPYTHON_VIRTUALENV_ROOT for vpython
 	env = append(env, fmt.Sprintf("VPYTHON_VIRTUALENV_ROOT=%s", os.TempDir()))
 	// Append the original environment as well.
