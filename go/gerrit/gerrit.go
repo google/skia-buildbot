@@ -240,15 +240,17 @@ type ChangeInfo struct {
 		CC       []*Person `json:"CC"`
 		Reviewer []*Person `json:"REVIEWER"`
 	} `json:"reviewers"`
-	Revisions      map[string]*Revision   `json:"revisions"`
-	Patchsets      []*Revision            `json:"-"`
-	MoreChanges    bool                   `json:"_more_changes"`
-	Issue          int64                  `json:"_number"`
-	Labels         map[string]*LabelEntry `json:"labels"`
-	Owner          *Person                `json:"owner"`
-	Status         string                 `json:"status"`
-	Submittable    bool                   `json:"submittable"`
-	WorkInProgress bool                   `json:"work_in_progress"`
+	Revisions            map[string]*Revision   `json:"revisions"`
+	Patchsets            []*Revision            `json:"-"`
+	MoreChanges          bool                   `json:"_more_changes"`
+	Issue                int64                  `json:"_number"`
+	Labels               map[string]*LabelEntry `json:"labels"`
+	Owner                *Person                `json:"owner"`
+	Status               string                 `json:"status"`
+	Submittable          bool                   `json:"submittable"`
+	WorkInProgress       bool                   `json:"work_in_progress"`
+	CherrypickOfChange   int                    `json:"cherry_pick_of_change"`
+	CherrypickOfPatchSet int                    `json:"cherry_pick_of_patch_set"`
 }
 
 // GetNonTrivialPatchSets finds the set of non-trivial patchsets. Returns the
