@@ -15,6 +15,8 @@ go_library(
         "//go/executil",
         "//go/skerr",
         "//go/sklog",
+        "//machine/go/machine",
+        "//machine/go/machineserver/rpc",
         "@com_github_flynn_json5//:json5",
     ],
 )
@@ -31,6 +33,8 @@ go_test(
     deps = [
         "//go/executil",
         "//go/testutils/unittest",
+        "//machine/go/machine",
+        "//machine/go/machineserver/rpc",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

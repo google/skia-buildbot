@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -80,12 +81,6 @@ func main() {
 		sklog.Fatalf("Failed to read config file %q: %s", *powercycleConfigFilename, err)
 	}
 
-	sklog.Info("Building powercycle.Controller from %q", *powercycleConfigFilename)
-	powercycleController, err := powercycle.ControllerFromJSON5Bytes(ctx, powerCycleConfigBytes, true)
-	if err != nil {
-		sklog.Fatalf("Failed to instantiate powercycle.Controller: %s", err)
-	}
-
 	ts, err := auth.NewDefaultTokenSource(*local, "email")
 	if err != nil {
 		sklog.Fatalf("Failed to create tokensource: %s", err)
@@ -93,9 +88,45 @@ func main() {
 
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().WithoutRetries().Client()
 
+	sklog.Info("Building powercycle.Controller from %q", *powercycleConfigFilename)
+
+	controllerInitCallback, err := buildPowerCycleControllerCallback(httpClient, *machineServerHost)
+	if err != nil {
+		sklog.Fatalf("Failed to create powercycle.Controller callback: %s", err)
+	}
+	powercycleController, err := powercycle.ControllerFromJSON5Bytes(ctx, powerCycleConfigBytes, true, controllerInitCallback)
+	if err != nil {
+		sklog.Fatalf("Failed to instantiate powercycle.Controller: %s", err)
+	}
+
 	watchForPowerCycle(ctx, httpClient, *machineServerHost, powercycleController)
 
 	select {}
+}
+
+// buildPowerCycleControllerCallback returns a callback function that sends the
+// power cycle state for each machine attached to a controller to
+// machines.skia.org.
+func buildPowerCycleControllerCallback(client *http.Client, machineServer string) (powercycle.ControllerInitCB, error) {
+	// Create the absolute URL we are POSTing data to.
+	u, err := url.Parse(machineServer)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse machineserver flag: %s", machineServer)
+	}
+	u.Path = rpc.PowerCycleStateUpdateURL
+	absolutePowerCycleStateUpdateURL := u.String()
+
+	return func(update rpc.UpdatePowerCycleStateRequest) error {
+		b, err := json.Marshal(update)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to encode rpc.UpdatePowerCycleStateRequest")
+		}
+		_, err = client.Post(absolutePowerCycleStateUpdateURL, "application/json", bytes.NewReader(b))
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to send rpc.UpdatePowerCycleStateRequest to machineserver")
+		}
+		return nil
+	}, nil
 }
 
 // watchForPowerCycle loops forever powercycling machines, this function does

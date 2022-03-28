@@ -9,7 +9,14 @@ import (
 	"github.com/flynn/json5"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/machine/go/machine"
+	"go.skia.org/infra/machine/go/machineserver/rpc"
 )
+
+// ControllerInitCB is a callback that is called for every Controller as it
+// finishes initialization. The success or failure of that initialization is
+// stored in the rpc.UpdatePowerCycleStateRequest.
+type ControllerInitCB func(rpc.UpdatePowerCycleStateRequest) error
 
 // DeviceID is a unique identifier for a given machine or attached device.
 type DeviceID string
@@ -90,10 +97,21 @@ func (a *multiController) PowerCycle(ctx context.Context, id DeviceID, delayOver
 	return ctrl.PowerCycle(ctx, id, delayOverride)
 }
 
+func updatePowerCycleStateRequestFromController(c Controller, state machine.PowerCycleState) rpc.UpdatePowerCycleStateRequest {
+	ret := rpc.UpdatePowerCycleStateRequest{Machines: []rpc.PowerCycleStateForMachine{}}
+	for _, deviceID := range c.DeviceIDs() {
+		ret.Machines = append(ret.Machines, rpc.PowerCycleStateForMachine{
+			MachineID:       string(deviceID),
+			PowerCycleState: state,
+		})
+	}
+	return ret
+}
+
 // controllerFromConfig creates a Controll from the given config. If connect is
 // true, an attempt will be made to connect to the subclients and errors will be
 // returned if they are not accessible.
-func controllerFromConfig(ctx context.Context, conf config, connect bool) (Controller, error) {
+func controllerFromConfig(ctx context.Context, conf config, connect bool, controllerInitCallback ControllerInitCB) (Controller, error) {
 	ret := &multiController{
 		controllerForID: map[DeviceID]Controller{},
 	}
@@ -103,11 +121,17 @@ func controllerFromConfig(ctx context.Context, conf config, connect bool) (Contr
 		mp, err := newMPowerController(ctx, c, connect)
 		if err != nil {
 			sklog.Errorf("failed to initialize %s", name)
+			if err := controllerInitCallback(updatePowerCycleStateRequestFromController(mp, machine.InError)); err != nil {
+				return nil, skerr.Wrap(err)
+			}
 			continue
 		}
 		// TODO(kjlubick) add test for duplicate device names.
 		if err := ret.add(mp); err != nil {
 			return nil, skerr.Wrapf(err, "incorporating %s", name)
+		}
+		if err := controllerInitCallback(updatePowerCycleStateRequestFromController(mp, machine.Available)); err != nil {
+			return nil, skerr.Wrap(err)
 		}
 	}
 
@@ -116,37 +140,46 @@ func controllerFromConfig(ctx context.Context, conf config, connect bool) (Contr
 		es, err := newEdgeSwitchController(ctx, c, connect)
 		if err != nil {
 			sklog.Errorf("failed to initialize %s", name)
+			if err := controllerInitCallback(updatePowerCycleStateRequestFromController(es, machine.InError)); err != nil {
+				return nil, skerr.Wrap(err)
+			}
 			continue
 		}
 
 		if err := ret.add(es); err != nil {
 			return nil, skerr.Wrapf(err, "incorporating %s", name)
 		}
+		if err := controllerInitCallback(updatePowerCycleStateRequestFromController(es, machine.Available)); err != nil {
+			return nil, skerr.Wrap(err)
+		}
 	}
 
 	return ret, nil
 }
 
-// ControllerFromJSON5 parses a JSON5 file and instantiates the defined devices. If connect is true, an
-// attempt will be made to connect to the subclients and errors will be returned if they are not
-// accessible.
-func ControllerFromJSON5(ctx context.Context, path string, connect bool) (Controller, error) {
+// ControllerFromJSON5 parses a JSON5 file and instantiates the defined devices.
+// If connect is true, an attempt will be made to connect to the subclients and
+// errors will be returned if they are not accessible. The ControllerInitCB is
+// called once for each controller with the state for each machine it controls
+func ControllerFromJSON5(ctx context.Context, path string, connect bool, cb ControllerInitCB) (Controller, error) {
 	conf, err := readConfig(path)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return controllerFromConfig(ctx, conf, connect)
+	return controllerFromConfig(ctx, conf, connect, cb)
 }
 
-// ControllerFromJSON5Bytes parses a JSON5 file and instantiates the defined devices. If connect is true, an
-// attempt will be made to connect to the subclients and errors will be returned if they are not
-// accessible.
-func ControllerFromJSON5Bytes(ctx context.Context, configFileBytes []byte, connect bool) (Controller, error) {
+// ControllerFromJSON5Bytes parses a JSON5 file and instantiates the defined
+// devices. If connect is true, an attempt will be made to connect to the
+// subclients and errors will be returned if they are not accessible. The
+// ControllerInitCB is called once for each controller with the state for each
+// machine it controls.
+func ControllerFromJSON5Bytes(ctx context.Context, configFileBytes []byte, connect bool, controllerInitCallback ControllerInitCB) (Controller, error) {
 	var conf config
 	if err := json5.Unmarshal(configFileBytes, &conf); err != nil {
 		return nil, skerr.Wrapf(err, "reading JSON5 bytes")
 	}
-	return controllerFromConfig(ctx, conf, connect)
+	return controllerFromConfig(ctx, conf, connect, controllerInitCallback)
 }
 
 func readConfig(path string) (config, error) {

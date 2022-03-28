@@ -2,17 +2,28 @@ package powercycle
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/machine/go/machine"
+	"go.skia.org/infra/machine/go/machineserver/rpc"
 )
 
 func TestControllerFromJSON5_ConfigIsNonEmpty(t *testing.T) {
 	unittest.MediumTest(t)
 
-	agg, err := ControllerFromJSON5(context.Background(), "./example.json5", false)
+	allMachines := []DeviceID{}
+	controllerInitCallback := func(update rpc.UpdatePowerCycleStateRequest) error {
+		for _, m := range update.Machines {
+			allMachines = append(allMachines, DeviceID(m.MachineID))
+			require.Equal(t, machine.Available, m.PowerCycleState)
+		}
+		return nil
+	}
+	agg, err := ControllerFromJSON5(context.Background(), "./example.json5", false, controllerInitCallback)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []DeviceID{
 		"skia-e-linux-001",
@@ -41,6 +52,7 @@ func TestControllerFromJSON5_ConfigIsNonEmpty(t *testing.T) {
 		"skia-rpi-2-TEST",
 		"skia-rpi-TEST",
 	}, agg.DeviceIDs())
+	assert.ElementsMatch(t, allMachines, agg.DeviceIDs(), "All machines are passed to ControllerInitCB.")
 
 	conf, err := readConfig("./example.json5")
 	require.NoError(t, err)
@@ -55,4 +67,14 @@ func TestControllerFromJSON5_ConfigIsNonEmpty(t *testing.T) {
 		require.NotEqual(t, "", oneConf.User)
 		require.NotEmpty(t, oneConf.DevPortMap)
 	}
+}
+
+func TestControllerFromJSON5_ControllerInitCBReturnsError_ControllerFromJSON5ReturnsError(t *testing.T) {
+	unittest.MediumTest(t)
+
+	controllerInitCallback := func(update rpc.UpdatePowerCycleStateRequest) error {
+		return fmt.Errorf("my fake error")
+	}
+	_, err := ControllerFromJSON5(context.Background(), "./example.json5", false, controllerInitCallback)
+	require.Error(t, err)
 }

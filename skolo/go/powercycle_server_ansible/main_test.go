@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -14,6 +15,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/skolo/go/powercycle"
 	"go.skia.org/infra/skolo/go/powercycle/mocks"
@@ -164,4 +166,58 @@ func TestSingleStep_PowerCycleCompleteCallFails_ReturnsError(t *testing.T) {
 	require.Error(t, err)
 	require.True(t, *called)
 	controllerMock.AssertExpectations(t)
+}
+
+func TestBuildPowerCycleControllerCallback_HTTPRequestsGoToCorrectURLPath(t *testing.T) {
+	u, called, client := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, rpc.PowerCycleStateUpdateURL, r.URL.Path)
+	})
+
+	cb, err := buildPowerCycleControllerCallback(client, u.String())
+	require.NoError(t, err)
+	err = cb(rpc.UpdatePowerCycleStateRequest{})
+	require.NoError(t, err)
+	require.True(t, *called)
+}
+
+func TestBuildPowerCycleControllerCallback_ServerReturnsError_ControllerInitCBReturnsError(t *testing.T) {
+	u, called, client := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "error", http.StatusInternalServerError)
+	})
+
+	cb, err := buildPowerCycleControllerCallback(client, u.String())
+	require.NoError(t, err)
+	err = cb(rpc.UpdatePowerCycleStateRequest{})
+	require.Error(t, err)
+	require.True(t, *called)
+}
+
+func TestBuildPowerCycleControllerCallback_InvalidMachineHostName_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	_, err := buildPowerCycleControllerCallback(nil, "http://spaces in host names are invalid.com/")
+	require.Error(t, err)
+}
+
+func TestBuildPowerCycleControllerCallback_SuccessfulSend_JSONEncodedUpdatePowerCycleStateRequestIsSent(t *testing.T) {
+	body := rpc.UpdatePowerCycleStateRequest{
+		Machines: []rpc.PowerCycleStateForMachine{
+			{
+				MachineID:       "skia-rpi2-rack1-shelf4-002",
+				PowerCycleState: machine.InError,
+			},
+		},
+	}
+	u, called, client := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		actual, err := ioutil.ReadAll(r.Body)
+		require.NoError(t, err)
+		expected, err := json.Marshal(body)
+		require.NoError(t, err)
+		require.Equal(t, expected, actual)
+	})
+
+	cb, err := buildPowerCycleControllerCallback(client, u.String())
+	require.NoError(t, err)
+	err = cb(body)
+	require.NoError(t, err)
+	require.True(t, *called)
 }

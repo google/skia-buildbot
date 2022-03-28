@@ -36,6 +36,7 @@ go_test(
         "//go/httputils",
         "//go/testutils",
         "//go/testutils/unittest",
+        "//machine/go/machine",
         "//machine/go/machineserver/rpc",
         "//skolo/go/powercycle",
         "//skolo/go/powercycle/mocks",
