@@ -10,14 +10,6 @@
     "datastore_type": "cockroachdb",
     "connection_string": "postgresql://root@perf-cockroachdb-public:26257/skia?sslmode=disable",
     "tile_size": 256,
-    "cache": {
-      "memcached_servers": [
-        "perf-memcached-0.perf-memcached:11211",
-        "perf-memcached-1.perf-memcached:11211",
-        "perf-memcached-2.perf-memcached:11211"
-      ],
-      "namespace": "skia"
-    },
     "enable_follower_reads": true
   },
   "ingestion_config": {
