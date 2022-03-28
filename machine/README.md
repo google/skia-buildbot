@@ -49,6 +49,12 @@ See the [Design Doc](http://go/skia-switchboard).
 | powercycle_server_ansible | <WebAPI([ListPowerCycleResponse][lpcr]) | machineserver | GET on `/json/v1/powercycle/list`              |
 | powercycle_server_ansible | >WebAPI                                 | machineserver | POST to `/json/v1/powercycle/complete/{id:.+}` |
 
+## powercycle_server_ansible report availability on startup.
+
+| initiator                 | message                                       | target        | notes                                      |
+| ------------------------- | --------------------------------------------- | ------------- | ------------------------------------------ |
+| powercycle_server_ansible | >WebAPI([UpdatePowerCycleStateRequest][pssu]) | machineserver | POST to `/json/v1/powercycle/state/update` |
+
 ## How test_machine_monitor keeps machine.Description up to date.
 
 | initiator            | message                        | target        | notes                           |
@@ -65,6 +71,9 @@ See the [Design Doc](http://go/skia-switchboard).
 [lpcr]:
   https://pkg.go.dev/go.skia.org/infra/machine/go/machineserver/rpc#ListPowerCycleResponse
   'rpc.ListPowerCycleResponse'
+[pssu]:
+  https://pkg.go.dev/go.skia.org/infra/machine/go/machineserver/rpc#UpdatePowerCycleStateRequest
+  'rpc.UpdatePowerCycleStateRequest'
 
 # Legend
 

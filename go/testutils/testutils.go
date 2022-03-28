@@ -125,6 +125,14 @@ func MarshalIndentJSON(t sktest.TestingT, i interface{}) string {
 	return string(b)
 }
 
+// MarshalJSONReader encodes the given interface to an io.ByteReader of its JSON
+// representation.
+func MarshalJSONReader(t sktest.TestingT, i interface{}) io.Reader {
+	b, err := json.MarshalIndent(i, "", "  ")
+	require.NoError(t, err)
+	return bytes.NewReader(b)
+}
+
 // GetRepoRoot returns the path to the root of the checkout.
 func GetRepoRoot(t sktest.TestingT) string {
 	root, err := repo_root.Get()

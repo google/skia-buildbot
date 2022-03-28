@@ -507,6 +507,32 @@ func (s *server) apiPowerCycleCompleteHandler(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusOK)
 }
 
+func setPowerCycleState(newState machine.PowerCycleState, in machine.Description) machine.Description {
+	ret := in.Copy()
+	ret.PowerCycleState = newState
+	return ret
+}
+
+func (s *server) apiPowerCycleStateUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	var req rpc.UpdatePowerCycleStateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, err, "Failed to parse request.", http.StatusBadRequest)
+		return
+	}
+
+	for _, updateRequest := range req.Machines {
+		err := s.store.Update(r.Context(), updateRequest.MachineID, func(in machine.Description) machine.Description {
+			return setPowerCycleState(updateRequest.PowerCycleState, in)
+		})
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to update machine.PowerCycleState", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
 	// Pages
@@ -527,6 +553,7 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc(rpc.MachineDescriptionURL, s.apiMachineDescriptionHandler).Methods("GET")
 	r.HandleFunc(rpc.PowerCycleListURL, s.apiPowerCycleListHandler).Methods("GET")
 	r.HandleFunc(rpc.PowerCycleCompleteURL, s.apiPowerCycleCompleteHandler).Methods("POST")
+	r.HandleFunc(rpc.PowerCycleStateUpdateURL, s.apiPowerCycleStateUpdateHandler).Methods("POST")
 }
 
 // See baseapp.App.

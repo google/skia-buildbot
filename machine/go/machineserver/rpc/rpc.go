@@ -8,9 +8,10 @@ import (
 
 // URL paths.
 const (
-	MachineDescriptionURL = "/json/v1/machine/description/{id:.+}"
-	PowerCycleListURL     = "/json/v1/powercycle/list"
-	PowerCycleCompleteURL = "/json/v1/powercycle/complete/{id:.+}"
+	MachineDescriptionURL    = "/json/v1/machine/description/{id:.+}"
+	PowerCycleListURL        = "/json/v1/powercycle/list"
+	PowerCycleCompleteURL    = "/json/v1/powercycle/complete/{id:.+}"
+	PowerCycleStateUpdateURL = "/json/v1/powercycle/state/update"
 )
 
 type SupplyChromeOSRequest struct {
@@ -25,6 +26,15 @@ type SetNoteRequest struct {
 
 type SetAttachedDevice struct {
 	AttachedDevice machine.AttachedDevice
+}
+
+type PowerCycleStateForMachine struct {
+	MachineID       string
+	PowerCycleState machine.PowerCycleState
+}
+
+type UpdatePowerCycleStateRequest struct {
+	Machines []PowerCycleStateForMachine
 }
 
 // FrontendDescription is the frontend representation of machine.Description.
