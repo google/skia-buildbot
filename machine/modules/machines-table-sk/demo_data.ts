@@ -51,9 +51,9 @@ export const descriptions: ListMachinesResponse = [{
     Timestamp: '2021-06-03T18:20:18.710419Z',
   },
   Note: {
-    Message: '',
-    User: '',
-    Timestamp: '0001-01-01T00:00:00Z',
+    Message: 'This is a note.',
+    User: 'me@example.com',
+    Timestamp: '2020-02-02T00:00:00Z',
   },
   Dimensions: {
     android_devices: ['1'],

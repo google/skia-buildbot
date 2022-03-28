@@ -15,6 +15,7 @@ import { diffDate, strDuration } from 'common-sk/modules/human';
 import { $$ } from 'common-sk/modules/dom';
 import { errorMessage } from 'elements-sk/errorMessage';
 import {
+  Annotation,
   AttachedDevice, FrontendDescription, SetAttachedDevice, SetNoteRequest, SupplyChromeOSRequest,
 } from '../json';
 
@@ -218,8 +219,7 @@ const launchedSwarming = (machine: FrontendDescription): TemplateResult => {
   `;
 };
 
-const annotation = (machine: FrontendDescription): TemplateResult => {
-  const ann = machine.Annotation;
+const annotation = (ann: Annotation): TemplateResult => {
   if (!ann?.Message) {
     return html``;
   }
@@ -438,7 +438,7 @@ export class MachinesTableSk extends ElementSk {
       ),
       Annotation: new Column(
         'Annotation',
-        annotation,
+        (machine: FrontendDescription) => annotation(machine.Annotation),
         sortByAnnotation,
       ),
       Version: new Column(
@@ -519,7 +519,7 @@ export class MachinesTableSk extends ElementSk {
     return html`
       <edit-icon-sk
           class="edit_note clickable"
-          @click=${() => this.editNote(machine.Dimensions!.id![0], machine)}></edit-icon-sk>${annotation(machine)}
+          @click=${() => this.editNote(machine.Dimensions!.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
           `;
   }
 
