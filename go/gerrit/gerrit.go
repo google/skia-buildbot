@@ -1062,11 +1062,27 @@ func SearchProject(project string) *SearchTerm {
 	}
 }
 
+// SearchBranch is a SearchTerm used for filtering by branch.
+func SearchBranch(branch string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "branch",
+		Value: branch,
+	}
+}
+
 // SearchLabel is a SearchTerm used for filtering by label.
 func SearchLabel(label, value string) *SearchTerm {
 	return &SearchTerm{
 		Key:   "label",
 		Value: fmt.Sprintf("%s=%s", label, value),
+	}
+}
+
+// SearchCherrypickOf is a SearchTerm used for finding all cherrypicks of the specified change.
+func SearchCherrypickOf(changeNum int) *SearchTerm {
+	return &SearchTerm{
+		Key:   "cherrypickof",
+		Value: fmt.Sprintf("%d", changeNum),
 	}
 }
 
