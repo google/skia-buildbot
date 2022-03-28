@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "open_ar_lib",
+    srcs = ["open_ar.go"],
+    importpath = "go.skia.org/infra/bazel/open_ar",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/skerr",
+        "//go/util",
+        "@com_github_blakesmith_ar//:ar",
+    ],
+)
+
+go_binary(
+    name = "open_ar",
+    embed = [":open_ar_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "open_ar_test",
+    srcs = ["open_ar_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":open_ar_lib"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
