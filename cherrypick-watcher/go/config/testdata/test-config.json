@@ -1,0 +1,11 @@
+{
+  "supported_branch_deps": {
+    "skiabot-test-c1-c2": {
+      "source_repo": "skiabot-test",
+      "source_branch": "c1",
+      "target_repo": "skiabot-test",
+      "target_branch": "c3",
+      "custom_message": "Test custom message"
+    }
+  }
+}

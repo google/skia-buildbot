@@ -1,0 +1,22 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "config",
+    srcs = ["config.go"],
+    importpath = "go.skia.org/infra/cherrypick-watcher/go/config",
+    visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
+)
+
+go_test(
+    name = "config_test",
+    srcs = ["config_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":config"],
+    deps = [
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
