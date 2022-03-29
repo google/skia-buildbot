@@ -127,3 +127,13 @@ A container is running in production, but does not belong to a checked in .yaml 
 This typically happens if someone is testing out a new service. Reach out to them for more details.
 
 Key metrics: running_container_has_config_metric
+
+AppRunningInDefaultNamespace
+----------------------------
+An app is running in the default namespace. This is undesirable for
+organizational reasons and because we use namespaces as security boundaries.  If
+this app was pushed to the default namespace by accident, delete it and re-push
+to the correct namespace.  Otherwise, create a namespace following the example
+of the other apps in the cluster.
+
+Key metrics: pod_running

@@ -673,6 +673,16 @@ groups:
       abbr: '{{ $labels.container }}'
       description: 'Container {{ $labels.container }} of app {{ $labels.exported_app }} on cluster {{ $labels.cluster }} has restarted at least 20 times since initial deployment. https://skia.googlesource.com/buildbot/+doc/refs/heads/main/k8s-checker/PROD.md#TooManyPodRestarts'
 
+  - alert: AppRunningInDefaultNamespace
+    expr: pod_running{namespace="default",cluster!~"skia-public|skia-corp"} > 0
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.exported_app }}'
+      description: 'App {{ $labels.exported_app }} is running in the default namespace in cluster {{ $labels.cluster }}.'
+
+
 # GitSync.
   - alert: GitSyncStalled
     expr: liveness_last_successful_git_sync_s > 5*60
