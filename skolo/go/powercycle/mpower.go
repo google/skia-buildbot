@@ -51,7 +51,11 @@ type mPowerClient struct {
 	mPowerConfig *mPowerConfig
 }
 
-// newMPowerController returns a new instance of Controller for the mPowerPro power strip.
+// newMPowerController returns a new instance of Controller for the mPowerPro
+// power strip.
+//
+// The *mPowerClient is always returned not nil as long as the config is valid,
+// so even on error it can be interrogated for the list of machines.
 func newMPowerController(ctx context.Context, conf *mPowerConfig, connect bool) (*mPowerClient, error) {
 	if err := conf.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
@@ -62,15 +66,9 @@ func newMPowerController(ctx context.Context, conf *mPowerConfig, connect bool) 
 	// diffie-hellman-group1-sha1 algorithm. The -T removes a warning SSH gives because we are not
 	// invoking it over TTY.
 	runner := PublicKeySSHCommandRunner("-oKexAlgorithms=+diffie-hellman-group1-sha1", "-T", target)
-	if connect {
-		out, err := runner.ExecCmds(ctx, "cat /proc/power/active_pwr1")
-		if err != nil {
-			return nil, skerr.Wrapf(err, "performing smoke test on mpower %s; output: %s", target, out)
-		}
-		sklog.Infof("connected successfully to mpower %s", target)
-	}
 
 	devIDs := make([]DeviceID, 0, len(conf.DevPortMap))
+	sklog.Infof("conf %v", *conf)
 	for id, port := range conf.DevPortMap {
 		if port < 1 || port > 8 {
 			return nil, skerr.Fmt("invalid port for %s (%d)", id, port)
@@ -79,11 +77,21 @@ func newMPowerController(ctx context.Context, conf *mPowerConfig, connect bool) 
 	}
 	sortIDs(devIDs)
 
-	return &mPowerClient{
+	ret := &mPowerClient{
 		runner:       runner,
 		deviceIDs:    devIDs,
 		mPowerConfig: conf,
-	}, nil
+	}
+
+	if connect {
+		out, err := runner.ExecCmds(ctx, "cat /proc/power/active_pwr1")
+		if err != nil {
+			return ret, skerr.Wrapf(err, "performing smoke test on mpower %s; output: %s", target, out)
+		}
+		sklog.Infof("connected successfully to mpower %s", target)
+	}
+
+	return ret, nil
 }
 
 // DeviceIDs implements the Controller interface.

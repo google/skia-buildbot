@@ -99,6 +99,9 @@ func (a *multiController) PowerCycle(ctx context.Context, id DeviceID, delayOver
 
 func updatePowerCycleStateRequestFromController(c Controller, state machine.PowerCycleState) rpc.UpdatePowerCycleStateRequest {
 	ret := rpc.UpdatePowerCycleStateRequest{Machines: []rpc.PowerCycleStateForMachine{}}
+	if c == nil {
+		return ret
+	}
 	for _, deviceID := range c.DeviceIDs() {
 		ret.Machines = append(ret.Machines, rpc.PowerCycleStateForMachine{
 			MachineID:       string(deviceID),

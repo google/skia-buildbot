@@ -65,8 +65,11 @@ type edgeSwitchClient struct {
 	runner     CommandRunner
 }
 
-// newEdgeSwitchController connects to the EdgeSwitch identified by the given configuration and
-// returns a new instance of edgeSwitchClient.
+// newEdgeSwitchController connects to the EdgeSwitch identified by the given
+// configuration and returns a new instance of edgeSwitchClient.
+//
+// The *edgeSwitchClient is always returned not nil as long as the configuration
+// is valid, so even on error it can be interrogated for the list of machines.
 func newEdgeSwitchController(ctx context.Context, conf *EdgeSwitchConfig, connect bool) (*edgeSwitchClient, error) {
 	if err := conf.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
@@ -75,15 +78,6 @@ func newEdgeSwitchController(ctx context.Context, conf *EdgeSwitchConfig, connec
 	// The -T removes a warning SSH gives because we are not invoking it over TTY.
 	// The -o StrictHostKeyChecking=no is added because pods don't have authorized_keys files.
 	runner := PasswordSSHCommandRunner(conf.getPassword(), "-T", target, "-o", "StrictHostKeyChecking=no")
-	if connect {
-		out, _ := runner.ExecCmds(ctx, "help")
-		// When using sshpass, we always seem to get exit code 255 (from ssh) and any actual errors are
-		// in stderr. So, we check the returned output for evidence that things actually worked
-		if !strings.Contains(out, "HELP") {
-			return nil, skerr.Fmt("smoke test on edge switch %s failed; output: %s", target, out)
-		}
-		sklog.Infof("connected successfully to edge switch %s", target)
-	}
 
 	ret := &edgeSwitchClient{
 		conf:   conf,
@@ -100,6 +94,17 @@ func newEdgeSwitchController(ctx context.Context, conf *EdgeSwitchConfig, connec
 		ret.devIDs = append(ret.devIDs, id)
 	}
 	sortIDs(ret.devIDs)
+
+	if connect {
+		out, _ := runner.ExecCmds(ctx, "help")
+		// When using sshpass, we always seem to get exit code 255 (from ssh) and any actual errors are
+		// in stderr. So, we check the returned output for evidence that things actually worked
+		if !strings.Contains(out, "HELP") {
+			return ret, skerr.Fmt("smoke test on edge switch %s failed; output: %s", target, out)
+		}
+		sklog.Infof("connected successfully to edge switch %s", target)
+	}
+
 	return ret, nil
 }
 

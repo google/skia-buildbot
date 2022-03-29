@@ -27,6 +27,19 @@ func TestMPowerClient_PowerCycle_Success(t *testing.T) {
 	assert.Equal(t, 2, executil.FakeCommandsReturned(ctx))
 }
 
+func TestMPowerClient_NewFails_ControllerIsStillReturnedAndCanListMachines(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Hand in a cancelled context so the attempt to talk to the mPower device
+	// fails immeditely, otherwise this test takes 3s to fail.
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	mp, err := newMPowerController(ctx, mpowerConfig(), true)
+	require.Error(t, err)
+	require.NotNil(t, mp)
+	require.Len(t, mp.DeviceIDs(), 2)
+}
+
 // This is a fake executable used to assert that a correct call to disable port 7 of the mpower
 // switch was made. It is invoked using executil.FakeTestsContext.
 func Test_FakeExe_MPowerSSHDisablePort7_Success(t *testing.T) {

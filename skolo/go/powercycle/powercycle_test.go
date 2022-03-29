@@ -78,3 +78,9 @@ func TestControllerFromJSON5_ControllerInitCBReturnsError_ControllerFromJSON5Ret
 	_, err := ControllerFromJSON5(context.Background(), "./example.json5", false, controllerInitCallback)
 	require.Error(t, err)
 }
+
+func TestUpdatePowerCycleStateRequestFromController_ControllerIsNil_StillReturnsValidUpdatePowerCycleStateRequest(t *testing.T) {
+	unittest.SmallTest(t)
+	actual := updatePowerCycleStateRequestFromController(nil, machine.Available)
+	require.NotNil(t, actual)
+}
