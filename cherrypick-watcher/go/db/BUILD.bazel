@@ -1,0 +1,29 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "db",
+    srcs = ["db.go"],
+    importpath = "go.skia.org/infra/cherrypick-watcher/go/db",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/firestore",
+        "//go/skerr",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "db_test",
+    srcs = ["db_test.go"],
+    embed = [":db"],
+    deps = [
+        "//go/firestore/testutils",
+        "//go/sktest",
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_stretchr_testify//require",
+    ],
+)
