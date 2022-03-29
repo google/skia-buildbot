@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_binary(
+    name = "cherrypick-watcher",
+    embed = [":cherrypick-watcher_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "cherrypick-watcher_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/cherrypick-watcher/go/cherrypick-watcher",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//cherrypick-watcher/go/config",
+        "//cherrypick-watcher/go/db",
+        "//cherrypick-watcher/go/gerrit",
+        "//go/auth",
+        "//go/common",
+        "//go/gerrit",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)

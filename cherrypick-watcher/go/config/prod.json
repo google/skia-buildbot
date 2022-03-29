@@ -1,0 +1,11 @@
+{
+  "supported_branch_deps": {
+    "skia-chrome-m100-android-next-release": {
+      "source_repo": "skia",
+      "source_branch": "chrome/m100",
+      "target_repo": "skia",
+      "target_branch": "android/next-release",
+      "custom_message": "Please check with the Skia Android team if you are not sure. "
+    }
+  }
+}

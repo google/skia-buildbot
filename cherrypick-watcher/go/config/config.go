@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"io/ioutil"
 
 	"go.skia.org/infra/go/skerr"
 )
@@ -40,16 +39,10 @@ type SupportedBranchDep struct {
 
 // ParseCfg is a utility function that parses the given config file and returns
 // a slice of the supported branch deps.
-func ParseCfg(configPath string) ([]*SupportedBranchDep, error) {
-
-	contents, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Could not read the config file %s", configPath)
-	}
-
+func ParseCfg(cfgContents []byte) ([]*SupportedBranchDep, error) {
 	var cfg CherrypickWatcherCfg
-	if err := json.Unmarshal([]byte(contents), &cfg); err != nil {
-		return nil, skerr.Wrapf(err, "Failed to parse the config file with contents:\n%s", string(contents))
+	if err := json.Unmarshal([]byte(cfgContents), &cfg); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse the config file with contents:\n%s", string(cfgContents))
 	}
 
 	supportedBranchDeps := []*SupportedBranchDep{}

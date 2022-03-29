@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -17,8 +16,10 @@ func TestParseCfg(t *testing.T) {
 	unittest.MediumTest(t)
 	dir := testutils.TestDataDir(t)
 	configFile := filepath.Join(dir, "test-config.json")
+	cfgContents, err := ioutil.ReadFile(configFile)
+	require.Nil(t, err)
 
-	supportedBranchDeps, err := ParseCfg(configFile)
+	supportedBranchDeps, err := ParseCfg(cfgContents)
 	require.Nil(t, err)
 	require.Len(t, supportedBranchDeps, 1)
 	bp := supportedBranchDeps[0]
@@ -29,24 +30,10 @@ func TestParseCfg(t *testing.T) {
 	require.Equal(t, "Test custom message", bp.CustomMessage)
 }
 
-func TestParseCfgDoesntExist(t *testing.T) {
-	unittest.MediumTest(t)
-	dir := t.TempDir()
-	configFile := filepath.Join(dir, "nonexistent-config.json")
-
-	supportedBranchDeps, err := ParseCfg(configFile)
-	require.Nil(t, supportedBranchDeps)
-	require.Error(t, err)
-	require.Regexp(t, `Could not read the config file .*/nonexistent-config.json`, err.Error())
-}
-
 func TestParseCfgInvalid(t *testing.T) {
-	unittest.MediumTest(t)
-	dir := t.TempDir()
-	configFile := filepath.Join(dir, "invalid-config.json")
-	require.NoError(t, ioutil.WriteFile(configFile, []byte("Hi Mom!"), os.ModePerm))
+	unittest.SmallTest(t)
 
-	supportedBranchDeps, err := ParseCfg(configFile)
+	supportedBranchDeps, err := ParseCfg([]byte("Hi Mom!"))
 	require.Nil(t, supportedBranchDeps)
 	require.Error(t, err)
 	fmt.Println(err)

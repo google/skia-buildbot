@@ -3,7 +3,14 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "config",
-    srcs = ["config.go"],
+    srcs = [
+        "config.go",
+        "config_embed.go",
+    ],
+    embedsrcs = [
+        "prod.json",
+        "test.json",
+    ],
     importpath = "go.skia.org/infra/cherrypick-watcher/go/config",
     visibility = ["//visibility:public"],
     deps = ["//go/skerr"],
