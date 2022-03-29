@@ -52,6 +52,10 @@ machines-table-sk {
           height: 11px;
           border-width: 5px;
         }
+
+        warning-icon-sk {
+          fill: var(--error);
+        }
       }
     }
   }

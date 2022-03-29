@@ -26,6 +26,7 @@ import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/edit-icon-sk';
 import 'elements-sk/icon/launch-icon-sk';
 import 'elements-sk/icon/power-settings-new-icon-sk';
+import 'elements-sk/icon/warning-icon-sk';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/styles/select';
 import 'elements-sk/spinner-sk';
@@ -101,7 +102,13 @@ export const sortByNote = (a: FrontendDescription, b: FrontendDescription): numb
 
 export const sortByVersion = (a: FrontendDescription, b: FrontendDescription): number => a.Version.localeCompare(b.Version);
 
-export const sortByPowerCycle = (a: FrontendDescription, b: FrontendDescription): number => sortBooleans(a.PowerCycle, b.PowerCycle);
+export const sortByPowerCycle = (a: FrontendDescription, b: FrontendDescription): number => {
+  const powerCycleSort = sortBooleans(a.PowerCycle, b.PowerCycle);
+  if (powerCycleSort === 0) {
+    return a.PowerCycleState.localeCompare(b.PowerCycleState);
+  }
+  return powerCycleSort;
+};
 
 export const sortByLastUpated = (a: FrontendDescription, b: FrontendDescription): number => a.LastUpdated.localeCompare(b.LastUpdated);
 
@@ -498,7 +505,12 @@ export class MachinesTableSk extends ElementSk {
       title="Powercycle the host"
       class="clickable"
       @click=${() => this.togglePowerCycle(machine.Dimensions!.id![0])}
+      ?hidden=${machine.PowerCycleState !== 'available'}
     ></power-settings-new-icon-sk>
+    <warning-icon-sk
+      ?hidden=${machine.PowerCycleState !== 'in_error'}
+      title="Controller failed to connect."
+      ></warning-icon-sk>
     <spinner-sk ?active=${machine.PowerCycle}></spinner-sk>
   `;
   }

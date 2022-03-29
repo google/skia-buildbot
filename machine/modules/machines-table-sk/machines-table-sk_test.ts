@@ -362,13 +362,12 @@ describe('machines-table-sk', () => {
   };
 
   describe('compare functions', () => {
-    it('returns correct values on compare', () => {
+    it('returns correct values on simple compares', () => {
       testCompareFunc<Mode>('Mode', sortByMode, 'available', 'maintenance');
       testCompareFunc<AttachedDevice>('AttachedDevice', sortByAttachedDevice, 'adb', 'nodevice');
       testCompareFunc<Annotation>('Annotation', sortByAnnotation, { Message: 'a' } as Annotation, { Message: 'b' } as Annotation);
       testCompareFunc<Annotation>('Note', sortByNote, { Message: 'a' } as Annotation, { Message: 'b' } as Annotation);
       testCompareFunc<string>('Version', sortByVersion, 'v001', 'v002');
-      testCompareFunc<boolean>('PowerCycle', sortByPowerCycle, false, true);
       testCompareFunc<string>('LastUpdated', sortByLastUpated, '2022-03-03T22:22:22.222222Z', '2022-03-03T44:44:44.444444Z');
       testCompareFunc<number>('Battery', sortByBattery, 50, 100);
       testCompareFunc<boolean>('RunningSwarmingTask', sortByRunningSwarmingTask, false, true);
@@ -377,6 +376,21 @@ describe('machines-table-sk', () => {
       testCompareFunc<SwarmingDimensions>('Dimensions', sortByDevice, { device_type: ['a'] }, { device_type: ['b'] });
       testCompareFunc<SwarmingDimensions>('Dimensions', sortByQuarantined, { quarantined: ['a'] }, { quarantined: ['b'] });
       testCompareFunc<SwarmingDimensions>('Dimensions', sortByMachineID, { id: ['a'] }, { id: ['b'] });
+    });
+
+    it('sortByPowerCycle', () => {
+      const a: Record<string, any> = {};
+      a.PowerCycle = true;
+      a.PowerCycleState = 'available';
+      const b: Record<string, any> = {};
+      b.PowerCycle = true;
+      b.PowerCycleState = 'not_available';
+
+      const castFn = sortByPowerCycle as unknown as compareFunc<Record<string, any>>;
+      assert.isBelow(castFn(a, b), 0, 'sortByPowerCycle');
+      assert.isAbove(castFn(b, a), 0, 'sortByPowerCycle');
+      assert.equal(castFn(b, b), 0, 'sortByPowerCycle');
+      assert.equal(castFn(a, a), 0, 'sortByPowerCycle');
     });
   });
 });
