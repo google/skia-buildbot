@@ -8,3 +8,9 @@
     src: '{{ all.repo_root }}/skolo/authorized_keys'
     dest: "C:\\Users\\{{ skolo_account }}\\.ssh\\authorized_keys"
   notify: win_restart_sshd
+
+- name: Write sshd_config
+  ansible.builtin.copy:
+    src: files/win_sshd_config
+    dest: "C:\\ProgramData\\ssh\\sshd_config"
+  notify: win_restart_sshd
