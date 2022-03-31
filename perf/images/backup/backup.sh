@@ -6,6 +6,7 @@ set -e
 gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
 
 CONFIGS=(
+  'comp-ui.json'
   'cdb-ct-prod.json'
   'cdb-nano.json'
   'cdb-flutter-engine.json'

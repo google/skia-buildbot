@@ -54,7 +54,8 @@ $ perf-tool database migrate \
   roles/cloudtrace.agent
 ```
 
-Create the secrets:
+6. **Optional**: Create the secrets if needed, this should normally be handed by
+   workload identity.
 
 ```
 ./secrets/create-flutter-perf-service-account.sh
