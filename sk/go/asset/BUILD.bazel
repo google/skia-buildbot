@@ -13,6 +13,7 @@ go_library(
         "//go/httputils",
         "//go/luciauth",
         "//go/skerr",
+        "//go/util",
         "@com_github_urfave_cli_v2//:cli",
         "@org_chromium_go_luci//cipd/client/cipd",
         "@org_chromium_go_luci//cipd/client/cipd/pkg",

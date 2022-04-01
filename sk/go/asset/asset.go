@@ -3,7 +3,9 @@ package asset
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -26,6 +28,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -67,7 +70,8 @@ if __name__ == '__main__':
 
 `
 
-	versionFileBaseName = "VERSION"
+	assetSettingsFileBaseName = "asset.json"
+	versionFileBaseName       = "VERSION"
 )
 
 var (
@@ -334,6 +338,13 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 			return skerr.Fmt("Tags must be in the form \"key:value\", not %q", tag)
 		}
 	}
+
+	// Read the asset settings.
+	settings, err := readAssetSettings(name)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
 	cipdClient, err := getCIPDClient(ctx, ".", local)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -400,7 +411,7 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 		tagProject,
 	}, extraTags...)
 	packagePath := fmt.Sprintf(cipdPackageNameTmpl, name)
-	if _, err := cipdClient.Create(ctx, packagePath, src, pkg.InstallModeSymlink, skipFilesRegex, refs, tags, nil); err != nil {
+	if _, err := cipdClient.Create(ctx, packagePath, src, settings.InstallMode, skipFilesRegex, refs, tags, nil); err != nil {
 		return skerr.Wrap(err)
 	}
 
@@ -535,6 +546,56 @@ func setVersion(name string, version int) error {
 		return skerr.Wrap(err)
 	}
 	return nil
+}
+
+// assetSettings contains settings for an asset.
+type assetSettings struct {
+	InstallMode pkg.InstallMode `json:"installMode"`
+}
+
+func defaultAssetSettings() *assetSettings {
+	return &assetSettings{
+		InstallMode: pkg.InstallModeSymlink,
+	}
+}
+
+// getSettingsFilePath finds the path to the settings file for the given asset
+// within the current repo.
+func getSettingsFilePath(name string) (string, error) {
+	assetDir, err := getAssetDir(name)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return filepath.Join(assetDir, assetSettingsFileBaseName), nil
+}
+
+// readAssetSettings reads the settings for the given asset. If the settings
+// file does not exist, a default is returned.
+func readAssetSettings(name string) (*assetSettings, error) {
+	settingsFilePath, err := getSettingsFilePath(name)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	rv := defaultAssetSettings()
+	if err := util.WithReadFile(settingsFilePath, func(f io.Reader) error {
+		return skerr.Wrap(json.NewDecoder(f).Decode(rv))
+	}); os.IsNotExist(err) {
+		return rv, nil
+	} else if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return rv, nil
+}
+
+// writeAssetSettings write the settings for the given asset.
+func writeAssetSettings(name string, settings *assetSettings) error {
+	settingsFilePath, err := getSettingsFilePath(name)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	return skerr.Wrap(util.WithWriteFile(settingsFilePath, func(w io.Writer) error {
+		return skerr.Wrap(json.NewEncoder(w).Encode(settings))
+	}))
 }
 
 // getAvailableVersions retrieves all uploaded versions of the asset and returns
