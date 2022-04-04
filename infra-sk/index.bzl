@@ -597,17 +597,27 @@ def sk_page(
         visibility = ["//visibility:public"],
     )
 
-def extract_files_from_skia_wasm_container(name, container_files, outs, **kwargs):
+def extract_files_from_skia_wasm_container(name, container_files, outs, enabled_flag, **kwargs):
     """Extracts files from the Skia WASM container image (gcr.io/skia-public/skia-wasm-release).
 
     This macro takes as inputs a list of paths inside the Docker container (container_files
     argument), and a list of the same length with the destination paths for each of the files to
     extract (outs argument), relative to the directory where the macro is instantiated.
 
+    This image will be pulled if the enabled_flag is true, so users who need to set that flag to
+    true (e.g. infra folks pushing a clean image) should be granted permissions and have Docker
+    authentication set up. Users who are working with a local build should set the flag to false
+    and not need Docker authentication.
+
     Args:
       name: Name of the target.
       container_files: List of absolute paths inside the Docker container to extract.
       outs: Destination paths for each file to extract, relative to the target's directory.
+      enabled_flag: Label. If set, should be the name of a bool_flag. If the bool_flag
+          is True, the real skia_wasm_container image will be pulled and the images loaded as per
+          usual. If the bool_flag is false, the container will not be loaded, but any outs will be
+          created as empty files to make dependent rules happy. It is up to the caller to use that
+          same flag to properly ignore those empty files if the flag is false (e.g. via a select).
       **kwargs: Any flags that should be forwarded to the generated rule
     """
 
@@ -633,9 +643,16 @@ def extract_files_from_skia_wasm_container(name, container_files, outs, **kwargs
     #
     # [1] https://github.com/bazelbuild/rules_docker/blob/6c29619903b6bc533ad91967f41f2a3448758e6f/container/container.bzl#L28
     # [2] https://github.com/bazelbuild/rules_docker/blob/e290d0975ab19f9811933d2c93be275b6daf7427/container/BUILD#L158
+
+    # We expect enabled_flag to be a bool_flag, which means we should have two labels defined
+    # based on the passed in flag name, one with a _true suffix and one with a _false suffix. If
+    # the flag is set to false, we pull from a public image that has no files in it.
     container_flatten(
         name = name + "_skia_wasm_container_filesystem",
-        image = "@container_pull_skia_wasm//image",
+        image = select({
+            enabled_flag + "_true": "@container_pull_skia_wasm//image",
+            enabled_flag + "_false": "@empty_container//image",
+        }),
     )
 
     # Name of the .tar file produced by the container_flatten target.
@@ -650,25 +667,34 @@ def extract_files_from_skia_wasm_container(name, container_files, outs, **kwargs
     #  - Said .tar file is produced in the directory of the BUILD file where this macro was
     #    instantiated.
     #
-    # [1] https://docs.bazel.build/versions/master/be/make-variables.html
+    # [1] https://bazel.build/reference/be/make-variables
     output_dir = "$$(dirname $<)"
 
     # Directory where we will untar the .tar file produced by the container_flatten target.
     skia_wasm_filesystem_dir = output_dir + "/" + skia_wasm_filesystem_tar + "_untarred"
 
+    # Untar the .tar file produced by the container_flatten rule.
+    cmd = ("mkdir -p " + skia_wasm_filesystem_dir +
+           " && tar xf $< -C " + skia_wasm_filesystem_dir)
+
+    # Copy each requested file from the container filesystem to its desired destination.
+    for src, dst in zip(container_files, outs):
+        copy = " && (cp %s/%s %s/%s" % (skia_wasm_filesystem_dir, src, output_dir, dst)
+
+        # If the enabled_flag is False, we will be loading from an empty image and thus the
+        # files will not exist. As such, we need to create them or Bazel will fail because the
+        # expected generated files will not be created. It is up to the dependent rules to properly
+        # ignore these files. We cannot easily have the genrule change its behavior depending on
+        # how the flag is set, so we always touch the file as a backup. We write stderr to
+        # /dev/null to squash any errors about files not existing.
+        copy += " 2>/dev/null || touch %s/%s) " % (output_dir, dst)
+        cmd += copy
+
     native.genrule(
         name = name,
         srcs = [skia_wasm_filesystem_tar],
         outs = outs,
-        cmd = " && ".join([
-            # Untar the .tar file produced by the container_flatten rule.
-            "mkdir -p " + skia_wasm_filesystem_dir,
-            "tar xf $< -C " + skia_wasm_filesystem_dir,
-        ] + [
-            # Copy each requested file from the container filesystem to its desired destination.
-            "cp %s/%s %s/%s" % (skia_wasm_filesystem_dir, src, output_dir, dst)
-            for src, dst in zip(container_files, outs)
-        ]),
+        cmd = cmd,
         **kwargs
     )
 

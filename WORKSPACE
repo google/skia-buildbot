@@ -265,6 +265,16 @@ container_pull(
     tag = "7b5c0de7ceb1b5238bad735037e48b3726633dc0",
 )
 
+# This is an arbitrary version of the public Alpine image. Given our current rules, we must pull
+# a docker container and extract some files, even if we are just building local versions (e.g.
+# of debugger or skottie), so this is the image for that.
+container_pull(
+    name = "empty_container",
+    digest = "sha256:1e014f84205d569a5cc3be4e108ca614055f7e21d11928946113ab3f36054801",
+    registry = "index.docker.io",
+    repository = "alpine",
+)
+
 # Pulls the gcr.io/skia-public/basealpine container, needed by the skia_app_container macro.
 container_pull(
     name = "basealpine",

@@ -36,17 +36,22 @@ bazel_release_ci:
 	bazelisk run //debugger-app:push_debugger_container --workspace_status_command=bazel/override_container_label.sh
 	$(MAKE) build-placeholders
 
+# Default port is 8000, but setting this environment variable can override that
+# https://stackoverflow.com/a/53370979
+DEBUGGER_LOCAL_PORT ?= :8000
 .PHONY: run-local-instance
 run-local-instance: build
 	../_bazel_bin/debugger-app/go/debugger-app/debugger-app_/debugger-app \
-        --resources_dir ../_bazel_bin/debugger-app/pages/development
+        --resources_dir ../_bazel_bin/debugger-app/pages/development \
+        --port ${DEBUGGER_LOCAL_PORT}
 
 .PHONY: run-with-custom
 run-with-custom:
 	echo "Using the debugger files in //debugger-app/wasm_libs/local_build"
 	$(BAZEL) build //debugger-app/... --with_local_debugger
 	../_bazel_bin/debugger-app/go/debugger-app/debugger-app_/debugger-app \
-        --resources_dir ../_bazel_bin/debugger-app/pages/development
+        --resources_dir ../_bazel_bin/debugger-app/pages/development \
+        --port ${DEBUGGER_LOCAL_PORT}
 
 build-placeholders:
 	rm -rf build

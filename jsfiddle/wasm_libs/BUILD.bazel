@@ -25,6 +25,7 @@ extract_files_from_skia_wasm_container(
         "/tmp/pathkit/pathkit.js",
         "/tmp/pathkit/pathkit.wasm",
     ],
+    enabled_flag = ":use_libraries_from_container",
     visibility = ["//jsfiddle:__subpackages__"],
 )
 

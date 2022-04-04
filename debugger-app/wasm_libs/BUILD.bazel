@@ -22,6 +22,7 @@ extract_files_from_skia_wasm_container(
         "/tmp/canvaskit/canvaskit.js",
         "/tmp/canvaskit/canvaskit.wasm",
     ],
+    enabled_flag = ":use_debugger_from_container",
 )
 
 filegroup(
