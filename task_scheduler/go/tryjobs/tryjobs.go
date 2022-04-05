@@ -433,7 +433,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 		Repo:     repoUrl,
 		Revision: revision,
 	}
-	if !rs.Valid() || !rs.IsTryJob() {
+	if !rs.Valid() || !rs.IsTryJob() || skipRepoState(rs) {
 		return t.remoteCancelBuild(buildId, fmt.Sprintf("Invalid RepoState: %s", rs))
 	}
 
@@ -617,4 +617,14 @@ func (t *TryJobIntegrator) jobFinished(j *types.Job) error {
 		}
 	}
 	return nil
+}
+
+// skipRepoState determines whether we should skip try jobs for this RepoState,
+// eg. problematic CLs.
+func skipRepoState(rs types.RepoState) bool {
+	// Invalid hash; this causes hours of wasted sync times.
+	if rs.Issue == "527502" && rs.Patchset == "1" {
+		return true
+	}
+	return false
 }

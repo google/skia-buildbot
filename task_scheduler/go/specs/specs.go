@@ -137,7 +137,8 @@ func ErrorIsPermanent(err error) bool {
 		strings.Contains(err.Error(), "The \"gclient_gn_args_from\" value must be in recursedeps") ||
 		// This repo was moved, so attempts to sync it will always fail.
 		strings.Contains(err.Error(), "https://skia.googlesource.com/third_party/libjpeg-turbo.git") ||
-		strings.Contains(err.Error(), "no such file or directory"))
+		strings.Contains(err.Error(), "no such file or directory") ||
+		strings.Contains(err.Error(), "Not a valid object name"))
 }
 
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
