@@ -25,10 +25,7 @@
         "skia-rpi2-rack4-shelf1-018": 18,
         "skia-rpi2-rack4-shelf1-019": 19,
         "skia-rpi2-rack4-shelf1-020": 20,
-        "skia-rpi2-rack4-shelf1-021": 21,
-        "skia-rpi2-rack4-shelf1-022": 22,
-        "skia-rpi2-rack4-shelf1-023": 23,
-        "skia-rpi2-rack4-shelf1-024": 24,
+
         "skia-rpi2-rack4-shelf1-025": 25,
         "skia-rpi2-rack4-shelf1-026": 26,
         "skia-rpi2-rack4-shelf1-027": 27,
@@ -75,23 +72,7 @@
         "skia-rpi2-rack4-shelf2-021": 21,
         "skia-rpi2-rack4-shelf2-022": 22,
         "skia-rpi2-rack4-shelf2-023": 23,
-        "skia-rpi2-rack4-shelf2-024": 24,
-        "skia-rpi2-rack4-shelf2-025": 25,
-        "skia-rpi2-rack4-shelf2-026": 26,
-        "skia-rpi2-rack4-shelf2-027": 27,
-        "skia-rpi2-rack4-shelf2-028": 28,
-        "skia-rpi2-rack4-shelf2-029": 29,
-        "skia-rpi2-rack4-shelf2-030": 30,
-        "skia-rpi2-rack4-shelf2-031": 31,
-        "skia-rpi2-rack4-shelf2-032": 32,
-        "skia-rpi2-rack4-shelf2-033": 33,
-        "skia-rpi2-rack4-shelf2-034": 34,
-        "skia-rpi2-rack4-shelf2-035": 35,
-        "skia-rpi2-rack4-shelf2-036": 36,
-        "skia-rpi2-rack4-shelf2-037": 37,
-        "skia-rpi2-rack4-shelf2-038": 38,
-        "skia-rpi2-rack4-shelf2-039": 39,
-        "skia-rpi2-rack4-shelf2-040": 40
+        "skia-rpi2-rack4-shelf2-024": 24
       }
     },
     "rack4-shelf3-poe-switch": {

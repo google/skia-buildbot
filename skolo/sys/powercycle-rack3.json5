@@ -7,10 +7,7 @@
       ports: {
         "skia-e-linux-313": 1,
         "skia-e-linux-314": 2,
-        "skia-e-linux-315": 3,
-        "skia-e-linux-316": 4,
         "skia-e-linux-317": 5,
-        "skia-e-linux-318": 6
       }
     }
   }

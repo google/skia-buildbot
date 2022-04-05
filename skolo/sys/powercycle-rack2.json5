@@ -6,7 +6,6 @@
       user: "ubnt",
       ports: {
         "skia-e-linux-213": 1,
-        "skia-e-linux-214": 2,
         "skia-e-linux-215": 3,
         "skia-e-linux-216": 4,
         "skia-e-linux-217": 5,
