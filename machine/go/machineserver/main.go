@@ -521,6 +521,10 @@ func (s *server) apiPowerCycleStateUpdateHandler(w http.ResponseWriter, r *http.
 	}
 
 	for _, updateRequest := range req.Machines {
+		if _, err := s.store.Get(r.Context(), updateRequest.MachineID); err != nil {
+			sklog.Infof("Got powercycle info for a non-existent machine: ", updateRequest.MachineID)
+			continue
+		}
 		err := s.store.Update(r.Context(), updateRequest.MachineID, func(in machine.Description) machine.Description {
 			return setPowerCycleState(updateRequest.PowerCycleState, in)
 		})

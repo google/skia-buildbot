@@ -548,11 +548,25 @@ var validUpdatePowerCycleStateRequest = rpc.UpdatePowerCycleStateRequest{
 	},
 }
 
+func TestApiPowerCycleStateUpdateHandler_MachineDoesNotExist_TheMachineIsSkippedAndUpdateIsNeverCalled(t *testing.T) {
+	unittest.SmallTest(t)
+	_, _, s, router, w := setupForTest(t)
+	storeMock := s.store.(*mocks.Store)
+	storeMock.On("Get", testutils.AnyContext, machineID).Return(machine.Description{}, myFakeError)
+
+	r := httptest.NewRequest("POST", rpc.PowerCycleStateUpdateURL, testutils.MarshalJSONReader(t, validUpdatePowerCycleStateRequest))
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
 func TestApiPowerCycleStateUpdateHandler_UpdateFails_ReturnStatusInternalServerError(t *testing.T) {
 	unittest.SmallTest(t)
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(myFakeError)
+	storeMock.On("Get", testutils.AnyContext, machineID).Return(machine.Description{}, nil)
 
 	r := httptest.NewRequest("POST", rpc.PowerCycleStateUpdateURL, testutils.MarshalJSONReader(t, validUpdatePowerCycleStateRequest))
 
@@ -576,6 +590,7 @@ func TestApiPowerCycleStateUpdateHandler_ValidRequest_DescriptionsAreSuccessfull
 	_, _, s, router, w := setupForTest(t)
 	storeMock := s.store.(*mocks.Store)
 	storeMock.On("Update", testutils.AnyContext, machineID, mock.AnythingOfType("store.UpdateCallback")).Return(nil).Once()
+	storeMock.On("Get", testutils.AnyContext, machineID).Return(machine.Description{}, nil)
 	r := httptest.NewRequest("POST", rpc.PowerCycleStateUpdateURL, testutils.MarshalJSONReader(t, validUpdatePowerCycleStateRequest))
 
 	// Make the request.
