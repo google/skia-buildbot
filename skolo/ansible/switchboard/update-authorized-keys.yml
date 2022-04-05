@@ -1,5 +1,5 @@
 # Distributes authorized_keys to the hosts.
-- hosts: jumphosts,routers,gapid_test_machines,switchboard_rpis,all_win,all_linux,all_mac
+- hosts: jumphosts,routers,gapid_test_machines,switchboard_rpis,all_win,all_linux,all_mac,eskia_test_machines
   user: chrome-bot
   gather_facts: yes
   roles:
