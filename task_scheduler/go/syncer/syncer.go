@@ -23,7 +23,10 @@ import (
 )
 
 const (
-	DEFAULT_NUM_WORKERS = 10
+	DefaultNumWorkers = 10
+
+	syncTimeout       = 15 * time.Minute
+	metricSyncTimeout = "task_scheduler_sync_timeout"
 )
 
 // Syncer is a struct used for syncing code to particular RepoStates.
@@ -248,9 +251,18 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 			fmt.Sprintf("PATH=%s:%s", depotToolsDir, os.Getenv("PATH")),
 		},
 		InheritEnv: true,
+		Timeout:    syncTimeout,
 	})
 	dur := t.Stop()
 	if err != nil {
+		if strings.Contains(err.Error(), exec.TIMEOUT_ERROR_PREFIX) {
+			metrics2.GetInt64Metric(metricSyncTimeout, map[string]string{
+				"issue":    rs.Issue,
+				"patchset": rs.Patchset,
+				"revision": rs.Revision,
+				"repo":     rs.Repo,
+			}).Update(1)
+		}
 		return nil, err
 	}
 	if dur > 5*time.Minute {

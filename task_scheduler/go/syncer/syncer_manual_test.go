@@ -54,7 +54,7 @@ func TestTempGitRepoErr(t *testing.T) {
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	require.NoError(t, err)
 
-	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
+	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers)
 	defer testutils.AssertCloses(t, s)
 
 	// gclient will fail to apply the issue if we don't fake it in Git.
@@ -111,7 +111,7 @@ func TestLazyTempGitRepo(t *testing.T) {
 	})
 	ctx = exec.NewContext(context.Background(), mockRun.Run)
 
-	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
+	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers)
 	defer testutils.AssertCloses(t, s)
 
 	rs1 := types.RepoState{

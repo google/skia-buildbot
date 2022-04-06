@@ -135,7 +135,7 @@ func TestTempGitRepoParallel(t *testing.T) {
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	require.NoError(t, err)
 
-	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
+	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers)
 	defer testutils.AssertCloses(t, s)
 	rs := types.RepoState{
 		Repo:     gb.RepoUrl(),

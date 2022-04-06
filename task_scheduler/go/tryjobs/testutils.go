@@ -157,7 +157,7 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	require.NoError(t, err)
 
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
-	s := syncer.New(ctx, rm, depotTools, tmpDir, syncer.DEFAULT_NUM_WORKERS)
+	s := syncer.New(ctx, rm, depotTools, tmpDir, syncer.DefaultNumWorkers)
 	cas := &cas_mocks.CAS{}
 	chr := cacher.New(s, taskCfgCache, cas)
 	jCache, err := cache.NewJobCache(ctx, d, window, nil)
