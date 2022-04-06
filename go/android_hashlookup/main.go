@@ -46,7 +46,7 @@ func main() {
 	buildID := args[2]
 	sklog.Infof("Branch, target, buildID: %s, %s, %s", branch, target, buildID)
 
-	ts, err := auth.NewLegacyTokenSource(*local, OAUTH_CACHE_FILEPATH, CLIENT_SECRET_FILEPATH, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
+	ts, err := auth.NewDefaultTokenSource(*local, OAUTH_CACHE_FILEPATH, CLIENT_SECRET_FILEPATH, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Unable to create installed app oauth token source: %s", err)
 	}
