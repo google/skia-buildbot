@@ -60,7 +60,6 @@ var (
 		"Infra-PerCommit-Small":           &cqWithDefaults,
 		"Infra-PerCommit-Test-Bazel-RBE":  &cqWithDefaults,
 
-		"Housekeeper-Nightly-UpdateGoDeps":                   noCQ,
 		"Housekeeper-PerCommit-CIPD-Canary":                  noCQ,
 		"Housekeeper-PerCommit-CIPD-SK":                      noCQ,
 		"Housekeeper-PerCommit-CIPD-ValidateAutorollConfigs": noCQ,
@@ -412,41 +411,6 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
-func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
-	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
-
-	machineType := machineTypeMedium
-	t := &specs.TaskSpec{
-		Caches:       goCaches,
-		CasSpec:      casEmpty,
-		CipdPackages: pkgs,
-		Command: []string{
-			"./update_go_deps",
-			"--project_id", "skia-swarming-bots",
-			"--task_id", specs.PLACEHOLDER_TASK_ID,
-			"--task_name", name,
-			"--workdir", ".",
-			"--gerrit_project", "buildbot",
-			"--gerrit_url", "https://skia-review.googlesource.com",
-			"--repo", specs.PLACEHOLDER_REPO,
-			"--revision", specs.PLACEHOLDER_REVISION,
-			"--patch_issue", specs.PLACEHOLDER_ISSUE,
-			"--patch_set", specs.PLACEHOLDER_PATCHSET,
-			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
-		},
-		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
-		Dimensions:   linuxGceDimensions(machineType),
-		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
-		},
-		ServiceAccount: recreateSKPsServiceAccount,
-	}
-	b.MustAddTask(name, t)
-	return name
-}
-
 func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
@@ -646,9 +610,6 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 	if strings.Contains(name, "Experimental") {
 		// Experimental recipe-less tasks.
 		deps = append(deps, experimental(b, name))
-	} else if strings.Contains(name, "UpdateGoDeps") {
-		// Update Go deps bot.
-		deps = append(deps, updateGoDeps(b, name))
 	} else if strings.Contains(name, "UpdateCIPDPackages") {
 		// Update CIPD packages bot.
 		deps = append(deps, updateCIPDPackages(b, name))

@@ -46,7 +46,7 @@ def gen_tasks_test(train):
     return ('Failed to run "%s"; do you have Go installed on your machine?'
             % ' '.join(cmd))
   if output and 'cannot find package "go.skia.org/infra' in output:
-    return ('Failed to run gen_tests.go:\n\n%s\nMaybe you need to run:\n\n'
+    return ('Failed to run gen_tasks.go:\n\n%s\nMaybe you need to run:\n\n'
             '$ go get -u go.skia.org/infra/...' % output)
   return output
 

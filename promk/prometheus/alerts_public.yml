@@ -326,16 +326,6 @@ groups:
     annotations:
       description: 'The most recent successful Firestore weekly backup was more than 7 days ago. https://skia.googlesource.com/buildbot/%2B/main/datahopper/PROD.md#firestore_weekly_backup'
 
-  - alert: GoDEPSTooOld
-    expr: liveness_last_file_modification_s{file="go.mod"}/60/60/24 > 3
-    labels:
-      category: infra
-      severity: critical
-      owner: borenet@google.com
-    annotations:
-      abbr: '{{ $labels.file }} in {{ $labels.repo }} too old'
-      description: 'The {{ $labels.file }} file in {{ $labels.repo }} was last updated more than 3 days ago. https://skia.googlesource.com/buildbot/%2B/main/infra/bots/task_drivers/update_go_deps/update_go_deps.go'
-
 # External machines
   - alert: DiskSpaceLow
     expr: collectd_df_df_complex{df="root",exported_instance=~"skia-(e|rpi).+",type="free"} < 1e9
