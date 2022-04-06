@@ -216,7 +216,6 @@ var (
 	CatapultSrcDir         = filepath.Join(ChromiumSrcDir, RelativeCatapultSrcDir)
 	V8SrcDir               = filepath.Join(ChromiumSrcDir, "v8")
 	TaskFileDir            = filepath.Join(StorageDir, "current_task")
-	ClientSecretPath       = filepath.Join(StorageDir, "client_secret.json")
 	GCSTokenPath           = filepath.Join(StorageDir, "google_storage_token.data")
 	PagesetsDir            = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
 	WebArchivesDir         = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)

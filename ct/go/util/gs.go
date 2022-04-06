@@ -40,25 +40,15 @@ type GcsUtil struct {
 }
 
 // NewGcsUtil initializes and returns a utility for CT interations with Google
-// Storage. If client is nil then a client is created either from ClientSecretPath or with the
-// default token source.
+// Storage. If client is nil then a client is created with the default token
+// source.
 func NewGcsUtil(client *http.Client) (*GcsUtil, error) {
 	if client == nil {
-		clientConfig := httputils.DefaultClientConfig().With2xxOnly()
-		// If ClientSecretPath exists then assume that we do not use the default token source.
-		if _, err := os.Stat(ClientSecretPath); err == nil {
-			ts, err := auth.NewLegacyTokenSource(true, GCSTokenPath, ClientSecretPath, auth.ScopeFullControl)
-			if err != nil {
-				return nil, err
-			}
-			clientConfig = clientConfig.WithTokenSource(ts)
-		} else {
-			ts, err := auth.NewDefaultTokenSource(false, auth.ScopeFullControl)
-			if err != nil {
-				return nil, fmt.Errorf("Problem setting up default token source: %s", err)
-			}
-			clientConfig = clientConfig.WithTokenSource(ts)
+		ts, err := auth.NewDefaultTokenSource(false, auth.ScopeFullControl)
+		if err != nil {
+			return nil, fmt.Errorf("Problem setting up default token source: %s", err)
 		}
+		clientConfig := httputils.DefaultClientConfig().With2xxOnly().WithTokenSource(ts)
 		client = clientConfig.Client()
 	}
 	client.Timeout = HTTP_CLIENT_TIMEOUT
