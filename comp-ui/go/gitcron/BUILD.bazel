@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "gitcron_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/comp-ui/go/gitcron",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/git",
+        "//go/gitauth",
+        "//go/now",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "gitcron",
+    embed = [":gitcron_lib"],
+    visibility = ["//visibility:public"],
+)
