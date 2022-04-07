@@ -1,0 +1,16 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "comp-ui-gitcron",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//comp-ui/go/gitcron:gitcron",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/gitcron",
+    repository = "skia-public/comp-ui-gitcron",
+)
