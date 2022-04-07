@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/auth"
@@ -94,6 +95,7 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	// Read the config contents in the given directory.
 	eg := util.NewNamedErrGroup()
 	contents := make(map[string][]byte, len(files))
+	contentsMtx := sync.Mutex{}
 	for _, file := range files {
 		eg.Go(file, func() error {
 			fullPath := path.Join(configSubdir, file)
@@ -101,6 +103,8 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 			if err != nil {
 				return skerr.Wrapf(err, "failed to retrieve contents of %s", fullPath)
 			}
+			contentsMtx.Lock()
+			defer contentsMtx.Unlock()
 			contents[file] = fileContents
 			return nil
 		})
