@@ -157,28 +157,30 @@ func main() {
 		gcsClient = gcsclient.New(s, GS_BUCKET_AUTOROLLERS)
 
 		// Emailing init.
-		emailClientId, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CLIENT_ID))
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		emailClientSecret, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CLIENT_SECRET))
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		cachedGMailToken, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CACHED_TOKEN_AUTOROLL))
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		tokenFile, err := filepath.Abs(user.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		if err := ioutil.WriteFile(tokenFile, cachedGMailToken, os.ModePerm); err != nil {
-			sklog.Fatalf("Failed to cache token: %s", err)
-		}
-		emailer, err = email.NewGMail(strings.TrimSpace(string(emailClientId)), strings.TrimSpace(string(emailClientSecret)), tokenFile)
-		if err != nil {
-			sklog.Fatal(err)
+		if *emailCreds != "" {
+			emailClientId, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CLIENT_ID))
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			emailClientSecret, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CLIENT_SECRET))
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			cachedGMailToken, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CACHED_TOKEN_AUTOROLL))
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			tokenFile, err := filepath.Abs(user.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			if err := ioutil.WriteFile(tokenFile, cachedGMailToken, os.ModePerm); err != nil {
+				sklog.Fatalf("Failed to cache token: %s", err)
+			}
+			emailer, err = email.NewGMail(strings.TrimSpace(string(emailClientId)), strings.TrimSpace(string(emailClientSecret)), tokenFile)
+			if err != nil {
+				sklog.Fatal(err)
+			}
 		}
 		chatBotConfigReader = func() string {
 			if b, err := ioutil.ReadFile(*chatWebHooksFile); err != nil {
