@@ -38,6 +38,8 @@ func TestGazelle_NoExistingBuildFile_GeneratesBuildRules(t *testing.T) {
 			Content: `
 #include "include/avocado.h"
 #include "include/common_foods.h"
+#include "spirv-tools/libspirv.hpp"
+#include "third_party/externals/spirv-cross/spirv_hlsl.hpp"
 `,
 		}, {
 			Path: "include/common_foods.h",
@@ -51,11 +53,17 @@ func TestGazelle_NoExistingBuildFile_GeneratesBuildRules(t *testing.T) {
 #include "include/avocado.h"
 #include "experimental/desserts/pudding.h"
 #include "png.h"
+#include "jpeg.h"
 #include <string>
 `,
 		},
 	}, makeBasicWorkspace()...)
 
+	// Note: we see "@spirv_tools" instead of "@spirv_tools//:spirv_tools" (the value specified
+	// in test_filemap.json) because the former can be simplified to the latter.
+	// "When it matches the last component of the package path, it, and the colon, may be omitted"
+	// https://bazel.build/concepts/labels
+	// Gazelle does this simplification after generating the file.
 	expectedOutputFiles := []testtools.FileSpec{
 		{
 			Path: "include/BUILD.bazel",
@@ -70,6 +78,7 @@ generated_cc_atom(
         ":avocado_hdr",
         "//experimental/desserts:pudding_hdr",
         "//third_party:libpng",
+        "@jpeg//:with_special_features",
     ],
 )
 
@@ -93,6 +102,8 @@ generated_cc_atom(
     deps = [
         ":avocado_hdr",
         ":common_foods_hdr",
+        "@spirv_cross",
+        "@spirv_tools",
     ],
 )
 

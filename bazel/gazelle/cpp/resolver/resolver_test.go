@@ -111,3 +111,27 @@ func TestResolve_LooksAtRepoHeadersAndSystemHeadersForThirdParty(t *testing.T) {
 		"//third_party:libpng",
 	}, inputRule.AttrStrings("deps"))
 }
+
+func TestResolve_AbsolutePathsAllowedInFileMap(t *testing.T) {
+	unittest.SmallTest(t)
+
+	inputRule := rule.NewRule(common.GeneratedCCAtomRule, "MyFile_src")
+	inputLabel := label.New("@SomeRepo", "src/core/alpha/beta", "MyFile_src")
+	repoIncludes := []string{"png.h", "freetype/ftadvanc.h"}
+	systemIncludes := []string{"string", "cmath", "jerror.h"}
+	imports := common.NewImports(repoIncludes, systemIncludes, map[string]string{
+		"png.h":               "@libpng//bazel:settings",
+		"freetype/ftadvanc.h": "@freetype2//:freetype2",
+		"jerror.h":            "@libjpeg_turbo//:jpeg",
+	})
+
+	r := CppResolver{}
+
+	r.Resolve(nil, nil, nil, inputRule, imports, inputLabel)
+
+	assert.Equal(t, []string{
+		"@freetype2//:freetype2",
+		"@libjpeg_turbo//:jpeg",
+		"@libpng//bazel:settings",
+	}, inputRule.AttrStrings("deps"))
+}

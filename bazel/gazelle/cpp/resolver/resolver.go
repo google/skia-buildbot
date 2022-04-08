@@ -111,12 +111,11 @@ func (rslv *CppResolver) Resolve(_ *config.Config, _ *resolve.RuleIndex, _ *repo
 
 // thirdPartyDep parses a label string into a proper Label.
 func thirdPartyDep(d string) label.Label {
-	d = strings.TrimPrefix(d, "//")
-	parts := strings.Split(d, ":")
-	if len(parts) != 2 {
-		log.Fatalf("Invalid third_party dep %s", d)
+	lbl, err := label.Parse(d)
+	if err != nil {
+		log.Fatalf("Invalid third_party dep %s - %s", d, err)
 	}
-	return label.New("", parts[0], parts[1])
+	return lbl
 }
 
 // setDeps sets the dependencies of a rule.
