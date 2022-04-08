@@ -60,17 +60,6 @@ func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, er
 	}
 }
 
-// NewDefaultLegacyTokenSource creates a new OAuth 2.0 token source with all the defaults for the
-// given scopes. If local is true then a 3-legged flow is initiated, otherwise the GCE Service
-// Account is used if running in GCE, and the Skolo access token provider is used if running in
-// Skolo.
-//
-// The default OAuth config filename is "client_secret.json".
-// The default OAuth token store filename is "google_storage_token.data".
-func NewDefaultLegacyTokenSource(local bool, scopes ...string) (oauth2.TokenSource, error) {
-	return NewLegacyTokenSource(local, "", "", scopes...)
-}
-
 type gcloudTokenSource struct {
 	projectId string
 }
@@ -160,32 +149,6 @@ func NewTokenSourceFromIdAndSecret(clientId, clientSecret, oauthCacheFile string
 		Scopes:       scopes,
 	}
 	return newLegacyTokenSourceFromConfig(true, config, oauthCacheFile)
-}
-
-// NewLegacyTokenSource creates a new OAuth 2.0 token source. If local is true then a 3-legged flow
-// is initiated, otherwise the GCE Service Account is used if running in GCE, and the Skolo access
-// token provider is used if running in Skolo.
-//
-// The OAuth tokens will be stored in oauthCacheFile.
-// The OAuth config will come from oauthConfigFile.
-func NewLegacyTokenSource(local bool, oauthCacheFile string, oauthConfigFile string, scopes ...string) (oauth2.TokenSource, error) {
-	// If this is running locally we need to load the oauth configuration.
-	var config *oauth2.Config = nil
-	if local {
-		if oauthConfigFile == "" {
-			oauthConfigFile = defaultClientSecretFilename
-		}
-		body, err := ioutil.ReadFile(oauthConfigFile)
-		if err != nil {
-			return nil, err
-		}
-		config, err = google.ConfigFromJSON(body, scopes...)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return newLegacyTokenSourceFromConfig(local, config, oauthCacheFile)
 }
 
 // newLegacyTokenSourceFromConfig creates an new OAuth 2.0 token source for the given config.

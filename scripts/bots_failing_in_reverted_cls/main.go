@@ -53,7 +53,7 @@ func main() {
 	common.Init()
 
 	gd := git.GitDir(*repo)
-	ts, err := auth.NewDefaultLegacyTokenSource(true, swarming.AUTH_SCOPE)
+	ts, err := auth.NewDefaultTokenSource(true, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
