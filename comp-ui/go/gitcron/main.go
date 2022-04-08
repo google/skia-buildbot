@@ -84,4 +84,5 @@ func main() {
 	if msg, err := checkout.Git(ctx, "push", git.DefaultRemote, git.MainBranch); err != nil {
 		sklog.Fatal(err, msg)
 	}
+	sklog.Infof("Success: %s", dateAsString)
 }
