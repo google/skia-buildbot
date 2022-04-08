@@ -6,16 +6,13 @@ set -e
 gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
 
 CONFIGS=(
-  'comp-ui.json'
+  'cdb-android-x.json'
   'cdb-ct-prod.json'
   'cdb-nano.json'
-  'cdb-flutter-engine.json'
-  'flutter-flutter.json'
-  'flutter-flutter2.json'
+  'comp-ui.json'
   'flutter-engine2.json'
-  'cdb-android-x.json'
-  'cdb-android-prod.json'
-  'v8'
+  'flutter-flutter2.json'
+  'v8.json'
 )
 
 # Dump the tables we want backed up and copy the gzipped output to Google Cloud Storage.
