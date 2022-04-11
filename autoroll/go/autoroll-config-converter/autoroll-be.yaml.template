@@ -1,5 +1,5 @@
 {{$svcAcctSplit := .serviceAccount | split "@"}}{{$svcAcct := $svcAcctSplit._0}}
-{{- if eq .useWorkloadIdentity "true" -}}
+{{- if and (eq .useWorkloadIdentity "true") (.oldCluster) -}}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -13,6 +13,9 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: autoroll-be-{{.rollerName}}
+{{- if not .oldCluster}}
+  namespace: {{$svcAcct}}
+{{- end}}
 spec:
   serviceName: "autoroll-be-{{.rollerName}}"
   replicas: 1
@@ -36,7 +39,7 @@ spec:
       securityContext:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
-{{- if eq .useWorkloadIdentity "true"}}
+{{- if and (eq .useWorkloadIdentity "true") (.oldCluster)}}
       serviceAccountName: {{$svcAcct}}
 {{- end}}
 {{if .kubernetes.disk}}
@@ -58,7 +61,7 @@ spec:
           args:
             - "context"
             - "-service-account-json"
-{{- if eq .useWorkloadIdentity "true"}}
+{{- if or (eq .useWorkloadIdentity "true") (not .oldCluster)}}
             - ":gce"
 {{- else}}
             - "/var/secrets/google/key.json"
@@ -79,7 +82,7 @@ spec:
           volumeMounts:{{if .kubernetes.disk}}
             - name: autoroll-be-{{.rollerName}}-storage
               mountPath: /data{{end}}
-{{- if eq .useWorkloadIdentity "false"}}
+{{- if and (eq .useWorkloadIdentity "false") (.oldCluster)}}
             - name: autoroll-be-{{$svcAcct}}-sa
               mountPath: /var/secrets/google
 {{- end}}
@@ -92,7 +95,7 @@ spec:
               mountPath: {{$secret.mountPath}}
             {{- end}}
           env:
-{{- if eq .useWorkloadIdentity "false"}}
+{{- if and (eq .useWorkloadIdentity "false") (.oldCluster)}}
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
 {{- end}}
@@ -110,7 +113,7 @@ spec:
             periodSeconds: {{.kubernetes.readinessPeriodSeconds}}
             failureThreshold: {{.kubernetes.readinessFailureThreshold}}
       volumes:
-{{- if eq .useWorkloadIdentity "false"}}
+{{- if and (eq .useWorkloadIdentity "false") (.oldCluster)}}
         - name: autoroll-be-{{$svcAcct}}-sa
           secret:
             secretName: {{$svcAcct}}
@@ -125,7 +128,8 @@ spec:
         - name: {{$secret.name}}
           secret:
             secretName: {{$secret.name}}
-        {{- end}}{{if .kubernetes.disk}}
+        {{- end}}
+{{- if .kubernetes.disk}}
   volumeClaimTemplates:
     - metadata:
         name: autoroll-be-{{.rollerName}}-storage
@@ -133,4 +137,5 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            storage: {{.kubernetes.disk}}{{end}}
+            storage: {{.kubernetes.disk}}
+{{- end}}

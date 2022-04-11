@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/kube/go/kube_conf_gen_lib"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/prototext"
@@ -31,6 +32,16 @@ var (
 	// for autoroll backends.
 	//go:embed autoroll-be.yaml.template
 	backendTemplate string
+
+	// namespaceTemplate is the template used to generate the k8s YAML config
+	// file for autoroll namespaces.
+	//go:embed autoroll-ns.yaml.template
+	namespaceTemplate string
+
+	oldClusters = []string{
+		"skia-corp",
+		"skia-public",
+	}
 )
 
 func main() {
@@ -121,11 +132,34 @@ func convertConfig(ctx context.Context, relPath, srcDir, dstDir string) error {
 	cfgFileBase64 := base64.StdEncoding.EncodeToString(b)
 	cfgMap["configBase64"] = cfgFileBase64
 
-	// Run kube-conf-gen to generate the output file.
+	// Temporary measure to help transition over to the new cluster(s).
+	isOldCluster := false
+	splitRelPath := strings.Split(relPath, string(filepath.Separator))
+	for _, oldCluster := range oldClusters {
+		if util.In(oldCluster, splitRelPath) {
+			isOldCluster = true
+			break
+		}
+	}
+	cfgMap["oldCluster"] = isOldCluster
+
+	// Run kube-conf-gen to generate the backend config file.
 	relDir, baseName := filepath.Split(relPath)
 	dstPath := filepath.Join(dstDir, relDir, fmt.Sprintf("autoroll-be-%s.yaml", strings.Split(baseName, ".")[0]))
 	if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(backendTemplate, false, cfgMap, dstPath); err != nil {
 		return skerr.Wrapf(err, "failed to write output")
 	}
+
+	// Run kube-conf-gen to generate the namespace config file. Note that we'll
+	// overwrite this file for every roller in the namespace, but that shouldn't
+	// be a problem, since the generated files will be the same.
+	if !isOldCluster {
+		namespace := strings.Split(cfg.ServiceAccount, "@")[0]
+		dstNsPath := filepath.Join(dstDir, relDir, fmt.Sprintf("%s-ns.yaml", namespace))
+		if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(namespaceTemplate, false, cfgMap, dstNsPath); err != nil {
+			return skerr.Wrapf(err, "failed to write output")
+		}
+	}
+
 	return nil
 }

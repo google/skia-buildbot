@@ -1,0 +1,33 @@
+{{$svcAcctSplit := .serviceAccount | split "@"}}{{$svcAcct := $svcAcctSplit._0 -}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{$svcAcct}}
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: {{$svcAcct}}
+  annotations:
+    # Explicitly mapping the Kubernetes Service account to a Google Service Account.
+    iam.gke.io/gcp-service-account: "{{.serviceAccount}}"
+
+---
+# This binding permits to schedule Pods in this namespace using the "restricted" PodSecurityPolicy.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: restricted-psp-role-binding
+  namespace: {{$svcAcct}}
+roleRef:
+  kind: ClusterRole
+  name: can-use-restricted-psp
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+# Authorize all service accounts in the {{$svcAcct}} namespace to run. This defines a single
+# PodSecurityPolicy for the namespace, and it's much easier to maintain over time.
+- kind: Group
+  apiGroup: rbac.authorization.k8s.io
+  name: system:serviceaccounts
