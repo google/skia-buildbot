@@ -6,7 +6,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -15,7 +14,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"text/template"
@@ -52,28 +50,24 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 	"google.golang.org/api/option"
 )
 
 const (
-	APPNAME = "status"
+	appName = "status"
 
 	// The chrome infra auth group to use for restricting admin rights.
-	AUTH_GROUP_ADMIN_RIGHTS = "google/skia-root@google.com"
+	adminAuthGroup = "google/skia-root@google.com"
 	// The chrome infra auth group to use for restricting edit rights.
-	AUTH_GROUP_EDIT_RIGHTS = "google/skia-staff@google.com"
+	editAuthGroup = "google/skia-staff@google.com"
 
-	DEFAULT_COMMITS_TO_LOAD = 35
-	MAX_COMMITS_TO_LOAD     = 100
-	SKIA_REPO               = "skia"
-	INFRA_REPO              = "infra"
+	defaultCommitsToLoad = 35
+	maxCommitsToLoad     = 100
 )
 
 var (
 	autorollMtx         sync.RWMutex
-	autorollStatus      []byte                             = nil
 	autorollStatusTwirp *rpc.GetAutorollerStatusesResponse = nil
 	capacityClient      *capacity.CapacityClientImpl       = nil
 	capacityTemplate    *template.Template                 = nil
@@ -86,9 +80,9 @@ var (
 	tasksPerCommit      *tasksPerCommitCache               = nil
 	tCache              cache.TaskCache                    = nil
 
-	// AUTOROLLERS maps autoroll frontend host to maps of roller IDs to
+	// autorollerIDsToNames maps autoroll frontend host to maps of roller IDs to
 	// their human-friendly display names.
-	AUTOROLLERS = map[string]map[string]string{
+	autorollerIDsToNames = map[string]map[string]string{
 		"autoroll.skia.org": {
 			"skia-flutter-autoroll":     "Flutter",
 			"skia-autoroll":             "Chrome",
@@ -159,26 +153,6 @@ func Init() {
 	reloadTemplates()
 }
 
-func getIntParam(name string, r *http.Request) (*int64, error) {
-	raw, ok := r.URL.Query()[name]
-	if !ok {
-		return nil, nil
-	}
-	v, err := strconv.ParseInt(raw[0], 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("Invalid integer value for parameter %q", name)
-	}
-	return &v, nil
-}
-
-func getStringParam(name string, r *http.Request) string {
-	raw, ok := r.URL.Query()[name]
-	if !ok {
-		return ""
-	}
-	return raw[0]
-}
-
 // repoUrlToName returns a short repo nickname given a full repo URL.
 func repoUrlToName(repoUrl string) string {
 	// Special case: we like "infra" better than "buildbot".
@@ -204,17 +178,6 @@ func repoNameToUrl(repoName string) (string, error) {
 	return "", fmt.Errorf("No such repo.")
 }
 
-// getRepo returns a short repo nickname and a full repo URL based on the URL
-// path of the given http.Request.
-func getRepo(r *http.Request) (string, string, error) {
-	repoPath, _ := mux.Vars(r)["repo"]
-	repoUrl, err := repoNameToUrl(repoPath)
-	if err != nil {
-		return "", "", err
-	}
-	return repoUrlToName(repoUrl), repoUrl, nil
-}
-
 // Same as above, for new WIP Twirp server.
 // TODO(westont): Refactor once Twirp server is in use.
 func getRepoTwirp(repo string) (string, string, error) {
@@ -225,321 +188,7 @@ func getRepoTwirp(repo string) (string, string, error) {
 	return repoUrlToName(repoURL), repoURL, nil
 }
 
-// getRepoNames returns the nicknames for all repos on this server.
-func getRepoNames() []string {
-	repoNames := make([]string, 0, len(*repoUrls))
-	for _, repoUrl := range *repoUrls {
-		repoNames = append(repoNames, repoUrlToName(repoUrl))
-	}
-	return repoNames
-}
-
-func commentsForRepoHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	w.Header().Set("Content-Type", "application/json")
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	comments, err := taskDb.GetCommentsForRepos(r.Context(), []string{repoUrl}, time.Now().Add(-10000*time.Hour))
-	if err != nil {
-		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if err := json.NewEncoder(w).Encode(comments); err != nil {
-		sklog.Errorf("Failed to encode comments as JSON: %s", err)
-	}
-}
-
-func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	w.Header().Set("Content-Type", "application/json")
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	from, err := getIntParam("from", r)
-	if err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Invalid parameter for \"from\": %s", err), http.StatusInternalServerError)
-		return
-	}
-	to, err := getIntParam("to", r)
-	if err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Invalid parameter for \"to\": %s", err), http.StatusInternalServerError)
-		return
-	}
-	n, err := getIntParam("n", r)
-	if err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Invalid parameter for \"n\": %s", err), http.StatusInternalServerError)
-		return
-	}
-	expectPodId := getStringParam("pod", r)
-	numCommits := DEFAULT_COMMITS_TO_LOAD
-	if n != nil {
-		numCommits = int(*n)
-		if numCommits > MAX_COMMITS_TO_LOAD {
-			numCommits = MAX_COMMITS_TO_LOAD
-		}
-	}
-	update := struct {
-		*incremental.Update
-		Pod string `json:"pod"`
-	}{
-		Pod: podId,
-	}
-	if (expectPodId != "" && expectPodId != podId) || from == nil {
-		update.Update, err = iCache.GetAll(repoUrl, numCommits)
-	} else {
-		fromTime := time.Unix(0, (*from)*int64(time.Millisecond))
-		if to != nil {
-			toTime := time.Unix(0, (*to)*int64(time.Millisecond))
-			update.Update, err = iCache.GetRange(repoUrl, fromTime, toTime, numCommits)
-		} else {
-			update.Update, err = iCache.Get(repoUrl, fromTime, numCommits)
-		}
-	}
-	if err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to retrieve updates: %s", err), http.StatusInternalServerError)
-		return
-	}
-	if err := json.NewEncoder(w).Encode(update); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode response: %s", err), http.StatusInternalServerError)
-		return
-	}
-}
-
-func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	defer util.Close(r.Body)
-	w.Header().Set("Content-Type", "application/json")
-
-	id, ok := mux.Vars(r)["id"]
-	if !ok {
-		httputils.ReportError(w, fmt.Errorf("No task ID given!"), "No task ID given!", http.StatusInternalServerError)
-		return
-	}
-	task, err := taskDb.GetTaskById(r.Context(), id)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to obtain task details.", http.StatusInternalServerError)
-		return
-	}
-
-	comment := struct {
-		Comment string `json:"comment"`
-	}{}
-	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to add comment: %s", err), http.StatusInternalServerError)
-		return
-	}
-	c := types.TaskComment{
-		Repo:      task.Repo,
-		Revision:  task.Revision,
-		Name:      task.Name,
-		Timestamp: time.Now().UTC(),
-		TaskId:    task.Id,
-		User:      login.LoggedInAs(r),
-		Message:   comment.Comment,
-	}
-	if err := taskDb.PutTaskComment(r.Context(), &c); err != nil {
-		httputils.ReportError(w, nil, fmt.Sprintf("Failed to add comment: %s", err), http.StatusInternalServerError)
-		return
-	}
-	if err := iCache.Update(r.Context(), false); err != nil {
-		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
-		return
-	}
-}
-
-func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	w.Header().Set("Content-Type", "application/json")
-
-	id, ok := mux.Vars(r)["id"]
-	if !ok {
-		httputils.ReportError(w, fmt.Errorf("No task ID given!"), "No task ID given!", http.StatusInternalServerError)
-		return
-	}
-	task, err := taskDb.GetTaskById(r.Context(), id)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to obtain task details.", http.StatusInternalServerError)
-		return
-	}
-	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
-	if err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Invalid comment id: %v", err), http.StatusInternalServerError)
-		return
-	}
-	c := &types.TaskComment{
-		Repo:      task.Repo,
-		Revision:  task.Revision,
-		Name:      task.Name,
-		Timestamp: time.Unix(0, timestamp),
-		TaskId:    task.Id,
-	}
-
-	if err := taskDb.DeleteTaskComment(r.Context(), c); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete comment: %v", err), http.StatusInternalServerError)
-		return
-	}
-	if err := iCache.Update(r.Context(), false); err != nil {
-		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
-		return
-	}
-}
-
-func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	w.Header().Set("Content-Type", "application/json")
-	taskSpec, ok := mux.Vars(r)["taskSpec"]
-	if !ok {
-		httputils.ReportError(w, nil, "No taskSpec provided!", http.StatusInternalServerError)
-		return
-	}
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	comment := struct {
-		Comment       string `json:"comment"`
-		Flaky         bool   `json:"flaky"`
-		IgnoreFailure bool   `json:"ignoreFailure"`
-	}{}
-	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to add comment: %v", err), http.StatusInternalServerError)
-		return
-	}
-	defer util.Close(r.Body)
-
-	c := types.TaskSpecComment{
-		Repo:          repoUrl,
-		Name:          taskSpec,
-		Timestamp:     time.Now().UTC(),
-		User:          login.LoggedInAs(r),
-		Flaky:         comment.Flaky,
-		IgnoreFailure: comment.IgnoreFailure,
-		Message:       comment.Comment,
-	}
-	if err := taskDb.PutTaskSpecComment(r.Context(), &c); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to add task spec comment: %v", err), http.StatusInternalServerError)
-		return
-	}
-	if err := iCache.Update(r.Context(), false); err != nil {
-		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
-		return
-	}
-}
-
-func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	w.Header().Set("Content-Type", "application/json")
-	taskSpec, ok := mux.Vars(r)["taskSpec"]
-	if !ok {
-		httputils.ReportError(w, nil, "No taskSpec provided!", http.StatusInternalServerError)
-		return
-	}
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
-	if err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Invalid timestamp: %v", err), http.StatusInternalServerError)
-		return
-	}
-	c := types.TaskSpecComment{
-		Repo:      repoUrl,
-		Name:      taskSpec,
-		Timestamp: time.Unix(0, timestamp),
-	}
-	if err := taskDb.DeleteTaskSpecComment(r.Context(), &c); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete comment: %v", err), http.StatusInternalServerError)
-		return
-	}
-	if err := iCache.Update(r.Context(), false); err != nil {
-		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
-		return
-	}
-}
-
-func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	w.Header().Set("Content-Type", "application/json")
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	commit := mux.Vars(r)["commit"]
-	comment := struct {
-		Comment       string `json:"comment"`
-		IgnoreFailure bool   `json:"ignoreFailure"`
-	}{}
-	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to add comment: %v", err), http.StatusInternalServerError)
-		return
-	}
-	defer util.Close(r.Body)
-
-	c := types.CommitComment{
-		Repo:          repoUrl,
-		Revision:      commit,
-		Timestamp:     time.Now().UTC(),
-		User:          login.LoggedInAs(r),
-		IgnoreFailure: comment.IgnoreFailure,
-		Message:       comment.Comment,
-	}
-	if err := taskDb.PutCommitComment(r.Context(), &c); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to add commit comment: %s", err), http.StatusInternalServerError)
-		return
-	}
-	if err := iCache.Update(r.Context(), false); err != nil {
-		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
-		return
-	}
-}
-
-func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	w.Header().Set("Content-Type", "application/json")
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	commit := mux.Vars(r)["commit"]
-	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
-	if err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Invalid comment id: %v", err), http.StatusInternalServerError)
-		return
-	}
-	c := types.CommitComment{
-		Repo:      repoUrl,
-		Revision:  commit,
-		Timestamp: time.Unix(0, timestamp),
-	}
-	if err := taskDb.DeleteCommitComment(r.Context(), &c); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete commit comment: %s", err), http.StatusInternalServerError)
-		return
-	}
-	if err := iCache.Update(r.Context(), false); err != nil {
-		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
-		return
-	}
-}
-
-type commitsTemplateData struct {
-	Repo     string
-	Title    string
-	RepoBase string
-	Repos    []string
-}
-
-func defaultHandler(w http.ResponseWriter, r *http.Request) {
+func defaultHandler(w http.ResponseWriter, _ *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/html")
 
@@ -574,7 +223,7 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func capacityHandler(w http.ResponseWriter, r *http.Request) {
+func capacityHandler(w http.ResponseWriter, _ *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/html")
 
@@ -607,80 +256,9 @@ func capacityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// buildProgressHandler returns the number of finished builds at the given
-// commit, compared to that of an older commit.
-func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
-	// Get the number of finished tasks for the requested commit.
-	hash := r.FormValue("commit")
-	if !util.ValidateCommit(hash) {
-		httputils.ReportError(w, nil, fmt.Sprintf("%q is not a valid commit hash.", hash), http.StatusInternalServerError)
-		return
-	}
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	tasks, err := tCache.GetTasksForCommits(repoUrl, []string{hash})
-	if err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to get the number of finished builds."), http.StatusInternalServerError)
-		return
-	}
-	finished := 0
-	for _, byCommit := range tasks {
-		for _, t := range byCommit {
-			if t.Done() {
-				finished++
-			}
-		}
-	}
-	tasksForCommit, err := tasksPerCommit.Get(r.Context(), types.RepoState{
-		Repo:     repoUrl,
-		Revision: hash,
-	})
-	if err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to get number of tasks at commit."), http.StatusInternalServerError)
-		return
-	}
-	proportion := 1.0
-	if tasksForCommit > 0 {
-		proportion = float64(finished) / float64(tasksForCommit)
-	}
-
-	res := struct {
-		Commit             string  `json:"commit"`
-		FinishedTasks      int     `json:"finishedTasks"`
-		FinishedProportion float64 `json:"finishedProportion"`
-		TotalTasks         int     `json:"totalTasks"`
-	}{
-		Commit:             hash,
-		FinishedTasks:      finished,
-		FinishedProportion: proportion,
-		TotalTasks:         tasksForCommit,
-	}
-	if err := json.NewEncoder(w).Encode(res); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON."), http.StatusInternalServerError)
-		return
-	}
-}
-
-func lkgrHandler(w http.ResponseWriter, r *http.Request) {
+func lkgrHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	if _, err := w.Write([]byte(lkgrObj.Get())); err != nil {
-		httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
-		return
-	}
-}
-
-func autorollStatusHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	autorollMtx.RLock()
-	defer autorollMtx.RUnlock()
-	if _, err := w.Write(autorollStatus); err != nil {
 		httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
 		return
 	}
@@ -692,6 +270,7 @@ func getAutorollerStatusesTwirp() *rpc.GetAutorollerStatusesResponse {
 	return autorollStatusTwirp
 }
 
+// Note: srv already has the twirp handlers on it when passed into this function.
 func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter := mux.NewRouter()
 	topLevelRouter.Use(login.RestrictViewer)
@@ -726,7 +305,7 @@ type autoRollStatus struct {
 func main() {
 	// Setup flags.
 	common.InitWithMust(
-		APPNAME,
+		appName,
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
@@ -772,11 +351,11 @@ func main() {
 		sklog.Fatal(err)
 	}
 	criaClient := httputils.DefaultClientConfig().WithTokenSource(criaTs).With2xxOnly().Client()
-	adminAllowed, err := allowed.NewAllowedFromChromeInfraAuth(criaClient, AUTH_GROUP_ADMIN_RIGHTS)
+	adminAllowed, err := allowed.NewAllowedFromChromeInfraAuth(criaClient, adminAuthGroup)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	editAllowed, err := allowed.NewAllowedFromChromeInfraAuth(criaClient, AUTH_GROUP_EDIT_RIGHTS)
+	editAllowed, err := allowed.NewAllowedFromChromeInfraAuth(criaClient, editAuthGroup)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -790,7 +369,7 @@ func main() {
 		ProjectID:  *btProject,
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,
-		AppProfile: APPNAME,
+		AppProfile: appName,
 	}
 	repos, err = bt_gitstore.NewBTGitStoreMap(ctx, *repoUrls, btConf)
 	if err != nil {
@@ -805,11 +384,11 @@ func main() {
 	}
 
 	// Create the IncrementalCacheImpl.
-	w, err := window.New(ctx, time.Minute, MAX_COMMITS_TO_LOAD, repos)
+	w, err := window.New(ctx, time.Minute, maxCommitsToLoad, repos)
 	if err != nil {
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}
-	iCache, err = incremental.NewIncrementalCacheImpl(ctx, taskDb, w, repos, MAX_COMMITS_TO_LOAD, *swarmingUrl, *taskSchedulerUrl)
+	iCache, err = incremental.NewIncrementalCacheImpl(ctx, taskDb, w, repos, maxCommitsToLoad, *swarmingUrl, *taskSchedulerUrl)
 	if err != nil {
 		sklog.Fatalf("Failed to create IncrementalCacheImpl: %s", err)
 	}
@@ -841,7 +420,7 @@ func main() {
 	updateAutorollStatus := func(ctx context.Context) error {
 		statuses := map[string]autoRollStatus{}
 		statusesTwirp := []*rpc.AutorollerStatus{}
-		for host, subMap := range AUTOROLLERS {
+		for host, subMap := range autorollerIDsToNames {
 			for roller, friendlyName := range subMap {
 				s, err := autorollStatusDB.Get(ctx, roller)
 				if err != nil {
@@ -864,16 +443,11 @@ func main() {
 						Url:            url})
 			}
 		}
-		b, err := json.Marshal(statuses)
-		if err != nil {
-			return err
-		}
 		sort.Slice(statusesTwirp, func(i, j int) bool {
 			return statusesTwirp[i].Name < statusesTwirp[j].Name
 		})
 		autorollMtx.Lock()
 		defer autorollMtx.Unlock()
-		autorollStatus = b
 		autorollStatusTwirp = &rpc.GetAutorollerStatusesResponse{Rollers: statusesTwirp}
 		return nil
 	}
@@ -898,7 +472,7 @@ func main() {
 	}
 
 	// Create Twirp Server.
-	twirpServer := rpc.NewStatusServer(iCache, taskDb, capacityClient, getAutorollerStatusesTwirp, getRepoTwirp, MAX_COMMITS_TO_LOAD, DEFAULT_COMMITS_TO_LOAD, podId)
+	twirpServer := rpc.NewStatusServer(iCache, taskDb, capacityClient, getAutorollerStatusesTwirp, getRepoTwirp, maxCommitsToLoad, defaultCommitsToLoad, podId)
 
 	// Run the server.
 	runServer(serverURL, twirpServer)
