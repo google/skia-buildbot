@@ -377,6 +377,15 @@ func IsEditor(r *http.Request) bool {
 	return false
 }
 
+// IsEditorEmail returns true if the passed in email is on the edit Allowed. If none was configured
+// (e.g. login.InitWithAllow was not used), it returns false to err on the side of failing safe.
+func IsEditorEmail(email string) bool {
+	if editAllow != nil {
+		return editAllow.Member(email)
+	}
+	return false
+}
+
 // IsViewer determines whether the user is allowed to view this server. Defaults
 // to true if no viewer allow list is provided.
 func IsViewer(r *http.Request) bool {
@@ -914,4 +923,19 @@ func GetSession(ctx context.Context) *Session {
 		return session.(*Session)
 	}
 	return nil
+}
+
+// FakeLoggedInAs is to be used by unit tests which want to fake that a user is logged in.
+func FakeLoggedInAs(ctx context.Context, userEmail string) context.Context {
+	s := Session{
+		Email: userEmail,
+	}
+	return context.WithValue(ctx, loginCtxKey, &s)
+}
+
+// FakeAllows is to be used by unit tests to set the auth groups
+func FakeAllows(admin, edit, view allowed.Allow) {
+	adminAllow = admin
+	editAllow = edit
+	viewAllow = view
 }

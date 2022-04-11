@@ -33,7 +33,9 @@ go_test(
     srcs = ["server_impl_test.go"],
     embed = [":rpc"],
     deps = [
+        "//go/allowed",
         "//go/git",
+        "//go/login",
         "//go/testutils",
         "//go/testutils/unittest",
         "//go/vcsinfo",

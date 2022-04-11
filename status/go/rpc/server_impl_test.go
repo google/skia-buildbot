@@ -8,7 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
@@ -17,9 +21,9 @@ import (
 	status_mocks "go.skia.org/infra/status/go/mocks"
 	ts_mocks "go.skia.org/infra/task_scheduler/go/mocks"
 	"go.skia.org/infra/task_scheduler/go/types"
-
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+const testUser = "test_user@example.com"
 
 type mocks struct {
 	capacityClient   *status_mocks.CapacityClient
@@ -35,7 +39,10 @@ func (m mocks) AssertExpectations(t *testing.T) {
 
 func setupServerWithMockCapacityClient() (context.Context, mocks, *statusServerImpl) {
 	mocks := mocks{capacityClient: &status_mocks.CapacityClient{}, incrementalCache: &status_mocks.IncrementalCache{}, remoteDB: &ts_mocks.RemoteDB{}}
-	return context.Background(), mocks, newStatusServerImpl(
+	ctx := login.FakeLoggedInAs(context.Background(), testUser)
+	allow := allowed.NewAllowedFromList([]string{testUser})
+	login.FakeAllows(allow, allow, allow)
+	return ctx, mocks, newStatusServerImpl(
 		mocks.incrementalCache,
 		mocks.remoteDB,
 		mocks.capacityClient,
@@ -376,6 +383,22 @@ func TestAddComment_TaskSpecComment_Added(t *testing.T) {
 	}
 	_, err := server.AddComment(ctx, req)
 	require.NoError(t, err)
+}
+
+func TestAddComment_NotLoggedIn_ErrorReturned(t *testing.T) {
+	unittest.SmallTest(t)
+	_, mocks, server := setupServerWithMockCapacityClient()
+	defer mocks.AssertExpectations(t)
+	ctx := login.FakeLoggedInAs(context.Background(), "not_on_the_list@example.com")
+	req := &AddCommentRequest{
+		Repo:          "skia",
+		Message:       "Adding a comment",
+		Flaky:         false,
+		IgnoreFailure: true,
+		TaskSpec:      "Build-A-Thing",
+	}
+	_, err := server.AddComment(ctx, req)
+	require.Error(t, err)
 }
 
 func TestAddComment_TaskComment_Added(t *testing.T) {

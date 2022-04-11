@@ -1,8 +1,8 @@
 package rpc
 
 import (
-	context "context"
-	fmt "fmt"
+	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -71,9 +71,13 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 	return ConvertUpdate(update, s.podID), nil
 }
 
-func (s *statusServerImpl) AddComment(ctx context.Context,
-	req *AddCommentRequest) (*AddCommentResponse, error) {
+func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentRequest) (*AddCommentResponse, error) {
 	defer metrics2.FuncTimer().Stop()
+	userEmail := login.AuthorizedEmail(ctx)
+	if !login.IsEditorEmail(userEmail) {
+		return nil, twirpErrorFromIntermediary(http.StatusForbidden, "You are not logged in as an editor", "")
+	}
+
 	_, repoURL, err := s.getRepo(req.Repo)
 	if err != nil {
 		return nil, err
@@ -92,7 +96,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 			Name:      task.Name,
 			Timestamp: now,
 			TaskId:    task.Id,
-			User:      login.AuthorizedEmail(ctx),
+			User:      userEmail,
 			Message:   message,
 		}
 		if err := s.taskDb.PutTaskComment(ctx, &c); err != nil {
@@ -103,7 +107,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 			Repo:          repoURL,
 			Name:          req.GetTaskSpec(),
 			Timestamp:     now,
-			User:          login.AuthorizedEmail(ctx),
+			User:          userEmail,
 			Flaky:         req.Flaky,
 			IgnoreFailure: req.IgnoreFailure,
 			Message:       req.Message,
@@ -116,7 +120,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 			Repo:          repoURL,
 			Revision:      req.GetCommit(),
 			Timestamp:     now,
-			User:          login.AuthorizedEmail(ctx),
+			User:          userEmail,
 			IgnoreFailure: req.IgnoreFailure,
 			Message:       req.Message,
 		}
@@ -132,9 +136,13 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 	return &AddCommentResponse{Timestamp: timestamppb.New(now)}, nil
 }
 
-func (s *statusServerImpl) DeleteComment(ctx context.Context,
-	req *DeleteCommentRequest) (*DeleteCommentResponse, error) {
+func (s *statusServerImpl) DeleteComment(ctx context.Context, req *DeleteCommentRequest) (*DeleteCommentResponse, error) {
 	defer metrics2.FuncTimer().Stop()
+	userEmail := login.AuthorizedEmail(ctx)
+	if !login.IsEditorEmail(userEmail) {
+		return nil, twirpErrorFromIntermediary(http.StatusForbidden, "You are not logged in as an editor", "")
+	}
+
 	_, repoURL, err := s.getRepo(req.Repo)
 	if err != nil {
 		return nil, err
