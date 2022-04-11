@@ -48,58 +48,6 @@ Tips:
    necessary for some extensions to work correctly, such as the
    [Bazel plugin for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=BazelBuild.vscode-bazel).
 
-### Get your RBE credentials
-
-These steps are necessary for the `--config=remote` flag to work on a gLinux workstation.
-
-First, create service account under the `skia-public` GCP project, if you don't have one already:
-
-```
-$ gcloud iam service-accounts create somegoogler-rbe \
-      --description "somegoogler's RBE service account" \
-      --project skia-public
-```
-
-Next, grant your service account the
-[Remote Build Execution Artifact Creator](https://cloud.google.com/remote-build-execution/docs/access-control#granting_the_ability_to_run_builds_remotely)
-role under the `skia-infra-rbe` GCP project, which is where our
-[RBE instance](https://console.cloud.google.com/apis/api/remotebuildexecution.googleapis.com/overview?project=skia-infra-rbe)
-lives:
-
-```
-$ gcloud projects add-iam-policy-binding skia-infra-rbe \
-      --role roles/remotebuildexecution.artifactCreator \
-      --member serviceAccount:somegoogler-rbe@skia-public.iam.gserviceaccount.com
-```
-
-Then, create a JSON service account key:
-
-```
-$ gcloud iam service-accounts keys create path/to/somegoogler-rbe.json \
-      --project skia-infra \
-      --iam-account somegoogler-rbe@skia-public.iam.gserviceaccount.com
-```
-
-Finally, create a `.bazelrc` file in your home directory with the following contents:
-
-```
-build:remote --google_credentials=path/to/somegoogler-rbe.json
-```
-
-Note that service account keys expire after 3 months, so you might have to repeat this step if you
-run into permission issues.
-
-To verify your setup, run a remote build:
-
-```
-$ bazel build //... --config=remote
-```
-
-Note that your service account will be set up with read-only access to the RBE remote cache
-(rationale [here](#building-and-testing-on-rbe)). Do not be alarmed if you see
-`Writing to Remote Cache: PERMISSION_DENIED` warnings when building from a developer workstation
-with `--config=remote`.
-
 ## Gazelle
 
 We use [Gazelle](https://github.com/bazelbuild/bazel-gazelle) to automatically generate
@@ -189,13 +137,6 @@ RBE, add flag `--config=remote`, e.g.:
 $ bazel build //go/util:util --config=remote
 $ bazel test //go/util:util_test --config=remote
 ```
-
-Note that the `rbe-developer@skia-public.iam.gserviceaccount.com` service account does not have
-write access to the RBE cache. As a best practice, the
-[RBE documentation](https://cloud.google.com/remote-build-execution/docs/remote-cache-overview),
-recommends only granting write access to the CI environment. This is because the CI
-environment is more tightly controlled environment than developer workstations. Granting write
-access to developer workstations would expose us to numerous RBE cache poisoning scenarios.
 
 ## Running Bazel-built binaries
 
