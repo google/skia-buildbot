@@ -115,6 +115,9 @@ func CloudLogging(local *bool, projectID string) Opt {
 
 func (o *cloudLoggingInitOpt) preinit(appName string) error {
 	ctx := context.Background()
+	if *o.local {
+		return nil
+	}
 	ts, err := auth.NewDefaultTokenSource(*o.local, logging.WriteScope)
 	if err != nil {
 		return fmt.Errorf("problem getting authenticated token source: %s", err)
