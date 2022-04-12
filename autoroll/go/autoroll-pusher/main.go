@@ -66,6 +66,11 @@ var (
 	// Regular expression used to replace the Docker image version in config
 	// files.
 	dockerImageRe = regexp.MustCompile(`(?m)^\s*image:\s*"\S+"\s*$`)
+
+	oldClusters = []string{
+		"skia-corp",
+		"skia-public",
+	}
 )
 
 // clusterCfg contains information about a cluster which runs autorollers.
@@ -112,8 +117,19 @@ func kubeConfGen(ctx context.Context, tmpl, dstConfig string, extraVars map[stri
 // instance.
 func kubeConfGenBe(ctx context.Context, tmpl, srcConfig, dstConfig, configFileBase64 string) (bool, error) {
 	// Generate the k8s config.
+
+	// Temporary measure to help transition over to the new cluster(s).
+	isOldCluster := "false"
+	splitRelPath := strings.Split(dstConfig, string(filepath.Separator))
+	for _, oldCluster := range oldClusters {
+		if util.In(oldCluster, splitRelPath) {
+			isOldCluster = "true"
+			break
+		}
+	}
 	return kubeConfGen(ctx, tmpl, dstConfig, map[string]string{
 		"configBase64": configFileBase64,
+		"oldCluster":   isOldCluster,
 	}, srcConfig)
 }
 
