@@ -39,8 +39,8 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/search"
 	search_query "go.skia.org/infra/golden/go/search/query"
-	"go.skia.org/infra/golden/go/search2"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/storage"
@@ -90,7 +90,7 @@ type HandlersConfig struct {
 	GCSClient     storage.GCSClient
 	IgnoreStore   ignore.Store
 	ReviewSystems []clstore.ReviewSystem
-	Search2API    search2.API
+	Search2API    search.API
 	WindowSize    int
 }
 
@@ -1018,7 +1018,7 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		types.PrimaryKeyField: testNames[0],
 	}
 	delete(q.Filters, types.PrimaryKeyField)
-	clusterOpts := search2.ClusterOptions{
+	clusterOpts := search.ClusterOptions{
 		Grouping:                leftGrouping,
 		Filters:                 q.Filters,
 		IncludePositiveDigests:  q.IncludePositiveDigests,
@@ -1996,18 +1996,18 @@ func (wh *Handlers) ChangelistSummaryHandler(w http.ResponseWriter, r *http.Requ
 // getCLSummary2 fetches, caches, and returns the summary for a given CL. If the result has already
 // been cached, it will return that cached value with a flag if the value is still up to date or
 // not. If the cached data is stale, it will spawn a goroutine to update the cached value.
-func (wh *Handlers) getCLSummary2(ctx context.Context, qCLID string) (search2.NewAndUntriagedSummary, error) {
+func (wh *Handlers) getCLSummary2(ctx context.Context, qCLID string) (search.NewAndUntriagedSummary, error) {
 	ts, err := wh.Search2API.ChangelistLastUpdated(ctx, qCLID)
 	if err != nil {
-		return search2.NewAndUntriagedSummary{}, skerr.Wrap(err)
+		return search.NewAndUntriagedSummary{}, skerr.Wrap(err)
 	}
 	if ts.IsZero() { // A Zero time means we have no data for this CL.
-		return search2.NewAndUntriagedSummary{}, nil
+		return search.NewAndUntriagedSummary{}, nil
 	}
 
 	cached, ok := wh.clSummaryCache.Get(qCLID)
 	if ok {
-		sum, ok := cached.(search2.NewAndUntriagedSummary)
+		sum, ok := cached.(search.NewAndUntriagedSummary)
 		if ok {
 			if ts.Before(sum.LastUpdated) || sum.LastUpdated.Equal(ts) {
 				sum.Outdated = false
@@ -2038,7 +2038,7 @@ func (wh *Handlers) getCLSummary2(ctx context.Context, qCLID string) (search2.Ne
 			}
 			cached, ok = wh.clSummaryCache.Get(qCLID)
 			if ok {
-				if possiblyUpdated, ok := cached.(search2.NewAndUntriagedSummary); ok {
+				if possiblyUpdated, ok := cached.(search.NewAndUntriagedSummary); ok {
 					if ts.Before(possiblyUpdated.LastUpdated) || possiblyUpdated.LastUpdated.Equal(ts) {
 						// We were able to fetch new data quickly, so return it now.
 						possiblyUpdated.Outdated = false
@@ -2054,7 +2054,7 @@ func (wh *Handlers) getCLSummary2(ctx context.Context, qCLID string) (search2.Ne
 	// Invalid or missing cache entry. We must fetch because we have nothing to give the user.
 	sum, err := wh.Search2API.NewAndUntriagedSummaryForCL(ctx, qCLID)
 	if err != nil {
-		return search2.NewAndUntriagedSummary{}, skerr.Wrap(err)
+		return search.NewAndUntriagedSummary{}, skerr.Wrap(err)
 	}
 	wh.clSummaryCache.Add(qCLID, sum)
 	return sum, nil
@@ -2062,7 +2062,7 @@ func (wh *Handlers) getCLSummary2(ctx context.Context, qCLID string) (search2.Ne
 
 // convertChangelistSummaryResponseV1 converts the search2 version of a Changelist summary into
 // the version expected by the frontend.
-func convertChangelistSummaryResponseV1(summary search2.NewAndUntriagedSummary) frontend.ChangelistSummaryResponseV1 {
+func convertChangelistSummaryResponseV1(summary search.NewAndUntriagedSummary) frontend.ChangelistSummaryResponseV1 {
 	xps := make([]frontend.PatchsetNewAndUntriagedSummaryV1, 0, len(summary.PatchsetSummaries))
 	for _, ps := range summary.PatchsetSummaries {
 		xps = append(xps, frontend.PatchsetNewAndUntriagedSummaryV1{

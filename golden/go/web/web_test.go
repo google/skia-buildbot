@@ -36,8 +36,8 @@ import (
 	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
 	"go.skia.org/infra/golden/go/image/text"
 	"go.skia.org/infra/golden/go/mocks"
-	"go.skia.org/infra/golden/go/search2"
-	mock_search2 "go.skia.org/infra/golden/go/search2/mocks"
+	"go.skia.org/infra/golden/go/search"
+	mock_search "go.skia.org/infra/golden/go/search/mocks"
 	"go.skia.org/infra/golden/go/sql"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -899,10 +899,10 @@ func loadAsPNGBytes(t *testing.T, textImage string) []byte {
 func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := &mock_search2.API{}
-	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search2.NewAndUntriagedSummary{
+	ms := &mock_search.API{}
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search.NewAndUntriagedSummary{
 		ChangelistID: "my_cl",
-		PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []search.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
 			NewUntriagedImages:   2,
 			TotalUntriagedImages: 3,
@@ -944,11 +944,11 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 func TestChangelistSummaryHandler_CachedValueStaleButUpdatesQuickly_ReturnsFreshResult(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := &mock_search2.API{}
+	ms := &mock_search.API{}
 	// First call should have just one PS.
-	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search2.NewAndUntriagedSummary{
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search.NewAndUntriagedSummary{
 		ChangelistID: "my_cl",
-		PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []search.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
 			NewUntriagedImages:   2,
 			TotalUntriagedImages: 3,
@@ -958,9 +958,9 @@ func TestChangelistSummaryHandler_CachedValueStaleButUpdatesQuickly_ReturnsFresh
 		LastUpdated: time.Date(2021, time.March, 1, 1, 1, 1, 0, time.UTC),
 	}, nil).Once()
 	// Second call should have two PS and the latest timestamp.
-	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search2.NewAndUntriagedSummary{
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search.NewAndUntriagedSummary{
 		ChangelistID: "my_cl",
-		PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []search.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
 			NewUntriagedImages:   2,
 			TotalUntriagedImages: 3,
@@ -1008,11 +1008,11 @@ func TestChangelistSummaryHandler_CachedValueStaleButUpdatesQuickly_ReturnsFresh
 func TestChangelistSummaryHandler_CachedValueStaleUpdatesSlowly_ReturnsStaleResult(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := &mock_search2.API{}
+	ms := &mock_search.API{}
 	// First call should have just one PS.
-	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search2.NewAndUntriagedSummary{
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search.NewAndUntriagedSummary{
 		ChangelistID: "my_cl",
-		PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []search.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
 			NewUntriagedImages:   2,
 			TotalUntriagedImages: 3,
@@ -1022,12 +1022,12 @@ func TestChangelistSummaryHandler_CachedValueStaleUpdatesSlowly_ReturnsStaleResu
 		LastUpdated: time.Date(2021, time.March, 1, 1, 1, 1, 0, time.UTC),
 	}, nil).Once()
 	// Second call should have two PS and the latest timestamp.
-	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(func(context.Context, string) search2.NewAndUntriagedSummary {
+	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(func(context.Context, string) search.NewAndUntriagedSummary {
 		// This is longer than the time we wait before giving up and returning stale results.
 		time.Sleep(2 * time.Second)
-		return search2.NewAndUntriagedSummary{
+		return search.NewAndUntriagedSummary{
 			ChangelistID: "my_cl",
-			PatchsetSummaries: []search2.PatchsetNewAndUntriagedSummary{{
+			PatchsetSummaries: []search.PatchsetNewAndUntriagedSummary{{
 				NewImages:            1,
 				NewUntriagedImages:   2,
 				TotalUntriagedImages: 3,
@@ -1140,7 +1140,7 @@ func TestChangelistSummaryHandler_IncorrectSystem_BadRequest(t *testing.T) {
 func TestChangelistSummaryHandler_SearchReturnsError_InternalServerError(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := &mock_search2.API{}
+	ms := &mock_search.API{}
 	ms.On("ChangelistLastUpdated", testutils.AnyContext, "my-system_my_cl").Return(time.Time{}, errors.New("boom"))
 
 	wh := Handlers{
@@ -1173,7 +1173,7 @@ func TestStartCLCacheProcess_Success(t *testing.T) {
 
 	wh := initCaches(&Handlers{
 		HandlersConfig: HandlersConfig{
-			Search2API: search2.New(db, 10),
+			Search2API: search.New(db, 10),
 			DB:         db,
 		},
 	})
@@ -1221,13 +1221,13 @@ func TestStatusHandler_Success(t *testing.T) {
 func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := &mock_search2.API{}
+	ms := &mock_search.API{}
 
-	ms.On("GetBlamesForUntriagedDigests", testutils.AnyContext, "the_corpus").Return(search2.BlameSummaryV1{
-		Ranges: []search2.BlameEntry{{
+	ms.On("GetBlamesForUntriagedDigests", testutils.AnyContext, "the_corpus").Return(search.BlameSummaryV1{
+		Ranges: []search.BlameEntry{{
 			CommitRange:           "000054321:000054322",
 			TotalUntriagedDigests: 2,
-			AffectedGroupings: []*search2.AffectedGrouping{{
+			AffectedGroupings: []*search.AffectedGrouping{{
 				Grouping: paramtools.Params{
 					types.CorpusField:     "the_corpus",
 					types.PrimaryKeyField: "alpha",
@@ -1274,9 +1274,9 @@ func TestGetBlamesForUntriagedDigests_ValidInput_CorrectJSONReturned(t *testing.
 func TestClusterDiffHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := &mock_search2.API{}
+	ms := &mock_search.API{}
 
-	expectedOptions := search2.ClusterOptions{
+	expectedOptions := search.ClusterOptions{
 		Grouping: paramtools.Params{
 			types.CorpusField:     "infra",
 			types.PrimaryKeyField: "infra-sk_paramset-sk_many-paramsets_no-titles",
@@ -1324,7 +1324,7 @@ func TestClusterDiffHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 func TestCommitsHandler_CorrectJSONReturned(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := &mock_search2.API{}
+	ms := &mock_search.API{}
 
 	ms.On("GetCommitsInWindow", testutils.AnyContext).Return([]frontend.Commit{{
 		CommitTime: 100000000,
@@ -1357,7 +1357,7 @@ func TestCommitsHandler_CorrectJSONReturned(t *testing.T) {
 func TestDigestListHandler_CorrectJSONReturned(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ms := &mock_search2.API{}
+	ms := &mock_search.API{}
 
 	expectedGrouping := paramtools.Params{
 		types.PrimaryKeyField: "ThisIsTheOnlyTest",

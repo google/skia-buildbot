@@ -39,7 +39,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
 	"go.skia.org/infra/golden/go/publicparams"
-	"go.skia.org/infra/golden/go/search2"
+	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tracing"
@@ -158,13 +158,13 @@ func main() {
 	sklog.Fatal(http.ListenAndServe(fsc.ReadyPort, rootRouter))
 }
 
-func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pgxpool.Pool, publiclyViewableParams publicparams.Matcher, systems []clstore.ReviewSystem) *search2.Impl {
+func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pgxpool.Pool, publiclyViewableParams publicparams.Matcher, systems []clstore.ReviewSystem) *search.Impl {
 	templates := map[string]string{}
 	for _, crs := range systems {
 		templates[crs.ID] = crs.URLTemplate
 	}
 
-	s2a := search2.New(sqlDB, fsc.WindowSize)
+	s2a := search.New(sqlDB, fsc.WindowSize)
 	s2a.SetReviewSystemTemplates(templates)
 	sklog.Infof("SQL Search loaded with CRS templates %s", templates)
 	err := s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.WindowSize)
@@ -358,7 +358,7 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client) []c
 }
 
 // mustMakeWebHandlers returns a new web.Handlers.
-func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool, gsClient storage.GCSClient, ignoreStore ignore.Store, reviewSystems []clstore.ReviewSystem, s2a search2.API) *web.Handlers {
+func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool, gsClient storage.GCSClient, ignoreStore ignore.Store, reviewSystems []clstore.ReviewSystem, s2a search.API) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
 		DB:            db,
 		GCSClient:     gsClient,

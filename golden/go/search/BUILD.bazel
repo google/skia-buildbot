@@ -2,9 +2,9 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
-    name = "search2",
-    srcs = ["search2.go"],
-    importpath = "go.skia.org/infra/golden/go/search2",
+    name = "search",
+    srcs = ["search.go"],
+    importpath = "go.skia.org/infra/golden/go/search",
     visibility = ["//visibility:public"],
     deps = [
         "//go/paramtools",
@@ -30,9 +30,9 @@ go_library(
 )
 
 go_test(
-    name = "search2_test",
-    srcs = ["search2_test.go"],
-    embed = [":search2"],
+    name = "search_test",
+    srcs = ["search_test.go"],
+    embed = [":search"],
     deps = [
         "//go/paramtools",
         "//go/testutils/unittest",

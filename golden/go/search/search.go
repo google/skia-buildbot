@@ -1,6 +1,6 @@
 // Package search2 encapsulates various queries we make against Gold's data. It is backed
 // by the SQL database and aims to replace the current search package.
-package search2
+package search
 
 import (
 	"bytes"

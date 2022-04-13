@@ -12,7 +12,7 @@ import (
 
 	query "go.skia.org/infra/golden/go/search/query"
 
-	search2 "go.skia.org/infra/golden/go/search2"
+	search "go.skia.org/infra/golden/go/search"
 
 	time "time"
 
@@ -88,14 +88,14 @@ func (_m *API) CountDigestsByTest(ctx context.Context, q frontend.ListTestsQuery
 }
 
 // GetBlamesForUntriagedDigests provides a mock function with given fields: ctx, corpus
-func (_m *API) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) (search2.BlameSummaryV1, error) {
+func (_m *API) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) (search.BlameSummaryV1, error) {
 	ret := _m.Called(ctx, corpus)
 
-	var r0 search2.BlameSummaryV1
-	if rf, ok := ret.Get(0).(func(context.Context, string) search2.BlameSummaryV1); ok {
+	var r0 search.BlameSummaryV1
+	if rf, ok := ret.Get(0).(func(context.Context, string) search.BlameSummaryV1); ok {
 		r0 = rf(ctx, corpus)
 	} else {
-		r0 = ret.Get(0).(search2.BlameSummaryV1)
+		r0 = ret.Get(0).(search.BlameSummaryV1)
 	}
 
 	var r1 error
@@ -132,18 +132,18 @@ func (_m *API) GetChangelistParamset(ctx context.Context, crs string, clID strin
 }
 
 // GetCluster provides a mock function with given fields: ctx, opts
-func (_m *API) GetCluster(ctx context.Context, opts search2.ClusterOptions) (frontend.ClusterDiffResult, error) {
+func (_m *API) GetCluster(ctx context.Context, opts search.ClusterOptions) (frontend.ClusterDiffResult, error) {
 	ret := _m.Called(ctx, opts)
 
 	var r0 frontend.ClusterDiffResult
-	if rf, ok := ret.Get(0).(func(context.Context, search2.ClusterOptions) frontend.ClusterDiffResult); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, search.ClusterOptions) frontend.ClusterDiffResult); ok {
 		r0 = rf(ctx, opts)
 	} else {
 		r0 = ret.Get(0).(frontend.ClusterDiffResult)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, search2.ClusterOptions) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, search.ClusterOptions) error); ok {
 		r1 = rf(ctx, opts)
 	} else {
 		r1 = ret.Error(1)
@@ -262,14 +262,14 @@ func (_m *API) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnl
 }
 
 // NewAndUntriagedSummaryForCL provides a mock function with given fields: ctx, qCLID
-func (_m *API) NewAndUntriagedSummaryForCL(ctx context.Context, qCLID string) (search2.NewAndUntriagedSummary, error) {
+func (_m *API) NewAndUntriagedSummaryForCL(ctx context.Context, qCLID string) (search.NewAndUntriagedSummary, error) {
 	ret := _m.Called(ctx, qCLID)
 
-	var r0 search2.NewAndUntriagedSummary
-	if rf, ok := ret.Get(0).(func(context.Context, string) search2.NewAndUntriagedSummary); ok {
+	var r0 search.NewAndUntriagedSummary
+	if rf, ok := ret.Get(0).(func(context.Context, string) search.NewAndUntriagedSummary); ok {
 		r0 = rf(ctx, qCLID)
 	} else {
-		r0 = ret.Get(0).(search2.NewAndUntriagedSummary)
+		r0 = ret.Get(0).(search.NewAndUntriagedSummary)
 	}
 
 	var r1 error
