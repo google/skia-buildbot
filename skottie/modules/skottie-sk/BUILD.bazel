@@ -45,6 +45,7 @@ sk_element(
         "//skottie/modules/skottie-library-sk",
         "//skottie/modules/skottie-performance-sk",
         "//skottie/modules/skottie-player-sk",
+        "//skottie/modules/skottie-shader-editor-sk",
         "//skottie/modules/skottie-text-editor-sk",
         "//infra-sk/modules/app-sk",
         "//infra-sk/modules/theme-chooser-sk",
@@ -62,6 +63,7 @@ sk_element(
         "@npm//jsoneditor",
         "@npm//lit-html",
         "@npm//lottie-web",
+        "//skottie/modules/skottie-shader-editor-sk:shader-replace_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

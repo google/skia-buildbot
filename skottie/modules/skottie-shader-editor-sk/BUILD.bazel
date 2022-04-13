@@ -1,0 +1,29 @@
+load("//infra-sk:index.bzl", "sk_element", "ts_library")
+
+sk_element(
+    name = "skottie-shader-editor-sk",
+    sass_deps = [
+        "//infra-sk:elements-sk_scss",
+        "//infra-sk:themes",
+    ],
+    sass_srcs = ["skottie-shader-editor-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//skottie/modules:types_ts_lib",
+        ":shader-replace_ts_lib",
+        "@npm//elements-sk",
+        "@npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skottie-shader-editor-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "shader-replace_ts_lib",
+    srcs = ["shader-replace.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//skottie/modules:types_ts_lib"],
+)

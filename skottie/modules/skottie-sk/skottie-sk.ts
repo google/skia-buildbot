@@ -41,8 +41,11 @@ import {
 import { SkottieLibrarySk } from '../skottie-library-sk/skottie-library-sk';
 import { AudioStartEventDetail, SkottieAudioSk } from '../skottie-audio-sk/skottie-audio-sk';
 import { SkottieTextEditorSk, TextEditApplyEventDetail } from '../skottie-text-editor-sk/skottie-text-editor-sk';
+import '../skottie-shader-editor-sk';
+import { ShaderEditApplyEventDetail, ShaderEditorSk } from '../skottie-shader-editor-sk/skottie-shader-editor-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
+import { replaceShaders } from '../skottie-shader-editor-sk/shader-replace';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -189,6 +192,7 @@ ${this.controls()}
 ${this.jsonEditor()}
 ${this.gifExporter()}
 ${this.jsonTextEditor()}
+${this.shaderEditor()}
 `;
 
   private controls = () => {
@@ -223,6 +227,10 @@ ${this.jsonTextEditor()}
     <checkbox-sk label="Show text editor"
                 ?checked=${this.showTextEditor}
                 @click=${this.toggleTextEditor}>
+    </checkbox-sk>
+    <checkbox-sk label="Show shader editor"
+                ?checked=${this.showShaderEditor}
+                @click=${this.toggleShaderEditor}>
     </checkbox-sk>
     <checkbox-sk label="Show performance chart"
                 ?checked=${this.showPerformanceChart}
@@ -366,6 +374,21 @@ ${this.wasmCaption()}`;
 </section>`;
   };
 
+  private shaderEditor = () => {
+    if (!this.showShaderEditor) {
+      return '';
+    }
+    return html`
+<section class=editor>
+  <skottie-shader-editor-sk
+    .animation=${this.state.lottie}
+    .mode=${this.viewMode}
+    @apply=${this.applyShaderEdits}
+  >
+  </skottie-shader-editor-sk>
+</section>`;
+  };
+
   private buildFileName = () => {
     const fileName = this.state.filename || this.state.lottie?.metadata?.filename;
     if (fileName) {
@@ -439,6 +462,8 @@ ${this.wasmCaption()}`;
 
   private showTextEditor: boolean = false;
 
+  private showShaderEditor: boolean = false;
+
   private skottieLibrary: SkottieLibrarySk | null = null;
 
   private skottiePlayer: SkottiePlayerSk | null = null;
@@ -472,6 +497,7 @@ ${this.wasmCaption()}`;
         e: this.showJSONEditor,
         g: this.showGifExporter,
         t: this.showTextEditor,
+        s: this.showShaderEditor,
         p: this.showPerformanceChart,
         i: this.showLibrary,
         a: this.showAudio,
@@ -485,6 +511,7 @@ ${this.wasmCaption()}`;
         this.showJSONEditor = !!newState.e;
         this.showGifExporter = !!newState.g;
         this.showTextEditor = !!newState.t;
+        this.showShaderEditor = !!newState.s
         this.showPerformanceChart = !!newState.p;
         this.showLibrary = !!newState.i;
         this.showAudio = !!newState.a;
@@ -562,6 +589,15 @@ ${this.wasmCaption()}`;
     const texts = e.detail.texts;
     this.state.lottie = replaceTexts(texts, this.state.lottie!);
     this.skottieLibrary?.replaceTexts(texts);
+
+    this.upload();
+  }
+
+  private applyShaderEdits(e: CustomEvent<ShaderEditApplyEventDetail>): void {
+    const shaders = e.detail.shaders;
+    this.state.lottie = replaceShaders(shaders, this.state.lottie!);
+    //TODO(jmbetancourt): support skottieLibrary
+    //this.skottieLibrary?.replaceShaders(shaders);
 
     this.upload();
   }
@@ -882,6 +918,7 @@ ${this.wasmCaption()}`;
         this.renderLottieWeb();
         this.renderJSONEditor();
         this.renderTextEditor();
+        this.renderShaderEditor();
         this.renderAudioManager();
       } catch (e) {
         console.warn('caught error while rendering third party code', e);
@@ -903,6 +940,15 @@ ${this.wasmCaption()}`;
       const textEditor = $$<SkottieTextEditorSk>('skottie-text-editor-sk', this);
       if (textEditor) {
         textEditor.animation = this.state.lottie!;
+      }
+    }
+  }
+
+  private renderShaderEditor(): void {
+    if (this.showShaderEditor) {
+      const shaderEditor = $$<ShaderEditorSk>('skottie-shader-editor-sk', this);
+      if (shaderEditor) {
+        shaderEditor.animation = this.state.lottie!;
       }
     }
   }
@@ -1142,6 +1188,14 @@ ${this.wasmCaption()}`;
     e.preventDefault();
     this.showJSONEditor = false;
     this.showTextEditor = !this.showTextEditor;
+    this.stateChanged();
+    this.render();
+  }
+
+  private toggleShaderEditor(e: Event): void {
+    e.preventDefault();
+    this.showJSONEditor = false;
+    this.showShaderEditor = !this.showShaderEditor;
     this.stateChanged();
     this.render();
   }
