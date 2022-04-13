@@ -21,8 +21,8 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
 	"go.opencensus.io/trace"
+	"golang.org/x/oauth2/google"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -328,7 +328,7 @@ func main() {
 	sub.ReceiveSettings.MaxOutstandingMessages = subscriptionMaxOutstandingMessages
 
 	// Create the TaskDriver DB.
-	ts, err := auth.NewDefaultTokenSource(*local, bigtable.Scope)
+	ts, err := google.DefaultTokenSource(ctx, bigtable.Scope)
 	if err != nil {
 		sklog.Fatal(err)
 	}

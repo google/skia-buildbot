@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/ingest/process",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/auth",
         "//go/metrics2",
         "//go/paramtools",
         "//go/query",
@@ -23,6 +22,7 @@ go_library(
         "//perf/go/tracing",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
@@ -38,7 +38,6 @@ go_test(
     # is unset when running on RBE (e.g. with --config=remote).
     tags = ["no-remote"],
     deps = [
-        "//go/auth",
         "//go/emulators",
         "//go/metrics2",
         "//go/paramtools",
@@ -51,5 +50,6 @@ go_test(
         "@com_github_stretchr_testify//require",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )

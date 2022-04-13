@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/luciauth"
@@ -19,6 +18,7 @@ import (
 	"go.skia.org/infra/go/sklog/cloudlogging"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v1"
 )
 
@@ -179,7 +179,7 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 	var ts oauth2.TokenSource
 	if *local {
 		var err error
-		ts, err = auth.NewDefaultTokenSource(*local, authScopes...)
+		ts, err = google.DefaultTokenSource(context.TODO(), authScopes...)
 		if err != nil {
 			return nil, err
 		}

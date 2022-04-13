@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -346,7 +347,7 @@ func runChromiumPerfOnWorkers() error {
 
 	if *groupName != "" {
 		// Start the gitauth package because we will need to commit to CT Perf's synthetic repo.
-		ts, err := auth.NewDefaultTokenSource(*master_common.Local, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
+		ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 		if err != nil {
 			return err
 		}

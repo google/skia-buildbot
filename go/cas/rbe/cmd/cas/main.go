@@ -10,8 +10,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cas/rbe"
+	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v0.beta"
 )
 
@@ -22,7 +22,7 @@ var (
 
 func setup() (context.Context, *rbe.Client) {
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(true, compute.CloudPlatformScope)
+	ts, err := google.DefaultTokenSource(ctx, compute.CloudPlatformScope)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -6,7 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/skolo/go/file-backup",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/exec",
         "//go/fileutil",
@@ -16,6 +15,7 @@ go_library(
         "//go/util",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

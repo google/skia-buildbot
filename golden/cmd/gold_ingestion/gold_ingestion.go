@@ -15,6 +15,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
+	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -137,7 +138,7 @@ func main() {
 	ctx := context.Background()
 
 	// Initialize oauth client and start the ingesters.
-	tokenSrc, err := auth.NewDefaultTokenSource(isc.Local, auth.ScopeUserinfoEmail, storage.ScopeFullControl, pubsub.ScopePubSub, pubsub.ScopeCloudPlatform, swarming.AUTH_SCOPE, auth.ScopeGerrit)
+	tokenSrc, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, storage.ScopeFullControl, pubsub.ScopePubSub, pubsub.ScopeCloudPlatform, swarming.AUTH_SCOPE, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}

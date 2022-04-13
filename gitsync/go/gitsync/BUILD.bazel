@@ -18,6 +18,7 @@ go_library(
         "//go/human",
         "//go/sklog",
         "@com_github_flynn_json5//:json5",
+        "@org_golang_x_oauth2//google",
         "@org_golang_x_sync//errgroup",
     ],
 )

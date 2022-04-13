@@ -15,11 +15,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"golang.org/x/oauth2/google"
 )
 
 func main() {
@@ -67,7 +67,7 @@ func main() {
 	}
 
 	// Authenticated HTTP client.
-	ts, err := auth.NewDefaultTokenSource(true, swarming.AUTH_SCOPE)
+	ts, err := google.DefaultTokenSource(ctx, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}

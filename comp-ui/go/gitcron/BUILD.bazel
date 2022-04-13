@@ -12,6 +12,7 @@ go_library(
         "//go/now",
         "//go/sklog",
         "//go/util",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

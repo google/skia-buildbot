@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vfs"
+	"golang.org/x/oauth2/google"
 )
 
 // TODO(borenet): Split up the tests in github_cipd_deps_repo_manager_test.go
@@ -36,7 +37,7 @@ func TestCIPDChild_VCS(t *testing.T) {
 		Name: pkgName,
 		Tag:  pkgTag,
 	}
-	ts, err := auth.NewDefaultTokenSource(true, auth.ScopeUserinfoEmail)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	require.NoError(t, err)
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	wd := t.TempDir()

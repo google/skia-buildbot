@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
+	"golang.org/x/oauth2/google"
 )
 
 // The commit message for a Gerrit CL shows up as the contents of this filename
@@ -31,7 +32,7 @@ type gerritCodeReview struct {
 //
 // The gerritURL value would probably be gerrit.GerritSkiaURL.
 func New(local bool, gerritURL, gitilesURL string) (*gerritCodeReview, error) {
-	ts, err := auth.NewDefaultTokenSource(local, auth.ScopeGerrit)
+	ts, err := google.DefaultTokenSource(context.TODO(), auth.ScopeGerrit)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

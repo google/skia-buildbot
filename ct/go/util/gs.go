@@ -3,6 +3,7 @@
 package util
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,6 +22,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/util/zip"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/googleapi"
 	storage "google.golang.org/api/storage/v1"
 )
@@ -44,7 +46,7 @@ type GcsUtil struct {
 // source.
 func NewGcsUtil(client *http.Client) (*GcsUtil, error) {
 	if client == nil {
-		ts, err := auth.NewDefaultTokenSource(false, auth.ScopeFullControl)
+		ts, err := google.DefaultTokenSource(context.TODO(), auth.ScopeFullControl)
 		if err != nil {
 			return nil, fmt.Errorf("Problem setting up default token source: %s", err)
 		}

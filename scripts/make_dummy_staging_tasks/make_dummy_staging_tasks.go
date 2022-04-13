@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -21,6 +20,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -63,7 +63,7 @@ func main() {
 	includeDimensions := map[string]bool{}
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(true, datastore.ScopeDatastore, swarming.AUTH_SCOPE)
+	ts, err := google.DefaultTokenSource(ctx, datastore.ScopeDatastore, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}

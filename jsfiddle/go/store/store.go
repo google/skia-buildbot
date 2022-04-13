@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -28,8 +29,8 @@ type Store struct {
 // New creates a new Store.
 //
 // local - True if running locally.
-func New(local bool) (*Store, error) {
-	ts, err := auth.NewDefaultTokenSource(local, auth.ScopeReadWrite)
+func New(ctx context.Context, local bool) (*Store, error) {
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeReadWrite)
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}

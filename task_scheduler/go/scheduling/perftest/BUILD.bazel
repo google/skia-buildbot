@@ -6,7 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/task_scheduler/go/scheduling/perftest",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/bt",
         "//go/cas/rbe",
         "//go/common",
@@ -34,6 +33,7 @@ go_library(
         "@com_github_google_uuid//:uuid",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

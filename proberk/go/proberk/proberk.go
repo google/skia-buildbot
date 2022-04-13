@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/proberk/go/types"
+	"golang.org/x/oauth2/google"
 )
 
 // flags
@@ -344,7 +345,7 @@ func main() {
 	anonymousClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
-	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
 		sklog.Fatal(err)
 	}

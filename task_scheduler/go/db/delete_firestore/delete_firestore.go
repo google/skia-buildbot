@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -23,7 +23,7 @@ func main() {
 	common.Init()
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*local, datastore.ScopeDatastore)
+	ts, err := google.DefaultTokenSource(ctx, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}

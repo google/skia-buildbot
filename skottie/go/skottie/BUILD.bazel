@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/skottie/go/skottie",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/config",
         "//go/gcs",
@@ -20,6 +19,7 @@ go_library(
         "@com_github_gorilla_mux//:mux",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
         "@org_golang_x_sync//errgroup",
     ],
 )

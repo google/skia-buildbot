@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/cherrypick-watcher/go/config"
 	"go.skia.org/infra/cherrypick-watcher/go/db"
@@ -184,7 +185,7 @@ func main() {
 	common.InitWithMust("cherrypick-watcher", common.PrometheusOpt(promPort), common.MetricsLoggingOpt())
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}

@@ -5,15 +5,16 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"time"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/ds/go/backup"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
 )
 
 // flags
@@ -30,7 +31,7 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
-	ts, err := auth.NewDefaultTokenSource(*local, datastore.ScopeDatastore)
+	ts, err := google.DefaultTokenSource(context.Background(), datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}

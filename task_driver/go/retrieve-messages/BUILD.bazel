@@ -6,12 +6,12 @@ go_library(
     importpath = "go.skia.org/infra/task_driver/go/retrieve-messages",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/sklog",
         "//go/util",
         "//task_driver/go/db/bigtable",
         "@com_google_cloud_go_bigtable//:bigtable",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

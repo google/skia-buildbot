@@ -6,7 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/go/gce",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/exec",
         "//go/httputils",
@@ -15,5 +14,6 @@ go_library(
         "//go/util",
         "@org_golang_google_api//compute/v0.beta:v0_beta",
         "@org_golang_x_oauth2//:oauth2",
+        "@org_golang_x_oauth2//google",
     ],
 )

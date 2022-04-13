@@ -13,7 +13,6 @@ go_library(
     importpath = "go.skia.org/infra/skolo/go/powercycle_server_ansible",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/httputils",
         "//go/metrics2",
@@ -25,6 +24,7 @@ go_library(
         "//machine/go/machineserver/rpc",
         "//skolo/go/powercycle",
         "//skolo/sys",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/protobuf/encoding/prototext"
 )
@@ -60,7 +61,9 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore)
+	ctx := context.Background()
+
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -70,7 +73,6 @@ func main() {
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
-	ctx := context.Background()
 	if !*local {
 		// Update the roller config in the DB.
 		configDB, err := db.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, namespace, *firestoreInstance, ts)

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"golang.org/x/oauth2/google"
 
 	demos "go.skia.org/infra/demos/go/common"
 	"go.skia.org/infra/go/auth"
@@ -139,9 +140,9 @@ func (s *syncedDemos) demoHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 // setupGit acquires necessary credentials to clone the repo.
-func setupGit() error {
+func setupGit(ctx context.Context) error {
 	// Start the gitauth package because we will need to read from infra-internal.
-	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		return err
 	}
@@ -158,11 +159,11 @@ func main() {
 		"demos",
 	)
 
-	if err := setupGit(); err != nil {
+	ctx := context.Background()
+	if err := setupGit(ctx); err != nil {
 		sklog.Fatalf("Failed to setup git: %s", err)
 	}
 	// Create a threadsafe checkout to serve from.
-	ctx := context.Background()
 	checkoutDir, err := ioutil.TempDir("", "demos_repo")
 	if err != nil {
 		sklog.Fatalf("Unable to create temporary directory for demos checkout: %s", err)

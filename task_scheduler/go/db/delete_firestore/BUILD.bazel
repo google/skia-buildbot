@@ -6,12 +6,12 @@ go_library(
     importpath = "go.skia.org/infra/task_scheduler/go/db/delete_firestore",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/firestore",
         "//go/sklog",
         "//go/util",
         "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

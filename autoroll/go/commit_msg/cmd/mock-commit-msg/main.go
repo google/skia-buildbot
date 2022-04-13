@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/repo_root"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/protobuf/encoding/prototext"
 )
@@ -50,7 +51,7 @@ func main() {
 
 	ctx := context.Background()
 
-	ts, err := auth.NewDefaultTokenSource(true, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
 	if err != nil {
 		log.Fatal(err)
 	}

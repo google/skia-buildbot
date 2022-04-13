@@ -35,6 +35,7 @@ go_library(
         "@org_golang_google_api//option",
         "@org_golang_google_protobuf//encoding/prototext",
         "@org_golang_x_oauth2//:oauth2",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

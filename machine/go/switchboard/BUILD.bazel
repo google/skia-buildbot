@@ -10,7 +10,6 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/switchboard",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/auth",
         "//go/firestore",
         "//go/metrics2",
         "//go/now",
@@ -19,6 +18,7 @@ go_library(
         "//machine/go/machineserver/config",
         "@com_google_cloud_go_firestore//:firestore",
         "@org_golang_google_api//iterator",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

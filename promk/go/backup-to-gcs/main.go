@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -49,12 +50,13 @@ func step(storageClient *storage.Client) error {
 func main() {
 	common.InitWithMust("backup-to-gcs", common.PrometheusOpt(promPort))
 
-	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeFullControl)
+	ctx := context.Background()
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeFullControl)
 	if err != nil {
 		sklog.Fatalf("Problem setting up client OAuth: %s", err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		sklog.Fatalf("Problem creating storage client: %s", err)
 	}

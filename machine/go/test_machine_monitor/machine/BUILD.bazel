@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/test_machine_monitor/machine",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/auth",
         "//go/httputils",
         "//go/metrics2",
         "//go/now",
@@ -24,6 +23,7 @@ go_library(
         "//machine/go/test_machine_monitor/ios",
         "//machine/go/test_machine_monitor/ssh",
         "//machine/go/test_machine_monitor/swarming",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

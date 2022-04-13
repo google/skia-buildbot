@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -51,7 +52,7 @@ func main() {
 	ctx := context.Background()
 
 	// OAuth2.0 TokenSource.
-	ts, err := auth.NewDefaultTokenSource(false, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

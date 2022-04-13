@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/flynn/json5"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/prototext"
 
@@ -167,8 +168,8 @@ func getActiveImage(ctx context.Context, k8sCfg string) (string, error) {
 }
 
 // getLatestImage returns the most recently uploaded image.
-func getLatestImage(image string) (string, error) {
-	ts, err := auth.NewDefaultTokenSource(true, auth.ScopeUserinfoEmail)
+func getLatestImage(ctx context.Context, image string) (string, error) {
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to get latest image for %s; failed to get token source", image)
 	}
@@ -238,7 +239,7 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cluster *clusterCfg, c
 	if *updateFeImage {
 		tmplFe := "./go/autoroll-fe/autoroll-fe.yaml.template"
 		// Get the latest image for the frontend.
-		latestImageFe, err := getLatestImage(GCR_IMAGE_FE)
+		latestImageFe, err := getLatestImage(ctx, GCR_IMAGE_FE)
 		if err != nil {
 			log.Fatalf("Failed to get latest image for %s: %s", configFe.AppName, err)
 		}
@@ -453,7 +454,7 @@ func main() {
 
 	// Update the backend image if requested.
 	if *updateBeImage {
-		latestImageBe, err := getLatestImage(GCR_IMAGE_BE)
+		latestImageBe, err := getLatestImage(ctx, GCR_IMAGE_BE)
 		if err != nil {
 			log.Fatalf("Failed to get latest image for %s: %s", GCR_IMAGE_BE, err)
 		}

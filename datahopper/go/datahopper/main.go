@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/window"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -68,7 +69,7 @@ func main() {
 	// OAuth2.0 TokenSource.
 	authScopes := []string{auth.ScopeUserinfoEmail, pubsub.ScopePubSub, bigtable.Scope, datastore.ScopeDatastore, swarming.AUTH_SCOPE, auth.ScopeReadWrite, auth.ScopeGerrit}
 	authScopes = append(authScopes, monitoring.DefaultAuthScopes()...)
-	ts, err := auth.NewDefaultTokenSource(*local, authScopes...)
+	ts, err := google.DefaultTokenSource(ctx, authScopes...)
 	if err != nil {
 		sklog.Fatal(err)
 	}

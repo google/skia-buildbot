@@ -11,10 +11,10 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -28,7 +28,7 @@ func setupPubSubClient(t *testing.T) (context.Context, *pubsub.Client, *pubsub.S
 		},
 	}
 
-	ts, err := auth.NewDefaultTokenSource(true, pubsub.ScopePubSub)
+	ts, err := google.DefaultTokenSource(ctx, pubsub.ScopePubSub)
 	require.NoError(t, err)
 	pubsubClient, err := pubsub.NewClient(ctx, instanceConfig.Source.Project, option.WithTokenSource(ts))
 	require.NoError(t, err)

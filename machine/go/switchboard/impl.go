@@ -7,13 +7,13 @@ import (
 	"time"
 
 	gcfirestore "cloud.google.com/go/firestore"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 )
 
@@ -129,7 +129,7 @@ type switchboardImpl struct {
 
 // New returns a new instance of switchboardImpl.
 func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) (*switchboardImpl, error) {
-	ts, err := auth.NewDefaultTokenSource(local, "https://www.googleapis.com/auth/datastore")
+	ts, err := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create tokensource.")
 	}

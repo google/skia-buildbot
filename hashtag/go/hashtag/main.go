@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -57,12 +58,13 @@ func newServer() (baseapp.App, error) {
 		return nil, err
 	}
 
+	ctx := context.Background()
 	// Create our Sources.
-	gsm, err := gerritsource.New(*baseapp.Local, gerritsource.Merged)
+	gsm, err := gerritsource.New(ctx, gerritsource.Merged)
 	if err != nil {
 		return nil, err
 	}
-	gsr, err := gerritsource.New(*baseapp.Local, gerritsource.Reviewed)
+	gsr, err := gerritsource.New(ctx, gerritsource.Reviewed)
 	if err != nil {
 		return nil, err
 	}

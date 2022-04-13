@@ -12,6 +12,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 
 	"go.skia.org/infra/go/auth"
@@ -92,7 +93,7 @@ func main() {
 
 	// Set up token source and authenticated API clients.
 	var tokenSource oauth2.TokenSource
-	tokenSource, err = auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, auth.ScopeGerrit, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, compute.CloudPlatformScope /* TODO(borenet): No! */)
+	tokenSource, err = google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, compute.CloudPlatformScope /* TODO(borenet): No! */)
 	if err != nil {
 		sklog.Fatalf("Failed to create token source: %s", err)
 	}

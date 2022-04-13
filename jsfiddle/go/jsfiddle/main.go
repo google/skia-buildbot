@@ -3,6 +3,7 @@ package main
 // The webserver for jsfiddle.skia.org. It serves up the web page
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -181,8 +182,9 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 	loadPages()
+	ctx := context.Background()
 	var err error
-	fiddleStore, err = store.New(*local)
+	fiddleStore, err = store.New(ctx, *local)
 	if err != nil {
 		sklog.Fatalf("Failed to connect to store: %s", err)
 	}

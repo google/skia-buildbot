@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/named-fiddles/go/parse"
+	"golang.org/x/oauth2/google"
 )
 
 // Server is the state of the server.
@@ -56,13 +57,13 @@ func main() {
 
 // startSyncing creates a new Server in a goroutine and returns.
 func startSyncing(ctx context.Context, local bool, repoURL, repoDir string) (*Server, error) {
-	st, err := store.New(local)
+	st, err := store.New(ctx, local)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "creating fiddle store")
 	}
 
 	if !local {
-		ts, err := auth.NewDefaultTokenSource(false, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
+		ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 		if err != nil {
 			sklog.Fatalf("Failed authentication: %s", err)
 		}

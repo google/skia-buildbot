@@ -14,6 +14,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
@@ -78,7 +79,7 @@ func main() {
 	maybeStartDebugServer()
 
 	// Create the token source to use for DB client and HTTP client.
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, datastore.ScopeDatastore, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
+	ts, err := google.DefaultTokenSource(ctx, datastore.ScopeDatastore, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal("Could not create token source: %s", err)
 	}

@@ -18,6 +18,7 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//named-fiddles/go/parse",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

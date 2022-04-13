@@ -6,13 +6,13 @@ go_library(
     importpath = "go.skia.org/infra/scripts/run_swarming_tasks_api",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/httputils",
         "//go/sklog",
         "//go/swarming",
         "//go/util",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

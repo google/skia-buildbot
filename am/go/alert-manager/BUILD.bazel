@@ -29,6 +29,7 @@ go_library(
         "@com_github_unrolled_secure//:secure",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

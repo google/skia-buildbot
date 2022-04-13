@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v2"
+	"golang.org/x/oauth2/google"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
@@ -172,7 +172,7 @@ func fixupIssue(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	ts, err := auth.NewDefaultTokenSource(true, gerrit.AuthScope)
+	ts, err := google.DefaultTokenSource(ctx, gerrit.AuthScope)
 	if err != nil {
 		return err
 	}

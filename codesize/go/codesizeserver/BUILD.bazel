@@ -9,7 +9,6 @@ go_library(
         "//codesize/go/bloaty",
         "//codesize/go/codesizeserver/rpc",
         "//codesize/go/store",
-        "//go/auth",
         "//go/baseapp",
         "//go/gcs/gcsclient",
         "//go/httputils",
@@ -21,6 +20,7 @@ go_library(
         "@com_google_cloud_go_pubsub//:pubsub",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/autoscaler"
@@ -15,6 +14,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -48,7 +48,7 @@ type CTAutoscaler struct {
 func NewCTAutoscaler(ctx context.Context, local bool, getGCETasksCount func(ctx context.Context) (int, error)) (*CTAutoscaler, error) {
 	// Authenticated HTTP client.
 	scopes := append(util.CopyStringSlice(gce.AUTH_SCOPES), swarming.AUTH_SCOPE)
-	ts, err := auth.NewDefaultTokenSource(local, scopes...)
+	ts, err := google.DefaultTokenSource(ctx, scopes...)
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up default token source: %s", err)
 	}

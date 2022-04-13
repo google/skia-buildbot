@@ -16,12 +16,12 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -52,8 +52,10 @@ func failingTasksAtACommit(ctx context.Context, swarmApi swarming.ApiClient, has
 func main() {
 	common.Init()
 
+	ctx := context.Background()
+
 	gd := git.GitDir(*repo)
-	ts, err := auth.NewDefaultTokenSource(true, swarming.AUTH_SCOPE)
+	ts, err := google.DefaultTokenSource(ctx, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -62,7 +64,6 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	ctx := context.Background()
 
 	// Get all the commits since *since with one line per commit.
 	output, err := gd.Git(ctx, "log", "--format=oneline", fmt.Sprintf("--since=%s", *since))

@@ -21,10 +21,10 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
+	"golang.org/x/oauth2/google"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/option"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/gcs"
@@ -151,12 +151,13 @@ func newServer(sc skottieConfig) (*Server, error) {
 		return nil, skerr.Wrap(err)
 	}
 
-	ts, err := auth.NewDefaultTokenSource(sc.Local, storage.ScopeFullControl)
+	ctx := context.Background()
+	ts, err := google.DefaultTokenSource(ctx, storage.ScopeFullControl)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get token source")
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Problem creating storage client")
 	}

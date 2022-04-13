@@ -21,8 +21,8 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
+	"golang.org/x/oauth2/google"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
@@ -135,7 +135,7 @@ func main() {
 	ctx := context.Background()
 	db := mustInitSQLDatabase(ctx, rfc)
 
-	ts, err := auth.NewDefaultTokenSource(false)
+	ts, err := google.DefaultTokenSource(ctx)
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}

@@ -13,9 +13,9 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/sklogimpl"
@@ -35,7 +35,7 @@ func main() {
 	task := strings.ToLower(flag.Arg(0))
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(true)
+	ts, err := google.DefaultTokenSource(ctx)
 	if err != nil {
 		exitWithError("getting auth token: %s", err)
 	}

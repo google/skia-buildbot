@@ -13,7 +13,6 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/allowed",
-        "//go/auth",
         "//go/baseapp",
         "//go/cas",
         "//go/cas/rbe",
@@ -35,6 +34,7 @@ go_library(
         "@org_golang_google_api//compute/v1:compute",
         "@org_golang_google_api//iterator",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

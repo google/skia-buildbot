@@ -7,13 +7,13 @@ import (
 	"time"
 
 	gcfirestore "cloud.google.com/go/firestore"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -116,7 +116,7 @@ type fsAnnotation struct {
 
 // NewFirestoreImpl returns a new instance of FirestoreImpl that is backed by Firestore.
 func NewFirestoreImpl(ctx context.Context, local bool, instanceConfig config.InstanceConfig) (*FirestoreImpl, error) {
-	ts, err := auth.NewDefaultTokenSource(local, "https://www.googleapis.com/auth/datastore")
+	ts, err := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create tokensource.")
 	}

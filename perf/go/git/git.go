@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/types"
+	"golang.org/x/oauth2/google"
 )
 
 // For rough numbers a Commit Author is 50 , Subject 80 , URL 200, and GitHash 32 bytes. So
@@ -202,7 +203,7 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 	// Do git authentication if required.
 	if instanceConfig.GitRepoConfig.GitAuthType == config.GitAuthGerrit {
 		sklog.Info("Authenticating to Gerrit.")
-		ts, err := auth.NewDefaultTokenSource(local, auth.ScopeGerrit)
+		ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to get tokensource perfgit.Git for config %v", *instanceConfig)
 		}

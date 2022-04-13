@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"cloud.google.com/go/pubsub"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -17,7 +17,7 @@ const Attribute = "hostname"
 // ClientFromConfig returns a pubsub client and topic for the given
 // configuration.
 func ClientFromConfig(ctx context.Context, local bool, config config.DescriptionChangeSource) (*pubsub.Client, *pubsub.Topic, error) {
-	ts, err := auth.NewDefaultTokenSource(local, pubsub.ScopePubSub)
+	ts, err := google.DefaultTokenSource(ctx, pubsub.ScopePubSub)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "Failed to create TokenSource.")
 	}

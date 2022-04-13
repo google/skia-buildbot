@@ -5,16 +5,17 @@ package main
 // build API works.
 
 import (
+	"context"
 	"flag"
 	"os"
 	"time"
 
 	"go.skia.org/infra/go/androidbuild"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
 	storage "google.golang.org/api/storage/v1"
 )
 
@@ -46,7 +47,7 @@ func main() {
 	buildID := args[2]
 	sklog.Infof("Branch, target, buildID: %s, %s, %s", branch, target, buildID)
 
-	ts, err := auth.NewDefaultTokenSource(*local, OAUTH_CACHE_FILEPATH, CLIENT_SECRET_FILEPATH, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
+	ts, err := google.DefaultTokenSource(context.Background(), OAUTH_CACHE_FILEPATH, CLIENT_SECRET_FILEPATH, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Unable to create installed app oauth token source: %s", err)
 	}

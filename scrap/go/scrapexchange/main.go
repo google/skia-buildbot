@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/scrap/go/api"
 	"go.skia.org/infra/scrap/go/scrap"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -45,7 +46,7 @@ func New() (baseapp.App, error) {
 		return nil, skerr.Fmt("--bucket is a required flag.")
 	}
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, storage.ScopeFullControl, auth.ScopeUserinfoEmail)
+	ts, err := google.DefaultTokenSource(ctx, storage.ScopeFullControl, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

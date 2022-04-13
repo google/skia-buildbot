@@ -6,13 +6,13 @@ go_library(
     importpath = "go.skia.org/infra/task_scheduler/go/db/validate_db",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/sklog",
         "//go/util",
         "//task_scheduler/go/db",
         "//task_scheduler/go/db/firestore",
         "//task_scheduler/go/types",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

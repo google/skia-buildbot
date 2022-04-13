@@ -51,6 +51,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/window"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -328,7 +329,7 @@ func main() {
 		repoURLsByName[repoUrlToName(repoURL)] = fmt.Sprintf(gitiles.CommitURL, repoURL, "")
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*testing, auth.ScopeUserinfoEmail, auth.ScopeGerrit, bigtable.Scope, pubsub.ScopePubSub, datastore.ScopeDatastore)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, bigtable.Scope, pubsub.ScopePubSub, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}

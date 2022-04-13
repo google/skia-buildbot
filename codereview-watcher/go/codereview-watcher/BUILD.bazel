@@ -17,6 +17,7 @@ go_library(
         "//go/util",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_x_oauth2//:oauth2",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

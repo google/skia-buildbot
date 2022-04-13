@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v2"
+	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -86,7 +87,7 @@ func Command() *cli.Command {
 // branch.
 func releaseBranch(ctx context.Context, newBranch string, reviewers []string) error {
 	// Setup.
-	ts, err := auth.NewDefaultTokenSource(true, auth.ScopeGerrit)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

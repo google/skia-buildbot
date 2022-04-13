@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
@@ -21,6 +20,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -122,7 +122,7 @@ func main() {
 		sklog.Fatalf("You must specify a local_file_path OR a remote_file_path, not both")
 	}
 
-	tokenSource, err := auth.NewDefaultTokenSource(*local, storage.ScopeReadWrite)
+	tokenSource, err := google.DefaultTokenSource(ctx, storage.ScopeReadWrite)
 	if err != nil {
 		sklog.Fatal(err)
 	}

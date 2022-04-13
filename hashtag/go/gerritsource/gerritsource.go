@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/hashtag/go/source"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -34,8 +35,8 @@ type gerritSource struct {
 }
 
 // New returns a new Source.
-func New(local bool, st SearchType) (source.Source, error) {
-	ts, err := auth.NewDefaultTokenSource(local, auth.ScopeGerrit)
+func New(ctx context.Context, st SearchType) (source.Source, error) {
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
 	if err != nil {
 		return nil, err
 	}

@@ -32,34 +32,6 @@ const (
 	defaultTokenStoreFilename   = "google_storage_token.data"
 )
 
-// NewDefaultTokenSource creates a new OAuth 2.0 token source. If local is true
-// then it uses the credentials it gets from running:
-//
-//    gcloud auth print-access-token
-//
-// otherwise the GCE Service Account is used if running in GCE, and the Skolo
-// access token provider is used if running in Skolo.
-//
-// Note: The default project for gcloud is used, and can be changed by running
-//
-//    $ gcloud config set project [project name]
-//
-// local  - If true then use the gcloud command line tool.
-// scopes - The scopes requested.
-//
-// When run on GCE the scopes are ignored in favor of the scopes
-// set on the instance, see:
-//
-//    https://cloud.google.com/sdk/gcloud/reference/compute/instances/set-service-account
-//
-func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, error) {
-	if local {
-		return NewGCloudTokenSource(""), nil
-	} else {
-		return google.DefaultTokenSource(context.Background(), scopes...)
-	}
-}
-
 type gcloudTokenSource struct {
 	projectId string
 }

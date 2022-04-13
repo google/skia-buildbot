@@ -14,9 +14,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"golang.org/x/oauth2/google"
 	gstorage "google.golang.org/api/storage/v1"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -75,7 +75,7 @@ func main() {
 		KnownHashesGCSPath: bsc.KnownHashesGCSPath,
 	}
 
-	tokenSource, err := auth.NewDefaultTokenSource(bsc.Local, gstorage.CloudPlatformScope)
+	tokenSource, err := google.DefaultTokenSource(ctx, gstorage.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Could not create token source: %s", err)
 	}

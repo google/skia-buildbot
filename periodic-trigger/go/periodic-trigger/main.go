@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -26,7 +26,7 @@ var (
 func main() {
 	common.Init()
 	defer common.Defer()
-	ts, err := auth.NewDefaultTokenSource(*local, periodic.AUTH_SCOPE)
+	ts, err := google.DefaultTokenSource(context.Background(), periodic.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}

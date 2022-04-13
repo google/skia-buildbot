@@ -6,14 +6,15 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -38,7 +39,7 @@ func main() {
 	}
 	mode := args[0]
 
-	ts, err := auth.NewDefaultTokenSource(true, "https://www.googleapis.com/auth/userinfo.email")
+	ts, err := google.DefaultTokenSource(context.Background(), "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Unable to create token source: %s", err)
 	}

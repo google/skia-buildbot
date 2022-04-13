@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -78,7 +79,7 @@ func initialize() {
 	uploads = metrics2.GetCounter("uploads", nil)
 	badFiles = metrics2.GetCounter("bad_files", nil)
 	// Create a new auth'd client for androidbuildinternal.
-	ts, err := auth.NewDefaultTokenSource(*local, androidbuildinternal.AndroidbuildInternalScope, storage.ScopeReadWrite, auth.ScopeGerrit)
+	ts, err := google.DefaultTokenSource(ctx, androidbuildinternal.AndroidbuildInternalScope, storage.ScopeReadWrite, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatalf("Unable to create authenticated token source: %s", err)
 	}

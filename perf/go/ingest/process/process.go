@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
@@ -157,7 +157,7 @@ func Start(ctx context.Context, local bool, numParallelIngesters int, instanceCo
 
 	var pubSubClient *pubsub.Client
 	if instanceConfig.IngestionConfig.FileIngestionTopicName != "" {
-		ts, err := auth.NewDefaultTokenSource(local, pubsub.ScopePubSub)
+		ts, err := google.DefaultTokenSource(ctx, pubsub.ScopePubSub)
 		if err != nil {
 			sklog.Fatalf("Failed to create TokenSource: %s", err)
 		}

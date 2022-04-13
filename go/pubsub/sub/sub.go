@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/skerr"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -201,7 +201,7 @@ func NewWithSubNameProviderAndExpirationPolicy(ctx context.Context, local bool, 
 		return nil, skerr.Wrapf(err, "Failed to get subscription name.")
 	}
 
-	ts, err := auth.NewDefaultTokenSource(local, pubsub.ScopePubSub)
+	ts, err := google.DefaultTokenSource(ctx, pubsub.ScopePubSub)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create token source.")
 	}

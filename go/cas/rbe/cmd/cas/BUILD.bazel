@@ -6,9 +6,9 @@ go_library(
     importpath = "go.skia.org/infra/go/cas/rbe/cmd/cas",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/cas/rbe",
         "@org_golang_google_api//compute/v0.beta:v0_beta",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

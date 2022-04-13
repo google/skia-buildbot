@@ -18,6 +18,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/codereview-watcher/go/db"
 	"go.skia.org/infra/go/auth"
@@ -217,7 +218,7 @@ func main() {
 	common.InitWithMust("codereview-watcher", common.PrometheusOpt(promPort), common.MetricsLoggingOpt())
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}

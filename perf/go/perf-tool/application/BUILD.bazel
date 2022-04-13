@@ -6,7 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/perf-tool/application",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/auth",
         "//go/fileutil",
         "//go/gcs",
         "//go/gcs/gcsclient",
@@ -31,5 +30,6 @@ go_library(
         "@com_google_cloud_go_pubsub//:pubsub",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )

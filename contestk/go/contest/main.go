@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/md5"
 	"flag"
 	"fmt"
@@ -11,10 +12,10 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
 	sheets "google.golang.org/api/sheets/v4"
 )
 
@@ -193,7 +194,7 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 
-	ts, err := auth.NewDefaultTokenSource(*local, sheets.SpreadsheetsReadonlyScope)
+	ts, err := google.DefaultTokenSource(context.Background(), sheets.SpreadsheetsReadonlyScope)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}

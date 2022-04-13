@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/golden/cmd/gitilesfollower",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/gitiles",
         "//go/httputils",
@@ -24,6 +23,7 @@ go_library(
         "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",
         "@io_opencensus_go//trace",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

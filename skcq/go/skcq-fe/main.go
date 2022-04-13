@@ -15,6 +15,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
+	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
@@ -37,7 +38,7 @@ var (
 func New() (baseapp.App, error) {
 	ctx := context.Background()
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, nil)
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, auth.ScopeUserinfoEmail, datastore.ScopeDatastore)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal("Could not create token source: %s", err)
 	}

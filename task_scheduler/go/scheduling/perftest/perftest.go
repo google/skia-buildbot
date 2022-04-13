@@ -25,7 +25,6 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/google/uuid"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
@@ -50,6 +49,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -303,7 +303,7 @@ func main() {
 	assertEqual(1, len(commits))
 	assertEqual(head, commits[0])
 
-	ts, err := auth.NewDefaultTokenSource(true, datastore.ScopeDatastore)
+	ts, err := google.DefaultTokenSource(ctx, datastore.ScopeDatastore)
 	fsInstance := uuid.New().String()
 	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, fsInstance, ts)
 	assertNoError(err)

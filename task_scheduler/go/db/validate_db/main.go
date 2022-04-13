@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -144,7 +144,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*local)
+	ts, err := google.DefaultTokenSource(ctx)
 	if err != nil {
 		sklog.Fatal(err)
 	}

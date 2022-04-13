@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -56,7 +57,7 @@ func main() {
 
 	ctx := context.Background()
 
-	ts, err := auth.NewDefaultTokenSource(true, auth.ScopeGerrit, datastore.ScopeDatastore)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}

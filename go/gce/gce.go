@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
@@ -21,6 +20,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v0.beta"
 )
 
@@ -132,7 +132,7 @@ type GCloud struct {
 // NewLocalGCloud returns a GCloud instance with a default http client for local
 // use.
 func NewLocalGCloud(project, zone string) (*GCloud, error) {
-	tokenSource, err := auth.NewDefaultTokenSource(true, AUTH_SCOPES...)
+	tokenSource, err := google.DefaultTokenSource(context.TODO(), AUTH_SCOPES...)
 	if err != nil {
 		return nil, err
 	}

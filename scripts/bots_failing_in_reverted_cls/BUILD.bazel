@@ -6,12 +6,12 @@ go_library(
     importpath = "go.skia.org/infra/scripts/bots_failing_in_reverted_cls",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/git",
         "//go/httputils",
         "//go/sklog",
         "//go/swarming",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

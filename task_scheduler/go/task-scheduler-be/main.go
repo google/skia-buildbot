@@ -9,6 +9,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
 
@@ -86,7 +87,7 @@ func main() {
 
 	// Set up token source and authenticated API clients.
 	gitcookiesPath := "/tmp/.gitcookies"
-	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, auth.ScopeGerrit, auth.ScopeReadWrite, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE, compute.CloudPlatformScope /* TODO(borenet): No! */)
+	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, auth.ScopeReadWrite, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE, compute.CloudPlatformScope /* TODO(borenet): No! */)
 	if err != nil {
 		sklog.Fatalf("Failed to create token source: %s", err)
 	}

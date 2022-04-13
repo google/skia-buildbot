@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -48,7 +49,7 @@ func main() {
 		sklog.Fatal("--gerrit_instance is required.")
 	}
 
-	ts, err := auth.NewDefaultTokenSource(true, auth.ScopeGerrit)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

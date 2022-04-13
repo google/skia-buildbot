@@ -7,11 +7,11 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//ds/go/backup",
-        "//go/auth",
         "//go/common",
         "//go/httputils",
         "//go/sklog",
         "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

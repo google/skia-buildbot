@@ -20,6 +20,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
 
@@ -234,7 +235,7 @@ func mustSetUpOAuth2Login(fsc *frontendServerConfig) {
 func mustMakeAuthenticatedHTTPClient(local bool) *http.Client {
 	// Get the token source for the service account with access to the services
 	// we need to operate.
-	tokenSource, err := auth.NewDefaultTokenSource(local, auth.ScopeUserinfoEmail, gstorage.CloudPlatformScope, auth.ScopeGerrit)
+	tokenSource, err := google.DefaultTokenSource(context.TODO(), auth.ScopeUserinfoEmail, gstorage.CloudPlatformScope, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}

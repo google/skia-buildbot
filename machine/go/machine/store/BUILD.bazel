@@ -10,7 +10,6 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/machine/store",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/auth",
         "//go/firestore",
         "//go/metrics2",
         "//go/skerr",
@@ -21,6 +20,7 @@ go_library(
         "@org_golang_google_api//iterator",
         "@org_golang_google_grpc//codes",
         "@org_golang_google_grpc//status",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

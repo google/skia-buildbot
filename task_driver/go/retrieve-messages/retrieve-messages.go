@@ -8,11 +8,11 @@ import (
 	"io"
 
 	"cloud.google.com/go/bigtable"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	btdb "go.skia.org/infra/task_driver/go/db/bigtable"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -26,7 +26,7 @@ var (
 func main() {
 	common.Init()
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(true, bigtable.Scope)
+	ts, err := google.DefaultTokenSource(ctx, bigtable.Scope)
 	if err != nil {
 		sklog.Fatal(err)
 	}

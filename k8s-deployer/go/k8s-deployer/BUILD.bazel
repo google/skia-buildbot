@@ -15,6 +15,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

@@ -9,8 +9,8 @@ import (
 	"os"
 
 	"cloud.google.com/go/storage"
+	"golang.org/x/oauth2/google"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
@@ -28,7 +28,7 @@ type filesystem struct {
 
 // New returns an instance of *filesystem.
 func New(ctx context.Context, local bool) (*filesystem, error) {
-	ts, err := auth.NewDefaultTokenSource(local, storage.ScopeReadOnly)
+	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadOnly)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get TokenSource")
 	}

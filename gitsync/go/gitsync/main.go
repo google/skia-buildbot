@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -129,13 +130,13 @@ func main() {
 	}
 
 	// Create token source.
-	ts, err := auth.NewDefaultTokenSource(false, auth.ScopeUserinfoEmail, auth.ScopeGerrit, pubsub.AUTH_SCOPE)
+	ctx := context.Background()
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, pubsub.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
 
 	// Start all repo watchers.
-	ctx := context.Background()
 	includeBranches := make(map[string][]string, len(config.RepoURLs))
 	for _, repo := range config.RepoURLs {
 		includeBranches[repo] = []string{}

@@ -73,5 +73,6 @@ go_test(
         "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//cipd/client/cipd",
         "@org_chromium_go_luci//cipd/common",
+        "@org_golang_x_oauth2//google",
     ],
 )

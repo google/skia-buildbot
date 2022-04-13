@@ -16,6 +16,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
@@ -356,7 +357,7 @@ func main() {
 	// Set up token source and authenticated API clients.
 	// TODO(borenet): Should we create a new service account with fewer
 	// permissions?
-	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE)
+	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Failed to create token source: %s", err)
 	}

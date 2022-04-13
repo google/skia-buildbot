@@ -14,7 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
@@ -31,6 +30,7 @@ import (
 	"go.skia.org/infra/machine/go/test_machine_monitor/ios"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ssh"
 	"go.skia.org/infra/machine/go/test_machine_monitor/swarming"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -135,7 +135,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 	}
 	u.Path = urlExpansionRegex.ReplaceAllLiteralString(rpc.MachineDescriptionURL, machineID)
 
-	ts, err := auth.NewDefaultTokenSource(local, "email")
+	ts, err := google.DefaultTokenSource(ctx, "email")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create tokensource.")
 	}

@@ -16,7 +16,6 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -38,6 +37,7 @@ import (
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/trybot/samplesloader/gcssamplesloader"
 	"go.skia.org/infra/perf/go/types"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -667,7 +667,7 @@ func (app) TracesExport(store tracestore.TraceStore, queryString string, begin, 
 // IngestForceReingest forces data to be reingested over the given time range.
 func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool) error {
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(local, storage.ScopeReadOnly)
+	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadOnly)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -776,7 +776,7 @@ func (app) IngestValidate(instanceConfig *config.InstanceConfig, inputFile strin
 // TrybotReference implements the Application interface.
 func (app) TrybotReference(local bool, store tracestore.TraceStore, instanceConfig *config.InstanceConfig, trybotFilename string, outputFilename string, numCommits int) error {
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(local, storage.ScopeReadOnly, pubsub.ScopePubSub)
+	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadOnly, pubsub.ScopePubSub)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

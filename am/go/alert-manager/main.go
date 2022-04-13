@@ -14,6 +14,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/am/go/audit"
@@ -98,7 +99,7 @@ func New() (baseapp.App, error) {
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, pubsub.ScopePubSub, "https://www.googleapis.com/auth/datastore")
+	ts, err := google.DefaultTokenSource(ctx, pubsub.ScopePubSub, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		return nil, err
 	}

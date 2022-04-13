@@ -15,7 +15,6 @@ go_library(
     importpath = "go.skia.org/infra/task_driver/go/td",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/exec",
         "//go/httputils",
@@ -32,6 +31,7 @@ go_library(
         "@in_gopkg_fsnotify_v1//:fsnotify_v1",
         "@org_golang_google_api//compute/v1:compute",
         "@org_golang_x_oauth2//:oauth2",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

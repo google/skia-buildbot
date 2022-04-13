@@ -69,7 +69,7 @@ type server struct {
 func getTokenSource() (oauth2.TokenSource, error) {
 	ctx := context.Background()
 	if *local {
-		return auth.NewDefaultTokenSource(true, auth.ScopeUserinfoEmail)
+		return google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	}
 
 	decodedKey, err := base64.StdEncoding.DecodeString(Key)

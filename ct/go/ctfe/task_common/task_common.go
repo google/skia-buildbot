@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 )
 
@@ -819,7 +820,7 @@ func Init(ctx context.Context, local, enableAutoscaler bool, ctfeURL, serviceAcc
 	ServiceAccountFile = serviceAccountFileFlagVal
 	swarm = swarmingClient
 	casClient = cas
-	ts, err := auth.NewDefaultTokenSource(local, auth.ScopeGerrit)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

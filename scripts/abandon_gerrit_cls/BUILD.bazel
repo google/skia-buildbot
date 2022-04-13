@@ -11,6 +11,7 @@ go_library(
         "//go/gerrit",
         "//go/httputils",
         "//go/sklog",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

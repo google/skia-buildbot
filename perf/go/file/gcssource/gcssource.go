@@ -9,7 +9,6 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/pubsub/sub"
@@ -18,6 +17,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/filter"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -69,7 +69,7 @@ type GCSSource struct {
 
 // New returns a new *GCSSource
 func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool) (*GCSSource, error) {
-	ts, err := auth.NewDefaultTokenSource(local, storage.ScopeReadOnly, pubsub.ScopePubSub)
+	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadOnly, pubsub.ScopePubSub)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

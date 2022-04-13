@@ -6,12 +6,12 @@ go_library(
     importpath = "go.skia.org/infra/contestk/go/contest",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/httputils",
         "//go/sklog",
         "@com_github_gorilla_mux//:mux",
         "@org_golang_google_api//sheets/v4:sheets",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

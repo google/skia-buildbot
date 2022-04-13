@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
@@ -206,8 +207,8 @@ func shouldBeCached(media Media) bool {
 // New creates a new *store, which implements Store.
 //
 // local - True if running locally.
-func New(local bool) (*store, error) {
-	ts, err := auth.NewDefaultTokenSource(local, auth.ScopeFullControl)
+func New(ctx context.Context, local bool) (*store, error) {
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeFullControl)
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}

@@ -13,7 +13,6 @@ import (
 	"regexp"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -25,6 +24,7 @@ import (
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/skolo/go/powercycle"
 	"go.skia.org/infra/skolo/sys"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -81,7 +81,7 @@ func main() {
 		sklog.Fatalf("Failed to read config file %q: %s", *powercycleConfigFilename, err)
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local, "email")
+	ts, err := google.DefaultTokenSource(ctx, "email")
 	if err != nil {
 		sklog.Fatalf("Failed to create tokensource: %s", err)
 	}

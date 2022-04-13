@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -149,7 +150,7 @@ func main() {
 	common.InitWithMust(METRIC_NAME, common.PrometheusOpt(promPort))
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*testing, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

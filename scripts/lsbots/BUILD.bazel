@@ -6,11 +6,11 @@ go_library(
     importpath = "go.skia.org/infra/scripts/lsbots",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/httputils",
         "//go/sklog",
         "//go/swarming",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

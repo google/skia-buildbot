@@ -573,7 +573,8 @@ func main() {
 	}
 
 	loadTemplates()
-	fiddleStore, err = store.New(*local)
+	ctx := context.Background()
+	fiddleStore, err = store.New(ctx, *local)
 	if err != nil {
 		sklog.Fatalf("Failed to connect to store: %s", err)
 	}

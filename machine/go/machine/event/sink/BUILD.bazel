@@ -25,7 +25,6 @@ go_test(
     srcs = ["impl_manual_test.go"],
     embed = [":sink"],
     deps = [
-        "//go/auth",
         "//go/testutils/unittest",
         "//machine/go/machine",
         "//machine/go/machineserver/config",
@@ -33,5 +32,6 @@ go_test(
         "@com_github_stretchr_testify//require",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )

@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
 )
@@ -358,7 +359,7 @@ func main() {
 	}
 
 	// Initialize the datastore.
-	dsTokenSource, err := auth.NewDefaultTokenSource(*local, "https://www.googleapis.com/auth/datastore")
+	dsTokenSource, err := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
@@ -367,7 +368,7 @@ func main() {
 	}
 
 	// Create authenticated HTTP client.
-	httpClientTokenSource, err := auth.NewDefaultTokenSource(*local, auth.ScopeReadOnly, swarming.AUTH_SCOPE)
+	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
@@ -377,7 +378,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Could not instantiate swarming client: %s", err)
 	}
-	casTokenSource, err := auth.NewDefaultTokenSource(*local, compute.CloudPlatformScope)
+	casTokenSource, err := google.DefaultTokenSource(ctx, compute.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Failed to set up CAS token source: %s", err)
 	}

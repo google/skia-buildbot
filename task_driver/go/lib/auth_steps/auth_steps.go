@@ -9,11 +9,11 @@ import (
 	"context"
 	"net/http"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/task_driver/go/td"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 func Init(ctx context.Context, local bool, scopes ...string) (oauth2.TokenSource, error) {
@@ -21,7 +21,7 @@ func Init(ctx context.Context, local bool, scopes ...string) (oauth2.TokenSource
 	err := td.Do(ctx, td.Props("Auth Init").Infra(), func(context.Context) error {
 		var err error
 		if local {
-			ts, err = auth.NewDefaultTokenSource(true, scopes...)
+			ts, err = google.DefaultTokenSource(ctx, scopes...)
 		} else {
 			ts, err = luciauth.NewLUCIContextTokenSource(scopes...)
 		}

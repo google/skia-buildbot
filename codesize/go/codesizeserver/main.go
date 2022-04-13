@@ -13,12 +13,12 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/codesize/go/bloaty"
 	"go.skia.org/infra/codesize/go/codesizeserver/rpc"
 	"go.skia.org/infra/codesize/go/store"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
@@ -58,7 +58,7 @@ func new() (baseapp.App, error) {
 	srv := &server{}
 
 	// Set up GCS client.
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, storage.ScopeReadWrite)
+	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadWrite)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to get token source")
 	}

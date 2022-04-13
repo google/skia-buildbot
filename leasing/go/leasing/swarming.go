@@ -9,10 +9,9 @@ import (
 	"strings"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 
-	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/httputils"
@@ -74,8 +73,8 @@ var (
 )
 
 // SwarmingInit initializes Swarming globally.
-func SwarmingInit(serviceAccountFile string) error {
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, swarming.AUTH_SCOPE, compute.CloudPlatformScope)
+func SwarmingInit(ctx context.Context, serviceAccountFile string) error {
+	ts, err := google.DefaultTokenSource(ctx, swarming.AUTH_SCOPE, compute.CloudPlatformScope)
 	if err != nil {
 		return skerr.Wrapf(err, "Problem setting up default token source")
 	}

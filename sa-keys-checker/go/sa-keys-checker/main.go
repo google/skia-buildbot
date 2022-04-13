@@ -31,7 +31,7 @@ func main() {
 	// Flags.
 	cloudProjects := common.NewMultiStringFlag("cloud_project", nil, "Cloud projects in which this will scan all service accounts for expiring and expired keys.")
 	promPort := flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	local := flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	_ = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	pollPeriod := flag.Duration("poll_period", 5*time.Minute, "How often to check for expired service account keys.")
 
 	common.InitWithMust("sa_keys_checker", common.PrometheusOpt(promPort), common.MetricsLoggingOpt())
@@ -42,7 +42,7 @@ func main() {
 		sklog.Fatal("Must specify atleast one --cloud_project")
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, auth.ScopeAllCloudAPIs)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeAllCloudAPIs)
 	if err != nil {
 		sklog.Fatalf("Could not create token source: %s", err)
 	}

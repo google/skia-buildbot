@@ -6,7 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/scripts/make_dummy_staging_tasks",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/httputils",
         "//go/sklog",
@@ -15,6 +14,7 @@ go_library(
         "//task_scheduler/go/specs",
         "//task_scheduler/go/types",
         "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

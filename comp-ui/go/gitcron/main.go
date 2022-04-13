@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 )
 
 const filename = "DATE"
@@ -29,7 +30,7 @@ var (
 
 func main() {
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeGerrit)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

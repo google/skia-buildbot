@@ -10,7 +10,6 @@ go_library(
     importpath = "go.skia.org/infra/ct/go/ct_autoscaler",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/auth",
         "//go/cleanup",
         "//go/gce",
         "//go/gce/autoscaler",
@@ -19,6 +18,7 @@ go_library(
         "//go/sklog",
         "//go/swarming",
         "//go/util",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

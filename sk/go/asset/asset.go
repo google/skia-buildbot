@@ -18,6 +18,7 @@ import (
 	cipd_api "go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/client/cipd/pkg"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -293,7 +294,7 @@ func getCIPDClient(ctx context.Context, rootDir string, local bool) (cipd.CIPDCl
 	var ts oauth2.TokenSource
 	var err error
 	if local {
-		ts, err = auth.NewDefaultTokenSource(local, auth.ScopeUserinfoEmail)
+		ts, err = google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	} else {
 		ts, err = luciauth.NewLUCIContextTokenSource(auth.ScopeUserinfoEmail)
 	}

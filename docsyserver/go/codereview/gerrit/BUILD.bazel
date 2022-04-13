@@ -13,6 +13,7 @@ go_library(
         "//go/gitiles",
         "//go/httputils",
         "//go/skerr",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

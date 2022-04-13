@@ -9,12 +9,12 @@ import (
 	"sort"
 
 	"cloud.google.com/go/logging"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/cloudlogging"
 	"go.skia.org/infra/go/sklog/sklogimpl"
+	"golang.org/x/oauth2/google"
 )
 
 // Opt represents the initialization parameters for a single init service, where
@@ -118,7 +118,7 @@ func (o *cloudLoggingInitOpt) preinit(appName string) error {
 	if *o.local {
 		return nil
 	}
-	ts, err := auth.NewDefaultTokenSource(*o.local, logging.WriteScope)
+	ts, err := google.DefaultTokenSource(ctx, logging.WriteScope)
 	if err != nil {
 		return fmt.Errorf("problem getting authenticated token source: %s", err)
 	}

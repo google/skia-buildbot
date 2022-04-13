@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -173,7 +174,7 @@ func startCommentOnCLs(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksC
 		sklog.Infof("Not commenting on CLs because duration was zero.")
 		return
 	}
-	systems := mustInitializeSystems(ptc)
+	systems := mustInitializeSystems(ctx, ptc)
 	cmntr, err := commenter.New(db, systems, ptc.CLCommentTemplate, ptc.SiteURL, ptc.WindowSize)
 	if err != nil {
 		sklog.Fatalf("Could not initialize commenting: %s", err)
@@ -196,8 +197,8 @@ func startCommentOnCLs(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksC
 
 // mustInitializeSystems creates code_review.Clients and returns them wrapped as a ReviewSystem.
 // It panics if any part of configuration fails.
-func mustInitializeSystems(ptc periodicTasksConfig) []commenter.ReviewSystem {
-	tokenSource, err := auth.NewDefaultTokenSource(ptc.Local, auth.ScopeGerrit)
+func mustInitializeSystems(ctx context.Context, ptc periodicTasksConfig) []commenter.ReviewSystem {
+	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}

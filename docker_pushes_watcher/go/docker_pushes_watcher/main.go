@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 )
 
@@ -303,7 +304,7 @@ func main() {
 	dummyPushFailure.Reset()
 
 	// Create token source.
-	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, auth.ScopeFullControl, auth.ScopeGerrit, pubsub.ScopePubSub, datastore.ScopeDatastore)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeFullControl, auth.ScopeGerrit, pubsub.ScopePubSub, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}

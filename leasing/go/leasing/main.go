@@ -135,12 +135,12 @@ func New() (baseapp.App, error) {
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
 
 	// Initialize swarming.
-	if err := SwarmingInit(*serviceAccountFile); err != nil {
+	if err := SwarmingInit(ctx, *serviceAccountFile); err != nil {
 		sklog.Fatalf("Failed to init swarming: %s", err)
 	}
 
 	// Initialize cloud datastore.
-	if err := DatastoreInit(*projectName, *namespace); err != nil {
+	if err := DatastoreInit(ctx, *projectName, *namespace); err != nil {
 		sklog.Fatalf("Failed to init cloud datastore: %s", err)
 	}
 

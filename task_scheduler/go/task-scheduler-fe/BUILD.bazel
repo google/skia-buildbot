@@ -32,6 +32,7 @@ go_library(
         "@com_google_cloud_go_bigtable//:bigtable",
         "@com_google_cloud_go_datastore//:datastore",
         "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

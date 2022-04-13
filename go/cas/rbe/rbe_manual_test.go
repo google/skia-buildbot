@@ -10,10 +10,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -26,7 +26,7 @@ func setup(t *testing.T) (context.Context, *Client) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(true, compute.CloudPlatformScope)
+	ts, err := google.DefaultTokenSource(ctx, compute.CloudPlatformScope)
 	require.NoError(t, err)
 	client, err := NewClient(ctx, testInstance, ts)
 	require.NoError(t, err)

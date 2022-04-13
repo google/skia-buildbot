@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/file/gcssource",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/auth",
         "//go/httputils",
         "//go/metrics2",
         "//go/pubsub/sub",
@@ -19,6 +18,7 @@ go_library(
         "@com_google_cloud_go_pubsub//:pubsub",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
@@ -27,7 +27,6 @@ go_test(
     srcs = ["gcssource_manual_test.go"],
     embed = [":gcssource"],
     deps = [
-        "//go/auth",
         "//go/testutils/unittest",
         "//perf/go/config",
         "//perf/go/file",
@@ -35,5 +34,6 @@ go_test(
         "@com_github_stretchr_testify//require",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
     ],
 )

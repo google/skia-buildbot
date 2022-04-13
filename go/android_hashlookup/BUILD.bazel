@@ -8,11 +8,11 @@ go_library(
     deps = [
         "//go/androidbuild",
         "//go/androidbuildinternal/v2beta1",
-        "//go/auth",
         "//go/common",
         "//go/httputils",
         "//go/sklog",
         "@org_golang_google_api//storage/v1:storage",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

@@ -15,9 +15,9 @@ import (
 
 	"github.com/google/uuid"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"golang.org/x/oauth2/google"
 	"golang.org/x/sync/errgroup"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
@@ -89,7 +89,7 @@ func main() {
 	}
 
 	// Authenticated HTTP client.
-	ts, err := auth.NewDefaultTokenSource(true, swarming.AUTH_SCOPE)
+	ts, err := google.DefaultTokenSource(ctx, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}

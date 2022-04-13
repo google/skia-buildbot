@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/autoroll/go/status"
@@ -64,7 +65,7 @@ type Server struct {
 // See baseapp.Constructor.
 func New() (baseapp.App, error) {
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, "https://www.googleapis.com/auth/datastore")
+	ts, err := google.DefaultTokenSource(ctx, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Problem setting up default token source")
 	}

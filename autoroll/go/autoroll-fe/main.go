@@ -331,7 +331,9 @@ func main() {
 		select {}
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore)
+	ctx := context.Background()
+
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -342,8 +344,6 @@ func main() {
 	if err := ds.InitWithOpt(common.PROJECT_ID, namespace, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatal(err)
 	}
-
-	ctx := context.Background()
 
 	configDB, err := db.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, namespace, *firestoreInstance, ts)
 	if err != nil {
