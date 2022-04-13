@@ -12,8 +12,11 @@
 # re-zipping the extracted files as a ZIP archive ("Save As").
 - name: Copy the Radeon driver ZIP to the host
   win_copy:
-    src: "{{ win_package_src }}/\
-      Radeon Graphics win10-64bit-radeon-software-adrenalin-2019-edition-19.11.3-nov18.zip"
+    # Downloaded from
+    # https://www.amd.com/en/support/graphics/radeon-rx-vega-series/radeon-rx-vega-series/radeon-rx-vega-56.
+    # Specific file:
+    # https://drivers.amd.com/drivers/amd-software-adrenalin-edition-22.4.1-win10-win11-april5.exe.
+    src: "{{ win_package_src }}/amd-software-adrenalin-edition-22.4.1-win10-win11-april5.zip"
     dest: C:\Temp\radeon_gfx.zip
 
 - name: Extract the Radeon driver ZIP
@@ -26,7 +29,13 @@
   # Silent install args based on info displayed for "Setup.exe /?".
   # TODO(dogben): The graphics driver seems to install OK, but there are errors for other
   # components. Need to investigate more.
-  win_command: C:\Temp\Radeon\Setup.exe -INSTALL
+  win_command: C:\Temp\Radeon\Setup.exe -INSTALL -BOOT
+  ignore_unreachable: True
+
+- name: Wait for reboot after installing driver
+  wait_for_connection:
+    delay: 30 # Give the installer time to finish and reboot.
+    timeout: 180 # Default is 600 seconds.
 
 - name: Cleanup
   win_file:
