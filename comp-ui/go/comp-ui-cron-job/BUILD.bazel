@@ -1,0 +1,45 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "comp-ui-cron-job_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/comp-ui/go/comp-ui-cron-job",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/executil",
+        "//go/gcs",
+        "//go/gcs/gcsclient",
+        "//go/git",
+        "//go/httputils",
+        "//go/now",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "comp-ui-cron-job",
+    embed = [":comp-ui-cron-job_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "comp-ui-cron-job_test",
+    size = "small",
+    srcs = ["main_test.go"],
+    embed = [":comp-ui-cron-job_lib"],
+    deps = [
+        "//go/executil",
+        "//go/httputils",
+        "//go/now",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
