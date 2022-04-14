@@ -3,6 +3,7 @@ package auth
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -336,4 +337,57 @@ func NewJWTServiceAccountTokenSource(metadataname, filename string, scopes ...st
 // from a local file.
 func NewDefaultJWTServiceAccountTokenSource(scopes ...string) (oauth2.TokenSource, error) {
 	return NewJWTServiceAccountTokenSource("", "", scopes...)
+}
+
+// keyFormat is used to extract some information from a JSON encoded service
+// account key for the sake of logging only.
+type keyFormat struct {
+	ClientEmail  string `json:"client_email"`
+	PrivateKeyID string `json:"private_key_id"`
+	PrivateKey   string `json:"private_key"`
+	TokenURL     string `json:"token_uri"`
+	ProjectID    string `json:"project_id"`
+	ClientSecret string `json:"client_secret"`
+	ClientID     string `json:"client_id"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+// NewTokenSourceFromKeyString creates a TokenSource from the given
+// 'keyAsBase64String' for the given 'scopes'.
+//
+// The value of 'keyAsBase64String' is a JSON service account key encoded in
+// base64.
+//
+// This function can be used with public variables declared in a module and the
+// value of the Key can be changed via -ldflags to pass an -X flag to the
+// linker, for example
+//
+//    go build \
+//    -ldflags="-X 'main.Key=${SERVICE_ACCOUNT_KEY_IN_BASE64}' " \
+//    ./go/foo
+func NewTokenSourceFromKeyString(ctx context.Context, local bool, keyAsBase64String string, scopes ...string) (oauth2.TokenSource, error) {
+	if local {
+		return google.DefaultTokenSource(ctx, scopes...)
+	}
+
+	decodedKey, err := base64.StdEncoding.DecodeString(keyAsBase64String)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to base64 decode Key: %q", keyAsBase64String)
+	}
+
+	// Unmarshal Key so that we can log some of its values.
+	var key keyFormat
+	if err := json.Unmarshal([]byte(decodedKey), &key); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse Key as JSON")
+	}
+	sklog.Infof("client_email: %s", key.ClientEmail)
+	sklog.Infof("client_id: %s", key.ClientID)
+	sklog.Infof("private_key_id: %s", key.PrivateKeyID)
+	sklog.Infof("project_id: %s", key.ProjectID)
+
+	cred, err := google.CredentialsFromJSON(ctx, []byte(decodedKey), scopes...)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create token source")
+	}
+	return cred.TokenSource, nil
 }
