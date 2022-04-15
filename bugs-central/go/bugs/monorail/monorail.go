@@ -4,24 +4,18 @@ package monorail
 // TODO(rmistry): Switch this to use the Go client library whenever it is available (https://bugs.chromium.org/p/monorail/issues/detail?id=8257).
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strings"
 	"time"
 
 	"go.skia.org/infra/bugs-central/go/bugs"
 	"go.skia.org/infra/bugs-central/go/db"
 	"go.skia.org/infra/bugs-central/go/types"
-	"go.skia.org/infra/go/httputils"
+	monorail_srv "go.skia.org/infra/go/monorail/v3"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/oauth2"
-	"google.golang.org/api/idtoken"
 )
 
 const (
@@ -44,7 +38,7 @@ var (
 	monorailProjectToPriorityData map[string]monorailPriorityData = map[string]monorailPriorityData{
 		// https://bugs.chromium.org/p/skia/fields/detail?field=Priority
 		"skia": {
-			FieldName: "projects/skia/fieldDefs/9",
+			FieldName: monorail_srv.SkiaPriorityFieldName,
 			PriorityMapping: map[string]types.StandardizedPriority{
 				"Critical": types.PriorityP0,
 				"High":     types.PriorityP1,
@@ -59,7 +53,7 @@ var (
 		},
 		// https://bugs.chromium.org/p/chromium/fields/detail?field=Pri
 		"chromium": {
-			FieldName: "projects/chromium/fieldDefs/11",
+			FieldName: monorail_srv.ChromiumPriorityFieldName,
 			PriorityMapping: map[string]types.StandardizedPriority{
 				"0": types.PriorityP0,
 				"1": types.PriorityP1,
@@ -77,31 +71,11 @@ var (
 	userToEmailCache map[string]string = map[string]string{}
 )
 
-type monorailIssue struct {
-	Name  string `json:"name"`
-	State struct {
-		Status string `json:"status"`
-	} `json:"status"`
-	FieldValues []struct {
-		Field string `json:"field"`
-		Value string `json:"value"`
-	} `json:"fieldValues"`
-	Owner struct {
-		User string `json:"user"`
-	} `json:"owner"`
-
-	CreatedTime  time.Time `json:"createTime"`
-	ModifiedTime time.Time `json:"modifyTime"`
-
-	Title string `json:"summary"`
-}
-
 // monorail implements bugs.BugFramework for monorail repos.
 type monorail struct {
-	token       *oauth2.Token
-	httpClient  *http.Client
-	openIssues  *bugs.OpenIssues
-	queryConfig *MonorailQueryConfig
+	monorailService *monorail_srv.MonorailService
+	openIssues      *bugs.OpenIssues
+	queryConfig     *MonorailQueryConfig
 }
 
 // MonorailQueryConfig is the config that will be used when querying monorail API.
@@ -120,84 +94,21 @@ type MonorailQueryConfig struct {
 
 // New returns an instance of the monorail implementation of bugs.BugFramework.
 func New(ctx context.Context, serviceAccountFilePath string, openIssues *bugs.OpenIssues, queryConfig *MonorailQueryConfig) (bugs.BugFramework, error) {
-	// Perform auth as described in https://docs.google.com/document/d/1Gx78HMBexadFm-jTOCcbFAXGCtucrN-0ET1mUd_hrHQ/edit#heading=h.a9iny4rfah43
-	clientOption := idtoken.WithCredentialsFile(serviceAccountFilePath)
-	ts, err := idtoken.NewTokenSource(ctx, monorailTokenTargetAudience, clientOption)
+	m, err := monorail_srv.New(ctx, serviceAccountFilePath)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "error running idtoken.NewTokenSource")
+		return nil, skerr.Wrapf(err, "error instantiating monorail service")
 	}
-	token, err := ts.Token()
-	if err != nil {
-		return nil, skerr.Wrapf(err, "error running ts.Token")
-	}
-
 	return &monorail{
-		token:       token,
-		httpClient:  httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client(),
-		openIssues:  openIssues,
-		queryConfig: queryConfig,
+		monorailService: m,
+		openIssues:      openIssues,
+		queryConfig:     queryConfig,
 	}, nil
-}
-
-// makeJSONCall calls monorail's v3 pRPC based API (go/monorail-v3-api).
-func (m *monorail) makeJSONCall(bodyJSON []byte, service string, method string) ([]byte, error) {
-	path := monorailApiBase + fmt.Sprintf("monorail.v3.%s/%s", service, method)
-
-	req, err := http.NewRequest("POST", path, bytes.NewBuffer(bodyJSON))
-	if err != nil {
-		return nil, fmt.Errorf("http.NewRequest: %v", err)
-	}
-	req.Header.Add("authorization", "Bearer "+m.token.AccessToken)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-	resp, err := m.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("client.Do: %v", err)
-	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != 200 {
-		return nil, skerr.Wrapf(err, "resp status_code: %d status_text: %s", resp.StatusCode, http.StatusText(resp.StatusCode))
-	}
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, skerr.Fmt("Failed to read response: %s", err)
-	}
-	// Strip off the XSS protection chars.
-	b = b[4:]
-
-	return b, nil
 }
 
 // searchIssuesWithPagination returns monorail issue results by autoamtically paginating till end of results.
 // Monorail results are limited to 100 (see https://source.chromium.org/chromium/infra/infra/+/master:appengine/monorail/api/v3/api_proto/issues.proto;l=179). It paginates till all results are received.
-func (m *monorail) searchIssuesWithPagination() ([]monorailIssue, error) {
-	issues := []monorailIssue{}
-	mc := m.queryConfig
-
-	// Put in a loop till there are no new pages.
-	nextPageToken := ""
-	for {
-		query := fmt.Sprintf(`{"projects": ["projects/%s"], "query": "%s", "page_token": "%s"}`, mc.Instance, mc.Query, nextPageToken)
-		b, err := m.makeJSONCall([]byte(query), "Issues", "SearchIssues")
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Issues.SearchIssues JSON API call failed")
-		}
-		var monorailIssues struct {
-			Issues        []monorailIssue `json:"issues"`
-			NextPageToken string          `json:"nextPageToken"`
-		}
-		if err := json.Unmarshal(b, &monorailIssues); err != nil {
-			return nil, err
-		}
-		issues = append(issues, monorailIssues.Issues...)
-		nextPageToken = monorailIssues.NextPageToken
-		if nextPageToken == "" {
-			break
-		}
-	}
-
-	return issues, nil
+func (m *monorail) searchIssuesWithPagination() ([]monorail_srv.MonorailIssue, error) {
+	return m.monorailService.SearchIssuesWithPagination(m.queryConfig.Instance, m.queryConfig.Query)
 }
 
 // See documentation for bugs.Search interface.
@@ -219,15 +130,9 @@ func (m *monorail) Search(ctx context.Context) ([]*types.Issue, *types.IssueCoun
 				owner = email
 			} else {
 				// Find the owner's email address.
-				b, err := m.makeJSONCall([]byte(fmt.Sprintf(`{"name": "%s"}`, mi.Owner.User)), "Users", "GetUser")
+				monorailUser, err := m.monorailService.GetEmail(mi.Owner.User)
 				if err != nil {
-					return nil, nil, skerr.Wrapf(err, "Users.GetUser JSON API call failed")
-				}
-				var monorailUser struct {
-					DisplayName string `json:"displayName"`
-				}
-				if err := json.Unmarshal(b, &monorailUser); err != nil {
-					return nil, nil, err
+					return nil, nil, skerr.Wrapf(err, "GetEmail call failed in MonorailService")
 				}
 				// Cache results for next time.
 				userToEmailCache[mi.Owner.User] = monorailUser.DisplayName
@@ -334,14 +239,10 @@ func (m *monorail) SearchClientAndPersist(ctx context.Context, dbClient *db.Fire
 
 // See documentation for bugs.GetIssueLink interface.
 func (m *monorail) GetIssueLink(instance, id string) string {
-	return fmt.Sprintf("https://bugs.chromium.org/p/%s/issues/detail?id=%s", instance, id)
+	return m.monorailService.GetIssueLink(instance, id)
 }
 
 // See documentation for bugs.SetOwnerAndAddComment interface.
 func (m *monorail) SetOwnerAndAddComment(owner, comment, id string) error {
-	query := fmt.Sprintf(`{"deltas": [{"issue": {"name": "projects/%s/issues/%s", "owner": {"user": "users/%s"}}, "update_mask": "owner"}], "comment_content": "%s", "notify_type": "EMAIL"}`, m.queryConfig.Instance, id, owner, comment)
-	if _, err := m.makeJSONCall([]byte(query), "Issues", "ModifyIssues"); err != nil {
-		return skerr.Wrapf(err, "Issues.ModifyIssues JSON API call failed")
-	}
-	return nil
+	return m.monorailService.SetOwnerAndAddComment(m.queryConfig.Instance, owner, comment, id)
 }

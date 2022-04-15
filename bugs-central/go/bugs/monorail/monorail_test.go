@@ -12,6 +12,7 @@ import (
 
 	"go.skia.org/infra/bugs-central/go/bugs"
 	"go.skia.org/infra/go/mockhttpclient"
+	monorail_srv "go.skia.org/infra/go/monorail/v3"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -40,11 +41,14 @@ func TestMonorailSearch(t *testing.T) {
 	testToken := oauth2.Token{
 		AccessToken: "access-token",
 	}
+	monorailService := &monorail_srv.MonorailService{
+		Token:      &testToken,
+		HttpClient: httpClient,
+	}
 	m := monorail{
-		token:       &testToken,
-		httpClient:  httpClient,
-		openIssues:  bugs.InitOpenIssues(),
-		queryConfig: mc,
+		monorailService: monorailService,
+		openIssues:      bugs.InitOpenIssues(),
+		queryConfig:     mc,
 	}
 
 	issues, countsData, err := m.Search(ctx)
