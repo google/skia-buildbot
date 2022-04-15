@@ -33,10 +33,12 @@ var (
 		"ANGLE":       {ID: "angle-skia-autoroll", Host: "autoroll.skia.org"},
 		"Android":     {ID: "android-master-autoroll", Host: "skia-autoroll.corp.goog"},
 		"Chrome":      {ID: "skia-autoroll", Host: "autoroll.skia.org"},
+		"Dawn":        {ID: "dawn-skia-autoroll", Host: "autoroll.skia.org"},
 		"Google3":     {ID: "google3-autoroll", Host: "skia-autoroll.corp.goog"},
 		"Flutter":     {ID: "skia-flutter-autoroll", Host: "autoroll.skia.org"},
 		"Skcms":       {ID: "skcms-skia-autoroll", Host: "autoroll.skia.org"},
 		"SwiftShader": {ID: "swiftshader-skia-autoroll", Host: "autoroll.skia.org"},
+		"VulkanDeps":  {ID: "vulkan-deps-skia-autoroll", Host: "autoroll.skia.org"},
 	}
 
 	// Channel that will determine which rollers need to be watched.

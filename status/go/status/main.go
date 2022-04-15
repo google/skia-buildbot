@@ -88,8 +88,10 @@ var (
 			"skia-flutter-autoroll":     "Flutter",
 			"skia-autoroll":             "Chrome",
 			"angle-skia-autoroll":       "ANGLE",
+			"dawn-skia-autoroll":        "Dawn",
 			"skcms-skia-autoroll":       "skcms",
 			"swiftshader-skia-autoroll": "SwiftSh",
+			"vulkan-deps-skia-autoroll": "VkDeps",
 		},
 		"skia-autoroll.corp.goog": {
 			"android-master-autoroll": "Android",
