@@ -195,17 +195,15 @@ func (s *TaskScheduler) Close() error {
 
 // Start initiates the TaskScheduler's goroutines for scheduling tasks. beforeMainLoop
 // will be run before each scheduling iteration.
-func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
+func (s *TaskScheduler) Start(ctx context.Context) {
 	lvScheduling := metrics2.NewLiveness("last_successful_task_scheduling")
 	cleanup.Repeat(5*time.Second, func(_ context.Context) {
 		// Explicitly ignore the passed-in context; this allows us to
 		// finish the current scheduling cycle even if the context is
 		// canceled, which helps prevent "orphaned" tasks which were
 		// triggered on Swarming but were not inserted into the DB.
-		ctx := context.Background()
-		sklog.Infof("Running beforeMainLoop()")
-		beforeMainLoop()
-		sklog.Infof("beforeMainLoop() finished.")
+		ctx, span := trace.StartSpan(context.Background(), "taskscheduler_Start_MainLoop", trace.WithSampler(trace.AlwaysSample()))
+		defer span.End()
 		if err := s.MainLoop(ctx); err != nil {
 			sklog.Errorf("Failed to run the task scheduler: %s", err)
 		} else {
@@ -214,6 +212,8 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 	}, nil)
 	lvUpdateUnfinishedTasks := metrics2.NewLiveness("last_successful_tasks_update")
 	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
+		ctx, span := trace.StartSpan(ctx, "taskscheduler_Start_UpdateUnfinishedTasks", trace.WithSampler(trace.AlwaysSample()))
+		defer span.End()
 		if err := s.updateUnfinishedTasks(ctx); err != nil {
 			sklog.Errorf("Failed to run periodic tasks update: %s", err)
 		} else {

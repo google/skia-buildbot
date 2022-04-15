@@ -43,6 +43,7 @@ func NewSwarmingTaskExecutor(s swarming.ApiClient, casInstance, pubSubTopic stri
 // GetFreeMachines implements types.TaskExecutor.
 func (s *SwarmingTaskExecutor) GetFreeMachines(ctx context.Context, pool string) ([]*types.Machine, error) {
 	ctx, span := trace.StartSpan(ctx, "swarming_GetFreeMachines")
+	span.AddAttributes(trace.StringAttribute("pool", pool))
 	defer span.End()
 	free, err := s.swarming.ListFreeBots(ctx, pool)
 	if err != nil {
@@ -58,6 +59,7 @@ func (s *SwarmingTaskExecutor) GetFreeMachines(ctx context.Context, pool string)
 // GetPendingTasks implements types.TaskExecutor.
 func (s *SwarmingTaskExecutor) GetPendingTasks(ctx context.Context, pool string) ([]*types.TaskResult, error) {
 	ctx, span := trace.StartSpan(ctx, "swarming_GetPendingTasks")
+	span.AddAttributes(trace.StringAttribute("pool", pool))
 	defer span.End()
 	tasks, err := s.swarming.ListTaskResults(ctx, time.Time{}, time.Time{}, []string{fmt.Sprintf("pool:%s", pool)}, "PENDING", false)
 	if err != nil {

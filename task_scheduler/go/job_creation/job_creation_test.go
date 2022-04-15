@@ -290,7 +290,7 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 	require.NoError(t, err)
 
 	jc.Start(ctx, false)
-	ts.Start(ctx, func() {})
+	ts.Start(ctx)
 
 	// This should cause JobCreator to insert jobs into the DB, and Task
 	// Scheduler should trigger tasks for them.

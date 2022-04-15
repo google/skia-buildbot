@@ -118,6 +118,8 @@ type TaskDB interface {
 // Within f, tasks should be refreshed from the DB, e.g. with
 // db.GetModifiedTasks or db.GetTaskById.
 func UpdateTasksWithRetries(ctx context.Context, db TaskDB, f func() ([]*types.Task, error)) ([]*types.Task, error) {
+	ctx, span := trace.StartSpan(ctx, "db_UpdateTasksWithRetries")
+	defer span.End()
 	var lastErr error
 	for i := 0; i < NUM_RETRIES; i++ {
 		t, err := f()
@@ -146,6 +148,9 @@ func UpdateTasksWithRetries(ctx context.Context, db TaskDB, f func() ([]*types.T
 // Immediately returns any error returned from f or from PutTasks (except
 // ErrConcurrentUpdate). Returns ErrConcurrentUpdate if retries are exhausted.
 func UpdateTaskWithRetries(ctx context.Context, db TaskDB, id string, f func(*types.Task) error) (*types.Task, error) {
+	ctx, span := trace.StartSpan(ctx, "db_UpdateTaskWithRetries")
+	span.AddAttributes(trace.StringAttribute("task_id", id))
+	defer span.End()
 	tasks, err := UpdateTasksWithRetries(ctx, db, func() ([]*types.Task, error) {
 		t, err := db.GetTaskById(ctx, id)
 		if err != nil {
@@ -299,6 +304,8 @@ func FilterJobs(jobs []*types.Job, p *JobSearchParams) []*types.Job {
 // SearchJobs returns Jobs in the given time range which match the given search
 // parameters.
 func SearchJobs(ctx context.Context, db JobReader, p *JobSearchParams) ([]*types.Job, error) {
+	ctx, span := trace.StartSpan(ctx, "db_SearchJobs")
+	defer span.End()
 	if p.TimeEnd == nil || util.TimeIsZero(*p.TimeEnd) {
 		end := time.Now()
 		p.TimeEnd = &end
@@ -359,6 +366,8 @@ type TaskSearchParams struct {
 // SearchTasks returns Tasks in the given time range which match the given search
 // parameters.
 func SearchTasks(ctx context.Context, db TaskReader, p *TaskSearchParams) ([]*types.Task, error) {
+	ctx, span := trace.StartSpan(ctx, "db_SearchTasks")
+	defer span.End()
 	if p.TimeEnd == nil || util.TimeIsZero(*p.TimeEnd) {
 		end := time.Now()
 		p.TimeEnd = &end
@@ -410,6 +419,8 @@ func NewDB(tdb TaskDB, jdb JobDB, cdb CommentDB) DB {
 // GetTasksFromWindow returns all tasks matching the given Window from the
 // TaskReader.
 func GetTasksFromWindow(ctx context.Context, db TaskReader, w window.Window) ([]*types.Task, error) {
+	ctx, span := trace.StartSpan(ctx, "db_GetTasksFromWindow")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	startTimesByRepo := w.StartTimesByRepo()
@@ -437,6 +448,8 @@ func GetTasksFromWindow(ctx context.Context, db TaskReader, w window.Window) ([]
 // GetJobsFromWindow returns all jobs matching the given Window from the
 // JobReader.
 func GetJobsFromWindow(ctx context.Context, db JobReader, w window.Window) ([]*types.Job, error) {
+	ctx, span := trace.StartSpan(ctx, "db_GetJobsFromWindow")
+	defer span.End()
 	defer metrics2.FuncTimer().Stop()
 
 	startTimesByRepo := w.StartTimesByRepo()

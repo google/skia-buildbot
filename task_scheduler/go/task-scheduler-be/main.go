@@ -175,7 +175,7 @@ func main() {
 	}
 
 	sklog.Infof("Created task scheduler. Starting loop.")
-	ts.Start(ctx, func() {})
+	ts.Start(ctx)
 	if err := autoUpdateRepos.Start(ctx, GITSTORE_SUBSCRIBER_ID, tokenSource, 5*time.Minute, func(ctx context.Context, repo string, graph *repograph.Graph, ack, nack func()) error {
 		ack()
 		return nil
