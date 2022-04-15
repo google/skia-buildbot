@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "Check.go",
+        "ChecksManager.go",
+        "NpmDB.go",
+        "ProjectAudit.go",
+        "ProjectMirror.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/npm-audit-mirror/go/types/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//npm-audit-mirror/go/types",
+        "@com_github_stretchr_testify//mock",
+    ],
+)
