@@ -358,7 +358,12 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	if err := backoff.RetryNotify(roundTripOp, backOffClient, notifyFunc); err == nil || err == permanentErr {
 		return resp, nil
 	} else if err == retryableErr {
-		sklog.Warningf("Final attempt got error status code %d in spite of exponential backoff while making the HTTP %s request to %s", resp.StatusCode, req.Method, req.URL)
+		// resp can be nil if the first request timed out
+		code := "<timeout>"
+		if resp != nil {
+			code = strconv.Itoa(resp.StatusCode)
+		}
+		sklog.Warningf("Final attempt got error status code %s in spite of exponential backoff while making the HTTP %s request to %s", code, req.Method, req.URL)
 		return resp, nil
 	} else {
 		sklog.Warningf("Final attempt failed in spite of exponential backoff for HTTP %s request to %s: %s", req.Method, req.URL, err)
