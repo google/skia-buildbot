@@ -26,7 +26,7 @@
         "file_ingestion_pubsub_topic_name": ""
     },
     "git_repo_config": {
-        "url": " https://skia.googlesource.com/perf-compui",
+        "url": "https://skia.googlesource.com/perf-compui",
         "dir": "/tmp/compui-perf",
         "debounce_commit_url": false,
         "file_change_marker": ""
