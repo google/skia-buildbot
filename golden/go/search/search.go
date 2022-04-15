@@ -2794,11 +2794,11 @@ func (s *Impl) expandGroupings(ctx context.Context, groupings map[groupingDigest
 }
 
 // combineIntoRanges looks at the histories for all the traces provided starting at the earliest
-// (head) and working backwards. It looks for the change from drawing untriaged digests to drawing
-// triaged digests and tries to identify which commits caused that. There could be multiple commits
-// in the window that have affected different tests, so this algorithm combines ranges and returns
-// them as a slice, with the commits that produced the most untriaged digests coming first.
-// It is recommended to look at the tests for this function to see some examples.
+// (head) and working backwards. It looks for the change from drawing the untriaged digests at head
+// to drawing a different digest, and tries to identify which commits caused that. There could be
+// multiple commits in the window that have affected different tests, so this algorithm combines
+// ranges and returns them as a slice, with the commits that produced the most untriaged digests
+// coming first. It is recommended to look at the tests for this function to see some examples.
 func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, groupings map[schema.MD5Hash]paramtools.Params, commits []frontend.Commit, exp map[expectationKey]expectations.Label) []BlameEntry {
 	ctx, span := trace.StartSpan(ctx, "combineIntoRanges")
 	defer span.End()
@@ -2809,37 +2809,51 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 		// The digest in key represents an untriaged digest seen at head.
 		// traces represents all the traces that are drawing that untriaged digest at head.
 		// We would like to identify the narrowest range that this change could have happened.
-		blameStartIdx := -1         // The last known commit we saw produce triaged digests.
-		blameEndIdx := len(commits) // first commit we saw produce untriaged digests.
+		latestUntriagedDigest := types.Digest(hex.EncodeToString(sql.FromMD5Hash(key.digest)))
+		// Last commit before the untriaged digest at head was first produced.
+		blameStartIdx := -1
+		// First commit to produce the untriaged digest at head.
+		blameEndIdx := len(commits)
+
 		for _, tr := range data.traces {
-			// Identify the latest triaged digest, that is, the closest one to head.
-			idx := len(tr) - 1
-			lastUntriagedDigest := 0
-			for ; idx >= 0; idx-- {
-				digest := tr[idx]
-				if digest == tiling.MissingDigest {
-					continue
+			// Identify the range at which the latest untriaged digest first occurred. For example,
+			// the range at which the latest untriaged digest "c" first occurred in trace
+			// "AAA-b--cc-" is 5:7.
+			latestUntriagedDigestFound := false
+			latestUntriagedDigestEarliestOccurrenceStartIdx := -1
+			latestUntriagedDigestEarliestOccurrenceEndIdx := len(commits)
+			for i := len(tr) - 1; i >= 0; i-- {
+				digest := tr[i]
+				if !latestUntriagedDigestFound {
+					if digest == tiling.MissingDigest {
+						continue
+					} else if digest == latestUntriagedDigest {
+						latestUntriagedDigestFound = true
+					} else {
+						break
+					}
 				}
-				label := exp[expectationKey{
-					groupingID: key.groupingID,
-					digest:     digest,
-				}]
-				if label == expectations.Positive || label == expectations.Negative {
+				if digest == latestUntriagedDigest {
+					latestUntriagedDigestEarliestOccurrenceStartIdx = i
+					latestUntriagedDigestEarliestOccurrenceEndIdx = i
+				} else if digest == tiling.MissingDigest {
+					latestUntriagedDigestEarliestOccurrenceStartIdx = i
+				} else {
 					break
 				}
-				lastUntriagedDigest = idx
 			}
-			// idx is now either -1 (for beginning of tile) or the index of the last known
-			// triaged digests.
-			lastTriagedDigest := idx
-			if blameStartIdx < lastTriagedDigest {
-				blameStartIdx = lastTriagedDigest
+
+			if blameStartIdx < latestUntriagedDigestEarliestOccurrenceStartIdx-1 {
+				blameStartIdx = latestUntriagedDigestEarliestOccurrenceStartIdx - 1
 			}
-			if blameEndIdx > lastUntriagedDigest {
-				blameEndIdx = lastUntriagedDigest
+			if blameEndIdx > latestUntriagedDigestEarliestOccurrenceEndIdx {
+				blameEndIdx = latestUntriagedDigestEarliestOccurrenceEndIdx
 			}
 		}
-		if blameEndIdx < blameStartIdx {
+
+		// blameStartIdx is now either -1 (for beginning of tile) or the index of the last known
+		// digest that was different from the untriaged digest at head.
+		if blameStartIdx == -1 && blameEndIdx == len(commits) {
 			continue // We didn't find any untriaged digests on this trace
 		}
 		// We know have identified a blame range that has accounted for one additional untriaged

@@ -4362,29 +4362,22 @@ f:alpha
 4:beta
 	BBBB-34
 `, []BlameEntry{{
-		CommitRange:           "commit06",
-		TotalUntriagedDigests: 3,
+		CommitRange: "commit07",
+		// The 4 digests come from traces d:alpha, f:alpha, 1:beta and 4:beta.
+		TotalUntriagedDigests: 4,
 		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         betaGrouping,
+			UntriagedDigests: 2,
+			SampleDigest:     "11111111111111111111111111111111",
+		}, {
 			Grouping:         alphaGrouping,
 			UntriagedDigests: 2,
 			SampleDigest:     "dddddddddddddddddddddddddddddddd",
-		}, {
-			Grouping:         betaGrouping,
-			UntriagedDigests: 1,
-			SampleDigest:     "11111111111111111111111111111111",
 		}},
-		Commits: []frontend.Commit{simpleCommits[5]},
+		Commits: []frontend.Commit{simpleCommits[6]},
 	}, {
-		CommitRange:           "commit05:commit06",
-		TotalUntriagedDigests: 1,
-		AffectedGroupings: []*AffectedGrouping{{
-			Grouping:         betaGrouping,
-			UntriagedDigests: 1,
-			SampleDigest:     "44444444444444444444444444444444",
-		}},
-		Commits: []frontend.Commit{simpleCommits[4], simpleCommits[5]},
-	}, {
-		CommitRange:           "commit06:commit07",
+		CommitRange: "commit06:commit07",
+		// One single digest from trace 2:beta.
 		TotalUntriagedDigests: 1,
 		AffectedGroupings: []*AffectedGrouping{{
 			Grouping:         betaGrouping,
@@ -4449,6 +4442,47 @@ d:gamma
 			SampleDigest:     "dddddddddddddddddddddddddddddddd",
 		}},
 		Commits: []frontend.Commit{simpleCommits[8]},
+	}})
+	test("One trace with multiple different untriaged digests (skbug.com/13196)", `
+d:alpha
+	AAAAbbccdd
+`, []BlameEntry{{
+		CommitRange:           "commit09",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         alphaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "dddddddddddddddddddddddddddddddd",
+		}},
+		Commits: []frontend.Commit{simpleCommits[8]},
+	}})
+	test("One sparse trace with multiple different untriaged digests (skbug.com/13196)", `
+d:alpha
+	AAAA-bc-d-
+`, []BlameEntry{{
+		CommitRange:           "commit08:commit09",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         alphaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "dddddddddddddddddddddddddddddddd",
+		}},
+		Commits: []frontend.Commit{simpleCommits[7], simpleCommits[8]},
+	}})
+	test("Multiple very sparse traces with multiple different untriaged digests (skbug.com/13196)", `
+c:alpha
+	-A-b---c--
+	-A--b---c-
+	-Ab---c---
+`, []BlameEntry{{
+		CommitRange:           "commit06:commit07",
+		TotalUntriagedDigests: 1,
+		AffectedGroupings: []*AffectedGrouping{{
+			Grouping:         alphaGrouping,
+			UntriagedDigests: 1,
+			SampleDigest:     "cccccccccccccccccccccccccccccccc",
+		}},
+		Commits: []frontend.Commit{simpleCommits[5], simpleCommits[6]},
 	}})
 	// This might happen if a digest was triaged after we made our initial query.
 	// If so, it shouldn't show up in any BlameEntries
