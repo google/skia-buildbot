@@ -1,0 +1,62 @@
+# Verdaccio configuration file documentation is available here:
+# https://verdaccio.org/docs/configuration
+
+# This is where all packages will be stored.
+storage: {{.Path}}/verdaccio/storage
+# This is where plugins will be stored.
+plugins: ./plugins
+
+# Disable the web UI page.
+web:
+  enable: false
+
+# The project name is used as the url_prefix to separate different
+# verdaccio instances.
+# url_prefix: /{{.ProjectName}}/
+
+# Disable user registration by setting max_users to -1.
+auth:
+  htpasswd:
+    file: ./htpasswd
+    max_users: -1
+
+# This mirror will only talk with the official global NPM registry.
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+    cache: true
+    maxage: 10y
+
+# Set publish and unpublish of all packages to authenticated. Since user
+# registration is disabled this means that nobody can publish/unpublish
+# packages.
+packages:
+  '@*/*':
+    # scoped packages
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    # if package is not available locally, proxy requests to 'npmjs' registry
+    proxy: npmjs
+
+  '**':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    # if package is not available locally, proxy requests to 'npmjs' registry
+    proxy: npmjs
+
+# You can specify HTTP/1.1 server keep alive timeout in seconds for incoming connections.
+# A value of 0 makes the http server behave similarly to Node.js versions prior to 8.0.0, which did not have a keep-alive timeout.
+# WORKAROUND: Through given configuration you can workaround following issue https://github.com/verdaccio/verdaccio/issues/301. Set to 0 in case 60 is not enough.
+server:
+  keepAliveTimeout: 60
+
+# Enabling audit middleware causes `npm audit` calls to work. See
+# https://github.com/verdaccio/verdaccio/issues/689
+middlewares:
+  audit:
+    enabled: true
+    strict_ssl: false
+
+logs: { type: stdout, level: trace, format: pretty-timestamped }

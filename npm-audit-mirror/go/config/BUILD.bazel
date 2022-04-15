@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "config",
+    srcs = [
+        "config.go",
+        "config_embed.go",
+    ],
+    embedsrcs = [
+        "config.json",
+        "verdaccio-config.tmpl",
+    ],
+    importpath = "go.skia.org/infra/npm-audit-mirror/go/config",
+    visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
+)

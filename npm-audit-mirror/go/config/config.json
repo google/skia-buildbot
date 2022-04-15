@@ -1,0 +1,53 @@
+{
+  "supported_projects": {
+    "skia-infra": {
+      "repo_url": "https://skia.googlesource.com/buildbot.git",
+      "git_branch": "main",
+      "package_json_dir": "",
+      "packages_allow_list": [
+        {
+          "name": "is-number-object",
+          "version": "1.0.7"
+        },
+        {
+          "name": "minimist",
+          "version": "1.2.6"
+        },
+        {
+          "name": "jsoneditor",
+          "version": "^9.3.3"
+        },
+        {
+          "name": "electron-to-chromium",
+          "version": "1.4.75"
+        },
+        {
+          "name": "caniuse-lite",
+          "version": "1.x"
+        }
+      ],
+      "trusted_scopes": [
+        "@types/",
+        "@bazel/"
+      ],
+      "monorail_config": {
+        "instance_name": "skia",
+        "owner": "rmistry@google.com",
+        "component_def_ids": [
+          "36252097"
+        ]
+      }
+    },
+    "chops-monorail": {
+      "repo_url": "https://chromium.googlesource.com/infra/infra.git",
+      "git_branch": "main",
+      "package_json_dir": "appengine/monorail",
+      "packages_allow_list": [
+        {
+          "name": "puppeteer",
+          "version": "8.0.0"
+        }
+      ]
+    }
+  }
+}
