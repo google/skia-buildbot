@@ -229,7 +229,11 @@ func runChromiumAnalysisOnWorkers() error {
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, defaultMaxPagesPerSwarmingBot)
 	casSpec := util.CasChromiumAnalysisLinux()
 	casSpec.IncludeDigests = append(casSpec.IncludeDigests, casDeps...)
-	numWorkers, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", *runID, *targetPlatform, casSpec, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, swarmingClient, casClient)
+	hardTimeout := 12 * time.Hour
+	// Some tasks with a lot of repeats will not output anything for a long time. Make
+	// ioTimeout to be the same as the hardTimeout to handle these cases.
+	ioTimeout := hardTimeout
+	numWorkers, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", *runID, *targetPlatform, casSpec, hardTimeout, ioTimeout, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, swarmingClient, casClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
