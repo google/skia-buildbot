@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -8,12 +9,30 @@ go_library(
     deps = [
         "//go/cas/rbe",
         "//go/common",
+        "//go/now",
         "//go/skerr",
         "//go/swarming",
         "//go/timeout",
         "//go/util",
         "//task_scheduler/go/types",
         "@io_opencensus_go//trace",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_test(
+    name = "swarming_test",
+    srcs = ["swarming_test.go"],
+    embed = [":swarming"],
+    deps = [
+        "//go/now",
+        "//go/swarming",
+        "//go/swarming/mocks",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )

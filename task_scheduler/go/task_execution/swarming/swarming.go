@@ -8,8 +8,10 @@ import (
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.opencensus.io/trace"
+
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timeout"
@@ -61,7 +63,12 @@ func (s *SwarmingTaskExecutor) GetPendingTasks(ctx context.Context, pool string)
 	ctx, span := trace.StartSpan(ctx, "swarming_GetPendingTasks")
 	span.AddAttributes(trace.StringAttribute("pool", pool))
 	defer span.End()
-	tasks, err := s.swarming.ListTaskResults(ctx, time.Time{}, time.Time{}, []string{fmt.Sprintf("pool:%s", pool)}, "PENDING", false)
+	// We want to put a bound on how far Swarming has to search to get our request, otherwise Swarming can timeout,
+	// which stops the whole scheduling loop. 2 days was arbitrarily chosen as a result that is higher than the
+	// pending timeout we use for Swarming (typically 4 hours).
+	end := now.Now(ctx)
+	start := end.Add(-2 * 24 * time.Hour)
+	tasks, err := s.swarming.ListTaskResults(ctx, start, end, []string{fmt.Sprintf("pool:%s", pool)}, swarming.TASK_STATE_PENDING, false)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
