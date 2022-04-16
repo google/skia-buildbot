@@ -1,0 +1,26 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "allowlists",
+    srcs = ["allowlist.go"],
+    importpath = "go.skia.org/infra/npm-audit-mirror/go/allowlists",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//npm-audit-mirror/go/config",
+        "//npm-audit-mirror/go/types",
+    ],
+)
+
+go_test(
+    name = "allowlists_test",
+    srcs = ["allowlist_test.go"],
+    embed = [":allowlists"],
+    deps = [
+        "//go/mockhttpclient",
+        "//go/testutils/unittest",
+        "//npm-audit-mirror/go/types",
+        "@com_github_stretchr_testify//require",
+    ],
+)
