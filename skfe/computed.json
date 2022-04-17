@@ -1783,6 +1783,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "skiaperf-compui",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "skiaperf-compui",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "skiaperf-compui",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "skiaperf-ct",
           "endpoints": [
             {
@@ -2166,32 +2192,6 @@
           ]
         },
         "name": "tree-status",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "websockets",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "websockets",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "websockets",
         "type": "STRICT_DNS"
       }
     ],
@@ -4444,6 +4444,23 @@
                       ]
                     },
                     {
+                      "domains": "compui-perf.skia.org",
+                      "name": "compui-perf.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "skiaperf-compui",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "ct-perf.skia.org",
                       "name": "ct-perf.skia.org",
                       "routes": [
@@ -4691,23 +4708,6 @@
                           },
                           "route": {
                             "cluster": "tree-status",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "websockets.skia.org",
-                      "name": "websockets.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "websockets",
                             "timeout": {
                               "seconds": 600
                             }
