@@ -10,10 +10,8 @@ import (
 	"go.skia.org/infra/npm-audit-mirror/go/types"
 )
 
-func TestPerformLicenseCheck(t *testing.T) {
-	unittest.SmallTest(t)
-
-	tests := []struct {
+var (
+	licenseCheckTests = []struct {
 		licenseType interface{}
 		checkPassed bool
 		name        string
@@ -80,10 +78,14 @@ func TestPerformLicenseCheck(t *testing.T) {
 			name:        "Deprecated license type with banned license",
 		},
 	}
+)
+
+func TestPerformLicenseCheck_PackageExists(t *testing.T) {
+	unittest.SmallTest(t)
 
 	lc := LicenseCheck{}
 	testPackageVersion := "1.1.0"
-	for _, test := range tests {
+	for _, test := range licenseCheckTests {
 		npm := &types.NpmPackage{
 			Versions: map[string]types.NpmVersion{
 				testPackageVersion: {License: test.licenseType},
@@ -97,11 +99,23 @@ func TestPerformLicenseCheck(t *testing.T) {
 		} else {
 			require.NotEmpty(t, result, test.name)
 		}
+	}
+}
 
-		// Also test with a non-existant license version.
-		checkPassed, result, err = lc.PerformCheck("test-package", "does-not-exist", npm)
-		require.NoError(t, err)
-		require.True(t, checkPassed)
-		require.Empty(t, result)
+func TestPerformLicenseCheck_PackageDoesNotExist(t *testing.T) {
+	unittest.SmallTest(t)
+
+	lc := LicenseCheck{}
+	testPackageVersion := "1.1.0"
+	for _, test := range licenseCheckTests {
+		npm := &types.NpmPackage{
+			Versions: map[string]types.NpmVersion{
+				testPackageVersion: {License: test.licenseType},
+			},
+		}
+		checkPassed, result, err := lc.PerformCheck("test-package", "does-not-exist", npm)
+		require.NoError(t, err, test.name)
+		require.True(t, checkPassed, test.name)
+		require.Empty(t, result, test.name)
 	}
 }
