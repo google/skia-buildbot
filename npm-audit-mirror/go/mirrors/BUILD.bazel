@@ -1,0 +1,28 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mirrors",
+    srcs = ["mirror.go"],
+    importpath = "go.skia.org/infra/npm-audit-mirror/go/mirrors",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/executil",
+        "//go/skerr",
+        "//go/sklog",
+        "//npm-audit-mirror/go/types",
+    ],
+)
+
+go_test(
+    name = "mirrors_test",
+    srcs = ["mirror_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":mirrors"],
+    deps = [
+        "//go/executil",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
