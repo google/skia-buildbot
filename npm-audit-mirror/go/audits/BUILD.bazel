@@ -1,0 +1,40 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "audits",
+    srcs = ["audit.go"],
+    importpath = "go.skia.org/infra/npm-audit-mirror/go/audits",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/executil",
+        "//go/gitiles",
+        "//go/metrics2",
+        "//go/monorail/v3:monorail",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//npm-audit-mirror/go/config",
+        "//npm-audit-mirror/go/types",
+    ],
+)
+
+go_test(
+    name = "audits_test",
+    srcs = ["audit_test.go"],
+    embed = [":audits"],
+    deps = [
+        "//go/executil",
+        "//go/gitiles/mocks",
+        "//go/metrics2",
+        "//go/monorail/v3:monorail",
+        "//go/monorail/v3/mocks",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//npm-audit-mirror/go/config",
+        "//npm-audit-mirror/go/types",
+        "//npm-audit-mirror/go/types/mocks",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)
