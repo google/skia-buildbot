@@ -22,11 +22,8 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"flag"
 	"io"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -40,11 +37,12 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
 
@@ -53,12 +51,12 @@ const (
 	bucket = "chrome-comp-ui-perf-skia"
 
 	// The path in the bucket where Perf results should be written.
-	bucketPath = "perf"
+	bucketPath = "ingest"
 
 	// The repo that has commits associated with runs of the cron job.
 	repo = "https://skia.googlesource.com/perf-compui"
 
-	scriptExecutable = "python3"
+	python = "python3"
 )
 
 // flags
@@ -76,8 +74,15 @@ var (
 
 // benchmark represents a single benchmark configuration.
 type benchmark struct {
-	// The URL to download a Python script that actually runs the benchmarks, as served up from Gitiles.
-	downloadURL string
+	// The checkout URL of the git repo that contains the scripts to run
+	repoURL string
+
+	// The directories in the git repo that need to be checked out.
+	checkoutPaths []string
+
+	// The full name of the script to run in the git repo relative to the root
+	// of the checkout.
+	scriptName string
 
 	// Flags to pass to the Python script.
 	flags []string
@@ -88,13 +93,35 @@ var benchmarks = map[string]benchmark{
 	// We always run the canary to validate that the whole pipeline works even
 	// if the "real" benchmark scripts start to fail.
 	"canary": {
-		downloadURL: "https://skia.googlesource.com/buildbot/+/refs/heads/main/comp-ui/benchmark-mock.py?format=TEXT",
+		repoURL:       "https://skia.googlesource.com/buildbot",
+		checkoutPaths: []string{"comp-ui"},
+		scriptName:    "comp-ui/benchmark-mock.py",
 		flags: []string{
 			"--browser", "mock",
 		},
 	},
-	"chrome": {
-		downloadURL: "https://chromium.googlesource.com/chromium/src/+/refs/heads/main/tools/browserbench-webdriver/motionmark.py?format=TEXT",
+	"chrome-motionmark": {
+		repoURL:       "https://chromium.googlesource.com/chromium/src",
+		checkoutPaths: []string{"tools/browserbench-webdriver"},
+		scriptName:    "tools/browserbench-webdriver/motionmark.py",
+		flags: []string{
+			"--browser", "chrome",
+			"--executable-path", filepath.Join(os.Getenv("HOME"), "chromedriver"),
+		},
+	},
+	"chrome-jetstream": {
+		repoURL:       "https://chromium.googlesource.com/chromium/src",
+		checkoutPaths: []string{"tools/browserbench-webdriver"},
+		scriptName:    "tools/browserbench-webdriver/jetstream.py",
+		flags: []string{
+			"--browser", "chrome",
+			"--executable-path", filepath.Join(os.Getenv("HOME"), "chromedriver"),
+		},
+	},
+	"chrome-speedometer": {
+		repoURL:       "https://chromium.googlesource.com/chromium/src",
+		checkoutPaths: []string{"tools/browserbench-webdriver"},
+		scriptName:    "tools/browserbench-webdriver/speedometer.py",
 		flags: []string{
 			"--browser", "chrome",
 			"--executable-path", filepath.Join(os.Getenv("HOME"), "chromedriver"),
@@ -110,7 +137,13 @@ func main() {
 	sklog.Infof("Version: %s", Version)
 
 	ctx := context.Background()
-	gcsClient, err := getGcsClient(ctx)
+
+	ts, err := auth.NewTokenSourceFromKeyString(ctx, *local, Key, storage.ScopeFullControl, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	gcsClient, err := getGCSClient(ctx, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -120,14 +153,26 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	// We presume that if running locally that you've already authenticated to
+	// Gerrit, otherwise write out a git cookie that enables R/W access to the
+	// git repo.
+	//
+	// Authenticate to Gerrit since the perf-compui repo is private.
+	if !*local {
+		sklog.Info("Configuring git auth.")
+		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
+			sklog.Fatal(err)
+		}
+	}
+
+	sklog.Info("Getting githash.")
 	gitHash, err := getGitHash(ctx, workDir)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
-	httpClient := httputils.DefaultClientConfig().With2xxOnly().Client()
 	for benchmarkName, config := range benchmarks {
-		outputFilename, err := runSingleBenchMark(ctx, benchmarkName, config, gitHash, workDir, httpClient)
+		outputFilename, err := runSingleBenchmark(ctx, benchmarkName, config, gitHash, workDir)
 		if err != nil {
 			sklog.Errorf("Failed to run benchmark %q: %s", benchmarkName, err)
 			continue
@@ -138,14 +183,18 @@ func main() {
 			sklog.Errorf("Failed to upload benchmark results %q: %s", benchmarkName, err)
 		}
 	}
+	sklog.Flush()
 }
 
+// getGitHash returns the git hash of the last commit to the perf-compui repo,
+// which only gets a single commit per day.
 func getGitHash(ctx context.Context, workDir string) (string, error) {
 	// Find the githash for 'today' from https://skia.googlesource.com/perf-compui.
-	g, err := git.NewRepo(ctx, repo, filepath.Join(workDir, "git"))
+	g, err := git.NewRepo(ctx, repo, filepath.Join(workDir, "perf-compui"))
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
+
 	hashes, err := g.RevList(ctx, "HEAD", "-n1")
 	if err != nil {
 		return "", skerr.Wrap(err)
@@ -153,12 +202,7 @@ func getGitHash(ctx context.Context, workDir string) (string, error) {
 	return hashes[0], nil
 }
 
-func getGcsClient(ctx context.Context) (*gcsclient.StorageClient, error) {
-	ts, err := auth.NewTokenSourceFromKeyString(ctx, *local, Key, storage.ScopeFullControl)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
+func getGCSClient(ctx context.Context, ts oauth2.TokenSource) (*gcsclient.StorageClient, error) {
 	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -169,22 +213,21 @@ func getGcsClient(ctx context.Context) (*gcsclient.StorageClient, error) {
 
 }
 
-func runSingleBenchMark(ctx context.Context, benchmarkName string, config benchmark, gitHash string, workDir string, httpClient *http.Client) (string, error) {
-	sklog.Infof("runSingleBenchMark - benchmarkName: %q  url: %q  gitHash: %q workDir: %q", benchmarkName, config.downloadURL, gitHash, workDir)
+func runSingleBenchmark(ctx context.Context, benchmarkName string, config benchmark, gitHash string, workDir string) (string, error) {
+	sklog.Infof("runSingleBenchMark - benchmarkName: %q  url: %q  gitHash: %q workDir: %q", benchmarkName, config.scriptName, gitHash, workDir)
 
-	// Compute the filenames we will use.
-	scriptBaseName := benchmarkName + ".py"
-	scriptFilename := filepath.Join(workDir, scriptBaseName)
-	outputDirectory := filepath.Join(workDir, benchmarkName)
-	outputFilename := filepath.Join(outputDirectory, "results.json")
-
-	// Create output directory.
-	err := os.MkdirAll(outputDirectory, 0755)
+	gitCheckoutDir, err := checkoutPythonScript(ctx, config, workDir, benchmarkName)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
 
-	err = downloadPythonScript(ctx, config.downloadURL, scriptFilename, httpClient)
+	// Compute the filenames we will use.
+	scriptFilename := filepath.Join(gitCheckoutDir, config.scriptName)
+	outputDirectory := filepath.Join(workDir, benchmarkName)
+	outputFilename := filepath.Join(outputDirectory, "results.json")
+
+	// Create output directory.
+	err = os.MkdirAll(outputDirectory, 0755)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
@@ -207,22 +250,13 @@ func runBenchMarkScript(ctx context.Context, args []string, workDir string) erro
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	cmd := executil.CommandContext(ctx, scriptExecutable, args...)
-	cmd.Dir = workDir
-
-	output, err := cmd.CombinedOutput()
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
-		sklog.Info(line)
-	}
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	return nil
+	return runCmdLogOutput(ctx, workDir, python, args...)
 }
 
 func uploadResultsFile(ctx context.Context, gcsClient gcs.GCSClient, benchmarkName string, outputFilename string) error {
-	destinationPath := path.Join(computeUploadPathFromTime(ctx), benchmarkName, "results.json")
+	// GCS paths always use "/" separators.
+	destinationPath := path.Join(bucketPath, computeUploadPathFromTime(ctx), benchmarkName, "results.json")
+	sklog.Infof("Upload to %q", destinationPath)
 	w := gcsClient.FileWriter(ctx, destinationPath, gcs.FileWriteOptions{
 		ContentEncoding: "application/json",
 	})
@@ -246,32 +280,43 @@ func computeUploadPathFromTime(ctx context.Context) string {
 	return now.Now(ctx).UTC().Format("2006/01/02/15")
 }
 
-// downloadPythonScript downloads the script from Gitiles and writes it to the
-// workDir.
-//
-// It also base64 decodes the downloaded file since that's how Gitiles serves up
-// 'raw' files.
-func downloadPythonScript(ctx context.Context, downloadURL string, filename string, httpClient *http.Client) error {
-	// Retrieve the file.
-	resp, err := httpClient.Get(downloadURL)
+// checkoutPythonScript checks out a sparse checkout of the specified directories
+// into workDir.
+func checkoutPythonScript(ctx context.Context, config benchmark, workDir string, benchmarkName string) (string, error) {
+	dest := filepath.Join(workDir, "git", benchmarkName)
+	return dest, newSparseCheckout(ctx, workDir, config.repoURL, dest, config.checkoutPaths)
+}
+
+// runCmdLogOutput runs a command using executil.CommandContext and logs any output
+// to sklog.Info().
+func runCmdLogOutput(ctx context.Context, cwd string, cmd string, args ...string) error {
+	cc := executil.CommandContext(ctx, cmd, args...)
+	cc.Dir = cwd
+	output, err := cc.CombinedOutput()
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		sklog.Info(line)
+	}
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	defer util.Close(resp.Body)
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return skerr.Wrap(err)
+	return nil
+}
+
+// newSparseCheckout does a sparse checkout of the given 'directories'.
+func newSparseCheckout(ctx context.Context, workDir, repoURL, dest string, directories []string) error {
+	if err := runCmdLogOutput(ctx, workDir, "git", "clone", "--depth", "1", "--filter=blob:none", "--sparse", repoURL, dest); err != nil {
+		return skerr.Wrapf(err, "Failed to clone.")
+	}
+	if err := runCmdLogOutput(ctx, dest, "git", "sparse-checkout", "init", "--cone"); err != nil {
+		return skerr.Wrapf(err, "Failed to init sparse checkout.")
 	}
 
-	// Base64 decode the file.
-	decoded, err := base64.StdEncoding.DecodeString(string(b))
-	if err != nil {
-		return skerr.Wrap(err)
+	args := []string{"sparse-checkout", "set"}
+	args = append(args, directories...)
+	if err := runCmdLogOutput(ctx, dest, "git", args...); err != nil {
+		return skerr.Wrapf(err, "Failed to do a sparse checkout.")
 	}
 
-	// Write the Python file to its destination.
-	return util.WithWriteFile(filename, func(w io.Writer) error {
-		_, err := w.Write(decoded)
-		return skerr.Wrap(err)
-	})
+	return nil
 }

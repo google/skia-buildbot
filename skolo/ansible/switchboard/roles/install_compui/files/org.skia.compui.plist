@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- This launchd config file ensures that /usr/local/bin/comp-ui-cron-job
+    runs once a day.
+
+    Copy this file to /Library/LaunchAgents/org.skia.compui.plist and either
+    reboot or run 'sudo launchctl load
+    /Library/LaunchAgents/org.skia.compui.plist'.
+
+    See http://go/comp-ui.
+
+    -->
+    <key>Label</key>
+    <string>org.skia.compui</string>
+
+    <key>UserName</key>
+    <string>chrome-bot</string>
+
+    <key>ProgramArguments</key>
+    <array>
+            <string>/usr/local/bin/comp-ui-cron-job</string>
+    </array>
+
+    <key>ProcessType</key>
+    <string>Interactive</string>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>12</integer>
+    </dict>
+</dict>
+</plist>

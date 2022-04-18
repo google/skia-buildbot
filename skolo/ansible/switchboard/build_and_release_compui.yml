@@ -1,0 +1,52 @@
+# Builds and uploads to CIPD the comp-ui-cron-job binary.
+# The CIPD binary is used by the install_compui playbook.
+- hosts: compui
+  gather_facts: false
+
+  tasks:
+    - name: make temporary directory for secrets and trigger `clean_up_tempfile`
+      delegate_to: 127.0.0.1
+      run_once: true
+      tempfile:
+        state: directory
+      register: secrets_dir
+      notify: clean_up_tempfile
+
+    - name: set service account key location fact
+      delegate_to: 127.0.0.1
+      run_once: true
+      set_fact:
+        service_account_key_filename: '{{ secrets_dir.path }}/key.json'
+
+    - name: Extract service account key
+      delegate_to: 127.0.0.1
+      run_once: true
+      command:
+        argv:
+          - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
+          - etc
+          - perf-comp-ui
+          - '.data."key.json"'
+          - '{{ service_account_key_filename }}'
+        creates: '{{ service_account_key_filename }}'
+
+    - name:
+        Build and release comp-ui-cron-job for the target machine with the
+        service account key embedded.
+      delegate_to: 127.0.0.1
+      run_once: true
+      make:
+        chdir: '{{ all.repo_root }}/comp-ui/'
+        target: 'release_compui'
+        params:
+          # Pass the service account keys base64 encoded so they don't mess up the
+          # Go compile command line.
+          SERVICE_ACCOUNT_KEY:
+            "{{ lookup('file', service_account_key_filename) | b64encode }}"
+
+  handlers:
+    - name: clean_up_tempfile
+      delegate_to: 127.0.0.1
+      file:
+        path: '{{ secrets_dir.path }}'
+        state: absent

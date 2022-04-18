@@ -19,7 +19,7 @@
             "topic": "perf-ingestion-compui",
             "subscription": "perf-ingestion-compui-prod",
             "sources": [
-                "gs://chrome-comp-ui-perf-skia/perf"
+                "gs://chrome-comp-ui-perf-skia/ingest"
             ]
         },
         "branches": [],

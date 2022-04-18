@@ -1,0 +1,5 @@
+package: skia/internal/comp-ui-cron-job
+description: Builds of comp-ui-cron-job for all os/arch combinations.
+install_mode: copy
+data:
+  - dir: build/

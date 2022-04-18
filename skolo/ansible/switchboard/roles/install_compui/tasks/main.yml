@@ -1,0 +1,14 @@
+- name: Fail if platform unsupported.
+  fail:
+    msg: This platform is not yet supported.
+  when: "ansible_facts['system']|lower not in ['darwin']"
+
+- name: Load comp-ui executables.
+  import_role:
+    name: get_ansible_binaries
+  vars:
+    get_ansible_binaries_application: comp-ui-cron-job
+    get_ansible_binaries_version: '{{ comp_ui_cron_job_version }}'
+
+- name: Install startup job for Mac.
+  import_tasks: mac.yml

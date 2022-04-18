@@ -1,0 +1,40 @@
+- name: Copy over executable.
+  become: yes
+  copy:
+    src:
+      "{{ get_ansible_binaries_directory.path }}/build/{{
+      ansible_facts['system'] }}/{{ ansible_facts['architecture']
+      }}/comp-ui-cron-job"
+    dest: /usr/local/bin/comp-ui-cron-job
+    owner: root
+    group: wheel
+    mode: 0755
+
+- name: Launch comp-ui-cron-job once a day.
+  vars:
+    launch_agents_folder: ~{{ skolo_account }}/Library/LaunchAgents
+    compui_launchd_plist: '{{ launch_agents_folder }}/org.skia.compui.plist'
+  block:
+    - name: Make sure LaunchAgents folder is there.
+      file:
+        path: '{{ launch_agents_folder }}'
+        state: directory
+        owner: '{{ skolo_account }}'
+        group: '{{ skolo_group }}'
+        mode: 0755
+
+    - name: Install startup job.
+      copy:
+        src: files/org.skia.compui.plist
+        dest: '{{ compui_launchd_plist }}'
+        owner: '{{ skolo_account }}'
+        group: '{{ skolo_group }}'
+        # 0660 required according to https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html:
+        mode: 0600
+
+    - name: Have launchd start comp-ui-cron-job.
+      # This is idempotent and returns 0, even though it prints an error message if
+      # the job was already loaded. If this gets more complex, we can go to
+      # the trouble of using community.general.launchd. We would pass it
+      # "state: reloaded" in this case.
+      command: launchctl load {{ compui_launchd_plist }}

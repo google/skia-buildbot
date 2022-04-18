@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -18,15 +16,10 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func setupForTest(t *testing.T, h http.HandlerFunc) (string, *httptest.Server, *http.Client) {
-	ts := httptest.NewServer(h)
-	t.Cleanup(func() {
-		ts.Close()
-	})
-
+func setupForTest(t *testing.T, h http.HandlerFunc) (string, *http.Client) {
 	client := httputils.DefaultClientConfig().WithoutRetries().With2xxOnly().Client()
 
-	return t.TempDir(), ts, client
+	return t.TempDir(), client
 }
 
 func TestComputeUploadPathFromTime(t *testing.T) {
@@ -36,41 +29,13 @@ func TestComputeUploadPathFromTime(t *testing.T) {
 	assert.Equal(t, "2022/04/12/13", computeUploadPathFromTime(ctx))
 }
 
-func TestDownloadPythonScript_HTTPErrorOnRequest_ReturnsError(t *testing.T) {
-	unittest.MediumTest(t)
-	_, ts, client := setupForTest(t, http.NotFound) // Not Found error will cause download to fail.
-
-	err := downloadPythonScript(context.Background(), ts.URL, "foo.py", client)
-	require.Error(t, err)
-}
-
-func TestDownloadPythonScript_HappyPath_FileIsDownloadedAndDecodedAndWritten(t *testing.T) {
-	unittest.MediumTest(t)
-
-	const body = "this is my mock script"
-
-	workDir, ts, client := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
-		encodedBody := base64.StdEncoding.EncodeToString([]byte(body))
-		_, err := w.Write([]byte(encodedBody))
-		require.NoError(t, err)
-	})
-
-	filename := filepath.Join(workDir, "foo.py")
-	err := downloadPythonScript(context.Background(), ts.URL, filename, client)
-	require.NoError(t, err)
-
-	b, err := os.ReadFile(filename)
-	require.NoError(t, err)
-	require.Equal(t, body, string(b))
-}
-
 var benchmarkScriptArgs = []string{"--output", "results.json"}
 
 func TestRunBenchMarkScript_ScriptReturnsError_ReturnsError(t *testing.T) {
 	unittest.MediumTest(t)
 
-	workDir, _, _ := setupForTest(t, nil)
-	ctx := executil.WithFakeTests(context.Background(), "Test_FakeExe_Python_Script_Crashes")
+	workDir, _ := setupForTest(t, nil)
+	ctx := executil.WithFakeTests(context.Background(), "Test_FakeExe_Exec_Fails")
 
 	err := runBenchMarkScript(ctx, benchmarkScriptArgs, workDir)
 	require.Error(t, err)
@@ -79,30 +44,14 @@ func TestRunBenchMarkScript_ScriptReturnsError_ReturnsError(t *testing.T) {
 func TestRunBenchMarkScript_ScriptSucceeds_DoesNotReturnError(t *testing.T) {
 	unittest.MediumTest(t)
 
-	workDir, _, _ := setupForTest(t, nil)
+	workDir, _ := setupForTest(t, nil)
 	ctx := executil.WithFakeTests(context.Background(), "Test_FakeExe_Python_Script_Success")
 
 	err := runBenchMarkScript(ctx, benchmarkScriptArgs, workDir)
 	require.NoError(t, err)
 }
 
-func TestRunSingleBenchMark_HappyPath(t *testing.T) {
-	unittest.MediumTest(t)
-
-	body := "this is my mock script"
-
-	workDir, ts, client := setupForTest(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		encodedBody := base64.StdEncoding.EncodeToString([]byte(body))
-		_, err := w.Write([]byte(encodedBody))
-		require.NoError(t, err)
-	}))
-	ctx := executil.WithFakeTests(context.Background(), "Test_FakeExe_Python_Script_Success")
-
-	_, err := runSingleBenchMark(ctx, "myBenchmark", benchmark{downloadURL: ts.URL}, "abcd", workDir, client)
-	require.NoError(t, err)
-}
-
-func Test_FakeExe_Python_Script_Crashes(t *testing.T) {
+func Test_FakeExe_Exec_Fails(t *testing.T) {
 	unittest.FakeExeTest(t)
 	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
@@ -117,7 +66,129 @@ func Test_FakeExe_Python_Script_Success(t *testing.T) {
 	}
 
 	args := executil.OriginalArgs()
-	require.Contains(t, args, scriptExecutable)
+	require.Contains(t, args, python)
 	require.Contains(t, args, "--output")
+	os.Exit(0)
+}
+
+const (
+	repoURL = "https://example.com/git"
+)
+
+var (
+	// We need to use real directories for workDir and dest because the exec
+	// package checks that Command.Path exists before running the command.
+	workDir = os.TempDir()
+
+	dest = os.TempDir()
+
+	directories = []string{"a/b", "c"}
+
+	benchmarkName = "canary"
+
+	benchmarkConfig = benchmark{
+		repoURL:       repoURL,
+		checkoutPaths: directories,
+		scriptName:    "a/b/benchmark.py",
+		flags:         []string{"--githash", "abcdef"},
+	}
+)
+
+func TestNewSparseCheckout_Success(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx := executil.WithFakeTests(context.Background(),
+		"Test_FakeExe_Clone_Success",
+		"Test_FakeExe_Sparse_Init_Success",
+		"Test_FakeExe_Sparse_Set_Success",
+	)
+
+	err := newSparseCheckout(ctx, workDir, repoURL, dest, directories)
+	require.NoError(t, err)
+}
+
+func TestNewSparseCheckout_GitCommandFails_ReturnsError(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx := executil.WithFakeTests(context.Background(),
+		"Test_FakeExe_Exec_Fails",
+	)
+
+	err := newSparseCheckout(ctx, workDir, repoURL, dest, directories)
+	require.Error(t, err)
+}
+
+func Test_FakeExe_Clone_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	args := executil.OriginalArgs()
+	expected := []string{"git", "clone", "--depth", "1", "--filter=blob:none", "--sparse", "https://example.com/git"}
+	// The checkout dest will always change, so just check all the other arguments.
+	require.Equal(t, expected, args[:len(expected)])
+	os.Exit(0)
+}
+
+func Test_FakeExe_Sparse_Init_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	args := executil.OriginalArgs()
+	expected := []string{"git", "sparse-checkout", "init", "--cone"}
+	require.Equal(t, expected, args)
+	os.Exit(0)
+}
+
+func Test_FakeExe_Sparse_Set_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	args := executil.OriginalArgs()
+	expected := []string{"git", "sparse-checkout", "set", "a/b", "c"}
+	require.Equal(t, expected, args)
+	os.Exit(0)
+}
+
+func TestRunSingleBenchmark_HappyPath(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx := executil.WithFakeTests(context.Background(),
+		"Test_FakeExe_Exec_Success",
+		"Test_FakeExe_Exec_Success",
+		"Test_FakeExe_Exec_Success",
+		"Test_FakeExe_Run_Canary_Python_Script_Success",
+	)
+	workDir := t.TempDir()
+	err := os.MkdirAll(filepath.Join(workDir, "git", "canary"), 0755)
+	require.NoError(t, err)
+
+	outputFileName, err := runSingleBenchmark(ctx, benchmarkName, benchmarkConfig, "abcdef", workDir)
+	require.NoError(t, err)
+	require.Contains(t, outputFileName, "canary/results.json")
+
+}
+
+func Test_FakeExe_Exec_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+	os.Exit(0)
+}
+
+func Test_FakeExe_Run_Canary_Python_Script_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	args := executil.OriginalArgs()
+	expected := []string{"python3", "a/b/benchmark.py", "--githash", "abcdef", "--githash", "abcdef", "--output", "canary/results.json"}
+	for i, endsWith := range expected {
+		require.Contains(t, args[i], endsWith)
+	}
 	os.Exit(0)
 }

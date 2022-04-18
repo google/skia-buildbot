@@ -1,0 +1,11 @@
+# Installs comp-ui-cron-job.
+#
+# To push a test/debug version of test_machine_monitor to a machine you can
+# provide a value for the comp_ui_cron_job_version via the
+# --extra-vars command line parameter. See README.md for an example.
+- hosts: compui
+  user: chrome-bot
+  gather_facts: true
+
+  roles:
+    - install_compui
