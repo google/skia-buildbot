@@ -1,0 +1,26 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "npm_audit_mirror_container",
+    base_image = "@node_alpine//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//npm-audit-mirror/go/npm-audit-mirror:npm-audit-mirror",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/npm-audit-mirror",
+    repository = "skia-public/npm-audit-mirror",
+    run_commands_root = [
+        # Create the skia user.
+        "addgroup -g 2000 -S skia",
+        "adduser -u 2000 -S skia -G skia",
+        "apk update",
+        # Install packages useful for debugging on the pod.
+        "apk add --no-cache bash procps wget",
+        # Install verdaccio.
+        "npm install --global verdaccio@5.7.0",
+    ],
+)
