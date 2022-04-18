@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "npm-audit-mirror_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/npm-audit-mirror/go/npm-audit-mirror",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/allowed",
+        "//go/auth",
+        "//go/baseapp",
+        "//go/httputils",
+        "//go/login",
+        "//go/netutils",
+        "//go/sklog",
+        "//npm-audit-mirror/go/allowlists",
+        "//npm-audit-mirror/go/audits",
+        "//npm-audit-mirror/go/checks",
+        "//npm-audit-mirror/go/config",
+        "//npm-audit-mirror/go/db",
+        "//npm-audit-mirror/go/mirrors",
+        "//npm-audit-mirror/go/types",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_binary(
+    name = "npm-audit-mirror",
+    embed = [":npm-audit-mirror_lib"],
+    visibility = ["//visibility:public"],
+)

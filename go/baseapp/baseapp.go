@@ -136,6 +136,20 @@ func hasAllowAnyImageOption(options []Option) bool {
 	return false
 }
 
+// DisableResponseGZip disables the automatic gzipping of responses regardless
+// of the contents of the "Accept-Encoding" header. Required for services like
+// verdaccio- https://verdaccio.org/docs/reverse-proxy/#invalid-checksum
+type DisableResponseGZip struct{}
+
+func hasDisableResponseGZip(options []Option) bool {
+	for _, opt := range options {
+		if _, ok := opt.(DisableResponseGZip); ok {
+			return true
+		}
+	}
+	return false
+}
+
 // Serve builds and runs the App in a secure manner in our kubernetes cluster.
 //
 // The constructor builds an App instance. Note that we don't pass in an App
@@ -222,10 +236,14 @@ func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 		middleware = append(middleware, httputils.HealthzAndHTTPS)
 	}
 	middleware = append(middleware, app.AddMiddleware()...)
-	middleware = append(middleware,
-		httputils.LoggingGzipRequestResponse,
-		securityMiddleware(allowedHosts, *Local, options),
-	)
+	if hasDisableResponseGZip(options) {
+		// Add only LoggingRequestResponse.
+		middleware = append(middleware, httputils.LoggingRequestResponse)
+	} else {
+		// Add both LoggingRequestResponse and GZipping functionality.
+		middleware = append(middleware, httputils.LoggingGzipRequestResponse)
+	}
+	middleware = append(middleware, securityMiddleware(allowedHosts, *Local, options))
 	r.Use(middleware...)
 
 	// Start serving.

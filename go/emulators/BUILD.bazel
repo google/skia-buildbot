@@ -11,6 +11,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//bazel/go/bazel",
+        "//go/netutils",
         "//go/skerr",
     ],
 )

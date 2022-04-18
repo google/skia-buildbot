@@ -14,7 +14,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"os"
 	"os/exec"
 	"regexp"
@@ -22,6 +21,7 @@ import (
 	"syscall"
 
 	"go.skia.org/infra/bazel/go/bazel"
+	"go.skia.org/infra/go/netutils"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -124,7 +124,7 @@ func makeEmulatorInfo(emulator Emulator) emulatorInfo {
 	// Under Bazel and RBE, we choose an unused port to minimize the chances of parallel tests from
 	// interfering with each other.
 	if bazel.InBazelTestOnRBE() {
-		info.port = findUnusedTCPPort()
+		info.port = netutils.FindUnusedTCPPort()
 	}
 
 	return info
@@ -154,25 +154,6 @@ func computeCockroachDBCmd() string {
 	}
 
 	return cmd
-}
-
-// findUnusedTCPPort finds an unused TCP port by opening a TCP port on an unused port chosen by the
-// operating system, recovering the port number and immediately closing the socket.
-//
-// This function does not guarantee that multiple calls will return different port numbers, so it
-// might cause tests to flake out. However, the odds of this happening are low. In the future, we
-// might decide to keep track of previously returned port numbers, and keep probing the OS until
-// it returns a previously unseen port number.
-func findUnusedTCPPort() int {
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		panic(skerr.Wrap(err))
-	}
-	port := listener.Addr().(*net.TCPAddr).Port
-	if err = listener.Close(); err != nil {
-		panic(skerr.Wrap(err))
-	}
-	return port
 }
 
 // GetEmulatorHostEnvVar returns the contents of the *_EMULATOR_HOST environment variable
