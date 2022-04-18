@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "checks",
+    srcs = [
+        "checks_manager.go",
+        "license_check.go",
+        "publish_age_check.go",
+    ],
+    importpath = "go.skia.org/infra/npm-audit-mirror/go/checks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//npm-audit-mirror/go/config",
+        "//npm-audit-mirror/go/types",
+        "@com_github_masterminds_semver//:semver",
+    ],
+)
+
+go_test(
+    name = "checks_test",
+    srcs = [
+        "checks_manager_test.go",
+        "license_check_test.go",
+        "publish_age_check_test.go",
+    ],
+    embed = [":checks"],
+    deps = [
+        "//go/mockhttpclient",
+        "//go/testutils/unittest",
+        "//npm-audit-mirror/go/config",
+        "//npm-audit-mirror/go/types",
+        "//npm-audit-mirror/go/types/mocks",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)
