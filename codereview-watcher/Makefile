@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 default: build
 
@@ -9,8 +8,8 @@ build:
 release:
 	$(BAZEL) run //codereview-watcher:push_codereview_watcher_container
 
-push: pushk release
-	pushk --use-temp-checkout codereview-watcher
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout codereview-watcher
 
 testgo:
 	go test ./go/...

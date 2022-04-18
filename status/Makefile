@@ -1,6 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
-
 
 .PHONY: serve
 serve:
@@ -20,5 +18,5 @@ build:
 release: build
 	$(BAZEL) run //status:push_status_container
 
-push: release pushk
-	pushk --message="$(MESSAGE)" --use-temp-checkout status
+push: release
+	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout status

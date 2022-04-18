@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 build:
 	${BAZEL} build //ds/go/...
@@ -7,8 +6,8 @@ build:
 release: build
 	${BAZEL} run //ds:push_datastore_backup_container
 
-push: pushk release
-	pushk --use-temp-checkout datastore-backup-k
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout datastore-backup-k
 
 indexes:
 	gcloud datastore create-indexes ./index.yaml

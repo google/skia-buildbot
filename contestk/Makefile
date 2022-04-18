@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 .PHONY: build release push
 build:
@@ -8,5 +7,5 @@ build:
 release: build
 	${BAZEL} run //contestk:push_contest_container
 
-push: pushk release
-	pushk --use-temp-checkout contest
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout contest

@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 build:
 	$(BAZEL) build //docsyserver/go/...
@@ -13,8 +12,8 @@ test:
 release: build
 	$(BAZEL) run //docsyserver:push_docsyserver_container
 
-push: pushk release
-	pushk --use-temp-checkout docsyserver
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout docsyserver
 
 # The docker image has two scripts that allow seeing what docs would look like
 # when rendered with Hugo/Docsy.

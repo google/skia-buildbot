@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 default:
 	go install -v ./go/...
@@ -7,5 +6,5 @@ default:
 release: default
 	$(BAZEL) run //cq_watcher:push_cq_watcher_container
 
-push: pushk release
-	pushk --use-temp-checkout cq_watcher
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout cq_watcher

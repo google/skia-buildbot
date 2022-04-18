@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 # First create a list of all the modules that ./go/ts depends upon.
 tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/fiddlek/go/ts/  )
@@ -49,14 +48,14 @@ release-fiddler-ci: build
 	# Cleanup the build directory.
 	git checkout build/*
 
-push: pushk release
-	pushk --use-temp-checkout fiddle fiddler
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout fiddle fiddler
 
-push_fiddle: pushk release-fiddle
-	pushk --use-temp-checkout fiddle
+push_fiddle: release-fiddle
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout fiddle
 
-push_fiddler: pushk release-fiddler
-	pushk --use-temp-checkout fiddler
+push_fiddler: release-fiddler
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout fiddler
 
 cli:
 	go install -v ./go/fiddlecli

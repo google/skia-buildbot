@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 .PHONY: build docs release push
 build:
@@ -33,8 +32,8 @@ release: build
 	# Cleanup.
 	git clean -fxq docs/* elements-sk/* infra-sk/*
 
-push: pushk release
-	pushk --use-temp-checkout jsdoc
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout jsdoc
 
 # Set DOCKER_IMAGE to the image you want to run locally.
 run-local:

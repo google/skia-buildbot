@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 build:
 	$(BAZEL) build go/...
@@ -24,5 +23,5 @@ release-api-ci:
 	# Cleanup the doc directory (silently).
 	git clean -f -d -q docs/
 
-push: pushk release
-	pushk --use-temp-checkout api
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout api

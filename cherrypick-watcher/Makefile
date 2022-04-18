@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 default: build
 
@@ -9,8 +8,8 @@ build:
 release:
 	$(BAZEL) run //cherrypick-watcher:push_cherrypick_watcher_container
 
-push: pushk release
-	pushk --use-temp-checkout cherrypick-watcher
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout cherrypick-watcher
 
 testgo:
 	go test ./go/...

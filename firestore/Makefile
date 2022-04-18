@@ -1,4 +1,3 @@
-include ../kube/kube.mk
 include ../make/clusters.mk
 
 .PHONY: push

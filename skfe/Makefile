@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 build-config:
 	go install ./go/merge_envoy
@@ -14,7 +13,7 @@ validate: build-config
 	docker run -ti --entrypoint=/usr/local/bin/envoy -v `pwd`/computed.json:/tmp/envoy/computed.json envoyproxy/envoy:v1.16.1 --mode validate --config-path /tmp/envoy/computed.json
 
 push: pushk release validate
-	pushk --use-temp-checkout envoy-skia-org
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout envoy-skia-org
 
 # Set DOCKER_IMAGE to the image you want to run locally.
 run-local:

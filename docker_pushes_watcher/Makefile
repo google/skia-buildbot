@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 .PHONY: build test pushk release push
 
@@ -12,5 +11,5 @@ test:
 release:
 	$(BAZEL) run //docker_pushes_watcher:push_docker_pushes_watcher_container
 
-push: pushk release
-	pushk --use-temp-checkout docker_pushes_watcher
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout docker_pushes_watcher

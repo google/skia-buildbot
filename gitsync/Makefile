@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 .PHONY: build
 build:
@@ -14,5 +13,5 @@ release: build
 	$(BAZEL) run //gitsync:push_gitsync_container
 
 .PHONY: push
-push: release pushk
-	pushk --message="$(MESSAGE)" --use-temp-checkout gitsync
+push: release
+	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout gitsync

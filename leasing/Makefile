@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 generate:
 	go generate ./go/...
@@ -19,5 +18,5 @@ frontend:
 release: build
 	$(BAZEL) run //leasing:push_leasing_container
 
-push: pushk release
-	pushk --use-temp-checkout leasing
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout leasing

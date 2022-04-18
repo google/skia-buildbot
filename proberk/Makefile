@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 .PHONY: build
 build:
@@ -22,7 +21,7 @@ update-expectations:
 
 .PHONY: push
 push: pushk release
-	pushk --use-temp-checkout proberk
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout proberk
 
 run-local-instance: build
 	$(BAZEL) run //proberk/go/proberk -- \

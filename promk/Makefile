@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 .PHONY: validate
 validate: ./tmp/promtool absent
@@ -48,9 +47,9 @@ push_config_public: gen_configmaps skia-public
 	kubectl replace -f ./tmpconf/skia-public/prometheus-server-conf.yml
 
 .PHONY: backup-to-gcs
-backup-to-gcs: pushk
+backup-to-gcs:
 	$(BAZEL) run //promk:push_backup_to_gcs_container
-	pushk backup-to-gcs
+	$(BAZEL) run //kube/pushk -- backup-to-gcs
 
 .PHONY: push_config_corp
 push_config_corp: gen_configmaps skia-corp
@@ -68,10 +67,10 @@ release_thanos_bouce:
 	./images/thanos-bounce/release
 
 push_thanos:
-	pushk thanos
+	$(BAZEL) run //kube/pushk -- thanos
 
 push_thanos_bounce:
-	pushk thanos-bounce
+	$(BAZEL) run //kube/pushk -- thanos-bounce
 
 .PHONY: update_alerts
 update_alerts: push_config_thanos

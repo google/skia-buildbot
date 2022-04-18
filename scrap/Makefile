@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 build:
 	${BAZEL} build go/... modules/... pages/...
@@ -7,8 +6,8 @@ build:
 release: build
 	${BAZEL} run //scrap:push_scrapexchange_container
 
-push: pushk release
-	pushk --use-temp-checkout scrapexchange
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout scrapexchange
 
 testgo:
 	go test ./go/...

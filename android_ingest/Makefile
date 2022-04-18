@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 .PHONY: build
 build:
@@ -14,8 +13,8 @@ release: build
 	$(BAZEL) run //android_ingest:push_android_ingest_container
 
 .PHONY: push
-push: pushk release
-	pushk --use-temp-checkout androidingest
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout androidingest
 
 # Get the exact service account key, so we know that it has access to the API.
 service-account.json:

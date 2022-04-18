@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 serve:
 	@echo "Bazel doesn't have a serve-all option."                          

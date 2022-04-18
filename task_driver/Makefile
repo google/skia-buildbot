@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 .PHONY: build
 build:
@@ -10,8 +9,8 @@ release: build
 	$(BAZEL) run //task_driver:push_task_driver_container
 
 .PHONY: push
-push: release pushk
-	pushk --message="$(MESSAGE)" --use-temp-checkout task-driver-server
+push: release
+	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-driver-server
 
 .PHONY: serve
 serve:

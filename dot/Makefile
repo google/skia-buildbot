@@ -1,6 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
-
 
 build:
 	$(BAZEL) build go/dotserver/...
@@ -11,8 +9,8 @@ run-local-instance: build
 release: build
 	$(BAZEL) run //dot:push_dotserver_container
 
-push: pushk release
-	pushk --use-temp-checkout dotserver
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout dotserver
 
 test:
 	$(BAZEL) test go/...

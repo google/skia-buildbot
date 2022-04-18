@@ -1,6 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
-
 
 generate:
 	go generate ./go/...
@@ -27,6 +25,6 @@ build: generate
 release: build
 	$(BAZEL) run //bugs-central:push_bugs_central_container
 
-push: pushk release
-	pushk --use-temp-checkout bugs-central
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout bugs-central
 

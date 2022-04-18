@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 # First create a list of all the modules that ./go/rpc depends upon.
 rpcDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' ./go/rpc)
@@ -47,15 +46,15 @@ release-jc: task-scheduler-jc
 
 .PHONY: push-be
 push-be: release-be
-	pushk --message="$(MESSAGE)" --use-temp-checkout task-scheduler-be
+	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-be
 
 .PHONY: push-fe
 push-fe: release-fe
-	pushk --message="$(MESSAGE)" --use-temp-checkout task-scheduler-fe
+	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-fe
 
 .PHONY: push-jc
 push-jc: release-jc
-	pushk --message="$(MESSAGE)" --use-temp-checkout task-scheduler-jc
+	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-jc
 
 .PHONY: validate_db
 validate_db:

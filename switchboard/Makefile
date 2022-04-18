@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 build:
 	${BAZEL} build go/...
@@ -7,8 +6,8 @@ build:
 release: build
 	${BAZEL} run //switchboard:push_switchboard_container
 
-push: pushk release
-	pushk --use-temp-checkout switch-pod
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout switch-pod
 
 test:
 	go test ./go/...

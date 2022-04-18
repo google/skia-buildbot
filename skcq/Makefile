@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 generate:
 	go generate ./go/...
@@ -29,8 +28,8 @@ build-fe: generate
 release-fe: build-fe
 	$(BAZEL) run //skcq:push_skcq_fe_container
 
-push-fe: pushk release-fe
-	pushk --use-temp-checkout skcq-fe
+push-fe: release-fe
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout skcq-fe
 
 
 # BACKEND TARGETS
@@ -44,8 +43,8 @@ build-be: generate
 release-be: build-be
 	$(BAZEL) run //skcq:push_skcq_be_container
 
-push-be: pushk release-be
-	pushk --use-temp-checkout skcq-be
+push-be: release-be
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout skcq-be
 
 
 # FRONTEND+BACKEND TARGETS

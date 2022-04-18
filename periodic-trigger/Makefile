@@ -1,5 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
 
 .PHONY: build
 build:
@@ -11,4 +10,4 @@ release: build
 
 .PHONY: push
 push: release pushk
-	pushk --message="$(MESSAGE)" --use-temp-checkout periodic-trigger
+	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout periodic-trigger

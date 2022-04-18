@@ -1,6 +1,4 @@
 include ../make/bazel.mk
-include ../kube/kube.mk
-
 
 build:
 	$(BAZEL) build go/hashtag/... modules/... pages/...
@@ -8,8 +6,8 @@ build:
 release: build
 	$(BAZEL) run //hashtag:push_hashtag_container
 
-push: pushk release
-	pushk --use-temp-checkout hashtag
+push: release
+	$(BAZEL) run //kube/pushk -- --use-temp-checkout hashtag
 
 run-local-instance: build
 	# Run "bazel build //hashtag/..." after making any frontend changes
