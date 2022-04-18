@@ -16,6 +16,8 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/skerr"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -120,7 +122,7 @@ func filter(tags []string) ([]string, error) {
 	}
 	sort.Strings(validTags)
 	if len(validTags) == 0 {
-		return nil, fmt.Errorf("Not enough tags returned.")
+		return nil, skerr.Fmt("Not enough tags returned.\n Saw %s", tags)
 	}
 	return validTags, nil
 }
@@ -134,23 +136,23 @@ type tagProvider func(imageName string) ([]string, error)
 func imageFromCmdLineImage(imageName string, tp tagProvider) (string, error) {
 	if strings.HasPrefix(imageName, "gcr.io/") {
 		if *rollback {
-			return "", fmt.Errorf("Supplying a fully qualified image name and the --rollback flag are mutually exclusive.")
+			return "", skerr.Fmt("Supplying a fully qualified image name and the --rollback flag are mutually exclusive.")
 		}
 		if *list {
-			return "", fmt.Errorf("Supplying a fully qualified image name and the --list flag are mutually exclusive.")
+			return "", skerr.Fmt("Supplying a fully qualified image name and the --list flag are mutually exclusive.")
 		}
 		return imageName, nil
 	}
 	// Get all the tags for the selected image.
 	tags, err := tp(imageName)
 	if err != nil {
-		return "", fmt.Errorf("Tag provider failed: %s", err)
+		return "", skerr.Wrapf(err, "providing tags for image %s. Does this image exist?", imageName)
 	}
 
 	// Filter the tags
 	tags, err = filter(tags)
 	if err != nil {
-		return "", fmt.Errorf("Failed to filter: %s", err)
+		return "", skerr.Wrapf(err, "filtering tags for image %s", imageName)
 	}
 
 	if *list {
@@ -166,7 +168,7 @@ func imageFromCmdLineImage(imageName string, tp tagProvider) (string, error) {
 	tag := tags[len(tags)-1]
 	if *rollback {
 		if len(tags) < 2 {
-			return "", fmt.Errorf("No version to rollback to.")
+			return "", skerr.Fmt("No version of %s to rollback to.", imageName)
 		}
 		tag = tags[len(tags)-2]
 	}
@@ -248,7 +250,7 @@ func main() {
 	tokenSource := auth.NewGCloudTokenSource(containerRegistryProject)
 	imageNames := flag.Args()
 	if len(imageNames) == 0 {
-		fmt.Printf("At least one image name needs to be supplied.")
+		fmt.Println("At least one image name needs to be supplied.")
 		flag.Usage()
 		os.Exit(1)
 	}

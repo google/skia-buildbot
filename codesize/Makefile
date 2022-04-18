@@ -12,5 +12,8 @@ run-local-instance: build
 watch-local-instance:
 	find . -type f | entr -r -s "bazel build //codesize/... && ../_bazel_bin/codesize/go/codesizeserver/codesizeserver_/codesizeserver --local --resources_dir ../_bazel_bin/codesize/pages/development"
 
-push:
+release:
 	$(BAZEL) run //codesize:push_codesizeserver
+
+push: release
+	$(BAZEL) run //kube/pushk -- codesizeserver
