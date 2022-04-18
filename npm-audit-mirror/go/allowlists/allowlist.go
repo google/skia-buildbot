@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/npm-audit-mirror/go/config"
@@ -56,7 +57,15 @@ func getDependencies(startPackageName, startPackageVersion string, httpClient *h
 	}
 
 	if versionDetails, ok := npmPackage.Versions[startPackageVersion]; ok {
-		for depName, depVersion := range versionDetails.Dependencies {
+		startPackageDeps := versionDetails.Dependencies
+		// Iterate through the deps deterministically for consistent behavior.
+		startPackageDepNames := []string{}
+		for k := range startPackageDeps {
+			startPackageDepNames = append(startPackageDepNames, k)
+		}
+		sort.Strings(startPackageDepNames)
+		for _, depName := range startPackageDepNames {
+			depVersion := startPackageDeps[depName]
 			allowListWithDeps = append(allowListWithDeps, &config.PackagesAllowList{Name: depName, Version: depVersion})
 
 			// Recursive call to get all transitive deps.
