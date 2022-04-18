@@ -30,7 +30,12 @@ func main() {
 	common.Init()
 	// Collect all files named probersk.json5.
 	files := []string{}
-	err := filepath.Walk(*srcdir, func(path string, info os.FileInfo, err error) error {
+	p, err := filepath.Abs(*srcdir)
+	if err != nil {
+		sklog.Fatalf("Could not resolve srcdir %s: %s", *srcdir, err)
+	}
+	sklog.Infof("Traversing %s", p)
+	err = filepath.Walk(p, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

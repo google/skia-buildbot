@@ -4,11 +4,13 @@ include ../kube/kube.mk
 .PHONY: build
 build:
 	$(BAZEL) build //proberk/go/...
-	build_probersk_json --dest=allprobersk.json
+	$(BAZEL) run //proberk/go/build_probersk_json:build_probersk_json5 -- \
+ 		--dest=allprobersk.json --srcdir `pwd`/..
 
 .PHONY: validate
 validate: build
-	proberk --config=allprobersk.json --validate
+	$(BAZEL) run //proberk/go/proberk -- \
+ 		--config=`pwd`/allprobersk.json --validate
 
 .PHONY: release
 release: build
@@ -23,4 +25,5 @@ push: pushk release
 	pushk --use-temp-checkout proberk
 
 run-local-instance: build
-	proberk --local --run_every=1s --config=./allprobersk.json
+	$(BAZEL) run //proberk/go/proberk -- \
+ 		--local --run_every=1s --config=`pwd`/allprobersk.json --expectations_dir=`pwd`/expectations
