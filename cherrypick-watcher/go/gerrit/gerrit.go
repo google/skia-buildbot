@@ -64,7 +64,7 @@ func AddReminderComment(ctx context.Context, gerritClient gerrit.GerritInterface
 		return skerr.Wrapf(err, "Could not get issue properties for %d", partialChange.Issue)
 	}
 	// Publish the provided comment.
-	if err := gerritClient.AddComment(ctx, ci, comment); err != nil {
+	if err := gerritClient.SetReview(ctx, ci, comment, map[string]int{}, nil, gerrit.NotifyOwner, nil, "", 0, nil); err != nil {
 		return skerr.Wrapf(err, "Could not add a comment to %d", ci.Issue)
 	}
 	return nil

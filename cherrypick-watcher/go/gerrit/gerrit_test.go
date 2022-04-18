@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/gerrit"
@@ -108,7 +109,7 @@ func TestAddReminderComment_ValidQuery_ReturnsNoErrors(t *testing.T) {
 	// Mock call to get the fully populated ChangeInfo obj.
 	g.On("GetIssueProperties", ctx, changeID1).Return(changeInfo1, nil).Once()
 	// Mock call to publish comment.
-	g.On("AddComment", ctx, changeInfo1, testComment).Return(nil).Once()
+	g.On("SetReview", ctx, changeInfo1, testComment, map[string]int{}, mock.Anything, gerrit.NotifyOwner, mock.Anything, "", 0, mock.Anything).Return(nil).Once()
 
 	err := AddReminderComment(ctx, g, changeInfo1, testComment)
 	require.Nil(t, err)
