@@ -44,6 +44,7 @@ go_test(
     srcs = [
         "cipd_manual_test.go",
         "cipd_test.go",
+        "gcs_test.go",
         "gitiles_test.go",
         "semver_gcs_test.go",
     ],
@@ -58,6 +59,7 @@ go_test(
         "//go/auth",
         "//go/chrome_branch/mocks",
         "//go/cipd/mocks",
+        "//go/gcs/test_gcsclient",
         "//go/git",
         "//go/git/testutils",
         "//go/gitiles",
@@ -71,6 +73,7 @@ go_test(
         "//go/vfs",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_storage//:storage",
         "@org_chromium_go_luci//cipd/client/cipd",
         "@org_chromium_go_luci//cipd/common",
         "@org_golang_x_oauth2//google",

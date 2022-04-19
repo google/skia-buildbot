@@ -397,6 +397,13 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 		afdoRevPrev: afdoTimePrev,
 		afdoRevNext: afdoTimeNext,
 	})
+	// Mock the "list" call twice, since GetRevision falls back to scanning the
+	// GCS directory after the initial GetFileObjectAttrs call fails.
+	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
+		afdoRevBase: afdoTimeBase,
+		afdoRevPrev: afdoTimePrev,
+		afdoRevNext: afdoTimeNext,
+	})
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &revision.Revision{

@@ -524,11 +524,13 @@ interface SemVerGCSChildConfigJSON {
 export interface GCSChildConfig {
   gcsBucket: string;
   gcsPath: string;
+  revisionIdRegex: string;
 }
 
 interface GCSChildConfigJSON {
   gcs_bucket?: string;
   gcs_path?: string;
+  revision_id_regex?: string;
 }
 
 export interface GitCheckoutChildConfig {

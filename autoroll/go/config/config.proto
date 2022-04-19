@@ -505,6 +505,9 @@ message GCSChildConfig {
     string gcs_bucket = 1;
     // gcs_path within the bucket which contains child revisions.
     string gcs_path = 2;
+    // revision_id_regex is used to extract the revision ID from a full GCS file
+    // path. If not provided, the base name of the file is used.
+    string revision_id_regex = 3;
 }
 
 // GitCheckoutChildConfig provides configuration for a Child which uses a local

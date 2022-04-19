@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"regexp"
 	"sort"
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -22,6 +24,10 @@ var (
 	// errInvalidGCSVersion is returned by gcsGetVersionFunc when a file in
 	// GCS does not represent a valid revision.
 	errInvalidGCSVersion = errors.New("Invalid GCS version.")
+
+	// errStopIterating is returned from GCSClient.AllFilesInDirectory when we
+	// want to stop iterating through files.
+	errStopIterating = errors.New("stop iteration")
 )
 
 // gcsVersion represents a version of a file in GCS. It can be compared to other
@@ -62,30 +68,38 @@ type gcsShortRevFunc func(string) string
 
 // gcsChild is a Child implementation which loads revisions from GCS.
 type gcsChild struct {
-	gcs           *gcsclient.StorageClient
-	gcsBucket     string
-	gcsPath       string
-	getGCSVersion gcsGetVersionFunc
-	shortRev      gcsShortRevFunc
+	gcs             gcs.GCSClient
+	gcsBucket       string
+	gcsPath         string
+	getGCSVersion   gcsGetVersionFunc
+	revisionIDRegex *regexp.Regexp
+	shortRev        gcsShortRevFunc
 }
 
 // newGCS returns a Child implementation which loads revision from GCS.
 func newGCS(ctx context.Context, c *config.GCSChildConfig, client *http.Client, getVersion gcsGetVersionFunc, shortRev gcsShortRevFunc) (*gcsChild, error) {
 	if err := c.Validate(); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	gcsClient := gcsclient.New(storageClient, c.GcsBucket)
-	return &gcsChild{
+	rv := &gcsChild{
 		gcs:           gcsClient,
 		gcsBucket:     c.GcsBucket,
 		gcsPath:       c.GcsPath,
 		getGCSVersion: getVersion,
 		shortRev:      shortRev,
-	}, nil
+	}
+	if c.RevisionIdRegex != "" {
+		rv.revisionIDRegex, err = regexp.Compile(c.RevisionIdRegex)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "revision_id_regex is invalid")
+		}
+	}
+	return rv, nil
 }
 
 // See documentation for Child interface.
@@ -94,7 +108,12 @@ func (c *gcsChild) Update(ctx context.Context, lastRollRev *revision.Revision) (
 	versions := []gcsVersion{}
 	revisions := map[string]*revision.Revision{}
 	if err := c.gcs.AllFilesInDirectory(ctx, c.gcsPath, func(item *storage.ObjectAttrs) error {
-		rev := c.objectAttrsToRevision(item)
+		rev, err := c.objectAttrsToRevision(item)
+		if err != nil {
+			// We may have files in the bucket which do not match the provided
+			// regex.  Just ignore them and move on.
+			return nil
+		}
 		ver, err := c.getGCSVersion(rev)
 		if err == nil {
 			versions = append(versions, ver)
@@ -106,7 +125,7 @@ func (c *gcsChild) Update(ctx context.Context, lastRollRev *revision.Revision) (
 		}
 		return nil
 	}); err != nil {
-		return nil, nil, err
+		return nil, nil, skerr.Wrap(err)
 	}
 	if len(versions) == 0 {
 		return nil, nil, fmt.Errorf("No valid files found in GCS.")
@@ -140,11 +159,33 @@ func (c *gcsChild) Update(ctx context.Context, lastRollRev *revision.Revision) (
 
 // See documentation for Child interface.
 func (c *gcsChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	item, err := c.gcs.GetFileObjectAttrs(ctx, path.Join(c.gcsPath, id))
-	if err != nil {
-		return nil, err
+	gcsObjectPath := path.Join(c.gcsPath, id)
+	item, err := c.gcs.GetFileObjectAttrs(ctx, gcsObjectPath)
+	if err == nil {
+		return c.objectAttrsToRevision(item)
 	}
-	return c.objectAttrsToRevision(item), nil
+	// Try searching by prefix.
+	var rv *revision.Revision
+	err2 := c.gcs.AllFilesInDirectory(ctx, c.gcsPath, func(item *storage.ObjectAttrs) error {
+		rev, err := c.objectAttrsToRevision(item)
+		if err != nil {
+			// We may have files in the bucket which do not match the provided
+			// regex.  Just ignore them and move on.
+			return nil
+		}
+		if rev.Id == id {
+			rv = rev
+			return errStopIterating
+		}
+		return nil
+	})
+	if err2 != nil && err != errStopIterating {
+		return nil, skerr.Wrap(err2)
+	}
+	if rv == nil {
+		return nil, skerr.Wrapf(err, "failed to find revision %q; no matching object at path %q and found no matching objects with prefix %q", id, gcsObjectPath, c.gcsPath)
+	}
+	return rv, nil
 }
 
 // VFS implements the Child interface.
@@ -157,18 +198,35 @@ func (c *gcsChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, err
 	return nil, skerr.Fmt("VFS not implemented for gcsChild")
 }
 
+// parseRevisionID parses a revision ID from the given GCS path, using the
+// configured regular expression if one was provided, and simply using the base
+// name of the file otherwise.
+func (c *gcsChild) parseRevisionID(gcsPath string) (string, error) {
+	if c.revisionIDRegex == nil {
+		return path.Base(gcsPath), nil
+	}
+	matches := c.revisionIDRegex.FindStringSubmatch(gcsPath)
+	if len(matches) != 2 {
+		return "", skerr.Fmt("failed to parse revision ID from path %q; found %d matches: %+v", gcsPath, len(matches), matches)
+	}
+	return matches[1], nil
+}
+
 // objectAttrsToRevision returns a revision.Revision based on the given
 // storage.ObjectAttrs. It is intended to be used by structs which embed
 // gcsChild as a helper for creating revision.Revisions.
-func (c *gcsChild) objectAttrsToRevision(item *storage.ObjectAttrs) *revision.Revision {
-	id := path.Base(item.Name)
+func (c *gcsChild) objectAttrsToRevision(item *storage.ObjectAttrs) (*revision.Revision, error) {
+	id, err := c.parseRevisionID(item.Name)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	return &revision.Revision{
 		Id:        id,
 		Display:   c.shortRev(id),
 		Author:    item.Owner,
 		Timestamp: item.Updated,
 		URL:       item.MediaLink,
-	}
+	}, nil
 }
 
 // gcsChild implements Child.
