@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/depot_tools",
         "//go/emulators",
+        "//go/exec",
         "//go/git",
         "//go/recipe_cfg",
         "//task_driver/go/lib/bazel",
