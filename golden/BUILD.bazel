@@ -122,8 +122,6 @@ cat > config.json5 <<EOF
 {
   authorized_users: ["google.com"],
   client_secret_file: "$$1",
-  disable_sql_exp_cl: true,
-  flaky_trace_threshold: 10,
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
     defaultCorpus: "infra",
@@ -134,8 +132,6 @@ cat > config.json5 <<EOF
   prom_port: ":20000",
   ready_port: ":8000",
   resources_path: "$$web_assets_dir",
-  tile_freshness: "1m",
-  trace_bt_table: "gold-skia-infra",
 }
 EOF
 
@@ -143,23 +139,17 @@ EOF
 cat > common_instance_config.json5 <<EOF
 {
   local: true,
-  bt_instance: "production",
-  bt_project_id: "skia-public",
   code_review_systems: [
     {
       id: "gerrit",
       flavor: "gerrit",
       gerrit_url: "https://skia-review.googlesource.com",
-     url_template: "https://skia-review.googlesource.com/%s"
+      url_template: "https://skia-review.googlesource.com/%s"
     },
   ],
-  diff_work_topic: "gold-skia-infra-diffmetrics", // includes instance id
   gcs_bucket: "skia-gold-skia-infra",
-  git_bt_table: "git-repos2",
   git_repo_branch: "main",
   git_repo_url: "https://skia.googlesource.com/buildbot.git",
-  fs_namespace: "skia-infra",
-  fs_project_id: "skia-firestore",
   pubsub_project_id: "skia-public",
   site_url: "https://skia-infra-gold.skia.org",
   sql_connection: "root@localhost:26235",
