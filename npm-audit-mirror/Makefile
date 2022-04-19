@@ -15,5 +15,5 @@ build: generate
 release: build
 	$(BAZEL) run //npm-audit-mirror:push_npm_audit_mirror_container
 
-push: pushk release
-	pushk --use-temp-checkout npm-audit-mirror
+push: release
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout npm-audit-mirror
