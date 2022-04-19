@@ -85,7 +85,7 @@ func (g *StorageClient) GetFileObjectAttrs(ctx context.Context, path string) (*s
 }
 
 // See the GCSClient interface for more information about AllFilesInDirectory.
-func (g *StorageClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs)) error {
+func (g *StorageClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs) error) error {
 	total := 0
 	q := &storage.Query{Prefix: prefix, Versions: false}
 	it := g.client.Bucket(g.bucket).Objects(ctx, q)
@@ -94,7 +94,9 @@ func (g *StorageClient) AllFilesInDirectory(ctx context.Context, prefix string, 
 			return fmt.Errorf("Problem reading from Google Storage: %v", err)
 		}
 		total++
-		callback(obj)
+		if err := callback(obj); err != nil {
+			return err
+		}
 	}
 	return nil
 }

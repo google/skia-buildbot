@@ -441,10 +441,11 @@ func (s *scrapExchange) ListNames(ctx context.Context, t Type) ([]string, error)
 		return nil, err
 	}
 
-	err := s.client.AllFilesInDirectory(ctx, fmt.Sprintf("names/%s/", t), func(item *storage.ObjectAttrs) {
+	err := s.client.AllFilesInDirectory(ctx, fmt.Sprintf("names/%s/", t), func(item *storage.ObjectAttrs) error {
 		// GCS always uses forward slashes.
 		name := path.Base(item.Name)
 		ret = append(ret, name)
+		return nil
 	})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read directory.")

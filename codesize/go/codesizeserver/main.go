@@ -160,9 +160,9 @@ func (s *server) preloadBloatyFiles(ctx context.Context) error {
 	bloatyOutputFilePattern := regexp.MustCompile(`^[0-9]{4}/[0-9]{2}/[0-9]{2}/.*\.tsv$`)
 
 	// TODO(lovisolo): Consider limiting this, e.g. to the last 3 months.
-	err := s.gcsClient.AllFilesInDirectory(context.Background(), "", func(item *storage.ObjectAttrs) {
+	err := s.gcsClient.AllFilesInDirectory(context.Background(), "", func(item *storage.ObjectAttrs) error {
 		if !bloatyOutputFilePattern.MatchString(item.Name) {
-			return
+			return nil
 		}
 		if err := s.store.Index(ctx, item.Name); err != nil {
 			// If this happens often (e.g. because we're hitting a GCS QPS limit) we can do a combination
@@ -173,6 +173,7 @@ func (s *server) preloadBloatyFiles(ctx context.Context) error {
 			// backoff would be a potential mitigation.
 			sklog.Fatalf("Error while preloading %s: %s\n", item.Name, err)
 		}
+		return nil
 	})
 	if err != nil {
 		return skerr.Wrap(err)

@@ -93,7 +93,7 @@ func (c *gcsChild) Update(ctx context.Context, lastRollRev *revision.Revision) (
 	// Find the available versions, sorted newest to oldest.
 	versions := []gcsVersion{}
 	revisions := map[string]*revision.Revision{}
-	if err := c.gcs.AllFilesInDirectory(ctx, c.gcsPath, func(item *storage.ObjectAttrs) {
+	if err := c.gcs.AllFilesInDirectory(ctx, c.gcsPath, func(item *storage.ObjectAttrs) error {
 		rev := c.objectAttrsToRevision(item)
 		ver, err := c.getGCSVersion(rev)
 		if err == nil {
@@ -104,6 +104,7 @@ func (c *gcsChild) Update(ctx context.Context, lastRollRev *revision.Revision) (
 		} else {
 			sklog.Error(err)
 		}
+		return nil
 	}); err != nil {
 		return nil, nil, err
 	}

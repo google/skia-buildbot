@@ -19,11 +19,11 @@ type GCSClient struct {
 }
 
 // AllFilesInDirectory provides a mock function with given fields: ctx, prefix, callback
-func (_m *GCSClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(*storage.ObjectAttrs)) error {
+func (_m *GCSClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(*storage.ObjectAttrs) error) error {
 	ret := _m.Called(ctx, prefix, callback)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, func(*storage.ObjectAttrs)) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, func(*storage.ObjectAttrs) error) error); ok {
 		r0 = rf(ctx, prefix, callback)
 	} else {
 		r0 = ret.Error(0)

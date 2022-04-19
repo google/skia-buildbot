@@ -49,8 +49,9 @@ type GCSClient interface {
 	GetFileObjectAttrs(ctx context.Context, path string) (*storage.ObjectAttrs, error)
 	// AllFilesInDirectory executes the callback on all GCS files with the given prefix,
 	// i.e. in the directory prefix. It returns an error if it fails to read any of the
-	// ObjectAttrs belonging to files.
-	AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs)) error
+	// ObjectAttrs belonging to files. If the callback returns an error, iteration stops
+	// and the error is returned without modification.
+	AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs) error) error
 	// DeleteFile deletes the given file, returning any error.
 	DeleteFile(ctx context.Context, path string) error
 	// Bucket returns the bucket name of this client

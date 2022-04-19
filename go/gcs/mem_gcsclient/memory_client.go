@@ -140,7 +140,7 @@ func (c *MemoryGCSClient) GetFileObjectAttrs(ctx context.Context, path string) (
 }
 
 // See documentation for GCSClient interface.
-func (c *MemoryGCSClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs)) error {
+func (c *MemoryGCSClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs) error) error {
 	items := func() []*storage.ObjectAttrs {
 		c.mtx.RLock()
 		defer c.mtx.RUnlock()
@@ -163,7 +163,9 @@ func (c *MemoryGCSClient) AllFilesInDirectory(ctx context.Context, prefix string
 		return items
 	}()
 	for _, item := range items {
-		callback(item)
+		if err := callback(item); err != nil {
+			return err
+		}
 	}
 	return nil
 }

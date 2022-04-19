@@ -320,10 +320,11 @@ func runMainLoop(t *testing.T, s *TaskScheduler, ctx context.Context) {
 func lastDiagnostics(t *testing.T, s *TaskScheduler) taskSchedulerMainLoopDiagnostics {
 	ctx := context.Background()
 	lastname := ""
-	require.NoError(t, s.diagClient.AllFilesInDirectory(ctx, path.Join(s.diagInstance, GCS_MAIN_LOOP_DIAGNOSTICS_DIR), func(item *storage.ObjectAttrs) {
+	require.NoError(t, s.diagClient.AllFilesInDirectory(ctx, path.Join(s.diagInstance, GCS_MAIN_LOOP_DIAGNOSTICS_DIR), func(item *storage.ObjectAttrs) error {
 		if lastname == "" || item.Name > lastname {
 			lastname = item.Name
 		}
+		return nil
 	}))
 	require.NotEqual(t, lastname, "")
 	reader, err := s.diagClient.FileReader(ctx, lastname)

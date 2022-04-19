@@ -657,9 +657,9 @@ func TestListNames_HappyPath_Success(t *testing.T) {
 	s := &test_gcsclient.GCSClient{}
 
 	s.On("AllFilesInDirectory", testutils.AnyContext, fmt.Sprintf("names/svg/"), mock.Anything).Run(func(args mock.Arguments) {
-		cb := args[2].(func(item *storage.ObjectAttrs))
-		cb(&storage.ObjectAttrs{Name: scrapName})
-		cb(&storage.ObjectAttrs{Name: scrapName2})
+		cb := args[2].(func(item *storage.ObjectAttrs) error)
+		_ = cb(&storage.ObjectAttrs{Name: scrapName})
+		_ = cb(&storage.ObjectAttrs{Name: scrapName2})
 	}).Return(nil)
 
 	se, err := New(s)
