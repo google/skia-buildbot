@@ -38,11 +38,23 @@ skia-iphone-8-03     cea6fe77fc91b1687ee2189e3cc056a9e7381b38
 skia-iphone-8-04     16eb34a43b59642a3a3d08ef8be3d6bbd4b14b86
 skia-iphone-8-05     424eb0dc867de6a03eb109b7d809087a5008396e
 skia-iphone-8-06     f7a5647fb6523db24b3a2d27b66f3e3ba801e6ca
+unknown iPhone 6s    3008ab99aa25b8fc8e47dc21c2fb17ea905a3a1e, which I found in the prod provisioning profile but I have never observed to be in the lab
 
 Died in March 2020 flood:
 skia-iPad-pro97-02   3f9b063d55e482398174283bb1c72a8322e8af39
 skia-iPad-pro97-03   9b8e97d500bc98035c073515015645ef3a35dd70
 skia-iPad-pro97-04   e2e1d3390e50aed9c3f23b1fb55826e6dcfccd1d
 
+Other retired devices:
+skia-iphone-6-06     36416904437f10db2c15f1634e062f91b2d64bf7
+skia-iphone-6-05     3529d21a706095bab5c405e6b8b7663d69d51d23
+skia-iphone-6-04     f4795bd80c18d474a2b0b003f5d40ce0b4b117fa
+skia-iphone-6-02     133bd64b71fea6c6bd1ec75290a8b9bd161a7974
+
 Alive but not in lab:
 An iPad Pro 9.7"     aeb09b8254dea08253bdcc10e1432d00dc7d8764, engraved "SKIA Bot". Found on far north shelf of office under a stack of other tablets.
+
+Erik Rose didn't find this attached to any bots as of 2021-11-11. It was found
+in our Skolo Maintenance Google doc but not our prod provisioning profile. It
+must have been retired without noting why.
+skia-iphone-8-02     dd2492780e3a979c4c2ff957acd87e68c7fb246d
