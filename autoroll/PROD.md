@@ -91,7 +91,7 @@ solutions = [
 * Change the Skia rev in the DEPS here if necessary.
 * Run the license scripts:
   * cd tools/licenses
-  * ../../../third_party/dart/tools/sdks/dart-sdk/bin/pub get
+  * ../../../third_party/dart/tools/sdks/dart-sdk/bin/dart pub get
   * Run dart license script to create new licenses.
     * rm -rf ../../../out/licenses
     * ../../../third_party/dart/tools/sdks/dart-sdk/bin/dart lib/main.dart --src ../../.. --out ../../../out/licenses --golden ../../ci/licenses_golden

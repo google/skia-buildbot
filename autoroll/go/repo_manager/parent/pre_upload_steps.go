@@ -190,9 +190,9 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName s
 
 	// Step1: Run pub get.
 	licenseToolsDir := filepath.Join(parentRepoDir, "tools", "licenses")
-	pubBinary := filepath.Join(binariesPath, "pub")
-	sklog.Info("Running put get.")
-	if _, err := exec.RunCwd(ctx, licenseToolsDir, pubBinary, "get"); err != nil {
+	dartBinary := filepath.Join(binariesPath, "dart")
+	sklog.Info("Running dart pub get.")
+	if _, err := exec.RunCwd(ctx, licenseToolsDir, dartBinary, "pub", "get"); err != nil {
 		return fmt.Errorf("Error when running pub get: %s", err)
 	}
 
@@ -203,7 +203,6 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName s
 	}
 
 	// Step3: Run dart license script to create new licenses.
-	dartBinary := filepath.Join(binariesPath, "dart")
 	licensesGoldenDir := filepath.Join(parentRepoDir, "ci", "licenses_golden")
 	licenseCmd := []string{dartBinary, "lib/main.dart", "--src", "../../..", "--out", licensesOutDir, "--golden", licensesGoldenDir}
 	sklog.Infof("Running %s", licenseCmd)

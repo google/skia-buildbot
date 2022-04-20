@@ -35,17 +35,18 @@ func TestFlutterLicenseScripts(t *testing.T) {
 	unittest.LinuxOnlyTest(t)
 
 	pubErr := error(nil)
-	dartErr := error(nil)
+	mainDartErr := error(nil)
 	gitErr := error(nil)
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		pubCmd := "get"
-		dartCmd := "lib/main.dart --src ../../.. --out testing/out/licenses --golden testing/dir/ci/licenses_golden"
-		if cmd.Name == "testing/third_party/dart/tools/sdks/dart-sdk/bin/pub" && strings.Join(cmd.Args, " ") == pubCmd {
+		dartBinary := "testing/third_party/dart/tools/sdks/dart-sdk/bin/dart"
+		pubDartCmd := "pub get"
+		mainDartCmd := "lib/main.dart --src ../../.. --out testing/out/licenses --golden testing/dir/ci/licenses_golden"
+		if cmd.Name == dartBinary && strings.Join(cmd.Args, " ") == pubDartCmd {
 			return pubErr
-		} else if cmd.Name == "testing/third_party/dart/tools/sdks/dart-sdk/bin/dart" && strings.Join(cmd.Args, " ") == dartCmd {
-			return dartErr
+		} else if cmd.Name == dartBinary && strings.Join(cmd.Args, " ") == mainDartCmd {
+			return mainDartErr
 		} else if strings.Contains(cmd.Name, "git") {
 			expectedCheckoutArgs := "checkout -- pubspec.lock"
 			expectedCommitArgs := "commit -a --amend --no-edit"
@@ -68,13 +69,13 @@ func TestFlutterLicenseScripts(t *testing.T) {
 	assert.Equal(t, "Error when running pub get: pub error; Stdout+Stderr:\n", err.Error())
 
 	pubErr = error(nil)
-	dartErr = errors.New("dart error")
+	mainDartErr = errors.New("dart error")
 	err = FlutterLicenseScripts(ctx, nil, nil, "testing/dir", nil, nil)
 	assert.Error(t, err)
 	assert.Equal(t, "Error when running dart license script: dart error", err.Error())
 
 	pubErr = error(nil)
-	dartErr = error(nil)
+	mainDartErr = error(nil)
 	err = FlutterLicenseScripts(ctx, nil, nil, "testing/dir", nil, nil)
 	assert.NoError(t, err)
 }
