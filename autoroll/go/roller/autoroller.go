@@ -270,7 +270,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, 
 	if current != nil {
 		rollingTo, err := arb.getRevision(ctx, current.RollingTo)
 		if err != nil {
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 		roll, err := arb.retrieveRoll(ctx, current, rollingTo)
 		if err != nil {
@@ -597,7 +597,7 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 	sklog.Infof("tipRev is:      %s", tipRev.Id)
 	sklog.Infof("nextRollRev is: %s", nextRollRev.Id)
 	sklog.Infof("notRolledRevs:  %d (%d valid roll candidates)", len(notRolledRevs), numValid)
-	if numValid == 0 {
+	if numValid == 0 && lastRollRev.Id != nextRollRev.Id {
 		var b strings.Builder
 		for idx, rev := range notRolledRevs {
 			if idx > 4 {

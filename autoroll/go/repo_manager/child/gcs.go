@@ -179,7 +179,7 @@ func (c *gcsChild) GetRevision(ctx context.Context, id string) (*revision.Revisi
 		}
 		return nil
 	})
-	if err2 != nil && err != errStopIterating {
+	if err2 != nil && err2 != errStopIterating {
 		return nil, skerr.Wrap(err2)
 	}
 	if rv == nil {
