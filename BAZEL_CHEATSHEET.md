@@ -575,3 +575,24 @@ command. When compiling Skia, for example, this reduces compile time by 2-3x.
 
 Sandboxing can make diagnosing failing rules a bit harder. To see what command got run and to be
 able to view the sandbox after failure, add `--subcommands --sandbox_debug` to the command.
+
+
+### BUILD Debugging
+
+Bazel builds fast and correct by making use of cached outputs and reusing them when
+the input file is identical. This can make it hard to debug a slow or non-deterministic
+build.
+
+To get a detailed log of all the actions your build is taking:
+
+1. Add the following to your .bazelrc
+```
+# ensure there are no disk cache hits
+build --disk_cache=/path/to/debugging/cache
+# IMPORTANT Generate execution logs
+build --experimental_execution_log_file=yourLogFile.log
+
+```
+2. Run `bazel clean --expunge`. We want all actions to get executed, so nothing cached.
+3. Look at the yourLogFile.log, it will contain a record of every action bazel executed,
+environment variables, command line, input files, and output files of every action.
