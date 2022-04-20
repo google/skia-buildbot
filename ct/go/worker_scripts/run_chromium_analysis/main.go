@@ -160,7 +160,7 @@ func runChromiumAnalysis() error {
 	var pathToPagesets string
 	if len(customWebpages) > 0 {
 		pathToPagesets = filepath.Join(util.PagesetsDir, "custom")
-		if err := util.CreateCustomPagesets(customWebpages, pathToPagesets, *targetPlatform); err != nil {
+		if err := util.CreateCustomPagesets(customWebpages, pathToPagesets, *targetPlatform, *startRange); err != nil {
 			return err
 		}
 	} else {

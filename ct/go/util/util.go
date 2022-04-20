@@ -1365,7 +1365,7 @@ func GetCustomPagesWithinRange(startRange, num int, customWebpages []string) []s
 	return customWebpages[startIndex:endIndex]
 }
 
-func CreateCustomPagesets(webpages []string, pagesetsDir, targetPlatform string) error {
+func CreateCustomPagesets(webpages []string, pagesetsDir, targetPlatform string, startRange int) error {
 	// Empty the local dir.
 	util.RemoveAll(pagesetsDir)
 	// Create the local dir.
@@ -1378,7 +1378,7 @@ func CreateCustomPagesets(webpages []string, pagesetsDir, targetPlatform string)
 		userAgent = "desktop"
 	}
 	for i, w := range webpages {
-		pagesetPath := filepath.Join(pagesetsDir, fmt.Sprintf("%d.py", i+1))
+		pagesetPath := filepath.Join(pagesetsDir, fmt.Sprintf("%d.py", i+startRange))
 		if err := WritePageset(pagesetPath, userAgent, DEFAULT_CUSTOM_PAGE_ARCHIVEPATH, w); err != nil {
 			return err
 		}
