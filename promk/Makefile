@@ -49,7 +49,7 @@ push_config_public: gen_configmaps skia-public
 .PHONY: backup-to-gcs
 backup-to-gcs:
 	$(BAZEL) run //promk:push_backup_to_gcs_container
-	$(BAZEL) run //kube/pushk -- backup-to-gcs
+	$(BAZEL) run //kube/go/pushk -- backup-to-gcs
 
 .PHONY: push_config_corp
 push_config_corp: gen_configmaps skia-corp
@@ -67,10 +67,10 @@ release_thanos_bouce:
 	./images/thanos-bounce/release
 
 push_thanos:
-	$(BAZEL) run //kube/pushk -- thanos
+	$(BAZEL) run //kube/go/pushk -- thanos
 
 push_thanos_bounce:
-	$(BAZEL) run //kube/pushk -- thanos-bounce
+	$(BAZEL) run //kube/go/pushk -- thanos-bounce
 
 .PHONY: update_alerts
 update_alerts: push_config_thanos

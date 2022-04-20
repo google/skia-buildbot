@@ -46,15 +46,15 @@ release-jc: task-scheduler-jc
 
 .PHONY: push-be
 push-be: release-be
-	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-be
+	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-be
 
 .PHONY: push-fe
 push-fe: release-fe
-	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-fe
+	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-fe
 
 .PHONY: push-jc
 push-jc: release-jc
-	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-jc
+	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout task-scheduler-jc
 
 .PHONY: validate_db
 validate_db:

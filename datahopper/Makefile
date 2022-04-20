@@ -10,4 +10,4 @@ release: build
 
 .PHONY: push
 push: release
-	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout datahopper
+	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout datahopper

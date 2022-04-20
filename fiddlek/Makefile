@@ -49,13 +49,13 @@ release-fiddler-ci: build
 	git checkout build/*
 
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout fiddle fiddler
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout fiddle fiddler
 
 push_fiddle: release-fiddle
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout fiddle
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout fiddle
 
 push_fiddler: release-fiddler
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout fiddler
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout fiddler
 
 cli:
 	go install -v ./go/fiddlecli

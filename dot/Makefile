@@ -10,7 +10,7 @@ release: build
 	$(BAZEL) run //dot:push_dotserver_container
 
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout dotserver
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout dotserver
 
 test:
 	$(BAZEL) test go/...

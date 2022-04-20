@@ -10,4 +10,4 @@ release: build
 
 .PHONY: push
 push: release pushk
-	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout periodic-trigger
+	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout periodic-trigger

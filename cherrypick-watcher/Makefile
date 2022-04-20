@@ -9,7 +9,7 @@ release:
 	$(BAZEL) run //cherrypick-watcher:push_cherrypick_watcher_container
 
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout cherrypick-watcher
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout cherrypick-watcher
 
 testgo:
 	go test ./go/...

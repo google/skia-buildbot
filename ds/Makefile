@@ -7,7 +7,7 @@ release: build
 	${BAZEL} run //ds:push_datastore_backup_container
 
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout datastore-backup-k
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout datastore-backup-k
 
 indexes:
 	gcloud datastore create-indexes ./index.yaml

@@ -19,4 +19,4 @@ release: build
 	$(BAZEL) run //leasing:push_leasing_container
 
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout leasing
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout leasing

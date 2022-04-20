@@ -19,4 +19,4 @@ release: build
 	$(BAZEL) run //status:push_status_container
 
 push: release
-	$(BAZEL) run //kube/pushk -- --message="$(MESSAGE)" --use-temp-checkout status
+	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout status

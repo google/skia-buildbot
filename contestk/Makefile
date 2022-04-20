@@ -8,4 +8,4 @@ release: build
 	${BAZEL} run //contestk:push_contest_container
 
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout contest
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout contest

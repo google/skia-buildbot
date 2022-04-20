@@ -33,7 +33,7 @@ release: build
 	git clean -fxq docs/* elements-sk/* infra-sk/*
 
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout jsdoc
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout jsdoc
 
 # Set DOCKER_IMAGE to the image you want to run locally.
 run-local:

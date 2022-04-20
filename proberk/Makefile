@@ -21,7 +21,7 @@ update-expectations:
 
 .PHONY: push
 push: pushk release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout proberk
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout proberk
 
 run-local-instance: build
 	$(BAZEL) run //proberk/go/proberk -- \

@@ -10,4 +10,4 @@ release:
 
 .PHONY: push
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout trybot-updater
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout trybot-updater

@@ -26,5 +26,5 @@ release: build
 	$(BAZEL) run //bugs-central:push_bugs_central_container
 
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout bugs-central
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout bugs-central
 

@@ -29,7 +29,7 @@ release-fe: build-fe
 	$(BAZEL) run //skcq:push_skcq_fe_container
 
 push-fe: release-fe
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout skcq-fe
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout skcq-fe
 
 
 # BACKEND TARGETS
@@ -44,7 +44,7 @@ release-be: build-be
 	$(BAZEL) run //skcq:push_skcq_be_container
 
 push-be: release-be
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout skcq-be
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout skcq-be
 
 
 # FRONTEND+BACKEND TARGETS

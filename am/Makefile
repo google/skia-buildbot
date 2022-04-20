@@ -29,7 +29,7 @@ release-am: build-am
 	$(BAZEL) run //am:push_alert_manager_container
 
 push-am: release-am
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout alert-manager
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout alert-manager
 
 
 # ALERT-TO-PUBSUB TARGETS
@@ -41,7 +41,7 @@ release-atp: build-atp
 	$(BAZEL) run //am:push_alert_to_pubsub_container
 
 push-atp: release-atp
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout alert-to-pubsub
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout alert-to-pubsub
 
 VERSION := $(shell ../bash/release_tag.sh)
 

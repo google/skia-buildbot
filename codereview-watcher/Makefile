@@ -9,7 +9,7 @@ release:
 	$(BAZEL) run //codereview-watcher:push_codereview_watcher_container
 
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout codereview-watcher
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout codereview-watcher
 
 testgo:
 	go test ./go/...

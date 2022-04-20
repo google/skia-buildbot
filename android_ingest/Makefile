@@ -14,7 +14,7 @@ release: build
 
 .PHONY: push
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout androidingest
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout androidingest
 
 # Get the exact service account key, so we know that it has access to the API.
 service-account.json:

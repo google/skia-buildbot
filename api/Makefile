@@ -24,4 +24,4 @@ release-api-ci:
 	git clean -f -d -q docs/
 
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout api
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout api

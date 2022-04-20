@@ -12,4 +12,4 @@ release:
 	$(BAZEL) run //docker_pushes_watcher:push_docker_pushes_watcher_container
 
 push: release
-	$(BAZEL) run //kube/pushk -- --use-temp-checkout docker_pushes_watcher
+	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout docker_pushes_watcher
