@@ -30,6 +30,7 @@ var testPackages = []string{
 	"go.skia.org/infra/perf/go/regression/regressiontest",
 	"go.skia.org/infra/perf/go/git/gittest",
 	"go.skia.org/infra/golden/go/sql/sqltest",
+	"go.skia.org/infra/go/gcs/test_gcsclient",
 }
 
 // TODO(borenet): this list should be empty.
@@ -54,6 +55,8 @@ var legacyTestImportExceptions = map[string][]string{
 		"go.skia.org/infra/go/mockhttpclient",
 		"go.skia.org/infra/go/testutils",
 		"go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils",
+		"go.skia.org/infra/go/buildbucket/mocks",
+		"go.skia.org/infra/go/cas/mocks",
 	},
 }
 
@@ -64,6 +67,7 @@ func isTestPackage(pkg string) bool {
 	return strings.HasSuffix(pkg, "shared_tests") ||
 		strings.HasSuffix(pkg, "testutil") ||
 		strings.HasSuffix(pkg, "testutils") ||
+		strings.HasSuffix(pkg, "mocks") ||
 		util.In(pkg, testPackages)
 }
 

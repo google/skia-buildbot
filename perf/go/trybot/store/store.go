@@ -1,5 +1,5 @@
 // Package store stores the results from trybot runs.
-package store
+package store // import "go.skia.org/infra/perf/go/trybot/store"
 
 import (
 	"context"
@@ -8,19 +8,6 @@ import (
 	"go.skia.org/infra/perf/go/trybot"
 	"go.skia.org/infra/perf/go/types"
 )
-
-// ListResult is returned from TryBotStore.List().
-type ListResult struct {
-	CL    string
-	Patch int
-}
-
-// GetResult is returned from TryBotStore.Get() and represents a single trace
-// result.
-type GetResult struct {
-	TraceName string
-	Value     float32
-}
 
 // TryBotStore stores trybot results.
 type TryBotStore interface {
@@ -33,4 +20,17 @@ type TryBotStore interface {
 
 	// Get all the results for a given cl and patch number.
 	Get(ctx context.Context, cl types.CL, patch int) ([]GetResult, error)
+}
+
+// ListResult is returned from TryBotStore.List().
+type ListResult struct {
+	CL    string
+	Patch int
+}
+
+// GetResult is returned from TryBotStore.Get() and represents a single trace
+// result.
+type GetResult struct {
+	TraceName string
+	Value     float32
 }

@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name GitilesLogger --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name GitilesLogger  --srcpkg=go.skia.org/infra/golden/cmd/gitilesfollower --output ${PWD}

@@ -13,7 +13,7 @@ go_library(
         "//go/sklog",
         "//go/util",
         "@com_github_googleapis_gax_go_v2//:gax-go",
-        "@com_google_cloud_go//monitoring/apiv3",
+        "@com_google_cloud_go_monitoring//apiv3",
         "@go_googleapis//google/monitoring/v3:monitoring_go_proto",
         "@org_golang_google_api//iterator",
         "@org_golang_google_api//option",

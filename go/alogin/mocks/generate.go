@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name Login --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name Login  --srcpkg=go.skia.org/infra/go/alogin --output ${PWD}

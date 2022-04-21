@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name API --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name API  --srcpkg=go.skia.org/infra/golden/go/search --output ${PWD}

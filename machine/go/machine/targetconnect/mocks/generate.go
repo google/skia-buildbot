@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name RevPortForward --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name RevPortForward  --srcpkg=go.skia.org/infra/machine/go/machine/targetconnect --output ${PWD}

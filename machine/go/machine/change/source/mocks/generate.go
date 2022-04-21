@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name Source --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name Source  --srcpkg=go.skia.org/infra/machine/go/machine/change/source --output ${PWD}

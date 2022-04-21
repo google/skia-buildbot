@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name CodeReview --dir ../ --output .
+//go:generate bazelisk run //:mockery -- --name CodeReview  --srcpkg=go.skia.org/infra/docsyserver/go/codereview --output ${PWD}

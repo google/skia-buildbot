@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name ConfigReader --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name ConfigReader  --srcpkg=go.skia.org/infra/skcq/go/config --output ${PWD}

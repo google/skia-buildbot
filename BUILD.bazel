@@ -450,8 +450,6 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/common",
-        "//go/git",
-        "//go/skerr",
         "//go/sklog",
         "//go/testutils/unittest",
         "//go/timer",
@@ -500,4 +498,14 @@ genrule(
           "cd $(@D)/tmp_task_drivers && tar --file ../built_task_drivers.tar --create . && " +
           # Delete the temp folder (as per the recommendation above)
           "cd .. && rm -rf tmp_task_drivers",
+)
+
+###########
+# Mockery #
+###########
+
+alias(
+    name = "mockery",
+    actual = "@com_github_vektra_mockery_v2//:v2",
+    visibility = ["//visibility:public"],
 )

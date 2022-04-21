@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name ModeHistory --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name ModeHistory  --srcpkg=go.skia.org/infra/autoroll/go/modes --output ${PWD}

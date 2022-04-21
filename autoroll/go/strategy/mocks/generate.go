@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name StrategyHistory --dir ../ --output .
+//go:generate bazelisk run //:mockery -- --name StrategyHistory --srcpkg=go.skia.org/infra/autoroll/go/strategy --output ${PWD}

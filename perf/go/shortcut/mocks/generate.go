@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name Store --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name Store  --srcpkg=go.skia.org/infra/perf/go/shortcut --output ${PWD}

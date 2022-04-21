@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name GitilesRepo --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name GitilesRepo  --srcpkg=go.skia.org/infra/go/gitiles --output ${PWD}

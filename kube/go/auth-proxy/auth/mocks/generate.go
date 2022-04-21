@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name Auth --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name Auth  --srcpkg=go.skia.org/infra/kube/go/auth-proxy/auth --output ${PWD}

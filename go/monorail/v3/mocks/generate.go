@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name IMonorailService --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name IMonorailService  --srcpkg=go.skia.org/infra/go/monorail/v3 --output ${PWD}

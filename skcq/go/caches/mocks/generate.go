@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name CurrentChangesCache --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name CurrentChangesCache  --srcpkg=go.skia.org/infra/skcq/go/caches --output ${PWD}

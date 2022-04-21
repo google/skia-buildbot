@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name Application --dir ../ --output .
+//go:generate bazelisk run //:mockery -- --name Application --srcpkg=go.skia.org/infra/perf/go/perf-tool/application --output ${PWD}

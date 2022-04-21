@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name BuildBucketInterface --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name BuildBucketInterface  --srcpkg=go.skia.org/infra/go/buildbucket --output ${PWD}

@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name TryBotStore --dir ../ --output .
+//go:generate bazelisk run //:mockery -- --name TryBotStore  --srcpkg=go.skia.org/infra/perf/go/trybot/store --output ${PWD}

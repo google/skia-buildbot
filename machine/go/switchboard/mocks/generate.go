@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name Switchboard --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name Switchboard  --srcpkg=go.skia.org/infra/machine/go/switchboard --output ${PWD}

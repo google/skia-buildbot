@@ -5,7 +5,6 @@ package main
 */
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -21,8 +20,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/timer"
@@ -164,85 +161,6 @@ func pythonTest(testPath string) *test {
 	return cmdTest([]string{"python", testPath}, ".", path.Base(testPath), unittest.SMALL_TEST)
 }
 
-// Verify that "go generate ./..." produces no diffs.
-func goGenerate() *test {
-	cmd := []string{"go", "generate", "./..."}
-	return &test{
-		Name: "go generate",
-		Cmd:  strings.Join(cmd, " "),
-		run: func() (string, error) {
-			// Run "git diff" to get a baseline.
-			gitExec, err := git.Executable(context.Background())
-			if err != nil {
-				return "", err
-			}
-			diff, err := exec.Command(gitExec, "diff", "--no-ext-diff").CombinedOutput()
-			if err != nil {
-				return string(diff), skerr.Wrapf(err, "Failed to run git diff")
-			}
-
-			err = checkMockeryIsUpToDate()
-			if err != nil {
-				return "", skerr.Wrapf(err, "Could not verify mockery version")
-			}
-
-			// Run "go generate".
-			command := exec.Command(cmd[0], cmd[1:]...)
-			outputBytes, err := command.CombinedOutput()
-			if err != nil {
-				return string(outputBytes), skerr.Wrapf(err, "Failed to run go generate")
-			}
-
-			// Run "git diff" again and assert that the diff didn't
-			// change.
-			diff2, err := exec.Command(gitExec, "diff", "--no-ext-diff").CombinedOutput()
-			if err != nil {
-				return string(diff2), skerr.Wrapf(err, "Failed to run git diff the second time")
-			}
-			if string(diff) != string(diff2) {
-				return fmt.Sprintf("Diff before:\n%s\n\nDiff after:\n%s", string(diff), string(diff2)), skerr.Fmt("go generate created new diffs!")
-			}
-			return "", nil
-		},
-		Type: unittest.LARGE_TEST,
-	}
-}
-
-// checkMockeryIsUpToDate makes sure that the version of mockery on the path is the correct version
-// (on Linux; on other platforms, it is a no op). It will delete old versions until it finds a
-// correct version. If we cannot find it, we return an error. This is to work around the fact
-// that we changed mockery to be something installed via go get to something brought in via CIPD.
-// The gocache held onto the out of date version and we want to clean it up with this approach.
-func checkMockeryIsUpToDate() error {
-	if runtime.GOOS != "linux" {
-		return nil
-	}
-	for {
-		// Keep looking for a mockery version on PATH. If it is the wrong version, delete it.
-		o, err := exec.Command("which", "mockery").CombinedOutput()
-		if err != nil {
-			return skerr.Wrapf(err, "Make sure mockery is installed and on your PATH. See Readme. %s", string(o))
-		}
-		mExe := strings.TrimSpace(string(o))
-		if mExe == "" {
-			return skerr.Wrapf(err, "Make sure mockery is installed and on your PATH. See Readme. %s", string(o))
-		}
-		o, err = exec.Command(mExe, "--version").Output() // newer mockery have noisy stderr
-		if err != nil {
-			return skerr.Wrapf(err, "getting mockery version from %s", mExe)
-		}
-		mVers := strings.TrimSpace(string(o))
-		if mVers == mockeryVersion {
-			sklog.Infof("Found mockery executable %s with good version %s", mExe, mVers)
-			return nil
-		}
-		sklog.Warningf("Invalid mockery version found %s with version %s. Deleting it.", mExe, mVers)
-		if err := os.Remove(mExe); err != nil {
-			return skerr.Wrapf(err, "removing %s (with version %s)", mExe, mVers)
-		}
-	}
-}
-
 // test is a struct which represents a single test to run.
 type test struct {
 	// Name is the human-friendly name of the test.
@@ -342,7 +260,7 @@ func main() {
 
 	// Gather all of the tests to run.
 	sklog.Info("Searching for tests.")
-	tests := []*test{goGenerate()}
+	tests := []*test{}
 	var gotests []*test
 
 	// Search for Python tests and Go dirs to test in the repo.

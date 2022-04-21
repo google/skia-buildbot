@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name Window --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name Window  --srcpkg=go.skia.org/infra/task_scheduler/go/window --output ${PWD}

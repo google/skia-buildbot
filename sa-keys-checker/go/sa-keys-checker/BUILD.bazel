@@ -13,7 +13,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "@com_google_cloud_go//iam/admin/apiv1",
+        "@com_google_cloud_go_iam//admin/apiv1",
         "@go_googleapis//google/iam/admin/v1:admin_go_proto",
         "@org_golang_google_api//iterator",
         "@org_golang_google_api//option",

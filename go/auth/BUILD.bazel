@@ -13,7 +13,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "@com_google_cloud_go//compute/metadata",
+        "@com_google_cloud_go_compute//metadata",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@org_golang_google_api//compute/v1:compute",
         "@org_golang_google_api//iam/v1:iam",

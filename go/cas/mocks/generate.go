@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name CAS --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name CAS  --srcpkg=go.skia.org/infra/go/cas --output ${PWD}

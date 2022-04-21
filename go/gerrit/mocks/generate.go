@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name GerritInterface --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name GerritInterface  --srcpkg=go.skia.org/infra/go/gerrit --output ${PWD}

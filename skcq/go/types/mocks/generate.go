@@ -1,5 +1,5 @@
 package mocks
 
-//go:generate mockery --name ThrottlerManager --dir ../ --output .
-//go:generate mockery --name Verifier --dir ../ --output .
-//go:generate mockery --name VerifiersManager --dir ../ --output .
+//go:generate bazelisk run //:mockery   -- --name ThrottlerManager  --srcpkg=go.skia.org/infra/skcq/go/types --output ${PWD}
+//go:generate bazelisk run //:mockery   -- --name Verifier  --srcpkg=go.skia.org/infra/skcq/go/types --output ${PWD}
+//go:generate bazelisk run //:mockery   -- --name VerifiersManager  --srcpkg=go.skia.org/infra/skcq/go/types --output ${PWD}

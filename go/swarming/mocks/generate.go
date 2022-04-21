@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery --name ApiClient --dir .. --output .
+//go:generate bazelisk run //:mockery   -- --name ApiClient --srcpkg=go.skia.org/infra/go/swarming --output ${PWD}
