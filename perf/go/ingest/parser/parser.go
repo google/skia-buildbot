@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/types"
@@ -27,21 +26,19 @@ var (
 
 // Parser parses file.Files contents into a form suitable for writing to trace.Store.
 type Parser struct {
-	instanceConfig   *config.InstanceConfig
 	parseCounter     metrics2.Counter
 	parseFailCounter metrics2.Counter
 	branchNames      map[string]bool
 }
 
 // New creates a new instance of Parser.
-func New(instanceConfig *config.InstanceConfig) *Parser {
+func New(branches []string) *Parser {
 	ret := &Parser{
-		instanceConfig:   instanceConfig,
 		parseCounter:     metrics2.GetCounter("perf_ingest_parser_parse", nil),
 		parseFailCounter: metrics2.GetCounter("perf_ingest_parser_parse_failed", nil),
 		branchNames:      map[string]bool{},
 	}
-	for _, branchName := range instanceConfig.IngestionConfig.Branches {
+	for _, branchName := range branches {
 		ret.branchNames[branchName] = true
 	}
 	return ret

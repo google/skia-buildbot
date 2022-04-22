@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/types"
@@ -82,12 +81,7 @@ func TestParser(t *testing.T) {
 
 func parserForTest(t *testing.T, subdir, filename string) (*Parser, file.File) {
 	unittest.SmallTest(t)
-	instanceConfig := &config.InstanceConfig{
-		IngestionConfig: config.IngestionConfig{
-			Branches: []string{goodBranchName},
-		},
-	}
-	ret := New(instanceConfig)
+	ret := New([]string{goodBranchName})
 	ret.parseCounter.Reset()
 	ret.parseFailCounter.Reset()
 

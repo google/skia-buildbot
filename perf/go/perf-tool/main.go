@@ -374,16 +374,11 @@ func actualMain(app application.Application) {
 						Name:        "validate",
 						Description: "Validate an ingestion file",
 						Flags: []cli.Flag{
-							configFilenameFlag,
 							inputFilenameFlag,
 							verboseFlag,
 						},
 						Action: func(c *cli.Context) error {
-							instanceConfig, err := instanceConfigFromFlags(c)
-							if err != nil {
-								return skerr.Wrap(err)
-							}
-							return app.IngestValidate(instanceConfig, c.String(inputFilenameFlag.Name), c.Bool(verboseFlag.Name))
+							return app.IngestValidate(c.String(inputFilenameFlag.Name), c.Bool(verboseFlag.Name))
 						},
 					},
 				},

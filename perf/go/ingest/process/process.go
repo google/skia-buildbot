@@ -71,7 +71,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 	successfulWriteCount := metrics2.GetCounter("perfserver_ingest_num_points_written")
 
 	// New Parser.
-	p := parser.New(instanceConfig)
+	p := parser.New(instanceConfig.IngestionConfig.Branches)
 
 	for f := range ch {
 		if err := ctx.Err(); err != nil {

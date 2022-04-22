@@ -55,7 +55,7 @@ func ingestParser() *parser.Parser {
 			Branches: nil,
 		},
 	}
-	return parser.New(instanceConfig)
+	return parser.New(instanceConfig.IngestionConfig.Branches)
 }
 
 func TestLoad_Success(t *testing.T) {

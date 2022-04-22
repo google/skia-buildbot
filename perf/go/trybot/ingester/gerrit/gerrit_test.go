@@ -22,7 +22,7 @@ func setupForTest(t *testing.T, filename string) (*parser.Parser, file.File) {
 			Branches: []string{}, // Branches are ignored by ParseTryBot.
 		},
 	}
-	p := parser.New(instanceConfig)
+	p := parser.New(instanceConfig.IngestionConfig.Branches)
 
 	return p, file.File{
 		Name:     filename,

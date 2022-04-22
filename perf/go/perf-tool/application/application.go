@@ -56,7 +56,7 @@ type Application interface {
 	TracesList(store tracestore.TraceStore, queryString string, tileNumber types.TileNumber) error
 	TracesExport(store tracestore.TraceStore, queryString string, begin, end types.CommitNumber, outputFile string) error
 	IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool) error
-	IngestValidate(instanceConfig *config.InstanceConfig, inputFile string, verbose bool) error
+	IngestValidate(inputFile string, verbose bool) error
 	TrybotReference(local bool, store tracestore.TraceStore, instanceConfig *config.InstanceConfig, trybotFilename string, outputFilename string, numCommits int) error
 }
 
@@ -737,7 +737,7 @@ func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig
 	return nil
 }
 
-func (app) IngestValidate(instanceConfig *config.InstanceConfig, inputFile string, verbose bool) error {
+func (app) IngestValidate(inputFile string, verbose bool) error {
 	ctx := context.Background()
 	err := util.WithReadFile(inputFile, func(r io.Reader) error {
 		schemaViolations, err := format.Validate(ctx, r)
@@ -761,7 +761,7 @@ func (app) IngestValidate(instanceConfig *config.InstanceConfig, inputFile strin
 			Name:     inputFile,
 			Contents: ioutil.NopCloser(r),
 		}
-		p, v, hash, err := parser.New(instanceConfig).Parse(f)
+		p, v, hash, err := parser.New(nil).Parse(f)
 		if err != nil {
 			return fmt.Errorf("Parse Failed: %s", skerr.Unwrap(err))
 		}
@@ -786,7 +786,7 @@ func (app) TrybotReference(local bool, store tracestore.TraceStore, instanceConf
 		return skerr.Wrap(err)
 	}
 
-	ingestParser := parser.New(instanceConfig)
+	ingestParser := parser.New(instanceConfig.IngestionConfig.Branches)
 	u, err := url.Parse(trybotFilename)
 	if err != nil {
 		return skerr.Wrapf(err, "Trybot filename must be a full GCS url, e.g. gs://...")
