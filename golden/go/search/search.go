@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -153,8 +152,16 @@ type AffectedGrouping struct {
 	UntriagedDigests int
 	SampleDigest     types.Digest
 
-	// groupingID is used as an intermediate step
+	// groupingID is used as an intermediate step in combineIntoRanges, and to search by blame ID.
 	groupingID schema.MD5Hash
+
+	// traceIDsAndDigests is used to search by blame ID.
+	traceIDsAndDigests []traceIDAndDigest
+}
+
+type traceIDAndDigest struct {
+	id     schema.TraceID
+	digest schema.DigestBytes
 }
 
 type ClusterOptions struct {
@@ -915,10 +922,8 @@ MatchingTraces ON MatchingDigests.grouping_id = MatchingTraces.grouping_id AND
 	return rv, nil
 }
 
-// getTracesForBlame returns the traces that match the given blameID. That is, those traces which
-// have untriaged digests at head and at the given commit or in the range of commits as specified
-// by blameID. The blameID is either a single commit id or two commitIDs that represent an inclusive
-// range.
+// getTracesForBlame returns the traces that match the given blameID. It mirrors the behavior of
+// method GetBlamesForUntriagedDigests. See function combineIntoRanges for details.
 func (s *Impl) getTracesForBlame(ctx context.Context, corpus string, blameID string) ([]stageOneResult, error) {
 	ctx, span := trace.StartSpan(ctx, "getTracesForBlame")
 	defer span.End()
@@ -937,63 +942,42 @@ func (s *Impl) getTracesForBlame(ctx context.Context, corpus string, blameID str
 	if len(traces) == 0 {
 		return nil, nil // No data, we can stop here
 	}
-
-	// Assume blameID is a single commit
-	startCommit, endCommit := blameID, blameID
-	// Check to see if it's in two parts otherwise.
-	if parts := strings.Split(blameID, ":"); len(parts) == 2 {
-		startCommit = parts[0]
-		endCommit = parts[1]
-	}
-	// This SQL finds the first digest seen before the range and the first digest seen after
-	// the range for all traces. It then returns only those traces whose digest after is untriaged
-	// and the digest before is either triaged or null. This will indicate the change from
-	// triaged to untriaged started within the range, which is what the blame range fundamentally
-	// means.
-	const statement = `WITH
-FirstDigestBeforeRange AS (
-	SELECT DISTINCT ON (trace_id)
-		trace_id, grouping_id, digest FROM TraceValues@trace_commit_idx
-	WHERE trace_id = ANY($1) AND commit_id > $2 AND commit_id < $3
-	ORDER BY trace_id, commit_id DESC
-),
-FirstDigestAfterRange AS (
-	SELECT DISTINCT ON (trace_id)
-		trace_id, grouping_id, digest, commit_id FROM TraceValues@trace_commit_idx
-	WHERE trace_id = ANY($1) AND commit_id >= $4
-	ORDER BY trace_id, commit_id ASC
-),
-TriagedBeforeRange AS (
-	SELECT trace_id, label FROM FirstDigestBeforeRange
-	JOIN Expectations ON FirstDigestBeforeRange.grouping_id = Expectations.grouping_id AND
-	FirstDigestBeforeRange.digest = Expectations.digest
-),
-UntriagedAfterRange AS (
-	SELECT FirstDigestAfterRange.* FROM FirstDigestAfterRange
-	JOIN Expectations ON FirstDigestAfterRange.grouping_id = Expectations.grouping_id AND
-	FirstDigestAfterRange.digest = Expectations.digest
-	WHERE label = 'u'
-)
-SELECT UntriagedAfterRange.trace_id, UntriagedAfterRange.grouping_id, UntriagedAfterRange.digest FROM
-	UntriagedAfterRange LEFT JOIN
-	TriagedBeforeRange ON UntriagedAfterRange.trace_id = TriagedBeforeRange.trace_id
-	-- If before is null, then the trace just started. We only want to show traces that started
-	-- at the end of our range.
-	WHERE (TriagedBeforeRange.label IS NULL AND UntriagedAfterRange.commit_id = $4)
-		OR TriagedBeforeRange.label = 'n' OR TriagedBeforeRange.label = 'p'
-`
-	rows, err := s.db.Query(ctx, statement, traces, getFirstCommitID(ctx), startCommit, endCommit)
+	ctx, err = s.addCommitsData(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	defer rows.Close()
+	// Return the trace histories for those traces, as well as a mapping of the unique
+	// digest+grouping pairs in order to get expectations.
+	histories, _, err := s.getHistoriesForTraces(ctx, tracesByDigest)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// Expand grouping_ids into full params.
+	groupings, err := s.expandGroupings(ctx, tracesByDigest)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	commits, err := s.getCommits(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// Look at trace histories and identify ranges of commits that caused us to go from drawing
+	// triaged digests to untriaged digests.
+	ranges := combineIntoRanges(ctx, histories, groupings, commits)
+
 	var rv []stageOneResult
-	for rows.Next() {
-		var row stageOneResult
-		if err := rows.Scan(&row.traceID, &row.groupingID, &row.digest); err != nil {
-			return nil, skerr.Wrap(err)
+	for _, r := range ranges {
+		if r.CommitRange == blameID {
+			for _, ag := range r.AffectedGroupings {
+				for _, traceIDAndDigest := range ag.traceIDsAndDigests {
+					rv = append(rv, stageOneResult{
+						traceID:    traceIDAndDigest.id,
+						groupingID: ag.groupingID[:],
+						digest:     traceIDAndDigest.digest,
+					})
+				}
+			}
 		}
-		rv = append(rv, row)
 	}
 	return rv, nil
 }
@@ -2546,12 +2530,7 @@ func (s *Impl) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) 
 	}
 	// Return the trace histories for those traces, as well as a mapping of the unique
 	// digest+grouping pairs in order to get expectations.
-	histories, digestsByGrouping, err := s.getHistoriesForTraces(ctx, tracesByDigest)
-	if err != nil {
-		return BlameSummaryV1{}, skerr.Wrap(err)
-	}
-	// Look up the expectations.
-	exp, err := s.getExpectations(ctx, digestsByGrouping)
+	histories, _, err := s.getHistoriesForTraces(ctx, tracesByDigest)
 	if err != nil {
 		return BlameSummaryV1{}, skerr.Wrap(err)
 	}
@@ -2566,7 +2545,7 @@ func (s *Impl) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) 
 	}
 	// Look at trace histories and identify ranges of commits that caused us to go from drawing
 	// triaged digests to untriaged digests.
-	ranges := combineIntoRanges(ctx, histories, groupings, commits, exp)
+	ranges := combineIntoRanges(ctx, histories, groupings, commits)
 	return BlameSummaryV1{
 		Ranges: ranges,
 	}, nil
@@ -2648,7 +2627,12 @@ func (s *Impl) applyPublicFilter(ctx context.Context, data map[groupingDigestKey
 // at head. It includes the histories of all traces that are
 type untriagedDigestAtHead struct {
 	atHead groupingDigestKey
-	traces []traceData
+	traces []traceIDAndData
+}
+
+type traceIDAndData struct {
+	id   schema.TraceID
+	data traceData
 }
 
 // getHistoriesForTraces looks up the commits in the current window (aka the trace history) for all
@@ -2677,7 +2661,7 @@ ORDER BY trace_id`
 	defer rows.Close()
 	traceLength := getActualWindowLength(ctx)
 	commitIdxMap := getCommitToIdxMap(ctx)
-	tracesByDigest := make(map[groupingDigestKey][]traceData, len(traces))
+	tracesByDigest := make(map[groupingDigestKey][]traceIDAndData, len(traces))
 	uniqueDigestsByGrouping := map[groupingDigestKey]bool{}
 	var currentTraceID schema.TraceID
 	var currentTraceData traceData
@@ -2701,7 +2685,10 @@ ORDER BY trace_id`
 			// Make a new slice of digests (traceData) and associated it with the correct
 			// grouping+digest
 			currentTraceData = make(traceData, traceLength)
-			tracesByDigest[gdk] = append(tracesByDigest[gdk], currentTraceData)
+			tracesByDigest[gdk] = append(tracesByDigest[gdk], traceIDAndData{
+				id:   currentTraceID,
+				data: currentTraceData,
+			})
 		}
 		idx, ok := commitIdxMap[commitID]
 		if !ok {
@@ -2799,9 +2786,11 @@ func (s *Impl) expandGroupings(ctx context.Context, groupings map[groupingDigest
 // multiple commits in the window that have affected different tests, so this algorithm combines
 // ranges and returns them as a slice, with the commits that produced the most untriaged digests
 // coming first. It is recommended to look at the tests for this function to see some examples.
-func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, groupings map[schema.MD5Hash]paramtools.Params, commits []frontend.Commit, exp map[expectationKey]expectations.Label) []BlameEntry {
+func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, groupings map[schema.MD5Hash]paramtools.Params, commits []frontend.Commit) []BlameEntry {
 	ctx, span := trace.StartSpan(ctx, "combineIntoRanges")
 	defer span.End()
+
+	type tracesByBlameRange map[string][]schema.TraceID
 
 	entriesByRange := map[string]BlameEntry{}
 	for _, data := range digests {
@@ -2814,16 +2803,23 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 		blameStartIdx := -1
 		// First commit to produce the untriaged digest at head.
 		blameEndIdx := len(commits)
+		// (trace ID, digest) pairs for all traces that are drawing the untriaged digest at head.
+		var traceIDsAndDigests []traceIDAndDigest
 
 		for _, tr := range data.traces {
+			traceIDsAndDigests = append(traceIDsAndDigests, traceIDAndDigest{
+				id:     tr.id,
+				digest: key.digest[:],
+			})
+
 			// Identify the range at which the latest untriaged digest first occurred. For example,
 			// the range at which the latest untriaged digest "c" first occurred in trace
 			// "AAA-b--cc-" is 5:7.
 			latestUntriagedDigestFound := false
 			latestUntriagedDigestEarliestOccurrenceStartIdx := -1
 			latestUntriagedDigestEarliestOccurrenceEndIdx := len(commits)
-			for i := len(tr) - 1; i >= 0; i-- {
-				digest := tr[i]
+			for i := len(tr.data) - 1; i >= 0; i-- {
+				digest := tr.data[i]
 				if !latestUntriagedDigestFound {
 					if digest == tiling.MissingDigest {
 						continue
@@ -2871,15 +2867,17 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 			if ag.groupingID == key.groupingID {
 				found = true
 				ag.UntriagedDigests++
+				ag.traceIDsAndDigests = append(ag.traceIDsAndDigests, traceIDsAndDigests...)
 				break
 			}
 		}
 		if !found {
 			entry.AffectedGroupings = append(entry.AffectedGroupings, &AffectedGrouping{
-				Grouping:         groupings[key.groupingID],
-				UntriagedDigests: 1,
-				SampleDigest:     types.Digest(hex.EncodeToString(key.digest[:])),
-				groupingID:       key.groupingID,
+				Grouping:           groupings[key.groupingID],
+				UntriagedDigests:   1,
+				SampleDigest:       types.Digest(hex.EncodeToString(key.digest[:])),
+				groupingID:         key.groupingID,
+				traceIDsAndDigests: traceIDsAndDigests,
 			})
 		}
 		entriesByRange[blameRange] = entry
@@ -2887,9 +2885,6 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 	// Sort data so the "biggest changes" come first (and perform other cleanups)
 	blameEntries := make([]BlameEntry, 0, len(entriesByRange))
 	for _, entry := range entriesByRange {
-		for _, ag := range entry.AffectedGroupings {
-			ag.groupingID = schema.MD5Hash{} // cleanup, since we no longer need it
-		}
 		sort.Slice(entry.AffectedGroupings, func(i, j int) bool {
 			if entry.AffectedGroupings[i].UntriagedDigests == entry.AffectedGroupings[j].UntriagedDigests {
 				// Tiebreak on sample digest
@@ -2898,6 +2893,22 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 			// Otherwise, put the grouping with the most digests first
 			return entry.AffectedGroupings[i].UntriagedDigests > entry.AffectedGroupings[j].UntriagedDigests
 		})
+		for _, ag := range entry.AffectedGroupings {
+			// Sort the traceIDsAndDigests to ensure a deterministic response.
+			sort.Slice(ag.traceIDsAndDigests, func(i, j int) bool {
+				traceComparison := bytes.Compare(ag.traceIDsAndDigests[i].id, ag.traceIDsAndDigests[j].id)
+				if traceComparison == -1 {
+					return true
+				} else if traceComparison == 0 {
+					// Tiebreak on the digest.
+					if bytes.Compare(ag.traceIDsAndDigests[i].digest, ag.traceIDsAndDigests[j].digest) == -1 {
+						return true
+					}
+					return false
+				}
+				return false
+			})
+		}
 		blameEntries = append(blameEntries, entry)
 	}
 	// Sort so those ranges with more untriaged digests come first.

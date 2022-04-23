@@ -573,7 +573,7 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "0b61c8d85467fc95b1306128ceb2ef6d",
-					DigestIndices: []int{-1, 2, -1, -1, 2, -1, -1, 0, -1, -1},
+					DigestIndices: []int{-1, 2, -1, -1, -1, -1, -1, 0, -1, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.GreyColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -584,7 +584,7 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 					},
 				}, {
 					ID:            "22b530e029c22e396c5a24c0900c9ed5",
-					DigestIndices: []int{1, -1, 1, -1, 1, -1, 1, -1, 0, -1},
+					DigestIndices: []int{1, -1, 1, -1, -1, -1, -1, -1, 0, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -595,7 +595,7 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 					},
 				}, {
 					ID:            "273119ca291863331e906fe71bde0e7d",
-					DigestIndices: []int{1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+					DigestIndices: []int{1, 1, 1, 1, 1, -1, -1, -1, -1, 0},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -606,7 +606,7 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 					},
 				}, {
 					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
-					DigestIndices: []int{2, 2, 2, 2, 2, 2, 2, 0, 0, 0},
+					DigestIndices: []int{2, 2, -1, -1, -1, -1, -1, -1, 0, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.GreyColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -819,7 +819,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 	assert.Equal(t, frontend.TraceGroup{
 		Traces: []frontend.Trace{{
 			ID:            "0b61c8d85467fc95b1306128ceb2ef6d",
-			DigestIndices: []int{-1, 2, -1, -1, 2, -1, -1, 0, -1, -1},
+			DigestIndices: []int{-1, 2, -1, -1, -1, -1, -1, 0, -1, -1},
 			Params: paramtools.Params{
 				dks.ColorModeKey:      dks.GreyColorMode,
 				types.CorpusField:     dks.RoundCorpus,
@@ -830,7 +830,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 			},
 		}, {
 			ID:            "22b530e029c22e396c5a24c0900c9ed5",
-			DigestIndices: []int{1, -1, 1, -1, 1, -1, 1, -1, 0, -1},
+			DigestIndices: []int{1, -1, 1, -1, -1, -1, -1, -1, 0, -1},
 			Params: paramtools.Params{
 				dks.ColorModeKey:      dks.RGBColorMode,
 				types.CorpusField:     dks.RoundCorpus,
@@ -841,7 +841,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 			},
 		}, {
 			ID:            "273119ca291863331e906fe71bde0e7d",
-			DigestIndices: []int{1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+			DigestIndices: []int{1, 1, 1, 1, 1, -1, -1, -1, -1, 0},
 			Params: paramtools.Params{
 				dks.ColorModeKey:      dks.RGBColorMode,
 				types.CorpusField:     dks.RoundCorpus,
@@ -852,7 +852,7 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 			},
 		}, {
 			ID:            "3b44c31afc832ef9d1a2d25a5b873152",
-			DigestIndices: []int{2, 2, 2, 2, 2, 2, 2, 0, 0, 0},
+			DigestIndices: []int{2, 2, -1, -1, -1, -1, -1, -1, 0, -1},
 			Params: paramtools.Params{
 				dks.ColorModeKey:      dks.GreyColorMode,
 				types.CorpusField:     dks.RoundCorpus,
@@ -2710,7 +2710,7 @@ func assertRightSideTraces(t *testing.T, res *frontend.SearchResponse) {
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "22b530e029c22e396c5a24c0900c9ed5",
-					DigestIndices: []int{1, -1, 1, -1, 1, -1, 1, -1, 0, -1},
+					DigestIndices: []int{1, -1, 1, -1, -1, -1, -1, -1, 0, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -2721,7 +2721,7 @@ func assertRightSideTraces(t *testing.T, res *frontend.SearchResponse) {
 					},
 				}, {
 					ID:            "273119ca291863331e906fe71bde0e7d",
-					DigestIndices: []int{1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+					DigestIndices: []int{1, 1, 1, 1, 1, -1, -1, -1, -1, 0},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -2917,7 +2917,7 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "22b530e029c22e396c5a24c0900c9ed5",
-					DigestIndices: []int{2, -1, 2, -1, 2, -1, 2, -1, 1, -1, 0},
+					DigestIndices: []int{2, -1, 2, -1, -1, -1, -1, -1, 1, -1, 0},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -2972,7 +2972,7 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "273119ca291863331e906fe71bde0e7d",
-					DigestIndices: []int{2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 0},
+					DigestIndices: []int{2, 2, 2, 2, 2, -1, -1, -1, -1, 1, 0},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -3617,6 +3617,14 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_WithMateria
 }
 
 func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
+	// Leave unexported fields out of the assertion.
+	for _, r := range blames.Ranges {
+		for _, g := range r.AffectedGroupings {
+			g.groupingID = schema.MD5Hash{}
+			g.traceIDsAndDigests = nil
+		}
+	}
+
 	assert.Equal(t, BlameSummaryV1{
 		Ranges: []BlameEntry{
 			{
@@ -3635,7 +3643,7 @@ func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
 				Commits: []frontend.Commit{kitchenSinkCommits[3]},
 			},
 			{
-				CommitRange:           dks.IOSFixTriangleTestsBreakCircleTestsCommitID,
+				CommitRange:           "0000000106:0000000108",
 				TotalUntriagedDigests: 1,
 				AffectedGroupings: []*AffectedGrouping{
 					{
@@ -3647,7 +3655,7 @@ func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
 						SampleDigest:     dks.DigestC05Unt,
 					},
 				},
-				Commits: []frontend.Commit{kitchenSinkCommits[7]},
+				Commits: []frontend.Commit{kitchenSinkCommits[5], kitchenSinkCommits[6], kitchenSinkCommits[7]},
 			},
 		},
 	}, blames)
@@ -3867,6 +3875,11 @@ func TestGetBlamesForUntriagedDigests_MultipleNewTraces_Success(t *testing.T) {
 	require.NoError(t, err)
 	for i := range res.Ranges {
 		res.Ranges[i].Commits = nil // Leave this out of the assertion
+		// Leave unexported fields out of the assertion.
+		for _, g := range res.Ranges[i].AffectedGroupings {
+			g.groupingID = schema.MD5Hash{}
+			g.traceIDsAndDigests = nil
+		}
 	}
 
 	assert.Equal(t, BlameSummaryV1{Ranges: []BlameEntry{{
@@ -3952,8 +3965,6 @@ func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 	s := New(db, 100)
 
 	res, err := s.Search(ctx, &query.Search{
-		// This isn't quite the same blame range that would have been returned, but it should
-		// be equivalent.
 		BlameGroupID: "0000000106:0000000108",
 		Sort:         query.SortDescending,
 		TraceValues: paramtools.ParamSet{
@@ -3979,7 +3990,7 @@ func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "0b61c8d85467fc95b1306128ceb2ef6d",
-					DigestIndices: []int{-1, 2, -1, -1, 2, -1, -1, 0, -1, -1},
+					DigestIndices: []int{-1, 2, -1, -1, -1, -1, -1, 0, -1, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.GreyColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -3989,13 +4000,8 @@ func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 						"ext":                 "png",
 					},
 				}, {
-					// This trace is especially important because there was the untriaged data
-					// wasn't seen in the range, but just after. Our algorithm should identify that
-					// the the change in behavior that produced the untriaged digest could have
-					// occurred in the range (because the data was simply missing in that time span)
-					// and return it in the results.
 					ID:            "22b530e029c22e396c5a24c0900c9ed5",
-					DigestIndices: []int{1, -1, 1, -1, 1, -1, 1, -1, 0, -1},
+					DigestIndices: []int{1, -1, 1, -1, -1, -1, -1, -1, 0, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -4006,7 +4012,7 @@ func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 					},
 				}, {
 					ID:            "273119ca291863331e906fe71bde0e7d",
-					DigestIndices: []int{1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+					DigestIndices: []int{1, 1, 1, 1, 1, -1, -1, -1, -1, 0},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -4017,7 +4023,7 @@ func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 					},
 				}, {
 					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
-					DigestIndices: []int{2, 2, 2, 2, 2, 2, 2, 0, 0, 0},
+					DigestIndices: []int{2, 2, -1, -1, -1, -1, -1, -1, 0, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.GreyColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -4082,7 +4088,7 @@ func TestSearch_BlameRespectsPublicParams_Success(t *testing.T) {
 	s := New(db, 100)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 	res, err := s.Search(ctx, &query.Search{
-		BlameGroupID: "0000000106:0000000108",
+		BlameGroupID: "0000000106:0000000109",
 		Sort:         query.SortDescending,
 		TraceValues: paramtools.ParamSet{
 			types.CorpusField: []string{dks.RoundCorpus},
@@ -4107,7 +4113,7 @@ func TestSearch_BlameRespectsPublicParams_Success(t *testing.T) {
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "273119ca291863331e906fe71bde0e7d",
-					DigestIndices: []int{1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+					DigestIndices: []int{1, 1, 1, 1, 1, -1, -1, -1, -1, 0},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.RGBColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -4118,7 +4124,7 @@ func TestSearch_BlameRespectsPublicParams_Success(t *testing.T) {
 					},
 				}, {
 					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
-					DigestIndices: []int{2, 2, 2, 2, 2, 2, 2, 0, 0, 0},
+					DigestIndices: []int{2, 2, -1, -1, -1, -1, -1, -1, 0, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.GreyColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -4210,6 +4216,15 @@ func TestGetBlamesForUntriagedDigests_RespectsPublicParams_Success(t *testing.T)
 
 	blames, err := s.GetBlamesForUntriagedDigests(ctx, dks.RoundCorpus)
 	require.NoError(t, err)
+
+	// Leave unexported fields out of the assertion.
+	for _, r := range blames.Ranges {
+		for _, g := range r.AffectedGroupings {
+			g.groupingID = schema.MD5Hash{}
+			g.traceIDsAndDigests = nil
+		}
+	}
+
 	assert.Equal(t, BlameSummaryV1{
 		Ranges: []BlameEntry{
 			{
@@ -4272,8 +4287,8 @@ func TestCombineIntoRanges_Success(t *testing.T) {
 
 	test := func(name, inputDrawing string, expectedOutput []BlameEntry) {
 		t.Run(name, func(t *testing.T) {
-			input, exp := fromDrawing(inputDrawing, groupings)
-			actual := combineIntoRanges(ctx, input, groupings, simpleCommits, exp)
+			input := fromDrawing(inputDrawing, groupings)
+			actual := combineIntoRanges(ctx, input, groupings, simpleCommits)
 			assert.Equal(t, expectedOutput, actual)
 		})
 	}
@@ -4295,6 +4310,21 @@ b:alpha
 			Grouping:         alphaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			groupingID:       mustHash(alphaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("0"),
+					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+				},
+				{
+					id:     []byte("1"),
+					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+				},
+				{
+					id:     []byte("2"),
+					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[4]},
 	}})
@@ -4312,6 +4342,21 @@ d:alpha
 			Grouping:         alphaGrouping,
 			UntriagedDigests: 3,
 			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			groupingID:       mustHash(alphaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("0"),
+					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+				},
+				{
+					id:     []byte("1"),
+					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+				},
+				{
+					id:     []byte("2"),
+					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[4]},
 	}})
@@ -4327,6 +4372,21 @@ b:alpha
 			Grouping:         alphaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			groupingID:       mustHash(alphaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("0"),
+					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+				},
+				{
+					id:     []byte("1"),
+					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+				},
+				{
+					id:     []byte("2"),
+					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[3], simpleCommits[4]},
 	}})
@@ -4343,10 +4403,28 @@ d:beta
 			Grouping:         alphaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			groupingID:       mustHash(alphaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("0"),
+					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+				},
+				{
+					id:     []byte("1"),
+					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+				},
+			},
 		}, {
 			Grouping:         betaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "dddddddddddddddddddddddddddddddd",
+			groupingID:       mustHash(betaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("2"),
+					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[3], simpleCommits[4]},
 	}})
@@ -4369,10 +4447,32 @@ f:alpha
 			Grouping:         betaGrouping,
 			UntriagedDigests: 2,
 			SampleDigest:     "11111111111111111111111111111111",
+			groupingID:       mustHash(betaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("2"),
+					digest: digestToBytes(t, "11111111111111111111111111111111"),
+				},
+				{
+					id:     []byte("4"),
+					digest: digestToBytes(t, "44444444444444444444444444444444"),
+				},
+			},
 		}, {
 			Grouping:         alphaGrouping,
 			UntriagedDigests: 2,
 			SampleDigest:     "dddddddddddddddddddddddddddddddd",
+			groupingID:       mustHash(alphaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("0"),
+					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+				},
+				{
+					id:     []byte("1"),
+					digest: digestToBytes(t, "ffffffffffffffffffffffffffffffff"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[6]},
 	}, {
@@ -4383,6 +4483,13 @@ f:alpha
 			Grouping:         betaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "22222222222222222222222222222222",
+			groupingID:       mustHash(betaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("3"),
+					digest: digestToBytes(t, "22222222222222222222222222222222"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[5], simpleCommits[6]},
 	}})
@@ -4398,10 +4505,24 @@ c:beta
 			Grouping:         alphaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			groupingID:       mustHash(alphaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("0"),
+					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+				},
+			},
 		}, {
 			Grouping:         betaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "cccccccccccccccccccccccccccccccc",
+			groupingID:       mustHash(betaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("1"),
+					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[7]},
 	}})
@@ -4419,6 +4540,13 @@ d:gamma
 			Grouping:         betaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "cccccccccccccccccccccccccccccccc",
+			groupingID:       mustHash(betaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("1"),
+					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[4]},
 	}, {
@@ -4428,6 +4556,13 @@ d:gamma
 			Grouping:         alphaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			groupingID:       mustHash(alphaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("0"),
+					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[7]},
 	}, {
@@ -4440,6 +4575,13 @@ d:gamma
 			Grouping:         gammaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "dddddddddddddddddddddddddddddddd",
+			groupingID:       mustHash(gammaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("2"),
+					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[8]},
 	}})
@@ -4453,6 +4595,13 @@ d:alpha
 			Grouping:         alphaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "dddddddddddddddddddddddddddddddd",
+			groupingID:       mustHash(alphaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("0"),
+					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[8]},
 	}})
@@ -4466,6 +4615,13 @@ d:alpha
 			Grouping:         alphaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "dddddddddddddddddddddddddddddddd",
+			groupingID:       mustHash(alphaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("0"),
+					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[7], simpleCommits[8]},
 	}})
@@ -4481,9 +4637,30 @@ c:alpha
 			Grouping:         alphaGrouping,
 			UntriagedDigests: 1,
 			SampleDigest:     "cccccccccccccccccccccccccccccccc",
+			groupingID:       mustHash(alphaGrouping),
+			traceIDsAndDigests: []traceIDAndDigest{
+				{
+					id:     []byte("0"),
+					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+				},
+				{
+					id:     []byte("1"),
+					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+				},
+				{
+					id:     []byte("2"),
+					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+				},
+			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[5], simpleCommits[6]},
 	}})
+	// This might happen if a digest was triaged after we made our initial query.
+	// If so, it shouldn't show up in any BlameEntries
+	test("trace used to produce untriaged digests, but was fixed at commit08", `
+C:alpha
+	AAAbbbbCCC
+`, []BlameEntry{})
 	// This might happen if a digest was triaged after we made our initial query.
 	// If so, it shouldn't show up in any BlameEntries
 	test("trace produces all triaged data", `
@@ -4494,7 +4671,7 @@ B:alpha
 
 // fromDrawing turns a human readable drawing of test names and trace data into actual data
 // that can be used to feed into combineIntoRanges.
-func fromDrawing(drawing string, groupings map[schema.MD5Hash]paramtools.Params) ([]untriagedDigestAtHead, map[expectationKey]expectations.Label) {
+func fromDrawing(drawing string, groupings map[schema.MD5Hash]paramtools.Params) []untriagedDigestAtHead {
 	drawing = strings.TrimSpace(drawing)
 	lines := strings.Split(drawing, "\n")
 	findGroupingKey := func(testName string) schema.MD5Hash {
@@ -4509,8 +4686,8 @@ func fromDrawing(drawing string, groupings map[schema.MD5Hash]paramtools.Params)
 	traceSize := 0
 
 	var data []untriagedDigestAtHead
-	exp := map[expectationKey]expectations.Label{}
 	var currentData *untriagedDigestAtHead
+	currentTraceID := 0
 	for i, line := range lines {
 		if !strings.HasPrefix(line, "\t") {
 			// Lines without a tab specify a new grouping:digest
@@ -4538,32 +4715,24 @@ func fromDrawing(drawing string, groupings map[schema.MD5Hash]paramtools.Params)
 			} else if traceSize == 0 {
 				traceSize = len(line)
 			}
-			traceData := make(traceData, traceSize)
+			traceIDAndData := traceIDAndData{
+				id:   []byte(strconv.Itoa(currentTraceID)),
+				data: make(traceData, traceSize),
+			}
+			currentTraceID++
 			for i, c := range line {
 				if c == '-' {
 					continue
 				}
 				letter := string(c)
 				digest := expandDigest(letter)
-				traceData[i] = digest
-				if letter == strings.ToLower(letter) {
-					// lowercase and numbers are untriaged
-					exp[expectationKey{
-						groupingID: currentData.atHead.groupingID,
-						digest:     digest,
-					}] = expectations.Untriaged
-				} else {
-					exp[expectationKey{
-						groupingID: currentData.atHead.groupingID,
-						digest:     digest,
-					}] = expectations.Positive
-				}
+				traceIDAndData.data[i] = digest
 			}
-			currentData.traces = append(currentData.traces, traceData)
+			currentData.traces = append(currentData.traces, traceIDAndData)
 		}
 	}
 	data = append(data, *currentData)
-	return data, exp
+	return data
 }
 
 // expandDigest repeats the given letter 32 times to make a well-formatted digest.
@@ -4997,7 +5166,7 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnPrimary_Success(t *testing.T) 
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "0b61c8d85467fc95b1306128ceb2ef6d",
-					DigestIndices: []int{-1, 0, -1, -1, 0, -1, -1, 1, -1, -1},
+					DigestIndices: []int{-1, 0, -1, -1, -1, -1, -1, 1, -1, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.GreyColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -5008,7 +5177,7 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnPrimary_Success(t *testing.T) 
 					},
 				}, {
 					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
-					DigestIndices: []int{0, 0, 0, 0, 0, 0, 0, 1, 1, 1},
+					DigestIndices: []int{0, 0, -1, -1, -1, -1, -1, -1, 1, -1},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.GreyColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -5163,7 +5332,7 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnCL_Success(t *testing.T) {
 			TraceGroup: frontend.TraceGroup{
 				Traces: []frontend.Trace{{
 					ID:            "3b44c31afc832ef9d1a2d25a5b873152",
-					DigestIndices: []int{0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0},
+					DigestIndices: []int{0, 0, -1, -1, -1, -1, -1, -1, 1, -1, 0},
 					Params: paramtools.Params{
 						dks.ColorModeKey:      dks.GreyColorMode,
 						types.CorpusField:     dks.RoundCorpus,
@@ -5800,9 +5969,7 @@ func TestGetDigestsForGrouping_NoRightTraceKeys_ReturnsDigestsFromTracesOnPrimar
 	test := func(name string, grouping schema.GroupingID, expectedDigests ...types.Digest) {
 		var expectedBytes []schema.DigestBytes
 		for _, d := range expectedDigests {
-			b, err := sql.DigestToBytes(d)
-			require.NoError(t, err)
-			expectedBytes = append(expectedBytes, b)
+			expectedBytes = append(expectedBytes, digestToBytes(t, d))
 		}
 		t.Run(name, func(t *testing.T) {
 			actual, err := s.getDigestsForGrouping(ctx, grouping, nil)
@@ -5833,9 +6000,7 @@ func TestGetDigestsForGrouping_WithRightTraceKeys_ReturnsDigestsFromThoseTracesO
 	test := func(name string, rightTraceKeys paramtools.ParamSet, expectedDigests ...types.Digest) {
 		var expectedBytes []schema.DigestBytes
 		for _, d := range expectedDigests {
-			b, err := sql.DigestToBytes(d)
-			require.NoError(t, err)
-			expectedBytes = append(expectedBytes, b)
+			expectedBytes = append(expectedBytes, digestToBytes(t, d))
 		}
 		t.Run(name, func(t *testing.T) {
 			actual, err := s.getDigestsForGrouping(ctx, dks.SquareGroupingID, rightTraceKeys)
@@ -5921,4 +6086,11 @@ func useKitchenSinkData(ctx context.Context, t *testing.T) *pgxpool.Pool {
 	// constraints, we don't need to manually update some of the tests.
 	waitForSystemTime()
 	return db
+}
+
+// digestToBytes returns the result of sql.DigestToBytes, or fails the test if unsuccessful.
+func digestToBytes(t *testing.T, digest types.Digest) []byte {
+	bytes, err := sql.DigestToBytes(digest)
+	require.NoError(t, err)
+	return bytes
 }

@@ -133,10 +133,14 @@ func RawBuilder() databuilder.TablesBuilder {
 	}).History(
 		"AAAAAAAAAA",
 		"33@33@3KKK", // This trace was drawing incorrectly until commit index 7.
-		"PPPPPPPttt", // This trace was drawing correctly until commit index 7.
+		// This trace was drawing correctly until commit index 7. Some data is missing due to slow
+		// or flaky tests.
+		"PPPPP----t",
 		"BCBCBBBBdC", // This trace is a little non-deterministic
 		"444@444LLL", // This trace was drawing incorrectly until commit index 7.
-		"QQQQQQQttt", // This trace was drawing correctly until commit index 7.
+		// This trace was drawing correctly until commit index 7. Some data is missing due to slow
+		// or flaky tests.
+		"QQ------t-",
 	).Keys([]paramtools.Params{
 		{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
 		{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
@@ -160,7 +164,7 @@ func RawBuilder() databuilder.TablesBuilder {
 	}).History(
 		"A-A-A-A-A-",
 		"3-@-@-3-K-", // This trace was drawing incorrectly until commit index 7.
-		"P-P-P-P-t-", // This trace was drawing correctly until commit index 7.
+		"P-P-----t-", // This trace was drawing correctly until commit index 7. Slower tests.
 	).Keys([]paramtools.Params{
 		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
 		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
@@ -177,7 +181,7 @@ func RawBuilder() databuilder.TablesBuilder {
 	}).History(
 		"-B--B--B--",
 		"-@--4--L--", // This trace was drawing incorrectly until commit index 7.
-		"-Q--Q--t--", // This trace was drawing correctly until commit index 7.
+		"-Q-----t--", // This trace was drawing correctly until commit index 7. Slower tests.
 	).Keys([]paramtools.Params{
 		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
 		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
