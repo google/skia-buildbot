@@ -292,7 +292,7 @@ func buildChromium(ctx context.Context, chromiumDir, targetPlatform string) erro
 		buildTarget = "chrome_public_apk"
 	}
 
-	gn_args := []string{"is_debug=false", "treat_warnings_as_errors=false"}
+	gn_args := []string{"is_debug=false", "treat_warnings_as_errors=false", "dcheck_always_on=false", "is_official_build=true"}
 	// Disable NaCl to speed up the build.
 	gn_args = append(gn_args, "enable_nacl=false")
 	// Produce enough debug info for stack traces but not line-by-line debugging.
