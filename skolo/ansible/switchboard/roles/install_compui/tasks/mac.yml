@@ -32,9 +32,17 @@
         # 0660 required according to https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html:
         mode: 0600
 
+    - name: Find chrome-bot user id.
+      command: id -u
+      register: chromebot_uid
+
+    - name: Have launchd unload the existing service.
+      become:
+      ignore_errors: yes
+      command: launchctl bootout gui/{{ chromebot_uid.stdout }}/org.skia.compui
+
     - name: Have launchd start comp-ui-cron-job.
-      # This is idempotent and returns 0, even though it prints an error message if
-      # the job was already loaded. If this gets more complex, we can go to
-      # the trouble of using community.general.launchd. We would pass it
-      # "state: reloaded" in this case.
-      command: launchctl load {{ compui_launchd_plist }}
+      become:
+      command:
+        launchctl bootstrap gui/{{ chromebot_uid.stdout }} {{
+        compui_launchd_plist }}

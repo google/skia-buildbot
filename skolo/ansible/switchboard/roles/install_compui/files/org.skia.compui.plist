@@ -23,6 +23,12 @@
             <string>/usr/local/bin/comp-ui-cron-job</string>
     </array>
 
+    <key>EnvironmentVariables</key>
+	<dict>
+		<key>PYTHONPATH</key>
+		<string>/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages</string>
+    </dict>
+
     <key>ProcessType</key>
     <string>Interactive</string>
 

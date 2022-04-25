@@ -152,6 +152,12 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	defer func() {
+		err := os.RemoveAll(workDir)
+		if err != nil {
+			sklog.Error(err)
+		}
+	}()
 
 	// We presume that if running locally that you've already authenticated to
 	// Gerrit, otherwise write out a git cookie that enables R/W access to the
