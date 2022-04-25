@@ -108,7 +108,14 @@ func main() {
 
 // goldctl invokes goldctl with the given arguments.
 func goldctl(ctx context.Context, bzl *bazel.Bazel, args ...string) error {
-	bazelCommand := []string{"//gold-client/cmd/goldctl", "--"}
+	bazelCommand := []string{
+		// Unset this flag, which is set in //.bazelrc to point to //bazel/get_workspace_status.sh.
+		// This script invokes "git fetch", which can be slow, and we'll be invoking goldctl via
+		// Bazel hundreds of times (once per screenshot).
+		"--workspace_status_command=",
+		"//gold-client/cmd/goldctl",
+		"--",
+	}
 	bazelCommand = append(bazelCommand, args...)
 	_, err := bzl.Do(ctx, "run", bazelCommand...)
 	return err
