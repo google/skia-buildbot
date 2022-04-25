@@ -13,7 +13,7 @@ from optparse import OptionParser
 
 import json
 import random
-
+import sys
 
 def ParseArgs():
   parser = OptionParser()
@@ -62,6 +62,9 @@ def _extractScore():
 def main():
   random.seed()
   optargs = ParseArgs()
+
+  # Log sys.path to aid debugging launchctl.
+  print('\n'.join(sys.path))
 
   results = {
       'version': 1,

@@ -56,7 +56,7 @@ const (
 	// The repo that has commits associated with runs of the cron job.
 	repo = "https://skia.googlesource.com/perf-compui"
 
-	python = "python3"
+	python = "/Library/Frameworks/Python.framework/Versions/3.9/bin/python3"
 )
 
 // flags
