@@ -51,6 +51,7 @@ type ChromiumAnalysisDatastoreTask struct {
 	Benchmark            string   `json:"benchmark"`
 	PageSets             string   `json:"page_sets"`
 	IsTestPageSet        bool     `json:"is_test_page_set"`
+	GnArgs               string   `json:"gn_args"`
 	BenchmarkArgs        string   `json:"benchmark_args"`
 	BrowserArgs          string   `json:"browser_args"`
 	Description          string   `json:"description"`
@@ -90,6 +91,7 @@ func (task *ChromiumAnalysisDatastoreTask) GetPopulatedAddTaskVars() (task_commo
 	taskVars.RepeatAfterDays = strconv.FormatInt(task.RepeatAfterDays, 10)
 	taskVars.Benchmark = task.Benchmark
 	taskVars.PageSets = task.PageSets
+	taskVars.GnArgs = task.GnArgs
 	taskVars.BenchmarkArgs = task.BenchmarkArgs
 	taskVars.BrowserArgs = task.BrowserArgs
 	taskVars.Description = task.Description
@@ -181,6 +183,7 @@ func (task ChromiumAnalysisDatastoreTask) TriggerSwarmingTaskAndMail(ctx context
 		"bin/run_chromium_analysis_on_workers",
 		"-logtostderr",
 		"--pageset_type=" + task.PageSets,
+		"--gn_args=" + task.GnArgs,
 		"--benchmark_name=" + task.Benchmark,
 		"--benchmark_extra_args=" + task.BenchmarkArgs,
 		"--browser_extra_args=" + task.BrowserArgs,
@@ -300,6 +303,7 @@ type ChromiumAnalysisAddTaskVars struct {
 	Benchmark            string   `json:"benchmark"`
 	PageSets             string   `json:"page_sets"`
 	CustomWebpages       string   `json:"custom_webpages"`
+	GnArgs               string   `json:"gn_args"`
 	BenchmarkArgs        string   `json:"benchmark_args"`
 	BrowserArgs          string   `json:"browser_args"`
 	Description          string   `json:"desc"`
@@ -371,6 +375,7 @@ func (task *ChromiumAnalysisAddTaskVars) GetPopulatedDatastoreTask(ctx context.C
 		Benchmark:     task.Benchmark,
 		PageSets:      task.PageSets,
 		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
+		GnArgs:        task.GnArgs,
 		BenchmarkArgs: task.BenchmarkArgs,
 		BrowserArgs:   task.BrowserArgs,
 		Description:   task.Description,

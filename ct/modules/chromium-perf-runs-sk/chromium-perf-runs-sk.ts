@@ -207,6 +207,13 @@ export class ChromiumPerfRunsSk extends ElementSk {
 
     <!-- Arguments -->
     <td class=nowrap>
+      ${task.gn_args
+                      ? html`<a href="javascript:;" class=details
+          @click=${() => el._showDialog('gnArgs', index)}>
+          GN Args
+        </a>
+        <br/>`
+                      : ''}
       ${task.benchmark_args
                       ? html`<a href="javascript:;" class=details
           @click=${() => el._showDialog('benchmarkArgs', index)}>
@@ -281,6 +288,12 @@ export class ChromiumPerfRunsSk extends ElementSk {
   </tr>`;
 
   private static taskDialogTemplate = (task: ChromiumPerfDatastoreTask, index: number) => html`
+  <div id=${`gnArgs${index}`} class="dialog-background hidden overlay-themes-sk"
+    @click=${hideDialog}>
+    <div class="dialog-content surface-themes-sk">
+      <pre>${task.gn_args}</pre>
+    </div>
+  </div>
   <div id=${`benchmarkArgs${index}`} class="dialog-background hidden overlay-themes-sk"
     @click=${hideDialog}>
     <div class="dialog-content surface-themes-sk">

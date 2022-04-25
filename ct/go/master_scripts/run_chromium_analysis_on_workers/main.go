@@ -34,6 +34,7 @@ const (
 
 var (
 	pagesetType          = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
+	gnArgs               = flag.String("gn_args", "", "The GN arguments that will be used when building Chrome.")
 	benchmarkName        = flag.String("benchmark_name", "", "The telemetry benchmark to run on the workers.")
 	benchmarkExtraArgs   = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgs     = flag.String("browser_extra_args", "", "The extra arguments that are passed to the browser while running the benchmark.")
@@ -155,7 +156,7 @@ func runChromiumAnalysisOnWorkers() error {
 		chromiumBuild = ""
 	} else {
 		group.Go("build chromium", func() error {
-			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient, casClient)
+			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", *gnArgs, []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient, casClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 			}

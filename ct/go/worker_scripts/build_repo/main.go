@@ -23,6 +23,7 @@ import (
 var (
 	runID             = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	repoAndTarget     = flag.String("repo_and_target", "chromium", "The name of the repo and target this script should build and store in Google Storage. Eg: chromium")
+	gnArgs            = flag.String("gn_args", "", "The GN arguments to use when building the repo.")
 	hashes            = flag.String("hashes", "", "Comma separated list of hashes to checkout the specified repos to. Optional.")
 	patches           = flag.String("patches", "", "Comma separated names of patches to apply to the specified repo. Optional.")
 	uploadSingleBuild = flag.Bool("single_build", true, "Whether only a single build should be created and uploaded to Google Storage.")
@@ -83,7 +84,7 @@ func buildRepo() error {
 		if err != nil {
 			return fmt.Errorf("Could not get path to py files: %s", err)
 		}
-		chromiumHash, skiaHash, err = util.CreateChromiumBuildOnSwarming(ctx, *runID, *targetPlatform, chromiumHash, skiaHash, pathToPyFiles, gitExec, applyPatches, *uploadSingleBuild)
+		chromiumHash, skiaHash, err = util.CreateChromiumBuildOnSwarming(ctx, *runID, *targetPlatform, chromiumHash, skiaHash, pathToPyFiles, gitExec, *gnArgs, applyPatches, *uploadSingleBuild)
 		if err != nil {
 			return fmt.Errorf("Could not create chromium build: %s", err)
 		}

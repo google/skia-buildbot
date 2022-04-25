@@ -157,6 +157,7 @@ describe('chromium-perf-sk', () => {
       custom_webpages: '',
       repeat_runs: '1',
       run_in_parallel: 'False',
+      gn_args: 'is_debug=false treat_warnings_as_errors=false dcheck_always_on=false is_official_build=true enable_nacl=false symbol_level=1',
       benchmark_args: '--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format',
       browser_args_nopatch: '',
       browser_args_withpatch: '',

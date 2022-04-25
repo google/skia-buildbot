@@ -91,8 +91,8 @@ describe('chromium-perf-runs-sk', () => {
   });
 
   it('shows detail dialogs', async () => {
-    expect($$('.dialog-background', perfRuns)!.classList.value).to.include('hidden');
+    expect($$('#benchmarkArgs0', perfRuns)!.classList.value).to.include('hidden');
     ($$('.details', perfRuns) as HTMLElement).click();
-    expect($$('.dialog-background', perfRuns)!.classList.value).to.not.include('hidden');
+    expect($$('#benchmarkArgs0', perfRuns)!.classList.value).to.not.include('hidden');
   });
 });

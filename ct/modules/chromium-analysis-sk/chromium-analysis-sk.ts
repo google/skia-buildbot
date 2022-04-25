@@ -124,6 +124,13 @@ export class ChromiumAnalysisSk extends ElementSk {
     </td>
   </tr>
   <tr>
+    <td>GN Arguments for Build</td>
+    <td>
+      <input-sk value="is_debug=false treat_warnings_as_errors=false dcheck_always_on=false is_official_build=true enable_nacl=false symbol_level=1" id=gn_args class=long-field></input-sk>
+      <span class=smaller-font><b>Note:</b> Android runs will automatically include target_os=\"android\".</span><br/>
+    </td>
+  </tr>
+  <tr>
     <td>Benchmark Arguments</td>
     <td>
       <input-sk value="--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format" id=benchmark_args class=long-field></input-sk>
@@ -412,6 +419,7 @@ export class ChromiumAnalysisSk extends ElementSk {
     params.telemetry_isolate_hash = ($$('#telemetry_isolate_hash', this) as InputSk).value;
     params.custom_webpages = ($$('#pageset_selector', this) as PagesetSelectorSk).customPages;
     params.run_in_parallel = ($$('#run_in_parallel', this) as SelectSk).selection === 0;
+    params.gn_args = ($$('#gn_args', this) as InputSk).value;
     params.benchmark_args = ($$('#benchmark_args', this) as InputSk).value;
     params.browser_args = ($$('#browser_args', this) as InputSk).value;
     params.value_column_name = ($$('#value_column_name', this) as InputSk).value;

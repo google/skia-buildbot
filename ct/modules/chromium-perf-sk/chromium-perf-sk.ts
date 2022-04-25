@@ -104,6 +104,13 @@ export class ChromiumPerfSk extends ElementSk {
     </td>
   </tr>
   <tr>
+    <td>GN Arguments for Build</td>
+    <td>
+      <input-sk value="is_debug=false treat_warnings_as_errors=false dcheck_always_on=false is_official_build=true enable_nacl=false symbol_level=1" id=gn_args class=long-field></input-sk>
+      <span class=smaller-font><b>Note:</b> Android runs will automatically include target_os=\"android\".</span><br/>
+    </td>
+  </tr>
+  <tr>
     <td>Benchmark Arguments</td>
     <td>
       <input-sk value="--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format" id=benchmark_args class=long-field></input-sk>
@@ -332,6 +339,7 @@ export class ChromiumPerfSk extends ElementSk {
     params.custom_webpages = ($$('#pageset_selector', this) as PagesetSelectorSk).customPages;
     params.repeat_runs = this._getRepeatValue();
     params.run_in_parallel = ['True', 'False'][+($$('#run_in_parallel', this) as SelectSk).selection!];
+    params.gn_args = ($$('#gn_args', this) as InputSk).value;
     params.benchmark_args = ($$('#benchmark_args', this) as InputSk).value;
     params.browser_args_nopatch = ($$('#browser_args_nopatch', this) as InputSk).value;
     params.browser_args_withpatch = ($$('#browser_args_withpatch', this) as InputSk).value;

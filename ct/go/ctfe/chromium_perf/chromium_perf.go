@@ -52,6 +52,7 @@ type ChromiumPerfDatastoreTask struct {
 	IsTestPageSet                bool     `json:"is_test_page_set"`
 	RepeatRuns                   int64    `json:"repeat_runs"`
 	RunInParallel                bool     `json:"run_in_parallel"`
+	GnArgs                       string   `json:"gn_args"`
 	BenchmarkArgs                string   `json:"benchmark_args"`
 	BrowserArgsNoPatch           string   `json:"browser_args_no_patch"`
 	BrowserArgsWithPatch         string   `json:"browser_args_with_patch"`
@@ -93,6 +94,7 @@ func (task ChromiumPerfDatastoreTask) GetPopulatedAddTaskVars() (task_common.Add
 	taskVars.PageSets = task.PageSets
 	taskVars.RepeatRuns = strconv.FormatInt(task.RepeatRuns, 10)
 	taskVars.RunInParallel = strconv.FormatBool(task.RunInParallel)
+	taskVars.GnArgs = task.GnArgs
 	taskVars.BenchmarkArgs = task.BenchmarkArgs
 	taskVars.BrowserArgsNoPatch = task.BrowserArgsNoPatch
 	taskVars.BrowserArgsWithPatch = task.BrowserArgsWithPatch
@@ -190,6 +192,7 @@ func (task ChromiumPerfDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Con
 		"--run_requester=" + task.Username,
 		"--description=" + task.Description,
 		"--pageset_type=" + task.PageSets,
+		"--gn_args=" + task.GnArgs,
 		"--benchmark_name=" + task.Benchmark,
 		"--benchmark_extra_args=" + task.BenchmarkArgs,
 		"--browser_extra_args_nopatch=" + task.BrowserArgsNoPatch,
@@ -299,6 +302,7 @@ type ChromiumPerfAddTaskVars struct {
 	CustomWebpages       string   `json:"custom_webpages"`
 	RepeatRuns           string   `json:"repeat_runs"`
 	RunInParallel        string   `json:"run_in_parallel"`
+	GnArgs               string   `json:"gn_args"`
 	BenchmarkArgs        string   `json:"benchmark_args"`
 	BrowserArgsNoPatch   string   `json:"browser_args_nopatch"`
 	BrowserArgsWithPatch string   `json:"browser_args_withpatch"`
@@ -379,6 +383,7 @@ func (task *ChromiumPerfAddTaskVars) GetPopulatedDatastoreTask(ctx context.Conte
 		Platform:             task.Platform,
 		PageSets:             task.PageSets,
 		IsTestPageSet:        task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
+		GnArgs:               task.GnArgs,
 		BenchmarkArgs:        task.BenchmarkArgs,
 		BrowserArgsNoPatch:   task.BrowserArgsNoPatch,
 		BrowserArgsWithPatch: task.BrowserArgsWithPatch,

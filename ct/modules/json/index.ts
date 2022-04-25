@@ -116,6 +116,7 @@ export interface ChromiumAnalysisDatastoreTask {
 	benchmark: string;
 	page_sets: string;
 	is_test_page_set: boolean;
+	gn_args: string;
 	benchmark_args: string;
 	browser_args: string;
 	description: string;
@@ -160,6 +161,7 @@ export interface ChromiumAnalysisAddTaskVars {
 	benchmark: string;
 	page_sets: string;
 	custom_webpages: string;
+	gn_args: string;
 	benchmark_args: string;
 	browser_args: string;
 	desc: string;
@@ -193,6 +195,7 @@ export interface ChromiumPerfDatastoreTask {
 	is_test_page_set: boolean;
 	repeat_runs: number;
 	run_in_parallel: boolean;
+	gn_args: string;
 	benchmark_args: string;
 	browser_args_no_patch: string;
 	browser_args_with_patch: string;
@@ -239,6 +242,7 @@ export interface ChromiumPerfAddTaskVars {
 	custom_webpages: string;
 	repeat_runs: string;
 	run_in_parallel: string;
+	gn_args: string;
 	benchmark_args: string;
 	browser_args_nopatch: string;
 	browser_args_withpatch: string;

@@ -135,7 +135,7 @@ func CreateTelemetryIsolates(ctx context.Context, runID, targetPlatform, chromiu
 // applyPatches if true looks for Chromium/Skia/V8/Catapult patches in the temp dir and
 // runs once with the patch applied and once without the patch applied.
 // uploadSingleBuild if true does not upload a 2nd build of Chromium.
-func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, chromiumHash, skiaHash, pathToPyFiles, gitExec string, applyPatches, uploadSingleBuild bool) (string, string, error) {
+func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, chromiumHash, skiaHash, pathToPyFiles, gitExec, gnArgs string, applyPatches, uploadSingleBuild bool) (string, string, error) {
 	chromiumBuildDir, _ := filepath.Split(ChromiumSrcDir)
 	// Determine which fetch target to use.
 	var fetchTarget string
@@ -195,7 +195,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 		googleStorageDirName = fmt.Sprintf("try-%s-withpatch", googleStorageDirName)
 	}
 	// Build chromium.
-	if err := buildChromium(ctx, chromiumBuildDir, targetPlatform); err != nil {
+	if err := buildChromium(ctx, chromiumBuildDir, targetPlatform, gnArgs); err != nil {
 		return "", "", fmt.Errorf("There was an error building chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 	}
 
@@ -221,7 +221,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 			}
 		}
 		// Build chromium.
-		if err := buildChromium(ctx, chromiumBuildDir, targetPlatform); err != nil {
+		if err := buildChromium(ctx, chromiumBuildDir, targetPlatform, gnArgs); err != nil {
 			return "", "", fmt.Errorf("There was an error building chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 		}
 		// Upload to Google Storage.
@@ -281,7 +281,7 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil)
 	return gs.UploadFile(CHROMIUM_BUILD_ZIP_NAME, ChromiumBuildsDir, gsDir)
 }
 
-func buildChromium(ctx context.Context, chromiumDir, targetPlatform string) error {
+func buildChromium(ctx context.Context, chromiumDir, targetPlatform, gnArgs string) error {
 	if err := os.Chdir(filepath.Join(chromiumDir, "src")); err != nil {
 		return fmt.Errorf("Could not chdir to %s/src: %s", chromiumDir, err)
 	}
@@ -292,17 +292,12 @@ func buildChromium(ctx context.Context, chromiumDir, targetPlatform string) erro
 		buildTarget = "chrome_public_apk"
 	}
 
-	gn_args := []string{"is_debug=false", "treat_warnings_as_errors=false", "dcheck_always_on=false", "is_official_build=true"}
-	// Disable NaCl to speed up the build.
-	gn_args = append(gn_args, "enable_nacl=false")
-	// Produce enough debug info for stack traces but not line-by-line debugging.
-	gn_args = append(gn_args, "symbol_level=1")
 	if targetPlatform == "Android" {
-		gn_args = append(gn_args, "target_os=\"android\"")
+		gnArgs = fmt.Sprintf("%s target_os=\"android\"", gnArgs)
 	}
 
 	// Run "gn gen out/Release --args=...".
-	if err := ExecuteCmd(ctx, "gn", []string{"gen", "out/Release", fmt.Sprintf("--args=%s", strings.Join(gn_args, " "))}, os.Environ(), GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
+	if err := ExecuteCmd(ctx, "gn", []string{"gen", "out/Release", fmt.Sprintf("--args=%s", gnArgs)}, os.Environ(), GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 ${build_target}".

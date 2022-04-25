@@ -35,6 +35,7 @@ var (
 	runRequester              = flag.String("run_requester", "", "The email address of the user that triggered the run.")
 	description               = flag.String("description", "", "The description of the run as entered by the requester.")
 	pagesetType               = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
+	gnArgs                    = flag.String("gn_args", "", "The GN arguments that will be used when building Chrome.")
 	benchmarkName             = flag.String("benchmark_name", "", "The telemetry benchmark to run on the workers.")
 	benchmarkExtraArgs        = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgsNoPatch   = flag.String("browser_extra_args_nopatch", "", "The extra arguments that are passed to the browser while running the benchmark for the nopatch case.")
@@ -175,7 +176,7 @@ func runChromiumPerfOnWorkers() error {
 		if util.PatchesAreEmpty(localPatches) {
 			// Create only one chromium build.
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
+				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", *gnArgs, []string{*chromiumHash}, remotePatches, []string{},
 				true, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient, casClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
@@ -189,7 +190,7 @@ func runChromiumPerfOnWorkers() error {
 		} else {
 			// Create the two required chromium builds (with patch and without the patch).
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
+				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", *gnArgs, []string{*chromiumHash}, remotePatches, []string{},
 				false, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient, casClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)

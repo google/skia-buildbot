@@ -229,6 +229,13 @@ ${el._tasks.map((task, index) => ChromiumAnalysisRunsSk.taskDialogTemplate(task,
 
   <!-- Arguments -->
   <td class=nowrap>
+    ${task.gn_args
+                            ? html`<a href="javascript:;" class=details
+        @click=${() => el._showDialog('gnArgs', index)}>
+        GN Args
+      </a>
+      <br/>`
+                            : ''}
     ${task.benchmark_args
                             ? html`<a href="javascript:;" class=details
         @click=${() => el._showDialog('benchmarkArgs', index)}>
@@ -291,6 +298,12 @@ ${el._tasks.map((task, index) => ChromiumAnalysisRunsSk.taskDialogTemplate(task,
 </tr>`;
 
   private static taskDialogTemplate = (task: ChromiumAnalysisDatastoreTask, index: number) => html`
+<div id=${`gnArgs${index}`} class="dialog-background hidden overlay-themes-sk"
+  @click=${hideDialog}>
+  <div class="dialog-content surface-themes-sk">
+    <pre>${task.gn_args}</pre>
+  </div>
+</div>
 <div id=${`benchmarkArgs${index}`} class="dialog-background hidden overlay-themes-sk"
   @click=${hideDialog}>
   <div class="dialog-content surface-themes-sk">

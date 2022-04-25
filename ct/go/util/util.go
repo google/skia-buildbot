@@ -1188,7 +1188,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName string
 // TriggerBuildRepoSwarmingTask triggers a swarming task which runs the
 // build_repo worker script which will return a list of remote build
 // directories.
-func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform, serviceAccountJSON string, hashes, patches, cipdPkgs []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration, swarmingClient swarming.ApiClient, casClient cas.CAS) ([]string, error) {
+func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform, serviceAccountJSON, gnArgs string, hashes, patches, cipdPkgs []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration, swarmingClient swarming.ApiClient, casClient cas.CAS) ([]string, error) {
 	// Find which os and CIPD pkgs to use.
 	var casSpec *CasSpec
 	if targetPlatform == PLATFORM_WINDOWS {
@@ -1215,6 +1215,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 		"-logtostderr",
 		"--run_id=" + runID,
 		"--repo_and_target=" + repoAndTarget,
+		"--gn_args=" + gnArgs,
 		"--hashes=" + strings.Join(hashes, ","),
 		"--patches=" + strings.Join(patches, ","),
 		"--single_build=" + strconv.FormatBool(singleBuild),

@@ -91,8 +91,8 @@ describe('chromium-analysis-runs-sk', () => {
   });
 
   it('shows detail dialogs', async () => {
-    expect($$('.dialog-background', analysisRuns)!.classList.value).to.include('hidden');
+    expect($$('#benchmarkArgs0', analysisRuns)!.classList.value).to.include('hidden');
     ($$('.details', analysisRuns) as HTMLElement).click();
-    expect($$('.dialog-background', analysisRuns)!.classList.value).to.not.include('hidden');
+    expect($$('#benchmarkArgs0', analysisRuns)!.classList.value).to.not.include('hidden');
   });
 });
