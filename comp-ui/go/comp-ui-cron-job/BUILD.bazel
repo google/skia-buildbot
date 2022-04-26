@@ -37,8 +37,11 @@ go_test(
     embed = [":comp-ui-cron-job_lib"],
     deps = [
         "//go/executil",
+        "//go/gcs",
+        "//go/gcs/mocks",
         "//go/httputils",
         "//go/now",
+        "//go/testutils",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -11,8 +13,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/executil"
+	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/mocks"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -191,4 +196,78 @@ func Test_FakeExe_Run_Canary_Python_Script_Success(t *testing.T) {
 		require.Contains(t, args[i], endsWith)
 	}
 	os.Exit(0)
+}
+
+// myWriteCloser is a wrapper that turns a bytes.Buffer from an io.Writer to an io.WriteCloser.
+type myWriteCloser struct {
+	bytes.Buffer
+}
+
+func (*myWriteCloser) Close() error {
+	return nil
+}
+
+var (
+	myError = fmt.Errorf("my fake error")
+
+	fileContents = []byte("{}")
+)
+
+func setupForUploadTest(t *testing.T) (context.Context, string) {
+	// Create a context with a mockTime so that the GCS upload directory is always the same.
+	var mockTime = time.Unix(1649770315, 12).UTC()
+	ctx := context.WithValue(context.Background(), now.ContextKey, mockTime)
+
+	// Create a results.json file that will be uploaded by uploadResultsFile.
+	tempDir := t.TempDir()
+	resultsFile := filepath.Join(tempDir, "results.json")
+	err := os.WriteFile(resultsFile, fileContents, 0644)
+	require.NoError(t, err)
+
+	return ctx, resultsFile
+}
+
+func TestUploadResultsFile_HappyPath(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx, resultsFile := setupForUploadTest(t)
+
+	var b myWriteCloser
+
+	// Mock out the gcs client.
+	gcsClient := mocks.NewGCSClient(t)
+	gcsClient.On("FileWriter", testutils.AnyContext, fmt.Sprintf("ingest/2022/04/12/13/%s/results.json", benchmarkName), gcs.FileWriteOptions{
+		ContentEncoding: "application/json",
+	}).Return(&b)
+
+	err := uploadResultsFile(ctx, gcsClient, benchmarkName, resultsFile)
+	require.NoError(t, err)
+	require.Equal(t, fileContents, b.Bytes())
+}
+
+// myWriteCloser is an io.WriteCloser that always fails on Write.
+type myFailingWriteCloser struct {
+}
+
+func (*myFailingWriteCloser) Write([]byte) (int, error) {
+	return 0, myError
+}
+
+func (*myFailingWriteCloser) Close() error {
+	return nil
+}
+
+func TestUploadResultsFile_WriteCloserFailsToWrite_ReturnsError(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx, resultsFile := setupForUploadTest(t)
+
+	var b myFailingWriteCloser
+
+	// Mock out the gcs client.
+	gcsClient := mocks.NewGCSClient(t)
+	gcsClient.On("FileWriter", testutils.AnyContext, fmt.Sprintf("ingest/2022/04/12/13/%s/results.json", benchmarkName), gcs.FileWriteOptions{
+		ContentEncoding: "application/json",
+	}).Return(&b)
+
+	err := uploadResultsFile(ctx, gcsClient, benchmarkName, resultsFile)
+	require.Error(t, err)
 }
