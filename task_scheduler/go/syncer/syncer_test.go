@@ -41,6 +41,8 @@ func tempGitRepoGclientTests(t *testing.T, cases map[types.RepoState]error) {
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	ctx := context.Background()
+	// Skip download-topics in gclient calls to avoid that network call.
+	ctx = context.WithValue(ctx, SkipDownloadTopicsKey, true)
 	cacheDir := path.Join(tmp, "cache")
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
 	for rs, expectErr := range cases {

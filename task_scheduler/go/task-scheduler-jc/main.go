@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/job_creation"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
@@ -101,8 +102,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create RBE-CAS client: %s", err)
 	}
-	gitcookiesPath := "/tmp/.gitcookies"
-	if _, err := gitauth.New(tokenSource, gitcookiesPath, true, ""); err != nil {
+	if _, err := gitauth.New(tokenSource, types.GitCookiesPath, true, ""); err != nil {
 		sklog.Fatalf("Failed to create git cookie updater: %s", err)
 	}
 

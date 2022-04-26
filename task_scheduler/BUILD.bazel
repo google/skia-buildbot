@@ -32,6 +32,11 @@ skia_app_container(
         ],
     },
     repository = "skia-public/task-scheduler-jc",
+    run_commands_root = [
+        "apt-get update",
+        "apt-get upgrade -y",
+        "apt-get install -y bash vim",
+    ],
 )
 
 skia_app_container(

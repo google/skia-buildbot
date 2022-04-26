@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
@@ -86,12 +87,11 @@ func main() {
 	cleanup.AtExit(cancelFn)
 
 	// Set up token source and authenticated API clients.
-	gitcookiesPath := "/tmp/.gitcookies"
 	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, auth.ScopeReadWrite, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE, compute.CloudPlatformScope /* TODO(borenet): No! */)
 	if err != nil {
 		sklog.Fatalf("Failed to create token source: %s", err)
 	}
-	if _, err := gitauth.New(tokenSource, gitcookiesPath, true, ""); err != nil {
+	if _, err := gitauth.New(tokenSource, types.GitCookiesPath, true, ""); err != nil {
 		sklog.Fatalf("Failed to create git cookie updater: %s", err)
 	}
 	cas, err := rbe.NewClient(ctx, *rbeInstance, tokenSource)

@@ -27,6 +27,10 @@ const (
 
 	syncTimeout       = 15 * time.Minute
 	metricSyncTimeout = "task_scheduler_sync_timeout"
+
+	// This is the key used in context.Value to determine whether
+	// "--download-topcs" should not be added to "gclient sync".
+	SkipDownloadTopicsKey = "skia_infra_skip_download_topics"
 )
 
 // Syncer is a struct used for syncing code to particular RepoStates.
@@ -187,6 +191,9 @@ func (s *Syncer) LazyTempGitRepo(rs types.RepoState) *LazyTempGitRepo {
 
 // tempGitRepoGclient creates a git repository in subdirectory of a temporary
 // directory, gets it into the given RepoState, and returns a git.TempCheckout.
+// If ctx.SkipDownloadTopicsKey is true then gclient sync is not called with
+// --download-topics. This check is primarily for tests to avoid the network
+// call in gclient that would fail for test repos.
 func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
 	defer metrics2.FuncTimer().Stop()
 
@@ -211,6 +218,9 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		"--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision),
 		"--reset", "--force", "--ignore_locks", "--nohooks", "--noprehooks",
 		"-v", "-v", "-v",
+	}
+	if ctx.Value(SkipDownloadTopicsKey) == nil {
+		cmd = append(cmd, "--download-topics")
 	}
 	if rs.IsTryJob() {
 		gerritRef := fmt.Sprintf("refs/changes/%s/%s/%s", rs.Issue[len(rs.Issue)-2:], rs.Issue, rs.Patchset)
@@ -249,6 +259,9 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 			fmt.Sprintf("HOME=%s", tmp),
 			fmt.Sprintf("INFRA_GIT_WRAPPER_HOME=%s", tmp),
 			fmt.Sprintf("PATH=%s:%s", depotToolsDir, os.Getenv("PATH")),
+			// Incase we need to download topics.
+			"SKIP_GCE_AUTH_FOR_GIT=1",
+			fmt.Sprintf("GIT_COOKIES_PATH=%s", types.GitCookiesPath),
 		},
 		InheritEnv: true,
 		Timeout:    syncTimeout,

@@ -25,6 +25,7 @@ go_library(
         "//task_scheduler/go/job_creation",
         "//task_scheduler/go/task_cfg_cache",
         "//task_scheduler/go/tryjobs",
+        "//task_scheduler/go/types",
         "@com_google_cloud_go_bigtable//:bigtable",
         "@com_google_cloud_go_datastore//:datastore",
         "@com_google_cloud_go_pubsub//:pubsub",

@@ -111,7 +111,8 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	unittest.LargeTest(t)
 
 	ctx := now.TimeTravelingContext(ts)
-
+	// Skip download-topics in gclient calls to avoid that network call.
+	ctx = ctx.WithContext(context.WithValue(ctx.Context, syncer.SkipDownloadTopicsKey, true))
 	// Set up the test Git repo.
 	gb := git_testutils.GitInit(t, ctx)
 	require.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))
