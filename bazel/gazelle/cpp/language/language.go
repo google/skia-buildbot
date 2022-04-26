@@ -32,9 +32,9 @@ type CppLanguage struct {
 func (l *CppLanguage) Kinds() map[string]rule.KindInfo {
 	return map[string]rule.KindInfo{
 		common.GeneratedCCAtomRule: {
-			// This extension only really cares about resolving deps looking at #includes, so
-			// we specify that attribute here.
-			ResolveAttrs: map[string]bool{"deps": true},
+			// This extension generates content for deps, hdrs, and srcs, so that's why they are
+			// specified here.
+			ResolveAttrs: map[string]bool{"deps": true, "hdrs": true, "srcs": true},
 			// NonEmptyAttrs must be non-nil, otherwise no rules will get deleted.
 			// We don't have any fields that should prevent a rule from being deleted if the
 			// underlying source file or header file is missing, so an empty map suffices.

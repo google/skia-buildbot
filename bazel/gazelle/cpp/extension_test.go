@@ -146,7 +146,7 @@ generated_cc_atom(
 
 generated_cc_atom(
     name = "util_src",
-    srcs = ["util.cpp"],
+    srcs = ["util_this_is_a_typo.cpp"],
     visibility = ["//:__subpackages__"],
     deps = [":util_hdr"],
 )
