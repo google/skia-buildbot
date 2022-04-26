@@ -21,8 +21,10 @@ var (
 	SkUserConfigWinRelPath          = path.Join("win", "include", "config", "SkUserConfig.h")
 	SkUserConfigRenderengineRelPath = path.Join("renderengine", "include", "config", "SkUserConfig.h")
 	AndroidBpRelPath                = path.Join("Android.bp")
+	VmaAndroidInclude               = path.Join("vma_android", "include", "vk_mem_alloc.h")
+	VmaAndroidLicense               = path.Join("vma_android", "LICENSE.txt")
 
-	FilesGeneratedByGnToGp = []string{SkqpUserConfigRelPath, SkUserConfigAndroidRelPath, SkUserConfigLinuxRelPath, SkUserConfigMacRelPath, SkUserConfigWinRelPath, AndroidBpRelPath, SkUserConfigRenderengineRelPath}
+	FilesGeneratedByGnToGp = []string{SkqpUserConfigRelPath, SkUserConfigAndroidRelPath, SkUserConfigLinuxRelPath, SkUserConfigMacRelPath, SkUserConfigWinRelPath, AndroidBpRelPath, SkUserConfigRenderengineRelPath, VmaAndroidInclude, VmaAndroidLicense}
 )
 
 const (
