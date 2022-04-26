@@ -485,12 +485,14 @@ export interface CIPDChildConfig {
   name: string;
   tag: string;
   gitilesRepo: string;
+  revisionIdTag: string;
 }
 
 interface CIPDChildConfigJSON {
   name?: string;
   tag?: string;
   gitiles_repo?: string;
+  revision_id_tag?: string;
 }
 
 export interface FuchsiaSDKChildConfig {

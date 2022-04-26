@@ -58,7 +58,88 @@ func TestCIPDInstanceToRevision(t *testing.T) {
 		Timestamp:   ts,
 		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID123",
 	}
-	rev := CIPDInstanceToRevision("some/package", pkg)
+	rev := CIPDInstanceToRevision("some/package", pkg, "")
+	require.Equal(t, expect, rev)
+}
+
+func TestCIPDInstanceToRevision_MissingRevisionIdTag(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ts := time.Unix(1615384545, 0)
+	pkg := &cipd.InstanceDescription{
+		InstanceInfo: cipd.InstanceInfo{
+			Pin: common.Pin{
+				PackageName: "some/package",
+				InstanceID:  "instanceID123",
+			},
+			RegisteredBy: "me@google.com",
+			RegisteredTs: cipd.UnixTime(ts),
+		},
+		Tags: []cipd.TagInfo{
+			{
+				Tag: "version:5",
+			},
+			{
+				Tag: "otherTag:blahblah",
+			},
+			{
+				Tag: "bug:skia:12345",
+			},
+		},
+	}
+	expect := &revision.Revision{
+		Id:     "instanceID123",
+		Author: "me@google.com",
+		Bugs: map[string][]string{
+			"skia": {"12345"},
+		},
+		Description:   "some/package:instanceID123",
+		Display:       "instanceI...",
+		Timestamp:     ts,
+		URL:           "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID123",
+		InvalidReason: "Package instance has no tag \"missing\"",
+	}
+	rev := CIPDInstanceToRevision("some/package", pkg, "missing")
+	require.Equal(t, expect, rev)
+}
+
+func TestCIPDInstanceToRevision_RevisionIdTag(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ts := time.Unix(1615384545, 0)
+	pkg := &cipd.InstanceDescription{
+		InstanceInfo: cipd.InstanceInfo{
+			Pin: common.Pin{
+				PackageName: "some/package",
+				InstanceID:  "instanceID123",
+			},
+			RegisteredBy: "me@google.com",
+			RegisteredTs: cipd.UnixTime(ts),
+		},
+		Tags: []cipd.TagInfo{
+			{
+				Tag: "version:5",
+			},
+			{
+				Tag: "otherTag:blahblah",
+			},
+			{
+				Tag: "bug:skia:12345",
+			},
+		},
+	}
+	expect := &revision.Revision{
+		Id:     "5",
+		Author: "me@google.com",
+		Bugs: map[string][]string{
+			"skia": {"12345"},
+		},
+		Description: "some/package:instanceID123",
+		Display:     "5",
+		Timestamp:   ts,
+		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID123",
+	}
+	rev := CIPDInstanceToRevision("some/package", pkg, "version")
 	require.Equal(t, expect, rev)
 }
 
@@ -189,6 +270,67 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 		Display:     gitRev.Hash[:12],
 		Timestamp:   gitRev.Timestamp,
 		URL:         "fake.git/+show/" + gitRev.Hash,
+	}, rev)
+}
+
+func TestCIPDChild_GetRevision_HasRevisionIDTag(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockCipdClient := &mocks.CIPDClient{}
+	ctx := context.Background()
+
+	c := &CIPDChild{
+		client:        mockCipdClient,
+		name:          "some/package",
+		tag:           "latest",
+		revisionIdTag: "version",
+	}
+
+	ts := time.Unix(1615384545, 0)
+	instanceID := "instanceID123"
+	instanceTag := "version:5"
+
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, c.revisionIdTag).Return(nil, errors.New("No such instance"))
+	mockCipdClient.On("SearchInstances", testutils.AnyContext, c.name, []string{instanceTag}).Return(common.PinSlice([]common.Pin{
+		{
+			PackageName: c.name,
+			InstanceID:  instanceID,
+		},
+	}), nil)
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID).Return(&cipd.InstanceDescription{
+		InstanceInfo: cipd.InstanceInfo{
+			Pin: common.Pin{
+				PackageName: c.name,
+				InstanceID:  instanceID,
+			},
+			RegisteredBy: "me@google.com",
+			RegisteredTs: cipd.UnixTime(ts),
+		},
+		Tags: []cipd.TagInfo{
+			{
+				Tag: instanceTag,
+			},
+			{
+				Tag: "otherTag:blahblah",
+			},
+			{
+				Tag: "bug:skia:12345",
+			},
+		},
+	}, nil)
+
+	rev, err := c.GetRevision(ctx, instanceID)
+	require.NoError(t, err)
+	require.Equal(t, &revision.Revision{
+		Id:     "5",
+		Author: "me@google.com",
+		Bugs: map[string][]string{
+			"skia": {"12345"},
+		},
+		Description: "some/package:instanceID123",
+		Display:     "5",
+		Timestamp:   ts,
+		URL:         "https://chrome-infra-packages.appspot.com/p/some/package/+/instanceID123",
 	}, rev)
 }
 

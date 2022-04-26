@@ -460,8 +460,13 @@ message CIPDChildConfig {
     // gitiles_repo is an optional config for a git repo which should be used
     // for generating the list of revisions in a roll. Both the old and new
     // CIPD package version must provide a git_revision tag in order for this
-    // to work.
+    // to work. If provided, the revision ID will be of the form
+    // `git_revision:<hash>` instead of using the CIPD package instance ID.
     string gitiles_repo = 4;
+    // revision_id_tag is a tag key whose value will be used as the revision ID
+    // instead of the CIPD package instance ID.  Overrides git_revision for the
+    // revision ID if gitiles_repo was provided.
+    string revision_id_tag = 5;
 }
 
 // FuchsiaSDKChildConfig provides configuration for the Fuchsia SDK Child.

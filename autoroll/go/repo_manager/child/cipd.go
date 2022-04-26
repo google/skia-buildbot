@@ -57,28 +57,34 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Re
 		}
 	}
 	return &CIPDChild{
-		client:  cipdClient,
-		name:    c.Name,
-		root:    workdir,
-		tag:     c.Tag,
-		gitRepo: gitRepo,
+		client:        cipdClient,
+		name:          c.Name,
+		root:          workdir,
+		tag:           c.Tag,
+		gitRepo:       gitRepo,
+		revisionIdTag: c.RevisionIdTag,
 	}, nil
 }
 
 // CIPDChild is an implementation of Child which deals with a CIPD package.
 type CIPDChild struct {
-	client  cipd.CIPDClient
-	name    string
-	root    string
-	tag     string
-	gitRepo *gitiles_common.GitilesRepo
+	client        cipd.CIPDClient
+	name          string
+	root          string
+	tag           string
+	gitRepo       *gitiles_common.GitilesRepo
+	revisionIdTag string
 }
 
 // GetRevision implements Child.
 func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	instance, err := c.client.Describe(ctx, c.name, id)
 	if err != nil {
-		pins, err2 := c.client.SearchInstances(ctx, c.name, []string{id})
+		tag := id
+		if c.revisionIdTag != "" {
+			tag = joinCIPDTag(c.revisionIdTag, id)
+		}
+		pins, err2 := c.client.SearchInstances(ctx, c.name, []string{tag})
 		if err2 != nil {
 			return nil, skerr.Wrapf(err, "failed to retrieve revision ID %q and failed to search by tag with: %s", id, err2)
 		}
@@ -93,7 +99,7 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 			return nil, skerr.Wrap(err)
 		}
 	}
-	rev := CIPDInstanceToRevision(c.name, instance)
+	rev := CIPDInstanceToRevision(c.name, instance, c.revisionIdTag)
 	if c.gitRepo != nil {
 		gitRevision := getGitRevisionFromCIPDInstance(instance)
 		if gitRevision == "" {
@@ -186,24 +192,26 @@ type cipdDetailsLine struct {
 
 // CIPDInstanceToRevision creates a revision.Revision based on the given
 // InstanceInfo.
-func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription) *revision.Revision {
+func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription, revisionIdTag string) *revision.Revision {
 	rev := &revision.Revision{
 		Id:          instance.Pin.InstanceID,
 		Author:      instance.RegisteredBy,
-		Display:     util.Truncate(instance.Pin.InstanceID, 12),
 		Description: instance.Pin.String(),
 		Timestamp:   time.Time(instance.RegisteredTs),
 		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.DefaultServiceURL, name, instance.Pin.InstanceID),
 	}
 	detailsLines := []*cipdDetailsLine{}
+	foundRevisionTag := false
 	for _, tag := range instance.Tags {
-		split := strings.SplitN(tag.Tag, ":", 2)
-		if len(split) != 2 {
-			sklog.Errorf("Invalid CIPD tag %q; expected <key>:<value>", tag.Tag)
+		key, val, err := splitCIPDTag(tag.Tag)
+		if err != nil {
+			sklog.Errorf("Invalid CIPD tag: %s", err)
 			continue
 		}
-		key := split[0]
-		val := split[1]
+		if key == revisionIdTag {
+			rev.Id = val
+			foundRevisionTag = true
+		}
 		if key == "bug" {
 			// For bugs, we expect either eg. "chromium:1234" or "b/1234".
 			split := strings.SplitN(val, ":", 2)
@@ -232,6 +240,11 @@ func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription)
 			})
 		}
 	}
+	if !foundRevisionTag && revisionIdTag != "" {
+		rev.InvalidReason = fmt.Sprintf("Package instance has no tag %q", revisionIdTag)
+	}
+	rev.Display = util.Truncate(rev.Id, 12)
+
 	// Concatenate the details lines.
 	if len(detailsLines) > 0 {
 		sort.Slice(detailsLines, func(i, j int) bool {
