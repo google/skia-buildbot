@@ -4,7 +4,16 @@
       "repo_url": "https://skia.googlesource.com/buildbot.git",
       "git_branch": "main",
       "package_json_dir": "",
-      "packages_allow_list": [],
+      "packages_allow_list": [
+        {
+          "name": "common-sk",
+          "version": "3.4.2"
+        },
+        {
+          "name": "elements-sk",
+          "version": "4.1.1"
+        }
+      ],
       "trusted_scopes": [],
       "monorail_config": {
         "instance_name": "skia",
