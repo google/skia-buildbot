@@ -148,10 +148,13 @@ func Test_FakeExe_NPM_Audit_ReturnsTwoHighIssues(t *testing.T) {
 	require.Equal(t, []string{"npm", "audit", "--json", "--audit-level=high"}, args)
 
 	auditResp, err := json.Marshal(&types.NpmAuditOutput{
-		Advisories: map[string]types.Advisory{
-			"advisory1": {Severity: "high"},
-			"advisory2": {Severity: "high"},
-			"advisory3": {Severity: "medium"},
+		Metadata: types.NpmAuditMetadata{
+			Vulnerabilities: map[string]int{
+				"low":      10,
+				"moderate": 20,
+				"high":     1,
+				"critical": 1,
+			},
 		},
 	})
 	require.NoError(t, err)
@@ -173,8 +176,11 @@ func Test_FakeExe_NPM_Audit_ReturnsNoHighIssues(t *testing.T) {
 	require.Equal(t, []string{"npm", "audit", "--json", "--audit-level=high"}, args)
 
 	auditResp, err := json.Marshal(&types.NpmAuditOutput{
-		Advisories: map[string]types.Advisory{
-			"advisory1": {Severity: "medium"},
+		Metadata: types.NpmAuditMetadata{
+			Vulnerabilities: map[string]int{
+				"low":      10,
+				"moderate": 20,
+			},
 		},
 	})
 	require.NoError(t, err)

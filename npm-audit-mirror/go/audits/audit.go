@@ -129,16 +129,19 @@ func (a *NpmProjectAudit) oneAuditCycle(ctx context.Context, liveness metrics2.L
 		sklog.Errorf("Could not parse npm audit output for %s: %s", a.projectName, err)
 		return // return so that the liveness is not updated
 	}
-	highCounter := 0
-	for _, a := range ao.Advisories {
-		if a.Severity == "high" {
-			highCounter++
-		}
+
+	// Keep track of how many audit issues have high severity.
+	highSeverityCounter := 0
+	if issues, ok := ao.Metadata.Vulnerabilities["high"]; ok {
+		highSeverityCounter = highSeverityCounter + issues
+	}
+	if issues, ok := ao.Metadata.Vulnerabilities["critical"]; ok {
+		highSeverityCounter = highSeverityCounter + issues
 	}
 
-	sklog.Infof("Done with audit of %s. Found %d high severity issues.", a.projectName, highCounter)
+	sklog.Infof("Done with audit of %s. Found %d high severity issues.", a.projectName, highSeverityCounter)
 
-	if highCounter > 0 && a.monorailConfig != nil {
+	if highSeverityCounter > 0 && a.monorailConfig != nil {
 		// Check in the DB to see if an audit issue has been filed.
 		ad, err := a.dbClient.GetFromDB(ctx, a.projectName)
 		if err != nil {
