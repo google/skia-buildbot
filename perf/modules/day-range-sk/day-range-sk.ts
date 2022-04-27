@@ -72,15 +72,7 @@ export class DayRangeSk extends ElementSk {
     this._render();
   }
 
-  rationalize(): void {
-    if (this.end < this.begin) {
-      [this.end, this.begin] = [this.begin, this.end];
-      this._render();
-    }
-  }
-
   private _sendEvent() {
-    this.rationalize();
     const detail = {
       begin: this.begin,
       end: this.end,
