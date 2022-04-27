@@ -48,7 +48,7 @@ require (
 	cloud.google.com/go/compute v1.5.0
 	cloud.google.com/go/datastore v1.3.0
 	cloud.google.com/go/firestore v1.6.1
-	cloud.google.com/go/iam v0.1.0
+	cloud.google.com/go/iam v0.3.0
 	cloud.google.com/go/logging v1.1.1
 	cloud.google.com/go/monitoring v1.5.0
 	cloud.google.com/go/pubsub v1.8.2
@@ -118,7 +118,7 @@ require (
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 	golang.org/x/tools v0.1.10
 	google.golang.org/api v0.74.0
-	google.golang.org/genproto v0.0.0-20220413183235-5e96e2839df9
+	google.golang.org/genproto v0.0.0-20220426171045-31bebdecfb46
 	google.golang.org/grpc v1.45.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/fsnotify.v1 v1.4.7
@@ -134,6 +134,7 @@ require (
 	cloud.google.com/go v0.100.2 // indirect
 	cloud.google.com/go/container v1.2.0 // indirect
 	cloud.google.com/go/kms v1.4.0 // indirect
+	cloud.google.com/go/secretmanager v1.4.0 // indirect
 	cloud.google.com/go/trace v1.2.0 // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect

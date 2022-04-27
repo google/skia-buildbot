@@ -3463,8 +3463,8 @@ def go_repositories():
     go_repository(
         name = "com_google_cloud_go_iam",
         importpath = "cloud.google.com/go/iam",
-        sum = "h1:W2vbGCrE3Z7J/x3WXLxxGl9LMSB2uhsAA7Ss/6u/qRY=",
-        version = "v0.1.0",
+        sum = "h1:exkAomrVUuzx9kWFI1wm3KI0uoDeUFPB4kKGzx6x+Gc=",
+        version = "v0.3.0",
     )
     go_repository(
         name = "com_google_cloud_go_kms",
@@ -3491,6 +3491,12 @@ def go_repositories():
         importpath = "cloud.google.com/go/pubsub",
         sum = "h1:PpS9dq+D7eSjQ0YAx5fxO33LjqHVpAlXFrpvt/LoVy8=",
         version = "v1.8.2",
+    )
+    go_repository(
+        name = "com_google_cloud_go_secretmanager",
+        importpath = "cloud.google.com/go/secretmanager",
+        sum = "h1:Cl+kDYvKHjPQ1l2DZDr2FG/cXUzNGCZkh05BARgddo8=",
+        version = "v1.4.0",
     )
 
     go_repository(
@@ -3950,8 +3956,8 @@ def go_repositories():
     go_repository(
         name = "org_golang_google_genproto",
         importpath = "google.golang.org/genproto",
-        sum = "h1:XGQ6tc+EnM35IAazg4y6AHmUg4oK8NXsXaILte1vRlk=",
-        version = "v0.0.0-20220413183235-5e96e2839df9",
+        sum = "h1:G1IeWbjrqEq9ChWxEuRPJu6laA67+XgTFHVSAvepr38=",
+        version = "v0.0.0-20220426171045-31bebdecfb46",
     )
 
     go_repository(
