@@ -7,11 +7,11 @@
       "packages_allow_list": [
         {
           "name": "common-sk",
-          "version": "3.4.2"
+          "version": "*"
         },
         {
           "name": "elements-sk",
-          "version": "4.1.1"
+          "version": "*"
         }
       ],
       "trusted_scopes": [],
