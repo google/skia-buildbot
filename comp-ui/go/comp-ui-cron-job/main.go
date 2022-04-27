@@ -23,6 +23,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -57,11 +58,6 @@ const (
 	repo = "https://skia.googlesource.com/perf-compui"
 
 	python = "/Library/Frameworks/Python.framework/Versions/3.9/bin/python3"
-)
-
-// flags
-var (
-	local = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
 var (
@@ -130,9 +126,18 @@ var benchmarks = map[string]benchmark{
 }
 
 func main() {
+	flagSet := flag.NewFlagSet("", flag.ExitOnError)
+	flagSet.Usage = func() {
+		fmt.Printf("Usage: %s <flags>\n\n", os.Args[0])
+		flagSet.PrintDefaults()
+	}
+
+	local := flagSet.Bool("local", false, "Running locally if true. As opposed to in production.")
+
 	common.InitWithMust(
 		"comp-ui-cron-job",
 		common.CloudLogging(local, "skia-public"),
+		common.FlagSetOpt(flagSet),
 	)
 	sklog.Infof("Version: %s", Version)
 

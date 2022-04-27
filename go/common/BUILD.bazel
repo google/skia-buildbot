@@ -22,7 +22,10 @@ go_library(
 
 go_test(
     name = "common_test",
-    srcs = ["common_test.go"],
+    srcs = [
+        "common_test.go",
+        "with_test.go",
+    ],
     embed = [":common"],
     deps = [
         "//go/deepequal/assertdeep",

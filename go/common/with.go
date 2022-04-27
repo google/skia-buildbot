@@ -17,6 +17,11 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
+// FlagSet is the flag.FlagSet we use to parse command line flags.
+// It defaults to flag.CommandLine, but can be over-ridden with
+// FlagSetOpt.
+var FlagSet *flag.FlagSet = flag.CommandLine
+
 // Opt represents the initialization parameters for a single init service, where
 // services are Prometheus, etc.
 //
@@ -65,13 +70,12 @@ func (p optSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 type baseInitOpt struct{}
 
 func (b *baseInitOpt) preinit(appName string) error {
-	flag.Parse()
-	return nil
+	return FlagSet.Parse(os.Args[1:])
 }
 
 func (b *baseInitOpt) init(appName string) error {
 	// Log all flags and their values.
-	flag.VisitAll(func(f *flag.Flag) {
+	FlagSet.VisitAll(func(f *flag.Flag) {
 		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
 	})
 
@@ -203,6 +207,33 @@ func (o *promInitOpt) init(appName string) error {
 
 func (o *promInitOpt) order() int {
 	return 3
+}
+
+// flagSetInitOpt implments Opt for flag.FlagSet.
+type flagSetInitOpt struct {
+	flagSet *flag.FlagSet
+}
+
+// FlagSetOpt allows changing the flag.FlagSet used to parse command line arguments.
+//
+// If this Opt is not used then flag.CommandLine is used as the default.
+func FlagSetOpt(flagSet *flag.FlagSet) Opt {
+	return &flagSetInitOpt{
+		flagSet: flagSet,
+	}
+}
+
+func (o *flagSetInitOpt) preinit(appName string) error {
+	FlagSet = o.flagSet
+	return nil
+}
+
+func (o *flagSetInitOpt) init(appName string) error {
+	return nil
+}
+
+func (o *flagSetInitOpt) order() int {
+	return -1
 }
 
 // InitWith takes Opt's and initializes each service, where services are Prometheus, etc.
