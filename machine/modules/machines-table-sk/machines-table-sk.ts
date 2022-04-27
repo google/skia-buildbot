@@ -33,6 +33,7 @@ import 'elements-sk/spinner-sk';
 import 'elements-sk/icon/sort-icon-sk';
 import 'elements-sk/icon/arrow-drop-down-icon-sk';
 import 'elements-sk/icon/arrow-drop-up-icon-sk';
+import 'elements-sk/icon/clear-all-icon-sk';
 import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
 import '../auto-refresh-sk';
 import '../device-editor-sk';
@@ -69,7 +70,7 @@ export const MachineTableSkSortChangeEventName: string = 'machine-table-sort-cha
 /** The event detail is the sort history of the table encoded as a string. */
 export type MachineTableSkChangeEventDetail = string;
 
-const attachedDeviceDisplayName: Record< string, AttachedDevice> = {
+const attachedDeviceDisplayName: Record<string, AttachedDevice> = {
   '-': 'nodevice',
   Android: 'adb',
   iOS: 'ios',
@@ -195,27 +196,6 @@ const isRunning = (machine: FrontendDescription): TemplateResult => (machine.Run
   : html``);
 
 const asList = (arr: string[]) => arr.join(' | ');
-
-const dimensions = (machine: FrontendDescription): TemplateResult => {
-  if (!machine.Dimensions) {
-    return html`<div>Unknown</div>`;
-  }
-  return html`
-    <details class="dimensions">
-      <summary>Dimensions</summary>
-      <table>
-        ${Object.entries(machine.Dimensions).map(
-    (pair) => html`
-              <tr>
-                <td>${pair[0]}</td>
-                <td>${asList(pair[1]!)}</td>
-              </tr>
-            `,
-  )}
-      </table>
-    </details>
-  `;
-};
 
 const launchedSwarming = (machine: FrontendDescription): TemplateResult => {
   if (!machine.LaunchedSwarming) {
@@ -430,7 +410,7 @@ export class MachinesTableSk extends ElementSk {
       ),
       Dimensions: new Column(
         'Dimensions',
-        dimensions,
+        this.dimensions.bind(this),
         null,
       ),
       'Launched Swarming': new Column(
@@ -543,6 +523,31 @@ export class MachinesTableSk extends ElementSk {
         @click=${() => this.deleteDevice(machine.Dimensions!.id![0])}
       ></delete-icon-sk>
       `;
+  }
+
+  dimensions(machine: FrontendDescription): TemplateResult {
+    if (!machine.Dimensions) {
+      return html`<div>Unknown</div>`;
+    }
+    return html`
+      <clear-all-icon-sk
+        title="Clear all dimensions from the datastore"
+        @click=${() => this.clearDeviceByID(machine.Dimensions!.id![0])}>
+      </clear-all-icon-sk>
+      <details class="dimensions">
+        <summary>Dimensions </summary>
+        <table>
+          ${Object.entries(machine.Dimensions).map(
+    (pair) => html`
+                <tr>
+                  <td>${pair[0]}</td>
+                  <td>${asList(pair[1]!)}</td>
+                </tr>
+              `,
+  )}
+        </table>
+      </details>
+    `;
   }
 
   /**
@@ -748,6 +753,10 @@ export class MachinesTableSk extends ElementSk {
 
   private async clearDevice(e: Event): Promise<void> {
     const id = (e as CustomEvent<string>).detail;
+    this.clearDeviceByID(id);
+  }
+
+  private async clearDeviceByID(id: string): Promise<void> {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/remove_device/${id}`, { method: 'POST' });

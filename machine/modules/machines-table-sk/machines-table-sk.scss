@@ -5,9 +5,17 @@ machines-table-sk {
     cursor: pointer;
   }
 
-  details > summary {
+  clear-all-icon-sk {
     cursor: pointer;
-    white-space: nowrap;
+  }
+
+  details {
+    display: inline-block;
+
+    > summary {
+      cursor: pointer;
+      white-space: nowrap;
+    }
   }
 
   select {

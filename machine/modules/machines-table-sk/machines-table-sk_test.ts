@@ -201,6 +201,53 @@ describe('machines-table-sk', () => {
     assert.isTrue(called);
   }));
 
+  it('clears the Dimensions when you click on the button in Dimensions', () => window.customElements.whenDefined('machines-table-sk').then(async () => {
+    const s = await setUpElement();
+    // Confirm there are row in the dimensions.
+    assert.isNotNull($$('details.dimensions table tr', s));
+
+    // Now set up fetchMock for the requests that happen when the button is clicked.
+    fetchMock.reset();
+    let called = false;
+    fetchMock.post(
+      (url: string): boolean => {
+        if (url !== '/_/machine/remove_device/skia-rpi2-rack4-shelf1-002') {
+          return false;
+        }
+        called = true;
+        return true;
+      }, 200,
+    );
+    mockMachinesResponse([
+      {
+        Mode: 'maintenance',
+        AttachedDevice: 'ssh',
+        Battery: 100,
+        Dimensions: {},
+        Note: {
+          User: '',
+          Message: '',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
+        },
+        Annotation: {
+          User: '',
+          Message: '',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
+        },
+        PowerCycle: true,
+        LastUpdated: '2020-04-21T17:33:09.638275Z',
+        Temperature: { dumpsys_battery: 26 },
+      },
+    ]);
+
+    // Click the button to show the dialog
+    $$<HTMLElement>('clear-all-icon-sk', s)!.click();
+
+    // Wait for all requests to finish.
+    await fetchMock.flush(true);
+    assert.isTrue(called);
+  }));
+
   it('supplies chrome os data via RPC', () => window.customElements.whenDefined('machines-table-sk').then(async () => {
     const s = await setUpElement();
     // Confirm there are row in the dimensions.
