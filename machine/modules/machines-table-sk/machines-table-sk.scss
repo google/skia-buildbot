@@ -9,6 +9,10 @@ machines-table-sk {
     cursor: pointer;
   }
 
+  div.dimensions {
+    width: max-content;
+  }
+
   details {
     display: inline-block;
 

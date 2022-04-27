@@ -530,23 +530,25 @@ export class MachinesTableSk extends ElementSk {
       return html`<div>Unknown</div>`;
     }
     return html`
-      <clear-all-icon-sk
-        title="Clear all dimensions from the datastore"
-        @click=${() => this.clearDeviceByID(machine.Dimensions!.id![0])}>
-      </clear-all-icon-sk>
-      <details class="dimensions">
-        <summary>Dimensions </summary>
-        <table>
-          ${Object.entries(machine.Dimensions).map(
+      <div class=dimensions>
+        <clear-all-icon-sk
+          title="Clear all dimensions from the datastore"
+          @click=${() => this.clearDeviceByID(machine.Dimensions!.id![0])}>
+        </clear-all-icon-sk>
+        <details class="dimensions">
+          <summary>Dimensions </summary>
+          <table>
+            ${Object.entries(machine.Dimensions).map(
     (pair) => html`
-                <tr>
-                  <td>${pair[0]}</td>
-                  <td>${asList(pair[1]!)}</td>
-                </tr>
-              `,
+                  <tr>
+                    <td>${pair[0]}</td>
+                    <td>${asList(pair[1]!)}</td>
+                  </tr>
+                `,
   )}
-        </table>
-      </details>
+          </table>
+        </details>
+      </div>
     `;
   }
 
