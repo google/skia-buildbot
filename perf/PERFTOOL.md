@@ -128,8 +128,6 @@ Writes a JSON files with the traces that match --query for the given range of co
 
 
 
-**--config_filename**="": Load configuration from `FILE`
-
 **--in**="": The input filename.
 
 **--verbose**: Verbose output.

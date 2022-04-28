@@ -333,6 +333,14 @@ container_pull(
     repository = "cloud-builders/kubectl",
 )
 
+# Pulls the gcr.io/google.com/cloudsdktool/cloud-sdk:latest container needed by Perf backup.
+container_pull(
+    name = "cloudsdk",
+    digest = "sha256:900b74f1fb2c9f93c6d4b121a7f23981143496f36aacb72e596ccaedad640cf1",  # @latest as of Apr 27, 2022.
+    registry = "gcr.io",
+    repository = "google.com/cloudsdktool/cloud-sdk",
+)
+
 ##############################
 # Packages for RBE container #
 ##############################

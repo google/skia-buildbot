@@ -6,29 +6,24 @@ build: ./modules/json/index.ts
 
 .PHONY: docs
 docs:
-	go install ./go/perf-tool ./go/perfserver
-	perf-tool markdown > PERFTOOL.md
-	perfserver markdown > PERFSERVER.md
+	$(BAZEL) run //perf/go/perf-tool:perf-tool -- markdown > PERFTOOL.md
+	$(BAZEL) run //perf/go/perfserver --  markdown > PERFSERVER.md
 
 .PHONY: release
-release: build
-	./images/perfserver/release
+release:
+	$(BAZEL) run //perf:push_perfserver_container
 
 .PHONY: push
-push: release
-	pushk perfserver
-
-.PHONY: build_backup
-build_backup:
-	$(BAZEL) build //perf/go/perf-tool/... --config=remote
+push:
+	$(BAZEL) run //perf:pushk_perfserver_container
 
 .PHONY: release_backup
-release_backup: build_backup
-	./images/backup/release
+release_backup:
+	$(BAZEL) run //perf:push_perf_backup_container
 
 .PHONY: push_backup
 push_backup: release_backup
-	pushk perf-cockroachdb-backup
+	$(BAZEL) run //perf:pushk_perf_backup_container
 
 # First create a list of all the modules that ./go/ts depends upon.
 tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/perf/go/ts/  )
@@ -156,6 +151,7 @@ demo_word-cloud-sk:
 # Run "bazel build //perf/..." after making any frontend changes to pick up the
 # change without restarting the golang server.
 run-local-instance:
+	$(BAZEL) build //perf/go/perfserver:perfserver
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
 		--local \
 		--do_clustering=false \
@@ -169,6 +165,7 @@ run-local-instance:
 
 
 run-demo-instance:
+	$(BAZEL) build //perf/go/perfserver:perfserver
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
 		--local \
 		--config_filename=./configs/demo.json \

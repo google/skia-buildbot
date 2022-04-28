@@ -1,5 +1,79 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
 filegroup(
     name = "configs",
     srcs = glob(["configs/*.json"]),
     visibility = ["//perf:__subpackages__"],
+)
+
+skia_app_container(
+    name = "perfserver_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//perf/go/perfserver:perfserver",
+                "0755",
+            ],
+            [
+                "//perf/go/perf-tool:perf-tool",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/skiaperf/configs": [
+            [
+                ":configs",
+                "0644",
+            ],
+        ],
+        "/usr/local/share/skiaperf/dist": [
+            [
+                "//perf/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in [
+                "alerts",
+                "clusters2",
+                "dryrunalert",
+                "help",
+                "newindex",
+                "triage",
+                "trybot",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    entrypoint = "/usr/local/bin/perfserver",
+    repository = "skia-public/perfserver",
+)
+
+skia_app_container(
+    name = "perf_backup_container",
+    base_image = "@cloudsdk//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//perf/go/perf-tool:perf-tool",
+                "0755",
+            ],
+        ],
+        "/": [
+            [
+                "//perf/backup:backup.sh",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/skiaperf/configs": [
+            [
+                ":configs",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/backup.sh",
+    repository = "skia-public/perf-cockroachdb-backup",
 )
