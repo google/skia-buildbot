@@ -69,13 +69,11 @@ spec:
             - "--"
             - "/usr/local/bin/autoroll-be"
             - "--config={{.configBase64}}"
-            - "--email_creds=/var/secrets/autoroll-email-creds"
             - "--firestore_instance=production"
             - "--port=:8000"
             - "--prom_port=:20000"
             - "--recipes_cfg=/usr/local/share/autoroll/recipes.cfg"
             - "--workdir={{if .kubernetes.disk}}/data{{else}}/tmp{{end}}"
-            - "--chat_webhooks_file=/etc/notifier-chat-config/chat_config.txt"
           ports:
             - containerPort: 8000
             - containerPort: 20000
@@ -86,10 +84,6 @@ spec:
             - name: autoroll-be-{{$svcAcct}}-sa
               mountPath: /var/secrets/google
 {{- end}}
-            - name: autoroll-email-creds
-              mountPath: /var/secrets/autoroll-email-creds
-            - name: notifier-chat-config
-              mountPath: /etc/notifier-chat-config/
             {{- range $index, $secret := .kubernetes.secrets}}
             - name: {{$secret.name}}
               mountPath: {{$secret.mountPath}}
@@ -118,12 +112,6 @@ spec:
           secret:
             secretName: {{$svcAcct}}
 {{- end}}
-        - name: autoroll-email-creds
-          secret:
-            secretName: autoroll-email-creds
-        - name: notifier-chat-config
-          secret:
-            secretName: notifier-chat-config
         {{- range $index, $secret := .kubernetes.secrets}}
         - name: {{$secret.name}}
           secret:

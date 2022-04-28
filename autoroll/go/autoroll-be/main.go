@@ -38,7 +38,7 @@ import (
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
@@ -48,16 +48,20 @@ import (
 )
 
 const (
-	GMAIL_TOKEN_CACHE_FILE = "google_email_token.data"
-	GS_BUCKET_AUTOROLLERS  = "skia-autoroll"
+	gmailTokenCacheFile = "google_email_token.data"
+	gsBucketAutoroll    = "skia-autoroll"
+
+	secretChatWebhooks      = "autoroll-chat-webhooks"
+	secretGmailClientId     = "autoroll-gmail-clientid"
+	secretGmailClientSecret = "autoroll-gmail-clientsecret"
+	secretGmailCachedToken  = "autoroll-gmail-cached-token"
+	secretProject           = "skia-infra-public"
 )
 
 // flags
 var (
-	chatWebHooksFile  = flag.String("chat_webhooks_file", "", "Chat webhook config.")
 	configContents    = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
 	configFile        = flag.String("config_file", "", "Configuration file to use, mutually exclusive with --config.")
-	emailCreds        = flag.String("email_creds", "", "Directory containing credentials for sending emails.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port              = flag.String("port", ":8000", "HTTP service port.")
@@ -154,41 +158,43 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		sklog.Infof("Writing persistent data to gs://%s/%s", GS_BUCKET_AUTOROLLERS, rollerName)
-		gcsClient = gcsclient.New(s, GS_BUCKET_AUTOROLLERS)
+		sklog.Infof("Writing persistent data to gs://%s/%s", gsBucketAutoroll, rollerName)
+		gcsClient = gcsclient.New(s, gsBucketAutoroll)
+
+		secretClient, err := secret.NewClient(ctx)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 
 		// Emailing init.
-		if *emailCreds != "" {
-			emailClientId, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CLIENT_ID))
-			if err != nil {
-				sklog.Fatal(err)
-			}
-			emailClientSecret, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CLIENT_SECRET))
-			if err != nil {
-				sklog.Fatal(err)
-			}
-			cachedGMailToken, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CACHED_TOKEN_AUTOROLL))
-			if err != nil {
-				sklog.Fatal(err)
-			}
-			tokenFile, err := filepath.Abs(user.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
-			if err != nil {
-				sklog.Fatal(err)
-			}
-			if err := ioutil.WriteFile(tokenFile, cachedGMailToken, os.ModePerm); err != nil {
-				sklog.Fatalf("Failed to cache token: %s", err)
-			}
-			emailer, err = email.NewGMail(strings.TrimSpace(string(emailClientId)), strings.TrimSpace(string(emailClientSecret)), tokenFile)
-			if err != nil {
-				sklog.Fatal(err)
-			}
+		emailClientId, err := secretClient.Get(ctx, secretProject, secretGmailClientId, secret.VersionLatest)
+		if err != nil {
+			sklog.Fatal(err)
 		}
+		emailClientSecret, err := secretClient.Get(ctx, secretProject, secretGmailClientSecret, secret.VersionLatest)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		cachedGMailToken, err := secretClient.Get(ctx, secretProject, secretGmailCachedToken, secret.VersionLatest)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		tokenFile := filepath.Join(os.TempDir(), gmailTokenCacheFile)
+		if err := ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm); err != nil {
+			sklog.Fatalf("Failed to cache token: %s", err)
+		}
+		emailer, err = email.NewGMail(strings.TrimSpace(emailClientId), strings.TrimSpace(emailClientSecret), tokenFile)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+
 		chatBotConfigReader = func() string {
-			if b, err := ioutil.ReadFile(*chatWebHooksFile); err != nil {
-				sklog.Errorf("Failed to read chat config %q: %s", *chatWebHooksFile, err)
+			chatWebhooks, err := secretClient.Get(ctx, secretProject, secretChatWebhooks, secret.VersionLatest)
+			if err != nil {
+				sklog.Errorf("Failed to read chat config: %s", err)
 				return ""
 			} else {
-				return string(b)
+				return chatWebhooks
 			}
 		}
 

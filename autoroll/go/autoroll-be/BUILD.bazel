@@ -26,7 +26,7 @@ go_library(
         "//go/gitauth",
         "//go/github",
         "//go/httputils",
-        "//go/metadata",
+        "//go/secret",
         "//go/sklog",
         "//go/util",
         "@com_github_gorilla_mux//:mux",
