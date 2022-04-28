@@ -36,10 +36,15 @@ import '../bulk-triage-sk';
 import '../search-controls-sk';
 import '../changelist-controls-sk';
 import '../digest-details-sk';
+import '../pagination-sk';
 import { DigestDetailsSk } from '../digest-details-sk/digest-details-sk';
+import { PaginationSkPageChangedEventDetail } from '../pagination-sk/pagination-sk';
 
 // Used to include/exclude the corpus field from the various ParamSets being passed around.
 const CORPUS_KEY = 'source_type';
+
+/** Default number of search results to retrieve. */
+export const DEFAULT_SEARCH_RESULTS_LIMIT = 50;
 
 /**
  * Counterpart to SearchRespose (declared in rpc_types.ts).
@@ -61,6 +66,8 @@ export interface SearchRequest {
   blame?: string;
   crs?: string;
   issue?: string;
+  limit?: number;
+  offset?: number;
 
   // Fields populated via the changelist-controls-sk.
   master?: boolean; // Show all results if true, or exclude results from the master branch if false.
@@ -117,6 +124,8 @@ export class SearchPageSk extends ElementSk {
     ),
   )}
     </div>
+
+    ${SearchPageSk.paginationTemplate(el)}
 
     <dialog class="bulk-triage">
       <bulk-triage-sk .currentPageDigests=${el.getCurrentPageDigestsTriageRequestData()}
@@ -181,6 +190,20 @@ export class SearchPageSk extends ElementSk {
     `;
     }
 
+  private static paginationTemplate = (el: SearchPageSk) => {
+    const numResults = el.searchResponse?.size || 0;
+    if (numResults == 0 || numResults <= el.limit) {
+      return html``;
+    }
+    return html`
+       <pagination-sk offset=${el.offset || 0}
+                      page_size=${el.limit || DEFAULT_SEARCH_RESULTS_LIMIT}
+                      total=${el.searchResponse?.size || 0}
+                      @page-changed=${el.onPageChange}>
+       </pagination-sk>
+    `;
+  }
+
   // Reflected to/from the URL and modified by the search-controls-sk.
   private searchCriteria: SearchCriteria = {
     corpus: defaultCorpus(),
@@ -208,6 +231,10 @@ export class SearchPageSk extends ElementSk {
   private crs: string | null = null;
 
   private changelistId: string | null = null;
+
+  private limit = DEFAULT_SEARCH_RESULTS_LIMIT;
+
+  private offset = 0;
 
   // stateReflector update function.
   private readonly stateChanged: (()=> void) | null;
@@ -244,6 +271,8 @@ export class SearchPageSk extends ElementSk {
         state.blame = this.blame || '';
         state.crs = this.crs || '';
         state.issue = this.changelistId || '';
+        state.limit = this.limit;
+        state.offset = this.offset;
         state.master = this.includeDigestsFromPrimary || '';
         state.patchsets = this.patchset || '';
         return state;
@@ -256,6 +285,8 @@ export class SearchPageSk extends ElementSk {
         this.blame = (newState.blame as string) || null;
         this.crs = (newState.crs as string) || null;
         this.changelistId = (newState.issue as string) || null;
+        this.limit = (newState.limit as number) || DEFAULT_SEARCH_RESULTS_LIMIT;
+        this.offset = (newState.offset as number) || 0;
         this.includeDigestsFromPrimary = (newState.master as boolean) || null;
         this.patchset = (newState.patchsets as number) || null;
 
@@ -379,6 +410,8 @@ export class SearchPageSk extends ElementSk {
       frgbamax: this.searchCriteria.maxRGBADelta,
       fref: this.searchCriteria.mustHaveReferenceImage,
       sort: this.searchCriteria.sortOrder === 'ascending' ? 'asc' : 'desc',
+      limit: this.limit,
+      offset: this.offset,
     };
 
     // Populate optional query parameters.
@@ -515,6 +548,13 @@ export class SearchPageSk extends ElementSk {
     }
 
     event.stopPropagation(); // Stop propagation if we captured the event.
+  }
+
+  private onPageChange(e: CustomEvent<PaginationSkPageChangedEventDetail>) {
+    this.offset = Math.max(0, this.offset + e.detail.delta * this.limit);
+    this.stateChanged!();
+    this.fetchSearchResults();
+    this._render();
   }
 
   /**

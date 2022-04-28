@@ -23,6 +23,7 @@ sk_element(
         "//golden/modules/changelist-controls-sk",
         "//golden/modules/digest-details-sk",
         "//golden/modules/search-controls-sk",
+        "//golden/modules/pagination-sk",
     ],
     ts_deps = [
         "//golden/modules:common_ts_lib",
@@ -68,6 +69,7 @@ ts_library(
         "//golden/modules/bulk-triage-sk:bulk-triage-sk_po_ts_lib",
         "//golden/modules/changelist-controls-sk:changelist-controls-sk_po_ts_lib",
         "//golden/modules/digest-details-sk:digest-details-sk_po_ts_lib",
+        "//golden/modules/pagination-sk:pagination-sk_po_ts_lib",
         "//golden/modules/search-controls-sk:search-controls-sk_po_ts_lib",
         "//infra-sk/modules/page_object:page_object_element_ts_lib",
         "//infra-sk/modules/page_object:page_object_ts_lib",
@@ -97,6 +99,7 @@ karma_test(
         "//golden/modules:settings_ts_lib",
         "//golden/modules/bulk-triage-sk:bulk-triage-sk_po_ts_lib",
         "//golden/modules/changelist-controls-sk:changelist-controls-sk_po_ts_lib",
+        "//golden/modules/pagination-sk:pagination-sk_po_ts_lib",
         "//golden/modules/search-controls-sk",
         "//golden/modules/search-controls-sk:search-controls-sk_po_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",

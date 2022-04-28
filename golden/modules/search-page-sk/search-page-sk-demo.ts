@@ -2,6 +2,7 @@ import './index';
 import '../gold-scaffold-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
+import { toParamSet } from 'common-sk/modules/query';
 import fetchMock from 'fetch-mock';
 import { testOnlySetSettings } from '../settings';
 import { SearchPageSk } from './search-page-sk';
@@ -23,17 +24,25 @@ fetchMock.get('/json/v2/paramset', paramSetResponse!);
 fetchMock.get('/json/v2/changelist/gerrit/123456', changeListSummaryResponse);
 
 // We simulate the search endpoint, but only take into account the negative/positive/untriaged
-// search fields to keep things simple. This is enough to demo the single/bulk triage UI components.
+// search fields and limit/offset to keep things simple. This is enough to demo the single/bulk
+// triage UI components and pagination behavior.
 fetchMock.get('glob:/json/v2/search*', (url: string) => {
   const filteredSearchResponse = deepCopy(searchResponse);
+  const queryParams = toParamSet(url.substring(url.indexOf('?') + 1));
 
   // Filter only by untriaged/positive/negative.
   filteredSearchResponse.digests = filteredSearchResponse.digests!.filter(
-    (digest) => (digest!.status === 'untriaged' && url.includes('unt=true'))
-      || (digest!.status === 'positive' && url.includes('pos=true'))
-      || (digest!.status === 'negative' && url.includes('neg=true')),
+    (digest) => (digest!.status === 'untriaged' && queryParams.unt[0] === 'true')
+      || (digest!.status === 'positive' && queryParams.pos[0] === 'true')
+      || (digest!.status === 'negative' && queryParams.neg[0] === 'true'),
   );
   filteredSearchResponse.size = filteredSearchResponse.digests.length;
+
+  // Apply limit and offset.
+  const limit = parseInt(queryParams.limit[0]);
+  const offset = parseInt(queryParams.offset[0]);
+  filteredSearchResponse.digests = filteredSearchResponse.digests.slice(offset, offset + limit);
+  filteredSearchResponse.offset = offset;
 
   return filteredSearchResponse;
 });

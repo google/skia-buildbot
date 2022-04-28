@@ -9,7 +9,7 @@ import {
 import {
   setUpElementUnderTest, eventSequencePromise, eventPromise, setQueryString, expectQueryStringToEqual, noEventPromise,
 } from '../../../infra-sk/modules/test_util';
-import { SearchPageSk, SearchRequest } from './search-page-sk';
+import { SearchPageSk, SearchRequest, DEFAULT_SEARCH_RESULTS_LIMIT } from './search-page-sk';
 import { SearchPageSkPO } from './search-page-sk_po';
 import { Label, SearchResponse, TriageRequest } from '../rpc_types';
 import { testOnlySetSettings } from '../settings';
@@ -17,6 +17,7 @@ import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import { SearchControlsSkPO } from '../search-controls-sk/search-controls-sk_po';
 import { ChangelistControlsSkPO } from '../changelist-controls-sk/changelist-controls-sk_po';
 import { BulkTriageSkPO } from '../bulk-triage-sk/bulk-triage-sk_po';
+import { PaginationSkPO } from '../pagination-sk/pagination-sk_po';
 
 describe('search-page-sk', () => {
   const newInstance = setUpElementUnderTest<SearchPageSk>('search-page-sk');
@@ -26,6 +27,7 @@ describe('search-page-sk', () => {
   let searchControlsSkPO: SearchControlsSkPO;
   let changelistControlsSkPO: ChangelistControlsSkPO;
   let bulkTriageSkPO: BulkTriageSkPO;
+  let paginationSkPO: PaginationSkPO;
 
   // SearchCriteria shown by the search-controls-sk component when the search page loads without any
   // URL parameters.
@@ -57,6 +59,8 @@ describe('search-page-sk', () => {
     rquery: 'source_type=infra',
     sort: 'desc',
     unt: true,
+    offset: 0,
+    limit: DEFAULT_SEARCH_RESULTS_LIMIT,
   };
 
   // Query string that will produce the searchRequestWithCL defined below upon page load.
@@ -125,9 +129,10 @@ describe('search-page-sk', () => {
     await events;
 
     searchPageSkPO = new SearchPageSkPO(searchPageSk);
-    searchControlsSkPO = await searchPageSkPO.searchControlsSkPO;
-    changelistControlsSkPO = await searchPageSkPO.changelistControlsSkPO;
-    bulkTriageSkPO = await searchPageSkPO.bulkTriageSkPO;
+    searchControlsSkPO = searchPageSkPO.searchControlsSkPO;
+    changelistControlsSkPO = searchPageSkPO.changelistControlsSkPO;
+    bulkTriageSkPO = searchPageSkPO.bulkTriageSkPO;
+    paginationSkPO = searchPageSkPO.paginationSkPO;
   };
 
   before(() => {
@@ -380,6 +385,64 @@ describe('search-page-sk', () => {
     });
   });
 
+  describe('pagination-sk', () => {
+    describe('button "next" with no explicit "limit" URL parameter', () => {
+      searchFieldIsBoundToURLAndRPC<number>(
+        {
+          initialQueryString: '',
+          expectedInitialSearchRequest: { ...defaultSearchRequest },
+        },
+        '?offset=50',
+        () => paginationSkPO.getCurrentPage(),
+        () => paginationSkPO.clickNextBtn(),
+        /* expectedUiValue= */ 2,
+        { ...defaultSearchRequest, offset: 50 },
+      );
+    });
+
+    describe('button "next"', () => {
+      searchFieldIsBoundToURLAndRPC<number>(
+        {
+          initialQueryString: '?limit=3',
+          expectedInitialSearchRequest: { ...defaultSearchRequest, limit: 3 },
+        },
+        '?limit=3&offset=3',
+        () => paginationSkPO.getCurrentPage(),
+        () => paginationSkPO.clickNextBtn(),
+        /* expectedUiValue= */ 2,
+        { ...defaultSearchRequest, limit: 3, offset: 3 },
+      );
+    });
+
+    describe('button "skip"', () => {
+      searchFieldIsBoundToURLAndRPC<number>(
+        {
+          initialQueryString: '?limit=3',
+          expectedInitialSearchRequest: { ...defaultSearchRequest, limit: 3 },
+        },
+        '?limit=3&offset=15',
+        () => paginationSkPO.getCurrentPage(),
+        () => paginationSkPO.clickSkipBtn(),
+        /* expectedUiValue= */ 6,
+        { ...defaultSearchRequest, limit: 3, offset: 15 },
+      );
+    });
+
+    describe('button "prev"', () => {
+      searchFieldIsBoundToURLAndRPC<number>(
+        {
+          initialQueryString: '?limit=3&offset=12',
+          expectedInitialSearchRequest: { ...defaultSearchRequest, limit: 3, offset: 12 },
+        },
+        '?limit=3&offset=9',
+        () => paginationSkPO.getCurrentPage(),
+        () => paginationSkPO.clickPrevBtn(),
+        /* expectedUiValue= */ 4,
+        { ...defaultSearchRequest, limit: 3, offset: 9 },
+      );
+    });
+  });
+
   describe('search results', () => {
     it('shows empty search results', async () => {
       await instantiate({ initialSearchResponse: emptySearchResponse });
@@ -387,6 +450,7 @@ describe('search-page-sk', () => {
       expect(await searchPageSkPO.getSummary())
         .to.equal('No results matched your search criteria.');
       expect(await searchPageSkPO.getDigests()).to.be.empty;
+      expect(await paginationSkPO.isEmpty()).to.be.true;
     });
 
     it('shows search results', async () => {
@@ -398,6 +462,7 @@ describe('search-page-sk', () => {
         'Left: 2fa58aa430e9c815755624ca6cca4a72',
         'Left: ed4a8cf9ea9fbb57bf1f302537e07572',
       ]);
+      expect(await paginationSkPO.getCurrentPage()).to.equal(1);
     });
 
     it('shows search results with changelist information', async () => {
@@ -408,6 +473,7 @@ describe('search-page-sk', () => {
         'Left: 2fa58aa430e9c815755624ca6cca4a72',
         'Left: ed4a8cf9ea9fbb57bf1f302537e07572',
       ]);
+      expect(await paginationSkPO.getCurrentPage()).to.equal(1);
 
       const diffDetailsHrefs = await searchPageSkPO.getDiffDetailsHrefs();
       expect(diffDetailsHrefs[0]).to.contain('changelist_id=123456&crs=gerrit');

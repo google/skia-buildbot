@@ -5,6 +5,7 @@ import { ChangelistControlsSkPO } from '../changelist-controls-sk/changelist-con
 import { BulkTriageSkPO } from '../bulk-triage-sk/bulk-triage-sk_po';
 import { Label } from '../rpc_types';
 import { DigestDetailsSkPO } from '../digest-details-sk/digest-details-sk_po';
+import { PaginationSkPO } from '../pagination-sk/pagination-sk_po';
 
 /** A page object for the SearchPageSk component. */
 export class SearchPageSkPO extends PageObject {
@@ -22,6 +23,10 @@ export class SearchPageSkPO extends PageObject {
 
   get digestDetailsSkPOs(): PageObjectList<DigestDetailsSkPO> {
     return this.poBySelectorAll('digest-details-sk', DigestDetailsSkPO);
+  }
+
+  get paginationSkPO(): PaginationSkPO {
+    return this.poBySelector('pagination-sk', PaginationSkPO);
   }
 
   private get bulkTriageBtn(): PageObjectElement {

@@ -45,9 +45,18 @@ describe('search-page-sk', () => {
       await takeScreenshot(testBed.page, 'gold', 'search-page-sk_empty');
     });
 
-    it('shows search results', async () => {
+    it('shows search results with no pagination', async () => {
+      // Demo page only mocks 3 results, which is below the default page limit of 50 results.
       await goToPage('?untriaged=true&positive=true&negative=true');
-      await takeScreenshot(testBed.page, 'gold', 'search-page-sk');
+      await testBed.page.setViewport({ width: 1600, height: 2200 }); // Capture the entire page.
+      await takeScreenshot(testBed.page, 'gold', 'search-page-sk_no-pagination');
+    });
+
+    it('shows search results with pagination', async () => {
+      // Demo page only mocks 3 results, so we limit the results to 2 per page to force pagination.
+      await goToPage('?untriaged=true&positive=true&negative=true&limit=2');
+      await testBed.page.setViewport({ width: 1600, height: 1600 }); // Capture the entire page.
+      await takeScreenshot(testBed.page, 'gold', 'search-page-sk_with-pagination');
     });
 
     it('shows changelist controls', async () => {
