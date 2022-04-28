@@ -289,8 +289,6 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GSUTIL...)
 	if strings.Contains(name, "Large") || strings.Contains(name, "Build") {
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("protoc"))
-		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("mockery"))
-		task.EnvPrefixes["PATH"] = append(task.EnvPrefixes["PATH"], "mockery")
 	}
 
 	// Cloud datastore tests are assumed to be marked as 'Large'
@@ -414,7 +412,6 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("mockery"))
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
 
 	machineType := machineTypeMedium
@@ -440,7 +437,7 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(machineType),
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "mockery"},
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
 		ServiceAccount: recreateSKPsServiceAccount,
 	}
@@ -452,7 +449,6 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("bazelisk"))
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("mockery"))
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
 
 	cmd := []string{
@@ -479,7 +475,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(machineTypeLarge),
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "mockery", "bazelisk"},
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "bazelisk"},
 		},
 		ServiceAccount: compileServiceAccount,
 	}

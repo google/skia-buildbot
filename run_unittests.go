@@ -42,9 +42,6 @@ Full output:
 %s
 ------------------------------------------------------------------------
 `
-
-	// The expected version of mockery - older versions will be deleted
-	mockeryVersion = "2.4.0"
 )
 
 var (

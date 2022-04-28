@@ -73,9 +73,6 @@ $ go get -u \
   google.golang.org/grpc \
 ```
 
-Get [mockery](https://github.com/vektra/mockery/releases/tag/v2.4.0) and add it
-to your PATH.
-
 To generate code run in this directory:
 
 ```

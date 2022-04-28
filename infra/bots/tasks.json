@@ -553,11 +553,6 @@
           "version": "version:16"
         },
         {
-          "name": "skia/bots/mockery",
-          "path": "mockery",
-          "version": "version:2"
-        },
-        {
           "name": "skia/bots/protoc",
           "path": "protoc",
           "version": "version:0"
@@ -605,8 +600,7 @@
         "PATH": [
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
-          "go/go/bin",
-          "mockery"
+          "go/go/bin"
         ]
       },
       "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
@@ -843,11 +837,6 @@
           "version": "version:16"
         },
         {
-          "name": "skia/bots/mockery",
-          "path": "mockery",
-          "version": "version:2"
-        },
-        {
           "name": "skia/bots/protoc",
           "path": "protoc",
           "version": "version:0"
@@ -890,7 +879,6 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "go/go/bin",
-          "mockery",
           "bazelisk"
         ]
       },
@@ -933,11 +921,6 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:16"
-        },
-        {
-          "name": "skia/bots/mockery",
-          "path": "mockery",
-          "version": "version:2"
         },
         {
           "name": "skia/bots/protoc",
@@ -983,7 +966,6 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "go/go/bin",
-          "mockery",
           "bazelisk"
         ]
       },
@@ -1087,11 +1069,6 @@
           "version": "version:16"
         },
         {
-          "name": "skia/bots/mockery",
-          "path": "mockery",
-          "version": "version:2"
-        },
-        {
           "name": "skia/bots/node",
           "path": "node",
           "version": "version:2"
@@ -1130,8 +1107,7 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin",
-          "mockery"
+          "cipd_bin_packages/cpython3/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "buildbot/.vpython"
