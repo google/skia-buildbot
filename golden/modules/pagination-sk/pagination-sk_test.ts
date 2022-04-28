@@ -1,83 +1,94 @@
 import './index';
 
 import { expect } from 'chai';
-import { $, $$ } from 'common-sk/modules/dom';
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { eventPromise, noEventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { PaginationSk, PaginationSkPageChangedEventDetail } from './pagination-sk';
+import { PaginationSkPO } from './pagination-sk_po';
 
 describe('pagination-sk', () => {
   const newInstance = setUpElementUnderTest<PaginationSk>('pagination-sk');
 
   let paginationSk: PaginationSk;
+  let paginationSkPO: PaginationSkPO;
+
   beforeEach(() => {
     paginationSk = newInstance((el) => {
       el.setAttribute('offset', '0');
       el.setAttribute('total', '127');
       el.setAttribute('page_size', '20');
     });
+    paginationSkPO = new PaginationSkPO(paginationSk);
+  });
+
+  it('reflects attributes as properties', () => {
+    expect(paginationSk.offset).to.equal(0);
+    expect(paginationSk.total).to.equal(127);
+    expect(paginationSk.page_size).to.equal(20);
   });
 
   describe('html layout', () => {
-    it('has three buttons', () => {
-      const btns = $('button', paginationSk);
-      expect(btns.length).to.equal(3);
-      // backward
-      expect(btns[0].hasAttribute('disabled')).to.be.true;
-      // forward
-      expect(btns[1].hasAttribute('disabled')).to.be.false;
-      // forward+5
-      expect(btns[2].hasAttribute('disabled')).to.be.false;
+    it('enables and disables buttons based on the current page', async () => {
+      expect(await paginationSkPO.isPrevBtnDisabled()).to.be.true;
+      expect(await paginationSkPO.isNextBtnDisabled()).to.be.false;
+      expect(await paginationSkPO.isSkipBtnDisabled()).to.be.false;
 
       paginationSk.offset = 20;
-      expect(btns[0].hasAttribute('disabled')).to.be.false;
-      expect(btns[1].hasAttribute('disabled')).to.be.false;
-      expect(btns[2].hasAttribute('disabled')).to.be.false;
+      expect(await paginationSkPO.isPrevBtnDisabled()).to.be.false;
+      expect(await paginationSkPO.isNextBtnDisabled()).to.be.false;
+      expect(await paginationSkPO.isSkipBtnDisabled()).to.be.false;
 
       paginationSk.offset = 40;
-      expect(btns[0].hasAttribute('disabled')).to.be.false;
-      expect(btns[1].hasAttribute('disabled')).to.be.false;
-      expect(btns[2].hasAttribute('disabled')).to.be.true;
+      expect(await paginationSkPO.isPrevBtnDisabled()).to.be.false;
+      expect(await paginationSkPO.isNextBtnDisabled()).to.be.false;
+      expect(await paginationSkPO.isSkipBtnDisabled()).to.be.true;
 
       paginationSk.offset = 120;
-      expect(btns[0].hasAttribute('disabled')).to.be.false;
-      expect(btns[1].hasAttribute('disabled')).to.be.true;
-      expect(btns[2].hasAttribute('disabled')).to.be.true;
+      expect(await paginationSkPO.isPrevBtnDisabled()).to.be.false;
+      expect(await paginationSkPO.isNextBtnDisabled()).to.be.true;
+      expect(await paginationSkPO.isSkipBtnDisabled()).to.be.true;
     });
 
-    it('displays the page count', () => {
-      const cnt = $$<HTMLDivElement>('.counter', paginationSk);
-      expect(cnt).to.not.be.null;
-      expect(cnt!.textContent).to.have.string('page 1');
+    it('displays the current page', async () => {
+      expect(await paginationSkPO.getCurrentPage()).to.equal(1);
+      paginationSk.offset = 20;
+      expect(await paginationSkPO.getCurrentPage()).to.equal(2);
+      paginationSk.offset = 40;
+      expect(await paginationSkPO.getCurrentPage()).to.equal(3);
     });
-
-    it('has several properties', () => {
-      expect(paginationSk.total).to.equal(127);
-      expect(paginationSk.offset).to.equal(0);
-      expect(paginationSk.page_size).to.equal(20);
-    });
-  });// end describe('html layout')
+  }); // end describe('html layout')
 
   describe('paging behavior', () => {
-    it('creates page events', (done) => {
-      paginationSk.offset = 20;
-      const btns = $<HTMLButtonElement>('button', paginationSk);
-      expect(btns.length).to.equal(3);
-      const bck = btns[0];
-      const fwd = btns[1];
-      const pls5 = btns[2];
+    it('does not auto update the page offset', async () => {
+      expect(await paginationSkPO.getCurrentPage()).to.equal(1);
+      await paginationSkPO.clickNextBtn();
+      expect(await paginationSkPO.getCurrentPage()).to.equal(1);
+      await paginationSkPO.clickSkipBtn();
+      expect(await paginationSkPO.getCurrentPage()).to.equal(1);
+      await paginationSkPO.clickPrevBtn();
+      expect(await paginationSkPO.getCurrentPage()).to.equal(1);
+    });
 
-      let d = 0;
-      const deltas = [1, -1, 5];
-      paginationSk.addEventListener('page-changed', (e: Event) => {
-        expect((e as CustomEvent<PaginationSkPageChangedEventDetail>).detail.delta).to.equal(deltas[d]);
-        d++;
-        if (d === 3) {
-          done();
-        }
-      });
-      fwd.click();
-      bck.click();
-      pls5.click();
+    it('creates page events', async () => {
+      // We start at page 1, so the "prev" button is disabled, and clicking it has no effect.
+      const noPaginationEvent = noEventPromise('page-changed');
+      await paginationSkPO.clickPrevBtn();
+      await noPaginationEvent;
+
+      // Still at page 1 because nothing happened.
+      let paginationEvent = eventPromise<CustomEvent<PaginationSkPageChangedEventDetail>>('page-changed');
+      await paginationSkPO.clickNextBtn();
+      expect((await paginationEvent).detail.delta).to.equal(1);
+
+      // Still at page 1 because the component does not auto update the offset.
+      paginationEvent = eventPromise<CustomEvent<PaginationSkPageChangedEventDetail>>('page-changed');
+      await paginationSkPO.clickSkipBtn();
+      expect((await paginationEvent).detail.delta).to.equal(5);
+
+      // Move the offset by one page so as to enable the "prev" button.
+      paginationSk.offset = 20;
+      paginationEvent = eventPromise<CustomEvent<PaginationSkPageChangedEventDetail>>('page-changed');
+      await paginationSkPO.clickPrevBtn();
+      expect((await paginationEvent).detail.delta).to.equal(-1);
     });
   }); // end describe('paging behavior')
 });

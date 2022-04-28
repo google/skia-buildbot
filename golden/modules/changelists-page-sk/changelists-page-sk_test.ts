@@ -16,6 +16,8 @@ import {
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
 import { ChangelistsPageSk } from './changelists-page-sk';
+import { PaginationSk } from '../pagination-sk/pagination-sk';
+import { PaginationSkPO } from '../pagination-sk/pagination-sk_po';
 
 describe('changelists-page-sk', () => {
   const newInstance = setUpElementUnderTest<ChangelistsPageSk>('changelists-page-sk');
@@ -181,9 +183,9 @@ describe('changelists-page-sk', () => {
   }); // end describe('dynamic content')
 });
 
-function goToNextPage(changelistsPageSk: ChangelistsPageSk) {
+function goToNextPage(changelistsPageSk: ChangelistsPageSk): Promise<Event> {
   const event = eventPromise('end-task');
-  $$<HTMLButtonElement>('pagination-sk button.next', changelistsPageSk)!.click();
+  new PaginationSkPO($$<PaginationSk>('pagination-sk', changelistsPageSk)!).clickNextBtn();
   return event;
 }
 
