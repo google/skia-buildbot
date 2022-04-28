@@ -1259,13 +1259,14 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []stageOneResult) ([]
 	}
 	sortAsc := q.Sort == query.SortAscending
 	sort.Slice(results, func(i, j int) bool {
-		if results[i].closestDigest == nil {
+		if results[i].closestDigest == nil && results[j].closestDigest != nil {
 			return true // sort results with no reference image to the top
 		}
-		if results[j].closestDigest == nil {
+		if results[i].closestDigest != nil && results[j].closestDigest == nil {
 			return false
 		}
-		if results[i].closestDigest.CombinedMetric == results[j].closestDigest.CombinedMetric {
+		if (results[i].closestDigest == nil && results[j].closestDigest == nil) ||
+			results[i].closestDigest.CombinedMetric == results[j].closestDigest.CombinedMetric {
 			// Tiebreak using digest in ascending order, followed by groupingID.
 			c := bytes.Compare(results[i].leftDigest, results[j].leftDigest)
 			if c != 0 {
