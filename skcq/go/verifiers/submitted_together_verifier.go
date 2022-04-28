@@ -3,21 +3,36 @@ package verifiers
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/skcq/go/codereview"
 	"go.skia.org/infra/skcq/go/config"
 	"go.skia.org/infra/skcq/go/footers"
 	"go.skia.org/infra/skcq/go/types"
 )
 
 // NewSubmittedTogetherVerifier returns an instance of SubmittedTogetherVerifier.
-func NewSubmittedTogetherVerifier(ctx context.Context, vm types.VerifiersManager, togetherChanges []*gerrit.ChangeInfo, skCQCfg *config.SkCQCfg, ci *gerrit.ChangeInfo, configReader config.ConfigReader, footersMap map[string]string) (types.Verifier, error) {
+func NewSubmittedTogetherVerifier(ctx context.Context, vm types.VerifiersManager, togetherChanges []*gerrit.ChangeInfo, httpClient *http.Client, cr codereview.CodeReview, ci *gerrit.ChangeInfo, footersMap map[string]string, canModifyCfgsOnTheFly allowed.Allow) (types.Verifier, error) {
 	togetherChangesToVerifiers := map[*gerrit.ChangeInfo][]types.Verifier{}
 	for _, tc := range togetherChanges {
-		tcVerifiers, _, err := vm.GetVerifiers(ctx, skCQCfg, tc, true /* isSubmittedTogetherChange */, configReader)
+		// The together change could be in a different branch+repo so we need to
+		// get its config reader and CQ config.
+		tcConfigReader, err := config.NewGitilesConfigReader(ctx, httpClient, tc, cr, canModifyCfgsOnTheFly)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Could not get config reader for the together change: %d", tc.Issue)
+		}
+		tcCQCfg, err := tcConfigReader.GetSkCQCfg(ctx)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Could not get %s for the together change: %d", config.SkCQCfgPath, tc.Issue)
+		}
+
+		// Get all verifiers of this together change.
+		tcVerifiers, _, err := vm.GetVerifiers(ctx, tcCQCfg, tc, true /* isSubmittedTogetherChange */, tcConfigReader)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Could not get verifiers for the together change %d", tc.Issue)
 		}

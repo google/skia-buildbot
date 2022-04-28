@@ -37,7 +37,7 @@ const (
 func Start(ctx context.Context, pollInterval time.Duration, cr codereview.CodeReview, currentChangesCache caches.CurrentChangesCache, httpClient, criaClient *http.Client, dbClient db.DB, canModifyCfgsOnTheFly *allowed.AllowedFromChromeInfraAuth, publicFEInstanceURL, corpFEInstanceURL string, reposAllowList, reposBlockList []string) error {
 	liveness := metrics2.NewLiveness(LivenessMetric)
 	tm := throttler.NewThrottler()
-	vm := verifiers.NewSkCQVerifiersManager(tm, httpClient, criaClient, cr)
+	vm := verifiers.NewSkCQVerifiersManager(tm, httpClient, criaClient, cr, canModifyCfgsOnTheFly)
 	cleanup.Repeat(pollInterval, func(ctx context.Context) {
 		sklog.Info("----------------New Poll Iteration--------------")
 		cls, err := cr.Search(ctx)

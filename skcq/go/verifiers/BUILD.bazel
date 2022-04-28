@@ -57,6 +57,7 @@ go_test(
         "//go/allowed/mocks",
         "//go/buildbucket/mocks",
         "//go/gerrit",
+        "//go/gitiles",
         "//go/mockhttpclient",
         "//go/skerr",
         "//go/testutils",

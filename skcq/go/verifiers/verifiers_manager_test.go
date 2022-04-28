@@ -2,6 +2,8 @@ package verifiers
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"testing"
@@ -11,6 +13,7 @@ import (
 
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
@@ -56,6 +59,22 @@ func testGetVerifier(t *testing.T, isCQ, isDryRun bool, submittedTogetherChange 
 		cr.On("Url", int64(0)).Return("skia-review.googlesource.com").Once()
 		cfgReader.On("GetTasksCfg", testutils.AnyContext, cfg.TasksJSONPath).Return(nil, nil).Once()
 	} else {
+		// Return a mock CQ config for the together change.
+		cqCfg := &config.SkCQCfg{
+			CommitterList:    "committer-list",
+			DryRunAccessList: "dry-run-access-list",
+			VisibilityType:   "public",
+		}
+		cqCfgResp, err := json.Marshal(cqCfg)
+		require.NoError(t, err)
+		encodedResp := base64.StdEncoding.EncodeToString(cqCfgResp)
+		md := mockhttpclient.MockGetDialogue([]byte(encodedResp))
+		md.ResponseHeader(gitiles.ModeHeader, "0777")
+		md.ResponseHeader(gitiles.TypeHeader, "blob")
+		mockClient.Mock("test-repo-url/+show//infra/skcq.json?format=TEXT", md)
+
+		cr.On("GetRepoUrl", submittedTogetherChange).Return("test-repo-url").Once()
+		cr.On("GetFileNames", testutils.AnyContext, submittedTogetherChange).Return([]string{"test-file-name"}, nil).Once()
 		cr.On("GetCommitMessage", testutils.AnyContext, ci.Issue).Return(commitMsg, nil).Once()
 		cr.On("GetCommitMessage", testutils.AnyContext, submittedTogetherChange.Issue).Return(commitMsg, nil).Once()
 		cr.On("IsCQ", testutils.AnyContext, ci).Return(isCQ).Twice()

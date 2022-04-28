@@ -23,17 +23,18 @@ var (
 
 // SkCQVerifiersManager implements VerifiersManager.
 type SkCQVerifiersManager struct {
-	throttlerManager types.ThrottlerManager
-	httpClient       *http.Client
-	criaClient       *http.Client
-	cr               codereview.CodeReview
+	throttlerManager      types.ThrottlerManager
+	httpClient            *http.Client
+	criaClient            *http.Client
+	cr                    codereview.CodeReview
+	canModifyCfgsOnTheFly allowed.Allow
 	// Allow lists will be cached here so that they are not continuously
 	// newly instantiated.
 	allowlistCache map[string]allowed.Allow
 }
 
 // NewSkCQVerifiersManager returns an instance of SkCQVerifiersManager.
-func NewSkCQVerifiersManager(throttlerManager types.ThrottlerManager, httpClient, criaClient *http.Client, cr codereview.CodeReview) *SkCQVerifiersManager {
+func NewSkCQVerifiersManager(throttlerManager types.ThrottlerManager, httpClient, criaClient *http.Client, cr codereview.CodeReview, canModifyCfgsOnTheFly allowed.Allow) *SkCQVerifiersManager {
 	return &SkCQVerifiersManager{
 		throttlerManager: throttlerManager,
 		httpClient:       httpClient,
@@ -89,7 +90,7 @@ func (vm *SkCQVerifiersManager) GetVerifiers(ctx context.Context, cfg *config.Sk
 				return nil, nil, skerr.Wrapf(err, "Error when getting submitted together chagnes for SubmittedTogetherVerifier")
 			}
 			if len(togetherChanges) > 0 {
-				togetherChangesVerifier, err := NewSubmittedTogetherVerifier(ctx, vm, togetherChanges, cfg, ci, configReader, footersMap)
+				togetherChangesVerifier, err := NewSubmittedTogetherVerifier(ctx, vm, togetherChanges, vm.httpClient, vm.cr, ci, footersMap, vm.canModifyCfgsOnTheFly)
 				if err != nil {
 					return nil, nil, skerr.Wrapf(err, "Error when creating SubmittedTogetherVerifier")
 				}
