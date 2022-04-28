@@ -111,7 +111,7 @@ fi
 # Compute the path to the directory with web assets by extracting the parent directory of an
 # arbitrary page. This works because all web assets are generated on the same directory (with the
 # exception of the favicon, which we will handle later).
-byblame_page_assets=($(rootpaths //golden/pages:byblame_prod)) # Expands to byblame.{html,js,css}.
+byblame_page_assets=($(rootpaths //golden/pages:byblame_dev)) # Expands to byblame.{html,js,css}.
 web_assets_dir=$$(realpath $$(dirname $${byblame_page_assets[0]}))
 
 # Copy the favicon into the web assets directory.
@@ -188,7 +188,7 @@ genrule(
     srcs = [
         "//golden/cmd/gold_frontend",
         "//golden/static:favicon.ico",
-    ] + ["//golden/pages:%s_prod" % page for page in ALL_GOLD_PAGES],
+    ] + ["//golden/pages:%s_dev" % page for page in ALL_GOLD_PAGES],
     outs = ["gold_frontend_local_script.sh"],
     cmd = "echo '%s' > $@" % gold_frontend_local_script,
 )
@@ -199,5 +199,5 @@ sh_binary(
     data = [
         "//golden/cmd/gold_frontend",
         "//golden/static:favicon.ico",
-    ] + ["//golden/pages:%s_prod" % page for page in ALL_GOLD_PAGES],
+    ] + ["//golden/pages:%s_dev" % page for page in ALL_GOLD_PAGES],
 )
