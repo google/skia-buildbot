@@ -125,7 +125,7 @@ def RunSteps(api):
       'golang.org/x/tools/cmd/goimports',
       'golang.org/x/tools/cmd/stringer',
       'github.com/twitchtv/twirp/protoc-gen-twirp',
-      'go.larrymyers.com/protoc-gen-twirp_typescript'
+      'github.com/skia-dev/protoc-gen-twirp_typescript'
     ]
     for target in install_targets:
       api.step('go install %s' % target, cmd=['go', 'install', '-v', target])

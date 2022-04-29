@@ -3033,6 +3033,12 @@ def go_repositories():
         sum = "h1:Id5JdSD66PKQQiiVFG1VXDVCT5U3DcDzJSReXRxKRLk=",
         version = "v0.10.1-0.20200109184256-16c3d6f408b2",
     )
+    go_repository(
+        name = "com_github_skia_dev_protoc_gen_twirp_typescript",
+        importpath = "github.com/skia-dev/protoc-gen-twirp_typescript",
+        sum = "h1:pvkezPWVSAZW4ftEZ5lYqgMkk8FjPIcaONXKEgrX2nk=",
+        version = "v0.0.0-20220428204018-1ceb8af78d51",
+    )
 
     go_repository(
         name = "com_github_smartystreets_assertions",
@@ -3517,14 +3523,6 @@ def go_repositories():
         importpath = "cloud.google.com/go/trace",
         sum = "h1:oIaB4KahkIUOpLSAAjEJ8y2desbjY/x/RfP4O3KAtTI=",
         version = "v1.2.0",
-    )
-
-    go_repository(
-        name = "com_larrymyers_go_protoc_gen_twirp_typescript",
-        importpath = "go.larrymyers.com/protoc-gen-twirp_typescript",
-        replace = "github.com/skia-dev/protoc-gen-twirp_typescript",
-        sum = "h1:aVRC547XgCbd6d5FEu+Dliz0nb+VQADHboBzrVK94FI=",
-        version = "v0.0.0-20200902150932-4a52797b9171",
     )
 
     go_repository(

@@ -182,7 +182,7 @@
       "go",
       "install",
       "-v",
-      "go.larrymyers.com/protoc-gen-twirp_typescript"
+      "github.com/skia-dev/protoc-gen-twirp_typescript"
     ],
     "cwd": "[START_DIR]/buildbot",
     "env": {
@@ -195,7 +195,7 @@
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>"
     },
-    "name": "go install go.larrymyers.com/protoc-gen-twirp_typescript"
+    "name": "go install github.com/skia-dev/protoc-gen-twirp_typescript"
   },
   {
     "cmd": [

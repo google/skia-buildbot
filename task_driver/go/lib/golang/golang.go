@@ -22,7 +22,7 @@ var (
 		"github.com/golang/protobuf/protoc-gen-go",
 		"github.com/kisielk/errcheck",
 		"github.com/twitchtv/twirp/protoc-gen-twirp",
-		"go.larrymyers.com/protoc-gen-twirp_typescript",
+		"github.com/skia-dev/protoc-gen-twirp_typescript",
 		"golang.org/x/tools/cmd/goimports",
 		"golang.org/x/tools/cmd/stringer",
 	}

@@ -38,11 +38,6 @@ exclude (
 	k8s.io/client-go v9.0.0+incompatible // #2
 )
 
-// We're using this fork-of-a-fork which contains various bug fixes and adds
-// support for things like enums.  We can remove it if/when those changes ever
-// get upstreamed.
-replace go.larrymyers.com/protoc-gen-twirp_typescript => github.com/skia-dev/protoc-gen-twirp_typescript v0.0.0-20200902150932-4a52797b9171
-
 require (
 	cloud.google.com/go/bigtable v1.6.0
 	cloud.google.com/go/compute v1.5.0
@@ -52,6 +47,7 @@ require (
 	cloud.google.com/go/logging v1.1.1
 	cloud.google.com/go/monitoring v1.5.0
 	cloud.google.com/go/pubsub v1.8.2
+	cloud.google.com/go/secretmanager v1.4.0
 	cloud.google.com/go/storage v1.14.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.4
 	github.com/Jeffail/gabs/v2 v2.6.0
@@ -109,7 +105,6 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20201029184154-594d11850ebf
-	go.larrymyers.com/protoc-gen-twirp_typescript v0.0.0-20201012232926-5c91a3223921
 	go.opencensus.io v0.23.0
 	golang.org/x/net v0.0.0-20220325170049-de3da57026de
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
@@ -134,7 +129,6 @@ require (
 	cloud.google.com/go v0.100.2 // indirect
 	cloud.google.com/go/container v1.2.0 // indirect
 	cloud.google.com/go/kms v1.4.0 // indirect
-	cloud.google.com/go/secretmanager v1.4.0 // indirect
 	cloud.google.com/go/trace v1.2.0 // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
@@ -205,6 +199,7 @@ require (
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
+	github.com/skia-dev/protoc-gen-twirp_typescript v0.0.0-20220428204018-1ceb8af78d51 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/spf13/afero v1.8.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
