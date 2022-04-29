@@ -3036,8 +3036,8 @@ def go_repositories():
     go_repository(
         name = "com_github_skia_dev_protoc_gen_twirp_typescript",
         importpath = "github.com/skia-dev/protoc-gen-twirp_typescript",
-        sum = "h1:pvkezPWVSAZW4ftEZ5lYqgMkk8FjPIcaONXKEgrX2nk=",
-        version = "v0.0.0-20220428204018-1ceb8af78d51",
+        sum = "h1:NDEFg8RXMMmc3j5fE+M7fJ2vqoCRRBu1excmvrhmA6Y=",
+        version = "v0.0.0-20220429132620-ad26708b7787",
     )
 
     go_repository(
