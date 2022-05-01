@@ -130,6 +130,18 @@ const (
 	DoNotExpandBaseAlertByGroupBy
 )
 
+// Iteration controls how ProcessRegressions deals with errors as it iterates
+// across all the DataFrames.
+type Iteration int
+
+const (
+	// ContinueOnError causes the error to be ignored and iteration continues.
+	ContinueOnError Iteration = iota
+
+	// ReturnOnError halts the iteration and returns.
+	ReturnOnError
+)
+
 // ProcessRegressions detects regressions given the RegressionDetectionRequest.
 func ProcessRegressions(ctx context.Context,
 	req *RegressionDetectionRequest,
@@ -139,6 +151,7 @@ func ProcessRegressions(ctx context.Context,
 	dfBuilder dataframe.DataFrameBuilder,
 	ps paramtools.ReadOnlyParamSet,
 	expandBaseRequest BaseAlertHandling,
+	iteration Iteration,
 ) error {
 	ctx, span := trace.StartSpan(ctx, "ProcessRegressions")
 	defer span.End()
@@ -152,10 +165,16 @@ func ProcessRegressions(ctx context.Context,
 		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
 		sklog.Infof("Building DataFrameIterator for %q", req.Query())
 		req.Progress.Message("Query", req.Query())
-		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, nil, req.Query(), req.Domain, req.Alert)
+		iterErrorCallback := func(msg string) {
+			req.Progress.Message("Iteration", msg)
+		}
+		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, iterErrorCallback, req.Query(), req.Domain, req.Alert)
 		if err != nil {
-			req.Progress.Message("Info", fmt.Sprintf("Failed to find enough data for query: %q", req.Query()))
-			continue
+			if iteration == ContinueOnError {
+				sklog.Warning(err)
+				continue
+			}
+			return err
 		}
 		req.Progress.Message("Info", "Data loaded.")
 		detectionProcess := &regressionDetectionProcess{

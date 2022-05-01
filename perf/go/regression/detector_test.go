@@ -71,7 +71,7 @@ func TestTooMuchMissingData(t *testing.T) {
 	}
 }
 
-func TestProcessRegressions_BadQueryValue_ReturnsNil(t *testing.T) {
+func TestProcessRegressions_BadQueryValue_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	alert := alerts.NewConfig() // A known query that will fail to parse.
@@ -82,13 +82,13 @@ func TestProcessRegressions_BadQueryValue_ReturnsNil(t *testing.T) {
 	}
 
 	dfb := &mocks.DataFrameBuilder{}
-	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet(), ExpandBaseAlertByGroupBy)
-	require.NoError(t, err)
+	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet(), ExpandBaseAlertByGroupBy, ReturnOnError)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Invalid query")
 	assert.Equal(t, progress.Running, req.Progress.Status())
 	var b bytes.Buffer
 	err = req.Progress.JSON(&b)
 	require.NoError(t, err)
-	assert.Contains(t, b.String(), "Failed to find enough data for query")
 }
 
 func TestAllRequestsFromBaseRequest_WithValidGroupBy_Success(t *testing.T) {

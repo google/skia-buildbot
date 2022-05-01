@@ -118,10 +118,10 @@ func NewDataFrameIterator(
 		commit, err := perfGit.CommitFromCommitNumber(ctx, endCommit)
 		if err != nil {
 			if regressionStateCallback != nil {
-				regressionStateCallback(fmt.Sprintf("Not a valid commit number %d. Make sure you choose a commit old enough to have Radius results before and after it.", endCommit))
+				regressionStateCallback(fmt.Sprintf("Not a valid commit number %d. Make sure you choose a commit old enough to have %d commits before it and %d commits after it.", endCommit, alert.Radius, alert.Radius-1))
 			}
 
-			return nil, skerr.Wrapf(err, "Failed to look up CommitNumber of a single cluster request")
+			return nil, skerr.Wrapf(err, "Failed to look up CommitNumber of a single cluster request.")
 		}
 		df, err = dfBuilder.NewNFromQuery(ctx, time.Unix(commit.Timestamp, 0), q, n, progress)
 		if err != nil {

@@ -672,9 +672,10 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	f.progressTracker.Add(req.Progress)
 
 	go func() {
-		err := regression.ProcessRegressions(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder, f.paramsetRefresher.Get(), regression.ExpandBaseAlertByGroupBy)
+		err := regression.ProcessRegressions(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder, f.paramsetRefresher.Get(), regression.ExpandBaseAlertByGroupBy, regression.ReturnOnError)
 		if err != nil {
-			req.Progress.Error(err.Error())
+			sklog.Errorf("ProcessRegressions returned: %s", err)
+			req.Progress.Error("Failed to load data.")
 		} else {
 			req.Progress.Finished()
 		}

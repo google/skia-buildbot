@@ -36,6 +36,7 @@ import {
   Commit,
   FullSummary,
   RegressionDetectionResponse,
+  progress,
 } from '../json';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
@@ -92,6 +93,9 @@ export class ClusterPageSk extends ElementSk {
 
   // The spinner we display when waiting for results.
   private spinner: SpinnerSk | null = null;
+
+  // The text status of the currently running request.
+  private runningStatus = '';
 
   constructor() {
     super(ClusterPageSk.template);
@@ -177,6 +181,7 @@ export class ClusterPageSk extends ElementSk {
     </details>
 
     <h2>Results</h2>
+    <pre class="messages">${ele.runningStatus}</pre>
     <sort-sk target="clusters">
       <button data-key="clustersize">Cluster Size</button>
       <button data-key="stepregression" data-default="up">Regression</button>
@@ -333,10 +338,14 @@ export class ClusterPageSk extends ElementSk {
     // Set a value for _requestId so the spinner starts, and we don't start
     // another request too soon.
     this.requestId = 'pending';
+    this.runningStatus = '';
     this._render();
 
     try {
-      const prog = await startRequest('/_/cluster/start', body, 300, this.spinner!, null);
+      const prog = await startRequest('/_/cluster/start', body, 300, this.spinner!, (prog: progress.SerializedProgress) => {
+        this.runningStatus = prog.messages.map(((msg) => `${msg.key}: ${msg.value}`)).join('\n');
+        this._render();
+      });
       if (prog.status === 'Error') {
         throw new Error(messagesToErrorString(prog.messages));
       }
