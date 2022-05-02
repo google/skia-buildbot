@@ -9,5 +9,5 @@ release: build
 	$(BAZEL) run //periodic-trigger:push_periodic_trigger_container
 
 .PHONY: push
-push: release pushk
+push: release
 	$(BAZEL) run //kube/go/pushk -- --message="$(MESSAGE)" --use-temp-checkout periodic-trigger

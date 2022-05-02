@@ -1,4 +1,5 @@
 include ../make/bazel.mk
+include ../kube/kube.mk
 
 # First create a list of all the modules that ./go/rpc depends upon.
 rpcDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' ./go/rpc)
