@@ -7,7 +7,7 @@ filegroup(
 )
 
 skia_app_container(
-    name = "perfserver_container",
+    name = "perfserver",
     base_image = "@base-cipd//image",
     dirs = {
         "/usr/local/bin": [
@@ -52,7 +52,7 @@ skia_app_container(
 )
 
 skia_app_container(
-    name = "perf_backup_container",
+    name = "perf-cockroachdb-backup",
     base_image = "@cloudsdk//image",
     dirs = {
         "/usr/local/bin": [

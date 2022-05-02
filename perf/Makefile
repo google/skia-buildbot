@@ -11,19 +11,19 @@ docs:
 
 .PHONY: release
 release:
-	$(BAZEL) run //perf:push_perfserver_container
+	$(BAZEL) run //perf:push_perfserver
 
 .PHONY: push
 push:
-	$(BAZEL) run //perf:pushk_perfserver_container
+	$(BAZEL) run //perf:pushk_perfserver
 
 .PHONY: release_backup
 release_backup:
-	$(BAZEL) run //perf:push_perf_backup_container
+	$(BAZEL) run //perf:push_perf-cockroachdb-backup
 
 .PHONY: push_backup
 push_backup: release_backup
-	$(BAZEL) run //perf:pushk_perf_backup_container
+	$(BAZEL) run //perf:pushk_perf-cockroachdb-backup
 
 # First create a list of all the modules that ./go/ts depends upon.
 tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/perf/go/ts/  )
