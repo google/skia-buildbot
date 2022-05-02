@@ -28,7 +28,14 @@
       "git_branch": "main",
       "package_json_dir": "appengine/monorail",
       "packages_allow_list": [],
-      "trusted_scopes": []
+      "trusted_scopes": [],
+      "monorail_config": {
+        "instance_name": "chromium",
+        "owner": "zhangtiff@google.com",
+        "component_def_ids": [
+          "36250649"
+        ]
+      }
     }
   }
 }

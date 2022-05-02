@@ -153,7 +153,7 @@ func (a *NpmProjectAudit) oneAuditCycle(ctx context.Context, liveness metrics2.L
 			// Issue has not been filed yet. File one and add it to the DB.
 			sklog.Infof("There is no audit data for project %s in firestore. File a new issue.", a.projectName)
 			if err := a.fileAndPersistAuditIssue(ctx); err != nil {
-				sklog.Errorf("Could not file and persist audit issue for %s", a.projectName)
+				sklog.Errorf("Could not file and persist audit issue for %s: %s", a.projectName, err)
 				return // return so that the liveness is not updated
 			}
 		} else {
