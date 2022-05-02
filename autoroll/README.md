@@ -73,6 +73,36 @@ or more commits lands in the child repo, in which case the roller closes the
 CL and uploads a new one.
 
 
+AutoRoll Strategies
+-------------------
+
+There are three strategies which the roller may use to choose the next revision
+to roll:
+
+
+#### Batch ####
+
+Using this strategy, the roller always chooses the most recent revision to roll,
+potentially resulting in large batches of commits in each roll.
+
+
+#### N-Batch ####
+
+Similar to the "batch" strategy, the roller will upload rolls containing
+multiple commits, but only up to a maximum of N commits, where N is hard-coded
+to 20 as of May 2 2022.
+
+
+#### Single ####
+
+The roller will only roll a single commit at a time.  This can be useful for
+keeping blamelists clear, but it has some drawbacks.  If the commit queue is not
+fast enough to keep up with the commit rate of the child project, the roller
+will lag behind.  If a particular commit breaks the commit queue, the roller may
+get stuck, since it won't automatically include the fix or revert in the rolls.
+Therefore, this strategy may require occasional manual intervention.
+
+
 For Skia Infra Team Members
 ---------------------------
 
