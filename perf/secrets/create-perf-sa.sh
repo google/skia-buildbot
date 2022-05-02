@@ -20,6 +20,13 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member "serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com" \
   --role roles/pubsub.editor
 
+# Allow the new service account to impersonate the Google Cloud service account. See
+# https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity#authenticating_to.
+gcloud iam service-accounts add-iam-policy-binding \
+  --role roles/iam.workloadIdentityUser \
+  --member "serviceAccount:skia-public.svc.id.goog[default/skia-perf]" \
+  skia-perf@skia-public.iam.gserviceaccount.com
+
 gsutil iam ch "serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com:objectViewer" gs://skia-perf
 
 gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
