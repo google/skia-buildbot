@@ -27,6 +27,19 @@ search-page-sk {
     margin-left: 16px;
   }
 
+  pagination-sk {
+    display: block;
+    margin-left: 16px;
+
+    &.top {
+      margin-bottom: 16px;
+    }
+
+    button.prev {
+      margin-left: 0;
+    }
+  }
+
   digest-details-sk {
     display: block;
     border: 1px solid black;

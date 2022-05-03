@@ -25,8 +25,12 @@ export class SearchPageSkPO extends PageObject {
     return this.poBySelectorAll('digest-details-sk', DigestDetailsSkPO);
   }
 
-  get paginationSkPO(): PaginationSkPO {
-    return this.poBySelector('pagination-sk', PaginationSkPO);
+  get topPaginationSkPO(): PaginationSkPO {
+    return this.poBySelector('pagination-sk.top', PaginationSkPO);
+  }
+
+  get bottomPaginationSkPO(): PaginationSkPO {
+    return this.poBySelector('pagination-sk.bottom', PaginationSkPO);
   }
 
   private get bulkTriageBtn(): PageObjectElement {

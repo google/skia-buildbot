@@ -55,7 +55,7 @@ describe('search-page-sk', () => {
     it('shows search results with pagination', async () => {
       // Demo page only mocks 3 results, so we limit the results to 2 per page to force pagination.
       await goToPage('?untriaged=true&positive=true&negative=true&limit=2');
-      await testBed.page.setViewport({ width: 1600, height: 1600 }); // Capture the entire page.
+      await testBed.page.setViewport({ width: 1600, height: 1700 }); // Capture the entire page.
       await takeScreenshot(testBed.page, 'gold', 'search-page-sk_with-pagination');
     });
 

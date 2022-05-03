@@ -27,7 +27,8 @@ describe('search-page-sk', () => {
   let searchControlsSkPO: SearchControlsSkPO;
   let changelistControlsSkPO: ChangelistControlsSkPO;
   let bulkTriageSkPO: BulkTriageSkPO;
-  let paginationSkPO: PaginationSkPO;
+  let topPaginationSkPO: PaginationSkPO;
+  let bottomPaginationSkPO: PaginationSkPO;
 
   // SearchCriteria shown by the search-controls-sk component when the search page loads without any
   // URL parameters.
@@ -132,7 +133,8 @@ describe('search-page-sk', () => {
     searchControlsSkPO = searchPageSkPO.searchControlsSkPO;
     changelistControlsSkPO = searchPageSkPO.changelistControlsSkPO;
     bulkTriageSkPO = searchPageSkPO.bulkTriageSkPO;
-    paginationSkPO = searchPageSkPO.paginationSkPO;
+    topPaginationSkPO = searchPageSkPO.topPaginationSkPO;
+    bottomPaginationSkPO = searchPageSkPO.bottomPaginationSkPO;
   };
 
   before(() => {
@@ -385,62 +387,79 @@ describe('search-page-sk', () => {
     });
   });
 
-  describe('pagination-sk', () => {
+  const testPaginationSk = (getPaginationSkPO: () => PaginationSkPO) => {
+    // Returns the current page displayed by both the top and bottom pagination-sk elements as a
+    // single pipe-separated string (e.g. "4|4"). This allows us to test that both elements show
+    // the same page number.
+    const getCurrentPageFromBothPaginationSkElements = async (): Promise<string> => {
+      const top = await topPaginationSkPO.getCurrentPage();
+      const bottom = await bottomPaginationSkPO.getCurrentPage();
+      return `${top}|${bottom}`;
+    }
+
     describe('button "next" with no explicit "limit" URL parameter', () => {
-      searchFieldIsBoundToURLAndRPC<number>(
+      searchFieldIsBoundToURLAndRPC<string>(
         {
           initialQueryString: '',
           expectedInitialSearchRequest: { ...defaultSearchRequest },
         },
         '?offset=50',
-        () => paginationSkPO.getCurrentPage(),
-        () => paginationSkPO.clickNextBtn(),
-        /* expectedUiValue= */ 2,
+        getCurrentPageFromBothPaginationSkElements,
+        () => getPaginationSkPO().clickNextBtn(),
+        /* expectedUiValue= */ '2|2',
         { ...defaultSearchRequest, offset: 50 },
       );
     });
 
     describe('button "next"', () => {
-      searchFieldIsBoundToURLAndRPC<number>(
+      searchFieldIsBoundToURLAndRPC<string>(
         {
           initialQueryString: '?limit=3',
           expectedInitialSearchRequest: { ...defaultSearchRequest, limit: 3 },
         },
         '?limit=3&offset=3',
-        () => paginationSkPO.getCurrentPage(),
-        () => paginationSkPO.clickNextBtn(),
-        /* expectedUiValue= */ 2,
+        getCurrentPageFromBothPaginationSkElements,
+        () => getPaginationSkPO().clickNextBtn(),
+        /* expectedUiValue= */ '2|2',
         { ...defaultSearchRequest, limit: 3, offset: 3 },
       );
     });
 
     describe('button "skip"', () => {
-      searchFieldIsBoundToURLAndRPC<number>(
+      searchFieldIsBoundToURLAndRPC<string>(
         {
           initialQueryString: '?limit=3',
           expectedInitialSearchRequest: { ...defaultSearchRequest, limit: 3 },
         },
         '?limit=3&offset=15',
-        () => paginationSkPO.getCurrentPage(),
-        () => paginationSkPO.clickSkipBtn(),
-        /* expectedUiValue= */ 6,
+        getCurrentPageFromBothPaginationSkElements,
+        () => getPaginationSkPO().clickSkipBtn(),
+        /* expectedUiValue= */ '6|6',
         { ...defaultSearchRequest, limit: 3, offset: 15 },
       );
     });
 
     describe('button "prev"', () => {
-      searchFieldIsBoundToURLAndRPC<number>(
+      searchFieldIsBoundToURLAndRPC<string>(
         {
           initialQueryString: '?limit=3&offset=12',
           expectedInitialSearchRequest: { ...defaultSearchRequest, limit: 3, offset: 12 },
         },
         '?limit=3&offset=9',
-        () => paginationSkPO.getCurrentPage(),
-        () => paginationSkPO.clickPrevBtn(),
-        /* expectedUiValue= */ 4,
+        getCurrentPageFromBothPaginationSkElements,
+        () => getPaginationSkPO().clickPrevBtn(),
+        /* expectedUiValue= */ '4|4',
         { ...defaultSearchRequest, limit: 3, offset: 9 },
       );
     });
+  }
+
+  describe('top pagination-sk', () => {
+    testPaginationSk(() => topPaginationSkPO);
+  });
+
+  describe('bottom pagination-sk', () => {
+    testPaginationSk(() => bottomPaginationSkPO);
   });
 
   describe('search results', () => {
@@ -450,7 +469,8 @@ describe('search-page-sk', () => {
       expect(await searchPageSkPO.getSummary())
         .to.equal('No results matched your search criteria.');
       expect(await searchPageSkPO.getDigests()).to.be.empty;
-      expect(await paginationSkPO.isEmpty()).to.be.true;
+      expect(await topPaginationSkPO.isEmpty()).to.be.true;
+      expect(await bottomPaginationSkPO.isEmpty()).to.be.true;
     });
 
     it('shows search results', async () => {
@@ -462,7 +482,8 @@ describe('search-page-sk', () => {
         'Left: 2fa58aa430e9c815755624ca6cca4a72',
         'Left: ed4a8cf9ea9fbb57bf1f302537e07572',
       ]);
-      expect(await paginationSkPO.getCurrentPage()).to.equal(1);
+      expect(await topPaginationSkPO.getCurrentPage()).to.equal(1);
+      expect(await bottomPaginationSkPO.getCurrentPage()).to.equal(1);
     });
 
     it('shows search results with changelist information', async () => {
@@ -473,7 +494,8 @@ describe('search-page-sk', () => {
         'Left: 2fa58aa430e9c815755624ca6cca4a72',
         'Left: ed4a8cf9ea9fbb57bf1f302537e07572',
       ]);
-      expect(await paginationSkPO.getCurrentPage()).to.equal(1);
+      expect(await topPaginationSkPO.getCurrentPage()).to.equal(1);
+      expect(await bottomPaginationSkPO.getCurrentPage()).to.equal(1);
 
       const diffDetailsHrefs = await searchPageSkPO.getDiffDetailsHrefs();
       expect(diffDetailsHrefs[0]).to.contain('changelist_id=123456&crs=gerrit');

@@ -117,6 +117,8 @@ export class SearchPageSk extends ElementSk {
 
     <p class=summary>${SearchPageSk.summary(el)}</p>
 
+    ${SearchPageSk.paginationTemplate(el, 'top')}
+
     <div class="results">
       ${el.searchResponse?.digests?.map(
     (result: SearchResult | null, idx: number) => SearchPageSk.resultTemplate(
@@ -125,7 +127,7 @@ export class SearchPageSk extends ElementSk {
   )}
     </div>
 
-    ${SearchPageSk.paginationTemplate(el)}
+    ${SearchPageSk.paginationTemplate(el, 'bottom')}
 
     <dialog class="bulk-triage">
       <bulk-triage-sk .currentPageDigests=${el.getCurrentPageDigestsTriageRequestData()}
@@ -190,15 +192,16 @@ export class SearchPageSk extends ElementSk {
     `;
     }
 
-  private static paginationTemplate = (el: SearchPageSk) => {
+  private static paginationTemplate = (el: SearchPageSk, cssClass: string) => {
     const numResults = el.searchResponse?.size || 0;
     if (numResults == 0 || numResults <= el.limit) {
       return html``;
     }
     return html`
-       <pagination-sk offset=${el.offset || 0}
-                      page_size=${el.limit || DEFAULT_SEARCH_RESULTS_LIMIT}
-                      total=${el.searchResponse?.size || 0}
+       <pagination-sk class="${cssClass}"
+                      offset="${el.offset || 0}"
+                      page_size="${el.limit || DEFAULT_SEARCH_RESULTS_LIMIT}"
+                      total="${el.searchResponse?.size || 0}"
                       @page-changed=${el.onPageChange}>
        </pagination-sk>
     `;

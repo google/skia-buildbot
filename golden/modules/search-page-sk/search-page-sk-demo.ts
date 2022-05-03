@@ -11,6 +11,7 @@ import {
 } from './demo_data';
 import { DigestStatus, SearchResult, TriageRequest } from '../rpc_types';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
+import { delay } from '../demo_util';
 
 testOnlySetSettings({
   title: 'Skia Infra',
@@ -44,7 +45,7 @@ fetchMock.get('glob:/json/v2/search*', (url: string) => {
   filteredSearchResponse.digests = filteredSearchResponse.digests.slice(offset, offset + limit);
   filteredSearchResponse.offset = offset;
 
-  return filteredSearchResponse;
+  return delay(filteredSearchResponse, 1000);
 });
 
 // The simulated triage endpoint will make changes to the results returned by the search endpoint
