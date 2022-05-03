@@ -19,6 +19,10 @@ const (
 	// secretAccessorRole is the IAM role given to a service account for access
 	// to a specific secret.
 	secretAccessorRole = "roles/secretmanager.secretAccessor"
+
+	// serviceAccountPrefix is a prefix applied to service account emails when
+	// setting IAM roles.
+	serviceAccountPrefix = "serviceAccount:"
 )
 
 // Client provides functionality for working with GCP Secrets.
@@ -129,7 +133,7 @@ func (c *ClientImpl) GrantAccess(ctx context.Context, project, name, serviceAcco
 	if err != nil {
 		return skerr.Wrapf(err, "failed to retrieve IAM policy")
 	}
-	policy.Add(serviceAccount, secretAccessorRole)
+	policy.Add(serviceAccountPrefix+serviceAccount, secretAccessorRole)
 	if err := policyHandle.SetPolicy(ctx, policy); err != nil {
 		return skerr.Wrapf(err, "failed to set IAM policy")
 	}
@@ -143,7 +147,7 @@ func (c *ClientImpl) RevokeAccess(ctx context.Context, project, name, serviceAcc
 	if err != nil {
 		return skerr.Wrapf(err, "failed to retrieve IAM policy")
 	}
-	policy.Remove(serviceAccount, secretAccessorRole)
+	policy.Remove(serviceAccountPrefix+serviceAccount, secretAccessorRole)
 	if err := policyHandle.SetPolicy(ctx, policy); err != nil {
 		return skerr.Wrapf(err, "failed to set IAM policy")
 	}
