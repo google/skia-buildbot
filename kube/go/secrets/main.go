@@ -1,16 +1,21 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 
 	"github.com/urfave/cli/v2"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/executil"
+	"go.skia.org/infra/go/ramdisk"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -18,10 +23,22 @@ import (
 
 var (
 	// CLI options.
-	app = &cli.App{
+	cliApp = &cli.App{
 		Name:        "secrets",
 		Description: "Provides tools for working with secrets.",
 		Commands: []*cli.Command{
+			{
+				Name:        "create",
+				Description: "Create a new secret in Cloud Secret Manager.",
+				Usage:       "create <project> <secret name>",
+				Action: func(ctx *cli.Context) error {
+					args := ctx.Args().Slice()
+					if len(args) != 2 {
+						return skerr.Fmt("Expected 2 positional arguments.")
+					}
+					return app.cmdCreate(ctx.Context, args[0], args[1])
+				},
+			},
 			{
 				Name:        "describe",
 				Description: "Prints information about a secret in Kubernetes.",
@@ -31,7 +48,7 @@ var (
 					if len(args) != 2 {
 						return skerr.Fmt("Expected 2 positional arguments.")
 					}
-					return cmdDescribe(ctx.Context, args[0], args[1])
+					return app.cmdDescribe(ctx.Context, args[0], args[1])
 				},
 			},
 			{
@@ -43,17 +60,49 @@ var (
 					if len(args) != 5 {
 						return skerr.Fmt("Expected 5 positional arguments.")
 					}
-					return cmdMigrate(ctx.Context, args[0], args[1], args[2], args[3], args[4])
+					return app.cmdMigrate(ctx.Context, args[0], args[1], args[2], args[3], args[4])
+				},
+			},
+			{
+				Name:        "update",
+				Description: "Update a secret in Cloud Secret Manager.",
+				Usage:       "update <project> <secret name>",
+				Action: func(ctx *cli.Context) error {
+					args := ctx.Args().Slice()
+					if len(args) != 2 {
+						return skerr.Fmt("Expected 2 positional arguments.")
+					}
+					return app.cmdUpdate(ctx.Context, args[0], args[1])
 				},
 			},
 		},
 		Usage: "secrets <subcommand>",
 	}
+
+	app *secretsApp
 )
 
+type secretsApp struct {
+	// stdin is an abstraction of os.Stdin which is convenient for testing.
+	stdin io.Reader
+	// stdout is an abstraction of os.Stdout which is convenient for testing.
+	stdout io.Writer
+
+	// secretClient can be mocked for testing.
+	secretClient secret.Client
+}
+
+// cmdCreate creates a new secret in Cloud Secret Manager.
+func (a *secretsApp) cmdCreate(ctx context.Context, project, secretName string) error {
+	if err := a.secretClient.Create(ctx, project, secretName); err != nil {
+		return skerr.Wrap(err)
+	}
+	return skerr.Wrap(a.updateSecret(ctx, project, secretName, ""))
+}
+
 // cmdDescribe prints information about a secret in Kubernetes.
-func cmdDescribe(ctx context.Context, srcProject, srcSecretName string) error {
-	secretMap, err := getSecret(ctx, srcProject, srcSecretName)
+func (a *secretsApp) cmdDescribe(ctx context.Context, srcProject, srcSecretName string) error {
+	secretMap, err := getK8sSecret(ctx, srcProject, srcSecretName)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -65,8 +114,8 @@ func cmdDescribe(ctx context.Context, srcProject, srcSecretName string) error {
 }
 
 // cmdMigrate migrates a secret from Kubernetes to Cloud Secret Manager.
-func cmdMigrate(ctx context.Context, srcProject, srcSecretName, srcSecretPath, dstProject, dstSecretName string) error {
-	secretMap, err := getSecret(ctx, srcProject, srcSecretName)
+func (a *secretsApp) cmdMigrate(ctx context.Context, srcProject, srcSecretName, srcSecretPath, dstProject, dstSecretName string) error {
+	secretMap, err := getK8sSecret(ctx, srcProject, srcSecretName)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -74,21 +123,65 @@ func cmdMigrate(ctx context.Context, srcProject, srcSecretName, srcSecretPath, d
 	if !ok {
 		return skerr.Fmt("secret %q has no value at path %q", srcSecretName, srcSecretPath)
 	}
-	return skerr.Wrap(putSecret(ctx, dstProject, dstSecretName, value))
+	// Store the secret.
+	// Note: because this tool is designed for first-time migration of secrets,
+	// we're unconditionally creating the secret first.  Creation of a secret
+	// which already exists should fail, which is what we want for this use
+	// case.
+	if err := a.secretClient.Create(ctx, dstProject, dstSecretName); err != nil {
+		return skerr.Wrap(err)
+	}
+	return skerr.Wrap(a.putSecret(ctx, dstProject, dstSecretName, value))
 }
 
-// getSecret retrieves the given Kubernetes secret from the given project.
-func getSecret(ctx context.Context, project, secretName string) (map[string]string, error) {
+// cmdUpdate updates a secret in Cloud Secret Manager.
+func (a *secretsApp) cmdUpdate(ctx context.Context, project, secretName string) error {
+	currentValue, err := a.secretClient.Get(ctx, project, secretName, secret.VersionLatest)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	return skerr.Wrap(a.updateSecret(ctx, project, secretName, currentValue))
+}
+
+// updateSecret creates a new version of the given secret, using a ram disk and
+// a temporary file containing the current value of the secret and allowing the
+// user to hand-edit the file.
+func (a *secretsApp) updateSecret(ctx context.Context, project, secretName, currentValue string) error {
+	ramdisk, cleanup, err := ramdisk.New(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	defer cleanup()
+	secretFile := filepath.Join(ramdisk, secretName)
+	if err := ioutil.WriteFile(secretFile, []byte(currentValue), os.ModePerm); err != nil {
+		return skerr.Wrap(err)
+	}
+	_, _ = fmt.Fprintf(a.stdout, "Wrote secret to %s\n", secretFile)
+	_, _ = fmt.Fprintf(a.stdout, "Edit the file and press enter when finished.\n")
+	reader := bufio.NewReader(a.stdin)
+	if _, err := reader.ReadString('\n'); err != nil {
+		return skerr.Wrap(err)
+	}
+	newValue, err := ioutil.ReadFile(secretFile)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	return skerr.Wrap(a.putSecret(ctx, project, secretName, string(newValue)))
+}
+
+// getK8sSecret retrieves the given Kubernetes secret from the given project.
+func getK8sSecret(ctx context.Context, project, secretName string) (map[string]string, error) {
 	// Find the location of the attach.sh shell script.
 	_, filename, _, _ := runtime.Caller(0)
 	attachFilename := filepath.Join(filepath.Dir(filename), "../../attach.sh")
 
 	// Retrieve the secret.
-	cmd := []string{attachFilename, project, "kubectl", "get", "secret", secretName, "-o", "jsonpath={.data}"}
-	out, err := exec.RunCwd(ctx, ".", cmd...)
+	cmd := executil.CommandContext(ctx, attachFilename, project, "kubectl", "get", "secret", secretName, "-o", "jsonpath={.data}")
+	outBytes, err := cmd.Output()
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "output: %s", string(outBytes))
 	}
+	out := strings.TrimSpace(string(outBytes))
 	// Take only the last line of output, which contains the secret.
 	split := strings.Split(out, "\n")
 	out = split[len(split)-1]
@@ -112,26 +205,8 @@ func getSecret(ctx context.Context, project, secretName string) (map[string]stri
 }
 
 // putSecret stores the given secret into Cloud Secret Manager.
-func putSecret(ctx context.Context, project, name, value string) error {
-	// Store the secret.
-	// Note: because this tool is designed for first-time migration of secrets,
-	// we're unconditionally creating the secret first.  Creation of a secret
-	// which already exists should fail, which is what we want for this use
-	// case.
-	secretClient, err := secret.NewClient(ctx)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	defer func() {
-		if err := secretClient.Close(); err != nil {
-			sklog.Error(err)
-		}
-	}()
-
-	if err := secretClient.Create(ctx, project, name); err != nil {
-		return skerr.Wrap(err)
-	}
-	version, err := secretClient.Update(ctx, project, name, value)
+func (a *secretsApp) putSecret(ctx context.Context, project, name, value string) error {
+	version, err := a.secretClient.Update(ctx, project, name, value)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -140,5 +215,19 @@ func putSecret(ctx context.Context, project, name, value string) error {
 }
 
 func main() {
-	app.RunAndExitOnError()
+	client, err := secret.NewClient(context.Background())
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	app = &secretsApp{
+		secretClient: client,
+		stdin:        os.Stdin,
+		stdout:       os.Stdout,
+	}
+	defer func() {
+		if err := client.Close(); err != nil {
+			sklog.Error(err)
+		}
+	}()
+	cliApp.RunAndExitOnError()
 }
