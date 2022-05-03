@@ -64,6 +64,34 @@ func (_m *Client) Get(ctx context.Context, project string, _a2 string, version s
 	return r0, r1
 }
 
+// GrantAccess provides a mock function with given fields: ctx, project, name, serviceAccount
+func (_m *Client) GrantAccess(ctx context.Context, project string, name string, serviceAccount string) error {
+	ret := _m.Called(ctx, project, name, serviceAccount)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, project, name, serviceAccount)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RevokeAccess provides a mock function with given fields: ctx, project, name, serviceAccount
+func (_m *Client) RevokeAccess(ctx context.Context, project string, name string, serviceAccount string) error {
+	ret := _m.Called(ctx, project, name, serviceAccount)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, project, name, serviceAccount)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: ctx, project, name, value
 func (_m *Client) Update(ctx context.Context, project string, name string, value string) (string, error) {
 	ret := _m.Called(ctx, project, name, value)

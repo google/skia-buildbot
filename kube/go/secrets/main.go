@@ -75,6 +75,30 @@ var (
 					return app.cmdUpdate(ctx.Context, args[0], args[1])
 				},
 			},
+			{
+				Name:        "grant-access",
+				Description: "Grant access to a secret in Cloud Secret Manager.",
+				Usage:       "grant-access <project> <secret name>[,<secret name>] <service account name>[,<service account name>]",
+				Action: func(ctx *cli.Context) error {
+					args := ctx.Args().Slice()
+					if len(args) != 3 {
+						return skerr.Fmt("Expected 3 positional arguments.")
+					}
+					return app.cmdGrantAccess(ctx.Context, args[0], strings.Split(args[1], ","), strings.Split(args[2], ","))
+				},
+			},
+			{
+				Name:        "revoke-access",
+				Description: "Revoke access to a secret in Cloud Secret Manager.",
+				Usage:       "revoke-access <project> <secret name>[,<secret name>] <service account name>[,<service account name>]",
+				Action: func(ctx *cli.Context) error {
+					args := ctx.Args().Slice()
+					if len(args) != 3 {
+						return skerr.Fmt("Expected 3 positional arguments.")
+					}
+					return app.cmdRevokeAccess(ctx.Context, args[0], strings.Split(args[1], ","), strings.Split(args[2], ","))
+				},
+			},
 		},
 		Usage: "secrets <subcommand>",
 	}
@@ -211,6 +235,30 @@ func (a *secretsApp) putSecret(ctx context.Context, project, name, value string)
 		return skerr.Wrap(err)
 	}
 	fmt.Println(fmt.Sprintf("Created version %s", version))
+	return nil
+}
+
+// cmdGrantAccess grants access to a secret in Cloud Secret Manager.
+func (a *secretsApp) cmdGrantAccess(ctx context.Context, project string, secretNames, serviceAccounts []string) error {
+	for _, secretName := range secretNames {
+		for _, serviceAccount := range serviceAccounts {
+			if err := a.secretClient.GrantAccess(ctx, project, secretName, serviceAccount); err != nil {
+				return skerr.Wrap(err)
+			}
+		}
+	}
+	return nil
+}
+
+// cmdRevokeAccess revokes access to a secret in Cloud Secret Manager.
+func (a *secretsApp) cmdRevokeAccess(ctx context.Context, project string, secretNames, serviceAccounts []string) error {
+	for _, secretName := range secretNames {
+		for _, serviceAccount := range serviceAccounts {
+			if err := a.secretClient.RevokeAccess(ctx, project, secretName, serviceAccount); err != nil {
+				return skerr.Wrap(err)
+			}
+		}
+	}
 	return nil
 }
 
