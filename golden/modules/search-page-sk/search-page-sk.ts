@@ -157,8 +157,8 @@ export class SearchPageSk extends ElementSk {
     </dialog>`;
 
   private static summary = (el: SearchPageSk) => {
-    if (!el.searchResponse) {
-      return ''; // No results have been loaded yet. It's OK not to show anything at this point.
+    if (!el.searchResponse || el.loading) {
+      return 'Loading...';
     }
 
     if (!el.searchResponse.size || !el.searchResponse.digests?.length) {
@@ -248,6 +248,8 @@ export class SearchPageSk extends ElementSk {
   private paramSet: ParamSet = {};
 
   private changeListSummaryResponse: ChangelistSummaryResponse | null = null;
+
+  private loading = true;
 
   private searchResponse: SearchResponse | null = null;
 
@@ -437,6 +439,9 @@ export class SearchPageSk extends ElementSk {
     const searchRequest = this.makeSearchRequest();
 
     try {
+      this.loading = true;
+      this.searchResponse = null; // Remove old search results while we wait for the RPC to finish.
+      this._render();
       sendBeginTask(this);
       this.searchResponse = await fetch(
         `/json/v2/search?${fromObject(searchRequest as any)}`,
@@ -445,6 +450,7 @@ export class SearchPageSk extends ElementSk {
         .then(jsonOrThrow);
 
       // Reset UI and render.
+      this.loading = false;
       this.clearSelectedSearchResult();
       this._render();
       sendEndTask(this);

@@ -198,6 +198,32 @@ describe('search-page-sk', () => {
     });
   };
 
+  describe('loading indicator', () => {
+    it('is visible only while the search results are loading', async () => {
+      await instantiate();
+      expect(await searchPageSkPO.getSummary()).to.not.equal('Loading...');
+
+      // We will trigger a search RPC using the pagination-sk element's "next" button. The exact
+      // element does not matter as long as a search RPC is triggered.
+      fetchMock.get(
+        `/json/v2/search?${fromObject({ ...defaultSearchRequest, offset: 50})}`,
+        () => searchResponse, // This test does not care about the search response. Any is fine.
+      );
+
+      const beginTaskEvent = eventPromise('begin-task');
+      const endTaskEvent = eventPromise('end-task');
+
+      // Trigger a search RPC using the pagination-sk element's "next" button.
+      topPaginationSkPO.clickNextBtn();
+      await beginTaskEvent;
+      expect(await searchPageSkPO.getSummary()).to.equal('Loading...');
+
+      // The loading indicator should go away once the results are loaded.
+      await endTaskEvent;
+      expect(await searchPageSkPO.getSummary()).to.not.equal('Loading...');
+    });
+  });
+
   describe('search-controls-sk', () => {
     const itIsBoundToURLAndRPC = (
       queryString: string,
