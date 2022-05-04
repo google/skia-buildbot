@@ -49,6 +49,16 @@ const propLine = (k: unknown, v: unknown) => html`
 
 const expando = (expanded = false) => html`<span class="expando">[${expanded ? '-' : '+'}]</span>`;
 
+// Return true if the step is interesting, ie. it has a result other than
+// SUCCESS (including not yet finished). The root step (which has no parent)
+// is interesting by default.
+const stepIsInteresting = (step: StepDisplay): boolean => {
+  if (!step.parent) {
+    return true;
+  }
+  return step.result !== 'SUCCESS';
+}
+
 export class TaskDriverSk extends HTMLElement {
   private static stepData = (ele: TaskDriverSk, s: RunOrStepDisplay, d: StepData) => {
     switch (d.type) {
@@ -253,16 +263,6 @@ export class TaskDriverSk extends HTMLElement {
     return link;
   }
 
-  // Return true if the step is interesting, ie. it has a result other than
-  // SUCCESS (including not yet finished). The root step (which has no parent)
-  // is interesting by default.
-  private stepIsInteresting(step: StepDisplay): boolean {
-    if (!step.parent) {
-      return true;
-    }
-    return step.result !== 'SUCCESS';
-  }
-
   // Process the step data. Return true if the current step is interesting.
   private process(step: RunOrStepDisplay): boolean {
     // Sort the step data, so that the properties end up in a predictable order.
@@ -290,11 +290,9 @@ export class TaskDriverSk extends HTMLElement {
         anyChildInteresting = true;
       }
     }
-    const isInteresting = this.stepIsInteresting(step);
-    step.expandChildren = false;
-    if (isInteresting && anyChildInteresting) {
-      step.expandChildren = true;
-    }
+    const isInteresting = stepIsInteresting(step);
+    step.expandChildren = isInteresting && anyChildInteresting;
+    // Always hide the environment by default - this is rarely useful by users.
     step.expandEnv = false;
 
     // Step properties take up a lot of space on the screen. Only display them
@@ -303,7 +301,10 @@ export class TaskDriverSk extends HTMLElement {
     // have inherited the result of their children and so their properties are
     // not as important of those of the failed child step.
     step.expandProps = isInteresting && !anyChildInteresting;
-
+    // Always expand the root, which contains any errors that happened.
+    if (!step.parent) {
+      step.expandProps = true;
+    }
     return isInteresting;
   }
 
