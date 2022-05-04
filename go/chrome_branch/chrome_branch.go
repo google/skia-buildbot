@@ -48,6 +48,8 @@ type Branch struct {
 	Number int `json:"number"`
 	// Fully-qualified ref for this branch.
 	Ref string `json:"ref"`
+	// Correnspoding V8 ref
+	V8Branch string `json:"v8_branch"`
 }
 
 // Copy the Branch.
@@ -59,6 +61,7 @@ func (b *Branch) Copy() *Branch {
 		Milestone: b.Milestone,
 		Number:    b.Number,
 		Ref:       b.Ref,
+		V8Branch:  b.V8Branch,
 	}
 }
 
@@ -78,6 +81,9 @@ func (b *Branch) Validate() error {
 		if b.Number == 0 {
 			return skerr.Fmt("Number is required for non-main branches.")
 		}
+	}
+	if b.V8Branch == "" {
+		return skerr.Fmt("V8Branch is required.")
 	}
 	return nil
 }
@@ -141,6 +147,7 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 		Milestone      int    `json:"milestone"`
 		ChromiumBranch string `json:"chromium_branch"`
 		SchedulePhase  string `json:"schedule_phase"`
+		V8Branch       string `json:"v8_branch"`
 	}
 	var milestones []milestone
 	if err := json.NewDecoder(resp.Body).Decode(&milestones); err != nil {
@@ -151,6 +158,7 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 	for _, milestone := range milestones {
 		branch := &Branch{}
 		branch.Milestone = milestone.Milestone
+		branch.V8Branch = milestone.V8Branch
 		number, err := strconv.Atoi(milestone.ChromiumBranch)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "invalid branch number %q for channel %q", milestone.ChromiumBranch, milestone.SchedulePhase)
@@ -176,6 +184,7 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 			Milestone: rv.Beta.Milestone + 1,
 			Number:    0,
 			Ref:       RefMain,
+			V8Branch:  RefMain,
 		}
 	}
 	if err := rv.Validate(); err != nil {

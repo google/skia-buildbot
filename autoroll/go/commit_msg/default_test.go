@@ -208,7 +208,7 @@ func TestTotalOverride(t *testing.T) {
 
 Seriously, this can be anything at all.
 
-Variables from config_vars should work, eg. m{{.Branches.Chromium.Beta.Milestone}}
+Variables from config_vars should work, eg. m{{.Branches.Chromium.Beta.Milestone}}, v8:{{.Branches.Chromium.Beta.V8Branch}}
 {{end}}`,
 	}
 	result, err := b.Build(FakeCommitMsgInputs())
@@ -217,7 +217,7 @@ Variables from config_vars should work, eg. m{{.Branches.Chromium.Beta.Milestone
 
 Seriously, this can be anything at all.
 
-Variables from config_vars should work, eg. m92
+Variables from config_vars should work, eg. m92, v8:9.2-lkgr
 `, result)
 }
 

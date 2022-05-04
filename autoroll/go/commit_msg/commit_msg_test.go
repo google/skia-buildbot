@@ -49,16 +49,19 @@ func fakeRegistry(t *testing.T) *config_vars.Registry {
 			Milestone: 93,
 			Number:    4577,
 			Ref:       "refs/branch-heads/4577",
+			V8Branch:  "9.3-lkgr",
 		},
 		Beta: &chrome_branch.Branch{
 			Milestone: 92,
 			Number:    4515,
 			Ref:       "refs/branch-heads/4515",
+			V8Branch:  "9.2-lkgr",
 		},
 		Stable: &chrome_branch.Branch{
 			Milestone: 91,
 			Number:    4472,
 			Ref:       "refs/branch-heads/4472",
+			V8Branch:  "9.1-lkgr",
 		},
 	}, nil)
 	reg, err := config_vars.NewRegistry(context.Background(), cbc)
