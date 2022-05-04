@@ -486,6 +486,7 @@ export interface CIPDChildConfig {
   tag: string;
   gitilesRepo: string;
   revisionIdTag: string;
+  revisionIdTagStripKey: boolean;
 }
 
 interface CIPDChildConfigJSON {
@@ -493,6 +494,7 @@ interface CIPDChildConfigJSON {
   tag?: string;
   gitiles_repo?: string;
   revision_id_tag?: string;
+  revision_id_tag_strip_key?: boolean;
 }
 
 export interface FuchsiaSDKChildConfig {

@@ -57,23 +57,25 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, reg *config_vars.Re
 		}
 	}
 	return &CIPDChild{
-		client:        cipdClient,
-		name:          c.Name,
-		root:          workdir,
-		tag:           c.Tag,
-		gitRepo:       gitRepo,
-		revisionIdTag: c.RevisionIdTag,
+		client:                cipdClient,
+		name:                  c.Name,
+		root:                  workdir,
+		tag:                   c.Tag,
+		gitRepo:               gitRepo,
+		revisionIdTag:         c.RevisionIdTag,
+		revisionIdTagStripKey: c.RevisionIdTagStripKey,
 	}, nil
 }
 
 // CIPDChild is an implementation of Child which deals with a CIPD package.
 type CIPDChild struct {
-	client        cipd.CIPDClient
-	name          string
-	root          string
-	tag           string
-	gitRepo       *gitiles_common.GitilesRepo
-	revisionIdTag string
+	client                cipd.CIPDClient
+	name                  string
+	root                  string
+	tag                   string
+	gitRepo               *gitiles_common.GitilesRepo
+	revisionIdTag         string
+	revisionIdTagStripKey bool
 }
 
 // GetRevision implements Child.
@@ -81,7 +83,7 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 	instance, err := c.client.Describe(ctx, c.name, id)
 	if err != nil {
 		tag := id
-		if c.revisionIdTag != "" {
+		if c.revisionIdTag != "" && c.revisionIdTagStripKey {
 			tag = joinCIPDTag(c.revisionIdTag, id)
 		}
 		pins, err2 := c.client.SearchInstances(ctx, c.name, []string{tag})
@@ -99,7 +101,7 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 			return nil, skerr.Wrap(err)
 		}
 	}
-	rev := CIPDInstanceToRevision(c.name, instance, c.revisionIdTag)
+	rev := CIPDInstanceToRevision(c.name, instance, c.revisionIdTag, c.revisionIdTagStripKey)
 	if c.gitRepo != nil {
 		gitRevision := getGitRevisionFromCIPDInstance(instance)
 		if gitRevision == "" {
@@ -192,7 +194,7 @@ type cipdDetailsLine struct {
 
 // CIPDInstanceToRevision creates a revision.Revision based on the given
 // InstanceInfo.
-func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription, revisionIdTag string) *revision.Revision {
+func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription, revisionIdTag string, revisionIdTagStripKey bool) *revision.Revision {
 	rev := &revision.Revision{
 		Id:          instance.Pin.InstanceID,
 		Author:      instance.RegisteredBy,
@@ -209,7 +211,11 @@ func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription,
 			continue
 		}
 		if key == revisionIdTag {
-			rev.Id = val
+			if revisionIdTagStripKey {
+				rev.Id = val
+			} else {
+				rev.Id = tag.Tag
+			}
 			foundRevisionTag = true
 		}
 		if key == "bug" {

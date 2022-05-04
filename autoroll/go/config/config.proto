@@ -467,6 +467,10 @@ message CIPDChildConfig {
     // instead of the CIPD package instance ID.  Overrides git_revision for the
     // revision ID if gitiles_repo was provided.
     string revision_id_tag = 5;
+    // revision_id_tag_strip_key indicates that the revision ID should not
+    // include the revision_id_tag key.  Only relevant if revision_id_tag is
+    // set.
+    bool revision_id_tag_strip_key = 6;
 }
 
 // FuchsiaSDKChildConfig provides configuration for the Fuchsia SDK Child.
