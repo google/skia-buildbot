@@ -48,8 +48,8 @@ type Branch struct {
 	Number int `json:"number"`
 	// Fully-qualified ref for this branch.
 	Ref string `json:"ref"`
-	// Correnspoding V8 ref
-	V8Branch string `json:"v8_branch"`
+	// Correnspoding V8 ref (calculated)
+	V8Branch string
 }
 
 // Copy the Branch.
@@ -147,7 +147,6 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 		Milestone      int    `json:"milestone"`
 		ChromiumBranch string `json:"chromium_branch"`
 		SchedulePhase  string `json:"schedule_phase"`
-		V8Branch       string `json:"v8_branch"`
 	}
 	var milestones []milestone
 	if err := json.NewDecoder(resp.Body).Decode(&milestones); err != nil {
@@ -158,7 +157,7 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 	for _, milestone := range milestones {
 		branch := &Branch{}
 		branch.Milestone = milestone.Milestone
-		branch.V8Branch = milestone.V8Branch
+		branch.V8Branch = fmt.Sprintf("%d.%d", milestone.Milestone/10, branch.Milestone%10)
 		number, err := strconv.Atoi(milestone.ChromiumBranch)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "invalid branch number %q for channel %q", milestone.ChromiumBranch, milestone.SchedulePhase)

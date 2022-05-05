@@ -192,13 +192,13 @@ func dummyBranches() *Branches {
 			Milestone: 93,
 			Number:    4577,
 			Ref:       fmt.Sprintf(refTmplRelease, 4577),
-			V8Branch:  "9.3-lkgr",
+			V8Branch:  "9.3",
 		},
 		Stable: &Branch{
 			Milestone: 92,
 			Number:    4515,
 			Ref:       fmt.Sprintf(refTmplRelease, 4515),
-			V8Branch:  "9.2-lkgr",
+			V8Branch:  "9.2",
 		},
 	}
 }
