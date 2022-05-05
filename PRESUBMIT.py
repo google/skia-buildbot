@@ -4,8 +4,9 @@
 # found in the LICENSE file.
 
 
-"""Presubmit checks for the buildbot code."""
+"""Presubmit checks for the Skia infrastructure code."""
 
+USE_PYTHON3 = True
 
 def _MakeFileFilter(input_api,
                     include_extensions=None,
