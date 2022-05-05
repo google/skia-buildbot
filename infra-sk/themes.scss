@@ -105,9 +105,9 @@
     --primary-variant: var(--light-blue-100);
     --primary: var(--blue-200);
     --secondary: var(--green-200);
-    --surface-1dp: #373737;
-    --surface-2dp: #414141;
-    --surface: #303030;
+    --surface-1dp: var(--grey-800);
+    --surface-2dp: var(--grey-700);
+    --surface: var(--grey-900);
     --transparent-overlay: rgba(255, 255, 255, 0.5);
 
     /* Additional semantic colors. */
