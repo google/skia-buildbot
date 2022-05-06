@@ -174,7 +174,7 @@ func props(p map[string]string) string {
 func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	b.MustAddTask(buildRecipesName, &specs.TaskSpec{
 		CasSpec:      casRecipes,
-		CipdPackages: append(specs.CIPD_PKGS_GIT_LINUX_AMD64, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...),
+		CipdPackages: append(specs.CIPD_PKGS_GIT_LINUX_AMD64, specs.Python3LinuxAMD64CIPDPackages()...),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/bundle_recipes.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
@@ -359,10 +359,10 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 	var pkgs []*specs.CipdPackage
 	if strings.Contains(name, "Win") {
 		pkgs = append(pkgs, specs.CIPD_PKGS_GIT_WINDOWS_AMD64...)
-		pkgs = append(pkgs, specs.CIPD_PKGS_PYTHON_WINDOWS_AMD64...)
+		pkgs = append(pkgs, specs.Python3WindowsAMD64CIPDPackages()...)
 	} else {
 		pkgs = append(pkgs, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-		pkgs = append(pkgs, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...)
+		pkgs = append(pkgs, specs.Python3LinuxAMD64CIPDPackages()...)
 	}
 	pkgs = append(pkgs, specs.CIPD_PKGS_GSUTIL...)
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("node"))
@@ -485,7 +485,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 
 func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	pkgs = append(pkgs, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...)
+	pkgs = append(pkgs, specs.Python3LinuxAMD64CIPDPackages()...)
 	pkgs = append(pkgs, specs.CIPD_PKGS_GSUTIL...)
 	pkgs = append(pkgs, specs.CIPD_PKGS_ISOLATE...)
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("bazelisk"))

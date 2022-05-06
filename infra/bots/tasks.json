@@ -263,11 +263,6 @@
       "casSpec": "recipes",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
-          "path": "cipd_bin_packages/cpython",
-          "version": "version:2@2.7.18.chromium.42"
-        },
-        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.8.10.chromium.19"
@@ -619,11 +614,6 @@
       "casSpec": "whole-repo",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
-          "path": "cipd_bin_packages/cpython",
-          "version": "version:2@2.7.18.chromium.42"
-        },
-        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.8.10.chromium.19"
@@ -715,11 +705,6 @@
       ],
       "casSpec": "whole-repo",
       "cipd_packages": [
-        {
-          "name": "infra/3pp/tools/cpython/windows-amd64",
-          "path": "cipd_bin_packages/cpython",
-          "version": "version:2@2.7.18.chromium.42"
-        },
         {
           "name": "infra/3pp/tools/cpython3/windows-amd64",
           "path": "cipd_bin_packages/cpython3",
@@ -1530,11 +1515,6 @@
       "casSpec": "empty",
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
-          "path": "cipd_bin_packages/cpython",
-          "version": "version:2@2.7.18.chromium.42"
-        },
-        {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",
           "version": "version:2@3.8.10.chromium.19"
@@ -1668,11 +1648,6 @@
       ],
       "casSpec": "empty",
       "cipd_packages": [
-        {
-          "name": "infra/3pp/tools/cpython/linux-amd64",
-          "path": "cipd_bin_packages/cpython",
-          "version": "version:2@2.7.18.chromium.42"
-        },
         {
           "name": "infra/3pp/tools/cpython3/linux-amd64",
           "path": "cipd_bin_packages/cpython3",

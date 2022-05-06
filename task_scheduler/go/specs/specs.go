@@ -63,44 +63,22 @@ const (
 
 var (
 	// CIPD packages which may be used in tasks.
-	CIPD_PKGS_CIPD              []*CipdPackage = []*CipdPackage{cipd.PkgCIPD}
-	CIPD_PKGS_GIT_LINUX_AMD64   []*CipdPackage = cipd.PkgsGit[cipd.PlatformLinuxAmd64]
-	CIPD_PKGS_GIT_LINUX_ARM64   []*CipdPackage = cipd.PkgsGit[cipd.PlatformLinuxArm64]
-	CIPD_PKGS_GIT_MAC_AMD64     []*CipdPackage = cipd.PkgsGit[cipd.PlatformMacAmd64]
-	CIPD_PKGS_GIT_WINDOWS_386   []*CipdPackage = cipd.PkgsGit[cipd.PlatformWindows386]
-	CIPD_PKGS_GIT_WINDOWS_AMD64 []*CipdPackage = cipd.PkgsGit[cipd.PlatformWindowsAmd64]
-	CIPD_PKGS_GOLDCTL                          = []*CipdPackage{cipd.MustGetPackage("skia/tools/goldctl/${platform}")}
-	CIPD_PKGS_GSUTIL                           = []*CipdPackage{cipd.MustGetPackage("infra/gsutil")}
-	CIPD_PKGS_ISOLATE                          = []*CipdPackage{
+	CIPD_PKGS_GIT_LINUX_AMD64   = cipd.PkgsGit[cipd.PlatformLinuxAmd64]
+	CIPD_PKGS_GIT_MAC_AMD64     = cipd.PkgsGit[cipd.PlatformMacAmd64]
+	CIPD_PKGS_GIT_WINDOWS_AMD64 = cipd.PkgsGit[cipd.PlatformWindowsAmd64]
+	CIPD_PKGS_GOLDCTL           = []*CipdPackage{cipd.MustGetPackage("skia/tools/goldctl/${platform}")}
+	CIPD_PKGS_GSUTIL            = []*CipdPackage{cipd.MustGetPackage("infra/gsutil")}
+	CIPD_PKGS_ISOLATE           = []*CipdPackage{
 		cipd.MustGetPackage("infra/tools/luci/isolate/${platform}"),
 		cipd.MustGetPackage("infra/tools/luci/isolated/${platform}"),
 	}
-	CIPD_PKGS_PYTHON_LINUX_AMD64   []*CipdPackage = cipd.PkgsPython[cipd.PlatformLinuxAmd64]
-	CIPD_PKGS_PYTHON_LINUX_ARM64   []*CipdPackage = cipd.PkgsPython[cipd.PlatformLinuxArm64]
-	CIPD_PKGS_PYTHON_MAC_AMD64     []*CipdPackage = cipd.PkgsPython[cipd.PlatformMacAmd64]
-	CIPD_PKGS_PYTHON_WINDOWS_386   []*CipdPackage = cipd.PkgsPython[cipd.PlatformWindows386]
-	CIPD_PKGS_PYTHON_WINDOWS_AMD64 []*CipdPackage = cipd.PkgsPython[cipd.PlatformWindowsAmd64]
+	CIPD_PKGS_PYTHON_LINUX_AMD64   = cipd.PkgsPython[cipd.PlatformLinuxAmd64]
+	CIPD_PKGS_PYTHON_WINDOWS_AMD64 = cipd.PkgsPython[cipd.PlatformWindowsAmd64]
 
 	CIPD_PKGS_KITCHEN_LINUX_AMD64 = append([]*CipdPackage{
 		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
 		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
 	}, CIPD_PKGS_PYTHON_LINUX_AMD64...)
-	CIPD_PKGS_KITCHEN_LINUX_ARM64 = append([]*CipdPackage{
-		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
-		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
-	}, CIPD_PKGS_PYTHON_LINUX_ARM64...)
-	CIPD_PKGS_KITCHEN_MAC_AMD64 = append([]*CipdPackage{
-		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
-		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
-	}, CIPD_PKGS_PYTHON_MAC_AMD64...)
-	CIPD_PKGS_KITCHEN_WINDOWS_386 = append([]*CipdPackage{
-		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
-		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
-	}, CIPD_PKGS_PYTHON_WINDOWS_386...)
-	CIPD_PKGS_KITCHEN_WINDOWS_AMD64 = append([]*CipdPackage{
-		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
-		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
-	}, CIPD_PKGS_PYTHON_WINDOWS_AMD64...)
 
 	// Variable placeholders; these are replaced with the actual value
 	// at task triggering time.
@@ -701,4 +679,26 @@ func (s *CasSpec) Validate() error {
 		return skerr.Fmt("Root and Paths must be specified together.")
 	}
 	return nil
+}
+
+func Python3LinuxAMD64CIPDPackages() []*cipd.Package {
+	var python3Pkgs []*cipd.Package
+	for _, p := range cipd.PkgsPython[cipd.PlatformLinuxAmd64] {
+		if strings.HasPrefix(p.Version, "version:2@2.7") {
+			continue
+		}
+		python3Pkgs = append(python3Pkgs, p)
+	}
+	return python3Pkgs
+}
+
+func Python3WindowsAMD64CIPDPackages() []*cipd.Package {
+	var python3Pkgs []*cipd.Package
+	for _, p := range cipd.PkgsPython[cipd.PlatformWindowsAmd64] {
+		if strings.HasPrefix(p.Version, "version:2@2.7") {
+			continue
+		}
+		python3Pkgs = append(python3Pkgs, p)
+	}
+	return python3Pkgs
 }
