@@ -4,7 +4,7 @@
 # machine.
 - hosts: jumphosts
   user: root
-  gather_facts: no
+  gather_facts: false
 
   pre_tasks:
     # First install python3 and sudo so we can use more issue more than 'raw' commands.

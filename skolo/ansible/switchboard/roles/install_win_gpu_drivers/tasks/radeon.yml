@@ -23,14 +23,14 @@
   win_unzip:
     src: C:\Temp\radeon_gfx.zip
     dest: C:\Temp\Radeon
-    delete_archive: yes
+    delete_archive: true
 
 - name: Install Radeon Graphics Driver
   # Silent install args based on info displayed for "Setup.exe /?".
   # TODO(dogben): The graphics driver seems to install OK, but there are errors for other
   # components. Need to investigate more.
   win_command: C:\Temp\Radeon\Setup.exe -INSTALL -BOOT
-  ignore_unreachable: True
+  ignore_unreachable: true
 
 - name: Wait for reboot after installing driver
   wait_for_connection:

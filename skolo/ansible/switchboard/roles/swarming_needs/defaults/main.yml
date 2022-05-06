@@ -1,5 +1,5 @@
 # If true then install and configure adb and idevice* tools.
-swarming_needs__needs_mobile_tools: False
+swarming_needs__needs_mobile_tools: false
 
 # If True then install all the tools we need to compile and link on the machine.
-swarming_needs__can_build: False
+swarming_needs__can_build: false

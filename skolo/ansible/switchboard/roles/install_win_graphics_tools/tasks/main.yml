@@ -11,7 +11,7 @@
   args:
     stdin: Add-WindowsCapability -Online -Name Tools.Graphics.DirectX~~~~0.0.1.0
   # Prevents error "Access is denied".
-  become: yes
+  become: true
   become_user: chrome-bot
   # Prevents error "The powershell shell family is incompatible with the sudo become plugin".
   become_method: runas

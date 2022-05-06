@@ -5,7 +5,7 @@
 #     ansible-playbook switchboard/reboot.yml --limit <hosts>
 - hosts: all_linux, all_mac, all_win
   user: chrome-bot
-  gather_facts: yes
+  gather_facts: true
 
   tasks:
     - name: Reboot Windows machine

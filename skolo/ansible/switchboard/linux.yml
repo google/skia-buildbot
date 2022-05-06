@@ -1,7 +1,7 @@
 # Configures a Linux test machine with everything it needs to run under switchboard.
 - hosts: all_linux
   user: chrome-bot
-  gather_facts: yes
+  gather_facts: true
 
   roles:
     - stop_sleeping

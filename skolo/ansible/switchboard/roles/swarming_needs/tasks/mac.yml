@@ -1,7 +1,7 @@
 - name: Remove any legacy install of Swarming.
   # Swarming's dir used to live here before macOS 10.15, at which point it
   # became an unwriteable location.
-  become: yes
+  become: true
   file:
     path: /b/s
     state: absent
@@ -10,11 +10,11 @@
   # test_machine_monitor's swarming/bootstrap() would do it, but it does it
   # with 0777 because that dir is being mounted inside a Docker container on
   # Linux. We can be a little tighter here.
-  become: yes
+  become: true
   file:
     path: /opt/s
     state: directory
-    recurse: yes
+    recurse: true
     owner: '{{ skolo_account }}'
     mode: 0755
 
@@ -42,7 +42,7 @@
         warn: false
 
     - name: Run installer.
-      become: yes
+      become: true
       command:
         cmd: /usr/sbin/installer -verboseR -package ~{{ skolo_account }}/Downloads/{{ python_pkg }} -target /
         creates: /usr/local/bin/python3
@@ -57,7 +57,7 @@
         src: files/pyobjc_requirements.txt
         dest: '{{ requirements.path }}'
         mode: 0600
-        force: yes
+        force: true
     - name: Run pip against requirements.
       # The Python 3.9 and above versions of pyobjc ship as universal binaries.
       # The pyobjc distro is a stub which depends on packages like
@@ -69,11 +69,11 @@
         requirements: '{{ requirements.path }}'
 
 - name: Allow chrome-bot to sudo shutdown.
-  become: yes
+  become: true
   lineinfile:
     path: /private/etc/sudoers.d/swarming
     state: present
-    create: yes
+    create: true
     line: '{{ skolo_account }} ALL=NOPASSWD: ALL'
     regexp: '^{{ skolo_account }} ALL=NOPASSWD:.*'
     validate: /usr/sbin/visudo -cf %s

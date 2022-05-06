@@ -1,22 +1,23 @@
 - hosts: all_mac
   user: chrome-bot
-  gather_facts: yes
+  gather_facts: true
 
   tasks:
-    - import_role:
+    - name: Stop sleeping.
+      import_role:
         name: stop_sleeping
 
     - name: Set hostname, which should already be set.
       command: scutil --set HostName {{ inventory_hostname }}
-      become: yes
+      become: true
 
     - name: Set Bonjour hostname.
       command: scutil --set LocalHostName {{ inventory_hostname }}
-      become: yes
+      become: true
 
     - name: Set user-visible computer name.
       command: scutil --set ComputerName {{ inventory_hostname }}
-      become: yes
+      become: true
 
     - name: Turn off wifi radio.
       command: networksetup -setairportpower en1 off
@@ -25,19 +26,24 @@
       # OSes are updated manually (if at all) to prevent surprises. There's no
       # sense spending network and disk on updates that might not be installed.
       command: defaults write /Library/Preferences/com.apple.SoftwareUpdate AutomaticCheckEnabled -boolean FALSE
-      become: yes
+      become: true
 
-    - import_role:
+    - name: Copy authorized keys.
+      import_role:
         name: copy_authorized_keys
 
-    - import_role:
+    - name: Copy service account key.
+      import_role:
         name: copy_service_account_key
 
-    - import_role:
+    - name: Install Swarming needs.
+      import_role:
         name: swarming_needs
 
-    - import_role:
+    - name: Install Switchboard needs.
+      import_role:
         name: switchboard_needs
 
-    - import_role:
+    - name: Install test_machine_monitor.
+      import_role:
         name: install_test_machine_monitor

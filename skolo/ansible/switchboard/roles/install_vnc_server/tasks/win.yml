@@ -52,7 +52,7 @@
     # https://adamtheautomator.com/ultravnc-silent-install
     arguments: /verysilent /loadinf="C:\Temp\silentinstall.inf"
     state: present
-  ignore_errors: True
+  ignore_errors: true
 
 # For some reason, stopping uvnc_service sometimes causes the machine to reboot. We force a
 # reboot now to make this role less flaky.

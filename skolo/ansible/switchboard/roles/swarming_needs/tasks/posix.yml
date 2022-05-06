@@ -7,16 +7,16 @@
     mode: 0644
 
 - name: Create /etc/swarming_config directory
-  become: yes
+  become: true
   file:
     path: /etc/swarming_config
     state: directory
-    recurse: yes
+    recurse: true
     owner: '{{ skolo_account }}'
     mode: 0755
 
 - name: Copy oauth2 config file
-  become: yes
+  become: true
   template:
     src: templates/oauth2_access_token_config.json
     dest: /etc/swarming_config/oauth2_access_token_config.json

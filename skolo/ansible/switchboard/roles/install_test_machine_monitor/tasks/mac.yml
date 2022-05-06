@@ -1,5 +1,5 @@
 - name: Copy over executable.
-  become: yes
+  become: true
   copy:
     src:
       "{{ get_ansible_binaries_directory.path }}/build/{{
@@ -23,7 +23,7 @@
 
     - name: Remove freestanding startup job.
       # We'll have TMM start Swarming instead.
-      become: yes
+      become: true
       file:
         path: '{{ swarming_launch_plist }}'
         state: absent

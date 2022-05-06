@@ -45,9 +45,9 @@
     triggers:
       - type: logon
     logon_type: interactive_token
-    enabled: yes
+    enabled: true
     username: '{{ skolo_account }}'
-    hidden: no
+    hidden: false
     # 2 ->  Will not start a new instance if another is running.
     multiple_instances: 2
     state: present

@@ -1,6 +1,6 @@
 - hosts: jumphosts
   user: chrome-bot
-  gather_facts: no
+  gather_facts: false
 
   tasks:
     - name: Print out hostname

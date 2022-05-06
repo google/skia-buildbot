@@ -25,7 +25,7 @@
   # behavior reverts.
   win_command: C:\Temp\nvidia_gfx.exe -s
   register: setup_result
-  ignore_errors: True
+  ignore_errors: true
 
 - when: setup_result is failed
   # Sometimes the NVIDIA installer returns a non-zero exit code for unknown reason. Sometimes it
@@ -38,7 +38,7 @@
       win_reboot:
       # If the installer rebooted the machine, this will fail because Ansible isn't able to
       # connect.
-      ignore_errors: True
+      ignore_errors: true
     # If the NVIDIA installer rebooted the machine, we need to wait for it to come back before
     # continuing.
     - name: Wait for connection after NVIDIA Graphics Driver failed

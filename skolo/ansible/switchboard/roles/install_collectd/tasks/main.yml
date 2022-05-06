@@ -1,6 +1,6 @@
 # tasks file for collectd
 - name: Install applications.
-  become: yes
+  become: true
   apt:
     pkg:
       - collectd
@@ -8,7 +8,7 @@
       - collectd-utils
 
 - name: Configure collectd
-  become: yes
+  become: true
   copy:
     src: files/collectd.conf
     dest: /etc/collectd/collectd.conf

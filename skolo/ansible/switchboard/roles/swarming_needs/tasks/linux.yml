@@ -14,7 +14,7 @@
       notify: clean_up_package_dir
 
     - name: Copy package to host.
-      become: yes
+      become: true
       copy:
         src:
           "{{ get_ansible_binaries_directory.path }}/build/{{
@@ -28,7 +28,7 @@
     # Ansible's apt module doesn't want to remove conflicting packages, no
     # matter what options I could come up with, so we do it manually.
     - name: Remove packages that conflict with skia-imobiledevice.
-      become: yes
+      become: true
       apt:
         state: absent
         pkg:
@@ -38,15 +38,15 @@
           - ideviceinstaller
           - ifuse
           - libimobiledevice6
-        autoremove: yes
+        autoremove: true
 
     - name: Install skia-imobiledevice.
-      become: yes
+      become: true
       apt:
         deb: '{{ package_dir.path }}/skia-imobiledevice.deb'
 
     - name: Install adb and python 2.7.
-      become: yes
+      become: true
       apt:
         pkg:
           - adb
@@ -54,7 +54,7 @@
 
     # iOS recipes need a /usr/bin/python2.
     - name: link /usr/bin/python2 to /usr/bin/python2.7
-      become: yes
+      become: true
       file:
         src: /usr/bin/python2.7
         dest: /usr/bin/python2
@@ -64,7 +64,7 @@
 
     # Our recipes hard-code a specific adb.
     - name: link adb to /usr/bin/adb.1.0.35
-      become: yes
+      become: true
       file:
         src: /usr/bin/adb
         dest: /usr/bin/adb.1.0.35
@@ -73,7 +73,7 @@
         state: link
 
 - name: Install python3 modules.
-  become: yes
+  become: true
   apt:
     pkg:
       - python3-distutils
@@ -81,7 +81,7 @@
 
 # Recipes need a /usr/bin/python.
 - name: link /usr/bin/python to /usr/bin/python3
-  become: yes
+  become: true
   file:
     src: /usr/bin/python3
     dest: /usr/bin/python
@@ -90,11 +90,11 @@
     state: link
 
 - name: Create /b/s directory
-  become: yes
+  become: true
   file:
     path: /b/s
     state: directory
-    recurse: yes
+    recurse: true
     owner: chrome-bot
     mode: 0755
 
@@ -104,7 +104,7 @@
   register: gdm3_config_directory
 
 - name: Copy gdm3 config to host, which causes chrome-bot to be automatically logged in for Debian 11 systems running Gnome.
-  become: yes
+  become: true
   when: gdm3_config_directory.stat.exists
   copy:
     src: files/gdm3_daemon.conf
@@ -115,7 +115,7 @@
 
 - name: Install build tools.
   when: swarming_needs__can_build
-  become: yes
+  become: true
   apt:
     pkg:
       - make
@@ -123,4 +123,3 @@
       - libfontconfig-dev
       - libglu-dev
       - build-essential
-

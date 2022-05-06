@@ -1,23 +1,30 @@
 # Configures an RPi with everything it needs to run under switchboard.
 - hosts: switchboard_rpis
   user: chrome-bot
-  gather_facts: yes
+  gather_facts: true
 
   # Using the `roles:` key here causes an error about
   # test_machine_monitor_version being undefined in get_ansible_binaries during
   # install_test_machine_monitor.
   tasks:
-    - import_role:
+    - name: Copy authorized keys.
+      import_role:
         name: copy_authorized_keys
-    - import_role:
+    - name: Copy adb key.
+      import_role:
         name: copy_adbkey
-    - import_role:
+    - name: Copy service account key.
+      import_role:
         name: copy_service_account_key
-    - import_role:
+    - name: Install collectd.
+      import_role:
         name: install_collectd
-    - import_role:
+    - name: Install Swarming needs.
+      import_role:
         name: swarming_needs
-    - import_role:
+    - name: Install Switchboard needs.
+      import_role:
         name: switchboard_needs
-    - import_role:
+    - name: Install test_machine_monitor.
+      import_role:
         name: install_test_machine_monitor

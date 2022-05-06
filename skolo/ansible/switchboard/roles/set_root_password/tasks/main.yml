@@ -1,6 +1,6 @@
 # tasks file for set_root_password
 - name: Root password
-  become: yes
+  become: true
   user:
     name: root
     shell: /bin/bash

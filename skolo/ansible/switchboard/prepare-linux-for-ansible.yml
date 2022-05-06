@@ -5,7 +5,7 @@
 # machine.
 - hosts: all_linux
   become: true
-  gather_facts: no
+  gather_facts: false
 
   pre_tasks:
     # First install python3 so we can do more than issue 'raw' commands.

@@ -1,7 +1,7 @@
 # Configures a jumphost with everything it needs.
 - hosts: jumphosts
   user: chrome-bot
-  gather_facts: yes
+  gather_facts: true
   vars:
     router_backup_ansible_version_override: ''
     powercycle_server_ansible_version_override: ''

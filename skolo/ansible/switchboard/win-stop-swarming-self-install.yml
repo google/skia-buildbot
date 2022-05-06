@@ -1,7 +1,7 @@
 # Stop Swarming bots from ever writing the run_swarm_bot.bat file.
 - hosts: all_win
   remote_user: '{{ skolo_account }}'
-  gather_facts: yes
+  gather_facts: true
 
   tasks:
     - name: Stop Swarming from running on its own.

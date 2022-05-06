@@ -1,6 +1,6 @@
 - hosts: all_win
   user: chrome-bot
-  gather_facts: yes
+  gather_facts: true
 
   roles:
   - load_secret_vars

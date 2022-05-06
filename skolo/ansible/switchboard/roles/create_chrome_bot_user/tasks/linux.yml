@@ -4,7 +4,7 @@
     state: present
 
 - name: Allow 'sudo' group to have passwordless sudo
-  become: yes
+  become: true
   lineinfile:
     dest: /etc/sudoers
     state: present
@@ -13,18 +13,18 @@
     validate: visudo -cf %s
 
 - name: Add sudo users to sudo group
-  become: yes
+  become: true
   user:
     name: chrome-bot
     groups: sudo
-    append: yes
+    append: true
 
 - name: Create chrome-bot user.
-  become: yes
+  become: true
   user:
     name: chrome-bot
     groups: plugdev,sudo
-    generate_ssh_key: yes
+    generate_ssh_key: true
     ssh_key_type: ed25519
     shell: /bin/bash
     password: "{{ secrets.skolo_password | password_hash('sha256') }}"

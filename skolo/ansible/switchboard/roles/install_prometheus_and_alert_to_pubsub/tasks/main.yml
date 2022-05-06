@@ -19,7 +19,7 @@
   when: not prometheus_binary.stat.exists
 
 - name: Copy over service file.
-  become: yes
+  become: true
   template:
     src: templates/prometheus.service
     dest: /etc/systemd/system/prometheus.service
@@ -28,7 +28,7 @@
     mode: '0644'
 
 - name: Copy over prometheus executable.
-  become: yes
+  become: true
   copy:
     src:
       "{{ all.repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
@@ -40,7 +40,7 @@
     mode: '0755'
 
 - name: Copy over promtool executable.
-  become: yes
+  become: true
   copy:
     src:
       "{{ all.repo_root }}/skolo/build/{{ ansible_facts['system'] }}/{{
@@ -52,7 +52,7 @@
     mode: '0755'
 
 - name: Ensure /etc/prometheus directory exists.
-  become: yes
+  become: true
   file:
     path: /etc/prometheus
     state: directory
@@ -77,7 +77,7 @@
     mode: '0644'
 
 - name: Ensure tsdb directory exists.
-  become: yes
+  become: true
   file:
     path: /var/lib/prometheus/tsdb
     state: directory
@@ -93,7 +93,7 @@
     get_ansible_binaries_version: '{{ alert_to_pubsub_ansible_version }}'
 
 - name: Copy over alert_to_pubsub service file.
-  become: yes
+  become: true
   template:
     src: templates/alert_to_pubsub.service
     dest: /etc/systemd/system/alert_to_pubsub.service
@@ -102,7 +102,7 @@
     mode: '0644'
 
 - name: Copy over alert_to_pubsub_ansible executable.
-  become: yes
+  become: true
   copy:
     src:
       "{{ get_ansible_binaries_directory.path }}/build/{{
@@ -114,20 +114,20 @@
     mode: '0755'
 
 - name: restart_prometheus
-  become: yes
+  become: true
   systemd:
-    enabled: yes
+    enabled: true
     state: restarted
     name: prometheus
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: restart_alert_to_pubsub
-  become: yes
+  become: true
   systemd:
-    enabled: yes
+    enabled: true
     state: restarted
     name: alert_to_pubsub
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: validate_prometheus_config
   command: /usr/local/bin/promtool check config /etc/prometheus/prometheus.yml

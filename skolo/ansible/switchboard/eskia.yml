@@ -1,7 +1,7 @@
 # Sets up the eskia linux hosts
 - hosts: eskia_test_machines
   user: chrome-bot
-  gather_facts: yes
+  gather_facts: true
 
   roles:
     - copy_authorized_keys

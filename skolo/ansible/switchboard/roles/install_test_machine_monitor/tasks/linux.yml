@@ -1,5 +1,5 @@
 - name: Copy over executable.
-  become: yes
+  become: true
   copy:
     src:
       "{{ get_ansible_binaries_directory.path }}/build/{{
@@ -27,7 +27,7 @@
     swarming_desktop_stat.stat.exists
 
 - name: Copy over service file.
-  become: yes
+  become: true
   template:
     src: templates/test_machine_monitor.service
     dest: /etc/systemd/system/test_machine_monitor.service
@@ -36,10 +36,10 @@
     mode: 0644
 
 - name: Start systemd servce.
-  become: yes
+  become: true
   systemd:
-    enabled: yes
+    enabled: true
     # Do not force a restart, we'll just pick up the new version on reboot.
     state: started
     name: test_machine_monitor
-    daemon_reload: yes
+    daemon_reload: true

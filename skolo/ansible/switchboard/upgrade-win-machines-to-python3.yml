@@ -7,7 +7,7 @@
       Menu\\Programs\\Startup\\run_swarm_bot.bat"
 
   roles:
-    - { role: swarming_needs }
+    - swarming_needs
 
   tasks:
     # This file contains a hard-coded path to the Python 2 binary used to invoke
@@ -22,7 +22,7 @@
         Restart Swarming under Python 3 (triggers reboot, so expected to fail)
       win_command:
         "{{ win_python3_path }}\\python.exe C:\\b\\s\\swarming_bot.zip"
-      ignore_unreachable: True
+      ignore_unreachable: true
 
     - name: Wait for reboot after restarting Swarming
       wait_for_connection:

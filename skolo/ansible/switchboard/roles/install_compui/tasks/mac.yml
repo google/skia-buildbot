@@ -8,7 +8,7 @@
         src: files/selenium_requirements.txt
         dest: '{{ requirements.path }}'
         mode: 0600
-        force: yes
+        force: true
     - name: Run pip against requirements.
       pip:
         # Dodge /usr/bin/pip3, which triggers an xcode-select interruption.
@@ -16,7 +16,7 @@
         requirements: '{{ requirements.path }}'
 
 - name: Copy over executable.
-  become: yes
+  become: true
   copy:
     src:
       "{{ get_ansible_binaries_directory.path }}/build/{{
@@ -55,7 +55,7 @@
 
     - name: Have launchd unload the existing service.
       become:
-      ignore_errors: yes
+      ignore_errors: true
       command: launchctl bootout gui/{{ chromebot_uid.stdout }}/org.skia.compui
 
     - name: Have launchd start comp-ui-cron-job.

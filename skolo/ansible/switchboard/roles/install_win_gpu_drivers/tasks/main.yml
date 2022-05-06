@@ -5,7 +5,7 @@
 
 - name: Build getgpu.exe
   delegate_to: 127.0.0.1
-  run_once: True
+  run_once: true
   command:
     argv:
       - bazelisk
