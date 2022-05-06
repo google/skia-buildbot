@@ -126,23 +126,23 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
 		if err := r.Update(ctx); err != nil {
-			return nil, fmt.Errorf("Failed initial repo sync: %s", err)
+			return nil, skerr.Wrapf(err, "Failed initial repo sync")
 		}
 	}
 	w, err := window.New(ctx, period, numCommits, repos)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create window: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create window")
 	}
 
 	// Create caches.
 	tCache, err := cache.NewTaskCache(ctx, d, w, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create TaskCache: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create TaskCache")
 	}
 
 	jCache, err := cache.NewJobCache(ctx, d, w, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to create JobCache")
 	}
 
 	// Add the CD pool to the list of pools if it isn't there already. We'll
@@ -1245,7 +1245,7 @@ func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*TaskCa
 		if err != nil {
 			errStr := err.Error()
 			c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
-			errs = multierror.Append(errs, fmt.Errorf("Failed to merge CAS inputs: %s", errStr))
+			errs = multierror.Append(errs, skerr.Wrapf(err, "Failed to merge CAS inputs"))
 			continue
 		}
 		c.CasInput = digest
@@ -1272,7 +1272,7 @@ func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*TaskCand
 			diag := &taskCandidateTriggeringDiagnostics{}
 			candidate.GetDiagnostics().Triggering = diag
 			recordErr := func(context string, err error) {
-				err = fmt.Errorf("%s: %s", context, err)
+				err = skerr.Wrapf(err, "with context %s", context)
 				diag.TriggerError = err.Error()
 				errCh <- err
 			}
@@ -1388,7 +1388,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine
 
 		// Handle failure/success.
 		if err != nil {
-			errs = append(errs, fmt.Errorf("Triggered tasks but failed to insert into DB: %s", err))
+			errs = append(errs, skerr.Wrapf(err, "Triggered tasks but failed to insert into DB"))
 		} else {
 			// Organize the triggered task by TaskKey.
 			remove := make(map[types.TaskKey]*types.Task, numTriggered)
@@ -1400,7 +1400,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine
 				}
 			}
 			if len(remove) != numTriggered {
-				return fmt.Errorf("Number of tasks to remove from the queue (%d) differs from the number of tasks triggered (%d)", len(remove), numTriggered)
+				return skerr.Fmt("Number of tasks to remove from the queue (%d) differs from the number of tasks triggered (%d)", len(remove), numTriggered)
 			}
 
 			// Remove the tasks from the queue.
@@ -1436,7 +1436,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine
 		for _, e := range errs {
 			rvErr += fmt.Sprintf("\n%s\n", e)
 		}
-		return fmt.Errorf(rvErr)
+		return skerr.Fmt(rvErr)
 	}
 	return nil
 }
@@ -1461,31 +1461,31 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	}()
 
 	if err := s.tCache.Update(ctx); err != nil {
-		return fmt.Errorf("Failed to update task cache: %s", err)
+		return skerr.Wrapf(err, "Failed to update task cache")
 	}
 
 	if err := s.jCache.Update(ctx); err != nil {
-		return fmt.Errorf("Failed to update job cache: %s", err)
+		return skerr.Wrapf(err, "Failed to update job cache")
 	}
 
 	if err := s.updateUnfinishedJobs(ctx); err != nil {
-		return fmt.Errorf("Failed to update unfinished jobs: %s", err)
+		return skerr.Wrapf(err, "Failed to update unfinished jobs")
 	}
 
 	if err := s.skipTasks.Update(ctx); err != nil {
-		return fmt.Errorf("Failed to update skip_tasks: %s", err)
+		return skerr.Wrapf(err, "Failed to update skip_tasks")
 	}
 
 	// Regenerate the queue.
 	sklog.Infof("Task Scheduler regenerating the queue...")
 	queue, allCandidates, err := s.regenerateTaskQueue(ctx)
 	if err != nil {
-		return fmt.Errorf("Failed to regenerate task queue: %s", err)
+		return skerr.Wrapf(err, "Failed to regenerate task queue")
 	}
 
 	wg.Wait()
 	if getSwarmingBotsErr != nil {
-		return fmt.Errorf("Failed to retrieve free Swarming bots: %s", getSwarmingBotsErr)
+		return skerr.Wrapf(getSwarmingBotsErr, "Failed to retrieve free Swarming bots")
 	}
 
 	sklog.Infof("Task Scheduler scheduling tasks...")
@@ -1503,7 +1503,7 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Failed to schedule tasks: %s", err)
+		return skerr.Wrapf(err, "Failed to schedule tasks")
 	}
 
 	sklog.Infof("Task Scheduler MainLoop finished.")
@@ -1655,7 +1655,7 @@ func getFreeMachines(ctx context.Context, taskExec types.TaskExecutor, busy *bus
 
 	wg.Wait()
 	if len(errs) > 0 {
-		return nil, fmt.Errorf("Got errors loading bots and tasks from Swarming: %v", errs)
+		return nil, skerr.Fmt("Got errors loading bots and tasks from Swarming: %v", errs)
 	}
 
 	rv := make([]*types.Machine, 0, len(machines))
@@ -1720,12 +1720,12 @@ func (s *TaskScheduler) updateUnfinishedTasks(ctx context.Context) error {
 				defer wg.Done()
 				taskResult, err := s.taskExecutor.GetTaskResult(ctx, t.SwarmingTaskId)
 				if err != nil {
-					errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
+					errs[idx] = skerr.Wrapf(err, "Failed to update unfinished task %s; failed to get updated task from swarming", t.SwarmingTaskId)
 					return
 				}
 				modified, err := db.UpdateDBFromTaskResult(ctx, s.db, taskResult)
 				if err != nil {
-					errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
+					errs[idx] = skerr.Wrapf(err, "Failed to update unfinished task %s", t.SwarmingTaskId)
 					return
 				} else if modified {
 					s.updateUnfinishedCount.Inc(1)
@@ -1830,14 +1830,14 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*typ
 	taskName := tasks[0].Name
 	repo, ok := s.repos[repoName]
 	if !ok {
-		return fmt.Errorf("No such repo: %s", repoName)
+		return skerr.Fmt("No such repo: %s", repoName)
 	}
 
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 	updatedTasks := map[string]*types.Task{}
 	for _, task := range tasks {
 		if task.Repo != repoName || task.Name != taskName {
-			return fmt.Errorf("Mismatched Repo or Name: %v", tasks)
+			return skerr.Fmt("Mismatched Repo or Name: %v", tasks)
 		}
 		if task.Id == "" {
 			if err := s.db.AssignId(ctx, task); err != nil {
@@ -1851,10 +1851,10 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*typ
 		// Compute blamelist.
 		revision := repo.Get(task.Revision)
 		if revision == nil {
-			return fmt.Errorf("No such commit %s in %s.", task.Revision, task.Repo)
+			return skerr.Fmt("No such commit %s in %s.", task.Revision, task.Repo)
 		}
 		if !s.window.TestTime(task.Repo, revision.Timestamp) {
-			return fmt.Errorf("Can not add task %s with revision %s (at %s) before window start.", task.Id, task.Revision, revision.Timestamp)
+			return skerr.Fmt("Can not add task %s with revision %s (at %s) before window start.", task.Id, task.Revision, revision.Timestamp)
 		}
 		commits, stealingFrom, err := ComputeBlamelist(ctx, cache, repo, task.Name, task.Repo, revision, commitsBuf, s.taskCfgCache, s.window)
 		if err != nil {
@@ -1936,7 +1936,7 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 				defer wg.Done()
 				if err := s.addTasksSingleTaskSpec(ctx, tasks); err != nil {
 					if !db.IsConcurrentUpdate(err) {
-						errs <- fmt.Errorf("Error adding tasks for %s (in repo %s): %s", item.Name, item.Repo, err)
+						errs <- skerr.Wrapf(err, "Error adding tasks for %s (in repo %s)", item.Name, item.Repo)
 					}
 				} else {
 					done <- item
@@ -1962,7 +1962,7 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 	}
 
 	if len(queue) > 0 {
-		return fmt.Errorf("addTasks: %d consecutive ErrConcurrentUpdate; %d of %d TaskSpecs failed. %#v", db.NUM_RETRIES, len(queue), len(taskMap), queue)
+		return skerr.Fmt("addTasks: %d consecutive ErrConcurrentUpdate; %d of %d TaskSpecs failed. %#v", db.NUM_RETRIES, len(queue), len(taskMap), queue)
 	}
 	return nil
 }
