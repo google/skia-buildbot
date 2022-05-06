@@ -3,6 +3,7 @@
 package taskname
 
 var SCHEMA_FROM_GIT = map[string]*Schema{
+	"BazelBuild":  {Keys: []string{"label", "config", "host"}, OptionalKeys: []string{"cross"}, RecurseRoles: []string(nil)},
 	"Build":       {Keys: []string{"os", "compiler", "target_arch", "configuration"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
 	"BuildStats":  {Keys: []string{"os", "compiler", "target_arch", "configuration"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
 	"Canary":      {Keys: []string{"project"}, OptionalKeys: []string(nil), RecurseRoles: []string(nil)},
