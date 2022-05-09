@@ -58,6 +58,8 @@ const (
 	repo = "https://skia.googlesource.com/perf-compui"
 
 	python = "/Library/Frameworks/Python.framework/Versions/3.9/bin/python3"
+
+	benchmarkTimeout = 2 * time.Hour
 )
 
 var (
@@ -258,7 +260,7 @@ func runSingleBenchmark(ctx context.Context, benchmarkName string, config benchm
 }
 
 func runBenchMarkScript(ctx context.Context, args []string, workDir string) error {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, benchmarkTimeout)
 	defer cancel()
 
 	return runCmdLogOutput(ctx, workDir, python, args...)
