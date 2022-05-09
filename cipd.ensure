@@ -18,10 +18,10 @@ infra/3pp/tools/git/linux-armv6l                 version:2@2.36.0-rc2.chromium.8
 infra/3pp/tools/git/mac-amd64                    version:2@2.36.0-rc2.chromium.8
 infra/3pp/tools/git/windows-386                  version:2@2.35.3.chromium.8
 infra/3pp/tools/git/windows-amd64                version:2@2.35.3.chromium.8
-infra/gsutil                                     version:4.46
 infra/tools/git/${platform}                      git_revision:34ecdc8775563915792e05ba9d921342808ae2dc
 infra/tools/luci-auth/${platform}                git_revision:34ecdc8775563915792e05ba9d921342808ae2dc
 infra/tools/luci/git-credential-luci/${platform} git_revision:34ecdc8775563915792e05ba9d921342808ae2dc
+infra/tools/luci/gsutil/${platform}              git_revision:34ecdc8775563915792e05ba9d921342808ae2dc
 infra/tools/luci/isolate/${platform}             git_revision:34ecdc8775563915792e05ba9d921342808ae2dc
 infra/tools/luci/isolated/${platform}            git_revision:dc3a3dc4272aeef30698752d137ccd4f09526d69
 infra/tools/luci/lucicfg/${platform}             git_revision:34ecdc8775563915792e05ba9d921342808ae2dc

@@ -286,7 +286,6 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
 	task.Caches = append(task.Caches, goCaches...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))
-	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GSUTIL...)
 	if strings.Contains(name, "Large") || strings.Contains(name, "Build") {
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("protoc"))
 	}
@@ -364,7 +363,6 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 		pkgs = append(pkgs, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 		pkgs = append(pkgs, specs.Python3LinuxAMD64CIPDPackages()...)
 	}
-	pkgs = append(pkgs, specs.CIPD_PKGS_GSUTIL...)
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("node"))
 
 	machineType := machineTypeMedium
@@ -486,7 +484,6 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	pkgs = append(pkgs, specs.Python3LinuxAMD64CIPDPackages()...)
-	pkgs = append(pkgs, specs.CIPD_PKGS_GSUTIL...)
 	pkgs = append(pkgs, specs.CIPD_PKGS_ISOLATE...)
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("bazelisk"))
 	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))

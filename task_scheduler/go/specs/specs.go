@@ -67,8 +67,9 @@ var (
 	CIPD_PKGS_GIT_MAC_AMD64     = cipd.PkgsGit[cipd.PlatformMacAmd64]
 	CIPD_PKGS_GIT_WINDOWS_AMD64 = cipd.PkgsGit[cipd.PlatformWindowsAmd64]
 	CIPD_PKGS_GOLDCTL           = []*CipdPackage{cipd.MustGetPackage("skia/tools/goldctl/${platform}")}
-	CIPD_PKGS_GSUTIL            = []*CipdPackage{cipd.MustGetPackage("infra/gsutil")}
-	CIPD_PKGS_ISOLATE           = []*CipdPackage{
+	// CIPD_PKGS_GSUTIL is the go version of gsutil.
+	CIPD_PKGS_GSUTIL  = []*CipdPackage{cipd.MustGetPackage("infra/tools/luci/gsutil/${platform}")}
+	CIPD_PKGS_ISOLATE = []*CipdPackage{
 		cipd.MustGetPackage("infra/tools/luci/isolate/${platform}"),
 		cipd.MustGetPackage("infra/tools/luci/isolated/${platform}"),
 	}

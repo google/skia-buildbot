@@ -93,11 +93,6 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/3pp/tools/git/windows-amd64",
 		Version: "version:2@2.35.3.chromium.8",
 	},
-	"infra/gsutil": {
-		Path:    "cipd_bin_packages",
-		Name:    "infra/gsutil",
-		Version: "version:4.46",
-	},
 	"infra/tools/cipd/${os}-${arch}": {
 		Path:    ".",
 		Name:    "infra/tools/cipd/${os}-${arch}",
@@ -116,6 +111,11 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/luci/git-credential-luci/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/git-credential-luci/${platform}",
+		Version: "git_revision:34ecdc8775563915792e05ba9d921342808ae2dc",
+	},
+	"infra/tools/luci/gsutil/${platform}": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/tools/luci/gsutil/${platform}",
 		Version: "git_revision:34ecdc8775563915792e05ba9d921342808ae2dc",
 	},
 	"infra/tools/luci/isolate/${platform}": {
