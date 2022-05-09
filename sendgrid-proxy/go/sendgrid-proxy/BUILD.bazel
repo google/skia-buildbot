@@ -1,0 +1,33 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "sendgrid-proxy_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/sendgrid-proxy/go/sendgrid-proxy",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/secret",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "sendgrid-proxy",
+    embed = [":sendgrid-proxy_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "sendgrid-proxy_test",
+    srcs = ["main_test.go"],
+    embed = [":sendgrid-proxy_lib"],
+    deps = [
+        "//go/metrics2",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
