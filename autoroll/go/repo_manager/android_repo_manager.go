@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -41,7 +42,7 @@ const (
 
 	// Android does not allow self+2. As a workaround, we use a second account
 	// to approve our CLs.
-	autoApproverKeyPath = "/var/secrets/auto-approver-sa/key.json"
+	autoApproverKeyProject = "skia-infra-public"
 )
 
 var (
@@ -147,12 +148,16 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 	}
 
 	var autoApproverGerrit gerrit.GerritInterface
-	if !local {
-		autoApproverKey, err := ioutil.ReadFile(autoApproverKeyPath)
+	if !local && c.AutoApproverSecret != "" {
+		secretClient, err := secret.NewClient(ctx)
 		if err != nil {
-			sklog.Warningf("No auto-approver service account key found in %s; continuing anyway.", autoApproverKeyPath)
+			return nil, skerr.Wrap(err)
+		}
+		autoApproverKey, err := secretClient.Get(ctx, autoApproverKeyProject, c.AutoApproverSecret, secret.VersionLatest)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to retrieve secret %s", c.AutoApproverSecret)
 		} else {
-			autoApproverCreds, err := google.CredentialsFromJSON(ctx, autoApproverKey, gerrit.AuthScope)
+			autoApproverCreds, err := google.CredentialsFromJSON(ctx, []byte(autoApproverKey), gerrit.AuthScope)
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}

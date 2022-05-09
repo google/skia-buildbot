@@ -167,12 +167,16 @@ export interface GitHubConfig {
   repoOwner: string;
   repoName: string;
   checksWaitFor?: string[];
+  tokenSecret: string;
+  sshKeySecret: string;
 }
 
 interface GitHubConfigJSON {
   repo_owner?: string;
   repo_name?: string;
   checks_wait_for?: string[];
+  token_secret?: string;
+  ssh_key_secret?: string;
 }
 
 export interface Google3Config {
@@ -188,7 +192,6 @@ export interface KubernetesConfig {
   readinessInitialDelaySeconds: number;
   readinessPeriodSeconds: number;
   disk: string;
-  secrets?: KubernetesSecret[];
   image: string;
 }
 
@@ -199,18 +202,7 @@ interface KubernetesConfigJSON {
   readiness_initial_delay_seconds?: number;
   readiness_period_seconds?: number;
   disk?: string;
-  secrets?: KubernetesSecretJSON[];
   image?: string;
-}
-
-export interface KubernetesSecret {
-  name: string;
-  mountPath: string;
-}
-
-interface KubernetesSecretJSON {
-  name?: string;
-  mount_path?: string;
 }
 
 export interface AndroidRepoManagerConfig_ProjectMetadataFileConfig {
@@ -243,6 +235,7 @@ export interface AndroidRepoManagerConfig {
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfig;
   includeAuthorsAsReviewers: boolean;
   preUploadCommands?: PreUploadConfig;
+  autoApproverSecret: string;
 }
 
 interface AndroidRepoManagerConfigJSON {
@@ -257,6 +250,7 @@ interface AndroidRepoManagerConfigJSON {
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfigJSON;
   include_authors_as_reviewers?: boolean;
   pre_upload_commands?: PreUploadConfigJSON;
+  auto_approver_secret?: string;
 }
 
 export interface CommandRepoManagerConfig_CommandConfig {

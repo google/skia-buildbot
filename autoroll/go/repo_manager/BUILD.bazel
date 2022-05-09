@@ -28,6 +28,7 @@ go_library(
         "//go/gerrit",
         "//go/git",
         "//go/httputils",
+        "//go/secret",
         "//go/skerr",
         "//go/sklog",
         "//go/util",

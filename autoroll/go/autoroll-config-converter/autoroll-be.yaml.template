@@ -84,10 +84,6 @@ spec:
             - name: autoroll-be-{{$svcAcct}}-sa
               mountPath: /var/secrets/google
 {{- end}}
-            {{- range $index, $secret := .kubernetes.secrets}}
-            - name: {{$secret.name}}
-              mountPath: {{$secret.mountPath}}
-            {{- end}}
           env:
 {{- if and (eq .useWorkloadIdentity "false") (.oldCluster)}}
             - name: GOOGLE_APPLICATION_CREDENTIALS
@@ -112,11 +108,6 @@ spec:
           secret:
             secretName: {{$svcAcct}}
 {{- end}}
-        {{- range $index, $secret := .kubernetes.secrets}}
-        - name: {{$secret.name}}
-          secret:
-            secretName: {{$secret.name}}
-        {{- end}}
 {{- if .kubernetes.disk}}
   volumeClaimTemplates:
     - metadata:

@@ -142,6 +142,11 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	secretClient, err := secret.NewClient(ctx)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	var emailer *email.GMail
 	var chatBotConfigReader chatbot.ConfigReader
 	var gcsClient gcs.GCSClient
@@ -160,11 +165,6 @@ func main() {
 		}
 		sklog.Infof("Writing persistent data to gs://%s/%s", gsBucketAutoroll, rollerName)
 		gcsClient = gcsclient.New(s, gsBucketAutoroll)
-
-		secretClient, err := secret.NewClient(ctx)
-		if err != nil {
-			sklog.Fatal(err)
-		}
 
 		// Emailing init.
 		emailClientId, err := secretClient.Get(ctx, secretProject, secretGmailClientId, secret.VersionLatest)
@@ -243,35 +243,43 @@ func main() {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
 	} else if cfg.GetGithub() != nil {
-		pathToGithubToken := filepath.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
-		if !*local {
-			pathToGithubToken = filepath.Join(github.GITHUB_TOKEN_SERVER_PATH, github.GITHUB_TOKEN_FILENAME)
+		githubCfg := cfg.GetGithub()
+		var gToken string
+		if *local {
+			pathToGithubToken := filepath.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
+			gBody, err := ioutil.ReadFile(pathToGithubToken)
+			if err != nil {
+				sklog.Fatalf("Couldn't find githubToken in %s: %s.", pathToGithubToken, err)
+			}
+			gToken = strings.TrimSpace(string(gBody))
+		} else {
+			gBody, err := secretClient.Get(ctx, secretProject, githubCfg.TokenSecret, secret.VersionLatest)
+			if err != nil {
+				sklog.Fatalf("Failed to retrieve secret %s: %s", githubCfg.TokenSecret, err)
+			}
+			gToken = strings.TrimSpace(gBody)
+
 			// Setup the required SSH key from secrets if we are not running
 			// locally and if the file does not already exist.
-			sshKeySrc := filepath.Join(github.SSH_KEY_SERVER_PATH, github.SSH_KEY_FILENAME)
 			sshKeyDestDir := filepath.Join(user.HomeDir, ".ssh")
 			sshKeyDest := filepath.Join(sshKeyDestDir, github.SSH_KEY_FILENAME)
 			if _, err := os.Stat(sshKeyDest); os.IsNotExist(err) {
-				b, err := ioutil.ReadFile(sshKeySrc)
+				sshKey, err := secretClient.Get(ctx, secretProject, githubCfg.SshKeySecret, secret.VersionLatest)
 				if err != nil {
-					sklog.Fatalf("Could not read from %s: %s", sshKeySrc, err)
+					sklog.Fatalf("Failed to retrieve secret %s: %s", githubCfg.SshKeySecret, err)
 				}
 				if _, err := fileutil.EnsureDirExists(sshKeyDestDir); err != nil {
 					sklog.Fatalf("Could not create %s: %s", sshKeyDest, err)
 				}
-				if err := ioutil.WriteFile(sshKeyDest, b, 0600); err != nil {
+				if err := ioutil.WriteFile(sshKeyDest, []byte(sshKey), 0600); err != nil {
 					sklog.Fatalf("Could not write to %s: %s", sshKeyDest, err)
 				}
 			}
 			// Make sure github is added to known_hosts.
 			github.AddToKnownHosts(ctx)
 		}
+
 		// Instantiate githubClient using the github token secret.
-		gBody, err := ioutil.ReadFile(pathToGithubToken)
-		if err != nil {
-			sklog.Fatalf("Couldn't find githubToken in %s: %s.", pathToGithubToken, err)
-		}
-		gToken := strings.TrimSpace(string(gBody))
 		githubHttpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
 		gc := cfg.GetGithub()
 		if gc == nil {

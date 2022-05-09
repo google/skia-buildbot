@@ -180,6 +180,12 @@ message GitHubConfig {
     // because the PR is not going to be submitted so the tree-status checks
     // will not be important in that case.
     repeated string checks_wait_for = 3;
+    // token_secret is the name of the secret containing the auth token used to
+    // access the GitHub API.
+    string token_secret = 4;
+    // ssh_key_secret is the name of the secret containing the SSH key used to
+    // access GitHub repos.
+    string ssh_key_secret = 5;
 }
 
 // Google3Config is an empty configuration object for Google3.
@@ -203,18 +209,8 @@ message KubernetesConfig {
     // disk indicates the size of the requested persistent disk.  If not
     // specified, no persistent disk is used.
     string disk = 6;
-    // secrets provided to the pod.
-    repeated KubernetesSecret secrets = 7;
     // image used for the autoroll backend container.
     string image = 8;
-}
-
-// KubernetesSecret provides configuration for a Kubernetes secret.
-message KubernetesSecret {
-    // name of the secret.
-    string name = 1;
-    // mount_path of the secret.
-    string mount_path = 2;
 }
 
 // AndroidRepoManagerConfig provides configuration for a roller which rolls into
@@ -265,6 +261,10 @@ message AndroidRepoManagerConfig {
     bool include_authors_as_reviewers = 10;
     // pre_upload describes command(s) to run before uploading roll CLs.
     PreUploadConfig pre_upload_commands = 11;
+    // auto_approver_secret indicates that the roller should use the given
+    // secret containing an auto-approver service account key to approve its own
+    // changes.
+    string auto_approver_secret = 12;
 }
 
 // CommandRepoManagerConfig provides configuration for a roller which runs

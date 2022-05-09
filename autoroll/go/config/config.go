@@ -291,6 +291,12 @@ func (c *GitHubConfig) Validate() error {
 	if c.RepoName == "" {
 		return skerr.Fmt("RepoName is required.")
 	}
+	if c.TokenSecret == "" {
+		return skerr.Fmt("TokenSecret is required.")
+	}
+	if c.SshKeySecret == "" {
+		return skerr.Fmt("SshKeySecret is required.")
+	}
 	return nil
 }
 
@@ -307,24 +313,8 @@ func (c *KubernetesConfig) Validate() error {
 	if c.Memory == "" {
 		return skerr.Fmt("Memory is required.")
 	}
-	for _, secret := range c.Secrets {
-		if err := secret.Validate(); err != nil {
-			return skerr.Wrap(err)
-		}
-	}
 	if c.Image == "" {
 		return skerr.Fmt("Image is required.")
-	}
-	return nil
-}
-
-// Validate implements util.Validator.
-func (c *KubernetesSecret) Validate() error {
-	if c.Name == "" {
-		return skerr.Fmt("Secret name is required.")
-	}
-	if c.MountPath == "" {
-		return skerr.Fmt("Secret MountPath is required.")
 	}
 	return nil
 }
