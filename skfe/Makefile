@@ -18,3 +18,6 @@ push: pushk release validate
 # Set DOCKER_IMAGE to the image you want to run locally.
 run-local:
 	docker run -ti -p 8000:8000 $(DOCKER_IMAGE) --config-path /etc/envoy/computed.json
+
+test:
+	$(BAZEL) test //skfe/go/dns:dns_test

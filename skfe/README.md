@@ -109,6 +109,11 @@ And then visit
 
 The admin interface also provides the metrics endpoint to prometheus.
 
+## DNS
+
+Our DNS Zone file is checked in here as [skia.org.zone](./skia.org.zone). See
+that file for instructions on how to update our DNS records.
+
 ## FAQ
 
 Q: Why not just use GKE Ingress?

@@ -366,6 +366,13 @@ def go_repositories():
         version = "v0.0.0-20160611221934-b7ed37b82869",
     )
     go_repository(
+        name = "com_github_bogdanovich_dns_resolver",
+        importpath = "github.com/bogdanovich/dns_resolver",
+        sum = "h1:oV1V+uwP+sjmdSkvMxsl/l+HE+N8wbL49wCXZPel25M=",
+        version = "v0.0.0-20170211073258-a8e42bc6a5b6",
+    )
+
+    go_repository(
         name = "com_github_boombuler_barcode",
         importpath = "github.com/boombuler/barcode",
         sum = "h1:s1TvRnXwL2xJRaccrdcBQMZxq6X7DvsMogtmJeHDdrc=",
