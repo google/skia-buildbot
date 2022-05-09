@@ -44,6 +44,7 @@ deps = {
     ],
     'dep_type': 'cipd',
   },
+  'expr/'+'dep': 'https://my-host/expr-dep.git@version',
 }
 `
 
@@ -85,6 +86,11 @@ func TestParseDeps(t *testing.T) {
 			Id:      "package2",
 			Version: "version2",
 			Path:    "cipd/deps",
+		},
+		"my-host/expr-dep": {
+			Id:      "my-host/expr-dep",
+			Version: "version",
+			Path:    "expr/dep",
 		},
 	}, deps)
 

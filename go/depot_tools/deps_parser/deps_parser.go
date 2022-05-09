@@ -470,11 +470,14 @@ func parseDeps(depsContent string) (DepsEntries, map[string]*ast.Pos, error) {
 			}
 			keys := make([]string, 0, len(d.Keys))
 			for _, key := range d.Keys {
-				// Only support string keys; in theory they
-				// could be any expression, but in practice
-				// they're strings.
 				if key.Type().Name == ast.StrType.Name {
 					keys = append(keys, string(key.(*ast.Str).S))
+				} else if key.Type().Name == ast.BinOpType.Name {
+					resolved, _, err := exprToString(key)
+					if err != nil {
+						return nil, nil, skerr.Wrapf(err, "failed to resolve key expr %q", key)
+					}
+					keys = append(keys, resolved)
 				} else {
 					return nil, nil, skerr.Fmt("Invalid key type for %q: %s", name.Id, key.Type().Name)
 				}
