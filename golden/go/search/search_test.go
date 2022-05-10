@@ -3,6 +3,7 @@ package search
 import (
 	"context"
 	"crypto/md5"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -4313,15 +4314,15 @@ b:alpha
 			groupingID:       mustHash(alphaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("0"),
+					id:     []byte("00"),
 					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
 				},
 				{
-					id:     []byte("1"),
+					id:     []byte("01"),
 					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
 				},
 				{
-					id:     []byte("2"),
+					id:     []byte("02"),
 					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
 				},
 			},
@@ -4345,15 +4346,15 @@ d:alpha
 			groupingID:       mustHash(alphaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("0"),
+					id:     []byte("00"),
 					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
 				},
 				{
-					id:     []byte("1"),
+					id:     []byte("01"),
 					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
 				},
 				{
-					id:     []byte("2"),
+					id:     []byte("02"),
 					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
 				},
 			},
@@ -4375,15 +4376,15 @@ b:alpha
 			groupingID:       mustHash(alphaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("0"),
+					id:     []byte("00"),
 					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
 				},
 				{
-					id:     []byte("1"),
+					id:     []byte("01"),
 					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
 				},
 				{
-					id:     []byte("2"),
+					id:     []byte("02"),
 					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
 				},
 			},
@@ -4406,11 +4407,11 @@ d:beta
 			groupingID:       mustHash(alphaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("0"),
+					id:     []byte("00"),
 					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
 				},
 				{
-					id:     []byte("1"),
+					id:     []byte("01"),
 					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
 				},
 			},
@@ -4421,7 +4422,7 @@ d:beta
 			groupingID:       mustHash(betaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("2"),
+					id:     []byte("02"),
 					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
 				},
 			},
@@ -4450,11 +4451,11 @@ f:alpha
 			groupingID:       mustHash(betaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("2"),
+					id:     []byte("02"),
 					digest: digestToBytes(t, "11111111111111111111111111111111"),
 				},
 				{
-					id:     []byte("4"),
+					id:     []byte("04"),
 					digest: digestToBytes(t, "44444444444444444444444444444444"),
 				},
 			},
@@ -4465,11 +4466,11 @@ f:alpha
 			groupingID:       mustHash(alphaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("0"),
+					id:     []byte("00"),
 					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
 				},
 				{
-					id:     []byte("1"),
+					id:     []byte("01"),
 					digest: digestToBytes(t, "ffffffffffffffffffffffffffffffff"),
 				},
 			},
@@ -4486,7 +4487,7 @@ f:alpha
 			groupingID:       mustHash(betaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("3"),
+					id:     []byte("03"),
 					digest: digestToBytes(t, "22222222222222222222222222222222"),
 				},
 			},
@@ -4508,7 +4509,7 @@ c:beta
 			groupingID:       mustHash(alphaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("0"),
+					id:     []byte("00"),
 					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
 				},
 			},
@@ -4519,7 +4520,7 @@ c:beta
 			groupingID:       mustHash(betaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("1"),
+					id:     []byte("01"),
 					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
 				},
 			},
@@ -4543,7 +4544,7 @@ d:gamma
 			groupingID:       mustHash(betaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("1"),
+					id:     []byte("01"),
 					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
 				},
 			},
@@ -4559,7 +4560,7 @@ d:gamma
 			groupingID:       mustHash(alphaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("0"),
+					id:     []byte("00"),
 					digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
 				},
 			},
@@ -4578,7 +4579,7 @@ d:gamma
 			groupingID:       mustHash(gammaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("2"),
+					id:     []byte("02"),
 					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
 				},
 			},
@@ -4598,7 +4599,7 @@ d:alpha
 			groupingID:       mustHash(alphaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("0"),
+					id:     []byte("00"),
 					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
 				},
 			},
@@ -4618,7 +4619,7 @@ d:alpha
 			groupingID:       mustHash(alphaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("0"),
+					id:     []byte("00"),
 					digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
 				},
 			},
@@ -4640,21 +4641,379 @@ c:alpha
 			groupingID:       mustHash(alphaGrouping),
 			traceIDsAndDigests: []traceIDAndDigest{
 				{
-					id:     []byte("0"),
+					id:     []byte("00"),
 					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
 				},
 				{
-					id:     []byte("1"),
+					id:     []byte("01"),
 					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
 				},
 				{
-					id:     []byte("2"),
+					id:     []byte("02"),
 					digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
 				},
 			},
 		}},
 		Commits: []frontend.Commit{simpleCommits[5], simpleCommits[6]},
 	}})
+	// This test case exercises the disjoint blame range logic and its boundary conditions.
+	// Disjoint blame ranges are an edge case that can happen in the presence of a combination of
+	// flaky and slow tests, or tests that are both slow and flaky.
+	//
+	// The traces in b:alpha and b:beta are the same, except that their order are swapped in order
+	// to exercise all the branches of the disjoint blame range logic. Same for c:alpha and c:beta,
+	// and so on.
+	test("Disjoint blame ranges", `
+b:alpha
+	A---bbbbbb
+	AAAAAA---b
+c:alpha
+	A---cccccc
+	AAAAA---cc
+d:alpha
+	A---dddddd
+	AAAA---ddd
+e:alpha
+	A---eeeeee
+	AAA---eeee
+b:beta
+	AAAAAA---b
+	A---bbbbbb
+c:beta
+	AAAAA---cc
+	A---cccccc
+d:beta
+	AAAA---ddd
+	A---dddddd
+e:beta
+	AAA---eeee
+	A---eeeeee
+`, []BlameEntry{
+		{
+			CommitRange:           "commit02:commit05",
+			TotalUntriagedDigests: 4,
+			AffectedGroupings: []*AffectedGrouping{
+				// Corresponds to b:alpha and c:alpha.
+				//
+				// The traces of both b:alpha and c:alpha have disjoint blame ranges. The blame
+				// ranges of b:alpha's traces (1:4 and 6:9) are separated by one commit, whereas
+				// the blame ranges of c:alpha's traces (1:4 and 5:8) are consecutive.
+				//
+				// Both b:alpha and c:alpha excercise the disjoint blame range logic's "do nothing"
+				// branch, because in both cases the second trace's blame range is more recent than
+				// that of the first trace, and can therefore be ignored.
+				{
+					Grouping:         alphaGrouping,
+					UntriagedDigests: 2,
+					SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+					groupingID:       mustHash(alphaGrouping),
+					traceIDsAndDigests: []traceIDAndDigest{
+						{
+							id:     []byte("00"),
+							digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+						},
+						{
+							id:     []byte("01"),
+							digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+						},
+						{
+							id:     []byte("02"),
+							digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+						},
+						{
+							id:     []byte("03"),
+							digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+						},
+					},
+				},
+				// Corresponds to b:beta and c:beta.
+				//
+				// These are the same as b:alpha and c:alpha, except that the trace order is
+				// swapped. Both exercise the disjoint blame rage logic's "update" branch, because
+				// in both cases the second trace's blame range is older than that of the first
+				// trace, and thus takes precedence, as that range is where the offending commit
+				// likely lies.
+				{
+					Grouping:         betaGrouping,
+					UntriagedDigests: 2,
+					SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+					groupingID:       mustHash(betaGrouping),
+					traceIDsAndDigests: []traceIDAndDigest{
+						{
+							id:     []byte("08"),
+							digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+						},
+						{
+							id:     []byte("09"),
+							digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+						},
+						{
+							id:     []byte("10"),
+							digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+						},
+						{
+							id:     []byte("11"),
+							digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+						},
+					},
+				},
+			},
+			Commits: []frontend.Commit{simpleCommits[1], simpleCommits[2], simpleCommits[3], simpleCommits[4]},
+		},
+		{
+			CommitRange:           "commit04:commit05",
+			TotalUntriagedDigests: 2,
+			AffectedGroupings: []*AffectedGrouping{
+				// Corresponds to e:alpha, which has two traces with blame ranges overlapping by
+				// two commits. It does not exercise the disjoint blame range logic.
+				{
+					Grouping:         alphaGrouping,
+					UntriagedDigests: 1,
+					SampleDigest:     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+					groupingID:       mustHash(alphaGrouping),
+					traceIDsAndDigests: []traceIDAndDigest{
+						{
+							id:     []byte("06"),
+							digest: digestToBytes(t, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"),
+						},
+						{
+							id:     []byte("07"),
+							digest: digestToBytes(t, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"),
+						},
+					},
+				},
+				// Corresponds to e:beta, which is the same as e:alpha except that the trace order
+				// is swapped, and exercises the same logic as e:alpha.
+				{
+					Grouping:         betaGrouping,
+					UntriagedDigests: 1,
+					SampleDigest:     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+					groupingID:       mustHash(betaGrouping),
+					traceIDsAndDigests: []traceIDAndDigest{
+						{
+							id:     []byte("14"),
+							digest: digestToBytes(t, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"),
+						},
+						{
+							id:     []byte("15"),
+							digest: digestToBytes(t, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"),
+						},
+					},
+				},
+			},
+			Commits: []frontend.Commit{simpleCommits[3], simpleCommits[4]},
+		},
+		{
+			CommitRange:           "commit05",
+			TotalUntriagedDigests: 2,
+			AffectedGroupings: []*AffectedGrouping{
+				// Corresponds to d:alpha, which has traces with blame ranges overlapping by one
+				// commit. It does not exercise the disjoint blame range logic.
+				{
+					Grouping:         alphaGrouping,
+					UntriagedDigests: 1,
+					SampleDigest:     "dddddddddddddddddddddddddddddddd",
+					groupingID:       mustHash(alphaGrouping),
+					traceIDsAndDigests: []traceIDAndDigest{
+						{
+							id:     []byte("04"),
+							digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+						},
+						{
+							id:     []byte("05"),
+							digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+						},
+					},
+				},
+				// Corresponds to d:beta, which is the same as d:alpha except that the trace order
+				// is swap, and exercises the same logic as d:alpha.
+				{
+					Grouping:         betaGrouping,
+					UntriagedDigests: 1,
+					SampleDigest:     "dddddddddddddddddddddddddddddddd",
+					groupingID:       mustHash(betaGrouping),
+					traceIDsAndDigests: []traceIDAndDigest{
+						{
+							id:     []byte("12"),
+							digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+						},
+						{
+							id:     []byte("13"),
+							digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+						},
+					},
+				},
+			},
+			Commits: []frontend.Commit{simpleCommits[4]},
+		},
+	})
+	// Analogous to the above test case, except that some traces are new (i.e. earlier commits have
+	// no data).
+	test("Disjoint blame ranges, with new traces", `
+b:alpha
+	---bbbbbbb
+	AAAAA---bb
+c:alpha
+	---ccccccc
+	AAAA---ccc
+d:alpha
+	---ddddddd
+	AAA---dddd
+e:alpha
+	---eeeeeee
+	AA---eeeee
+b:beta
+	AAAAA---bb
+	---bbbbbbb
+c:beta
+	AAAA---ccc
+	---ccccccc
+d:beta
+	AAA---dddd
+	---ddddddd
+e:beta
+	AA---eeeee
+	---eeeeeee
+`, []BlameEntry{
+		{
+			CommitRange:           "commit04",
+			TotalUntriagedDigests: 6,
+			AffectedGroupings: []*AffectedGrouping{
+				// Corresponds to b:alpha, c:alpha and d:alpha.
+				//
+				// The traces of both b:alpha and c:alpha have disjoint blame ranges. The blame
+				// ranges of b:alpha's traces (0:3 and 5:8) are separated by one commit, whereas
+				// the blame ranges of c:alpha's traces (0:3 and 4:7) are consecutive.
+				//
+				// Both b:alpha and c:alpha excercise the disjoint blame range logic's "do nothing"
+				// branch, because in both cases the second trace's blame range is more recent than
+				// that of the first trace, and can therefore be ignored.
+				//
+				// d:alpha has traces that overlap by one commit. It does not exercise the disjoint
+				// blame range logic.
+				{
+					Grouping:         alphaGrouping,
+					UntriagedDigests: 3,
+					SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+					groupingID:       mustHash(alphaGrouping),
+					traceIDsAndDigests: []traceIDAndDigest{
+						{
+							id:     []byte("00"),
+							digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+						},
+						{
+							id:     []byte("01"),
+							digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+						},
+						{
+							id:     []byte("02"),
+							digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+						},
+						{
+							id:     []byte("03"),
+							digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+						},
+						{
+							id:     []byte("04"),
+							digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+						},
+						{
+							id:     []byte("05"),
+							digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+						},
+					},
+				},
+				// Corresponds to b:beta, c:beta and d:beta.
+				//
+				// These are the same as b:alpha, c:alpha and d:alpha, except that the trace order
+				// is swapped.
+				//
+				// Both b:beta and c:beta exercise the disjoint blame rage logic's "update" branch,
+				// because in both cases the second trace's blame range is older than that of the
+				// first trace, and thus takes precedence, as that range is where the offending
+				// commit likely lies.
+				//
+				// d:beta has traces that overlap by one commit. It does not exercise the disjoint
+				// blame range logic.
+				{
+					Grouping:         betaGrouping,
+					UntriagedDigests: 3,
+					SampleDigest:     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+					groupingID:       mustHash(betaGrouping),
+					traceIDsAndDigests: []traceIDAndDigest{
+						{
+							id:     []byte("08"),
+							digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+						},
+						{
+							id:     []byte("09"),
+							digest: digestToBytes(t, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+						},
+						{
+							id:     []byte("10"),
+							digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+						},
+						{
+							id:     []byte("11"),
+							digest: digestToBytes(t, "cccccccccccccccccccccccccccccccc"),
+						},
+						{
+							id:     []byte("12"),
+							digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+						},
+						{
+							id:     []byte("13"),
+							digest: digestToBytes(t, "dddddddddddddddddddddddddddddddd"),
+						},
+					},
+				},
+			},
+			Commits: []frontend.Commit{simpleCommits[3]},
+		},
+		{
+			CommitRange:           "commit03:commit04",
+			TotalUntriagedDigests: 2,
+			AffectedGroupings: []*AffectedGrouping{
+				// Corresponds to e:alpha, which has two traces with blame ranges overlapping by
+				// two commits. It does not exercise the disjoint blame range logic.
+				{
+					Grouping:         alphaGrouping,
+					UntriagedDigests: 1,
+					SampleDigest:     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+					groupingID:       mustHash(alphaGrouping),
+					traceIDsAndDigests: []traceIDAndDigest{
+						{
+							id:     []byte("06"),
+							digest: digestToBytes(t, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"),
+						},
+						{
+							id:     []byte("07"),
+							digest: digestToBytes(t, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"),
+						},
+					},
+				},
+				// Corresponds to e:beta, which is the same as e:alpha except that the trace order
+				// is swapped, and exercises the same logic as e:alpha.
+				{
+					Grouping:         betaGrouping,
+					UntriagedDigests: 1,
+					SampleDigest:     "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+					groupingID:       mustHash(betaGrouping),
+					traceIDsAndDigests: []traceIDAndDigest{
+						{
+							id:     []byte("14"),
+							digest: digestToBytes(t, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"),
+						},
+						{
+							id:     []byte("15"),
+							digest: digestToBytes(t, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"),
+						},
+					},
+				},
+			},
+			Commits: []frontend.Commit{simpleCommits[2], simpleCommits[3]},
+		},
+	})
 	// This might happen if a digest was triaged after we made our initial query.
 	// If so, it shouldn't show up in any BlameEntries
 	test("trace used to produce untriaged digests, but was fixed at commit08", `
@@ -4716,7 +5075,9 @@ func fromDrawing(drawing string, groupings map[schema.MD5Hash]paramtools.Params)
 				traceSize = len(line)
 			}
 			traceIDAndData := traceIDAndData{
-				id:   []byte(strconv.Itoa(currentTraceID)),
+				// We pad trace IDs with zeros to guarantee that any code under test that sorts
+				// trace IDs lexicographically will produce the expected trace order.
+				id:   []byte(fmt.Sprintf("%02d", currentTraceID)),
 				data: make(traceData, traceSize),
 			}
 			currentTraceID++

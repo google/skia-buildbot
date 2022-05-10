@@ -2819,6 +2819,7 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 			latestUntriagedDigestFound := false
 			latestUntriagedDigestEarliestOccurrenceStartIdx := -1
 			latestUntriagedDigestEarliestOccurrenceEndIdx := len(commits)
+
 			for i := len(tr.data) - 1; i >= 0; i-- {
 				digest := tr.data[i]
 				if !latestUntriagedDigestFound {
@@ -2840,11 +2841,37 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 				}
 			}
 
-			if blameStartIdx < latestUntriagedDigestEarliestOccurrenceStartIdx-1 {
-				blameStartIdx = latestUntriagedDigestEarliestOccurrenceStartIdx - 1
-			}
-			if blameEndIdx > latestUntriagedDigestEarliestOccurrenceEndIdx {
-				blameEndIdx = latestUntriagedDigestEarliestOccurrenceEndIdx
+			// If the current blame range, and the range at which the latest untriaged digest first
+			// occurred are disjoint, use the earliest of the two as the new blame range.
+			//
+			// Example traces:
+			//
+			//      AA--cccccc
+			//      BABABB--cc
+			//
+			// In this example, the second trace is very flaky, and the untriaged digest is not
+			// produced until several commits after the offending commit landed. The resulting
+			// ranges are 2:4 and 6:8.
+			//
+			// We use the earliest range as the new blame range (2:4 in the above example) as that
+			// is where the offending commit is likely found.
+			disjointRanges := blameEndIdx < latestUntriagedDigestEarliestOccurrenceStartIdx ||
+				latestUntriagedDigestEarliestOccurrenceEndIdx < blameStartIdx+1
+			if disjointRanges {
+				if latestUntriagedDigestEarliestOccurrenceEndIdx < blameStartIdx+1 {
+					// Update blame range to equal the earliest of the two ranges.
+					blameStartIdx = latestUntriagedDigestEarliestOccurrenceStartIdx - 1
+					blameEndIdx = latestUntriagedDigestEarliestOccurrenceEndIdx
+				} else {
+					// Nothing to do, as the current blame range is the earliest of the two ranges.
+				}
+			} else {
+				if blameStartIdx < latestUntriagedDigestEarliestOccurrenceStartIdx-1 {
+					blameStartIdx = latestUntriagedDigestEarliestOccurrenceStartIdx - 1
+				}
+				if blameEndIdx > latestUntriagedDigestEarliestOccurrenceEndIdx {
+					blameEndIdx = latestUntriagedDigestEarliestOccurrenceEndIdx
+				}
 			}
 		}
 
