@@ -47,8 +47,8 @@ RUN mkdir -p ${CIPD_ROOT}
 ENV CIPD_CACHE_DIR="/tmp/.cipd_cache"
 RUN cipd init ${CIPD_ROOT} -force \
     && cipd install skia/bots/bazelisk version:0 -root /cipd \
-    && cipd install infra/3pp/tools/git/linux-amd64 version:2.29.2.chromium.6 -root /cipd \
-    && cipd install skia/bots/go version:14 -root /cipd
+    && cipd install infra/3pp/tools/git/linux-amd64 version:2.36.0-rc2.chromium.8 -root /cipd \
+    && cipd install skia/bots/go version:16 -root /cipd
 
 # The final stage brings us back to the base image with the installed CIPD packages.
 FROM base AS final
