@@ -21,6 +21,7 @@ vars = {
   'format_repo': 'https://my-host/format-repo.git',
   'format_revision': 'format-revision',
   'dict_revision': 'dict-revision',
+  'expr_prefix': 'expr/',
 }
 
 deps = {
@@ -44,7 +45,7 @@ deps = {
     ],
     'dep_type': 'cipd',
   },
-  'expr/'+'dep': 'https://my-host/expr-dep.git@version',
+  Var('expr_prefix')+'dep': 'https://my-host/expr-dep.git@version',
 }
 `
 

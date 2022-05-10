@@ -173,16 +173,26 @@ func exprToString(expr ast.Expr) (string, *ast.Pos, error) {
 }
 
 // resolveDepsEntries resolves an ast.Expr to []*DepsEntry and []*ast.Pos.
-func resolveDepsEntries(vars map[string]ast.Expr, path string, expr ast.Expr) ([]*DepsEntry, []*ast.Pos, error) {
+func resolveDepsEntries(vars map[string]ast.Expr, key, value ast.Expr) ([]*DepsEntry, []*ast.Pos, error) {
 	// First, resolve calls to Var().
-	expr, err := resolveVars(vars, expr)
+	keyExpr, err := resolveVars(vars, key)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	valueExpr, err := resolveVars(vars, value)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+
+	// Resolve the key to a string, the path to the dep.
+	path, _, err := exprToString(keyExpr)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
 
 	// Entries may take one of a few formats.
-	if expr.Type().Name == ast.DictType.Name {
-		dict := expr.(*ast.Dict)
+	if valueExpr.Type().Name == ast.DictType.Name {
+		dict := valueExpr.(*ast.Dict)
 		// This entry has more detail, either a CIPD package list or a
 		// git dep with a conditional.
 		found := false
@@ -195,7 +205,7 @@ func resolveDepsEntries(vars map[string]ast.Expr, path string, expr ast.Expr) ([
 			if strKey == "url" {
 				// This is a git dependency; we'll decode the
 				// URL below.
-				expr = val
+				valueExpr = val
 				found = true
 			} else if strKey == "packages" {
 				// This is a CIPD entry, which represents at
@@ -244,12 +254,12 @@ func resolveDepsEntries(vars map[string]ast.Expr, path string, expr ast.Expr) ([
 		}
 	}
 	// This is a git dependency.
-	t := expr.Type().Name
+	t := valueExpr.Type().Name
 	if t == ast.StrType.Name || t == ast.BinOpType.Name {
 		// This could be either a single string, in "<repo>@<revision>"
 		// format, or some composition of multiple strings and calls to
 		// Var(). Use exprToString() to resolve to a single string.
-		str, pos, err := exprToString(expr)
+		str, pos, err := exprToString(valueExpr)
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
@@ -468,25 +478,21 @@ func parseDeps(depsContent string) (DepsEntries, map[string]*ast.Pos, error) {
 			if len(d.Keys) != len(d.Values) {
 				return nil, nil, skerr.Fmt("Found different numbers of keys and values for %q", name.Id)
 			}
-			keys := make([]string, 0, len(d.Keys))
+			keys := make([]ast.Expr, 0, len(d.Keys))
 			for _, key := range d.Keys {
-				if key.Type().Name == ast.StrType.Name {
-					keys = append(keys, string(key.(*ast.Str).S))
-				} else if key.Type().Name == ast.BinOpType.Name {
-					resolved, _, err := exprToString(key)
-					if err != nil {
-						return nil, nil, skerr.Wrapf(err, "failed to resolve key expr %q", key)
-					}
-					keys = append(keys, resolved)
-				} else {
-					return nil, nil, skerr.Fmt("Invalid key type for %q: %s", name.Id, key.Type().Name)
-				}
+				keys = append(keys, key)
 			}
 			if name.Id == "vars" {
 				// Store all vars to be used later.
 				for idx, val := range d.Values {
+					// Resolve the key to a string value. This will fail if it's
+					// anything complex, eg. a function call.
 					key := keys[idx]
-					vars[key] = val
+					keyStr, _, err := exprToString(key)
+					if err != nil {
+						return nil, nil, skerr.Wrapf(err, "failed to resolve key expression for vars %q", key)
+					}
+					vars[keyStr] = val
 				}
 			} else if name.Id == "deps" {
 				// Resolve the deps entries using the vars dict.
