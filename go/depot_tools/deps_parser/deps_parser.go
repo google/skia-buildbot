@@ -52,6 +52,16 @@ const (
 var (
 	// We treat "{var_name}" in strings equivalently to a call to Var().
 	varSubstRegex = regexp.MustCompile(`{?{(\w+?)}}?`)
+
+	// These are built-in variables provided by gclient and usable in conditions
+	// and Vars() in DEPS files.
+	// Note: gclient also provides a number of "checkout_*" variables based on
+	// the platform; we don't attempt to provide those here since they are
+	// typically only used in conditionals, which are ignored by this package.
+	builtinVars = map[string]string{
+		"host_os":  "linux",
+		"host_cpu": "x64",
+	}
 )
 
 // DepsEntry represents a single entry in a DEPS file. Note that the 'deps' dict
@@ -453,6 +463,11 @@ func parseDeps(depsContent string) (DepsEntries, map[string]*ast.Pos, error) {
 	rvEntries := map[string]*DepsEntry{}
 	rvPos := map[string]*ast.Pos{}
 	vars := map[string]ast.Expr{}
+	for k, v := range builtinVars {
+		vars[k] = &ast.Str{
+			S: py.String(v),
+		}
+	}
 	for _, stmt := range parsed.(*ast.Module).Body {
 		// We only care about assignment statements.
 		if stmt.Type().Name != ast.AssignType.Name {

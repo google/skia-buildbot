@@ -42,6 +42,10 @@ deps = {
         'package': 'package2/${{platform}}',
         'version': 'version2',
       },
+      {
+        'package': 'package3/' + Var('host_os') + '-' + Var('host_cpu'),
+        'version': 'pkg3-version',
+      }
     ],
     'dep_type': 'cipd',
   },
@@ -86,6 +90,11 @@ func TestParseDeps(t *testing.T) {
 		"package2": {
 			Id:      "package2",
 			Version: "version2",
+			Path:    "cipd/deps",
+		},
+		"package3/linux-x64": {
+			Id:      "package3/linux-x64",
+			Version: "pkg3-version",
 			Path:    "cipd/deps",
 		},
 		"my-host/expr-dep": {
