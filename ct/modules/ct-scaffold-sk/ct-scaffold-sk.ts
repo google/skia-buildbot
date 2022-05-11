@@ -106,10 +106,10 @@ export class CtScaffoldSk extends ElementSk {
       <a href="/history/" tab-index=0>
         <history-icon-sk></history-icon-sk><span>Runs History</span>
       </a>
-      <a href="https://github.com/google/skia-buildbot/tree/master/ct" tab-index=0>
+      <a href="https://github.com/google/skia-buildbot/tree/main/ct" tab-index=0>
         <folder-icon-sk></folder-icon-sk><span>Code</span>
       </a>
-      <a href="https://www.chromium.org/developers/cluster-telemetry" tab-index=0>
+      <a href="https://sites.google.com/corp/google.com/cluster-telemetry/home" tab-index=0>
         <help-icon-sk></help-icon-sk><span>Docs</span>
       </a>
     </nav>
