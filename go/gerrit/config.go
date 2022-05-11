@@ -222,6 +222,34 @@ var (
 		DryRunUsesTryjobResults: true,
 	}
 
+	// ConfigChromiumNoCR is the configuration for Chromium Gerrit hosts
+	// where the service account is not allowed to approve its own changes.
+	ConfigChromiumNoCR = &Config{
+		SelfApproveLabels: map[string]int{},
+		HasCq:             true,
+		SetCqLabels: map[string]int{
+			LabelCommitQueue: LabelCommitQueueSubmit,
+		},
+		SetDryRunLabels: map[string]int{
+			LabelCommitQueue: LabelCommitQueueDryRun,
+		},
+		NoCqLabels: map[string]int{
+			LabelCommitQueue: LabelCommitQueueNone,
+		},
+		CqActiveLabels: map[string]int{
+			LabelCommitQueue: LabelCommitQueueSubmit,
+		},
+		CqSuccessLabels:           map[string]int{},
+		CqFailureLabels:           map[string]int{},
+		CqLabelsUnsetOnCompletion: true,
+		DryRunActiveLabels: map[string]int{
+			LabelCommitQueue: LabelCommitQueueDryRun,
+		},
+		DryRunSuccessLabels:     map[string]int{},
+		DryRunFailureLabels:     map[string]int{},
+		DryRunUsesTryjobResults: true,
+	}
+
 	// ConfigChromiumNoCQ is the configuration for Chromium Gerrit hosts which
 	// have no commit queue.
 	ConfigChromiumNoCQ = &Config{

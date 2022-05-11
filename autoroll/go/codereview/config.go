@@ -17,6 +17,7 @@ var (
 		config.GerritConfig_CHROMIUM_NO_CQ:            gerrit.ConfigChromiumNoCQ,
 		config.GerritConfig_CHROMIUM_BOT_COMMIT:       gerrit.ConfigChromiumBotCommit,
 		config.GerritConfig_CHROMIUM_BOT_COMMIT_NO_CQ: gerrit.ConfigChromiumBotCommitNoCQ,
+		config.GerritConfig_CHROMIUM_NO_CR:            gerrit.ConfigChromiumNoCR,
 		config.GerritConfig_LIBASSISTANT:              gerrit.ConfigLibAssistant,
 	}
 )

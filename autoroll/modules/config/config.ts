@@ -33,6 +33,7 @@ export enum GerritConfig_Config {
   CHROMIUM_BOT_COMMIT_NO_CQ = "CHROMIUM_BOT_COMMIT_NO_CQ",
   ANDROID_NO_CR = "ANDROID_NO_CR",
   ANDROID_NO_CR_NO_PR = "ANDROID_NO_CR_NO_PR",
+  CHROMIUM_NO_CR = "CHROMIUM_NO_CR",
 }
 
 export enum NotifierConfig_LogLevel {

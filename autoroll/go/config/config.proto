@@ -161,6 +161,7 @@ message GerritConfig {
         CHROMIUM_BOT_COMMIT_NO_CQ = 6;
         ANDROID_NO_CR = 7;
         ANDROID_NO_CR_NO_PR = 8;
+        CHROMIUM_NO_CR = 9;
     }
     // config indicates the mode of operation used by the Gerrit host, which
     // informs the roller of, for example, which labels to set. See the
