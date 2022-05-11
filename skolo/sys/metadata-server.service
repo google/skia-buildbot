@@ -2,13 +2,27 @@
 Description=Serve metadata to machines in the lab.
 Requires=network-online.target
 After=network-online.target
+# Prevent systemd from giving up restarting the service if it keeps crashing. This is useful e.g.
+# when power is restored after a power outage, but internet connectivity hasn't been restored yet,
+# causing services that depend on external APIs to repeatedly crash until access to the internet is
+# restored.
+#
+# These settings tell systemd to restart the crashing service every 10 seconds (see RestartSec=
+# below), and to stop trying to restart it if it crashes more than 1000 times (StartLimitBurst=)
+# within an interval of 1 second (StartLimitIntervalSec=), effectively never giving up.
+#
+# Docs:
+# - https://www.freedesktop.org/software/systemd/man/systemd.unit.html
+# - https://www.freedesktop.org/software/systemd/man/systemd.service.html
+StartLimitIntervalSec=1
+StartLimitBurst=1000
 
 [Service]
 ExecStart=/usr/local/bin/metadata-server \
   --port=:80 \
   --prom_port=:20003
-
 Restart=always
+RestartSec=10
 User=chrome-bot
 Group=chrome-bot
 AmbientCapabilities=CAP_NET_BIND_SERVICE

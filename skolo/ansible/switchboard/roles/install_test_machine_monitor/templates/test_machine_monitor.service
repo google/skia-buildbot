@@ -2,6 +2,20 @@
 Description=test_machine_monitor
 After=syslog.target network.target network-online.target
 Wants=network-online.target
+# Prevent systemd from giving up restarting the service if it keeps crashing. This is useful e.g.
+# when power is restored after a power outage, but internet connectivity hasn't been restored yet,
+# causing services that depend on external APIs to repeatedly crash until access to the internet is
+# restored.
+#
+# These settings tell systemd to restart the crashing service every 10 seconds (see RestartSec=
+# below), and to stop trying to restart it if it crashes more than 1000 times (StartLimitBurst=)
+# within an interval of 1 second (StartLimitIntervalSec=), effectively never giving up.
+#
+# Docs:
+# - https://www.freedesktop.org/software/systemd/man/systemd.unit.html
+# - https://www.freedesktop.org/software/systemd/man/systemd.service.html
+StartLimitIntervalSec=1
+StartLimitBurst=1000
 
 [Service]
 Type=simple
@@ -27,6 +41,7 @@ ExecStart=/usr/local/bin/test_machine_monitor \
    {% endif %}
    --username=chrome-bot
 Restart=always
+RestartSec=10
 
 [Install]
 {% if install_test_machine_monitor__linux_run_under_desktop is true %}
