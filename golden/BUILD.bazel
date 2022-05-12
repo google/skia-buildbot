@@ -1,5 +1,6 @@
 load("//golden/pages:all_gold_pages.bzl", "ALL_GOLD_PAGES")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
+load(":gold_launcher.bzl", "gold_launcher")
 
 skia_app_container(
     name = "gold_frontend_container",
@@ -102,102 +103,43 @@ skia_app_container(
     repository = "skia-public/gold-periodictasks",
 )
 
-gold_frontend_local_script = """
-if [[ -z "$$1" ]]; then
-    echo "Usage: bazel run //golden:gold_frontend_local -- /path/to/client_secret.json"
-    exit 1
-fi
-
-# Compute the path to the directory with web assets by extracting the parent directory of an
-# arbitrary page. This works because all web assets are generated on the same directory (with the
-# exception of the favicon, which we will handle later).
-byblame_page_assets=($(rootpaths //golden/pages:byblame_dev)) # Expands to byblame.{html,js,css}.
-web_assets_dir=$$(realpath $$(dirname $${byblame_page_assets[0]}))
-
-# Copy the favicon into the web assets directory.
-cp $(rootpath //golden/static:favicon.ico) $$web_assets_dir
-
-# Based on //golden/k8s-instances/skia-infra/skia-infra-frontend.json5.
-cat > config.json5 <<EOF
-{
-  authorized_users: ["google.com"],
-  client_secret_file: "$$1",
-  frontend: {
-    baseRepoURL: "<inherited from git_repo_url>",
-    defaultCorpus: "infra",
-    title: "Skia Infra Gold",
-  },
-  negatives_max_age: "4320h", // 180 days
-  positives_max_age: "720h", // 30 days
-  prom_port: ":20000",
-  ready_port: ":8000",
-  resources_path: "$$web_assets_dir",
-}
-EOF
-
-# Based on //golden/k8s-instances/skia-infra/skia-infra.json5.
-cat > common_instance_config.json5 <<EOF
-{
-  local: true,
-  code_review_systems: [
-    {
-      id: "gerrit",
-      flavor: "gerrit",
-      gerrit_url: "https://skia-review.googlesource.com",
-      url_template: "https://skia-review.googlesource.com/%s"
-    },
-  ],
-  gcs_bucket: "skia-gold-skia-infra",
-  git_repo_branch: "main",
-  git_repo_url: "https://skia.googlesource.com/buildbot.git",
-  pubsub_project_id: "skia-public",
-  site_url: "https://skia-infra-gold.skia.org",
-  sql_connection: "root@localhost:26235",
-  sql_database: "skiainfra",
-  known_hashes_gcs_path: "skia-gold-skia-infra/hash_files/gold-skia-infra-hashes.txt",
-  window_size: 200,
-}
-EOF
-
-# Print out all commands from now on for debugging purposes.
-set -ex
-
-# Switch to te skia-public GCP project.
-gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public
-gcloud config set project skia-public
-
-# Port-forward the production CockroachDB instance to port 26235. The default CockroachDB port is
-# 26234, so this prevents the forwarded port from clashing with a local running CockroachDB.
+# Runs a local Gold instance that mirrors http://gold.skia.org. It might have write access to the
+# production CockroachDB database, so please exercise caution.
 #
-# This command will be killed on Ctrl+C.
-kubectl port-forward gold-cockroachdb-0 26235:26234 &
-sleep 5
-
-# Ignore any local running emulators.
-FIRESTORE_EMULATOR_HOST=
-BIGTABLE_EMULATOR_HOST=
-
-# Launch the gold_frontend binary.
-$(rootpath //golden/cmd/gold_frontend:gold_frontend) \
-    --config=config.json5 \
-    --common_instance_config=common_instance_config.json5
-"""
-
-genrule(
-    name = "gold_frontend_local_script",
-    srcs = [
-        "//golden/cmd/gold_frontend",
-        "//golden/static:favicon.ico",
-    ] + ["//golden/pages:%s_dev" % page for page in ALL_GOLD_PAGES],
-    outs = ["gold_frontend_local_script.sh"],
-    cmd = "echo '%s' > $@" % gold_frontend_local_script,
+# Usage: bazel run //golden:skia_local -- path/to/client_secret.json
+gold_launcher(
+    name = "skia_local",
+    default_corpus = "gm",
+    gcs_bucket = "skia-infra-gm",
+    git_repo_url = "https://skia.googlesource.com/skia.git",
+    known_hashes_gcs_path = "skia-infra-gm/hash_files/gold-prod-hashes.txt",
+    materialized_view_corpora = [
+        "canvaskit",
+        "colorImage",
+        "gm",
+        "image",
+        "pathkit",
+        "skp",
+        "svg",
+    ],
+    site_url = "https://gold.skia.org",
+    sql_database = "skia",
+    title = "Skia Gold",
+    window_size = 256,
 )
 
-sh_binary(
-    name = "gold_frontend_local",
-    srcs = [":gold_frontend_local_script"],
-    data = [
-        "//golden/cmd/gold_frontend",
-        "//golden/static:favicon.ico",
-    ] + ["//golden/pages:%s_dev" % page for page in ALL_GOLD_PAGES],
+# Runs a local Gold instance that mirrors http://skia-infra-gold.skia.org. It might have write
+# access to the production CockroachDB database, so please exercise caution.
+#
+# Usage: bazel run //golden:skia_infra_local -- path/to/client_secret.json
+gold_launcher(
+    name = "skia_infra_local",
+    default_corpus = "infra",
+    gcs_bucket = "skia-gold-skia-infra",
+    git_repo_url = "https://skia.googlesource.com/buildbot.git",
+    known_hashes_gcs_path = "skia-gold-skia-infra/hash_files/gold-skia-infra-hashes.txt",
+    site_url = "https://skia-infra-gold.skia.org",
+    sql_database = "skiainfra",
+    title = "Skia Infra Gold",
+    window_size = 200,
 )
