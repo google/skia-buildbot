@@ -67,11 +67,31 @@ The Perf ingester will attempt to ingest all files below /HH/ that end in
 You can validate your files conform to the expected schema by installing
 `perf-tool`:
 
-    go get go.skia.org/infra/perf/go/perf-tool
+    go install go.skia.org/infra/perf/go/perf-tool@latest
 
 And then use it to validate an ingestion file:
 
     perf-tool ingest validate --in=my-ingestion-file.json
+
+If the format is invalid the tool will print out validation errors, for example
+
+    $ perf-tool ingest validate --in=$HOME/invalid.json
+    0 - 0: (root): results is required
+
+    Error: Validation Failed: schema violation
+
+If the format is valid then all the found trace ids and their values
+will be printed out, for example:
+
+    $ perf-tool ingest validate --in=$HOME/valid.json
+    hash: def820637c3674a2bcecd6992a207fa3b9bed737
+    ,arch=arm64,radius=10,test=drawCircle,units=ms, = 1.4800247
+    ,arch=arm64,radius=50,test=drawCircle,units=ms, = 261.58847
+    ,arch=arm64,radius=90,test=drawCircle,units=ms, = 377.3585
+
+You can run `perf-tool` over
+[`./go/ingest/parser/testdata/version_1/success.json`](//perf/go/ingest/parser/testdata/version_1/success.json)
+to see how it converts all the keys and values in that file into trace identifiers.
 
 # Notes
 
