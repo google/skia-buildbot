@@ -737,3 +737,11 @@ interface PreUploadCIPDPackageConfigJSON {
   path?: string;
   version?: string;
 }
+
+export interface Configs {
+  config?: Config[];
+}
+
+interface ConfigsJSON {
+  config?: ConfigJSON[];
+}

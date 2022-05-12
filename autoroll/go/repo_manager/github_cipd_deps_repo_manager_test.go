@@ -266,7 +266,7 @@ func TestGithubCipdDEPSRepoManagerCreateNewRoll(t *testing.T) {
 func TestGithubCipdDEPSRepoManagerPreUploadSteps(t *testing.T) {
 	unittest.LargeTest(t)
 
-	// Create a dummy pre-upload step.
+	// Create a fake pre-upload step.
 	ran := false
 	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
 		ran = true

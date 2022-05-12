@@ -66,7 +66,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 			// Don't run "git push".
 			return nil
 		} else if util.In(fuchsiaSDKAndroidGenScript, cmd.Args) {
-			// Write a dummy file to imitate the SDK generation.
+			// Write a fake file to imitate the SDK generation.
 			sdkPath := cmd.Args[len(cmd.Args)-1]
 			testutils.WriteFile(t, filepath.Join(sdkPath, "bogus"), "bogus")
 			return nil
@@ -111,7 +111,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 	mockParent.MockReadFile(ctx, fuchsiaSDKAndroidVersionFile, parentHead)
 	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
 
-	// Create a dummy commit-msg hook.
+	// Create a fake commit-msg hook.
 	changeId := "123"
 	respBody := []byte(fmt.Sprintf(`#!/bin/sh
 git interpret-trailers --trailer "Change-Id: %s" >> $1

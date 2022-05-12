@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "autoroll-meta-config-generator_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/autoroll/go/autoroll-meta-config-generator",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//autoroll/go/config",
+        "//autoroll/go/config_vars",
+        "//go/chrome_branch",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "@org_golang_google_protobuf//encoding/prototext",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_binary(
+    name = "autoroll-meta-config-generator",
+    embed = [":autoroll-meta-config-generator_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "autoroll-meta-config-generator_test",
+    srcs = ["main_test.go"],
+    embed = [":autoroll-meta-config-generator_lib"],
+    deps = [
+        "//autoroll/go/config",
+        "//autoroll/go/config_vars",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_google_protobuf//encoding/prototext",
+    ],
+)

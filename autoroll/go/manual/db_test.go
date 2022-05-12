@@ -18,7 +18,7 @@ const (
 	rollerName = "my-roller"
 )
 
-// req returns a dummy ManualRollRequest.
+// req returns a fake ManualRollRequest.
 func req() *ManualRollRequest {
 	return &ManualRollRequest{
 		ExternalChangeId:  "xyz123",

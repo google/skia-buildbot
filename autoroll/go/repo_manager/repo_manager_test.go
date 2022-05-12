@@ -12,7 +12,7 @@ import (
 
 func setupRegistry(t *testing.T) *config_vars.Registry {
 	cbc := &mocks.Client{}
-	cbc.On("Get", mock.Anything).Return(config_vars.DummyVars().Branches.Chromium, nil)
+	cbc.On("Get", mock.Anything).Return(config_vars.FakeVars().Branches.Chromium, config_vars.FakeVars().Branches.ActiveMilestones, nil)
 	reg, err := config_vars.NewRegistry(context.Background(), cbc)
 	require.NoError(t, err)
 	return reg

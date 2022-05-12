@@ -18,7 +18,7 @@ func TestVarsValidate(t *testing.T) {
 	unittest.SmallTest(t)
 
 	test := func(fn func(*Vars), expectErr string) {
-		v := DummyVars()
+		v := FakeVars()
 		fn(v)
 		err := v.Validate()
 		if expectErr == "" {
@@ -47,7 +47,7 @@ func TestBranchesValidate(t *testing.T) {
 	unittest.SmallTest(t)
 
 	test := func(fn func(*Branches), expectErr string) {
-		b := DummyVars().Branches
+		b := FakeVars().Branches
 		fn(b)
 		err := b.Validate()
 		if expectErr == "" {
@@ -96,7 +96,7 @@ func TestTemplate(t *testing.T) {
 
 	// Update() and String().
 	require.Equal(t, "", tmpl.String())
-	v := DummyVars()
+	v := FakeVars()
 	require.NoError(t, tmpl.Update(v))
 	require.Equal(t, "refs/branch-heads/4044", tmpl.String())
 	v.Branches.Chromium.Beta.Number = 5000
@@ -121,9 +121,9 @@ func TestRegistry(t *testing.T) {
 	unittest.SmallTest(t)
 
 	ctx := context.Background()
-	v := DummyVars()
+	v := FakeVars()
 	cbc := &mocks.Client{}
-	cbc.On("Get", ctx).Return(v.Branches.Chromium, nil)
+	cbc.On("Get", ctx).Return(v.Branches.Chromium, v.Branches.ActiveMilestones, nil)
 	r, err := NewRegistry(ctx, cbc)
 	require.NoError(t, err)
 

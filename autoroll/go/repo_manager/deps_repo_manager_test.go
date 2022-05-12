@@ -166,7 +166,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig
 }
 
 func setupFakeGerrit(t *testing.T, cfg *config.GerritConfig, urlMock *mockhttpclient.URLMock) *gerrit.Gerrit {
-	// Create a dummy commit-msg hook.
+	// Create a fake commit-msg hook.
 	changeId := "123"
 	respBody := []byte(fmt.Sprintf(`#!/bin/sh
 git interpret-trailers --trailer "Change-Id: %s" >> $1
@@ -295,7 +295,7 @@ func TestDEPSRepoManagerCreateNewRollWithPatchRef(t *testing.T) {
 func TestDEPSRepoManagerPreUploadSteps(t *testing.T) {
 	unittest.LargeTest(t)
 
-	// Create a dummy pre-upload step.
+	// Create a fake pre-upload step.
 	ran := false
 	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
 		ran = true

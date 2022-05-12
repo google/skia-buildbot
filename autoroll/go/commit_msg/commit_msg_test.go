@@ -44,26 +44,31 @@ func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
 // fakeRegistry returns a config_vars.Registry instance.
 func fakeRegistry(t *testing.T) *config_vars.Registry {
 	cbc := &mocks.Client{}
-	cbc.On("Get", testutils.AnyContext).Return(&chrome_branch.Branches{
-		Main: &chrome_branch.Branch{
+	mockBranches := []*chrome_branch.Branch{
+		{
 			Milestone: 93,
 			Number:    4577,
 			Ref:       "refs/branch-heads/4577",
 			V8Branch:  "9.3",
 		},
-		Beta: &chrome_branch.Branch{
+		{
 			Milestone: 92,
 			Number:    4515,
 			Ref:       "refs/branch-heads/4515",
 			V8Branch:  "9.2",
 		},
-		Stable: &chrome_branch.Branch{
+		{
 			Milestone: 91,
 			Number:    4472,
 			Ref:       "refs/branch-heads/4472",
 			V8Branch:  "9.1",
 		},
-	}, nil)
+	}
+	cbc.On("Get", testutils.AnyContext).Return(&chrome_branch.Branches{
+		Main:   mockBranches[0],
+		Beta:   mockBranches[1],
+		Stable: mockBranches[2],
+	}, mockBranches, nil)
 	reg, err := config_vars.NewRegistry(context.Background(), cbc)
 	require.NoError(t, err)
 	return reg

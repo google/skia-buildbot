@@ -49,30 +49,36 @@ func (v *Vars) Copy() *Vars {
 	}
 }
 
-// DummyVars returns an instance of Vars with arbitrary contents which may be
+// FakeVars returns an instance of Vars with arbitrary contents which may be
 // used during validation and testing.
-func DummyVars() *Vars {
+func FakeVars() *Vars {
+	activeMilestones := []*chrome_branch.Branch{
+		{
+			Milestone: 82,
+			Number:    0,
+			Ref:       chrome_branch.RefMain,
+			V8Branch:  "8.2",
+		},
+		{
+			Milestone: 81,
+			Number:    4044,
+			Ref:       chrome_branch.ReleaseBranchRef(4044),
+			V8Branch:  "8.1",
+		},
+		{
+			Milestone: 80,
+			Number:    3987,
+			Ref:       chrome_branch.ReleaseBranchRef(4044),
+			V8Branch:  "8.0",
+		},
+	}
 	return &Vars{
 		Branches: &Branches{
+			ActiveMilestones: activeMilestones,
 			Chromium: &chrome_branch.Branches{
-				Main: &chrome_branch.Branch{
-					Milestone: 82,
-					Number:    0,
-					Ref:       chrome_branch.RefMain,
-					V8Branch:  "8.2",
-				},
-				Beta: &chrome_branch.Branch{
-					Milestone: 81,
-					Number:    4044,
-					Ref:       chrome_branch.ReleaseBranchRef(4044),
-					V8Branch:  "8.1",
-				},
-				Stable: &chrome_branch.Branch{
-					Milestone: 80,
-					Number:    3987,
-					Ref:       chrome_branch.ReleaseBranchRef(4044),
-					V8Branch:  "8.0",
-				},
+				Main:   activeMilestones[0],
+				Beta:   activeMilestones[1],
+				Stable: activeMilestones[2],
 			},
 		},
 	}
@@ -80,12 +86,22 @@ func DummyVars() *Vars {
 
 // Branches represents named branches in git repositories.
 type Branches struct {
+	// ActiveMilestones are the active Chromium milestones.
+	ActiveMilestones []*chrome_branch.Branch `json:"active_milestones"`
 	// Chromium release branches.
 	Chromium *chrome_branch.Branches `json:"chromium"`
 }
 
 // Validate returns an error if Branches is not valid.
 func (b *Branches) Validate() error {
+	if b.ActiveMilestones == nil || len(b.ActiveMilestones) == 0 {
+		return skerr.Fmt("ActiveMilestones is required.")
+	}
+	for _, m := range b.ActiveMilestones {
+		if err := m.Validate(); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
 	if b.Chromium == nil {
 		return skerr.Fmt("Chromium is required.")
 	}
@@ -100,12 +116,17 @@ func (b *Branches) Copy() *Branches {
 	if b == nil {
 		return nil
 	}
+	activeMilestones := make([]*chrome_branch.Branch, 0, len(b.ActiveMilestones))
+	for _, m := range b.ActiveMilestones {
+		activeMilestones = append(activeMilestones, m.Copy())
+	}
 	var chromium *chrome_branch.Branches
 	if b.Chromium != nil {
 		chromium = b.Chromium.Copy()
 	}
 	return &Branches{
-		Chromium: chromium,
+		ActiveMilestones: activeMilestones,
+		Chromium:         chromium,
 	}
 }
 
@@ -177,8 +198,8 @@ func (t *Template) validate() error {
 	if t == nil || t.raw == "" || t.tmpl == nil {
 		return skerr.Fmt("Template is missing.")
 	}
-	// Create dummy Vars to test the template.
-	v := DummyVars()
+	// Create fake Vars to test the template.
+	v := FakeVars()
 
 	// Self-check, in case any of the members of Vars change.
 	if err := v.Validate(); err != nil {
@@ -280,13 +301,14 @@ func (r *Registry) updateFrom(v *Vars) error {
 
 // Update all of the Templates managed by this Registry by loading new values.
 func (r *Registry) Update(ctx context.Context) error {
-	chromeBranches, err := r.cbc.Get(ctx)
+	chromeBranches, activeMilestones, err := r.cbc.Get(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 	vars := &Vars{
 		Branches: &Branches{
-			Chromium: chromeBranches,
+			ActiveMilestones: activeMilestones,
+			Chromium:         chromeBranches,
 		},
 	}
 	return skerr.Wrap(r.updateFrom(vars))

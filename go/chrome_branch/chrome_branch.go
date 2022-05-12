@@ -131,41 +131,46 @@ func (b *Branches) Validate() error {
 	return nil
 }
 
-// Get retrieves the current Branches.
-func Get(ctx context.Context, c *http.Client) (*Branches, error) {
+// Get retrieves the current Branches and the list of active milestones.
+func Get(ctx context.Context, c *http.Client) (*Branches, []*Branch, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, jsonURL, nil)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, nil, skerr.Wrap(err)
 	}
 	resp, err := c.Do(req)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, nil, skerr.Wrap(err)
 	}
 	defer util.Close(resp.Body)
 
 	type milestone struct {
 		Milestone      int    `json:"milestone"`
 		ChromiumBranch string `json:"chromium_branch"`
+		ScheduleActive bool   `json:"schedule_active"`
 		SchedulePhase  string `json:"schedule_phase"`
 	}
 	var milestones []milestone
 	if err := json.NewDecoder(resp.Body).Decode(&milestones); err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, nil, skerr.Wrap(err)
 	}
 	byPhase := map[string]*Branch{}
 	byMilestone := map[int]*Branch{}
+	activeMilestones := []*Branch{}
 	for _, milestone := range milestones {
 		branch := &Branch{}
 		branch.Milestone = milestone.Milestone
 		branch.V8Branch = fmt.Sprintf("%d.%d", milestone.Milestone/10, branch.Milestone%10)
 		number, err := strconv.Atoi(milestone.ChromiumBranch)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "invalid branch number %q for channel %q", milestone.ChromiumBranch, milestone.SchedulePhase)
+			return nil, nil, skerr.Wrapf(err, "invalid branch number %q for channel %q", milestone.ChromiumBranch, milestone.SchedulePhase)
 		}
 		branch.Number = number
 		branch.Ref = ReleaseBranchRef(number)
 		byPhase[milestone.SchedulePhase] = branch
 		byMilestone[milestone.Milestone] = branch
+		if milestone.ScheduleActive {
+			activeMilestones = append(activeMilestones, branch)
+		}
 	}
 	rv := &Branches{}
 	rv.Beta = byPhase[branchBeta]
@@ -187,15 +192,15 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 		}
 	}
 	if err := rv.Validate(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return rv, nil
+	return rv, activeMilestones, nil
 }
 
 // Client is a wrapper for Get which facilitates testing.
 type Client interface {
-	// Get retrieves the current Branches.
-	Get(context.Context) (*Branches, error)
+	// Get retrieves the current Branches and the list of active milestones.
+	Get(context.Context) (*Branches, []*Branch, error)
 }
 
 // client implements Client.
@@ -211,6 +216,6 @@ func NewClient(c *http.Client) Client {
 }
 
 // See documentation for Client interface.
-func (c *client) Get(ctx context.Context) (*Branches, error) {
+func (c *client) Get(ctx context.Context) (*Branches, []*Branch, error) {
 	return Get(ctx, c.Client)
 }

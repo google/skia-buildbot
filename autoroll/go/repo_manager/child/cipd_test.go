@@ -238,8 +238,8 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 	mockGitiles := &gitiles_mocks.GitilesRepo{}
 	ctx := context.Background()
 	cbc := &chrome_branch_mocks.Client{}
-	configDummyVars := config_vars.DummyVars()
-	cbc.On("Get", ctx).Return(configDummyVars.Branches.Chromium, nil)
+	configFakeVars := config_vars.FakeVars()
+	cbc.On("Get", ctx).Return(configFakeVars.Branches.Chromium, configFakeVars.Branches.ActiveMilestones, nil)
 	reg, err := config_vars.NewRegistry(ctx, cbc)
 	require.NoError(t, err)
 	gitilesConfig := &config.GitilesConfig{
@@ -508,8 +508,8 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 	mockGitiles := &gitiles_mocks.GitilesRepo{}
 	ctx := context.Background()
 	cbc := &chrome_branch_mocks.Client{}
-	configDummyVars := config_vars.DummyVars()
-	cbc.On("Get", ctx).Return(configDummyVars.Branches.Chromium, nil)
+	configFakeVars := config_vars.FakeVars()
+	cbc.On("Get", ctx).Return(configFakeVars.Branches.Chromium, configFakeVars.Branches.ActiveMilestones, nil)
 	reg, err := config_vars.NewRegistry(ctx, cbc)
 	require.NoError(t, err)
 	gitilesConfig := &config.GitilesConfig{

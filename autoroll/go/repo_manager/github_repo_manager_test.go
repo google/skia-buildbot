@@ -156,7 +156,7 @@ func setupFakeGithub(ctx context.Context, t *testing.T, childCommits []string) (
 
 	if childCommits != nil && len(childCommits) > 0 {
 		// Mock getRawFile.
-		urlMock.MockOnce("https://raw.githubusercontent.com/superman/krypton/master/dummy-file.txt", mockhttpclient.MockGetDialogue([]byte(childCommits[0])))
+		urlMock.MockOnce("https://raw.githubusercontent.com/superman/krypton/master/fake-file.txt", mockhttpclient.MockGetDialogue([]byte(childCommits[0])))
 	}
 
 	// Mock /issues endpoint for get and patch requests.
@@ -248,7 +248,7 @@ func TestGithubRepoManagerPreUploadSteps(t *testing.T) {
 	unittest.LargeTest(t)
 
 	cfg := githubRmCfg(t)
-	// Create a dummy pre-upload step.
+	// Create a fake pre-upload step.
 	ran := false
 	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
 		ran = true
@@ -274,7 +274,7 @@ func TestGithubRepoManagerPreUploadStepsError(t *testing.T) {
 	unittest.LargeTest(t)
 
 	cfg := githubRmCfg(t)
-	// Create a dummy pre-upload step.
+	// Create a fake pre-upload step.
 	ran := false
 	expectedErr := errors.New("Expected error")
 	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {

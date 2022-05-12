@@ -747,3 +747,8 @@ message PreUploadCIPDPackageConfig {
     // Version of the package.
     string version = 3;
 }
+
+// Configs provides configuration for multiple autorollers.
+message Configs {
+    repeated Config config = 1;
+}
