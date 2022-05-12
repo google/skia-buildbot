@@ -10,9 +10,6 @@
     - name: Copy authorized keys.
       import_role:
         name: copy_authorized_keys
-    - name: Copy adb key.
-      import_role:
-        name: copy_adbkey
     - name: Copy service account key.
       import_role:
         name: copy_service_account_key

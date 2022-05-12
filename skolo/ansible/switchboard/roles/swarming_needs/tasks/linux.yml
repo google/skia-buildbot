@@ -1,5 +1,6 @@
-- name: Install mobile tools.
-  when: swarming_needs__needs_mobile_tools
+- name: Install tools for Apple devices.
+  # imobiledevice is currently only built for RPIs (arm64).
+  when: swarming_needs__needs_mobile_tools and ( ansible_facts['architecture']|lower == "arm64" )
   block:
     - name: Load skia-imobiledevice package.
       import_role:
@@ -45,6 +46,9 @@
       apt:
         deb: '{{ package_dir.path }}/skia-imobiledevice.deb'
 
+- name: Install the rest of swarming needs.
+  when: swarming_needs__needs_mobile_tools
+  block:
     - name: Install adb and python 2.7.
       become: true
       apt:
@@ -71,6 +75,10 @@
         owner: root
         group: root
         state: link
+
+    - name: Copy adb key.
+      import_role:
+        name: copy_adbkey
 
 - name: Install python3 modules.
   become: true
