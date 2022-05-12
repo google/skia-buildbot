@@ -134,9 +134,9 @@ func convertConfig(ctx context.Context, relPath, srcDir, dstDir string) error {
 
 	// Temporary measure to help transition over to the new cluster(s).
 	isOldCluster := false
-	splitSrcPath := strings.Split(srcPath, string(filepath.Separator))
+	splitRelPath := strings.Split(relPath, string(filepath.Separator))
 	for _, oldCluster := range oldClusters {
-		if util.In(oldCluster, splitSrcPath) {
+		if util.In(oldCluster, splitRelPath) {
 			isOldCluster = true
 			break
 		}
@@ -146,7 +146,7 @@ func convertConfig(ctx context.Context, relPath, srcDir, dstDir string) error {
 	// Run kube-conf-gen to generate the backend config file.
 	relDir, baseName := filepath.Split(relPath)
 	dstPath := filepath.Join(dstDir, relDir, fmt.Sprintf("autoroll-be-%s.yaml", strings.Split(baseName, ".")[0]))
-	if err := retryKubeConfGenWithChmod(backendTemplate, cfgMap, dstPath); err != nil {
+	if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(backendTemplate, false, cfgMap, dstPath); err != nil {
 		return skerr.Wrapf(err, "failed to write output")
 	}
 
@@ -156,24 +156,10 @@ func convertConfig(ctx context.Context, relPath, srcDir, dstDir string) error {
 	if !isOldCluster {
 		namespace := strings.Split(cfg.ServiceAccount, "@")[0]
 		dstNsPath := filepath.Join(dstDir, relDir, fmt.Sprintf("%s-ns.yaml", namespace))
-		if err := retryKubeConfGenWithChmod(namespaceTemplate, cfgMap, dstNsPath); err != nil {
+		if err := kube_conf_gen_lib.GenerateOutputFromTemplateString(namespaceTemplate, false, cfgMap, dstNsPath); err != nil {
 			return skerr.Wrapf(err, "failed to write output")
 		}
 	}
 
 	return nil
-}
-
-func retryKubeConfGenWithChmod(tmpl string, cfgMap map[string]interface{}, output string) error {
-	err := kube_conf_gen_lib.GenerateOutputFromTemplateString(backendTemplate, false, cfgMap, output)
-	if err == nil {
-		return nil
-	}
-	if os.IsPermission(skerr.Unwrap(err)) {
-		if err2 := os.Chmod(output, 0666); err != nil {
-			return skerr.Wrapf(err, "failed to write output and failed to chmod with %q", err2)
-		}
-		return skerr.Wrap(kube_conf_gen_lib.GenerateOutputFromTemplateString(backendTemplate, false, cfgMap, output))
-	}
-	return skerr.Wrap(err)
 }
