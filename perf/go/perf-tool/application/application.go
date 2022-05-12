@@ -767,7 +767,11 @@ func (app) IngestValidate(inputFile string, verbose bool) error {
 		}
 		fmt.Printf("hash: %s\n", hash)
 		for i, params := range p {
-			fmt.Printf("params: %v value: %g\n", params, v[i])
+			key, err := query.MakeKeyFast(query.ForceValid(params))
+			if err != nil {
+				return fmt.Errorf("Could not make a valid key from %v: %s ", params, err)
+			}
+			fmt.Printf("%s = %g\n", key, v[i])
 		}
 		return nil
 	})

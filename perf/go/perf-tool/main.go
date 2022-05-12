@@ -160,7 +160,7 @@ var loggingFlag = &cli.BoolFlag{
 
 var verboseFlag = &cli.BoolFlag{
 	Name:  verboseFlagName,
-	Value: false,
+	Value: true,
 	Usage: "Verbose output.",
 }
 
