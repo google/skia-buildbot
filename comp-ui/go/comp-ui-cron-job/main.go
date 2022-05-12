@@ -17,6 +17,8 @@
 //                           A git-hash associated with this run.
 //     -o OUTPUT, --output=OUTPUT
 //                           Path to the output json file.
+//     --extra-keys=KEY_VALUE_PAIRS
+//                           A comma separated list of key,value pairs.
 //
 package main
 
@@ -104,6 +106,7 @@ var benchmarks = map[string]benchmark{
 		scriptName:    "tools/browserbench-webdriver/motionmark.py",
 		flags: []string{
 			"--browser", "chrome",
+			"--extra-keys", "channel,stable",
 			"--executable-path", filepath.Join(os.Getenv("HOME"), "chromedriver"),
 		},
 	},
@@ -113,6 +116,7 @@ var benchmarks = map[string]benchmark{
 		scriptName:    "tools/browserbench-webdriver/jetstream.py",
 		flags: []string{
 			"--browser", "chrome",
+			"--extra-keys", "channel,stable",
 			"--executable-path", filepath.Join(os.Getenv("HOME"), "chromedriver"),
 		},
 	},
@@ -122,7 +126,17 @@ var benchmarks = map[string]benchmark{
 		scriptName:    "tools/browserbench-webdriver/speedometer.py",
 		flags: []string{
 			"--browser", "chrome",
+			"--extra-keys", "channel,stable",
 			"--executable-path", filepath.Join(os.Getenv("HOME"), "chromedriver"),
+		},
+	},
+	"safari-speedometer": {
+		repoURL:       "https://chromium.googlesource.com/chromium/src",
+		checkoutPaths: []string{"tools/browserbench-webdriver"},
+		scriptName:    "tools/browserbench-webdriver/speedometer.py",
+		flags: []string{
+			"--browser", "safari",
+			"--extra-keys", "channel,stable",
 		},
 	},
 }
@@ -250,6 +264,8 @@ func runSingleBenchmark(ctx context.Context, benchmarkName string, config benchm
 	flags = append(flags, "--githash", gitHash)
 	flags = append(flags, "--output", outputFilename)
 	args := append([]string{scriptFilename}, flags...)
+
+	sklog.Infof("Running: %q", args)
 
 	// Run the script.
 	err = runBenchMarkScript(ctx, args, workDir)
