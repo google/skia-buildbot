@@ -1,0 +1,32 @@
+{
+  "URL": "https://angle-perf.skia.org",
+  "contact": "https://bugs.chromium.org/p/angle/issues/list?q=component%3ATools&can=2",
+  "auth_config": {
+    "header_name": "X-WEBAUTH-USER",
+    "login_url": "https://skia.org/login/",
+    "logout_url": "https://skia.org/logout/"
+  },
+  "data_store_config": {
+    "datastore_type": "cockroachdb",
+    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/angle?sslmode=disable",
+    "tile_size": 256
+  },
+  "ingestion_config": {
+    "source_config": {
+      "source_type": "gcs",
+      "project": "skia-public",
+      "topic": "perf-ingestion-angle",
+      "subscription": "perf-ingestion-angle-prod",
+      "sources": [
+        "gs://angle_perf_skia/angle"
+      ]
+    },
+    "branches": [],
+    "file_ingestion_pubsub_topic_name": ""
+  },
+  "git_repo_config": {
+    "url": " https://chromium.googlesource.com/angle/angle",
+    "dir": "/tmp/angle",
+    "debounce_commit_url": false
+  }
+}
