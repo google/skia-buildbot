@@ -156,3 +156,32 @@ func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWi
 	require.True(t, *called)
 	authMock.AssertExpectations(t)
 }
+
+func TestValidateFlags_BothFlagsSpecified_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	*criaGroup = "project-angle-committers"
+	*allowedFrom = "google.com"
+
+	require.Error(t, validateFlags())
+}
+
+func TestValidateFlags_NeitherFlagIsSpecified_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	*criaGroup = ""
+	*allowedFrom = ""
+
+	require.Error(t, validateFlags())
+}
+
+func TestValidateFlags_OnlyOneFlagIsSpecified_ReturnsNoError(t *testing.T) {
+	unittest.SmallTest(t)
+	*criaGroup = "project-angle-committers"
+	*allowedFrom = ""
+
+	require.NoError(t, validateFlags())
+
+	*criaGroup = ""
+	*allowedFrom = "google.com"
+
+	require.NoError(t, validateFlags())
+}

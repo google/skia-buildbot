@@ -12,6 +12,7 @@ go_library(
         "//go/httputils",
         "//go/sklog",
         "//kube/go/auth-proxy/auth",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
