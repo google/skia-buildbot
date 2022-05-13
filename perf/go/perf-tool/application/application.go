@@ -2,6 +2,7 @@ package application
 
 import (
 	"archive/zip"
+	"bytes"
 	"context"
 	"encoding/gob"
 	"encoding/json"
@@ -757,21 +758,41 @@ func (app) IngestValidate(inputFile string, verbose bool) error {
 		return nil
 	}
 	return util.WithReadFile(inputFile, func(r io.Reader) error {
+		b, err := ioutil.ReadAll(r)
+		if err != nil {
+			return fmt.Errorf("Read Failed: %s", err)
+		}
+		reader := bytes.NewReader(b)
 		f := file.File{
 			Name:     inputFile,
-			Contents: ioutil.NopCloser(r),
+			Contents: ioutil.NopCloser(reader),
 		}
 		p, v, hash, err := parser.New(nil).Parse(f)
 		if err != nil {
 			return fmt.Errorf("Parse Failed: %s", skerr.Unwrap(err))
 		}
-		fmt.Printf("hash: %s\n", hash)
+		fmt.Printf("Hash:\n  %s\n", hash)
+		fmt.Printf("Measurements:\n")
 		for i, params := range p {
 			key, err := query.MakeKeyFast(query.ForceValid(params))
 			if err != nil {
 				return fmt.Errorf("Could not make a valid key from %v: %s ", params, err)
 			}
-			fmt.Printf("%s = %g\n", key, v[i])
+			fmt.Printf("  %s = %g\n", key, v[i])
+		}
+
+		fmt.Printf("Links:\n")
+		var decoded format.Format
+		if err := json.Unmarshal(b, &decoded); err != nil {
+			return fmt.Errorf("Failed to parse: %s", err)
+		}
+		keys := make([]string, 0, len(decoded.Links))
+		for k := range decoded.Links {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			fmt.Printf("  %s: %s\n", key, decoded.Links[key])
 		}
 		return nil
 	})

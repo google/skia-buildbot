@@ -4,37 +4,90 @@ The Skia Perf format is a JSON file that contains measurements. For example:
 
 ```
 {
-  "version": 1,
-  "git_hash": "cd5...663",
-  "key": {
-      "config": "8888",
-      "arch": "x86"
-  },
-  "results": [
-      {
-          "key": {
-              "test": "some_test_name"
-          },
-          "measurements": {
-              "ms": [
-                  {
-                      "value": "min",
-                      "measurement": 1.2
-                  },
-                  {
-                      "value": "max",
-                      "measurement": 2.4
-                  },
-                  {
-                      "value": "median",
-                      "measurement": 1.5
-                  }
-              ]
-          }
-      }
-  ]
+    "version": 1,
+    "git_hash": "cd5...663",
+    "key": {
+        "config": "8888",
+        "arch": "x86"
+    },
+    "results": [
+        {
+            "key": {
+                "test": "a_test_with_just_a_single_measurement",
+                "units": "s"
+            },
+            "measurement": 123.4
+        },
+        {
+            "key": {
+                "test": "draw_a_circle",
+                "units": "ms"
+            },
+            "measurements": {
+                "stat": [
+                    {
+                        "value": "min",
+                        "measurement": 1.2
+                    },
+                    {
+                        "value": "max",
+                        "measurement": 2.4
+                    },
+                    {
+                        "value": "median",
+                        "measurement": 1.5
+                    }
+                ]
+            }
+        },
+        {
+            "key": {
+                "test": "draw_my_animation",
+                "units": "Hz"
+            },
+            "measurements": {
+                "stat": [
+                    {
+                        "value": "min",
+                        "measurement": 20
+                    },
+                    {
+                        "value": "max",
+                        "measurement": 30
+                    },
+                    {
+                        "value": "median",
+                        "measurement": 22
+                    }
+                ]
+            }
+        }
+    ],
+    "links": {
+        "details": "https://example.com/a-link-to-details-about-this-test-run"
+    }
 }
 ```
+
+When ingested it will produce the following information:
+
+```
+Hash:
+  cd5...663
+Measurements:
+  ,arch=x86,config=8888,test=a_test_with_just_a_single_measurement,units=s, = 123.4
+  ,arch=x86,config=8888,stat=min,test=draw_a_circle,units=ms, = 1.2
+  ,arch=x86,config=8888,stat=max,test=draw_a_circle,units=ms, = 2.4
+  ,arch=x86,config=8888,stat=median,test=draw_a_circle,units=ms, = 1.5
+  ,arch=x86,config=8888,stat=min,test=draw_my_animation,units=Hz, = 20
+  ,arch=x86,config=8888,stat=max,test=draw_my_animation,units=Hz, = 30
+  ,arch=x86,config=8888,stat=median,test=draw_my_animation,units=Hz, = 22
+Links:
+  details: https://example.com/a-link-to-details-about-this-test-run
+```
+
+You can run the `perf-tool` as described below to parse a file and emit a
+description like the one above.
 
 The format is documented
 [here](https://pkg.go.dev/go.skia.org/infra/perf/go/ingest/format?tab=doc#Format).
@@ -83,11 +136,18 @@ If the format is invalid the tool will print out validation errors, for example
 If the format is valid then all the found trace ids and their values
 will be printed out, for example:
 
-    $ perf-tool ingest validate --in=$HOME/valid.json
-    hash: def820637c3674a2bcecd6992a207fa3b9bed737
-    ,arch=arm64,radius=10,test=drawCircle,units=ms, = 1.4800247
-    ,arch=arm64,radius=50,test=drawCircle,units=ms, = 261.58847
-    ,arch=arm64,radius=90,test=drawCircle,units=ms, = 377.3585
+    Hash:
+      cd5...663
+    Measurements:
+      ,arch=x86,config=8888,test=a_test_with_just_a_single_measurement,units=s, = 123.4
+      ,arch=x86,config=8888,stat=min,test=draw_a_circle,units=ms, = 1.2
+      ,arch=x86,config=8888,stat=max,test=draw_a_circle,units=ms, = 2.4
+      ,arch=x86,config=8888,stat=median,test=draw_a_circle,units=ms, = 1.5
+      ,arch=x86,config=8888,stat=min,test=draw_my_animation,units=Hz, = 20
+      ,arch=x86,config=8888,stat=max,test=draw_my_animation,units=Hz, = 30
+      ,arch=x86,config=8888,stat=median,test=draw_my_animation,units=Hz, = 22
+    Links:
+      details: https://example.com/a-link-to-details-about-this-test-run
 
 You can run `perf-tool` over
 [`./go/ingest/parser/testdata/version_1/success.json`](//perf/go/ingest/parser/testdata/version_1/success.json)

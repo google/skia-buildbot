@@ -95,10 +95,18 @@ type Result struct {
 //        "results": [
 //            {
 //                "key": {
-//                    "test": "some_test_name"
+//                    "test": "a_test_with_just_a_single_measurement",
+//                    "units": "s"
+//                },
+//                "measurement": 123.4
+//            },
+//            {
+//                "key": {
+//                    "test": "draw_a_circle",
+//                    "units": "ms"
 //                },
 //                "measurements": {
-//                    "ms": [
+//                    "stat": [
 //                        {
 //                            "value": "min",
 //                            "measurement": 1.2
@@ -113,15 +121,49 @@ type Result struct {
 //                        }
 //                    ]
 //                }
+//            },
+//            {
+//                "key": {
+//                    "test": "draw_my_animation",
+//                    "units": "Hz"
+//                },
+//                "measurements": {
+//                    "stat": [
+//                        {
+//                            "value": "min",
+//                            "measurement": 20
+//                        },
+//                        {
+//                            "value": "max",
+//                            "measurement": 30
+//                        },
+//                        {
+//                            "value": "median",
+//                            "measurement": 22
+//                        }
+//                    ]
+//                }
 //            }
-//        ]
+//        ],
+//        "links": {
+//            "details": "https://example.com/a-link-to-details-about-this-test-run"
+//        }
 //    }
 //
 // Will produce this set of trace ids and values:
 //
-//    ,arch=x86,config=8888,ms=min,test=some_test_name,      1.2
-//    ,arch=x86,config=8888,ms=max,test=some_test_name,      2.4
-//    ,arch=x86,config=8888,ms=median,test=some_test_name,   1.5
+//    Hash:
+//      cd5...663
+//    Measurements:
+//      ,arch=x86,config=8888,test=a_test_with_just_a_single_measurement,units=s, = 123.4
+//      ,arch=x86,config=8888,stat=min,test=draw_a_circle,units=ms, = 1.2
+//      ,arch=x86,config=8888,stat=max,test=draw_a_circle,units=ms, = 2.4
+//      ,arch=x86,config=8888,stat=median,test=draw_a_circle,units=ms, = 1.5
+//      ,arch=x86,config=8888,stat=min,test=draw_my_animation,units=Hz, = 20
+//      ,arch=x86,config=8888,stat=max,test=draw_my_animation,units=Hz, = 30
+//      ,arch=x86,config=8888,stat=median,test=draw_my_animation,units=Hz, = 22
+//    Links:
+//      details: https://example.com/a-link-to-details-about-this-test-run
 //
 // Key value pair charactes should come from [0-9a-zA-Z\_], particularly note no
 // spaces or ':' characters.
