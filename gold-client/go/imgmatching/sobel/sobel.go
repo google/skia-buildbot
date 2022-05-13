@@ -44,6 +44,11 @@ type Matcher struct {
 
 // Match implements the imgmatching.Matcher interface.
 func (m *Matcher) Match(expected, actual image.Image) bool {
+	// Images must be the same size.
+	if !expected.Bounds().Eq(actual.Bounds()) {
+		return false
+	}
+
 	// Extract edges from the expected image.
 	m.sobelOutput = sobel(imageToGray(expected))
 
