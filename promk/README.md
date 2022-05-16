@@ -63,3 +63,13 @@ setup at: https://grafana2.skia.org/d/7giJAG3Wk/thanos?orgId=1 and the Liveness
 panel has an alert set if `alert-to-pubsub` goes too long without seeing an
 alert come from `thanos-ruler`. When firing the alert will send email to
 skiabot@google.com.
+
+# kube-state-metrics
+
+[kube-state-metrics](https://github.com/kubernetes/kube-state-metrics) is run in
+all clusters allowing collection of metrics on the state of objects, in
+particular states you normally can't get from default metrics, such as cronjobs
+that have failed.
+
+To update the version of kube-state-metrics we use the Makefile target
+`release_kube-state-metrics` can be updated to use a different tag.

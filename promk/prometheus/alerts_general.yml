@@ -845,3 +845,15 @@ groups:
       abbr: '{{ $labels.cluster }}'
       description: 'k8s-deployer in {{ $labels.cluster }} has failed to apply changes for more than 10 minutes.
       https://pantheon.corp.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.container_name%3D%22k8s-deployer%22;cursorTimestamp=2022-03-21T17:24:45.250169905Z?project={{ $labels.project }}'
+
+
+# Cron Jobs
+  - alert: CronJobFailed
+    expr: kube_job_failed{condition="true"} > 0
+    labels:
+      category: infra
+      severity: error
+      owner: jcgregorio@google.com
+    annotations:
+      abbr: '{{ $labels.job_name }}'
+      description: 'Job has failed {{ $labels.kubernetes_pod_name }}.'
