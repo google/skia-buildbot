@@ -1,5 +1,7 @@
 include ../make/bazel.mk
 
+export VERSION:=$(shell ../bash/release_tag.sh)
+
 .PHONY: validate
 validate: ./tmp/promtool absent
 	promk-absent --input=prometheus/alerts_alert_to_pubsub.yml --output=prometheus/absent_alerts_alert_to_pubsub.yml
@@ -74,5 +76,13 @@ push_thanos_bounce:
 
 .PHONY: update_alerts
 update_alerts: push_config_thanos
+
+# Builds kube-state-metrics and pushes to our registry using our local tag
+# naming convention.
+release_kube-state-metrics:
+	git clone -b v2.4.2 https://github.com/kubernetes/kube-state-metrics.git
+	cd kube-state-metrics && REGISTRY=gcr.io/skia-public TAG=$(VERSION) make container
+	rm -rf kube-state-metrics
+	docker push gcr.io/skia-public/kube-state-metrics-amd64:$(VERSION)
 
 include ../make/clusters.mk
