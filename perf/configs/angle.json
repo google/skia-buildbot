@@ -25,7 +25,7 @@
     "file_ingestion_pubsub_topic_name": ""
   },
   "git_repo_config": {
-    "url": " https://chromium.googlesource.com/angle/angle",
+    "url": "https://chromium.googlesource.com/angle/angle",
     "dir": "/tmp/angle",
     "debounce_commit_url": false
   }
