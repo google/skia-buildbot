@@ -19,7 +19,7 @@ If a roller has gone rogue somehow, eg. uploading too many rolls, chewing up bot
 capacity, etc, please stop the roller and file a bug:
 https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 If you need immediate attention, contact skiabot@google.com. Note that we do not
-use pagers, and our trooper is generally only active during working hours.
+use pagers, and our gardener is generally only active during working hours.
 
 
 For Child Project Roller Owners
@@ -29,7 +29,7 @@ In the case of any problems or unexpected behavior, please stop the roller and
 file a bug:
 https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 If you need immediate attention, contact skiabot@google.com. Note that we do not
-use pagers, and our trooper is generally only active during working hours.
+use pagers, and our gardener is generally only active during working hours.
 
 If rolls are failing due to a breakage in the parent repo, you generally do not
 need to stop the roller unless you are concerned about saving commit queue
@@ -43,6 +43,16 @@ Stopping a roller causes any active roll to be abandoned. You can take advantage
 of this behavior if you know that the current roll is doomed to fail and the
 next will contain a fix: rather than waiting for the commit queue to fail, stop
 the roller, wait for the current roll to be abandoned, and resume the roller.
+
+
+Configuration
+-------------
+
+Configuration files for each of the autorollers may be found
+[here](https://skia.googlesource.com/skia-autoroll-internal-config) (Googlers
+only).  Feel free to make a CL to modify a roller config, or
+[file a bug](https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug)
+to request a change.
 
 
 AutoRoll Modes
