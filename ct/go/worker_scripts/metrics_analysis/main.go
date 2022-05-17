@@ -45,7 +45,7 @@ var (
 	metricName         = flag.String("metric_name", "", "The metric to parse the traces with. Eg: loadingMetric")
 	valueColumnName    = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
 
-	cloudUrlBucketRegex = regexp.MustCompile(`/m/cloudstorage/b/(.+)/o/(.+)`)
+	cloudUrlBucketRegex = regexp.MustCompile(`storage.cloud.google.com\/(.+?)\/(.+)`)
 )
 
 func metricsAnalysis() error {
@@ -261,7 +261,7 @@ func downloadTrace(traceURL, destDir string, gs *util.GcsUtil) (string, error) {
 
 // parseTraceURL parses the provided traceURL and returns the name of the cloud bucket and
 // the path to the trace file within the cloud bucket.
-// Eg: For the traceURL https://console.developers.google.com/m/cloudstorage/b/chrome-telemetry-output/o/xyz/retry_0/trace.html
+// Eg: For the traceURL https://storage.cloud.google.com/chrome-telemetry-output/xyz/retry_0/trace.html
 //     "chrome-telemetry-output" and "xyz/retry_0/trace.html" will be returned.
 // If the provided URL is not in the form that cloudUrlBucketRegex expects then empty strings and an error is returned.
 func parseTraceURL(traceURL string) (string, string, error) {
