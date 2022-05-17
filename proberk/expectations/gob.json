@@ -123,6 +123,11 @@
     "clone_url": "https://skia.googlesource.com/external/github.com/ocornut/imgui",
     "mirrored_from_url": "https://github.com/ocornut/imgui.git"
   },
+  "external/github.com/rive-app/rive-cpp": {
+    "name": "external/github.com/rive-app/rive-cpp",
+    "clone_url": "https://skia.googlesource.com/external/github.com/rive-app/rive-cpp",
+    "mirrored_from_url": "https://github.com/rive-app/rive-cpp.git"
+  },
   "external/github.com/unicode-org/icu": {
     "name": "external/github.com/unicode-org/icu",
     "clone_url": "https://skia.googlesource.com/external/github.com/unicode-org/icu",
