@@ -149,7 +149,12 @@ func (b *Bazel) Do(ctx context.Context, subCmd string, args ...string) (string, 
 
 // DoOnRBE executes a Bazel subcommand on RBE.
 func (b *Bazel) DoOnRBE(ctx context.Context, subCmd string, args ...string) (string, error) {
-	cmd := []string{"--config=remote", "--remote_download_minimal"}
+	// See https://bazel.build/reference/command-line-reference
+	cmd := []string{
+		"--config=remote",
+		"--remote_download_minimal", // Make builds faster by not downloading build outputs.
+		"--sandbox_base=/dev/shm",   // Make builds faster by using a RAM disk for the sandbox.
+	}
 	if b.rbeCredentialFile != "" {
 		cmd = append(cmd, "--google_credentials="+b.rbeCredentialFile)
 	} else {
