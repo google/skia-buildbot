@@ -134,11 +134,14 @@ func main() {
 	}
 
 	// Build all code in the repository. The tryjob will fail upon any build errors.
+	args := []string{"//..."}
 	doFunc := bzl.Do
 	if *rbe {
 		doFunc = bzl.DoOnRBE
+		// Make the run faster by not downloading all the outputs.
+		args = append(args, "--remote_download_minimal")
 	}
-	if _, err := doFunc(ctx, "build", "//..."); err != nil {
+	if _, err := doFunc(ctx, "build", args...); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
