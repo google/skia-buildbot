@@ -1783,6 +1783,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "skiaperf-angle",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "skiaperf-angle",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "skiaperf-angle",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "skiaperf-compui",
           "endpoints": [
             {
@@ -4436,6 +4462,23 @@
                           },
                           "route": {
                             "cluster": "skiaperf-android-x",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "angle-perf.skia.org",
+                      "name": "angle-perf.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "skiaperf-angle",
                             "timeout": {
                               "seconds": 600
                             }

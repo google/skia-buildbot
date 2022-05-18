@@ -12,7 +12,7 @@ release: build-config
 validate: build-config
 	docker run -ti --entrypoint=/usr/local/bin/envoy -v `pwd`/computed.json:/tmp/envoy/computed.json envoyproxy/envoy:v1.16.1 --mode validate --config-path /tmp/envoy/computed.json
 
-push: pushk release validate
+push: release validate
 	$(BAZEL) run //kube/go/pushk -- --use-temp-checkout envoy-skia-org
 
 # Set DOCKER_IMAGE to the image you want to run locally.
