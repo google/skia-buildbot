@@ -49,6 +49,15 @@ interface RollCandidate {
   roll: ManualRoll | null;
 }
 
+interface RecentRoll {
+  class: string;
+  subject: string;
+  rollingTo: string;
+  modified?: string;
+  result: string;
+  url: string;
+}
+
 export class ARBStatusSk extends ElementSk {
   private static template = (ele: ARBStatusSk) => (!ele.status
     ? html``
@@ -293,19 +302,16 @@ export class ARBStatusSk extends ElementSk {
                 <th>Last Modified</th>
                 <th>Result</th>
               </tr>
-              ${ele.status.recentRolls?.map(
-        (roll: AutoRollCL) => html`
+              ${ele.recentRolls.map((roll: RecentRoll) => html`
                   <tr>
                     <td>
-                      <a href="${ele.issueURL(roll)}" target="_blank"
+                      <a href="${roll.url}" target="_blank"
                         >${roll.subject}</a
                       >
                     </td>
                     <td>${diffDate(roll.modified!)} ago</td>
                     <td>
-                      <span class="${ele.rollClass(roll)}"
-                        >${ele.rollResult(roll)}</span
-                      >
+                      <span class="${roll.class}">${roll.result}</span>
                     </td>
                   </tr>
                 `,
@@ -546,6 +552,8 @@ export class ARBStatusSk extends ElementSk {
   private modeChangePending: boolean = false;
 
   private readonly pleaseLoginMsg = 'Please login to make changes.';
+
+  private recentRolls: RecentRoll[] = [];
 
   private refreshInterval = 60;
 
@@ -960,6 +968,19 @@ export class ARBStatusSk extends ElementSk {
     return roll.result.toLowerCase().replace('_', ' ');
   }
 
+  private manualRollResult(roll: ManualRoll) {
+    if (!roll) {
+      return 'unknown';
+    } else if (roll.status == ManualRoll_Status.COMPLETED) {
+      return roll.result.toLowerCase();
+    } else if (roll.status == ManualRoll_Status.STARTED) {
+      return AutoRollCL_Result.IN_PROGRESS;
+    } else if (roll.status = ManualRoll_Status.PENDING) {
+      return roll.status.toLowerCase();
+    }
+    return 'unknown';
+  }
+
   private statusClass(status: string) {
     // TODO(borenet): Status could probably be an enum.
     const statusClassMap: { [key: string]: string } = {
@@ -1063,6 +1084,23 @@ export class ARBStatusSk extends ElementSk {
         roll: req,
       });
     }
+    // Interleave regular rolls with manual rolls for display in the table.
+    this.recentRolls = (status.recentRolls || []).map((cl: AutoRollCL) => ({
+      class: this.rollClass(cl),
+      modified: cl.modified,
+      result: this.rollResult(cl),
+      rollingTo: cl.rollingTo,
+      subject: cl.subject,
+      url: this.issueURL(cl),
+    })).concat((status.manualRolls || []).map((cl: ManualRoll) => ({
+      class: this.manualRollResultClass(cl),
+      modified: cl.timestamp,
+      result: this.manualRollResult(cl),
+      rollingTo: cl.revision,
+      subject: "Manual roll to " + cl.revision,
+      url: cl.url,
+    })))
+
     this.lastLoaded = new Date();
     this.rollCandidates = rollCandidates;
     if (status.config) {
