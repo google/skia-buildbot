@@ -54,6 +54,7 @@ skia_app_container(
 skia_app_container(
     name = "perf-cockroachdb-backup",
     base_image = "@cloudsdk//image",
+    default_user = "root",
     dirs = {
         "/usr/local/bin": [
             [
