@@ -149,7 +149,7 @@ func (b *Bazel) Do(ctx context.Context, subCmd string, args ...string) (string, 
 
 // DoOnRBE executes a Bazel subcommand on RBE.
 func (b *Bazel) DoOnRBE(ctx context.Context, subCmd string, args ...string) (string, error) {
-	cmd := []string{"--config=remote"}
+	cmd := []string{"--config=remote", "--remote_download_minimal"}
 	if b.rbeCredentialFile != "" {
 		cmd = append(cmd, "--google_credentials="+b.rbeCredentialFile)
 	} else {

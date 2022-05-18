@@ -15,7 +15,10 @@
 # If we prefix the directories with an underscore then they get ignored by Go tools.
 # We are forced to do this until https://github.com/golang/go/issues/42965 is fixed.
 build --symlink_prefix=_bazel_
-test  --symlink_prefix=_bazel_
+
+# test inherits from build, so do not add test flags because that
+# ends up invalidating the cache. https://github.com/bazelbuild/bazel/issues/13186
+# test  --symlink_prefix=_bazel_
 
 # Also suppress the generation of the bazel-out symlink, which always appears,no
 # matter what you set --symlink_prefix to.
