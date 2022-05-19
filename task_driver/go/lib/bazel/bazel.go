@@ -88,7 +88,7 @@ type BazelOptions struct {
 const (
 	userBazelRCLocation = "/home/chrome-bot/.bazelrc"
 
-	defaultBazelCachePath = "/dev/shm/bazel_cache"
+	defaultBazelCachePath = "/mnt/pd0/bazel_cache"
 )
 
 // EnsureBazelRCFile makes sure the user .bazelrc file exists and matches the provided
@@ -152,6 +152,7 @@ func (b *Bazel) DoOnRBE(ctx context.Context, subCmd string, args ...string) (str
 	// See https://bazel.build/reference/command-line-reference
 	cmd := []string{
 		"--config=remote",
+		"--sandbox_base=/dev/shm", // Make builds faster by using a RAM disk for the sandbox.
 	}
 	if b.rbeCredentialFile != "" {
 		cmd = append(cmd, "--google_credentials="+b.rbeCredentialFile)
