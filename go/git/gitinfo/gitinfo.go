@@ -15,6 +15,8 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -56,7 +58,11 @@ func NewGitInfo(ctx context.Context, dir string, pull, allBranches bool) (*GitIn
 
 // Clone creates a new GitInfo by running "git clone" in the given directory.
 func Clone(ctx context.Context, repoUrl, dir string, allBranches bool) (*GitInfo, error) {
-	if _, err := exec.RunSimple(ctx, fmt.Sprintf("git clone %s %s", repoUrl, dir)); err != nil {
+	gitPath, _, _, err := git_common.FindGit(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if _, err := exec.RunSimple(ctx, fmt.Sprintf("%s clone %s %s", gitPath, repoUrl, dir)); err != nil {
 		return nil, fmt.Errorf("Failed to clone %s into %s: %s", repoUrl, dir, err)
 	}
 	return NewGitInfo(ctx, dir, false, allBranches)

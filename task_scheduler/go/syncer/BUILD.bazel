@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/exec",
         "//go/git",
+        "//go/git/git_common",
         "//go/git/repograph",
         "//go/metrics2",
         "//go/skerr",

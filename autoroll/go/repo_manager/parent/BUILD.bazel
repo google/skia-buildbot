@@ -37,6 +37,7 @@ go_library(
         "//go/exec",
         "//go/gerrit",
         "//go/git",
+        "//go/git/git_common",
         "//go/github",
         "//go/go_install",
         "//go/metrics2",

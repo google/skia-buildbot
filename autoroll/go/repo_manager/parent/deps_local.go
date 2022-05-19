@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
+	autoroll_git_common "go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools"
@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -32,7 +33,7 @@ const (
 
 // NewDEPSLocal returns a Parent which uses a local checkout and DEPS to manage
 // dependencies.
-func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, recipeCfgFile string, cr codereview.CodeReview, uploadRoll git_common.UploadRollFunc, applyExternalChangeFunc git_common.ApplyExternalChangeFunc) (*GitCheckoutParent, error) {
+func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, recipeCfgFile string, cr codereview.CodeReview, uploadRoll autoroll_git_common.UploadRollFunc, applyExternalChangeFunc autoroll_git_common.ApplyExternalChangeFunc) (*GitCheckoutParent, error) {
 	// Validation.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
@@ -52,10 +53,16 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		return nil, skerr.Wrap(err)
 	}
 	depotToolsEnv := append(depot_tools.Env(depotTools), "SKIP_GCE_AUTH_FOR_GIT=1")
-	for _, envVar := range depotToolsEnv {
+	for i, envVar := range depotToolsEnv {
 		split := strings.SplitN(envVar, "=", 2)
 		if len(split) == 2 && split[0] == "PATH" {
-			if err := os.Setenv(split[0], split[1]); err != nil {
+			gitPath, _, _, err := git_common.FindGit(ctx)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			pathEnvVarValue := fmt.Sprintf("%s:%s", filepath.Dir(gitPath), split[1])
+			depotToolsEnv[i] = fmt.Sprintf("PATH=%s", pathEnvVarValue)
+			if err := os.Setenv("PATH", pathEnvVarValue); err != nil {
 				return nil, skerr.Wrap(err)
 			}
 		}

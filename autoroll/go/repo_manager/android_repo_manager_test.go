@@ -75,10 +75,14 @@ func setupAndroid(t *testing.T) (context.Context, *config_vars.Registry, string,
 		if err := git_common.MocksForFindGit(ctx, cmd); err != nil {
 			return err
 		}
-		if strings.Contains(cmd.Name, "repo") {
+		// It's important that we use strings.HasSuffix, rather than strings.Contains, because
+		// under Bazel the git binary will be found under the runfiles directory, and said path
+		// might include the name of the target under test, such as "repo_manager_test", which
+		// includes the word "repo" and would therefore break the below conditionals.
+		if strings.HasSuffix(cmd.Name, "/repo") {
 			return nil
 		}
-		if strings.Contains(cmd.Name, "git") {
+		if strings.HasSuffix(cmd.Name, "/git") {
 			var output string
 			if cmd.Args[0] == "log" {
 				if cmd.Args[1] == "--format=format:%H%x20%ci" {

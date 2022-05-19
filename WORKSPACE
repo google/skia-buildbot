@@ -344,6 +344,7 @@ container_pull(
 ##############################
 # Packages for RBE container #
 ##############################
+
 # The following http_archives are used to download and verify files that will be installed on
 # our RBE container.
 http_archive(
@@ -383,4 +384,62 @@ filegroup(
     # provide SHA256 signatures. kjlubick@ downloaded this file and computed this sha256 signature.
     sha256 = "05293e76dfb6443790117b6c6c05b1152038b49c83bd4345589e15ced8717be3",
     url = "https://binaries.cockroachdb.com/cockroach-v21.1.9.linux-amd64.tgz",
+)
+
+##################
+# CIPD packages. #
+##################
+
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
+
+# We import depot_tools to get the `cipd` binary, which is used by the cipd_install workspace rule.
+new_git_repository(
+    name = "depot_tools",
+    build_file_content = """
+exports_files(
+    glob(
+        ["**/*"],
+        # This prevents "link or target filename contains space" Bazel errors.
+        exclude = [
+            "bootstrap-2@3.8.10.chromium.20_bin/python3/lib/python3.8/site-packages/setuptools/command/launcher manifest.xml",
+            "bootstrap-2@3.8.10.chromium.20_bin/python3/lib/python3.8/site-packages/setuptools/script (dev).tmpl",
+            "bootstrap-2@3.8.10.chromium.20_bin/python/lib/python2.7/site-packages/setuptools/command/launcher manifest.xml",
+            "bootstrap-2@3.8.10.chromium.20_bin/python/lib/python2.7/site-packages/setuptools/script (dev).tmpl",
+            "recipes/recipe_modules/gclient/tests/diff_deps.expected/no change, exception.json",
+            "recipes/recipe_modules/gclient/tests/diff_deps.expected/dont have revision yet.json",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)""",
+    commit = "7253c59443a1a41069c41e8414713f9587dcfb8e",
+    remote = "https://chromium.googlesource.com/chromium/tools/depot_tools.git",
+    # Bazel prints out a debug message if we don't specify shallow_since as a Unix timestamp. The
+    # below timestamp is 2021-10-05T17:35:06+00:00 in RFC 3339 format.
+    shallow_since = "1633455306 +0000",
+)
+
+load("//bazel:cipd_install.bzl", "cipd_install")
+
+# https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/linux-amd64/+/
+cipd_install(
+    name = "git_linux",
+    package = "infra/3pp/tools/git/linux-amd64",
+    postinstall_script = """#!/bin/sh
+set -e  # Fail immediately if any commands return a non-zero exit status.
+mkdir etc
+bin/git config --system user.name "Bazel Test User"
+bin/git config --system user.email "bazel-test-user@example.com"
+""",
+    version = "version:2.29.2.chromium.6",
+)
+
+# https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/git/windows-amd64/+/
+cipd_install(
+    name = "git_win",
+    package = "infra/3pp/tools/git/windows-amd64",
+    postinstall_script = """
+bin\\git.exe config --system user.name "Bazel Test User"
+bin\\git.exe config --system user.email "bazel-test-user@example.com"
+""",
+    version = "version:2.29.2.chromium.6",
 )

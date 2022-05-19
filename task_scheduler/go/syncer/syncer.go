@@ -14,6 +14,7 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -196,6 +197,15 @@ func (s *Syncer) LazyTempGitRepo(rs types.RepoState) *LazyTempGitRepo {
 // call in gclient that would fail for test repos.
 func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
 	defer metrics2.FuncTimer().Stop()
+
+	// Add git binary to PATH.
+	gitPath, _, _, err := git_common.FindGit(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(gitPath), os.Getenv("PATH"))); err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	// Run gclient to obtain a checkout of the repo and its DEPS.
 	gclientPath := path.Join(depotToolsDir, "gclient.py")

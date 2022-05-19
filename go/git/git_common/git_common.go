@@ -8,11 +8,14 @@ import (
 	"context"
 	"fmt"
 	osexec "os/exec"
+	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 
+	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -50,9 +53,21 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 	mtx.Lock()
 	defer mtx.Unlock()
 	if git == "" {
-		gitPath, err := osexec.LookPath("git")
-		if err != nil {
-			return "", 0, 0, skerr.Wrapf(err, "Failed to find git")
+		gitPath := ""
+		if bazel.InBazelTest() {
+			if runtime.GOOS == "windows" {
+				gitPath = filepath.Join(bazel.RunfilesDir(), "external/git_win/bin/git.exe")
+			} else if runtime.GOOS == "linux" {
+				gitPath = filepath.Join(bazel.RunfilesDir(), "external/git_linux/bin/git")
+			} else {
+				return "", 0, 0, skerr.Fmt("unsupported runtime.GOOS: %q", runtime.GOOS)
+			}
+		} else {
+			var err error
+			gitPath, err = osexec.LookPath("git")
+			if err != nil {
+				return "", 0, 0, skerr.Wrapf(err, "Failed to find git")
+			}
 		}
 		maj, min, err := Version(ctx, gitPath)
 		if err != nil {
@@ -75,7 +90,7 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 // IsFromCIPD returns a bool indicating whether or not the given version of Git
 // appears to be obtained via CIPD.
 func IsFromCIPD(git string) bool {
-	return strings.Contains(git, "cipd_bin_packages")
+	return strings.Contains(git, "cipd_bin_packages") || strings.Contains(git, bazel.RunfilesDir())
 }
 
 // EnsureGitIsFromCIPD returns an error if the version of Git in PATH does not

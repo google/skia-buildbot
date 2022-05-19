@@ -22,6 +22,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/human"
@@ -213,7 +214,7 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 	}
 
 	// Find the path to the git executable, which might be relative to working dir.
-	gitFullPath, err := exec.LookPath("git")
+	gitFullPath, _, _, err := git_common.FindGit(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to find git.")
 	}
