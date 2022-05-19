@@ -53,7 +53,7 @@ interface RecentRoll {
   class: string;
   subject: string;
   rollingTo: string;
-  modified?: string;
+  timestamp: string;
   result: string;
   url: string;
 }
@@ -299,7 +299,7 @@ export class ARBStatusSk extends ElementSk {
             <table>
               <tr>
                 <th>Roll</th>
-                <th>Last Modified</th>
+                <th>Creation Time</th>
                 <th>Result</th>
               </tr>
               ${ele.recentRolls.map((roll: RecentRoll) => html`
@@ -309,7 +309,7 @@ export class ARBStatusSk extends ElementSk {
                         >${roll.subject}</a
                       >
                     </td>
-                    <td>${diffDate(roll.modified!)} ago</td>
+                    <td>${diffDate(roll.timestamp)} ago</td>
                     <td>
                       <span class="${roll.class}">${roll.result}</span>
                     </td>
@@ -1087,19 +1087,21 @@ export class ARBStatusSk extends ElementSk {
     // Interleave regular rolls with manual rolls for display in the table.
     this.recentRolls = (status.recentRolls || []).map((cl: AutoRollCL) => ({
       class: this.rollClass(cl),
-      modified: cl.modified,
+      timestamp: cl.created!,
       result: this.rollResult(cl),
       rollingTo: cl.rollingTo,
       subject: cl.subject,
       url: this.issueURL(status, cl),
     })).concat((status.manualRolls || []).map((cl: ManualRoll) => ({
       class: this.manualRollResultClass(cl),
-      modified: cl.timestamp,
+      timestamp: cl.timestamp!,
       result: this.manualRollResult(cl),
       rollingTo: cl.revision,
       subject: "Manual roll to " + cl.revision,
       url: cl.url,
-    })))
+    })));
+    this.recentRolls.sort((a: RecentRoll, b: RecentRoll) =>
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
     this.lastLoaded = new Date();
     this.rollCandidates = rollCandidates;
