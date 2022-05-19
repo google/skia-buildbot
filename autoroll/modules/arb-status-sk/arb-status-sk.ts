@@ -225,7 +225,7 @@ export class ARBStatusSk extends ElementSk {
               ${ele.status.currentRoll
         ? html`
                       <a
-                        href="${ele.issueURL(ele.status.currentRoll)}"
+                        href="${ele.issueURL(ele.status, ele.status.currentRoll)}"
                         class="big"
                         target="_blank"
                       >
@@ -282,7 +282,7 @@ export class ARBStatusSk extends ElementSk {
                       ${ele.rollResult(ele.status.lastRoll)}
                     </span>
                     <a
-                      href="${ele.issueURL(ele.status.lastRoll)}"
+                      href="${ele.issueURL(ele.status, ele.status.lastRoll)}"
                       target="_blank"
                       class="small"
                     >
@@ -808,9 +808,9 @@ export class ARBStatusSk extends ElementSk {
     return openTimes[0];
   }
 
-  private issueURL(roll: AutoRollCL): string {
+  private issueURL(status: AutoRollStatus, roll: AutoRollCL): string {
     if (roll) {
-      return (this.status?.issueUrlBase || '') + roll.id;
+      return (status?.issueUrlBase || '') + roll.id;
     }
     return '';
   }
@@ -1063,7 +1063,7 @@ export class ARBStatusSk extends ElementSk {
             revision: '',
             status: ManualRoll_Status.PENDING,
             timestamp: status.currentRoll.created,
-            url: this.issueURL(status.currentRoll),
+            url: this.issueURL(status, status.currentRoll),
           };
         }
         candidate.roll = req;
@@ -1091,7 +1091,7 @@ export class ARBStatusSk extends ElementSk {
       result: this.rollResult(cl),
       rollingTo: cl.rollingTo,
       subject: cl.subject,
-      url: this.issueURL(cl),
+      url: this.issueURL(status, cl),
     })).concat((status.manualRolls || []).map((cl: ManualRoll) => ({
       class: this.manualRollResultClass(cl),
       modified: cl.timestamp,
