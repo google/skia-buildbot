@@ -237,13 +237,6 @@ container_run_and_commit(
         "mkdir /cipd/bin/cpython3",
         "/depot_tools/cipd init /cipd/bin/cpython3 -force",
 
-        # Install CIPD packages needed by various tests. These should be kept in sync with
-        # //cipd.ensure.
-        "/depot_tools/cipd install infra/tools/luci/isolate/linux-amd64 " +
-        "    git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378 -root /cipd",
-        "/depot_tools/cipd install infra/tools/luci/isolated/linux-amd64 " +
-        "    git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378 -root /cipd",
-
         # Install vpython.
         "/depot_tools/cipd install infra/tools/luci/vpython/linux-amd64 " +
         "    git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097 -root /cipd/bin",
