@@ -88,7 +88,9 @@ type BazelOptions struct {
 const (
 	userBazelRCLocation = "/home/chrome-bot/.bazelrc"
 
-	defaultBazelCachePath = "/mnt/pd0/bazel_cache"
+	defaultBazelCachePath = "/dev/shm/bazel_cache"
+
+	repositoryCache = "/mnt/pd0/bazel_repo_cache"
 )
 
 // EnsureBazelRCFile makes sure the user .bazelrc file exists and matches the provided
@@ -98,7 +100,13 @@ func EnsureBazelRCFile(ctx context.Context, bazelOpts BazelOptions) error {
 	c := ""
 	if bazelOpts.CachePath != "" {
 		// https://docs.bazel.build/versions/main/output_directories.html#current-layout
-		c += "startup --output_user_root=" + bazelOpts.CachePath
+		//
+		// Also keep the repository cache on disk so that it survives reboots.
+		// https://bazel.build/docs/build#repository-cache
+		c = fmt.Sprintf(`
+startup --output_user_root=%s
+build --repository_cache=%s
+`, bazelOpts.CachePath, repositoryCache)
 	}
 	return os_steps.WriteFile(ctx, userBazelRCLocation, []byte(c), 0666)
 
