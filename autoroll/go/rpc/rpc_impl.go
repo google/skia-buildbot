@@ -274,6 +274,8 @@ func (s *AutoRollServer) SetMode(ctx context.Context, req *SetModeRequest) (*Set
 		mode = modes.ModeStopped
 	case Mode_DRY_RUN:
 		mode = modes.ModeDryRun
+	case Mode_OFFLINE:
+		mode = modes.ModeOffline
 	default:
 		return nil, twirp.InvalidArgumentError("mode", "invalid mode")
 	}
@@ -513,6 +515,8 @@ func convertMode(m string) (Mode, error) {
 		return Mode_STOPPED, nil
 	case modes.ModeDryRun:
 		return Mode_DRY_RUN, nil
+	case modes.ModeOffline:
+		return Mode_OFFLINE, nil
 	default:
 		return -1, twirp.InternalError(fmt.Sprintf("invalid mode %q", m))
 	}

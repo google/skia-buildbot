@@ -42,6 +42,7 @@ const (
 	S_DRY_RUN_SAFETY_THROTTLED     = "dry run safety throttled"
 	S_STOPPED                      = "stopped"
 	S_CURRENT_ROLL_MISSING         = "current roll missing"
+	S_OFFLINE                      = "offline"
 
 	// Transition function names.
 	F_NOOP                       = "no-op"
@@ -435,9 +436,11 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_STOPPED, S_STOPPED, F_UPDATE_REPOS)
 	b.T(S_STOPPED, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_STOPPED, S_DRY_RUN_IDLE, F_NOOP)
+	b.T(S_STOPPED, S_OFFLINE, F_NOOP)
 
 	// Normal states.
 	b.T(S_NORMAL_IDLE, S_STOPPED, F_NOOP)
+	b.T(S_NORMAL_IDLE, S_OFFLINE, F_NOOP)
 	b.T(S_NORMAL_IDLE, S_NORMAL_IDLE, F_UPDATE_REPOS)
 	b.T(S_NORMAL_IDLE, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_NORMAL_IDLE, S_NORMAL_SAFETY_THROTTLED, F_NOTIFY_SAFETY_THROTTLE)
@@ -450,6 +453,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_NORMAL_ACTIVE, S_NORMAL_SUCCESS, F_NOOP)
 	b.T(S_NORMAL_ACTIVE, S_NORMAL_FAILURE, F_NOOP)
 	b.T(S_NORMAL_ACTIVE, S_STOPPED, F_CLOSE_STOPPED)
+	b.T(S_NORMAL_ACTIVE, S_OFFLINE, F_CLOSE_STOPPED)
 	b.T(S_NORMAL_ACTIVE, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_NORMAL_SUCCESS, S_NORMAL_IDLE, F_WAIT_FOR_LAND)
 	b.T(S_NORMAL_SUCCESS, S_NORMAL_SUCCESS_THROTTLED, F_WAIT_FOR_LAND)
@@ -458,6 +462,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_NORMAL_SUCCESS_THROTTLED, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_NORMAL_SUCCESS_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_NORMAL_SUCCESS_THROTTLED, S_STOPPED, F_NOOP)
+	b.T(S_NORMAL_SUCCESS_THROTTLED, S_OFFLINE, F_NOOP)
 	b.T(S_NORMAL_FAILURE, S_NORMAL_IDLE, F_CLOSE_FAILED)
 	b.T(S_NORMAL_FAILURE, S_NORMAL_FAILURE_THROTTLED, F_NOTIFY_FAILURE_THROTTLE)
 	b.T(S_NORMAL_FAILURE, S_CURRENT_ROLL_MISSING, F_NOOP)
@@ -468,6 +473,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_DRY_RUN_ACTIVE, F_SWITCH_TO_DRY_RUN)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_IDLE, F_CLOSE_FAILED)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_STOPPED, F_CLOSE_STOPPED)
+	b.T(S_NORMAL_FAILURE_THROTTLED, S_OFFLINE, F_CLOSE_STOPPED)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_NORMAL_SAFETY_THROTTLED, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_NORMAL_SAFETY_THROTTLED, S_NORMAL_SAFETY_THROTTLED, F_UPDATE_REPOS)
@@ -476,6 +482,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 
 	// Dry run states.
 	b.T(S_DRY_RUN_IDLE, S_STOPPED, F_NOOP)
+	b.T(S_DRY_RUN_IDLE, S_OFFLINE, F_NOOP)
 	b.T(S_DRY_RUN_IDLE, S_DRY_RUN_IDLE, F_UPDATE_REPOS)
 	b.T(S_DRY_RUN_IDLE, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_DRY_RUN_IDLE, S_NORMAL_SUCCESS_THROTTLED, F_NOOP)
@@ -487,6 +494,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_DRY_RUN_ACTIVE, S_DRY_RUN_SUCCESS, F_NOOP)
 	b.T(S_DRY_RUN_ACTIVE, S_DRY_RUN_FAILURE, F_NOOP)
 	b.T(S_DRY_RUN_ACTIVE, S_STOPPED, F_CLOSE_STOPPED)
+	b.T(S_DRY_RUN_ACTIVE, S_OFFLINE, F_CLOSE_STOPPED)
 	b.T(S_DRY_RUN_ACTIVE, S_NORMAL_SUCCESS, F_NOOP)
 	b.T(S_DRY_RUN_ACTIVE, S_NORMAL_FAILURE, F_NOOP)
 	b.T(S_DRY_RUN_ACTIVE, S_CURRENT_ROLL_MISSING, F_NOOP)
@@ -496,6 +504,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_DRY_RUN_SUCCESS_LEAVING_OPEN, F_UPDATE_REPOS)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_NORMAL_ACTIVE, F_SWITCH_TO_NORMAL)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_STOPPED, F_CLOSE_STOPPED)
+	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_OFFLINE, F_CLOSE_STOPPED)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_OUTDATED)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_FAILED)
@@ -507,6 +516,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_FAILURE, F_CLOSE_DRY_RUN_FAILED)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_NORMAL_ACTIVE, F_SWITCH_TO_NORMAL)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_STOPPED, F_CLOSE_STOPPED)
+	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_OFFLINE, F_CLOSE_STOPPED)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_DRY_RUN_SAFETY_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_DRY_RUN_SAFETY_THROTTLED, S_DRY_RUN_SAFETY_THROTTLED, F_UPDATE_REPOS)
@@ -518,7 +528,14 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_TOO_MANY_CLS, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_TOO_MANY_CLS, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_TOO_MANY_CLS, S_STOPPED, F_NOOP)
+	b.T(S_TOO_MANY_CLS, S_OFFLINE, F_NOOP)
 	b.T(S_TOO_MANY_CLS, S_TOO_MANY_CLS, F_UPDATE_REPOS)
+
+	// Offline.
+	b.T(S_OFFLINE, S_NORMAL_IDLE, F_NOOP)
+	b.T(S_OFFLINE, S_DRY_RUN_IDLE, F_NOOP)
+	b.T(S_OFFLINE, S_STOPPED, F_NOOP)
+	b.T(S_OFFLINE, S_OFFLINE, F_NOOP)
 
 	// Build the state machine.
 	b.SetInitial(S_NORMAL_IDLE)
@@ -550,6 +567,8 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_DRY_RUN_IDLE, nil
 		case modes.ModeStopped:
 			return S_STOPPED, nil
+		case modes.ModeOffline:
+			return S_OFFLINE, nil
 		default:
 			return "", fmt.Errorf("Invalid mode: %q", desiredMode)
 		}
@@ -561,6 +580,8 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_DRY_RUN_IDLE, nil
 		case modes.ModeStopped:
 			return S_STOPPED, nil
+		case modes.ModeOffline:
+			return S_OFFLINE, nil
 		default:
 			return "", fmt.Errorf("Invalid mode: %q", desiredMode)
 		}
@@ -601,6 +622,8 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 				return S_DRY_RUN_ACTIVE, nil
 			} else if desiredMode == modes.ModeStopped {
 				return S_STOPPED, nil
+			} else if desiredMode == modes.ModeOffline {
+				return S_OFFLINE, nil
 			} else if desiredMode == modes.ModeRunning {
 				return S_NORMAL_ACTIVE, nil
 			} else {
@@ -626,6 +649,8 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_DRY_RUN_IDLE, nil
 		} else if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
+		} else if desiredMode == modes.ModeOffline {
+			return S_OFFLINE, nil
 		} else if s.a.SuccessThrottle().IsThrottled() {
 			return S_NORMAL_SUCCESS_THROTTLED, nil
 		}
@@ -665,6 +690,8 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
+		} else if desiredMode == modes.ModeOffline {
+			return S_OFFLINE, nil
 		} else if s.a.GetNextRollRev().Id != currentRoll.RollingTo().Id {
 			return S_NORMAL_IDLE, nil
 		} else if desiredMode == modes.ModeDryRun {
@@ -691,6 +718,8 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_NORMAL_IDLE, nil
 		} else if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
+		} else if desiredMode == modes.ModeOffline {
+			return S_OFFLINE, nil
 		} else if desiredMode != modes.ModeDryRun {
 			return "", fmt.Errorf("Invalid mode %q", desiredMode)
 		}
@@ -735,6 +764,8 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 				return S_NORMAL_ACTIVE, nil
 			} else if desiredMode == modes.ModeStopped {
 				return S_STOPPED, nil
+			} else if desiredMode == modes.ModeOffline {
+				return S_OFFLINE, nil
 			} else if desiredMode == modes.ModeDryRun {
 				return S_DRY_RUN_ACTIVE, nil
 			} else {
@@ -763,6 +794,8 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_NORMAL_ACTIVE, nil
 		} else if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
+		} else if desiredMode == modes.ModeOffline {
+			return S_OFFLINE, nil
 		} else if desiredMode != modes.ModeDryRun {
 			return "", fmt.Errorf("Invalid mode %q", desiredMode)
 		}
@@ -797,6 +830,8 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
+		} else if desiredMode == modes.ModeOffline {
+			return S_OFFLINE, nil
 		} else if s.a.GetNextRollRev().Id != currentRoll.RollingTo().Id {
 			return S_DRY_RUN_FAILURE, nil
 		} else if desiredMode == modes.ModeRunning {
@@ -820,9 +855,21 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_DRY_RUN_IDLE, nil
 		} else if s.a.GetMode() == modes.ModeStopped {
 			return S_STOPPED, nil
+		} else if s.a.GetMode() == modes.ModeOffline {
+			return S_OFFLINE, nil
 		} else {
 			// Default case.
 			return S_NORMAL_IDLE, nil
+		}
+	case S_OFFLINE:
+		if desiredMode == modes.ModeRunning {
+			return S_NORMAL_IDLE, nil
+		} else if desiredMode == modes.ModeDryRun {
+			return S_DRY_RUN_IDLE, nil
+		} else if desiredMode == modes.ModeStopped {
+			return S_STOPPED, nil
+		} else {
+			return S_OFFLINE, nil
 		}
 	default:
 		return "", fmt.Errorf("Invalid state %q", state)

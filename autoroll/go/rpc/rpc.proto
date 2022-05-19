@@ -28,13 +28,18 @@ enum Mode {
   // RUNNING is the typical operating mode of the autoroller. It will upload and
   // land CLs as new revisions appear in the Child.
   RUNNING = 0;
-  // STOPPED prevents the autoroller from uploading any CLs.
+  // STOPPED prevents the autoroller from uploading any CLs. The roller will
+  // continue to update any local checkouts to prevent them from getting too far
+  // out of date, and any requested manual rolls will be fulfilled.
   STOPPED = 1;
   // DRY_RUN is similar to RUNNING but does not land the roll CLs after the
   // commit queue finishes. Instead, the active roll is left open until new
   // revisions appear in the child, at which point the roll is closed and a new
   // one is uploaded.
   DRY_RUN = 2;
+  // OFFLINE is similar to STOPPED, but the roller does not update its checkouts
+  // and requests for manual rolls are ignored.
+  OFFLINE = 3;
 }
 
 // Strategy describes the valid strategies for choosing the next revision to

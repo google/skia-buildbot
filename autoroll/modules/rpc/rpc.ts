@@ -4,6 +4,7 @@ export enum Mode {
   RUNNING = "RUNNING",
   STOPPED = "STOPPED",
   DRY_RUN = "DRY_RUN",
+  OFFLINE = "OFFLINE",
 }
 
 export enum Strategy {

@@ -22,14 +22,16 @@ const (
 	ModeRunning = "running"
 	ModeStopped = "stopped"
 	ModeDryRun  = "dry run"
+	ModeOffline = "offline"
 )
 
 var (
 	// ValidModes lists the valid autoroller modes.
 	ValidModes = []string{
 		ModeRunning,
-		ModeStopped,
 		ModeDryRun,
+		ModeStopped,
+		ModeOffline,
 	}
 )
 

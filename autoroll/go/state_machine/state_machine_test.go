@@ -863,7 +863,7 @@ func TestNilCurrentRoll(t *testing.T) {
 	// Verify that every state in the state machine handles a nil current
 	// roll without crashing.
 	states := sm.s.ListStates()
-	require.Equal(t, 18, len(states))
+	require.Equal(t, 19, len(states))
 	stateFile := "test-roller/state_machine"
 	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, nil, nil, nil)
 	require.NoError(t, err)
@@ -1030,4 +1030,43 @@ func TestTooManyRollCLsDryRun(t *testing.T) {
 	r.SetNextRollRev("HEAD+2")
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+}
+
+func TestOffline(t *testing.T) {
+	ctx, sm, r, _, cleanup := setup(t)
+	defer cleanup()
+
+	// Switch the roller in and out of offline mode.
+	r.SetMode(ctx, modes.ModeOffline)
+	checkNextState(t, sm, S_OFFLINE)
+	checkNextState(t, sm, S_OFFLINE)
+	r.SetMode(ctx, modes.ModeRunning)
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	r.SetMode(ctx, modes.ModeOffline)
+	checkNextState(t, sm, S_OFFLINE)
+	r.SetMode(ctx, modes.ModeDryRun)
+	checkNextState(t, sm, S_DRY_RUN_IDLE)
+	r.SetMode(ctx, modes.ModeOffline)
+	checkNextState(t, sm, S_OFFLINE)
+	r.SetMode(ctx, modes.ModeStopped)
+	checkNextState(t, sm, S_STOPPED)
+	r.SetMode(ctx, modes.ModeOffline)
+	checkNextState(t, sm, S_OFFLINE)
+
+	// Ensure that we close open CLs, just like we do in "stopped" mode.
+	r.SetNextRollRev("HEAD+1")
+	r.SetMode(ctx, modes.ModeRunning)
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	roll := r.GetActiveRoll().(*TestRollCLImpl)
+	r.SetMode(ctx, modes.ModeOffline)
+	checkNextState(t, sm, S_OFFLINE)
+	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
+	r.SetMode(ctx, modes.ModeDryRun)
+	checkNextState(t, sm, S_DRY_RUN_IDLE)
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	r.SetMode(ctx, modes.ModeOffline)
+	checkNextState(t, sm, S_OFFLINE)
+	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
 }

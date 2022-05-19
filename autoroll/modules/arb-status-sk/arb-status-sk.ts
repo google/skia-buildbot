@@ -823,6 +823,8 @@ export class ARBStatusSk extends ElementSk {
             return 'stop';
           case Mode.DRY_RUN:
             return 'switch to dry run';
+          case Mode.OFFLINE:
+            return 'turn off';
         }
       case Mode.STOPPED:
         switch (mode) {
@@ -830,6 +832,8 @@ export class ARBStatusSk extends ElementSk {
             return 'resume';
           case Mode.DRY_RUN:
             return 'switch to dry run';
+          case Mode.OFFLINE:
+            return 'turn off';
         }
       case Mode.DRY_RUN:
         switch (mode) {
@@ -837,6 +841,17 @@ export class ARBStatusSk extends ElementSk {
             return 'switch to normal mode';
           case Mode.STOPPED:
             return 'stop';
+          case Mode.OFFLINE:
+            return 'turn off';
+        }
+      case Mode.OFFLINE:
+        switch (mode) {
+          case Mode.RUNNING:
+            return 'switch to normal mode';
+          case Mode.DRY_RUN:
+            return 'switch to dry run';
+          case Mode.STOPPED:
+            return 'turn back on in stopped mode';
         }
     }
   }
@@ -996,6 +1011,7 @@ export class ARBStatusSk extends ElementSk {
       'dry run failure': 'fg-failure',
       'dry run throttled': 'fg-failure',
       stopped: 'fg-failure',
+      offline: 'fg-failure',
     };
     return statusClassMap[status] || '';
   }
